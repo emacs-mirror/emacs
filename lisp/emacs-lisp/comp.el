@@ -91,24 +91,28 @@
   "Current stack pointer."
   '(comp-limple-frame-sp frame))
 
+(defmacro comp-slot-n (n)
+  "Slot N into the meta-stack."
+  `(aref (comp-limple-frame-frame frame) ,n))
+
 (defmacro comp-slot ()
   "Current slot into the meta-stack pointed by sp."
-  '(aref (comp-limple-frame-frame frame) (comp-sp)))
+  '(comp-slot-n (comp-sp)))
 
-(defmacro comp-push (n)
-  "Push slot number N into frame."
+(defmacro comp-push (x)
+  "Push X into frame."
   `(progn
      (cl-incf (comp-sp))
-     (list '= (comp-slot) ,n)))
+     (list '= (comp-slot) ,x)))
 
-(defmacro comp-push-slot (n)
+(defmacro comp-push-slot-n (n)
   "Push slot number N into frame."
-  `(let ((src-slot (aref (comp-limple-frame-frame frame) ,n)))
+  `(let ((src-slot (comp-slot-n ,n)))
      (cl-incf (comp-sp))
      (setf (comp-slot)
            (copy-sequence src-slot))
      (setf (comp-meta-var-slot (comp-slot)) (comp-sp))
-     (list '= (comp-slot) src-slot)))
+     (list '=slot (comp-slot) src-slot)))
 
 (defmacro comp-push-const (x)
   "Push X into frame.
@@ -118,7 +122,7 @@ X value is known at compile time."
      (setf (comp-slot) (make-comp-meta-var :slot (comp-sp)
                                            :const-vld t
                                            :constant ,x))
-     (list '= (comp-slot) ,x)))
+     (list '=const (comp-slot) ,x)))
 
 (defmacro comp-pop (n)
   "Pop N elements from the meta-stack."
@@ -128,32 +132,44 @@ X value is known at compile time."
   "Limplify LAP instruction INST in current FRAME."
   (let ((op (car inst)))
     (pcase op
+      ('byte-dup
+       (comp-push-slot-n (comp-sp)))
       ('byte-varref
        (comp-push `(call Fsymbol_value ,(second inst))))
       ('byte-constant
        (comp-push-const (second inst)))
       ('byte-stack-ref
-       (comp-push-slot (- (comp-sp) (cdr inst))))
+       (comp-push-slot-n (- (comp-sp) (cdr inst))))
       ('byte-plus
        (comp-pop 2)
        (comp-push `(callref Fplus 2 ,(comp-sp))))
+      ('byte-car
+       (comp-pop 1)
+       (comp-push `(Fcar ,(comp-sp))))
       ('byte-return
-       `(return ,(comp-sp)))
+       `(return ,(comp-slot)))
       (_ 'xxx))))
 
 (defun comp-limplify (ir)
-  "Take IR and return LIMPLE."
+  "Given IR and return LIMPLE."
   (let* ((frame-size (aref (comp-func-byte-func ir) 3))
          (frame (make-comp-limple-frame
-                 :sp (1- (comp-args-mandatory (comp-func-args ir)))
+                 :sp -1
                  :frame (let ((v (make-vector frame-size nil)))
                           (cl-loop for i below frame-size
                                    do (aset v i (make-comp-meta-var :slot i)))
                           v)))
-         (limple-ir
-          (cl-loop
-           for inst in (comp-func-ir ir)
-           collect (comp-limplify-lap-inst inst frame))))
+         (limple-ir ()))
+    ;; Prologue
+    (push '(BLOCK prologue) limple-ir)
+    (cl-loop for i below (comp-args-mandatory (comp-func-args ir))
+             do (progn
+                  (cl-incf (comp-sp))
+                  (push `(=par ,(comp-slot) ,i) limple-ir)))
+    (push '(BLOCK body) limple-ir)
+    (cl-loop for inst in (comp-func-ir ir)
+             do (push (comp-limplify-lap-inst inst frame) limple-ir))
+    (setq limple-ir (reverse limple-ir))
     (setf (comp-func-ir ir) limple-ir)
     (when comp-debug
       (cl-prettyprint (comp-func-ir ir)))
