@@ -4527,6 +4527,36 @@ XTframe_rehighlight (struct frame *frame)
   pgtk_frame_rehighlight (FRAME_DISPLAY_INFO (frame));
 }
 
+
+/* Toggle mouse pointer visibility on frame F by using invisible cursor.  */
+
+static void
+x_toggle_visible_pointer (struct frame *f, bool invisible)
+{
+  Emacs_Cursor cursor;
+  if (invisible)
+    cursor = FRAME_DISPLAY_INFO (f)->invisible_cursor;
+  else
+    cursor = f->output_data.pgtk->current_cursor;
+  gdk_window_set_cursor(gtk_widget_get_window(FRAME_GTK_WIDGET(f)), cursor);
+  f->pointer_invisible = invisible;
+}
+
+static void
+x_setup_pointer_blanking (struct pgtk_display_info *dpyinfo)
+{
+  dpyinfo->toggle_visible_pointer = x_toggle_visible_pointer;
+  dpyinfo->invisible_cursor = gdk_cursor_new_for_display(dpyinfo->gdpy, GDK_BLANK_CURSOR);
+}
+
+static void
+XTtoggle_invisible_pointer (struct frame *f, bool invisible)
+{
+  block_input ();
+  FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, invisible);
+  unblock_input ();
+}
+
 /* The focus has changed.  Update the frames as necessary to reflect
    the new situation.  Note that we can't change the selected frame
    here, because the Lisp code we are interrupting might become confused.
@@ -4570,6 +4600,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
 
   terminal->clear_frame_hook = pgtk_clear_frame;
   terminal->ring_bell_hook = pgtk_ring_bell;
+  terminal->toggle_invisible_pointer_hook = XTtoggle_invisible_pointer;
   terminal->update_begin_hook = pgtk_update_begin;
   terminal->update_end_hook = pgtk_update_end;
   terminal->read_socket_hook = pgtk_read_socket;
@@ -6136,13 +6167,11 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   /* We must create a GTK cursor, it is required for GTK widgets.  */
   dpyinfo->xg_cursor = xg_create_default_cursor (dpyinfo->gdpy);
 
-#if 0
   dpyinfo->vertical_scroll_bar_cursor
-    = XCreateFontCursor (dpyinfo->display, XC_sb_v_double_arrow);
+    = gdk_cursor_new_for_display(dpyinfo->gdpy, GDK_SB_V_DOUBLE_ARROW);
 
   dpyinfo->horizontal_scroll_bar_cursor
-    = XCreateFontCursor (dpyinfo->display, XC_sb_h_double_arrow);
-#endif
+    = gdk_cursor_new_for_display(dpyinfo->gdpy, GDK_SB_H_DOUBLE_ARROW);
 
   reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
@@ -6153,9 +6182,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     dpyinfo->resy = dpi;
   }
 
-#if 0
   x_setup_pointer_blanking (dpyinfo);
-#endif
 
   xsettings_initialize (dpyinfo);
 

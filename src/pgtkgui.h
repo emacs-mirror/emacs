@@ -43,7 +43,7 @@ typedef unichar XChar2b;
   (*(chp) & 0x00ff)
 
 
-typedef void *Emacs_Cursor;
+typedef struct _GdkCursor *Emacs_Cursor;
 
 typedef void * Color;
 typedef int Window;
