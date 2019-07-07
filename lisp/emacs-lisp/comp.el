@@ -130,8 +130,8 @@ X value is known at compile time."
   `(let ((val ,x))
      (cl-incf (comp-sp))
      (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
-                                           :const-vld t
-                                           :constant val))
+                                       :const-vld t
+                                       :constant val))
      (push (list '=const (comp-slot) val) ir)))
 
 (defmacro comp-pop (n)
@@ -141,33 +141,44 @@ X value is known at compile time."
 (defun comp-limplify-lap-inst (inst frame ir)
   "Limplify LAP instruction INST in current FRAME accumulating in IR.
 Return the new head."
-  (let ((op (car inst)))
-    (pcase op
-      ('byte-dup
-       (comp-push-slot-n (comp-sp)))
-      ('byte-varref
-       (comp-push-call `(call Fsymbol_value ,(second inst))))
-      ('byte-constant
-       (comp-push-const (second inst)))
-      ('byte-stack-ref
-       (comp-push-slot-n (- (comp-sp) (cdr inst))))
-      ('byte-plus
-       (comp-pop 2)
-       (comp-push-call `(callref Fplus 2 ,(comp-sp))))
-      ('byte-car
-       (comp-pop 1)
-       (comp-push-call `(call Fcar ,(comp-sp))))
-      ('byte-list3
-       (comp-pop 1)
-       (comp-push-call `(call Fcons ,(comp-slot-next) nil))
-       (dotimes (_ 1)
+  (cl-flet ((do-list (n)
+               (comp-pop 1)
+               (comp-push-call `(call Fcons ,(comp-slot-next) nil))
+               (dotimes (_ (1- n))
+                 (comp-pop 2)
+                 (comp-push-call `(call Fcons
+                                        ,(comp-slot-next)
+                                        ,(comp-slot-n (+ 2 (comp-sp))))))))
+    (let ((op (car inst)))
+      (pcase op
+        ('byte-dup
+         (comp-push-slot-n (comp-sp)))
+        ('byte-varref
+         (comp-push-call `(call Fsymbol_value ,(second inst))))
+        ('byte-constant
+         (comp-push-const (second inst)))
+        ('byte-stack-ref
+         (comp-push-slot-n (- (comp-sp) (cdr inst))))
+        ('byte-plus
          (comp-pop 2)
-         (comp-push-call `(call Fcons
-                                ,(comp-slot)
-                                ,(comp-slot-next)))))
-      ('byte-return
-       `(return ,(comp-slot)))
-      (_ (error "Unexpected LAP op %s" (symbol-name op)))))
+         (comp-push-call `(callref Fplus 2 ,(comp-sp))))
+        ('byte-car
+         (comp-pop 1)
+         (comp-push-call `(call Fcar ,(comp-sp))))
+        ('byte-cdr
+         (comp-pop 1)
+         (comp-push-call `(call Fcdr ,(comp-sp))))
+        ('byte-list1
+         (do-list 1))
+        ('byte-list2
+         (do-list 2))
+        ('byte-list3
+         (do-list 3))
+        ('byte-list4
+         (do-list 4))
+        ('byte-return
+         `(return ,(comp-slot)))
+        (_ (error "Unexpected LAP op %s" (symbol-name op))))))
   ir)
 
 (defun comp-limplify (ir)
