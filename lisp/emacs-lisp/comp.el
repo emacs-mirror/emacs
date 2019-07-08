@@ -37,6 +37,15 @@
 
 (defconst comp-known-ret-types '((Fcons . cons)))
 
+(defconst comp-mostly-pure-funcs
+  '(% * + - / /= 1+ 1- < <= = > >= cons list % concat logand logcount logior
+      lognot logxor regexp-opt regexp-quote string-to-char string-to-syntax
+      symbol-name)
+  "Functions on witch we do constant propagation."
+  ;;  Is it acceptable to move into the compile time functions that are
+  ;; allocating memory? (these are technically not side effect free)
+)
+
 (cl-defstruct comp-args
   mandatory nonrest rest)
 
@@ -104,6 +113,13 @@
 (defmacro comp-slot-next ()
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
+
+;; (defun comp-opt-call (inst)
+;;   "Optimize if possible a side-effect-free call in INST."
+;;   (cl-destructuring-bind (_ f &rest args) inst
+;;     (when (and (member f comp-mostly-pure-funcs)
+;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
+;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
 (defmacro comp-push-call (x)
   "Push call X into frame."
