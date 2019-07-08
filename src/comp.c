@@ -121,6 +121,7 @@ typedef struct {
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
   Lisp_Object func_hash; /* f_name -> gcc_func.	*/
+  Lisp_Object funcs; /* List of functions defined.  */
 } comp_t;
 
 static comp_t comp;
@@ -1686,6 +1687,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       return Qnil;
     }
   comp.ctxt = gcc_jit_context_acquire();
+  comp.funcs = Qnil;
 
   if (COMP_DEBUG)
     {
@@ -1907,6 +1909,8 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
       limple = XCDR (limple);
     }
 
+  comp.funcs = Fcons (func, comp.funcs);
+
   return Qt;
 }
 
@@ -1933,15 +1937,26 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
 				     GCC_JIT_OUTPUT_KIND_ASSEMBLER,
 				     "gcc-ctxt-dump.s");
 
-  /* FIXME: must iterate all function names.  */
-  union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
-  x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
-  x->s.function.a0 = gcc_jit_result_get_code(gcc_res, "F666f6f_foo");
-  eassert (x->s.function.a0);
-  x->s.min_args = 0;
-  x->s.max_args = 0;
-  x->s.symbol_name = "foo";
-  defsubr(x);
+  while (CONSP (comp.funcs))
+    {
+      union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+      Lisp_Object func = XCAR (comp.funcs);
+      Lisp_Object args = (CALLN (Ffuncall, intern ("comp-func-args"), func));
+      char *c_name =
+	(char *) SDATA (CALLN (Ffuncall,
+			       intern ("comp-func-c-func-name"),
+			       func));
+
+      x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
+      x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
+      eassert (x->s.function.a0);
+      x->s.min_args = XFIXNUM (CALLN (Ffuncall, intern ("comp-args-min"), args));
+      x->s.max_args = XFIXNUM (CALLN (Ffuncall, intern ("comp-args-min"), args));
+      x->s.symbol_name = "foo";
+      defsubr(x);
+
+      comp.funcs = XCDR (comp.funcs);
+    }
 
   unblock_atimers (&oldset);
 
