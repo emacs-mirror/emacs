@@ -1835,9 +1835,11 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   return Qt;
 }
 
-DEFUN ("comp-compile-ctxt", Fcomp_compile_ctxt, Scomp_compile_ctxt,
+DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
+       Scomp_compile_and_load_ctxt,
        0, 1, 0,
-       doc: /* Compile as native code the current context.  */)
+       doc: /* Compile as native code the current context and load its
+	       functions.  */)
      (Lisp_Object disassemble)
 {
   gcc_jit_context_set_int_option (comp.ctxt,
@@ -1852,7 +1854,7 @@ syms_of_comp (void)
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
   defsubr (&Scomp_add_func_to_ctxt);
-  defsubr (&Scomp_compile_ctxt);
+  defsubr (&Scomp_compile_and_load_ctxt);
   comp.func_hash = Qnil;
   staticpro (&comp.func_hash);
 

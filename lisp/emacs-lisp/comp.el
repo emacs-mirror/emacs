@@ -23,7 +23,9 @@
 ;;; Code:
 
 (require 'bytecomp)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
+(require 'cl-extra)
+(require 'subr-x)
 
 (defgroup comp nil
   "Emacs Lisp native compiler."
@@ -102,6 +104,11 @@
   (setf (comp-func-ir func) byte-compile-lap-output)
   func)
 
+(declare-function comp-init-ctxt "comp.c")
+(declare-function comp-release-ctxt "comp.c")
+(declare-function comp-add-func-to-ctxt "comp.c")
+(declare-function comp-compile-and-load-ctxt "comp.c")
+
 ;; (defun comp-opt-call (inst)
 ;;   "Optimize if possible a side-effect-free call in INST."
 ;;   (cl-destructuring-bind (_ f &rest args) inst
@@ -141,7 +148,7 @@
   (cl-incf (comp-sp))
   (setf (comp-slot)
         (make-comp-mvar :slot (comp-sp)
-                        :type (alist-get (second src-slot)
+                        :type (alist-get (cadr src-slot)
                                          comp-known-ret-types)))
   (push (list '=call (comp-slot) src-slot) comp-limple))
 
@@ -187,11 +194,11 @@ VAL is known at compile time."
       ('byte-dup
        (comp-push-slot-n (comp-sp)))
       ('byte-varref
-       (comp-push-call `(call Fsymbol_value ,(second inst))))
+       (comp-push-call `(call Fsymbol_value ,(cadr inst))))
       ;; ('byte-varset
-      ;;  (comp-push-call `(call Fsymbol_value ,(second inst))))
+      ;;  (comp-push-call `(call Fsymbol_value ,(cadr inst))))
       ('byte-constant
-       (comp-push-const (second inst)))
+       (comp-push-const (cadr inst)))
       ('byte-stack-ref
        (comp-push-slot-n (- (comp-sp) (cdr inst))))
       ('byte-plus
@@ -246,18 +253,24 @@ VAL is known at compile time."
     func))
 
 (defun native-compile (fun)
-  "FUN is the function definition to be compiled to native code."
+  "FUN is the function definition to be compiled into native code."
   (unless lexical-binding
     (error "Can't compile a non lexical binded function"))
   (if-let ((f (symbol-function fun)))
       (progn
         (when (byte-code-function-p f)
           (error "Can't native compile an already bytecompiled function"))
-        (cl-loop with func = (make-comp-func :symbol-name fun
-                                             :func f)
-                 for pass in comp-passes
-                 do (funcall pass func)
-                 finally return func))
+        (let ((func (make-comp-func :symbol-name fun
+                                    :func f)))
+          (mapc (lambda (pass)
+                  (funcall pass func))
+                comp-passes)
+          ;; Once we have the final LIMPLE we jump into C.
+          (when (boundp #'comp-init-ctxt)
+                (comp-init-ctxt)
+                (comp-add-func-to-ctxt func)
+                (comp-compile-and-load-ctxt)
+                (comp-release-ctxt))))
     (error "Trying to native compile not a function")))
 
 (provide 'comp)
