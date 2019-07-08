@@ -941,7 +941,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   else
     {
       Lisp_Object error_conditions = Fget (errname, Qerror_conditions);
-      errmsg = Fsubstitute_command_keys (Fget (errname, Qerror_message));
+      errmsg = call1 (Qsubstitute_command_keys, Fget (errname, Qerror_message));
       file_error = Fmemq (Qfile_error, error_conditions);
     }
 

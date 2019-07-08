@@ -2915,6 +2915,37 @@ You type        Translation\n\
 
    Any inserted text ends in two newlines (used by `help-make-xrefs').  */
 
+DEFUN ("describe-map-tree", Fdescribe_map_tree, Sdescribe_map_tree, 1, 8, 0,
+       doc: /* This is just temporary.  */)
+  (Lisp_Object startmap, Lisp_Object partial, Lisp_Object shadow,
+   Lisp_Object prefix, Lisp_Object title, Lisp_Object nomenu,
+   Lisp_Object transl, Lisp_Object always_title)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+  char *title_string;
+
+  if ( !NILP (title) )
+    {
+      CHECK_STRING (title);
+      title_string = SSDATA(title);
+    }
+  else
+    {
+      title_string = NULL;
+    }
+
+  bool b_partial = NILP (partial) ? false : true;
+  bool b_nomenu = NILP (nomenu) ? false : true;
+  bool b_transl = NILP (transl) ? false : true;
+  bool b_always_title = NILP (always_title) ? false : true;
+
+  /* specbind (Qstandard_output, Fcurrent_buffer ()); */
+  describe_map_tree (startmap, b_partial, shadow, prefix, title_string,
+		     b_nomenu, b_transl, b_always_title, true);
+
+  return unbind_to (count, Qnil);
+}
+
 void
 describe_map_tree (Lisp_Object startmap, bool partial, Lisp_Object shadow,
 		   Lisp_Object prefix, const char *title, bool nomenu,
@@ -3708,6 +3739,7 @@ be preferred.  */);
   defsubr (&Scurrent_active_maps);
   defsubr (&Saccessible_keymaps);
   defsubr (&Skey_description);
+  defsubr (&Sdescribe_map_tree);
   defsubr (&Sdescribe_vector);
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);

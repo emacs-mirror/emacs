@@ -973,6 +973,150 @@ is currently activated with completion."
 		  minor-modes nil)
 	  (setq minor-modes (cdr minor-modes)))))
     result))
+
+
+(defun substitute-command-keys (string)
+  "Substitute key descriptions for command names in STRING.
+Each substring of the form \\\\=[COMMAND] is replaced by either a
+keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
+is not on any keys.
+
+Each substring of the form \\\\={MAPVAR} is replaced by a summary of
+the value of MAPVAR as a keymap.  This summary is similar to the one
+produced by ‘describe-bindings’.  The summary ends in two newlines
+(used by the helper function ‘help-make-xrefs’ to find the end of the
+summary).
+
+Each substring of the form \\\\=<MAPVAR> specifies the use of MAPVAR
+as the keymap for future \\\\=[COMMAND] substrings.
+
+Each grave accent \\=` is replaced by left quote, and each apostrophe \\='
+is replaced by right quote.  Left and right quote characters are
+specified by ‘text-quoting-style’.
+
+\\\\== quotes the following character and is discarded; thus, \\\\==\\\\== puts \\\\==
+into the output, \\\\==\\[ puts \\[ into the output, and \\\\==\\=` puts \\=` into the
+output.
+
+Return the original STRING if no substitutions are made.
+Otherwise, return a new string (without any text properties)."
+  (when (not (null string))
+    ;; KEYMAP is either nil (which means search all the active
+    ;; keymaps) or a specified local map (which means search just that
+    ;; and the global map).  If non-nil, it might come from
+    ;; overriding-local-map, or from a \\<mapname> construct in STRING
+    ;; itself.
+    (let ((keymap overriding-local-map)
+          (inhibit-modification-hooks t)
+          (orig-buf (current-buffer)))
+      (with-temp-buffer
+        (insert string)
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          (let ((orig-point (point))
+                end-point active-maps
+                close generate-summary)
+            (cond
+             ;; 1. Handle all sequences starting with "\"
+             ((= (following-char) ?\\)
+              (ignore-errors
+                (forward-char 1))
+              (cond
+               ;; 1A. Ignore \= at end of string.
+               ((and (= (+ (point) 1) (point-max))
+                     (= (following-char) ?=))
+                (forward-char 1))
+               ;; 1B. \= quotes the next character; thus, to put in \[
+               ;;     without its special meaning, use \=\[.
+               ((= (following-char) ?=)
+                (goto-char orig-point)
+                (delete-char 2)
+                (ignore-errors
+                  (forward-char 1)))
+               ;; 1C. \[foo] is replaced with the keybinding.
+               ((and (= (following-char) ?\[)
+                     (save-excursion
+                       (prog1 (search-forward "]" nil t)
+                         (setq end-point (- (point) 2)))))
+                (goto-char orig-point)
+                (delete-char 2)
+                (let* ((fun (intern (buffer-substring (point) (1- end-point))))
+                       (key (with-current-buffer orig-buf
+                              (where-is-internal fun keymap t))))
+                  ;; If this a command remap, we need to follow it.
+                  (when (and (vectorp key)
+                             (> (length key) 1)
+                             (eq (aref key 0) 'remap)
+                             (symbolp (aref key 1)))
+                    (setq fun (aref key 1))
+                    (setq key (with-current-buffer orig-buf
+                                (where-is-internal fun keymap t))))
+                  (if (not key)
+                      ;; Function is not on any key.
+                      (progn (insert "M-x ")
+                             (goto-char (+ end-point 3))
+                             (delete-char 1))
+                    ;; Function is on a key.
+                    (delete-char (- end-point (point)))
+                    (insert (key-description key)))))
+               ;; 1D. \{foo} is replaced with a summary of the keymap
+               ;;            (symbol-value foo).
+               ;;     \<foo> just sets the keymap used for \[cmd].
+               ((and (or (and (= (following-char) ?{)
+                              (setq close "}")
+                              (setq generate-summary t))
+                         (and (= (following-char) ?<)
+                              (setq close ">")))
+                     (or (save-excursion
+                           (prog1 (search-forward close nil t)
+                             (setq end-point (- (point) 2))))))
+                (goto-char orig-point)
+                (delete-char 2)
+                (let* ((name (intern (buffer-substring (point) (1- end-point))))
+                       this-keymap)
+                  (delete-char (- end-point (point)))
+                  ;; Get the value of the keymap in TEM, or nil if
+                  ;; undefined. Do this in the user's current buffer
+                  ;; in case it is a local variable.
+                  (with-current-buffer orig-buf
+                    ;; This is for computing the SHADOWS arg for
+                    ;; describe-map-tree.
+                    (setq active-maps (current-active-maps))
+                    (when (boundp name)
+                      (setq this-keymap (and (keymapp (symbol-value name))
+                                             (symbol-value name)))))
+                  (cond
+                   ((null this-keymap)
+                    (insert "\nUses keymap "
+                            (substitute-command-keys "`")
+                            (symbol-name name)
+                            (substitute-command-keys "'")
+                            ", which is not currently defined.\n")
+                    (unless generate-summary
+                      (setq keymap nil)))
+                   ((not generate-summary)
+                    (setq keymap this-keymap))
+                   (t
+                    ;; Get the list of active keymaps that precede this one.
+                    ;; If this one's not active, get nil.
+                    (let ((earlier-maps (cdr (memq this-keymap (reverse active-maps)))))
+                      (describe-map-tree this-keymap t (nreverse earlier-maps)
+                                         nil nil t nil nil))))))))
+             ;; 2. Handle quotes.
+             ((and (eq (get-quoting-style) 'curve)
+                   (or (and (= (following-char) ?\`)
+                            (prog1 t (insert "‘")))
+                       (and (= (following-char) ?')
+                            (prog1 t (insert "’")))))
+              (delete-char 1))
+             ((and (eq (get-quoting-style) 'straight)
+                   (= (following-char) ?\`))
+              (insert "'")
+              (delete-char 1))
+             ;; 3. Nothing to do -- next character.
+             (t (forward-char 1)))))
+        (buffer-string)))))
+
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
 (declare-function x-display-pixel-width "xfns.c" (&optional terminal))

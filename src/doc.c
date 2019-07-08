@@ -415,7 +415,7 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   if (NILP (raw))
-    doc = Fsubstitute_command_keys (doc);
+    doc = call1 (Qsubstitute_command_keys, doc);
   return doc;
 }
 
@@ -472,7 +472,7 @@ aren't strings.  */)
     tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
-    tem = Fsubstitute_command_keys (tem);
+    tem = call1 (Qsubstitute_command_keys, tem);
   return tem;
 }
 
@@ -696,8 +696,27 @@ text_quoting_style (void)
     return CURVE_QUOTING_STYLE;
 }
 
-DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
-       Ssubstitute_command_keys, 1, 1, 0,
+/* This is just a Lisp wrapper for text_quoting_style above.  */
+DEFUN ("get-quoting-style", Fget_quoting_style,
+       Sget_quoting_style, 0, 0, 0,
+       doc: /* Return the current effective text quoting style.
+See variable `text-quoting-style'.  */)
+  (void)
+{
+  switch (text_quoting_style ())
+    {
+    case STRAIGHT_QUOTING_STYLE:
+      return Qstraight;
+    case CURVE_QUOTING_STYLE:
+      return Qcurve;
+    case GRAVE_QUOTING_STYLE:
+    default:
+      return Qgrave;
+    }
+}
+
+DEFUN ("substitute-command-keys-old", Fsubstitute_command_keys_old,
+       Ssubstitute_command_keys_old, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
 Each substring of the form \\=\\[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or "M-x COMMAND" if COMMAND
@@ -884,12 +903,12 @@ Otherwise, return a new string (without any text properties).  */)
 	    {
 	      name = Fsymbol_name (name);
 	      AUTO_STRING (msg_prefix, "\nUses keymap `");
-	      insert1 (Fsubstitute_command_keys (msg_prefix));
+	      insert1 (Fsubstitute_command_keys_old (msg_prefix));
 	      insert_from_string (name, 0, 0,
 				  SCHARS (name),
 				  SBYTES (name), 1);
 	      AUTO_STRING (msg_suffix, "', which is not currently defined.\n");
-	      insert1 (Fsubstitute_command_keys (msg_suffix));
+	      insert1 (Fsubstitute_command_keys_old (msg_suffix));
 	      if (!generate_summary)
 		keymap = Qnil;
 	    }
@@ -1002,9 +1021,11 @@ Otherwise, return a new string (without any text properties).  */)
 void
 syms_of_doc (void)
 {
+  DEFSYM (Qsubstitute_command_keys, "substitute-command-keys");
   DEFSYM (Qfunction_documentation, "function-documentation");
   DEFSYM (Qgrave, "grave");
   DEFSYM (Qstraight, "straight");
+  DEFSYM (Qcurve, "curve");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
@@ -1036,5 +1057,6 @@ otherwise.  */);
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
-  defsubr (&Ssubstitute_command_keys);
+  defsubr (&Sget_quoting_style);
+  defsubr (&Ssubstitute_command_keys_old);
 }
