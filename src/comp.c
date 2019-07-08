@@ -230,17 +230,17 @@ emit_comment (const char *str)
 /* Assignments to the meta-stack slots should be emitted usign this to always */
 /* reset annotation fields.   */
 
-static void
-emit_assign_to_stack_slot (basic_block_t *block, stack_el_t *slot,
-			   gcc_jit_rvalue *val)
-{
-  gcc_jit_block_add_assignment (block->gcc_bb,
-				NULL,
-				slot->gcc_lval,
-				val);
-  slot->type = -1;
-  slot->const_set = false;
-}
+/* static void */
+/* emit_assign_to_stack_slot (basic_block_t *block, stack_el_t *slot, */
+/* 			   gcc_jit_rvalue *val) */
+/* { */
+/*   gcc_jit_block_add_assignment (block->gcc_bb, */
+/* 				NULL, */
+/* 				slot->gcc_lval, */
+/* 				val); */
+/*   slot->type = -1; */
+/*   slot->const_set = false; */
+/* } */
 
 /* Declare a function with all args being Lisp_Object and returning a
    Lisp_Object.  */
@@ -305,8 +305,8 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 
   if (i == -1)
     {
-      emit_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
-			true);
+      emit_func_declare (f_name, ret_type, nargs, args,
+			 GCC_JIT_FUNCTION_IMPORTED, true);
       i = hash_lookup (ht, key, &hash);
       eassert (i != -1);
     }
@@ -352,20 +352,20 @@ emit_cond_jump (gcc_jit_rvalue *test,
 
 /* Close current basic block emitting a comparison between two rval.  */
 
-static gcc_jit_rvalue *
-emit_comparison_jump (enum gcc_jit_comparison op,
-		     gcc_jit_rvalue *a, gcc_jit_rvalue *b,
-		     basic_block_t *then_target, basic_block_t *else_target)
-{
-  gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
-							 NULL,
-							 op,
-							 a, b);
+/* static gcc_jit_rvalue * */
+/* emit_comparison_jump (enum gcc_jit_comparison op, */
+/* 		     gcc_jit_rvalue *a, gcc_jit_rvalue *b, */
+/* 		     basic_block_t *then_target, basic_block_t *else_target) */
+/* { */
+/*   gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt, */
+/* 							 NULL, */
+/* 							 op, */
+/* 							 a, b); */
 
-  emit_cond_jump (test, then_target, else_target);
+/*   emit_cond_jump (test, then_target, else_target); */
 
-  return test;
-}
+/*   return test; */
+/* } */
 
 static gcc_jit_rvalue *
 emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
@@ -399,34 +399,34 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
    (typeof_ptr) ((uintptr) ptr + size_of_ptr_ref * i)
 */
 
-static gcc_jit_rvalue *
-emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type,
-		     int size_of_ptr_ref, gcc_jit_rvalue *i)
-{
-  emit_comment ("ptr_arithmetic");
+/* static gcc_jit_rvalue * */
+/* emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type, */
+/* 		     int size_of_ptr_ref, gcc_jit_rvalue *i) */
+/* { */
+/*   emit_comment ("ptr_arithmetic"); */
 
-  gcc_jit_rvalue *offset =
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
-      GCC_JIT_BINARY_OP_MULT,
-      comp.uintptr_type,
-      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.uintptr_type,
-					   size_of_ptr_ref),
-      emit_cast (comp.uintptr_type, i));
+/*   gcc_jit_rvalue *offset = */
+/*     gcc_jit_context_new_binary_op ( */
+/*       comp.ctxt, */
+/*       NULL, */
+/*       GCC_JIT_BINARY_OP_MULT, */
+/*       comp.uintptr_type, */
+/*       gcc_jit_context_new_rvalue_from_int (comp.ctxt, */
+/* 					   comp.uintptr_type, */
+/* 					   size_of_ptr_ref), */
+/*       emit_cast (comp.uintptr_type, i)); */
 
-  return
-    emit_cast (
-      ptr_type,
-      gcc_jit_context_new_binary_op (
-        comp.ctxt,
-	NULL,
-	GCC_JIT_BINARY_OP_PLUS,
-	comp.uintptr_type,
-	emit_cast (comp.uintptr_type, ptr),
-	offset));
-}
+/*   return */
+/*     emit_cast ( */
+/*       ptr_type, */
+/*       gcc_jit_context_new_binary_op ( */
+/*         comp.ctxt, */
+/* 	NULL, */
+/* 	GCC_JIT_BINARY_OP_PLUS, */
+/* 	comp.uintptr_type, */
+/* 	emit_cast (comp.uintptr_type, ptr), */
+/* 	offset)); */
+/* } */
 
 INLINE static gcc_jit_rvalue *
 emit_XLI (gcc_jit_rvalue *obj)
@@ -575,155 +575,155 @@ emit_CONSP (gcc_jit_rvalue *obj)
   return emit_TAGGEDP (obj, Lisp_Cons);
 }
 
-static gcc_jit_rvalue *
-emit_FLOATP (gcc_jit_rvalue *obj)
-{
-  emit_comment ("FLOATP");
+/* static gcc_jit_rvalue * */
+/* emit_FLOATP (gcc_jit_rvalue *obj) */
+/* { */
+/*   emit_comment ("FLOATP"); */
 
-  return emit_TAGGEDP (obj, Lisp_Float);
-}
+/*   return emit_TAGGEDP (obj, Lisp_Float); */
+/* } */
 
-static gcc_jit_rvalue *
-emit_BIGNUMP (gcc_jit_rvalue *obj)
-{
-  /* PSEUDOVECTORP (x, PVEC_BIGNUM); */
-  emit_comment ("BIGNUMP");
+/* static gcc_jit_rvalue * */
+/* emit_BIGNUMP (gcc_jit_rvalue *obj) */
+/* { */
+/*   /\* PSEUDOVECTORP (x, PVEC_BIGNUM); *\/ */
+/*   emit_comment ("BIGNUMP"); */
 
-  gcc_jit_rvalue *args[2] = {
-    obj,
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.int_type,
-					 PVEC_BIGNUM) };
+/*   gcc_jit_rvalue *args[2] = { */
+/*     obj, */
+/*     gcc_jit_context_new_rvalue_from_int (comp.ctxt, */
+/* 					 comp.int_type, */
+/* 					 PVEC_BIGNUM) }; */
 
-  return gcc_jit_context_new_call (comp.ctxt,
-				   NULL,
-				   comp.pseudovectorp,
-				   2,
-				   args);
-}
+/*   return gcc_jit_context_new_call (comp.ctxt, */
+/* 				   NULL, */
+/* 				   comp.pseudovectorp, */
+/* 				   2, */
+/* 				   args); */
+/* } */
 
-static gcc_jit_rvalue *
-emit_FIXNUMP (gcc_jit_rvalue *obj)
-{
-  /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
-	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG))
-	& ((1 << INTTYPEBITS) - 1)))  */
-  emit_comment ("FIXNUMP");
+/* static gcc_jit_rvalue * */
+/* emit_FIXNUMP (gcc_jit_rvalue *obj) */
+/* { */
+/*   /\* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) */
+/* 	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG)) */
+/* 	& ((1 << INTTYPEBITS) - 1)))  *\/ */
+/*   emit_comment ("FIXNUMP"); */
 
-  gcc_jit_rvalue *sh_res =
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
-      GCC_JIT_BINARY_OP_RSHIFT,
-      comp.emacs_int_type,
-      emit_XLI (obj),
-      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.emacs_int_type,
-					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
+/*   gcc_jit_rvalue *sh_res = */
+/*     gcc_jit_context_new_binary_op ( */
+/*       comp.ctxt, */
+/*       NULL, */
+/*       GCC_JIT_BINARY_OP_RSHIFT, */
+/*       comp.emacs_int_type, */
+/*       emit_XLI (obj), */
+/*       gcc_jit_context_new_rvalue_from_int (comp.ctxt, */
+/* 					   comp.emacs_int_type, */
+/* 					   (USE_LSB_TAG ? 0 : FIXNUM_BITS))); */
 
-  gcc_jit_rvalue *minus_res =
-    gcc_jit_context_new_binary_op (comp.ctxt,
-				   NULL,
-				   GCC_JIT_BINARY_OP_MINUS,
-				   comp.unsigned_type,
-				   emit_cast (comp.unsigned_type, sh_res),
-				   gcc_jit_context_new_rvalue_from_int (
-				     comp.ctxt,
-				     comp.unsigned_type,
-				     (Lisp_Int0 >> !USE_LSB_TAG)));
+/*   gcc_jit_rvalue *minus_res = */
+/*     gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 				   NULL, */
+/* 				   GCC_JIT_BINARY_OP_MINUS, */
+/* 				   comp.unsigned_type, */
+/* 				   emit_cast (comp.unsigned_type, sh_res), */
+/* 				   gcc_jit_context_new_rvalue_from_int ( */
+/* 				     comp.ctxt, */
+/* 				     comp.unsigned_type, */
+/* 				     (Lisp_Int0 >> !USE_LSB_TAG))); */
 
-  gcc_jit_rvalue *res =
-   gcc_jit_context_new_unary_op (
-     comp.ctxt,
-     NULL,
-     GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
-     comp.int_type,
-     gcc_jit_context_new_binary_op (comp.ctxt,
-				    NULL,
-				    GCC_JIT_BINARY_OP_BITWISE_AND,
-				    comp.unsigned_type,
-				    minus_res,
-				    gcc_jit_context_new_rvalue_from_int (
-				      comp.ctxt,
-				      comp.unsigned_type,
-				      ((1 << INTTYPEBITS) - 1))));
+/*   gcc_jit_rvalue *res = */
+/*    gcc_jit_context_new_unary_op ( */
+/*      comp.ctxt, */
+/*      NULL, */
+/*      GCC_JIT_UNARY_OP_LOGICAL_NEGATE, */
+/*      comp.int_type, */
+/*      gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 				    NULL, */
+/* 				    GCC_JIT_BINARY_OP_BITWISE_AND, */
+/* 				    comp.unsigned_type, */
+/* 				    minus_res, */
+/* 				    gcc_jit_context_new_rvalue_from_int ( */
+/* 				      comp.ctxt, */
+/* 				      comp.unsigned_type, */
+/* 				      ((1 << INTTYPEBITS) - 1)))); */
 
-  return res;
-}
+/*   return res; */
+/* } */
 
-static gcc_jit_rvalue *
-emit_XFIXNUM (gcc_jit_rvalue *obj)
-{
-  emit_comment ("XFIXNUM");
+/* static gcc_jit_rvalue * */
+/* emit_XFIXNUM (gcc_jit_rvalue *obj) */
+/* { */
+/*   emit_comment ("XFIXNUM"); */
 
-  return gcc_jit_context_new_binary_op (comp.ctxt,
-					NULL,
-					GCC_JIT_BINARY_OP_RSHIFT,
-					comp.emacs_int_type,
-					emit_XLI (obj),
-					comp.inttypebits);
-}
+/*   return gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 					NULL, */
+/* 					GCC_JIT_BINARY_OP_RSHIFT, */
+/* 					comp.emacs_int_type, */
+/* 					emit_XLI (obj), */
+/* 					comp.inttypebits); */
+/* } */
 
-static gcc_jit_rvalue *
-emit_INTEGERP (gcc_jit_rvalue *obj)
-{
-  emit_comment ("INTEGERP");
+/* static gcc_jit_rvalue * */
+/* emit_INTEGERP (gcc_jit_rvalue *obj) */
+/* { */
+/*   emit_comment ("INTEGERP"); */
 
-  return gcc_jit_context_new_binary_op (comp.ctxt,
-					NULL,
-					GCC_JIT_BINARY_OP_LOGICAL_OR,
-					comp.bool_type,
-					emit_cast (comp.bool_type,
-						   emit_FIXNUMP (obj)),
-					emit_BIGNUMP (obj));
-}
+/*   return gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 					NULL, */
+/* 					GCC_JIT_BINARY_OP_LOGICAL_OR, */
+/* 					comp.bool_type, */
+/* 					emit_cast (comp.bool_type, */
+/* 						   emit_FIXNUMP (obj)), */
+/* 					emit_BIGNUMP (obj)); */
+/* } */
 
-static gcc_jit_rvalue *
-emit_NUMBERP (gcc_jit_rvalue *obj)
-{
-  emit_comment ("NUMBERP");
+/* static gcc_jit_rvalue * */
+/* emit_NUMBERP (gcc_jit_rvalue *obj) */
+/* { */
+/*   emit_comment ("NUMBERP"); */
 
-  return gcc_jit_context_new_binary_op (comp.ctxt,
-					NULL,
-					GCC_JIT_BINARY_OP_LOGICAL_OR,
-					comp.bool_type,
-					emit_INTEGERP(obj),
-					emit_cast (comp.bool_type,
-						   emit_FLOATP (obj)));
-}
+/*   return gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 					NULL, */
+/* 					GCC_JIT_BINARY_OP_LOGICAL_OR, */
+/* 					comp.bool_type, */
+/* 					emit_INTEGERP(obj), */
+/* 					emit_cast (comp.bool_type, */
+/* 						   emit_FLOATP (obj))); */
+/* } */
 
-static gcc_jit_rvalue *
-emit_make_fixnum (gcc_jit_rvalue *obj)
-{
-  emit_comment ("make_fixnum");
+/* static gcc_jit_rvalue * */
+/* emit_make_fixnum (gcc_jit_rvalue *obj) */
+/* { */
+/*   emit_comment ("make_fixnum"); */
 
-  gcc_jit_rvalue *tmp =
-    gcc_jit_context_new_binary_op (comp.ctxt,
-				   NULL,
-				   GCC_JIT_BINARY_OP_LSHIFT,
-				   comp.emacs_int_type,
-				   obj,
-				   comp.inttypebits);
+/*   gcc_jit_rvalue *tmp = */
+/*     gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 				   NULL, */
+/* 				   GCC_JIT_BINARY_OP_LSHIFT, */
+/* 				   comp.emacs_int_type, */
+/* 				   obj, */
+/* 				   comp.inttypebits); */
 
-  tmp = gcc_jit_context_new_binary_op (comp.ctxt,
-				       NULL,
-				       GCC_JIT_BINARY_OP_PLUS,
-				       comp.emacs_int_type,
-				       tmp,
-				       comp.lisp_int0);
+/*   tmp = gcc_jit_context_new_binary_op (comp.ctxt, */
+/* 				       NULL, */
+/* 				       GCC_JIT_BINARY_OP_PLUS, */
+/* 				       comp.emacs_int_type, */
+/* 				       tmp, */
+/* 				       comp.lisp_int0); */
 
-  gcc_jit_lvalue *res = gcc_jit_function_new_local (comp.func,
-						    NULL,
-						    comp.lisp_obj_type,
-						    "lisp_obj_fixnum");
+/*   gcc_jit_lvalue *res = gcc_jit_function_new_local (comp.func, */
+/* 						    NULL, */
+/* 						    comp.lisp_obj_type, */
+/* 						    "lisp_obj_fixnum"); */
 
-  gcc_jit_block_add_assignment (comp.block->gcc_bb,
-				NULL,
-				emit_lval_XLI (res),
-				tmp);
+/*   gcc_jit_block_add_assignment (comp.block->gcc_bb, */
+/* 				NULL, */
+/* 				emit_lval_XLI (res), */
+/* 				tmp); */
 
-  return gcc_jit_lvalue_as_rvalue (res);
-}
+/*   return gcc_jit_lvalue_as_rvalue (res); */
+/* } */
 
 /* Construct fill and return a lisp object form a raw pointer.	*/
 static gcc_jit_rvalue *
@@ -943,19 +943,19 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 					   PURESIZE));
 }
 
-static gcc_jit_rvalue *
-emit_call_n_ref (const char *f_name, unsigned nargs,
-		 gcc_jit_lvalue *base_arg)
-{
-  gcc_jit_rvalue *args[] =
-    { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
-					  comp.ptrdiff_type,
-					  nargs),
-      gcc_jit_lvalue_get_address (base_arg, NULL) };
-  return emit_call (f_name, comp.lisp_obj_type, 2, args);
-}
+/* static gcc_jit_rvalue * */
+/* emit_call_n_ref (const char *f_name, unsigned nargs, */
+/* 		 gcc_jit_lvalue *base_arg) */
+/* { */
+/*   gcc_jit_rvalue *args[] = */
+/*     { gcc_jit_context_new_rvalue_from_int(comp.ctxt, */
+/* 					  comp.ptrdiff_type, */
+/* 					  nargs), */
+/*       gcc_jit_lvalue_get_address (base_arg, NULL) }; */
+/*   return emit_call (f_name, comp.lisp_obj_type, 2, args); */
+/* } */
 
-/* struct Lisp_Cons definition.  */
+/* /\* struct Lisp_Cons definition.  *\/ */
 
 static void
 define_lisp_cons (void)
