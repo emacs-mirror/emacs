@@ -168,47 +168,48 @@ VAL is known at compile time."
   "Pop N elements from the meta-stack."
   (cl-decf (comp-sp) n))
 
+(defun comp-limplify-listn (n)
+  (comp-pop 1)
+  (comp-push-call `(call Fcons ,(comp-slot-next) nil))
+  (dotimes (_ (1- n))
+    (comp-pop 2)
+    (comp-push-call `(call Fcons
+                           ,(comp-slot-next)
+                           ,(comp-slot-n (+ 2 (comp-sp)))))))
+
 (defun comp-limplify-lap-inst (inst)
   "Limplify LAP instruction INST in current frame accumulating in `comp-limple'
  for current `func'."
-  (cl-flet ((do-list (n)
-               (comp-pop 1)
-               (comp-push-call `(call Fcons ,(comp-slot-next) nil))
-               (dotimes (_ (1- n))
-                 (comp-pop 2)
-                 (comp-push-call `(call Fcons
-                                        ,(comp-slot-next)
-                                        ,(comp-slot-n (+ 2 (comp-sp))))))))
-    (let ((op (car inst)))
-      (pcase op
-        ('byte-dup
-         (comp-push-slot-n (comp-sp)))
-        ('byte-varref
-         (comp-push-call `(call Fsymbol_value ,(second inst))))
-        ('byte-constant
-         (comp-push-const (second inst)))
-        ('byte-stack-ref
-         (comp-push-slot-n (- (comp-sp) (cdr inst))))
-        ('byte-plus
-         (comp-pop 2)
-         (comp-push-call `(callref Fplus 2 ,(comp-sp))))
-        ('byte-car
-         (comp-pop 1)
-         (comp-push-call `(call Fcar ,(comp-sp))))
-        ('byte-cdr
-         (comp-pop 1)
-         (comp-push-call `(call Fcdr ,(comp-sp))))
-        ('byte-list1
-         (do-list 1))
-        ('byte-list2
-         (do-list 2))
-        ('byte-list3
-         (do-list 3))
-        ('byte-list4
-         (do-list 4))
-        ('byte-return
-         `(return ,(comp-slot)))
-        (_ (error "Unexpected LAP op %s" (symbol-name op)))))))
+  (let ((op (car inst)))
+    (pcase op
+      ('byte-dup
+       (comp-push-slot-n (comp-sp)))
+      ('byte-varref
+       (comp-push-call `(call Fsymbol_value ,(second inst))))
+      ('byte-constant
+       (comp-push-const (second inst)))
+      ('byte-stack-ref
+       (comp-push-slot-n (- (comp-sp) (cdr inst))))
+      ('byte-plus
+       (comp-pop 2)
+       (comp-push-call `(callref Fplus 2 ,(comp-sp))))
+      ('byte-car
+       (comp-pop 1)
+       (comp-push-call `(call Fcar ,(comp-sp))))
+      ('byte-cdr
+       (comp-pop 1)
+       (comp-push-call `(call Fcdr ,(comp-sp))))
+      ('byte-list1
+       (comp-limplify-listn 1))
+      ('byte-list2
+       (comp-limplify-listn 2))
+      ('byte-list3
+       (comp-limplify-listn 3))
+      ('byte-list4
+       (comp-limplify-listn 4))
+      ('byte-return
+       `(return ,(comp-slot)))
+      (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
 (defun comp-limplify (func)
   "Given FUNC and return LIMPLE."
