@@ -49,7 +49,14 @@
 )
 
 (cl-defstruct comp-args
-  mandatory nonrest rest)
+  (min nil :type number
+       :documentation "Minimum number of arguments allowed")
+  (max nil
+       :documentation "Maximum number of arguments allowed
+To be used when ncall-conv is nil.")
+  (ncall-conv nil :type boolean
+              :documentation "If t the signature is:
+(ptrdiff_t nargs, Lisp_Object *args)"))
 
 (cl-defstruct (comp-func (:copier nil))
   "Internal rapresentation for a function."
@@ -64,6 +71,7 @@
   (ir nil
       :documentation "Current intermediate rappresentation")
   (args nil :type 'comp-args)
+  (frame-size nil :type 'number)
   (limple-cnt -1 :type 'number
               :documentation "Counter to create ssa limple vars"))
 
@@ -105,9 +113,15 @@
 
 (defun comp-decrypt-lambda-list (x)
   "Decript lambda list X."
-  (make-comp-args :rest (not (= (logand x 128) 0))
-                  :mandatory (logand x 127)
-                  :nonrest (ash x -8)))
+  (let ((rest (not (= (logand x 128) 0)))
+        (mandatory (logand x 127))
+        (nonrest (ash x -8)))
+    (if (and (null rest)
+             (< nonrest 9)) ;; SUBR_MAX_ARGS
+        (make-comp-args :min mandatory
+                        :max nonrest)
+      (make-comp-args :min mandatory
+                      :ncall-conv t))))
 
 (defun comp-recuparate-lap (func)
   "Byte compile and recuparate LAP rapresentation for FUNC."
@@ -119,6 +133,7 @@
   (setf (comp-func-args func)
         (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
   (setf (comp-func-ir func) byte-compile-lap-output)
+  (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
   func)
 
 (declare-function comp-init-ctxt "comp.c")
@@ -242,12 +257,13 @@ VAL is known at compile time."
       ('byte-list4
        (comp-limplify-listn 4))
       ('byte-return
+       (push (list 'return (comp-slot)) comp-limple)
        `(return ,(comp-slot)))
       (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
 (defun comp-limplify (func)
   "Given FUNC and return LIMPLE."
-  (let* ((frame-size (aref (comp-func-byte-func func) 3))
+  (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
          (comp-frame (make-comp-limple-frame
                       :sp -1
@@ -284,11 +300,10 @@ VAL is known at compile time."
                   (funcall pass func))
                 comp-passes)
           ;; Once we have the final LIMPLE we jump into C.
-          (when t ;(boundp #'comp-init-ctxt)
-            (comp-init-ctxt)
-            (comp-add-func-to-ctxt func)
-            (comp-compile-and-load-ctxt)
-            (comp-release-ctxt))))
+          (comp-init-ctxt)
+          (comp-add-func-to-ctxt func)
+          (comp-compile-and-load-ctxt)
+          (comp-release-ctxt)))
     (error "Trying to native compile something not a function")))
 
 (provide 'comp)
