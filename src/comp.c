@@ -119,7 +119,8 @@ typedef struct {
   gcc_jit_function *setcdr;
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
-  Lisp_Object func_hash; /* f_name -> gcc_func	*/
+  Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
+  Lisp_Object func_hash; /* f_name -> gcc_func.	*/
 } comp_t;
 
 static comp_t comp;
@@ -187,6 +188,35 @@ type_to_cast_field (gcc_jit_type *type)
   return field;
 }
 
+static gcc_jit_block *
+retrive_block (Lisp_Object symbol)
+{
+  char *block_name = (char *) SDATA (SYMBOL_NAME (symbol));
+  Lisp_Object key = make_string (block_name, strlen (block_name));
+  EMACS_UINT hash = 0;
+  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_blocks);
+  ptrdiff_t i = hash_lookup (ht, key, &hash);
+  if (i == -1)
+    error ("LIMPLE basic block inconsistency");
+  Lisp_Object value = HASH_VALUE (ht, hash_lookup (ht, key, &hash));
+
+  return (gcc_jit_block *) XFIXNUMPTR (value);
+}
+
+static void
+declare_block (char *block_name)
+{
+  gcc_jit_block *block = gcc_jit_function_new_block (comp.func, block_name);
+  Lisp_Object key = make_string (block_name, strlen (block_name));
+  Lisp_Object value = make_pointer_integer (XPL (block));
+  EMACS_UINT hash = 0;
+  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_blocks);
+  ptrdiff_t i = hash_lookup (ht, key, &hash);
+  if (i != -1)
+    error ("LIMPLE basic block inconsistency");
+  hash_put (ht, key, value, hash);
+}
+
 INLINE static void
 emit_comment (const char *str)
 {
@@ -249,14 +279,12 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
 
   if (reusable)
     {
-      Lisp_Object value;
       Lisp_Object key = make_string (f_name, strlen (f_name));
-      value = make_pointer_integer (XPL (func));
-
+      Lisp_Object value = make_pointer_integer (XPL (func));
       EMACS_UINT hash = 0;
       struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
       ptrdiff_t i = hash_lookup (ht, key, &hash);
-      /* Don't want to declare the same function two times */
+      /* Don't want to declare the same function two times.  */
       eassert (i == -1);
       hash_put (ht, key, value, hash);
     }
@@ -932,12 +960,15 @@ emit_limple_inst (Lisp_Object inst)
 
   if (EQ (op, Qblock))
     {
-      char *block_name = SDATA (SYMBOL_NAME (arg0));
-      comp.block = gcc_jit_function_new_block (comp.func, block_name);
+      /* Search for the already defined block and make it current.  */
+      comp.block = retrive_block (arg0);
     }
   else if (EQ (op, Qjump))
     {
-
+      /* Unconditional branch.  */
+      gcc_jit_block *target = retrive_block (arg0);
+      gcc_jit_block_end_with_jump (comp.block, NULL, target);
+      comp.block = target;
     }
   else if (EQ (op, Qeqcall))
     {
@@ -947,6 +978,12 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qreturn))
     {
+      gcc_jit_rvalue *ret_val =
+	emit_lisp_obj_from_ptr (
+	   CALLN (Ffuncall, intern ("comp-mvar-constant"), arg0));
+      gcc_jit_block_end_with_return (comp.block,
+				     NULL,
+				     ret_val);
     }
 }
 
@@ -1829,7 +1866,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
       error ("Not supported for now");
     }
 
-  gcc_jit_lvalue *meta_frame =
+  gcc_jit_lvalue *frame_array =
     gcc_jit_function_new_local (
       comp.func,
       NULL,
@@ -1845,10 +1882,21 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
       gcc_jit_context_new_array_access (
         comp.ctxt,
 	NULL,
-	gcc_jit_lvalue_as_rvalue (meta_frame),
+	gcc_jit_lvalue_as_rvalue (frame_array),
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     i));
+
+  comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
+
+  /* Pre declare all basic blocks.  */
+  Lisp_Object blocks = (CALLN (Ffuncall, intern ("comp-func-blocks"), func));
+  while (CONSP (blocks))
+    {
+      char *block_name = (char *) SDATA (SYMBOL_NAME (XCAR (blocks)));
+      declare_block (block_name);
+      blocks = XCDR (blocks);
+    }
 
   Lisp_Object limple = (CALLN (Ffuncall, intern ("comp-func-ir"), func));
 
@@ -1857,7 +1905,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
       Lisp_Object inst = XCAR (limple);
       emit_limple_inst (inst);
       limple = XCDR (limple);
-    };
+    }
 
   return Qt;
 }
@@ -1875,6 +1923,25 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
   /* Gcc doesn't like being interrupted.  */
   sigset_t oldset;
   block_atimers (&oldset);
+
+  if (COMP_DEBUG)
+    gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1);
+  gcc_jit_result *gcc_res = gcc_jit_context_compile(comp.ctxt);
+
+  if (!NILP (disassemble))
+    gcc_jit_context_compile_to_file (comp.ctxt,
+				     GCC_JIT_OUTPUT_KIND_ASSEMBLER,
+				     "gcc-ctxt-dump.s");
+
+  /* FIXME: must iterate all function names.  */
+  union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+  x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
+  x->s.function.a0 = gcc_jit_result_get_code(gcc_res, "F666f6f_foo");
+  eassert (x->s.function.a0);
+  x->s.min_args = 0;
+  x->s.max_args = 0;
+  x->s.symbol_name = "foo";
+  defsubr(x);
 
   unblock_atimers (&oldset);
 
@@ -1897,6 +1964,7 @@ syms_of_comp (void)
   defsubr (&Scomp_compile_and_load_ctxt);
   comp.func_hash = Qnil;
   staticpro (&comp.func_hash);
+  staticpro (&comp.func_blocks);
 
   DEFVAR_INT ("comp-speed", comp_speed,
 	      doc: /* From 0 to 3.  */);

@@ -291,6 +291,8 @@ VAL is known at compile time."
     (comp-push_block 'body)
     (mapc #'comp-limplify-lap-inst (comp-func-ir func))
     (setf (comp-func-ir func) (reverse comp-limple))
+    ;; Prologue block must be first
+    (setf (comp-func-blocks func) (reverse (comp-func-blocks func)))
     (when comp-debug
       (cl-prettyprint (comp-func-ir func)))
     func))
