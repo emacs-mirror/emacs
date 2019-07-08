@@ -103,6 +103,11 @@
   (defun comp-tests-varset-f ()
       (setq comp-tests-var1 55))
   (comp-test-compile #'comp-tests-varset-f)
+((byte-constant 55 . 1)
+ (byte-dup . 0)
+ (byte-varset comp-tests-var1 . 0)
+ (byte-return . 0))
+
   (comp-tests-varset-f)
 
   (should (= comp-tests-var1 55)))

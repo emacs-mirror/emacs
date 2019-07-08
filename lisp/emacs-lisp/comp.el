@@ -136,7 +136,8 @@
   '(comp-slot-n (1+ (comp-sp))))
 
 (defun comp-push-call (src-slot)
-  "Push call X into frame."
+  "Push call SRC-SLOT into frame."
+  (cl-assert src-slot)
   (cl-incf (comp-sp))
   (setf (comp-slot)
         (make-comp-mvar :slot (comp-sp)
@@ -147,6 +148,7 @@
 (defun comp-push-slot-n (n)
   "Push slot number N into frame."
   (let ((src-slot (comp-slot-n n)))
+    (cl-assert src-slot)
     (cl-incf (comp-sp))
     (setf (comp-slot)
           (copy-sequence src-slot))
@@ -186,6 +188,8 @@ VAL is known at compile time."
        (comp-push-slot-n (comp-sp)))
       ('byte-varref
        (comp-push-call `(call Fsymbol_value ,(second inst))))
+      ;; ('byte-varset
+      ;;  (comp-push-call `(call Fsymbol_value ,(second inst))))
       ('byte-constant
        (comp-push-const (second inst)))
       ('byte-stack-ref
