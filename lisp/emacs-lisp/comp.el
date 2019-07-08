@@ -77,11 +77,6 @@
   (type nil
         :documentation "When non nil is used for type propagation"))
 
-(cl-defun make-comp-mvar (func &key slot const-vld constant type)
-  (make--comp-mvar :n (cl-incf (comp-func-limple-cnt func))
-                   :slot slot :const-vld const-vld :constant constant
-                   :type type))
-
 (cl-defstruct (comp-limple-frame (:copier nil))
   "A LIMPLE func."
   (sp 0 :type 'fixnum
@@ -119,6 +114,11 @@
 (defvar comp-limple)
 (defvar comp-func)
 
+(cl-defun make-comp-mvar (&key slot const-vld constant type)
+  (make--comp-mvar :n (cl-incf (comp-func-limple-cnt comp-func))
+                   :slot slot :const-vld const-vld :constant constant
+                   :type type))
+
 (defmacro comp-sp ()
   "Current stack pointer."
   '(comp-limple-frame-sp comp-frame))
@@ -139,8 +139,7 @@
   "Push call X into frame."
   (cl-incf (comp-sp))
   (setf (comp-slot)
-        (make-comp-mvar comp-func
-                        :slot (comp-sp)
+        (make-comp-mvar :slot (comp-sp)
                         :type (alist-get (second src-slot)
                                          comp-known-ret-types)))
   (push (list '=call (comp-slot) src-slot) comp-limple))
@@ -158,8 +157,7 @@
   "Push VAL into frame.
 VAL is known at compile time."
   (cl-incf (comp-sp))
-  (setf (comp-slot) (make-comp-mvar comp-func
-                                    :slot (comp-sp)
+  (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
                                     :constant val))
   (push (list '=const (comp-slot) val) comp-limple))
@@ -169,8 +167,11 @@ VAL is known at compile time."
   (cl-decf (comp-sp) n))
 
 (defun comp-limplify-listn (n)
+  "Limplify list N."
   (comp-pop 1)
-  (comp-push-call `(call Fcons ,(comp-slot-next) nil))
+  (comp-push-call `(call Fcons ,(comp-slot-next)
+                         ,(make-comp-mvar :const-vld t
+                                          :constant nil)))
   (dotimes (_ (1- n))
     (comp-pop 2)
     (comp-push-call `(call Fcons
@@ -178,8 +179,7 @@ VAL is known at compile time."
                            ,(comp-slot-n (+ 2 (comp-sp)))))))
 
 (defun comp-limplify-lap-inst (inst)
-  "Limplify LAP instruction INST in current frame accumulating in `comp-limple'
- for current `func'."
+  "Limplify LAP instruction INST accumulating in `comp-limple'."
   (let ((op (car inst)))
     (pcase op
       ('byte-dup
@@ -199,6 +199,12 @@ VAL is known at compile time."
       ('byte-cdr
        (comp-pop 1)
        (comp-push-call `(call Fcdr ,(comp-sp))))
+      ('byte-car-safe
+       (comp-pop 1)
+       (comp-push-call `(call Fcar-safe ,(comp-sp))))
+      ('byte-cdr-safe
+       (comp-pop 1)
+       (comp-push-call `(call Fcdr-safe ,(comp-sp))))
       ('byte-list1
        (comp-limplify-listn 1))
       ('byte-list2
@@ -214,14 +220,13 @@ VAL is known at compile time."
 (defun comp-limplify (func)
   "Given FUNC and return LIMPLE."
   (let* ((frame-size (aref (comp-func-byte-func func) 3))
+         (comp-func func)
          (comp-frame (make-comp-limple-frame
                       :sp -1
                       :frame (let ((v (make-vector frame-size nil)))
                                (cl-loop for i below frame-size
-                                        do (aset v i (make-comp-mvar func
-                                                                     :slot i)))
+                                        do (aset v i (make-comp-mvar :slot i)))
                                v)))
-         (comp-func func)
          (comp-limple ()))
     ;; Prologue
     (push '(BLOCK prologue) comp-limple)
