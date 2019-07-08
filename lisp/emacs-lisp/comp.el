@@ -114,13 +114,18 @@
 ;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
 ;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
+;; Special vars used during limplifications
+(defvar comp-frame)
+(defvar comp-limple)
+(defvar comp-func)
+
 (defmacro comp-sp ()
   "Current stack pointer."
-  '(comp-limple-frame-sp frame))
+  '(comp-limple-frame-sp comp-frame))
 
 (defmacro comp-slot-n (n)
   "Slot N into the meta-stack."
-  `(aref (comp-limple-frame-frame frame) ,n))
+  `(aref (comp-limple-frame-frame comp-frame) ,n))
 
 (defmacro comp-slot ()
   "Current slot into the meta-stack pointed by sp."
@@ -130,44 +135,42 @@
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
 
-(defmacro comp-push-call (x)
+(defun comp-push-call (src-slot)
   "Push call X into frame."
-  `(let ((src-slot ,x))
-     (cl-incf (comp-sp))
-     (setf (comp-slot)
-           (make-comp-mvar func
-                           :slot (comp-sp)
-                           :type (alist-get (second src-slot)
-                                            comp-known-ret-types)))
-     (push (list '=call (comp-slot) src-slot) ir)))
+  (cl-incf (comp-sp))
+  (setf (comp-slot)
+        (make-comp-mvar comp-func
+                        :slot (comp-sp)
+                        :type (alist-get (second src-slot)
+                                         comp-known-ret-types)))
+  (push (list '=call (comp-slot) src-slot) comp-limple))
 
-(defmacro comp-push-slot-n (n)
+(defun comp-push-slot-n (n)
   "Push slot number N into frame."
-  `(let ((src-slot (comp-slot-n ,n)))
-     (cl-incf (comp-sp))
-     (setf (comp-slot)
-           (copy-sequence src-slot))
-     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
-     (push (list '=slot (comp-slot) src-slot) ir)))
+  (let ((src-slot (comp-slot-n n)))
+    (cl-incf (comp-sp))
+    (setf (comp-slot)
+          (copy-sequence src-slot))
+    (setf (comp-mvar-slot (comp-slot)) (comp-sp))
+    (push (list '=slot (comp-slot) src-slot) comp-limple)))
 
-(defmacro comp-push-const (x)
-  "Push X into frame.
-X value is known at compile time."
-  `(let ((val ,x))
-     (cl-incf (comp-sp))
-     (setf (comp-slot) (make-comp-mvar func
-                                       :slot (comp-sp)
-                                       :const-vld t
-                                       :constant val))
-     (push (list '=const (comp-slot) val) ir)))
+(defun comp-push-const (val)
+  "Push VAL into frame.
+VAL is known at compile time."
+  (cl-incf (comp-sp))
+  (setf (comp-slot) (make-comp-mvar comp-func
+                                    :slot (comp-sp)
+                                    :const-vld t
+                                    :constant val))
+  (push (list '=const (comp-slot) val) comp-limple))
 
-(defmacro comp-pop (n)
+(defun comp-pop (n)
   "Pop N elements from the meta-stack."
-  `(cl-decf (comp-sp) ,n))
+  (cl-decf (comp-sp) n))
 
-(defun comp-limplify-lap-inst (inst frame ir func)
-  "Limplify LAP instruction INST in current FRAME accumulating in IR for current
- FUNC."
+(defun comp-limplify-lap-inst (inst)
+  "Limplify LAP instruction INST in current frame accumulating in `comp-limple'
+ for current `func'."
   (cl-flet ((do-list (n)
                (comp-pop 1)
                (comp-push-call `(call Fcons ,(comp-slot-next) nil))
@@ -205,28 +208,29 @@ X value is known at compile time."
          (do-list 4))
         ('byte-return
          `(return ,(comp-slot)))
-        (_ (error "Unexpected LAP op %s" (symbol-name op))))))
-  ir)
+        (_ (error "Unexpected LAP op %s" (symbol-name op)))))))
 
 (defun comp-limplify (func)
   "Given FUNC and return LIMPLE."
   (let* ((frame-size (aref (comp-func-byte-func func) 3))
-         (frame (make-comp-limple-frame
-                 :sp -1
-                 :frame (make-vector frame-size nil)))
-         (limple-ir ()))
+         (comp-frame (make-comp-limple-frame
+                      :sp -1
+                      :frame (let ((v (make-vector frame-size nil)))
+                               (cl-loop for i below frame-size
+                                        do (aset v i (make-comp-mvar func
+                                                                     :slot i)))
+                               v)))
+         (comp-func func)
+         (comp-limple ()))
     ;; Prologue
-    (push '(BLOCK prologue) limple-ir)
+    (push '(BLOCK prologue) comp-limple)
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
-                  (push `(=par ,(comp-slot) ,i) limple-ir)))
-    (push '(BLOCK body) limple-ir)
-    (mapc (lambda (inst)
-            (setq limple-ir (comp-limplify-lap-inst inst frame limple-ir func)))
-          (comp-func-ir func))
-    (setq limple-ir (reverse limple-ir))
-    (setf (comp-func-ir func) limple-ir)
+                  (push `(=par ,(comp-slot) ,i) comp-limple)))
+    (push '(BLOCK body) comp-limple)
+    (mapc #'comp-limplify-lap-inst (comp-func-ir func))
+    (setf (comp-func-ir func) (reverse comp-limple))
     (when comp-debug
       (cl-prettyprint (comp-func-ir func)))
     func))
