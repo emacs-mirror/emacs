@@ -54,11 +54,13 @@
 (cl-defstruct (comp-func (:copier nil))
   "Internal rapresentation for a function."
   (symbol-name nil
-   :documentation "Function symbol's name")
+               :documentation "Function symbol's name")
+  (c-func-name nil :type 'string
+               :documentation "The function name in the native world")
   (func nil
-   :documentation "Original form")
+        :documentation "Original form")
   (byte-func nil
-   :documentation "Byte compiled version")
+             :documentation "Byte compiled version")
   (ir nil
       :documentation "Current intermediate rappresentation")
   (args nil :type 'comp-args)
@@ -85,6 +87,21 @@
       :documentation "Current stack pointer")
   (frame nil :type 'vector
          :documentation "Meta-stack used to flat LAP"))
+
+(defun comp-c-func-name (symbol-function)
+  "Given SYMBOL-FUNCTION return a name suitable for the native code."
+  ;; Unfortunatelly not all symbol names are valid as C function names...
+  (let* ((orig-name (symbol-name symbol-function))
+         (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
+	                   for j from 0 by 2
+	                   for i across orig-name
+	                   for byte = (format "%x" i)
+	                   do (aset str j (aref byte 0))
+	                   do (aset str (1+ j) (aref byte 1))
+	                   finally return str))
+         (human-readable (replace-regexp-in-string
+                          (rx (not (any "a-z"))) "" orig-name)))
+    (concat "F" crypted "_" human-readable)))
 
 (defun comp-decrypt-lambda-list (x)
   "Decript lambda list X."
@@ -255,23 +272,24 @@ VAL is known at compile time."
 (defun native-compile (fun)
   "FUN is the function definition to be compiled into native code."
   (unless lexical-binding
-    (error "Can't compile a non lexical binded function"))
+    (error "Can't native compile a non lexical scoped function"))
   (if-let ((f (symbol-function fun)))
       (progn
         (when (byte-code-function-p f)
           (error "Can't native compile an already bytecompiled function"))
         (let ((func (make-comp-func :symbol-name fun
-                                    :func f)))
+                                    :func f
+                                    :c-func-name (comp-c-func-name fun))))
           (mapc (lambda (pass)
                   (funcall pass func))
                 comp-passes)
           ;; Once we have the final LIMPLE we jump into C.
-          (when (boundp #'comp-init-ctxt)
-                (comp-init-ctxt)
-                (comp-add-func-to-ctxt func)
-                (comp-compile-and-load-ctxt)
-                (comp-release-ctxt))))
-    (error "Trying to native compile not a function")))
+          (when t ;(boundp #'comp-init-ctxt)
+            (comp-init-ctxt)
+            (comp-add-func-to-ctxt func)
+            (comp-compile-and-load-ctxt)
+            (comp-release-ctxt))))
+    (error "Trying to native compile something not a function")))
 
 (provide 'comp)
 

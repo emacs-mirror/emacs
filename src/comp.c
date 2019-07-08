@@ -35,8 +35,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define COMP_DEBUG 1
 
-#define DISASS_FILE_NAME "emacs-asm.s"
-
 #define SAFE_ALLOCA_BLOCK(ptr, func, name)			\
 do {								\
   (ptr) = SAFE_ALLOCA (sizeof (basic_block_t));			\
@@ -1832,6 +1830,9 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
        doc: /* Add limple FUNC to the current compilation context.  */)
      (Lisp_Object func)
 {
+  char *c_name =
+    (char *) SDATA (CALLN (Ffuncall, intern ("comp-func-c-func-name"), func));
+
   return Qt;
 }
 
