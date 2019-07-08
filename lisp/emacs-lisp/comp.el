@@ -59,10 +59,14 @@
    :documentation "Byte compiled version")
   (ir nil
       :documentation "Current intermediate rappresentation")
-  (args nil :type 'comp-args))
+  (args nil :type 'comp-args)
+  (limple-cnt -1 :type 'number
+              :documentation "Counter to create ssa limple vars"))
 
-(cl-defstruct (comp-mvar (:copier nil))
+(cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
+  (n nil :type number
+     :documentation "SSA number")
   (slot nil :type fixnum
         :documentation "Slot position")
   (const-vld nil
@@ -72,6 +76,11 @@
  propagation")
   (type nil
         :documentation "When non nil is used for type propagation"))
+
+(cl-defun make-comp-mvar (func &key slot const-vld constant type)
+  (make--comp-mvar :n (cl-incf (comp-func-limple-cnt func))
+                   :slot slot :const-vld const-vld :constant constant
+                   :type type))
 
 (cl-defstruct (comp-limple-frame (:copier nil))
   "A LIMPLE func."
@@ -86,17 +95,24 @@
                   :mandatory (logand x 127)
                   :nonrest (ash x -8)))
 
-(defun comp-recuparate-lap (ir)
-  "Byte compile and recuparate LAP rapresentation for IR."
+(defun comp-recuparate-lap (func)
+  "Byte compile and recuparate LAP rapresentation for FUNC."
   ;; FIXME block timers here, otherwise we could spill the wrong LAP.
-  (setf (comp-func-byte-func ir)
-        (byte-compile (comp-func-symbol-name ir)))
+  (setf (comp-func-byte-func func)
+        (byte-compile (comp-func-symbol-name func)))
   (when comp-debug
     (cl-prettyprint byte-compile-lap-output))
-  (setf (comp-func-args ir)
-        (comp-decrypt-lambda-list (aref (comp-func-byte-func ir) 0)))
-  (setf (comp-func-ir ir) byte-compile-lap-output)
-  ir)
+  (setf (comp-func-args func)
+        (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
+  (setf (comp-func-ir func) byte-compile-lap-output)
+  func)
+
+;; (defun comp-opt-call (inst)
+;;   "Optimize if possible a side-effect-free call in INST."
+;;   (cl-destructuring-bind (_ f &rest args) inst
+;;     (when (and (member f comp-mostly-pure-funcs)
+;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
+;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
 (defmacro comp-sp ()
   "Current stack pointer."
@@ -114,19 +130,13 @@
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
 
-;; (defun comp-opt-call (inst)
-;;   "Optimize if possible a side-effect-free call in INST."
-;;   (cl-destructuring-bind (_ f &rest args) inst
-;;     (when (and (member f comp-mostly-pure-funcs)
-;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
-;;       (apply f (mapcar #'comp-mvar-constant args)))))
-
 (defmacro comp-push-call (x)
   "Push call X into frame."
   `(let ((src-slot ,x))
      (cl-incf (comp-sp))
      (setf (comp-slot)
-           (make-comp-mvar :slot (comp-sp)
+           (make-comp-mvar func
+                           :slot (comp-sp)
                            :type (alist-get (second src-slot)
                                             comp-known-ret-types)))
      (push (list '=call (comp-slot) src-slot) ir)))
@@ -145,7 +155,8 @@
 X value is known at compile time."
   `(let ((val ,x))
      (cl-incf (comp-sp))
-     (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
+     (setf (comp-slot) (make-comp-mvar func
+                                       :slot (comp-sp)
                                        :const-vld t
                                        :constant val))
      (push (list '=const (comp-slot) val) ir)))
@@ -154,9 +165,9 @@ X value is known at compile time."
   "Pop N elements from the meta-stack."
   `(cl-decf (comp-sp) ,n))
 
-(defun comp-limplify-lap-inst (inst frame ir)
-  "Limplify LAP instruction INST in current FRAME accumulating in IR.
-Return the new head."
+(defun comp-limplify-lap-inst (inst frame ir func)
+  "Limplify LAP instruction INST in current FRAME accumulating in IR for current
+ FUNC."
   (cl-flet ((do-list (n)
                (comp-pop 1)
                (comp-push-call `(call Fcons ,(comp-slot-next) nil))
@@ -197,31 +208,28 @@ Return the new head."
         (_ (error "Unexpected LAP op %s" (symbol-name op))))))
   ir)
 
-(defun comp-limplify (ir)
-  "Given IR and return LIMPLE."
-  (let* ((frame-size (aref (comp-func-byte-func ir) 3))
+(defun comp-limplify (func)
+  "Given FUNC and return LIMPLE."
+  (let* ((frame-size (aref (comp-func-byte-func func) 3))
          (frame (make-comp-limple-frame
                  :sp -1
-                 :frame (let ((v (make-vector frame-size nil)))
-                          (cl-loop for i below frame-size
-                                   do (aset v i (make-comp-mvar :slot i)))
-                          v)))
+                 :frame (make-vector frame-size nil)))
          (limple-ir ()))
     ;; Prologue
     (push '(BLOCK prologue) limple-ir)
-    (cl-loop for i below (comp-args-mandatory (comp-func-args ir))
+    (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
                   (push `(=par ,(comp-slot) ,i) limple-ir)))
     (push '(BLOCK body) limple-ir)
     (mapc (lambda (inst)
-            (setq limple-ir (comp-limplify-lap-inst inst frame limple-ir)))
-          (comp-func-ir ir))
+            (setq limple-ir (comp-limplify-lap-inst inst frame limple-ir func)))
+          (comp-func-ir func))
     (setq limple-ir (reverse limple-ir))
-    (setf (comp-func-ir ir) limple-ir)
+    (setf (comp-func-ir func) limple-ir)
     (when comp-debug
-      (cl-prettyprint (comp-func-ir ir)))
-    ir))
+      (cl-prettyprint (comp-func-ir func)))
+    func))
 
 (defun native-compile (fun)
   "FUN is the function definition to be compiled to native code."
@@ -231,11 +239,11 @@ Return the new head."
       (progn
         (when (byte-code-function-p f)
           (error "Can't native compile an already bytecompiled function"))
-        (cl-loop with ir = (make-comp-func :symbol-name fun
-                                           :func f)
+        (cl-loop with func = (make-comp-func :symbol-name fun
+                                             :func f)
                  for pass in comp-passes
-                 do (funcall pass ir)
-                 finally return ir))
+                 do (funcall pass func)
+                 finally return func))
     (error "Trying to native compile not a function")))
 
 (provide 'comp)

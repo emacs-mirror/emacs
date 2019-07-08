@@ -31,13 +31,16 @@
 
 (defvar comp-tests-var1 3)
 
+(defun comp-test-compile (f)
+  ;; (byte-compile f)
+  (native-compile f))
+
 (ert-deftest  comp-tests-varref ()
   "Testing varref."
   (defun comp-tests-varref-f ()
     comp-tests-var1)
 
-  (byte-compile #'comp-tests-varref-f)
-  (native-compile #'comp-tests-varref-f)
+  (comp-test-compile #'comp-tests-varref-f)
 
   (should (= (comp-tests-varref-f) 3)))
 
@@ -58,16 +61,11 @@
     ;; Bcdr_safe
     (cdr-safe x))
 
-  (byte-compile #'comp-tests-list-f)
-  (native-compile #'comp-tests-list-f)
-  (byte-compile #'comp-tests-car-f)
-  (native-compile #'comp-tests-car-f)
-  (byte-compile #'comp-tests-cdr-f)
-  (native-compile #'comp-tests-cdr-f)
-  (byte-compile #'comp-tests-car-safe-f)
-  (native-compile #'comp-tests-car-safe-f)
-  (byte-compile #'comp-tests-cdr-safe-f)
-  (native-compile #'comp-tests-cdr-safe-f)
+  (comp-test-compile #'comp-tests-list-f)
+  (comp-test-compile #'comp-tests-car-f)
+  (comp-test-compile #'comp-tests-cdr-f)
+  (comp-test-compile #'comp-tests-car-safe-f)
+  (comp-test-compile #'comp-tests-cdr-safe-f)
 
   (should (equal (comp-tests-list-f) '(1 2 3)))
   (should (= (comp-tests-car-f '(1 . 2)) 1))
@@ -91,13 +89,11 @@
   "Testing cons car cdr."
   (defun comp-tests-cons-car-f ()
     (car (cons 1 2)))
-  (byte-compile #'comp-tests-cons-car-f)
-  (native-compile #'comp-tests-cons-car-f)
+  (comp-test-compile #'comp-tests-cons-car-f)
 
   (defun comp-tests-cons-cdr-f (x)
     (cdr (cons 'foo x)))
-  (byte-compile #'comp-tests-cons-cdr-f)
-  (native-compile #'comp-tests-cons-cdr-f)
+  (comp-test-compile #'comp-tests-cons-cdr-f)
 
   (should (= (comp-tests-cons-car-f) 1))
   (should (= (comp-tests-cons-cdr-f 3) 3)))
@@ -106,8 +102,7 @@
   "Testing varset."
   (defun comp-tests-varset-f ()
       (setq comp-tests-var1 55))
-  (byte-compile #'comp-tests-varset-f)
-  (native-compile #'comp-tests-varset-f)
+  (comp-test-compile #'comp-tests-varset-f)
   (comp-tests-varset-f)
 
   (should (= comp-tests-var1 55)))
@@ -116,8 +111,7 @@
   "Testing length."
   (defun comp-tests-length-f ()
       (length '(1 2 3)))
-  (byte-compile #'comp-tests-length-f)
-  (native-compile #'comp-tests-length-f)
+  (comp-test-compile #'comp-tests-length-f)
 
   (should (= (comp-tests-length-f) 3)))
 
@@ -127,8 +121,7 @@
     (let ((vec [1 2 3]))
       (aset vec 2 100)
       (aref vec 2)))
-  (byte-compile #'comp-tests-aref-aset-f)
-  (native-compile #'comp-tests-aref-aset-f)
+  (comp-test-compile #'comp-tests-aref-aset-f)
 
   (should (= (comp-tests-aref-aset-f) 100)))
 
@@ -137,8 +130,7 @@
   (defvar comp-tests-var2 3)
   (defun comp-tests-symbol-value-f ()
     (symbol-value 'comp-tests-var2))
-  (byte-compile #'comp-tests-symbol-value-f)
-  (native-compile #'comp-tests-symbol-value-f)
+  (comp-test-compile #'comp-tests-symbol-value-f)
 
   (should (= (comp-tests-symbol-value-f) 3)))
 
@@ -147,8 +139,7 @@
   (defun comp-tests-concat-f (x)
     (concat "a" "b" "c" "d"
             (concat "a" "b" "c" (concat "a" "b" (concat "foo" x)))))
-  (byte-compile #'comp-tests-concat-f)
-  (native-compile #'comp-tests-concat-f)
+  (comp-test-compile #'comp-tests-concat-f)
 
   (should (string= (comp-tests-concat-f "bar") "abcdabcabfoobar")))
 
@@ -159,15 +150,13 @@
   (defun comp-tests-ffuncall-caller-f ()
     (comp-tests-ffuncall-callee-f 1 2 3))
 
-  (byte-compile #'comp-tests-ffuncall-caller-f)
-  (native-compile #'comp-tests-ffuncall-caller-f)
+  (comp-test-compile #'comp-tests-ffuncall-caller-f)
 
   (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3)))
 
   (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
     (list a b c d))
-  (byte-compile #'comp-tests-ffuncall-callee-optional-f)
-  (native-compile #'comp-tests-ffuncall-callee-optional-f)
+  (comp-test-compile #'comp-tests-ffuncall-callee-optional-f)
 
   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3 4) '(1 2 3 4)))
   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
@@ -175,8 +164,7 @@
 
   (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
     (list a b c))
-  (byte-compile #'comp-tests-ffuncall-callee-rest-f)
-  (native-compile #'comp-tests-ffuncall-callee-rest-f)
+  (comp-test-compile #'comp-tests-ffuncall-callee-rest-f)
 
   (should (equal (comp-tests-ffuncall-callee-rest-f 1 2) '(1 2 nil)))
   (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
@@ -186,8 +174,7 @@
     "Call a primitive with no dedicate op."
     (make-vector 1 nil))
 
-  (byte-compile #'comp-tests-ffuncall-native-f)
-  (native-compile #'comp-tests-ffuncall-native-f)
+  (comp-test-compile #'comp-tests-ffuncall-native-f)
 
   (should (equal (comp-tests-ffuncall-native-f) [nil]))
 
@@ -195,16 +182,14 @@
     "Call a primitive with no dedicate op with &rest."
     (vector 1 2 3))
 
-  (byte-compile #'comp-tests-ffuncall-native-rest-f)
-  (native-compile #'comp-tests-ffuncall-native-rest-f)
+  (comp-test-compile #'comp-tests-ffuncall-native-rest-f)
 
   (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))
 
   (defun comp-tests-ffuncall-apply-many-f (x)
     (apply #'list x))
 
-  (byte-compile #'comp-tests-ffuncall-apply-many-f)
-  (native-compile #'comp-tests-ffuncall-apply-many-f)
+  (comp-test-compile #'comp-tests-ffuncall-apply-many-f)
 
   (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3)))
 
@@ -213,8 +198,7 @@
                  (1+ x))))
       (funcall fun x)))
 
-  (byte-compile #'comp-tests-ffuncall-lambda-f)
-  (native-compile #'comp-tests-ffuncall-lambda-f)
+  (comp-test-compile #'comp-tests-ffuncall-lambda-f)
 
   (should (= (comp-tests-ffuncall-lambda-f 1) 2)))
 
@@ -226,8 +210,6 @@
       ('y 'b)
       (_ 'c)))
 
-  (byte-compile #'comp-tests-jump-table-1-f)
-  (byte-compile #'comp-tests-jump-table-1-f)
 
   (should (eq (comp-tests-jump-table-1-f 'x) 'a))
   (should (eq (comp-tests-jump-table-1-f 'y) 'b))
@@ -242,10 +224,8 @@
     ;; Generate goto-if-nil-else-pop
     (when x
         1340))
-  (byte-compile #'comp-tests-conditionals-1-f)
-  (byte-compile #'comp-tests-conditionals-2-f)
-  (native-compile #'comp-tests-conditionals-1-f)
-  (native-compile #'comp-tests-conditionals-2-f)
+  (comp-test-compile #'comp-tests-conditionals-1-f)
+  (comp-test-compile #'comp-tests-conditionals-2-f)
 
   (should (= (comp-tests-conditionals-1-f t) 1))
   (should (= (comp-tests-conditionals-1-f nil) 2))
@@ -264,12 +244,9 @@
     ;; Bnegate
     (- x))
 
-  (byte-compile #'comp-tests-fixnum-1-minus-f)
-  (byte-compile #'comp-tests-fixnum-1-plus-f)
-  (byte-compile #'comp-tests-fixnum-minus-f)
-  (native-compile #'comp-tests-fixnum-1-minus-f)
-  (native-compile #'comp-tests-fixnum-1-plus-f)
-  (native-compile #'comp-tests-fixnum-minus-f)
+  (comp-test-compile #'comp-tests-fixnum-1-minus-f)
+  (comp-test-compile #'comp-tests-fixnum-1-plus-f)
+  (comp-test-compile #'comp-tests-fixnum-minus-f)
 
   (should (= (comp-tests-fixnum-1-minus-f 10) 9))
   (should (= (comp-tests-fixnum-1-minus-f most-negative-fixnum)
@@ -311,17 +288,12 @@
     ;; Bgeq
     (>= x y))
 
-  (byte-compile #'comp-tests-eqlsign-f)
-  (byte-compile #'comp-tests-gtr-f)
-  (byte-compile #'comp-tests-lss-f)
-  (byte-compile #'comp-tests-les-f)
-  (byte-compile #'comp-tests-geq-f)
 
-  (native-compile #'comp-tests-eqlsign-f)
-  (native-compile #'comp-tests-gtr-f)
-  (native-compile #'comp-tests-lss-f)
-  (native-compile #'comp-tests-les-f)
-  (native-compile #'comp-tests-geq-f)
+  (comp-test-compile #'comp-tests-eqlsign-f)
+  (comp-test-compile #'comp-tests-gtr-f)
+  (comp-test-compile #'comp-tests-lss-f)
+  (comp-test-compile #'comp-tests-les-f)
+  (comp-test-compile #'comp-tests-geq-f)
 
   (should (eq (comp-tests-eqlsign-f 4 3) nil))
   (should (eq (comp-tests-eqlsign-f 3 3) t))
@@ -348,10 +320,8 @@
     (setcdr x y)
     x)
 
-  (byte-compile #'comp-tests-setcar-f)
-  (byte-compile #'comp-tests-setcdr-f)
-  (native-compile #'comp-tests-setcar-f)
-  (native-compile #'comp-tests-setcdr-f)
+  (comp-test-compile #'comp-tests-setcar-f)
+  (comp-test-compile #'comp-tests-setcdr-f)
 
   (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
   (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3)))
@@ -380,8 +350,7 @@
         (setq i (1- i)))
       list))
 
-  (byte-compile #'comp-bubble-sort-f)
-  (native-compile #'comp-bubble-sort-f)
+  (comp-test-compile #'comp-bubble-sort-f)
 
   (let* ((list1 (mapcar 'random (make-list 1000 most-positive-fixnum)))
          (list2 (copy-sequence list1)))
@@ -397,10 +366,8 @@
     ;; Bsetcar
     (setcar x 3))
 
-  (byte-compile #'comp-tests-consp-f)
-  (native-compile #'comp-tests-consp-f)
-  (byte-compile #'comp-tests-car-f)
-  (native-compile #'comp-tests-car-f)
+  (comp-test-compile #'comp-tests-consp-f)
+  (comp-test-compile #'comp-tests-car-f)
 
   (should (eq (comp-tests-consp-f '(1)) t))
   (should (eq (comp-tests-consp-f 1) nil))
@@ -417,10 +384,8 @@
     ;; Bnumberp
     (numberp x))
 
-  (byte-compile #'comp-tests-integerp-f)
-  (native-compile #'comp-tests-integerp-f)
-  (byte-compile #'comp-tests-numberp-f)
-  (native-compile #'comp-tests-numberp-f)
+  (comp-test-compile #'comp-tests-integerp-f)
+  (comp-test-compile #'comp-tests-numberp-f)
 
   (should (eq (comp-tests-integerp-f 1) t))
   (should (eq (comp-tests-integerp-f '(1)) nil))
@@ -443,10 +408,8 @@
     ;; Binsert
     (insert a b c d))
 
-  (byte-compile #'comp-tests-discardn-f)
-  (native-compile #'comp-tests-discardn-f)
-  (byte-compile #'comp-tests-insertn-f)
-  (native-compile #'comp-tests-insertn-f)
+  (comp-test-compile #'comp-tests-discardn-f)
+  (comp-test-compile #'comp-tests-insertn-f)
 
   (should (= (comp-tests-discardn-f 10) 2))
 
@@ -493,14 +456,10 @@
   (defun comp-tests-throw-f (x)
     (throw 'foo x))
 
-  (byte-compile #'comp-tests-condition-case-0-f)
-  (native-compile #'comp-tests-condition-case-0-f)
-  (byte-compile #'comp-tests-condition-case-1-f)
-  (native-compile #'comp-tests-condition-case-1-f)
-  (byte-compile #'comp-tests-catch-f)
-  (native-compile #'comp-tests-catch-f)
-  (byte-compile #'comp-tests-throw-f)
-  (native-compile #'comp-tests-throw-f)
+  (comp-test-compile #'comp-tests-condition-case-0-f)
+  (comp-test-compile #'comp-tests-condition-case-1-f)
+  (comp-test-compile #'comp-tests-catch-f)
+  (comp-test-compile #'comp-tests-throw-f)
 
   (should (string= (comp-tests-condition-case-0-f)
                    "arith-error Arithmetic error catched"))
