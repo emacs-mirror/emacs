@@ -72,6 +72,8 @@ To be used when ncall-conv is nil.")
       :documentation "Current intermediate rappresentation")
   (args nil :type 'comp-args)
   (frame-size nil :type 'number)
+  (blocks () :type list
+          :documentation "List of basic block")
   (limple-cnt -1 :type 'number
               :documentation "Counter to create ssa limple vars"))
 
@@ -198,10 +200,16 @@ To be used when ncall-conv is nil.")
   "Push VAL into frame.
 VAL is known at compile time."
   (cl-incf (comp-sp))
-  (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
+  (let ((const (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
-                                    :constant val))
-  (push (list '=const (comp-slot) val) comp-limple))
+                                    :constant val)))
+    (setf (comp-slot) const)
+    (push (list '=const (comp-slot) const) comp-limple)))
+
+(defun comp-push_block (bblock)
+  "Push basic block BBLOCK."
+  (push bblock (comp-func-blocks comp-func))
+  (push `(block ,bblock) comp-limple))
 
 (defun comp-pop (n)
   "Pop N elements from the meta-stack."
@@ -262,7 +270,7 @@ VAL is known at compile time."
       (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
 (defun comp-limplify (func)
-  "Given FUNC and return LIMPLE."
+  "Given FUNC and return compute its LIMPLE ir."
   (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
          (comp-frame (make-comp-limple-frame
@@ -273,12 +281,14 @@ VAL is known at compile time."
                                v)))
          (comp-limple ()))
     ;; Prologue
-    (push '(BLOCK prologue) comp-limple)
+    (comp-push_block 'prologue)
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
                   (push `(=par ,(comp-slot) ,i) comp-limple)))
-    (push '(BLOCK body) comp-limple)
+    (push '(jump body) comp-limple)
+    ;; Body
+    (comp-push_block 'body)
     (mapc #'comp-limplify-lap-inst (comp-func-ir func))
     (setf (comp-func-ir func) (reverse comp-limple))
     (when comp-debug

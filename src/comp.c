@@ -935,6 +935,10 @@ emit_limple_inst (Lisp_Object inst)
       char *block_name = SDATA (SYMBOL_NAME (arg0));
       comp.block = gcc_jit_function_new_block (comp.func, block_name);
     }
+  else if (EQ (op, Qjump))
+    {
+
+    }
   else if (EQ (op, Qeqcall))
     {
     }
@@ -1881,7 +1885,8 @@ void
 syms_of_comp (void)
 {
   /* Limple instruction set.  */
-  DEFSYM (Qblock, "BLOCK");
+  DEFSYM (Qblock, "block");
+  DEFSYM (Qjump, "jump");
   DEFSYM (Qeqcall, "=call");
   DEFSYM (Qeqconst, "=const");
   DEFSYM (Qreturn, "return");
