@@ -37,6 +37,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define STR(s) #s
 
+#define FIRST(x)				\
+  XCAR(x)
+#define SECOND(x)				\
+  XCAR (XCDR (x))
+#define THIRD(x)				\
+  XCAR (XCDR (XCDR (x)))
+
 #define FUNCALL1(fun, arg)			\
   CALLN (Ffuncall, intern (STR(fun)), arg)
 
@@ -109,6 +116,7 @@ typedef struct {
   gcc_jit_field *cast_union_as_lisp_obj_ptr;
   gcc_jit_function *func; /* Current function being compiled.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
+  gcc_jit_lvalue **frame; /* Frame for the current function.  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
@@ -960,7 +968,7 @@ static void
 emit_limple_inst (Lisp_Object inst)
 {
   Lisp_Object op = XCAR (inst);
-  Lisp_Object arg0 = XCAR (XCDR (inst));
+  Lisp_Object arg0 = SECOND (inst);
 
   if (EQ (op, Qblock))
     {
@@ -976,6 +984,18 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qeqcall))
     {
+      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
+      Lisp_Object arg1 = THIRD (inst);
+      eassert (FIRST (arg1) == Qcall);
+      char *calle =  (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
+      gcc_jit_rvalue *args[] =
+	{ emit_lisp_obj_from_ptr (THIRD (arg1)) };
+      gcc_jit_rvalue *res = emit_call (calle, comp.lisp_obj_type, 1, args);
+
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[slot_n],
+				    res);
     }
   else if (EQ (op, Qeqconst))
     {
@@ -1886,6 +1906,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     i));
+  comp.frame = frame;
 
   comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
@@ -1966,6 +1987,8 @@ syms_of_comp (void)
   DEFSYM (Qblock, "block");
   DEFSYM (Qjump, "jump");
   DEFSYM (Qeqcall, "=call");
+  DEFSYM (Qcall, "call");
+  DEFSYM (Qncall, "ncall");
   DEFSYM (Qeqconst, "=const");
   DEFSYM (Qreturn, "return");
 
