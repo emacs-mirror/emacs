@@ -79,7 +79,7 @@ To be used when ncall-conv is nil.")
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
-  (n nil :type number
+  (id nil :type number
      :documentation "SSA number")
   (slot nil :type fixnum
         :documentation "Slot position")
@@ -139,8 +139,11 @@ To be used when ncall-conv is nil.")
         (byte-compile (comp-func-symbol-name func)))
   (when comp-debug
     (cl-prettyprint byte-compile-lap-output))
-  (setf (comp-func-args func)
-        (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
+  (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+    (if (fixnump lambda-list)
+        (setf (comp-func-args func)
+              (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
+      (error "Can't native compile a non lexical scoped function")))
   (setf (comp-func-ir func) byte-compile-lap-output)
   (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
   func)
@@ -163,7 +166,7 @@ To be used when ncall-conv is nil.")
 (defvar comp-func)
 
 (cl-defun make-comp-mvar (&key slot const-vld constant type)
-  (make--comp-mvar :n (cl-incf (comp-func-limple-cnt comp-func))
+  (make--comp-mvar :id (cl-incf (comp-func-limple-cnt comp-func))
                    :slot slot :const-vld const-vld :constant constant
                    :type type))
 
@@ -207,11 +210,10 @@ To be used when ncall-conv is nil.")
   "Push VAL into frame.
 VAL is known at compile time."
   (cl-incf (comp-sp))
-  (let ((const (make-comp-mvar :slot (comp-sp)
+  (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
-                                    :constant val)))
-    (setf (comp-slot) const)
-    (push (list '=const (comp-slot) const) comp-limple)))
+                                    :constant val))
+  (push (list '=const (comp-slot) val) comp-limple))
 
 (defun comp-push-block (bblock)
   "Push basic block BBLOCK."
@@ -307,8 +309,6 @@ VAL is known at compile time."
 
 (defun native-compile (fun)
   "FUN is the function definition to be compiled into native code."
-  (unless lexical-binding
-    (error "Can't native compile a non lexical scoped function"))
   (if-let ((f (symbol-function fun)))
       (progn
         (when (byte-code-function-p f)
