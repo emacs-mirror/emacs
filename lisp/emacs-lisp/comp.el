@@ -98,6 +98,13 @@ To be used when ncall-conv is nil.")
   (frame nil :type 'vector
          :documentation "Meta-stack used to flat LAP"))
 
+(defun comp-limple-frame-new-frame (size)
+  "Return a clean frame of meta variables of size SIZE."
+  (let ((v (make-vector size nil)))
+    (cl-loop for i below size
+             do (aset v i (make-comp-mvar :slot i)))
+    v))
+
 (defun comp-c-func-name (symbol-function)
   "Given SYMBOL-FUNCTION return a name suitable for the native code."
   ;; Unfortunatelly not all symbol names are valid as C function names...
@@ -206,9 +213,13 @@ VAL is known at compile time."
     (setf (comp-slot) const)
     (push (list '=const (comp-slot) const) comp-limple)))
 
-(defun comp-push_block (bblock)
+(defun comp-push-block (bblock)
   "Push basic block BBLOCK."
   (push bblock (comp-func-blocks comp-func))
+  ;; Every new block we are forced to wipe out all the frame.
+  ;; This will be superseded by proper flow analysis.
+  (setf (comp-limple-frame-frame comp-frame)
+        (comp-limple-frame-new-frame (comp-func-frame-size comp-func)))
   (push `(block ,bblock) comp-limple))
 
 (defun comp-pop (n)
@@ -275,20 +286,17 @@ VAL is known at compile time."
          (comp-func func)
          (comp-frame (make-comp-limple-frame
                       :sp -1
-                      :frame (let ((v (make-vector frame-size nil)))
-                               (cl-loop for i below frame-size
-                                        do (aset v i (make-comp-mvar :slot i)))
-                               v)))
+                      :frame (comp-limple-frame-new-frame frame-size)))
          (comp-limple ()))
     ;; Prologue
-    (comp-push_block 'prologue)
+    (comp-push-block 'prologue)
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
                   (push `(=par ,(comp-slot) ,i) comp-limple)))
     (push '(jump body) comp-limple)
     ;; Body
-    (comp-push_block 'body)
+    (comp-push-block 'body)
     (mapc #'comp-limplify-lap-inst (comp-func-ir func))
     (setf (comp-func-ir func) (reverse comp-limple))
     ;; Prologue block must be first
