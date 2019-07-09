@@ -4693,7 +4693,7 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
 #ifndef HAVE_PGTK
   event.modifiers = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), mod);
 #else
-  event.modifiers = pgtk_gtk_to_emacs_modifiers (mod);
+  event.modifiers = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), mod);
 #endif
   kbd_buffer_store_event (&event);
 

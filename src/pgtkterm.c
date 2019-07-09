@@ -4895,64 +4895,100 @@ static void size_allocate(GtkWidget *widget, GtkAllocation *alloc, gpointer *use
   }
 }
 
-int
-pgtk_gtk_to_emacs_modifiers (int state)
+static void
+x_find_modifier_meanings (struct pgtk_display_info *dpyinfo)
 {
-  int mod_ctrl = ctrl_modifier;
-  int mod_meta = meta_modifier;
-  int mod_alt  = alt_modifier;
-  int mod_hyper = hyper_modifier;
-  int mod_super = super_modifier;
+  GdkDisplay *gdpy = dpyinfo->gdpy;
+  GdkKeymap *keymap = gdk_keymap_get_for_display (gdpy);
+  GdkModifierType state = GDK_META_MASK;
+  gboolean r = gdk_keymap_map_virtual_modifiers (keymap, &state);
+  if (r) {
+    /* Meta key exists. */
+    if (state == GDK_META_MASK) {
+      dpyinfo->meta_mod_mask = GDK_MOD1_MASK;	/* maybe this is meta. */
+      dpyinfo->alt_mod_mask = 0;
+    } else {
+      dpyinfo->meta_mod_mask = state & ~GDK_META_MASK;
+      if (dpyinfo->meta_mod_mask == GDK_MOD1_MASK)
+	dpyinfo->alt_mod_mask = 0;
+      else
+	dpyinfo->alt_mod_mask = GDK_MOD1_MASK;
+    }
+  } else {
+    dpyinfo->meta_mod_mask = GDK_MOD1_MASK;
+    dpyinfo->alt_mod_mask = 0;
+  }
+}
+
+static void get_modifier_values(
+  int *mod_ctrl,
+  int *mod_meta,
+  int *mod_alt,
+  int *mod_hyper,
+  int *mod_super)
+{
   Lisp_Object tem;
 
-  tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_ctrl = XFIXNUM (tem) & INT_MAX;
-  tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XFIXNUM (tem) & INT_MAX;
-  tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XFIXNUM (tem) & INT_MAX;
-  tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XFIXNUM (tem) & INT_MAX;
-  tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XFIXNUM (tem) & INT_MAX;
+  *mod_ctrl = ctrl_modifier;
+  *mod_meta = meta_modifier;
+  *mod_alt  = alt_modifier;
+  *mod_hyper = hyper_modifier;
+  *mod_super = super_modifier;
 
-  return (  ((state & GDK_SHIFT_MASK)     ? shift_modifier : 0)
-            | ((state & GDK_CONTROL_MASK) ? mod_ctrl	: 0)
-            | ((state & GDK_META_MASK)	  ? mod_meta	: 0)
-            | ((state & GDK_MOD1_MASK)	  ? mod_alt	: 0)
-            | ((state & GDK_SUPER_MASK)	  ? mod_super	: 0)
-            | ((state & GDK_HYPER_MASK)	  ? mod_hyper	: 0));
+  tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
+  if (INTEGERP (tem)) *mod_ctrl = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_alt_keysym, Qmodifier_value);
+  if (INTEGERP (tem)) *mod_alt = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_meta_keysym, Qmodifier_value);
+  if (INTEGERP (tem)) *mod_meta = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_hyper_keysym, Qmodifier_value);
+  if (INTEGERP (tem)) *mod_hyper = XFIXNUM (tem) & INT_MAX;
+  tem = Fget (Vx_super_keysym, Qmodifier_value);
+  if (INTEGERP (tem)) *mod_super = XFIXNUM (tem) & INT_MAX;
+}
+
+int
+pgtk_gtk_to_emacs_modifiers (struct pgtk_display_info *dpyinfo, int state)
+{
+  int mod_ctrl;
+  int mod_meta;
+  int mod_alt;
+  int mod_hyper;
+  int mod_super;
+  int mod;
+
+  get_modifier_values(&mod_ctrl, &mod_meta, &mod_alt, &mod_hyper, &mod_super);
+
+  mod = 0;
+  if (state & GDK_SHIFT_MASK)         mod |= shift_modifier;
+  if (state & GDK_CONTROL_MASK)       mod |= mod_ctrl;
+  if (state & dpyinfo->meta_mod_mask) mod |= mod_meta;
+  if (state & dpyinfo->alt_mod_mask)  mod |= mod_alt;
+  if (state & GDK_SUPER_MASK)         mod |= mod_super;
+  if (state & GDK_HYPER_MASK)         mod |= mod_hyper;
+  return mod;
 }
 
 static int
-pgtk_emacs_to_gtk_modifiers (EMACS_INT state)
+pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *dpyinfo, int state)
 {
-  EMACS_INT mod_ctrl = ctrl_modifier;
-  EMACS_INT mod_meta = meta_modifier;
-  EMACS_INT mod_alt  = alt_modifier;
-  EMACS_INT mod_hyper = hyper_modifier;
-  EMACS_INT mod_super = super_modifier;
+  int mod_ctrl;
+  int mod_meta;
+  int mod_alt;
+  int mod_hyper;
+  int mod_super;
+  int mask;
 
-  Lisp_Object tem;
+  get_modifier_values(&mod_ctrl, &mod_meta, &mod_alt, &mod_hyper, &mod_super);
 
-  tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_ctrl = XFIXNUM (tem);
-  tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XFIXNUM (tem);
-  tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XFIXNUM (tem);
-  tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XFIXNUM (tem);
-  tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XFIXNUM (tem);
-
-
-  return (  ((state & mod_alt)		? GDK_MOD1_MASK    : 0)
-            | ((state & mod_super)	? GDK_SUPER_MASK   : 0)
-            | ((state & mod_hyper)	? GDK_HYPER_MASK   : 0)
-            | ((state & shift_modifier)	? GDK_SHIFT_MASK   : 0)
-            | ((state & mod_ctrl)	? GDK_CONTROL_MASK : 0)
-            | ((state & mod_meta)	? GDK_META_MASK    : 0));
+  mask = 0;
+  if (state & mod_alt)        mask |= dpyinfo->alt_mod_mask;
+  if (state & mod_super)      mask |= GDK_SUPER_MASK;
+  if (state & mod_hyper)      mask |= GDK_HYPER_MASK;
+  if (state & shift_modifier) mask |= GDK_SHIFT_MASK;
+  if (state & mod_ctrl)	      mask |= GDK_CONTROL_MASK;
+  if (state & mod_meta)	      mask |= dpyinfo->meta_mod_mask;
+  return mask;
 }
 
 #define IsCursorKey(keysym)       (0xff50 <= (keysym) && (keysym) < 0xff60)
@@ -5008,7 +5044,7 @@ static gboolean key_press_event(GtkWidget *widget, GdkEvent *event, gpointer *us
       Lisp_Object c;
       guint state = event->key.state;
 
-      state |= pgtk_emacs_to_gtk_modifiers (extra_keyboard_modifiers);
+      state |= pgtk_emacs_to_gtk_modifiers (FRAME_DISPLAY_INFO (f), extra_keyboard_modifiers);
       modifiers = state;
 
       /* This will have to go some day...  */
@@ -5031,7 +5067,7 @@ static gboolean key_press_event(GtkWidget *widget, GdkEvent *event, gpointer *us
 
       /* Common for all keysym input events.  */
       XSETFRAME (inev.ie.frame_or_window, f);
-      inev.ie.modifiers = pgtk_gtk_to_emacs_modifiers (modifiers);
+      inev.ie.modifiers = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
       inev.ie.timestamp = event->key.time;
 
       /* First deal with keysyms which have defined
@@ -5680,7 +5716,7 @@ construct_mouse_click (struct input_event *result,
   result->kind = MOUSE_CLICK_EVENT;
   result->code = event->button - 1;
   result->timestamp = event->time;
-  result->modifiers = (pgtk_gtk_to_emacs_modifiers (event->state)
+  result->modifiers = (pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->state)
 		       | (event->type == GDK_BUTTON_RELEASE
 			  ? up_modifier
 			  : down_modifier));
@@ -5817,7 +5853,7 @@ scroll_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 
   inev.ie.kind = WHEEL_EVENT;
   inev.ie.timestamp = event->scroll.time;
-  inev.ie.modifiers = pgtk_gtk_to_emacs_modifiers (event->scroll.state);
+  inev.ie.modifiers = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->scroll.state);
   XSETINT (inev.ie.x, event->scroll.x);
   XSETINT (inev.ie.y, event->scroll.y);
   XSETFRAME (inev.ie.frame_or_window, f);
@@ -6158,10 +6194,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   *nametail++ = '@';
   lispstpcpy (nametail, system_name);
 
-#if 0
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);
-#endif
 
   /* Get the scroll bar cursor.  */
   /* We must create a GTK cursor, it is required for GTK widgets.  */

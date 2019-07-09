@@ -222,6 +222,9 @@ struct pgtk_display_info
 
   /* The frame where the mouse was last time we reported a mouse position.  */
   struct frame *last_mouse_glyph_frame;
+
+  /* Modifier masks in gdk */
+  int meta_mod_mask, alt_mod_mask;
 };
 
 /* This is a chain of structures for all the PGTK displays currently in use.  */
@@ -529,7 +532,7 @@ extern int pgtk_lisp_to_color (Lisp_Object color, Emacs_Color *col);
 
 /* Implemented in pgtkterm.c */
 extern void pgtk_clear_area (struct frame *f, int x, int y, int width, int height);
-extern int pgtk_gtk_to_emacs_modifiers (int state);
+extern int pgtk_gtk_to_emacs_modifiers (struct pgtk_display_info *dpyinfo, int state);
 extern void pgtk_clear_under_internal_border (struct frame *f);
 extern void pgtk_set_event_handler(struct frame *f);
 
