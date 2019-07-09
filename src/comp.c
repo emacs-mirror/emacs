@@ -964,6 +964,21 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 /*   return emit_call (f_name, comp.lisp_obj_type, 2, args); */
 /* } */
 
+/* Retrive an r-value from a meta variable.
+   In case this is a constant that was propagated return it otherwise load it
+   from the frame.  */
+
+static gcc_jit_rvalue *
+retrive_mvar_val (Lisp_Object mvar)
+{
+  if (NILP (FUNCALL1 (comp-mvar-const-vld, mvar)))
+    return
+      gcc_jit_lvalue_as_rvalue(
+        comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
+  else
+    return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
+}
+
 static void
 emit_limple_inst (Lisp_Object inst)
 {
@@ -1002,12 +1017,9 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qreturn))
     {
-      gcc_jit_rvalue *ret_val =
-	emit_lisp_obj_from_ptr (
-	   FUNCALL1 (comp-mvar-constant, arg0));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     ret_val);
+				     retrive_mvar_val (arg0));
     }
 }
 
@@ -1961,7 +1973,8 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
       Lisp_Object func = XCAR (comp.funcs);
       Lisp_Object args = FUNCALL1 (comp-func-args, func);
-      char *symbol_name = (char *) SDATA (FUNCALL1 (symbol-name, func));
+      char *symbol_name =
+	(char *) SDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func)));
       char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
 
       x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
