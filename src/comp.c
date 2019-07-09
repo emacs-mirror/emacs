@@ -37,6 +37,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define STR(s) #s
 
+#define FUNCALL1(fun, arg)			\
+  CALLN (Ffuncall, intern (STR(fun)), arg)
+
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR(name))
@@ -981,7 +984,7 @@ emit_limple_inst (Lisp_Object inst)
     {
       gcc_jit_rvalue *ret_val =
 	emit_lisp_obj_from_ptr (
-	   CALLN (Ffuncall, intern ("comp-mvar-constant"), arg0));
+	   FUNCALL1 (comp-mvar-constant, arg0));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
 				     ret_val);
@@ -1845,17 +1848,12 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
        doc: /* Add limple FUNC to the current compilation context.  */)
      (Lisp_Object func)
 {
-  char *c_name =
-    (char *) SDATA (CALLN (Ffuncall, intern ("comp-func-c-func-name"), func));
-  Lisp_Object args = (CALLN (Ffuncall, intern ("comp-func-args"), func));
-  EMACS_INT frame_size =
-    XFIXNUM (CALLN (Ffuncall, intern ("comp-func-frame-size"), func));
-  EMACS_INT min_args =
-    XFIXNUM (CALLN (Ffuncall, intern ("comp-args-min"), args));
-  EMACS_INT max_args =
-    XFIXNUM (CALLN (Ffuncall, intern ("comp-args-max"), args));
-  bool ncall =
-    !NILP (CALLN (Ffuncall, intern ("comp-args-ncall-conv"), args));
+  char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
+  Lisp_Object args = FUNCALL1 (comp-func-args, func);
+  EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
+  EMACS_INT min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
+  EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+  bool ncall =     !NILP (FUNCALL1 (comp-args-ncall-conv, args));
 
   if (!ncall)
     {
@@ -1892,7 +1890,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
   /* Pre declare all basic blocks.  */
-  Lisp_Object blocks = (CALLN (Ffuncall, intern ("comp-func-blocks"), func));
+  Lisp_Object blocks = FUNCALL1 (comp-func-blocks, func);
   while (CONSP (blocks))
     {
       char *block_name = (char *) SDATA (SYMBOL_NAME (XCAR (blocks)));
@@ -1900,7 +1898,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
       blocks = XCDR (blocks);
     }
 
-  Lisp_Object limple = (CALLN (Ffuncall, intern ("comp-func-ir"), func));
+  Lisp_Object limple = FUNCALL1 (comp-func-ir, func);
 
   while (CONSP (limple))
     {
@@ -1941,17 +1939,14 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
     {
       union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
       Lisp_Object func = XCAR (comp.funcs);
-      Lisp_Object args = (CALLN (Ffuncall, intern ("comp-func-args"), func));
-      char *c_name =
-	(char *) SDATA (CALLN (Ffuncall,
-			       intern ("comp-func-c-func-name"),
-			       func));
+      Lisp_Object args = FUNCALL1 (comp-func-args, func);
+      char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
 
       x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
       x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
       eassert (x->s.function.a0);
-      x->s.min_args = XFIXNUM (CALLN (Ffuncall, intern ("comp-args-min"), args));
-      x->s.max_args = XFIXNUM (CALLN (Ffuncall, intern ("comp-args-min"), args));
+      x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
+      x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
       x->s.symbol_name = "foo";
       defsubr(x);
 
