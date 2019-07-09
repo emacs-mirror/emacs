@@ -1940,6 +1940,7 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
       Lisp_Object func = XCAR (comp.funcs);
       Lisp_Object args = FUNCALL1 (comp-func-args, func);
+      char *symbol_name = (char *) SDATA (FUNCALL1 (symbol-name, func));
       char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
 
       x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
@@ -1947,7 +1948,7 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       eassert (x->s.function.a0);
       x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
       x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
-      x->s.symbol_name = "foo";
+      x->s.symbol_name = symbol_name;
       defsubr(x);
 
       comp.funcs = XCDR (comp.funcs);
