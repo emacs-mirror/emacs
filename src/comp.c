@@ -139,9 +139,6 @@ static comp_t comp;
 
 FILE *logfile = NULL;
 
-void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
-			   Lisp_Object func, int opt_level, bool dump_asm);
-
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
 format_string (const char *format, ...)
 {
@@ -985,7 +982,7 @@ emit_limple_inst (Lisp_Object inst)
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
       comp.block = target;
     }
-  else if (EQ (op, Qeqcall))
+  else if (EQ (op, Q_call_ass))
     {
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       Lisp_Object arg1 = THIRD (inst);
@@ -1000,7 +997,20 @@ emit_limple_inst (Lisp_Object inst)
 				    comp.frame[slot_n],
 				    res);
     }
-  else if (EQ (op, Qeqconst))
+  else if (EQ (op, Q_par_ass))
+    {
+      /* Ex: (=par #s(comp-mvar 2 0 nil nil nil) 0).  */
+      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
+      EMACS_UINT param_n = XFIXNUM (THIRD (inst));
+      gcc_jit_rvalue *param =
+	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
+							     param_n));
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[slot_n],
+				    param);
+    }
+  else if (EQ (op, Q_const_ass))
     {
     }
   else if (EQ (op, Qreturn))
@@ -1987,10 +1997,11 @@ syms_of_comp (void)
   /* Limple instruction set.  */
   DEFSYM (Qblock, "block");
   DEFSYM (Qjump, "jump");
-  DEFSYM (Qeqcall, "=call");
   DEFSYM (Qcall, "call");
   DEFSYM (Qncall, "ncall");
-  DEFSYM (Qeqconst, "=const");
+  DEFSYM (Q_par_ass, "=par");
+  DEFSYM (Q_call_ass, "=call");
+  DEFSYM (Q_const_ass, "=const");
   DEFSYM (Qreturn, "return");
 
   defsubr (&Scomp_init_ctxt);
