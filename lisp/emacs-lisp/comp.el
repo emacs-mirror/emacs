@@ -108,6 +108,7 @@ To be used when ncall-conv is nil.")
 (defun comp-c-func-name (symbol-function)
   "Given SYMBOL-FUNCTION return a name suitable for the native code."
   ;; Unfortunatelly not all symbol names are valid as C function names...
+  ;; Nassi's algorithm.
   (let* ((orig-name (symbol-name symbol-function))
          (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
 	                   for j from 0 by 2
@@ -117,7 +118,9 @@ To be used when ncall-conv is nil.")
 	                   do (aset str (1+ j) (aref byte 1))
 	                   finally return str))
          (human-readable (replace-regexp-in-string
-                          (rx (not (any "a-z"))) "" orig-name)))
+                          "-" "_" orig-name))
+         (human-readable (replace-regexp-in-string
+                          (rx (not (any "a-z_"))) "" human-readable)))
     (concat "F" crypted "_" human-readable)))
 
 (defun comp-decrypt-lambda-list (x)
@@ -298,7 +301,7 @@ VAL is known at compile time."
          (comp-limple ()))
     ;; Prologue
     (comp-push-block 'entry)
-    (comp-emit-annotation (concat "Function: "
+    (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
