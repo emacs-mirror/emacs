@@ -982,7 +982,7 @@ emit_limple_inst (Lisp_Object inst)
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
       comp.block = target;
     }
-  else if (EQ (op, Q_call_ass))
+  else if (EQ (op, Qcall_ass))
     {
       /* Ex: (=call #s(comp-mvar 6 1 nil nil nil)
 	              (call Fcar #s(comp-mvar 4 0 nil nil nil))).  */
@@ -999,7 +999,7 @@ emit_limple_inst (Lisp_Object inst)
 				    comp.frame[slot_n],
 				    res);
     }
-  else if (EQ (op, Q_par_ass))
+  else if (EQ (op, Qpar_ass))
     {
       /* Ex: (=par #s(comp-mvar 2 0 nil nil nil) 0).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
@@ -1012,8 +1012,13 @@ emit_limple_inst (Lisp_Object inst)
 				    comp.frame[slot_n],
 				    param);
     }
-  else if (EQ (op, Q_const_ass))
+  else if (EQ (op, Qconst_ass))
     {
+    }
+  else if (EQ (op, Qcomment))
+    {
+      /* Ex: (comment "Function: foo").  */
+      emit_comment((char *) SDATA (arg0));
     }
   else if (EQ (op, Qreturn))
     {
@@ -1997,13 +2002,14 @@ void
 syms_of_comp (void)
 {
   /* Limple instruction set.  */
+  DEFSYM (Qcomment, "comment");
   DEFSYM (Qblock, "block");
   DEFSYM (Qjump, "jump");
   DEFSYM (Qcall, "call");
   DEFSYM (Qncall, "ncall");
-  DEFSYM (Q_par_ass, "=par");
-  DEFSYM (Q_call_ass, "=call");
-  DEFSYM (Q_const_ass, "=const");
+  DEFSYM (Qpar_ass, "=par");
+  DEFSYM (Qcall_ass, "=call");
+  DEFSYM (Qconst_ass, "=const");
   DEFSYM (Qreturn, "return");
 
   defsubr (&Scomp_init_ctxt);

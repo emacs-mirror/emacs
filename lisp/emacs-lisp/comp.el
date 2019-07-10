@@ -206,6 +206,10 @@ To be used when ncall-conv is nil.")
     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
     (push (list '=slot (comp-slot) src-slot) comp-limple)))
 
+(defun comp-emit-annotation (str)
+  "Emit annotation STR."
+  (push `(comment ,str) comp-limple))
+
 (defun comp-push-const (val)
   "Push VAL into frame.
 VAL is known at compile time."
@@ -294,6 +298,8 @@ VAL is known at compile time."
          (comp-limple ()))
     ;; Prologue
     (comp-push-block 'entry)
+    (comp-emit-annotation (concat "Function: "
+                                  (symbol-name (comp-func-symbol-name func))))
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
