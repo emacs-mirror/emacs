@@ -43,8 +43,8 @@
 
 (ert-deftest comp-tests-list ()
   "Testing cons car cdr."
-  ;; (defun comp-tests-list-f ()
-  ;;   (list 1 2 3))
+  (defun comp-tests-list-f ()
+    (list 1 2 3))
   (defun comp-tests-car-f (x)
     ;; Bcar
     (car x))
@@ -58,7 +58,7 @@
     ;; Bcdr_safe
     (cdr-safe x))
 
-  ;; (native-compile #'comp-tests-list-f)
+  (native-compile #'comp-tests-list-f)
   (native-compile #'comp-tests-car-f)
   (native-compile #'comp-tests-cdr-f)
   (native-compile #'comp-tests-car-safe-f)

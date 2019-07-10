@@ -984,20 +984,37 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qcall_ass))
     {
-      /* Ex: (=call #s(comp-mvar 6 1 nil nil nil)
-	              (call Fcar #s(comp-mvar 4 0 nil nil nil))).  */
+      /*
+         Ex: (=call #s(comp-mvar 6 1 nil nil nil)
+	            (call Fcar #s(comp-mvar 4 0 nil nil nil)))
+
+	 Ex: (=call #s(comp-mvar 5 0 nil nil cons)
+                    (call Fcons #s(comp-mvar 3 0 t 1 nil)
+		                #s(comp-mvar 4 nil t nil nil)))
+      */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       Lisp_Object arg1 = THIRD (inst);
       eassert (FIRST (arg1) == Qcall);
-      char *calle =  (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
-      gcc_jit_rvalue *args[] =
-	{ retrive_mvar_val (THIRD (arg1)) };
-      gcc_jit_rvalue *res = emit_call (calle, comp.lisp_obj_type, 1, args);
+      if (FIRST (arg1) == Qcall)
+	{
+	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
 
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    res);
+	  Lisp_Object call_args = XCDR (XCDR (arg1));
+	  ptrdiff_t nargs = list_length (call_args);
+	  gcc_jit_rvalue *gcc_args[nargs];
+	  int i = 0;
+	  FOR_EACH_TAIL (call_args)
+	    gcc_args[i++] = retrive_mvar_val (XCAR (call_args));
+	  gcc_jit_rvalue *res =
+	    emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
+
+	  gcc_jit_block_add_assignment (comp.block,
+					NULL,
+					comp.frame[slot_n],
+					res);
+	}
+      else
+	eassert (false);
     }
   else if (EQ (op, Qpar_ass))
     {
