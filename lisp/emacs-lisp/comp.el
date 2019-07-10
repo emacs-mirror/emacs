@@ -247,7 +247,9 @@ VAL is known at compile time."
       ('byte-dup
        (comp-push-slot-n (comp-sp)))
       ('byte-varref
-       (comp-push-call `(call Fsymbol_value ,(cadr inst))))
+       (comp-push-call `(call Fsymbol_value ,(make-comp-mvar
+                                              :const-vld t
+                                              :constant (cadr inst)))))
       ;; ('byte-varset
       ;;  (comp-push-call `(call Fsymbol_value ,(cadr inst))))
       ('byte-constant
@@ -259,16 +261,16 @@ VAL is known at compile time."
        (comp-push-call `(callref Fplus 2 ,(comp-sp))))
       ('byte-car
        (comp-pop 1)
-       (comp-push-call `(call Fcar ,(comp-sp))))
+       (comp-push-call `(call Fcar ,(comp-slot))))
       ('byte-cdr
        (comp-pop 1)
-       (comp-push-call `(call Fcdr ,(comp-sp))))
+       (comp-push-call `(call Fcdr ,(comp-slot))))
       ('byte-car-safe
        (comp-pop 1)
-       (comp-push-call `(call Fcar-safe ,(comp-sp))))
+       (comp-push-call `(call Fcar_safe ,(comp-slot))))
       ('byte-cdr-safe
        (comp-pop 1)
-       (comp-push-call `(call Fcdr-safe ,(comp-sp))))
+       (comp-push-call `(call Fcdr_safe ,(comp-slot))))
       ('byte-list1
        (comp-limplify-listn 1))
       ('byte-list2

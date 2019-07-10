@@ -984,12 +984,14 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Q_call_ass))
     {
+      /* Ex: (=call #s(comp-mvar 6 1 nil nil nil)
+	              (call Fcar #s(comp-mvar 4 0 nil nil nil))).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       Lisp_Object arg1 = THIRD (inst);
       eassert (FIRST (arg1) == Qcall);
       char *calle =  (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
       gcc_jit_rvalue *args[] =
-	{ emit_lisp_obj_from_ptr (THIRD (arg1)) };
+	{ retrive_mvar_val (THIRD (arg1)) };
       gcc_jit_rvalue *res = emit_call (calle, comp.lisp_obj_type, 1, args);
 
       gcc_jit_block_add_assignment (comp.block,
