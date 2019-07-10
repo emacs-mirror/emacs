@@ -291,7 +291,7 @@ VAL is known at compile time."
                       :frame (comp-limple-frame-new-frame frame-size)))
          (comp-limple ()))
     ;; Prologue
-    (comp-push-block 'prologue)
+    (comp-push-block 'entry)
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
