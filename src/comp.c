@@ -205,12 +205,9 @@ retrive_block (Lisp_Object symbol)
 {
   char *block_name = (char *) SDATA (SYMBOL_NAME (symbol));
   Lisp_Object key = make_string (block_name, strlen (block_name));
-  EMACS_UINT hash = 0;
-  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_blocks);
-  ptrdiff_t i = hash_lookup (ht, key, &hash);
-  if (i == -1)
+  Lisp_Object value = Fgethash (key, comp.func_blocks, Qnil);
+  if (NILP (value))
     error ("LIMPLE basic block inconsistency");
-  Lisp_Object value = HASH_VALUE (ht, hash_lookup (ht, key, &hash));
 
   return (gcc_jit_block *) XFIXNUMPTR (value);
 }
@@ -221,12 +218,9 @@ declare_block (char *block_name)
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, block_name);
   Lisp_Object key = make_string (block_name, strlen (block_name));
   Lisp_Object value = make_pointer_integer (XPL (block));
-  EMACS_UINT hash = 0;
-  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_blocks);
-  ptrdiff_t i = hash_lookup (ht, key, &hash);
-  if (i != -1)
+  if (!NILP (Fgethash (key, comp.func_blocks, Qnil)))
     error ("LIMPLE basic block inconsistency");
-  hash_put (ht, key, value, hash);
+  Fputhash (key, value, comp.func_blocks);
 }
 
 INLINE static void
@@ -293,12 +287,10 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
     {
       Lisp_Object key = make_string (f_name, strlen (f_name));
       Lisp_Object value = make_pointer_integer (XPL (func));
-      EMACS_UINT hash = 0;
-      struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
-      ptrdiff_t i = hash_lookup (ht, key, &hash);
       /* Don't want to declare the same function two times.  */
-      eassert (i == -1);
-      hash_put (ht, key, value, hash);
+      if (!NILP (Fgethash (key, comp.func_hash, Qnil)))
+	eassert (false);
+      Fputhash (key, value, comp.func_hash);
     }
 
   return func;
@@ -309,19 +301,15 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
   Lisp_Object key = make_string (f_name, strlen (f_name));
-  EMACS_UINT hash = 0;
-  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
-  ptrdiff_t i = hash_lookup (ht, key, &hash);
+  Lisp_Object value = Fgethash (key, comp.func_hash, Qnil);
 
-  if (i == -1)
+  if (NILP (value))
     {
       emit_func_declare (f_name, ret_type, nargs, args,
 			 GCC_JIT_FUNCTION_IMPORTED, true);
-      i = hash_lookup (ht, key, &hash);
-      eassert (i != -1);
+      value = Fgethash (key, comp.func_hash, Qnil);
+      eassert (!NILP (value));
     }
-
-  Lisp_Object value = HASH_VALUE (ht, hash_lookup (ht, key, &hash));
   gcc_jit_function *func = (gcc_jit_function *) XFIXNUMPTR (value);
 
   return gcc_jit_context_new_call(comp.ctxt,
