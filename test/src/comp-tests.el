@@ -64,7 +64,7 @@
   (native-compile #'comp-tests-car-safe-f)
   (native-compile #'comp-tests-cdr-safe-f)
 
-  ;; (should (equal (comp-tests-list-f) '(1 2 3)))
+  (should (equal (comp-tests-list-f) '(1 2 3)))
   (should (= (comp-tests-car-f '(1 . 2)) 1))
   (should (null (comp-tests-car-f nil)))
   (should (= (condition-case err

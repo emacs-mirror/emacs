@@ -43,6 +43,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   XCAR (XCDR (x))
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
+#define FORTH(x)				\
+  XCAR (XCDR (XCDR (XCDR (x))))
 
 #define FUNCALL1(fun, arg)			\
   CALLN (Ffuncall, intern (STR(fun)), arg)
@@ -994,7 +996,7 @@ emit_limple_inst (Lisp_Object inst)
       */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       Lisp_Object arg1 = THIRD (inst);
-      eassert (FIRST (arg1) == Qcall);
+
       if (FIRST (arg1) == Qcall)
 	{
 	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
@@ -1013,8 +1015,28 @@ emit_limple_inst (Lisp_Object inst)
 					comp.frame[slot_n],
 					res);
 	}
+      else if ((FIRST (arg1) == Qcallref))
+	{
+	  /* Ex: (=call #s(comp-mvar 10 1 nil nil nil) (callref Fplus 2 0)).  */
+	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
+	  EMACS_UINT nargs = XFIXNUM (THIRD (arg1));
+	  EMACS_UINT base_ptr = XFIXNUM (FORTH (arg1));
+	  gcc_jit_rvalue *gcc_args[2] =
+	    { gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						   comp.ptrdiff_type,
+						   nargs),
+	      gcc_jit_lvalue_get_address (
+		comp.frame[base_ptr],
+		NULL) };
+	  gcc_jit_rvalue *res =
+	    emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
+	  gcc_jit_block_add_assignment (comp.block,
+					NULL,
+					comp.frame[slot_n],
+					res);
+	}
       else
-	eassert (false);
+	error ("LIMPLE inconsistent arg1 for op =call");
     }
   else if (EQ (op, Qpar_ass))
     {
@@ -1031,6 +1053,13 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qconst_ass))
     {
+      /* EX: (=const #s(comp-mvar 9 1 t 3 nil) 3).  */
+      Lisp_Object arg1 = THIRD (inst);
+      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[slot_n],
+				    emit_lisp_obj_from_ptr (arg1));
     }
   else if (EQ (op, Qcomment))
     {
@@ -2023,6 +2052,7 @@ syms_of_comp (void)
   DEFSYM (Qblock, "block");
   DEFSYM (Qjump, "jump");
   DEFSYM (Qcall, "call");
+  DEFSYM (Qcallref, "callref");
   DEFSYM (Qncall, "ncall");
   DEFSYM (Qpar_ass, "=par");
   DEFSYM (Qcall_ass, "=call");
