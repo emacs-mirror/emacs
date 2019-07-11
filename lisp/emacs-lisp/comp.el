@@ -197,7 +197,7 @@ To be used when ncall-conv is nil.")
         (make-comp-mvar :slot (comp-sp)
                         :type (alist-get (cadr src-slot)
                                          comp-known-ret-types)))
-  (push (list '=call (comp-slot) src-slot) comp-limple))
+  (push (list 'set (comp-slot) src-slot) comp-limple))
 
 (defun comp-push-slot-n (n)
   "Push slot number N into frame."
@@ -207,7 +207,7 @@ To be used when ncall-conv is nil.")
     (setf (comp-slot)
           (copy-sequence src-slot))
     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
-    (push (list '=slot (comp-slot) src-slot) comp-limple)))
+    (push (list 'set (comp-slot) src-slot) comp-limple)))
 
 (defun comp-emit-annotation (str)
   "Emit annotation STR."
@@ -220,7 +220,7 @@ VAL is known at compile time."
   (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
                                     :constant val))
-  (push (list '=const (comp-slot) val) comp-limple))
+  (push (list 'setimm (comp-slot) val) comp-limple))
 
 (defun comp-push-block (bblock)
   "Push basic block BBLOCK."
@@ -306,7 +306,7 @@ VAL is known at compile time."
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
-                  (push `(=par ,(comp-slot) ,i) comp-limple)))
+                  (push `(setpar ,(comp-slot) ,i) comp-limple)))
     (push '(jump body) comp-limple)
     ;; Body
     (comp-push-block 'body)

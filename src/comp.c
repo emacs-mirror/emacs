@@ -951,12 +951,12 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 /*   return emit_call (f_name, comp.lisp_obj_type, 2, args); */
 /* } */
 
-/* Retrive an r-value from a meta variable.
+/* Emit an r-value from an mvar meta variable.
    In case this is a constant that was propagated return it otherwise load it
-   from the frame.  */
+   from frame.  */
 
 static gcc_jit_rvalue *
-retrive_mvar_val (Lisp_Object mvar)
+emit_mvar_val (Lisp_Object mvar)
 {
   if (NILP (FUNCALL1 (comp-mvar-const-vld, mvar)))
     return
@@ -971,6 +971,7 @@ emit_limple_inst (Lisp_Object inst)
 {
   Lisp_Object op = XCAR (inst);
   Lisp_Object arg0 = SECOND (inst);
+  gcc_jit_rvalue *res;
 
   if (EQ (op, Qblock))
     {
@@ -984,40 +985,43 @@ emit_limple_inst (Lisp_Object inst)
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
       comp.block = target;
     }
-  else if (EQ (op, Qcall_ass))
+  else if (EQ (op, Qset))
     {
-      /*
-         Ex: (=call #s(comp-mvar 6 1 nil nil nil)
-	            (call Fcar #s(comp-mvar 4 0 nil nil nil)))
-
-	 Ex: (=call #s(comp-mvar 5 0 nil nil cons)
-                    (call Fcons #s(comp-mvar 3 0 t 1 nil)
-		                #s(comp-mvar 4 nil t nil nil)))
-      */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       Lisp_Object arg1 = THIRD (inst);
 
-      if (FIRST (arg1) == Qcall)
+      if (EQ (Ftype_of (arg1), Qcomp_mvar))
 	{
-	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
+	/*
+	   Ex: (= #s(comp-mvar 6 2 nil nil nil)
+                  #s(comp-mvar 6 0 nil nil nil)).
+	*/
+	  res = emit_mvar_val (arg1);
+	}
+      else if (EQ (FIRST (arg1), Qcall))
+	{
+	  /*
+	    Ex: (= #s(comp-mvar 6 1 nil nil nil)
+	           (call Fcar #s(comp-mvar 4 0 nil nil nil)))
 
+	    Ex: (= #s(comp-mvar 5 0 nil nil cons)
+	           (call Fcons #s(comp-mvar 3 0 t 1 nil)
+	                 #s(comp-mvar 4 nil t nil nil)))
+	  */
+
+	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
 	  Lisp_Object call_args = XCDR (XCDR (arg1));
 	  ptrdiff_t nargs = list_length (call_args);
 	  gcc_jit_rvalue *gcc_args[nargs];
 	  int i = 0;
 	  FOR_EACH_TAIL (call_args)
-	    gcc_args[i++] = retrive_mvar_val (XCAR (call_args));
-	  gcc_jit_rvalue *res =
-	    emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
-
-	  gcc_jit_block_add_assignment (comp.block,
-					NULL,
-					comp.frame[slot_n],
-					res);
+	    gcc_args[i++] = emit_mvar_val (XCAR (call_args));
+	  res = emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
 	}
-      else if ((FIRST (arg1) == Qcallref))
+      else if (EQ (FIRST (arg1), Qcallref))
 	{
-	  /* Ex: (=call #s(comp-mvar 10 1 nil nil nil) (callref Fplus 2 0)).  */
+	  /* Ex: (= #s(comp-mvar 10 1 nil nil nil) (callref Fplus 2 0)).  */
+
 	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
 	  EMACS_UINT nargs = XFIXNUM (THIRD (arg1));
 	  EMACS_UINT base_ptr = XFIXNUM (FORTH (arg1));
@@ -1028,17 +1032,18 @@ emit_limple_inst (Lisp_Object inst)
 	      gcc_jit_lvalue_get_address (
 		comp.frame[base_ptr],
 		NULL) };
-	  gcc_jit_rvalue *res =
-	    emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
-	  gcc_jit_block_add_assignment (comp.block,
-					NULL,
-					comp.frame[slot_n],
-					res);
+	  res = emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
 	}
       else
-	error ("LIMPLE inconsistent arg1 for op =call");
+	{
+	  error ("LIMPLE inconsistent arg1 for op =");
+	}
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[slot_n],
+				    res);
     }
-  else if (EQ (op, Qpar_ass))
+  else if (EQ (op, Qsetpar))
     {
       /* Ex: (=par #s(comp-mvar 2 0 nil nil nil) 0).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
@@ -1051,9 +1056,9 @@ emit_limple_inst (Lisp_Object inst)
 				    comp.frame[slot_n],
 				    param);
     }
-  else if (EQ (op, Qconst_ass))
+  else if (EQ (op, Qsetimm))
     {
-      /* EX: (=const #s(comp-mvar 9 1 t 3 nil) 3).  */
+      /* EX: (=imm #s(comp-mvar 9 1 t 3 nil) 3).  */
       Lisp_Object arg1 = THIRD (inst);
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_block_add_assignment (comp.block,
@@ -1070,7 +1075,7 @@ emit_limple_inst (Lisp_Object inst)
     {
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     retrive_mvar_val (arg0));
+				     emit_mvar_val (arg0));
     }
 }
 
@@ -2054,10 +2059,10 @@ syms_of_comp (void)
   DEFSYM (Qcall, "call");
   DEFSYM (Qcallref, "callref");
   DEFSYM (Qncall, "ncall");
-  DEFSYM (Qpar_ass, "=par");
-  DEFSYM (Qcall_ass, "=call");
-  DEFSYM (Qconst_ass, "=const");
+  DEFSYM (Qsetpar, "setpar");
+  DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
+  DEFSYM (Qcomp_mvar, "comp-mvar");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
