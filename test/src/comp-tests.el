@@ -123,14 +123,14 @@
 
   (should (= (comp-tests-aref-aset-f) 100)))
 
-;; (ert-deftest  comp-tests-symbol-value ()
-;;   "Testing aref and aset."
-;;   (defvar comp-tests-var2 3)
-;;   (defun comp-tests-symbol-value-f ()
-;;     (symbol-value 'comp-tests-var2))
-;;   (native-compile #'comp-tests-symbol-value-f)
+(ert-deftest  comp-tests-symbol-value ()
+  "Testing aref and aset."
+  (defvar comp-tests-var2 3)
+  (defun comp-tests-symbol-value-f ()
+    (symbol-value 'comp-tests-var2))
+  (native-compile #'comp-tests-symbol-value-f)
 
-;;   (should (= (comp-tests-symbol-value-f) 3)))
+  (should (= (comp-tests-symbol-value-f) 3)))
 
 ;; (ert-deftest  comp-tests-concat ()
 ;;   "Testing concatX opcodes."

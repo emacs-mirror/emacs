@@ -37,6 +37,8 @@
 
 (defconst comp-debug t)
 
+(defvar comp-speed 2)
+
 (defconst comp-passes '(comp-recuparate-lap
                         comp-limplify)
   "Passes to be executed in order.")
@@ -268,15 +270,16 @@ VAL is known at compile time."
        (comp-pop 1))
       ('byte-dup
        (comp-push-slot-n (comp-sp)))
+      ('byte-symbol-value
+       (comp-emit-set-call `(call Fsymbol_value ,(comp-slot))))
       ('byte-varref
        (comp-push-call `(call Fsymbol_value ,(make-comp-mvar
                                               :const-vld t
                                               :constant (cadr inst)))))
       ('byte-varset
        (comp-emit `(call set_internal
-                         ,(make-comp-mvar
-                           :const-vld t
-                           :constant (cadr inst))
+                         ,(make-comp-mvar :const-vld t
+                                          :constant (cadr inst))
                          ,(comp-slot))))
       ('byte-constant
        (comp-push-const (cadr inst)))
