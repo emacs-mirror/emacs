@@ -198,12 +198,14 @@ To be used when ncall-conv is nil.")
   (push x comp-limple))
 
 (defun comp-emit-set-call (call)
-  "Emit CALL assigning the result the the current slot frame.."
+  "Emit CALL assigning the result the the current slot frame.
+If the calle function is known to have a return type propagate it."
   (cl-assert call)
   (setf (comp-slot)
         (make-comp-mvar :slot (comp-sp)
-                        :type (alist-get (cadr call)
-                                         comp-known-ret-types)))
+                        :type (when (> comp-speed 0)
+                                (alist-get (cadr call)
+                                           comp-known-ret-types))))
   (comp-emit (list 'set (comp-slot) call)))
 
 (defun comp-push-call (call)
@@ -262,6 +264,8 @@ VAL is known at compile time."
   "Limplify LAP instruction INST accumulating in `comp-limple'."
   (let ((op (car inst)))
     (pcase op
+      ('byte-discard
+       (comp-pop 1))
       ('byte-dup
        (comp-push-slot-n (comp-sp)))
       ('byte-varref
@@ -281,6 +285,17 @@ VAL is known at compile time."
       ('byte-plus
        (comp-pop 1)
        (comp-emit-set-call `(callref Fplus 2 ,(comp-sp))))
+      ('byte-aref
+       (comp-pop 1)
+       (comp-emit-set-call `(call Faref
+                                  ,(comp-slot)
+                                  ,(comp-slot-next))))
+      ('byte-aset
+       (comp-pop 2)
+       (comp-emit-set-call `(call Faset
+                                  ,(comp-slot)
+                                  ,(comp-slot-next)
+                                  ,(comp-slot-n (+ 2 (comp-sp))))))
       ('byte-cons
        (comp-pop 1)
        (comp-emit-set-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))

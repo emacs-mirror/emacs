@@ -113,15 +113,15 @@
 
   (should (= (comp-tests-length-f) 3)))
 
-;; (ert-deftest  comp-tests-aref-aset ()
-;;   "Testing aref and aset."
-;;   (defun comp-tests-aref-aset-f ()
-;;     (let ((vec [1 2 3]))
-;;       (aset vec 2 100)
-;;       (aref vec 2)))
-;;   (native-compile #'comp-tests-aref-aset-f)
+(ert-deftest  comp-tests-aref-aset ()
+  "Testing aref and aset."
+  (defun comp-tests-aref-aset-f ()
+    (let ((vec [1 2 3]))
+      (aset vec 2 100)
+      (aref vec 2)))
+  (native-compile #'comp-tests-aref-aset-f)
 
-;;   (should (= (comp-tests-aref-aset-f) 100)))
+  (should (= (comp-tests-aref-aset-f) 100)))
 
 ;; (ert-deftest  comp-tests-symbol-value ()
 ;;   "Testing aref and aset."
