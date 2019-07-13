@@ -20,6 +20,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;; This code is an attempt to make a Carrera out of a turbocharged VW Bug.
+;; Or, to put it another way to make the pig fly.
+
 ;;; Code:
 
 (require 'bytecomp)
@@ -260,8 +264,12 @@ VAL is known at compile time."
        (comp-push-call `(call Fsymbol_value ,(make-comp-mvar
                                               :const-vld t
                                               :constant (cadr inst)))))
-      ;; ('byte-varset
-      ;;  (comp-emit-call `(call Fsymbol_value ,(cadr inst))))
+      ('byte-varset
+       (comp-emit-call `(call set_internal
+                              ,(make-comp-mvar
+                                :const-vld t
+                                :constant (cadr inst))
+                              ,(comp-slot))))
       ('byte-constant
        (comp-push-const (cadr inst)))
       ('byte-stack-ref
@@ -280,6 +288,8 @@ VAL is known at compile time."
        (comp-emit-call `(call Fcar_safe ,(comp-slot))))
       ('byte-cdr-safe
        (comp-emit-call `(call Fcdr_safe ,(comp-slot))))
+      ('byte-length
+       (comp-emit-call `(call Flength ,(comp-slot))))
       ('byte-list1
        (comp-limplify-listn 1))
       ('byte-list2

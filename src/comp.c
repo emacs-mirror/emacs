@@ -966,6 +966,58 @@ emit_mvar_val (Lisp_Object mvar)
     return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
 }
 
+static gcc_jit_rvalue *
+emit_limple_call (Lisp_Object arg1)
+{
+  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
+  Lisp_Object call_args = XCDR (XCDR (arg1));
+  int i = 0;
+
+  if (calle[0] == 'F')
+    {
+      /*
+	Ex: (= #s(comp-mvar 6 1 nil nil nil)
+	       (call Fcar #s(comp-mvar 4 0 nil nil nil)))
+
+        Ex: (= #s(comp-mvar 5 0 nil nil cons)
+	       (call Fcons #s(comp-mvar 3 0 t 1 nil)
+	                   #s(comp-mvar 4 nil t nil nil)))
+      */
+
+      ptrdiff_t nargs = list_length (call_args);
+      gcc_jit_rvalue *gcc_args[nargs];
+      FOR_EACH_TAIL (call_args)
+	gcc_args[i++] = emit_mvar_val (XCAR (call_args));
+
+      return emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
+    }
+  else if (!strcmp (calle, "set_internal"))
+    {
+      /*
+	Ex: (set #s(comp-mvar 8 1 nil nil nil)
+                 (call set_internal
+                       #s(comp-mvar 7 nil t xxx nil)
+                       #s(comp-mvar 6 1 t 3 nil)))
+      */
+      /* TODO: Inline the most common case.  */
+      eassert (list_length (call_args) == 2);
+      gcc_jit_rvalue *gcc_args[4];
+      FOR_EACH_TAIL (call_args)
+	gcc_args[i++] = emit_mvar_val (XCAR (call_args));
+      gcc_args[2] = emit_lisp_obj_from_ptr (Qnil);
+      gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+							 comp.int_type,
+							 SET_INTERNAL_SET);
+      gcc_jit_block_add_eval (
+	comp.block,
+	NULL,
+	emit_call ("set_internal", comp.void_type , 4, gcc_args));
+
+      return NULL;
+    }
+  error ("LIMPLE inconsiste call");
+}
+
 static void
 emit_limple_inst (Lisp_Object inst)
 {
@@ -1000,23 +1052,7 @@ emit_limple_inst (Lisp_Object inst)
 	}
       else if (EQ (FIRST (arg1), Qcall))
 	{
-	  /*
-	    Ex: (= #s(comp-mvar 6 1 nil nil nil)
-	           (call Fcar #s(comp-mvar 4 0 nil nil nil)))
-
-	    Ex: (= #s(comp-mvar 5 0 nil nil cons)
-	           (call Fcons #s(comp-mvar 3 0 t 1 nil)
-	                 #s(comp-mvar 4 nil t nil nil)))
-	  */
-
-	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
-	  Lisp_Object call_args = XCDR (XCDR (arg1));
-	  ptrdiff_t nargs = list_length (call_args);
-	  gcc_jit_rvalue *gcc_args[nargs];
-	  int i = 0;
-	  FOR_EACH_TAIL (call_args)
-	    gcc_args[i++] = emit_mvar_val (XCAR (call_args));
-	  res = emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
+	  res = emit_limple_call (arg1);
 	}
       else if (EQ (FIRST (arg1), Qcallref))
 	{
@@ -1038,10 +1074,11 @@ emit_limple_inst (Lisp_Object inst)
 	{
 	  error ("LIMPLE inconsistent arg1 for op =");
 	}
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    res);
+      if (res)
+	gcc_jit_block_add_assignment (comp.block,
+				      NULL,
+				      comp.frame[slot_n],
+				      res);
     }
   else if (EQ (op, Qsetpar))
     {

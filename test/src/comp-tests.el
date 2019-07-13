@@ -95,23 +95,23 @@
   (should (= (comp-tests-cons-car-f) 1))
   (should (= (comp-tests-cons-cdr-f 3) 3)))
 
-;; (ert-deftest  comp-tests-varset ()
-;;   "Testing varset."
-;;   (defun comp-tests-varset-f ()
-;;       (setq comp-tests-var1 55))
-;;   (native-compile #'comp-tests-varset-f)
+(ert-deftest comp-tests-varset ()
+  "Testing varset."
+  (defun comp-tests-varset-f ()
+      (setq comp-tests-var1 55))
+  (native-compile #'comp-tests-varset-f)
 
-;;   (comp-tests-varset-f)
+  (comp-tests-varset-f)
 
-;;   (should (= comp-tests-var1 55)))
+  (should (= comp-tests-var1 55)))
 
-;; (ert-deftest  comp-tests-length ()
-;;   "Testing length."
-;;   (defun comp-tests-length-f ()
-;;       (length '(1 2 3)))
-;;   (native-compile #'comp-tests-length-f)
+(ert-deftest comp-tests-length ()
+  "Testing length."
+  (defun comp-tests-length-f ()
+      (length '(1 2 3)))
+  (native-compile #'comp-tests-length-f)
 
-;;   (should (= (comp-tests-length-f) 3)))
+  (should (= (comp-tests-length-f) 3)))
 
 ;; (ert-deftest  comp-tests-aref-aset ()
 ;;   "Testing aref and aset."
