@@ -210,16 +210,10 @@ If the calle function is known to have a return type propagate it."
                                            comp-known-ret-types))))
   (comp-emit (list 'set (comp-slot) call)))
 
-(defun comp-push-call (call)
-  "Increase sp and call `comp-emit-set-call' to emit CALL."
-  (cl-incf (comp-sp))
-  (comp-emit-set-call call))
-
-(defun comp-push-slot-n (n)
-  "Push slot number N into frame."
+(defun comp-copy-slot-n (n)
+  "Set current slot with slot number N as source."
   (let ((src-slot (comp-slot-n n)))
     (cl-assert src-slot)
-    (cl-incf (comp-sp))
     (setf (comp-slot)
           (copy-sequence src-slot))
     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
@@ -229,10 +223,8 @@ If the calle function is known to have a return type propagate it."
   "Emit annotation STR."
   (comp-emit `(comment ,str)))
 
-(defun comp-push-const (val)
-  "Push VAL into frame.
-VAL is known at compile time."
-  (cl-incf (comp-sp))
+(defun comp-set-const (val)
+  "Set constant VAL to current slot."
   (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
                                     :constant val))
@@ -247,9 +239,9 @@ VAL is known at compile time."
         (comp-limple-frame-new-frame (comp-func-frame-size comp-func)))
   (comp-emit `(block ,bblock)))
 
-(defun comp-pop (n)
-  "Pop N elements from the meta-stack."
-  (cl-decf (comp-sp) n))
+(defun comp-stack-adjust (n)
+  "Move sp by N."
+  (cl-incf (comp-sp) n))
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
@@ -257,7 +249,7 @@ VAL is known at compile time."
                          ,(make-comp-mvar :const-vld t
                                           :constant nil)))
   (dotimes (_ (1- n))
-    (comp-pop 1)
+    (comp-stack-adjust -1)
     (comp-emit-set-call `(call Fcons
                            ,(comp-slot)
                            ,(comp-slot-n (1+ (comp-sp)))))))
@@ -267,40 +259,44 @@ VAL is known at compile time."
   (let ((op (car inst)))
     (pcase op
       ('byte-discard
-       (comp-pop 1))
+       (comp-stack-adjust -1))
       ('byte-dup
-       (comp-push-slot-n (comp-sp)))
+       (comp-stack-adjust 1)
+       (comp-copy-slot-n (1- (comp-sp))))
       ('byte-symbol-value
        (comp-emit-set-call `(call Fsymbol_value ,(comp-slot))))
       ('byte-varref
-       (comp-push-call `(call Fsymbol_value ,(make-comp-mvar
-                                              :const-vld t
-                                              :constant (cadr inst)))))
+       (comp-stack-adjust 1)
+       (comp-emit-set-call `(call Fsymbol_value ,(make-comp-mvar
+                                                  :const-vld t
+                                                  :constant (cadr inst)))))
       ('byte-varset
        (comp-emit `(call set_internal
                          ,(make-comp-mvar :const-vld t
                                           :constant (cadr inst))
                          ,(comp-slot))))
       ('byte-constant
-       (comp-push-const (cadr inst)))
+       (comp-stack-adjust 1)
+       (comp-set-const (cadr inst)))
       ('byte-stack-ref
-       (comp-push-slot-n (- (comp-sp) (cdr inst))))
+       (comp-stack-adjust 1)
+       (comp-copy-slot-n (- (comp-sp) (cdr inst) 1)))
       ('byte-plus
-       (comp-pop 1)
+       (comp-stack-adjust -1)
        (comp-emit-set-call `(callref Fplus 2 ,(comp-sp))))
       ('byte-aref
-       (comp-pop 1)
+       (comp-stack-adjust -1)
        (comp-emit-set-call `(call Faref
                                   ,(comp-slot)
                                   ,(comp-slot-next))))
       ('byte-aset
-       (comp-pop 2)
+       (comp-stack-adjust -2)
        (comp-emit-set-call `(call Faset
                                   ,(comp-slot)
                                   ,(comp-slot-next)
                                   ,(comp-slot-n (+ 2 (comp-sp))))))
       ('byte-cons
-       (comp-pop 1)
+       (comp-stack-adjust -1)
        (comp-emit-set-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
       ('byte-car
        (comp-emit-set-call `(call Fcar ,(comp-slot))))
