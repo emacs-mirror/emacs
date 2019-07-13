@@ -976,12 +976,10 @@ emit_limple_call (Lisp_Object arg1)
   if (calle[0] == 'F')
     {
       /*
-	Ex: (= #s(comp-mvar 6 1 nil nil nil)
-	       (call Fcar #s(comp-mvar 4 0 nil nil nil)))
+	Ex: (call Fcar #s(comp-mvar 4 0 nil nil nil))
 
-        Ex: (= #s(comp-mvar 5 0 nil nil cons)
-	       (call Fcons #s(comp-mvar 3 0 t 1 nil)
-	                   #s(comp-mvar 4 nil t nil nil)))
+	Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
+			#s(comp-mvar 4 nil t nil nil))
       */
 
       ptrdiff_t nargs = list_length (call_args);
@@ -994,10 +992,9 @@ emit_limple_call (Lisp_Object arg1)
   else if (!strcmp (calle, "set_internal"))
     {
       /*
-	Ex: (set #s(comp-mvar 8 1 nil nil nil)
-                 (call set_internal
-                       #s(comp-mvar 7 nil t xxx nil)
-                       #s(comp-mvar 6 1 t 3 nil)))
+	Ex: (call set_internal
+		  #s(comp-mvar 7 nil t xxx nil)
+		  #s(comp-mvar 6 1 t 3 nil))
       */
       /* TODO: Inline the most common case.  */
       eassert (list_length (call_args) == 2);
@@ -1008,14 +1005,26 @@ emit_limple_call (Lisp_Object arg1)
       gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							 comp.int_type,
 							 SET_INTERNAL_SET);
-      gcc_jit_block_add_eval (
-	comp.block,
-	NULL,
-	emit_call ("set_internal", comp.void_type , 4, gcc_args));
-
-      return NULL;
+      return emit_call ("set_internal", comp.void_type , 4, gcc_args);
     }
-  error ("LIMPLE inconsiste call");
+  error ("LIMPLE call is inconsistet");
+}
+
+static gcc_jit_rvalue *
+emit_limple_call_ref (Lisp_Object arg1)
+{
+  /* Ex: (callref Fplus 2 0).  */
+
+  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
+  EMACS_UINT nargs = XFIXNUM (THIRD (arg1));
+  EMACS_UINT base_ptr = XFIXNUM (FORTH (arg1));
+  gcc_jit_rvalue *gcc_args[2] =
+    { gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.ptrdiff_type,
+					   nargs),
+      gcc_jit_lvalue_get_address (comp.frame[base_ptr], NULL) };
+
+  return emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
 }
 
 static void
@@ -1032,10 +1041,16 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qjump))
     {
-      /* Unconditional branch.  */
+      /* Unconditional branch.	*/
       gcc_jit_block *target = retrive_block (arg0);
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
       comp.block = target;
+    }
+  else if (EQ (op, Qcall))
+    {
+      gcc_jit_block_add_eval (comp.block,
+			      NULL,
+			      emit_limple_call (inst));
     }
   else if (EQ (op, Qset))
     {
@@ -1043,42 +1058,18 @@ emit_limple_inst (Lisp_Object inst)
       Lisp_Object arg1 = THIRD (inst);
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
-	{
-	/*
-	   Ex: (= #s(comp-mvar 6 2 nil nil nil)
-                  #s(comp-mvar 6 0 nil nil nil)).
-	*/
-	  res = emit_mvar_val (arg1);
-	}
+	res = emit_mvar_val (arg1);
       else if (EQ (FIRST (arg1), Qcall))
-	{
-	  res = emit_limple_call (arg1);
-	}
+	res = emit_limple_call (arg1);
       else if (EQ (FIRST (arg1), Qcallref))
-	{
-	  /* Ex: (= #s(comp-mvar 10 1 nil nil nil) (callref Fplus 2 0)).  */
-
-	  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
-	  EMACS_UINT nargs = XFIXNUM (THIRD (arg1));
-	  EMACS_UINT base_ptr = XFIXNUM (FORTH (arg1));
-	  gcc_jit_rvalue *gcc_args[2] =
-	    { gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						   comp.ptrdiff_type,
-						   nargs),
-	      gcc_jit_lvalue_get_address (
-		comp.frame[base_ptr],
-		NULL) };
-	  res = emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
-	}
+	res = emit_limple_call_ref (arg1);
       else
-	{
-	  error ("LIMPLE inconsistent arg1 for op =");
-	}
-      if (res)
-	gcc_jit_block_add_assignment (comp.block,
-				      NULL,
-				      comp.frame[slot_n],
-				      res);
+	error ("LIMPLE inconsistent arg1 for op =");
+      eassert (res);
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[slot_n],
+				    res);
     }
   else if (EQ (op, Qsetpar))
     {
@@ -1105,7 +1096,7 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qcomment))
     {
-      /* Ex: (comment "Function: foo").  */
+      /* Ex: (comment "Function: foo").	 */
       emit_comment((char *) SDATA (arg0));
     }
   else if (EQ (op, Qreturn))

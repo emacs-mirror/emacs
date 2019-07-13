@@ -193,19 +193,23 @@ To be used when ncall-conv is nil.")
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
 
-(defun comp-emit-call (call)
-  "Emit CALL."
+(defun comp-emit (x)
+  "Emit X into current LIMPLE ir.."
+  (push x comp-limple))
+
+(defun comp-emit-set-call (call)
+  "Emit CALL assigning the result the the current slot frame.."
   (cl-assert call)
   (setf (comp-slot)
         (make-comp-mvar :slot (comp-sp)
                         :type (alist-get (cadr call)
                                          comp-known-ret-types)))
-  (push (list 'set (comp-slot) call) comp-limple))
+  (comp-emit (list 'set (comp-slot) call)))
 
 (defun comp-push-call (call)
-  "Push call CALL into frame."
+  "Increase sp and call `comp-emit-set-call' to emit CALL."
   (cl-incf (comp-sp))
-  (comp-emit-call call))
+  (comp-emit-set-call call))
 
 (defun comp-push-slot-n (n)
   "Push slot number N into frame."
@@ -215,11 +219,11 @@ To be used when ncall-conv is nil.")
     (setf (comp-slot)
           (copy-sequence src-slot))
     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
-    (push (list 'set (comp-slot) src-slot) comp-limple)))
+    (comp-emit (list 'set (comp-slot) src-slot))))
 
 (defun comp-emit-annotation (str)
   "Emit annotation STR."
-  (push `(comment ,str) comp-limple))
+  (comp-emit `(comment ,str)))
 
 (defun comp-push-const (val)
   "Push VAL into frame.
@@ -228,7 +232,7 @@ VAL is known at compile time."
   (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
                                     :constant val))
-  (push (list 'setimm (comp-slot) val) comp-limple))
+  (comp-emit (list 'setimm (comp-slot) val)))
 
 (defun comp-emit-block (bblock)
   "Push basic block BBLOCK."
@@ -237,7 +241,7 @@ VAL is known at compile time."
   ;; This will be superseded by proper flow analysis.
   (setf (comp-limple-frame-frame comp-frame)
         (comp-limple-frame-new-frame (comp-func-frame-size comp-func)))
-  (push `(block ,bblock) comp-limple))
+  (comp-emit `(block ,bblock)))
 
 (defun comp-pop (n)
   "Pop N elements from the meta-stack."
@@ -245,12 +249,12 @@ VAL is known at compile time."
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
-  (comp-emit-call `(call Fcons ,(comp-slot)
+  (comp-emit-set-call `(call Fcons ,(comp-slot)
                          ,(make-comp-mvar :const-vld t
                                           :constant nil)))
   (dotimes (_ (1- n))
     (comp-pop 1)
-    (comp-emit-call `(call Fcons
+    (comp-emit-set-call `(call Fcons
                            ,(comp-slot)
                            ,(comp-slot-n (1+ (comp-sp)))))))
 
@@ -265,31 +269,31 @@ VAL is known at compile time."
                                               :const-vld t
                                               :constant (cadr inst)))))
       ('byte-varset
-       (comp-emit-call `(call set_internal
-                              ,(make-comp-mvar
-                                :const-vld t
-                                :constant (cadr inst))
-                              ,(comp-slot))))
+       (comp-emit `(call set_internal
+                         ,(make-comp-mvar
+                           :const-vld t
+                           :constant (cadr inst))
+                         ,(comp-slot))))
       ('byte-constant
        (comp-push-const (cadr inst)))
       ('byte-stack-ref
        (comp-push-slot-n (- (comp-sp) (cdr inst))))
       ('byte-plus
        (comp-pop 1)
-       (comp-emit-call `(callref Fplus 2 ,(comp-sp))))
+       (comp-emit-set-call `(callref Fplus 2 ,(comp-sp))))
       ('byte-cons
        (comp-pop 1)
-       (comp-emit-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
+       (comp-emit-set-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
       ('byte-car
-       (comp-emit-call `(call Fcar ,(comp-slot))))
+       (comp-emit-set-call `(call Fcar ,(comp-slot))))
       ('byte-cdr
-       (comp-emit-call `(call Fcdr ,(comp-slot))))
+       (comp-emit-set-call `(call Fcdr ,(comp-slot))))
       ('byte-car-safe
-       (comp-emit-call `(call Fcar_safe ,(comp-slot))))
+       (comp-emit-set-call `(call Fcar_safe ,(comp-slot))))
       ('byte-cdr-safe
-       (comp-emit-call `(call Fcdr_safe ,(comp-slot))))
+       (comp-emit-set-call `(call Fcdr_safe ,(comp-slot))))
       ('byte-length
-       (comp-emit-call `(call Flength ,(comp-slot))))
+       (comp-emit-set-call `(call Flength ,(comp-slot))))
       ('byte-list1
        (comp-limplify-listn 1))
       ('byte-list2
@@ -299,7 +303,7 @@ VAL is known at compile time."
       ('byte-list4
        (comp-limplify-listn 4))
       ('byte-return
-       (push (list 'return (comp-slot)) comp-limple)
+       (comp-emit (list 'return (comp-slot)))
        `(return ,(comp-slot)))
       (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
