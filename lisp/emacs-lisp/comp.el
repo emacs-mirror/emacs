@@ -189,15 +189,19 @@ To be used when ncall-conv is nil.")
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
 
-(defun comp-push-call (src-slot)
-  "Push call SRC-SLOT into frame."
-  (cl-assert src-slot)
-  (cl-incf (comp-sp))
+(defun comp-emit-call (call)
+  "Emit CALL."
+  (cl-assert call)
   (setf (comp-slot)
         (make-comp-mvar :slot (comp-sp)
-                        :type (alist-get (cadr src-slot)
+                        :type (alist-get (cadr call)
                                          comp-known-ret-types)))
-  (push (list 'set (comp-slot) src-slot) comp-limple))
+  (push (list 'set (comp-slot) call) comp-limple))
+
+(defun comp-push-call (call)
+  "Push call CALL into frame."
+  (cl-incf (comp-sp))
+  (comp-emit-call call))
 
 (defun comp-push-slot-n (n)
   "Push slot number N into frame."
@@ -222,7 +226,7 @@ VAL is known at compile time."
                                     :constant val))
   (push (list 'setimm (comp-slot) val) comp-limple))
 
-(defun comp-push-block (bblock)
+(defun comp-emit-block (bblock)
   "Push basic block BBLOCK."
   (push bblock (comp-func-blocks comp-func))
   ;; Every new block we are forced to wipe out all the frame.
@@ -237,15 +241,14 @@ VAL is known at compile time."
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
-  (comp-pop 1)
-  (comp-push-call `(call Fcons ,(comp-slot-next)
+  (comp-emit-call `(call Fcons ,(comp-slot)
                          ,(make-comp-mvar :const-vld t
                                           :constant nil)))
   (dotimes (_ (1- n))
-    (comp-pop 2)
-    (comp-push-call `(call Fcons
-                           ,(comp-slot-next)
-                           ,(comp-slot-n (+ 2 (comp-sp)))))))
+    (comp-pop 1)
+    (comp-emit-call `(call Fcons
+                           ,(comp-slot)
+                           ,(comp-slot-n (1+ (comp-sp)))))))
 
 (defun comp-limplify-lap-inst (inst)
   "Limplify LAP instruction INST accumulating in `comp-limple'."
@@ -258,26 +261,25 @@ VAL is known at compile time."
                                               :const-vld t
                                               :constant (cadr inst)))))
       ;; ('byte-varset
-      ;;  (comp-push-call `(call Fsymbol_value ,(cadr inst))))
+      ;;  (comp-emit-call `(call Fsymbol_value ,(cadr inst))))
       ('byte-constant
        (comp-push-const (cadr inst)))
       ('byte-stack-ref
        (comp-push-slot-n (- (comp-sp) (cdr inst))))
       ('byte-plus
-       (comp-pop 2)
-       (comp-push-call `(callref Fplus 2 ,(comp-sp))))
+       (comp-pop 1)
+       (comp-emit-call `(callref Fplus 2 ,(comp-sp))))
+      ('byte-cons
+       (comp-pop 1)
+       (comp-emit-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
       ('byte-car
-       (comp-pop 1)
-       (comp-push-call `(call Fcar ,(comp-slot))))
+       (comp-emit-call `(call Fcar ,(comp-slot))))
       ('byte-cdr
-       (comp-pop 1)
-       (comp-push-call `(call Fcdr ,(comp-slot))))
+       (comp-emit-call `(call Fcdr ,(comp-slot))))
       ('byte-car-safe
-       (comp-pop 1)
-       (comp-push-call `(call Fcar_safe ,(comp-slot))))
+       (comp-emit-call `(call Fcar_safe ,(comp-slot))))
       ('byte-cdr-safe
-       (comp-pop 1)
-       (comp-push-call `(call Fcdr_safe ,(comp-slot))))
+       (comp-emit-call `(call Fcdr_safe ,(comp-slot))))
       ('byte-list1
        (comp-limplify-listn 1))
       ('byte-list2
@@ -300,7 +302,7 @@ VAL is known at compile time."
                       :frame (comp-limple-frame-new-frame frame-size)))
          (comp-limple ()))
     ;; Prologue
-    (comp-push-block 'entry)
+    (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
     (cl-loop for i below (comp-args-mandatory (comp-func-args func))
@@ -309,7 +311,7 @@ VAL is known at compile time."
                   (push `(setpar ,(comp-slot) ,i) comp-limple)))
     (push '(jump body) comp-limple)
     ;; Body
-    (comp-push-block 'body)
+    (comp-emit-block 'body)
     (mapc #'comp-limplify-lap-inst (comp-func-ir func))
     (setf (comp-func-ir func) (reverse comp-limple))
     ;; Prologue block must be first

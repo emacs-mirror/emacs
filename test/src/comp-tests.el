@@ -82,18 +82,18 @@
   (should (= (comp-tests-cdr-safe-f '(1 . 2)) 2))
   (should (null (comp-tests-cdr-safe-f 'a))))
 
-;; (ert-deftest  comp-tests-cons-car-cdr ()
-;;   "Testing cons car cdr."
-;;   (defun comp-tests-cons-car-f ()
-;;     (car (cons 1 2)))
-;;   (native-compile #'comp-tests-cons-car-f)
+(ert-deftest  comp-tests-cons-car-cdr ()
+  "Testing cons car cdr."
+  (defun comp-tests-cons-car-f ()
+    (car (cons 1 2)))
+  (native-compile #'comp-tests-cons-car-f)
 
-;;   (defun comp-tests-cons-cdr-f (x)
-;;     (cdr (cons 'foo x)))
-;;   (native-compile #'comp-tests-cons-cdr-f)
+  (defun comp-tests-cons-cdr-f (x)
+    (cdr (cons 'foo x)))
+  (native-compile #'comp-tests-cons-cdr-f)
 
-;;   (should (= (comp-tests-cons-car-f) 1))
-;;   (should (= (comp-tests-cons-cdr-f 3) 3)))
+  (should (= (comp-tests-cons-car-f) 1))
+  (should (= (comp-tests-cons-cdr-f 3) 3)))
 
 ;; (ert-deftest  comp-tests-varset ()
 ;;   "Testing varset."
