@@ -259,9 +259,7 @@ If C-FUN-NAME is nil will be guessed from SUBR-NAME."
                              "-" "_"
                              (symbol-name subr-name))))))
     (if (eq maxarg 'many)
-        (progn
-          (cl-assert (= minarg 0))
-          `(error "To be implemented"))
+        (error "Not implemented")
       (cl-assert (= minarg maxarg))
       `(let ((c-fun-name ',c-fun-name)
              (slots (cl-loop for i from 0 below ,maxarg
@@ -272,7 +270,7 @@ If C-FUN-NAME is nil will be guessed from SUBR-NAME."
   "Set current slot with slot number N as source."
   (let ((src-slot (comp-slot-n n)))
     (cl-assert src-slot)
-    ;; FIXME should the id increase?
+    ;; Should the id increased here?
     (setf (comp-slot)
           (copy-sequence src-slot))
     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
@@ -377,7 +375,8 @@ If NEGATED non nil negate the test condition."
 
 (defmacro comp-op-case (&rest cases)
   "Expand CASES into the corresponding pcase.
-This is responsible for generating the proper stack adjustment when known."
+This is responsible for generating the proper stack adjustment when known and
+the annotation emission."
   (declare (debug (body))
            (indent defun))
   `(pcase op
@@ -522,12 +521,15 @@ This is responsible for generating the proper stack adjustment when known."
       (byte-end-of-line)
       (byte-constant2)
       (byte-goto
-       (comp-with-fall-through-block bb 0
-         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
-           (comp-emit-jump target)
-           (puthash target
-                    (make-comp-block :sp (comp-sp))
-                    (comp-func-blocks comp-func)))))
+       (let ((bb (comp-new-block-sym))
+             (blocks (comp-func-blocks comp-func))
+             (target (comp-lap-to-limple-bb (cl-third inst))))
+         (puthash bb (make-comp-block :sp (comp-sp)) blocks)
+         (comp-emit-jump target)
+         (puthash target
+	          (make-comp-block :sp (comp-sp))
+	          blocks)
+         (comp-emit-block bb)))
       (byte-goto-if-nil
        (comp-emit-cond-jump 0 (cl-third inst) nil))
       (byte-goto-if-not-nil
