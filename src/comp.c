@@ -1046,6 +1046,15 @@ emit_limple_inst (Lisp_Object inst)
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
       comp.block = target;
     }
+  else if (EQ (op, Qcond_jump))
+    {
+      /* Conditional branch.	*/
+      gcc_jit_rvalue *test = emit_mvar_val (arg0);
+      gcc_jit_block *target1 = retrive_block (THIRD (inst));
+      gcc_jit_block *target2 = retrive_block (FORTH (inst));
+
+      emit_cond_jump (emit_NILP (test), target2, target1);
+    }
   else if (EQ (op, Qcall))
     {
       gcc_jit_block_add_eval (comp.block,
@@ -2091,6 +2100,7 @@ syms_of_comp (void)
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
+  DEFSYM (Qcond_jump, "cond-jump");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);

@@ -21,8 +21,8 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; This code is an attempt to make a Carrera out of a turbocharged VW Bug.
-;; Or, to put it another way to make the pig fly.
+;; This code is an attempt to make the pig fly.
+;; Or, to put it another way to make a Carrera out of a turbocharged VW Bug.
 
 ;;; Code:
 
@@ -90,6 +90,9 @@ To be used when ncall-conv is nil.")
   (frame-size nil :type 'number)
   (blocks () :type list
           :documentation "List of basic block")
+  (lap-block (make-hash-table :test #'equal) :type 'hash-table
+             :documentation "Key value to convert from LAP label number to
+LIMPLE basic block")
   (limple-cnt -1 :type 'number
               :documentation "Counter to create ssa limple vars"))
 
@@ -108,11 +111,13 @@ To be used when ncall-conv is nil.")
         :documentation "When non nil is used for type propagation"))
 
 (cl-defstruct (comp-limple-frame (:copier nil))
-  "A LIMPLE func."
+  "This structure is used during the limplify pass."
   (sp 0 :type 'fixnum
       :documentation "Current stack pointer")
   (frame nil :type 'vector
-         :documentation "Meta-stack used to flat LAP"))
+         :documentation "Meta-stack used to flat LAP")
+  (block-sp (make-hash-table) :type 'hash-table
+            :documentation "Key is the basic block value is the stack pointer"))
 
 (defun comp-limple-frame-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
@@ -195,13 +200,14 @@ To be used when ncall-conv is nil.")
 
 (defmacro comp-with-sp (sp &rest body)
   "Execute BODY setting the stack pointer to SP.
-Restore the original value afterwads."
+Restore the original value afterwards."
   (declare (debug (form body))
-           (indent 1))
-  `(let ((orig-sp (comp-sp)))
-     (setf (comp-sp) ,sp)
-     (progn ,@body)
-     (setf (comp-sp) orig-sp)))
+           (indent defun))
+  (let ((sym (gensym)))
+    `(let ((,sym (comp-sp)))
+       (setf (comp-sp) ,sp)
+       (progn ,@body)
+       (setf (comp-sp) ,sym))))
 
 (defmacro comp-slot-n (n)
   "Slot N into the meta-stack."
@@ -235,6 +241,7 @@ If the calle function is known to have a return type propagate it."
   "Set current slot with slot number N as source."
   (let ((src-slot (comp-slot-n n)))
     (cl-assert src-slot)
+    ;; FIXME should the id increase?
     (setf (comp-slot)
           (copy-sequence src-slot))
     (setf (comp-mvar-slot (comp-slot)) (comp-sp))
@@ -252,13 +259,25 @@ If the calle function is known to have a return type propagate it."
   (comp-emit (list 'setimm (comp-slot) val)))
 
 (defun comp-emit-block (bblock)
-  "Push basic block BBLOCK."
-  (push bblock (comp-func-blocks comp-func))
+  "Emit basic block BBLOCK."
+  (cl-pushnew bblock (comp-func-blocks comp-func) :test #'eq)
   ;; Every new block we are forced to wipe out all the frame.
-  ;; This will be superseded by proper flow analysis.
+  ;; This will be optimized by proper flow analysis.
   (setf (comp-limple-frame-frame comp-frame)
         (comp-limple-frame-new-frame (comp-func-frame-size comp-func)))
+  ;; If we are landing here form a recorded branch adjust sp accordingly.
+  (if-let ((new-sp (gethash bblock (comp-limple-frame-block-sp comp-frame))))
+      (setf (comp-sp) new-sp))
   (comp-emit `(block ,bblock)))
+
+(defmacro comp-with-fall-through-block (bb &rest body)
+  "Create a basic block BB that is used to fall through after executing BODY."
+  (declare (debug (form body))
+           (indent defun))
+  `(let ((,bb (comp-new-block-sym)))
+         (push ,bb (comp-func-blocks comp-func))
+         (progn ,@body)
+         (comp-emit-block ,bb)))
 
 (defun comp-stack-adjust (n)
   "Move sp by N."
@@ -277,8 +296,22 @@ If the calle function is known to have a return type propagate it."
                                            ,(comp-slot)
                                            ,(comp-slot-next))))))
 
+(defun comp-new-block-sym ()
+  "Return a symbol naming the next new basic block."
+  (intern (format "bb_%s" (length (comp-func-blocks comp-func)))))
+
+(defun comp-lap-to-limple-bb (n)
+  "Given the LAP label N return the limple basic block."
+  (let ((hash (comp-func-lap-block comp-func)))
+    (if-let ((bb (gethash n hash)))
+        ;; If was already created return it.
+        bb
+      (let ((name (comp-new-block-sym)))
+        (puthash n name hash)
+        name))))
+
 (defmacro comp-op-case (&rest cases)
-  "Expand CASES to the corresponding pcase."
+  "Expand CASES into the corresponding pcase."
   (declare (debug (body))
            (indent defun))
   `(pcase op
@@ -287,8 +320,11 @@ If the calle function is known to have a return type propagate it."
                 for op-name = (symbol-name op)
 		if body
 		  collect `(',op
-                            (comp-emit-annotation ,(concat "LAP op " op-name))
-			    (comp-stack-adjust ,(if sp-delta sp-delta 0))
+                            ,(unless (eq op 'TAG)
+                               `(comp-emit-annotation
+                                 ,(concat "LAP op " op-name)))
+                            ,(when sp-delta
+			       `(comp-stack-adjust ,sp-delta))
 			    (progn ,@body))
                 else
 		  collect `(',op (error ,(concat "Unsupported LAP op "
@@ -302,6 +338,8 @@ If the calle function is known to have a return type propagate it."
                  (cadr inst)
                (cdr inst))))
     (comp-op-case
+      (TAG
+       (comp-emit-block (comp-lap-to-limple-bb arg)))
       (byte-stack-ref
        (comp-copy-slot-n (- (comp-sp) (cdr inst) 1)))
       (byte-varref
@@ -413,11 +451,46 @@ If the calle function is known to have a return type propagate it."
       (byte-widen)
       (byte-end-of-line)
       (byte-constant2)
-      (byte-goto)
-      (byte-goto-if-nil)
-      (byte-goto-if-not-nil)
-      (byte-goto-if-nil-else-pop)
-      (byte-goto-if-not-nil-else-pop)
+      (byte-goto
+       (comp-with-fall-through-block bb
+         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
+           (comp-emit (list 'jump target))
+           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame)))
+         ))
+      (byte-goto-if-nil
+       (comp-with-fall-through-block bb
+         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
+           (comp-emit (list 'cond-jump
+                            (comp-slot)
+                            bb
+                            target))
+           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame)))))
+      (byte-goto-if-not-nil
+       (comp-with-fall-through-block bb
+         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
+           (comp-emit (list 'cond-jump
+                            (comp-slot)
+                            target
+                            bb))
+           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame)))))
+      (byte-goto-if-nil-else-pop
+       (comp-with-fall-through-block bb
+         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
+           (comp-emit (list 'cond-jump
+                            (comp-slot)
+                            bb
+                            target))
+           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame))
+           (comp-stack-adjust -1))))
+      (byte-goto-if-not-nil-else-pop
+       (comp-with-fall-through-block bb
+         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
+           (comp-emit (list 'cond-jump
+                            (comp-slot)
+                            target
+                            bb))
+           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame))
+           (comp-stack-adjust -1))))
       (byte-return
        (comp-emit (list 'return (comp-slot-next))))
       (byte-discard t)
