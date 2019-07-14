@@ -150,7 +150,7 @@ LIMPLE basic block.")
          (human-readable (replace-regexp-in-string
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
-                          (rx (not (any "a-z_"))) "" human-readable)))
+                          (rx (not (any "0-9a-z_"))) "" human-readable)))
     (concat "F" crypted "_" human-readable)))
 
 (defun comp-decrypt-lambda-list (x)
