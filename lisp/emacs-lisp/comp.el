@@ -249,22 +249,27 @@ If the calle function is known to have a return type propagate it."
 (defmacro comp-emit-set-call-subr (subr-name &optional c-fun-name)
   "Emit a call for SUBR-NAME using C-FUN-NAME.
 If C-FUN-NAME is nil will be guessed from SUBR-NAME."
-  (let* ((arity (subr-arity (symbol-function subr-name)))
-         (minarg (car arity))
-         (maxarg (cdr arity)))
-    (unless c-fun-name
-      (setq c-fun-name
-            (intern (concat "F"
-                            (replace-regexp-in-string
-                             "-" "_"
-                             (symbol-name subr-name))))))
-    (if (eq maxarg 'many)
-        (error "Not implemented")
-      (cl-assert (= minarg maxarg))
-      `(let ((c-fun-name ',c-fun-name)
-             (slots (cl-loop for i from 0 below ,maxarg
-                             collect (comp-slot-n (+ i (comp-sp))))))
-         (comp-emit-set-call `(call ,c-fun-name ,@slots))))))
+  (let ((subr (symbol-function subr-name))
+        (subr-str (symbol-name subr-name)))
+    (cl-assert (subrp subr) nil
+               "%s not a subr" subr-str)
+      (let* ((arity (subr-arity subr))
+             (minarg (car arity))
+             (maxarg (cdr arity)))
+        (unless c-fun-name
+          (setq c-fun-name
+                (intern (concat "F"
+                                (replace-regexp-in-string
+                                 "-" "_"
+                                 subr-str)))))
+        (cl-assert (not (eq maxarg 'many)) nil
+                   "%s contains may args" subr-name)
+        (cl-assert (= minarg maxarg) (minarg maxarg)
+                   "args %d %d differs for %s" subr-name)
+        `(let ((c-fun-name ',c-fun-name)
+               (slots (cl-loop for i from 0 below ,maxarg
+                               collect (comp-slot-n (+ i (comp-sp))))))
+           (comp-emit-set-call `(call ,c-fun-name ,@slots))))))
 
 (defun comp-copy-slot-n (n)
   "Set current slot with slot number N as source."
@@ -379,22 +384,29 @@ This is responsible for generating the proper stack adjustment when known and
 the annotation emission."
   (declare (debug (body))
            (indent defun))
-  `(pcase op
-     ,@(cl-loop for (op . body) in cases
-		for sp-delta = (gethash op comp-op-stack-info)
-                for op-name = (symbol-name op)
-		if body
-		  collect `(',op
-                            ,(unless (eq op 'TAG)
-                               `(comp-emit-annotation
-                                 ,(concat "LAP op " op-name)))
-                            ,(when sp-delta
-			       `(comp-stack-adjust ,sp-delta))
-			    (progn ,@body))
-                else
-		  collect `(',op (error ,(concat "Unsupported LAP op "
-                                                op-name))))
-     (_ (error "Unexpected LAP op %s" (symbol-name op)))))
+  (cl-flet ((op-to-fun (x)
+               ;;Given the LAP op strip "byte-"
+               (intern (replace-regexp-in-string "byte-" "" x))))
+    `(pcase op
+       ,@(cl-loop for (op . body) in cases
+		  for sp-delta = (gethash op comp-op-stack-info)
+                  for op-name = (symbol-name op)
+                  for body-eff = (if (eq (car body) 'auto)
+                                     (list `(comp-emit-set-call-subr
+                                             ,(op-to-fun op-name)))
+                                   body)
+		  if body
+		    collect `(',op
+                              ,(unless (eq op 'TAG)
+                                 `(comp-emit-annotation
+                                   ,(concat "LAP op " op-name)))
+                              ,(when sp-delta
+			         `(comp-stack-adjust ,sp-delta))
+			      (progn ,@body-eff))
+                  else
+		    collect `(',op (error ,(concat "Unsupported LAP op "
+                                                 op-name))))
+       (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
 (defun comp-limplify-lap-inst (inst)
   "Limplify LAP instruction INST accumulating in `comp-limple'."
@@ -436,17 +448,14 @@ the annotation emission."
       (byte-nth)
       (byte-symbolp)
       (byte-consp)
-      (byte-stringp)
-      (byte-listp)
-      (byte-eq)
-      (byte-memq)
+      (byte-stringp auto)
+      (byte-listp auto)
+      (byte-eq auto)
+      (byte-memq auto)
       (byte-not)
-      (byte-car
-       (comp-emit-set-call-subr car))
-      (byte-cdr
-       (comp-emit-set-call-subr cdr))
-      (byte-cons
-       (comp-emit-set-call-subr cons))
+      (byte-car auto)
+      (byte-cdr auto)
+      (byte-cons auto)
       (byte-list1
        (comp-limplify-listn 1))
       (byte-list2
@@ -455,18 +464,14 @@ the annotation emission."
        (comp-limplify-listn 3))
       (byte-list4
        (comp-limplify-listn 4))
-      (byte-length
-       (comp-emit-set-call-subr length))
-      (byte-aref
-       (comp-emit-set-call-subr aref))
-      (byte-aset
-       (comp-emit-set-call-subr aset))
-      (byte-symbol-value
-       (comp-emit-set-call-subr symbol-value))
+      (byte-length auto)
+      (byte-aref auto)
+      (byte-aset auto)
+      (byte-symbol-value auto)
       (byte-symbol-function)
-      (byte-set)
-      (byte-fset)
-      (byte-get)
+      (byte-set auto)
+      (byte-fset auto)
+      (byte-get auto)
       (byte-substring)
       (byte-concat2
        (comp-emit-set-call `(callref Fconcat 2 ,(comp-sp))))
@@ -476,7 +481,10 @@ the annotation emission."
        (comp-emit-set-call `(callref Fconcat 4 ,(comp-sp))))
       (byte-sub1)
       (byte-add1)
-      (byte-eqlsign)
+      (byte-eqlsign
+       (comp-emit-set-call `(call Fstring_equal
+                                  ,(comp-slot)
+                                  ,(comp-slot-next))))
       (byte-gtr)
       (byte-lss)
       (byte-leq)
@@ -489,12 +497,12 @@ the annotation emission."
       (byte-min)
       (byte-mult)
       (byte-point)
-      (byte-goto-char)
+      (byte-goto-char auto)
       (byte-insert)
       (byte-point-max)
       (byte-point-min)
       (byte-char-after)
-      (byte-following-char)
+      (byte-following-char auto)
       (byte-preceding-char)
       (byte-current-column)
       (byte-indent-to)
@@ -541,7 +549,7 @@ the annotation emission."
       (byte-return
        (comp-emit (list 'return (comp-slot-next)))
        (comp-mark-block-closed))
-      (byte-discard t)
+      (byte-discard 'pass)
       (byte-dup
        (comp-copy-slot-n (1- (comp-sp))))
       (byte-save-excursion)
