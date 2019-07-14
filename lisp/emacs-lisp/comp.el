@@ -314,7 +314,9 @@ If the calle function is known to have a return type propagate it."
                                           :constant arg)
                          ,(comp-slot))))
       (byte-varbind)
-      (byte-call)
+      (byte-call
+       (comp-stack-adjust (- arg))
+       (comp-emit-set-call `(callref Ffuncall ,(1+ arg) ,(comp-sp))))
       (byte-unbind)
       (byte-pophandler)
       (byte-pushconditioncase)

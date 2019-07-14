@@ -141,64 +141,65 @@
 
   (should (string= (comp-tests-concat-f "bar") "abcdabcabfoobar")))
 
-;; (ert-deftest  comp-tests-ffuncall ()
-;;   "Test calling conventions."
-;;   (defun comp-tests-ffuncall-callee-f (x y z)
-;;     (list x y z))
-;;   (defun comp-tests-ffuncall-caller-f ()
-;;     (comp-tests-ffuncall-callee-f 1 2 3))
+(ert-deftest  comp-tests-ffuncall ()
+  "Test calling conventions."
+  (defun comp-tests-ffuncall-callee-f (x y z)
+    (list x y z))
+  (defun comp-tests-ffuncall-caller-f ()
+    (comp-tests-ffuncall-callee-f 1 2 3))
 
-;;   (native-compile #'comp-tests-ffuncall-caller-f)
+  (native-compile #'comp-tests-ffuncall-caller-f)
 
-;;   (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3)))
+  (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3)))
 
-;;   (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
-;;     (list a b c d))
-;;   (native-compile #'comp-tests-ffuncall-callee-optional-f)
+  ;; (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
+  ;;   (list a b c d))
+  ;; (native-compile #'comp-tests-ffuncall-callee-optional-f)
 
-;;   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3 4) '(1 2 3 4)))
-;;   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
-;;   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2) '(1 2 nil nil)))
+  ;; (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3 4) '(1 2 3 4)))
+  ;; (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
+  ;; (should (equal (comp-tests-ffuncall-callee-optional-f 1 2) '(1 2 nil nil)))
 
-;;   (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
-;;     (list a b c))
-;;   (native-compile #'comp-tests-ffuncall-callee-rest-f)
+  ;; (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
+  ;;   (list a b c))
+  ;; (native-compile #'comp-tests-ffuncall-callee-rest-f)
 
-;;   (should (equal (comp-tests-ffuncall-callee-rest-f 1 2) '(1 2 nil)))
-;;   (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
-;;   (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4) '(1 2 (3 4))))
+  ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2) '(1 2 nil)))
+  ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
+  ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4) '(1 2 (3 4))))
 
-;;   (defun comp-tests-ffuncall-native-f ()
-;;     "Call a primitive with no dedicate op."
-;;     (make-vector 1 nil))
+  ;; (defun comp-tests-ffuncall-native-f ()
+  ;;   "Call a primitive with no dedicate op."
+  ;;   (make-vector 1 nil))
 
-;;   (native-compile #'comp-tests-ffuncall-native-f)
+  ;; (native-compile #'comp-tests-ffuncall-native-f)
 
-;;   (should (equal (comp-tests-ffuncall-native-f) [nil]))
+  ;; (should (equal (comp-tests-ffuncall-native-f) [nil]))
 
-;;   (defun comp-tests-ffuncall-native-rest-f ()
-;;     "Call a primitive with no dedicate op with &rest."
-;;     (vector 1 2 3))
+  ;; (defun comp-tests-ffuncall-native-rest-f ()
+  ;;   "Call a primitive with no dedicate op with &rest."
+  ;;   (vector 1 2 3))
 
-;;   (native-compile #'comp-tests-ffuncall-native-rest-f)
+  ;; (native-compile #'comp-tests-ffuncall-native-rest-f)
 
-;;   (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))
+  ;; (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))
 
-;;   (defun comp-tests-ffuncall-apply-many-f (x)
-;;     (apply #'list x))
+  ;; (defun comp-tests-ffuncall-apply-many-f (x)
+  ;;   (apply #'list x))
 
-;;   (native-compile #'comp-tests-ffuncall-apply-many-f)
+  ;; (native-compile #'comp-tests-ffuncall-apply-many-f)
 
-;;   (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3)))
+  ;; (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3)))
 
-;;   (defun comp-tests-ffuncall-lambda-f (x)
-;;     (let ((fun (lambda (x)
-;;                  (1+ x))))
-;;       (funcall fun x)))
+  ;; (defun comp-tests-ffuncall-lambda-f (x)
+  ;;   (let ((fun (lambda (x)
+  ;;                (1+ x))))
+  ;;     (funcall fun x)))
 
-;;   (native-compile #'comp-tests-ffuncall-lambda-f)
+  ;; (native-compile #'comp-tests-ffuncall-lambda-f)
 
-;;   (should (= (comp-tests-ffuncall-lambda-f 1) 2)))
+  ;; (should (= (comp-tests-ffuncall-lambda-f 1) 2))
+  )
 
 ;; (ert-deftest  comp-tests-jump-table ()
 ;;   "Testing jump tables"
