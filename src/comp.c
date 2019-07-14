@@ -212,7 +212,7 @@ retrive_block (Lisp_Object symbol)
 }
 
 static void
-declare_block (char *block_name)
+declare_block (const char * block_name)
 {
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, block_name);
   Lisp_Object key = make_string (block_name, strlen (block_name));
@@ -1977,7 +1977,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
   EMACS_INT min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
-  EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+  /* EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args)); */
   bool ncall =     !NILP (FUNCALL1 (comp-args-ncall-conv, args));
 
   if (!ncall)
@@ -2015,8 +2015,19 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
 
   comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
-  /* Pre declare all basic blocks.  */
+  /* Pre declare all basic blocks to gcc.
+     The "entry" block must be declared as first.  */
+  declare_block ("entry");
   Lisp_Object blocks = FUNCALL1 (comp-func-blocks, func);
+  Lisp_Object entry_block = Fgethash (intern ("entry"), blocks, Qnil);
+  struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
+  for (ptrdiff_t i = 0; i < ht->count; i++)
+    {
+      Lisp_Object block = HASH_VALUE (ht, i);
+      if (!EQ (block, entry_block))
+	declare_block ((char *) SDATA (SYMBOL_NAME (HASH_KEY (ht, i))));
+    }
+
   while (CONSP (blocks))
     {
       char *block_name = (char *) SDATA (SYMBOL_NAME (XCAR (blocks)));

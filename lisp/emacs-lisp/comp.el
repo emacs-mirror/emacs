@@ -74,6 +74,13 @@ To be used when ncall-conv is nil.")
               :documentation "If t the signature is:
 (ptrdiff_t nargs, Lisp_Object *args)"))
 
+(cl-defstruct (comp-block (:copier nil))
+  "A basic block."
+  (sp nil
+      :documentation "When non nil indicates its the sp value")
+  (closed nil :type 'boolean
+          :documentation "If the block was already closed"))
+
 (cl-defstruct (comp-func (:copier nil))
   "Internal rapresentation for a function."
   (symbol-name nil
@@ -88,8 +95,9 @@ To be used when ncall-conv is nil.")
       :documentation "Current intermediate rappresentation")
   (args nil :type 'comp-args)
   (frame-size nil :type 'number)
-  (blocks () :type list
-          :documentation "List of basic block")
+  (blocks (make-hash-table) :type 'hash-table
+          :documentation "Key is the basic block symbol value is a comp-block
+structure")
   (lap-block (make-hash-table :test #'equal) :type 'hash-table
              :documentation "Key value to convert from LAP label number to
 LIMPLE basic block")
@@ -258,26 +266,31 @@ If the calle function is known to have a return type propagate it."
                                     :constant val))
   (comp-emit (list 'setimm (comp-slot) val)))
 
-(defun comp-emit-block (bblock)
-  "Emit basic block BBLOCK."
-  (cl-pushnew bblock (comp-func-blocks comp-func) :test #'eq)
+(defun comp-emit-block (block-name)
+  "Emit basic block BLOCK-NAME."
+  (unless (gethash block-name (comp-func-blocks comp-func))
+    (puthash block-name
+             (make-comp-block :sp (comp-sp))
+             (comp-func-blocks comp-func)))
   ;; Every new block we are forced to wipe out all the frame.
   ;; This will be optimized by proper flow analysis.
   (setf (comp-limple-frame-frame comp-frame)
         (comp-limple-frame-new-frame (comp-func-frame-size comp-func)))
   ;; If we are landing here form a recorded branch adjust sp accordingly.
-  (if-let ((new-sp (gethash bblock (comp-limple-frame-block-sp comp-frame))))
-      (setf (comp-sp) new-sp))
-  (comp-emit `(block ,bblock)))
+  (setf (comp-sp)
+        (comp-block-sp (gethash block-name (comp-func-blocks comp-func))))
+  (comp-emit `(block ,block-name)))
 
 (defmacro comp-with-fall-through-block (bb &rest body)
   "Create a basic block BB that is used to fall through after executing BODY."
   (declare (debug (form body))
            (indent defun))
   `(let ((,bb (comp-new-block-sym)))
-         (push ,bb (comp-func-blocks comp-func))
-         (progn ,@body)
-         (comp-emit-block ,bb)))
+     (puthash ,bb
+              (make-comp-block :sp (comp-sp))
+              (comp-func-blocks comp-func))
+     (progn ,@body)
+     (comp-emit-block ,bb)))
 
 (defun comp-stack-adjust (n)
   "Move sp by N."
@@ -298,7 +311,7 @@ If the calle function is known to have a return type propagate it."
 
 (defun comp-new-block-sym ()
   "Return a symbol naming the next new basic block."
-  (intern (format "bb_%s" (length (comp-func-blocks comp-func)))))
+  (intern (format "bb_%s" (hash-table-count (comp-func-blocks comp-func)))))
 
 (defun comp-lap-to-limple-bb (n)
   "Given the LAP label N return the limple basic block."
@@ -562,8 +575,6 @@ If the calle function is known to have a return type propagate it."
     (comp-emit-block 'body)
     (mapc #'comp-limplify-lap-inst (comp-func-ir func))
     (setf (comp-func-ir func) (reverse comp-limple))
-    ;; Prologue block must be first
-    (setf (comp-func-blocks func) (reverse (comp-func-blocks func)))
     (when comp-debug
       (cl-prettyprint (comp-func-ir func)))
     func))
