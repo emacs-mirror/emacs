@@ -394,11 +394,20 @@ If NEGATED non nil negate the test condition."
                          ,(make-comp-mvar :const-vld t
                                           :constant arg)
                          ,(comp-slot))))
-      (byte-varbind)
+      (byte-varbind
+       (comp-emit `(call specbind
+                         ,(make-comp-mvar :const-vld t
+                                          :constant arg)
+                         ,(comp-slot-next))))
       (byte-call
        (comp-stack-adjust (- arg))
        (comp-emit-set-call `(callref Ffuncall ,(1+ arg) ,(comp-sp))))
-      (byte-unbind)
+      (byte-unbind
+       (comp-emit `(call unbind_to
+                         ,(make-comp-mvar :const-vld t
+                                          :constant arg)
+                         ,(make-comp-mvar :const-vld t
+                                          :constant nil))))
       (byte-pophandler)
       (byte-pushconditioncase)
       (byte-pushcatch)
