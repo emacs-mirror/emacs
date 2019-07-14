@@ -297,18 +297,21 @@ If the calle function is known to have a return type propagate it."
 
 (defun comp-limplify-lap-inst (inst)
   "Limplify LAP instruction INST accumulating in `comp-limple'."
-  (let ((op (car inst)))
+  (let ((op (car inst))
+        (arg (if (consp (cdr inst))
+                 (cadr inst)
+               (cdr inst))))
     (comp-op-case
       (byte-stack-ref
        (comp-copy-slot-n (- (comp-sp) (cdr inst) 1)))
       (byte-varref
        (comp-emit-set-call `(call Fsymbol_value ,(make-comp-mvar
                                                   :const-vld t
-                                                  :constant (cadr inst)))))
+                                                  :constant arg))))
       (byte-varset
        (comp-emit `(call set_internal
                          ,(make-comp-mvar :const-vld t
-                                          :constant (cadr inst))
+                                          :constant arg)
                          ,(comp-slot))))
       (byte-varbind)
       (byte-call)
@@ -356,9 +359,12 @@ If the calle function is known to have a return type propagate it."
       (byte-fset)
       (byte-get)
       (byte-substring)
-      (byte-concat2)
-      (byte-concat3)
-      (byte-concat4)
+      (byte-concat2
+       (comp-emit-set-call `(callref Fconcat 2 ,(comp-sp))))
+      (byte-concat3
+       (comp-emit-set-call `(callref Fconcat 3 ,(comp-sp))))
+      (byte-concat4
+       (comp-emit-set-call `(callref Fconcat 4 ,(comp-sp))))
       (byte-sub1)
       (byte-add1)
       (byte-eqlsign)
@@ -411,8 +417,7 @@ If the calle function is known to have a return type propagate it."
       (byte-goto-if-nil-else-pop)
       (byte-goto-if-not-nil-else-pop)
       (byte-return
-       (comp-emit (list 'return (comp-slot-next)))
-       `(return ,(comp-slot-next)))
+       (comp-emit (list 'return (comp-slot-next))))
       (byte-discard t)
       (byte-dup
        (comp-copy-slot-n (1- (comp-sp))))
@@ -450,14 +455,16 @@ If the calle function is known to have a return type propagate it."
       (byte-numberp)
       (byte-integerp)
       (byte-listN)
-      (byte-concatN)
+      (byte-concatN
+       (comp-stack-adjust (- (1- arg)))
+       (comp-emit-set-call `(callref Fconcat ,arg ,(comp-sp))))
       (byte-insertN)
       (byte-stack-set)
       (byte-stack-set2)
       (byte-discardN)
       (byte-switch)
       (byte-constant
-       (comp-set-const (cadr inst))))))
+       (comp-set-const arg)))))
 
 (defun comp-limplify (func)
   "Given FUNC and return compute its LIMPLE ir."

@@ -132,14 +132,14 @@
 
   (should (= (comp-tests-symbol-value-f) 3)))
 
-;; (ert-deftest  comp-tests-concat ()
-;;   "Testing concatX opcodes."
-;;   (defun comp-tests-concat-f (x)
-;;     (concat "a" "b" "c" "d"
-;;             (concat "a" "b" "c" (concat "a" "b" (concat "foo" x)))))
-;;   (native-compile #'comp-tests-concat-f)
+(ert-deftest  comp-tests-concat ()
+  "Testing concatX opcodes."
+  (defun comp-tests-concat-f (x)
+    (concat "a" "b" "c" "d"
+            (concat "a" "b" "c" (concat "a" "b" (concat "foo" x)))))
+  (native-compile #'comp-tests-concat-f)
 
-;;   (should (string= (comp-tests-concat-f "bar") "abcdabcabfoobar")))
+  (should (string= (comp-tests-concat-f "bar") "abcdabcabfoobar")))
 
 ;; (ert-deftest  comp-tests-ffuncall ()
 ;;   "Test calling conventions."
