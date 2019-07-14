@@ -118,8 +118,8 @@ LIMPLE basic block")
   (type nil
         :documentation "When non nil is used for type propagation"))
 
-(cl-defstruct (comp-limple-frame (:copier nil))
-  "This structure is used during the limplify pass."
+(cl-defstruct (comp-limplify (:copier nil))
+  "This is a support structure used during the limplify pass."
   (sp 0 :type 'fixnum
       :documentation "Current stack pointer")
   (frame nil :type 'vector
@@ -127,7 +127,7 @@ LIMPLE basic block")
   (block-sp (make-hash-table) :type 'hash-table
             :documentation "Key is the basic block value is the stack pointer"))
 
-(defun comp-limple-frame-new-frame (size)
+(defun comp-limplify-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
   (let ((v (make-vector size nil)))
     (cl-loop for i below size
@@ -204,7 +204,7 @@ LIMPLE basic block")
 
 (defmacro comp-sp ()
   "Current stack pointer."
-  '(comp-limple-frame-sp comp-frame))
+  '(comp-limplify-sp comp-frame))
 
 (defmacro comp-with-sp (sp &rest body)
   "Execute BODY setting the stack pointer to SP.
@@ -220,7 +220,7 @@ Restore the original value afterwards."
 (defmacro comp-slot-n (n)
   "Slot N into the meta-stack."
   (declare (debug (form)))
-  `(aref (comp-limple-frame-frame comp-frame) ,n))
+  `(aref (comp-limplify-frame comp-frame) ,n))
 
 (defmacro comp-slot ()
   "Current slot into the meta-stack pointed by sp."
@@ -274,8 +274,8 @@ If the calle function is known to have a return type propagate it."
              (comp-func-blocks comp-func)))
   ;; Every new block we are forced to wipe out all the frame.
   ;; This will be optimized by proper flow analysis.
-  (setf (comp-limple-frame-frame comp-frame)
-        (comp-limple-frame-new-frame (comp-func-frame-size comp-func)))
+  (setf (comp-limplify-frame comp-frame)
+        (comp-limplify-new-frame (comp-func-frame-size comp-func)))
   ;; If we are landing here form a recorded branch adjust sp accordingly.
   (setf (comp-sp)
         (comp-block-sp (gethash block-name (comp-func-blocks comp-func))))
@@ -468,7 +468,7 @@ If the calle function is known to have a return type propagate it."
        (comp-with-fall-through-block bb
          (let ((target (comp-lap-to-limple-bb (cl-third inst))))
            (comp-emit (list 'jump target))
-           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame)))
+           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame)))
          ))
       (byte-goto-if-nil
        (comp-with-fall-through-block bb
@@ -477,7 +477,7 @@ If the calle function is known to have a return type propagate it."
                             (comp-slot)
                             bb
                             target))
-           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame)))))
+           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame)))))
       (byte-goto-if-not-nil
        (comp-with-fall-through-block bb
          (let ((target (comp-lap-to-limple-bb (cl-third inst))))
@@ -485,7 +485,7 @@ If the calle function is known to have a return type propagate it."
                             (comp-slot)
                             target
                             bb))
-           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame)))))
+           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame)))))
       (byte-goto-if-nil-else-pop
        (comp-with-fall-through-block bb
          (let ((target (comp-lap-to-limple-bb (cl-third inst))))
@@ -493,7 +493,7 @@ If the calle function is known to have a return type propagate it."
                             (comp-slot)
                             bb
                             target))
-           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame))
+           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame))
            (comp-stack-adjust -1))))
       (byte-goto-if-not-nil-else-pop
        (comp-with-fall-through-block bb
@@ -502,7 +502,7 @@ If the calle function is known to have a return type propagate it."
                             (comp-slot)
                             target
                             bb))
-           (puthash target (comp-sp) (comp-limple-frame-block-sp comp-frame))
+           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame))
            (comp-stack-adjust -1))))
       (byte-return
        (comp-emit (list 'return (comp-slot-next))))
@@ -558,9 +558,9 @@ If the calle function is known to have a return type propagate it."
   "Given FUNC and return compute its LIMPLE ir."
   (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
-         (comp-frame (make-comp-limple-frame
+         (comp-frame (make-comp-limplify
                       :sp -1
-                      :frame (comp-limple-frame-new-frame frame-size)))
+                      :frame (comp-limplify-new-frame frame-size)))
          (comp-limple ()))
     ;; Prologue
     (comp-emit-block 'entry)
