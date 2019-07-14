@@ -1044,7 +1044,6 @@ emit_limple_inst (Lisp_Object inst)
       /* Unconditional branch.	*/
       gcc_jit_block *target = retrive_block (arg0);
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
-      comp.block = target;
     }
   else if (EQ (op, Qcond_jump))
     {

@@ -77,7 +77,8 @@ To be used when ncall-conv is nil.")
 (cl-defstruct (comp-block (:copier nil))
   "A basic block."
   (sp nil
-      :documentation "When non nil indicates its the sp value")
+      :documentation "When non nil indicates its the sp value while entering
+into it")
   (closed nil :type 'boolean
           :documentation "If the block was already closed"))
 
@@ -119,13 +120,13 @@ LIMPLE basic block")
         :documentation "When non nil is used for type propagation"))
 
 (cl-defstruct (comp-limplify (:copier nil))
-  "This is a support structure used during the limplify pass."
+  "Support structure used during the limplification."
   (sp 0 :type 'fixnum
-      :documentation "Current stack pointer")
+      :documentation "Current stack pointer while walking LAP")
   (frame nil :type 'vector
          :documentation "Meta-stack used to flat LAP")
-  (block-sp (make-hash-table) :type 'hash-table
-            :documentation "Key is the basic block value is the stack pointer"))
+  (block-name nil :type 'symbol
+    :documentation "Current basic block name"))
 
 (defun comp-limplify-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
@@ -266,31 +267,60 @@ If the calle function is known to have a return type propagate it."
                                     :constant val))
   (comp-emit (list 'setimm (comp-slot) val)))
 
+(defun comp-mark-block-closed ()
+  "Mark current basic block as closed."
+  (setf (comp-block-closed (gethash (comp-limplify-block-name comp-frame)
+                                    (comp-func-blocks comp-func)))
+        t))
+
+(defun comp-emit-jump (target)
+  "Emit an unconditional branch to block TARGET."
+  (comp-emit (list 'jump target))
+  (comp-mark-block-closed))
+
 (defun comp-emit-block (block-name)
   "Emit basic block BLOCK-NAME."
-  (unless (gethash block-name (comp-func-blocks comp-func))
-    (puthash block-name
-             (make-comp-block :sp (comp-sp))
-             (comp-func-blocks comp-func)))
-  ;; Every new block we are forced to wipe out all the frame.
-  ;; This will be optimized by proper flow analysis.
-  (setf (comp-limplify-frame comp-frame)
-        (comp-limplify-new-frame (comp-func-frame-size comp-func)))
-  ;; If we are landing here form a recorded branch adjust sp accordingly.
-  (setf (comp-sp)
-        (comp-block-sp (gethash block-name (comp-func-blocks comp-func))))
-  (comp-emit `(block ,block-name)))
+  (let ((blocks (comp-func-blocks comp-func)))
+    ;; In case does not exist register it into comp-func-blocks.
+    (unless (gethash block-name blocks)
+      (puthash block-name
+               (make-comp-block :sp (comp-sp))
+               blocks))
+    ;; If we are abandoning an non closed basic block close it with a fall
+    ;; through.
+    (when (and (not (eq block-name 'entry))
+               (not (comp-block-closed (gethash (comp-limplify-block-name comp-frame)
+                                                blocks))))
+      (comp-emit-jump block-name))
+    ;; Every new block we are forced to wipe out all the frame.
+    ;; This will be optimized by proper flow analysis.
+    (setf (comp-limplify-frame comp-frame)
+          (comp-limplify-new-frame (comp-func-frame-size comp-func)))
+    ;; If we are landing here form a recorded branch adjust sp accordingly.
+    (setf (comp-sp)
+          (comp-block-sp (gethash block-name blocks)))
+    (comp-emit `(block ,block-name))
+    (setf (comp-limplify-block-name comp-frame) block-name)))
 
-(defmacro comp-with-fall-through-block (bb &rest body)
-  "Create a basic block BB that is used to fall through after executing BODY."
-  (declare (debug (form body))
-           (indent defun))
-  `(let ((,bb (comp-new-block-sym)))
-     (puthash ,bb
-              (make-comp-block :sp (comp-sp))
-              (comp-func-blocks comp-func))
-     (progn ,@body)
-     (comp-emit-block ,bb)))
+(defun comp-emit-cond-jump (discard-n lap-label negated)
+  "Emit a conditional jump to LAP-LABEL.
+Discard DISCARD-N slots afterward.
+If NEGATED non nil negate the test condition."
+  (let ((bb (comp-new-block-sym))
+        (blocks (comp-func-blocks comp-func)))
+    (puthash bb
+	     (make-comp-block :sp (- (comp-sp) discard-n))
+	     blocks)
+    (progn
+      (let ((target (comp-lap-to-limple-bb lap-label)))
+        (comp-emit (if negated
+		       (list 'cond-jump (comp-slot-next) target bb)
+		     (list 'cond-jump (comp-slot-next) bb target)))
+        (puthash target
+	         (make-comp-block :sp (comp-sp))
+	         blocks)
+        (comp-mark-block-closed)))
+    (comp-emit-block bb)))
 
 (defun comp-stack-adjust (n)
   "Move sp by N."
@@ -465,47 +495,23 @@ If the calle function is known to have a return type propagate it."
       (byte-end-of-line)
       (byte-constant2)
       (byte-goto
-       (comp-with-fall-through-block bb
+       (comp-with-fall-through-block bb 0
          (let ((target (comp-lap-to-limple-bb (cl-third inst))))
-           (comp-emit (list 'jump target))
-           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame)))
-         ))
+           (comp-emit-jump target)
+           (puthash target
+                    (make-comp-block :sp (comp-sp))
+                    (comp-func-blocks comp-func)))))
       (byte-goto-if-nil
-       (comp-with-fall-through-block bb
-         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
-           (comp-emit (list 'cond-jump
-                            (comp-slot)
-                            bb
-                            target))
-           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame)))))
+       (comp-emit-cond-jump 0 (cl-third inst) nil))
       (byte-goto-if-not-nil
-       (comp-with-fall-through-block bb
-         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
-           (comp-emit (list 'cond-jump
-                            (comp-slot)
-                            target
-                            bb))
-           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame)))))
+       (comp-emit-cond-jump 0 (cl-third inst) t))
       (byte-goto-if-nil-else-pop
-       (comp-with-fall-through-block bb
-         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
-           (comp-emit (list 'cond-jump
-                            (comp-slot)
-                            bb
-                            target))
-           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame))
-           (comp-stack-adjust -1))))
+       (comp-emit-cond-jump 1 (cl-third inst) nil))
       (byte-goto-if-not-nil-else-pop
-       (comp-with-fall-through-block bb
-         (let ((target (comp-lap-to-limple-bb (cl-third inst))))
-           (comp-emit (list 'cond-jump
-                            (comp-slot)
-                            target
-                            bb))
-           (puthash target (comp-sp) (comp-limplify-block-sp comp-frame))
-           (comp-stack-adjust -1))))
+       (comp-emit-cond-jump 1 (cl-third inst) t))
       (byte-return
-       (comp-emit (list 'return (comp-slot-next))))
+       (comp-emit (list 'return (comp-slot-next)))
+       (comp-mark-block-closed))
       (byte-discard t)
       (byte-dup
        (comp-copy-slot-n (1- (comp-sp))))
@@ -570,7 +576,7 @@ If the calle function is known to have a return type propagate it."
              do (progn
                   (cl-incf (comp-sp))
                   (push `(setpar ,(comp-slot) ,i) comp-limple)))
-    (push '(jump body) comp-limple)
+    (comp-emit-jump 'body)
     ;; Body
     (comp-emit-block 'body)
     (mapc #'comp-limplify-lap-inst (comp-func-ir func))
