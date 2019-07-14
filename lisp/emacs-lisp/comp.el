@@ -54,6 +54,16 @@
   ;; allocating memory? (these are technically not side effect free)
 )
 
+(eval-when-compile
+  (defconst comp-op-stack-info
+    (cl-loop with h = (make-hash-table)
+	     for k across byte-code-vector
+	     for v across byte-stack+-info
+	     when k
+	     do (puthash k v h)
+	     finally return h)
+    "Hash table lap-op -> stack adjustment."))
+
 (cl-defstruct comp-args
   (min nil :type number
        :documentation "Minimum number of arguments allowed")
@@ -183,8 +193,19 @@ To be used when ncall-conv is nil.")
   "Current stack pointer."
   '(comp-limple-frame-sp comp-frame))
 
+(defmacro comp-with-sp (sp &rest body)
+  "Execute BODY setting the stack pointer to SP.
+Restore the original value afterwads."
+  (declare (debug (form body))
+           (indent 1))
+  `(let ((orig-sp (comp-sp)))
+     (setf (comp-sp) ,sp)
+     (progn ,@body)
+     (setf (comp-sp) orig-sp)))
+
 (defmacro comp-slot-n (n)
   "Slot N into the meta-stack."
+  (declare (debug (form)))
   `(aref (comp-limple-frame-frame comp-frame) ,n))
 
 (defmacro comp-slot ()
@@ -245,81 +266,198 @@ If the calle function is known to have a return type propagate it."
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
-  (comp-emit-set-call `(call Fcons ,(comp-slot)
-                         ,(make-comp-mvar :const-vld t
-                                          :constant nil)))
-  (dotimes (_ (1- n))
-    (comp-stack-adjust -1)
+  (comp-with-sp (1- n)
     (comp-emit-set-call `(call Fcons
-                           ,(comp-slot)
-                           ,(comp-slot-n (1+ (comp-sp)))))))
+                               ,(comp-slot)
+                               ,(make-comp-mvar :const-vld t
+                                                :constant nil))))
+  (cl-loop for sp from (+ (comp-sp) n -2) downto (comp-sp)
+           do (comp-with-sp sp
+                (comp-emit-set-call `(call Fcons
+                                           ,(comp-slot)
+                                           ,(comp-slot-next))))))
+
+(defmacro comp-op-case (&rest cases)
+  "Expand CASES to the corresponding pcase."
+  (declare (debug (body))
+           (indent defun))
+  `(pcase op
+     ,@(cl-loop for (op . body) in cases
+		for sp-delta = (gethash op comp-op-stack-info)
+                for op-name = (symbol-name op)
+		if body
+		  collect `(',op
+                            (comp-emit-annotation ,(concat "LAP op " op-name))
+			    (comp-stack-adjust ,(if sp-delta sp-delta 0))
+			    (progn ,@body))
+                else
+		  collect `(',op (error ,(concat "Unsupported LAP op "
+                                                op-name))))
+     (_ (error "Unexpected LAP op %s" (symbol-name op)))))
 
 (defun comp-limplify-lap-inst (inst)
   "Limplify LAP instruction INST accumulating in `comp-limple'."
   (let ((op (car inst)))
-    (pcase op
-      ('byte-discard
-       (comp-stack-adjust -1))
-      ('byte-dup
-       (comp-stack-adjust 1)
-       (comp-copy-slot-n (1- (comp-sp))))
-      ('byte-symbol-value
-       (comp-emit-set-call `(call Fsymbol_value ,(comp-slot))))
-      ('byte-varref
-       (comp-stack-adjust 1)
+    (comp-op-case
+      (byte-stack-ref
+       (comp-copy-slot-n (- (comp-sp) (cdr inst) 1)))
+      (byte-varref
        (comp-emit-set-call `(call Fsymbol_value ,(make-comp-mvar
                                                   :const-vld t
                                                   :constant (cadr inst)))))
-      ('byte-varset
+      (byte-varset
        (comp-emit `(call set_internal
                          ,(make-comp-mvar :const-vld t
                                           :constant (cadr inst))
                          ,(comp-slot))))
-      ('byte-constant
-       (comp-stack-adjust 1)
-       (comp-set-const (cadr inst)))
-      ('byte-stack-ref
-       (comp-stack-adjust 1)
-       (comp-copy-slot-n (- (comp-sp) (cdr inst) 1)))
-      ('byte-plus
-       (comp-stack-adjust -1)
-       (comp-emit-set-call `(callref Fplus 2 ,(comp-sp))))
-      ('byte-aref
-       (comp-stack-adjust -1)
+      (byte-varbind)
+      (byte-call)
+      (byte-unbind)
+      (byte-pophandler)
+      (byte-pushconditioncase)
+      (byte-pushcatch)
+      (byte-nth)
+      (byte-symbolp)
+      (byte-consp)
+      (byte-stringp)
+      (byte-listp)
+      (byte-eq)
+      (byte-memq)
+      (byte-not)
+      (byte-car
+       (comp-emit-set-call `(call Fcar ,(comp-slot))))
+      (byte-cdr
+       (comp-emit-set-call `(call Fcdr ,(comp-slot))))
+      (byte-cons
+       (comp-emit-set-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
+      (byte-list1
+       (comp-limplify-listn 1))
+      (byte-list2
+       (comp-limplify-listn 2))
+      (byte-list3
+       (comp-limplify-listn 3))
+      (byte-list4
+       (comp-limplify-listn 4))
+      (byte-length
+       (comp-emit-set-call `(call Flength ,(comp-slot))))
+      (byte-aref
        (comp-emit-set-call `(call Faref
                                   ,(comp-slot)
                                   ,(comp-slot-next))))
-      ('byte-aset
-       (comp-stack-adjust -2)
+      (byte-aset
        (comp-emit-set-call `(call Faset
                                   ,(comp-slot)
                                   ,(comp-slot-next)
                                   ,(comp-slot-n (+ 2 (comp-sp))))))
-      ('byte-cons
-       (comp-stack-adjust -1)
-       (comp-emit-set-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
-      ('byte-car
-       (comp-emit-set-call `(call Fcar ,(comp-slot))))
-      ('byte-cdr
-       (comp-emit-set-call `(call Fcdr ,(comp-slot))))
-      ('byte-car-safe
+      (byte-symbol-value
+       (comp-emit-set-call `(call Fsymbol_value ,(comp-slot))))
+      (byte-symbol-function)
+      (byte-set)
+      (byte-fset)
+      (byte-get)
+      (byte-substring)
+      (byte-concat2)
+      (byte-concat3)
+      (byte-concat4)
+      (byte-sub1)
+      (byte-add1)
+      (byte-eqlsign)
+      (byte-gtr)
+      (byte-lss)
+      (byte-leq)
+      (byte-geq)
+      (byte-diff)
+      (byte-negate)
+      (byte-plus
+       (comp-emit-set-call `(callref Fplus 2 ,(comp-sp))))
+      (byte-max)
+      (byte-min)
+      (byte-mult)
+      (byte-point)
+      (byte-goto-char)
+      (byte-insert)
+      (byte-point-max)
+      (byte-point-min)
+      (byte-char-after)
+      (byte-following-char)
+      (byte-preceding-char)
+      (byte-current-column)
+      (byte-indent-to)
+      (byte-scan-buffer-OBSOLETE)
+      (byte-eolp)
+      (byte-eobp)
+      (byte-bolp)
+      (byte-bobp)
+      (byte-current-buffer)
+      (byte-set-buffer)
+      (byte-save-current-buffer)
+      (byte-set-mark-OBSOLETE)
+      (byte-interactive-p-OBSOLETE)
+      (byte-forward-char)
+      (byte-forward-word)
+      (byte-skip-chars-forward)
+      (byte-skip-chars-backward)
+      (byte-forward-line)
+      (byte-char-syntax)
+      (byte-buffer-substring)
+      (byte-delete-region)
+      (byte-narrow-to-region)
+      (byte-widen)
+      (byte-end-of-line)
+      (byte-constant2)
+      (byte-goto)
+      (byte-goto-if-nil)
+      (byte-goto-if-not-nil)
+      (byte-goto-if-nil-else-pop)
+      (byte-goto-if-not-nil-else-pop)
+      (byte-return
+       (comp-emit (list 'return (comp-slot-next)))
+       `(return ,(comp-slot-next)))
+      (byte-discard t)
+      (byte-dup
+       (comp-copy-slot-n (1- (comp-sp))))
+      (byte-save-excursion)
+      (byte-save-window-excursion-OBSOLETE)
+      (byte-save-restriction)
+      (byte-catch)
+      (byte-unwind-protect)
+      (byte-condition-case)
+      (byte-temp-output-buffer-setup-OBSOLETE)
+      (byte-temp-output-buffer-show-OBSOLETE)
+      (byte-unbind-all)
+      (byte-set-marker)
+      (byte-match-beginning)
+      (byte-match-end)
+      (byte-upcase)
+      (byte-downcase)
+      (byte-string=)
+      (byte-string<)
+      (byte-equal)
+      (byte-nthcdr)
+      (byte-elt)
+      (byte-member)
+      (byte-assq)
+      (byte-nreverse)
+      (byte-setcar)
+      (byte-setcdr)
+      (byte-car-safe
        (comp-emit-set-call `(call Fcar_safe ,(comp-slot))))
-      ('byte-cdr-safe
+      (byte-cdr-safe
        (comp-emit-set-call `(call Fcdr_safe ,(comp-slot))))
-      ('byte-length
-       (comp-emit-set-call `(call Flength ,(comp-slot))))
-      ('byte-list1
-       (comp-limplify-listn 1))
-      ('byte-list2
-       (comp-limplify-listn 2))
-      ('byte-list3
-       (comp-limplify-listn 3))
-      ('byte-list4
-       (comp-limplify-listn 4))
-      ('byte-return
-       (comp-emit (list 'return (comp-slot)))
-       `(return ,(comp-slot)))
-      (_ (error "Unexpected LAP op %s" (symbol-name op))))))
+      (byte-nconc)
+      (byte-quo)
+      (byte-rem)
+      (byte-numberp)
+      (byte-integerp)
+      (byte-listN)
+      (byte-concatN)
+      (byte-insertN)
+      (byte-stack-set)
+      (byte-stack-set2)
+      (byte-discardN)
+      (byte-switch)
+      (byte-constant
+       (comp-set-const (cadr inst))))))
 
 (defun comp-limplify (func)
   "Given FUNC and return compute its LIMPLE ir."
