@@ -66,69 +66,69 @@
 
 (cl-defstruct comp-args
   (min nil :type number
-       :documentation "Minimum number of arguments allowed")
+       :documentation "Minimum number of arguments allowed.")
   (max nil
        :documentation "Maximum number of arguments allowed
-To be used when ncall-conv is nil.")
+To be used when ncall-conv is nil..")
   (ncall-conv nil :type boolean
               :documentation "If t the signature is:
-(ptrdiff_t nargs, Lisp_Object *args)"))
+(ptrdiff_t nargs, Lisp_Object *args)."))
 
 (cl-defstruct (comp-block (:copier nil))
   "A basic block."
   (sp nil
       :documentation "When non nil indicates its the sp value while entering
-into it")
+into it.")
   (closed nil :type 'boolean
-          :documentation "If the block was already closed"))
+          :documentation "If the block was already closed."))
 
 (cl-defstruct (comp-func (:copier nil))
   "Internal rapresentation for a function."
   (symbol-name nil
-               :documentation "Function symbol's name")
+               :documentation "Function symbol's name.")
   (c-func-name nil :type 'string
-               :documentation "The function name in the native world")
+               :documentation "The function name in the native world.")
   (func nil
-        :documentation "Original form")
+        :documentation "Original form.")
   (byte-func nil
-             :documentation "Byte compiled version")
+             :documentation "Byte compiled version.")
   (ir nil
-      :documentation "Current intermediate rappresentation")
+      :documentation "Current intermediate rappresentation.")
   (args nil :type 'comp-args)
   (frame-size nil :type 'number)
   (blocks (make-hash-table) :type 'hash-table
           :documentation "Key is the basic block symbol value is a comp-block
-structure")
+structure.")
   (lap-block (make-hash-table :test #'equal) :type 'hash-table
              :documentation "Key value to convert from LAP label number to
-LIMPLE basic block")
+LIMPLE basic block.")
   (limple-cnt -1 :type 'number
-              :documentation "Counter to create ssa limple vars"))
+              :documentation "Counter to create ssa limple vars."))
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
   (id nil :type number
-     :documentation "SSA number")
+     :documentation "SSA number.")
   (slot nil :type fixnum
-        :documentation "Slot position")
+        :documentation "Slot position.")
   (const-vld nil
-             :documentation "Valid signal for the following slot")
+             :documentation "Valid signal for the following slot.")
   (constant nil
             :documentation "When const-vld non nil this is used for constant
- propagation")
+ propagation.")
   (type nil
-        :documentation "When non nil is used for type propagation"))
+        :documentation "When non nil is used for type propagation."))
 
 (cl-defstruct (comp-limplify (:copier nil))
-  "Support structure used during the limplification."
+  "Support structure used during limplification."
   (sp 0 :type 'fixnum
-      :documentation "Current stack pointer while walking LAP")
+      :documentation "Current stack pointer while walking LAP.")
   (frame nil :type 'vector
-         :documentation "Meta-stack used to flat LAP")
+         :documentation "Meta-stack used to flat LAP.")
   (block-name nil :type 'symbol
-    :documentation "Current basic block name"))
+    :documentation "Current basic block name."))
 
-(defun comp-limplify-new-frame (size)
+(defun comp-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
   (let ((v (make-vector size nil)))
     (cl-loop for i below size
@@ -194,7 +194,7 @@ LIMPLE basic block")
 ;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
 ;; Special vars used during limplifications
-(defvar comp-frame)
+(defvar comp-pass)
 (defvar comp-limple)
 (defvar comp-func)
 
@@ -205,7 +205,7 @@ LIMPLE basic block")
 
 (defmacro comp-sp ()
   "Current stack pointer."
-  '(comp-limplify-sp comp-frame))
+  '(comp-limplify-sp comp-pass))
 
 (defmacro comp-with-sp (sp &rest body)
   "Execute BODY setting the stack pointer to SP.
@@ -221,7 +221,7 @@ Restore the original value afterwards."
 (defmacro comp-slot-n (n)
   "Slot N into the meta-stack."
   (declare (debug (form)))
-  `(aref (comp-limplify-frame comp-frame) ,n))
+  `(aref (comp-limplify-frame comp-pass) ,n))
 
 (defmacro comp-slot ()
   "Current slot into the meta-stack pointed by sp."
@@ -269,7 +269,7 @@ If the calle function is known to have a return type propagate it."
 
 (defun comp-mark-block-closed ()
   "Mark current basic block as closed."
-  (setf (comp-block-closed (gethash (comp-limplify-block-name comp-frame)
+  (setf (comp-block-closed (gethash (comp-limplify-block-name comp-pass)
                                     (comp-func-blocks comp-func)))
         t))
 
@@ -289,18 +289,18 @@ If the calle function is known to have a return type propagate it."
     ;; If we are abandoning an non closed basic block close it with a fall
     ;; through.
     (when (and (not (eq block-name 'entry))
-               (not (comp-block-closed (gethash (comp-limplify-block-name comp-frame)
+               (not (comp-block-closed (gethash (comp-limplify-block-name comp-pass)
                                                 blocks))))
       (comp-emit-jump block-name))
     ;; Every new block we are forced to wipe out all the frame.
     ;; This will be optimized by proper flow analysis.
-    (setf (comp-limplify-frame comp-frame)
-          (comp-limplify-new-frame (comp-func-frame-size comp-func)))
+    (setf (comp-limplify-frame comp-pass)
+          (comp-new-frame (comp-func-frame-size comp-func)))
     ;; If we are landing here form a recorded branch adjust sp accordingly.
     (setf (comp-sp)
           (comp-block-sp (gethash block-name blocks)))
     (comp-emit `(block ,block-name))
-    (setf (comp-limplify-block-name comp-frame) block-name)))
+    (setf (comp-limplify-block-name comp-pass) block-name)))
 
 (defun comp-emit-cond-jump (discard-n lap-label negated)
   "Emit a conditional jump to LAP-LABEL.
@@ -561,12 +561,12 @@ If NEGATED non nil negate the test condition."
        (comp-set-const arg)))))
 
 (defun comp-limplify (func)
-  "Given FUNC and return compute its LIMPLE ir."
+  "Given FUNC compute its LIMPLE ir."
   (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
-         (comp-frame (make-comp-limplify
-                      :sp -1
-                      :frame (comp-limplify-new-frame frame-size)))
+         (comp-pass (make-comp-limplify
+                     :sp -1
+                     :frame (comp-new-frame frame-size)))
          (comp-limple ()))
     ;; Prologue
     (comp-emit-block 'entry)
