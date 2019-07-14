@@ -246,6 +246,28 @@ If the calle function is known to have a return type propagate it."
                                            comp-known-ret-types))))
   (comp-emit (list 'set (comp-slot) call)))
 
+(defmacro comp-emit-set-call-subr (subr-name &optional c-fun-name)
+  "Emit a call for SUBR-NAME using C-FUN-NAME.
+If C-FUN-NAME is nil will be guessed from SUBR-NAME."
+  (let* ((arity (subr-arity (symbol-function subr-name)))
+         (minarg (car arity))
+         (maxarg (cdr arity)))
+    (unless c-fun-name
+      (setq c-fun-name
+            (intern (concat "F"
+                            (replace-regexp-in-string
+                             "-" "_"
+                             (symbol-name subr-name))))))
+    (if (eq maxarg 'many)
+        (progn
+          (cl-assert (= minarg 0))
+          `(error "To be implemented"))
+      (cl-assert (= minarg maxarg))
+      `(let ((c-fun-name ',c-fun-name)
+             (slots (cl-loop for i from 0 below ,maxarg
+                             collect (comp-slot-n (+ i (comp-sp))))))
+         (comp-emit-set-call `(call ,c-fun-name ,@slots))))))
+
 (defun comp-copy-slot-n (n)
   "Set current slot with slot number N as source."
   (let ((src-slot (comp-slot-n n)))
@@ -260,7 +282,7 @@ If the calle function is known to have a return type propagate it."
   "Emit annotation STR."
   (comp-emit `(comment ,str)))
 
-(defun comp-set-const (val)
+(defun comp-emit-set-const (val)
   "Set constant VAL to current slot."
   (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :const-vld t
@@ -354,7 +376,8 @@ If NEGATED non nil negate the test condition."
         name))))
 
 (defmacro comp-op-case (&rest cases)
-  "Expand CASES into the corresponding pcase."
+  "Expand CASES into the corresponding pcase.
+This is responsible for generating the proper stack adjustment when known."
   (declare (debug (body))
            (indent defun))
   `(pcase op
@@ -420,11 +443,11 @@ If NEGATED non nil negate the test condition."
       (byte-memq)
       (byte-not)
       (byte-car
-       (comp-emit-set-call `(call Fcar ,(comp-slot))))
+       (comp-emit-set-call-subr car))
       (byte-cdr
-       (comp-emit-set-call `(call Fcdr ,(comp-slot))))
+       (comp-emit-set-call-subr cdr))
       (byte-cons
-       (comp-emit-set-call `(call Fcons ,(comp-slot) ,(comp-slot-next))))
+       (comp-emit-set-call-subr cons))
       (byte-list1
        (comp-limplify-listn 1))
       (byte-list2
@@ -434,18 +457,13 @@ If NEGATED non nil negate the test condition."
       (byte-list4
        (comp-limplify-listn 4))
       (byte-length
-       (comp-emit-set-call `(call Flength ,(comp-slot))))
+       (comp-emit-set-call-subr length))
       (byte-aref
-       (comp-emit-set-call `(call Faref
-                                  ,(comp-slot)
-                                  ,(comp-slot-next))))
+       (comp-emit-set-call-subr aref))
       (byte-aset
-       (comp-emit-set-call `(call Faset
-                                  ,(comp-slot)
-                                  ,(comp-slot-next)
-                                  ,(comp-slot-n (+ 2 (comp-sp))))))
+       (comp-emit-set-call-subr aset))
       (byte-symbol-value
-       (comp-emit-set-call `(call Fsymbol_value ,(comp-slot))))
+       (comp-emit-set-call-subr symbol-value))
       (byte-symbol-function)
       (byte-set)
       (byte-fset)
@@ -567,7 +585,7 @@ If NEGATED non nil negate the test condition."
       (byte-discardN)
       (byte-switch)
       (byte-constant
-       (comp-set-const arg)))))
+       (comp-emit-set-const arg)))))
 
 (defun comp-limplify (func)
   "Given FUNC compute its LIMPLE ir."
