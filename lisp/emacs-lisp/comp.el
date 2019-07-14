@@ -37,7 +37,9 @@
 
 (defconst comp-debug t)
 
+;; FIXME these has to be removed
 (defvar comp-speed 2)
+(defvar byte-compile-lap-output)
 
 (defconst comp-passes '(comp-recuparate-lap
                         comp-limplify)
@@ -262,8 +264,8 @@ If C-FUN-NAME is nil will be guessed from SUBR-NAME."
                                 (replace-regexp-in-string
                                  "-" "_"
                                  subr-str)))))
-        (cl-assert (not (eq maxarg 'many)) nil
-                   "%s contains may args" subr-name)
+        (cl-assert (not (or (eq maxarg 'many) (eq maxarg 'unevalled))) nil
+                   "%s contains %s arg" subr-name maxarg )
         (cl-assert (= minarg maxarg) (minarg maxarg)
                    "args %d %d differs for %s" subr-name)
         `(let ((c-fun-name ',c-fun-name)
@@ -385,7 +387,7 @@ the annotation emission."
   (declare (debug (body))
            (indent defun))
   (cl-flet ((op-to-fun (x)
-               ;;Given the LAP op strip "byte-"
+               ;; Given the LAP op strip "byte-" to have the subr name.
                (intern (replace-regexp-in-string "byte-" "" x))))
     `(pcase op
        ,@(cl-loop for (op . body) in cases
@@ -445,9 +447,9 @@ the annotation emission."
       (byte-pophandler)
       (byte-pushconditioncase)
       (byte-pushcatch)
-      (byte-nth)
-      (byte-symbolp)
-      (byte-consp)
+      (byte-nth auto)
+      (byte-symbolp auto)
+      (byte-consp auto)
       (byte-stringp auto)
       (byte-listp auto)
       (byte-eq auto)
@@ -468,7 +470,7 @@ the annotation emission."
       (byte-aref auto)
       (byte-aset auto)
       (byte-symbol-value auto)
-      (byte-symbol-function)
+      (byte-symbol-function auto)
       (byte-set auto)
       (byte-fset auto)
       (byte-get auto)
@@ -496,23 +498,23 @@ the annotation emission."
       (byte-max)
       (byte-min)
       (byte-mult)
-      (byte-point)
+      (byte-point auto)
       (byte-goto-char auto)
       (byte-insert)
-      (byte-point-max)
-      (byte-point-min)
+      (byte-point-max auto)
+      (byte-point-min auto)
       (byte-char-after)
       (byte-following-char auto)
-      (byte-preceding-char)
-      (byte-current-column)
+      (byte-preceding-char auto)
+      (byte-current-column auto)
       (byte-indent-to)
       (byte-scan-buffer-OBSOLETE)
-      (byte-eolp)
-      (byte-eobp)
-      (byte-bolp)
-      (byte-bobp)
-      (byte-current-buffer)
-      (byte-set-buffer)
+      (byte-eolp auto)
+      (byte-eobp auto)
+      (byte-bolp auto)
+      (byte-bobp auto)
+      (byte-current-buffer auto)
+      (byte-set-buffer auto)
       (byte-save-current-buffer)
       (byte-set-mark-OBSOLETE)
       (byte-interactive-p-OBSOLETE)
@@ -521,9 +523,9 @@ the annotation emission."
       (byte-skip-chars-forward)
       (byte-skip-chars-backward)
       (byte-forward-line)
-      (byte-char-syntax)
-      (byte-buffer-substring)
-      (byte-delete-region)
+      (byte-char-syntax auto)
+      (byte-buffer-substring auto)
+      (byte-delete-region auto)
       (byte-narrow-to-region)
       (byte-widen)
       (byte-end-of-line)
@@ -569,13 +571,13 @@ the annotation emission."
       (byte-string=)
       (byte-string<)
       (byte-equal)
-      (byte-nthcdr)
-      (byte-elt)
-      (byte-member)
-      (byte-assq)
-      (byte-nreverse)
-      (byte-setcar)
-      (byte-setcdr)
+      (byte-nthcdr auto)
+      (byte-elt auto)
+      (byte-member auto)
+      (byte-assq auto)
+      (byte-nreverse auto)
+      (byte-setcar auto)
+      (byte-setcdr auto)
       (byte-car-safe
        (comp-emit-set-call `(call Fcar_safe ,(comp-slot))))
       (byte-cdr-safe
@@ -583,8 +585,8 @@ the annotation emission."
       (byte-nconc)
       (byte-quo)
       (byte-rem)
-      (byte-numberp)
-      (byte-integerp)
+      (byte-numberp auto)
+      (byte-integerp auto)
       (byte-listN)
       (byte-concatN
        (comp-stack-adjust (- (1- arg)))
@@ -609,7 +611,7 @@ the annotation emission."
     (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
-    (cl-loop for i below (comp-args-mandatory (comp-func-args func))
+    (cl-loop for i below (comp-args-min (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
                   (push `(setpar ,(comp-slot) ,i) comp-limple)))
