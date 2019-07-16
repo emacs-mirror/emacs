@@ -1264,7 +1264,10 @@ meaning:
                               (setq every nil)))
                           every))))
          #'use-package-recognize-function
-         name label arg))))
+         (if (string-suffix-p "-mode" (symbol-name name))
+             name
+           (intern (concat (symbol-name name) "-mode")))
+         label arg))))
 
 (defalias 'use-package-autoloads/:hook 'use-package-autoloads-mode)
 
