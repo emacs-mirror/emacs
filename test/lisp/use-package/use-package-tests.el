@@ -162,7 +162,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t)))
+                (unless (featurep 'foo)
+                  (load "foo" nil t))))
           (t))
         (require 'foo nil nil)))))
 
@@ -182,7 +183,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t)))
+                (unless (featurep 'foo)
+                  (load "foo" nil t))))
           (preface))
         (init)
         (require 'foo nil nil)
@@ -206,7 +208,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t)))
+                (unless (featurep 'foo)
+                  (load "foo" nil t))))
           (preface))
         (init)
         (eval-after-load 'foo
@@ -453,7 +456,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t))))
+                (unless (featurep 'foo)
+                  (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:requires-3 ()
@@ -470,7 +474,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:load-path-1 ()
@@ -499,7 +504,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:load-path-3 ()
@@ -816,7 +822,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (unless (fboundp 'bar)
           (autoload #'bar "foo" nil t))
         (eval-when-compile
@@ -871,7 +878,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load gnus-harvest: %S" nil
-                                 (load "gnus-harvest" nil t))))
+                                 (unless (featurep 'gnus-harvest)
+                                   (load "gnus-harvest" nil t)))))
         (eval-when-compile
           (declare-function gnus-harvest-install "gnus-harvest"))
         (require 'gnus-harvest nil nil)
@@ -896,7 +904,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t))))
+                (unless (featurep 'foo)
+                  (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:functions-1 ()
@@ -914,7 +923,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t))))
+                (unless (featurep 'foo)
+                  (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:functions-3 ()
@@ -930,7 +940,8 @@
         (declare-function bar "foo")
         (eval-when-compile
           (with-demoted-errors "Cannot load foo: %S" nil
-                               (load "foo" nil t)))))))
+                               (unless (featurep 'foo)
+                                 (load "foo" nil t))))))))
 
 (ert-deftest use-package-test/:functions-5 ()
   (let ((byte-compile-current-file t))
@@ -942,7 +953,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t))))
+                (unless (featurep 'foo)
+                  (load "foo" nil t)))))
         (eval-after-load 'foo
           '(progn
              (config)
@@ -961,7 +973,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:defer-3 ()
@@ -976,7 +989,8 @@
      `(eval-and-compile
         (eval-when-compile
           (with-demoted-errors "Cannot load foo: %S" nil
-                               (load "foo" nil t)))))))
+                               (unless (featurep 'foo)
+                                 (load "foo" nil t))))))))
 
 (ert-deftest use-package-test-normalize/:hook ()
   (flet ((norm (&rest args)
@@ -1009,7 +1023,8 @@
           (eval-when-compile
             (with-demoted-errors
                 "Cannot load foo: %S" nil
-                (load "foo" nil t))))
+                (unless (featurep 'foo)
+                  (load "foo" nil t)))))
         (unless
             (fboundp 'key)
           (autoload #'key "foo" nil t))
@@ -1143,7 +1158,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (init)
         (require 'foo nil nil)))))
 
@@ -1190,7 +1206,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (eval-after-load 'bar
           '(require 'foo nil nil))))))
 
@@ -1333,7 +1350,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:demand-3 ()
@@ -1352,7 +1370,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (require 'foo nil nil)
         (config)
         t))))
@@ -1372,7 +1391,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (eval-after-load 'bar
           '(require 'foo nil nil))))))
 
@@ -1425,7 +1445,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (require 'foo nil nil)
         (config)
         t))))
@@ -1446,7 +1467,8 @@
         (eval-and-compile
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
-                                 (load "foo" nil t))))
+                                 (unless (featurep 'foo)
+                                   (load "foo" nil t)))))
         (eval-after-load 'foo
           '(progn
              (config)
