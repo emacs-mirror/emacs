@@ -2683,6 +2683,9 @@ if test "${opsys}" != "mingw32"; then
 	 AC_DEFINE([GLIB_DISABLE_DEPRECATION_WARNINGS], [1],
 	   [Define to 1 to disable Glib deprecation warnings.])
        fi
+       if test "$window_system" = pgtk; then
+	  GLIB_GSETTINGS
+       fi
     else
        check_gtk2=yes
        gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -5297,6 +5300,7 @@ AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
 AC_SUBST(bindir)
 AC_SUBST(datadir)
+AC_SUBST(gsettingsschemadir)
 AC_SUBST(sharedstatedir)
 AC_SUBST(libexecdir)
 AC_SUBST(mandir)

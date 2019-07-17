@@ -1471,7 +1471,6 @@ Some window managers may refuse to restack windows.  */)
 
       [window orderWindow: flag
                relativeTo: window2];
-
 #endif
       return Qt;
     }
@@ -1482,22 +1481,211 @@ Some window managers may refuse to restack windows.  */)
     }
 }
 
+#ifdef HAVE_GSETTINGS
+
+#define RESOURCE_KEY_MAX_LEN 128
+#define SCHEMA_ID "org.gnu.emacs.defaults"
+#define PATH_FOR_CLASS_TYPE "/org/gnu/emacs/defaults-by-class/"
+#define PATH_PREFIX_FOR_NAME_TYPE "/org/gnu/emacs/defaults-by-name/"
+
+static inline int
+pgtk_is_lower_char (int c)
+{
+  return c >= 'a' && c <= 'z';
+}
+
+static inline int
+pgtk_is_upper_char (int c)
+{
+  return c >= 'A' && c <= 'Z';
+}
+
+static inline int
+pgtk_is_numeric_char (int c)
+{
+  return c >= '0' && c <= '9';
+}
+
+static GSettings *
+parse_resource_key (const char *res_key, char *setting_key)
+{
+  char path[32 + RESOURCE_KEY_MAX_LEN];
+  const char *sp = res_key;
+  char *dp;
+
+  /*
+   * res_key="emacs.cursorBlink"
+   *   -> path="/org/gnu/emacs/defaults-by-name/emacs/"
+   *      setting_key="cursor-blink"
+   *
+   * res_key="Emacs.CursorBlink"
+   *   -> path="/org/gnu/emacs/defaults-by-class/"
+   *      setting_key="cursor-blink"
+   *
+   * Returns GSettings* if setting_key exists in schema, otherwise NULL.
+   */
+
+  /* generate path */
+  if (pgtk_is_upper_char(*sp)) {
+    /* First letter is upper case. It should be "Emacs",
+     * but don't care.
+     */
+    strcpy (path, PATH_FOR_CLASS_TYPE);
+    while (*sp != '\0') {
+      if (*sp == '.')
+	break;
+      sp++;
+    }
+  } else {
+    strcpy (path, PATH_PREFIX_FOR_NAME_TYPE);
+    dp = path + strlen (path);
+    while (*sp != '\0') {
+      int c = *sp;
+      if (c == '.')
+	break;
+      if (pgtk_is_lower_char (c))
+	(void) 0;		/* lower -> NOP */
+      else if (pgtk_is_upper_char (c))
+	c = c - 'A' + 'a';	/* upper -> lower */
+      else if (pgtk_is_numeric_char (c))
+	(void) 0;		/* numeric -> NOP */
+      else
+	return NULL;		/* invalid */
+      *dp++ = c;
+      sp++;
+    }
+    *dp++ = '/';	/* must ends with '/' */
+    *dp = '\0';
+  }
+
+  if (*sp++ != '.')
+    return NULL;
+
+  /* generate setting_key */
+  dp = setting_key;
+  while (*sp != '\0') {
+    int c = *sp;
+    if (pgtk_is_lower_char (c))
+      (void) 0;			/* lower -> NOP */
+    else if (pgtk_is_upper_char (c)) {
+      c = c - 'A' + 'a';	/* upper -> lower */
+      if (dp != setting_key)
+	*dp++ = '-';		/* store '-' unless first char */
+    } else if (pgtk_is_numeric_char (c))
+      (void) 0;			/* numeric -> NOP */
+    else
+      return NULL;		/* invalid */
+
+    *dp++ = c;
+    sp++;
+  }
+  *dp = '\0';
+
+  /* check existence of setting_key */
+  GSettingsSchemaSource *ssrc = g_settings_schema_source_get_default ();
+  GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, FALSE);
+  if (!g_settings_schema_has_key (scm, setting_key)) {
+    g_settings_schema_unref (scm);
+    return NULL;
+  }
+
+  /* create GSettings, and return it */
+  GSettings *gs = g_settings_new_full (scm, NULL, path);
+
+  g_settings_schema_unref (scm);
+  return gs;
+}
+
+const char *
+pgtk_get_defaults_value (const char *key)
+{
+  char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
+
+  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
+    error ("resource key too long.");
+
+  GSettings *gs = parse_resource_key(key, skey);
+  if (gs == NULL) {
+    return NULL;
+  }
+
+  gchar *str = g_settings_get_string (gs, skey);
+
+  /* There is no timing to free str.
+   * So, copy it here and free it.
+   *
+   * MEMO: Resource values for emacs shouldn't need such a long string value.
+   */
+  static char holder[128];
+  strncpy (holder, str, 128);
+  holder[127] = '\0';
+
+  g_object_unref (gs);
+  g_free (str);
+  return holder[0] != '\0' ? holder : NULL;
+}
+
+static void
+pgtk_set_defaults_value (const char *key, const char *value)
+{
+  char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
+
+  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
+    error ("resource key too long.");
+
+  GSettings *gs = parse_resource_key(key, skey);
+  if (gs == NULL) {
+    error ("unknown resource key.");
+  }
+  if (value != NULL) {
+    g_settings_set_string (gs, skey, value);
+  } else {
+    g_settings_reset (gs, skey);
+  }
+
+  g_object_unref (gs);
+}
+
+#undef RESOURCE_KEY_MAX_LEN
+#undef SCHEMA_ID
+#undef PATH_FOR_CLASS_TYPE
+#undef PATH_PREFIX_FOR_NAME_TYPE
+
+#else /* not HAVE_GSETTINGS */
+
 const char *
 pgtk_get_defaults_value (const char *key)
 {
   return NULL;
 }
 
-DEFUN ("pgtk-set-resource", Fpgtk_set_resource, Spgtk_set_resource, 3, 3, 0,
-       doc: /* Set property NAME of OWNER to VALUE, from the defaults database.
-If OWNER is nil, Emacs is assumed.
-If VALUE is nil, the default is removed.  */)
-     (Lisp_Object owner, Lisp_Object name, Lisp_Object value)
+static void
+pgtk_set_defaults_value (const char *key, const char *value)
+{
+  error ("gsettings not supported.");
+}
+
+#endif
+
+
+DEFUN ("pgtk-set-resource", Fpgtk_set_resource, Spgtk_set_resource, 2, 2, 0,
+       doc: /* Set the value of ATTRIBUTE, of class CLASS, as VALUE, into defaults database. */)
+     (Lisp_Object attribute, Lisp_Object value)
 {
   check_window_system (NULL);
-  if (NILP (owner))
-    owner = build_string (pgtk_app_name);
-  CHECK_STRING (name);
+
+  CHECK_STRING (attribute);
+  if (!NILP (value))
+    CHECK_STRING (value);
+
+  char *res = SSDATA (Vx_resource_name);
+  char *attr = SSDATA (attribute);
+  if (attr[0] >= 'A' && attr[0] <= 'Z')
+    res = SSDATA (Vx_resource_class);
+
+  char *key = g_strdup_printf("%s.%s", res, attr);
+
+  pgtk_set_defaults_value(key, NILP (value) ? NULL : SSDATA (value));
 
   return Qnil;
 }
@@ -1794,20 +1982,26 @@ pgtk_set_scroll_bar_default_height (struct frame *f)
 const char *
 pgtk_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
 {
-  /* remove appname prefix; TODO: allow for !="Emacs" */
-  const char *res, *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
-
   check_window_system (NULL);
 
   if (inhibit_x_resources)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  res = pgtk_get_defaults_value (toCheck);
-  return (char *) (!res ? NULL
-		   : !c_strncasecmp (res, "YES", 3) ? "true"
-		   : !c_strncasecmp (res, "NO", 2) ? "false"
-		   : res);
+  const char *res = pgtk_get_defaults_value (name);
+  if (res == NULL)
+    res = pgtk_get_defaults_value (class);
+
+  if (res == NULL)
+    return NULL;
+
+  if (c_strncasecmp (res, "YES", 3) == 0)
+    return "true";
+
+  if (c_strncasecmp (res, "NO", 2) == 0)
+    return "false";
+
+  return res;
 }
 
 

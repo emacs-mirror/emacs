@@ -298,3 +298,6 @@ nt/emacs.rc
 nt/emacsclient.rc
 src/gdb.ini
 /var/
+
+# gsettings schema
+/etc/*.gschema.valid
