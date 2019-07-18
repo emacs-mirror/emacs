@@ -84,14 +84,14 @@
                                   typescript-mode)
                                  . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
+				(php-mode . ("php" "vendor/felixfbecker/\
+language-server/bin/php-language-server.php"))
                                 ((c++-mode c-mode) . ("ccls"))
                                 ((caml-mode tuareg-mode reason-mode)
                                  . ("ocaml-language-server" "--stdio"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port"
                                     :autoport))
-                                (php-mode . ("php" "vendor/felixfbecker/\
-language-server/bin/php-language-server.php"))
                                 (haskell-mode . ("hie-wrapper"))
                                 (kotlin-mode . ("kotlin-language-server"))
                                 (go-mode . ("go-langserver" "-mode=stdio"
