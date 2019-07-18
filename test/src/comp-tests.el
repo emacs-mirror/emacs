@@ -168,38 +168,37 @@
   ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
   ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4) '(1 2 (3 4))))
 
-  ;; (defun comp-tests-ffuncall-native-f ()
-  ;;   "Call a primitive with no dedicate op."
-  ;;   (make-vector 1 nil))
+  (defun comp-tests-ffuncall-native-f ()
+    "Call a primitive with no dedicate op."
+    (make-vector 1 nil))
 
-  ;; (native-compile #'comp-tests-ffuncall-native-f)
+  (native-compile #'comp-tests-ffuncall-native-f)
 
-  ;; (should (equal (comp-tests-ffuncall-native-f) [nil]))
+  (should (equal (comp-tests-ffuncall-native-f) [nil]))
 
-  ;; (defun comp-tests-ffuncall-native-rest-f ()
-  ;;   "Call a primitive with no dedicate op with &rest."
-  ;;   (vector 1 2 3))
+  (defun comp-tests-ffuncall-native-rest-f ()
+    "Call a primitive with no dedicate op with &rest."
+    (vector 1 2 3))
 
-  ;; (native-compile #'comp-tests-ffuncall-native-rest-f)
+  (native-compile #'comp-tests-ffuncall-native-rest-f)
 
-  ;; (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))
+  (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))
 
-  ;; (defun comp-tests-ffuncall-apply-many-f (x)
-  ;;   (apply #'list x))
+  (defun comp-tests-ffuncall-apply-many-f (x)
+    (apply #'list x))
 
-  ;; (native-compile #'comp-tests-ffuncall-apply-many-f)
+  (native-compile #'comp-tests-ffuncall-apply-many-f)
 
-  ;; (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3)))
+  (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3)))
 
-  ;; (defun comp-tests-ffuncall-lambda-f (x)
-  ;;   (let ((fun (lambda (x)
-  ;;                (1+ x))))
-  ;;     (funcall fun x)))
+  (defun comp-tests-ffuncall-lambda-f (x)
+    (let ((fun (lambda (x)
+                 (1+ x))))
+      (funcall fun x)))
 
-  ;; (native-compile #'comp-tests-ffuncall-lambda-f)
+  (native-compile #'comp-tests-ffuncall-lambda-f)
 
-  ;; (should (= (comp-tests-ffuncall-lambda-f 1) 2))
-  )
+  (should (= (comp-tests-ffuncall-lambda-f 1) 2)))
 
 ;; (ert-deftest  comp-tests-jump-table ()
 ;;   "Testing jump tables"
