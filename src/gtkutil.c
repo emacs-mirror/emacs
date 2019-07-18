@@ -1617,17 +1617,18 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   XSETFRAME (frame, f);
   fs_state = Fframe_parameter (frame, Qfullscreen);
+  if ((EQ (fs_state, Qmaximized) || EQ (fs_state, Qfullboth))
 #ifndef HAVE_PGTK
-  if ((EQ (fs_state, Qmaximized) || EQ (fs_state, Qfullboth)) &&
-      (x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_wm_state) ||
-       x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_wm_state_fullscreen)))
+      && (x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_wm_state) ||
+	  x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_wm_state_fullscreen))
+#endif
+      )
     {
       /* Don't set hints when maximized or fullscreen.  Apparently KWin and
          Gtk3 don't get along and the frame shrinks (!).
       */
       return;
     }
-#endif
 
   if (flags)
     {
