@@ -35,6 +35,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define COMP_DEBUG 1
 
+/*
+  If 1 always favorite the emission of direct constants when these are know
+  instead of the corresponding frame slot access.
+  This has to prove to have some perf advantage but certainly makes the
+  generated code C-like code more bloated.
+*/
+
+#define CONST_PROP_MAX 0
+
 #define STR(s) #s
 
 #define FIRST(x)				\
@@ -958,12 +967,27 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_val (Lisp_Object mvar)
 {
-  if (NILP (FUNCALL1 (comp-mvar-const-vld, mvar)))
-    return
-      gcc_jit_lvalue_as_rvalue(
-        comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
+  if (CONST_PROP_MAX)
+    {
+      if (NILP (FUNCALL1 (comp-mvar-const-vld, mvar)))
+	return
+	  gcc_jit_lvalue_as_rvalue(
+	    comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
+      else
+	return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
+    }
   else
-    return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
+    {
+      if (NILP (FUNCALL1 (comp-mvar-slot, mvar)))
+	{
+	  /* If the slot is not specified this must be a constant.  */
+	  eassert (!NILP (FUNCALL1 (comp-mvar-const-vld, mvar)));
+	  return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
+	}
+      return
+	gcc_jit_lvalue_as_rvalue(
+	  comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
+    }
 }
 
 static gcc_jit_rvalue *
@@ -1007,7 +1031,7 @@ emit_limple_call (Lisp_Object arg1)
 							 SET_INTERNAL_SET);
       return emit_call ("set_internal", comp.void_type , 4, gcc_args);
     }
-  error ("LIMPLE call is inconsistet");
+  error ("LIMPLE call is inconsistent");
 }
 
 static gcc_jit_rvalue *
