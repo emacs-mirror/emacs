@@ -393,18 +393,26 @@ This is responsible for generating the proper stack adjustment when known and
 the annotation emission."
   (declare (debug (body))
            (indent defun))
-  (cl-flet ((op-to-fun (x)
-               ;; Given the LAP op strip "byte-" to have the subr name.
-               (intern (replace-regexp-in-string "byte-" "" x))))
+  (cl-labels ((op-to-fun (x)
+                 ;; Given the LAP op strip "byte-" to have the subr name.
+                 (intern (replace-regexp-in-string "byte-" "" x)))
+              (body-eff (body op-name sp-delta)
+                 ;; Given the original body BODY compute the effective one.
+                 (pcase (car body)
+                   ('auto
+                    (list `(comp-emit-set-call-subr
+                            ,(op-to-fun op-name)
+                            ,sp-delta)))
+                   ((pred symbolp)
+                    (list `(comp-emit-set-call-subr
+                            ,(car body)
+                            ,sp-delta
+                            ,(cadr body))))
+                   (_ body))))
     `(pcase op
        ,@(cl-loop for (op . body) in cases
 		  for sp-delta = (gethash op comp-op-stack-info)
                   for op-name = (symbol-name op)
-                  for body-eff = (if (eq (car body) 'auto)
-                                     (list `(comp-emit-set-call-subr
-                                             ,(op-to-fun op-name)
-                                             ,sp-delta))
-                                   body)
 		  if body
 		    collect `(',op
                               ,(unless (eq op 'TAG)
@@ -412,7 +420,7 @@ the annotation emission."
                                    ,(concat "LAP op " op-name)))
                               ,(when (and sp-delta (not (eq 0 sp-delta)))
 			         `(comp-stack-adjust ,sp-delta))
-                              ,@body-eff)
+                              ,@(body-eff body op-name sp-delta))
                   else
 		    collect `(',op (error ,(concat "Unsupported LAP op "
                                                  op-name))))
