@@ -715,6 +715,34 @@ x_set_override_redirect (struct frame *f, Lisp_Object new_value, Lisp_Object old
     }
 }
 
+static void
+pgtk_set_sticky (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+  if (!NILP (new_value))
+    gtk_window_stick (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+  else
+    gtk_window_unstick (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+}
+
+static void
+pgtk_set_tool_bar_position (struct frame *f,
+                         Lisp_Object new_value,
+                         Lisp_Object old_value)
+{
+  Lisp_Object choice = list4 (Qleft, Qright, Qtop, Qbottom);
+
+  if (!NILP (Fmemq (new_value, choice)))
+    {
+      if (!EQ (new_value, old_value))
+	{
+	  xg_change_toolbar_position (f, new_value);
+	  fset_tool_bar_position (f, new_value);
+	}
+    }
+  else
+    wrong_choice (choice, new_value);
+}
+
 /* Note: see frame.c for template, also where generic functions are impl */
 frame_parm_handler pgtk_frame_parm_handlers[] =
 {
@@ -743,18 +771,18 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
   gui_set_horizontal_scroll_bars, /* generic OK */
   gui_set_visibility, /* generic OK */
   x_set_tool_bar_lines,
-  0, /* x_set_scroll_bar_foreground, will ignore (not possible on NS) */
-  0, /* x_set_scroll_bar_background,  will ignore (not possible on NS) */
+  0, /* x_set_scroll_bar_foreground, will ignore */
+  0, /* x_set_scroll_bar_background,  will ignore */
   gui_set_screen_gamma, /* generic OK */
   gui_set_line_spacing, /* generic OK, sets f->extra_line_spacing to int */
   gui_set_left_fringe, /* generic OK */
   gui_set_right_fringe, /* generic OK */
-  0, /* x_set_wait_for_wm, will ignore */
+  0, /* x_set_wait_for_wm */
   gui_set_fullscreen, /* generic OK */
   gui_set_font_backend, /* generic OK */
   gui_set_alpha,
-  0, /* x_set_sticky */
-  0, /* x_set_tool_bar_position */
+  pgtk_set_sticky,
+  pgtk_set_tool_bar_position,
   0, /* x_set_inhibit_double_buffering */
   x_set_undecorated,
   0, /* x_set_parent_frame, */
