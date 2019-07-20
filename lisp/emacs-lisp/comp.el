@@ -248,11 +248,13 @@ If the calle function is known to have a return type propagate it."
                                            comp-known-ret-types))))
   (comp-emit (list 'set (comp-slot) call)))
 
-(defmacro comp-emit-set-call-subr (subr-name &optional c-fun-name)
+(defmacro comp-emit-set-call-subr (subr-name sp-delta &optional c-fun-name)
   "Emit a call for SUBR-NAME using C-FUN-NAME.
-If C-FUN-NAME is nil will be guessed from SUBR-NAME."
+SP-DELTA is the stack adjustment.
+If C-FUN-NAME is nil it will be guessed from SUBR-NAME."
   (let ((subr (symbol-function subr-name))
-        (subr-str (symbol-name subr-name)))
+        (subr-str (symbol-name subr-name))
+        (nargs (1+ (- sp-delta))))
     (cl-assert (subrp subr) nil
                "%s not a subr" subr-str)
       (let* ((arity (subr-arity subr))
@@ -264,14 +266,19 @@ If C-FUN-NAME is nil will be guessed from SUBR-NAME."
                                 (replace-regexp-in-string
                                  "-" "_"
                                  subr-str)))))
-        (cl-assert (not (or (eq maxarg 'many) (eq maxarg 'unevalled))) nil
-                   "%s contains %s arg" subr-name maxarg )
-        (cl-assert (= minarg maxarg) (minarg maxarg)
-                   "args %d %d differs for %s" subr-name)
-        `(let ((c-fun-name ',c-fun-name)
-               (slots (cl-loop for i from 0 below ,maxarg
-                               collect (comp-slot-n (+ i (comp-sp))))))
-           (comp-emit-set-call `(call ,c-fun-name ,@slots))))))
+        (cl-assert (not (eq maxarg 'unevalled)) nil
+                   "%s contains unevalled arg" subr-name)
+        (if (eq maxarg 'many)
+            ;; callref case.
+            `(comp-emit-set-call (list 'callref ',c-fun-name ,nargs (comp-sp)))
+          ;; Normal call.
+          (cl-assert (and (>= maxarg nargs) (<= minarg nargs))
+                     (nargs maxarg minarg)
+                     "Incoherent stack adjustment %d, maxarg %d minarg %d")
+          `(let* ((c-fun-name ',c-fun-name)
+                  (slots (cl-loop for i from 0 below ,maxarg
+                                  collect (comp-slot-n (+ i (comp-sp))))))
+             (comp-emit-set-call `(call ,c-fun-name ,@slots)))))))
 
 (defun comp-copy-slot-n (n)
   "Set current slot with slot number N as source."
@@ -395,16 +402,17 @@ the annotation emission."
                   for op-name = (symbol-name op)
                   for body-eff = (if (eq (car body) 'auto)
                                      (list `(comp-emit-set-call-subr
-                                             ,(op-to-fun op-name)))
+                                             ,(op-to-fun op-name)
+                                             ,sp-delta))
                                    body)
 		  if body
 		    collect `(',op
                               ,(unless (eq op 'TAG)
                                  `(comp-emit-annotation
                                    ,(concat "LAP op " op-name)))
-                              ,(when sp-delta
+                              ,(when (and sp-delta (not (eq 0 sp-delta)))
 			         `(comp-stack-adjust ,sp-delta))
-			      (progn ,@body-eff))
+                              ,@body-eff)
                   else
 		    collect `(',op (error ,(concat "Unsupported LAP op "
                                                  op-name))))
