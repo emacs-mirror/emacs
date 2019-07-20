@@ -280,15 +280,17 @@ If C-FUN-NAME is nil it will be guessed from SUBR-NAME."
                                   collect (comp-slot-n (+ i (comp-sp))))))
              (comp-emit-set-call `(call ,c-fun-name ,@slots)))))))
 
-(defun comp-copy-slot-n (n)
-  "Set current slot with slot number N as source."
-  (let ((src-slot (comp-slot-n n)))
-    (cl-assert src-slot)
-    ;; FIXME id should encrease here.
-    (setf (comp-slot)
-          (copy-sequence src-slot))
-    (setf (comp-mvar-slot (comp-slot)) (comp-sp))
-    (comp-emit (list 'set (comp-slot) src-slot))))
+(defun comp-copy-slot (src-n &optional dst-n)
+  "Set slot number DST-N to slot number SRC-N as source.
+If DST-N is specified use it otherwise assume it to be the current slot."
+  (comp-with-sp (if dst-n dst-n (comp-sp))
+    (let ((src-slot (comp-slot-n src-n)))
+      (cl-assert src-slot)
+      ;; FIXME id should encrease here.
+      (setf (comp-slot)
+            (copy-sequence src-slot))
+      (setf (comp-mvar-slot (comp-slot)) (comp-sp))
+      (comp-emit (list 'set (comp-slot) src-slot)))))
 
 (defun comp-emit-annotation (str)
   "Emit annotation STR."
@@ -440,7 +442,7 @@ the annotation emission."
       (TAG
        (comp-emit-block (comp-lap-to-limple-bb arg)))
       (byte-stack-ref
-       (comp-copy-slot-n (- (comp-sp) (cdr inst) 1)))
+       (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
        (comp-emit-set-call `(call Fsymbol_value ,(make-comp-mvar
                                                   :const-vld t
@@ -569,7 +571,7 @@ the annotation emission."
        (comp-mark-block-closed))
       (byte-discard 'pass)
       (byte-dup
-       (comp-copy-slot-n (1- (comp-sp))))
+       (comp-copy-slot (1- (comp-sp))))
       (byte-save-excursion)
       (byte-save-window-excursion-OBSOLETE)
       (byte-save-restriction)
@@ -602,23 +604,26 @@ the annotation emission."
       (byte-numberp auto)
       (byte-integerp auto)
       (byte-listN
-       (comp-stack-adjust (- (1- arg)))
+       (comp-stack-adjust (- 1 arg))
        (comp-emit-set-call `(callref Flist ,arg ,(comp-sp))))
       (byte-concatN
-       (comp-stack-adjust (- (1- arg)))
+       (comp-stack-adjust (- 1 arg))
        (comp-emit-set-call `(callref Fconcat ,arg ,(comp-sp))))
       (byte-insertN
-       (comp-stack-adjust (- (1- arg)))
+       (comp-stack-adjust (- 1 arg))
        (comp-emit-set-call `(callref Finsert ,arg ,(comp-sp))))
-      (byte-stack-set)
+      (byte-stack-set
+       (comp-with-sp (1+ (comp-sp))
+         (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
       (byte-stack-set2)
-      (byte-discardN)
+      (byte-discardN
+       (comp-stack-adjust (- arg)))
       (byte-switch)
       (byte-constant
        (comp-emit-set-const arg))
       (byte-discardN-preserve-tos
        (comp-stack-adjust (- arg))
-       (comp-copy-slot-n (+ arg (comp-sp)))))))
+       (comp-copy-slot (+ arg (comp-sp)))))))
 
 (defun comp-limplify (func)
   "Given FUNC compute its LIMPLE ir."
