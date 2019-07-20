@@ -394,27 +394,27 @@
   (should (eq (comp-tests-numberp-f 'a) nil))
   (should (eq (comp-tests-numberp-f 3.5) t)))
 
-;; (ert-deftest comp-tests-stack ()
-;;   "Test some stack operation."
-;;   (defun comp-tests-discardn-f (x)
-;;     ;; BdiscardN
-;;     (1+ (let ((a 1)
-;;             (_b)
-;;             (_c))
-;;           a)))
-;;   (defun comp-tests-insertn-f (a b c d)
-;;     ;; Binsert
-;;     (insert a b c d))
+(ert-deftest comp-tests-stack ()
+  "Test some stack operation."
+  (defun comp-tests-discardn-f (x)
+    ;; BdiscardN
+    (1+ (let ((a 1)
+            (_b)
+            (_c))
+          a)))
+  (defun comp-tests-insertn-f (a b c d)
+    ;; Binsert
+    (insert a b c d))
 
-;;   (native-compile #'comp-tests-discardn-f)
-;;   (native-compile #'comp-tests-insertn-f)
+  (native-compile #'comp-tests-discardn-f)
+  (native-compile #'comp-tests-insertn-f)
 
-;;   (should (= (comp-tests-discardn-f 10) 2))
+  (should (= (comp-tests-discardn-f 10) 2))
 
-;;   (should (string= (with-temp-buffer
-;;                       (comp-tests-insertn-f "a" "b" "c" "d")
-;;                       (buffer-string))
-;;                    "abcd")))
+  (should (string= (with-temp-buffer
+                      (comp-tests-insertn-f "a" "b" "c" "d")
+                      (buffer-string))
+                   "abcd")))
 
 ;; (ert-deftest comp-tests-non-locals ()
 ;;   "Test non locals."
