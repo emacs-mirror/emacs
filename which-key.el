@@ -453,6 +453,9 @@ prefixes in `which-key-paging-prefixes'"
                                       which-key-undo-key
                                       which-key-undo))
 
+(defvar which-key-persistent-popup-p nil
+  "Whether or not to disable `which-key--hide-popup'.")
+
 (defcustom which-key-hide-alt-key-translations t
   "Hide key translations using Alt key if non nil.
 These translations are not relevant most of the times since a lot
@@ -1080,13 +1083,13 @@ total height."
 
 (defun which-key--hide-popup ()
   "This function is called to hide the which-key buffer."
-  (unless (member real-this-command which-key--paging-functions)
+  (unless (or which-key-persistent-popup-p
+              (member real-this-command which-key--paging-functions))
     (setq which-key--last-try-2-loc nil)
     (setq which-key--pages-obj nil)
     (setq which-key--automatic-display nil)
     (setq which-key--prior-show-keymap-args nil)
-    (when (and which-key-idle-secondary-delay
-               which-key--secondary-timer-active)
+    (when (and which-key-idle-secondary-delay which-key--secondary-timer-active)
       (which-key--start-timer))
     (which-key--lighter-restore)
     (cl-case which-key-popup-type
