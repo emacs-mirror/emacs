@@ -601,17 +601,24 @@ the annotation emission."
       (byte-rem % Frem)
       (byte-numberp auto)
       (byte-integerp auto)
-      (byte-listN)
+      (byte-listN
+       (comp-stack-adjust (- (1- arg)))
+       (comp-emit-set-call `(callref Flist ,arg ,(comp-sp))))
       (byte-concatN
        (comp-stack-adjust (- (1- arg)))
        (comp-emit-set-call `(callref Fconcat ,arg ,(comp-sp))))
-      (byte-insertN)
+      (byte-insertN
+       (comp-stack-adjust (- (1- arg)))
+       (comp-emit-set-call `(callref Finsert ,arg ,(comp-sp))))
       (byte-stack-set)
       (byte-stack-set2)
       (byte-discardN)
       (byte-switch)
       (byte-constant
-       (comp-emit-set-const arg)))))
+       (comp-emit-set-const arg))
+      (byte-discardN-preserve-tos
+       (comp-stack-adjust (- arg))
+       (comp-copy-slot-n (+ arg (comp-sp)))))))
 
 (defun comp-limplify (func)
   "Given FUNC compute its LIMPLE ir."
