@@ -549,15 +549,7 @@ the annotation emission."
       (byte-end-of-line auto)
       (byte-constant2)
       (byte-goto
-       (let ((bb (comp-new-block-sym))
-             (blocks (comp-func-blocks comp-func))
-             (target (comp-lap-to-limple-bb (cl-third inst))))
-         (puthash bb (make-comp-block :sp (comp-sp)) blocks)
-         (comp-emit-jump target)
-         (puthash target
-	          (make-comp-block :sp (comp-sp))
-	          blocks)
-         (comp-emit-block bb)))
+       (comp-emit-jump (comp-lap-to-limple-bb (cl-third inst))))
       (byte-goto-if-nil
        (comp-emit-cond-jump 0 (cl-third inst) nil))
       (byte-goto-if-not-nil
