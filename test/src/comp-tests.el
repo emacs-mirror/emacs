@@ -230,109 +230,109 @@
   (should (= (comp-tests-conditionals-2-f t) 1340))
   (should (eq (comp-tests-conditionals-2-f nil) nil)))
 
-;; (ert-deftest  comp-tests-fixnum ()
-;;   "Testing some fixnum inline operation."
-;;   (defun comp-tests-fixnum-1-minus-f (x)
-;;     ;; Bsub1
-;;     (1- x))
-;;   (defun comp-tests-fixnum-1-plus-f (x)
-;;     ;; Badd1
-;;     (1+ x))
-;;   (defun comp-tests-fixnum-minus-f (x)
-;;     ;; Bnegate
-;;     (- x))
+(ert-deftest  comp-tests-fixnum ()
+  "Testing some fixnum inline operation."
+  (defun comp-tests-fixnum-1-minus-f (x)
+    ;; Bsub1
+    (1- x))
+  (defun comp-tests-fixnum-1-plus-f (x)
+    ;; Badd1
+    (1+ x))
+  (defun comp-tests-fixnum-minus-f (x)
+    ;; Bnegate
+    (- x))
 
-;;   (native-compile #'comp-tests-fixnum-1-minus-f)
-;;   (native-compile #'comp-tests-fixnum-1-plus-f)
-;;   (native-compile #'comp-tests-fixnum-minus-f)
+  (native-compile #'comp-tests-fixnum-1-minus-f)
+  (native-compile #'comp-tests-fixnum-1-plus-f)
+  (native-compile #'comp-tests-fixnum-minus-f)
 
-;;   (should (= (comp-tests-fixnum-1-minus-f 10) 9))
-;;   (should (= (comp-tests-fixnum-1-minus-f most-negative-fixnum)
-;;              (1- most-negative-fixnum)))
-;;   (should (equal (condition-case err
-;;                      (comp-tests-fixnum-1-minus-f 'a)
-;;                    (error err))
-;;                  '(wrong-type-argument number-or-marker-p a)))
-;;   (should (= (comp-tests-fixnum-1-plus-f 10) 11))
-;;   (should (= (comp-tests-fixnum-1-plus-f most-positive-fixnum)
-;;              (1+ most-positive-fixnum)))
-;;   (should (equal (condition-case err
-;;                      (comp-tests-fixnum-1-plus-f 'a)
-;;                    (error err))
-;;                  '(wrong-type-argument number-or-marker-p a)))
-;;   (should (= (comp-tests-fixnum-minus-f 10) -10))
-;;   (should (= (comp-tests-fixnum-minus-f most-negative-fixnum)
-;;              (- most-negative-fixnum)))
-;;   (should (equal (condition-case err
-;;                      (comp-tests-fixnum-minus-f 'a)
-;;                    (error err))
-;;                  '(wrong-type-argument number-or-marker-p a))))
+  (should (= (comp-tests-fixnum-1-minus-f 10) 9))
+  (should (= (comp-tests-fixnum-1-minus-f most-negative-fixnum)
+             (1- most-negative-fixnum)))
+  (should (equal (condition-case err
+                     (comp-tests-fixnum-1-minus-f 'a)
+                   (error err))
+                 '(wrong-type-argument number-or-marker-p a)))
+  (should (= (comp-tests-fixnum-1-plus-f 10) 11))
+  (should (= (comp-tests-fixnum-1-plus-f most-positive-fixnum)
+             (1+ most-positive-fixnum)))
+  (should (equal (condition-case err
+                     (comp-tests-fixnum-1-plus-f 'a)
+                   (error err))
+                 '(wrong-type-argument number-or-marker-p a)))
+  (should (= (comp-tests-fixnum-minus-f 10) -10))
+  (should (= (comp-tests-fixnum-minus-f most-negative-fixnum)
+             (- most-negative-fixnum)))
+  (should (equal (condition-case err
+                     (comp-tests-fixnum-minus-f 'a)
+                   (error err))
+                 '(wrong-type-argument number-or-marker-p a))))
 
-;; (ert-deftest  comp-tests-arith-comp ()
-;;   "Testing arithmetic comparisons."
-;;   (defun comp-tests-eqlsign-f (x y)
-;;     ;; Beqlsign
-;;     (= x y))
-;;   (defun comp-tests-gtr-f (x y)
-;;     ;; Bgtr
-;;     (> x y))
-;;   (defun comp-tests-lss-f (x y)
-;;     ;; Blss
-;;     (< x y))
-;;   (defun comp-tests-les-f (x y)
-;;     ;; Bleq
-;;     (<= x y))
-;;   (defun comp-tests-geq-f (x y)
-;;     ;; Bgeq
-;;     (>= x y))
+(ert-deftest  comp-tests-arith-comp ()
+  "Testing arithmetic comparisons."
+  (defun comp-tests-eqlsign-f (x y)
+    ;; Beqlsign
+    (= x y))
+  (defun comp-tests-gtr-f (x y)
+    ;; Bgtr
+    (> x y))
+  (defun comp-tests-lss-f (x y)
+    ;; Blss
+    (< x y))
+  (defun comp-tests-les-f (x y)
+    ;; Bleq
+    (<= x y))
+  (defun comp-tests-geq-f (x y)
+    ;; Bgeq
+    (>= x y))
 
 
-;;   (native-compile #'comp-tests-eqlsign-f)
-;;   (native-compile #'comp-tests-gtr-f)
-;;   (native-compile #'comp-tests-lss-f)
-;;   (native-compile #'comp-tests-les-f)
-;;   (native-compile #'comp-tests-geq-f)
+  (native-compile #'comp-tests-eqlsign-f)
+  (native-compile #'comp-tests-gtr-f)
+  (native-compile #'comp-tests-lss-f)
+  (native-compile #'comp-tests-les-f)
+  (native-compile #'comp-tests-geq-f)
 
-;;   (should (eq (comp-tests-eqlsign-f 4 3) nil))
-;;   (should (eq (comp-tests-eqlsign-f 3 3) t))
-;;   (should (eq (comp-tests-eqlsign-f 2 3) nil))
-;;   (should (eq (comp-tests-gtr-f 4 3) t))
-;;   (should (eq (comp-tests-gtr-f 3 3) nil))
-;;   (should (eq (comp-tests-gtr-f 2 3) nil))
-;;   (should (eq (comp-tests-lss-f 4 3) nil))
-;;   (should (eq (comp-tests-lss-f 3 3) nil))
-;;   (should (eq (comp-tests-lss-f 2 3) t))
-;;   (should (eq (comp-tests-les-f 4 3) nil))
-;;   (should (eq (comp-tests-les-f 3 3) t))
-;;   (should (eq (comp-tests-les-f 2 3) t))
-;;   (should (eq (comp-tests-geq-f 4 3) t))
-;;   (should (eq (comp-tests-geq-f 3 3) t))
-;;   (should (eq (comp-tests-geq-f 2 3) nil)))
+  (should (eq (comp-tests-eqlsign-f 4 3) nil))
+  (should (eq (comp-tests-eqlsign-f 3 3) t))
+  (should (eq (comp-tests-eqlsign-f 2 3) nil))
+  (should (eq (comp-tests-gtr-f 4 3) t))
+  (should (eq (comp-tests-gtr-f 3 3) nil))
+  (should (eq (comp-tests-gtr-f 2 3) nil))
+  (should (eq (comp-tests-lss-f 4 3) nil))
+  (should (eq (comp-tests-lss-f 3 3) nil))
+  (should (eq (comp-tests-lss-f 2 3) t))
+  (should (eq (comp-tests-les-f 4 3) nil))
+  (should (eq (comp-tests-les-f 3 3) t))
+  (should (eq (comp-tests-les-f 2 3) t))
+  (should (eq (comp-tests-geq-f 4 3) t))
+  (should (eq (comp-tests-geq-f 3 3) t))
+  (should (eq (comp-tests-geq-f 2 3) nil)))
 
-;; (ert-deftest comp-tests-setcarcdr ()
-;;   "Testing setcar setcdr."
-;;   (defun comp-tests-setcar-f (x y)
-;;     (setcar x y)
-;;     x)
-;;   (defun comp-tests-setcdr-f (x y)
-;;     (setcdr x y)
-;;     x)
+(ert-deftest comp-tests-setcarcdr ()
+  "Testing setcar setcdr."
+  (defun comp-tests-setcar-f (x y)
+    (setcar x y)
+    x)
+  (defun comp-tests-setcdr-f (x y)
+    (setcdr x y)
+    x)
 
-;;   (native-compile #'comp-tests-setcar-f)
-;;   (native-compile #'comp-tests-setcdr-f)
+  (native-compile #'comp-tests-setcar-f)
+  (native-compile #'comp-tests-setcdr-f)
 
-;;   (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
-;;   (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3)))
-;;   (should (equal (condition-case
-;;                      err
-;;                      (comp-tests-setcar-f 3 10)
-;;                    (error err))
-;;                  '(wrong-type-argument consp 3)))
-;;   (should (equal (condition-case
-;;                      err
-;;                      (comp-tests-setcdr-f 3 10)
-;;                    (error err))
-;;                  '(wrong-type-argument consp 3))))
+  (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
+  (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3)))
+  (should (equal (condition-case
+                     err
+                     (comp-tests-setcar-f 3 10)
+                   (error err))
+                 '(wrong-type-argument consp 3)))
+  (should (equal (condition-case
+                     err
+                     (comp-tests-setcdr-f 3 10)
+                   (error err))
+                 '(wrong-type-argument consp 3))))
 
 ;; (ert-deftest comp-tests-bubble-sort ()
 ;;   "Run bubble sort."
@@ -355,44 +355,44 @@
 ;;     (should (equal (comp-bubble-sort-f list1)
 ;;                    (sort list2 #'<)))))
 
-;; (ert-deftest comp-tests-list-inline ()
-;;   "Test some inlined list functions."
-;;   (defun comp-tests-consp-f (x)
-;;     ;; Bconsp
-;;     (consp x))
-;;   (defun comp-tests-car-f (x)
-;;     ;; Bsetcar
-;;     (setcar x 3))
+(ert-deftest comp-tests-list-inline ()
+  "Test some inlined list functions."
+  (defun comp-tests-consp-f (x)
+    ;; Bconsp
+    (consp x))
+  (defun comp-tests-car-f (x)
+    ;; Bsetcar
+    (setcar x 3))
 
-;;   (native-compile #'comp-tests-consp-f)
-;;   (native-compile #'comp-tests-car-f)
+  (native-compile #'comp-tests-consp-f)
+  (native-compile #'comp-tests-car-f)
 
-;;   (should (eq (comp-tests-consp-f '(1)) t))
-;;   (should (eq (comp-tests-consp-f 1) nil))
-;;   (let ((x (cons 1 2)))
-;;     (should (= (comp-tests-car-f x) 3))
-;;     (should (equal x '(3 . 2)))))
+  (should (eq (comp-tests-consp-f '(1)) t))
+  (should (eq (comp-tests-consp-f 1) nil))
+  (let ((x (cons 1 2)))
+    (should (= (comp-tests-car-f x) 3))
+    (should (equal x '(3 . 2)))))
 
-;; (ert-deftest comp-tests-num-inline ()
-;;   "Test some inlined number functions."
-;;   (defun comp-tests-integerp-f (x)
-;;     ;; Bintegerp
-;;     (integerp x))
-;;   (defun comp-tests-numberp-f (x)
-;;     ;; Bnumberp
-;;     (numberp x))
+(ert-deftest comp-tests-num-inline ()
+  "Test some inlined number functions."
+  (defun comp-tests-integerp-f (x)
+    ;; Bintegerp
+    (integerp x))
+  (defun comp-tests-numberp-f (x)
+    ;; Bnumberp
+    (numberp x))
 
-;;   (native-compile #'comp-tests-integerp-f)
-;;   (native-compile #'comp-tests-numberp-f)
+  (native-compile #'comp-tests-integerp-f)
+  (native-compile #'comp-tests-numberp-f)
 
-;;   (should (eq (comp-tests-integerp-f 1) t))
-;;   (should (eq (comp-tests-integerp-f '(1)) nil))
-;;   (should (eq (comp-tests-integerp-f 3.5) nil))
-;;   (should (eq (comp-tests-integerp-f (1+ most-negative-fixnum)) t))
+  (should (eq (comp-tests-integerp-f 1) t))
+  (should (eq (comp-tests-integerp-f '(1)) nil))
+  (should (eq (comp-tests-integerp-f 3.5) nil))
+  (should (eq (comp-tests-integerp-f (1+ most-negative-fixnum)) t))
 
-;;   (should (eq (comp-tests-numberp-f 1) t))
-;;   (should (eq (comp-tests-numberp-f 'a) nil))
-;;   (should (eq (comp-tests-numberp-f 3.5) t)))
+  (should (eq (comp-tests-numberp-f 1) t))
+  (should (eq (comp-tests-numberp-f 'a) nil))
+  (should (eq (comp-tests-numberp-f 3.5) t)))
 
 ;; (ert-deftest comp-tests-stack ()
 ;;   "Test some stack operation."
@@ -467,11 +467,11 @@
 ;;   (should (= (catch 'foo
 ;;                (comp-tests-throw-f 3)))))
 
-;; (ert-deftest comp-tests-gc ()
-;;   "Try to do some longer computation to let the gc kick in."
-;;   (dotimes (_ 100000)
-;;     (comp-tests-cons-cdr-f 3))
+(ert-deftest comp-tests-gc ()
+  "Try to do some longer computation to let the gc kick in."
+  (dotimes (_ 100000)
+    (comp-tests-cons-cdr-f 3))
 
-;;   (should (= (comp-tests-cons-cdr-f 3) 3)))
+  (should (= (comp-tests-cons-cdr-f 3) 3)))
 
 ;;; comp-tests.el ends here
