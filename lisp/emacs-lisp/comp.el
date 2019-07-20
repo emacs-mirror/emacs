@@ -398,6 +398,8 @@ the annotation emission."
                  (intern (replace-regexp-in-string "byte-" "" x)))
               (body-eff (body op-name sp-delta)
                  ;; Given the original body BODY compute the effective one.
+                 ;; When BODY is auto guess function name form the LAP bytecode
+                 ;; name. Othewise expect lname fnname.
                  (pcase (car body)
                    ('auto
                     (list `(comp-emit-set-call-subr
@@ -415,9 +417,11 @@ the annotation emission."
                   for op-name = (symbol-name op)
 		  if body
 		    collect `(',op
+                              ;; Log all LAP ops except the TAG one.
                               ,(unless (eq op 'TAG)
                                  `(comp-emit-annotation
                                    ,(concat "LAP op " op-name)))
+                              ;; Emit the stack adjustment if present.
                               ,(when (and sp-delta (not (eq 0 sp-delta)))
 			         `(comp-stack-adjust ,sp-delta))
                               ,@(body-eff body op-name sp-delta))
@@ -470,7 +474,7 @@ the annotation emission."
       (byte-listp auto)
       (byte-eq auto)
       (byte-memq auto)
-      (byte-not)
+      (byte-not null Fnull)
       (byte-car auto)
       (byte-cdr auto)
       (byte-cons auto)
@@ -497,15 +501,15 @@ the annotation emission."
        (comp-emit-set-call `(callref Fconcat 3 ,(comp-sp))))
       (byte-concat4
        (comp-emit-set-call `(callref Fconcat 4 ,(comp-sp))))
-      (byte-sub1 1+ Fadd1)
-      (byte-add1 1- Fsub1)
-      (byte-eqlsign string-equal Fstring-equal)
+      (byte-sub1 1- Fsub1)
+      (byte-add1 1+ Fadd1)
+      (byte-eqlsign = Feqlsign)
       (byte-gtr > Fgtr)
       (byte-lss < Flss)
       (byte-leq <= Fleq)
       (byte-geq >= Fgeq)
-      (byte-diff - Fmius)
-      (byte-negate null Fnull)
+      (byte-diff - Fminus)
+      (byte-negate - Fminus)
       (byte-plus + Fplus)
       (byte-max auto)
       (byte-min auto)
@@ -580,8 +584,8 @@ the annotation emission."
       (byte-match-end auto)
       (byte-upcase auto)
       (byte-downcase auto)
-      (byte-string=)
-      (byte-string<)
+      (byte-string= string-equal Fstring_equal)
+      (byte-string< string-lessp Fstring_lessp)
       (byte-equal auto)
       (byte-nthcdr auto)
       (byte-elt auto)
@@ -590,13 +594,11 @@ the annotation emission."
       (byte-nreverse auto)
       (byte-setcar auto)
       (byte-setcdr auto)
-      (byte-car-safe
-       (comp-emit-set-call `(call Fcar_safe ,(comp-slot))))
-      (byte-cdr-safe
-       (comp-emit-set-call `(call Fcdr_safe ,(comp-slot))))
+      (byte-car-safe auto)
+      (byte-cdr-safe auto)
       (byte-nconc auto)
-      (byte-quo)
-      (byte-rem)
+      (byte-quo / Fquo)
+      (byte-rem % Frem)
       (byte-numberp auto)
       (byte-integerp auto)
       (byte-listN)
