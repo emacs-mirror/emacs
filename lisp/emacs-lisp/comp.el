@@ -466,8 +466,25 @@ the annotation emission."
                                           :constant arg)
                          ,(make-comp-mvar :const-vld t
                                           :constant nil))))
-      (byte-pophandler)
-      (byte-pushconditioncase)
+      (byte-pophandler
+       (comp-emit '(pop-handler)))
+      (byte-pushconditioncase
+       (let ((blocks (comp-func-blocks comp-func))
+             (fall-bb (comp-new-block-sym))) ;; Fall through block
+         (puthash fall-bb
+	          (make-comp-block :sp (comp-sp))
+	          blocks)
+         (let ((target (comp-lap-to-limple-bb (cl-third inst)))
+               (handler-type (cdr (last inst))))
+           (comp-emit (list 'push-handler (comp-slot-next)
+                            handler-type
+                            target
+                            fall-bb))
+           (puthash target
+	            (make-comp-block :sp (comp-sp))
+	            blocks)
+           (comp-mark-block-closed))
+         (comp-emit-block fall-bb)))
       (byte-pushcatch)
       (byte-nth auto)
       (byte-symbolp auto)
