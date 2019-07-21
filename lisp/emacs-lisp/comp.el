@@ -488,21 +488,21 @@ the annotation emission."
        (comp-emit '(pop-handler)))
       (byte-pushconditioncase
        (let ((blocks (comp-func-blocks comp-func))
-             (fall-bb (comp-new-block-sym))) ;; Fall through block
-         (puthash fall-bb
+             (guarded-bb (comp-new-block-sym)))
+         (puthash guarded-bb
 	          (make-comp-block :sp (comp-sp))
 	          blocks)
-         (let ((target (comp-lap-to-limple-bb (cl-third inst)))
+         (let ((handler-bb (comp-lap-to-limple-bb (cl-third inst)))
                (handler-type (cdr (last inst))))
            (comp-emit (list 'push-handler (comp-slot-next)
                             handler-type
-                            target
-                            fall-bb))
-           (puthash target
-	            (make-comp-block :sp (comp-sp))
+                            handler-bb
+                            guarded-bb))
+           (puthash handler-bb
+	            (make-comp-block :sp (1+ (comp-sp)))
 	            blocks)
-           (comp-mark-block-closed))
-         (comp-emit-block fall-bb)))
+           (comp-mark-block-closed)
+           (comp-emit-block guarded-bb))))
       (byte-pushcatch)
       (byte-nth auto)
       (byte-symbolp auto)
@@ -668,9 +668,9 @@ the annotation emission."
              do (progn
                   (cl-incf (comp-sp))
                   (comp-emit `(setpar ,(comp-slot) ,i))))
-    (comp-emit-jump 'body)
+    (comp-emit-jump 'bb_1)
     ;; Body
-    (comp-emit-block 'body)
+    (comp-emit-block 'bb_1)
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
     ;; Reverse insns into all basic blocks.
     (cl-loop for bb being the hash-value in (comp-func-blocks func)

@@ -416,56 +416,58 @@
                       (buffer-string))
                    "abcd")))
 
-;; (ert-deftest comp-tests-non-locals ()
-;;   "Test non locals."
-;;   (defun comp-tests-err-arith-f ()
-;;     (/ 1 0))
-;;   (defun comp-tests-err-foo-f ()
-;;     (error "foo"))
+(ert-deftest comp-tests-non-locals ()
+  "Test non locals."
+  (let ((gc-cons-threshold most-positive-fixnum)) ;; FIXME!!
+    (defun comp-tests-err-arith-f ()
+      (/ 1 0))
+    (defun comp-tests-err-foo-f ()
+      (error "foo"))
 
-;;   (defun comp-tests-condition-case-0-f ()
-;;     ;; Bpushhandler Bpophandler
-;;     (condition-case
-;;         err
-;;         (comp-tests-err-arith-f)
-;;       (arith-error (concat "arith-error "
-;;                            (error-message-string err)
-;;                            " catched"))
-;;       (error (concat "error "
-;;                      (error-message-string err)
-;;                      " catched"))))
+    (defun comp-tests-condition-case-0-f ()
+      ;; Bpushhandler Bpophandler
+      (condition-case
+          err
+          (comp-tests-err-arith-f)
+        (arith-error (concat "arith-error "
+                             (error-message-string err)
+                             " catched"))
+        (error (concat "error "
+                       (error-message-string err)
+                       " catched"))))
 
-;;   (defun comp-tests-condition-case-1-f ()
-;;     ;; Bpushhandler Bpophandler
-;;     (condition-case
-;;         err
-;;         (comp-tests-err-foo-f)
-;;       (arith-error (concat "arith-error "
-;;                            (error-message-string err)
-;;                            " catched"))
-;;       (error (concat "error "
-;;                      (error-message-string err)
-;;                      " catched"))))
+    (defun comp-tests-condition-case-1-f ()
+      ;; Bpushhandler Bpophandler
+      (condition-case
+          err
+          (comp-tests-err-foo-f)
+        (arith-error (concat "arith-error "
+                             (error-message-string err)
+                             " catched"))
+        (error (concat "error "
+                       (error-message-string err)
+                       " catched"))))
 
-;;   (defun comp-tests-catch-f (f)
-;;     (catch 'foo
-;;       (funcall f)))
+    ;; (defun comp-tests-catch-f (f)
+    ;;   (catch 'foo
+    ;;     (funcall f)))
 
-;;   (defun comp-tests-throw-f (x)
-;;     (throw 'foo x))
+    ;; (defun comp-tests-throw-f (x)
+    ;;   (throw 'foo x))
 
-;;   (native-compile #'comp-tests-condition-case-0-f)
-;;   (native-compile #'comp-tests-condition-case-1-f)
-;;   (native-compile #'comp-tests-catch-f)
-;;   (native-compile #'comp-tests-throw-f)
+    (native-compile #'comp-tests-condition-case-0-f)
+    (native-compile #'comp-tests-condition-case-1-f)
+    ;; (native-compile #'comp-tests-catch-f)
+    ;; (native-compile #'comp-tests-throw-f)
 
-;;   (should (string= (comp-tests-condition-case-0-f)
-;;                    "arith-error Arithmetic error catched"))
-;;   (should (string= (comp-tests-condition-case-1-f)
-;;                    "error foo catched"))
-;;   (should (= (comp-tests-catch-f (lambda () (throw 'foo 3))) 3))
-;;   (should (= (catch 'foo
-;;                (comp-tests-throw-f 3)))))
+    (should (string= (comp-tests-condition-case-0-f)
+                     "arith-error Arithmetic error catched"))
+    (should (string= (comp-tests-condition-case-1-f)
+                     "error foo catched")))
+  ;; (should (= (comp-tests-catch-f (lambda () (throw 'foo 3))) 3))
+  ;; (should (= (catch 'foo
+  ;;              (comp-tests-throw-f 3))))
+  )
 
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."

@@ -948,18 +948,6 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 					   PURESIZE));
 }
 
-/* static gcc_jit_rvalue * */
-/* emit_call_n_ref (const char *f_name, unsigned nargs, */
-/* 		 gcc_jit_lvalue *base_arg) */
-/* { */
-/*   gcc_jit_rvalue *args[] = */
-/*     { gcc_jit_context_new_rvalue_from_int(comp.ctxt, */
-/* 					  comp.ptrdiff_type, */
-/* 					  nargs), */
-/*       gcc_jit_lvalue_get_address (base_arg, NULL) }; */
-/*   return emit_call (f_name, comp.lisp_obj_type, 2, args); */
-/* } */
-
 /* Emit an r-value from an mvar meta variable.
    In case this is a constant that was propagated return it otherwise load it
    from frame.  */
@@ -1051,13 +1039,85 @@ emit_limple_call_ref (Lisp_Object arg1)
   return emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
 }
 
+/* Register an handler for a non local exit.  */
+
+static void
+emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
+			  gcc_jit_block *handler_bb, gcc_jit_block *guarded_bb,
+			  EMACS_UINT clobber_slot)
+{
+  /* Ex: (push-handler #s(comp-mvar 6 0 t (arith-error) nil) 1 bb_3 bb_2).  */
+
+  static unsigned pushhandler_n; /* FIXME move at ctxt or func level.  */
+  gcc_jit_rvalue *args[2];
+
+  /* struct handler *c = push_handler (POP, type); */
+  gcc_jit_lvalue *c =
+    gcc_jit_function_new_local (comp.func,
+				NULL,
+				comp.handler_ptr_type,
+				format_string ("c_%u",
+					       pushhandler_n));
+  args[0] = handler;
+  args[1] = handler_type;
+  gcc_jit_block_add_assignment (
+	      comp.block,
+	      NULL,
+	      c,
+	      emit_call ("push_handler", comp.handler_ptr_type, 2, args));
+
+  args[0] =
+    gcc_jit_lvalue_get_address (
+	gcc_jit_rvalue_dereference_field (
+	  gcc_jit_lvalue_as_rvalue (c),
+	  NULL,
+	  comp.handler_jmp_field),
+	NULL);
+
+  gcc_jit_rvalue *res;
+#ifdef HAVE__SETJMP
+  res = emit_call ("_setjmp", comp.int_type, 1, args);
+#else
+  res = emit_call ("setjmp", comp.int_type, 1, args);
+#endif
+  emit_cond_jump (res, handler_bb, guarded_bb);
+
+  /* This emit the handler part.  */
+
+  comp.block = handler_bb;
+  gcc_jit_lvalue *m_handlerlist =
+    gcc_jit_rvalue_dereference_field (comp.current_thread,
+				      NULL,
+				      comp.m_handlerlist);
+  gcc_jit_block_add_assignment (
+    comp.block,
+    NULL,
+    m_handlerlist,
+    gcc_jit_lvalue_as_rvalue(
+      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
+					NULL,
+					comp.handler_next_field)));
+  gcc_jit_block_add_assignment (
+    comp.block,
+    NULL,
+    comp.frame[clobber_slot],
+    gcc_jit_lvalue_as_rvalue(
+      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
+					NULL,
+					comp.handler_val_field)));
+  ++pushhandler_n;
+}
+
 static void
 emit_limple_insn (Lisp_Object insn)
 {
   Lisp_Object op = XCAR (insn);
   Lisp_Object args = XCDR (insn);
-  Lisp_Object arg0 = XCAR (args);
+  Lisp_Object arg0;
   gcc_jit_rvalue *res;
+
+  if (CONSP (args))
+    arg0 = XCAR (args);
 
   if (EQ (op, Qjump))
     {
@@ -1073,6 +1133,39 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *target2 = retrive_block (THIRD (args));
 
       emit_cond_jump (emit_NILP (test), target2, target1);
+    }
+  else if (EQ (op, Qpush_handler))
+    {
+      EMACS_UINT clobber_slot = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
+      gcc_jit_rvalue *handler = emit_mvar_val (arg0);
+      gcc_jit_rvalue *handler_type =
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.int_type,
+					     XFIXNUM (SECOND (args)));
+      gcc_jit_block *handler_bb = retrive_block (THIRD (args));
+      gcc_jit_block *guarded_bb = retrive_block (FORTH (args));
+      emit_limple_push_handler (handler, handler_type, handler_bb, guarded_bb,
+				clobber_slot);
+    }
+  else if (EQ (op, Qpop_handler))
+    {
+      /* current_thread->m_handlerlist =
+	 current_thread->m_handlerlist->next;  */
+      gcc_jit_lvalue *m_handlerlist =
+	gcc_jit_rvalue_dereference_field (comp.current_thread,
+					  NULL,
+					  comp.m_handlerlist);
+
+      gcc_jit_block_add_assignment(
+	comp.block,
+	NULL,
+	m_handlerlist,
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference_field (
+	    gcc_jit_lvalue_as_rvalue (m_handlerlist),
+	    NULL,
+	    comp.handler_next_field)));
+
     }
   else if (EQ (op, Qcall))
     {
@@ -2129,6 +2222,8 @@ syms_of_comp (void)
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
+  DEFSYM (Qpush_handler, "push-handler");
+  DEFSYM (Qpop_handler, "pop-handler");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
