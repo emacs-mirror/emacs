@@ -743,6 +743,48 @@ pgtk_set_tool_bar_position (struct frame *f,
     wrong_choice (choice, new_value);
 }
 
+static void
+pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+  GtkCssProvider *css_provider = FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider;
+
+  if (NILP (new_value)) {
+    gtk_css_provider_load_from_data(css_provider, "", -1, NULL);
+  } else if (STRINGP (new_value)) {
+    Emacs_Color rgb;
+
+    if (!pgtk_parse_color (SSDATA (new_value), &rgb))
+      error ("Unknown color.");
+
+    char css[64];
+    sprintf(css, "scrollbar slider { background-color: #%06x; }", (unsigned int) rgb.pixel & 0xffffff);
+    gtk_css_provider_load_from_data(css_provider, css, -1, NULL);
+
+  } else
+    error ("Invalid scroll-bar-foreground.");
+}
+
+static void
+pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+  GtkCssProvider *css_provider = FRAME_X_OUTPUT (f)->scrollbar_background_css_provider;
+
+  if (NILP (new_value)) {
+    gtk_css_provider_load_from_data(css_provider, "", -1, NULL);
+  } else if (STRINGP (new_value)) {
+    Emacs_Color rgb;
+
+    if (!pgtk_parse_color (SSDATA (new_value), &rgb))
+      error ("Unknown color.");
+
+    char css[64];
+    sprintf(css, "scrollbar trough { background-color: #%06x; }", (unsigned int) rgb.pixel & 0xffffff);
+    gtk_css_provider_load_from_data(css_provider, css, -1, NULL);
+
+  } else
+    error ("Invalid scroll-bar-background.");
+}
+
 /* Note: see frame.c for template, also where generic functions are impl */
 frame_parm_handler pgtk_frame_parm_handlers[] =
 {
@@ -771,8 +813,8 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
   gui_set_horizontal_scroll_bars, /* generic OK */
   gui_set_visibility, /* generic OK */
   x_set_tool_bar_lines,
-  0, /* x_set_scroll_bar_foreground, will ignore */
-  0, /* x_set_scroll_bar_background,  will ignore */
+  pgtk_set_scroll_bar_foreground,
+  pgtk_set_scroll_bar_background,
   gui_set_screen_gamma, /* generic OK */
   gui_set_line_spacing, /* generic OK, sets f->extra_line_spacing to int */
   gui_set_left_fringe, /* generic OK */
@@ -1043,12 +1085,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_X_OUTPUT(f)->icon_bitmap = -1;
 #endif
   FRAME_FONTSET (f) = -1;
-#if 0
-  FRAME_X_OUTPUT(f)->scroll_bar_foreground_pixel = -1;
-  FRAME_X_OUTPUT(f)->scroll_bar_background_pixel = -1;
-#endif
   FRAME_X_OUTPUT(f)->white_relief.pixel = -1;
   FRAME_X_OUTPUT(f)->black_relief.pixel = -1;
+
+  FRAME_X_OUTPUT(f)->scrollbar_foreground_css_provider = gtk_css_provider_new();
+  FRAME_X_OUTPUT(f)->scrollbar_background_css_provider = gtk_css_provider_new();
 
   fset_icon_name (f,
 		  gui_display_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
@@ -1195,14 +1236,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   gui_default_parameter (f, parms, Qno_special_glyphs, Qnil,
 		       NULL, NULL, RES_TYPE_BOOLEAN);
 
-#if 0
-  x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_foreground,
-					"scrollBarForeground",
-					"ScrollBarForeground", true);
-  x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_background,
-					"scrollBarBackground",
-					"ScrollBarBackground", false);
-#endif
+  gui_default_parameter (f, parms, Qscroll_bar_foreground, Qnil,
+			 "scrollBarForeground", "ScrollBarForeground", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qscroll_bar_background, Qnil,
+			 "scrollBarBackground", "ScrollBarBackground", RES_TYPE_STRING);
 
   /* Init faces before gui_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in

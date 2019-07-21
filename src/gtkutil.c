@@ -4054,6 +4054,14 @@ xg_finish_scroll_bar_creation (struct frame *f,
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
 
+#ifdef HAVE_PGTK
+  GtkStyleContext *ctxt = gtk_widget_get_style_context(wscroll);
+  gtk_style_context_add_provider(ctxt, GTK_STYLE_PROVIDER(FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider),
+				 GTK_STYLE_PROVIDER_PRIORITY_USER);
+  gtk_style_context_add_provider(ctxt, GTK_STYLE_PROVIDER(FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider),
+				 GTK_STYLE_PROVIDER_PRIORITY_USER);
+#endif
+
   bar->x_window = scroll_id;
 }
 

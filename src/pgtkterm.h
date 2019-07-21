@@ -265,6 +265,10 @@ struct pgtk_output
   unsigned long border_pixel;
   GtkCssProvider *border_color_css_provider;
 
+  /* scrollbar color */
+  GtkCssProvider *scrollbar_foreground_css_provider;
+  GtkCssProvider *scrollbar_background_css_provider;
+
   /* Widget whose cursor is hourglass_cursor.  This widget is temporarily
      mapped to display an hourglass cursor.  */
   GtkWidget *hourglass_widget;

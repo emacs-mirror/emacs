@@ -35,6 +35,8 @@
     <key name='right-fringe'             type='s'><default>''</default></key>
     <key name='screen-gamma'             type='s'><default>''</default></key>
     <key name='scroll-bar'               type='s'><default>''</default></key>
+    <key name='scroll-bar-background'    type='s'><default>''</default></key>
+    <key name='scroll-bar-foreground'    type='s'><default>''</default></key>
     <key name='scroll-bar-height'        type='s'><default>''</default></key>
     <key name='scroll-bar-width'         type='s'><default>''</default></key>
     <key name='scroll-bars'              type='s'><default>''</default></key>
