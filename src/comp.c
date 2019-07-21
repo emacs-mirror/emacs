@@ -1055,7 +1055,8 @@ static void
 emit_limple_inst (Lisp_Object inst)
 {
   Lisp_Object op = XCAR (inst);
-  Lisp_Object arg0 = SECOND (inst);
+  Lisp_Object args = XCDR (inst);
+  Lisp_Object arg0 = XCAR (args);
   gcc_jit_rvalue *res;
 
   if (EQ (op, Qblock))
@@ -1071,10 +1072,10 @@ emit_limple_inst (Lisp_Object inst)
     }
   else if (EQ (op, Qcond_jump))
     {
-      /* Conditional branch.	*/
+      /* Conditional branch.  */
       gcc_jit_rvalue *test = emit_mvar_val (arg0);
-      gcc_jit_block *target1 = retrive_block (THIRD (inst));
-      gcc_jit_block *target2 = retrive_block (FORTH (inst));
+      gcc_jit_block *target1 = retrive_block (SECOND (args));
+      gcc_jit_block *target2 = retrive_block (THIRD (args));
 
       emit_cond_jump (emit_NILP (test), target2, target1);
     }
@@ -1087,7 +1088,7 @@ emit_limple_inst (Lisp_Object inst)
   else if (EQ (op, Qset))
     {
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
-      Lisp_Object arg1 = THIRD (inst);
+      Lisp_Object arg1 = SECOND (args);
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
 	res = emit_mvar_val (arg1);
@@ -1107,7 +1108,7 @@ emit_limple_inst (Lisp_Object inst)
     {
       /* Ex: (=par #s(comp-mvar 2 0 nil nil nil) 0).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
-      EMACS_UINT param_n = XFIXNUM (THIRD (inst));
+      EMACS_UINT param_n = XFIXNUM (SECOND (args));
       gcc_jit_rvalue *param =
 	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
 							     param_n));
@@ -1119,7 +1120,7 @@ emit_limple_inst (Lisp_Object inst)
   else if (EQ (op, Qsetimm))
     {
       /* EX: (=imm #s(comp-mvar 9 1 t 3 nil) 3).  */
-      Lisp_Object arg1 = THIRD (inst);
+      Lisp_Object arg1 = SECOND (args);
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
