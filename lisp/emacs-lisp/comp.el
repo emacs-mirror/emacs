@@ -41,11 +41,15 @@
 (defvar comp-speed 2)
 (defvar byte-compile-lap-output)
 
-(defconst comp-passes '(comp-recuparate-lap
+(defvar comp-pass nil
+  "Every pass has the right to bind what it likes here.")
+
+(defconst comp-passes '(comp-spill-lap
                         comp-limplify)
   "Passes to be executed in order.")
 
-(defconst comp-known-ret-types '((Fcons . cons)))
+(defconst comp-known-ret-types '((Fcons . cons))
+  "Alist used for type propagation.")
 
 (defconst comp-mostly-pure-funcs
   '(% * + - / /= 1+ 1- < <= = > >= cons list % concat logand logcount logior
@@ -70,22 +74,25 @@
   (min nil :type number
        :documentation "Minimum number of arguments allowed.")
   (max nil
-       :documentation "Maximum number of arguments allowed
-To be used when ncall-conv is nil..")
+       :documentation "Maximum number of arguments allowed.
+To be used when ncall-conv is nil.")
   (ncall-conv nil :type boolean
               :documentation "If t the signature is:
 (ptrdiff_t nargs, Lisp_Object *args)."))
 
 (cl-defstruct (comp-block (:copier nil))
   "A basic block."
+  ;; The first two slots are used during limplification.
   (sp nil
-      :documentation "When non nil indicates its the sp value while entering
+      :documentation "When non nil indicates the sp value while entering
 into it.")
   (closed nil :type 'boolean
-          :documentation "If the block was already closed."))
+          :documentation "If the block was already closed.")
+  (insns () :type list
+         :documentation "List of instructions."))
 
 (cl-defstruct (comp-func (:copier nil))
-  "Internal rapresentation for a function."
+  "LIMPLE representation of a function."
   (symbol-name nil
                :documentation "Function symbol's name.")
   (c-func-name nil :type 'string
@@ -94,8 +101,8 @@ into it.")
         :documentation "Original form.")
   (byte-func nil
              :documentation "Byte compiled version.")
-  (ir nil
-      :documentation "Current intermediate rappresentation.")
+  (lap () :type list
+       :documentation "Lap assembly representation.")
   (args nil :type 'comp-args)
   (frame-size nil :type 'number)
   (blocks (make-hash-table) :type 'hash-table
@@ -104,7 +111,7 @@ structure.")
   (lap-block (make-hash-table :test #'equal) :type 'hash-table
              :documentation "Key value to convert from LAP label number to
 LIMPLE basic block.")
-  (limple-cnt -1 :type 'number
+  (ssa-cnt -1 :type 'number
               :documentation "Counter to create ssa limple vars."))
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
@@ -121,9 +128,6 @@ LIMPLE basic block.")
   (type nil
         :documentation "When non nil is used for type propagation."))
 
-
-;;; Limplification pass specific code.
-
 (cl-defstruct (comp-limplify (:copier nil))
   "Support structure used during limplification."
   (sp 0 :type 'fixnum
@@ -133,17 +137,22 @@ LIMPLE basic block.")
   (block-name nil :type 'symbol
     :documentation "Current basic block name."))
 
-(defun comp-new-frame (size)
-  "Return a clean frame of meta variables of size SIZE."
-  (let ((v (make-vector size nil)))
-    (cl-loop for i below size
-             do (aset v i (make-comp-mvar :slot i)))
-    v))
+(defun comp-pretty-print-func (func)
+  "Pretty print function FUNC in the current buffer."
+  (insert (format "\n\n Function: %s" (comp-func-symbol-name func)))
+  (cl-loop for bb being each hash-values of (comp-func-blocks func)
+           using (hash-key block-name)
+           do (progn
+                (insert (concat "\n<" (symbol-name block-name) ">"))
+                (cl-prettyprint (comp-block-insns bb)))))
+
+
+;;; spill-lap pass specific code.
 
 (defun comp-c-func-name (symbol-function)
   "Given SYMBOL-FUNCTION return a name suitable for the native code."
   ;; Unfortunatelly not all symbol names are valid as C function names...
-  ;; Nassi's algorithm.
+  ;; Nassi's algorithm here:
   (let* ((orig-name (symbol-name symbol-function))
          (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
 	                   for j from 0 by 2
@@ -170,26 +179,28 @@ LIMPLE basic block.")
       (make-comp-args :min mandatory
                       :ncall-conv t))))
 
-(defun comp-recuparate-lap (func)
-  "Byte compile and recuparate LAP rapresentation for FUNC."
-  ;; FIXME block timers here, otherwise we could spill the wrong LAP.
-  (setf (comp-func-byte-func func)
-        (byte-compile (comp-func-symbol-name func)))
-  (when comp-debug
-    (cl-prettyprint byte-compile-lap-output))
-  (let ((lambda-list (aref (comp-func-byte-func func) 0)))
-    (if (fixnump lambda-list)
-        (setf (comp-func-args func)
-              (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
-      (error "Can't native compile a non lexical scoped function")))
-  (setf (comp-func-ir func) byte-compile-lap-output)
-  (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
-  func)
+(defun comp-spill-lap (func)
+  "Byte compile and spill the LAP rapresentation for FUNC."
+  (let (byte-compile-lap-output)
+    (setf (comp-func-byte-func func)
+          (byte-compile (comp-func-symbol-name func)))
+    (when comp-debug
+      (cl-prettyprint byte-compile-lap-output))
+    (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+      (if (fixnump lambda-list)
+          (setf (comp-func-args func)
+                (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
+        (error "Can't native compile a non lexical scoped function")))
+    (setf (comp-func-lap func) byte-compile-lap-output)
+    (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
+    func))
 
-(declare-function comp-init-ctxt "comp.c")
-(declare-function comp-release-ctxt "comp.c")
-(declare-function comp-add-func-to-ctxt "comp.c")
-(declare-function comp-compile-and-load-ctxt "comp.c")
+
+;;; Limplification pass specific code.
+
+;; Special vars used during limplifications
+(defvar comp-block)
+(defvar comp-func)
 
 ;; (defun comp-opt-call (inst)
 ;;   "Optimize if possible a side-effect-free call in INST."
@@ -198,13 +209,15 @@ LIMPLE basic block.")
 ;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
 ;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
-;; Special vars used during limplifications
-(defvar comp-pass)
-(defvar comp-limple)
-(defvar comp-func)
+(defun comp-new-frame (size)
+  "Return a clean frame of meta variables of size SIZE."
+  (let ((v (make-vector size nil)))
+    (cl-loop for i below size
+             do (aset v i (make-comp-mvar :slot i)))
+    v))
 
 (cl-defun make-comp-mvar (&key slot const-vld constant type)
-  (make--comp-mvar :id (cl-incf (comp-func-limple-cnt comp-func))
+  (make--comp-mvar :id (cl-incf (comp-func-ssa-cnt comp-func))
                    :slot slot :const-vld const-vld :constant constant
                    :type type))
 
@@ -236,9 +249,9 @@ Restore the original value afterwards."
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
 
-(defun comp-emit (x)
-  "Emit X into current LIMPLE ir.."
-  (push x comp-limple))
+(defun comp-emit (insn)
+  "Emit INSN into current basic block."
+  (push insn (comp-block-insns comp-block)))
 
 (defun comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
@@ -328,9 +341,12 @@ If DST-N is specified use it otherwise assume it to be the current slot."
     ;; If we are abandoning an non closed basic block close it with a fall
     ;; through.
     (when (and (not (eq block-name 'entry))
-               (not (comp-block-closed (gethash (comp-limplify-block-name comp-pass)
-                                                blocks))))
+               (not (comp-block-closed
+                     (gethash (comp-limplify-block-name comp-pass)
+                              blocks))))
       (comp-emit-jump block-name))
+    ;; Set this a currently compiled block.
+    (setf comp-block (gethash block-name blocks))
     ;; Every new block we are forced to wipe out all the frame.
     ;; This will be optimized by proper flow analysis.
     (setf (comp-limplify-frame comp-pass)
@@ -338,7 +354,6 @@ If DST-N is specified use it otherwise assume it to be the current slot."
     ;; If we are landing here form a recorded branch adjust sp accordingly.
     (setf (comp-sp)
           (comp-block-sp (gethash block-name blocks)))
-    (comp-emit `(block ,block-name))
     (setf (comp-limplify-block-name comp-pass) block-name)))
 
 (defun comp-emit-cond-jump (target-offset lap-label negated)
@@ -436,7 +451,7 @@ the annotation emission."
        (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
 (defun comp-limplify-lap-inst (inst)
-  "Limplify LAP instruction INST accumulating in `comp-limple'."
+  "Limplify LAP instruction INST pushng it in the proper basic block."
   (let ((op (car inst))
         (arg (if (consp (cdr inst))
                  (cadr inst)
@@ -644,7 +659,7 @@ the annotation emission."
          (comp-pass (make-comp-limplify
                      :sp -1
                      :frame (comp-new-frame frame-size)))
-         (comp-limple ()))
+         (comp-block ()))
     ;; Prologue
     (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
@@ -652,28 +667,37 @@ the annotation emission."
     (cl-loop for i below (comp-args-min (comp-func-args func))
              do (progn
                   (cl-incf (comp-sp))
-                  (push `(setpar ,(comp-slot) ,i) comp-limple)))
+                  (comp-emit `(setpar ,(comp-slot) ,i))))
     (comp-emit-jump 'body)
     ;; Body
     (comp-emit-block 'body)
-    (mapc #'comp-limplify-lap-inst (comp-func-ir func))
-    (setf (comp-func-ir func) (reverse comp-limple))
+    (mapc #'comp-limplify-lap-inst (comp-func-lap func))
+    ;; Reverse insns into all basic blocks.
+    (cl-loop for bb being the hash-value in (comp-func-blocks func)
+             do (setf (comp-block-insns bb)
+                      (reverse (comp-block-insns bb))))
     (when comp-debug
-      (cl-prettyprint (comp-func-ir func)))
+      (comp-pretty-print-func func))
     func))
 
 
 ;;; Entry points.
 
-(defun native-compile (fun)
-  "FUN is the function definition to be compiled into native code."
-  (if-let ((f (symbol-function fun)))
+(declare-function comp-init-ctxt "comp.c")
+(declare-function comp-release-ctxt "comp.c")
+(declare-function comp-add-func-to-ctxt "comp.c")
+(declare-function comp-compile-and-load-ctxt "comp.c")
+
+(defun native-compile (func-symbol-name)
+  "FUNC-SYMBOL-NAME is the function name to be compiled into native code."
+  (if-let ((f (symbol-function func-symbol-name)))
       (progn
         (when (byte-code-function-p f)
           (error "Can't native compile an already bytecompiled function"))
-        (let ((func (make-comp-func :symbol-name fun
+        (let ((func (make-comp-func :symbol-name func-symbol-name
                                     :func f
-                                    :c-func-name (comp-c-func-name fun))))
+                                    :c-func-name (comp-c-func-name
+                                                  func-symbol-name))))
           (mapc (lambda (pass)
                   (funcall pass func))
                 comp-passes)

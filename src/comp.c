@@ -1052,19 +1052,14 @@ emit_limple_call_ref (Lisp_Object arg1)
 }
 
 static void
-emit_limple_inst (Lisp_Object inst)
+emit_limple_insn (Lisp_Object insn)
 {
-  Lisp_Object op = XCAR (inst);
-  Lisp_Object args = XCDR (inst);
+  Lisp_Object op = XCAR (insn);
+  Lisp_Object args = XCDR (insn);
   Lisp_Object arg0 = XCAR (args);
   gcc_jit_rvalue *res;
 
-  if (EQ (op, Qblock))
-    {
-      /* Search for the already defined block and make it current.  */
-      comp.block = retrive_block (arg0);
-    }
-  else if (EQ (op, Qjump))
+  if (EQ (op, Qjump))
     {
       /* Unconditional branch.	*/
       gcc_jit_block *target = retrive_block (arg0);
@@ -1083,7 +1078,7 @@ emit_limple_inst (Lisp_Object inst)
     {
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
-			      emit_limple_call (inst));
+			      emit_limple_call (insn));
     }
   else if (EQ (op, Qset))
     {
@@ -2052,20 +2047,19 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
 	declare_block ((char *) SDATA (SYMBOL_NAME (HASH_KEY (ht, i))));
     }
 
-  while (CONSP (blocks))
+  for (ptrdiff_t i = 0; i < ht->count; i++)
     {
-      char *block_name = (char *) SDATA (SYMBOL_NAME (XCAR (blocks)));
-      declare_block (block_name);
-      blocks = XCDR (blocks);
-    }
+      Lisp_Object block_name = HASH_KEY (ht, i);
+      Lisp_Object block = HASH_VALUE (ht, i);
+      Lisp_Object insns = FUNCALL1 (comp-block-insns, block);
 
-  Lisp_Object limple = FUNCALL1 (comp-func-ir, func);
-
-  while (CONSP (limple))
-    {
-      Lisp_Object inst = XCAR (limple);
-      emit_limple_inst (inst);
-      limple = XCDR (limple);
+      comp.block = retrive_block (block_name);
+      while (CONSP (insns))
+	{
+	  Lisp_Object insn = XCAR (insns);
+	  emit_limple_insn (insn);
+	  insns = XCDR (insns);
+	}
     }
 
   comp.funcs = Fcons (func, comp.funcs);
@@ -2126,7 +2120,6 @@ syms_of_comp (void)
 {
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
-  DEFSYM (Qblock, "block");
   DEFSYM (Qjump, "jump");
   DEFSYM (Qcall, "call");
   DEFSYM (Qcallref, "callref");
