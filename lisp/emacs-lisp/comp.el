@@ -121,6 +121,9 @@ LIMPLE basic block.")
   (type nil
         :documentation "When non nil is used for type propagation."))
 
+
+;;; Limplification pass specific code.
+
 (cl-defstruct (comp-limplify (:copier nil))
   "Support structure used during limplification."
   (sp 0 :type 'fixnum
@@ -658,6 +661,9 @@ the annotation emission."
     (when comp-debug
       (cl-prettyprint (comp-func-ir func)))
     func))
+
+
+;;; Entry points.
 
 (defun native-compile (fun)
   "FUN is the function definition to be compiled into native code."
