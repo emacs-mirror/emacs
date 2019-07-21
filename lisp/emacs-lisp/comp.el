@@ -338,24 +338,24 @@ If DST-N is specified use it otherwise assume it to be the current slot."
     (comp-emit `(block ,block-name))
     (setf (comp-limplify-block-name comp-pass) block-name)))
 
-(defun comp-emit-cond-jump (discard-n lap-label negated)
+(defun comp-emit-cond-jump (target-offset lap-label negated)
   "Emit a conditional jump to LAP-LABEL.
-Discard DISCARD-N slots afterward.
+TARGET-OFFSET is the positive offset on the SP when branching to the target
+block.
 If NEGATED non nil negate the test condition."
-  (let ((bb (comp-new-block-sym))
-        (blocks (comp-func-blocks comp-func)))
+  (let ((blocks (comp-func-blocks comp-func))
+        (bb (comp-new-block-sym))) ;; Fall through block
     (puthash bb
-	     (make-comp-block :sp (- (comp-sp) discard-n))
+	     (make-comp-block :sp (comp-sp))
 	     blocks)
-    (progn
-      (let ((target (comp-lap-to-limple-bb lap-label)))
-        (comp-emit (if negated
-		       (list 'cond-jump (comp-slot-next) target bb)
-		     (list 'cond-jump (comp-slot-next) bb target)))
-        (puthash target
-	         (make-comp-block :sp (comp-sp))
-	         blocks)
-        (comp-mark-block-closed)))
+    (let ((target (comp-lap-to-limple-bb lap-label)))
+      (comp-emit (if negated
+		     (list 'cond-jump (comp-slot-next) target bb)
+		   (list 'cond-jump (comp-slot-next) bb target)))
+      (puthash target
+	       (make-comp-block :sp (+ target-offset (comp-sp)))
+	       blocks)
+      (comp-mark-block-closed))
     (comp-emit-block bb)))
 
 (defun comp-stack-adjust (n)
