@@ -407,6 +407,24 @@ If NEGATED non nil negate the test condition."
         (puthash n name hash)
         name))))
 
+(defun comp-emit-handler (guarded-label handler-type)
+  "Emit a non local exit handler for GUARDED-LABEL of type HANDLER-TYPE."
+  (let ((blocks (comp-func-blocks comp-func))
+             (guarded-bb (comp-new-block-sym)))
+         (puthash guarded-bb
+	          (make-comp-block :sp (comp-sp))
+	          blocks)
+         (let ((handler-bb (comp-lap-to-limple-bb guarded-label)))
+           (comp-emit (list 'push-handler (comp-slot-next)
+                            handler-type
+                            handler-bb
+                            guarded-bb))
+           (puthash handler-bb
+	            (make-comp-block :sp (1+ (comp-sp)))
+	            blocks)
+           (comp-mark-block-closed)
+           (comp-emit-block guarded-bb))))
+
 (defmacro comp-op-case (&rest cases)
   "Expand CASES into the corresponding pcase.
 This is responsible for generating the proper stack adjustment when known and
@@ -450,12 +468,12 @@ the annotation emission."
                                                  op-name))))
        (_ (error "Unexpected LAP op %s" (symbol-name op))))))
 
-(defun comp-limplify-lap-inst (inst)
-  "Limplify LAP instruction INST pushng it in the proper basic block."
-  (let ((op (car inst))
-        (arg (if (consp (cdr inst))
-                 (cadr inst)
-               (cdr inst))))
+(defun comp-limplify-lap-inst (insn)
+  "Limplify LAP instruction INSN pushng it in the proper basic block."
+  (let ((op (car insn))
+        (arg (if (consp (cdr insn))
+                 (cadr insn)
+               (cdr insn))))
     (comp-op-case
       (TAG
        (comp-emit-block (comp-lap-to-limple-bb arg)))
@@ -487,23 +505,9 @@ the annotation emission."
       (byte-pophandler
        (comp-emit '(pop-handler)))
       (byte-pushconditioncase
-       (let ((blocks (comp-func-blocks comp-func))
-             (guarded-bb (comp-new-block-sym)))
-         (puthash guarded-bb
-	          (make-comp-block :sp (comp-sp))
-	          blocks)
-         (let ((handler-bb (comp-lap-to-limple-bb (cl-third inst)))
-               (handler-type (cdr (last inst))))
-           (comp-emit (list 'push-handler (comp-slot-next)
-                            handler-type
-                            handler-bb
-                            guarded-bb))
-           (puthash handler-bb
-	            (make-comp-block :sp (1+ (comp-sp)))
-	            blocks)
-           (comp-mark-block-closed)
-           (comp-emit-block guarded-bb))))
-      (byte-pushcatch)
+       (comp-emit-handler (cl-third insn) 'condition-case))
+      (byte-pushcatch
+       (comp-emit-handler (cl-third insn) 'catcher))
       (byte-nth auto)
       (byte-symbolp auto)
       (byte-consp auto)
@@ -584,15 +588,15 @@ the annotation emission."
       (byte-end-of-line auto)
       (byte-constant2)
       (byte-goto
-       (comp-emit-jump (comp-lap-to-limple-bb (cl-third inst))))
+       (comp-emit-jump (comp-lap-to-limple-bb (cl-third insn))))
       (byte-goto-if-nil
-       (comp-emit-cond-jump 0 (cl-third inst) nil))
+       (comp-emit-cond-jump 0 (cl-third insn) nil))
       (byte-goto-if-not-nil
-       (comp-emit-cond-jump 0 (cl-third inst) t))
+       (comp-emit-cond-jump 0 (cl-third insn) t))
       (byte-goto-if-nil-else-pop
-       (comp-emit-cond-jump 1 (cl-third inst) nil))
+       (comp-emit-cond-jump 1 (cl-third insn) nil))
       (byte-goto-if-not-nil-else-pop
-       (comp-emit-cond-jump 1 (cl-third inst) t))
+       (comp-emit-cond-jump 1 (cl-third insn) t))
       (byte-return
        (comp-emit (list 'return (comp-slot-next)))
        (comp-mark-block-closed))

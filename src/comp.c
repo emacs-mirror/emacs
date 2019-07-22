@@ -1138,10 +1138,17 @@ emit_limple_insn (Lisp_Object insn)
     {
       EMACS_UINT clobber_slot = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_rvalue *handler = emit_mvar_val (arg0);
+      int h_num;
+      if (EQ (SECOND (args), Qcatcher))
+	h_num = CATCHER;
+      else if (EQ (SECOND (args), Qcondition_case))
+	h_num = CONDITION_CASE;
+      else
+	eassert (false);
       gcc_jit_rvalue *handler_type =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
-					     XFIXNUM (SECOND (args)));
+					     h_num);
       gcc_jit_block *handler_bb = retrive_block (THIRD (args));
       gcc_jit_block *guarded_bb = retrive_block (FORTH (args));
       emit_limple_push_handler (handler, handler_type, handler_bb, guarded_bb,
@@ -2224,6 +2231,8 @@ syms_of_comp (void)
   DEFSYM (Qcond_jump, "cond-jump");
   DEFSYM (Qpush_handler, "push-handler");
   DEFSYM (Qpop_handler, "pop-handler");
+  DEFSYM (Qcondition_case, "condition-case");
+  DEFSYM (Qcatcher, "catcher");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
