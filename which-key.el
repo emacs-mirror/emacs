@@ -2429,12 +2429,16 @@ Only if no bindings fit fallback to LOC2."
                     'which-key-keymap-history)))
 
 ;;;###autoload
-(defun which-key-show-keymap (keymap)
+(defun which-key-show-keymap (keymap &optional no-paging)
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
-is selected interactively from all available keymaps."
+is selected interactively from all available keymaps.
+
+If NO-PAGING is non-nil, which-key will not intercept subsequent
+keypresses for the paging functionality."
   (interactive (list (which-key--read-keymap)))
   (which-key--show-keymap (symbol-name keymap)
-                          (symbol-value keymap)))
+                          (symbol-value keymap)
+                          nil nil no-paging))
 
 ;;;###autoload
 (defun which-key-show-full-keymap (keymap)
@@ -2464,7 +2468,8 @@ is selected interactively by mode in `minor-mode-map-alist'."
     (which-key--show-keymap (symbol-name mode-sym)
                             (cdr (assq mode-sym minor-mode-map-alist)))))
 
-(defun which-key--show-keymap (keymap-name keymap &optional prior-args all)
+(defun which-key--show-keymap
+    (keymap-name keymap &optional prior-args all no-paging)
   (when prior-args (push prior-args which-key--prior-show-keymap-args))
   (let ((bindings (which-key--get-bindings nil keymap nil all)))
     (if (= (length bindings) 0)
@@ -2477,15 +2482,16 @@ is selected interactively by mode in `minor-mode-map-alist'."
             (t (setq which-key--pages-obj
                      (which-key--create-pages bindings nil keymap-name))
                (which-key--show-page)))
-      (let* ((key (key-description (list (read-key))))
-             (next-def (lookup-key keymap (kbd key))))
-        (cond ((and which-key-use-C-h-commands (string= "C-h" key))
-               (which-key-C-h-dispatch))
-              ((keymapp next-def)
-               (which-key--hide-popup-ignore-command)
-               (which-key--show-keymap (concat keymap-name " " key) next-def
-                                       (cons keymap-name keymap)))
-              (t (which-key--hide-popup)))))))
+      (unless no-paging
+        (let* ((key (key-description (list (read-key))))
+               (next-def (lookup-key keymap (kbd key))))
+          (cond ((and which-key-use-C-h-commands (string= "C-h" key))
+                 (which-key-C-h-dispatch))
+                ((keymapp next-def)
+                 (which-key--hide-popup-ignore-command)
+                 (which-key--show-keymap (concat keymap-name " " key) next-def
+                                         (cons keymap-name keymap)))
+                (t (which-key--hide-popup))))))))
 
 (defun which-key--evil-operator-filter (binding)
   (let ((def (intern (cdr binding))))
