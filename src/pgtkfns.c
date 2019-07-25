@@ -1487,30 +1487,12 @@ DEFUN ("pgtk-frame-list-z-order", Fpgtk_frame_list_z_order,
 If TERMINAL is non-nil and specifies a live frame, return the child
 frames of that frame in Z (stacking) order.
 
-Frames are listed from topmost (first) to bottommost (last).  */)
+Frames are listed from topmost (first) to bottommost (last).
+
+On PGTK, this function is identical to frame-list.  */)
   (Lisp_Object terminal)
 {
-  Lisp_Object frames = Qnil;
-#if 0
-  PGTKWindow *parent = nil;
-
-  if (FRAMEP (terminal) && FRAME_LIVE_P (XFRAME (terminal)))
-    parent = [FRAME_PGTK_VIEW (XFRAME (terminal)) window];
-
-  for (PGTKWindow *win in [[NSApp orderedWindows] reverseObjectEnumerator])
-    {
-      Lisp_Object frame;
-
-      /* Check against [win parentWindow] so that it doesn't match itself. */
-      if (parent == nil || pgtk_window_is_ancestor (parent, [win parentWindow]))
-        {
-          XSETFRAME (frame, ((EmacsView *)[win delegate])->emacsframe);
-          frames = Fcons(frame, frames);
-        }
-    }
-#endif
-
-  return frames;
+  return Fframe_list();
 }
 
 DEFUN ("pgtk-frame-restack", Fpgtk_frame_restack, Spgtk_frame_restack, 2, 3, 0,
