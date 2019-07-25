@@ -1481,19 +1481,22 @@ pgtk_window_is_ancestor (PGTKWindow *win, PGTKWindow *candidate)
 }
 #endif
 
-DEFUN ("pgtk-frame-list-z-order", Fpgtk_frame_list_z_order,
-       Spgtk_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
-If TERMINAL is non-nil and specifies a live frame, return the child
-frames of that frame in Z (stacking) order.
-
-Frames are listed from topmost (first) to bottommost (last).
-
-On PGTK, this function is identical to frame-list.  */)
-  (Lisp_Object terminal)
+/**
+ * x_frame_restack:
+ *
+ * Restack frame F1 below frame F2, above if ABOVE_FLAG is non-nil.  In
+ * practice this is a two-step action: The first step removes F1's
+ * window-system window from the display.  The second step reinserts
+ * F1's window below (above if ABOVE_FLAG is true) that of F2.
+ */
+static void
+pgtk_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
 {
-  return Fframe_list();
+  block_input ();
+  xg_frame_restack (f1, f2, above_flag);
+  unblock_input ();
 }
+
 
 DEFUN ("pgtk-frame-restack", Fpgtk_frame_restack, Spgtk_frame_restack, 2, 3, 0,
        doc: /* Restack FRAME1 below FRAME2.
@@ -1503,29 +1506,23 @@ third argument ABOVE is non-nil, restack FRAME1 above FRAME2.  This
 means that if both frames are visible and the display areas of these
 frames overlap, FRAME1 (partially) obscures FRAME2.
 
+This may be thought of as an atomic action performed in two steps: The
+first step removes FRAME1's window-step window from the display.  The
+second step reinserts FRAME1's window below (above if ABOVE is true)
+that of FRAME2.  Hence the position of FRAME2 in its display's Z
+\(stacking) order relative to all other frames excluding FRAME1 remains
+unaltered.
+
 Some window managers may refuse to restack windows.  */)
      (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
 {
   struct frame *f1 = decode_live_frame (frame1);
   struct frame *f2 = decode_live_frame (frame2);
 
-  if (FRAME_PGTK_VIEW (f1) && FRAME_PGTK_VIEW (f2))
-    {
-#if 0
-      PGTKWindow *window = [FRAME_PGTK_VIEW (f1) window];
-      NSInteger window2 = [[FRAME_PGTK_VIEW (f2) window] windowNumber];
-      PGTKWindowOrderingMode flag = NILP (above) ? PGTKWindowBelow : PGTKWindowAbove;
-
-      [window orderWindow: flag
-               relativeTo: window2];
-#endif
-      return Qt;
-    }
-  else
-    {
-      error ("Cannot restack frames");
-      return Qnil;
-    }
+  if (! (FRAME_GTK_OUTER_WIDGET (f1) && FRAME_GTK_OUTER_WIDGET (f2)))
+    error ("Cannot restack frames");
+  pgtk_frame_restack (f1, f2, !NILP (above));
+  return Qt;
 }
 
 #ifdef HAVE_GSETTINGS
@@ -2975,7 +2972,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Spgtk_display_monitor_attributes_list);
   defsubr (&Spgtk_frame_geometry);
   defsubr (&Spgtk_frame_edges);
-  defsubr (&Spgtk_frame_list_z_order);
   defsubr (&Spgtk_frame_restack);
   defsubr (&Spgtk_set_mouse_absolute_pixel_position);
   defsubr (&Spgtk_mouse_absolute_pixel_position);
