@@ -1045,9 +1045,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     FRAME_BACKGROUND_PIXEL (f) = -1;
     FRAME_X_OUTPUT(f)->cursor_color = -1;
     FRAME_X_OUTPUT(f)->cursor_foreground_color = -1;
-#if 0
     FRAME_X_OUTPUT(f)->border_pixel = -1;
-#endif
     FRAME_X_OUTPUT(f)->mouse_color = -1;
 
     black = build_string ("black");
@@ -1059,10 +1057,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_X_OUTPUT(f)->cursor_foreground_color
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-#if 0
     FRAME_X_OUTPUT(f)->border_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-#endif
     FRAME_X_OUTPUT(f)->mouse_color
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
   }
