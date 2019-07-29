@@ -400,6 +400,32 @@ image_reference_bitmap (struct frame *f, ptrdiff_t id)
   ++FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
 }
 
+#ifdef HAVE_PGTK
+static cairo_pattern_t *
+image_create_pattern_from_pixbuf (struct frame *f, GdkPixbuf *pixbuf)
+{
+  GdkPixbuf *pb = gdk_pixbuf_add_alpha (pixbuf, TRUE, 255, 255, 255);
+  cairo_surface_t *surface = cairo_surface_create_similar_image (f->output_data.pgtk->cr_surface,
+								 CAIRO_FORMAT_A1,
+								 gdk_pixbuf_get_width (pb),
+								 gdk_pixbuf_get_height (pb));
+
+  cairo_t *cr = cairo_create (surface);
+  gdk_cairo_set_source_pixbuf (cr, pb, 0, 0);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_paint (cr);
+  cairo_destroy (cr);
+
+  cairo_pattern_t *pat = cairo_pattern_create_for_surface (surface);
+  cairo_pattern_set_extend (pat, CAIRO_EXTEND_REPEAT);
+
+  cairo_surface_destroy (surface);
+  g_object_unref (pb);
+
+  return pat;
+}
+#endif
+
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
 
 ptrdiff_t
@@ -435,11 +461,39 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  Emacs_Pixmap bitmap = image_pix_container_create_from_bitmap_data(f, bits,
-								    width,
-								    height,
-								    0xffffffff,
-								    0xff000000);
+  GdkPixbuf *pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+				     FALSE,
+				     8,
+				     width,
+				     height);
+  {
+    char *sp = bits;
+    int mask = 0x01;
+    unsigned char *buf = gdk_pixbuf_get_pixels (pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+    for (int y = 0; y < height; y++) {
+      unsigned char *dp = buf + rowstride * y;
+      for (int x = 0; x < width; x++) {
+	if (*sp & mask) {
+	  *dp++ = 0xff;
+	  *dp++ = 0xff;
+	  *dp++ = 0xff;
+	} else {
+	  *dp++ = 0x00;
+	  *dp++ = 0x00;
+	  *dp++ = 0x00;
+	}
+	if ((mask <<= 1) >= 0x100) {
+	  mask = 0x01;
+	  sp++;
+	}
+      }
+      if (mask != 0x01) {
+	mask = 0x01;
+	sp++;
+      }
+    }
+  }
 #endif
 
   id = image_allocate_bitmap_record (f);
@@ -450,8 +504,9 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].img = pixbuf;
   dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].pattern = image_create_pattern_from_pixbuf (f, pixbuf);
 #endif
 
   dpyinfo->bitmaps[id - 1].file = NULL;
@@ -524,6 +579,7 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   //dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
+  dpyinfo->bitmaps[id - 1].pattern = image_create_pattern_from_pixbuf (f, bitmap);
   return id;
 #endif
 
@@ -600,6 +656,8 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 #endif
 
 #ifdef HAVE_PGTK
+  if (bm->pattern != NULL)
+    cairo_pattern_destroy (bm->pattern);
 #endif
 
   if (bm->file)

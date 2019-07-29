@@ -1024,34 +1024,15 @@ create_background_surface_by_face (struct frame *f, struct face *face, int x, in
   }
 
   if (face->stipple != 0) {
-    GdkPixbuf *pixbuf = FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].img;
-    GdkPixbuf *pb = gdk_pixbuf_add_alpha (pixbuf, TRUE, 255, 255, 255);
-    cairo_surface_t *mask = cairo_surface_create_similar_image (FRAME_CR_SURFACE (f),
-								CAIRO_FORMAT_A1,
-								width,
-								height);
+    cairo_pattern_t *mask = FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].pattern;
 
-    {
-      cairo_t *cr = cairo_create (mask);
-      gdk_cairo_set_source_pixbuf (cr, pb, 0, 0);
-      cairo_pattern_set_extend (cairo_get_source (cr), CAIRO_EXTEND_REPEAT);
-      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-      cairo_paint (cr);
-      cairo_destroy (cr);
-    }
-
-    {
-      cairo_t *cr = cairo_create (surface);
-      double r = ((face->foreground >> 16) & 0xff) / 255.0;
-      double g = ((face->foreground >>  8) & 0xff) / 255.0;
-      double b = ((face->foreground >>  0) & 0xff) / 255.0;
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_mask_surface (cr, mask, 0, 0);
-      cairo_destroy (cr);
-    }
-
-    cairo_surface_destroy (mask);
-    g_object_unref (pb);
+    cairo_t *cr = cairo_create (surface);
+    double r = ((face->foreground >> 16) & 0xff) / 255.0;
+    double g = ((face->foreground >>  8) & 0xff) / 255.0;
+    double b = ((face->foreground >>  0) & 0xff) / 255.0;
+    cairo_set_source_rgb (cr, r, g, b);
+    cairo_mask (cr, mask);
+    cairo_destroy (cr);
   }
 
   return surface;

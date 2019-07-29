@@ -54,6 +54,7 @@ struct pgtk_bitmap_record
   char *file;
   int refcount;
   int height, width, depth;
+  cairo_pattern_t *pattern;
 };
 
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
