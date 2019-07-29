@@ -1003,45 +1003,37 @@ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 }
 
 
-static cairo_surface_t *
-create_background_surface_by_face (struct frame *f, struct face *face, int x, int y, int width, int height)
+static void
+fill_background_by_face (struct frame *f, struct face *face, int x, int y, int width, int height)
 {
-  cairo_surface_t *surface = cairo_surface_create_similar (FRAME_CR_SURFACE (f),
-							  CAIRO_CONTENT_COLOR,
-							  width,
-							  height);
+  cairo_t *cr = pgtk_begin_cr_clip(f);
 
-  {
-    cairo_t *cr = cairo_create (surface);
+  cairo_rectangle (cr, x, y, width, height);
+  cairo_clip (cr);
 
-    double r = ((face->background >> 16) & 0xff) / 255.0;
-    double g = ((face->background >>  8) & 0xff) / 255.0;
-    double b = ((face->background >>  0) & 0xff) / 255.0;
-    cairo_set_source_rgb (cr, r, g, b);
-    cairo_paint (cr);
-
-    cairo_destroy (cr);
-  }
+  double r = ((face->background >> 16) & 0xff) / 255.0;
+  double g = ((face->background >>  8) & 0xff) / 255.0;
+  double b = ((face->background >>  0) & 0xff) / 255.0;
+  cairo_set_source_rgb (cr, r, g, b);
+  cairo_paint (cr);
 
   if (face->stipple != 0) {
     cairo_pattern_t *mask = FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].pattern;
 
-    cairo_t *cr = cairo_create (surface);
     double r = ((face->foreground >> 16) & 0xff) / 255.0;
     double g = ((face->foreground >>  8) & 0xff) / 255.0;
     double b = ((face->foreground >>  0) & 0xff) / 255.0;
     cairo_set_source_rgb (cr, r, g, b);
     cairo_mask (cr, mask);
-    cairo_destroy (cr);
   }
 
-  return surface;
+  pgtk_end_cr_clip (f);
 }
 
-static cairo_surface_t *
-create_background_surface (struct glyph_string *s, int x, int y, int width, int height)
+static void
+fill_background (struct glyph_string *s, int x, int y, int width, int height)
 {
-  return create_background_surface_by_face (s->f, s->face, x, y, width, height);
+  fill_background_by_face (s->f, s->face, x, y, width, height);
 }
 
 /* Draw the background of glyph_string S.  If S->background_filled_p
@@ -1072,20 +1064,9 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	{
 	  /* Fill background with a stipple pattern.  */
 
-	  cairo_surface_t *bg = create_background_surface (s,
-							   s->x, s->y + box_line_width,
-							   s->background_width, s->height - 2 * box_line_width);
-
-	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
-	  cairo_set_source_surface (cr, bg, s->x, s->y + box_line_width);
-	  cairo_rectangle (cr,
+	  fill_background (s,
 			   s->x, s->y + box_line_width,
 			   s->background_width, s->height - 2 * box_line_width);
-	  cairo_fill (cr);
-	  pgtk_end_cr_clip (s->f);
-
-	  cairo_surface_destroy (bg);
-
 	  s->background_filled_p = true;
 	}
       else
@@ -1893,15 +1874,7 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
     {
       /* Fill background with a stipple pattern.  */
 
-      cairo_surface_t *bg = create_background_surface (s, x, y, w, h);
-
-      cairo_t *cr = pgtk_begin_cr_clip (s->f);
-      cairo_set_source_surface (cr, bg, x, y);
-      cairo_rectangle (cr, x, y, w, h);
-      cairo_fill (cr);
-      pgtk_end_cr_clip (s->f);
-
-      cairo_surface_destroy (bg);
+      fill_background (s, x, y, w, h);
     }
   else
     x_clear_glyph_string_rect (s, x, y, w, h);
@@ -1975,15 +1948,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
     {
       if (s->img->mask)
 	{
-	  cairo_surface_t *bg = create_background_surface (s, s->x, s->y, s->background_width, s->height);
-
-	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
-	  cairo_set_source_surface (cr, bg, s->x, s->y);
-	  cairo_rectangle (cr, s->x, s->y, s->background_width, s->height);
-	  cairo_fill (cr);
-	  pgtk_end_cr_clip (s->f);
-
-	  cairo_surface_destroy (bg);
+	  fill_background (s, s->x, s->y, s->background_width, s->height);
 	}
       else
 	{
@@ -2001,15 +1966,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	  if (s->slice.y == 0)
 	    y += box_line_vwidth;
 
-	  cairo_surface_t *bg = create_background_surface (s, x, y, width, height);
-
-	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
-	  cairo_set_source_surface (cr, bg, x, y);
-	  cairo_rectangle (cr, x, y, width, height);
-	  cairo_fill (cr);
-	  pgtk_end_cr_clip (s->f);
-
-	  cairo_surface_destroy (bg);
+	  fill_background (s, x, y, width, height);
 	}
 
       s->background_filled_p = true;
@@ -2111,13 +2068,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
-	      cairo_surface_t *bg = create_background_surface (s, x, y, w, h);
-	      cairo_t *cr = pgtk_begin_cr_clip (s->f);
-	      cairo_set_source_surface (cr, bg, x, y);
-	      cairo_rectangle (cr, x, y, w, h);
-	      cairo_fill (cr);
-	      pgtk_end_cr_clip (s->f);
-	      cairo_surface_destroy (bg);
+	      fill_background (s, x, y, w, h);
 	    }
 	  else
 	    {
@@ -3235,13 +3186,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fr
 	 mono-displays, the fill style may have been changed to
 	 FillSolid in x_draw_glyph_string_background.  */
       if (face->stipple) {
-	cairo_surface_t *bg = create_background_surface_by_face(f, face, p->bx, p->by, p->nx, p->ny);
-	cairo_t *cr = pgtk_begin_cr_clip (f);
-	cairo_set_source_surface (cr, bg, p->bx, p->by);
-	cairo_rectangle (cr, p->bx, p->by, p->nx, p->ny);
-	cairo_fill (cr);
-	pgtk_end_cr_clip (f);
-	cairo_surface_destroy (bg);
+	fill_background_by_face(f, face, p->bx, p->by, p->nx, p->ny);
       } else {
 	pgtk_set_cr_source_with_color(f, face->background);
 	cairo_rectangle(cr, p->bx, p->by, p->nx, p->ny);
@@ -4794,10 +4739,7 @@ pgtk_clear_under_internal_border (struct frame *f)
 	    int y = rects[i].y;
 	    int w = rects[i].w;
 	    int h = rects[i].h;
-	    cairo_surface_t *bg = create_background_surface_by_face (f, face, x, y, w, h);
-	    cairo_set_source_surface (cr, bg, x, y);
-	    cairo_rectangle (cr, x, y, w, h);
-	    cairo_fill (cr);
+	    fill_background_by_face (f, face, x, y, w, h);
 	  }
 	}
       else
