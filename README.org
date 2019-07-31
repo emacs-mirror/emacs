@@ -3,6 +3,10 @@
   
 ** Recent Changes
 
+*** 2019-07-31: Added =which-key-manual-update=
+    Allows one to trigger =which-key= on demand, rather than automatically. See
+    the docstring and [[#manual-activation][Manual Activation]].
+
 *** 2017-12-13: Added =which-key-enable-extended-define-key=
     Allows for a concise syntax to specify replacement text using =define-key=
     or alternatives that use =define-key= internally. See the docstring and
@@ -24,6 +28,7 @@
 ** Table of Contents                                                  :TOC_3:
 - [[#which-key][which-key]]
   - [[#recent-changes][Recent Changes]]
+    - [[#2019-07-31-added-which-key-manual-update][2019-07-31: Added =which-key-manual-update=]]
     - [[#2017-12-13-added-which-key-enable-extended-define-key][2017-12-13: Added =which-key-enable-extended-define-key=]]
     - [[#2017-11-13-added-which-key-show-major-mode][2017-11-13: Added =which-key-show-major-mode=]]
   - [[#introduction][Introduction]]
@@ -35,6 +40,7 @@
     - [[#side-window-right-option][Side Window Right Option]]
     - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
     - [[#minibuffer-option][Minibuffer Option]]
+  - [[#manual-activation][Manual Activation]]
   - [[#additional-commands][Additional Commands]]
   - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
     - [[#popup-type-options][Popup Type Options]]
@@ -129,7 +135,23 @@
     variable =max-mini-window-height=. Also, the paging commands do not work
     reliably with the minibuffer option. Use the side window on the bottom
     option if you need paging.
-    
+
+** Manual Activation
+   #+NAME: #manual-activation
+   If you only want the =which-key= popup when you need it, you can try a setup
+   along the following lines
+
+   #+BEGIN_SRC emacs-lisp
+   ;; make sure which-key doesn't show normally
+   (setq which-key-idle-delay 1000)
+   (which-key-mode)
+   (setq prefix-help-command 'which-key-manual-update)
+   #+END_SRC
+
+   This will prevent which-key from showing automatically, and allow you to use
+   =C-h= in the middle of a key sequence to show the =which-key= buffer and keep
+   it open for the remainder of the key sequence.
+
 ** Additional Commands
    - =which-key-show-top-level= will show most key bindings without a prefix. It
      is most and not all, because many are probably not interesting to most
