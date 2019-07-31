@@ -2583,6 +2583,23 @@ Finally, show the buffer."
                           (kbd which-key--god-mode-key-string))))
     this-command-keys))
 
+;;;###autoload
+(defun which-key-manual-update ()
+  "Force which-key update.
+
+This command is intended to be used for `prefix-help-command', as
+follows
+
+\(setq prefix-help-command 'which-key-manual-update).
+
+This should be set after activating `which-key-mode'."
+  (interactive)
+  (let* ((current-prefix
+          (butlast
+           (listify-key-sequence (which-key--this-command-keys)))))
+    (which-key-reload-key-sequence current-prefix)
+    (which-key--start-timer 0 t)))
+
 (defun which-key--update ()
   "Function run by timer to possibly trigger
 `which-key--create-buffer-and-show'."
