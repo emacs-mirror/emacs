@@ -445,6 +445,7 @@ prefixes in `which-key-paging-prefixes'"
   "Keymap for C-h commands.")
 
 (defvar which-key--paging-functions '(which-key-C-h-dispatch
+                                      which-key-manual-update
                                       which-key-turn-page
                                       which-key-show-next-page-cycle
                                       which-key-show-next-page-no-cycle
@@ -2594,11 +2595,13 @@ follows
 
 This should be set after activating `which-key-mode'."
   (interactive)
-  (let* ((current-prefix
-          (butlast
-           (listify-key-sequence (which-key--this-command-keys)))))
-    (which-key-reload-key-sequence current-prefix)
-    (which-key--start-timer 0 t)))
+  (if (which-key--popup-showing-p)
+      (which-key-C-h-dispatch)
+    (let* ((current-prefix
+            (butlast
+             (listify-key-sequence (which-key--this-command-keys)))))
+      (which-key-reload-key-sequence current-prefix)
+      (which-key--start-timer 0.05 t))))
 
 (defun which-key--update ()
   "Function run by timer to possibly trigger
