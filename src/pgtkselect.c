@@ -200,6 +200,93 @@ void pgtk_selection_lost(GtkWidget *widget, GdkEventSelection *event, gpointer u
   g_object_set_qdata(G_OBJECT(widget), quark_size, 0);
 }
 
+static bool
+pgtk_selection_usable (void)
+{
+  /*
+   * https://github.com/GNOME/gtk/blob/gtk-3-24/gdk/wayland/gdkselection-wayland.c#L1033
+   *
+   * Gdk uses gdk_display_get_default() when handling selections, so
+   * selections don't work properly on multi-display environment.
+   *
+   * ----------------
+   * #include <gtk/gtk.h>
+   *
+   * static GtkWidget *top1, *top2;
+   *
+   * int main(int argc, char **argv)
+   * {
+   *     GtkWidget *w;
+   *     GtkTextBuffer *buf;
+   *
+   *     gtk_init(&argc, &argv);
+   *
+   *     static char *text = "\
+   * It is fine today.\n\
+   * It will be fine tomorrow too.\n\
+   * It is too hot.";
+   *
+   *     top1 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+   *     gtk_window_set_title(GTK_WINDOW(top1), "default");
+   *     gtk_widget_show(top1);
+   *     w = gtk_text_view_new();
+   *     gtk_container_add(GTK_CONTAINER(top1), w);
+   *     gtk_widget_show(w);
+   *     buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(w));
+   *     gtk_text_buffer_insert_at_cursor(buf, text, strlen(text));
+   *     gtk_text_buffer_add_selection_clipboard(buf, gtk_widget_get_clipboard(w, GDK_SELECTION_PRIMARY));
+   *
+   *     unsetenv("GDK_BACKEND");
+   *     GdkDisplay *gdpy;
+   *     const char *dpyname2;
+   *     if (strcmp(G_OBJECT_TYPE_NAME(gtk_widget_get_window(top1)), "GdkWaylandWindow") == 0)
+   *         dpyname2 = ":0";
+   *     else
+   *         dpyname2 = "wayland-0";
+   *     gdpy = gdk_display_open (dpyname2);
+   *     top2 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+   *     gtk_window_set_title(GTK_WINDOW(top2), dpyname2);
+   *     gtk_window_set_screen (GTK_WINDOW (top2), gdk_display_get_default_screen(gdpy));
+   *     gtk_widget_show (top2);
+   *     w = gtk_text_view_new();
+   *     gtk_container_add(GTK_CONTAINER(top2), w);
+   *     gtk_widget_show(w);
+   *     buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(w));
+   *     gtk_text_buffer_insert_at_cursor(buf, text, strlen(text));
+   *     gtk_text_buffer_add_selection_clipboard(buf, gtk_widget_get_clipboard(w, GDK_SELECTION_PRIMARY));
+   *
+   *     gtk_main();
+   *
+   *     return 0;
+   * }
+   * ----------------
+   *
+   * This code fails if
+   *   GDK_BACKEND=x11 ./test
+   * and select on both of windows.
+   *
+   * ----------------
+   * (test:15345): GLib-GObject-CRITICAL **: 01:56:38.041: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
+   *
+   * (test:15345): GLib-GObject-CRITICAL **: 01:56:38.042: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
+   *
+   * (test:15345): GLib-GObject-CRITICAL **: 01:56:39.113: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
+   *
+   * (test:15345): GLib-GObject-CRITICAL **: 01:56:39.113: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
+   * ----------------
+   * (gtk-3.24.10)
+   *
+   * This function checks whether selections work by the number of displays.
+   * If you use more than 2 displays, then selection is disabled.
+   */
+
+  GdkDisplayManager *dpyman = gdk_display_manager_get ();
+  GSList *list = gdk_display_manager_list_displays (dpyman);
+  int len = g_slist_length (list);
+  g_slist_free (list);
+  return len < 2;
+}
+
 /* ==========================================================================
 
     Lisp Defuns
@@ -227,6 +314,9 @@ nil, it defaults to the selected frame.*/)
   GQuark quark_data, quark_size;
 
   check_window_system (NULL);
+
+  if (!pgtk_selection_usable ())
+    return Qnil;
 
   if (NILP (frame)) frame = selected_frame;
   if (!FRAME_LIVE_P (XFRAME (frame)) || !FRAME_PGTK_P (XFRAME (frame)))
@@ -308,6 +398,9 @@ On PGTK, the TIME-OBJECT is unused.  */)
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
 
+  if (!pgtk_selection_usable ())
+    return Qnil;
+
   if (!f)
     return Qnil;
 
@@ -336,6 +429,9 @@ On Nextstep, TERMINAL is unused.  */)
   PGTK_TRACE("pgtk-selection-exists-p.");
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
+
+  if (!pgtk_selection_usable ())
+    return Qnil;
 
   if (!f)
     return Qnil;
@@ -367,6 +463,9 @@ On Nextstep, TERMINAL is unused.  */)
   GtkClipboard *cb;
   GObject *obj;
   GQuark quark_data, quark_size;
+
+  if (!pgtk_selection_usable ())
+    return Qnil;
 
   cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection);
   selection_type_to_quarks(gtk_clipboard_get_selection(cb), &quark_data, &quark_size);
@@ -405,6 +504,9 @@ On PGTK, TIME-STAMP is unused.  */)
     error ("Retrieving MULTIPLE selections is currently unimplemented");
   if (!f)
     error ("PGTK selection unavailable for this frame");
+
+  if (!pgtk_selection_usable ())
+    return Qnil;
 
   cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection_symbol);
 

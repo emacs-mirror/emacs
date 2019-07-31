@@ -2975,6 +2975,8 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   int win_x, win_y;
   GdkSeat *seat;
   GdkDevice *device;
+  GdkModifierType mask;
+  GdkWindow *win;
 
   block_input ();
 
@@ -2988,31 +2990,32 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   dpyinfo->last_mouse_scroll_bar = NULL;
 
-  seat = gdk_display_get_default_seat(dpyinfo->gdpy);
-  device = gdk_seat_get_pointer(seat);
-
   if (gui_mouse_grabbed (dpyinfo)) {
-    GdkWindow *win;
-    GdkModifierType mask;
-    /* get x, y relative to edit window of f1. */
+    /* 1.1. use last_mouse_frame as frame where the pointer is on. */
     f1 = dpyinfo->last_mouse_frame;
-    win = gtk_widget_get_window(FRAME_GTK_WIDGET(f1));
-    win = gdk_window_get_device_position(win, device, &win_x, &win_y, &mask);
   } else {
-    GdkWindow *win;
-    GdkModifierType mask;
-    /* 1. get frame where the pointer is on. */
+    f1 = *fp;
+    /* 1.2. get frame where the pointer is on. */
     win = gtk_widget_get_window(FRAME_GTK_WIDGET(*fp));
+    seat = gdk_display_get_default_seat(dpyinfo->gdpy);
+    device = gdk_seat_get_pointer(seat);
     win = gdk_window_get_device_position(win, device, &win_x, &win_y, &mask);
     if (win != NULL)
       f1 = pgtk_any_window_to_frame(win);
-    else
+    else {
+      // crossing display server?
       f1 = SELECTED_FRAME();
-
-    /* 2. get x, y relative to edit window of the frame. */
-    win = gtk_widget_get_window(FRAME_GTK_WIDGET(f1));
-    win = gdk_window_get_device_position(win, device, &win_x, &win_y, &mask);
+    }
   }
+
+  /* 2. get the display and the device. */
+  win = gtk_widget_get_window(FRAME_GTK_WIDGET(f1));
+  GdkDisplay *gdpy = gdk_window_get_display (win);
+  seat = gdk_display_get_default_seat(gdpy);
+  device = gdk_seat_get_pointer(seat);
+
+  /* 3. get x, y relative to edit window of the frame. */
+  win = gdk_window_get_device_position(win, device, &win_x, &win_y, &mask);
 
   if (f1 != NULL) {
     dpyinfo = FRAME_DISPLAY_INFO (f1);
