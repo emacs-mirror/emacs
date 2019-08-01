@@ -142,10 +142,13 @@
    along the following lines
 
    #+BEGIN_SRC emacs-lisp
-   ;; make sure which-key doesn't show normally
-   (setq which-key-idle-delay 1000)
-   (which-key-mode)
-   (setq prefix-help-command 'which-key-manual-update)
+     ;; make sure which-key doesn't show normally
+     (setq which-key-idle-delay 1000)
+     ;; which-key-manual-update uses this variable to control refreshing the
+     ;; which-key buffer after new keypresses
+     (setq which-key-idle-secondary-delay 0.05)
+     (which-key-mode)
+     (setq prefix-help-command 'which-key-manual-update)
    #+END_SRC
 
    This will prevent which-key from showing automatically, and allow you to use

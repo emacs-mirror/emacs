@@ -2588,12 +2588,13 @@ Finally, show the buffer."
 (defun which-key-manual-update ()
   "Force which-key update.
 
-This command is intended to be used for `prefix-help-command', as
-follows
+This command is intended to be used for `prefix-help-command'. An
+example configuration for using this command is the following.
 
-\(setq prefix-help-command 'which-key-manual-update).
-
-This should be set after activating `which-key-mode'."
+\(setq which-key-idle-delay 1000)
+\(setq which-key-idle-secondary-delay 0.05)
+\(which-key-mode)
+\(setq prefix-help-command 'which-key-manual-update)"
   (interactive)
   (if (which-key--popup-showing-p)
       (which-key-C-h-dispatch)
@@ -2601,7 +2602,9 @@ This should be set after activating `which-key-mode'."
             (butlast
              (listify-key-sequence (which-key--this-command-keys)))))
       (which-key-reload-key-sequence current-prefix)
-      (which-key--start-timer 0.05 t))))
+      (if which-key-idle-secondary-delay
+          (which-key--start-timer which-key-idle-secondary-delay t)
+        (which-key--start-timer 0.05 t)))))
 
 (defun which-key--update ()
   "Function run by timer to possibly trigger
@@ -2689,7 +2692,11 @@ This should be set after activating `which-key-mode'."
                                 (not (equal (which-key--current-prefix)
                                             (which-key--this-command-keys)))))
                    (cancel-timer which-key--paging-timer)
-                   (which-key--start-timer))))))
+                   (if which-key-idle-secondary-delay
+                       ;; we haven't executed a command yet so the secandary
+                       ;; timer is more relevant here
+                       (which-key--start-timer which-key-idle-secondary-delay t)
+                     (which-key--start-timer)))))))
 
 (provide 'which-key)
 ;;; which-key.el ends here
