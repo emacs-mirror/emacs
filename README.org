@@ -3,7 +3,7 @@
 
 ** Recent Changes
 
-*** 2019-07-31: Added =which-key-manual-update=
+*** 2019-08-01: Added =which-key-show-early-on-C-h=
     Allows one to trigger =which-key= on demand, rather than automatically. See
     the docstring and [[#manual-activation][Manual Activation]].
 
@@ -28,7 +28,7 @@
 ** Table of Contents                                                  :TOC_3:
 - [[#which-key][which-key]]
   - [[#recent-changes][Recent Changes]]
-    - [[#2019-07-31-added-which-key-manual-update][2019-07-31: Added =which-key-manual-update=]]
+    - [[#2019-08-01-added-which-key-show-early-on-c-h][2019-08-01: Added =which-key-show-early-on-C-h=]]
     - [[#2017-12-13-added-which-key-enable-extended-define-key][2017-12-13: Added =which-key-enable-extended-define-key=]]
     - [[#2017-11-13-added-which-key-show-major-mode][2017-11-13: Added =which-key-show-major-mode=]]
   - [[#introduction][Introduction]]
@@ -142,13 +142,13 @@
    along the following lines
 
    #+BEGIN_SRC emacs-lisp
-     ;; make sure which-key doesn't show normally
-     (setq which-key-idle-delay 1000)
-     ;; which-key-manual-update uses this variable to control refreshing the
-     ;; which-key buffer after new keypresses
+     ;; Allow C-h to trigger which-key before it is done automatically
+     (setq which-key-show-early-on-C-h t)
+     ;; make sure which-key doesn't show normally but refreshes quickly after it is
+     ;; triggered.
+     (setq which-key-idle-delay 10000)
      (setq which-key-idle-secondary-delay 0.05)
      (which-key-mode)
-     (setq prefix-help-command 'which-key-manual-update)
    #+END_SRC
 
    This will prevent which-key from showing automatically, and allow you to use

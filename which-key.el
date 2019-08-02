@@ -412,6 +412,21 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-show-early-on-C-h nil
+  "Show the which-key buffer before if C-h is pressed in the
+middle of a prefix before the which-key buffer would normally be
+triggered through the idle delay. If combined with the following
+settings, which-key will effectively only show when triggered
+\"manually\" using C-h.
+
+\(setq `which-key-idle-delay' 10000)
+\(setq `which-key-idle-secondary-delay' 0.05)
+
+Note that `which-key-idle-delay' should be set before turning on
+`which-key-mode'. "
+  :group 'which-key
+  :type 'boolean)
+
 (defcustom which-key-is-verbose nil
   "Whether to warn about potential mistakes in configuration."
   :group 'which-key
@@ -791,7 +806,8 @@ problems at github. If DISABLE is non-nil disable support."
           (which-key--setup-echo-keystrokes))
         (unless (member prefix-help-command which-key--paging-functions)
           (setq which-key--prefix-help-cmd-backup prefix-help-command))
-        (when which-key-use-C-h-commands
+        (when (or which-key-use-C-h-commands
+                  which-key-show-early-on-C-h)
           (setq prefix-help-command #'which-key-C-h-dispatch))
         (when which-key-show-remaining-keys
           (add-hook 'pre-command-hook #'which-key--lighter-restore))
@@ -2345,40 +2361,52 @@ PREFIX should be a string suitable for `kbd'."
 `which-key-C-h-map'. This command is always accessible (from any
 prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
-  (if (not (which-key--popup-showing-p))
-      (which-key-show-standard-help)
-    (let* ((prefix-keys (which-key--current-key-string))
-           (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
-           (prompt (concat (when (string-equal prefix-keys "")
-                             (which-key--propertize
-                              (concat " "
-                                      (which-key--pages-prefix-title
-                                       which-key--pages-obj))
-                              'face 'which-key-note-face))
-                           full-prefix
-                           (which-key--propertize
-                            (substitute-command-keys
-                             (concat
-                              " \\<which-key-C-h-map>"
-                              " \\[which-key-show-next-page-cycle]"
-                              which-key-separator "next-page,"
-                              " \\[which-key-show-previous-page-cycle]"
-                              which-key-separator "previous-page,"
-                              " \\[which-key-undo-key]"
-                              which-key-separator "undo-key,"
-                              " \\[which-key-toggle-docstrings]"
-                              which-key-separator "toggle-docstrings,"
-                              " \\[which-key-show-standard-help]"
-                              which-key-separator "help,"
-                              " \\[which-key-abort]"
-                              which-key-separator "abort"
-                              " 1..9"
-                              which-key-separator "digit-arg"))
-                            'face 'which-key-note-face)))
-           (key (string (read-key prompt)))
-           (cmd (lookup-key which-key-C-h-map key))
-           (which-key-inhibit t))
-      (if cmd (funcall cmd key) (which-key-turn-page 0)))))
+  (cond ((and (not (which-key--popup-showing-p))
+              which-key-show-early-on-C-h)
+         (let* ((current-prefix
+                 (butlast
+                  (listify-key-sequence (which-key--this-command-keys)))))
+           (which-key-reload-key-sequence current-prefix)
+           (if which-key-idle-secondary-delay
+               (which-key--start-timer which-key-idle-secondary-delay t)
+             (which-key--start-timer 0.05 t))))
+        ((not (which-key--popup-showing-p))
+         (which-key-show-standard-help))
+        (t
+         (if (not (which-key--popup-showing-p))
+             (which-key-show-standard-help)
+           (let* ((prefix-keys (which-key--current-key-string))
+                  (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
+                  (prompt (concat (when (string-equal prefix-keys "")
+                                    (which-key--propertize
+                                     (concat " "
+                                             (which-key--pages-prefix-title
+                                              which-key--pages-obj))
+                                     'face 'which-key-note-face))
+                                  full-prefix
+                                  (which-key--propertize
+                                   (substitute-command-keys
+                                    (concat
+                                     " \\<which-key-C-h-map>"
+                                     " \\[which-key-show-next-page-cycle]"
+                                     which-key-separator "next-page,"
+                                     " \\[which-key-show-previous-page-cycle]"
+                                     which-key-separator "previous-page,"
+                                     " \\[which-key-undo-key]"
+                                     which-key-separator "undo-key,"
+                                     " \\[which-key-toggle-docstrings]"
+                                     which-key-separator "toggle-docstrings,"
+                                     " \\[which-key-show-standard-help]"
+                                     which-key-separator "help,"
+                                     " \\[which-key-abort]"
+                                     which-key-separator "abort"
+                                     " 1..9"
+                                     which-key-separator "digit-arg"))
+                                   'face 'which-key-note-face)))
+                  (key (string (read-key prompt)))
+                  (cmd (lookup-key which-key-C-h-map key))
+                  (which-key-inhibit t))
+             (if cmd (funcall cmd key) (which-key-turn-page 0)))))))
 
 ;;; Update
 
@@ -2583,28 +2611,6 @@ Finally, show the buffer."
       (setq this-command-keys (when which-key--god-mode-key-string
                           (kbd which-key--god-mode-key-string))))
     this-command-keys))
-
-;;;###autoload
-(defun which-key-manual-update ()
-  "Force which-key update.
-
-This command is intended to be used for `prefix-help-command'. An
-example configuration for using this command is the following.
-
-\(setq which-key-idle-delay 1000)
-\(setq which-key-idle-secondary-delay 0.05)
-\(which-key-mode)
-\(setq prefix-help-command 'which-key-manual-update)"
-  (interactive)
-  (if (which-key--popup-showing-p)
-      (which-key-C-h-dispatch)
-    (let* ((current-prefix
-            (butlast
-             (listify-key-sequence (which-key--this-command-keys)))))
-      (which-key-reload-key-sequence current-prefix)
-      (if which-key-idle-secondary-delay
-          (which-key--start-timer which-key-idle-secondary-delay t)
-        (which-key--start-timer 0.05 t)))))
 
 (defun which-key--update ()
   "Function run by timer to possibly trigger
