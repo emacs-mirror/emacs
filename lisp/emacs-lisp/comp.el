@@ -381,7 +381,7 @@ If NEGATED non nil negate the tested condition."
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
-  (comp-with-sp (1- n)
+  (comp-with-sp (+ (comp-sp) n -1)
     (comp-emit-set-call `(call Fcons
                                ,(comp-slot)
                                ,(make-comp-mvar :constant nil))))

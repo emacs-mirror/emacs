@@ -45,6 +45,8 @@
   "Testing cons car cdr."
   (defun comp-tests-list-f ()
     (list 1 2 3))
+  (defun comp-tests-list2-f (a b c)
+    (list a b c))
   (defun comp-tests-car-f (x)
     ;; Bcar
     (car x))
@@ -59,12 +61,14 @@
     (cdr-safe x))
 
   (native-compile #'comp-tests-list-f)
+  (native-compile #'comp-tests-list2-f)
   (native-compile #'comp-tests-car-f)
   (native-compile #'comp-tests-cdr-f)
   (native-compile #'comp-tests-car-safe-f)
   (native-compile #'comp-tests-cdr-safe-f)
 
   (should (equal (comp-tests-list-f) '(1 2 3)))
+  (should (equal (comp-tests-list2-f 1 2 3) '(1 2 3)))
   (should (= (comp-tests-car-f '(1 . 2)) 1))
   (should (null (comp-tests-car-f nil)))
   (should (= (condition-case err
