@@ -140,8 +140,8 @@ LIMPLE basic block.")
 (defun comp-pretty-print-func (func)
   "Pretty print function FUNC in the current buffer."
   (insert (format "\n\n Function: %s" (comp-func-symbol-name func)))
-  (cl-loop for bb being each hash-values of (comp-func-blocks func)
-           using (hash-key block-name)
+  (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
+           using (hash-value bb)
            do (progn
                 (insert (concat "\n<" (symbol-name block-name) ">"))
                 (cl-prettyprint (comp-block-insns bb)))))
@@ -216,7 +216,7 @@ LIMPLE basic block.")
              do (aset v i (make-comp-mvar :slot i)))
     v))
 
-(cl-defun make-comp-mvar (&key slot const-vld constant type)
+(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
   (make--comp-mvar :id (cl-incf (comp-func-ssa-cnt comp-func))
                    :slot slot :const-vld const-vld :constant constant
                    :type type))
@@ -315,7 +315,6 @@ If DST-N is specified use it otherwise assume it to be the current slot."
 (defun comp-emit-set-const (val)
   "Set constant VAL to current slot."
   (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
-                                    :const-vld t
                                     :constant val))
   (comp-emit (list 'setimm (comp-slot) val)))
 
@@ -385,8 +384,7 @@ If NEGATED non nil negate the test condition."
   (comp-with-sp (1- n)
     (comp-emit-set-call `(call Fcons
                                ,(comp-slot)
-                               ,(make-comp-mvar :const-vld t
-                                                :constant nil))))
+                               ,(make-comp-mvar :constant nil))))
   (cl-loop for sp from (+ (comp-sp) n -2) downto (comp-sp)
            do (comp-with-sp sp
                 (comp-emit-set-call `(call Fcons
@@ -481,27 +479,22 @@ the annotation emission."
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
        (comp-emit-set-call `(call Fsymbol_value ,(make-comp-mvar
-                                                  :const-vld t
                                                   :constant arg))))
       (byte-varset
        (comp-emit `(call set_internal
-                         ,(make-comp-mvar :const-vld t
-                                          :constant arg)
+                         ,(make-comp-mvar :constant arg)
                          ,(comp-slot))))
       (byte-varbind
        (comp-emit `(call specbind
-                         ,(make-comp-mvar :const-vld t
-                                          :constant arg)
+                         ,(make-comp-mvar :constant arg)
                          ,(comp-slot-next))))
       (byte-call
        (comp-stack-adjust (- arg))
        (comp-emit-set-call `(callref Ffuncall ,(1+ arg) ,(comp-sp))))
       (byte-unbind
        (comp-emit `(call unbind_to
-                         ,(make-comp-mvar :const-vld t
-                                          :constant arg)
-                         ,(make-comp-mvar :const-vld t
-                                          :constant nil))))
+                         ,(make-comp-mvar :constant arg)
+                         ,(make-comp-mvar :constant nil))))
       (byte-pophandler
        (comp-emit '(pop-handler)))
       (byte-pushconditioncase
@@ -672,7 +665,6 @@ the annotation emission."
              do (progn
                   (cl-incf (comp-sp))
                   (comp-emit `(setpar ,(comp-slot) ,i))))
-    (comp-emit-jump 'bb_1)
     ;; Body
     (comp-emit-block 'bb_1)
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
