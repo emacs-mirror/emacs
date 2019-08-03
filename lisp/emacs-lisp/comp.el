@@ -355,11 +355,11 @@ If DST-N is specified use it otherwise assume it to be the current slot."
           (comp-block-sp (gethash block-name blocks)))
     (setf (comp-limplify-block-name comp-pass) block-name)))
 
-(defun comp-emit-cond-jump (target-offset lap-label negated)
-  "Emit a conditional jump to LAP-LABEL.
+(defun comp-emit-cond-jump (a b target-offset lap-label negated)
+  "Emit a conditional jump to LAP-LABEL when A and B satisfy EQ.
 TARGET-OFFSET is the positive offset on the SP when branching to the target
 block.
-If NEGATED non nil negate the test condition."
+If NEGATED non nil negate the tested condition."
   (let ((blocks (comp-func-blocks comp-func))
         (bb (comp-new-block-sym))) ;; Fall through block
     (puthash bb
@@ -367,8 +367,8 @@ If NEGATED non nil negate the test condition."
 	     blocks)
     (let ((target (comp-lap-to-limple-bb lap-label)))
       (comp-emit (if negated
-		     (list 'cond-jump (comp-slot-next) target bb)
-		   (list 'cond-jump (comp-slot-next) bb target)))
+		     (list 'cond-jump a b target bb)
+		   (list 'cond-jump a b bb target)))
       (puthash target
 	       (make-comp-block :sp (+ target-offset (comp-sp)))
 	       blocks)
@@ -422,6 +422,14 @@ If NEGATED non nil negate the test condition."
 	            blocks)
            (comp-mark-block-closed)
            (comp-emit-block guarded-bb))))
+
+(defun comp-emit-switch (var m-hash)
+  "Emit a limple for a lap jump table given VAR and M-HASH."
+  (cl-assert (comp-mvar-const-vld m-hash))
+  (cl-loop for test being each hash-keys of (comp-mvar-constant m-hash)
+           using (hash-value target-label)
+           for m-test = (make-comp-mvar :constant test)
+           do (comp-emit-cond-jump var m-test 0 target-label nil)))
 
 (defmacro comp-op-case (&rest cases)
   "Expand CASES into the corresponding pcase.
@@ -583,13 +591,17 @@ the annotation emission."
       (byte-goto
        (comp-emit-jump (comp-lap-to-limple-bb (cl-third insn))))
       (byte-goto-if-nil
-       (comp-emit-cond-jump 0 (cl-third insn) nil))
+       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 0
+                            (cl-third insn) nil))
       (byte-goto-if-not-nil
-       (comp-emit-cond-jump 0 (cl-third insn) t))
+       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 0
+                            (cl-third insn) t))
       (byte-goto-if-nil-else-pop
-       (comp-emit-cond-jump 1 (cl-third insn) nil))
+       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 1
+                            (cl-third insn) nil))
       (byte-goto-if-not-nil-else-pop
-       (comp-emit-cond-jump 1 (cl-third insn) t))
+       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 1
+                            (cl-third insn) t))
       (byte-return
        (comp-emit (list 'return (comp-slot-next)))
        (comp-mark-block-closed))
@@ -642,7 +654,8 @@ the annotation emission."
       (byte-stack-set2)
       (byte-discardN
        (comp-stack-adjust (- arg)))
-      (byte-switch)
+      (byte-switch
+       (comp-emit-switch (comp-slot-next) (comp-slot-n (+ 2 (comp-sp)))))
       (byte-constant
        (comp-emit-set-const arg))
       (byte-discardN-preserve-tos

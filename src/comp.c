@@ -1128,11 +1128,12 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qcond_jump))
     {
       /* Conditional branch.  */
-      gcc_jit_rvalue *test = emit_mvar_val (arg0);
-      gcc_jit_block *target1 = retrive_block (SECOND (args));
-      gcc_jit_block *target2 = retrive_block (THIRD (args));
+      gcc_jit_rvalue *a = emit_mvar_val (arg0);
+      gcc_jit_rvalue *b =  emit_mvar_val (SECOND (args));
+      gcc_jit_block *target1 = retrive_block (THIRD (args));
+      gcc_jit_block *target2 = retrive_block (FORTH (args));
 
-      emit_cond_jump (emit_NILP (test), target2, target1);
+      emit_cond_jump (emit_EQ (a, b), target2, target1);
     }
   else if (EQ (op, Qpush_handler))
     {

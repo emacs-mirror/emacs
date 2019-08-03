@@ -200,18 +200,19 @@
 
   (should (= (comp-tests-ffuncall-lambda-f 1) 2)))
 
-;; (ert-deftest  comp-tests-jump-table ()
-;;   "Testing jump tables"
-;;   (defun comp-tests-jump-table-1-f (x)
-;;     (pcase x
-;;       ('x 'a)
-;;       ('y 'b)
-;;       (_ 'c)))
+(ert-deftest  comp-tests-jump-table ()
+  "Testing jump tables"
+  (defun comp-tests-jump-table-1-f (x)
+    (pcase x
+      ('x 'a)
+      ('y 'b)
+      (_ 'c)))
 
+  (native-compile #'comp-tests-jump-table-1-f)
 
-;;   (should (eq (comp-tests-jump-table-1-f 'x) 'a))
-;;   (should (eq (comp-tests-jump-table-1-f 'y) 'b))
-;;   (should (eq (comp-tests-jump-table-1-f 'xxx) 'c)))
+  (should (eq (comp-tests-jump-table-1-f 'x) 'a))
+  (should (eq (comp-tests-jump-table-1-f 'y) 'b))
+  (should (eq (comp-tests-jump-table-1-f 'xxx) 'c)))
 
 (ert-deftest  comp-tests-conditionals ()
   "Testing conditionals."
