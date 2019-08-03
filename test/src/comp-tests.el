@@ -156,13 +156,13 @@
 
   (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3)))
 
-  ;; (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
-  ;;   (list a b c d))
-  ;; (native-compile #'comp-tests-ffuncall-callee-optional-f)
+  (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
+    (list a b c d))
+  (native-compile #'comp-tests-ffuncall-callee-optional-f)
 
-  ;; (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3 4) '(1 2 3 4)))
-  ;; (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
-  ;; (should (equal (comp-tests-ffuncall-callee-optional-f 1 2) '(1 2 nil nil)))
+  (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3 4) '(1 2 3 4)))
+  (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
+  (should (equal (comp-tests-ffuncall-callee-optional-f 1 2) '(1 2 nil nil)))
 
   ;; (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
   ;;   (list a b c))

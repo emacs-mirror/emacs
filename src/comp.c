@@ -2096,14 +2096,14 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
-  EMACS_INT min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
-  /* EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args)); */
-  bool ncall =     !NILP (FUNCALL1 (comp-args-ncall-conv, args));
+  /* EMACS_INT min_args = XFIXNUM (FUNCALL1 (comp-args-min, args)); */
+  EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+  bool ncall = !NILP (FUNCALL1 (comp-args-ncall-conv, args));
 
   if (!ncall)
     {
       comp.func =
-	emit_func_declare (c_name, comp.lisp_obj_type, min_args,
+	emit_func_declare (c_name, comp.lisp_obj_type, max_args,
 			   NULL, GCC_JIT_FUNCTION_EXPORTED, false);
     }
   else
@@ -2204,7 +2204,7 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
       eassert (x->s.function.a0);
       x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
-      x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
+      x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       x->s.symbol_name = symbol_name;
       defsubr(x);
 

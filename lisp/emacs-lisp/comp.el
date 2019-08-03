@@ -674,10 +674,9 @@ the annotation emission."
     (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
-    (cl-loop for i below (comp-args-min (comp-func-args func))
-             do (progn
-                  (cl-incf (comp-sp))
-                  (comp-emit `(setpar ,(comp-slot) ,i))))
+    (cl-loop for i below (comp-args-max (comp-func-args func))
+             do (cl-incf (comp-sp))
+             do (comp-emit `(setpar ,(comp-slot) ,i)))
     ;; Body
     (comp-emit-block 'bb_1)
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
