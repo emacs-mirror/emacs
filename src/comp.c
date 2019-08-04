@@ -404,34 +404,34 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
    (typeof_ptr) ((uintptr) ptr + size_of_ptr_ref * i)
 */
 
-/* static gcc_jit_rvalue * */
-/* emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type, */
-/* 		     int size_of_ptr_ref, gcc_jit_rvalue *i) */
-/* { */
-/*   emit_comment ("ptr_arithmetic"); */
+static gcc_jit_rvalue *
+emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type,
+		     int size_of_ptr_ref, gcc_jit_rvalue *i)
+{
+  emit_comment ("ptr_arithmetic");
 
-/*   gcc_jit_rvalue *offset = */
-/*     gcc_jit_context_new_binary_op ( */
-/*       comp.ctxt, */
-/*       NULL, */
-/*       GCC_JIT_BINARY_OP_MULT, */
-/*       comp.uintptr_type, */
-/*       gcc_jit_context_new_rvalue_from_int (comp.ctxt, */
-/* 					   comp.uintptr_type, */
-/* 					   size_of_ptr_ref), */
-/*       emit_cast (comp.uintptr_type, i)); */
+  gcc_jit_rvalue *offset =
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_MULT,
+      comp.uintptr_type,
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.uintptr_type,
+					   size_of_ptr_ref),
+      emit_cast (comp.uintptr_type, i));
 
-/*   return */
-/*     emit_cast ( */
-/*       ptr_type, */
-/*       gcc_jit_context_new_binary_op ( */
-/*         comp.ctxt, */
-/* 	NULL, */
-/* 	GCC_JIT_BINARY_OP_PLUS, */
-/* 	comp.uintptr_type, */
-/* 	emit_cast (comp.uintptr_type, ptr), */
-/* 	offset)); */
-/* } */
+  return
+    emit_cast (
+      ptr_type,
+      gcc_jit_context_new_binary_op (
+        comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_PLUS,
+	comp.uintptr_type,
+	emit_cast (comp.uintptr_type, ptr),
+	offset));
+}
 
 INLINE static gcc_jit_rvalue *
 emit_XLI (gcc_jit_rvalue *obj)
@@ -978,6 +978,75 @@ emit_mvar_val (Lisp_Object mvar)
     }
 }
 
+static void
+emit_ncall_prolog (EMACS_UINT n)
+{
+  /*
+    nargs will be known at runtime therfore we emit:
+
+    prologue:
+    local[0] = *args;
+    ++args;
+    .
+    .
+    .
+    local[min_args - 1] = *args;
+    ++args;
+    local[min_args] = list (nargs - min_args, args);
+    bb_1:
+    .
+    .
+    .
+  */
+  gcc_jit_lvalue *nargs =
+    gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
+  gcc_jit_lvalue *args =
+    gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1));
+  gcc_jit_rvalue *min_args =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.ptrdiff_type,
+					 n);
+
+  for (ptrdiff_t i = 0; i < n; ++i)
+    {
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[i],
+				    gcc_jit_lvalue_as_rvalue (
+				      gcc_jit_rvalue_dereference (
+					gcc_jit_lvalue_as_rvalue (args),
+				      NULL)));
+
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    args,
+				    emit_ptr_arithmetic (
+				      gcc_jit_lvalue_as_rvalue (args),
+				      comp.lisp_obj_ptr_type,
+				      sizeof (Lisp_Object),
+				      comp.one));
+    }
+
+  /*
+    rest arguments
+  */
+  gcc_jit_rvalue *list_args[] =
+    { gcc_jit_context_new_binary_op (comp.ctxt,
+				     NULL,
+				     GCC_JIT_BINARY_OP_MINUS,
+				     comp.ptrdiff_type,
+				     gcc_jit_lvalue_as_rvalue (nargs),
+				     min_args),
+      gcc_jit_lvalue_as_rvalue (args) };
+
+  gcc_jit_block_add_assignment (comp.block,
+				NULL,
+				comp.frame[n],
+				emit_call ("Flist", comp.lisp_obj_type, 2,
+					   list_args));
+}
+
+
 static gcc_jit_rvalue *
 emit_limple_call (Lisp_Object arg1)
 {
@@ -1202,7 +1271,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qsetpar))
     {
-      /* Ex: (=par #s(comp-mvar 2 0 nil nil nil) 0).  */
+      /* Ex: (setpar #s(comp-mvar 2 0 nil nil nil) 0).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       EMACS_UINT param_n = XFIXNUM (SECOND (args));
       gcc_jit_rvalue *param =
@@ -1212,6 +1281,11 @@ emit_limple_insn (Lisp_Object insn)
 				    NULL,
 				    comp.frame[slot_n],
 				    param);
+    }
+  else if (EQ (op, Qncall_prolog))
+    {
+      /* Ex: (ncall-prolog 2).  */
+      emit_ncall_prolog (XFIXNUM (arg0));
     }
   else if (EQ (op, Qsetimm))
     {
@@ -2108,7 +2182,21 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
     }
   else
     {
-      error ("Not supported for now");
+      gcc_jit_param *param[] =
+	{ gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.ptrdiff_type,
+				     "nargs"),
+	  gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.lisp_obj_ptr_type,
+				     "args") };
+      comp.func =
+	gcc_jit_context_new_function (comp.ctxt,
+				      NULL,
+				      GCC_JIT_FUNCTION_EXPORTED,
+				      comp.lisp_obj_type,
+				      c_name, 2, param, 0);
     }
 
   gcc_jit_lvalue *frame_array =
@@ -2204,7 +2292,10 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
       eassert (x->s.function.a0);
       x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
-      x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+      if (NILP (FUNCALL1 (comp-args-ncall-conv, args)))
+	x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+      else
+	x->s.max_args = MANY;
       x->s.symbol_name = symbol_name;
       defsubr(x);
 
@@ -2226,6 +2317,7 @@ syms_of_comp (void)
   DEFSYM (Qcallref, "callref");
   DEFSYM (Qncall, "ncall");
   DEFSYM (Qsetpar, "setpar");
+  DEFSYM (Qncall_prolog, "ncall-prolog");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");

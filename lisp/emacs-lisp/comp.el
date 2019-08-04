@@ -669,14 +669,18 @@ the annotation emission."
          (comp-pass (make-comp-limplify
                      :sp -1
                      :frame (comp-new-frame frame-size)))
+         (args-min (comp-args-min (comp-func-args func)))
          (comp-block ()))
     ;; Prologue
     (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
-    (cl-loop for i below (comp-args-max (comp-func-args func))
-             do (cl-incf (comp-sp))
-             do (comp-emit `(setpar ,(comp-slot) ,i)))
+    (if (not (comp-args-ncall-conv (comp-func-args func)))
+      (cl-loop for i below (comp-args-max (comp-func-args func))
+               do (cl-incf (comp-sp))
+               do (comp-emit `(setpar ,(comp-slot) ,i)))
+      (comp-emit `(ncall-prolog ,args-min))
+      (cl-incf (comp-sp) (1+ args-min)))
     ;; Body
     (comp-emit-block 'bb_1)
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))

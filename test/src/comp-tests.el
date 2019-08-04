@@ -164,13 +164,13 @@
   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
   (should (equal (comp-tests-ffuncall-callee-optional-f 1 2) '(1 2 nil nil)))
 
-  ;; (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
-  ;;   (list a b c))
-  ;; (native-compile #'comp-tests-ffuncall-callee-rest-f)
+  (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
+    (list a b c))
+  (native-compile #'comp-tests-ffuncall-callee-rest-f)
 
-  ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2) '(1 2 nil)))
-  ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
-  ;; (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4) '(1 2 (3 4))))
+  (should (equal (comp-tests-ffuncall-callee-rest-f 1 2) '(1 2 nil)))
+  (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
+  (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4) '(1 2 (3 4))))
 
   (defun comp-tests-ffuncall-native-f ()
     "Call a primitive with no dedicate op."
@@ -290,7 +290,6 @@
   (defun comp-tests-geq-f (x y)
     ;; Bgeq
     (>= x y))
-
 
   (native-compile #'comp-tests-eqlsign-f)
   (native-compile #'comp-tests-gtr-f)
