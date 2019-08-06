@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 #include <libgccjit.h>
 
 #include "lisp.h"
@@ -2280,9 +2281,14 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  comp_speed);
-  /* Gcc doesn't like being interrupted.  */
+  /* Gcc doesn't like being interrupted at all.  */
   sigset_t oldset;
-  block_atimers (&oldset);
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGALRM);
+  sigaddset (&blocked, SIGINT);
+  sigaddset (&blocked, SIGIO);
+  pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 
   if (COMP_DEBUG)
     gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1);
