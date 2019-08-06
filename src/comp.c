@@ -2185,11 +2185,11 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
   /* EMACS_INT min_args = XFIXNUM (FUNCALL1 (comp-args-min, args)); */
-  EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
   bool ncall = !NILP (FUNCALL1 (comp-args-ncall-conv, args));
 
   if (!ncall)
     {
+      EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       comp.func =
 	emit_func_declare (c_name, comp.lisp_obj_type, max_args,
 			   NULL, GCC_JIT_FUNCTION_EXPORTED, false);
