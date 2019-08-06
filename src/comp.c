@@ -948,6 +948,11 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 					   PURESIZE));
 }
 
+
+/*************************************/
+/* Code emittes by LIMPLE statemes.  */
+/*************************************/
+
 /* Emit an r-value from an mvar meta variable.
    In case this is a constant that was propagated return it otherwise load it
    from frame.  */
@@ -979,7 +984,7 @@ emit_mvar_val (Lisp_Object mvar)
 }
 
 static void
-emit_ncall_prolog (EMACS_UINT n)
+emit_limple_ncall_prolog (EMACS_UINT n)
 {
   /*
     nargs will be known at runtime therfore we emit:
@@ -1045,7 +1050,6 @@ emit_ncall_prolog (EMACS_UINT n)
 				emit_call ("Flist", comp.lisp_obj_type, 2,
 					   list_args));
 }
-
 
 static gcc_jit_rvalue *
 emit_limple_call (Lisp_Object arg1)
@@ -1285,7 +1289,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qncall_prolog))
     {
       /* Ex: (ncall-prolog 2).  */
-      emit_ncall_prolog (XFIXNUM (arg0));
+      emit_limple_ncall_prolog (XFIXNUM (arg0));
     }
   else if (EQ (op, Qsetimm))
     {
@@ -1309,6 +1313,11 @@ emit_limple_insn (Lisp_Object insn)
 				     emit_mvar_val (arg0));
     }
 }
+
+
+/****************************************************************/
+/* Inline function definition and lisp data structure follows.  */
+/****************************************************************/
 
 /* struct Lisp_Cons definition.  */
 
@@ -1998,6 +2007,11 @@ define_bool_to_lisp_obj (void)
 
 }
 
+
+/**********************************/
+/* Entry points exposed to lisp.  */
+/**********************************/
+
 DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
        0, 0, 0,
        doc: /* Initialize the native compiler context. Return t on success.  */)
@@ -2341,10 +2355,13 @@ syms_of_comp (void)
 
 }
 
+
 /******************************************************************************/
 /* Helper functions called from the runtime.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
 /******************************************************************************/
+
+/* TODO: cleanup */
 
 Lisp_Object helper_save_window_excursion (Lisp_Object v1);
 
