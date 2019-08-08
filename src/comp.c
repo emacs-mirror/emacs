@@ -2322,7 +2322,7 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       comp.funcs = XCDR (comp.funcs);
     }
 
-  unblock_atimers (&oldset);
+  pthread_sigmask (SIG_SETMASK, &oldset, 0);
 
   return Qt;
 }
