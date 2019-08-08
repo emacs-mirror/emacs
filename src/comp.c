@@ -1093,6 +1093,11 @@ emit_limple_call (Lisp_Object arg1)
 							 SET_INTERNAL_SET);
       return emit_call ("set_internal", comp.void_type , 4, gcc_args);
     }
+  else if (!strcmp (calle, "record_unwind_current_buffer") ||
+	   !strcmp (calle, "helper_unwind_protect"))
+    {
+      return emit_call (calle, comp.void_type, 0, NULL);
+    }
   error ("LIMPLE call is inconsistent");
 }
 

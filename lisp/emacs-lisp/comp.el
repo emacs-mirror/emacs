@@ -573,7 +573,8 @@ the annotation emission."
       (byte-bobp auto)
       (byte-current-buffer auto)
       (byte-set-buffer auto)
-      (byte-save-current-buffer)
+      (byte-save-current-buffer
+       (comp-emit '(call record_unwind_current_buffer)))
       (byte-set-mark-OBSOLETE)
       (byte-interactive-p-OBSOLETE)
       (byte-forward-char auto)
@@ -603,7 +604,7 @@ the annotation emission."
        (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 1
                             (cl-third insn) t))
       (byte-return
-       (comp-emit (list 'return (comp-slot-next)))
+       (comp-emit `(return ,(comp-slot-next)))
        (comp-mark-block-closed))
       (byte-discard 'pass)
       (byte-dup
@@ -612,7 +613,8 @@ the annotation emission."
       (byte-save-window-excursion-OBSOLETE)
       (byte-save-restriction)
       (byte-catch)
-      (byte-unwind-protect)
+      (byte-unwind-protect
+       (comp-emit '(call helper_unwind_protect)))
       (byte-condition-case)
       (byte-temp-output-buffer-setup-OBSOLETE)
       (byte-temp-output-buffer-show-OBSOLETE)
