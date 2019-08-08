@@ -695,11 +695,6 @@ the annotation emission."
 
 ;;; Entry points.
 
-(declare-function comp-init-ctxt "comp.c")
-(declare-function comp-release-ctxt "comp.c")
-(declare-function comp-add-func-to-ctxt "comp.c")
-(declare-function comp-compile-and-load-ctxt "comp.c")
-
 (defun native-compile (func-symbol-name)
   "FUNC-SYMBOL-NAME is the function name to be compiled into native code."
   (if-let ((f (symbol-function func-symbol-name)))
