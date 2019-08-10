@@ -2136,7 +2136,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 						    sizeof (void *),
 						    false);
 
-  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
+  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   /* Define data structures.  */
 
@@ -2241,7 +2241,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
 					     i));
   comp.frame = frame;
 
-  comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
+  comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   /* Pre declare all basic blocks to gcc.
      The "entry" block must be declared as first.  */
