@@ -2061,8 +2061,8 @@ estimate_mode_line_height (struct frame *f, enum face_id face_id)
 	    {
 	      if (face->font)
 		height = normal_char_height (face->font, -1);
-	      if (face->box_line_width > 0)
-		height += 2 * face->box_line_width;
+	      if (face->box_horizontal_line_width > 0)
+		height += 2 * face->box_horizontal_line_width;
 	    }
 	}
 
@@ -28900,18 +28900,21 @@ produce_image_glyph (struct it *it)
 
   if (face->box != FACE_NO_BOX)
     {
-      if (face->box_line_width > 0)
+      if (face->box_horizontal_line_width > 0)
 	{
 	  if (slice.y == 0)
-	    it->ascent += face->box_line_width;
+	    it->ascent += face->box_horizontal_line_width;
 	  if (slice.y + slice.height == img->height)
-	    it->descent += face->box_line_width;
+	    it->descent += face->box_horizontal_line_width;
 	}
 
-      if (it->start_of_box_run_p && slice.x == 0)
-	it->pixel_width += eabs (face->box_line_width);
-      if (it->end_of_box_run_p && slice.x + slice.width == img->width)
-	it->pixel_width += eabs (face->box_line_width);
+      if (face->box_vertical_line_width > 0)
+	{
+	  if (it->start_of_box_run_p && slice.x == 0)
+	    it->pixel_width += face->box_vertical_line_width;
+	  if (it->end_of_box_run_p && slice.x + slice.width == img->width)
+	    it->pixel_width += face->box_vertical_line_width;
+	}
     }
 
   take_vertical_position_into_account (it);
@@ -29009,15 +29012,18 @@ produce_xwidget_glyph (struct it *it)
 
   if (face->box != FACE_NO_BOX)
     {
-      if (face->box_line_width > 0)
+      if (face->box_horizontal_line_width > 0)
 	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
+	  it->ascent += face->box_horizontal_line_width;
+	  it->descent += face->box_horizontal_line_width;
 	}
 
-      if (it->start_of_box_run_p)
-	it->pixel_width += eabs (face->box_line_width);
-      it->pixel_width += eabs (face->box_line_width);
+      if (face->box_vertical_line_width > 0)
+	{
+	  if (it->start_of_box_run_p)
+	    it->pixel_width += face->box_vertical_line_width;
+	  it->pixel_width += face->box_vertical_line_width;
+	}
     }
 
   take_vertical_position_into_account (it);
@@ -29780,6 +29786,31 @@ produce_glyphless_glyph (struct it *it, bool for_no_font, Lisp_Object acronym)
 }
 
 
+/* If face has a box, add the box thickness to the character
+   height.  If character has a box line to the left and/or
+   right, add the box line width to the character's width.  */
+#define IT_APPLY_FACE_BOX(it, face)				\
+  do {								\
+    if (face->box != FACE_NO_BOX)				\
+      {								\
+	int thick = face->box_horizontal_line_width;		\
+	if (thick > 0)						\
+	  {							\
+	    it->ascent += thick;				\
+	    it->descent += thick;				\
+	  }							\
+								\
+	thick = face->box_vertical_line_width;			\
+	if (thick > 0)						\
+	  {							\
+	    if (it->start_of_box_run_p)				\
+	      it->pixel_width += thick;				\
+	    if (it->end_of_box_run_p)				\
+	      it->pixel_width += thick;				\
+	  }							\
+      }								\
+    } while (false)
+
 /* RIF:
    Produce glyphs/get display metrics for the display element IT is
    loaded with.  See the description of struct it in dispextern.h
@@ -29895,26 +29926,7 @@ gui_produce_glyphs (struct it *it)
 	  if (stretched_p)
 	    it->pixel_width *= XFLOATINT (it->space_width);
 
-	  /* If face has a box, add the box thickness to the character
-	     height.  If character has a box line to the left and/or
-	     right, add the box line width to the character's width.  */
-	  if (face->box != FACE_NO_BOX)
-	    {
-	      int thick = face->box_line_width;
-
-	      if (thick > 0)
-		{
-		  it->ascent += thick;
-		  it->descent += thick;
-		}
-	      else
-		thick = -thick;
-
-	      if (it->start_of_box_run_p)
-		it->pixel_width += thick;
-	      if (it->end_of_box_run_p)
-		it->pixel_width += thick;
-	    }
+	  IT_APPLY_FACE_BOX(it, face);
 
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
@@ -30029,10 +30041,10 @@ gui_produce_glyphs (struct it *it)
 
 	      if ((it->max_ascent > 0 || it->max_descent > 0)
 		  && face->box != FACE_NO_BOX
-		  && face->box_line_width > 0)
+		  && face->box_horizontal_line_width > 0)
 		{
-		  it->ascent += face->box_line_width;
-		  it->descent += face->box_line_width;
+		  it->ascent += face->box_horizontal_line_width;
+		  it->descent += face->box_horizontal_line_width;
 		}
 	      if (!NILP (height)
 		  && XFIXNUM (height) > it->ascent + it->descent)
@@ -30439,23 +30451,7 @@ gui_produce_glyphs (struct it *it)
       it->pixel_width = cmp->pixel_width;
       it->ascent = it->phys_ascent = cmp->ascent;
       it->descent = it->phys_descent = cmp->descent;
-      if (face->box != FACE_NO_BOX)
-	{
-	  int thick = face->box_line_width;
-
-	  if (thick > 0)
-	    {
-	      it->ascent += thick;
-	      it->descent += thick;
-	    }
-	  else
-	    thick = - thick;
-
-	  if (it->start_of_box_run_p)
-	    it->pixel_width += thick;
-	  if (it->end_of_box_run_p)
-	    it->pixel_width += thick;
-	}
+      IT_APPLY_FACE_BOX(it, face);
 
       /* If face has an overline, add the height of the overline
 	 (1 pixel) and a 1 pixel margin to the character height.  */
@@ -30489,23 +30485,8 @@ gui_produce_glyphs (struct it *it)
 	it->glyph_row->contains_overlapping_glyphs_p = true;
       it->ascent = it->phys_ascent = metrics.ascent;
       it->descent = it->phys_descent = metrics.descent;
-      if (face->box != FACE_NO_BOX)
-	{
-	  int thick = face->box_line_width;
+      IT_APPLY_FACE_BOX(it, face);
 
-	  if (thick > 0)
-	    {
-	      it->ascent += thick;
-	      it->descent += thick;
-	    }
-	  else
-	    thick = - thick;
-
-	  if (it->start_of_box_run_p)
-	    it->pixel_width += thick;
-	  if (it->end_of_box_run_p)
-	    it->pixel_width += thick;
-	}
       /* If face has an overline, add the height of the overline
 	 (1 pixel) and a 1 pixel margin to the character height.  */
       if (face->overline_p)

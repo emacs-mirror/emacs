@@ -3639,8 +3639,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 }
 
 static void
-ns_draw_box (NSRect r, CGFloat thickness, NSColor *col,
-             char left_p, char right_p)
+ns_draw_box (NSRect r, CGFloat hthickness, CGFloat vthickness,
+             NSColor *col, char left_p, char right_p)
 /* --------------------------------------------------------------------------
     Draw an unfilled rect inside r, optionally leaving left and/or right open.
     Note we can't just use an NSDrawRect command, because of the possibility
@@ -3651,28 +3651,28 @@ ns_draw_box (NSRect r, CGFloat thickness, NSColor *col,
   [col set];
 
   /* top, bottom */
-  s.size.height = thickness;
+  s.size.height = hthickness;
   NSRectFill (s);
-  s.origin.y += r.size.height - thickness;
+  s.origin.y += r.size.height - hthickness;
   NSRectFill (s);
 
   s.size.height = r.size.height;
   s.origin.y = r.origin.y;
 
   /* left, right (optional) */
-  s.size.width = thickness;
+  s.size.width = vthickness;
   if (left_p)
     NSRectFill (s);
   if (right_p)
     {
-      s.origin.x += r.size.width - thickness;
+      s.origin.x += r.size.width - vthickness;
       NSRectFill (s);
     }
 }
 
 
 static void
-ns_draw_relief (NSRect r, int thickness, char raised_p,
+ns_draw_relief (NSRect r, int hthickness, int vthickness, char raised_p,
                char top_p, char bottom_p, char left_p, char right_p,
                struct glyph_string *s)
 /* --------------------------------------------------------------------------
@@ -3722,27 +3722,27 @@ ns_draw_relief (NSRect r, int thickness, char raised_p,
   /* TODO: mitering. Using NSBezierPath doesn't work because of color switch.  */
 
   /* top */
-  sr.size.height = thickness;
+  sr.size.height = hthickness;
   if (top_p) NSRectFill (sr);
 
   /* left */
   sr.size.height = r.size.height;
-  sr.size.width = thickness;
+  sr.size.width = vthickness;
   if (left_p) NSRectFill (sr);
 
   [(raised_p ? darkCol : lightCol) set];
 
   /* bottom */
   sr.size.width = r.size.width;
-  sr.size.height = thickness;
-  sr.origin.y += r.size.height - thickness;
+  sr.size.height = hthickness;
+  sr.origin.y += r.size.height - hthickness;
   if (bottom_p) NSRectFill (sr);
 
   /* right */
   sr.size.height = r.size.height;
   sr.origin.y = r.origin.y;
-  sr.size.width = thickness;
-  sr.origin.x += r.size.width - thickness;
+  sr.size.width = vthickness;
+  sr.origin.x += r.size.width - vthickness;
   if (right_p) NSRectFill (sr);
 }
 
@@ -3758,7 +3758,7 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   char left_p, right_p;
   struct glyph *last_glyph;
   NSRect r;
-  int thickness;
+  int hthickness, vthickness;
   struct face *face;
 
   if (s->hl == DRAW_MOUSE_FACE)
@@ -3771,7 +3771,8 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   else
     face = s->face;
 
-  thickness = face->box_line_width;
+  vthickness = face->box_vertical_line_width;
+  hthickness = face->box_horizontal_line_width;
 
   NSTRACE ("ns_dumpglyphs_box_or_relief");
 
@@ -3796,14 +3797,15 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   /* TODO: Sometimes box_color is 0 and this seems wrong; should investigate.  */
   if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
-      ns_draw_box (r, abs (thickness),
+      ns_draw_box (r, abs (hthickness), abs (vthickness),
                    ns_lookup_indexed_color (face->box_color, s->f),
-                  left_p, right_p);
+                   left_p, right_p);
     }
   else
     {
-      ns_draw_relief (r, abs (thickness), s->face->box == FACE_RAISED_BOX,
-                     1, 1, left_p, right_p, s);
+      ns_draw_relief (r, abs (hthickness), abs (vthickness),
+                      s->face->box == FACE_RAISED_BOX,
+                      1, 1, left_p, right_p, s);
     }
 }
 
@@ -3819,7 +3821,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 
   if (!s->background_filled_p/* || s->hl == DRAW_MOUSE_FACE*/)
     {
-      int box_line_width = max (s->face->box_line_width, 0);
+      int box_line_width = max (s->face->box_horizontal_line_width, 0);
       if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	  /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
 	     dimensions, since the actual glyphs might be much
@@ -3870,7 +3872,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
    -------------------------------------------------------------------------- */
 {
   EmacsImage *img = s->img->pixmap;
-  int box_line_vwidth = max (s->face->box_line_width, 0);
+  int box_line_vwidth = max (s->face->box_horizontal_line_width, 0);
   int x = s->x, y = s->ybase - image_ascent (s->img, s->face, &s->slice);
   int bg_x, bg_y, bg_height;
   int th;
@@ -3883,7 +3885,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += max (s->face->box_vertical_line_width, 0);
 
   bg_x = x;
   bg_y =  s->slice.y == 0 ? s->y : s->y + box_line_vwidth;
@@ -4003,7 +4005,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
       r.origin.y = y - th;
       r.size.width = s->slice.width + 2*th-1;
       r.size.height = s->slice.height + 2*th-1;
-      ns_draw_relief (r, th, raised_p,
+      ns_draw_relief (r, th, th, raised_p,
                       s->slice.y == 0,
                       s->slice.y + s->slice.height == s->img->height,
                       s->slice.x == 0,
@@ -4017,7 +4019,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
     {
       int thickness = abs (s->img->relief);
       if (thickness == 0) thickness = 1;
-      ns_draw_box (br, thickness, FRAME_CURSOR_COLOR (s->f), 1, 1);
+      ns_draw_box (br, thickness, thickness, FRAME_CURSOR_COLOR (s->f), 1, 1);
     }
 }
 
@@ -4100,7 +4102,7 @@ ns_draw_glyph_string_foreground (struct glyph_string *s)
      of S to the right of that box line.  */
   if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
@@ -4126,7 +4128,7 @@ ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
      of S to the right of that box line.  */
   if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
@@ -4142,7 +4144,7 @@ ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
       if (s->cmp_from == 0)
         {
           NSRect r = NSMakeRect (s->x, s->y, s->width-1, s->height -1);
-          ns_draw_box (r, 1, FRAME_CURSOR_COLOR (s->f), 1, 1);
+          ns_draw_box (r, 1, 1, FRAME_CURSOR_COLOR (s->f), 1, 1);
         }
     }
   else if (! s->first_glyph->u.cmp.automatic)

@@ -1043,7 +1043,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   r.origin.x = s->x;
   if (s->face->box != FACE_NO_BOX && s->first_glyph->left_box_line_p)
-    r.origin.x += abs (s->face->box_line_width);
+    r.origin.x += max (s->face->box_vertical_line_width, 0);
 
   r.origin.y = s->y;
   r.size.height = FONT_HEIGHT (font);
@@ -1105,7 +1105,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       NSRect br = r;
       int fibw = FRAME_INTERNAL_BORDER_WIDTH (s->f);
-      int mbox_line_width = max (s->face->box_line_width, 0);
+      int mbox_line_width = max (s->face->box_vertical_line_width, 0);
 
       if (s->row->full_width_p)
         {
@@ -1129,9 +1129,10 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         }
       else
         {
-          int correction = abs (s->face->box_line_width)+1;
+          int correction = abs (s->face->box_horizontal_line_width)+1;
           br.origin.y += correction;
           br.size.height -= 2*correction;
+          correction = abs (s->face->box_vertical_line_width)+1;
           br.origin.x += correction;
           br.size.width -= 2*correction;
         }
