@@ -1097,7 +1097,8 @@ emit_limple_call (Lisp_Object args)
 {
   Lisp_Object calle_sym = FIRST (args);
   char *calle = (char *) SDATA (SYMBOL_NAME (calle_sym));
-  Lisp_Object emitter = Fgethash (SYMBOL_NAME (calle_sym), comp.routine_dispatcher, Qnil);
+  Lisp_Object emitter =
+    Fgethash (SYMBOL_NAME (calle_sym), comp.routine_dispatcher, Qnil);
 
   if (!NILP (emitter))
     {
@@ -1117,13 +1118,13 @@ emit_limple_call (Lisp_Object args)
 }
 
 static gcc_jit_rvalue *
-emit_limple_call_ref (Lisp_Object arg1)
+emit_limple_call_ref (Lisp_Object args)
 {
   /* Ex: (callref Fplus 2 0).  */
 
-  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
-  EMACS_UINT nargs = XFIXNUM (THIRD (arg1));
-  EMACS_UINT base_ptr = XFIXNUM (FORTH (arg1));
+  char *calle = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
+  EMACS_UINT nargs = XFIXNUM (SECOND (args));
+  EMACS_UINT base_ptr = XFIXNUM (THIRD (args));
   gcc_jit_rvalue *gcc_args[2] =
     { gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.ptrdiff_type,
@@ -1285,7 +1286,7 @@ emit_limple_insn (Lisp_Object insn)
       else if (EQ (FIRST (arg1), Qcall))
 	res = emit_limple_call (XCDR (arg1));
       else if (EQ (FIRST (arg1), Qcallref))
-	res = emit_limple_call_ref (arg1);
+	res = emit_limple_call_ref (XCDR (arg1));
       else
 	error ("LIMPLE inconsistent arg1 for op =");
       eassert (res);
