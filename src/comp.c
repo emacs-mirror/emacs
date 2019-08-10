@@ -145,6 +145,7 @@ typedef struct {
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
   Lisp_Object func_hash; /* f_name -> gcc_func.	*/
   Lisp_Object funcs; /* List of functions defined.  */
+  Lisp_Object routine_dispatcher;
 } comp_t;
 
 static comp_t comp;
@@ -232,6 +233,15 @@ declare_block (const char * block_name)
   Fputhash (key, value, comp.func_blocks);
 }
 
+static void
+register_dispatch (const char *name, void *func)
+{
+  Lisp_Object key = make_string (name, strlen (name));
+  Lisp_Object value = make_pointer_integer (XPL (func));
+  Fputhash (key, value, comp.routine_dispatcher);
+}
+
+
 INLINE static void
 emit_comment (const char *str)
 {
@@ -240,22 +250,6 @@ emit_comment (const char *str)
 			       NULL,
 			       str);
 }
-
-
-/* Assignments to the meta-stack slots should be emitted usign this to always */
-/* reset annotation fields.   */
-
-/* static void */
-/* emit_assign_to_stack_slot (basic_block_t *block, stack_el_t *slot, */
-/* 			   gcc_jit_rvalue *val) */
-/* { */
-/*   gcc_jit_block_add_assignment (block->gcc_bb, */
-/* 				NULL, */
-/* 				slot->gcc_lval, */
-/* 				val); */
-/*   slot->type = -1; */
-/*   slot->const_set = false; */
-/* } */
 
 /* Declare a function with all args being Lisp_Object and returning a
    Lisp_Object.  */
@@ -951,7 +945,7 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 
 
 /*************************************/
-/* Code emittes by LIMPLE statemes.  */
+/* Code emitted by LIMPLE statemes.  */
 /*************************************/
 
 /* Emit an r-value from an mvar meta variable.
@@ -982,6 +976,28 @@ emit_mvar_val (Lisp_Object mvar)
 	gcc_jit_lvalue_as_rvalue(
 	  comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
     }
+}
+
+static gcc_jit_rvalue *
+emit_set_internal (Lisp_Object args)
+{
+  /*
+    Ex: (call set_internal
+              #s(comp-mvar 7 nil t xxx nil)
+	      #s(comp-mvar 6 1 t 3 nil))
+  */
+  /* TODO: Inline the most common case.  */
+  eassert (list_length (args) == 3);
+  args = XCDR (args);
+  int i = 0;
+  gcc_jit_rvalue *gcc_args[4];
+  FOR_EACH_TAIL (args)
+    gcc_args[i++] = emit_mvar_val (XCAR (args));
+  gcc_args[2] = emit_lisp_obj_from_ptr (Qnil);
+  gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						     comp.int_type,
+						     SET_INTERNAL_SET);
+  return emit_call ("set_internal", comp.void_type , 4, gcc_args);
 }
 
 static void
@@ -1052,46 +1068,45 @@ emit_limple_ncall_prolog (EMACS_UINT n)
 					   list_args));
 }
 
+/* This is for a regular function with arguments as m-var.   */
+
 static gcc_jit_rvalue *
-emit_limple_call (Lisp_Object arg1)
+emit_simple_limple_call (Lisp_Object args)
 {
-  char *calle = (char *) SDATA (SYMBOL_NAME (SECOND (arg1)));
-  Lisp_Object call_args = XCDR (XCDR (arg1));
+  /*
+    Ex: (call Fcar #s(comp-mvar 4 0 nil nil nil))
+
+    Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
+                    #s(comp-mvar 4 nil t nil nil))
+  */
   int i = 0;
+  char *calle = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
+  args = XCDR (args);
+  ptrdiff_t nargs = list_length (args);
+  gcc_jit_rvalue *gcc_args[nargs];
+  FOR_EACH_TAIL (args)
+    gcc_args[i++] = emit_mvar_val (XCAR (args));
 
-  if (calle[0] == 'F')
+  return emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
+}
+
+/* Entry point to dispatch emission of  (call fun ...).  */
+
+static gcc_jit_rvalue *
+emit_limple_call (Lisp_Object args)
+{
+  Lisp_Object calle_sym = FIRST (args);
+  char *calle = (char *) SDATA (SYMBOL_NAME (calle_sym));
+  Lisp_Object emitter = Fgethash (SYMBOL_NAME (calle_sym), comp.routine_dispatcher, Qnil);
+
+  if (!NILP (emitter))
     {
-      /*
-	Ex: (call Fcar #s(comp-mvar 4 0 nil nil nil))
-
-	Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
-			#s(comp-mvar 4 nil t nil nil))
-      */
-
-      ptrdiff_t nargs = list_length (call_args);
-      gcc_jit_rvalue *gcc_args[nargs];
-      FOR_EACH_TAIL (call_args)
-	gcc_args[i++] = emit_mvar_val (XCAR (call_args));
-
-      return emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
+      gcc_jit_rvalue * (* emitter_ptr) (Lisp_Object) = XFIXNUMPTR (emitter);
+      return emitter_ptr (args);
     }
-  else if (!strcmp (calle, "set_internal"))
+  else if (calle[0] == 'F')
     {
-      /*
-	Ex: (call set_internal
-		  #s(comp-mvar 7 nil t xxx nil)
-		  #s(comp-mvar 6 1 t 3 nil))
-      */
-      /* TODO: Inline the most common case.  */
-      eassert (list_length (call_args) == 2);
-      gcc_jit_rvalue *gcc_args[4];
-      FOR_EACH_TAIL (call_args)
-	gcc_args[i++] = emit_mvar_val (XCAR (call_args));
-      gcc_args[2] = emit_lisp_obj_from_ptr (Qnil);
-      gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-							 comp.int_type,
-							 SET_INTERNAL_SET);
-      return emit_call ("set_internal", comp.void_type , 4, gcc_args);
+      return emit_simple_limple_call (args);
     }
   else if (!strcmp (calle, "record_unwind_current_buffer") ||
 	   !strcmp (calle, "helper_unwind_protect"))
@@ -1258,7 +1273,7 @@ emit_limple_insn (Lisp_Object insn)
     {
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
-			      emit_limple_call (insn));
+			      emit_limple_call (args));
     }
   else if (EQ (op, Qset))
     {
@@ -1268,7 +1283,7 @@ emit_limple_insn (Lisp_Object insn)
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
 	res = emit_mvar_val (arg1);
       else if (EQ (FIRST (arg1), Qcall))
-	res = emit_limple_call (arg1);
+	res = emit_limple_call (XCDR (arg1));
       else if (EQ (FIRST (arg1), Qcallref))
 	res = emit_limple_call_ref (arg1);
       else
@@ -2028,6 +2043,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       error ("Compiler context already taken.");
       return Qnil;
     }
+
   comp.ctxt = gcc_jit_context_acquire();
   comp.funcs = Qnil;
 
@@ -2357,8 +2373,14 @@ syms_of_comp (void)
   defsubr (&Scomp_add_func_to_ctxt);
   defsubr (&Scomp_compile_and_load_ctxt);
   comp.func_hash = Qnil;
+  comp.routine_dispatcher = Qnil;
   staticpro (&comp.func_hash);
   staticpro (&comp.func_blocks);
+
+  comp.routine_dispatcher = CALLN (Fmake_hash_table, QCtest, Qequal);
+  register_dispatch ("set_internal", emit_set_internal);
+  register_dispatch ("helper_unbind_n", emit_simple_limple_call);
+  staticpro (&comp.routine_dispatcher);
 
   DEFVAR_INT ("comp-speed", comp_speed,
 	      doc: /* From 0 to 3.  */);
