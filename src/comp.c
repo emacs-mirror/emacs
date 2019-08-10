@@ -225,11 +225,9 @@ type_to_cast_field (gcc_jit_type *type)
 }
 
 static gcc_jit_block *
-retrive_block (Lisp_Object symbol)
+retrive_block (Lisp_Object block_name)
 {
-  char *block_name = (char *) SDATA (SYMBOL_NAME (symbol));
-  Lisp_Object key = make_string (block_name, strlen (block_name));
-  Lisp_Object value = Fgethash (key, comp.func_blocks, Qnil);
+  Lisp_Object value = Fgethash (block_name, comp.func_blocks, Qnil);
   if (NILP (value))
     error ("LIMPLE basic block inconsistency");
 
@@ -237,14 +235,14 @@ retrive_block (Lisp_Object symbol)
 }
 
 static void
-declare_block (const char * block_name)
+declare_block (Lisp_Object block_name)
 {
-  gcc_jit_block *block = gcc_jit_function_new_block (comp.func, block_name);
-  Lisp_Object key = make_string (block_name, strlen (block_name));
+  char *name_str = (char *) SDATA (SYMBOL_NAME (block_name));
+  gcc_jit_block *block = gcc_jit_function_new_block (comp.func, name_str);
   Lisp_Object value = make_mint_ptr (block);
-  if (!NILP (Fgethash (key, comp.func_blocks, Qnil)))
+  if (!NILP (Fgethash (block_name, comp.func_blocks, Qnil)))
     error ("LIMPLE basic block inconsistency");
-  Fputhash (key, value, comp.func_blocks);
+  Fputhash (block_name, value, comp.func_blocks);
 }
 
 static void
@@ -2279,19 +2277,19 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
 					     i));
   comp.frame = frame;
 
-  comp.func_blocks = CALLN (Fmake_hash_table, QCtest, Qequal);
+  comp.func_blocks = CALLN (Fmake_hash_table);
 
   /* Pre declare all basic blocks to gcc.
      The "entry" block must be declared as first.  */
-  declare_block ("entry");
+  declare_block (Qentry);
   Lisp_Object blocks = FUNCALL1 (comp-func-blocks, func);
-  Lisp_Object entry_block = Fgethash (intern ("entry"), blocks, Qnil);
+  Lisp_Object entry_block = Fgethash (Qentry, blocks, Qnil);
   struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
   for (ptrdiff_t i = 0; i < ht->count; i++)
     {
       Lisp_Object block = HASH_VALUE (ht, i);
       if (!EQ (block, entry_block))
-	declare_block ((char *) SDATA (SYMBOL_NAME (HASH_KEY (ht, i))));
+	declare_block (HASH_KEY (ht, i));
     }
 
   for (ptrdiff_t i = 0; i < ht->count; i++)
@@ -2436,6 +2434,7 @@ syms_of_comp (void)
   DEFSYM (Qpop_handler, "pop-handler");
   DEFSYM (Qcondition_case, "condition-case");
   DEFSYM (Qcatcher, "catcher");
+  DEFSYM (Qentry, "entry");
   DEFSYM (Qset_internal, "set_internal");
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
 
