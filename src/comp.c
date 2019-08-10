@@ -152,6 +152,20 @@ static comp_t comp;
 
 FILE *logfile = NULL;
 
+
+
+Lisp_Object helper_save_window_excursion (Lisp_Object v1);
+
+void helper_unwind_protect (Lisp_Object handler);
+
+Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
+
+Lisp_Object helper_unbind_n (int val);
+
+bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
+				       enum pvec_type code);
+
+
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
 format_string (const char *format, ...)
 {
@@ -234,10 +248,9 @@ declare_block (const char * block_name)
 }
 
 static void
-register_dispatch (const char *name, void *func)
+register_dispatch (Lisp_Object key, void *func)
 {
-  Lisp_Object key = make_string (name, strlen (name));
-  Lisp_Object value = make_pointer_integer (XPL (func));
+  Lisp_Object value = make_mint_ptr (func);
   Fputhash (key, value, comp.routine_dispatcher);
 }
 
@@ -1098,11 +1111,11 @@ emit_limple_call (Lisp_Object args)
   Lisp_Object calle_sym = FIRST (args);
   char *calle = (char *) SDATA (SYMBOL_NAME (calle_sym));
   Lisp_Object emitter =
-    Fgethash (SYMBOL_NAME (calle_sym), comp.routine_dispatcher, Qnil);
+    Fgethash (calle_sym, comp.routine_dispatcher, Qnil);
 
   if (!NILP (emitter))
     {
-      gcc_jit_rvalue * (* emitter_ptr) (Lisp_Object) = XFIXNUMPTR (emitter);
+      gcc_jit_rvalue * (* emitter_ptr) (Lisp_Object) = xmint_pointer (emitter);
       return emitter_ptr (args);
     }
   else if (calle[0] == 'F')
@@ -2045,6 +2058,14 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       return Qnil;
     }
 
+  if (NILP (comp.routine_dispatcher))
+    {
+      /* Move this into syms_of_comp the day will be dumpable.   */
+      comp.routine_dispatcher = CALLN (Fmake_hash_table);
+      register_dispatch (Qset_internal, emit_set_internal);
+      register_dispatch (Qhelper_unbind_n, helper_unbind_n);
+    }
+
   comp.ctxt = gcc_jit_context_acquire();
   comp.funcs = Qnil;
 
@@ -2349,64 +2370,12 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
   return Qt;
 }
 
-void
-syms_of_comp (void)
-{
-  /* Limple instruction set.  */
-  DEFSYM (Qcomment, "comment");
-  DEFSYM (Qjump, "jump");
-  DEFSYM (Qcall, "call");
-  DEFSYM (Qcallref, "callref");
-  DEFSYM (Qncall, "ncall");
-  DEFSYM (Qsetpar, "setpar");
-  DEFSYM (Qncall_prolog, "ncall-prolog");
-  DEFSYM (Qsetimm, "setimm");
-  DEFSYM (Qreturn, "return");
-  DEFSYM (Qcomp_mvar, "comp-mvar");
-  DEFSYM (Qcond_jump, "cond-jump");
-  DEFSYM (Qpush_handler, "push-handler");
-  DEFSYM (Qpop_handler, "pop-handler");
-  DEFSYM (Qcondition_case, "condition-case");
-  DEFSYM (Qcatcher, "catcher");
-
-  defsubr (&Scomp_init_ctxt);
-  defsubr (&Scomp_release_ctxt);
-  defsubr (&Scomp_add_func_to_ctxt);
-  defsubr (&Scomp_compile_and_load_ctxt);
-  comp.func_hash = Qnil;
-  comp.routine_dispatcher = Qnil;
-  staticpro (&comp.func_hash);
-  staticpro (&comp.func_blocks);
-
-  comp.routine_dispatcher = CALLN (Fmake_hash_table, QCtest, Qequal);
-  register_dispatch ("set_internal", emit_set_internal);
-  register_dispatch ("helper_unbind_n", emit_simple_limple_call);
-  staticpro (&comp.routine_dispatcher);
-
-  DEFVAR_INT ("comp-speed", comp_speed,
-	      doc: /* From 0 to 3.  */);
-  comp_speed = DEFAULT_SPEED;
-
-}
-
 
 /******************************************************************************/
 /* Helper functions called from the runtime.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
 /******************************************************************************/
 
-/* TODO: cleanup */
-
-Lisp_Object helper_save_window_excursion (Lisp_Object v1);
-
-void helper_unwind_protect (Lisp_Object handler);
-
-Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
-
-Lisp_Object helper_unbind_n (int val);
-
-bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
-				       enum pvec_type code);
 Lisp_Object
 helper_save_window_excursion (Lisp_Object v1)
 {
@@ -2446,6 +2415,45 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
   return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
 				     union vectorlike_header),
 			     code);
+}
+
+void
+syms_of_comp (void)
+{
+  /* Limple instruction set.  */
+  DEFSYM (Qcomment, "comment");
+  DEFSYM (Qjump, "jump");
+  DEFSYM (Qcall, "call");
+  DEFSYM (Qcallref, "callref");
+  DEFSYM (Qncall, "ncall");
+  DEFSYM (Qsetpar, "setpar");
+  DEFSYM (Qncall_prolog, "ncall-prolog");
+  DEFSYM (Qsetimm, "setimm");
+  DEFSYM (Qreturn, "return");
+  DEFSYM (Qcomp_mvar, "comp-mvar");
+  DEFSYM (Qcond_jump, "cond-jump");
+  DEFSYM (Qpush_handler, "push-handler");
+  DEFSYM (Qpop_handler, "pop-handler");
+  DEFSYM (Qcondition_case, "condition-case");
+  DEFSYM (Qcatcher, "catcher");
+  DEFSYM (Qset_internal, "set_internal");
+  DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
+
+  defsubr (&Scomp_init_ctxt);
+  defsubr (&Scomp_release_ctxt);
+  defsubr (&Scomp_add_func_to_ctxt);
+  defsubr (&Scomp_compile_and_load_ctxt);
+  staticpro (&comp.func_hash);
+  staticpro (&comp.func_blocks);
+  comp.func_hash = Qnil;
+  comp.routine_dispatcher = Qnil;
+
+  staticpro (&comp.routine_dispatcher);
+  comp.routine_dispatcher = Qnil;
+
+  DEFVAR_INT ("comp-speed", comp_speed,
+	      doc: /* From 0 to 3.  */);
+  comp_speed = DEFAULT_SPEED;
 }
 
 #endif /* HAVE_LIBGCCJIT */
