@@ -233,7 +233,7 @@ retrive_block (Lisp_Object symbol)
   if (NILP (value))
     error ("LIMPLE basic block inconsistency");
 
-  return (gcc_jit_block *) XFIXNUMPTR (value);
+  return (gcc_jit_block *) xmint_pointer (value);
 }
 
 static void
@@ -241,7 +241,7 @@ declare_block (const char * block_name)
 {
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, block_name);
   Lisp_Object key = make_string (block_name, strlen (block_name));
-  Lisp_Object value = make_pointer_integer (XPL (block));
+  Lisp_Object value = make_mint_ptr (block);
   if (!NILP (Fgethash (key, comp.func_blocks, Qnil)))
     error ("LIMPLE basic block inconsistency");
   Fputhash (key, value, comp.func_blocks);
@@ -302,10 +302,10 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
   if (reusable)
     {
       Lisp_Object key = make_string (f_name, strlen (f_name));
-      Lisp_Object value = make_pointer_integer (XPL (func));
+      Lisp_Object value = make_mint_ptr (func);
       /* Don't want to declare the same function two times.  */
-      if (!NILP (Fgethash (key, comp.func_hash, Qnil)))
-	eassert (false);
+      eassert (NILP (Fgethash (key, comp.func_hash, Qnil)));
+
       Fputhash (key, value, comp.func_hash);
     }
 
@@ -326,7 +326,7 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
       value = Fgethash (key, comp.func_hash, Qnil);
       eassert (!NILP (value));
     }
-  gcc_jit_function *func = (gcc_jit_function *) XFIXNUMPTR (value);
+  gcc_jit_function *func = (gcc_jit_function *) xmint_pointer (value);
 
   return gcc_jit_context_new_call(comp.ctxt,
 				  NULL,
