@@ -165,6 +165,8 @@ Lisp_Object helper_unbind_n (Lisp_Object n);
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 				       enum pvec_type code);
 
+void helper_emit_save_restriction (void);
+
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
 format_string (const char *format, ...)
@@ -2075,6 +2077,8 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 			emit_simple_limple_call_lisp_ret);
       register_emitter (Qrecord_unwind_protect_excursion,
 			emit_simple_limple_call_void_ret);
+      register_emitter (Qhelper_save_restriction,
+			emit_simple_limple_call_void_ret);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2389,6 +2393,8 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
 /******************************************************************************/
 /* Helper functions called from the runtime.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
+/* Note: this are all potentially definable directly to gcc and are here just */
+/* for lazyness. Change this if a performance impact is measured.             */
 /******************************************************************************/
 
 Lisp_Object
@@ -2402,7 +2408,8 @@ helper_save_window_excursion (Lisp_Object v1)
   return v1;
 }
 
-void helper_unwind_protect (Lisp_Object handler)
+void
+helper_unwind_protect (Lisp_Object handler)
 {
   /* Support for a function here is new in 24.4.  */
   record_unwind_protect (FUNCTIONP (handler) ? bcall0 : prog_ignore,
@@ -2433,6 +2440,14 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 }
 
 void
+helper_emit_save_restriction (void)
+{
+  record_unwind_protect (save_restriction_restore,
+			 save_restriction_save ());
+}
+
+
+void
 syms_of_comp (void)
 {
   /* Limple instruction set.  */
@@ -2457,6 +2472,7 @@ syms_of_comp (void)
   DEFSYM (Qrecord_unwind_protect_excursion, "record_unwind_protect_excursion");
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
   DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
+  DEFSYM (Qhelper_save_restriction, "helper_save_restriction")
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);

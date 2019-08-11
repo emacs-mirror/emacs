@@ -642,14 +642,15 @@ the annotation emission."
       (byte-save-excursion
        (comp-emit '(call record_unwind_protect_excursion)))
       (byte-save-window-excursion-OBSOLETE)
-      (byte-save-restriction)
-      (byte-catch)
+      (byte-save-restriction
+       '(call helper-save-restriction))
+      (byte-catch) ;; Obsolete
       (byte-unwind-protect
        (comp-emit `(call helper_unwind_protect ,(comp-slot-next))))
-      (byte-condition-case)
+      (byte-condition-case) ;; Obsolete
       (byte-temp-output-buffer-setup-OBSOLETE)
       (byte-temp-output-buffer-show-OBSOLETE)
-      (byte-unbind-all)
+      (byte-unbind-all) ;; Obsolete
       (byte-set-marker auto)
       (byte-match-beginning auto)
       (byte-match-end auto)
