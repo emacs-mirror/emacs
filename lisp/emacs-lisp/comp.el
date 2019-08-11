@@ -35,7 +35,13 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defconst comp-debug t)
+(defcustom comp-debug t
+  "Log compilation process."
+  :type 'boolean
+  :group 'comp)
+
+(defconst native-compile-log-buffer "*Native-compile-Log*"
+  "Name of the native-compiler's log buffer.")
 
 ;; FIXME these has to be removed
 (defvar comp-speed 2)
@@ -137,14 +143,35 @@ LIMPLE basic block.")
   (block-name nil :type 'symbol
     :documentation "Current basic block name."))
 
-(defun comp-pretty-print-func (func)
-  "Pretty print function FUNC in the current buffer."
-  (insert (format "\n\n Function: %s" (comp-func-symbol-name func)))
-  (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
-           using (hash-value bb)
-           do (progn
-                (insert (concat "\n<" (symbol-name block-name) ">"))
-                (cl-prettyprint (comp-block-insns bb)))))
+(defmacro comp-within-log-buff (&rest body)
+  "Execute BODY while at the end the log-buffer.
+BODY is evaluate only if `comp-debug' is non nil."
+  (declare (debug (form body))
+           (indent defun))
+  `(when comp-debug
+     (with-current-buffer (get-buffer-create native-compile-log-buffer)
+       (setq buffer-read-only t)
+       (let ((inhibit-read-only t))
+         (goto-char (point-max))
+         ,@body))))
+
+(defun comp-log (string)
+  "Log a STRING into the log-buffer."
+  (comp-within-log-buff
+    (cond (noninteractive
+	   (message " %s" string))
+	  (t
+	   (insert (format "%s\n" string))))))
+
+(defun comp-log-func (func)
+  "Pretty print function FUNC in the log-buffer."
+  (comp-within-log-buff
+    (insert (format "\n\n Function: %s" (comp-func-symbol-name func)))
+    (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
+             using (hash-value bb)
+             do (progn
+                  (insert (concat "\n<" (symbol-name block-name) ">"))
+                  (cl-prettyprint (comp-block-insns bb))))))
 
 
 ;;; spill-lap pass specific code.
@@ -184,7 +211,7 @@ LIMPLE basic block.")
   (let (byte-compile-lap-output)
     (setf (comp-func-byte-func func)
           (byte-compile (comp-func-symbol-name func)))
-    (when comp-debug
+    (comp-within-log-buff
       (cl-prettyprint byte-compile-lap-output))
     (let ((lambda-list (aref (comp-func-byte-func func) 0)))
       (if (fixnump lambda-list)
@@ -689,8 +716,7 @@ the annotation emission."
     (cl-loop for bb being the hash-value in (comp-func-blocks func)
              do (setf (comp-block-insns bb)
                       (reverse (comp-block-insns bb))))
-    (when comp-debug
-      (comp-pretty-print-func func))
+    (comp-log-func func)
     func))
 
 
