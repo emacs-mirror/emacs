@@ -701,6 +701,29 @@ the annotation emission."
        (comp-stack-adjust (- arg))
        (comp-copy-slot (+ arg (comp-sp)))))))
 
+(defun comp-emit-narg-prologue (args-min non-rest)
+  "Emit the prologue for a narg function."
+  (cl-loop for i below args-min
+           do (progn
+                (comp-emit `(set-args-to-local ,i))
+                (comp-emit '(inc-args))))
+  (cl-loop for i from args-min below non-rest
+           for bb = (intern (format "entry_%s" i))
+           for fallback = (intern (format "entry_fallback_%s" i))
+           do (progn
+                (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
+                (comp-mark-block-closed)
+                (comp-emit-block bb)
+                (comp-emit `(set-args-to-local ,i))
+                (comp-emit '(inc-args)))
+           finally (comp-emit-jump 'entry_rest_args))
+  (cl-loop for i from args-min below non-rest
+           do (comp-with-sp i
+                (comp-emit-block (intern (format "entry_fallback_%s" i)))
+                (comp-emit-set-const nil)))
+  (comp-emit-block 'entry_rest_args)
+  (comp-emit `(set-rest-args-to-local ,non-rest)))
+
 (defun comp-limplify (func)
   "Given FUNC compute its LIMPLE ir."
   (let* ((frame-size (comp-func-frame-size func))
@@ -720,7 +743,7 @@ the annotation emission."
                do (cl-incf (comp-sp))
                do (comp-emit `(setpar ,(comp-slot) ,i)))
       (let ((nonrest (comp-nargs-nonrest args)))
-        (comp-emit `(ncall-prolog ,nonrest))
+        (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))
     ;; Body
     (comp-emit-block 'bb_1)
