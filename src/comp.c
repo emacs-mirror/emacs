@@ -145,7 +145,7 @@ typedef struct {
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
   Lisp_Object func_hash; /* f_name -> gcc_func.	*/
   Lisp_Object funcs; /* List of functions defined.  */
-  Lisp_Object routine_dispatcher;
+  Lisp_Object emitter_dispatcher;
 } comp_t;
 
 static comp_t comp;
@@ -249,7 +249,7 @@ static void
 register_dispatch (Lisp_Object key, void *func)
 {
   Lisp_Object value = make_mint_ptr (func);
-  Fputhash (key, value, comp.routine_dispatcher);
+  Fputhash (key, value, comp.emitter_dispatcher);
 }
 
 
@@ -1109,7 +1109,7 @@ emit_limple_call (Lisp_Object args)
   Lisp_Object calle_sym = FIRST (args);
   char *calle = (char *) SDATA (SYMBOL_NAME (calle_sym));
   Lisp_Object emitter =
-    Fgethash (calle_sym, comp.routine_dispatcher, Qnil);
+    Fgethash (calle_sym, comp.emitter_dispatcher, Qnil);
 
   if (!NILP (emitter))
     {
@@ -2056,10 +2056,10 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       return Qnil;
     }
 
-  if (NILP (comp.routine_dispatcher))
+  if (NILP (comp.emitter_dispatcher))
     {
       /* Move this into syms_of_comp the day will be dumpable.   */
-      comp.routine_dispatcher = CALLN (Fmake_hash_table);
+      comp.emitter_dispatcher = CALLN (Fmake_hash_table);
       register_dispatch (Qset_internal, emit_set_internal);
       register_dispatch (Qhelper_unbind_n, helper_unbind_n);
     }
@@ -2172,7 +2172,8 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 						    sizeof (void *),
 						    false);
 
-  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal);
+  if (NILP (comp.func_hash))
+    comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   /* Define data structures.  */
 
@@ -2442,13 +2443,12 @@ syms_of_comp (void)
   defsubr (&Scomp_release_ctxt);
   defsubr (&Scomp_add_func_to_ctxt);
   defsubr (&Scomp_compile_and_load_ctxt);
-  staticpro (&comp.func_hash);
-  staticpro (&comp.func_blocks);
-  comp.func_hash = Qnil;
-  comp.routine_dispatcher = Qnil;
 
-  staticpro (&comp.routine_dispatcher);
-  comp.routine_dispatcher = Qnil;
+  staticpro (&comp.func_hash);
+  comp.func_hash = Qnil;
+  staticpro (&comp.func_blocks);
+  staticpro (&comp.emitter_dispatcher);
+  comp.emitter_dispatcher = Qnil;
 
   DEFVAR_INT ("comp-speed", comp_speed,
 	      doc: /* From 0 to 3.  */);
