@@ -159,10 +159,19 @@
 
 (ert-deftest comp-tests-ffuncall ()
   "Test calling conventions."
-  (native-compile #'comp-tests-ffuncall-calle-f)
+
   (defun comp-tests-ffuncall-caller-f ()
     (comp-tests-ffuncall-callee-f 1 2 3))
 
+  (should (equal (comp-test-apply #'comp-tests-ffuncall-caller-f) '(1 2 3)))
+
+  ;; After it gets compiled
+  (native-compile #'comp-tests-ffuncall-callee-f)
+  (should (equal (comp-test-apply #'comp-tests-ffuncall-caller-f) '(1 2 3)))
+
+  ;; Recompiling the caller once with callee already compiled
+  (defun comp-tests-ffuncall-caller-f ()
+    (comp-tests-ffuncall-callee-f 1 2 3))
   (should (equal (comp-test-apply #'comp-tests-ffuncall-caller-f) '(1 2 3)))
 
   (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
