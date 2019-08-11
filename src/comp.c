@@ -1013,74 +1013,6 @@ emit_set_internal (Lisp_Object args)
   return emit_call ("set_internal", comp.void_type , 4, gcc_args);
 }
 
-static void
-emit_limple_ncall_prolog (EMACS_UINT n)
-{
-  /*
-    nargs will be known at runtime therfore we emit:
-
-    prologue:
-    local[0] = *args;
-    ++args;
-    .
-    .
-    .
-    local[min_args - 1] = *args;
-    ++args;
-    local[min_args] = list (nargs - min_args, args);
-    bb_1:
-    .
-    .
-    .
-  */
-  gcc_jit_lvalue *nargs =
-    gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
-  gcc_jit_lvalue *args =
-    gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1));
-  gcc_jit_rvalue *min_args =
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.ptrdiff_type,
-					 n);
-
-  for (ptrdiff_t i = 0; i < n; ++i)
-    {
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[i],
-				    gcc_jit_lvalue_as_rvalue (
-				      gcc_jit_rvalue_dereference (
-					gcc_jit_lvalue_as_rvalue (args),
-				      NULL)));
-
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    args,
-				    emit_ptr_arithmetic (
-				      gcc_jit_lvalue_as_rvalue (args),
-				      comp.lisp_obj_ptr_type,
-				      sizeof (Lisp_Object),
-				      comp.one));
-    }
-
-  /*
-    rest arguments
-  */
-  gcc_jit_rvalue *list_args[] =
-    { gcc_jit_context_new_binary_op (comp.ctxt,
-				     NULL,
-				     GCC_JIT_BINARY_OP_MINUS,
-				     comp.ptrdiff_type,
-				     gcc_jit_lvalue_as_rvalue (nargs),
-				     min_args),
-      gcc_jit_lvalue_as_rvalue (args) };
-
-  gcc_jit_block_add_assignment (comp.block,
-				NULL,
-				comp.frame[n],
-				emit_call ("Flist", comp.lisp_obj_type, 2,
-					   list_args));
-}
-
 /* This is for a regular function with arguments as m-var.   */
 
 static gcc_jit_rvalue *
@@ -1250,6 +1182,28 @@ emit_limple_insn (Lisp_Object insn)
 
       emit_cond_jump (emit_EQ (a, b), target2, target1);
     }
+  else if (EQ (op, Qcond_jump_narg_leq))
+    {
+      /*
+	 Limple: (cond-jump-narg-less 2 entry_2 entry_fallback_2)
+	 C: if (nargs < 2) goto entry2_fallback; else goto entry_2;
+      */
+      gcc_jit_lvalue *nargs =
+	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
+      gcc_jit_rvalue *n =
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.ptrdiff_type,
+					     XFIXNUM (arg0));
+      gcc_jit_block *target1 = retrive_block (SECOND (args));
+      gcc_jit_block *target2 = retrive_block (THIRD (args));
+      gcc_jit_rvalue *test = gcc_jit_context_new_comparison (
+			       comp.ctxt,
+			       NULL,
+			       GCC_JIT_COMPARISON_LE,
+			       gcc_jit_lvalue_as_rvalue (nargs),
+			       n);
+      emit_cond_jump (test, target2, target1);
+    }
   else if (EQ (op, Qpush_handler))
     {
       EMACS_UINT clobber_slot = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
@@ -1272,8 +1226,10 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qpop_handler))
     {
-      /* current_thread->m_handlerlist =
-	 current_thread->m_handlerlist->next;  */
+      /*
+	C: current_thread->m_handlerlist =
+	     current_thread->m_handlerlist->next;
+      */
       gcc_jit_lvalue *m_handlerlist =
 	gcc_jit_rvalue_dereference_field (comp.current_thread,
 					  NULL,
@@ -1328,10 +1284,74 @@ emit_limple_insn (Lisp_Object insn)
 				    comp.frame[slot_n],
 				    param);
     }
-  else if (EQ (op, Qncall_prolog))
+  else if (EQ (op, Qset_args_to_local))
     {
-      /* Ex: (ncall-prolog 2).  */
-      emit_limple_ncall_prolog (XFIXNUM (arg0));
+      /*
+	Limple: (set-args-to-local 1)
+	C: local[1] = *args;
+      */
+      gcc_jit_rvalue *gcc_args =
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1)));
+
+      gcc_jit_rvalue *res =
+	gcc_jit_lvalue_as_rvalue (gcc_jit_rvalue_dereference (gcc_args, NULL));
+
+      EMACS_UINT slot_n = XFIXNUM (arg0);
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[slot_n],
+				    res);
+    }
+  else if (EQ (op, Qset_rest_args_to_local))
+    {
+      /*
+        Limple: (set-rest-args-to-local 3)
+        C: local[3] = list (nargs - 3, args);
+      */
+      gcc_jit_rvalue *n =
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.ptrdiff_type,
+					     XFIXNUM (arg0));
+      gcc_jit_lvalue *nargs =
+	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
+      gcc_jit_lvalue *args =
+	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1));
+
+      gcc_jit_rvalue *list_args[] =
+	{ gcc_jit_context_new_binary_op (comp.ctxt,
+					 NULL,
+					 GCC_JIT_BINARY_OP_MINUS,
+					 comp.ptrdiff_type,
+					 gcc_jit_lvalue_as_rvalue (nargs),
+					 n),
+	  gcc_jit_lvalue_as_rvalue (args) };
+
+      res = emit_call ("Flist", comp.lisp_obj_type, 2,
+		       list_args);
+
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.frame[XFIXNUM (arg0)],
+				    res);
+    }
+  else if (EQ (op, Qinc_args))
+    {
+      /*
+	Limple: (inc-args)
+	C: ++args;
+      */
+      gcc_jit_lvalue *args =
+	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1));
+
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    args,
+				    emit_ptr_arithmetic (
+				      gcc_jit_lvalue_as_rvalue (args),
+				      comp.lisp_obj_ptr_type,
+				      sizeof (Lisp_Object),
+				      comp.one));
     }
   else if (EQ (op, Qsetimm))
     {
@@ -2456,11 +2476,14 @@ syms_of_comp (void)
   DEFSYM (Qcallref, "callref");
   DEFSYM (Qncall, "ncall");
   DEFSYM (Qsetpar, "setpar");
-  DEFSYM (Qncall_prolog, "ncall-prolog");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
+  DEFSYM (Qset_args_to_local, "set-args-to-local");
+  DEFSYM (Qset_rest_args_to_local, "set-rest-args-to-local");
+  DEFSYM (Qinc_args, "inc-args");
+  DEFSYM (Qcond_jump_narg_leq, "cond-jump-narg-leq");
   DEFSYM (Qpush_handler, "push-handler");
   DEFSYM (Qpop_handler, "pop-handler");
   DEFSYM (Qcondition_case, "condition-case");
