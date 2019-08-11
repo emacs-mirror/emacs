@@ -500,9 +500,8 @@ the annotation emission."
        (comp-stack-adjust (- arg))
        (comp-emit-set-call `(callref Ffuncall ,(1+ arg) ,(comp-sp))))
       (byte-unbind
-       (comp-emit `(call unbind_to
-                         ,(make-comp-mvar :constant arg)
-                         ,(make-comp-mvar :constant nil))))
+       (comp-emit `(call helper_unbind_n
+                         ,(make-comp-mvar :constant arg))))
       (byte-pophandler
        (comp-emit '(pop-handler)))
       (byte-pushconditioncase

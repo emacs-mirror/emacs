@@ -160,7 +160,7 @@ void helper_unwind_protect (Lisp_Object handler);
 
 Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 
-Lisp_Object helper_unbind_n (int val);
+Lisp_Object helper_unbind_n (Lisp_Object n);
 
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 				       enum pvec_type code);
@@ -1101,15 +1101,14 @@ emit_simple_limple_call (Lisp_Object args)
   return emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
 }
 
-/* Entry point to dispatch emission of  (call fun ...).  */
+/* Entry point to dispatch emitting (call fun ...).  */
 
 static gcc_jit_rvalue *
 emit_limple_call (Lisp_Object args)
 {
   Lisp_Object calle_sym = FIRST (args);
   char *calle = (char *) SDATA (SYMBOL_NAME (calle_sym));
-  Lisp_Object emitter =
-    Fgethash (calle_sym, comp.emitter_dispatcher, Qnil);
+  Lisp_Object emitter = Fgethash (calle_sym, comp.emitter_dispatcher, Qnil);
 
   if (!NILP (emitter))
     {
@@ -2061,7 +2060,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       /* Move this into syms_of_comp the day will be dumpable.   */
       comp.emitter_dispatcher = CALLN (Fmake_hash_table);
       register_dispatch (Qset_internal, emit_set_internal);
-      register_dispatch (Qhelper_unbind_n, helper_unbind_n);
+      register_dispatch (Qhelper_unbind_n, emit_simple_limple_call);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2402,9 +2401,9 @@ helper_temp_output_buffer_setup (Lisp_Object x)
 }
 
 Lisp_Object
-helper_unbind_n (int val)
+helper_unbind_n (Lisp_Object n)
 {
-  return unbind_to (SPECPDL_INDEX () - val, Qnil);
+  return unbind_to (SPECPDL_INDEX () - XFIXNUM (n), Qnil);
 }
 
 bool
