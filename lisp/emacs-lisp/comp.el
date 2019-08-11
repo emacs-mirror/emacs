@@ -287,7 +287,7 @@ Restore the original value afterwards."
 
 (defun comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
-If the calle function is known to have a return type propagate it."
+If the callee function is known to have a return type propagate it."
   (cl-assert call)
   (setf (comp-slot)
         (make-comp-mvar :slot (comp-sp)
@@ -701,13 +701,13 @@ the annotation emission."
        (comp-stack-adjust (- arg))
        (comp-copy-slot (+ arg (comp-sp)))))))
 
-(defun comp-emit-narg-prologue (args-min non-rest)
+(defun comp-emit-narg-prologue (minarg nonrest)
   "Emit the prologue for a narg function."
-  (cl-loop for i below args-min
+  (cl-loop for i below minarg
            do (progn
                 (comp-emit `(set-args-to-local ,i))
                 (comp-emit '(inc-args))))
-  (cl-loop for i from args-min below non-rest
+  (cl-loop for i from minarg below nonrest
            for bb = (intern (format "entry_%s" i))
            for fallback = (intern (format "entry_fallback_%s" i))
            do (progn
@@ -717,12 +717,12 @@ the annotation emission."
                 (comp-emit `(set-args-to-local ,i))
                 (comp-emit '(inc-args)))
            finally (comp-emit-jump 'entry_rest_args))
-  (cl-loop for i from args-min below non-rest
+  (cl-loop for i from minarg below nonrest
            do (comp-with-sp i
                 (comp-emit-block (intern (format "entry_fallback_%s" i)))
                 (comp-emit-set-const nil)))
   (comp-emit-block 'entry_rest_args)
-  (comp-emit `(set-rest-args-to-local ,non-rest)))
+  (comp-emit `(set-rest-args-to-local ,nonrest)))
 
 (defun comp-limplify (func)
   "Given FUNC compute its LIMPLE ir."

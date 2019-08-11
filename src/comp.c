@@ -1019,14 +1019,14 @@ static gcc_jit_rvalue *
 emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
 {
   int i = 0;
-  char *calle = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
+  char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
   args = XCDR (args);
   ptrdiff_t nargs = list_length (args);
   gcc_jit_rvalue *gcc_args[nargs];
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
 
-  return emit_call (calle, ret_type, nargs, gcc_args);
+  return emit_call (callee, ret_type, nargs, gcc_args);
 }
 
 static gcc_jit_rvalue *
@@ -1052,16 +1052,16 @@ emit_simple_limple_call_void_ret (Lisp_Object args)
 static gcc_jit_rvalue *
 emit_limple_call (Lisp_Object args)
 {
-  Lisp_Object calle_sym = FIRST (args);
-  char *calle = (char *) SDATA (SYMBOL_NAME (calle_sym));
-  Lisp_Object emitter = Fgethash (calle_sym, comp.emitter_dispatcher, Qnil);
+  Lisp_Object callee_sym = FIRST (args);
+  char *callee = (char *) SDATA (SYMBOL_NAME (callee_sym));
+  Lisp_Object emitter = Fgethash (callee_sym, comp.emitter_dispatcher, Qnil);
 
   if (!NILP (emitter))
     {
       gcc_jit_rvalue * (* emitter_ptr) (Lisp_Object) = xmint_pointer (emitter);
       return emitter_ptr (args);
     }
-  else if (calle[0] == 'F')
+  else if (callee[0] == 'F')
     {
       return emit_simple_limple_call_lisp_ret (args);
     }
@@ -1074,7 +1074,7 @@ emit_limple_call_ref (Lisp_Object args)
 {
   /* Ex: (callref Fplus 2 0).  */
 
-  char *calle = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
+  char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
   EMACS_UINT nargs = XFIXNUM (SECOND (args));
   EMACS_UINT base_ptr = XFIXNUM (THIRD (args));
   gcc_jit_rvalue *gcc_args[2] =
@@ -1083,7 +1083,7 @@ emit_limple_call_ref (Lisp_Object args)
 					   nargs),
       gcc_jit_lvalue_get_address (comp.frame[base_ptr], NULL) };
 
-  return emit_call (calle, comp.lisp_obj_type, 2, gcc_args);
+  return emit_call (callee, comp.lisp_obj_type, 2, gcc_args);
 }
 
 /* Register an handler for a non local exit.  */
@@ -2487,6 +2487,7 @@ syms_of_comp (void)
   DEFSYM (Qpush_handler, "push-handler");
   DEFSYM (Qpop_handler, "pop-handler");
   DEFSYM (Qcondition_case, "condition-case");
+  /* call operands.  */
   DEFSYM (Qcatcher, "catcher");
   DEFSYM (Qentry, "entry");
   DEFSYM (Qset_internal, "set_internal");
