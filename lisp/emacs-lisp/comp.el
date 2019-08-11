@@ -611,8 +611,12 @@ the annotation emission."
       (byte-char-syntax auto)
       (byte-buffer-substring auto)
       (byte-delete-region auto)
-      (byte-narrow-to-region)
-      (byte-widen)
+      (byte-narrow-to-region
+       (comp-emit-set-call `(call Fnarrow_to_region
+                                  ,(comp-slot)
+                                  ,(comp-slot-next))))
+      (byte-widen
+       (comp-emit-set-call '(call Fwiden)))
       (byte-end-of-line auto)
       (byte-constant2)
       (byte-goto
