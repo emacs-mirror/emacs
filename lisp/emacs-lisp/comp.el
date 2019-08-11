@@ -519,7 +519,7 @@ the annotation emission."
        (comp-emit `(call set_internal
                          ,(make-comp-mvar :constant arg)
                          ,(comp-slot))))
-      (byte-varbind
+      (byte-varbind ;; Verify
        (comp-emit `(call specbind
                          ,(make-comp-mvar :constant arg)
                          ,(comp-slot-next))))
@@ -618,7 +618,7 @@ the annotation emission."
       (byte-widen
        (comp-emit-set-call '(call Fwiden)))
       (byte-end-of-line auto)
-      (byte-constant2)
+      (byte-constant2) ;; TODO
       (byte-goto
        (comp-emit-jump (comp-lap-to-limple-bb (cl-third insn))))
       (byte-goto-if-nil
@@ -685,7 +685,7 @@ the annotation emission."
       (byte-stack-set
        (comp-with-sp (1+ (comp-sp))
          (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
-      (byte-stack-set2)
+      (byte-stack-set2) ;; TODO
       (byte-discardN
        (comp-stack-adjust (- arg)))
       (byte-switch
