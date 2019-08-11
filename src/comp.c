@@ -2183,8 +2183,11 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 						    sizeof (void *),
 						    false);
 
-  if (NILP (comp.func_hash))
-    comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal);
+  /*
+    Always reinitialize this cause old function definitions are garbage collected
+    by libgccjit when the ctxt is released.
+  */
+  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   /* Define data structures.  */
 
