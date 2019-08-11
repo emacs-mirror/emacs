@@ -2073,6 +2073,8 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 			emit_simple_limple_call_void_ret);
       register_emitter (Qrecord_unwind_current_buffer,
 			emit_simple_limple_call_lisp_ret);
+      register_emitter (Qrecord_unwind_protect_excursion,
+			emit_simple_limple_call_void_ret);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2452,6 +2454,7 @@ syms_of_comp (void)
   DEFSYM (Qentry, "entry");
   DEFSYM (Qset_internal, "set_internal");
   DEFSYM (Qrecord_unwind_current_buffer, "record_unwind_current_buffer");
+  DEFSYM (Qrecord_unwind_protect_excursion, "record_unwind_protect_excursion");
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
   DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
 

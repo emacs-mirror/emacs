@@ -635,7 +635,8 @@ the annotation emission."
       (byte-discard 'pass)
       (byte-dup
        (comp-copy-slot (1- (comp-sp))))
-      (byte-save-excursion)
+      (byte-save-excursion
+       (comp-emit '(call record_unwind_protect_excursion)))
       (byte-save-window-excursion-OBSOLETE)
       (byte-save-restriction)
       (byte-catch)
