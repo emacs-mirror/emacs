@@ -246,7 +246,7 @@ declare_block (Lisp_Object block_name)
 }
 
 static void
-register_dispatch (Lisp_Object key, void *func)
+register_emitter (Lisp_Object key, void *func)
 {
   Lisp_Object value = make_mint_ptr (func);
   Fputhash (key, value, comp.emitter_dispatcher);
@@ -1082,14 +1082,8 @@ emit_limple_ncall_prolog (EMACS_UINT n)
 /* This is for a regular function with arguments as m-var.   */
 
 static gcc_jit_rvalue *
-emit_simple_limple_call (Lisp_Object args)
+emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
 {
-  /*
-    Ex: (call Fcar #s(comp-mvar 4 0 nil nil nil))
-
-    Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
-                    #s(comp-mvar 4 nil t nil nil))
-  */
   int i = 0;
   char *calle = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
   args = XCDR (args);
@@ -1098,7 +1092,25 @@ emit_simple_limple_call (Lisp_Object args)
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
 
-  return emit_call (calle, comp.lisp_obj_type, nargs, gcc_args);
+  return emit_call (calle, ret_type, nargs, gcc_args);
+}
+
+static gcc_jit_rvalue *
+emit_simple_limple_call_lisp_ret (Lisp_Object args)
+{
+  /*
+    Ex: (call Fcar #s(comp-mvar 4 0 nil nil nil))
+
+    Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
+                    #s(comp-mvar 4 nil t nil nil))
+  */
+  return emit_simple_limple_call (args, comp.lisp_obj_type);
+}
+
+static gcc_jit_rvalue *
+emit_simple_limple_call_void_ret (Lisp_Object args)
+{
+  return emit_simple_limple_call (args, comp.void_type);
 }
 
 /* Entry point to dispatch emitting (call fun ...).  */
@@ -1117,13 +1129,9 @@ emit_limple_call (Lisp_Object args)
     }
   else if (calle[0] == 'F')
     {
-      return emit_simple_limple_call (args);
+      return emit_simple_limple_call_lisp_ret (args);
     }
-  else if (!strcmp (calle, "record_unwind_current_buffer") ||
-	   !strcmp (calle, "helper_unwind_protect"))
-    {
-      return emit_call (calle, comp.void_type, 0, NULL);
-    }
+
   error ("LIMPLE call is inconsistent");
 }
 
@@ -2059,8 +2067,12 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
     {
       /* Move this into syms_of_comp the day will be dumpable.   */
       comp.emitter_dispatcher = CALLN (Fmake_hash_table);
-      register_dispatch (Qset_internal, emit_set_internal);
-      register_dispatch (Qhelper_unbind_n, emit_simple_limple_call);
+      register_emitter (Qset_internal, emit_set_internal);
+      register_emitter (Qhelper_unbind_n, emit_simple_limple_call_lisp_ret);
+      register_emitter (Qhelper_unwind_protect,
+			emit_simple_limple_call_void_ret);
+      register_emitter (Qrecord_unwind_current_buffer,
+			emit_simple_limple_call_lisp_ret);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2436,7 +2448,9 @@ syms_of_comp (void)
   DEFSYM (Qcatcher, "catcher");
   DEFSYM (Qentry, "entry");
   DEFSYM (Qset_internal, "set_internal");
+  DEFSYM (Qrecord_unwind_current_buffer, "record_unwind_current_buffer");
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
+  DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);

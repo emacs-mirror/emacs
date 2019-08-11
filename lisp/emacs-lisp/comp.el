@@ -613,7 +613,7 @@ the annotation emission."
       (byte-save-restriction)
       (byte-catch)
       (byte-unwind-protect
-       (comp-emit '(call helper_unwind_protect)))
+       (comp-emit `(call helper_unwind_protect ,(comp-slot-next))))
       (byte-condition-case)
       (byte-temp-output-buffer-setup-OBSOLETE)
       (byte-temp-output-buffer-show-OBSOLETE)
