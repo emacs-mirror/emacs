@@ -453,6 +453,14 @@
 
   (should (= (comp-test-apply #'comp-tests-cons-cdr-f 3) 3)))
 
+(ert-deftest comp-tests-buffer ()
+  (defun comp-tests-buff0-f ()
+    (with-temp-buffer
+      (insert "foo")
+      (buffer-string)))
+
+  (should (string= (comp-test-apply #'comp-tests-buff0-f) "foo")))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
