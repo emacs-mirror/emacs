@@ -76,15 +76,20 @@
 	     finally return h)
     "Hash table lap-op -> stack adjustment."))
 
-(cl-defstruct comp-args
+(cl-defstruct comp-args-gen
   (min nil :type number
-       :documentation "Minimum number of arguments allowed.")
-  (max nil
+       :documentation "Minimum number of arguments allowed."))
+
+(cl-defstruct (comp-args (:include comp-args-gen))
+  (max nil :type number
        :documentation "Maximum number of arguments allowed.
-To be used when ncall-conv is nil.")
-  (ncall-conv nil :type boolean
-              :documentation "If t the signature is:
-(ptrdiff_t nargs, Lisp_Object *args)."))
+To be used when ncall-conv is nil."))
+
+(cl-defstruct (comp-nargs (:include comp-args-gen))
+  "Describe args when the functin signature is of kind:
+(ptrdiff_t nargs, Lisp_Object *args)."
+  (nonrest nil :type number
+           :documentation "Number of non rest arguments."))
 
 (cl-defstruct (comp-block (:copier nil))
   "A basic block."
@@ -109,7 +114,7 @@ into it.")
              :documentation "Byte compiled version.")
   (lap () :type list
        :documentation "Lap assembly representation.")
-  (args nil :type 'comp-args)
+  (args nil :type 'comp-args-gen)
   (frame-size nil :type 'number)
   (blocks (make-hash-table) :type 'hash-table
           :documentation "Key is the basic block symbol value is a comp-block
@@ -203,8 +208,8 @@ BODY is evaluate only if `comp-debug' is non nil."
              (< nonrest 9)) ;; SUBR_MAX_ARGS
         (make-comp-args :min mandatory
                         :max nonrest)
-      (make-comp-args :min mandatory
-                      :ncall-conv t))))
+      (make-comp-nargs :min mandatory
+                       :nonrest nonrest))))
 
 (defun comp-spill-lap (func)
   "Byte compile and spill the LAP rapresentation for FUNC."
@@ -703,13 +708,13 @@ the annotation emission."
          (comp-pass (make-comp-limplify
                      :sp -1
                      :frame (comp-new-frame frame-size)))
-         (args-min (comp-args-min (comp-func-args func)))
+         (args-min (comp-args-gen-min (comp-func-args func)))
          (comp-block ()))
     ;; Prologue
     (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
-    (if (not (comp-args-ncall-conv (comp-func-args func)))
+    (if (comp-args-p (comp-func-args func))
       (cl-loop for i below (comp-args-max (comp-func-args func))
                do (cl-incf (comp-sp))
                do (comp-emit `(setpar ,(comp-slot) ,i)))

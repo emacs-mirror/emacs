@@ -2247,8 +2247,7 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
-  /* EMACS_INT min_args = XFIXNUM (FUNCALL1 (comp-args-min, args)); */
-  bool ncall = !NILP (FUNCALL1 (comp-args-ncall-conv, args));
+  bool ncall = (FUNCALL1 (comp-nargs-p, args));
 
   if (!ncall)
     {
@@ -2373,8 +2372,8 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
       x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
       eassert (x->s.function.a0);
-      x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-min, args));
-      if (NILP (FUNCALL1 (comp-args-ncall-conv, args)))
+      x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-gen-min, args));
+      if (FUNCALL1 (comp-args-p, args))
 	x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       else
 	x->s.max_args = MANY;
