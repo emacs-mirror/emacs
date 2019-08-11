@@ -741,7 +741,7 @@ the annotation emission."
     (if (comp-args-p args)
       (cl-loop for i below (comp-args-max args)
                do (cl-incf (comp-sp))
-               do (comp-emit `(setpar ,(comp-slot) ,i)))
+               do (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
       (let ((nonrest (comp-nargs-nonrest args)))
         (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))

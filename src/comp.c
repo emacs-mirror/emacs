@@ -1271,7 +1271,7 @@ emit_limple_insn (Lisp_Object insn)
 				    comp.frame[slot_n],
 				    res);
     }
-  else if (EQ (op, Qsetpar))
+  else if (EQ (op, Qset_par_to_local))
     {
       /* Ex: (setpar #s(comp-mvar 2 0 nil nil nil) 0).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
@@ -2475,15 +2475,17 @@ syms_of_comp (void)
   DEFSYM (Qcall, "call");
   DEFSYM (Qcallref, "callref");
   DEFSYM (Qncall, "ncall");
-  DEFSYM (Qsetpar, "setpar");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
+  /* Used during prologue emission.  */
+  DEFSYM (Qset_par_to_local, "set-par-to-local");
   DEFSYM (Qset_args_to_local, "set-args-to-local");
   DEFSYM (Qset_rest_args_to_local, "set-rest-args-to-local");
   DEFSYM (Qinc_args, "inc-args");
   DEFSYM (Qcond_jump_narg_leq, "cond-jump-narg-leq");
+  /* Others.  */
   DEFSYM (Qpush_handler, "push-handler");
   DEFSYM (Qpop_handler, "pop-handler");
   DEFSYM (Qcondition_case, "condition-case");
