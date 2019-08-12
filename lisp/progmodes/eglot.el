@@ -2371,7 +2371,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (let* (success
          (globs (mapcar (eglot--lambda ((FileSystemWatcher) globPattern)
                           globPattern)
-                        watchers)))
+                        watchers))
+	 (glob-dirs
+	  (delete-dups (mapcar #'file-name-directory
+			       (mapcan #'file-expand-wildcards globs)))))
     (cl-labels
         ((handle-event
           (event)
@@ -2394,13 +2397,14 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
               (handle-event '(desc 'deleted file))
               (handle-event '(desc 'created file1)))))))
       (unwind-protect
-          (progn (dolist (dir (delete-dups (mapcar #'file-name-directory globs)))
-                   (push (file-notify-add-watch dir '(change) #'handle-event)
-                         (gethash id (eglot--file-watches server))))
-                 (setq
-                  success
-                  `(:message ,(format "OK, watching %s watchers"
-                                      (length watchers)))))
+          (progn
+	    (dolist (dir glob-dirs)
+	      (push (file-notify-add-watch dir '(change) #'handle-event)
+		    (gethash id (eglot--file-watches server))))
+	    (setq
+	     success
+	     `(:message ,(format "OK, watching %s directories in %s watchers"
+				 (length glob-dirs) (length watchers)))))
         (unless success
           (eglot-unregister-capability server method id))))))
 
