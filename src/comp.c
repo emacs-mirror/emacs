@@ -1409,6 +1409,26 @@ emit_consp (Lisp_Object insn)
 				   1, &res);
 }
 
+static gcc_jit_rvalue *
+emit_car (Lisp_Object insn)
+{
+  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.car,
+				   1, &x);
+}
+
+static gcc_jit_rvalue *
+emit_cdr (Lisp_Object insn)
+{
+  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.cdr,
+				   1, &x);
+}
+
 
 /****************************************************************/
 /* Inline function definition and lisp data structure follows.  */
@@ -2219,6 +2239,8 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       register_emitter (QFadd1, emit_add1);
       register_emitter (QFsub1, emit_sub1);
       register_emitter (QFconsp, emit_consp);
+      register_emitter (QFcar, emit_car);
+      register_emitter (QFcdr, emit_cdr);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2622,6 +2644,8 @@ syms_of_comp (void)
   DEFSYM (QFadd1, "Fadd1");
   DEFSYM (QFsub1, "Fsub1");
   DEFSYM (QFconsp, "Fconsp");
+  DEFSYM (QFcar, "Fcar");
+  DEFSYM (QFcdr, "Fcdr");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
