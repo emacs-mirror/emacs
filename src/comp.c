@@ -136,6 +136,8 @@ typedef struct {
   gcc_jit_rvalue *lisp_int0;
   gcc_jit_function *pseudovectorp;
   gcc_jit_function *bool_to_lisp_obj;
+  gcc_jit_function *add1;
+  gcc_jit_function *sub1;
   gcc_jit_function *car;
   gcc_jit_function *cdr;
   gcc_jit_function *setcar;
@@ -615,67 +617,67 @@ emit_CONSP (gcc_jit_rvalue *obj)
 /* 				   args); */
 /* } */
 
-/* static gcc_jit_rvalue * */
-/* emit_FIXNUMP (gcc_jit_rvalue *obj) */
-/* { */
-/*   /\* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) */
-/* 	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG)) */
-/* 	& ((1 << INTTYPEBITS) - 1)))  *\/ */
-/*   emit_comment ("FIXNUMP"); */
+static gcc_jit_rvalue *
+emit_FIXNUMP (gcc_jit_rvalue *obj)
+{
+  /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
+	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG))
+	& ((1 << INTTYPEBITS) - 1)))  */
+  emit_comment ("FIXNUMP");
 
-/*   gcc_jit_rvalue *sh_res = */
-/*     gcc_jit_context_new_binary_op ( */
-/*       comp.ctxt, */
-/*       NULL, */
-/*       GCC_JIT_BINARY_OP_RSHIFT, */
-/*       comp.emacs_int_type, */
-/*       emit_XLI (obj), */
-/*       gcc_jit_context_new_rvalue_from_int (comp.ctxt, */
-/* 					   comp.emacs_int_type, */
-/* 					   (USE_LSB_TAG ? 0 : FIXNUM_BITS))); */
+  gcc_jit_rvalue *sh_res =
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_RSHIFT,
+      comp.emacs_int_type,
+      emit_XLI (obj),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.emacs_int_type,
+					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
 
-/*   gcc_jit_rvalue *minus_res = */
-/*     gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 				   NULL, */
-/* 				   GCC_JIT_BINARY_OP_MINUS, */
-/* 				   comp.unsigned_type, */
-/* 				   emit_cast (comp.unsigned_type, sh_res), */
-/* 				   gcc_jit_context_new_rvalue_from_int ( */
-/* 				     comp.ctxt, */
-/* 				     comp.unsigned_type, */
-/* 				     (Lisp_Int0 >> !USE_LSB_TAG))); */
+  gcc_jit_rvalue *minus_res =
+    gcc_jit_context_new_binary_op (comp.ctxt,
+				   NULL,
+				   GCC_JIT_BINARY_OP_MINUS,
+				   comp.unsigned_type,
+				   emit_cast (comp.unsigned_type, sh_res),
+				   gcc_jit_context_new_rvalue_from_int (
+				     comp.ctxt,
+				     comp.unsigned_type,
+				     (Lisp_Int0 >> !USE_LSB_TAG)));
 
-/*   gcc_jit_rvalue *res = */
-/*    gcc_jit_context_new_unary_op ( */
-/*      comp.ctxt, */
-/*      NULL, */
-/*      GCC_JIT_UNARY_OP_LOGICAL_NEGATE, */
-/*      comp.int_type, */
-/*      gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 				    NULL, */
-/* 				    GCC_JIT_BINARY_OP_BITWISE_AND, */
-/* 				    comp.unsigned_type, */
-/* 				    minus_res, */
-/* 				    gcc_jit_context_new_rvalue_from_int ( */
-/* 				      comp.ctxt, */
-/* 				      comp.unsigned_type, */
-/* 				      ((1 << INTTYPEBITS) - 1)))); */
+  gcc_jit_rvalue *res =
+   gcc_jit_context_new_unary_op (
+     comp.ctxt,
+     NULL,
+     GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
+     comp.int_type,
+     gcc_jit_context_new_binary_op (comp.ctxt,
+				    NULL,
+				    GCC_JIT_BINARY_OP_BITWISE_AND,
+				    comp.unsigned_type,
+				    minus_res,
+				    gcc_jit_context_new_rvalue_from_int (
+				      comp.ctxt,
+				      comp.unsigned_type,
+				      ((1 << INTTYPEBITS) - 1))));
 
-/*   return res; */
-/* } */
+  return res;
+}
 
-/* static gcc_jit_rvalue * */
-/* emit_XFIXNUM (gcc_jit_rvalue *obj) */
-/* { */
-/*   emit_comment ("XFIXNUM"); */
+static gcc_jit_rvalue *
+emit_XFIXNUM (gcc_jit_rvalue *obj)
+{
+  emit_comment ("XFIXNUM");
 
-/*   return gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 					NULL, */
-/* 					GCC_JIT_BINARY_OP_RSHIFT, */
-/* 					comp.emacs_int_type, */
-/* 					emit_XLI (obj), */
-/* 					comp.inttypebits); */
-/* } */
+  return gcc_jit_context_new_binary_op (comp.ctxt,
+					NULL,
+					GCC_JIT_BINARY_OP_RSHIFT,
+					comp.emacs_int_type,
+					emit_XLI (obj),
+					comp.inttypebits);
+}
 
 /* static gcc_jit_rvalue * */
 /* emit_INTEGERP (gcc_jit_rvalue *obj) */
@@ -705,38 +707,38 @@ emit_CONSP (gcc_jit_rvalue *obj)
 /* 						   emit_FLOATP (obj))); */
 /* } */
 
-/* static gcc_jit_rvalue * */
-/* emit_make_fixnum (gcc_jit_rvalue *obj) */
-/* { */
-/*   emit_comment ("make_fixnum"); */
+static gcc_jit_rvalue *
+emit_make_fixnum (gcc_jit_rvalue *obj)
+{
+  emit_comment ("make_fixnum");
 
-/*   gcc_jit_rvalue *tmp = */
-/*     gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 				   NULL, */
-/* 				   GCC_JIT_BINARY_OP_LSHIFT, */
-/* 				   comp.emacs_int_type, */
-/* 				   obj, */
-/* 				   comp.inttypebits); */
+  gcc_jit_rvalue *tmp =
+    gcc_jit_context_new_binary_op (comp.ctxt,
+				   NULL,
+				   GCC_JIT_BINARY_OP_LSHIFT,
+				   comp.emacs_int_type,
+				   obj,
+				   comp.inttypebits);
 
-/*   tmp = gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 				       NULL, */
-/* 				       GCC_JIT_BINARY_OP_PLUS, */
-/* 				       comp.emacs_int_type, */
-/* 				       tmp, */
-/* 				       comp.lisp_int0); */
+  tmp = gcc_jit_context_new_binary_op (comp.ctxt,
+				       NULL,
+				       GCC_JIT_BINARY_OP_PLUS,
+				       comp.emacs_int_type,
+				       tmp,
+				       comp.lisp_int0);
 
-/*   gcc_jit_lvalue *res = gcc_jit_function_new_local (comp.func, */
-/* 						    NULL, */
-/* 						    comp.lisp_obj_type, */
-/* 						    "lisp_obj_fixnum"); */
+  gcc_jit_lvalue *res = gcc_jit_function_new_local (comp.func,
+						    NULL,
+						    comp.lisp_obj_type,
+						    "lisp_obj_fixnum");
 
-/*   gcc_jit_block_add_assignment (comp.block, */
-/* 				NULL, */
-/* 				emit_lval_XLI (res), */
-/* 				tmp); */
+  gcc_jit_block_add_assignment (comp.block,
+				NULL,
+				emit_lval_XLI (res),
+				tmp);
 
-/*   return gcc_jit_lvalue_as_rvalue (res); */
-/* } */
+  return gcc_jit_lvalue_as_rvalue (res);
+}
 
 /* Construct fill and return a lisp object form a raw pointer.	*/
 static gcc_jit_rvalue *
@@ -1377,6 +1379,18 @@ emit_limple_insn (Lisp_Object insn)
 }
 
 
+/*******************************/
+/* Code emitters for inlines.  */
+/*******************************/
+
+static gcc_jit_rvalue *
+emit_add1 (Lisp_Object insn)
+{
+  gcc_jit_rvalue *n = emit_mvar_val (SECOND (insn));
+  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.add1, 1, &n);
+}
+
+
 /****************************************************************/
 /* Inline function definition and lisp data structure follows.  */
 /****************************************************************/
@@ -1774,8 +1788,7 @@ define_CHECK_TYPE (void)
   gcc_jit_block_end_with_void_return (not_ok_block, NULL);
 }
 
-
-/* Declare a substitute for CAR as always inlined function.  */
+/* Define a substitute for CAR as always inlined function.  */
 
 static void
 define_CAR_CDR (void)
@@ -1926,7 +1939,82 @@ define_setcar_setcdr (void)
     }
 }
 
-/* Declare a substitute for PSEUDOVECTORP as always inlined function.  */
+/*
+   Define a substitute for Fadd1 Fsub1.
+   Currently expose just fixnum arithmetic.
+*/
+
+static void
+define_add1_sub1 (void)
+{
+  gcc_jit_block *bb_orig = comp.block;
+
+  gcc_jit_param *param[] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "n") };
+
+  comp.func = comp.add1 =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.lisp_obj_type,
+				  "add1",
+				  1,
+				  param,
+				  0);
+
+  DECL_BLOCK (init_block, comp.add1);
+  DECL_BLOCK (add1_inline_block, comp.add1);
+  DECL_BLOCK (add1_fcall_block, comp.add1);
+
+  comp.block = init_block;
+
+  /* (FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
+     ? (XFIXNUM (n) + 1)
+     : Fadd1 (n)) */
+
+  gcc_jit_rvalue *n = gcc_jit_param_as_rvalue (param[0]);
+  gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (n);
+
+  emit_cond_jump (
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_LOGICAL_AND,
+      comp.bool_type,
+      emit_cast (comp.bool_type,
+		 emit_FIXNUMP (n)),
+      gcc_jit_context_new_comparison (comp.ctxt,
+				      NULL,
+				      GCC_JIT_COMPARISON_NE,
+				      n_fixnum,
+				      comp.most_positive_fixnum)),
+    add1_inline_block,
+    add1_fcall_block);
+
+  comp.block = add1_inline_block;
+  gcc_jit_rvalue *inline_res =
+    gcc_jit_context_new_binary_op (comp.ctxt,
+				   NULL,
+				   GCC_JIT_BINARY_OP_PLUS,
+				   comp.emacs_int_type,
+				   n_fixnum,
+				   comp.one);
+
+  gcc_jit_block_end_with_return (add1_inline_block,
+				 NULL,
+				 emit_make_fixnum (inline_res));
+
+  comp.block = add1_fcall_block;
+  gcc_jit_rvalue *call_res = emit_call ("Fadd1", comp.lisp_obj_type, 1, &n);
+  gcc_jit_block_end_with_return (add1_fcall_block,
+				 NULL,
+				 call_res);
+  comp.block = bb_orig;
+}
+
+/* Define a substitute for PSEUDOVECTORP as always inlined function.  */
 
 static void
 define_PSEUDOVECTORP (void)
@@ -2029,7 +2117,7 @@ define_CHECK_IMPURE (void)
     gcc_jit_block_end_with_void_return (err_block, NULL);
 }
 
-/* Declare a function to convert boolean into t or nil */
+/* Define a function to convert boolean into t or nil */
 
 static void
 define_bool_to_lisp_obj (void)
@@ -2099,6 +2187,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 			emit_simple_limple_call_void_ret);
       register_emitter (Qhelper_save_restriction,
 			emit_simple_limple_call_void_ret);
+      register_emitter (QFadd1, emit_add1);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2239,7 +2328,8 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
   define_CHECK_TYPE ();
   define_CHECK_IMPURE ();
   define_bool_to_lisp_obj ();
-  define_setcar_setcdr();
+  define_setcar_setcdr ();
+  define_add1_sub1 ();
 
   return Qt;
 }
@@ -2497,7 +2587,8 @@ syms_of_comp (void)
   DEFSYM (Qrecord_unwind_protect_excursion, "record_unwind_protect_excursion");
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
   DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
-  DEFSYM (Qhelper_save_restriction, "helper_save_restriction")
+  DEFSYM (Qhelper_save_restriction, "helper_save_restriction");
+  DEFSYM (QFadd1, "Fadd1")
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
