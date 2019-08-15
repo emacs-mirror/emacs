@@ -1386,9 +1386,9 @@ emit_limple_insn (Lisp_Object insn)
 }
 
 
-/*******************************/
-/* Code emitters for inlines.  */
-/*******************************/
+/**************/
+/* Inliners.  */
+/**************/
 
 static gcc_jit_rvalue *
 emit_add1 (Lisp_Object insn)
@@ -1448,6 +1448,15 @@ emit_numperp (Lisp_Object insn)
 {
   gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
   gcc_jit_rvalue *res = emit_NUMBERP (x);
+  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.bool_to_lisp_obj, 1,
+				   &res);
+}
+
+static gcc_jit_rvalue *
+emit_integerp (Lisp_Object insn)
+{
+  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  gcc_jit_rvalue *res = emit_INTEGERP (x);
   return gcc_jit_context_new_call (comp.ctxt, NULL, comp.bool_to_lisp_obj, 1,
 				   &res);
 }
@@ -2329,6 +2338,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 			emit_simple_limple_call_void_ret);
       register_emitter (Qhelper_save_restriction,
 			emit_simple_limple_call_void_ret);
+      /* Inliners.  */
       register_emitter (QFadd1, emit_add1);
       register_emitter (QFsub1, emit_sub1);
       register_emitter (QFconsp, emit_consp);
@@ -2336,6 +2346,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       register_emitter (QFcdr, emit_cdr);
       register_emitter (Qnegate, emit_negate);
       register_emitter (QFnumberp, emit_numperp);
+      register_emitter (QFintegerp, emit_integerp);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2745,6 +2756,7 @@ syms_of_comp (void)
   DEFSYM (QFcdr, "Fcdr");
   DEFSYM (Qnegate, "negate");
   DEFSYM (QFnumberp, "Fnumberp");
+  DEFSYM (QFintegerp, "Fintegerp");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
