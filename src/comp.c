@@ -138,6 +138,7 @@ typedef struct {
   gcc_jit_function *bool_to_lisp_obj;
   gcc_jit_function *add1;
   gcc_jit_function *sub1;
+  gcc_jit_function *negate;
   gcc_jit_function *car;
   gcc_jit_function *cdr;
   gcc_jit_function *setcar;
@@ -335,6 +336,18 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 				  func,
 				  nargs,
 				  args);
+}
+
+static gcc_jit_rvalue *
+emit_call_n_ref (const char *f_name, unsigned nargs,
+		 gcc_jit_lvalue *base_arg)
+{
+  gcc_jit_rvalue *args[] =
+    { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
+					  comp.ptrdiff_type,
+					  nargs),
+      gcc_jit_lvalue_get_address (base_arg, NULL) };
+  return emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
 /* Close current basic block emitting a conditional.  */
@@ -1398,6 +1411,13 @@ emit_sub1 (Lisp_Object insn)
 }
 
 static gcc_jit_rvalue *
+emit_negate (Lisp_Object insn)
+{
+  gcc_jit_rvalue *n = emit_mvar_val (SECOND (insn));
+  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.negate, 1, &n);
+}
+
+static gcc_jit_rvalue *
 emit_consp (Lisp_Object insn)
 {
   gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
@@ -1804,11 +1824,11 @@ define_CHECK_TYPE (void)
   gcc_jit_rvalue *predicate = gcc_jit_param_as_rvalue (param[1]);
   gcc_jit_rvalue *x = gcc_jit_param_as_rvalue (param[2]);
 
-  DECL_BLOCK (init_block, comp.check_type);
+  DECL_BLOCK (entry_block, comp.check_type);
   DECL_BLOCK (ok_block, comp.check_type);
   DECL_BLOCK (not_ok_block, comp.check_type);
 
-  comp.block = init_block;
+  comp.block = entry_block;
   comp.func = comp.check_type;
 
   emit_cond_jump (ok, ok_block, not_ok_block);
@@ -1865,11 +1885,11 @@ define_CAR_CDR (void)
   for (int i = 0; i < 2; i++)
     {
       gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param);
-      DECL_BLOCK (init_block, f);
+      DECL_BLOCK (entry_block, f);
       DECL_BLOCK (is_cons_b, f);
       DECL_BLOCK (not_a_cons_b, f);
 
-      comp.block = init_block;
+      comp.block = entry_block;
       comp.func = f;
 
       emit_cond_jump (emit_CONSP (c), is_cons_b, not_a_cons_b);
@@ -1942,9 +1962,9 @@ define_setcar_setcdr (void)
 					     2,
 					     param,
 					     0);
-      DECL_BLOCK (init_block, *f_ref);
+      DECL_BLOCK (entry_block, *f_ref);
       comp.func = *f_ref;
-      comp.block = init_block;
+      comp.block = entry_block;
 
       /* CHECK_CONS (cell); */
       emit_CHECK_CONS (gcc_jit_param_as_rvalue (cell));
@@ -1955,7 +1975,7 @@ define_setcar_setcdr (void)
 	  emit_XCONS (gcc_jit_param_as_rvalue (cell)) };
 
       gcc_jit_block_add_eval (
-			      init_block,
+			      entry_block,
 			      NULL,
 			      gcc_jit_context_new_call (comp.ctxt,
 							NULL,
@@ -1972,7 +1992,7 @@ define_setcar_setcdr (void)
 		      gcc_jit_param_as_rvalue (new_el));
 
       /* return newel; */
-      gcc_jit_block_end_with_return (init_block,
+      gcc_jit_block_end_with_return (entry_block,
 				     NULL,
 				     gcc_jit_param_as_rvalue (new_el));
     }
@@ -2009,11 +2029,11 @@ define_add1_sub1 (void)
 				      1,
 				      &param,
 				      0);
-      DECL_BLOCK (init_block, func[i]);
+      DECL_BLOCK (entry_block, func[i]);
       DECL_BLOCK (inline_block, func[i]);
       DECL_BLOCK (fcall_block, func[i]);
 
-      comp.block = init_block;
+      comp.block = entry_block;
 
       /* (FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
 	 ? (XFIXNUM (n) + 1)
@@ -2063,6 +2083,76 @@ define_add1_sub1 (void)
   comp.sub1 = func[1];
 }
 
+static void
+define_negate (void)
+{
+  gcc_jit_block *bb_orig = comp.block;
+
+  gcc_jit_param *param[] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "n") };
+
+  comp.func = comp.negate =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.lisp_obj_type,
+				  "negate",
+				  1,
+				  param,
+				  0);
+
+  DECL_BLOCK (entry_block, comp.negate);
+  DECL_BLOCK (inline_block, comp.negate);
+  DECL_BLOCK (fcall_block, comp.negate);
+
+  comp.block = entry_block;
+
+  /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
+		 ? make_fixnum (- XFIXNUM (TOP))
+		 : Fminus (1, &TOP)) */
+
+  gcc_jit_lvalue *n = gcc_jit_param_as_lvalue (param[0]);
+  gcc_jit_rvalue *n_fixnum =
+    emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (n));
+
+  emit_cond_jump (
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_LOGICAL_AND,
+      comp.bool_type,
+      emit_cast (comp.bool_type,
+		 emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (n))),
+      gcc_jit_context_new_comparison (comp.ctxt,
+				      NULL,
+				      GCC_JIT_COMPARISON_NE,
+				      n_fixnum,
+				      comp.most_negative_fixnum)),
+    inline_block,
+    fcall_block);
+
+  comp.block = inline_block;
+  gcc_jit_rvalue *inline_res =
+    gcc_jit_context_new_unary_op (comp.ctxt,
+				  NULL,
+				  GCC_JIT_UNARY_OP_MINUS,
+				  comp.emacs_int_type,
+				  n_fixnum);
+
+  gcc_jit_block_end_with_return (inline_block,
+				 NULL,
+				 emit_make_fixnum (inline_res));
+
+  comp.block = fcall_block;
+  gcc_jit_rvalue *call_res = emit_call_n_ref ("Fminus", 1, n);
+  gcc_jit_block_end_with_return (fcall_block,
+				 NULL,
+				 call_res);
+  comp.block = bb_orig;
+}
+
 /* Define a substitute for PSEUDOVECTORP as always inlined function.  */
 
 static void
@@ -2087,11 +2177,11 @@ define_PSEUDOVECTORP (void)
 				  param,
 				  0);
 
-  DECL_BLOCK (init_block, comp.pseudovectorp);
+  DECL_BLOCK (entry_block, comp.pseudovectorp);
   DECL_BLOCK (ret_false_b, comp.pseudovectorp);
   DECL_BLOCK (call_pseudovector_typep_b, comp.pseudovectorp);
 
-  comp.block = init_block;
+  comp.block = entry_block;
   comp.func = comp.pseudovectorp;
 
   emit_cond_jump (emit_VECTORLIKEP (gcc_jit_param_as_rvalue (param[0])),
@@ -2141,11 +2231,11 @@ define_CHECK_IMPURE (void)
 				  param,
 				  0);
 
-    DECL_BLOCK (init_block, comp.check_impure);
+    DECL_BLOCK (entry_block, comp.check_impure);
     DECL_BLOCK (err_block, comp.check_impure);
     DECL_BLOCK (ok_block, comp.check_impure);
 
-    comp.block = init_block;
+    comp.block = entry_block;
     comp.func = comp.check_impure;
 
     emit_cond_jump (emit_PURE_P (gcc_jit_param_as_rvalue (param[0])), /* FIXME */
@@ -2184,10 +2274,10 @@ define_bool_to_lisp_obj (void)
 				  1,
 				  &param,
 				  0);
-  DECL_BLOCK (init_block, comp.bool_to_lisp_obj);
+  DECL_BLOCK (entry_block, comp.bool_to_lisp_obj);
   DECL_BLOCK (ret_t_block, comp.bool_to_lisp_obj);
   DECL_BLOCK (ret_nil_block, comp.bool_to_lisp_obj);
-  comp.block = init_block;
+  comp.block = entry_block;
   comp.func = comp.bool_to_lisp_obj;
 
   emit_cond_jump (gcc_jit_param_as_rvalue (param),
@@ -2241,6 +2331,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       register_emitter (QFconsp, emit_consp);
       register_emitter (QFcar, emit_car);
       register_emitter (QFcdr, emit_cdr);
+      register_emitter (Qnegate, emit_negate);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2383,6 +2474,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
   define_bool_to_lisp_obj ();
   define_setcar_setcdr ();
   define_add1_sub1 ();
+  define_negate ();
 
   return Qt;
 }
@@ -2646,6 +2738,7 @@ syms_of_comp (void)
   DEFSYM (QFconsp, "Fconsp");
   DEFSYM (QFcar, "Fcar");
   DEFSYM (QFcdr, "Fcdr");
+  DEFSYM (Qnegate, "negate");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);

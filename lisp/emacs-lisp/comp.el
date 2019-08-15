@@ -582,7 +582,8 @@ the annotation emission."
       (byte-leq <= Fleq)
       (byte-geq >= Fgeq)
       (byte-diff - Fminus)
-      (byte-negate - Fminus)
+      (byte-negate
+       (comp-emit-set-call `(call negate ,(comp-slot))))
       (byte-plus + Fplus)
       (byte-max auto)
       (byte-min auto)
