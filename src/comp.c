@@ -378,23 +378,6 @@ emit_cond_jump (gcc_jit_rvalue *test,
 
 }
 
-/* Close current basic block emitting a comparison between two rval.  */
-
-/* static gcc_jit_rvalue * */
-/* emit_comparison_jump (enum gcc_jit_comparison op, */
-/* 		     gcc_jit_rvalue *a, gcc_jit_rvalue *b, */
-/* 		     gcc_jit_block *then_target, gcc_jit_block *else_target) */
-/* { */
-/*   gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt, */
-/* 							 NULL, */
-/* 							 op, */
-/* 							 a, b); */
-
-/*   emit_cond_jump (test, then_target, else_target); */
-
-/*   return test; */
-/* } */
-
 static gcc_jit_rvalue *
 emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 {
@@ -2755,7 +2738,7 @@ syms_of_comp (void)
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
-  /* Used during prologue emission.  */
+  /* In use for prologue emission.  */
   DEFSYM (Qset_par_to_local, "set-par-to-local");
   DEFSYM (Qset_args_to_local, "set-args-to-local");
   DEFSYM (Qset_rest_args_to_local, "set-rest-args-to-local");
