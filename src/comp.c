@@ -603,32 +603,32 @@ emit_CONSP (gcc_jit_rvalue *obj)
   return emit_TAGGEDP (obj, Lisp_Cons);
 }
 
-/* static gcc_jit_rvalue * */
-/* emit_FLOATP (gcc_jit_rvalue *obj) */
-/* { */
-/*   emit_comment ("FLOATP"); */
+static gcc_jit_rvalue *
+emit_FLOATP (gcc_jit_rvalue *obj)
+{
+  emit_comment ("FLOATP");
 
-/*   return emit_TAGGEDP (obj, Lisp_Float); */
-/* } */
+  return emit_TAGGEDP (obj, Lisp_Float);
+}
 
-/* static gcc_jit_rvalue * */
-/* emit_BIGNUMP (gcc_jit_rvalue *obj) */
-/* { */
-/*   /\* PSEUDOVECTORP (x, PVEC_BIGNUM); *\/ */
-/*   emit_comment ("BIGNUMP"); */
+static gcc_jit_rvalue *
+emit_BIGNUMP (gcc_jit_rvalue *obj)
+{
+  /* PSEUDOVECTORP (x, PVEC_BIGNUM); */
+  emit_comment ("BIGNUMP");
 
-/*   gcc_jit_rvalue *args[2] = { */
-/*     obj, */
-/*     gcc_jit_context_new_rvalue_from_int (comp.ctxt, */
-/* 					 comp.int_type, */
-/* 					 PVEC_BIGNUM) }; */
+  gcc_jit_rvalue *args[2] = {
+    obj,
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.int_type,
+					 PVEC_BIGNUM) };
 
-/*   return gcc_jit_context_new_call (comp.ctxt, */
-/* 				   NULL, */
-/* 				   comp.pseudovectorp, */
-/* 				   2, */
-/* 				   args); */
-/* } */
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.pseudovectorp,
+				   2,
+				   args);
+}
 
 static gcc_jit_rvalue *
 emit_FIXNUMP (gcc_jit_rvalue *obj)
@@ -692,33 +692,33 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
 					comp.inttypebits);
 }
 
-/* static gcc_jit_rvalue * */
-/* emit_INTEGERP (gcc_jit_rvalue *obj) */
-/* { */
-/*   emit_comment ("INTEGERP"); */
+static gcc_jit_rvalue *
+emit_INTEGERP (gcc_jit_rvalue *obj)
+{
+  emit_comment ("INTEGERP");
 
-/*   return gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 					NULL, */
-/* 					GCC_JIT_BINARY_OP_LOGICAL_OR, */
-/* 					comp.bool_type, */
-/* 					emit_cast (comp.bool_type, */
-/* 						   emit_FIXNUMP (obj)), */
-/* 					emit_BIGNUMP (obj)); */
-/* } */
+  return gcc_jit_context_new_binary_op (comp.ctxt,
+					NULL,
+					GCC_JIT_BINARY_OP_LOGICAL_OR,
+					comp.bool_type,
+					emit_cast (comp.bool_type,
+						   emit_FIXNUMP (obj)),
+					emit_BIGNUMP (obj));
+}
 
-/* static gcc_jit_rvalue * */
-/* emit_NUMBERP (gcc_jit_rvalue *obj) */
-/* { */
-/*   emit_comment ("NUMBERP"); */
+static gcc_jit_rvalue *
+emit_NUMBERP (gcc_jit_rvalue *obj)
+{
+  emit_comment ("NUMBERP");
 
-/*   return gcc_jit_context_new_binary_op (comp.ctxt, */
-/* 					NULL, */
-/* 					GCC_JIT_BINARY_OP_LOGICAL_OR, */
-/* 					comp.bool_type, */
-/* 					emit_INTEGERP(obj), */
-/* 					emit_cast (comp.bool_type, */
-/* 						   emit_FLOATP (obj))); */
-/* } */
+  return gcc_jit_context_new_binary_op (comp.ctxt,
+					NULL,
+					GCC_JIT_BINARY_OP_LOGICAL_OR,
+					comp.bool_type,
+					emit_INTEGERP(obj),
+					emit_cast (comp.bool_type,
+						   emit_FLOATP (obj)));
+}
 
 static gcc_jit_rvalue *
 emit_make_fixnum (gcc_jit_rvalue *obj)
@@ -1441,6 +1441,15 @@ emit_cdr (Lisp_Object insn)
 				   NULL,
 				   comp.cdr,
 				   1, &x);
+}
+
+static gcc_jit_rvalue *
+emit_numperp (Lisp_Object insn)
+{
+  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  gcc_jit_rvalue *res = emit_NUMBERP (x);
+  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.bool_to_lisp_obj, 1,
+				   &res);
 }
 
 
@@ -2326,6 +2335,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       register_emitter (QFcar, emit_car);
       register_emitter (QFcdr, emit_cdr);
       register_emitter (Qnegate, emit_negate);
+      register_emitter (QFnumberp, emit_numperp);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2727,12 +2737,14 @@ syms_of_comp (void)
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
   DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
   DEFSYM (Qhelper_save_restriction, "helper_save_restriction");
+  /* Inliners.  */
   DEFSYM (QFadd1, "Fadd1");
   DEFSYM (QFsub1, "Fsub1");
   DEFSYM (QFconsp, "Fconsp");
   DEFSYM (QFcar, "Fcar");
   DEFSYM (QFcdr, "Fcdr");
   DEFSYM (Qnegate, "negate");
+  DEFSYM (QFnumberp, "Fnumberp");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
