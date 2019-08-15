@@ -1397,6 +1397,18 @@ emit_sub1 (Lisp_Object insn)
   return gcc_jit_context_new_call (comp.ctxt, NULL, comp.sub1, 1, &n);
 }
 
+static gcc_jit_rvalue *
+emit_consp (Lisp_Object insn)
+{
+  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  gcc_jit_rvalue *res = emit_cast (comp.bool_type,
+				   emit_CONSP (x));
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.bool_to_lisp_obj,
+				   1, &res);
+}
+
 
 /****************************************************************/
 /* Inline function definition and lisp data structure follows.  */
@@ -2206,6 +2218,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 			emit_simple_limple_call_void_ret);
       register_emitter (QFadd1, emit_add1);
       register_emitter (QFsub1, emit_sub1);
+      register_emitter (QFconsp, emit_consp);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2608,6 +2621,7 @@ syms_of_comp (void)
   DEFSYM (Qhelper_save_restriction, "helper_save_restriction");
   DEFSYM (QFadd1, "Fadd1");
   DEFSYM (QFsub1, "Fsub1");
+  DEFSYM (QFconsp, "Fconsp");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
