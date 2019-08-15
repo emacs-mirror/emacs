@@ -339,7 +339,7 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 }
 
 static gcc_jit_rvalue *
-emit_call_n_ref (const char *f_name, unsigned nargs,
+emit_call_ref (const char *f_name, unsigned nargs,
 		 gcc_jit_lvalue *base_arg)
 {
   gcc_jit_rvalue *args[] =
@@ -1092,13 +1092,7 @@ emit_limple_call_ref (Lisp_Object args)
   char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
   EMACS_UINT nargs = XFIXNUM (SECOND (args));
   EMACS_UINT base_ptr = XFIXNUM (THIRD (args));
-  gcc_jit_rvalue *gcc_args[2] =
-    { gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.ptrdiff_type,
-					   nargs),
-      gcc_jit_lvalue_get_address (comp.frame[base_ptr], NULL) };
-
-  return emit_call (callee, comp.lisp_obj_type, 2, gcc_args);
+  return emit_call_ref (callee, nargs, comp.frame[base_ptr]);
 }
 
 /* Register an handler for a non local exit.  */
@@ -2146,7 +2140,7 @@ define_negate (void)
 				 emit_make_fixnum (inline_res));
 
   comp.block = fcall_block;
-  gcc_jit_rvalue *call_res = emit_call_n_ref ("Fminus", 1, n);
+  gcc_jit_rvalue *call_res = emit_call_ref ("Fminus", 1, n);
   gcc_jit_block_end_with_return (fcall_block,
 				 NULL,
 				 call_res);
