@@ -1390,6 +1390,13 @@ emit_add1 (Lisp_Object insn)
   return gcc_jit_context_new_call (comp.ctxt, NULL, comp.add1, 1, &n);
 }
 
+static gcc_jit_rvalue *
+emit_sub1 (Lisp_Object insn)
+{
+  gcc_jit_rvalue *n = emit_mvar_val (SECOND (insn));
+  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.sub1, 1, &n);
+}
+
 
 /****************************************************************/
 /* Inline function definition and lisp data structure follows.  */
@@ -1949,69 +1956,79 @@ define_add1_sub1 (void)
 {
   gcc_jit_block *bb_orig = comp.block;
 
-  gcc_jit_param *param[] =
-    { gcc_jit_context_new_param (comp.ctxt,
-				 NULL,
-				 comp.lisp_obj_type,
-				 "n") };
+  gcc_jit_function *func[2];
+  char const *f_name[] = {"add1", "sub1"};
+  char const *fall_back_func[] = {"Fadd1", "Fsub1"};
+  gcc_jit_rvalue *compare[] =
+    { comp.most_positive_fixnum, comp.most_negative_fixnum };
+  enum gcc_jit_binary_op op[] =
+    { GCC_JIT_BINARY_OP_PLUS, GCC_JIT_BINARY_OP_MINUS };
+  for (int i = 0; i < 2; i++)
+    {
+      gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt,
+							NULL,
+							comp.lisp_obj_type,
+							"n");
+      comp.func = func[i] =
+	gcc_jit_context_new_function (comp.ctxt, NULL,
+				      GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				      comp.lisp_obj_type,
+				      f_name[i],
+				      1,
+				      &param,
+				      0);
+      DECL_BLOCK (init_block, func[i]);
+      DECL_BLOCK (inline_block, func[i]);
+      DECL_BLOCK (fcall_block, func[i]);
 
-  comp.func = comp.add1 =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
-				  comp.lisp_obj_type,
-				  "add1",
-				  1,
-				  param,
-				  0);
+      comp.block = init_block;
 
-  DECL_BLOCK (init_block, comp.add1);
-  DECL_BLOCK (add1_inline_block, comp.add1);
-  DECL_BLOCK (add1_fcall_block, comp.add1);
+      /* (FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
+	 ? (XFIXNUM (n) + 1)
+	 : Fadd1 (n)) */
 
-  comp.block = init_block;
+      gcc_jit_rvalue *n = gcc_jit_param_as_rvalue (param);
+      gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (n);
 
-  /* (FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
-     ? (XFIXNUM (n) + 1)
-     : Fadd1 (n)) */
-
-  gcc_jit_rvalue *n = gcc_jit_param_as_rvalue (param[0]);
-  gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (n);
-
-  emit_cond_jump (
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
-      GCC_JIT_BINARY_OP_LOGICAL_AND,
-      comp.bool_type,
-      emit_cast (comp.bool_type,
+      emit_cond_jump (
+	gcc_jit_context_new_binary_op (
+	  comp.ctxt,
+	  NULL,
+	  GCC_JIT_BINARY_OP_LOGICAL_AND,
+	  comp.bool_type,
+	  emit_cast (comp.bool_type,
 		 emit_FIXNUMP (n)),
-      gcc_jit_context_new_comparison (comp.ctxt,
-				      NULL,
-				      GCC_JIT_COMPARISON_NE,
-				      n_fixnum,
-				      comp.most_positive_fixnum)),
-    add1_inline_block,
-    add1_fcall_block);
+	  gcc_jit_context_new_comparison (comp.ctxt,
+					  NULL,
+					  GCC_JIT_COMPARISON_NE,
+					  n_fixnum,
+					  compare[i])),
+	inline_block,
+	fcall_block);
 
-  comp.block = add1_inline_block;
-  gcc_jit_rvalue *inline_res =
-    gcc_jit_context_new_binary_op (comp.ctxt,
-				   NULL,
-				   GCC_JIT_BINARY_OP_PLUS,
-				   comp.emacs_int_type,
-				   n_fixnum,
-				   comp.one);
+      comp.block = inline_block;
+      gcc_jit_rvalue *inline_res =
+	gcc_jit_context_new_binary_op (comp.ctxt,
+				       NULL,
+				       op[i],
+				       comp.emacs_int_type,
+				       n_fixnum,
+				       comp.one);
 
-  gcc_jit_block_end_with_return (add1_inline_block,
-				 NULL,
-				 emit_make_fixnum (inline_res));
+      gcc_jit_block_end_with_return (inline_block,
+				     NULL,
+				     emit_make_fixnum (inline_res));
 
-  comp.block = add1_fcall_block;
-  gcc_jit_rvalue *call_res = emit_call ("Fadd1", comp.lisp_obj_type, 1, &n);
-  gcc_jit_block_end_with_return (add1_fcall_block,
-				 NULL,
-				 call_res);
+      comp.block = fcall_block;
+      gcc_jit_rvalue *call_res = emit_call (fall_back_func[i],
+					    comp.lisp_obj_type, 1, &n);
+      gcc_jit_block_end_with_return (fcall_block,
+				     NULL,
+				     call_res);
+    }
   comp.block = bb_orig;
+  comp.add1 = func[0];
+  comp.sub1 = func[1];
 }
 
 /* Define a substitute for PSEUDOVECTORP as always inlined function.  */
@@ -2188,6 +2205,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       register_emitter (Qhelper_save_restriction,
 			emit_simple_limple_call_void_ret);
       register_emitter (QFadd1, emit_add1);
+      register_emitter (QFsub1, emit_sub1);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -2588,7 +2606,8 @@ syms_of_comp (void)
   DEFSYM (Qhelper_unbind_n, "helper_unbind_n");
   DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
   DEFSYM (Qhelper_save_restriction, "helper_save_restriction");
-  DEFSYM (QFadd1, "Fadd1")
+  DEFSYM (QFadd1, "Fadd1");
+  DEFSYM (QFsub1, "Fsub1");
 
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
