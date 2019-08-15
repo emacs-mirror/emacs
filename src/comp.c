@@ -1444,6 +1444,30 @@ emit_cdr (Lisp_Object insn)
 }
 
 static gcc_jit_rvalue *
+emit_setcar (Lisp_Object insn)
+{
+  gcc_jit_rvalue *args[] =
+    { emit_mvar_val (SECOND (insn)),
+      emit_mvar_val (THIRD (insn)) };
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.setcar,
+				   2, args);
+}
+
+static gcc_jit_rvalue *
+emit_setcdr (Lisp_Object insn)
+{
+  gcc_jit_rvalue *args[] =
+    { emit_mvar_val (SECOND (insn)),
+      emit_mvar_val (THIRD (insn)) };
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.setcdr,
+				   2, args);
+}
+
+static gcc_jit_rvalue *
 emit_numperp (Lisp_Object insn)
 {
   gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
@@ -2344,6 +2368,8 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
       register_emitter (QFconsp, emit_consp);
       register_emitter (QFcar, emit_car);
       register_emitter (QFcdr, emit_cdr);
+      register_emitter (QFsetcar, emit_setcar);
+      register_emitter (QFsetcdr, emit_setcdr);
       register_emitter (Qnegate, emit_negate);
       register_emitter (QFnumberp, emit_numperp);
       register_emitter (QFintegerp, emit_integerp);
@@ -2754,6 +2780,8 @@ syms_of_comp (void)
   DEFSYM (QFconsp, "Fconsp");
   DEFSYM (QFcar, "Fcar");
   DEFSYM (QFcdr, "Fcdr");
+  DEFSYM (QFsetcar, "Fsetcar");
+  DEFSYM (QFsetcdr, "Fsetcdr");
   DEFSYM (Qnegate, "negate");
   DEFSYM (QFnumberp, "Fnumberp");
   DEFSYM (QFintegerp, "Fintegerp");
