@@ -597,7 +597,10 @@ the annotation emission."
       (byte-following-char auto)
       (byte-preceding-char preceding-char Fprevious_char)
       (byte-current-column auto)
-      (byte-indent-to auto)
+      (byte-indent-to
+       (comp-emit-set-call `(call Findent_to
+                                  ,(comp-slot)
+                                  ,(make-comp-mvar :constant nil))))
       (byte-scan-buffer-OBSOLETE)
       (byte-eolp auto)
       (byte-eobp auto)
