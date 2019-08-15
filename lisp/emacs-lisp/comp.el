@@ -595,7 +595,7 @@ the annotation emission."
       (byte-point-min auto)
       (byte-char-after auto)
       (byte-following-char auto)
-      (byte-preceding-char auto)
+      (byte-preceding-char preceding-char Fprevious_char)
       (byte-current-column auto)
       (byte-indent-to auto)
       (byte-scan-buffer-OBSOLETE)
