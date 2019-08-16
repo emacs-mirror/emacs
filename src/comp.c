@@ -2500,6 +2500,11 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
   define_add1_sub1 ();
   define_negate ();
 
+  gcc_jit_context_new_global (comp.ctxt,
+			      NULL,
+			      GCC_JIT_GLOBAL_EXPORTED,
+			      comp.int_type,
+			      "native_compiled_emacs_lisp");
   return Qt;
 }
 

@@ -954,7 +954,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
 {
   dynlib_handle_ptr handle;
   emacs_init_function module_init;
-  void *gpl_sym;
+  void *gpl_sym, *native_comp;
 
   CHECK_STRING (file);
   handle = dynlib_open (SSDATA (file));
@@ -962,7 +962,8 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
     xsignal2 (Qmodule_open_failed, file, build_string (dynlib_error ()));
 
   gpl_sym = dynlib_sym (handle, "plugin_is_GPL_compatible");
-  if (!gpl_sym)
+  native_comp = dynlib_sym (handle, "native_compiled_emacs_lisp");
+  if (!gpl_sym && !native_comp)
     xsignal1 (Qmodule_not_gpl_compatible, file);
 
   module_init = (emacs_init_function) dynlib_func (handle, "emacs_module_init");
