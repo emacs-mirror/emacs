@@ -340,7 +340,7 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 
 static gcc_jit_rvalue *
 emit_call_ref (const char *f_name, unsigned nargs,
-		 gcc_jit_lvalue *base_arg)
+	       gcc_jit_lvalue *base_arg)
 {
   gcc_jit_rvalue *args[] =
     { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
@@ -1048,33 +1048,33 @@ emit_simple_limple_call_void_ret (Lisp_Object args)
 /* Entry point to dispatch emitting (call fun ...).  */
 
 static gcc_jit_rvalue *
-emit_limple_call (Lisp_Object args)
+emit_limple_call (Lisp_Object insn)
 {
-  Lisp_Object callee_sym = FIRST (args);
+  Lisp_Object callee_sym = FIRST (insn);
   char *callee = (char *) SDATA (SYMBOL_NAME (callee_sym));
   Lisp_Object emitter = Fgethash (callee_sym, comp.emitter_dispatcher, Qnil);
 
   if (!NILP (emitter))
     {
       gcc_jit_rvalue * (* emitter_ptr) (Lisp_Object) = xmint_pointer (emitter);
-      return emitter_ptr (args);
+      return emitter_ptr (insn);
     }
   else if (callee[0] == 'F')
     {
-      return emit_simple_limple_call_lisp_ret (args);
+      return emit_simple_limple_call_lisp_ret (insn);
     }
 
   error ("LIMPLE call is inconsistent");
 }
 
 static gcc_jit_rvalue *
-emit_limple_call_ref (Lisp_Object args)
+emit_limple_call_ref (Lisp_Object insn)
 {
   /* Ex: (callref Fplus 2 0).  */
 
-  char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
-  EMACS_UINT nargs = XFIXNUM (SECOND (args));
-  EMACS_UINT base_ptr = XFIXNUM (THIRD (args));
+  char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (insn)));
+  EMACS_UINT nargs = XFIXNUM (SECOND (insn));
+  EMACS_UINT base_ptr = XFIXNUM (THIRD (insn));
   return emit_call_ref (callee, nargs, comp.frame[base_ptr]);
 }
 
