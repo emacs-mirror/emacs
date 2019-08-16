@@ -1360,11 +1360,32 @@ emit_limple_insn (Lisp_Object insn)
       /* Ex: (comment "Function: foo").	 */
       emit_comment((char *) SDATA (arg0));
     }
+  else if (EQ (op, Qconst_vector))
+    {
+      /* Ex: (const-vector "F666f6f_foo_reloc"
+			   "[a b c 1 2]").  */
+      Lisp_Object vec = SECOND (args);
+      EMACS_INT v_len = XFIXNUM (FUNCALL1 (length, vec));
+
+      gcc_jit_context_new_global (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_INTERNAL,
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.lisp_obj_type,
+					v_len),
+	(char *) SDATA (arg0));
+    }
   else if (EQ (op, Qreturn))
     {
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
 				     emit_mvar_val (arg0));
+    }
+  else
+    {
+      error ("LIMPLE op inconsistent");
     }
 }
 
@@ -2622,8 +2643,7 @@ DEFUN ("comp-compile-ctxt-to-file", Fcomp_compile_ctxt_to_file,
        doc: /* Compile as native code the current context to file.  */)
      (Lisp_Object ctxtname)
 {
-  if (!STRINGP (ctxtname))
-    error ("Argument ctxtname not a string");
+  CHECK_STRING (ctxtname);
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
@@ -2777,6 +2797,7 @@ syms_of_comp (void)
 {
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
+  DEFSYM (Qconst_vector, "const-vector");
   DEFSYM (Qjump, "jump");
   DEFSYM (Qcall, "call");
   DEFSYM (Qcallref, "callref");
