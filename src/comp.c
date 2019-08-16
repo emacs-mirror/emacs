@@ -224,7 +224,7 @@ type_to_cast_field (gcc_jit_type *type)
   else if (type == comp.lisp_obj_ptr_type)
     field = comp.cast_union_as_lisp_obj_ptr;
   else
-    error ("unsupported cast\n");
+    error ("Unsupported cast");
 
   return field;
 }
@@ -2327,7 +2327,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
 {
   if (comp.ctxt)
     {
-      error ("Compiler context already taken.");
+      error ("Compiler context already taken");
       return Qnil;
     }
 
@@ -2611,6 +2611,48 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   return Qt;
 }
 
+DEFUN ("comp-compile-ctxt-to-file", Fcomp_compile_ctxt_to_file,
+       Scomp_compile_ctxt_to_file,
+       1, 1, 0,
+       doc: /* Compile as native code the current context to file.  */)
+     (Lisp_Object ctxtname)
+{
+  if (!STRINGP (ctxtname))
+    error ("Argument ctxtname not a string");
+
+  gcc_jit_context_set_int_option (comp.ctxt,
+				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
+				  comp_speed);
+  /* Gcc doesn't like being interrupted at all.  */
+  sigset_t oldset;
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGALRM);
+  sigaddset (&blocked, SIGINT);
+  sigaddset (&blocked, SIGIO);
+  pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
+
+  if (COMP_DEBUG)
+    {
+      AUTO_STRING (dot_c, ".c");
+      const char *filename =
+	(const char *) SDATA (CALLN (Fconcat, ctxtname, dot_c));
+      gcc_jit_context_dump_to_file (comp.ctxt, filename, 1);
+    }
+
+  AUTO_STRING (dot_so, ".so");
+  const char *filename =
+    (const char *) SDATA (CALLN (Fconcat, ctxtname, dot_so));
+
+  gcc_jit_context_compile_to_file (comp.ctxt,
+				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
+				   filename);
+
+  pthread_sigmask (SIG_SETMASK, &oldset, 0);
+
+  return Qt;
+}
+
 DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
        Scomp_compile_and_load_ctxt,
        0, 1, 0,
@@ -2772,6 +2814,7 @@ syms_of_comp (void)
   defsubr (&Scomp_init_ctxt);
   defsubr (&Scomp_release_ctxt);
   defsubr (&Scomp_add_func_to_ctxt);
+  defsubr (&Scomp_compile_ctxt_to_file);
   defsubr (&Scomp_compile_and_load_ctxt);
 
   staticpro (&comp.func_hash);
