@@ -2651,7 +2651,7 @@ DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
       x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
       x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
       eassert (x->s.function.a0);
-      x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-gen-min, args));
+      x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-base-min, args));
       if (FUNCALL1 (comp-args-p, args))
 	x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       else

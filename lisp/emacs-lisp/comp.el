@@ -76,16 +76,16 @@
 	     finally return h)
     "Hash table lap-op -> stack adjustment."))
 
-(cl-defstruct comp-args-gen
+(cl-defstruct comp-args-base
   (min nil :type number
        :documentation "Minimum number of arguments allowed."))
 
-(cl-defstruct (comp-args (:include comp-args-gen))
+(cl-defstruct (comp-args (:include comp-args-base))
   (max nil :type number
        :documentation "Maximum number of arguments allowed.
 To be used when ncall-conv is nil."))
 
-(cl-defstruct (comp-nargs (:include comp-args-gen))
+(cl-defstruct (comp-nargs (:include comp-args-base))
   "Describe args when the functin signature is of kind:
 (ptrdiff_t nargs, Lisp_Object *args)."
   (nonrest nil :type number
@@ -114,7 +114,7 @@ into it.")
              :documentation "Byte compiled version.")
   (lap () :type list
        :documentation "Lap assembly representation.")
-  (args nil :type 'comp-args-gen)
+  (args nil :type 'comp-args-base)
   (frame-size nil :type 'number)
   (blocks (make-hash-table) :type 'hash-table
           :documentation "Key is the basic block symbol value is a comp-block
@@ -767,7 +767,7 @@ the annotation emission."
                      :sp -1
                      :frame (comp-new-frame frame-size)))
          (args (comp-func-args func))
-         (args-min (comp-args-gen-min args))
+         (args-min (comp-args-base-min args))
          (comp-block ()))
     ;; Prologue
     (comp-emit-block 'entry)
