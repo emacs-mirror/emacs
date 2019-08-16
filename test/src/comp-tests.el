@@ -29,6 +29,8 @@
 (require 'comp)
 ;; (require 'cl-lib)
 
+(setq comp-speed 3)
+
 (defun comp-test-apply (func &rest args)
   (unless (subrp (symbol-function func))
     (native-compile func))

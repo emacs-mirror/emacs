@@ -463,6 +463,38 @@ If NEGATED non nil negate the tested condition."
            for m-test = (make-comp-mvar :constant test)
            do (comp-emit-cond-jump var m-test 0 target-label nil)))
 
+(defun comp-emit-funcall (narg)
+  "Avoid Ffuncall trampoline if possibile.
+NARG is the number of Ffuncall arguments."
+  (comp-stack-adjust (- narg))
+  (let* ((callee (comp-slot))
+         (callee-sym-name (comp-mvar-constant callee))
+         (optimize nil)
+         (callref nil))
+    (and (comp-mvar-const-vld callee)
+         (or (and (>= comp-speed 2)
+                  (eq callee-sym-name (comp-func-symbol-name comp-func))
+                  (setq optimize t)
+                  (setq callref (comp-nargs-p (comp-func-args comp-func))))
+             ;; (and (>= comp-speed 3)
+             ;;      (symbol-function callee-sym-name)
+             ;;      (subrp (symbol-function callee-sym-name))
+             ;;      (setq optimize t)
+             ;;      (setq callref (eq 'many
+             ;;                        (cdr (subr-arity
+             ;;                              (symbol-function callee-sym-name)))))
+             ;;      (setf callee-sym-name ))
+             ))
+    (if optimize
+        (if callref
+            (comp-emit-set-call `(callref ,callee-sym-name
+                                          ,narg ,(1+ (comp-sp))))
+          (comp-emit-set-call `(call ,callee-sym-name
+                                     ,@(cl-loop for i from (1+ (comp-sp))
+                                                repeat narg
+                                                collect (comp-slot-n i)))))
+      (comp-emit-set-call `(callref Ffuncall ,(1+ narg) ,(comp-sp))))))
+
 (defmacro comp-op-case (&rest cases)
   "Expand CASES into the corresponding pcase.
 This is responsible for generating the proper stack adjustment when known and
@@ -529,8 +561,7 @@ the annotation emission."
                          ,(make-comp-mvar :constant arg)
                          ,(comp-slot-next))))
       (byte-call
-       (comp-stack-adjust (- arg))
-       (comp-emit-set-call `(callref Ffuncall ,(1+ arg) ,(comp-sp))))
+       (comp-emit-funcall arg))
       (byte-unbind
        (comp-emit `(call helper_unbind_n
                          ,(make-comp-mvar :constant arg))))
