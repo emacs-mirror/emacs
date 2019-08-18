@@ -2834,6 +2834,11 @@ syms_of_comp (void)
 
   DEFVAR_INT ("comp-speed", comp_speed,
 	      doc: /* From 0 to 3.  */);
+  DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
+	       doc: /*
+		     The compiler context. */);
+  Vcomp_ctxt = Qnil;
+
   comp_speed = DEFAULT_SPEED;
 }
 
