@@ -2324,7 +2324,7 @@ define_bool_to_lisp_obj (void)
 /* Entry points exposed to lisp.  */
 /**********************************/
 
-DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
+DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        0, 0, 0,
        doc: /* Initialize the native compiler context. Return t on success.  */)
      (void)
@@ -2512,7 +2512,7 @@ DEFUN ("comp-init-ctxt", Fcomp_init_ctxt, Scomp_init_ctxt,
   return Qt;
 }
 
-DEFUN ("comp-release-ctxt", Fcomp_release_ctxt, Scomp_release_ctxt,
+DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
        0, 0, 0,
        doc: /* Release the native compiler context.  */)
      (void)
@@ -2527,8 +2527,8 @@ DEFUN ("comp-release-ctxt", Fcomp_release_ctxt, Scomp_release_ctxt,
   return Qt;
 }
 
-DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
-       1, 1, 0,
+DEFUN ("comp--add-func-to-ctxt", Fcomp__add_func_to_ctxt,
+       Scomp__add_func_to_ctxt, 1, 1, 0,
        doc: /* Add limple FUNC to the current compilation context.  */)
      (Lisp_Object func)
 {
@@ -2620,8 +2620,8 @@ DEFUN ("comp-add-func-to-ctxt", Fcomp_add_func_to_ctxt, Scomp_add_func_to_ctxt,
   return Qt;
 }
 
-DEFUN ("comp-compile-ctxt-to-file", Fcomp_compile_ctxt_to_file,
-       Scomp_compile_ctxt_to_file,
+DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
+       Scomp__compile_ctxt_to_file,
        1, 1, 0,
        doc: /* Compile as native code the current context to file.  */)
      (Lisp_Object ctxtname)
@@ -2780,7 +2780,6 @@ syms_of_comp (void)
 {
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
-  DEFSYM (Qconst_vector, "const-vector");
   DEFSYM (Qjump, "jump");
   DEFSYM (Qcall, "call");
   DEFSYM (Qcallref, "callref");
@@ -2820,10 +2819,10 @@ syms_of_comp (void)
   DEFSYM (QFnumberp, "Fnumberp");
   DEFSYM (QFintegerp, "Fintegerp");
 
-  defsubr (&Scomp_init_ctxt);
-  defsubr (&Scomp_release_ctxt);
-  defsubr (&Scomp_add_func_to_ctxt);
-  defsubr (&Scomp_compile_ctxt_to_file);
+  defsubr (&Scomp__init_ctxt);
+  defsubr (&Scomp__release_ctxt);
+  defsubr (&Scomp__add_func_to_ctxt);
+  defsubr (&Scomp__compile_ctxt_to_file);
   defsubr (&Scomp_compile_and_load_ctxt);
 
   staticpro (&comp.func_hash);
