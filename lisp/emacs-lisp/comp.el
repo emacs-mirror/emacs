@@ -76,6 +76,18 @@
 	     finally return h)
     "Hash table lap-op -> stack adjustment."))
 
+(cl-defstruct comp-ctxt
+  (data-relocs () :type string
+               :documentation "Final data relocations.")
+  (data-relocs-l () :type list
+               :documentation "Constant objects used by functions.")
+  (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
+                   :documentation "Obj -> position into data-relocs.")
+  (func-relocs () :type list
+               :documentation "Native functions imported.")
+  (func-relocs-idx (make-hash-table :test #'equal) :type hash-table
+                   :documentation "Obj -> position into func-relocs."))
+
 (cl-defstruct comp-args-base
   (min nil :type number
        :documentation "Minimum number of arguments allowed."))
@@ -147,6 +159,25 @@ LIMPLE basic block.")
          :documentation "Meta-stack used to flat LAP.")
   (block-name nil :type symbol
     :documentation "Current basic block name."))
+
+(defvar comp-ctxt) ;; FIXME (to be removed)
+
+
+(defun comp-add-const-to-relocs (obj)
+  "Keep track of OBJ into relocations.
+The corresponding index into it is returned."
+  (let ((data-relocs-idx (comp-ctxt-data-relocs-idx comp-ctxt)))
+    (unless (gethash obj data-relocs-idx)
+      (push obj (comp-ctxt-data-relocs-l comp-ctxt))
+      (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
+
+(defun comp-compile-ctxt-to-file (name)
+  "Compile as native code the current context naming it NAME."
+  (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
+                (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
+  (setf (comp-ctxt-data-relocs comp-ctxt)
+        (prin1-to-string  (vconcat (reverse (comp-ctxt-data-relocs-l comp-ctxt)))))
+  (comp--compile-ctxt-to-file name))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -346,6 +377,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
 
 (defun comp-emit-set-const (val)
   "Set constant VAL to current slot."
+  (comp-add-const-to-relocs val)
   (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                     :constant val))
   (comp-emit (list 'setimm (comp-slot) val)))
@@ -802,16 +834,17 @@ the annotation emission."
         (let ((func (make-comp-func :symbol-name func-symbol-name
                                     :func f
                                     :c-func-name (comp-c-func-name
-                                                  func-symbol-name))))
+                                                  func-symbol-name)))
+              (comp-ctxt (make-comp-ctxt)))
           (mapc (lambda (pass)
                   (funcall pass func))
                 comp-passes)
           ;; Once we have the final LIMPLE we jump into C.
-          (comp-init-ctxt)
-          (comp-add-func-to-ctxt func)
+          (comp--init-ctxt)
+          (comp--add-func-to-ctxt func)
           (comp-compile-ctxt-to-file (symbol-name func-symbol-name))
           ;; (comp-compile-and-load-ctxt)
-          (comp-release-ctxt)))
+          (comp--release-ctxt)))
     (error "Trying to native compile something not a function")))
 
 (provide 'comp)
