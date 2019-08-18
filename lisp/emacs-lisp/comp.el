@@ -378,10 +378,10 @@ If DST-N is specified use it otherwise assume it to be the current slot."
 
 (defun comp-emit-set-const (val)
   "Set constant VAL to current slot."
-  (comp-add-const-to-relocs val)
-  (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
-                                    :constant val))
-  (comp-emit (list 'setimm (comp-slot) val)))
+  (let ((rel-idx (comp-add-const-to-relocs val)))
+    (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
+                                      :constant val))
+    (comp-emit `(setimm ,(comp-slot) ,rel-idx . ,val))))
 
 (defun comp-mark-block-closed ()
   "Mark current basic block as closed."
