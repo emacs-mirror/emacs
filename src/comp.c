@@ -149,6 +149,7 @@ typedef struct {
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
   Lisp_Object func_hash; /* f_name -> gcc_func.	*/
   Lisp_Object emitter_dispatcher;
+  gcc_jit_rvalue *data_relocs;
 } comp_t;
 
 static comp_t comp;
@@ -1349,13 +1350,22 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qsetimm))
     {
-      /* EX: (=imm #s(comp-mvar 9 1 t 3 nil) 3).  */
-      Lisp_Object arg1 = SECOND (args);
+      /* EX: (=imm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
       EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
+      gcc_jit_rvalue *reloc_n =
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.int_type,
+					     XFIXNUM (SECOND (args)));
+      emit_comment (SSDATA (Fprin1_to_string (THIRD (args), Qnil)));
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
 				    comp.frame[slot_n],
-				    emit_lisp_obj_from_ptr (arg1));
+				    gcc_jit_lvalue_as_rvalue (
+				      gcc_jit_context_new_array_access (
+				        comp.ctxt,
+				        NULL,
+				        comp.data_relocs,
+				        reloc_n)));
     }
   else if (EQ (op, Qcomment))
     {
@@ -1509,15 +1519,17 @@ emit_ctxt_code (void)
     XFIXNUM (FUNCALL1 (hash-table-count,
 		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
 
-  gcc_jit_context_new_global (
-    comp.ctxt,
-    NULL,
-    GCC_JIT_GLOBAL_EXPORTED,
-    gcc_jit_context_new_array_type (comp.ctxt,
+  comp.data_relocs
+    = gcc_jit_lvalue_as_rvalue(
+	gcc_jit_context_new_global (
+	  comp.ctxt,
+	  NULL,
+	  GCC_JIT_GLOBAL_EXPORTED,
+	  gcc_jit_context_new_array_type (comp.ctxt,
 				    NULL,
 				    comp.lisp_obj_type,
 				    d_reloc_len),
-    "data_relocs");
+	  "data_relocs"));
 
   emit_litteral_string_func ("text_data_relocs", d_reloc);
 
@@ -2372,6 +2384,93 @@ define_bool_to_lisp_obj (void)
 
 }
 
+static void
+compile_function (Lisp_Object func)
+{
+  char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
+  Lisp_Object args = FUNCALL1 (comp-func-args, func);
+  EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
+  bool ncall = (FUNCALL1 (comp-nargs-p, args));
+
+  if (!ncall)
+    {
+      EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+      comp.func =
+	emit_func_declare (c_name, comp.lisp_obj_type, max_args,
+			   NULL, GCC_JIT_FUNCTION_EXPORTED, false);
+    }
+  else
+    {
+      gcc_jit_param *param[] =
+	{ gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.ptrdiff_type,
+				     "nargs"),
+	  gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.lisp_obj_ptr_type,
+				     "args") };
+      comp.func =
+	gcc_jit_context_new_function (comp.ctxt,
+				      NULL,
+				      GCC_JIT_FUNCTION_EXPORTED,
+				      comp.lisp_obj_type,
+				      c_name, 2, param, 0);
+    }
+
+  gcc_jit_lvalue *frame_array =
+    gcc_jit_function_new_local (
+      comp.func,
+      NULL,
+      gcc_jit_context_new_array_type (comp.ctxt,
+				      NULL,
+				      comp.lisp_obj_type,
+				      frame_size),
+      "local");
+
+  gcc_jit_lvalue *frame[frame_size];
+  for (int i = 0; i < frame_size; ++i)
+    frame[i] =
+      gcc_jit_context_new_array_access (
+        comp.ctxt,
+	NULL,
+	gcc_jit_lvalue_as_rvalue (frame_array),
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.int_type,
+					     i));
+  comp.frame = frame;
+
+  comp.func_blocks = CALLN (Fmake_hash_table);
+
+  /* Pre declare all basic blocks to gcc.
+     The "entry" block must be declared as first.  */
+  declare_block (Qentry);
+  Lisp_Object blocks = FUNCALL1 (comp-func-blocks, func);
+  Lisp_Object entry_block = Fgethash (Qentry, blocks, Qnil);
+  struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
+  for (ptrdiff_t i = 0; i < ht->count; i++)
+    {
+      Lisp_Object block = HASH_VALUE (ht, i);
+      if (!EQ (block, entry_block))
+	declare_block (HASH_KEY (ht, i));
+    }
+
+  for (ptrdiff_t i = 0; i < ht->count; i++)
+    {
+      Lisp_Object block_name = HASH_KEY (ht, i);
+      Lisp_Object block = HASH_VALUE (ht, i);
+      Lisp_Object insns = FUNCALL1 (comp-block-insns, block);
+
+      comp.block = retrive_block (block_name);
+      while (CONSP (insns))
+	{
+	  Lisp_Object insn = XCAR (insns);
+	  emit_limple_insn (insn);
+	  insns = XCDR (insns);
+	}
+    }
+}
+
 
 /**********************************/
 /* Entry points exposed to lisp.  */
@@ -2574,97 +2673,6 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
-DEFUN ("comp--add-func-to-ctxt", Fcomp__add_func_to_ctxt,
-       Scomp__add_func_to_ctxt, 1, 1, 0,
-       doc: /* Add limple FUNC to the current compilation context.  */)
-     (Lisp_Object func)
-{
-  char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
-  Lisp_Object args = FUNCALL1 (comp-func-args, func);
-  EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
-  bool ncall = (FUNCALL1 (comp-nargs-p, args));
-
-  if (!ncall)
-    {
-      EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
-      comp.func =
-	emit_func_declare (c_name, comp.lisp_obj_type, max_args,
-			   NULL, GCC_JIT_FUNCTION_EXPORTED, false);
-    }
-  else
-    {
-      gcc_jit_param *param[] =
-	{ gcc_jit_context_new_param (comp.ctxt,
-				     NULL,
-				     comp.ptrdiff_type,
-				     "nargs"),
-	  gcc_jit_context_new_param (comp.ctxt,
-				     NULL,
-				     comp.lisp_obj_ptr_type,
-				     "args") };
-      comp.func =
-	gcc_jit_context_new_function (comp.ctxt,
-				      NULL,
-				      GCC_JIT_FUNCTION_EXPORTED,
-				      comp.lisp_obj_type,
-				      c_name, 2, param, 0);
-    }
-
-  gcc_jit_lvalue *frame_array =
-    gcc_jit_function_new_local (
-      comp.func,
-      NULL,
-      gcc_jit_context_new_array_type (comp.ctxt,
-				      NULL,
-				      comp.lisp_obj_type,
-				      frame_size),
-      "local");
-
-  gcc_jit_lvalue *frame[frame_size];
-  for (int i = 0; i < frame_size; ++i)
-    frame[i] =
-      gcc_jit_context_new_array_access (
-        comp.ctxt,
-	NULL,
-	gcc_jit_lvalue_as_rvalue (frame_array),
-	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.int_type,
-					     i));
-  comp.frame = frame;
-
-  comp.func_blocks = CALLN (Fmake_hash_table);
-
-  /* Pre declare all basic blocks to gcc.
-     The "entry" block must be declared as first.  */
-  declare_block (Qentry);
-  Lisp_Object blocks = FUNCALL1 (comp-func-blocks, func);
-  Lisp_Object entry_block = Fgethash (Qentry, blocks, Qnil);
-  struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
-  for (ptrdiff_t i = 0; i < ht->count; i++)
-    {
-      Lisp_Object block = HASH_VALUE (ht, i);
-      if (!EQ (block, entry_block))
-	declare_block (HASH_KEY (ht, i));
-    }
-
-  for (ptrdiff_t i = 0; i < ht->count; i++)
-    {
-      Lisp_Object block_name = HASH_KEY (ht, i);
-      Lisp_Object block = HASH_VALUE (ht, i);
-      Lisp_Object insns = FUNCALL1 (comp-block-insns, block);
-
-      comp.block = retrive_block (block_name);
-      while (CONSP (insns))
-	{
-	  Lisp_Object insn = XCAR (insns);
-	  emit_limple_insn (insn);
-	  insns = XCDR (insns);
-	}
-    }
-
-  return Qt;
-}
-
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
@@ -2686,6 +2694,13 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 
   emit_ctxt_code ();
+
+  /* Compile all functions. Can't be done before because the
+     relocation vectore has to be already compiled.  */
+  struct Lisp_Hash_Table *func_h
+    = XHASH_TABLE (FUNCALL1 (comp-ctxt-funcs-h, Vcomp_ctxt));
+  for (ptrdiff_t i = 0; i < func_h->count; i++)
+    compile_function (HASH_VALUE (func_h, i));
 
   if (COMP_DEBUG)
     {
@@ -2967,7 +2982,6 @@ syms_of_comp (void)
 
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
-  defsubr (&Scomp__add_func_to_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
   defsubr (&Snative_elisp_load);
 

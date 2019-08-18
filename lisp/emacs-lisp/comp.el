@@ -83,7 +83,7 @@
          :documentation "Alist lisp-func-name -> c-func-name.
 This is build before entering into `comp--compile-ctxt-to-file name'.")
   (funcs-h (make-hash-table) :type hash-table
-           :documentation "lisp-func-name -> c-func-name.
+           :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
   (data-relocs () :type string
                :documentation "Final data relocations.
@@ -381,7 +381,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   (let ((rel-idx (comp-add-const-to-relocs val)))
     (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                       :constant val))
-    (comp-emit `(setimm ,(comp-slot) ,rel-idx . ,val))))
+    (comp-emit `(setimm ,(comp-slot) ,rel-idx ,val))))
 
 (defun comp-mark-block-closed ()
   "Mark current basic block as closed."
@@ -835,23 +835,24 @@ the annotation emission."
   (setf (comp-ctxt-funcs comp-ctxt)
         (prin1-to-string (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
                                   for f being each hash-value of h
-                                  collect f)))
+                                  for args = (comp-func-args f)
+                                  for doc = (aref (comp-func-byte-func f) 4)
+                                  collect (vector (comp-func-symbol-name f)
+                                                  (comp-func-c-func-name f)
+                                                  (cons (comp-args-base-min args)
+                                                        (if (comp-args-p args)
+                                                            (comp-args-max args)
+                                                          'many))
+                                                  doc))))
   (comp--compile-ctxt-to-file name))
 
 (defun comp-add-func-to-ctxt (func)
   "Add FUNC to the current compiler contex."
-  (let ((args (comp-func-args func))
-        (doc (aref (comp-func-byte-func func) 4)))
-    (puthash (comp-func-symbol-name func)
-             (vector (comp-func-symbol-name func)
-                     (comp-func-c-func-name func)
-                     (cons (comp-args-base-min args)
-                           (if (comp-args-p args)
-                               (comp-args-max args)
-                             'many))
-                     doc)
-             (comp-ctxt-funcs-h comp-ctxt)))
-  (comp--add-func-to-ctxt func))
+  (puthash (comp-func-symbol-name func)
+           func
+           (comp-ctxt-funcs-h comp-ctxt))
+  ;; (comp--add-func-to-ctxt func)
+  )
 
 
 ;;; Entry points.
