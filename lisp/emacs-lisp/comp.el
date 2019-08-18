@@ -773,9 +773,6 @@ the annotation emission."
     (comp-emit-block 'entry)
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
-    (comp-emit `(const-vector ,(concat (comp-func-c-func-name func) "_data_relocs")
-                              ,(prin1-to-string (aref (comp-func-byte-func func)
-                                                      2))))
     (if (comp-args-p args)
       (cl-loop for i below (comp-args-max args)
                do (cl-incf (comp-sp))
