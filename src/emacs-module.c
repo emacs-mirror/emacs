@@ -944,6 +944,24 @@ module_signal_or_throw (struct emacs_env_private *env)
     }
 }
 
+typedef char *(*f_comp_data_relocs) (void);
+
+static int
+comp_load_unit (dynlib_handle_ptr handle, struct emacs_runtime *rt)
+{
+  Lisp_Object *data_relocs = dynlib_sym (handle, "data_relocs");
+  f_comp_data_relocs f = dynlib_sym (handle, "text_data_relocs");
+  char *text_data_relocs = f();
+
+  Lisp_Object d_vec = Fread (build_string (text_data_relocs));
+  EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
+
+  for (EMACS_UINT i = 0; i < d_vec_len; i++)
+    data_relocs[i] = AREF (d_vec, i);
+
+  return 0;
+}
+
 /* Live runtime and environment objects, for assertions.  */
 static Lisp_Object Vmodule_runtimes;
 static Lisp_Object Vmodule_environments;
@@ -966,10 +984,13 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   if (!gpl_sym && !native_comp)
     xsignal1 (Qmodule_not_gpl_compatible, file);
 
-  module_init = (emacs_init_function) dynlib_func (handle, "emacs_module_init");
-  if (!module_init)
-    xsignal1 (Qmissing_module_init_function, file);
-
+  if (!native_comp)
+    {
+      module_init =
+	(emacs_init_function) dynlib_func (handle, "emacs_module_init");
+      if (!module_init)
+	xsignal1 (Qmissing_module_init_function, file);
+    }
   struct emacs_runtime rt_pub;
   struct emacs_runtime_private rt_priv;
   emacs_env env_pub;
@@ -990,7 +1011,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (finalize_runtime_unwind, rt);
 
-  int r = module_init (rt);
+  int r = native_comp ? comp_load_unit (handle, rt) : module_init (rt);
 
   /* Process the quit flag first, so that quitting doesn't get
      overridden by other non-local exits.  */
