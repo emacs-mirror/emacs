@@ -63,7 +63,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR(name))
 
-/* The compiler context	 */
+/* C side of the compiler context. */
 
 typedef struct {
   gcc_jit_context *ctxt;
@@ -147,7 +147,6 @@ typedef struct {
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
   Lisp_Object func_hash; /* f_name -> gcc_func.	*/
-  Lisp_Object funcs; /* List of functions defined.  */
   Lisp_Object emitter_dispatcher;
 } comp_t;
 
@@ -2405,7 +2404,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
     }
 
   comp.ctxt = gcc_jit_context_acquire();
-  comp.funcs = Qnil;
 
   if (COMP_DEBUG)
     {
@@ -2657,8 +2655,6 @@ DEFUN ("comp--add-func-to-ctxt", Fcomp__add_func_to_ctxt,
 	}
     }
 
-  comp.funcs = Fcons (func, comp.funcs);
-
   return Qt;
 }
 
@@ -2705,61 +2701,61 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   return Qt;
 }
 
-DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt,
-       Scomp_compile_and_load_ctxt,
-       0, 1, 0,
-       doc: /* Compile as native code the current context and load its
-	       functions.  */)
-     (Lisp_Object disassemble)
-{
-  gcc_jit_context_set_int_option (comp.ctxt,
-				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
-				  comp_speed);
-  /* Gcc doesn't like being interrupted at all.  */
-  sigset_t oldset;
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, SIGALRM);
-  sigaddset (&blocked, SIGINT);
-  sigaddset (&blocked, SIGIO);
-  pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
+/* DEFUN ("comp-compile-and-load-ctxt", Fcomp_compile_and_load_ctxt, */
+/*        Scomp_compile_and_load_ctxt, */
+/*        0, 1, 0, */
+/*        doc: /\* Compile as native code the current context and load its */
+/* 	       functions.  *\/) */
+/*      (Lisp_Object disassemble) */
+/* { */
+/*   gcc_jit_context_set_int_option (comp.ctxt, */
+/* 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL, */
+/* 				  comp_speed); */
+/*   /\* Gcc doesn't like being interrupted at all.  *\/ */
+/*   sigset_t oldset; */
+/*   sigset_t blocked; */
+/*   sigemptyset (&blocked); */
+/*   sigaddset (&blocked, SIGALRM); */
+/*   sigaddset (&blocked, SIGINT); */
+/*   sigaddset (&blocked, SIGIO); */
+/*   pthread_sigmask (SIG_BLOCK, &blocked, &oldset); */
 
-  if (COMP_DEBUG)
-    gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1);
-  gcc_jit_result *gcc_res = gcc_jit_context_compile(comp.ctxt);
+/*   if (COMP_DEBUG) */
+/*     gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1); */
+/*   gcc_jit_result *gcc_res = gcc_jit_context_compile(comp.ctxt); */
 
-  if (!NILP (disassemble))
-    gcc_jit_context_compile_to_file (comp.ctxt,
-				     GCC_JIT_OUTPUT_KIND_ASSEMBLER,
-				     "gcc-ctxt-dump.s");
+/*   if (!NILP (disassemble)) */
+/*     gcc_jit_context_compile_to_file (comp.ctxt, */
+/* 				     GCC_JIT_OUTPUT_KIND_ASSEMBLER, */
+/* 				     "gcc-ctxt-dump.s"); */
 
-  while (CONSP (comp.funcs))
-    {
-      union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
-      Lisp_Object func = XCAR (comp.funcs);
-      Lisp_Object args = FUNCALL1 (comp-func-args, func);
-      char *symbol_name =
-	(char *) SDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func)));
-      char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
+/*   while (CONSP (comp.funcs)) */
+/*     { */
+/*       union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr)); */
+/*       Lisp_Object func = XCAR (comp.funcs); */
+/*       Lisp_Object args = FUNCALL1 (comp-func-args, func); */
+/*       char *symbol_name = */
+/* 	(char *) SDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))); */
+/*       char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func)); */
 
-      x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
-      x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name);
-      eassert (x->s.function.a0);
-      x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-base-min, args));
-      if (FUNCALL1 (comp-args-p, args))
-	x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
-      else
-	x->s.max_args = MANY;
-      x->s.symbol_name = symbol_name;
-      defsubr(x);
+/*       x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS; */
+/*       x->s.function.a0 = gcc_jit_result_get_code(gcc_res, c_name); */
+/*       eassert (x->s.function.a0); */
+/*       x->s.min_args = XFIXNUM (FUNCALL1 (comp-args-base-min, args)); */
+/*       if (FUNCALL1 (comp-args-p, args)) */
+/* 	x->s.max_args = XFIXNUM (FUNCALL1 (comp-args-max, args)); */
+/*       else */
+/* 	x->s.max_args = MANY; */
+/*       x->s.symbol_name = symbol_name; */
+/*       defsubr(x); */
 
-      comp.funcs = XCDR (comp.funcs);
-    }
+/*       comp.funcs = XCDR (comp.funcs); */
+/*     } */
 
-  pthread_sigmask (SIG_SETMASK, &oldset, 0);
+/*   pthread_sigmask (SIG_SETMASK, &oldset, 0); */
 
-  return Qt;
-}
+/*   return Qt; */
+/* } */
 
 
 /******************************************************************************/
