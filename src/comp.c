@@ -2827,15 +2827,22 @@ helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs)
 }
 
 
+/*********************************/
+/* Native elisp load functions.  */
+/*********************************/
 
-/************************************/
-/* Native compiler load functions.  */
-/************************************/
+static Lisp_Object Vnative_elisp_refs_hash;
 
 typedef char *(*comp_litt_str_func) (void);
 
+static void
+prevent_gc (Lisp_Object obj)
+{
+  Fputhash (obj, Qt, Vnative_elisp_refs_hash);
+}
+
 static Lisp_Object
-comp_retrive_obj (dynlib_handle_ptr handle, const char *str_name)
+retrive_litteral_obj (dynlib_handle_ptr handle, const char *str_name)
 {
   comp_litt_str_func f = dynlib_sym (handle, str_name);
   char *res = f();
@@ -2847,13 +2854,16 @@ load_comp_unit (dynlib_handle_ptr handle)
 {
   Lisp_Object *data_relocs = dynlib_sym (handle, "data_relocs");
 
-  Lisp_Object d_vec = comp_retrive_obj (handle, "text_data_relocs");
+  Lisp_Object d_vec = retrive_litteral_obj (handle, "text_data_relocs");
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
-    data_relocs[i] = AREF (d_vec, i);
+    {
+      data_relocs[i] = AREF (d_vec, i);
+      prevent_gc (data_relocs[i]);
+    }
 
-  Lisp_Object func_list = comp_retrive_obj (handle, "text_funcs");
+  Lisp_Object func_list = retrive_litteral_obj (handle, "text_funcs");
 
   while (func_list)
     {
@@ -2905,6 +2915,12 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 void
 syms_of_comp (void)
 {
+  staticpro (&Vnative_elisp_refs_hash);
+  Vnative_elisp_refs_hash
+    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
+		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
+		       Qnil, false);
+
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
   DEFSYM (Qjump, "jump");
