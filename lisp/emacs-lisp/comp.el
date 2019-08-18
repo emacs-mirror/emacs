@@ -97,7 +97,7 @@ To be used when ncall-conv is nil."))
   (sp nil
       :documentation "When non nil indicates the sp value while entering
 into it.")
-  (closed nil :type 'boolean
+  (closed nil :type boolean
           :documentation "If the block was already closed.")
   (insns () :type list
          :documentation "List of instructions."))
@@ -106,7 +106,7 @@ into it.")
   "LIMPLE representation of a function."
   (symbol-name nil
                :documentation "Function symbol's name.")
-  (c-func-name nil :type 'string
+  (c-func-name nil :type string
                :documentation "The function name in the native world.")
   (func nil
         :documentation "Original form.")
@@ -114,15 +114,15 @@ into it.")
              :documentation "Byte compiled version.")
   (lap () :type list
        :documentation "Lap assembly representation.")
-  (args nil :type 'comp-args-base)
-  (frame-size nil :type 'number)
-  (blocks (make-hash-table) :type 'hash-table
+  (args nil :type comp-args-base)
+  (frame-size nil :type number)
+  (blocks (make-hash-table) :type hash-table
           :documentation "Key is the basic block symbol value is a comp-block
 structure.")
-  (lap-block (make-hash-table :test #'equal) :type 'hash-table
+  (lap-block (make-hash-table :test #'equal) :type hash-table
              :documentation "Key value to convert from LAP label number to
 LIMPLE basic block.")
-  (ssa-cnt -1 :type 'number
+  (ssa-cnt -1 :type number
               :documentation "Counter to create ssa limple vars."))
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
@@ -141,11 +141,11 @@ LIMPLE basic block.")
 
 (cl-defstruct (comp-limplify (:copier nil))
   "Support structure used during limplification."
-  (sp 0 :type 'fixnum
+  (sp 0 :type fixnum
       :documentation "Current stack pointer while walking LAP.")
-  (frame nil :type 'vector
+  (frame nil :type vector
          :documentation "Meta-stack used to flat LAP.")
-  (block-name nil :type 'symbol
+  (block-name nil :type symbol
     :documentation "Current basic block name."))
 
 (defmacro comp-within-log-buff (&rest body)
