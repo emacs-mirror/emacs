@@ -77,8 +77,17 @@
     "Hash table lap-op -> stack adjustment."))
 
 (cl-defstruct comp-ctxt
+  "This structure is to serve al relocation creation for the current compiler
+ context."
+  (funcs () :type list
+         :documentation "Alist lisp-func-name -> c-func-name.
+This is build before entering into `comp--compile-ctxt-to-file name'.")
+  (funcs-h (make-hash-table) :type hash-table
+           :documentation "lisp-func-name -> c-func-name.
+This is to build the prev field.")
   (data-relocs () :type string
-               :documentation "Final data relocations.")
+               :documentation "Final data relocations.
+This is build before entering into `comp--compile-ctxt-to-file name'.")
   (data-relocs-l () :type list
                :documentation "Constant objects used by functions.")
   (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
@@ -170,14 +179,6 @@ The corresponding index into it is returned."
     (unless (gethash obj data-relocs-idx)
       (push obj (comp-ctxt-data-relocs-l comp-ctxt))
       (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
-
-(defun comp-compile-ctxt-to-file (name)
-  "Compile as native code the current context naming it NAME."
-  (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
-                (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
-  (setf (comp-ctxt-data-relocs comp-ctxt)
-        (prin1-to-string  (vconcat (reverse (comp-ctxt-data-relocs-l comp-ctxt)))))
-  (comp--compile-ctxt-to-file name))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -823,6 +824,29 @@ the annotation emission."
     func))
 
 
+;;; C function wrappers
+
+(defun comp-compile-ctxt-to-file (name)
+  "Compile as native code the current context naming it NAME."
+  (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
+                (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
+  (setf (comp-ctxt-data-relocs comp-ctxt)
+        (prin1-to-string  (vconcat (reverse (comp-ctxt-data-relocs-l comp-ctxt)))))
+  (setf (comp-ctxt-funcs comp-ctxt)
+        (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
+                 for f being each hash-keys of h
+                 using (hash-value c-f)
+                 collect (cons (symbol-name f) c-f)))
+  (comp--compile-ctxt-to-file name))
+
+(defun comp-add-func-to-ctxt (func)
+  "Add FUNC to the current compiler contex."
+  (puthash (comp-func-symbol-name func)
+           (comp-func-c-func-name func)
+           (comp-ctxt-funcs-h comp-ctxt))
+  (comp--add-func-to-ctxt func))
+
+
 ;;; Entry points.
 
 (defun native-compile (func-symbol-name)
@@ -841,7 +865,7 @@ the annotation emission."
                 comp-passes)
           ;; Once we have the final LIMPLE we jump into C.
           (comp--init-ctxt)
-          (comp--add-func-to-ctxt func)
+          (comp-add-func-to-ctxt func)
           (comp-compile-ctxt-to-file (symbol-name func-symbol-name))
           ;; (comp-compile-and-load-ctxt)
           (comp--release-ctxt)))
