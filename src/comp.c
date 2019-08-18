@@ -170,6 +170,8 @@ bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 
 void helper_emit_save_restriction (void);
 
+void helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs);
+
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
 format_string (const char *format, ...)
@@ -1472,6 +1474,46 @@ emit_integerp (Lisp_Object insn)
 				   &res);
 }
 
+/*
+This emit the code needed by every compilation unit to be loaded.
+*/
+static void
+emit_ctxt_code (void)
+{
+  const char *d_reloc = SSDATA (FUNCALL1 (comp-ctxt-data-relocs, Vcomp_ctxt));
+  EMACS_UINT d_reloc_len =
+    XFIXNUM (FUNCALL1 (hash-table-count,
+		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
+
+  gcc_jit_context_new_global (
+    comp.ctxt,
+    NULL,
+    GCC_JIT_GLOBAL_EXPORTED,
+    gcc_jit_context_new_array_type (comp.ctxt,
+				    NULL,
+				    comp.lisp_obj_type,
+				    d_reloc_len),
+    "data_relocs");
+  /*
+    Is not possibile to initilize static data in libgccjit therfore will create
+    the following:
+
+    char *text_data_relocs (void)
+    {
+      return "[a b c... etc]";
+    }
+  */
+  gcc_jit_function *f =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_EXPORTED,
+				  comp.char_ptr_type,
+				  "text_data_relocs",
+				  0, NULL, 0);
+  DECL_BLOCK (block, f);
+  gcc_jit_rvalue *res = gcc_jit_context_new_string_literal (comp.ctxt, d_reloc);
+  gcc_jit_block_end_with_return (block, NULL, res);
+}
+
 
 /****************************************************************/
 /* Inline function definition and lisp data structure follows.  */
@@ -1591,7 +1633,7 @@ define_lisp_cons (void)
 
 }
 
-/* opaque jmp_buf definition.  */
+/* Opaque jmp_buf definition.  */
 
 static void
 define_jmp_buf (void)
@@ -2640,6 +2682,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   sigaddset (&blocked, SIGIO);
   pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 
+  emit_ctxt_code ();
+
   if (COMP_DEBUG)
     {
       AUTO_STRING (dot_c, ".c");
@@ -2648,7 +2692,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       gcc_jit_context_dump_to_file (comp.ctxt, filename, 1);
     }
 
-  AUTO_STRING (dot_so, ".so");
+  AUTO_STRING (dot_so, ".so"); /* FIXME use correct var */
   const char *filename =
     (const char *) SDATA (CALLN (Fconcat, ctxtname, dot_so));
 
@@ -2772,6 +2816,11 @@ helper_emit_save_restriction (void)
 {
   record_unwind_protect (save_restriction_restore,
 			 save_restriction_save ());
+}
+
+void
+helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs)
+{
 }
 
 
