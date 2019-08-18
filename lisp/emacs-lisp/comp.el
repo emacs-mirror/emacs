@@ -253,7 +253,7 @@ BODY is evaluate only if `comp-debug' is non nil."
     (let ((lambda-list (aref (comp-func-byte-func func) 0)))
       (if (fixnump lambda-list)
           (setf (comp-func-args func)
-                (comp-decrypt-lambda-list (aref (comp-func-byte-func func) 0)))
+                (comp-decrypt-lambda-list lambda-list))
         (error "Can't native compile a non lexical scoped function")))
     (setf (comp-func-lap func) byte-compile-lap-output)
     (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
@@ -831,19 +831,26 @@ the annotation emission."
   (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
                 (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
   (setf (comp-ctxt-data-relocs comp-ctxt)
-        (prin1-to-string  (vconcat (reverse (comp-ctxt-data-relocs-l comp-ctxt)))))
+        (prin1-to-string (vconcat (reverse (comp-ctxt-data-relocs-l comp-ctxt)))))
   (setf (comp-ctxt-funcs comp-ctxt)
-        (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
-                 for f being each hash-keys of h
-                 using (hash-value c-f)
-                 collect (cons (symbol-name f) c-f)))
+        (prin1-to-string (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
+                                  for f being each hash-value of h
+                                  collect f)))
   (comp--compile-ctxt-to-file name))
 
 (defun comp-add-func-to-ctxt (func)
   "Add FUNC to the current compiler contex."
-  (puthash (comp-func-symbol-name func)
-           (comp-func-c-func-name func)
-           (comp-ctxt-funcs-h comp-ctxt))
+  (let ((args (comp-func-args func))
+        (doc (aref (comp-func-byte-func func) 4)))
+    (puthash (comp-func-symbol-name func)
+             (vector (comp-func-symbol-name func)
+                     (comp-func-c-func-name func)
+                     (cons (comp-args-base-min args)
+                           (if (comp-args-p args)
+                               (comp-args-max args)
+                             'many))
+                     doc)
+             (comp-ctxt-funcs-h comp-ctxt)))
   (comp--add-func-to-ctxt func))
 
 

@@ -944,20 +944,60 @@ module_signal_or_throw (struct emacs_env_private *env)
     }
 }
 
-typedef char *(*f_comp_data_relocs) (void);
+
+/*
+  Native compiler load functions.
+  FIXME: Move away from here.
+*/
+
+typedef char *(*comp_litt_str_func) (void);
+
+static Lisp_Object
+comp_retrive_obj (dynlib_handle_ptr handle, const char *str_name)
+{
+  comp_litt_str_func f = dynlib_sym (handle, str_name);
+  char *res = f();
+  return Fread (build_string (res));
+}
 
 static int
-comp_load_unit (dynlib_handle_ptr handle, struct emacs_runtime *rt)
+comp_load_unit (dynlib_handle_ptr handle, emacs_env *env)
 {
   Lisp_Object *data_relocs = dynlib_sym (handle, "data_relocs");
-  f_comp_data_relocs f = dynlib_sym (handle, "text_data_relocs");
-  char *text_data_relocs = f();
 
-  Lisp_Object d_vec = Fread (build_string (text_data_relocs));
+  Lisp_Object d_vec = comp_retrive_obj (handle, "text_data_relocs");
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
     data_relocs[i] = AREF (d_vec, i);
+
+  Lisp_Object func_list = comp_retrive_obj (handle, "text_funcs");
+
+  while (func_list)
+    {
+      Lisp_Object el = XCAR (func_list);
+      Lisp_Object Qsym = AREF (el, 0);
+      char *c_func_name = SSDATA (AREF (el, 1));
+      Lisp_Object args = AREF (el, 2);
+      ptrdiff_t minargs = XFIXNUM (XCAR (args));
+      ptrdiff_t maxargs = FIXNUMP (XCDR (args)) ? XFIXNUM (XCDR (args)) : MANY;
+      /* char *doc = SSDATA (AREF (el, 3)); */
+      void *func = dynlib_sym (handle, c_func_name);
+      eassert (func);
+      /* Ffset (Qsym, */
+      /* 	     value_to_lisp (module_make_function (env, minargs, maxargs, func, */
+      /* 						  doc, NULL))); */
+
+      union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+      x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
+      x->s.function.a0 = func;
+      x->s.min_args = minargs;
+      x->s.max_args = maxargs;
+      x->s.symbol_name = SSDATA (Fsymbol_name (Qsym));
+      defsubr(x);
+
+      func_list = XCDR (func_list);
+    }
 
   return 0;
 }
@@ -1011,7 +1051,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (finalize_runtime_unwind, rt);
 
-  int r = native_comp ? comp_load_unit (handle, rt) : module_init (rt);
+  int r = native_comp ? comp_load_unit (handle, &env_pub) : module_init (rt);
 
   /* Process the quit flag first, so that quitting doesn't get
      overridden by other non-local exits.  */

@@ -1474,6 +1474,30 @@ emit_integerp (Lisp_Object insn)
 }
 
 /*
+  Is not possibile to initilize static data in libgccjit therfore will create
+  the following:
+
+  char *str_name (void)
+  {
+    return "payload here";
+  }
+*/
+
+static void
+emit_litteral_string_func (const char *str_name, const char *str)
+{
+  gcc_jit_function *f =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_EXPORTED,
+				  comp.char_ptr_type,
+				  str_name,
+				  0, NULL, 0);
+  DECL_BLOCK (block, f);
+  gcc_jit_rvalue *res = gcc_jit_context_new_string_literal (comp.ctxt, str);
+  gcc_jit_block_end_with_return (block, NULL, res);
+}
+
+/*
 This emit the code needed by every compilation unit to be loaded.
 */
 static void
@@ -1493,24 +1517,11 @@ emit_ctxt_code (void)
 				    comp.lisp_obj_type,
 				    d_reloc_len),
     "data_relocs");
-  /*
-    Is not possibile to initilize static data in libgccjit therfore will create
-    the following:
 
-    char *text_data_relocs (void)
-    {
-      return "[a b c... etc]";
-    }
-  */
-  gcc_jit_function *f =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_EXPORTED,
-				  comp.char_ptr_type,
-				  "text_data_relocs",
-				  0, NULL, 0);
-  DECL_BLOCK (block, f);
-  gcc_jit_rvalue *res = gcc_jit_context_new_string_literal (comp.ctxt, d_reloc);
-  gcc_jit_block_end_with_return (block, NULL, res);
+  emit_litteral_string_func ("text_data_relocs", d_reloc);
+
+  const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
+  emit_litteral_string_func ("text_funcs", func_list);
 }
 
 
@@ -2868,7 +2879,6 @@ syms_of_comp (void)
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__add_func_to_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
-  defsubr (&Scomp_compile_and_load_ctxt);
 
   staticpro (&comp.func_hash);
   comp.func_hash = Qnil;
