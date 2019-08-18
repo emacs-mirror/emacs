@@ -1281,6 +1281,11 @@ Return t if the file exists and loads successfully.  */)
   bool is_module = false;
 #endif
 
+#ifdef HAVE_LIBGCCJIT
+  bool is_native_elisp = suffix_p (found, NATIVE_ELISP_SUFFIX);
+#else
+  bool is_native_elisp = false;
+#endif
   /* Check if we're stuck in a recursive load cycle.
 
      2000-09-21: It's not possible to just check for the file loaded
@@ -1379,7 +1384,7 @@ Return t if the file exists and loads successfully.  */)
             } /* !load_prefer_newer */
 	}
     }
-  else if (!is_module)
+  else if (!is_module && !is_native_elisp)
     {
       /* We are loading a source file (*.el).  */
       if (!NILP (Vload_source_file_function))
@@ -1406,7 +1411,7 @@ Return t if the file exists and loads successfully.  */)
       stream = NULL;
       errno = EINVAL;
     }
-  else if (!is_module)
+  else if (!is_module && !is_native_elisp)
     {
 #ifdef WINDOWSNT
       emacs_close (fd);
@@ -1422,7 +1427,7 @@ Return t if the file exists and loads successfully.  */)
      might be accessed by the unbind_to call below.  */
   struct infile input;
 
-  if (is_module)
+  if (is_module || is_native_elisp)
     {
       /* `module-load' uses the file name, so we can close the stream
          now.  */
@@ -1452,6 +1457,8 @@ Return t if the file exists and loads successfully.  */)
 		 file, 1);
       else if (is_module)
         message_with_string ("Loading %s (module)...", file, 1);
+      else if (is_native_elisp)
+        message_with_string ("Loading %s (native compiled elisp)...", file, 1);
       else if (!compiled)
 	message_with_string ("Loading %s (source)...", file, 1);
       else if (newer)
@@ -1471,6 +1478,18 @@ Return t if the file exists and loads successfully.  */)
       specbind (Qcurrent_load_list, Qnil);
       LOADHIST_ATTACH (found);
       Fmodule_load (found);
+      build_load_history (found, true);
+#else
+      /* This cannot happen.  */
+      emacs_abort ();
+#endif
+    }
+  else if (is_native_elisp)
+    {
+#ifdef HAVE_LIBGCCJIT
+      specbind (Qcurrent_load_list, Qnil);
+      LOADHIST_ATTACH (found);
+      Fnative_elisp_load (found);
       build_load_history (found, true);
 #else
       /* This cannot happen.  */
@@ -4866,21 +4885,19 @@ This list includes suffixes for both compiled and source Emacs Lisp files.
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a suffix is allowed or required.  */);
-#ifdef HAVE_MODULES
-#ifdef MODULES_SECONDARY_SUFFIX
-  Vload_suffixes = list4 (build_pure_c_string (".elc"),
-			  build_pure_c_string (".el"),
-			  build_pure_c_string (MODULES_SUFFIX),
-                          build_pure_c_string (MODULES_SECONDARY_SUFFIX));
-#else
-  Vload_suffixes = list3 (build_pure_c_string (".elc"),
-			  build_pure_c_string (".el"),
-			  build_pure_c_string (MODULES_SUFFIX));
-#endif
-#else
   Vload_suffixes = list2 (build_pure_c_string (".elc"),
 			  build_pure_c_string (".el"));
+#ifdef HAVE_MODULES
+  Vload_suffixes = Fcons (build_pure_c_string (MODULES_SUFFIX), Vload_suffixes);
+#ifdef MODULES_SECONDARY_SUFFIX
+  Vload_suffixes =
+    Fcons (build_pure_c_string (MODULES_SECONDARY_SUFFIX), Vload_suffixes);
 #endif
+#endif
+#ifdef HAVE_LIBGCCJIT
+  Vload_suffixes = Fcons (build_pure_c_string (NATIVE_ELISP_SUFFIX), Vload_suffixes);
+#endif
+
   DEFVAR_LISP ("module-file-suffix", Vmodule_file_suffix,
 	       doc: /* Suffix of loadable module file, or nil if modules are not supported.  */);
 #ifdef HAVE_MODULES

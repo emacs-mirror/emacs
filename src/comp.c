@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "bytecode.h"
 #include "atimer.h"
 #include "window.h"
+#include "dynlib.h"
 
 #define DEFAULT_SPEED 2 /* See comp-speed var.  */
 
@@ -2555,11 +2556,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   define_add1_sub1 ();
   define_negate ();
 
-  gcc_jit_context_new_global (comp.ctxt,
-			      NULL,
-			      GCC_JIT_GLOBAL_EXPORTED,
-			      comp.int_type,
-			      "native_compiled_emacs_lisp");
   return Qt;
 }
 
@@ -2699,7 +2695,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       gcc_jit_context_dump_to_file (comp.ctxt, filename, 1);
     }
 
-  AUTO_STRING (dot_so, ".so"); /* FIXME use correct var */
+  AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
   const char *filename =
     (const char *) SDATA (CALLN (Fconcat, ctxtname, dot_so));
 
@@ -2831,6 +2827,81 @@ helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs)
 }
 
 
+
+/************************************/
+/* Native compiler load functions.  */
+/************************************/
+
+typedef char *(*comp_litt_str_func) (void);
+
+static Lisp_Object
+comp_retrive_obj (dynlib_handle_ptr handle, const char *str_name)
+{
+  comp_litt_str_func f = dynlib_sym (handle, str_name);
+  char *res = f();
+  return Fread (build_string (res));
+}
+
+static int
+load_comp_unit (dynlib_handle_ptr handle)
+{
+  Lisp_Object *data_relocs = dynlib_sym (handle, "data_relocs");
+
+  Lisp_Object d_vec = comp_retrive_obj (handle, "text_data_relocs");
+  EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
+
+  for (EMACS_UINT i = 0; i < d_vec_len; i++)
+    data_relocs[i] = AREF (d_vec, i);
+
+  Lisp_Object func_list = comp_retrive_obj (handle, "text_funcs");
+
+  while (func_list)
+    {
+      Lisp_Object el = XCAR (func_list);
+      Lisp_Object Qsym = AREF (el, 0);
+      char *c_func_name = SSDATA (AREF (el, 1));
+      Lisp_Object args = AREF (el, 2);
+      ptrdiff_t minargs = XFIXNUM (XCAR (args));
+      ptrdiff_t maxargs = FIXNUMP (XCDR (args)) ? XFIXNUM (XCDR (args)) : MANY;
+      /* char *doc = SSDATA (AREF (el, 3)); */
+      void *func = dynlib_sym (handle, c_func_name);
+      eassert (func);
+
+      union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+      x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
+      x->s.function.a0 = func;
+      x->s.min_args = minargs;
+      x->s.max_args = maxargs;
+      x->s.symbol_name = SSDATA (Fsymbol_name (Qsym));
+      defsubr(x);
+
+      func_list = XCDR (func_list);
+    }
+
+  return 0;
+}
+
+/* Load related routines. */
+DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
+       doc: /* Load native elisp code FILE.  */)
+  (Lisp_Object file)
+{
+  dynlib_handle_ptr handle;
+
+  CHECK_STRING (file);
+  handle = dynlib_open (SSDATA (file));
+  if (!handle)
+    xsignal2 (Qcomp_unit_open_failed, file, build_string (dynlib_error ()));
+
+  int r = load_comp_unit (handle);
+
+  if (r != 0)
+    xsignal2 (Qcomp_unit_init_failed, file, INT_TO_INTEGER (r));
+
+  return Qt;
+}
+
+
 void
 syms_of_comp (void)
 {
@@ -2874,11 +2945,15 @@ syms_of_comp (void)
   DEFSYM (Qnegate, "negate");
   DEFSYM (QFnumberp, "Fnumberp");
   DEFSYM (QFintegerp, "Fintegerp");
+  /* Returned values.  */
+  DEFSYM (Qcomp_unit_open_failed, "comp-unit-open-failed");
+  DEFSYM (Qcomp_unit_init_failed, "comp-unit-init-failed");
 
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__add_func_to_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
+  defsubr (&Snative_elisp_load);
 
   staticpro (&comp.func_hash);
   comp.func_hash = Qnil;
