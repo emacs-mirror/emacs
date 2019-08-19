@@ -70,6 +70,7 @@
 (require 'jsonrpc)
 (require 'filenotify)
 (require 'ert)
+(require 'array)
 
 
 ;;; User tweakable stuff
