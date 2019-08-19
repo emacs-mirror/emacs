@@ -54,7 +54,7 @@
                         comp-limplify)
   "Passes to be executed in order.")
 
-(defconst comp-known-ret-types '((Fcons . cons))
+(defconst comp-known-ret-types '((cons . cons))
   "Alist used for type propagation.")
 
 (defconst comp-mostly-pure-funcs
@@ -92,7 +92,7 @@ This is build before entering into `comp--compile-ctxt-to-file name'.")
                :documentation "Constant objects used by functions.")
   (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
                    :documentation "Obj -> position into data-relocs.")
-  (func-relocs () :type list
+  (func-relocs-l () :type list
                :documentation "Native functions imported.")
   (func-relocs-idx (make-hash-table :test #'equal) :type hash-table
                    :documentation "Obj -> position into func-relocs."))
@@ -183,10 +183,10 @@ The corresponding index is returned."
 (defun comp-add-subr-to-relocs (subr-name)
   "Keep track of SUBR-NAME into the ctxt relocations.
 The corresponding index is returned."
-  (let ((funcs-relocs-idx (comp-ctxt-funcs-relocs-idx comp-ctxt)))
-    (unless (gethash subr-name funcs-relocs-idx)
-      (push subr-name (comp-ctxt-funcs-relocs-l comp-ctxt))
-      (puthash subr-name (hash-table-count funcs-relocs-idx) funcs-relocs-idx))))
+  (let ((func-relocs-idx (comp-ctxt-func-relocs-idx comp-ctxt)))
+    (unless (gethash subr-name func-relocs-idx)
+      (push subr-name (comp-ctxt-func-relocs-l comp-ctxt))
+      (puthash subr-name (hash-table-count func-relocs-idx) func-relocs-idx))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -458,12 +458,12 @@ If NEGATED non nil negate the tested condition."
 (defun comp-limplify-listn (n)
   "Limplify list N."
   (comp-with-sp (+ (comp-sp) n -1)
-    (comp-emit-set-call (comp-call 'Fcons
+    (comp-emit-set-call (comp-call 'cons
                                    (comp-slot)
                                    (make-comp-mvar :constant nil))))
   (cl-loop for sp from (+ (comp-sp) n -2) downto (comp-sp)
            do (comp-with-sp sp
-                (comp-emit-set-call (comp-call 'Fcons
+                (comp-emit-set-call (comp-call 'cons
                                                (comp-slot)
                                                (comp-slot-next))))))
 
@@ -593,8 +593,8 @@ the annotation emission."
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
-       (comp-emit-set-call (comp-call 'Fsymbol_value (make-comp-mvar
-                                                      :constant arg))))
+       (comp-emit-set-call (comp-call 'symbol_value (make-comp-mvar
+                                                     :constant arg))))
       (byte-varset
        (comp-emit (comp-call 'set_internal
                              (make-comp-mvar :constant arg)
@@ -621,7 +621,7 @@ the annotation emission."
       (byte-listp auto)
       (byte-eq auto)
       (byte-memq auto)
-      (byte-not null Fnull)
+      (byte-not null)
       (byte-car auto)
       (byte-cdr auto)
       (byte-cons auto)
@@ -643,25 +643,25 @@ the annotation emission."
       (byte-get auto)
       (byte-substring auto)
       (byte-concat2
-       (comp-emit-set-call (comp-callref 'Fconcat 2 (comp-sp))))
+       (comp-emit-set-call (comp-callref 'concat 2 (comp-sp))))
       (byte-concat3
-       (comp-emit-set-call (comp-callref 'Fconcat 3 (comp-sp))))
+       (comp-emit-set-call (comp-callref 'concat 3 (comp-sp))))
       (byte-concat4
-       (comp-emit-set-call (comp-callref 'Fconcat 4 (comp-sp))))
-      (byte-sub1 1- Fsub1)
-      (byte-add1 1+ Fadd1)
-      (byte-eqlsign = Feqlsign)
-      (byte-gtr > Fgtr)
-      (byte-lss < Flss)
-      (byte-leq <= Fleq)
-      (byte-geq >= Fgeq)
-      (byte-diff - Fminus)
+       (comp-emit-set-call (comp-callref 'concat 4 (comp-sp))))
+      (byte-sub1 1-)
+      (byte-add1 1+)
+      (byte-eqlsign =)
+      (byte-gtr >)
+      (byte-lss <)
+      (byte-leq <=)
+      (byte-geq >=)
+      (byte-diff -)
       (byte-negate
        (comp-emit-set-call (comp-call 'negate (comp-slot))))
-      (byte-plus + Fplus)
+      (byte-plus +)
       (byte-max auto)
       (byte-min auto)
-      (byte-mult * Ftimes)
+      (byte-mult *)
       (byte-point auto)
       (byte-goto-char auto)
       (byte-insert auto)
@@ -669,10 +669,10 @@ the annotation emission."
       (byte-point-min auto)
       (byte-char-after auto)
       (byte-following-char auto)
-      (byte-preceding-char preceding-char Fprevious_char)
+      (byte-preceding-char preceding-char)
       (byte-current-column auto)
       (byte-indent-to
-       (comp-emit-set-call (comp-call 'Findent_to
+       (comp-emit-set-call (comp-call 'indent_to
                                       (comp-slot)
                                       (make-comp-mvar :constant nil))))
       (byte-scan-buffer-OBSOLETE)
@@ -695,11 +695,11 @@ the annotation emission."
       (byte-buffer-substring auto)
       (byte-delete-region auto)
       (byte-narrow-to-region
-       (comp-emit-set-call (comp-call 'Fnarrow_to_region
+       (comp-emit-set-call (comp-call 'narrow_to_region
                                       (comp-slot)
                                       (comp-slot-next))))
       (byte-widen
-       (comp-emit-set-call (comp-call 'Fwiden)))
+       (comp-emit-set-call (comp-call 'widen)))
       (byte-end-of-line auto)
       (byte-constant2) ;; TODO
       (byte-goto
@@ -739,8 +739,8 @@ the annotation emission."
       (byte-match-end auto)
       (byte-upcase auto)
       (byte-downcase auto)
-      (byte-string= string-equal Fstring_equal)
-      (byte-string< string-lessp Fstring_lessp)
+      (byte-string= string-equal)
+      (byte-string< string-lessp)
       (byte-equal auto)
       (byte-nthcdr auto)
       (byte-elt auto)
@@ -752,19 +752,19 @@ the annotation emission."
       (byte-car-safe auto)
       (byte-cdr-safe auto)
       (byte-nconc auto)
-      (byte-quo / Fquo)
-      (byte-rem % Frem)
+      (byte-quo /)
+      (byte-rem %)
       (byte-numberp auto)
       (byte-integerp auto)
       (byte-listN
        (comp-stack-adjust (- 1 arg))
-       (comp-emit-set-call (comp-callref 'Flist arg (comp-sp))))
+       (comp-emit-set-call (comp-callref 'list arg (comp-sp))))
       (byte-concatN
        (comp-stack-adjust (- 1 arg))
-       (comp-emit-set-call (comp-callref 'Fconcat arg (comp-sp))))
+       (comp-emit-set-call (comp-callref 'concat arg (comp-sp))))
       (byte-insertN
        (comp-stack-adjust (- 1 arg))
-       (comp-emit-set-call (comp-callref 'Finsert arg (comp-sp))))
+       (comp-emit-set-call (comp-callref 'insert arg (comp-sp))))
       (byte-stack-set
        (comp-with-sp (1+ (comp-sp))
          (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
