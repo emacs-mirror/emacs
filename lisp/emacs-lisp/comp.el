@@ -173,12 +173,20 @@ LIMPLE basic block.")
 
 
 (defun comp-add-const-to-relocs (obj)
-  "Keep track of OBJ into relocations.
-The corresponding index into it is returned."
+  "Keep track of OBJ into the ctxt relocations.
+The corresponding index is returned."
   (let ((data-relocs-idx (comp-ctxt-data-relocs-idx comp-ctxt)))
     (unless (gethash obj data-relocs-idx)
       (push obj (comp-ctxt-data-relocs-l comp-ctxt))
       (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
+
+(defun comp-add-subr-to-relocs (subr-name)
+  "Keep track of SUBR-NAME into the ctxt relocations.
+The corresponding index is returned."
+  (let ((funcs-relocs-idx (comp-ctxt-funcs-relocs-idx comp-ctxt)))
+    (unless (gethash subr-name funcs-relocs-idx)
+      (push subr-name (comp-ctxt-funcs-relocs-l comp-ctxt))
+      (puthash subr-name (hash-table-count funcs-relocs-idx) funcs-relocs-idx))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -273,6 +281,16 @@ BODY is evaluate only if `comp-debug' is non nil."
 ;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
 ;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
+(defun comp-call (&rest args)
+  "Emit a call for ARGS."
+  (comp-add-subr-to-relocs (car args))
+  `(call ,@args))
+
+(defun comp-callref (&rest args)
+  "Emit a call usign narg abi for ARGS."
+  (comp-add-subr-to-relocs (car args))
+  `(callref ,@args))
+
 (defun comp-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
   (let ((v (make-vector size nil)))
@@ -351,7 +369,7 @@ SP-DELTA is the stack adjustment."
           `(let* ((subr-name ',subr-name)
                   (slots (cl-loop for i from 0 below ,maxarg
                                   collect (comp-slot-n (+ i (comp-sp))))))
-             (comp-emit-set-call `(call ,subr-name ,@slots)))))))
+             (comp-emit-set-call (apply #'comp-call (cons subr-name slots))))))))
 
 (defun comp-copy-slot (src-n &optional dst-n)
   "Set slot number DST-N to slot number SRC-N as source.
@@ -440,14 +458,14 @@ If NEGATED non nil negate the tested condition."
 (defun comp-limplify-listn (n)
   "Limplify list N."
   (comp-with-sp (+ (comp-sp) n -1)
-    (comp-emit-set-call `(call Fcons
-                               ,(comp-slot)
-                               ,(make-comp-mvar :constant nil))))
+    (comp-emit-set-call (comp-call 'Fcons
+                                   (comp-slot)
+                                   (make-comp-mvar :constant nil))))
   (cl-loop for sp from (+ (comp-sp) n -2) downto (comp-sp)
            do (comp-with-sp sp
-                (comp-emit-set-call `(call Fcons
-                                           ,(comp-slot)
-                                           ,(comp-slot-next))))))
+                (comp-emit-set-call (comp-call 'Fcons
+                                               (comp-slot)
+                                               (comp-slot-next))))))
 
 (defun comp-new-block-sym ()
   "Return a symbol naming the next new basic block."
@@ -575,21 +593,21 @@ the annotation emission."
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
-       (comp-emit-set-call `(call Fsymbol_value ,(make-comp-mvar
-                                                  :constant arg))))
+       (comp-emit-set-call (comp-call 'Fsymbol_value (make-comp-mvar
+                                                      :constant arg))))
       (byte-varset
-       (comp-emit `(call set_internal
-                         ,(make-comp-mvar :constant arg)
-                         ,(comp-slot))))
+       (comp-emit (comp-call 'set_internal
+                             (make-comp-mvar :constant arg)
+                             (comp-slot))))
       (byte-varbind ;; Verify
-       (comp-emit `(call specbind
-                         ,(make-comp-mvar :constant arg)
-                         ,(comp-slot-next))))
+       (comp-emit (comp-call 'specbind
+                             (make-comp-mvar :constant arg)
+                             (comp-slot-next))))
       (byte-call
        (comp-emit-funcall arg))
       (byte-unbind
-       (comp-emit `(call helper_unbind_n
-                         ,(make-comp-mvar :constant arg))))
+       (comp-emit (comp-call 'helper_unbind_n
+                             (make-comp-mvar :constant arg))))
       (byte-pophandler
        (comp-emit '(pop-handler)))
       (byte-pushconditioncase
@@ -625,11 +643,11 @@ the annotation emission."
       (byte-get auto)
       (byte-substring auto)
       (byte-concat2
-       (comp-emit-set-call `(callref Fconcat 2 ,(comp-sp))))
+       (comp-emit-set-call (comp-callref 'Fconcat 2 (comp-sp))))
       (byte-concat3
-       (comp-emit-set-call `(callref Fconcat 3 ,(comp-sp))))
+       (comp-emit-set-call (comp-callref 'Fconcat 3 (comp-sp))))
       (byte-concat4
-       (comp-emit-set-call `(callref Fconcat 4 ,(comp-sp))))
+       (comp-emit-set-call (comp-callref 'Fconcat 4 (comp-sp))))
       (byte-sub1 1- Fsub1)
       (byte-add1 1+ Fadd1)
       (byte-eqlsign = Feqlsign)
@@ -639,7 +657,7 @@ the annotation emission."
       (byte-geq >= Fgeq)
       (byte-diff - Fminus)
       (byte-negate
-       (comp-emit-set-call `(call negate ,(comp-slot))))
+       (comp-emit-set-call (comp-call 'negate (comp-slot))))
       (byte-plus + Fplus)
       (byte-max auto)
       (byte-min auto)
@@ -654,9 +672,9 @@ the annotation emission."
       (byte-preceding-char preceding-char Fprevious_char)
       (byte-current-column auto)
       (byte-indent-to
-       (comp-emit-set-call `(call Findent_to
-                                  ,(comp-slot)
-                                  ,(make-comp-mvar :constant nil))))
+       (comp-emit-set-call (comp-call 'Findent_to
+                                      (comp-slot)
+                                      (make-comp-mvar :constant nil))))
       (byte-scan-buffer-OBSOLETE)
       (byte-eolp auto)
       (byte-eobp auto)
@@ -665,7 +683,7 @@ the annotation emission."
       (byte-current-buffer auto)
       (byte-set-buffer auto)
       (byte-save-current-buffer
-       (comp-emit '(call record_unwind_current_buffer)))
+       (comp-emit (comp-call 'record_unwind_current_buffer)))
       (byte-set-mark-OBSOLETE)
       (byte-interactive-p-OBSOLETE)
       (byte-forward-char auto)
@@ -677,11 +695,11 @@ the annotation emission."
       (byte-buffer-substring auto)
       (byte-delete-region auto)
       (byte-narrow-to-region
-       (comp-emit-set-call `(call Fnarrow_to_region
-                                  ,(comp-slot)
-                                  ,(comp-slot-next))))
+       (comp-emit-set-call (comp-call 'Fnarrow_to_region
+                                      (comp-slot)
+                                      (comp-slot-next))))
       (byte-widen
-       (comp-emit-set-call '(call Fwiden)))
+       (comp-emit-set-call (comp-call 'Fwiden)))
       (byte-end-of-line auto)
       (byte-constant2) ;; TODO
       (byte-goto
@@ -705,13 +723,13 @@ the annotation emission."
       (byte-dup
        (comp-copy-slot (1- (comp-sp))))
       (byte-save-excursion
-       (comp-emit '(call record_unwind_protect_excursion)))
+       (comp-emit (comp-call 'record_unwind_protect_excursion)))
       (byte-save-window-excursion-OBSOLETE)
       (byte-save-restriction
-       '(call helper-save-restriction))
+       (comp-call 'helper-save-restriction))
       (byte-catch) ;; Obsolete
       (byte-unwind-protect
-       (comp-emit `(call helper_unwind_protect ,(comp-slot-next))))
+       (comp-emit (comp-call 'helper_unwind_protect (comp-slot-next))))
       (byte-condition-case) ;; Obsolete
       (byte-temp-output-buffer-setup-OBSOLETE)
       (byte-temp-output-buffer-show-OBSOLETE)
@@ -740,13 +758,13 @@ the annotation emission."
       (byte-integerp auto)
       (byte-listN
        (comp-stack-adjust (- 1 arg))
-       (comp-emit-set-call `(callref Flist ,arg ,(comp-sp))))
+       (comp-emit-set-call (comp-callref 'Flist arg (comp-sp))))
       (byte-concatN
        (comp-stack-adjust (- 1 arg))
-       (comp-emit-set-call `(callref Fconcat ,arg ,(comp-sp))))
+       (comp-emit-set-call (comp-callref 'Fconcat arg (comp-sp))))
       (byte-insertN
        (comp-stack-adjust (- 1 arg))
-       (comp-emit-set-call `(callref Finsert ,arg ,(comp-sp))))
+       (comp-emit-set-call (comp-callref 'Finsert arg (comp-sp))))
       (byte-stack-set
        (comp-with-sp (1+ (comp-sp))
          (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
