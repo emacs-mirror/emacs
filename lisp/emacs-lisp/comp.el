@@ -328,10 +328,9 @@ If the callee function is known to have a return type propagate it."
                                            comp-known-ret-types))))
   (comp-emit (list 'set (comp-slot) call)))
 
-(defmacro comp-emit-set-call-subr (subr-name sp-delta &optional c-fun-name)
-  "Emit a call for SUBR-NAME using C-FUN-NAME.
-SP-DELTA is the stack adjustment.
-If C-FUN-NAME is nil it will be guessed from SUBR-NAME."
+(defmacro comp-emit-set-call-subr (subr-name sp-delta)
+  "Emit a call for SUBR-NAME.
+SP-DELTA is the stack adjustment."
   (let ((subr (symbol-function subr-name))
         (subr-str (symbol-name subr-name))
         (nargs (1+ (- sp-delta))))
@@ -340,25 +339,19 @@ If C-FUN-NAME is nil it will be guessed from SUBR-NAME."
       (let* ((arity (subr-arity subr))
              (minarg (car arity))
              (maxarg (cdr arity)))
-        (unless c-fun-name
-          (setq c-fun-name
-                (intern (concat "F"
-                                (replace-regexp-in-string
-                                 "-" "_"
-                                 subr-str)))))
         (cl-assert (not (eq maxarg 'unevalled)) nil
                    "%s contains unevalled arg" subr-name)
         (if (eq maxarg 'many)
             ;; callref case.
-            `(comp-emit-set-call (list 'callref ',c-fun-name ,nargs (comp-sp)))
+            `(comp-emit-set-call (list 'callref ',subr-name ,nargs (comp-sp)))
           ;; Normal call.
           (cl-assert (and (>= maxarg nargs) (<= minarg nargs))
                      (nargs maxarg minarg)
                      "Incoherent stack adjustment %d, maxarg %d minarg %d")
-          `(let* ((c-fun-name ',c-fun-name)
+          `(let* ((subr-name ',subr-name)
                   (slots (cl-loop for i from 0 below ,maxarg
                                   collect (comp-slot-n (+ i (comp-sp))))))
-             (comp-emit-set-call `(call ,c-fun-name ,@slots)))))))
+             (comp-emit-set-call `(call ,subr-name ,@slots)))))))
 
 (defun comp-copy-slot (src-n &optional dst-n)
   "Set slot number DST-N to slot number SRC-N as source.
@@ -549,8 +542,7 @@ the annotation emission."
                    ((pred symbolp)
                     (list `(comp-emit-set-call-subr
                             ,(car body)
-                            ,sp-delta
-                            ,(cadr body))))
+                            ,sp-delta)))
                    (_ body))))
     `(pcase op
        ,@(cl-loop for (op . body) in cases
