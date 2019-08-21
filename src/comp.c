@@ -58,7 +58,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   XCAR (XCDR (XCDR (XCDR (x))))
 
 #define FUNCALL1(fun, arg)			\
-  CALLN (Ffuncall, intern (STR(fun)), arg)
+  CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
 
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
@@ -270,15 +270,17 @@ emit_comment (const char *str)
 			       str);
 }
 
-/* Declare a function with all args being Lisp_Object and returning a
-   Lisp_Object.  */
+/*
+   Declare a function. If the function is imported then a function pointer is
+   stored into comp.func_hash for later reuse and NULL is returned.
+   If the function is exported the corresponding is returned.
+*/
 
 static gcc_jit_function *
 emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
 		   unsigned nargs, gcc_jit_rvalue **args,
-		   enum	 gcc_jit_function_kind kind, bool reusable)
+		   enum	gcc_jit_function_kind kind)
 {
-  gcc_jit_param *param[nargs];
   gcc_jit_type *type[nargs];
 
   /* If args are passed types are extracted from that otherwise assume params */
@@ -290,59 +292,81 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
     for (unsigned i = 0; i < nargs; i++)
       type[i] = comp.lisp_obj_type;
 
-  for (int i = nargs - 1; i >= 0; i--)
-    param[i] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[i],
-					 format_string ("par_%d", i));
-
-  gcc_jit_function *func =
-    gcc_jit_context_new_function(comp.ctxt, NULL,
-				 kind,
-				 ret_type,
-				 f_name,
-				 nargs,
-				 param,
-				 0);
-
-  if (reusable)
+  switch (kind)
     {
-      Lisp_Object key = make_string (f_name, strlen (f_name));
-      Lisp_Object value = make_mint_ptr (func);
-      /* Don't want to declare the same function two times.  */
-      eassert (NILP (Fgethash (key, comp.func_hash, Qnil)));
+    case GCC_JIT_FUNCTION_IMPORTED:
+      {
+	gcc_jit_type *f_ptr_type
+	  = gcc_jit_context_new_function_ptr_type (comp.ctxt,
+						   NULL,
+						   ret_type,
+						   nargs,
+						   type,
+						   0);
+	gcc_jit_lvalue *f_ptr
+	  = gcc_jit_context_new_global (comp.ctxt,
+					NULL,
+					GCC_JIT_GLOBAL_EXPORTED,
+					f_ptr_type,
+					f_name);
+	Lisp_Object key = make_string (f_name, strlen (f_name));
+	Lisp_Object value = make_mint_ptr (f_ptr);
+	/* Don't want to declare the same function two times.  */
+	eassert (NILP (Fgethash (key, comp.func_hash, Qnil)));
+	Fputhash (key, value, comp.func_hash);
 
-      Fputhash (key, value, comp.func_hash);
+	return NULL;
+      }
+    case GCC_JIT_FUNCTION_EXPORTED:
+      {
+	gcc_jit_param *param[nargs];
+	for (int i = nargs - 1; i >= 0; i--)
+	  param[i] = gcc_jit_context_new_param(comp.ctxt,
+					       NULL,
+					       type[i],
+					       format_string ("par_%d", i));
+	return gcc_jit_context_new_function(comp.ctxt, NULL,
+					    kind,
+					    ret_type,
+					    f_name,
+					    nargs,
+					    param,
+					    0);
+      }
+    default:
+      eassert (false);
+      return NULL;
     }
-
-  return func;
 }
 
 static gcc_jit_rvalue *
-emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
+emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
-  Lisp_Object key = make_string (f_name, strlen (f_name));
-  Lisp_Object value = Fgethash (key, comp.func_hash, Qnil);
+  /* String containing the function ptr. */
+  Lisp_Object f_ptr_name = CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
+			   subr_sym, make_string("R", 1));
+  Lisp_Object value = Fgethash (f_ptr_name, comp.func_hash, Qnil);
 
   if (NILP (value))
     {
-      emit_func_declare (f_name, ret_type, nargs, args,
-			 GCC_JIT_FUNCTION_IMPORTED, true);
-      value = Fgethash (key, comp.func_hash, Qnil);
+      emit_func_declare (SSDATA (f_ptr_name), ret_type, nargs, args,
+			 GCC_JIT_FUNCTION_IMPORTED);
+      value = Fgethash (f_ptr_name, comp.func_hash, Qnil);
       eassert (!NILP (value));
     }
-  gcc_jit_function *func = (gcc_jit_function *) xmint_pointer (value);
-
-  return gcc_jit_context_new_call(comp.ctxt,
-				  NULL,
-				  func,
-				  nargs,
-				  args);
+  gcc_jit_lvalue *f_ptr = (gcc_jit_lvalue *) xmint_pointer (value);
+  emit_comment (format_string ("calling subr: %s",
+			       SSDATA (SYMBOL_NAME (subr_sym))));
+  return gcc_jit_context_new_call_through_ptr(comp.ctxt,
+					      NULL,
+					      gcc_jit_lvalue_as_rvalue (f_ptr),
+					      nargs,
+					      args);
 }
 
 static gcc_jit_rvalue *
-emit_call_ref (const char *f_name, unsigned nargs,
+emit_call_ref (Lisp_Object subr_sym, unsigned nargs,
 	       gcc_jit_lvalue *base_arg)
 {
   gcc_jit_rvalue *args[] =
@@ -350,7 +374,7 @@ emit_call_ref (const char *f_name, unsigned nargs,
 					  comp.ptrdiff_type,
 					  nargs),
       gcc_jit_lvalue_get_address (base_arg, NULL) };
-  return emit_call (f_name, comp.lisp_obj_type, 2, args);
+  return emit_call (subr_sym, comp.lisp_obj_type, 2, args);
 }
 
 /* Close current basic block emitting a conditional.  */
@@ -1011,7 +1035,8 @@ emit_set_internal (Lisp_Object args)
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
 						     SET_INTERNAL_SET);
-  return emit_call ("set_internal", comp.void_type , 4, gcc_args);
+  return emit_call (intern_c_string ("set_internal"), comp.void_type , 4,
+		    gcc_args);
 }
 
 /* This is for a regular function with arguments as m-var.   */
@@ -1020,7 +1045,7 @@ static gcc_jit_rvalue *
 emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
 {
   int i = 0;
-  char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (args)));
+  Lisp_Object callee = FIRST (args);
   args = XCDR (args);
   ptrdiff_t nargs = list_length (args);
   gcc_jit_rvalue *gcc_args[nargs];
@@ -1054,7 +1079,6 @@ static gcc_jit_rvalue *
 emit_limple_call (Lisp_Object insn)
 {
   Lisp_Object callee_sym = FIRST (insn);
-  char *callee = (char *) SDATA (SYMBOL_NAME (callee_sym));
   Lisp_Object emitter = Fgethash (callee_sym, comp.emitter_dispatcher, Qnil);
 
   if (!NILP (emitter))
@@ -1062,12 +1086,8 @@ emit_limple_call (Lisp_Object insn)
       gcc_jit_rvalue * (* emitter_ptr) (Lisp_Object) = xmint_pointer (emitter);
       return emitter_ptr (insn);
     }
-  else if (callee[0] == 'F')
-    {
-      return emit_simple_limple_call_lisp_ret (insn);
-    }
 
-  error ("LIMPLE call is inconsistent");
+  return emit_simple_limple_call_lisp_ret (insn);
 }
 
 static gcc_jit_rvalue *
@@ -1075,7 +1095,7 @@ emit_limple_call_ref (Lisp_Object insn)
 {
   /* Ex: (callref Fplus 2 0).  */
 
-  char *callee = (char *) SDATA (SYMBOL_NAME (FIRST (insn)));
+  Lisp_Object callee = FIRST (insn);
   EMACS_UINT nargs = XFIXNUM (SECOND (insn));
   EMACS_UINT base_ptr = XFIXNUM (THIRD (insn));
   return emit_call_ref (callee, nargs, comp.frame[base_ptr]);
@@ -1106,7 +1126,7 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 	      comp.block,
 	      NULL,
 	      c,
-	      emit_call ("push_handler", comp.handler_ptr_type, 2, args));
+	      emit_call (intern_c_string ("push_handler"), comp.handler_ptr_type, 2, args));
 
   args[0] =
     gcc_jit_lvalue_get_address (
@@ -1118,9 +1138,9 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 
   gcc_jit_rvalue *res;
 #ifdef HAVE__SETJMP
-  res = emit_call ("_setjmp", comp.int_type, 1, args);
+  res = emit_call (intern_c_string ("_setjmp"), comp.int_type, 1, args);
 #else
-  res = emit_call ("setjmp", comp.int_type, 1, args);
+  res = emit_call (intern_c_string ("setjmp"), comp.int_type, 1, args);
 #endif
   emit_cond_jump (res, handler_bb, guarded_bb);
 
@@ -1322,7 +1342,7 @@ emit_limple_insn (Lisp_Object insn)
 					 n),
 	  gcc_jit_lvalue_as_rvalue (args) };
 
-      res = emit_call ("Flist", comp.lisp_obj_type, 2,
+      res = emit_call (Qlist, comp.lisp_obj_type, 2,
 		       list_args);
 
       gcc_jit_block_add_assignment (comp.block,
@@ -1929,7 +1949,7 @@ define_CHECK_TYPE (void)
 
   gcc_jit_block_add_eval (comp.block,
 			  NULL,
-			  emit_call ("wrong_type_argument",
+			  emit_call (intern_c_string ("wrong_type_argument"),
 				     comp.lisp_obj_type, 2, wrong_type_args));
 
   gcc_jit_block_end_with_void_return (not_ok_block, NULL);
@@ -2011,7 +2031,7 @@ define_CAR_CDR (void)
 
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
-			      emit_call ("wrong_type_argument",
+			      emit_call (intern_c_string ("wrong_type_argument"),
 					 comp.lisp_obj_type, 2, wrong_type_args));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
@@ -2098,7 +2118,7 @@ define_add1_sub1 (void)
 
   gcc_jit_function *func[2];
   char const *f_name[] = {"add1", "sub1"};
-  char const *fall_back_func[] = {"Fadd1", "Fsub1"};
+  char const *fall_back_func[] = {"1+", "1-"};
   gcc_jit_rvalue *compare[] =
     { comp.most_positive_fixnum, comp.most_negative_fixnum };
   enum gcc_jit_binary_op op[] =
@@ -2160,7 +2180,7 @@ define_add1_sub1 (void)
 				     emit_make_fixnum (inline_res));
 
       comp.block = fcall_block;
-      gcc_jit_rvalue *call_res = emit_call (fall_back_func[i],
+      gcc_jit_rvalue *call_res = emit_call (intern_c_string (fall_back_func[i]),
 					    comp.lisp_obj_type, 1, &n);
       gcc_jit_block_end_with_return (fcall_block,
 				     NULL,
@@ -2234,7 +2254,7 @@ define_negate (void)
 				 emit_make_fixnum (inline_res));
 
   comp.block = fcall_block;
-  gcc_jit_rvalue *call_res = emit_call_ref ("Fminus", 1, n);
+  gcc_jit_rvalue *call_res = emit_call_ref (Qminus, 1, n);
   gcc_jit_block_end_with_return (fcall_block,
 				 NULL,
 				 call_res);
@@ -2292,7 +2312,7 @@ define_PSEUDOVECTORP (void)
   gcc_jit_block_end_with_return (call_pseudovector_typep_b
 				 ,
 				 NULL,
-				 emit_call ("helper_PSEUDOVECTOR_TYPEP_XUNTAG",
+				 emit_call (intern_c_string ("helper_PSEUDOVECTOR_TYPEP_XUNTAG"),
 					    comp.bool_type,
 					    2,
 					    args));
@@ -2337,7 +2357,7 @@ define_CHECK_IMPURE (void)
     comp.block = err_block;
     gcc_jit_block_add_eval (comp.block,
 			    NULL,
-			    emit_call ("pure_write_error",
+			    emit_call (intern_c_string ("pure_write_error"),
 				       comp.void_type, 1,
 				       &pure_write_error_arg));
 
@@ -2397,7 +2417,7 @@ compile_function (Lisp_Object func)
       EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       comp.func =
 	emit_func_declare (c_name, comp.lisp_obj_type, max_args,
-			   NULL, GCC_JIT_FUNCTION_EXPORTED, false);
+			   NULL, GCC_JIT_FUNCTION_EXPORTED);
     }
   else
     {
@@ -2702,6 +2722,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     compile_function (HASH_VALUE (func_h, i));
 
+  /* FIXME use format_String here  */
   if (COMP_DEBUG)
     {
       AUTO_STRING (dot_c, ".c");

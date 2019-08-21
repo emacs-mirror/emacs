@@ -213,12 +213,12 @@ BODY is evaluate only if `comp-debug' is non nil."
 
 ;;; spill-lap pass specific code.
 
-(defun comp-c-func-name (symbol-function prefix)
-  "Given SYMBOL-FUNCTION return a name suitable for the native code.
+(defun comp-c-func-name (symbol prefix)
+  "Given SYMBOL return a name suitable for the native code.
 Put PREFIX in front of it."
   ;; Unfortunatelly not all symbol names are valid as C function names...
   ;; Nassi's algorithm here:
-  (let* ((orig-name (symbol-name symbol-function))
+  (let* ((orig-name (symbol-name symbol))
          (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
 	                   for j from 0 by 2
 	                   for i across orig-name
@@ -276,11 +276,11 @@ Put PREFIX in front of it."
 
 (defun comp-call (func &rest args)
   "Emit a call for function FUNC with ARGS."
-  `(call (,func . ,(comp-c-func-name func "R")) ,@args))
+  `(call ,func ,@args))
 
 (defun comp-callref (func &rest args)
   "Emit a call usign narg abi for FUNC with ARGS."
-  `(callref (,func . ,(comp-c-func-name func "R")) ,@args))
+  `(callref ,func ,@args))
 
 (defun comp-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
