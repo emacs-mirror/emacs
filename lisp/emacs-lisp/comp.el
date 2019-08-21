@@ -180,14 +180,6 @@ The corresponding index is returned."
       (push obj (comp-ctxt-data-relocs-l comp-ctxt))
       (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
 
-(defun comp-add-subr-to-relocs (subr-name)
-  "Keep track of SUBR-NAME into the ctxt relocations.
-The corresponding index is returned."
-  (let ((func-relocs-idx (comp-ctxt-func-relocs-idx comp-ctxt)))
-    (unless (gethash subr-name func-relocs-idx)
-      (push subr-name (comp-ctxt-func-relocs-l comp-ctxt))
-      (puthash subr-name (hash-table-count func-relocs-idx) func-relocs-idx))))
-
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
 BODY is evaluate only if `comp-debug' is non nil."
@@ -221,8 +213,9 @@ BODY is evaluate only if `comp-debug' is non nil."
 
 ;;; spill-lap pass specific code.
 
-(defun comp-c-func-name (symbol-function)
-  "Given SYMBOL-FUNCTION return a name suitable for the native code."
+(defun comp-c-func-name (symbol-function prefix)
+  "Given SYMBOL-FUNCTION return a name suitable for the native code.
+Put PREFIX in front of it."
   ;; Unfortunatelly not all symbol names are valid as C function names...
   ;; Nassi's algorithm here:
   (let* ((orig-name (symbol-name symbol-function))
@@ -237,7 +230,7 @@ BODY is evaluate only if `comp-debug' is non nil."
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
-    (concat "F" crypted "_" human-readable)))
+    (concat prefix crypted "_" human-readable)))
 
 (defun comp-decrypt-lambda-list (x)
   "Decript lambda list X."
@@ -281,15 +274,13 @@ BODY is evaluate only if `comp-debug' is non nil."
 ;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
 ;;       (apply f (mapcar #'comp-mvar-constant args)))))
 
-(defun comp-call (&rest args)
-  "Emit a call for ARGS."
-  (comp-add-subr-to-relocs (car args))
-  `(call ,@args))
+(defun comp-call (func &rest args)
+  "Emit a call for function FUNC with ARGS."
+  `(call (,func . ,(comp-c-func-name func "R")) ,@args))
 
-(defun comp-callref (&rest args)
-  "Emit a call usign narg abi for ARGS."
-  (comp-add-subr-to-relocs (car args))
-  `(callref ,@args))
+(defun comp-callref (func &rest args)
+  "Emit a call usign narg abi for FUNC with ARGS."
+  `(callref (,func . ,(comp-c-func-name func "R")) ,@args))
 
 (defun comp-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
@@ -876,7 +867,8 @@ the annotation emission."
         (let ((func (make-comp-func :symbol-name func-symbol-name
                                     :func f
                                     :c-func-name (comp-c-func-name
-                                                  func-symbol-name)))
+                                                  func-symbol-name
+                                                  "F")))
               (comp-ctxt (make-comp-ctxt)))
           (mapc (lambda (pass)
                   (funcall pass func))
