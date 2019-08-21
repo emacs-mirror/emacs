@@ -147,7 +147,7 @@ typedef struct {
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
-  Lisp_Object func_hash; /* f_name -> gcc_func.	*/
+  Lisp_Object func_hash; /* c_f_name -> (gcc_func . subr_name).	*/
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs;
 } comp_t;
@@ -270,19 +270,10 @@ emit_comment (const char *str)
 			       str);
 }
 
-/*
-   Declare a function. If the function is imported then a function pointer is
-   stored into comp.func_hash for later reuse and NULL is returned.
-   If the function is exported the corresponding is returned.
-*/
-
-static gcc_jit_function *
-emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
-		   unsigned nargs, gcc_jit_rvalue **args,
-		   enum	gcc_jit_function_kind kind)
+static void
+fill_declaration_types (gcc_jit_type **type, gcc_jit_rvalue **args,
+			unsigned nargs)
 {
-  gcc_jit_type *type[nargs];
-
   /* If args are passed types are extracted from that otherwise assume params */
   /* are all lisp objs.	 */
   if (args)
@@ -291,71 +282,76 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
   else
     for (unsigned i = 0; i < nargs; i++)
       type[i] = comp.lisp_obj_type;
+}
 
-  switch (kind)
-    {
-    case GCC_JIT_FUNCTION_IMPORTED:
-      {
-	gcc_jit_type *f_ptr_type
-	  = gcc_jit_context_new_function_ptr_type (comp.ctxt,
-						   NULL,
-						   ret_type,
-						   nargs,
-						   type,
-						   0);
-	gcc_jit_lvalue *f_ptr
-	  = gcc_jit_context_new_global (comp.ctxt,
-					NULL,
-					GCC_JIT_GLOBAL_EXPORTED,
-					f_ptr_type,
-					f_name);
-	Lisp_Object key = make_string (f_name, strlen (f_name));
-	Lisp_Object value = make_mint_ptr (f_ptr);
-	/* Don't want to declare the same function two times.  */
-	eassert (NILP (Fgethash (key, comp.func_hash, Qnil)));
-	Fputhash (key, value, comp.func_hash);
+static void
+declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
+		       unsigned nargs, gcc_jit_rvalue **args)
+{
+  /* Don't want to declare the same function two times.  */
+  eassert (NILP (Fgethash (subr_sym, comp.func_hash, Qnil)));
 
-	return NULL;
-      }
-    case GCC_JIT_FUNCTION_EXPORTED:
-      {
-	gcc_jit_param *param[nargs];
-	for (int i = nargs - 1; i >= 0; i--)
-	  param[i] = gcc_jit_context_new_param(comp.ctxt,
-					       NULL,
-					       type[i],
-					       format_string ("par_%d", i));
-	return gcc_jit_context_new_function(comp.ctxt, NULL,
-					    kind,
-					    ret_type,
-					    f_name,
-					    nargs,
-					    param,
-					    0);
-      }
-    default:
-      eassert (false);
-      return NULL;
-    }
+  gcc_jit_type *type[nargs];
+  fill_declaration_types (type, args, nargs);
+
+  /* String containing the function ptr. */
+  Lisp_Object f_ptr_name = CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
+				  subr_sym, make_string("R", 1));
+
+
+  gcc_jit_type *f_ptr_type
+    = gcc_jit_context_new_function_ptr_type (comp.ctxt,
+					     NULL,
+					     ret_type,
+					     nargs,
+					     type,
+					     0);
+  gcc_jit_lvalue *f_ptr
+    = gcc_jit_context_new_global (comp.ctxt,
+				  NULL,
+				  GCC_JIT_GLOBAL_EXPORTED,
+				  f_ptr_type,
+				  SSDATA (f_ptr_name));
+  Lisp_Object value = Fcons (make_mint_ptr (f_ptr), subr_sym);
+  Fputhash (subr_sym, value, comp.func_hash);
+}
+
+static gcc_jit_function *
+declare_func_exported (const char *f_name, gcc_jit_type *ret_type,
+		       unsigned nargs, gcc_jit_rvalue **args)
+{
+  gcc_jit_type *type[nargs];
+
+  fill_declaration_types (type, args, nargs);
+
+  gcc_jit_param *param[nargs];
+  for (int i = nargs - 1; i >= 0; i--)
+    param[i] = gcc_jit_context_new_param(comp.ctxt,
+					 NULL,
+					 type[i],
+					 format_string ("par_%d", i));
+  return gcc_jit_context_new_function(comp.ctxt, NULL,
+				      GCC_JIT_GLOBAL_EXPORTED,
+				      ret_type,
+				      f_name,
+				      nargs,
+				      param,
+				      0);
 }
 
 static gcc_jit_rvalue *
 emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
-  /* String containing the function ptr. */
-  Lisp_Object f_ptr_name = CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
-			   subr_sym, make_string("R", 1));
-  Lisp_Object value = Fgethash (f_ptr_name, comp.func_hash, Qnil);
+  Lisp_Object value = Fgethash (subr_sym, comp.func_hash, Qnil);
 
   if (NILP (value))
     {
-      emit_func_declare (SSDATA (f_ptr_name), ret_type, nargs, args,
-			 GCC_JIT_FUNCTION_IMPORTED);
-      value = Fgethash (f_ptr_name, comp.func_hash, Qnil);
+      declare_imported_func (subr_sym, ret_type, nargs, args);
+      value = Fgethash (subr_sym, comp.func_hash, Qnil);
       eassert (!NILP (value));
     }
-  gcc_jit_lvalue *f_ptr = (gcc_jit_lvalue *) xmint_pointer (value);
+  gcc_jit_lvalue *f_ptr = (gcc_jit_lvalue *) xmint_pointer (XCAR (value));
   emit_comment (format_string ("calling subr: %s",
 			       SSDATA (SYMBOL_NAME (subr_sym))));
   return gcc_jit_context_new_call_through_ptr(comp.ctxt,
@@ -1554,7 +1550,7 @@ emit_ctxt_code (void)
   emit_litteral_string_func ("text_data_relocs", d_reloc);
 
   const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
-  emit_litteral_string_func ("text_funcs", func_list);
+  emit_litteral_string_func ("text_exported_funcs", func_list);
 }
 
 
@@ -2415,9 +2411,8 @@ compile_function (Lisp_Object func)
   if (!ncall)
     {
       EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
-      comp.func =
-	emit_func_declare (c_name, comp.lisp_obj_type, max_args,
-			   NULL, GCC_JIT_FUNCTION_EXPORTED);
+      comp.func
+	= declare_func_exported (c_name, comp.lisp_obj_type, max_args, NULL);
     }
   else
     {
@@ -2645,7 +2640,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
     Always reinitialize this cause old function definitions are garbage collected
     by libgccjit when the ctxt is released.
   */
-  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal);
+  comp.func_hash = CALLN (Fmake_hash_table);
 
   /* Define data structures.  */
 
@@ -2722,7 +2717,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     compile_function (HASH_VALUE (func_h, i));
 
-  /* FIXME use format_String here  */
+  /* FIXME wrap me */
+  struct Lisp_Hash_Table *fh = XHASH_TABLE (comp.func_hash);
+  Lisp_Object f_reloc = make_vector (fh->count, Qnil);
+  for (ptrdiff_t i = 0; i < fh->count; i++)
+    {
+      Lisp_Object subr_sym = (XCDR (HASH_VALUE (fh, i)));
+      ASET (f_reloc, i, subr_sym);
+    }
+  emit_litteral_string_func ("text_imported_funcs",
+			     (SSDATA (Fprin1_to_string (f_reloc, Qnil))));
+
+  /* FIXME use format_string here  */
   if (COMP_DEBUG)
     {
       AUTO_STRING (dot_c, ".c");
@@ -2899,7 +2905,7 @@ load_comp_unit (dynlib_handle_ptr handle)
       prevent_gc (data_relocs[i]);
     }
 
-  Lisp_Object func_list = retrive_litteral_obj (handle, "text_funcs");
+  Lisp_Object func_list = retrive_litteral_obj (handle, "text_exported_funcs");
 
   while (func_list)
     {
