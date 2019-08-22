@@ -156,7 +156,6 @@ static comp_t comp;
 
 FILE *logfile = NULL;
 
-
 
 Lisp_Object helper_save_window_excursion (Lisp_Object v1);
 
@@ -294,10 +293,10 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
   gcc_jit_type *type[nargs];
   fill_declaration_types (type, args, nargs);
 
-  /* String containing the function ptr. */
-  Lisp_Object f_ptr_name = CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
-				  subr_sym, make_string("R", 1));
-
+  /* String containing the function ptr name. */
+  Lisp_Object f_ptr_name
+    = CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
+	     subr_sym, make_string("R", 1));
 
   gcc_jit_type *f_ptr_type
     = gcc_jit_context_new_function_ptr_type (comp.ctxt,
@@ -317,7 +316,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 }
 
 static gcc_jit_function *
-declare_func_exported (const char *f_name, gcc_jit_type *ret_type,
+declare_exported_func (const char *f_name, gcc_jit_type *ret_type,
 		       unsigned nargs, gcc_jit_rvalue **args)
 {
   gcc_jit_type *type[nargs];
@@ -2412,7 +2411,7 @@ compile_function (Lisp_Object func)
     {
       EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       comp.func
-	= declare_func_exported (c_name, comp.lisp_obj_type, max_args, NULL);
+	= declare_exported_func (c_name, comp.lisp_obj_type, max_args, NULL);
     }
   else
     {
