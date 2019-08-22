@@ -150,6 +150,7 @@ typedef struct {
   Lisp_Object func_hash; /* c_f_name -> (gcc_func . subr_name).	*/
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs;
+  gcc_jit_lvalue *func_relocs;
 } comp_t;
 
 static comp_t comp;
@@ -283,7 +284,7 @@ fill_declaration_types (gcc_jit_type **type, gcc_jit_rvalue **args,
       type[i] = comp.lisp_obj_type;
 }
 
-static void
+static gcc_jit_field *
 declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 		       unsigned nargs, gcc_jit_rvalue **args)
 {
@@ -305,14 +306,15 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 					     nargs,
 					     type,
 					     0);
-  gcc_jit_lvalue *f_ptr
-    = gcc_jit_context_new_global (comp.ctxt,
-				  NULL,
-				  GCC_JIT_GLOBAL_EXPORTED,
-				  f_ptr_type,
-				  SSDATA (f_ptr_name));
-  Lisp_Object value = Fcons (make_mint_ptr (f_ptr), subr_sym);
+  gcc_jit_field *field
+    = gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 f_ptr_type,
+				 SSDATA (f_ptr_name));
+
+  Lisp_Object value = Fcons (make_mint_ptr (field), subr_sym);
   Fputhash (subr_sym, value, comp.func_hash);
+  return field;
 }
 
 static gcc_jit_function *
@@ -343,14 +345,12 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
   Lisp_Object value = Fgethash (subr_sym, comp.func_hash, Qnil);
+  eassert (!NILP (value));
 
-  if (NILP (value))
-    {
-      declare_imported_func (subr_sym, ret_type, nargs, args);
-      value = Fgethash (subr_sym, comp.func_hash, Qnil);
-      eassert (!NILP (value));
-    }
-  gcc_jit_lvalue *f_ptr = (gcc_jit_lvalue *) xmint_pointer (XCAR (value));
+  gcc_jit_lvalue *f_ptr =
+    gcc_jit_lvalue_access_field (comp.func_relocs,
+				 NULL,
+				 (gcc_jit_field *) xmint_pointer (XCAR (value)));
   emit_comment (format_string ("calling subr: %s",
 			       SSDATA (SYMBOL_NAME (subr_sym))));
   return gcc_jit_context_new_call_through_ptr(comp.ctxt,
@@ -1529,6 +1529,8 @@ This emit the code needed by every compilation unit to be loaded.
 static void
 emit_ctxt_code (void)
 {
+  /* Imported objects.  */
+
   const char *d_reloc = SSDATA (FUNCALL1 (comp-ctxt-data-relocs, Vcomp_ctxt));
   EMACS_UINT d_reloc_len =
     XFIXNUM (FUNCALL1 (hash-table-count,
@@ -1548,6 +1550,37 @@ emit_ctxt_code (void)
 
   emit_litteral_string_func ("text_data_relocs", d_reloc);
 
+  /* Imported functions. */
+  Lisp_Object f_reloc = FUNCALL1 (comp-ctxt-func-relocs-l, Vcomp_ctxt);
+  EMACS_UINT f_reloc_len = XFIXNUM (Flength (f_reloc));
+  gcc_jit_field *fields[f_reloc_len];
+  int i = 0;
+  FOR_EACH_TAIL (f_reloc)
+    {
+      Lisp_Object subr_sym = XCAR (f_reloc);
+      Lisp_Object subr = Fsymbol_function (subr_sym);
+      gcc_jit_field *field
+	= declare_imported_func (subr_sym, comp.lisp_obj_type,
+				 XFIXNUM (XCDR (Fsubr_arity (subr))), NULL);
+      fields [i++] = field;
+    }
+  eassert (f_reloc_len == i);
+
+  gcc_jit_struct *f_reloc_struct
+    = gcc_jit_context_new_struct_type (comp.ctxt,
+				       NULL,
+				       "function_reloc_struct",
+				       f_reloc_len,
+				       fields);
+  comp.func_relocs
+    = gcc_jit_context_new_global (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_struct_as_type (f_reloc_struct),
+	"f_reloc");
+
+  /* Exported functions info.  */
   const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
   emit_litteral_string_func ("text_exported_funcs", func_list);
 }
@@ -2658,17 +2691,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 					 comp.void_ptr_type,
 					 pure);
 
-  /* Define inline functions.  */
-
-  define_CAR_CDR();
-  define_PSEUDOVECTORP ();
-  define_CHECK_TYPE ();
-  define_CHECK_IMPURE ();
-  define_bool_to_lisp_obj ();
-  define_setcar_setcdr ();
-  define_add1_sub1 ();
-  define_negate ();
-
   return Qt;
 }
 
@@ -2708,6 +2730,16 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 
   emit_ctxt_code ();
+
+  /* /\* Define inline functions.  *\/ */
+  /* define_CAR_CDR(); */
+  /* define_PSEUDOVECTORP (); */
+  /* define_CHECK_TYPE (); */
+  /* define_CHECK_IMPURE (); */
+  /* define_bool_to_lisp_obj (); */
+  /* define_setcar_setcdr (); */
+  /* define_add1_sub1 (); */
+  /* define_negate (); */
 
   /* Compile all functions. Can't be done before because the
      relocation vectore has to be already compiled.  */

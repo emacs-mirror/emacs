@@ -80,8 +80,7 @@
   "This structure is to serve al relocation creation for the current compiler
  context."
   (funcs () :type list
-         :documentation "Alist lisp-func-name -> c-func-name.
-This is build before entering into `comp--compile-ctxt-to-file name'.")
+         :documentation "Exported functions list.")
   (funcs-h (make-hash-table) :type hash-table
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
@@ -180,6 +179,14 @@ The corresponding index is returned."
       (push obj (comp-ctxt-data-relocs-l comp-ctxt))
       (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
 
+(defun comp-add-subr-to-relocs (subr-name)
+  "Keep track of SUBR-NAME into the ctxt relocations.
+The corresponding index is returned."
+  (let ((func-relocs-idx (comp-ctxt-func-relocs-idx comp-ctxt)))
+    (unless (gethash subr-name func-relocs-idx)
+      (push subr-name (comp-ctxt-func-relocs-l comp-ctxt))
+      (puthash subr-name (hash-table-count func-relocs-idx) func-relocs-idx))))
+
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
 BODY is evaluate only if `comp-debug' is non nil."
@@ -276,10 +283,12 @@ Put PREFIX in front of it."
 
 (defun comp-call (func &rest args)
   "Emit a call for function FUNC with ARGS."
+  (comp-add-subr-to-relocs func)
   `(call ,func ,@args))
 
 (defun comp-callref (func &rest args)
   "Emit a call usign narg abi for FUNC with ARGS."
+  (comp-add-subr-to-relocs func)
   `(callref ,func ,@args))
 
 (defun comp-new-frame (size)
