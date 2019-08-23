@@ -85,6 +85,11 @@ shows equivalent key bindings for all commands that have them.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Help
+
++++
+*** New command 'describe-keymap' describes keybindings in a keymap.
+
 ---
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 

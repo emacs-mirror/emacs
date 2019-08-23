@@ -1846,8 +1846,11 @@ local map.
 @cindex scanning keymaps
 @cindex keymaps, scanning
 
-  This section describes functions used to scan all the current keymaps
-for the sake of printing help information.
+  This section describes functions used to scan all the current
+keymaps for the sake of printing help information.  To display the
+bindings in a particular keymap, you can use the
+@code{describe-keymap} command (@pxref{Misc Help, , Other Help
+Commands, emacs, The GNU Emacs Manual})
 
 @defun accessible-keymaps keymap &optional prefix
 This function returns a list of all the keymaps that can be reached (via

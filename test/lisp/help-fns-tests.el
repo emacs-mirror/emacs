@@ -123,4 +123,32 @@ Return first line of the output of (describe-function-1 FUNC)."
     (goto-char (point-min))
     (should (looking-at "^font-lock-comment-face is "))))
 
+
+;;; Tests for describe-keymap
+(ert-deftest help-fns-test-describe-keymap/symbol ()
+  (describe-keymap 'minibuffer-local-must-match-map)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^minibuffer-local-must-match-map is"))))
+
+(ert-deftest help-fns-test-describe-keymap/value ()
+  (describe-keymap minibuffer-local-must-match-map)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^key"))))
+
+(ert-deftest help-fns-test-describe-keymap/not-keymap ()
+  (should-error (describe-keymap nil))
+  (should-error (describe-keymap emacs-version)))
+
+(ert-deftest help-fns-test-describe-keymap/let-bound ()
+  (let ((foobar minibuffer-local-must-match-map))
+    (describe-keymap foobar)
+    (with-current-buffer "*Help*"
+      (should (looking-at "^key")))))
+
+(ert-deftest help-fns-test-describe-keymap/dynamically-bound-no-file ()
+  (setq help-fns-test--describe-keymap-foo minibuffer-local-must-match-map)
+  (describe-keymap 'help-fns-test--describe-keymap-foo)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^help-fns-test--describe-keymap-foo is"))))
+
 ;;; help-fns-tests.el ends here

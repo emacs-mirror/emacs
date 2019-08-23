@@ -1562,6 +1562,65 @@ BUFFER should be a buffer or a buffer name."
 	  (insert "\nThe parent category table is:")
 	  (describe-vector table 'help-describe-category-set))))))
 
+;;;###autoload
+(defun describe-keymap (keymap)
+  "Describe key bindings in KEYMAP.
+When called interactively, prompt for a variable that has a
+keymap value."
+  (interactive (list
+                (intern (completing-read "Keymap: " obarray
+                                         (lambda (m)
+                                           (and (boundp m)
+                                                (keymapp (symbol-value m))))
+                                         t nil 'variable-name-history))))
+  (let (used-gentemp)
+    (unless (and (symbolp keymap)
+                 (boundp keymap)
+                 (keymapp (symbol-value keymap)))
+      (when (not (keymapp keymap))
+        (if (symbolp keymap)
+            (error "Not a keymap variable: %S" keymap)
+          (error "Not a keymap")))
+      (let ((sym nil))
+        (unless sym
+          (setq sym (cl-gentemp "KEYMAP OBJECT (no variable) "))
+          (setq used-gentemp t)
+          (set sym keymap))
+        (setq keymap sym)))
+    ;; Follow aliasing.
+    (setq keymap (or (ignore-errors (indirect-variable keymap)) keymap))
+    (help-setup-xref (list #'describe-keymap keymap)
+                     (called-interactively-p 'interactive))
+    (let* ((name (symbol-name keymap))
+           (doc (documentation-property keymap 'variable-documentation))
+           (file-name (find-lisp-object-file-name keymap 'defvar)))
+      (with-help-window (help-buffer)
+        (with-current-buffer standard-output
+          (unless used-gentemp
+            (princ (format-message "%S is a keymap variable" keymap))
+            (if (not file-name)
+                (princ ".\n\n")
+              (princ (format-message
+                      " defined in `%s'.\n\n"
+                      (if (eq file-name 'C-source)
+                          "C source code"
+                        (file-name-nondirectory file-name))))
+              (save-excursion
+                (re-search-backward (substitute-command-keys
+                                     "`\\([^`']+\\)'")
+                                    nil t)
+                (help-xref-button 1 'help-variable-def
+                                  keymap file-name))))
+          (when (and (not (equal "" doc)) doc)
+            (princ "Documentation:\n")
+            (princ (format-message "%s\n\n" doc)))
+          ;; Use `insert' instead of `princ', so control chars (e.g. \377)
+          ;; insert correctly.
+          (insert (substitute-command-keys (concat "\\{" name "}"))))))
+    ;; Cleanup.
+    (when used-gentemp
+      (makunbound keymap))))
+
 
 ;;; Replacements for old lib-src/ programs.  Don't seem especially useful.
 
