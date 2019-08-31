@@ -149,8 +149,8 @@ typedef struct {
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
   Lisp_Object func_hash; /* c_f_name -> (gcc_func . subr_name).	*/
   Lisp_Object emitter_dispatcher;
-  gcc_jit_rvalue *data_relocs;
-  gcc_jit_lvalue *func_relocs;
+  gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
+  gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
 } comp_t;
 
 static comp_t comp;
@@ -270,6 +270,58 @@ emit_comment (const char *str)
 			       str);
 }
 
+/*
+  Declare an imported function.
+  When nargs is MANY (ptrdiff_t nargs, Lisp_Object *args) signature is assumed.
+  When types is NULL types is assumed to be all Lisp_Objects.
+*/
+static gcc_jit_field *
+declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
+		       int nargs, gcc_jit_type **types)
+{
+  /* Don't want to declare the same function two times.  */
+  eassert (NILP (Fgethash (subr_sym, comp.func_hash, Qnil)));
+
+  if (nargs == MANY)
+    {
+      nargs = 2;
+      types = alloca (nargs * sizeof (* types));
+      types[0] = comp.ptrdiff_type;
+      types[1] = comp.lisp_obj_type;
+    }
+  else if (!types)
+    {
+      types = alloca (nargs * sizeof (* types));
+      for (unsigned i = 0; i < nargs; i++)
+	types[i] = comp.lisp_obj_type;
+    }
+
+  eassert (types);
+
+  /* String containing the function ptr name. */
+  Lisp_Object f_ptr_name =
+    CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
+	   subr_sym, make_string("R", 1));
+
+  gcc_jit_type *f_ptr_type =
+    gcc_jit_context_new_function_ptr_type (comp.ctxt,
+					   NULL,
+					   ret_type,
+					   nargs,
+					   types,
+					   0);
+  gcc_jit_field *field =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       f_ptr_type,
+			       SSDATA (f_ptr_name));
+
+
+  Lisp_Object value = Fcons (make_mint_ptr (field), subr_sym);
+  Fputhash (subr_sym, value, comp.func_hash);
+  return field;
+}
+
 static void
 fill_declaration_types (gcc_jit_type **type, gcc_jit_rvalue **args,
 			unsigned nargs)
@@ -282,39 +334,6 @@ fill_declaration_types (gcc_jit_type **type, gcc_jit_rvalue **args,
   else
     for (unsigned i = 0; i < nargs; i++)
       type[i] = comp.lisp_obj_type;
-}
-
-static gcc_jit_field *
-declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
-		       unsigned nargs, gcc_jit_rvalue **args)
-{
-  /* Don't want to declare the same function two times.  */
-  eassert (NILP (Fgethash (subr_sym, comp.func_hash, Qnil)));
-
-  gcc_jit_type *type[nargs];
-  fill_declaration_types (type, args, nargs);
-
-  /* String containing the function ptr name. */
-  Lisp_Object f_ptr_name
-    = CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
-	     subr_sym, make_string("R", 1));
-
-  gcc_jit_type *f_ptr_type
-    = gcc_jit_context_new_function_ptr_type (comp.ctxt,
-					     NULL,
-					     ret_type,
-					     nargs,
-					     type,
-					     0);
-  gcc_jit_field *field
-    = gcc_jit_context_new_field (comp.ctxt,
-				 NULL,
-				 f_ptr_type,
-				 SSDATA (f_ptr_name));
-
-  Lisp_Object value = Fcons (make_mint_ptr (field), subr_sym);
-  Fputhash (subr_sym, value, comp.func_hash);
-  return field;
 }
 
 static gcc_jit_function *
@@ -351,6 +370,9 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
     gcc_jit_lvalue_access_field (comp.func_relocs,
 				 NULL,
 				 (gcc_jit_field *) xmint_pointer (XCAR (value)));
+  if (!f_ptr)
+    error ("Undeclared function relocation.");
+
   emit_comment (format_string ("calling subr: %s",
 			       SSDATA (SYMBOL_NAME (subr_sym))));
   return gcc_jit_context_new_call_through_ptr(comp.ctxt,
@@ -1524,6 +1546,38 @@ emit_litteral_string_func (const char *str_name, const char *str)
 }
 
 /*
+  Declare as imported all the functions that are requested from the runtime.
+  These are either subrs or not.
+*/
+static Lisp_Object
+declare_runtime_imported (void)
+{
+  /* For subr imported by the runtime we rely on the standard mechanism in place
+     for functions imported by lisp code. */
+  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1+"));
+  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1-"));
+  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("+"));
+  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("-"));
+
+  Lisp_Object field_list = Qnil;
+#define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
+    {									       \
+      Lisp_Object name = intern_c_string (f_name);			       \
+      Lisp_Object field =						       \
+	make_mint_ptr (declare_imported_func (name, ret_type, nargs, args));   \
+      field_list = Fcons (field, field_list);				       \
+    } while (0)
+
+  ADD_IMPORTED ("wrong_type_argument", comp.void_type, 2, NULL);
+  gcc_jit_type *args[] = {comp.lisp_obj_type, comp.int_type};
+  ADD_IMPORTED ("helper_PSEUDOVECTOR_TYPEP_XUNTAG", comp.bool_type, 2, args);
+  ADD_IMPORTED ("pure_write_error", comp.void_type, 1, NULL);
+#undef ADD_IMPORTED
+
+  return field_list;
+}
+
+/*
 This emit the code needed by every compilation unit to be loaded.
 */
 static void
@@ -1536,49 +1590,61 @@ emit_ctxt_code (void)
     XFIXNUM (FUNCALL1 (hash-table-count,
 		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
 
-  comp.data_relocs
-    = gcc_jit_lvalue_as_rvalue(
-	gcc_jit_context_new_global (
-	  comp.ctxt,
-	  NULL,
-	  GCC_JIT_GLOBAL_EXPORTED,
-	  gcc_jit_context_new_array_type (comp.ctxt,
-				    NULL,
-				    comp.lisp_obj_type,
-				    d_reloc_len),
-	  "data_relocs"));
+  comp.data_relocs =
+    gcc_jit_lvalue_as_rvalue(
+      gcc_jit_context_new_global (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_context_new_array_type (comp.ctxt,
+			    NULL,
+			    comp.lisp_obj_type,
+			    d_reloc_len),
+	"data_relocs"));
 
   emit_litteral_string_func ("text_data_relocs", d_reloc);
 
-  /* Imported functions. */
-  Lisp_Object f_reloc = FUNCALL1 (comp-ctxt-func-relocs-l, Vcomp_ctxt);
-  EMACS_UINT f_reloc_len = XFIXNUM (Flength (f_reloc));
+  /* Imported functions from non Lisp code.  */
+  Lisp_Object f_runtime = declare_runtime_imported ();
+  EMACS_UINT f_reloc_len = XFIXNUM (Flength (f_runtime));
+
+  /* Imported subrs. */
+  Lisp_Object f_subr = FUNCALL1 (comp-ctxt-func-relocs-l, Vcomp_ctxt);
+  f_reloc_len += XFIXNUM (Flength (f_subr));
+
   gcc_jit_field *fields[f_reloc_len];
   int i = 0;
-  FOR_EACH_TAIL (f_reloc)
+
+  FOR_EACH_TAIL (f_runtime)
     {
-      Lisp_Object subr_sym = XCAR (f_reloc);
+      fields[i++] = xmint_pointer( XCAR (f_runtime));
+    }
+
+  FOR_EACH_TAIL (f_subr)
+    {
+      Lisp_Object subr_sym = XCAR (f_subr);
       Lisp_Object subr = Fsymbol_function (subr_sym);
-      gcc_jit_field *field
-	= declare_imported_func (subr_sym, comp.lisp_obj_type,
-				 XFIXNUM (XCDR (Fsubr_arity (subr))), NULL);
+      Lisp_Object maxarg = XCDR (Fsubr_arity (subr));
+      gcc_jit_field *field =
+	declare_imported_func (subr_sym, comp.lisp_obj_type,
+			       FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY, NULL);
       fields [i++] = field;
     }
   eassert (f_reloc_len == i);
 
-  gcc_jit_struct *f_reloc_struct
-    = gcc_jit_context_new_struct_type (comp.ctxt,
-				       NULL,
-				       "function_reloc_struct",
-				       f_reloc_len,
-				       fields);
-  comp.func_relocs
-    = gcc_jit_context_new_global (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_struct_as_type (f_reloc_struct),
-	"f_reloc");
+  gcc_jit_struct *f_reloc_struct =
+    gcc_jit_context_new_struct_type (comp.ctxt,
+				     NULL,
+				     "function_reloc_struct",
+				     f_reloc_len,
+				     fields);
+  comp.func_relocs =
+    gcc_jit_context_new_global (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_GLOBAL_EXPORTED,
+      gcc_jit_struct_as_type (f_reloc_struct),
+      "f_reloc");
 
   /* Exported functions info.  */
   const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
@@ -2332,18 +2398,18 @@ define_PSEUDOVECTORP (void)
 				   comp.bool_type,
 				   false));
 
-  gcc_jit_rvalue *args[2] =
+  gcc_jit_rvalue *args[] =
     { gcc_jit_param_as_rvalue (param[0]),
       gcc_jit_param_as_rvalue (param[1]) };
   comp.block = call_pseudovector_typep_b;
   /* FIXME use XUNTAG now that's available.  */
-  gcc_jit_block_end_with_return (call_pseudovector_typep_b
-				 ,
-				 NULL,
-				 emit_call (intern_c_string ("helper_PSEUDOVECTOR_TYPEP_XUNTAG"),
-					    comp.bool_type,
-					    2,
-					    args));
+  gcc_jit_block_end_with_return (
+    call_pseudovector_typep_b,
+    NULL,
+    emit_call (intern_c_string ("helper_PSEUDOVECTOR_TYPEP_XUNTAG"),
+	       comp.bool_type,
+	       2,
+	       args));
 }
 
 static void
@@ -2731,18 +2797,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   emit_ctxt_code ();
 
-  /* /\* Define inline functions.  *\/ */
-  /* define_CAR_CDR(); */
-  /* define_PSEUDOVECTORP (); */
-  /* define_CHECK_TYPE (); */
-  /* define_CHECK_IMPURE (); */
-  /* define_bool_to_lisp_obj (); */
-  /* define_setcar_setcdr (); */
-  /* define_add1_sub1 (); */
-  /* define_negate (); */
+  /* Define inline functions.  */
+  define_CAR_CDR();
+  define_PSEUDOVECTORP ();
+  define_CHECK_TYPE ();
+  define_CHECK_IMPURE ();
+  define_bool_to_lisp_obj ();
+  define_setcar_setcdr ();
+  define_add1_sub1 ();
+  define_negate ();
 
   /* Compile all functions. Can't be done before because the
-     relocation vectore has to be already compiled.  */
+     relocation structs has to be already defined.  */
   struct Lisp_Hash_Table *func_h
     = XHASH_TABLE (FUNCALL1 (comp-ctxt-funcs-h, Vcomp_ctxt));
   for (ptrdiff_t i = 0; i < func_h->count; i++)
