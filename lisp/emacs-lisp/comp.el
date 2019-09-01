@@ -363,7 +363,7 @@ SP-DELTA is the stack adjustment."
                    "%s contains unevalled arg" subr-name)
         (if (eq maxarg 'many)
             ;; callref case.
-            `(comp-emit-set-call (list 'callref ',subr-name ,nargs (comp-sp)))
+            `(comp-emit-set-call (comp-callref ',subr-name ,nargs (comp-sp)))
           ;; Normal call.
           (cl-assert (and (>= maxarg nargs) (<= minarg nargs))
                      (nargs maxarg minarg)
@@ -533,13 +533,13 @@ NARG is the number of Ffuncall arguments."
              ))
     (if optimize
         (if callref
-            (comp-emit-set-call `(callref ,callee-sym-name
-                                          ,narg ,(1+ (comp-sp))))
+            (comp-emit-set-call (comp-callref callee-sym-name
+                                              narg (1+ (comp-sp))))
           (comp-emit-set-call `(call ,callee-sym-name
                                      ,@(cl-loop for i from (1+ (comp-sp))
                                                 repeat narg
                                                 collect (comp-slot-n i)))))
-      (comp-emit-set-call `(callref Ffuncall ,(1+ narg) ,(comp-sp))))))
+      (comp-emit-set-call (comp-callref 'funcall (1+ narg) (comp-sp))))))
 
 (defmacro comp-op-case (&rest cases)
   "Expand CASES into the corresponding pcase.
