@@ -274,7 +274,6 @@ register_emitter (Lisp_Object key, void *func)
   Fputhash (key, value, comp.emitter_dispatcher);
 }
 
-
 INLINE static void
 emit_comment (const char *str)
 {
@@ -1573,7 +1572,8 @@ declare_runtime_imported (void)
     Lisp_Object name = intern_c_string (f_name);			       \
     Lisp_Object field =							       \
       make_mint_ptr (declare_imported_func (name, ret_type, nargs, args));     \
-    field_list = Fcons (field, field_list);				       \
+    Lisp_Object el = Fcons (name, field);				       \
+    field_list = Fcons (el, field_list);				       \
   } while (0)
   gcc_jit_type *args[2];
   ADD_IMPORTED ("wrong_type_argument", comp.void_type, 2, NULL);
@@ -1632,11 +1632,14 @@ emit_ctxt_code (void)
   f_reloc_len += XFIXNUM (Flength (f_subr));
 
   gcc_jit_field *fields[f_reloc_len];
-  int i = 0;
+  Lisp_Object f_reloc_list = Qnil;
+  int n_frelocs = 0;
 
   FOR_EACH_TAIL (f_runtime)
     {
-      fields[i++] = xmint_pointer( XCAR (f_runtime));
+      Lisp_Object el = XCAR (f_runtime);
+      fields[n_frelocs++] = xmint_pointer( XCDR (el));
+      f_reloc_list = Fcons (XCAR (el), f_reloc_list);
     }
 
   FOR_EACH_TAIL (f_subr)
@@ -1650,15 +1653,26 @@ emit_ctxt_code (void)
 	  gcc_jit_field *field =
 	    declare_imported_func (subr_sym, comp.lisp_obj_type,
 				   FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY, NULL);
-	  fields [i++] = field;
+	  fields [n_frelocs++] = field;
+	  f_reloc_list = Fcons (subr_sym, f_reloc_list);
       }
     }
+
+  Lisp_Object f_reloc_vec = make_vector (n_frelocs, Qnil);
+  f_reloc_list = Freverse (f_reloc_list);
+  ptrdiff_t i = 0;
+  FOR_EACH_TAIL (f_reloc_list)
+    {
+      ASET (f_reloc_vec, i++, XCAR (f_reloc_list));
+    }
+  emit_litteral_string_func (TEXT_IMPORTED_FUNC_RELOC_SYM,
+			     (SSDATA (Fprin1_to_string (f_reloc_vec, Qnil))));
 
   gcc_jit_struct *f_reloc_struct =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "function_reloc_struct",
-				     i, fields);
+				     n_frelocs, fields);
   comp.func_relocs =
     gcc_jit_context_new_global (
       comp.ctxt,
@@ -2834,17 +2848,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
     = XHASH_TABLE (FUNCALL1 (comp-ctxt-funcs-h, Vcomp_ctxt));
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     compile_function (HASH_VALUE (func_h, i));
-
-  /* FIXME wrap me */
-  struct Lisp_Hash_Table *fh = XHASH_TABLE (comp.func_hash);
-  Lisp_Object f_reloc = make_vector (fh->count, Qnil);
-  for (ptrdiff_t i = 0; i < fh->count; i++)
-    {
-      Lisp_Object subr_sym = HASH_KEY (fh, i);
-      ASET (f_reloc, i, subr_sym);
-    }
-  emit_litteral_string_func ("text_imported_funcs",
-			     (SSDATA (Fprin1_to_string (f_reloc, Qnil))));
 
   /* FIXME use format_string here  */
   if (COMP_DEBUG)
