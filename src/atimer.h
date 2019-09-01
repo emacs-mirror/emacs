@@ -71,8 +71,6 @@ struct atimer
 
 struct atimer *start_atimer (enum atimer_type, struct timespec,
                              atimer_callback, void *);
-void block_atimers (sigset_t *);
-void unblock_atimers (sigset_t const *);
 void cancel_atimer (struct atimer *);
 void do_pending_atimers (void);
 void init_atimer (void);

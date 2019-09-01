@@ -65,6 +65,22 @@ enum { timerfd = -1 };
 # endif
 #endif
 
+/* Block/unblock SIGALRM.  */
+
+static void
+block_atimers (sigset_t *oldset)
+{
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGALRM);
+  sigaddset (&blocked, SIGINT);
+  pthread_sigmask (SIG_BLOCK, &blocked, oldset);
+}
+static void
+unblock_atimers (sigset_t const *oldset)
+{
+  pthread_sigmask (SIG_SETMASK, oldset, 0);
+}
 
 /* Function prototypes.  */
 
@@ -149,23 +165,6 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
   return t;
 }
 
-/* Block/unblock SIGALRM.  */
-
-void
-block_atimers (sigset_t *oldset)
-{
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, SIGALRM);
-  sigaddset (&blocked, SIGINT);
-  pthread_sigmask (SIG_BLOCK, &blocked, oldset);
-}
-
-void
-unblock_atimers (sigset_t const *oldset)
-{
-  pthread_sigmask (SIG_SETMASK, oldset, 0);
-}
 
 /* Cancel and free atimer TIMER.  */
 
