@@ -33,7 +33,7 @@ top_srcdir = @top_srcdir@
 abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
 CC = @CC@
-CFLAGS = @CFLAGS@ -fPIC
+CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 EXEEXT = @EXEEXT@
@@ -465,7 +465,7 @@ FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
-all: $(pdmp) $(OTHER_FILES)
+all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
 .PHONY: all
 
 dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
@@ -644,33 +644,25 @@ else
   MAKE_PDUMPER_FINGERPRINT =
 endif
 
-## FIXME: dumper support totally missing here
-libemacs.so: $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
-  $(charsets) $(charscript) $(MAKE_PDUMPER_FINGERPRINT) main.o
-	$(CC) --shared -o $@ $(ALLOBJS) -Wl,-Bstatic $(LIBEGNU_ARCHIVE) -Wl,-Bdynamic $(LIBES)
-
-temacs$(EXEEXT): libemacs.so main.o
-	$(CC) -L. main.o -o $@ $(TEMACS_LDFLAGS) $(LDFLAGS) \
-		$(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES) -lemacs -Wl,-rpath -Wl,$(shell pwd)
-
-# ## We have to create $(etc) here because init_cmdargs tests its
-# ## existence when setting Vinstallation_directory (FIXME?).
-# ## This goes on to affect various things, and the emacs binary fails
-# ## to start if Vinstallation_directory has the wrong value.
-# temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
-#   $(charsets) $(charscript) $(MAKE_PDUMPER_FINGERPRINT)
-# 	$(AM_V_CCLD)$(CC) -o $@.tmp \
-# 	  $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-# 	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
-# ifeq ($(HAVE_PDUMPER),yes)
-# 	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@.tmp
-# endif
-# 	$(AM_V_at)mv $@.tmp $@
-# 	$(MKDIR_P) $(etc)
-# ifeq ($(DUMPING),unexec)
-#   ifneq ($(PAXCTL_notdumped),)
-# 	$(PAXCTL_notdumped) $@
-#   endif
+## We have to create $(etc) here because init_cmdargs tests its
+## existence when setting Vinstallation_directory (FIXME?).
+## This goes on to affect various things, and the emacs binary fails
+## to start if Vinstallation_directory has the wrong value.
+temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
+  $(charsets) $(charscript) $(MAKE_PDUMPER_FINGERPRINT)
+	$(AM_V_CCLD)$(CC) -o $@.tmp \
+	  $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+ifeq ($(HAVE_PDUMPER),yes)
+	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@.tmp
+endif
+	$(AM_V_at)mv $@.tmp $@
+	$(MKDIR_P) $(etc)
+ifeq ($(DUMPING),unexec)
+  ifneq ($(PAXCTL_notdumped),)
+	$(PAXCTL_notdumped) $@
+  endif
+endif
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
