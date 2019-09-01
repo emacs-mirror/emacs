@@ -52,7 +52,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define TEXT_EXPORTED_FUNC_RELOC_SYM "text_exported_funcs"
 #define TEXT_IMPORTED_FUNC_RELOC_SYM "text_imported_funcs"
 
-#define STR(s) #s
+#define STR_VALUE(s) #s
+#define STR(s) STR_VALUE (s)
 
 #define FIRST(x)				\
   XCAR(x)
@@ -69,6 +70,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR(name))
+
+#ifdef HAVE__SETJMP
+#define SETJMP _setjmp
+#else
+#define SETJMP setjmp
+#endif
+#define SETJMP_NAME STR (SETJMP)
 
 /* C side of the compiler context. */
 
@@ -1157,11 +1165,7 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 	NULL);
 
   gcc_jit_rvalue *res;
-#ifdef HAVE__SETJMP
-  res = emit_call (intern_c_string ("_setjmp"), comp.int_type, 1, args);
-#else
-  res = emit_call (intern_c_string ("setjmp"), comp.int_type, 1, args);
-#endif
+  res = emit_call (intern_c_string (SETJMP_NAME), comp.int_type, 1, args);
   emit_cond_jump (res, handler_bb, guarded_bb);
 
   /* This emit the handler part.  */
@@ -1561,20 +1565,32 @@ declare_runtime_imported (void)
   FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1-"));
   FUNCALL1 (comp-add-subr-to-relocs, Qplus);
   FUNCALL1 (comp-add-subr-to-relocs, Qminus);
+  FUNCALL1 (comp-add-subr-to-relocs, Qlist);
 
   Lisp_Object field_list = Qnil;
 #define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
-    {									       \
-      Lisp_Object name = intern_c_string (f_name);			       \
-      Lisp_Object field =						       \
-	make_mint_ptr (declare_imported_func (name, ret_type, nargs, args));   \
-      field_list = Fcons (field, field_list);				       \
-    } while (0)
-
+  {									       \
+    Lisp_Object name = intern_c_string (f_name);			       \
+    Lisp_Object field =							       \
+      make_mint_ptr (declare_imported_func (name, ret_type, nargs, args));     \
+    field_list = Fcons (field, field_list);				       \
+  } while (0)
+  gcc_jit_type *args[2];
   ADD_IMPORTED ("wrong_type_argument", comp.void_type, 2, NULL);
-  gcc_jit_type *args[] = {comp.lisp_obj_type, comp.int_type};
+
+  args[0] = comp.lisp_obj_type;
+  args[1] = comp.int_type;
   ADD_IMPORTED ("helper_PSEUDOVECTOR_TYPEP_XUNTAG", comp.bool_type, 2, args);
+
   ADD_IMPORTED ("pure_write_error", comp.void_type, 1, NULL);
+
+  args[0] = comp.lisp_obj_type;
+  args[1] = comp.int_type;
+  ADD_IMPORTED ("push_handler", comp.handler_ptr_type, 2, args);
+
+  args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
+  ADD_IMPORTED (SETJMP_NAME, comp.int_type, 1, args);
+
 #undef ADD_IMPORTED
 
   return field_list;
@@ -3031,6 +3047,12 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, "pure_write_error"))
 	{
 	  f_relocs[i] = (void *) pure_write_error;
+	} else if (!strcmp (f_str, "push_handler"))
+	{
+	  f_relocs[i] = (void *) push_handler;
+	} else if (!strcmp (f_str, SETJMP_NAME))
+	{
+	  f_relocs[i] = (void *) SETJMP;
 	} else
 	{
 	  error ("Unexpected function relocation %s", f_str);
