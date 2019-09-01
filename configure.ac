@@ -3678,6 +3678,8 @@ if test "${with_nativecomp}" != "no"; then
   if test "${HAVE_LIBGCCJIT}" = "yes"; then
     LIBGCCJIT_LIB=-lgccjit
     AC_DEFINE([HAVE_LIBGCCJIT], 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
+    AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
+     [System extension for native compiled elisp])
   fi
 fi
 AC_SUBST([LIBGCCJIT_LIB])
