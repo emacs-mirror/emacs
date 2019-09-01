@@ -2096,8 +2096,6 @@ union Aligned_Lisp_Subr
   };
 verify (GCALIGNED (union Aligned_Lisp_Subr));
 
-#define SUBR_MAX_ARGS 9
-
 INLINE bool
 SUBRP (Lisp_Object a)
 {
