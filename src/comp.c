@@ -1,6 +1,8 @@
 /* Compile byte code produced by bytecomp.el into native code.
    Copyright (C) 2019 Free Software Foundation, Inc.
 
+Author: Andrea Corallo <akrl@sdf.org>
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
