@@ -1642,21 +1642,23 @@ emit_ctxt_code (void)
   FOR_EACH_TAIL (f_subr)
     {
       Lisp_Object subr_sym = XCAR (f_subr);
-      Lisp_Object subr = Fsymbol_function (subr_sym);
-      Lisp_Object maxarg = XCDR (Fsubr_arity (subr));
-      gcc_jit_field *field =
-	declare_imported_func (subr_sym, comp.lisp_obj_type,
-			       FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY, NULL);
-      fields [i++] = field;
+      /* Ignore inliners. This are not real functions to be imported.  */
+      if (NILP (Fgethash (subr_sym, comp.emitter_dispatcher, Qnil)))
+	{
+	  Lisp_Object subr = Fsymbol_function (subr_sym);
+	  Lisp_Object maxarg = XCDR (Fsubr_arity (subr));
+	  gcc_jit_field *field =
+	    declare_imported_func (subr_sym, comp.lisp_obj_type,
+				   FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY, NULL);
+	  fields [i++] = field;
+      }
     }
-  eassert (f_reloc_len == i);
 
   gcc_jit_struct *f_reloc_struct =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "function_reloc_struct",
-				     f_reloc_len,
-				     fields);
+				     i, fields);
   comp.func_relocs =
     gcc_jit_context_new_global (
       comp.ctxt,
@@ -3139,7 +3141,7 @@ syms_of_comp (void)
   DEFSYM (Qpop_handler, "pop-handler");
   DEFSYM (Qcondition_case, "condition-case");
   /* call operands.  */
-  DEFSYM (Qcatcher, "catcher");
+  DEFSYM (Qcatcher, "catcher"); /* FIXME use these allover.  */
   DEFSYM (Qentry, "entry");
   DEFSYM (Qset_internal, "set_internal");
   DEFSYM (Qrecord_unwind_current_buffer, "record_unwind_current_buffer");
