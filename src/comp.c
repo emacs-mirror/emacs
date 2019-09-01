@@ -27,9 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "puresize.h"
-#include "buffer.h"
-#include "bytecode.h"
-#include "atimer.h"
 #include "window.h"
 #include "dynlib.h"
 
