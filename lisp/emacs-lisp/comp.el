@@ -177,7 +177,8 @@ LIMPLE basic block.")
   "Keep track of OBJ into the ctxt relocations.
 The corresponding index is returned."
   (let ((data-relocs-idx (comp-ctxt-data-relocs-idx comp-ctxt)))
-    (unless (gethash obj data-relocs-idx)
+    (if-let ((idx (gethash obj data-relocs-idx)))
+        idx
       (push obj (comp-ctxt-data-relocs-l comp-ctxt))
       (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
 
@@ -185,7 +186,8 @@ The corresponding index is returned."
   "Keep track of SUBR-NAME into the ctxt relocations.
 The corresponding index is returned."
   (let ((func-relocs-idx (comp-ctxt-func-relocs-idx comp-ctxt)))
-    (unless (gethash subr-name func-relocs-idx)
+    (if-let ((idx (gethash subr-name func-relocs-idx)))
+        idx
       (push subr-name (comp-ctxt-func-relocs-l comp-ctxt))
       (puthash subr-name (hash-table-count func-relocs-idx) func-relocs-idx))))
 
@@ -392,6 +394,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
 (defun comp-emit-set-const (val)
   "Set constant VAL to current slot."
   (let ((rel-idx (comp-add-const-to-relocs val)))
+    (cl-assert (numberp rel-idx))
     (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
                                       :constant val))
     (comp-emit `(setimm ,(comp-slot) ,rel-idx ,val))))
@@ -848,7 +851,9 @@ the annotation emission."
         (prin1-to-string (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
                                   for f being each hash-value of h
                                   for args = (comp-func-args f)
-                                  for doc = (aref (comp-func-byte-func f) 4)
+                                  for doc = (when (> (length (comp-func-byte-func f))
+                                                     4)
+                                              (aref (comp-func-byte-func f) 4))
                                   collect (vector (comp-func-symbol-name f)
                                                   (comp-func-c-func-name f)
                                                   (cons (comp-args-base-min args)
