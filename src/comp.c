@@ -1591,6 +1591,11 @@ declare_runtime_imported (void)
   args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
   ADD_IMPORTED (SETJMP_NAME, comp.int_type, 1, args);
 
+  ADD_IMPORTED ("record_unwind_protect_excursion", comp.void_type, 0, NULL);
+
+  args[0] = comp.lisp_obj_type;
+  ADD_IMPORTED ("helper_unbind_n", comp.lisp_obj_type, 1, args);
+
 #undef ADD_IMPORTED
 
   return field_list;
@@ -3058,6 +3063,12 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, SETJMP_NAME))
 	{
 	  f_relocs[i] = (void *) SETJMP;
+	} else if (!strcmp (f_str, "record_unwind_protect_excursion"))
+	{
+	  f_relocs[i] = (void *) record_unwind_protect_excursion;
+	} else if (!strcmp (f_str, "helper_unbind_n"))
+	{
+	  f_relocs[i] = (void *) helper_unbind_n;
 	} else
 	{
 	  error ("Unexpected function relocation %s", f_str);
