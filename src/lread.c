@@ -1534,6 +1534,8 @@ Return t if the file exists and loads successfully.  */)
 		 file, 1);
       else if (is_module)
         message_with_string ("Loading %s (module)...done", file, 1);
+      else if (is_native_elisp)
+	message_with_string ("Loading %s (native compiled elisp)...done", file, 1);
       else if (!compiled)
 	message_with_string ("Loading %s (source)...done", file, 1);
       else if (newer)
