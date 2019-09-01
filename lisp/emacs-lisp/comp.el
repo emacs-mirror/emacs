@@ -886,10 +886,11 @@ the annotation emission."
                 comp-passes)
           ;; Once we have the final LIMPLE we jump into C.
           (comp--init-ctxt)
-          (comp-add-func-to-ctxt func)
-          (comp-compile-ctxt-to-file (symbol-name func-symbol-name))
-          ;; (comp-compile-and-load-ctxt)
-          (comp--release-ctxt)))
+          (unwind-protect
+              (progn
+                (comp-add-func-to-ctxt func)
+                (comp-compile-ctxt-to-file (symbol-name func-symbol-name)))
+            (comp--release-ctxt))))
     (error "Trying to native compile something not a function")))
 
 (provide 'comp)
