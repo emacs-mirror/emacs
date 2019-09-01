@@ -46,6 +46,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define CONST_PROP_MAX 0
 
+/* C symbols emited for the load relocation mechanism.  */
+#define DATA_RELOC_SYM "d_reloc"
+#define IMPORTED_FUNC_RELOC_SYM "f_reloc"
+#define TEXT_DATA_RELOC_SYM "text_data_reloc"
+#define TEXT_EXPORTED_FUNC_RELOC_SYM "text_exported_funcs"
+#define TEXT_IMPORTED_FUNC_RELOC_SYM "text_imported_funcs"
+
 #define STR(s) #s
 
 #define FIRST(x)				\
@@ -147,7 +154,7 @@ typedef struct {
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
-  Lisp_Object func_hash; /* c_f_name -> (gcc_func . subr_name).	*/
+  Lisp_Object func_hash; /* subr_name -> reloc_field.  */
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
   gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
@@ -287,7 +294,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
       nargs = 2;
       types = alloca (nargs * sizeof (* types));
       types[0] = comp.ptrdiff_type;
-      types[1] = comp.lisp_obj_type;
+      types[1] = comp.lisp_obj_ptr_type;
     }
   else if (!types)
     {
@@ -316,9 +323,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 			       f_ptr_type,
 			       SSDATA (f_ptr_name));
 
-
-  Lisp_Object value = Fcons (make_mint_ptr (field), subr_sym);
-  Fputhash (subr_sym, value, comp.func_hash);
+  Fputhash (subr_sym, make_mint_ptr (field), comp.func_hash);
   return field;
 }
 
@@ -369,7 +374,7 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
   gcc_jit_lvalue *f_ptr =
     gcc_jit_lvalue_access_field (comp.func_relocs,
 				 NULL,
-				 (gcc_jit_field *) xmint_pointer (XCAR (value)));
+				 (gcc_jit_field *) xmint_pointer (value));
   if (!f_ptr)
     error ("Undeclared function relocation.");
 
@@ -1556,8 +1561,8 @@ declare_runtime_imported (void)
      for functions imported by lisp code. */
   FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1+"));
   FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1-"));
-  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("+"));
-  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("-"));
+  FUNCALL1 (comp-add-subr-to-relocs, Qplus);
+  FUNCALL1 (comp-add-subr-to-relocs, Qminus);
 
   Lisp_Object field_list = Qnil;
 #define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
@@ -1600,9 +1605,9 @@ emit_ctxt_code (void)
 			    NULL,
 			    comp.lisp_obj_type,
 			    d_reloc_len),
-	"data_relocs"));
+	DATA_RELOC_SYM));
 
-  emit_litteral_string_func ("text_data_relocs", d_reloc);
+  emit_litteral_string_func (TEXT_DATA_RELOC_SYM, d_reloc);
 
   /* Imported functions from non Lisp code.  */
   Lisp_Object f_runtime = declare_runtime_imported ();
@@ -1644,11 +1649,11 @@ emit_ctxt_code (void)
       NULL,
       GCC_JIT_GLOBAL_EXPORTED,
       gcc_jit_struct_as_type (f_reloc_struct),
-      "f_reloc");
+      IMPORTED_FUNC_RELOC_SYM);
 
   /* Exported functions info.  */
   const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
-  emit_litteral_string_func ("text_exported_funcs", func_list);
+  emit_litteral_string_func (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
 }
 
 
@@ -2044,7 +2049,7 @@ define_CHECK_TYPE (void)
   gcc_jit_block_add_eval (comp.block,
 			  NULL,
 			  emit_call (intern_c_string ("wrong_type_argument"),
-				     comp.lisp_obj_type, 2, wrong_type_args));
+				     comp.void_type, 2, wrong_type_args));
 
   gcc_jit_block_end_with_void_return (not_ok_block, NULL);
 }
@@ -2126,7 +2131,7 @@ define_CAR_CDR (void)
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
 			      emit_call (intern_c_string ("wrong_type_argument"),
-					 comp.lisp_obj_type, 2, wrong_type_args));
+					 comp.void_type, 2, wrong_type_args));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
 				     emit_lisp_obj_from_ptr (Qnil));
@@ -2819,7 +2824,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   Lisp_Object f_reloc = make_vector (fh->count, Qnil);
   for (ptrdiff_t i = 0; i < fh->count; i++)
     {
-      Lisp_Object subr_sym = (XCDR (HASH_VALUE (fh, i)));
+      Lisp_Object subr_sym = HASH_KEY (fh, i);
       ASET (f_reloc, i, subr_sym);
     }
   emit_litteral_string_func ("text_imported_funcs",
@@ -2984,6 +2989,7 @@ static Lisp_Object
 retrive_litteral_obj (dynlib_handle_ptr handle, const char *str_name)
 {
   comp_litt_str_func f = dynlib_sym (handle, str_name);
+  eassert (f);
   char *res = f();
   return Fread (build_string (res));
 }
@@ -2991,9 +2997,10 @@ retrive_litteral_obj (dynlib_handle_ptr handle, const char *str_name)
 static int
 load_comp_unit (dynlib_handle_ptr handle)
 {
-  Lisp_Object *data_relocs = dynlib_sym (handle, "data_relocs");
+  /* Imported data.  */
+  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
 
-  Lisp_Object d_vec = retrive_litteral_obj (handle, "text_data_relocs");
+  Lisp_Object d_vec = retrive_litteral_obj (handle, TEXT_DATA_RELOC_SYM);
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
@@ -3002,7 +3009,38 @@ load_comp_unit (dynlib_handle_ptr handle)
       prevent_gc (data_relocs[i]);
     }
 
-  Lisp_Object func_list = retrive_litteral_obj (handle, "text_exported_funcs");
+  /* Imported functions.  */
+  Lisp_Object (**f_relocs)(void) =
+    dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
+  Lisp_Object f_vec =
+    retrive_litteral_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
+  EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
+    for (EMACS_UINT i = 0; i < f_vec_len; i++)
+    {
+      Lisp_Object f_sym = AREF (f_vec, i);
+      char *f_str = SSDATA (SYMBOL_NAME (f_sym));
+      Lisp_Object subr = Fsymbol_function (f_sym);
+      if (!NILP (subr))
+	{
+	  eassert (SUBRP (subr));
+	  f_relocs[i] = XSUBR (subr)->function.a0;
+	} else if (!strcmp (f_str, "wrong_type_argument"))
+	{
+	  f_relocs[i] = (void *) wrong_type_argument;
+	} else if (!strcmp (f_str, "helper_PSEUDOVECTOR_TYPEP_XUNTAG"))
+	{
+	  f_relocs[i] = (void *) helper_PSEUDOVECTOR_TYPEP_XUNTAG;
+	} else if (!strcmp (f_str, "pure_write_error"))
+	{
+	  f_relocs[i] = (void *) pure_write_error;
+	} else
+	{
+	  error ("Unexpected function relocation %s", f_str);
+	}
+    }
+
+  /* Exported functions.  */
+  Lisp_Object func_list = retrive_litteral_obj (handle, TEXT_EXPORTED_FUNC_RELOC_SYM);
 
   while (func_list)
     {
