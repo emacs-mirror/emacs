@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "puresize.h"
 #include "window.h"
 #include "dynlib.h"
+#include "buffer.h"
 
 #define DEFAULT_SPEED 2 /* See comp-speed var.  */
 
@@ -172,19 +173,16 @@ static comp_t comp;
 FILE *logfile = NULL;
 
 
+/*
+   Helper functions called by the runtime.
+*/
 Lisp_Object helper_save_window_excursion (Lisp_Object v1);
-
 void helper_unwind_protect (Lisp_Object handler);
-
 Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
-
 Lisp_Object helper_unbind_n (Lisp_Object n);
-
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 				       enum pvec_type code);
-
 void helper_emit_save_restriction (void);
-
 void helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs);
 
 
@@ -1595,6 +1593,8 @@ declare_runtime_imported (void)
 
   args[0] = comp.lisp_obj_type;
   ADD_IMPORTED ("helper_unbind_n", comp.lisp_obj_type, 1, args);
+
+  ADD_IMPORTED ("record_unwind_current_buffer", comp.void_type, 0, NULL);
 
 #undef ADD_IMPORTED
 
@@ -3069,6 +3069,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, "helper_unbind_n"))
 	{
 	  f_relocs[i] = (void *) helper_unbind_n;
+	} else if (!strcmp (f_str, "record_unwind_current_buffer"))
+	{
+	  f_relocs[i] = (void *) record_unwind_current_buffer;
 	} else
 	{
 	  error ("Unexpected function relocation %s", f_str);
