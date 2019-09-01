@@ -1132,7 +1132,6 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
   /* Ex: (push-handler #s(comp-mvar 6 0 t (arith-error) nil) 1 bb_3 bb_2).  */
 
   static unsigned pushhandler_n; /* FIXME move at ctxt or func level.  */
-  gcc_jit_rvalue *args[2];
 
   /* struct handler *c = push_handler (POP, type); */
   gcc_jit_lvalue *c =
@@ -1141,8 +1140,8 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 				comp.handler_ptr_type,
 				format_string ("c_%u",
 					       pushhandler_n));
-  args[0] = handler;
-  args[1] = handler_type;
+
+  gcc_jit_rvalue *args[] = { handler, handler_type };
   gcc_jit_block_add_assignment (
 	      comp.block,
 	      NULL,
