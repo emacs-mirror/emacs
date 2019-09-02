@@ -1573,7 +1573,9 @@ declare_runtime_imported (void)
     Lisp_Object el = Fcons (name, field);				       \
     field_list = Fcons (el, field_list);				       \
   } while (0)
-  gcc_jit_type *args[2];
+
+  gcc_jit_type *args[4];
+
   ADD_IMPORTED ("wrong_type_argument", comp.void_type, 2, NULL);
 
   args[0] = comp.lisp_obj_type;
@@ -1595,6 +1597,10 @@ declare_runtime_imported (void)
   ADD_IMPORTED ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 
   ADD_IMPORTED ("record_unwind_current_buffer", comp.void_type, 0, NULL);
+
+  args[0] = args[1] = args[2] = comp.lisp_obj_type;
+  args[3] = comp.int_type;
+  ADD_IMPORTED ("set_internal", comp.void_type, 4, args);
 
 #undef ADD_IMPORTED
 
@@ -3072,6 +3078,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, "record_unwind_current_buffer"))
 	{
 	  f_relocs[i] = (void *) record_unwind_current_buffer;
+	} else if (!strcmp (f_str, "set_internal"))
+	{
+	  f_relocs[i] = (void *) set_internal;
 	} else
 	{
 	  error ("Unexpected function relocation %s", f_str);
