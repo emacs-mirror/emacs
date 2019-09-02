@@ -1649,6 +1649,9 @@ declare_runtime_imported (void)
   args[3] = comp.int_type;
   ADD_IMPORTED ("set_internal", comp.void_type, 4, args);
 
+  args[0] = comp.lisp_obj_type;
+  ADD_IMPORTED ("helper_unwind_protect", comp.void_type, 1, args);
+
 #undef ADD_IMPORTED
 
   return field_list;
@@ -3128,6 +3131,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, "set_internal"))
 	{
 	  f_relocs[i] = (void *) set_internal;
+	} else if (!strcmp (f_str, "helper_unwind_protect"))
+	{
+	  f_relocs[i] = (void *) helper_unwind_protect;
 	} else
 	{
 	  error ("Unexpected function relocation %s", f_str);
