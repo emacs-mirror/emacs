@@ -172,6 +172,12 @@ static comp_t comp;
 
 FILE *logfile = NULL;
 
+/* This is used for serialized objects by the reload mechanism.  */
+typedef struct {
+  ptrdiff_t len;
+  const char data[];
+} static_obj_t;
+
 
 /*
    Helper functions called by the runtime.
@@ -1525,78 +1531,90 @@ emit_integerp (Lisp_Object insn)
 				   &res);
 }
 
-/*
-  Is not possibile to initilize static data in libgccjit therfore will create
-  the following:
-
-  char *str_name (void)
-  {
-    return "payload here";
-  }
-*/
-
+/* This is in charge of serializing an object and export a function to
+   retrive it at load time.  */
 static void
-emit_literal_string_func (const char *str_name, const char *str)
+emit_static_object (const char *name, Lisp_Object obj)
 {
-  if (0) /* FIXME: somehow check gcc version here.  */
-    {
-      gcc_jit_function *f =
-	gcc_jit_context_new_function (comp.ctxt, NULL,
-				      GCC_JIT_FUNCTION_EXPORTED,
-				      comp.char_ptr_type,
-				      str_name,
-				      0, NULL, 0);
-      DECL_BLOCK (block, f);
-      gcc_jit_rvalue *res = gcc_jit_context_new_string_literal (comp.ctxt, str);
-      gcc_jit_block_end_with_return (block, NULL, res);
-    } else
-    {
-      /* Horrible workaround for a funny bug:
-	 https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html
-	 This will have to be used for all gccs pre gcc10 era. */
-      size_t len = strlen (str);
-      gcc_jit_type *a_type =
-	gcc_jit_context_new_array_type (comp.ctxt,
-					NULL,
-					comp.char_type,
-					len + 1);
-      gcc_jit_function *f =
-	gcc_jit_context_new_function (comp.ctxt, NULL,
-				      GCC_JIT_FUNCTION_EXPORTED,
-				      gcc_jit_type_get_pointer (a_type),
-				      str_name,
-				      0, NULL, 0);
-      DECL_BLOCK (block, f);
-      gcc_jit_block_add_comment (block,
-				 NULL,
-				 str);
-      gcc_jit_lvalue *arr =
-	gcc_jit_context_new_global (comp.ctxt,
-				    NULL,
-				    GCC_JIT_GLOBAL_INTERNAL,
-				    a_type,
-				    format_string ("arr_%s", str_name));
-      for (ptrdiff_t i = 0; i <= len; i++, str++)
-	{
-	  char c = i != len ? *str : 0;
+  /* libgccjit has no support for initialized static data.
+     The mechanism below is certainly not aesthetic but I assume the bottle neck
+     in terms of performance at load time will still be the reader.
+     NOTE: we can not relay on it even for valid C strings cause of
+     this funny bug that will affect all pre gcc10 era gccs:
+     https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html */
 
-	  gcc_jit_block_add_assignment (
-	    block,
-	    NULL,
-	    gcc_jit_context_new_array_access (
-	      comp.ctxt,
-	      NULL,
-	      gcc_jit_lvalue_as_rvalue (arr),
-	      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						   comp.ptrdiff_type,
-						   i)),
-	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						 comp.char_type,
-						 c));
-	}
-      gcc_jit_rvalue *res = gcc_jit_lvalue_get_address (arr, NULL);
-      gcc_jit_block_end_with_return (block, NULL, res);
+  Lisp_Object str = Fprin1_to_string (obj, Qnil);
+  ptrdiff_t len = SBYTES (str);
+  const char *p = SSDATA (str);
+
+  gcc_jit_type *a_type =
+    gcc_jit_context_new_array_type (comp.ctxt,
+				    NULL,
+				    comp.char_type,
+				    len + 1);
+  gcc_jit_field *fields[] =
+    { gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.ptrdiff_type,
+				 "len"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 a_type,
+				 "data") };
+
+  gcc_jit_type *data_struct_t =
+    gcc_jit_struct_as_type (
+      gcc_jit_context_new_struct_type (comp.ctxt,
+				       NULL,
+				       format_string ("%s_struct", name),
+				       2, fields));
+
+  gcc_jit_lvalue *data_struct =
+    gcc_jit_context_new_global (comp.ctxt,
+				NULL,
+				GCC_JIT_GLOBAL_INTERNAL,
+				data_struct_t,
+				format_string ("%s_s", name));
+
+  gcc_jit_function *f =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_EXPORTED,
+				  gcc_jit_type_get_pointer (data_struct_t),
+				  name,
+				  0, NULL, 0);
+  DECL_BLOCK (block, f);
+
+  /* NOTE this truncates if the data has some zero byte before termination.  */
+  gcc_jit_block_add_comment (block, NULL, p);
+
+  gcc_jit_lvalue *arr =
+      gcc_jit_lvalue_access_field (data_struct, NULL, fields[1]);
+
+  for (ptrdiff_t i = 0; i < len; i++, p++)
+    {
+      gcc_jit_block_add_assignment (
+	block,
+	NULL,
+	gcc_jit_context_new_array_access (
+	  comp.ctxt,
+	  NULL,
+	  gcc_jit_lvalue_as_rvalue (arr),
+	  gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					       comp.ptrdiff_type,
+					       i)),
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.char_type,
+					     *p));
     }
+  gcc_jit_block_add_assignment (
+	block,
+	NULL,
+	gcc_jit_lvalue_access_field (data_struct, NULL, fields[0]),
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.ptrdiff_type,
+					     len));
+  gcc_jit_rvalue *res = gcc_jit_lvalue_get_address (data_struct, NULL);
+  gcc_jit_block_end_with_return (block, NULL, res);
 }
 
 /*
@@ -1667,8 +1685,7 @@ static void
 emit_ctxt_code (void)
 {
   /* Imported objects.  */
-
-  const char *d_reloc = SSDATA (FUNCALL1 (comp-ctxt-data-relocs, Vcomp_ctxt));
+  Lisp_Object d_reloc = FUNCALL1 (comp-ctxt-data-relocs, Vcomp_ctxt);
   EMACS_UINT d_reloc_len =
     XFIXNUM (FUNCALL1 (hash-table-count,
 		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
@@ -1685,7 +1702,7 @@ emit_ctxt_code (void)
 			    d_reloc_len),
 	DATA_RELOC_SYM));
 
-  emit_literal_string_func (TEXT_DATA_RELOC_SYM, d_reloc);
+  emit_static_object (TEXT_DATA_RELOC_SYM, d_reloc);
 
   /* Imported functions from non Lisp code.  */
   Lisp_Object f_runtime = declare_runtime_imported ();
@@ -1729,8 +1746,7 @@ emit_ctxt_code (void)
     {
       ASET (f_reloc_vec, i++, XCAR (f_reloc_list));
     }
-  emit_literal_string_func (TEXT_IMPORTED_FUNC_RELOC_SYM,
-			     (SSDATA (Fprin1_to_string (f_reloc_vec, Qnil))));
+  emit_static_object (TEXT_IMPORTED_FUNC_RELOC_SYM, f_reloc_vec);
 
   gcc_jit_struct *f_reloc_struct =
     gcc_jit_context_new_struct_type (comp.ctxt,
@@ -1746,8 +1762,8 @@ emit_ctxt_code (void)
       IMPORTED_FUNC_RELOC_SYM);
 
   /* Exported functions info.  */
-  const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
-  emit_literal_string_func (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
+  Lisp_Object func_list = FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt);
+  emit_static_object (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
 }
 
 
@@ -3060,21 +3076,22 @@ helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs)
 
 static Lisp_Object Vnative_elisp_refs_hash;
 
-typedef char *(*comp_litt_str_func) (void);
-
 static void
 prevent_gc (Lisp_Object obj)
 {
   Fputhash (obj, Qt, Vnative_elisp_refs_hash);
 }
 
+typedef char *(*comp_lit_str_func) (void);
+
+/* Deserialize read and return static object.  */
 static Lisp_Object
-retrive_literal_obj (dynlib_handle_ptr handle, const char *str_name)
+load_static_obj (dynlib_handle_ptr handle, const char *name)
 {
-  comp_litt_str_func f = dynlib_sym (handle, str_name);
+  static_obj_t *(*f)(void) = dynlib_sym (handle, name);
   eassert (f);
-  char *res = f();
-  return Fread (build_string (res));
+  static_obj_t *res = f();
+  return Fread (make_string (res->data, res->len));
 }
 
 static int
@@ -3083,7 +3100,7 @@ load_comp_unit (dynlib_handle_ptr handle)
   /* Imported data.  */
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
 
-  Lisp_Object d_vec = retrive_literal_obj (handle, TEXT_DATA_RELOC_SYM);
+  Lisp_Object d_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
@@ -3096,7 +3113,7 @@ load_comp_unit (dynlib_handle_ptr handle)
   Lisp_Object (**f_relocs)(void) =
     dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
   Lisp_Object f_vec =
-    retrive_literal_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
+    load_static_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
   EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
     for (EMACS_UINT i = 0; i < f_vec_len; i++)
     {
@@ -3144,7 +3161,7 @@ load_comp_unit (dynlib_handle_ptr handle)
     }
 
   /* Exported functions.  */
-  Lisp_Object func_list = retrive_literal_obj (handle, TEXT_EXPORTED_FUNC_RELOC_SYM);
+  Lisp_Object func_list = load_static_obj (handle, TEXT_EXPORTED_FUNC_RELOC_SYM);
 
   while (func_list)
     {
