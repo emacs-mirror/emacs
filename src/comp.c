@@ -2730,16 +2730,16 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
       register_emitter (Qhelper_save_restriction,
 			emit_simple_limple_call_void_ret);
       /* Inliners.  */
-      register_emitter (QFadd1, emit_add1);
-      register_emitter (QFsub1, emit_sub1);
-      register_emitter (QFconsp, emit_consp);
-      register_emitter (QFcar, emit_car);
-      register_emitter (QFcdr, emit_cdr);
-      register_emitter (QFsetcar, emit_setcar);
-      register_emitter (QFsetcdr, emit_setcdr);
+      register_emitter (Qadd1, emit_add1);
+      register_emitter (Qsub1, emit_sub1);
+      register_emitter (Qconsp, emit_consp);
+      register_emitter (Qcar, emit_car);
+      register_emitter (Qcdr, emit_cdr);
+      register_emitter (Qsetcar, emit_setcar);
+      register_emitter (Qsetcdr, emit_setcdr);
       register_emitter (Qnegate, emit_negate);
-      register_emitter (QFnumberp, emit_numperp);
-      register_emitter (QFintegerp, emit_integerp);
+      register_emitter (Qnumberp, emit_numperp);
+      register_emitter (Qintegerp, emit_integerp);
     }
 
   comp.ctxt = gcc_jit_context_acquire();
@@ -3249,16 +3249,16 @@ syms_of_comp (void)
   DEFSYM (Qhelper_unwind_protect, "helper_unwind_protect");
   DEFSYM (Qhelper_save_restriction, "helper_save_restriction");
   /* Inliners.  */
-  DEFSYM (QFadd1, "Fadd1");
-  DEFSYM (QFsub1, "Fsub1");
-  DEFSYM (QFconsp, "Fconsp");
-  DEFSYM (QFcar, "Fcar");
-  DEFSYM (QFcdr, "Fcdr");
-  DEFSYM (QFsetcar, "Fsetcar");
-  DEFSYM (QFsetcdr, "Fsetcdr");
+  DEFSYM (Qadd1, "1+");
+  DEFSYM (Qsub1, "1-");
+  DEFSYM (Qconsp, "consp");
+  DEFSYM (Qcar, "car");
+  DEFSYM (Qcdr, "cdr");
+  DEFSYM (Qsetcar, "setcar");
+  DEFSYM (Qsetcdr, "setcdr");
   DEFSYM (Qnegate, "negate");
-  DEFSYM (QFnumberp, "Fnumberp");
-  DEFSYM (QFintegerp, "Fintegerp");
+  DEFSYM (Qnumberp, "numberp");
+  DEFSYM (Qintegerp, "integerp");
   /* Returned values.  */
   DEFSYM (Qcomp_unit_open_failed, "comp-unit-open-failed");
   DEFSYM (Qcomp_unit_init_failed, "comp-unit-init-failed");
