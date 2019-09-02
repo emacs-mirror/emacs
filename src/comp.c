@@ -1726,10 +1726,10 @@ emit_ctxt_code (void)
   FOR_EACH_TAIL (f_subr)
     {
       Lisp_Object subr_sym = XCAR (f_subr);
+      Lisp_Object subr = Fsymbol_function (subr_sym);
       /* Ignore inliners. This are not real functions to be imported.  */
-      if (NILP (Fgethash (subr_sym, comp.emitter_dispatcher, Qnil)))
+      if (SUBRP (subr))
 	{
-	  Lisp_Object subr = Fsymbol_function (subr_sym);
 	  Lisp_Object maxarg = XCDR (Fsubr_arity (subr));
 	  gcc_jit_field *field =
 	    declare_imported_func (subr_sym, comp.lisp_obj_type,
