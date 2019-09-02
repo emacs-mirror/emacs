@@ -364,14 +364,14 @@
   (defun comp-tests-consp-f (x)
     ;; Bconsp
     (consp x))
-  (defun comp-tests-car-f (x)
+  (defun comp-tests-setcar2-f (x)
     ;; Bsetcar
     (setcar x 3))
 
   (should (eq (comp-test-apply #'comp-tests-consp-f '(1)) t))
   (should (eq (comp-test-apply #'comp-tests-consp-f 1) nil))
   (let ((x (cons 1 2)))
-    (should (= (comp-test-apply #'comp-tests-car-f x) 3))
+    (should (= (comp-test-apply #'comp-tests-setcar2-f x) 3))
     (should (equal x '(3 . 2)))))
 
 (ert-deftest comp-tests-num-inline ()
