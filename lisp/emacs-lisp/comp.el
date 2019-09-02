@@ -598,7 +598,7 @@ the annotation emission."
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
-       (comp-emit-set-call (comp-call 'symbol_value (make-comp-mvar
+       (comp-emit-set-call (comp-call 'symbol-value (make-comp-mvar
                                                      :constant arg))))
       (byte-varset
        (comp-emit (comp-call 'set_internal
