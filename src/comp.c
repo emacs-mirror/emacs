@@ -1567,6 +1567,9 @@ emit_literal_string_func (const char *str_name, const char *str)
 				      str_name,
 				      0, NULL, 0);
       DECL_BLOCK (block, f);
+      gcc_jit_block_add_comment (block,
+				 NULL,
+				 str);
       gcc_jit_lvalue *arr =
 	gcc_jit_context_new_global (comp.ctxt,
 				    NULL,
