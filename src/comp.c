@@ -1536,7 +1536,7 @@ emit_integerp (Lisp_Object insn)
 */
 
 static void
-emit_litteral_string_func (const char *str_name, const char *str)
+emit_literal_string_func (const char *str_name, const char *str)
 {
   gcc_jit_function *f =
     gcc_jit_context_new_function (comp.ctxt, NULL,
@@ -1626,7 +1626,7 @@ emit_ctxt_code (void)
 			    d_reloc_len),
 	DATA_RELOC_SYM));
 
-  emit_litteral_string_func (TEXT_DATA_RELOC_SYM, d_reloc);
+  emit_literal_string_func (TEXT_DATA_RELOC_SYM, d_reloc);
 
   /* Imported functions from non Lisp code.  */
   Lisp_Object f_runtime = declare_runtime_imported ();
@@ -1670,7 +1670,7 @@ emit_ctxt_code (void)
     {
       ASET (f_reloc_vec, i++, XCAR (f_reloc_list));
     }
-  emit_litteral_string_func (TEXT_IMPORTED_FUNC_RELOC_SYM,
+  emit_literal_string_func (TEXT_IMPORTED_FUNC_RELOC_SYM,
 			     (SSDATA (Fprin1_to_string (f_reloc_vec, Qnil))));
 
   gcc_jit_struct *f_reloc_struct =
@@ -1688,7 +1688,7 @@ emit_ctxt_code (void)
 
   /* Exported functions info.  */
   const char *func_list = SSDATA (FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt));
-  emit_litteral_string_func (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
+  emit_literal_string_func (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
 }
 
 
@@ -2729,10 +2729,10 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						      sizeof (EMACS_INT),
 						      true);
 
-  comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
-						     NULL,
-						     comp.emacs_int_type,
-						     "num");
+  comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.emacs_int_type,
+						    "num");
 
   gcc_jit_field *lisp_obj_fields[] = { comp.lisp_obj_as_ptr,
 				       comp.lisp_obj_as_num };
@@ -3010,7 +3010,7 @@ prevent_gc (Lisp_Object obj)
 }
 
 static Lisp_Object
-retrive_litteral_obj (dynlib_handle_ptr handle, const char *str_name)
+retrive_literal_obj (dynlib_handle_ptr handle, const char *str_name)
 {
   comp_litt_str_func f = dynlib_sym (handle, str_name);
   eassert (f);
@@ -3024,7 +3024,7 @@ load_comp_unit (dynlib_handle_ptr handle)
   /* Imported data.  */
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
 
-  Lisp_Object d_vec = retrive_litteral_obj (handle, TEXT_DATA_RELOC_SYM);
+  Lisp_Object d_vec = retrive_literal_obj (handle, TEXT_DATA_RELOC_SYM);
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
@@ -3037,7 +3037,7 @@ load_comp_unit (dynlib_handle_ptr handle)
   Lisp_Object (**f_relocs)(void) =
     dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
   Lisp_Object f_vec =
-    retrive_litteral_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
+    retrive_literal_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
   EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
     for (EMACS_UINT i = 0; i < f_vec_len; i++)
     {
@@ -3079,7 +3079,7 @@ load_comp_unit (dynlib_handle_ptr handle)
     }
 
   /* Exported functions.  */
-  Lisp_Object func_list = retrive_litteral_obj (handle, TEXT_EXPORTED_FUNC_RELOC_SYM);
+  Lisp_Object func_list = retrive_literal_obj (handle, TEXT_EXPORTED_FUNC_RELOC_SYM);
 
   while (func_list)
     {
