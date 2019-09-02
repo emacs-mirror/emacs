@@ -51,15 +51,7 @@
 
 (defvar comp-tests-var1 3)
 
-;; (defmacro comp-ert-deftest (name &rest body)
-;;   (declare (indent defun))
-;;   `(progn
-;;      ,@(cl-loop for speed from 0 to 3
-;;                 for test-name = (comp-mashup name "-speed-"
-;;                                              (number-to-string speed))
-;;                 collect `(ert-deftest ,test-name ()
-;;                            (let ((comp-speed ,speed))
-;;                              ,body)))))
+(add-to-list 'load-path "/home/andcor03/emacs/src")
 
 (ert-deftest comp-tests-varref ()
   "Testing varref."
