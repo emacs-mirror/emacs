@@ -1538,15 +1538,62 @@ emit_integerp (Lisp_Object insn)
 static void
 emit_literal_string_func (const char *str_name, const char *str)
 {
-  gcc_jit_function *f =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_EXPORTED,
-				  comp.char_ptr_type,
-				  str_name,
-				  0, NULL, 0);
-  DECL_BLOCK (block, f);
-  gcc_jit_rvalue *res = gcc_jit_context_new_string_literal (comp.ctxt, str);
-  gcc_jit_block_end_with_return (block, NULL, res);
+  if (0) /* FIXME: somehow check gcc version here.  */
+    {
+      gcc_jit_function *f =
+	gcc_jit_context_new_function (comp.ctxt, NULL,
+				      GCC_JIT_FUNCTION_EXPORTED,
+				      comp.char_ptr_type,
+				      str_name,
+				      0, NULL, 0);
+      DECL_BLOCK (block, f);
+      gcc_jit_rvalue *res = gcc_jit_context_new_string_literal (comp.ctxt, str);
+      gcc_jit_block_end_with_return (block, NULL, res);
+    } else
+    {
+      /* Horrible workaround for a funny bug:
+	 https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html
+	 This will have to be used for all gccs pre gcc10 era. */
+      size_t len = strlen (str);
+      gcc_jit_type *a_type =
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.char_type,
+					len + 1);
+      gcc_jit_function *f =
+	gcc_jit_context_new_function (comp.ctxt, NULL,
+				      GCC_JIT_FUNCTION_EXPORTED,
+				      gcc_jit_type_get_pointer (a_type),
+				      str_name,
+				      0, NULL, 0);
+      DECL_BLOCK (block, f);
+      gcc_jit_lvalue *arr =
+	gcc_jit_context_new_global (comp.ctxt,
+				    NULL,
+				    GCC_JIT_GLOBAL_INTERNAL,
+				    a_type,
+				    format_string ("arr_%s", str_name));
+      for (ptrdiff_t i = 0; i <= len; i++, str++)
+	{
+	  char c = i != len ? *str : 0;
+
+	  gcc_jit_block_add_assignment (
+	    block,
+	    NULL,
+	    gcc_jit_context_new_array_access (
+	      comp.ctxt,
+	      NULL,
+	      gcc_jit_lvalue_as_rvalue (arr),
+	      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						   comp.ptrdiff_type,
+						   i)),
+	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						 comp.char_type,
+						 c));
+	}
+      gcc_jit_rvalue *res = gcc_jit_lvalue_get_address (arr, NULL);
+      gcc_jit_block_end_with_return (block, NULL, res);
+    }
 }
 
 /*
