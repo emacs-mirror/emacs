@@ -86,9 +86,6 @@
   (funcs-h (make-hash-table) :type hash-table
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
-  (data-relocs () :type string
-               :documentation "Final data relocations.
-This is build before entering into `comp--compile-ctxt-to-file name'.")
   (data-relocs-l () :type list
                :documentation "Constant objects used by functions.")
   (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
@@ -303,6 +300,8 @@ Put PREFIX in front of it."
     v))
 
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
+  (when const-vld
+    (comp-add-const-to-relocs constant))
   (make--comp-mvar :id (cl-incf (comp-func-ssa-cnt comp-func))
                    :slot slot :const-vld const-vld :constant constant
                    :type type))
@@ -845,8 +844,6 @@ the annotation emission."
   "Compile as native code the current context naming it NAME."
   (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
                 (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
-  (setf (comp-ctxt-data-relocs comp-ctxt)
-        (vconcat (reverse (comp-ctxt-data-relocs-l comp-ctxt))))
   (setf (comp-ctxt-funcs comp-ctxt)
         (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
                  for f being each hash-value of h

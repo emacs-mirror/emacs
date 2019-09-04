@@ -1,4 +1,4 @@
-/* Compile byte code produced by bytecomp.el into native code.
+/* Compile elisp into native code.
    Copyright (C) 2019 Free Software Foundation, Inc.
 
 Author: Andrea Corallo <akrl@sdf.org>
@@ -795,42 +795,30 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
   return gcc_jit_lvalue_as_rvalue (res);
 }
 
-/* Construct fill and return a lisp object form a raw pointer.	*/
 static gcc_jit_rvalue *
-emit_lisp_obj_from_ptr (void *p)
+emit_const_lisp_obj (Lisp_Object obj)
 {
-  static unsigned i;
-  emit_comment ("lisp_obj_from_ptr");
+  emit_comment ("const lisp obj");
 
-  gcc_jit_lvalue *lisp_obj =
-    gcc_jit_function_new_local (comp.func,
-				NULL,
-				comp.lisp_obj_type,
-				format_string ("lisp_obj_from_ptr_%u", i++));
-  gcc_jit_rvalue *void_ptr =
-    gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-					comp.void_ptr_type,
-					p);
-
-  if (SYMBOLP (p))
-    emit_comment (
-      format_string ("Symbol %s",
-		     (char *) SDATA (SYMBOL_NAME (p))));
-
-  gcc_jit_block_add_assignment (comp.block,
-				NULL,
-				emit_lval_XLP (lisp_obj),
-				void_ptr);
-
-  return gcc_jit_lvalue_as_rvalue (lisp_obj);
+  Lisp_Object d_reloc_idx = FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt);
+  ptrdiff_t reloc_fixn = XFIXNUM (Fgethash (obj, d_reloc_idx, Qnil));
+  gcc_jit_rvalue *reloc_n =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.ptrdiff_type,
+					 reloc_fixn);
+  return
+    gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_array_access (comp.ctxt,
+					NULL,
+					comp.data_relocs,
+					reloc_n));
 }
 
 static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
-
-  return emit_EQ (x, emit_lisp_obj_from_ptr (Qnil));
+  return emit_EQ (x, emit_const_lisp_obj (Qnil));
 }
 
 static gcc_jit_rvalue *
@@ -933,7 +921,7 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
-      emit_lisp_obj_from_ptr (Qconsp),
+      emit_const_lisp_obj (Qconsp),
       x };
 
   gcc_jit_block_add_eval (
@@ -1025,27 +1013,16 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_val (Lisp_Object mvar)
 {
-  if (CONST_PROP_MAX)
+
+  if (NILP (FUNCALL1 (comp-mvar-slot, mvar)))
     {
-      if (NILP (FUNCALL1 (comp-mvar-const-vld, mvar)))
-	return
-	  gcc_jit_lvalue_as_rvalue(
-	    comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
-      else
-	return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
+      /* If the slot is not specified this must be a constant.  */
+      eassert (!NILP (FUNCALL1 (comp-mvar-const-vld, mvar)));
+      return emit_const_lisp_obj (FUNCALL1 (comp-mvar-constant, mvar));
     }
-  else
-    {
-      if (NILP (FUNCALL1 (comp-mvar-slot, mvar)))
-	{
-	  /* If the slot is not specified this must be a constant.  */
-	  eassert (!NILP (FUNCALL1 (comp-mvar-const-vld, mvar)));
-	  return emit_lisp_obj_from_ptr (FUNCALL1 (comp-mvar-constant, mvar));
-	}
-      return
-	gcc_jit_lvalue_as_rvalue(
-	  comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
-    }
+
+  return
+    gcc_jit_lvalue_as_rvalue(comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
 }
 
 static gcc_jit_rvalue *
@@ -1063,7 +1040,7 @@ emit_set_internal (Lisp_Object args)
   gcc_jit_rvalue *gcc_args[4];
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
-  gcc_args[2] = emit_lisp_obj_from_ptr (Qnil);
+  gcc_args[2] = emit_const_lisp_obj (Qnil);
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
 						     SET_INTERNAL_SET);
@@ -1617,12 +1594,22 @@ emit_static_object (const char *name, Lisp_Object obj)
   gcc_jit_block_end_with_return (block, NULL, res);
 }
 
+static void
+declare_runtime_imported_data (void)
+{
+  /* Imported symbols by inliner functions.  */
+  FUNCALL1 (comp-add-const-to-relocs, Qnil);
+  FUNCALL1 (comp-add-const-to-relocs, Qt);
+  FUNCALL1 (comp-add-const-to-relocs, Qconsp);
+  FUNCALL1 (comp-add-const-to-relocs, Qlistp);
+}
+
 /*
   Declare as imported all the functions that are requested from the runtime.
   These are either subrs or not.
 */
 static Lisp_Object
-declare_runtime_imported (void)
+declare_runtime_imported_funcs (void)
 {
   /* For subr imported by the runtime we rely on the standard mechanism in place
      for functions imported by lisp code. */
@@ -1684,11 +1671,13 @@ This emit the code needed by every compilation unit to be loaded.
 static void
 emit_ctxt_code (void)
 {
+  declare_runtime_imported_data ();
   /* Imported objects.  */
-  Lisp_Object d_reloc = FUNCALL1 (comp-ctxt-data-relocs, Vcomp_ctxt);
   EMACS_UINT d_reloc_len =
     XFIXNUM (FUNCALL1 (hash-table-count,
 		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
+  Lisp_Object d_reloc = Freverse (FUNCALL1 (comp-ctxt-data-relocs-l, Vcomp_ctxt));
+  d_reloc = Fvconcat (1, &d_reloc);
 
   comp.data_relocs =
     gcc_jit_lvalue_as_rvalue(
@@ -1705,7 +1694,7 @@ emit_ctxt_code (void)
   emit_static_object (TEXT_DATA_RELOC_SYM, d_reloc);
 
   /* Imported functions from non Lisp code.  */
-  Lisp_Object f_runtime = declare_runtime_imported ();
+  Lisp_Object f_runtime = declare_runtime_imported_funcs ();
   EMACS_UINT f_reloc_len = XFIXNUM (Flength (f_runtime));
 
   /* Imported subrs. */
@@ -2232,11 +2221,11 @@ define_CAR_CDR (void)
       comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_lisp_obj_from_ptr (Qnil));
+				     emit_const_lisp_obj (Qnil));
 
       comp.block = not_nil_b;
       gcc_jit_rvalue *wrong_type_args[] =
-	{ emit_lisp_obj_from_ptr (Qlistp), c };
+	{ emit_const_lisp_obj (Qlistp), c };
 
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
@@ -2244,7 +2233,7 @@ define_CAR_CDR (void)
 					 comp.void_type, 2, wrong_type_args));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_lisp_obj_from_ptr (Qnil));
+				     emit_const_lisp_obj (Qnil));
       f = comp.cdr;
       param = cdr_param;
     }
@@ -2604,12 +2593,12 @@ define_bool_to_lisp_obj (void)
   comp.block = ret_t_block;
   gcc_jit_block_end_with_return (ret_t_block,
 				 NULL,
-				 emit_lisp_obj_from_ptr (Qt));
+				 emit_const_lisp_obj (Qt));
 
   comp.block = ret_nil_block;
   gcc_jit_block_end_with_return (ret_nil_block,
 				 NULL,
-				 emit_lisp_obj_from_ptr (Qnil));
+				 emit_const_lisp_obj (Qnil));
 
 }
 
