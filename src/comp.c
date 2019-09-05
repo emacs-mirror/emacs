@@ -1013,12 +1013,24 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_val (Lisp_Object mvar)
 {
+  Lisp_Object const_vld = FUNCALL1 (comp-mvar-const-vld, mvar);
+  Lisp_Object constant = FUNCALL1 (comp-mvar-constant, mvar);
 
-  if (NILP (FUNCALL1 (comp-mvar-slot, mvar)))
+  if (!NILP (const_vld))
     {
-      /* If the slot is not specified this must be a constant.  */
-      eassert (!NILP (FUNCALL1 (comp-mvar-const-vld, mvar)));
-      return emit_const_lisp_obj (FUNCALL1 (comp-mvar-constant, mvar));
+      if (FIXNUMP (constant))
+	{
+	  /* We can still emit directly objects that are selfcontained in a word
+	     read (fixnums).  */
+	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
+	  gcc_jit_rvalue *word =
+	    gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+						comp.void_ptr_type,
+						constant);
+	  return emit_cast (comp.lisp_obj_type, word);
+	}
+      /* Other const objects are fetched from the reloc array.  */
+      return emit_const_lisp_obj (constant);
     }
 
   return
