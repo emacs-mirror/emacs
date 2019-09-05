@@ -1688,7 +1688,7 @@ emit_ctxt_code (void)
   EMACS_UINT d_reloc_len =
     XFIXNUM (FUNCALL1 (hash-table-count,
 		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
-  Lisp_Object d_reloc = Freverse (FUNCALL1 (comp-ctxt-data-relocs-l, Vcomp_ctxt));
+  Lisp_Object d_reloc = Fnreverse (FUNCALL1 (comp-ctxt-data-relocs-l, Vcomp_ctxt));
   d_reloc = Fvconcat (1, &d_reloc);
 
   comp.data_relocs =
@@ -1741,7 +1741,7 @@ emit_ctxt_code (void)
     }
 
   Lisp_Object f_reloc_vec = make_vector (n_frelocs, Qnil);
-  f_reloc_list = Freverse (f_reloc_list);
+  f_reloc_list = Fnreverse (f_reloc_list);
   ptrdiff_t i = 0;
   FOR_EACH_TAIL (f_reloc_list)
     {

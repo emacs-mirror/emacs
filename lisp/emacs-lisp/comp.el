@@ -832,7 +832,7 @@ the annotation emission."
     ;; Reverse insns into all basic blocks.
     (cl-loop for bb being the hash-value in (comp-func-blocks func)
              do (setf (comp-block-insns bb)
-                      (reverse (comp-block-insns bb))))
+                      (nreverse (comp-block-insns bb))))
     (comp-log-func func)
     func))
 
