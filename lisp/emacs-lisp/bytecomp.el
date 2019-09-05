@@ -560,9 +560,12 @@ outputting warnings about functions not being defined at runtime.")
 (defvar byte-compile-output nil
   "Alist describing contents to put in byte code string.
 Each element is (INDEX . VALUE)")
-(defvar byte-compile-lap-output nil)
 (defvar byte-compile-depth 0 "Current depth of execution stack.")
 (defvar byte-compile-maxdepth 0 "Maximum depth of execution stack.")
+
+;; These are use by comp.el to spill lap
+(defvar byte-compile-spilling-lap nil)
+(defvar byte-compile-lap-output nil)
 
 
 ;;; The byte codes; this information is duplicated in bytecomp.c

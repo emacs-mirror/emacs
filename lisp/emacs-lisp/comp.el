@@ -47,7 +47,6 @@
 
 ;; FIXME these has to be removed
 (defvar comp-speed 2)
-(defvar byte-compile-lap-output)
 
 (defvar comp-pass nil
   "Every pass has the right to bind what it likes here.")
