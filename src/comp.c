@@ -188,8 +188,6 @@ Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 				       enum pvec_type code);
-void helper_emit_save_restriction (void);
-void helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs);
 
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
@@ -3056,18 +3054,6 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
   return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
 				     union vectorlike_header),
 			     code);
-}
-
-void
-helper_emit_save_restriction (void)
-{
-  record_unwind_protect (save_restriction_restore,
-			 save_restriction_save ());
-}
-
-void
-helper_set_data_relocs (Lisp_Object *d_relocs_vec, char const *relocs)
-{
 }
 
 
