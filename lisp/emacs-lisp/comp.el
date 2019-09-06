@@ -253,17 +253,18 @@ Put PREFIX in front of it."
 
 (defun comp-spill-lap (func)
   "Byte compile and spill the LAP rapresentation for FUNC."
-  (let (byte-compile-lap-output)
+  (let ((byte-native-compiling t)
+        (byte-to-native-lap-output ()))
     (setf (comp-func-byte-func func)
           (byte-compile (comp-func-symbol-name func)))
     (comp-within-log-buff
-      (cl-prettyprint byte-compile-lap-output))
+      (cl-prettyprint byte-to-native-lap-output))
     (let ((lambda-list (aref (comp-func-byte-func func) 0)))
       (if (fixnump lambda-list)
           (setf (comp-func-args func)
                 (comp-decrypt-lambda-list lambda-list))
         (error "Can't native compile a non lexical scoped function")))
-    (setf (comp-func-lap func) byte-compile-lap-output)
+    (setf (comp-func-lap func) (car byte-to-native-lap-output))
     (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
     func))
 
