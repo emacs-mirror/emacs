@@ -568,6 +568,7 @@ Each element is (INDEX . VALUE)")
 (defvar byte-to-native-names nil)
 (defvar byte-to-native-lap-output nil)
 (defvar byte-to-native-bytecode-output nil)
+(defvar byte-to-native-top-level-forms nil)
 
 
 ;;; The byte codes; this information is duplicated in bytecomp.c
@@ -2491,6 +2492,9 @@ list that represents a doc string reference.
            (setq form (copy-sequence form))
            (setcar (cdr (cdr form))
                    (byte-compile-top-level (nth 2 form) nil 'file))))
+    (when byte-native-compiling
+      ;; Spill output for the native compiler here
+      (push form byte-to-native-top-level-forms))
     form))
 
 (put 'define-abbrev-table 'byte-hunk-handler

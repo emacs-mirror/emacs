@@ -80,8 +80,10 @@
 
 (cl-defstruct comp-ctxt
   "Lisp side of the compiler context."
-  (output nil :'string
+  (output nil :type 'string
           :documentation "Target output filename for the compilation.")
+  (top-level-defvars nil :type list
+                   :documentation "List of top level form to be compiled.")
   (funcs () :type list
          :documentation "Exported functions list.")
   (funcs-h (make-hash-table) :type hash-table
@@ -160,7 +162,7 @@ LIMPLE basic block.")
         :documentation "When non nil is used for type propagation."))
 
 (cl-defstruct (comp-limplify (:copier nil))
-  "Support structure used during limplification."
+  "Support structure used during function limplification."
   (sp 0 :type fixnum
       :documentation "Current stack pointer while walking LAP.")
   (frame nil :type vector
@@ -282,6 +284,12 @@ Put PREFIX in front of it."
   (cl-assert (= (length byte-to-native-names)
                 (length byte-to-native-lap-output)
                 (length byte-to-native-bytecode-output)))
+  (setf (comp-ctxt-top-level-defvars comp-ctxt)
+        (mapcar (lambda (x)
+                  (if (eq (car x) 'defvar)
+                      (cdr x)
+                    (cl-assert nil)))
+                byte-to-native-top-level-forms))
   (cl-loop for function-name in byte-to-native-names
            for lap in byte-to-native-lap-output
            for bytecode in byte-to-native-bytecode-output
@@ -305,7 +313,8 @@ If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
         (byte-to-native-names ())
         (byte-to-native-lap-output ())
-        (byte-to-native-bytecode-output ()))
+        (byte-to-native-bytecode-output ())
+        (byte-to-native-top-level-forms ()))
     (cl-typecase input
       (symbol (list (comp-spill-lap-function input)))
       (string (comp-spill-lap-functions-file input)))))
@@ -848,38 +857,64 @@ the annotation emission."
   (comp-emit-block 'entry_rest_args)
   (comp-emit `(set-rest-args-to-local ,nonrest)))
 
+(defun comp-limplify-finalize-function (func)
+  "Reverse insns into all basic blocks of FUNC."
+  (cl-loop for bb being the hash-value in (comp-func-blocks func)
+           do (setf (comp-block-insns bb)
+                    (nreverse (comp-block-insns bb))))
+  (comp-log-func func)
+  func)
+
+(defun comp-limplify-top-level ()
+  "Create a limple function doing the business for top level forms.
+This will be called at runtime."
+  (let* ((func (make-comp-func :symbol-name 'top-level-run
+                  :c-func-name "top_level_run"
+                  :args (make-comp-args :min 0 :max 0)
+                  :frame-size 0))
+         (comp-func func)
+         (comp-pass (make-comp-limplify
+                     :sp -1
+                     :frame (comp-new-frame 0)))
+         (comp-block ()))
+    (comp-emit-block 'entry)
+    (comp-emit-annotation "Top level")
+    (cl-loop for args in (comp-ctxt-top-level-defvars comp-ctxt)
+             do (comp-emit (comp-call 'defvar (make-comp-mvar :constant args))))
+    (comp-emit `(return ,(make-comp-mvar :constant nil)))
+    (comp-limplify-finalize-function func)))
+
+(defun comp-limplify-function (func)
+  "Limplify a single function FUNC."
+  (let* ((frame-size (comp-func-frame-size func))
+         (comp-func func)
+         (comp-pass (make-comp-limplify
+                     :sp -1
+                     :frame (comp-new-frame frame-size)))
+         (args (comp-func-args func))
+         (args-min (comp-args-base-min args))
+         (comp-block ()))
+    ;; Prologue
+    (comp-emit-block 'entry)
+    (comp-emit-annotation (concat "Lisp function: "
+                                  (symbol-name (comp-func-symbol-name func))))
+    (if (comp-args-p args)
+        (cl-loop for i below (comp-args-max args)
+                 do (cl-incf (comp-sp))
+                 do (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
+      (let ((nonrest (comp-nargs-nonrest args)))
+        (comp-emit-narg-prologue args-min nonrest)
+        (cl-incf (comp-sp) (1+ nonrest))))
+    ;; Body
+    (comp-emit-block 'bb_1)
+    (mapc #'comp-limplify-lap-inst (comp-func-lap func))
+    (comp-limplify-finalize-function func)))
+
 (defun comp-limplify (funcs)
-  "Given FUNCS compute their LIMPLE ir."
-  (mapcar (lambda (func)
-            (let* ((frame-size (comp-func-frame-size func))
-                   (comp-func func)
-                   (comp-pass (make-comp-limplify
-                               :sp -1
-                               :frame (comp-new-frame frame-size)))
-                   (args (comp-func-args func))
-                   (args-min (comp-args-base-min args))
-                   (comp-block ()))
-              ;; Prologue
-              (comp-emit-block 'entry)
-              (comp-emit-annotation (concat "Lisp function: "
-                                            (symbol-name (comp-func-symbol-name func))))
-              (if (comp-args-p args)
-                  (cl-loop for i below (comp-args-max args)
-                           do (cl-incf (comp-sp))
-                           do (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
-                (let ((nonrest (comp-nargs-nonrest args)))
-                  (comp-emit-narg-prologue args-min nonrest)
-                  (cl-incf (comp-sp) (1+ nonrest))))
-              ;; Body
-              (comp-emit-block 'bb_1)
-              (mapc #'comp-limplify-lap-inst (comp-func-lap func))
-              ;; Reverse insns into all basic blocks.
-              (cl-loop for bb being the hash-value in (comp-func-blocks func)
-                       do (setf (comp-block-insns bb)
-                                (nreverse (comp-block-insns bb))))
-              (comp-log-func func)
-              func))
-          funcs))
+  "Compute the LIMPLE ir for FUNCS.
+Top level forms for the current context are rendered too."
+  (cons (comp-limplify-top-level)
+        (mapcar #'comp-limplify-function funcs)))
 
 
 ;;; Final pass specific code.

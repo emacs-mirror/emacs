@@ -304,6 +304,12 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
       types[0] = comp.ptrdiff_type;
       types[1] = comp.lisp_obj_ptr_type;
     }
+  if (nargs == UNEVALLED)
+    {
+      nargs = 1;
+      types = alloca (nargs * sizeof (* types));
+      types[0] = comp.lisp_obj_type;
+    }
   else if (!types)
     {
       types = alloca (nargs * sizeof (* types));
@@ -1718,7 +1724,7 @@ emit_ctxt_code (void)
   FOR_EACH_TAIL (f_runtime)
     {
       Lisp_Object el = XCAR (f_runtime);
-      fields[n_frelocs++] = xmint_pointer( XCDR (el));
+      fields[n_frelocs++] = xmint_pointer (XCDR (el));
       f_reloc_list = Fcons (XCAR (el), f_reloc_list);
     }
 
@@ -1732,10 +1738,12 @@ emit_ctxt_code (void)
 	  Lisp_Object maxarg = XCDR (Fsubr_arity (subr));
 	  gcc_jit_field *field =
 	    declare_imported_func (subr_sym, comp.lisp_obj_type,
-				   FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY, NULL);
+				   FIXNUMP (maxarg) ? XFIXNUM (maxarg) :
+				   EQ (maxarg, Qmany) ? MANY : UNEVALLED,
+				   NULL);
 	  fields [n_frelocs++] = field;
 	  f_reloc_list = Fcons (subr_sym, f_reloc_list);
-      }
+	}
     }
 
   Lisp_Object f_reloc_vec = make_vector (n_frelocs, Qnil);
@@ -3172,6 +3180,10 @@ load_comp_unit (dynlib_handle_ptr handle)
 
       func_list = XCDR (func_list);
     }
+
+  /* Finally execute top level forms.  */
+  void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
+  top_level_run ();
 
   return 0;
 }
