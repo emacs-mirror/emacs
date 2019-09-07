@@ -243,6 +243,8 @@ Put PREFIX in front of it."
 
 (defun comp-decrypt-lambda-list (x)
   "Decript lambda list X."
+  (unless (fixnump x)
+    (error "Can't native compile a non lexical scoped function"))
   (let ((rest (not (= (logand x 128) 0)))
         (mandatory (logand x 127))
         (nonrest (ash x -8)))
@@ -254,7 +256,7 @@ Put PREFIX in front of it."
                        :nonrest nonrest))))
 
 (defun comp-spill-lap-function (function-name)
-  "Spill LAP for FUNCTION-NAME."
+  "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
          (func (make-comp-func :symbol-name function-name
                                :func f
@@ -268,23 +270,45 @@ Put PREFIX in front of it."
       (comp-within-log-buff
         (cl-prettyprint byte-to-native-lap-output))
       (let ((lambda-list (aref (comp-func-byte-func func) 0)))
-        (if (fixnump lambda-list)
-            (setf (comp-func-args func)
-                  (comp-decrypt-lambda-list lambda-list))
-          (error "Can't native compile a non lexical scoped function")))
+        (setf (comp-func-args func)
+              (comp-decrypt-lambda-list lambda-list)))
       (setf (comp-func-lap func) (car byte-to-native-lap-output))
       (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
       func))
+
+(defun comp-spill-lap-functions-file (filename)
+  "Byte compile FILENAME spilling data from the byte compiler."
+  (byte-compile-file filename)
+  (cl-assert (= (length byte-to-native-names)
+                (length byte-to-native-lap-output)
+                (length byte-to-native-bytecode-output)))
+  (cl-loop for function-name in byte-to-native-names
+           for lap in byte-to-native-lap-output
+           for bytecode in byte-to-native-bytecode-output
+           for lambda-list = (aref bytecode 0)
+           for func = (make-comp-func :symbol-name function-name
+                                      :byte-func bytecode
+                                      :c-func-name (comp-c-func-name
+                                                    function-name
+                                                    "F")
+                                      :args (comp-decrypt-lambda-list lambda-list)
+                                      :lap lap
+                                      :frame-size (aref bytecode 3))
+           do (comp-within-log-buff
+                (cl-prettyprint lap))
+           collect func))
 
 (defun comp-spill-lap (input)
   "Byte compile and spill the LAP rapresentation for INPUT.
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
-        (byte-to-native-lap-output ()))
+        (byte-to-native-names ())
+        (byte-to-native-lap-output ())
+        (byte-to-native-bytecode-output ()))
     (cl-typecase input
       (symbol (list (comp-spill-lap-function input)))
-      (string (error "To be implemented")))))
+      (string (comp-spill-lap-functions-file input)))))
 
 
 ;;; Limplification pass specific code.
@@ -905,11 +929,11 @@ Prepare every functions for final compilation and drive the C side."
 (defun native-compile (input)
   "Compile INPUT into native code.
 This is the entrypoint for the Emacs Lisp native compiler.
-If INPUT is a symbol this is the function-name to be compiled.
-If INPUT is a string this is the file path to be compiled."
+If INPUT is a symbol, native-compile its function definition.
+If INPUT is a string, use it as the file path to be native compiled."
   (unless (or (symbolp input)
               (stringp input))
-    (error "Trying to native compile something not a function or file"))
+    (error "Trying to native compile something not a symbol function or file"))
   (let ((data input)
         (comp-ctxt (make-comp-ctxt :output (if (symbolp input)
                                                (symbol-name input)

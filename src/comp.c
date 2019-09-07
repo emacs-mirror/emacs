@@ -3057,9 +3057,9 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 }
 
 
-/*********************************/
-/* Native elisp load functions.  */
-/*********************************/
+/**************************************/
+/* Functions used to load eln files.  */
+/**************************************/
 
 static Lisp_Object Vnative_elisp_refs_hash;
 
