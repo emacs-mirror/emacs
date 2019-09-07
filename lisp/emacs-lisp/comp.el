@@ -251,22 +251,39 @@ Put PREFIX in front of it."
       (make-comp-nargs :min mandatory
                        :nonrest nonrest))))
 
-(defun comp-spill-lap (func)
-  "Byte compile and spill the LAP rapresentation for FUNC."
+(defun comp-spill-lap-function (function-name)
+  "Spill LAP for FUNCTION-NAME."
+  (let* ((f (symbol-function function-name))
+         (func (make-comp-func :symbol-name function-name
+                               :func f
+                               :c-func-name (comp-c-func-name
+                                             function-name
+                                             "F"))))
+      (when (byte-code-function-p f)
+        (error "Can't native compile an already bytecompiled function"))
+      (setf (comp-func-byte-func func)
+            (byte-compile (comp-func-symbol-name func)))
+      (comp-within-log-buff
+        (cl-prettyprint byte-to-native-lap-output))
+      (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+        (if (fixnump lambda-list)
+            (setf (comp-func-args func)
+                  (comp-decrypt-lambda-list lambda-list))
+          (error "Can't native compile a non lexical scoped function")))
+      (setf (comp-func-lap func) (car byte-to-native-lap-output))
+      (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
+      func))
+
+(defun comp-spill-lap (input)
+  "Byte compile and spill the LAP rapresentation for INPUT.
+If INPUT is a symbol this is the function-name to be compiled.
+If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
         (byte-to-native-lap-output ()))
-    (setf (comp-func-byte-func func)
-          (byte-compile (comp-func-symbol-name func)))
-    (comp-within-log-buff
-      (cl-prettyprint byte-to-native-lap-output))
-    (let ((lambda-list (aref (comp-func-byte-func func) 0)))
-      (if (fixnump lambda-list)
-          (setf (comp-func-args func)
-                (comp-decrypt-lambda-list lambda-list))
-        (error "Can't native compile a non lexical scoped function")))
-    (setf (comp-func-lap func) (car byte-to-native-lap-output))
-    (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
-    func))
+    (cl-typecase input
+      (symbol (list (comp-spill-lap-function input)))
+      (string (error "To be implemented"))
+      (otherwise (error "Trying to native compile something not a function or file")))))
 
 
 ;;; Limplification pass specific code.
@@ -806,36 +823,38 @@ the annotation emission."
   (comp-emit-block 'entry_rest_args)
   (comp-emit `(set-rest-args-to-local ,nonrest)))
 
-(defun comp-limplify (func)
-  "Given FUNC compute its LIMPLE ir."
-  (let* ((frame-size (comp-func-frame-size func))
-         (comp-func func)
-         (comp-pass (make-comp-limplify
-                     :sp -1
-                     :frame (comp-new-frame frame-size)))
-         (args (comp-func-args func))
-         (args-min (comp-args-base-min args))
-         (comp-block ()))
-    ;; Prologue
-    (comp-emit-block 'entry)
-    (comp-emit-annotation (concat "Lisp function: "
-                                  (symbol-name (comp-func-symbol-name func))))
-    (if (comp-args-p args)
-      (cl-loop for i below (comp-args-max args)
-               do (cl-incf (comp-sp))
-               do (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
-      (let ((nonrest (comp-nargs-nonrest args)))
-        (comp-emit-narg-prologue args-min nonrest)
-        (cl-incf (comp-sp) (1+ nonrest))))
-    ;; Body
-    (comp-emit-block 'bb_1)
-    (mapc #'comp-limplify-lap-inst (comp-func-lap func))
-    ;; Reverse insns into all basic blocks.
-    (cl-loop for bb being the hash-value in (comp-func-blocks func)
-             do (setf (comp-block-insns bb)
-                      (nreverse (comp-block-insns bb))))
-    (comp-log-func func)
-    func))
+(defun comp-limplify (funcs)
+  "Given FUNCS compute their LIMPLE ir."
+  (mapcar (lambda (func)
+            (let* ((frame-size (comp-func-frame-size func))
+                   (comp-func func)
+                   (comp-pass (make-comp-limplify
+                               :sp -1
+                               :frame (comp-new-frame frame-size)))
+                   (args (comp-func-args func))
+                   (args-min (comp-args-base-min args))
+                   (comp-block ()))
+              ;; Prologue
+              (comp-emit-block 'entry)
+              (comp-emit-annotation (concat "Lisp function: "
+                                            (symbol-name (comp-func-symbol-name func))))
+              (if (comp-args-p args)
+                  (cl-loop for i below (comp-args-max args)
+                           do (cl-incf (comp-sp))
+                           do (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
+                (let ((nonrest (comp-nargs-nonrest args)))
+                  (comp-emit-narg-prologue args-min nonrest)
+                  (cl-incf (comp-sp) (1+ nonrest))))
+              ;; Body
+              (comp-emit-block 'bb_1)
+              (mapc #'comp-limplify-lap-inst (comp-func-lap func))
+              ;; Reverse insns into all basic blocks.
+              (cl-loop for bb being the hash-value in (comp-func-blocks func)
+                       do (setf (comp-block-insns bb)
+                                (nreverse (comp-block-insns bb))))
+              (comp-log-func func)
+              func))
+          funcs))
 
 
 ;;; C function wrappers
@@ -871,29 +890,25 @@ the annotation emission."
 
 ;;; Entry points.
 
-(defun native-compile (func-symbol-name)
-  "FUNC-SYMBOL-NAME is the function name to be compiled into native code."
-  (if-let ((f (symbol-function func-symbol-name)))
-      (progn
-        (when (byte-code-function-p f)
-          (error "Can't native compile an already bytecompiled function"))
-        (let ((func (make-comp-func :symbol-name func-symbol-name
-                                    :func f
-                                    :c-func-name (comp-c-func-name
-                                                  func-symbol-name
-                                                  "F")))
-              (comp-ctxt (make-comp-ctxt)))
-          (mapc (lambda (pass)
-                  (funcall pass func))
-                comp-passes)
-          ;; Once we have the final LIMPLE we jump into C.
-          (comp--init-ctxt)
-          (unwind-protect
-              (progn
-                (comp-add-func-to-ctxt func)
-                (comp-compile-ctxt-to-file (symbol-name func-symbol-name)))
-            (comp--release-ctxt))))
-    (error "Trying to native compile something not a function")))
+(defun native-compile (input)
+  "Compile INPUT into native code.
+This is the entrypoint for the Emacs Lisp native compiler.
+If INPUT is a symbol this is the function-name to be compiled.
+If INPUT is a string this is the file path to be compiled."
+  (let ((data input)
+        (comp-ctxt (make-comp-ctxt)))
+    (mapc (lambda (pass)
+            (setq data (funcall pass data)))
+          comp-passes)
+    ;; Once we have the final LIMPLE we jump into C.
+    (comp--init-ctxt)
+    (unwind-protect
+        (progn
+          (mapc #'comp-add-func-to-ctxt data)
+          (comp-compile-ctxt-to-file (if (symbolp input)
+                                         (symbol-name input)
+                                       (file-name-sans-extension input))))
+      (comp--release-ctxt))))
 
 (provide 'comp)
 
