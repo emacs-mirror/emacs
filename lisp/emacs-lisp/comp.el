@@ -52,7 +52,8 @@
   "Every pass has the right to bind what it likes here.")
 
 (defconst comp-passes '(comp-spill-lap
-                        comp-limplify)
+                        comp-limplify
+                        comp-final)
   "Passes to be executed in order.")
 
 (defconst comp-known-ret-types '((cons . cons))
@@ -78,8 +79,9 @@
     "Hash table lap-op -> stack adjustment."))
 
 (cl-defstruct comp-ctxt
-  "This structure is to serve al relocation creation for the current compiler
- context."
+  "Lisp side of the compiler context."
+  (output nil :'string
+          :documentation "Target output filename for the compilation.")
   (funcs () :type list
          :documentation "Exported functions list.")
   (funcs-h (make-hash-table) :type hash-table
@@ -282,8 +284,7 @@ If INPUT is a string this is the file path to be compiled."
         (byte-to-native-lap-output ()))
     (cl-typecase input
       (symbol (list (comp-spill-lap-function input)))
-      (string (error "To be implemented"))
-      (otherwise (error "Trying to native compile something not a function or file")))))
+      (string (error "To be implemented")))))
 
 
 ;;; Limplification pass specific code.
@@ -857,10 +858,11 @@ the annotation emission."
           funcs))
 
 
-;;; C function wrappers
+;;; Final pass specific code.
 
 (defun comp-compile-ctxt-to-file (name)
-  "Compile as native code the current context naming it NAME."
+  "Compile as native code the current context naming it NAME.
+Prepare every functions for final compilation and drive the C side."
   (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
                 (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
   (setf (comp-ctxt-funcs comp-ctxt)
@@ -883,9 +885,19 @@ the annotation emission."
   "Add FUNC to the current compiler contex."
   (puthash (comp-func-symbol-name func)
            func
-           (comp-ctxt-funcs-h comp-ctxt))
-  ;; (comp--add-func-to-ctxt func)
-  )
+           (comp-ctxt-funcs-h comp-ctxt)))
+
+(defun comp-final (data)
+  "Final pass driving DATA into the C side for code emission."
+  (let (compile-result)
+    (comp--init-ctxt)
+    (unwind-protect
+        (progn
+          (mapc #'comp-add-func-to-ctxt data)
+          (setq compile-result
+                (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt))))
+      (and (comp--release-ctxt)
+           compile-result))))
 
 
 ;;; Entry points.
@@ -895,20 +907,16 @@ the annotation emission."
 This is the entrypoint for the Emacs Lisp native compiler.
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
+  (unless (or (symbolp input)
+              (stringp input))
+    (error "Trying to native compile something not a function or file"))
   (let ((data input)
-        (comp-ctxt (make-comp-ctxt)))
+        (comp-ctxt (make-comp-ctxt :output (if (symbolp input)
+                                               (symbol-name input)
+                                             (file-name-sans-extension input)))))
     (mapc (lambda (pass)
             (setq data (funcall pass data)))
-          comp-passes)
-    ;; Once we have the final LIMPLE we jump into C.
-    (comp--init-ctxt)
-    (unwind-protect
-        (progn
-          (mapc #'comp-add-func-to-ctxt data)
-          (comp-compile-ctxt-to-file (if (symbolp input)
-                                         (symbol-name input)
-                                       (file-name-sans-extension input))))
-      (comp--release-ctxt))))
+          comp-passes)))
 
 (provide 'comp)
 
