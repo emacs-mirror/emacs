@@ -256,6 +256,9 @@
 (ert-deftest comp-tests-buffer ()
   (should (string= (comp-tests-buff0-f) "foo")))
 
+(ert-deftest comp-tests-lambda-return ()
+  (should (= (funcall (comp-tests-lambda-return-f) 3) 4)))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;

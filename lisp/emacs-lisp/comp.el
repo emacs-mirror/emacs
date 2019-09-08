@@ -281,23 +281,18 @@ Put PREFIX in front of it."
 (defun comp-spill-lap-functions-file (filename)
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
-  (cl-assert (= (length byte-to-native-names)
-                (length byte-to-native-lap-output)
-                (length byte-to-native-bytecode-output)))
   (setf (comp-ctxt-top-level-defvars comp-ctxt)
         (mapcar (lambda (x)
                   (if (eq (car x) 'defvar)
                       (cdr x)
                     (cl-assert nil)))
                 byte-to-native-top-level-forms))
-  (cl-loop for function-name in byte-to-native-names
-           for lap in byte-to-native-lap-output
-           for bytecode in byte-to-native-bytecode-output
+  (cl-loop for (name lap bytecode) in byte-to-native-output
            for lambda-list = (aref bytecode 0)
-           for func = (make-comp-func :symbol-name function-name
+           for func = (make-comp-func :symbol-name name
                                       :byte-func bytecode
                                       :c-func-name (comp-c-func-name
-                                                    function-name
+                                                    name
                                                     "F")
                                       :args (comp-decrypt-lambda-list lambda-list)
                                       :lap lap
@@ -311,9 +306,8 @@ Put PREFIX in front of it."
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
-        (byte-to-native-names ())
-        (byte-to-native-lap-output ())
-        (byte-to-native-bytecode-output ())
+        (byte-last-lap nil)
+        (byte-to-native-output ())
         (byte-to-native-top-level-forms ()))
     (cl-typecase input
       (symbol (list (comp-spill-lap-function input)))

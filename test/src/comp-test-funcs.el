@@ -216,6 +216,9 @@
 ;;     (insert "foo")
 ;;     (buffer-string)))
 
+(defun comp-tests-lambda-return-f ()
+  (lambda (x) (1+ x)))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
