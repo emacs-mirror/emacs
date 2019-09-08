@@ -1676,6 +1676,9 @@ declare_runtime_imported_funcs (void)
   args[0] = comp.lisp_obj_type;
   ADD_IMPORTED ("helper_unwind_protect", comp.void_type, 1, args);
 
+  args[0] = args[1] = comp.lisp_obj_type;
+  ADD_IMPORTED ("specbind", comp.void_type, 2, args);
+
 #undef ADD_IMPORTED
 
   return field_list;
@@ -3149,6 +3152,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, "helper_unwind_protect"))
 	{
 	  f_relocs[i] = (void *) helper_unwind_protect;
+	} else if (!strcmp (f_str, "specbind"))
+	{
+	  f_relocs[i] = (void *) specbind;
 	} else
 	{
 	  error ("Unexpected function relocation %s", f_str);
