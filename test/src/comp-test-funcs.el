@@ -89,10 +89,10 @@
 (defun comp-tests-ffuncall-apply-many-f (x)
   (apply #'list x))
 
-;; (defun comp-tests-ffuncall-lambda-f (x)
-;;   (let ((fun (lambda (x)
-;;                (1+ x))))
-;;     (funcall fun x)))
+(defun comp-tests-ffuncall-lambda-f (x)
+  (let ((fun (lambda (x)
+               (1+ x))))
+    (funcall fun x)))
 
 (defun comp-tests-jump-table-1-f (x)
   (pcase x
@@ -211,10 +211,10 @@
 (defun comp-tests-throw-f (x)
   (throw 'foo x))
 
-;; (defun comp-tests-buff0-f ()
-;;   (with-temp-buffer
-;;     (insert "foo")
-;;     (buffer-string)))
+(defun comp-tests-buff0-f ()
+  (with-temp-buffer
+    (insert "foo")
+    (buffer-string)))
 
 (defun comp-tests-lambda-return-f ()
   (lambda (x) (1+ x)))
@@ -319,15 +319,15 @@
 (defun comp-test-opt (a &optional b)
   (cons a b))
 
-;; ;; Test for unwind-protect.
-;; (defvar comp-test-up-val nil)
-;; (defun comp-test-unwind-protect (fun)
-;;   (setq comp-test-up-val nil)
-;;   (unwind-protect
-;;       (progn
-;;         (setq comp-test-up-val 23)
-;;         (funcall fun)
-;;         (setq comp-test-up-val 24))
-;;     (setq comp-test-up-val 999)))
+;; Test for unwind-protect.
+(defvar comp-test-up-val nil)
+(defun comp-test-unwind-protect (fun)
+  (setq comp-test-up-val nil)
+  (unwind-protect
+      (progn
+        (setq comp-test-up-val 23)
+        (funcall fun)
+        (setq comp-test-up-val 24))
+    (setq comp-test-up-val 999)))
 
 ;;; comp-test-funcs.el ends here
