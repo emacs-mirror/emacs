@@ -203,30 +203,27 @@ BODY is evaluate only if `comp-debug' is non nil."
          (goto-char (point-max))
          ,@body))))
 
-
-(defun comp-log (string)
-  "Log a STRING into the log-buffer."
-  (comp-within-log-buff
-    (cond (noninteractive
-	   (message " %s" string))
-	  (t
-	   (insert string "\n")))))
-
-(defun comp-prettyprint (data)
-  "Nicely print DATA in the current buffer."
-  (mapc (lambda (x)
-          (insert (prin1-to-string x) "\n"))
-        data))
+(defun comp-log (data)
+  "Log DATA."
+  (if noninteractive
+      (if (atom data)
+          (message "%s" data)
+	(mapc (lambda (x)
+                (message "%s"(prin1-to-string x)))
+              data))
+    (comp-within-log-buff
+      (mapc (lambda (x)
+              (insert (prin1-to-string x) "\n"))
+            data))))
 
 (defun comp-log-func (func)
-  "Pretty print function FUNC in the log-buffer."
-  (comp-within-log-buff
-    (insert (format "\n\n Function: %s" (comp-func-symbol-name func)))
-    (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
-             using (hash-value bb)
-             do (progn
-                  (insert (concat "\n<" (symbol-name block-name) ">"))
-                  (comp-prettyprint (comp-block-insns bb))))))
+  "Log function FUNC."
+  (comp-log (format "\n\n Function: %s" (comp-func-symbol-name func)))
+  (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
+           using (hash-value bb)
+           do (progn
+                (comp-log (concat "\n<" (symbol-name block-name) ">"))
+                (comp-log (comp-block-insns bb)))))
 
 
 ;;; spill-lap pass specific code.
@@ -276,8 +273,7 @@ Put PREFIX in front of it."
         (error "Can't native compile an already bytecompiled function"))
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-symbol-name func)))
-      (comp-within-log-buff
-        (comp-prettyprint byte-to-native-last-lap))
+      (comp-log byte-to-native-last-lap)
       (let ((lambda-list (aref (comp-func-byte-func func) 0)))
         (setf (comp-func-args func)
               (comp-decrypt-lambda-list lambda-list)))
@@ -304,8 +300,7 @@ Put PREFIX in front of it."
                                       :args (comp-decrypt-lambda-list lambda-list)
                                       :lap lap
                                       :frame-size (aref bytecode 3))
-           do (comp-within-log-buff
-                (comp-prettyprint lap))
+           do (comp-log lap)
            collect func))
 
 (defun comp-spill-lap (input)
