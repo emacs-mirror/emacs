@@ -1598,7 +1598,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_json ();
 #endif
 
-#ifdef HAVE_LIBGCCJIT
+#ifdef HAVE_NATIVE_COMP
   if (!initialized)
     syms_of_comp ();
 #endif

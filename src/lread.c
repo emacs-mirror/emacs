@@ -1281,7 +1281,7 @@ Return t if the file exists and loads successfully.  */)
   bool is_module = false;
 #endif
 
-#ifdef HAVE_LIBGCCJIT
+#ifdef HAVE_NATIVE_COMP
   bool is_native_elisp = suffix_p (found, NATIVE_ELISP_SUFFIX);
 #else
   bool is_native_elisp = false;
@@ -1486,7 +1486,7 @@ Return t if the file exists and loads successfully.  */)
     }
   else if (is_native_elisp)
     {
-#ifdef HAVE_LIBGCCJIT
+#ifdef HAVE_NATIVE_COMP
       specbind (Qcurrent_load_list, Qnil);
       LOADHIST_ATTACH (found);
       Fnative_elisp_load (found);
@@ -4896,7 +4896,7 @@ to the specified file name if a suffix is allowed or required.  */);
     Fcons (build_pure_c_string (MODULES_SECONDARY_SUFFIX), Vload_suffixes);
 #endif
 #endif
-#ifdef HAVE_LIBGCCJIT
+#ifdef HAVE_NATIVE_COMP
   Vload_suffixes = Fcons (build_pure_c_string (NATIVE_ELISP_SUFFIX), Vload_suffixes);
 #endif
 

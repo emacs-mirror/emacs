@@ -3672,15 +3672,15 @@ fi
 AC_SUBST(LIBZ)
 
 ### Emacs Lisp native compiler support
-HAVE_LIBGCCJIT=no
+HAVE_NATIVE_COMP=no
 LIBGCCJIT_LIB=
 COMP_OBJ=
 if test "${with_nativecomp}" != "no"; then
-  AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_LIBGCCJIT=yes, , -lgccjit)
-  if test "${HAVE_LIBGCCJIT}" = "yes"; then
+  AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes, , -lgccjit)
+  if test "${HAVE_NATIVE_COMP}" = "yes"; then
     LIBGCCJIT_LIB="-lgccjit -ldl"
     COMP_OBJ="dynlib.o comp.o"
-    AC_DEFINE(HAVE_LIBGCCJIT, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
+    AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
     AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
      [System extension for native compiled elisp])
   fi

@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_LIBGCCJIT
+#ifdef HAVE_NATIVE_COMP
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -3283,4 +3283,4 @@ syms_of_comp (void)
   comp_speed = DEFAULT_SPEED;
 }
 
-#endif /* HAVE_LIBGCCJIT */
+#endif /* HAVE_NATIVE_COMP */
