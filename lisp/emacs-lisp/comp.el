@@ -282,11 +282,11 @@ Put PREFIX in front of it."
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
   (setf (comp-ctxt-top-level-defvars comp-ctxt)
-        (mapcar (lambda (x)
-                  (if (eq (car x) 'defvar)
-                      (cdr x)
-                    (cl-assert nil)))
-                byte-to-native-top-level-forms))
+        (reverse (mapcar (lambda (x)
+                           (if (eq (car x) 'defvar)
+                               (cdr x)
+                             (cl-assert nil)))
+                         byte-to-native-top-level-forms)))
   (cl-loop for (name lap bytecode) in byte-to-native-output
            for lambda-list = (aref bytecode 0)
            for func = (make-comp-func :symbol-name name
