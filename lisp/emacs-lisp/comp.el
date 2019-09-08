@@ -210,7 +210,7 @@ BODY is evaluate only if `comp-debug' is non nil."
     (cond (noninteractive
 	   (message " %s" string))
 	  (t
-	   (insert (format "%s\n" string))))))
+	   (insert string "\n")))))
 
 (defun comp-prettyprint (data)
   "Nicely print DATA in the current buffer."
