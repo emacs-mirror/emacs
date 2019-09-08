@@ -817,7 +817,7 @@ the annotation emission."
       (byte-stack-set
        (comp-with-sp (1+ (comp-sp))
          (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
-      (byte-stack-set2) ;; TODO
+      (byte-stack-set2 (cl-assert nil)) ;; TODO
       (byte-discardN
        (comp-stack-adjust (- arg)))
       (byte-switch
