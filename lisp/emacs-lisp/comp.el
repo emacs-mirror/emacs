@@ -203,6 +203,7 @@ BODY is evaluate only if `comp-debug' is non nil."
          (goto-char (point-max))
          ,@body))))
 
+
 (defun comp-log (string)
   "Log a STRING into the log-buffer."
   (comp-within-log-buff
@@ -210,6 +211,12 @@ BODY is evaluate only if `comp-debug' is non nil."
 	   (message " %s" string))
 	  (t
 	   (insert (format "%s\n" string))))))
+
+(defun comp-prettyprint (data)
+  "Nicely print DATA in the current buffer."
+  (mapc (lambda (x)
+          (insert (prin1-to-string x) "\n"))
+        data))
 
 (defun comp-log-func (func)
   "Pretty print function FUNC in the log-buffer."
@@ -219,7 +226,7 @@ BODY is evaluate only if `comp-debug' is non nil."
              using (hash-value bb)
              do (progn
                   (insert (concat "\n<" (symbol-name block-name) ">"))
-                  (cl-prettyprint (comp-block-insns bb))))))
+                  (comp-prettyprint (comp-block-insns bb))))))
 
 
 ;;; spill-lap pass specific code.
@@ -270,7 +277,7 @@ Put PREFIX in front of it."
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-symbol-name func)))
       (comp-within-log-buff
-        (cl-prettyprint byte-to-native-last-lap))
+        (comp-prettyprint byte-to-native-last-lap))
       (let ((lambda-list (aref (comp-func-byte-func func) 0)))
         (setf (comp-func-args func)
               (comp-decrypt-lambda-list lambda-list)))
@@ -298,7 +305,7 @@ Put PREFIX in front of it."
                                       :lap lap
                                       :frame-size (aref bytecode 3))
            do (comp-within-log-buff
-                (cl-prettyprint lap))
+                (comp-prettyprint lap))
            collect func))
 
 (defun comp-spill-lap (input)
