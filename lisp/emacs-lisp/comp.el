@@ -500,9 +500,11 @@ If NEGATED non nil negate the tested condition."
       (comp-emit (if negated
 		     (list 'cond-jump a b target bb)
 		   (list 'cond-jump a b bb target)))
-      (puthash target
-	       (make-comp-block :sp (+ target-offset (comp-sp)))
-	       blocks)
+      (unless (gethash target blocks)
+        ;; Create the bb target only if does not exixsts already.
+        (puthash target
+	         (make-comp-block :sp (+ target-offset (comp-sp)))
+	         blocks))
       (comp-mark-block-closed))
     (comp-emit-block bb)))
 
