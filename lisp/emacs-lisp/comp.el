@@ -47,6 +47,7 @@
 
 ;; FIXME these has to be removed
 (defvar comp-speed 2)
+(defvar comp-verbose nil)
 
 (defvar comp-pass nil
   "Every pass has the right to bind what it likes here.")
@@ -205,16 +206,19 @@ BODY is evaluate only if `comp-debug' is non nil."
 
 (defun comp-log (data)
   "Log DATA."
-  (if noninteractive
+  (if (and noninteractive
+           comp-verbose)
       (if (atom data)
           (message "%s" data)
 	(mapc (lambda (x)
                 (message "%s"(prin1-to-string x)))
               data))
     (comp-within-log-buff
-      (mapc (lambda (x)
-              (insert (prin1-to-string x) "\n"))
-            data))))
+      (if (and data (atom data))
+          (insert data)
+        (mapc (lambda (x)
+                (insert (prin1-to-string x) "\n"))
+              data)))))
 
 (defun comp-log-func (func)
   "Log function FUNC."
