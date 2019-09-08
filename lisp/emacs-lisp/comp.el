@@ -270,11 +270,11 @@ Put PREFIX in front of it."
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-symbol-name func)))
       (comp-within-log-buff
-        (cl-prettyprint byte-to-native-lap-output))
+        (cl-prettyprint byte-to-native-last-lap))
       (let ((lambda-list (aref (comp-func-byte-func func) 0)))
         (setf (comp-func-args func)
               (comp-decrypt-lambda-list lambda-list)))
-      (setf (comp-func-lap func) (car byte-to-native-lap-output))
+      (setf (comp-func-lap func) byte-to-native-last-lap)
       (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
       func))
 
@@ -306,7 +306,7 @@ Put PREFIX in front of it."
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
-        (byte-last-lap nil)
+        (byte-to-native-last-lap nil)
         (byte-to-native-output ())
         (byte-to-native-top-level-forms ()))
     (cl-typecase input
