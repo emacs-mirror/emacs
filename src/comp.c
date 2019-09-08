@@ -2698,6 +2698,7 @@ compile_function (Lisp_Object func)
       Lisp_Object block_name = HASH_KEY (ht, i);
       Lisp_Object block = HASH_VALUE (ht, i);
       Lisp_Object insns = FUNCALL1 (comp-block-insns, block);
+      eassert (!NILP (block) && !NILP (insns));
 
       comp.block = retrive_block (block_name);
       while (CONSP (insns))
