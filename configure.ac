@@ -3671,18 +3671,22 @@ if test "${HAVE_ZLIB}" = "yes"; then
 fi
 AC_SUBST(LIBZ)
 
+### Emacs Lisp native compiler support
 HAVE_LIBGCCJIT=no
 LIBGCCJIT_LIB=
+COMP_OBJ=
 if test "${with_nativecomp}" != "no"; then
   AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_LIBGCCJIT=yes, , -lgccjit)
   if test "${HAVE_LIBGCCJIT}" = "yes"; then
-    LIBGCCJIT_LIB=-lgccjit
-    AC_DEFINE([HAVE_LIBGCCJIT], 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
+    LIBGCCJIT_LIB="-lgccjit -ldl"
+    COMP_OBJ="dynlib.o comp.o"
+    AC_DEFINE(HAVE_LIBGCCJIT, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
     AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
      [System extension for native compiled elisp])
   fi
 fi
-AC_SUBST([LIBGCCJIT_LIB])
+AC_SUBST(LIBGCCJIT_LIB)
+AC_SUBST(COMP_OBJ)
 
 ### Dynamic modules support
 LIBMODULES=
