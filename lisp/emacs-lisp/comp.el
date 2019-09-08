@@ -647,7 +647,7 @@ the annotation emission."
       (byte-varset
        (comp-emit (comp-call 'set_internal
                              (make-comp-mvar :constant arg)
-                             (comp-slot))))
+                             (comp-slot-next))))
       (byte-varbind ;; Verify
        (comp-emit (comp-call 'specbind
                              (make-comp-mvar :constant arg)

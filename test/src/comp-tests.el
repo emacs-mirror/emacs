@@ -71,8 +71,11 @@
 
 (ert-deftest comp-tests-varset ()
   "Testing varset."
-  (comp-tests-varset-f)
-  (should (= comp-tests-var1 55)))
+  (comp-tests-varset0-f)
+  (should (= comp-tests-var1 55))
+
+  (should (= (comp-tests-varset1-f) 4))
+  (should (= comp-tests-var1 66)))
 
 (ert-deftest comp-tests-length ()
   "Testing length."

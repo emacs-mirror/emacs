@@ -50,8 +50,11 @@
 (defun comp-tests-cons-cdr-f (x)
   (cdr (cons 'foo x)))
 
-(defun comp-tests-varset-f ()
+(defun comp-tests-varset0-f ()
   (setq comp-tests-var1 55))
+(defun comp-tests-varset1-f ()
+  (setq comp-tests-var1 66)
+  4)
 
 (defun comp-tests-length-f ()
   (length '(1 2 3)))
