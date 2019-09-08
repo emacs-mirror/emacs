@@ -283,9 +283,9 @@ Put PREFIX in front of it."
   (byte-compile-file filename)
   (setf (comp-ctxt-top-level-defvars comp-ctxt)
         (reverse (mapcar (lambda (x)
-                           (if (eq (car x) 'defvar)
-                               (cdr x)
-                             (cl-assert nil)))
+                           (ecase (car x)
+                             ('defvar (cdr x))
+                             ('defconst (cdr x))))
                          byte-to-native-top-level-forms)))
   (cl-loop for (name lap bytecode) in byte-to-native-output
            for lambda-list = (aref bytecode 0)
