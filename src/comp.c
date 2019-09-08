@@ -2626,7 +2626,7 @@ define_bool_to_lisp_obj (void)
 static void
 compile_function (Lisp_Object func)
 {
-  char *c_name = (char *) SDATA (FUNCALL1 (comp-func-c-func-name, func));
+  char *c_name = SSDATA (FUNCALL1 (comp-func-c-func-name, func));
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
   bool ncall = (FUNCALL1 (comp-nargs-p, args));
@@ -2707,6 +2707,11 @@ compile_function (Lisp_Object func)
 	  insns = XCDR (insns);
 	}
     }
+  const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
+  if (err)
+    error ("Failing to compile function %s with error:%s",
+	   SSDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))),
+	   err);
 }
 
 
