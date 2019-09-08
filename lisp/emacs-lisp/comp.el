@@ -375,7 +375,7 @@ Restore the original value afterwards."
   "Current slot into the meta-stack pointed by sp."
   '(comp-slot-n (comp-sp)))
 
-(defmacro comp-slot-next ()
+(defmacro comp-slot+1 ()
   "Slot into the meta-stack pointed by sp + 1."
   '(comp-slot-n (1+ (comp-sp))))
 
@@ -514,7 +514,7 @@ If NEGATED non nil negate the tested condition."
            do (comp-with-sp sp
                 (comp-emit-set-call (comp-call 'cons
                                                (comp-slot)
-                                               (comp-slot-next))))))
+                                               (comp-slot+1))))))
 
 (defun comp-new-block-sym ()
   "Return a symbol naming the next new basic block."
@@ -538,7 +538,7 @@ If NEGATED non nil negate the tested condition."
 	          (make-comp-block :sp (comp-sp))
 	          blocks)
          (let ((handler-bb (comp-lap-to-limple-bb guarded-label)))
-           (comp-emit (list 'push-handler (comp-slot-next)
+           (comp-emit (list 'push-handler (comp-slot+1)
                             handler-type
                             handler-bb
                             guarded-bb))
@@ -647,11 +647,11 @@ the annotation emission."
       (byte-varset
        (comp-emit (comp-call 'set_internal
                              (make-comp-mvar :constant arg)
-                             (comp-slot-next))))
+                             (comp-slot+1))))
       (byte-varbind ;; Verify
        (comp-emit (comp-call 'specbind
                              (make-comp-mvar :constant arg)
-                             (comp-slot-next))))
+                             (comp-slot+1))))
       (byte-call
        (comp-emit-funcall arg))
       (byte-unbind
@@ -746,7 +746,7 @@ the annotation emission."
       (byte-narrow-to-region
        (comp-emit-set-call (comp-call 'narrow_to_region
                                       (comp-slot)
-                                      (comp-slot-next))))
+                                      (comp-slot+1))))
       (byte-widen
        (comp-emit-set-call (comp-call 'widen)))
       (byte-end-of-line auto)
@@ -754,19 +754,19 @@ the annotation emission."
       (byte-goto
        (comp-emit-jump (comp-lap-to-limple-bb (cl-third insn))))
       (byte-goto-if-nil
-       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 0
+       (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 0
                             (cl-third insn) nil))
       (byte-goto-if-not-nil
-       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 0
+       (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 0
                             (cl-third insn) t))
       (byte-goto-if-nil-else-pop
-       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 1
+       (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 1
                             (cl-third insn) nil))
       (byte-goto-if-not-nil-else-pop
-       (comp-emit-cond-jump (comp-slot-next) (make-comp-mvar :constant nil) 1
+       (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 1
                             (cl-third insn) t))
       (byte-return
-       (comp-emit `(return ,(comp-slot-next)))
+       (comp-emit `(return ,(comp-slot+1)))
        (comp-mark-block-closed))
       (byte-discard 'pass)
       (byte-dup
@@ -778,7 +778,7 @@ the annotation emission."
        (comp-call 'helper-save-restriction))
       (byte-catch) ;; Obsolete
       (byte-unwind-protect
-       (comp-emit (comp-call 'helper_unwind_protect (comp-slot-next))))
+       (comp-emit (comp-call 'helper_unwind_protect (comp-slot+1))))
       (byte-condition-case) ;; Obsolete
       (byte-temp-output-buffer-setup-OBSOLETE)
       (byte-temp-output-buffer-show-OBSOLETE)
@@ -821,7 +821,7 @@ the annotation emission."
       (byte-discardN
        (comp-stack-adjust (- arg)))
       (byte-switch
-       (comp-emit-switch (comp-slot-next) (comp-slot-n (+ 2 (comp-sp)))))
+       (comp-emit-switch (comp-slot+1) (comp-slot-n (+ 2 (comp-sp)))))
       (byte-constant
        (comp-emit-set-const arg))
       (byte-discardN-preserve-tos
