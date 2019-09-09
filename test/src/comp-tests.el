@@ -29,7 +29,7 @@
 (require 'cl-lib)
 (require 'comp)
 
-(setq comp-speed 0)
+(setq comp-speed 3)
 
 (defconst comp-test-src
   (concat (file-name-directory (or load-file-name buffer-file-name))
@@ -205,7 +205,7 @@
 
 (ert-deftest comp-tests-bubble-sort ()
   "Run bubble sort."
-  (let* ((list1 (mapcar 'random (make-list 1000 most-positive-fixnum)))
+  (let* ((list1 (mapcar #'random (make-list 1000 most-positive-fixnum)))
          (list2 (copy-sequence list1)))
     (should (equal (comp-bubble-sort-f list1)
                    (sort list2 #'<)))))

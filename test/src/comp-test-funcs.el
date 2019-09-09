@@ -185,7 +185,6 @@
 (defun comp-tests-err-foo-f ()
   (error "foo"))
 
-;;FIXME: horrible...
 (defun comp-tests-condition-case-0-f ()
   ;; Bpushhandler Bpophandler
   (condition-case
