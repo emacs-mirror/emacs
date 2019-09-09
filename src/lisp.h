@@ -4742,9 +4742,9 @@ extern void malloc_probe (size_t);
 extern void syms_of_profiler (void);
 
 /* Defined in comp.c.  */
-#ifdef HAVE_LIBGCCJIT
+#ifdef HAVE_NATIVE_COMP
 extern void syms_of_comp (void);
-#endif /* HAVE_LIBGCCJIT */
+#endif /* HAVE_NATIVE_COMP */
 
 #ifdef DOS_NT
 /* Defined in msdos.c, w32.c.  */

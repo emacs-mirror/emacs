@@ -44,8 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   generated code C-like code more bloated.
 */
 
-#define CONST_PROP_MAX 0
-
 /* C symbols emited for the load relocation mechanism.  */
 #define DATA_RELOC_SYM "d_reloc"
 #define IMPORTED_FUNC_RELOC_SYM "f_reloc"
@@ -78,6 +76,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define SETJMP setjmp
 #endif
 #define SETJMP_NAME STR (SETJMP)
+
+#define ICE_IF(test, msg)			\
+  do {						\
+  if (test)					\
+    ice (msg);					\
+  } while (0)
 
 /* C side of the compiler context. */
 
@@ -186,8 +190,7 @@ Lisp_Object helper_save_window_excursion (Lisp_Object v1);
 void helper_unwind_protect (Lisp_Object handler);
 Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
-bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
-				       enum pvec_type code);
+bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code);
 
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
@@ -201,6 +204,16 @@ format_string (const char *format, ...)
     error ("Truncating string");
   va_end (va);
   return scratch_area;
+}
+
+static void
+ice (const char* msg)
+{
+  if (msg)
+    msg = format_string ("Internal native compiler error:  %s", msg);
+  else
+    msg = "Internal native compiler error";
+  error ("%s", msg);
 }
 
 static void
@@ -243,7 +256,7 @@ type_to_cast_field (gcc_jit_type *type)
   else if (type == comp.lisp_obj_ptr_type)
     field = comp.cast_union_as_lisp_obj_ptr;
   else
-    error ("Unsupported cast");
+    ice ("unsupported cast");
 
   return field;
 }
@@ -252,8 +265,7 @@ static gcc_jit_block *
 retrive_block (Lisp_Object block_name)
 {
   Lisp_Object value = Fgethash (block_name, comp.func_blocks, Qnil);
-  if (NILP (value))
-    error ("LIMPLE basic block inconsistency");
+  ICE_IF (NILP (value), "missing basic block");
 
   return (gcc_jit_block *) xmint_pointer (value);
 }
@@ -264,8 +276,8 @@ declare_block (Lisp_Object block_name)
   char *name_str = (char *) SDATA (SYMBOL_NAME (block_name));
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, name_str);
   Lisp_Object value = make_mint_ptr (block);
-  if (!NILP (Fgethash (block_name, comp.func_blocks, Qnil)))
-    error ("LIMPLE basic block inconsistency");
+  ICE_IF (!NILP (Fgethash (block_name, comp.func_blocks, Qnil)),
+	  "double basic block declaration");
   Fputhash (block_name, value, comp.func_blocks);
 }
 
@@ -295,7 +307,8 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 		       int nargs, gcc_jit_type **types)
 {
   /* Don't want to declare the same function two times.  */
-  eassert (NILP (Fgethash (subr_sym, comp.func_hash, Qnil)));
+  ICE_IF (!NILP (Fgethash (subr_sym, comp.func_hash, Qnil)),
+	  "unexpected double function declaration");
 
   if (nargs == MANY)
     {
@@ -316,8 +329,6 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
       for (unsigned i = 0; i < nargs; i++)
 	types[i] = comp.lisp_obj_type;
     }
-
-  eassert (types);
 
   /* String containing the function ptr name. */
   Lisp_Object f_ptr_name =
@@ -359,16 +370,17 @@ static gcc_jit_function *
 declare_exported_func (const char *f_name, gcc_jit_type *ret_type,
 		       unsigned nargs, gcc_jit_rvalue **args)
 {
-  gcc_jit_type *type[nargs];
-
+  USE_SAFE_ALLOCA;
+  gcc_jit_type **type = SAFE_ALLOCA (nargs * sizeof (*type));
   fill_declaration_types (type, args, nargs);
 
-  gcc_jit_param *param[nargs];
+  gcc_jit_param **param = SAFE_ALLOCA (nargs *sizeof (*param));
   for (int i = nargs - 1; i >= 0; i--)
     param[i] = gcc_jit_context_new_param(comp.ctxt,
 					 NULL,
 					 type[i],
 					 format_string ("par_%d", i));
+  SAFE_FREE ();
   return gcc_jit_context_new_function(comp.ctxt, NULL,
 				      GCC_JIT_GLOBAL_EXPORTED,
 				      ret_type,
@@ -383,14 +395,14 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
   Lisp_Object value = Fgethash (subr_sym, comp.func_hash, Qnil);
-  eassert (!NILP (value));
+  ICE_IF (NILP (value), "missing function declaration");
 
   gcc_jit_lvalue *f_ptr =
     gcc_jit_lvalue_access_field (comp.func_relocs,
 				 NULL,
 				 (gcc_jit_field *) xmint_pointer (value));
-  if (!f_ptr)
-    error ("Undeclared function relocation.");
+
+  ICE_IF (!f_ptr, "undeclared function relocation");
 
   emit_comment (format_string ("calling subr: %s",
 			       SSDATA (SYMBOL_NAME (subr_sym))));
@@ -1050,7 +1062,7 @@ emit_set_internal (Lisp_Object args)
 	      #s(comp-mvar 6 1 t 3 nil))
   */
   /* TODO: Inline the most common case.  */
-  eassert (list_length (args) == 3);
+  ICE_IF (list_length (args) != 3, "unexpected arg length for insns");
   args = XCDR (args);
   int i = 0;
   gcc_jit_rvalue *gcc_args[4];
@@ -1069,14 +1081,16 @@ emit_set_internal (Lisp_Object args)
 static gcc_jit_rvalue *
 emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
 {
+  USE_SAFE_ALLOCA;
   int i = 0;
   Lisp_Object callee = FIRST (args);
   args = XCDR (args);
   ptrdiff_t nargs = list_length (args);
-  gcc_jit_rvalue *gcc_args[nargs];
+  gcc_jit_rvalue **gcc_args = SAFE_ALLOCA (nargs * sizeof (*gcc_args));
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
 
+  SAFE_FREE ();
   return emit_call (callee, ret_type, nargs, gcc_args);
 }
 
@@ -1195,7 +1209,7 @@ emit_limple_insn (Lisp_Object insn)
 {
   Lisp_Object op = XCAR (insn);
   Lisp_Object args = XCDR (insn);
-  Lisp_Object arg0;
+  Lisp_Object arg0 UNINIT;
   gcc_jit_rvalue *res;
 
   if (CONSP (args))
@@ -1243,13 +1257,13 @@ emit_limple_insn (Lisp_Object insn)
     {
       EMACS_UINT clobber_slot = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_rvalue *handler = emit_mvar_val (arg0);
-      int h_num;
+      int h_num UNINIT;
       if (EQ (SECOND (args), Qcatcher))
 	h_num = CATCHER;
       else if (EQ (SECOND (args), Qcondition_case))
 	h_num = CONDITION_CASE;
       else
-	eassert (false);
+	ice ("incoherent insn");
       gcc_jit_rvalue *handler_type =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
@@ -1299,8 +1313,10 @@ emit_limple_insn (Lisp_Object insn)
       else if (EQ (FIRST (arg1), Qcallref))
 	res = emit_limple_call_ref (XCDR (arg1));
       else
-	error ("LIMPLE inconsistent arg1 for op =");
-      eassert (res);
+	ice ("LIMPLE inconsistent arg1 for op =");
+
+      ICE_IF (!res, "incoherent insn");
+
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
 				    comp.frame[slot_n],
@@ -1420,7 +1436,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else
     {
-      error ("LIMPLE op inconsistent");
+      ice ("LIMPLE op inconsistent");
     }
 }
 
@@ -1690,6 +1706,8 @@ This emit the code needed by every compilation unit to be loaded.
 static void
 emit_ctxt_code (void)
 {
+  USE_SAFE_ALLOCA;
+
   declare_runtime_imported_data ();
   /* Imported objects.  */
   EMACS_UINT d_reloc_len =
@@ -1720,7 +1738,7 @@ emit_ctxt_code (void)
   Lisp_Object f_subr = FUNCALL1 (comp-ctxt-func-relocs-l, Vcomp_ctxt);
   f_reloc_len += XFIXNUM (Flength (f_subr));
 
-  gcc_jit_field *fields[f_reloc_len];
+  gcc_jit_field **fields = SAFE_ALLOCA (f_reloc_len * sizeof (*fields));
   Lisp_Object f_reloc_list = Qnil;
   int n_frelocs = 0;
 
@@ -1774,6 +1792,7 @@ emit_ctxt_code (void)
   /* Exported functions info.  */
   Lisp_Object func_list = FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt);
   emit_static_object (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
+  SAFE_FREE ();
 }
 
 
@@ -2626,6 +2645,7 @@ define_bool_to_lisp_obj (void)
 static void
 compile_function (Lisp_Object func)
 {
+  USE_SAFE_ALLOCA;
   char *c_name = SSDATA (FUNCALL1 (comp-func-c-func-name, func));
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
@@ -2666,7 +2686,7 @@ compile_function (Lisp_Object func)
 				      frame_size),
       "local");
 
-  gcc_jit_lvalue *frame[frame_size];
+  gcc_jit_lvalue **frame = SAFE_ALLOCA (frame_size * sizeof (*frame));
   for (int i = 0; i < frame_size; ++i)
     frame[i] =
       gcc_jit_context_new_array_access (
@@ -2698,7 +2718,7 @@ compile_function (Lisp_Object func)
       Lisp_Object block_name = HASH_KEY (ht, i);
       Lisp_Object block = HASH_VALUE (ht, i);
       Lisp_Object insns = FUNCALL1 (comp-block-insns, block);
-      eassert (!NILP (block) && !NILP (insns));
+      ICE_IF (NILP (block) || NILP (insns), "basic block is missing or empty");
 
       comp.block = retrive_block (block_name);
       while (CONSP (insns))
@@ -2709,10 +2729,11 @@ compile_function (Lisp_Object func)
 	}
     }
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
-  if (err)
-    error ("Failing to compile function %s with error:%s",
-	   SSDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))),
-	   err);
+  ICE_IF (err,
+	  format_string ("failing to compile function %s with error: %s",
+			 SSDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))),
+			 err));
+  SAFE_FREE ();
 }
 
 
@@ -2727,7 +2748,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 {
   if (comp.ctxt)
     {
-      error ("Compiler context already taken");
+      ice ("compiler context already taken");
       return Qnil;
     }
 
@@ -3065,8 +3086,7 @@ helper_unbind_n (Lisp_Object n)
 }
 
 bool
-helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
-				  enum pvec_type code)
+helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 {
   return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
 				     union vectorlike_header),
@@ -3163,7 +3183,7 @@ load_comp_unit (dynlib_handle_ptr handle)
 	  f_relocs[i] = (void *) specbind;
 	} else
 	{
-	  error ("Unexpected function relocation %s", f_str);
+	  ice (format_string ("unexpected function relocation %s", f_str));
 	}
     }
 
