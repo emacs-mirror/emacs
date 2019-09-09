@@ -221,6 +221,12 @@
 (defun comp-tests-lambda-return-f ()
   (lambda (x) (1+ x)))
 
+(defun comp-tests-fib-f (n)
+  (cond ((= n 0) 0)
+	((= n 1) 1)
+	(t (+ (comp-tests-fib-f (- n 1))
+	      (comp-tests-fib-f (- n 2))))))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;

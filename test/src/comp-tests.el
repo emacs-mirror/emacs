@@ -262,6 +262,9 @@
 (ert-deftest comp-tests-lambda-return ()
   (should (= (funcall (comp-tests-lambda-return-f) 3) 4)))
 
+(ert-deftest comp-tests-recursive ()
+  (should (= (comp-tests-fib-f 10) 55)))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
