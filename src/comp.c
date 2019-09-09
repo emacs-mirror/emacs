@@ -147,6 +147,7 @@ typedef struct {
   gcc_jit_field *cast_union_as_lisp_obj;
   gcc_jit_field *cast_union_as_lisp_obj_ptr;
   gcc_jit_function *func; /* Current function being compiled.  */
+  Lisp_Object lfunc;
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue **frame; /* Frame for the current function.  */
   gcc_jit_rvalue *most_positive_fixnum;
@@ -210,7 +211,7 @@ static void
 ice (const char* msg)
 {
   if (msg)
-    msg = format_string ("Internal native compiler error:  %s", msg);
+    msg = format_string ("Internal native compiler error: %s", msg);
   else
     msg = "Internal native compiler error";
   error ("%s", msg);
@@ -394,6 +395,16 @@ static gcc_jit_rvalue *
 emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
+  /* Self call optimization.  */
+  if (!NILP (comp.lfunc) &&
+      comp_speed >= 2 &&
+      EQ (subr_sym, FUNCALL1 (comp-func-symbol-name, comp.lfunc)))
+    return gcc_jit_context_new_call (comp.ctxt,
+				     NULL,
+				     comp.func,
+				     nargs,
+				     args);
+
   Lisp_Object value = Fgethash (subr_sym, comp.func_hash, Qnil);
   ICE_IF (NILP (value), "missing function declaration");
 
@@ -2651,6 +2662,8 @@ compile_function (Lisp_Object func)
   EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
   bool ncall = (FUNCALL1 (comp-nargs-p, args));
 
+  comp.lfunc = func;
+
   if (!ncall)
     {
       EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
@@ -2733,6 +2746,7 @@ compile_function (Lisp_Object func)
 	  format_string ("failing to compile function %s with error: %s",
 			 SSDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))),
 			 err));
+  comp.lfunc = Qnil;
   SAFE_FREE ();
 }
 
