@@ -2699,9 +2699,9 @@ compile_function (Lisp_Object func)
 				      frame_size),
       "local");
 
-  gcc_jit_lvalue **frame = SAFE_ALLOCA (frame_size * sizeof (*frame));
+  comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
   for (int i = 0; i < frame_size; ++i)
-    frame[i] =
+    comp.frame[i] =
       gcc_jit_context_new_array_access (
         comp.ctxt,
 	NULL,
@@ -2709,7 +2709,6 @@ compile_function (Lisp_Object func)
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     i));
-  comp.frame = frame;
 
   comp.func_blocks = CALLN (Fmake_hash_table);
 
