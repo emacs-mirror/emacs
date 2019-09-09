@@ -290,7 +290,7 @@ Put PREFIX in front of it."
   (byte-compile-file filename)
   (setf (comp-ctxt-top-level-defvars comp-ctxt)
         (reverse (mapcar (lambda (x)
-                           (ecase (car x)
+                           (cl-ecase (car x)
                              ('defvar (cdr x))
                              ('defconst (cdr x))))
                          byte-to-native-top-level-forms)))
