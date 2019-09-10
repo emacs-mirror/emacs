@@ -988,7 +988,7 @@ for all others.")
          :character (progn (when pos (goto-char pos))
                            (funcall eglot-current-column-function)))))
 
-(defvar eglot-move-to-column-function #'move-to-column
+(defvar eglot-move-to-column-function #'eglot-move-to-column
   "Function to move to a column reported by the LSP server.
 
 According to the standard, LSP column/character offsets are based
@@ -999,7 +999,16 @@ where X is a multi-byte character, it actually means `b', not
 
 For buffers managed by fully LSP-compliant servers, this should
 be set to `eglot-move-to-lsp-abiding-column', and
-`move-to-column' (the default) for all others.")
+`eglot-move-to-column' (the default) for all others.")
+
+(defun eglot-move-to-column (column)
+  "Move to COLUMN without closely following the LSP spec."
+  ;; We cannot use `move-to-column' here, because it moves to *visual*
+  ;; columns, which can be different from LSP columns in case of
+  ;; `whitespace-mode', `prettify-symbols-mode', etc.  (github#296,
+  ;; github#297)
+  (goto-char (min (+ (line-beginning-position) column)
+                  (line-end-position))))
 
 (defun eglot-move-to-lsp-abiding-column (column)
   "Move to COLUMN abiding by the LSP spec."
