@@ -1801,7 +1801,7 @@ emit_ctxt_code (void)
       IMPORTED_FUNC_RELOC_SYM);
 
   /* Exported functions info.  */
-  Lisp_Object func_list = FUNCALL1 (comp-ctxt-funcs, Vcomp_ctxt);
+  Lisp_Object func_list = FUNCALL1 (comp-ctxt-exp-funcs, Vcomp_ctxt);
   emit_static_object (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
   SAFE_FREE ();
 }

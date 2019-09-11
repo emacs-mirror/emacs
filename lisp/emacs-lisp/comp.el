@@ -84,9 +84,9 @@
   (output nil :type 'string
           :documentation "Target output filename for the compilation.")
   (top-level-defvars nil :type list
-                   :documentation "List of top level form to be compiled.")
-  (funcs () :type list
-         :documentation "Exported functions list.")
+                   :documentation "List of top level form to be exp.")
+  (exp-funcs () :type list
+             :documentation "Exported functions list.")
   (funcs-h (make-hash-table) :type hash-table
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
@@ -918,7 +918,7 @@ Top level forms for the current context are rendered too."
 Prepare every functions for final compilation and drive the C side."
   (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
                 (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
-  (setf (comp-ctxt-funcs comp-ctxt)
+  (setf (comp-ctxt-exp-funcs comp-ctxt)
         (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
                  for f being each hash-value of h
                  for args = (comp-func-args f)
