@@ -54,6 +54,7 @@
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
+                        comp-ssa
                         comp-final)
   "Passes to be executed in order.")
 
@@ -146,6 +147,10 @@ structure.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
              :documentation "Key value to convert from LAP label number to
 LIMPLE basic block.")
+  (edges () :type list
+         :documentation "List of edges connecting basic blocks.")
+  (edges-n 0 :type number
+           :documentation "In use just to generate edges numbers.")
   (ssa-cnt -1 :type number
               :documentation "Counter to create ssa limple vars."))
 
@@ -229,6 +234,17 @@ BODY is evaluate only if `comp-debug' is non nil."
            do (progn
                 (comp-log (concat "\n<" (symbol-name block-name) ">"))
                 (comp-log (comp-block-insns bb)))))
+
+(defun comp-log-edges (func)
+  "Log edges in FUNC."
+  (let ((edges (comp-func-edges func)))
+    (comp-log (format "\nEdges in function: %s\n" (comp-func-symbol-name func)))
+    (mapc (lambda (e)
+            (comp-log (format "n: %d src: %s dst: %s\n"
+                              (comp-edge-number e)
+                              (comp-block-name (comp-edge-src e))
+                              (comp-block-name (comp-edge-dst e)))))
+          edges)))
 
 
 ;;; spill-lap pass specific code.
@@ -909,6 +925,46 @@ This will be called at runtime."
 Top level forms for the current context are rendered too."
   (cons (comp-limplify-top-level)
         (mapcar #'comp-limplify-function funcs)))
+
+
+;;; SSA pass specific code.
+
+(cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
+  "An edge connecting two basic blocks."
+  (src nil :type comp-block)
+  (dst nil :type comp-block)
+  (number nil :type number
+          :documentation "The index number corresponding to this edge in the
+ edge vector."))
+
+(cl-defun comp-block-add (&rest args &key &allow-other-keys)
+  (push (apply #'make--comp-edge
+               :number (cl-incf (comp-func-edges-n comp-func)) args)
+        (comp-func-edges comp-func)))
+
+(defun comp-ssa (funcs)
+  (cl-loop for comp-func in funcs do
+           (cl-loop with blocks = (comp-func-blocks comp-func)
+                    for bb being each hash-value of blocks
+                    for last-insn = (car (last (comp-block-insns bb)))
+                    for (op first _ third forth) = last-insn
+                    do (cl-ecase op
+                         (jump (comp-block-add :src bb
+                                               :dst (gethash first
+                                                             blocks)))
+                         (cond-jump
+                          (progn
+                            (comp-block-add :src bb
+                                            :dst (gethash third
+                                                          blocks))
+                            (comp-block-add :src bb
+                                            :dst (gethash forth
+                                                          blocks))))
+                         (return))
+                    finally (progn
+                              (setf (comp-func-edges comp-func)
+                                    (nreverse (comp-func-edges comp-func)))
+                              (comp-log-edges comp-func)))))
 
 
 ;;; Final pass specific code.
