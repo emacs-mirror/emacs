@@ -114,9 +114,10 @@ To be used when ncall-conv is nil."))
   (nonrest nil :type number
            :documentation "Number of non rest arguments."))
 
-(cl-defstruct (comp-block (:copier nil))
+(cl-defstruct (comp-block (:copier nil) (:constructor make--comp-block))
   "A basic block."
-  ;; The first two slots are used during limplification.
+  (name nil :type symbol)
+  ;; These two slots are used during limplification.
   (sp nil
       :documentation "When non nil indicates the sp value while entering
 into it.")
@@ -326,6 +327,11 @@ If INPUT is a string this is the file path to be compiled."
 (defvar comp-block)
 (defvar comp-func)
 
+(cl-defun comp-block-maybe-add (&rest args &key name &allow-other-keys)
+  (let ((blocks (comp-func-blocks comp-func)))
+    (unless (gethash name blocks)
+      (puthash name (apply #'make--comp-block args) blocks))))
+
 ;; (defun comp-opt-call (inst)
 ;;   "Optimize if possible a side-effect-free call in INST."
 ;;   (cl-destructuring-bind (_ f &rest args) inst
@@ -464,10 +470,8 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   "Emit basic block BLOCK-NAME."
   (let ((blocks (comp-func-blocks comp-func)))
     ;; In case does not exist register it into comp-func-blocks.
-    (unless (gethash block-name blocks)
-      (puthash block-name
-               (make-comp-block :sp (comp-sp))
-               blocks))
+    (comp-block-maybe-add :name block-name
+                     :sp (comp-sp))
     ;; If we are abandoning an non closed basic block close it with a fall
     ;; through.
     (when (and (not (eq block-name 'entry))
@@ -491,20 +495,13 @@ If DST-N is specified use it otherwise assume it to be the current slot."
 TARGET-OFFSET is the positive offset on the SP when branching to the target
 block.
 If NEGATED non nil negate the tested condition."
-  (let ((blocks (comp-func-blocks comp-func))
-        (bb (comp-new-block-sym))) ;; Fall through block
-    (puthash bb
-	     (make-comp-block :sp (comp-sp))
-	     blocks)
+  (let ((bb (comp-new-block-sym))) ;; Fall through block
+    (comp-block-maybe-add :name bb :sp (comp-sp))
     (let ((target (comp-lap-to-limple-bb lap-label)))
       (comp-emit (if negated
 		     (list 'cond-jump a b target bb)
 		   (list 'cond-jump a b bb target)))
-      (unless (gethash target blocks)
-        ;; Create the bb target only if does not exixsts already.
-        (puthash target
-	         (make-comp-block :sp (+ target-offset (comp-sp)))
-	         blocks))
+      (comp-block-maybe-add :name target :sp (+ target-offset (comp-sp)))
       (comp-mark-block-closed))
     (comp-emit-block bb)))
 
@@ -540,21 +537,16 @@ If NEGATED non nil negate the tested condition."
 
 (defun comp-emit-handler (guarded-label handler-type)
   "Emit a non local exit handler for GUARDED-LABEL of type HANDLER-TYPE."
-  (let ((blocks (comp-func-blocks comp-func))
-             (guarded-bb (comp-new-block-sym)))
-         (puthash guarded-bb
-	          (make-comp-block :sp (comp-sp))
-	          blocks)
-         (let ((handler-bb (comp-lap-to-limple-bb guarded-label)))
-           (comp-emit (list 'push-handler (comp-slot+1)
-                            handler-type
-                            handler-bb
-                            guarded-bb))
-           (puthash handler-bb
-	            (make-comp-block :sp (1+ (comp-sp)))
-	            blocks)
-           (comp-mark-block-closed)
-           (comp-emit-block guarded-bb))))
+  (let ((guarded-bb (comp-new-block-sym)))
+    (comp-block-maybe-add :name guarded-bb :sp (comp-sp))
+    (let ((handler-bb (comp-lap-to-limple-bb guarded-label)))
+      (comp-emit (list 'push-handler (comp-slot+1)
+                       handler-type
+                       handler-bb
+                       guarded-bb))
+      (comp-block-maybe-add :name handler-bb :sp (1+ (comp-sp)))
+      (comp-mark-block-closed)
+      (comp-emit-block guarded-bb))))
 
 (defun comp-emit-switch (var m-hash)
   "Emit a limple for a lap jump table given VAR and M-HASH."
