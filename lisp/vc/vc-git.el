@@ -102,9 +102,10 @@
 
 ;;; Code:
 
+(require 'subr-x) ; for string-trim-right, string-empty-p
+
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x) ; for string-trim-right
   (require 'vc)
   (require 'vc-dir))
 
@@ -1705,6 +1706,8 @@ Returns nil if not possible."
                       (buffer-substring-no-properties (point-min)
                                                       (1- (point-max)))))))
          (and name (not (string= name "undefined")) name))))
+
+(declare-function cl-remove-if "cl-seq")
 
 (defun vc-git-list-files (&optional dir _args)
   (let ((default-directory (or dir default-directory)))

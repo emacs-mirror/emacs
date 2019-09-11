@@ -102,6 +102,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (eval-when-compile
   (require 'vc)

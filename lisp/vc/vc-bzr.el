@@ -45,6 +45,8 @@
 
 ;;; Code:
 
+(require 'subr-x) ; for string-empty-p
+
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc-dispatcher)
@@ -1314,6 +1316,8 @@ stream.  Standard error output is discarded."
                                      (mapcar (lambda (s) (concat s ":"))
                                              vc-bzr-revision-keywords))
                             string pred)))))
+
+(declare-function cl-remove-if "cl-seq")
 
 (defun vc-bzr-list-files (&optional dir _args)
   (let ((default-directory (or dir default-directory)))
