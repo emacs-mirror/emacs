@@ -1706,6 +1706,15 @@ Returns nil if not possible."
                                                       (1- (point-max)))))))
          (and name (not (string= name "undefined")) name))))
 
+(defun vc-git-list-files (&optional dir _args)
+  (let ((default-directory (or dir default-directory)))
+    (mapcar
+     #'expand-file-name
+     (cl-remove-if #'string-empty-p
+                   (split-string
+                    (vc-git--run-command-string nil "ls-files" "-z")
+                    "\0")))))
+
 (provide 'vc-git)
 
 ;;; vc-git.el ends here

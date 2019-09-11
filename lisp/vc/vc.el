@@ -3106,6 +3106,17 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
                   (vc-file-tree-walk-internal dirf func args)))))
        (directory-files dir)))))
 
+
+
+(defun vc-default-list-files (_backend &optional dir _args)
+  (let* ((default-directory (or dir default-directory))
+         (inhibit-message t)
+         files)
+    (vc-file-tree-walk default-directory
+                       (lambda (f)
+                         (setq files (cons f files))))
+    files))
+
 (provide 'vc)
 
 ;;; vc.el ends here

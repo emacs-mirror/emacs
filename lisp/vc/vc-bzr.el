@@ -1315,6 +1315,18 @@ stream.  Standard error output is discarded."
                                              vc-bzr-revision-keywords))
                             string pred)))))
 
+(defun vc-bzr-list-files (&optional dir _args)
+  (let ((default-directory (or dir default-directory)))
+    (mapcar
+     #'expand-file-name
+     (cl-remove-if #'string-empty-p
+                   (split-string
+                    (with-output-to-string
+                      (with-current-buffer standard-output
+                        (vc-bzr-command "ls" t 0 "."
+                                        "--null")))
+                    "\0")))))
+
 (provide 'vc-bzr)
 
 ;;; vc-bzr.el ends here

@@ -225,6 +225,26 @@ to find the list of ignores for each directory."
   :type '(repeat string)
   :safe 'listp)
 
+(defcustom project-vc-project-files-backends '(Bzr Git Hg)
+  "List of vc backends which should be used by `project-files'.
+
+For projects using a backend in this list, `project-files' will
+query the version control system for all tracked files instead of
+using the \"find\" command.
+
+Note that this imposes some differences in semantics:
+
+- The vc backends list tracked files whereas \"find\" lists
+  existing files.
+
+- The performance differs vastly.  The Git backend list files
+  very fast (and generally faster than \"find\") while the SVN
+  backend does so by querying the remote subversion server, i.e.,
+  it requires a network connection and is slow."
+  :type `(set ,@(mapcar (lambda (b) `(const :tag ,(format "%s" b) ,b))
+                        vc-handled-backends))
+  :version "27.1")
+
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
 ;; the "external roots" of language A from buffers of language B, which
@@ -277,9 +297,20 @@ backend implementation of `project-external-roots'.")
      (funcall project-vc-external-roots-function)))
    (project-roots project)))
 
+(cl-defmethod project-files ((project (head vc)) &optional dirs)
+  "Implementation of `project-files' for version controlled projects."
+  (cl-mapcan
+   (lambda (dir)
+     (let ((backend (ignore-errors (vc-responsible-backend dir))))
+       (if (and backend
+                (memq backend project-vc-project-files-backends))
+           (vc-call-backend backend 'list-files dir)
+         (cl-call-next-method))))
+   (or dirs (project-roots project))))
+
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (let* ((root (cdr project))
-          backend)
+         backend)
     (append
      (when (file-equal-p dir root)
        (setq backend (vc-responsible-backend root))

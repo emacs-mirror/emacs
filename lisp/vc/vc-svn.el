@@ -807,7 +807,19 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
           (push (match-string 1 loglines) vc-svn-revisions)
           (setq start (+ start (match-end 0)))
           (setq loglines (buffer-substring-no-properties start (point-max)))))
-    vc-svn-revisions)))
+      vc-svn-revisions)))
+
+(defun vc-svn-list-files (&optional dir _args)
+  (let ((default-directory (or dir default-directory)))
+    (mapcar
+     #'expand-file-name
+     (cl-remove-if #'string-empty-p
+                   (split-string
+                    (with-output-to-string
+                      (with-current-buffer standard-output
+                        (vc-svn-command t 0 "."
+                                        "list" "--recursive")))
+                    "\n")))))
 
 (provide 'vc-svn)
 

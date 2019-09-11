@@ -1457,6 +1457,18 @@ This function differs from vc-do-command in that it invokes
 (defun vc-hg-root (file)
   (vc-find-root file ".hg"))
 
+(defun vc-hg-list-files (&optional dir _args)
+  (let ((default-directory (or dir default-directory)))
+    (mapcar
+     #'expand-file-name
+     (cl-remove-if #'string-empty-p
+                   (split-string
+                    (with-output-to-string
+                      (with-current-buffer standard-output
+                        (vc-hg-command t 0 "."
+                                       "files" "--print0")))
+                    "\0")))))
+
 (provide 'vc-hg)
 
 ;;; vc-hg.el ends here
