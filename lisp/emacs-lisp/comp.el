@@ -351,10 +351,10 @@ If INPUT is a string this is the file path to be compiled."
 
 (defun comp-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
-  (let ((v (make-vector size nil)))
-    (cl-loop for i below size
-             do (aset v i (make-comp-mvar :slot i)))
-    v))
+  (cl-loop with v = (make-vector size nil)
+           for i below size
+           do (aset v i (make-comp-mvar :slot i))
+           finally (return v)))
 
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
   (when const-vld
