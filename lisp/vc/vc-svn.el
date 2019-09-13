@@ -28,9 +28,7 @@
 
 ;;; Code:
 
-(require 'subr-x)
 (eval-when-compile
-  (require 'cl-lib)
   (require 'vc))
 
 ;; Clear up the cache to force vc-call to check again and discover
@@ -810,8 +808,6 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
           (setq start (+ start (match-end 0)))
           (setq loglines (buffer-substring-no-properties start (point-max)))))
       vc-svn-revisions)))
-
-(declare-function cl-remove-if "cl-seq")
 
 (defun vc-svn-list-files (&optional dir)
   (let ((default-directory (or dir default-directory))
