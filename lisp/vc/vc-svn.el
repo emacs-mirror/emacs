@@ -813,17 +813,20 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
 
 (declare-function cl-remove-if "cl-seq")
 
-(defun vc-svn-list-files (&optional dir _args)
-  (let ((default-directory (or dir default-directory)))
-    (mapcar
-     #'expand-file-name
-     (cl-remove-if #'string-empty-p
-                   (split-string
-                    (with-output-to-string
-                      (with-current-buffer standard-output
-                        (vc-svn-command t 0 "."
-                                        "list" "--recursive")))
-                    "\n")))))
+(defun vc-svn-list-files (&optional dir)
+  (let ((default-directory (or dir default-directory))
+        files)
+    (with-temp-buffer
+      (vc-svn-command t 0 "."
+                      "info" "--recursive"
+                      "--show-item" "relative-url"
+                      "--show-item" "kind")
+      (goto-char (point-min))
+      (message "%s" (buffer-string))
+      (while (re-search-forward "^file\s+\\(.*\\)$" nil t)
+        (setq files (cons (expand-file-name (match-string 1))
+                          files))))
+    (nreverse files)))
 
 (provide 'vc-svn)
 

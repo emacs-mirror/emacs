@@ -1319,7 +1319,7 @@ stream.  Standard error output is discarded."
 
 (declare-function cl-remove-if "cl-seq")
 
-(defun vc-bzr-list-files (&optional dir _args)
+(defun vc-bzr-list-files (&optional dir)
   (let ((default-directory (or dir default-directory)))
     (mapcar
      #'expand-file-name

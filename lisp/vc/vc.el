@@ -3108,7 +3108,7 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 
 
-(defun vc-default-list-files (_backend &optional dir _args)
+(defun vc-default-list-files (_backend &optional dir)
   (let* ((default-directory (or dir default-directory))
          (inhibit-message t)
          files)

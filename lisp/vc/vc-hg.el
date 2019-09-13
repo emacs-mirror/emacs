@@ -1458,7 +1458,7 @@ This function differs from vc-do-command in that it invokes
 (defun vc-hg-root (file)
   (vc-find-root file ".hg"))
 
-(defun vc-hg-list-files (&optional dir _args)
+(defun vc-hg-list-files (&optional dir)
   (let ((default-directory (or dir default-directory)))
     (mapcar
      #'expand-file-name

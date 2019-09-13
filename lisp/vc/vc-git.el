@@ -1709,7 +1709,7 @@ Returns nil if not possible."
 
 (declare-function cl-remove-if "cl-seq")
 
-(defun vc-git-list-files (&optional dir _args)
+(defun vc-git-list-files (&optional dir)
   (let ((default-directory (or dir default-directory)))
     (mapcar
      #'expand-file-name
