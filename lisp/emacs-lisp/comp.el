@@ -127,6 +127,20 @@ into it.")
   (insns () :type list
          :documentation "List of instructions."))
 
+(cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
+  "An edge connecting two basic blocks."
+  (src nil :type comp-block)
+  (dst nil :type comp-block)
+  (number nil :type number
+          :documentation "The index number corresponding to this edge in the
+ edge vector."))
+
+(defun comp-gen-counter ()
+  "Return a sequential number generator."
+  (let ((n -1))
+    (lambda ()
+      (cl-incf n))))
+
 (cl-defstruct (comp-func (:copier nil))
   "LIMPLE representation of a function."
   (symbol-name nil
@@ -149,9 +163,9 @@ structure.")
 LIMPLE basic block.")
   (edges () :type list
          :documentation "List of edges connecting basic blocks.")
-  (edges-n 0 :type number
-           :documentation "In use just to generate edges numbers.")
-  (ssa-cnt -1 :type number
+  (edge-cnt-gen (funcall #'comp-gen-counter) :type number
+               :documentation "Generates edges numbers.")
+  (ssa-cnt-gen (funcall #'comp-gen-counter) :type number
               :documentation "Counter to create ssa limple vars."))
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
@@ -375,7 +389,7 @@ If INPUT is a string this is the file path to be compiled."
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
   (when const-vld
     (comp-add-const-to-relocs constant))
-  (make--comp-mvar :id (cl-incf (comp-func-ssa-cnt comp-func))
+  (make--comp-mvar :id (funcall (comp-func-ssa-cnt-gen comp-func))
                    :slot slot :const-vld const-vld :constant constant
                    :type type))
 
@@ -487,7 +501,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   (let ((blocks (comp-func-blocks comp-func)))
     ;; In case does not exist register it into comp-func-blocks.
     (comp-block-maybe-add :name block-name
-                     :sp (comp-sp))
+                          :sp (comp-sp))
     ;; If we are abandoning an non closed basic block close it with a fall
     ;; through.
     (when (and (not (eq block-name 'entry))
@@ -929,17 +943,14 @@ Top level forms for the current context are rendered too."
 
 ;;; SSA pass specific code.
 
-(cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
-  "An edge connecting two basic blocks."
-  (src nil :type comp-block)
-  (dst nil :type comp-block)
-  (number nil :type number
-          :documentation "The index number corresponding to this edge in the
- edge vector."))
+;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
+;; "A Simple, Fast Dominance Algorithm".
 
-(cl-defun comp-block-add (&rest args &key &allow-other-keys)
-  (push (apply #'make--comp-edge
-               :number (cl-incf (comp-func-edges-n comp-func)) args)
+(defun comp-block-add (&rest args)
+  (push
+   (apply #'make--comp-edge
+          :number (funcall (comp-func-edge-cnt-gen comp-func))
+          args)
         (comp-func-edges comp-func)))
 
 (defun comp-ssa (funcs)
