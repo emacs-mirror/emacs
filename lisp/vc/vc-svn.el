@@ -818,7 +818,6 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
                       "--show-item" "relative-url"
                       "--show-item" "kind")
       (goto-char (point-min))
-      (message "%s" (buffer-string))
       (while (re-search-forward "^file\s+\\(.*\\)$" nil t)
         (setq files (cons (expand-file-name (match-string 1))
                           files))))
