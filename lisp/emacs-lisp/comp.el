@@ -125,7 +125,15 @@ into it.")
   (closed nil :type boolean
           :documentation "If the block was already closed.")
   (insns () :type list
-         :documentation "List of instructions."))
+         :documentation "List of instructions.")
+  (in-edges () :type list
+            :documentation "List of incoming edges.")
+  (out-edges () :type list
+             :documentation "List of outcoming edges.")
+  (dom nil :type comp-block
+        :documentation "Immediate dominator.")
+  (post-num nil :type number
+            :documentation "Post order number."))
 
 (cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
   "An edge connecting two basic blocks."
@@ -134,6 +142,10 @@ into it.")
   (number nil :type number
           :documentation "The index number corresponding to this edge in the
  edge vector."))
+
+(defun comp-block-preds (basic-block)
+  "Given BASIC-BLOCK return the list of its predecessors."
+  (mapcar #'comp-edge-src (comp-block-in-edges basic-block)))
 
 (defun comp-gen-counter ()
   "Return a sequential number generator."
@@ -553,7 +565,7 @@ If NEGATED non nil negate the tested condition."
 
 (defun comp-new-block-sym ()
   "Return a symbol naming the next new basic block."
-  (intern (format "bb_%s" (hash-table-count (comp-func-blocks comp-func)))))
+  (intern (format "bb-%s" (hash-table-count (comp-func-blocks comp-func)))))
 
 (defun comp-lap-to-limple-bb (n)
   "Given the LAP label N return the limple basic block."
@@ -930,7 +942,7 @@ This will be called at runtime."
         (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))
     ;; Body
-    (comp-emit-block 'bb_1)
+    (comp-emit-block 'bb-1)
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
     (comp-limplify-finalize-function func)))
 
@@ -943,39 +955,116 @@ Top level forms for the current context are rendered too."
 
 ;;; SSA pass specific code.
 
-;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
-;; "A Simple, Fast Dominance Algorithm".
-
 (defun comp-block-add (&rest args)
   (push
    (apply #'make--comp-edge
           :number (funcall (comp-func-edge-cnt-gen comp-func))
           args)
-        (comp-func-edges comp-func)))
+   (comp-func-edges comp-func)))
+
+(defun comp-compute-edges ()
+  "Compute the basic block edges for the current function."
+  (cl-loop with blocks = (comp-func-blocks comp-func)
+           for bb being each hash-value of blocks
+           for last-insn = (car (last (comp-block-insns bb)))
+           for (op first _ third forth) = last-insn
+           do (cl-ecase op
+                (jump
+                 (comp-block-add :src bb
+                                 :dst (gethash first
+                                               blocks)))
+                (cond-jump
+                 (comp-block-add :src bb
+                                 :dst (gethash third
+                                               blocks))
+                 (comp-block-add :src bb
+                                 :dst (gethash forth
+                                               blocks)))
+                (return))
+           finally (progn
+                     (setf (comp-func-edges comp-func)
+                           (nreverse (comp-func-edges comp-func)))
+                     ;; Update edge refs into blocks.
+                     (cl-loop for edge in (comp-func-edges comp-func)
+                              do (push edge
+                                       (comp-block-out-edges (comp-edge-src edge)))
+                              do (push edge
+                                       (comp-block-in-edges (comp-edge-dst edge))))
+                     (comp-log-edges comp-func))))
+
+(defun comp-collect-rev-post-order (basic-block)
+  "Walk BASIC-BLOCK childs and return their name in reversed post-oder."
+  (let ((visited (make-hash-table))
+        (acc ()))
+    (cl-labels ((collect-rec (bb)
+                             (let ((name (comp-block-name bb)))
+                               (unless (gethash name visited)
+                                 (puthash name t visited)
+                                 (cl-loop for e in (comp-block-out-edges bb)
+                                          for dst-block = (comp-edge-dst e)
+                                          do (collect-rec dst-block))
+                                 (push name acc)))))
+      (collect-rec basic-block)
+      acc)))
+
+(defun comp-compute-dominator-tree ()
+  "Compute immediate dominators for each basic block in current function."
+  ;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
+  ;; "A Simple, Fast Dominance Algorithm".
+  (cl-flet ((intersect (b1 b2)
+              (let ((finger1 (comp-block-post-num b1))
+                    (finger2 (comp-block-post-num b2)))
+                (while (not (= finger1 finger2))
+                  (while (< finger1 finger2)
+                    (setf b1 (comp-block-dom b1))
+                    (setf finger1 (comp-block-post-num b1)))
+                  (while (< finger2 finger1)
+                    (setf b2 (comp-block-dom b2))
+                    (setf finger2 (comp-block-post-num b2))))
+                b1))
+            (first-processed (l)
+              (if-let ((p (cl-find-if (lambda (p) (comp-block-dom p)) l)))
+                  p
+                (error "Cant't find first preprocessed"))))
+    (when-let ((blocks (comp-func-blocks comp-func))
+               (entry (gethash 'entry blocks))
+               ;; No point to go on if the onli bb is entry.
+               (bb1 (gethash 'bb-1 blocks)))
+      (cl-loop with rev-bb-list = (comp-collect-rev-post-order entry)
+               with changed = t
+               while changed
+               initially (progn
+                           (comp-log "Computing dominator tree...\n")
+                           (setf (comp-block-dom entry) entry)
+                           ;; Set the post order number.
+                           (cl-loop for name in (reverse rev-bb-list)
+                                    for b = (gethash name blocks)
+                                    for i from 0
+                                    do (setf (comp-block-post-num b) i)))
+               do (cl-loop
+                   for name in (cdr rev-bb-list)
+                   for b = (gethash name blocks)
+                   for preds = (comp-block-preds b)
+                   for new-idiom = (first-processed preds)
+                   initially (setf changed nil)
+                   do (cl-loop for p in (delq new-idiom preds)
+                               when (comp-block-dom p)
+                               do (setf new-idiom (intersect p new-idiom)))
+                   unless (eq (comp-block-dom b) new-idiom)
+                   do (progn
+                        (setf (comp-block-dom b) new-idiom)
+                        (setf changed t))))))
+  (maphash (lambda (name bb)
+             (comp-log (format "block: %s dominator: %s\n"
+                               name
+                               (comp-block-name (comp-block-dom bb)))))
+           (comp-func-blocks comp-func)))
 
 (defun comp-ssa (funcs)
-  (cl-loop for comp-func in funcs do
-           (cl-loop with blocks = (comp-func-blocks comp-func)
-                    for bb being each hash-value of blocks
-                    for last-insn = (car (last (comp-block-insns bb)))
-                    for (op first _ third forth) = last-insn
-                    do (cl-ecase op
-                         (jump (comp-block-add :src bb
-                                               :dst (gethash first
-                                                             blocks)))
-                         (cond-jump
-                          (progn
-                            (comp-block-add :src bb
-                                            :dst (gethash third
-                                                          blocks))
-                            (comp-block-add :src bb
-                                            :dst (gethash forth
-                                                          blocks))))
-                         (return))
-                    finally (progn
-                              (setf (comp-func-edges comp-func)
-                                    (nreverse (comp-func-edges comp-func)))
-                              (comp-log-edges comp-func)))))
+  (cl-loop for comp-func in funcs
+           do (progn
+                (comp-compute-edges)
+                (comp-compute-dominator-tree))))
 
 
 ;;; Final pass specific code.
