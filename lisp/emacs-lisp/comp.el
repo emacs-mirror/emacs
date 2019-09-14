@@ -139,7 +139,10 @@ into it.")
   (df (make-hash-table) :type hash-table
       :documentation "Dominance frontier set. Block-name -> block")
   (post-num nil :type number
-            :documentation "Post order number."))
+            :documentation "Post order number.")
+  (final-frame nil :type vector
+             :documentation "This is a copy of the frame when leaving the block.
+Is in use to help the SSA rename pass."))
 
 (cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
   "An edge connecting two basic blocks."
@@ -1138,7 +1141,7 @@ Top level forms for the current context are rendered too."
                                (unless (cl-find y defs-v)
                                  (push y w)))))))))
 
-(defun comp-dominator-tree-walker (bb pre-lambda post-lambda)
+(defun comp-dom-tree-walker (bb pre-lambda post-lambda)
   "Dominator tree walker function starting from basic block BB.
 PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
   (when pre-lambda
@@ -1148,7 +1151,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
              for child = (comp-edge-dst ed)
              when (eq bb (comp-block-dom child))
              ;; Current block is the immediate dominator then recur.
-             do (comp-dominator-tree-walker child pre-lambda post-lambda)))
+             do (comp-dom-tree-walker child pre-lambda post-lambda)))
   (when post-lambda
     (funcall post-lambda bb)))
 
@@ -1161,25 +1164,48 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
   (cl-flet ((target-p (x)
               ;; Ret t if x is an mvar and target the correct slot number.
               (and (comp-mvar-p x)
-                   (eql slot-n (comp-mvar-slot x)))))
+                   (eql slot-n (comp-mvar-slot x))))
+            (new-lvalue ()
+              ;; If is an assignment make a new mvar and put it as l-value.
+              (let ((mvar (make-comp-mvar :slot slot-n)))
+                (setf (aref (comp-ssa-frame comp-pass) slot-n) mvar)
+                (setf (cadr insn) mvar))))
     (pcase insn
       (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
-       ;; If is an assignment make a new mvar and put it as l-value.
-       (let ((mvar (make-comp-mvar :slot slot-n)))
-         (setf (aref (comp-ssa-frame comp-pass) slot-n) mvar)
-         (setf (cadr insn) mvar)))
+       (new-lvalue))
+      (`(phi . ,_)
+       (new-lvalue))
       (_
        (let ((mvar (aref (comp-ssa-frame comp-pass) slot-n)))
-         ;; Should we have to recur?
+         ;; Should we have to recur for nested args?
          (cl-nsubstitute-if mvar #'target-p (cdr insn)))))))
 
 (defun comp-ssa-rename-in-blocks (n)
   "Given slot number N rename in the blocks."
-  (comp-dominator-tree-walker (gethash 'entry (comp-func-blocks comp-func))
-                              (lambda (b)
-                                (cl-loop for insn in (comp-block-insns b)
-                                         do (comp-ssa-rename-insn insn n)))
-                              nil))
+  (comp-dom-tree-walker (gethash 'entry (comp-func-blocks comp-func))
+                        (lambda (b)
+                          (cl-loop for insn in (comp-block-insns b)
+                                   do (comp-ssa-rename-insn insn n))
+                          ;; Save a copy of the frame while leaving.
+                          (setf (comp-block-final-frame b)
+                                (copy-sequence (comp-ssa-frame comp-pass))))
+                        nil))
+
+(defun comp-finalize-phis ()
+  "Fixup r-values into phis in all basic blocks."
+  (cl-flet ((finalize-phi (args b)
+              ;; Concatenate into args all incoming mvars for this phi.
+              (setcdr args
+                      (cl-loop with slot-n = (comp-mvar-slot (car args))
+                               for e in (comp-block-in-edges b)
+                               for b = (comp-edge-src e)
+                               for in-frame = (comp-block-final-frame b)
+                               collect (aref in-frame slot-n))) ))
+
+    (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+             do (cl-loop for (op . args) in (comp-block-insns b)
+                         when (eq op 'phi)
+                         do (finalize-phi args b)))))
 
 (defun comp-ssa-rename ()
   "Entry point to rename SSA within the current function."
@@ -1202,6 +1228,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                 (comp-log-block-info)
                 (comp-place-phis)
                 (comp-ssa-rename)
+                (comp-finalize-phis)
                 (comp-log-func comp-func))))
 
 
