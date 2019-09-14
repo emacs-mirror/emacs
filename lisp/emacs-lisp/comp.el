@@ -197,8 +197,8 @@ LIMPLE basic block.")
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
   (slot nil :type fixnum
-        :documentation "Slot position.")
-  (id nil :type number
+        :documentation "Slot number.")
+  (id nil :type (or null number)
      :documentation "SSA number.")
   (const-vld nil
              :documentation "Valid signal for the following slot.")
@@ -409,19 +409,18 @@ If INPUT is a string this is the file path to be compiled."
   (comp-add-subr-to-relocs func)
   `(callref ,func ,@args))
 
+(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
+  (when const-vld
+    (comp-add-const-to-relocs constant))
+  (make--comp-mvar :slot slot :const-vld const-vld :constant constant
+                   :type type))
+
 (defun comp-new-frame (size)
   "Return a clean frame of meta variables of size SIZE."
   (cl-loop with v = (make-vector size nil)
            for i below size
            do (aset v i (make-comp-mvar :slot i))
            finally (return v)))
-
-(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
-  (when const-vld
-    (comp-add-const-to-relocs constant))
-  (make--comp-mvar :id (funcall (comp-func-ssa-cnt-gen comp-func))
-                   :slot slot :const-vld const-vld :constant constant
-                   :type type))
 
 (defmacro comp-sp ()
   "Current stack pointer."
@@ -459,11 +458,6 @@ Restore the original value afterwards."
   "Emit CALL assigning the result the the current slot frame.
 If the callee function is known to have a return type propagate it."
   (cl-assert call)
-  (setf (comp-slot)
-        (make-comp-mvar :slot (comp-sp)
-                        :type (when (> comp-speed 0)
-                                (alist-get (cadr call)
-                                           comp-known-ret-types))))
   (comp-emit (list 'set (comp-slot) call)))
 
 (defmacro comp-emit-set-call-subr (subr-name sp-delta)
@@ -511,8 +505,6 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   "Set constant VAL to current slot."
   (let ((rel-idx (comp-add-const-to-relocs val)))
     (cl-assert (numberp rel-idx))
-    (setf (comp-slot) (make-comp-mvar :slot (comp-sp)
-                                      :constant val))
     (comp-emit `(setimm ,(comp-slot) ,rel-idx ,val))))
 
 (defun comp-mark-block-closed ()
@@ -976,9 +968,14 @@ Top level forms for the current context are rendered too."
 ;; implicit phi is present for every slot at the beginning of every basic block.
 ;; This pass is responsible for building all the edges and replace all m-vars
 ;; plus placing the needed phis.
-;; Becase the number of phis placed is (supposed) to be the minimum necessary
+;; Because the number of phis placed is (supposed) to be the minimum necessary
 ;; this form is called 'minimal SSA form'.
 ;; This pass should be run every time basic blocks or mvar are shuffled.
+
+(cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
+  (make--comp-mvar  :id (funcall (comp-func-ssa-cnt-gen comp-func))
+                    :slot slot :const-vld const-vld :constant constant
+                    :type type))
 
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
@@ -1167,7 +1164,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                    (eql slot-n (comp-mvar-slot x))))
             (new-lvalue ()
               ;; If is an assignment make a new mvar and put it as l-value.
-              (let ((mvar (make-comp-mvar :slot slot-n)))
+              (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
                 (setf (aref (comp-ssa-frame comp-pass) slot-n) mvar)
                 (setf (cadr insn) mvar))))
     (pcase insn
