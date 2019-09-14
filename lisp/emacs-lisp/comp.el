@@ -193,10 +193,10 @@ LIMPLE basic block.")
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
-  (id nil :type number
-     :documentation "SSA number.")
   (slot nil :type fixnum
         :documentation "Slot position.")
+  (id nil :type number
+     :documentation "SSA number.")
   (const-vld nil
              :documentation "Valid signal for the following slot.")
   (constant nil
@@ -212,6 +212,10 @@ LIMPLE basic block.")
 (defvar comp-func)
 
 
+(defun comp-assign-op-p (op)
+  "Assignment predicate for OP."
+  (cl-find op comp-limple-assignments))
+
 (defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
 The corresponding index is returned."
@@ -1107,8 +1111,7 @@ Top level forms for the current context are rendered too."
             (slot-assigned-p (slot-n bb)
              ;; Return t if a SLOT-N was assigned within BB.
              (cl-loop for insn in (comp-block-insns bb)
-                      for op = (car insn)
-                      when (and (cl-find op comp-limple-assignments)
+                      when (and (comp-assign-op-p (car insn))
                                 (= slot-n (comp-mvar-slot (cadr insn))))
                       do (return t))))
 
@@ -1131,7 +1134,7 @@ Top level forms for the current context are rendered too."
                                (add-phi i y)
                                (push y f)
                                ;; Adding a phi implies mentioning the
-                               ;; correspondig slot so in case adjust w.
+                               ;; corresponding slot so in case adjust w.
                                (unless (cl-find y defs-v)
                                  (push y w)))))))))
 
@@ -1144,17 +1147,47 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
     (cl-loop for ed in out-edges
              for child = (comp-edge-dst ed)
              when (eq bb (comp-block-dom child))
-             ;; Current block is the immediate dominator the recur.
+             ;; Current block is the immediate dominator then recur.
              do (comp-dominator-tree-walker child pre-lambda post-lambda)))
   (when post-lambda
     (funcall post-lambda bb)))
 
-(defun comp-rename-mvars ()
-  "Rename all mvar accoring to the new SSA rapresentation."
-  ;; Originally based on: Static Single Assignment Book
-  ;; Algorithm 3.3: Renaming algorithm
-  (comp-dominator-tree-walker (gethash 'entry (comp-func-blocks comp-func)) nil
-                              (lambda (bb) (comp-log (format "\n%s" (comp-block-name bb))))))
+(cl-defstruct (comp-ssa (:copier nil))
+  "Support structure used while SSA renaming."
+  (frame (comp-new-frame (comp-func-frame-size comp-func)) :type vector
+         :documentation "Vector of mvars."))
+
+(defun comp-ssa-rename-insn (insn slot-n)
+  (cl-flet ((target-p (x)
+              ;; Ret t if x is an mvar and target the correct slot number.
+              (and (comp-mvar-p x)
+                   (eql slot-n (comp-mvar-slot x)))))
+    (pcase insn
+      (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
+       ;; If is an assignment make a new mvar and put it as l-value.
+       (let ((mvar (make-comp-mvar :slot slot-n)))
+         (setf (aref (comp-ssa-frame comp-pass) slot-n) mvar)
+         (setf (cadr insn) mvar)))
+      (_
+       (let ((mvar (aref (comp-ssa-frame comp-pass) slot-n)))
+         ;; Should we have to recur?
+         (cl-nsubstitute-if mvar #'target-p (cdr insn)))))))
+
+(defun comp-ssa-rename-in-blocks (n)
+  "Given slot number N rename in the blocks."
+  (comp-dominator-tree-walker (gethash 'entry (comp-func-blocks comp-func))
+                              (lambda (b)
+                                (cl-loop for insn in (comp-block-insns b)
+                                         do (comp-ssa-rename-insn insn n)))
+                              nil))
+
+(defun comp-ssa-rename ()
+  "Entry point to rename SSA within the current function."
+  (comp-log "Renaming\n")
+  (cl-loop with comp-pass = (make-comp-ssa)
+           for n from 0 below (comp-func-frame-size comp-func)
+           ;; For every slot frame rename down to the dominator tree.
+           do (comp-ssa-rename-in-blocks n)))
 
 (defun comp-ssa (funcs)
   "Port FUNCS into mininal SSA form."
@@ -1168,8 +1201,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                 (comp-compute-dominator-frontiers)
                 (comp-log-block-info)
                 (comp-place-phis)
-                (comp-log-func comp-func)
-                (comp-rename-mvars))))
+                (comp-ssa-rename)
+                (comp-log-func comp-func))))
 
 
 ;;; Final pass specific code.
