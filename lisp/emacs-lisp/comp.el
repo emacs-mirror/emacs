@@ -1024,8 +1024,8 @@ Top level forms for the current context are rendered too."
 
 (defun comp-compute-dominator-tree ()
   "Compute immediate dominators for each basic block in current function."
+  ;; Originally based on: "A Simple, Fast Dominance Algorithm"
   ;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
-  ;; "A Simple, Fast Dominance Algorithm".
   (cl-flet ((intersect (b1 b2)
               (let ((finger1 (comp-block-post-num b1))
                     (finger2 (comp-block-post-num b2)))
@@ -1072,7 +1072,7 @@ Top level forms for the current context are rendered too."
                         (setf changed t)))))))
 
 (defun comp-compute-dominator-frontiers ()
-  ;; Again from : "A Simple, Fast Dominance Algorithm"
+  ;; Originally based on: "A Simple, Fast Dominance Algorithm"
   ;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
   (cl-loop with blocks = (comp-func-blocks comp-func)
            for b-name being each hash-keys of blocks
@@ -1099,7 +1099,7 @@ Top level forms for the current context are rendered too."
 
 (defun comp-place-phis ()
   "Place phi insns into the current function."
-  ;; Static Single Assignment Book
+  ;; Originally based on: Static Single Assignment Book
   ;; Algorithm 3.1: Standard algorithm for inserting phi-functions
   (cl-flet ((add-phi (slot-n bb)
              ;; Add a phi func for slot SLOT-N at the top of BB.
@@ -1135,6 +1135,27 @@ Top level forms for the current context are rendered too."
                                (unless (cl-find y defs-v)
                                  (push y w)))))))))
 
+(defun comp-dominator-tree-walker (bb pre-lambda post-lambda)
+  "Dominator tree walker function starting from basic block BB.
+PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
+  (when pre-lambda
+    (funcall pre-lambda bb))
+  (when-let ((out-edges (comp-block-out-edges bb)))
+    (cl-loop for ed in out-edges
+             for child = (comp-edge-dst ed)
+             when (eq bb (comp-block-dom child))
+             ;; Current block is the immediate dominator the recur.
+             do (comp-dominator-tree-walker child pre-lambda post-lambda)))
+  (when post-lambda
+    (funcall post-lambda bb)))
+
+(defun comp-rename-mvars ()
+  "Rename all mvar accoring to the new SSA rapresentation."
+  ;; Originally based on: Static Single Assignment Book
+  ;; Algorithm 3.3: Renaming algorithm
+  (comp-dominator-tree-walker (gethash 'entry (comp-func-blocks comp-func)) nil
+                              (lambda (bb) (comp-log (format "\n%s" (comp-block-name bb))))))
+
 (defun comp-ssa (funcs)
   "Port FUNCS into mininal SSA form."
   (cl-loop for comp-func in funcs
@@ -1147,7 +1168,8 @@ Top level forms for the current context are rendered too."
                 (comp-compute-dominator-frontiers)
                 (comp-log-block-info)
                 (comp-place-phis)
-                (comp-log-func comp-func))))
+                (comp-log-func comp-func)
+                (comp-rename-mvars))))
 
 
 ;;; Final pass specific code.
