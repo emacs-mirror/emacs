@@ -126,12 +126,15 @@ into it.")
           :documentation "If the block was already closed.")
   (insns () :type list
          :documentation "List of instructions.")
+  ;; All the followings are for SSA and CGF analysis.
   (in-edges () :type list
             :documentation "List of incoming edges.")
   (out-edges () :type list
              :documentation "List of outcoming edges.")
   (dom nil :type comp-block
         :documentation "Immediate dominator.")
+  (df (make-hash-table) :type hash-table
+      :documentation "Dominance frontier set. Block -> block-name")
   (post-num nil :type number
             :documentation "Post order number."))
 
@@ -997,13 +1000,13 @@ Top level forms for the current context are rendered too."
   (let ((visited (make-hash-table))
         (acc ()))
     (cl-labels ((collect-rec (bb)
-                             (let ((name (comp-block-name bb)))
-                               (unless (gethash name visited)
-                                 (puthash name t visited)
-                                 (cl-loop for e in (comp-block-out-edges bb)
-                                          for dst-block = (comp-edge-dst e)
-                                          do (collect-rec dst-block))
-                                 (push name acc)))))
+                  (let ((name (comp-block-name bb)))
+                    (unless (gethash name visited)
+                      (puthash name t visited)
+                      (cl-loop for e in (comp-block-out-edges bb)
+                               for dst-block = (comp-edge-dst e)
+                               do (collect-rec dst-block))
+                      (push name acc)))))
       (collect-rec basic-block)
       acc)))
 
@@ -1045,26 +1048,48 @@ Top level forms for the current context are rendered too."
                    for name in (cdr rev-bb-list)
                    for b = (gethash name blocks)
                    for preds = (comp-block-preds b)
-                   for new-idiom = (first-processed preds)
+                   for new-idom = (first-processed preds)
                    initially (setf changed nil)
-                   do (cl-loop for p in (delq new-idiom preds)
+                   do (cl-loop for p in (delq new-idom preds)
                                when (comp-block-dom p)
-                               do (setf new-idiom (intersect p new-idiom)))
-                   unless (eq (comp-block-dom b) new-idiom)
+                               do (setf new-idom (intersect p new-idom)))
+                   unless (eq (comp-block-dom b) new-idom)
                    do (progn
-                        (setf (comp-block-dom b) new-idiom)
-                        (setf changed t))))))
+                        (setf (comp-block-dom b) new-idom)
+                        (setf changed t)))))))
+
+(defun comp-compute-dominator-frontiers ()
+  ;; Again from : "A Simple, Fast Dominance Algorithm"
+  ;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
+  (cl-loop with blocks = (comp-func-blocks comp-func)
+           for b-name being each hash-keys of blocks
+           using (hash-value b)
+           for preds = (comp-block-preds b)
+           when (>= (length preds) 2) ; All joins
+           do (cl-loop for p in preds
+                       for runner = p
+                       do (while (not (eq runner (comp-block-dom b)))
+                            (puthash b-name b (comp-block-df runner))
+                            (setf runner (comp-block-dom runner))))))
+
+(defun comp-log-block-info ()
+  "Log basic blocks info for the current function."
   (maphash (lambda (name bb)
-             (comp-log (format "block: %s dominator: %s\n"
-                               name
-                               (comp-block-name (comp-block-dom bb)))))
+             (let ((dom (comp-block-dom bb)))
+               (comp-log (format "block: %s idom: %s DF %s\n"
+                                 name
+                                 (when dom (comp-block-name dom))
+                                 (cl-loop for b being each hash-keys of (comp-block-df bb)
+                                          collect b)))))
            (comp-func-blocks comp-func)))
 
 (defun comp-ssa (funcs)
   (cl-loop for comp-func in funcs
            do (progn
                 (comp-compute-edges)
-                (comp-compute-dominator-tree))))
+                (comp-compute-dominator-tree)
+                (comp-compute-dominator-frontiers)
+                (comp-log-block-info))))
 
 
 ;;; Final pass specific code.
