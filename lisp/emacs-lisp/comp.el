@@ -205,16 +205,11 @@ LIMPLE basic block.")
   (type nil
         :documentation "When non nil is used for type propagation."))
 
-(cl-defstruct (comp-limplify (:copier nil))
-  "Support structure used during function limplification."
-  (sp 0 :type fixnum
-      :documentation "Current stack pointer while walking LAP.")
-  (frame nil :type vector
-         :documentation "Meta-stack used to flat LAP.")
-  (block-name nil :type symbol
-    :documentation "Current basic block name."))
-
 (defvar comp-ctxt) ;; FIXME (to be removed)
+
+;; Special vars used by some passes
+(defvar comp-block)
+(defvar comp-func)
 
 
 (defun comp-add-const-to-relocs (obj)
@@ -376,9 +371,14 @@ If INPUT is a string this is the file path to be compiled."
 
 ;;; Limplification pass specific code.
 
-;; Special vars used during limplifications
-(defvar comp-block)
-(defvar comp-func)
+(cl-defstruct (comp-limplify (:copier nil))
+  "Support structure used during function limplification."
+  (sp 0 :type fixnum
+      :documentation "Current stack pointer while walking LAP.")
+  (frame nil :type vector
+         :documentation "Meta-stack used to flat LAP.")
+  (block-name nil :type symbol
+    :documentation "Current basic block name."))
 
 (cl-defun comp-block-maybe-add (&rest args &key name &allow-other-keys)
   (let ((blocks (comp-func-blocks comp-func)))
