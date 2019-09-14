@@ -61,6 +61,9 @@
 (defconst comp-known-ret-types '((cons . cons))
   "Alist used for type propagation.")
 
+(defconst comp-limple-assignments '(set setimm set-par-to-local)
+  "Limple operators used to assign to mvars.")
+
 (defconst comp-mostly-pure-funcs
   '(% * + - / /= 1+ 1- < <= = > >= cons list % concat logand logcount logior
       lognot logxor regexp-opt regexp-quote string-to-char string-to-syntax
@@ -134,7 +137,7 @@ into it.")
   (dom nil :type comp-block
         :documentation "Immediate dominator.")
   (df (make-hash-table) :type hash-table
-      :documentation "Dominance frontier set. Block -> block-name")
+      :documentation "Dominance frontier set. Block-name -> block")
   (post-num nil :type number
             :documentation "Post order number."))
 
@@ -178,10 +181,15 @@ structure.")
 LIMPLE basic block.")
   (edges () :type list
          :documentation "List of edges connecting basic blocks.")
-  (edge-cnt-gen (funcall #'comp-gen-counter) :type number
+  (edge-cnt-gen (funcall #'comp-gen-counter) :type function
                :documentation "Generates edges numbers.")
-  (ssa-cnt-gen (funcall #'comp-gen-counter) :type number
+  (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
               :documentation "Counter to create ssa limple vars."))
+
+(defun comp-func-reset-generators (func)
+  "Reset unique id generators for FUNC."
+  (setf (comp-func-edge-cnt-gen func) (comp-gen-counter))
+  (setf (comp-func-ssa-cnt-gen func) (comp-gen-counter)))
 
 (cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
@@ -261,7 +269,7 @@ BODY is evaluate only if `comp-debug' is non nil."
   (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
            using (hash-value bb)
            do (progn
-                (comp-log (concat "\n<" (symbol-name block-name) ">"))
+                (comp-log (concat "\n<" (symbol-name block-name) ">\n"))
                 (comp-log (comp-block-insns bb)))))
 
 (defun comp-log-edges (func)
@@ -486,7 +494,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
       (setf (comp-slot)
             (copy-sequence src-slot))
       (setf (comp-mvar-slot (comp-slot)) (comp-sp))
-      (comp-emit (list 'set (comp-slot) src-slot)))))
+      (comp-emit `(set ,(comp-slot) ,src-slot)))))
 
 (defun comp-emit-annotation (str)
   "Emit annotation STR."
@@ -1033,6 +1041,7 @@ Top level forms for the current context are rendered too."
               (if-let ((p (cl-find-if (lambda (p) (comp-block-dom p)) l)))
                   p
                 (error "Cant't find first preprocessed"))))
+
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
                ;; No point to go on if the only bb is 'entry'.
@@ -1088,16 +1097,57 @@ Top level forms for the current context are rendered too."
                                           collect b)))))
            (comp-func-blocks comp-func)))
 
+(defun comp-place-phis ()
+  "Place phi insns into the current function."
+  ;; Static Single Assignment Book
+  ;; Algorithm 3.1: Standard algorithm for inserting phi-functions
+  (cl-flet ((add-phi (slot-n bb)
+             ;; Add a phi func for slot SLOT-N at the top of BB.
+             (push `(phi ,slot-n) (comp-block-insns bb)))
+            (slot-assigned-p (slot-n bb)
+             ;; Return t if a SLOT-N was assigned within BB.
+             (cl-loop for insn in (comp-block-insns bb)
+                      for op = (car insn)
+                      when (and (cl-find op comp-limple-assignments)
+                                (= slot-n (comp-mvar-slot (cadr insn))))
+                      do (return t))))
+
+    (cl-loop for i from 0 below (comp-func-frame-size comp-func)
+             ;; List of blocks with a definition of mvar i
+             with defs-v = (cl-loop with blocks = (comp-func-blocks comp-func)
+                                    for b being each hash-value of blocks
+                                    when (slot-assigned-p i b)
+                                    collect b)
+             ;; Set of basic blocks where phi is added.
+             with f = ()
+             ;; Worklist, set of basic blocks that contain definitions of v.
+             with w = defs-v
+             do
+             (while w
+               (let ((x (pop w)))
+                 (cl-loop for y being each hash-value of (comp-block-df x)
+                          unless (cl-find y f)
+                          do (progn
+                               (add-phi i y)
+                               (push y f)
+                               ;; Adding a phi implies mentioning the
+                               ;; correspondig slot so in case adjust w.
+                               (unless (cl-find y defs-v)
+                                 (push y w)))))))))
+
 (defun comp-ssa (funcs)
   "Port FUNCS into mininal SSA form."
   (cl-loop for comp-func in funcs
            do (progn
-                ;; TODO: if run more than once should clean all CFG data
-                ;; plus phis here.
+                ;; TODO: if this is run more than once we should clean all CFG
+                ;; data including phis here.
+                (comp-func-reset-generators comp-func)
                 (comp-compute-edges)
                 (comp-compute-dominator-tree)
                 (comp-compute-dominator-frontiers)
-                (comp-log-block-info))))
+                (comp-log-block-info)
+                (comp-place-phis)
+                (comp-log-func comp-func))))
 
 
 ;;; Final pass specific code.
