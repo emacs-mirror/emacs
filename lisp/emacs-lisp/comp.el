@@ -957,43 +957,47 @@ Top level forms for the current context are rendered too."
 
 
 ;;; SSA pass specific code.
-
-(defun comp-block-add (&rest args)
-  (push
-   (apply #'make--comp-edge
-          :number (funcall (comp-func-edge-cnt-gen comp-func))
-          args)
-   (comp-func-edges comp-func)))
+;; After limplification no edges are present between basic blocks and an
+;; implicit phi is present for every slot at the beginning of every basic block.
+;; This pass is responsible for building all the edges and replace all m-vars
+;; plus placing the needed phis.
+;; Becase the number of phis placed is (supposed) to be the minimum necessary
+;; this form is called 'minimal SSA form'.
+;; This pass should be run every time basic blocks or mvar are shuffled.
 
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
-  (cl-loop with blocks = (comp-func-blocks comp-func)
-           for bb being each hash-value of blocks
-           for last-insn = (car (last (comp-block-insns bb)))
-           for (op first _ third forth) = last-insn
-           do (cl-ecase op
-                (jump
-                 (comp-block-add :src bb
-                                 :dst (gethash first
-                                               blocks)))
-                (cond-jump
-                 (comp-block-add :src bb
-                                 :dst (gethash third
-                                               blocks))
-                 (comp-block-add :src bb
-                                 :dst (gethash forth
-                                               blocks)))
-                (return))
-           finally (progn
-                     (setf (comp-func-edges comp-func)
-                           (nreverse (comp-func-edges comp-func)))
-                     ;; Update edge refs into blocks.
-                     (cl-loop for edge in (comp-func-edges comp-func)
-                              do (push edge
-                                       (comp-block-out-edges (comp-edge-src edge)))
-                              do (push edge
-                                       (comp-block-in-edges (comp-edge-dst edge))))
-                     (comp-log-edges comp-func))))
+  (cl-flet ((edge-add (&rest args)
+              (push
+               (apply #'make--comp-edge
+                      :number (funcall (comp-func-edge-cnt-gen comp-func))
+                      args)
+               (comp-func-edges comp-func))))
+
+    (cl-loop with blocks = (comp-func-blocks comp-func)
+             for bb being each hash-value of blocks
+             for last-insn = (car (last (comp-block-insns bb)))
+             for (op first _ third forth) = last-insn
+             do (cl-ecase op
+                  (jump
+                   (edge-add :src bb :dst (gethash first
+                                                   blocks)))
+                  (cond-jump
+                   (edge-add :src bb :dst (gethash third
+                                                   blocks))
+                   (edge-add :src bb :dst (gethash forth
+                                                   blocks)))
+                  (return))
+             finally (progn
+                       (setf (comp-func-edges comp-func)
+                             (nreverse (comp-func-edges comp-func)))
+                       ;; Update edge refs into blocks.
+                       (cl-loop for edge in (comp-func-edges comp-func)
+                                do (push edge
+                                         (comp-block-out-edges (comp-edge-src edge)))
+                                do (push edge
+                                         (comp-block-in-edges (comp-edge-dst edge))))
+                       (comp-log-edges comp-func)))))
 
 (defun comp-collect-rev-post-order (basic-block)
   "Walk BASIC-BLOCK childs and return their name in reversed post-oder."
@@ -1031,7 +1035,7 @@ Top level forms for the current context are rendered too."
                 (error "Cant't find first preprocessed"))))
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
-               ;; No point to go on if the onli bb is entry.
+               ;; No point to go on if the only bb is 'entry'.
                (bb1 (gethash 'bb-1 blocks)))
       (cl-loop with rev-bb-list = (comp-collect-rev-post-order entry)
                with changed = t
@@ -1075,17 +1079,21 @@ Top level forms for the current context are rendered too."
 (defun comp-log-block-info ()
   "Log basic blocks info for the current function."
   (maphash (lambda (name bb)
-             (let ((dom (comp-block-dom bb)))
+             (let ((dom (comp-block-dom bb))
+                   (df (comp-block-df bb)))
                (comp-log (format "block: %s idom: %s DF %s\n"
                                  name
                                  (when dom (comp-block-name dom))
-                                 (cl-loop for b being each hash-keys of (comp-block-df bb)
+                                 (cl-loop for b being each hash-keys of df
                                           collect b)))))
            (comp-func-blocks comp-func)))
 
 (defun comp-ssa (funcs)
+  "Port FUNCS into mininal SSA form."
   (cl-loop for comp-func in funcs
            do (progn
+                ;; TODO: if run more than once should clean all CFG data
+                ;; plus phis here.
                 (comp-compute-edges)
                 (comp-compute-dominator-tree)
                 (comp-compute-dominator-frontiers)
