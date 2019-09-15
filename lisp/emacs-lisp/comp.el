@@ -415,11 +415,13 @@ If INPUT is a string this is the file path to be compiled."
   (make--comp-mvar :slot slot :const-vld const-vld :constant constant
                    :type type))
 
-(defun comp-new-frame (size)
+(defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE."
   (cl-loop with v = (make-vector size nil)
            for i below size
-           do (aset v i (make-comp-mvar :slot i))
+           for mvar = (if ssa (make-comp-ssa-mvar :slot i)
+                          (make-comp-mvar :slot i))
+           do (aset v i mvar)
            finally (return v)))
 
 (defmacro comp-sp ()
