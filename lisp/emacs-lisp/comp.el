@@ -1163,7 +1163,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                 (setf (cadr insn) mvar))))
     (pcase insn
       (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
-       (cl-nsubst-if (new-lvalue) #'target-p (cddr insn)))
+       (let ((mvar (aref (comp-ssa-frame comp-pass) slot-n)))
+         (cl-nsubst-if mvar #'target-p (cdr insn)))
+       (new-lvalue))
       (`(phi  ,n)
        (when (equal n slot-n)
          (new-lvalue)))
@@ -1177,9 +1179,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                         (lambda (b)
                           (cl-loop for insn in (comp-block-insns b)
                                    do (comp-ssa-rename-insn insn n))
-                          ;; Save a copy of the frame while leaving.
-                          (setf (comp-block-final-frame b)
-                                (copy-sequence (comp-ssa-frame comp-pass))))
+                          ;; Save a copy into final frame while leaving.
+                          (setf (aref (comp-block-final-frame b) n)
+                                (aref (comp-ssa-frame comp-pass) n)))
                         nil))
 
 (defun comp-finalize-phis ()
@@ -1201,10 +1203,15 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 (defun comp-ssa-rename ()
   "Entry point to rename SSA within the current function."
   (comp-log "Renaming\n")
-  (cl-loop with comp-pass = (make-comp-ssa)
-           for n from 0 below (comp-func-frame-size comp-func)
-           ;; For every slot frame rename down to the dominator tree.
-           do (comp-ssa-rename-in-blocks n)))
+  (let ((frame-size (comp-func-frame-size comp-func)))
+    ;; Initialize the final frame.
+    (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+             do (setf (comp-block-final-frame b) (make-vector frame-size nil)))
+    ;; Do the renaming for each frame slot.
+    (cl-loop with comp-pass = (make-comp-ssa)
+             for n from 0 below frame-size
+             ;; For every slot frame rename down to the dominator tree.
+             do (comp-ssa-rename-in-blocks n))))
 
 (defun comp-ssa (funcs)
   "Port FUNCS into mininal SSA form."
@@ -1220,7 +1227,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                 (comp-place-phis)
                 (comp-ssa-rename)
                 (comp-finalize-phis)
-                (comp-log-func comp-func))))
+                (comp-log-func comp-func)))
+  funcs)
+
 
 
 ;;; Final pass specific code.
@@ -1234,8 +1243,7 @@ Prepare every functions for final compilation and drive the C side."
         (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
                  for f being each hash-value of h
                  for args = (comp-func-args f)
-                 for doc = (when (> (length (comp-func-byte-func f))
-                                    4)
+                 for doc = (when (> (length (comp-func-byte-func f)) 4)
                              (aref (comp-func-byte-func f) 4))
                  collect (vector (comp-func-symbol-name f)
                                  (comp-func-c-func-name f)
