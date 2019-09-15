@@ -1143,11 +1143,12 @@ emit_limple_call (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_limple_call_ref (Lisp_Object insn)
 {
-  /* Ex: (callref Fplus 2 0).  */
+  /* Ex: (callref < #s(comp-mvar 1 6 nil nil nil t)
+                    #s(comp-mvar 2 11 t 10 integer t)).  */
 
   Lisp_Object callee = FIRST (insn);
-  EMACS_UINT nargs = XFIXNUM (SECOND (insn));
-  EMACS_UINT base_ptr = XFIXNUM (THIRD (insn));
+  EMACS_UINT nargs = XFIXNUM (Flength (CDR (CDR (insn))));
+  EMACS_UINT base_ptr = XFIXNUM (FUNCALL1 (comp-mvar-slot, THIRD (insn)));
   return emit_call_ref (callee, nargs, comp.frame[base_ptr]);
 }
 

@@ -425,7 +425,10 @@ If INPUT is a string this is the file path to be compiled."
 (defun comp-callref (func &rest args)
   "Emit a call usign narg abi for FUNC with ARGS."
   (comp-add-subr-to-relocs func)
-  `(callref ,func ,@args))
+  `(callref ,func ,@(cl-loop with (nargs off) = args
+                             repeat nargs
+                             for sp from off
+                             collect (comp-slot-n sp))))
 
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
   (when const-vld
