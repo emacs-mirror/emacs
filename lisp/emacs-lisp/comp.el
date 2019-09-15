@@ -1169,13 +1169,13 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                 (setf (cadr insn) mvar))))
     (pcase insn
       (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
-       (new-lvalue))
-      (`(phi . ,_)
-       (new-lvalue))
+       (cl-nsubst-if (new-lvalue) #'target-p (cddr insn)))
+      (`(phi  ,n)
+       (when (equal n slot-n)
+         (new-lvalue)))
       (_
        (let ((mvar (aref (comp-ssa-frame comp-pass) slot-n)))
-         ;; Should we have to recur for nested args?
-         (cl-nsubstitute-if mvar #'target-p (cdr insn)))))))
+         (cl-nsubst-if mvar #'target-p (cdr insn)))))))
 
 (defun comp-ssa-rename-in-blocks (n)
   "Given slot number N rename in the blocks."
