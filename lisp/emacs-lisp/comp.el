@@ -491,10 +491,6 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   (comp-with-sp (if dst-n dst-n (comp-sp))
     (let ((src-slot (comp-slot-n src-n)))
       (cl-assert src-slot)
-      ;; FIXME id should encrease here.
-      (setf (comp-slot)
-            (copy-sequence src-slot))
-      (setf (comp-mvar-slot (comp-slot)) (comp-sp))
       (comp-emit `(set ,(comp-slot) ,src-slot)))))
 
 (defun comp-emit-annotation (str)
@@ -533,10 +529,6 @@ If DST-N is specified use it otherwise assume it to be the current slot."
       (comp-emit-jump block-name))
     ;; Set this a currently compiled block.
     (setf comp-block (gethash block-name blocks))
-    ;; Every new block we are forced to wipe out all the frame.
-    ;; This will be optimized by proper flow analysis.
-    (setf (comp-limplify-frame comp-pass)
-          (comp-new-frame (comp-func-frame-size comp-func)))
     ;; If we are landing here form a recorded branch adjust sp accordingly.
     (setf (comp-sp)
           (comp-block-sp (gethash block-name blocks)))
@@ -1154,7 +1146,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 (cl-defstruct (comp-ssa (:copier nil))
   "Support structure used while SSA renaming."
-  (frame (comp-new-frame (comp-func-frame-size comp-func)) :type vector
+  (frame (comp-new-frame (comp-func-frame-size comp-func) t) :type vector
          :documentation "Vector of mvars."))
 
 (defun comp-ssa-rename-insn (insn slot-n)
