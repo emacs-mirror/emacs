@@ -55,10 +55,19 @@
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
                         comp-ssa
+                        comp-propagate
                         comp-final)
   "Passes to be executed in order.")
 
-(defconst comp-known-ret-types '((cons . cons))
+;; TODO hash here.
+(defconst comp-known-ret-types '((cons . cons)
+                                 (1+ . number)
+                                 (1- . number)
+                                 (+ . number)
+                                 (- . number)
+                                 (* . number)
+                                 (/ . number)
+                                 (% . number))
   "Alist used for type propagation.")
 
 (defconst comp-limple-assignments '(set setimm set-par-to-local)
@@ -200,13 +209,15 @@ LIMPLE basic block.")
         :documentation "Slot number.")
   (id nil :type (or null number)
      :documentation "SSA number.")
-  (const-vld nil
+  (const-vld nil :type boolean
              :documentation "Valid signal for the following slot.")
   (constant nil
             :documentation "When const-vld non nil this is used for constant
  propagation.")
   (type nil
-        :documentation "When non nil is used for type propagation."))
+        :documentation "When non nil is used for type propagation.")
+  (ref nil :type boolean
+       :documentation "When t this is used by reference."))
 
 (defvar comp-ctxt) ;; FIXME (to be removed)
 
@@ -215,6 +226,13 @@ LIMPLE basic block.")
 (defvar comp-func)
 
 
+
+(defsubst comp-mvar-propagate (lval rval)
+  "Propagate into LVAL properties of RVAL."
+  (setf (comp-mvar-const-vld lval) (comp-mvar-const-vld rval))
+  (setf (comp-mvar-constant lval) (comp-mvar-constant rval))
+  (setf (comp-mvar-type lval) (comp-mvar-type rval)))
+
 (defun comp-assign-op-p (op)
   "Assignment predicate for OP."
   (cl-find op comp-limple-assignments))
@@ -1230,6 +1248,64 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                 (comp-log-func comp-func)))
   funcs)
 
+
+;;; propagate pass specific code.
+;; A very basic propagation pass follows.
+
+(defun comp-basic-const-propagate ()
+  "Propagate simple constants for setimm operands.
+This can run just once."
+  (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+           do (cl-loop for insn in (comp-block-insns b)
+                       do (pcase insn
+                            (`(setimm ,lval ,_ ,v)
+                             (setf (comp-mvar-const-vld lval) t)
+                             (setf (comp-mvar-constant lval) v)
+                             (setf (comp-mvar-type lval) (type-of v)))))))
+
+(defun comp-propagate-insn (insn)
+  (pcase insn
+    (`(set ,lval ,rval)
+     (pcase rval
+       (`(call ,f . ,_)
+        (setf (comp-mvar-type lval)
+              (cdr (assq f comp-known-ret-types))))
+       (`(callref ,f . ,args)
+        (cl-loop for v in args
+                 do (setf (comp-mvar-ref v) t))
+        (setf (comp-mvar-type lval)
+              (cdr (assq f comp-known-ret-types))))
+       (_
+        (comp-mvar-propagate lval rval))))
+    (`(phi ,lval . ,rest)
+     ;; Const prop here.
+     (when (and (cl-every #'comp-mvar-const-vld rest)
+                (cl-reduce #'equal (mapcar #'comp-mvar-constant rest)))
+       (setf (comp-mvar-constant lval) (comp-mvar-constant (car rest))))
+     ;; Type propagation.
+     ;; FIXME: checking for type equality is not sufficient cause does not
+     ;; account type hierarchy!!
+     (when (cl-reduce #'eq (mapcar #'comp-mvar-type rest))
+       (setf (comp-mvar-type lval) (comp-mvar-type (car rest))))
+     ;; Reference propagation.
+     (setf (comp-mvar-ref lval) (cl-every #'comp-mvar-ref rest)))))
+
+(defun comp-propagate* ()
+  "Propagate for set and phi operands."
+  (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+           do (cl-loop for insn in (comp-block-insns b)
+                       do (comp-propagate-insn insn))))
+
+(defun comp-propagate (funcs)
+  (cl-loop for comp-func in funcs
+           do
+           (progn
+             (comp-basic-const-propagate)
+             ;; FIXME: unbelievably dumb...
+             (cl-loop repeat 10
+                      do (comp-propagate*))
+             (comp-log-func comp-func)))
+  funcs)
 
 
 ;;; Final pass specific code.
