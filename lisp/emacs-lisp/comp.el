@@ -615,13 +615,15 @@ If NEGATED non nil negate the tested condition."
       (comp-mark-block-closed)
       (comp-emit-block guarded-bb))))
 
-(defun comp-emit-switch (var m-hash)
-  "Emit a limple for a lap jump table given VAR and M-HASH."
-  (cl-assert (comp-mvar-const-vld m-hash))
-  (cl-loop for test being each hash-keys of (comp-mvar-constant m-hash)
-           using (hash-value target-label)
-           for m-test = (make-comp-mvar :constant test)
-           do (comp-emit-cond-jump var m-test 0 target-label nil)))
+(defun comp-emit-switch (var last-insn)
+  "Emit a limple for a lap jump table given VAR and LAST-INSN."
+  (pcase last-insn
+    (`(setimm ,_ ,_ ,const)
+     (cl-loop for test being each hash-keys of const
+              using (hash-value target-label)
+              for m-test = (make-comp-mvar :constant test)
+              do (comp-emit-cond-jump var m-test 0 target-label nil)))
+    (_ (error "Missing previous setimm while creating a switch"))))
 
 (defun comp-emit-funcall (narg)
   "Avoid Ffuncall trampoline if possibile.
@@ -888,7 +890,9 @@ the annotation emission."
       (byte-discardN
        (comp-stack-adjust (- arg)))
       (byte-switch
-       (comp-emit-switch (comp-slot+1) (comp-slot-n (+ 2 (comp-sp)))))
+       ;; Assume to follow the emission of a setimm.
+       ;; This is checked into comp-emit-switch.
+       (comp-emit-switch (comp-slot+1) (cl-second (comp-block-insns comp-block))))
       (byte-constant
        (comp-emit-set-const arg))
       (byte-discardN-preserve-tos
