@@ -590,7 +590,7 @@ If NEGATED non nil negate the tested condition."
 
 (defun comp-new-block-sym ()
   "Return a symbol naming the next new basic block."
-  (intern (format "bb-%s" (hash-table-count (comp-func-blocks comp-func)))))
+  (intern (format "bb_%s" (hash-table-count (comp-func-blocks comp-func)))))
 
 (defun comp-lap-to-limple-bb (n)
   "Given the LAP label N return the limple basic block."
@@ -971,7 +971,7 @@ This will be called at runtime."
         (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))
     ;; Body
-    (comp-emit-block 'bb-1)
+    (comp-emit-block 'bb_1)
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
     (comp-limplify-finalize-function func)))
 
@@ -1071,7 +1071,7 @@ Top level forms for the current context are rendered too."
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
                ;; No point to go on if the only bb is 'entry'.
-               (bb1 (gethash 'bb-1 blocks)))
+               (bb1 (gethash 'bb_1 blocks)))
       (cl-loop with rev-bb-list = (comp-collect-rev-post-order entry)
                with changed = t
                while changed
