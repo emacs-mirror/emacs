@@ -1008,16 +1008,19 @@ Top level forms for the current context are rendered too."
     (cl-loop with blocks = (comp-func-blocks comp-func)
              for bb being each hash-value of blocks
              for last-insn = (car (last (comp-block-insns bb)))
-             for (op first _ third forth) = last-insn
+             for (op first second third forth) = last-insn
              do (cl-ecase op
                   (jump
-                   (edge-add :src bb :dst (gethash first
-                                                   blocks)))
+                   (edge-add :src bb :dst (gethash first blocks)))
                   (cond-jump
-                   (edge-add :src bb :dst (gethash third
-                                                   blocks))
-                   (edge-add :src bb :dst (gethash forth
-                                                   blocks)))
+                   (edge-add :src bb :dst (gethash third blocks))
+                   (edge-add :src bb :dst (gethash forth blocks)))
+                  (cond-jump-narg-leq
+                   (edge-add :src bb :dst (gethash second blocks))
+                   (edge-add :src bb :dst (gethash third blocks)))
+                  (push-handler
+                   (edge-add :src bb :dst (gethash third blocks))
+                   (edge-add :src bb :dst (gethash forth blocks)))
                   (return))
              finally (progn
                        (setf (comp-func-edges comp-func)
