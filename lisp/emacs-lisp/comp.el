@@ -222,7 +222,7 @@ LIMPLE basic block.")
 (defvar comp-ctxt) ;; FIXME (to be removed)
 
 ;; Special vars used by some passes
-(defvar comp-block)
+(defvar comp-block) ; Can probably be removed
 (defvar comp-func)
 
 
@@ -884,7 +884,7 @@ the annotation emission."
        (comp-stack-adjust (- 1 arg))
        (comp-emit-set-call (comp-callref 'insert arg (comp-sp))))
       (byte-stack-set
-       (comp-with-sp (1+ (comp-sp))
+       (comp-with-sp (1+ (comp-sp)) ;; FIXME!!
          (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
       (byte-stack-set2 (cl-assert nil)) ;; TODO
       (byte-discardN
