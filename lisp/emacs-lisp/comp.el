@@ -148,10 +148,7 @@ into it.")
   (df (make-hash-table) :type hash-table
       :documentation "Dominance frontier set. Block-name -> block")
   (post-num nil :type number
-            :documentation "Post order number.")
-  (final-frame nil :type vector
-             :documentation "This is a copy of the frame when leaving the block.
-Is in use to help the SSA rename pass."))
+            :documentation "Post order number."))
 
 (cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
   "An edge connecting two basic blocks."
@@ -226,12 +223,6 @@ LIMPLE basic block.")
 (defvar comp-func)
 
 
-
-(defsubst comp-mvar-propagate (lval rval)
-  "Propagate into LVAL properties of RVAL."
-  (setf (comp-mvar-const-vld lval) (comp-mvar-const-vld rval))
-  (setf (comp-mvar-constant lval) (comp-mvar-constant rval))
-  (setf (comp-mvar-type lval) (comp-mvar-type rval)))
 
 (defun comp-assign-op-p (op)
   "Assignment predicate for OP."
@@ -1179,38 +1170,47 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
   (frame (comp-new-frame (comp-func-frame-size comp-func) t) :type vector
          :documentation "Vector of mvars."))
 
-(defun comp-ssa-rename-insn (insn slot-n)
-  (cl-flet ((target-p (x)
-              ;; Ret t if x is an mvar and target the correct slot number.
-              (and (comp-mvar-p x)
-                   (eql slot-n (comp-mvar-slot x))))
-            (new-lvalue ()
-              ;; If is an assignment make a new mvar and put it as l-value.
-              (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
-                (setf (aref (comp-ssa-frame comp-pass) slot-n) mvar)
-                (setf (cadr insn) mvar))))
-    (pcase insn
-      (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
-       (let ((mvar (aref (comp-ssa-frame comp-pass) slot-n)))
-         (cl-nsubst-if mvar #'target-p (cdr insn)))
-       (new-lvalue))
-      (`(phi  ,n)
-       (when (equal n slot-n)
-         (new-lvalue)))
-      (_
-       (let ((mvar (aref (comp-ssa-frame comp-pass) slot-n)))
-         (cl-nsubst-if mvar #'target-p (cdr insn)))))))
+(defun comp-ssa-rename-insn (insn frame)
+  (dotimes (slot-n (comp-func-frame-size comp-func))
+    (cl-flet ((target-p (x)
+                ;; Ret t if x is an mvar and target the correct slot number.
+                (and (comp-mvar-p x)
+                     (eql slot-n (comp-mvar-slot x))))
+              (new-lvalue ()
+                ;; If is an assignment make a new mvar and put it as l-value.
+                (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
+                  (setf (aref frame slot-n) mvar)
+                  (setf (cadr insn) mvar))))
+      (pcase insn
+        (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
+         (let ((mvar (aref frame slot-n)))
+           (setcdr insn (cl-nsubst-if mvar #'target-p (cdr insn))))
+         (new-lvalue))
+        (`(phi  ,n)
+         (when (equal n slot-n)
+           (new-lvalue)))
+        (_
+         (let ((mvar (aref frame slot-n)))
+           (setcdr insn (cl-nsubst-if mvar #'target-p (cdr insn)))))))))
 
-(defun comp-ssa-rename-in-blocks (n)
-  "Given slot number N rename in the blocks."
-  (comp-dom-tree-walker (gethash 'entry (comp-func-blocks comp-func))
-                        (lambda (b)
-                          (cl-loop for insn in (comp-block-insns b)
-                                   do (comp-ssa-rename-insn insn n))
-                          ;; Save a copy into final frame while leaving.
-                          (setf (aref (comp-block-final-frame b) n)
-                                (aref (comp-ssa-frame comp-pass) n)))
-                        nil))
+(defun comp-ssa-rename ()
+  "Entry point to rename SSA within the current function."
+  (comp-log "Renaming\n")
+  (let ((frame-size (comp-func-frame-size comp-func))
+        (visited (make-hash-table)))
+    (cl-labels ((ssa-rename-rec (bb in-frame)
+                  (unless (gethash bb visited)
+                    (puthash bb t visited)
+                    (cl-loop for insn in (comp-block-insns bb)
+                             do (comp-ssa-rename-insn insn in-frame))
+                    (when-let ((out-edges (comp-block-out-edges bb)))
+                      (cl-loop for ed in out-edges
+                               for child = (comp-edge-dst ed)
+                               ;; Provide a copy of the same frame to all childs.
+                               do (ssa-rename-rec child (copy-sequence in-frame)))))))
+
+      (ssa-rename-rec (gethash 'entry (comp-func-blocks comp-func))
+                      (comp-new-frame frame-size t)))))
 
 (defun comp-finalize-phis ()
   "Fixup r-values into phis in all basic blocks."
@@ -1227,19 +1227,6 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
              do (cl-loop for (op . args) in (comp-block-insns b)
                          when (eq op 'phi)
                          do (finalize-phi args b)))))
-
-(defun comp-ssa-rename ()
-  "Entry point to rename SSA within the current function."
-  (comp-log "Renaming\n")
-  (let ((frame-size (comp-func-frame-size comp-func)))
-    ;; Initialize the final frame.
-    (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
-             do (setf (comp-block-final-frame b) (make-vector frame-size nil)))
-    ;; Do the renaming for each frame slot.
-    (cl-loop with comp-pass = (make-comp-ssa)
-             for n from 0 below frame-size
-             ;; For every slot frame rename down to the dominator tree.
-             do (comp-ssa-rename-in-blocks n))))
 
 (defun comp-ssa (funcs)
   "Port FUNCS into mininal SSA form."
@@ -1272,6 +1259,12 @@ This can run just once."
                              (setf (comp-mvar-const-vld lval) t)
                              (setf (comp-mvar-constant lval) v)
                              (setf (comp-mvar-type lval) (type-of v)))))))
+
+(defsubst comp-mvar-propagate (lval rval)
+  "Propagate into LVAL properties of RVAL."
+  (setf (comp-mvar-const-vld lval) (comp-mvar-const-vld rval))
+  (setf (comp-mvar-constant lval) (comp-mvar-constant rval))
+  (setf (comp-mvar-type lval) (comp-mvar-type rval)))
 
 (defun comp-propagate-insn (insn)
   (pcase insn
