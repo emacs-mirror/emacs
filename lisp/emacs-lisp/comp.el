@@ -70,7 +70,11 @@
                                  (% . number))
   "Alist used for type propagation.")
 
-(defconst comp-limple-assignments '(set setimm set-par-to-local)
+(defconst comp-limple-assignments '(set
+                                    setimm
+                                    set-par-to-local
+                                    set-args-to-local
+                                    set-rest-args-to-local)
   "Limple operators used to assign to mvars.")
 
 (defconst comp-mostly-pure-funcs
@@ -148,7 +152,10 @@ into it.")
   (df (make-hash-table) :type hash-table
       :documentation "Dominance frontier set. Block-name -> block")
   (post-num nil :type number
-            :documentation "Post order number."))
+            :documentation "Post order number.")
+  (final-frame nil :type vector
+             :documentation "This is a copy of the frame when leaving the block.
+Is in use to help the SSA rename pass."))
 
 (cl-defstruct (comp-edge (:copier nil) (:constructor make--comp-edge))
   "An edge connecting two basic blocks."
@@ -894,7 +901,7 @@ the annotation emission."
   "Emit the prologue for a narg function."
   (cl-loop for i below minarg
            do (progn
-                (comp-emit `(set-args-to-local ,i))
+                (comp-emit `(set-args-to-local ,(comp-slot-n i)))
                 (comp-emit '(inc-args))))
   (cl-loop for i from minarg below nonrest
            for bb = (intern (format "entry_%s" i))
@@ -903,7 +910,7 @@ the annotation emission."
                 (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
                 (comp-mark-block-closed)
                 (comp-emit-block bb)
-                (comp-emit `(set-args-to-local ,i))
+                (comp-emit `(set-args-to-local ,(comp-slot-n i)))
                 (comp-emit '(inc-args)))
            finally (comp-emit-jump 'entry_rest_args))
   (cl-loop for i from minarg below nonrest
@@ -911,7 +918,7 @@ the annotation emission."
                 (comp-emit-block (intern (format "entry_fallback_%s" i)))
                 (comp-emit-set-const nil)))
   (comp-emit-block 'entry_rest_args)
-  (comp-emit `(set-rest-args-to-local ,nonrest)))
+  (comp-emit `(set-rest-args-to-local ,(comp-slot-n nonrest))))
 
 (defun comp-limplify-finalize-function (func)
   "Reverse insns into all basic blocks of FUNC."
@@ -1130,14 +1137,14 @@ Top level forms for the current context are rendered too."
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
-             with defs-v = (cl-loop with blocks = (comp-func-blocks comp-func)
+             for defs-v = (cl-loop with blocks = (comp-func-blocks comp-func)
                                     for b being each hash-value of blocks
                                     when (slot-assigned-p i b)
                                     collect b)
              ;; Set of basic blocks where phi is added.
-             with f = ()
+             for f = ()
              ;; Worklist, set of basic blocks that contain definitions of v.
-             with w = defs-v
+             for w = defs-v
              do
              (while w
                (let ((x (pop w)))
@@ -1203,6 +1210,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                     (puthash bb t visited)
                     (cl-loop for insn in (comp-block-insns bb)
                              do (comp-ssa-rename-insn insn in-frame))
+                    (setf (comp-block-final-frame bb)
+                          (copy-sequence in-frame))
                     (when-let ((out-edges (comp-block-out-edges bb)))
                       (cl-loop for ed in out-edges
                                for child = (comp-edge-dst ed)

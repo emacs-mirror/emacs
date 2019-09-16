@@ -1265,6 +1265,10 @@ emit_limple_insn (Lisp_Object insn)
 			       n);
       emit_cond_jump (test, target2, target1);
     }
+  else if (EQ (op, Qphi))
+    {
+      /* Nothing to do for phis into the backend.   */
+    }
   else if (EQ (op, Qpush_handler))
     {
       EMACS_UINT clobber_slot = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
@@ -1350,7 +1354,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qset_args_to_local))
     {
       /*
-	Limple: (set-args-to-local 1)
+	Limple: (set-args-to-local #s(comp-mvar 1 6 nil nil nil nil))
 	C: local[1] = *args;
       */
       gcc_jit_rvalue *gcc_args =
@@ -1360,7 +1364,7 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_rvalue *res =
 	gcc_jit_lvalue_as_rvalue (gcc_jit_rvalue_dereference (gcc_args, NULL));
 
-      EMACS_UINT slot_n = XFIXNUM (arg0);
+      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
 				    comp.frame[slot_n],
@@ -1369,13 +1373,15 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qset_rest_args_to_local))
     {
       /*
-        Limple: (set-rest-args-to-local 3)
-        C: local[3] = list (nargs - 3, args);
+        Limple: (set-rest-args-to-local #s(comp-mvar 2 9 nil nil nil nil))
+        C: local[2] = list (nargs - 2, args);
       */
+
+      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
-					     XFIXNUM (arg0));
+					     slot_n);
       gcc_jit_lvalue *nargs =
 	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
       gcc_jit_lvalue *args =
@@ -1395,7 +1401,7 @@ emit_limple_insn (Lisp_Object insn)
 
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
-				    comp.frame[XFIXNUM (arg0)],
+				    comp.frame[slot_n],
 				    res);
     }
   else if (EQ (op, Qinc_args))
@@ -3274,6 +3280,7 @@ syms_of_comp (void)
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
+  DEFSYM (Qphi, "phi");
   /* In use for prologue emission.  */
   DEFSYM (Qset_par_to_local, "set-par-to-local");
   DEFSYM (Qset_args_to_local, "set-args-to-local");
