@@ -74,8 +74,9 @@
                                     setimm
                                     set-par-to-local
                                     set-args-to-local
-                                    set-rest-args-to-local)
-  "Limple operators used to assign to mvars.")
+                                    set-rest-args-to-local
+                                    push-handler)
+  "Limple operators that clobbers the first mvar argument.")
 
 (defconst comp-mostly-pure-funcs
   '(% * + - / /= 1+ 1- < <= = > >= cons list % concat logand logcount logior
