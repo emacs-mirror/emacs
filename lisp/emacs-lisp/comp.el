@@ -944,11 +944,18 @@ This will be called at runtime."
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
     (comp-limplify-finalize-function func)))
 
+(defun comp-add-func-to-ctxt (func)
+  "Add FUNC to the current compiler contex."
+  (puthash (comp-func-symbol-name func)
+           func
+           (comp-ctxt-funcs-h comp-ctxt)))
+
 (defun comp-limplify (funcs)
   "Compute the LIMPLE ir for FUNCS.
 Top level forms for the current context are rendered too."
-  (cons (comp-limplify-top-level)
-        (mapcar #'comp-limplify-function funcs)))
+  (mapc #'comp-add-func-to-ctxt
+        (cons (comp-limplify-top-level)
+              (mapcar #'comp-limplify-function funcs))))
 
 
 ;;; SSA pass specific code.
@@ -1294,14 +1301,34 @@ This can run just once."
 ;;; Call optimizer pass specific code.
 ;; Try to avoid funcall trampoline use when possible.
 
+(defun comp-call-optim-form-call (calle args self)
+  ""
+  (let* ((f (symbol-function calle))
+         (subrp (subrp f))
+         (calle-in-unit (gethash calle
+                                 (comp-ctxt-funcs-h comp-ctxt))))
+    (when-let* ((optimize (or (and subrp
+                                   (or
+                                    (not (subr-native-elispp f)))
+                                   ;; Attention speed 3 optimize inter compilation unit
+                                   ;; calls!!
+)
+                              (eq calle self)
+                              (and (>= comp-speed 3)
+                                   calle-in-unit)))
+                (call-type (if (if subrp
+                                   (not (numberp (cdr (subr-arity f))))
+                                 (comp-nargs-p calle-in-unit))
+                               'callref
+                             'call)))
+      `(,call-type ,calle ,@args))))
+
 (defun comp-call-optim (funcs)
+  "Given FUNCS try to avoid funcall trampoline usage when possible."
   (cl-loop
    for comp-func in funcs
    for self = (comp-func-symbol-name comp-func)
-   for self-callref = (comp-nargs-p (comp-func-args comp-func))
-   when (and (>= comp-speed 2)
-             (not self-callref) ;; Could improve this
-             )
+   when (>= comp-speed 2)
    do (cl-loop
        for b being each hash-value of (comp-func-blocks comp-func)
        do (cl-loop
@@ -1309,9 +1336,13 @@ This can run just once."
            for insn = (car insn-cell)
            do (pcase insn
                 (`(set ,lval (callref funcall ,f . ,rest))
-                 (when (eq self (comp-mvar-constant f))
-                   (setcar insn-cell
-                           `(set ,lval (call ,(comp-mvar-constant f) ,@rest))))))))
+                 (when-let ((new-form (comp-call-optim-form-call
+                                       (comp-mvar-constant f) rest self)))
+                   (setcar insn-cell `(set ,lval ,new-form))))
+                (`(callref funcall ,f . ,rest)
+                 (when-let ((new-form (comp-call-optim-form-call
+                                       (comp-mvar-constant f) rest self)))
+                   (setcar insn-cell ,new-form))))))
    (comp-log-func comp-func))
   funcs)
 
@@ -1338,21 +1369,13 @@ Prepare every functions for final compilation and drive the C side."
                                  doc)))
   (comp--compile-ctxt-to-file name))
 
-(defun comp-add-func-to-ctxt (func)
-  "Add FUNC to the current compiler contex."
-  (puthash (comp-func-symbol-name func)
-           func
-           (comp-ctxt-funcs-h comp-ctxt)))
-
-(defun comp-final (data)
-  "Final pass driving DATA into the C side for code emission."
+(defun comp-final (_)
+  "Final pass driving DATA into the C back-end for code emission."
   (let (compile-result)
     (comp--init-ctxt)
     (unwind-protect
-        (progn
-          (mapc #'comp-add-func-to-ctxt data)
-          (setq compile-result
-                (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt))))
+        (setq compile-result
+              (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt)))
       (and (comp--release-ctxt)
            compile-result))))
 
