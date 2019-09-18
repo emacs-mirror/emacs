@@ -396,6 +396,34 @@ If INPUT is a string this is the file path to be compiled."
 
 ;;; Limplification pass specific code.
 
+(defmacro comp-sp ()
+  "Current stack pointer."
+  '(comp-limplify-sp comp-pass))
+
+(defmacro comp-with-sp (sp &rest body)
+  "Execute BODY setting the stack pointer to SP.
+Restore the original value afterwards."
+  (declare (debug (form body))
+           (indent defun))
+  (let ((sym (gensym)))
+    `(let ((,sym (comp-sp)))
+       (setf (comp-sp) ,sp)
+       (progn ,@body)
+       (setf (comp-sp) ,sym))))
+
+(defmacro comp-slot-n (n)
+  "Slot N into the meta-stack."
+  (declare (debug (form)))
+  `(aref (comp-limplify-frame comp-pass) ,n))
+
+(defmacro comp-slot ()
+  "Current slot into the meta-stack pointed by sp."
+  '(comp-slot-n (comp-sp)))
+
+(defmacro comp-slot+1 ()
+  "Slot into the meta-stack pointed by sp + 1."
+  '(comp-slot-n (1+ (comp-sp))))
+
 (cl-defstruct (comp-limplify (:copier nil))
   "Support structure used during function limplification."
   (sp 0 :type fixnum
@@ -444,34 +472,6 @@ If INPUT is a string this is the file path to be compiled."
                           (make-comp-mvar :slot i))
            do (aset v i mvar)
            finally (return v)))
-
-(defmacro comp-sp ()
-  "Current stack pointer."
-  '(comp-limplify-sp comp-pass))
-
-(defmacro comp-with-sp (sp &rest body)
-  "Execute BODY setting the stack pointer to SP.
-Restore the original value afterwards."
-  (declare (debug (form body))
-           (indent defun))
-  (let ((sym (gensym)))
-    `(let ((,sym (comp-sp)))
-       (setf (comp-sp) ,sp)
-       (progn ,@body)
-       (setf (comp-sp) ,sym))))
-
-(defmacro comp-slot-n (n)
-  "Slot N into the meta-stack."
-  (declare (debug (form)))
-  `(aref (comp-limplify-frame comp-pass) ,n))
-
-(defmacro comp-slot ()
-  "Current slot into the meta-stack pointed by sp."
-  '(comp-slot-n (comp-sp)))
-
-(defmacro comp-slot+1 ()
-  "Slot into the meta-stack pointed by sp + 1."
-  '(comp-slot-n (1+ (comp-sp))))
 
 (defun comp-emit (insn)
   "Emit INSN into current basic block."
@@ -1111,7 +1111,7 @@ Top level forms for the current context are rendered too."
              (cl-loop for insn in (comp-block-insns bb)
                       when (and (comp-assign-op-p (car insn))
                                 (= slot-n (comp-mvar-slot (cadr insn))))
-                      do (return t))))
+                      do (cl-return t))))
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
