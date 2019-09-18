@@ -3228,6 +3228,7 @@ load_comp_unit (dynlib_handle_ptr handle)
       x->s.min_args = minargs;
       x->s.max_args = maxargs;
       x->s.symbol_name = SSDATA (Fsymbol_name (Qsym));
+      x->s.native_elisp = true;
       defsubr(x);
 
       func_list = XCDR (func_list);

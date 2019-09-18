@@ -2922,7 +2922,10 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_594AB72B54)
+#if CHECK_STRUCTS && ((defined (HAVE_NATIVE_COMP)			\
+		       && !defined (HASH_Lisp_Subr_D4F15794AF))		\
+		      || (!defined (HAVE_NATIVE_COMP)			\
+			  && !defined (HASH_Lisp_Subr_594AB72B54)))
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -2934,6 +2937,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
   dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
   DUMP_FIELD_COPY (&out, subr, doc);
+  DUMP_FIELD_COPY (&out, subr, native_elisp);
   return dump_object_finish (ctx, &out, sizeof (out));
 }
 

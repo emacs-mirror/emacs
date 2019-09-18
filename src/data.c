@@ -864,6 +864,17 @@ SUBR must be a built-in function.  */)
   return build_string (name);
 }
 
+#ifdef HAVE_NATIVE_COMP
+DEFUN ("subr-native-elispp", Fsubr_native_elispp, Ssubr_native_elispp, 1, 1, 0,
+       doc: /* Return t if the subr is native compiled elisp,
+nil otherwise.  */)
+  (Lisp_Object subr)
+{
+  CHECK_SUBR (subr);
+  return XSUBR (subr)->native_elisp ? Qt : Qnil;
+}
+#endif
+
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
        doc: /* Return the interactive form of CMD or nil if none.
 If CMD is not a command, the return value is nil.
@@ -3983,6 +3994,9 @@ syms_of_data (void)
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
+#ifdef HAVE_NATIVE_COMP
+  defsubr (&Ssubr_native_elispp);
+#endif
 #ifdef HAVE_MODULES
   defsubr (&Suser_ptrp);
 #endif

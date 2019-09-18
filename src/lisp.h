@@ -2088,6 +2088,9 @@ struct Lisp_Subr
     const char *symbol_name;
     const char *intspec;
     EMACS_INT doc;
+#ifdef HAVE_NATIVE_COMP
+    bool native_elisp;
+#endif
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
