@@ -145,10 +145,11 @@ def gather_deps(deps, arch, directory):
 
 def download_source(tarball):
     print("Acquiring {}...".format(tarball))
-    if os.path.exists("./emacs-src-old/{}".format(tarball)):
+
+    if os.path.exists("../emacs-src-old/{}".format(tarball)):
         print("Copying {} from local".format(tarball))
-        shutil.copyfile("./emacs-src-old/{}".format(tarball),
-                        "./emacs-src/{}".format(tarball))
+        shutil.copyfile("../emacs-src-old/{}".format(tarball),
+                        "{}".format(tarball))
     else:
         print("Downloading {}...".format(tarball))
         check_output_maybe(
