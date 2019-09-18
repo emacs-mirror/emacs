@@ -56,6 +56,7 @@
                         comp-limplify
                         comp-ssa
                         comp-propagate
+                        comp-call-optim
                         comp-final)
   "Passes to be executed in order.")
 
@@ -1318,6 +1319,31 @@ This can run just once."
              (cl-loop repeat 10
                       do (comp-propagate*))
              (comp-log-func comp-func)))
+  funcs)
+
+
+;;; Call optimizer pass specific code.
+;; Try to avoid funcall trampoline use when possible.
+
+(defun comp-call-optim (funcs)
+  (cl-loop
+   for comp-func in funcs
+   for self = (comp-func-symbol-name comp-func)
+   for self-callref = (comp-nargs-p (comp-func-args comp-func))
+   when (and (>= comp-speed 2)
+             (not self-callref) ;; Could improve this
+             )
+   do (cl-loop
+       for b being each hash-value of (comp-func-blocks comp-func)
+       do (cl-loop
+           for insn-cell on (comp-block-insns b)
+           for insn = (car insn-cell)
+           do (pcase insn
+                (`(set ,lval (callref funcall ,f . ,rest))
+                 (when (eq self (comp-mvar-constant f))
+                   (setcar insn-cell
+                           `(set ,lval (call ,(comp-mvar-constant f) ,@rest))))))))
+   (comp-log-func comp-func))
   funcs)
 
 
