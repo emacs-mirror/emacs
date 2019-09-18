@@ -144,13 +144,19 @@ def gather_deps(deps, arch, directory):
 
 
 def download_source(tarball):
-    print("Downloading {}...".format(tarball))
-    check_output_maybe(
-        "wget -a ../download.log -O {} {}/{}/download"
-        .format(tarball, SRC_REPO, tarball),
-        shell=True
-    )
-    print("Downloading {}... done".format(tarball))
+    print("Acquiring {}...".format(tarball))
+    if os.path.exists("./emacs-src-old/{}".format(tarball)):
+        print("Copying {} from local".format(tarball))
+        shutil.copyfile("./emacs-src-old/{}".format(tarball),
+                        "./emacs-src/{}".format(tarball))
+    else:
+        print("Downloading {}...".format(tarball))
+        check_output_maybe(
+            "wget -a ../download.log -O {} {}/{}/download"
+            .format(tarball, SRC_REPO, tarball),
+            shell=True
+        )
+        print("Downloading {}... done".format(tarball))
 
 def gather_source(deps):
 
