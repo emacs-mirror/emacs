@@ -1301,27 +1301,27 @@ This can run just once."
 ;;; Call optimizer pass specific code.
 ;; Try to avoid funcall trampoline use when possible.
 
-(defun comp-call-optim-form-call (calle args self)
+(defun comp-call-optim-form-call (callee args self)
   ""
-  (let* ((f (symbol-function calle))
-         (subrp (subrp f))
-         (calle-in-unit (gethash calle
-                                 (comp-ctxt-funcs-h comp-ctxt))))
-    (when-let* ((optimize (or (and subrp
-                                   (or
-                                    (not (subr-native-elispp f)))
-                                   ;; Attention speed 3 optimize inter compilation unit
-                                   ;; calls!!
-)
-                              (eq calle self)
-                              (and (>= comp-speed 3)
-                                   calle-in-unit)))
-                (call-type (if (if subrp
-                                   (not (numberp (cdr (subr-arity f))))
-                                 (comp-nargs-p calle-in-unit))
-                               'callref
-                             'call)))
-      `(,call-type ,calle ,@args))))
+  (when (symbolp callee) ; Do nothing if callee is a byte compiled func.
+    (let* ((f (symbol-function callee))
+           (subrp (subrp f))
+           (callee-in-unit (gethash callee
+                                    (comp-ctxt-funcs-h comp-ctxt))))
+      (when-let* ((optimize (or (and subrp
+                                     (not (subr-native-elispp f)))
+                                (eq callee self)
+                                ;; Attention speed 3 optimize inter compilation
+                                ;; unit calls!!
+                                (and (>= comp-speed 3)
+                                     callee-in-unit)))
+                  (call-type (if (if subrp
+                                     (not (numberp (cdr (subr-arity f))))
+                                   (comp-nargs-p callee-in-unit))
+                                 'callref
+                               'call)))
+        (comp-add-subr-to-relocs callee)
+        `(,call-type ,callee ,@args)))))
 
 (defun comp-call-optim (funcs)
   "Given FUNCS try to avoid funcall trampoline usage when possible."

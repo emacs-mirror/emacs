@@ -1048,7 +1048,7 @@ emit_mvar_val (Lisp_Object mvar)
       if (FIXNUMP (constant))
 	{
 	  /* We can still emit directly objects that are selfcontained in a word
-	     read (fixnums).  */
+	     (read fixnums).  */
 	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
 	  gcc_jit_rvalue *word =
 	    gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
