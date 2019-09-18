@@ -68,26 +68,21 @@ def check_output_maybe(*args,**kwargs):
         return check_output(*args,**kwargs)
 
 def immediate_deps(pkg):
-    print("pkg", pkg)
     package_info = check_output(["pacman", "-Si", pkg]).decode("utf-8").split("\n")
 
-    #print(package_info)
-    #print([x for x in package_info if x.startswith("Depends On")])
     ## Extract the "Depends On" line
     depends_on = [x for x in package_info if x.startswith("Depends On")][0]
     ## Remove "Depends On" prefix
     dependencies = depends_on.split(":")[1]
-    print(1, dependencies)
+
     ## Split into dependencies
     dependencies = dependencies.strip().split(" ")
-    print(2, dependencies)
+
     ## Remove > signs TODO can we get any other punctation here?
     dependencies = [d.split(">")[0] for d in dependencies if d]
     dependencies = [d for d in dependencies if not d == "None"]
-    print(3, dependencies)
-    dependencies = [MUNGE_DEP_PKGS.get(d, d) for d in dependencies]
-    print(4, dependencies)
 
+    dependencies = [MUNGE_DEP_PKGS.get(d, d) for d in dependencies]
     return dependencies
 
 
