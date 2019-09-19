@@ -167,7 +167,7 @@ typedef struct {
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
-  Lisp_Object func_hash; /* subr_name -> reloc_field.  */
+  Lisp_Object imported_func_h; /* subr_name -> reloc_field.  */
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
   gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
@@ -308,7 +308,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 		       int nargs, gcc_jit_type **types)
 {
   /* Don't want to declare the same function two times.  */
-  ICE_IF (!NILP (Fgethash (subr_sym, comp.func_hash, Qnil)),
+  ICE_IF (!NILP (Fgethash (subr_sym, comp.imported_func_h, Qnil)),
 	  "unexpected double function declaration");
 
   if (nargs == MANY)
@@ -349,7 +349,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 			       f_ptr_type,
 			       SSDATA (f_ptr_name));
 
-  Fputhash (subr_sym, make_mint_ptr (field), comp.func_hash);
+  Fputhash (subr_sym, make_mint_ptr (field), comp.imported_func_h);
   return field;
 }
 
@@ -405,7 +405,7 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 				     nargs,
 				     args);
 
-  Lisp_Object value = Fgethash (subr_sym, comp.func_hash, Qnil);
+  Lisp_Object value = Fgethash (subr_sym, comp.imported_func_h, Qnil);
   ICE_IF (NILP (value), "missing function declaration");
 
   gcc_jit_lvalue *f_ptr =
@@ -2910,7 +2910,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
     Always reinitialize this cause old function definitions are garbage collected
     by libgccjit when the ctxt is released.
   */
-  comp.func_hash = CALLN (Fmake_hash_table);
+  comp.imported_func_h = CALLN (Fmake_hash_table);
 
   /* Define data structures.  */
 
@@ -3265,8 +3265,8 @@ syms_of_comp (void)
   defsubr (&Scomp__compile_ctxt_to_file);
   defsubr (&Snative_elisp_load);
 
-  staticpro (&comp.func_hash);
-  comp.func_hash = Qnil;
+  staticpro (&comp.imported_func_h);
+  comp.imported_func_h = Qnil;
   staticpro (&comp.func_blocks);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
