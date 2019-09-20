@@ -56,6 +56,7 @@
 ;;; Code:
 
 (require 'json)
+(require 'imenu)
 (require 'cl-lib)
 (require 'project)
 (require 'url-parse)
@@ -255,7 +256,12 @@ let the buffer grow forever."
       (ShowMessageRequestParams (:type :message) (:actions))
       (SignatureHelp (:signatures) (:activeSignature :activeParameter))
       (SignatureInformation (:label) (:documentation :parameters))
-      (SymbolInformation (:name :kind :location) (:deprecated :containerName))
+      (SymbolInformation (:name :kind :location)
+                         (:deprecated :containerName))
+      (DocumentSymbol (:name :range :selectionRange :kind)
+                      ;; `:containerName' isn't really allowed , but
+                      ;; it simplifies the impl of `eglot-imenu'.
+                      (:detail :deprecated :children :containerName))
       (TextDocumentEdit (:textDocument :edits) ())
       (TextEdit (:range :newText))
       (VersionedTextDocumentIdentifier (:uri :version) ())
@@ -532,6 +538,7 @@ treated as in `eglot-dbind'."
              :typeDefinition     `(:dynamicRegistration :json-false)
              :documentSymbol     (list
                                   :dynamicRegistration :json-false
+                                  :hierarchicalDocumentSymbolSupport t
                                   :symbolKind `(:valueSet
                                                 [,@(mapcar
                                                     #'car eglot--symbol-kind-names)]))
@@ -2361,36 +2368,48 @@ echo area cleared of any previous documentation."
 
 (defun eglot-imenu ()
   "EGLOT's `imenu-create-index-function'."
-  (let ((entries
-         (and
-          (eglot--server-capable :documentSymbolProvider)
-          (mapcar
-           (eglot--lambda
-               ((SymbolInformation) name kind location containerName)
-             (cons (propertize
-                    name
-                    :kind (alist-get kind eglot--symbol-kind-names
-                                     "Unknown")
-                    :containerName (and (stringp containerName)
-                                        (not (string-empty-p containerName))
-                                        containerName))
-                   (eglot--lsp-position-to-point
-                    (plist-get (plist-get location :range) :start))))
-           (jsonrpc-request (eglot--current-server-or-lose)
-                            :textDocument/documentSymbol
-                            `(:textDocument ,(eglot--TextDocumentIdentifier)))))))
+  (cl-labels
+      ((visit (_name one-obj-array)
+              (imenu-default-goto-function
+               nil (car (eglot--range-region
+                         (eglot--dcase (aref one-obj-array 0)
+                           (((SymbolInformation) location)
+                            (plist-get location :range))
+                           (((DocumentSymbol) selectionRange)
+                            selectionRange))))))
+       (unfurl (obj)
+               (eglot--dcase obj
+                 (((SymbolInformation)) (list obj))
+                 (((DocumentSymbol) name children)
+                  (cons obj
+                        (mapcar
+                         (lambda (c)
+                           (plist-put
+                            c :containerName
+                            (let ((existing (plist-get c :containerName)))
+                              (if existing (format "%s::%s" name existing)
+                                name))))
+                         (mapcan #'unfurl children)))))))
     (mapcar
-     (pcase-lambda (`(,kind . ,syms))
-       (let ((syms-by-scope (seq-group-by
-                             (lambda (e)
-                               (get-text-property 0 :containerName (car e)))
-                             syms)))
-         (cons kind (cl-loop for (scope . elems) in syms-by-scope
-                             append (if scope
-                                        (list (cons scope elems))
-                                      elems)))))
-     (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
-                   entries))))
+     (pcase-lambda (`(,kind . ,objs))
+       (cons
+        (alist-get kind eglot--symbol-kind-names "Unknown")
+        (mapcan (pcase-lambda (`(,container . ,objs))
+                  (let ((elems (mapcar (lambda (obj)
+                                         (list (plist-get obj :name)
+                                               `[,obj] ;; trick
+                                               #'visit))
+                                       objs)))
+                    (if container (list (cons container elems)) elems)))
+                (seq-group-by
+                 (lambda (e) (plist-get e :containerName)) objs))))
+     (seq-group-by
+      (lambda (obj) (plist-get obj :kind))
+      (mapcan #'unfurl
+              (jsonrpc-request (eglot--current-server-or-lose)
+                               :textDocument/documentSymbol
+                               `(:textDocument
+                                 ,(eglot--TextDocumentIdentifier))))))))
 
 (defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
