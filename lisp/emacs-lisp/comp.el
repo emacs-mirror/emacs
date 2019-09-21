@@ -484,6 +484,7 @@ Restore the original value afterwards."
 
 (defun comp-emit (insn)
   "Emit INSN into current basic block."
+  (cl-assert (not (comp-block-closed comp-block)))
   (push insn (comp-block-insns comp-block)))
 
 (defun comp-emit-set-call (call)
