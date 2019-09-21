@@ -1303,27 +1303,39 @@ This can run just once."
 
 (defun comp-call-optim-form-call (callee args self)
   ""
-  (when (symbolp callee) ; Do nothing if callee is a byte compiled func.
-    (let* ((f (symbol-function callee))
-           (subrp (subrp f))
-           (callee-in-unit (gethash callee
-                                    (comp-ctxt-funcs-h comp-ctxt))))
-      (if (and subrp (not (subr-native-elispp f)))
-          (let ((call-type (if (if subrp
-                                    (not (numberp (cdr (subr-arity f))))
-                                  (comp-nargs-p callee-in-unit))
-                                'callref
-                             'call)))
-            (comp-add-subr-to-relocs callee)
-            `(,call-type ,callee ,@args))
-        ;; Intra compilation unit procedure call optimization.
-        (when (or (eq callee self)
-                  ;; Attention speed 3 triggers that for non self calls too!!
-                  (and (>= comp-speed 3)
-                       callee-in-unit))
-          (let* ((nargs (comp-nargs-p (comp-func-args callee-in-unit)))
-                 (call-type (if nargs 'direct-callref 'direct-call)))
-            `(,call-type ,callee ,@args)))))))
+  (cl-flet ((fill-args (args total)
+              ;; Fill missing args to reach TOTAL
+              (append args (cl-loop repeat (- total (length args))
+                                    collect (make-comp-mvar :constant nil)))))
+    (when (symbolp callee) ; Do nothing if callee is a byte compiled func.
+      (let* ((f (symbol-function callee))
+             (subrp (subrp f))
+             (callee-in-unit (gethash callee
+                                      (comp-ctxt-funcs-h comp-ctxt))))
+        (if (and subrp (not (subr-native-elispp f)))
+            (let* ((maxarg (cdr (subr-arity f)))
+                   (call-type (if (if subrp
+                                      (not (numberp maxarg))
+                                    (comp-nargs-p callee-in-unit))
+                                  'callref
+                                'call))
+                   (args (if (eq call-type 'callref)
+                             args
+                           (fill-args args maxarg))))
+              (comp-add-subr-to-relocs callee)
+              `(,call-type ,callee ,@args))
+          ;; Intra compilation unit procedure call optimization.
+          (when (or (eq callee self)
+                    ;; Attention speed 3 triggers that for non self calls too!!
+                    (and (>= comp-speed 3)
+                         callee-in-unit))
+            (let* ((func-args (comp-func-args callee-in-unit))
+                   (nargs (comp-nargs-p func-args))
+                   (call-type (if nargs 'direct-callref 'direct-call))
+                   (args (if (eq call-type 'direct-callref)
+                             args
+                           (fill-args args (comp-args-max func-args)))))
+              `(,call-type ,callee ,@args))))))))
 
 (defun comp-call-optim (funcs)
   "Given FUNCS try to avoid funcall trampoline usage when possible."
