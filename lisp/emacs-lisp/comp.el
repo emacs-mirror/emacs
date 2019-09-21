@@ -285,7 +285,7 @@ BODY is evaluate only if `comp-debug' is non nil."
 
 (defun comp-log-func (func)
   "Log function FUNC."
-  (comp-log (format "\n\n Function: %s" (comp-func-symbol-name func)))
+  (comp-log (format "\n Function: %s" (comp-func-symbol-name func)))
   (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
            using (hash-value bb)
            do (progn
@@ -1409,6 +1409,7 @@ If INPUT is a string, use it as the file path to be native compiled."
                                                (symbol-name input)
                                              (file-name-sans-extension input)))))
     (mapc (lambda (pass)
+            (comp-log (format "\nRunning pass %s: " pass))
             (setq data (funcall pass data)))
           comp-passes)))
 
