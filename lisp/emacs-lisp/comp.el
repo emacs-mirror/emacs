@@ -195,8 +195,7 @@ Is in use to help the SSA rename pass."))
           :documentation "Key is the basic block symbol value is a comp-block
 structure.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
-             :documentation "Key value to convert from LAP label number to
-LIMPLE basic block.")
+             :documentation "LAP lable -> LIMPLE basic block.")
   (edges () :type list
          :documentation "List of edges connecting basic blocks.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
