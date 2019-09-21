@@ -351,13 +351,15 @@ Put PREFIX in front of it."
         (error "Can't native compile an already bytecompiled function"))
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-symbol-name func)))
-      (comp-log byte-to-native-last-lap)
-      (let ((lambda-list (aref (comp-func-byte-func func) 0)))
-        (setf (comp-func-args func)
-              (comp-decrypt-lambda-list lambda-list)))
-      (setf (comp-func-lap func) byte-to-native-last-lap)
-      (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
-      func))
+      (let ((lap (cdr (assoc function-name (reverse byte-to-native-bytecode)))))
+        (cl-assert lap)
+        (comp-log lap)
+        (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+          (setf (comp-func-args func)
+                (comp-decrypt-lambda-list lambda-list)))
+        (setf (comp-func-lap func) lap)
+        (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
+        func)))
 
 (defun comp-spill-lap-functions-file (filename)
   "Byte compile FILENAME spilling data from the byte compiler."
@@ -368,7 +370,11 @@ Put PREFIX in front of it."
                              ('defvar (cdr x))
                              ('defconst (cdr x))))
                          byte-to-native-top-level-forms)))
-  (cl-loop for (name lap bytecode) in byte-to-native-output
+  ;; Hacky! We need to reverse `byte-to-native-lap' to have the compiled top
+  ;; level form that matters (ex exclude lambdas)...
+  (cl-loop with lap-funcs = byte-to-native-lap
+           for (name . bytecode) in byte-to-native-bytecode
+           for lap = (cdr (assoc name lap-funcs))
            for lambda-list = (aref bytecode 0)
            for func = (make-comp-func :symbol-name name
                                       :byte-func bytecode
@@ -386,8 +392,8 @@ Put PREFIX in front of it."
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
-        (byte-to-native-last-lap nil)
-        (byte-to-native-output ())
+        (byte-to-native-lap ())
+        (byte-to-native-bytecode ())
         (byte-to-native-top-level-forms ()))
     (cl-typecase input
       (symbol (list (comp-spill-lap-function input)))
