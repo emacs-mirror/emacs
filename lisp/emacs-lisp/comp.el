@@ -281,7 +281,8 @@ BODY is evaluate only if `comp-debug' is non nil."
           (insert data)
         (mapc (lambda (x)
                 (insert (prin1-to-string x) "\n"))
-              data)))))
+              data)
+        (insert "\n")))))
 
 (defun comp-log-func (func)
   "Log function FUNC."
@@ -289,7 +290,7 @@ BODY is evaluate only if `comp-debug' is non nil."
   (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
            using (hash-value bb)
            do (progn
-                (comp-log (concat "\n<" (symbol-name block-name) ">\n"))
+                (comp-log (concat "<" (symbol-name block-name) ">\n"))
                 (comp-log (comp-block-insns bb)))))
 
 (defun comp-log-edges (func)
@@ -384,7 +385,9 @@ Put PREFIX in front of it."
                                       :args (comp-decrypt-lambda-list lambda-list)
                                       :lap lap
                                       :frame-size (aref bytecode 3))
-           do (comp-log lap)
+           do (progn
+                (comp-log (format "Function %s:\n" name))
+                (comp-log lap))
            collect func))
 
 (defun comp-spill-lap (input)
@@ -1415,7 +1418,7 @@ If INPUT is a string, use it as the file path to be native compiled."
                                                (symbol-name input)
                                              (file-name-sans-extension input)))))
     (mapc (lambda (pass)
-            (comp-log (format "\nRunning pass %s: " pass))
+            (comp-log (format "Running pass %s:\n" pass))
             (setq data (funcall pass data)))
           comp-passes)))
 
