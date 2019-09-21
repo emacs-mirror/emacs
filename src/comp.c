@@ -2820,9 +2820,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 
     }
 
-  /* Do not inline within a compilation unit.  */
-  gcc_jit_context_add_command_line_option (comp.ctxt, "-fno-inline");
-
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
