@@ -353,27 +353,39 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
   return field;
 }
 
+/* Emit calls fetching from existing declarations.  */
 static gcc_jit_rvalue *
 emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
-	   gcc_jit_rvalue **args)
+	   gcc_jit_rvalue **args, bool direct)
 {
-  Lisp_Object value = Fgethash (subr_sym, comp.imported_funcs_h, Qnil);
-  ICE_IF (NILP (value), "missing function declaration");
+  Lisp_Object func =
+    Fgethash (subr_sym, direct ? comp.exported_funcs_h: comp.imported_funcs_h,
+	      Qnil);
+  ICE_IF (NILP (func), "missing function declaration");
 
-  gcc_jit_lvalue *f_ptr =
-    gcc_jit_lvalue_access_field (comp.func_relocs,
-				 NULL,
-				 (gcc_jit_field *) xmint_pointer (value));
-
-  ICE_IF (!f_ptr, "undeclared function relocation");
-
-  emit_comment (format_string ("calling subr: %s",
-			       SSDATA (SYMBOL_NAME (subr_sym))));
-  return gcc_jit_context_new_call_through_ptr(comp.ctxt,
-					      NULL,
-					      gcc_jit_lvalue_as_rvalue (f_ptr),
-					      nargs,
-					      args);
+  if (direct)
+    {
+      emit_comment (format_string ("direct call to subr: %s",
+				   SSDATA (SYMBOL_NAME (subr_sym))));
+      return gcc_jit_context_new_call (comp.ctxt,
+				       NULL,
+				       xmint_pointer (func),
+				       nargs,
+				       args);
+    } else {
+    gcc_jit_lvalue *f_ptr =
+      gcc_jit_lvalue_access_field (comp.func_relocs,
+				   NULL,
+				   (gcc_jit_field *) xmint_pointer (func));
+    ICE_IF (!f_ptr, "undeclared function relocation");
+    emit_comment (format_string ("calling subr: %s",
+				 SSDATA (SYMBOL_NAME (subr_sym))));
+    return gcc_jit_context_new_call_through_ptr (comp.ctxt,
+						 NULL,
+						 gcc_jit_lvalue_as_rvalue (f_ptr),
+						 nargs,
+						 args);
+  }
 }
 
 static gcc_jit_rvalue *
@@ -385,7 +397,7 @@ emit_call_ref (Lisp_Object subr_sym, unsigned nargs,
 					  comp.ptrdiff_type,
 					  nargs),
       gcc_jit_lvalue_get_address (base_arg, NULL) };
-  return emit_call (subr_sym, comp.lisp_obj_type, 2, args);
+  return emit_call (subr_sym, comp.lisp_obj_type, 2, args, false);
 }
 
 /* Close current basic block emitting a conditional.  */
@@ -1036,7 +1048,7 @@ emit_set_internal (Lisp_Object args)
 						     comp.int_type,
 						     SET_INTERNAL_SET);
   return emit_call (intern_c_string ("set_internal"), comp.void_type , 4,
-		    gcc_args);
+		    gcc_args, false);
 }
 
 /* This is for a regular function with arguments as m-var.   */
@@ -1054,7 +1066,7 @@ emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
 
   SAFE_FREE ();
-  return emit_call (callee, ret_type, nargs, gcc_args);
+  return emit_call (callee, ret_type, nargs, gcc_args, false);
 }
 
 static gcc_jit_rvalue *
@@ -1128,7 +1140,8 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 	      comp.block,
 	      NULL,
 	      c,
-	      emit_call (intern_c_string ("push_handler"), comp.handler_ptr_type, 2, args));
+	      emit_call (intern_c_string ("push_handler"),
+			 comp.handler_ptr_type, 2, args, false));
 
   args[0] =
     gcc_jit_lvalue_get_address (
@@ -1139,7 +1152,8 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 	NULL);
 
   gcc_jit_rvalue *res;
-  res = emit_call (intern_c_string (SETJMP_NAME), comp.int_type, 1, args);
+  res =
+    emit_call (intern_c_string (SETJMP_NAME), comp.int_type, 1, args, false);
   emit_cond_jump (res, handler_bb, guarded_bb);
 
   /* This emit the handler part.  */
@@ -1276,6 +1290,7 @@ emit_limple_insn (Lisp_Object insn)
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
 	res = emit_mvar_val (arg1);
+      /* FIXME: should recurr here */
       else if (EQ (FIRST (arg1), Qcall))
 	res = emit_limple_call (XCDR (arg1));
       else if (EQ (FIRST (arg1), Qcallref))
@@ -1349,7 +1364,7 @@ emit_limple_insn (Lisp_Object insn)
 	  gcc_jit_lvalue_as_rvalue (args) };
 
       res = emit_call (Qlist, comp.lisp_obj_type, 2,
-		       list_args);
+		       list_args, false);
 
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
@@ -2158,7 +2173,8 @@ define_CHECK_TYPE (void)
   gcc_jit_block_add_eval (comp.block,
 			  NULL,
 			  emit_call (intern_c_string ("wrong_type_argument"),
-				     comp.void_type, 2, wrong_type_args));
+				     comp.void_type, 2, wrong_type_args,
+				     false));
 
   gcc_jit_block_end_with_void_return (not_ok_block, NULL);
 }
@@ -2240,7 +2256,8 @@ define_CAR_CDR (void)
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
 			      emit_call (intern_c_string ("wrong_type_argument"),
-					 comp.void_type, 2, wrong_type_args));
+					 comp.void_type, 2, wrong_type_args,
+					 false));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
 				     emit_const_lisp_obj (Qnil));
@@ -2389,7 +2406,7 @@ define_add1_sub1 (void)
 
       comp.block = fcall_block;
       gcc_jit_rvalue *call_res = emit_call (intern_c_string (fall_back_func[i]),
-					    comp.lisp_obj_type, 1, &n);
+					    comp.lisp_obj_type, 1, &n, false);
       gcc_jit_block_end_with_return (fcall_block,
 				     NULL,
 				     call_res);
@@ -2521,9 +2538,7 @@ define_PSEUDOVECTORP (void)
     call_pseudovector_typep_b,
     NULL,
     emit_call (intern_c_string ("helper_PSEUDOVECTOR_TYPEP_XUNTAG"),
-	       comp.bool_type,
-	       2,
-	       args));
+	       comp.bool_type, 2, args, false));
 }
 
 static void
@@ -2566,8 +2581,8 @@ define_CHECK_IMPURE (void)
     gcc_jit_block_add_eval (comp.block,
 			    NULL,
 			    emit_call (intern_c_string ("pure_write_error"),
-				       comp.void_type, 1,
-				       &pure_write_error_arg));
+				       comp.void_type, 1,&pure_write_error_arg,
+				       false));
 
     gcc_jit_block_end_with_void_return (err_block, NULL);
 }
