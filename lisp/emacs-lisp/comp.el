@@ -1308,20 +1308,22 @@ This can run just once."
            (subrp (subrp f))
            (callee-in-unit (gethash callee
                                     (comp-ctxt-funcs-h comp-ctxt))))
-      (when-let* ((optimize (or (and subrp
-                                     (not (subr-native-elispp f)))
-                                (eq callee self)
-                                ;; Attention speed 3 optimize inter compilation
-                                ;; unit calls!!
-                                (and (>= comp-speed 3)
-                                     callee-in-unit)))
-                  (call-type (if (if subrp
-                                     (not (numberp (cdr (subr-arity f))))
-                                   (comp-nargs-p callee-in-unit))
-                                 'callref
-                               'call)))
-        (comp-add-subr-to-relocs callee)
-        `(,call-type ,callee ,@args)))))
+      (if (and subrp (not (subr-native-elispp f)))
+          (let ((call-type (if (if subrp
+                                    (not (numberp (cdr (subr-arity f))))
+                                  (comp-nargs-p callee-in-unit))
+                                'callref
+                             'call)))
+            (comp-add-subr-to-relocs callee)
+            `(,call-type ,callee ,@args))
+        ;; Intra compilation unit procedure call optimization.
+        (when (or (eq callee self)
+                  ;; Attention speed 3 triggers that for non self calls too!!
+                  (and (>= comp-speed 3)
+                       callee-in-unit))
+          (let* ((nargs (comp-nargs-p (comp-func-args callee-in-unit)))
+                 (call-type (if nargs 'direct-callref 'direct-call)))
+            `(,call-type ,callee ,@args)))))))
 
 (defun comp-call-optim (funcs)
   "Given FUNCS try to avoid funcall trampoline usage when possible."
