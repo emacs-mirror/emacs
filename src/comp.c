@@ -147,7 +147,6 @@ typedef struct {
   gcc_jit_field *cast_union_as_lisp_obj;
   gcc_jit_field *cast_union_as_lisp_obj_ptr;
   gcc_jit_function *func; /* Current function being compiled.  */
-  Lisp_Object lfunc;
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue **frame; /* Frame for the current function.  */
   gcc_jit_rvalue *most_positive_fixnum;
@@ -166,8 +165,9 @@ typedef struct {
   gcc_jit_function *setcdr;
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
-  Lisp_Object func_blocks; /* blk_name -> gcc_block.  */
-  Lisp_Object imported_func_h; /* subr_name -> reloc_field.  */
+  Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
+  Lisp_Object exported_funcs_h; /* subr_name -> gcc_jit_function *.  */
+  Lisp_Object imported_funcs_h; /* subr_name -> reloc_field.  */
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
   gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
@@ -265,7 +265,7 @@ type_to_cast_field (gcc_jit_type *type)
 static gcc_jit_block *
 retrive_block (Lisp_Object block_name)
 {
-  Lisp_Object value = Fgethash (block_name, comp.func_blocks, Qnil);
+  Lisp_Object value = Fgethash (block_name, comp.func_blocks_h, Qnil);
   ICE_IF (NILP (value), "missing basic block");
 
   return (gcc_jit_block *) xmint_pointer (value);
@@ -277,9 +277,9 @@ declare_block (Lisp_Object block_name)
   char *name_str = (char *) SDATA (SYMBOL_NAME (block_name));
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, name_str);
   Lisp_Object value = make_mint_ptr (block);
-  ICE_IF (!NILP (Fgethash (block_name, comp.func_blocks, Qnil)),
+  ICE_IF (!NILP (Fgethash (block_name, comp.func_blocks_h, Qnil)),
 	  "double basic block declaration");
-  Fputhash (block_name, value, comp.func_blocks);
+  Fputhash (block_name, value, comp.func_blocks_h);
 }
 
 static void
@@ -308,7 +308,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 		       int nargs, gcc_jit_type **types)
 {
   /* Don't want to declare the same function two times.  */
-  ICE_IF (!NILP (Fgethash (subr_sym, comp.imported_func_h, Qnil)),
+  ICE_IF (!NILP (Fgethash (subr_sym, comp.imported_funcs_h, Qnil)),
 	  "unexpected double function declaration");
 
   if (nargs == MANY)
@@ -349,63 +349,15 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 			       f_ptr_type,
 			       SSDATA (f_ptr_name));
 
-  Fputhash (subr_sym, make_mint_ptr (field), comp.imported_func_h);
+  Fputhash (subr_sym, make_mint_ptr (field), comp.imported_funcs_h);
   return field;
-}
-
-static void
-fill_declaration_types (gcc_jit_type **type, gcc_jit_rvalue **args,
-			unsigned nargs)
-{
-  /* If args are passed types are extracted from that otherwise assume params */
-  /* are all lisp objs.	 */
-  if (args)
-    for (unsigned i = 0; i < nargs; i++)
-      type[i] = gcc_jit_rvalue_get_type (args[i]);
-  else
-    for (unsigned i = 0; i < nargs; i++)
-      type[i] = comp.lisp_obj_type;
-}
-
-static gcc_jit_function *
-declare_exported_func (const char *f_name, gcc_jit_type *ret_type,
-		       unsigned nargs, gcc_jit_rvalue **args)
-{
-  USE_SAFE_ALLOCA;
-  gcc_jit_type **type = SAFE_ALLOCA (nargs * sizeof (*type));
-  fill_declaration_types (type, args, nargs);
-
-  gcc_jit_param **param = SAFE_ALLOCA (nargs *sizeof (*param));
-  for (int i = nargs - 1; i >= 0; i--)
-    param[i] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[i],
-					 format_string ("par_%d", i));
-  SAFE_FREE ();
-  return gcc_jit_context_new_function(comp.ctxt, NULL,
-				      GCC_JIT_GLOBAL_EXPORTED,
-				      ret_type,
-				      f_name,
-				      nargs,
-				      param,
-				      0);
 }
 
 static gcc_jit_rvalue *
 emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 	   gcc_jit_rvalue **args)
 {
-  /* Self call optimization.  */
-  if (!NILP (comp.lfunc) &&
-      comp_speed >= 2 &&
-      EQ (subr_sym, FUNCALL1 (comp-func-symbol-name, comp.lfunc)))
-    return gcc_jit_context_new_call (comp.ctxt,
-				     NULL,
-				     comp.func,
-				     nargs,
-				     args);
-
-  Lisp_Object value = Fgethash (subr_sym, comp.imported_func_h, Qnil);
+  Lisp_Object value = Fgethash (subr_sym, comp.imported_funcs_h, Qnil);
   ICE_IF (NILP (value), "missing function declaration");
 
   gcc_jit_lvalue *f_ptr =
@@ -2660,22 +2612,36 @@ define_bool_to_lisp_obj (void)
 
 }
 
+/* Declare a function being compiled and add it to comp.exported_funcs_h.  */
 static void
-compile_function (Lisp_Object func)
+declare_function (Lisp_Object func)
 {
-  USE_SAFE_ALLOCA;
+  gcc_jit_function *gcc_func;
   char *c_name = SSDATA (FUNCALL1 (comp-func-c-func-name, func));
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
-  EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
   bool ncall = (FUNCALL1 (comp-nargs-p, args));
-
-  comp.lfunc = func;
+  USE_SAFE_ALLOCA;
 
   if (!ncall)
     {
       EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
-      comp.func
-	= declare_exported_func (c_name, comp.lisp_obj_type, max_args, NULL);
+      gcc_jit_type **type = SAFE_ALLOCA (max_args * sizeof (*type));
+      for (unsigned i = 0; i < max_args; i++)
+	type[i] = comp.lisp_obj_type;
+
+      gcc_jit_param **param = SAFE_ALLOCA (max_args *sizeof (*param));
+      for (int i = max_args - 1; i >= 0; i--)
+	param[i] = gcc_jit_context_new_param (comp.ctxt,
+					      NULL,
+					      type[i],
+					      format_string ("par_%d", i));
+      gcc_func = gcc_jit_context_new_function (comp.ctxt, NULL,
+					       GCC_JIT_GLOBAL_EXPORTED,
+					       comp.lisp_obj_type,
+					       c_name,
+					       max_args,
+					       param,
+					       0);
     }
   else
     {
@@ -2688,13 +2654,29 @@ compile_function (Lisp_Object func)
 				     NULL,
 				     comp.lisp_obj_ptr_type,
 				     "args") };
-      comp.func =
+      gcc_func =
 	gcc_jit_context_new_function (comp.ctxt,
 				      NULL,
 				      GCC_JIT_FUNCTION_EXPORTED,
 				      comp.lisp_obj_type,
 				      c_name, 2, param, 0);
     }
+
+  Fputhash (FUNCALL1 (comp-func-symbol-name, func),
+	    make_mint_ptr (gcc_func),
+	    comp.exported_funcs_h);
+
+  SAFE_FREE ();
+}
+
+static void
+compile_function (Lisp_Object func)
+{
+  USE_SAFE_ALLOCA;
+  EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
+
+  comp.func = xmint_pointer (Fgethash (FUNCALL1 (comp-func-symbol-name, func),
+				       comp.exported_funcs_h, Qnil));
 
   gcc_jit_lvalue *frame_array =
     gcc_jit_function_new_local (
@@ -2717,7 +2699,7 @@ compile_function (Lisp_Object func)
 					     comp.int_type,
 					     i));
 
-  comp.func_blocks = CALLN (Fmake_hash_table);
+  comp.func_blocks_h = CALLN (Fmake_hash_table);
 
   /* Pre declare all basic blocks to gcc.
      The "entry" block must be declared as first.  */
@@ -2752,7 +2734,6 @@ compile_function (Lisp_Object func)
 	  format_string ("failing to compile function %s with error: %s",
 			 SSDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))),
 			 err));
-  comp.lfunc = Qnil;
   SAFE_FREE ();
 }
 
@@ -2906,11 +2887,12 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						    sizeof (void *),
 						    false);
 
+  comp.exported_funcs_h = CALLN (Fmake_hash_table);
   /*
     Always reinitialize this cause old function definitions are garbage collected
     by libgccjit when the ctxt is released.
   */
-  comp.imported_func_h = CALLN (Fmake_hash_table);
+  comp.imported_funcs_h = CALLN (Fmake_hash_table);
 
   /* Define data structures.  */
 
@@ -2983,6 +2965,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
      relocation structs has to be already defined.  */
   struct Lisp_Hash_Table *func_h
     = XHASH_TABLE (FUNCALL1 (comp-ctxt-funcs-h, Vcomp_ctxt));
+  for (ptrdiff_t i = 0; i < func_h->count; i++)
+    declare_function (HASH_VALUE (func_h, i));
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     compile_function (HASH_VALUE (func_h, i));
 
@@ -3220,6 +3204,8 @@ syms_of_comp (void)
   DEFSYM (Qjump, "jump");
   DEFSYM (Qcall, "call");
   DEFSYM (Qcallref, "callref");
+  DEFSYM (Qdirect_call, "direct-call");
+  DEFSYM (Qdirect_callref, "direct-callref");
   DEFSYM (Qncall, "ncall");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
@@ -3265,9 +3251,11 @@ syms_of_comp (void)
   defsubr (&Scomp__compile_ctxt_to_file);
   defsubr (&Snative_elisp_load);
 
-  staticpro (&comp.imported_func_h);
-  comp.imported_func_h = Qnil;
-  staticpro (&comp.func_blocks);
+  staticpro (&comp.exported_funcs_h);
+  comp.exported_funcs_h = Qnil;
+  staticpro (&comp.imported_funcs_h);
+  comp.imported_funcs_h = Qnil;
+  staticpro (&comp.func_blocks_h);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
 
