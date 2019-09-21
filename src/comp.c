@@ -390,14 +390,14 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 
 static gcc_jit_rvalue *
 emit_call_ref (Lisp_Object subr_sym, unsigned nargs,
-	       gcc_jit_lvalue *base_arg)
+	       gcc_jit_lvalue *base_arg, bool direct)
 {
   gcc_jit_rvalue *args[] =
     { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
 					  comp.ptrdiff_type,
 					  nargs),
       gcc_jit_lvalue_get_address (base_arg, NULL) };
-  return emit_call (subr_sym, comp.lisp_obj_type, 2, args, false);
+  return emit_call (subr_sym, comp.lisp_obj_type, 2, args, direct);
 }
 
 /* Close current basic block emitting a conditional.  */
@@ -1054,7 +1054,7 @@ emit_set_internal (Lisp_Object args)
 /* This is for a regular function with arguments as m-var.   */
 
 static gcc_jit_rvalue *
-emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
+emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type, bool direct)
 {
   USE_SAFE_ALLOCA;
   int i = 0;
@@ -1066,25 +1066,23 @@ emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
 
   SAFE_FREE ();
-  return emit_call (callee, ret_type, nargs, gcc_args, false);
+  return emit_call (callee, ret_type, nargs, gcc_args, direct);
 }
 
 static gcc_jit_rvalue *
 emit_simple_limple_call_lisp_ret (Lisp_Object args)
 {
   /*
-    Ex: (call Fcar #s(comp-mvar 4 0 nil nil nil))
-
     Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
                     #s(comp-mvar 4 nil t nil nil))
   */
-  return emit_simple_limple_call (args, comp.lisp_obj_type);
+  return emit_simple_limple_call (args, comp.lisp_obj_type, false);
 }
 
 static gcc_jit_rvalue *
 emit_simple_limple_call_void_ret (Lisp_Object args)
 {
-  return emit_simple_limple_call (args, comp.void_type);
+  return emit_simple_limple_call (args, comp.void_type, false);
 }
 
 /* Entry point to dispatch emitting (call fun ...).  */
@@ -1105,7 +1103,7 @@ emit_limple_call (Lisp_Object insn)
 }
 
 static gcc_jit_rvalue *
-emit_limple_call_ref (Lisp_Object insn)
+emit_limple_call_ref (Lisp_Object insn, bool direct)
 {
   /* Ex: (callref < #s(comp-mvar 1 6 nil nil nil t)
                     #s(comp-mvar 2 11 t 10 integer t)).  */
@@ -1113,7 +1111,7 @@ emit_limple_call_ref (Lisp_Object insn)
   Lisp_Object callee = FIRST (insn);
   EMACS_UINT nargs = XFIXNUM (Flength (CDR (insn)));
   EMACS_UINT base_ptr = XFIXNUM (FUNCALL1 (comp-mvar-slot, SECOND (insn)));
-  return emit_call_ref (callee, nargs, comp.frame[base_ptr]);
+  return emit_call_ref (callee, nargs, comp.frame[base_ptr], false);
 }
 
 /* Register an handler for a non local exit.  */
@@ -1290,11 +1288,14 @@ emit_limple_insn (Lisp_Object insn)
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
 	res = emit_mvar_val (arg1);
-      /* FIXME: should recurr here */
       else if (EQ (FIRST (arg1), Qcall))
 	res = emit_limple_call (XCDR (arg1));
       else if (EQ (FIRST (arg1), Qcallref))
-	res = emit_limple_call_ref (XCDR (arg1));
+	res = emit_limple_call_ref (XCDR (arg1), false);
+      else if (EQ (FIRST (arg1), Qdirect_call))
+	res = emit_simple_limple_call (XCDR (arg1), comp.lisp_obj_type, true);
+      else if (EQ (FIRST (arg1), Qcallref))
+	res = emit_limple_call_ref (XCDR (arg1), true);
       else
 	ice ("LIMPLE inconsistent arg1 for op =");
 
@@ -2479,7 +2480,7 @@ define_negate (void)
 				 emit_make_fixnum (inline_res));
 
   comp.block = fcall_block;
-  gcc_jit_rvalue *call_res = emit_call_ref (Qminus, 1, n);
+  gcc_jit_rvalue *call_res = emit_call_ref (Qminus, 1, n, false);
   gcc_jit_block_end_with_return (fcall_block,
 				 NULL,
 				 call_res);
