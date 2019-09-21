@@ -995,7 +995,7 @@ Top level forms for the current context are rendered too."
              for bb being each hash-value of blocks
              for last-insn = (car (last (comp-block-insns bb)))
              for (op first second third forth) = last-insn
-             do (cl-ecase op
+             do (cl-case op
                   (jump
                    (edge-add :src bb :dst (gethash first blocks)))
                   (cond-jump
@@ -1007,7 +1007,10 @@ Top level forms for the current context are rendered too."
                   (push-handler
                    (edge-add :src bb :dst (gethash third blocks))
                    (edge-add :src bb :dst (gethash forth blocks)))
-                  (return))
+                  (return)
+                  (otherwise
+                   (error "Block %s does not end with a branch in func %s"
+                          bb (comp-func-symbol-name comp-func))))
              finally (progn
                        (setf (comp-func-edges comp-func)
                              (nreverse (comp-func-edges comp-func)))
