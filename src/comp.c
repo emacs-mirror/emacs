@@ -1299,7 +1299,7 @@ emit_limple_insn (Lisp_Object insn)
       else
 	ice ("LIMPLE inconsistent arg1 for op =");
 
-      ICE_IF (!res, "incoherent insn");
+      ICE_IF (!res, gcc_jit_context_get_first_error (comp.ctxt));
 
       gcc_jit_block_add_assignment (comp.block,
 				    NULL,
