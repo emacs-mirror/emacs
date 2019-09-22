@@ -1534,9 +1534,9 @@ emit_static_object (const char *name, Lisp_Object obj)
   /* libgccjit has no support for initialized static data.
      The mechanism below is certainly not aesthetic but I assume the bottle neck
      in terms of performance at load time will still be the reader.
-     NOTE: we can not relay on it even for valid C strings cause of
-     this funny bug that will affect all pre gcc10 era gccs:
-     https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html */
+     NOTE: we can not relay on libgccjit even for valid NULL terminated C
+     strings cause of this funny bug that will affect all pre gcc10 era gccs:
+     https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html  */
 
   Lisp_Object str = Fprin1_to_string (obj, Qnil);
   ptrdiff_t len = SBYTES (str);
