@@ -525,7 +525,9 @@ based on the Tramp and Emacs versions, and should not be set here."
   :type '(repeat string))
 
 ;;;###tramp-autoload
-(defcustom tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile"))
+(defcustom tramp-sh-extra-args
+  '(("/bash\\'" . "-norc -noprofile")
+    ("/zsh\\'" . "-f +Z"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
@@ -1198,18 +1200,22 @@ component is used as the target of the symlink."
 
 (defun tramp-sh-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-exists-p"
-      (or (not (null (tramp-get-file-property
-                      v localname "file-attributes-integer" nil)))
-          (not (null (tramp-get-file-property
-                      v localname "file-attributes-string" nil)))
-	  (tramp-send-command-and-check
-	   v
-	   (format
-	    "%s %s"
-	    (tramp-get-file-exists-command v)
-	    (tramp-shell-quote-argument localname)))))))
+  ;; `file-exists-p' is used as predicate in file name completion.
+  ;; We don't want to run it when `non-essential' is t, or there is
+  ;; no connection process yet.
+  (when (tramp-connectable-p filename)
+    (with-parsed-tramp-file-name filename nil
+      (with-tramp-file-property v localname "file-exists-p"
+	(or (not (null (tramp-get-file-property
+			v localname "file-attributes-integer" nil)))
+            (not (null (tramp-get-file-property
+			v localname "file-attributes-string" nil)))
+	    (tramp-send-command-and-check
+	     v
+	     (format
+	      "%s %s"
+	      (tramp-get-file-exists-command v)
+	      (tramp-shell-quote-argument localname))))))))
 
 (defun tramp-sh-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -4762,6 +4768,10 @@ If there is just some editing, retry it after 5 seconds."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  ;; During completion, don't reopen a new connection.
+  (unless (tramp-connectable-p vec)
+    (throw 'non-essential 'non-essential))
+
   (let ((p (tramp-get-connection-process vec))
 	(process-name (tramp-get-connection-property vec "process-name" nil))
 	(process-environment (copy-sequence process-environment))
@@ -4806,15 +4816,6 @@ connection if a previous connection has died for some reason."
     ;; New connection must be opened.
     (condition-case err
 	(unless (process-live-p p)
-
-	  ;; During completion, don't reopen a new connection.  We
-	  ;; check this for the process related to
-	  ;; `tramp-buffer-name'; otherwise `start-file-process'
-	  ;; wouldn't run ever when `non-essential' is non-nil.
-	  (when (and (tramp-completion-mode-p)
-		     (null (get-process (tramp-buffer-name vec))))
-	    (throw 'non-essential 'non-essential))
-
 	  (with-tramp-progress-reporter
 	      vec 3
 	      (if (zerop (length (tramp-file-name-user vec)))

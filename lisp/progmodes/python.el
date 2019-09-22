@@ -4084,6 +4084,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
       (goto-char (line-end-position))))
   t)
 
+(defun python-do-auto-fill ()
+  "Like `do-auto-fill', but bind `fill-indent-according-to-mode'."
+  ;; See Bug#36056.
+  (let ((fill-indent-according-to-mode t))
+    (do-auto-fill)))
+
 
 ;;; Skeletons
 
@@ -5379,7 +5385,7 @@ REPORT-FN is Flymake's callback function."
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
        #'python-fill-paragraph)
-  (set (make-local-variable 'fill-indent-according-to-mode) t) ; Bug#36056.
+  (set (make-local-variable 'normal-auto-fill-function) #'python-do-auto-fill)
 
   (set (make-local-variable 'beginning-of-defun-function)
        #'python-nav-beginning-of-defun)

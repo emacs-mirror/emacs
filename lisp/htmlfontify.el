@@ -1938,9 +1938,9 @@ adding an extension of `hfy-extn'.  Fontification is actually done by
                  (set-buffer  html)
                  (write-file (concat target hfy-extn))
                  (kill-buffer html))
-        ;; #o0200 == 128, but emacs20 doesn't know that
-        (if (and (file-exists-p target) (not (file-writable-p target)))
-            (set-file-modes target (logior (file-modes target) 128)))
+	(let ((modes (file-modes target)))
+	  (if (and modes (not (file-writable-p target)))
+	      (set-file-modes target (logior modes #o0200))))
         (copy-file (buffer-file-name source) target 'overwrite))
       (kill-buffer source)) ))
 

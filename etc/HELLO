@@ -79,7 +79,9 @@ Spanish (espa</x-charset><x-charset><param>latin-iso8859-1</param>ñol)	¡Hola!
 Swedish (svenska)	Hej / Goddag / Hallå
 </x-charset><x-charset><param>mule-unicode-0100-24ff</param>Tamil (தமிழ்)	வணக்கம்
 Telugu (తెలుగు)	నమస్కారం
-</x-charset><x-charset><param>thai-tis620</param>Thai (ภาษาไทย)	สวัสดีครับ / สวัสดีค่ะ
+</x-charset>TaiViet (ꪁꪫꪱꪣ ꪼꪕ)	ꪅꪰꪙꫂ ꪨꪮꫂ ꪁꪫꪱ / ꪅꪽ ꪨꪷ ꪁꪫꪱ
+
+<x-charset><param>thai-tis620</param>Thai (ภาษาไทย)	สวัสดีครับ / สวัสดีค่ะ
 </x-charset><x-charset><param>tibetan</param>Tibetan (བོད་སྐད་)	བཀྲ་ཤིས་བདེ་ལེགས༎
 </x-charset><x-charset><param>mule-unicode-0100-24ff</param>Tigrigna (ትግርኛ)	ሰላማት
 </x-charset><x-charset><param>latin-iso8859-9</param>Turkish (Türkçe)	Merhaba

@@ -366,8 +366,9 @@ FILE is a file wildcard, relative to the root directory of DIRECTORY."
 (defun vc-svn-ignore-completion-table (directory)
   "Return the list of ignored files in DIRECTORY."
   (with-temp-buffer
-    (vc-svn-command t t nil "propget" "svn:ignore" (expand-file-name directory))
-    (split-string (buffer-string))))
+    (when (zerop (vc-svn-command
+                  t t nil "propget" "svn:ignore" (expand-file-name directory)))
+      (split-string (buffer-string) "\n"))))
 
 (defun vc-svn-find-admin-dir (file)
   "Return the administrative directory of FILE."

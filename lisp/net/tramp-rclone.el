@@ -520,19 +520,14 @@ file names."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  ;; During completion, don't reopen a new connection.
+  (unless (tramp-connectable-p vec)
+    (throw 'non-essential 'non-essential))
+
   (let ((host (tramp-file-name-host vec)))
     (when (rassoc `(,host) (tramp-rclone-parse-device-names nil))
       (if (zerop (length host))
 	  (tramp-error vec 'file-error "Storage %s not connected" host))
-
-      ;; During completion, don't reopen a new connection.  We check
-      ;; this for the process related to `tramp-buffer-name';
-      ;; otherwise `start-file-process' wouldn't run ever when
-      ;; `non-essential' is non-nil.
-      (when (and (tramp-completion-mode-p)
-		 (null (get-process (tramp-buffer-name vec))))
-	(throw 'non-essential 'non-essential))
-
       ;; We need a process bound to the connection buffer.  Therefore,
       ;; we create a dummy process.  Maybe there is a better solution?
       (unless (get-buffer-process (tramp-get-connection-buffer vec))

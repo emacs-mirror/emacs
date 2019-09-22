@@ -196,10 +196,6 @@ the new version of the file again.)
 
 ** emacsclient
 
-*** emacsclient no longer passes '--eval' arguments to an alternate editor.
-Previously, '--eval' arguments were passed as file names to any
-alternate editor started by '--alternate-editor'.
-
 +++
 *** emacsclient now supports an 'EMACS_SOCKET_NAME' environment variable.
 The command-line argument '--socket-name' overrides it.
@@ -743,6 +739,10 @@ file.
 *** New customizable variable 'vc-find-revision-no-save'.
 With non-nil, 'vc-find-revision' doesn't write the created buffer to file.
 
+---
+*** 'vc-dir-ignore' now takes a prefix argument to ignore all marked
+files.
+
 *** New customizable variable 'vc-git-grep-template'.
 This new variable allows customizing the default arguments passed to
 'git-grep' when 'vc-git-grep' is used.
@@ -1018,6 +1018,9 @@ only one hit.  This can be altered by changing
 *** Xref buffers support refreshing the search results.
 A new command 'xref-revert-buffer' is bound to 'g'.
 
+---
+*** Imenu support has been added to 'xref--xref-buffer-mode'.
+
 ** Ecomplete
 
 *** The ecomplete sorting has changed to a decay-based algorithm.
@@ -1061,6 +1064,11 @@ See the concept index in the Gnus manual for the 'match-list' entry.
 
 +++
 *** nil is no longer an allowed value for 'mm-text-html-renderer'.
+
++++
+The default value of 'mm-inline-large-images' has changed from nil to
+'resize', which means that large images will be resized instead of
+displayed with an external program by default.
 
 +++
 *** A new Gnus summary mode command, 'S A'
@@ -1156,6 +1164,11 @@ defining new 'cl-defmethod' of 'smtpmail-try-auth-method'.
 *** To always force smtpmail to send credentials over on the first
 attempt when communicating with the SMTP server(s), the
 'smtpmail-servers-requiring-authorization' variable can be used.
+
++++
+*** smtpmail will now try resending mail when getting a transient 4xx
+error message from the SMTP server.  The new 'smtpmail-retries'
+variable says how many times to retry.
 
 ** Footnote mode
 
@@ -1254,6 +1267,11 @@ highlight in one iteration while processing the full buffer.
 
 +++
 *** New isearch bindings.
+
+'C-M-z' invokes new function 'isearch-yank-until-char', which yanks
+everything from point up to but not including the specified
+character into the search string.  This is especially useful for
+keyboard macros.
 
 'C-M-w' in isearch changed from 'isearch-del-char' to the new function
 'isearch-yank-symbol-or-char'.  'isearch-del-char' is now bound to
@@ -1369,6 +1387,10 @@ the Elisp manual for documentation of the new mode and its commands.
 *** Gamegrid now determines its default glyph size based on display
 dimensions, instead of always using 16 pixels.  As a result, Tetris,
 Snake and Pong are more playable on HiDPI displays.
+
+---
+*** 'gamegrid-add-score' can now sort scores from lower to higher.
+This is useful for games where lower scores are better, like time-based games.
 
 ** Filecache
 
@@ -1890,13 +1912,8 @@ and 'gravatar-force-default'.
 
 ** ada-mode
 
-*** The built-in ada-mode is now deleted.  The Gnu ELPA package is a
+*** The built-in ada-mode is now deleted.  The GNU ELPA package is a
 good replacement, even in very large source files.
-
-** xref
-
----
-*** Imenu support has been added to 'xref--xref-buffer-mode'.
 
 
 * New Modes and Packages in Emacs 27.1
@@ -1933,6 +1950,7 @@ long lines will (subject to configuration) cause the user's preferred
 major mode is replaced by 'so-long-mode').  In extreme cases this can
 prevent delays of several minutes, and make Emacs responsive almost
 immediately.  Type 'M-x so-long-commentary' for full documentation.
+
 
 * Incompatible Lisp Changes in Emacs 27.1
 
@@ -1986,6 +2004,16 @@ file name if there is no user named "foo".
 
 ** The FILENAME argument to 'file-name-base' is now mandatory and no
 longer defaults to 'buffer-file-name'.
+
++++
+** File metadata primitives now signal an error if I/O, access, or
+other serious errors prevent them from determining the result.
+Formerly, these functions often (though not always) returned nil.
+For example, if searching /etc/firewalld results in an I/O error,
+(file-symlink-p "/etc/firewalld/firewalld.conf") now signals an error
+instead of returning nil, because file-symlink-p cannot determine
+whether a symbolic link exists there.  These functions still behave as
+before if the only problem is that the file does not exist.
 
 ---
 ** The function 'eldoc-message' now accepts a single argument.
@@ -2421,6 +2449,13 @@ remote systems, which support this check.
 ** 'memory-limit' now returns a better estimate of memory consumption.
 
 +++
+** When interpreting 'gc-cons-percentage', Emacs now estimates the
+heap size more often and (we hope) more accurately.  E.g., formerly
+(progn (let ((gc-cons-percentage 0.8)) BODY1) BODY2) continued to use
+the 0.8 value during BODY2 until the next garbage collection, but that
+is no longer true.  Applications may need to re-tune their GC tricks.
+
++++
 ** New macro 'combine-change-calls' arranges to call the change hooks
 ('before-change-functions' and 'after-change-functions') just once
 each around a sequence of lisp forms, given a region.  This is
@@ -2677,6 +2712,14 @@ corresponding encoding, instead of using 'w32-ansi-code-page'.
 ** The default value of 'inhibit-compacting-font-caches' is t on MS-Windows.
 Experience shows that compacting font caches causes more trouble on
 MS-Windows than it helps.
+
++++
+** Font lookup on MS-Windows was improved to support rare scripts.
+To activate the improvement, run the new function
+'w32-find-non-USB-fonts' once per Emacs session, or assign to the new
+variable 'w32-non-USB-fonts' the list of scripts and the corresponding
+fonts.  See the documentation of this function and variable in the
+Emacs manual for more details.
 
 +++
 ** On NS the behaviour of drag and drop can now be modified by use of

@@ -207,7 +207,7 @@ PREFIX."
 
 ;;; I use the term `site' to refer to a string which may be the
 ;;; cluster identification "/name:", a remote identification
-;;; "/method:user@host:", or "/system-name:' (the value of
+;;; "/method:user@host:", or "/system-name:" (the value of
 ;;; `shadow-system-name') for the location of local files.  All
 ;;; user-level commands should accept either.
 
@@ -607,6 +607,11 @@ and to are absolute file names."
 			canonical-file shadow-literal-groups nil)
 		       (shadow-shadows-of-1
 			canonical-file shadow-regexp-groups t)))))
+          (when shadow-debug
+            (message
+             "shadow-shadows-of: %s %s %s %s %s"
+             file (shadow-local-file file) shadow-homedir
+             absolute-file canonical-file))
 	(set (intern file shadow-hashtable) shadows))))
 
 (defun shadow-shadows-of-1 (file groups regexp)
@@ -621,6 +626,10 @@ Consider them as regular expressions if third arg REGEXP is true."
 		       (let ((realname
                               (tramp-file-name-localname
                                (shadow-parse-name file))))
+                         (when shadow-debug
+                           (message
+                            "shadow-shadows-of-1: %s %s %s"
+                            file (shadow-parse-name file) realname))
 			 (mapcar
 			  (function
 			   (lambda (x)
@@ -631,6 +640,11 @@ Consider them as regular expressions if third arg REGEXP is true."
 
 (defun shadow-add-to-todo ()
   "If current buffer has shadows, add them to the list needing to be copied."
+  (when shadow-debug
+    (message
+     "shadow-add-to-todo: %s %s"
+     (buffer-file-name (current-buffer))
+     (shadow-expand-file-name (buffer-file-name (current-buffer)))))
   (let ((shadows (shadow-shadows-of
 		  (shadow-expand-file-name
 		   (buffer-file-name (current-buffer))))))

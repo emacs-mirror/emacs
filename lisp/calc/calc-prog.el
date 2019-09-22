@@ -1097,7 +1097,7 @@ Redefine the corresponding command."
        (or func (setq func (and cmd (symbolp cmd) (fboundp cmd) cmd)))
        (if (get func 'math-compose-forms)
 	   (let ((pt (point)))
-	     (insert "(put '" (symbol-name cmd)
+             (insert "(put '" (symbol-name func)
 		     " 'math-compose-forms '"
 		     (prin1-to-string (get func 'math-compose-forms))
 		     ")\n")

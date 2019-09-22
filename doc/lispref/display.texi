@@ -25,7 +25,7 @@ that Emacs presents to the user.
 * Fringes::             Controlling window fringes.
 * Scroll Bars::         Controlling scroll bars.
 * Window Dividers::     Separating windows visually.
-* Display Property::    Enabling special display features.
+* Display Property::    Images, margins, text size, etc.
 * Images::              Displaying images in Emacs buffers.
 * Xwidgets::            Displaying native widgets in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
@@ -5016,7 +5016,9 @@ means no right marginal area.
   Setting these variables does not immediately affect the window.  These
 variables are checked when a new buffer is displayed in the window.
 Thus, you can make changes take effect by calling
-@code{set-window-buffer}.
+@code{set-window-buffer}.  Do not use these variables to try to
+determine the current width of the left or right margin.  Instead, use
+the function @code{window-margins}.
 
   You can also set the margin widths immediately.
 

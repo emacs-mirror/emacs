@@ -414,6 +414,7 @@ the :notify function can't know the new value.")
 
 (defmacro widget-specify-insert (&rest form)
   "Execute FORM without inheriting any text properties."
+   (declare (debug body))
   `(save-restriction
     (let ((inhibit-read-only t)
 	  (inhibit-modification-hooks t))

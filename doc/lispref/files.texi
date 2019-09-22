@@ -856,8 +856,7 @@ systems, this is true if the file exists and you have execute
 permission on the containing directories, regardless of the
 permissions of the file itself.)
 
-If the file does not exist, or if access control policies prevent you
-from finding its attributes, this function returns @code{nil}.
+If the file does not exist, this function returns @code{nil}.
 
 Directories are files, so @code{file-exists-p} can return @code{t} when
 given a directory.  However, because @code{file-exists-p} follows
@@ -1262,7 +1261,7 @@ on the 19th, @file{aug-20} was written on the 20th, and the file
 @defun file-attributes filename &optional id-format
 @anchor{Definition of file-attributes}
 This function returns a list of attributes of file @var{filename}.  If
-the specified file's attributes cannot be accessed, it returns @code{nil}.
+the specified file does not exist, it returns @code{nil}.
 This function does not follow symbolic links.
 The optional parameter @var{id-format} specifies the preferred format
 of attributes @acronym{UID} and @acronym{GID} (see below)---the
@@ -1464,9 +1463,8 @@ The underlying ACL implementation is platform-specific; on GNU/Linux
 and BSD, Emacs uses the POSIX ACL interface, while on MS-Windows Emacs
 emulates the POSIX ACL interface with native file security APIs.
 
-If Emacs was not compiled with ACL support, or the file does not exist
-or is inaccessible, or Emacs was unable to determine the ACL entries
-for any other reason, then the return value is @code{nil}.
+If ACLs are not supported or the file does not exist,
+then the return value is @code{nil}.
 @end defun
 
 @defun file-selinux-context filename
@@ -1478,8 +1476,7 @@ for details about what these actually mean.  The return value has the
 same form as what @code{set-file-selinux-context} takes for its
 @var{context} argument (@pxref{Changing Files}).
 
-If Emacs was not compiled with SELinux support, or the file does not
-exist or is inaccessible, or if the system does not support SELinux,
+If SELinux is not supported or the file does not exist,
 then the return value is @code{(nil nil nil nil)}.
 @end defun
 

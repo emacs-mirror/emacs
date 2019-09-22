@@ -108,11 +108,8 @@ static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 Lisp_Object
 encode_current_directory (void)
 {
-  Lisp_Object dir;
-
-  dir = BVAR (current_buffer, directory);
-
-  dir = Funhandled_file_name_directory (dir);
+  Lisp_Object curdir = BVAR (current_buffer, directory);
+  Lisp_Object dir = Funhandled_file_name_directory (curdir);
 
   /* If the file name handler says that dir is unreachable, use
      a sensible default. */
@@ -120,17 +117,10 @@ encode_current_directory (void)
     dir = build_string ("~");
 
   dir = expand_and_dir_to_file (dir);
-
-  if (NILP (Ffile_accessible_directory_p (dir)))
-    report_file_error ("Setting current directory",
-		       BVAR (current_buffer, directory));
-
-  /* Remove "/:" from DIR and encode it.  */
   dir = ENCODE_FILE (remove_slash_colon (dir));
 
   if (! file_accessible_directory_p (dir))
-    report_file_error ("Setting current directory",
-		       BVAR (current_buffer, directory));
+    report_file_error ("Setting current directory", curdir);
 
   return dir;
 }
@@ -1570,20 +1560,19 @@ init_callproc (void)
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, tem1, srcdir;
+      Lisp_Object tem, srcdir;
       Lisp_Object lispdir = Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0));
 
       srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
 
       tem = Fexpand_file_name (build_string ("NEWS"), Vdata_directory);
-      tem1 = Ffile_exists_p (tem);
-      if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
+      if (!NILP (Fequal (srcdir, Vinvocation_directory))
+	  || !file_access_p (SSDATA (tem), F_OK))
 	{
 	  Lisp_Object newdir;
 	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
 	  tem = Fexpand_file_name (build_string ("NEWS"), newdir);
-	  tem1 = Ffile_exists_p (tem);
-	  if (!NILP (tem1))
+	  if (file_access_p (SSDATA (tem), F_OK))
 	    Vdata_directory = newdir;
 	}
     }
@@ -1605,9 +1594,22 @@ init_callproc (void)
   Lisp_Object gamedir = Qnil;
   if (PATH_GAME)
     {
-      Lisp_Object path_game = build_unibyte_string (PATH_GAME);
+      const char *cpath_game = PATH_GAME;
+#ifdef WINDOWSNT
+      /* On MS-Windows, PATH_GAME normally starts with a literal
+	 "%emacs_dir%", so it will never work without some tweaking.  */
+      cpath_game = w32_relocate (cpath_game);
+#endif
+      Lisp_Object path_game = build_unibyte_string (cpath_game);
       if (file_accessible_directory_p (path_game))
 	gamedir = path_game;
+      else if (errno != ENOENT && errno != ENOTDIR
+#ifdef DOS_NT
+	       /* DOS/Windows sometimes return EACCES for bad file names  */
+	       && errno != EACCES
+#endif
+	       )
+	dir_warning ("game dir", path_game);
     }
   Vshared_game_score_directory = gamedir;
 }

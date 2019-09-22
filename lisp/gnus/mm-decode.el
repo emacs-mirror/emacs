@@ -381,9 +381,11 @@ enables you to choose manually one of two types those mails include."
   :type 'directory
   :group 'mime-display)
 
-(defcustom mm-inline-large-images nil
-  "If t, then all images fit in the buffer.
-If `resize', try to resize the images so they fit."
+(defcustom mm-inline-large-images 'resize
+  "If nil, images larger than the window aren't displayed in the buffer.
+If `resize', try to resize the images so they fit in the buffer.
+If t, show the images as they are without resizing."
+  :version "27.1"
   :type '(radio
           (const :tag "Inline large images as they are." t)
           (const :tag "Resize large images." resize)

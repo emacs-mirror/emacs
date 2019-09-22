@@ -59,7 +59,7 @@
     ["Next Topic" help-go-forward
      :help "Go back to next topic in this help buffer"]
     ["Move to Previous Button" backward-button
-     :help "Move to the Next Button in the help buffer"]
+     :help "Move to the Previous Button in the help buffer"]
     ["Move to Next Button" forward-button
       :help "Move to the Next Button in the help buffer"]))
 

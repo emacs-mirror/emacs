@@ -719,6 +719,7 @@
 		    symbol
 		    braille
 		    yi
+		    tai-viet
 		    aegean-number
 		    ancient-greek-number
 		    ancient-symbol
@@ -731,18 +732,26 @@
 		    deseret
 		    shavian
 		    osmanya
+		    osage
 		    cypriot-syllabary
 		    phoenician
 		    lydian
 		    kharoshthi
+		    manichaean
+		    elymaic
+		    makasar
 		    cuneiform-numbers-and-punctuation
 		    cuneiform
 		    egyptian
+		    bassa-vah
+		    pahawh-hmong
+		    medefaidrin
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
+		    adlam
 		    mahjong-tile
 		    domino-tile))
     (set-fontset-font "fontset-default"

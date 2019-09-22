@@ -1351,7 +1351,7 @@ this is an arbitrarily
                       expected)))))
 
 
-;;; Autofill
+;;; Filling
 
 (ert-deftest python-auto-fill-docstring ()
   (python-tests-with-temp-buffer
@@ -1367,6 +1367,17 @@ def some_function(arg1,
    (let ((docindent (current-indentation)))
      (forward-line 1)
      (should (= docindent (current-indentation))))))
+
+(ert-deftest python-fill-docstring ()
+  (python-tests-with-temp-buffer
+   "\
+r'''aaa
+
+this is a test this is a test this is a test this is a test this is a test this is a test.
+'''"
+   (search-forward "test.")
+   (fill-paragraph)
+   (should (= (current-indentation) 0))))
 
 
 ;;; Mark

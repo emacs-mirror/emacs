@@ -160,12 +160,11 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 		      (const TEXT)))
   :group 'killing)
 
-;; Get a selection value of type TYPE by calling gui-get-selection with
-;; an appropriate DATA-TYPE argument decided by `x-select-request-type'.
-;; The return value is already decoded.  If gui-get-selection causes an
-;; error, this function return nil.
-
 (defun gui--selection-value-internal (type)
+  "Get a selection value of type TYPE.
+Call `gui-get-selection' with an appropriate DATA-TYPE argument
+decided by `x-select-request-type'.  The return value is already
+decoded.  If `gui-get-selection' signals an error, return nil."
   (let ((request-type (if (eq window-system 'x)
                           (or x-select-request-type
                               '(UTF8_STRING COMPOUND_TEXT STRING))

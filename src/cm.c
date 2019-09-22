@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 int cost;		/* sums up costs */
 
-/* ARGSUSED */
 int
 evalcost (int c)
 {

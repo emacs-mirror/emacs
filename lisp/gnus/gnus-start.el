@@ -897,9 +897,8 @@ If REGEXP is given, lines that match it will be deleted."
 	    (set-buffer-modified-p t))
 	  ;; Set the file modes to reflect the .newsrc file modes.
 	  (save-buffer)
-	  (when (and (file-exists-p gnus-current-startup-file)
-		     (file-exists-p dribble-file)
-		     (setq modes (file-modes gnus-current-startup-file)))
+	  (when (and (setq modes (file-modes gnus-current-startup-file))
+		     (file-exists-p dribble-file))
 	    (gnus-set-file-modes dribble-file modes))
 	  (goto-char (point-min))
 	  (when (search-forward "Gnus was exited on purpose" nil t)

@@ -457,6 +457,9 @@ Collapse the top-level Lisp form at point back to a single line.
 @item #
 Toggle @code{print-circle} for the frame at point.
 
+@item :
+Toggle @code{print-gensym} for the frame at point.
+
 @item .
 Expand all the forms abbreviated with ``...'' in the frame at point.
 

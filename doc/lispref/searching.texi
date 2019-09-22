@@ -1183,7 +1183,7 @@ Match @var{rx}, with @code{zero-or-more}, @code{0+},
 @cindex @code{maximal-match} in rx
 Match @var{rx}, with @code{zero-or-more}, @code{0+},
 @code{one-or-more}, @code{1+}, @code{zero-or-one}, @code{opt} and
-@code{optional} using non-greedy matching.  This is the default.
+@code{optional} using greedy matching.  This is the default.
 @end table
 
 @subsubheading Matching single characters

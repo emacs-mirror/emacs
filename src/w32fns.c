@@ -10109,8 +10109,8 @@ KEY can use either forward- or back-slashes.
 To access the default value of KEY (if it is defined), use NAME
 that is an empty string.
 
-If the the named KEY or its subkey called NAME don't exist, or cannot
-be accessed by the current user, the function returns nil.  Otherwise,
+If the named KEY or its subkey called NAME don't exist, or cannot be
+accessed by the current user, the function returns nil.  Otherwise,
 the return value depends on the type of the data stored in Registry:
 
   If the data type is REG_NONE, the function returns t.

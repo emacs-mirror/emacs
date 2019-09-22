@@ -1787,6 +1787,10 @@ This is relevant for GNOME Online Accounts."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  ;; During completion, don't reopen a new connection.
+  (unless (tramp-connectable-p vec)
+    (throw 'non-essential 'non-essential))
+
   ;; We set the file name, in case there are incoming D-Bus signals or
   ;; D-Bus errors.
   (setq tramp-gvfs-dbus-event-vector vec)

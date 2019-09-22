@@ -505,8 +505,11 @@ format."
 
 ;; ;;;;;;;;;;;;;;; high score functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun gamegrid-add-score (file score)
+(defun gamegrid-add-score (file score &optional reverse)
   "Add the current score to the high score file.
+
+If REVERSE is non-nil, treat lower scores as better than higher
+scores. This is useful for games where lower scores are better.
 
 On POSIX systems there may be a shared game directory for all users in
 which the scorefiles are kept.  On such systems Emacs doesn't create
@@ -525,9 +528,9 @@ specified by the variable `temporary-file-directory'.  If necessary,
 FILE is created there."
   (pcase system-type
     ((or 'ms-dos 'windows-nt)
-     (gamegrid-add-score-insecure file score))
+     (gamegrid-add-score-insecure file score reverse))
     (_
-     (gamegrid-add-score-with-update-game-score file score))))
+     (gamegrid-add-score-with-update-game-score file score reverse))))
 
 
 ;; On POSIX systems there are four cases to distinguish:
@@ -556,20 +559,21 @@ FILE is created there."
 
 (defvar gamegrid-shared-game-dir)
 
-(defun gamegrid-add-score-with-update-game-score (file score)
+(defun gamegrid-add-score-with-update-game-score (file score &optional reverse)
   (let* ((update-game-score-modes
 	  (file-modes (expand-file-name "update-game-score" exec-directory)))
 	 (gamegrid-shared-game-dir
 	  (not (zerop (logand #o6000 (or update-game-score-modes 0))))))
     (cond ((or (not update-game-score-modes) (file-name-absolute-p file))
 	   (gamegrid-add-score-insecure file score
-                                        gamegrid-user-score-file-directory))
+                                        gamegrid-user-score-file-directory
+                                        reverse))
 	  ((and gamegrid-shared-game-dir
 		(file-exists-p (expand-file-name file shared-game-score-directory)))
 	   ;; Use the setgid (or setuid) "update-game-score" program
 	   ;; to update a system-wide score file.
 	   (gamegrid-add-score-with-update-game-score-1 file
-	    (expand-file-name file shared-game-score-directory) score))
+	    (expand-file-name file shared-game-score-directory) score reverse))
 	  ;; Else: Add the score to a score file in the user's home
 	  ;; directory.
 	  (gamegrid-shared-game-dir
@@ -579,7 +583,8 @@ FILE is created there."
 		    (directory-file-name gamegrid-user-score-file-directory))
 	     (make-directory gamegrid-user-score-file-directory t))
 	   (gamegrid-add-score-insecure file score
-					gamegrid-user-score-file-directory))
+					gamegrid-user-score-file-directory
+                                        reverse))
 	  (t
 	   (unless (file-exists-p
 		    (directory-file-name gamegrid-user-score-file-directory))
@@ -588,9 +593,9 @@ FILE is created there."
 				      gamegrid-user-score-file-directory)))
 	     (unless (file-exists-p f)
 	       (write-region "" nil f nil 'silent nil 'excl))
-	     (gamegrid-add-score-with-update-game-score-1 file f score))))))
+	     (gamegrid-add-score-with-update-game-score-1 file f score reverse))))))
 
-(defun gamegrid-add-score-with-update-game-score-1 (file target score)
+(defun gamegrid-add-score-with-update-game-score-1 (file target score &optional reverse)
   (let ((default-directory "/")
 	(errbuf (generate-new-buffer " *update-game-score loss*"))
         (marker-string (concat
@@ -601,17 +606,16 @@ FILE is created there."
     (with-local-quit
       (apply
        'call-process
-       (append
-	(list
-	 (expand-file-name "update-game-score" exec-directory)
-	 nil errbuf nil
-	 "-m" (int-to-string gamegrid-score-file-length)
-	 "-d" (if gamegrid-shared-game-dir
-		  (expand-file-name shared-game-score-directory)
-		(file-name-directory target))
-	 file
-	 (int-to-string score)
-	 marker-string))))
+       `(,(expand-file-name "update-game-score" exec-directory)
+         nil ,errbuf nil
+         "-m" ,(int-to-string gamegrid-score-file-length)
+         "-d" ,(if gamegrid-shared-game-dir
+                   (expand-file-name shared-game-score-directory)
+                 (file-name-directory target))
+         ,@(if reverse '("-r"))
+         ,file
+         ,(int-to-string score)
+         ,marker-string)))
     (if (buffer-modified-p errbuf)
 	(progn
 	  (display-buffer errbuf)
@@ -632,7 +636,7 @@ FILE is created there."
 				marker-string) nil t)
         (beginning-of-line)))))
 
-(defun gamegrid-add-score-insecure (file score &optional directory)
+(defun gamegrid-add-score-insecure (file score &optional directory reverse)
   (save-excursion
     (setq file (expand-file-name file (or directory
 					  temporary-file-directory)))
@@ -645,7 +649,8 @@ FILE is created there."
 		    (user-full-name)
 		    user-mail-address))
     (sort-fields 1 (point-min) (point-max))
-    (reverse-region (point-min) (point-max))
+    (unless reverse
+      (reverse-region (point-min) (point-max)))
     (goto-char (point-min))
     (forward-line gamegrid-score-file-length)
     (delete-region (point) (point-max))

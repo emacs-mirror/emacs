@@ -37,8 +37,6 @@
 ;; 64 is block length of hash function (64 for MD5 and SHA), 16 is
 ;; resulting hash length (16 for MD5, 20 for SHA).
 ;;
-;; Tested with Emacs 20.2 and XEmacs 20.3.
-;;
 ;; Test case reference: RFC 2202.
 
 ;;; History:

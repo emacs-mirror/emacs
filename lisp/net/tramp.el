@@ -1566,25 +1566,27 @@ necessary only.  This function will be used in file name completion."
 	     tramp-postfix-host-format))
 	  (when localname localname)))
 
-(defun tramp-get-buffer (vec)
+(defun tramp-get-buffer (vec &optional dont-create)
   "Get the connection buffer to be used for VEC."
   (or (get-buffer (tramp-buffer-name vec))
-      (with-current-buffer (get-buffer-create (tramp-buffer-name vec))
-	;; We use the existence of connection property "process-buffer"
-	;; as indication, whether a connection is active.
-	(tramp-set-connection-property
-	 vec "process-buffer"
-	 (tramp-get-connection-property vec "process-buffer" nil))
-	(setq buffer-undo-list t
-	      default-directory (tramp-make-tramp-file-name vec 'noloc 'nohop))
-	(current-buffer))))
+      (unless dont-create
+	(with-current-buffer (get-buffer-create (tramp-buffer-name vec))
+	  ;; We use the existence of connection property "process-buffer"
+	  ;; as indication, whether a connection is active.
+	  (tramp-set-connection-property
+	   vec "process-buffer"
+	   (tramp-get-connection-property vec "process-buffer" nil))
+	  (setq buffer-undo-list t
+		default-directory
+		(tramp-make-tramp-file-name vec 'noloc 'nohop))
+	  (current-buffer)))))
 
-(defun tramp-get-connection-buffer (vec)
+(defun tramp-get-connection-buffer (vec &optional dont-create)
   "Get the connection buffer to be used for VEC.
 In case a second asynchronous communication has been started, it is different
 from `tramp-get-buffer'."
   (or (tramp-get-connection-property vec "process-buffer" nil)
-      (tramp-get-buffer vec)))
+      (tramp-get-buffer vec dont-create)))
 
 (defun tramp-get-connection-name (vec)
   "Get the connection name to be used for VEC.
@@ -1770,14 +1772,15 @@ applicable)."
       ;; Log only when there is a minimum level.
       (when (>= tramp-verbose 4)
 	(let ((tramp-verbose 0))
-	  ;; Append connection buffer for error messages.
+	  ;; Append connection buffer for error messages, if exists.
 	  (when (= level 1)
-	    (with-current-buffer
-		(if (processp vec-or-proc)
-		    (process-buffer vec-or-proc)
-		  (tramp-get-connection-buffer vec-or-proc))
-	      (setq fmt-string (concat fmt-string "\n%s")
-		    arguments (append arguments (list (buffer-string))))))
+	    (ignore-errors
+	      (with-current-buffer
+		  (if (processp vec-or-proc)
+		      (process-buffer vec-or-proc)
+		    (tramp-get-connection-buffer vec-or-proc 'dont-create))
+		(setq fmt-string (concat fmt-string "\n%s")
+		      arguments (append arguments (list (buffer-string)))))))
 	  ;; Translate proc to vec.
 	  (when (processp vec-or-proc)
 	    (setq vec-or-proc (process-get vec-or-proc 'vector))))
@@ -2517,16 +2520,21 @@ Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
    ;; This variable has been obsoleted in Emacs 26.
    tramp-completion-mode))
 
-(defun tramp-connectable-p (filename)
+(defun tramp-connectable-p (vec-or-filename)
   "Check, whether it is possible to connect the remote host w/o side-effects.
 This is true, if either the remote host is already connected, or if we are
 not in completion mode."
-  (let (tramp-verbose)
-    (and (tramp-tramp-file-p filename)
-	 (or (not (tramp-completion-mode-p))
-	     (process-live-p
-	      (tramp-get-connection-process
-	       (tramp-dissect-file-name filename)))))))
+  (let (tramp-verbose
+	(vec
+	 (cond
+	  ((tramp-file-name-p vec-or-filename) vec-or-filename)
+	  ((tramp-tramp-file-p vec-or-filename)
+	   (tramp-dissect-file-name vec-or-filename)))))
+    (or ;; We check this for the process related to
+	;; `tramp-buffer-name'; otherwise `start-file-process'
+	;; wouldn't run ever when `non-essential' is non-nil.
+        (and vec (process-live-p (get-process (tramp-buffer-name vec))))
+	(not (tramp-completion-mode-p)))))
 
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
@@ -2606,8 +2614,7 @@ not in completion mode."
   (try-completion
    filename
    (mapcar #'list (file-name-all-completions filename directory))
-   (when (and predicate
-	      (tramp-connectable-p (expand-file-name filename directory)))
+   (when (and predicate (tramp-connectable-p directory))
      (lambda (x) (funcall predicate (expand-file-name (car x) directory))))))
 
 ;; I misuse a little bit the `tramp-file-name' structure in order to
@@ -3096,7 +3103,11 @@ User is always nil."
 
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  (not (null (file-attributes filename))))
+  ;; `file-exists-p' is used as predicate in file name completion.
+  ;; We don't want to run it when `non-essential' is t, or there is
+  ;; no connection process yet.
+  (when (tramp-connectable-p filename)
+    (not (null (file-attributes filename)))))
 
 (defun tramp-handle-file-in-directory-p (filename directory)
   "Like `file-in-directory-p' for Tramp files."

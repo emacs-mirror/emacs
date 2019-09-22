@@ -1084,7 +1084,6 @@ int *char_ins_del_vector;
 
 #define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
 
-/* ARGSUSED */
 static void
 calculate_ins_del_char_costs (struct frame *f)
 {

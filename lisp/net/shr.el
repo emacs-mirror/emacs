@@ -1180,7 +1180,23 @@ Return a string with image data."
             ;; so glitches may occur during this transformation.
 	    (shr-dom-to-xml
 	     (libxml-parse-xml-region (point) (point-max)))))
+    ;; SVG images often do not have a specified foreground/background
+    ;; color, so wrap them in styles.
+    (when (eq content-type 'image/svg+xml)
+      (setq data (svg--wrap-svg data)))
     (list data content-type)))
+
+(defun svg--wrap-svg (data)
+  "Add a default foreground colour to SVG images."
+  (with-temp-buffer
+    (insert "<svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
+            "xmlns:xi=\"http://www.w3.org/2001/XInclude\" "
+            "style=\"color: "
+            (face-foreground 'default) ";\">"
+            "<xi:include href=\"data:image/svg+xml;base64,"
+            (base64-encode-string data t)
+            "\"></xi:include></svg>")
+    (buffer-string)))
 
 (defun shr-image-displayer (content-function)
   "Return a function to display an image.

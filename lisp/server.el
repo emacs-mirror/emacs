@@ -563,9 +563,9 @@ See variable `server-auth-dir' for details."
                      (format "it is not owned by you (owner = %s (%d))"
                              (user-full-name uid) uid))
                     (w32 nil)           ; on NTFS?
-                    ((/= 0 (logand ?\077 (file-modes dir)))
-                     (format "it is accessible by others (%03o)"
-                             (file-modes dir)))
+                    ((let ((modes (file-modes dir)))
+                       (unless (zerop (logand (or modes 0) #o077))
+                         (format "it is accessible by others (%03o)" modes))))
                     (t nil))))
       (when unsafe
         (error "`%s' is not a safe directory because %s"

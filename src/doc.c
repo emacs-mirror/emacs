@@ -136,7 +136,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
       if (fd < 0)
 	{
-	  if (errno == EMFILE || errno == ENFILE)
+	  if (errno != ENOENT && errno != ENOTDIR)
 	    report_file_error ("Read error on documentation file", file);
 
 	  SAFE_FREE ();

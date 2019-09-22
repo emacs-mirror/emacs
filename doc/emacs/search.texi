@@ -262,10 +262,18 @@ of whether to copy a character or a symbol is heuristic.)
 
 @kindex M-s C-e @r{(Incremental search)}
 @findex isearch-yank-line
-  Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
+  @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
 of the current line to the search string.  If point is already at the
 end of a line, it appends the next line.  With a prefix argument
 @var{n}, it appends the next @var{n} lines.
+
+@kindex C-M-z @r{(Incremental search)}
+@findex isearch-yank-until-char
+  Similarly, @kbd{C-M-z} (@code{isearch-yank-until-char}) appends to
+the search string everything from point until the next occurence of
+a specified character (not including that character).  This is especially
+useful for keyboard macros, for example in programming languages or
+markup languages in which that character marks a token boundary.
 
 @kindex C-y @r{(Incremental search)}
 @kindex M-y @r{(Incremental search)}

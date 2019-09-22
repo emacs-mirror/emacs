@@ -2045,7 +2045,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 (put 'major-mode--suspended 'permanent-local t)
 
 (defun major-mode-suspend ()
-  "Exit current major, remembering it."
+  "Exit current major mode, remembering it."
   (let* ((prev-major-mode (or major-mode--suspended
 			      (unless (eq major-mode 'fundamental-mode)
 			        major-mode))))

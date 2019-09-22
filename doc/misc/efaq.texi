@@ -21,7 +21,7 @@ Copyright @copyright{} 1990, 1991, 1992 Joseph Brian Wells@*
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
 (``FAQ'') may be translated into other languages, transformed into other
-formats (e.g., Texinfo, Info, WWW, WAIS), and updated with new information.
+formats (e.g., Texinfo, Info, HTML, PDF), and updated with new information.
 
 The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved

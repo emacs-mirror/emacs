@@ -1417,17 +1417,22 @@ remove from the list of ignored files."
 
 (defun vc-default-ignore (backend file &optional directory remove)
   "Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
-FILE is a file wildcard, relative to the root directory of DIRECTORY.
+FILE is a wildcard specification, either relative to
+DIRECTORY or absolute.
 When called from Lisp code, if DIRECTORY is non-nil, the
 repository to use will be deduced by DIRECTORY; if REMOVE is
 non-nil, remove FILE from ignored files.
 Argument BACKEND is the backend you are using."
   (let ((ignore
 	 (vc-call-backend backend 'find-ignore-file (or directory default-directory)))
-	(pattern (file-relative-name
-		  (expand-file-name file) (file-name-directory file))))
+	file-path root-dir pattern)
+    (setq file-path (expand-file-name file directory))
+    (setq root-dir (file-name-directory ignore))
+    (when (not (string= (substring file-path 0 (length root-dir)) root-dir))
+      (error "Ignore spec %s is not below project root %s" file-path root-dir))
+    (setq pattern (substring file-path (length root-dir)))
     (if remove
-	(vc--remove-regexp pattern ignore)
+	(vc--remove-regexp (concat "^" (regexp-quote pattern ) "\\(\n\\|$\\)") ignore)
       (vc--add-line pattern ignore))))
 
 (defun vc-default-ignore-completion-table (backend file)

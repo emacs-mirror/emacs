@@ -87,6 +87,9 @@ OPTIND=1
 
 [ $# -eq 1 ] || usage
 
+[ -e html_mono/emacs.html ] && [ -e html_node/emacs/index.html ] || \
+    die "Current directory does not look like the manual/ directory"
+
 [ "$version$umessage" ] || \
     die "Could not get version to use for commit message"
 
@@ -94,9 +97,6 @@ webdir=$1
 
 [ -e $webdir/CVS/Entries ] && [ -e $webdir/refcards/pdf/refcard.pdf ] || \
     die "$webdir does not look like a checkout of the Emacs webpages"
-
-[ -e html_mono/emacs.html ] && [ -e html_node/emacs/index.html ] || \
-    die "Current directory does not like the manual/ directory"
 
 
 echo "Doing refcards..."

@@ -832,12 +832,12 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Implement `file-attributes' for Tramp files using stat command."
   (tramp-message
    vec 5 "file attributes with stat: %s" (tramp-file-name-localname vec))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (let* (size id link uid gid atime mtime ctime mode inode)
-      (when (tramp-smb-send-command
-	     vec (format "stat \"%s\"" (tramp-smb-get-localname vec)))
+  (let* (size id link uid gid atime mtime ctime mode inode)
+    (when (tramp-smb-send-command
+	   vec (format "stat \"%s\"" (tramp-smb-get-localname vec)))
 
-	;; Loop the listing.
+      ;; Loop the listing.
+      (with-current-buffer (tramp-get-connection-buffer vec)
 	(goto-char (point-min))
 	(unless (re-search-forward tramp-smb-errors nil t)
 	  (while (not (eobp))
@@ -1628,40 +1628,40 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
   (with-parsed-tramp-file-name (file-name-as-directory directory) nil
     (setq localname (or localname "/"))
     (with-tramp-file-property v localname "file-entries"
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(let* ((share (tramp-smb-get-share v))
-	       (cache (tramp-get-connection-property v "share-cache" nil))
-	       res entry)
+      (let* ((share (tramp-smb-get-share v))
+	     (cache (tramp-get-connection-property v "share-cache" nil))
+	     res entry)
 
-	  (if (and (not share) cache)
-	      ;; Return cached shares.
-	      (setq res cache)
+	(if (and (not share) cache)
+	    ;; Return cached shares.
+	    (setq res cache)
 
-	    ;; Read entries.
-	    (if share
-		(tramp-smb-send-command
-		 v (format "dir \"%s*\"" (tramp-smb-get-localname v)))
-	      ;; `tramp-smb-maybe-open-connection' lists also the share names.
-	      (tramp-smb-maybe-open-connection v))
+	  ;; Read entries.
+	  (if share
+	      (tramp-smb-send-command
+	       v (format "dir \"%s*\"" (tramp-smb-get-localname v)))
+	    ;; `tramp-smb-maybe-open-connection' lists also the share names.
+	    (tramp-smb-maybe-open-connection v))
 
-	    ;; Loop the listing.
+	  ;; Loop the listing.
+	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
 	    (if (re-search-forward tramp-smb-errors nil t)
 		(tramp-error v 'file-error "%s `%s'" (match-string 0) directory)
 	      (while (not (eobp))
 		(setq entry (tramp-smb-read-file-entry share))
 		(forward-line)
-		(when entry (push entry res))))
+		(when entry (push entry res)))))
 
-	    ;; Cache share entries.
-	    (unless share
-	      (tramp-set-connection-property v "share-cache" res)))
+	  ;; Cache share entries.
+	  (unless share
+	    (tramp-set-connection-property v "share-cache" res)))
 
-	  ;; Add directory itself.
-	  (push '("" "drwxrwxrwx" 0 (0 0)) res)
+	;; Add directory itself.
+	(push '("" "drwxrwxrwx" 0 (0 0)) res)
 
-	  ;; Return entries.
-	  (delq nil res))))))
+	;; Return entries.
+	(delq nil res)))))
 
 ;; Return either a share name (if SHARE is nil), or a file name.
 ;;
@@ -1855,6 +1855,10 @@ Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason.
 If ARGUMENT is non-nil, use it as argument for
 `tramp-smb-winexe-program', and suppress any checks."
+  ;; During completion, don't reopen a new connection.
+  (unless (tramp-connectable-p vec)
+    (throw 'non-essential 'non-essential))
+
   (let* ((share (tramp-smb-get-share vec))
 	 (buf (tramp-get-connection-buffer vec))
 	 (p (get-buffer-process buf)))
@@ -1909,15 +1913,6 @@ If ARGUMENT is non-nil, use it as argument for
 		     (string-equal
 		      share
 		      (tramp-get-connection-property p "smb-share" ""))))
-
-      ;; During completion, don't reopen a new connection.  We
-      ;; check this for the process related to
-      ;; `tramp-buffer-name'; otherwise `start-file-process'
-      ;; wouldn't run ever when `non-essential' is non-nil.
-      (when (and (tramp-completion-mode-p)
-		 (null (get-process (tramp-buffer-name vec))))
-	(throw 'non-essential 'non-essential))
-
       (save-match-data
 	;; There might be unread output from checking for share names.
 	(when buf (with-current-buffer buf (erase-buffer)))

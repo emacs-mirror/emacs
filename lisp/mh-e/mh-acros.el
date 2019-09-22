@@ -270,10 +270,16 @@ MH-E functions."
   (declare (debug let) (indent 1))
   ;; Works in both lexical and non-lexical mode.
   `(progn
-     ,@(mapcar (lambda (binder)
-                 `(defvar ,(if (consp binder) (car binder) binder)))
-               binders)
-     (let* ,binders ,@body)))
+     (with-suppressed-warnings ((lexical
+                                 ,@(mapcar (lambda (binder)
+                                             (if (consp binder)
+                                                 (car binder)
+                                               binder))
+                                           binders)))
+       ,@(mapcar (lambda (binder)
+                   `(defvar ,(if (consp binder) (car binder) binder)))
+                 binders)
+       (let* ,binders ,@body))))
 
 (provide 'mh-acros)
 

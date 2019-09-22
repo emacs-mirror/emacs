@@ -1591,6 +1591,7 @@ via the @command{CONNECT} command (conforming to RFC 2616, 2817
 specifications).  Proxy servers using HTTP 1.1 or later protocol
 support this command.
 
+
 @subsection Tunneling with ssh
 
 With ssh, you could use the @code{ProxyCommand} entry in
@@ -1608,6 +1609,7 @@ Any other program with such a feature could be used as well.
 
 In the example, opening @file{@trampfn{ssh,host.your.domain,}} passes
 the HTTP proxy server @samp{proxy.your.domain} on port 3128.
+
 
 @subsection Tunneling with PuTTY
 
@@ -2092,6 +2094,33 @@ be recomputed.  To force @value{tramp} to recompute afresh, call
 
 @node Remote shell setup
 @section Remote shell setup hints
+
+
+@subsection Changing the default remote shell
+@cindex zsh setup
+
+Per default, @value{tramp} uses the command @command{/bin/sh} for
+strting a shell on the remote host.  This can be changed by setting
+the connection property @option{remote-shell}, see @xref{Predefined
+connection information}.  Other properties might be adapted as well,
+like @option{remote-shell-login} or @option{remote-shell-args}.  If
+you want, for example, use @command{/usr/bin/zsh} on a remote host,
+you might apply
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "@trampfn{ssh,user@@host,}")
+                   "remote-shell" "/usr/bin/zsh"))
+@end group
+@end lisp
+
+This approach has also the advantage, that settings in
+@code{tramp-sh-extra-args} will be applied.  For zsh, the trouble
+with the shell prompt due to set zle options will be avoided.
+
+
+@subsection Other remote shell setup hints
 @cindex remote shell setup
 @cindex @file{.profile} file
 @cindex @file{.login} file

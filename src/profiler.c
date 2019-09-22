@@ -66,11 +66,11 @@ make_log (void)
 				     Qnil, false);
   struct Lisp_Hash_Table *h = XHASH_TABLE (log);
 
-  /* What is special about our hash-tables is that the keys are pre-filled
-     with the vectors we'll put in them.  */
+  /* What is special about our hash-tables is that the values are pre-filled
+     with the vectors we'll use as keys.  */
   ptrdiff_t i = ASIZE (h->key_and_value) >> 1;
   while (i > 0)
-    set_hash_key_slot (h, --i, make_nil_vector (max_stack_depth));
+    set_hash_value_slot (h, --i, make_nil_vector (max_stack_depth));
   return log;
 }
 
@@ -132,13 +132,14 @@ static void evict_lower_half (log_t *log)
 	  XSET_HASH_TABLE (tmp, log); /* FIXME: Use make_lisp_ptr.  */
 	  Fremhash (key, tmp);
 	}
+        eassert (EQ (Qunbound, HASH_KEY (log, i)));
 	eassert (log->next_free == i);
 
 	eassert (VECTORP (key));
 	for (ptrdiff_t j = 0; j < ASIZE (key); j++)
 	  ASET (key, j, Qnil);
 
-	set_hash_key_slot (log, i, key);
+	set_hash_value_slot (log, i, key);
       }
 }
 
@@ -156,7 +157,8 @@ record_backtrace (log_t *log, EMACS_INT count)
   ptrdiff_t index = log->next_free;
 
   /* Get a "working memory" vector.  */
-  Lisp_Object backtrace = HASH_KEY (log, index);
+  Lisp_Object backtrace = HASH_VALUE (log, index);
+  eassert (EQ (Qunbound, HASH_KEY (log, index)));
   get_backtrace (backtrace);
 
   { /* We basically do a `gethash+puthash' here, except that we have to be

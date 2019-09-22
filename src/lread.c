@@ -1346,15 +1346,22 @@ Return t if the file exists and loads successfully.  */)
           if (!load_prefer_newer && is_elc)
             {
               result = stat (SSDATA (efound), &s1);
+	      int err = errno;
               if (result == 0)
                 {
                   SSET (efound, SBYTES (efound) - 1, 0);
                   result = stat (SSDATA (efound), &s2);
+		  err = errno;
                   SSET (efound, SBYTES (efound) - 1, 'c');
+		  if (result != 0)
+		    found = Fsubstring (found, make_fixnum (0),
+					make_fixnum (-1));
                 }
-
-              if (result == 0
-                  && timespec_cmp (get_stat_mtime (&s1), get_stat_mtime (&s2)) < 0)
+	      if (result != 0)
+		file_test_errno (found, err);
+	      else if (timespec_cmp (get_stat_mtime (&s1),
+				     get_stat_mtime (&s2))
+		       < 0)
                 {
                   /* Make the progress messages mention that source is newer.  */
                   newer = 1;
@@ -1748,16 +1755,20 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		  {
 		    if (file_directory_p (encoded_fn))
 		      last_errno = EISDIR;
-		    else
+		    else if (errno == ENOENT || errno == ENOTDIR)
 		      fd = 1;
+		    else
+		      last_errno = errno;
 		  }
+		else if (! (errno == ENOENT || errno == ENOTDIR))
+		  last_errno = errno;
 	      }
 	    else
 	      {
 		fd = emacs_open (pfn, O_RDONLY, 0);
 		if (fd < 0)
 		  {
-		    if (errno != ENOENT)
+		    if (! (errno == ENOENT || errno == ENOTDIR))
 		      last_errno = errno;
 		  }
 		else

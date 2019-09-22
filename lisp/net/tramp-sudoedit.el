@@ -424,10 +424,14 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-exists-p"
-      (tramp-sudoedit-send-command
-       v "test" "-e" (tramp-compat-file-name-unquote localname)))))
+  ;; `file-exists-p' is used as predicate in file name completion.
+  ;; We don't want to run it when `non-essential' is t, or there is
+  ;; no connection process yet.
+  (when (tramp-connectable-p filename)
+    (with-parsed-tramp-file-name filename nil
+      (with-tramp-file-property v localname "file-exists-p"
+	(tramp-sudoedit-send-command
+	 v "test" "-e" (tramp-compat-file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
@@ -760,18 +764,13 @@ Remove unneeded output."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  ;; During completion, don't reopen a new connection.
+  (unless (tramp-connectable-p vec)
+    (throw 'non-essential 'non-essential))
+
   ;; We need a process bound to the connection buffer.  Therefore, we
   ;; create a dummy process.  Maybe there is a better solution?
   (unless (tramp-get-connection-process vec)
-
-    ;; During completion, don't reopen a new connection.  We check
-    ;; this for the process related to `tramp-buffer-name'; otherwise
-    ;; `start-file-process' wouldn't run ever when `non-essential' is
-    ;; non-nil.
-    (when (and (tramp-completion-mode-p)
-	       (null (get-process (tramp-buffer-name vec))))
-      (throw 'non-essential 'non-essential))
-
     (let ((p (make-network-process
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)

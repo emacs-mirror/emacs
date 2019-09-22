@@ -17,15 +17,6 @@
 ;; ability to queue messages for later sending.  This replaces
 ;; the standalone fakemail program that used to be distributed with Emacs.
 
-;; feedmail works with recent versions of Emacs (20.x series) and
-;; XEmacs (tested with 20.4 and later betas).  It probably no longer
-;; works with Emacs v18, though I haven't tried that in a long
-;; time.  Makoto.Nakagawa@jp.compaq.com reports: "I have a report
-;; that with a help of APEL library, feedmail works fine under emacs
-;; 19.28.  You can get APEL from ftp://ftp.m17n.org/pub/mule/apel/.
-;; you need apel-10.2 or later to make feedmail work under emacs
-;; 19.28."
-
 ;; Sorry, no manual yet in this release.  Look for one with the next
 ;; release.  Or the one after that.  Or maybe later.
 
@@ -437,9 +428,7 @@ shuttled robotically onward."
 (defcustom feedmail-confirm-outgoing-timeout nil
   "If non-nil, a timeout in seconds at the send confirmation prompt.
 If a positive number, it's a timeout before sending.  If a negative
-number, it's a timeout before not sending.  This will not work if your
-version of Emacs doesn't include the function `y-or-n-p-with-timeout'
-\(e.g., some versions of XEmacs)."
+number, it's a timeout before not sending."
   :version "24.1"
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
@@ -2004,9 +1993,7 @@ backup file names and the like)."
 	     ((feedmail-fqm-p blobby)
 	      (setq blobby-buffer (generate-new-buffer (concat "FQM " blobby)))
 	      (setq already-buffer
-		    (if (fboundp 'find-buffer-visiting) ; missing from XEmacs
-			(find-buffer-visiting maybe-file)
-		      (get-file-buffer maybe-file)))
+		    (find-buffer-visiting maybe-file))
 	      (if (and already-buffer (buffer-modified-p already-buffer))
 		  (save-window-excursion
 		    (display-buffer (set-buffer already-buffer))

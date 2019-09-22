@@ -532,14 +532,12 @@ Do NOT use this function to compare file names for equality.  */)
 static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,
 			   enum Lisp_Type target_type, bool last_special);
 
-/* ARGSUSED */
 Lisp_Object
 concat2 (Lisp_Object s1, Lisp_Object s2)
 {
   return concat (2, ((Lisp_Object []) {s1, s2}), Lisp_String, 0);
 }
 
-/* ARGSUSED */
 Lisp_Object
 concat3 (Lisp_Object s1, Lisp_Object s2, Lisp_Object s3)
 {
@@ -2577,7 +2575,6 @@ This makes STRING unibyte and may change its length.  */)
   return Qnil;
 }
 
-/* ARGSUSED */
 Lisp_Object
 nconc2 (Lisp_Object s1, Lisp_Object s2)
 {

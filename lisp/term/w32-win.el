@@ -485,6 +485,136 @@ numbers, and the build number."
 That includes all Windows systems except for 9X/Me."
   (getenv "SystemRoot"))
 
+;; The value of the following variable was calculated using the table in
+;; https://docs.microsoft.com/windows/desktop/Intl/unicode-subset-bitfields,
+;; by looking for Unicode subranges for which no USB bits are defined.
+(defconst w32-no-usb-subranges
+  '((#x000800 . #x0008ff)
+    (#x0018b0 . #x0018ff)
+    (#x001a20 . #x001aff)
+    (#x001bc0 . #x001bff)
+    (#x001c80 . #x001cff)
+    (#x002fe0 . #x002fef)
+    (#x00a4d0 . #x00a4ff)
+    (#x00a6a0 . #x00a6ff)
+    (#x00a830 . #x00a83f)
+    (#x00a8e0 . #x00a8ff)
+    (#x00a960 . #x00a9ff)
+    (#x00aa60 . #x00abff)
+    (#x00d7b0 . #x00d7ff)
+    (#x010200 . #x01027f)
+    (#x0102e0 . #x0102ff)
+    (#x010350 . #x01037f)
+    (#x0103e0 . #x0103ff)
+    (#x0104b0 . #x0107ff)
+    (#x010840 . #x0108ff)
+    (#x010940 . #x0109ff)
+    (#x010a60 . #x011fff)
+    (#x012480 . #x01cfff)
+    (#x01d250 . #x01d2ff)
+    (#x01d380 . #x01d3ff)
+    (#x01d800 . #x01efff)
+    (#x01f0a0 . #x01ffff)
+    (#x02a6e0 . #x02f7ff)
+    (#x02fa20 . #x0dffff)
+    (#x0e0080 . #x0e00ff)
+    (#x0e01f0 . #x0fefff))
+  "List of Unicode subranges whose support cannot be announced by a font.
+The FONTSIGNATURE structure reported by MS-Windows for a font
+includes 123 Unicode Subset bits (USBs) to identify subranges of
+the Unicode codepoint space supported by the font.  Since the
+number of bits is fixed, not every Unicode block can have a
+corresponding USB bit; fonts that support characters from blocks
+that have no USBs cannot communicate their support to Emacs,
+unless the font is opened and physically tested for glyphs for
+characters from these blocks.")
+
+(defun w32--filter-USB-scripts ()
+  "Filter USB scripts out of `script-representative-chars'."
+  (let (val)
+    (dolist (elt script-representative-chars)
+      (let ((subranges w32-no-usb-subranges)
+            (chars (cdr elt))
+            ch found subrange)
+        (while (and (consp chars) (not found))
+          (setq ch (car chars)
+                chars (cdr chars))
+          (while (and (consp subranges) (not found))
+            (setq subrange (car subranges)
+                  subranges (cdr subranges))
+            (when (and (>= ch (car subrange)) (<= ch (cdr subrange)))
+              (setq found t)
+              (push elt val))))))
+    (nreverse val)))
+
+(defvar w32-non-USB-fonts nil
+  "Alist of script symbols and corresponding fonts.
+Each element of the alist has the form (SCRIPT FONTS...), where
+SCRIPT is a symbol of a script and FONTS are one or more fonts installed
+on the system that can display SCRIPT's characters.  FONTS are
+specified as symbols.
+Only scripts that have no corresponding Unicode Subset Bits (USBs) can
+be found in this alist.
+This alist is used by w32font.c when it looks for fonts that can display
+characters from scripts for which no USBs are defined.")
+
+(defun w32-find-non-USB-fonts (&optional frame size)
+  "Compute the value of `w32-non-USB-fonts' for specified SIZE and FRAME.
+FRAME defaults to the selected frame.
+SIZE is the required font size and defaults to the nominal size of the
+default font on FRAME, or its best approximation."
+  (let* ((inhibit-compacting-font-caches t)
+         (all-fonts
+          (delete-dups
+           (x-list-fonts "-*-*-medium-r-normal-*-*-*-*-*-*-iso10646-1"
+                         'default frame)))
+         val)
+    (mapc (function
+           (lambda (script-desc)
+             (let* ((script (car script-desc))
+                    (script-chars (vconcat (cdr script-desc)))
+                    (nchars (length script-chars))
+                    (fntlist all-fonts)
+                    (entry (list script))
+                    fspec ffont font-obj glyphs idx)
+               ;; For each font in FNTLIST, determine whether it
+               ;; supports the representative character(s) of any
+               ;; scripts that have no USBs defined for it.
+               (dolist (fnt fntlist)
+                 (setq fspec (ignore-errors (font-spec :name fnt)))
+                 (if fspec
+                     (setq ffont (find-font fspec frame)))
+                 (when ffont
+                   (setq font-obj
+                         (open-font ffont size frame))
+                   ;; Ignore fonts for which open-font returns nil:
+                   ;; they are buggy fonts that we cannot use anyway.
+                   (setq glyphs
+                         (if font-obj
+                             (font-get-glyphs font-obj
+                                              0 nchars script-chars)
+                           '[nil]))
+                   ;; Does this font support ALL of the script's
+                   ;; representative characters?
+                   (setq idx 0)
+                   (while (and (< idx nchars) (not (null (aref glyphs idx))))
+                     (setq idx (1+ idx)))
+                   (if (= idx nchars)
+                       ;; It does; add this font to the script's entry in alist.
+                       (let ((font-family (font-get font-obj :family)))
+                         ;; Unifont is an ugly font, and it is already
+                         ;; present in the default fontset.
+                         (unless (string= (downcase (symbol-name font-family))
+                                          "unifont")
+                           (push font-family entry))))))
+                 (if (> (length entry) 1)
+                     (push (nreverse entry) val)))))
+          (w32--filter-USB-scripts))
+    ;; We've opened a lot of fonts, so clear the font caches to free
+    ;; some memory.
+    (clear-font-cache)
+    (and val (setq w32-non-USB-fonts val))))
+
 (provide 'w32-win)
 (provide 'term/w32-win)
 

@@ -514,7 +514,9 @@ Return the last evalled form in BODY."
     (should
      (replace-tests-with-undo
          input "theorem \\([0-9]+\\)"
-         "theorem \\\\ref{theo_\\1}"
+         '(replace-eval-replacement
+           replace-quote
+           (format "theorem \\\\ref{theo_%d}" (1+ (string-to-number (match-string 1)))))
          ((?\s . (1 2)) (?U . (3)))
          ?q
        (string= input (buffer-string)))))
@@ -529,5 +531,19 @@ Return the last evalled form in BODY."
          ((?\s . (1 2 4)) (?U . (3)))
          ?q
        (string= expected (buffer-string))))))
+
+(ert-deftest query-replace-undo-bug37287 ()
+  "Test for https://debbugs.gnu.org/37287 ."
+  (let ((input "foo-1\nfoo-2\nfoo-3")
+        (expected "foo-2\nfoo-2\nfoo-3"))
+    (should
+     (replace-tests-with-undo
+      input "\\([0-9]\\)"
+      '(replace-eval-replacement
+        replace-quote
+        (format "%d" (1+ (string-to-number (match-string 1)))))
+      ((?\s . (1 2 4)) (?U . (3)))
+      ?q
+      (string= expected (buffer-string))))))
 
 ;;; replace-tests.el ends here

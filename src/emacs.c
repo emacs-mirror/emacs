@@ -746,7 +746,7 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
       candidate[path_part_length] = DIRECTORY_SEP;
       memcpy (candidate + path_part_length + 1, argv0, argv0_length + 1);
       struct stat st;
-      if (check_executable (candidate)
+      if (file_access_p (candidate, X_OK)
 	  && stat (candidate, &st) == 0 && S_ISREG (st.st_mode))
 	return candidate;
       *candidate = '\0';
@@ -923,7 +923,6 @@ load_pdump (int argc, char **argv)
 }
 #endif /* HAVE_PDUMPER */
 
-/* ARGSUSED */
 int
 main (int argc, char **argv)
 {

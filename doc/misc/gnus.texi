@@ -23682,7 +23682,7 @@ point your Web browser at
 @uref{http://www.cs.indiana.edu/picons/ftp/index.html}.
 
 If you are using Debian GNU/Linux, saying @samp{apt-get install
-picons.*} will install the picons where Gnus can find them.
+picon-.*} will install the picons where Gnus can find them.
 
 To enable displaying picons, simply make sure that
 @code{gnus-picon-databases} points to the directory containing the

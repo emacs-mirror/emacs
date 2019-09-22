@@ -79,9 +79,9 @@ dirent_type (struct dirent *dp)
 }
 
 static DIR *
-open_directory (Lisp_Object dirname, int *fdp)
+open_directory (Lisp_Object dirname, Lisp_Object encoded_dirname, int *fdp)
 {
-  char *name = SSDATA (dirname);
+  char *name = SSDATA (encoded_dirname);
   DIR *d;
   int fd, opendir_errno;
 
@@ -167,38 +167,31 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 			  Lisp_Object match, Lisp_Object nosort, bool attrs,
 			  Lisp_Object id_format)
 {
-  ptrdiff_t directory_nbytes;
-  Lisp_Object list, dirfilename, encoded_directory;
-  bool needsep = 0;
-  ptrdiff_t count = SPECPDL_INDEX ();
-#ifdef WINDOWSNT
-  Lisp_Object w32_save = Qnil;
-#endif
+  if (!NILP (match))
+    CHECK_STRING (match);
 
   /* Don't let the compiler optimize away all copies of DIRECTORY,
      which would break GC; see Bug#16986.  */
   Lisp_Object volatile directory_volatile = directory;
 
-  /* Because of file name handlers, these functions might call
-     Ffuncall, and cause a GC.  */
-  list = encoded_directory = dirfilename = Qnil;
-  dirfilename = Fdirectory_file_name (directory);
+  Lisp_Object dirfilename = Fdirectory_file_name (directory);
 
   /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run
      run_pre_post_conversion_on_str which calls Lisp directly and
      indirectly.  */
-  dirfilename = ENCODE_FILE (dirfilename);
-  encoded_directory = ENCODE_FILE (directory);
+  Lisp_Object encoded_dirfilename = ENCODE_FILE (dirfilename);
 
   int fd;
-  DIR *d = open_directory (dirfilename, &fd);
+  DIR *d = open_directory (dirfilename, encoded_dirfilename, &fd);
 
   /* Unfortunately, we can now invoke expand-file-name and
      file-attributes on filenames, both of which can throw, so we must
      do a proper unwind-protect.  */
+  ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (directory_files_internal_unwind, d);
 
 #ifdef WINDOWSNT
+  Lisp_Object w32_save = Qnil;
   if (attrs)
     {
       /* Do this only once to avoid doing it (in w32.c:stat) for each
@@ -210,7 +203,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	{
 	  /* w32.c:stat will notice these bindings and avoid calling
 	     GetDriveType for each file.  */
-	  if (is_slow_fs (SSDATA (dirfilename)))
+	  if (is_slow_fs (SSDATA (encoded_dirfilename)))
 	    Vw32_get_true_file_attributes = Qnil;
 	  else
 	    Vw32_get_true_file_attributes = Qt;
@@ -218,88 +211,63 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
     }
 #endif
 
-  directory_nbytes = SBYTES (directory);
+  ptrdiff_t directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
 
   /* Decide whether we need to add a directory separator.  */
-  if (directory_nbytes == 0
-      || !IS_ANY_SEP (SREF (directory, directory_nbytes - 1)))
-    needsep = 1;
+  bool needsep = (directory_nbytes == 0
+		  || !IS_ANY_SEP (SREF (directory, directory_nbytes - 1)));
 
   /* Windows users want case-insensitive wildcards.  */
-  Lisp_Object case_table =
+  Lisp_Object case_table = Qnil;
 #ifdef WINDOWSNT
-    BVAR (&buffer_defaults, case_canon_table)
-#else
-    Qnil
+  case_table = BVAR (&buffer_defaults, case_canon_table);
 #endif
-    ;
 
-  if (!NILP (match))
-    CHECK_STRING (match);
-
-  /* Loop reading directory entries.  */
+  /* Read directory entries and accumulate them into LIST.  */
+  Lisp_Object list = Qnil;
   for (struct dirent *dp; (dp = read_dirent (d, directory)); )
     {
       ptrdiff_t len = dirent_namelen (dp);
       Lisp_Object name = make_unibyte_string (dp->d_name, len);
       Lisp_Object finalname = name;
 
-      /* Note: DECODE_FILE can GC; it should protect its argument,
-	 though.  */
+      /* This can GC.  */
       name = DECODE_FILE (name);
-      len = SBYTES (name);
 
-      /* Now that we have unwind_protect in place, we might as well
-	 allow matching to be interrupted.  */
       maybe_quit ();
 
-      bool wanted = (NILP (match) ||
-                     fast_string_match_internal (
-                       match, name, case_table) >= 0);
+      if (!NILP (match)
+	  && fast_string_match_internal (match, name, case_table) < 0)
+	continue;
 
-      if (wanted)
+      Lisp_Object fileattrs UNINIT;
+      if (attrs)
 	{
-	  if (!NILP (full))
-	    {
-	      Lisp_Object fullname;
-	      ptrdiff_t nbytes = len + directory_nbytes + needsep;
-	      ptrdiff_t nchars;
-
-	      fullname = make_uninit_multibyte_string (nbytes, nbytes);
-	      memcpy (SDATA (fullname), SDATA (directory),
-		      directory_nbytes);
-
-	      if (needsep)
-		SSET (fullname, directory_nbytes, DIRECTORY_SEP);
-
-	      memcpy (SDATA (fullname) + directory_nbytes + needsep,
-		      SDATA (name), len);
-
-	      nchars = multibyte_chars_in_text (SDATA (fullname), nbytes);
-
-	      /* Some bug somewhere.  */
-	      if (nchars > nbytes)
-		emacs_abort ();
-
-	      STRING_SET_CHARS (fullname, nchars);
-	      if (nchars == nbytes)
-		STRING_SET_UNIBYTE (fullname);
-
-	      finalname = fullname;
-	    }
-	  else
-	    finalname = name;
-
-	  if (attrs)
-	    {
-	      Lisp_Object fileattrs
-		= file_attributes (fd, dp->d_name, directory, name, id_format);
-	      list = Fcons (Fcons (finalname, fileattrs), list);
-	    }
-	  else
-	    list = Fcons (finalname, list);
+	  fileattrs = file_attributes (fd, dp->d_name, directory, name,
+				       id_format);
+	  if (NILP (fileattrs))
+	    continue;
 	}
+
+      if (!NILP (full))
+	{
+	  ptrdiff_t name_nbytes = SBYTES (name);
+	  ptrdiff_t nbytes = directory_nbytes + needsep + name_nbytes;
+	  ptrdiff_t nchars = SCHARS (directory) + needsep + SCHARS (name);
+	  finalname = make_uninit_multibyte_string (nchars, nbytes);
+	  if (nchars == nbytes)
+	    STRING_SET_UNIBYTE (finalname);
+	  memcpy (SDATA (finalname), SDATA (directory), directory_nbytes);
+	  if (needsep)
+	    SSET (finalname, directory_nbytes, DIRECTORY_SEP);
+	  memcpy (SDATA (finalname) + directory_nbytes + needsep,
+		  SDATA (name), name_nbytes);
+	}
+      else
+	finalname = name;
+
+      list = Fcons (attrs ? Fcons (finalname, fileattrs) : finalname, list);
     }
 
   closedir (d);
@@ -329,14 +297,14 @@ If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
  NOSORT is useful if you plan to sort the result yourself.  */)
-  (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort)
+  (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
+   Lisp_Object nosort)
 {
-  Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (directory, Qdirectory_files);
+  Lisp_Object handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
     return call5 (handler, Qdirectory_files, directory,
                   full, match, nosort);
@@ -364,14 +332,15 @@ ID-FORMAT specifies the preferred format of attributes uid and gid, see
 `file-attributes' for further documentation.
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.  */)
-  (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, Lisp_Object id_format)
+  (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
+   Lisp_Object nosort, Lisp_Object id_format)
 {
-  Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
+  Lisp_Object handler
+    = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
     return call6 (handler, Qdirectory_files_and_attributes,
                   directory, full, match, nosort, id_format);
@@ -508,7 +477,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	}
     }
   int fd;
-  DIR *d = open_directory (encoded_dir, &fd);
+  DIR *d = open_directory (dirname, encoded_dir, &fd);
   record_unwind_protect_ptr (directory_files_internal_unwind, d);
 
   /* Loop reading directory entries.  */
@@ -850,7 +819,7 @@ stat_gname (struct stat *st)
 
 DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
        doc: /* Return a list of attributes of file FILENAME.
-Value is nil if specified file cannot be opened.
+Value is nil if specified file does not exist.
 
 ID-FORMAT specifies the preferred format of attributes uid and gid (see
 below) - valid values are `string' and `integer'.  The latter is the
@@ -970,15 +939,14 @@ file_attributes (int fd, char const *name,
 	 information to be accurate.  */
       w32_stat_get_owner_group = 1;
 #endif
-      if (fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW) == 0)
-	err = 0;
+      err = fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW) == 0 ? 0 : errno;
 #ifdef WINDOWSNT
       w32_stat_get_owner_group = 0;
 #endif
     }
 
   if (err != 0)
-    return unbind_to (count, Qnil);
+    return unbind_to (count, file_attribute_errno (filename, err));
 
   Lisp_Object file_type;
   if (S_ISLNK (s.st_mode))
@@ -987,7 +955,7 @@ file_attributes (int fd, char const *name,
 	 symlink is replaced between the call to fstatat and the call
 	 to emacs_readlinkat.  Detect this race unless the replacement
 	 is also a symlink.  */
-      file_type = emacs_readlinkat (fd, name);
+      file_type = check_emacs_readlinkat (fd, filename, name);
       if (NILP (file_type))
 	return unbind_to (count, Qnil);
     }
@@ -1031,7 +999,8 @@ file_attributes (int fd, char const *name,
 		INT_TO_INTEGER (s.st_dev));
 }
 
-DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,
+DEFUN ("file-attributes-lessp", Ffile_attributes_lessp,
+       Sfile_attributes_lessp, 2, 2, 0,
        doc: /* Return t if first arg file attributes list is less than second.
 Comparison is in lexicographic order and case is significant.  */)
   (Lisp_Object f1, Lisp_Object f2)

@@ -398,9 +398,8 @@ FILE's name."
   ;; Probably pointless, but replaces the old AUTOGEN_VCS in lisp/Makefile,
   ;; which was designed to handle CVSREAD=1 and equivalent.
   (and autoload-ensure-writable
-       (file-exists-p file)
        (let ((modes (file-modes file)))
-         (if (zerop (logand modes #o0200))
+	 (if (and modes (zerop (logand modes #o0200)))
              ;; Ignore any errors here, and let subsequent attempts
              ;; to write the file raise any real error.
              (ignore-errors (set-file-modes file (logior modes #o0200))))))

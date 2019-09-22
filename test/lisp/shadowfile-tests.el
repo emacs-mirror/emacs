@@ -64,9 +64,14 @@
   "Temporary directory for Tramp tests.")
 
 (setq password-cache-expiry nil
-      shadow-debug t
+      shadow-debug nil
       tramp-verbose 0
-      tramp-message-show-message nil)
+      tramp-message-show-message nil
+      ;; On macOS, `temporary-file-directory' is a symlinked directory.
+      temporary-file-directory (file-truename temporary-file-directory)
+      shadow-test-remote-temporary-file-directory
+      (ignore-errors
+        (file-truename shadow-test-remote-temporary-file-directory)))
 
 ;; This should happen on hydra only.
 (when (getenv "EMACS_HYDRA_CI")
@@ -718,8 +723,6 @@ guaranteed by the originator of a cluster definition."
         (shadow-info-file shadow-test-info-file)
 	(shadow-todo-file shadow-test-todo-file)
         (shadow-inhibit-message t)
-        (shadow-test-remote-temporary-file-directory
-         (file-truename shadow-test-remote-temporary-file-directory))
 	shadow-clusters shadow-literal-groups shadow-regexp-groups
         shadow-files-to-copy
 	cluster1 cluster2 primary regexp file)
@@ -858,8 +861,6 @@ guaranteed by the originator of a cluster definition."
         (shadow-info-file shadow-test-info-file)
 	(shadow-todo-file shadow-test-todo-file)
         (shadow-inhibit-message t)
-        (shadow-test-remote-temporary-file-directory
-         (file-truename shadow-test-remote-temporary-file-directory))
         (shadow-noquery t)
         shadow-clusters shadow-files-to-copy
 	cluster1 cluster2 primary regexp file mocked-input)

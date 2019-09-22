@@ -335,6 +335,55 @@ line contains the strings \"lambda\" and \"number\"."
       (should (string-match-p results
                               (backtrace-tests--get-substring (point-min) (point-max)))))))
 
+(ert-deftest backtrace-tests--print-gensym ()
+  "Backtrace buffers can toggle `print-gensym' syntax."
+  (ert-with-test-buffer (:name "print-gensym")
+    (let* ((print-gensym nil)
+           (arg (list (gensym "first") (gensym) (gensym "last")))
+           (results (backtrace-tests--make-regexp
+                     (backtrace-tests--result arg)))
+           (results-gensym (regexp-quote (let ((print-gensym t))
+                                           (backtrace-tests--result arg))))
+           (last-frame (backtrace-tests--make-regexp
+                        (format (nth (1- backtrace-tests--line-count)
+                                     (backtrace-tests--backtrace-lines))
+                                arg)))
+           (last-frame-gensym (regexp-quote
+                               (let ((print-gensym t))
+                                 (format (nth (1- backtrace-tests--line-count)
+                                              (backtrace-tests--backtrace-lines))
+                                         arg)))))
+      (backtrace-tests--make-backtrace arg)
+      (backtrace-print)
+      (should (string-match-p results
+                              (backtrace-tests--get-substring (point-min) (point-max))))
+      ;; Go to the last frame.
+      (goto-char (point-max))
+      (forward-line -1)
+      ;; Turn on print-gensym for that frame.
+      (backtrace-toggle-print-gensym)
+      (should (string-match-p last-frame-gensym
+                              (backtrace-tests--get-substring (point) (point-max))))
+      ;; Turn off print-gensym for the frame.
+      (backtrace-toggle-print-gensym)
+      (should (string-match-p last-frame
+                              (backtrace-tests--get-substring (point) (point-max))))
+      (should (string-match-p results
+                              (backtrace-tests--get-substring (point-min) (point-max))))
+      ;; Turn print-gensym on for the buffer.
+      (backtrace-toggle-print-gensym '(4))
+      (should (string-match-p last-frame-gensym
+                              (backtrace-tests--get-substring (point) (point-max))))
+      (should (string-match-p results-gensym
+                              (backtrace-tests--get-substring (point-min) (point-max))))
+      ;; Turn print-gensym off.
+      (backtrace-toggle-print-gensym '(4))
+      (should (string-match-p last-frame
+                              (backtrace-tests--get-substring
+                               (point) (+ (point) (length last-frame)))))
+      (should (string-match-p results
+                              (backtrace-tests--get-substring (point-min) (point-max)))))))
+
 (defun backtrace-tests--make-regexp (str)
   "Make regexp from STR for `backtrace-tests--print-circle'.
 Used for results of printing circular objects without

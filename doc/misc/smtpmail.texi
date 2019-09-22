@@ -372,6 +372,13 @@ implement support for common requirements.
 
 @table @code
 
+@item smtpmail-retries
+@vindex smtpmail-retries
+An SMTP server may return an error code saying that there's a
+transient error (a @samp{4xx} code).  In that case, smtpmail will try
+to resend the message automatically, and the number of times it tries
+before giving up is determined by this variable, which defaults to 10.
+
 @item smtpmail-local-domain
 @vindex smtpmail-local-domain
   The variable @code{smtpmail-local-domain} controls the hostname sent

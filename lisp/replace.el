@@ -2698,7 +2698,7 @@ characters."
                                  (num-replacements  0)
                                  (nocasify t) ; Undo must preserve case (Bug#31073).
                                  search-string
-                                 next-replacement)
+                                 last-replacement)
                              (while (and (< stack-idx stack-len)
                                          stack
                                          (or (null replaced) last-was-act-and-show))
@@ -2709,9 +2709,9 @@ characters."
                                   ;; Bind swapped values
                                   ;; (search-string <--> replacement)
                                   search-string (nth (if replaced 4 3) elt)
-                                  next-replacement (nth (if replaced 3 4) elt)
+                                  last-replacement (nth (if replaced 3 4) elt)
                                   search-string-replaced search-string
-                                  next-replacement-replaced next-replacement
+                                  next-replacement-replaced last-replacement
                                   last-was-act-and-show nil)
 
                                  (when (and (= stack-idx stack-len)
@@ -2733,16 +2733,18 @@ characters."
                                            (match-data t (nth 2 elt)))
                                          noedit
                                          (replace-match-maybe-edit
-                                          next-replacement nocasify literal
+                                          last-replacement nocasify literal
                                           noedit real-match-data backward)
                                          replace-count (1- replace-count)
                                          real-match-data
                                          (save-excursion
                                            (goto-char (match-beginning 0))
                                            (if regexp-flag
-                                               (looking-at next-replacement)
-                                             (looking-at (regexp-quote next-replacement)))
+                                               (looking-at last-replacement)
+                                             (looking-at (regexp-quote last-replacement)))
                                            (match-data t (nth 2 elt))))
+                                   (when regexp-flag
+                                     (setq next-replacement (nth 4 elt)))
                                    ;; Set replaced nil to keep in loop
                                    (when (eq def 'undo-all)
                                      (setq replaced nil

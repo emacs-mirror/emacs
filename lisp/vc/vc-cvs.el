@@ -440,7 +440,7 @@ REV is the revision to check out."
     (if vc-cvs-use-edit
         (vc-cvs-command nil 0 file "unedit")
       ;; Make the file read-only by switching off all w-bits
-      (set-file-modes file (logand (file-modes file) 3950)))))
+      (set-file-modes file (logand (file-modes file) #o7555)))))
 
 (defun vc-cvs-merge-file (file)
   "Accept a file merge request, prompting for revisions."

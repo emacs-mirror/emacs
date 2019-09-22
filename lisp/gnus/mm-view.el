@@ -65,8 +65,9 @@
   :group 'mime-display)
 
 (defcustom mm-inline-large-images-proportion 0.9
-  "Maximum proportion of large image resized when
-`mm-inline-large-images' is set to resize."
+  "Maximum proportion large images can occupy in the buffer.
+This is only used if `mm-inline-large-images' is set to
+`resize'."
   :type 'float
   :version "24.1"
   :group 'mime-display)

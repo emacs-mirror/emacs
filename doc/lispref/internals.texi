@@ -533,9 +533,6 @@ be allocated for Lisp objects after one garbage collection in order to
 trigger another garbage collection.  You can use the result returned by
 @code{garbage-collect} to get an information about size of the particular
 object type; space allocated to the contents of buffers does not count.
-Note that the subsequent garbage collection does not happen immediately
-when the threshold is exhausted, but only the next time the Lisp interpreter
-is called.
 
 The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
 @file{alloc.c}.  Since it's defined in @code{word_size} units, the value
@@ -561,6 +558,16 @@ As the heap size increases, the time to perform a garbage collection
 increases.  Thus, it can be desirable to do them less frequently in
 proportion.
 @end defopt
+
+  Control over the garbage collector via @code{gc-cons-threshold} and
+@code{gc-cons-percentage} is only approximate.  Although Emacs checks
+for threshold exhaustion regularly, for efficiency reasons it does not
+do so immediately after every change to the heap or to
+@code{gc-cons-threshold} or @code{gc-cons-percentage}, so exhausting
+the threshold does not immediately trigger garbage collection.  Also,
+for efficency in threshold calculations Emacs approximates the heap
+size, which counts the bytes used by currently-accessible objects in
+the heap.
 
   The value returned by @code{garbage-collect} describes the amount of
 memory used by Lisp data, broken down by data type.  By contrast, the

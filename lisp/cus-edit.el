@@ -2212,7 +2212,12 @@ and `face'."
     (unless (eq state 'modified)
       (unless (memq state '(nil unknown hidden))
 	(widget-put widget :custom-state 'modified))
-      (custom-magic-reset widget)
+      ;; Update the status text (usually from "STANDARD" to "EDITED
+      ;; bla bla" in the buffer after the command has run.  Otherwise
+      ;; commands like `M-u' (that work on a region in the buffer)
+      ;; will upcase the wrong part of the buffer, since more text has
+      ;; been inserted before point.
+      (run-with-idle-timer 0.0 nil #'custom-magic-reset widget)
       (apply 'widget-default-notify widget args))))
 
 (defun custom-redraw (widget)

@@ -563,7 +563,7 @@ This command uses `nslookup-program' to look up DNS records."
            (apply #'vector (mapcar #'string-to-number (split-string ip "\\."))))
           (t (error "Invalid format: %s" format)))))
 
-(defun ipv6-expand (ipv6-vector)
+(defun nslookup--ipv6-expand (ipv6-vector)
   (let ((len (length ipv6-vector)))
     (if (< len 8)
         (let* ((pivot (cl-position 0 ipv6-vector))
@@ -598,9 +598,10 @@ This command uses `nslookup-program' to look up DNS records."
     (cond ((memq format '(string nil))
            ip)
           ((eq format 'vector)
-           (ipv6-expand (apply #'vector
-                               (cl-loop for hextet in (split-string ip "[:]")
-                                        collect (string-to-number hextet 16)))))
+           (nslookup--ipv6-expand
+            (apply #'vector
+                   (cl-loop for hextet in (split-string ip "[:]")
+                            collect (string-to-number hextet 16)))))
           (t (error "Invalid format: %s" format)))))
 
 ;;;###autoload

@@ -567,10 +567,6 @@
 ;; Consider the use of `:box' face attribute under Emacs 21
 ;; Consider the use of `modification-hooks' text property instead of
 ;; rebinding the keymap
-;; Maybe provide complete XEmacs support in the future however the
-;; "extent" is the single largest obstacle lying ahead, read the
-;; document in Emacs info.
-;; (progn (require 'info) (Info-find-node "elisp" "Not Intervals"))
 ;;
 ;;
 ;; ---------------

@@ -700,11 +700,7 @@ fail (void)
 {
   if (alternate_editor)
     {
-      /* If the user has said --eval, then those aren't file name
-	 parameters, so don't put them on the alternate_editor command
-	 line. */
-      size_t extra_args_size =
-	(eval? 0: (main_argc - optind + 1) * sizeof (char *));
+      size_t extra_args_size = (main_argc - optind + 1) * sizeof (char *);
       size_t new_argv_size = extra_args_size;
       char **new_argv = xmalloc (new_argv_size);
       char *s = xstrdup (alternate_editor);

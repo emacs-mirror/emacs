@@ -1281,6 +1281,12 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
+@item G
+Add the file under point to the list of files that the VC should
+ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it
+will append this file to the @file{.gitignore} file.  If given a
+prefix, do this with all the marked files.
+
 @item q
 Quit the VC Directory buffer, and bury it (@code{quit-window}).
 

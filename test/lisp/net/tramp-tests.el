@@ -2412,9 +2412,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless (and (tramp--test-nextcloud-p)
-			   (or (not (file-remote-p source))
-			       (not (file-remote-p target))))
+	      (unless (tramp--test-nextcloud-p)
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -2437,8 +2435,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless
-		  (and (tramp--test-nextcloud-p) (not (file-remote-p source)))
+	      (unless (tramp--test-nextcloud-p)
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -4407,7 +4404,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      "foo"
 	      (funcall
 	       this-shell-command-to-string
-	       (format "echo -n ${%s:?bla}" envvar))))))
+	       (format "echo -n ${%s:-bla}" envvar))))))
 
       (unwind-protect
 	  ;; Set the empty value.
@@ -4419,7 +4416,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      "bla"
 	      (funcall
 	       this-shell-command-to-string
-	       (format "echo -n ${%s:?bla}" envvar))))
+	       (format "echo -n ${%s:-bla}" envvar))))
 	    ;; Variable is set.
 	    (should
 	     (string-match
@@ -4441,7 +4438,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      "foo"
 	      (funcall
 	       this-shell-command-to-string
-	       (format "echo -n ${%s:?bla}" envvar))))
+	       (format "echo -n ${%s:-bla}" envvar))))
 	    (let ((process-environment
 		   (cons envvar process-environment)))
 	      ;; Variable is unset.
@@ -4450,12 +4447,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		"bla"
 		(funcall
 		 this-shell-command-to-string
-		 (format "echo -n ${%s:?bla}" envvar))))
+		 (format "echo -n ${%s:-bla}" envvar))))
 	      ;; Variable is unset.
 	      (should-not
 	       (string-match
 		(regexp-quote envvar)
-		(funcall this-shell-command-to-string "env")))))))))
+		;; We must remove PS1, the output is truncated otherwise.
+		(funcall
+		 this-shell-command-to-string "printenv | grep -v PS1")))))))))
 
 ;; This test is inspired by Bug#27009.
 (ert-deftest tramp-test33-environment-variables-and-port-numbers ()
@@ -5303,7 +5302,7 @@ This requires restrictions of file name syntax."
 		  ;; of process output.  So we unset it temporarily.
 		  (setenv "PS1")
 		  (with-temp-buffer
-		    (should (zerop (process-file "env" nil t nil)))
+		    (should (zerop (process-file "printenv" nil t nil)))
 		    (goto-char (point-min))
 		    (should
 		     (re-search-forward

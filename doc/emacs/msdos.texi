@@ -1025,7 +1025,7 @@ symbols, as in @code{(uniscribe)} or @w{@code{(harfbuzz uniscribe gdi)}}.
 
 @cindex font properties (MS Windows)
 @noindent
-Optional properties common to all font backends on MS-Windows are:
+Optional font properties supported on MS-Windows are:
 
 @table @code
 
@@ -1078,39 +1078,60 @@ Not used on Windows, but for informational purposes and to
 prevent problems with code that expects it to be set, is set internally to
 @code{raster} for bitmapped fonts, @code{outline} for scalable fonts,
 or @code{unknown} if the type cannot be determined as one of those.
-@end table
-
-@cindex font properties (MS Windows gdi backend)
-Options specific to @code{GDI} fonts:
-
-@table @code
 
 @cindex font scripts (MS Windows)
 @cindex font Unicode subranges (MS Windows)
 @item script
 Specifies a Unicode subrange the font should support.
 
-The following scripts are recognized on Windows: @code{latin}, @code{greek},
-@code{coptic}, @code{cyrillic}, @code{armenian}, @code{hebrew}, @code{arabic},
-@code{syriac}, @code{nko}, @code{thaana}, @code{devanagari}, @code{bengali},
-@code{gurmukhi}, @code{gujarati}, @code{oriya}, @code{tamil}, @code{telugu},
-@code{kannada}, @code{malayam}, @code{sinhala}, @code{thai}, @code{lao},
-@code{tibetan}, @code{myanmar}, @code{georgian}, @code{hangul},
-@code{ethiopic}, @code{cherokee}, @code{canadian-aboriginal}, @code{ogham},
-@code{runic}, @code{khmer}, @code{mongolian}, @code{symbol}, @code{braille},
-@code{han}, @code{ideographic-description}, @code{cjk-misc}, @code{kana},
-@code{bopomofo}, @code{kanbun}, @code{yi}, @code{byzantine-musical-symbol},
-@code{musical-symbol}, and @code{mathematical}.
+All the scripts known to Emacs (which generally means all the scripts
+defined by the latest Unicode Standard) are recognized on MS-Windows.
+However, @code{GDI} fonts support only a subset of the known scripts:
+@code{greek}, @code{hangul}, @code{kana}, @code{kanbun},
+@code{bopomofo}, @code{tibetan}, @code{yi}, @code{mongolian},
+@code{hebrew}, @code{arabic}, and @code{thai}.
 
 @cindex font antialiasing (MS Windows)
+@cindex Cleartype
 @item antialias
 Specifies the antialiasing method.  The value @code{none} means no
 antialiasing, @code{standard} means use standard antialiasing,
-@code{subpixel} means use subpixel antialiasing (known as Cleartype on
-Windows), and @code{natural} means use subpixel antialiasing with
-adjusted spacing between letters.  If unspecified, the font will use
-the system default antialiasing.
+@code{subpixel} means use subpixel antialiasing (known as
+@dfn{Cleartype} on Windows), and @code{natural} means use subpixel
+antialiasing with adjusted spacing between letters.  If unspecified,
+the font will use the system default antialiasing.
 @end table
+
+@cindex font lookup, MS-Windows
+@findex w32-find-non-USB-fonts
+The method used by Emacs on MS-Windows to look for fonts suitable for
+displaying a given non-@sc{ascii} character might fail for some rare
+scripts, specifically those added by Unicode relatively recently, even
+if you have fonts installed on your system that support those scripts.
+That is because these scripts have no Unicode Subrange Bits (USBs)
+defined for them in the information used by Emacs on MS-Windows to
+look for fonts.  You can use the @code{w32-find-non-USB-fonts}
+function to overcome these problems.  It needs to be run once at the
+beginning of the Emacs session, and again if you install new fonts.
+You can add the following line to your init file to have this function
+run every time you start Emacs:
+
+@lisp
+(w32-find-non-USB-fonts)
+@end lisp
+
+@noindent
+@vindex w32-non-USB-fonts
+Alternatively, you can run this function manually via @kbd{M-:}
+(@pxref{Lisp Eval}) at any time.  On a system that has many fonts
+installed, running @code{w32-find-non-USB-fonts} might take a couple
+of seconds; if you consider that to be too long to be run during
+startup, and if you install new fonts only rarely, run this function
+once via @kbd{M-:}, and then assign the value it returns, if
+non-@code{nil}, to the variable @code{w32-non-USB-fonts} in your init
+file.  (If the function returns @code{nil}, you have no fonts
+installed that can display characters from the scripts which need this
+facility.)
 
 @node Windows Misc
 @section Miscellaneous Windows-specific features

@@ -1,4 +1,4 @@
-;;; viper.el --- A full-featured Vi emulator for Emacs and XEmacs,  -*-lexical-binding:t -*-
+;;; viper.el --- A full-featured Vi emulator for Emacs  -*- lexical-binding:t -*-
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
@@ -34,7 +34,7 @@
 
 ;;; Commentary:
 
-;; Viper is a full-featured Vi emulator for Emacs and XEmacs.  It emulates and
+;; Viper is a full-featured Vi emulator for Emacs.  It emulates and
 ;; improves upon the standard features of Vi and, at the same time, allows
 ;; full access to all Emacs facilities.  Viper supports multiple undo,
 ;; file name completion, command, file, and search history and it extends
@@ -541,7 +541,7 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 		      "Viper Is a Package for Emacs Rebels,
 a VI Plan for Emacs Rescue, and a venomous VI PERil.
 
-Incidentally, Viper emulates Vi under Emacs/XEmacs 20.
+Incidentally, Viper emulates Vi under Emacs.
 It supports all of what is good in Vi and Ex, while extending
 and improving upon much of it.
 
