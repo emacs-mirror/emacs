@@ -968,12 +968,12 @@ This will be called at runtime."
            func
            (comp-ctxt-funcs-h comp-ctxt)))
 
-(defun comp-limplify (funcs)
-  "Compute the LIMPLE ir for FUNCS.
+(defun comp-limplify (lap-funcs)
+  "Compute the LIMPLE ir for LAP-FUNCS.
 Top level forms for the current context are rendered too."
   (mapc #'comp-add-func-to-ctxt
         (cons (comp-limplify-top-level)
-              (mapcar #'comp-limplify-function funcs))))
+              (mapcar #'comp-limplify-function lap-funcs))))
 
 
 ;;; SSA pass specific code.
@@ -1236,22 +1236,22 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                          when (eq op 'phi)
                          do (finalize-phi args b)))))
 
-(defun comp-ssa (funcs)
+(defun comp-ssa (_)
   "Port FUNCS into mininal SSA form."
-  (cl-loop for comp-func in funcs
-           do (progn
-                ;; TODO: if this is run more than once we should clean all CFG
-                ;; data including phis here.
-                (comp-func-reset-generators comp-func)
-                (comp-compute-edges)
-                (comp-compute-dominator-tree)
-                (comp-compute-dominator-frontiers)
-                (comp-log-block-info)
-                (comp-place-phis)
-                (comp-ssa-rename)
-                (comp-finalize-phis)
-                (comp-log-func comp-func)))
-  funcs)
+  (maphash (lambda (_ f)
+             (let ((comp-func f))
+               ;; TODO: if this is run more than once we should clean all CFG
+               ;; data including phis here.
+               (comp-func-reset-generators comp-func)
+               (comp-compute-edges)
+               (comp-compute-dominator-tree)
+               (comp-compute-dominator-frontiers)
+               (comp-log-block-info)
+               (comp-place-phis)
+               (comp-ssa-rename)
+               (comp-finalize-phis)
+               (comp-log-func comp-func)))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 
 ;;; propagate pass specific code.
@@ -1307,16 +1307,15 @@ This can run just once."
            do (cl-loop for insn in (comp-block-insns b)
                        do (comp-propagate-insn insn))))
 
-(defun comp-propagate (funcs)
-  (cl-loop for comp-func in funcs
-           do
-           (progn
-             (comp-basic-const-propagate)
-             ;; FIXME: unbelievably dumb...
-             (cl-loop repeat 10
-                      do (comp-propagate*))
-             (comp-log-func comp-func)))
-  funcs)
+(defun comp-propagate (_)
+  (maphash (lambda (_ f)
+             (let ((comp-func f))
+               (comp-basic-const-propagate)
+               ;; FIXME: unbelievably dumb...
+               (cl-loop repeat 10
+                        do (comp-propagate*))
+               (comp-log-func comp-func)))
+           (comp-ctxt-funcs-h comp-ctxt)))
 
 
 ;;; Call optimizer pass specific code.
@@ -1358,28 +1357,31 @@ This can run just once."
                            (fill-args args (comp-args-max func-args)))))
               `(,call-type ,callee ,@args))))))))
 
-(defun comp-call-optim (funcs)
-  "Given FUNCS try to avoid funcall trampoline usage when possible."
+(defun comp-call-optim-func ()
+  "Perform trampoline call optimization for the current function."
   (cl-loop
-   for comp-func in funcs
-   for self = (comp-func-symbol-name comp-func)
-   when (>= comp-speed 2)
+   with self = (comp-func-symbol-name comp-func)
+   for b being each hash-value of (comp-func-blocks comp-func)
    do (cl-loop
-       for b being each hash-value of (comp-func-blocks comp-func)
-       do (cl-loop
-           for insn-cell on (comp-block-insns b)
-           for insn = (car insn-cell)
-           do (pcase insn
-                (`(set ,lval (callref funcall ,f . ,rest))
-                 (when-let ((new-form (comp-call-optim-form-call
-                                       (comp-mvar-constant f) rest self)))
-                   (setcar insn-cell `(set ,lval ,new-form))))
-                (`(callref funcall ,f . ,rest)
-                 (when-let ((new-form (comp-call-optim-form-call
-                                       (comp-mvar-constant f) rest self)))
-                   (setcar insn-cell ,new-form))))))
-   (comp-log-func comp-func))
-  funcs)
+       for insn-cell on (comp-block-insns b)
+       for insn = (car insn-cell)
+       do (pcase insn
+            (`(set ,lval (callref funcall ,f . ,rest))
+             (when-let ((new-form (comp-call-optim-form-call
+                                   (comp-mvar-constant f) rest self)))
+               (setcar insn-cell `(set ,lval ,new-form))))
+            (`(callref funcall ,f . ,rest)
+             (when-let ((new-form (comp-call-optim-form-call
+                                   (comp-mvar-constant f) rest self)))
+               (setcar insn-cell ,new-form)))))))
+
+(defun comp-call-optim (_)
+  "Given FUNCS try to avoid funcall trampoline usage when possible."
+  (when (>= comp-speed 2)
+    (maphash (lambda (_ f)
+               (let ((comp-func f))
+                 (comp-call-optim-func)))
+             (comp-ctxt-funcs-h comp-ctxt))))
 
 
 ;;; Final pass specific code.
