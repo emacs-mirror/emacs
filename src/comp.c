@@ -803,6 +803,12 @@ emit_const_lisp_obj (Lisp_Object obj)
   emit_comment (format_string ("const lisp obj: %s",
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
 
+  if (Qnil == NULL && EQ (obj, Qnil))
+    return emit_cast (comp.lisp_obj_type,
+		      gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+							   comp.void_ptr_type,
+							   NULL));
+
   Lisp_Object d_reloc_idx = FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt);
   ptrdiff_t reloc_fixn = XFIXNUM (Fgethash (obj, d_reloc_idx, Qnil));
   gcc_jit_rvalue *reloc_n =
