@@ -1346,7 +1346,13 @@ This can run just once."
   (cl-flet ((fill-args (args total)
               ;; Fill missing args to reach TOTAL
               (append args (cl-loop repeat (- total (length args))
-                                    collect (make-comp-mvar :constant nil)))))
+                                    collect (make-comp-mvar :constant nil))))
+            (clean-args-ref (args)
+              ;; Clean-up the ref slot in all args
+              (mapc (lambda (arg)
+                      (setf (comp-mvar-ref arg) nil))
+                    args)
+              args))
     (when (symbolp callee) ; Do nothing if callee is a byte compiled func.
       (let* ((f (symbol-function callee))
              (subrp (subrp f))
@@ -1363,7 +1369,7 @@ This can run just once."
                              args
                            (fill-args args maxarg))))
               (comp-add-subr-to-relocs callee)
-              `(,call-type ,callee ,@args))
+              `(,call-type ,callee ,@(clean-args-ref args)))
           ;; Intra compilation unit procedure call optimization.
           (when (or (eq callee self)
                     ;; Attention speed 3 triggers that for non self calls too!!
@@ -1375,7 +1381,7 @@ This can run just once."
                    (args (if (eq call-type 'direct-callref)
                              args
                            (fill-args args (comp-args-max func-args)))))
-              `(,call-type ,callee ,@args))))))))
+              `(,call-type ,callee ,@(clean-args-ref args)))))))))
 
 (defun comp-call-optim-func ()
   "Perform trampoline call optimization for the current function."
