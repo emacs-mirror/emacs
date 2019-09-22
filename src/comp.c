@@ -1295,9 +1295,13 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qcall))
     {
-      gcc_jit_block_add_eval (comp.block,
-			      NULL,
+      gcc_jit_block_add_eval (comp.block, NULL,
 			      emit_limple_call (args));
+    }
+  else if (EQ (op, Qcallref))
+    {
+      gcc_jit_block_add_eval (comp.block, NULL,
+			      emit_limple_call_ref (args, false));
     }
   else if (EQ (op, Qset))
     {
@@ -2721,7 +2725,7 @@ compile_function (Lisp_Object func)
      - Enable gcc for better reordering (frame array is clobbered every time is
        passed as parameter being invoved into an nargs function call).
      - Allow gcc to trigger other optimizations that are prevented by memory
-       referencing (ex TCO).
+       referencing.
   */
   if (comp_speed >= 2)
     {

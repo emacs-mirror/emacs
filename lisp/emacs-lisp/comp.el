@@ -58,6 +58,7 @@
                         comp-propagate
                         comp-call-optim
                         comp-propagate
+                        comp-dead-code
                         comp-final)
   "Passes to be executed in order.")
 
@@ -72,13 +73,22 @@
                                  (% . number))
   "Alist used for type propagation.")
 
-(defconst comp-limple-assignments '(set
-                                    setimm
-                                    set-par-to-local
-                                    set-args-to-local
-                                    set-rest-args-to-local
-                                    push-handler)
+(defconst comp-limple-sets '(set
+                             setimm
+                             set-par-to-local
+                             set-args-to-local
+                             set-rest-args-to-local)
+  "Limple set operators.")
+
+(defconst comp-limple-assignments `(push-handler
+                                    ,@comp-limple-sets)
   "Limple operators that clobbers the first mvar argument.")
+
+(defconst comp-limple-calls '(call
+                              callref
+                              direct-call
+                              direct-callref)
+  "Limple operators use to call subrs.")
 
 (defconst comp-mostly-pure-funcs
   '(% * + - / /= 1+ 1- < <= = > >= cons list % concat logand logcount logior
@@ -234,9 +244,18 @@ structure.")
 
 
 
+(defun comp-set-op-p (op)
+  "Assignment predicate for OP."
+  (cl-find op comp-limple-sets))
+
 (defun comp-assign-op-p (op)
   "Assignment predicate for OP."
   (cl-find op comp-limple-assignments))
+
+(defun comp-limple-insn-call-p (insn)
+  "Limple INSN call predicate."
+  (when (member (car-safe insn) comp-limple-calls)
+    t))
 
 (defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
@@ -1385,11 +1404,74 @@ This can run just once."
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
+;;; Dead code elimination pass specific code.
+;; This simple pass try to eliminate insns became useful after propagation.
+;; Even if gcc would take care of this is good to perform this here
+;; in the hope of removing memory references (remember that most lisp
+;; objects are loaded from the reloc array).
+;; This pass can be run as last optim.
+
+(defun comp-collect-mvar-ids (insn)
+  "Collect the mvar unique identifiers into INSN."
+  (cl-loop for x in insn
+           if (consp x)
+           append (comp-collect-mvar-ids x)
+           else
+           when (comp-mvar-p x)
+           collect (comp-mvar-id x)))
+
+(defun comp-dead-code-func ()
+  "Clean-up dead code into current function."
+  (let ((l-vals ())
+        (r-vals ()))
+    ;; Collect used r and l values.
+    (cl-loop
+     for b being each hash-value of (comp-func-blocks comp-func)
+     do (cl-loop
+         for insn in (comp-block-insns b)
+         for (op arg0 . rest) = insn
+         if (comp-set-op-p op)
+           do (push (comp-mvar-id arg0) l-vals)
+         and
+           do (setf r-vals (nconc (comp-collect-mvar-ids rest) r-vals))
+         else
+           do (setf r-vals (nconc (comp-collect-mvar-ids insn) r-vals))))
+    ;; Every l-value appearing that does not appear as r-value has no right to
+    ;; exist and gets nuked.
+    (let ((nuke-list (cl-set-difference l-vals r-vals)))
+      (comp-log (format "Function %s\n" (comp-func-symbol-name comp-func)))
+      (comp-log (format "l-vals %s\n" l-vals))
+      (comp-log (format "r-vals %s\n" r-vals))
+      (comp-log (format "Nuking ids: %s\n" nuke-list))
+      (cl-loop
+       for b being each hash-value of (comp-func-blocks comp-func)
+       do (cl-loop
+           for insn-cell on (comp-block-insns b)
+           for insn = (car insn-cell)
+           for (op arg0 rest) = insn
+           when (and (comp-set-op-p op)
+                     (member (comp-mvar-id arg0) nuke-list))
+           do (setcar insn-cell
+                      (if (comp-limple-insn-call-p rest)
+                          rest
+                        `(comment ,(format "optimized out %s"
+                                           insn)))))))))
+
+(defun comp-dead-code (_)
+  "Dead code elimination."
+  (when (>= comp-speed 2)
+    (maphash (lambda (_ f)
+               (let ((comp-func f))
+                 (comp-dead-code-func)
+                 (comp-log-func comp-func)))
+             (comp-ctxt-funcs-h comp-ctxt))))
+
+
 ;;; Final pass specific code.
 
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
-Prepare every functions for final compilation and drive the C side."
+Prepare every function for final compilation and drive the C back-end."
   (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
                 (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
   (setf (comp-ctxt-exp-funcs comp-ctxt)
