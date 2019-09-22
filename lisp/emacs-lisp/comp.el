@@ -442,9 +442,14 @@ Restore the original value afterwards."
   (block-name nil :type symbol
     :documentation "Current basic block name."))
 
-(cl-defun comp-block-maybe-add (&rest args &key name &allow-other-keys)
+(cl-defun comp-block-maybe-add (&rest args &key name sp &allow-other-keys)
   (let ((blocks (comp-func-blocks comp-func)))
-    (unless (gethash name blocks)
+    (if-let ((bb (gethash name blocks)))
+        (if-let ((bb-sp (comp-block-sp bb)))
+            ;; If was a sp was already registered sanity check it.
+            (cl-assert (or (null sp) (= sp bb-sp)))
+          ;; Otherwise set it.
+          (setf (comp-block-sp bb) sp))
       (puthash name (apply #'make--comp-block args) blocks))))
 
 ;; (defun comp-opt-call (inst)
@@ -547,12 +552,13 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   (comp-emit (list 'jump target))
   (comp-mark-block-closed))
 
-(defun comp-emit-block (block-name)
-  "Emit basic block BLOCK-NAME."
+(defun comp-emit-block (block-name &optional entry-sp)
+  "Emit basic block BLOCK-NAME.
+ENTRY-SP is the sp value when entering."
   (let ((blocks (comp-func-blocks comp-func)))
     ;; In case does not exist register it into comp-func-blocks.
     (comp-block-maybe-add :name block-name
-                          :sp (comp-sp))
+                          :sp entry-sp)
     ;; If we are abandoning an non closed basic block close it with a fall
     ;; through.
     (when (and (not (eq block-name 'entry))
@@ -562,9 +568,10 @@ If DST-N is specified use it otherwise assume it to be the current slot."
       (comp-emit-jump block-name))
     ;; Set this a currently compiled block.
     (setf comp-block (gethash block-name blocks))
-    ;; If we are landing here form a recorded branch adjust sp accordingly.
-    (setf (comp-sp)
-          (comp-block-sp (gethash block-name blocks)))
+    ;; If we are landing here from a previously recorded branch with known sp
+    ;; adjust accordingly.
+    (when-let ((new-sp (comp-block-sp (gethash block-name blocks))))
+      (setf (comp-sp) new-sp))
     (setf (comp-limplify-block-name comp-pass) block-name)))
 
 (defun comp-emit-cond-jump (a b target-offset lap-label negated)
@@ -580,7 +587,7 @@ If NEGATED non nil negate the tested condition."
 		   (list 'cond-jump a b bb target)))
       (comp-block-maybe-add :name target :sp (+ target-offset (comp-sp)))
       (comp-mark-block-closed))
-    (comp-emit-block bb)))
+    (comp-emit-block bb (comp-sp))))
 
 (defun comp-stack-adjust (n)
   "Move sp by N."
@@ -623,7 +630,7 @@ If NEGATED non nil negate the tested condition."
                        guarded-bb))
       (comp-block-maybe-add :name handler-bb :sp (1+ (comp-sp)))
       (comp-mark-block-closed)
-      (comp-emit-block guarded-bb))))
+      (comp-emit-block guarded-bb (comp-sp)))))
 
 (defun comp-emit-switch (var last-insn)
   "Emit a limple for a lap jump table given VAR and LAST-INSN."
@@ -890,15 +897,16 @@ the annotation emission."
            do (progn
                 (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
                 (comp-mark-block-closed)
-                (comp-emit-block bb)
+                (comp-emit-block bb (comp-sp))
                 (comp-emit `(set-args-to-local ,(comp-slot-n i)))
                 (comp-emit '(inc-args)))
            finally (comp-emit-jump 'entry_rest_args))
   (cl-loop for i from minarg below nonrest
            do (comp-with-sp i
-                (comp-emit-block (intern (format "entry_fallback_%s" i)))
+                (comp-emit-block (intern (format "entry_fallback_%s" i))
+                                 (comp-sp))
                 (comp-emit-set-const nil)))
-  (comp-emit-block 'entry_rest_args)
+  (comp-emit-block 'entry_rest_args (comp-sp))
   (comp-emit `(set-rest-args-to-local ,(comp-slot-n nonrest))))
 
 (defun comp-limplify-finalize-function (func)
@@ -921,7 +929,7 @@ This will be called at runtime."
                      :sp -1
                      :frame (comp-new-frame 0)))
          (comp-block ()))
-    (comp-emit-block 'entry)
+    (comp-emit-block 'entry (comp-sp))
     (comp-emit-annotation "Top level")
     (cl-loop for args in (comp-ctxt-top-level-defvars comp-ctxt)
              do (comp-emit (comp-call 'defvar (make-comp-mvar :constant args))))
@@ -939,7 +947,7 @@ This will be called at runtime."
          (args-min (comp-args-base-min args))
          (comp-block ()))
     ;; Prologue
-    (comp-emit-block 'entry)
+    (comp-emit-block 'entry (comp-sp))
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-symbol-name func))))
     (if (comp-args-p args)
@@ -950,7 +958,7 @@ This will be called at runtime."
         (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))
     ;; Body
-    (comp-emit-block (comp-new-block-sym))
+    (comp-emit-block (comp-new-block-sym) (comp-sp))
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
     (comp-limplify-finalize-function func)))
 
