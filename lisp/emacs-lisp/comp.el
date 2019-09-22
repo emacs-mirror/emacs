@@ -183,8 +183,6 @@ Is in use to help the SSA rename pass."))
                :documentation "Function symbol's name.")
   (c-func-name nil :type string
                :documentation "The function name in the native world.")
-  (func nil
-        :documentation "Original form.")
   (byte-func nil
              :documentation "Byte compiled version.")
   (lap () :type list
