@@ -186,23 +186,26 @@ Is in use to help the SSA rename pass."))
   (byte-func nil
              :documentation "Byte compiled version.")
   (lap () :type list
-       :documentation "Lap assembly representation.")
+       :documentation "LAP assembly representation.")
   (args nil :type comp-args-base)
   (frame-size nil :type number)
   (blocks (make-hash-table) :type hash-table
           :documentation "Key is the basic block symbol value is a comp-block
 structure.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
-             :documentation "LAP lable -> LIMPLE basic block.")
+             :documentation "LAP lable -> LIMPLE basic block name.")
   (edges () :type list
          :documentation "List of edges connecting basic blocks.")
+  (block-cnt-gen (funcall #'comp-gen-counter) :type function
+                 :documentation "Generates block numbers.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
-               :documentation "Generates edges numbers.")
+                :documentation "Generates edges numbers.")
   (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
               :documentation "Counter to create ssa limple vars."))
 
 (defun comp-func-reset-generators (func)
   "Reset unique id generators for FUNC."
+  ;; (setf (block-cnt-gen func) (comp-gen-counter))
   (setf (comp-func-edge-cnt-gen func) (comp-gen-counter))
   (setf (comp-func-ssa-cnt-gen func) (comp-gen-counter)))
 
