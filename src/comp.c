@@ -1316,6 +1316,17 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block_add_eval (comp.block, NULL,
 			      emit_limple_call_ref (args, false));
     }
+  else if (EQ (op, Qdirect_call))
+    {
+      gcc_jit_block_add_eval (
+        comp.block, NULL,
+	emit_simple_limple_call (XCDR (insn), comp.lisp_obj_type, true));
+    }
+  else if (EQ (op, Qdirect_callref))
+    {
+      gcc_jit_block_add_eval (comp.block, NULL,
+			      emit_limple_call_ref (XCDR (insn), true));
+    }
   else if (EQ (op, Qset))
     {
       Lisp_Object arg1 = SECOND (args);
@@ -1328,7 +1339,7 @@ emit_limple_insn (Lisp_Object insn)
 	res = emit_limple_call_ref (XCDR (arg1), false);
       else if (EQ (FIRST (arg1), Qdirect_call))
 	res = emit_simple_limple_call (XCDR (arg1), comp.lisp_obj_type, true);
-      else if (EQ (FIRST (arg1), Qcallref))
+      else if (EQ (FIRST (arg1), Qdirect_callref))
 	res = emit_limple_call_ref (XCDR (arg1), true);
       else
 	ice ("LIMPLE inconsistent arg1 for op =");
