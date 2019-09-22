@@ -3108,13 +3108,32 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 
 
-(defun vc-default-list-files (_backend &optional dir)
+(defun vc--glob-pattern-to-regex (glob)
+  (replace-regexp-in-string
+   "\\?" "."
+   (replace-regexp-in-string
+    "\\*" ".*"
+    (replace-regexp-in-string "\\." "\\\\." glob))))
+
+(defun vc--any-string-match-p (str regexes)
+  (catch 'match
+    (dolist (regex regexes)
+      (when (string-match-p regex str)
+        (throw 'match t)))))
+
+(defun vc-default-list-files (_backend &optional dir
+                                       _include-unregistered
+                                       extra-ignores)
+  ;; FIXME: We collect only tracked files and ignore
+  ;; include-unregistered.
   (let* ((default-directory (or dir default-directory))
          (inhibit-message t)
          files)
-    (vc-file-tree-walk default-directory
-                       (lambda (f)
-                         (setq files (cons f files))))
+    (vc-file-tree-walk
+     default-directory
+     (lambda (f)
+       (unless (vc--any-string-match-p f extra-ignores)
+         (setq files (cons f files)))))
     files))
 
 (provide 'vc)

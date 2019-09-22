@@ -225,7 +225,7 @@ to find the list of ignores for each directory."
   :type '(repeat string)
   :safe 'listp)
 
-(defcustom project-vc-project-files-backends '(Bzr Git Hg SVN)
+(defcustom project-vc-project-files-backends '(Git Hg)
   "List of vc backends which should be used by `project-files'.
 
 For projects using a backend in this list, `project-files' will
@@ -302,7 +302,8 @@ backend implementation of `project-external-roots'.")
      (let ((backend (ignore-errors (vc-responsible-backend dir))))
        (if (and backend
                 (memq backend project-vc-project-files-backends))
-           (vc-call-backend backend 'list-files dir)
+           (vc-call-backend backend 'list-files
+                            dir t project-vc-ignores)
          (cl-call-next-method))))
    (or dirs (project-roots project))))
 

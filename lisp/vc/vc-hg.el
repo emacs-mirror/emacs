@@ -1458,17 +1458,28 @@ This function differs from vc-do-command in that it invokes
 (defun vc-hg-root (file)
   (vc-find-root file ".hg"))
 
-(defun vc-hg-list-files (&optional dir)
-  (let ((default-directory (or dir default-directory)))
-    (mapcar
-     #'expand-file-name
-     (cl-remove-if #'string-empty-p
-                   (split-string
-                    (with-output-to-string
-                      (with-current-buffer standard-output
-                        (vc-hg-command t 0 "."
-                                       "files" "--print0")))
-                    "\0")))))
+(defun vc-hg-list-files (&optional dir
+                                   include-unregistered
+                                   extra-ignores)
+  (let ((default-directory (or dir default-directory))
+        args
+        files)
+    (when include-unregistered
+      (setq args (nconc args '("--all"))))
+    (when extra-ignores
+      (setq args (nconc args
+                        (mapcan
+                         (lambda (i)
+                           (list "--exclude" i))
+                         (copy-list extra-ignores)))))
+    (with-temp-buffer
+      (apply #'vc-hg-command t 0 "."
+             "status" args)
+      (goto-char (point-min))
+      (while (re-search-forward "^[?C]\s+\\(.*\\)$" nil t)
+        (setq files (cons (expand-file-name (match-string 1))
+                          files))))
+    (nreverse files)))
 
 (provide 'vc-hg)
 

@@ -1709,14 +1709,27 @@ Returns nil if not possible."
 
 (declare-function cl-remove-if "cl-seq")
 
-(defun vc-git-list-files (&optional dir)
-  (let ((default-directory (or dir default-directory)))
+(defun vc-git-list-files (&optional dir
+                                    include-unregistered
+                                    extra-ignores)
+  (let ((default-directory (or dir default-directory))
+        (args '("-z")))
+    (when include-unregistered
+      (setq args (append args '("-c" "-o" "--exclude-standard"))))
+    (when extra-ignores
+      (setq args (append args
+                         (cons "--"
+                               (mapcar
+                                (lambda (i)
+                                  (format ":!:%s" i))
+                                extra-ignores)))))
     (mapcar
      #'expand-file-name
-     (cl-remove-if #'string-empty-p
-                   (split-string
-                    (vc-git--run-command-string nil "ls-files" "-z")
-                    "\0")))))
+     (cl-remove-if
+      #'string-empty-p
+      (split-string
+       (apply #'vc-git--run-command-string nil "ls-files" args)
+       "\0")))))
 
 (provide 'vc-git)
 
