@@ -1460,24 +1460,35 @@ emit_limple_insn (Lisp_Object insn)
 /**************/
 
 static gcc_jit_rvalue *
+emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
+			  Lisp_Object type)
+{
+  bool type_hint = EQ (FUNCALL1 (comp-mvar-type, SECOND (insn)), type);
+  gcc_jit_rvalue *args[] =
+    { emit_mvar_val (SECOND (insn)),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.bool_type,
+					   type_hint) };
+
+  return gcc_jit_context_new_call (comp.ctxt, NULL, func, 2, args);
+}
+
+static gcc_jit_rvalue *
 emit_add1 (Lisp_Object insn)
 {
-  gcc_jit_rvalue *n = emit_mvar_val (SECOND (insn));
-  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.add1, 1, &n);
+  return emit_call_with_type_hint (comp.add1, insn, Qfixnum);
 }
 
 static gcc_jit_rvalue *
 emit_sub1 (Lisp_Object insn)
 {
-  gcc_jit_rvalue *n = emit_mvar_val (SECOND (insn));
-  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.sub1, 1, &n);
+  return emit_call_with_type_hint (comp.sub1, insn, Qfixnum);
 }
 
 static gcc_jit_rvalue *
 emit_negate (Lisp_Object insn)
 {
-  gcc_jit_rvalue *n = emit_mvar_val (SECOND (insn));
-  return gcc_jit_context_new_call (comp.ctxt, NULL, comp.negate, 1, &n);
+  return emit_call_with_type_hint (comp.negate, insn, Qfixnum);
 }
 
 static gcc_jit_rvalue *
@@ -2369,7 +2380,6 @@ static void
 define_add1_sub1 (void)
 {
   gcc_jit_block *bb_orig = comp.block;
-
   gcc_jit_function *func[2];
   char const *f_name[] = {"add1", "sub1"};
   char const *fall_back_func[] = {"1+", "1-"};
@@ -2377,32 +2387,46 @@ define_add1_sub1 (void)
     { comp.most_positive_fixnum, comp.most_negative_fixnum };
   enum gcc_jit_binary_op op[] =
     { GCC_JIT_BINARY_OP_PLUS, GCC_JIT_BINARY_OP_MINUS };
-  for (int i = 0; i < 2; i++)
+  for (unsigned i = 0; i < 2; i++)
     {
-      gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt,
-							NULL,
-							comp.lisp_obj_type,
-							"n");
+      gcc_jit_param *param[] =
+	{ gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.lisp_obj_type,
+				     "n"),
+	  gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.bool_type,
+				     "is_fixnum") };
       comp.func = func[i] =
 	gcc_jit_context_new_function (comp.ctxt, NULL,
 				      GCC_JIT_FUNCTION_ALWAYS_INLINE,
 				      comp.lisp_obj_type,
 				      f_name[i],
-				      1,
-				      &param,
-				      0);
+				      2,
+				      param, 0);
       DECL_BLOCK (entry_block, func[i]);
       DECL_BLOCK (inline_block, func[i]);
       DECL_BLOCK (fcall_block, func[i]);
 
       comp.block = entry_block;
 
-      /* (FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
+      /* is_fixnum ||
+	 ((FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
 	 ? (XFIXNUM (n) + 1)
 	 : Fadd1 (n)) */
 
-      gcc_jit_rvalue *n = gcc_jit_param_as_rvalue (param);
+      gcc_jit_rvalue *n = gcc_jit_param_as_rvalue (param[0]);
       gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (n);
+      gcc_jit_rvalue *sure_fixnum =
+	gcc_jit_context_new_binary_op (
+	  comp.ctxt,
+	  NULL,
+	  GCC_JIT_BINARY_OP_LOGICAL_OR,
+	  comp.bool_type,
+	  gcc_jit_param_as_rvalue (param[1]),
+	  emit_cast (comp.bool_type,
+		     emit_FIXNUMP (n)));
 
       emit_cond_jump (
 	gcc_jit_context_new_binary_op (
@@ -2410,8 +2434,7 @@ define_add1_sub1 (void)
 	  NULL,
 	  GCC_JIT_BINARY_OP_LOGICAL_AND,
 	  comp.bool_type,
-	  emit_cast (comp.bool_type,
-		 emit_FIXNUMP (n)),
+	  sure_fixnum,
 	  gcc_jit_context_new_comparison (comp.ctxt,
 					  NULL,
 					  GCC_JIT_COMPARISON_NE,
@@ -2449,21 +2472,22 @@ static void
 define_negate (void)
 {
   gcc_jit_block *bb_orig = comp.block;
-
   gcc_jit_param *param[] =
-    { gcc_jit_context_new_param (comp.ctxt,
-				 NULL,
-				 comp.lisp_obj_type,
-				 "n") };
+	{ gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.lisp_obj_type,
+				     "n"),
+	  gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.bool_type,
+				     "is_fixnum") };
 
   comp.func = comp.negate =
     gcc_jit_context_new_function (comp.ctxt, NULL,
 				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
 				  comp.lisp_obj_type,
 				  "negate",
-				  1,
-				  param,
-				  0);
+				  2, param, 0);
 
   DECL_BLOCK (entry_block, comp.negate);
   DECL_BLOCK (inline_block, comp.negate);
@@ -2471,13 +2495,20 @@ define_negate (void)
 
   comp.block = entry_block;
 
-  /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
-		 ? make_fixnum (- XFIXNUM (TOP))
-		 : Fminus (1, &TOP)) */
+  /* (is_fixnum || FIXNUMP (TOP)) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
+     ? make_fixnum (- XFIXNUM (TOP)) : Fminus (1, &TOP))  */
 
   gcc_jit_lvalue *n = gcc_jit_param_as_lvalue (param[0]);
-  gcc_jit_rvalue *n_fixnum =
-    emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (n));
+  gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (n));
+  gcc_jit_rvalue *sure_fixnum =
+	gcc_jit_context_new_binary_op (
+	  comp.ctxt,
+	  NULL,
+	  GCC_JIT_BINARY_OP_LOGICAL_OR,
+	  comp.bool_type,
+	  gcc_jit_param_as_rvalue (param[1]),
+	  emit_cast (comp.bool_type,
+		     emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (n))));
 
   emit_cond_jump (
     gcc_jit_context_new_binary_op (
@@ -2485,8 +2516,7 @@ define_negate (void)
       NULL,
       GCC_JIT_BINARY_OP_LOGICAL_AND,
       comp.bool_type,
-      emit_cast (comp.bool_type,
-		 emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (n))),
+      sure_fixnum,
       gcc_jit_context_new_comparison (comp.ctxt,
 				      NULL,
 				      GCC_JIT_COMPARISON_NE,
@@ -3305,6 +3335,8 @@ syms_of_comp (void)
   /* Returned values.  */
   DEFSYM (Qcomp_unit_open_failed, "comp-unit-open-failed");
   DEFSYM (Qcomp_unit_init_failed, "comp-unit-init-failed");
+  /* Others.  */
+  DEFSYM (Qfixnum, "fixnum");
 
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
