@@ -599,11 +599,11 @@ If NEGATED non nil negate the tested condition."
                                                (comp-slot+1))))))
 
 (defun comp-new-block-sym ()
-  "Return a symbol naming the next new basic block."
-  (intern (format "bb_%s" (hash-table-count (comp-func-blocks comp-func)))))
+  "Return a unique symbol naming the next new basic block."
+  (intern (format "bb_%s" (funcall (comp-func-block-cnt-gen comp-func)))))
 
 (defun comp-lap-to-limple-bb (n)
-  "Given the LAP label N return the limple basic block."
+  "Given the LAP label N return the limple basic block name."
   (let ((hash (comp-func-lap-block comp-func)))
     (if-let ((bb (gethash n hash)))
         ;; If was already created return it.
@@ -950,7 +950,7 @@ This will be called at runtime."
         (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))
     ;; Body
-    (comp-emit-block 'bb_1)
+    (comp-emit-block (comp-new-block-sym))
     (mapc #'comp-limplify-lap-inst (comp-func-lap func))
     (comp-limplify-finalize-function func)))
 
