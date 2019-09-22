@@ -62,6 +62,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   XCAR (XCDR (XCDR (x)))
 #define FORTH(x)				\
   XCAR (XCDR (XCDR (XCDR (x))))
+#define FIFTH(x)				\
+  XCAR (XCDR (XCDR (XCDR (XCDR (x)))))
 
 #define FUNCALL1(fun, arg)			\
   CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
@@ -1149,7 +1151,11 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 			  gcc_jit_block *handler_bb, gcc_jit_block *guarded_bb,
 			  Lisp_Object clobbered_mvar)
 {
-  /* Ex: (push-handler #s(comp-mvar 6 0 t (arith-error) nil) 1 bb_3 bb_2).  */
+  /*
+     Ex: (push-handler #s(comp-mvar 1 8 nil nil nil nil)
+                       #s(comp-mvar 1 7 t done symbol nil)
+		       catcher bb_2 bb_1).
+  */
 
   static unsigned pushhandler_n; /* FIXME move at ctxt or func level.  */
 
@@ -1158,8 +1164,7 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
     gcc_jit_function_new_local (comp.func,
 				NULL,
 				comp.handler_ptr_type,
-				format_string ("c_%u",
-					       pushhandler_n));
+				format_string ("c_%u", pushhandler_n));
 
   gcc_jit_rvalue *args[] = { handler, handler_type };
   gcc_jit_block_add_assignment (
@@ -1263,9 +1268,10 @@ emit_limple_insn (Lisp_Object insn)
     {
       gcc_jit_rvalue *handler = emit_mvar_val (arg0);
       int h_num UNINIT;
-      if (EQ (SECOND (args), Qcatcher))
+      Lisp_Object handler_spec = THIRD (args);
+      if (EQ (handler_spec, Qcatcher))
 	h_num = CATCHER;
-      else if (EQ (SECOND (args), Qcondition_case))
+      else if (EQ (handler_spec, Qcondition_case))
 	h_num = CONDITION_CASE;
       else
 	ice ("incoherent insn");
@@ -1273,8 +1279,8 @@ emit_limple_insn (Lisp_Object insn)
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     h_num);
-      gcc_jit_block *handler_bb = retrive_block (THIRD (args));
-      gcc_jit_block *guarded_bb = retrive_block (FORTH (args));
+      gcc_jit_block *handler_bb = retrive_block (FORTH (args));
+      gcc_jit_block *guarded_bb = retrive_block (FIFTH (args));
       emit_limple_push_handler (handler, handler_type, handler_bb, guarded_bb,
 				arg0);
     }

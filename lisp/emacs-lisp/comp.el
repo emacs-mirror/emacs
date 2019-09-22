@@ -644,7 +644,9 @@ If NEGATED non nil negate the tested condition."
   (let ((guarded-bb (comp-new-block-sym)))
     (comp-block-maybe-add :name guarded-bb :sp (comp-sp))
     (let ((handler-bb (comp-lap-to-limple-bb guarded-label)))
-      (comp-emit (list 'push-handler (comp-slot+1)
+      (comp-emit (list 'push-handler
+                       (comp-slot+1)
+                       (comp-slot+1)
                        handler-type
                        handler-bb
                        guarded-bb))
@@ -1022,7 +1024,7 @@ Top level forms for the current context are rendered too."
     (cl-loop with blocks = (comp-func-blocks comp-func)
              for bb being each hash-value of blocks
              for last-insn = (car (last (comp-block-insns bb)))
-             for (op first second third forth) = last-insn
+             for (op first second third forth fifth) = last-insn
              do (cl-case op
                   (jump
                    (edge-add :src bb :dst (gethash first blocks)))
@@ -1033,8 +1035,8 @@ Top level forms for the current context are rendered too."
                    (edge-add :src bb :dst (gethash second blocks))
                    (edge-add :src bb :dst (gethash third blocks)))
                   (push-handler
-                   (edge-add :src bb :dst (gethash third blocks))
-                   (edge-add :src bb :dst (gethash forth blocks)))
+                   (edge-add :src bb :dst (gethash forth blocks))
+                   (edge-add :src bb :dst (gethash fifth blocks)))
                   (return)
                   (otherwise
                    (error "Block %s does not end with a branch in func %s"
