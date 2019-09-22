@@ -2635,10 +2635,10 @@ declare_function (Lisp_Object func)
   gcc_jit_function *gcc_func;
   char *c_name = SSDATA (FUNCALL1 (comp-func-c-func-name, func));
   Lisp_Object args = FUNCALL1 (comp-func-args, func);
-  bool ncall = (FUNCALL1 (comp-nargs-p, args));
+  bool nargs = (FUNCALL1 (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
 
-  if (!ncall)
+  if (!nargs)
     {
       EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
       gcc_jit_type **type = SAFE_ALLOCA (max_args * sizeof (*type));
