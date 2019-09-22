@@ -800,7 +800,8 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 emit_const_lisp_obj (Lisp_Object obj)
 {
-  emit_comment ("const lisp obj");
+  emit_comment (format_string ("const lisp obj: %s",
+			       SSDATA (Fprin1_to_string (obj, Qnil))));
 
   Lisp_Object d_reloc_idx = FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt);
   ptrdiff_t reloc_fixn = XFIXNUM (Fgethash (obj, d_reloc_idx, Qnil));
