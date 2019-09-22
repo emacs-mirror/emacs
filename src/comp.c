@@ -149,6 +149,7 @@ typedef struct {
   gcc_jit_function *func; /* Current function being compiled.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue **frame; /* Frame for the current function.  */
+  gcc_jit_lvalue **f_frame; /* "Floating" frame for the current function.  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
@@ -280,6 +281,16 @@ declare_block (Lisp_Object block_name)
   ICE_IF (!NILP (Fgethash (block_name, comp.func_blocks_h, Qnil)),
 	  "double basic block declaration");
   Fputhash (block_name, value, comp.func_blocks_h);
+}
+
+static gcc_jit_lvalue *
+get_slot (Lisp_Object mvar)
+{
+  EMACS_INT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar));
+  gcc_jit_lvalue **frame =
+    (FUNCALL1 (comp-mvar-ref, mvar) || comp_speed < 2)
+    ? comp.frame : comp.f_frame;
+  return frame[slot_n];
 }
 
 static void
@@ -1024,8 +1035,18 @@ emit_mvar_val (Lisp_Object mvar)
       return emit_const_lisp_obj (constant);
     }
 
-  return
-    gcc_jit_lvalue_as_rvalue(comp.frame[XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar))]);
+  return gcc_jit_lvalue_as_rvalue (get_slot (mvar));
+}
+
+static void
+emit_frame_assignment (Lisp_Object dst_mvar, gcc_jit_rvalue *val)
+{
+
+  gcc_jit_block_add_assignment (
+    comp.block,
+    NULL,
+    get_slot (dst_mvar),
+    val);
 }
 
 static gcc_jit_rvalue *
@@ -1119,7 +1140,7 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 static void
 emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 			  gcc_jit_block *handler_bb, gcc_jit_block *guarded_bb,
-			  EMACS_UINT clobber_slot)
+			  Lisp_Object clobbered_mvar)
 {
   /* Ex: (push-handler #s(comp-mvar 6 0 t (arith-error) nil) 1 bb_3 bb_2).  */
 
@@ -1169,10 +1190,8 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
       gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
 					NULL,
 					comp.handler_next_field)));
-  gcc_jit_block_add_assignment (
-    comp.block,
-    NULL,
-    comp.frame[clobber_slot],
+  emit_frame_assignment (
+    clobbered_mvar,
     gcc_jit_lvalue_as_rvalue(
       gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
 					NULL,
@@ -1235,7 +1254,6 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qpush_handler))
     {
-      EMACS_UINT clobber_slot = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_rvalue *handler = emit_mvar_val (arg0);
       int h_num UNINIT;
       if (EQ (SECOND (args), Qcatcher))
@@ -1251,7 +1269,7 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *handler_bb = retrive_block (THIRD (args));
       gcc_jit_block *guarded_bb = retrive_block (FORTH (args));
       emit_limple_push_handler (handler, handler_type, handler_bb, guarded_bb,
-				clobber_slot);
+				arg0);
     }
   else if (EQ (op, Qpop_handler))
     {
@@ -1283,7 +1301,6 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qset))
     {
-      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       Lisp_Object arg1 = SECOND (args);
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
@@ -1301,23 +1318,16 @@ emit_limple_insn (Lisp_Object insn)
 
       ICE_IF (!res, gcc_jit_context_get_first_error (comp.ctxt));
 
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    res);
+      emit_frame_assignment (arg0, res);
     }
   else if (EQ (op, Qset_par_to_local))
     {
       /* Ex: (setpar #s(comp-mvar 2 0 nil nil nil) 0).  */
-      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       EMACS_UINT param_n = XFIXNUM (SECOND (args));
       gcc_jit_rvalue *param =
 	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
 							     param_n));
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    param);
+      emit_frame_assignment (arg0, param);
     }
   else if (EQ (op, Qset_args_to_local))
     {
@@ -1332,11 +1342,7 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_rvalue *res =
 	gcc_jit_lvalue_as_rvalue (gcc_jit_rvalue_dereference (gcc_args, NULL));
 
-      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    res);
+      emit_frame_assignment (arg0, res);
     }
   else if (EQ (op, Qset_rest_args_to_local))
     {
@@ -1367,10 +1373,7 @@ emit_limple_insn (Lisp_Object insn)
       res = emit_call (Qlist, comp.lisp_obj_type, 2,
 		       list_args, false);
 
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    res);
+      emit_frame_assignment (arg0, res);
     }
   else if (EQ (op, Qinc_args))
     {
@@ -1393,21 +1396,18 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qsetimm))
     {
       /* EX: (=imm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
-      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
       gcc_jit_rvalue *reloc_n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     XFIXNUM (SECOND (args)));
       emit_comment (SSDATA (Fprin1_to_string (THIRD (args), Qnil)));
-      gcc_jit_block_add_assignment (comp.block,
-				    NULL,
-				    comp.frame[slot_n],
-				    gcc_jit_lvalue_as_rvalue (
-				      gcc_jit_context_new_array_access (
-				        comp.ctxt,
-				        NULL,
-				        comp.data_relocs,
-				        reloc_n)));
+      emit_frame_assignment (
+	arg0,
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_context_new_array_access (comp.ctxt,
+					    NULL,
+					    comp.data_relocs,
+					    reloc_n)));
     }
   else if (EQ (op, Qcomment))
     {
@@ -2703,9 +2703,8 @@ compile_function (Lisp_Object func)
 				      comp.lisp_obj_type,
 				      frame_size),
       "local");
-
   comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
-  for (int i = 0; i < frame_size; ++i)
+  for (unsigned i = 0; i < frame_size; ++i)
     comp.frame[i] =
       gcc_jit_context_new_array_access (
         comp.ctxt,
@@ -2714,6 +2713,26 @@ compile_function (Lisp_Object func)
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     i));
+
+  /*
+     The floating frame is a copy of the normal frame that can be used to store
+     locals if the are not going to be used in a nargs call.
+     This has two advantages:
+     - Enable gcc for better reordering (frame array is clobbered every time is
+       passed as parameter being invoved into an nargs function call).
+     - Allow gcc to trigger other optimizations that are prevented by memory
+       referencing (ex TCO).
+  */
+  if (comp_speed >= 2)
+    {
+      comp.f_frame = SAFE_ALLOCA (frame_size * sizeof (*comp.f_frame));
+      for (unsigned i = 0; i < frame_size; ++i)
+	comp.f_frame[i] =
+	  gcc_jit_function_new_local (comp.func,
+				      NULL,
+				      comp.lisp_obj_type,
+				      format_string ("local%u", i));
+    }
 
   comp.func_blocks_h = CALLN (Fmake_hash_table);
 
