@@ -57,6 +57,7 @@
                         comp-ssa
                         comp-propagate
                         comp-call-optim
+                        comp-propagate
                         comp-final)
   "Passes to be executed in order.")
 
@@ -1278,10 +1279,10 @@ This can run just once."
   (pcase insn
     (`(set ,lval ,rval)
      (pcase rval
-       (`(call ,f . ,_)
+       (`(,(or 'call 'direct-call) ,f . ,_)
         (setf (comp-mvar-type lval)
               (cdr (assq f comp-known-ret-types))))
-       (`(callref ,f . ,args)
+       (`(,(or 'callref 'direct-callref) ,f . ,args)
         (cl-loop for v in args
                  do (setf (comp-mvar-ref v) t))
         (setf (comp-mvar-type lval)
