@@ -1341,7 +1341,19 @@ This can run just once."
 
 
 ;;; Call optimizer pass specific code.
-;; Try to avoid funcall trampoline use when possible.
+;; This pass is responsible for the following optimizations:
+;; - Call to subrs that are in defined in the C source and are passing through
+;;   funcall trampoline gets optimized into normal indirect calls.
+;;   This makes effectively this calls equivalent to all the subrs that got
+;;   dedicated byte-code ops.
+;;   Triggered at comp-speed >= 2.
+;; - Recursive calls gets optimized into direct calls.
+;;   Triggered at comp-speed >= 2.
+;; - Intra compilation unit procedure calls gets optimized into direct calls.
+;;   This can be a big win and even allow gcc to inline but does not make
+;;   function in the compilation unit re-definable safely without recompiling
+;;   the full compilation unit.
+;;   For this reason this is triggered only at comp-speed == 3.
 
 (defun comp-call-optim-form-call (callee args self)
   ""
@@ -1361,6 +1373,7 @@ This can run just once."
              (callee-in-unit (gethash callee
                                       (comp-ctxt-funcs-h comp-ctxt))))
         (if (and subrp (not (subr-native-elispp f)))
+                    ;; Trampoline removal.
             (let* ((maxarg (cdr (subr-arity f)))
                    (call-type (if (if subrp
                                       (not (numberp maxarg))
