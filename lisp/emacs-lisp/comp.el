@@ -45,6 +45,10 @@
 (defconst native-compile-log-buffer "*Native-compile-Log*"
   "Name of the native-compiler's log buffer.")
 
+(defvar comp-native-compiling nil
+  "This gets bound to t while native compilation.
+Can be used by code that wants to expand differently in this case.")
+
 ;; FIXME these has to be removed
 (defvar comp-speed 2)
 (defvar comp-verbose nil)
@@ -1575,6 +1579,7 @@ If INPUT is a string, use it as the file path to be native compiled."
               (stringp input))
     (error "Trying to native compile something not a symbol function or file"))
   (let ((data input)
+        (comp-native-compiling t)
         (comp-ctxt (make-comp-ctxt :output (if (symbolp input)
                                                (symbol-name input)
                                              (file-name-sans-extension input)))))
