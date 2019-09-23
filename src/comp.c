@@ -2863,8 +2863,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
       gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
 				       1);
-      gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
-
     }
 
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
@@ -3038,6 +3036,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 	(const char *) SDATA (CALLN (Fconcat, ctxtname, dot_c));
       gcc_jit_context_dump_to_file (comp.ctxt, filename, 1);
     }
+  if (COMP_DEBUG > 1)
+    gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
   const char *filename =
