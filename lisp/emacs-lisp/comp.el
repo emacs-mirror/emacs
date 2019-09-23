@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 ;; This code is an attempt to make the pig fly.
-;; Or, to put it another way to make a Carrera out of a turbocharged VW Bug.
+;; Or, to put it another way to make a 911 out of a turbocharged VW Bug.
 
 ;;; Code:
 
@@ -1552,7 +1552,8 @@ Prepare every function for final compilation and drive the C back-end."
 ;;; Compiler type hints.
 ;; These are public entry points be used in user code to give comp suggestion
 ;; about types.
-;; Note that types will propagates.
+;; These can be used to implement CL style 'the', 'declare' or something like.
+;; Note: types will propagates.
 ;; WARNING: At speed >= 2 type checking is not performed anymore and suggestions
 ;; are assumed just to be true. Use with extreme caution...
 
