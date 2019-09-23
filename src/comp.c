@@ -1506,21 +1506,13 @@ emit_consp (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_car (Lisp_Object insn)
 {
-  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
-  return gcc_jit_context_new_call (comp.ctxt,
-				   NULL,
-				   comp.car,
-				   1, &x);
+  return emit_call_with_type_hint (comp.car, insn, Qcons);
 }
 
 static gcc_jit_rvalue *
 emit_cdr (Lisp_Object insn)
 {
-  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
-  return gcc_jit_context_new_call (comp.ctxt,
-				   NULL,
-				   comp.cdr,
-				   1, &x);
+  return emit_call_with_type_hint (comp.cdr, insn, Qcons);
 }
 
 static gcc_jit_rvalue *
@@ -2224,63 +2216,52 @@ define_CHECK_TYPE (void)
 static void
 define_CAR_CDR (void)
 {
-  gcc_jit_param *car_param =
-	gcc_jit_context_new_param (comp.ctxt,
-				   NULL,
-				   comp.lisp_obj_type,
-				   "c");
-  comp.car =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
-				  comp.lisp_obj_type,
-				  "CAR",
-				  1,
-				  &car_param,
-				  0);
-  gcc_jit_param *cdr_param =
-	gcc_jit_context_new_param (comp.ctxt,
-				   NULL,
-				   comp.lisp_obj_type,
-				   "c");
-  comp.cdr =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
-				  comp.lisp_obj_type,
-				  "CDR",
-				  1,
-				  &cdr_param,
-				  0);
-
-  gcc_jit_function *f = comp.car;
-  gcc_jit_param *param = car_param;
-
+  gcc_jit_function *func[2];
+  char const *f_name[] = {"CAR", "CDR"};
   for (int i = 0; i < 2; i++)
     {
-      gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param);
-      DECL_BLOCK (entry_block, f);
-      DECL_BLOCK (is_cons_b, f);
-      DECL_BLOCK (not_a_cons_b, f);
+      gcc_jit_param *param[] =
+	{ gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.lisp_obj_type,
+				     "c"),
+	  gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.bool_type,
+				     "is_cons") };
+      func[i] =
+	gcc_jit_context_new_function (comp.ctxt, NULL,
+				      GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				      comp.lisp_obj_type,
+				      f_name [i],
+				      2, param, 0);
 
+      gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param[0]);
+      DECL_BLOCK (entry_block, func[i]);
+      DECL_BLOCK (is_cons_b, func[i]);
+      DECL_BLOCK (not_a_cons_b, func[i]);
       comp.block = entry_block;
-      comp.func = f;
-
-      emit_cond_jump (emit_CONSP (c), is_cons_b, not_a_cons_b);
-
+      comp.func = func[i];
+      emit_cond_jump (
+	gcc_jit_context_new_binary_op (comp.ctxt,
+				       NULL,
+				       GCC_JIT_BINARY_OP_LOGICAL_OR,
+				       comp.bool_type,
+				       gcc_jit_param_as_rvalue (param[1]),
+				       emit_cast (comp.bool_type,
+						  emit_CONSP (c))),
+	is_cons_b,
+	not_a_cons_b);
       comp.block = is_cons_b;
-
-      if (f == comp.car)
-	gcc_jit_block_end_with_return (comp.block,
-				       NULL,
-				       emit_XCAR (c));
+      if (i == 0)
+	gcc_jit_block_end_with_return (comp.block, NULL, emit_XCAR (c));
       else
-	gcc_jit_block_end_with_return (comp.block,
-				       NULL,
-				       emit_XCDR (c));
+	gcc_jit_block_end_with_return (comp.block, NULL, emit_XCDR (c));
 
       comp.block = not_a_cons_b;
 
-      DECL_BLOCK (is_nil_b, f);
-      DECL_BLOCK (not_nil_b, f);
+      DECL_BLOCK (is_nil_b, func[i]);
+      DECL_BLOCK (not_nil_b, func[i]);
 
       emit_cond_jump (emit_NILP (c), is_nil_b, not_nil_b);
 
@@ -2301,9 +2282,9 @@ define_CAR_CDR (void)
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
 				     emit_const_lisp_obj (Qnil));
-      f = comp.cdr;
-      param = cdr_param;
     }
+  comp.car = func[0];
+  comp.cdr = func[1];
 }
 
 static void
