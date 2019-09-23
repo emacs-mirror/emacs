@@ -1473,6 +1473,23 @@ emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
   return gcc_jit_context_new_call (comp.ctxt, NULL, func, 2, args);
 }
 
+/* Same as before but with two args. The type hint is on the 2th.  */
+static gcc_jit_rvalue *
+emit_call2_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
+			   Lisp_Object type)
+{
+  bool type_hint = EQ (FUNCALL1 (comp-mvar-type, SECOND (insn)), type);
+  gcc_jit_rvalue *args[] =
+    { emit_mvar_val (SECOND (insn)),
+      emit_mvar_val (THIRD (insn)),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.bool_type,
+					   type_hint) };
+
+  return gcc_jit_context_new_call (comp.ctxt, NULL, func, 3, args);
+}
+
+
 static gcc_jit_rvalue *
 emit_add1 (Lisp_Object insn)
 {
@@ -1518,25 +1535,13 @@ emit_cdr (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_setcar (Lisp_Object insn)
 {
-  gcc_jit_rvalue *args[] =
-    { emit_mvar_val (SECOND (insn)),
-      emit_mvar_val (THIRD (insn)) };
-  return gcc_jit_context_new_call (comp.ctxt,
-				   NULL,
-				   comp.setcar,
-				   2, args);
+  return emit_call2_with_type_hint (comp.setcar, insn, Qcons);
 }
 
 static gcc_jit_rvalue *
 emit_setcdr (Lisp_Object insn)
 {
-  gcc_jit_rvalue *args[] =
-    { emit_mvar_val (SECOND (insn)),
-      emit_mvar_val (THIRD (insn)) };
-  return gcc_jit_context_new_call (comp.ctxt,
-				   NULL,
-				   comp.setcdr,
-				   2, args);
+  return emit_call2_with_type_hint (comp.setcdr, insn, Qcons);
 }
 
 static gcc_jit_rvalue *
@@ -2217,7 +2222,7 @@ static void
 define_CAR_CDR (void)
 {
   gcc_jit_function *func[2];
-  char const *f_name[] = {"CAR", "CDR"};
+  char const *f_name[] = { "CAR", "CDR" };
   for (int i = 0; i < 2; i++)
     {
       gcc_jit_param *param[] =
@@ -2290,8 +2295,8 @@ define_CAR_CDR (void)
 static void
 define_setcar_setcdr (void)
 {
-  char const *f_name[] = {"setcar", "setcdr"};
-  char const *par_name[] = {"new_car", "new_cdr"};
+  char const *f_name[] = { "setcar", "setcdr" };
+  char const *par_name[] = { "new_car", "new_cdr" };
 
   for (int i = 0; i < 2; i++)
     {
@@ -2306,16 +2311,20 @@ define_setcar_setcdr (void)
 				   comp.lisp_obj_type,
 				   par_name[i]);
 
-      gcc_jit_param *param[] = { cell, new_el };
+      gcc_jit_param *param[] =
+	{ cell,
+	  new_el,
+	  gcc_jit_context_new_param (comp.ctxt,
+				     NULL,
+				     comp.bool_type,
+				     "is_cons") };
 
       gcc_jit_function **f_ref = !i ? &comp.setcar : &comp.setcdr;
       *f_ref = gcc_jit_context_new_function (comp.ctxt, NULL,
 					     GCC_JIT_FUNCTION_ALWAYS_INLINE,
 					     comp.lisp_obj_type,
 					     f_name[i],
-					     2,
-					     param,
-					     0);
+					     3, param, 0);
       DECL_BLOCK (entry_block, *f_ref);
       comp.func = *f_ref;
       comp.block = entry_block;
@@ -2328,8 +2337,7 @@ define_setcar_setcdr (void)
 	{ gcc_jit_param_as_rvalue (cell),
 	  emit_XCONS (gcc_jit_param_as_rvalue (cell)) };
 
-      gcc_jit_block_add_eval (
-			      entry_block,
+      gcc_jit_block_add_eval (entry_block,
 			      NULL,
 			      gcc_jit_context_new_call (comp.ctxt,
 							NULL,
@@ -2362,8 +2370,8 @@ define_add1_sub1 (void)
 {
   gcc_jit_block *bb_orig = comp.block;
   gcc_jit_function *func[2];
-  char const *f_name[] = {"add1", "sub1"};
-  char const *fall_back_func[] = {"1+", "1-"};
+  char const *f_name[] = { "add1", "sub1" };
+  char const *fall_back_func[] = { "1+", "1-" };
   gcc_jit_rvalue *compare[] =
     { comp.most_positive_fixnum, comp.most_negative_fixnum };
   enum gcc_jit_binary_op op[] =
