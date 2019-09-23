@@ -95,8 +95,7 @@ language-server/bin/php-language-server.php"))
                                     :autoport))
                                 (haskell-mode . ("hie-wrapper"))
                                 (kotlin-mode . ("kotlin-language-server"))
-                                (go-mode . ("go-langserver" "-mode=stdio"
-                                            "-gocodecompletion"))
+                                (go-mode . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                                                         "languageserver::run()"))
                                 (java-mode . eglot--eclipse-jdt-contact)
