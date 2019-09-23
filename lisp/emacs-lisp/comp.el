@@ -70,8 +70,15 @@
                                  (- . number)
                                  (* . number)
                                  (/ . number)
-                                 (% . number))
+                                 (% . number)
+                                 ;; Type hint
+                                 (comp-hint-fixnum . fixnum)
+                                 (comp-hint-cons . cons))
   "Alist used for type propagation.")
+
+(defconst comp-type-hints '(comp-hint-fixnum
+                            comp-hint-cons)
+  "List of fake functions used to give compiler hints.")
 
 (defconst comp-limple-sets '(set
                              setimm
@@ -256,6 +263,10 @@ structure.")
   "Limple INSN call predicate."
   (when (member (car-safe insn) comp-limple-calls)
     t))
+
+(defun comp-type-hint-p (func)
+  "Type hint predicate for function name FUNC."
+  (member func comp-type-hints))
 
 (defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
@@ -1200,7 +1211,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 (defun comp-ssa-rename-insn (insn frame)
   (dotimes (slot-n (comp-func-frame-size comp-func))
-    (cl-flet ((target-p (x)
+    (cl-flet ((targetp (x)
                 ;; Ret t if x is an mvar and target the correct slot number.
                 (and (comp-mvar-p x)
                      (eql slot-n (comp-mvar-slot x))))
@@ -1210,16 +1221,16 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                   (setf (aref frame slot-n) mvar)
                   (setf (cadr insn) mvar))))
       (pcase insn
-        (`(,(pred comp-assign-op-p) ,(pred target-p) . ,_)
+        (`(,(pred comp-assign-op-p) ,(pred targetp) . ,_)
          (let ((mvar (aref frame slot-n)))
-           (setcdr insn (cl-nsubst-if mvar #'target-p (cdr insn))))
+           (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn))))
          (new-lvalue))
         (`(phi  ,n)
          (when (equal n slot-n)
            (new-lvalue)))
         (_
          (let ((mvar (aref frame slot-n)))
-           (setcdr insn (cl-nsubst-if mvar #'target-p (cdr insn)))))))))
+           (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn)))))))))
 
 (defun comp-ssa-rename ()
   "Entry point to rename SSA within the current function."
@@ -1397,7 +1408,9 @@ This can run just once."
                  (args (if (eq call-type 'direct-callref)
                            args
                          (fill-args args (comp-args-max func-args)))))
-            `(,call-type ,callee ,@(clean-args-ref args)))))))))
+            `(,call-type ,callee ,@(clean-args-ref args))))
+         ((comp-type-hint-p callee)
+          `(call ,callee ,@args)))))))
 
 (defun comp-call-optim-func ()
   "Perform trampoline call optimization for the current function."
@@ -1431,6 +1444,7 @@ This can run just once."
 ;; Even if gcc would take care of this is good to perform this here
 ;; in the hope of removing memory references (remember that most lisp
 ;; objects are loaded from the reloc array).
+;;
 ;; This pass can be run as last optim.
 
 (defun comp-collect-mvar-ids (insn)
@@ -1442,8 +1456,8 @@ This can run just once."
            when (comp-mvar-p x)
            collect (comp-mvar-id x)))
 
-(defun comp-dead-code-func ()
-  "Clean-up dead code into current function."
+(defun comp-dead-assignments-func ()
+  "Clean-up dead assignments into current function."
   (let ((l-vals ())
         (r-vals ()))
     ;; Collect used r and l values.
@@ -1476,15 +1490,28 @@ This can run just once."
            do (setcar insn-cell
                       (if (comp-limple-insn-call-p rest)
                           rest
-                        `(comment ,(format "optimized out %s"
+                        `(comment ,(format "optimized out: %s"
                                            insn)))))))))
+
+(defun comp-remove-type-hints-func ()
+  "Remove type hints from the current function.
+These are substituted with normals 'set'."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       for insn-cell on (comp-block-insns b)
+       for insn = (car insn-cell)
+       do (pcase insn
+            (`(set ,l-val (call ,(pred comp-type-hint-p) ,r-val))
+             (setcar insn-cell `(set ,l-val ,r-val)))))))
 
 (defun comp-dead-code (_)
   "Dead code elimination."
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
                (let ((comp-func f))
-                 (comp-dead-code-func)
+                 (comp-dead-assignments-func)
+                 (comp-remove-type-hints-func)
                  (comp-log-func comp-func)))
              (comp-ctxt-funcs-h comp-ctxt))))
 
@@ -1522,7 +1549,21 @@ Prepare every function for final compilation and drive the C back-end."
            compile-result))))
 
 
-;;; Entry points.
+;;; Compiler type hints.
+;; These are public entry points be used in user code to give comp suggestion
+;; about types.
+;; Note that types will propagates.
+;; WARNING: At speed >= 2 type checking is not performed anymore and suggestions
+;; are assumed just to be true. Use with extreme caution...
+
+(defun comp-hint-fixnum (x)
+  (cl-assert (fixnump x)))
+
+(defun comp-hint-cons (x)
+  (cl-assert (consp x)))
+
+
+;;; Compiler entry points.
 
 (defun native-compile (input)
   "Compile INPUT into native code.
