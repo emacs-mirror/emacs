@@ -379,7 +379,6 @@ Put PREFIX in front of it."
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
          (func (make-comp-func :symbol-name function-name
-                               :func f
                                :c-func-name (comp-c-func-name
                                              function-name
                                              "F"))))
