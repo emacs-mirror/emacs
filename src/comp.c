@@ -2234,9 +2234,14 @@ define_CAR_CDR (void)
 				     NULL,
 				     comp.bool_type,
 				     "is_cons") };
+      /* TODO: understand why after ipa-prop pass gcc is less keen on inlining
+	 and as consequence can refuse to compile these. (see dhrystone.el)
+	 Flag this and all the one involved in ipa-prop as
+	 GCC_JIT_FUNCTION_INTERNAL not to fail compilation in case.
+	 This seems at least to have no perf downside.  */
       func[i] =
 	gcc_jit_context_new_function (comp.ctxt, NULL,
-				      GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				      GCC_JIT_FUNCTION_INTERNAL,
 				      comp.lisp_obj_type,
 				      f_name [i],
 				      2, param, 0);
@@ -2321,7 +2326,7 @@ define_setcar_setcdr (void)
 
       gcc_jit_function **f_ref = !i ? &comp.setcar : &comp.setcdr;
       *f_ref = gcc_jit_context_new_function (comp.ctxt, NULL,
-					     GCC_JIT_FUNCTION_ALWAYS_INLINE,
+					     GCC_JIT_FUNCTION_INTERNAL,
 					     comp.lisp_obj_type,
 					     f_name[i],
 					     3, param, 0);
@@ -2389,7 +2394,7 @@ define_add1_sub1 (void)
 				     "is_fixnum") };
       comp.func = func[i] =
 	gcc_jit_context_new_function (comp.ctxt, NULL,
-				      GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				      GCC_JIT_FUNCTION_INTERNAL,
 				      comp.lisp_obj_type,
 				      f_name[i],
 				      2,
@@ -2473,7 +2478,7 @@ define_negate (void)
 
   comp.func = comp.negate =
     gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  GCC_JIT_FUNCTION_INTERNAL,
 				  comp.lisp_obj_type,
 				  "negate",
 				  2, param, 0);
