@@ -1387,7 +1387,7 @@ This can run just once."
              (callee-in-unit (gethash callee
                                       (comp-ctxt-funcs-h comp-ctxt))))
         (cond
-         ((and subrp (not (subr-native-elispp f)))
+         ((and subrp (not (subr-native-elisp-p f)))
           ;; Trampoline removal.
           (let* ((maxarg (cdr (subr-arity f)))
                  (call-type (if (if subrp

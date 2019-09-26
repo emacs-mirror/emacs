@@ -865,7 +865,7 @@ SUBR must be a built-in function.  */)
 }
 
 #ifdef HAVE_NATIVE_COMP
-DEFUN ("subr-native-elispp", Fsubr_native_elispp, Ssubr_native_elispp, 1, 1, 0,
+DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1, 0,
        doc: /* Return t if the subr is native compiled elisp,
 nil otherwise.  */)
   (Lisp_Object subr)
@@ -3995,7 +3995,7 @@ syms_of_data (void)
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
 #ifdef HAVE_NATIVE_COMP
-  defsubr (&Ssubr_native_elispp);
+  defsubr (&Ssubr_native_elisp_p);
 #endif
 #ifdef HAVE_MODULES
   defsubr (&Suser_ptrp);
