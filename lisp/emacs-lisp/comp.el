@@ -1579,9 +1579,10 @@ If INPUT is a string, use it as the file path to be native compiled."
     (error "Trying to native compile something not a symbol function or file"))
   (let ((data input)
         (comp-native-compiling t)
-        (comp-ctxt (make-comp-ctxt :output (if (symbolp input)
-                                               (symbol-name input)
-                                             (file-name-sans-extension input)))))
+        (comp-ctxt (make-comp-ctxt
+                    :output (if (symbolp input)
+                                (symbol-name input)
+                              (file-name-sans-extension (expand-file-name input))))))
     (mapc (lambda (pass)
             (comp-log (format "Running pass %s:\n" pass))
             (setq data (funcall pass data)))
