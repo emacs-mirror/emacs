@@ -378,6 +378,12 @@ Put PREFIX in front of it."
       (make-comp-nargs :min mandatory
                        :nonrest nonrest))))
 
+(defun comp-byte-frame-size (byte-compiled-func)
+  "Given BYTE-COMPILED-FUNC return the frame size to be allocated."
+  ;; Is this really correct?
+  ;; For the 1+ see bytecode.c:365 (finger crossed).
+  (1+ (aref byte-compiled-func 3)))
+
 (defun comp-spill-lap-function (function-name)
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
@@ -396,7 +402,8 @@ Put PREFIX in front of it."
           (setf (comp-func-args func)
                 (comp-decrypt-lambda-list lambda-list)))
         (setf (comp-func-lap func) lap)
-        (setf (comp-func-frame-size func) (aref (comp-func-byte-func func) 3))
+        (setf (comp-func-frame-size func)
+              (comp-byte-frame-size (comp-func-byte-func func)))
         func)))
 
 (defun comp-spill-lap-functions-file (filename)
@@ -418,7 +425,8 @@ Put PREFIX in front of it."
                                                     "F")
                                       :args (comp-decrypt-lambda-list lambda-list)
                                       :lap lap
-                                      :frame-size (aref bytecode 3))
+                                      :frame-size (comp-byte-frame-size
+                                                   bytecode))
            do (when (> comp-verbose 1)
                 (comp-log (format "Function %s:\n" name))
                 (comp-log lap))
