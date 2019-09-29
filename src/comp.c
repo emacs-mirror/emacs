@@ -3047,23 +3047,19 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   define_add1_sub1 ();
   define_negate ();
 
-  /* Compile all functions. Can't be done before because the
-     relocation structs has to be already defined.  */
   struct Lisp_Hash_Table *func_h
     = XHASH_TABLE (FUNCALL1 (comp-ctxt-funcs-h, Vcomp_ctxt));
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     declare_function (HASH_VALUE (func_h, i));
+  /* Compile all functions. Can't be done before because the
+     relocation structs has to be already defined.  */
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     compile_function (HASH_VALUE (func_h, i));
 
-  /* FIXME use format_string here  */
   if (COMP_DEBUG)
-    {
-      AUTO_STRING (dot_c, ".c");
-      const char *filename =
-	(const char *) SDATA (CALLN (Fconcat, ctxtname, dot_c));
-      gcc_jit_context_dump_to_file (comp.ctxt, filename, 1);
-    }
+      gcc_jit_context_dump_to_file (comp.ctxt,
+				    format_string ("%s.c", SSDATA (ctxtname)),
+				    1);
   if (COMP_DEBUG > 1)
     gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
