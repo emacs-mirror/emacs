@@ -37,8 +37,12 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-verbose 1
-  "Compiler verbosity. From 0 to 3."
+(defcustom comp-verbose 0
+  "Compiler verbosity. From 0 to 3.
+- 0 no logging
+- 1 final limple is logged
+- 2 LAP and final limple are logged
+- 3 all passes are dumping"
   :type 'number
   :group 'comp)
 
@@ -317,7 +321,7 @@ BODY is evaluate only if `comp-verbose' is > 0."
 
 (defun comp-log-func (func)
   "Log function FUNC."
-  (comp-log (format "\n Function: %s" (comp-func-symbol-name func)))
+  (comp-log (format "\nFunction: %s" (comp-func-symbol-name func)))
   (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
            using (hash-value bb)
            do (progn
@@ -327,12 +331,15 @@ BODY is evaluate only if `comp-verbose' is > 0."
 (defun comp-log-edges (func)
   "Log edges in FUNC."
   (let ((edges (comp-func-edges func)))
-    (comp-log (format "\nEdges in function: %s\n" (comp-func-symbol-name func)))
+    (when (> comp-verbose 2)
+      (comp-log (format "\nEdges in function: %s\n"
+                        (comp-func-symbol-name func))))
     (mapc (lambda (e)
-            (comp-log (format "n: %d src: %s dst: %s\n"
-                              (comp-edge-number e)
-                              (comp-block-name (comp-edge-src e))
-                              (comp-block-name (comp-edge-dst e)))))
+            (when (> comp-verbose 2)
+              (comp-log (format "n: %d src: %s dst: %s\n"
+                                (comp-edge-number e)
+                                (comp-block-name (comp-edge-src e))
+                                (comp-block-name (comp-edge-dst e))))))
           edges)))
 
 
@@ -415,7 +422,7 @@ Put PREFIX in front of it."
                                       :args (comp-decrypt-lambda-list lambda-list)
                                       :lap lap
                                       :frame-size (aref bytecode 3))
-           do (progn
+           do (when (> comp-verbose 1)
                 (comp-log (format "Function %s:\n" name))
                 (comp-log lap))
            collect func))
@@ -946,7 +953,8 @@ the annotation emission."
   (cl-loop for bb being the hash-value in (comp-func-blocks func)
            do (setf (comp-block-insns bb)
                     (nreverse (comp-block-insns bb))))
-  (comp-log-func func)
+  (when (> comp-verbose 2)
+    (comp-log-func func))
   func)
 
 (defun comp-limplify-top-level ()
@@ -1105,7 +1113,8 @@ Top level forms for the current context are rendered too."
                with changed = t
                while changed
                initially (progn
-                           (comp-log "Computing dominator tree...\n")
+                           (when (> comp-verbose 2)
+                             (comp-log "Computing dominator tree...\n"))
                            (setf (comp-block-dom entry) entry)
                            ;; Set the post order number.
                            (cl-loop for name in (reverse rev-bb-list)
@@ -1145,11 +1154,12 @@ Top level forms for the current context are rendered too."
   (maphash (lambda (name bb)
              (let ((dom (comp-block-dom bb))
                    (df (comp-block-df bb)))
-               (comp-log (format "block: %s idom: %s DF %s\n"
-                                 name
-                                 (when dom (comp-block-name dom))
-                                 (cl-loop for b being each hash-keys of df
-                                          collect b)))))
+               (when (> comp-verbose 2)
+                 (comp-log (format "block: %s idom: %s DF %s\n"
+                                   name
+                                   (when dom (comp-block-name dom))
+                                   (cl-loop for b being each hash-keys of df
+                                            collect b))))))
            (comp-func-blocks comp-func)))
 
 (defun comp-place-phis ()
@@ -1233,7 +1243,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 (defun comp-ssa-rename ()
   "Entry point to rename SSA within the current function."
-  (comp-log "Renaming\n")
+  (when (> comp-verbose 2)
+    (comp-log "Renaming\n"))
   (let ((frame-size (comp-func-frame-size comp-func))
         (visited (make-hash-table)))
     (cl-labels ((ssa-rename-rec (bb in-frame)
@@ -1282,7 +1293,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                (comp-place-phis)
                (comp-ssa-rename)
                (comp-finalize-phis)
-               (comp-log-func comp-func)))
+               (when (> comp-verbose 2)
+                 (comp-log-func comp-func))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
@@ -1346,7 +1358,8 @@ This can run just once."
                ;; FIXME: unbelievably dumb...
                (cl-loop repeat 10
                         do (comp-propagate*))
-               (comp-log-func comp-func)))
+               (when (> comp-verbose 2)
+                 (comp-log-func comp-func))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
@@ -1474,10 +1487,11 @@ This can run just once."
     ;; Every l-value appearing that does not appear as r-value has no right to
     ;; exist and gets nuked.
     (let ((nuke-list (cl-set-difference l-vals r-vals)))
-      (comp-log (format "Function %s\n" (comp-func-symbol-name comp-func)))
-      (comp-log (format "l-vals %s\n" l-vals))
-      (comp-log (format "r-vals %s\n" r-vals))
-      (comp-log (format "Nuking ids: %s\n" nuke-list))
+      (when (> comp-verbose 2)
+        (comp-log (format "Function %s\n" (comp-func-symbol-name comp-func)))
+        (comp-log (format "l-vals %s\n" l-vals))
+        (comp-log (format "r-vals %s\n" r-vals))
+        (comp-log (format "Nuking ids: %s\n" nuke-list)))
       (cl-loop
        for b being each hash-value of (comp-func-blocks comp-func)
        do (cl-loop
