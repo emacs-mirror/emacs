@@ -37,9 +37,9 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-debug t
-  "Log compilation process."
-  :type 'boolean
+(defcustom comp-verbose 1
+  "Compiler verbosity. From 0 to 3."
+  :type 'number
   :group 'comp)
 
 (defconst native-compile-log-buffer "*Native-compile-Log*"
@@ -48,8 +48,6 @@
 (defvar comp-native-compiling nil
   "This gets bound to t while native compilation.
 Can be used by code that wants to expand differently in this case.")
-
-(defvar comp-verbose nil)
 
 (defvar comp-pass nil
   "Every pass has the right to bind what it likes here.")
@@ -290,10 +288,10 @@ The corresponding index is returned."
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
-BODY is evaluate only if `comp-debug' is non nil."
+BODY is evaluate only if `comp-verbose' is > 0."
   (declare (debug (form body))
            (indent defun))
-  `(when comp-debug
+  `(when (> comp-verbose 0)
      (with-current-buffer (get-buffer-create native-compile-log-buffer)
        (setq buffer-read-only t)
        (let ((inhibit-read-only t))
@@ -303,7 +301,7 @@ BODY is evaluate only if `comp-debug' is non nil."
 (defun comp-log (data)
   "Log DATA."
   (if (and noninteractive
-           comp-verbose)
+           (> comp-verbose 0))
       (if (atom data)
           (message "%s" data)
 	(mapc (lambda (x)
