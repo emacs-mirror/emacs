@@ -49,8 +49,6 @@
   "This gets bound to t while native compilation.
 Can be used by code that wants to expand differently in this case.")
 
-;; FIXME these has to be removed
-(defvar comp-speed 2)
 (defvar comp-verbose nil)
 
 (defvar comp-pass nil
