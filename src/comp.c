@@ -205,7 +205,11 @@ format_string (const char *format, ...)
   va_start (va, format);
   int res = vsnprintf (scratch_area, sizeof (scratch_area), format, va);
   if (res >= sizeof (scratch_area))
-    error ("Truncating string");
+    {
+      scratch_area[sizeof (scratch_area) - 4] = '.';
+      scratch_area[sizeof (scratch_area) - 3] = '.';
+      scratch_area[sizeof (scratch_area) - 2] = '.';
+    }
   va_end (va);
   return scratch_area;
 }
@@ -302,7 +306,7 @@ register_emitter (Lisp_Object key, void *func)
   Fputhash (key, value, comp.emitter_dispatcher);
 }
 
-INLINE static void
+static void
 emit_comment (const char *str)
 {
   if (COMP_DEBUG)
