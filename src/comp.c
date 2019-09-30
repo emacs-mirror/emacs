@@ -230,7 +230,7 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
-INLINE static gcc_jit_field *
+static gcc_jit_field *
 type_to_cast_field (gcc_jit_type *type)
 {
   gcc_jit_field *field;
@@ -419,7 +419,7 @@ emit_call_ref (Lisp_Object subr_sym, unsigned nargs,
 
 /* Close current basic block emitting a conditional.  */
 
-INLINE static void
+static void
 emit_cond_jump (gcc_jit_rvalue *test,
 		gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
@@ -506,7 +506,7 @@ emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type,
 	offset));
 }
 
-INLINE static gcc_jit_rvalue *
+static gcc_jit_rvalue *
 emit_XLI (gcc_jit_rvalue *obj)
 {
   emit_comment ("XLI");
@@ -516,7 +516,7 @@ emit_XLI (gcc_jit_rvalue *obj)
 				      comp.lisp_obj_as_num);
 }
 
-INLINE static gcc_jit_lvalue *
+static gcc_jit_lvalue *
 emit_lval_XLI (gcc_jit_lvalue *obj)
 {
   emit_comment ("lval_XLI");
@@ -526,7 +526,7 @@ emit_lval_XLI (gcc_jit_lvalue *obj)
 				      comp.lisp_obj_as_num);
 }
 
-INLINE static gcc_jit_rvalue *
+static gcc_jit_rvalue *
 emit_XLP (gcc_jit_rvalue *obj)
 {
   emit_comment ("XLP");
@@ -536,7 +536,7 @@ emit_XLP (gcc_jit_rvalue *obj)
 				      comp.lisp_obj_as_ptr);
 }
 
-INLINE static gcc_jit_lvalue *
+static gcc_jit_lvalue *
 emit_lval_XLP (gcc_jit_lvalue *obj)
 {
   emit_comment ("lval_XLP");
