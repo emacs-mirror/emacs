@@ -408,11 +408,8 @@ Put PREFIX in front of it."
                              ('defvar (cdr x))
                              ('defconst (cdr x))))
                          byte-to-native-top-level-forms)))
-  ;; Hacky! We need to reverse `byte-to-native-lap' to have the compiled top
-  ;; level form that matters (ex exclude lambdas)...
-  (cl-loop with lap-funcs = byte-to-native-lap
-           for (name . bytecode) in byte-to-native-bytecode
-           for lap = (cdr (assoc name lap-funcs))
+  (cl-loop for (name . bytecode) in (remove-if-not #'car byte-to-native-bytecode)
+           for lap = (cdr (assoc name byte-to-native-lap))
            for lambda-list = (aref bytecode 0)
            for func = (make-comp-func :symbol-name name
                                       :byte-func bytecode
