@@ -1298,16 +1298,25 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 ;;; propagate pass specific code.
 ;; A very basic propagation pass follows.
 
+(defsubst comp-strict-type-of (obj)
+  "Given OBJ return its type understanding fixnums."
+  ;; Should be certainly smarter but now we take advantages just from fixnums.
+  (if (fixnump obj)
+      'fixnum
+    (type-of obj)))
+
 (defun comp-basic-const-propagate ()
   "Propagate simple constants for setimm operands.
 This can run just once."
-  (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
-           do (cl-loop for insn in (comp-block-insns b)
-                       do (pcase insn
-                            (`(setimm ,lval ,_ ,v)
-                             (setf (comp-mvar-const-vld lval) t)
-                             (setf (comp-mvar-constant lval) v)
-                             (setf (comp-mvar-type lval) (type-of v)))))))
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       for insn in (comp-block-insns b)
+       do (pcase insn
+            (`(setimm ,lval ,_ ,v)
+             (setf (comp-mvar-const-vld lval) t)
+             (setf (comp-mvar-constant lval) v)
+             (setf (comp-mvar-type lval) (comp-strict-type-of v)))))))
 
 (defsubst comp-mvar-propagate (lval rval)
   "Propagate into LVAL properties of RVAL."
