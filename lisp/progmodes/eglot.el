@@ -1172,8 +1172,9 @@ and just return it.  PROMPT shouldn't end with a question mark."
    (eglot--managed-mode
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
-    (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'kill-buffer-hook 'eglot--managed-mode-onoff nil t)
+    ;; Prepend "didClose" to the hook after the "onoff", so it will run first
+    (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
