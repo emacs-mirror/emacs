@@ -389,7 +389,7 @@ Put PREFIX in front of it."
         (error "Can't native compile an already bytecompiled function"))
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-symbol-name func)))
-      (let ((lap (cdr (assoc function-name (reverse byte-to-native-bytecode)))))
+      (let ((lap (alist-get function-name (reverse byte-to-native-bytecode))))
         (cl-assert lap)
         (comp-log lap)
         (let ((lambda-list (aref (comp-func-byte-func func) 0)))
@@ -409,7 +409,7 @@ Put PREFIX in front of it."
                              ('defconst (cdr x))))
                          byte-to-native-top-level-forms)))
   (cl-loop for (name . bytecode) in (remove-if-not #'car byte-to-native-bytecode)
-           for lap = (cdr (assoc name byte-to-native-lap))
+           for lap = (alist-get name byte-to-native-lap)
            for lambda-list = (aref bytecode 0)
            for func = (make-comp-func :symbol-name name
                                       :byte-func bytecode
@@ -1330,12 +1330,12 @@ This can run just once."
      (pcase rval
        (`(,(or 'call 'direct-call) ,f . ,_)
         (setf (comp-mvar-type lval)
-              (cdr (assq f comp-known-ret-types))))
+              (alist-get f comp-known-ret-types)))
        (`(,(or 'callref 'direct-callref) ,f . ,args)
         (cl-loop for v in args
                  do (setf (comp-mvar-ref v) t))
         (setf (comp-mvar-type lval)
-              (cdr (assq f comp-known-ret-types))))
+              (alist-get f comp-known-ret-types)))
        (_
         (comp-mvar-propagate lval rval))))
     (`(phi ,lval . ,rest)
