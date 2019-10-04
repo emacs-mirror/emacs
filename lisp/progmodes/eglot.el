@@ -848,7 +848,7 @@ This docstring appeases checkdoc, that's all."
                           (push server
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
-                          (jsonrpc-notify server :initialized `(:__dummy__ t))
+                          (jsonrpc-notify server :initialized (make-hash-table))
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
                               (eglot--maybe-activate-editing-mode server)))
