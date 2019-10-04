@@ -867,6 +867,21 @@ See the new user options 'package-name-column-width',
 'package-version-column-width', 'package-status-column-width', and
 'package-archive-column-width'.
 
+*** Support for package checksums.
+This improves the security of the Emacs package system.  If the
+package archives you use implements package checksums, you will
+automatically benefit from this by default.
+
+The user option 'package-verify-checksums' controls how and when the
+package system will use checksums.  The default is 'allow-missing',
+which will check them when they are available yet allow installation
+if they are missing.
+
+For improved security, you might want to set this to 't' or
+'all'.  Make sure that the package archives you use support checksums
+before setting these values, or you will be unable to install
+packages.
+
 ** gdb-mi
 
 +++

@@ -14,4 +14,38 @@
  (multi-file .
              [(0 2 3)
               nil "Example of a multi-file tar package" tar
-              ((:url . "http://puddles.li"))]))
+              ((:url . "http://puddles.li"))])
+ (checksum-valid  .
+                  [(123)
+                    nil "A single-file package with a valid checksum." single
+                    nil
+                    343
+                    ((sha512 . "a889917427569cc6817db5db08a88390d44ec010acdf6810c2dfaba04b9a03f00315378c3f03d5f4d531833028ad61db54c4c56106662585da6a0dde602f5c0d"))])
+ (checksum-valid-tar .
+                     [(0 99)
+                     nil "A multi-file package with a valid checksum." tar
+                     nil
+                     10240
+                     ((sha512 . "2be7c37a16db32a2b08fc917ed5f4241814e2665bda1bd15328c2e5a842e45b81f6f31274697248ffaabf8010796685acb3342c5920af53ddd1e75d7fd764bd1"))])
+ (checksum-invalid .
+                   [(1 0)
+                    nil "A single-file package with an invalid checksum." single
+                    nil
+                    365
+                    ((sha512 . "not-a-valid-checksum"))])
+ (checksum-invalid-tar .
+                       [(0 1)
+                        nil "A multi-file package with an invalid checksum." tar
+                        nil
+                        10240
+                        ((sha512 . "not-a-valid-checksum"))])
+ (wrong-size-single .
+                    [(1 0)
+                     nil "A single-file package with an invalid size." single
+                     nil
+                     1])
+ (wrong-size-tar .
+                 [(1 0)
+                  nil "A multi-file package with an invalid size." tar
+                  nil
+                  1]))

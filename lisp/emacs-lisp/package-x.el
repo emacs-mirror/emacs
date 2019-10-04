@@ -219,7 +219,9 @@ if it exists."
 	  (let ((contents (or (package--archive-contents-from-url archive-url)
 			      (package--archive-contents-from-file)))
 		(new-desc (package-make-ac-desc
-                           split-version requires desc file-type extras)))
+                           split-version requires desc file-type extras
+                           ;; FIXME: Use better values than nil nil.
+                           nil nil)))
 	    (if (> (car contents) package-archive-version)
 		(error "Unrecognized archive version %d" (car contents)))
 	    (let ((elt (assq pkg-name (cdr contents))))

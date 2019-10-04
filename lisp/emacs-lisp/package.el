@@ -335,6 +335,31 @@ default directory."
   :risky t
   :version "26.1")
 
+(defcustom package-verify-checksums 'allow-missing
+  "Non-nil means to verify the checksum of a package before installing it.
+
+This can be one of:
+- t                Require a valid checksum; refuse to install
+                   package if the checksum is missing or invalid.
+                   Verify only one checksum.
+- `all'            Same as t, but verify all available (and supported)
+                   checksums.
+- `allow-missing'  Same as t if a checksum exists, but install a
+                   package even if there is no checksum.
+- nil              Ignore checksums.
+
+The package checksums are automatically fetched from package
+archives with the package data on `package-refresh-contents'.
+
+Note that setting this to nil is intended for debugging, and
+should normally not be used since it will decrease security."
+  :type '(choice (const nil :tag "Never")
+                 (const allow-missing :tag "Allow missing")
+                 (const t :tag "Require valid checksum")
+                 (const t :tag "Require valid checksum, and check all"))
+  :risky t
+  :version "28.1")
+
 (defcustom package-check-signature 'allow-unsigned
   "Non-nil means to check package signatures when installing.
 More specifically the value can be:
@@ -418,6 +443,14 @@ synchronously."
   :version "28.1")
 
 
+;;; Errors
+
+(define-error 'package-error "Unknown package error")
+(define-error 'bad-size "Package size mismatch" 'package-error)
+(define-error 'bad-signature "Failed to verify signature" 'package-error)
+(define-error 'bad-checksum "Failed to verify checksum" 'package-error)
+
+
 ;;; `package-desc' object definition
 ;; This is the struct used internally to represent packages.
 ;; Functions that deal with packages should generally take this object
@@ -449,6 +482,8 @@ synchronously."
                                  requirements)))
                  (kind (plist-get rest-plist :kind))
                  (archive (plist-get rest-plist :archive))
+                 (checksums (plist-get rest-plist :checksums))
+                 (size (plist-get rest-plist :size))
                  (extras (let (alist)
                            (while rest-plist
                              (unless (memq (car rest-plist) '(:kind :archive))
@@ -486,6 +521,13 @@ Slots:
 
 `extras' Optional alist of additional keyword-value pairs.
 
+`size'  Size of the package in bytes.
+
+`checksums' Checksums for the package file.  Alist of ((ALGORITHM
+        . CHECKSUM)) where ALGORITHM is a symbol specifying a
+        `secure-hash' algorithm, and CHECKSUM is a string
+        containing the checksum.
+
 `signed' Flag to indicate that the package is signed by provider."
   name
   version
@@ -495,7 +537,9 @@ Slots:
   archive
   dir
   extras
-  signed)
+  signed
+  size
+  checksums)
 
 (defun package--from-builtin (bi-desc)
   "Create a `package-desc' object from BI-DESC.
@@ -557,6 +601,13 @@ Signal an error if the kind is none of the above."
     ('tar ".tar")
     ('dir "")
     (kind (error "Unknown package kind: %s" kind))))
+
+(defun package-desc-filename (pkg-desc)
+  "Return file-name of package-desc object PKG-DESC.
+This is the concatenation of `package-desc-full-name' and
+`package-desc-suffix'."
+  (concat (package-desc-full-name pkg-desc)
+          (package-desc-suffix pkg-desc)))
 
 (defun package-desc--keywords (pkg-desc)
   "Return keywords of package-desc object PKG-DESC.
@@ -1334,7 +1385,88 @@ errors signaled by ERROR-FORM or by BODY).
                    url))
           (insert-file-contents-literally url)))))
 
-(define-error 'bad-signature "Failed to verify signature")
+(defun package--show-verify-checksum-error (pkg-desc details)
+  "Show error on failed checksum verification of PKG-DESC with DETAILS.
+Error is displayed in a new buffer named \"*Error*\"."
+  (with-output-to-temp-buffer "*Error*"
+    (with-current-buffer standard-output
+      (insert (format "Failed to verify checksum of package `%s':\n\n"
+                      (package-desc-name pkg-desc)))
+      (insert details))))
+
+(defconst package-insecure-hash-algorithms '(md5 sha1)
+  "List of hash algorithms that are not considered secure.")
+
+(defun package--verify-package-checksum (pkg-desc)
+  "Verify checksums of `package-desc' object PKG-DESC.
+This assumes that the we are in a buffer containing package.
+
+The value of `package-verify-checksums' decides what this
+function does:
+- t                Verify that there is at least one valid checksum.
+- `all'            Like t, but check all supported checksums.
+- `allow-missing'  Verify checksum if it exists, otherwise do
+                   nothing.
+- nil              Do nothing.
+
+Signal an error of type `bad-checksum' if the verification."
+  (cl-flet*
+      ((supported-hashes
+        (lambda ()
+          (or (seq-filter
+               (lambda (h)
+                 (and (memql (car h) (secure-hash-algorithms))
+                      (not (memql (car h) package-insecure-hash-algorithms))))
+               (package-desc-checksums pkg-desc))
+              ;; Failed; signal error.
+              (package--show-verify-checksum-error
+               pkg-desc
+               (concat
+                (if (package-desc-checksums pkg-desc)
+                    (concat
+                     "No supported checksums found\n\n"
+                     (format-message "Package archive had: %s\n"
+                                     (package-desc-checksums pkg-desc))
+                     (format-message "Emacs supports: %s\n"
+                                     (secure-hash-algorithms)))
+                  "Package archive had no checksums for this package\n")))
+              (signal 'bad-checksum "no supported checksums found"))))
+       (do-check
+        (lambda (&optional all)
+          (dolist (hash (seq-take (supported-hashes)
+                                  (if all most-positive-fixnum 1)))
+            (let* ((algorithm (car hash))
+                   (expected (cdr hash))
+                   (actual (secure-hash algorithm (current-buffer))))
+              (if (equal expected actual) t
+                ;; Failed; signal error.
+                (package--show-verify-checksum-error
+                 pkg-desc
+                 (concat
+                  (format-message "\nChecksum mismatch (%s)\n\n" algorithm)
+                  (format-message "Expected: %s\n" expected)
+                  (format-message "Result: %s\n" actual)))
+                (signal 'bad-checksum (list "checksum mismatch" expected actual))))))))
+    (pcase package-verify-checksums
+      ('nil nil)
+      ('allow-missing (when (package-desc-checksums pkg-desc) (do-check)))
+      ('t (do-check))
+      ('all (do-check 'all))
+      (_ (user-error "Value of `package-verify-checksums' is invalid: `%s'"
+                     package-verify-checksums)))))
+
+(defun package--verify-package-size (pkg-desc)
+  "Verify package size of `package-desc' object PKG-DESC.
+This assumes that the we are in a buffer containing package."
+  (when-let ((expected (package-desc-size pkg-desc))
+             (actual (string-bytes (buffer-string))))
+    (unless (equal expected actual)
+      (with-output-to-temp-buffer "*Error*"
+        (with-current-buffer standard-output
+          (insert (format "Mismatch in package size for `%s':\n"
+                          (package-desc-name pkg-desc)))
+          (insert (format "Expected %s bytes, but received %s" expected actual))))
+      (signal 'bad-size (list "size mismatch" expected actual)))))
 
 (defun package--check-signature-content (content string &optional sig-file)
   "Check signature CONTENT against STRING.
@@ -1461,14 +1593,19 @@ the table."
                 (version-list-< table-version version))
         (puthash name version package--compatibility-table)))))
 
-;; Package descriptor objects used inside the "archive-contents" file.
-;; Changing this defstruct implies changing the format of the
-;; "archive-contents" files.
 (cl-defstruct (package--ac-desc
-               (:constructor package-make-ac-desc (version reqs summary kind extras))
+               (:constructor
+                package-make-ac-desc (version reqs summary kind extras size checksums))
                (:copier nil)
                (:type vector))
-  version reqs summary kind extras)
+  "Package descriptor object used inside the \"archive-contents\" file.
+Changing this defstruct implies changing the format of the
+\"archive-contents\" files.
+
+This is mainly used in `package--add-to-archive-contents' to make
+the code that parses the \"archive-contents\" file more
+readable."
+  version reqs summary kind extras size checksums)
 
 (defun package--append-to-alist (pkg-desc alist)
   "Append an entry for PKG-DESC to the start of ALIST and return it.
@@ -1506,10 +1643,14 @@ Also, add the originating archive to the `package-desc' structure."
            :summary (package--ac-desc-summary (cdr package))
            :kind (package--ac-desc-kind (cdr package))
            :archive archive
+           ;; Older "archive-contents" files might not have the
+           ;; below elements.
            :extras (and (> (length (cdr package)) 4)
-                        ;; Older archive-contents files have only 4
-                        ;; elements here.
-                        (package--ac-desc-extras (cdr package)))))
+                        (package--ac-desc-extras (cdr package)))
+           :size (and (> (length (cdr package)) 5)
+                      (package--ac-desc-size (cdr package)))
+           :checksums (and (> (length (cdr package)) 6)
+                           (package--ac-desc-checksums (cdr package)))))
          (pinned-to-archive (assoc name package-pinned-packages)))
     ;; Skip entirely if pinned to another archive.
     (when (not (and pinned-to-archive
@@ -1979,9 +2120,10 @@ if all the in-between dependencies are also in PACKAGE-LIST."
   (when (eq (package-desc-kind pkg-desc) 'dir)
     (error "Can't install directory package from archive"))
   (let* ((location (package-archive-base pkg-desc))
-         (file (concat (package-desc-full-name pkg-desc)
-                       (package-desc-suffix pkg-desc))))
+         (file (package-desc-filename pkg-desc)))
     (package--with-response-buffer location :file file
+      (package--verify-package-size pkg-desc)
+      (package--verify-package-checksum pkg-desc)
       (if (or (not (package-check-signature))
               (member (package-desc-archive pkg-desc)
                       package-unsigned-archives))

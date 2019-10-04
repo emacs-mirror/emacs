@@ -44,6 +44,9 @@
 
 (setq package-menu-async nil)
 
+;; Silence byte-compiler.
+(defvar epg-config--program-alist)
+
 (defvar package-test-user-dir nil
   "Directory to use for installing packages during testing.")
 
@@ -304,14 +307,33 @@ Must called from within a `tar-mode' buffer."
   (with-package-test ()
     (package-initialize)
     (package-refresh-contents)
-    (should (eq 4 (length package-archive-contents)))))
+    (should (eq 10 (length package-archive-contents)))))
 
 (ert-deftest package-test-install-single-from-archive ()
   "Install a single package from a package archive."
   (with-package-test ()
     (package-initialize)
     (package-refresh-contents)
-    (package-install 'simple-single)))
+    (package-install 'simple-single)
+    (should (package-installed-p 'simple-single))))
+
+(ert-deftest package-test-install-wrong-size-single ()
+  "Install a tar package with invalid size."
+  (should-error
+   (with-package-test ()
+     (package-initialize)
+     (package-refresh-contents)
+     (package-install 'wrong-size-single))
+   :type 'bad-size))
+
+(ert-deftest package-test-install-wrong-size-tar ()
+  "Install a tar package with invalid size."
+  (should-error
+   (with-package-test ()
+     (package-initialize)
+     (package-refresh-contents)
+     (package-install 'wrong-size-tar))
+   :type 'bad-size))
 
 (ert-deftest package-test-install-prioritized ()
   "Install a lower version from a higher-prioritized archive."
@@ -389,8 +411,8 @@ Must called from within a `tar-mode' buffer."
     ;;       the testing environment currently only has one.
     (package-menu-filter-by-archive "gnu")
     (goto-char (point-min))
-    (should (looking-at "^\\s-+multi-file"))
-    (should (= (count-lines (point-min) (point-max)) 4))
+    (should (looking-at "^\\s-+checksum-invalid"))
+    (should (= (count-lines (point-min) (point-max)) 10))
     (should-error (package-menu-filter-by-archive "non-existent archive"))))
 
 (ert-deftest package-test-list-filter-by-keyword ()
@@ -416,7 +438,7 @@ Must called from within a `tar-mode' buffer."
     (package-menu-filter-by-status "available")
     (goto-char (point-min))
     (should (re-search-forward "^\\s-+multi-file" nil t))
-    (should (= (count-lines (point-min) (point-max)) 4))
+    (should (= (count-lines (point-min) (point-max)) 10))
     ;; No installed packages in default environment.
     (should-error (package-menu-filter-by-status "installed"))))
 
@@ -671,6 +693,169 @@ Must called from within a `tar-mode' buffer."
 		"Status: Installed in ['`‘]signed-good-1.0/['’]."
 		nil t))))))
 
+
+;;; Tests for package checksum verification.
+
+(defmacro with-install-using-checksum (ok fail package)
+  "Test installing PACKAGE while setting `package-verify-checksums'."
+  (declare (indent 2))
+  `(progn
+     (dolist (opt ,ok)
+       (let ((package-verify-checksums opt))
+         (with-package-test ()
+           (package-initialize)
+           (package-refresh-contents)
+           (package-install ,package)
+           (package-installed-p ,package))))
+     (dolist (opt ,fail)
+       (let ((package-verify-checksums opt))
+         (should-error
+          (with-package-test ()
+            (package-initialize)
+            (package-refresh-contents)
+            (package-install ,package))
+          :type 'bad-checksum)))))
+
+(ert-deftest package-test-install-with-checksum/single-valid ()
+  "Install a single package with valid checksum."
+  (with-install-using-checksum '(nil allow-missing t all) '() 'checksum-valid))
+
+(ert-deftest package-test-install-with-checksum/single-invalid ()
+  "Install a tar package with invalid checksum."
+  (with-install-using-checksum '(nil) '(allow-missing t all) 'checksum-invalid))
+
+(ert-deftest package-test-install-with-checksum/tar-valid ()
+  "Install a tar package with valid checksum."
+  (with-install-using-checksum '(nil allow-missing t all) '() 'checksum-valid-tar))
+
+(ert-deftest package-test-install-with-checksum/tar-invalid ()
+  "Install a tar package with invalid checksum."
+  (with-install-using-checksum '(nil) '(allow-missing t all) 'checksum-invalid-tar))
+
+(defconst package-test-verification-text
+  "Example text for testing checksum verification.")
+(defconst package-tests-valid-md5-checksum
+  ;; (secure-hash 'md5 package-test-verification-text)
+  "abe6375809e532f081b808b3aa052dfb")
+(defconst package-tests-valid-sha256-checksum
+  ;; (secure-hash 'sha256 package-test-verification-text)
+  "6875aa4523e45ddef627b4edf1296f1d7dd0c22ddd6a6584f0228215d25eefcd")
+(defconst package-tests-valid-sha512-checksum
+  ;; (secure-hash 'sha512 package-test-verification-text)
+  (concat "bdc631f9e675b1ea34570f0a4bb44568dc5cecac905eea737f5f451bc52fd0c6"
+          "81b0d8b3dc2a942b9950fbe9096ebdf517668245c9b5a7bbdea8487a8f9cdce6"))
+
+(defmacro package-tests--run-verify-checksums-test (verify-checksums checksums)
+  "Run a test for `package-verify-checksums'."
+  (declare (indent 1))
+  `(with-temp-buffer
+     (insert package-test-verification-text)
+     (let ((package-verify-checksums ,verify-checksums)
+           (pkg (package-desc-create :name 'foobar
+                              :version '(1 0)
+                              :summary "Just a package with checksum."
+                              :kind 'single
+                              :checksums ,checksums)))
+       (package--verify-package-checksum pkg))))
+
+(ert-deftest package-test-verify-package-checksums-nil/ignore-invalid ()
+  "Ignore all checksums even when invalid."
+  (package-tests--run-verify-checksums-test nil
+    '((sha512 . "invalid")
+      (invalid . "invalid"))))
+
+(ert-deftest package-test-verify-package-checksums-nil/ignore-empty ()
+  "Ignore all checksums even when empty."
+  (package-tests--run-verify-checksums-test nil
+    nil))
+
+(ert-deftest package-test-verify-package-checksums-allow-missing ()
+  "Verify checksums (allow-missing) -- verify if available."
+  (package-tests--run-verify-checksums-test 'allow-missing
+    `((sha512 . ,package-tests-valid-sha512-checksum))))
+
+(ert-deftest package-test-verify-package-checksums-allow-missing/missing ()
+  "Verify checksums (allow-missing) -- allow missing."
+  (package-tests--run-verify-checksums-test 'allow-missing
+    nil))
+
+(ert-deftest package-test-verify-package-checksums-allow-missing/ignore-unsupported ()
+  "Verify checksums (t) -- ignore unsupported algorithm."
+  (package-tests--run-verify-checksums-test 'allow-missing
+    `((ignore . "not supported")
+      (sha512 . ,package-tests-valid-sha512-checksum))))
+
+(ert-deftest package-test-verify-package-checksums-t ()
+  "Verify checksums (t) -- succeed when valid."
+  (package-tests--run-verify-checksums-test t
+    `((sha512 . ,package-tests-valid-sha512-checksum))))
+
+(ert-deftest package-test-verify-package-checksums-t/invalid-fails ()
+  "Verify checksums (t) -- fail on invalid."
+  (should-error
+   (package-tests--run-verify-checksums-test t
+     '((sha512 . "invalid")))
+   :type 'bad-checksum))
+
+(ert-deftest package-test-verify-package-checksums-t/missing-fails ()
+  "Verify checksums (t) -- fail on missing."
+  (should-error
+   (package-tests--run-verify-checksums-test t
+     nil)
+   :type 'bad-checksum))
+
+(ert-deftest package-test-verify-package-checksums-t/ignore-unsupported ()
+  "Verify checksums (t) -- ignore unsupported algorithm."
+  (package-tests--run-verify-checksums-test t
+    `((ignore . "not supported")
+      (sha512 . ,package-tests-valid-sha512-checksum))))
+
+(ert-deftest package-test-verify-package-checksums-all ()
+  "Verify checksums (all) -- succeed on valid."
+  (package-tests--run-verify-checksums-test 'all
+    `((md5    . ,package-tests-valid-md5-checksum)
+      (sha256 . ,package-tests-valid-sha256-checksum)
+      (sha512 . ,package-tests-valid-sha512-checksum))))
+
+(ert-deftest package-test-verify-package-checksums-all/invalid-fails ()
+  "Verify checksums (all) -- fail if one checksum is invalid."
+  (should-error
+   (package-tests--run-verify-checksums-test 'all
+     `((md5    . ,package-tests-valid-md5-checksum)
+       (sha256 . "invalid")
+       (sha512 . ,package-tests-valid-sha512-checksum)))
+   :type 'bad-checksum))
+
+(ert-deftest package-test-verify-package-checksums-all/missing-fails ()
+  "Verify checksums (all) -- fail on missing checksums."
+  (should-error
+   (package-tests--run-verify-checksums-test 'all
+     nil)
+   :type 'bad-checksum))
+
+(ert-deftest package-test-verify-package-checksums-all/no-supported-hash-fails ()
+  "Verify checksums (all) -- fail if we have no supported hash."
+  (should-error
+   (package-tests--run-verify-checksums-test 'all
+     '((unsupported . "invalid")))
+   :type 'bad-checksum))
+
+(ert-deftest package-test-verify-package-checksums-all/ignore-unsupported ()
+  "Verify checksums (all) -- succed if one hash algorithm is unsupported.
+If the rest succeed, just ignore the unsupported one."
+  (package-tests--run-verify-checksums-test 'all
+    `((md5    . ,package-tests-valid-md5-checksum)
+      (sha256 . ,package-tests-valid-sha256-checksum)
+      (sha512 . ,package-tests-valid-sha512-checksum)
+      (ignore . "not supported"))))
+
+(ert-deftest package-test-verify-package-size ()
+  (with-temp-buffer
+    (let ((pkg-desc (package-desc-create :size 6)))
+      (insert "123456")
+      (package--verify-package-size pkg-desc)
+      (insert "7")
+      (should-error (package--verify-package-size pkg-desc)))))
 
 
 ;;; Tests for package-x features.
@@ -684,7 +869,9 @@ Must called from within a `tar-mode' buffer."
                               'single
                               '((:authors ("J. R. Hacker" . "jrh@example.com"))
                                 (:maintainer "J. R. Hacker" . "jrh@example.com")
-                                (:url . "http://doodles.au"))))
+                                (:url . "http://doodles.au"))
+                              nil
+                              nil))
   "Expected contents of the archive entry from the \"simple-single\" package.")
 
 (defvar package-x-test--single-archive-entry-1-4
@@ -693,7 +880,9 @@ Must called from within a `tar-mode' buffer."
                               "A single-file package with no dependencies"
                               'single
                               '((:authors ("J. R. Hacker" . "jrh@example.com"))
-                                (:maintainer "J. R. Hacker" . "jrh@example.com"))))
+                                (:maintainer "J. R. Hacker" . "jrh@example.com"))
+                              nil
+                              nil))
   "Expected contents of the archive entry from the updated \"simple-single\" package.")
 
 (ert-deftest package-x-test-upload-buffer ()
