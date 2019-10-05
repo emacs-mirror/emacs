@@ -1450,7 +1450,7 @@ This can run just once."
             (`(callref funcall ,f . ,rest)
              (when-let ((new-form (comp-call-optim-form-call
                                    (comp-mvar-constant f) rest self)))
-               (setcar insn-cell ,new-form)))))))
+               (setcar insn-cell new-form)))))))
 
 (defun comp-call-optim (_)
   "Given FUNCS try to avoid funcall trampoline usage when possible."
