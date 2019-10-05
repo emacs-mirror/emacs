@@ -1314,7 +1314,7 @@ Uses THING, FACE, DEFS and PREPEND."
                (nick (and server (eglot--project-nickname server)))
                (pending (and server (hash-table-count
                                      (jsonrpc--request-continuations server))))
-               (`(,_id ,doing ,done-p ,detail) (and server (eglot--spinner server)))
+               (`(,_id ,doing ,done-p ,_detail) (and server (eglot--spinner server)))
                (last-error (and server (jsonrpc-last-error server))))
     (append
      `(,(eglot--mode-line-props "eglot" 'eglot-mode-line nil))
@@ -1332,15 +1332,13 @@ Uses THING, FACE, DEFS and PREPEND."
                      (format "An error occured: %s\n" (plist-get last-error
                                                                  :message)))))
          ,@(when (and doing (not done-p))
-             `("/" ,(eglot--mode-line-props
-                     (format "%s%s" doing
-                             (if detail (format ":%s" detail) ""))
-                     'compilation-mode-line-run '())))
+             `("/" ,(eglot--mode-line-props doing
+                                            'compilation-mode-line-run '())))
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
-                     (format "%d outstanding requests" pending) 'warning
+                     (format "%d" pending) 'warning
                      '((mouse-3 eglot-forget-pending-continuations
-                                "fahgettaboudit"))))))))))
+                                "forget pending continuations"))))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
