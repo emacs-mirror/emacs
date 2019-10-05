@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'bytecomp)
+(require 'gv)
 (require 'cl-lib)
 (require 'cl-extra)
 (require 'subr-x)
@@ -447,9 +448,20 @@ If INPUT is a string this is the file path to be compiled."
 
 ;;; Limplification pass specific code.
 
-(defmacro comp-sp ()
+(cl-defstruct (comp-limplify (:copier nil))
+  "Support structure used during function limplification."
+  (sp 0 :type fixnum
+      :documentation "Current stack pointer while walking LAP.")
+  (frame nil :type vector
+         :documentation "Meta-stack used to flat LAP.")
+  (block-name nil :type symbol
+    :documentation "Current basic block name."))
+
+(defsubst comp-sp ()
   "Current stack pointer."
-  '(comp-limplify-sp comp-pass))
+  (comp-limplify-sp comp-pass))
+(gv-define-setter comp-sp (value)
+  `(setf (comp-limplify-sp comp-pass) ,value))
 
 (defmacro comp-with-sp (sp &rest body)
   "Execute BODY setting the stack pointer to SP.
@@ -462,27 +474,17 @@ Restore the original value afterwards."
        (progn ,@body)
        (setf (comp-sp) ,sym))))
 
-(defmacro comp-slot-n (n)
+(defsubst comp-slot-n (n)
   "Slot N into the meta-stack."
-  (declare (debug (form)))
-  `(aref (comp-limplify-frame comp-pass) ,n))
+  (aref (comp-limplify-frame comp-pass) n))
 
-(defmacro comp-slot ()
+(defsubst comp-slot ()
   "Current slot into the meta-stack pointed by sp."
-  '(comp-slot-n (comp-sp)))
+  (comp-slot-n (comp-sp)))
 
-(defmacro comp-slot+1 ()
+(defsubst comp-slot+1 ()
   "Slot into the meta-stack pointed by sp + 1."
-  '(comp-slot-n (1+ (comp-sp))))
-
-(cl-defstruct (comp-limplify (:copier nil))
-  "Support structure used during function limplification."
-  (sp 0 :type fixnum
-      :documentation "Current stack pointer while walking LAP.")
-  (frame nil :type vector
-         :documentation "Meta-stack used to flat LAP.")
-  (block-name nil :type symbol
-    :documentation "Current basic block name."))
+  (comp-slot-n (1+ (comp-sp))))
 
 (cl-defun comp-block-maybe-add (&rest args &key name sp &allow-other-keys)
   (let ((blocks (comp-func-blocks comp-func)))
