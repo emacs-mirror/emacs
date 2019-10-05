@@ -340,13 +340,19 @@
 
 ;; Non tested functions that proved just to be difficult to compile.
 
-(defun comp-test-callee (_ _) t)
-(defun comp-test-silly-frame (x)
+(defun comp-test-callee (_ __) t)
+(defun comp-test-silly-frame1 (x)
   (cl-case x
     (0 (comp-test-callee
         (pcase comp-tests-var1
           (1 1)
           (2 2))
         3))))
+
+(defun comp-test-silly-frame2 (token)
+  (while c
+    (cl-case c
+      (?< 1)
+      (?> 2))))
 
 ;;; comp-test-funcs.el ends here
