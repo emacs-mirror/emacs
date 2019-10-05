@@ -962,7 +962,7 @@ the annotation emission."
 
 (defun comp-limplify-top-level ()
   "Create a limple function doing the business for top level forms.
-This will be called at runtime."
+This will be called at load-time."
   (let* ((func (make-comp-func :symbol-name 'top-level-run
                   :c-func-name "top_level_run"
                   :args (make-comp-args :min 0 :max 0)
