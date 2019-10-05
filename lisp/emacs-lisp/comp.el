@@ -494,13 +494,6 @@ Restore the original value afterwards."
           (setf (comp-block-sp bb) sp))
       (puthash name (apply #'make--comp-block args) blocks))))
 
-;; (defun comp-opt-call (inst)
-;;   "Optimize if possible a side-effect-free call in INST."
-;;   (cl-destructuring-bind (_ f &rest args) inst
-;;     (when (and (member f comp-mostly-pure-funcs)
-;;                (cl-every #'identity (mapcar #'comp-mvar-const-vld args)))
-;;       (apply f (mapcar #'comp-mvar-constant args)))))
-
 (defun comp-call (func &rest args)
   "Emit a call for function FUNC with ARGS."
   (comp-add-subr-to-relocs func)
