@@ -533,31 +533,6 @@ If the callee function is known to have a return type propagate it."
   (cl-assert call)
   (comp-emit (list 'set (comp-slot) call)))
 
-(defmacro comp-emit-set-call-subr (subr-name sp-delta)
-  "Emit a call for SUBR-NAME.
-SP-DELTA is the stack adjustment."
-  (let ((subr (symbol-function subr-name))
-        (subr-str (symbol-name subr-name))
-        (nargs (1+ (- sp-delta))))
-    (cl-assert (subrp subr) nil
-               "%s not a subr" subr-str)
-      (let* ((arity (subr-arity subr))
-             (minarg (car arity))
-             (maxarg (cdr arity)))
-        (cl-assert (not (eq maxarg 'unevalled)) nil
-                   "%s contains unevalled arg" subr-name)
-        (if (eq maxarg 'many)
-            ;; callref case.
-            `(comp-emit-set-call (comp-callref ',subr-name ,nargs (comp-sp)))
-          ;; Normal call.
-          (cl-assert (and (>= maxarg nargs) (<= minarg nargs))
-                     (nargs maxarg minarg)
-                     "Incoherent stack adjustment %d, maxarg %d minarg %d")
-          `(let* ((subr-name ',subr-name)
-                  (slots (cl-loop for i from 0 below ,maxarg
-                                  collect (comp-slot-n (+ i (comp-sp))))))
-             (comp-emit-set-call (apply #'comp-call (cons subr-name slots))))))))
-
 (defun comp-copy-slot (src-n &optional dst-n)
   "Set slot number DST-N to slot number SRC-N as source.
 If DST-N is specified use it otherwise assume it to be the current slot."
@@ -679,47 +654,75 @@ If NEGATED non nil negate the tested condition."
               do (comp-emit-cond-jump var m-test 0 target-label nil)))
     (_ (error "Missing previous setimm while creating a switch"))))
 
+(defun comp-emit-set-call-subr (subr-name sp-delta)
+    "Emit a call for SUBR-NAME.
+SP-DELTA is the stack adjustment."
+    (let ((subr (symbol-function subr-name))
+          (subr-str (symbol-name subr-name))
+          (nargs (1+ (- sp-delta))))
+      (cl-assert (subrp subr) nil
+                 "%s not a subr" subr-str)
+      (let* ((arity (subr-arity subr))
+             (minarg (car arity))
+             (maxarg (cdr arity)))
+        (cl-assert (not (eq maxarg 'unevalled)) nil
+                   "%s contains unevalled arg" subr-name)
+        (if (eq maxarg 'many)
+            ;; callref case.
+            (comp-emit-set-call (comp-callref subr-name nargs (comp-sp)))
+          ;; Normal call.
+          (cl-assert (and (>= maxarg nargs) (<= minarg nargs))
+                     (nargs maxarg minarg)
+                     "Incoherent stack adjustment %d, maxarg %d minarg %d")
+          (let* ((subr-name subr-name)
+                 (slots (cl-loop for i from 0 below maxarg
+                                 collect (comp-slot-n (+ i (comp-sp))))))
+            (comp-emit-set-call (apply #'comp-call (cons subr-name slots))))))))
+
+(eval-when-compile
+  (defun comp-op-to-fun (x)
+    "Given the LAP op strip \"byte-\" to have the subr name."
+    (intern (replace-regexp-in-string "byte-" "" x)))
+
+  (defun comp-body-eff (body op-name sp-delta)
+    "Given the original body BODY compute the effective one.
+When BODY is auto guess function name form the LAP bytecode
+name. Othewise expect lname fnname."
+    (pcase (car body)
+      ('auto
+       (list `(comp-emit-set-call-subr
+               ',(comp-op-to-fun op-name)
+               ,sp-delta)))
+      ((pred symbolp)
+       (list `(comp-emit-set-call-subr
+               ',(car body)
+               ,sp-delta)))
+      (_ body))))
+
 (defmacro comp-op-case (&rest cases)
   "Expand CASES into the corresponding pcase.
 This is responsible for generating the proper stack adjustment when known and
 the annotation emission."
   (declare (debug (body))
            (indent defun))
-  (cl-labels ((op-to-fun (x)
-                 ;; Given the LAP op strip "byte-" to have the subr name.
-                 (intern (replace-regexp-in-string "byte-" "" x)))
-              (body-eff (body op-name sp-delta)
-                 ;; Given the original body BODY compute the effective one.
-                 ;; When BODY is auto guess function name form the LAP bytecode
-                 ;; name. Othewise expect lname fnname.
-                 (pcase (car body)
-                   ('auto
-                    (list `(comp-emit-set-call-subr
-                            ,(op-to-fun op-name)
-                            ,sp-delta)))
-                   ((pred symbolp)
-                    (list `(comp-emit-set-call-subr
-                            ,(car body)
-                            ,sp-delta)))
-                   (_ body))))
-    `(pcase op
-       ,@(cl-loop for (op . body) in cases
-		  for sp-delta = (gethash op comp-op-stack-info)
-                  for op-name = (symbol-name op)
-		  if body
-		    collect `(',op
-                              ;; Log all LAP ops except the TAG one.
-                              ,(unless (eq op 'TAG)
-                                 `(comp-emit-annotation
-                                   ,(concat "LAP op " op-name)))
-                              ;; Emit the stack adjustment if present.
-                              ,(when (and sp-delta (not (eq 0 sp-delta)))
-			         `(comp-stack-adjust ,sp-delta))
-                              ,@(body-eff body op-name sp-delta))
-                  else
-		    collect `(',op (error ,(concat "Unsupported LAP op "
-                                                 op-name))))
-       (_ (error "Unexpected LAP op %s" (symbol-name op))))))
+  `(pcase op
+     ,@(cl-loop for (op . body) in cases
+		for sp-delta = (gethash op comp-op-stack-info)
+                for op-name = (symbol-name op)
+		if body
+		collect `(',op
+                          ;; Log all LAP ops except the TAG one.
+                          ,(unless (eq op 'TAG)
+                             `(comp-emit-annotation
+                               ,(concat "LAP op " op-name)))
+                          ;; Emit the stack adjustment if present.
+                          ,(when (and sp-delta (not (eq 0 sp-delta)))
+			     `(comp-stack-adjust ,sp-delta))
+                          ,@(comp-body-eff body op-name sp-delta))
+                else
+		collect `(',op (error ,(concat "Unsupported LAP op "
+                                               op-name))))
+     (_ (error "Unexpected LAP op %s" (symbol-name op)))))
 
 (defun comp-limplify-lap-inst (insn)
   "Limplify LAP instruction INSN pushng it in the proper basic block."
