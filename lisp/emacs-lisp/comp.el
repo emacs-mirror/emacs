@@ -408,7 +408,7 @@ Put PREFIX in front of it."
                              ('defvar (cdr x))
                              ('defconst (cdr x))))
                          byte-to-native-top-level-forms)))
-  (cl-loop for (name . bytecode) in (remove-if-not #'car byte-to-native-bytecode)
+  (cl-loop for (name . bytecode) in byte-to-native-bytecode
            for lap = (alist-get name byte-to-native-lap)
            for lambda-list = (aref bytecode 0)
            for func = (make-comp-func :symbol-name name

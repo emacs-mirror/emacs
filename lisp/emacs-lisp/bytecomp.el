@@ -2276,7 +2276,7 @@ we output that argument and the following argument
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
 `defvaralias', `autoload' and `custom-declare-variable' need that."
-  (when byte-native-compiling
+  (when (and byte-native-compiling name)
     ;; Spill bytecode output for the native compiler here
     (push (cons name (apply #'vector form))
           byte-to-native-bytecode))
