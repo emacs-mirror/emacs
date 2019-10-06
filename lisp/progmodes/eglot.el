@@ -1193,6 +1193,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
     (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
+    (eglot--setq-saving xref-prompt-for-identifier nil)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
     (flymake-mode 1)
@@ -1717,16 +1718,6 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   "EGLOT xref backend."
   (when (eglot--server-capable :definitionProvider) 'eglot))
 
-(defvar eglot--xref-known-symbols nil)
-
-(defun eglot--xref-reset-known-symbols (&rest _dummy)
-  "Reset `eglot--xref-reset-known-symbols'.
-DUMMY is ignored."
-  (setq eglot--xref-known-symbols nil))
-
-(advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
-(advice-add 'xref-find-references :after #'eglot--xref-reset-known-symbols)
-
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
   "Helper variable for `eglot--handling-xrefs'.")
 
@@ -1771,102 +1762,64 @@ Try to visit the target file for a richer summary line."
     (xref-make summary (xref-make-file-location file line column))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
-  (when (eglot--server-capable :documentSymbolProvider)
-    (let ((server (eglot--current-server-or-lose))
-          (text-id (eglot--TextDocumentIdentifier)))
-      (completion-table-with-cache
-       (lambda (string)
-         (setq eglot--xref-known-symbols
-               (mapcar
-                (eglot--lambda
-                    ((SymbolInformation) name kind location containerName)
-                  (propertize name
-                              :textDocumentPositionParams
-                              (list :textDocument text-id
-                                    :position (plist-get
-                                               (plist-get location :range)
-                                               :start))
-                              :locations (vector location)
-                              :kind kind
-                              :containerName containerName))
-                (jsonrpc-request server
-                                 :textDocument/documentSymbol
-                                 `(:textDocument ,text-id))))
-         (all-completions string eglot--xref-known-symbols))))))
+  (eglot--error "cannot (yet) provide reliable completion table for LSP symbols"))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
-  (when-let ((symatpt (symbol-at-point)))
-    (propertize (symbol-name symatpt)
-                :textDocumentPositionParams
-                (eglot--TextDocumentPositionParams))))
+  ;; JT@19/10/09: This is a totally dummy identifier that isn't even
+  ;; passed to LSP.  The reason for this particular wording is to
+  ;; construct a readable message "No references for LSP identifier at
+  ;; point.".   See http://github.com/joaotavora/eglot/issues/314
+  "LSP identifier at point.")
 
-(defvar eglot--xref-definitions-method :textDocument/definition
-  "The LSP method to map xref-find-definitions call.")
+(defvar eglot--lsp-xref-refs nil
+  "`xref' objects for overriding `xref-backend-references''s.")
+
+(cl-defun eglot--lsp-xrefs-for-method (method &key extra-params capability)
+  "Make `xref''s for METHOD, EXTRA-PARAMS, check CAPABILITY."
+  (unless (eglot--server-capable
+           (or capability
+               (intern
+                (format ":%sProvider"
+                        (cadr (split-string (symbol-name method)
+                                            "/"))))))
+    (eglot--error "Sorry, this server doesn't do %s" method))
+  (eglot--handling-xrefs
+   (mapcar
+    (eglot--lambda ((Location) uri range)
+      (eglot--xref-make (symbol-at-point) uri range))
+    (jsonrpc-request
+     (eglot--current-server-or-lose) method (append
+                                             (eglot--TextDocumentPositionParams)
+                                             extra-params)))))
+
+(defun eglot--lsp-xref-helper (method)
+  "Helper for `eglot-find-declaration' & friends."
+  (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method method)))
+    (xref-find-references "LSP identifier at point.")))
 
 (defun eglot-find-declaration ()
-  "Find the declaration for the identifier at point.
-See `xref-find-definitions' and `xref-prompt-for-identifier'."
+  "Find declaration for SYM, the identifier at point."
   (interactive)
-  (eglot--find-location 'declaration))
+  (eglot--lsp-xref-helper :textDocument/declaration))
 
 (defun eglot-find-implementation ()
-  "Find the implementation for the identifier at point.
-See `xref-find-definitions' and `xref-prompt-for-identifier'."
+  "Find implementation for SYM, the identifier at point."
   (interactive)
-  (eglot--find-location 'implementation))
+  (eglot--lsp-xref-helper :textDocument/implementation))
 
 (defun eglot-find-typeDefinition ()
-  "Find the type definition for the identifier at point.
-See `xref-find-definitions' and `xref-prompt-for-identifier'."
+  "Find type definition for SYM, the identifier at point."
   (interactive)
-  (eglot--find-location 'typeDefinition))
+  (eglot--lsp-xref-helper :textDocument/typeDefinition))
 
-(defun eglot--find-location (kind)
-  (let* ((method-name (symbol-name kind))
-         (method (intern (concat ":textDocument/" method-name)))
-         (capability (intern (concat ":" method-name "Provider"))))
-    (if (eglot--server-capable capability)
-        (let ((eglot--xref-definitions-method method))
-          (call-interactively #'xref-find-definitions))
-      (eglot--error "Server is not a %sProvider" method-name))))
+(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) _identifier)
+  (eglot--lsp-xrefs-for-method :textDocument/definition))
 
-(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
-  (let* ((rich-identifier
-          (car (member identifier eglot--xref-known-symbols)))
-         (definitions
-          (if rich-identifier
-              (get-text-property 0 :locations rich-identifier)
-            (jsonrpc-request (eglot--current-server-or-lose)
-                             eglot--xref-definitions-method
-                             (get-text-property
-                              0 :textDocumentPositionParams identifier))))
-         (locations
-          (and definitions
-               (if (vectorp definitions) definitions (vector definitions)))))
-    (eglot--handling-xrefs
-     (mapcar (eglot--lambda ((Location) uri range)
-               (eglot--xref-make identifier uri range))
-             locations))))
-
-(cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
-  (when (eglot--server-capable :referencesProvider)
-    (let ((params
-           (or (get-text-property 0 :textDocumentPositionParams identifier)
-            (let ((rich (car (member identifier eglot--xref-known-symbols))))
-              (and rich
-                   (get-text-property 0 :textDocumentPositionParams rich))))))
-      (unless params
-        (eglot--error "Don' know where %s is in the workspace!" identifier))
-      (eglot--handling-xrefs
-       (mapcar
-        (eglot--lambda ((Location) uri range)
-          (eglot--xref-make identifier uri range))
-        (jsonrpc-request (eglot--current-server-or-lose)
-                         :textDocument/references
-                         (append
-                          params
-                          (list :context
-                                (list :includeDeclaration t)))))))))
+(cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
+  (or
+   eglot--lsp-xref-refs
+   (eglot--lsp-xrefs-for-method
+    :textDocument/references :extra-params `(:context (:includeDeclaration t)))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
