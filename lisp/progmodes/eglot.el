@@ -595,8 +595,9 @@ SERVER.  ."
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (jsonrpc-request server :shutdown nil :timeout (or timeout 1.5))
-        (jsonrpc-notify server :exit nil))
+        (jsonrpc-request server :shutdown (make-hash-table)
+                         :timeout (or timeout 1.5))
+        (jsonrpc-notify server :exit (make-hash-table)))
     ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))
     (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
