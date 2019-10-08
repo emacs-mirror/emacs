@@ -3780,20 +3780,8 @@ Build a menu of the possible matches."
     ;; there is no "nxml.el" (it's nxml-mode.el).
     ;; But package.el makes the same assumption.
     ;; I think nxml is the only exception - maybe it should be just be renamed.
-    (let ((str (ignore-errors (lm-commentary (find-library-name nodename)))))
-      (if (null str)
-	  (insert "Can’t find package description.\n\n")
-	(insert
-	 (with-temp-buffer
-	   (insert str)
-	   (goto-char (point-min))
-	   (delete-blank-lines)
-	   (goto-char (point-max))
-	   (delete-blank-lines)
-	   (goto-char (point-min))
-	   (while (re-search-forward "^;+ ?" nil t)
-	     (replace-match "" nil nil))
-	   (buffer-string))))))))
+    (insert (or (ignore-errors (lm-commentary (find-library-name nodename)))
+                (insert "Can’t find package description.\n\n"))))))
 
 ;;;###autoload
 (defun info-finder (&optional keywords)

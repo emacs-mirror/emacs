@@ -2376,18 +2376,9 @@ The description is read from the installed package files."
      result
 
      ;; Look for Commentary header.
-     (let ((mainsrcfile (expand-file-name (format "%s.el" (package-desc-name desc))
-                                          srcdir)))
-       (when (file-readable-p mainsrcfile)
-         (with-temp-buffer
-           (insert (or (lm-commentary mainsrcfile) ""))
-           (goto-char (point-min))
-           (when (re-search-forward "^;;; Commentary:\n" nil t)
-             (replace-match ""))
-           (while (re-search-forward "^\\(;+ ?\\)" nil t)
-             (replace-match ""))
-           (buffer-string))))
-     )))
+     (lm-commentary (expand-file-name
+                     (format "%s.el" (package-desc-name desc)) srcdir))
+     "")))
 
 (defun describe-package-1 (pkg)
   "Insert the package description for PKG.
@@ -2582,16 +2573,10 @@ Helper function for `describe-package'."
       (if built-in
           ;; For built-in packages, get the description from the
           ;; Commentary header.
-          (let ((fn (locate-file (format "%s.el" name) load-path
-                                 load-file-rep-suffixes))
-                (opoint (point)))
-            (insert (or (lm-commentary fn) ""))
-            (save-excursion
-              (goto-char opoint)
-              (when (re-search-forward "^;;; Commentary:\n" nil t)
-                (replace-match ""))
-              (while (re-search-forward "^\\(;+ ?\\)" nil t)
-                (replace-match ""))))
+          (insert (or (lm-commentary (locate-file (format "%s.el" name)
+                                                  load-path
+                                                  load-file-rep-suffixes))
+                      ""))
 
         (if (package-installed-p desc)
             ;; For installed packages, get the description from the
