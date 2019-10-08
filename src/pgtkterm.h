@@ -600,4 +600,6 @@ extern Lisp_Object x_get_focus_frame (struct frame *frame);
 
 extern void pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo);
 
+extern void x_change_tab_bar_height (struct frame *, int);
+
 #endif	/* HAVE_PGTK */
