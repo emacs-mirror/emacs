@@ -1714,9 +1714,7 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
     (funcall report-fn (cdr eglot--unreported-diagnostics))
     (setq eglot--unreported-diagnostics nil)))
 
-(defun eglot-xref-backend ()
-  "EGLOT xref backend."
-  (when (eglot--server-capable :definitionProvider) 'eglot))
+(defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
 
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
   "Helper variable for `eglot--handling-xrefs'.")
@@ -1724,12 +1722,16 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
 (defvar eglot-xref-lessp-function #'ignore
   "Compare two `xref-item' objects for sorting.")
 
-(defmacro eglot--handling-xrefs (&rest body)
-  "Properly sort and handle xrefs produced and returned by BODY."
-  `(unwind-protect
-       (sort (progn ,@body) eglot-xref-lessp-function)
-     (maphash (lambda (_uri buf) (kill-buffer buf)) eglot--temp-location-buffers)
-     (clrhash eglot--temp-location-buffers)))
+(cl-defmacro eglot--collecting-xrefs ((collector) &rest body)
+  "Sort and handle xrefs collected with COLLECTOR in BODY."
+  (let ((collected (cl-gensym "collected")))
+    `(unwind-protect
+         (let (,collected)
+           (cl-flet ((,collector (xref) (push xref ,collected)))
+             ,@body)
+           (sort ,collected eglot-xref-lessp-function))
+       (maphash (lambda (_uri buf) (kill-buffer buf)) eglot--temp-location-buffers)
+       (clrhash eglot--temp-location-buffers))))
 
 (defun eglot--xref-make (name uri range)
   "Like `xref-make' but with LSP's NAME, URI and RANGE.
@@ -1783,8 +1785,8 @@ Try to visit the target file for a richer summary line."
                         (cadr (split-string (symbol-name method)
                                             "/"))))))
     (eglot--error "Sorry, this server doesn't do %s" method))
-  (eglot--handling-xrefs
-   (mapcar
+  (eglot--collecting-xrefs (collect)
+   (mapc
     (eglot--lambda ((Location) uri range)
       (eglot--xref-make (symbol-at-point) uri range))
     (jsonrpc-request
@@ -1792,9 +1794,12 @@ Try to visit the target file for a richer summary line."
                                              (eglot--TextDocumentPositionParams)
                                              extra-params)))))
 
-(defun eglot--lsp-xref-helper (method)
+(cl-defun eglot--lsp-xref-helper (method &key extra-params capability )
   "Helper for `eglot-find-declaration' & friends."
-  (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method method)))
+  (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method
+                               method
+                               :extra-params extra-params
+                               :capability capability)))
     (xref-find-references "LSP identifier at point.")))
 
 (defun eglot-find-declaration ()
@@ -1823,11 +1828,11 @@ Try to visit the target file for a richer summary line."
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
-    (eglot--handling-xrefs
-     (mapcar
+    (eglot--collecting-xrefs (collect)
+     (mapc
       (eglot--lambda ((SymbolInformation) name location)
         (eglot--dbind ((Location) uri range) location
-          (eglot--xref-make name uri range)))
+          (collect (eglot--xref-make name uri range))))
       (jsonrpc-request (eglot--current-server-or-lose)
                        :workspace/symbol
                        `(:query ,pattern))))))
