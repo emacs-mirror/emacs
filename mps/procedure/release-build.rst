@@ -265,10 +265,10 @@ B. Document History
 2006-02-16  RHSK_  Use Info-ZIP (free) for Windows archives, not WinZip.
 2007-07-05  RHSK_  Releasename now also in ``w3build.bat``.
 2008-01-07  RHSK_  Release changelevel was in ``issue.cgi``, now in ``data.py``.
-2010‑10‑06  GDR_   Use the project updater to register new releases.
-2012‑09‑13  RB_    Don’t copy the ``readme.txt`` to the release directory, since it no longer has that dual role; make the ZIP file on a Unix box with the zip utility, since compatibility has improved.
+2010-10-06  GDR_   Use the project updater to register new releases.
+2012-09-13  RB_    Don’t copy the ``readme.txt`` to the release directory, since it no longer has that dual role; make the ZIP file on a Unix box with the zip utility, since compatibility has improved.
 2013-03-08  GDR_   Add testing step.
-2012‑09‑24  RB_    Make sure ZIP files contain files with Windows line endings. Use a fresh Perforce client to avoid any possibility of a clash with working files. Different archive name for custom variants.
+2012-09-24  RB_    Make sure ZIP files contain files with Windows line endings. Use a fresh Perforce client to avoid any possibility of a clash with working files. Different archive name for custom variants.
 2013-03-20  GDR_   Ensure that manual HTML is up to date before making a release.
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of release 1.112.0.
 2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
