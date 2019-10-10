@@ -3373,8 +3373,7 @@ fi
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wstrict-aliasing=2 -Wno-invalid-offsetof \
-           -O -g3 -pthread"
+           -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"
 CFLAGS_LL=$CFLAGS_GC
 
 # Make sure we can run config.sub.

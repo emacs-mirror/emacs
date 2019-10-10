@@ -35,9 +35,8 @@ AC_CHECK_DECL([__clang__],[CLANG=yes],[CLANG=no])
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wstrict-aliasing=2 -Wno-invalid-offsetof \
-           -O -g3 -pthread"
-CFLAGS_LL=$CFLAGS_GC
+           -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"
+CFLAGS_LL="$CFLAGS_GC -Wno-invalid-offsetof"
 
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
