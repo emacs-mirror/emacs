@@ -1,7 +1,7 @@
 /* ss.c: STACK SCANNING
  *
  * $Id$
- * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2019 Ravenbrook Limited.  See end of file for license.
  *
  * This scans the mutator's stack and fixes the registers that may
  * contain roots. <design/stack-scan>.
@@ -46,7 +46,9 @@ Res StackScan(ScanState ss, void *stackCold,
 {
   StackContextStruct scStruct;
   Arena arena;
-  void *warmest;
+  /* Avoid the error "variable might be clobbered by 'longjmp'" from
+     GCC by specifying volatile. See job004113. */
+  void * volatile warmest;
 
   AVERT(ScanState, ss);
 
@@ -56,11 +58,7 @@ Res StackScan(ScanState ss, void *stackCold,
   warmest = arena->stackWarm;
   if (warmest == NULL) {
     /* Somehow missed saving the context at the entry point
-       <design/stack-scan#.sol.entry-points.fragile>: do it now.
-       We assign warmest *before* calling STACK_CONTEXT_SAVE because
-       that calls setjmp, and local variables assigned after a call to
-       setjmp provoke the error "variable might be clobbered by
-       'longjmp'" from GCC. See job004113. */
+       <design/stack-scan#.sol.entry-points.fragile>: do it now. */
     warmest = &scStruct;
     STACK_CONTEXT_SAVE(&scStruct);
   }
@@ -73,7 +71,7 @@ Res StackScan(ScanState ss, void *stackCold,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2019 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
