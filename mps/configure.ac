@@ -1,7 +1,7 @@
 # configure.ac -- autoconf configuration for the MPS    -*- Autoconf -*-
 #
 # $Id$
-# Copyright (C) 2012-2018 Ravenbrook Limited.  See end of file for license.
+# Copyright (C) 2012-2019 Ravenbrook Limited.  See end of file for license.
 #
 # YOU DON'T NEED AUTOCONF TO BUILD THE MPS
 # This is just here for people who want or expect a configure script.
@@ -35,8 +35,9 @@ AC_CHECK_DECL([__clang__],[CLANG=yes],[CLANG=no])
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"
-CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
+           -Wcast-qual -Wstrict-aliasing=2 -Wno-invalid-offsetof \
+           -O -g3 -pthread"
+CFLAGS_LL=$CFLAGS_GC
 
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
@@ -176,7 +177,7 @@ echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2012-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2012-2019 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
