@@ -1883,38 +1883,40 @@ is not active."
                                      (or (get-text-property 0 :sortText a) "")
                                      (or (get-text-property 0 :sortText b) ""))))))
         (metadata `(metadata . ((display-sort-function . ,sort-completions))))
-        strings)
+        completions)
     (when completion-capability
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
-       (lambda (string pred action)
-         (if (eq action 'metadata) metadata
-           (funcall
-            (completion-table-dynamic
-             (lambda (_ignored)
-               (let* ((resp (jsonrpc-request server
-                                             :textDocument/completion
-                                             (eglot--CompletionParams)
-                                             :deferred :textDocument/completion
-                                             :cancel-on-input t))
-                      (items (if (vectorp resp) resp (plist-get resp :items))))
-                 (setq
-                  strings
-                  (mapcar
-                   (jsonrpc-lambda
-                       (&rest all &key label insertText insertTextFormat
-                              &allow-other-keys)
-                     (let ((completion
-                            (cond ((and (eql insertTextFormat 2)
-                                        (eglot--snippet-expansion-fn))
-                                   (string-trim-left label))
-                                  (t
-                                   (or insertText (string-trim-left label))))))
-                       (put-text-property 0 1 'eglot--lsp-completion all completion)
-                       completion))
-                   items)))))
-            string pred action)))
+       (lambda (comp _pred action)
+         (cond
+          ((eq action 'metadata) metadata)                  ; metadata
+          ((eq action 'lambda) (member comp completions))   ; test-completion
+          ((eq (car-safe action) 'boundaries) nil)          ; boundaries
+          ((and (null action) (member comp completions) t)) ; try-completion
+          ((eq action t)                                    ; all-completions
+           (let* ((resp (jsonrpc-request server
+                                         :textDocument/completion
+                                         (eglot--CompletionParams)
+                                         :deferred :textDocument/completion
+                                         :cancel-on-input t))
+                  (items (if (vectorp resp) resp (plist-get resp :items))))
+             (setq
+              completions
+              (mapcar
+               (jsonrpc-lambda
+                   (&rest all &key label insertText insertTextFormat
+                          &allow-other-keys)
+                 (let ((completion
+                        (cond ((and (eql insertTextFormat 2)
+                                    (eglot--snippet-expansion-fn))
+                               (string-trim-left label))
+                              (t
+                               (or insertText (string-trim-left label))))))
+                   (put-text-property 0 1 'eglot--lsp-completion
+                                      all completion)
+                   completion))
+               items))))))
        :annotation-function
        (lambda (obj)
          (eglot--dbind ((CompletionItem) detail kind insertTextFormat)
@@ -1966,7 +1968,7 @@ is not active."
                        ;; When selecting from the *Completions*
                        ;; buffer, `comp' won't have any properties.  A
                        ;; lookup should fix that (github#148)
-                       (cl-find comp strings :test #'string=))))
+                       (cl-find comp completions :test #'string=))))
            (eglot--dbind ((CompletionItem) insertTextFormat
                           insertText
                           textEdit
