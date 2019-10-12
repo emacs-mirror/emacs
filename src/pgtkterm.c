@@ -5393,7 +5393,11 @@ enter_notify_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
   PGTK_TRACE("enter_notify_event");
   union buffered_input_event inev;
-  struct frame *focus_frame = pgtk_any_window_to_frame(gtk_widget_get_window(widget));
+  struct frame *frame = pgtk_any_window_to_frame(gtk_widget_get_window(widget));
+  if (frame == NULL)
+    return FALSE;
+  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
+  struct frame *focus_frame = dpyinfo->x_focus_frame;
   int focus_state
     = focus_frame ? focus_frame->output_data.pgtk->focus_state : 0;
 
@@ -5401,10 +5405,12 @@ enter_notify_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  if (!(focus_state & FOCUS_EXPLICIT))
+  if (event->crossing.detail != GDK_NOTIFY_INFERIOR
+      && event->crossing.focus
+      && ! (focus_state & FOCUS_EXPLICIT))
     x_focus_changed (TRUE,
 		     FOCUS_IMPLICIT,
-		     FRAME_DISPLAY_INFO(focus_frame), focus_frame, &inev);
+		     dpyinfo, frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
@@ -5415,7 +5421,11 @@ leave_notify_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
   PGTK_TRACE("leave_notify_event");
   union buffered_input_event inev;
-  struct frame *focus_frame = pgtk_any_window_to_frame(gtk_widget_get_window(widget));
+  struct frame *frame = pgtk_any_window_to_frame(gtk_widget_get_window(widget));
+  if (frame == NULL)
+    return FALSE;
+  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
+  struct frame *focus_frame = dpyinfo->x_focus_frame;
   int focus_state
     = focus_frame ? focus_frame->output_data.pgtk->focus_state : 0;
 
@@ -5423,10 +5433,12 @@ leave_notify_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  if (!(focus_state & FOCUS_EXPLICIT))
+  if (event->crossing.detail != GDK_NOTIFY_INFERIOR
+      && event->crossing.focus
+      && ! (focus_state & FOCUS_EXPLICIT))
     x_focus_changed (FALSE,
 		     FOCUS_IMPLICIT,
-		     FRAME_DISPLAY_INFO(focus_frame), focus_frame, &inev);
+		     dpyinfo, frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
@@ -5446,7 +5458,7 @@ focus_in_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  x_focus_changed (TRUE, FOCUS_IMPLICIT,
+  x_focus_changed (TRUE, FOCUS_EXPLICIT,
 		   FRAME_DISPLAY_INFO(frame), frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
@@ -5467,7 +5479,7 @@ focus_out_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  x_focus_changed (FALSE, FOCUS_IMPLICIT,
+  x_focus_changed (FALSE, FOCUS_EXPLICIT,
 		   FRAME_DISPLAY_INFO(frame), frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue(&inev);
