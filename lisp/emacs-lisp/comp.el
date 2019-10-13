@@ -102,15 +102,6 @@ Can be used by code that wants to expand differently in this case.")
                               direct-callref)
   "Limple operators use to call subrs.")
 
-(defconst comp-mostly-pure-funcs
-  '(% * + - / /= 1+ 1- < <= = > >= cons list % concat logand logcount logior
-      lognot logxor regexp-opt regexp-quote string-to-char string-to-syntax
-      symbol-name)
-  "Functions on witch we do constant propagation."
-  ;;  Is it acceptable to move into the compile time functions that are
-  ;; allocating memory? (these are technically not side effect free)
-)
-
 (eval-when-compile
   (defconst comp-op-stack-info
     (cl-loop with h = (make-hash-table)
@@ -123,7 +114,7 @@ Can be used by code that wants to expand differently in this case.")
 
 (cl-defstruct comp-ctxt
   "Lisp side of the compiler context."
-  (output nil :type 'string
+  (output nil :type string
           :documentation "Target output filename for the compilation.")
   (top-level-defvars nil :type list
                    :documentation "List of top level form to be exp.")
@@ -456,12 +447,16 @@ If INPUT is a string this is the file path to be compiled."
       :documentation "Current stack pointer while walking LAP.")
   (pc 0 :type number
       :documentation "Current program counter while walking LAP.")
+  (label-to-addr nil :type hash-table
+                 :documentation "LAP hash table -> address.")
   (pending-blocks () :type list
               :documentation "List of blocks waiting for limplification."))
 
 (defconst comp-lap-eob-ops
   '(byte-goto byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
-              byte-goto-if-not-nil-else-pop byte-return)
+              byte-goto-if-not-nil-else-pop byte-return byte-pushcatch
+              byte-pophandler ; ??
+              )
   "LAP end of basic blocks op codes.")
 
 (defsubst comp-lap-eob-p (inst)
@@ -497,13 +492,6 @@ Restore the original value afterwards."
 (defsubst comp-slot+1 ()
   "Slot into the meta-stack pointed by sp + 1."
   (comp-slot-n (1+ (comp-sp))))
-
-(cl-defun comp-block-maybe-add (&rest args &key name sp &allow-other-keys)
-  (let ((blocks (comp-func-blocks comp-func)))
-    (if-let ((bb (gethash name blocks)))
-        ;; Sanity check sp.
-        (cl-assert (or (null sp) (= sp (comp-block-sp bb))))
-      (puthash name (apply #'make--comp-block args) blocks))))
 
 (cl-defun comp-block-maybe-mark-pending (&rest args &key name sp &allow-other-keys)
   "Create a basic block and mark it as pending."
@@ -590,7 +578,7 @@ The block is returned."
   (let ((target (comp-lap-to-limple-bb lap-label)))
     (comp-block-maybe-mark-pending :name target
                                    :sp (comp-sp)
-                                   :addr lap-label)
+                                   :addr (comp-label-to-addr lap-label))
     (comp-emit `(jump ,target))))
 
 (defun comp-emit-cond-jump (a b target-offset lap-label negated)
@@ -605,7 +593,7 @@ If NEGATED non nil negate the tested condition."
                                    :addr (1+ (comp-limplify-pc comp-pass)))
     (comp-block-maybe-mark-pending :name target
                                    :sp (+ target-offset (comp-sp))
-                                   :addr lap-label)
+                                   :addr (comp-label-to-addr lap-label))
     (comp-emit (if negated
 		   (list 'cond-jump a b target bb)
 		 (list 'cond-jump a b bb target)))))
@@ -640,18 +628,36 @@ If NEGATED non nil negate the tested condition."
         (puthash n name hash)
         name))))
 
+(defun comp-fill-label-h ()
+  "Fill label-to-addr hash table for the current function."
+  (setf (comp-limplify-label-to-addr comp-pass) (make-hash-table :test 'eql))
+  (cl-loop for insn in (comp-func-lap comp-func)
+           for addr from 0
+           do (pcase insn
+                (`(TAG ,label)
+                 (puthash label addr (comp-limplify-label-to-addr comp-pass))))))
+
+(defsubst comp-label-to-addr (label)
+  "Find the address of LABEL."
+  (and (gethash label (comp-limplify-label-to-addr comp-pass))
+       (error "Can't find label %d" label)))
+
 (defun comp-emit-handler (guarded-label handler-type)
-  "Emit a non local exit handler for GUARDED-LABEL of type HANDLER-TYPE."
-  (let ((guarded-bb (comp-new-block-sym)))
-    (comp-block-maybe-add :name guarded-bb :sp (comp-sp))
-    (let ((handler-bb (comp-lap-to-limple-bb guarded-label)))
-      (comp-emit (list 'push-handler
-                       (comp-slot+1)
-                       (comp-slot+1)
-                       handler-type
-                       handler-bb
-                       guarded-bb))
-      (comp-block-maybe-add :name handler-bb :sp (1+ (comp-sp))))))
+  "Emit a non local exit handler to GUARDED-LABEL of type HANDLER-TYPE."
+  (let ((guarded-bb (comp-new-block-sym))
+        (handler-bb (comp-lap-to-limple-bb guarded-label)))
+    (comp-block-maybe-mark-pending :name guarded-bb
+                                   :sp (comp-sp)
+                                   :addr (1+ (comp-limplify-pc comp-pass)))
+    (comp-block-maybe-mark-pending :name handler-bb
+                                   :sp (1+ (comp-sp))
+                                   :addr (comp-label-to-addr guarded-label))
+    (comp-emit (list 'push-handler
+                     (comp-slot+1)
+                     (comp-slot+1)
+                     handler-type
+                     handler-bb
+                     guarded-bb))))
 
 (defun comp-emit-switch (var last-insn)
   "Emit a limple for a lap jump table given VAR and LAST-INSN."
@@ -1009,6 +1015,7 @@ This will be called at load-time."
                      :frame (comp-new-frame frame-size)))
          (args (comp-func-args func))
          (args-min (comp-args-base-min args)))
+    (comp-fill-label-h)
     ;; Prologue
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation (concat "Lisp function: "
