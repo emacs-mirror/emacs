@@ -454,9 +454,7 @@ If INPUT is a string this is the file path to be compiled."
 
 (defconst comp-lap-eob-ops
   '(byte-goto byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
-              byte-goto-if-not-nil-else-pop byte-return byte-pushcatch
-              byte-pophandler ; ??
-              )
+              byte-goto-if-not-nil-else-pop byte-return byte-pushcatch)
   "LAP end of basic blocks op codes.")
 
 (defsubst comp-lap-eob-p (inst)
@@ -492,6 +490,11 @@ Restore the original value afterwards."
 (defsubst comp-slot+1 ()
   "Slot into the meta-stack pointed by sp + 1."
   (comp-slot-n (1+ (comp-sp))))
+
+(defsubst comp-label-to-addr (label)
+  "Find the address of LABEL."
+  (or (gethash label (comp-limplify-label-to-addr comp-pass))
+      (error "Can't find label %d" label)))
 
 (cl-defun comp-block-maybe-mark-pending (&rest args &key name sp &allow-other-keys)
   "Create a basic block and mark it as pending."
@@ -634,13 +637,8 @@ If NEGATED non nil negate the tested condition."
   (cl-loop for insn in (comp-func-lap comp-func)
            for addr from 0
            do (pcase insn
-                (`(TAG ,label)
+                (`(TAG ,label . ,_)
                  (puthash label addr (comp-limplify-label-to-addr comp-pass))))))
-
-(defsubst comp-label-to-addr (label)
-  "Find the address of LABEL."
-  (and (gethash label (comp-limplify-label-to-addr comp-pass))
-       (error "Can't find label %d" label)))
 
 (defun comp-emit-handler (guarded-label handler-type)
   "Emit a non local exit handler to GUARDED-LABEL of type HANDLER-TYPE."
@@ -993,17 +991,41 @@ This will be called at load-time."
     (comp-emit `(return ,(make-comp-mvar :constant nil)))
     (comp-limplify-finalize-function func)))
 
+(defun comp-addr-to-bb-name (addr)
+  "Search for a block starting at ADDR into pending or limplified blocks."
+  ;; FIXME: Actually we could have another hash for this.
+  (cl-flet ((pred (bb)
+              (equal (comp-block-addr bb) addr)))
+    (if-let ((pending (cl-find-if #'pred
+                                  (comp-limplify-pending-blocks comp-pass))))
+        (comp-block-name pending)
+      (cl-loop for bb being the hash-value in (comp-func-blocks comp-func)
+               when (pred bb)
+                 do (return (comp-block-name bb))))))
+
 (defun comp-limplify-block (bb)
   "Limplify basic-block BB and add it to the current function."
   (setf (comp-limplify-curr-block comp-pass) bb)
   (setf (comp-limplify-sp comp-pass) (comp-block-sp bb))
   (setf (comp-limplify-pc comp-pass) (comp-block-addr bb))
-  (cl-loop for inst in (nthcdr (comp-limplify-pc comp-pass)
-                               (comp-func-lap comp-func))
-           do (progn
-                (comp-limplify-lap-inst inst)
-                (cl-incf (comp-limplify-pc comp-pass)))
-           until (comp-lap-eob-p inst))
+  (cl-loop
+   for inst-cell on (nthcdr (comp-limplify-pc comp-pass)
+                            (comp-func-lap comp-func))
+   for inst = (car inst-cell)
+   for next-inst = (car-safe (cdr inst-cell))
+   do (progn
+        (comp-limplify-lap-inst inst)
+        (cl-incf (comp-limplify-pc comp-pass)))
+   when (eq (car next-inst) 'TAG)
+     do ; That's a fall through.
+     (let ((bb (or (comp-addr-to-bb-name (comp-limplify-pc comp-pass))
+                   (comp-new-block-sym))))
+       (comp-block-maybe-mark-pending :name bb
+                                      :sp (comp-sp)
+                                      :addr (comp-limplify-pc comp-pass))
+       (comp-emit `(jump ,bb)))
+     and return nil
+   until (comp-lap-eob-p inst))
   (puthash (comp-block-name bb) bb (comp-func-blocks comp-func)))
 
 (defun comp-limplify-function (func)
