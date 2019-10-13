@@ -745,7 +745,8 @@ the annotation emission."
                (cdr insn))))
     (comp-op-case
       (TAG
-       (comp-lap-to-limple-bb arg))
+       ;; Paranoically sanity check stack depth.
+       (cl-assert (= (cddr insn) (comp-limplify-sp comp-pass))))
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
