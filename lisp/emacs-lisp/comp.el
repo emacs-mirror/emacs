@@ -578,28 +578,51 @@ The block is returned."
 
 (defun comp-emit-uncond-jump (lap-label)
   "Emit an unconditional branch to LAP-LABEL."
-  (let ((target (comp-lap-to-limple-bb lap-label)))
-    (comp-block-maybe-mark-pending :name target
-                                   :sp (comp-sp)
-                                   :addr (comp-label-to-addr lap-label))
-    (comp-emit `(jump ,target))))
+  (cl-destructuring-bind (label-num . stack-depth) lap-label
+    (cl-assert (= stack-depth (comp-sp)))
+    (let ((target (comp-lap-to-limple-bb label-num)))
+      (comp-block-maybe-mark-pending :name target
+                                     :sp stack-depth
+                                     :addr (comp-label-to-addr label-num))
+      (comp-emit `(jump ,target)))))
 
 (defun comp-emit-cond-jump (a b target-offset lap-label negated)
   "Emit a conditional jump to LAP-LABEL when A and B satisfy EQ.
 TARGET-OFFSET is the positive offset on the SP when branching to the target
 block.
-If NEGATED non nil negate the tested condition."
-  (let ((bb (comp-new-block-sym)) ; Fall through block.
-        (target (comp-lap-to-limple-bb lap-label)))
-    (comp-block-maybe-mark-pending :name bb
-                                   :sp (comp-sp)
-                                   :addr (1+ (comp-limplify-pc comp-pass)))
-    (comp-block-maybe-mark-pending :name target
-                                   :sp (+ target-offset (comp-sp))
-                                   :addr (comp-label-to-addr lap-label))
-    (comp-emit (if negated
-		   (list 'cond-jump a b target bb)
-		 (list 'cond-jump a b bb target)))))
+If NEGATED non null negate the tested condition."
+  (cl-destructuring-bind (label-num . stack-depth) lap-label
+    (cl-assert (= stack-depth (+ target-offset (comp-sp))))
+    (let ((bb (comp-new-block-sym)) ; Fall through block.
+          (target (comp-lap-to-limple-bb label-num)))
+      (comp-block-maybe-mark-pending :name bb
+                                     :sp stack-depth
+                                     :addr (1+ (comp-limplify-pc comp-pass)))
+      (comp-block-maybe-mark-pending :name target
+                                     :sp (+ target-offset stack-depth)
+                                     :addr (comp-label-to-addr label-num))
+      (comp-emit (if negated
+		     (list 'cond-jump a b target bb)
+		   (list 'cond-jump a b bb target))))))
+
+(defun comp-emit-handler (lap-label handler-type)
+  "Emit a non local exit handler to LAP-LABEL of type HANDLER-TYPE."
+  (cl-destructuring-bind (label-num . stack-depth) lap-label
+    (cl-assert (= stack-depth (comp-sp)))
+    (let ((guarded-bb (comp-new-block-sym))
+          (handler-bb (comp-lap-to-limple-bb label-num)))
+      (comp-block-maybe-mark-pending :name guarded-bb
+                                     :sp stack-depth
+                                     :addr (1+ (comp-limplify-pc comp-pass)))
+      (comp-block-maybe-mark-pending :name handler-bb
+                                     :sp (1+ stack-depth)
+                                     :addr (comp-label-to-addr label-num))
+      (comp-emit (list 'push-handler
+                       (comp-slot+1)
+                       (comp-slot+1)
+                       handler-type
+                       handler-bb
+                       guarded-bb)))))
 
 (defun comp-stack-adjust (n)
   "Move sp by N."
@@ -639,23 +662,6 @@ If NEGATED non nil negate the tested condition."
            do (pcase insn
                 (`(TAG ,label . ,_)
                  (puthash label addr (comp-limplify-label-to-addr comp-pass))))))
-
-(defun comp-emit-handler (guarded-label handler-type)
-  "Emit a non local exit handler to GUARDED-LABEL of type HANDLER-TYPE."
-  (let ((guarded-bb (comp-new-block-sym))
-        (handler-bb (comp-lap-to-limple-bb guarded-label)))
-    (comp-block-maybe-mark-pending :name guarded-bb
-                                   :sp (comp-sp)
-                                   :addr (1+ (comp-limplify-pc comp-pass)))
-    (comp-block-maybe-mark-pending :name handler-bb
-                                   :sp (1+ (comp-sp))
-                                   :addr (comp-label-to-addr guarded-label))
-    (comp-emit (list 'push-handler
-                     (comp-slot+1)
-                     (comp-slot+1)
-                     handler-type
-                     handler-bb
-                     guarded-bb))))
 
 (defun comp-emit-switch (var last-insn)
   "Emit a limple for a lap jump table given VAR and LAST-INSN."
@@ -769,9 +775,9 @@ the annotation emission."
       (byte-pophandler
        (comp-emit '(pop-handler)))
       (byte-pushconditioncase
-       (comp-emit-handler (cl-third insn) 'condition-case))
+       (comp-emit-handler (cddr insn) 'condition-case))
       (byte-pushcatch
-       (comp-emit-handler (cl-third insn) 'catcher))
+       (comp-emit-handler (cddr insn) 'catcher))
       (byte-nth auto)
       (byte-symbolp auto)
       (byte-consp auto)
@@ -862,19 +868,19 @@ the annotation emission."
       (byte-constant2) ; TODO
       ;; Branches.
       (byte-goto
-       (comp-emit-uncond-jump (cl-third insn)))
+       (comp-emit-uncond-jump (cddr insn)))
       (byte-goto-if-nil
        (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 0
-                            (cl-third insn) nil))
+                            (cddr insn) nil))
       (byte-goto-if-not-nil
        (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 0
-                            (cl-third insn) t))
+                            (cddr insn) t))
       (byte-goto-if-nil-else-pop
        (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 1
-                            (cl-third insn) nil))
+                            (cddr insn) nil))
       (byte-goto-if-not-nil-else-pop
        (comp-emit-cond-jump (comp-slot+1) (make-comp-mvar :constant nil) 1
-                            (cl-third insn) t))
+                            (cddr insn) t))
       (byte-return
        (comp-emit `(return ,(comp-slot+1))))
       (byte-discard 'pass)
