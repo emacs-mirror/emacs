@@ -983,7 +983,6 @@ This will be called at load-time."
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block)
-                     :sp -1
                      :frame (comp-new-frame 0))))
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation "Top level")
@@ -1034,7 +1033,6 @@ This will be called at load-time."
   (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
          (comp-pass (make-comp-limplify
-                     :sp -1
                      :frame (comp-new-frame frame-size)))
          (args (comp-func-args func))
          (args-min (comp-args-base-min args)))
