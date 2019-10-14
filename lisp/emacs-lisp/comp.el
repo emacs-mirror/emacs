@@ -314,9 +314,8 @@ BODY is evaluate only if `comp-verbose' is > 0."
   (comp-log (format "\nFunction: %s" (comp-func-symbol-name func)))
   (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
            using (hash-value bb)
-           do (progn
-                (comp-log (concat "<" (symbol-name block-name) ">\n"))
-                (comp-log (comp-block-insns bb)))))
+           do (comp-log (concat "<" (symbol-name block-name) ">\n"))
+              (comp-log (comp-block-insns bb))))
 
 (defun comp-log-edges (func)
   "Log edges in FUNC."
@@ -346,7 +345,7 @@ Put PREFIX in front of it."
 	                   for i across orig-name
 	                   for byte = (format "%x" i)
 	                   do (aset str j (aref byte 0))
-	                   do (aset str (1+ j) (aref byte 1))
+	                      (aset str (1+ j) (aref byte 1))
 	                   finally return str))
          (human-readable (replace-regexp-in-string
                           "-" "_" orig-name))
@@ -950,17 +949,15 @@ the annotation emission."
 (defun comp-emit-narg-prologue (minarg nonrest)
   "Emit the prologue for a narg function."
   (cl-loop for i below minarg
-           do (progn
-                (comp-emit `(set-args-to-local ,(comp-slot-n i)))
-                (comp-emit '(inc-args))))
+           do (comp-emit `(set-args-to-local ,(comp-slot-n i)))
+              (comp-emit '(inc-args)))
   (cl-loop for i from minarg below nonrest
            for bb = (intern (format "entry_%s" i))
            for fallback = (intern (format "entry_fallback_%s" i))
-           do (progn
-                (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
-                (comp-make-curr-block bb (comp-sp))
-                (comp-emit `(set-args-to-local ,(comp-slot-n i)))
-                (comp-emit '(inc-args)))
+           do (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
+              (comp-make-curr-block bb (comp-sp))
+              (comp-emit `(set-args-to-local ,(comp-slot-n i)))
+              (comp-emit '(inc-args))
            finally (comp-emit '(jump entry_rest_args)))
   (cl-loop for i from minarg below nonrest
            do (comp-with-sp i
@@ -1019,9 +1016,8 @@ This will be called at load-time."
                             (comp-func-lap comp-func))
    for inst = (car inst-cell)
    for next-inst = (car-safe (cdr inst-cell))
-   do (progn
-        (comp-limplify-lap-inst inst)
-        (cl-incf (comp-limplify-pc comp-pass)))
+   do (comp-limplify-lap-inst inst)
+      (cl-incf (comp-limplify-pc comp-pass))
    when (eq (car next-inst) 'TAG)
      do ; That's a fall through.
      (let ((bb (or (comp-addr-to-bb-name (comp-limplify-pc comp-pass))
@@ -1050,7 +1046,7 @@ This will be called at load-time."
     (if (comp-args-p args)
         (cl-loop for i below (comp-args-max args)
                  do (cl-incf (comp-sp))
-                 do (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
+                    (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
       (let ((nonrest (comp-nargs-nonrest args)))
         (comp-emit-narg-prologue args-min nonrest)
         (cl-incf (comp-sp) (1+ nonrest))))
@@ -1128,7 +1124,7 @@ Top level forms for the current context are rendered too."
                        (cl-loop for edge in (comp-func-edges comp-func)
                                 do (push edge
                                          (comp-block-out-edges (comp-edge-src edge)))
-                                do (push edge
+                                   (push edge
                                          (comp-block-in-edges (comp-edge-dst edge))))
                        (comp-log-edges comp-func)))))
 
@@ -1193,9 +1189,8 @@ Top level forms for the current context are rendered too."
                                when (comp-block-dom p)
                                do (setf new-idom (intersect p new-idom)))
                    unless (eq (comp-block-dom b) new-idom)
-                   do (progn
-                        (setf (comp-block-dom b) new-idom)
-                        (setf changed t)))))))
+                   do (setf (comp-block-dom b) new-idom)
+                      (setf changed t))))))
 
 (defun comp-compute-dominator-frontiers ()
   ;; Originally based on: "A Simple, Fast Dominance Algorithm"
@@ -1236,7 +1231,7 @@ Top level forms for the current context are rendered too."
              (cl-loop for insn in (comp-block-insns bb)
                       when (and (comp-assign-op-p (car insn))
                                 (= slot-n (comp-mvar-slot (cadr insn))))
-                      do (cl-return t))))
+                        return t)))
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
@@ -1253,13 +1248,12 @@ Top level forms for the current context are rendered too."
                (let ((x (pop w)))
                  (cl-loop for y being each hash-value of (comp-block-df x)
                           unless (cl-find y f)
-                          do (progn
-                               (add-phi i y)
-                               (push y f)
-                               ;; Adding a phi implies mentioning the
-                               ;; corresponding slot so in case adjust w.
-                               (unless (cl-find y defs-v)
-                                 (push y w)))))))))
+                          do (add-phi i y)
+                             (push y f)
+                             ;; Adding a phi implies mentioning the
+                             ;; corresponding slot so in case adjust w.
+                             (unless (cl-find y defs-v)
+                               (push y w))))))))
 
 (defun comp-dom-tree-walker (bb pre-lambda post-lambda)
   "Dominator tree walker function starting from basic block BB.
@@ -1551,8 +1545,7 @@ This can run just once."
          for (op arg0 . rest) = insn
          if (comp-set-op-p op)
            do (push (comp-mvar-id arg0) l-vals)
-         and
-           do (setf r-vals (nconc (comp-collect-mvar-ids rest) r-vals))
+              (setf r-vals (nconc (comp-collect-mvar-ids rest) r-vals))
          else
            do (setf r-vals (nconc (comp-collect-mvar-ids insn) r-vals))))
     ;; Every l-value appearing that does not appear as r-value has no right to
@@ -1571,11 +1564,11 @@ This can run just once."
            for (op arg0 rest) = insn
            when (and (comp-set-op-p op)
                      (member (comp-mvar-id arg0) nuke-list))
-           do (setcar insn-cell
-                      (if (comp-limple-insn-call-p rest)
-                          rest
-                        `(comment ,(format "optimized out: %s"
-                                           insn)))))))))
+             do (setcar insn-cell
+                        (if (comp-limple-insn-call-p rest)
+                            rest
+                          `(comment ,(format "optimized out: %s"
+                                             insn)))))))))
 
 (defun comp-remove-type-hints-func ()
   "Remove type hints from the current function.
