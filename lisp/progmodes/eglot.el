@@ -100,7 +100,8 @@ language-server/bin/php-language-server.php"))
                                                         "languageserver::run()"))
                                 (java-mode . eglot--eclipse-jdt-contact)
                                 (dart-mode . ("dart_language_server"))
-                                (elixir-mode . ("language_server.sh")))
+                                (elixir-mode . ("language_server.sh"))
+                                (ada-mode . ("ada_language_server")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 is a mode symbol, or a list of mode symbols.  The associated
