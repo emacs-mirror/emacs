@@ -2415,8 +2415,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                                    (changed 2)
                                                    (deleted 3)))))))
              ((eq action 'renamed)
-              (handle-event '(desc 'deleted file))
-              (handle-event '(desc 'created file1)))))))
+              (handle-event `(,desc 'deleted ,file))
+              (handle-event `(,desc 'created ,file1)))))))
       (unwind-protect
           (progn
 	    (dolist (dir glob-dirs)
