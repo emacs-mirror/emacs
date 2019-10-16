@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Auxiliary script for MSDOS, run by ../config.bat
-rem   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+rem   Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 

@@ -1,5 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997-1998, 2001-2018 Free Software Foundation,
+   Copyright (C) 1985, 1997-1998, 2001-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 static ptrdiff_t cached_charpos;
 static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
-static EMACS_INT cached_modiff;
+static modiff_count cached_modiff;
 
 /* Juanma Barranquero <lekktu@gmail.com> reported ~3x increased
    bootstrap time when byte_char_debug_check is enabled; so this
@@ -331,6 +331,10 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
      This takes care of the case where enable-multibyte-characters is nil.  */
   if (best_above == best_above_byte)
     return bytepos;
+
+  /* Check bytepos is not in the middle of a character. */
+  eassert (bytepos >= BUF_Z_BYTE (b)
+           || CHAR_HEAD_P (BUF_FETCH_BYTE (b, bytepos)));
 
   best_below = BEG;
   best_below_byte = BEG_BYTE;

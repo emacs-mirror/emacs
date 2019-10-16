@@ -1,12 +1,11 @@
 ;;; jsonrpc.el --- JSON-RPC library                  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
-;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
 ;; Package-Requires: ((emacs "25.2"))
-;; Version: 1.0.6
+;; Version: 1.0.7
 
 ;; This is an Elpa :core package.  Don't use functionality that is not
 ;; compatible with Emacs 25.2.
@@ -44,7 +43,6 @@
 (require 'warnings)
 (require 'pcase)
 (require 'ert) ; to escape a `condition-case-unless-debug'
-(require 'array) ; xor
 
 
 ;;; Public API
@@ -109,7 +107,7 @@ notifications.  CONN, METHOD and PARAMS are the same as in
 ;;; API mandatory
 (cl-defgeneric jsonrpc-connection-send (conn &key id method params result error)
   "Send a JSONRPC message to connection CONN.
-ID, METHOD, PARAMS, RESULT and ERROR. ")
+ID, METHOD, PARAMS, RESULT and ERROR.")
 
 ;;; API optional
 (cl-defgeneric jsonrpc-shutdown (conn)
@@ -345,7 +343,7 @@ ignored."
     :documentation "Process object wrapped by the this connection.")
    (-expected-bytes
     :accessor jsonrpc--expected-bytes
-    :documentation "How many bytes declared by server")
+    :documentation "How many bytes declared by server.")
    (-on-shutdown
     :accessor jsonrpc--on-shutdown
     :initform #'ignore
@@ -418,16 +416,16 @@ connection object, called when the process dies .")
 (cl-defmethod jsonrpc-shutdown ((conn jsonrpc-process-connection)
                                 &optional cleanup)
   "Wait for JSONRPC connection CONN to shutdown.
-With optional CLEANUP, kill any associated buffers. "
+With optional CLEANUP, kill any associated buffers."
   (unwind-protect
       (cl-loop
-       with proc = (jsonrpc--process conn)
+       with proc = (jsonrpc--process conn) for i from 0
+       while (not (process-get proc 'jsonrpc-sentinel-cleanup-started))
+       unless (zerop i) do
+       (jsonrpc--warn "Sentinel for %s still hasn't run, deleting it!" proc)
        do
        (delete-process proc)
-       (accept-process-output nil 0.1)
-       while (not (process-get proc 'jsonrpc-sentinel-done))
-       do (jsonrpc--warn
-           "Sentinel for %s still hasn't run,  deleting it!" proc))
+       (accept-process-output nil 0.1))
     (when cleanup
       (kill-buffer (process-buffer (jsonrpc--process conn)))
       (kill-buffer (jsonrpc-stderr-buffer conn)))))
@@ -486,6 +484,7 @@ With optional CLEANUP, kill any associated buffers. "
                  (pcase-let ((`(,_success ,_error ,timeout) triplet))
                    (when timeout (cancel-timer timeout))))
                (jsonrpc--request-continuations connection))
+      (process-put proc 'jsonrpc-sentinel-cleanup-started t)
       (unwind-protect
           ;; Call all outstanding error handlers
           (maphash (lambda (_id triplet)
@@ -493,7 +492,6 @@ With optional CLEANUP, kill any associated buffers. "
                        (funcall error '(:code -1 :message "Server died"))))
                    (jsonrpc--request-continuations connection))
         (jsonrpc--message "Server exited with status %s" (process-exit-status proc))
-        (process-put proc 'jsonrpc-sentinel-done t)
         (delete-process proc)
         (funcall (jsonrpc--on-shutdown connection) connection)))))
 
@@ -576,8 +574,8 @@ With optional CLEANUP, kill any associated buffers. "
                                     (deferred nil))
   "Does actual work for `jsonrpc-async-request'.
 
-Return a list (ID TIMER). ID is the new request's ID, or nil if
-the request was deferred. TIMER is a timer object set (or nil, if
+Return a list (ID TIMER).  ID is the new request's ID, or nil if
+the request was deferred.  TIMER is a timer object set (or nil, if
 TIMEOUT is nil)."
   (pcase-let* ((buf (current-buffer)) (point (point))
                (`(,_ ,timer ,old-id)

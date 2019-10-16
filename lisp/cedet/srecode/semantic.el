@@ -1,8 +1,8 @@
 ;;; srecode/semantic.el --- Semantic specific extensions to SRecode.
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -63,10 +63,9 @@ If FUNCTION is non-nil, then FUNCTION is somehow applied to an
 aspect of the compound value."
   (if (not function)
       ;; Just format it in some handy dandy way.
-      (semantic-format-tag-prototype (oref cp :prime))
+      (semantic-format-tag-prototype (oref cp prime))
     ;; Otherwise, apply the function to the tag itself.
-    (funcall function (oref cp :prime))
-    ))
+    (funcall function (oref cp prime))))
 
 
 ;;; Managing the `current' tag
@@ -106,7 +105,7 @@ variable default values, and other things."
   (srecode-dictionary-set-value dict "TAG" tagobj)
 
   ;; Pull out the tag for the individual pieces.
-  (let ((tag (oref tagobj :prime)))
+  (let ((tag (oref tagobj prime)))
 
     (srecode-dictionary-set-value dict "NAME" (semantic-tag-name tag))
     (srecode-dictionary-set-value dict "TYPE" (semantic-format-tag-type tag nil))

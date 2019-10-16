@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1291,7 +1291,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 				: -1));
 		h = GET_HASH_TABLE (eop);
 
-		eop = hash_lookup (h, make_fixnum (reg[RRR]), NULL);
+		eop = (FIXNUM_OVERFLOW_P (reg[RRR])
+		       ? -1
+		       : hash_lookup (h, make_fixnum (reg[RRR]), NULL));
 		if (eop >= 0)
 		  {
 		    Lisp_Object opl;
@@ -1318,7 +1320,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 		h = GET_HASH_TABLE (eop);
 
-		eop = hash_lookup (h, make_fixnum (i), NULL);
+		eop = (FIXNUM_OVERFLOW_P (i)
+		       ? -1
+		       : hash_lookup (h, make_fixnum (i), NULL));
 		if (eop >= 0)
 		  {
 		    Lisp_Object opl;
@@ -1990,9 +1994,13 @@ programs.  */)
     error ("Length of vector REGISTERS is not 8");
 
   for (i = 0; i < 8; i++)
-    ccl.reg[i] = (TYPE_RANGED_FIXNUMP (int, AREF (reg, i))
-		  ? XFIXNUM (AREF (reg, i))
-		  : 0);
+    {
+      intmax_t n;
+      ccl.reg[i] = ((INTEGERP (AREF (reg, i))
+		     && integer_to_intmax (AREF (reg, i), &n)
+		     && INT_MIN <= n && n <= INT_MAX)
+		    ? n : 0);
+    }
 
   ccl_driver (&ccl, NULL, NULL, 0, 0, Qnil);
   maybe_quit ();
@@ -2000,7 +2008,7 @@ programs.  */)
     error ("Error in CCL program at %dth code", ccl.ic);
 
   for (i = 0; i < 8; i++)
-    ASET (reg, i, make_fixnum (ccl.reg[i]));
+    ASET (reg, i, make_int (ccl.reg[i]));
   return Qnil;
 }
 
@@ -2059,14 +2067,17 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     {
       if (NILP (AREF (status, i)))
 	ASET (status, i, make_fixnum (0));
-      if (TYPE_RANGED_FIXNUMP (int, AREF (status, i)))
-	ccl.reg[i] = XFIXNUM (AREF (status, i));
+      intmax_t n;
+      if (INTEGERP (AREF (status, i))
+	  && integer_to_intmax (AREF (status, i), &n)
+	  && INT_MIN <= n && n <= INT_MAX)
+	ccl.reg[i] = n;
     }
-  if (FIXNUMP (AREF (status, i)))
+  intmax_t ic;
+  if (INTEGERP (AREF (status, 8)) && integer_to_intmax (AREF (status, 8), &ic))
     {
-      i = XFIXNAT (AREF (status, 8));
-      if (ccl.ic < i && i < ccl.size)
-	ccl.ic = i;
+      if (ccl.ic < ic && ic < ccl.size)
+	ccl.ic = ic;
     }
 
   buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
@@ -2139,8 +2150,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     error ("CCL program interrupted at %dth code", ccl.ic);
 
   for (i = 0; i < 8; i++)
-    ASET (status, i, make_fixnum (ccl.reg[i]));
-  ASET (status, 8, make_fixnum (ccl.ic));
+    ASET (status, i, make_int (ccl.reg[i]));
+  ASET (status, 8, make_int (ccl.ic));
 
   val = make_specified_string ((const char *) outbuf, produced_chars,
 			       outp - outbuf, NILP (unibyte_p));

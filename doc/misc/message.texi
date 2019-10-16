@@ -1,7 +1,5 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@include gnus-overrides.texi
-
 @setfilename ../../info/message.info
 @settitle Message Manual
 @include docstyle.texi
@@ -11,7 +9,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright @copyright{} 1996--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1145,7 +1143,7 @@ standards, OpenSSL and so on.
 
 The @acronym{S/MIME} support in Message (and @acronym{MML}) can use
 OpenSSL@.  OpenSSL performs the actual @acronym{S/MIME} sign/encrypt
-operations.  OpenSSL can be found at @uref{http://www.openssl.org/}.
+operations.  OpenSSL can be found at @uref{https://www.openssl.org/}.
 OpenSSL 0.9.6 and later should work.  Version 0.9.5a cannot extract mail
 addresses from certificates, and it insert a spurious CR character into
 @acronym{MIME} separators so you may wish to avoid it if you would like
@@ -1293,7 +1291,7 @@ to change this behavior you can customize the
 This causes to sign and encrypt in two passes, thus generating a
 message that can be understood by PGP version 2.
 
-(Refer to @uref{http://www.gnupg.org/gph/en/pgp2x.html} for more
+(Refer to @uref{https://www.gnupg.org/gph/en/pgp2x.html} for more
 information about the problem.)
 
 @node Encrypt-to-self

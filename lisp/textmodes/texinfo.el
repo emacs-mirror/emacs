@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2018 Free Software
+;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell
@@ -470,6 +470,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     (define-key map "\C-c\C-cu"    'texinfo-insert-@uref)
     (define-key map "\C-c\C-ct"    'texinfo-insert-@table)
     (define-key map "\C-c\C-cs"    'texinfo-insert-@samp)
+    (define-key map "\C-c\C-cr"    'texinfo-insert-dwim-@ref)
     (define-key map "\C-c\C-cq"    'texinfo-insert-@quotation)
     (define-key map "\C-c\C-co"    'texinfo-insert-@noindent)
     (define-key map "\C-c\C-cn"    'texinfo-insert-@node)
@@ -824,6 +825,38 @@ Leave point after `@node'."
 (define-skeleton texinfo-insert-@quotation
   "Insert the string `@quotation' in a Texinfo buffer."
   \n "@quotation" \n _ \n)
+
+(define-skeleton texinfo-insert-dwim-@ref
+  "Insert appropriate `@pxref{...}', `@xref{}', or `@ref{}' command.
+
+Looks at text around point to decide what to insert; an unclosed
+preceding open parenthesis results in '@pxref{}', point at the
+beginning of a sentence or at (point-min) yields '@xref{}', any
+other location (including inside a word), will result in '@ref{}'
+at the nearest previous whitespace or beginning-of-line.  A
+numeric argument says how many words the braces should surround.
+The default is not to surround any existing words with the
+braces."
+  nil
+  (cond
+   ;; parenthesis
+   ((looking-back "([^)]*" (point-at-bol 0))
+    "@pxref{")
+   ;; beginning of sentence or buffer
+   ((or (looking-back (sentence-end) (point-at-bol 0))
+        (= (point) (point-min)))
+    "@xref{")
+   ;; bol or eol
+   ((looking-at "^\\|$")
+    "@ref{")
+   ;; inside word
+   ((not (eq (char-syntax (char-after)) ? ))
+    (skip-syntax-backward "^ " (point-at-bol))
+    "@ref{")
+   ;; everything else
+   (t
+    "@ref{"))
+  _ "}")
 
 (define-skeleton texinfo-insert-@samp
   "Insert a `@samp{...}' command in a Texinfo buffer.

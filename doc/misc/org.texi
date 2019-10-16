@@ -260,7 +260,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3527,7 +3527,7 @@ string followed by a colon.  There can be no space after the colon.  The
 following list shows examples for each link type.
 
 @example
-http://www.astro.uva.nl/~dominik             @r{on the web}
+https://api.uva.nl/                          @r{on the web}
 doi:10.1000/182                              @r{DOI for an electronic resource}
 file:/home/dominik/images/jupiter.jpg        @r{file, absolute path}
 /home/dominik/images/jupiter.jpg             @r{same as above}
@@ -9687,7 +9687,7 @@ If you are away from your computer, it can be very useful to have a printed
 version of some agenda views to carry around.  Org mode can export custom
 agenda views as plain text, HTML@footnote{You need to install
 @file{htmlize.el} from @uref{https://github.com/hniksic/emacs-htmlize,Hrvoje
-Niksic's repository.}}, Postscript, PDF@footnote{To create PDF output, the
+Nikšić's repository.}}, Postscript, PDF@footnote{To create PDF output, the
 ghostscript @file{ps2pdf} utility must be installed on the system.  Selecting
 a PDF file will also create the postscript file.}, and iCalendar files.  If
 you want to do this only occasionally, use the command
@@ -10290,7 +10290,7 @@ Org mode can contain @LaTeX{} math fragments, and it supports ways to process
 these for several export back-ends.  When exporting to @LaTeX{}, the code is
 left as it is.  When exporting to HTML, Org can use either
 @uref{http://www.mathjax.org, MathJax} (@pxref{Math formatting in HTML
-export}) or transcode the math into images (see @pxref{Previewing @LaTeX{}
+export}) or transcode the math into images (@pxref{Previewing @LaTeX{}
 fragments}).
 
 @LaTeX{} fragments don't need any special marking at all.  The following
@@ -10356,7 +10356,7 @@ or @file{convert} installed@footnote{These are respectively available at
 and from the @file{imagemagick} suite.  Choose the converter by setting the
 variable @code{org-preview-latex-default-process} accordingly.}, @LaTeX{}
 fragments can be processed to produce images of the typeset expressions to be
-used for inclusion while exporting to HTML (see @pxref{@LaTeX{} fragments}),
+used for inclusion while exporting to HTML (@pxref{@LaTeX{} fragments}),
 or for inline previewing within Org mode.
 
 @vindex org-format-latex-options
@@ -13789,7 +13789,7 @@ Copyright information is printed on the back of the title page.
 
   This is a short example of a complete Texinfo file, version 1.0.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 @end example
 
 @node Info directory file
@@ -14066,7 +14066,7 @@ This manual is for GNU Sample (version @{@{@{version@}@}@},
   This manual is for GNU Sample (version @{@{@{version@}@}@},
   @{@{@{updated@}@}@}), which is an example in the Texinfo documentation.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 
   #+BEGIN_QUOTE
   Permission is granted to copy, distribute and/or modify this

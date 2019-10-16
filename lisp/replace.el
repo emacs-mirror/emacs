@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2018 Free
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -285,7 +285,7 @@ the original string if not."
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
 	(setq to (nreverse (delete "" (cons to list))))
 	(replace-match-string-symbols to)
-	(cons 'replace-eval-replacement
+	(cons #'replace-eval-replacement
 	      (if (cdr to)
 		  (cons 'concat to)
 		(car to))))
@@ -543,7 +543,7 @@ for Lisp calls." "22.1"))
 	     (if (use-region-p) (region-beginning))
 	     (if (use-region-p) (region-end))
 	     (if (use-region-p) (region-noncontiguous-p))))))
-  (perform-replace regexp (cons 'replace-eval-replacement to-expr)
+  (perform-replace regexp (cons #'replace-eval-replacement to-expr)
 		   t 'literal delimited nil nil start end nil region-noncontiguous-p))
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end region-noncontiguous-p)
@@ -850,7 +850,6 @@ If nil, uses `regexp-history'."
 (defalias 'delete-matching-lines 'flush-lines)
 (defalias 'count-matches 'how-many)
 
-
 (defun keep-lines-read-args (prompt)
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
@@ -930,9 +929,8 @@ a previously found match."
   (set-marker rend nil)
   nil)
 
-
 (defun flush-lines (regexp &optional rstart rend interactive)
- "Delete lines containing matches for REGEXP.
+  "Delete lines containing matches for REGEXP.
 When called from Lisp (and usually when called interactively as
 well, see below), applies to the part of the buffer after point.
 The line point is in is deleted if and only if it contains a
@@ -953,7 +951,10 @@ a non-nil INTERACTIVE argument.
 
 If a match is split across lines, all the lines it lies in are deleted.
 They are deleted _before_ looking for the next match.  Hence, a match
-starting on the same line at which another match ended is ignored."
+starting on the same line at which another match ended is ignored.
+
+Return the number of deleted matching lines.  When called interactively,
+also print the number."
   (interactive
    (progn
      (barf-if-buffer-read-only)
@@ -968,7 +969,8 @@ starting on the same line at which another match ended is ignored."
       (setq rstart (point)
 	    rend (point-max-marker)))
     (goto-char rstart))
-  (let ((case-fold-search
+  (let ((count 0)
+        (case-fold-search
 	 (if (and case-fold-search search-upper-case)
 	     (isearch-no-upper-case-p regexp t)
 	   case-fold-search)))
@@ -978,10 +980,14 @@ starting on the same line at which another match ended is ignored."
 	(delete-region (save-excursion (goto-char (match-beginning 0))
 				       (forward-line 0)
 				       (point))
-		       (progn (forward-line 1) (point))))))
-  (set-marker rend nil)
-  nil)
-
+		       (progn (forward-line 1) (point)))
+        (setq count (1+ count))))
+    (set-marker rend nil)
+    (when interactive (message (ngettext "Deleted %d matching line"
+					 "Deleted %d matching lines"
+					 count)
+			       count))
+    count))
 
 (defun how-many (regexp &optional rstart rend interactive)
   "Print and return number of matches for REGEXP following point.
@@ -1029,9 +1035,10 @@ a previously found match."
 	(if (= opoint (point))
 	    (forward-char 1)
 	  (setq count (1+ count))))
-      (when interactive (message "%d occurrence%s"
-				 count
-				 (if (= count 1) "" "s")))
+      (when interactive (message (ngettext "%d occurrence"
+					   "%d occurrences"
+					   count)
+				 count))
       count)))
 
 
@@ -1614,11 +1621,12 @@ See also `multi-occur'."
 		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
-	    (message "Searched %d buffer%s%s; %s match%s%s"
-		     bufcount (if (= bufcount 1) "" "s")
+	    (message "Searched %d %s%s; %s %s%s"
+		     bufcount
+		     (ngettext "buffer" "buffers" bufcount)
 		     (if (zerop diff) "" (format " (%d killed)" diff))
 		     (if (zerop count) "no" (format "%d" count))
-		     (if (= count 1) "" "es")
+		     (ngettext "match" "matches" count)
 		     ;; Don't display regexp if with remaining text
 		     ;; it is longer than window-width.
 		     (if (> (+ (length (or (get-text-property 0 'isearch-string regexp)
@@ -1743,7 +1751,7 @@ See also `multi-occur'."
 				     (append
 				      (when prefix-face
 				        `(font-lock-face ,prefix-face))
-				      `(occur-prefix t mouse-face (highlight)
+				      `(occur-prefix t
 				                     ;; Allow insertion of text
 				                     ;; at the end of the prefix
 				                     ;; (for Occur Edit mode).
@@ -1756,23 +1764,26 @@ See also `multi-occur'."
 			      ;; We don't put `mouse-face' on the newline,
 			      ;; because that loses.  And don't put it
 			      ;; on context lines to reduce flicker.
-			      (propertize curstring 'mouse-face (list 'highlight)
+			      (propertize curstring
 					  'occur-target marker
 					  'follow-link t
 					  'help-echo
 					  "mouse-2: go to this occurrence"))
 			     (out-line
-			      (concat
-			       match-prefix
-			       ;; Add non-numeric prefix to all non-first lines
-			       ;; of multi-line matches.
+			      ;; Add non-numeric prefix to all non-first lines
+			      ;; of multi-line matches.
+                              (concat
 			       (replace-regexp-in-string
 			        "\n"
 			        (if prefix-face
 				    (propertize
 				     "\n       :" 'font-lock-face prefix-face)
 				  "\n       :")
-			        match-str)
+                                ;; Add mouse face in one section to
+                                ;; ensure the prefix and the string
+                                ;; get a contiguous highlight.
+			        (propertize (concat match-prefix match-str)
+                                            'mouse-face 'highlight))
 			       ;; Add marker at eol, but no mouse props.
 			       (propertize "\n" 'occur-target marker)))
 			     (data
@@ -1853,14 +1864,15 @@ See also `multi-occur'."
 		  (let ((beg (point))
 		        end)
 		    (insert (propertize
-			     (format "%d match%s%s%s in buffer: %s%s\n"
-				     matches (if (= matches 1) "" "es")
+			     (format "%d %s%s%s in buffer: %s%s\n"
+				     matches
+				     (ngettext "match" "matches" matches)
 				     ;; Don't display the same number of lines
 				     ;; and matches in case of 1 match per line.
 				     (if (= lines matches)
-				         "" (format " in %d line%s"
+				         "" (format " in %d %s"
 						    lines
-						    (if (= lines 1) "" "s")))
+						    (ngettext "line" "lines" lines)))
 				     ;; Don't display regexp for multi-buffer.
 				     (if (> (length buffers) 1)
 				         "" (occur-regexp-descr regexp))
@@ -1886,13 +1898,15 @@ See also `multi-occur'."
 	(goto-char (point-min))
 	(let ((beg (point))
 	      end)
-	  (insert (format "%d match%s%s total%s:\n"
-			  global-matches (if (= global-matches 1) "" "es")
+	  (insert (format "%d %s%s total%s:\n"
+			  global-matches
+			  (ngettext "match" "matches" global-matches)
 			  ;; Don't display the same number of lines
 			  ;; and matches in case of 1 match per line.
 			  (if (= global-lines global-matches)
-			      "" (format " in %d line%s"
-					 global-lines (if (= global-lines 1) "" "s")))
+			      "" (format " in %d %s"
+					 global-lines
+					 (ngettext "line" "lines" global-lines)))
 			  (occur-regexp-descr regexp)))
 	  (setq end (point))
 	  (when title-face
@@ -1907,10 +1921,8 @@ See also `multi-occur'."
       global-matches)))
 
 (defun occur-engine-line (beg end &optional keep-props)
-  (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
-	   (text-property-not-all beg end 'fontified t))
-      (if (fboundp 'jit-lock-fontify-now)
-	  (jit-lock-fontify-now beg end)))
+  (if (and keep-props font-lock-mode)
+      (font-lock-ensure beg end))
   (if (and keep-props (not (eq occur-excluded-properties t)))
       (let ((str (buffer-substring beg end)))
 	(remove-list-of-text-properties
@@ -2462,7 +2474,8 @@ characters."
             replacements     nil))
      ((stringp (car replacements)) ; If it isn't a string, it must be a cons
       (or repeat-count (setq repeat-count 1))
-      (setq replacements (cons 'replace-loop-through-replacements
+      ;; This is a hand-made `iterator'.
+      (setq replacements (cons #'replace-loop-through-replacements
                                (vector repeat-count repeat-count
                                        replacements replacements)))))
 
@@ -2587,6 +2600,11 @@ characters."
 		;; Commands not setting `done' need to adjust
 		;; `real-match-data'.
 		(while (not done)
+		  ;; This sets match-data only for the next hook and
+		  ;; replace-highlight that calls `sit-for' from
+		  ;; isearch-lazy-highlight-new-loop whose redisplay
+		  ;; might clobber match-data. So subsequent code should
+		  ;; use only real-match-data, not match-data (bug#36328).
 		  (set-match-data real-match-data)
                   (run-hooks 'replace-update-post-hook) ; Before `replace-highlight'.
                   (replace-highlight
@@ -2599,14 +2617,14 @@ characters."
                     (setq last-was-undo nil
                           real-match-data
                           (save-excursion
-                            (goto-char (match-beginning 0))
+                            (goto-char (nth 0 real-match-data))
                             (looking-at search-string)
                             (match-data t real-match-data))))
                   ;; Matched string and next-replacement-replaced
                   ;; stored in stack.
                   (setq search-string-replaced (buffer-substring-no-properties
-                                                (match-beginning 0)
-                                                (match-end 0))
+                                                (nth 0 real-match-data)
+                                                (nth 1 real-match-data))
                         next-replacement-replaced
                         (query-replace-descr
                          (save-match-data
@@ -2634,22 +2652,24 @@ characters."
 		  (setq def (lookup-key map key))
 		  ;; Restore the match data while we process the command.
 		  (cond ((eq def 'help)
-			 (with-output-to-temp-buffer "*Help*"
-			   (princ
-			    (concat "Query replacing "
-				    (if backward "backward " "")
-				    (if delimited-flag
-					(or (and (symbolp delimited-flag)
-						 (get delimited-flag
-                                                      'isearch-message-prefix))
-					    "word ") "")
-				    (if regexp-flag "regexp " "")
-				    from-string " with "
-				    next-replacement ".\n\n"
-				    (substitute-command-keys
-				     query-replace-help)))
-			   (with-current-buffer standard-output
-			     (help-mode))))
+			 (let ((display-buffer-overriding-action
+				'(nil (inhibit-same-window . t))))
+			   (with-output-to-temp-buffer "*Help*"
+			     (princ
+			      (concat "Query replacing "
+				      (if backward "backward " "")
+				      (if delimited-flag
+					  (or (and (symbolp delimited-flag)
+						   (get delimited-flag
+							'isearch-message-prefix))
+					      "word ") "")
+				      (if regexp-flag "regexp " "")
+				      from-string " with "
+				      next-replacement ".\n\n"
+				      (substitute-command-keys
+				       query-replace-help)))
+			     (with-current-buffer standard-output
+			       (help-mode)))))
 			((eq def 'exit)
 			 (setq keep-going nil)
 			 (setq done t))
@@ -2678,7 +2698,7 @@ characters."
                                  (num-replacements  0)
                                  (nocasify t) ; Undo must preserve case (Bug#31073).
                                  search-string
-                                 next-replacement)
+                                 last-replacement)
                              (while (and (< stack-idx stack-len)
                                          stack
                                          (or (null replaced) last-was-act-and-show))
@@ -2689,9 +2709,9 @@ characters."
                                   ;; Bind swapped values
                                   ;; (search-string <--> replacement)
                                   search-string (nth (if replaced 4 3) elt)
-                                  next-replacement (nth (if replaced 3 4) elt)
+                                  last-replacement (nth (if replaced 3 4) elt)
                                   search-string-replaced search-string
-                                  next-replacement-replaced next-replacement
+                                  next-replacement-replaced last-replacement
                                   last-was-act-and-show nil)
 
                                  (when (and (= stack-idx stack-len)
@@ -2708,18 +2728,23 @@ characters."
                                    (setq real-match-data
                                          (save-excursion
                                            (goto-char (match-beginning 0))
-                                           (looking-at search-string)
+                                           ;; We must quote the string (Bug#37073)
+                                           (looking-at (regexp-quote search-string))
                                            (match-data t (nth 2 elt)))
                                          noedit
                                          (replace-match-maybe-edit
-                                          next-replacement nocasify literal
+                                          last-replacement nocasify literal
                                           noedit real-match-data backward)
                                          replace-count (1- replace-count)
                                          real-match-data
                                          (save-excursion
                                            (goto-char (match-beginning 0))
-                                           (looking-at next-replacement)
+                                           (if regexp-flag
+                                               (looking-at last-replacement)
+                                             (looking-at (regexp-quote last-replacement)))
                                            (match-data t (nth 2 elt))))
+                                   (when regexp-flag
+                                     (setq next-replacement (nth 4 elt)))
                                    ;; Set replaced nil to keep in loop
                                    (when (eq def 'undo-all)
                                      (setq replaced nil
@@ -2729,10 +2754,10 @@ characters."
                                            (1+ num-replacements))))))
                              (when (and (eq def 'undo-all)
                                         (null (zerop num-replacements)))
-                               (message "Undid %d %s" num-replacements
-                                        (if (= num-replacements 1)
-                                            "replacement"
-                                          "replacements"))
+                               (message (ngettext "Undid %d replacement"
+                                                  "Undid %d replacements"
+                                                  num-replacements)
+                                        num-replacements)
                                (ding 'no-terminate)
                                (sit-for 1)))
 			   (setq replaced nil last-was-undo t last-was-act-and-show nil)))
@@ -2858,9 +2883,10 @@ characters."
                       last-was-act-and-show     nil))))))
       (replace-dehighlight))
     (or unread-command-events
-	(message "Replaced %d occurrence%s%s"
+	(message (ngettext "Replaced %d occurrence%s"
+			   "Replaced %d occurrences%s"
+			   replace-count)
 		 replace-count
-		 (if (= replace-count 1) "" "s")
 		 (if (> (+ skip-read-only-count
 			   skip-filtered-count
 			   skip-invisible-count)

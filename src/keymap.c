@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985-1988, 1993-1995, 1998-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -120,11 +120,7 @@ The optional arg STRING supplies a menu name for the keymap
 in case you use it as a menu with `x-popup-menu'.  */)
   (Lisp_Object string)
 {
-  Lisp_Object tail;
-  if (!NILP (string))
-    tail = list1 (string);
-  else
-    tail = Qnil;
+  Lisp_Object tail = !NILP (string) ? list1 (string) : Qnil;
   return Fcons (Qkeymap,
 		Fcons (Fmake_char_table (Qkeymap, Qnil), tail));
 }
@@ -2042,7 +2038,7 @@ For an approximate inverse of this, see `kbd'.  */)
   else if (VECTORP (list))
     size = ASIZE (list);
   else if (CONSP (list))
-    size = XFIXNUM (Flength (list));
+    size = list_length (list);
   else
     wrong_type_argument (Qarrayp, list);
 
@@ -3102,9 +3098,9 @@ describe_map_compare (const void *aa, const void *bb)
   if (FIXNUMP (a->event) && !FIXNUMP (b->event))
     return -1;
   if (SYMBOLP (a->event) && SYMBOLP (b->event))
-    return (!NILP (Fstring_lessp (a->event, b->event)) ? -1
-	    : !NILP (Fstring_lessp (b->event, a->event)) ? 1
-	    : 0);
+    /* Sort the keystroke names in the "natural" way, with (for
+       instance) "<f2>" coming between "<f1>" and "<f11>".  */
+    return string_version_cmp (SYMBOL_NAME (a->event), SYMBOL_NAME (b->event));
   return 0;
 }
 
@@ -3375,12 +3371,10 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 
   if (!keymap_p)
     {
-      /* Call Fkey_description first, to avoid GC bug for the other string.  */
       if (!NILP (prefix) && XFIXNAT (Flength (prefix)) > 0)
 	{
-	  Lisp_Object tem = Fkey_description (prefix, Qnil);
 	  AUTO_STRING (space, " ");
-	  elt_prefix = concat2 (tem, space);
+	  elt_prefix = concat2 (Fkey_description (prefix, Qnil), space);
 	}
       prefix = Qnil;
     }
@@ -3608,12 +3602,12 @@ syms_of_keymap (void)
   Fset (intern_c_string ("ctl-x-map"), control_x_map);
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
-  exclude_keys = listn (CONSTYPE_PURE, 5,
-			pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
-			pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
-			pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
-			pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
-			pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")));
+  exclude_keys = pure_list
+    (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
+     pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
+     pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
+     pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
+     pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")));
   staticpro (&exclude_keys);
 
   DEFVAR_LISP ("define-key-rebound-commands", Vdefine_key_rebound_commands,
@@ -3669,16 +3663,13 @@ be preferred.  */);
   DEFSYM (Qmode_line, "mode-line");
 
   staticpro (&Vmouse_events);
-  Vmouse_events = listn (CONSTYPE_PURE, 9,
-			 Qmenu_bar,
-			 Qtool_bar,
-			 Qheader_line,
-			 Qmode_line,
-			 intern_c_string ("mouse-1"),
-			 intern_c_string ("mouse-2"),
-			 intern_c_string ("mouse-3"),
-			 intern_c_string ("mouse-4"),
-			 intern_c_string ("mouse-5"));
+  Vmouse_events = pure_list (Qmenu_bar, Qtab_bar, Qtool_bar,
+			     Qtab_line, Qheader_line, Qmode_line,
+			     intern_c_string ("mouse-1"),
+			     intern_c_string ("mouse-2"),
+			     intern_c_string ("mouse-3"),
+			     intern_c_string ("mouse-4"),
+			     intern_c_string ("mouse-5"));
 
   /* Keymap used for minibuffers when doing completion.  */
   /* Keymap used for minibuffers when doing completion and require a match.  */

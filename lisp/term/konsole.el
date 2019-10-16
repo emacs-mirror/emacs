@@ -1,5 +1,5 @@
 ;;; konsole.el --- terminal initialization for konsole
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 (require 'term/xterm)
 

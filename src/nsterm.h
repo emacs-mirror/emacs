@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2018 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "font.h"
 #include "sysselect.h"
+#include "sysstdio.h"
 
 #ifdef HAVE_NS
 #ifdef __OBJC__
@@ -180,7 +181,7 @@ char const * nstrace_fullscreen_type_name (int);
                    __FILE__, __LINE__, nstrace_num++,                       \
                    2*nstrace_depth, "  | | | | | | | | | | | | | | | ..");  \
           fprintf (stderr, __VA_ARGS__);                                    \
-          fprintf (stderr, "\n");                                           \
+	  putc ('\n', stderr);						    \
         }                                                                   \
     }                                                                       \
   while(0)
@@ -632,6 +633,8 @@ typedef id instancetype;
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
   NSColor *stippleMask;
   unsigned long xbm_fg;
+@public
+  NSAffineTransform *transform;
 }
 + (instancetype)allocInitFromFile: (Lisp_Object)file;
 - (void)dealloc;
@@ -648,8 +651,7 @@ typedef id instancetype;
 - (NSColor *)stippleMask;
 - (Lisp_Object)getMetadata;
 - (BOOL)setFrame: (unsigned int) index;
-- (void)setSizeFromSpec: (Lisp_Object) spec;
-- (instancetype)rotate: (double)rotation;
+- (void)setTransform: (double[3][3]) m;
 @end
 
 
@@ -870,20 +872,20 @@ struct ns_display_info
   Window root_window;
 
   /* Xism */
-  XrmDatabase xrdb;
+  Lisp_Object rdb;
 
   /* The cursor to use for vertical scroll bars.  */
-  Cursor vertical_scroll_bar_cursor;
+  Emacs_Cursor vertical_scroll_bar_cursor;
 
   /* The cursor to use for horizontal scroll bars.  */
-  Cursor horizontal_scroll_bar_cursor;
+  Emacs_Cursor horizontal_scroll_bar_cursor;
 
   /* Information about the range of text currently shown in
      mouse-face.  */
   Mouse_HLInfo mouse_highlight;
 
-  struct frame *x_highlight_frame;
-  struct frame *x_focus_frame;
+  struct frame *highlight_frame;
+  struct frame *ns_focus_frame;
 
   /* The frame where the mouse was last time we reported a mouse event.  */
   struct frame *last_mouse_frame;
@@ -932,24 +934,24 @@ struct ns_output
 #endif
 
   /* NSCursors are initialized in initFrameFromEmacs.  */
-  Cursor text_cursor;
-  Cursor nontext_cursor;
-  Cursor modeline_cursor;
-  Cursor hand_cursor;
-  Cursor hourglass_cursor;
-  Cursor horizontal_drag_cursor;
-  Cursor vertical_drag_cursor;
-  Cursor left_edge_cursor;
-  Cursor top_left_corner_cursor;
-  Cursor top_edge_cursor;
-  Cursor top_right_corner_cursor;
-  Cursor right_edge_cursor;
-  Cursor bottom_right_corner_cursor;
-  Cursor bottom_edge_cursor;
-  Cursor bottom_left_corner_cursor;
+  Emacs_Cursor text_cursor;
+  Emacs_Cursor nontext_cursor;
+  Emacs_Cursor modeline_cursor;
+  Emacs_Cursor hand_cursor;
+  Emacs_Cursor hourglass_cursor;
+  Emacs_Cursor horizontal_drag_cursor;
+  Emacs_Cursor vertical_drag_cursor;
+  Emacs_Cursor left_edge_cursor;
+  Emacs_Cursor top_left_corner_cursor;
+  Emacs_Cursor top_edge_cursor;
+  Emacs_Cursor top_right_corner_cursor;
+  Emacs_Cursor right_edge_cursor;
+  Emacs_Cursor bottom_right_corner_cursor;
+  Emacs_Cursor bottom_edge_cursor;
+  Emacs_Cursor bottom_left_corner_cursor;
 
   /* NS-specific */
-  Cursor current_pointer;
+  Emacs_Cursor current_pointer;
 
   /* lord knows why Emacs needs to know about our Window ids.. */
   Window window_desc, parent_desc;
@@ -994,15 +996,9 @@ struct x_output
 
 /* This gives the ns_display_info structure for the display F is on.  */
 #define FRAME_DISPLAY_INFO(f) ((f)->output_data.ns->display_info)
-#define FRAME_X_OUTPUT(f) ((f)->output_data.ns)
+#define FRAME_OUTPUT_DATA(f) ((f)->output_data.ns)
 #define FRAME_NS_WINDOW(f) ((f)->output_data.ns->window_desc)
-#define FRAME_X_WINDOW(f) ((f)->output_data.ns->window_desc)
-
-/* This is the `Display *' which frame F is on.  */
-#define FRAME_NS_DISPLAY(f) (0)
-#define FRAME_X_DISPLAY(f) (0)
-#define FRAME_X_SCREEN(f) (0)
-#define FRAME_X_VISUAL(f) FRAME_DISPLAY_INFO(f)->visual
+#define FRAME_NATIVE_WINDOW(f) FRAME_NS_WINDOW (f)
 
 #define FRAME_FOREGROUND_COLOR(f) ((f)->output_data.ns->foreground_color)
 #define FRAME_BACKGROUND_COLOR(f) ((f)->output_data.ns->background_color)
@@ -1123,6 +1119,9 @@ extern Lisp_Object ns_list_fonts (struct frame *f, Lisp_Object pattern,
                                   int size, int maxnames);
 extern void ns_clear_frame (struct frame *f);
 
+extern void ns_set_offset (struct frame *f, int xoff, int yoff,
+                           int change_grav);
+
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
 extern Lisp_Object ns_map_event_to_object (void);
@@ -1138,10 +1137,10 @@ extern void ns_set_doc_edited (void);
 extern bool
 ns_defined_color (struct frame *f,
                   const char *name,
-                  XColor *color_def, bool alloc,
+                  Emacs_Color *color_def, bool alloc,
                   bool makeIndex);
 extern void
-ns_query_color (void *col, XColor *color_def, int setPixel);
+ns_query_color (void *col, Emacs_Color *color_def, bool setPixel);
 
 #ifdef __OBJC__
 extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
@@ -1152,6 +1151,15 @@ extern void ns_check_menu_open (NSMenu *menu);
 extern void ns_check_pending_open_menu (void);
 #endif
 
+/* Implemented in nsfns, published in nsterm.  */
+extern void ns_implicitly_set_name (struct frame *f, Lisp_Object arg,
+                                    Lisp_Object oldval);
+extern void ns_set_scroll_bar_default_width (struct frame *f);
+extern void ns_set_scroll_bar_default_height (struct frame *f);
+extern const char *ns_get_string_resource (void *_rdb,
+                                           const char *name,
+                                           const char *class);
+
 /* C access to ObjC functionality */
 extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);
@@ -1159,10 +1167,6 @@ extern void *ns_alloc_autorelease_pool (void);
 extern void ns_release_autorelease_pool (void *);
 extern const char *ns_get_defaults_value (const char *key);
 extern void ns_init_locale (void);
-
-#ifdef NS_IMPL_COCOA
-extern void ns_enable_screen_updates (void);
-#endif
 
 /* in nsmenu */
 extern void update_frame_tool_bar (struct frame *f);
@@ -1172,6 +1176,8 @@ extern Lisp_Object find_and_return_menu_selection (struct frame *f,
                                                    void *client_data);
 extern Lisp_Object ns_popup_dialog (struct frame *, Lisp_Object header,
                                     Lisp_Object contents);
+
+extern void ns_free_frame_resources (struct frame *);
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);
@@ -1197,26 +1203,29 @@ extern bool ns_load_image (struct frame *f, struct image *img,
 			   Lisp_Object spec_file, Lisp_Object spec_data);
 extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
+extern void ns_image_set_size (void *img, int width, int height);
+extern void ns_image_set_transform (void *img, double m[3][3]);
 extern unsigned long ns_get_pixel (void *img, int x, int y);
 extern void ns_put_pixel (void *img, int x, int y, unsigned long argb);
 extern void ns_set_alpha (void *img, int x, int y, unsigned char a);
 
-extern int x_display_pixel_height (struct ns_display_info *);
-extern int x_display_pixel_width (struct ns_display_info *);
+extern int ns_display_pixel_height (struct ns_display_info *);
+extern int ns_display_pixel_width (struct ns_display_info *);
 
 /* This in nsterm.m */
 extern float ns_antialias_threshold;
-extern void x_destroy_window (struct frame *f);
-extern void x_set_undecorated (struct frame *f, Lisp_Object new_value,
-                               Lisp_Object old_value);
-extern void x_set_parent_frame (struct frame *f, Lisp_Object new_value,
+extern void ns_make_frame_visible (struct frame *f);
+extern void ns_iconify_frame (struct frame *f);
+extern void ns_set_undecorated (struct frame *f, Lisp_Object new_value,
                                 Lisp_Object old_value);
-extern void x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
-                                   Lisp_Object old_value);
-extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
-                                   Lisp_Object old_value);
-extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
-                           Lisp_Object old_value);
+extern void ns_set_parent_frame (struct frame *f, Lisp_Object new_value,
+                                 Lisp_Object old_value);
+extern void ns_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
+                                    Lisp_Object old_value);
+extern void ns_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
+                                    Lisp_Object old_value);
+extern void ns_set_z_group (struct frame *f, Lisp_Object new_value,
+                            Lisp_Object old_value);
 #ifdef NS_IMPL_COCOA
 extern void ns_set_appearance (struct frame *f, Lisp_Object new_value,
                                Lisp_Object old_value);
@@ -1326,5 +1335,15 @@ enum NSWindowTabbingMode
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_13)
 /* Deprecated in macOS 10.13.  */
 #define NSPasteboardNameGeneral NSGeneralPboard
+#endif
+
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_14)
+/* Deprecated in macOS 10.14.  */
+#define NSPasteboardTypeString NSStringPboardType
+#define NSPasteboardTypeTabularText NSTabularTextPboardType
+#define NSPasteboardTypeURL NSURLPboardType
+#define NSControlStateValueOn NSOnState
+#define NSControlStateValueOff NSOffState
+#define NSBezelStyleRounded NSRoundedBezelStyle
 #endif
 #endif	/* HAVE_NS */

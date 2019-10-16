@@ -46,7 +46,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3697,7 +3697,7 @@ MicroEmacs at the time).
 Here is a summary of @RefTeX{}'s commands which can be executed from
 @LaTeX{} files.  Command which are executed from the special buffers are
 not described here.  All commands are available from the @code{Ref}
-menu.  See @xref{Key Bindings}.
+menu.  @xref{Key Bindings}.
 
 @deffn Command reftex-toc
 Show the table of contents for the current document.  When called with

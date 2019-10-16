@@ -1,6 +1,6 @@
 ;;; expand.el --- make abbreviations more usable
 
-;; Copyright (C) 1995-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -66,9 +66,6 @@
 ;;                  Jerome Santini <santini@chambord.univ-orleans.fr>,
 ;;                  Jari Aalto <jaalto@tre.tele.nokia.fi>.
 ;;
-;;   Please send me a word to give me your feeling about this feature or
-;; to explain me how you use it (your expansions table for example) using
-;; the function expand-submit-report.
 ;;; Code:
 
 ;;; Constants:

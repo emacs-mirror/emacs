@@ -1,5 +1,5 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -20,7 +20,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
 #include <X11/Xlib.h>
 
 #include "lisp.h"
@@ -28,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "font.h"
+#include "pdumper.h"
 
 /* FTX font driver.  */
 
@@ -208,21 +208,13 @@ ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y
 static Lisp_Object
 ftxfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_list (f, spec), tail;
-
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
-    ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
-  return list;
+  return ftfont_list2 (f, spec, Qftx);
 }
 
 static Lisp_Object
 ftxfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_match (f, spec);
-
-  if (VECTORP (entity))
-    ASET (entity, FONT_TYPE_INDEX, Qftx);
-  return entity;
+  return ftfont_match2 (f, spec, Qftx);
 }
 
 static Lisp_Object
@@ -251,7 +243,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   struct font *font = s->font;
   XPoint p[0x700];
   int n[7];
-  unsigned *code;
+  unsigned *code = s->char2b + from;
   int len = to - from;
   int i;
   GC *gcs;
@@ -259,14 +251,9 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = 0;
 
-  USE_SAFE_ALLOCA;
-  SAFE_NALLOCA (code, 1, len);
   block_input ();
   if (with_background)
     ftxfont_draw_background (f, font, s->gc, x, y, s->width);
-  for (i = 0; i < len; i++)
-    code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
-	       | XCHAR2B_BYTE2 (s->char2b + from + i));
 
   if (face->gc == s->gc)
     {
@@ -311,7 +298,6 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     }
 
   unblock_input ();
-  SAFE_FREE ();
 
   return len;
 }
@@ -339,6 +325,8 @@ ftxfont_end_for_frame (struct frame *f)
 
 
 
+static void syms_of_ftxfont_for_pdumper (void);
+
 struct font_driver const ftxfont_driver =
   {
   /* We can't draw a text without device dependent functions.  */
@@ -347,8 +335,8 @@ struct font_driver const ftxfont_driver =
   .list = ftxfont_list,
   .match = ftxfont_match,
   .list_family = ftfont_list_family,
-  .open = ftxfont_open,
-  .close = ftxfont_close,
+  .open_font = ftxfont_open,
+  .close_font = ftxfont_close,
   .has_char = ftfont_has_char,
   .encode_char = ftfont_encode_char,
   .text_extents = ftfont_text_extents,
@@ -362,7 +350,7 @@ struct font_driver const ftxfont_driver =
 #if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
   .shape = ftfont_shape,
 #endif
-#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
+#if defined HAVE_OTF_GET_VARIATION_GLYPHS || defined HAVE_FT_FACE_GETCHARVARIANTINDEX
   .get_variation_glyphs = ftfont_variation_glyphs,
 #endif
   .filter_properties = ftfont_filter_properties,
@@ -373,5 +361,11 @@ void
 syms_of_ftxfont (void)
 {
   DEFSYM (Qftx, "ftx");
+  pdumper_do_now_and_after_load (syms_of_ftxfont_for_pdumper);
+}
+
+static void
+syms_of_ftxfont_for_pdumper (void)
+{
   register_font_driver (&ftxfont_driver, NULL);
 }

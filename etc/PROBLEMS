@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2018 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2019 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -44,6 +44,13 @@ X server resources database.  Depending on the circumstances, the
 following command may do the trick.  See xrdb(1) for more information.
 
   $ xrdb -merge ~/.Xresources
+
+** Emacs compiled with Cairo crashes when restoring session from desktop file.
+
+This can happen if the '.emacs.desktop' file contains setting for
+'font-backend' frame parameter.  A workaround is to delete the
+offending '.emacs.desktop' file, or edit it to remove the setting of
+'font-backend'.
 
 ** Emacs aborts while starting up, only when run without X.
 
@@ -291,7 +298,7 @@ you launched Emacs:
 
 This problem occurs because unfortunately there are two libraries
 called "libotf".  One is the library for handling OpenType fonts,
-http://www.m17n.org/libotf/, which is the one that Emacs expects.
+https://www.nongnu.org/m17n/, which is the one that Emacs expects.
 The other is a library for Open Trace Format, and is used by some
 versions of the MPI message passing interface for parallel
 programming.
@@ -1176,6 +1183,23 @@ always) doesn't insert the whitespace of the killed and yanked line.
 
 The solution is to set the GPaste "trim items" option to OFF.
 
+*** Gnome: Navigation from Nautilus to remote files.
+
+If you navigate to a file, which belongs to a remote server, in
+Nautilus via "Open With Emacs" you might not be able to save this file
+once you have modified it in Emacs.  The reasons for the failure can
+vary, and for some connection methods saving the file might even succeed.
+
+If the remote connection in Nautilus uses ssh or sftp, you could
+mitigate the problem by the following lines in your .emacs file:
+
+(dir-locals-set-class-variables 'gvfs '((nil . ((create-lockfiles . nil)))))
+(dir-locals-set-directory-class (format "/run/user/%d/gvfs" (user-uid)) 'gvfs)
+
+A better approach might be to avoid navigation from Nautilus to Emacs
+for such files, and instead to open the file in Emacs using Tramp
+remote file name syntax.
+
 *** KDE: When running on KDE, colors or fonts are not as specified for Emacs,
 or messed up.
 
@@ -1832,6 +1856,12 @@ term/xterm.el) for more details.
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux
+
+*** GNU/Linux: profiler-report outputs nothing.
+
+A few versions of the Linux kernel have timer bugs that break CPU
+profiling; see Bug#34235.  To fix the problem, upgrade to one of the
+kernel versions 4.14.97, 4.19.19, or 4.20.6, or later.
 
 *** GNU/Linux: Process output is corrupted.
 

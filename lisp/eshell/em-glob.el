@@ -1,6 +1,6 @@
 ;;; em-glob.el --- extended file name globbing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -125,7 +125,7 @@ This option slows down recursive glob processing by quite a bit."
 
 ;;; Functions:
 
-(defun eshell-glob-initialize ()
+(defun eshell-glob-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the extended globbing code."
   ;; it's important that `eshell-glob-chars-list' come first
   (when (boundp 'eshell-special-chars-outside-quoting)

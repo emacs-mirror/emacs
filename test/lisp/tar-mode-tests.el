@@ -1,6 +1,6 @@
 ;;; tar-mode-tests.el --- Test suite for tar-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,8 @@
 (require 'ert)
 (require 'tar-mode)
 
+(defvar tar-mode-tests-data-directory
+  (expand-file-name "test/data/decompress" source-directory))
 
 (ert-deftest tar-mode-test-tar-grind-file-mode ()
   (let ((alist (list (cons 448 "rwx------")
@@ -30,6 +32,17 @@
                      (cons 1024 "-----S---"))))
     (dolist (x alist)
       (should (equal (cdr x) (tar-grind-file-mode (car x)))))))
+
+(ert-deftest tar-mode-test-tar-extract-gz ()
+  (skip-unless (executable-find "gzip"))
+  (let* ((tar-file (expand-file-name "tg.tar.gz" tar-mode-tests-data-directory))
+         tar-buffer gz-buffer)
+    (unwind-protect
+        (with-current-buffer (setq tar-buffer (find-file-noselect tar-file))
+          (setq gz-buffer (tar-extract))
+          (should (equal (char-after) ?\N{SNOWFLAKE})))
+      (when (buffer-live-p tar-buffer) (kill-buffer tar-buffer))
+      (when (buffer-live-p gz-buffer) (kill-buffer gz-buffer)))))
 
 (provide 'tar-mode-tests)
 

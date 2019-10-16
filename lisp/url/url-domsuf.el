@@ -1,6 +1,6 @@
 ;;; url-domsuf.el --- Say what domain names can have cookies set.
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 

@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -184,6 +184,9 @@ typedef int (WINAPI *WideCharToMultiByte_Proc)(UINT,DWORD,LPCWSTR,int,LPSTR,int,
 extern MultiByteToWideChar_Proc pMultiByteToWideChar;
 extern WideCharToMultiByte_Proc pWideCharToMultiByte;
 extern DWORD multiByteToWideCharFlags;
+
+extern char *w32_my_exename (void);
+extern const char *w32_relocate (const char *);
 
 extern void init_environment (char **);
 extern void check_windows_init_file (void);

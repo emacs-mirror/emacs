@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1998, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Hooks
@@ -160,6 +160,9 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 @item frame-auto-hide-function
 @xref{Quitting Windows}.
 
+@item quit-window-hook
+@xref{Quitting Windows}.
+
 @item kill-buffer-hook
 @itemx kill-buffer-query-functions
 @xref{Killing Buffers}.
@@ -251,6 +254,7 @@ I thought did not need to be mentioned here:
 
 Lisp:
 after-load-functions
+after-set-visited-file-name-hook
 auto-coding-functions
 choose-completion-string-functions
 completing-read-function

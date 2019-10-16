@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -59,7 +59,7 @@
     ["Next Topic" help-go-forward
      :help "Go back to next topic in this help buffer"]
     ["Move to Previous Button" backward-button
-     :help "Move to the Next Button in the help buffer"]
+     :help "Move to the Previous Button in the help buffer"]
     ["Move to Next Button" forward-button
       :help "Move to the Next Button in the help buffer"]))
 
@@ -287,12 +287,12 @@ The format is (FUNCTION ARGS...).")
 
 (define-button-type 'help-theme-def
   :supertype 'help-xref
-  'help-function 'find-file
+  'help-function #'find-file
   'help-echo (purecopy "mouse-2, RET: visit theme file"))
 
 (define-button-type 'help-theme-edit
   :supertype 'help-xref
-  'help-function 'customize-create-theme
+  'help-function #'customize-create-theme
   'help-echo (purecopy "mouse-2, RET: edit this theme file"))
 
 (define-button-type 'help-dir-local-var-def
@@ -302,7 +302,13 @@ The format is (FUNCTION ARGS...).")
 		   ;; local variable was defined.
 		   (find-file file))
   'help-echo (purecopy "mouse-2, RET: open directory-local variables file"))
-
+(define-button-type 'help-news
+  :supertype 'help-xref
+  'help-function
+  (lambda (file pos)
+    (pop-to-buffer (find-file-noselect file))
+    (goto-char pos))
+  'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
 
 (defvar bookmark-make-record-function)
 
@@ -781,7 +787,9 @@ Implements `bookmark-make-record-function' for help-mode buffers."
     (error "Cannot create bookmark - help command not known"))
   `(,@(bookmark-make-record-default 'NO-FILE 'NO-CONTEXT)
       (help-fn     . ,(car help-xref-stack-item))
-      (help-args   . ,(cdr help-xref-stack-item))
+      (help-args   . ,(mapcar (lambda (a)
+                                (if (bufferp a) (buffer-name a) a))
+                              (cdr help-xref-stack-item)))
       (position    . ,(point))
       (handler     . help-bookmark-jump)))
 

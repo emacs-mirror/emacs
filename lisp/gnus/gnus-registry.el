@@ -1,6 +1,6 @@
 ;;; gnus-registry.el --- article registry for Gnus
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news registry
@@ -264,6 +264,50 @@ This can slow pruning down.  Set to nil to perform no sorting."
    (cadr (assq 'creation-time r))
    (cadr (assq 'creation-time l))))
 
+;; Remove this from the save routine (and fix it to only decode) at
+;; next Gnus version bump.
+(defun gnus-registry--munge-group-names (db &optional encode)
+  "Encode/decode group names in DB, before saving or after loading.
+Encode names if ENCODE is non-nil, otherwise decode."
+  (let ((datahash (slot-value db 'data))
+	(grouphash (registry-lookup-secondary db 'group))
+	reset-pairs)
+    (when (hash-table-p grouphash)
+      (maphash
+       (lambda (group-name val)
+	 (if encode
+	     (when (multibyte-string-p group-name)
+	       (remhash group-name grouphash)
+	       (puthash (encode-coding-string group-name 'utf-8-emacs)
+			val grouphash))
+	   (when (string-match-p "[^[:ascii:]]" group-name)
+	     (remhash group-name grouphash)
+	     (puthash (decode-coding-string group-name 'utf-8-emacs) val grouphash))))
+       grouphash))
+    (maphash
+     (lambda (id data)
+       (let ((groups (cdr-safe (assq 'group data))))
+	 (when (seq-some (lambda (g)
+			   (if encode
+			       (multibyte-string-p g)
+			     (string-match-p "[^[:ascii:]]" g)))
+			 groups)
+	   ;; Create a replacement DATA.
+	   (push (list id (cons (cons 'group (mapcar
+			   (lambda (g)
+			     (funcall
+			      (if encode
+				  #'encode-coding-string
+				#'decode-coding-string)
+			      g 'utf-8-emacs))
+			   groups))
+				(assq-delete-all 'group data)))
+		 reset-pairs))))
+     datahash)
+    (pcase-dolist (`(,id ,data) reset-pairs)
+      (remhash id datahash)
+      (puthash id data datahash))))
+
 (defun gnus-registry-fixup-registry (db)
   (when db
     (let ((old (oref db tracked)))
@@ -281,7 +325,8 @@ This can slow pruning down.  Set to nil to perform no sorting."
                     '(mark group keyword)))
       (when (not (equal old (oref db tracked)))
         (gnus-message 9 "Reindexing the Gnus registry (tracked change)")
-        (registry-reindex db))))
+        (registry-reindex db))
+      (gnus-registry--munge-group-names db)))
   db)
 
 (defun gnus-registry-make-db (&optional file)
@@ -307,33 +352,40 @@ This is not required after changing `gnus-registry-cache-file'."
     (gnus-message 4 "Remaking the Gnus registry")
     (setq gnus-registry-db (gnus-registry-make-db))))
 
-(defun gnus-registry-load ()
-  "Load the registry from the cache file."
+(defun gnus-registry-load (&optional force)
+  "Load the registry from the cache file.
+If the registry is already loaded, don't reload unless FORCE is
+non-nil."
   (interactive)
-  (let ((file gnus-registry-cache-file))
-    (condition-case nil
-        (gnus-registry-read file)
-      (file-error
-       ;; Fix previous mis-naming of the registry file.
-       (let ((old-file-name
-	      (concat (file-name-sans-extension
-		      gnus-registry-cache-file)
-		     ".eioio")))
-	 (if (and (file-exists-p old-file-name)
-		  (yes-or-no-p
-		   (format "Rename registry file from %s to %s? "
-			   old-file-name file)))
-	     (progn
-	       (gnus-registry-read old-file-name)
-	       (setf (oref gnus-registry-db file) file)
-	       (gnus-message 1 "Registry filename changed to %s" file))
-	   (gnus-registry-remake-db t))))
-      (error
-       (gnus-message
-        1
-        "The Gnus registry could not be loaded from %s, creating a new one"
-        file)
-       (gnus-registry-remake-db t)))))
+  (when (or force
+	    ;; The registry is loaded by both
+	    ;; `gnus-registry-initialize' and the read-newsrc hook.
+	    ;; Don't load twice.
+	    (null (eieio-object-p gnus-registry-db)))
+    (let ((file gnus-registry-cache-file))
+      (condition-case nil
+          (gnus-registry-read file)
+	(file-error
+	 ;; Fix previous mis-naming of the registry file.
+	 (let ((old-file-name
+		(concat (file-name-sans-extension
+			 gnus-registry-cache-file)
+			".eioio")))
+	   (if (and (file-exists-p old-file-name)
+		    (yes-or-no-p
+		     (format "Rename registry file from %s to %s? "
+			     old-file-name file)))
+	       (progn
+		 (gnus-registry-read old-file-name)
+		 (setf (oref gnus-registry-db file) file)
+		 (gnus-message 1 "Registry filename changed to %s" file))
+	     (gnus-registry-remake-db t))))
+	(error
+	 (gnus-message
+          1
+          "The Gnus registry could not be loaded from %s, creating a new one"
+          file)
+	 (gnus-registry-remake-db t))))))
 
 (defun gnus-registry-read (file)
   "Do the actual reading of the registry persistence file."
@@ -351,14 +403,20 @@ This is not required after changing `gnus-registry-cache-file'."
 (defun gnus-registry-save (&optional file db)
   "Save the registry cache file."
   (interactive)
-  (let ((file (or file gnus-registry-cache-file))
-        (db (or db gnus-registry-db)))
+  (let* ((file (or file gnus-registry-cache-file))
+         (db (or db gnus-registry-db))
+	 (clone (clone db)))
     (gnus-message 5 "Saving Gnus registry (%d entries) to %s..."
                   (registry-size db) file)
     (registry-prune
      db gnus-registry-default-sort-function)
+    ;; Write a clone of the database with non-ascii group names
+    ;; encoded as 'utf-8.  Let-bind `gnus-registry-db' so that
+    ;; functions in the munging process work on our clone.
+    (let ((gnus-registry-db clone))
+     (gnus-registry--munge-group-names clone 'encode))
     ;; TODO: call (gnus-string-remove-all-properties v) on all elements?
-    (eieio-persistent-save db file)
+    (eieio-persistent-save clone file)
     (gnus-message 5 "Saving Gnus registry (size %d) to %s...done"
                   (registry-size db) file)))
 
@@ -804,11 +862,9 @@ Overrides existing keywords with FORCE set non-nil."
 
 ;; message field fetchers
 (defun gnus-registry-fetch-message-id-fast (article)
-  "Fetch the Message-ID quickly, using the internal gnus-data-list function."
-  (if (and (numberp article)
-           (assoc article (gnus-data-list nil)))
-      (mail-header-id (gnus-data-header (assoc article (gnus-data-list nil))))
-    nil))
+  "Fetch the Message-ID quickly, using the internal `gnus-data-find' function."
+  (when-let* ((data (and (numberp article) (gnus-data-find article))))
+    (mail-header-id (gnus-data-header data))))
 
 (defun gnus-registry-extract-addresses (text)
   "Extract all the addresses in a normalized way from TEXT.
@@ -835,23 +891,18 @@ Addresses without a name will say \"noname\"."
     nil))
 
 (defun gnus-registry-fetch-simplified-message-subject-fast (article)
-  "Fetch the Subject quickly, using the internal gnus-data-list function."
-  (if (and (numberp article)
-           (assoc article (gnus-data-list nil)))
-      (gnus-string-remove-all-properties
-       (gnus-registry-simplify-subject
-        (mail-header-subject (gnus-data-header
-                              (assoc article (gnus-data-list nil))))))
-    nil))
+  "Fetch the Subject quickly, using the internal `gnus-data-find' function."
+  (when-let* ((data (and (numberp article) (gnus-data-find article))))
+    (gnus-string-remove-all-properties
+     (gnus-registry-simplify-subject
+      (mail-header-subject (gnus-data-header data))))))
 
 (defun gnus-registry-fetch-sender-fast (article)
-  (when-let* ((data (and (numberp article)
-			 (assoc article (gnus-data-list nil)))))
+  (when-let* ((data (and (numberp article) (gnus-data-find article))))
     (mail-header-from (gnus-data-header data))))
 
 (defun gnus-registry-fetch-recipients-fast (article)
-  (when-let* ((data (and (numberp article)
-			 (assoc article (gnus-data-list nil))))
+  (when-let* ((data (and (numberp article) (gnus-data-find article)))
 	      (extra (mail-header-extra (gnus-data-header data))))
     (gnus-registry-sort-addresses
      (or (cdr (assq 'Cc extra)) "")
@@ -892,9 +943,7 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
     (gnus-message 9 "Applying mark %s to %d articles"
                   mark (length articles))
     (dolist (article articles)
-      (gnus-summary-update-article
-       article
-       (assoc article (gnus-data-list nil))))))
+      (gnus-summary-update-article article (gnus-data-find article)))))
 
 ;; This is ugly code, but I don't know how to do it better.
 (defun gnus-registry-install-shortcuts ()
@@ -963,23 +1012,27 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)
   "Show the marks for an article by the :char property."
-  (let* ((id (mail-header-message-id headers))
-         (marks (when id (gnus-registry-get-id-key id 'mark))))
-    (concat (delq nil
-		  (mapcar
-		   (lambda (m)
-		     (plist-get
-		      (cdr-safe (assoc m gnus-registry-marks))
-		      :char))
-		   marks)))))
+  (if gnus-registry-enabled
+      (let* ((id (mail-header-message-id headers))
+             (marks (when id (gnus-registry-get-id-key id 'mark))))
+	(concat (delq nil
+		      (mapcar
+		       (lambda (m)
+			 (plist-get
+			  (cdr-safe (assoc m gnus-registry-marks))
+			  :char))
+		       marks))))
+    ""))
 
 ;; use like this:
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
 (defun gnus-registry-article-marks-to-names (headers)
   "Show the marks for an article by name."
-  (let* ((id (mail-header-message-id headers))
-         (marks (when id (gnus-registry-get-id-key id 'mark))))
-    (mapconcat (lambda (mark) (symbol-name mark)) marks ",")))
+  (if gnus-registry-enabled
+      (let* ((id (mail-header-message-id headers))
+             (marks (when id (gnus-registry-get-id-key id 'mark))))
+	(mapconcat (lambda (mark) (symbol-name mark)) marks ","))
+    ""))
 
 (defun gnus-registry-read-mark ()
   "Read a mark name from the user with completion."
@@ -1115,6 +1168,13 @@ only the last one's marks are returned."
               (setq val (list val)))
             (gnus-registry-set-id-key id key val))))
       (message "Import done, collected %d entries" count))))
+
+(defun gnus-registry-clear ()
+  "Clear the registry."
+  (gnus-registry-unload-hook)
+  (setq gnus-registry-db nil))
+
+(gnus-add-shutdown 'gnus-registry-clear 'gnus)
 
 ;;;###autoload
 (defun gnus-registry-initialize ()

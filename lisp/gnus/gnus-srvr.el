@@ -1,6 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -191,14 +191,14 @@ If nil, a faster, but more primitive, buffer is used instead."
   '((((class color) (background light)) (:foreground "PaleTurquoise" :bold t))
     (((class color) (background dark)) (:foreground "PaleTurquoise" :bold t))
     (t (:bold t)))
-  "Face used for displaying AGENTIZED servers"
+  "Face used for displaying AGENTIZED servers."
   :group 'gnus-server-visual)
 
 (defface gnus-server-cloud
   '((((class color) (background light)) (:foreground "ForestGreen" :bold t))
     (((class color) (background dark)) (:foreground "PaleGreen" :bold t))
     (t (:bold t)))
-  "Face used for displaying Cloud-synced servers"
+  "Face used for displaying Cloud-synced servers."
   :group 'gnus-server-visual)
 
 (defface gnus-server-cloud-host
@@ -212,7 +212,7 @@ If nil, a faster, but more primitive, buffer is used instead."
   '((((class color) (background light)) (:foreground "Green3" :bold t))
     (((class color) (background dark)) (:foreground "Green1" :bold t))
     (t (:bold t)))
-  "Face used for displaying OPENED servers"
+  "Face used for displaying OPENED servers."
   :group 'gnus-server-visual)
 
 (defface gnus-server-closed
@@ -220,21 +220,21 @@ If nil, a faster, but more primitive, buffer is used instead."
     (((class color) (background dark))
      (:foreground "LightBlue" :italic t))
     (t (:italic t)))
-  "Face used for displaying CLOSED servers"
+  "Face used for displaying CLOSED servers."
   :group 'gnus-server-visual)
 
 (defface gnus-server-denied
   '((((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t :bold t)))
-  "Face used for displaying DENIED servers"
+  "Face used for displaying DENIED servers."
   :group 'gnus-server-visual)
 
 (defface gnus-server-offline
   '((((class color) (background light)) (:foreground "Orange" :bold t))
     (((class color) (background dark)) (:foreground "Yellow" :bold t))
     (t (:inverse-video t :bold t)))
-  "Face used for displaying OFFLINE servers"
+  "Face used for displaying OFFLINE servers."
   :group 'gnus-server-visual)
 
 (defvar gnus-server-font-lock-keywords
@@ -785,11 +785,13 @@ claim them."
 	      (while (not (eobp))
 		(ignore-errors
 		  (push (cons
-			 (buffer-substring
-			  (point)
-			  (progn
-			    (skip-chars-forward "^ \t")
-			    (point)))
+			 (decode-coding-string
+			  (buffer-substring
+			   (point)
+			   (progn
+			     (skip-chars-forward "^ \t")
+			     (point)))
+			  'utf-8-emacs)
 			 (let ((last (read cur)))
 			   (cons (read cur) last)))
 			groups))
@@ -797,18 +799,20 @@ claim them."
 	    (while (not (eobp))
 	      (ignore-errors
 		(push (cons
-		       (if (eq (char-after) ?\")
-			   (read cur)
-			 (let ((p (point)) (name ""))
-			   (skip-chars-forward "^ \t\\\\")
-			   (setq name (buffer-substring p (point)))
-			   (while (eq (char-after) ?\\)
-			     (setq p (1+ (point)))
-			     (forward-char 2)
-			     (skip-chars-forward "^ \t\\\\")
-			     (setq name (concat name (buffer-substring
-						      p (point)))))
-			   name))
+		       (decode-coding-string
+			(if (eq (char-after) ?\")
+			    (read cur)
+			  (let ((p (point)) (name ""))
+			    (skip-chars-forward "^ \t\\\\")
+			    (setq name (buffer-substring p (point)))
+			    (while (eq (char-after) ?\\)
+			      (setq p (1+ (point)))
+			      (forward-char 2)
+			      (skip-chars-forward "^ \t\\\\")
+			      (setq name (concat name (buffer-substring
+						       p (point)))))
+			    name))
+			'utf-8-emacs)
 		       (let ((last (read cur)))
 			 (cons (read cur) last)))
 		      groups))
@@ -860,12 +864,7 @@ claim them."
 			   ((= level gnus-level-zombie) ?Z)
 			   (t ?K)))
 			(max 0 (- (1+ (cddr group)) (cadr group)))
-			;; Don't decode if name is ASCII
-			(if (eq (detect-coding-string name t) 'undecided)
-			    name
-			  (decode-coding-string
-			   name
-			   (inline (gnus-group-name-charset method name)))))))
+			name)))
 	     (list 'gnus-group name)
 	     )))
 	(switch-to-buffer (current-buffer)))
@@ -1087,8 +1086,7 @@ Requesting compaction of %s... (this may take a long time)"
       ;; Invalidate the original article buffer which might be out of date.
       ;; #### NOTE: Yes, this might be a bit rude, but since compaction
       ;; #### will not happen very often, I think this is acceptable.
-      (let ((original (get-buffer gnus-original-article-buffer)))
-	(and original (gnus-kill-buffer original))))))
+      (gnus-kill-buffer gnus-original-article-buffer))))
 
 (defun gnus-server-toggle-cloud-server ()
   "Toggle whether the server under point is replicated in the Emacs Cloud."

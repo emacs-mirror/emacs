@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -118,13 +118,12 @@ C-k} is two key sequences, not one.
   By default, the prefix keys in Emacs are @kbd{C-c}, @kbd{C-h},
 @kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x
 n}, @kbd{C-x r}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x 6},
-@key{ESC}, @kbd{M-g}, and @kbd{M-o}.  (@key{F1} and @key{F2} are
-aliases for @kbd{C-h} and @kbd{C-x 6}.)  This list is not cast in
-stone; if you customize Emacs, you can make new prefix keys.  You
-could even eliminate some of the standard ones, though this is not
-recommended for most users; for example, if you remove the prefix
-definition of @kbd{C-x 4}, then @kbd{C-x 4 C-f} becomes an invalid key
-sequence.  @xref{Key Bindings}.
+@key{ESC}, @kbd{M-g}, @kbd{M-o} and @key{F2}.  (@key{F1} is an alias
+for @kbd{C-h}.)  This list is not cast in stone; if you customize
+Emacs, you can make new prefix keys.  You could even eliminate some of
+the standard ones, though this is not recommended for most users; for
+example, if you remove the prefix definition of @kbd{C-x 4}, then
+@kbd{C-x 4 C-f} becomes an invalid key sequence.  @xref{Key Bindings}.
 
   Typing the help character (@kbd{C-h} or @key{F1}) after a prefix key
 displays a list of the commands starting with that prefix.  The sole

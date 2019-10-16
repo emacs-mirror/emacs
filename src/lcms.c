@@ -1,5 +1,5 @@
 /* Interface to Little CMS
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -108,7 +108,7 @@ parse_lab_list (Lisp_Object lab_list, cmsCIELab *color)
   return true;
 }
 
-/* http://www.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf> */
+/* http://www.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf */
 
 DEFUN ("lcms-cie-de2000", Flcms_cie_de2000, Slcms_cie_de2000, 2, 5, 0,
        doc: /* Compute CIEDE2000 metric distance between COLOR1 and COLOR2.

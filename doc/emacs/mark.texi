@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mark
@@ -76,7 +76,7 @@ Set point and the mark around the text you drag across.
 @item mouse-3
 Set the mark at point, then move point to where you click
 (@code{mouse-save-then-kill}).
-@item @samp{Shifted cursor motion keys}
+@item @r{Shifted cursor motion keys}
 Set the mark at point if the mark is inactive, then move point.
 @xref{Shift Selection}.
 @end table
@@ -193,8 +193,8 @@ located before point, @kbd{M-@@} moves the mark backwards from its
 current position one word at a time.
 
   This command also accepts a numeric argument @var{n}, which tells it
-to advance the mark by @var{n} words.  A negative argument moves the
-mark back by @var{n} words.
+to advance the mark by @var{n} words.  A negative argument
+@minus{}@var{n} moves the mark back by @var{n} words.
 
 @kindex C-M-@@
 @findex mark-sexp
@@ -420,9 +420,9 @@ commands.
   The default behavior of the mark and region, in which setting the
 mark activates it and highlights the region, is called Transient Mark
 mode.  This is a minor mode that is enabled by default.  It can be
-toggled with @kbd{M-x transient-mark-mode}, or with the @samp{Active
-Region Highlighting} menu item in the @samp{Options} menu.  Turning it
-off switches Emacs to an alternative mode of operation:
+toggled with @kbd{M-x transient-mark-mode}, or with the
+@samp{Highlight Active Region} menu item in the @samp{Options} menu.
+Turning it off switches Emacs to an alternative mode of operation:
 
 @itemize @bullet
 @item

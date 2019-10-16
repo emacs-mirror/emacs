@@ -1,6 +1,6 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: emacs-devel@gnu.org
@@ -177,18 +177,20 @@ does not appear in the ERC buffer after the user presses ENTER.")
   "This mode distinguishes non-commands.
 Commands listed in `erc-insert-this' know how to display
 themselves."
-  ((add-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands))
-  ((remove-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands)))
+  ((add-hook 'erc-pre-send-functions 'erc-send-distinguish-noncommands))
+  ((remove-hook 'erc-pre-send-functions 'erc-send-distinguish-noncommands)))
 
-(defun erc-send-distinguish-noncommands (str)
-  "If STR is an ERC non-command, set `erc-insert-this' to nil."
-  (let* ((command (erc-extract-command-from-line str))
+(defun erc-send-distinguish-noncommands (state)
+  "If STR is an ERC non-command, set `insertp' in STATE to nil."
+  (let* ((string (erc-input-string state))
+         (command (erc-extract-command-from-line string))
          (cmd-fun (and command
                        (car command))))
     (when (and cmd-fun
-               (not (string-match "\n.+$" str))
+               (not (string-match "\n.+$" string))
                (memq cmd-fun erc-noncommands-list))
-      (setq erc-insert-this nil))))
+      ;; Inhibit sending this string.
+      (setf (erc-input-insertp state) nil))))
 
 ;;; IRC control character processing.
 (defgroup erc-control-characters nil
@@ -548,7 +550,7 @@ channel that has weird people talking in morse to each other.
 
 See also `unmorse-region'."
   (goto-char (point-min))
-  (when (re-search-forward "[.-]+\\([.-]*/? *\\)+[.-]+/?" nil t)
+  (when (re-search-forward "[.-]+[./ -]*[.-]/?" nil t)
     (save-restriction
       (narrow-to-region (match-beginning 0) (match-end 0))
       ;; Turn " / " into "  "

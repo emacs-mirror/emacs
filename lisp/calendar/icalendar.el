@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -628,6 +628,7 @@ FIXME: multiple comma-separated values should be allowed!"
         (when (> (length isodatetimestring) 14)
           ;; seconds present
           (setq second (read (substring isodatetimestring 13 15))))
+	;; FIXME: Support subseconds.
         (when (and (> (length isodatetimestring) 15)
                    ;; UTC specifier present
                    (char-equal ?Z (aref isodatetimestring 15)))
@@ -643,12 +644,14 @@ FIXME: multiple comma-separated values should be allowed!"
               (setq year  (nth 2 mdy))))
         ;; create the decoded date-time
         ;; FIXME!?!
-        (condition-case nil
-            (decode-time (encode-time second minute hour day month year zone))
-          (error
-           (message "Cannot decode \"%s\"" isodatetimestring)
-           ;; hope for the best...
-           (list second minute hour day month year 0 nil 0))))
+	(let ((decoded-time (list second minute hour day month year
+				  nil -1 zone)))
+	  (condition-case nil
+	      (decode-time (encode-time decoded-time))
+	    (error
+	     (message "Cannot decode \"%s\"" isodatetimestring)
+	     ;; Hope for the best....
+	     decoded-time))))
     ;; isodatetimestring == nil
     nil))
 
@@ -701,6 +704,7 @@ FIXME: multiple comma-separated values should be allowed!"
                 (setq minutes (read (substring isodurationstring
                                                (match-beginning 10)
                                                (match-end 10)))))
+	    ;; FIXME: Support subseconds.
             (if (match-beginning 11)
                 (setq seconds (read (substring isodurationstring
                                                (match-beginning 12)
@@ -717,14 +721,17 @@ FIXME: multiple comma-separated values should be allowed!"
   "Add TIME1 to TIME2.
 Both times must be given in decoded form.  One of these times must be
 valid (year > 1900 or something)."
-  ;; FIXME: does this function exist already?
+  ;; FIXME: does this function exist already?  Can we use decoded-time-add?
   (decode-time (encode-time
-                (+ (nth 0 time1) (nth 0 time2))
-                (+ (nth 1 time1) (nth 1 time2))
-                (+ (nth 2 time1) (nth 2 time2))
-                (+ (nth 3 time1) (nth 3 time2))
-                (+ (nth 4 time1) (nth 4 time2))
-                (+ (nth 5 time1) (nth 5 time2))
+		;; FIXME: Support subseconds.
+		(time-convert (time-add (decoded-time-second time1)
+					(decoded-time-second time2))
+			      'integer)
+                (+ (decoded-time-minute time1) (decoded-time-minute time2))
+                (+ (decoded-time-hour time1) (decoded-time-hour time2))
+                (+ (decoded-time-day time1) (decoded-time-day time2))
+                (+ (decoded-time-month time1) (decoded-time-month time2))
+                (+ (decoded-time-year time1) (decoded-time-year time2))
                 nil
                 nil
                 ;;(or (nth 6 time1) (nth 6 time2)) ;; FIXME?
@@ -1596,8 +1603,7 @@ regular expression matching the start of non-marking entries.
 ENTRY-MAIN is the first line of the diary entry.
 
 Optional argument START determines the first day of the
-enumeration, given as a time value, in same format as returned by
-`current-time' -- used for test purposes."
+enumeration, given as a Lisp time value -- used for test purposes."
   (cond ((string-match (concat nonmarker
                                "%%(and \\(([^)]+)\\))\\(\\s-*.*?\\) ?$")
                        entry-main)
@@ -1621,11 +1627,10 @@ enumeration, given as a time value, in same format as returned by
                    (mapcar
                     (lambda (offset)
                       (let* ((day (decode-time (time-add now
-                                                         (seconds-to-time
-                                                          (* offset 60 60 24)))))
-                             (d (nth 3 day))
-                             (m (nth 4 day))
-                             (y (nth 5 day))
+							 (* 60 60 24 offset))))
+                             (d (decoded-time-day day))
+                             (m (decoded-time-month day))
+                             (y (decoded-time-year day))
                              (se (diary-sexp-entry p1 p2 (list m d y)))
                              (see (cond ((stringp se) se)
                                         ((consp se) (cdr se))
@@ -2090,7 +2095,9 @@ written into the buffer `*icalendar-errors*'."
                                                              dtstart-zone))
                  (start-d (icalendar--datetime-to-diary-date
                            dtstart-dec))
-                 (start-t (icalendar--datetime-to-colontime dtstart-dec))
+                 (start-t (and dtstart
+                               (> (length dtstart) 8)
+                               (icalendar--datetime-to-colontime dtstart-dec)))
                  (dtend (icalendar--get-event-property e 'DTEND))
                  (dtend-zone (icalendar--find-time-zone
  			      (icalendar--get-event-property-attributes
@@ -2143,8 +2150,7 @@ written into the buffer `*icalendar-errors*'."
                                     (icalendar--get-event-property-attributes
                                      e 'DTEND))
                                    "DATE")))
-                            (icalendar--datetime-to-colontime dtend-dec)
-                          start-t))
+                            (icalendar--datetime-to-colontime dtend-dec)))
             (icalendar--dmsg "start-d: %s, end-d: %s" start-d end-d)
             (cond
              ;; recurring event
@@ -2502,20 +2508,10 @@ the entry."
     (when summary
       (setq non-marking
             (y-or-n-p (format "Make appointment non-marking? "))))
-    (save-window-excursion
-      (unless diary-filename
-        (setq diary-filename
-              (read-file-name "Add appointment to this diary file: ")))
-      ;; Note: diary-make-entry will add a trailing blank char.... :(
-      (funcall (if (fboundp 'diary-make-entry)
-                   'diary-make-entry
-                 'make-diary-entry)
-               string non-marking diary-filename)))
-  ;; Würgaround to remove the trailing blank char
-  (with-current-buffer (find-file diary-filename)
-    (goto-char (point-max))
-    (if (= (char-before) ? )
-        (delete-char -1)))
+    (unless diary-filename
+      (setq diary-filename
+            (read-file-name "Add appointment to this diary file: ")))
+    (diary-make-entry string non-marking diary-filename t t))
   ;; return diary-filename in case it has been changed interactively
   diary-filename)
 

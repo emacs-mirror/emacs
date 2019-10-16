@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -563,7 +563,8 @@ variable in a mode hook."
 (defcustom-c-stylevar c-doc-comment-style
   '((java-mode . javadoc)
     (pike-mode . autodoc)
-    (c-mode    . gtkdoc))
+    (c-mode    . gtkdoc)
+    (c++-mode  . gtkdoc))
   "Specifies documentation comment style(s) to recognize.
 This is primarily used to fontify doc comments and the markup within
 them, e.g. Javadoc comments.
@@ -573,7 +574,7 @@ comment styles:
 
  javadoc -- Javadoc style for \"/** ... */\" comments (default in Java mode).
  autodoc -- Pike autodoc style for \"//! ...\" comments (default in Pike mode).
- gtkdoc  -- GtkDoc style for \"/** ... **/\" comments (default in C mode).
+ gtkdoc  -- GtkDoc style for \"/** ... **/\" comments (default in C and C++ modes).
 
 The value may also be a list of doc comment styles, in which case all
 of them are recognized simultaneously (presumably with markup cues
@@ -1115,7 +1116,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: At the brace list decl start(*).
        (brace-list-intro      . +)
        ;; Anchor pos: At the brace list decl start(*).
-       (brace-list-entry      . c-lineup-under-anchor)
+       (brace-list-entry      . 0)
        ;; Anchor pos: At the first non-ws char after the open paren if
        ;; the first token is on the same line, otherwise boi at that
        ;; token.
@@ -1210,7 +1211,7 @@ can always override the use of `c-default-style' by making calls to
        (template-args-cont    . (c-lineup-template-args +))
        ;; Anchor pos: Boi at the decl start.  This might be changed;
        ;; the logical position is clearly the opening '<'.
-       (inlambda              . c-lineup-inexpr-block)
+       (inlambda              . 0)
        ;; Anchor pos: None.
        (lambda-intro-cont     . +)
        ;; Anchor pos: Boi at the lambda start.
@@ -1648,8 +1649,10 @@ white space either before or after the operator, but not both."
   :group 'c)
 
 ;; Initialize the next two to a regexp which never matches.
-(defvar c-noise-macro-with-parens-name-re "a\\`")
-(defvar c-noise-macro-name-re "a\\`")
+(defvar c-noise-macro-with-parens-name-re regexp-unmatchable)
+(make-variable-buffer-local 'c-noise-macro-with-parens-name-re)
+(defvar c-noise-macro-name-re regexp-unmatchable)
+(make-variable-buffer-local 'c-noise-macro-name-re)
 
 (defcustom c-noise-macro-names nil
   "A list of names of macros which expand to nothing, or compiler extensions
@@ -1664,6 +1667,7 @@ this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
   :type '(repeat :tag "List of names" string)
   :group 'c)
 (put 'c-noise-macro-names 'safe-local-variable #'c-string-list-p)
+(make-variable-buffer-local 'c-noise-macro-names)
 
 (defcustom c-noise-macro-with-parens-names nil
   "A list of names of macros \(or compiler extensions like \"__attribute__\")
@@ -1673,12 +1677,13 @@ These are recognized by CC Mode only in declarations."
   :type '(repeat :tag "List of names (possibly empty)" string)
   :group 'c)
 (put 'c-noise-macro-with-parens-names 'safe-local-variable #'c-string-list-p)
+(make-variable-buffer-local 'c-noise-macro-with-parens-names)
 
 (defun c-make-noise-macro-regexps ()
   ;; Convert `c-noise-macro-names' and `c-noise-macro-with-parens-names' into
   ;; `c-noise-macro-name-re' and `c-noise-macro-with-parens-name-re'.
   (setq c-noise-macro-with-parens-name-re
-	(cond ((null c-noise-macro-with-parens-names) "a\\`") ; Never matches.
+	(cond ((null c-noise-macro-with-parens-names) regexp-unmatchable)
 	      ((consp c-noise-macro-with-parens-names)
 	       (concat (regexp-opt c-noise-macro-with-parens-names t)
 		       "\\([^[:alnum:]_$]\\|$\\)"))
@@ -1687,7 +1692,7 @@ These are recognized by CC Mode only in declarations."
 	      (t (error "c-make-noise-macro-regexps: \
 c-noise-macro-with-parens-names is invalid: %s" c-noise-macro-with-parens-names))))
   (setq c-noise-macro-name-re
-	(cond ((null c-noise-macro-names) "a\\`") ; Never matches anything.
+	(cond ((null c-noise-macro-names) regexp-unmatchable)
 	      ((consp c-noise-macro-names)
 	       (concat (regexp-opt c-noise-macro-names t)
 		       "\\([^[:alnum:]_$]\\|$\\)"))

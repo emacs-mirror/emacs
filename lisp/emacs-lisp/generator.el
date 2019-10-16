@@ -1,6 +1,6 @@
 ;;; generator.el --- generators  -*- lexical-binding: t -*-
 
-;;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords: extensions, elisp
@@ -123,7 +123,7 @@ to the current stack of such wrappers.  WRAPPER is a function that
 takes a form and returns a wrapped form.
 
 Whenever we generate an atomic form (i.e., a form that can't
-iter-yield), we first (before actually inserting that form in our
+`iter-yield'), we first (before actually inserting that form in our
 generated code) pass that form through all the transformer
 functions.  We use this facility to wrap forms that can transfer
 control flow non-locally in goo that diverts this control flow to
@@ -170,7 +170,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
     (and (fboundp handler) handler)))
 
 (defvar cps-inhibit-atomic-optimization nil
-  "When t, always rewrite forms into cps even when they
+  "When non-nil, always rewrite forms into cps even when they
 don't yield.")
 
 (defvar cps--yield-seen)
@@ -374,13 +374,6 @@ don't yield.")
                       `(setf ,cps--value-symbol ,temp-var-symbol
                              ,cps--state-symbol ,next-state))))))))
 
-    ;; Process `prog2'.
-
-    (`(prog2 ,form1 ,form2 . ,body)
-      (cps--transform-1
-       `(progn ,form1 (prog1 ,form2 ,@body))
-       next-state))
-
     ;; Process `unwind-protect': If we're inside an unwind-protect, we
     ;; have a block of code UNWINDFORMS which we would like to run
     ;; whenever control flows away from the main piece of code,
@@ -548,7 +541,7 @@ don't yield.")
 
 (defun cps--replace-variable-references (var new-var form)
   "Replace all non-shadowed references to VAR with NEW-VAR in FORM.
-This routine does not modify FORM. Instead, it returns a
+This routine does not modify FORM.  Instead, it returns a
 modified copy."
   (macroexpand-all
    `(cl-symbol-macrolet ((,var ,new-var)) ,form)
@@ -722,7 +715,7 @@ iterator cannot supply more values."
 
 (defun iter-close (iterator)
   "Terminate an iterator early.
-Run any unwind-protect handlers in scope at the point  ITERATOR
+Run any unwind-protect handlers in scope at the point ITERATOR
 is blocked."
   (funcall iterator :close nil))
 
@@ -767,7 +760,7 @@ Return the value with which ITERATOR finished iteration."
        (cps--advance-for ,cs))))
 
 (defun cps--handle-loop-for (var)
-  "Support `iter-by' in `loop'.  "
+  "Support `iter-by' in `loop'."
   ;; N.B. While the cl-loop-for-handler is a documented interface,
   ;; there's no documented way for cl-loop-for-handler callbacks to do
   ;; anything useful!  Additionally, cl-loop currently lexbinds useful

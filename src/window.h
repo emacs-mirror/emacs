@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2018 Free Software
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -142,6 +142,11 @@ struct window
        as well.  */
     Lisp_Object contents;
 
+    /* The old buffer of this window, set to this window's buffer by
+       run_window_change_functions every time it sees this window.
+       Unused for internal windows.  */
+    Lisp_Object old_buffer;
+
     /* A marker pointing to where in the text to start displaying.
        BIDI Note: This is the _logical-order_ start, i.e. the smallest
        buffer position visible in the window, not necessarily the
@@ -207,9 +212,8 @@ struct window
     /* The help echo text for this window.  Qnil if there's none.  */
     Lisp_Object mode_line_help_echo;
 
-    /* No Lisp data may follow below this point without changing
-       mark_object in alloc.c.  The member current_matrix must be the
-       first non-Lisp member.  */
+    /* No Lisp data may follow this point; mode_line_help_echo must be
+       the last Lisp member.  */
 
     /* Glyph matrices.  */
     struct glyph_matrix *current_matrix;
@@ -229,6 +233,14 @@ struct window
     /* Unique number of window assigned when it was created.  */
     EMACS_INT sequence_number;
 
+    /* The change stamp of this window.  Set to 0 when the window is
+       created, it is set to its frame's change stamp every time
+       run_window_change_functions is run on that frame with this
+       window live.  It is left alone when the window exists only
+       within a window configuration.  Not useful for internal
+       windows.  */
+    int change_stamp;
+
     /* The upper left corner pixel coordinates of this window, as
        integers relative to upper left corner of frame = 0, 0.  */
     int pixel_left;
@@ -243,10 +255,13 @@ struct window
     int pixel_width;
     int pixel_height;
 
-    /* The pixel sizes of the window at the last time
-       `window-size-change-functions' was run.  */
-    int pixel_width_before_size_change;
-    int pixel_height_before_size_change;
+    /* The pixel and pixel body sizes of the window at the last time
+       run_window_change_functions was run with this window live.  Not
+       useful for internal windows.  */
+    int old_pixel_width;
+    int old_pixel_height;
+    int old_body_pixel_width;
+    int old_body_pixel_height;
 
     /* The size of the window.  */
     int total_cols;
@@ -265,11 +280,11 @@ struct window
 
     /* Displayed buffer's text modification events counter as of last time
        display completed.  */
-    EMACS_INT last_modified;
+    modiff_count last_modified;
 
     /* Displayed buffer's overlays modification events counter as of last
        complete update.  */
-    EMACS_INT last_overlay_modified;
+    modiff_count last_overlay_modified;
 
     /* Value of point at that time.  Since this is a position in a buffer,
        it should be positive.  */
@@ -346,6 +361,9 @@ struct window
     /* Effective height of the header line, or -1 if not known.  */
     int header_line_height;
 
+    /* Effective height of the tab line, or -1 if not known.  */
+    int tab_line_height;
+
     /* Z - the buffer position of the last glyph in the current
        matrix of W.  Only valid if window_end_valid is true.  */
     ptrdiff_t window_end_pos;
@@ -406,6 +424,14 @@ struct window
     /* True means fringes are drawn outside display margins.
        Otherwise draw them between margin areas and text.  */
     bool_bf fringes_outside_margins : 1;
+
+    /* True if this window's fringe specifications are persistent,
+       i.e., always survive Fset_window_buffer.  */
+    bool_bf fringes_persistent : 1;
+
+    /* True if this window's croll bar specifications are persistent,
+       i.e., always survive Fset_window_buffer.  */
+    bool_bf scroll_bars_persistent : 1;
 
     /* True if window_end_pos and window_end_vpos are truly valid.
        This is false if nontrivial redisplay is preempted since in that case
@@ -580,7 +606,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_BUFFER(W)			\
   (WINDOW_LEAF_P(W)				\
    ? (W)->contents				\
-   : Qnil)					\
+   : Qnil)
 
 /* Return the canonical column width of the frame of window W.  */
 #define WINDOW_FRAME_COLUMN_WIDTH(W) \
@@ -634,7 +660,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_RIGHTMOST_P(W)					\
   (WINDOW_RIGHT_PIXEL_EDGE (W)					\
    == (WINDOW_RIGHT_PIXEL_EDGE					\
-       (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))	\
+       (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))
 
 /* True if window W has no other windows below it on its frame (the
    minibuffer window is not counted in this respect unless W itself is a
@@ -642,13 +668,13 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_BOTTOMMOST_P(W)					\
   (WINDOW_BOTTOM_PIXEL_EDGE (W)					\
    == (WINDOW_BOTTOM_PIXEL_EDGE					\
-       (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))	\
+       (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))
 
 /* True if window W takes up the full width of its frame.  */
 #define WINDOW_FULL_WIDTH_P(W)					\
   (WINDOW_PIXEL_WIDTH (W)					\
    == (WINDOW_PIXEL_WIDTH					\
-       (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))	\
+       (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))
 
 /* Width of right divider of window W.  */
 #define WINDOW_RIGHT_DIVIDER_WIDTH(W)				\
@@ -674,7 +700,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
   (WINDOW_LEFT_EDGE_COL (W) + WINDOW_TOTAL_COLS (W))
 
 /* Return the canonical frame line at which window W starts.
-   This includes a header line, if any.  */
+   This includes a header/tab line, if any.  */
 #define WINDOW_TOP_EDGE_LINE(W) (W)->top_line
 
 /* Return the canonical frame line before which window W ends.
@@ -692,7 +718,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
   (WINDOW_LEFT_PIXEL_EDGE (W) + WINDOW_PIXEL_WIDTH (W))
 
 /* Return the top pixel edge at which window W starts.
-   This includes a header line, if any.  */
+   This includes a header/tab line, if any.  */
 #define WINDOW_TOP_PIXEL_EDGE(W) (W)->pixel_top
 
 /* Return the bottom pixel edge before which window W ends.
@@ -722,8 +748,17 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_MENU_BAR_P(W) false
 #endif
 
+/* True if W is a tab bar window.  */
+#if defined (HAVE_WINDOW_SYSTEM)
+# define WINDOW_TAB_BAR_P(W) \
+   (WINDOWP (WINDOW_XFRAME (W)->tab_bar_window) \
+    && (W) == XWINDOW (WINDOW_XFRAME (W)->tab_bar_window))
+#else
+# define WINDOW_TAB_BAR_P(W) false
+#endif
+
 /* True if W is a tool bar window.  */
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
 #define WINDOW_TOOL_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->tool_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->tool_bar_window))
@@ -733,13 +768,13 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Return the frame y-position at which window W starts.  */
 #define WINDOW_TOP_EDGE_Y(W) \
-  (((WINDOW_MENU_BAR_P (W) || WINDOW_TOOL_BAR_P (W)) \
+  (((WINDOW_MENU_BAR_P (W) || WINDOW_TAB_BAR_P (W) || WINDOW_TOOL_BAR_P (W)) \
     ? 0 : FRAME_INTERNAL_BORDER_WIDTH (WINDOW_XFRAME (W))) \
    + WINDOW_TOP_PIXEL_EDGE (W))
 
 /* Return the frame y-position before which window W ends.  */
 #define WINDOW_BOTTOM_EDGE_Y(W)				   \
-  (((WINDOW_MENU_BAR_P (W) || WINDOW_TOOL_BAR_P (W))	   \
+  (((WINDOW_MENU_BAR_P (W) || WINDOW_TAB_BAR_P (W) || WINDOW_TOOL_BAR_P (W))	   \
     ? 0 : FRAME_INTERNAL_BORDER_WIDTH (WINDOW_XFRAME (W))) \
    + WINDOW_BOTTOM_PIXEL_EDGE (W))
 
@@ -845,7 +880,9 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    W.  Horizontal scrollbars exist for toolkit versions only.  */
 #if USE_HORIZONTAL_SCROLL_BARS
 #define WINDOW_HAS_HORIZONTAL_SCROLL_BAR(W)			\
-  ((WINDOW_PSEUDO_P (W) || MINI_NON_ONLY_WINDOW_P (W))		\
+  ((WINDOW_PSEUDO_P (W)						\
+    || (MINI_WINDOW_P (W)					\
+	&& !EQ (W->horizontal_scroll_bar_type, Qbottom)))	\
    ? false							\
    : EQ (W->horizontal_scroll_bar_type, Qt)			\
    ? FRAME_HAS_HORIZONTAL_SCROLL_BARS (WINDOW_XFRAME (W))	\
@@ -971,6 +1008,16 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_HEADER_LINE_LINES(W)	\
   window_wants_header_line (W)
 
+/* Height in pixels of the tab line.
+   Zero if W doesn't have a tab line.  */
+#define WINDOW_TAB_LINE_HEIGHT(W)	\
+  (window_wants_tab_line (W)		\
+   ? CURRENT_TAB_LINE_HEIGHT (W)	\
+   : 0)
+
+#define WINDOW_TAB_LINE_LINES(W)	\
+  window_wants_tab_line (W)
+
 /* Pixel height of window W without mode line, bottom scroll bar and
    bottom divider.  */
 #define WINDOW_BOX_HEIGHT_NO_MODE_LINE(W)	\
@@ -979,14 +1026,15 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    - WINDOW_SCROLL_BAR_AREA_HEIGHT (W)		\
    - WINDOW_MODE_LINE_HEIGHT (W))
 
-/* Pixel height of window W without mode and header line and bottom
+/* Pixel height of window W without mode and header/tab line and bottom
    divider.  */
 #define WINDOW_BOX_TEXT_HEIGHT(W)	\
   (WINDOW_PIXEL_HEIGHT ((W))		\
    - WINDOW_BOTTOM_DIVIDER_WIDTH (W)	\
    - WINDOW_SCROLL_BAR_AREA_HEIGHT (W)	\
    - WINDOW_MODE_LINE_HEIGHT (W)	\
-   - WINDOW_HEADER_LINE_HEIGHT (W))
+   - WINDOW_HEADER_LINE_HEIGHT (W)	\
+   - WINDOW_TAB_LINE_HEIGHT (W))
 
 /* Return the frame position where the horizontal scroll bar of window W
    starts.  */
@@ -1043,15 +1091,15 @@ extern Lisp_Object minibuf_selected_window;
 
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
-                                            enum window_part *, bool);
-extern void resize_frame_windows (struct frame *, int, bool, bool);
+                                            enum window_part *, bool, bool);
+extern void resize_frame_windows (struct frame *, int, bool);
 extern void restore_window_configuration (Lisp_Object);
 extern void delete_all_child_windows (Lisp_Object);
-extern void grow_mini_window (struct window *, int, bool);
-extern void shrink_mini_window (struct window *, bool);
+extern void grow_mini_window (struct window *, int);
+extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
 
-void run_window_size_change_functions (Lisp_Object);
+void run_window_change_functions (void);
 
 /* Make WINDOW display BUFFER.  RUN_HOOKS_P means it's allowed
    to run hooks.  See make_frame for a case where it's not allowed.  */
@@ -1107,7 +1155,7 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* True if WINDOW is a valid window.  */
 #define WINDOW_VALID_P(WINDOW)					\
-  (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->contents))	\
+  (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->contents))
 
 /* A window of any sort, leaf or interior, is "valid" if its
    contents slot is non-nil.  */
@@ -1133,6 +1181,7 @@ extern bool compare_window_configurations (Lisp_Object, Lisp_Object, bool);
 extern void mark_window_cursors_off (struct window *);
 extern bool window_wants_mode_line (struct window *);
 extern bool window_wants_header_line (struct window *);
+extern bool window_wants_tab_line (struct window *);
 extern int window_internal_height (struct window *);
 extern int window_body_width (struct window *w, bool);
 enum margin_unit { MARGIN_IN_LINES, MARGIN_IN_PIXELS };

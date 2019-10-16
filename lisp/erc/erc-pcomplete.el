@@ -1,6 +1,6 @@
 ;;; erc-pcomplete.el --- Provides programmable completion for ERC
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Maintainer: emacs-devel@gnu.org
@@ -285,5 +285,4 @@ up to where point is right now."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: nil
 ;; End:

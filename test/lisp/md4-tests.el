@@ -1,6 +1,6 @@
 ;;; md4-tests.el --- tests for md4.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Maintainer: emacs-devel@gnu.org

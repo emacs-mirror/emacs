@@ -1,6 +1,6 @@
 ;;; mhtml-mode-tests.el --- Tests for mhtml-mode
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Keywords: tests
 

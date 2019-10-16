@@ -1,6 +1,6 @@
 ;;; tsdh-dark-theme.el --- Tassilo's dark custom theme
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

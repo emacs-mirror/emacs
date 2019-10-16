@@ -1,6 +1,6 @@
 ;;; image.el --- image API  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: multimedia
@@ -140,6 +140,16 @@ based on the font pixel size."
   :type '(choice number
                  (const :tag "Automatically compute" auto))
   :version "26.1")
+
+(defcustom image-use-external-converter nil
+  "If non-nil, `create-image' will use external converters for exotic formats.
+Emacs handles most of the common image formats (SVG, JPEG, PNG, GIF
+and some others) internally, but images that don't have native
+support in Emacs can still be displayed if an external conversion
+program (like ImageMagick \"convert\", GraphicsMagick \"gm\"
+or \"ffmpeg\") is installed."
+  :type 'boolean
+  :version "27.1")
 
 ;; Map put into text properties on images.
 (defvar image-map
@@ -315,7 +325,7 @@ be determined."
 					(buffer-substring
 					 (point-min)
 					 (min (point-max)
-					      (+ (point-min) 256))))))
+					      (+ (point-min) 8192))))))
 		     (setq image-type (cdr image-type))))
 	    (setq type image-type
 		  types nil)
@@ -339,7 +349,7 @@ be determined."
        (file-readable-p file)
        (with-temp-buffer
 	 (set-buffer-multibyte nil)
-	 (insert-file-contents-literally file nil 0 256)
+	 (insert-file-contents-literally file nil 0 8192)
 	 (image-type-from-buffer))))
 
 
@@ -357,6 +367,9 @@ be determined."
 	    ;; If nothing seems to be supported, return first type that matched.
 	    (or first (setq first type))))))))
 
+(declare-function image-convert-p "image-converter.el" (file))
+(declare-function image-convert "image-converter.el" (image))
+
 ;;;###autoload
 (defun image-type (source &optional type data-p)
   "Determine and return image type.
@@ -372,10 +385,16 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
     (setq type (if data-p
 		   (image-type-from-data source)
 		 (or (image-type-from-file-header source)
-		     (image-type-from-file-name source))))
-    (or type (error "Cannot determine image type")))
-  (or (memq type (and (boundp 'image-types) image-types))
-      (error "Invalid image type `%s'" type))
+		     (image-type-from-file-name source)
+                     (and image-use-external-converter
+                          (progn
+                            (require 'image-converter)
+                            (image-convert-p source))))))
+    (unless type
+      (error "Cannot determine image type")))
+  (when (and (not (eq type 'image-convert))
+             (not (memq type (and (boundp 'image-types) image-types))))
+    (error "Invalid image type `%s'" type))
   type)
 
 
@@ -415,13 +434,20 @@ must be available."
 (defun create-image (file-or-data &optional type data-p &rest props)
   "Create an image.
 FILE-OR-DATA is an image file name or image data.
+
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
 of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
 use its file extension as image type.
+
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
+
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.
+like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
+display has a high resolution (more exactly, when the average width of a
+character in the default font is more than 10 pixels), the image is
+automatically scaled up in proportion to the default font.
+
 Value is the image created, or nil if images of type TYPE are not supported.
 
 Images should not be larger than specified by `max-image-size'.
@@ -431,6 +457,12 @@ Image file names that are not absolute are searched for in the
 `x-bitmap-file-path' (in that order)."
   ;; It is x_find_image_file in image.c that sets the search path.
   (setq type (image-type file-or-data type data-p))
+  ;; If we have external image conversion switched on (for exotic,
+  ;; non-native image formats), then we convert the file.
+  (when (eq type 'image-convert)
+    (setq file-or-data (image-convert file-or-data)
+          type 'png
+          data-p t))
   (when (image-type-available-p type)
     (append (list 'image :type type (if data-p :data :file) file-or-data)
             (and (not (plist-get props :scale))
@@ -447,10 +479,10 @@ Internal use only."
         ;; plist.  Decouple plist entries where the key matches
         ;; the property.
         (if (eq (cadr image) property)
-            (setcdr image (cddr image))
+            (setcdr image (cdddr image))
           (setq image (cddr image))))
     ;; Just enter the new value.
-    (plist-put (cdr image) property value))
+    (setcdr image (plist-put (cdr image) property value)))
   value)
 
 (defun image-property (image property)
@@ -542,7 +574,7 @@ height of the image; integer values are taken as pixel values."
 			 `(display ,(if slice
 					(list (cons 'slice slice) image)
 				      image)
-                                   rear-nonsticky (display)
+                                   rear-nonsticky t
                                    keymap ,image-map))))
 
 
@@ -797,19 +829,22 @@ If the image has a non-nil :speed property, it acts as a multiplier
 for the animation speed.  A negative value means to animate in reverse."
   (when (and (buffer-live-p (plist-get (cdr image) :animate-buffer))
              ;; Delayed more than two seconds more than expected.
-	     (or (<= (- (float-time) target-time) 2)
+	     (or (time-less-p (time-since target-time) 2)
 		 (progn
 		   (message "Stopping animation; animation possibly too big")
 		   nil)))
     (image-show-frame image n t)
     (let* ((speed (image-animate-get-speed image))
-	   (time (float-time))
+	   (time (current-time))
 	   (animation (image-multi-frame-p image))
+	   (time-to-load-image (time-since time))
+	   (stated-delay-time (/ (or (cdr animation)
+				     image-default-frame-delay)
+				 (float (abs speed))))
 	   ;; Subtract off the time we took to load the image from the
 	   ;; stated delay time.
-	   (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
-			     (/ 1.0 (abs speed)))
-			  time (- (float-time)))
+	   (delay (max (float-time (time-subtract stated-delay-time
+						  time-to-load-image))
 		       image-minimum-frame-delay))
 	   done)
       (setq n (if (< speed 0)
@@ -918,7 +953,7 @@ has no effect."
   :version "24.3")
 
 (defcustom imagemagick-enabled-types
-  '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
+  '(3FR ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
     CUR CUT DCM DCR DCX DDS DJVU DNG DPX EXR FAX FITS GBR GIF
     GIF87 GRB HRZ ICB ICO ICON J2C JNG JP2 JPC JPEG JPG JPX K25
     KDC MIFF MNG MRW MSL MSVG MTV NEF ORF OTB PBM PCD PCDS PCL
@@ -952,7 +987,7 @@ has no effect."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.3")
+  :version "26.2")                      ; remove ART (bug#22289)
 
 (imagemagick-register-types)
 
@@ -982,11 +1017,12 @@ default is 20%."
     image))
 
 (defun image--get-imagemagick-and-warn ()
-  (unless (or (fboundp 'imagemagick-types) (featurep 'ns))
-    (error "Cannot rescale images without ImageMagick support"))
+  (unless (or (fboundp 'imagemagick-types) (image-transforms-p))
+    (error "Cannot rescale images on this terminal"))
   (let ((image (image--get-image)))
     (image-flush image)
-    (when (fboundp 'imagemagick-types)
+    (when (and (fboundp 'imagemagick-types)
+               (not (image-transforms-p)))
       (plist-put (cdr image) :type 'imagemagick))
     image))
 
@@ -1017,16 +1053,20 @@ default is 20%."
         (display-width (car (image-size image t))))
     (/ (float display-width) image-width)))
 
-(defun image-rotate ()
-  "Rotate the image under point by 90 degrees clockwise."
-  (interactive)
+(defun image-rotate (&optional angle)
+  "Rotate the image under point by ANGLE degrees clockwise.
+If nil, ANGLE defaults to 90.  Interactively, rotate the image 90
+degrees clockwise with no prefix argument, and counter-clockwise
+with a prefix argument.  Note that most image types support
+rotations by only multiples of 90 degrees."
+  (interactive (and current-prefix-arg '(-90)))
   (let ((image (image--get-imagemagick-and-warn)))
-    (plist-put (cdr image) :rotation
-               (float (mod (+ (or (plist-get (cdr image) :rotation) 0) 90)
-                           ;; We don't want to exceed 360 degrees
-                           ;; rotation, because it's not seen as valid
-                           ;; in exif data.
-                           360)))))
+    (setf (image-property image :rotation)
+          (float (mod (+ (or (image-property image :rotation) 0)
+                         (or angle 90))
+                      ;; We don't want to exceed 360 degrees rotation,
+                      ;; because it's not seen as valid in Exif data.
+                      360)))))
 
 (defun image-save ()
   "Save the image under point."

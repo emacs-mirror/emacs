@@ -1,6 +1,6 @@
 ;;; adwaita-theme.el --- Tango-based custom theme for faces
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: William Stevenson <yhvh2000@gmail.com>
 

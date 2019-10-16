@@ -1,6 +1,6 @@
 ;;; eudc.el --- Emacs Unified Directory Client  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -229,7 +229,7 @@ The current binding of VAR is changed only if SERVER is omitted."
 
 (defun eudc-set (var val)
   "Set the most local (server, protocol or default) binding of VAR to VAL.
-The current binding of VAR is also set to VAL"
+The current binding of VAR is also set to VAL."
   (cond
    ((not (eq 'unbound (eudc-variable-server-value var)))
     (eudc-server-set var val))
@@ -251,7 +251,7 @@ Return `unbound' if VAR has no EUDC default value."
 (defun eudc-variable-protocol-value (var &optional protocol)
   "Return the value of VAR local to PROTOCOL.
 Return `unbound' if VAR has no value local to PROTOCOL.
-PROTOCOL defaults to `eudc-protocol'"
+PROTOCOL defaults to `eudc-protocol'."
   (let* ((eudc-locals (get var 'eudc-locals))
 	 protocol-locals)
     (if (not (and  (boundp var)
@@ -266,7 +266,7 @@ PROTOCOL defaults to `eudc-protocol'"
 (defun eudc-variable-server-value (var &optional server)
   "Return the value of VAR local to SERVER.
 Return `unbound' if VAR has no value local to SERVER.
-SERVER defaults to `eudc-server'"
+SERVER defaults to `eudc-server'."
   (let* ((eudc-locals (get var 'eudc-locals))
 	 server-locals)
     (if (not (and (boundp var)
@@ -282,7 +282,7 @@ SERVER defaults to `eudc-server'"
   "Set the value of VAR according to its locals.
 If the VAR has a server- or protocol-local value corresponding
 to the current `eudc-server' and `eudc-protocol' then it is set
-accordingly. Otherwise it is set to its EUDC default binding"
+accordingly.  Otherwise it is set to its EUDC default binding."
   (let (val)
     (cond
      ((not (eq 'unbound (setq val (eudc-variable-server-value var))))
@@ -775,7 +775,7 @@ After querying the server for the given string, the expansion specified by
 If REPLACE is non-nil, then this expansion replaces the name in the buffer.
 `eudc-expansion-overwrites-query' being non-nil inverts the meaning of REPLACE.
 Multiple servers can be tried with the same query until one finds a match,
-see `eudc-inline-expansion-servers'"
+see `eudc-inline-expansion-servers'."
   (interactive)
   (cond
    ((eq eudc-inline-expansion-servers 'current-server)

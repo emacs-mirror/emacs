@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -907,7 +907,7 @@ STR occurs in the current buffer between BEG and END."
 	    (push str semantic-lex-spp-expanded-macro-stack)
 	    )
 
-	  (semantic-lex-spp-anlyzer-do-replace sym val beg end))
+	  (semantic-lex-spp-analyzer-do-replace sym val beg end))
 
 	))
      ;; Anything else.
@@ -1092,7 +1092,7 @@ and variable state from the current buffer."
 	;; the originating buffer we are parsing.  We need to do this every time
 	;; since the state changes.
 	(dolist (V important-vars)
-	  (set V (semantic-buffer-local-value V origbuff)))
+	  (set V (buffer-local-value V origbuff)))
 	(insert text)
 	(goto-char (point-min))
 
@@ -1244,7 +1244,7 @@ For languages that use the Semantic pre-processor, this can
 improve the accuracy of parsed files where include files
 can change the state of what's parsed in the current file.
 
-Note: Note implemented yet"
+Note: Not implemented yet."
   :group 'semantic
   :type 'boolean)
 

@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: emacs-devel@gnu.org
@@ -194,7 +194,9 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
     (if (or (eq char-syntax ?\))
 	    (and (eq char-syntax ?\") (nth 3 (syntax-ppss))))
 	(forward-char 1)
-      (forward-sexp 1))))
+      (condition-case _
+          (forward-sexp 1)
+        (scan-error nil)))))
 
 (define-obsolete-function-alias 'end-of-sexp
   'thing-at-point--end-of-sexp "25.1"
@@ -466,11 +468,14 @@ looks like an email address, \"ftp://\" if it starts with
      (while htbs
        (setq htb (car htbs) htbs (cdr htbs))
        (ignore-errors
-	 ;; errs: htb symbol may be unbound, or not a hash-table.
-	 ;; gnus-gethash is just a macro for intern-soft.
-	 (and (symbol-value htb)
-	      (intern-soft string (symbol-value htb))
-	      (setq ret string htbs nil))
+         (setq htb (symbol-value htb))
+	 (when (cond ((obarrayp htb)
+	              (intern-soft string htb))
+                     ((listp htb)
+                      (member string htb))
+                     ((hash-table-p htb)
+                      (gethash string htb)))
+	   (setq ret string htbs nil))
 	 ;; If we made it this far, gnus is running, so ignore "heads":
 	 (setq heads nil)))
      (or ret (not heads)
@@ -582,13 +587,13 @@ See RFC 4122 for the description of the format.")
 
 ;;  Aliases
 
-(defun word-at-point ()
+(defun word-at-point (&optional no-properties)
   "Return the word at point.  See `thing-at-point'."
-  (thing-at-point 'word))
+  (thing-at-point 'word no-properties))
 
-(defun sentence-at-point ()
+(defun sentence-at-point (&optional no-properties)
   "Return the sentence at point.  See `thing-at-point'."
-  (thing-at-point 'sentence))
+  (thing-at-point 'sentence no-properties))
 
 (defun thing-at-point--read-from-whole-string (str)
   "Read a Lisp expression from STR.
@@ -627,10 +632,17 @@ Signal an error if the entire string was not used."
     (if thing (intern thing))))
 ;;;###autoload
 (defun number-at-point ()
-  "Return the number at point, or nil if none is found."
-  (when (thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
-    (string-to-number
-     (buffer-substring (match-beginning 0) (match-end 0)))))
+  "Return the number at point, or nil if none is found.
+Decimal numbers like \"14\" or \"-14.5\", as well as hex numbers
+like \"0xBEEF09\" or \"#xBEEF09\", are regognized."
+  (when (thing-at-point-looking-at
+         "\\(-?[0-9]+\\.?[0-9]*\\)\\|\\(0x\\|#x\\)\\([a-zA-Z0-9]+\\)" 500)
+    (if (match-beginning 1)
+        (string-to-number
+         (buffer-substring (match-beginning 1) (match-end 1)))
+      (string-to-number
+       (buffer-substring (match-beginning 3) (match-end 3))
+       16))))
 
 (put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload

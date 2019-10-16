@@ -1,6 +1,6 @@
 ;;; newsticker-testsuite.el --- Test suite for newsticker.
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Keywords:    News, RSS, Atom

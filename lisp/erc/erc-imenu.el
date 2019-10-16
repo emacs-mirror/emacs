@@ -1,6 +1,6 @@
 ;;; erc-imenu.el -- Imenu support for ERC
 
-;; Copyright (C) 2001-2002, 2004, 2006-2018 Free Software Foundation,
+;; Copyright (C) 2001-2002, 2004, 2006-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
@@ -132,6 +132,4 @@ Don't rely on this function, read it first!"
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Written by Paul Eggert, Bruno Haible, Derek Price.
    This file is part of gnulib.
 
@@ -17,7 +17,7 @@
 
 /*
  * ISO C 99 <inttypes.h> for platforms that lack it.
- * <http://www.opengroup.org/susv3xbd/inttypes.h.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/inttypes.h.html>
  */
 
 #if __GNUC__ >= 3

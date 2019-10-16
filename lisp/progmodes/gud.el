@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1992-1996, 1998, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -678,7 +678,7 @@ The option \"--fullname\" must be included in this value."
     ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
-    (if (string-match "\n\\(\032.*\\)?\\'" gud-marker-acc)
+    (if (string-match "\\(\n\\)?\\(\032.*\\)?\\'" gud-marker-acc)
 	(progn
 	  ;; Everything before the potential marker start can be output.
 	  (setq output (concat output (substring gud-marker-acc
@@ -1605,8 +1605,14 @@ and source-file directory for your debugger."
 
 ;; Last group is for return value, e.g. "> test.py(2)foo()->None"
 ;; Either file or function name may be omitted: "> <string>(0)?()"
+;;
+;; We use [:graph:] to be very allowing with regards to which
+;; characters we match in the file name shown in the prompt.
+;; (Of course, this matches the "<string>" case too.)
 (defvar gud-pdb-marker-regexp
-  "^> \\([-a-zA-Z0-9_/.:@ \\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|<module>\\)()\\(->[^\n\r]*\\)?[\n\r]")
+  (concat "^> \\([[:graph:] \\]*\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|"
+          "<\\(?:module\\|listcomp\\|dictcomp\\|setcomp\\|genexpr\\|lambda\\|\\)>"
+          "\\)()\\(->[^\n\r]*\\)?[\n\r]"))
 
 (defvar gud-pdb-marker-regexp-file-group 1)
 (defvar gud-pdb-marker-regexp-line-group 2)
@@ -1669,17 +1675,24 @@ and source-file directory for your debugger."
 
     output))
 
-(defcustom gud-pdb-command-name "pdb"
-  "File name for executing the Python debugger.
-This should be an executable on your path, or an absolute file name."
+(defcustom gud-pdb-command-name
+  (if (executable-find "pdb") "pdb" "python -m pdb")
+  "Command that executes the Python debugger."
+  :version "27.1"
   :type 'string
   :group 'gud)
 
 ;;;###autoload
 (defun pdb (command-line)
-  "Run pdb on program FILE in buffer `*gud-FILE*'.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger."
+  "Run COMMAND-LINE in the `*gud-FILE*' buffer.
+
+COMMAND-LINE should include the pdb executable
+name (`gud-pdb-command-name') and the file to be debugged.
+
+If called interactively, the command line will be prompted for.
+
+The directory containing this file becomes the initial working
+directory and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'pdb)))
 
@@ -2237,7 +2250,7 @@ relative to a classpath directory."
 		    (split-string
 		     ;; Eliminate any subclass references in the class
 		     ;; name string. These start with a "$"
-                     (if (string-match "$.*" p)
+                     (if (string-match "\\$.*" p)
                          (replace-match "" t t p) p)
 		     "\\.") "/")
 	 ".java"))
@@ -3056,7 +3069,7 @@ the character after the end of the expr."
   "Returns the previous expr, point is set to beginning of that expr.
 The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies
-the character after the end of the expr"
+the character after the end of the expr."
   (let ((begin) (end))
     (gud-backward-sexp)
     (setq begin (point))

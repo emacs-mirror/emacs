@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -88,8 +88,6 @@ into help buttons that call `describe-text-category' or
 	     (insert-text-button
 	      (format "%S" value)
 	      'type 'help-face 'help-args (list value)))
-            ((widgetp value)
-	     (describe-text-widget value))
 	    (t
 	     (describe-text-sexp value))))
     (insert "\n")))

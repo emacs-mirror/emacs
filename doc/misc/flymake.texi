@@ -14,7 +14,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -86,10 +86,6 @@ Syntax check is done ``on-the-fly''.  It is started whenever
 @item
 the buffer is saved, unless @code{flymake-start-on-save-buffer} is
 nil;
-
-@item
-a newline character is added to the buffer, unless
-@code{flymake-start-syntax-check-on-newline} is nil;
 
 @item
 some changes were made to the buffer more than @code{0.5} seconds ago
@@ -221,10 +217,6 @@ configuration of the Flymake user interface.
 If any changes are made to the buffer, syntax check is automatically
 started after this many seconds, unless the user makes another change,
 which resets the timer.
-
-@item flymake-start-syntax-check-on-newline
-A boolean flag indicating whether to start syntax check immediately
-after a newline character is inserted into the buffer.
 
 @item flymake-start-on-flymake-mode
 A boolean flag indicating whether to start syntax check immediately

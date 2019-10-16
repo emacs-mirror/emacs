@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.  -*- coding: utf-8 -*-
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
@@ -706,7 +706,7 @@ century.
 @cindex Julian day numbers
 @cindex astronomical day numbers
   Astronomers use a simple counting of days elapsed since noon, Monday,
-January 1, 4713 B.C. on the Julian calendar.  The number of days elapsed
+January 1, 4713 BC on the Julian calendar.  The number of days elapsed
 is called the @dfn{Julian day number} or the @dfn{Astronomical day number}.
 
 @cindex Hebrew calendar
@@ -1618,12 +1618,12 @@ timeclock-change}.
 work today (assuming a typical average of 8 hours a day), and @kbd{M-x
 timeclock-when-to-leave} which will calculate when you're done.
 
-@vindex timeclock-modeline-display
-@findex timeclock-modeline-display
+@vindex timeclock-mode-line-display
+@findex timeclock-mode-line-display
   If you want Emacs to display the amount of time left of your
 workday in the mode line, either customize the
-@code{timeclock-modeline-display} variable and set its value to
-@code{t}, or invoke the @kbd{M-x timeclock-modeline-display} command.
+@code{timeclock-mode-line-display} variable and set its value to
+@code{t}, or invoke the @kbd{M-x timeclock-mode-line-display} command.
 
 @vindex timeclock-ask-before-exiting
   Terminating the current Emacs session might or might not mean that

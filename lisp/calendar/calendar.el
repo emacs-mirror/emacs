@@ -1,10 +1,10 @@
 ;;; calendar.el --- calendar functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988-1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, Gregorian calendar, diary, holidays
 
@@ -212,8 +212,7 @@ update the calendar display to reflect the change, otherwise
 movement commands will not work correctly."
   :type 'integer
   ;; Change the initialize so that if you reload calendar.el, it will not
-  ;; cause a redraw (which may fail, e.g. with "invalid byte-code in
-  ;; calendar.elc" because of the "byte-compile-dynamic").
+  ;; cause a redraw.
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set sym val)
@@ -410,6 +409,7 @@ display the ISO date:
   (setq calendar-date-echo-text \\='(format \"ISO date: %s\"
                                          (calendar-iso-date-string
                                           (list month day year))))
+
 Changing this variable without using customize has no effect on
 pre-existing calendar windows."
   :group 'calendar
@@ -800,7 +800,7 @@ but `diary-date-forms' (which see)."
   '((day "/" month "[^/0-9]")
     (day "/" month "/" year "[^0-9]")
     (backup day " *" monthname "\\W+\\<\\([^*0-9]\\|\\([0-9]+[:aApP]\\)\\)")
-    (day " *" monthname " *" year "[^0-9]")
+    (day " *" monthname " *" year "[^0-9:aApP]")
     (dayname "\\W"))
   "List of pseudo-patterns describing the European style of dates.
 The defaults are: DAY/MONTH; DAY/MONTH/YEAR; DAY MONTHNAME;
@@ -1472,10 +1472,10 @@ STRING to length TRUNCATE, and ensures a trailing space."
 
 (defun calendar-generate-month (month year indent)
   "Produce a calendar for MONTH, YEAR on the Gregorian calendar.
-The calendar is inserted at the top of the buffer in which point is currently
-located, but indented INDENT spaces.  The indentation is done from the first
-character on the line and does not disturb the first INDENT characters on the
-line."
+The calendar is inserted at the top of the buffer in which point is
+currently located, but indented INDENT spaces.  The indentation is
+done from the first character on the line and does not disturb the
+first INDENT characters on the line."
   (let ((blank-days                     ; at start of month
          (mod
           (- (calendar-day-of-week (list month 1 year))
@@ -1793,10 +1793,11 @@ For a complete description, see the info node `Calendar/Diary'.
 
 (defun calendar-string-spread (strings char length)
   "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.
-The effect is like `mapconcat' but the separating pieces are as balanced as
-possible.  Each item of STRINGS is evaluated before concatenation so it can
-actually be an expression that evaluates to a string.  If LENGTH is too short,
-the STRINGS are just concatenated and the result truncated."
+The effect is like `mapconcat' but the separating pieces are as
+balanced as possible.  Each item of STRINGS is evaluated before
+concatenation so it can actually be an expression that evaluates
+to a string.  If LENGTH is too short, the STRINGS are just
+concatenated and the result truncated."
   ;; The algorithm is based on equation (3.25) on page 85 of Concrete
   ;; Mathematics by Ronald L. Graham, Donald E. Knuth, and Oren Patashnik,
   ;; Addison-Wesley, Reading, MA, 1989.
@@ -1872,7 +1873,9 @@ the STRINGS are just concatenated and the result truncated."
   "Return the current date in a list (month day year).
 Optional integer OFFSET is a number of days from the current date."
   (let* ((now (decode-time))
-         (now (list (nth 4 now) (nth 3 now) (nth 5 now))))
+         (now (list (decoded-time-month now)
+                    (decoded-time-day now)
+                    (decoded-time-year now))))
     (if (zerop (or offset 0))
         now
       (calendar-gregorian-from-absolute
@@ -1888,8 +1891,8 @@ The left-most month returns 0, the next right 1, and so on."
 
 (defun calendar-cursor-to-date (&optional error event)
   "Return a list (month day year) of current cursor position.
-If cursor is not on a specific date, signals an error if optional parameter
-ERROR is non-nil, otherwise just returns nil.
+If cursor is not on a specific date, signals an error if optional
+parameter ERROR is non-nil, otherwise just returns nil.
 If EVENT is non-nil, it's an event indicating the buffer position to
 use instead of point."
   (with-current-buffer
@@ -2045,9 +2048,9 @@ With argument ARG, jump to mark, pop it, and put point at end of ring."
 
 (defun calendar-read (prompt acceptable &optional initial-contents)
   "Return an object read from the minibuffer.
-Prompt with the string PROMPT and use the function ACCEPTABLE to decide if
-entered item is acceptable.  If non-nil, optional third arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading."
+Prompt with the string PROMPT and use the function ACCEPTABLE to decide
+if entered item is acceptable.  If non-nil, optional third arg
+INITIAL-CONTENTS is a string to insert in the minibuffer before reading."
   (let ((value (read-minibuffer prompt initial-contents)))
     (while (not (funcall acceptable value))
       (setq value (read-minibuffer prompt initial-contents)))
@@ -2276,8 +2279,8 @@ arguments SEQUENCES."
 (defun calendar-read-date (&optional noday)
   "Prompt for Gregorian date.  Return a list (month day year).
 If optional NODAY is t, does not ask for day, but just returns
-\(month 1 year); if NODAY is any other non-nil value the value returned is
-\(month year)"
+\(month 1 year); if NODAY is any other non-nil value the value
+returned is (month year)."
   (let* ((year (calendar-read
                 "Year (>0): "
                 (lambda (x) (> x 0))
@@ -2457,8 +2460,8 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
 
 (defun calendar-mark-visible-date (date &optional mark)
   "Mark DATE in the calendar window with MARK.
-MARK is a single-character string, a list of face attributes/values, or a face.
-MARK defaults to `diary-entry-marker'."
+MARK is a single-character string, a list of face attributes/values,
+or a face.  MARK defaults to `diary-entry-marker'."
   (if (calendar-date-is-valid-p date)
       (with-current-buffer calendar-buffer
         (save-excursion
@@ -2537,10 +2540,11 @@ name of the day of the week."
   "Return the absolute date of the DAYNAME on or before absolute DATE.
 DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
 
-Note: Applying this function to d+6 gives us the DAYNAME on or after an
-absolute day d.  Similarly, applying it to d+3 gives the DAYNAME nearest to
-absolute date d, applying it to d-1 gives the DAYNAME previous to absolute
-date d, and applying it to d+7 gives the DAYNAME following absolute date d."
+Note: Applying this function to d+6 gives us the DAYNAME on or after
+an absolute day d.  Similarly, applying it to d+3 gives the DAYNAME
+nearest to absolute date d, applying it to d-1 gives the DAYNAME
+previous to absolute date d, and applying it to d+7 gives the DAYNAME
+following absolute date d."
   (- date (% (- date dayname) 7)))
 
 (defun calendar-nth-named-absday (n dayname month year &optional day)
@@ -2665,9 +2669,5 @@ If called by a mouse-event, pops up a menu with the result."
 (run-hooks 'calendar-load-hook)
 
 (provide 'calendar)
-
-;; Local variables:
-;; byte-compile-dynamic: t
-;; End:
 
 ;;; calendar.el ends here

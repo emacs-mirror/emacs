@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1999, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Abbrevs
@@ -473,7 +473,7 @@ Set the property @var{prop} of abbrev table @var{table} to value @var{val}.
 
 @defun abbrev-table-get table prop
 Return the property @var{prop} of abbrev table @var{table}, or @code{nil}
-if the abbrev has no such property.
+if @var{table} has no such property.
 @end defun
 
 The following properties have special meaning:

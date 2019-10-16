@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -181,6 +181,14 @@ the minibuffer window to one of the other windows, and later switch
 back and finish supplying the minibuffer argument that is requested.
 @xref{Minibuffer Edit}.
 
+@findex next-multiframe-window
+The @code{other-window} command will normally only switch to the next
+window in the current frame (unless otherwise configured).  If you
+work in a multi-frame environment and you want windows in all frames
+to be part of the cycle, you can rebind @kbd{C-x o} to the
+@code{next-multiframe-window} command.  (@xref{Rebinding}, for how to
+rebind a command.)
+
 @kindex C-M-v
 @findex scroll-other-window
 @kindex C-M-S-v
@@ -262,6 +270,8 @@ Delete all windows in the selected frame except the selected window
 Delete the selected window and kill the buffer that was showing in it
 (@code{kill-buffer-and-window}).  The last character in this key
 sequence is a zero.
+@item M-x delete-windows-on @key{RET} @var{buffer} @key{RET}
+Delete windows showing the specified @var{buffer}.
 @item C-x ^
 Make selected window taller (@code{enlarge-window}).
 @item C-x @}
@@ -296,6 +306,11 @@ selected window.
 @emph{except} the selected one; the selected window expands to use the
 whole frame.  (This command cannot be used while the minibuffer window
 is active; attempting to do so signals an error.)
+
+  @kbd{M-x delete-windows-on} deletes windows that show a specific
+buffer.  It prompts for the buffer, defaulting to the current buffer.
+With prefix argument of zero, @kbd{C-u 0}, this command deletes
+windows only on the current display's frames.
 
 @cindex resize window
 @cindex resizing windows
@@ -528,6 +543,10 @@ Reference Manual}), and cannot exceed the size of the containing frame.
 @section Convenience Features for Window Handling
 
 @findex winner-mode
+@vindex winner-dont-bind-my-keys
+@vindex winner-ring-size
+@vindex winner-boring-buffers
+@vindex winner-boring-buffers-regexp
 @cindex Winner mode
 @cindex mode, Winner
 @cindex undoing window configuration changes
@@ -539,7 +558,15 @@ with @kbd{M-x winner-mode}, or by customizing the variable
 @code{winner-mode}.  When the mode is enabled, @kbd{C-c left}
 (@code{winner-undo}) undoes the last window configuration change.  If
 you change your mind while undoing, you can redo the changes you had
-undone using @kbd{C-c right} (@code{M-x winner-redo}).
+undone using @kbd{C-c right} (@code{M-x winner-redo}).  To prevent
+Winner mode from binding @kbd{C-c left} and @kbd{C-c right}, you can
+customize the variable @code{winner-dont-bind-my-keys} to a
+non-@code{nil} value.  By default, Winner mode stores a maximum of 200
+window configurations per frame, but you can change that by modifying
+the variable @code{winner-ring-size}.  If there are some buffers whose
+windows you wouldn't want Winner mode to restore, add their names to
+the list variable @code{winner-boring-buffers} or to the regexp
+@code{winner-boring-buffers-regexp}.
 
   Follow mode (@kbd{M-x follow-mode}) synchronizes several windows on
 the same buffer so that they always display adjacent sections of that

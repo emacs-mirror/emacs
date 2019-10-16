@@ -1,6 +1,6 @@
 ;;; ob-exp.el --- Exportation of Babel Source Blocks -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
@@ -282,7 +282,8 @@ this template."
 		    (set-marker begin nil)
 		    (set-marker end nil)))))
 	  (kill-buffer org-babel-exp-reference-buffer)
-	  (remove-text-properties (point-min) (point-max) '(org-reference)))))))
+          (remove-text-properties (point-min) (point-max)
+                                  '(org-reference nil)))))))
 
 (defun org-babel-exp-do-export (info type &optional hash)
   "Return a string with the exported content of a code block.

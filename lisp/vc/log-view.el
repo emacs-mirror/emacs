@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -618,10 +618,11 @@ considered file(s)."
     ;; When TO and FR are the same, or when point is on a line after
     ;; the last entry, look at the previous revision.
     (when (or (string-equal fr to)
-              (>= (point)
+              (>= end
                   (save-excursion
-                    (goto-char (car fr-entry))
-                    (forward-line))))
+                    (goto-char end)
+                    (log-view-end-of-defun)
+                    (point))))
       (setq fr (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
     (vc-diff-internal
      t (list log-view-vc-backend

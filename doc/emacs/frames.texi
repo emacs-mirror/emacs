@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -58,6 +58,7 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 * Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
+* Tab Bars::            Enabling and disabling the tab bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
@@ -200,10 +201,12 @@ deactivating the mark.  @xref{Shift Selection}.
 @vindex mouse-wheel-progressive-speed
   Some mice have a ``wheel'' which can be used for scrolling.  Emacs
 supports scrolling windows with the mouse wheel, by default, on most
-graphical displays.  To toggle this feature, use @kbd{M-x
-mouse-wheel-mode}.  The variables @code{mouse-wheel-follow-mouse} and
-@code{mouse-wheel-scroll-amount} determine where and by how much
-buffers are scrolled.  The variable
+graphical displays.  There is also support for increasing or
+decreasing the height of the default face, by default bound to
+scrolling with the @key{Ctrl} modifier.  To toggle this feature, use
+@kbd{M-x mouse-wheel-mode}.  The variables
+@code{mouse-wheel-follow-mouse} and @code{mouse-wheel-scroll-amount}
+determine where and by how much buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.
 
@@ -531,8 +534,10 @@ the mouse cursor to the chosen frame.
 @cindex fonts
 
   By default, Emacs displays text on graphical displays using a
-10-point monospace font.  There are several different ways to specify
-a different font:
+10-point monospace font, and the font size can be changed
+interactively (@pxref{Text Scale}).
+
+  There are several different ways to specify a different font:
 
 @itemize
 @item
@@ -899,6 +904,16 @@ input stream for each server.  Each server also has its own selected
 frame.  The commands you enter with a particular X server apply to
 that server's selected frame.
 
+  On multi-monitor displays it is possible to use the command
+@code{make-frame-on-monitor}:
+
+@findex make-frame-on-monitor
+@table @kbd
+@item M-x make-frame-on-monitor @key{RET} @var{monitor} @key{RET}
+Create a new frame on monitor @var{monitor} whose screen area is
+a part of the current display.
+@end table
+
 @node Frame Parameters
 @section Frame Parameters
 @vindex default-frame-alist
@@ -977,13 +992,14 @@ frame, use the command @kbd{M-x toggle-scroll-bar}.
 
 @vindex scroll-bar-mode
   To control the use of vertical scroll bars at startup, customize the
-variable @code{scroll-bar-mode}.  Its value should be either
-@code{right} (put scroll bars on the right side of windows), @code{left}
-(put them on the left), or @code{nil} (disable vertical scroll bars).
-By default, Emacs puts scroll bars on the right if it was compiled with
-GTK+ support on the X Window System, and on MS-Windows or macOS; Emacs
-puts scroll bars on the left if compiled on the X Window System without
-GTK+ support (following the old convention for X applications).
+variable @code{scroll-bar-mode} (@pxref{Customization}).  Its value
+should be either @code{right} (put scroll bars on the right side of
+windows), @code{left} (put them on the left), or @code{nil} (disable
+vertical scroll bars).  By default, Emacs puts scroll bars on the
+right if it was compiled with GTK+ support on the X Window System, and
+on MS-Windows or macOS; Emacs puts scroll bars on the left if compiled
+on the X Window System without GTK+ support (following the old
+convention for X applications).
 
 @vindex scroll-bar-width
 @cindex width of the vertical scroll bar
@@ -1138,7 +1154,7 @@ cursor during dragging.  To suppress such behavior, set the options
 
 @node Menu Bars
 @section Menu Bars
-@cindex Menu Bar mode
+@cindex menu bar mode
 @cindex mode, Menu Bar
 @findex menu-bar-mode
 @vindex menu-bar-mode
@@ -1163,7 +1179,7 @@ menus' visual appearance.
 
 @node Tool Bars
 @section Tool Bars
-@cindex Tool Bar mode
+@cindex tool bar mode
 @cindex mode, Tool Bar
 @cindex icons, toolbar
 
@@ -1200,6 +1216,103 @@ therefore do not display it when a window is undecorated.  @xref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.  On macOS the
 tool bar is hidden when the frame is put into fullscreen, but can be
 displayed by moving the mouse pointer to the top of the screen.
+
+@node Tab Bars
+@section Tab Bars
+@cindex tab bar mode
+@cindex mode, Tab Bar
+@cindex tabs, tabbar
+
+  On graphical displays and on text terminals, Emacs can optionally
+display a @dfn{Tab Bar} at the top of each frame, just below the menu
+bar.  The Tab Bar is a row of @dfn{tabs}---buttons that you can click
+to switch between window configurations on that frame.
+
+  Each tab on the Tab Bar represents a named persistent window
+configuration.  Its name is composed from the list of names of buffers
+visible in windows of that window configuration.  Clicking on the tab
+switches to the window configuration recorded by the tab; it is a
+configuration of windows and buffers which was previously used in the
+frame when that tab was the current tab.
+
+  If you are using the desktop library to save and restore your
+sessions (@pxref{Saving Emacs Sessions}), the tabs from the Tab Bar are
+recorded in the desktop file, together with their associated window
+configurations, and will be available after restoring the session.
+
+@findex tab-bar-mode
+  To toggle the use of tab bars, type @kbd{M-x tab-bar-mode}.  This
+command applies to all frames, including frames yet to be created.  To
+control the use of tab bars at startup, customize the variable
+@code{tab-bar-mode}.
+
+@vindex tab-bar-show
+  The variable @code{tab-bar-show} controls whether the Tab Bar mode
+is turned on automatically.  If the value is @code{t}, then
+@code{tab-bar-mode} is enabled when using the commands that create new
+tabs.  The value @code{1} hides the tab bar when it has only one tab,
+and shows it again when more tabs are created.  The value @code{nil}
+always keeps the tab bar hidden; in this case it's still possible to
+use persistent named window configurations without using the tab bar
+by typing the related commands: @kbd{M-x tab-new}, @kbd{M-x tab-next},
+@kbd{M-x tab-list}, @kbd{M-x tab-close}, etc.
+
+@kindex C-x 6
+  The prefix key @kbd{C-x 6} is analogous to @kbd{C-x 5}.
+Whereas each @kbd{C-x 5} command pops up a buffer in a different frame
+(@pxref{Creating Frames}), the @kbd{C-x 6} commands use a different
+tab with a different window configuration in the selected frame.
+
+  The various @kbd{C-x 6} commands differ in how they find or create the
+buffer to select:
+
+@table @kbd
+@item C-x 6 2
+@kindex C-x 6 2
+@findex tab-new
+Add a new tab (@code{tab-new}).  You can control the choice of the
+buffer displayed in a new tab by customizing the variable
+@code{tab-bar-new-tab-choice}.
+@item C-x 6 b @var{bufname} @key{RET}
+Select buffer @var{bufname} in another tab.  This runs
+@code{switch-to-buffer-other-tab}.
+@item C-x 6 f @var{filename} @key{RET}
+Visit file @var{filename} and select its buffer in another tab.  This
+runs @code{find-file-other-tab}.  @xref{Visiting}.
+@item C-x 6 d @var{directory} @key{RET}
+Select a Dired buffer for directory @var{directory} in another tab.
+This runs @code{dired-other-tab}.  @xref{Dired}.
+@end table
+
+@vindex tab-bar-new-tab-choice
+  By default, a new tab starts with the current buffer that was
+current before calling the command that adds a new tab.  To start a
+new tab with other buffers, customize the variable
+@code{tab-bar-new-tab-choice}.
+
+  The following commands are used to delete and operate on tabs:
+
+@table @kbd
+@item C-x 6 0
+@kindex C-x 6 0
+@findex tab-close
+Close the selected tab (@code{tab-close}).  It has no effect if there
+is only one tab.
+
+@item C-x 6 o
+@kindex C-x 6 o
+@kindex C-TAB
+@findex tab-next
+Switch to another tab.  If you repeat this command, it cycles through
+all the tabs on the selected frame.  With a positive numeric argument
+N, it switches to the next Nth tab; with a negative argument −N, it
+switches back to the previous Nth tab.
+
+@item C-x 6 1
+@kindex C-x 6 1
+@findex tab-close-other
+Close all tabs on the selected frame, except the selected one.
+@end table
 
 @node Dialog Boxes
 @section Using Dialog Boxes

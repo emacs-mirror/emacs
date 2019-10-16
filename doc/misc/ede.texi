@@ -6,7 +6,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998--2001, 2004--2005, 2008--2018
+Copyright @copyright{} 1998--2001, 2004--2005, 2008--2019
 Free Software Foundation, Inc.
 
 @quotation
@@ -1038,7 +1038,7 @@ details on using @eieio{} to extending classes, and writing methods.
 
 If you intend to extend @ede{}, it is most likely that a new target type is
 needed in one of the existing project types.  The rest of this chapter
-will discuss extending the @code{ede-project} class, and it's targets.
+will discuss extending the @code{ede-project} class, and its targets.
 See @file{project-am.el} for basic details on adding targets to it.
 
 For the @code{ede-project} type, the core target class is called
@@ -1477,7 +1477,7 @@ Get the inode of the directory project @var{PROJ} is in.
 @end deffn
 
 @deffn Method ede-project-root :AFTER this
-If a project knows it's root, return it here.
+If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems.
 @end deffn
 
@@ -1486,7 +1486,7 @@ Find a subproject of @var{PROJ} that corresponds to @var{DIR}.
 @end deffn
 
 @deffn Method ede-project-root-directory :AFTER this &optional file
-If a project knows it's root, return it here.
+If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems.
 Optional @var{FILE} is the file to test.  It is ignored in preference
 of the anchor file for the project.
@@ -2516,7 +2516,7 @@ In sources for @var{THIS}, change version numbers to @var{VERSION}.
 @end deffn
 
 @deffn Method project-delete-target :AFTER ot
-Delete the current target @var{OT} from it's parent project.
+Delete the current target @var{OT} from its parent project.
 @end deffn
 
 @deffn Method ede-target-sourcecode :AFTER this
@@ -2715,7 +2715,7 @@ Converts all symbols into the objects to be used.
 @end deffn
 
 @deffn Method project-delete-target :AFTER this
-Delete the current target @var{THIS} from it's parent project.
+Delete the current target @var{THIS} from its parent project.
 @end deffn
 
 @deffn Method ede-proj-makefile-target-name :AFTER this
@@ -4013,7 +4013,7 @@ Type: @code{list}
 
 The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
-it's rule definition.
+its rule definition.
 
 @item :autoconf
 Type: @code{list} @*
@@ -4125,7 +4125,7 @@ Type: @code{list}
 
 The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
-it's rule definition.
+its rule definition.
 
 @item :objectextention
 Type: @code{string}
@@ -4265,7 +4265,7 @@ Type: @code{list}
 
 The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
-it's rule definition.
+its rule definition.
 
 @item :objectextention
 Type: @code{string}

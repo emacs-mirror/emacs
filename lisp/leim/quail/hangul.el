@@ -1,6 +1,6 @@
 ;;; hangul.el --- Korean Hangul input method
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hangul

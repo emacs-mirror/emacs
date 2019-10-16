@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2018 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2019 Free Software
 Foundation, Inc.
 
 @quotation
@@ -440,8 +440,7 @@ Specifies whether confirmation is required to accept cookies.
 
 @defopt url-cookie-multiple-line
 Specifies whether to put all cookies for the server on one line in the
-HTTP request to satisfy broken servers like
-@url{http://www.hotmail.com}.
+HTTP request to satisfy broken servers.
 @end defopt
 
 @defopt url-cookie-trusted-urls
@@ -1267,7 +1266,8 @@ files, etc.
 
 The default value specifies a subdirectory named @file{url/} in the
 standard Emacs user data directory specified by the variable
-@code{user-emacs-directory} (normally @file{~/.emacs.d}).  However,
+@code{user-emacs-directory} (normally @file{~/.config/emacs}
+or @file{~/.emacs.d}).  However,
 the old default was @file{~/.url}, and this directory is used instead
 if it exists.
 @end defopt

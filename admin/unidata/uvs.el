@@ -1,6 +1,6 @@
 ;;; uvs.el --- utility for UVS (format 14) cmap subtables in OpenType fonts.
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
 
@@ -201,8 +201,16 @@ corresponding number."
 	   (uvs-alist-from-ivd collection-id
 			       sequence-id-to-glyph-func))))
     (set-binary-mode 'stdout t)
-    (princ "/* This file was automatically generated from admin/unidata/IVD_Sequences.txt\n")
-    (princ "   by the script admin/unidata/uvs.el  */\n")
+    (princ "\
+/* This file was automatically generated from admin/unidata/IVD_Sequences.txt
+   by the script admin/unidata/uvs.el.  It is version-controlled
+   because otherwise the first build on macOS from the source
+   repository would need to be headless.
+
+   FIXME: Make it convenient to do headless bootstrap builds on macOS,
+   so that this file need not be put into the source repository.  */
+
+")
     (princ
      (format "static const unsigned char mac_uvs_table_%s_bytes[] =\n  {\n"
 	     (replace-regexp-in-string "[^_[:alnum:]]" "_"

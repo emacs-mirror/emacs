@@ -1,6 +1,6 @@
 ;;; cursor-sensor.el --- React to cursor movement  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -160,7 +160,7 @@ By convention, this is a list of symbols where each symbol stands for the
         (setcdr old nil))
       (if (or (and (null new) (null (cdr old)))
               (and (eq new (cdr old))
-                   (eq (next-single-property-change
+                   (eq (next-single-char-property-change
                         start 'cursor-sensor-functions nil end)
                        end)))
           ;; Clearly nothing to do.
@@ -172,7 +172,7 @@ By convention, this is a list of symbols where each symbol stands for the
                   (let ((pos start)
                         (missing nil))
                     (while (< pos end)
-                      (setq pos (next-single-property-change
+                      (setq pos (next-single-char-property-change
                                  pos 'cursor-sensor-functions
                                  nil end))
                       (unless (memq f (get-char-property

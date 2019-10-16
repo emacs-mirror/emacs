@@ -1119,7 +1119,7 @@ Emacs. V slovenščino ga je prevedel Primož Peterlin.
 To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmnoževanje in razširjanje je dovoljeno pod naslednjimi pogoji:
 
-Copyright © 1985, 1996, 1998, 2001-2018 Free Software Foundation, Inc.
+Copyright © 1985, 1996, 1998, 2001-2019 Free Software Foundation, Inc.
 
   Ta datoteka je del paketa GNU Emacs.
 

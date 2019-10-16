@@ -103,7 +103,7 @@
 @end direntry
 
 @copying
-This is an @cite{Introduction to Programming in Emacs Lisp}, for
+This is @cite{An Introduction to Programming in Emacs Lisp}, for
 people who are not programmers.
 @sp 1
 @iftex
@@ -113,7 +113,7 @@ Edition @value{edition-number}, @value{update-date}
 Distributed with Emacs version @value{EMACSVER}.
 @end ifnottex
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2018 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2019 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -892,8 +892,8 @@ to read them.  But I have tried to keep down the number of such
 paragraphs.  This book is intended as an approachable hill, rather than
 as a daunting mountain.
 
-This introduction to @cite{Programming in Emacs Lisp} has a companion
-document,
+This book, @cite{An Introduction to Programming in Emacs Lisp}, has a
+companion document,
 @iftex
 @cite{The GNU Emacs Lisp Reference Manual}.
 @end iftex
@@ -4636,7 +4636,7 @@ languages, not just Lisp, and C, and it works with non-programming
 text as well.  For example, @code{xref-find-definitions} will jump to
 the various nodes in the Texinfo source file of this document
 (provided that you've run the @command{etags} utility to record all
-the nodes in the manuals that come with Emacs; @pxref{Create tags
+the nodes in the manuals that come with Emacs; @pxref{Create Tags
 Table,,, emacs, The GNU Emacs Manual}).
 
 To use the @code{xref-find-definitions} command, type @kbd{M-.}
@@ -9014,26 +9014,24 @@ Lisp; it is written in C and is one of the primitives of the GNU Emacs
 system.  Since it is very simple, I will digress briefly from Lisp and
 describe it here.
 
-@c GNU Emacs 24  in src/editfns.c
-@c the DEFUN for  delete-and-extract-region
-
 @need 1500
 Like many of the other Emacs primitives,
 @code{delete-and-extract-region} is written as an instance of a C
 macro, a macro being a template for code.  The complete macro looks
 like this:
 
+@c This is a copy of editfns.c's DEFUN for delete-and-extract-region.
 @smallexample
 @group
 DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
        Sdelete_and_extract_region, 2, 2, 0,
        doc: /* Delete the text between START and END and return it.  */)
-       (Lisp_Object start, Lisp_Object end)
+  (Lisp_Object start, Lisp_Object end)
 @{
   validate_region (&start, &end);
-  if (XINT (start) == XINT (end))
+  if (XFIXNUM (start) == XFIXNUM (end))
     return empty_unibyte_string;
-  return del_range_1 (XINT (start), XINT (end), 1, 1);
+  return del_range_1 (XFIXNUM (start), XFIXNUM (end), 1, 1);
 @}
 @end group
 @end smallexample
@@ -9097,9 +9095,9 @@ consists of the following four lines:
 @smallexample
 @group
 validate_region (&start, &end);
-if (XINT (start) == XINT (end))
+if (XFIXNUM (start) == XFIXNUM (end))
   return empty_unibyte_string;
-return del_range_1 (XINT (start), XINT (end), 1, 1);
+return del_range_1 (XFIXNUM (start), XFIXNUM (end), 1, 1);
 @end group
 @end smallexample
 
@@ -9111,27 +9109,28 @@ then return an empty string.
 The @code{del_range_1} function actually deletes the text.  It is a
 complex function we will not look into.  It updates the buffer and
 does other things.  However, it is worth looking at the two arguments
-passed to @code{del_range_1}.  These are @w{@code{XINT (start)}} and
-@w{@code{XINT (end)}}.
+passed to @code{del_range_1}.  These are @w{@code{XFIXNUM (start)}} and
+@w{@code{XFIXNUM (end)}}.
 
 As far as the C language is concerned, @code{start} and @code{end} are
-two integers that mark the beginning and end of the region to be
-deleted@footnote{More precisely, and requiring more expert knowledge
-to understand, the two integers are of type @code{Lisp_Object}, which can
-also be a C union instead of an integer type.}.
+two opaque values that mark the beginning and end of the region to be
+deleted.  More precisely, and requiring more expert knowledge
+to understand, the two values are of type @code{Lisp_Object}, which
+might be a C pointer, a C integer, or a C @code{struct}; C code
+ordinarily should not care how @code{Lisp_Object} is implemented.
 
-Integer widths depend on the machine, and are typically 32 or 64 bits.
-A few of the bits are used to specify the type of information; the
-remaining bits are used as content.
+@code{Lisp_Object} widths depend on the machine, and are typically 32
+or 64 bits.  A few of the bits are used to specify the type of
+information; the remaining bits are used as content.
 
-@samp{XINT} is a C macro that extracts the relevant number from the
+@samp{XFIXNUM} is a C macro that extracts the relevant integer from the
 longer collection of bits; the type bits are discarded.
 
 @need 800
 The command in @code{delete-and-extract-region} looks like this:
 
 @smallexample
-del_range_1 (XINT (start), XINT (end), 1, 1);
+del_range_1 (XFIXNUM (start), XFIXNUM (end), 1, 1);
 @end smallexample
 
 @noindent
@@ -14825,7 +14824,7 @@ According to its documentation as shown by @kbd{C-h f} (the
 @code{describe-function} command), the @code{find-file-noselect}
 function reads the named file into a buffer and returns the buffer.
 (Its most recent version includes an optional @var{wildcards} argument,
-too, as well as another to read a file literally and an other you
+too, as well as another to read a file literally and another to
 suppress warning messages.  These optional arguments are irrelevant.)
 
 However, the @code{find-file-noselect} function does not select the
@@ -15599,7 +15598,7 @@ like this:
    (recursive-lengths-list-many-files
     (files-in-below-directory "/usr/local/src/emacs/lisp/"))
    '<)
-  (insert (format "%s" (current-time-string))))
+  (insert (current-time-string)))
 @end ignore
 
 @node Counting function definitions
@@ -17077,8 +17076,8 @@ reminders.
 
 @smallexample
 @group
-;;; Mail mode
-; To enter mail mode, type 'C-x m'
+;;; Message mode
+; To enter message mode, type 'C-x m'
 ; To enter RMAIL (for reading mail),
 ; type 'M-x rmail'
 (setq mail-aliases t)
@@ -17925,7 +17924,7 @@ My @file{.emacs} file has a section that looks like this:
    #("   %[(" 0 6
      (help-echo
       "mouse-1: select window, mouse-2: delete others ..."))
-   (:eval (mode-line-mode-name))
+   (:eval (format-time-string "%F"))
    mode-line-process
    minor-mode-alist
    #("%n" 0 2 (help-echo "mouse-2: widen" local-map (keymap ...)))
@@ -21858,14 +21857,17 @@ MENU ENTRY: NODE NAME.
 @end ifnottex
 
 @quotation
-Robert J. Chassell has worked with GNU Emacs since 1985.  He writes
-and edits, teaches Emacs and Emacs Lisp, and speaks throughout the
+Robert J. Chassell (1946--2017) started working with GNU Emacs in 1985.  He wrote
+and edited, taught Emacs and Emacs Lisp, and spoke throughout the
 world on software freedom.  Chassell was a founding Director and
-Treasurer of the Free Software Foundation, Inc.  He is co-author of
-the @cite{Texinfo} manual, and has edited more than a dozen other
-books.  He graduated from Cambridge University, in England.  He has an
-abiding interest in social and economic history and flies his own
+Treasurer of the Free Software Foundation, Inc.  He was co-author of
+the @cite{Texinfo} manual, and edited more than a dozen other
+books.  He graduated from Cambridge University, in England.  He had an
+abiding interest in social and economic history and flew his own
 airplane.
+
+@uref{https://www.fsf.org/blogs/community/goodbye-to-bob-chassell,
+"Goodbye to Bob Chassell"}
 @end quotation
 
 @c @page

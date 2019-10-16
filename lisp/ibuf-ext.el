@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -127,12 +127,12 @@ Buffers whose major mode is in this list, are not searched."
 (defvar ibuffer-auto-buffers-changed nil)
 
 (defun ibuffer-update-saved-filters-format (filters)
-  "Transforms alist from old to new `ibuffer-saved-filters' format.
+  "Transform alist from old to new `ibuffer-saved-filters' format.
 
 Specifically, converts old-format alist with values of the
 form (STRING (FILTER-SPECS...)) to alist with values of the
 form (STRING FILTER-SPECS...), where each filter spec should be a
-cons cell with a symbol in the car. Any elements in the latter
+cons cell with a symbol in the car.  Any elements in the latter
 form are kept as is.
 
 Returns (OLD-FORMAT-DETECTED . UPDATED-SAVED-FILTERS-LIST)."
@@ -178,14 +178,14 @@ Returns (OLD-FORMAT-DETECTED . UPDATED-SAVED-FILTERS-LIST)."
 
 Each element should look like (\"NAME\" . FILTER-LIST), where
 FILTER-LIST has the same structure as the variable
-`ibuffer-filtering-qualifiers', which see. The filters defined
+`ibuffer-filtering-qualifiers', which see.  The filters defined
 here are joined with an implicit logical `and' and associated
-with NAME. The combined specification can be used by name in
+with NAME.  The combined specification can be used by name in
 other filter specifications via the `saved' qualifier (again, see
 `ibuffer-filtering-qualifiers'). They can also be switched to by
 name (see the functions `ibuffer-switch-to-saved-filters' and
-`ibuffer-save-filters'). The variable `ibuffer-save-with-custom'
-affects how this information is saved for future sessions. This
+`ibuffer-save-filters').  The variable `ibuffer-save-with-custom'
+affects how this information is saved for future sessions.  This
 variable can be set directly from lisp code."
   :version "26.1"
   :type '(alist :key-type (string :tag "Filter name")
@@ -213,14 +213,14 @@ either clicking or hitting return "
                        (customize-save-variable 'ibuffer-saved-filters
                                                 ibuffer-saved-filters)
                        (message "Saved updated ibuffer-saved-filters."))))
-          ". See below for
+          ".  See below for
 an explanation and alternative ways to save the repaired value.
 
 Explanation: For the list variable `ibuffer-saved-filters',
 elements of the form (STRING (FILTER-SPECS...)) are deprecated
 and should instead have the form (STRING FILTER-SPECS...), where
-each filter spec is a cons cell with a symbol in the car. See
-`ibuffer-saved-filters' for details. The repaired value fixes
+each filter spec is a cons cell with a symbol in the car.  See
+`ibuffer-saved-filters' for details.  The repaired value fixes
 this format without changing the meaning of the saved filters.
 
 Alternative ways to save the repaired value:
@@ -238,7 +238,7 @@ Alternative ways to save the repaired value:
   "A list specifying the filters currently acting on the buffer list.
 
 If this list is nil, then no filters are currently in
-effect. Otherwise, each element of this list specifies a single
+effect.  Otherwise, each element of this list specifies a single
 filter, and all of the specified filters in the list are applied
 successively to the buffer list.
 
@@ -273,7 +273,7 @@ A compound filter specification can have one of four forms:
 -- (saved . \"NAME\")
 
    Represents the filter saved under the string NAME
-   in the alist `ibuffer-saved-filters'. It is an
+   in the alist `ibuffer-saved-filters'.  It is an
    error to name a filter that has not been saved.
 
 This variable is local to each ibuffer buffer.")
@@ -363,12 +363,12 @@ Currently, this only applies to `ibuffer-saved-filters' and
   :group 'ibuffer)
 
 (defun ibuffer-repair-saved-filters ()
-  "Updates `ibuffer-saved-filters' to its new-style format, if needed.
+  "Update `ibuffer-saved-filters' to its new-style format, if needed.
 
 If this list has any elements of the old-style format, a
 deprecation warning is raised, with a button allowing persistent
-update. Any updated filters retain their meaning in the new
-format. See `ibuffer-update-saved-filters-format' and
+update.  Any updated filters retain their meaning in the new
+format.  See `ibuffer-update-saved-filters-format' and
 `ibuffer-saved-filters' for details of the old and new formats."
   (interactive)
   (when (and (boundp 'ibuffer-saved-filters) ibuffer-saved-filters)
@@ -560,13 +560,10 @@ format. See `ibuffer-update-saved-filters-format' and
 ;;;###autoload (autoload 'ibuffer-do-eval "ibuf-ext")
 (define-ibuffer-op eval (form)
   "Evaluate FORM in each of the buffers.
-Does not display the buffer during evaluation. See
-`ibuffer-do-view-and-eval' for that."
+Does not display the buffer during evaluation.
+See `ibuffer-do-view-and-eval' for that."
   (:interactive
-   (list
-    (read-from-minibuffer
-     "Eval in buffers (form): "
-     nil read-expression-map t 'read-expression-history))
+   (list (read--expression "Eval in buffers (form): "))
    :opstring "evaluated in"
    :modifier-p :maybe)
   (eval form))
@@ -697,10 +694,10 @@ specifications with the same structure as
                  filters))))
 
 (defun ibuffer-unary-operand (filter)
-  "Extracts operand from a unary compound FILTER specification.
+  "Extract operand from a unary compound FILTER specification.
 
 FILTER should be a cons cell of either form (f . d) or (f d),
-where operand d is itself a cons cell, or nil. Returns d."
+where operand d is itself a cons cell, or nil.  Returns d."
   (let* ((tail (cdr filter))
          (maybe-q (car-safe tail)))
     (if (consp maybe-q) maybe-q tail)))
@@ -1337,7 +1334,7 @@ matches against 'c.d'."
     "Limit current view to buffers with filename extension matching QUALIFIER.
 
 The separator character (typically `.') is not part of the
-pattern. For example, for a buffer associated with file
+pattern.  For example, for a buffer associated with file
 '/a/b/c.d', this matches against 'd'."
   (:description "filename extension"
    :reader (read-from-minibuffer
@@ -1350,7 +1347,7 @@ pattern. For example, for a buffer associated with file
     "Limit current view to buffers with directory matching QUALIFIER.
 
 For a buffer associated with file '/a/b/c.d', this matches
-against '/a/b'. For a buffer not associated with a file, this
+against '/a/b'.  For a buffer not associated with a file, this
 matches against the value of `default-directory' in that buffer."
   (:description "directory name"
    :reader (read-from-minibuffer "Filter by directory name (regex): "))
@@ -1846,7 +1843,8 @@ When BUF nil, default to the buffer at current line."
 			  (stringp dired-directory)
 			  dired-directory)))))
 	 (when name
-	   (string-match regexp name))))))
+           ;; Match on the displayed file name (which is abbreviated).
+	   (string-match regexp (abbreviate-file-name name)))))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-content-regexp (regexp &optional all-buffers)
@@ -1948,11 +1946,10 @@ Otherwise buffers whose name matches an element of
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (with-current-buffer buf
-	 ;; hacked from midnight.el
 	 (when buffer-display-time
-	   (let* ((now (float-time))
-		  (then (float-time buffer-display-time)))
-	     (> (- now then) (* 60 60 ibuffer-old-time))))))))
+	   (time-less-p
+	    (* 60 60 ibuffer-old-time)
+	    (time-since buffer-display-time)))))))
 
 ;;;###autoload
 (defun ibuffer-mark-special-buffers ()

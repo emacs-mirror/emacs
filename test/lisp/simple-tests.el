@@ -1,6 +1,6 @@
 ;;; simple-test.el --- Tests for simple.el           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
@@ -22,6 +22,11 @@
 (require 'ert)
 (eval-when-compile (require 'cl-lib))
 
+(defun simple-test--buffer-substrings ()
+  "Return cons of buffer substrings before and after point."
+  (cons (buffer-substring (point-min) (point))
+        (buffer-substring (point) (point-max))))
+
 (defmacro simple-test--dummy-buffer (&rest body)
   (declare (indent 0)
            (debug t))
@@ -31,10 +36,7 @@
      (insert "(a b")
      (save-excursion (insert " c d)"))
      ,@body
-     (with-no-warnings
-       (cons (buffer-substring (point-min) (point))
-             (buffer-substring (point) (point-max))))))
-
+     (with-no-warnings (simple-test--buffer-substrings))))
 
 
 ;;; `transpose-sexps'
@@ -46,8 +48,7 @@
      (insert "(s1) (s2) (s3) (s4) (s5)")
      (backward-sexp 1)
      ,@body
-     (cons (buffer-substring (point-min) (point))
-           (buffer-substring (point) (point-max)))))
+     (simple-test--buffer-substrings)))
 
 ;;; Transposition with negative args (bug#20698, bug#21885)
 (ert-deftest simple-transpose-subr ()
@@ -212,6 +213,147 @@
             (open-line 10))
           (should (= x 0)))
       (remove-hook 'post-self-insert-hook inc))))
+
+
+;;; `delete-indentation'
+
+(ert-deftest simple-delete-indentation-no-region ()
+  "Test `delete-indentation' when no mark is set; see bug#35021."
+  (with-temp-buffer
+    (insert " first \n second \n third \n fourth ")
+    (should-not (mark t))
+    ;; Without prefix argument.
+    (should-not (call-interactively #'delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first \n second \n third" . " fourth ")))
+    (should-not (call-interactively #'delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first \n second" . " third fourth ")))
+    ;; With prefix argument.
+    (goto-char (point-min))
+    (let ((current-prefix-arg '(4)))
+      (should-not (call-interactively #'delete-indentation)))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first" . " second third fourth ")))))
+
+(ert-deftest simple-delete-indentation-inactive-region ()
+  "Test `delete-indentation'  with an inactive region."
+  (with-temp-buffer
+    (insert " first \n second \n third ")
+    (set-marker (mark-marker) (point-min))
+    (should (mark t))
+    (should-not (call-interactively #'delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first \n second" . " third ")))))
+
+(ert-deftest simple-delete-indentation-blank-line ()
+  "Test `delete-indentation' does not skip blank lines.
+See bug#35036."
+  (with-temp-buffer
+    (insert "\n\n third \n \n \n sixth \n\n")
+    ;; Without prefix argument.
+    (should-not (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("\n\n third \n \n \n sixth \n" . "")))
+    (should-not (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("\n\n third \n \n \n sixth" . "")))
+    (should-not (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("\n\n third \n \n" . "sixth")))
+    ;; With prefix argument.
+    (goto-char (point-min))
+    (should-not (delete-indentation t))
+    (should (equal (simple-test--buffer-substrings)
+                   '("" . "\n third \n \nsixth")))
+    (should-not (delete-indentation t))
+    (should (equal (simple-test--buffer-substrings)
+                   '("" . "third \n \nsixth")))
+    (should-not (delete-indentation t))
+    (should (equal (simple-test--buffer-substrings)
+                   '("third" . "\nsixth")))
+    (should-not (delete-indentation t))
+    (should (equal (simple-test--buffer-substrings)
+                   '("third" . " sixth")))))
+
+(ert-deftest simple-delete-indentation-boundaries ()
+  "Test `delete-indentation' motion at buffer boundaries."
+  (with-temp-buffer
+    (insert " first \n second \n third ")
+    ;; Stay at EOB.
+    (should-not (delete-indentation t))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first \n second \n third " . "")))
+    ;; Stay at BOB.
+    (forward-line -1)
+    (save-restriction
+      (narrow-to-region (point) (line-end-position))
+      (should-not (delete-indentation))
+      (should (equal (simple-test--buffer-substrings)
+                     '("" . " second ")))
+      ;; Go to EOB.
+      (should-not (delete-indentation t))
+      (should (equal (simple-test--buffer-substrings)
+                     '(" second " . ""))))
+    ;; Go to BOB.
+    (end-of-line 0)
+    (should-not (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("" . " first \n second \n third ")))))
+
+(ert-deftest simple-delete-indentation-region ()
+  "Test `delete-indentation' with an active region."
+  (with-temp-buffer
+    ;; Empty region.
+    (insert " first ")
+    (should-not (delete-indentation nil (point) (point)))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first " . "")))
+    ;; Single line.
+    (should-not (delete-indentation
+                 nil (line-beginning-position) (1- (point))))
+    (should (equal (simple-test--buffer-substrings)
+                   '("" . " first ")))
+    (should-not (delete-indentation nil (1+ (point)) (line-end-position)))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" " . "first ")))
+    (should-not (delete-indentation
+                 nil (line-beginning-position) (line-end-position)))
+    (should (equal (simple-test--buffer-substrings)
+                   '("" . " first ")))
+    ;; Multiple lines.
+    (goto-char (point-max))
+    (insert "\n second \n third \n fourth ")
+    (goto-char (point-min))
+    (should-not (delete-indentation
+                 nil (line-end-position) (line-beginning-position 2)))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first" . " second \n third \n fourth ")))
+    (should-not (delete-indentation
+                 nil (point) (1+ (line-beginning-position 2))))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first second" . " third \n fourth ")))
+    ;; Prefix argument overrides region.
+    (should-not (delete-indentation t (point-min) (point)))
+    (should (equal (simple-test--buffer-substrings)
+                   '(" first second third" . " fourth ")))))
+
+(ert-deftest simple-delete-indentation-prefix ()
+  "Test `delete-indentation' with a fill prefix."
+  (with-temp-buffer
+    (insert "> first \n> second \n> third \n> fourth ")
+    (let ((fill-prefix ""))
+      (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("> first \n> second \n> third" . " > fourth ")))
+    (let ((fill-prefix "<"))
+      (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("> first \n> second" . " > third > fourth ")))
+    (let ((fill-prefix ">"))
+      (delete-indentation))
+    (should (equal (simple-test--buffer-substrings)
+                   '("> first" . " second > third > fourth ")))))
 
 
 ;;; `delete-trailing-whitespace'

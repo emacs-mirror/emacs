@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -222,6 +222,7 @@
         (hanifi-rohingya #x10D00)
         (old-sogdian #x10F00)
         (sogdian #x10F30)
+        (elymaic #x10fe0)
 	(mahajani #x11150)
 	(sinhala-archaic-number #x111E1)
 	(khojki #x11200)
@@ -234,6 +235,7 @@
 	(takri #x11680)
         (dogra #x11800)
 	(warang-citi #x118A1)
+        (nandinagari #x119a0)
         (zanabazar-square #x11A00)
         (soyombo #x11A50)
 	(pau-cin-hau #x11AC0)
@@ -244,6 +246,7 @@
         (makasar #x11EE0)
 	(cuneiform #x12000)
 	(cuneiform-numbers-and-punctuation #x12400)
+	(egyptian #x13000)
 	(mro #x16A40)
 	(bassa-vah #x16AD0)
 	(pahawh-hmong #x16B11)
@@ -257,15 +260,19 @@
 	(ancient-greek-musical-notation #x1D200)
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
+        (nyiakeng-puachue-hmong #x1e100)
+        (wancho #x1e2c0)
 	(mende-kikakui #x1E810)
         (adlam #x1E900)
+        (indic-siyaq-number #x1ec71)
+        (ottoman-siyaq-number #x1ed01)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)))
 
 (defvar otf-script-alist)
 
-;; The below was synchronized with the latest Jul 23, 2017 version of
-;; https://www.microsoft.com/typography/otspec/scripttags.htm.
+;; The below was synchronized with the latest Aug 16, 2018 version of
+;; https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags
 (setq otf-script-alist
       '((adlm . adlam)
         (ahom . ahom)
@@ -300,6 +307,7 @@
 	(dsrt . deseret)
 	(deva . devanagari)
 	(dev2 . devanagari)
+        (dogr . dogra)
         (dupl . duployan-shorthand)
 	(egyp . egyptian)
         (elba . elbasan)
@@ -311,11 +319,13 @@
 	(grek . greek)
 	(gujr . gujarati)
 	(gjr2 . gujarati)
+        (gong . gunjala-gondi)
 	(guru . gurmukhi)
 	(gur2 . gurmukhi)
 	(hani . han)
 	(hang . hangul)
 	(jamo . hangul)
+        (rohg . hanifi-rohingya)
 	(hano . hanunoo)
         (hatr . hatran)
 	(hebr . hebrew)
@@ -324,9 +334,9 @@
 	(prti . inscriptional-parthian)
 	(java . javanese)
 	(kthi . kaithi)
-	(kana . kana)	; Hiragana
 	(knda . kannada)
 	(knd2 . kannada)
+	(kana . kana)	; Hiragana
 	(kali . kayah-li)
 	(khar . kharoshthi)
 	(khmr . khmer)
@@ -342,12 +352,15 @@
         (lyci . lycian)
         (lydi . lydian)
         (mahj . mahajani)
+        (maka . makasar)
         (marc . marchen)
 	(mlym . malayalam)
 	(mlm2 . malayalam)
 	(mand . mandaic)
         (mani . manichaean)
+        (gonm . masaram-gondi)
 	(math . mathematical)
+        (medf . medefaidrin)
 	(mtei . meetei-mayek)
         (mend . mende-kikakui)
 	(merc . meroitic)
@@ -363,12 +376,14 @@
         (nbat . nabataean)
         (newa . newa)
 	(nko\  . nko)
+        (nshu . nushu)
 	(ogam . ogham)
 	(olck . ol-chiki)
 	(ital . old_italic)
 	(xpeo . old_persian)
         (narb . old-north-arabian)
         (perm . old-permic)
+        (sogo . old-sogdian)
 	(sarb . old-south-arabian)
 	(orkh . old-turkic)
 	(orya . oriya)
@@ -392,7 +407,9 @@
         (sidd . siddham)
         (sgnw . sutton-sign-writing)
 	(sinh . sinhala)
+        (sogd . sogdian)
 	(sora . sora-sompeng)
+        (soyo . soyombo)
 	(sund . sundanese)
 	(sylo . syloti_nagri)
 	(syrc . syriac)
@@ -416,7 +433,8 @@
 	(ugar . ugaritic)
 	(vai\  . vai)
         (wara . warang-citi)
-	(yi\ \   . yi)))
+	(yi\ \   . yi)
+        (zanb . zanabazar-square)))
 
 ;; Set standard fontname specification of characters in the default
 ;; fontset to find an appropriate font for each script/charset.  The
@@ -691,8 +709,8 @@
   ;; For simple scripts
   (dolist (script '(phonetic
 		    armenian
-		    syriac
 		    thaana
+		    syriac
 		    georgian
 		    cherokee
 		    canadian-aboriginal
@@ -701,6 +719,7 @@
 		    symbol
 		    braille
 		    yi
+		    tai-viet
 		    aegean-number
 		    ancient-greek-number
 		    ancient-symbol
@@ -713,17 +732,26 @@
 		    deseret
 		    shavian
 		    osmanya
+		    osage
 		    cypriot-syllabary
 		    phoenician
 		    lydian
 		    kharoshthi
-		    cuneiform
+		    manichaean
+		    elymaic
+		    makasar
 		    cuneiform-numbers-and-punctuation
+		    cuneiform
+		    egyptian
+		    bassa-vah
+		    pahawh-hmong
+		    medefaidrin
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
+		    adlam
 		    mahjong-tile
 		    domino-tile))
     (set-fontset-font "fontset-default"

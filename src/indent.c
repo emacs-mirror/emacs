@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -49,7 +48,7 @@ ptrdiff_t last_known_column_point;
 
 /* Value of MODIFF when current_column was called.  */
 
-static EMACS_INT last_known_column_modified;
+static modiff_count last_known_column_modified;
 
 static ptrdiff_t current_column_1 (void);
 static ptrdiff_t position_indentation (ptrdiff_t);
@@ -599,7 +598,7 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
       if (cmp_it.id >= 0
 	  || (scan == cmp_it.stop_pos
 	      && composition_reseat_it (&cmp_it, scan, scan_byte, end,
-					w, NULL, Qnil)))
+					w, NEUTRAL_DIR, NULL, Qnil)))
 	composition_update_it (&cmp_it, scan, scan_byte, Qnil);
       if (cmp_it.id >= 0)
 	{
@@ -983,9 +982,10 @@ If specified column is within a character, point goes after that character.
 If it's past end of line, point goes to end of line.
 
 Optional second argument FORCE non-nil means if COLUMN is in the
-middle of a tab character, change it to spaces.
-In addition, if FORCE is t, and the line is too short to reach
-COLUMN, add spaces/tabs to get there.
+middle of a tab character, either change it to spaces (when
+`indent-tabs-mode' is nil), or insert enough spaces before it to reach
+COLUMN (otherwise).  In addition, if FORCE is t, and the line is too short
+to reach COLUMN, add spaces/tabs to get there.
 
 The return value is the current column.  */)
   (Lisp_Object column, Lisp_Object force)
@@ -1506,7 +1506,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 	  if (cmp_it.id >= 0
 	      || (pos == cmp_it.stop_pos
 		  && composition_reseat_it (&cmp_it, pos, pos_byte, to, win,
-					    NULL, Qnil)))
+					    NEUTRAL_DIR, NULL, Qnil)))
 	    composition_update_it (&cmp_it, pos, pos_byte, Qnil);
 	  if (cmp_it.id >= 0)
 	    {
@@ -1968,8 +1968,11 @@ line_number_display_width (struct window *w, int *width, int *pixel_width)
 	 outside the accessible region, in which case we widen the
 	 buffer temporarily.  It could even be beyond the buffer's end
 	 (Org mode's display of source code snippets is known to cause
-	 that), in which case we just punt and start from point instead.  */
-      if (startpos.charpos > Z)
+	 that) or belong to the wrong buffer, in which cases we just
+	 punt and start from point instead.  */
+      if (startpos.charpos > Z
+	  || !(BUFFERP (w->contents)
+	       && XBUFFER (w->contents) == XMARKER (w->start)->buffer))
 	SET_TEXT_POS (startpos, PT, PT_BYTE);
       if (startpos.charpos < BEGV || startpos.charpos > ZV)
 	{
@@ -2286,7 +2289,7 @@ whether or not it is currently displayed in some window.  */)
 	  it.current_y = 0;
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
-	  if ((nlines < 0 && IT_CHARPOS (it) > 0)
+	  if ((nlines < 0 && IT_CHARPOS (it) > BEGV)
 	      || (nlines == 0 && !(start_x_given && start_x <= to_x)))
 	    move_it_by_lines (&it, max (PTRDIFF_MIN, nlines));
 	}
@@ -2338,7 +2341,7 @@ whether or not it is currently displayed in some window.  */)
 	     and then reposition point at the requested X coordinate;
 	     if we don't, the cursor will be placed just after the
 	     string, which might not be the requested column.  */
-	  if (nlines > 0 && it.area == TEXT_AREA)
+	  if (nlines >= 0 && it.area == TEXT_AREA)
 	    {
 	      while (it.method == GET_FROM_STRING
 		     && !it.string_from_display_prop_p

@@ -1,10 +1,10 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2018 Free Software
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@ is pre-pended to REGEXP for file-wide specifiers.  ATTRIBUTE
 specifies which face attribute (e.g. `:foreground') to modify, or
 that this is a face (`:face') to apply.  TYPE is the type of
 attribute being applied.  Available TYPES (see `diary-attrtype-convert')
-are: `string', `symbol', `int', `tnil', `stringtnil.'"
+are: `string', `symbol', `int', `tnil', `stringtnil'."
   :type '(repeat (list (string :tag "Regular expression")
                        (integer :tag "Sub-expression")
                        (symbol :tag "Attribute (e.g. :foreground)")
@@ -109,7 +109,7 @@ are: `string', `symbol', `int', `tnil', `stringtnil.'"
                                       :tag "A string, t, or nil"))))
   :group 'diary)
 
-(defcustom diary-glob-file-regexp-prefix "^\\#"
+(defcustom diary-glob-file-regexp-prefix "^#"
   "Regular expression pre-pended to `diary-face-attrs' for file-wide specifiers."
   :type 'regexp
   :group 'diary)
@@ -1257,7 +1257,7 @@ the regexp with parentheses."
 MARKFUNC is a function that marks entries of the appropriate type
 matching a given date pattern.  MONTHS is an array of month names.
 SYMBOL marks diary entries of the type in question.  ABSFUNC is a
-function that converts absolute dates to dates of the appropriate type.  "
+function that converts absolute dates to dates of the appropriate type."
   (calendar-dlet*
       ((dayname (diary-name-pattern calendar-day-name-array
                                     calendar-day-abbrev-array))
@@ -1950,7 +1950,7 @@ highlighting the day in the calendar."
              (cons mark entry)))))
 
 (defun diary-ordinal-suffix (n)
-  "Ordinal suffix for N. (That is, `st', `nd', `rd', or `th', as appropriate.)"
+  "Ordinal suffix for N.  (That is, `st', `nd', `rd', or `th', as appropriate.)"
   (if (or (memq (% n 100) '(11 12 13))
           (< 3 (% n 10)))
       "th"
@@ -2062,27 +2062,34 @@ calendar."
 ;;; Diary insertion functions.
 
 ;;;###cal-autoload
-(defun diary-make-entry (string &optional nonmarking file)
+(defun diary-make-entry (string &optional nonmarking file omit-trailing-space
+                                do-not-show)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to
-`diary-file'."
-  (let ((pop-up-frames (or pop-up-frames (window-dedicated-p))))
-    (find-file-other-window (or file diary-file)))
-  (when (eq major-mode (default-value 'major-mode)) (diary-mode))
-  (widen)
-  (diary-unhide-everything)
-  (goto-char (point-max))
-  (when (let ((case-fold-search t))
-          (search-backward "Local Variables:"
-                           (max (- (point-max) 3000) (point-min))
-                           t))
-    (beginning-of-line)
-    (insert "\n")
-    (forward-line -1))
-  (insert
-   (if (bolp) "" "\n")
-   (if nonmarking diary-nonmarking-symbol "")
-   string " "))
+`diary-file'.  If OMIT-TRAILING-SPACE is non-nil, then do not add
+a trailing space to the entry.  If DO-NOT-SHOW is non-nil, do not
+show the diary buffer."
+  (with-current-buffer
+      (let ((diary-file-name (or file diary-file)))
+        (if do-not-show
+            (find-file-noselect diary-file-name)
+          (let ((pop-up-frames (or pop-up-frames (window-dedicated-p))))
+            (find-file-other-window diary-file-name))))
+    (when (eq major-mode (default-value 'major-mode)) (diary-mode))
+    (widen)
+    (diary-unhide-everything)
+    (goto-char (point-max))
+    (when (let ((case-fold-search t))
+            (search-backward "Local Variables:"
+                             (max (- (point-max) 3000) (point-min))
+                             t))
+      (beginning-of-line)
+      (insert "\n")
+      (forward-line -1))
+    (insert
+     (if (bolp) "" "\n")
+     (if nonmarking diary-nonmarking-symbol "")
+     string (if omit-trailing-space "" " "))))
 
 ;;;###cal-autoload
 (defun diary-insert-entry (arg &optional event)

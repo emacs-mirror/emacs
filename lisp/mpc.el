@@ -1,6 +1,6 @@
 ;;; mpc.el --- A client for the Music Player Daemon   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: multimedia
@@ -2555,7 +2555,6 @@ If stopped, start playback."
 (defvar mpc--faster-toggle-forward nil)
 (defvar mpc--faster-acceleration 0.5)
 (defun mpc--faster-toggle (speedup step)
-  (setq speedup (float speedup))
   (if mpc--faster-toggle-timer
       (mpc--faster-stop)
     (mpc-status-refresh) (mpc-proc-sync)
@@ -2582,7 +2581,7 @@ If stopped, start playback."
                    (setq songtime (string-to-number
                                    (cdr (assq 'time mpc-status))))
                    (setq songduration (mpc--songduration))
-                   (setq oldtime (float-time)))
+		   (setq oldtime (current-time)))
                   ((and (>= songtime songduration) mpc--faster-toggle-forward)
                    ;; Skip to the beginning of the next song.
                    (if (not (equal (cdr (assq 'state mpc-status)) "play"))
@@ -2601,14 +2600,16 @@ If stopped, start playback."
                        (lambda ()
                          (setq songid (cdr (assq 'songid mpc-status)))
                          (setq songtime (setq songduration (mpc--songduration)))
-                         (setq oldtime (float-time))
+			 (setq oldtime (current-time))
                          (mpc-proc-cmd (list "seekid" songid songtime)))))))
                   (t
                    (setq speedup (+ speedup mpc--faster-acceleration))
                    (let ((newstep
-                          (truncate (* speedup (- (float-time) oldtime)))))
+			  (truncate
+			   (* speedup
+			      (float-time (time-since oldtime))))))
                      (if (<= newstep 1) (setq newstep 1))
-                     (setq oldtime (+ oldtime (/ newstep speedup)))
+		     (setq oldtime (time-add oldtime (/ newstep speedup)))
                      (if (not mpc--faster-toggle-forward)
                          (setq newstep (- newstep)))
                      (setq songtime (min songduration (+ songtime newstep)))

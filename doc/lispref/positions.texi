@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
@@ -794,11 +794,14 @@ on a line that starts with a match for this regular expression,
 followed by a character with open-parenthesis syntax.
 @end defopt
 
+@cindex \( in strings
 @defopt open-paren-in-column-0-is-defun-start
 If this variable's value is non-@code{nil}, an open parenthesis in
 column 0 is considered to be the start of a defun.  If it is
 @code{nil}, an open parenthesis in column 0 has no special meaning.
-The default is @code{t}.
+The default is @code{t}.  If a string literal happens to have a
+parenthesis in column 0, escape it with a backslash to avoid a false
+positive.
 @end defopt
 
 @defvar beginning-of-defun-function
@@ -840,8 +843,8 @@ The argument @var{character-set} is a string, like the inside of a
 terminate it, and @samp{\} quotes @samp{^}, @samp{-} or @samp{\}.
 Thus, @code{"a-zA-Z"} skips over all letters, stopping before the
 first nonletter, and @code{"^a-zA-Z"} skips nonletters stopping before
-the first letter.  See @xref{Regular Expressions}.  Character classes
-can also be used, e.g., @code{"[:alnum:]"}.  See @pxref{Char Classes}.
+the first letter (@pxref{Regular Expressions}).  Character classes
+can also be used, e.g., @code{"[:alnum:]"} (@pxref{Char Classes}).
 
 If @var{limit} is supplied (it must be a number or a marker), it
 specifies the maximum position in the buffer that point can be skipped

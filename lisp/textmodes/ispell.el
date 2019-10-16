@@ -1,8 +1,8 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2019 Free Software Foundation, Inc.
 
-;; Author:           Ken Stevens <k.stevens@ieee.org>
+;; Author: Ken Stevens <k.stevens@ieee.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -394,7 +394,12 @@ for language-specific arguments."
   "Indicates whether ispell should skip spell checking of SGML markup.
 If t, always skip SGML markup; if nil, never skip; if non-t and non-nil,
 guess whether SGML markup should be skipped according to the name of the
-buffer's major mode."
+buffer's major mode.
+
+SGML markup is any text inside the brackets \"<>\" or entities
+such as \"&amp;\".  See `ispell-html-skip-alists' for more details.
+
+This variable affects spell-checking of HTML, XML, and SGML files."
   :type '(choice (const :tag "always" t) (const :tag "never" nil)
 		 (const :tag "use-mode-name" use-mode-name))
   :group 'ispell)
@@ -726,6 +731,7 @@ Otherwise returns the library directory name, if that is defined."
 	;; Make sure these variables are (re-)initialized to the default value
 	(setq ispell-really-aspell nil
               ispell-really-hunspell nil
+              ispell-really-enchant nil
 	      ispell-encoding8-command nil)
 
 	(goto-char (point-min))
@@ -1106,12 +1112,19 @@ dictionary from that list was found."
 				 null-device
 				 t
 				 nil
+                                 "-D"
+                                 ;; Use -a to prevent Hunspell from
+                                 ;; trying to initialize its
+                                 ;; curses/termcap UI, which causes it
+                                 ;; to crash or fail to start in some
+                                 ;; MS-Windows ports.
+                                 "-a"
                                  ;; Hunspell 1.7.0 (and later?) won't
                                  ;; show LOADED DICTIONARY unless
                                  ;; there's at least one file argument
                                  ;; on the command line.  So we feed
                                  ;; it with the null device.
-				 "-D" null-device)
+				 null-device)
 	    (buffer-string))
 	  "[\n\r]+"
 	  t))
@@ -1265,7 +1278,6 @@ aspell is used along with Emacs).")
 (defun ispell-set-spellchecker-params ()
   "Initialize some spellchecker parameters when changed or first used."
   (unless (eq ispell-last-program-name ispell-program-name)
-    (setq ispell-last-program-name ispell-program-name)
     (ispell-kill-ispell t)
     (if (and (condition-case ()
 		 (progn
@@ -1380,7 +1392,8 @@ aspell is used along with Emacs).")
                            (nth 7 adict)))
                       adict)
                     tmp-dicts-alist :test #'equal))
-      (setq ispell-dictionary-alist tmp-dicts-alist))))
+      (setq ispell-dictionary-alist tmp-dicts-alist)))
+      (setq ispell-last-program-name ispell-program-name))
 
 (defun ispell-valid-dictionary-list ()
   "Return a list of valid dictionaries.
@@ -1782,11 +1795,15 @@ You can set this variable in hooks in your init file -- eg:
 
 
 (defun ispell-accept-output (&optional timeout-secs timeout-msecs)
-  "Wait for output from Ispell process, or TIMEOUT-SECS and TIMEOUT-MSECS.
+  "Wait for output from Ispell process, or for TIMEOUT-SECS + TIMEOUT-MSECS.
+\(The TIMEOUT-MSECS argument is obsolete and should be avoided.)
 If asynchronous subprocesses are not supported, call function `ispell-filter'
 and pass it the output of the last Ispell invocation."
   (if ispell-async-processp
-      (accept-process-output ispell-process timeout-secs timeout-msecs)
+      (let ((timeout (if timeout-msecs
+			 (+ (or timeout-secs 0) (/ timeout-msecs 1000.0))
+		       timeout-secs)))
+	(accept-process-output ispell-process timeout))
     (if (null ispell-process)
 	(error "No Ispell process to read output from!")
       (let ((buf ispell-output-buffer)
@@ -1915,12 +1932,7 @@ nil           word is correct or spelling is accepted.
 quit          spell session exited."
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg t))
   (cond
-   ((and region
-	 (if (featurep 'emacs)
-	     (use-region-p)
-	   (and (boundp 'transient-mark-mode) transient-mark-mode
-		(boundp 'mark-active) mark-active
-		(not (eq (region-beginning) (region-end))))))
+   ((and region (use-region-p))
     (ispell-region (region-beginning) (region-end)))
    (continue (ispell-continue))
    (t
@@ -2961,6 +2973,9 @@ With CLEAR, buffer session localwords are cleaned."
     (message "Ispell process killed")
     nil))
 
+(defvar ispell-change-dictionary-hook nil
+  "Hook run after changing dictionary.")
+
 ;; ispell-change-dictionary is set in some people's hooks.  Maybe this should
 ;;  call ispell-init-process rather than wait for a spell checking command?
 
@@ -2986,7 +3001,8 @@ By just answering RET you can find out what the current dictionary is."
 	 (ispell-internal-change-dictionary)
 	 (message "Using %s dictionary"
 		  (or (and (not arg) ispell-local-dictionary)
-		      ispell-dictionary "default")))
+		      ispell-dictionary "default"))
+         (run-hooks 'ispell-change-dictionary-hook))
 	((equal dict (or (and (not arg) ispell-local-dictionary)
 			 ispell-dictionary "default"))
 	 ;; Specified dictionary is the default already. Could reload
@@ -3008,7 +3024,8 @@ By just answering RET you can find out what the current dictionary is."
 	 (setq ispell-buffer-session-localwords nil)
 	 (message "%s Ispell dictionary set to %s"
 		  (if arg "Global" "Local")
-		  dict))))
+		  dict)
+         (run-hooks 'ispell-change-dictionary-hook))))
 
 (defun ispell-internal-change-dictionary ()
   "Update the dictionary and the personal dictionary used by Ispell.
@@ -3463,7 +3480,7 @@ Returns the sum SHIFT due to changes in word replacements."
             ;; Error in tex mode when a potential math mode change exists.
             (if (and replace (listp replace) (= 2 (length replace)))
                 (if (and (eq ispell-parser 'tex)
-                         (string-match "[\\\\][]()[]\\|\\\\begin\\|\\$"
+                         (string-match "[\\][]()[]\\|\\\\begin\\|\\$"
                                        (regexp-quote string)))
                     (error
                      "Don't start query replace on a line with math characters"
@@ -4004,7 +4021,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 (defun ispell-non-empty-string (string)
   (if (or (not string) (string-equal string ""))
-      "\\'\\`" ; An unmatchable string if string is null.
+      regexp-unmatchable
     (regexp-quote string)))
 
 

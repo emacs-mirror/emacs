@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993-1994, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1994, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -345,8 +345,11 @@ The actually processing is done by `do-string' and `do-region'
  which determine whether the code is compiled before evaluation.
 DEFVAR forms reset the variables to the init values."
   (save-excursion
-    (end-of-defun)
-    (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
+    ;; Find the end of the defun this way to avoid having the region
+    ;; possibly end with a comment (it there'a a comment after the
+    ;; final parenthesis).
+    (beginning-of-defun)
+    (forward-sexp)
     (let ((end (point)) (case-fold-search t))
       (beginning-of-defun)
       (if (looking-at "(defvar")

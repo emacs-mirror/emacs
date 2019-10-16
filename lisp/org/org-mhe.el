@@ -1,6 +1,6 @@
 ;;; org-mhe.el --- Support for Links to MH-E Messages -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -142,7 +142,7 @@ So if you use sequences, it will now work."
   "Return the name of the message folder in an index folder buffer."
   (save-excursion
     (mh-index-previous-folder)
-    (if (re-search-forward "^\\(+.*\\)$" nil t)
+    (if (re-search-forward "^\\(\\+.*\\)$" nil t)
 	(message "%s" (match-string 1)))))
 
 (defun org-mhe-get-message-folder ()

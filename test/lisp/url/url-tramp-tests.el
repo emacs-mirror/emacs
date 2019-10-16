@@ -1,6 +1,6 @@
 ;;; url-tramp-tests.el --- Test suite for Tramp / URL conversion.
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

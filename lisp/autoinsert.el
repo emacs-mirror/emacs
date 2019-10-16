@@ -1,6 +1,6 @@
-;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
+;;; autoinsert.el --- automatic mode-dependent insertion of text into new files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2018 Free Software
+;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
@@ -49,6 +49,8 @@
 
 ;;; Code:
 
+(require 'seq)
+
 (defgroup auto-insert nil
   "Automatic mode-dependent insertion of text into new files."
   :prefix "auto-insert-"
@@ -72,22 +74,19 @@ With \\[auto-insert], this is always treated as if it were t."
   :type '(choice (const :tag "Insert if possible" t)
                  (const :tag "Do nothing" nil)
                  (other :tag "insert if possible, mark as unmodified."
-                        not-modified))
-  :group 'auto-insert)
+                        not-modified)))
 
 (defcustom auto-insert-query 'function
   "Non-nil means ask user before auto-inserting.
 When this is `function', only ask when called non-interactively."
   :type '(choice (const :tag "Don't ask" nil)
                  (const :tag "Ask if called non-interactively" function)
-                 (other :tag "Ask" t))
-  :group 'auto-insert)
+                 (other :tag "Ask" t)))
 
 (defcustom auto-insert-prompt "Perform %s auto-insertion? "
   "Prompt to use when querying whether to auto-insert.
 If this contains a %s, that will be replaced by the matching rule."
-  :type 'string
-  :group 'auto-insert)
+  :type 'string)
 
 
 (defcustom auto-insert-alist
@@ -316,8 +315,7 @@ described above, e.g. [\"header.insert\" date-and-author-update]."
                 ;; There's no custom equivalent of "repeat" for vectors.
                 :value-type (choice file function
                                     (sexp :tag "Skeleton or vector")))
-  :version "25.1"
-  :group 'auto-insert)
+  :version "25.1")
 
 
 ;; Establish a default value for auto-insert-directory
@@ -325,8 +323,7 @@ described above, e.g. [\"header.insert\" date-and-author-update]."
   "Directory from which auto-inserted files are taken.
 The value must be an absolute directory name;
 thus, on a GNU or Unix system, it must end in a slash."
-  :type 'directory
-  :group 'auto-insert)
+  :type 'directory)
 
 
 ;;;###autoload
@@ -338,23 +335,23 @@ Matches the visited file name against the elements of `auto-insert-alist'."
        (or (eq this-command 'auto-insert)
 	   (and auto-insert
 		(bobp) (eobp)))
-       (let ((alist auto-insert-alist)
-	     case-fold-search cond desc action)
-	 (goto-char 1)
-	 ;; find first matching alist entry
-	 (while alist
-	   (if (atom (setq cond (car (car alist))))
-	       (setq desc cond)
-	     (setq desc (cdr cond)
-		   cond (car cond)))
-	   (if (if (symbolp cond)
-                   (derived-mode-p cond)
-		 (and buffer-file-name
-		      (string-match cond buffer-file-name)))
-	       (setq action (cdr (car alist))
-		     alist nil)
-	     (setq alist (cdr alist))))
-
+       (let* ((case-fold-search nil)
+              (desc nil)
+              ;; Find first matching alist entry.
+              (action
+               (seq-some
+                (pcase-lambda (`(,cond . ,action))
+                  (if (atom cond)
+                      (setq desc cond)
+                    (setq desc (cdr cond)
+                          cond (car cond)))
+                  (when (if (symbolp cond)
+                            (derived-mode-p cond)
+                          (and buffer-file-name
+                               (string-match cond buffer-file-name)))
+                    action))
+                auto-insert-alist)))
+         (goto-char 1)
 	 ;; Now, if we found something, do it
 	 (and action
 	      (or (not (stringp action))

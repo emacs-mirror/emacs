@@ -26,7 +26,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1147,7 +1147,7 @@ file (unlike what the @code{patch} utility would usually do).  Instead, the
 source file retains its name and the result of applying the patch is placed
 in a temporary file that has the suffix @file{_patched} attached.
 Generally, this applies to files that are handled using black magic, such
-as special file handlers (ange-ftp and some compression and encryption
+as special file name handlers (ange-ftp and some compression and encryption
 packages also use this method).
 
 Regular files are treated by the @code{patch} utility in the usual manner,
@@ -2421,7 +2421,7 @@ Boris Goldowsky <boris@@cs.rochester.edu> made it possible to highlight
 fine differences in Ediff buffers.  Alastair Burt <burt@@dfki.uni-kl.de>
 ported Ediff to XEmacs, Eric Freudenthal <freudent@@jan.ultra.nyu.edu>
 made it work with VC, Marc Paquette <marcpa@@cam.org> wrote the
-toolbar support package for Ediff, and Hrvoje Niksic <hniksic@@xemacs.org>
+toolbar support package for Ediff, and Hrvoje Nikšić <hniksic@@xemacs.org>
 adapted it to the Emacs customization package.
 
 Many people provided help with bug reports, feature suggestions, and advice.

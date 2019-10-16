@@ -1,6 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs status tree vc tools

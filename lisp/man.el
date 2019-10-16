@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2018 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
@@ -318,7 +318,7 @@ This regular expression should start with a `^' character.")
 
 (defvar Man-reference-regexp
   (concat "\\(" Man-name-regexp
-	  "\\(‐?\n[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
+	  "\\(\\([-‐]\n\\)?[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
 	  Man-section-regexp "\\))")
   "Regular expression describing a reference to another manpage.")
 
@@ -624,7 +624,13 @@ This is necessary if one wants to dump man.el with Emacs."
                           ;; so we don't need `2>' even with DOS shells
                           ;; which do support stderr redirection.
                           ((not (fboundp 'make-process)) " %s")
-                          ((concat " %s 2>" null-device)))))
+                          ((concat " %s 2>" null-device
+                                   ;; Some MS-Windows ports of Groff
+                                   ;; try to read stdin after exhausting
+                                   ;; the command-line arguments; make
+                                   ;; them exit if/when they do.
+                                   (if (eq system-type 'windows-nt)
+                                       (concat " <" null-device)))))))
 	(flist Man-filter-list))
     (while (and flist (car flist))
       (let ((pcom (car (car flist)))
@@ -664,7 +670,7 @@ and the `Man-section-translations-alist' variables)."
      ;; "chmod(2V)" case ?
      ((string-match (concat "^" Man-reference-regexp "$") ref)
       (setq name (replace-regexp-in-string "[\n\t ]" "" (match-string 1 ref))
-	    section (match-string 3 ref)))
+	    section (match-string 4 ref)))
      ;; "2v chmod" case ?
      ((string-match (concat "^\\(" Man-section-regexp
 			    "\\) +\\(" Man-name-regexp "\\)$") ref)
@@ -783,11 +789,22 @@ POS defaults to `point'."
       ;;     see this-
       ;;     command-here(1)
       ;; Note: This code gets executed iff our entry is after POS.
-      (when (looking-at "‐?[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
-	(setq word (concat word (match-string-no-properties 1)))
+      (when (looking-at
+             (concat
+              "‐?[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)(" Man-section-regexp ")"))
+        (let ((1st-part word))
+          (setq word (concat word (match-string-no-properties 1)))
+          ;; If they use -Tascii, we cannot know whether a hyphen at
+          ;; EOL is or isn't part of the referenced manpage name.
+          ;; Heuristics: if the part of the manpage before the hyphen
+          ;; doesn't include a hyphen, we consider the hyphen to be
+          ;; added by troff, and remove it.
+          (or (not (eq (string-to-char (substring 1st-part -1)) ?-))
+              (string-match-p "-" (substring 1st-part 0 -1))
+              (setq word (replace-regexp-in-string "-" "" word))))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))
-      (when (string-match "[-._]+$" word)
+      (when (string-match "[-._‐]+$" word)
 	(setq word (substring word 0 (match-beginning 0))))
       ;; The following was commented out since the preceding code
       ;; should not produce a leading "*" in the first place.
@@ -1006,7 +1023,7 @@ names or descriptions.  The pattern argument is usually an
     (man man-args)))
 
 (defmacro Man-start-calling (&rest body)
-  "Start the man command in `body' after setting up the environment"
+  "Start the man command in `body' after setting up the environment."
   `(let ((process-environment (copy-sequence process-environment))
 	;; The following is so Awk script gets \n intact
 	;; But don't prevent decoding of the outside.
@@ -1195,10 +1212,7 @@ Same for the ANSI bold and normal escape sequences."
   (interactive)
   (goto-char (point-min))
   ;; Fontify ANSI escapes.
-  (let ((ansi-color-apply-face-function
-	 (lambda (beg end face)
-	   (when face
-	     (put-text-property beg end 'face face))))
+  (let ((ansi-color-apply-face-function #'ansi-color-apply-text-property-face)
 	(ansi-color-map Man-ansi-color-map))
     (ansi-color-apply-on-region (point-min) (point-max)))
   ;; Other highlighting.
@@ -1209,31 +1223,33 @@ Same for the ANSI bold and normal escape sequences."
 	  (goto-char (point-min))
 	  (while (and (search-forward "__\b\b" nil t) (not (eobp)))
 	    (backward-delete-char 4)
-	    (put-text-property (point) (1+ (point)) 'face 'Man-underline))
+            (put-text-property (point) (1+ (point))
+                               'font-lock-face 'Man-underline))
 	  (goto-char (point-min))
 	  (while (search-forward "\b\b__" nil t)
 	    (backward-delete-char 4)
-	    (put-text-property (1- (point)) (point) 'face 'Man-underline))))
+            (put-text-property (1- (point)) (point)
+                               'font-lock-face 'Man-underline))))
     (goto-char (point-min))
     (while (and (search-forward "_\b" nil t) (not (eobp)))
       (backward-delete-char 2)
-      (put-text-property (point) (1+ (point)) 'face 'Man-underline))
+      (put-text-property (point) (1+ (point)) 'font-lock-face 'Man-underline))
     (goto-char (point-min))
     (while (search-forward "\b_" nil t)
       (backward-delete-char 2)
-      (put-text-property (1- (point)) (point) 'face 'Man-underline))
+      (put-text-property (1- (point)) (point) 'font-lock-face 'Man-underline))
     (goto-char (point-min))
     (while (re-search-forward "\\(.\\)\\(\b+\\1\\)+" nil t)
       (replace-match "\\1")
-      (put-text-property (1- (point)) (point) 'face 'Man-overstrike))
+      (put-text-property (1- (point)) (point) 'font-lock-face 'Man-overstrike))
     (goto-char (point-min))
     (while (re-search-forward "o\b\\+\\|\\+\bo" nil t)
       (replace-match "o")
-      (put-text-property (1- (point)) (point) 'face 'bold))
+      (put-text-property (1- (point)) (point) 'font-lock-face 'bold))
     (goto-char (point-min))
     (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
       (replace-match "+")
-      (put-text-property (1- (point)) (point) 'face 'bold))
+      (put-text-property (1- (point)) (point) 'font-lock-face 'bold))
     ;; When the header is longer than the manpage name, groff tries to
     ;; condense it to a shorter line interspersed with ^H.  Remove ^H with
     ;; their preceding chars (but don't put Man-overstrike).  (Bug#5566)
@@ -1247,7 +1263,7 @@ Same for the ANSI bold and normal escape sequences."
     (while (re-search-forward Man-heading-regexp nil t)
       (put-text-property (match-beginning 0)
 			 (match-end 0)
-			 'face 'Man-overstrike))))
+			 'font-lock-face 'Man-overstrike))))
 
 (defun Man-highlight-references (&optional xref-man-type)
   "Highlight the references on mouse-over.
@@ -1278,8 +1294,9 @@ default type, `Man-xref-man-page' is used for the buttons."
 
 (defun Man-highlight-references0 (start-section regexp button-pos target type)
   ;; Based on `Man-build-references-alist'
-  (when (or (null start-section)
-	    (Man-find-section start-section))
+  (when (or (null start-section)        ;; Search regardless of sections.
+            ;; Section header is in this chunk.
+            (Man-find-section start-section))
     (let ((end (if start-section
 		   (progn
 		     (forward-line 1)
@@ -1353,7 +1370,9 @@ command is run.  Second argument STRING is the entire string of output."
 		(narrow-to-region
 		 (save-excursion
 		   (goto-char beg)
-		   (line-beginning-position))
+                   ;; Process whole sections (Bug#36927).
+                   (Man-previous-section 1)
+                   (point))
 		 (point))
 		(if Man-fontify-manpage-flag
 		    (Man-fontify-manpage)

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2018 Free Software Foundation, Inc.
+# Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -200,8 +200,8 @@ EXCLUDE_TESTS =
 ## take longer than all the rest combined) at the start of the list.
 SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
 
-ELFILES := $(sort $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
-		-path "${srcdir}/data" -prune -o \
+ELFILES := $(sort $(shell find ${srcdir} -name manual -prune -o \
+		-name data -prune -o \
 		-name "*resources" -prune -o \
 		${maybe_exclude_module_tests} \
 		-name "*.el" ! -name ".*" -print))
@@ -233,6 +233,7 @@ define test_template
   ifeq (,$(patsubst %-tests,,$(1))$(findstring -tests/,$(1)))
     $(1).log: $(patsubst %-tests,$(srcdir)/../%,$(1))$(if \
 					$(patsubst src/%,,$(patsubst lib-src/%,,$(1))),.el,.c)
+    $(notdir $(1).log): $(1).log
   endif
 
   ## Short aliases that always re-run the tests, with no logging.
@@ -254,17 +255,26 @@ else
 FPIC_CFLAGS = -fPIC
 endif
 
+GMP_LIB = @GMP_LIB@
+GMP_OBJ = $(if @GMP_OBJ@, ../src/@GMP_OBJ@)
+
 # Note: emacs-module.h is generated from emacs-module.h.in, hence we
 # look in ../src, not $(srcdir)/../src.
-MODULE_CFLAGS = -I../src $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
+MODULE_CFLAGS = -I../src -I$(srcdir)/../lib \
+  $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 
 test_module = $(test_module_dir)/mod-test${SO}
-src/emacs-module-tests.log: $(test_module)
+src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
+
+# In the compilation command, we can't use any object or archive file
+# as source because those are not compiled with -fPIC.  Therefore we
+# use only source files.
 $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	$(AM_V_at)${MKDIR_P} $(dir $@)
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
-	  -o $@ $<
+	  -o $@ $< $(GMP_LIB) $(GMP_OBJ:.o=.c) \
+	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
 endif
 
 ## Check that there is no 'automated' subdirectory, which would

@@ -1,6 +1,6 @@
 ;;; gnus-kill.el --- kill commands for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -350,8 +350,7 @@ Returns the number of articles marked as read."
 	    (let ((headers gnus-newsgroup-headers))
 	      (if gnus-kill-killed
 		  (setq gnus-newsgroup-kill-headers
-			(mapcar (lambda (header) (mail-header-number header))
-				headers))
+			(mapcar #'mail-header-number headers))
 		(while headers
 		  (unless (gnus-member-of-range
 			   (mail-header-number (car headers))
@@ -600,8 +599,7 @@ marked as read or ticked are ignored."
        ((cond ((fboundp
 		(setq function
 		      (intern-soft
-		       (concat "mail-header-" (downcase field)))))
-	       (setq function `(lambda (h) (,function h))))
+		       (concat "mail-header-" (downcase field))))))
 	      ((when (setq extras
 			   (member (downcase field)
 				   (mapcar (lambda (header)

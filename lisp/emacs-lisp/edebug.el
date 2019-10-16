@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2018 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 1999-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -41,7 +41,7 @@
 ;; See the Emacs Lisp Reference Manual for more details.
 
 ;; If you wish to change the default edebug global command prefix, change:
-;; (setq edebug-global-prefix "\C-xX")
+;; (setq global-edebug-prefix "\C-xX")
 
 ;; Edebug was written by
 ;; Daniel LaLiberte
@@ -70,8 +70,7 @@ Each time it is set to a new value, Edebug will call those functions
 once and then reset `edebug-setup-hook' to nil.  You could use this
 to load up Edebug specifications associated with a package you are
 using, but only when you also use Edebug."
-  :type 'hook
-  :group 'edebug)
+  :type 'hook)
 
 ;; edebug-all-defs and edebug-all-forms need to be autoloaded
 ;; because the byte compiler binds them; as a result, if edebug
@@ -88,8 +87,7 @@ You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
 \(make-local-variable \\='edebug-all-defs) in your
 `emacs-lisp-mode-hook'."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 ;; edebug-all-defs and edebug-all-forms need to be autoloaded
 ;; because the byte compiler binds them; as a result, if edebug
@@ -100,8 +98,7 @@ variable.  You may wish to make it local to each buffer with
   "Non-nil means evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
 Use the command `edebug-all-forms' to toggle the value of this option."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-eval-macro-args nil
   "Non-nil means all macro call arguments may be evaluated.
@@ -110,8 +107,7 @@ macro call arguments as if they will be evaluated.
 For each macro, an `edebug-form-spec' overrides this option.
 So to specify exceptions for macros that have some arguments evaluated
 and some not, use `def-edebug-spec' to specify an `edebug-form-spec'."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-max-depth 150
   "Maximum recursion depth when instrumenting code.
@@ -122,7 +118,6 @@ the error message \"Too deep - perhaps infinite loop in spec?\".
 Make this limit larger to countermand that, but you may also need to
 increase `max-lisp-eval-depth' and `max-specpdl-size'."
   :type 'integer
-  :group 'edebug
   :version "26.1")
 
 (defcustom edebug-save-windows t
@@ -134,8 +129,7 @@ If the value is a list, only the listed windows are saved and
 restored.
 
 `edebug-toggle-save-windows' may be used to change this variable."
-  :type '(choice boolean (repeat string))
-  :group 'edebug)
+  :type '(choice boolean (repeat string)))
 
 (defcustom edebug-save-displayed-buffer-points nil
   "If non-nil, save and restore point in all displayed buffers.
@@ -148,8 +142,7 @@ window, the buffer's point will be changed to the window's point.
 Saving and restoring point in all buffers is expensive, since it
 requires selecting each window twice, so enable this only if you
 need it."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-initial-mode 'step
   "Initial execution mode for Edebug, if non-nil.
@@ -159,8 +152,7 @@ go, Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
   :type '(choice (const step) (const next) (const go)
 		 (const Go-nonstop) (const trace)
 		 (const Trace-fast) (const continue)
-		 (const Continue-fast))
-  :group 'edebug)
+		 (const Continue-fast)))
 
 (defcustom edebug-trace nil
   "Non-nil means display a trace of function entry and exit.
@@ -169,8 +161,7 @@ function entry or exit per line, indented by the recursion level.
 
 You can customize by replacing functions `edebug-print-trace-before'
 and `edebug-print-trace-after'."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-test-coverage nil
   "If non-nil, Edebug tests coverage of all expressions debugged.
@@ -180,36 +171,30 @@ results are found.
 
 Use `edebug-display-freq-count' to display the frequency count and
 coverage information for a definition."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-continue-kbd-macro nil
   "If non-nil, continue defining or executing any keyboard macro.
 Use this with caution since it is not debugged."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 
 (defcustom edebug-print-length 50
   "If non-nil, default value of `print-length' for printing results in Edebug."
-  :type '(choice integer (const nil))
-  :group 'edebug)
+  :type '(choice integer (const nil)))
 (defcustom edebug-print-level 50
   "If non-nil, default value of `print-level' for printing results in Edebug."
-  :type '(choice integer (const nil))
-  :group 'edebug)
+  :type '(choice integer (const nil)))
 (defcustom edebug-print-circle t
   "If non-nil, default value of `print-circle' for printing results in Edebug."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-unwrap-results nil
   "Non-nil if Edebug should unwrap results of expressions.
 That is, Edebug will try to remove its own instrumentation from the result.
 This is useful when debugging macros where the results of expressions
 are instrumented expressions."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-on-error t
   "Value bound to `debug-on-error' while Edebug is active.
@@ -225,30 +210,25 @@ After execution is resumed, the error is signaled again."
 		 (repeat :menu-tag "When"
 			 :value (nil)
 			 (symbol :format "%v"))
-		 (const :tag "always" t))
-  :group 'edebug)
+		 (const :tag "always" t)))
 
 (defcustom edebug-on-quit t
   "Value bound to `debug-on-quit' while Edebug is active."
-  :type 'boolean
-  :group 'edebug)
+  :type 'boolean)
 
 (defcustom edebug-global-break-condition nil
   "If non-nil, an expression to test for at every stop point.
 If the result is non-nil, then break.  Errors are ignored."
   :type 'sexp
-  :risky t
-  :group 'edebug)
+  :risky t)
 
 (defcustom edebug-sit-for-seconds 1
   "Number of seconds to pause when execution mode is `trace' or `continue'."
-  :type 'number
-  :group 'edebug)
+  :type 'number)
 
 (defcustom edebug-sit-on-break t
   "Whether or not to pause for `edebug-sit-for-seconds' on reaching a break."
   :type 'boolean
-  :group 'edebug
   :version "26.1")
 
 ;;; Form spec utilities.
@@ -547,8 +527,13 @@ already is one.)"
       (edebug-read-top-level-form)))))
 
 
+(defvar edebug-active nil)  ;; Non-nil when edebug is active
+
 (defun edebug-read-top-level-form ()
-  (let ((starting-point (point)))
+  (let ((starting-point (point))
+        ;; Don't enter Edebug while doing that, in case we're trying to
+        ;; instrument things like end-of-defun.
+        (edebug-active t))
     (end-of-defun)
     (beginning-of-defun)
     (prog1
@@ -586,7 +571,7 @@ already is one.)"
 (defun edebug-uninstall-read-eval-functions ()
   (interactive)
   (remove-function load-read-function #'edebug--read)
-  (advice-remove 'eval-defun 'edebug-eval-defun))
+  (advice-remove 'eval-defun #'edebug-eval-defun))
 
 ;;; Edebug internal data
 
@@ -1443,7 +1428,7 @@ contains a circular object."
   ;; Create initial coverage vector.
   ;; Only need one per expression, but it is simpler to use stop points.
   (put name 'edebug-coverage
-       (make-vector (length edebug-offset-list) 'unknown)))
+       (make-vector (length edebug-offset-list) 'edebug-unknown)))
 
 
 (defun edebug-form (cursor)
@@ -2165,7 +2150,6 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 (def-edebug-spec let* let)
 
 (def-edebug-spec setq (&rest symbolp form))
-(def-edebug-spec setq-default setq)
 
 (def-edebug-spec cond (&rest (&rest form)))
 
@@ -2181,6 +2165,9 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 ;; but only at the top level inside unquotes.
 (def-edebug-spec backquote-form
   (&or
+   ;; Disallow instrumentation of , and ,@ inside a nested backquote, since
+   ;; these are likely to be forms generated by a macro being debugged.
+   ("`" nested-backquote-form)
    ([&or "," ",@"] &or ("quote" backquote-form) form)
    ;; The simple version:
    ;;   (backquote-form &rest backquote-form)
@@ -2194,6 +2181,16 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
    ;; with the following.  This takes quite a bit more stack space, however.
    ;; (backquote-form . [&or nil backquote-form])
    (vector &rest backquote-form)
+   sexp))
+
+(def-edebug-spec nested-backquote-form
+  (&or
+   ;; Allow instrumentation of any , or ,@ contained within the (\, ...) or
+   ;; (\,@ ...) matched on the next line.
+   ([&or "," ",@"] backquote-form)
+   (nested-backquote-form [&rest [&not "," ",@"] nested-backquote-form]
+                          . [&or nil nested-backquote-form])
+   (vector &rest nested-backquote-form)
    sexp))
 
 ;; Special version of backquote that instruments backquoted forms
@@ -2225,8 +2222,6 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 ;; Anything else?
 
 ;;; The debugger itself
-
-(defvar edebug-active nil)  ;; Non-nil when edebug is active
 
 (defvar edebug-stack nil)
 ;; Stack of active functions evaluated via edebug.
@@ -2305,8 +2300,8 @@ and run its entry function, and set up `edebug-before' and
 `edebug-after'."
   (cl-letf* ((behavior (get func 'edebug-behavior))
              (functions (cdr (assoc behavior edebug-behavior-alist)))
-             ((symbol-function #'edebug-before) (nth 1 functions))
-             ((symbol-function #'edebug-after) (nth 2 functions)))
+             ((symbol-function 'edebug-before) (nth 1 functions))
+             ((symbol-function 'edebug-after) (nth 2 functions)))
     (funcall (nth 0 functions) func args body)))
 
 (defun edebug-default-enter (function args body)
@@ -2336,7 +2331,7 @@ and run its entry function, and set up `edebug-before' and
               (debug-on-error (or debug-on-error edebug-on-error))
               (debug-on-quit edebug-on-quit))
           (unwind-protect
-              (let ((signal-hook-function 'edebug-signal))
+              (let ((signal-hook-function #'edebug-signal))
                 (setq edebug-execution-mode (or edebug-next-execution-mode
                                                 edebug-initial-mode
                                                 edebug-execution-mode)
@@ -2488,12 +2483,12 @@ See `edebug-behavior-alist' for implementations.")
 (defun edebug--update-coverage (after-index value)
   (let ((old-result (aref edebug-coverage after-index)))
     (cond
-     ((eq 'ok-coverage old-result))
-     ((eq 'unknown old-result)
+     ((eq 'edebug-ok-coverage old-result))
+     ((eq 'edebug-unknown old-result)
       (aset edebug-coverage after-index value))
      ;; Test if a different result.
      ((not (eq value old-result))
-      (aset edebug-coverage after-index 'ok-coverage)))))
+      (aset edebug-coverage after-index 'edebug-ok-coverage)))))
 
 
 ;; Dynamically declared unbound variables.
@@ -2906,7 +2901,7 @@ See `edebug-behavior-alist' for implementations.")
 	      (recursive-edit)		;  <<<<<<<<<< Recursive edit
 
 	    ;; Do the following, even if quit occurs.
-	    (setq signal-hook-function 'edebug-signal)
+	    (setq signal-hook-function #'edebug-signal)
 	    (if edebug-backtrace-buffer
 		(kill-buffer edebug-backtrace-buffer))
 
@@ -3602,9 +3597,7 @@ Return the result of the last expression."
   "Evaluate an expression in the outside environment.
 If interactive, prompt for the expression.
 Print result in minibuffer."
-  (interactive (list (read-from-minibuffer
-		      "Eval: " nil read-expression-map t
-		      'read-expression-history)))
+  (interactive (list (read--expression "Eval: ")))
   (princ
    (edebug-outside-excursion
     (setq values (cons (edebug-eval expr) values))
@@ -3813,7 +3806,7 @@ Options:
             (if (consp setting)
                 (set (car setting) (cdr setting))
               (kill-local-variable setting))))
-        (remove-hook 'kill-buffer-hook 'edebug-kill-buffer t))
+        (remove-hook 'kill-buffer-hook #'edebug-kill-buffer t))
     (pcase-dolist (`(,var . ,val) '((buffer-read-only . t)))
       (push
        (if (local-variable-p var) (cons var (symbol-value var)) var)
@@ -3821,7 +3814,7 @@ Options:
       (set (make-local-variable var) val))
     ;; Append `edebug-kill-buffer' to the hook to avoid interfering with
     ;; other entries that are unguarded against deleted buffer.
-    (add-hook 'kill-buffer-hook 'edebug-kill-buffer t t)))
+    (add-hook 'kill-buffer-hook #'edebug-kill-buffer t t)))
 
 (defun edebug-kill-buffer ()
   "Used on `kill-buffer-hook' when Edebug is operating in a buffer of Lisp code."
@@ -4019,7 +4012,7 @@ This should be a list of `edebug---frame' objects.")
   (pop-to-buffer edebug-backtrace-buffer)
   (unless (derived-mode-p 'backtrace-mode)
     (backtrace-mode)
-    (add-hook 'backtrace-goto-source-functions 'edebug--backtrace-goto-source))
+    (add-hook 'backtrace-goto-source-functions #'edebug--backtrace-goto-source))
   (setq edebug-instrumented-backtrace-frames
         (backtrace-get-frames 'edebug-debugger
                               :constructor #'edebug--make-frame)
@@ -4224,7 +4217,7 @@ reinstrument it."
 		     (max 0 (- col (- (point) start-of-count-line))) ?\s)
 		    (if (and (< 0 count)
 			     (not (memq coverage
-					'(unknown ok-coverage))))
+					'(edebug-unknown edebug-ok-coverage))))
 			"=" "")
 		    (if (= count last-count) "" (int-to-string count))
 		    " ")
@@ -4399,8 +4392,8 @@ With prefix argument, make it a temporary breakpoint."
       ;; We still want to run unload-feature to completion
       (run-with-idle-timer 0 nil #'(lambda () (unload-feature 'edebug)))))
   (remove-hook 'called-interactively-p-functions
-               'edebug--called-interactively-skip)
-  (remove-hook 'cl-read-load-hooks 'edebug--require-cl-read)
+               #'edebug--called-interactively-skip)
+  (remove-hook 'cl-read-load-hooks #'edebug--require-cl-read)
   (edebug-uninstall-read-eval-functions)
   ;; Continue standard unloading.
   nil)

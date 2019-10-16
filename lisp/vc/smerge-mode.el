@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -44,7 +44,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(require 'diff-mode)                    ;For diff-auto-refine-mode.
+(require 'diff)				;For diff-check-labels.
+(require 'diff-mode)                    ;For diff-refine.
 (require 'newcomment)
 
 ;;; The real definition comes later.
@@ -264,7 +265,7 @@ Can be nil if the style is undecided, or else:
 
 ;; Define smerge-next and smerge-prev
 (easy-mmode-define-navigation smerge smerge-begin-re "conflict" nil nil
-  (if diff-auto-refine-mode
+  (if diff-refine
       (condition-case nil (smerge-refine) (error nil))))
 
 (defconst smerge-match-names ["conflict" "upper" "base" "lower"])
@@ -1243,9 +1244,12 @@ spacing of the \"Lower\" chunk."
 	    (let ((status
 		   (apply 'call-process diff-command nil t nil
 			  (append smerge-diff-switches
-				  (list "-L" (concat name1 "/" file)
-					"-L" (concat name2 "/" file)
-					file1 file2)))))
+				  (and (diff-check-labels)
+				       (list "--label"
+					     (concat name1 "/" file)
+					     "--label"
+					     (concat name2 "/" file)))
+				  (list file1 file2)))))
 	      (if (eq status 0) (insert "No differences found.\n"))))
 	  (goto-char (point-min))
 	  (diff-mode)
@@ -1431,6 +1435,40 @@ If no conflict maker is found, turn off `smerge-mode'."
       (unless (looking-at smerge-begin-re)
         (smerge-next))
     (error (smerge-auto-leave))))
+
+(defcustom smerge-change-buffer-confirm t
+  "If non-nil, request confirmation before moving to another buffer."
+  :type 'boolean)
+
+(defun smerge-vc-next-conflict ()
+  "Go to next conflict, possibly in another file.
+First tries to go to the next conflict in the current buffer, and if not
+found, uses VC to try and find the next file with conflict."
+  (interactive)
+  (let ((buffer (current-buffer)))
+    (condition-case nil
+        ;; FIXME: Try again from BOB before moving to the next file.
+        (smerge-next)
+      (error
+       (if (and (or smerge-change-buffer-confirm
+                    (and (buffer-modified-p) buffer-file-name))
+                (not (or (eq last-command this-command)
+                         (eq ?\r last-command-event)))) ;Called via M-x!?
+           ;; FIXME: Don't emit this message if `vc-find-conflicted-file' won't
+           ;; go to another file anyway (because there are no more conflicted
+           ;; files).
+           (message (if (buffer-modified-p)
+                        "No more conflicts here.  Repeat to save and go to next buffer"
+                      "No more conflicts here.  Repeat to go to next buffer"))
+         (if (and (buffer-modified-p) buffer-file-name)
+             (save-buffer))
+         (vc-find-conflicted-file)
+         (if (eq buffer (current-buffer))
+             ;; Do nothing: presumably `vc-find-conflicted-file' already
+             ;; emitted a message explaining there aren't any more conflicts.
+             nil
+           (goto-char (point-min))
+           (smerge-next)))))))
 
 (provide 'smerge-mode)
 

@@ -1,5 +1,5 @@
 /* Flags and parameters describing user options for handling the terminal.
-   Copyright (C) 1985-1986, 1990, 2001-2018 Free Software Foundation,
+   Copyright (C) 1985-1986, 1990, 2001-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.

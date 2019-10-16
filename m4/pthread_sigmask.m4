@@ -1,5 +1,5 @@
-# pthread_sigmask.m4 serial 16
-dnl Copyright (C) 2011-2018 Free Software Foundation, Inc.
+# pthread_sigmask.m4 serial 18
+dnl Copyright (C) 2011-2019 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -9,103 +9,97 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
   AC_REQUIRE([gl_SIGNAL_H_DEFAULTS])
 
   AC_CHECK_FUNCS_ONCE([pthread_sigmask])
+
+  dnl On MinGW pthread_sigmask is just a macro which always returns 0.
+  dnl It does not exist as a real function, which is required by POSIX.
+  AC_CACHE_CHECK([whether pthread_sigmask is a macro],
+    [gl_cv_func_pthread_sigmask_macro],
+    [AC_EGREP_CPP([headers_define_pthread_sigmask], [
+#include <pthread.h>
+#include <signal.h>
+#ifdef pthread_sigmask
+ headers_define_pthread_sigmask
+#endif],
+       [gl_cv_func_pthread_sigmask_macro=yes],
+       [gl_cv_func_pthread_sigmask_macro=no])
+    ])
+
   LIB_PTHREAD_SIGMASK=
 
-  dnl Test whether the gnulib module 'threadlib' is in use.
-  dnl Some packages like Emacs use --avoid=threadlib.
-  dnl Write the symbol in such a way that it does not cause 'aclocal' to pick
-  dnl the threadlib.m4 file that is installed in $PREFIX/share/aclocal/.
-  m4_ifdef([gl_][THREADLIB], [
-    AC_REQUIRE([gl_][THREADLIB])
+  if test $gl_cv_func_pthread_sigmask_macro = yes; then
+    dnl pthread_sigmask is a dummy macro.
+    HAVE_PTHREAD_SIGMASK=0
+    dnl Make sure to '#undef pthread_sigmask' before defining it.
+    REPLACE_PTHREAD_SIGMASK=1
+  else
+    dnl Test whether the gnulib module 'threadlib' is in use.
+    dnl Some packages like Emacs use --avoid=threadlib.
+    dnl Write the symbol in such a way that it does not cause 'aclocal' to pick
+    dnl the threadlib.m4 file that is installed in $PREFIX/share/aclocal/.
+    m4_ifdef([gl_][THREADLIB], [
+      AC_REQUIRE([gl_][THREADLIB])
 
-    if test "$gl_threads_api" = posix; then
-      if test $ac_cv_func_pthread_sigmask = yes; then
-        dnl pthread_sigmask is available without -lpthread.
-        :
-      else
-        if test -n "$LIBMULTITHREAD"; then
-          AC_CACHE_CHECK([for pthread_sigmask in $LIBMULTITHREAD],
-            [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD],
-            [gl_save_LIBS="$LIBS"
-             LIBS="$LIBS $LIBMULTITHREAD"
-             AC_LINK_IFELSE(
-               [AC_LANG_PROGRAM(
-                  [[#include <pthread.h>
-                    #include <signal.h>
-                  ]],
-                  [[return pthread_sigmask (0, (sigset_t *) 0, (sigset_t *) 0);]])
-               ],
-               [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=yes],
-               [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no])
-             LIBS="$gl_save_LIBS"
-            ])
-          if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
-            AC_CACHE_CHECK([whether pthread_sigmask is only a macro],
-              [gl_cv_func_pthread_sigmask_is_macro],
+      if test "$gl_threads_api" = posix; then
+        if test $ac_cv_func_pthread_sigmask = yes; then
+          dnl pthread_sigmask is available without -lpthread.
+          :
+        else
+          if test -n "$LIBMULTITHREAD"; then
+            AC_CACHE_CHECK([for pthread_sigmask in $LIBMULTITHREAD],
+              [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD],
               [gl_save_LIBS="$LIBS"
                LIBS="$LIBS $LIBMULTITHREAD"
                AC_LINK_IFELSE(
                  [AC_LANG_PROGRAM(
                     [[#include <pthread.h>
                       #include <signal.h>
-                      #undef pthread_sigmask
                     ]],
                     [[return pthread_sigmask (0, (sigset_t *) 0, (sigset_t *) 0);]])
                  ],
-                 [gl_cv_func_pthread_sigmask_is_macro=no],
-                 [gl_cv_func_pthread_sigmask_is_macro=yes])
+                 [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=yes],
+                 [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no])
                LIBS="$gl_save_LIBS"
               ])
-            if test $gl_cv_func_pthread_sigmask_is_macro = yes; then
-              dnl On MinGW pthread_sigmask is just a macro which always returns 0.
-              dnl It does not exist as a real function, which is required by POSIX.
-              REPLACE_PTHREAD_SIGMASK=1
-              gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no
+            if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
+              dnl pthread_sigmask is available with -pthread or -lpthread.
+              LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"
+            else
+              dnl pthread_sigmask is not available at all.
+              HAVE_PTHREAD_SIGMASK=0
             fi
-          fi
-          if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
-            dnl pthread_sigmask is available with -pthread or -lpthread.
-            LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"
           else
             dnl pthread_sigmask is not available at all.
             HAVE_PTHREAD_SIGMASK=0
           fi
+        fi
+      else
+        dnl pthread_sigmask may exist but does not interoperate with the chosen
+        dnl multithreading facility.
+        if test $ac_cv_func_pthread_sigmask = yes; then
+          REPLACE_PTHREAD_SIGMASK=1
         else
-          dnl pthread_sigmask is not available at all.
           HAVE_PTHREAD_SIGMASK=0
         fi
       fi
-    else
-      dnl pthread_sigmask may exist but does not interoperate with the chosen
-      dnl multithreading facility.
-      dnl If "$gl_threads_api" = pth, we could use the function pth_sigmask,
-      dnl but it is equivalent to sigprocmask, so we choose to emulate
-      dnl pthread_sigmask with sigprocmask also in this case. This yields fewer
-      dnl link dependencies.
+    ], [
+      dnl The module 'threadlib' is not in use, due to --avoid=threadlib being
+      dnl specified.
+      dnl The package either has prepared CPPFLAGS and LIBS for use of
+      dnl POSIX:2008 threads, or wants to build single-threaded programs.
       if test $ac_cv_func_pthread_sigmask = yes; then
-        REPLACE_PTHREAD_SIGMASK=1
+        dnl pthread_sigmask exists and does not require extra libraries.
+        dnl Assume that it is declared.
+        :
       else
+        dnl pthread_sigmask either does not exist or needs extra libraries.
         HAVE_PTHREAD_SIGMASK=0
+        dnl Define the symbol rpl_pthread_sigmask, not pthread_sigmask,
+        dnl so as to not accidentally override the system's pthread_sigmask
+        dnl symbol from libpthread. This is necessary on IRIX 6.5.
+        REPLACE_PTHREAD_SIGMASK=1
       fi
-    fi
-  ], [
-    dnl The module 'threadlib' is not in use, due to --avoid=threadlib being
-    dnl specified.
-    dnl The package either has prepared CPPFLAGS and LIBS for use of POSIX:2008
-    dnl threads, or wants to build single-threaded programs.
-    if test $ac_cv_func_pthread_sigmask = yes; then
-      dnl pthread_sigmask exists and does not require extra libraries.
-      dnl Assume that it is declared.
-      :
-    else
-      dnl pthread_sigmask either does not exist or needs extra libraries.
-      HAVE_PTHREAD_SIGMASK=0
-      dnl Define the symbol rpl_pthread_sigmask, not pthread_sigmask,
-      dnl so as to not accidentally override the system's pthread_sigmask
-      dnl symbol from libpthread. This is necessary on IRIX 6.5.
-      REPLACE_PTHREAD_SIGMASK=1
-    fi
-  ])
+    ])
+  fi
 
   AC_SUBST([LIB_PTHREAD_SIGMASK])
   dnl We don't need a variable LTLIB_PTHREAD_SIGMASK, because when

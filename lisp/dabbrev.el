@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -82,7 +82,7 @@
 ;;  [hymie]	Hyman Rosen <marks!hymie@jyacc.jyacc.com>
 ;;  [burgett]	Steve Burgett <burgett@bizet.eecs.berkeley.edu>
 ;;  [jules]	Julian Gosnell <jules@x.co.uk>
-;;  [kifer]	Michael Kifer <kifer@sbcs.sunysb.edu>
+;;  [kifer]	Michael Kifer <kifer@cs.stonybrook.edu>
 ;;  [ake]	Ake Stenhoff <extaksf@aom.ericsson.se>
 ;;  [alon]	Alon Albert <al%imercury@uunet.uu.net>
 ;;  [tromey]	Tom Tromey <tromey@busco.lanl.gov>
@@ -238,8 +238,7 @@ See also `dabbrev-ignored-buffer-names'."
   :version "21.1")
 
 (defcustom dabbrev-check-other-buffers t
-  "Should \\[dabbrev-expand] look in other buffers?\
-
+  "Should \\[dabbrev-expand] look in other buffers?
 nil: Don't look in other buffers.
 t: Also look for expansions in the buffers pointed out by
    `dabbrev-select-buffers-function'.

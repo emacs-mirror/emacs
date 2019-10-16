@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -505,8 +505,25 @@ current lexical scope, or file if at top-level.)  @xref{Defining
 Variables}.
 @end itemize
 
-  You can also suppress any and all compiler warnings within a certain
-expression using the construct @code{with-no-warnings}:
+  You can also suppress compiler warnings within a certain expression
+using the @code{with-suppressed-warnings} macro:
+
+@defspec with-suppressed-warnings warnings body@dots{}
+In execution, this is equivalent to @code{(progn @var{body}...)}, but
+the compiler does not issue warnings for the specified conditions in
+@var{body}.  @var{warnings} is an associative list of warning symbols
+and function/variable symbols they apply to.  For instance, if you
+wish to call an obsolete function called @code{foo}, but want to
+suppress the compilation warning, say:
+
+@lisp
+(with-suppressed-warnings ((obsolete foo))
+  (foo ...))
+@end lisp
+@end defspec
+
+For more coarse-grained suppression of compiler warnings, you can use
+the @code{with-no-warnings} construct:
 
 @c This is implemented with a defun, but conceptually it is
 @c a special form.
@@ -516,8 +533,9 @@ In execution, this is equivalent to @code{(progn @var{body}...)},
 but the compiler does not issue warnings for anything that occurs
 inside @var{body}.
 
-We recommend that you use this construct around the smallest
-possible piece of code, to avoid missing possible warnings other than
+We recommend that you use @code{with-suppressed-warnings} instead, but
+if you do use this construct, that you use it around the smallest
+possible piece of code to avoid missing possible warnings other than
 one you intend to suppress.
 @end defspec
 

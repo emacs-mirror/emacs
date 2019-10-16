@@ -1,6 +1,6 @@
 ;;; ob-C.el --- Babel Functions for C and Similar Languages -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;      Thierry Banel
@@ -299,12 +299,12 @@ its header arguments."
 
 (defun org-babel-prep-session:C (_session _params)
   "This function does nothing as C is a compiled language with no
-support for sessions"
+support for sessions."
   (error "C is a compiled language -- no support for sessions"))
 
 (defun org-babel-load-session:C (_session _body _params)
   "This function does nothing as C is a compiled language with no
-support for sessions"
+support for sessions."
   (error "C is a compiled language -- no support for sessions"))
 
 ;; helper functions

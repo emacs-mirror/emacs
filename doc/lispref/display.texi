@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -25,7 +25,7 @@ that Emacs presents to the user.
 * Fringes::             Controlling window fringes.
 * Scroll Bars::         Controlling scroll bars.
 * Window Dividers::     Separating windows visually.
-* Display Property::    Enabling special display features.
+* Display Property::    Images, margins, text size, etc.
 * Images::              Displaying images in Emacs buffers.
 * Xwidgets::            Displaying native widgets in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
@@ -426,7 +426,7 @@ This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
 @end defun
 
-@defun progress-reporter-update reporter &optional value
+@defun progress-reporter-update reporter &optional value suffix
 This function does the main work of reporting progress of your
 operation.  It displays the message of @var{reporter}, followed by
 progress percentage determined by @var{value}.  If percentage is zero,
@@ -440,6 +440,11 @@ state of your operation and must be between @var{min-value} and
 @code{make-progress-reporter}.  For instance, if you scan a buffer,
 then @var{value} should be the result of a call to @code{point}.
 
+Optional argument @var{suffix} is a string to be displayed after
+@var{reporter}'s main message and progress text.  If @var{reporter} is
+a non-numerical reporter, then @var{value} should be @code{nil}, or a
+string to use instead of @var{suffix}.
+
 This function respects @var{min-change} and @var{min-time} as passed
 to @code{make-progress-reporter} and so does not output new messages
 on every invocation.  It is thus very fast and normally you should not
@@ -447,11 +452,11 @@ try to reduce the number of calls to it: resulting overhead will most
 likely negate your effort.
 @end defun
 
-@defun progress-reporter-force-update reporter &optional value new-message
+@defun progress-reporter-force-update reporter &optional value new-message suffix
 This function is similar to @code{progress-reporter-update} except
 that it prints a message in the echo area unconditionally.
 
-The first two arguments have the same meaning as for
+@var{reporter}, @var{value}, and @var{suffix} have the same meaning as for
 @code{progress-reporter-update}.  Optional @var{new-message} allows
 you to change the message of the @var{reporter}.  Since this function
 always updates the echo area, such a change will be immediately
@@ -770,6 +775,10 @@ When this variable is non-@code{nil}, it specifies a fill prefix to
 use for filling each warning's text.
 @end defvar
 
+@defvar warning-fill-column
+The column at which to fill warnings.
+@end defvar
+
 @defvar warning-type-format
 This variable specifies the format for displaying the warning type
 in the warning message.  The result of formatting the type this way
@@ -1034,8 +1043,8 @@ hiding certain lines on the screen.
 @cindex explicit selective display
   The first variant, explicit selective display, was designed for use in a Lisp
 program: it controls which lines are hidden by altering the text.  This kind of
-hiding is now obsolete; instead you can get the same effect with the
-@code{invisible} property (@pxref{Invisible Text}).
+hiding is now obsolete and deprecated; instead you should use the
+@code{invisible} property (@pxref{Invisible Text}) to get the same effect.
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
@@ -1743,9 +1752,12 @@ modified, and the length of the pre-change text replaced by that range.
 length is the number of characters deleted, and the post-change
 beginning and end are equal.)
 
-If these functions modify the buffer, they should bind
-@code{inhibit-modification-hooks} to @code{t} around doing so, to
-avoid confusing the internal mechanism that calls these hooks.
+When these functions are called, @code{inhibit-modification-hooks} is
+bound to non-@code{nil}.  If the functions modify the buffer, you
+might want to bind @code{inhibit-modification-hooks} to @code{nil}, so
+as to cause the change hooks to run for these modifications.  However,
+doing this may call your own change hook recursively, so be sure to
+prepare for that.  @xref{Change Hooks}.
 
 Text properties also support the @code{modification-hooks} property,
 but the details are somewhat different (@pxref{Special Properties}).
@@ -2404,7 +2416,7 @@ Draw a box with lines of width 1, in color @var{color}.
 @item @code{(:line-width @var{width} :color @var{color} :style @var{style})}
 This way you can explicitly specify all aspects of the box.  The value
 @var{width} specifies the width of the lines to draw; it defaults to
-1.  A negative width @var{-n} means to draw a line of width @var{n}
+1.  A negative width @minus{}@var{n} means to draw a line of width @var{n}
 whose top and bottom parts occupy the space of the underlying text,
 thus avoiding any increase in the character height.
 
@@ -2510,6 +2522,11 @@ foreground color on low-color terminals.
 face name.  In the vast majority of cases, this is not necessary; the
 usual procedure is to define a face with @code{defface}, and then use
 its name directly.
+
+@cindex face (non-removability of)
+Note that once you have defined a face (usually with @code{defface}),
+you cannot later undefine this face safely, except by restarting
+Emacs.
 
 @defmac defface face spec doc [keyword value]@dots{}
 This macro declares @var{face} as a named face whose default face spec
@@ -2927,16 +2944,18 @@ If the text lies within the mode line of the selected window, Emacs
 applies the @code{mode-line} face.  For the mode line of a
 non-selected window, Emacs applies the @code{mode-line-inactive} face.
 For a header line, Emacs applies the @code{header-line} face.
+For a tab line, Emacs applies the @code{tab-line} face.
 
 @item
 If the text comes from an overlay string via @code{before-string} or
 @code{after-string} properties (@pxref{Overlay Properties}), or from a
 display string (@pxref{Other Display Specs}), and the string doesn't
-contain a @code{face} or @code{mouse-face} property, but the buffer
-text affected by the overlay/display property does define a face,
-Emacs applies the face attributes of the ``underlying'' buffer text.
-Note that this is so even if the overlay or display string is
-displayed in the display margins (@pxref{Display Margins}).
+contain a @code{face} or @code{mouse-face} property, or these
+properties leave some face attributes undefined, but the buffer text
+affected by the overlay/display property does define a face or those
+attributes, Emacs applies the face attributes of the ``underlying''
+buffer text.  Note that this is so even if the overlay or display
+string is displayed in the display margins (@pxref{Display Margins}).
 
 @item
 If any given attribute has not been specified during the preceding
@@ -3079,10 +3098,17 @@ value, which inherits from @var{face}'s global definition.
 This function returns a list of all defined face names.
 @end defun
 
+@cindex face number
+@cindex face property of face symbols
 @defun face-id face
 This function returns the @dfn{face number} of face @var{face}.  This
 is a number that uniquely identifies a face at low levels within
 Emacs.  It is seldom necessary to refer to a face by its face number.
+However, functions that manipulate glyphs, such as
+@code{make-glyph-code} and @code{glyph-face} (@pxref{Glyphs}) access
+the face numbers internally.  Note that the face number is stored as
+the value of the @code{face} property of the face symbol, so we
+recommend not to set that property of a face to any value of your own.
 @end defun
 
 @defun face-documentation face
@@ -3940,7 +3966,7 @@ showing the buffer, unless you call @code{set-window-buffer} again in
 each affected window.  You can also use @code{set-window-fringes} to
 control the fringe display in individual windows.
 
-@defun set-window-fringes window left &optional right outside-margins
+@defun set-window-fringes window left &optional right outside-margins persistent
 This function sets the fringe widths of window @var{window}.
 If @var{window} is @code{nil}, the selected window is used.
 
@@ -3950,16 +3976,25 @@ fringe, and likewise @var{right} for the right fringe.  A value of
 @var{outside-margins} is non-@code{nil}, that specifies that fringes
 should appear outside of the display margins.
 
+If @var{window} is not large enough to accommodate fringes of the
+desired width, this leaves the fringes of @var{window} unchanged.
+
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
-with its @var{keep-margins} argument @code{nil} or omitted.
+with its @var{keep-margins} argument @code{nil} or omitted.  However,
+if the optional fifth argument @var{persistent} is non-@code{nil} and
+the other arguments are processed successfully, the values specified
+here unconditionally survive subsequent invocations of
+@code{set-window-buffer}.  This can be used to permanently turn off
+fringes in the minibuffer window, consult the description of
+@code{set-window-scroll-bars} for an example (@pxref{Scroll Bars}).
 @end defun
 
 @defun window-fringes &optional window
 This function returns information about the fringes of a window
 @var{window}.  If @var{window} is omitted or @code{nil}, the selected
 window is used.  The value has the form @code{(@var{left-width}
-@var{right-width} @var{outside-margins})}.
+@var{right-width} @var{outside-margins} @var{persistent})}.
 @end defun
 
 
@@ -4353,7 +4388,7 @@ This function returns the height of horizontal scroll bars of
 You can override the frame specific settings for individual windows by
 using the following function:
 
-@defun set-window-scroll-bars window &optional width vertical-type height horizontal-type
+@defun set-window-scroll-bars window &optional width vertical-type height horizontal-type persistent
 This function sets the width and/or height and the types of scroll bars
 for window @var{window}.  If @var{window} is @code{nil}, the selected
 window is used.
@@ -4365,16 +4400,44 @@ if so, where.  The possible values are @code{left}, @code{right},
 @code{t}, which means to use the frame's default, and @code{nil} for no
 vertical scroll bar.
 
-@var{height} specifies the height of the horizontal scroll bar in pixels
-(@code{nil} means use the height specified for the frame).
-@var{horizontal-type} specifies whether to have a horizontal scroll bar.
-The possible values are @code{bottom}, @code{t}, which means to use the
-frame's default, and @code{nil} for no horizontal scroll bar.
+@var{height} specifies the height of the horizontal scroll bar in
+pixels (@code{nil} means use the height specified for the frame).
+@var{horizontal-type} specifies whether to have a horizontal scroll
+bar.  The possible values are @code{bottom}, @code{t}, which means to
+use the frame's default, and @code{nil} for no horizontal scroll bar.
+Note that for a mini window the value @code{t} has the same meaning as
+@code{nil}, namely to not show a horizontal scroll bar.  You have to
+explicitly specify @code{bottom} in order to show a horizontal scroll
+bar in a mini window.
+
+If @var{window} is not large enough to accommodate a scroll bar of the
+desired dimension, this leaves the corresponding scroll bar unchanged.
 
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
-with its @var{keep-margins} argument @code{nil} or omitted.
+with its @var{keep-margins} argument @code{nil} or omitted.  However,
+if the optional fifth argument @var{persistent} is non-@code{nil} and
+the other arguments are processed successfully, the values specified
+here unconditionally survive subsequent invocations of
+@code{set-window-buffer}.
 @end defun
+
+Using the @var{persistent} argument of @code{set-window-scroll-bars}
+and @code{set-window-fringes} (@pxref{Fringe Size/Pos}) you can
+reliably and permanently turn off scroll bars and/or fringes in any
+minibuffer window by adding the following snippet to your early init
+file (@pxref{Init File}).
+
+@smallexample
+@group
+(add-hook 'after-make-frame-functions
+          (lambda (frame)
+            (set-window-scroll-bars
+             (minibuffer-window frame) 0 nil 0 nil t)
+            (set-window-fringes
+             (minibuffer-window frame) 0 0 nil t)))
+@end group
+@end smallexample
 
 The following four functions take as argument a live window which
 defaults to the selected one.
@@ -4382,7 +4445,7 @@ defaults to the selected one.
 @defun window-scroll-bars &optional window
 This function returns a list of the form @code{(@var{width}
 @var{columns} @var{vertical-type} @var{height} @var{lines}
-@var{horizontal-type})}.
+@var{horizontal-type} @var{persistent})}.
 
 The value @var{width} is the value that was specified for the width of
 the vertical scroll bar (which may be @code{nil}); @var{columns} is the
@@ -4393,6 +4456,10 @@ The value @var{height} is the value that was specified for the height of
 the horizontal scroll bar (which may be @code{nil}); @var{lines} is the
 (possibly rounded) number of lines that the horizontally scroll bar
 actually occupies.
+
+The value of @var{persistent} is the value specified for @var{window}
+with the last successful invocation of @code{set-window-scroll-bars},
+@code{nil} if there never was one.
 @end defun
 
 @defun window-current-scroll-bars &optional window
@@ -4413,7 +4480,7 @@ This function returns the height in pixels of @var{window}'s horizontal
 scrollbar.
 @end defun
 
-If you don't specify these values for a window with
+If you do not specify a window's scroll bar settings via
 @code{set-window-scroll-bars}, the buffer-local variables
 @code{vertical-scroll-bar}, @code{horizontal-scroll-bar},
 @code{scroll-bar-width} and @code{scroll-bar-height} in the buffer being
@@ -4887,6 +4954,16 @@ and the buffer position where the @code{display} property was found,
 respectively.  Both positions can be different when @code{object} is a
 string.
 
+Note that @var{condition} will only be evaluated when redisplay
+examines the text where this display spec is located, so this feature
+is best suited for conditions that are relatively stable, i.e.@:
+yield, for each particular buffer position, the same results on every
+evaluation.  If the results change for the same text location, e.g.,
+if the result depends on the position of point, then the conditional
+specification might not do what you want, because redisplay examines
+only those parts of buffer text where it has reasons to assume that
+something changed since the last display cycle.
+
 @node Display Margins
 @subsection Displaying in the Margins
 @cindex display margins
@@ -4941,7 +5018,9 @@ means no right marginal area.
   Setting these variables does not immediately affect the window.  These
 variables are checked when a new buffer is displayed in the window.
 Thus, you can make changes take effect by calling
-@code{set-window-buffer}.
+@code{set-window-buffer}.  Do not use these variables to try to
+determine the current width of the left or right margin.  Instead, use
+the function @code{window-margins}.
 
   You can also set the margin widths immediately.
 
@@ -4949,6 +5028,9 @@ Thus, you can make changes take effect by calling
 This function specifies the margin widths for window @var{window}, in
 character cell units.  The argument @var{left} controls the left
 margin, and @var{right} controls the right margin (default @code{0}).
+
+If @var{window} is not large enough to accommodate margins of the
+desired width, this leaves the margins of @var{window} unchanged.
 
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
@@ -5070,7 +5152,10 @@ Every image descriptor must include this property.
 
 @item :file @var{file}
 This says to load the image from file @var{file}.  If @var{file} is
-not an absolute file name, it is expanded in @code{data-directory}.
+not an absolute file name, it is expanded relative to the
+@file{images} subdirectory of @code{data-directory}, and failing that,
+relative to the directories listed by @code{x-bitmap-file-path}
+(@pxref{Face Attributes}).
 
 @item :data @var{data}
 This specifies the raw image data.  Each image descriptor must have
@@ -5111,6 +5196,53 @@ This adds a shadow rectangle around the image.  The value,
 @var{relief}, specifies the width of the shadow lines, in pixels.  If
 @var{relief} is negative, shadows are drawn so that the image appears
 as a pressed button; otherwise, it appears as an unpressed button.
+
+@item :width @var{width}, :height @var{height}
+The @code{:width} and @code{:height} keywords are used for scaling the
+image.  If only one of them is specified, the other one will be
+calculated so as to preserve the aspect ratio.  If both are specified,
+aspect ratio may not be preserved.
+
+@item :max-width @var{max-width}, :max-height @var{max-height}
+The @code{:max-width} and @code{:max-height} keywords are used for
+scaling if the size of the image exceeds these values.  If
+@code{:width} is set, it will have precedence over @code{max-width},
+and if @code{:height} is set, it will have precedence over
+@code{max-height}, but you can otherwise mix these keywords as you
+wish.
+
+If both @code{:max-width} and @code{:height} are specified, but
+@code{:width} is not, preserving the aspect ratio might require that
+width exceeds @code{:max-width}.  If this happens, scaling will use a
+smaller value for the height so as to preserve the aspect ratio while
+not exceeding @code{:max-width}.  Similarly when both
+@code{:max-height} and @code{:width} are specified, but @code{:height}
+is not.  For example, if you have a 200x100 image and specify that
+@code{:width} should be 400 and @code{:max-height} should be 150,
+you'll end up with an image that is 300x150: Preserving the aspect
+ratio and not exceeding the ``max'' setting.  This combination of
+parameters is a useful way of saying ``display this image as large as
+possible, but no larger than the available display area''.
+
+@item :scale @var{scale}
+This should be a number, where values higher than 1 means to increase
+the size, and lower means to decrease the size, by multiplying both
+the width and height.  For instance, a value of 0.25 will make the
+image a quarter size of what it originally was.  If the scaling makes
+the image larger than specified by @code{:max-width} or
+@code{:max-height}, the resulting size will not exceed those two
+values.  If both @code{:scale} and @code{:height}/@code{:width} are
+specified, the height/width will be adjusted by the specified scaling
+factor.
+
+@item :rotation @var{angle}
+Specifies a rotation angle in degrees.  Only multiples of 90 degrees
+are supported, unless the image type is @code{imagemagick}.  Positive
+values rotate clockwise, negative values counter-clockwise.  Rotation
+is performed after scaling and cropping.
+
+@item :index @var{frame}
+@xref{Multi-Frame Images}.
 
 @item :conversion @var{algorithm}
 This specifies a conversion algorithm that should be applied to the
@@ -5251,6 +5383,27 @@ This function returns @code{t} if image @var{spec} has a mask bitmap.
 (@pxref{Input Focus}).
 @end defun
 
+@defun image-transforms-p &optional frame
+This function returns non-@code{nil} if @var{frame} supports image
+scaling and rotation.  @var{frame} @code{nil} or omitted means to use
+the selected frame (@pxref{Input Focus}).  The returned list includes
+symbols that indicate which image transform operations are supported:
+
+@table @code
+@item scale
+Image scaling is supported by @var{frame} via the @code{:scale},
+@code{:width}, @code{:height}, @code{:max-width}, and
+@code{:max-height} properties.
+@item rotate90
+Image rotation is supported by @var{frame} if the rotation angle is an
+integral multiple of 90 degrees.
+@end table
+
+If image transforms are not supported, @code{:rotation}, @code{:crop},
+@code{:width}, @code{:height}, @code{:scale}, @code{:max-width} and
+@code{:max-height} will only be usable through ImageMagick, if
+available (@pxref{ImageMagick Images}).
+@end defun
 @node XBM Images
 @subsection XBM Images
 @cindex XBM
@@ -5295,12 +5448,14 @@ because omitting them is what indicates the data has the format of an
 XBM file.  The file contents specify the height and width of the image.
 
 @item
-A string or a bool-vector containing the bits of the image (plus perhaps
-some extra bits at the end that will not be used).  It should contain at
-least @var{width} * @code{height} bits.  In this case, you must specify
-@code{:height} and @code{:width}, both to indicate that the string
-contains just the bits rather than a whole XBM file, and to specify the
-size of the image.
+A string or a bool-vector containing the bits of the image (plus
+perhaps some extra bits at the end that will not be used).  It should
+contain at least @w{@code{@var{stride} * @var{height}}} bits, where
+@var{stride} is the smallest multiple of 8 greater than or equal to
+the width of the image.  In this case, you should specify
+@code{:height}, @code{:width} and @code{:stride}, both to indicate
+that the string contains just the bits rather than a whole XBM file,
+and to specify the size of the image.
 @end itemize
 
 @item :width @var{width}
@@ -5308,6 +5463,10 @@ The value, @var{width}, specifies the width of the image, in pixels.
 
 @item :height @var{height}
 The value, @var{height}, specifies the height of the image, in pixels.
+
+@item :stride @var{stride}
+The number of bool vector entries stored for each row; the smallest
+multiple of 8 greater than or equal to @var{width}.
 @end table
 
 @node XPM Images
@@ -5387,53 +5546,29 @@ color, which is used as the image's background color if the image
 supports transparency.  If the value is @code{nil}, it defaults to the
 frame's background color.
 
-@item :width @var{width}, :height @var{height}
-The @code{:width} and @code{:height} keywords are used for scaling the
-image.  If only one of them is specified, the other one will be
-calculated so as to preserve the aspect ratio.  If both are specified,
-aspect ratio may not be preserved.
-
-@item :max-width @var{max-width}, :max-height @var{max-height}
-The @code{:max-width} and @code{:max-height} keywords are used for
-scaling if the size of the image of the image exceeds these values.
-If @code{:width} is set it will have precedence over @code{max-width},
-and if @code{:height} is set it will have precedence over
-@code{max-height}, but you can otherwise mix these keywords as you
-wish.  @code{:max-width} and @code{:max-height} will always preserve
-the aspect ratio.
-
-If both @code{:width} and @code{:max-height} has been set (but
-@code{:height} has not been set), then @code{:max-height} will have
-precedence.  The same is the case for the opposite combination: The
-``max'' keyword has precedence.  That is, if you have a 200x100 image
-and specify that @code{:width} should be 400 and @code{:max-height}
-should be 150, you'll end up with an image that is 300x150: Preserving
-the aspect ratio and not exceeding the ``max'' setting.  This
-combination of parameters is a useful way of saying ``display this
-image as large as possible, but no larger than the available display
-area''.
-
-@item :scale @var{scale}
-This should be a number, where values higher than 1 means to increase
-the size, and lower means to decrease the size.  For instance, a value
-of 0.25 will make the image a quarter size of what it originally was.
-If the scaling makes the image larger than specified by
-@code{:max-width} or @code{:max-height}, the resulting size will not
-exceed those two values.  If both @code{:scale} and
-@code{:height}/@code{:width} are specified, the height/width will be
-adjusted by the specified scaling factor.
-
 @item :format @var{type}
 The value, @var{type}, should be a symbol specifying the type of the
 image data, as found in @code{image-format-suffixes}.  This is used
 when the image does not have an associated file name, to provide a
 hint to ImageMagick to help it detect the image type.
 
-@item :rotation @var{angle}
-Specifies a rotation angle in degrees.
+@item :crop @var{geometry}
+The value of @var{geometry} should be a list of the form
+@code{(@var{width} @var{height} @var{x} @var{y})}.  @var{width} and
+@var{height} specify the width and height of the cropped image.  If
+@var{x} is a positive number it specifies the offset of the cropped
+area from the left of the original image, and if negative the offset
+from the right.  If @var{y} is a positive number it specifies the
+offset from the top of the original image, and if negative from the
+bottom.  If @var{x} or @var{y} are @code{nil} or unspecified the crop
+area will be centred on the original image.
 
-@item :index @var{frame}
-@xref{Multi-Frame Images}.
+If the crop area is outside or overlaps the edge of the image it will
+be reduced to exclude any areas outside of the image.  This means it
+is not possible to use @code{:crop} to increase the size of the image
+by entering large @var{width} or @var{height} values.
+
+Cropping is performed after scaling but before rotation.
 @end table
 
 @node SVG Images
@@ -5502,6 +5637,9 @@ The identified of the shape.
 @item :gradient
 If given, this should be the identifier of a previously defined
 gradient object.
+
+@item :clip-path
+Identifier of a clip path.
 @end table
 
 @defun svg-rectangle svg x y width height &rest args
@@ -5549,6 +5687,29 @@ that describe the outer circumference of the polygon.
 @end lisp
 @end defun
 
+@defun svg-path svg commands &rest args
+Add the outline of a shape to @var{svg} according to @var{commands},
+see @ref{SVG Path Commands}.
+
+Coordinates by default are absolute.  To use coordinates relative to
+the last position, or -- initially -- to the origin, set the attribute
+@var{:relative} to @code{t}.  This attribute can be specified for the
+function or for individual commands.  If specified for the function,
+then all commands use relative coordinates by default.  To make an
+individual command use absolute coordinates, set @var{:relative} to
+@code{nil}.
+
+@lisp
+(svg-path svg
+	  '((moveto ((100 . 100)))
+	    (lineto ((200 . 0) (0 . 200) (-200 . 0)))
+	    (lineto ((100 . 100)) :relative nil))
+	  :stroke-color "blue"
+	  :fill-color "lightblue"
+	  :relative t)
+@end lisp
+@end defun
+
 @defun svg-text svg text &rest args
 Add the specified @var{text} to @var{svg}.
 
@@ -5580,6 +5741,30 @@ string containing the image data as raw bytes.  @var{image-type} should be a
 @end lisp
 @end defun
 
+@defun svg-clip-path svg &rest args
+Add a clipping path to @var{svg}.  If applied to a shape via the
+@var{:clip-path} property, parts of that shape which lie outside of
+the clipping path are not drawn.
+
+@lisp
+(let ((clip-path (svg-clip-path svg :id "foo")))
+  (svg-circle clip-path 200 200 175))
+(svg-rectangle svg 50 50 300 300
+               :fill-color "red"
+               :clip-path "url(#foo)")
+@end lisp
+@end defun
+
+@defun svg-node svg tag &rest args
+Add the custom node @var{tag} to @var{svg}.
+
+@lisp
+(svg-node svg
+          'rect
+          :width 300 :height 200 :x 50 :y 100 :fill-color "green")
+@end lisp
+@end defun
+
 @defun svg-remove svg id
 Remove the element with identifier @code{id} from the @code{svg}.
 @end defun
@@ -5600,6 +5785,198 @@ circle:
                   :stroke-color "green")
   (insert-image (svg-image svg)))
 @end lisp
+
+
+@subsubheading SVG Path Commands
+
+@cindex svg path commands
+@anchor{SVG Path Commands}
+@dfn{SVG paths} allow creation of complex images by combining lines,
+curves, arcs, and other basic shapes.  The functions described below
+allow invoking SVG path commands from a Lisp program.
+
+@deffn Command moveto points
+Move the pen to the first point in @var{points}.  Additional points
+are connected with lines.  @var{points} is a list of X/Y coordinate
+pairs.  Subsequent @command{moveto} commands represent the start of a
+new @dfn{subpath}.
+
+@lisp
+(svg-path svg '((moveto ((200 . 100) (100 . 200) (0 . 100))))
+          :fill "white" :stroke "black")
+@end lisp
+@end deffn
+
+@deffn Command closepath
+End the current subpath by connecting it back to its initial point.  A
+line is drawn along the connection.
+
+@lisp
+(svg-path svg '((moveto ((200 . 100) (100 . 200) (0 . 100)))
+                (closepath)
+                (moveto ((75 . 125) (100 . 150) (125 . 125)))
+                (closepath))
+          :fill "red" :stroke "black")
+@end lisp
+@end deffn
+
+@deffn Command lineto points
+Draw a line from the current point to the first element in
+@var{points}, a list of X/Y position pairs.  If more than one point is
+specified, draw a polyline.
+@lisp
+(svg-path svg '((moveto ((200 . 100)))
+                (lineto ((100 . 200) (0 . 100))))
+          :fill "yellow" :stroke "red")
+@end lisp
+@end deffn
+
+@deffn Command horizontal-lineto x-coordinates
+Draw a horizontal line from the current point to the first element in
+@var{x-coordinates}.  Specifying multiple coordinates is possible,
+although usually this doesn’t make sense.
+
+@lisp
+(svg-path svg '((moveto ((100 . 200)))
+                (horizontal-lineto (300)))
+          :stroke "green")
+@end lisp
+@end deffn
+
+@deffn Command vertical-lineto y-coordinates
+Draw vertical lines.
+
+@lisp
+(svg-path svg '((moveto ((200 . 100)))
+                (vertical-lineto (300)))
+          :stroke "green")
+@end lisp
+@end deffn
+
+@deffn Command curveto coordinate-sets
+Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+curve from the current point.  If there are multiple coordinate sets,
+draw a polybézier.  Each coordinate set is a list of the form
+@code{(@var{x1} @var{y1} @var{x2} @var{y2} @var{x} @var{y})}, where
+@w{(@var{x}, @var{y})} is the curve’s end point.  @w{(@var{x1},
+@var{y1})} and @w{(@var{x2}, @var{y2})} are control points at the
+beginning and at the end, respectively.
+
+@lisp
+(svg-path svg '((moveto ((100 . 100)))
+                (curveto ((200 100 100 200 200 200)
+                          (300 200 0 100 100 100))))
+          :fill "transparent" :stroke "red")
+@end lisp
+@end deffn
+
+@deffn Command smooth-curveto coordinate-sets
+Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+curve from the current point.  If there are multiple coordinate sets,
+draw a polybézier.  Each coordinate set is a list of the form
+@code{(@var{x2} @var{y2} @var{x} @var{y})}, where @w{(@var{x},
+@var{y})} is the curve’s end point and @w{(@var{x2}, @var{y2})} is the
+corresponding control point.  The first control point is the
+reflection of the second control point of the previous command
+relative to the current point, if that command was @command{curveto}
+or @command{smooth-curveto}.  Otherwise the first control point
+coincides with the current point.
+
+@lisp
+(svg-path svg '((moveto ((100 . 100)))
+                (curveto ((200 100 100 200 200 200)))
+                (smooth-curveto ((0 100 100 100))))
+          :fill "transparent" :stroke "blue")
+@end lisp
+@end deffn
+
+@deffn Command quadratic-bezier-curveto coordinate-sets
+Using the first element in @var{coordinate-sets}, draw a quadratic
+Bézier curve from the current point.  If there are multiple coordinate
+sets, draw a polybézier.  Each coordinate set is a list of the form
+@code{(@var{x1} @var{y1} @var{x} @var{y})}, where @w{(@var{x},
+@var{y})} is the curve’s end point and @w{(@var{x1}, @var{y1})} is the
+control point.
+
+@lisp
+(svg-path svg '((moveto ((200 . 100)))
+                (quadratic-bezier-curveto ((300 100 300 200)))
+                (quadratic-bezier-curveto ((300 300 200 300)))
+                (quadratic-bezier-curveto ((100 300 100 200)))
+                (quadratic-bezier-curveto ((100 100 200 100))))
+          :fill "transparent" :stroke "pink")
+@end lisp
+@end deffn
+
+@deffn Command smooth-quadratic-bezier-curveto coordinate-sets
+Using the first element in @var{coordinate-sets}, draw a quadratic
+Bézier curve from the current point.  If there are multiple coordinate
+sets, draw a polybézier.  Each coordinate set is a list of the form
+@code{(@var{x} @var{y})}, where @w{(@var{x}, @var{y})} is the curve’s
+end point.  The control point is the reflection of the control point
+of the previous command relative to the current point, if that command
+was @command{quadratic-bezier-curveto} or
+@command{smooth-quadratic-bezier-curveto}.  Otherwise the control
+point coincides with the current point.
+
+@lisp
+(svg-path svg '((moveto ((200 . 100)))
+                (quadratic-bezier-curveto ((300 100 300 200)))
+                (smooth-quadratic-bezier-curveto ((200 300)))
+                (smooth-quadratic-bezier-curveto ((100 200)))
+                (smooth-quadratic-bezier-curveto ((200 100))))
+          :fill "transparent" :stroke "lightblue")
+@end lisp
+@end deffn
+
+@deffn Command elliptical-arc coordinate-sets
+Using the first element in @var{coordinate-sets}, draw an elliptical
+arc from the current point.  If there are multiple coordinate sets,
+draw a sequence of elliptical arcs.  Each coordinate set is a list of
+the form @code{(@var{rx} @var{ry} @var{x} @var{y})}, where
+@w{(@var{x}, @var{y})} is the end point of the ellipse, and
+@w{(@var{rx}, @var{ry})} are its radii.  Attributes may be appended to
+the list:
+
+@table @code
+@item :x-axis-rotation
+The angle in degrees by which the x-axis of the ellipse is rotated
+relative to the x-axis of the current coordinate system.
+
+@item :large-arc
+If set to @code{t}, draw an arc sweep greater than or equal to 180
+degrees.  Otherwise, draw an arc sweep smaller than or equal to 180
+degrees.
+
+@item :sweep
+If set to @code{t}, draw an arc in @dfn{positive angle direction}.
+Otherwise, draw it in @dfn{negative angle direction}.
+@end table
+
+@lisp
+(svg-path svg '((moveto ((200 . 250)))
+                (elliptical-arc ((75 75 200 350))))
+          :fill "transparent" :stroke "red")
+(svg-path svg '((moveto ((200 . 250)))
+                (elliptical-arc ((75 75 200 350 :large-arc t))))
+          :fill "transparent" :stroke "green")
+(svg-path svg '((moveto ((200 . 250)))
+                (elliptical-arc ((75 75 200 350 :sweep t))))
+          :fill "transparent" :stroke "blue")
+(svg-path svg '((moveto ((200 . 250)))
+                (elliptical-arc ((75 75 200 350 :large-arc t
+                                     :sweep t))))
+          :fill "transparent" :stroke "gray")
+(svg-path svg '((moveto ((160 . 100)))
+                (elliptical-arc ((40 100 80 0)))
+                (elliptical-arc ((40 100 -40 -70
+                                     :x-axis-rotation -120)))
+                (elliptical-arc ((40 100 -40 70
+                                     :x-axis-rotation -240))))
+          :stroke "pink" :fill "lightblue"
+          :relative t)
+@end lisp
+@end deffn
 
 
 @node Other Image Types
@@ -5871,8 +6248,8 @@ This function returns the size of an image as a pair
 specification.  @var{pixels} non-@code{nil} means return sizes measured
 in pixels, otherwise return sizes measured in the default character size
 of @var{frame} (@pxref{Frame Font}).  @var{frame} is the frame on which
-the image will be displayed.  @var{frame} null or omitted means use the
-selected frame (@pxref{Input Focus}).
+the image will be displayed.  @var{frame} @code{nil} or omitted means
+use the selected frame (@pxref{Input Focus}).
 @end defun
 
 @defvar max-image-size
@@ -5907,7 +6284,8 @@ Decrease the image size (@code{image-increase-size}).  A prefix value
 of @samp{4} means to decrease the size by 40%.  The default is 20%.
 
 @item r
-Rotate the image by 90 degrees (@code{image-rotate}).
+Rotate the image by 90 degrees clockwise (@code{image-rotate}).
+A prefix means to rotate by 90 degrees counter-clockwise instead.
 
 @item o
 Save the image to a file (@code{image-save}).
@@ -6229,14 +6607,23 @@ in the variable @code{button-map}, which defines @key{RET} and
 The button type.  @xref{Button Types}.
 
 @item help-echo
-@kindex help-index @r{(button property)}
-A string displayed by the Emacs tool-tip help system; by default,
-@code{"mouse-2, RET: Push this button"}.
+@kindex help-echo @r{(button property)}
+A string displayed by the Emacs tooltip help system; by default,
+@code{"mouse-2, RET: Push this button"}.  Alternatively, a function
+that returns, or a form that evaluates to, a string to be displayed or
+@code{nil}.  For details see @ref{Text help-echo}.
+
+The function is called with three arguments, @var{window},
+@var{object}, and @var{pos}.  The second argument, @var{object}, is
+either the overlay that had the property (for overlay buttons), or the
+buffer containing the button (for text property buttons).  The other
+arguments have the same meaning as for the special text property
+@code{help-echo}.
 
 @item follow-link
 @kindex follow-link @r{(button property)}
-The follow-link property, defining how a @key{mouse-1} click behaves
-on this button, @xref{Clickable Text}.
+The @code{follow-link} property, defining how a @key{mouse-1} click
+behaves on this button, @xref{Clickable Text}.
 
 @item button
 @kindex button @r{(button property)}
@@ -6371,7 +6758,9 @@ that is the value of that property, passing it the single argument
 @var{button}).  If @var{use-mouse-action} is non-@code{nil}, try to
 invoke the button's @code{mouse-action} property instead of
 @code{action}; if the button has no @code{mouse-action} property, use
-@code{action} as normal.
+@code{action} as normal.  If the @code{button-data} property is
+present in @var{button}, use that as the argument for the
+@code{action} function instead of @var{button}.
 @end defun
 
 @defun button-label button
@@ -6439,14 +6828,16 @@ event's position is used.  If there's no button at @var{pos}, do
 nothing and return @code{nil}, otherwise return @code{t}.
 @end deffn
 
-@deffn Command forward-button n &optional wrap display-message
+@deffn Command forward-button n &optional wrap display-message no-error
 Move to the @var{n}th next button, or @var{n}th previous button if
 @var{n} is negative.  If @var{n} is zero, move to the start of any
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
 end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
-is skipped over.  Returns the button found.
+is skipped over.  Returns the button found, and signals an error if no
+buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
+instead of signalling the error.
 @end deffn
 
 @deffn Command backward-button n &optional wrap display-message
@@ -6456,7 +6847,9 @@ button at point.  If @var{wrap} is non-@code{nil}, moving past either
 end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
-is skipped over.  Returns the button found.
+is skipped over.  Returns the button found, and signals an error if no
+buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
+instead of signalling the error.
 @end deffn
 
 @defun next-button pos &optional count-current
@@ -7284,9 +7677,9 @@ Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
 @samp{\230}).
 
 @item format-control
-Characters of Unicode General Category [Cf], such as @samp{U+200E}
-(Left-to-Right Mark), but excluding characters that have graphic
-images, such as @samp{U+00AD} (Soft Hyphen).
+Characters of Unicode General Category [Cf], such as U+200E
+@sc{left-to-right mark}, but excluding characters that have graphic
+images, such as U+00AD @sc{soft hyphen}.
 
 @item no-font
 Characters for which there is no suitable font, or which cannot be
@@ -7669,12 +8062,12 @@ problem:
 
 @itemize @minus
 @item
-Append the special character @code{U+200E}, LEFT-TO-RIGHT MARK, or
+Append the special character U+200E @sc{left-to-right mark}, or
 @acronym{LRM}, to the end of each field that may have bidirectional
 content, or prepend it to the beginning of the following field.  The
 function @code{bidi-string-mark-left-to-right}, described below, comes
 in handy for this purpose.  (In a right-to-left paragraph, use
-@code{U+200F}, RIGHT-TO-LEFT MARK, or @acronym{RLM}, instead.)  This
+U+200F @sc{right-to-left mark}, or @acronym{RLM}, instead.)  This
 is one of the solutions recommended by the UBA.
 
 @item

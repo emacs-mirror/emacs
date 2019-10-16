@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Richard M. Stallman
 ;; Maintainer: emacs-devel@gnu.org
@@ -309,7 +309,7 @@
       menu-bar-separator)
 
     (bindings--define-key menu [tags-continue]
-      '(menu-item "Continue Tags Search" multifile-continue
+      '(menu-item "Continue Tags Search" fileloop-continue
                   :help "Continue last tags search operation"))
     (bindings--define-key menu [tags-srch]
       '(menu-item "Search Tagged Files..." tags-search
@@ -358,7 +358,7 @@
 (defvar menu-bar-replace-menu
   (let ((menu (make-sparse-keymap "Replace")))
     (bindings--define-key menu [tags-repl-continue]
-      '(menu-item "Continue Replace" multifile-continue
+      '(menu-item "Continue Replace" fileloop-continue
                   :help "Continue last tags replace operation"))
     (bindings--define-key menu [tags-repl]
       '(menu-item "Replace in Tagged Files..." tags-query-replace
@@ -687,7 +687,7 @@ The selected font will be the default on both the existing and future frames."
 		   ;; side-effect that turning them off via X
 		   ;; resources acts like having customized them, but
 		   ;; that seems harmless.
-		   menu-bar-mode tool-bar-mode))
+		   menu-bar-mode tab-bar-mode tool-bar-mode))
       ;; FIXME ? It's a little annoying that running this command
       ;; always loads cua-base, paren, time, and battery, even if they
       ;; have not been customized in any way.  (Due to custom-load-symbol.)
@@ -1118,46 +1118,58 @@ The selected font will be the default on both the existing and future frames."
       (global-display-line-numbers-mode)
     (display-line-numbers-mode)))
 
+(defun menu-bar--display-line-numbers-mode-visual ()
+  "Turn on visual line number mode."
+  (interactive)
+  (menu-bar-display-line-numbers-mode 'visual)
+  (message "Visual line numbers enabled"))
+
+(defun menu-bar--display-line-numbers-mode-relative ()
+  "Turn on relative line number mode."
+  (interactive)
+  (menu-bar-display-line-numbers-mode 'relative)
+  (message "Relative line numbers enabled"))
+
+(defun menu-bar--display-line-numbers-mode-absolute ()
+  "Turn on absolute line number mode."
+  (interactive)
+  (menu-bar-display-line-numbers-mode t)
+  (setq display-line-numbers t)
+  (message "Absolute line numbers enabled"))
+
+(defun menu-bar--display-line-numbers-mode-none ()
+  "Disable line numbers."
+  (interactive)
+  (menu-bar-display-line-numbers-mode nil)
+  (message "Line numbers disabled"))
+
 (defvar menu-bar-showhide-line-numbers-menu
   (let ((menu (make-sparse-keymap "Line Numbers")))
 
     (bindings--define-key menu [visual]
-      `(menu-item "Visual Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode 'visual)
-                     (message "Visual line numbers enabled"))
+      '(menu-item "Visual Line Numbers"
+                  menu-bar--display-line-numbers-mode-visual
                   :help "Enable visual line numbers"
                   :button (:radio . (eq display-line-numbers 'visual))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [relative]
-      `(menu-item "Relative Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode 'relative)
-                     (message "Relative line numbers enabled"))
+      '(menu-item "Relative Line Numbers"
+                  menu-bar--display-line-numbers-mode-relative
                   :help "Enable relative line numbers"
                   :button (:radio . (eq display-line-numbers 'relative))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [absolute]
-      `(menu-item "Absolute Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode t)
-                     (setq display-line-numbers t)
-                     (message "Absolute line numbers enabled"))
+      '(menu-item "Absolute Line Numbers"
+                  menu-bar--display-line-numbers-mode-absolute
                   :help "Enable absolute line numbers"
                   :button (:radio . (eq display-line-numbers t))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [none]
-      `(menu-item "No Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode nil)
-                     (message "Line numbers disabled"))
+      '(menu-item "No Line Numbers"
+                  menu-bar--display-line-numbers-mode-none
                   :help "Disable line numbers"
                   :button (:radio . (null display-line-numbers))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
@@ -1242,6 +1254,14 @@ mail status in mode line"))
                               (frame-parameter (menu-bar-frame-for-menubar)
                                                'menu-bar-lines)))))
 
+    (bindings--define-key menu [showhide-tab-bar]
+      '(menu-item "Tab Bar" toggle-tab-bar-mode-from-frame
+                  :help "Turn tab bar on/off"
+                  :button
+                  (:toggle . (menu-bar-positive-p
+                              (frame-parameter (menu-bar-frame-for-menubar)
+                                               'tab-bar-lines)))))
+
     (if (and (boundp 'menu-bar-showhide-tool-bar-menu)
              (keymapp menu-bar-showhide-tool-bar-menu))
         (bindings--define-key menu [showhide-tool-bar]
@@ -1258,16 +1278,33 @@ mail status in mode line"))
                                                  'tool-bar-lines))))))
     menu))
 
+(defun menu-bar--visual-line-mode-enable ()
+  "Enable visual line mode."
+  (interactive)
+  (unless visual-line-mode
+    (visual-line-mode 1))
+  (message "Visual-Line mode enabled"))
+
+(defun menu-bar--toggle-truncate-long-lines ()
+  "Toggle long lines mode."
+  (interactive)
+  (if visual-line-mode (visual-line-mode 0))
+  (setq word-wrap nil)
+  (toggle-truncate-lines 1))
+
+(defun menu-bar--wrap-long-lines-window-edge ()
+  "Wrap long lines at window edge."
+  (interactive)
+  (if visual-line-mode (visual-line-mode 0))
+  (setq word-wrap nil)
+  (if truncate-lines (toggle-truncate-lines -1)))
+
 (defvar menu-bar-line-wrapping-menu
   (let ((menu (make-sparse-keymap "Line Wrapping")))
 
     (bindings--define-key menu [word-wrap]
-      `(menu-item "Word Wrap (Visual Line mode)"
-                  ,(lambda ()
-                     (interactive)
-                     (unless visual-line-mode
-                       (visual-line-mode 1))
-                     (message "Visual-Line mode enabled"))
+      '(menu-item "Word Wrap (Visual Line mode)"
+                  menu-bar--visual-line-mode-enable
                   :help "Wrap long lines at word boundaries"
                   :button (:radio
                            . (and (null truncate-lines)
@@ -1276,12 +1313,8 @@ mail status in mode line"))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [truncate]
-      `(menu-item "Truncate Long Lines"
-                  ,(lambda ()
-                     (interactive)
-                     (if visual-line-mode (visual-line-mode 0))
-                     (setq word-wrap nil)
-                     (toggle-truncate-lines 1))
+      '(menu-item "Truncate Long Lines"
+                  menu-bar--toggle-truncate-long-lines
                   :help "Truncate long lines at window edge"
                   :button (:radio . (or truncate-lines
                                         (truncated-partial-width-window-p)))
@@ -1289,11 +1322,8 @@ mail status in mode line"))
                   :enable (not (truncated-partial-width-window-p))))
 
     (bindings--define-key menu [window-wrap]
-      `(menu-item "Wrap at Window Edge"
-                  ,(lambda () (interactive)
-                     (if visual-line-mode (visual-line-mode 0))
-                     (setq word-wrap nil)
-                     (if truncate-lines (toggle-truncate-lines -1)))
+      '(menu-item "Wrap at Window Edge"
+                  menu-bar--wrap-long-lines-window-edge
                   :help "Wrap long lines at window edge"
                   :button (:radio
                            . (and (null truncate-lines)
@@ -1761,15 +1791,28 @@ key, a click, or a menu-item"))
   (interactive)
   (info "(emacs)Glossary"))
 
+(defun emacs-index--prompt ()
+  (let* ((default (thing-at-point 'sexp))
+         (topic
+          (read-from-minibuffer
+           (format "Subject to look up%s: "
+                   (if default
+                       (format " (default \"%s\")" default)
+                     ""))
+           nil nil nil nil default)))
+    (list (if (zerop (length topic))
+              default
+            topic))))
+
 (defun emacs-index-search (topic)
   "Look up TOPIC in the indices of the Emacs User Manual."
-  (interactive "sSubject to look up: ")
+  (interactive (emacs-index--prompt))
   (info "emacs")
   (Info-index topic))
 
 (defun elisp-index-search (topic)
   "Look up TOPIC in the indices of the Emacs Lisp Reference Manual."
-  (interactive "sSubject to look up: ")
+  (interactive (emacs-index--prompt))
   (info "elisp")
   (Info-index topic))
 
@@ -2362,6 +2405,7 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
   (let* ((map (cond
 	       ((keymapp menu) menu)
 	       ((and (listp menu) (keymapp (car menu))) menu)
+               ((not (listp menu)) nil)
 	       (t (let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
 			 (filter (when (symbolp map)
 				   (plist-get (get map 'menu-prop) :filter))))
@@ -2459,9 +2503,12 @@ first (leftmost) menu-bar item; you can select other items by typing
 
 This is meant to be used only for debugging TTY menus.")
 
-(defun menu-bar-open (&optional frame)
+(defun menu-bar-open (&optional frame initial-x)
   "Start key navigation of the menu bar in FRAME.
 
+Optional argument INITIAL-X gives the X coordinate of the
+first TTY menu-bar menu to be dropped down.  Interactively,
+this is the numeric argument to the command.
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
 `x-menu-bar-open'; on Windows, `w32-menu-bar-open'; otherwise it
@@ -2469,7 +2516,8 @@ calls either `popup-menu' or `tmm-menubar' depending on whether
 `tty-menu-open-use-tmm' is nil or not.
 
 If FRAME is nil or not given, use the selected frame."
-  (interactive)
+  (interactive
+   (list nil (prefix-numeric-value current-prefix-arg)))
   (let ((type (framep (or frame (selected-frame)))))
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
@@ -2482,7 +2530,7 @@ If FRAME is nil or not given, use the selected frame."
       ;; menu item that should be removed when we exit the minibuffer.
       (force-mode-line-update)
       (redisplay)
-      (let* ((x tty-menu--initial-menu-x)
+      (let* ((x (max initial-x tty-menu--initial-menu-x))
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
 		     (lookup-key-ignore-too-long

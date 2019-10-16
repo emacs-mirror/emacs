@@ -1,6 +1,6 @@
 ;;; check-declare.el --- Check declare-function statements
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 ;; Keywords: lisp, tools, maint
@@ -33,7 +33,7 @@
 ;;; TODO:
 
 ;; 1. Warn about functions marked as obsolete, eg
-;; password-read-and-add in smime.el.
+;; password-read-and-add in password-cache.el.
 ;; 2. defmethod, defclass argument checking.
 ;; 3. defclass also defines -p and -child-p.
 
@@ -148,7 +148,7 @@ is a string giving details of the error."
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
                              "^[ \t]*(\\(fset[ \t]+'\\|\
-cl-def\\(?:generic\\|method\\)\\|\
+cl-def\\(?:generic\\|method\\|un\\)\\|\
 def\\(?:un\\|subst\\|foo\\|method\\|class\\|\
 ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\\|\
 \\(?:ine-obsolete-function-\\)?alias[ \t]+'\\|\

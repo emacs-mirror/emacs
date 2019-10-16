@@ -1,6 +1,6 @@
 /* A substitute for POSIX 2008 <stddef.h>, for platforms that have issues.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 /*
  * POSIX 2008 <stddef.h> for platforms that have issues.
- * <http://www.opengroup.org/susv3xbd/stddef.h.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stddef.h.html>
  */
 
 #if __GNUC__ >= 3

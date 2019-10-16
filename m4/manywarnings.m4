@@ -1,5 +1,5 @@
-# manywarnings.m4 serial 17
-dnl Copyright (C) 2008-2018 Free Software Foundation, Inc.
+# manywarnings.m4 serial 18
+dnl Copyright (C) 2008-2019 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -112,16 +112,19 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
   gl_manywarn_set=
   for gl_manywarn_item in -fno-common \
     -W \
+    -Wabsolute-value \
     -Waddress \
+    -Waddress-of-packed-member \
     -Waggressive-loop-optimizations \
     -Wall \
-    -Wattribute-alias \
+    -Wattribute-warning \
     -Wattributes \
     -Wbad-function-cast \
     -Wbool-compare \
     -Wbool-operation \
     -Wbuiltin-declaration-mismatch \
     -Wbuiltin-macro-redefined \
+    -Wcannot-profile \
     -Wcast-align \
     -Wcast-align=strict \
     -Wcast-function-type \
@@ -186,6 +189,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Wmissing-field-initializers \
     -Wmissing-include-dirs \
     -Wmissing-parameter-type \
+    -Wmissing-profile \
     -Wmissing-prototypes \
     -Wmultichar \
     -Wmultistatement-macros \
@@ -292,6 +296,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
   AC_MSG_RESULT([$gl_alloc_max])
   gl_manywarn_set="$gl_manywarn_set -Walloc-size-larger-than=$gl_alloc_max"
   gl_manywarn_set="$gl_manywarn_set -Warray-bounds=2"
+  gl_manywarn_set="$gl_manywarn_set -Wattribute-alias=2"
   gl_manywarn_set="$gl_manywarn_set -Wformat-overflow=2"
   gl_manywarn_set="$gl_manywarn_set -Wformat-truncation=2"
   gl_manywarn_set="$gl_manywarn_set -Wimplicit-fallthrough=5"

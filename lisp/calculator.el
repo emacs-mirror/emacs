@@ -1,6 +1,6 @@
 ;;; calculator.el --- a calculator for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -1054,7 +1054,7 @@ the `left' or `right' when one of the standard modes is used."
      ;; print with radix -- for binary, convert the octal number
      (let* ((fmt (if (eq calculator-output-radix 'hex) "%x" "%o"))
             (str (if calculator-2s-complement num (abs num)))
-            (str (format fmt (calculator-truncate str)))
+	    (str (format fmt (truncate str)))
             (bins '((?0 "000") (?1 "001") (?2 "010") (?3 "011")
                     (?4 "100") (?5 "101") (?6 "110") (?7 "111")))
             (str (if (not (eq calculator-output-radix 'bin)) str

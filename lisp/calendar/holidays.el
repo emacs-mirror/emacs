@@ -1,10 +1,10 @@
 ;;; holidays.el --- holiday functions for the calendar package  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2018 Free Software
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: holidays, calendar
 ;; Package: calendar
 

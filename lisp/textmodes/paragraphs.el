@@ -1,6 +1,6 @@
-;;; paragraphs.el --- paragraph and sentence parsing
+;;; paragraphs.el --- paragraph and sentence parsing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2018 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -165,7 +165,7 @@ to obtain the value of this variable."
   :type '(choice regexp (const :tag "Use default value" nil)))
 (put 'sentence-end 'safe-local-variable 'string-or-null-p)
 
-(defcustom sentence-end-base "[.?!…‽][]\"'”’)}]*"
+(defcustom sentence-end-base "[.?!…‽][]\"'”’)}»›]*"
   "Regexp matching the basic end of a sentence, not including following space."
   :group 'paragraphs
   :type 'string
@@ -207,6 +207,9 @@ This is desirable in modes where blank lines are the paragraph delimiters."
   :group 'paragraphs
   :type 'boolean)
 (put 'paragraph-ignore-fill-prefix 'safe-local-variable 'booleanp)
+
+;; Silence the compiler.
+(defvar multiple-lines)
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
@@ -398,15 +401,15 @@ it marks the next ARG paragraphs after the ones already marked."
 
 (defun kill-paragraph (arg)
   "Kill forward to end of paragraph.
-With arg N, kill forward to Nth end of paragraph;
-negative arg -N means kill backward to Nth start of paragraph."
+With ARG N, kill forward to Nth end of paragraph;
+negative ARG -N means kill backward to Nth start of paragraph."
   (interactive "p")
   (kill-region (point) (progn (forward-paragraph arg) (point))))
 
 (defun backward-kill-paragraph (arg)
   "Kill back to start of paragraph.
-With arg N, kill back to Nth start of paragraph;
-negative arg -N means kill forward to Nth end of paragraph."
+With ARG N, kill back to Nth start of paragraph;
+negative ARG -N means kill forward to Nth end of paragraph."
   (interactive "p")
   (kill-region (point) (progn (backward-paragraph arg) (point))))
 
@@ -421,6 +424,7 @@ the current paragraph with the one containing the mark."
   (transpose-subr 'forward-paragraph arg))
 
 (defun start-of-paragraph-text ()
+  "Move to the start of the current paragraph."
   (let ((opoint (point)) npoint)
     (forward-paragraph -1)
     (setq npoint (point))
@@ -436,6 +440,7 @@ the current paragraph with the one containing the mark."
 	      (start-of-paragraph-text))))))
 
 (defun end-of-paragraph-text ()
+  "Move to the end of the current paragraph."
   (let ((opoint (point)))
     (forward-paragraph 1)
     (if (eq (preceding-char) ?\n) (forward-char -1))
@@ -447,7 +452,7 @@ the current paragraph with the one containing the mark."
 
 (defun forward-sentence (&optional arg)
   "Move forward to next end of sentence.  With argument, repeat.
-With negative argument, move backward repeatedly to start of sentence.
+When ARG is negative, move backward repeatedly to start of sentence.
 
 The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
@@ -483,37 +488,46 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
       (setq arg (1- arg)))
     (constrain-to-field nil opoint t)))
 
-(defun repunctuate-sentences ()
+(defun repunctuate-sentences (&optional no-query)
   "Put two spaces at the end of sentences from point to the end of buffer.
-It works using `query-replace-regexp'."
+It works using `query-replace-regexp'.
+If optional argument NO-QUERY is non-nil, make changes without
+asking for confirmation."
   (interactive)
-  (query-replace-regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +"
-			"\\1\\2\\3  "))
+  (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +")
+        (to-string "\\1\\2\\3  "))
+    (if no-query
+        (while (re-search-forward regexp nil t)
+          (replace-match to-string))
+      (query-replace-regexp regexp to-string))))
 
 
 (defun backward-sentence (&optional arg)
-  "Move backward to start of sentence.  With arg, do it arg times.
-See `forward-sentence' for more information."
+  "Move backward to start of sentence.
+With ARG, do it ARG times.  See `forward-sentence' for more
+information."
   (interactive "^p")
   (or arg (setq arg 1))
   (forward-sentence (- arg)))
 
 (defun kill-sentence (&optional arg)
   "Kill from point to end of sentence.
-With arg, repeat; negative arg -N means kill back to Nth start of sentence."
+With ARG, repeat; negative ARG -N means kill back to Nth start of
+sentence."
   (interactive "p")
   (kill-region (point) (progn (forward-sentence arg) (point))))
 
 (defun backward-kill-sentence (&optional arg)
   "Kill back from point to start of sentence.
-With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
+With ARG, repeat, or kill forward to Nth end of sentence if
+negative ARG -N."
   (interactive "p")
   (kill-region (point) (progn (backward-sentence arg) (point))))
 
 (defun mark-end-of-sentence (arg)
-  "Put mark at end of sentence.  Arg works as in `forward-sentence'.
-If this command is repeated, it marks the next ARG sentences after the
-ones already marked."
+  "Put mark at end of sentence.
+ARG works as in `forward-sentence'.  If this command is repeated,
+it marks the next ARG sentences after the ones already marked."
   (interactive "p")
   (push-mark
    (save-excursion

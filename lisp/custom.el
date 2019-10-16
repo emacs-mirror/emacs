@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -56,8 +56,14 @@ Otherwise, if symbol has a `saved-value' property, it will evaluate
 the car of that and use it as the default binding for symbol.
 Otherwise, EXP will be evaluated and used as the default binding for
 symbol."
-  (eval `(defvar ,symbol ,(let ((sv (get symbol 'saved-value)))
-                            (if sv (car sv) exp)))))
+  (condition-case nil
+      (default-toplevel-value symbol)   ;Test presence of default value.
+    (void-variable
+     ;; The var is not initialized yet.
+     (set-default-toplevel-value
+      symbol (eval (let ((sv (get symbol 'saved-value)))
+                     (if sv (car sv) exp))
+                   t)))))
 
 (defun custom-initialize-set (symbol exp)
   "Initialize SYMBOL based on EXP.
@@ -175,6 +181,11 @@ set to nil, as the value is no longer rogue."
 		 (put symbol 'risky-local-variable value))
 		((eq keyword :safe)
 		 (put symbol 'safe-local-variable value))
+                ((eq keyword :local)
+                 (when (memq value '(t permanent))
+                   (make-variable-buffer-local symbol))
+                 (when (eq value 'permanent)
+                   (put symbol 'permanent-local t)))
 		((eq keyword :type)
 		 (put symbol 'custom-type (purecopy value)))
 		((eq keyword :options)
@@ -188,18 +199,13 @@ set to nil, as the value is no longer rogue."
 		(t
 		 (custom-handle-keyword symbol keyword value
 					'custom-variable))))))
+    ;; Set the docstring, record the var on load-history, as well
+    ;; as set the special-variable-p flag.
+    (internal--define-uninitialized-variable symbol doc)
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
     (unless custom-dont-initialize
       (funcall initialize symbol default)))
-  ;; Use defvar to set the docstring as well as the special-variable-p flag.
-  ;; FIXME: We should reproduce more of `defvar's behavior, such as the warning
-  ;; when the var is currently let-bound.
-  (if (not (default-boundp symbol))
-      ;; Don't use defvar to avoid setting a default-value when undesired.
-      (when doc (put symbol 'variable-documentation doc))
-    (eval `(defvar ,symbol nil ,@(when doc (list doc)))))
-  (push symbol current-load-list)
   (run-hooks 'custom-define-hook)
   symbol)
 
@@ -250,6 +256,9 @@ The following keywords are meaningful:
 :risky	Set SYMBOL's `risky-local-variable' property to VALUE.
 :safe	Set SYMBOL's `safe-local-variable' property to VALUE.
         See Info node `(elisp) File Local Variables'.
+:local  If VALUE is t, mark SYMBOL as automatically buffer-local.
+        If VALUE is `permanent', also set SYMBOL's `permanent-local'
+        property to t.
 
 The following common keywords are also meaningful.
 
@@ -326,6 +335,11 @@ to load a file defining variables with this form, or with
 `defvar' or `defconst', you should always load that file
 _outside_ any bindings for these variables.  (`defvar' and
 `defconst' behave similarly in this respect.)
+
+This macro calls `custom-declare-variable'.  If you want to
+programmatically alter a customizable variable (for instance, to
+write a package that extends the syntax of a variable), you can
+call that functcion directly.
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
@@ -1123,6 +1137,7 @@ Every theme X has a property `provide-theme' whose value is \"X-theme\".
 The command `customize-create-theme' writes theme files into this
 directory.  By default, Emacs searches for custom themes in this
 directory first---see `custom-theme-load-path'."
+  :initialize #'custom-initialize-delay
   :type 'string
   :group 'customize
   :version "22.1")

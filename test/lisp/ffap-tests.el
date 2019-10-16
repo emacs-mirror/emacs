@@ -1,6 +1,6 @@
 ;;; ffap-tests.el --- Test suite for ffap.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 
@@ -71,11 +71,9 @@ Host = example.com\n")
   "Test for Bug#25352.  Checks that the window configuration is
 left alone when opening a URL in an external browser."
   (cl-letf* ((old (current-window-configuration))
-             ((symbol-function 'ffap-prompter)
-              (lambda () "https://www.gnu.org"))
              (urls nil)
              (ffap-url-fetcher (lambda (url) (push url urls) nil)))
-    (should-not (ffap-other-window))
+    (should-not (ffap-other-window "https://www.gnu.org"))
     (should (equal (current-window-configuration) old))
     (should (equal urls '("https://www.gnu.org")))))
 

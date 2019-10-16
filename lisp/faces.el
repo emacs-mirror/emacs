@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -55,6 +55,7 @@ This means to treat a terminal of type TYPE as if it were of type ALIAS."
   :group 'terminals
   :version "25.1")
 
+(declare-function display-graphic-p "frame" (&optional display))
 (declare-function xw-defined-colors "term/common-win" (&optional frame))
 
 (defvar help-xref-stack-item)
@@ -1239,7 +1240,7 @@ of a global face.  Value is the new attribute value."
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
 	       (when (and (memq attribute '(:foreground :background))
-			  (not (memq (window-system frame) '(x w32 ns)))
+			  (not (display-graphic-p frame))
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
@@ -1414,116 +1415,6 @@ argument, prompt for a regular expression using `read-regexp'."
     (or (eq frame disp-frame)
 	(dolist (face (face-list))
 	  (copy-face face face frame disp-frame)))))
-
-
-(defun describe-face (face &optional frame)
-  "Display the properties of face FACE on FRAME.
-Interactively, FACE defaults to the faces of the character after point
-and FRAME defaults to the selected frame.
-
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face"
-                                     (or (face-at-point t) 'default)
-                                     t)))
-  (let* ((attrs '((:family . "Family")
-		  (:foundry . "Foundry")
-		  (:width . "Width")
-		  (:height . "Height")
-		  (:weight . "Weight")
-		  (:slant . "Slant")
-		  (:foreground . "Foreground")
-		  (:distant-foreground . "DistantForeground")
-		  (:background . "Background")
-		  (:underline . "Underline")
-		  (:overline . "Overline")
-		  (:strike-through . "Strike-through")
-		  (:box . "Box")
-		  (:inverse-video . "Inverse")
-		  (:stipple . "Stipple")
-		  (:font . "Font")
-		  (:fontset . "Fontset")
-		  (:inherit . "Inherit")))
-	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
-					attrs))))
-    (help-setup-xref (list #'describe-face face)
-		     (called-interactively-p 'interactive))
-    (unless face
-      (setq face 'default))
-    (if (not (listp face))
-	(setq face (list face)))
-    (with-help-window (help-buffer)
-      (with-current-buffer standard-output
-	(dolist (f face (buffer-string))
-	  (if (stringp f) (setq f (intern f)))
-	  ;; We may get called for anonymous faces (i.e., faces
-	  ;; expressed using prop-value plists).  Those can't be
-	  ;; usefully customized, so ignore them.
-	  (when (symbolp f)
-	    (insert "Face: " (symbol-name f))
-	    (if (not (facep f))
-		(insert "   undefined face.\n")
-	      (let ((customize-label "customize this face")
-		    file-name)
-		(insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
-		(princ (concat " (" customize-label ")\n"))
-		;; FIXME not sure how much of this belongs here, and
-		;; how much in `face-documentation'.  The latter is
-		;; not used much, but needs to return nil for
-		;; undocumented faces.
-		(let ((alias (get f 'face-alias))
-		      (face f)
-		      obsolete)
-		  (when alias
-		    (setq face alias)
-		    (insert
-		     (format-message
-                      "\n  %s is an alias for the face `%s'.\n%s"
-                      f alias
-                      (if (setq obsolete (get f 'obsolete-face))
-                          (format-message
-                           "  This face is obsolete%s; use `%s' instead.\n"
-                           (if (stringp obsolete)
-                               (format " since %s" obsolete)
-                             "")
-                           alias)
-                        ""))))
-		  (insert "\nDocumentation:\n"
-                          (substitute-command-keys
-                           (or (face-documentation face)
-                               "Not documented as a face."))
-			  "\n\n"))
-		(with-current-buffer standard-output
-		  (save-excursion
-		    (re-search-backward
-		     (concat "\\(" customize-label "\\)") nil t)
-		    (help-xref-button 1 'help-customize-face f)))
-		(setq file-name (find-lisp-object-file-name f 'defface))
-		(when file-name
-		  (princ (substitute-command-keys "Defined in `"))
-		  (princ (file-name-nondirectory file-name))
-		  (princ (substitute-command-keys "'"))
-		  ;; Make a hyperlink to the library.
-		  (save-excursion
-		    (re-search-backward
-                     (substitute-command-keys "`\\([^`']+\\)'") nil t)
-		    (help-xref-button 1 'help-face-def f file-name))
-		  (princ ".")
-		  (terpri)
-		  (terpri))
-		(dolist (a attrs)
-		  (let ((attr (face-attribute f (car a) frame)))
-		    (insert (make-string (- max-width (length (cdr a))) ?\s)
-			    (cdr a) ": " (format "%s" attr))
-		    (if (and (eq (car a) :inherit)
-			     (not (eq attr 'unspecified)))
-			;; Make a hyperlink to the parent face.
-			(save-excursion
-			  (re-search-backward ": \\([^:]+\\)" nil t)
-			  (help-xref-button 1 'help-face attr)))
-		    (insert "\n")))))
-	    (terpri)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1833,7 +1724,7 @@ The argument FRAME specifies which frame to try.
 The value may be different for frames on different display types.
 If FRAME doesn't support colors, the value is nil.
 If FRAME is nil, that stands for the selected frame."
-  (if (memq (framep (or frame (selected-frame))) '(x w32 ns))
+  (if (display-graphic-p frame)
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
@@ -1841,7 +1732,7 @@ If FRAME is nil, that stands for the selected frame."
 (defun defined-colors-with-face-attributes (&optional frame)
   "Return a list of colors supported for a particular frame.
 See `defined-colors' for arguments and return value. In contrast
-to `define-colors' the elements of the returned list are color
+to `define-colorss' the elements of the returned list are color
 strings with text properties, that make the color names render
 with the color they represent as background color."
   (mapcar
@@ -1877,7 +1768,7 @@ or one of the strings \"unspecified-fg\" or \"unspecified-bg\".
 
 If FRAME is omitted or nil, use the selected frame."
   (unless (member color '(unspecified "unspecified-bg" "unspecified-fg"))
-    (if (member (framep (or frame (selected-frame))) '(x w32 ns))
+    (if (display-graphic-p frame)
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
@@ -1903,7 +1794,7 @@ return value is nil."
   (cond
    ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
     nil)
-   ((memq (framep (or frame (selected-frame))) '(x w32 ns))
+   ((display-graphic-p frame)
     (xw-color-values color frame))
    (t
     (tty-color-values color frame))))
@@ -1917,7 +1808,7 @@ return value is nil."
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (if (memq (framep-on-display display) '(x w32 ns))
+  (if (display-graphic-p display)
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
@@ -1928,12 +1819,9 @@ If omitted or nil, that stands for the selected frame's display."
   "Return non-nil if frames on DISPLAY can display shades of gray.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (let ((frame-type (framep-on-display display)))
-    (cond
-     ((memq frame-type '(x w32 ns))
-      (x-display-grayscale-p display))
-     (t
-      (> (tty-color-gray-shades display) 2)))))
+  (if (display-graphic-p display)
+      (x-display-grayscale-p display)
+    (> (tty-color-gray-shades display) 2)))
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
   "Read a color name or RGB triplet.
@@ -1999,7 +1887,7 @@ resulting color name in the echo area."
       (when (and convert-to-RGB
 		 (not (string-equal color "")))
 	(let ((components (x-color-values color)))
-	  (unless (string-match-p "^#\\(?:[a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
+	  (unless (string-match-p "^#\\(?:[[:xdigit:]][[:xdigit:]][[:xdigit:]]\\)+$" color)
 	    (setq color (format "#%04X%04X%04X"
 				(logand 65535 (nth 0 components))
 				(logand 65535 (nth 1 components))
@@ -2501,6 +2389,60 @@ unwanted effects."
   :version "26.1"
   :group 'basic-faces
   :group 'display-line-numbers)
+
+(defface line-number-major-tick
+  '((((class color grayscale) (background light))
+     :foreground "grey55" :bold t)
+    (((class color grayscale) (background dark))
+     :foreground "grey75" :bold t)
+    (t :inherit line-number))
+  "Face for highlighting \"major ticks\" (as in a ruler).
+When `display-line-numbers-major-tick' is positive, highlight
+the line numbers of lines which are a multiple of its value.
+This face is used when `display-line-numbers' is non-nil.
+
+If you customize the font of this face, make sure it is a
+monospaced font, otherwise line numbers will not line up,
+and text lines might move horizontally as you move through
+the buffer.  Similarly, making this face's font different
+from that of the `line-number' face could produce such
+unwanted effects."
+  :version "27.1"
+  :group 'basic-faces
+  :group 'display-line-numbers)
+
+(defface line-number-minor-tick
+  '((((class color grayscale) (background light))
+     :foreground "grey65" :bold t)
+    (((class color grayscale) (background dark))
+     :foreground "grey55" :bold t)
+    (t :inherit line-number))
+  "Face for highlighting \"minor ticks\" (as in a ruler).
+When `display-line-numbers-minor-tick' is positive, highlight
+the line numbers of lines which are a multiple of its value.
+This face is used when `display-line-numbers' is non-nil.
+
+If you customize the font of this face, make sure it is a
+monospaced font, otherwise line numbers will not line up,
+and text lines might move horizontally as you move through
+the buffer.  Similarly, making this face's font different
+from that of the `line-number' face could produce such
+unwanted effects."
+  :version "27.1"
+  :group 'basic-faces
+  :group 'display-line-numbers)
+
+;; Definition stolen from display-line-numbers.
+(defface fill-column-indicator
+  '((t :inherit shadow :weight normal :slant normal
+       :underline nil :overline nil :strike-through nil
+       :box nil :inverse-video nil :stipple nil))
+  "Face for displaying fill column indicator.
+This face is used when `display-fill-column-indicator-mode' is
+non-nil."
+  :version "27.1"
+  :group 'basic-faces
+  :group 'display-fill-column-indicator)
 
 (defface escape-glyph
   '((((background dark)) :foreground "cyan")

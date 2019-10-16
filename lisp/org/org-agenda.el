@@ -1,6 +1,6 @@
 ;;; org-agenda.el --- Dynamic task and appointment lists for Org
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -267,7 +267,7 @@ you can \"misuse\" it to also add other text to the header."
   "List of types searched for when creating the daily/weekly agenda.
 This variable is a list of symbols that controls the types of
 items that appear in the daily/weekly agenda.  Allowed symbols in this
-list are are
+list are
 
   :timestamp   List items containing a date stamp or date range matching
                the selected date.  This includes sexp entries in angular
@@ -1225,9 +1225,9 @@ These days get the special face `org-agenda-date-weekend' in the agenda."
 
 (defcustom org-agenda-move-date-from-past-immediately-to-today t
   "Non-nil means jump to today when moving a past date forward in time.
-When using S-right in the agenda to move a a date forward, and the date
+When using S-right in the agenda to move a date forward, and the date
 stamp currently points to the past, the first key press will move it
-to today.  WHen nil, just move one day forward even if the date stays
+to today.  When nil, just move one day forward even if the date stays
 in the past."
   :group 'org-agenda-daily/weekly
   :version "24.1"
@@ -1498,7 +1498,7 @@ The third item is a string which will be placed right after the
 times that have a grid line.
 
 The fourth item is a string placed after the grid times.  This
-will align with agenda items"
+will align with agenda items."
   :group 'org-agenda-time-grid
   :type
   '(list
@@ -1542,18 +1542,18 @@ This is a list of symbols which will be used in sequence to determine
 if an entry should be listed before another entry.  The following
 symbols are recognized:
 
-time-up            Put entries with time-of-day indications first, early first
-time-down          Put entries with time-of-day indications first, late first
-timestamp-up       Sort by any timestamp, early first
-timestamp-down     Sort by any timestamp, late first
-scheduled-up       Sort by scheduled timestamp, early first
-scheduled-down     Sort by scheduled timestamp, late first
-deadline-up        Sort by deadline timestamp, early first
-deadline-down      Sort by deadline timestamp, late first
-ts-up              Sort by active timestamp, early first
-ts-down            Sort by active timestamp, late first
-tsia-up            Sort by inactive timestamp, early first
-tsia-down          Sort by inactive timestamp, late first
+time-up            Put entries with time-of-day indications first, early first.
+time-down          Put entries with time-of-day indications first, late first.
+timestamp-up       Sort by any timestamp, early first.
+timestamp-down     Sort by any timestamp, late first.
+scheduled-up       Sort by scheduled timestamp, early first.
+scheduled-down     Sort by scheduled timestamp, late first.
+deadline-up        Sort by deadline timestamp, early first.
+deadline-down      Sort by deadline timestamp, late first.
+ts-up              Sort by active timestamp, early first.
+ts-down            Sort by active timestamp, late first.
+tsia-up            Sort by inactive timestamp, early first.
+tsia-down          Sort by inactive timestamp, late first.
 category-keep      Keep the default order of categories, corresponding to the
 		   sequence in `org-agenda-files'.
 category-up        Sort alphabetically by category, A-Z.
@@ -1568,10 +1568,10 @@ effort-up          Sort numerically by estimated effort, high effort last.
 effort-down        Sort numerically by estimated effort, high effort first.
 user-defined-up    Sort according to `org-agenda-cmp-user-defined', high last.
 user-defined-down  Sort according to `org-agenda-cmp-user-defined', high first.
-habit-up           Put entries that are habits first
-habit-down         Put entries that are habits last
-alpha-up           Sort headlines alphabetically
-alpha-down         Sort headlines alphabetically, reversed
+habit-up           Put entries that are habits first.
+habit-down         Put entries that are habits last.
+alpha-up           Sort headlines alphabetically.
+alpha-down         Sort headlines alphabetically, reversed.
 
 The different possibilities will be tried in sequence, and testing stops
 if one comparison returns a \"not-equal\".  For example, the default
@@ -2882,13 +2882,12 @@ Pressing `<' twice means to restrict to the current subtree or region
 	     (let* ((m (org-agenda-get-any-marker))
 		    (note (and m (org-entry-get m "THEFLAGGINGNOTE"))))
 	       (when note
-		 (message (concat
-			   "FLAGGING-NOTE ([?] for more info): "
-			   (org-add-props
-			       (replace-regexp-in-string
-				"\\\\n" "//"
-				(copy-sequence note))
-			       nil 'face 'org-warning)))))))
+		 (message "FLAGGING-NOTE ([?] for more info): %s"
+			  (org-add-props
+			   (replace-regexp-in-string
+			    "\\\\n" "//"
+			    (copy-sequence note))
+			   nil 'face 'org-warning))))))
 	 t t))
        ((equal org-keys "#") (call-interactively 'org-agenda-list-stuck-projects))
        ((equal org-keys "/") (call-interactively 'org-occur-in-agenda-files))
@@ -5491,8 +5490,8 @@ displayed in agenda view."
 	    (substring
 	     (format-time-string
 	      (car org-time-stamp-formats)
-	      (apply #'encode-time	; DATE bound by calendar
-		     (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
+	      (encode-time	; DATE bound by calendar
+	       0 0 0 (nth 1 date) (car date) (nth 2 date)))
 	     1 11))
 	   "\\|\\(<[0-9]+-[0-9]+-[0-9]+[^>\n]+?\\+[0-9]+[hdwmy]>\\)"
 	   "\\|\\(<%%\\(([^>\n]+)\\)>\\)"))
@@ -5742,8 +5741,8 @@ then those holidays will be skipped."
 		   (substring
 		    (format-time-string
 		     (car org-time-stamp-formats)
-		     (apply 'encode-time  ; DATE bound by calendar
-			    (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
+		     (encode-time  ; DATE bound by calendar
+		      0 0 0 (nth 1 date) (car date) (nth 2 date)))
 		    1 11))))
 	 (org-agenda-search-headline-for-time nil)
 	 marker hdmarker priority category level tags closedp
@@ -5860,21 +5859,19 @@ See also the user option `org-agenda-clock-consistency-checks'."
 	      (throw 'next t))
 	    (setq ts (match-string 1)
 		  te (match-string 3)
-		  ts (float-time
-		      (apply #'encode-time (org-parse-time-string ts)))
-		  te (float-time
-		      (apply #'encode-time (org-parse-time-string te)))
+		  ts (float-time (org-time-string-to-time ts))
+		  te (float-time (org-time-string-to-time te))
 		  dt (- te ts))))
 	(cond
 	 ((> dt (* 60 maxtime))
 	  ;; a very long clocking chunk
 	  (setq issue (format "Clocking interval is very long: %s"
-			      (org-duration-from-minutes (floor (/ dt 60.))))
+			      (org-duration-from-minutes (floor dt 60)))
 		face (or (plist-get pl :long-face) face)))
 	 ((< dt (* 60 mintime))
 	  ;; a very short clocking chunk
 	  (setq issue (format "Clocking interval is very short: %s"
-			      (org-duration-from-minutes (floor (/ dt 60.))))
+			      (org-duration-from-minutes (floor dt 60)))
 		face (or (plist-get pl :short-face) face)))
 	 ((and (> tlend 0) (< ts tlend))
 	  ;; Two clock entries are overlapping
@@ -5914,8 +5911,8 @@ See also the user option `org-agenda-clock-consistency-checks'."
 	(throw 'exit t))
     ;; We have a shorter gap.
     ;; Now we have to get the minute of the day when these times are
-    (let* ((t1dec (decode-time (seconds-to-time t1)))
-	   (t2dec (decode-time (seconds-to-time t2)))
+    (let* ((t1dec (decode-time t1))
+	   (t2dec (decode-time t2))
 	   ;; compute the minute on the day
 	   (min1 (+ (nth 1 t1dec) (* 60 (nth 2 t1dec))))
 	   (min2 (+ (nth 1 t2dec) (* 60 (nth 2 t2dec)))))
@@ -7368,8 +7365,7 @@ With a prefix argument, do so in all agenda buffers."
   "Filter lines in the agenda buffer that have a specific category.
 The category is that of the current line.
 Without prefix argument, keep only the lines of that category.
-With a prefix argument, exclude the lines of that category.
-"
+With a prefix argument, exclude the lines of that category."
   (interactive "P")
   (if (and org-agenda-filtered-by-category
 	   org-agenda-category-filter)
@@ -7885,7 +7881,7 @@ Negative selection means regexp must not match for selection of an entry."
 
 (defun org-agenda-forward-block (&optional backward)
   "Move forward by one agenda block.
-When optional argument BACKWARD is set, go backward"
+When optional argument BACKWARD is set, go backward."
   (interactive)
   (cond ((not (derived-mode-p 'org-agenda-mode))
 	 (user-error
@@ -8911,7 +8907,7 @@ The new content of the line will be NEWHEAD (as modified by
 If FIXFACE is non-nil, the face of each item is modified according to
 the new TODO state.
 If JUST-THIS is non-nil, change just the current line, not all.
-If FORCE-TAGS is non nil, the car of it returns the new tags."
+If FORCE-TAGS is non-nil, the car of it returns the new tags."
   (let* ((inhibit-read-only t)
 	 (line (org-current-line))
 	 (org-agenda-buffer (current-buffer))
@@ -9233,7 +9229,7 @@ Called with a universal prefix arg, show the priority instead of setting it."
       (goto-char (point-max))
       (while (not (bobp))
 	(when (equal marker (org-get-at-bol 'org-marker))
-	  (remove-text-properties (point-at-bol) (point-at-eol) '(display))
+          (remove-text-properties (point-at-bol) (point-at-eol) '(display nil))
 	  (org-move-to-column (- (window-width) (length stamp)) t)
           (add-text-properties
 	   (1- (point)) (point-at-eol)
@@ -9448,7 +9444,7 @@ the resulting entry will not be shown.  When TEXT is empty, switch to
     (goto-char (point-min))
     (cond
      ((eq type 'anniversary)
-      (or (re-search-forward "^*[ \t]+Anniversaries" nil t)
+      (or (re-search-forward "^\\*[ \t]+Anniversaries" nil t)
 	  (progn
 	    (or (org-at-heading-p t)
 		(progn
@@ -10159,8 +10155,7 @@ to override `appt-message-warning-time'."
          ;; Do not use `org-today' here because appt only takes
          ;; time and without date as argument, so it may pass wrong
          ;; information otherwise
-         (today (org-date-to-gregorian
-                 (time-to-days (current-time))))
+	 (today (org-date-to-gregorian (time-to-days nil)))
          (org-agenda-restrict nil)
          (files (org-agenda-files 'unrestricted)) entries file
          (org-agenda-buffer nil))
@@ -10209,7 +10204,7 @@ to override `appt-message-warning-time'."
       (message "Added %d event%s for today" cnt (if (> cnt 1) "s" "")))))
 
 (defun org-agenda-today-p (date)
-  "Non nil when DATE means today.
+  "Non-nil when DATE means today.
 DATE is either a list of the form (month day year) or a number of
 days as returned by `calendar-absolute-from-gregorian' or
 `org-today'.  This function considers `org-extend-today-until'

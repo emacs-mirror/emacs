@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -158,8 +158,9 @@ are non-nil, then the result is non-nil."
 
 (defmacro if-let (spec then &rest else)
   "Bind variables according to SPEC and evaluate THEN or ELSE.
-Evaluate each binding in turn, stopping if a binding value is nil.
-If all are non-nil return the value of THEN, otherwise the last form in ELSE.
+Evaluate each binding in turn, as in `let*', stopping if a
+binding value is nil.  If all are non-nil return the value of
+THEN, otherwise the last form in ELSE.
 
 Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
 SYMBOL to the value of VALUEFORM.  An element can additionally be
@@ -181,6 +182,7 @@ with an old syntax that accepted only one binding."
     (setq spec (list spec)))
   (list 'if-let* spec then (macroexp-progn else)))
 
+;;;###autoload
 (defmacro when-let (spec &rest body)
   "Bind variables according to SPEC and conditionally evaluate BODY.
 Evaluate each binding in turn, stopping if a binding value is nil.
@@ -235,7 +237,9 @@ TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (string-trim-left (string-trim-right string trim-right) trim-left))
 
 (defsubst string-blank-p (string)
-  "Check whether STRING is either empty or only whitespace."
+  "Check whether STRING is either empty or only whitespace.
+The following characters count as whitespace here: space, tab, newline and
+carriage return."
   (string-match-p "\\`[ \t\n\r]*\\'" string))
 
 (defsubst string-remove-prefix (prefix string)
@@ -249,6 +253,35 @@ TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (if (string-suffix-p suffix string)
       (substring string 0 (- (length string) (length suffix)))
     string))
+
+(defun replace-region-contents (beg end replace-fn
+                                    &optional max-secs max-costs)
+  "Replace the region between BEG and END using REPLACE-FN.
+REPLACE-FN runs on the current buffer narrowed to the region.  It
+should return either a string or a buffer replacing the region.
+
+The replacement is performed using `replace-buffer-contents'
+which also describes the MAX-SECS and MAX-COSTS arguments and the
+return value.
+
+Note: If the replacement is a string, it'll be placed in a
+temporary buffer so that `replace-buffer-contents' can operate on
+it.  Therefore, if you already have the replacement in a buffer,
+it makes no sense to convert it to a string using
+`buffer-substring' or similar."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (let ((repl (funcall replace-fn)))
+	(if (bufferp repl)
+	    (replace-buffer-contents repl max-secs max-costs)
+	  (let ((source-buffer (current-buffer)))
+	    (with-temp-buffer
+	      (insert repl)
+	      (let ((tmp-buffer (current-buffer)))
+		(set-buffer source-buffer)
+		(replace-buffer-contents tmp-buffer max-secs max-costs)))))))))
 
 (provide 'subr-x)
 

@@ -1,6 +1,6 @@
 ;;; ediff-diff-tests.el --- Unit tests for ediff-diff.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 

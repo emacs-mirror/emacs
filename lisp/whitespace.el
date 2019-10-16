@@ -1,9 +1,8 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: data, wp
 ;; Version: 13.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre

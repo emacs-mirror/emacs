@@ -1,9 +1,9 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
-;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
+;; Maintainer: Vincent Belaïche <vincentb1@users.sourceforge.net>
 ;; Keywords: spreadsheet Dijkstra
 
 ;; This file is part of GNU Emacs.
@@ -837,7 +837,7 @@ updated again."
 (defmacro ses--time-check (format &rest args)
   "If `ses-start-time' is more than a second ago, call `message' with FORMAT
 and ARGS and reset `ses-start-time' to the current time."
-  `(when (> (- (float-time) ses-start-time) 1.0)
+  `(when (time-less-p 1 (time-since ses-start-time))
      (message ,format ,@args)
      (setq ses-start-time (float-time))))
 
@@ -1435,7 +1435,7 @@ ses--default-printer, ses--numrows, or ses--numcols."
   "Extend the global parameters list when file format is updated
 from 2 to 3. This happens when local printer function are added
 to a sheet that was created with SES version 2. This is not
-undoable. Return nil when there was no change, and non nil otherwise."
+undoable. Return nil when there was no change, and non-nil otherwise."
   (save-excursion
     (cond
      ((and (= ses--file-format 2) (= 3 new-file-format))
@@ -1509,8 +1509,9 @@ Newlines in the data are escaped."
                                  ,printer
                                  ,(ses-cell-references cell))))
 	  (ses-goto-data row col)
-	  (delete-region (point) (line-end-position))
-	  (insert text)))
+          (let ((inhibit-quit t))
+	    (delete-region (point) (line-end-position))
+	    (insert text))))
       (message " "))))
 
 

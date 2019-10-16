@@ -1,10 +1,10 @@
 ;;; lunar.el --- calendar functions for phases of the moon
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2018 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: moon, lunar phases, calendar, diary
 ;; Package: calendar
@@ -241,9 +241,12 @@ This function is suitable for execution in an init file."
            (displayed-year (calendar-extract-year date)))
       (calendar-lunar-phases))))
 
-(defvar date)
-
-;; To be called from diary-list-sexp-entries, where DATE is bound.
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
 ;;;###diary-autoload
 (defun diary-lunar-phases (&optional mark)

@@ -1,6 +1,6 @@
 ;;; fns-tests.el --- tests for src/fns.c
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -161,7 +161,10 @@
 	     '(9 . "ppp") '(8 . "ttt") '(8 . "eee") '(9 . "fff"))
 	    (lambda (x y) (< (car x) (car y))))
 	   [(8 . "xxx") (8 . "bbb") (8 . "ttt") (8 . "eee")
-	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))
+	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")]))
+  ;; Bug#34104
+  (should (equal (should-error (sort "cba" #'<) :type 'wrong-type-argument)
+                 '(wrong-type-argument list-or-vector-p "cba"))))
 
 (ert-deftest fns-tests-collate-sort ()
   (skip-unless (fns-tests--collate-enabled-p))
@@ -229,6 +232,185 @@
   (should (equal (func-arity (eval (lambda (x &optional y)) nil)) '(1 . 2)))
   (should (equal (func-arity (eval (lambda (x &optional y)) t)) '(1 . 2)))
   (should (equal (func-arity 'let) '(1 . unevalled))))
+
+(defun fns-tests--string-repeat (s o)
+  (apply 'concat (make-list o s)))
+
+(defmacro fns-tests--with-region (funcname string &rest args)
+  "Apply FUNCNAME in a temp bufer on the region produced by STRING."
+  (declare (indent 1))
+  `(with-temp-buffer
+     (insert ,string)
+     (,funcname (point-min) (point-max) ,@args)
+     (buffer-string)))
+
+(ert-deftest fns-tests-base64-encode-region ()
+  ;; standard variant RFC2045
+  (should (equal (fns-tests--with-region base64-encode-region "") ""))
+  (should (equal (fns-tests--with-region base64-encode-region "f") "Zg=="))
+  (should (equal (fns-tests--with-region base64-encode-region "fo") "Zm8="))
+  (should (equal (fns-tests--with-region base64-encode-region "foo") "Zm9v"))
+  (should (equal (fns-tests--with-region base64-encode-region "foob") "Zm9vYg=="))
+  (should (equal (fns-tests--with-region base64-encode-region "fooba") "Zm9vYmE="))
+  (should (equal (fns-tests--with-region base64-encode-region "foobar") "Zm9vYmFy"))
+  (should (equal (fns-tests--with-region base64-encode-region "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l+"))
+  (should (equal (fns-tests--with-region base64-encode-region "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/")))
+
+(ert-deftest fns-tests-base64-encode-string ()
+  ;; standard variant RFC2045
+  (should (equal (base64-encode-string "") ""))
+  (should (equal (base64-encode-string "f") "Zg=="))
+  (should (equal (base64-encode-string "fo") "Zm8="))
+  (should (equal (base64-encode-string "foo") "Zm9v"))
+  (should (equal (base64-encode-string "foob") "Zm9vYg=="))
+  (should (equal (base64-encode-string "fooba") "Zm9vYmE="))
+  (should (equal (base64-encode-string "foobar") "Zm9vYmFy"))
+  (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l+"))
+  (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/")))
+
+(ert-deftest fns-test-base64url-encode-region ()
+  ;; url variant wih padding
+  (should (equal (fns-tests--with-region base64url-encode-region "") ""))
+  (should (equal (fns-tests--with-region base64url-encode-region "f") "Zg=="))
+  (should (equal (fns-tests--with-region base64url-encode-region "fo") "Zm8="))
+  (should (equal (fns-tests--with-region base64url-encode-region "foo") "Zm9v"))
+  (should (equal (fns-tests--with-region base64url-encode-region "foob") "Zm9vYg=="))
+  (should (equal (fns-tests--with-region base64url-encode-region "fooba") "Zm9vYmE="))
+  (should (equal (fns-tests--with-region base64url-encode-region "foobar") "Zm9vYmFy"))
+  (should (equal (fns-tests--with-region base64url-encode-region "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l-"))
+  (should (equal (fns-tests--with-region base64url-encode-region "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l_"))
+
+  ;; url variant no padding
+  (should (equal (fns-tests--with-region base64url-encode-region "" t) ""))
+  (should (equal (fns-tests--with-region base64url-encode-region "f" t) "Zg"))
+  (should (equal (fns-tests--with-region base64url-encode-region "fo" t) "Zm8"))
+  (should (equal (fns-tests--with-region base64url-encode-region "foo" t) "Zm9v"))
+  (should (equal (fns-tests--with-region base64url-encode-region "foob" t) "Zm9vYg"))
+  (should (equal (fns-tests--with-region base64url-encode-region "fooba" t) "Zm9vYmE"))
+  (should (equal (fns-tests--with-region base64url-encode-region "foobar" t) "Zm9vYmFy"))
+  (should (equal (fns-tests--with-region base64url-encode-region "\x14\xfb\x9c\x03\xd9\x7e" t) "FPucA9l-"))
+  (should (equal (fns-tests--with-region base64url-encode-region "\x14\xfb\x9c\x03\xd9\x7f" t) "FPucA9l_"))
+
+
+  ;; url variant no line break no padding
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "f" 100) t)
+                 (concat (fns-tests--string-repeat "Zm" 66) "Zg")))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "fo" 50) t)
+                 (concat (fns-tests--string-repeat "Zm9mb2Zv" 16) "Zm9mbw")))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "foo" 25) t)
+                 (fns-tests--string-repeat "Zm9v" 25)))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "foob" 15) t)
+                 (fns-tests--string-repeat "Zm9vYmZvb2Jmb29i" 5)))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "fooba" 15) t)
+                 (fns-tests--string-repeat "Zm9vYmFmb29iYWZvb2Jh" 5)))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "foobar" 15) t)
+                 (concat (fns-tests--string-repeat "Zm9vYmFyZm9vYmFy" 7) "Zm9vYmFy")))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10) t)
+                 (fns-tests--string-repeat "FPucA9l-" 10)))
+  (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t)
+                 (fns-tests--string-repeat "FPucA9l_" 10))))
+
+(ert-deftest fns-test-base64url-encode-string ()
+  ;; url variant wih padding
+  (should (equal (base64url-encode-string "") ""))
+  (should (equal (base64url-encode-string "f") "Zg=="))
+  (should (equal (base64url-encode-string "fo") "Zm8="))
+  (should (equal (base64url-encode-string "foo") "Zm9v"))
+  (should (equal (base64url-encode-string "foob") "Zm9vYg=="))
+  (should (equal (base64url-encode-string "fooba") "Zm9vYmE="))
+  (should (equal (base64url-encode-string "foobar") "Zm9vYmFy"))
+  (should (equal (base64url-encode-string "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l-"))
+  (should (equal (base64url-encode-string "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l_"))
+
+  ;; url variant no padding
+  (should (equal (base64url-encode-string "" t) ""))
+  (should (equal (base64url-encode-string "f" t) "Zg"))
+  (should (equal (base64url-encode-string "fo" t) "Zm8"))
+  (should (equal (base64url-encode-string "foo" t) "Zm9v"))
+  (should (equal (base64url-encode-string "foob" t) "Zm9vYg"))
+  (should (equal (base64url-encode-string "fooba" t) "Zm9vYmE"))
+  (should (equal (base64url-encode-string "foobar" t) "Zm9vYmFy"))
+  (should (equal (base64url-encode-string "\x14\xfb\x9c\x03\xd9\x7e" t) "FPucA9l-"))
+  (should (equal (base64url-encode-string "\x14\xfb\x9c\x03\xd9\x7f" t) "FPucA9l_"))
+
+
+  ;; url variant no line break no padding
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "f" 100) t) (concat (fns-tests--string-repeat "Zm" 66) "Zg")))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "fo" 50) t) (concat (fns-tests--string-repeat "Zm9mb2Zv" 16) "Zm9mbw")))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "foo" 25) t) (fns-tests--string-repeat "Zm9v" 25)))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "foob" 15) t) (fns-tests--string-repeat "Zm9vYmZvb2Jmb29i" 5)))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "fooba" 15) t) (fns-tests--string-repeat "Zm9vYmFmb29iYWZvb2Jh" 5)))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "foobar" 15) t) (concat (fns-tests--string-repeat "Zm9vYmFyZm9vYmFy" 7) "Zm9vYmFy")))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10) t) (fns-tests--string-repeat "FPucA9l-" 10)))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t) (fns-tests--string-repeat "FPucA9l_" 10))))
+
+(ert-deftest fns-tests-base64-decode-string ()
+  ;; standard variant RFC2045
+  (should (equal (base64-decode-string "") ""))
+  (should (equal (base64-decode-string "Zg==") "f"))
+  (should (equal (base64-decode-string "Zm8=") "fo"))
+  (should (equal (base64-decode-string "Zm9v") "foo"))
+  (should (equal (base64-decode-string "Zm9vYg==") "foob"))
+  (should (equal (base64-decode-string "Zm9vYmE=") "fooba"))
+  (should (equal (base64-decode-string "Zm9vYmFy") "foobar"))
+  (should (equal (base64-decode-string "FPucA9l+") "\x14\xfb\x9c\x03\xd9\x7e"))
+  (should (equal (base64-decode-string "FPucA9l/") "\x14\xfb\x9c\x03\xd9\x7f"))
+
+  ;; no paddign
+  (should (equal (base64-decode-string "" t) ""))
+  (should (equal (base64-decode-string "Zg" t) "f"))
+  (should (equal (base64-decode-string "Zm8" t) "fo"))
+  (should (equal (base64-decode-string "Zm9v" t) "foo"))
+  (should (equal (base64-decode-string "Zm9vYg" t) "foob"))
+  (should (equal (base64-decode-string "Zm9vYmE" t) "fooba"))
+  (should (equal (base64-decode-string "Zm9vYmFy" t) "foobar"))
+
+  ;; url variant wih padding
+  (should (equal (base64-decode-string "") ""))
+  (should (equal (base64-decode-string "Zg==" t) "f") )
+  (should (equal (base64-decode-string "Zm8=" t) "fo"))
+  (should (equal (base64-decode-string "Zm9v" t) "foo"))
+  (should (equal (base64-decode-string "Zm9vYg==" t) "foob"))
+  (should (equal (base64-decode-string "Zm9vYmE=" t) "fooba"))
+  (should (equal (base64-decode-string "Zm9vYmFy" t) "foobar"))
+  (should (equal (base64-decode-string "FPucA9l-" t) "\x14\xfb\x9c\x03\xd9\x7e"))
+  (should (equal (base64-decode-string "FPucA9l_" t) "\x14\xfb\x9c\x03\xd9\x7f"))
+
+  ;; url variant no padding
+  (should (equal (base64-decode-string "") ""))
+  (should (equal (base64-decode-string "Zg" t) "f"))
+  (should (equal (base64-decode-string "Zm8" t) "fo"))
+  (should (equal (base64-decode-string "Zm9v" t) "foo"))
+  (should (equal (base64-decode-string "Zm9vYg" t) "foob"))
+  (should (equal (base64-decode-string "Zm9vYmE" t) "fooba"))
+  (should (equal (base64-decode-string "Zm9vYmFy" t) "foobar"))
+  (should (equal (base64-decode-string "FPucA9l-" t) "\x14\xfb\x9c\x03\xd9\x7e"))
+  (should (equal (base64-decode-string "FPucA9l_" t) "\x14\xfb\x9c\x03\xd9\x7f"))
+
+
+  ;; url variant no line break no padding
+  (should (equal (base64-decode-string (concat (fns-tests--string-repeat "Zm" 66) "Zg") t)
+                 (fns-tests--string-repeat "f" 100)))
+  (should (equal (base64-decode-string (concat (fns-tests--string-repeat "Zm9mb2Zv" 16) "Zm9mbw") t)
+                 (fns-tests--string-repeat "fo" 50)))
+  (should (equal (base64-decode-string (fns-tests--string-repeat "Zm9v" 25) t)
+                 (fns-tests--string-repeat "foo" 25)))
+  (should (equal (base64-decode-string (fns-tests--string-repeat "Zm9vYmZvb2Jmb29i" 5) t)
+                 (fns-tests--string-repeat "foob" 15)))
+  (should (equal (base64-decode-string (fns-tests--string-repeat "Zm9vYmFmb29iYWZvb2Jh" 5) t)
+                 (fns-tests--string-repeat "fooba" 15)))
+  (should (equal (base64-decode-string (concat (fns-tests--string-repeat "Zm9vYmFyZm9vYmFy" 7) "Zm9vYmFy") t)
+                 (fns-tests--string-repeat "foobar" 15)))
+  (should (equal (base64-decode-string (fns-tests--string-repeat "FPucA9l-" 10) t)
+                 (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10)))
+  (should (equal (base64-decode-string (fns-tests--string-repeat "FPucA9l_" 10) t)
+                 (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10)))
+
+  ;; errors check
+  (should (eq :got-error (condition-case () (base64-decode-string "Zg=") (error :got-error))))
+  (should (eq :got-error (condition-case () (base64-decode-string "Zm9vYmE") (error :got-error))))
+  (should (eq :got-error (condition-case () (base64-decode-string "Zm9vYmFy=") (error :got-error))))
+  (should (eq :got-error (condition-case () (base64-decode-string "Zg=Zg=") (error :got-error)))))
 
 (ert-deftest fns-tests-hash-buffer ()
   (should (equal (sha1 "foo") "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"))
@@ -611,7 +793,8 @@
     (should (eq x x))
     (should (eql x y))
     (should (equal x y))
-    (should-not (eql x 0.0e+NaN))))
+    (should-not (eql x 0.0e+NaN))
+    (should (memql x (list y)))))
 
 (ert-deftest test-bignum-hash ()
   "Test that hash tables work for bignums."
@@ -644,5 +827,53 @@
               (b (if (<= n 0) cycle (nthcdr (mod n len) cycle))))
           (should (equal (list (eq a b) n len)
                          (list t n len))))))))
+
+(ert-deftest test-proper-list-p ()
+  "Test `proper-list-p' behavior."
+  (dotimes (length 4)
+    ;; Proper and dotted lists.
+    (let ((list (make-list length 0)))
+      (should (= (proper-list-p list) length))
+      (should (not (proper-list-p (nconc list 0)))))
+    ;; Circular lists.
+    (dotimes (n (1+ length))
+      (let ((circle (make-list (1+ length) 0)))
+        (should (not (proper-list-p (nconc circle (nthcdr n circle))))))))
+  ;; Atoms.
+  (should (not (proper-list-p 0)))
+  (should (not (proper-list-p "")))
+  (should (not (proper-list-p [])))
+  (should (not (proper-list-p (make-bool-vector 0 nil))))
+  (should (not (proper-list-p (make-symbol "a")))))
+
+(ert-deftest test-hash-function-that-mutates-hash-table ()
+  (define-hash-table-test 'badeq 'eq 'bad-hash)
+  (let ((h (make-hash-table :test 'badeq :size 1 :rehash-size 1)))
+    (defun bad-hash (k)
+      (if (eq k 100)
+	  (clrhash h))
+      (sxhash-eq k))
+    (should-error
+     (dotimes (k 200)
+       (puthash k k h)))
+    (should (= 100 (hash-table-count h)))))
+
+(ert-deftest test-secure-hash ()
+  (should (equal (secure-hash 'md5    "foobar")
+                 "3858f62230ac3c915f300c664312c63f"))
+  (should (equal (secure-hash 'sha1   "foobar")
+                 "8843d7f92416211de9ebb963ff4ce28125932878"))
+  (should (equal (secure-hash 'sha224 "foobar")
+                 "de76c3e567fca9d246f5f8d3b2e704a38c3c5e258988ab525f941db8"))
+  (should (equal (secure-hash 'sha256 "foobar")
+                 (concat "c3ab8ff13720e8ad9047dd39466b3c89"
+                         "74e592c2fa383d4a3960714caef0c4f2")))
+  (should (equal (secure-hash 'sha384 "foobar")
+                 (concat "3c9c30d9f665e74d515c842960d4a451c83a0125fd3de739"
+                         "2d7b37231af10c72ea58aedfcdf89a5765bf902af93ecf06")))
+  (should (equal (secure-hash 'sha512 "foobar")
+                 (concat "0a50261ebd1a390fed2bf326f2673c145582a6342d5"
+                         "23204973d0219337f81616a8069b012587cf5635f69"
+                         "25f1b56c360230c19b273500ee013e030601bf2425"))))
 
 (provide 'fns-tests)

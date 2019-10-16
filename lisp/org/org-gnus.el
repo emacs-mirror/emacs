@@ -1,6 +1,6 @@
 ;;; org-gnus.el --- Support for Links to Gnus Groups and Messages -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
@@ -242,9 +242,7 @@ If `org-store-link' was called with a prefix arg the meaning of
 	      (_
 	       (let ((articles 1)
 		     group-opened)
-		 (while (and (not group-opened)
-			     ;; Stop on integer overflows.
-			     (> articles 0))
+		 (while (not group-opened)
 		   (setq group-opened (gnus-group-read-group articles t group))
 		   (setq articles (if (< articles 16)
 				      (1+ articles)

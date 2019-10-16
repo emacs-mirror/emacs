@@ -1,6 +1,6 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -666,7 +666,7 @@ If the list was changed, sort the list and remove duplicates first."
       (let ((count 0))
         (narrow-to-region
          (point) (save-excursion
-                   (re-search-forward "[^\\\\\"]%\\|\n\\|\\'" nil t)
+                   (re-search-forward "[^\\\"]%\\|\n\\|\\'" nil t)
                    (backward-char) (point)))
         (while (re-search-forward "\\<\\sw+\\>\\|(\\|)" nil t)
           (save-excursion

@@ -1,6 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -136,9 +136,11 @@ STATUS is a plist representing what happened during the request,
 with most recent events first, or an empty list if no events have
 occurred.  Each pair is one of:
 
-\(:redirect REDIRECTED-TO) - the request was redirected to this URL
-\(:error (ERROR-SYMBOL . DATA)) - an error occurred.  The error can be
-signaled with (signal ERROR-SYMBOL DATA).
+\(:redirect REDIRECTED-TO) - the request was redirected to this URL.
+
+\(:error (error type . DATA)) - an error occurred.  TYPE is a
+symbol that says something about where the error occurred, and
+DATA is a list (possibly nil) that describes the error further.
 
 Return the buffer URL will load into, or nil if the process has
 already completed (i.e. URL was a mailto URL or similar; in this case
@@ -259,8 +261,7 @@ how long to wait for a response before giving up."
 	;; process output.
 	(while (and (not retrieval-done)
                     (or (not timeout)
-                        (< (float-time (time-subtract nil start-time))
-                           timeout)))
+			(time-less-p (time-since start-time) timeout)))
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)

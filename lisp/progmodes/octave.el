@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -198,6 +198,7 @@ newline or semicolon after an else or end keyword."
 (defcustom octave-block-offset 2
   "Extra indentation applied to statements in Octave block structures."
   :type 'integer)
+(put 'octave-block-offset 'safe-local-variable 'integerp)
 
 (defvar octave-block-comment-start
   (concat (make-string 2 octave-comment-char) " ")
@@ -288,6 +289,7 @@ Non-nil means always go to the next Octave code line after sending."
         ("methods" exp "endmethods")
         ("properties" exp "endproperties")
         ("classdef" exp "endclassdef")
+        ("spmd" exp "endspmd")
         ))
 
      (bnf-table
@@ -1614,8 +1616,23 @@ code line."
      (list (format "print_usage ('%s');\n" fn)))
     (let (result)
       (dolist (line inferior-octave-output-list)
+        ;; The help output has changed a few times in GNU Octave.
+        ;; Earlier versions output "usage: " before the function signature.
+        ;; After deprecating the usage function, and up until GNU Octave 4.0.3,
+        ;; the output looks like this:
+        ;; -- Mapping Function: abs (Z).
+        ;; After GNU Octave 4.2.0, the output is less verbose and it looks like
+        ;; this:
+        ;; -- abs (Z)
+        ;; The following regexp matches these three formats.
+        ;; The "usage: " alternative matches the symbol, because a call to
+        ;; print_usage with a non-existent function (e.g., print_usage ('A'))
+        ;; would output:
+        ;; error: print_usage: 'A' not found
+        ;; and we wouldn't like to match anything in this case.
+        ;; See bug #36459.
         (when (string-match
-               "\\s-*\\(?:--[^:]+\\|usage\\):\\s-*\\(.*\\)$"
+               "\\s-*\\(?:--[^:]+:\\|\\_<usage:\\|--\\)\\s-*\\(.*\\)$"
                line)
           (push (match-string 1 line) result)))
       (setq octave-eldoc-cache
@@ -1630,12 +1647,7 @@ code line."
            (paren-pos (cadr ppss))
            (fn (save-excursion
                  (if (and paren-pos
-                          ;; PAREN-POS must be after the prompt
-                          (>= paren-pos
-                              (if (eq (get-buffer-process (current-buffer))
-                                      inferior-octave-process)
-                                  (process-mark inferior-octave-process)
-                                (point-min)))
+                          ;; PAREN-POS must be after the prompt.
                           (or (not (eq (get-buffer-process (current-buffer))
                                        inferior-octave-process))
                               (< (process-mark inferior-octave-process)
@@ -1691,7 +1703,7 @@ code line."
   (eval-and-compile (require 'help-mode))
   ;; Don't highlight `EXAMPLE' as elisp symbols by using a regexp that
   ;; can never match.
-  (setq-local help-xref-symbol-regexp "x\\`"))
+  (setq-local help-xref-symbol-regexp regexp-unmatchable))
 
 (defun octave-help (fn)
   "Display the documentation of FN."

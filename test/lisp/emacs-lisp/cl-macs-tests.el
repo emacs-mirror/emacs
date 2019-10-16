@@ -1,6 +1,6 @@
 ;;; cl-macs-tests.el --- tests for emacs-lisp/cl-macs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -512,5 +512,22 @@ collection clause."
   (should-error
    (macroexpand '(cl-defstruct (hash-table (:predicate hash-table-p))))
    :type 'wrong-type-argument))
+
+(ert-deftest cl-macs-test--symbol-macrolet ()
+  ;; A `setq' shouldn't be converted to a `setf' just because it occurs within
+  ;; a symbol-macrolet!
+  (should-error
+   ;; Use `eval' so the error is signaled when running the test rather than
+   ;; when macroexpanding it.
+   (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0)))))
+  ;; Make sure `gv-synthetic-place' isn't macro-expanded before `setf' gets to
+  ;; see its `gv-expander'.
+  (should (equal (let ((l '(0)))
+                   (let ((cl (car l)))
+                     (cl-symbol-macrolet
+                         ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))
+                       (cl-incf p)))
+                   l)
+                 '(1))))
 
 ;;; cl-macs-tests.el ends here

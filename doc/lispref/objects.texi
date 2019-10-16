@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lisp Data Types
@@ -964,7 +964,8 @@ char-tables.
 
   A string is an array of characters and a vector is an array of
 arbitrary objects.  A bool-vector can hold only @code{t} or @code{nil}.
-These kinds of array may have any length up to the largest integer.
+These kinds of array may have any length up to the largest fixnum,
+subject to system architecture limits and available memory.
 Char-tables are sparse arrays indexed by any valid character code; they
 can hold arbitrary objects.
 
@@ -2085,7 +2086,7 @@ appropriate chapter describing the data type.
 This function returns @code{t} if @var{object1} and @var{object2} are
 the same object, and @code{nil} otherwise.
 
-If @var{object1} and @var{object2} are integers with the same value,
+If @var{object1} and @var{object2} are fixnums with the same value,
 they are considered to be the same object (i.e., @code{eq} returns
 @code{t}).  If @var{object1} and @var{object2} are symbols with the
 same name, they are normally the same object---but see @ref{Creating
@@ -2095,7 +2096,7 @@ necessarily @code{eq} to each other: they are @code{eq} only if they
 are the same object, meaning that a change in the contents of one will
 be reflected by the same change in the contents of the other.
 For other types of objects whose contents cannot be changed (e.g.,
-floats), two arguments with the same contents might or might not be
+bignums and floats), two arguments with the same contents might or might not be
 the same object, and @code{eq} returns @code{t} or @code{nil}
 depending on whether the Lisp interpreter created one object or two.
 
@@ -2258,7 +2259,7 @@ However, two distinct buffers are never considered @code{equal}, even if
 their textual contents are the same.
 @end defun
 
-  The test for equality is implemented recursively; for example, given
+  For @code{equal}, equality is defined recursively; for example, given
 two cons cells @var{x} and @var{y}, @code{(equal @var{x} @var{y})}
 returns @code{t} if and only if both the expressions below return
 @code{t}:
@@ -2268,8 +2269,10 @@ returns @code{t} if and only if both the expressions below return
 (equal (cdr @var{x}) (cdr @var{y}))
 @end example
 
-Because of this recursive method, circular lists may therefore cause
-infinite recursion (leading to an error).
+Comparing circular lists may therefore cause deep recursion that leads
+to an error, and this may result in counterintuitive behavior such as
+@code{(equal a b)} returning @code{t} whereas @code{(equal b a)}
+signals an error.
 
 @defun equal-including-properties object1 object2
 This function behaves like @code{equal} in all cases but also requires

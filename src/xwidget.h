@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2018 Free Software Foundation, Inc.
+Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,8 +49,7 @@ struct xwidget
 
   /* Vector of currently executing scripts with callbacks.  */
   Lisp_Object script_callbacks;
-
-  /* Here ends the Lisp part.  "height" is the marker field.  */
+  /* Here ends the Lisp part.  script_callbacks is the marker field.  */
 
   int height;
   int width;
@@ -68,8 +67,7 @@ struct xwidget_view
   union vectorlike_header header;
   Lisp_Object model;
   Lisp_Object w;
-
-  /* Here ends the lisp part.  "redisplayed" is the marker field.  */
+  /* Here ends the lisp part.  "w" is the marker field.  */
 
   /* If touched by redisplay.  */
   bool redisplayed;

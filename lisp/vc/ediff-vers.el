@@ -1,6 +1,6 @@
-;;; ediff-vers.el --- version control interface to Ediff
+;;; ediff-vers.el --- version control interface to Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -96,11 +96,10 @@ comparison or merge operations are being performed."
 	    (ediff-vc-revision-other-window rev2))
 	(setq rev2buf (current-buffer)
 	      file2 (buffer-file-name)))
-      (setq startup-hooks
-	    (cons `(lambda ()
-		     (ediff-delete-version-file ,file1)
-		     (or ,(string= rev2 "") (ediff-delete-version-file ,file2)))
-		  startup-hooks)))
+      (push (lambda ()
+	      (ediff-delete-version-file file1)
+	      (or (string= rev2 "") (ediff-delete-version-file file2)))
+	    startup-hooks))
     (ediff-buffers
      rev1buf rev2buf
      startup-hooks
@@ -124,7 +123,7 @@ comparison or merge operations are being performed."
       (let ((output-buffer (ediff-rcs-get-output-buffer filename buff)))
 	(delete-windows-on output-buffer)
 	(with-current-buffer output-buffer
-	  (apply 'call-process "co" nil t nil
+	  (apply #'call-process "co" nil t nil
 		 ;; -q: quiet (no diagnostics)
 		 (append switches rcs-default-co-switches
 			 (list "-q" filename)))))
@@ -175,20 +174,20 @@ comparison or merge operations are being performed."
       (if ancestor-rev
 	  (save-excursion
 	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (ediff-vc-working-revision buffer-file-name)))
+		(setq ancestor-rev (ediff-vc-working-revision
+                                    buffer-file-name)))
 	    (ediff-vc-revision-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
-      (setq startup-hooks
-	    (cons
-	     `(lambda ()
-		(ediff-delete-version-file ,(buffer-file-name buf1))
-		(or ,(string= rev2 "")
-		    (ediff-delete-version-file ,(buffer-file-name buf2)))
-		(or ,(string= ancestor-rev "")
-		    ,(not ancestor-rev)
-		    (ediff-delete-version-file ,(buffer-file-name ancestor-buf)))
-		)
-	     startup-hooks)))
+      (push (let ((f1 (buffer-file-name buf1))
+                  (f2 (unless (string= rev2 "") (buffer-file-name buf2)))
+                  (fa (unless (or (string= ancestor-rev "")
+		                  (not ancestor-rev))
+		        (buffer-file-name ancestor-buf))))
+              (lambda ()
+	        (ediff-delete-version-file f1)
+	        (if f2 (ediff-delete-version-file f2))
+	        (if fa (ediff-delete-version-file fa))))
+	    startup-hooks))
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
@@ -227,12 +226,4 @@ comparison or merge operations are being performed."
 
 
 (provide 'ediff-vers)
-
-
-;; Local Variables:
-;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
-;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
-;; End:
-
 ;;; ediff-vers.el ends here

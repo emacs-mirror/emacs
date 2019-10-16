@@ -1,6 +1,6 @@
 ;;; ox-odt.el --- OpenDocument Text Exporter for Org Mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Jambunathan K <kjambunathan at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -2174,7 +2174,7 @@ SHORT-CAPTION are strings."
 ;;;; Links :: Inline Images
 
 (defun org-odt--copy-image-file (path)
-  "Returns the internal name of the file"
+  "Return the internal name of the file"
   (let* ((image-type (file-name-extension path))
 	 (media-type (format "image/%s" image-type))
 	 (target-dir "Images/")
@@ -2379,7 +2379,7 @@ used as a communication channel."
 	(concat equation "<text:tab/>" label))))))
 
 (defun org-odt--copy-formula-file (src-file)
-  "Returns the internal name of the file"
+  "Return the internal name of the file"
   (let* ((target-dir (format "Formula-%04d/"
 			     (cl-incf org-odt-embedded-formulas-count)))
 	 (target-file (concat target-dir "content.xml")))

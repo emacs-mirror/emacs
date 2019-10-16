@@ -1,6 +1,6 @@
 ;;; ox-beamer.el --- Beamer Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
@@ -326,7 +326,7 @@ INFO is a plist used as a communication channel.
 
 The value is either the label specified in \"BEAMER_opt\"
 property, the custom ID, if there is one and
-`:latex-prefer-user-labels' property has a non nil value, or
+`:latex-prefer-user-labels' property has a non-nil value, or
 a unique internal label.  This function assumes HEADLINE will be
 treated as a frame."
   (cond

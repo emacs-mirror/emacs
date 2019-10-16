@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -433,13 +433,13 @@ otherwise return the frame coordinates."
 		  (selection-symbol target-type &optional time-stamp terminal))
 
 (defun x-dnd-version-from-flags (flags)
-  "Return the version byte from the 32 bit FLAGS in an XDndEnter message"
+  "Return the version byte from the 32 bit FLAGS in an XDndEnter message."
   (if (consp flags)   ;; Long as cons
       (ash (car flags) -8)
     (ash flags -24))) ;; Ordinary number
 
 (defun x-dnd-more-than-3-from-flags (flags)
-  "Return the nmore-than3 bit from the 32 bit FLAGS in an XDndEnter message"
+  "Return the nmore-than3 bit from the 32 bit FLAGS in an XDndEnter message."
   (if (consp flags)
       (logand (cdr flags) 1)
     (logand flags 1)))

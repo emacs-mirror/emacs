@@ -1,9 +1,8 @@
 ;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.2
 ;; Package: ebnf2ps
@@ -641,7 +640,7 @@ See documentation for variable `ebnf-abn-lex'."
      (let* ((char  (following-char))
 	    (chars (cond ((or (= char ?B) (= char ?b)) "01")
 			 ((or (= char ?D) (= char ?d)) "0-9")
-			 ((or (= char ?X) (= char ?x)) "0-9A-Fa-f")
+			 ((or (= char ?X) (= char ?x)) "[:xdigit:]")
 			 (t (error "Invalid terminal value")))))
        (forward-char)
        (or (> (skip-chars-forward chars ebnf-limit) 0)

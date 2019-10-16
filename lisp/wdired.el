@@ -1,6 +1,6 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
@@ -240,7 +240,7 @@ directories to reflect your edits.
 
 See `wdired-mode'."
   (interactive)
-  (unless (eq major-mode 'dired-mode)
+  (unless (derived-mode-p 'dired-mode)
     (error "Not a Dired buffer"))
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
@@ -612,14 +612,23 @@ Optional arguments are ignored."
         (when (re-search-forward
                directory-listing-before-filename-regexp lep t)
           (setq beg (point)
-                ;; If the file is a symlink, put the dired-filename
-                ;; property only on the link name.  (Using
-                ;; (file-symlink-p (dired-get-filename)) fails in
-                ;; wdired-mode, bug#32673.)
-                end (if (and (re-search-backward
-                              dired-permission-flags-regexp nil t)
-                             (looking-at "l")
-                             (search-forward " -> " lep t))
+                end (if (or
+                         ;; If the file is a symlink, put the
+                         ;; dired-filename property only on the link
+                         ;; name.  (Using (file-symlink-p
+                         ;; (dired-get-filename)) fails in
+                         ;; wdired-mode, bug#32673.)
+                         (and (re-search-backward
+                               dired-permission-flags-regexp nil t)
+                              (looking-at "l")
+                              (search-forward " -> " lep t))
+                         ;; When dired-listing-switches includes "F"
+                         ;; or "classify", don't treat appended
+                         ;; indicator characters as part of the file
+                         ;; name (bug#34915).
+                         (and (dired-check-switches dired-actual-switches
+                                                    "F" "classify")
+                              (re-search-forward "[*/@|=>]$" lep t)))
                         (goto-char (match-beginning 0))
                       lep))
           (put-text-property beg end 'dired-filename t))))))
@@ -668,8 +677,7 @@ says how many lines to move; default is one line."
 				 'rear-nonsticky '(read-only))
 	      (put-text-property (match-beginning 1)
 				 (match-end 1) 'read-only nil)))
-        (forward-line)
-	(beginning-of-line)))))
+        (forward-line)))))
 
 
 (defun wdired-get-previous-link (&optional old move)
@@ -904,9 +912,4 @@ Like original function but it skips read-only words."
     (cons changes errors)))
 
 (provide 'wdired)
-
-;; Local Variables:
-;; byte-compile-dynamic: t
-;; End:
-
 ;;; wdired.el ends here

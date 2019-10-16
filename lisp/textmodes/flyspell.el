@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -423,9 +423,10 @@ like <img alt=\"Some thing.\">."
 
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
-  ;; (point) is next char after the word. Must check one char before.
-  (let ((f (get-text-property (- (point) 1) 'face)))
-    (memq f flyspell-prog-text-faces)))
+  (unless (eql (point) (point-min))
+    ;; (point) is next char after the word. Must check one char before.
+    (let ((f (get-text-property (1- (point)) 'face)))
+      (memq f flyspell-prog-text-faces))))
 
 ;; Records the binding of M-TAB in effect before flyspell was activated.
 (defvar flyspell--prev-meta-tab-binding)
@@ -929,7 +930,7 @@ Mostly we check word delimiters."
                           (or (string= "" ispell-otherchars)
                               (not (looking-at ispell-otherchars)))
                           (or flyspell-consider-dash-as-word-delimiter-flag
-                              (not (looking-at "\\-")))
+                              (not (looking-at "-")))
                           2)))))
        (format "  because    : %S\n"
                (cond
@@ -947,7 +948,7 @@ Mostly we check word delimiters."
                             (or (string= "" ispell-otherchars)
                                 (not (looking-at ispell-otherchars)))
                             (or flyspell-consider-dash-as-word-delimiter-flag
-                                (not (looking-at "\\-")))))))
+                                (not (looking-at "-")))))))
                  ;; Yes because we have reached or typed a word delimiter.
                  'separator)
                 ((not (integerp flyspell-delay))
@@ -1115,7 +1116,7 @@ Mostly we check word delimiters."
 If the optional argument FOLLOWING, or, when called interactively
 `ispell-following-word', is non-nil, checks the following (rather
 than preceding) word when the cursor is not over a word.  If
-optional argument KNOWN-MISSPELLING is non nil considers word a
+optional argument KNOWN-MISSPELLING is non-nil considers word a
 misspelling and skips redundant spell-checking step.
 
 See `flyspell-get-word' for details of how this finds the word to
@@ -2102,7 +2103,7 @@ spell-check."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-auto-correct-previous-hook ()
   "Hook to track successive calls to `flyspell-auto-correct-previous-word'.
-Sets `flyspell-auto-correct-previous-pos' to nil"
+Sets `flyspell-auto-correct-previous-pos' to nil."
   (interactive)
   (remove-hook 'pre-command-hook (function flyspell-auto-correct-previous-hook) t)
   (unless (eq this-command (function flyspell-auto-correct-previous-word))

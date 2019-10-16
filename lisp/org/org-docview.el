@@ -1,6 +1,6 @@
 ;;; org-docview.el --- Support for links to doc-view-mode buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Jan Böcker <jan.boecker at jboecker dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp

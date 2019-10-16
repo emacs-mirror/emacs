@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -33,7 +33,8 @@
 (defvar macroexpand-all-environment nil)
 
 (defun macroexp--cons (car cdr original-cons)
-  "Return (CAR . CDR), using ORIGINAL-CONS if possible."
+  "Return ORIGINAL-CONS if the car/cdr of it is `eq' to CAR and CDR, respectively.
+If not, return (CAR . CDR)."
   (if (and (eq car (car original-cons)) (eq cdr (cdr original-cons)))
       original-cons
     (cons car cdr)))
@@ -94,7 +95,7 @@ each clause."
       clause)))
 
 (defun macroexp--compiler-macro (handler form)
-  (condition-case err
+  (condition-case-unless-debug err
       (apply handler form (cdr form))
     (error
      (message "Compiler-macro error for %S: %S" (car form) err)
@@ -318,7 +319,9 @@ definitions to shadow the loaded ones for use in file byte-compilation."
     (cons (nreverse decls) body)))
 
 (defun macroexp-progn (exps)
-  "Return an expression equivalent to \\=`(progn ,@EXPS)."
+  "Return EXPS (a list of expressions) with `progn' prepended.
+If EXPS is a list with a single expression, `progn' is not
+prepended, but that expression is returned instead."
   (if (cdr exps) `(progn ,@exps) (car exps)))
 
 (defun macroexp-unprogn (exp)
@@ -327,7 +330,7 @@ Never returns an empty list."
   (if (eq (car-safe exp) 'progn) (or (cdr exp) '(nil)) (list exp)))
 
 (defun macroexp-let* (bindings exp)
-  "Return an expression equivalent to \\=`(let* ,bindings ,exp)."
+  "Return an expression equivalent to \\=`(let* ,BINDINGS ,EXP)."
   (cond
    ((null bindings) exp)
    ((eq 'let* (car-safe exp)) `(let* (,@bindings ,@(cadr exp)) ,@(cddr exp)))
@@ -403,7 +406,10 @@ cases where EXP is a constant."
                         ,bodysym)))))
 
 (defmacro macroexp-let2* (test bindings &rest body)
-  "Bind each binding in BINDINGS as `macroexp-let2' does."
+  "Multiple binding version of `macroexp-let2'.
+
+BINDINGS is a list of elements of the form (SYM EXP).  Each EXP
+can refer to symbols specified earlier in the binding list."
   (declare (indent 2) (debug (sexp (&rest (sexp form)) body)))
   (pcase-exhaustive bindings
     ('nil (macroexp-progn body))

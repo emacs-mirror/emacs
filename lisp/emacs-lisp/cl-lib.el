@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -110,6 +110,7 @@ a future Emacs interpreter will be able to use it.")
 ;; These macros are defined here so that they
 ;; can safely be used in init files.
 
+;;;###autoload
 (defmacro cl-incf (place &optional x)
   "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
@@ -129,9 +130,12 @@ The return value is the decremented value of PLACE."
     (list 'cl-callf '- place (or x 1))))
 
 (defmacro cl-pushnew (x place &rest keys)
-  "(cl-pushnew X PLACE): insert X at the head of the list if not already there.
-Like (push X PLACE), except that the list is unmodified if X is `eql' to
-an element already on the list.
+  "Add X to the list stored in PLACE unless X is already in the list.
+PLACE is a generalized variable that stores a list.
+
+Like (push X PLACE), except that PLACE is unmodified if X is `eql'
+to an element already in the list stored in PLACE.
+
 \nKeywords supported:  :test :test-not :key
 \n(fn X PLACE [KEYWORD VALUE]...)"
   (declare (debug
@@ -189,12 +193,16 @@ that the containing function should return.
 
 \(fn &rest VALUES)")
 
-(cl--defalias 'cl-values-list #'identity
+(defun cl-values-list (list)
   "Return multiple values, Common Lisp style, taken from a list.
-LIST specifies the list of values
-that the containing function should return.
+LIST specifies the list of values that the containing function
+should return.
 
-\(fn LIST)")
+Note that Emacs Lisp doesn't really support multiple values, so
+all this function does is return LIST."
+  (unless (listp list)
+    (signal 'wrong-type-argument list))
+  list)
 
 (defsubst cl-multiple-value-list (expression)
   "Return a list of the multiple values produced by EXPRESSION.
@@ -364,13 +372,6 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 (cl--defalias 'cl-first 'car)
 (cl--defalias 'cl-second 'cadr)
 (cl--defalias 'cl-rest 'cdr)
-
-(defun cl-endp (x)
-  "Return true if X is the empty list; false if it is a cons.
-Signal an error if X is not a list."
-  (if (listp x)
-      (null x)
-    (signal 'wrong-type-argument (list 'listp x 'x))))
 
 (cl--defalias 'cl-third 'cl-caddr "Return the third element of the list X.")
 (cl--defalias 'cl-fourth 'cl-cadddr "Return the fourth element of the list X.")
@@ -666,9 +667,5 @@ of record objects."
     (advice-add 'type-of :around #'cl--old-struct-type-of))
    (t
     (advice-remove 'type-of #'cl--old-struct-type-of))))
-
-;; Local variables:
-;; byte-compile-dynamic: t
-;; End:
 
 ;;; cl-lib.el ends here

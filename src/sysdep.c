@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -30,6 +30,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <c-ctype.h>
+#include <close-stream.h>
+#include <pathmax.h>
 #include <utimens.h>
 
 #include "lisp.h"
@@ -230,6 +232,10 @@ force_open (int fd, int flags)
     }
 }
 
+/* A stream that is like stderr, except line buffered.  It is NULL
+   during startup, or if line buffering is not in use.  */
+static FILE *buferr;
+
 /* Make sure stdin, stdout, and stderr are open to something, so that
    their file descriptors are not hijacked by later system calls.  */
 void
@@ -242,6 +248,14 @@ init_standard_fds (void)
   force_open (STDIN_FILENO, O_WRONLY);
   force_open (STDOUT_FILENO, O_RDONLY);
   force_open (STDERR_FILENO, O_RDONLY);
+
+  /* Set buferr if possible on platforms defining _PC_PIPE_BUF, as
+     they support the notion of atomic writes to pipes.  */
+  #ifdef _PC_PIPE_BUF
+    buferr = fdopen (STDERR_FILENO, "w");
+    if (buferr)
+      setvbuf (buferr, NULL, _IOLBF, 0);
+  #endif
 }
 
 /* Return the current working directory.  The result should be freed
@@ -257,20 +271,20 @@ get_current_dir_name_or_unreachable (void)
 
   char *pwd;
 
-  /* The maximum size of a directory name, including the terminating null.
+  /* The maximum size of a directory name, including the terminating NUL.
      Leave room so that the caller can append a trailing slash.  */
   ptrdiff_t dirsize_max = min (PTRDIFF_MAX, SIZE_MAX) - 1;
 
   /* The maximum size of a buffer for a file name, including the
-     terminating null.  This is bounded by MAXPATHLEN, if available.  */
+     terminating NUL.  This is bounded by PATH_MAX, if available.  */
   ptrdiff_t bufsize_max = dirsize_max;
-#ifdef MAXPATHLEN
-  bufsize_max = min (bufsize_max, MAXPATHLEN);
+#ifdef PATH_MAX
+  bufsize_max = min (bufsize_max, PATH_MAX);
 #endif
 
 # if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
 #  ifdef HYBRID_MALLOC
-  bool use_libc = bss_sbrk_did_unexec;
+  bool use_libc = will_dump_with_unexec_p ();
 #  else
   bool use_libc = true;
 #  endif
@@ -281,7 +295,7 @@ get_current_dir_name_or_unreachable (void)
       pwd = get_current_dir_name ();
       if (pwd)
 	{
-	  if (strlen (pwd) < dirsize_max)
+	  if (strnlen (pwd, dirsize_max) < dirsize_max)
 	    return pwd;
 	  free (pwd);
 	  errno = ERANGE;
@@ -298,7 +312,7 @@ get_current_dir_name_or_unreachable (void)
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
   if (pwd
-      && (pwdlen = strlen (pwd)) < bufsize_max
+      && (pwdlen = strnlen (pwd, bufsize_max)) < bufsize_max
       && IS_DIRECTORY_SEP (pwd[pwdlen && IS_DEVICE_SEP (pwd[1]) ? 2 : 0])
       && stat (pwd, &pwdstat) == 0
       && stat (".", &dotstat) == 0
@@ -1067,16 +1081,6 @@ emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 static int old_fcntl_owner[FD_SETSIZE];
 #endif /* F_SETOWN */
 
-/* This may also be defined in stdio,
-   but if so, this does no harm,
-   and using the same name avoids wasting the other one's space.  */
-
-#if defined (USG)
-unsigned char _sobuf[BUFSIZ+8];
-#else
-char _sobuf[BUFSIZ];
-#endif
-
 /* Initialize the terminal mode on all tty devices that are currently
    open. */
 
@@ -1296,14 +1300,7 @@ init_sys_modes (struct tty_display_info *tty_out)
     }
 #endif /* F_GETOWN */
 
-#ifdef _IOFBF
-  /* This symbol is defined on recent USG systems.
-     Someone says without this call USG won't really buffer the file
-     even with a call to setbuf. */
-  setvbuf (tty_out->output, (char *) _sobuf, _IOFBF, sizeof _sobuf);
-#else
-  setbuf (tty_out->output, (char *) _sobuf);
-#endif
+  setvbuf (tty_out->output, NULL, _IOFBF, BUFSIZ);
 
   if (tty_out->terminal->set_terminal_modes_hook)
     tty_out->terminal->set_terminal_modes_hook (tty_out->terminal);
@@ -1487,7 +1484,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
 {
   if (noninteractive)
     {
-      fflush_unlocked (stdout);
+      fflush (stdout);
       return;
     }
   if (!tty_out->term_initted)
@@ -1510,11 +1507,11 @@ reset_sys_modes (struct tty_display_info *tty_out)
       tty_turn_off_insert (tty_out);
 
       for (int i = cursorX (tty_out); i < FrameCols (tty_out) - 1; i++)
-	fputc_unlocked (' ', tty_out->output);
+	putc (' ', tty_out->output);
     }
 
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
-  fflush_unlocked (tty_out->output);
+  fflush (tty_out->output);
 
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
@@ -1805,7 +1802,7 @@ deliver_fatal_thread_signal (int sig)
   deliver_thread_signal (sig, handle_fatal_signal);
 }
 
-static _Noreturn void
+static AVOID
 handle_arith_signal (int sig)
 {
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
@@ -1850,8 +1847,8 @@ stack_overflow (siginfo_t *siginfo)
 
   /* The known top and bottom of the stack.  The actual stack may
      extend a bit beyond these boundaries.  */
-  char *bot = stack_bottom;
-  char *top = current_thread->stack_top;
+  char const *bot = stack_bottom;
+  char const *top = current_thread->stack_top;
 
   /* Log base 2 of the stack heuristic ratio.  This ratio is the size
      of the known stack divided by the size of the guard area past the
@@ -1908,7 +1905,10 @@ init_sigsegv (void)
   sigfillset (&sa.sa_mask);
   sa.sa_sigaction = handle_sigsegv;
   sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
-  return sigaction (SIGSEGV, &sa, NULL) < 0 ? 0 : 1;
+  if (sigaction (SIGSEGV, &sa, NULL) < 0)
+    return 0;
+
+  return 1;
 }
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
@@ -1963,7 +1963,7 @@ maybe_fatal_sig (int sig)
 }
 
 void
-init_signals (bool dumping)
+init_signals (void)
 {
   struct sigaction thread_fatal_action;
   struct sigaction action;
@@ -2114,7 +2114,7 @@ init_signals (bool dumping)
   /* Don't alter signal handlers if dumping.  On some machines,
      changing signal handlers sets static data that would make signals
      fail to work right when the dumped Emacs is run.  */
-  if (dumping)
+  if (will_dump_p ())
     return;
 
   sigfillset (&process_fatal_action.sa_mask);
@@ -2436,7 +2436,7 @@ emacs_backtrace (int backtrace_limit)
 
   if (npointers)
     {
-      emacs_write (STDERR_FILENO, "\nBacktrace:\n", 12);
+      emacs_write (STDERR_FILENO, "Backtrace:\n", 11);
       backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
       if (bounded_limit < npointers)
 	emacs_write (STDERR_FILENO, "...\n", 4);
@@ -2711,10 +2711,10 @@ emacs_perror (char const *message)
 			 ? initial_argv[0] : "emacs");
   /* Write it out all at once, if it's short; this is less likely to
      be interleaved with other output.  */
-  char buf[BUFSIZ];
+  char buf[min (PIPE_BUF, MAX_ALLOCA)];
   int nbytes = snprintf (buf, sizeof buf, "%s: %s: %s\n",
 			 command, message, error_string);
-  if (0 <= nbytes && nbytes < BUFSIZ)
+  if (0 <= nbytes && nbytes < sizeof buf)
     emacs_write (STDERR_FILENO, buf, nbytes);
   else
     {
@@ -2779,6 +2779,60 @@ safe_strsignal (int code)
     signame = "Unknown signal";
 
   return signame;
+}
+
+/* Output to stderr.  */
+
+/* Return the error output stream.  */
+static FILE *
+errstream (void)
+{
+  FILE *err = buferr;
+  if (!err)
+    return stderr;
+  fflush_unlocked (stderr);
+  return err;
+}
+
+/* These functions are like fputc, vfprintf, and fwrite,
+   except that they output to stderr and buffer better on
+   platforms that support line buffering.  This avoids interleaving
+   output when Emacs and other processes write to stderr
+   simultaneously, so long as the lines are short enough.  When a
+   single diagnostic is emitted via a sequence of calls of one or more
+   of these functions, the caller should arrange for the last called
+   function to output a newline at the end.  */
+
+void
+errputc (int c)
+{
+  fputc_unlocked (c, errstream ());
+}
+
+void
+errwrite (void const *buf, ptrdiff_t nbuf)
+{
+  fwrite_unlocked (buf, 1, nbuf, errstream ());
+}
+
+/* Close standard output and standard error, reporting any write
+   errors as best we can.  This is intended for use with atexit.  */
+void
+close_output_streams (void)
+{
+  if (close_stream (stdout) != 0)
+    {
+      emacs_perror ("Write error to standard output");
+      _exit (EXIT_FAILURE);
+    }
+
+  /* Do not close stderr if addresses are being sanitized, as the
+     sanitizer might report to stderr after this function is invoked.  */
+  bool err = buferr && (fflush (buferr) != 0 || ferror (buferr));
+  if (err | (ADDRESS_SANITIZER
+	     ? fflush (stderr) != 0 || ferror (stderr)
+	     : close_stream (stderr) != 0))
+    _exit (EXIT_FAILURE);
 }
 
 #ifndef DOS_NT
@@ -3031,11 +3085,11 @@ list_system_processes (void)
 
   Lisp_Object proclist = Qnil;
 
-  if (sysctl (mib, 3, NULL, &len, NULL, 0) != 0)
+  if (sysctl (mib, 3, NULL, &len, NULL, 0) != 0 || len == 0)
     return proclist;
 
   procs = xmalloc (len);
-  if (sysctl (mib, 3, procs, &len, NULL, 0) != 0)
+  if (sysctl (mib, 3, procs, &len, NULL, 0) != 0 || len == 0)
     {
       xfree (procs);
       return proclist;
@@ -3177,7 +3231,7 @@ procfs_ttyname (int rdev)
       char minor[25];	/* 2 32-bit numbers + dash */
       char *endp;
 
-      for (; !feof_unlocked (fdev) && !ferror_unlocked (fdev); name[0] = 0)
+      for (; !feof (fdev) && !ferror (fdev); name[0] = 0)
 	{
 	  if (fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor) >= 3
 	      && major == MAJOR (rdev))
@@ -3227,7 +3281,7 @@ procfs_get_total_memory (void)
 	    break;
 
 	  case 0:
-	    while ((c = getc_unlocked (fmem)) != EOF && c != '\n')
+	    while ((c = getc (fmem)) != EOF && c != '\n')
 	      continue;
 	    done = c == EOF;
 	    break;
@@ -3262,7 +3316,7 @@ system_process_attributes (Lisp_Object pid)
   char *cmdline = NULL;
   ptrdiff_t cmdline_size;
   char c;
-  printmax_t proc_id;
+  intmax_t proc_id;
   int ppid, pgrp, sess, tty, tpgid, thcount;
   uid_t uid;
   gid_t gid;
@@ -3277,7 +3331,7 @@ system_process_attributes (Lisp_Object pid)
 
   CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
-  sprintf (procfn, "/proc/%"pMd, proc_id);
+  sprintf (procfn, "/proc/%"PRIdMAX, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
 
@@ -3432,7 +3486,7 @@ system_process_attributes (Lisp_Object pid)
 
       if (nread)
 	{
-	  /* We don't want trailing null characters.  */
+	  /* We don't want trailing NUL characters.  */
 	  for (p = cmdline + nread; cmdline < p && !p[-1]; p--)
 	    continue;
 
@@ -3498,7 +3552,7 @@ system_process_attributes (Lisp_Object pid)
   struct psinfo pinfo;
   int fd;
   ssize_t nread;
-  printmax_t proc_id;
+  intmax_t proc_id;
   uid_t uid;
   gid_t gid;
   Lisp_Object attrs = Qnil;
@@ -3507,7 +3561,7 @@ system_process_attributes (Lisp_Object pid)
 
   CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
-  sprintf (procfn, "/proc/%"pMd, proc_id);
+  sprintf (procfn, "/proc/%"PRIdMAX, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
 
@@ -3629,7 +3683,7 @@ system_process_attributes (Lisp_Object pid)
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
-  if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0)
+  if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0 || proclen == 0)
     return attrs;
 
   attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (proc.ki_uid)), attrs);
@@ -3752,7 +3806,7 @@ system_process_attributes (Lisp_Object pid)
 
   mib[2] = KERN_PROC_ARGS;
   len = MAXPATHLEN;
-  if (sysctl (mib, 4, args, &len, NULL, 0) == 0)
+  if (sysctl (mib, 4, args, &len, NULL, 0) == 0 && len != 0)
     {
       int i;
       for (i = 0; i < len; i++)
@@ -3798,7 +3852,7 @@ system_process_attributes (Lisp_Object pid)
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
-  if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0)
+  if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0 || proclen == 0)
     return attrs;
 
   uid = proc.kp_eproc.e_ucred.cr_uid;

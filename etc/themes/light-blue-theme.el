@@ -1,6 +1,6 @@
 ;;; light-blue-theme.el --- Custom theme for faces
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Drew Adams <drew.adams@oracle.com>
 

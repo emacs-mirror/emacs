@@ -1,6 +1,6 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
@@ -510,7 +510,7 @@ is requested."
   (semantic-clear-parser-warnings)
   ;; Nuke all semantic overlays.  This is faster than deleting based
   ;; on our data structure.
-  (let ((l (semantic-overlay-lists)))
+  (let ((l (overlay-lists)))
     (mapc 'semantic-delete-overlay-maybe (car l))
     (mapc 'semantic-delete-overlay-maybe (cdr l))
     )
@@ -535,7 +535,6 @@ is requested."
   (set (make-local-variable 'semantic-bovinate-nonterminal-check-obarray)
        nil)
   (semantic-parse-tree-set-up-to-date)
-  (semantic-make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'semantic-change-function nil t)
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook
 		      semantic--buffer-cache)
@@ -1168,57 +1167,6 @@ Semantic mode.
     ;; re-activated.
     (setq semantic-new-buffer-fcn-was-run nil)))
 
-;;; Completion At Point functions
-(defun semantic-analyze-completion-at-point-function ()
-  "Return possible analysis completions at point.
-The completions provided are via `semantic-analyze-possible-completions'.
-This function can be used by `completion-at-point-functions'."
-  (when (semantic-active-p)
-    (let* ((ctxt (semantic-analyze-current-context))
-           (possible (semantic-analyze-possible-completions ctxt)))
-
-      ;; The return from this is either:
-      ;; nil - not applicable here.
-      ;; A list: (START END COLLECTION . PROPS)
-      (when possible
-        (list (car (oref ctxt bounds))
-              (cdr (oref ctxt bounds))
-              possible))
-      )))
-
-(defun semantic-analyze-notc-completion-at-point-function ()
-  "Return possible analysis completions at point.
-The completions provided are via `semantic-analyze-possible-completions',
-but with the `no-tc' option passed in, which means constraints based
-on what is being assigned to are ignored.
-This function can be used by `completion-at-point-functions'."
-  (when (semantic-active-p)
-    (let* ((ctxt (semantic-analyze-current-context))
-           (possible (semantic-analyze-possible-completions ctxt 'no-tc)))
-
-      (when possible
-        (list (car (oref ctxt bounds))
-              (cdr (oref ctxt bounds))
-              possible))
-      )))
-
-(defun semantic-analyze-nolongprefix-completion-at-point-function ()
-  "Return possible analysis completions at point.
-The completions provided are via `semantic-analyze-possible-completions',
-but with the `no-tc' and `no-longprefix' option passed in, which means
-constraints resulting in a long multi-symbol dereference are ignored.
-This function can be used by `completion-at-point-functions'."
-  (when (semantic-active-p)
-    (let* ((ctxt (semantic-analyze-current-context))
-           (possible (semantic-analyze-possible-completions
-                      ctxt 'no-tc 'no-longprefix)))
-
-      (when possible
-        (list (car (oref ctxt bounds))
-              (cdr (oref ctxt bounds))
-              possible))
-      )))
-
 ;;; Autoload some functions that are not in semantic/loaddefs
 
 (autoload 'global-semantic-idle-completions-mode "semantic/idle"
@@ -1258,6 +1206,16 @@ Call `semantic-symref-hits-in-region' to identify local references." t nil)
 
 (autoload 'srecode-template-setup-parser "srecode/srecode-template"
   "Set up buffer for parsing SRecode template files." t nil)
+
+(autoload 'semantic-analyze-completion-at-point-function "semantic/analyze"
+  "Return possible analysis completions at point.")
+
+(autoload 'semantic-analyze-notc-completion-at-point-function "semantic/analyze"
+  "Return possible analysis completions at point.")
+
+(autoload 'semantic-analyze-nolongprefix-completion-at-point-function
+  "semantic/analyze"
+  "Return possible analysis completions at point.")
 
 (provide 'semantic)
 

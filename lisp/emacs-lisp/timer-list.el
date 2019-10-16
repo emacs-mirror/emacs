@@ -1,6 +1,6 @@
-;;; timer-list.el --- list active timers in a buffer
+;;; timer-list.el --- list active timers in a buffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -24,6 +24,9 @@
 
 ;;; Code:
 
+(defvar cl-print-compiled)
+(defvar cl-print-compiled-button)
+
 ;;;###autoload
 (defun list-timers (&optional _ignore-auto _nonconfirm)
   "List all timers in a buffer."
@@ -37,16 +40,14 @@
                       ;; Idle.
                       (if (aref timer 7) "*" " ")
                       ;; Next time.
-                      (let ((time (float-time (list (aref timer 1)
-                                                    (aref timer 2)
-                                                    (aref timer 3)))))
+		      (let ((time (list (aref timer 1)
+					(aref timer 2)
+					(aref timer 3))))
                         (format "%.2f"
-                                (if (aref timer 7)
-                                    time
-                                  (- (float-time (list (aref timer 1)
-                                                       (aref timer 2)
-                                                       (aref timer 3)))
-                                     (float-time)))))
+				(float-time
+				 (if (aref timer 7)
+				     time
+				   (time-subtract time nil)))))
                       ;; Repeat.
                       (let ((repeat (aref timer 4)))
                         (cond
@@ -58,7 +59,8 @@
                           (format "%s" repeat))))
                       ;; Function.
                       (let ((cl-print-compiled 'static)
-                            (cl-print-compiled-button nil))
+                            (cl-print-compiled-button nil)
+                            (print-escape-newlines t))
                         (cl-prin1-to-string (aref timer 5)))))
       (put-text-property (line-beginning-position)
                          (1+ (line-beginning-position))
@@ -87,8 +89,9 @@
   (setq-local revert-buffer-function #'list-timers)
   (setq buffer-read-only t)
   (setq header-line-format
-        (format "%4s %10s %8s %s"
-                "Idle" "Next" "Repeat" "Function")))
+        (concat (propertize " " 'display '(space :align-to 0))
+                (format "%4s %10s %8s %s"
+                "Idle" "Next" "Repeat" "Function"))))
 
 (defun timer-list-cancel ()
   "Cancel the timer on the line under point."

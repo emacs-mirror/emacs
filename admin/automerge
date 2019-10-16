@@ -1,7 +1,7 @@
 #!/bin/bash
 ### automerge - automatically merge the Emacs release branch to master
 
-## Copyright (C) 2018 Free Software Foundation, Inc.
+## Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -236,7 +236,7 @@ git fetch || die "fetch error"
 
     ## Rebasing would be incorrect, since it would rewrite the
     ## (already published) release branch commits.
-    ## Ref eg http://lists.gnu.org/r/emacs-devel/2014-12/msg01435.html
+    ## Ref eg https://lists.gnu.org/r/emacs-devel/2014-12/msg01435.html
     ## Instead, we throw away what we just did, and do the merge again.
     echo "Resetting..."
     git reset --hard $rev

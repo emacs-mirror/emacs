@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -474,7 +474,7 @@ may be more appropriate."
 An interface to `buffer-face-mode' which uses the `variable-pitch' face.
 Besides the choice of face, it is the same as `buffer-face-mode'."
   (interactive (list (or current-prefix-arg 'toggle)))
-  (buffer-face-mode-invoke 'variable-pitch arg
+  (buffer-face-mode-invoke 'variable-pitch (or arg t)
 			   (called-interactively-p 'interactive)))
 
 

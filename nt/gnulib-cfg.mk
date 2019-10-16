@@ -1,6 +1,6 @@
 # Configurations for ../lib/gnulib.mk.
 #
-# Copyright 2017-2018 Free Software Foundation, Inc.
+# Copyright 2017-2019 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,3 +62,4 @@ OMIT_GNULIB_MODULE_sys_stat = true
 OMIT_GNULIB_MODULE_sys_time = true
 OMIT_GNULIB_MODULE_sys_types = true
 OMIT_GNULIB_MODULE_unistd = true
+OMIT_GNULIB_MODULE_canonicalize-lgpl = true

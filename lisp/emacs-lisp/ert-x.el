@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008, 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;;         Christian Ohler <ohler@gnu.org>

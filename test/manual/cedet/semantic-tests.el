@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Miscellaneous Semantic tests.
 
-;;; Copyright (C) 2003-2004, 2007-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

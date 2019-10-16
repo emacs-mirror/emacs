@@ -1,6 +1,6 @@
 ;;; array.el --- array editing commands for GNU Emacs
 
-;; Copyright (C) 1987, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: David M. Brown
 ;; Maintainer: emacs-devel@gnu.org
@@ -739,11 +739,6 @@ of `array-rows-numbered'."
   (cond ((< index 1) 1)
 	((> index limit) limit)
 	(t index)))
-
-(defun xor (pred1 pred2)
-  "Return the logical exclusive or of predicates PRED1 and PRED2."
-  (and (or pred1 pred2)
-       (not (and pred1 pred2))))
 
 (defun current-line ()
   "Return the current buffer line at point.  The first line is 0."

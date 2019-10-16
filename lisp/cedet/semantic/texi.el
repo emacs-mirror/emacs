@@ -1,6 +1,6 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;; Copyright (C) 2001-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -419,9 +419,9 @@ Since texinfo is not a programming language the default version is not
 useful.  Instead, look at the current symbol.  If it is a command
 do primitive texinfo built ins.  If not, use ispell to lookup words
 that start with that symbol."
-  (let ((prefix (car (oref context :prefix)))
+  (let ((prefix (car (oref context prefix)))
 	)
-    (cond ((member 'function (oref context :prefixclass))
+    (cond ((member 'function (oref context prefixclass))
 	   ;; Do completion for texinfo commands
 	   (let* ((cmd (substring prefix 1))
 		  (lst (all-completions
@@ -429,7 +429,7 @@ that start with that symbol."
 	     (mapcar (lambda (f) (semantic-tag (concat "@" f) 'function))
 		     lst))
 	   )
-	  ((member 'word (oref context :prefixclass))
+	  ((member 'word (oref context prefixclass))
 	   ;; Do completion for words via ispell.
 	   (require 'ispell)
 	   (let ((word-list (ispell-lookup-words prefix)))

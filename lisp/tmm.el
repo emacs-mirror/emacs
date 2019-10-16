@@ -1,6 +1,6 @@
 ;;; tmm.el --- text mode access to menu-bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1996, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -240,8 +240,6 @@ instead of executing it."
                                            (car elt)))
                                      tmm-km-list)))))
 	     (setq history-len (length tmm--history))
-	     (setq tmm--history (append tmm--history tmm--history
-                                        tmm--history tmm--history))
 	     (setq tmm-c-prompt (nth (- history-len 1 index-of-default)
                                      tmm--history))
              (setq out
@@ -249,18 +247,17 @@ instead of executing it."
                        (car (nth index-of-default tmm-km-list))
                      (minibuffer-with-setup-hook #'tmm-add-prompt
                        ;; tmm-km-list is reversed, because history
-                       ;; needs it in LIFO order.  But completion
+                       ;; needs it in LIFO order.  But default list
                        ;; needs it in non-reverse order, so that the
-                       ;; menu items are displayed as completion
-                       ;; candidates in the order they are shown on
-                       ;; the menu bar.  So pass completing-read the
+                       ;; menu items are displayed by M-n as default
+                       ;; values in the order they are shown on
+                       ;; the menu bar.  So pass the DEFAULT arg the
                        ;; reversed copy of the list.
                        (completing-read-default
                         (concat gl-str
                                 " (up/down to change, PgUp to menu): ")
-                        (tmm--completion-table (reverse tmm-km-list)) nil t nil
-                        (cons 'tmm--history
-                              (- (* 2 history-len) index-of-default))))))))
+                        (tmm--completion-table tmm-km-list) nil t nil
+                        'tmm--history (reverse tmm--history)))))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)
            (string-prefix-p tmm-c-prompt out)
@@ -378,7 +375,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (while (not (eobp))
         (setq next (next-single-char-property-change (point) 'mouse-face))
         (when (looking-at inactive-string)
-          (remove-text-properties (point) next '(mouse-face))
+          (remove-text-properties (point) next '(mouse-face nil))
           (add-text-properties (point) next '(face tmm-inactive)))
         (goto-char next)))
     (set-buffer-modified-p nil)))
@@ -404,8 +401,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	  ;; Try to show everything just inserted and preserve height of
 	  ;; *Completions* window.  This should fix a behavior described
 	  ;; in Bug#1291.
-	  (fit-window-to-buffer window nil nil nil nil t)))))
-  (insert tmm-c-prompt))
+	  (fit-window-to-buffer window nil nil nil nil t))))))
 
 (defun tmm-shortcut ()
   "Choose the shortcut that the user typed."

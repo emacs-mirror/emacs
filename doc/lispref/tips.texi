@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -679,10 +679,15 @@ starting double-quote is not part of the string!
 @cindex curly quotes
 @cindex curved quotes
 When a documentation string refers to a Lisp symbol, write it as it
-would be printed (which usually means in lower case), surrounding
-it with curved single quotes (@t{‘} and @t{’}).  There are
-two exceptions: write @code{t} and @code{nil} without surrounding
-punctuation.  For example: @samp{CODE can be ‘lambda’, nil, or t}.
+would be printed (which usually means in lower case), surrounding it
+with curved single quotes (@t{‘..’}).  There are two exceptions: write
+@code{t} and @code{nil} without surrounding punctuation.  For example:
+
+@example
+ CODE can be ‘lambda’, nil, or t.
+@end example
+
+@noindent
 @xref{Quotation Marks,,, emacs, The GNU Emacs Manual}, for how to
 enter curved single quotes.
 
@@ -911,13 +916,16 @@ is discouraged.
 When commenting out entire functions, use two semicolons.
 
 @item ;;;;
-Comments that start with four semicolons, @samp{;;;;}, should be aligned
-to the left margin and are used for headings of major sections of a
-program.  For example:
+Comments that start with four (or more) semicolons, @samp{;;;;},
+should be aligned to the left margin and are used for headings of
+major sections of a program.  For example:
 
 @smallexample
 ;;;; The kill ring
 @end smallexample
+
+If you wish to have sub-headings under these heading, use more
+semicolons to nest these sub-headings.
 @end table
 
 @noindent
@@ -942,7 +950,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2018 Your Name
+;; Copyright (C) 2010-2019 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
@@ -950,7 +958,7 @@ explains these conventions, starting with an example:
 ;; Created: 14 Jul 2010
 @group
 ;; Keywords: languages
-;; Homepage: http://example.com/foo
+;; URL: https://example.com/foo
 
 ;; This file is not part of GNU Emacs.
 
@@ -1008,7 +1016,7 @@ etc.).
 
 If there is no maintainer line, the person(s) in the Author field
 is/are presumed to be the maintainers.  Some files in Emacs use
-@samp{FSF} for the maintainer.  This means that the original author is
+@samp{emacs-devel@@gnu.org} for the maintainer, which means the author is
 no longer responsible for the file, and that it is maintained as part
 of Emacs.
 

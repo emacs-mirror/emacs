@@ -1,6 +1,6 @@
 ;;; eieio-tests.el -- eieio tests routines
 
-;; Copyright (C) 1999-2003, 2005-2010, 2012-2018 Free Software
+;; Copyright (C) 1999-2003, 2005-2010, 2012-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -696,6 +696,17 @@ Do not override for `prot-2'."
   (setq eitest-II3 (clone eitest-II2 "eitest-II3 Test."))
   (oset eitest-II3 slot3 'penguin)
 
+  ;; Test that slots are non-initialized slots are unbounded
+  (oref eitest-II2 slot1)
+  (should (slot-boundp eitest-II2 'slot1))
+  (should-not (slot-boundp eitest-II2 'slot2))
+  (should-not (slot-boundp eitest-II2 'slot3))
+  (should-not (slot-boundp eitest-II3 'slot2))
+  (should-not (slot-boundp eitest-II3 'slot1))
+  (should-not (slot-boundp eitest-II3 'slot2))
+  (should (eieio-instance-inheritor-slot-boundp eitest-II3 'slot2))
+  (should (slot-boundp eitest-II3 'slot3))
+
   ;; Test level 1 inheritance
   (should (eq (oref eitest-II3 slot1) 'moose))
   ;; Test level 2 inheritance
@@ -862,8 +873,7 @@ Subclasses to override slot attributes.")
     (should (oref obj1 a-slot))))
 
 (defclass NAMED (eieio-named)
-  ((some-slot :initform nil)
-   )
+  ((some-slot :initform nil))
   "A class inheriting from eieio-named.")
 
 (ert-deftest eieio-test-35-named-object ()
@@ -901,6 +911,48 @@ Subclasses to override slot attributes.")
   "Tests to see whether reftex-auc has been autoloaded"
   (should
    (fboundp 'eieio--defalias)))
+
+(ert-deftest eieio-test-38-clone-named-object ()
+  (let* ((A (NAMED :object-name "aa"))
+         (B (clone A :object-name "bb"))
+         (C (clone A "cc"))
+         (D (clone A))
+         (E (clone D)))
+    (should (string= "aa" (oref A object-name)))
+    (should (string= "bb" (oref B object-name)))
+    (should (string= "cc" (oref C object-name)))
+    (should (string= "aa-1" (oref D object-name)))
+    (should (string= "aa-2" (oref E object-name)))))
+
+(defclass TII (eieio-instance-inheritor)
+  ((a :initform 1 :initarg :a)
+   (b :initarg :b)
+   (c :initarg :c))
+  "Instance Inheritor test class.")
+
+(ert-deftest eieio-test-39-clone-instance-inheritor-with-args ()
+  (let* ((A (TII))
+         (B (clone A :b "bb"))
+         (C (clone B :a "aa")))
+
+    (should (string= "aa" (oref C :a)))
+    (should (string= "bb" (oref C :b)))
+
+    (should (slot-boundp A :a))
+    (should-not (slot-boundp A :b))
+    (should-not (slot-boundp A :c))
+
+    (should-not (slot-boundp B :a))
+    (should (slot-boundp B :b))
+    (should-not (slot-boundp A :c))
+
+    (should (slot-boundp C :a))
+    (should-not (slot-boundp C :b))
+    (should-not (slot-boundp C :c))
+
+    (should (eieio-instance-inheritor-slot-boundp C :a))
+    (should (eieio-instance-inheritor-slot-boundp C :b))
+    (should-not (eieio-instance-inheritor-slot-boundp C :c))))
 
 
 (provide 'eieio-tests)

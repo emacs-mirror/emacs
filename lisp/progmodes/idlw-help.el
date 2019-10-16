@@ -1,10 +1,10 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 ;;
-;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
+;; Authors: JD Smith <jd.smith@utoledo.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
-;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: idlwave
 
 ;; This file is part of GNU Emacs.

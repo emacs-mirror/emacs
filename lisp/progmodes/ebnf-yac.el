@@ -1,9 +1,8 @@
 ;;; ebnf-yac.el --- parser for Yacc/Bison
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.4
 ;; Package: ebnf2ps
@@ -392,7 +391,7 @@ See documentation for variable `ebnf-yac-lex'."
 (defun ebnf-yac-skip-spaces ()
   (skip-chars-forward
    (if ebnf-yac-skip-char
-       "\n\r\t !#$&()*+-.0123456789=?@[\\\\]^_`~"
+       "-\n\r\t !#$&()*+,.0123456789=?@[\\\\]^_`~"
      "\n\r\t ")
    ebnf-limit)
   (< (point) ebnf-limit))

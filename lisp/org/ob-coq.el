@@ -1,6 +1,6 @@
 ;;; ob-coq.el --- Babel Functions for Coq            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research

@@ -1,6 +1,6 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -179,8 +179,6 @@ and ends with a forward slash."
     dir))
 
 
-(define-obsolete-function-alias 'dirtrack-toggle 'dirtrack-mode "23.1")
-(define-obsolete-variable-alias 'dirtrackp 'dirtrack-mode "23.1")
 ;;;###autoload
 (define-minor-mode dirtrack-mode
   "Toggle directory tracking in shell buffers (Dirtrack mode).

@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2018 Free Software
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -279,7 +279,11 @@ The remaining columns show the buffer name, the buffer size in
 characters, its major mode, and the visited file name (if any).
 
 See `Buffer-menu-mode' for the keybindings available the Buffer
-Menu."
+Menu.
+
+The width of the various columns can be customized by changing
+the `Buffer-menu-name-width', `Buffer-menu-size-width' and
+`Buffer-menu-mode-width' variables."
   (interactive "P")
   (switch-to-buffer (list-buffers-noselect arg))
   (message
@@ -475,10 +479,10 @@ Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted
 			   (save-buffer))
 			 (tabulated-list-set-col 2 " " t))
 		     (error (warn "Error saving %s" buffer))))
-		 (if delete
-		     (unless (eq buffer (current-buffer))
-		       (kill-buffer buffer)
-		       (tabulated-list-delete-entry))
+		 (if (and delete
+			  (not (eq buffer (current-buffer)))
+                          (kill-buffer buffer))
+                     (tabulated-list-delete-entry)
 		   (forward-line 1)))))))))
 
 (defun Buffer-menu-select ()
@@ -699,7 +703,8 @@ means list those buffers and no others."
 (defun Buffer-menu--pretty-file-name (file)
   (cond (file
 	 (abbreviate-file-name file))
-	((bound-and-true-p list-buffers-directory))
+	((bound-and-true-p list-buffers-directory)
+         (abbreviate-file-name list-buffers-directory))
 	(t "")))
 
 ;;; buff-menu.el ends here

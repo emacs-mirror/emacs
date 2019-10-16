@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -29,6 +29,7 @@
 (require 'mml-sec)
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'url))
+(eval-when-compile (require 'gnus-util))
 
 (autoload 'message-make-message-id "message")
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
@@ -47,7 +48,6 @@
 
 (defvar gnus-article-mime-handles)
 (defvar gnus-newsrc-hashtb)
-(defvar message-default-charset)
 (defvar message-deletable-headers)
 (defvar message-options)
 (defvar message-posting-charset)
@@ -471,15 +471,22 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url discard-comments))
 
-(defun mml-generate-mime (&optional multipart-type)
+(defun mml-generate-mime (&optional multipart-type content-type)
   "Generate a MIME message based on the current MML document.
 MULTIPART-TYPE defaults to \"mixed\", but can also
-be \"related\" or \"alternate\"."
+be \"related\" or \"alternate\".
+
+If CONTENT-TYPE (and there's only one part), override the content
+type detected."
   (let ((cont (mml-parse))
 	(mml-multipart-number mml-multipart-number)
 	(options message-options))
     (if (not cont)
 	nil
+      (when (and (consp (car cont))
+		 (= (length cont) 1)
+		 content-type)
+	(setcdr (assq 'type (cdr (car cont))) content-type))
       (when (and (consp (car cont))
 		 (= (length cont) 1)
 		 (fboundp 'libxml-parse-html-region)
@@ -702,9 +709,7 @@ be \"related\" or \"alternate\"."
 				  filename)))))
 	       (t
 		(let ((contents (cdr (assq 'contents cont))))
-		  (if (if (featurep 'xemacs)
-			  (string-match "[^\000-\377]" contents)
-			(multibyte-string-p contents))
+		  (if (multibyte-string-p contents)
 		      (progn
 			(set-buffer-multibyte t)
 			(insert contents)
@@ -906,17 +911,25 @@ be \"related\" or \"alternate\"."
 	      (or disposition
 		  (mml-content-disposition type (cdr (assq 'filename cont)))))
       (when parameters
-	(mml-insert-parameter-string
-	 cont mml-content-disposition-parameters))
+	(let ((cont (copy-sequence cont)))
+	  ;; Set the file name to what's specified by the user.
+	  (when-let ((recipient-filename (cdr (assq 'recipient-filename cont))))
+	    (setcdr cont
+		    (cons (cons 'filename recipient-filename)
+			  (cdr cont))))
+	  (mml-insert-parameter-string
+	   cont mml-content-disposition-parameters)))
       (insert "\n"))
     (unless (eq encoding '7bit)
       (insert (format "Content-Transfer-Encoding: %s\n" encoding)))
     (when (setq description (cdr (assq 'description cont)))
-      (insert "Content-Description: ")
-      (setq description (prog1
-			    (point)
-			  (insert description "\n")))
-      (mail-encode-encoded-word-region description (point)))))
+      (insert "Content-Description: "
+	      ;; The current buffer is unibyte, so do the description
+	      ;; encoding in a temporary buffer.
+	      (with-temp-buffer
+		(insert description "\n")
+		(mail-encode-encoded-word-region (point-min) (point-max))
+		(buffer-string))))))
 
 (defun mml-parameter-string (cont types)
   (let ((string "")
@@ -982,8 +995,10 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
   (unless handles
     (setq handles (mm-dissect-buffer t)))
   (goto-char (point-min))
-  (search-forward "\n\n" nil t)
-  (delete-region (point) (point-max))
+  (if (search-forward "\n\n" nil 'move)
+      (delete-region (point) (point-max))
+    ;; No content in the part that is the sole part of this message.
+    (insert (if (bolp) "\n" "\n\n")))
   (if (stringp (car handles))
       (mml-insert-mime handles)
     (mml-insert-mime handles t))
@@ -1012,8 +1027,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ;; Skip past any From_ headers.
     (while (looking-at "From ")
       (forward-line 1))
-    (let ((mail-parse-charset message-default-charset))
-      (mail-encode-encoded-word-buffer)))
+    (mail-encode-encoded-word-buffer))
   (message-encode-message-body))
 
 (defun mml-insert-mime (handle &optional no-markup)
@@ -1232,7 +1246,6 @@ See Info node `(emacs-mime)Composing'.
 \\{mml-mode-map}"
   :lighter " MML" :keymap mml-mode-map
   (when mml-mode
-    (easy-menu-add mml-menu mml-mode-map)
     (when (boundp 'dnd-protocol-alist)
       (set (make-local-variable 'dnd-protocol-alist)
 	   (append mml-dnd-protocol-alist dnd-protocol-alist)))))
@@ -1328,7 +1341,7 @@ If not set, `default-directory' will be used."
 	  (value (pop plist)))
       (when value
 	;; Quote VALUE if it contains suspicious characters.
-	(when (string-match "[\"'\\~/*;() \t\n]" value)
+	(when (string-match "[\"'\\~/*;() \t\n[:multibyte:]]" value)
 	  (setq value (with-output-to-string
 			(let (print-escape-nonascii)
 			  (prin1 value)))))
@@ -1545,7 +1558,6 @@ Should be adopted if code in `message-send-mail' is changed."
 
 (defvar mml-preview-buffer nil)
 
-(autoload 'gnus-make-hashtable "gnus-util")
 (autoload 'widget-button-press "wid-edit" nil t)
 (declare-function widget-event-point "wid-edit" (event))
 ;; If gnus-buffer-configuration is bound this is loaded.

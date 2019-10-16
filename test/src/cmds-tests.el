@@ -1,6 +1,6 @@
 ;;; cmds-tests.el --- Testing some Emacs commands
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Keywords:
@@ -29,6 +29,14 @@
   "Test `self-insert-command' with a negative argument."
   (let ((last-command-event ?a))
     (should-error (self-insert-command -1))))
+
+(ert-deftest forward-line-with-bignum ()
+  (with-temp-buffer
+    (insert "x\n")
+    (let ((shortage (forward-line (1- most-negative-fixnum))))
+      (should (= shortage most-negative-fixnum)))
+    (let ((shortage (forward-line (+ 2 most-positive-fixnum))))
+      (should (= shortage (1+ most-positive-fixnum))))))
 
 (provide 'cmds-tests)
 ;;; cmds-tests.el ends here

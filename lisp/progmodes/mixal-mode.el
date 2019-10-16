@@ -1,6 +1,6 @@
 ;;; mixal-mode.el --- Major mode for the mix asm language.
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1044,7 +1044,7 @@ EXECUTION-TIME holds info about the time it takes, number or string.")
      . mixal-font-lock-operation-code-face)
     (,(regexp-opt mixal-assembly-pseudoinstructions 'words)
      . mixal-font-lock-assembly-pseudoinstruction-face)
-    ("^[A-Z0-9a-z]*[ \t]+[A-ZO-9a-z]+[ \t]+\\(=.*=\\)"
+    ("^[A-Z0-9a-z]*[ \t]+[A-Z0-9a-z]+[ \t]+\\(=.*=\\)"
      (1 font-lock-constant-face)))
   "Keyword highlighting specification for `mixal-mode'.")
 ;; (makunbound 'mixal-font-lock-keywords)

@@ -1,6 +1,6 @@
 ;;; hebrew.el --- support for Hebrew -*- coding: utf-8 -*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -152,7 +152,7 @@ Bidirectional editing is supported.")))
 ;; (3) If the font has precomposed glyphs, use them as far as
 ;; possible.  Adjust the remaining glyphs artificially.
 
-(defun hebrew-shape-gstring (gstring)
+(defun hebrew-shape-gstring (gstring direction)
   (let* ((font (lgstring-font gstring))
 	 (otf (font-get font :otf))
 	 (nchars (lgstring-char-len gstring))
@@ -172,7 +172,7 @@ Bidirectional editing is supported.")))
 
      ((or (assq 'hebr (car otf)) (assq 'hebr (cdr otf)))
       ;; FONT has OpenType features for Hebrew.
-      (font-shape-gstring gstring))
+      (font-shape-gstring gstring direction))
 
      (t
       ;; FONT doesn't have OpenType features for Hebrew.
@@ -217,7 +217,7 @@ Bidirectional editing is supported.")))
 	;; Now IDX is an index to the first non-precomposed glyph.
 	;; Adjust positions of the remaining glyphs artificially.
         (if (font-get font :combining-capability)
-            (font-shape-gstring gstring)
+            (font-shape-gstring gstring direction)
           (setq base-width (lglyph-width (lgstring-glyph gstring 0)))
           (while (< idx nglyphs)
             (setq glyph (lgstring-glyph gstring idx))
@@ -238,8 +238,9 @@ Bidirectional editing is supported.")))
             (setq idx (1+ idx)))))))
     gstring))
 
-(let* ((base "[\u05D0-\u05F2]")
-       (combining "[\u0591-\u05BD\u05BF\u05C1-\u05C2\u05C4-\u05C5\u05C7]+")
+(let* ((base "[\u05D0-\u05F2\uFB1D\uFB1F-\uFB28\uFB2A-\uFB4F]")
+       (combining
+        "[\u0591-\u05BD\u05BF\u05C1-\u05C2\u05C4-\u05C5\u05C7\uFB1E]+")
        (pattern1 (concat base combining))
        (pattern2 (concat base "\u200D" combining)))
   (set-char-table-range

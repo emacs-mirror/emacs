@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2018 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2003,6 +2003,13 @@ getloadavg (double loadavg[], int nelem)
       loadavg[elem] = avg;
     }
 
+  /* Always return at least one element, otherwise load-average
+     returns nil, and Lisp programs might decide we cannot measure
+     system load.  For example, jit-lock-stealth-load's defcustom
+     might decide that feature is "unsupported".  */
+  if (elem == 0)
+    loadavg[elem++] = 0.09;	/* < display-time-load-average-threshold */
+
   return elem;
 }
 
@@ -2091,7 +2098,29 @@ getpwnam (char *name)
     return pw;
 
   if (xstrcasecmp (name, pw->pw_name))
-    return NULL;
+    {
+      /* Mimic what init_editfns does with these environment
+	 variables, so that the likes of ~USER is recognized by
+	 expand-file-name even if $LOGNAME gives a name different from
+	 the real username produced by the process token.  */
+      char *logname = getenv ("LOGNAME");
+      char *username = getenv ("USERNAME");
+      if ((logname || username)
+	  && xstrcasecmp (name, logname ? logname : username) == 0)
+	{
+	  static struct passwd alias_user;
+	  static char alias_name[PASSWD_FIELD_SIZE];
+
+	  memcpy (&alias_user, &dflt_passwd, sizeof dflt_passwd);
+	  alias_name[0] = '\0';
+	  strncat (alias_name, logname ? logname : username,
+		   PASSWD_FIELD_SIZE - 1);
+	  alias_user.pw_name = alias_name;
+	  pw = &alias_user;
+	}
+      else
+	return NULL;
+    }
 
   return pw;
 }
@@ -2622,7 +2651,7 @@ unsetenv (const char *name)
   /* It is safe to use 'alloca' with 32K size, since the stack is at
      least 2MB, and we set it to 8MB in the link command line.  */
   var = alloca (name_len + 2);
-  strncpy (var, name, name_len);
+  memcpy (var, name, name_len);
   var[name_len++] = '=';
   var[name_len] = '\0';
   return _putenv (var);
@@ -2960,8 +2989,7 @@ init_environment (char ** argv)
 		if (strcmp (env_vars[i].name, "HOME") == 0 && !appdata)
 		  Vdelayed_warnings_list
                     = Fcons
-                    (listn (CONSTYPE_HEAP, 2,
-                            intern ("initialization"), build_string
+		    (list2 (intern ("initialization"), build_string
                             ("Use of `C:\\.emacs' without defining `HOME'\n"
                              "in the environment is deprecated, "
                              "see `Windows HOME' in the Emacs manual.")),
@@ -3890,7 +3918,7 @@ logon_network_drive (const char *path)
     return;
 
   n_slashes = 2;
-  strncpy (share, path, MAX_UTF8_PATH);
+  strncpy (share, path, MAX_UTF8_PATH - 1);
   /* Truncate to just server and share name.  */
   for (p = share + 2; *p && p < share + MAX_UTF8_PATH; p++)
     {
@@ -4034,7 +4062,11 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 	  /* FALLTHROUGH */
 	  FALLTHROUGH;
 	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_INVALID_DRIVE:
+	case ERROR_NOT_READY:
 	case ERROR_BAD_NETPATH:
+	case ERROR_BAD_NET_NAME:
 	  errno = ENOENT;
 	  break;
 	default:
@@ -4123,13 +4155,36 @@ w32_accessible_directory_p (const char *dirname, ptrdiff_t dirlen)
       /* In case DIRNAME cannot be expressed in characters from the
 	 current ANSI codepage.  */
       if (_mbspbrk (pat_a, "?"))
-	dh = INVALID_HANDLE_VALUE;
-      else
-	dh = FindFirstFileA (pat_a, &dfd_a);
+	{
+	  errno = ENOENT;
+	  return 0;
+	}
+      dh = FindFirstFileA (pat_a, &dfd_a);
     }
 
   if (dh == INVALID_HANDLE_VALUE)
+    {
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_INVALID_NAME:
+	case ERROR_BAD_PATHNAME:
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_NO_MORE_FILES:
+	case ERROR_BAD_NETPATH:
+	  errno = ENOENT;
+	  break;
+	case ERROR_NOT_READY:
+	  errno = ENODEV;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
     return 0;
+    }
   FindClose (dh);
   return 1;
 }
@@ -5920,7 +5975,7 @@ is_symlink (const char *filename)
 
 /* If NAME identifies a symbolic link, copy into BUF the file name of
    the symlink's target.  Copy at most BUF_SIZE bytes, and do NOT
-   null-terminate the target name, even if it fits.  Return the number
+   NUL-terminate the target name, even if it fits.  Return the number
    of bytes copied, or -1 if NAME is not a symlink or any error was
    encountered while resolving it.  The file name copied into BUF is
    encoded in the current ANSI codepage.  */
@@ -6024,16 +6079,16 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  size_t size_to_copy = buf_size;
 
 	  /* According to MSDN, PrintNameLength does not include the
-	     terminating null character.  */
+	     terminating NUL character.  */
 	  lwname = alloca ((lwname_len + 1) * sizeof(WCHAR));
 	  memcpy (lwname, lwname_src, lwname_len);
-	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* null-terminate */
+	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* NUL-terminate */
 	  filename_from_utf16 (lwname, resolved);
 	  dostounix_filename (resolved);
 	  lname_size = strlen (resolved) + 1;
 	  if (lname_size <= buf_size)
 	    size_to_copy = lname_size;
-	  strncpy (buf, resolved, size_to_copy);
+	  memcpy (buf, resolved, size_to_copy);
 	  /* Success!  */
 	  retval = size_to_copy;
 	}
@@ -9363,7 +9418,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
       /* Convert input strings to UTF-16.  */
       encoded_key = code_convert_string_norecord (lkey, Qutf_16le, 1);
       memcpy (key_w, SSDATA (encoded_key), SBYTES (encoded_key));
-      /* wchar_t strings need to be terminated by 2 null bytes.  */
+      /* wchar_t strings need to be terminated by 2 NUL bytes.  */
       key_w [SBYTES (encoded_key)/2] = L'\0';
       encoded_vname = code_convert_string_norecord (lname, Qutf_16le, 1);
       memcpy (value_w, SSDATA (encoded_vname), SBYTES (encoded_vname));
@@ -9455,7 +9510,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
       case REG_SZ:
 	if (use_unicode)
 	  {
-	    /* pvalue ends with 2 null bytes, but we need only one,
+	    /* pvalue ends with 2 NUL bytes, but we need only one,
 	       and AUTO_STRING_WITH_LEN will add it.  */
 	    if (pvalue[vsize - 1] == '\0')
 	      vsize -= 2;
@@ -9464,7 +9519,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 	  }
 	else
 	  {
-	    /* Don't waste a byte on the terminating null character,
+	    /* Don't waste a byte on the terminating NUL character,
 	       since make_unibyte_string will add one anyway.  */
 	    if (pvalue[vsize - 1] == '\0')
 	      vsize--;
@@ -9924,6 +9979,71 @@ maybe_load_unicows_dll (void)
         multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
       return LoadLibrary ("Gdi32.dll");
     }
+}
+
+/* Relocate a directory specified by epaths.h, using the location of
+   our binary as an anchor.  Note: this runs early during startup, so
+   we cannot rely on the usual file-related facilities, and in
+   particular the argument is assumed to be a unibyte string in system
+   codepage encoding.  */
+const char *
+w32_relocate (const char *epath_dir)
+{
+  if (strncmp (epath_dir, "%emacs_dir%/", 12) == 0)
+    {
+      static char relocated_dir[MAX_PATH];
+
+      /* Replace "%emacs_dir%" with the parent of the directory where
+	 our binary lives.  Note that init_environment was not yet
+	 called, so we cannot rely on emacs_dir being set in the
+	 environment.  */
+      if (GetModuleFileNameA (NULL, relocated_dir, MAX_PATH))
+	{
+	  char *p = _mbsrchr (relocated_dir, '\\');
+
+	  if (p)
+	    {
+	      *p = '\0';
+	      if ((p = _mbsrchr (relocated_dir, '\\')) != NULL)
+		{
+		  strcpy (p, epath_dir + 11);
+		  epath_dir = relocated_dir;
+		}
+	    }
+	}
+    }
+  return epath_dir;
+}
+
+/* Return the full absolute name of the running executable.  If the
+   executable is a symlink, resolve it.
+
+   Note: this function is called early during startup, when Unicode
+   file names are not yet supported.  Thus the result must be an
+   ANSI-encoded string.  */
+char *
+w32_my_exename (void)
+{
+  static char exename[MAX_PATH];
+  if (!GetModuleFileNameA (NULL, exename, MAX_PATH))
+    return NULL;
+  /* The caller expects us to resolve all possible symlinks in the
+     last component of exename, i.e. if the executable itself is a
+     symlink to a file in another directory.  */
+  if (get_volume_info (exename, NULL)
+      && (volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+    {
+      /* chase_symlinks wants its argument in UTF-8.  */
+      char exename_utf8[MAX_UTF8_PATH];
+      filename_from_ansi (exename, exename_utf8);
+
+      /* If EXENAME is a symlink, replace it with its target.  */
+      char *tgt = chase_symlinks (exename_utf8);
+      if (tgt != exename_utf8)
+	filename_to_ansi (tgt, exename);
+    }
+
+  return exename;
 }
 
 /*

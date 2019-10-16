@@ -1,6 +1,6 @@
 ;;; org-faces.el --- Face definitions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -409,7 +409,7 @@ See also `org-fontify-quote-and-verse-blocks'."
   :group 'org-faces)
 
 (defface org-verbatim '((t (:inherit shadow)))
-  "Face for fixed-with text like code snippets"
+  "Face for fixed-with text like code snippets."
   :group 'org-faces
   :version "22.1")
 
@@ -602,8 +602,8 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
 (defcustom org-cycle-level-faces t
   "Non-nil means level styles cycle after level `org-n-level-faces'.
 Then so level org-n-level-faces+1 is styled like level 1.
-If nil, then all levels >=org-n-level-faces are styled like
-level org-n-level-faces"
+If nil, then all levels >= org-n-level-faces are styled like
+level org-n-level-faces."
   :group 'org-appearance
   :group 'org-faces
   :version "24.1"

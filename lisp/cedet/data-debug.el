@@ -1,8 +1,8 @@
 ;;; data-debug.el --- Data structure debugger
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
@@ -49,25 +49,9 @@
 
 ;;; Compatibility
 ;;
-(if (featurep 'xemacs)
-    (eval-and-compile
-      (defalias 'data-debug-overlay-properties 'extent-properties)
-      (defalias 'data-debug-overlay-p 'extentp)
-      (if (not (fboundp 'propertize))
-	  (defun dd-propertize (string &rest properties)
-	    "Mimic `propertize' in from Emacs 23."
-	    (add-text-properties 0 (length string) properties string)
-	    string
-	    )
-	(defalias 'dd-propertize 'propertize))
-      )
-  ;; Regular Emacs
-  (eval-and-compile
-    (defalias 'data-debug-overlay-properties 'overlay-properties)
-    (defalias 'data-debug-overlay-p 'overlayp)
-    (defalias 'dd-propertize 'propertize)
-    )
-  )
+(defalias 'data-debug-overlay-properties 'overlay-properties)
+(defalias 'data-debug-overlay-p 'overlayp)
+(defalias 'dd-propertize 'propertize)
 
 ;;; GENERIC STUFF
 ;;
@@ -920,14 +904,14 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (interactive)
   (forward-line 1)
   (beginning-of-line)
-  (skip-chars-forward " *-><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (point-at-eol)))
 
 (defun data-debug-prev ()
   "Go to the previous line in the Ddebug buffer."
   (interactive)
   (forward-line -1)
   (beginning-of-line)
-  (skip-chars-forward " *-><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (point-at-eol)))
 
 (defun data-debug-next-expando ()
   "Go to the next line in the Ddebug buffer.
@@ -1014,7 +998,7 @@ Do nothing if already contracted."
 	   (data-debug-current-line-expanded-p))
       (data-debug-contract-current-line)
     (data-debug-expand-current-line))
-  (skip-chars-forward " *-><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (point-at-eol)))
 
 (defun data-debug-expand-or-contract-mouse (event)
   "Expand or contract anything at event EVENT."

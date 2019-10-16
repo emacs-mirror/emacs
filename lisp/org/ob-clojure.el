@@ -1,6 +1,6 @@
 ;;; ob-clojure.el --- Babel Functions for Clojure    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Joel Boehland, Eric Schulte, Oleh Krehel, Frederick Giasson
 ;;

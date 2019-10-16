@@ -1,6 +1,6 @@
 ;;; org-id.el --- Global identifiers for Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -83,8 +83,7 @@
 
 (defcustom org-id-link-to-org-use-id nil
   "Non-nil means storing a link to an Org file will use entry IDs.
-\\<org-mode-map>\
-
+\\<org-mode-map>
 The variable can have the following values:
 
 t     Create an ID if needed to make a link to the current entry.
@@ -160,9 +159,9 @@ to have no space characters in them."
 (defcustom org-id-include-domain nil
   "Non-nil means add the domain name to new IDs.
 This ensures global uniqueness of IDs, and is also suggested by
-RFC 2445 in combination with RFC 822.  This is only relevant if
-`org-id-method' is `org'.  When uuidgen is used, the domain will never
-be added.
+the relevant RFCs.  This is relevant only if `org-id-method' is
+`org'.  When uuidgen is used, the domain will never be added.
+
 The default is to not use this because we have no really good way to get
 the true domain, and Org entries will normally not be shared with enough
 people to make this necessary."
@@ -242,7 +241,7 @@ Create an ID if necessary."
   "Get the ID property of the entry at point-or-marker POM.
 If POM is nil, refer to the entry at point.
 If the entry does not have an ID, the function returns nil.
-However, when CREATE is non nil, create an ID if none is present already.
+However, when CREATE is non-nil, create an ID if none is present already.
 PREFIX will be passed through to `org-id-new'.
 In any case, the ID of the entry is returned."
   (org-with-point-at pom
@@ -357,7 +356,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
   "Return string with random (version 4) UUID."
   (let ((rnd (md5 (format "%s%s%s%s%s%s%s"
 			  (random)
-			  (encode-time nil 'list)
+			  (time-convert nil 'list)
 			  (user-uid)
 			  (emacs-pid)
 			  (user-full-name)
@@ -413,18 +412,21 @@ The input I may be a character, or a single-letter string."
     r))
 
 (defun org-id-time-to-b36 (&optional time)
-  "Encode TIME as a 10-digit string.
+  "Encode TIME as a 12-digit string.
 This string holds the time to micro-second accuracy, and can be decoded
 using `org-id-decode'."
-  (setq time (encode-time time 'list))
+  ;; FIXME: If TIME represents N seconds after the epoch, then
+  ;; this encoding assumes 0 <= N < 110075314176 = (* (expt 36 4) 65536),
+  ;; i.e., that TIME is from 1970-01-01 00:00:00 to 5458-02-23 20:09:36 UTC.
+  (setq time (time-convert time 'list))
   (concat (org-id-int-to-b36 (nth 0 time) 4)
 	  (org-id-int-to-b36 (nth 1 time) 4)
-	  (org-id-int-to-b36 (or (nth 2 time) 0) 4)))
+	  (org-id-int-to-b36 (nth 2 time) 4)))
 
 (defun org-id-decode (id)
   "Split ID into the prefix and the time value that was used to create it.
 The return value is (prefix . time) where PREFIX is nil or a string,
-and time is the usual three-integer representation of time."
+and TIME is a Lisp time value (HI LO USEC)."
   (let (prefix time parts)
     (setq parts (org-split-string id ":"))
     (if (= 2 (length parts))

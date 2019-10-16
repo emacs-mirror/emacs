@@ -1,5 +1,5 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMACS_COMPOSITE_H
 
 #include "font.h"
+#include "dispextern.h"
 
 INLINE_HEADER_BEGIN
 
@@ -321,7 +322,7 @@ extern void composition_compute_stop_pos (struct composition_it *,
                                           Lisp_Object);
 extern bool composition_reseat_it (struct composition_it *, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t, struct window *,
-				   struct face *, Lisp_Object);
+				   signed char, struct face *, Lisp_Object);
 extern int composition_update_it (struct composition_it *,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 

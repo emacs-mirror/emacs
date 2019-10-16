@@ -1,6 +1,6 @@
 ;;; nnbabyl.el --- rmail mbox access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -130,7 +130,7 @@
 		     nnbabyl-mbox-file)
     t)))
 
-(deffoo nnbabyl-close-server (&optional server)
+(deffoo nnbabyl-close-server (&optional server _defs)
   ;; Restore buffer mode.
   (when (and (nnbabyl-server-opened)
 	     nnbabyl-previous-buffer-mode)
@@ -145,10 +145,8 @@
 
 (deffoo nnbabyl-server-opened (&optional server)
   (and (nnoo-current-server-p 'nnbabyl server)
-       nnbabyl-mbox-buffer
-       (buffer-name nnbabyl-mbox-buffer)
-       nntp-server-buffer
-       (buffer-name nntp-server-buffer)))
+       (buffer-live-p nnbabyl-mbox-buffer)
+       (buffer-live-p nntp-server-buffer)))
 
 (deffoo nnbabyl-request-article (article &optional newsgroup server buffer)
   (nnbabyl-possibly-change-newsgroup newsgroup server)
@@ -452,8 +450,7 @@
   (when (and server
 	     (not (nnbabyl-server-opened server)))
     (nnbabyl-open-server server))
-  (when (or (not nnbabyl-mbox-buffer)
-	    (not (buffer-name nnbabyl-mbox-buffer)))
+  (unless (buffer-live-p nnbabyl-mbox-buffer)
     (save-excursion (nnbabyl-read-mbox)))
   (unless nnbabyl-group-alist
     (nnmail-activate 'nnbabyl))
@@ -556,8 +553,7 @@
   (nnmail-activate 'nnbabyl)
   (nnbabyl-create-mbox)
 
-  (unless (and nnbabyl-mbox-buffer
-	       (buffer-name nnbabyl-mbox-buffer)
+  (unless (and (buffer-live-p nnbabyl-mbox-buffer)
 	       (with-current-buffer nnbabyl-mbox-buffer
 		 (= (buffer-size) (nnheader-file-size nnbabyl-mbox-file))))
     ;; This buffer has changed since we read it last.  Possibly.
@@ -624,22 +620,21 @@
 (defun nnbabyl-check-mbox ()
   "Go through the nnbabyl mbox and make sure that no article numbers are reused."
   (interactive)
-  (let ((idents (make-vector 1000 0))
+  (let ((idents (gnus-make-hashtable 1000))
 	id)
     (save-excursion
-      (when (or (not nnbabyl-mbox-buffer)
-		(not (buffer-name nnbabyl-mbox-buffer)))
+      (unless (buffer-live-p nnbabyl-mbox-buffer)
 	(nnbabyl-read-mbox))
       (set-buffer nnbabyl-mbox-buffer)
       (goto-char (point-min))
       (while (re-search-forward "^X-Gnus-Newsgroup: \\([^ ]+\\) "  nil t)
-	(if (intern-soft (setq id (match-string 1)) idents)
+	(if (gethash (setq id (match-string 1)) idents)
 	    (progn
 	      (delete-region (point-at-bol) (progn (forward-line 1) (point)))
 	      (nnheader-message 7 "Moving %s..." id)
 	      (nnbabyl-save-mail
 	       (nnmail-article-group 'nnbabyl-active-number)))
-	  (intern id idents)))
+	  (puthash id t idents)))
       (when (buffer-modified-p (current-buffer))
 	(save-buffer))
       (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Copyright (C) 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -58,10 +58,10 @@ function build_zip {
             --without-dbus \
             --host=$HOST --without-compress-install \
             $CACHE \
-            CFLAGS="-O2 -static -g3"
+            CFLAGS="$CFLAGS"
     fi
 
-    make -j 2 install \
+    make -j 4 $INSTALL_TARGET \
          prefix=$HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cd $HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cp $HOME/emacs-build/deps/libXpm/$ARCH/libXpm-noX4.dll bin
@@ -107,6 +107,8 @@ BUILD_32=1
 BUILD_64=1
 GIT_UP=0
 CONFIG=1
+CFLAGS="-O2 -static"
+INSTALL_TARGET="install-strip"
 
 while getopts "36gb:hnsiV:" opt; do
   case $opt in
@@ -141,6 +143,8 @@ while getopts "36gb:hnsiV:" opt; do
         ;;
     s)
         SNAPSHOT="-snapshot"
+        CFLAGS="-O2 -static -g3"
+        INSTALL_TARGET="install"
         ;;
     h)
         echo "build-zips.sh"
@@ -200,6 +204,8 @@ else
     OF_VERSION="$VERSION-`date +%Y-%m-%d`"
     ## Use snapshot dependencies
     SNAPSHOT=1
+    CFLAGS="-O2 -static -g3"
+    INSTALL_TARGET="install"
 fi
 
 if (($GIT_UP))

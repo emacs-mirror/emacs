@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2018 Free Software Foundation,
+   Copyright (C) 1985-1988, 1993, 2000-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -562,7 +562,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
-		&& !XSYMBOL (sym)->u.s.redirect
+		&& XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
 		&& !SYMBOL_TRAPPED_WRITE_P (sym))
 	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
 	    else
@@ -884,12 +884,12 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Blist3):
 	  DISCARD (2);
-	  TOP = Flist (3, &TOP);
+	  TOP = list3 (TOP, top[1], top[2]);
 	  NEXT;
 
 	CASE (Blist4):
 	  DISCARD (3);
-	  TOP = Flist (4, &TOP);
+	  TOP = list4 (TOP, top[1], top[2], top[3]);
 	  NEXT;
 
 	CASE (BlistN):
@@ -1398,26 +1398,20 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	       search as the jump table.  */
             Lisp_Object jmp_table = POP;
 	    if (BYTE_CODE_SAFE && !HASH_TABLE_P (jmp_table))
-	      emacs_abort ();
+              emacs_abort ();
             Lisp_Object v1 = POP;
             ptrdiff_t i;
             struct Lisp_Hash_Table *h = XHASH_TABLE (jmp_table);
+            hash_rehash_if_needed (h);
 
             /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
                here. */
-            if (h->count <= 5)
+            if (h->count <= 5 && !h->test.cmpfn)
               { /* Do a linear search if there are not many cases
                    FIXME: 5 is arbitrarily chosen.  */
-                Lisp_Object hash_code = h->test.cmpfn
-                  ? make_fixnum (h->test.hashfn (&h->test, v1)) : Qnil;
-
-                for (i = h->count; 0 <= --i; )
-                  if (EQ (v1, HASH_KEY (h, i))
-                      || (h->test.cmpfn
-                          && EQ (hash_code, HASH_HASH (h, i))
-                          && h->test.cmpfn (&h->test, v1, HASH_KEY (h, i))))
-                    break;
-
+		for (i = h->count; 0 <= --i; )
+		  if (EQ (v1, HASH_KEY (h, i)))
+		    break;
               }
             else
               i = hash_lookup (h, v1, NULL);

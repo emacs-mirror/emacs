@@ -1,6 +1,6 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -420,14 +420,7 @@ not contain `d', so that a full listing is expected."
 		  attr (cdr elt)
 		  file-size (file-attribute-size attr))
 	    (and attr
-		 (setq sum (+ file-size
-			      ;; Even if neither SUM nor file's size
-			      ;; overflow, their sum could.
-			      (if (or (< sum (- 134217727 file-size))
-				      (floatp sum)
-				      (floatp file-size))
-				  sum
-				(float sum))))
+		 (setq sum (+ file-size sum))
 		 (insert (ls-lisp-format short attr file-size
 					 switches time-index))))
 	  ;; Insert total size of all files:
@@ -475,15 +468,21 @@ not contain `d', so that a full listing is expected."
 		       (ls-lisp-classify-file file fattr)
 		     file)
 		   fattr (file-attribute-size fattr)
-				  switches time-index))
-	(message "%s: doesn't exist or is inaccessible" file)
-	(ding) (sit-for 2)))))		; to show user the message!
+                   switches time-index))
+        ;; Emulate what we do on Posix hosts when we call access-file
+        ;; in insert-directory.
+	(signal 'file-error
+                (list "Reading directory"
+                      "Directory doesn't exist or is inaccessible"
+                      file))))))
 
 (declare-function dired-read-dir-and-switches "dired" (str))
 (declare-function dired-goto-next-file "dired" ())
 
 (defun ls-lisp--dired (orig-fun dir-or-list &optional switches)
   (interactive (dired-read-dir-and-switches ""))
+  (unless dir-or-list
+    (setq dir-or-list default-directory))
   (if (consp dir-or-list)
       (funcall orig-fun dir-or-list switches)
     (let ((dir-wildcard (insert-directory-wildcard-in-dir-p
@@ -518,7 +517,8 @@ If the \"..\" directory entry has nil attributes, the attributes
 are copied from the \".\" entry, if they are non-nil.  Otherwise,
 the offending element is removed from the list, as are any
 elements for other directory entries with nil attributes."
-  (if (and (null (cdr (assoc ".." file-alist)))
+  (if (and (consp (assoc ".." file-alist))
+           (null (cdr (assoc ".." file-alist)))
 	   (cdr (assoc "." file-alist)))
       (setcdr (assoc ".." file-alist) (cdr (assoc "." file-alist))))
   (rassq-delete-all nil file-alist))

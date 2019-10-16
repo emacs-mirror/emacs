@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -438,7 +438,7 @@ It returns a file name which can be used directly as argument of
                                          (* ?\\ ?\\) (any ?\' ?\")))
                                 (* ?\\ ?\\)
                                 ;; Match single or triple quotes of any kind.
-                                (group (or  "\"" "\"\"\"" "'" "'''")))))
+                                (group (or  "\"\"\"" "\"" "'''" "'")))))
       (coding-cookie . ,(rx line-start ?# (* space)
                             (or
                              ;; # coding=<encoding name>
@@ -575,7 +575,7 @@ class declarations.")
            "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
            "intern"
            ;; Python 3:
-           "ascii" "bytearray" "bytes" "exec"
+           "ascii" "breakpoint" "bytearray" "bytes" "exec"
            ;; Extra:
            "__all__" "__doc__" "__name__" "__package__")
           symbol-end) . font-lock-builtin-face))
@@ -675,7 +675,7 @@ Which one will be chosen depends on the value of
 
 (defconst python-syntax-propertize-function
   (syntax-propertize-rules
-   ((python-rx string-delimiter)
+   ((rx (or "\"\"\"" "'''"))
     (0 (ignore (python-syntax-stringify))))))
 
 (define-obsolete-variable-alias 'python--prettify-symbols-alist
@@ -701,35 +701,27 @@ is used to limit the scan."
 
 (defun python-syntax-stringify ()
   "Put `syntax-table' property correctly on single/triple quotes."
-  (let* ((num-quotes (length (match-string-no-properties 1)))
-         (ppss (prog2
-                   (backward-char num-quotes)
-                   (syntax-ppss)
-                 (forward-char num-quotes)))
-         (string-start (and (not (nth 4 ppss)) (nth 8 ppss)))
-         (quote-starting-pos (- (point) num-quotes))
-         (quote-ending-pos (point))
-         (num-closing-quotes
-          (and string-start
-               (python-syntax-count-quotes
-                (char-before) string-start quote-starting-pos))))
-    (cond ((and string-start (= num-closing-quotes 0))
-           ;; This set of quotes doesn't match the string starting
-           ;; kind. Do nothing.
+  (let* ((ppss (save-excursion (backward-char 3) (syntax-ppss)))
+         (string-start (and (eq t (nth 3 ppss)) (nth 8 ppss)))
+         (quote-starting-pos (- (point) 3))
+         (quote-ending-pos (point)))
+    (cond ((or (nth 4 ppss)             ;Inside a comment
+               (and string-start
+                    ;; Inside of a string quoted with different triple quotes.
+                    (not (eql (char-after string-start)
+                              (char-after quote-starting-pos)))))
+           ;; Do nothing.
            nil)
-          ((not string-start)
+          ((nth 5 ppss)
+           ;; The first quote is escaped, so it's not part of a triple quote!
+           (goto-char (1+ quote-starting-pos)))
+          ((null string-start)
            ;; This set of quotes delimit the start of a string.
            (put-text-property quote-starting-pos (1+ quote-starting-pos)
                               'syntax-table (string-to-syntax "|")))
-          ((= num-quotes num-closing-quotes)
+          (t
            ;; This set of quotes delimit the end of a string.
            (put-text-property (1- quote-ending-pos) quote-ending-pos
-                              'syntax-table (string-to-syntax "|")))
-          ((> num-quotes num-closing-quotes)
-           ;; This may only happen whenever a triple quote is closing
-           ;; a single quoted string. Add string delimiter syntax to
-           ;; all three quotes.
-           (put-text-property quote-starting-pos quote-ending-pos
                               'syntax-table (string-to-syntax "|"))))))
 
 (defvar python-mode-syntax-table
@@ -1078,12 +1070,18 @@ possibilities can be narrowed to specific indentation points."
         (`(,(or :after-line
                 :after-comment
                 :inside-string
-                :after-backslash
-                :inside-paren-at-closing-paren
-                :inside-paren-at-closing-nested-paren) . ,start)
+                :after-backslash) . ,start)
          ;; Copy previous indentation.
          (goto-char start)
          (current-indentation))
+        (`(,(or :inside-paren-at-closing-paren
+                :inside-paren-at-closing-nested-paren) . ,start)
+         (goto-char (+ 1 start))
+         (if (looking-at "[ \t]*\\(?:#\\|$\\)")
+             ;; Copy previous indentation.
+             (current-indentation)
+           ;; Align with opening paren.
+           (current-column)))
         (`(:inside-docstring . ,start)
          (let* ((line-indentation (current-indentation))
                 (base-indent (progn
@@ -1334,16 +1332,17 @@ the line will be re-indented automatically if needed."
            (not (equal ?: (char-before (1- (point)))))
            (not (python-syntax-comment-or-string-p)))
       ;; Just re-indent dedenters
-      (let ((dedenter-pos (python-info-dedenter-statement-p))
-            (current-pos (point)))
+      (let ((dedenter-pos (python-info-dedenter-statement-p)))
         (when dedenter-pos
-          (save-excursion
-            (goto-char dedenter-pos)
-            (python-indent-line)
-            (unless (= (line-number-at-pos dedenter-pos)
-                       (line-number-at-pos current-pos))
-              ;; Reindent region if this is a multiline statement
-              (python-indent-region dedenter-pos current-pos)))))))))
+          (let ((start (copy-marker dedenter-pos))
+                (end (point-marker)))
+            (save-excursion
+              (goto-char start)
+              (python-indent-line)
+              (unless (= (line-number-at-pos start)
+                         (line-number-at-pos end))
+                ;; Reindent region if this is a multiline statement
+                (python-indent-region start end))))))))))
 
 
 ;;; Mark
@@ -2010,7 +2009,7 @@ position, else returns nil."
 It should not contain a caret (^) at the beginning."
   :type 'string)
 
-(defcustom python-shell-prompt-block-regexp "\\.\\.\\. "
+(defcustom python-shell-prompt-block-regexp "\\.\\.\\.:? "
   "Regular expression matching block input prompt of Python shell.
 It should not contain a caret (^) at the beginning."
   :type 'string)
@@ -2275,7 +2274,7 @@ Do not set this variable directly, instead use
 (defvar python-shell--prompt-calculated-output-regexp nil
   "Calculated output prompt regexp for inferior python shell.
 Do not set this variable directly, instead use
-`python-shell-set-prompt-regexp'.")
+`python-shell-prompt-set-calculated-regexps'.")
 
 (defun python-shell-prompt-detect ()
   "Detect prompts for the current `python-shell-interpreter'.
@@ -2310,15 +2309,16 @@ detection and just returns nil."
                          ;; carriage returns in unbuffered mode.
                          (let ((inhibit-eol-conversion (getenv "PYTHONUNBUFFERED")))
                            (python-shell--save-temp-file code))))
-                    ;; Use `process-file' as it is remote-host friendly.
-                    (process-file
-                     interpreter
-                     code-file
-                     '(t nil)
-                     nil
-                     interpreter-arg)
-                    ;; Try to cleanup
-                    (delete-file code-file)))
+                    (unwind-protect
+                        ;; Use `process-file' as it is remote-host friendly.
+                        (process-file
+                         interpreter
+                         code-file
+                         '(t nil)
+                         nil
+                         interpreter-arg)
+                      ;; Try to cleanup
+                      (delete-file code-file))))
                 (buffer-string)))
              (prompts
               (catch 'prompts
@@ -4084,6 +4084,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
       (goto-char (line-end-position))))
   t)
 
+(defun python-do-auto-fill ()
+  "Like `do-auto-fill', but bind `fill-indent-according-to-mode'."
+  ;; See Bug#36056.
+  (let ((fill-indent-according-to-mode t))
+    (do-auto-fill)))
+
 
 ;;; Skeletons
 
@@ -4409,7 +4415,7 @@ returns will be used.  If not FORCE-PROCESS is passed what
 
 (defvar-local python-eldoc-get-doc t
   "Non-nil means eldoc should fetch the documentation
-  automatically. Set to nil by `python-eldoc-function' if
+  automatically.  Set to nil by `python-eldoc-function' if
   `python-eldoc-function-timeout-permanent' is non-nil and
   `python-eldoc-function' times out.")
 
@@ -4421,7 +4427,7 @@ returns will be used.  If not FORCE-PROCESS is passed what
 
 (defcustom python-eldoc-function-timeout-permanent t
   "Non-nil means that when `python-eldoc-function' times out
-`python-eldoc-get-doc' will be set to nil"
+`python-eldoc-get-doc' will be set to nil."
   :group 'python
   :type 'boolean
   :version "25.1")
@@ -4439,7 +4445,7 @@ function returns then if
 longer return the documentation at the point automatically.
 
 Set `python-eldoc-get-doc' to t to reenable eldoc documentation
-fetching"
+fetching."
   (when python-eldoc-get-doc
     (with-timeout (python-eldoc-function-timeout
                    (if python-eldoc-function-timeout-permanent
@@ -5379,6 +5385,7 @@ REPORT-FN is Flymake's callback function."
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
        #'python-fill-paragraph)
+  (set (make-local-variable 'normal-auto-fill-function) #'python-do-auto-fill)
 
   (set (make-local-variable 'beginning-of-defun-function)
        #'python-nav-beginning-of-defun)

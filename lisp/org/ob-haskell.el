@@ -1,6 +1,6 @@
 ;;; ob-haskell.el --- Babel Functions for Haskell    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -160,7 +160,7 @@ constructs (header arguments, no-web syntax etc...) are ignored."
   (interactive "P")
   (let* ((contents (buffer-string))
          (haskell-regexp
-          (concat "^\\([ \t]*\\)#\\+begin_src[ \t]haskell*\\(.*\\)?[\r\n]"
+          (concat "^\\([ \t]*\\)#\\+begin_src[ \t]haskell*\\(.*\\)[\r\n]"
                   "\\([^\000]*?\\)[\r\n][ \t]*#\\+end_src.*"))
          (base-name (file-name-sans-extension (buffer-file-name)))
          (tmp-file (org-babel-temp-file "haskell-"))

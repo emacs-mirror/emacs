@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2018 Free Software Foundation, Inc.
+Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,29 +26,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "keyboard.h"
 #include "gtkutil.h"
+#include "sysstdio.h"
 
 #include <webkit2/webkit2.h>
 #include <JavaScriptCore/JavaScript.h>
 
-/* Suppress GCC deprecation warnings starting in WebKitGTK+ 2.21.1 for
-   webkit_javascript_result_get_global_context and
-   webkit_javascript_result_get_value (Bug#33679).
-   FIXME: Use the JavaScriptCore GLib API instead, and remove this hack.  */
-#if WEBKIT_CHECK_VERSION (2, 21, 1) && GNUC_PREREQ (4, 2, 0)
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
 static struct xwidget *
 allocate_xwidget (void)
 {
-  return ALLOCATE_PSEUDOVECTOR (struct xwidget, height, PVEC_XWIDGET);
+  return ALLOCATE_PSEUDOVECTOR (struct xwidget, script_callbacks, PVEC_XWIDGET);
 }
 
 static struct xwidget_view *
 allocate_xwidget_view (void)
 {
-  return ALLOCATE_PSEUDOVECTOR (struct xwidget_view, redisplayed,
-                                PVEC_XWIDGET_VIEW);
+  return ALLOCATE_PSEUDOVECTOR (struct xwidget_view, w, PVEC_XWIDGET_VIEW);
 }
 
 #define XSETXWIDGET(a, b) XSETPSEUDOVECTOR (a, b, PVEC_XWIDGET)
@@ -284,95 +276,70 @@ webkit_view_load_changed_cb (WebKitWebView *webkitwebview,
 
 /* Recursively convert a JavaScript value to a Lisp value. */
 static Lisp_Object
-webkit_js_to_lisp (JSContextRef context, JSValueRef value)
+webkit_js_to_lisp (JSCValue *value)
 {
-  switch (JSValueGetType (context, value))
+  if (jsc_value_is_string (value))
     {
-    case kJSTypeString:
-      {
-        JSStringRef js_str_value;
-        gchar *str_value;
-        gsize str_length;
+      gchar *str_value = jsc_value_to_string (value);
+      Lisp_Object ret = build_string (str_value);
+      g_free (str_value);
 
-        js_str_value = JSValueToStringCopy (context, value, NULL);
-        str_length = JSStringGetMaximumUTF8CStringSize (js_str_value);
-        str_value = (gchar *)g_malloc (str_length);
-        JSStringGetUTF8CString (js_str_value, str_value, str_length);
-        JSStringRelease (js_str_value);
-        return build_string (str_value);
-      }
-    case kJSTypeBoolean:
-      return (JSValueToBoolean (context, value)) ? Qt : Qnil;
-    case kJSTypeNumber:
-      return make_fixnum (JSValueToNumber (context, value, NULL));
-    case kJSTypeObject:
-      {
-        if (JSValueIsArray (context, value))
-          {
-            JSStringRef pname = JSStringCreateWithUTF8CString("length");
-	    JSValueRef len = JSObjectGetProperty (context, (JSObjectRef) value,
-						  pname, NULL);
-	    double dlen = JSValueToNumber (context, len, NULL);
-            JSStringRelease(pname);
-
-            Lisp_Object obj;
-	    if (! (0 <= dlen && dlen < PTRDIFF_MAX + 1.0))
-	      memory_full (SIZE_MAX);
-	    ptrdiff_t n = dlen;
-            struct Lisp_Vector *p = allocate_vector (n);
-
-            for (ptrdiff_t i = 0; i < n; ++i)
-              {
-                p->contents[i] =
-                  webkit_js_to_lisp (context,
-                                     JSObjectGetPropertyAtIndex (context,
-                                                                 (JSObjectRef) value,
-                                                                 i, NULL));
-              }
-            XSETVECTOR (obj, p);
-            return obj;
-          }
-        else
-          {
-            JSPropertyNameArrayRef properties =
-              JSObjectCopyPropertyNames (context, (JSObjectRef) value);
-
-	    size_t n = JSPropertyNameArrayGetCount (properties);
-            Lisp_Object obj;
-
-            /* TODO: can we use a regular list here?  */
-	    if (PTRDIFF_MAX < n)
-	      memory_full (n);
-            struct Lisp_Vector *p = allocate_vector (n);
-
-            for (ptrdiff_t i = 0; i < n; ++i)
-              {
-                JSStringRef name = JSPropertyNameArrayGetNameAtIndex (properties, i);
-                JSValueRef property = JSObjectGetProperty (context,
-                                                           (JSObjectRef) value,
-                                                           name, NULL);
-                gchar *str_name;
-                gsize str_length;
-                str_length = JSStringGetMaximumUTF8CStringSize (name);
-                str_name = (gchar *)g_malloc (str_length);
-                JSStringGetUTF8CString (name, str_name, str_length);
-                JSStringRelease (name);
-
-                p->contents[i] =
-                  Fcons (build_string (str_name),
-                         webkit_js_to_lisp (context, property));
-              }
-
-            JSPropertyNameArrayRelease (properties);
-            XSETVECTOR (obj, p);
-            return obj;
-          }
-      }
-    case kJSTypeUndefined:
-    case kJSTypeNull:
-    default:
-      return Qnil;
+      return ret;
     }
+  else if (jsc_value_is_boolean (value))
+    {
+      return (jsc_value_to_boolean (value)) ? Qt : Qnil;
+    }
+  else if (jsc_value_is_number (value))
+    {
+      return make_fixnum (jsc_value_to_int32 (value));
+    }
+  else if (jsc_value_is_array (value))
+    {
+      JSCValue *len = jsc_value_object_get_property (value, "length");
+      const gint32 dlen = jsc_value_to_int32 (len);
+
+      Lisp_Object obj;
+      if (! (0 <= dlen && dlen < PTRDIFF_MAX + 1.0))
+	memory_full (SIZE_MAX);
+
+      ptrdiff_t n = dlen;
+      struct Lisp_Vector *p = allocate_vector (n);
+
+      for (ptrdiff_t i = 0; i < n; ++i)
+	{
+	  p->contents[i] =
+	    webkit_js_to_lisp (jsc_value_object_get_property_at_index (value, i));
+	}
+      XSETVECTOR (obj, p);
+      return obj;
+    }
+  else if (jsc_value_is_object (value))
+    {
+      char **properties_names = jsc_value_object_enumerate_properties (value);
+      guint n = g_strv_length (properties_names);
+
+      Lisp_Object obj;
+      if (PTRDIFF_MAX < n)
+	memory_full (n);
+      struct Lisp_Vector *p = allocate_vector (n);
+
+      for (ptrdiff_t i = 0; i < n; ++i)
+	{
+	  const char *name = properties_names[i];
+	  JSCValue *property = jsc_value_object_get_property (value, name);
+
+	  p->contents[i] =
+	    Fcons (build_string (name), webkit_js_to_lisp (property));
+	}
+
+      g_strfreev (properties_names);
+
+      XSETVECTOR (obj, p);
+      return obj;
+    }
+
+  return Qnil;
 }
 
 static void
@@ -380,41 +347,39 @@ webkit_javascript_finished_cb (GObject      *webview,
                                GAsyncResult *result,
                                gpointer      arg)
 {
-    WebKitJavascriptResult *js_result;
-    JSValueRef value;
-    JSGlobalContextRef context;
-    GError *error = NULL;
-    struct xwidget *xw = g_object_get_data (G_OBJECT (webview),
-                                            XG_XWIDGET);
-    ptrdiff_t script_idx = (intptr_t) arg;
-    Lisp_Object script_callback = AREF (xw->script_callbacks, script_idx);
-    ASET (xw->script_callbacks, script_idx, Qnil);
-    if (!NILP (script_callback))
-      xfree (xmint_pointer (XCAR (script_callback)));
+  GError *error = NULL;
+  struct xwidget *xw = g_object_get_data (G_OBJECT (webview), XG_XWIDGET);
 
-    js_result = webkit_web_view_run_javascript_finish
-      (WEBKIT_WEB_VIEW (webview), result, &error);
+  ptrdiff_t script_idx = (intptr_t) arg;
+  Lisp_Object script_callback = AREF (xw->script_callbacks, script_idx);
+  ASET (xw->script_callbacks, script_idx, Qnil);
+  if (!NILP (script_callback))
+    xfree (xmint_pointer (XCAR (script_callback)));
 
-    if (!js_result)
-      {
-        g_warning ("Error running javascript: %s", error->message);
-        g_error_free (error);
-        return;
-      }
+  WebKitJavascriptResult *js_result =
+    webkit_web_view_run_javascript_finish
+    (WEBKIT_WEB_VIEW (webview), result, &error);
 
-    if (!NILP (script_callback) && !NILP (XCDR (script_callback)))
-      {
-	context = webkit_javascript_result_get_global_context (js_result);
-	value = webkit_javascript_result_get_value (js_result);
-	Lisp_Object lisp_value = webkit_js_to_lisp (context, value);
+  if (!js_result)
+    {
+      g_warning ("Error running javascript: %s", error->message);
+      g_error_free (error);
+      return;
+    }
 
-	/* Register an xwidget event here, which then runs the callback.
-	   This ensures that the callback runs in sync with the Emacs
-	   event loop.  */
-	store_xwidget_js_callback_event (xw, XCDR (script_callback), lisp_value);
-      }
+  if (!NILP (script_callback) && !NILP (XCDR (script_callback)))
+    {
+      JSCValue *value = webkit_javascript_result_get_js_value (js_result);
 
-    webkit_javascript_result_unref (js_result);
+      Lisp_Object lisp_value = webkit_js_to_lisp (value);
+
+      /* Register an xwidget event here, which then runs the callback.
+	 This ensures that the callback runs in sync with the Emacs
+	 event loop.  */
+      store_xwidget_js_callback_event (xw, XCDR (script_callback), lisp_value);
+    }
+
+  webkit_javascript_result_unref (js_result);
 }
 
 
@@ -691,7 +656,8 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   struct xwidget *xw = XXWIDGET (xwidget);				\
   if (!xw->widget_osr || !WEBKIT_IS_WEB_VIEW (xw->widget_osr))		\
     {									\
-      printf ("ERROR xw->widget_osr does not hold a webkit instance\n"); \
+      fputs ("ERROR xw->widget_osr does not hold a webkit instance\n",	\
+	     stdout);							\
       return Qnil;							\
     }
 
@@ -831,8 +797,7 @@ Emacs allocated area accordingly.  */)
   CHECK_XWIDGET (xwidget);
   GtkRequisition requisition;
   gtk_widget_size_request (XXWIDGET (xwidget)->widget_osr, &requisition);
-  return list2 (make_fixnum (requisition.width),
-		make_fixnum (requisition.height));
+  return list2i (requisition.width, requisition.height);
 }
 
 DEFUN ("xwidgetp",

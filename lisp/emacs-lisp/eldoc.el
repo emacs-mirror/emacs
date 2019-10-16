@@ -1,9 +1,8 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
-;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
@@ -208,7 +207,24 @@ expression point is on."
 (define-globalized-minor-mode global-eldoc-mode eldoc-mode turn-on-eldoc-mode
   :group 'eldoc
   :initialize 'custom-initialize-delay
-  :init-value t)
+  :init-value t
+  ;; For `read--expression', the usual global mode mechanism of
+  ;; `change-major-mode-hook' runs in the minibuffer before
+  ;; `eldoc-documentation-function' is set, so `turn-on-eldoc-mode'
+  ;; does nothing.  Configure and enable eldoc from
+  ;; `eval-expression-minibuffer-setup-hook' instead.
+  (if global-eldoc-mode
+      (add-hook 'eval-expression-minibuffer-setup-hook
+                #'eldoc--eval-expression-setup)
+    (remove-hook 'eval-expression-minibuffer-setup-hook
+                 #'eldoc--eval-expression-setup)))
+
+(defun eldoc--eval-expression-setup ()
+  ;; Setup `eldoc', similar to `emacs-lisp-mode'.  FIXME: Call
+  ;; `emacs-lisp-mode' itself?
+  (add-function :before-until (local 'eldoc-documentation-function)
+                #'elisp-eldoc-documentation-function)
+  (eldoc-mode +1))
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()

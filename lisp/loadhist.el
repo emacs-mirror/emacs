@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995, 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -96,7 +96,8 @@ A library name is equivalent to the file name that `load-library' would load."
   (let ((provides (file-provides file))
 	(dependents nil))
     (dolist (x load-history dependents)
-      (when (file-set-intersect provides (file-requires (car x)))
+      (when (and (stringp (car x))
+                 (file-set-intersect provides (file-requires (car x))))
 	(push (car x) dependents)))))
 
 (defun read-feature (prompt &optional loaded-p)

@@ -1,11 +1,11 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
-;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
+;; Authors: JD Smith <jd.smith@utoledo.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
 ;;          Chris Chase <chase@att.com>
-;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 6.1.22
 ;; Keywords: languages
 
@@ -3690,7 +3690,7 @@ constants - a double quote followed by an octal digit."
    (save-excursion
      (forward-char)
      (re-search-backward (concat "\\(" idlwave-idl-keywords
-                                 "\\|[[(*+-/=,^><]\\)\\s-*\\*") limit t))))
+                                 "\\|[-[(*+/=,^><]\\)\\s-*\\*") limit t))))
 
 
 ;; Statement templates
@@ -5588,7 +5588,7 @@ be set to nil to disable library catalog scanning."
 	     (mapcar 'car idlwave-path-alist)))
 	  (old-libname "")
 	  dir-entry dir catalog all-routines)
-      (if message-base (message message-base))
+      (if message-base (message "%s" message-base))
       (while (setq dir (pop dirs))
 	(catch 'continue
 	  (when (file-readable-p
@@ -5603,8 +5603,7 @@ be set to nil to disable library catalog scanning."
 		     message-base
 		     (not (string= idlwave-library-catalog-libname
 				   old-libname)))
-		(message "%s" (concat message-base
-				      idlwave-library-catalog-libname))
+		(message "%s%s" message-base idlwave-library-catalog-libname)
 		(setq old-libname idlwave-library-catalog-libname))
 	      (when idlwave-library-catalog-routines
 		(setq all-routines
@@ -5618,7 +5617,7 @@ be set to nil to disable library catalog scanning."
 		       (setq dir-entry (assoc dir idlwave-path-alist)))
 	      (idlwave-path-alist-add-flag dir-entry 'lib)))))
       (unless no-load (setq idlwave-library-catalog-routines all-routines))
-      (if message-base (message (concat message-base "done"))))))
+      (if message-base (message "%sdone" message-base)))))
 
 ;;----- Communicating with the Shell -------------------
 
@@ -6455,10 +6454,10 @@ ARROW:  Location of the arrow"
      ((string-match "\\`[ \t]*\\(pro\\|function\\)\\>"
 		    match-string)
       nil)
-     ((string-match "OBJ_NEW([ \t]*['\"]\\([a-zA-Z0-9$_]*\\)?\\'"
+     ((string-match "OBJ_NEW([ \t]*['\"][a-zA-Z0-9$_]*\\'"
 		    match-string)
       (setq cw 'class))
-     ((string-match "\\<inherits\\s-+\\([a-zA-Z0-9$_]*\\)?\\'"
+     ((string-match "\\<inherits\\s-+[a-zA-Z0-9$_]*\\'"
 		    match-string)
       (setq cw 'class))
      ((and func
@@ -7591,7 +7590,7 @@ property indicating the link is added."
 	(case-fold-search t))
     (cond ((save-excursion
 	     ;; Check if the context is right for system variable
-	     (skip-chars-backward "[a-zA-Z0-9_$]")
+	     (skip-chars-backward "a-zA-Z0-9_$")
 	     (equal (char-before) ?!))
 	   (setq idlwave-completion-help-info '(idlwave-complete-sysvar-help))
 	   (idlwave-complete-in-buffer 'sysvar 'sysvar
@@ -8814,9 +8813,8 @@ routines, and may have been scanned."
 
 ;; FIXME: Dynamically scoped vars need to use the `idlwave-' prefix.
 ;; (defvar type)
-(defmacro idlwave-xor (a b)
-  `(and (or ,a ,b)
-	(not (and ,a ,b))))
+
+(define-obsolete-function-alias 'idlwave-xor 'xor "27.1")
 
 (defun idlwave-routine-entry-compare (a b)
   "Compare two routine info entries for sorting.
@@ -8920,17 +8918,17 @@ This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
     ;; Now: follow JD's ideas about sorting.  Looks really simple now,
     ;; doesn't it?  The difficult stuff is hidden above...
     (cond
-     ((idlwave-xor asysp  bsysp)       asysp)	; System entries first
-     ((idlwave-xor aunresp bunresp)    bunresp) ; Unresolved last
+     ((xor asysp   bsysp)     asysp)        ; System entries first
+     ((xor aunresp bunresp)   bunresp)      ; Unresolved last
      ((and idlwave-sort-prefer-buffer-info
-	   (idlwave-xor abufp bbufp))  abufp)	; Buffers before non-buffers
-     ((idlwave-xor acompp bcompp)      acompp)	; Compiled entries
-     ((idlwave-xor apathp bpathp)      apathp)	; Library before non-library
-     ((idlwave-xor anamep bnamep)      anamep)	; Correct file names first
-     ((and idlwave-twin-class anamep bnamep     ; both file names match ->
-	   (idlwave-xor adefp bdefp))  bdefp)	; __define after __method
-     ((> anpath bnpath)                t)	; Who is first on path?
-     (t                                nil))))	; Default
+           (xor abufp bbufp)) abufp)        ; Buffers before non-buffers
+     ((xor acompp bcompp)     acompp)       ; Compiled entries
+     ((xor apathp bpathp)     apathp)       ; Library before non-library
+     ((xor anamep bnamep)     anamep)       ; Correct file names first
+     ((and idlwave-twin-class anamep bnamep ; both file names match ->
+           (xor adefp bdefp)) bdefp)        ; __define after __method
+     ((> anpath bnpath)       t)            ; Who is first on path?
+     (t                       nil))))       ; Default
 
 (defun idlwave-routine-source-file (source)
   (if (nth 2 source)

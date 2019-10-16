@@ -1,6 +1,6 @@
 ;;; semantic/bovine/c.el --- Semantic details for C
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -2183,7 +2183,7 @@ actually in their parent which is not accessible.")
 		      (list ede-object))))
 	  (dolist (O objs)
 	    (princ "    EDE : ")
-	    (princ (object-print O))
+	    (princ 0)
 	    (let ((ipath (ede-system-include-path O)))
 	      (if (not ipath)
 		  (princ "\n     with NO specified system include path.\n")
@@ -2221,7 +2221,7 @@ actually in their parent which is not accessible.")
 	  (princ "    in table: ")
 	  (let ((fto (semanticdb-file-table-object file)))
 	    (if fto
-		(princ (object-print fto))
+		(princ (cl-prin1-to-string fto))
 	      (princ "No Table")))
 	  (princ "\n")
 	  ))
@@ -2251,7 +2251,7 @@ actually in their parent which is not accessible.")
 	(princ "\n  Project symbol map:\n")
 	(when (and (boundp 'ede-object) ede-object)
 	  (princ "      Your project symbol map is also derived from the EDE object:\n      ")
-	  (princ (object-print ede-object)))
+	  (princ (cl-prin1-to-string ede-object)))
 	(princ "\n\n")
 	(if (obarrayp semantic-lex-spp-project-macro-symbol-obarray)
 	    (let ((macros nil))

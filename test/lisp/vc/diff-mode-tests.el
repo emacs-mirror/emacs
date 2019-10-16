@@ -1,4 +1,4 @@
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Dima Kogan <dima@secretsauce.net>
 ;; Maintainer: emacs-devel@gnu.org
@@ -21,7 +21,10 @@
 ;;; Code:
 
 (require 'diff-mode)
+(require 'diff)
 
+(defconst diff-mode-tests--datadir
+  (expand-file-name "test/data/vc/diff-mode" source-directory))
 
 (ert-deftest diff-mode-test-ignore-trailing-dashes ()
   "Check to make sure we successfully ignore trailing -- made by
@@ -199,5 +202,118 @@ youthfulness
           (kill-buffer buf2)
           (delete-directory temp-dir 'recursive))))))
 
+(ert-deftest diff-mode-test-font-lock ()
+  "Check font-locking of diff hunks."
+  (skip-unless (executable-find shell-file-name))
+  (skip-unless (executable-find diff-command))
+  (let ((default-directory diff-mode-tests--datadir)
+        (old "hello_world.c")
+        (new "hello_emacs.c")
+        (diff-buffer (get-buffer-create "*Diff*"))
+        (diff-refine 'font-lock)
+        (diff-font-lock-syntax t)
+        diff-beg)
+    (diff-no-select old new '("-u") 'no-async diff-buffer)
+    (with-current-buffer diff-buffer
+      (font-lock-ensure)
+      (narrow-to-region (progn (diff-hunk-next)
+                               (setq diff-beg (diff-beginning-of-hunk)))
+                        (diff-end-of-hunk))
+
+      (should (equal-including-properties
+               (buffer-string)
+               #("@@ -1,6 +1,6 @@
+ #include <stdio.h>
+ int main()
+ {
+-  printf(\"Hello, World!\\n\");
++  printf(\"Hello, Emacs!\\n\");
+   return 0;
+ }
+"
+                 0 15 (face diff-hunk-header)
+                 16 36 (face diff-context)
+                 36 48 (face diff-context)
+                 48 51 (face diff-context)
+                 51 52 (face diff-indicator-removed)
+                 52 81 (face diff-removed)
+                 81 82 (face diff-indicator-added)
+                 82 111 (face diff-added)
+                 111 124 (face diff-context)
+                 124 127 (face diff-context))))
+
+      (should (equal (mapcar (lambda (o)
+                               (list (- (overlay-start o) diff-beg)
+                                     (- (overlay-end o) diff-beg)
+                                     (append (and (overlay-get o 'diff-mode)
+                                                  `(diff-mode ,(overlay-get o 'diff-mode)))
+                                             (and (overlay-get o 'face)
+                                                  `(face ,(overlay-get o 'face))))))
+                             (sort (overlays-in (point-min) (point-max))
+                                   (lambda (a b) (< (overlay-start a) (overlay-start b)))))
+                     '((0 127 (diff-mode fine))
+                       (0 127 (diff-mode syntax))
+                       (17 25 (diff-mode syntax face font-lock-preprocessor-face))
+                       (26 35 (diff-mode syntax face font-lock-string-face))
+                       (37 40 (diff-mode syntax face font-lock-type-face))
+                       (41 45 (diff-mode syntax face font-lock-function-name-face))
+                       (61 78 (diff-mode syntax face font-lock-string-face))
+                       (69 74 (diff-mode fine face diff-refine-removed))
+                       (91 108 (diff-mode syntax face font-lock-string-face))
+                       (99 104 (diff-mode fine face diff-refine-added))
+                       (114 120 (diff-mode syntax face font-lock-keyword-face))))))))
+
+(ert-deftest diff-mode-test-font-lock-syntax-one-line ()
+  "Check diff syntax highlighting for one line with no newline at end."
+  (skip-unless (executable-find shell-file-name))
+  (skip-unless (executable-find diff-command))
+  (let ((default-directory diff-mode-tests--datadir)
+        (old "hello_world_1.c")
+        (new "hello_emacs_1.c")
+        (diff-buffer (get-buffer-create "*Diff*"))
+        (diff-refine nil)
+        (diff-font-lock-syntax t)
+        diff-beg)
+    (diff-no-select old new '("-u") 'no-async diff-buffer)
+    (with-current-buffer diff-buffer
+      (font-lock-ensure)
+      (narrow-to-region (progn (diff-hunk-next)
+                               (setq diff-beg (diff-beginning-of-hunk)))
+                        (diff-end-of-hunk))
+
+      (should (equal-including-properties
+               (buffer-string)
+               #("@@ -1 +1 @@
+-int main() { printf(\"Hello, World!\\n\"); return 0; }
+\\ No newline at end of file
++int main() { printf(\"Hello, Emacs!\\n\"); return 0; }
+\\ No newline at end of file
+"
+                 0 11 (face diff-hunk-header)
+                 12 13 (face diff-indicator-removed)
+                 13 65 (face diff-removed)
+                 65 93 (face diff-context)
+                 93 94 (face diff-indicator-added)
+                 94 146 (face diff-added)
+                 146 174 (face diff-context))))
+
+      (should (equal (mapcar (lambda (o)
+                               (list (- (overlay-start o) diff-beg)
+                                     (- (overlay-end o) diff-beg)
+                                     (append (and (overlay-get o 'diff-mode)
+                                                  `(diff-mode ,(overlay-get o 'diff-mode)))
+                                             (and (overlay-get o 'face)
+                                                  `(face ,(overlay-get o 'face))))))
+                             (sort (overlays-in (point-min) (point-max))
+                                   (lambda (a b) (< (overlay-start a) (overlay-start b)))))
+                     '((0 174 (diff-mode syntax))
+                       (13 16 (diff-mode syntax face font-lock-type-face))
+                       (17 21 (diff-mode syntax face font-lock-function-name-face))
+                       (33 50 (diff-mode syntax face font-lock-string-face))
+                       (53 59 (diff-mode syntax face font-lock-keyword-face))
+                       (94 97 (diff-mode syntax face font-lock-type-face))
+                       (98 102 (diff-mode syntax face font-lock-function-name-face))
+                       (114 131 (diff-mode syntax face font-lock-string-face))
+                       (134 140 (diff-mode syntax face font-lock-keyword-face))))))))
 
 (provide 'diff-mode-tests)

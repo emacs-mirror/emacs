@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -121,28 +121,36 @@ it as a line moved across, even though there is no next line to
 go to its beginning.  */)
   (Lisp_Object n)
 {
-  ptrdiff_t opoint = PT, pos, pos_byte, shortage, count;
+  ptrdiff_t opoint = PT, pos, pos_byte, count;
+  bool excessive = false;
 
   if (NILP (n))
     count = 1;
   else
     {
-      CHECK_FIXNUM (n);
-      count = XFIXNUM (n);
+      CHECK_INTEGER (n);
+      if (FIXNUMP (n)
+	  && -BUF_BYTES_MAX <= XFIXNUM (n) && XFIXNUM (n) <= BUF_BYTES_MAX)
+	count = XFIXNUM (n);
+      else
+	{
+	  count = !NILP (Fnatnump (n)) ? BUF_BYTES_MAX : -BUF_BYTES_MAX;
+	  excessive = true;
+	}
     }
 
-  shortage = scan_newline_from_point (count, &pos, &pos_byte);
+  ptrdiff_t counted = scan_newline_from_point (count, &pos, &pos_byte);
 
   SET_PT_BOTH (pos, pos_byte);
 
-  if (shortage > 0
-      && (count <= 0
-	  || (ZV > BEGV
-	      && PT != opoint
-	      && (FETCH_BYTE (PT_BYTE - 1) != '\n'))))
-    shortage--;
-
-  return make_fixnum (count <= 0 ? - shortage : shortage);
+  ptrdiff_t shortage = count - (count <= 0) - counted;
+  if (shortage != 0)
+    shortage -= (count <= 0 ? -1
+		  : (BEGV < ZV && PT != opoint
+		     && FETCH_BYTE (PT_BYTE - 1) != '\n'));
+  return (excessive
+	  ? CALLN (Fplus, make_fixnum (shortage - count), n)
+	  : make_fixnum (shortage));
 }
 
 DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "^p",
@@ -415,7 +423,7 @@ internal_self_insert (int c, EMACS_INT n)
 		  : UNIBYTE_TO_CHAR (XFIXNAT (Fprevious_char ())))
 	  == Sword))
     {
-      EMACS_INT modiff = MODIFF;
+      modiff_count modiff = MODIFF;
       Lisp_Object sym;
 
       sym = call0 (Qexpand_abbrev);

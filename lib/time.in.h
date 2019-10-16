@@ -1,6 +1,6 @@
 /* A more-standard <time.h>.
 
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,8 +84,8 @@ struct timespec
 # endif
 
 # if !GNULIB_defined_struct_time_t_must_be_integral
-/* Per http://austingroupbugs.net/view.php?id=327, POSIX requires
-   time_t to be an integer type, even though C99 permits floating
+/* https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html
+   requires time_t to be an integer type, even though C99 permits floating
    point.  We don't know of any implementation that uses floating
    point, and it is much easier to write code that doesn't have to
    worry about that corner case, so we force the issue.  */
@@ -97,7 +97,7 @@ struct __time_t_must_be_integral {
 
 /* Sleep for at least RQTP seconds unless interrupted,  If interrupted,
    return -1 and store the remaining time into RMTP.  See
-   <http://www.opengroup.org/susv3xsh/nanosleep.html>.  */
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/nanosleep.html>.  */
 # if @GNULIB_NANOSLEEP@
 #  if @REPLACE_NANOSLEEP@
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -153,8 +153,8 @@ _GL_CXXALIASWARN (mktime);
 # endif
 
 /* Convert TIMER to RESULT, assuming local time and UTC respectively.  See
-   <http://www.opengroup.org/susv3xsh/localtime_r.html> and
-   <http://www.opengroup.org/susv3xsh/gmtime_r.html>.  */
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/localtime_r.html> and
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/gmtime_r.html>.  */
 # if @GNULIB_TIME_R@
 #  if @REPLACE_LOCALTIME_R@
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -203,8 +203,8 @@ _GL_CXXALIASWARN (gmtime_r);
 # endif
 
 /* Convert TIMER to RESULT, assuming local time and UTC respectively.  See
-   <http://www.opengroup.org/susv3xsh/localtime.html> and
-   <http://www.opengroup.org/susv3xsh/gmtime.html>.  */
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/localtime.html> and
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/gmtime.html>.  */
 # if @GNULIB_LOCALTIME@ || @REPLACE_LOCALTIME@
 #  if @REPLACE_LOCALTIME@
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -237,7 +237,7 @@ _GL_CXXALIASWARN (gmtime);
 
 /* Parse BUF as a timestamp, assuming FORMAT specifies its layout, and store
    the resulting broken-down time into TM.  See
-   <http://www.opengroup.org/susv3xsh/strptime.html>.  */
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/strptime.html>.  */
 # if @GNULIB_STRPTIME@
 #  if ! @HAVE_STRPTIME@
 _GL_FUNCDECL_SYS (strptime, char *, (char const *restrict __buf,
@@ -252,7 +252,7 @@ _GL_CXXALIASWARN (strptime);
 # endif
 
 /* Convert *TP to a date and time string.  See
-   <http://pubs.opengroup.org/onlinepubs/9699919799/functions/ctime.html>.  */
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/ctime.html>.  */
 # if @GNULIB_CTIME@
 #  if @REPLACE_CTIME@
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -268,7 +268,7 @@ _GL_CXXALIASWARN (ctime);
 # endif
 
 /* Convert *TP to a date and time string.  See
-   <http://pubs.opengroup.org/onlinepubs/9699919799/functions/strftime.html>.  */
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/strftime.html>.  */
 # if @GNULIB_STRFTIME@
 #  if @REPLACE_STRFTIME@
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)

@@ -1,6 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -42,7 +42,8 @@
 
 ;;; Code:
 
-(require 'eshell)
+(require 'esh-mode)                     ;For eshell-directory-name
+(require 'esh-var)                      ;For eshell-variable-aliases-list
 (require 'ring)
 (require 'esh-opt)
 
@@ -62,12 +63,11 @@ they lack somewhat in feel from the typical shell equivalents."
 (defcustom eshell-dirs-load-hook nil
   "A hook that gets run when `eshell-dirs' is loaded."
   :version "24.1"			; removed eshell-dirs-initialize
-  :type 'hook
-  :group 'eshell-dirs)
+  :type 'hook)
 
 (defcustom eshell-pwd-convert-function (if (eshell-under-windows-p)
-					   'expand-file-name
-					 'identity)
+					   #'expand-file-name
+					 #'identity)
   "The function used to normalize the value of Eshell's `pwd'.
 The value returned by `pwd' is also used when recording the
 last-visited directory in the last-dir-ring, so it will affect the
@@ -75,8 +75,7 @@ form of the list used by `cd ='."
   :type '(radio (function-item file-truename)
 		(function-item expand-file-name)
 		(function-item identity)
-		(function :tag "Other"))
-  :group 'eshell-dirs)
+		(function :tag "Other")))
 
 (defcustom eshell-ask-to-save-last-dir 'always
   "Determine if the last-dir-ring should be automatically saved.
@@ -88,63 +87,53 @@ If set to t, always ask if any Eshell buffers are open at exit time.
 If set to `always', the list-dir-ring will always be saved, silently."
   :type '(choice (const :tag "Never" nil)
 		 (const :tag "Ask" t)
-		 (const :tag "Always save" always))
-  :group 'eshell-dirs)
+		 (const :tag "Always save" always)))
 
 (defcustom eshell-cd-shows-directory nil
   "If non-nil, using `cd' will report the directory it changes to."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-cd-on-directory t
   "If non-nil, do a cd if a directory is in command position."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-directory-change-hook nil
   "A hook to run when the current directory changes."
-  :type 'hook
-  :group 'eshell-dirs)
+  :type 'hook)
 
 (defcustom eshell-list-files-after-cd nil
   "If non-nil, call \"ls\" with any remaining args after doing a cd.
 This is provided for convenience, since the same effect is easily
 achieved by adding a function to `eshell-directory-change-hook' that
 calls \"ls\" and references `eshell-last-arguments'."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-pushd-tohome nil
   "If non-nil, make pushd with no arg behave as `pushd ~' (like `cd').
 This mirrors the optional behavior of tcsh."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-pushd-dextract nil
   "If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
 This mirrors the optional behavior of tcsh."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-pushd-dunique nil
   "If non-nil, make pushd only add unique directories to the stack.
 This mirrors the optional behavior of tcsh."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-dirtrack-verbose t
   "If non-nil, show the directory stack following directory change.
 This is effective only if directory tracking is enabled."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 (defcustom eshell-last-dir-ring-file-name
   (expand-file-name "lastdir" eshell-directory-name)
   "If non-nil, name of the file to read/write the last-dir-ring.
 See also `eshell-read-last-dir-ring' and `eshell-write-last-dir-ring'.
 If it is nil, the last-dir-ring will not be written to disk."
-  :type 'file
-  :group 'eshell-dirs)
+  :type 'file)
 
 (defcustom eshell-last-dir-ring-size 32
   "If non-nil, the size of the directory history ring.
@@ -164,13 +153,11 @@ directories gets pushed, and its size is unlimited.
 explicitly very much, but every once in a while would like to return to
 a previously visited directory without having to type in the whole
 thing again."
-  :type 'integer
-  :group 'eshell-dirs)
+  :type 'integer)
 
 (defcustom eshell-last-dir-unique t
   "If non-nil, `eshell-last-dir-ring' contains only unique entries."
-  :type 'boolean
-  :group 'eshell-dirs)
+  :type 'boolean)
 
 ;;; Internal Variables:
 
@@ -183,26 +170,28 @@ Thus, this does not include the current directory.")
 
 ;;; Functions:
 
-(defun eshell-dirs-initialize ()
+(defun eshell-dirs-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the builtin functions for Eshell."
   (make-local-variable 'eshell-variable-aliases-list)
   (setq eshell-variable-aliases-list
 	(append
 	 eshell-variable-aliases-list
-	 '(("-" (lambda (indices)
-		  (if (not indices)
-		      (unless (ring-empty-p eshell-last-dir-ring)
-			(expand-file-name
-			 (ring-ref eshell-last-dir-ring 0)))
-		    (expand-file-name
-		     (eshell-apply-indices eshell-last-dir-ring indices)))))
-	   ("+" "PWD")
-	   ("PWD" (lambda (indices)
-		    (expand-file-name (eshell/pwd))) t)
-	   ("OLDPWD" (lambda (indices)
+         `(("-" ,(lambda (indices)
+		   (if (not indices)
 		       (unless (ring-empty-p eshell-last-dir-ring)
 			 (expand-file-name
-			  (ring-ref eshell-last-dir-ring 0)))) t))))
+			  (ring-ref eshell-last-dir-ring 0)))
+		     (expand-file-name
+		      (eshell-apply-indices eshell-last-dir-ring indices)))))
+	   ("+" "PWD")
+	   ("PWD" ,(lambda (_indices)
+		     (expand-file-name (eshell/pwd)))
+            t)
+	   ("OLDPWD" ,(lambda (_indices)
+		        (unless (ring-empty-p eshell-last-dir-ring)
+			  (expand-file-name
+			   (ring-ref eshell-last-dir-ring 0))))
+            t))))
 
   (when eshell-cd-on-directory
     (make-local-variable 'eshell-interpreter-alist)
@@ -213,14 +202,14 @@ Thus, this does not include the current directory.")
 		eshell-interpreter-alist)))
 
   (add-hook 'eshell-parse-argument-hook
-	    'eshell-parse-user-reference nil t)
+	    #'eshell-parse-user-reference nil t)
   (if (eshell-under-windows-p)
       (add-hook 'eshell-parse-argument-hook
-		'eshell-parse-drive-letter nil t))
+		#'eshell-parse-drive-letter nil t))
 
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
-	      'eshell-complete-user-reference nil t))
+	      #'eshell-complete-user-reference nil t))
 
   (make-local-variable 'eshell-dirstack)
   (make-local-variable 'eshell-last-dir-ring)
@@ -230,9 +219,9 @@ Thus, this does not include the current directory.")
   (unless eshell-last-dir-ring
     (setq eshell-last-dir-ring (make-ring eshell-last-dir-ring-size)))
 
-  (add-hook 'eshell-exit-hook 'eshell-write-last-dir-ring nil t)
+  (add-hook 'eshell-exit-hook #'eshell-write-last-dir-ring nil t)
 
-  (add-hook 'kill-emacs-hook 'eshell-save-some-last-dir))
+  (add-hook 'kill-emacs-hook #'eshell-save-some-last-dir))
 
 (defun eshell-save-some-last-dir ()
   "Save the list-dir-ring for any open Eshell buffers."
@@ -259,7 +248,7 @@ Thus, this does not include the current directory.")
   (if (> (length args) 1)
       (error "%s: command not found" (car args))
     (throw 'eshell-replace-command
-	   (eshell-parse-command "cd" (eshell-flatten-list args)))))
+	   (eshell-parse-command "cd" (flatten-tree args)))))
 
 (defun eshell-parse-user-reference ()
   "An argument beginning with ~ is a filename to be expanded."
@@ -272,7 +261,7 @@ Thus, this does not include the current directory.")
 (defun eshell-parse-drive-letter ()
   "An argument beginning with X:[^/] is a drive letter reference."
   (when (and (not eshell-current-argument)
-	     (looking-at "\\([A-Za-z]:\\)\\([^/\\\\]\\|\\'\\)"))
+	     (looking-at "\\([A-Za-z]:\\)\\([^/\\]\\|\\'\\)"))
     (goto-char (match-end 1))
     (let* ((letter (match-string 1))
 	   (regexp (concat "\\`" letter))
@@ -307,13 +296,11 @@ Thus, this does not include the current directory.")
     (if (and (> len 1)
 	     (eq (aref path (1- len)) ?/)
 	     (not (and (eshell-under-windows-p)
-		       (string-match "\\`[A-Za-z]:[\\\\/]\\'" path))))
+		       (string-match "\\`[A-Za-z]:[\\/]\\'" path))))
 	(setq path (substring path 0 (1- (length path)))))
-    (if eshell-pwd-convert-function
-	(funcall eshell-pwd-convert-function path)
-      path)))
+    (funcall (or eshell-pwd-convert-function #'identity) path)))
 
-(defun eshell-expand-multiple-dots (path)
+(defun eshell-expand-multiple-dots (filename)
   ;; FIXME: This advice recommendation is rather odd: it's somewhat
   ;; dangerous and it claims not to work with minibuffer-completion, which
   ;; makes it much less interesting.
@@ -326,16 +313,17 @@ in the minibuffer:
     (advice-add 'expand-file-name :around #'my-expand-multiple-dots)
     (defun my-expand-multiple-dots (orig-fun filename &rest args)
       (apply orig-fun (eshell-expand-multiple-dots filename) args))"
-  (while (string-match "\\(?:^\\|/\\)\\.\\.\\(\\.+\\)\\(?:$\\|/\\)" path)
-    (let* ((extra-dots (match-string 1 path))
+  (while (string-match "\\(?:\\`\\|/\\)\\.\\.\\(\\.+\\)\\(?:\\'\\|/\\)"
+                       filename)
+    (let* ((extra-dots (match-string 1 filename))
 	   (len (length extra-dots))
 	   replace-text)
       (while (> len 0)
 	(setq replace-text (concat replace-text "/..")
 	      len (1- len)))
-      (setq path
-	    (replace-match replace-text t t path 1))))
-  path)
+      (setq filename
+	    (replace-match replace-text t t filename 1))))
+  filename)
 
 (defun eshell-find-previous-directory (regexp)
   "Find the most recent last-dir matching REGEXP."
@@ -353,7 +341,7 @@ in the minibuffer:
 
 (defun eshell/cd (&rest args)           ; all but first ignored
   "Alias to extend the behavior of `cd'."
-  (setq args (eshell-flatten-list args))
+  (setq args (flatten-tree args))
   (let ((path (car args))
 	(subpath (car (cdr args)))
 	(case-fold-search (eshell-under-windows-p))

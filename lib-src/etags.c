@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2018 Free Software
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2019 Free Software
 Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -84,10 +84,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  undef DEBUG
 #  define DEBUG true
 #else
-#  define DEBUG  false
-#  ifndef NDEBUG
-#   define NDEBUG		/* disable assert */
-#  endif
+#  define DEBUG false
 #endif
 
 #include <config.h>
@@ -131,11 +128,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <c-strcase.h>
 
 #include <assert.h>
-#ifdef NDEBUG
-# undef  assert			/* some systems have a buggy assert.h */
-# define assert(x) ((void) 0)
-#endif
-
 #include <getopt.h>
 #include <regex.h>
 
@@ -527,6 +519,7 @@ static compressor compressors[] =
   { "GZ", "gzip -d -c"},
   { "bz2", "bzip2 -d -c" },
   { "xz", "xz -d -c" },
+  { "zst", "zstd -d -c" },
   { NULL }
 };
 
@@ -869,27 +862,24 @@ followed by the name of an interpreter.  If no such sequence is found,\n\
 Fortran is tried first; if no tags are found, C is tried next.\n\
 When parsing any C file, a \"class\" or \"template\" keyword\n\
 switches to C++.");
-  puts ("Compressed files are supported using gzip, bzip2, and xz.\n\
+  puts ("Compressed files are supported using gzip, bzip2, xz, and zstd.\n\
 \n\
 For detailed help on a given language use, for example,\n\
 etags --help --lang=ada.");
 }
 
-#ifndef EMACS_NAME
-# define EMACS_NAME "standalone"
-#endif
-#ifndef VERSION
-# define VERSION "17.38.1.4"
+#if CTAGS
+# define PROGRAM_NAME "ctags"
+#else
+# define PROGRAM_NAME "etags"
 #endif
 static _Noreturn void
 print_version (void)
 {
-  char emacs_copyright[] = COPYRIGHT;
-
-  printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
-  puts (emacs_copyright);
-  puts ("This program is distributed under the terms in ETAGS.README");
-
+  fputs ((PROGRAM_NAME " (" PACKAGE_NAME " " PACKAGE_VERSION ")\n"
+	  COPYRIGHT "\n"
+	  "This program is distributed under the terms in ETAGS.README\n"),
+	 stdout);
   exit (EXIT_SUCCESS);
 }
 
@@ -1156,7 +1146,6 @@ main (int argc, char **argv)
 	  {
 	    error ("-o option may only be given once.");
 	    suggest_asking_for_help ();
-	    /* NOTREACHED */
 	  }
 	tagfile = optarg;
 	break;
@@ -1218,7 +1207,6 @@ main (int argc, char **argv)
       case 'w': no_warnings = true;				break;
       default:
 	suggest_asking_for_help ();
-	/* NOTREACHED */
       }
 
   /* No more options.  Store the rest of arguments. */
@@ -1237,13 +1225,11 @@ main (int argc, char **argv)
 
   if (help_asked)
     print_help (argbuffer);
-    /* NOTREACHED */
 
   if (nincluded_files == 0 && file_count == 0)
     {
       error ("no input files specified.");
       suggest_asking_for_help ();
-      /* NOTREACHED */
     }
 
   if (tagfile == NULL)
@@ -1821,7 +1807,7 @@ find_entries (FILE *inf)
 	}
       *cp = '\0';
 
-      if (strlen (lp) > 0)
+      if (*lp)
 	{
 	  lang = get_language_from_interpreter (lp);
 	  if (lang != NULL && lang->function != NULL)
@@ -2022,7 +2008,7 @@ pfnote (char *name, bool is_func, char *linestart, int linelen, int lno,
   np->left = np->right = NULL;
   if (CTAGS && !cxref_style)
     {
-      if (strlen (linestart) < 50)
+      if (strnlen (linestart, 50) < 50)
 	np->regex = concat (linestart, "$", "");
       else
 	np->regex = savenstr (linestart, 50);
@@ -4290,7 +4276,7 @@ Yacc_entries (FILE *inf)
   while (perhaps_more_input (file_pointer)				\
 	 && (readline (&(line_buffer), file_pointer),			\
 	     (char_pointer) = (line_buffer).buffer,			\
-	     true))							\
+	     true))
 
 #define LOOKING_AT(cp, kw)  /* kw is the keyword, a literal string */	\
   ((assert ("" kw), true)   /* syntax error if not a literal string */	\
@@ -5893,20 +5879,15 @@ HTML_labels (FILE *inf)
  * Original code by Sunichirou Sugou (1989)
  * Rewritten by Anders Lindgren (1996)
  */
-static size_t prolog_pr (char *, char *);
+static ptrdiff_t prolog_pr (char *, char *, ptrdiff_t);
 static void prolog_skip_comment (linebuffer *, FILE *);
 static size_t prolog_atom (char *, size_t);
 
 static void
 Prolog_functions (FILE *inf)
 {
-  char *cp, *last;
-  size_t len;
-  size_t allocated;
-
-  allocated = 0;
-  len = 0;
-  last = NULL;
+  char *cp, *last = NULL;
+  ptrdiff_t lastlen = 0, allocated = 0;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
@@ -5916,17 +5897,22 @@ Prolog_functions (FILE *inf)
 	continue;
       else if (cp[0] == '/' && cp[1] == '*')	/* comment. */
 	prolog_skip_comment (&lb, inf);
-      else if ((len = prolog_pr (cp, last)) > 0)
+      else
 	{
-	  /* Predicate or rule.  Store the function name so that we
-	     only generate a tag for the first clause.  */
-	  if (last == NULL)
-	    last = xnew (len + 1, char);
-	  else if (len + 1 > allocated)
-	    xrnew (last, len + 1, char);
-	  allocated = len + 1;
-	  memcpy (last, cp, len);
-	  last[len] = '\0';
+	  ptrdiff_t len = prolog_pr (cp, last, lastlen);
+	  if (0 < len)
+	    {
+	      /* Store the predicate name to avoid generating duplicate
+		 tags later.  */
+	      if (allocated <= len)
+		{
+		  xrnew (last, len + 1, char);
+		  allocated = len + 1;
+		}
+	      memcpy (last, cp, len);
+	      last[len] = '\0';
+	      lastlen = len;
+	    }
 	}
     }
   free (last);
@@ -5959,33 +5945,25 @@ prolog_skip_comment (linebuffer *plb, FILE *inf)
  * Return the size of the name of the predicate or rule, or 0 if no
  * header was found.
  */
-static size_t
-prolog_pr (char *s, char *last)
-
-                		/* Name of last clause. */
+static ptrdiff_t
+prolog_pr (char *s, char *last, ptrdiff_t lastlen)
 {
-  size_t pos;
-  size_t len;
-
-  pos = prolog_atom (s, 0);
-  if (! pos)
+  ptrdiff_t len = prolog_atom (s, 0);
+  if (len == 0)
     return 0;
+  ptrdiff_t pos = skip_spaces (s + len) - s;
 
-  len = pos;
-  pos = skip_spaces (s + pos) - s;
-
+  /* Save only the first clause.  */
   if ((s[pos] == '.'
        || (s[pos] == '(' && (pos += 1))
        || (s[pos] == ':' && s[pos + 1] == '-' && (pos += 2)))
-      && (last == NULL		/* save only the first clause */
-	  || len != strlen (last)
-	  || !strneq (s, last, len)))
-	{
-	  make_tag (s, len, true, s, pos, lineno, linecharno);
-	  return len;
-	}
-  else
-    return 0;
+      && ! (lastlen == len && memcmp (s, last, len) == 0))
+    {
+      make_tag (s, len, true, s, pos, lineno, linecharno);
+      return len;
+    }
+
+  return 0;
 }
 
 /*
@@ -6053,20 +6031,15 @@ prolog_atom (char *s, size_t pos)
  * Assumes that Erlang functions start at column 0.
  * Original code by Anders Lindgren (1996)
  */
-static int erlang_func (char *, char *);
+static int erlang_func (char *, char *, ptrdiff_t, ptrdiff_t *);
 static void erlang_attribute (char *);
 static int erlang_atom (char *);
 
 static void
 Erlang_functions (FILE *inf)
 {
-  char *cp, *last;
-  int len;
-  int allocated;
-
-  allocated = 0;
-  len = 0;
-  last = NULL;
+  char *cp, *last = NULL;
+  ptrdiff_t lastlen = 0, allocated = 0;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
@@ -6087,19 +6060,23 @@ Erlang_functions (FILE *inf)
 	      last = NULL;
 	    }
 	}
-      else if ((len = erlang_func (cp, last)) > 0)
+      else
 	{
-	  /*
-	   * Function.  Store the function name so that we only
-	   * generates a tag for the first clause.
-	   */
-	  if (last == NULL)
-	    last = xnew (len + 1, char);
-	  else if (len + 1 > allocated)
-	    xrnew (last, len + 1, char);
-	  allocated = len + 1;
-	  memcpy (last, cp, len);
-	  last[len] = '\0';
+	  ptrdiff_t name_offset;
+	  ptrdiff_t len = erlang_func (cp, last, lastlen, &name_offset);
+	  if (0 < len)
+	    {
+	      /* Store the function name to avoid generating duplicate
+		 tags later.  */
+	      if (allocated <= len)
+		{
+		  xrnew (last, len + 1, char);
+		  allocated = len + 1;
+		}
+	      memcpy (last, cp + name_offset, len);
+	      last[len] = '\0';
+	      lastlen = len;
+	    }
 	}
     }
   free (last);
@@ -6117,29 +6094,27 @@ Erlang_functions (FILE *inf)
  * was found.
  */
 static int
-erlang_func (char *s, char *last)
-
-                		/* Name of last clause. */
+erlang_func (char *s, char *last, ptrdiff_t lastlen, ptrdiff_t *name_offset)
 {
-  int pos;
-  int len;
-
-  pos = erlang_atom (s);
-  if (pos < 1)
+  char *name = s;
+  ptrdiff_t len = erlang_atom (s);
+  if (len == 0)
     return 0;
+  ptrdiff_t pos = skip_spaces (s + len) - s;
 
-  len = pos;
-  pos = skip_spaces (s + pos) - s;
+  /* If the name is quoted, the quotes are not part of the name. */
+  bool quoted = 2 < len && name[0] == '\'' && name[len - 1] == '\'';
+  name += quoted;
+  len -= 2 * quoted;
 
   /* Save only the first clause. */
   if (s[pos++] == '('
-      && (last == NULL
-	  || len != (int)strlen (last)
-	  || !strneq (s, last, len)))
-	{
-	  make_tag (s, len, true, s, pos, lineno, linecharno);
-	  return len;
-	}
+      && ! (lastlen == len && memcmp (name, last, len) == 0))
+    {
+      make_tag (s, len, true, s, pos, lineno, linecharno);
+      *name_offset = quoted;
+      return len;
+    }
 
   return 0;
 }
@@ -6158,13 +6133,25 @@ static void
 erlang_attribute (char *s)
 {
   char *cp = s;
+  int pos;
+  int len;
 
   if ((LOOKING_AT (cp, "-define") || LOOKING_AT (cp, "-record"))
       && *cp++ == '(')
     {
-      int len = erlang_atom (skip_spaces (cp));
+      cp = skip_spaces (cp);
+      len = erlang_atom (cp);
+      pos = cp + len - s;
       if (len > 0)
-	make_tag (cp, len, true, s, cp + len - s, lineno, linecharno);
+	{
+	  /* If the name is quoted, the quotes are not part of the name. */
+	  if (len > 2 && cp[0] == '\'' && cp[len - 1] == '\'')
+	    {
+	      cp++;
+	      len -= 2;
+	    }
+	  make_tag (cp, len, true, s, pos, lineno, linecharno);
+	}
     }
   return;
 }
@@ -6349,7 +6336,7 @@ add_regex (char *regexp_pattern, language *lang)
     single_line = false;	/* dot does not match newline */
 
 
-  if (strlen (regexp_pattern) < 3)
+  if (strnlen (regexp_pattern, 3) < 3)
     {
       error ("null regexp");
       return;

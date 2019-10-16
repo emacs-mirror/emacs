@@ -1,6 +1,6 @@
 ;;; org-macs.el --- Top-level Definitions for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -340,7 +340,7 @@ point nowhere."
 (defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
 (defun org-get-limited-outline-regexp ()
   "Return outline-regexp with limited number of levels.
-The number of levels is controlled by `org-inlinetask-min-level'"
+The number of levels is controlled by `org-inlinetask-min-level'."
   (cond ((not (derived-mode-p 'org-mode))
 	 outline-regexp)
 	((not (featurep 'org-inlinetask))

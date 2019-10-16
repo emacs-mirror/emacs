@@ -1,6 +1,6 @@
 ;;; calc-tests.el --- tests for calc                 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: maint
@@ -62,11 +62,11 @@ An existing calc stack is reused, otherwise a new one is created."
 	(calc-top-n 1))
     (calc-pop 0)))
 
-(ert-deftest test-math-bignum ()
-  ;; bug#17556
-  (let ((n (math-bignum most-negative-fixnum)))
-    (should (math-negp n))
-    (should (cl-notany #'cl-minusp (cdr n)))))
+;; (ert-deftest test-math-bignum ()
+;;   ;; bug#17556
+;;   (let ((n (math-bignum most-negative-fixnum)))
+;;     (should (math-negp n))
+;;     (should (cl-notany #'cl-minusp (cdr n)))))
 
 (ert-deftest test-calc-remove-units ()
   (should (calc-tests-equal (calc-tests-simple #'calc-remove-units "-1 m") -1)))
@@ -95,7 +95,7 @@ An existing calc stack is reused, otherwise a new one is created."
 
 (ert-deftest test-calc-23889 ()
   "Test for https://debbugs.gnu.org/23889 and 25652."
-  (skip-unless (>= math-bignum-digit-length 9))
+  (skip-unless t) ;; (>= math-bignum-digit-length 9))
   (dolist (mode '(deg rad))
     (let ((calc-angle-mode mode))
       ;; If user inputs angle units, then should ignore `calc-angle-mode'.
@@ -137,6 +137,186 @@ An existing calc stack is reused, otherwise a new one is created."
                         (number-to-string
                          (nth 1 (calcFunc-cos 1)))
                         0 4))))))
+
+(ert-deftest calc-test-trig ()
+  "Trigonometric simplification; bug#33052."
+  (let ((calc-angle-mode 'rad))
+    (let ((calc-symbolic-mode t))
+      (should (equal (math-simplify '(calcFunc-sin (/ (var pi var-pi) 4)))
+                     '(/ (calcFunc-sqrt 2) 2)))
+      (should (equal (math-simplify '(calcFunc-cos (/ (var pi var-pi) 4)))
+                     '(/ (calcFunc-sqrt 2) 2)))
+      (should (equal (math-simplify '(calcFunc-sec (/ (var pi var-pi) 4)))
+                     '(calcFunc-sqrt 2)))
+      (should (equal (math-simplify '(calcFunc-csc (/ (var pi var-pi) 4)))
+                     '(calcFunc-sqrt 2)))
+      (should (equal (math-simplify '(calcFunc-tan (/ (var pi var-pi) 3)))
+                     '(calcFunc-sqrt 3)))
+      (should (equal (math-simplify '(calcFunc-cot (/ (var pi var-pi) 3)))
+                     '(/ (calcFunc-sqrt 3) 3))))
+    (let ((calc-symbolic-mode nil))
+      (should (equal (math-simplify '(calcFunc-sin (/ (var pi var-pi) 4)))
+                     '(calcFunc-sin (/ (var pi var-pi) 4))))
+      (should (equal (math-simplify '(calcFunc-cos (/ (var pi var-pi) 4)))
+                     '(calcFunc-cos (/ (var pi var-pi) 4))))
+      (should (equal (math-simplify '(calcFunc-sec (/ (var pi var-pi) 4)))
+                     '(calcFunc-sec (/ (var pi var-pi) 4))))
+      (should (equal (math-simplify '(calcFunc-csc (/ (var pi var-pi) 4)))
+                     '(calcFunc-csc (/ (var pi var-pi) 4))))
+      (should (equal (math-simplify '(calcFunc-tan (/ (var pi var-pi) 3)))
+                     '(calcFunc-tan (/ (var pi var-pi) 3))))
+      (should (equal (math-simplify '(calcFunc-cot (/ (var pi var-pi) 3)))
+                     '(calcFunc-cot (/ (var pi var-pi) 3)))))))
+
+(ert-deftest calc-test-format-radix ()
+  "Test integer formatting (bug#36689)."
+  (let ((calc-group-digits nil))
+    (let ((calc-number-radix 10))
+      (should (equal (math-format-number 12345678901) "12345678901")))
+    (let ((calc-number-radix 2))
+      (should (equal (math-format-number 12345) "2#11000000111001")))
+    (let ((calc-number-radix 8))
+      (should (equal (math-format-number 12345678901) "8#133767016065")))
+    (let ((calc-number-radix 16))
+      (should (equal (math-format-number 12345678901) "16#2DFDC1C35")))
+    (let ((calc-number-radix 36))
+      (should (equal (math-format-number 12345678901) "36#5O6AQT1"))))
+  (let ((calc-group-digits t))
+    (let ((calc-number-radix 10))
+      (should (equal (math-format-number 12345678901) "12,345,678,901")))
+    (let ((calc-number-radix 2))
+      (should (equal (math-format-number 12345) "2#11,0000,0011,1001")))
+    (let ((calc-number-radix 8))
+      (should (equal (math-format-number 12345678901) "8#133,767,016,065")))
+    (let ((calc-number-radix 16))
+      (should (equal (math-format-number 12345678901) "16#2,DFDC,1C35")))
+    (let ((calc-number-radix 36))
+      (should (equal (math-format-number 12345678901) "36#5,O6A,QT1")))))
+
+(ert-deftest calc-test-calendar ()
+  "Test calendar conversions (bug#36822)."
+  (should (equal (calcFunc-julian (math-parse-date "2019-07-27")) 2458692))
+  (should (equal (math-parse-date "2019-07-27") '(date 737267)))
+  (should (equal (calcFunc-julian '(date 0)) 1721425))
+  (should (equal (math-date-to-gregorian-dt 1) '(1 1 1)))
+  (should (equal (math-date-to-gregorian-dt 0) '(-1 12 31)))
+  (should (equal (math-date-to-gregorian-dt -1721425) '(-4714 11 24)))
+  (should (equal (math-absolute-from-gregorian-dt 2019 7 27) 737267))
+  (should (equal (math-absolute-from-gregorian-dt 1 1 1) 1))
+  (should (equal (math-absolute-from-gregorian-dt -1 12 31) 0))
+  (should (equal (math-absolute-from-gregorian-dt -99 12 31) -35795))
+  (should (equal (math-absolute-from-gregorian-dt -4714 11 24) -1721425))
+  (should (equal (calcFunc-julian '(date -1721425)) 0))
+  (should (equal (math-date-to-julian-dt 1) '(1 1 3)))
+  (should (equal (math-date-to-julian-dt -1721425) '(-4713 1 1)))
+  (should (equal (math-absolute-from-julian-dt 2019 1 1) 737073))
+  (should (equal (math-absolute-from-julian-dt 1 1 3) 1))
+  (should (equal (math-absolute-from-julian-dt -101 1 1) -36892))
+  (should (equal (math-absolute-from-julian-dt -101 3 1) -36832))
+  (should (equal (math-absolute-from-julian-dt -4713 1 1) -1721425)))
+
+(ert-deftest calc-test-solve-linear-system ()
+  "Test linear system solving (bug#35374)."
+  ;;   x + y =   3
+  ;;  2x - 3y = -4
+  ;; with the unique solution x=1, y=2
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 3)
+              (calcFunc-eq (- (* 2 (var x var-x)) (* 3 (var y var-y))) -4))
+            '(vec (var x var-x) (var y var-y)))
+           '(vec (calcFunc-eq (var x var-x) 1)
+                 (calcFunc-eq (var y var-y) 2))))
+
+  ;;  x + y = 1
+  ;;  x + y = 2
+  ;; has no solution
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 1)
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 2))
+            '(vec (var x var-x) (var y var-y)))
+           '(calcFunc-solve
+             (vec
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 1)
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 2))
+             (vec (var x var-x) (var y var-y)))))
+  ;;   x - y = 1
+  ;;   x + y = 1
+  ;; with the unique solution x=1, y=0
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq (- (var x var-x) (var y var-y)) 1)
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 1))
+            '(vec (var x var-x) (var y var-y)))
+           '(vec (calcFunc-eq (var x var-x) 1)
+                 (calcFunc-eq (var y var-y) 0))))
+  ;;  2x - 3y +  z =  5
+  ;;   x +  y - 2z =  0
+  ;;  -x + 2y + 3z = -3
+  ;; with the unique solution x=1, y=-1, z=0
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq
+               (+ (- (* 2 (var x var-x)) (* 3 (var y var-y))) (var z var-z))
+               5)
+              (calcFunc-eq
+               (- (+ (var x var-x) (var y var-y)) (* 2 (var z var-z)))
+               0)
+              (calcFunc-eq
+               (+ (- (* 2 (var y var-y)) (var x var-x)) (* 3 (var z var-z)))
+               -3))
+            '(vec (var x var-x) (var y var-y) (var z var-z)))
+           ;; The `float' forms in the result are just artefacts of Calc's
+           ;; current solver; it should be fixed to produce exact (integral)
+           ;; results in this case.
+           '(vec (calcFunc-eq (var x var-x) (float 1 0))
+                 (calcFunc-eq (var y var-y) (float -1 0))
+                 (calcFunc-eq (var z var-z) 0))))
+  ;;   x = y + 1
+  ;;   x = y
+  ;; has no solution
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq (var x var-x) (+ (var y var-y) 1))
+              (calcFunc-eq (var x var-x) (var y var-y)))
+            '(vec (var x var-x) (var y var-y)))
+           '(calcFunc-solve
+             (vec
+              (calcFunc-eq (var x var-x) (+ (var y var-y) 1))
+              (calcFunc-eq (var x var-x) (var y var-y)))
+             (vec (var x var-x) (var y var-y)))))
+  ;;  x + y + z = 6
+  ;;  x + y     = 3
+  ;;  x - y     = 1
+  ;; with the unique solution x=2, y=1, z=3
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq (+ (+ (var x var-x) (var y var-y)) (var z var-z)) 6)
+              (calcFunc-eq (+ (var x var-x) (var y var-y)) 3)
+              (calcFunc-eq (- (var x var-x) (var y var-y)) 1))
+            '(vec (var x var-x) (var y var-y) (var z var-z)))
+           '(vec
+             (calcFunc-eq (var x var-x) 2)
+             (calcFunc-eq (var y var-y) 1)
+             (calcFunc-eq (var z var-z) 3))))
+  ;; x = 3
+  ;; x + 4y^2 = 3                   (ok, so this one isn't linear)
+  ;; with the unique (double) solution x=3, y=0
+  (should (equal
+           (calcFunc-solve
+            '(vec
+              (calcFunc-eq (var x var-x) 3)
+              (calcFunc-eq (+ (var x var-x) (* 4 (^ (var y var-y) 2))) 3))
+            '(vec (var x var-x) (var y var-y)))
+           '(vec (calcFunc-eq (var x var-x) 3)
+                 (calcFunc-eq (var y var-y) 0)))))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here

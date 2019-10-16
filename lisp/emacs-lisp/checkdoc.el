@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -174,6 +174,7 @@
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
+(require 'lisp-mnt)
 
 (defvar compilation-error-regexp-alist)
 (defvar compilation-mode-font-lock-keywords)
@@ -193,7 +194,7 @@
   "Non-nil means attempt auto-fixing of doc strings.
 If this value is the symbol `query', then the user is queried before
 any change is made.  If the value is `automatic', then all changes are
-made without asking unless the change is very-complex.  If the value
+made without asking unless the change is very complex.  If the value
 is `semiautomatic' or any other value, then simple fixes are made
 without asking, and complex changes are made by asking the user first.
 The value `never' is the same as nil, never ask or change anything."
@@ -237,10 +238,10 @@ This is automatically set to nil if Ispell does not exist on your
 system.  Possible values are:
 
   nil         - Don't spell-check during basic style checks.
-  defun       - Spell-check when style checking a single defun
-  buffer      - Spell-check when style checking the whole buffer
+  defun       - Spell-check when style checking a single defun.
+  buffer      - Spell-check when style checking the whole buffer.
   interactive - Spell-check during any interactive check.
-  t           - Always spell-check"
+  t           - Always spell-check."
   :type '(choice (const nil)
           (const defun)
           (const buffer)
@@ -928,8 +929,12 @@ don't move point."
   (pcase (save-excursion (condition-case nil
                              (read (current-buffer))
                            ;; Conservatively skip syntax errors.
-                           (invalid-read-syntax)))
-    (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice)
+                           (invalid-read-syntax)
+                           ;; Don't bug out if the file is empty (or a
+                           ;; definition ends prematurely.
+                           (end-of-file)))
+    (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice
+            'cl-defun 'cl-defgeneric 'cl-defmethod 'cl-defmacro)
        ,(pred symbolp)
        ;; Require an initializer, i.e. ignore single-argument `defvar'
        ;; forms, which never have a doc string.
@@ -1045,7 +1050,7 @@ space at the end of each line."
 (defun checkdoc-ispell ()
   "Check the style and spelling of everything interactively.
 Calls `checkdoc' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc'"
+Prefix argument is the same as for `checkdoc'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc)))
@@ -1054,7 +1059,7 @@ Prefix argument is the same as for `checkdoc'"
 (defun checkdoc-ispell-current-buffer ()
   "Check the style and spelling of the current buffer.
 Calls `checkdoc-current-buffer' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-current-buffer'"
+Prefix argument is the same as for `checkdoc-current-buffer'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-current-buffer)))
@@ -1063,7 +1068,7 @@ Prefix argument is the same as for `checkdoc-current-buffer'"
 (defun checkdoc-ispell-interactive ()
   "Check the style and spelling of the current buffer interactively.
 Calls `checkdoc-interactive' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-interactive'"
+Prefix argument is the same as for `checkdoc-interactive'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-interactive)))
@@ -1072,7 +1077,7 @@ Prefix argument is the same as for `checkdoc-interactive'"
 (defun checkdoc-ispell-message-interactive ()
   "Check the style and spelling of message text interactively.
 Calls `checkdoc-message-interactive' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-message-interactive'"
+Prefix argument is the same as for `checkdoc-message-interactive'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-message-interactive
@@ -1082,7 +1087,7 @@ Prefix argument is the same as for `checkdoc-message-interactive'"
 (defun checkdoc-ispell-message-text ()
   "Check the style and spelling of message text interactively.
 Calls `checkdoc-message-text' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-message-text'"
+Prefix argument is the same as for `checkdoc-message-text'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-message-text)))
@@ -1091,7 +1096,7 @@ Prefix argument is the same as for `checkdoc-message-text'"
 (defun checkdoc-ispell-start ()
   "Check the style and spelling of the current buffer.
 Calls `checkdoc-start' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-start'"
+Prefix argument is the same as for `checkdoc-start'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-start)))
@@ -1100,7 +1105,7 @@ Prefix argument is the same as for `checkdoc-start'"
 (defun checkdoc-ispell-continue ()
   "Check the style and spelling of the current buffer after point.
 Calls `checkdoc-continue' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-continue'"
+Prefix argument is the same as for `checkdoc-continue'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-continue)))
@@ -1109,7 +1114,7 @@ Prefix argument is the same as for `checkdoc-continue'"
 (defun checkdoc-ispell-comments ()
   "Check the style and spelling of the current buffer's comments.
 Calls `checkdoc-comments' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-comments'"
+Prefix argument is the same as for `checkdoc-comments'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-comments)))
@@ -1118,7 +1123,7 @@ Prefix argument is the same as for `checkdoc-comments'"
 (defun checkdoc-ispell-defun ()
   "Check the style and spelling of the current defun with Ispell.
 Calls `checkdoc-defun' with spell-checking turned on.
-Prefix argument is the same as for `checkdoc-defun'"
+Prefix argument is the same as for `checkdoc-defun'."
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
     (call-interactively #'checkdoc-defun)))
@@ -1173,9 +1178,8 @@ TEXT, START, END and UNFIXABLE conform to
     ;; Override some bindings
     (define-key map "\C-\M-x" 'checkdoc-eval-defun)
     (define-key map "\C-x`" 'checkdoc-continue)
-    (if (not (featurep 'xemacs))
-	(define-key map [menu-bar emacs-lisp eval-buffer]
-	  'checkdoc-eval-current-buffer))
+    (define-key map [menu-bar emacs-lisp eval-buffer]
+      'checkdoc-eval-current-buffer)
     ;; Add some new bindings under C-c ?
     (define-key pmap "x" 'checkdoc-defun)
     (define-key pmap "X" 'checkdoc-ispell-defun)
@@ -1228,10 +1232,7 @@ TEXT, START, END and UNFIXABLE conform to
     ["Check Defun" checkdoc-defun t]
     ["Check and Spell Defun" checkdoc-ispell-defun t]
     ["Check and Evaluate Defun" checkdoc-eval-defun t]
-    ["Check and Evaluate Buffer" checkdoc-eval-current-buffer t]
-    ))
-;; XEmacs requires some weird stuff to add this menu in a minor mode.
-;; What is it?
+    ["Check and Evaluate Buffer" checkdoc-eval-current-buffer t]))
 
 ;;;###autoload
 (define-minor-mode checkdoc-minor-mode
@@ -1494,23 +1495,18 @@ may require more formatting")
 	       (if (and (re-search-forward "[.!?:\"]\\([ \t\n]+\\|\"\\)"
 					   (line-end-position) t)
 			(< (current-column) numc))
-		   (if (checkdoc-autofix-ask-replace
-			p (1+ p)
-			"1st line not a complete sentence.  Join these lines? "
-			" " t)
-		       (progn
-			 ;; They said yes.  We have more fill work to do...
-			 (goto-char (match-beginning 1))
-			 (delete-region (point) (match-end 1))
-			 (insert "\n")
-			 (setq msg nil))))))
+		   (when (checkdoc-autofix-ask-replace
+		          p (1+ p)
+		          "1st line not a complete sentence.  Join these lines? "
+		          " " t)
+		     (setq msg nil)))))
 	   (if msg
 	       (checkdoc-create-error msg s (save-excursion
 					      (goto-char s)
 					      (line-end-position))))))))
      ;; Continuation of above.  Make sure our sentence is capitalized.
      (save-excursion
-       (skip-chars-forward "\"\\*")
+       (skip-chars-forward "\"*")
        (if (looking-at "[a-z]")
 	   (if (checkdoc-autofix-ask-replace
 		(match-beginning 0) (match-end 0)
@@ -1680,7 +1676,10 @@ function,command,variable,option or symbol." ms1))))))
 		   (last-pos 0)
 		   (found 1)
 		   (order (and (nth 3 fp) (car (nth 3 fp))))
-		   (nocheck (append '("&optional" "&rest") (nth 3 fp)))
+		   (nocheck (append '("&optional" "&rest" "&key" "&aux"
+                                      "&context" "&environment" "&whole"
+                                      "&body" "&allow-other-keys")
+                                    (nth 3 fp)))
 		   (inopts nil))
 	       (while (and args found (> found last-pos))
                  (if (or (member (car args) nocheck)
@@ -1885,7 +1884,8 @@ the token checkdoc-order: <TOKEN> exists, and TOKEN is a symbol read
 from the comment."
   (save-excursion
     (beginning-of-defun)
-    (let ((defun (looking-at "(def\\(un\\|macro\\|subst\\|advice\\)"))
+    (let ((defun (looking-at
+                  "(\\(?:cl-\\)?def\\(un\\|macro\\|subst\\|advice\\|generic\\|method\\)"))
 	  (is-advice (looking-at "(defadvice"))
 	  (lst nil)
 	  (ret nil)
@@ -1951,7 +1951,10 @@ from the comment."
 	;; This is because read will intern nil if it doesn't into the
 	;; new obarray.
 	(if (not (listp lst)) (setq lst nil))
-	(if is-advice nil
+	(unless is-advice
+          ;; lst here can be something like ((foo bar) baz) from
+          ;; cl-lib methods; flatten it:
+          (setq lst (flatten-tree lst))
 	  (while lst
 	    (setq ret (cons (symbol-name (car lst)) ret)
 		  lst (cdr lst)))))
@@ -2205,21 +2208,10 @@ News agents may remove it"
 ;;
 (defvar generate-autoload-cookie)
 
-(eval-when-compile (require 'lisp-mnt))	; expand silly defsubsts
-(declare-function lm-summary "lisp-mnt" (&optional file))
-(declare-function lm-section-start "lisp-mnt" (header &optional after))
-(declare-function lm-section-end "lisp-mnt" (header))
-
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.
 This checks for style only, such as the first line, Commentary:,
 Code:, and others referenced in the style guide."
-  (if (featurep 'lisp-mnt)
-      nil
-    (require 'lisp-mnt)
-    ;; Old XEmacs don't have `lm-commentary-mark'
-    (if (and (not (fboundp 'lm-commentary-mark)) (fboundp 'lm-commentary))
-	(defalias 'lm-commentary-mark #'lm-commentary)))
   (save-excursion
     (let* ((f1 (file-name-nondirectory (buffer-file-name)))
 	   (fn (file-name-sans-extension f1))
@@ -2264,7 +2256,10 @@ Code:, and others referenced in the style guide."
 		    (re-search-forward "^(require" nil t)
 		    (re-search-forward "^(" nil t))
 		(beginning-of-line))
-	       (t (re-search-forward ";;; .* --- .*\n")))
+	       ((not (re-search-forward ";;; .* --- .*\n" nil t))
+                (checkdoc-create-error
+                 "You should have a summary line (\";;; .* --- .*\")"
+                 nil nil t)))
 	      (if (checkdoc-y-or-n-p
 		   "You should have a \";;; Commentary:\", add one? ")
 		  (insert "\n;;; Commentary:\n;; \n\n")
@@ -2280,7 +2275,7 @@ Code:, and others referenced in the style guide."
 	(if (or (not checkdoc-force-history-flag)
 		(file-exists-p "ChangeLog")
 		(file-exists-p "../ChangeLog")
-                (and (fboundp 'lm-history-mark) (funcall #'lm-history-mark)))
+                (lm-history-mark))
 	    nil
 	  (progn
 	    (goto-char (or (lm-commentary-mark) (point-min)))

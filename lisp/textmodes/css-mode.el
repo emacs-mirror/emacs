@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -844,7 +844,21 @@ cannot be completed sensibly: `custom-ident',
 (defvar css-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap info-lookup-symbol] 'css-lookup-symbol)
+    ;; `info-complete-symbol' is not used.
+    (define-key map [remap complete-symbol] 'completion-at-point)
     (define-key map "\C-c\C-f" 'css-cycle-color-format)
+    (easy-menu-define css-menu map "CSS mode menu"
+      '("CSS"
+        :help "CSS-specific features"
+        ["Reformat block" fill-paragraph
+         :help "Reformat declaration block or fill comment at point"]
+        ["Cycle color format" css-cycle-color-format
+         :help "Cycle color at point between different formats"]
+        "-"
+        ["Describe symbol" css-lookup-symbol
+         :help "Display documentation for a CSS symbol"]
+        ["Complete symbol" completion-at-point
+         :help "Complete symbol before point"]))
     map)
   "Keymap used in `css-mode'.")
 
@@ -859,7 +873,7 @@ cannot be completed sensibly: `custom-ident',
    (css--uri-re (1 "|") (2 "|"))))
 
 (defconst css-escapes-re
-  "\\\\\\(?:[^\000-\037\177]\\|[0-9a-fA-F]+[ \n\t\r\f]?\\)")
+  "\\\\\\(?:[^\000-\037\177]\\|[[:xdigit:]]+[ \n\t\r\f]?\\)")
 (defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re ;; (concat css-nmstart-re css-nmchar-re "*")
@@ -892,7 +906,7 @@ cannot be completed sensibly: `custom-ident',
     (,(concat "@" css-ident-re) (0 font-lock-builtin-face))
     ;; Selectors.
     ;; Allow plain ":root" as a selector.
-    ("^[ \t]*\\(:root\\)\\(?:[\n \t]*\\)*{" (1 'css-selector keep))
+    ("^[ \t]*\\(:root\\)[\n \t]*{" (1 'css-selector keep))
     ;; FIXME: attribute selectors don't work well because they may contain
     ;; strings which have already been highlighted as f-l-string-face and
     ;; thus prevent this highlighting from being applied (actually now that
@@ -915,7 +929,7 @@ cannot be completed sensibly: `custom-ident',
        "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
                                        css-pseudo-element-ids)
                                t)
-       "\\|\\::" (regexp-opt css-pseudo-element-ids t) "\\)"
+       "\\|::" (regexp-opt css-pseudo-element-ids t) "\\)"
        "\\(?:([^)]+)\\)?"
        (if (not sassy)
            "[^:{}()\n]*"
@@ -1065,10 +1079,10 @@ This recognizes CSS-color-4 extensions."
    (regexp-opt (mapcar #'car css--color-map) 'symbols)
    "\\|"
    ;; Short hex.  css-color-4 adds alpha.
-   "\\(#[0-9a-fA-F]\\{3,4\\}\\b\\)"
+   "\\(#[[:xdigit:]]\\{3,4\\}\\b\\)"
    "\\|"
    ;; Long hex.  css-color-4 adds alpha.
-   "\\(#\\(?:[0-9a-fA-F][0-9a-fA-F]\\)\\{3,4\\}\\b\\)"
+   "\\(#\\(?:[[:xdigit:]][[:xdigit:]]\\)\\{3,4\\}\\b\\)"
    "\\|"
    ;; RGB.
    "\\(\\_<rgba?(\\)"
@@ -1557,7 +1571,7 @@ rgb()/rgba()."
         (prev nil))
     (dolist (sel selectors)
       (cond
-       ((seq-contains sel ?&)
+       ((seq-contains-p sel ?&)
         (setq sel (replace-regexp-in-string "&" prev sel))
         (pop processed))
        ;; Unless this is the first selector, separate this one and the
@@ -1607,7 +1621,7 @@ rgb()/rgba()."
 This mode provides syntax highlighting, indentation, completion,
 and documentation lookup for CSS.
 
-Use `\\[complete-symbol]' to complete CSS properties, property values,
+Use `\\[completion-at-point]' to complete CSS properties, property values,
 pseudo-elements, pseudo-classes, at-rules, bang-rules, and HTML
 tags, classes and IDs.  Completion candidates for HTML class
 names and IDs are found by looking through open HTML mode

@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -125,6 +125,10 @@ struct frame
      The selected window of the selected frame is Emacs's selected window.  */
   Lisp_Object selected_window;
 
+  /* This frame's selected window when run_window_change_functions was
+     called the last time on this frame.  */
+  Lisp_Object old_selected_window;
+
   /* This frame's minibuffer window.
      Most frames have their own minibuffer windows,
      but only the selected frame's minibuffer window
@@ -177,7 +181,16 @@ struct frame
   Lisp_Object menu_bar_window;
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM)
+  /* A window used to display the tab-bar of a frame.  */
+  Lisp_Object tab_bar_window;
+
+  /* Desired and current contents displayed in that window.  */
+  Lisp_Object desired_tab_bar_string;
+  Lisp_Object current_tab_bar_string;
+#endif
+
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* A window used to display the tool-bar of a frame.  */
   Lisp_Object tool_bar_window;
 
@@ -185,9 +198,6 @@ struct frame
   Lisp_Object desired_tool_bar_string;
   Lisp_Object current_tool_bar_string;
 #endif
-
-  /* Desired and current tool-bar items.  */
-  Lisp_Object tool_bar_items;
 
 #ifdef USE_GTK
   /* Where tool bar is, can be left, right, top or bottom.
@@ -200,12 +210,20 @@ struct frame
   Lisp_Object font_data;
 #endif
 
-  /* Beyond here, there should be no more Lisp_Object components.  */
+  /* Desired and current tab-bar items.  */
+  Lisp_Object tab_bar_items;
+
+  /* Desired and current tool-bar items.  */
+  Lisp_Object tool_bar_items;
+  /* tool_bar_items should be the last Lisp_Object member.  */
 
   /* Cache of realized faces.  */
   struct face_cache *face_cache;
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+  /* Tab-bar item index of the item on which a mouse button was pressed.  */
+  int last_tab_bar_item;
+
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* Tool-bar item index of the item on which a mouse button was pressed.  */
   int last_tool_bar_item;
 #endif
@@ -253,13 +271,19 @@ struct frame
   /* Set to true when current redisplay has updated frame.  */
   bool_bf updated_p : 1;
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM)
+  /* Set to true to minimize tab-bar height even when
+     auto-resize-tab-bar is set to grow-only.  */
+  bool_bf minimize_tab_bar_window_p : 1;
+#endif
+
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* Set to true to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
   bool_bf minimize_tool_bar_window_p : 1;
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_NS)
+#ifdef HAVE_EXT_TOOL_BAR
   /* True means using a tool bar that comes from the toolkit.  */
   bool_bf external_tool_bar : 1;
 #endif
@@ -274,9 +298,8 @@ struct frame
   /* True if it needs to be redisplayed.  */
   bool_bf redisplay : 1;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)	\
-    || defined (HAVE_NS) || defined (USE_GTK)
-  /* True means using a menu bar that comes from the X toolkit.  */
+#ifdef HAVE_EXT_MENU_BAR
+  /* True means using a menu bar that comes from the toolkit.  */
   bool_bf external_menu_bar : 1;
 #endif
 
@@ -321,9 +344,18 @@ struct frame
      cleared.  */
   bool_bf explicit_name : 1;
 
-  /* True if configuration of windows on this frame has changed since
-     last call of run_window_size_change_functions.  */
-  bool_bf window_configuration_changed : 1;
+  /* True if at least one window on this frame changed since the last
+     call of run_window_change_functions.  Changes are either "state
+     changes" (a window has been created, deleted or got assigned
+     another buffer) or "size changes" (the total or body size of a
+     window changed).  run_window_change_functions exits early unless
+     either this flag is true or a window selection happened on this
+     frame.  */
+  bool_bf window_change : 1;
+
+  /* True if running window state change functions has been explicitly
+     requested for this frame since last redisplay.  */
+  bool_bf window_state_change : 1;
 
   /* True if the mouse has moved on this display device
      since the last time we checked.  */
@@ -386,12 +418,16 @@ struct frame
      in pixels.  */
   bool_bf new_pixelwise : 1;
 
-  /* True means x_set_window_size requests can be processed for this
-     frame.  */
-  bool_bf can_x_set_window_size : 1;
+  /* True means set_window_size_hook requests can be processed for
+     this frame.  */
+  bool_bf can_set_window_size : 1;
 
   /* Set to true after this frame was made by `make-frame'.  */
   bool_bf after_make_frame : 1;
+
+  /* Whether the tab bar height change should be taken into account.  */
+  bool_bf tab_bar_redisplayed : 1;
+  bool_bf tab_bar_resized : 1;
 
   /* Whether the tool bar height change should be taken into account.  */
   bool_bf tool_bar_redisplayed : 1;
@@ -404,7 +440,34 @@ struct frame
   /* Non-zero if this frame's faces need to be recomputed.  */
   bool_bf face_change : 1;
 
+  /* Non-zero if this frame's image cache cannot be freed because the
+     frame is in the process of being redisplayed.  */
+  bool_bf inhibit_clear_image_cache : 1;
+
   /* Bitfield area ends here.  */
+
+  /* This frame's change stamp, set the last time window change
+     functions were run for this frame.  Should never be 0 because
+     that's the change stamp of a new window.  A window was not on a
+     frame the last run_window_change_functions was called on it if
+     it's change stamp differs from that of its frame.  */
+  int change_stamp;
+
+  /* This frame's number of windows, set the last time window change
+     functions were run for this frame.  Should never be 0 even for
+     minibuffer-only frames.  If no window has been added, this allows
+     to detect whether a window was deleted on this frame since the
+     last time run_window_change_functions was called on it.  */
+  ptrdiff_t number_of_windows;
+
+  /* Number of lines (rounded up) of tab bar.  REMOVE THIS  */
+  int tab_bar_lines;
+
+  /* Height of frame internal tab bar in pixels.  */
+  int tab_bar_height;
+
+  int n_tab_bar_rows;
+  int n_tab_bar_items;
 
   /* Number of lines (rounded up) of tool bar.  REMOVE THIS  */
   int tool_bar_lines;
@@ -553,7 +616,7 @@ struct frame
   int config_scroll_bar_lines;
 
   /* The baud rate that was used to calculate costs for this frame.  */
-  int cost_calculation_baud_rate;
+  intmax_t cost_calculation_baud_rate;
 
   /* Frame opacity
      alpha[0]: alpha transparency of the active frame
@@ -662,10 +725,37 @@ fset_selected_window (struct frame *f, Lisp_Object val)
   f->selected_window = val;
 }
 INLINE void
+fset_old_selected_window (struct frame *f, Lisp_Object val)
+{
+  f->old_selected_window = val;
+}
+INLINE void
 fset_title (struct frame *f, Lisp_Object val)
 {
   f->title = val;
 }
+INLINE void
+fset_tab_bar_items (struct frame *f, Lisp_Object val)
+{
+  f->tab_bar_items = val;
+}
+#if defined (HAVE_WINDOW_SYSTEM)
+INLINE void
+fset_tab_bar_window (struct frame *f, Lisp_Object val)
+{
+  f->tab_bar_window = val;
+}
+INLINE void
+fset_current_tab_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->current_tab_bar_string = val;
+}
+INLINE void
+fset_desired_tab_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->desired_tab_bar_string = val;
+}
+#endif /* HAVE_WINDOW_SYSTEM */
 INLINE void
 fset_tool_bar_items (struct frame *f, Lisp_Object val)
 {
@@ -678,7 +768,7 @@ fset_tool_bar_position (struct frame *f, Lisp_Object val)
   f->tool_bar_position = val;
 }
 #endif /* USE_GTK */
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
 INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
 {
@@ -752,8 +842,8 @@ default_pixels_per_inch_y (void)
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
 
-/* FRAME_WINDOW_P tests whether the frame is a window, and is
-   defined to be the predicate for the window system being used.  */
+/* FRAME_WINDOW_P tests whether the frame is a graphical window system
+   frame.  */
 
 #ifdef HAVE_X_WINDOWS
 #define FRAME_WINDOW_P(f) FRAME_X_P (f)
@@ -844,9 +934,15 @@ default_pixels_per_inch_y (void)
 /* Pixel height of frame F's menu bar.  */
 #define FRAME_MENU_BAR_HEIGHT(f) (f)->menu_bar_height
 
+/* Number of lines of frame F used for the tab-bar.  */
+#define FRAME_TAB_BAR_LINES(f) (f)->tab_bar_lines
+
+/* Pixel height of frame F's tab-bar.  */
+#define FRAME_TAB_BAR_HEIGHT(f) (f)->tab_bar_height
+
 /* True if this frame should display a tool bar
    in a way that does not use any text lines.  */
-#if defined (USE_GTK) || defined (HAVE_NS)
+#ifdef HAVE_EXT_TOOL_BAR
 #define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
 #else
 #define FRAME_EXTERNAL_TOOL_BAR(f) false
@@ -867,16 +963,15 @@ default_pixels_per_inch_y (void)
 
 /* Lines above the top-most window in frame F.  */
 #define FRAME_TOP_MARGIN(F) \
-  (FRAME_MENU_BAR_LINES (F) + FRAME_TOOL_BAR_LINES (F))
+  (FRAME_MENU_BAR_LINES (F) + FRAME_TAB_BAR_LINES (F) + FRAME_TOOL_BAR_LINES (F))
 
 /* Pixel height of frame F's top margin.  */
 #define FRAME_TOP_MARGIN_HEIGHT(F)				\
-  (FRAME_MENU_BAR_HEIGHT (F) + FRAME_TOOL_BAR_HEIGHT (F))
+  (FRAME_MENU_BAR_HEIGHT (F) + FRAME_TAB_BAR_HEIGHT (F) + FRAME_TOOL_BAR_HEIGHT (F))
 
 /* True if this frame should display a menu bar
    in a way that does not use any text lines.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-     || defined (HAVE_NS) || defined (USE_GTK)
+#ifdef HAVE_EXT_MENU_BAR
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) false
@@ -908,10 +1003,13 @@ default_pixels_per_inch_y (void)
    are frozen on frame F.  */
 #define FRAME_WINDOWS_FROZEN(f) (f)->frozen_window_starts
 
-/* True if the frame's window configuration has changed since last call
-   of run_window_size_change_functions.  */
-#define FRAME_WINDOW_CONFIGURATION_CHANGED(f)	\
-  (f)->window_configuration_changed
+/* True if at least one window changed on frame F since the last time
+   window change functions were run on F.  */
+#define FRAME_WINDOW_CHANGE(f) (f)->window_change
+
+/* True if running window state change functions has been explicitly
+   requested for this frame since last redisplay.  */
+#define FRAME_WINDOW_STATE_CHANGE(f) (f)->window_state_change
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
 #define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
@@ -919,8 +1017,10 @@ default_pixels_per_inch_y (void)
 /* The root window of the window tree of frame F.  */
 #define FRAME_ROOT_WINDOW(f) f->root_window
 
-/* The currently selected window of the window tree of frame F.  */
+/* The currently selected window of frame F.  */
 #define FRAME_SELECTED_WINDOW(f) f->selected_window
+/* The old selected window of frame F.  */
+#define FRAME_OLD_SELECTED_WINDOW(f) f->old_selected_window
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -1215,15 +1315,18 @@ SET_FRAME_VISIBLE (struct frame *f, int v)
   (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
 
 extern Lisp_Object selected_frame;
+extern Lisp_Object old_selected_frame;
 
-#if ! (defined USE_GTK || defined HAVE_NS)
+extern int frame_default_tab_bar_height;
+
+#ifndef HAVE_EXT_TOOL_BAR
 extern int frame_default_tool_bar_height;
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 # define WINDOW_SYSTEM_RETURN
 #else
-# define WINDOW_SYSTEM_RETURN _Noreturn
+# define WINDOW_SYSTEM_RETURN _Noreturn ATTRIBUTE_COLD
 #endif
 
 extern WINDOW_SYSTEM_RETURN struct frame *
@@ -1441,7 +1544,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
     - FRAME_TOTAL_FRINGE_WIDTH (f)					\
     - FRAME_SCROLL_BAR_AREA_WIDTH (f)					\
     - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))				\
-   / FRAME_COLUMN_WIDTH (f))						\
+   / FRAME_COLUMN_WIDTH (f))
 
 #define FRAME_PIXEL_HEIGHT_TO_TEXT_LINES(f, height)			\
   (((height)								\
@@ -1505,86 +1608,67 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
-extern void x_set_scroll_bar_default_width (struct frame *);
-extern void x_set_scroll_bar_default_height (struct frame *);
-extern void x_set_offset (struct frame *, int, int, int);
-extern void x_wm_set_size_hint (struct frame *f, long flags, bool user_position);
-extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
-extern void x_set_frame_parameters (struct frame *, Lisp_Object);
-extern void x_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_line_spacing (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_screen_gamma (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_font (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_font_backend (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_left_fringe (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_right_fringe (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_border_width (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_right_divider_width (struct frame *, Lisp_Object,
-				       Lisp_Object);
-extern void x_set_bottom_divider_width (struct frame *, Lisp_Object,
-					Lisp_Object);
-extern void x_set_visibility (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_autoraise (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_autolower (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_unsplittable (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_vertical_scroll_bars (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_horizontal_scroll_bars (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_scroll_bar_width (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_scroll_bar_height (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_frame_parameters (struct frame *, Lisp_Object);
+extern void gui_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_line_spacing (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_screen_gamma (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_font (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_font_backend (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_left_fringe (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_right_fringe (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_border_width (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_right_divider_width (struct frame *, Lisp_Object,
+                                         Lisp_Object);
+extern void gui_set_bottom_divider_width (struct frame *, Lisp_Object,
+                                          Lisp_Object);
+extern void gui_set_visibility (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_autoraise (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_autolower (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_unsplittable (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_vertical_scroll_bars (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_horizontal_scroll_bars (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_scroll_bar_width (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_scroll_bar_height (struct frame *, Lisp_Object, Lisp_Object);
 
-extern long x_figure_window_size (struct frame *, Lisp_Object, bool, int *, int *);
+extern long gui_figure_window_size (struct frame *, Lisp_Object, bool, bool, int *, int *);
 
-extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);
 
-extern Lisp_Object display_x_get_resource (Display_Info *,
-					   Lisp_Object attribute,
-					   Lisp_Object class,
-					   Lisp_Object component,
-					   Lisp_Object subclass);
+extern Lisp_Object gui_display_get_resource (Display_Info *,
+                                             Lisp_Object attribute,
+                                             Lisp_Object class,
+                                             Lisp_Object component,
+                                             Lisp_Object subclass);
 
 extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
-extern void x_set_window_size (struct frame *f, bool change_gravity,
-			       int width, int height, bool pixelwise);
-extern Lisp_Object x_get_focus_frame (struct frame *);
 extern void frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
-extern void x_make_frame_visible (struct frame *f);
-extern void x_make_frame_invisible (struct frame *f);
-extern void x_iconify_frame (struct frame *f);
-extern void x_set_frame_alpha (struct frame *f);
-extern void x_activate_menubar (struct frame *);
-extern void x_real_positions (struct frame *, int *, int *);
 extern void free_frame_menubar (struct frame *);
-extern void x_free_frame_resources (struct frame *);
 extern bool frame_ancestor_p (struct frame *af, struct frame *df);
 extern enum internal_border_part frame_internal_border_part (struct frame *f, int x, int y);
 
 #if defined HAVE_X_WINDOWS
 extern void x_wm_set_icon_position (struct frame *, int, int);
 #if !defined USE_X_TOOLKIT
-extern char *x_get_resource_string (const char *, const char *);
+extern const char *x_get_resource_string (const char *, const char *);
 #endif
 extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
-extern void x_query_colors (struct frame *f, XColor *, int);
-extern void x_focus_frame (struct frame *, bool);
-
 #ifndef HAVE_NS
-
-extern bool x_bitmap_icon (struct frame *, Lisp_Object);
 
 /* Set F's bitmap icon, if specified among F's parameters.  */
 
 INLINE void
-x_set_bitmap_icon (struct frame *f)
+gui_set_bitmap_icon (struct frame *f)
 {
   Lisp_Object obj = assq_no_quit (Qicon_type, f->param_alist);
 
-  if (CONSP (obj) && !NILP (XCDR (obj)))
-    x_bitmap_icon (f, XCDR (obj));
+  if (CONSP (obj) && !NILP (XCDR (obj))
+      && FRAME_TERMINAL (f)->set_bitmap_icon_hook)
+    FRAME_TERMINAL (f)->set_bitmap_icon_hook (f, XCDR (obj));
 }
 
 #endif /* !HAVE_NS */
@@ -1606,7 +1690,7 @@ flush_frame (struct frame *f)
 #ifdef HAVE_WINDOW_SYSTEM
 
 struct MonitorInfo {
-  XRectangle geom, work;
+  Emacs_Rectangle geom, work;
   int mm_width, mm_height;
   char *name;
 };

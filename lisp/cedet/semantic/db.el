@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -171,18 +171,6 @@ based on whichever technique used.  This method provides a hook for
 them to convert TAG into a more complete form."
   (cons obj tag))
 
-(cl-defmethod object-print ((obj semanticdb-abstract-table) &rest strings)
-  "Pretty printer extension for `semanticdb-abstract-table'.
-Adds the number of tags in this file to the object print name."
-  (if (or (not strings)
-	  (and (= (length strings) 1) (stringp (car strings))
-	       (string= (car strings) "")))
-      ;; Else, add a tags quantifier.
-      (cl-call-next-method obj (format " (%d tags)" (length (semanticdb-get-tags obj))))
-    ;; Pass through.
-    (apply #'cl-call-next-method obj strings)
-    ))
-
 ;;; Index Cache
 ;;
 (defclass semanticdb-abstract-search-index ()
@@ -250,7 +238,7 @@ If nil, the table's buffer is no in Emacs.  If it has a value, then
 it is in Emacs.")
    (dirty :initform nil
 	  :documentation
-	  "Non nil if this table needs to be `Saved'.")
+	  "Non-nil if this table needs to be `Saved'.")
    (db-refs :initform nil
 	    :documentation
 	    "List of `semanticdb-table' objects referring to this one.
@@ -307,11 +295,6 @@ If the buffer is not in memory, load it with `find-file-noselect'."
 If OBJ's file is not loaded, read it in first."
   (set-buffer (semanticdb-get-buffer obj)))
 
-(cl-defmethod semanticdb-full-filename ((obj semanticdb-table))
-  "Fetch the full filename that OBJ refers to."
-  (expand-file-name (oref obj file)
-		    (oref (oref obj parent-db) reference-directory)))
-
 (cl-defmethod semanticdb-dirty-p ((obj semanticdb-table))
   "Return non-nil if OBJ is dirty."
   (oref obj dirty))
@@ -321,13 +304,18 @@ If OBJ's file is not loaded, read it in first."
   (oset obj dirty t)
   )
 
-(cl-defmethod object-print ((obj semanticdb-table) &rest strings)
+(cl-defmethod semanticdb-debug-info ((obj semanticdb-table))
+  (list (format "(%d tags)%s"
+                (length (semanticdb-get-tags obj))
+                (if (oref obj dirty)
+                    ", DIRTY"
+                  ""))))
+
+(cl-defmethod cl-print-object ((obj semanticdb-table) stream)
   "Pretty printer extension for `semanticdb-table'.
 Adds the number of tags in this file to the object print name."
-  (apply #'cl-call-next-method obj
-	 (format " (%d tags)" (length (semanticdb-get-tags obj)))
-         (if (oref obj dirty) ", DIRTY" "")
-         strings))
+  (princ (eieio-object-name obj (semanticdb-debug-info obj))
+         stream))
 
 ;;; DATABASE BASE CLASS
 ;;
@@ -364,6 +352,11 @@ Note: This index will not be saved in a persistent file.")
 	   :documentation "List of `semantic-db-table' objects."))
   "Database of file tables.")
 
+(cl-defmethod semanticdb-full-filename ((obj semanticdb-table))
+  "Fetch the full filename that OBJ refers to."
+  (expand-file-name (oref obj file)
+		    (oref (oref obj parent-db) reference-directory)))
+
 (cl-defmethod semanticdb-full-filename ((obj semanticdb-project-database))
   "Fetch the full filename that OBJ refers to.
 Abstract tables do not have file names associated with them."
@@ -380,16 +373,17 @@ where it may need to resynchronize with some persistent storage."
       (setq tabs (cdr tabs)))
     dirty))
 
-(cl-defmethod object-print ((obj semanticdb-project-database) &rest strings)
+(cl-defmethod semanticdb-debug-info ((obj semanticdb-project-database))
+  (list (format "(%d tables%s)"
+                (length (semanticdb-get-database-tables obj))
+                (if (semanticdb-dirty-p obj)
+                    " DIRTY" ""))))
+
+(cl-defmethod cl-print-object ((obj semanticdb-project-database) stream)
   "Pretty printer extension for `semanticdb-project-database'.
 Adds the number of tables in this file to the object print name."
-  (apply #'cl-call-next-method obj
-	 (format " (%d tables%s)"
-                 (length (semanticdb-get-database-tables obj))
-                 (if (semanticdb-dirty-p obj)
-                     " DIRTY" "")
-                 )
-         strings))
+  (princ (eieio-object-name obj (semanticdb-debug-info obj))
+         stream))
 
 (cl-defmethod semanticdb-create-database ((dbc (subclass semanticdb-project-database)) directory)
   "Create a new semantic database of class DBC for DIRECTORY and return it.
@@ -839,7 +833,7 @@ value.")
 (make-variable-buffer-local 'semanticdb-project-system-databases)
 
 (defvar semanticdb-search-system-databases t
-  "Non nil if search routines are to include a system database.")
+  "Non-nil if search routines are to include a system database.")
 
 (defun semanticdb-current-database-list (&optional dir)
   "Return a list of databases associated with the current buffer.

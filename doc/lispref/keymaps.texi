@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -545,8 +545,8 @@ key.
 
 @item
 @cindex @kbd{C-x 6}
-@vindex 2C-mode-map
-@code{2C-mode-map} is the global keymap used for the @kbd{C-x 6} prefix
+@vindex ctl-x-6-map
+@code{ctl-x-6-map} is the global keymap used for the @kbd{C-x 6} prefix
 key.
 
 @item
@@ -1614,8 +1614,9 @@ with bindings made in the minor mode, local, or global keymaps.  I.e.,
 the remapping only applies if the original key sequence would
 otherwise not have any binding.
 
-@code{local-function-key-map} inherits from @code{function-key-map},
-but the latter should not be used directly.
+@code{local-function-key-map} inherits from @code{function-key-map}.
+The latter should only be altered if you want the binding to apply in
+all terminals, so using the former is almost always preferred.
 @end defvar
 
 @defvar key-translation-map
@@ -2502,7 +2503,7 @@ can do it this way:
 
   Emacs usually shows a @dfn{menu bar} at the top of each frame.
 @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu bar items are
-subcommands of the fake function key @code{menu-bar}, as defined
+subcommands of the fake function key @key{MENU-BAR}, as defined
 in the active keymaps.
 
   To add an item to the menu bar, invent a fake function key of your
@@ -2554,9 +2555,10 @@ bar item:
 @end example
 
 @noindent
-Here, @code{edit} is the fake function key used by the global map for
-the @samp{Edit} menu bar item.  The main reason to suppress a global
-menu bar item is to regain space for mode-specific items.
+Here, @code{edit} is the symbol produced by a fake function key, it is
+used by the global map for the @samp{Edit} menu bar item.  The main
+reason to suppress a global menu bar item is to regain space for
+mode-specific items.
 
 @defvar menu-bar-final-items
 Normally the menu bar shows global items followed by items defined by the
@@ -2601,7 +2603,7 @@ If the value is @code{grow-only}, the tool bar expands automatically,
 but does not contract automatically.
 
   The tool bar contents are controlled by a menu keymap attached to a
-fake function key called @code{tool-bar} (much like the way the menu
+fake function key called @key{TOOL-BAR} (much like the way the menu
 bar is controlled).  So you define a tool bar item using
 @code{define-key}, like this:
 

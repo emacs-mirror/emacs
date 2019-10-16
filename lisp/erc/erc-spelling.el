@@ -1,6 +1,6 @@
 ;;; erc-spelling.el --- use flyspell in ERC
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
@@ -191,19 +191,19 @@ on 64-bit platforms.
 @cindex integer range
 @cindex number of bignum bits, limit on
 @defvar integer-width
-The value of this variable is a nonnegative integer that is an upper
-bound on the number of bits in a bignum.  Integers outside the fixnum
-range are limited to absolute values less than
+The value of this variable is a nonnegative integer that controls
+whether Emacs signals a range error when a large integer would be
+calculated.  Integers with absolute values less than
 @ifnottex
 2**@var{n},
 @end ifnottex
 @tex
 @math{2^{n}},
 @end tex
-where @var{n} is this variable's value.  Attempts to create bignums outside
-this range signal a range error.  Setting this variable
-to zero disables creation of bignums; setting it to a large number can
-cause Emacs to consume large quantities of memory if a computation
+where @var{n} is this variable's value, do not signal a range error.
+Attempts to create larger integers typically signal a range error,
+although there might be no signal if a larger integer can be created cheaply.
+Setting this variable to a large number can be costly if a computation
 creates huge integers.
 @end defvar
 
@@ -313,14 +313,18 @@ and returns the result.  @var{x1} and @var{x2} must be floating point.
 
 @defun logb x
 This function returns the binary exponent of @var{x}.  More
-precisely, the value is the logarithm base 2 of @math{|x|}, rounded
-down to an integer.
+precisely, if @var{x} is finite and nonzero, the value is the
+logarithm base 2 of @math{|x|}, rounded down to an integer.
+If @var{x} is zero, infinite, or a NaN, the value is minus infinity,
+plus infinity, or a NaN respectively.
 
 @example
 (logb 10)
      @result{} 3
 (logb 10.0e20)
      @result{} 69
+(logb 0)
+     @result{} -1.0e+INF
 @end example
 @end defun
 
@@ -1068,7 +1072,8 @@ result is 0, which is an identity element for this operation.  If
 @defun lognot integer
 This function returns the bitwise complement of its argument: the @var{n}th
 bit is one in the result if, and only if, the @var{n}th bit is zero in
-@var{integer}, and vice-versa.
+@var{integer}, and vice-versa.  The result equals @minus{}1 @minus{}
+@var{integer}.
 
 @example
 (lognot 5)

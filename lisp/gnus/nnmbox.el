@@ -1,6 +1,6 @@
 ;;; nnmbox.el --- mail mbox access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -130,19 +130,16 @@
 		     nnmbox-mbox-file)
     t)))
 
-(deffoo nnmbox-close-server (&optional server)
-  (when (and nnmbox-mbox-buffer
-	     (buffer-name nnmbox-mbox-buffer))
+(deffoo nnmbox-close-server (&optional server _defs)
+  (when (buffer-live-p nnmbox-mbox-buffer)
     (kill-buffer nnmbox-mbox-buffer))
   (nnoo-close-server 'nnmbox server)
   t)
 
 (deffoo nnmbox-server-opened (&optional server)
   (and (nnoo-current-server-p 'nnmbox server)
-       nnmbox-mbox-buffer
-       (buffer-name nnmbox-mbox-buffer)
-       nntp-server-buffer
-       (buffer-name nntp-server-buffer)))
+       (buffer-live-p nnmbox-mbox-buffer)
+       (buffer-live-p nntp-server-buffer)))
 
 (deffoo nnmbox-request-article (article &optional newsgroup server buffer)
   (nnmbox-possibly-change-newsgroup newsgroup server)
@@ -463,8 +460,7 @@
   (when (and server
 	     (not (nnmbox-server-opened server)))
     (nnmbox-open-server server))
-  (when (or (not nnmbox-mbox-buffer)
-	    (not (buffer-name nnmbox-mbox-buffer)))
+  (unless (buffer-live-p nnmbox-mbox-buffer)
     (nnmbox-read-mbox))
   (when (not nnmbox-group-alist)
     (nnmail-activate 'nnmbox))
@@ -622,8 +618,7 @@
 (defun nnmbox-read-mbox ()
   (nnmail-activate 'nnmbox)
   (nnmbox-create-mbox)
-  (if (and nnmbox-mbox-buffer
-	   (buffer-name nnmbox-mbox-buffer)
+  (if (and (buffer-live-p nnmbox-mbox-buffer)
 	   (with-current-buffer nnmbox-mbox-buffer
 	     (= (buffer-size) (nnheader-file-size nnmbox-mbox-file))))
       ()

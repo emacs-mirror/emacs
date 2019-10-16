@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -552,7 +552,11 @@ value unless you are sure you know what it does."
 			 (setq prefixes nil)
 			 (delete-region (point-min) (point)))
 		     (setq prefixes (cdr prefixes))))))
-	   (subst-char-in-region (point-min) (point-max) ?- ?\s t)
+	   (goto-char (point-min))
+           ;; Translate characters commonly used as delimiters between
+           ;; words in symbols into space; e.g. foo:bar-zot/thing.
+	   (while (re-search-forward "[-:/]+" nil t)
+	     (replace-match " "))
 	   (capitalize-region (point-min) (point-max))
 	   (unless no-suffix
 	     (goto-char (point-max))
@@ -1722,10 +1726,8 @@ Operate on all settings in this buffer:\n"))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
   (message "Creating customization items ...done")
-  (message "Resetting customization items...")
   (unless (eq custom-buffer-style 'tree)
     (mapc 'custom-magic-reset custom-options))
-  (message "Resetting customization items...done")
   (message "Creating customization setup...")
   (widget-setup)
   (buffer-enable-undo)
@@ -1827,20 +1829,9 @@ item in another window.\n\n"))
 			      (" `-" "bottom")))
 
 (defun custom-browse-insert-prefix (prefix)
-  "Insert PREFIX.  On XEmacs convert it to line graphics."
-  ;; Fixme: do graphics.
-  (if nil ; (featurep 'xemacs)
-      (progn
-	(insert "*")
-	(while (not (string-equal prefix ""))
-	  (let ((entry (substring prefix 0 3)))
-	    (setq prefix (substring prefix 3))
-	    (let ((overlay (make-overlay (1- (point)) (point) nil t nil))
-		  (name (nth 1 (assoc entry custom-browse-alist))))
-	      (overlay-put overlay 'end-glyph (widget-glyph-find name entry))
-	      (overlay-put overlay 'start-open t)
-	      (overlay-put overlay 'end-open t)))))
-    (insert prefix)))
+  "Insert PREFIX."
+  (declare (obsolete insert "27.1"))
+  (insert prefix))
 
 ;;; Modification of Basic Widgets.
 ;;
@@ -2221,7 +2212,12 @@ and `face'."
     (unless (eq state 'modified)
       (unless (memq state '(nil unknown hidden))
 	(widget-put widget :custom-state 'modified))
-      (custom-magic-reset widget)
+      ;; Update the status text (usually from "STANDARD" to "EDITED
+      ;; bla bla" in the buffer after the command has run.  Otherwise
+      ;; commands like `M-u' (that work on a region in the buffer)
+      ;; will upcase the wrong part of the buffer, since more text has
+      ;; been inserted before point.
+      (run-with-idle-timer 0.0 nil #'custom-magic-reset widget)
       (apply 'widget-default-notify widget args))))
 
 (defun custom-redraw (widget)
@@ -2420,9 +2416,21 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 ;; Those functions are for the menu. WIDGET is NOT the comment widget. It's
 ;; the global custom one
 (defun custom-comment-show (widget)
-  (widget-put widget :comment-shown t)
-  (custom-redraw widget)
-  (widget-setup))
+  "Show the comment editable field that belongs to WIDGET."
+  (let ((child (car (widget-get widget :children)))
+        ;; Just to be safe, we will restore this value after redrawing.
+        (old-shown-value (widget-get widget :shown-value)))
+    (widget-put widget :comment-shown t)
+    ;; Save the changes made by the user before redrawing, to avoid
+    ;; losing customizations in progress.  (Bug#5358)
+    (if (eq (widget-type widget) 'custom-face)
+        (if (eq (widget-type child) 'custom-face-edit)
+            (widget-put widget :shown-value `((t ,(widget-value child))))
+          (widget-put widget :shown-value (widget-value child)))
+      (widget-put widget :shown-value (list (widget-value child))))
+    (custom-redraw widget)
+    (widget-put widget :shown-value old-shown-value)
+    (widget-setup)))
 
 (defun custom-comment-invisible-p (widget)
   (let ((val (widget-value (widget-get widget :comment-widget))))
@@ -2581,7 +2589,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 
     ;; If we don't know the state, see if we need to edit it in lisp form.
     (unless state
-      (setq state (if (custom-show type value) 'unknown 'hidden)))
+      (with-suppressed-warnings ((obsolete custom-show))
+        (setq state (if (custom-show type value) 'unknown 'hidden))))
     (when (eq state 'unknown)
       (unless (widget-apply conv :match value)
 	(setq form 'mismatch)))
@@ -2813,12 +2822,35 @@ Possible return values are `standard', `saved', `set', `themed',
 	     'changed))
 	  (t 'rogue))))
 
+(defun custom-variable-modified-p (widget)
+  "Non-nil if the variable value of WIDGET has been modified.
+WIDGET should be a custom-variable widget, whose first child is the widget
+that holds the value.
+Modified means that the widget that holds the value has been edited by the user
+in a customize buffer.
+To check for other states, call `custom-variable-state'."
+  (catch 'get-error
+    (let* ((symbol (widget-get widget :value))
+           (get (or (get symbol 'custom-get) 'default-value))
+           (value (if (default-boundp symbol)
+                      (condition-case nil
+                          (funcall get symbol)
+                        (error (throw 'get-error t)))
+                    (symbol-value symbol))))
+      (not (equal value (widget-value (car (widget-get widget :children))))))))
+
 (defun custom-variable-state-set (widget &optional state)
   "Set the state of WIDGET to STATE.
-If STATE is nil, the value is computed by `custom-variable-state'."
+If STATE is nil, the new state is computed by `custom-variable-modified-p' if
+WIDGET has been edited in the Custom buffer, or by `custom-variable-state'
+otherwise."
   (widget-put widget :custom-state
-	      (or state (custom-variable-state (widget-value widget)
-					       (widget-get widget :value)))))
+	      (or state
+                  (and (custom-variable-modified-p widget) 'modified)
+                  (custom-variable-state (widget-value widget)
+                                         (widget-value
+                                          (car
+                                           (widget-get widget :children)))))))
 
 (defun custom-variable-standard-value (widget)
   (get (widget-value widget) 'standard-value))
@@ -3638,9 +3670,9 @@ the present value is saved to its :shown-value property instead."
 		    (insert-char ?\s indent))
 		  (widget-create-child-and-convert
 		   widget 'sexp :value spec))))
-	  (custom-face-state-set widget)
-	  (push editor children)
-	  (widget-put widget :children children))))))
+          (push editor children)
+          (widget-put widget :children children)
+	  (custom-face-state-set widget))))))
 
 (defvar custom-face-menu
   `(("Set for Current Session" custom-face-set)
@@ -3726,9 +3758,14 @@ This is one of `set', `saved', `changed', `themed', or `rogue'."
       state)))
 
 (defun custom-face-state-set (widget)
-  "Set the state of WIDGET."
-  (widget-put widget :custom-state
-	      (custom-face-state (widget-value widget))))
+  "Set the state of WIDGET, a custom-face widget.
+If the user edited the widget, set the state to modified.  If not, the new
+state is one of the return values of `custom-face-state'."
+  (let ((face (widget-value widget)))
+    (widget-put widget :custom-state
+                (if (face-spec-match-p face (custom-face-widget-to-spec widget))
+                    (custom-face-state face)
+                  'modified))))
 
 (defun custom-face-action (widget &optional event)
   "Show the menu for `custom-face' WIDGET.
@@ -4043,7 +4080,7 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
     (cond ((and (eq custom-buffer-style 'tree)
 		(eq state 'hidden)
 		(or members (custom-unloaded-widget-p widget)))
-	   (custom-browse-insert-prefix prefix)
+	   (insert prefix)
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-visibility
 		  :tag "+")
@@ -4056,19 +4093,17 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
 	   (widget-put widget :buttons buttons))
 	  ((and (eq custom-buffer-style 'tree)
 		(zerop (length members)))
-	   (custom-browse-insert-prefix prefix)
-	   (insert "[ ]-- ")
+	   (insert prefix "[ ]-- ")
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-group-tag)
 		 buttons)
 	   (insert " " tag "\n")
 	   (widget-put widget :buttons buttons))
 	  ((eq custom-buffer-style 'tree)
-	   (custom-browse-insert-prefix prefix)
+	   (insert prefix)
 	   (if (zerop (length members))
 	       (progn
-		 (custom-browse-insert-prefix prefix)
-		 (insert "[ ]-- ")
+		 (insert prefix "[ ]-- ")
 		 ;; (widget-glyph-insert nil "[ ]" "empty")
 		 ;; (widget-glyph-insert nil "-- " "horizontal")
 		 (push (widget-create-child-and-convert

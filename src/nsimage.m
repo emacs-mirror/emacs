@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2018 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -76,9 +76,8 @@ ns_load_image (struct frame *f, struct image *img,
 {
   EmacsImage *eImg = nil;
   NSSize size;
-  Lisp_Object lisp_index, lisp_rotation;
+  Lisp_Object lisp_index;
   unsigned int index;
-  double rotation;
 
   NSTRACE ("ns_load_image");
 
@@ -86,9 +85,6 @@ ns_load_image (struct frame *f, struct image *img,
 
   lisp_index = Fplist_get (XCDR (img->spec), QCindex);
   index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
-
-  lisp_rotation = Fplist_get (XCDR (img->spec), QCrotation);
-  rotation = NUMBERP (lisp_rotation) ? XFLOATINT (lisp_rotation) : 0;
 
   if (STRINGP (spec_file))
     {
@@ -119,15 +115,6 @@ ns_load_image (struct frame *f, struct image *img,
 
   img->lisp_data = [eImg getMetadata];
 
-  if (rotation != 0)
-    {
-      EmacsImage *temp = [eImg rotate:rotation];
-      [eImg release];
-      eImg = temp;
-    }
-
-  [eImg setSizeFromSpec:XCDR (img->spec)];
-
   size = [eImg size];
   img->width = size.width;
   img->height = size.height;
@@ -149,6 +136,18 @@ int
 ns_image_height (void *img)
 {
   return [(id)img size].height;
+}
+
+void
+ns_image_set_size (void *img, int width, int height)
+{
+  [(EmacsImage *)img setSize:NSMakeSize (width, height)];
+}
+
+void
+ns_image_set_transform (void *img, double m[3][3])
+{
+  [(EmacsImage *)img setTransform:m];
 }
 
 unsigned long
@@ -189,7 +188,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   EmacsImage *image;
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  found = x_find_image_file (file);
+  found = image_find_image_file (file);
   if (!STRINGP (found))
     return nil;
   found = ENCODE_FILE (found);
@@ -221,6 +220,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 {
   [stippleMask release];
   [bmRep release];
+  [transform release];
   [super dealloc];
 }
 
@@ -309,8 +309,8 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   if (bmRep == nil || color == nil)
     return self;
 
-  if ([color colorSpaceName] != NSCalibratedRGBColorSpace)
-    rgbColor = [color colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+  if ([color colorSpace] != [NSColorSpace genericRGBColorSpace])
+    rgbColor = [color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
   else
     rgbColor = color;
 
@@ -524,102 +524,12 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   return YES;
 }
 
-- (void)setSizeFromSpec: (Lisp_Object) spec
+- (void)setTransform: (double[3][3]) m
 {
-  NSSize size = [self size];
-  Lisp_Object value;
-  double scale = 1, aspect = size.width / size.height;
-  double width = -1, height = -1, max_width = -1, max_height = -1;
-
-  value = Fplist_get (spec, QCscale);
-  if (NUMBERP (value))
-    scale = XFLOATINT (value) ;
-
-  value = Fplist_get (spec, QCmax_width);
-  if (NUMBERP (value))
-    max_width = XFLOATINT (value);
-
-  value = Fplist_get (spec, QCmax_height);
-  if (NUMBERP (value))
-    max_height = XFLOATINT (value);
-
-  value = Fplist_get (spec, QCwidth);
-  if (NUMBERP (value))
-    {
-      width = XFLOATINT (value) * scale;
-      /* :width overrides :max-width. */
-      max_width = -1;
-    }
-
-  value = Fplist_get (spec, QCheight);
-  if (NUMBERP (value))
-    {
-      height = XFLOATINT (value) * scale;
-      /* :height overrides :max-height. */
-      max_height = -1;
-    }
-
-  if (width <= 0 && height <= 0)
-    {
-      width = size.width * scale;
-      height = size.height * scale;
-    }
-  else if (width > 0 && height <= 0)
-      height = width / aspect;
-  else if (height > 0 && width <= 0)
-      width = height * aspect;
-
-  if (max_width > 0 && width > max_width)
-    {
-      width = max_width;
-      height = max_width / aspect;
-    }
-
-  if (max_height > 0 && height > max_height)
-    {
-      height = max_height;
-      width = max_height * aspect;
-    }
-
-  [self setSize:NSMakeSize(width, height)];
-}
-
-- (instancetype)rotate: (double)rotation
-{
-  EmacsImage *new_image;
-  NSPoint new_origin;
-  NSSize new_size, size = [self size];
-  NSRect rect = { NSZeroPoint, [self size] };
-
-  /* Create a bezier path of the outline of the image and do the
-   * rotation on it.  */
-  NSBezierPath *bounds_path = [NSBezierPath bezierPathWithRect:rect];
-  NSAffineTransform *transform = [NSAffineTransform transform];
-  [transform rotateByDegrees: rotation * -1];
-  [bounds_path transformUsingAffineTransform:transform];
-
-  /* Now we can find out how large the rotated image needs to be.  */
-  new_size = [bounds_path bounds].size;
-  new_image = [[EmacsImage alloc] initWithSize:new_size];
-
-  new_origin = NSMakePoint((new_size.width - size.width)/2,
-                           (new_size.height - size.height)/2);
-
-  [new_image lockFocus];
-
-  /* Create the final transform.  */
-  transform = [NSAffineTransform transform];
-  [transform translateXBy:new_size.width/2 yBy:new_size.height/2];
-  [transform rotateByDegrees: rotation * -1];
-  [transform translateXBy:-new_size.width/2 yBy:-new_size.height/2];
-
-  [transform concat];
-  [self drawAtPoint:new_origin fromRect:NSZeroRect
-          operation:NSCompositingOperationCopy fraction:1];
-
-  [new_image unlockFocus];
-
-  return new_image;
+  transform = [[NSAffineTransform transform] retain];
+  NSAffineTransformStruct tm
+    = { m[0][0], m[0][1], m[1][0], m[1][1], m[2][0], m[2][1]};
+  [transform setTransformStruct:tm];
 }
 
 @end

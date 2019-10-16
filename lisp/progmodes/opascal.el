@@ -1,6 +1,6 @@
 ;;; opascal.el --- major mode for editing Object Pascal source in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -41,6 +41,8 @@
 ;; properly constructed beginnings.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defgroup opascal nil
   "Major mode for editing OPascal source in Emacs."
@@ -146,10 +148,6 @@ That is, regardless of where in the line point is at the time."
 (defconst opascal-comments
   '(comment-single-line comment-multi-line-1 comment-multi-line-2)
   "Tokens that represent comments.")
-
-(defconst opascal-strings
-  '(string double-quoted-string)
-  "Tokens that represent string literals.")
 
 (defconst opascal-whitespace `(space newline ,@opascal-comments)
   "Tokens that are considered whitespace.")
@@ -274,15 +272,17 @@ routine.")
 (defmacro opascal-save-excursion (&rest forms)
   ;; Executes the forms such that any movements have no effect, including
   ;; searches.
+  (declare (debug t))
   `(save-excursion
      (save-match-data
       (let ((inhibit-point-motion-hooks t)
             (deactivate-mark nil))
         (progn ,@forms)))))
 
-(defsubst opascal-is (element in-set)
-  ;; If the element is in the set, the element cdr is returned, otherwise nil.
-  (memq element in-set))
+
+(eval-when-compile
+  (pcase-defmacro opascal--in (set)
+    `(pred (pcase--flip memq ,set))))
 
 (defun opascal-string-of (start end)
   ;; Returns the buffer string from start to end.
@@ -415,15 +415,6 @@ routine.")
                 (string . "'")
                 (double-quoted-string . "\"")))))
 
-(defun opascal-literal-end-pattern (literal-kind)
-  ;; Returns the end pattern of the literal kind.
-  (cdr (assoc literal-kind
-              '((comment-single-line . "\n")
-                (comment-multi-line-1 . "}")
-                (comment-multi-line-2 . "*)")
-                (string . "'")
-                (double-quoted-string . "\"")))))
-
 (defun opascal-literal-stop-pattern (literal-kind)
   ;; Returns the pattern that delimits end of the search for the literal kind.
   ;; These are regular expressions.
@@ -495,7 +486,7 @@ routine.")
       (let* ((word-image (downcase (opascal-token-string word)))
              (keyword (intern-soft word-image)))
         (when (and (or keyword (string= "nil" word-image))
-                   (opascal-is keyword opascal-keywords))
+                   (memq keyword opascal-keywords))
           (opascal-set-token-kind word keyword))
         word))))
 
@@ -562,7 +553,7 @@ routine.")
   (let (next-token)
     (while (progn
              (setq next-token (opascal-next-token token))
-             (opascal-is (opascal-token-kind next-token) '(space newline))))
+             (memq (opascal-token-kind next-token) '(space newline))))
     next-token))
 
 (defun opascal-group-start (from-token)
@@ -608,6 +599,18 @@ routine.")
        indent (if offset offset 0)))
     indent))
 
+(defmacro opascal--scan-non-whitespace-backward (token-var last-var
+                                                 &rest pcases)
+  (declare (debug (symbolp symbolp &rest (pcase-PAT body)))
+           (indent 2))
+  `(let ((,token-var ,token-var))
+     (while (setq ,token-var (opascal-previous-token ,token-var))
+       ,(macroexp-let2 nil kind-var `(opascal-token-kind ,token-var)
+          `(unless (memq ,kind-var opascal-whitespace)
+             (pcase ,kind-var
+               ,@pcases)
+             ,(when last-var `(setq ,last-var ,token-var)))))))
+
 (defun opascal-line-indent-of (from-token &optional offset &rest terminators)
   ;; Returns the column of first non-space character on the token's line, plus
   ;; any offset. We also stop if one of the terminators or an open ( or [ is
@@ -616,6 +619,8 @@ routine.")
         (last-token from-token)
         (kind nil))
     (catch 'done
+      ;; FIXME: Can't use opascal--scan-non-whitespace-backward here, because
+      ;; we do need to pay attention to `newline'!
       (while token
         (setq kind (opascal-token-kind token))
         (cond
@@ -623,11 +628,11 @@ routine.")
          ((eq 'close-group kind) (setq token (opascal-group-start token)))
 
          ;; Stop at the beginning of the line or an open group.
-         ((opascal-is kind '(newline open-group)) (throw 'done nil))
+         ((memq kind '(newline open-group)) (throw 'done nil))
 
          ;; Stop at one of the specified terminators.
-         ((opascal-is kind terminators) (throw 'done nil)))
-        (unless (opascal-is kind opascal-whitespace) (setq last-token token))
+         ((memq kind terminators) (throw 'done nil)))
+        (unless (memq kind opascal-whitespace) (setq last-token token))
         (setq token (opascal-previous-token token))))
     (opascal-indent-of last-token offset)))
 
@@ -638,23 +643,25 @@ routine.")
         (last-token from-token)
         (kind nil))
     (catch 'done
+      ;; FIXME: Can't use opascal--scan-non-whitespace-backward here, because
+      ;; we do need to pay attention to `newline'!
       (while token
         (setq kind (opascal-token-kind token))
         (cond
          ((and (eq 'colon kind)
-               (opascal-is (opascal-token-kind last-token)
-                          `(,@opascal-block-statements
-                            ,@opascal-expr-statements)))
+               (memq (opascal-token-kind last-token)
+                     `(,@opascal-block-statements
+                       ,@opascal-expr-statements)))
           ;; We hit a label followed by a statement. Indent to the statement.
           (throw 'done nil))
 
          ;; Skip over ()/[] groups.
          ((eq 'close-group kind) (setq token (opascal-group-start token)))
 
-         ((opascal-is kind `(newline open-group ,@opascal-use-clauses))
+         ((memq kind `(newline open-group ,@opascal-use-clauses))
           ;; Stop at the beginning of the line, an open group, or a use clause
           (throw 'done nil)))
-        (unless (opascal-is kind opascal-whitespace) (setq last-token token))
+        (unless (memq kind opascal-whitespace) (setq last-token token))
         (setq token (opascal-previous-token token))))
     (opascal-indent-of last-token offset)))
 
@@ -671,7 +678,7 @@ routine.")
   ;; dispinterface), (= interface), (= object), or (= record), and nil
   ;; otherwise.
   (if (and (eq 'equals (opascal-token-kind token))
-           (opascal-is (opascal-token-kind last-token) opascal-composite-types))
+           (memq (opascal-token-kind last-token) opascal-composite-types))
       last-token))
 
 (defun opascal-is-simple-class-type (at-token limit-token)
@@ -679,7 +686,7 @@ routine.")
   ;;   class of TClass;
   ;;   class (TBaseClass);
   ;;   class;
-  (when (opascal-is (opascal-token-kind at-token) opascal-class-types)
+  (when (memq (opascal-token-kind at-token) opascal-class-types)
     (catch 'done
       ;; Scan until the semi colon.
       (let ((token (opascal-next-token at-token))
@@ -695,7 +702,7 @@ routine.")
            ((eq 'open-group token-kind) (setq token (opascal-group-end token)))
 
            ;; Only allow "of" and whitespace, and an identifier
-           ((opascal-is token-kind `(of word ,@opascal-whitespace)))
+           ((memq token-kind `(of word ,@opascal-whitespace)))
 
            ;; Otherwise we are not in a simple class declaration.
            ((throw 'done nil)))
@@ -703,85 +710,76 @@ routine.")
 
 (defun opascal-block-start (from-token &optional stop-on-class)
   ;; Returns the token that denotes the start of the block.
-  (let ((token (opascal-previous-token from-token))
-        (last-token nil)
-        (token-kind nil))
+  (let ((token from-token)
+        (last-token nil))
     (catch 'done
-      (while token
-        (setq token-kind (opascal-token-kind token))
-        (cond
-         ;; Skip over nested blocks.
-         ((opascal-is token-kind opascal-end-block-statements)
-          (setq token (opascal-block-start token)))
+      (opascal--scan-non-whitespace-backward token last-token
+        ;; Skip over nested blocks.
+        ((opascal--in opascal-end-block-statements)
+         (setq token (opascal-block-start token)))
 
-         ;; Regular block start found.
-         ((opascal-is token-kind opascal-block-statements)
-          (throw 'done
-                 ;; As a special case, when a "case" block appears
-                 ;; within a record declaration (to denote a variant
-                 ;; part), the record declaration should be considered
-                 ;; the enclosing block.
-                 (if (eq 'case token-kind)
-                     (let ((enclosing-token
-                            (opascal-block-start token
-                                                'stop-on-class)))
-                       (if
-                           (eq 'record
-                               (opascal-token-kind enclosing-token))
-                           (if stop-on-class
-                               enclosing-token
-                             (opascal-previous-token enclosing-token))
-                         token))
-                   token)))
+        ;; Case block start found.
+        ('case
+         (throw 'done
+                ;; As a special case, when a "case" block appears
+                ;; within a record declaration (to denote a variant
+                ;; part), the record declaration should be considered
+                ;; the enclosing block.
+                (let ((enclosing-token
+                       (opascal-block-start token
+                                            'stop-on-class)))
+                  (if (eq 'record
+                          (opascal-token-kind enclosing-token))
+                      (if stop-on-class
+                          enclosing-token
+                        (opascal-previous-token enclosing-token))
+                    token))))
 
-         ;; A class/record start also begins a block.
-         ((opascal-composite-type-start token last-token)
-          (throw 'done (if stop-on-class last-token token)))
-         )
-        (unless (opascal-is token-kind opascal-whitespace)
-          (setq last-token token))
-        (setq token (opascal-previous-token token)))
+        ;; Regular block start found.
+        ((opascal--in opascal-block-statements)
+         (throw 'done token))
+
+        ;; A class/record start also begins a block.
+        ((guard (opascal-composite-type-start token last-token))
+         (throw 'done (if stop-on-class last-token token)))
+        )
       ;; Start not found.
       nil)))
 
 (defun opascal-else-start (from-else)
   ;; Returns the token of the if or case statement.
-  (let ((token (opascal-previous-token from-else))
-        (token-kind nil)
+  (let ((token from-else)
         (semicolon-count 0))
     (catch 'done
-      (while token
-        (setq token-kind (opascal-token-kind token))
-        (cond
-         ;; Skip over nested groups.
-         ((eq 'close-group token-kind) (setq token (opascal-group-start token)))
+      (opascal--scan-non-whitespace-backward token nil
+        ;; Skip over nested groups.
+        ('close-group (setq token (opascal-group-start token)))
 
-         ;; Skip over any nested blocks.
-         ((opascal-is token-kind opascal-end-block-statements)
-          (setq token (opascal-block-start token)))
+        ;; Skip over any nested blocks.
+        ((opascal--in opascal-end-block-statements)
+         (setq token (opascal-block-start token)))
 
-         ((eq 'semicolon token-kind)
-          ;; Semicolon means we are looking for an enclosing if, unless we
-          ;; are in a case statement. Keep counts of the semicolons and decide
-          ;; later.
-          (setq semicolon-count (1+ semicolon-count)))
+        ('semicolon
+         ;; Semicolon means we are looking for an enclosing if, unless we
+         ;; are in a case statement. Keep counts of the semicolons and decide
+         ;; later.
+         (setq semicolon-count (1+ semicolon-count)))
 
-         ((and (eq 'if token-kind) (= semicolon-count 0))
-          ;; We only can match an if when there have been no intervening
-          ;; semicolons.
-          (throw 'done token))
+        ((and 'if (guard (= semicolon-count 0)))
+         ;; We only can match an if when there have been no intervening
+         ;; semicolons.
+         (throw 'done token))
 
-         ((eq 'case token-kind)
-          ;; We have hit a case statement start.
-          (throw 'done token)))
-        (setq token (opascal-previous-token token)))
+        ('case
+         ;; We have hit a case statement start.
+         (throw 'done token)))
       ;; No if or case statement found.
       nil)))
 
 (defun opascal-comment-content-start (comment)
   ;; Returns the point of the first non-space character in the comment.
   (let ((kind (opascal-token-kind comment)))
-    (when (opascal-is kind opascal-comments)
+    (when (memq kind opascal-comments)
       (opascal-save-excursion
        (goto-char (+ (opascal-token-start comment)
                      (length (opascal-literal-start-pattern kind))))
@@ -851,7 +849,8 @@ routine.")
                  (opascal-indent-of comment))
 
                 ;; Indent according to the comment's content start.
-                ((opascal-column-of (opascal-comment-content-start comment)))))))
+                (t
+                 (opascal-column-of (opascal-comment-content-start comment)))))))
     ))
 
 (defun opascal-is-use-clause-end (at-token last-token last-colon from-kind)
@@ -861,439 +860,426 @@ routine.")
              (eq 'comma (opascal-token-kind at-token))
              (eq 'semicolon from-kind))
     ;; Scan for the uses statement, just to be sure.
-    (let ((token (opascal-previous-token at-token))
-          (token-kind nil))
+    (let ((token at-token))
       (catch 'done
-        (while token
-          (setq token-kind (opascal-token-kind token))
-          (cond ((opascal-is token-kind opascal-use-clauses)
-                 (throw 'done t))
+        (opascal--scan-non-whitespace-backward token nil
+          ((opascal--in opascal-use-clauses)
+           (throw 'done t))
 
-                ;; Whitespace, identifiers, strings, "in" keyword, and commas
-                ;; are allowed in use clauses.
-                ((or (opascal-is token-kind '(word comma in newline))
-                     (opascal-is token-kind opascal-whitespace)
-                     (opascal-is token-kind opascal-strings)))
+          ;; Identifiers, strings, "in" keyword, and commas
+          ;; are allowed in use clauses.
+          ((or 'word 'comma 'in  'string 'double-quoted-string))
 
-                ;; Nothing else is.
-                ((throw 'done nil)))
-          (setq token (opascal-previous-token token)))
+          ;; Nothing else is.
+          (_ (throw 'done nil)))
         nil))))
 
 (defun opascal-is-block-after-expr-statement (token)
   ;; Returns true if we have a block token trailing an expression delimiter (of
   ;; presumably an expression statement).
-  (when (opascal-is (opascal-token-kind token) opascal-block-statements)
+  (when (memq (opascal-token-kind token) opascal-block-statements)
     (let ((previous (opascal-previous-token token))
           (previous-kind nil))
       (while (progn
                (setq previous-kind (opascal-token-kind previous))
                (eq previous-kind 'space))
         (setq previous (opascal-previous-token previous)))
-      (or (opascal-is previous-kind opascal-expr-delimiters)
+      (or (memq previous-kind opascal-expr-delimiters)
           (eq previous-kind 'else)))))
 
 (defun opascal-previous-indent-of (from-token)
   ;; Returns the indentation of the previous statement of the token.
-  (let ((token (opascal-previous-token from-token))
-        (token-kind nil)
+  (let ((token from-token)
         (from-kind (opascal-token-kind from-token))
         (last-colon nil)
         (last-of nil)
         (last-token nil))
     (catch 'done
-      (while token
-        (setq token-kind (opascal-token-kind token))
-        (cond
-         ;; An open ( or [ always is an indent point.
-         ((eq 'open-group token-kind)
-          (throw 'done (opascal-open-group-indent token last-token)))
+      (opascal--scan-non-whitespace-backward token last-token
+        ;; An open ( or [ always is an indent point.
+        ('open-group
+         (throw 'done (opascal-open-group-indent token last-token)))
 
-         ;; Skip over any ()/[] groups.
-         ((eq 'close-group token-kind) (setq token (opascal-group-start token)))
+        ;; Skip over any ()/[] groups.
+        ('close-group (setq token (opascal-group-start token)))
 
-         ((opascal-is token-kind opascal-end-block-statements)
-          (if (eq 'newline (opascal-token-kind (opascal-previous-token token)))
-              ;; We can stop at an end token that is right up against the
-              ;; margin.
-              (throw 'done 0)
-            ;; Otherwise, skip over any nested blocks.
-            (setq token (opascal-block-start token))))
+        ((opascal--in opascal-end-block-statements)
+         (if (eq 'newline (opascal-token-kind (opascal-previous-token token)))
+             ;; We can stop at an end token that is right up against the
+             ;; margin.
+             (throw 'done 0)
+           ;; Otherwise, skip over any nested blocks.
+           (setq token (opascal-block-start token))))
 
-         ;; Special case: if we encounter a ", word;" then we assume that we
-         ;; are in some kind of uses clause, and thus indent to column 0. This
-         ;; works because no other constructs are known to have that form.
-         ;; This fixes the irritating case of having indents after a uses
-         ;; clause look like:
-         ;;   uses
-         ;;      someUnit,
-         ;;      someOtherUnit;
-         ;;      // this should be at column 0!
-         ((opascal-is-use-clause-end token last-token last-colon from-kind)
-          (throw 'done 0))
+        ;; Special case: if we encounter a ", word;" then we assume that we
+        ;; are in some kind of uses clause, and thus indent to column 0. This
+        ;; works because no other constructs are known to have that form.
+        ;; This fixes the irritating case of having indents after a uses
+        ;; clause look like:
+        ;;   uses
+        ;;      someUnit,
+        ;;      someOtherUnit;
+        ;;      // this should be at column 0!
+        ((guard
+          (opascal-is-use-clause-end token last-token last-colon from-kind))
+         (throw 'done 0))
 
-         ;; A previous terminator means we can stop. If we are on a directive,
-         ;; however, then we are not actually encountering a new statement.
-         ((and last-token
-               (opascal-is token-kind opascal-previous-terminators)
-               (not (opascal-is (opascal-token-kind last-token)
-                               opascal-directives)))
-          (throw 'done (opascal-stmt-line-indent-of last-token 0)))
+        ;; A previous terminator means we can stop. If we are on a directive,
+        ;; however, then we are not actually encountering a new statement.
+        ((and (guard last-token)
+              (opascal--in opascal-previous-terminators)
+              (guard (not (memq (opascal-token-kind last-token)
+                                opascal-directives))))
+         (throw 'done (opascal-stmt-line-indent-of last-token 0)))
 
-         ;; Ignore whitespace.
-         ((opascal-is token-kind opascal-whitespace))
+        ;; Remember any "of" we encounter, since that affects how we
+        ;; indent to a case statement within a record declaration
+        ;; (i.e. a variant part).
+        ('of
+         (setq last-of token))
 
-         ;; Remember any "of" we encounter, since that affects how we
-         ;; indent to a case statement within a record declaration
-         ;; (i.e. a variant part).
-         ((eq 'of token-kind)
-          (setq last-of token))
+        ;; Remember any ':' we encounter (until we reach an "of"),
+        ;; since that affects how we indent to case statements in
+        ;; general.
+        ('colon
+         (unless last-of (setq last-colon token)))
 
-         ;; Remember any ':' we encounter (until we reach an "of"),
-         ;; since that affects how we indent to case statements in
-         ;; general.
-         ((eq 'colon token-kind)
-          (unless last-of (setq last-colon token)))
-
-         ;; A case statement delimits a previous statement. We indent labels
-         ;; specially.
-         ((eq 'case token-kind)
-          (throw 'done
+        ;; A case statement delimits a previous statement. We indent labels
+        ;; specially.
+        ('case
+         (throw 'done
                 (if last-colon (opascal-line-indent-of last-colon)
                   (opascal-line-indent-of token opascal-case-label-indent))))
 
-         ;; If we are in a use clause then commas mark an enclosing rather than
-         ;; a previous statement.
-         ((opascal-is token-kind opascal-use-clauses)
-          (throw 'done
-                 (if (eq 'comma from-kind)
-                     (if last-token
-                         ;; Indent to first unit in use clause.
-                         (opascal-indent-of last-token)
-                       ;; Indent from use clause keyword.
-                       (opascal-line-indent-of token opascal-indent-level))
-                   ;; Indent to use clause keyword.
-                   (opascal-line-indent-of token))))
+        ;; If we are in a use clause then commas mark an enclosing rather than
+        ;; a previous statement.
+        ((opascal--in opascal-use-clauses)
+         (throw 'done
+                (if (eq 'comma from-kind)
+                    (if last-token
+                        ;; Indent to first unit in use clause.
+                        (opascal-indent-of last-token)
+                      ;; Indent from use clause keyword.
+                      (opascal-line-indent-of token opascal-indent-level))
+                  ;; Indent to use clause keyword.
+                  (opascal-line-indent-of token))))
 
-         ;; Assembly sections always indent in from the asm keyword.
-         ((eq token-kind 'asm)
-          (throw 'done (opascal-stmt-line-indent-of token opascal-indent-level)))
+        ;; Assembly sections always indent in from the asm keyword.
+        ('asm
+         (throw 'done (opascal-stmt-line-indent-of token opascal-indent-level)))
 
-         ;; An enclosing statement delimits a previous statement.
-         ;; We try to use the existing indent of the previous statement,
-         ;; otherwise we calculate from the enclosing statement.
-         ((opascal-is token-kind opascal-previous-enclosing-statements)
-          (throw 'done (if last-token
-                           ;; Otherwise indent to the last token
-                           (opascal-line-indent-of last-token)
-                         ;; Just indent from the enclosing keyword
-                         (opascal-line-indent-of token opascal-indent-level))))
+        ;; An enclosing statement delimits a previous statement.
+        ;; We try to use the existing indent of the previous statement,
+        ;; otherwise we calculate from the enclosing statement.
+        ((opascal--in opascal-previous-enclosing-statements)
+         (throw 'done (if last-token
+                          ;; Otherwise indent to the last token
+                          (opascal-line-indent-of last-token)
+                        ;; Just indent from the enclosing keyword
+                        (opascal-line-indent-of token opascal-indent-level))))
 
-         ;; A class or record declaration also delimits a previous statement.
-         ((opascal-composite-type-start token last-token)
-          (throw
-           'done
-           (if (opascal-is-simple-class-type last-token from-token)
-               ;; c = class; or c = class of T; are previous statements.
-               (opascal-line-indent-of token)
-             ;; Otherwise c = class ... or r = record ... are enclosing
-             ;; statements.
-             (opascal-line-indent-of last-token opascal-indent-level))))
+        ;; A class or record declaration also delimits a previous statement.
+        ((guard (opascal-composite-type-start token last-token))
+         (throw
+          'done
+          (if (opascal-is-simple-class-type last-token from-token)
+              ;; c = class; or c = class of T; are previous statements.
+              (opascal-line-indent-of token)
+            ;; Otherwise c = class ... or r = record ... are enclosing
+            ;; statements.
+            (opascal-line-indent-of last-token opascal-indent-level))))
 
-         ;; We have a definite previous statement delimiter.
-         ((opascal-is token-kind opascal-previous-statements)
-          (throw 'done (opascal-stmt-line-indent-of token 0)))
-         )
-        (unless (opascal-is token-kind opascal-whitespace)
-           (setq last-token token))
-        (setq token (opascal-previous-token token)))
+        ;; We have a definite previous statement delimiter.
+        ((opascal--in opascal-previous-statements)
+         (throw 'done (opascal-stmt-line-indent-of token 0)))
+        )
       ;; We ran out of tokens. Indent to column 0.
       0)))
 
 (defun opascal-section-indent-of (section-token)
   ;; Returns the indentation appropriate for begin/var/const/type/label
   ;; tokens.
-  (let* ((token (opascal-previous-token section-token))
-         (token-kind nil)
+  (let* ((token section-token)
          (last-token nil)
          (nested-block-count 0)
          (expr-delimited nil)
          (last-terminator nil))
     (catch 'done
-      (while token
-        (setq token-kind (opascal-token-kind token))
-        (cond
-         ;; Always stop at unmatched ( or [.
-         ((eq token-kind 'open-group)
-          (throw 'done (opascal-open-group-indent token last-token)))
+      (opascal--scan-non-whitespace-backward token last-token
+        ;; Always stop at unmatched ( or [.
+        ('open-group
+         (throw 'done (opascal-open-group-indent token last-token)))
 
-         ;; Skip over any ()/[] groups.
-         ((eq 'close-group token-kind) (setq token (opascal-group-start token)))
+        ;; Skip over any ()/[] groups.
+        ('close-group (setq token (opascal-group-start token)))
 
-         ((opascal-is token-kind opascal-end-block-statements)
-          (if (eq 'newline (opascal-token-kind (opascal-previous-token token)))
-              ;; We can stop at an end token that is right up against the
-              ;; margin.
-              (throw 'done 0)
-            ;; Otherwise, skip over any nested blocks.
-            (setq token (opascal-block-start token)
-                  nested-block-count (1+ nested-block-count))))
+        ((opascal--in opascal-end-block-statements)
+         (if (eq 'newline (opascal-token-kind (opascal-previous-token token)))
+             ;; We can stop at an end token that is right up against the
+             ;; margin.
+             (throw 'done 0)
+           ;; Otherwise, skip over any nested blocks.
+           (setq token (opascal-block-start token)
+                 nested-block-count (1+ nested-block-count))))
 
-         ;; Remember if we have encountered any forward routine declarations.
-         ((eq 'forward token-kind)
-          (setq nested-block-count (1+ nested-block-count)))
+        ;; Remember if we have encountered any forward routine declarations.
+        ('forward
+         (setq nested-block-count (1+ nested-block-count)))
 
-         ;; Mark the completion of a nested routine traversal.
-         ((and (opascal-is token-kind opascal-routine-statements)
-               (> nested-block-count 0))
-          (setq nested-block-count (1- nested-block-count)))
+        ;; Mark the completion of a nested routine traversal.
+        ((and (opascal--in opascal-routine-statements)
+              (guard (> nested-block-count 0)))
+         (setq nested-block-count (1- nested-block-count)))
 
-         ;; Remember if we have encountered any statement terminators.
-         ((eq 'semicolon token-kind) (setq last-terminator token))
+        ;; Remember if we have encountered any statement terminators.
+        ('semicolon (setq last-terminator token))
 
-         ;; Remember if we have encountered any expression delimiters.
-         ((opascal-is token-kind opascal-expr-delimiters)
-          (setq expr-delimited token))
+        ;; Remember if we have encountered any expression delimiters.
+        ((opascal--in opascal-expr-delimiters)
+         (setq expr-delimited token))
 
-         ;; Enclosing body statements are delimiting. We indent the compound
-         ;; bodies specially.
-         ((and (not last-terminator)
-               (opascal-is token-kind opascal-body-statements))
-          (throw 'done
-           (opascal-stmt-line-indent-of token opascal-compound-block-indent)))
+        ;; Enclosing body statements are delimiting. We indent the compound
+        ;; bodies specially.
+        ((and (guard (not last-terminator))
+              (opascal--in opascal-body-statements))
+         (throw 'done
+                (opascal-stmt-line-indent-of token
+                                             opascal-compound-block-indent)))
 
-         ;; An enclosing ":" means a label.
-         ((and (eq 'colon token-kind)
-               (opascal-is (opascal-token-kind section-token)
-                          opascal-block-statements)
-               (not last-terminator)
-               (not expr-delimited)
-               (not (eq 'equals (opascal-token-kind last-token))))
-          (throw 'done
-                 (opascal-stmt-line-indent-of token opascal-indent-level)))
+        ;; An enclosing ":" means a label.
+        ((and 'colon
+              (guard (and (memq (opascal-token-kind section-token)
+                                opascal-block-statements)
+                          (not last-terminator)
+                          (not expr-delimited)
+                          (not (eq 'equals
+                                   (opascal-token-kind last-token))))))
+         (throw 'done
+                (opascal-stmt-line-indent-of token opascal-indent-level)))
 
-         ;; Block and mid block tokens are always enclosing
-         ((opascal-is token-kind opascal-begin-enclosing-tokens)
-          (throw 'done
-                 (opascal-stmt-line-indent-of token opascal-indent-level)))
+        ;; Block and mid block tokens are always enclosing
+        ((opascal--in opascal-begin-enclosing-tokens)
+         (throw 'done
+                (opascal-stmt-line-indent-of token opascal-indent-level)))
 
-         ;; Declaration sections and routines are delimiters, unless they
-         ;; are part of a nested routine.
-         ((and (opascal-is token-kind opascal-decl-delimiters)
-               (= 0 nested-block-count))
-          (throw 'done (opascal-line-indent-of token 0)))
+        ;; Declaration sections and routines are delimiters, unless they
+        ;; are part of a nested routine.
+        ((and (opascal--in opascal-decl-delimiters)
+              (guard (= 0 nested-block-count)))
+         (throw 'done (opascal-line-indent-of token 0)))
 
-         ;; Unit statements mean we indent right to the left.
-         ((opascal-is token-kind opascal-unit-statements) (throw 'done 0))
-         )
-        (unless (opascal-is token-kind opascal-whitespace)
-           (setq last-token token))
-        (setq token (opascal-previous-token token)))
+        ;; Unit statements mean we indent right to the left.
+        ((opascal--in opascal-unit-statements) (throw 'done 0))
+        )
       ;; We ran out of tokens. Indent to column 0.
       0)))
 
 (defun opascal-enclosing-indent-of (from-token)
   ;; Returns the indentation offset from the enclosing statement of the token.
-  (let ((token (opascal-previous-token from-token))
+  (let ((token from-token)
         (from-kind (opascal-token-kind from-token))
-        (token-kind nil)
         (stmt-start nil)
         (last-token nil)
         (equals-encountered nil)
         (before-equals nil)
         (expr-delimited nil))
     (catch 'done
-      (while token
-        (setq token-kind (opascal-token-kind token))
-        (cond
-         ;; An open ( or [ always is an indent point.
-         ((eq 'open-group token-kind)
-          (throw 'done
-                 (opascal-open-group-indent
-                  token last-token
-                  (if (opascal-is from-kind opascal-binary-ops)
-                      ;; Keep binary operations aligned with the open group.
-                      0
-                    opascal-indent-level))))
+      (opascal--scan-non-whitespace-backward token last-token
+        ;; An open ( or [ always is an indent point.
+        ('open-group
+         (throw 'done
+                (opascal-open-group-indent
+                 token last-token
+                 (if (memq from-kind opascal-binary-ops)
+                     ;; Keep binary operations aligned with the open group.
+                     0
+                   opascal-indent-level))))
 
-         ;; Skip over any ()/[] groups.
-         ((eq 'close-group token-kind) (setq token (opascal-group-start token)))
+        ;; Skip over any ()/[] groups.
+        ('close-group (setq token (opascal-group-start token)))
 
-         ;; Skip over any nested blocks.
-         ((opascal-is token-kind opascal-end-block-statements)
-          (setq token (opascal-block-start token)))
+        ;; Skip over any nested blocks.
+        ((opascal--in opascal-end-block-statements)
+         (setq token (opascal-block-start token)))
 
-         ;; An expression delimiter affects indentation depending on whether
-         ;; the point is before or after it. Remember that we encountered one.
-         ;; Also remember the last encountered token, since if it exists it
-         ;; should be the actual indent point.
-         ((opascal-is token-kind opascal-expr-delimiters)
-          (setq expr-delimited token stmt-start last-token))
+        ;; An expression delimiter affects indentation depending on whether
+        ;; the point is before or after it. Remember that we encountered one.
+        ;; Also remember the last encountered token, since if it exists it
+        ;; should be the actual indent point.
+        ((opascal--in opascal-expr-delimiters)
+         (setq expr-delimited token stmt-start last-token))
 
-         ;; With a non-delimited expression statement we indent after the
-         ;; statement's keyword, unless we are on the delimiter itself.
-         ((and (not expr-delimited)
-               (opascal-is token-kind opascal-expr-statements))
-          (throw 'done
-             (cond ((opascal-is from-kind opascal-expr-delimiters)
-                    ;; We are indenting a delimiter. Indent to the statement.
-                    (opascal-stmt-line-indent-of token 0))
+        ;; With a non-delimited expression statement we indent after the
+        ;; statement's keyword, unless we are on the delimiter itself.
+        ((and (guard (not expr-delimited))
+              (opascal--in opascal-expr-statements))
+         (throw 'done
+                (cond
+                 ((memq from-kind opascal-expr-delimiters)
+                  ;; We are indenting a delimiter. Indent to the statement.
+                  (opascal-stmt-line-indent-of token 0))
 
-                   ((and last-token (opascal-is from-kind opascal-binary-ops))
-                    ;; Align binary ops with the expression.
-                    (opascal-indent-of last-token))
+                 ((and last-token (memq from-kind opascal-binary-ops))
+                  ;; Align binary ops with the expression.
+                  (opascal-indent-of last-token))
 
-                   (last-token
-                    ;; Indent in from the expression.
-                    (opascal-indent-of last-token opascal-indent-level))
+                 (last-token
+                  ;; Indent in from the expression.
+                  (opascal-indent-of last-token opascal-indent-level))
 
-           ;; Indent in from the statement's keyword.
-           ((opascal-indent-of token opascal-indent-level)))))
+                 ;; Indent in from the statement's keyword.
+                 ((opascal-indent-of token opascal-indent-level)))))
 
-         ;; A delimited case statement indents the label according to
-         ;; a special rule.
-         ((eq 'case token-kind)
-          (throw 'done
-                 (if stmt-start
-                     ;; We are not actually indenting to the case statement,
-                     ;; but are within a label expression.
-                     (opascal-stmt-line-indent-of
-                      stmt-start opascal-indent-level)
-                   ;; Indent from the case keyword.
-                   (opascal-stmt-line-indent-of
-                    token opascal-case-label-indent))))
+        ;; A delimited case statement indents the label according to
+        ;; a special rule.
+        ('case
+         (throw 'done
+                (if stmt-start
+                    ;; We are not actually indenting to the case statement,
+                    ;; but are within a label expression.
+                    (opascal-stmt-line-indent-of
+                     stmt-start opascal-indent-level)
+                  ;; Indent from the case keyword.
+                  (opascal-stmt-line-indent-of
+                   token opascal-case-label-indent))))
 
-         ;; Body expression statements are enclosing. Indent from the
-         ;; statement's keyword, unless we have a non-block statement following
-         ;; it.
-         ((opascal-is token-kind opascal-body-expr-statements)
-          (throw 'done
-                 (opascal-stmt-line-indent-of
-                  (or stmt-start token) opascal-indent-level)))
+        ;; Body expression statements are enclosing. Indent from the
+        ;; statement's keyword, unless we have a non-block statement following
+        ;; it.
+        ((opascal--in opascal-body-expr-statements)
+         (throw 'done (opascal-stmt-line-indent-of
+                       (or stmt-start token) opascal-indent-level)))
 
-         ;; An else statement is enclosing, but it doesn't have an expression.
-         ;; Thus we take into account last-token instead of stmt-start.
-         ((eq 'else token-kind)
-          (throw 'done (opascal-stmt-line-indent-of
-                        (or last-token token) opascal-indent-level)))
+        ;; An else statement is enclosing, but it doesn't have an expression.
+        ;; Thus we take into account last-token instead of stmt-start.
+        ('else
+         (throw 'done (opascal-stmt-line-indent-of
+                       (or last-token token) opascal-indent-level)))
 
-         ;; We indent relative to an enclosing declaration section.
-         ((opascal-is token-kind opascal-decl-sections)
-          (throw 'done (opascal-indent-of (if last-token last-token token)
+        ;; We indent relative to an enclosing declaration section,
+        ;; unless this is within the a delimited expression
+        ;; (bug#36348).
+        ((and (guard (not expr-delimited))
+              (opascal--in opascal-decl-sections))
+         (throw 'done (opascal-indent-of (if last-token last-token token)
                                          opascal-indent-level)))
 
-         ;; In unit sections we indent right to the left.
-         ((opascal-is token-kind opascal-unit-sections)
-          (throw 'done
-                 ;; Handle specially the case of "interface", which can be used
-                 ;; to start either a unit section or an interface definition.
-                 (if (opascal-is token-kind opascal-interface-types)
-                     (progn
-                       ;; Find the previous non-whitespace token.
-                       (while (progn
-                                (setq last-token token
-                                      token (opascal-previous-token token)
-                                      token-kind (opascal-token-kind token))
-                                (and token
-                                     (opascal-is token-kind
-                                                opascal-whitespace))))
-                       ;; If this token is an equals sign, "interface" is being
-                       ;; used to start an interface definition and we should
-                       ;; treat it as a composite type; otherwise, we should
-                       ;; consider it the start of a unit section.
-                       (if (and token (eq token-kind 'equals))
-                           (opascal-line-indent-of last-token
-                                                  opascal-indent-level)
-                         0))
-                   0)))
+        ;; In unit sections we indent right to the left.
+        ;; Handle specially the case of "interface", which can be used
+        ;; to start either a unit section or an interface definition.
+        ('interface ;FIXME: Generalize to all `opascal-interface-types'?
+         (throw 'done
+                (let (token-kind)
+                  ;; Find the previous non-whitespace token.
+                  (while (progn
+                           (setq last-token token
+                                 token (opascal-previous-token token)
+                                 token-kind (opascal-token-kind token))
+                           (and token
+                                (memq token-kind
+                                      opascal-whitespace))))
+                  ;; If this token is an equals sign, "interface" is being
+                  ;; used to start an interface definition and we should
+                  ;; treat it as a composite type; otherwise, we should
+                  ;; consider it the start of a unit section.
+                  (if (and token (eq token-kind 'equals))
+                      (opascal-line-indent-of last-token
+                                              opascal-indent-level)
+                    0))))
 
-         ;; A previous terminator means we can stop.
-         ((opascal-is token-kind opascal-previous-terminators)
-          (throw 'done
-              (cond ((and last-token
-                          (eq 'comma token-kind)
-                          (opascal-is from-kind opascal-binary-ops))
-                     ;; Align binary ops with the expression.
-                     (opascal-indent-of last-token))
+        ;; In unit sections we indent right to the left.
+        ((opascal--in opascal-unit-sections)
+         ;; Note: The `interface' case is handled specially above.
+         (throw 'done 0))
 
-                    (last-token
-                     ;; Indent in from the expression.
-                     (opascal-indent-of last-token opascal-indent-level))
+        ;; A previous terminator means we can stop.
+        ((and (opascal--in opascal-previous-terminators) token-kind)
+         (throw 'done
+                (cond ((and last-token
+                            (eq 'comma token-kind)
+                            (memq from-kind opascal-binary-ops))
+                       ;; Align binary ops with the expression.
+                       (opascal-indent-of last-token))
 
-                    ;; No enclosing expression; use the previous statement's
-                    ;; indent.
-                    ((opascal-previous-indent-of token)))))
+                      (last-token
+                       ;; Indent in from the expression.
+                       (opascal-indent-of last-token opascal-indent-level))
 
-         ;; A block statement after an expression delimiter has its start
-         ;; column as the expression statement. E.g.
-         ;;    if (a = b)
-         ;;       and (a != c) then begin
-         ;;       //...
-         ;;    end;
-         ;; Remember it for when we encounter the expression statement start.
-         ((opascal-is-block-after-expr-statement token)
-          (throw 'done
-           (cond (last-token (opascal-indent-of last-token opascal-indent-level))
+                      ;; No enclosing expression; use the previous statement's
+                      ;; indent.
+                      ((opascal-previous-indent-of token)))))
 
-                 ((+ (opascal-section-indent-of token) opascal-indent-level)))))
+        ;; A block statement after an expression delimiter has its start
+        ;; column as the expression statement. E.g.
+        ;;    if (a = b)
+        ;;       and (a != c) then begin
+        ;;       //...
+        ;;    end;
+        ;; Remember it for when we encounter the expression statement start.
+        ((guard (opascal-is-block-after-expr-statement token))
+         (throw 'done
+                (cond (last-token
+                       (opascal-indent-of last-token opascal-indent-level))
 
-         ;; Assembly sections always indent in from the asm keyword.
-         ((eq token-kind 'asm)
-          (throw 'done (opascal-stmt-line-indent-of token opascal-indent-level)))
+                      (t (+ (opascal-section-indent-of token)
+                            opascal-indent-level)))))
 
-         ;; Stop at an enclosing statement and indent from it.
-         ((opascal-is token-kind opascal-enclosing-statements)
-          (throw 'done (opascal-stmt-line-indent-of
-                        (or last-token token) opascal-indent-level)))
+        ;; Assembly sections always indent in from the asm keyword.
+        ('asm
+         (throw 'done (opascal-stmt-line-indent-of token opascal-indent-level)))
 
-         ;; A class/record declaration is also enclosing.
-         ((opascal-composite-type-start token last-token)
-          (throw 'done
-                 (opascal-line-indent-of last-token opascal-indent-level)))
+        ;; Stop at an enclosing statement and indent from it.
+        ((opascal--in opascal-enclosing-statements)
+         (throw 'done (opascal-stmt-line-indent-of
+                       (or last-token token) opascal-indent-level)))
 
-         ;; A ":" we indent relative to its line beginning.  If we are in a
-         ;; parameter list, then stop also if we hit a ";".
-         ((and (eq token-kind 'colon)
-               (not expr-delimited)
-               (not (opascal-is from-kind opascal-expr-delimiters))
-               (not equals-encountered)
-               (not (eq from-kind 'equals)))
-          (throw 'done
-           (if last-token
-               (opascal-indent-of last-token opascal-indent-level)
-             (opascal-line-indent-of token opascal-indent-level 'semicolon))))
+        ;; A class/record declaration is also enclosing.
+        ((guard (opascal-composite-type-start token last-token))
+         (throw 'done
+                (opascal-line-indent-of last-token opascal-indent-level)))
 
-         ;; If the ":" was not processed above and we have token after the "=",
-         ;; then indent from the "=". Ignore :=, however.
-         ((and (eq token-kind 'colon) equals-encountered before-equals)
-          (cond
-           ;; Ignore binary ops for now. It would do, for example:
-           ;;   val := 1 + 2
-           ;;          + 3;
-           ;; which is good, but also
-           ;;   val := Foo
-           ;;      (foo, args)
-           ;;          + 2;
-           ;; which doesn't look right.
-           ;;;; Align binary ops with the before token.
-           ;;((opascal-is from-kind opascal-binary-ops)
-           ;;(throw 'done (opascal-indent-of before-equals 0)))
+        ;; A ":" we indent relative to its line beginning.  If we are in a
+        ;; parameter list, then stop also if we hit a ";".
+        ((and 'colon
+              (guard (not (or expr-delimited
+                              (memq from-kind opascal-expr-delimiters)
+                              equals-encountered
+                              (eq from-kind 'equals)))))
+         (throw 'done
+                (if last-token
+                    (opascal-indent-of last-token opascal-indent-level)
+                  (opascal-line-indent-of token opascal-indent-level
+                                          'semicolon))))
 
-           ;; Assignments (:=) we skip over to get a normal indent.
-           ((eq (opascal-token-kind last-token) 'equals))
+        ;; If the ":" was not processed above and we have token after the "=",
+        ;; then indent from the "=". Ignore :=, however.
+        ((and 'colon (guard (and equals-encountered before-equals)))
+         (cond
+          ;; Ignore binary ops for now. It would do, for example:
+          ;;   val := 1 + 2
+          ;;          + 3;
+          ;; which is good, but also
+          ;;   val := Foo
+          ;;      (foo, args)
+          ;;          + 2;
+          ;; which doesn't look right.
 
-           ;; Otherwise indent in from the equals.
-           ((throw 'done
-                   (opascal-indent-of before-equals opascal-indent-level)))))
+          ;; ;; Align binary ops with the before token.
+          ;;((memq from-kind opascal-binary-ops)
+          ;;(throw 'done (opascal-indent-of before-equals 0)))
 
-         ;; Remember any "=" we encounter if it has not already been processed.
-         ((eq token-kind 'equals)
-          (setq equals-encountered token
-                before-equals last-token))
-         )
-        (unless (opascal-is token-kind opascal-whitespace)
-           (setq last-token token))
-        (setq token (opascal-previous-token token)))
+          ;; Assignments (:=) we skip over to get a normal indent.
+          ((eq (opascal-token-kind last-token) 'equals))
+
+          ;; Otherwise indent in from the equals.
+          (t (throw 'done
+                    (opascal-indent-of before-equals opascal-indent-level)))))
+
+        ;; Remember any "=" we encounter if it has not already been processed.
+        ('equals
+         (setq equals-encountered token
+               before-equals last-token))
+        )
       ;; We ran out of tokens. Indent to column 0.
       0)))
 
@@ -1301,9 +1287,12 @@ routine.")
   ;; Returns the corrected indentation for the current line.
   (opascal-save-excursion
     (opascal-progress-start)
-    ;; Move to the first token on the line.
-    (beginning-of-line)
-    (skip-chars-forward opascal-space-chars)
+    ;; The caller should make sure we're at the first token on the line.
+    (cl-assert (eql (point)
+                    (save-excursion
+                      (beginning-of-line)
+                      (skip-chars-forward opascal-space-chars)
+                      (point))))
     (let* ((token (opascal-current-token))
            (token-kind (opascal-token-kind token))
            (indent
@@ -1311,17 +1300,17 @@ routine.")
                    ;; Indent to the matching start ( or [.
                    (opascal-indent-of (opascal-group-start token)))
 
-                  ((opascal-is token-kind opascal-unit-statements) 0)
+                  ((memq token-kind opascal-unit-statements) 0)
 
-                  ((opascal-is token-kind opascal-comments)
+                  ((memq token-kind opascal-comments)
                    ;; In a comment.
                    (opascal-comment-indent-of token))
 
-                  ((opascal-is token-kind opascal-decl-matchers)
+                  ((memq token-kind opascal-decl-matchers)
                    ;; Use a previous section/routine's indent.
                    (opascal-section-indent-of token))
 
-                  ((opascal-is token-kind opascal-match-block-statements)
+                  ((memq token-kind opascal-match-block-statements)
                    ;; Use the block's indentation.
                    (let ((block-start
                           (opascal-block-start token 'stop-on-class)))
@@ -1339,8 +1328,9 @@ routine.")
                    (opascal-stmt-line-indent-of (opascal-else-start token) 0))
 
                   ;; Otherwise indent in from enclosing statement.
-                  ((opascal-enclosing-indent-of
-                    (if token token (opascal-token-at (1- (point)))))))))
+                  (t
+                   (opascal-enclosing-indent-of
+                    (or token (opascal-token-at (1- (point)))))))))
       (opascal-progress-done)
       indent)))
 
@@ -1349,25 +1339,18 @@ routine.")
 If before the indent, the point is moved to the indent."
   (interactive)
   (save-match-data
-   (let ((marked-point (point-marker))  ; Maintain our position reliably.
-         (line-start nil)
-         (old-indent 0)
-         (new-indent 0))
-     (beginning-of-line)
-     (setq line-start (point))
-     (skip-chars-forward opascal-space-chars)
-     (setq old-indent (current-column))
-     (setq new-indent (opascal-corrected-indentation))
-     (if (< marked-point (point))
-         ;; If before the indent column, then move to it.
-         (set-marker marked-point (point)))
-     ;; Advance our marked point after inserted spaces.
-     (set-marker-insertion-type marked-point t)
-     (when (/= old-indent new-indent)
-           (delete-region line-start (point))
-           (insert (make-string new-indent ?\s)))
-     (goto-char marked-point)
-     (set-marker marked-point nil))))
+    (let ((marked-point (point-marker))) ; Maintain our position reliably.
+      (beginning-of-line)
+      (skip-chars-forward opascal-space-chars)
+      (let ((new-indent (opascal-corrected-indentation)))
+        (if (< marked-point (point))
+            ;; If before the indent column, then move to it.
+            (set-marker marked-point (point)))
+        ;; Advance our marked point after inserted spaces.
+        (set-marker-insertion-type marked-point t)
+        (indent-line-to new-indent)
+        (goto-char marked-point)
+        (set-marker marked-point nil)))))
 
 (defvar opascal-mode-abbrev-table nil
   "Abbrev table in use in OPascal mode buffers.")
@@ -1519,7 +1502,7 @@ value of `opascal-tab-always-indents' and the current line position."
         (setq dir-name (match-string 1 dir-name)
               recurse t))
     ;; Ensure the trailing slash is removed.
-    (if (string-match "^\\(.+\\)[\\\\/]$" dir-name)
+    (if (string-match "^\\(.+\\)[\\/]$" dir-name)
         (setq dir-name (match-string 1 dir-name)))
     (opascal-search-directory unit dir-name recurse)))
 
@@ -1580,7 +1563,7 @@ An error is raised if not in a comment."
     (save-restriction
     (let* ((comment (opascal-current-token))
            (comment-kind (opascal-token-kind comment)))
-      (if (not (opascal-is comment-kind opascal-comments))
+      (if (not (memq comment-kind opascal-comments))
           (error "Not in a comment")
         (let* ((start-comment (opascal-comment-block-start comment))
                (end-comment (opascal-comment-block-end comment))
@@ -1658,6 +1641,9 @@ An error is raised if not in a comment."
   "If in a // comment, do a newline, indented such that one is still in the
 comment block.  If not in a // comment, just does a normal newline."
   (interactive)
+  (declare
+   (obsolete "use comment-indent-new-line with comment-multi-line instead"
+             "27.1"))
   (let ((comment (opascal-current-token)))
     (if (not (eq 'comment-single-line (opascal-token-kind comment)))
         ;; Not in a // comment. Just do the normal newline.
@@ -1733,7 +1719,7 @@ comment block.  If not in a // comment, just does a normal newline."
                    ;; '("\C-cb" opascal-find-current-body)
                    '("\C-cu" opascal-find-unit)
                    '("\M-q" opascal-fill-comment)
-                   '("\M-j" opascal-new-comment-line)
+                   ;; '("\M-j" opascal-new-comment-line)
                    ;; Debug bindings:
                    (list "\C-c\C-d" opascal-debug-mode-map)))
       (define-key kmap (car binding) (cadr binding)))
@@ -1742,7 +1728,7 @@ comment block.  If not in a // comment, just does a normal newline."
 
 (define-obsolete-variable-alias 'delphi-mode-hook 'opascal-mode-hook "24.4")
 ;;;###autoload
-(define-obsolete-function-alias 'delphi-mode 'opascal-mode "24.4")
+(define-obsolete-function-alias 'delphi-mode #'opascal-mode "24.4")
 ;;;###autoload
 (define-derived-mode opascal-mode prog-mode "OPascal"
   "Major mode for editing OPascal code.\\<opascal-mode-map>

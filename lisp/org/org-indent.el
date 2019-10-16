@@ -1,6 +1,6 @@
 ;;; org-indent.el --- Dynamic indentation for Org    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -298,7 +298,7 @@ LEVEL is the current level of heading.  INDENTATION is the
 expected indentation when wrapping line.
 
 When optional argument HEADING is non-nil, assume line is at
-a heading.  Moreover, if is is `inlinetask', the first star will
+a heading.  Moreover, if it is `inlinetask', the first star will
 have `org-warning' face."
   (let* ((line (aref (pcase heading
 		       (`nil org-indent--text-line-prefixes)
@@ -332,7 +332,7 @@ stopped."
      (let* ((case-fold-search t)
 	    (limited-re (org-get-limited-outline-regexp))
 	    (level (or (org-current-level) 0))
-	    (time-limit (and delay (time-add (current-time) delay))))
+	    (time-limit (and delay (time-add nil delay))))
        ;; For each line, set `line-prefix' and `wrap-prefix'
        ;; properties depending on the type of line (headline, inline
        ;; task, item or other).
@@ -345,7 +345,7 @@ stopped."
 	   ;; In asynchronous mode, take a break of
 	   ;; `org-indent-agent-resume-delay' every DELAY to avoid
 	   ;; blocking any other idle timer or process output.
-	   ((and delay (time-less-p time-limit (current-time)))
+	   ((and delay (time-less-p time-limit nil))
 	    (setq org-indent-agent-resume-timer
 		  (run-with-idle-timer
 		   (time-add (current-idle-time) org-indent-agent-resume-delay)

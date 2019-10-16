@@ -1,10 +1,9 @@
 ;;; mh-show.el --- MH-Show mode
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -901,7 +900,7 @@ See also `mh-folder-mode'.
   ;; Don't allow Gnus to create buttons while highlighting, maybe this is bad
   ;; style?
   (mh-flet
-   ((gnus-article-add-button (&rest args) nil))
+   ((gnus-article-add-button (&rest _args) nil))
    (let* ((modified (buffer-modified-p))
           (gnus-article-buffer (buffer-name))
           (gnus-cite-face-list `(,@(cdr gnus-cite-face-list)

@@ -1,6 +1,6 @@
 ;;; ob-js.el --- Babel Functions for Javascript      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
@@ -60,7 +60,7 @@
 
 (defun org-babel-execute:js (body params)
   "Execute a block of Javascript code with org-babel.
-This function is called by `org-babel-execute-src-block'"
+This function is called by `org-babel-execute-src-block'."
   (let* ((org-babel-js-cmd (or (cdr (assq :cmd params)) org-babel-js-cmd))
          (result-type (cdr (assq :result-type params)))
          (full-body (org-babel-expand-body:generic

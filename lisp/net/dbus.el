@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -24,7 +24,7 @@
 
 ;; This package provides language bindings for the D-Bus API.  D-Bus
 ;; is a message bus system, a simple way for applications to talk to
-;; one another.  See <http://dbus.freedesktop.org/> for details.
+;; one another.  See <https://dbus.freedesktop.org/> for details.
 
 ;; Low-level language bindings are implemented in src/dbusbind.c.
 
@@ -72,7 +72,7 @@
 
 (defconst dbus-interface-peer (concat dbus-interface-dbus ".Peer")
   "The interface for peer objects.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-peer'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-peer'.")
 
 ;; <interface name="org.freedesktop.DBus.Peer">
 ;;   <method name="Ping">
@@ -85,7 +85,7 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 (defconst dbus-interface-introspectable
   (concat dbus-interface-dbus ".Introspectable")
   "The interface supported by introspectable objects.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-introspectable'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-introspectable'.")
 
 ;; <interface name="org.freedesktop.DBus.Introspectable">
 ;;   <method name="Introspect">
@@ -95,7 +95,7 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 
 (defconst dbus-interface-properties (concat dbus-interface-dbus ".Properties")
   "The interface for property objects.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties'.")
 
 ;; <interface name="org.freedesktop.DBus.Properties">
 ;;   <method name="Get">
@@ -122,7 +122,7 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 (defconst dbus-interface-objectmanager
   (concat dbus-interface-dbus ".ObjectManager")
   "The object manager interface.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager'.")
 
 ;; <interface name="org.freedesktop.DBus.ObjectManager">
 ;;   <method name="GetManagedObjects">

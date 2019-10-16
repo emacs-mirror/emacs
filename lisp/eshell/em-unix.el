@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -35,8 +35,7 @@
 
 ;;; Code:
 
-(require 'eshell)
-(require 'esh-opt)
+(require 'esh-mode)
 (require 'pcomplete)
 
 ;;;###autoload
@@ -140,7 +139,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 
 ;;; Functions:
 
-(defun eshell-unix-initialize ()
+(defun eshell-unix-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the UNIX support/emulation code."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
@@ -231,7 +230,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 This is implemented to call either `delete-file', `kill-buffer',
 `kill-process', or `unintern', depending on the nature of the
 argument."
-  (setq args (eshell-flatten-list args))
+  (setq args (flatten-tree args))
   (eshell-eval-using-options
    "rm" args
    '((?h "help" nil nil "show this usage screen")
@@ -481,7 +480,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 	 (error "%s: missing destination file or directory" ,command))
      (if (= len 1)
 	 (nconc args '(".")))
-     (setq args (eshell-stringify-list (eshell-flatten-list args)))
+     (setq args (eshell-stringify-list (flatten-tree args)))
      (if (and ,(not (equal command "ln"))
 	      (string-match eshell-tar-regexp (car (last args)))
 	      (or (> (length args) 2)
@@ -606,7 +605,7 @@ with `--symbolic'.  When creating hard links, each TARGET must exist.")
   "Implementation of cat in Lisp.
 If in a pipeline, or the file is not a regular file, directory or
 symlink, then revert to the system's definition of cat."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (setq args (eshell-stringify-list (flatten-tree args)))
   (if (or eshell-in-pipeline-p
 	  (catch 'special
 	    (dolist (arg args)
@@ -670,7 +669,7 @@ Fallback to standard make when called synchronously."
 	(compile (concat "make " (eshell-flatten-and-stringify args))))
     (throw 'eshell-replace-command
 	   (eshell-parse-command "*make" (eshell-stringify-list
-					  (eshell-flatten-list args))))))
+					  (flatten-tree args))))))
 
 (put 'eshell/make 'eshell-no-numeric-conversions t)
 
@@ -705,7 +704,7 @@ available..."
 	  (erase-buffer)
 	  (occur-mode)
 	  (let ((files (eshell-stringify-list
-			(eshell-flatten-list (cdr args))))
+			(flatten-tree (cdr args))))
 		(inhibit-redisplay t)
 		string)
 	    (when (car args)
@@ -750,11 +749,11 @@ external command."
 	(throw 'eshell-replace-command
 	       (eshell-parse-command (concat "*" command)
 				     (eshell-stringify-list
-				      (eshell-flatten-list args))))
+				      (flatten-tree args))))
       (let* ((args (mapconcat 'identity
 			      (mapcar 'shell-quote-argument
 				      (eshell-stringify-list
-				       (eshell-flatten-list args)))
+				       (flatten-tree args)))
 			      " "))
 	     (cmd (progn
 		    (set-text-properties 0 (length args)
@@ -876,7 +875,7 @@ external command."
 (defun eshell/du (&rest args)
   "Implementation of \"du\" in Lisp, passing ARGS."
   (setq args (if args
-		 (eshell-stringify-list (eshell-flatten-list args))
+		 (eshell-stringify-list (flatten-tree args))
 	       '(".")))
   (let ((ext-du (eshell-search-path "du")))
     (if (and ext-du
@@ -943,7 +942,8 @@ Summarize disk usage of each FILE, recursively for directories.")
 (defvar eshell-time-start nil)
 
 (defun eshell-show-elapsed-time ()
-  (let ((elapsed (format "%.3f secs\n" (- (float-time) eshell-time-start))))
+  (let ((elapsed (format "%.3f secs\n"
+			 (float-time (time-since eshell-time-start)))))
     (set-text-properties 0 (length elapsed) '(face bold) elapsed)
     (eshell-interactive-print elapsed))
   (remove-hook 'eshell-post-command-hook 'eshell-show-elapsed-time t))
@@ -976,7 +976,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	    (eshell-parse-command (car time-args)
 ;;; https://lists.gnu.org/r/bug-gnu-emacs/2007-08/msg00205.html
 				  (eshell-stringify-list
-				   (eshell-flatten-list (cdr time-args))))))))
+				   (flatten-tree (cdr time-args))))))))
 
 (defun eshell/whoami (&rest _args)
   "Make \"whoami\" Tramp aware."
@@ -1000,7 +1000,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
-  (let ((orig-args (eshell-stringify-list (eshell-flatten-list args))))
+  (let ((orig-args (eshell-stringify-list (flatten-tree args))))
     (if (or eshell-plain-diff-behavior
 	    (not (and (eshell-interactive-output-p)
 		      (not eshell-in-pipeline-p)
@@ -1056,7 +1056,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	       (string-match "^-" (car args))))
       (throw 'eshell-replace-command
 	     (eshell-parse-command "*locate" (eshell-stringify-list
-					      (eshell-flatten-list args))))
+					      (flatten-tree args))))
     (save-selected-window
       (let ((locate-history-list (list (car args))))
 	(locate-with-filter (car args) (cadr args))))))

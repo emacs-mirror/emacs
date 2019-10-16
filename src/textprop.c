@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2018 Free Software Foundation,
+   Copyright (C) 1993-1995, 1997, 1999-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -58,14 +58,13 @@ enum property_set_type
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
-static Lisp_Object interval_insert_behind_hooks;
-static Lisp_Object interval_insert_in_front_hooks;
-
+Lisp_Object interval_insert_behind_hooks;
+Lisp_Object interval_insert_in_front_hooks;
 
 /* Signal a `text-read-only' error.  This function makes it easier
    to capture that error in GDB by putting a breakpoint on it.  */
 
-static _Noreturn void
+static AVOID
 text_read_only (Lisp_Object propval)
 {
   if (STRINGP (propval))
@@ -89,7 +88,7 @@ modify_text_properties (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
   BUF_COMPUTE_UNCHANGED (buf, b - 1, e);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  MODIFF++;
+  modiff_incr (&MODIFF);
 
   bset_point_before_scroll (current_buffer, Qnil);
 
@@ -359,12 +358,15 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
 
    OBJECT should be the string or buffer the interval is in.
 
+   If DESTRUCTIVE, the function is allowed to reuse list values in the
+   properties.
+
    Return true if this changes I (i.e., if any members of PLIST
    are actually added to I's plist) */
 
 static bool
 add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
-		enum property_set_type set_type)
+		enum property_set_type set_type, bool destructive)
 {
   Lisp_Object tail1, tail2, sym1, val1;
   bool changed = false;
@@ -415,7 +417,15 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 		if (set_type == TEXT_PROPERTY_PREPEND)
 		  Fsetcar (this_cdr, Fcons (val1, Fcar (this_cdr)));
 		else
-		  nconc2 (Fcar (this_cdr), list1 (val1));
+		  {
+		    /* Appending. */
+		    if (destructive)
+		      nconc2 (Fcar (this_cdr), list1 (val1));
+		    else
+		      Fsetcar (this_cdr, CALLN (Fappend,
+						Fcar (this_cdr),
+						list1 (val1)));
+		  }
 	      else {
 		/* The previous value is a single value, so make it
 		   into a list. */
@@ -799,10 +809,10 @@ last valid position in OBJECT.  */)
       else
 	CHECK_FIXNUM_COERCE_MARKER (limit);
 
-      if (XFIXNAT (position) >= XFIXNAT (limit))
+      if (XFIXNUM (position) >= XFIXNUM (limit))
 	{
 	  position = limit;
-	  if (XFIXNAT (position) > ZV)
+	  if (XFIXNUM (position) > ZV)
 	    XSETFASTINT (position, ZV);
 	}
       else
@@ -881,16 +891,17 @@ first valid position in OBJECT.  */)
       else
 	CHECK_FIXNUM_COERCE_MARKER (limit);
 
-      if (XFIXNAT (position) <= XFIXNAT (limit))
+      if (XFIXNUM (position) <= XFIXNUM (limit))
 	{
 	  position = limit;
-	  if (XFIXNAT (position) < BEGV)
+	  if (XFIXNUM (position) < BEGV)
 	    XSETFASTINT (position, BEGV);
 	}
       else
 	{
 	  Lisp_Object initial_value
-	    = Fget_char_property (make_fixnum (XFIXNAT (position) - 1),
+	    = Fget_char_property (make_fixnum (XFIXNUM (position)
+					       - (0 <= XFIXNUM (position))),
 				  prop, object);
 
 	  while (true)
@@ -970,13 +981,13 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   next = next_interval (i);
 
   while (next && intervals_equal (i, next)
-	 && (NILP (limit) || next->position < XFIXNAT (limit)))
+	 && (NILP (limit) || next->position < XFIXNUM (limit)))
     next = next_interval (next);
 
   if (!next
       || (next->position
 	  >= (FIXNUMP (limit)
-	      ? XFIXNAT (limit)
+	      ? XFIXNUM (limit)
 	      : (STRINGP (object)
 		 ? SCHARS (object)
 		 : BUF_ZV (XBUFFER (object))))))
@@ -1019,13 +1030,13 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   next = next_interval (i);
   while (next
 	 && EQ (here_val, textget (next->plist, prop))
-	 && (NILP (limit) || next->position < XFIXNAT (limit)))
+	 && (NILP (limit) || next->position < XFIXNUM (limit)))
     next = next_interval (next);
 
   if (!next
       || (next->position
 	  >= (FIXNUMP (limit)
-	      ? XFIXNAT (limit)
+	      ? XFIXNUM (limit)
 	      : (STRINGP (object)
 		 ? SCHARS (object)
 		 : BUF_ZV (XBUFFER (object))))))
@@ -1069,13 +1080,13 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
   previous = previous_interval (i);
   while (previous && intervals_equal (previous, i)
 	 && (NILP (limit)
-	     || (previous->position + LENGTH (previous) > XFIXNAT (limit))))
+	     || (previous->position + LENGTH (previous) > XFIXNUM (limit))))
     previous = previous_interval (previous);
 
   if (!previous
       || (previous->position + LENGTH (previous)
 	  <= (FIXNUMP (limit)
-	      ? XFIXNAT (limit)
+	      ? XFIXNUM (limit)
 	      : (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))))))
     return limit;
   else
@@ -1122,13 +1133,13 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
   while (previous
 	 && EQ (here_val, textget (previous->plist, prop))
 	 && (NILP (limit)
-	     || (previous->position + LENGTH (previous) > XFIXNAT (limit))))
+	     || (previous->position + LENGTH (previous) > XFIXNUM (limit))))
     previous = previous_interval (previous);
 
   if (!previous
       || (previous->position + LENGTH (previous)
 	  <= (FIXNUMP (limit)
-	      ? XFIXNAT (limit)
+	      ? XFIXNUM (limit)
 	      : (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))))))
     return limit;
   else
@@ -1140,7 +1151,21 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 static Lisp_Object
 add_text_properties_1 (Lisp_Object start, Lisp_Object end,
 		       Lisp_Object properties, Lisp_Object object,
-		       enum property_set_type set_type) {
+		       enum property_set_type set_type,
+		       bool destructive) {
+  /* Ensure we run the modification hooks for the right buffer,
+     without switching buffers twice (bug 36190).  FIXME: Switching
+     buffers is slow and often unnecessary.  */
+  if (BUFFERP (object) && XBUFFER (object) != current_buffer)
+    {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      set_buffer_internal (XBUFFER (object));
+      return unbind_to (count, add_text_properties_1 (start, end, properties,
+						      object, set_type,
+						      destructive));
+    }
+
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
   bool modified = false;
@@ -1224,7 +1249,7 @@ add_text_properties_1 (Lisp_Object start, Lisp_Object end,
 
 	  if (LENGTH (i) == len)
 	    {
-	      add_properties (properties, i, object, set_type);
+	      add_properties (properties, i, object, set_type, destructive);
 	      if (BUFFERP (object))
 		signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
 				     XFIXNUM (end) - XFIXNUM (start));
@@ -1235,7 +1260,7 @@ add_text_properties_1 (Lisp_Object start, Lisp_Object end,
 	  unchanged = i;
 	  i = split_interval_left (unchanged, len);
 	  copy_properties (unchanged, i);
-	  add_properties (properties, i, object, set_type);
+	  add_properties (properties, i, object, set_type, destructive);
 	  if (BUFFERP (object))
 	    signal_after_change (XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
 				 XFIXNUM (end) - XFIXNUM (start));
@@ -1243,7 +1268,7 @@ add_text_properties_1 (Lisp_Object start, Lisp_Object end,
 	}
 
       len -= LENGTH (i);
-      modified |= add_properties (properties, i, object, set_type);
+      modified |= add_properties (properties, i, object, set_type, destructive);
       i = next_interval (i);
     }
 }
@@ -1263,7 +1288,7 @@ Return t if any property value actually changed, nil otherwise.  */)
    Lisp_Object object)
 {
   return add_text_properties_1 (start, end, properties, object,
-				TEXT_PROPERTY_REPLACE);
+				TEXT_PROPERTY_REPLACE, true);
 }
 
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */
@@ -1325,7 +1350,8 @@ into it.  */)
   add_text_properties_1 (start, end, properties, object,
 			 (NILP (append)
 			  ? TEXT_PROPERTY_PREPEND
-			  : TEXT_PROPERTY_APPEND));
+			  : TEXT_PROPERTY_APPEND),
+			 !STRINGP (object));
   return Qnil;
 }
 
@@ -1342,6 +1368,19 @@ Lisp_Object
 set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 		     Lisp_Object object, Lisp_Object coherent_change_p)
 {
+  /* Ensure we run the modification hooks for the right buffer,
+     without switching buffers twice (bug 36190).  FIXME: Switching
+     buffers is slow and often unnecessary.  */
+  if (BUFFERP (object) && XBUFFER (object) != current_buffer)
+    {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      set_buffer_internal (XBUFFER (object));
+      return unbind_to (count,
+			set_text_properties (start, end, properties,
+					     object, coherent_change_p));
+    }
+
   INTERVAL i;
   bool first_time = true;
 
@@ -1353,8 +1392,8 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
   /* If we want no properties for a whole string,
      get rid of its intervals.  */
   if (NILP (properties) && STRINGP (object)
-      && XFIXNAT (start) == 0
-      && XFIXNAT (end) == SCHARS (object))
+      && EQ (start, make_fixnum (0))
+      && EQ (end, make_fixnum (SCHARS (object))))
     {
       if (!string_intervals (object))
 	return Qnil;
@@ -1412,6 +1451,20 @@ void
 set_text_properties_1 (Lisp_Object start, Lisp_Object end,
 		       Lisp_Object properties, Lisp_Object object, INTERVAL i)
 {
+  /* Ensure we run the modification hooks for the right buffer,
+     without switching buffers twice (bug 36190).  FIXME: Switching
+     buffers is slow and often unnecessary.  */
+  if (BUFFERP (object) && XBUFFER (object) != current_buffer)
+    {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      set_buffer_internal (XBUFFER (object));
+
+      set_text_properties_1 (start, end, properties, object, i);
+      unbind_to (count, Qnil);
+      return;
+    }
+
   INTERVAL prev_changed = NULL;
   ptrdiff_t s = XFIXNUM (start);
   ptrdiff_t len = XFIXNUM (end) - s;
@@ -1494,6 +1547,19 @@ Return t if any property was actually removed, nil otherwise.
 Use `set-text-properties' if you want to remove all text properties.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object)
 {
+  /* Ensure we run the modification hooks for the right buffer,
+     without switching buffers twice (bug 36190).  FIXME: Switching
+     buffers is slow and often unnecessary.  */
+  if (BUFFERP (object) && XBUFFER (object) != current_buffer)
+    {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      set_buffer_internal (XBUFFER (object));
+      return unbind_to (count,
+			Fremove_text_properties (start, end, properties,
+						 object));
+    }
+
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
   bool modified = false;
@@ -1606,6 +1672,20 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.
 Return t if any property was actually removed, nil otherwise.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object list_of_properties, Lisp_Object object)
 {
+  /* Ensure we run the modification hooks for the right buffer,
+     without switching buffers twice (bug 36190).  FIXME: Switching
+     buffers is slow and often unnecessary.  */
+  if (BUFFERP (object) && XBUFFER (object) != current_buffer)
+    {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      set_buffer_internal (XBUFFER (object));
+      return unbind_to (count,
+			Fremove_list_of_text_properties (start, end,
+							 list_of_properties,
+							 object));
+    }
+
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
   bool modified = false;
@@ -2319,11 +2399,10 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   Vtext_property_default_nonsticky
     = list2 (Fcons (Qsyntax_table, Qt), Fcons (Qdisplay, Qt));
 
-  staticpro (&interval_insert_behind_hooks);
-  staticpro (&interval_insert_in_front_hooks);
   interval_insert_behind_hooks = Qnil;
   interval_insert_in_front_hooks = Qnil;
-
+  staticpro (&interval_insert_behind_hooks);
+  staticpro (&interval_insert_in_front_hooks);
 
   /* Common attributes one might give text.  */
 

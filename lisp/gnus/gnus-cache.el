@@ -1,6 +1,6 @@
 ;;; gnus-cache.el --- cache interface for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -187,9 +187,9 @@ it's not cached."
 	      (setq lines-chars (nnheader-get-lines-and-char))
 	      (nnheader-remove-body)
 	      (setq headers (nnheader-parse-naked-head))
-	      (mail-header-set-number headers number)
-	      (mail-header-set-lines headers (car lines-chars))
-	      (mail-header-set-chars headers (cadr lines-chars))
+	      (setf (mail-header-number headers) number)
+	      (setf (mail-header-lines headers) (car lines-chars))
+	      (setf (mail-header-chars headers) (cadr lines-chars))
 	      (gnus-cache-change-buffer group)
 	      (set-buffer (cdr gnus-cache-buffer))
 	      (goto-char (point-max))
@@ -272,7 +272,7 @@ it's not cached."
 (defun gnus-cache-possibly-alter-active (group active)
   "Alter the ACTIVE info for GROUP to reflect the articles in the cache."
   (when gnus-cache-active-hashtb
-    (let ((cache-active (gnus-gethash group gnus-cache-active-hashtb)))
+    (let ((cache-active (gethash group gnus-cache-active-hashtb)))
       (when cache-active
 	(when (< (car cache-active) (car active))
 	  (setcar active (car cache-active)))
@@ -430,41 +430,7 @@ Returns the list of articles removed."
       (and unread (memq 'unread class))
       (and (not unread) (not ticked) (not dormant) (memq 'read class))))
 
-(defvar gnus-cache-decoded-group-names nil
-  "Alist of original group names and decoded group names.
-Decoding is done according to `gnus-group-name-charset-method-alist'
-or `gnus-group-name-charset-group-alist'.")
-
-(defvar gnus-cache-unified-group-names nil
-  "Alist of unified decoded group names and original group names.
-A group name is decoded according to
-`gnus-group-name-charset-method-alist' or
-`gnus-group-name-charset-group-alist' first, and is encoded and
-decoded again according to `nnmail-pathname-coding-system',
-`file-name-coding-system', or `default-file-name-coding-system'.
-
-It is used when asking for an original group name from a cache
-directory name, in which non-ASCII characters might have been unified
-into the ones of a certain charset particularly if the `utf-8' coding
-system for example was used.")
-
-(defun gnus-cache-decoded-group-name (group)
-  "Return a decoded group name of GROUP."
-  (or (cdr (assoc group gnus-cache-decoded-group-names))
-      (let ((decoded (gnus-group-decoded-name group))
-	    (coding (or nnmail-pathname-coding-system
-			file-name-coding-system
-			default-file-name-coding-system)))
-	(push (cons group decoded) gnus-cache-decoded-group-names)
-	(push (cons (decode-coding-string
-		     (encode-coding-string decoded coding)
-		     coding)
-		    group)
-	      gnus-cache-unified-group-names)
-	decoded)))
-
 (defun gnus-cache-file-name (group article)
-  (setq group (gnus-cache-decoded-group-name group))
   (expand-file-name
    (if (stringp article) article (int-to-string article))
    (file-name-as-directory
@@ -522,7 +488,7 @@ system for example was used.")
 	    (gnus-delete-line)))
       (unless (setq gnus-newsgroup-cached
 		    (delq article gnus-newsgroup-cached))
-	(gnus-sethash gnus-newsgroup-name nil gnus-cache-active-hashtb)
+	(remhash gnus-newsgroup-name gnus-cache-active-hashtb)
 	(setq gnus-cache-active-altered t))
       (gnus-summary-update-secondary-mark article)
       t)))
@@ -542,8 +508,8 @@ system for example was used.")
 	  (progn
 	    (gnus-cache-update-active group (car articles) t)
 	    (gnus-cache-update-active group (car (last articles))))
-	(when (gnus-gethash group gnus-cache-active-hashtb)
-	  (gnus-sethash group nil gnus-cache-active-hashtb)
+	(when (gethash group gnus-cache-active-hashtb)
+	  (remhash group gnus-cache-active-hashtb)
 	  (setq gnus-cache-active-altered t)))
       articles)))
 
@@ -666,13 +632,16 @@ $ emacs -batch -l ~/.emacs -l gnus -f gnus-jog-cache"
     ;; Mark the active hashtb as unaltered.
     (setq gnus-cache-active-altered nil)))
 
+;; FIXME: Why is there a `gnus-cache-possibly-alter-active',
+;; `gnus-cache-possibly-update-active', and
+;; `gnus-cache-update-active'?  Do we really need all three?
 (defun gnus-cache-possibly-update-active (group active)
   "Update active info bounds of GROUP with ACTIVE if necessary.
 The update is performed if ACTIVE contains a higher or lower bound
 than the current."
   (let ((lower t) (higher t))
     (if gnus-cache-active-hashtb
-	(let ((cache-active (gnus-gethash group gnus-cache-active-hashtb)))
+	(let ((cache-active (gethash group gnus-cache-active-hashtb)))
 	  (when cache-active
 	    (unless (< (car active) (car cache-active))
 	      (setq lower nil))
@@ -687,10 +656,10 @@ than the current."
 (defun gnus-cache-update-active (group number &optional low)
   "Update the upper bound of the active info of GROUP to NUMBER.
 If LOW, update the lower bound instead."
-  (let ((active (gnus-gethash group gnus-cache-active-hashtb)))
+  (let ((active (gethash group gnus-cache-active-hashtb)))
     (if (null active)
 	;; We just create a new active entry for this group.
-	(gnus-sethash group (cons number number) gnus-cache-active-hashtb)
+	(puthash group (cons number number) gnus-cache-active-hashtb)
       ;; Update the lower or upper bound.
       (if low
 	  (setcar active number)
@@ -730,14 +699,9 @@ If LOW, update the lower bound instead."
 	(push (pop files) alphs)))
     ;; If we have nums, then this is probably a valid group.
     (when (setq nums (sort nums '<))
-      ;; Use non-decoded group name.
-      ;; FIXME: this is kind of a workaround.  The active file should
-      ;; be updated at the time articles are cached.  It will make
-      ;; `gnus-cache-unified-group-names' needless.
-      (gnus-sethash (or (cdr (assoc group gnus-cache-unified-group-names))
-			group)
-		    (cons (car nums) (car (last nums)))
-		    gnus-cache-active-hashtb))
+      (puthash group
+	       (cons (car nums) (car (last nums)))
+	       gnus-cache-active-hashtb))
     ;; Go through all the other files.
     (dolist (file alphs)
       (when (and (file-directory-p file)
@@ -798,13 +762,13 @@ supported."
     (unless gnus-cache-active-hashtb
       (gnus-cache-read-active))
     (let* ((old-group-hash-value
-	    (gnus-gethash old-group gnus-cache-active-hashtb))
+	    (gethash old-group gnus-cache-active-hashtb))
 	   (new-group-hash-value
-	    (gnus-gethash new-group gnus-cache-active-hashtb))
+	    (gethash new-group gnus-cache-active-hashtb))
 	   (delta
 	    (or old-group-hash-value new-group-hash-value)))
-      (gnus-sethash new-group old-group-hash-value gnus-cache-active-hashtb)
-      (gnus-sethash old-group nil gnus-cache-active-hashtb)
+      (puthash new-group old-group-hash-value gnus-cache-active-hashtb)
+      (puthash old-group nil gnus-cache-active-hashtb)
 
       (if no-save
 	  (setq gnus-cache-active-altered delta)
@@ -826,8 +790,8 @@ supported."
   (let ((no-save gnus-cache-active-hashtb))
     (unless gnus-cache-active-hashtb
       (gnus-cache-read-active))
-    (let* ((group-hash-value (gnus-gethash group gnus-cache-active-hashtb)))
-      (gnus-sethash group nil gnus-cache-active-hashtb)
+    (let* ((group-hash-value (gethash group gnus-cache-active-hashtb)))
+      (remhash group gnus-cache-active-hashtb)
 
       (if no-save
 	  (setq gnus-cache-active-altered group-hash-value)
@@ -849,9 +813,9 @@ supported."
   (when gnus-cache-total-fetched-hashtb
     (gnus-cache-with-refreshed-group
      group
-     (let* ((entry (or (gnus-gethash group gnus-cache-total-fetched-hashtb)
-		       (gnus-sethash group (make-vector 2 0)
-				     gnus-cache-total-fetched-hashtb)))
+     (let* ((entry (or (gethash group gnus-cache-total-fetched-hashtb)
+		       (puthash group (make-vector 2 0)
+				gnus-cache-total-fetched-hashtb)))
 	    size)
 
        (if file
@@ -874,8 +838,8 @@ supported."
   (when gnus-cache-total-fetched-hashtb
     (gnus-cache-with-refreshed-group
      group
-     (let* ((entry (or (gnus-gethash group gnus-cache-total-fetched-hashtb)
-		       (gnus-sethash group (make-list 2 0)
+     (let* ((entry (or (gethash group gnus-cache-total-fetched-hashtb)
+		       (puthash group (make-list 2 0)
 				     gnus-cache-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system)
 	    (size (or (file-attribute-size (file-attributes
@@ -888,22 +852,21 @@ supported."
 (defun gnus-cache-rename-group-total-fetched-for (old-group new-group)
   "Record of disk space used by OLD-GROUP now associated with NEW-GROUP."
   (when gnus-cache-total-fetched-hashtb
-    (let ((entry (gnus-gethash old-group gnus-cache-total-fetched-hashtb)))
-      (gnus-sethash new-group entry gnus-cache-total-fetched-hashtb)
-      (gnus-sethash old-group nil gnus-cache-total-fetched-hashtb))))
+    (let ((entry (gethash old-group gnus-cache-total-fetched-hashtb)))
+      (puthash new-group entry gnus-cache-total-fetched-hashtb)
+      (remhash old-group gnus-cache-total-fetched-hashtb))))
 
 (defun gnus-cache-delete-group-total-fetched-for (group)
   "Delete record of disk space used by GROUP being deleted."
   (when gnus-cache-total-fetched-hashtb
-      (gnus-sethash group nil gnus-cache-total-fetched-hashtb)))
+      (remhash group gnus-cache-total-fetched-hashtb)))
 
 (defun gnus-cache-total-fetched-for (group &optional no-inhibit)
   "Get total disk space used by the cache for the specified GROUP."
   (unless (equal group "dummy.group")
     (unless gnus-cache-total-fetched-hashtb
-      (setq gnus-cache-total-fetched-hashtb (gnus-make-hashtable 1024)))
-
-    (let* ((entry (gnus-gethash group gnus-cache-total-fetched-hashtb)))
+      (setq gnus-cache-total-fetched-hashtb (gnus-make-hashtable 1000)))
+    (let* ((entry (gethash group gnus-cache-total-fetched-hashtb)))
       (if entry
 	  (apply '+ entry)
 	(let ((gnus-cache-inhibit-update-total-fetched-for (not no-inhibit)))

@@ -1,6 +1,6 @@
 ;;; nnir.el --- Search mail with various search engines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -165,7 +165,7 @@
 (defvar gnus-inhibit-demon)
 
 (defvar nnir-search-history ()
-  "Internal: the history for querying search options in nnir")
+  "Internal: the history for querying search options in nnir.")
 
 (defconst nnir-tmp-buffer " *nnir*"
   "Internal: temporary buffer.")
@@ -185,24 +185,24 @@
 
 (defvar nnir-imap-search-other "HEADER %S"
   "The IMAP search item to use for anything other than
-  `nnir-imap-search-arguments'. By default this is the name of an
-  email header field")
+`nnir-imap-search-arguments'.  By default this is the name of an
+email header field.")
 
 (defvar nnir-imap-search-argument-history ()
-  "The history for querying search options in nnir")
+  "The history for querying search options in nnir.")
 
 ;;; Helper macros
 
 (defmacro nnir-artitem-group (artitem)
-  "Returns the group from the ARTITEM."
+  "Return the group from the ARTITEM."
   `(elt ,artitem 0))
 
 (defmacro nnir-artitem-number (artitem)
-  "Returns the number from the ARTITEM."
+  "Return the number from the ARTITEM."
   `(elt ,artitem 1))
 
 (defmacro nnir-artitem-rsv (artitem)
-  "Returns the Retrieval Status Value (RSV, score) from the ARTITEM."
+  "Return the Retrieval Status Value (RSV, score) from the ARTITEM."
   `(elt ,artitem 2))
 
 
@@ -214,16 +214,15 @@
 
 (defcustom nnir-ignored-newsgroups ""
   "A regexp to match newsgroups in the active file that should
-  be skipped when searching."
+be skipped when searching."
   :version "24.1"
   :type '(regexp)
   :group 'nnir)
 
-
 (defcustom nnir-imap-default-search-key "whole message"
-  "The default IMAP search key for an nnir search. Must be one of
-  the keys in `nnir-imap-search-arguments'. To use raw imap queries
-  by default set this to \"imap\"."
+  "The default IMAP search key for an nnir search.  Must be one of
+the keys in `nnir-imap-search-arguments'.  To use raw imap queries
+by default set this to \"imap\"."
   :version "24.1"
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
 			   nnir-imap-search-arguments))
@@ -322,7 +321,7 @@ This could be a server parameter."
 
 (defcustom nnir-hyrex-additional-switches '()
   "A list of strings, to be given as additional arguments for nnir-search.
-Note that this should be a list. I.e., do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
 Instead, use this:
     (setq nnir-hyrex-additional-switches \\='(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
@@ -361,8 +360,8 @@ arrive at the correct group name, \"mail.misc\"."
 
 (defcustom nnir-namazu-additional-switches '()
   "A list of strings, to be given as additional arguments to namazu.
-The switches `-q', `-a', and `-s' are always used, very few other switches
-make any sense in this context.
+The switches `-q', `-a', and `-s' are always used, very few other
+switches make any sense in this context.
 
 Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-namazu-additional-switches \"-i -w\") ; wrong
@@ -401,14 +400,15 @@ Instead, use this:
   :type '(repeat (string))
   :group 'nnir)
 
-(defcustom nnir-notmuch-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom nnir-notmuch-remove-prefix
+  (regexp-quote (or (getenv "MAILDIR") (expand-file-name "~/Mail")))
   "The prefix to remove from each file name returned by notmuch
 in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
 This variable is very similar to `nnir-namazu-remove-prefix', except
 that it is for notmuch, not Namazu."
-  :version "24.1"
+  :version "27.1"
   :type '(regexp)
   :group 'nnir)
 
@@ -468,7 +468,7 @@ Add an entry here when adding a new search engine.")
 
 (defmacro nnir-add-result (dirnam artno score prefix server artlist)
   "Ask `nnir-compose-result' to construct a result vector,
-and if it is non-nil, add it to artlist."
+and if it is non-nil, add it to ARTLIST."
   `(let ((result (nnir-compose-result ,dirnam ,artno ,score ,prefix ,server)))
      (when (not (null result))
        (push result ,artlist))))
@@ -478,7 +478,7 @@ and if it is non-nil, add it to artlist."
 ;; Helper function currently used by the Swish++ and Namazu backends;
 ;; perhaps useful for other backends as well
 (defun nnir-compose-result (dirnam article score prefix server)
-  "Extract the group from dirnam, and create a result vector
+  "Extract the group from DIRNAM, and create a result vector
 ready to be added to the list of search results."
 
   ;; remove nnir-*-remove-prefix from beginning of dirnam filename
@@ -516,8 +516,8 @@ ready to be added to the list of search results."
 ;; imap interface
 (defun nnir-run-imap (query srv &optional groups)
   "Run a search against an IMAP back-end server.
-This uses a custom query language parser; see `nnir-imap-make-query' for
-details on the language and supported extensions."
+This uses a custom query language parser; see `nnir-imap-make-query'
+for details on the language and supported extensions."
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
           (server (cadr (gnus-server-to-method srv)))
@@ -565,28 +565,30 @@ details on the language and supported extensions."
   "Parse the query string and criteria into an appropriate IMAP search
 expression, returning the string query to make.
 
-This implements a little language designed to return the expected results
-to an arbitrary query string to the end user.
+This implements a little language designed to return the expected
+results to an arbitrary query string to the end user.
 
-The search is always case-insensitive, as defined by RFC2060, and supports
-the following features (inspired by the Google search input language):
+The search is always case-insensitive, as defined by RFC2060, and
+supports the following features (inspired by the Google search input
+language):
 
 Automatic \"and\" queries
-    If you specify multiple words then they will be treated as an \"and\"
-    expression intended to match all components.
+    If you specify multiple words then they will be treated as an
+    \"and\" expression intended to match all components.
 
 Phrase searches
-    If you wrap your query in double-quotes then it will be treated as a
-    literal string.
+    If you wrap your query in double-quotes then it will be treated
+    as a literal string.
 
 Negative terms
     If you precede a term with \"-\" then it will negate that.
 
 \"OR\" queries
-    If you include an upper-case \"OR\" in your search it will cause the
-    term before it and the term after it to be treated as alternatives.
+    If you include an upper-case \"OR\" in your search it will cause
+    the term before it and the term after it to be treated as
+    alternatives.
 
-In future the following will be added to the language:
+In the future the following will be added to the language:
  * support for date matches
  * support for location of text matching within the query
  * from/to/etc headers
@@ -598,7 +600,7 @@ In future the following will be added to the language:
 
 
 (defun nnir-imap-query-to-imap (criteria query)
-  "Turn a s-expression format query into IMAP."
+  "Turn an s-expression format QUERY into IMAP."
   (mapconcat
    ;; Turn the expressions into IMAP text
    (lambda (item)
@@ -610,7 +612,7 @@ In future the following will be added to the language:
 
 
 (defun nnir-imap-expr-to-imap (criteria expr)
-  "Convert EXPR into an IMAP search expression on CRITERIA"
+  "Convert EXPR into an IMAP search expression on CRITERIA."
   ;; What sort of expression is this, eh?
   (cond
    ;; Simple string term
@@ -664,7 +666,7 @@ that the search language can then understand and use."
 
 
 (defun nnir-imap-next-term (&optional count)
-  "Return the next TERM from the current buffer."
+  "Return the next term from the current buffer."
   (let ((term (nnir-imap-next-symbol count)))
     ;; What sort of term is this?
     (cond
@@ -728,7 +730,7 @@ returning the one at the supplied position."
 
 (defun nnir-imap-end-of-input ()
   "Are we at the end of input?"
-  (skip-chars-forward "[[:blank:]]")
+  (skip-chars-forward "[:blank:]")
   (looking-at "$"))
 
 
@@ -832,7 +834,7 @@ Windows NT 4.0."
 
 ;; Swish-E interface.
 (defun nnir-run-swish-e (query server &optional _group)
-  "Run given query against swish-e.
+  "Run given QUERY against swish-e.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually).
 
@@ -998,8 +1000,9 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 
 ;; Namazu interface
 (defun nnir-run-namazu (query server &optional _group)
-  "Run given query against Namazu.  Returns a vector of (group name, file name)
-pairs (also vectors, actually).
+  "Run given QUERY against Namazu.
+Returns a vector of (group name, file name) pairs (also vectors,
+actually).
 
 Tested with Namazu 2.0.6 on a GNU/Linux system."
   ;; (when group
@@ -1239,13 +1242,13 @@ construct path: search terms (see the variable
 
 
 (defun nnir-read-parms (nnir-search-engine)
-  "Reads additional search parameters according to `nnir-engines'."
+  "Read additional search parameters according to `nnir-engines'."
   (let ((parmspec (nth 2 (assoc nnir-search-engine nnir-engines))))
     (mapcar #'nnir-read-parm parmspec)))
 
 (defun nnir-read-parm (parmspec)
-  "Reads a single search parameter.
-`parmspec' is a cons cell, the car is a symbol, the cdr is a prompt."
+  "Read a single search parameter.
+PARMSPEC is a cons cell, the car is a symbol, the cdr is a prompt."
   (let ((sym (car parmspec))
         (prompt (cdr parmspec)))
     (if (listp prompt)
@@ -1274,9 +1277,9 @@ construct path: search terms (see the variable
 		  nnir-method-default-engines))))
 
 (defun nnir-read-server-parm (key server &optional not-global)
-  "Returns the parameter value corresponding to `key' for
-`server'. If no server-specific value is found consult the global
-environment unless `not-global' is non-nil."
+  "Return the parameter value corresponding to KEY for SERVER.
+If no server-specific value is found consult the global
+environment unless NOT-GLOBAL is non-nil."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
            (nth 1 (assq key (cddr method))))

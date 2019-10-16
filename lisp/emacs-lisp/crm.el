@@ -1,6 +1,6 @@
 ;;; crm.el --- read multiple strings with completion
 
-;; Copyright (C) 1985-1986, 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements
@@ -222,7 +222,7 @@ exiting the minibuffer."
     t))
 
 ;; superemulates behavior of completing_read in src/minibuf.c
-;; Use \\<crm-local-completion-map> so that help-enable-auto-load can
+;; Use \\<crm-local-completion-map> so that help-enable-autoload can
 ;; do its thing.  Any keymap that is defined will do.
 ;;;###autoload
 (defun completing-read-multiple

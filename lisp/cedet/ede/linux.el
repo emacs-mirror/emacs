@@ -1,8 +1,8 @@
 ;;; ede/linux.el --- Special project for Linux
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -34,11 +34,8 @@
 
 (require 'ede)
 (require 'ede/make)
+(require 'semantic/db)
 (eval-when-compile (require 'cl-lib))
-
-(declare-function semanticdb-file-table-object "semantic/db")
-(declare-function semanticdb-needs-refresh-p "semantic/db")
-(declare-function semanticdb-refresh-table "semantic/db")
 
 ;;; Code:
 (defgroup project-linux nil
@@ -139,7 +136,7 @@ If DIR has not been used as a build directory, fall back to
 
 (defun ede-linux--detect-architecture (dir)
   "Try to auto-detect the architecture as configured in DIR.
-DIR is Linux' build directory. If it cannot be auto-detected,
+DIR is Linux' build directory.  If it cannot be auto-detected,
 returns `project-linux-architecture-default'."
   (let ((archs-dir (expand-file-name "arch" dir))
         (archs (ede-linux--get-archs dir))
@@ -160,9 +157,9 @@ returns `project-linux-architecture-default'."
 
 (defun ede-linux--get-architecture (dir bdir)
   "Try to auto-detect the architecture as configured in BDIR.
-Uses `ede-linux--detect-architecture' for the auto-detection. If
-the result is `ask', let the user choose from architectures found
-in DIR."
+Uses `ede-linux--detect-architecture' for the auto-detection.
+If the result is `ask', let the user choose from architectures
+found in DIR."
   (let ((arch (ede-linux--detect-architecture bdir)))
     (cl-case arch
       (ask

@@ -1,6 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2018 Free Software Foundation,
+Copyright (C) 1988, 1993-1994, 1999, 2001-2019 Free Software Foundation,
 Inc.
 
 Author: Wolfgang Rupprecht (according to ack.texi)
@@ -47,6 +47,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 
 #include <count-leading-zeros.h>
+
+/* Emacs needs proper handling of +/-inf; correct printing as well as
+   important packages depend on it.  Make sure the user didn't specify
+   -ffinite-math-only, either directly or implicitly with -Ofast or
+   -ffast-math.  */
+#if defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__
+ #error Emacs cannot be built with -ffinite-math-only
+#endif
 
 /* Check that X is a floating point number.  */
 
@@ -133,7 +141,7 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
 }
 
 DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
-       doc: /* Return non nil if argument X is a NaN.  */)
+       doc: /* Return non-nil if argument X is a NaN.  */)
   (Lisp_Object x)
 {
   CHECK_FLOAT (x);
@@ -268,9 +276,9 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
     }
   else
     {
-      if (mpz_sgn (XBIGNUM (arg)->value) < 0)
+      if (mpz_sgn (*xbignum_val (arg)) < 0)
 	{
-	  mpz_neg (mpz[0], XBIGNUM (arg)->value);
+	  mpz_neg (mpz[0], *xbignum_val (arg));
 	  arg = make_integer_mpz ();
 	}
     }
@@ -306,27 +314,22 @@ This is the same as the exponent of a float.  */)
   if (FLOATP (arg))
     {
       double f = XFLOAT_DATA (arg);
-
       if (f == 0)
-	value = MOST_NEGATIVE_FIXNUM;
-      else if (isfinite (f))
-	{
-	  int ivalue;
-	  frexp (f, &ivalue);
-	  value = ivalue - 1;
-	}
-      else
-	value = MOST_POSITIVE_FIXNUM;
+	return make_float (-HUGE_VAL);
+      if (!isfinite (f))
+	return f < 0 ? make_float (-f) : arg;
+      int ivalue;
+      frexp (f, &ivalue);
+      value = ivalue - 1;
     }
-  else if (BIGNUMP (arg))
-    value = mpz_sizeinbase (XBIGNUM (arg)->value, 2) - 1;
+  else if (!FIXNUMP (arg))
+    value = mpz_sizeinbase (*xbignum_val (arg), 2) - 1;
   else
     {
-      eassert (FIXNUMP (arg));
-      EMACS_INT i = eabs (XFIXNUM (arg));
-      value = (i == 0
-	       ? MOST_NEGATIVE_FIXNUM
-	       : EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (i));
+      EMACS_INT i = XFIXNUM (arg);
+      if (i == 0)
+	return make_float (-HUGE_VAL);
+      value = EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (eabs (i));
     }
 
   return make_fixnum (value);

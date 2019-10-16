@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for compile.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -30,7 +30,7 @@
 (require 'ert)
 (require 'compile)
 
-(defvar compile-tests--test-regexps-data
+(defconst compile-tests--test-regexps-data
   ;; The computed column numbers are zero-indexed, so subtract 1 from
   ;; what's reported in the string.  The end column numbers are for
   ;; the character after, so it matches what's reported in the string.
@@ -180,6 +180,12 @@
      1 0 31 "/usr/include/c++/3.3/backward/iostream.h")
     ("                 from test_clt.cc:1:"
      1 nil 1 "test_clt.cc")
+    ;; gmake
+    ("make: *** [Makefile:20: all] Error 2" 12 nil 20 "Makefile" 0)
+    ("make[4]: *** [sub/make.mk:19: all] Error 127" 15 nil 19 "sub/make.mk" 0)
+    ("gmake[4]: *** [sub/make.mk:19: all] Error 2" 16 nil 19 "sub/make.mk" 0)
+    ("gmake-4.3[4]: *** [make.mk:1119: all] Error 2" 20 nil 1119 "make.mk" 0)
+    ("Make-4.3: *** [make.INC:1119: dir/all] Error 2" 16 nil 1119 "make.INC" 0)
     ;; gnu
     ("foo.c:8: message" 1 nil 8 "foo.c")
     ("../foo.c:8: W: message" 1 nil 8 "../foo.c")
@@ -204,6 +210,8 @@
      1 nil 54 "G:/cygwin/dev/build-myproj.xml")
     ("{standard input}:27041: Warning: end of file not at end of a line; newline inserted"
      1 nil 27041 "{standard input}")
+    ("boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contexts, use -ftemplate-backtrace-limit=0 to disable ]"
+     1 25 589 "boost/container/detail/flat_tree.hpp" 0)
     ;; Guile
     ("In foo.scm:\n" 1 nil nil "foo.scm")
     ("  63:4 [call-with-prompt prompt0 ...]" 1 4 63 nil)
@@ -401,7 +409,13 @@ can only work with the NUL byte to disambiguate colons.")
 The test data is in `compile-tests--test-regexps-data'."
   (with-temp-buffer
     (font-lock-mode -1)
-    (mapc #'compile--test-error-line compile-tests--test-regexps-data)))
+    (let ((compilation-num-errors-found 0)
+          (compilation-num-warnings-found 0)
+          (compilation-num-infos-found 0))
+      (mapc #'compile--test-error-line compile-tests--test-regexps-data)
+      (should (eq compilation-num-errors-found 87))
+      (should (eq compilation-num-warnings-found 32))
+      (should (eq compilation-num-infos-found 26)))))
 
 (ert-deftest compile-test-grep-regexps ()
   "Test the `grep-regexp-alist' regexps.
@@ -421,6 +435,7 @@ The test data is in `compile-tests--grep-regexp-testcases'."
         (should (equal msg1 msg2))))
     (dolist (testcase compile-tests--grep-regexp-tricky-testcases)
       (ert-info ((format "%S" testcase) :prefix "testcase: ")
-        (compile--test-error-line testcase)))))
+        (compile--test-error-line testcase)))
+    (should (eq compilation-num-errors-found 8))))
 
 ;;; compile-tests.el ends here

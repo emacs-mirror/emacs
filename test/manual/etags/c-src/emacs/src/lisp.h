@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.

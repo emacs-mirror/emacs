@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -151,6 +151,20 @@ with the mouse (@pxref{Mouse References}), to visit the @dfn{locus} of
 the error message in a separate window.  The locus is the specific
 position in a file where that error occurred.
 
+@cindex compilation mode faces
+@vindex compilation-error
+@vindex compilation-warning
+  The appearance of the @file{*compilation*} buffer can be controlled
+by customizing the faces which are used to highlight parts of the
+@file{*compilation*} buffer, e.g., @code{compilation-error} or
+@code{compilation-warning}, for error and warning messages
+respectively.  Note that since those faces inherit from the
+@code{error} and @code{warning} faces, it is also possible to
+customize the parent face directly instead.
+
+  Use @w{@kbd{M-x customize-group RET compilation}} to see the entire
+list of customization variables and faces.
+
 @findex compile-goto-error
 @vindex compilation-auto-jump-to-first-error
   If you change the variable
@@ -252,11 +266,12 @@ fringe (@pxref{Fringes}), the locus-visiting commands put an arrow in
 the fringe, pointing to the current error message.  If the window has
 no left fringe, such as on a text terminal, these commands scroll the
 window so that the current message is at the top of the window.  If
-you change the variable @code{compilation-context-lines} to an integer
-value @var{n}, these commands scroll the window so that the current
-error message is @var{n} lines from the top, whether or not there is a
-fringe; the default value, @code{nil}, gives the behavior described
-above.
+you change the variable @code{compilation-context-lines} to @code{t},
+a visible arrow is inserted before column zero instead.  If you change
+the variable to an integer value @var{n}, these commands scroll the
+window so that the current error message is @var{n} lines from the
+top, whether or not there is a fringe; the default value, @code{nil},
+gives the behavior described above.
 
 @vindex compilation-error-regexp-alist
 @vindex grep-regexp-alist
@@ -1499,13 +1514,19 @@ call it, Emacs automatically loads the @code{compile} library first.
 In contrast, the command @kbd{M-x recompile} is not autoloaded, so it
 is unavailable until you load the @code{compile} library.
 
-@vindex help-enable-auto-load
+@vindex help-enable-autoload
   Automatic loading can also occur when you look up the documentation
 of an autoloaded command (@pxref{Name Help}), if the documentation
 refers to other functions and variables in its library (loading the
 library lets Emacs properly set up the hyperlinks in the @file{*Help*}
 buffer).  To disable this feature, change the variable
-@code{help-enable-auto-load} to @code{nil}.
+@code{help-enable-autoload} to @code{nil}.
+
+@vindex help-enable-completion-autoload
+Automatic loading also occurs when completing names for
+@code{describe-variable} and @code{describe-function}, based on the
+prefix being completed.  To disable this feature, change the variable
+@code{help-enable-completion-autoload} to @code{nil}.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs

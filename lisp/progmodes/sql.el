@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
@@ -223,6 +223,7 @@
 ;; Simen Heggestøyl <simenheg@gmail.com> -- Postgres database completion
 ;; Robert Cochran <robert-emacs@cochranmail.com> -- MariaDB support
 ;; Alex Harsanyi <alexharsanyi@gmail.com> -- sql-indent package and support
+;; Roy Mathew <rmathew8@gmail.com> -- bug in `sql-send-string'
 ;;
 
 
@@ -237,6 +238,7 @@
 (require 'custom)
 (require 'thingatpt)
 (require 'view)
+(eval-when-compile (require 'subr-x))   ; string-empty-p
 
 (defvar font-lock-keyword-face)
 (defvar font-lock-set-defaults)
@@ -441,6 +443,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :sqli-login sql-ms-login-params
      :sqli-comint-func sql-comint-ms
      :prompt-regexp "^[0-9]*>"
+     :prompt-cont-regexp "^[0-9]*>"
      :prompt-length 5
      :syntax-alist ((?@ . "_"))
      :terminator ("^go" . "go"))
@@ -476,7 +479,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :prompt-cont-regexp "^\\(?:[ ][ ][1-9]\\|[ ][1-9][0-9]\\|[1-9][0-9]\\{2\\}\\)[ ]\\{2\\}"
      :statement sql-oracle-statement-starters
      :syntax-alist ((?$ . "_") (?# . "_"))
-     :terminator ("\\(^/\\|;\\)$" . "/")
+     :terminator ("\\(^/\\|;\\)" . "/")
      :input-filter sql-placeholders-filter)
 
     (postgres
@@ -494,7 +497,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :prompt-length 5
      :prompt-cont-regexp "^[[:alnum:]_]*[-(][#>] "
      :input-filter sql-remove-tabs-filter
-     :terminator ("\\(^\\s-*\\\\g$\\|;\\)" . "\\g"))
+     :terminator ("\\(^\\s-*\\\\g\\|;\\)" . "\\g"))
 
     (solid
      :name "Solid"
@@ -519,8 +522,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :completion-object sql-sqlite-completion-object
      :prompt-regexp "^sqlite> "
      :prompt-length 8
-     :prompt-cont-regexp "^   \\.\\.\\.> "
-     :terminator ";")
+     :prompt-cont-regexp "^   \\.\\.\\.> ")
 
     (sybase
      :name "Sybase"
@@ -735,18 +737,133 @@ requirements.
 The package must be available to be loaded and activated."
   :group 'SQL
   :link '(url-link "https://elpa.gnu.org/packages/sql-indent.html")
-  :type 'booleanp
+  :type 'boolean
   :version "27.1")
-
-(defun sql-is-indent-available ()
-  "Check if sql-indent module is available."
-  (when (locate-library "sql-indent")
-    (fboundp 'sqlind-minor-mode)))
 
 (defun sql-indent-enable ()
   "Enable `sqlind-minor-mode' if available and requested."
-  (when (sql-is-indent-available)
+  (when (fboundp 'sqlind-minor-mode)
     (sqlind-minor-mode (if sql-use-indent-support +1 -1))))
+
+;; Secure Password wallet
+
+(require 'auth-source)
+
+(defun sql-auth-source-search-wallet (wallet product user server database port)
+    "Read auth source WALLET to locate the USER secret.
+Sets `auth-sources' to WALLET and uses `auth-source-search' to locate the entry.
+The DATABASE and SERVER are concatenated with a slash between them as the
+host key."
+    (let* ((auth-sources wallet)
+           host
+           secret h-secret sd-secret)
+
+      ;; product
+      (setq product (symbol-name product))
+
+      ;; user
+      (setq user (unless (string-empty-p user) user))
+
+      ;; port
+      (setq port
+            (when (and port (numberp port) (not (zerop port)))
+              (number-to-string port)))
+
+      ;; server
+      (setq server (unless (string-empty-p server) server))
+
+      ;; database
+      (setq database (unless (string-empty-p database) database))
+
+      ;; host
+      (setq host (if server
+                     (if database
+                         (concat server "/" database)
+                       server)
+                   database))
+
+      ;; Perform search
+      (dolist (s (auth-source-search :max 1000))
+        (when (and
+               ;; Is PRODUCT specified, in the enty, and they are equal
+               (if product
+                   (if (plist-member s :product)
+                       (equal (plist-get s :product) product)
+                     t)
+                 t)
+               ;; Is USER specified, in the entry, and they are equal
+               (if user
+                   (if (plist-member s :user)
+                       (equal (plist-get s :user) user)
+                     t)
+                 t)
+               ;; Is PORT specified, in the entry, and they are equal
+               (if port
+                   (if (plist-member s :port)
+                       (equal (plist-get s :port) port)
+                     t)
+                 t))
+          ;; Is HOST specified, in the entry, and they are equal
+          ;; then the H-SECRET list
+          (if (and host
+                   (plist-member s :host)
+                   (equal (plist-get s :host) host))
+              (push s h-secret)
+            ;; Are SERVER and DATABASE specified, present, and equal
+            ;; then the SD-SECRET list
+            (if (and server
+                     (plist-member s :server)
+                     database
+                     (plist-member s :database)
+                     (equal (plist-get s :server) server)
+                     (equal (plist-get s :database) database))
+                (push s sd-secret)
+              ;; Is SERVER specified, in the entry, and they are equal
+              ;; then the base SECRET list
+              (if (and server
+                       (plist-member s :server)
+                       (equal (plist-get s :server) server))
+                  (push s secret)
+                ;; Is DATABASE specified, in the entry, and they are equal
+                ;; then the base SECRET list
+                (if (and database
+                         (plist-member s :database)
+                         (equal (plist-get s :database) database))
+                    (push s secret)))))))
+      (setq secret (or h-secret sd-secret secret))
+
+      ;; If we found a single secret, return the password
+      (when (= 1 (length secret))
+        (setq secret (car secret))
+        (if (plist-member secret :secret)
+            (plist-get secret :secret)
+          nil))))
+
+(defcustom sql-password-wallet
+  (let (wallet w)
+    (dolist (ext '(".json.gpg" ".gpg" ".json" "") wallet)
+      (unless wallet
+        (setq w (locate-user-emacs-file (concat "sql-wallet" ext)
+                                        (concat ".sql-wallet" ext)))
+        (when (file-exists-p w)
+          (setq wallet w)))))
+  "Identification of the password wallet.
+See `sql-password-search-wallet-function' to understand how this value
+is used to locate the password wallet."
+  :type `(plist-get (symbol-plist 'auth-sources) 'custom-type)
+  :group 'SQL
+  :version "27.1")
+
+(defvar sql-password-search-wallet-function #'sql-auth-source-search-wallet
+  "Function to handle the lookup of the database password.
+The specified function will be called as:
+  (wallet-func WALLET PRODUCT USER SERVER DATABASE PORT)
+
+It is expected to return either a string containing the password,
+a function returning the password, or nil, If you want to support
+another format of password file, then implement a different
+search wallet function and identify the location of the password
+store with `sql-password-wallet'.")
 
 ;; misc customization of sql.el behavior
 
@@ -804,7 +921,7 @@ Globally should be set to nil; it will be non-nil in `sql-mode',
 
 (defvaralias 'sql-pop-to-buffer-after-send-region 'sql-display-sqli-buffer-function)
 
-(defcustom sql-display-sqli-buffer-function 'display-buffer
+(defcustom sql-display-sqli-buffer-function #'display-buffer
   "Function to be called to display a SQLi buffer after `sql-send-*'.
 
 When set to a function, it will be called to display the buffer.
@@ -1103,6 +1220,11 @@ Starts `sql-interactive-mode' after doing some setup."
 
 ;; Customization for Microsoft
 
+;; Microsoft documentation seems to indicate that ISQL and OSQL are
+;; going away and being replaced by SQLCMD.  If anyone has experience
+;; using SQLCMD, modified product configuration and feedback on its
+;; use would be greatly appreciated.
+
 (defcustom sql-ms-program "osql"
   "Command to start osql by Microsoft.
 
@@ -1300,6 +1422,15 @@ specified, it's `sql-product' or `sql-connection' must match."
                 (or (not connection)
                     (and (stringp connection)
                          (string= connection sql-connection))))))))
+
+(defun sql-is-sqli-buffer-p (buffer)
+  "Return non-nil if buffer is a SQLi buffer."
+  (when buffer
+    (setq buffer (get-buffer buffer))
+    (and buffer
+         (buffer-live-p buffer)
+         (with-current-buffer buffer
+           (derived-mode-p 'sql-interactive-mode)))))
 
 ;; Keymap for sql-interactive-mode.
 
@@ -2609,7 +2740,7 @@ highlighting rules in SQL mode.")
              nil 'require-match
              init 'sql-product-history init))))
 
-(defun sql-add-product (product display &rest plist)
+(defun sql-add-product (product display &optional plist)
   "Add support for a database product in `sql-mode'.
 
 Add PRODUCT to `sql-product-alist' which enables `sql-mode' to
@@ -2666,15 +2797,38 @@ list.  See `sql-add-product' to add new products.  The FEATURE
 argument must be a plist keyword accepted by
 `sql-product-alist'."
 
-  (let* ((p (assoc product sql-product-alist))
-         (v (plist-get (cdr p) feature)))
+  (let* ((p (assoc product sql-product-alist))  ;; (PRODUCT :f v ...)
+         (v (plist-member (cdr p) feature)))    ;; (:FEATURE value ...) or null
+
     (if p
-        (if (and
-             (member feature sql-indirect-features)
-             (symbolp v))
-            (set v newvalue)
-          (setcdr p (plist-put (cdr p) feature newvalue)))
-      (error "`%s' is not a known product; use `sql-add-product' to add it first." product))))
+        (if (member feature sql-indirect-features) ; is indirect
+            (if v
+                (if (car (cdr v))
+                    (if (symbolp (car (cdr v)))
+                        ;; Indirect reference
+                        (set (car (cdr v)) newvalue)
+                      ;; indirect is not a symbol
+                      (error "The value of `%s' for `%s' is not a symbol" feature product))
+                  ;; keyword present, set the indirect variable name
+                  (if (symbolp newvalue)
+                      (if (cdr v)
+                          (setf (car (cdr v)) newvalue)
+                        (setf (cdr v) (list newvalue)))
+                    (error "The indirect variable of `%s' for `%s' must be a symbol" feature product)))
+              ;; not present; insert list
+              (setq v (list feature newvalue))
+              (setf (cdr (cdr v)) (cdr p))
+              (setf (cdr p) v))
+          ;; Not an indirect feature
+          (if v
+              (if (cdr v)
+                  (setf (car (cdr v)) newvalue)
+                (setf (cdr v) (list newvalue)))
+            ;; no value; insert into the list
+            (setq v (list feature newvalue))
+            (setf (cdr (cdr v)) (cdr p))
+            (setf (cdr p) v)))
+      (error "`%s' is not a known product; use `sql-add-product' to add it first" product))))
 
 (defun sql-get-product-feature (product feature &optional fallback not-indirect)
   "Lookup FEATURE associated with a SQL PRODUCT.
@@ -2702,7 +2856,7 @@ See `sql-product-alist' for a list of products and supported features."
                (member feature sql-indirect-features)
                (not not-indirect)
                (symbolp v))
-              (symbol-value v)
+              (eval v)
             v))
       (error "`%s' is not a known product; use `sql-add-product' to add it first." product)
       nil)))
@@ -2925,7 +3079,7 @@ displayed."
 ;;; Motion Functions
 
 (defun sql-statement-regexp (prod)
-  (let* ((ansi-stmt (sql-get-product-feature 'ansi :statement))
+  (let* ((ansi-stmt (or (sql-get-product-feature 'ansi :statement) "select"))
          (prod-stmt (sql-get-product-feature prod  :statement)))
     (concat "^\\<"
             (if prod-stmt
@@ -2966,7 +3120,7 @@ displayed."
 (defun sql-end-of-statement (arg)
   "Move to the end of the current SQL statement."
   (interactive "p")
-  (let ((term (sql-get-product-feature sql-product :terminator))
+  (let ((term (or (sql-get-product-feature sql-product :terminator) ";"))
         (re-search (if (> 0 arg) 're-search-backward 're-search-forward))
         (here (point))
         (n 0))
@@ -3086,11 +3240,11 @@ appended to the SQLi buffer without disturbing your SQL buffer.")
   "Return a docstring for `sql-help' listing loaded SQL products."
   (let ((doc sql--help-docstring))
     ;; Insert FREE software list
-    (when (string-match "^\\(\\s-*\\)[\\\\][\\\\]FREE\\s-*$" doc 0)
+    (when (string-match "^\\(\\s-*\\)[\\][\\]FREE\\s-*$" doc 0)
       (setq doc (replace-match (sql-help-list-products (match-string 1 doc) t)
 			       t t doc 0)))
     ;; Insert non-FREE software list
-    (when (string-match "^\\(\\s-*\\)[\\\\][\\\\]NONFREE\\s-*$" doc 0)
+    (when (string-match "^\\(\\s-*\\)[\\][\\]NONFREE\\s-*$" doc 0)
       (setq doc (replace-match (sql-help-list-products (match-string 1 doc) nil)
 			       t t doc 0)))
     doc))
@@ -3195,6 +3349,10 @@ symbol `password', for the server if it contains the symbol
 `database'.  The members of WHAT are processed in the order in
 which they are provided.
 
+If the `sql-password-wallet' is non-nil and WHAT contains the
+`password' token, then the `password' token will be pushed to the
+end to be sure that all of the values can be fed to the wallet.
+
 Each token may also be a list with the token in the car and a
 plist of options as the cdr.  The following properties are
 supported:
@@ -3206,6 +3364,15 @@ supported:
 
 In order to ask the user for username, password and database, call the
 function like this: (sql-get-login \\='user \\='password \\='database)."
+
+  ;; Push the password to the end if we have a wallet
+  (when (and sql-password-wallet
+             (fboundp sql-password-search-wallet-function)
+             (member 'password what))
+    (setq what (append (cl-delete 'password what)
+                       '(password))))
+
+  ;; Prompt for each parameter
   (dolist (w what)
     (let ((plist (cdr-safe w)))
       (pcase (or (car-safe w) w)
@@ -3214,7 +3381,19 @@ function like this: (sql-get-login \\='user \\='password \\='database)."
 
         ('password
          (setq-default sql-password
-                       (read-passwd "Password: " nil (sql-default-value 'sql-password))))
+                       (if (and sql-password-wallet
+                                (fboundp sql-password-search-wallet-function))
+                           (let ((password (funcall sql-password-search-wallet-function
+                                                    sql-password-wallet
+                                                    sql-product
+                                                    sql-user
+                                                    sql-server
+                                                    sql-database
+                                                    sql-port)))
+                             (if password
+                                 password
+                               (read-passwd "Password: " nil (sql-default-value 'sql-password))))
+                         (read-passwd "Password: " nil (sql-default-value 'sql-password)))))
 
         ('server
          (sql-get-login-ext 'sql-server "Server: " 'sql-server-history plist))
@@ -3380,24 +3559,29 @@ server/database name."
   "Generate a new, unique buffer name for a SQLi buffer.
 
 Append a sequence number until a unique name is found."
-  (let ((base-name (when (stringp base)
-                     (substring-no-properties
-                      (or base
-                          (sql-get-product-feature product :name)
+  (let ((base-name (substring-no-properties
+                    (if base
+                        (if (stringp base)
+                            base
+                          (format "%S" base))
+                      (or (sql-get-product-feature product :name)
                           (symbol-name product)))))
-        buf-fmt-1st buf-fmt-rest)
+        buf-fmt-1st
+        buf-fmt-rest)
 
     ;; Calculate buffer format
-    (if base-name
-        (setq buf-fmt-1st  (format "*SQL: %s*" base-name)
-              buf-fmt-rest (format "*SQL: %s-%%d*" base-name))
-      (setq buf-fmt-1st  "*SQL*"
-            buf-fmt-rest "*SQL-%d*"))
+    (if (string-blank-p base-name)
+        (setq buf-fmt-1st  "*SQL*"
+              buf-fmt-rest "*SQL-%d*")
+      (setq buf-fmt-1st  (format "*SQL: %s*" base-name)
+            buf-fmt-rest (format "*SQL: %s-%%d*" base-name)))
 
     ;; See if we can find an unused buffer
     (let ((buf-name buf-fmt-1st)
           (i 1))
-      (while (sql-buffer-live-p buf-name)
+      (while (if (sql-is-sqli-buffer-p buf-name)
+                 (comint-check-proc buf-name)
+               (buffer-live-p (get-buffer buf-name)))
         ;; Check a sequence number on the BASE
         (setq buf-name (format buf-fmt-rest i)
               i (1+ i)))
@@ -3476,12 +3660,16 @@ Inserts SELECT or commas if appropriate."
 Placeholders are words starting with an ampersand like &this."
 
   (when sql-oracle-scan-on
-    (while (string-match "&?&\\(\\(?:\\sw\\|\\s_\\)+\\)[.]?" string)
-      (setq string (replace-match
-		    (read-from-minibuffer
-		     (format "Enter value for %s: " (match-string 1 string))
-		     nil nil nil 'sql-placeholder-history)
-		    t t string))))
+    (let ((start 0)
+          (replacement ""))
+      (while (string-match "&?&\\(\\(?:\\sw\\|\\s_\\)+\\)[.]?" string start)
+        (setq replacement (read-from-minibuffer
+		           (format "Enter value for %s: "
+                                   (propertize (match-string 1 string)
+                                               'face 'font-lock-variable-name-face))
+		           nil nil nil 'sql-placeholder-history)
+              string (replace-match replacement t t string)
+              start (+ (match-beginning 1) (length replacement))))))
   string)
 
 ;; Using DB2 interactively, newlines must be escaped with " \".
@@ -3531,8 +3719,8 @@ Allows the suppression of continuation prompts.")
 
     ;; Count how many newlines in the string
     (setq sql-output-newline-count
-          (apply #'+ (mapcar (lambda (ch)
-                                (if (eq ch ?\n) 1 0)) string)))
+          (apply #'+ (mapcar (lambda (ch) (if (eq ch ?\n) 1 0))
+                             string)))
 
     ;; Send the string
     (comint-simple-send proc string)))
@@ -3578,7 +3766,8 @@ to avoid deleting non-prompt output."
              (or (> (length (or sql-preoutput-hold "")) 0)
                  (> (or sql-output-newline-count 0) 0)
                  (not (or (string-match sql-prompt-regexp oline)
-                          (string-match sql-prompt-cont-regexp oline)))))
+                          (and sql-prompt-cont-regexp
+                               (string-match sql-prompt-cont-regexp oline))))))
 
     (save-match-data
       (let (prompt-found last-nl)
@@ -3630,6 +3819,8 @@ to avoid deleting non-prompt output."
   oline)
 
 ;;; Sending the region to the SQLi buffer.
+(defvar sql-debug-send nil
+  "Display text sent to SQL process pragmatically.")
 
 (defun sql-send-string (str)
   "Send the string STR to the SQL process."
@@ -3643,12 +3834,14 @@ to avoid deleting non-prompt output."
 	  (save-excursion
 	    ;; Set product context
 	    (with-current-buffer sql-buffer
+              (when sql-debug-send
+                (message ">>SQL> %S" s))
+
 	      ;; Send the string (trim the trailing whitespace)
-	      (sql-input-sender (get-buffer-process sql-buffer) s)
+	      (sql-input-sender (get-buffer-process (current-buffer)) s)
 
 	      ;; Send a command terminator if we must
-	      (when sql-send-terminator
-		(sql-send-magic-terminator sql-buffer s sql-send-terminator))
+	      (sql-send-magic-terminator sql-buffer s sql-send-terminator)
 
               (when sql-pop-to-buffer-after-send-region
 	        (message "Sent string to buffer %s" sql-buffer))))
@@ -3710,12 +3903,8 @@ to avoid deleting non-prompt output."
 
     ;; Check to see if the pattern is present in the str already sent
     (unless (and pat term
-		 (string-match (concat pat "\\'") str))
-      (comint-simple-send (get-buffer-process buf) term)
-      (setq sql-output-newline-count
-            (if sql-output-newline-count
-                (1+ sql-output-newline-count)
-              1)))))
+		 (string-match-p (concat pat "\\'") str))
+      (sql-input-sender (get-buffer-process buf) term))))
 
 (defun sql-remove-tabs-filter (str)
   "Replace tab characters with spaces."
@@ -4082,7 +4271,7 @@ must tell Emacs.  Here's how to do that in your init file:
   ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
   (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591
-  (add-hook 'hack-local-variables-hook 'sql-highlight-product t t))
+  (add-hook 'hack-local-variables-hook #'sql-highlight-product t t))
 
 
 
@@ -4090,7 +4279,7 @@ must tell Emacs.  Here's how to do that in your init file:
 
 (put 'sql-interactive-mode 'mode-class 'special)
 (put 'sql-interactive-mode 'custom-mode-group 'SQL)
-
+;; FIXME: Why not use `define-derived-mode'?
 (defun sql-interactive-mode ()
   "Major mode to use a SQL interpreter interactively.
 
@@ -4152,13 +4341,15 @@ certain length.
 
 \(add-hook \\='sql-interactive-mode-hook
     (function (lambda ()
-        (setq comint-output-filter-functions \\='comint-truncate-buffer))))
+        (setq comint-output-filter-functions #\\='comint-truncate-buffer))))
 
 Here is another example.  It will always put point back to the statement
 you entered, right above the output it created.
 
 \(setq comint-output-filter-functions
        (function (lambda (STR) (comint-show-output))))"
+  ;; FIXME: The doc above uses `setq' on `comint-output-filter-functions',
+  ;; whereas hooks should be manipulated with things like `add/remove-hook'.
   (delay-mode-hooks (comint-mode))
 
   ;; Get the `sql-product' for this interactive session.
@@ -4189,7 +4380,8 @@ you entered, right above the output it created.
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   ;; Exiting the process will call sql-stop.
-  (set-process-sentinel (get-buffer-process (current-buffer)) 'sql-stop)
+  (let ((proc (get-buffer-process (current-buffer))))
+    (when proc (set-process-sentinel proc #'sql-stop)))
   ;; Save the connection and login params
   (set (make-local-variable 'sql-user)       sql-user)
   (set (make-local-variable 'sql-database)   sql-database)
@@ -4207,7 +4399,7 @@ you entered, right above the output it created.
        (sql-make-alternate-buffer-name))
   ;; User stuff.  Initialize before the hook.
   (set (make-local-variable 'sql-prompt-regexp)
-       (sql-get-product-feature sql-product :prompt-regexp))
+       (or (sql-get-product-feature sql-product :prompt-regexp) "^"))
   (set (make-local-variable 'sql-prompt-length)
        (sql-get-product-feature sql-product :prompt-length))
   (set (make-local-variable 'sql-prompt-cont-regexp)
@@ -4215,7 +4407,7 @@ you entered, right above the output it created.
   (make-local-variable 'sql-output-newline-count)
   (make-local-variable 'sql-preoutput-hold)
   (add-hook 'comint-preoutput-filter-functions
-            'sql-interactive-remove-continuation-prompt nil t)
+            #'sql-interactive-remove-continuation-prompt nil t)
   (make-local-variable 'sql-input-ring-separator)
   (make-local-variable 'sql-input-ring-file-name)
   ;; Run the mode hook (along with comint's hooks).
@@ -4223,12 +4415,12 @@ you entered, right above the output it created.
   ;; Set comint based on user overrides.
   (setq comint-prompt-regexp
         (if sql-prompt-cont-regexp
-            (concat "\\(" sql-prompt-regexp
-                    "\\|" sql-prompt-cont-regexp "\\)")
+            (concat "\\(?:\\(?:" sql-prompt-regexp "\\)"
+                    "\\|\\(?:" sql-prompt-cont-regexp "\\)\\)")
           sql-prompt-regexp))
-  (setq left-margin sql-prompt-length)
+  (setq left-margin (or sql-prompt-length 0))
   ;; Install input sender
-  (set (make-local-variable 'comint-input-sender) 'sql-input-sender)
+  (set (make-local-variable 'comint-input-sender) #'sql-input-sender)
   ;; People wanting a different history file for each
   ;; buffer/process/client/whatever can change separator and file-name
   ;; on the sql-interactive-mode-hook.
@@ -4264,8 +4456,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
   "Read a connection name."
   (let ((completion-ignore-case t))
     (completing-read prompt
-                     (mapcar (lambda (c) (car c))
-                             sql-connection-alist)
+                     (mapcar #'car sql-connection-alist)
                      nil t initial 'sql-connection-history default)))
 
 ;;;###autoload
@@ -4476,6 +4667,10 @@ the call to \\[sql-product-interactive] with
                                     (or sql-default-directory
                                         default-directory)))
 
+                ;; The password wallet returns a function which supplies the password.
+                (when (functionp sql-password)
+                  (setq sql-password (funcall sql-password)))
+
                 ;; Call the COMINT service
                 (funcall (sql-get-product-feature product :sqli-comint-func)
                          product
@@ -4489,13 +4684,13 @@ the call to \\[sql-product-interactive] with
                             (read-string
                              "Buffer name (\"*SQL: XXX*\"; enter `XXX'): "
                              (sql-make-alternate-buffer-name product))))
-                          ((or (string-prefix-p " " new-name)
-                               (string-match-p "\\`[*].*[*]\\'" new-name))
-                           new-name)
                           ((stringp new-name)
-                           (sql-generate-unique-sqli-buffer-name product new-name))
+                           (if (or (string-prefix-p " " new-name)
+                                   (string-match-p "\\`[*].*[*]\\'" new-name))
+                               new-name
+                             (sql-generate-unique-sqli-buffer-name product new-name)))
                           (t
-                           (sql-generate-unique-sqli-buffer-name product nil)))))
+                           (sql-generate-unique-sqli-buffer-name product new-name)))))
 
               ;; Set SQLi mode.
               (let ((sql-interactive-product product))
@@ -4518,7 +4713,8 @@ the call to \\[sql-product-interactive] with
               (let ((proc (get-buffer-process new-sqli-buffer))
                     (secs sql-login-delay)
                     (step 0.3))
-                (while (and (memq (process-status proc) '(open run))
+                (while (and proc
+                            (memq (process-status proc) '(open run))
                             (or (accept-process-output proc step)
                                 (<= 0.0 (setq secs (- secs step))))
                             (progn (goto-char (point-max))
@@ -5222,8 +5418,7 @@ The default comes from `process-coding-system-alist' and
 your might try undecided-dos as a coding system.  If this doesn't help,
 Try to set `comint-output-filter-functions' like this:
 
-\(setq comint-output-filter-functions (append comint-output-filter-functions
-					     \\='(comint-strip-ctrl-m)))
+\(add-hook 'comint-output-filter-functions #\\='comint-strip-ctrl-m 'append)
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
   (interactive "P")

@@ -1,6 +1,6 @@
 ;;; ruby-mode-tests.el --- Test suite for ruby-mode
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -369,7 +369,11 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-with-temp-buffer "foo {|b|\n}"
     (beginning-of-line)
     (ruby-toggle-block)
-    (should (string= "foo do |b|\nend" (buffer-string)))))
+    (should (string= "foo do |b|\nend" (buffer-string))))
+  (ruby-with-temp-buffer "foo {|b| b }"
+    (beginning-of-line)
+    (ruby-toggle-block)
+    (should (string= "foo do |b|\n  b\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
   (let ((pairs '((17 . "foo { |b| b + 2 }")

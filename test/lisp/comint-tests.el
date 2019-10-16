@@ -1,6 +1,6 @@
 ;;; comint-testsuite.el
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -34,11 +34,14 @@
     "Enter passphrase: " ; ssh-add
     "Enter passphrase (empty for no passphrase): " ; ssh-keygen
     "Enter same passphrase again: "     ; ssh-keygen
+    "Enter your password: "             ; python3 -m twine ... Bug#37636
     "Passphrase for key root@GNU.ORG: " ; plink
     "[sudo] password for user:" ; Ubuntu sudo
     "[sudo] user 的密码：" ; localized
+    "PIN for user:"        ; Bug#35523
     "Password (again):"
     "Enter password:"
+    "Enter Auth Password:" ; OpenVPN (Bug#35724)
     "Mot de Passe :" ; localized (Bug#29729)
     "Passwort:") ; localized
   "List of strings that should match `comint-password-prompt-regexp'.")

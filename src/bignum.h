@@ -1,6 +1,6 @@
 /* Big numbers for Emacs.
 
-Copyright 2018 Free Software Foundation, Inc.
+Copyright 2018-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,7 +41,7 @@ struct Lisp_Bignum
   mpz_t value;
 } GCALIGNED_STRUCT;
 
-extern mpz_t mpz[4];
+extern mpz_t mpz[5];
 
 extern void init_bignum (void);
 extern Lisp_Object make_integer_mpz (void);
@@ -80,10 +80,23 @@ mpz_set_uintmax (mpz_t result, uintmax_t v)
     mpz_set_uintmax_slow (result, v);
 }
 
+/* Return a pointer to the mpz_t value represented by the bignum I.
+   It is const because the value should not change.  */
+INLINE mpz_t const *
+bignum_val (struct Lisp_Bignum const *i)
+{
+  return &i->value;
+}
+INLINE mpz_t const *
+xbignum_val (Lisp_Object i)
+{
+  return bignum_val (XBIGNUM (i));
+}
+
 /* Return a pointer to an mpz_t that is equal to the Lisp integer I.
    If I is a bignum this returns a pointer to I's representation;
    otherwise this sets *TMP to I's value and returns TMP.  */
-INLINE mpz_t *
+INLINE mpz_t const *
 bignum_integer (mpz_t *tmp, Lisp_Object i)
 {
   if (FIXNUMP (i))
@@ -91,7 +104,19 @@ bignum_integer (mpz_t *tmp, Lisp_Object i)
       mpz_set_intmax (*tmp, XFIXNUM (i));
       return tmp;
     }
-  return &XBIGNUM (i)->value;
+  return xbignum_val (i);
+}
+
+/* Set RESULT to the value stored in the Lisp integer I.  If I is a
+   big integer, copy it to RESULT.  RESULT must already be
+   initialized.  */
+INLINE void
+mpz_set_integer (mpz_t result, Lisp_Object i)
+{
+  if (FIXNUMP (i))
+    mpz_set_intmax (result, XFIXNUM (i));
+  else
+    mpz_set (result, *xbignum_val (i));
 }
 
 INLINE_HEADER_END

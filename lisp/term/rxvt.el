@@ -1,6 +1,6 @@
 ;;; rxvt.el --- define function key sequences and standard colors for rxvt
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Keywords: terminals

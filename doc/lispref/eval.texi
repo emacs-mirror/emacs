@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1998, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -87,6 +87,7 @@ also temporarily alter the environment by binding variables
 (@pxref{Local Variables}).
 
 @cindex side effect
+@anchor{Definition of side effect}
   Evaluating a form may also make changes that persist; these changes
 are called @dfn{side effects}.  An example of a form that produces a
 side effect is @code{(setq foo 1)}.

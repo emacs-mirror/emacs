@@ -1,8 +1,8 @@
 ;;; descr-text-test.el --- ERT tests for descr-text.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014, 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2019 Free Software Foundation, Inc.
 
-;; Author:     Michal Nazarewicz <mina86@mina86.com>
+;; Author: Michal Nazarewicz <mina86@mina86.com>
 
 ;; This file is part of GNU Emacs.
 

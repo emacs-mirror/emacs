@@ -132,7 +132,7 @@ command extensions.")
   (define-key vi-com-map "\C-e" 'vi-expose-line-below)
   (define-key vi-com-map "\C-f" 'vi-forward-windowful)
   (define-key vi-com-map "\C-g" 'keyboard-quit)
-  (define-key vi-com-map "\C-i" 'indent-relative-maybe) ; TAB
+  (define-key vi-com-map "\C-i" 'indent-relative-first-indent-point) ; TAB
   (define-key vi-com-map "\C-j" 'vi-next-line) ; LFD
   (define-key vi-com-map "\C-k" 'vi-kill-line) ; extension
   (define-key vi-com-map "\C-l" 'recenter)

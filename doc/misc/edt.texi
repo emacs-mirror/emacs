@@ -6,7 +6,7 @@
 @copying
 This file documents the EDT emulation package for Emacs.
 
-Copyright @copyright{} 1986, 1992, 1994--1995, 1999--2018
+Copyright @copyright{} 1986, 1992, 1994--1995, 1999--2019
 Free Software Foundation, Inc.
 
 @quotation
@@ -190,7 +190,7 @@ key sequence, providing the @acronym{ASCII} key sequence prefix is
 already known by Emacs to be a prefix.  As a result of providing this
 support, some terminal/keyboard/window system configurations, which
 don't have a complete set of sensible function key bindings built into
-Emacs in @code{function-key-map}, can still be configured for use with
+Emacs in @code{input-decode-map}, can still be configured for use with
 EDT Emulation.  (Note: In a few rare circumstances this does not work
 properly.  In particular, it does not work if a subset of the leading
 @acronym{ASCII} characters in a key sequence are recognized by Emacs as

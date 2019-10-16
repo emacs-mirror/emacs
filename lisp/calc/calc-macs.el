@@ -1,6 +1,6 @@
-;;; calc-macs.el --- important macros for Calc
+;;; calc-macs.el --- important macros for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -29,7 +29,6 @@
 (declare-function math-looks-negp "calc-misc" (a))
 (declare-function math-posp "calc-misc" (a))
 (declare-function math-compare "calc-ext" (a b))
-(declare-function math-bignum "calc" (a))
 (declare-function math-compare-bignum "calc-ext" (a b))
 
 
@@ -70,29 +69,22 @@
 ;;; Faster in-line version zerop, normalized values only.
 (defsubst Math-zerop (a)		; [P N]
   (if (consp a)
-      (and (not (memq (car a) '(bigpos bigneg)))
-	   (if (eq (car a) 'float)
-	       (eq (nth 1 a) 0)
-	     (math-zerop a)))
+      (if (eq (car a) 'float)
+	  (eq (nth 1 a) 0)
+	(math-zerop a))
     (eq a 0)))
 
 (defsubst Math-integer-negp (a)
-  (if (consp a)
-      (eq (car a) 'bigneg)
-    (< a 0)))
+  (and (integerp a) (< a 0)))
 
 (defsubst Math-integer-posp (a)
-  (if (consp a)
-      (eq (car a) 'bigpos)
-    (> a 0)))
+  (and (integerp a) (> a 0)))
 
 (defsubst Math-negp (a)
   (if (consp a)
-      (or (eq (car a) 'bigneg)
-	  (and (not (eq (car a) 'bigpos))
-	       (if (memq (car a) '(frac float))
-		   (Math-integer-negp (nth 1 a))
-		 (math-negp a))))
+      (if (memq (car a) '(frac float))
+	  (Math-integer-negp (nth 1 a))
+	(math-negp a))
     (< a 0)))
 
 (defsubst Math-looks-negp (a)		; [P x] [Public]
@@ -104,44 +96,38 @@
 
 (defsubst Math-posp (a)
   (if (consp a)
-      (or (eq (car a) 'bigpos)
-	  (and (not (eq (car a) 'bigneg))
-	       (if (memq (car a) '(frac float))
-		   (Math-integer-posp (nth 1 a))
-		 (math-posp a))))
+      (if (memq (car a) '(frac float))
+	  (Math-integer-posp (nth 1 a))
+	(math-posp a))
     (> a 0)))
 
-(defsubst Math-integerp (a)
-  (or (not (consp a))
-      (memq (car a) '(bigpos bigneg))))
+(defalias 'Math-integerp #'integerp)
 
 (defsubst Math-natnump (a)
-  (if (consp a)
-      (eq (car a) 'bigpos)
-    (>= a 0)))
+  (and (integerp a) (>= a 0)))
 
 (defsubst Math-ratp (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg frac))))
+      (eq (car a) 'frac)))
 
 (defsubst Math-realp (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg frac float))))
+      (memq (car a) '(frac float))))
 
 (defsubst Math-anglep (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg frac float hms))))
+      (memq (car a) '(frac float hms))))
 
 (defsubst Math-numberp (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg frac float cplx polar))))
+      (memq (car a) '(frac float cplx polar))))
 
 (defsubst Math-scalarp (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg frac float cplx polar hms))))
+      (memq (car a) '(frac float cplx polar hms))))
 
 (defsubst Math-vectorp (a)
-  (and (consp a) (eq (car a) 'vec)))
+  (eq (car-safe a) 'vec))
 
 (defsubst Math-messy-integerp (a)
   (and (consp a)
@@ -151,21 +137,17 @@
 (defsubst Math-objectp (a)		;  [Public]
   (or (not (consp a))
       (memq (car a)
-	    '(bigpos bigneg frac float cplx polar hms date sdev intv mod))))
+	    '(frac float cplx polar hms date sdev intv mod))))
 
 (defsubst Math-objvecp (a)		;  [Public]
   (or (not (consp a))
       (memq (car a)
-	    '(bigpos bigneg frac float cplx polar hms date
-		     sdev intv mod vec))))
+	    '(frac float cplx polar hms date
+	      sdev intv mod vec))))
 
 ;;; Compute the negative of A.  [O O; o o] [Public]
 (defsubst Math-integer-neg (a)
-  (if (consp a)
-      (if (eq (car a) 'bigpos)
-	  (cons 'bigneg (cdr a))
-	(cons 'bigpos (cdr a)))
-    (- a)))
+  (- a))
 
 (defsubst Math-equal (a b)
   (= (math-compare a b) 0))
@@ -175,19 +157,13 @@
 
 (defsubst Math-primp (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg frac float cplx polar
-			     hms date mod var))))
+      (memq (car a) '(frac float cplx polar
+		      hms date mod var))))
 
 (defsubst Math-num-integerp (a)
   (or (not (consp a))
-      (memq (car a) '(bigpos bigneg))
       (and (eq (car a) 'float)
 	   (>= (nth 2 a) 0))))
-
-(defsubst Math-bignum-test (a)		; [B N; B s; b b]
-  (if (consp a)
-      a
-    (math-bignum a)))
 
 (defsubst Math-equal-int (a b)
   (or (eq a b)

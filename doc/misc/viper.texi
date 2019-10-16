@@ -8,7 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2185,7 +2185,7 @@ Manual}, and the Emacs quick reference card for the general info on key
 bindings in Emacs.
 
 @vindex input-decode-map
-@vindex function-key-map
+@vindex local-function-key-map
 @vindex viper-vi-global-user-map
 @vindex viper-insert-global-user-map
 @vindex viper-emacs-global-user-map

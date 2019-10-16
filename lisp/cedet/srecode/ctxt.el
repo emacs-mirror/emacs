@@ -1,8 +1,8 @@
 ;;; srecode/ctxt.el --- Derive a context from the source buffer.
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -32,9 +32,7 @@
 
 (require 'semantic)
 (require 'semantic/tag-ls)
-
-(declare-function srecode-dictionary-show-section "srecode/dictionary")
-(declare-function srecode-dictionary-set-value "srecode/dictionary")
+(require 'srecode/dictionary)
 
 ;;; Code:
 
@@ -175,7 +173,6 @@ This might add the following:
    PURE - show a section if a function is pure virtual.
    PARENT - The name of a parent type for functions.
    PROTECTION - Show a protection section, and what the protection is."
-  (require 'srecode/dictionary)
   (when template
 
     (let ((name (oref template object-name))

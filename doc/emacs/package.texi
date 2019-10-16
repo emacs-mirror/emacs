@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -136,11 +136,20 @@ Refresh the package list (@code{package-menu-refresh}).  This fetches
 the list of available packages from the package archive again, and
 recomputes the package list.
 
-@item f
-Filter the package list (@code{package-menu-filter}).  This prompts
-for a keyword (e.g., @samp{games}), then shows only the packages
-that relate to that keyword.  To restore the full package list,
-type @kbd{q}.
+@item / k
+Filter the package list by keyword
+(@code{package-menu-filter-by-keyword}).  This prompts for a keyword
+(e.g., @samp{games}), then shows only the packages that relate to that
+keyword.
+
+@item / n
+Filter the package list by name (@code{package-menu-filter-by-name}).
+This prompts for a string, then shows only the packages whose names
+match a regexp with that value.
+
+@item / /
+Clear filter currently applied to the package list
+(@code{package-menu-clear-filter}).
 
 @item H
 Permanently hide packages that match a regexp
@@ -179,7 +188,7 @@ maintained by the Emacs developers.  This is controlled by the
 variable @code{package-archives}, whose value is a list of package
 archives known to Emacs.  Each list element must have the form
 @code{(@var{id} . @var{location})}, where @var{id} is the name of a
-package archive and @var{location} is the @acronym{HTTP} address or
+package archive and @var{location} is the @acronym{URL} or
 name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
@@ -214,9 +223,11 @@ in the @file{etc/package-keyring.gpg}.  Emacs uses it automatically.
 @vindex package-unsigned-archives
   If the user option @code{package-check-signature} is non-@code{nil},
 Emacs attempts to verify signatures when you install packages.  If the
-option has the value @code{allow-unsigned}, you can still install a
-package that is not signed.  If you use some archives that do not sign
-their packages, you can add them to the list @code{package-unsigned-archives}.
+option has the value @code{allow-unsigned}, and a usable OpenPGP
+configuration is found, signed packages will be checked, but you can
+still install a package that is not signed.  If you use some archives
+that do not sign their packages, you can add them to the list
+@code{package-unsigned-archives}.
 
   For more information on cryptographic keys and signing,
 @pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.

@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -62,9 +62,7 @@
 (defun viper-window-display-p ()
   (and (viper-device-type) (not (memq (viper-device-type) '(tty stream pc)))))
 
-(defcustom viper-ms-style-os-p
-  (memq system-type (if (featurep 'emacs) '(ms-dos windows-nt)
-		      '(ms-dos windows-nt windows-95)))
+(defcustom viper-ms-style-os-p (memq system-type '(ms-dos windows-nt))
   "Non-nil if Emacs is running under an MS-style OS: MS-DOS, or MS-Windows."
   :type 'boolean
   :tag "Is it Microsoft-made OS?"
@@ -89,8 +87,7 @@ In all likelihood, you don't need to bother with this setting."
   (cond ((viper-window-display-p))
 	(viper-force-faces)
 	((viper-color-display-p))
-	((featurep 'emacs) (memq (viper-device-type) '(pc)))
-	((featurep 'xemacs) (memq (viper-device-type) '(tty pc)))))
+	(t (memq (viper-device-type) '(pc)))))
 
 
 ;;; Macros
@@ -268,6 +265,7 @@ that deletes a file.")
 (defconst viper-BadAddress "Ill-formed address"   "")
 (defconst viper-FirstAddrExceedsSecond "First address exceeds second"   "")
 (defconst viper-NoFileSpecified "No file specified"   "")
+(defconst viper-ViperBell "Viper bell"   "")
 
 ;; Is t until viper-mode executes for the very first time.
 ;; Prevents recursive descend into startup messages.
@@ -333,25 +331,12 @@ Use `\\[viper-set-expert-level]' to change this.")
 			     (or current-input-method default-input-method))
 		   "")))))
 
-(defun viper-deactivate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'deactivate-input-method))
-	 (deactivate-input-method))
-	((and (featurep 'xemacs) (boundp 'current-input-method))
-	 ;; XEmacs had broken quail-mode for some time, so we are working around
-	 ;; it here
-	 (setq quail-mode nil)
-	 (if (featurep 'quail)
-	     (quail-delete-overlays))
-	 (setq describe-current-input-method-function nil)
-	 (setq current-input-method nil)
-	 (run-hooks 'input-method-deactivate-hook)
-	 (force-mode-line-update))
-	))
+(define-obsolete-function-alias 'viper-deactivate-input-method
+  #'deactivate-input-method "27.1")
+
 (defun viper-activate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'activate-input-method))
-	 (activate-input-method default-input-method))
-	((featurep 'xemacs)
-	 (if (fboundp 'quail-mode) (quail-mode 1)))))
+  (declare (obsolete activate-input-method "27.1"))
+  (activate-input-method default-input-method))
 
 ;; Set quail-mode to ARG
 (defun viper-set-input-method (arg)
@@ -359,10 +344,9 @@ Use `\\[viper-set-expert-level]' to change this.")
   (let (viper-mule-hook-flag) ; temporarily deactivate viper mule hooks
     (cond ((and arg (> (prefix-numeric-value arg) 0) default-input-method)
 	   ;; activate input method
-	   (viper-activate-input-method))
+	   (activate-input-method default-input-method))
 	  (t ; deactivate input method
-	   (viper-deactivate-input-method)))
-    ))
+	   (deactivate-input-method)))))
 
 
 ;; VI-style Undo

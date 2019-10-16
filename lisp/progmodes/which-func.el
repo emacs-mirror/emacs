@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1997-1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
@@ -272,16 +272,21 @@ It calls them sequentially, and if any returns non-nil,
 
 (defun which-function ()
   "Return current function name based on point.
-Uses `which-func-functions', `imenu--index-alist'
-or `add-log-current-defun'.
+Uses `which-func-functions', `add-log-current-defun'.
+or `imenu--index-alist'
 If no function name is found, return nil."
   (let ((name
 	 ;; Try the `which-func-functions' functions first.
 	 (run-hook-with-args-until-success 'which-func-functions)))
-
+    ;; Try using add-log support.
+    (when (null name)
+      (setq name (add-log-current-defun)))
     ;; If Imenu is loaded, try to make an index alist with it.
     (when (and (null name)
-	       (boundp 'imenu--index-alist) (null imenu--index-alist)
+	       (boundp 'imenu--index-alist)
+               (or (null imenu--index-alist)
+                   ;; Update if outdated
+                   (/= (buffer-chars-modified-tick) imenu-menubar-modified-tick))
 	       (null which-function-imenu-failed))
       (ignore-errors (imenu--make-index-alist t))
       (unless imenu--index-alist
@@ -323,10 +328,6 @@ If no function name is found, return nil."
                              (funcall
                               which-func-imenu-joiner-function
                               (reverse (cons (car pair) namestack))))))))))))
-
-    ;; Try using add-log support.
-    (when (null name)
-      (setq name (add-log-current-defun)))
     ;; Filter the name if requested.
     (when name
       (if which-func-cleanup-function

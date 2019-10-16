@@ -1,6 +1,6 @@
 ;;; semantic/analyze/complete.el --- Smart Completions
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -89,7 +89,7 @@ in a buffer."
   ;;(semantic-refresh-tags-safe)
   (if (semantic-active-p)
     (with-syntax-table semantic-lex-syntax-table
-      (let* ((context (if (semantic-analyze-context-child-p context)
+      (let* ((context (if (cl-typep context 'semantic-analyze-context)
 			  context
 			(semantic-analyze-current-context context)))
 	     (ans (if (not context)

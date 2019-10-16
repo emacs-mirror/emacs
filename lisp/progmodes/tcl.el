@@ -1,10 +1,10 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2019 Free Software Foundation, Inc.
 
-;; Maintainer: emacs-devel@gnu.org
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages tcl modes
 
 ;; This file is part of GNU Emacs.

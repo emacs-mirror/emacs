@@ -1,11 +1,9 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
+;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Keywords: wp, print, PostScript, multibyte, mule
 ;; Package: ps-print
 

@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2018 Free Software
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -644,6 +644,11 @@ Switch to the most recently selected buffer other than the current one."
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))
 
+(defvar mode-line-defining-kbd-macro (propertize " Def" 'face 'font-lock-warning-face)
+  "String displayed in the mode line in keyboard macro recording mode.")
+;;;###autoload
+(put 'mode-line-defining-kbd-macro 'risky-local-variable t)
+
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.
 Each element looks like (VARIABLE STRING);
@@ -653,13 +658,14 @@ Actually, STRING need not be a string; any mode-line construct is
 okay.  See `mode-line-format'.")
 ;;;###autoload
 (put 'minor-mode-alist 'risky-local-variable t)
-;; Don't use purecopy here--some people want to change these strings.
+;; Don't use purecopy here--some people want to change these strings,
+;; also string properties are lost when put into pure space.
 (setq minor-mode-alist
       '((abbrev-mode " Abbrev")
         (overwrite-mode overwrite-mode)
         (auto-fill-function " Fill")
         ;; not really a minor mode...
-        (defining-kbd-macro " Def")))
+        (defining-kbd-macro mode-line-defining-kbd-macro)))
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
@@ -1048,6 +1054,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
+(define-key global-map [Scroll_Lock]    'scroll-lock-mode)
 (define-key global-map [C-S-backspace]  'kill-whole-line)
 (define-key global-map [home]		'move-beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
@@ -1229,8 +1236,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "\C-t" 'transpose-lines)
 
 (define-key esc-map ";" 'comment-dwim)
-(define-key esc-map "j" 'indent-new-comment-line)
-(define-key esc-map "\C-j" 'indent-new-comment-line)
+(define-key esc-map "j" 'default-indent-new-line)
+(define-key esc-map "\C-j" 'default-indent-new-line)
 (define-key ctl-x-map ";" 'comment-set-column)
 (define-key ctl-x-map [?\C-\;] 'comment-line)
 (define-key ctl-x-map "f" 'set-fill-column)

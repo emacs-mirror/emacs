@@ -1,6 +1,12 @@
-This directory contains a copy of the following file:
+This directory contains an uncompressed copy of the following file:
 
-http://openlab.ring.gr.jp/skk/skk/dic/SKK-JISYO.L
+https://skk-dev.github.io/dict/SKK-JISYO.L.gz
 
 This file is free software distributed under the terms
 of the GNU General Public License.
+
+For more information about this file, please see:
+
+http://openlab.ring.gr.jp/skk/dic.html
+https://skk-dev.github.io/dict/
+https://github.com/skk-dev/dict

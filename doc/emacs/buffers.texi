@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers
@@ -550,6 +550,18 @@ Sort the Buffer Menu entries according to their values in the column
 at point.  With a numeric prefix argument @var{n}, sort according to
 the @var{n}-th column (@code{tabulated-list-sort}).
 
+@item @}
+@kindex @} @r{(Buffer Menu)}
+@findex tabulated-list-widen-current-column
+Widen the current column width by @var{n} (the prefix numeric
+argument) characters.
+
+@item @{
+@kindex @{ @r{(Buffer Menu)}
+@findex tabulated-list-narrow-current-column
+Narrow the current column width by @var{n} (the prefix numeric
+argument) characters.
+
 @item T
 @findex Buffer-menu-toggle-files-only
 @kindex T @r{(Buffer Menu)}
@@ -568,10 +580,10 @@ mode in this buffer, as long as it is not marked modified.  Global
 Auto Revert mode applies to the @file{*Buffer List*} buffer only if
 @code{global-auto-revert-non-file-buffers} is non-@code{nil}.
 @iftex
-@inforef{Autorevert,, emacs-xtra}, for details.
+@inforef{Auto Reverting the Buffer Menu,, emacs-xtra}, for details.
 @end iftex
 @ifnottex
-@xref{Autorevert, global-auto-revert-non-file-buffers}, for details.
+@xref{Auto Reverting the Buffer Menu, global-auto-revert-non-file-buffers}, for details.
 @end ifnottex
 
 @node Indirect Buffers

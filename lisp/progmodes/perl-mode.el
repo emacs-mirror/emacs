@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: emacs-devel@gnu.org
@@ -500,7 +500,7 @@
   "Indentation of Perl statements with respect to containing block."
   :type 'integer)
 
-;; Is is not unusual to put both things like perl-indent-level and
+;; It is not unusual to put both things like perl-indent-level and
 ;; cperl-indent-level in the local variable section of a file. If only
 ;; one of perl-mode and cperl-mode is in use, a warning will be issued
 ;; about the variable. Autoload these here, so that no warning is
@@ -1007,8 +1007,8 @@ Returns (parse-state) if line starts inside a string."
            ;; Skip over comments and labels following openbrace.
            (while (progn
                     (skip-chars-forward " \t\f\n")
-                    (cond ((looking-at ";?#")
-                           (forward-line 1) t)
+                    (cond ((looking-at ";?#\\|^=\\w+")
+                           (forward-comment 1) t)
                           ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
                            (setq colon-line-end (line-end-position))
                            (search-forward ":")))))

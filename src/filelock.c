@@ -1,6 +1,6 @@
 /* Lock files for editing.
 
-Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2018 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2019 Free Software
 Foundation, Inc.
 
 Author: Richard King
@@ -152,7 +152,7 @@ get_boot_time (void)
     mib[1] = KERN_BOOTTIME;
     size = sizeof (boottime_val);
 
-    if (sysctl (mib, 2, &boottime_val, &size, NULL, 0) >= 0)
+    if (sysctl (mib, 2, &boottime_val, &size, NULL, 0) >= 0 && size != 0)
       {
 	boot_time = boottime_val.tv_sec;
 	return boot_time;
@@ -171,13 +171,10 @@ get_boot_time (void)
     }
 
 #if defined (BOOT_TIME)
-#ifndef CANNOT_DUMP
-  /* The utmp routines maintain static state.
-     Don't touch that state unless we are initialized,
-     since it might not survive dumping.  */
-  if (! initialized)
+  /* The utmp routines maintain static state.  Don't touch that state
+     if we are going to dump, since it might not survive dumping.  */
+  if (will_dump_p ())
     return boot_time;
-#endif /* not CANNOT_DUMP */
 
   /* Try to get boot time from utmp before wtmp,
      since utmp is typically much smaller than wtmp.
@@ -299,7 +296,7 @@ typedef struct
 
 /* Write the name of the lock file for FNAME into LOCKNAME.  Length
    will be that of FNAME plus two more for the leading ".#", plus one
-   for the null.  */
+   for the NUL.  */
 #define MAKE_LOCK_NAME(lockname, fname) \
   (lockname = SAFE_ALLOCA (SBYTES (fname) + 2 + 1), \
    fill_in_lock_file_name (lockname, fname))
@@ -432,26 +429,26 @@ static int
 lock_file_1 (char *lfname, bool force)
 {
   /* Call this first because it can GC.  */
-  printmax_t boot = get_boot_time ();
+  intmax_t boot = get_boot_time ();
 
   Lisp_Object luser_name = Fuser_login_name (Qnil);
   char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   Lisp_Object lhost_name = Fsystem_name ();
   char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
   char lock_info_str[MAX_LFINFO + 1];
-  printmax_t pid = getpid ();
+  intmax_t pid = getpid ();
 
   if (boot)
     {
       if (sizeof lock_info_str
           <= snprintf (lock_info_str, sizeof lock_info_str,
-                       "%s@%s.%"pMd":%"pMd,
+		       "%s@%s.%"PRIdMAX":%"PRIdMAX,
                        user_name, host_name, pid, boot))
         return ENAMETOOLONG;
     }
   else if (sizeof lock_info_str
            <= snprintf (lock_info_str, sizeof lock_info_str,
-                        "%s@%s.%"pMd,
+			"%s@%s.%"PRIdMAX,
                         user_name, host_name, pid))
     return ENAMETOOLONG;
 
@@ -507,9 +504,9 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
 }
 
 /* Return 0 if nobody owns the lock file LFNAME or the lock is obsolete,
-   1 if another process owns it (and set OWNER (if non-null) to info),
-   2 if the current process owns it,
-   or -1 if something is wrong with the locking mechanism.  */
+   -1 if another process owns it (and set OWNER (if non-null) to info),
+   -2 if the current process owns it,
+   or an errno value if something is wrong with the locking mechanism.  */
 
 static int
 current_lock_owner (lock_info_type *owner, char *lfname)
@@ -528,23 +525,23 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
   lfinfolen = read_lock_data (lfname, owner->user);
   if (lfinfolen < 0)
-    return errno == ENOENT ? 0 : -1;
+    return errno == ENOENT ? 0 : errno;
   if (MAX_LFINFO < lfinfolen)
-    return -1;
+    return ENAMETOOLONG;
   owner->user[lfinfolen] = 0;
 
-  /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
+  /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return EINVAL.  */
   /* The USER is everything before the last @.  */
   owner->at = at = memrchr (owner->user, '@', lfinfolen);
   if (!at)
-    return -1;
+    return EINVAL;
   owner->dot = dot = strrchr (at, '.');
   if (!dot)
-    return -1;
+    return EINVAL;
 
   /* The PID is everything from the last '.' to the ':' or equivalent.  */
   if (! c_isdigit (dot[1]))
-    return -1;
+    return EINVAL;
   errno = 0;
   pid = strtoimax (dot + 1, &owner->colon, 10);
   if (errno == ERANGE)
@@ -565,20 +562,20 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 	 mistakenly transliterate ':' to U+F022 in symlink contents.
 	 See <https://bugzilla.redhat.com/show_bug.cgi?id=1384153>.  */
       if (! (boot[0] == '\200' && boot[1] == '\242'))
-	return -1;
+	return EINVAL;
       boot += 2;
       FALLTHROUGH;
     case ':':
       if (! c_isdigit (boot[0]))
-	return -1;
+	return EINVAL;
       boot_time = strtoimax (boot, &lfinfo_end, 10);
       break;
 
     default:
-      return -1;
+      return EINVAL;
     }
   if (lfinfo_end != owner->user + lfinfolen)
-    return -1;
+    return EINVAL;
 
   /* On current host?  */
   Lisp_Object system_name = Fsystem_name ();
@@ -587,22 +584,22 @@ current_lock_owner (lock_info_type *owner, char *lfname)
       && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
     {
       if (pid == getpid ())
-        ret = 2; /* We own it.  */
+        ret = -2; /* We own it.  */
       else if (0 < pid && pid <= TYPE_MAXIMUM (pid_t)
                && (kill (pid, 0) >= 0 || errno == EPERM)
 	       && (boot_time == 0
 		   || (boot_time <= TYPE_MAXIMUM (time_t)
 		       && within_one_second (boot_time, get_boot_time ()))))
-        ret = 1; /* An existing process on this machine owns it.  */
+        ret = -1; /* An existing process on this machine owns it.  */
       /* The owner process is dead or has a strange pid, so try to
          zap the lockfile.  */
       else
-        return unlink (lfname);
+        return unlink (lfname) < 0 ? errno : 0;
     }
   else
     { /* If we wanted to support the check for stale locks on remote machines,
          here's where we'd do it.  */
-      ret = 1;
+      ret = -1;
     }
 
   return ret;
@@ -611,9 +608,9 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 
 /* Lock the lock named LFNAME if possible.
    Return 0 in that case.
-   Return positive if some other process owns the lock, and info about
+   Return negative if some other process owns the lock, and info about
      that process in CLASHER.
-   Return -1 if cannot lock for any other reason.  */
+   Return positive errno value if cannot lock for any other reason.  */
 
 static int
 lock_if_free (lock_info_type *clasher, char *lfname)
@@ -621,20 +618,18 @@ lock_if_free (lock_info_type *clasher, char *lfname)
   int err;
   while ((err = lock_file_1 (lfname, 0)) == EEXIST)
     {
-      switch (current_lock_owner (clasher, lfname))
+      err = current_lock_owner (clasher, lfname);
+      if (err != 0)
 	{
-	case 2:
-	  return 0;   /* We ourselves locked it.  */
-	case 1:
-	  return 1;   /* Someone else has it.  */
-	case -1:
-	  return -1;  /* current_lock_owner returned strange error.  */
+	  if (err < 0)
+	    return -2 - err; /* We locked it, or someone else has it.  */
+	  break; /* current_lock_owner returned strange error.  */
 	}
 
       /* We deleted a stale lock; try again to lock the file.  */
     }
 
-  return err ? -1 : 0;
+  return err;
 }
 
 /* lock_file locks file FN,
@@ -666,7 +661,7 @@ lock_file (Lisp_Object fn)
   /* Don't do locking while dumping Emacs.
      Uncompressing wtmp files uses call-process, which does not work
      in an uninitialized Emacs.  */
-  if (! NILP (Vpurify_flag))
+  if (will_dump_p ())
     return;
 
   orig_fn = fn;
@@ -700,8 +695,9 @@ lock_file (Lisp_Object fn)
       /* Create the name of the lock-file for file fn */
       MAKE_LOCK_NAME (lfname, encoded_fn);
 
-      /* Try to lock the lock.  */
-      if (0 < lock_if_free (&lock_info, lfname))
+      /* Try to lock the lock.  FIXME: This ignores errors when
+	 lock_if_free returns a positive errno value.  */
+      if (lock_if_free (&lock_info, lfname) < 0)
 	{
 	  /* Someone else has the lock.  Consider breaking it.  */
 	  Lisp_Object attack;
@@ -728,13 +724,16 @@ unlock_file (Lisp_Object fn)
   char *lfname;
   USE_SAFE_ALLOCA;
 
-  fn = Fexpand_file_name (fn, Qnil);
-  fn = ENCODE_FILE (fn);
+  Lisp_Object filename = Fexpand_file_name (fn, Qnil);
+  fn = ENCODE_FILE (filename);
 
   MAKE_LOCK_NAME (lfname, fn);
 
-  if (current_lock_owner (0, lfname) == 2)
-    unlink (lfname);
+  int err = current_lock_owner (0, lfname);
+  if (err == -2 && unlink (lfname) != 0 && errno != ENOENT)
+    err = errno;
+  if (0 < err)
+    report_file_errno ("Unlocking file", filename, err);
 
   SAFE_FREE ();
 }
@@ -825,16 +824,17 @@ t if it is locked by you, else a string saying which user has locked it.  */)
   USE_SAFE_ALLOCA;
 
   filename = Fexpand_file_name (filename, Qnil);
-
-  MAKE_LOCK_NAME (lfname, filename);
+  Lisp_Object encoded_filename = ENCODE_FILE (filename);
+  MAKE_LOCK_NAME (lfname, encoded_filename);
 
   owner = current_lock_owner (&locker, lfname);
-  if (owner <= 0)
-    ret = Qnil;
-  else if (owner == 2)
-    ret = Qt;
-  else
-    ret = make_string (locker.user, locker.at - locker.user);
+  switch (owner)
+    {
+    case -2: ret = Qt; break;
+    case -1: ret = make_string (locker.user, locker.at - locker.user); break;
+    case  0: ret = Qnil; break;
+    default: report_file_errno ("Testing file lock", filename, owner);
+    }
 
   SAFE_FREE ();
   return ret;

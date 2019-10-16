@@ -1,6 +1,6 @@
 ;;; text-property-search-tests.el --- Testing text-property-search
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords:
@@ -107,6 +107,49 @@
   (with-test (text-property-search-backward 'face 'bold t t)
              '("bold1")
              35))
+
+(defmacro with-match-test (form beginning end value &optional point)
+  `(with-temp-buffer
+     (text-property-setup)
+     (when ,point
+       (goto-char ,point))
+     (should (equal ,form
+                    (make-prop-match :beginning ,beginning
+                                     :end ,end
+                                     :value ,value)))))
+
+(ert-deftest text-property-search-forward-prop-match-match-face-nil-nil ()
+  (with-match-test
+   (text-property-search-forward 'face nil nil)
+   9 14 'bold))
+
+(ert-deftest text-property-search-forward-prop-match-match-face-bold-t ()
+  (with-match-test
+   (text-property-search-forward 'face 'bold t)
+   9 14 'bold))
+
+(ert-deftest text-property-search-forward-prop-match-match-face-bold-nil ()
+  (with-match-test
+   (text-property-search-forward 'face 'bold nil)
+   1 9 nil))
+
+(ert-deftest text-property-search-backward-prop-match-match-face-nil-nil ()
+  (with-match-test
+   (text-property-search-backward 'face nil nil)
+   39 46 'italic
+   (point-max)))
+
+(ert-deftest text-property-search-backward-prop-match-match-face-italic-t ()
+  (with-match-test
+   (text-property-search-backward 'face 'italic t)
+   39 46 'italic
+   (point-max)))
+
+(ert-deftest text-property-search-backward-prop-match-match-face-italic-nil ()
+  (with-match-test
+   (text-property-search-backward 'face 'italic nil)
+   46 57 nil
+   (point-max)))
 
 (provide 'text-property-search-tests)
 

@@ -1,6 +1,6 @@
 ;;; semantic/java.el --- Semantic functions for Java
 
-;;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -51,7 +51,7 @@
             "\\|"
             "\\<[0-9]+[eE][-+]?[0-9]+[fFdD]?\\>"
             "\\|"
-            "\\<0[xX][0-9a-fA-F]+[lL]?\\>"
+            "\\<0[xX][[:xdigit:]]+[lL]?\\>"
             "\\|"
             "\\<[0-9]+[lLfFdD]?\\>"
             "\\)"
@@ -63,7 +63,7 @@ DECIMAL_LITERAL:
     [1-9][0-9]*
   ;
 HEX_LITERAL:
-    0[xX][0-9a-fA-F]+
+    0[xX][[:xdigit:]]+
   ;
 OCTAL_LITERAL:
     0[0-7]*
@@ -391,7 +391,7 @@ That is TAG `symbol-name' without the leading `@'."
 
 (defun semantic-java-doc-keywords-map (fun &optional property)
   "Run function FUN for each javadoc keyword.
-Return the list of FUN results.  If optional PROPERTY is non nil only
+Return the list of FUN results.  If optional PROPERTY is non-nil only
 call FUN for javadoc keywords which have a value for PROPERTY.  FUN
 receives two arguments: the javadoc keyword and its associated
 'javadoc property list.  It can return any value.  All nil values are

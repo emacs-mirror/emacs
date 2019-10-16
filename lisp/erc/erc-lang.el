@@ -1,6 +1,6 @@
 ;;; erc-lang.el --- provide the LANG command to ERC
 
-;; Copyright (C) 2002, 2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

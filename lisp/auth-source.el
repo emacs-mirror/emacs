@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -136,7 +136,7 @@ let-binding."
                                    (ssh  "ssh" "22")
                                    (sftp "sftp" "115")
                                    (smtp "smtp" "25"))
-  "List of authentication protocols and their names"
+  "List of authentication protocols and their names."
 
   :version "23.2" ;; No Gnus
   :type '(repeat :tag "Authentication Protocols"
@@ -956,14 +956,13 @@ Note that the MAX parameter is used so we can exit the parse early."
                 (insert (funcall cached-secrets)))
             (insert-file-contents file)
             ;; cache all netrc files (used to be just .gpg files)
-            ;; Store the contents of the file heavily encrypted in memory.
-            ;; (note for the irony-impaired: they are just obfuscated)
+            ;; Store the contents of the file obfuscated in memory.
             (auth-source--aput
              auth-source-netrc-cache file
              (list :mtime (file-attribute-modification-time
                            (file-attributes file))
-                   :secret (let ((v (mapcar #'1+ (buffer-string))))
-                             (lambda () (apply #'string (mapcar #'1- v)))))))
+                   :secret (let ((v (auth-source--obfuscate (buffer-string))))
+                             (lambda () (auth-source--deobfuscate v))))))
           (goto-char (point-min))
           (let ((entries (auth-source-netrc-parse-entries check max))
                 alist)
@@ -1132,11 +1131,15 @@ FILE is the file from which we obtained this token."
                                 ((member k '("password")) "secret")
                                 (t k)))
 
-                  ;; send back the secret in a function (lexical binding)
+                  ;; Send back the secret in a function (lexical
+                  ;; binding).  We slightly obfuscate the passwords
+                  ;; (that's the "(mapcar #+' ..)" stuff) to avoid
+                  ;; showing the passwords in clear text in backtraces
+                  ;; and the like.
                   (when (equal k "secret")
-                    (setq v (let ((lexv v)
+                    (setq v (let ((lexv (auth-source--obfuscate v))
                                   (token-decoder nil))
-                              (when (string-match "^gpg:" lexv)
+                              (when (string-match "^gpg:" v)
                                 ;; it's a GPG token: create a token decoder
                                 ;; which unsets itself once
                                 (setq token-decoder
@@ -1147,14 +1150,68 @@ FILE is the file from which we obtained this token."
                                              filename)
                                           (setq token-decoder nil)))))
                               (lambda ()
-                                (when token-decoder
-                                  (setq lexv (funcall token-decoder lexv)))
-                                lexv))))
+                                (if token-decoder
+                                    (funcall token-decoder
+                                             (auth-source--deobfuscate lexv))
+                                  (auth-source--deobfuscate lexv))))))
                   (setq ret (plist-put ret
                                        (auth-source--symbol-keyword k)
                                        v))))
               ret))
           alist))
+
+;; Never change this variable.
+(defvar auth-source--session-nonce nil)
+
+(defun auth-source--obfuscate (string)
+  ;; We want to keep passwords out of backtraces and bug reports and
+  ;; the like, so if we have GnuTLS available, we encrypt them with a
+  ;; nonce that we just keep in memory.  If somebody has access to the
+  ;; current Emacs session, they can be decrypted, but if not, little
+  ;; useful information is leaked.  If you reset the nonce, you also
+  ;; have to call `auth-source-forget-all-cached'.
+  (unless auth-source--session-nonce
+    (setq auth-source--session-nonce
+          (apply #'string (cl-loop repeat 16
+                                   collect (random 128)))))
+  (if (and (fboundp 'gnutls-symmetric-encrypt)
+           (gnutls-available-p))
+      (let ((cdata (car (last (gnutls-ciphers)))))
+        (mapconcat
+         #'base64-encode-string
+         (gnutls-symmetric-encrypt
+          (pop cdata)
+          (auth-source--pad auth-source--session-nonce
+                            (plist-get cdata :cipher-keysize))
+          (list 'iv-auto (plist-get cdata :cipher-ivsize))
+          (auth-source--pad string (plist-get cdata :cipher-blocksize)))
+         "-"))
+    (mapcar #'1- string)))
+
+(defun auth-source--pad (string length)
+  "Pad string S to a modulo of LENGTH."
+  (let ((pad (- length (mod (length string) length))))
+    (concat string (make-string pad pad))))
+
+(defun auth-source--unpad (string)
+  "Remove PKCS#7 padding from STRING."
+  (substring string 0 (- (length string)
+			 (aref string (1- (length string))))))
+
+(defun auth-source--deobfuscate (data)
+  (if (and (fboundp 'gnutls-symmetric-encrypt)
+           (gnutls-available-p))
+      (let ((cdata (car (last (gnutls-ciphers))))
+            (bits (split-string data "-")))
+        (auth-source--unpad
+         (car
+          (gnutls-symmetric-decrypt
+           (pop cdata)
+           (auth-source--pad auth-source--session-nonce
+                             (plist-get cdata :cipher-keysize))
+           (base64-decode-string (cadr bits))
+           (base64-decode-string (car bits))))))
+    (apply #'string (mapcar #'1+ data))))
 
 (cl-defun auth-source-netrc-search (&rest spec
                                     &key backend require create
@@ -2259,12 +2316,12 @@ items don't have a username.  This means that if you search for
 username \"joe\" and it matches an item but the item doesn't have
 a :user attribute, the username \"joe\" will be returned.
 
-A non nil DELETE-EXISTING means deleting any matching password
+A non-nil DELETE-EXISTING means deleting any matching password
 entry in the respective sources.  This is useful only when
-CREATE-MISSING is non nil as well; the intended use case is to
+CREATE-MISSING is non-nil as well; the intended use case is to
 remove wrong password entries.
 
-If no matching entry is found, and CREATE-MISSING is non nil,
+If no matching entry is found, and CREATE-MISSING is non-nil,
 the password will be retrieved interactively, and it will be
 stored in the password database which matches best (see
 `auth-sources').
@@ -2339,6 +2396,45 @@ MODE can be \"login\" or \"password\"."
     (when (functionp password)
       (setq password (funcall password)))
     (list user password auth-info)))
+
+;;; Tiny mode for editing .netrc/.authinfo modes (that basically just
+;;; hides passwords).
+
+(defcustom authinfo-hidden "password"
+  "Regexp matching elements in .authinfo/.netrc files that should be hidden."
+  :type 'regexp
+  :version "27.1")
+
+;;;###autoload
+(define-derived-mode authinfo-mode fundamental-mode "Authinfo"
+  "Mode for editing .authinfo/.netrc files.
+
+This is just like `fundamental-mode', but hides passwords.  The
+passwords are revealed when point moved into the password.
+
+\\{authinfo-mode-map}"
+  (authinfo--hide-passwords (point-min) (point-max))
+  (reveal-mode))
+
+(defun authinfo--hide-passwords (start end)
+  (save-excursion
+    (save-restriction
+      (narrow-to-region start end)
+      (goto-char start)
+      (while (re-search-forward (format "\\(\\s-\\|^\\)\\(%s\\)\\s-+"
+                                        authinfo-hidden)
+                                nil t)
+        (when (looking-at "[^\n\t ]+")
+          (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
+            (overlay-put overlay 'display (propertize "****"
+                                                      'face 'warning))
+            (overlay-put overlay 'reveal-toggle-invisible
+                         #'authinfo--toggle-display)))))))
+
+(defun authinfo--toggle-display (overlay hide)
+  (if hide
+      (overlay-put overlay 'display (propertize "****" 'face 'warning))
+    (overlay-put overlay 'display nil)))
 
 (provide 'auth-source)
 

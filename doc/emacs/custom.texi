@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -32,6 +32,8 @@ Reference Manual}.
                           By changing them, you can redefine keys.
 * Init File::           How to write common customizations in the
                           initialization file.
+* Authentication::      Keeping persistent authentication information.
+
 @end menu
 
 @node Easy Customization
@@ -378,7 +380,7 @@ lines of code to your initialization file, to set the variable
 file.  For example:
 
 @example
-(setq custom-file "~/.emacs-custom.el")
+(setq custom-file "~/.config/emacs-custom.el")
 (load custom-file)
 @end example
 
@@ -388,14 +390,14 @@ Emacs versions, like this:
 @example
 (cond ((< emacs-major-version 22)
        ;; @r{Emacs 21 customization.}
-       (setq custom-file "~/.custom-21.el"))
+       (setq custom-file "~/.config/custom-21.el"))
       ((and (= emacs-major-version 22)
             (< emacs-minor-version 3))
        ;; @r{Emacs 22 customization, before version 22.3.}
-       (setq custom-file "~/.custom-22.el"))
+       (setq custom-file "~/.config/custom-22.el"))
       (t
        ;; @r{Emacs version 22.3 or later.}
-       (setq custom-file "~/.emacs-custom.el")))
+       (setq custom-file "~/.config/emacs-custom.el")))
 
 (load custom-file)
 @end example
@@ -763,6 +765,8 @@ expects (@pxref{Examining}).
 * Locals::              Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
 * Directory Variables:: How variable values can be specified by directory.
+* Connection Variables:: Variables which are valid for buffers with a
+                           remote default directory.
 @end menu
 
 @node Examining
@@ -797,6 +801,7 @@ Its value is 70
   Automatically becomes buffer-local when set.
   This variable is safe as a file local variable if its value
   satisfies the predicate ‘integerp’.
+  Probably introduced at or before Emacs version 18.
 
 Documentation:
 Column beyond which automatic line-wrapping should happen.
@@ -1327,7 +1332,7 @@ On MS-DOS, the name of this file should be @file{_dir-locals.el}, due
 to limitations of the DOS filesystems.  If the filesystem is limited
 to 8+3 file names, the name of the file will be truncated by the OS to
 @file{_dir-loc.el}.
-}in a directory.  Whenever Emacs visits any file in that directory or
+} in a directory.  Whenever Emacs visits any file in that directory or
 any of its subdirectories, it will apply the directory-local variables
 specified in @file{.dir-locals.el}, as though they had been defined as
 file-local variables for that file (@pxref{File Variables}).  Emacs
@@ -1356,7 +1361,8 @@ files in that subdirectory.
 
 @example
 ((nil . ((indent-tabs-mode . t)
-         (fill-column . 80)))
+         (fill-column . 80)
+         (mode . auto-fill)))
  (c-mode . ((c-file-style . "BSD")
             (subdirs . nil)))
  ("src/imported"
@@ -1365,13 +1371,38 @@ files in that subdirectory.
 @end example
 
 @noindent
-This sets @samp{indent-tabs-mode} and @code{fill-column} for any file
-in the directory tree, and the indentation style for any C source
-file.  The special @code{subdirs} element is not a variable, but a
-special keyword which indicates that the C mode settings are only to
-be applied in the current directory, not in any subdirectories.
-Finally, it specifies a different @file{ChangeLog} file name for any
-file in the @file{src/imported} subdirectory.
+This sets the variables @samp{indent-tabs-mode} and @code{fill-column}
+for any file in the directory tree, and the indentation style for any
+C source file.  The special @code{mode} element specifies the minor
+mode to be enabled.  So @code{(mode . auto-fill)} specifies that the
+minor mode @code{auto-fill-mode} needs to be enabled.  The special
+@code{subdirs} element is not a variable, but a special keyword which
+indicates that the C mode settings are only to be applied in the
+current directory, not in any subdirectories.  Finally, it specifies a
+different @file{ChangeLog} file name for any file in the
+@file{src/imported} subdirectory.
+
+If the @file{.dir-locals.el} file contains multiple different values
+for a variable using different mode names or directories, the values
+will be applied in an order such that the values for more specific
+modes take priority over more generic modes.  Values specified under a
+directory have even more priority.  For example:
+
+@example
+((nil . ((fill-column . 40)))
+ (c-mode . ((fill-column . 50)))
+ (prog-mode . ((fill-column . 60)))
+ ("narrow-files" . ((nil . ((fill-column . 20))))))
+@end example
+
+Files that use @code{c-mode} also match @code{prog-mode} because the
+former inherits from the latter.  The value used for
+@code{fill-column} in C files will however be @code{50} because the
+mode name is more specific than @code{prog-mode}.  Files using other
+modes inheriting from @code{prog-mode} will use @code{60}.  Any file
+under the directory @file{narrow-files} will use the value @code{20}
+even if they use @code{c-mode} because directory entries have priority
+over mode entries.
 
 You can specify the variables @code{mode}, @code{eval}, and
 @code{unibyte} in your @file{.dir-locals.el}, and they have the same
@@ -1418,6 +1449,52 @@ variables are handled in the same way as unsafe file-local variables
   Directory-local variables also take effect in certain buffers that
 do not visit a file directly but perform work within a directory, such
 as Dired buffers (@pxref{Dired}).
+
+@node Connection Variables
+@subsection Per-Connection Local Variables
+@cindex local variables, for all remote connections
+@cindex connection-local variables
+@cindex per-connection local variables
+
+  Most of the variables reflect the situation on the local machine.
+Often, they must use a different value when you operate in buffers
+with a remote default directory.  Think about the shell to be applied
+when calling @code{shell} -- it might be @file{/bin/bash} on your
+local machine, and @file{/bin/ksh} on a remote machine.
+
+  This can be accomplished with @dfn{connection-local variables}.
+Directory and file local variables override connection-local
+variables.  Unsafe connection-local variables are handled in the same
+way as unsafe file-local variables (@pxref{Safe File Variables}).
+
+@findex connection-local-set-profile-variables
+@findex connection-local-set-profiles
+  Connection-local variables are declared as a group of
+variables/value pairs in a @dfn{profile}, using the
+@code{connection-local-set-profile-variables} function.  The function
+@code{connection-local-set-profiles} activates profiles for a given
+criteria, identifying a remote machine:
+
+@example
+(connection-local-set-profile-variables 'remote-ksh
+   '((shell-file-name . "/bin/ksh")
+     (shell-command-switch . "-c")))
+
+(connection-local-set-profile-variables 'remote-bash
+   '((shell-file-name . "/bin/bash")
+     (shell-command-switch . "-c")))
+
+(connection-local-set-profiles
+   '(:application tramp :machine "remotemachine") 'remote-ksh)
+@end example
+
+  This code declares two different profiles, @code{remote-ksh} and
+@code{remote-bash}. The profile @code{remote-ksh} is applied to all
+buffers which have a remote default directory matching the regexp
+@code{"remotemachine} as host name.  Such a criteria can also
+discriminate for the properties @code{:protocol} (this is the Tramp
+method) or @code{:user} (a remote user name).  The @code{nil} criteria
+matches all buffers with a remote default directory.
 
 @node Key Bindings
 @section Customizing Key Bindings
@@ -1486,7 +1563,8 @@ self-inserting because the global keymap binds it to the command
 such as @kbd{C-a} also get their standard meanings from the global
 keymap.  Commands to rebind keys, such as @kbd{M-x global-set-key},
 work by storing the new binding in the proper place in the global map
-(@pxref{Rebinding}).
+(@pxref{Rebinding}).  To view the current key bindings, use the
+@kbd{C-h b} command.
 
 @cindex function key
   Most modern keyboards have function keys as well as character keys.
@@ -1620,7 +1698,7 @@ They do not bind @key{SPC}.
 @node Rebinding
 @subsection Changing Key Bindings Interactively
 @cindex key rebinding, this session
-@cindex redefining keys, this session
+@cindex rebinding keys, this session
 @cindex binding keys
 
   The way to redefine an Emacs key is to change its entry in a keymap.
@@ -2072,6 +2150,10 @@ The mouse was in a vertical scroll bar.  (This is the only kind of
 scroll bar Emacs currently supports.)
 @item menu-bar
 The mouse was in the menu bar.
+@item tab-bar
+The mouse was in a tab bar.
+@item tab-line
+The mouse was in a tab line.
 @item header-line
 The mouse was in a header line.
 @ignore
@@ -2142,16 +2224,18 @@ as a function from Lisp programs.
 @cindex init file
 @cindex .emacs file
 @cindex ~/.emacs file
+@cindex ~/.config/emacs/init.el file
 @cindex Emacs initialization file
 @cindex startup (init file)
+@cindex XDG_CONFIG_HOME
 
   When Emacs is started, it normally tries to load a Lisp program from
 an @dfn{initialization file}, or @dfn{init file} for short.  This
-file, if it exists, specifies how to initialize Emacs for you.  Emacs
-looks for your init file using the filenames @file{~/.emacs},
-@file{~/.emacs.el}, or @file{~/.emacs.d/init.el}; you can choose to
-use any one of these three names (@pxref{Find Init}).  Here, @file{~/}
-stands for your home directory.
+file, if it exists, specifies how to initialize Emacs for you.
+If the file @file{~/.config/emacs/init.el} exists, it is used as the
+init file; otherwise Emacs may look at @file{~/.emacs.el},
+@file{~/.emacs}, @file{~/.emacs.d/init.el}, or other locations.
+@xref{Find Init}.
 
   You can use the command line switch @samp{-q} to prevent loading
 your init file, and @samp{-u} (or @samp{--user}) to specify a
@@ -2223,17 +2307,17 @@ function @code{setq} to set the variable @code{fill-column}
 
   You can set any Lisp variable with @code{setq}, but with certain
 variables @code{setq} won't do what you probably want in the
-@file{.emacs} file.  Some variables automatically become buffer-local
-when set with @code{setq}; what you want in @file{.emacs} is to set
+init file.  Some variables automatically become buffer-local
+when set with @code{setq}; what you want in the init file is to set
 the default value, using @code{setq-default}.  Some customizable minor
 mode variables do special things to enable the mode when you set them
 with Customize, but ordinary @code{setq} won't do that; to enable the
-mode in your @file{.emacs} file, call the minor mode command.  The
+mode in your init file, call the minor mode command.  The
 following section has examples of both of these methods.
 
   The second argument to @code{setq} is an expression for the new
 value of the variable.  This can be a constant, a variable, or a
-function call expression.  In @file{.emacs}, constants are used most
+function call expression.  In the init file, constants are used most
 of the time.  They can be:
 
 @table @asis
@@ -2527,8 +2611,7 @@ kept.
 
   The usual purpose of the terminal-specific library is to map the
 escape sequences used by the terminal's function keys onto more
-meaningful names, using @code{input-decode-map} (or
-@code{function-key-map} before it).  See the file
+meaningful names, using @code{input-decode-map}.  See the file
 @file{term/lk201.el} for an example of how this is done.  Many function
 keys are mapped automatically according to the information in the
 Termcap data base; the terminal-specific library needs to map only the
@@ -2557,23 +2640,49 @@ library.  @xref{Hooks}.
 @node Find Init
 @subsection How Emacs Finds Your Init File
 
-  Normally Emacs uses your home directory to find @file{~/.emacs};
-that's what @samp{~} means in a file name.  @xref{General Variables, HOME}.
-If neither @file{~/.emacs} nor @file{~/.emacs.el} is found, Emacs looks for
-@file{~/.emacs.d/init.el} (which, like @file{~/.emacs.el}, can be
-byte-compiled).
+  Emacs normally finds your init file in a location under your home
+directory.  @xref{Init File}.  By default this location is
+@file{~/.config/emacs/init.el} where @file{~/} stands for your home directory.
+This default can be overridden as described below.
 
-  However, if you run Emacs from a shell started by @code{su}, Emacs
-tries to find your own @file{.emacs}, not that of the user you are
+  If @env{XDG_CONFIG_HOME} is set in your environment, its
+value replaces @file{~/.config} in the name of the default
+init file.
+
+  If the default init file's parent directory does not exist but the
+directory @file{~/.emacs.d} does exist, Emacs looks for your init file
+using the filenames @file{~/.emacs.el}, @file{~/.emacs}, or
+@file{~/.emacs.d/init.el}; you can choose to use any one of these
+names.  (Note that only the locations directly in your home directory
+have a leading dot in the location's basename.)  Although this is
+backward-compatible with older Emacs versions, modern POSIX platforms
+prefer putting your initialization files under @file{~/.config} so
+that troubleshooting a problem that might be due to a bad init file,
+or archiving a collection of init files, can be done by renaming that
+directory.  To help older Emacs versions find configuration files in
+their current default locations, you can execute the following
+Emacs Lisp code:
+
+@example
+(make-symbolic-link ".config/emacs" "~/.emacs.d")
+@end example
+
+  However, if you run Emacs from a shell started by @code{su} and
+@env{XDG_CONFIG_HOME} is not set in your environment, Emacs
+tries to find your own initialization files, not that of the user you are
 currently pretending to be.  The idea is that you should get your own
 editor customizations even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
 It gets your user name from the environment variables @env{LOGNAME} and
-@env{USER}; if neither of those exists, it uses effective user-ID@.
+@env{USER}; if neither of those exists, it uses the effective user-ID@.
 If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
+
+  For brevity the rest of the Emacs documentation generally uses just
+the current default location @file{~/.config/emacs/init.el} for the
+init file.
 @c  LocalWords:  backtab
 
 @node Init Non-ASCII
@@ -2614,11 +2723,11 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @subsection The Early Init File
 @cindex early init file
 
-  Most customizations for Emacs should be put in the normal init file,
-@file{.emacs} or @file{~/.emacs.d/init.el}.  However, it is sometimes desirable
+  Most customizations for Emacs should be put in the normal init file.
+@xref{Init File}.  However, it is sometimes desirable
 to have customizations that take effect during Emacs startup earlier than the
 normal init file is processed.  Such customizations can be put in the early
-init file, @file{~/.emacs.d/early-init.el}.  This file is loaded before the
+init file, @file{~/.config/emacs.d/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
 package system and GUI is initialized, so in it you can customize variables
 that affect frame appearance as well as the package initialization process,
 such as @code{package-enable-at-startup}, @code{package-load-list}, and
@@ -2639,3 +2748,40 @@ provided by the Emacs startup, such as @code{window-setup-hook} or
 
   For more information on the early init file, @pxref{Init File,,,
 elisp, The Emacs Lisp Reference Manual}.
+
+@node Authentication
+@section Keeping Persistent Authentication Information
+
+  Some Emacs packages, which connect to other services, require
+authentication (@pxref{Passwords}), e.g., see @ref{Top, Gnus,, gnus, The
+Gnus Manual}, or @ref{Top, Tramp,, tramp, The Tramp Manual}.  Because
+it might be annoying to provide the same user name and password again
+and again, Emacs offers to keep this information persistent via the
+@file{auth-source} library.
+
+@cindex @file{~/.authinfo} file
+@cindex @file{~/.authinfo.gpg} file
+@cindex ~/.netrc file
+  By default, the authentication information is taken from the file
+@file{~/.authinfo} or @file{~/.authinfo.gpg} or @file{~/.netrc}.
+These files have a syntax similar to netrc files as known from the
+@command{ftp} program, like this:
+
+@example
+machine @var{mymachine} login @var{myloginname} password @var{mypassword} port @var{myport}
+@end example
+
+  Similarly, the @file{auth-source} library supports multiple storage
+backend, currently either the classic netrc backend, JSON files, the
+Secret Service API, and pass, the standard unix password manager.
+
+@vindex auth-sources
+  All these alternatives can be customized via the user option
+@code{auth-sources}, see @ref{Help for users, Emacs auth-source,,
+auth, Emacs auth-source}.
+
+@vindex auth-source-save-behavior
+  When a password is entered interactively, which is not found via the
+configured backend, some of the backends offer to save it
+persistently.  This can be changed by customizing the user option
+@code{auth-source-save-behavior}.

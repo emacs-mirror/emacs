@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -163,7 +163,10 @@ of the evaluator.
 
 You may call with no args, or you may pass nil as the first arg and
 any other args you like.  In that case, the list of args after the
-first will be printed into the backtrace buffer."
+first will be printed into the backtrace buffer.
+
+If `inhibit-redisplay' is non-nil when this function is called,
+the debugger will not be entered."
   (interactive)
   (cond
    (inhibit-redisplay
@@ -236,14 +239,37 @@ first will be printed into the backtrace buffer."
 		;; Place an extra debug-on-exit for macro's.
 		(when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
 		  (backtrace-debug 5 t)))
+              (with-current-buffer debugger-buffer
+                (unless (derived-mode-p 'debugger-mode)
+	          (debugger-mode))
+	        (debugger-setup-buffer debugger-args)
+	        (when noninteractive
+		  ;; If the backtrace is long, save the beginning
+		  ;; and the end, but discard the middle.
+		  (when (> (count-lines (point-min) (point-max))
+			   debugger-batch-max-lines)
+		    (goto-char (point-min))
+		    (forward-line (/ 2 debugger-batch-max-lines))
+		    (let ((middlestart (point)))
+		      (goto-char (point-max))
+		      (forward-line (- (/ 2 debugger-batch-max-lines)
+				       debugger-batch-max-lines))
+		      (delete-region middlestart (point)))
+		    (insert "...\n"))
+		  (goto-char (point-min))
+		  (message "%s" (buffer-string))
+		  (kill-emacs -1)))
 	      (pop-to-buffer
 	       debugger-buffer
 	       `((display-buffer-reuse-window
-		  display-buffer-in-previous-window)
-		 . (,(when (and (window-live-p debugger-previous-window)
-				(frame-visible-p
-				 (window-frame debugger-previous-window)))
-		       `(previous-window . ,debugger-previous-window)))))
+		  display-buffer-in-previous-window
+		  display-buffer-below-selected)
+		 . ((window-min-height . 10)
+                    (window-height . fit-window-to-buffer)
+		    ,@(when (and (window-live-p debugger-previous-window)
+				 (frame-visible-p
+				  (window-frame debugger-previous-window)))
+		        `((previous-window . ,debugger-previous-window))))))
 	      (setq debugger-window (selected-window))
 	      (if (eq debugger-previous-window debugger-window)
 		  (when debugger-jumping-flag
@@ -256,25 +282,6 @@ first will be printed into the backtrace buffer."
 			    (window-total-height debugger-window)))
 		      (error nil)))
 		(setq debugger-previous-window debugger-window))
-              (unless (derived-mode-p 'debugger-mode)
-	        (debugger-mode))
-	      (debugger-setup-buffer debugger-args)
-	      (when noninteractive
-		;; If the backtrace is long, save the beginning
-		;; and the end, but discard the middle.
-		(when (> (count-lines (point-min) (point-max))
-			 debugger-batch-max-lines)
-		  (goto-char (point-min))
-		  (forward-line (/ 2 debugger-batch-max-lines))
-		  (let ((middlestart (point)))
-		    (goto-char (point-max))
-		    (forward-line (- (/ 2 debugger-batch-max-lines)
-				     debugger-batch-max-lines))
-		    (delete-region middlestart (point)))
-		  (insert "...\n"))
-		(goto-char (point-min))
-		(message "%s" (buffer-string))
-		(kill-emacs -1))
 	      (message "")
 	      (let ((standard-output nil)
 		    (buffer-read-only t))
@@ -581,12 +588,15 @@ The environment used is the one when entering the activation frame at point."
 (define-derived-mode debugger-mode backtrace-mode "Debugger"
   "Mode for debugging Emacs Lisp using a backtrace.
 \\<debugger-mode-map>
-A line starts with `*' if exiting that frame will call the debugger.
-Type \\[debugger-frame] or \\[debugger-frame-clear] to set or remove the `*'.
+A frame marked with `*' in the backtrace means that exiting that
+frame will enter the debugger.  You can flag frames to enter the
+debugger when frame is exited with \\[debugger-frame], and remove
+the flag with \\[debugger-frame-clear].
 
-When in debugger due to frame being exited,
-use the \\[debugger-return-value] command to override the value
-being returned from that frame.
+When in debugger invoked due to exiting a frame which was flagged
+with a `*', you can use the \\[debugger-return-value] command to
+override the value being returned from that frame when the debugger
+exits.
 
 Use \\[debug-on-entry] and \\[cancel-debug-on-entry] to control
 which functions will enter the debugger when called.
@@ -740,7 +750,7 @@ This function is called when SYMBOL's value is modified."
 
 When called interactively, prompt for VARIABLE in the minibuffer.
 
-This works by calling `add-variable-watch' on VARIABLE.  If you
+This works by calling `add-variable-watcher' on VARIABLE.  If you
 quit from the debugger, this will abort the change (unless the
 change is caused by the termination of a let-binding).
 

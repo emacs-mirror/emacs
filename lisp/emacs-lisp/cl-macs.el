@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -695,8 +695,11 @@ its argument list allows full Common Lisp conventions."
   "Bind the variables in ARGS to the result of EXPR and execute BODY."
   (declare (indent 2)
            (debug (&define cl-macro-list1 def-form cl-declarations def-body)))
-  (let* ((cl--bind-lets nil) (cl--bind-forms nil)
-	 (cl--bind-defs nil) (cl--bind-block 'cl-none) (cl--bind-enquote nil))
+  (let* ((cl--bind-lets nil)
+         (cl--bind-forms nil)
+	 (cl--bind-defs nil)
+         (cl--bind-block args)
+         (cl--bind-enquote nil))
     (cl--do-arglist (or args '(&aux)) expr)
     (macroexp-let* (nreverse cl--bind-lets)
                    (macroexp-progn (append (nreverse cl--bind-forms) body)))))
@@ -2145,16 +2148,26 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
              (let ((symval (assq exp venv)))
                (when symval
                  (setq exp (cadr symval)))))
-            (`(setq . ,_)
+            (`(setq . ,args)
              ;; Convert setq to setf if required by symbol-macro expansion.
-             (let* ((args (mapcar (lambda (f) (macroexpand f env))
-                                  (cdr exp)))
-                    (p args))
-               (while (and p (symbolp (car p))) (setq p (cddr p)))
-               (if p (setq exp (cons 'setf args))
-                 (setq exp (cons 'setq args))
-                 ;; Don't loop further.
-                 nil)))
+             (let ((convert nil)
+                   (rargs nil))
+               (while args
+                 (let ((place (pop args)))
+                   ;; Here, we know `place' should be a symbol.
+                   (while
+                       (let ((symval (assq place venv)))
+                         (when symval
+                           (setq place (cadr symval))
+                           (if (symbolp place)
+                               t        ;Repeat.
+                             (setq convert t)
+                             nil))))
+                   (push place rargs)
+                   (push (pop args) rargs)))
+               (setq exp (cons (if convert 'setf 'setq)
+                               (nreverse rargs)))
+               convert))
             ;; CL's symbol-macrolet used to treat re-bindings as candidates for
             ;; expansion (turning the let into a letf if needed), contrary to
             ;; Common-Lisp where such re-bindings hide the symbol-macro.
@@ -2587,8 +2600,9 @@ rather than all at the end (i.e. like `let*' rather than like `let')."
 ;;;###autoload
 (defmacro cl-callf (func place &rest args)
   "Set PLACE to (FUNC PLACE ARGS...).
-FUNC should be an unquoted function name.  PLACE may be a symbol,
-or any generalized variable allowed by `setf'."
+FUNC should be an unquoted function name or a lambda expression.
+PLACE may be a symbol, or any generalized variable allowed by
+`setf'."
   (declare (indent 2) (debug (cl-function place &rest form)))
   (gv-letplace (getter setter) place
     (let* ((rargs (cons getter args)))
@@ -2687,6 +2701,9 @@ The function's arguments should be treated as immutable.
 ;; for bootstrapping reasons.
 (defvar cl--struct-default-parent nil)
 
+(defvar cl--struct-inline t
+  "If non-nil, `cl-defstruct' will define inlinable functions.")
+
 ;;;###autoload
 (defmacro cl-defstruct (struct &rest descs)
   "Define a struct type.
@@ -2697,16 +2714,20 @@ You can use the accessors to set the corresponding slots, via `setf'.
 
 NAME may instead take the form (NAME OPTIONS...), where each
 OPTION is either a single keyword or (KEYWORD VALUE) where
-KEYWORD can be one of :conc-name, :constructor, :copier, :predicate,
-:type, :named, :initial-offset, :print-function, or :include.
+KEYWORD can be one of `:conc-name', `:constructor', `:copier',
+`:predicate', `:type', `:named', `:initial-offset',
+`:print-function', `:noinline', or `:include'.  See Info
+node `(cl)Structures' for the description of the options.
 
 Each SLOT may instead take the form (SNAME SDEFAULT SOPTIONS...), where
 SDEFAULT is the default value of that slot and SOPTIONS are keyword-value
 pairs for that slot.
-Currently, only one keyword is supported, `:read-only'.  If this has a
-non-nil value, that slot cannot be set via `setf'.
+Supported keywords for slots are:
+- `:read-only':  If this has a non-nil value, that slot cannot be set via `setf'.
+- `:documentation': this is a docstring describing the slot.
+- `:type': the type of the field; currently unused.
 
-\(fn NAME SLOTS...)"
+\(fn NAME &optional DOCSTRING &rest SLOTS)"
   (declare (doc-string 2) (indent 1)
            (debug
             (&define                    ;Makes top-level form not be wrapped.
@@ -2757,6 +2778,8 @@ non-nil value, that slot cannot be set via `setf'.
 	 (include-name nil)
 	 (type nil)         ;nil here means not specified explicitly.
 	 (named nil)
+         (cldefsym (if cl--struct-inline 'cl-defsubst 'cl-defun))
+         (defsym (if cl--struct-inline 'cl-defsubst 'defun))
 	 (forms nil)
          (docstring (if (stringp (car descs)) (pop descs)))
 	 pred-form pred-check)
@@ -2803,6 +2826,8 @@ non-nil value, that slot cannot be set via `setf'.
                  (error "Invalid :type specifier: %s" type)))
 	      ((eq opt :named)
 	       (setq named t))
+	      ((eq opt :noinline)
+	       (setq defsym 'defun) (setq cldefsym 'cl-defun))
 	      ((eq opt :initial-offset)
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
@@ -2861,7 +2886,7 @@ non-nil value, that slot cannot be set via `setf'.
 			      (cons 'and (cl-cdddr pred-form))
                             `(,predicate cl-x))))
     (when pred-form
-      (push `(cl-defsubst ,predicate (cl-x)
+      (push `(,defsym ,predicate (cl-x)
                (declare (side-effect-free error-free))
                ,(if (eq (car pred-form) 'and)
                     (append pred-form '(t))
@@ -2879,22 +2904,28 @@ non-nil value, that slot cannot be set via `setf'.
 			 defaults))
 	    (if (assq slot descp)
 		(error "Duplicate slots named %s in %s" slot name))
-	    (let ((accessor (intern (format "%s%s" conc-name slot))))
+	    (let ((accessor (intern (format "%s%s" conc-name slot)))
+                  (default-value (pop desc))
+                  (doc (plist-get desc :documentation))
+                  (access-body
+                   `(progn
+                      ,@(and pred-check
+			     (list `(or ,pred-check
+                                        (signal 'wrong-type-argument
+                                                (list ',name cl-x)))))
+                      ,(if (memq type '(nil vector)) `(aref cl-x ,pos)
+                         (if (= pos 0) '(car cl-x)
+                           `(nth ,pos cl-x))))))
 	      (push slot slots)
-	      (push (pop desc) defaults)
+	      (push default-value defaults)
 	      ;; The arg "cl-x" is referenced by name in eg pred-form
 	      ;; and pred-check, so changing it is not straightforward.
-	      (push `(cl-defsubst ,accessor (cl-x)
-                       ,(format "Access slot \"%s\" of `%s' struct CL-X."
-                                slot struct)
+	      (push `(,defsym ,accessor (cl-x)
+                       ,(format "Access slot \"%s\" of `%s' struct CL-X.%s"
+                                slot name
+                                (if doc (concat "\n" doc) ""))
                        (declare (side-effect-free t))
-                       ,@(and pred-check
-			      (list `(or ,pred-check
-                                         (signal 'wrong-type-argument
-                                                 (list ',name cl-x)))))
-                       ,(if (memq type '(nil vector)) `(aref cl-x ,pos)
-                          (if (= pos 0) '(car cl-x)
-                            `(nth ,pos cl-x))))
+                       ,access-body)
                     forms)
               (when (cl-oddp (length desc))
                 (push
@@ -2914,11 +2945,18 @@ non-nil value, that slot cannot be set via `setf'.
                      forms)
                     (push kw desc)
                     (setcar defaults nil))))
-              (if (plist-get desc ':read-only)
-                  (push `(gv-define-expander ,accessor
-                           (lambda (_cl-do _cl-x)
-                             (error "%s is a read-only slot" ',accessor)))
-                        forms)
+              (cond
+               ((eq defsym 'defun)
+                (unless (plist-get desc ':read-only)
+                  (push `(defun ,(gv-setter accessor) (val cl-x)
+                           (setf ,access-body val))
+                        forms)))
+               ((plist-get desc ':read-only)
+                (push `(gv-define-expander ,accessor
+                         (lambda (_cl-do _cl-x)
+                           (error "%s is a read-only slot" ',accessor)))
+                      forms))
+               (t
                 ;; For normal slots, we don't need to define a setf-expander,
                 ;; since gv-get can use the compiler macro to get the
                 ;; same result.
@@ -2936,7 +2974,7 @@ non-nil value, that slot cannot be set via `setf'.
                 ;;             ,(and pred-check `',pred-check)
                 ;;             ,pos)))
                 ;;       forms)
-                )
+                ))
 	      (if print-auto
 		  (nconc print-func
 			 (list `(princ ,(format " %s" slot) cl-s)
@@ -2955,7 +2993,7 @@ non-nil value, that slot cannot be set via `setf'.
       (let* ((anames (cl--arglist-args args))
 	     (make (cl-mapcar (function (lambda (s d) (if (memq s anames) s d)))
 			    slots defaults)))
-	(push `(cl-defsubst ,cname
+	(push `(,cldefsym ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
                     (format "Constructor for objects of type `%s'." name))
@@ -2978,6 +3016,7 @@ non-nil value, that slot cannot be set via `setf'.
     `(progn
        (defvar ,tag-symbol)
        ,@(nreverse forms)
+       :autoload-end
        ;; Call cl-struct-define during compilation as well, so that
        ;; a subsequent cl-defstruct in the same file can correctly include this
        ;; struct as a parent.
@@ -3379,7 +3418,6 @@ STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
 (run-hooks 'cl-macs-load-hook)
 
 ;; Local variables:
-;; byte-compile-dynamic: t
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

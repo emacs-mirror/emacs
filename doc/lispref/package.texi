@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2010-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -158,8 +158,8 @@ the various headers, as illustrated by the following example:
 ;; Author: J. R. Hacker <jrh@@example.com>
 ;; Version: 1.3
 ;; Package-Requires: ((flange "1.0"))
-;; Keywords: multimedia, frobnicate
-;; URL: http://example.com/jrhacker/superfrobnicate
+;; Keywords: multimedia, hypermedia
+;; URL: https://example.com/jrhacker/superfrobnicate
 
 @dots{}
 
@@ -321,41 +321,6 @@ reachable via HTTP, this directory must be accessible to a web server;
 by default; type @kbd{M-x load-library @key{RET} package-x @key{RET}} to
 load it, or add @code{(require 'package-x)} to your init file.
 @xref{Lisp Libraries,, Lisp Libraries, emacs, The GNU Emacs Manual}.
-Once loaded, you can make use of the following:
-
-@defopt package-archive-upload-base
-The value of this variable is the base location of a package archive,
-as a directory name.  The commands in the @code{package-x} library
-will use this base location.
-
-The directory name should be absolute.  You may specify a remote name,
-such as @file{/ssh:foo@@example.com:/var/www/packages/}, if the
-package archive is on a different machine.  @xref{Remote Files,,
-Remote Files, emacs, The GNU Emacs Manual}.
-@end defopt
-
-@deffn Command package-upload-file filename
-This command prompts for @var{filename}, a file name, and uploads that
-file to @code{package-archive-upload-base}.  The file must be either a
-simple package (a @file{.el} file) or a multi-file package (a
-@file{.tar} file); otherwise, an error is raised.  The package
-attributes are automatically extracted, and the archive's contents
-list is updated with this information.
-
-If @code{package-archive-upload-base} does not specify a valid
-directory, the function prompts interactively for one.  If the
-directory does not exist, it is created.  The directory need not have
-any initial contents (i.e., you can use this command to populate an
-initially empty archive).
-@end deffn
-
-@deffn Command package-upload-buffer
-This command is similar to @code{package-upload-file}, but instead of
-prompting for a package file, it uploads the contents of the current
-buffer.  The current buffer must be visiting a simple package (a
-@file{.el} file) or a multi-file package (a @file{.tar} file);
-otherwise, an error is raised.
-@end deffn
 
 @noindent
 After you create an archive, remember that it is not accessible in the
@@ -386,7 +351,7 @@ for a multi-file package, it is the package tar file.
 You can also sign the archive's contents file in the same way.
 Make the @file{.sig} files available in the same location as the packages.
 You should also make your public key available for people to download;
-e.g., by uploading it to a key server such as @url{http://pgp.mit.edu/}.
+e.g., by uploading it to a key server such as @url{https://pgp.mit.edu/}.
 When people install packages from your archive, they can use
 your public key to verify the signatures.
 

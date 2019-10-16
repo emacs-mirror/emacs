@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -396,8 +396,9 @@ policy, which you should follow.
 for each change just once, then put it into both logs.  You can write
 the entry in @file{ChangeLog}, then copy it to the log buffer with
 @kbd{C-c C-a} when committing the change (@pxref{Log Buffer}).  Or you
-can write the entry in the log buffer while committing the change, and
-later use the @kbd{C-x v a} command to copy it to @file{ChangeLog}
+can write the entry in the log buffer while committing the change
+(with the help of @kbd{C-c C-w}), and later use the @kbd{C-x v a}
+command to copy it to @file{ChangeLog}
 @iftex
 (@pxref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features}).
 @end iftex
@@ -676,6 +677,14 @@ type @w{@kbd{C-c C-f}} (@code{log-edit-show-files}).  To view a diff
 of changes between the VC fileset and the version from which you
 started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
 (@code{log-edit-show-diff}).
+
+@kindex C-c C-w @r{(Log Edit mode)}
+@findex log-edit-generate-changelog-from-diff
+  To help generate ChangeLog entries, type @kbd{C-c C-w}
+(@code{log-edit-generate-changelog-from-diff}), to generate skeleton
+ChangeLog entries, listing all changed file and function names based
+on the diff of the VC fileset.  Consecutive entries left empty will be
+combined by @kbd{C-q} (@code{fill-paragraph}).
 
 @kindex C-c C-a @r{(Log Edit mode)}
 @findex log-edit-insert-changelog
@@ -1093,8 +1102,7 @@ started editing, and asks for confirmation for discarding the changes.
 If you agree, the fileset is reverted.  If you don't want @kbd{C-x v
 u} to show a diff, set the variable @code{vc-revert-show-diff} to
 @code{nil} (you can still view the diff directly with @kbd{C-x v =};
-@pxref{Old Revisions}).  Note that @kbd{C-x v u} cannot be reversed
-with the usual undo commands (@pxref{Undo}), so use it with care.
+@pxref{Old Revisions}).
 
   On locking-based version control systems, @kbd{C-x v u} leaves files
 unlocked; you must lock again to resume editing.  You can also use
@@ -1273,6 +1281,12 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
+@item G
+Add the file under point to the list of files that the VC should
+ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it
+will append this file to the @file{.gitignore} file.  If given a
+prefix, do this with all the marked files.
+
 @item q
 Quit the VC Directory buffer, and bury it (@code{quit-window}).
 
@@ -1350,7 +1364,14 @@ Prompt for the name of a branch and display the change history of that
 branch (@code{vc-print-branch-log}).
 
 @item B s
-Switch to a branch (@code{vc-retrieve-tag}).  @xref{Switching Branches}.
+Switch to a branch (@code{vc-retrieve-tag}).  @xref{Switching
+Branches}.
+
+@item d
+Delete the marked files, or the current file if no marks
+(@code{vc-dir-clean-delete)}.  The files will not be marked as
+deleted in the version control system, so this function is mostly
+useful for unregistered files.
 @end table
 
 @cindex stashes in version control
@@ -1990,7 +2011,7 @@ table.
 @item M-x tags-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Perform a @code{query-replace-regexp} on each file in the selected tags table.
 
-@item M-x multifile-continue
+@item M-x fileloop-continue
 Restart one of the last 2 commands above, from the current location of point.
 @end table
 
@@ -2026,9 +2047,9 @@ you can follow its progress.  As soon as it finds an occurrence,
 @code{tags-search} returns.  This command requires tags tables to be
 available (@pxref{Tags Tables}).
 
-@findex multifile-continue
+@findex fileloop-continue
   Having found one match with @code{tags-search}, you probably want to
-find all the rest.  @kbd{M-x multifile-continue} resumes the
+find all the rest.  @kbd{M-x fileloop-continue} resumes the
 @code{tags-search}, finding one more match.  This searches the rest of
 the current buffer, followed by the remaining files of the tags table.
 
@@ -2051,10 +2072,10 @@ default is to use the same setting as the value of
 single invocation of @kbd{M-x tags-query-replace}.  But often it is
 useful to exit temporarily, which you can do with any input event that
 has no special query replace meaning.  You can resume the query
-replace subsequently by typing @kbd{M-x multifile-continue}; this
+replace subsequently by typing @kbd{M-x fileloop-continue}; this
 command resumes the last tags search or replace command that you did.
 For instance, to skip the rest of the current file, you can type
-@w{@kbd{M-> M-x multifile-continue}}.
+@w{@kbd{M-> M-x fileloop-continue}}.
 
   Note that the commands described above carry out much broader
 searches than the @code{xref-find-definitions} family.  The
@@ -2103,7 +2124,9 @@ the selected tags table, and displays a list of tags defined in that
 file.  Do not include a directory as part of the file name unless the
 file name recorded in the tags table includes a directory.  This
 command works only with the etags backend, and requires a tags table
-for the project to be available.  @xref{Tags Tables}.
+for the project to be available.  @xref{Tags Tables}.  If used
+interactively, the default tag is file name of the current buffer if
+used interactively.
 
 @c Sadly, the new-and-improved Xref feature doesn't provide anything
 @c close to the described below features of the now-obsoleted
@@ -2643,11 +2666,12 @@ etags --language=none \
 @subsection Selecting a Tags Table
 
 @findex visit-tags-table
-  Emacs has at any time at most one @dfn{selected} tags table.  All the
-commands for working with tags tables use the selected one.  To select
-a tags table, type @kbd{M-x visit-tags-table}, which reads the tags
-table file name as an argument, with @file{TAGS} in the default
-directory as the default.
+  Emacs has at any time at most one @dfn{selected} tags table.  All
+the commands for working with tags tables use the selected one.  To
+select a tags table, type @kbd{M-x visit-tags-table}, which reads the
+tags table file name as an argument, with @file{TAGS} defaulting to
+the first directory that contains a file named @file{TAGS} encountered
+when recursively searching upward from the default directory.
 
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you

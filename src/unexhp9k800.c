@@ -52,8 +52,8 @@
 #include <config.h>
 #include "unexec.h"
 #include "lisp.h"
+#include "sysstdio.h"
 
-#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <a.out.h>
@@ -167,7 +167,7 @@ read_header (int file, struct header *hdr, struct som_exec_auxhdr *auxhdr)
   if (hdr->a_magic != EXEC_MAGIC && hdr->a_magic != SHARE_MAGIC
       &&  hdr->a_magic != DEMAND_MAGIC)
     {
-      fprintf (stderr, "a.out file doesn't have valid magic number\n");
+      fputs ("a.out file doesn't have valid magic number\n", stderr);
       exit (1);
     }
 

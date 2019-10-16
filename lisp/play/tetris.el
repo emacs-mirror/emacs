@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -277,6 +277,7 @@ each one of its four blocks.")
 (defvar tetris-null-map
   (let ((map (make-sparse-keymap 'tetris-null-map)))
     (define-key map "n"		'tetris-start-game)
+    (define-key map "q"         'quit-window)
     map))
 
 ;; ;;;;;;;;;;;;;;;; game functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -597,17 +598,6 @@ Drops the shape one square, testing for collision."
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map tetris-null-map)
-
-  (unless (featurep 'emacs)
-    (setq mode-popup-menu
-	  '("Tetris Commands"
-	    ["Start new game"	tetris-start-game]
-	    ["End game"		tetris-end-game
-	     (tetris-active-p)]
-	    ["Pause"		tetris-pause-game
-	     (and (tetris-active-p) (not tetris-paused))]
-	    ["Resume"		tetris-pause-game
-	     (and (tetris-active-p) tetris-paused)])))
 
   (setq show-trailing-whitespace nil)
 

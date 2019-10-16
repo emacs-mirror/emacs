@@ -1,6 +1,6 @@
 /* Provide file descriptor control.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #ifdef __KLIBC__
@@ -545,7 +546,7 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 #ifdef __KLIBC__
 
 static int
-klibc_fcntl (int fd, int action, /* arg */...);
+klibc_fcntl (int fd, int action, /* arg */...)
 {
   va_list arg_ptr;
   int arg;

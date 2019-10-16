@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;; Copyright (C) 1993-1994, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -327,6 +327,9 @@ redefine this function to suit your own tastes."
         executing-kbd-macro	       ; don't check inside macro
 	(null (cadr mp))	       ; don't move unless in an Emacs frame
 	(not (eq (car mp) (selected-frame)))
+        ;; Don't interfere with ongoing `mouse-drag-and-drop-region'
+        ;; (Bug#36269).
+        (eq track-mouse 'dropping)
 	;; Don't do anything if last event was a mouse event.
 	;; FIXME: this code fails in the case where the mouse was moved
 	;; since the last key-press but without generating any event.

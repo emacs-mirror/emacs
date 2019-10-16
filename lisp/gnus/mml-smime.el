@@ -1,6 +1,6 @@
 ;;; mml-smime.el --- S/MIME support for MML
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: Gnus, MIME, S/MIME, MML
@@ -133,7 +133,7 @@ Whether the passphrase is cached at all is controlled by
   (when (null smime-keys)
     (customize-variable 'smime-keys)
     (error "No S/MIME keys configured, use customize to add your key"))
-  (smime-sign-buffer (cdr (assq 'keyfile cont)))
+  (smime-sign-buffer (cdar smime-keys))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n" t t))
@@ -274,10 +274,9 @@ Whether the passphrase is cached at all is controlled by
       (if (not good-signature)
 	  (progn
 	    ;; we couldn't verify message, fail with openssl output as message
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-info "Failed")
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-details
+	    (mm-sec-error
+	     'gnus-info "Failed"
+	     'gnus-details
 	     (concat "OpenSSL failed to verify message integrity:\n"
 		     "-------------------------------------------\n"
 		     openssl-output)))
@@ -290,19 +289,18 @@ Whether the passphrase is cached at all is controlled by
 	    (while (re-search-forward "-----END CERTIFICATE-----" nil t)
 	      (when (smime-pkcs7-email-region (point-min) (point))
 		(setq addresses (append (smime-buffer-as-string-region
-					 (point-min) (point)) addresses)))
+					 (point-min) (point))
+					addresses)))
 	      (delete-region (point-min) (point)))
 	    (setq addresses (mapcar 'downcase addresses))))
-	(if (not (member (downcase (or (mm-handle-multipart-from ctl) "")) addresses))
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-info "Sender address forged")
+	(if (not (member (downcase (or (mm-handle-multipart-from ctl) ""))
+			 addresses))
+	    (mm-sec-error 'gnus-info "Sender address forged")
 	  (if good-certificate
-	      (mm-set-handle-multipart-parameter
-	       mm-security-handle 'gnus-info "Ok (sender authenticated)")
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-info "Ok (sender not trusted)")))
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-details
+	      (mm-sec-status 'gnus-info "Ok (sender authenticated)")
+	    (mm-sec-status 'gnus-info "Ok (sender not trusted)")))
+	(mm-sec-status
+	 'gnus-details
 	 (concat "Sender claimed to be: " (mm-handle-multipart-from ctl) "\n"
 		 (if addresses
 		     (concat "Addresses in certificate: "
@@ -363,7 +361,7 @@ Whether the passphrase is cached at all is controlled by
 			  (downcase
 			   (cdr (assq micalg
 				      epg-digest-algorithm-alist))))))
-      (insert "protocol=\"application/pkcs7-signature\"\n")
+      (insert "  protocol=\"application/pkcs7-signature\"\n")
       (insert (format "\n--%s\n" boundary))
       (goto-char (point-max))
       (insert (format "\n--%s\n" boundary))
@@ -411,24 +409,20 @@ Content-Disposition: attachment; filename=smime.p7m
 					   (cdr handle)
 					   "application/x-pkcs7-signature"
 					   nil t)))))
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info "Corrupted")
+	(mm-sec-error 'gnus-info "Corrupted")
 	(throw 'error handle))
       (setq part (replace-regexp-in-string "\n" "\r\n" part)
 	    context (epg-make-context 'CMS))
       (condition-case error
 	  (setq plain (epg-verify-string context (mm-get-part signature) part))
 	(error
-	 (mm-set-handle-multipart-parameter
-	  mm-security-handle 'gnus-info "Failed")
+	 (mm-sec-error 'gnus-info "Failed")
 	 (if (eq (car error) 'quit)
-	     (mm-set-handle-multipart-parameter
-	      mm-security-handle 'gnus-details "Quit.")
-	   (mm-set-handle-multipart-parameter
-	    mm-security-handle 'gnus-details (format "%S" error)))
+	     (mm-sec-status 'gnus-details "Quit.")
+	   (mm-sec-status 'gnus-details (format "%S" error)))
 	 (throw 'error handle)))
-      (mm-set-handle-multipart-parameter
-       mm-security-handle 'gnus-info
+      (mm-sec-status
+       'gnus-info
        (epg-verify-result-to-string (epg-context-result-for context 'verify)))
       handle)))
 

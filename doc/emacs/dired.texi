@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -434,6 +434,12 @@ instead, starting with the current file (if @var{n} is negative, mark
 the previous @minus{}@var{n} files).  If invoked on a subdirectory
 header line (@pxref{Subdirectories in Dired}), this command marks all
 the files in that subdirectory.
+
+@item * N
+@kindex * N @r{(Dired)}
+@findex dired-number-of-marked-files
+Report what the number and size of the marked files are
+(@code{dired-number-of-marked-files}).
 
 @item * *
 @kindex * * @r{(Dired)}

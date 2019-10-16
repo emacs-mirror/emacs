@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -74,6 +74,9 @@
 ;; - steal-lock (file &optional revision)          NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
+;; * log-outgoing (buffer remote-location)         OK
+;; * log-incoming (buffer remote-location)         OK
+;; - log-search (buffer pattern)                   OK
 ;; - log-view-mode ()                              OK
 ;; - show-log-entry (revision)                     OK
 ;; - comment-history (file)                        ??
@@ -101,6 +104,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'subr-x) ; for string-trim-right
   (require 'vc)
   (require 'vc-dir))
 
@@ -179,9 +183,10 @@ Should be consistent with the Git config value i18n.logOutputEncoding."
   :type '(coding-system :tag "Coding system to decode Git log output")
   :version "25.1")
 
-(defcustom vc-git-grep-template "git --no-pager grep -n -e <R> -- <F>"
+(defcustom vc-git-grep-template "git --no-pager grep -n <C> -e <R> -- <F>"
   "The default command to run for \\[vc-git-grep].
 The following place holders should be present in the string:
+ <C> - place to put the options like -i.
  <F> - file names and wildcards to search.
  <R> - the regular expression searched for."
   :type 'string
@@ -253,7 +258,7 @@ The following place holders should be present in the string:
                        ;; Git for Windows appends ".windows.N" to the
                        ;; numerical version reported by Git.
                        (string-match
-                        "git version \\([0-9.]+\\)\\(\.windows.[0-9]+\\)?$"
+                        "git version \\([0-9.]+\\)\\(\\.windows\\.[0-9]+\\)?$"
                         version-string))
                   (match-string 1 version-string)
                 "0")))))
@@ -749,7 +754,7 @@ The car of the list is the current branch."
 (declare-function log-edit-mode "log-edit" ())
 (declare-function log-edit-toggle-header "log-edit" (header value))
 (declare-function log-edit-extract-headers "log-edit" (headers string))
-(declare-function log-edit-set-header "log-edit" (header value &optional toggle))
+(declare-function log-edit--toggle-amend "log-edit" (last-msg-fn))
 
 (defun vc-git-log-edit-toggle-signoff ()
   "Toggle whether to add the \"Signed-off-by\" line at the end of
@@ -766,23 +771,12 @@ the commit message."
   "Toggle whether this will amend the previous commit.
 If toggling on, also insert its message into the buffer."
   (interactive)
-  (when (log-edit-toggle-header "Amend" "yes")
-    (goto-char (point-max))
-    (unless (bolp) (insert "\n"))
-    (insert (with-output-to-string
-              (vc-git-command
-               standard-output 1 nil
-               "log" "--max-count=1" "--pretty=format:%B" "HEAD")))
-    (save-excursion
-      (rfc822-goto-eoh)
-      (forward-line 1)
-      (let ((pt (point)))
-        (and (zerop (forward-line 1))
-             (looking-at "\n\\|\\'")
-             (let ((summary (buffer-substring-no-properties pt (1- (point)))))
-               (skip-chars-forward " \n")
-               (delete-region pt (point))
-               (log-edit-set-header "Summary" summary)))))))
+  (log-edit--toggle-amend
+   (lambda ()
+     (with-output-to-string
+       (vc-git-command
+        standard-output 1 nil
+        "log" "--max-count=1" "--pretty=format:%B" "HEAD")))))
 
 (defvar vc-git-log-edit-mode-map
   (let ((map (make-sparse-keymap "Git-Log-Edit")))
@@ -1017,7 +1011,8 @@ This prompts for a branch to merge from."
 If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
 \(This requires at least Git version 1.5.6, for the --graph option.)
 If START-REVISION is non-nil, it is the newest revision to show.
-If LIMIT is non-nil, show no more than this many entries."
+If LIMIT is a number, show no more than this many entries.
+If LIMIT is a revision string, use it as an end-revision."
   (let ((coding-system-for-read
          (or coding-system-for-read vc-git-log-output-coding-system)))
     ;; `vc-do-command' creates the buffer, but we need it before running
@@ -1045,12 +1040,17 @@ If LIMIT is non-nil, show no more than this many entries."
                     ,(format "--pretty=tformat:%s"
 			     (car vc-git-root-log-format))
 		    "--abbrev-commit"))
-		(when limit (list "-n" (format "%s" limit)))
-		(when start-revision (list start-revision))
+		(when (numberp limit)
+                  (list "-n" (format "%s" limit)))
+		(when start-revision
+                  (if (and limit (not (numberp limit)))
+                      (list (concat start-revision ".." (if (equal limit "")
+                                                            "HEAD"
+                                                          limit)))
+                    (list start-revision)))
 		'("--")))))))
 
 (defun vc-git-log-outgoing (buffer remote-location)
-  (interactive)
   (vc-setup-buffer buffer)
   (vc-git-command
    buffer 'async nil
@@ -1064,7 +1064,6 @@ If LIMIT is non-nil, show no more than this many entries."
 	   "..HEAD")))
 
 (defun vc-git-log-incoming (buffer remote-location)
-  (interactive)
   (vc-setup-buffer buffer)
   (vc-git-command nil 0 nil "fetch")
   (vc-git-command
@@ -1077,6 +1076,31 @@ If LIMIT is non-nil, show no more than this many entries."
 			"@{upstream}"
 		      remote-location))))
 
+(defun vc-git-log-search (buffer pattern)
+  "Search the log of changes for PATTERN and output results into BUFFER.
+
+PATTERN is a basic regular expression by default in Git.
+
+Display all entries that match log messages in long format.
+With a prefix argument, ask for a command to run that will output
+log entries."
+  (let ((args `("log" "--no-color" "-i"
+                ,(format "--grep=%s" (or pattern "")))))
+    (when current-prefix-arg
+      (setq args (cdr (split-string
+		       (read-shell-command
+                        "Search log with command: "
+                        (format "%s %s" vc-git-program
+                                (mapconcat 'identity args " "))
+                        'vc-git-history)
+		       " " t))))
+    (vc-setup-buffer buffer)
+    (apply 'vc-git-command buffer 'async nil args)))
+
+(defun vc-git-mergebase (rev1 &optional rev2)
+  (unless rev2 (setq rev2 "HEAD"))
+  (string-trim-right (vc-git--run-command-string nil "merge-base" rev1 rev2)))
+
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
@@ -1086,19 +1110,19 @@ If LIMIT is non-nil, show no more than this many entries."
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
   ;; Don't have file markers, so use impossible regexp.
-  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
+  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if (not (eq vc-log-view-type 'long))
+       (if (not (memq vc-log-view-type '(long log-search)))
 	   (cadr vc-git-root-log-format)
 	 "^commit *\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
-  (when (memq vc-log-view-type '(short log-outgoing log-incoming))
+  (when (memq vc-log-view-type '(short log-outgoing log-incoming mergebase))
     (setq truncate-lines t)
     (set (make-local-variable 'log-view-expanded-log-entry-function)
 	 'vc-git-expanded-log-entry))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if (not (eq vc-log-view-type 'long))
+       (if (not (memq vc-log-view-type '(long log-search)))
 	   (list (cons (nth 1 vc-git-root-log-format)
 		       (nth 2 vc-git-root-log-format)))
 	 (append
@@ -1541,10 +1565,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "Create a stash with the current tree state."
   (interactive)
   (vc-git--call nil "stash" "save"
-		(let ((ct (current-time)))
-		  (concat
-		   (format-time-string "Snapshot on %Y-%m-%d" ct)
-		   (format-time-string " at %H:%M" ct))))
+		(format-time-string "Snapshot on %Y-%m-%d at %H:%M"))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" "stash@{0}")
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
@@ -1568,6 +1589,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (declare-function vc-dir-refresh "vc-dir" ())
 
 (defun vc-git-stash-delete-at-point ()
+  "Delete the stash at point."
   (interactive)
   (let ((stash (vc-git-stash-get-at-point (point))))
     (when (y-or-n-p (format "Remove stash %s ? " stash))
@@ -1575,16 +1597,19 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
       (vc-dir-refresh))))
 
 (defun vc-git-stash-show-at-point ()
+  "Show the stash at point."
   (interactive)
   (vc-git-stash-show (format "stash@%s" (vc-git-stash-get-at-point (point)))))
 
 (defun vc-git-stash-apply-at-point ()
+  "Apply the stash at point."
   (interactive)
   (let (vc-dir-buffers) ; Small optimization.
     (vc-git-stash-apply (format "stash@%s" (vc-git-stash-get-at-point (point)))))
   (vc-dir-refresh))
 
 (defun vc-git-stash-pop-at-point ()
+  "Pop the stash at point."
   (interactive)
   (let (vc-dir-buffers) ; Likewise.
     (vc-git-stash-pop (format "stash@%s" (vc-git-stash-get-at-point (point)))))
@@ -1632,9 +1657,9 @@ The difference to vc-do-command is that this function always invokes
 (defun vc-git--call (buffer command &rest args)
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
-  ;; directories.  We enable `inhibit-null-byte-detection', otherwise
+  ;; directories.  We enable `inhibit-nul-byte-detection', otherwise
   ;; Tramp's eol conversion might be confused.
-  (let ((inhibit-null-byte-detection t)
+  (let ((inhibit-nul-byte-detection t)
 	(coding-system-for-read
          (or coding-system-for-read vc-git-log-output-coding-system))
 	(coding-system-for-write

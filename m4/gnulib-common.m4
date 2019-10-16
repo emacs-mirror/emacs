@@ -1,5 +1,5 @@
-# gnulib-common.m4 serial 41
-dnl Copyright (C) 2007-2018 Free Software Foundation, Inc.
+# gnulib-common.m4 serial 45
+dnl Copyright (C) 2007-2019 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -17,10 +17,13 @@ AC_DEFUN([gl_COMMON_BODY], [
   AH_VERBATIM([_Noreturn],
 [/* The _Noreturn keyword of C11.  */
 #ifndef _Noreturn
-# if 201103 <= (defined __cplusplus ? __cplusplus : 0)
+# if (defined __cplusplus \
+      && ((201103 <= __cplusplus && !(__GNUC__ == 4 && __GNUC_MINOR__ == 7)) \
+          || (defined _MSC_VER && 1900 <= _MSC_VER)))
 #  define _Noreturn [[noreturn]]
-# elif (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
-        || 4 < __GNUC__ + (7 <= __GNUC_MINOR__))
+# elif ((!defined __cplusplus || defined __clang__) \
+        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)  \
+            || 4 < __GNUC__ + (7 <= __GNUC_MINOR__)))
    /* _Noreturn works as-is.  */
 # elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
 #  define _Noreturn __attribute__ ((__noreturn__))
@@ -85,6 +88,60 @@ AC_DEFUN([gl_COMMON_BODY], [
 # define _GL_ATTRIBUTE_MALLOC /* empty */
 #endif
 ])
+  AH_VERBATIM([async_safe],
+[/* The _GL_ASYNC_SAFE marker should be attached to functions that are
+   signal handlers (for signals other than SIGABRT, SIGPIPE) or can be
+   invoked from such signal handlers.  Such functions have some restrictions:
+     * All functions that it calls should be marked _GL_ASYNC_SAFE as well,
+       or should be listed as async-signal-safe in POSIX
+       <https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_04>
+       section 2.4.3.  Note that malloc(), sprintf(), and fwrite(), in
+       particular, are NOT async-signal-safe.
+     * All memory locations (variables and struct fields) that these functions
+       access must be marked 'volatile'.  This holds for both read and write
+       accesses.  Otherwise the compiler might optimize away stores to and
+       reads from such locations that occur in the program, depending on its
+       data flow analysis.  For example, when the program contains a loop
+       that is intended to inspect a variable set from within a signal handler
+           while (!signal_occurred)
+             ;
+       the compiler is allowed to transform this into an endless loop if the
+       variable 'signal_occurred' is not declared 'volatile'.
+   Additionally, recall that:
+     * A signal handler should not modify errno (except if it is a handler
+       for a fatal signal and ends by raising the same signal again, thus
+       provoking the termination of the process).  If it invokes a function
+       that may clobber errno, it needs to save and restore the value of
+       errno.  */
+#define _GL_ASYNC_SAFE
+])
+  dnl Hint which direction to take regarding cross-compilation guesses:
+  dnl When a user installs a program on a platform they are not intimately
+  dnl familiar with, --enable-cross-guesses=conservative is the appropriate
+  dnl choice.  It implements the "If we don't know, assume the worst" principle.
+  dnl However, when an operating system developer (on a platform which is not
+  dnl yet known to gnulib) builds packages for their platform, they want to
+  dnl expose, not hide, possible platform bugs; in this case,
+  dnl --enable-cross-guesses=risky is the appropriate choice.
+  dnl Sets the variables
+  dnl gl_cross_guess_normal    (to be used when 'yes' is good and 'no' is bad),
+  dnl gl_cross_guess_inverted  (to be used when 'no' is good and 'yes' is bad).
+  AC_ARG_ENABLE([cross-guesses],
+    [AS_HELP_STRING([--enable-cross-guesses={conservative|risky}],
+       [specify policy for cross-compilation guesses])],
+    [if test "x$enableval" != xconservative && test "x$enableval" != xrisky; then
+       AC_MSG_WARN([invalid argument supplied to --enable-cross-guesses])
+       enableval=conservative
+     fi
+     gl_cross_guesses="$enableval"],
+    [gl_cross_guesses=conservative])
+  if test $gl_cross_guesses = risky; then
+    gl_cross_guess_normal="guessing yes"
+    gl_cross_guess_inverted="guessing no"
+  else
+    gl_cross_guess_normal="guessing no"
+    gl_cross_guess_inverted="guessing yes"
+  fi
   dnl Preparation for running test programs:
   dnl Tell glibc to write diagnostics from -D_FORTIFY_SOURCE=2 to stderr, not
   dnl to /dev/tty, so they can be redirected to log files.  Such diagnostics

@@ -1,5 +1,5 @@
 /* Interface to zlib.
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -120,12 +120,18 @@ DEFUN ("zlib-available-p", Fzlib_available_p, Szlib_available_p, 0, 0, 0,
 
 DEFUN ("zlib-decompress-region", Fzlib_decompress_region,
        Szlib_decompress_region,
-       2, 2, 0,
+       2, 3, 0,
        doc: /* Decompress a gzip- or zlib-compressed region.
 Replace the text in the region by the decompressed data.
-On failure, return nil and leave the data in place.
+
+If optional parameter ALLOW-PARTIAL is nil or omitted, then on
+failure, return nil and leave the data in place.  Otherwise, return
+the number of bytes that were not decompressed and replace the region
+text by whatever data was successfully decompressed (similar to gzip).
+If decompression is completely successful return t.
+
 This function can be called only in unibyte buffers.  */)
-  (Lisp_Object start, Lisp_Object end)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object allow_partial)
 {
   ptrdiff_t istart, iend, pos_byte;
   z_stream stream;
@@ -206,8 +212,14 @@ This function can be called only in unibyte buffers.  */)
     }
   while (inflate_status == Z_OK);
 
+  Lisp_Object ret = Qt;
   if (inflate_status != Z_STREAM_END)
-    return unbind_to (count, Qnil);
+    {
+      if (!NILP (allow_partial))
+        ret = make_int (iend - pos_byte);
+      else
+        return unbind_to (count, Qnil);
+    }
 
   unwind_data.start = 0;
 
@@ -218,7 +230,7 @@ This function can be called only in unibyte buffers.  */)
   signal_after_change (istart, iend - istart, unwind_data.nbytes);
   update_compositions (istart, istart, CHECK_HEAD);
 
-  return unbind_to (count, Qt);
+  return unbind_to (count, ret);
 }
 
 

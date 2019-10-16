@@ -1,8 +1,8 @@
 ;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
-;; Author: David Engster <dengste@eml.cc>
+;; Author: David Engster <deng@randomsample.de>
 ;; Keywords: mail searching
 ;; Old-Version: 0.6
 
@@ -381,7 +381,7 @@ wrong count of total articles shown by Gnus.")
 its maildir mail folders (e.g. the Dovecot IMAP server or mutt).")
 
 (defvoo nnmairix-default-group nil
-  "Default search group. This is the group which is used for all
+  "Default search group.  This is the group which is used for all
 temporary searches, e.g. nnmairix-search.")
 
 ;;; === Internal variables
@@ -1096,7 +1096,7 @@ show wrong article counts."
 (defun nnmairix-propagate-marks (&optional server)
   "Propagate marks from nnmairix group to original articles.
 Unless SERVER is explicitly specified, will use the last opened
-nnmairix server. Only marks from current session will be set."
+nnmairix server.  Only marks from current session will be set."
   (interactive)
   (if server
       (nnmairix-open-server server)
@@ -1419,12 +1419,12 @@ TYPE is either 'nov or 'headers."
 	     (setq cur (nnheader-parse-nov))
 	     (when corr
 	       (setq article (+ (mail-header-number cur) numc))
-	       (mail-header-set-number cur article))
+	       (setf (mail-header-number cur) article))
 	     (setq xref (mail-header-xref cur))
 	     (when (and (stringp xref)
 			(string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
 	       (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
-	       (mail-header-set-xref cur xref))
+	       (setf (mail-header-xref cur) xref))
 	     (set-buffer buf)
 	     (nnheader-insert-nov cur)
 	     (set-buffer nntp-server-buffer)

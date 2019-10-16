@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -417,70 +417,66 @@ file.  Archive and member name will be added."
       (substitute-key-definition 'advertised-undo 'archive-undo map global-map)
       (substitute-key-definition 'undo 'archive-undo map global-map))
 
-    (define-key map
-      (if (featurep 'xemacs) 'button2 [mouse-2]) 'archive-extract)
+    (define-key map [mouse-2] 'archive-extract)
 
-    (if (featurep 'xemacs)
-        ()				; out of luck
+    (define-key map [menu-bar immediate]
+      (cons "Immediate" (make-sparse-keymap "Immediate")))
+    (define-key map [menu-bar immediate alternate]
+      '(menu-item "Alternate Display" archive-alternate-display
+                  :enable (boundp (archive-name "alternate-display"))
+                  :help "Toggle alternate file info display"))
+    (define-key map [menu-bar immediate view]
+      '(menu-item "View This File" archive-view
+                  :help "Display file at cursor in View Mode"))
+    (define-key map [menu-bar immediate display]
+      '(menu-item "Display in Other Window" archive-display-other-window
+                  :help "Display file at cursor in another window"))
+    (define-key map [menu-bar immediate find-file-other-window]
+      '(menu-item "Find in Other Window" archive-extract-other-window
+                  :help "Edit file at cursor in another window"))
+    (define-key map [menu-bar immediate find-file]
+      '(menu-item "Find This File" archive-extract
+                  :help "Extract file at cursor and edit it"))
 
-      (define-key map [menu-bar immediate]
-        (cons "Immediate" (make-sparse-keymap "Immediate")))
-      (define-key map [menu-bar immediate alternate]
-        '(menu-item "Alternate Display" archive-alternate-display
-          :enable (boundp (archive-name "alternate-display"))
-          :help "Toggle alternate file info display"))
-      (define-key map [menu-bar immediate view]
-        '(menu-item "View This File" archive-view
-          :help "Display file at cursor in View Mode"))
-      (define-key map [menu-bar immediate display]
-        '(menu-item "Display in Other Window" archive-display-other-window
-          :help "Display file at cursor in another window"))
-      (define-key map [menu-bar immediate find-file-other-window]
-        '(menu-item "Find in Other Window" archive-extract-other-window
-          :help "Edit file at cursor in another window"))
-      (define-key map [menu-bar immediate find-file]
-        '(menu-item "Find This File" archive-extract
-          :help "Extract file at cursor and edit it"))
+    (define-key map [menu-bar mark]
+      (cons "Mark" (make-sparse-keymap "Mark")))
+    (define-key map [menu-bar mark unmark-all]
+      '(menu-item "Unmark All" archive-unmark-all-files
+                  :help "Unmark all marked files"))
+    (define-key map [menu-bar mark deletion]
+      '(menu-item "Flag" archive-flag-deleted
+                  :help "Flag file at cursor for deletion"))
+    (define-key map [menu-bar mark unmark]
+      '(menu-item "Unflag" archive-unflag
+                  :help "Unmark file at cursor"))
+    (define-key map [menu-bar mark mark]
+      '(menu-item "Mark" archive-mark
+                  :help "Mark file at cursor"))
 
-      (define-key map [menu-bar mark]
-        (cons "Mark" (make-sparse-keymap "Mark")))
-      (define-key map [menu-bar mark unmark-all]
-        '(menu-item "Unmark All" archive-unmark-all-files
-          :help "Unmark all marked files"))
-      (define-key map [menu-bar mark deletion]
-        '(menu-item "Flag" archive-flag-deleted
-          :help "Flag file at cursor for deletion"))
-      (define-key map [menu-bar mark unmark]
-        '(menu-item "Unflag" archive-unflag
-          :help "Unmark file at cursor"))
-      (define-key map [menu-bar mark mark]
-        '(menu-item "Mark" archive-mark
-          :help "Mark file at cursor"))
-
-      (define-key map [menu-bar operate]
-        (cons "Operate" (make-sparse-keymap "Operate")))
-      (define-key map [menu-bar operate chown]
-        '(menu-item "Change Owner..." archive-chown-entry
-          :enable (fboundp (archive-name "chown-entry"))
-          :help "Change owner of marked files"))
-      (define-key map [menu-bar operate chgrp]
-        '(menu-item "Change Group..." archive-chgrp-entry
-          :enable (fboundp (archive-name "chgrp-entry"))
-          :help "Change group ownership of marked files"))
-      (define-key map [menu-bar operate chmod]
-        '(menu-item "Change Mode..." archive-chmod-entry
-          :enable (fboundp (archive-name "chmod-entry"))
-          :help "Change mode (permissions) of marked files"))
-      (define-key map [menu-bar operate rename]
-        '(menu-item "Rename to..." archive-rename-entry
-          :enable (fboundp (archive-name "rename-entry"))
-          :help "Rename marked files"))
-      ;;(define-key map [menu-bar operate copy]
-      ;;  '(menu-item "Copy to..." archive-copy))
-      (define-key map [menu-bar operate expunge]
-        '(menu-item "Expunge Marked Files" archive-expunge
-          :help "Delete all flagged files from archive"))
-      map))
+    (define-key map [menu-bar operate]
+      (cons "Operate" (make-sparse-keymap "Operate")))
+    (define-key map [menu-bar operate chown]
+      '(menu-item "Change Owner..." archive-chown-entry
+                  :enable (fboundp (archive-name "chown-entry"))
+                  :help "Change owner of marked files"))
+    (define-key map [menu-bar operate chgrp]
+      '(menu-item "Change Group..." archive-chgrp-entry
+                  :enable (fboundp (archive-name "chgrp-entry"))
+                  :help "Change group ownership of marked files"))
+    (define-key map [menu-bar operate chmod]
+      '(menu-item "Change Mode..." archive-chmod-entry
+                  :enable (fboundp (archive-name "chmod-entry"))
+                  :help "Change mode (permissions) of marked files"))
+    (define-key map [menu-bar operate rename]
+      '(menu-item "Rename to..." archive-rename-entry
+                  :enable (fboundp (archive-name "rename-entry"))
+                  :help "Rename marked files"))
+    ;;(define-key map [menu-bar operate copy]
+    ;;  '(menu-item "Copy to..." archive-copy))
+    (define-key map [menu-bar operate expunge]
+      '(menu-item "Expunge Marked Files" archive-expunge
+                  :help "Delete all flagged files from archive"))
+    map)
   "Local keymap for archive mode listings.")
 (defvar archive-file-name-indent nil "Column where file names start.")
 
@@ -516,17 +512,12 @@ Each descriptor is a vector of the form
 ;; -------------------------------------------------------------------------
 ;;; Section: Support functions.
 
-(eval-when-compile
-  (defsubst byte-after (pos)
-    "Like char-after but an eight-bit char is converted to unibyte."
-    (multibyte-char-to-unibyte (char-after pos)))
-  (defsubst insert-unibyte (&rest args)
-    "Like insert but don't make unibyte string and eight-bit char multibyte."
-    (dolist (elt args)
-      (if (integerp elt)
-	  (insert (if (< elt 128) elt (decode-char 'eight-bit elt)))
-	(insert (string-to-multibyte elt)))))
-  )
+(defun arc-insert-unibyte (&rest args)
+  "Like insert but don't make unibyte string and eight-bit char multibyte."
+  (dolist (elt args)
+    (if (integerp elt)
+	(insert (if (< elt 128) elt (decode-char 'eight-bit elt)))
+      (insert elt))))
 
 (defsubst archive-name (suffix)
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
@@ -538,7 +529,8 @@ in which case a second argument, length LEN, should be supplied."
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
-  (setq str (string-as-unibyte str))
+  (if (multibyte-string-p str)
+      (setq str (encode-coding-string str 'utf-8-emacs-unix)))
   (let ((result 0)
         (i 0))
     (while (< i len)
@@ -637,7 +629,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-unixdate (low high)
   "Stringify Unix (LOW HIGH) date."
-  (let* ((time (cons high low))
+  (let* ((time (list high low))
 	 (str (current-time-string time)))
     (format "%s-%s-%s"
 	    (substring str 8 10)
@@ -646,8 +638,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-unixtime (low high)
   "Stringify Unix (LOW HIGH) time."
-  (let ((str (current-time-string (cons high low))))
-    (substring str 11 19)))
+  (format-time-string "%H:%M:%S" (list high low)))
 
 (defun archive-get-lineno ()
   (if (>= (point) archive-file-list-start)
@@ -843,13 +834,11 @@ when parsing the archive."
        ;; Using `concat' here copies the text also, so we can add
        ;; properties without problems.
        (let ((text (concat (aref fil 0) "\n")))
-         (if (featurep 'xemacs)
-             ()                         ; out of luck
-           (add-text-properties
-            (aref fil 1) (aref fil 2)
-            '(mouse-face highlight
-              help-echo "mouse-2: extract this file into a buffer")
-            text))
+         (add-text-properties
+          (aref fil 1) (aref fil 2)
+          '(mouse-face highlight
+                       help-echo "mouse-2: extract this file into a buffer")
+          text)
          text))
      files)))
   (setq archive-file-list-end (point-marker)))
@@ -969,8 +958,8 @@ using `make-temp-file', and the generated name is returned."
                   (jka-compr-inhibit t))
               (write-region (point-min) (point-max) tmpfile nil 'quiet))
             (erase-buffer)
-            (let ((coding-system-for-read 'no-conversion))
-              (insert-file-contents tmpfile)))
+            (set-buffer-multibyte t)
+            (insert-file-contents tmpfile))
         (delete-file tmpfile)))))
 
 (defun archive-file-name-handler (op &rest args)
@@ -1493,8 +1482,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         files
 	visual)
     (while (and (< (+ p 29) (point-max))
-		(= (byte-after p) ?\C-z)
-		(> (byte-after (1+ p)) 0))
+		(= (get-byte p) ?\C-z)
+		(> (get-byte (1+ p)) 0))
       (let* ((namefld (buffer-substring (+ p 2) (+ p 2 13)))
 	     (fnlen   (or (string-match "\0" namefld) 13))
 	     (efnname (decode-coding-string (substring namefld 0 fnlen)
@@ -1535,7 +1524,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (apply #'vector (nreverse files))))
 
 (defun archive-arc-rename-entry (newname descr)
-  (if (string-match "[:\\\\/]" newname)
+  (if (string-match "[:\\/]" newname)
       (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
       (error "File names in arc files are limited to 12 characters"))
@@ -1547,7 +1536,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(widen)
 	(goto-char (+ archive-proper-file-start (aref descr 4) 2))
 	(delete-char 13)
-	(insert-unibyte name)))))
+	(arc-insert-unibyte name)))))
 ;; -------------------------------------------------------------------------
 ;;; Section: Lzh Archives
 
@@ -1559,13 +1548,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	visual)
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
-      (let* ((hsize   (byte-after p))	;size of the base header (level 0 and 1)
+      (let* ((hsize   (get-byte p))	;size of the base header (level 0 and 1)
 	     (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow (level 0 and 2),
 					;size of extended headers + the compressed file to follow (level 1).
              (ucsize  (archive-l-e (+ p 11) 4))	;size of an uncompressed file.
 	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
-	     (hdrlvl  (byte-after (+ p 20))) ;header level
+	     (hdrlvl  (get-byte (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
 	     fnlen efnname osid fiddle ifnname width p2
 	     neh	;beginning of next extension header (level 1 and 2)
@@ -1573,7 +1562,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     gname uname modtime moddate)
 	(if (= hdrlvl 3) (error "can't handle lzh level 3 header type"))
 	(when (or (= hdrlvl 0) (= hdrlvl 1))
-	  (setq fnlen   (byte-after (+ p 21))) ;filename length
+	  (setq fnlen   (get-byte (+ p 21))) ;filename length
 	  (setq efnname (let ((str (buffer-substring (+ p 22) (+ p 22 fnlen))))	;filename from offset 22
 			(decode-coding-string
 			 str archive-file-name-coding-system)))
@@ -1584,19 +1573,19 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
               (setq neh (+ p 24))))     ;specific to level 2 header
 	(if neh		;if level 1 or 2 we expect extension headers to follow
 	    (let* ((ehsize (archive-l-e neh 2))	;size of the extension header
-		   (etype (byte-after (+ neh 2)))) ;extension type
+		   (etype (get-byte (+ neh 2)))) ;extension type
 	      (while (not (= ehsize 0))
 		  (cond
 		 ((= etype 1)	;file name
 		  (let ((i (+ neh 3)))
 		    (while (< i (+ neh ehsize))
-		      (setq efnname (concat efnname (char-to-string (byte-after i))))
+		      (setq efnname (concat efnname (char-to-string (get-byte i))))
 		      (setq i (1+ i)))))
 		 ((= etype 2)	;directory name
 		  (let ((i (+ neh 3)))
 		    (while (< i (+ neh ehsize))
 				    (setq dir (concat dir
-						       (if (= (byte-after i)
+						       (if (= (get-byte i)
 							      255)
 							   "/"
 							 (char-to-string
@@ -1620,7 +1609,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		   )
 		(setq neh (+ neh ehsize))
 		(setq ehsize (archive-l-e neh 2))
-		(setq etype (byte-after (+ neh 2))))
+		(setq etype (get-byte (+ neh 2))))
 	      ;;get total header size for level 1 and 2 headers
 	      (setq thsize (- neh p))))
 	(if (= hdrlvl 0)  ;total header size
@@ -1707,7 +1696,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (let ((sum 0))
     (while (> count 0)
       (setq count (1- count)
-	    sum (+ sum (byte-after p))
+	    sum (+ sum (get-byte p))
 	    p (1+ p)))
     (logand sum 255)))
 
@@ -1716,8 +1705,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (save-excursion
       (widen)
       (let* ((p        (+ archive-proper-file-start (aref descr 4)))
-	     (oldhsize (byte-after p))
-	     (oldfnlen (byte-after (+ p 21)))
+	     (oldhsize (get-byte p))
+	     (oldfnlen (get-byte (+ p 21)))
 	     (newfnlen (length newname))
 	     (newhsize (+ oldhsize newfnlen (- oldfnlen)))
 	     (inhibit-read-only t))
@@ -1725,10 +1714,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	    (error "The file name is too long"))
 	(goto-char (+ p 21))
 	(delete-char (1+ oldfnlen))
-	(insert-unibyte newfnlen newname)
+	(arc-insert-unibyte newfnlen newname)
 	(goto-char p)
 	(delete-char 2)
-	(insert-unibyte newhsize (archive-lzh-resum p newhsize))))))
+	(arc-insert-unibyte newhsize (archive-lzh-resum p newhsize))))))
 
 (defun archive-lzh-ogm (newval files errtxt ofs)
   (save-excursion
@@ -1736,10 +1725,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (widen)
       (dolist (fil files)
 	(let* ((p (+ archive-proper-file-start (aref fil 4)))
-	       (hsize   (byte-after p))
-	       (fnlen   (byte-after (+ p 21)))
+	       (hsize   (get-byte p))
+	       (fnlen   (get-byte (+ p 21)))
 	       (p2      (+ p 22 fnlen))
-	       (creator (if (>= (- hsize fnlen) 24) (byte-after (+ p2 2)) 0))
+	       (creator (if (>= (- hsize fnlen) 24) (get-byte (+ p2 2)) 0))
 	       (inhibit-read-only t))
 	  (if (= creator ?U)
 	      (progn
@@ -1747,10 +1736,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		    (setq newval (funcall newval (archive-l-e (+ p2 ofs) 2))))
 		(goto-char (+ p2 ofs))
 		(delete-char 2)
-		(insert-unibyte (logand newval 255) (ash newval -8))
+		(arc-insert-unibyte (logand newval 255) (ash newval -8))
 		(goto-char (1+ p))
 		(delete-char 1)
-		(insert-unibyte (archive-lzh-resum (1+ p) hsize)))
+		(arc-insert-unibyte (archive-lzh-resum (1+ p) hsize)))
 	    (message "Member %s does not have %s field"
 		     (aref fil 1) errtxt)))))))
 
@@ -1822,7 +1811,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (setq p (archive-l-e (+ p 48) 8)))
     (setq p (+ p (point-min)))
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
-      (let* ((creator (byte-after (+ p 5)))
+      (let* ((creator (get-byte (+ p 5)))
 	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
@@ -1842,7 +1831,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			     (logior ?\444
 				     (if isdir (logior 16384 ?\111) 0)
 				     (if (zerop
-					  (logand 1 (byte-after (+ p 38))))
+					  (logand 1 (get-byte (+ p 38))))
 					 ?\222 0)))
 			    (t nil)))
 	     (modestr (if mode (archive-int-to-mode mode) "??????????"))
@@ -1919,18 +1908,19 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (widen)
       (dolist (fil files)
 	(let* ((p (+ archive-proper-file-start (car (aref fil 4))))
-	       (creator (byte-after (+ p 5)))
+	       (creator (get-byte (+ p 5)))
 	       (oldmode (aref fil 3))
 	       (newval  (archive-calc-mode oldmode newmode t))
 	       (inhibit-read-only t))
 	  (cond ((memq creator '(2 3)) ; Unix
 		 (goto-char (+ p 40))
 		 (delete-char 2)
-		 (insert-unibyte (logand newval 255) (ash newval -8)))
+		 (arc-insert-unibyte (logand newval 255) (ash newval -8)))
 		((memq creator '(0 5 6 7 10 11 15)) ; Dos etc.
 		 (goto-char (+ p 38))
-		 (insert-unibyte (logior (logand (byte-after (point)) 254)
-					 (logand (logxor 1 (ash newval -7)) 1)))
+		 (arc-insert-unibyte
+                  (logior (logand (get-byte (point)) 254)
+			  (logand (logxor 1 (ash newval -7)) 1)))
 		 (delete-char 1))
 		(t (message "Don't know how to change mode for this member"))))
         ))))
@@ -1950,9 +1940,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (modtime (archive-l-e (+ p 16) 2))
              (ucsize  (archive-l-e (+ p 20) 4))
 	     (namefld (buffer-substring (+ p 38) (+ p 38 13)))
-	     (dirtype (byte-after (+ p 4)))
-	     (lfnlen  (if (= dirtype 2) (byte-after (+ p 56)) 0))
-	     (ldirlen (if (= dirtype 2) (byte-after (+ p 57)) 0))
+	     (dirtype (get-byte (+ p 4)))
+	     (lfnlen  (if (= dirtype 2) (get-byte (+ p 56)) 0))
+	     (ldirlen (if (= dirtype 2) (get-byte (+ p 57)) 0))
 	     (fnlen   (or (string-match "\0" namefld) 13))
 	     (efnname (let ((str
 			     (concat
@@ -2017,10 +2007,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (call-process "lsar" nil t nil "-l" (or file copy))
       (if copy (delete-file copy))
       (goto-char (point-min))
-      (re-search-forward "^\\(\s+=+\s?+\\)+\n")
+      (re-search-forward "^\\(\s+=+\s*\\)+\n")
       (while (looking-at (concat "^\s+[0-9.]+\s+D?-+\s+"   ; Flags
                                  "\\([0-9-]+\\)\s+"        ; Size
-                                 "\\([-0-9.%]+\\|-+\\)\s+" ; Ratio
+                                 "\\([-0-9.%]+\\)\s+"      ; Ratio
                                  "\\([0-9a-zA-Z]+\\)\s+"   ; Mode
                                  "\\([0-9-]+\\)\s+"        ; Date
                                  "\\([0-9:]+\\)\s+"        ; Time

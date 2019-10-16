@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Frank Bresz
@@ -39,7 +39,12 @@
 
 ;;;###autoload
 (defcustom diff-switches (purecopy "-u")
-  "A string or list of strings specifying switches to be passed to diff."
+  "A string or list of strings specifying switches to be passed to diff.
+
+This variable is also used in the `vc-diff' command (and related
+commands) if the backend-specific diff switch variable isn't
+set (`vc-git-diff-switches' for git, for instance), and
+`vc-diff-switches' isn't set."
   :type '(choice string (repeat string))
   :group 'diff)
 
@@ -121,6 +126,17 @@ Possible values are:
   nil   -- no, it does not
   check -- try to probe whether it does")
 
+(defvar diff-default-directory)
+
+(defun diff-check-labels (&optional force)
+  (if (not (or force (eq 'check diff-use-labels)))
+      diff-use-labels
+    (setq diff-use-labels
+	  (with-temp-buffer
+	    (when (ignore-errors
+		    (call-process diff-command nil t nil "--help"))
+	      (if (search-backward "--label" nil t) t))))))
+
 (defun diff-no-select (old new &optional switches no-async buf)
   ;; Noninteractive helper for creating and reverting diff buffers
   (unless (bufferp new) (setq new (expand-file-name new)))
@@ -128,11 +144,7 @@ Possible values are:
   (or switches (setq switches diff-switches)) ; If not specified, use default.
   (unless (listp switches) (setq switches (list switches)))
   (or buf (setq buf (get-buffer-create "*Diff*")))
-  (when (eq 'check diff-use-labels)
-    (setq diff-use-labels
-	  (with-temp-buffer
-	    (when (ignore-errors (call-process diff-command nil t nil "--help"))
-	      (if (search-backward "--label" nil t) t)))))
+  (diff-check-labels)
   (let* ((old-alt (diff-file-local-copy old))
 	 (new-alt (diff-file-local-copy new))
 	 (command
@@ -165,6 +177,7 @@ Possible values are:
            (lambda (_ignore-auto _noconfirm)
              (diff-no-select old new switches no-async (current-buffer))))
       (setq default-directory thisdir)
+      (setq diff-default-directory default-directory)
       (let ((inhibit-read-only t))
 	(insert command "\n"))
       (if (and (not no-async) (fboundp 'make-process))

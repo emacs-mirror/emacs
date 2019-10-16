@@ -1,8 +1,8 @@
 ;;; semantic/wisent/javascript.el --- javascript parser support
 
-;; Copyright (C) 2005, 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2019 Free Software Foundation, Inc.
 
-;; Author: Eric Ludlam <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
 
 ;; This file is part of GNU Emacs.

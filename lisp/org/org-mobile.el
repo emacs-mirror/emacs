@@ -1,5 +1,5 @@
 ;;; org-mobile.el --- Code for Asymmetric Sync With a Mobile Device -*- lexical-binding: t; -*-
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -55,7 +55,7 @@ org-agenda-files
      the variable `org-agenda-files'.
 org-agenda-text-search-extra-files
      Include the files given in the variable
-     `org-agenda-text-search-extra-files'"
+     `org-agenda-text-search-extra-files'."
   :group 'org-mobile
   :type '(list :greedy t
 	       (option (const :tag "org-agenda-files" org-agenda-files))
@@ -472,7 +472,7 @@ agenda view showing the flagged items."
 		     (concat (shell-quote-argument org-mobile-checksum-binary)
 			     " "
 			     (shell-quote-argument (expand-file-name file)))))
-	(when (string-match "[a-fA-F0-9]\\{30,40\\}" check)
+	(when (string-match "[[:xdigit:]]\\{30,40\\}" check)
 	  (push (cons link-name (match-string 0 check))
 		org-mobile-checksum-files))))
 
@@ -761,7 +761,7 @@ If nothing new has been added, return nil."
 	 (buffer (find-file-noselect file)))
     (when buffer
       (with-current-buffer buffer
-	(when (re-search-forward (concat "\\([0-9a-fA-F]\\{30,\\}\\).*?"
+	(when (re-search-forward (concat "\\([[:xdigit:]]\\{30,\\}\\).*?"
 					 (regexp-quote org-mobile-capture-file)
 					 "[ \t]*$") nil t)
 	  (goto-char (match-beginning 1))
@@ -845,11 +845,11 @@ If BEG and END are given, only do this in that region."
 	    (cl-incf cnt-error)
 	    (throw 'next t))
 	  (move-marker bos-marker (point))
-	  (if (re-search-forward "^** Old value[ \t]*$" eos t)
+	  (if (re-search-forward "^\\** Old value[ \t]*$" eos t)
 	      (setq old (buffer-substring
 			 (1+ (match-end 0))
 			 (progn (outline-next-heading) (point)))))
-	  (if (re-search-forward "^** New value[ \t]*$" eos t)
+	  (if (re-search-forward "^\\** New value[ \t]*$" eos t)
 	      (setq new (buffer-substring
 			 (1+ (match-end 0))
 			 (progn (outline-next-heading)

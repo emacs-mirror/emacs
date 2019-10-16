@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -84,11 +84,14 @@
 ;;; Code:
 
 ;;;###autoload
-(defun regexp-opt (strings &optional paren)
+(defun regexp-opt (strings &optional paren keep-order)
   "Return a regexp to match a string in the list STRINGS.
-Each string should be unique in STRINGS and should not contain
-any regexps, quoted or not.  Optional PAREN specifies how the
-returned regexp is surrounded by grouping constructs.
+Each member of STRINGS is treated as a fixed string, not as a regexp.
+Optional PAREN specifies how the returned regexp is surrounded by
+grouping constructs.
+
+If STRINGS is the empty list, the return value is a regexp that
+never matches anything.
 
 The optional argument PAREN can be any of the following:
 
@@ -111,8 +114,14 @@ nil
     necessary to ensure that a postfix operator appended to it will
     apply to the whole expression.
 
-The resulting regexp is equivalent to but usually more efficient
-than that of a simplified version:
+The optional argument KEEP-ORDER, if nil or omitted, allows the
+returned regexp to match the strings in any order.  If non-nil,
+the match is guaranteed to be performed in the order given, as if
+the strings were made into a regexp by joining them with the
+`\\|' operator.
+
+Up to reordering, the resulting regexp is equivalent to but
+usually more efficient than that of a simplified version:
 
  (defun simplified-regexp-opt (strings &optional paren)
    (let ((parens
@@ -121,9 +130,9 @@ than that of a simplified version:
                 ((eq paren \\='symbols) \\='(\"\\\\_<\\\\(\" . \"\\\\)\\\\_>\"))
                 ((null paren)          \\='(\"\\\\(?:\" . \"\\\\)\"))
                 (t                       \\='(\"\\\\(\" . \"\\\\)\")))))
-     (concat (car paren)
+     (concat (car parens)
              (mapconcat \\='regexp-quote strings \"\\\\|\")
-             (cdr paren))))"
+             (cdr parens))))"
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth 10000)
@@ -131,9 +140,34 @@ than that of a simplified version:
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
-	   (sorted-strings (delete-dups
-			    (sort (copy-sequence strings) 'string-lessp)))
-	   (re (regexp-opt-group sorted-strings (or open t) (not open))))
+	   (re
+            (cond
+             ;; No strings: return an unmatchable regexp.
+             ((null strings)
+              (concat (or open "\\(?:") regexp-unmatchable "\\)"))
+
+             ;; The algorithm will generate a pattern that matches
+             ;; longer strings in the list before shorter.  If the
+             ;; list order matters, then no string must come after a
+             ;; proper prefix of that string.  To check this, verify
+             ;; that a straight or-pattern matches each string
+             ;; entirely.
+             ((and keep-order
+                   (let* ((case-fold-search nil)
+                          (alts (mapconcat #'regexp-quote strings "\\|")))
+                     (and (let ((s strings))
+                            (while (and s
+                                        (string-match alts (car s))
+                                        (= (match-end 0) (length (car s))))
+                              (setq s (cdr s)))
+                            ;; If we exited early, we found evidence that
+                            ;; regexp-opt-group cannot be used.
+                            s)
+                          (concat (or open "\\(?:") alts "\\)")))))
+             (t
+              (regexp-opt-group
+               (delete-dups (sort (copy-sequence strings) 'string-lessp))
+               (or open t) (not open))))))
       (cond ((eq paren 'words)
 	     (concat "\\<" re "\\>"))
 	    ((eq paren 'symbols)
@@ -258,7 +292,9 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 
 (defun regexp-opt-charset (chars)
   "Return a regexp to match a character in CHARS.
-CHARS should be a list of characters."
+CHARS should be a list of characters.
+If CHARS is the empty list, the return value is a regexp that
+never matches anything."
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;
@@ -305,13 +341,16 @@ CHARS should be a list of characters."
 	(while (>= end start)
 	  (setq charset (format "%s%c" charset start))
 	  (setq start (1+ start)))))
-    ;;
-    ;; Make sure a caret is not first and a dash is first or last.
-    (if (and (string-equal charset "") (string-equal bracket ""))
-	(if (string-equal dash "")
-            "\\^"                       ; [^] is not a valid regexp
-          (concat "[" dash caret "]"))
-      (concat "[" bracket charset caret dash "]"))))
+
+    ;; Make sure that ] is first, ^ is not first, - is first or last.
+    (let ((all (concat bracket charset caret dash)))
+      (pcase (length all)
+        (0 regexp-unmatchable)
+        (1 (regexp-quote all))
+        (_ (if (string-equal all "^-")
+               "[-^]"
+             (concat "[" all "]")))))))
+
 
 (provide 'regexp-opt)
 

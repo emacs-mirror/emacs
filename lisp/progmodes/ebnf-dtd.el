@@ -1,9 +1,8 @@
 ;;; ebnf-dtd.el --- parser for DTD (Data Type Description for XML)
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.1
 ;; Package: ebnf2ps
@@ -325,7 +324,7 @@
 ;; /* Character Reference */
 ;;
 ;; CharRef ::= '&#' [0-9]+ ';'
-;;           | '&#x' [0-9a-fA-F]+ ';'
+;;           | '&#x' [[:xdigit:]]+ ';'
 ;;           [WFC: Legal Character]
 ;;
 ;;
@@ -916,9 +915,9 @@
 ;;; EntityRef ::= '&' Name ';'
 ;;;
 ;;; CharRef ::= '&#' [0-9]+ ';'
-;;;           | '&#x' [0-9a-fA-F]+ ';'
+;;;           | '&#x' [[:xdigit:]]+ ';'
 
-;;; "^\\(&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[0-9a-fA-F]+\\|[0-9]+\\)\\);\\|[^<&]\\)*$"
+;;; "^\\(&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[[:xdigit:]]+\\|[0-9]+\\)\\);\\|[^<&]\\)*$"
 
 
 (defun ebnf-dtd-attlistdecl ()
@@ -946,7 +945,7 @@
 	     (setq token (ebnf-dtd-lex)))
 	(or (and (eq token 'string)
 		 (string-match
-		  "^\\(&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[0-9a-fA-F]+\\|[0-9]+\\)\\);\\|[^<&]\\)*$"
+		  "^\\(&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[[:xdigit:]]+\\|[0-9]+\\)\\);\\|[^<&]\\)*$"
 		  ebnf-dtd-lex))
 	    (error "Invalid default value in ATTLIST declaration"))))
     (or (eq token 'end-decl)
@@ -987,9 +986,9 @@
 ;;; EntityRef ::= '&' Name ';'
 ;;;
 ;;; CharRef ::= '&#' [0-9]+ ';'
-;;;           | '&#x' [0-9a-fA-F]+ ';'
+;;;           | '&#x' [[:xdigit:]]+ ';'
 
-;;; "^\\(%[A-Za-z_:][-A-Za-z0-9._:]*;\\|&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[0-9a-fA-F]+\\|[0-9]+\\)\\);\\|[^%&]\\)*$"
+;;; "^\\(%[A-Za-z_:][-A-Za-z0-9._:]*;\\|&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[[:xdigit:]]+\\|[0-9]+\\)\\);\\|[^%&]\\)*$"
 
 
 (defun ebnf-dtd-entitydecl ()
@@ -1002,7 +1001,7 @@
     (setq token (ebnf-dtd-lex))
     (if (eq token 'string)
 	(if (string-match
-	     "^\\(%[A-Za-z_:][-A-Za-z0-9._:]*;\\|&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[0-9a-fA-F]+\\|[0-9]+\\)\\);\\|[^%&]\\)*$"
+	     "^\\(%[A-Za-z_:][-A-Za-z0-9._:]*;\\|&\\([A-Za-z_:][-A-Za-z0-9._:]*\\|#\\(x[[:xdigit:]]+\\|[0-9]+\\)\\);\\|[^%&]\\)*$"
 	     ebnf-dtd-lex)
 	    (setq token (ebnf-dtd-lex))
 	  (error "Invalid ENTITY definition"))
@@ -1243,7 +1242,7 @@ See documentation for variable `ebnf-dtd-lex'."
 	  (setq ebnf-dtd-lex (if (/= (following-char) ?x)
 				 (ebnf-dtd-char-ref "&#" "0-9")
 			       (forward-char)
-			       (ebnf-dtd-char-ref "&#x" "0-9a-fA-F")))
+			       (ebnf-dtd-char-ref "&#x" "[:xdigit:]")))
 	  'char-ref))
        ;; miscellaneous: (, ), [, ], =, |, *, +, >, `,'
        (t

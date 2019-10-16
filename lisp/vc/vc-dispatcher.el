@@ -1,9 +1,8 @@
 ;;; vc-dispatcher.el -- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
-;; Author:     FSF (see below for full credits)
-;; Maintainer: emacs-devel@gnu.org
+;; Author: FSF (see below for full credits)
 ;; Keywords: vc tools
 ;; Package: vc
 
@@ -324,7 +323,8 @@ case, and the process object in the asynchronous case."
 		       (apply 'start-file-process command (current-buffer)
                               command squeezed))))
 		(when vc-command-messages
-		  (message "Running in background: %s" full-command))
+		  (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
+		    (message "Running in background: %s" full-command)))
                 ;; Get rid of the default message insertion, in case we don't
                 ;; set a sentinel explicitly.
 		(set-process-sentinel proc #'ignore)
@@ -332,11 +332,13 @@ case, and the process object in the asynchronous case."
 		(setq status proc)
 		(when vc-command-messages
 		  (vc-run-delayed
-		    (let ((message-truncate-lines t))
+		    (let ((message-truncate-lines t)
+			  (inhibit-message (eq (selected-window) (active-minibuffer-window))))
 		      (message "Done in background: %s" full-command)))))
 	    ;; Run synchronously
 	    (when vc-command-messages
-	      (message "Running in foreground: %s" full-command))
+	      (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
+		(message "Running in foreground: %s" full-command)))
 	    (let ((buffer-undo-list t))
 	      (setq status (apply 'process-file command nil t nil squeezed)))
 	    (when (and (not (eq t okstatus))
@@ -350,7 +352,8 @@ case, and the process object in the asynchronous case."
 		     (if (integerp status) (format "status %d" status) status)
 		     full-command))
 	    (when vc-command-messages
-	      (message "Done (status=%d): %s" status full-command))))
+	      (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
+		(message "Done (status=%d): %s" status full-command)))))
 	(vc-run-delayed
 	  (run-hook-with-args 'vc-post-command-functions
 			      command file-or-list flags))

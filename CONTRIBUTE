@@ -7,11 +7,14 @@ or run the shell command 'info "(emacs)Contributing"'.)
 ** The Emacs repository
 
 Emacs development uses Git on Savannah for its main repository.
-Briefly, the following shell commands build and run Emacs from scratch:
+To configure Git for Emacs development, you can run the following:
 
 	git config --global user.name 'Your Name'
 	git config --global user.email 'your.name@example.com'
 	git config --global transfer.fsckObjects true
+
+The following shell commands then build and run Emacs from scratch:
+
 	git clone git://git.sv.gnu.org/emacs.git
 	cd emacs
 	./autogen.sh
@@ -20,8 +23,8 @@ Briefly, the following shell commands build and run Emacs from scratch:
 	src/emacs
 
 For more details, see
-http://www.emacswiki.org/emacs/GitQuickStartForEmacsDevs and
-http://www.emacswiki.org/emacs/GitForEmacsDevs or see the file
+https://www.emacswiki.org/emacs/GitQuickStartForEmacsDevs and
+https://www.emacswiki.org/emacs/GitForEmacsDevs or see the file
 admin/notes/git-workflow.
 
 ** Getting involved with development
@@ -54,12 +57,21 @@ packages the patch's commit message and changes.  To send just one
 such patch without additional remarks, you can use a command like
 'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
 
+Once the cumulative amount of your submissions exceeds about 15 lines
+of non-trivial changes, we will need you to assign to the FSF the
+copyright for your contributions.  Ask on emacs-devel@gnu.org, and we
+will send you the necessary form together with the instructions to
+fill and email it, in order to start this legal paperwork.
+
 ** Issue tracker (a.k.a. "bug tracker")
 
 The Emacs issue tracker at https://debbugs.gnu.org lets you view bug
 reports and search the database for bugs matching several criteria.
 Messages posted to the bug-gnu-emacs@gnu.org mailing list, mentioned
-above, are recorded by the tracker with the corresponding bugs/issues.
+above, are recorded by the tracker with the corresponding
+bugs/issues.  If a message to the bug tracker contains a patch, please
+include the string "[PATCH]" in the subject of the message in order to
+let the bug tracker tag the bug properly.
 
 GNU ELPA has a 'debbugs' package that allows accessing the tracker
 database from Emacs.
@@ -251,18 +263,22 @@ them right the first time, so here are guidelines for formatting them:
 
 ** Generating ChangeLog entries
 
-- You can use Emacs functions to write ChangeLog entries; see
+- If you use Emacs VC, you can use 'C-c C-w' to generate formatted
+  blank ChangeLog entries from the diff being committed, then use
+  'M-q' to combine and fill them.  See 'info "(emacs) Log Buffer"'.
+
+- Alternatively, you can use Emacs functions for ChangeLog files; see
   https://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html
   or run 'info "(emacs)Change Log Commands"'.
 
-- If you use Emacs VC, one way to format ChangeLog entries is to create
-  a top-level ChangeLog file manually, and update it with 'C-x 4 a' as
-  usual.  Do not register the ChangeLog file under git; instead, use
-  'C-c C-a' to insert its contents into your *vc-log* buffer.
-  Or if 'log-edit-hook' includes 'log-edit-insert-changelog' (which it
-  does by default), they will be filled in for you automatically.
+  To format ChangeLog entries with Emacs VC, create a top-level
+  ChangeLog file manually, and update it with 'C-x 4 a' as usual.  Do
+  not register the ChangeLog file under git; instead, use 'C-c C-a' to
+  insert its contents into your *vc-log* buffer.  Or if
+  'log-edit-hook' includes 'log-edit-insert-changelog' (which it does
+  by default), they will be filled in for you automatically.
 
-- Alternatively, you can use the vc-dwim command to maintain commit
+- Instead of Emacs VC, you can use the vc-dwim command to maintain commit
   messages.  When you create a source directory, run the shell command
   'git-changelog-symlink-init' to create a symbolic link from
   ChangeLog to .git/c/ChangeLog.  Edit this ChangeLog via its symlink

@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2018 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -275,6 +275,10 @@ static int status_notify (struct Lisp_Process *, struct Lisp_Process *);
 static int read_process_output (Lisp_Object, int);
 static void create_pty (Lisp_Object);
 static void exec_sentinel (Lisp_Object, Lisp_Object);
+
+static Lisp_Object
+network_lookup_address_info_1 (Lisp_Object host, const char *service,
+                               struct addrinfo *hints, struct addrinfo **res);
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
@@ -858,7 +862,8 @@ allocate_pty (char pty_name[PTY_NAME_SIZE])
 static struct Lisp_Process *
 allocate_process (void)
 {
-  return ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
+  return ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Process, thread,
+				       PVEC_PROCESS);
 }
 
 static Lisp_Object
@@ -887,13 +892,13 @@ make_process (Lisp_Object name)
   /* If name is already in use, modify it until it is unused.  */
 
   Lisp_Object name1 = name;
-  for (printmax_t i = 1; ; i++)
+  for (intmax_t i = 1; ; i++)
     {
       Lisp_Object tem = Fget_process (name1);
       if (NILP (tem))
 	break;
-      char const suffix_fmt[] = "<%"pMd">";
-      char suffix[sizeof suffix_fmt + INT_STRLEN_BOUND (printmax_t)];
+      char const suffix_fmt[] = "<%"PRIdMAX">";
+      char suffix[sizeof suffix_fmt + INT_STRLEN_BOUND (i)];
       AUTO_STRING_WITH_LEN (lsuffix, suffix, sprintf (suffix, suffix_fmt, i));
       name1 = concat2 (name, lsuffix);
     }
@@ -1278,10 +1283,19 @@ The string argument is normally a multibyte string, except:
   if (NILP (filter))
     filter = Qinternal_default_process_filter;
 
-  pset_filter (p, filter);
-
   if (p->infd >= 0)
-    set_process_filter_masks (p);
+    {
+      /* If filter WILL be t, stop reading output.  */
+      if (EQ (filter, Qt) && !EQ (p->status, Qlisten))
+        delete_read_fd (p->infd);
+      else if (/* If filter WAS t, then resume reading output.  */
+               EQ (p->filter, Qt)
+               /* Network or serial process not stopped:  */
+               && !EQ (p->command, Qt))
+        add_process_read_fd (p->infd);
+    }
+
+  pset_filter (p, filter);
 
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
     pset_childp (p, Fplist_put (p->childp, QCfilter, filter));
@@ -1360,7 +1374,7 @@ If THREAD is nil, the process is unlocked.  */)
 
 DEFUN ("process-thread", Fprocess_thread, Sprocess_thread,
        1, 1, 0,
-       doc: /* Ret the locking thread of PROCESS.
+       doc: /* Return the locking thread of PROCESS.
 If PROCESS is unlocked, this function returns nil.  */)
   (Lisp_Object process)
 {
@@ -1442,7 +1456,7 @@ DEFUN ("process-query-on-exit-flag",
 }
 
 DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
-       1, 2, 0,
+       1, 3, 0,
        doc: /* Return the contact info of PROCESS; t for a real child.
 For a network or serial or pipe connection, the value depends on the
 optional KEY arg.  If KEY is nil, value is a cons cell of the form
@@ -1451,9 +1465,12 @@ connection; it is t for a pipe connection.  If KEY is t, the complete
 contact information for the connection is returned, else the specific
 value for the keyword KEY is returned.  See `make-network-process',
 `make-serial-process', or `make-pipe-process' for the list of keywords.
+
 If PROCESS is a non-blocking network process that hasn't been fully
-set up yet, this function will block until socket setup has completed.  */)
-  (Lisp_Object process, Lisp_Object key)
+set up yet, this function will block until socket setup has completed.
+If the optional NO-BLOCK parameter is specified, return nil instead of
+waiting for the process to be fully set up.*/)
+  (Lisp_Object process, Lisp_Object key, Lisp_Object no_block)
 {
   Lisp_Object contact;
 
@@ -1462,8 +1479,15 @@ set up yet, this function will block until socket setup has completed.  */)
 
 #ifdef DATAGRAM_SOCKETS
 
-  if (NETCONN_P (process))
-    wait_for_socket_fds (process, "process-contact");
+  if (NETCONN_P (process) && XPROCESS (process)->infd < 0)
+    {
+      /* Usually wait for the network process to finish being set
+       * up. */
+      if (!NILP (no_block))
+	return Qnil;
+
+      wait_for_socket_fds (process, "process-contact");
+    }
 
   if (DATAGRAM_CONN_P (process)
       && (EQ (key, Qt) || EQ (key, QCremote)))
@@ -1642,10 +1666,11 @@ ENCODING is used for writing.
 :noquery BOOL -- When exiting Emacs, query the user if BOOL is nil and
 the process is running.  If BOOL is not given, query before exiting.
 
-:stop BOOL -- Start process in the `stopped' state if BOOL non-nil.
-In the stopped state, a process does not accept incoming data, but you
-can send outgoing data.  The stopped state is cleared by
-`continue-process' and set by `stop-process'.
+:stop BOOL -- BOOL must be nil.  The `:stop' key is ignored otherwise
+and is retained for compatibility with other process types such as
+pipe processes.  Asynchronous subprocesses never start in the
+`stopped' state.  Use `stop-process' and `continue-process' to send
+signals to stop and continue a process.
 
 :connection-type TYPE -- TYPE is control type of device used to
 communicate with subprocesses.  Values are `pipe' to use a pipe, `pty'
@@ -1661,6 +1686,11 @@ to the standard error of subprocess.  Specifying this implies
 `:connection-type' is set to `pipe'.  If STDERR is nil, standard error
 is mixed with standard output and sent to BUFFER or FILTER.
 
+:file-handler FILE-HANDLER -- If FILE-HANDLER is non-nil, then look
+for a file name handler for the current buffer's `default-directory'
+and invoke that file name handler to make the process.  If there is no
+such handler, proceed as if FILE-HANDLER were nil.
+
 usage: (make-process &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -1673,6 +1703,15 @@ usage: (make-process &rest ARGS)  */)
 
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);
+
+  if (!NILP (Fplist_get (contact, QCfile_handler)))
+    {
+      Lisp_Object file_handler
+        = Ffind_file_name_handler (BVAR (current_buffer, directory),
+                                   Qmake_process);
+      if (!NILP (file_handler))
+        return CALLN (Fapply, file_handler, Qmake_process, contact);
+    }
 
   buffer = Fplist_get (contact, QCbuffer);
   if (!NILP (buffer))
@@ -1731,8 +1770,10 @@ usage: (make-process &rest ARGS)  */)
 
   if (!query_on_exit)
     XPROCESS (proc)->kill_without_query = 1;
-  if (tem = Fplist_get (contact, QCstop), !NILP (tem))
-    pset_command (XPROCESS (proc), Qt);
+  tem = Fplist_get (contact, QCstop);
+  /* Normal processes can't be started in a stopped state, see
+     Bug#30460.  */
+  CHECK_TYPE (NILP (tem), Qnull, tem);
 
   tem = Fplist_get (contact, QCconnection_type);
   if (EQ (tem, Qpty))
@@ -1790,7 +1831,7 @@ usage: (make-process &rest ARGS)  */)
       val = Vcoding_system_for_read;
     if (NILP (val))
       {
-	ptrdiff_t nargs2 = 3 + XFIXNUM (Flength (command));
+	ptrdiff_t nargs2 = 3 + list_length (command);
 	Lisp_Object tem2;
 	SAFE_ALLOCA_LISP (args2, nargs2);
 	ptrdiff_t i = 0;
@@ -1820,7 +1861,7 @@ usage: (make-process &rest ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    ptrdiff_t nargs2 = 3 + XFIXNUM (Flength (command));
+	    ptrdiff_t nargs2 = 3 + list_length (command);
 	    Lisp_Object tem2;
 	    SAFE_ALLOCA_LISP (args2, nargs2);
 	    ptrdiff_t i = 0;
@@ -2218,7 +2259,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   unblock_input ();
 
   if (pid < 0)
-    report_file_errno ("Doing vfork", Qnil, vfork_errno);
+    report_file_errno (CHILD_SETUP_ERROR_DESC, Qnil, vfork_errno);
   else
     {
       /* vfork succeeded.  */
@@ -2657,7 +2698,7 @@ conv_lisp_to_sockaddr (int family, Lisp_Object address, struct sockaddr *sa, int
 	  for (i = 0; i < len; i++)
 	    if (FIXNUMP (p->contents[i]))
 	      {
-		int j = XFIXNAT (p->contents[i]) & 0xffff;
+		int j = XFIXNUM (p->contents[i]) & 0xffff;
 		ip6[i] = ntohs (j);
 	      }
 	  sa->sa_family = family;
@@ -2839,11 +2880,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 	   This should work on all systems.   KFS. 2003-09-23.  */
 	memset (devname, 0, sizeof devname);
 	if (STRINGP (val))
-	  {
-	    char *arg = SSDATA (val);
-	    int len = min (strlen (arg), IFNAMSIZ);
-	    memcpy (devname, arg, len);
-	  }
+	  memcpy (devname, SDATA (val), min (SBYTES (val), IFNAMSIZ));
 	else if (!NILP (val))
 	  error ("Bad option value for %s", name);
 	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
@@ -3668,11 +3705,13 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
       Lisp_Object boot, params = p->gnutls_boot_parameters;
 
       boot = Fgnutls_boot (proc, XCAR (params), XCDR (params));
-      p->gnutls_boot_parameters = Qnil;
 
       if (p->gnutls_initstage == GNUTLS_STAGE_READY)
-	/* Run sentinels, etc. */
-	finish_after_tls_connection (proc);
+        {
+          p->gnutls_boot_parameters = Qnil;
+	  /* Run sentinels, etc. */
+	  finish_after_tls_connection (proc);
+        }
       else if (p->gnutls_initstage != GNUTLS_STAGE_HANDSHAKE_TRIED)
 	{
 	  deactivate_process (proc);
@@ -3719,6 +3758,10 @@ also nil, meaning that this process is not associated with any buffer.
 address.  The symbol `local' specifies the local host.  If specified
 for a server process, it must be a valid name or address for the local
 host, and only clients connecting to that address will be accepted.
+If all interfaces should be bound, an address of \"0.0.0.0\" (for
+IPv4) or \"::\" (for IPv6) can be used.  (On some operating systems,
+using \"::\" listens on both IPv4 and IPv6.)  `local' will use IPv4 by
+default, use a FAMILY of 'ipv6 to override this.
 
 :service SERVICE -- SERVICE is name of the service desired, or an
 integer specifying a port number to connect to.  If SERVICE is t,
@@ -3969,14 +4012,24 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef HAVE_LOCAL_SOCKETS
       if (family != AF_LOCAL)
 #endif
-	host = build_string ("127.0.0.1");
+        {
+        if (family == AF_INET6)
+          host = build_string ("::1");
+        else
+          host = build_string ("127.0.0.1");
+        }
     }
   else
     {
       if (EQ (host, Qlocal))
+        {
 	/* Depending on setup, "localhost" may map to different IPv4 and/or
 	   IPv6 addresses, so it's better to be explicit (Bug#6781).  */
-	host = build_string ("127.0.0.1");
+        if (family == AF_INET6)
+          host = build_string ("::1");
+        else
+          host = build_string ("127.0.0.1");
+        }
       CHECK_STRING (host);
     }
 
@@ -4069,7 +4122,7 @@ usage: (make-network-process &rest ARGS)  */)
   if (!NILP (host))
     {
       struct addrinfo *res, *lres;
-      int ret;
+      Lisp_Object msg;
 
       maybe_quit ();
 
@@ -4078,20 +4131,9 @@ usage: (make-network-process &rest ARGS)  */)
       hints.ai_family = family;
       hints.ai_socktype = socktype;
 
-      ret = getaddrinfo (SSDATA (host), portstring, &hints, &res);
-      if (ret)
-#ifdef HAVE_GAI_STRERROR
-	{
-	  synchronize_system_messages_locale ();
-	  char const *str = gai_strerror (ret);
-	  if (! NILP (Vlocale_coding_system))
-	    str = SSDATA (code_convert_string_norecord
-			  (build_string (str), Vlocale_coding_system, 0));
-	  error ("%s/%s %s", SSDATA (host), portstring, str);
-	}
-#else
-	error ("%s/%s getaddrinfo error %d", SSDATA (host), portstring, ret);
-#endif
+      msg = network_lookup_address_info_1 (host, portstring, &hints, &res);
+      if (!EQ (msg, Qt))
+	error ("%s", SSDATA (msg));
 
       for (lres = res; lres; lres = lres->ai_next)
 	addrinfos = Fcons (conv_addrinfo_to_lisp (lres), addrinfos);
@@ -4539,6 +4581,86 @@ Data that is unavailable is returned as nil.  */)
 #endif
 }
 
+static Lisp_Object
+network_lookup_address_info_1 (Lisp_Object host, const char *service,
+                               struct addrinfo *hints, struct addrinfo **res)
+{
+  Lisp_Object msg = Qt;
+  int ret;
+
+  if (STRING_MULTIBYTE (host) && SBYTES (host) != SCHARS (host))
+    error ("Non-ASCII hostname %s detected, please use puny-encode-domain",
+           SSDATA (host));
+  ret = getaddrinfo (SSDATA (host), service, hints, res);
+  if (ret)
+    {
+      if (service == NULL)
+        service = "0";
+#ifdef HAVE_GAI_STRERROR
+      synchronize_system_messages_locale ();
+      char const *str = gai_strerror (ret);
+      if (! NILP (Vlocale_coding_system))
+        str = SSDATA (code_convert_string_norecord
+                      (build_string (str), Vlocale_coding_system, 0));
+      AUTO_STRING (format, "%s/%s %s");
+      msg = CALLN (Fformat, format, host, build_string (service),
+		   build_string (str));
+#else
+      AUTO_STRING (format, "%s/%s getaddrinfo error %d");
+      msg = CALLN (Fformat, format, host, build_string (service),
+		   make_int (ret));
+#endif
+    }
+   return msg;
+}
+
+DEFUN ("network-lookup-address-info", Fnetwork_lookup_address_info,
+       Snetwork_lookup_address_info, 1, 2, 0,
+       doc: /* Look up ip address info of NAME.
+Optional parameter FAMILY controls whether to look up IPv4 or IPv6
+addresses.  The default of nil means both, symbol `ipv4' means IPv4
+only, symbol `ipv6' means IPv6 only.  Returns a list of addresses, or
+nil if none were found.  Each address is a vector of integers.  */)
+     (Lisp_Object name, Lisp_Object family)
+{
+  Lisp_Object addresses = Qnil;
+  Lisp_Object msg = Qnil;
+
+  struct addrinfo *res, *lres;
+  struct addrinfo hints;
+
+  memset (&hints, 0, sizeof hints);
+  if (EQ (family, Qnil))
+    hints.ai_family = AF_UNSPEC;
+  else if (EQ (family, Qipv4))
+    hints.ai_family = AF_INET;
+  else if (EQ (family, Qipv6))
+#ifdef AF_INET6
+    hints.ai_family = AF_INET6;
+#else
+  /* If we don't support IPv6, querying will never work anyway */
+    return addresses;
+#endif
+  else
+    error ("Unsupported lookup type");
+  hints.ai_socktype = SOCK_DGRAM;
+
+  msg = network_lookup_address_info_1 (name, NULL, &hints, &res);
+  if (!EQ (msg, Qt))
+    message ("%s", SSDATA(msg));
+  else
+    {
+      for (lres = res; lres; lres = lres->ai_next)
+	addresses = Fcons (conv_sockaddr_to_lisp (lres->ai_addr,
+						  lres->ai_addrlen),
+			   addresses);
+      addresses = Fnreverse (addresses);
+
+      freeaddrinfo (res);
+    }
+  return addresses;
+}
+
 /* Turn off input and output for process PROC.  */
 
 static void
@@ -4593,8 +4715,8 @@ DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
 It is given to their filter functions.
-Optional argument PROCESS means do not return until output has been
-received from PROCESS.
+Optional argument PROCESS means to return only after output is
+received from PROCESS or PROCESS closes the connection.
 
 Optional second argument SECONDS and third argument MILLISEC
 specify a timeout; return after that much time even if there is
@@ -4606,7 +4728,8 @@ If optional fourth argument JUST-THIS-ONE is non-nil, accept output
 from PROCESS only, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil if we received any output from PROCESS (or, if PROCESS
-is nil, from any process) before the timeout expired.  */)
+is nil, from any process) before the timeout expired or the
+corresponding connection was closed.  */)
   (Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec,
    Lisp_Object just_this_one)
 {
@@ -4726,19 +4849,24 @@ server_accept_connection (Lisp_Object server, int channel)
   service = Qnil;
   Lisp_Object args[11];
   int nargs = 0;
-  AUTO_STRING (procname_format_in, "%s <%d.%d.%d.%d:%d>");
-  AUTO_STRING (procname_format_in6, "%s <[%x:%x:%x:%x:%x:%x:%x:%x]:%d>");
+  #define HOST_FORMAT_IN "%d.%d.%d.%d"
+  #define HOST_FORMAT_IN6 "%x:%x:%x:%x:%x:%x:%x:%x"
+  AUTO_STRING (host_format_in, HOST_FORMAT_IN);
+  AUTO_STRING (host_format_in6, HOST_FORMAT_IN6);
+  AUTO_STRING (procname_format_in, "%s <"HOST_FORMAT_IN":%d>");
+  AUTO_STRING (procname_format_in6, "%s <["HOST_FORMAT_IN6"]:%d>");
   AUTO_STRING (procname_format_default, "%s <%d>");
   switch (saddr.sa.sa_family)
     {
     case AF_INET:
       {
 	args[nargs++] = procname_format_in;
-	nargs++;
+	args[nargs++] = host_format_in;
 	unsigned char *ip = (unsigned char *)&saddr.in.sin_addr.s_addr;
 	service = make_fixnum (ntohs (saddr.in.sin_port));
 	for (int i = 0; i < 4; i++)
 	  args[nargs++] = make_fixnum (ip[i]);
+	host = Fformat (5, args + 1);
 	args[nargs++] = service;
       }
       break;
@@ -4747,11 +4875,12 @@ server_accept_connection (Lisp_Object server, int channel)
     case AF_INET6:
       {
 	args[nargs++] = procname_format_in6;
-	nargs++;
+	args[nargs++] = host_format_in6;
 	DECLARE_POINTER_ALIAS (ip6, uint16_t, &saddr.in6.sin6_addr);
 	service = make_fixnum (ntohs (saddr.in.sin_port));
 	for (int i = 0; i < 8; i++)
 	  args[nargs++] = make_fixnum (ip6[i]);
+	host = Fformat (9, args + 1);
 	args[nargs++] = service;
       }
       break;
@@ -5419,8 +5548,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		     through all the channels and check for data.
 		     This is a workaround needed for some versions of
 		     the gnutls library -- 2.12.14 has been confirmed
-		     to need it.  See
-		     http://comments.gmane.org/gmane.emacs.devel/145074 */
+		     to need it.  */
 		  for (channel = 0; channel < FD_SETSIZE; ++channel)
 		    if (! NILP (chan_process[channel]))
 		      {
@@ -5825,7 +5953,8 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
 
 /* Read pending output from the process channel,
    starting with our buffered-ahead character if we have one.
-   Yield number of decoded characters read.
+   Yield number of decoded characters read,
+   or -1 (setting errno) if there is a read error.
 
    This function reads at most 4096 characters.
    If you want to read all available subprocess output,
@@ -5855,8 +5984,10 @@ read_process_output (Lisp_Object proc, int channel)
   if (DATAGRAM_CHAN_P (channel))
     {
       socklen_t len = datagram_address[channel].len;
-      nbytes = recvfrom (channel, chars + carryover, readmax,
-			 0, datagram_address[channel].sa, &len);
+      do
+	nbytes = recvfrom (channel, chars + carryover, readmax,
+			   0, datagram_address[channel].sa, &len);
+      while (nbytes < 0 && errno == EINTR);
     }
   else
 #endif
@@ -5906,14 +6037,15 @@ read_process_output (Lisp_Object proc, int channel)
 
   p->decoding_carryover = 0;
 
-  /* At this point, NBYTES holds number of bytes just received
-     (including the one in proc_buffered_char[channel]).  */
   if (nbytes <= 0)
     {
       if (nbytes < 0 || coding->mode & CODING_MODE_LAST_BLOCK)
 	return nbytes;
       coding->mode |= CODING_MODE_LAST_BLOCK;
     }
+
+  /* At this point, NBYTES holds number of bytes just received
+     (including the one in proc_buffered_char[channel]).  */
 
   /* Ignore carryover, it's been added by a previous iteration already.  */
   p->nbytes_read += nbytes;
@@ -6357,9 +6489,17 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 #ifdef DATAGRAM_SOCKETS
 	  if (DATAGRAM_CHAN_P (outfd))
 	    {
-	      rv = sendto (outfd, cur_buf, cur_len,
-			   0, datagram_address[outfd].sa,
-			   datagram_address[outfd].len);
+	      while (true)
+		{
+		  rv = sendto (outfd, cur_buf, cur_len, 0,
+			       datagram_address[outfd].sa,
+			       datagram_address[outfd].len);
+		  if (! (rv < 0 && errno == EINTR))
+		    break;
+		  if (pending_signals)
+		    process_pending_signals ();
+		}
+
 	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
@@ -6449,9 +6589,11 @@ DEFUN ("process-send-region", Fprocess_send_region, Sprocess_send_region,
 PROCESS may be a process, a buffer, the name of a process or buffer, or
 nil, indicating the current buffer's process.
 Called from program, takes three arguments, PROCESS, START and END.
-If the region is more than 500 characters long,
-it is sent in several bunches.  This may happen even for shorter regions.
-Output from processes can arrive in between bunches.
+If the region is larger than the input buffer of the process (the
+length of which depends on the process connection type and the
+operating system), it is sent in several bunches.  This may happen
+even for shorter regions.  Output from processes can arrive in between
+bunches.
 
 If PROCESS is a non-blocking network process that hasn't been fully
 set up yet, this function will block until socket setup has completed.  */)
@@ -6482,9 +6624,10 @@ DEFUN ("process-send-string", Fprocess_send_string, Sprocess_send_string,
        doc: /* Send PROCESS the contents of STRING as input.
 PROCESS may be a process, a buffer, the name of a process or buffer, or
 nil, indicating the current buffer's process.
-If STRING is more than 500 characters long,
-it is sent in several bunches.  This may happen even for shorter strings.
-Output from processes can arrive in between bunches.
+If STRING is larger than the input buffer of the process (the length
+of which depends on the process connection type and the operating
+system), it is sent in several bunches.  This may happen even for
+shorter strings.  Output from processes can arrive in between bunches.
 
 If PROCESS is a non-blocking network process that hasn't been fully
 set up yet, this function will block until socket setup has completed.  */)
@@ -8010,9 +8153,7 @@ init_process_emacs (int sockfd)
 
   inhibit_sentinels = 0;
 
-#ifndef CANNOT_DUMP
-  if (! noninteractive || initialized)
-#endif
+  if (!will_dump_with_unexec_p ())
     {
 #if defined HAVE_GLIB && !defined WINDOWSNT
       /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
@@ -8098,6 +8239,8 @@ init_process_emacs (int sockfd)
 void
 syms_of_process (void)
 {
+  DEFSYM (Qmake_process, "make-process");
+
 #ifdef subprocesses
 
   DEFSYM (Qprocessp, "processp");
@@ -8138,6 +8281,7 @@ syms_of_process (void)
   DEFSYM (Qreal, "real");
   DEFSYM (Qnetwork, "network");
   DEFSYM (Qserial, "serial");
+  DEFSYM (QCfile_handler, ":file-handler");
   DEFSYM (QCbuffer, ":buffer");
   DEFSYM (QChost, ":host");
   DEFSYM (QCservice, ":service");
@@ -8250,6 +8394,8 @@ returns non-`nil'.  */);
 	  "internal-default-interrupt-process");
   DEFSYM (Qinterrupt_process_functions, "interrupt-process-functions");
 
+  DEFSYM (Qnull, "null");
+
   defsubr (&Sprocessp);
   defsubr (&Sget_process);
   defsubr (&Sdelete_process);
@@ -8283,6 +8429,7 @@ returns non-`nil'.  */);
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
+  defsubr (&Snetwork_lookup_address_info);
   defsubr (&Snetwork_interface_list);
   defsubr (&Snetwork_interface_info);
 #ifdef DATAGRAM_SOCKETS

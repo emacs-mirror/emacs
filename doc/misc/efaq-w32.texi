@@ -15,7 +15,7 @@ Answers to Frequently asked Questions about using Emacs on Microsoft Windows.
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2008, 2010-2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010-2019 Free Software Foundation, Inc.
 
 @quotation
 This list of frequently asked questions about GNU Emacs on MS Windows
@@ -1820,7 +1820,8 @@ If you want a quick solution without installing extra tools, a poor
 substitute that works for simple text searches is to specify the built
 in Windows command @command{findstr} as the command to run at the
 @kbd{M-x grep} prompt.  Normally you will want to use the @option{/n}
-argument to @command{findstr}.
+argument to @command{findstr}, to have it print the line numbers for
+each hit.
 
 @menu
 * Recursive grep::
@@ -1860,7 +1861,8 @@ path to the findutils @command{find} command.
 An alternative if you have a recent version of grep is to customize
 @code{grep-find-command} to use @samp{grep -r} instead of both find
 and grep.  Another alternative if you don't need the full capabilities
-of grep is to use @samp{findstr /n /r}.
+of grep is to use @samp{findstr /n /r}; add the @samp{/s} option if
+you want a recursive search.
 
 @c ------------------------------------------------------------
 @node Developing with Emacs

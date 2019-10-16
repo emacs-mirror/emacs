@@ -1,6 +1,6 @@
 ;;; isearch-tests.el --- Tests for isearch.el        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 

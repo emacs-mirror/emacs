@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -38,7 +38,7 @@ structure constructs (@pxref{Macros}).
 @menu
 * Sequencing::             Evaluation in textual order.
 * Conditionals::           @code{if}, @code{cond}, @code{when}, @code{unless}.
-* Combining Conditions::   @code{and}, @code{or}, @code{not}.
+* Combining Conditions::   @code{and}, @code{or}, @code{not}, and friends.
 * Pattern-Matching Conditional::  How to use @code{pcase} and friends.
 * Iteration::              @code{while} loops.
 * Generators::             Generic sequences and coroutines.
@@ -298,8 +298,8 @@ For example:
 @section Constructs for Combining Conditions
 @cindex combining conditions
 
-  This section describes three constructs that are often used together
-with @code{if} and @code{cond} to express complicated conditions.  The
+  This section describes constructs that are often used together with
+@code{if} and @code{cond} to express complicated conditions.  The
 constructs @code{and} and @code{or} can also be used individually as
 kinds of multiple conditional constructs.
 
@@ -418,6 +418,15 @@ This is not completely equivalent because it can evaluate @var{arg1} or
 @var{arg2} twice.  By contrast, @code{(or @var{arg1} @var{arg2}
 @var{arg3})} never evaluates any argument more than once.
 @end defspec
+
+@defun xor condition1 condition2
+This function returns the boolean exclusive-or of @var{condition1} and
+@var{condition2}.  That is, @code{xor} returns @code{nil} if either
+both arguments are @code{nil}, or both are non-@code{nil}.  Otherwise,
+it returns the value of that argument which is non-@code{nil}.
+
+Note that in contrast to @code{or}, both arguments are always evaluated.
+@end defun
 
 @node Pattern-Matching Conditional
 @section Pattern-Matching Conditional
@@ -618,6 +627,31 @@ To present a consistent environment (@pxref{Intro Eval})
 to @var{body-forms} (thus avoiding an evaluation error on match),
 if any of the sub-patterns let-binds a set of symbols,
 they @emph{must} all bind the same set of symbols.
+
+@ifnottex
+@anchor{rx in pcase}
+@item (rx @var{rx-expr}@dots{})
+Matches strings against the regexp @var{rx-expr}@dots{}, using the
+@code{rx} regexp notation (@pxref{Rx Notation}), as if by
+@code{string-match}.
+
+In addition to the usual @code{rx} syntax, @var{rx-expr}@dots{} can
+contain the following constructs:
+
+@table @code
+@item (let @var{ref} @var{rx-expr}@dots{})
+Bind the symbol @var{ref} to a submatch that matches
+@var{rx-expr}@enddots{}.  @var{ref} is bound in @var{body-forms} to
+the string of the submatch or nil, but can also be used in
+@code{backref}.
+
+@item (backref @var{ref})
+Like the standard @code{backref} construct, but @var{ref} can here
+also be a name introduced by a previous @code{(let @var{ref} @dots{})}
+construct.
+@end table
+@end ifnottex
+
 @end table
 
 @anchor{pcase-example-0}
@@ -1451,7 +1485,7 @@ Run @var{body} with @var{var} bound to each value that
 @end defmac
 
 The Common Lisp loop facility also contains features for working with
-iterators.  See @xref{Loop Facility,,,cl,Common Lisp Extensions}.
+iterators.  @xref{Loop Facility,,,cl,Common Lisp Extensions}.
 
 The following piece of code demonstrates some important principles of
 working with iterators.
@@ -2127,6 +2161,18 @@ Here's the example at the beginning of this subsection rewritten using
    (delete-file filename))
 @end group
 @end example
+@end defmac
+
+@defmac ignore-error condition body@dots{}
+This macro is like @code{ignore-errors}, but will only ignore the
+specific error condition specified.
+
+@example
+  (ignore-error end-of-file
+    (read ""))
+@end example
+
+@var{condition} can also be a list of error conditions.
 @end defmac
 
 @defmac with-demoted-errors format body@dots{}

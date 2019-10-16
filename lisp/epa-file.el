@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -102,18 +102,15 @@ encryption is used."
     (apply operation args)))
 
 (defun epa-file-decode-and-insert (string file visit beg end replace)
-  (if (fboundp 'decode-coding-inserted-region)
-      (save-restriction
-	(narrow-to-region (point) (point))
-	(insert (if enable-multibyte-characters
-		    (string-to-multibyte string)
-		  string))
-	(decode-coding-inserted-region
-	 (point-min) (point-max)
-	 (substring file 0 (string-match epa-file-name-regexp file))
-	 visit beg end replace))
-    (insert (epa-file--decode-coding-string string (or coding-system-for-read
-						       'undecided)))))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert string)
+    (decode-coding-inserted-region
+     (point-min) (point-max)
+     (substring file 0 (string-match epa-file-name-regexp file))
+     visit beg end replace)
+    (goto-char (point-max))
+    (- (point-max) (point-min))))
 
 (defvar epa-file-error nil)
 (defun epa-file--find-file-not-found-function ()
@@ -149,8 +146,6 @@ encryption is used."
 	   (format "Decrypting %s" file)))
     (unwind-protect
 	(progn
-	  (if replace
-	      (goto-char (point-min)))
 	  (condition-case error
 	      (setq string (epg-decrypt-file context local-file nil))
 	    (error
@@ -189,12 +184,11 @@ encryption is used."
 	    ;; really edit the buffer.
 	    (let ((buffer-file-name
 		   (if visit nil buffer-file-name)))
-	      (save-restriction
-		(narrow-to-region (point) (point))
-		(epa-file-decode-and-insert string file visit beg end replace)
-		(setq length (- (point-max) (point-min))))
-	      (if replace
-		  (delete-region (point) (point-max))))
+              (setq length
+                    (if replace
+                        (epa-file--replace-text string file visit beg end)
+		      (epa-file-decode-and-insert
+                       string file visit beg end replace))))
 	    (if visit
 		(set-visited-file-modtime))))
       (if (and local-copy
@@ -202,6 +196,38 @@ encryption is used."
 	  (delete-file local-copy)))
     (list file length)))
 (put 'insert-file-contents 'epa-file 'epa-file-insert-file-contents)
+
+(defun epa-file--replace-text (string file visit beg end)
+  ;; The idea here is that we want to replace the text in the buffer
+  ;; (for instance, for a `revert-buffer'), but we want to touch as
+  ;; little of the text as possible.  So we compare the new and the
+  ;; old text and only starts replacing when the text changes.
+  (let ((orig-point (point))
+        new-start length)
+    (goto-char (point-max))
+    (setq new-start (point))
+    (setq length
+	  (epa-file-decode-and-insert
+           string file visit beg end t))
+    (if (equal (buffer-substring (point-min) new-start)
+               (buffer-substring new-start (point-max)))
+        ;; The new text is equal to the old, so just keep the old.
+        (delete-region new-start (point-max))
+      ;; Compute the region the hard way.
+      (let ((p1 (point-min))
+            (p2 new-start))
+        (while (and (< p1 new-start)
+                    (< p2 (point-max))
+                    (eql (char-after p1) (char-after p2)))
+          (cl-incf p1)
+          (cl-incf p2))
+        (delete-region new-start p2)
+        (delete-region p1 new-start)))
+    ;; Restore point, if possible.
+    (if (< orig-point (point-max))
+        (goto-char orig-point)
+      (goto-char (point-max)))
+    length))
 
 (defun epa-file-write-region (start end file &optional append visit lockname
 				    mustbenew)

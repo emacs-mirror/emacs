@@ -1,5 +1,5 @@
 /* Convert a 'struct tm' to a time_t value.
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Paul Eggert <eggert@twinsun.com>.
 
@@ -72,13 +72,13 @@ my_tzset (void)
   /* Rectify the value of the environment variable TZ.
      There are four possible kinds of such values:
        - Traditional US time zone names, e.g. "PST8PDT".  Syntax: see
-         <https://msdn.microsoft.com/en-us/library/90s5c885.aspx>
+         <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset>
        - Time zone names based on geography, that contain one or more
          slashes, e.g. "Europe/Moscow".
        - Time zone names based on geography, without slashes, e.g.
          "Singapore".
        - Time zone names that contain explicit DST rules.  Syntax: see
-         <http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html#tag_08_03>
+         <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html#tag_08_03>
      The Microsoft CRT understands only the first kind.  It produces incorrect
      results if the value of TZ is of the other kinds.
      But in a Cygwin environment, /etc/profile.d/tzset.sh sets TZ to a value
@@ -112,11 +112,11 @@ my_tzset (void)
    added to them, and then with another timestamp added, without
    worrying about overflow.
 
-   Much of the code uses long_int to represent time_t values, to
-   lessen the hassle of dealing with platforms where time_t is
+   Much of the code uses long_int to represent __time64_t values, to
+   lessen the hassle of dealing with platforms where __time64_t is
    unsigned, and because long_int should suffice to represent all
-   time_t values that mktime can generate even on platforms where
-   time_t is excessively wide.  */
+   __time64_t values that mktime can generate even on platforms where
+   __time64_t is wider than the int components of struct tm.  */
 
 #if INT_MAX <= LONG_MAX / 4 / 366 / 24 / 60 / 60
 typedef long int long_int;
@@ -144,16 +144,15 @@ shr (long_int a, int b)
 	  : a / (one << b) - (a % (one << b) < 0));
 }
 
-/* Bounds for the intersection of time_t and long_int.  */
+/* Bounds for the intersection of __time64_t and long_int.  */
 
 static long_int const mktime_min
-  = ((TYPE_SIGNED (time_t) && TYPE_MINIMUM (time_t) < TYPE_MINIMUM (long_int))
-     ? TYPE_MINIMUM (long_int) : TYPE_MINIMUM (time_t));
+  = ((TYPE_SIGNED (__time64_t)
+      && TYPE_MINIMUM (__time64_t) < TYPE_MINIMUM (long_int))
+     ? TYPE_MINIMUM (long_int) : TYPE_MINIMUM (__time64_t));
 static long_int const mktime_max
-  = (TYPE_MAXIMUM (long_int) < TYPE_MAXIMUM (time_t)
-     ? TYPE_MAXIMUM (long_int) : TYPE_MAXIMUM (time_t));
-
-verify (TYPE_IS_INTEGER (time_t));
+  = (TYPE_MAXIMUM (long_int) < TYPE_MAXIMUM (__time64_t)
+     ? TYPE_MAXIMUM (long_int) : TYPE_MAXIMUM (__time64_t));
 
 #define EPOCH_YEAR 1970
 #define TM_YEAR_BASE 1900
@@ -252,23 +251,23 @@ tm_diff (long_int year, long_int yday, int hour, int min, int sec,
 }
 
 /* Use CONVERT to convert T to a struct tm value in *TM.  T must be in
-   range for time_t.  Return TM if successful, NULL (setting errno) on
+   range for __time64_t.  Return TM if successful, NULL (setting errno) on
    failure.  */
 static struct tm *
-convert_time (struct tm *(*convert) (const time_t *, struct tm *),
+convert_time (struct tm *(*convert) (const __time64_t *, struct tm *),
 	      long_int t, struct tm *tm)
 {
-  time_t x = t;
+  __time64_t x = t;
   return convert (&x, tm);
 }
 
 /* Use CONVERT to convert *T to a broken down time in *TP.
    If *T is out of range for conversion, adjust it so that
    it is the nearest in-range value and then convert that.
-   A value is in range if it fits in both time_t and long_int.
+   A value is in range if it fits in both __time64_t and long_int.
    Return TP on success, NULL (setting errno) on failure.  */
 static struct tm *
-ranged_convert (struct tm *(*convert) (const time_t *, struct tm *),
+ranged_convert (struct tm *(*convert) (const __time64_t *, struct tm *),
 		long_int *t, struct tm *tp)
 {
   long_int t1 = (*t < mktime_min ? mktime_min
@@ -310,7 +309,7 @@ ranged_convert (struct tm *(*convert) (const time_t *, struct tm *),
 }
 
 
-/* Convert *TP to a time_t value, inverting
+/* Convert *TP to a __time64_t value, inverting
    the monotonic and mostly-unit-linear conversion function CONVERT.
    Use *OFFSET to keep track of a guess at the offset of the result,
    compared to what the result would be for UTC without leap seconds.
@@ -318,9 +317,9 @@ ranged_convert (struct tm *(*convert) (const time_t *, struct tm *),
    If successful, set *TP to the canonicalized struct tm;
    otherwise leave *TP alone, return ((time_t) -1) and set errno.
    This function is external because it is used also by timegm.c.  */
-time_t
+__time64_t
 __mktime_internal (struct tm *tp,
-		   struct tm *(*convert) (const time_t *, struct tm *),
+		   struct tm *(*convert) (const __time64_t *, struct tm *),
 		   mktime_offset_t *offset)
 {
   struct tm tm;
@@ -520,9 +519,9 @@ __mktime_internal (struct tm *tp,
 
 #if defined _LIBC || NEED_MKTIME_WORKING || NEED_MKTIME_WINDOWS
 
-/* Convert *TP to a time_t value.  */
-time_t
-mktime (struct tm *tp)
+/* Convert *TP to a __time64_t value.  */
+__time64_t
+__mktime64 (struct tm *tp)
 {
   /* POSIX.1 8.1.1 requires that whenever mktime() is called, the
      time zone names contained in the external variable 'tzname' shall
@@ -531,7 +530,7 @@ mktime (struct tm *tp)
 
 # if defined _LIBC || NEED_MKTIME_WORKING
   static mktime_offset_t localtime_offset;
-  return __mktime_internal (tp, __localtime_r, &localtime_offset);
+  return __mktime_internal (tp, __localtime64_r, &localtime_offset);
 # else
 #  undef mktime
   return mktime (tp);
@@ -539,11 +538,29 @@ mktime (struct tm *tp)
 }
 #endif /* _LIBC || NEED_MKTIME_WORKING || NEED_MKTIME_WINDOWS */
 
-#ifdef weak_alias
-weak_alias (mktime, timelocal)
+#if defined _LIBC && __TIMESIZE != 64
+
+libc_hidden_def (__mktime64)
+
+time_t
+mktime (struct tm *tp)
+{
+  struct tm tm = *tp;
+  __time64_t t = __mktime64 (&tm);
+  if (in_time_t_range (t))
+    {
+      *tp = tm;
+      return t;
+    }
+  else
+    {
+      __set_errno (EOVERFLOW);
+      return -1;
+    }
+}
+
 #endif
 
-#ifdef _LIBC
+weak_alias (mktime, timelocal)
 libc_hidden_def (mktime)
 libc_hidden_weak (timelocal)
-#endif

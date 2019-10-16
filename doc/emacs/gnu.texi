@@ -1,4 +1,4 @@
-@c Copyright (C) 1985-1987, 1993, 1995, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993, 1995, 2001-2019 Free Software
 @c Foundation, Inc.
 @c
 @c Permission is granted to anyone to make or distribute verbatim copies

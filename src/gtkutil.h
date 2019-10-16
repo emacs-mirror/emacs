@@ -1,6 +1,6 @@
 /* Definitions and headers for GTK widgets.
 
-Copyright (C) 2003-2018 Free Software Foundation, Inc.
+Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -166,7 +166,7 @@ extern void xg_free_frame_widgets (struct frame *f);
 extern void xg_set_background_color (struct frame *f, unsigned long bg);
 extern bool xg_check_special_colors (struct frame *f,
 				     const char *color_name,
-				     XColor *color);
+				     Emacs_Color *color);
 
 extern void xg_set_frame_icon (struct frame *f,
                                Pixmap icon_pixmap,

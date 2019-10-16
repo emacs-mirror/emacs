@@ -1,6 +1,6 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2018 Free Software
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: William F. Schelter
@@ -95,10 +95,21 @@ After this many passes, we stop looking for initial setup data.
 Should be set to the number of terminal writes telnet will make
 rejecting one login and prompting again for a username and password.")
 
+(defvar telnet-connect-command nil
+  "Command used to start the `telnet' (or `rsh') connection.")
+
 (defun telnet-interrupt-subjob ()
   "Interrupt the program running through telnet on the remote host."
   (interactive)
   (process-send-string nil telnet-interrupt-string))
+
+(defun telnet-revert-buffer (ignore-auto noconfirm)
+  (if buffer-file-name
+      (let (revert-buffer-function)
+        (revert-buffer ignore-auto noconfirm))
+    (if (or noconfirm
+            (yes-or-no-p (format "Restart connection? ")))
+        (apply telnet-connect-command))))
 
 (defun telnet-c-z ()
   (interactive)
@@ -229,6 +240,7 @@ Normally input is edited in Emacs and sent a line at a time."
                                            (if port " " "") (or port "")
                                            "\n"))
       (telnet-mode)
+      (setq-local telnet-connect-command (list 'telnet host port))
       (setq comint-input-sender 'telnet-simple-send)
       (setq telnet-count telnet-initial-count))))
 
@@ -240,6 +252,7 @@ It has most of the same commands as comint-mode.
 There is a variable `telnet-interrupt-string' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed."
+  (setq-local revert-buffer-function 'telnet-revert-buffer)
   (set (make-local-variable 'window-point-insertion-type) t)
   (set (make-local-variable 'comint-prompt-regexp) telnet-prompt-pattern)
   (set (make-local-variable 'comint-use-prompt-regexp) t))
@@ -255,6 +268,7 @@ Normally input is edited in Emacs and sent a line at a time."
     (switch-to-buffer (make-comint name remote-shell-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
+    (setq-local telnet-connect-command (list 'rsh host))
     (setq telnet-count -16)))
 
 (provide 'telnet)

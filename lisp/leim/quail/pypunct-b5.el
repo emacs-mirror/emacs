@@ -1,11 +1,11 @@
-;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols) -*-coding: iso-2022-7bit;-*-
+;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols)
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Author: Ken'ichi HANDA <handa@etl.go.jp>
+;; Author: Ken'ichi Handa <handa@gnu.org>
 
 ;; Keywords: multilingual, input method, Chinese
 
@@ -34,9 +34,9 @@
 (load "quail/Punct-b5")
 
 (quail-define-package
- "chinese-py-punct-b5" "Chinese-BIG5" "$(03<>K(B"
+ "chinese-py-punct-b5" "Chinese-BIG5" "拼符"
  t
- "$(0&d'GTT&,!J3<5x!K(B and `v' for $(0O:X5>KHATT&,(B
+ "中文輸入【拼音】 and `v' for 標點符號輸入
 
 This is the combination of the input method `chinese-py-b5' and
 `chinese-punct-b5'.
@@ -45,7 +45,7 @@ You can enter normal Chinese characters by the same way as `chinese-py-b5'.
 And, you can enter symbols by typing `v' followed by any key sequences
 defined in `chinese-punct-b5'.
 
-For instance, typing `v' and `%' insert `$(0"h(B'.
+For instance, typing `v' and `%' insert `％'.
 ")
 
 (setcar (nthcdr 2 quail-current-package)

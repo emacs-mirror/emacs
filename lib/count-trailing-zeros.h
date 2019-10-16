@@ -1,5 +1,5 @@
 /* count-trailing-zeros.h -- counts the number of trailing 0 bits in a word.
-   Copyright 2013-2018 Free Software Foundation, Inc.
+   Copyright 2013-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ COUNT_TRAILING_ZEROS_INLINE int
 count_trailing_zeros_32 (unsigned int x)
 {
   /* <https://github.com/gibsjose/BitHacks>
-     <http://www.fit.vutbr.cz/~ibarina/pub/bithacks.pdf> */
+     <https://www.fit.vutbr.cz/~ibarina/pub/bithacks.pdf> */
   static const char de_Bruijn_lookup[32] = {
     0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
     31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9

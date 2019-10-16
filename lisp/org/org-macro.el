@@ -1,6 +1,6 @@
 ;;; org-macro.el --- Macro Replacement Code for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -313,7 +313,7 @@ Return a list of arguments, as strings.  This is the opposite of
 				  (buffer-substring
 				   (point) (line-end-position)))))
 		       (when (cl-some #'identity time)
-			 (setq date (apply #'encode-time time))))))))
+			 (setq date (encode-time time))))))))
 	      (let ((proc (get-buffer-process buf)))
 		(while (and proc (accept-process-output proc .5 nil t)))))
 	  (kill-buffer buf))

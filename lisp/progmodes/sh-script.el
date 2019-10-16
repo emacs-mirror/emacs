@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -112,7 +112,7 @@
 ;; would make this unnecessary;  simply learn the values when you visit
 ;; the buffer.
 ;; You can do this automatically like this:
-;;   (add-hook 'sh-set-shell-hook 'sh-learn-buffer-indent)
+;;   (add-hook 'sh-set-shell-hook #'sh-learn-buffer-indent)
 ;;
 ;; However...  `sh-learn-buffer-indent' is extremely slow,
 ;; especially on large-ish buffer.  Also, if there are conflicts the
@@ -480,7 +480,6 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c>" 'sh-learn-buffer-indent)
     (define-key map "\C-c\C-\\" 'sh-backslash-region)
 
-    (define-key map "=" 'sh-assignment)
     (define-key map "\C-c+" 'sh-add)
     (define-key map "\C-\M-x" 'sh-execute-region)
     (define-key map "\C-c\C-x" 'executable-interpret)
@@ -578,6 +577,7 @@ This is buffer-local in every such buffer.")
   :group 'sh-script)
 
 (defcustom sh-assignment-regexp
+  ;; The "\\[.+\\]" matches the "[index]" in "arrayvar[index]=value".
   `((csh . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
     (ksh88 . ,(concat "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?"
@@ -1058,7 +1058,7 @@ subshells can nest."
       (when (< startpos (line-beginning-position))
         (put-text-property startpos (point) 'syntax-multiline t)
         (add-hook 'syntax-propertize-extend-region-functions
-                  'syntax-propertize-multiline nil t))
+                  #'syntax-propertize-multiline nil t))
       )))
 
 
@@ -1141,7 +1141,13 @@ subshells can nest."
     ;; metacharacters.  The list of special chars is taken from
     ;; the single-unix spec of the shell command language (under
     ;; `quoting') but with `$' removed.
-    ("\\(?:[^|&;<>()`\\\"' \t\n]\\|\\${\\)\\(#+\\)" (1 "_"))
+    ("\\(?:[^|&;<>(`\\\"' \t\n]\\|\\${\\)\\(#+\\)" (1 "_"))
+    ;; In addition, `#' at the beginning of closed parentheses
+    ;; does not start a comment if the parentheses are not isolated
+    ;; by metacharacters, excluding [()].
+    ;; (e.g. `foo(#q/)' and `(#b)foo' in zsh)
+    ("[^|&;<>(`\\\"' \t\n](\\(#+\\)" (1 "_"))
+    ("(\\(#\\)[^)]+?)[^|&;<>)`\\\"' \t\n]" (1 "_"))
     ;; In a '...' the backslash is not escaping.
     ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
     ;; Make sure $@ and $? are correctly recognized as sexps.
@@ -1596,32 +1602,32 @@ with your script for an edit-interpret-debug cycle."
   (setq-local local-abbrev-table sh-mode-abbrev-table)
   (setq-local comint-dynamic-complete-functions
 	      sh-dynamic-complete-functions)
-  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
+  (add-hook 'completion-at-point-functions #'comint-completion-at-point nil t)
   ;; we can't look if previous line ended with `\'
   (setq-local comint-prompt-regexp "^[ \t]*")
   (setq-local imenu-case-fold-search nil)
   (setq font-lock-defaults
-	'((sh-font-lock-keywords
+	`((sh-font-lock-keywords
 	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
 	  nil nil
 	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
 	  (font-lock-syntactic-face-function
-	   . sh-font-lock-syntactic-face-function)))
+	   . ,#'sh-font-lock-syntactic-face-function)))
   (setq-local syntax-propertize-function #'sh-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
   (setq-local skeleton-pair-alist '((?` _ ?`)))
-  (setq-local skeleton-pair-filter-function 'sh-quoted-p)
+  (setq-local skeleton-pair-filter-function #'sh-quoted-p)
   (setq-local skeleton-further-elements
 	      '((< '(- (min sh-basic-offset (current-column))))))
-  (setq-local skeleton-filter-function 'sh-feature)
+  (setq-local skeleton-filter-function #'sh-feature)
   (setq-local skeleton-newline-indent-rigidly t)
   (setq-local defun-prompt-regexp
               (concat
                "^\\("
-               "\\(function[ \t]\\)?[ \t]*[[:alnum:]]+[ \t]*([ \t]*)"
+               "\\(function[ \t]\\)?[ \t]*[[:alnum:]_]+[ \t]*([ \t]*)"
                "\\|"
-               "function[ \t]+[[:alnum:]]+[ \t]*\\(([ \t]*)\\)?"
+               "function[ \t]+[[:alnum:]_]+[ \t]*\\(([ \t]*)\\)?"
                "\\)[ \t]*"))
   (setq-local add-log-current-defun-function #'sh-current-defun-name)
   (add-hook 'completion-at-point-functions
@@ -2401,12 +2407,12 @@ whose value is the shell name (don't quote it)."
           (message "setting up indent stuff")
           ;; sh-mode has already made indent-line-function local
           ;; but do it in case this is called before that.
-          (setq-local indent-line-function 'sh-indent-line))
+          (setq-local indent-line-function #'sh-indent-line))
 	(if sh-make-vars-local
 	    (sh-make-vars-local))
 	(message "Indentation setup for shell type %s" sh-shell))
     (message "No indentation for this shell type.")
-    (setq-local indent-line-function 'sh-basic-indent-line))
+    (setq-local indent-line-function #'sh-basic-indent-line))
   (when font-lock-mode
     (setq font-lock-set-defaults nil)
     (font-lock-set-defaults)
@@ -2905,8 +2911,7 @@ STRING	     This is ignored for the purposes of calculating
 		      (setq align-point (point))))
 		(or (bobp)
 		    (forward-char -1))
-                ;; FIXME: This charset looks too much like a regexp.  --Stef
-		(skip-chars-forward "[a-z0-9]*?")
+		(skip-chars-forward "*0-9?[]a-z")
 		)
 	       ((string-match "[])}]" x)
 		(setq x (sh-safe-forward-sexp -1))
@@ -3580,7 +3585,7 @@ so that `occur-next' and `occur-prev' will work."
 ;;       (insert ")\n")
 ;;       )))
 ;;
-;; (add-hook 'sh-learned-buffer-hook 'what-i-learned)
+;; (add-hook 'sh-learned-buffer-hook #'what-i-learned)
 
 
 ;; Originally this was sh-learn-region-indent (beg end)
@@ -4049,7 +4054,8 @@ Add these variables to `sh-shell-variables'."
     (goto-char (point-min))
     (setq sh-shell-variables-initialized t)
     (while (search-forward "=" nil t)
-      (sh-assignment 0)))
+      (sh--assignment-collect)))
+  (add-hook 'post-self-insert-hook #'sh--assignment-collect nil t)
   (message "Scanning buffer `%s' for variable assignments...done"
 	   (buffer-name)))
 
@@ -4322,18 +4328,23 @@ option followed by a colon `:' if the option accepts an argument."
 
 
 
+(put 'sh-assignment 'delete-selection t)
 (defun sh-assignment (arg)
   "Remember preceding identifier for future completion and do self-insert."
   (interactive "p")
+  (declare (obsolete nil "27.1"))
   (self-insert-command arg)
-  (if (<= arg 1)
-      (sh-remember-variable
-       (save-excursion
-	 (if (re-search-forward (sh-feature sh-assignment-regexp)
-				(prog1 (point)
-				  (beginning-of-line 1))
-				t)
-	     (match-string 1))))))
+  (sh--assignment-collect))
+
+(defun sh--assignment-collect ()
+  (sh-remember-variable
+   (when (eq ?= (char-before))
+     (save-excursion
+       (if (re-search-forward (sh-feature sh-assignment-regexp)
+			      (prog1 (point)
+			        (beginning-of-line 1))
+			      t)
+	   (match-string 1))))))
 
 
 (defun sh-maybe-here-document (arg)

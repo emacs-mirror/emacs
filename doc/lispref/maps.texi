@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Keymaps
@@ -21,7 +21,7 @@ keymaps, @pxref{Keymaps}.
 @c Don't add xrefs to things covered in {Keymaps}.
 @table @code
 @item 2C-mode-map
-A sparse keymap for subcommands of the prefix @kbd{C-x 6}.@*
+A sparse keymap for subcommands of the prefix @key{F2}.@*
 @xref{Two-Column,, Two-Column Editing, emacs, The GNU Emacs Manual}.
 
 @item abbrev-map
@@ -41,6 +41,9 @@ A sparse keymap for subcommands of the prefix @kbd{C-x 4}.
 
 @item ctl-x-5-map
 A sparse keymap for subcommands of the prefix @kbd{C-x 5}.
+
+@item ctl-x-6-map
+A sparse keymap for subcommands of the prefix @kbd{C-x 6}.
 
 @item ctl-x-map
 A full keymap for @kbd{C-x} commands.

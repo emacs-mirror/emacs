@@ -1,6 +1,6 @@
 ;;; faceup-test-this-file-directory.el --- Support file for faceup tests
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: languages, faces

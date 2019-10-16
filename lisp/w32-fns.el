@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for 32-bit Windows
 
-;; Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -304,6 +304,9 @@ names."
       name)))
 
 ;;;; System name and version for emacsbug.el
+
+(declare-function w32-version "w32-win" ())
+(declare-function w32-read-registry "w32fns" (root key name))
 
 (defun w32--os-description ()
   "Return a string describing the underlying OS and its version."

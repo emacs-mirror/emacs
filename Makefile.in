@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -65,6 +65,8 @@
 #        fail unpredictably
 
 SHELL = @SHELL@
+
+DUMPING=@DUMPING@
 
 # This only matters when inheriting a CDPATH not starting with the
 # current directory.
@@ -318,7 +320,8 @@ SUBDIR_MAKEFILES = $(patsubst ${srcdir}/%,%,${SUBDIR_MAKEFILES_IN:.in=})
 # Non-makefile files created by config.status.
 CONFIG_STATUS_FILES_IN = \
  ${srcdir}/nt/emacs.rc.in ${srcdir}/nt/emacsclient.rc.in \
- ${srcdir}/doc/man/emacs.1.in
+ ${srcdir}/doc/man/emacs.1.in ${srcdir}/src/emacs-module.h.in \
+ ${srcdir}/src/module-env-*.h
 
 # Subdirectories to install, and where they'll go.  lib-src's and nt's
 # makefiles know how to install them, so we don't do that here.
@@ -491,6 +494,9 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	$(MAKE) -C lib-src install
 ifeq (${ns_self_contained},no)
 	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)"
+ifeq (${DUMPING},pdumper)
+	${INSTALL_DATA} src/emacs.pdmp "$(DESTDIR)${libexecdir}/emacs/${version}/${configuration}"/emacs.pdmp
+endif
 	-chmod 755 "$(DESTDIR)${bindir}/$(EMACSFULL)"
 ifndef NO_BIN_LINK
 	rm -f "$(DESTDIR)${bindir}/$(EMACS)"
@@ -864,7 +870,7 @@ top_bootclean=\
 top_distclean=\
 	${top_bootclean}; \
 	rm -f config.status config.log~ \
-	  Makefile lib/gnulib.mk ${SUBDIR_MAKEFILES}
+	  Makefile makefile lib/gnulib.mk ${SUBDIR_MAKEFILES}
 
 distclean_dirs = $(clean_dirs) leim lisp
 
@@ -927,32 +933,34 @@ maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 ### Note that we abuse this in some subdirectories (eg leim),
 ### to delete some generated files that are slow to rebuild.
 extraclean_dirs = ${NTDIR} lib-src src leim \
-  admin/charsets admin/grammars admin/unidata
+  admin/charsets admin/grammars admin/unidata lisp lib
 
 $(foreach dir,$(extraclean_dirs),$(eval $(call submake_template,$(dir),extraclean)))
 
 extraclean: $(extraclean_dirs:=_extraclean)
 	${top_maintainer_clean}
-	-rm -f config-tmp-*
-	-rm -f ./*~ \#*
+	-rm -f config-tmp-* aclocal.m4 configure
+	-rm -f ./*~ \#* etc/refcards/emacsver.tex doc/emacs/emacsver.texi
+	-rm -f info/*.info info/dir
+	-rmdir info 2>/dev/null
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
 .PHONY: TAGS tags
-TAGS tags: lib lib-src src
+# FIXME: We used to include `src` in the dependencies, not sure why.
+# I removed it because it causes `make tags` to build Emacs.
+TAGS tags: lib lib-src # src
 	$(MAKE) -C src tags
 
-.PHONY: have-tests
-have-tests:
-	@if test ! -d test; then \
-	  echo "You do not seem to have the test/ directory."; \
-	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
-	 exit 1; \
-	fi
-
-.PHONY: check check-maybe check-expensive check-all
-check check-maybe check-expensive check-all: have-tests all
+CHECK_TARGETS = check check-maybe check-expensive check-all
+.PHONY: $(CHECK_TARGETS)
+$(CHECK_TARGETS): all
+ifeq ($(wildcard test),test)
 	$(MAKE) -C test $@
+else
+	@echo "You do not seem to have the test/ directory."
+	@echo "Maybe you used a release tarfile that lacks tests."
+endif
 
 dist:
 	cd ${srcdir}; ./make-dist

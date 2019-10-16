@@ -1,5 +1,5 @@
 /* Add entries to the GNU Emacs Program Manager folder.
-   Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -219,8 +219,9 @@ main (int argc, char *argv[])
 	{
 	  int result;
 
-	  char msg[ MAX_PATH ];
-	  sprintf (msg, "Install Emacs at %s?\n", emacs_path);
+	  const char install_msg[] = "Install Emacs at %s?\n";
+	  char msg[ MAX_PATH + sizeof (install_msg) ];
+	  sprintf (msg, install_msg, emacs_path);
 	  result = MessageBox (NULL, msg, "Install Emacs",
 			       MB_OKCANCEL | MB_ICONQUESTION);
 	  if (result != IDOK)

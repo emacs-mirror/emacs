@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This implements the most of CLOS's multiple-dispatch generic functions.
+;; This implements most of CLOS's multiple-dispatch generic functions.
 ;; To use it you need either (require 'cl-generic) or (require 'cl-lib).
 ;; The main entry points are: `cl-defgeneric' and `cl-defmethod'.
 
@@ -238,6 +238,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
       (push `(,args ,@options-and-methods) methods))
     (when (eq 'setf (car-safe name))
       (require 'gv)
+      (declare-function gv-setter "gv" (name))
       (setq name (gv-setter (cadr name))))
     `(prog1
          (progn
@@ -443,12 +444,13 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (setq args (pop body)))
     (when (eq 'setf (car-safe name))
       (require 'gv)
+      (declare-function gv-setter "gv" (name))
       (setq name (gv-setter (cadr name))))
     (pcase-let* ((`(,uses-cnm . ,fun) (cl--generic-lambda args body)))
       `(progn
          ,(and (get name 'byte-obsolete-info)
                (or (not (fboundp 'byte-compile-warning-enabled-p))
-                   (byte-compile-warning-enabled-p 'obsolete))
+                   (byte-compile-warning-enabled-p 'obsolete name))
                (let* ((obsolete (get name 'byte-obsolete-info)))
                  (macroexp--warn-and-return
                   (macroexp--obsolete-warning name obsolete "generic function")
@@ -909,7 +911,7 @@ Can only be used from within the lexical body of a primary or around method."
 ;;; Add support for describe-function
 
 (defun cl--generic-search-method (met-name)
-  "For `find-function-regexp-alist'. Searches for a cl-defmethod.
+  "For `find-function-regexp-alist'.  Searches for a cl-defmethod.
 MET-NAME is as returned by `cl--generic-load-hist-format'."
   (let ((base-re (concat "(\\(?:cl-\\)?defmethod[ \t]+"
                          (regexp-quote (format "%s" (car met-name)))

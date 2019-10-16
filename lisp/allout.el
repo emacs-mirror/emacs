@@ -1,9 +1,8 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
 ;; Keywords: outlines, wp, languages, PGP, GnuPG
@@ -79,12 +78,7 @@
 
 ;;;_* Dependency loads
 (require 'overlay)
-(eval-when-compile
-  ;; `cl' is required for `assert'.  `assert' is not covered by a standard
-  ;; autoload, but it is a macro, so that eval-when-compile is sufficient
-  ;; to byte-compile it in, or to do the require when the buffer evalled.
-  (require 'cl)
-  )
+(eval-when-compile (require 'cl-lib))
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
@@ -4351,7 +4345,7 @@ subtopics into siblings of the item."
             (let ((children-chart (allout-chart-subtree 1)))
               (if (listp (car children-chart))
                   ;; whoops:
-                  (setq children-chart (allout-flatten children-chart)))
+                  (setq children-chart (flatten-tree children-chart)))
               (save-excursion
                 (dolist (child-point children-chart)
                   (goto-char child-point)
@@ -5788,7 +5782,7 @@ BULLET string, and a list of TEXT strings for the body."
 					; "\end{verbatim}" in text,
 					; it's special:
 	(if (and body-content
-		 (setq bop (string-match "\\end{verbatim}" curr-line)))
+		 (setq bop (string-match "\\\\end{verbatim}" curr-line)))
 	    (setq curr-line (concat (substring curr-line 0 bop)
 				    ">"
 				    (substring curr-line bop))))
@@ -6122,13 +6116,13 @@ signal."
                                                           (point-max))))
     ;; determine key mode and, if keypair, recipients:
     (setq recipients
-          (case keypair-mode
+          (pcase keypair-mode
 
-            (decrypting nil)
+            ('decrypting nil)
 
-            (default (if encrypt-to (epg-list-keys epg-context encrypt-to)))
+            ('default (if encrypt-to (epg-list-keys epg-context encrypt-to)))
 
-            ((prompt prompt-save)
+            ((or 'prompt 'prompt-save)
              (save-window-excursion
                (epa-select-keys epg-context keypair-message)))))
 
@@ -6547,14 +6541,7 @@ If BEG is bigger than END we return 0."
   (apply 'concat
          (mapcar (lambda (char) (if (= char ?%) "%%" (char-to-string char)))
                  string)))
-;;;_  : lists
-;;;_   > allout-flatten (list)
-(defun allout-flatten (list)
-  "Return a list of all atoms in list."
-  ;; classic.
-  (cond ((null list) nil)
-        ((atom (car list)) (cons (car list) (allout-flatten (cdr list))))
-        (t (append (allout-flatten (car list)) (allout-flatten (cdr list))))))
+(define-obsolete-function-alias 'allout-flatten #'flatten-tree "27.1")
 ;;;_  : Compatibility:
 ;;;_   : xemacs undo-in-progress provision:
 (unless (boundp 'undo-in-progress)
@@ -6793,6 +6780,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 (defvar allout-tests-locally-true nil
   "Fodder for allout resumptions tests -- defvar just for byte compiler.")
 (defun allout-test-resumptions ()
+  ;; FIXME: Use ERT.
   "Exercise allout resumptions."
   ;; for each resumption case, we also test that the right local/global
   ;; scopes are affected during resumption effects:
@@ -6801,48 +6789,48 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (with-temp-buffer
     (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
     (allout-add-resumptions '(allout-tests-globally-unbound t))
-    (assert (not (default-boundp 'allout-tests-globally-unbound)))
-    (assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
-    (assert (boundp 'allout-tests-globally-unbound))
-    (assert (equal allout-tests-globally-unbound t))
+    (cl-assert (not (default-boundp 'allout-tests-globally-unbound)))
+    (cl-assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
+    (cl-assert (boundp 'allout-tests-globally-unbound))
+    (cl-assert (equal allout-tests-globally-unbound t))
     (allout-do-resumptions)
-    (assert (not (local-variable-p 'allout-tests-globally-unbound
+    (cl-assert (not (local-variable-p 'allout-tests-globally-unbound
                                    (current-buffer))))
-    (assert (not (boundp 'allout-tests-globally-unbound))))
+    (cl-assert (not (boundp 'allout-tests-globally-unbound))))
 
   ;; ensure that variable with prior global value is resumed
   (with-temp-buffer
     (allout-tests-obliterate-variable 'allout-tests-globally-true)
     (setq allout-tests-globally-true t)
     (allout-add-resumptions '(allout-tests-globally-true nil))
-    (assert (equal (default-value 'allout-tests-globally-true) t))
-    (assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
-    (assert (equal allout-tests-globally-true nil))
+    (cl-assert (equal (default-value 'allout-tests-globally-true) t))
+    (cl-assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
+    (cl-assert (equal allout-tests-globally-true nil))
     (allout-do-resumptions)
-    (assert (not (local-variable-p 'allout-tests-globally-true
+    (cl-assert (not (local-variable-p 'allout-tests-globally-true
                                    (current-buffer))))
-    (assert (boundp 'allout-tests-globally-true))
-    (assert (equal allout-tests-globally-true t)))
+    (cl-assert (boundp 'allout-tests-globally-true))
+    (cl-assert (equal allout-tests-globally-true t)))
 
   ;; ensure that prior local value is resumed
   (with-temp-buffer
     (allout-tests-obliterate-variable 'allout-tests-locally-true)
     (set (make-local-variable 'allout-tests-locally-true) t)
-    (assert (not (default-boundp 'allout-tests-locally-true))
+    (cl-assert (not (default-boundp 'allout-tests-locally-true))
             nil (concat "Test setup mistake -- variable supposed to"
                         " not have global binding, but it does."))
-    (assert (local-variable-p 'allout-tests-locally-true (current-buffer))
+    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer))
             nil (concat "Test setup mistake -- variable supposed to have"
                         " local binding, but it lacks one."))
     (allout-add-resumptions '(allout-tests-locally-true nil))
-    (assert (not (default-boundp 'allout-tests-locally-true)))
-    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (assert (equal allout-tests-locally-true nil))
+    (cl-assert (not (default-boundp 'allout-tests-locally-true)))
+    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
+    (cl-assert (equal allout-tests-locally-true nil))
     (allout-do-resumptions)
-    (assert (boundp 'allout-tests-locally-true))
-    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (assert (equal allout-tests-locally-true t))
-    (assert (not (default-boundp 'allout-tests-locally-true))))
+    (cl-assert (boundp 'allout-tests-locally-true))
+    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
+    (cl-assert (equal allout-tests-locally-true t))
+    (cl-assert (not (default-boundp 'allout-tests-locally-true))))
 
   ;; ensure that last of multiple resumptions holds, for various scopes.
   (with-temp-buffer
@@ -6858,27 +6846,27 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
                             '(allout-tests-globally-true 3)
                             '(allout-tests-locally-true 4))
     ;; reestablish many of the basic conditions are maintained after re-add:
-    (assert (not (default-boundp 'allout-tests-globally-unbound)))
-    (assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
-    (assert (equal allout-tests-globally-unbound 2))
-    (assert (default-boundp 'allout-tests-globally-true))
-    (assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
-    (assert (equal allout-tests-globally-true 3))
-    (assert (not (default-boundp 'allout-tests-locally-true)))
-    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (assert (equal allout-tests-locally-true 4))
+    (cl-assert (not (default-boundp 'allout-tests-globally-unbound)))
+    (cl-assert (local-variable-p 'allout-tests-globally-unbound (current-buffer)))
+    (cl-assert (equal allout-tests-globally-unbound 2))
+    (cl-assert (default-boundp 'allout-tests-globally-true))
+    (cl-assert (local-variable-p 'allout-tests-globally-true (current-buffer)))
+    (cl-assert (equal allout-tests-globally-true 3))
+    (cl-assert (not (default-boundp 'allout-tests-locally-true)))
+    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
+    (cl-assert (equal allout-tests-locally-true 4))
     (allout-do-resumptions)
-    (assert (not (local-variable-p 'allout-tests-globally-unbound
+    (cl-assert (not (local-variable-p 'allout-tests-globally-unbound
                                    (current-buffer))))
-    (assert (not (boundp 'allout-tests-globally-unbound)))
-    (assert (not (local-variable-p 'allout-tests-globally-true
+    (cl-assert (not (boundp 'allout-tests-globally-unbound)))
+    (cl-assert (not (local-variable-p 'allout-tests-globally-true
                                    (current-buffer))))
-    (assert (boundp 'allout-tests-globally-true))
-    (assert (equal allout-tests-globally-true t))
-    (assert (boundp 'allout-tests-locally-true))
-    (assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
-    (assert (equal allout-tests-locally-true t))
-    (assert (not (default-boundp 'allout-tests-locally-true))))
+    (cl-assert (boundp 'allout-tests-globally-true))
+    (cl-assert (equal allout-tests-globally-true t))
+    (cl-assert (boundp 'allout-tests-locally-true))
+    (cl-assert (local-variable-p 'allout-tests-locally-true (current-buffer)))
+    (cl-assert (equal allout-tests-locally-true t))
+    (cl-assert (not (default-boundp 'allout-tests-locally-true))))
 
   ;; ensure that deliberately unbinding registered variables doesn't foul things
   (with-temp-buffer

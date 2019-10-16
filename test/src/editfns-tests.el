@@ -1,6 +1,6 @@
 ;;; editfns-tests.el -- tests for editfns.c
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -165,13 +165,9 @@
   (should (string-equal (format "%d" -18446744073709551616.0)
                         "-18446744073709551616")))
 
-;;; Perhaps Emacs will be improved someday to return the correct
-;;; answer for positive numbers instead of overflowing; in
-;;; that case these tests will need to be changed.  In the meantime make
-;;; sure Emacs is reporting the overflow correctly.
 (ert-deftest format-%x-large-float ()
-  (should-error (format "%x" 18446744073709551616.0)
-                :type 'overflow-error))
+  (should (string-equal (format "%x" 18446744073709551616.0)
+                        "10000000000000000")))
 (ert-deftest read-large-integer ()
   (should (eq (type-of (read (format "%d0" most-negative-fixnum))) 'integer))
   (should (eq (type-of (read (format "%+d" (* -8.0 most-negative-fixnum))))
@@ -184,16 +180,20 @@
               'integer))
   (should (eq (type-of (read (format "#32rG%x" most-positive-fixnum)))
               'integer))
-  (let ((binary-as-unsigned nil))
-    (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
-      (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
-                         -1 0 1
-                         (1- most-positive-fixnum) most-positive-fixnum))
-        (should (eq val (read (format fmt val))))))))
+  (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
+    (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
+		       -1 0 1
+		       (1- most-positive-fixnum) most-positive-fixnum))
+      (should (eq val (read (format fmt val)))))
+    (dolist (val (list (1+ most-positive-fixnum)
+		       (* 2 (1+ most-positive-fixnum))
+		       (* 4 (1+ most-positive-fixnum))
+		       (* 8 (1+ most-positive-fixnum))
+		       18446744073709551616.0))
+      (should (= val (read (format fmt val)))))))
 
-(ert-deftest format-%o-invalid-float ()
-  (should-error (format "%o" -1e-37)
-                :type 'overflow-error))
+(ert-deftest format-%o-negative-float ()
+  (should (string-equal (format "%o" -1e-37) "0")))
 
 ;; Bug#31938
 (ert-deftest format-%d-float ()
@@ -352,7 +352,10 @@
                    "-0x000000003ffffffffffffffe000000000000000        "))))
 
 (ert-deftest test-group-name ()
-  (should (stringp (group-name (group-gid))))
+  (let ((group-name (group-name (group-gid))))
+    ;; If the GID has no associated entry in /etc/group there's no
+    ;; name for it and `group-name' should return nil!
+    (should (or (null group-name) (stringp group-name))))
   (should-error (group-name 'foo))
   (cond
    ((memq system-type '(windows-nt ms-dos))
@@ -372,5 +375,14 @@
                    (should (string= (match-string 1) name))))
               ((eq stat 2)
                (should-not name)))))))))
+
+(ert-deftest test-translate-region-internal ()
+  (with-temp-buffer
+    (let ((max-char #16r3FFFFF)
+          (tt (make-char-table 'translation-table)))
+      (aset tt max-char ?*)
+      (insert max-char)
+      (translate-region-internal (point-min) (point-max) tt)
+      (should (string-equal (buffer-string) "*")))))
 
 ;;; editfns-tests.el ends here

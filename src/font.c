@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2018 Free Software Foundation, Inc.
+Copyright (C) 2006-2019 Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "font.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -709,7 +710,9 @@ font_prop_validate (int idx, Lisp_Object prop, Lisp_Object val)
 
 
 /* Store VAL as a value of extra font property PROP in FONT while
-   keeping the sorting order.  Don't check the validity of VAL.  */
+   keeping the sorting order.  Don't check the validity of VAL.  If
+   VAL is Qunbound, delete the slot for PROP from the list of extra
+   properties.  */
 
 Lisp_Object
 font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
@@ -721,6 +724,8 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
     {
       Lisp_Object prev = Qnil;
 
+      if (EQ (val, Qunbound))
+	return val;
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
 	prev = extra, extra = XCDR (extra);
@@ -733,7 +738,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
       return val;
     }
   XSETCDR (slot, val);
-  if (NILP (val))
+  if (EQ (val, Qunbound))
     ASET (font, FONT_EXTRA_INDEX, Fdelq (slot, extra));
   return val;
 }
@@ -1006,7 +1011,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 }
 
 
-/* Parse NAME (null terminated) as XLFD and store information in FONT
+/* Parse NAME (NUL terminated) as XLFD and store information in FONT
    (font-spec or font-entity).  Size property of FONT is set as
    follows:
 	specified XLFD fields		FONT property
@@ -1290,14 +1295,12 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   if (INTEGERP (val))
     {
       intmax_t v;
-      if (! (integer_to_intmax (val, &v)
-	     && 0 < v && v <= TYPE_MAXIMUM (uprintmax_t)))
+      if (! (integer_to_intmax (val, &v) && 0 < v))
 	v = pixel_size;
       if (v > 0)
 	{
-	  uprintmax_t u = v;
 	  f[XLFD_PIXEL_INDEX] = p = font_size_index_buf;
-	  sprintf (p, "%"pMu"-*", u);
+	  sprintf (p, "%"PRIdMAX"-*", v);
 	}
       else
 	f[XLFD_PIXEL_INDEX] = "*-*";
@@ -1352,7 +1355,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   return len < nbytes ? len : -1;
 }
 
-/* Parse NAME (null terminated) and store information in FONT
+/* Parse NAME (NUL terminated) and store information in FONT
    (font-spec or font-entity).  NAME is supplied in either the
    Fontconfig or GTK font name format.  If NAME is successfully
    parsed, return 0.  Otherwise return -1.
@@ -1724,7 +1727,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 
 #endif
 
-/* Parse NAME (null terminated) and store information in FONT
+/* Parse NAME (NUL terminated) and store information in FONT
    (font-spec or font-entity).  If NAME is successfully parsed, return
    0.  Otherwise return -1.  */
 
@@ -2174,13 +2177,12 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 static Lisp_Object
 font_vconcat_entity_vectors (Lisp_Object list)
 {
-  EMACS_INT nargs = XFIXNAT (Flength (list));
+  ptrdiff_t nargs = list_length (list);
   Lisp_Object *args;
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (args, nargs);
-  ptrdiff_t i;
 
-  for (i = 0; i < nargs; i++, list = XCDR (list))
+  for (ptrdiff_t i = 0; i < nargs; i++, list = XCDR (list))
     args[i] = XCAR (list);
   Lisp_Object result = Fvconcat (nargs, args);
   SAFE_FREE ();
@@ -2640,7 +2642,7 @@ font_clear_cache (struct frame *f, Lisp_Object cache,
 		      if (! NILP (AREF (val, FONT_TYPE_INDEX)))
 			{
 			  eassert (font && driver == font->driver);
-			  driver->close (font);
+			  driver->close_font (font);
 			}
 		    }
 		  if (driver->free_entity)
@@ -2781,7 +2783,7 @@ font_list_entities (struct frame *f, Lisp_Object spec)
 	  {
 	    Lisp_Object copy;
 
-	    val = driver_list->driver->list (f, scratch_font_spec);
+	    val = (driver_list->driver->list) (f, scratch_font_spec);
 	    /* We put zero_vector in the font-cache to indicate that
 	       no fonts matching SPEC were found on the system.
 	       Failure to have this indication in the font cache can
@@ -2900,7 +2902,7 @@ font_open_entity (struct frame *f, Lisp_Object entity, int pixel_size)
      width and height.  */
   for (psize = pixel_size; ; psize++)
     {
-      font_object = driver_list->driver->open (f, entity, psize);
+      font_object = driver_list->driver->open_font (f, entity, psize);
       if (NILP (font_object))
 	return Qnil;
       font = XFONT_OBJECT (font_object);
@@ -2960,7 +2962,7 @@ font_close_object (struct frame *f, Lisp_Object font_object)
     /* Already closed.  */
     return;
   FONT_ADD_LOG ("close", font_object, Qnil);
-  font->driver->close (font);
+  font->driver->close_font (font);
 #ifdef HAVE_WINDOW_SYSTEM
   eassert (FRAME_DISPLAY_INFO (f)->n_fonts);
   FRAME_DISPLAY_INFO (f)->n_fonts--;
@@ -3055,7 +3057,7 @@ font_clear_prop (Lisp_Object *attrs, enum font_property_index prop)
   if (! NILP (Ffont_get (font, QCname)))
     {
       font = copy_font_spec (font);
-      font_put_extra (font, QCname, Qnil);
+      font_put_extra (font, QCname, Qunbound);
     }
 
   if (NILP (AREF (font, prop))
@@ -3241,7 +3243,7 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 
       if (! NILP (alters))
 	{
-	  EMACS_INT alterslen = XFIXNAT (Flength (alters));
+	  EMACS_INT alterslen = list_length (alters);
 	  SAFE_ALLOCA_LISP (family, alterslen + 2);
 	  for (i = 0; CONSP (alters); i++, alters = XCDR (alters))
 	    family[i] = XCAR (alters);
@@ -3312,6 +3314,10 @@ font_open_for_lface (struct frame *f, Lisp_Object entity, Lisp_Object *attrs, Li
 	    pt = XFIXNUM (attrs[LFACE_HEIGHT_INDEX]);
 	  else
 	    {
+	      /* We need the default face to be valid below.  */
+	      if (FRAME_FACE_CACHE (f)->used == 0)
+		recompute_basic_faces (f);
+
 	      struct face *def = FACE_FROM_ID (f, DEFAULT_FACE_ID);
 	      Lisp_Object height = def->lface[LFACE_HEIGHT_INDEX];
 	      eassert (FIXNUMP (height));
@@ -3518,7 +3524,10 @@ free_font_driver_list (struct frame *f)
 
 /* Make the frame F use font backends listed in NEW_DRIVERS (list of
    symbols, e.g. xft, x).  If NEW_DRIVERS is t, make F use all
-   available font drivers.  If NEW_DRIVERS is nil, finalize all drivers.
+   available font drivers that are not superseded by another driver.
+   (A font driver SYMBOL is superseded by the driver specified by
+   SYMBOL's 'font-driver-superseded-by property if it is a non-nil
+   symbol.)  If NEW_DRIVERS is nil, finalize all drivers.
 
    A caller must free all realized faces if any in advance.  The
    return value is a list of font backends actually made used on
@@ -3527,16 +3536,33 @@ free_font_driver_list (struct frame *f)
 Lisp_Object
 font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 {
-  Lisp_Object active_drivers = Qnil;
+  Lisp_Object active_drivers = Qnil, default_drivers = Qnil;
   struct font_driver_list *list;
+
+  /* Collect all unsuperseded driver symbols into
+     `default_drivers'.  */
+  Lisp_Object all_drivers = Qnil;
+  for (list = f->font_driver_list; list; list = list->next)
+    all_drivers = Fcons (list->driver->type, all_drivers);
+  for (Lisp_Object rest = all_drivers; CONSP (rest); rest = XCDR (rest))
+    {
+      Lisp_Object superseded_by
+	= Fget (XCAR (rest), Qfont_driver_superseded_by);
+
+      if (NILP (superseded_by)
+	  || NILP (Fmemq (superseded_by, all_drivers)))
+	default_drivers = Fcons (XCAR (rest), default_drivers);
+    }
+
+  if (EQ (new_drivers, Qt))
+    new_drivers = default_drivers;
 
   /* At first, turn off non-requested drivers, and turn on requested
      drivers.  */
   for (list = f->font_driver_list; list; list = list->next)
     {
       struct font_driver const *driver = list->driver;
-      if ((EQ (new_drivers, Qt) || ! NILP (Fmemq (driver->type, new_drivers)))
-	  != list->on)
+      if ((! NILP (Fmemq (driver->type, new_drivers))) != list->on)
 	{
 	  if (list->on)
 	    {
@@ -3559,8 +3585,7 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 
   if (NILP (new_drivers))
     return Qnil;
-
-  if (! EQ (new_drivers, Qt))
+  else
     {
       /* Re-order the driver list according to new_drivers.  */
       struct font_driver_list **list_table, **next;
@@ -3599,6 +3624,8 @@ font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 	    {
 	      struct font_driver const *driver = list->driver;
 	      eassert (! list->on);
+	      if (NILP (Fmemq (driver->type, default_drivers)))
+		continue;
 	      if (! driver->start_for_frame
 		  || driver->start_for_frame (f) == 0)
 		{
@@ -4335,7 +4362,7 @@ the consecutive wildcards are folded into one.  */)
 
       while ((p1 = strstr (p0, "-*-*")))
 	{
-	  strcpy (p1, p1 + 2);
+	  memmove (p1, p1 + 2, (name + namelen + 1) - (p1 + 2));
 	  namelen -= 2;
 	  p0 = p1;
 	}
@@ -4397,18 +4424,22 @@ font_fill_lglyph_metrics (Lisp_Object glyph, Lisp_Object font_object)
 }
 
 
-DEFUN ("font-shape-gstring", Ffont_shape_gstring, Sfont_shape_gstring, 1, 1, 0,
-       doc: /* Shape the glyph-string GSTRING.
+DEFUN ("font-shape-gstring", Ffont_shape_gstring, Sfont_shape_gstring, 2, 2, 0,
+       doc: /* Shape the glyph-string GSTRING subject to bidi DIRECTION.
 Shaping means substituting glyphs and/or adjusting positions of glyphs
 to get the correct visual image of character sequences set in the
 header of the glyph-string.
+
+DIRECTION should be produced by the UBA, the Unicode Bidirectional
+Algorithm, and should be a symbol, either L2R or R2L.  It can also
+be nil if the bidi context is unknown.
 
 If the shaping was successful, the value is GSTRING itself or a newly
 created glyph-string.  Otherwise, the value is nil.
 
 See the documentation of `composition-get-gstring' for the format of
 GSTRING.  */)
-  (Lisp_Object gstring)
+  (Lisp_Object gstring, Lisp_Object direction)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
@@ -4427,7 +4458,7 @@ GSTRING.  */)
   /* Try at most three times with larger gstring each time.  */
   for (i = 0; i < 3; i++)
     {
-      n = font->driver->shape (gstring);
+      n = font->driver->shape (gstring, direction);
       if (FIXNUMP (n))
 	break;
       gstring = larger_vector (gstring,
@@ -4478,11 +4509,11 @@ GSTRING.  */)
 
 DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,
        2, 2, 0,
-       doc: /* Return a list of variation glyphs for CHAR in FONT-OBJECT.
+       doc: /* Return a list of variation glyphs for CHARACTER in FONT-OBJECT.
 Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
 where
-  VARIATION-SELECTOR is a character code of variation selection
-    (#xFE00..#xFE0F or #xE0100..#xE01EF)
+  VARIATION-SELECTOR is a character code of variation selector
+    (#xFE00..#xFE0F or #xE0100..#xE01EF).
   GLYPH-ID is a glyph code of the corresponding variation glyph,
 a fixnum, if it's small enough, otherwise a bignum.  */)
   (Lisp_Object font_object, Lisp_Object character)
@@ -5310,9 +5341,10 @@ syms_of_font (void)
   sort_shift_bits[FONT_SIZE_INDEX] = 16;
   sort_shift_bits[FONT_WIDTH_INDEX] = 23;
   /* Note that the other elements in sort_shift_bits are not used.  */
+  PDUMPER_REMEMBER_SCALAR (sort_shift_bits);
 
-  staticpro (&font_charset_alist);
   font_charset_alist = Qnil;
+  staticpro (&font_charset_alist);
 
   DEFSYM (Qopentype, "opentype");
 
@@ -5350,13 +5382,19 @@ syms_of_font (void)
 
   DEFSYM (QCuser_spec, ":user-spec");
 
-  staticpro (&scratch_font_spec);
-  scratch_font_spec = Ffont_spec (0, NULL);
-  staticpro (&scratch_font_prefer);
-  scratch_font_prefer = Ffont_spec (0, NULL);
+  /* For shapers that need to know text directionality.  */
+  DEFSYM (QL2R, "L2R");
+  DEFSYM (QR2L, "R2L");
 
-  staticpro (&Vfont_log_deferred);
+  DEFSYM (Qfont_driver_superseded_by, "font-driver-superseded-by");
+
+  scratch_font_spec = Ffont_spec (0, NULL);
+  staticpro (&scratch_font_spec);
+  scratch_font_prefer = Ffont_spec (0, NULL);
+  staticpro (&scratch_font_prefer);
+
   Vfont_log_deferred = make_nil_vector (3);
+  staticpro (&Vfont_log_deferred);
 
 #if 0
 #ifdef HAVE_LIBOTF
@@ -5475,7 +5513,14 @@ and cannot switch to a smaller font for those characters, set
 this variable non-nil.
 Disabling compaction of font caches might enlarge the Emacs memory
 footprint in sessions that use lots of different fonts.  */);
+
+#ifdef WINDOWSNT
+  /* Compacting font caches causes slow redisplay on Windows with many
+     large fonts, so we disable it by default.  */
+  inhibit_compacting_font_caches = 1;
+#else
   inhibit_compacting_font_caches = 0;
+#endif
 
   DEFVAR_BOOL ("xft-ignore-color-fonts",
 	       Vxft_ignore_color_fonts,
@@ -5488,10 +5533,10 @@ cause Xft crashes.  Only has an effect in Xft builds.  */);
 #ifdef HAVE_FREETYPE
   syms_of_ftfont ();
 #ifdef HAVE_X_WINDOWS
+  syms_of_xfont ();
 #ifdef USE_CAIRO
   syms_of_ftcrfont ();
 #else
-  syms_of_xfont ();
   syms_of_ftxfont ();
 #ifdef HAVE_XFT
   syms_of_xftfont ();

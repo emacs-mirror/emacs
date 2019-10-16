@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Errors
@@ -140,8 +140,10 @@ emacs, The GNU Emacs Manual}.
 The message is @samp{Invalid function}.  @xref{Function Indirection}.
 
 @item invalid-read-syntax
-The message is @samp{Invalid read syntax}.  @xref{Printed
-Representation}.
+The message is usually @samp{Invalid read syntax}.  @xref{Printed
+Representation}.  This error can also be raised by commands like
+@code{eval-expression} when there's text following an expression.  In
+that case, the message is @samp{Trailing garbage following expression}.
 
 @item invalid-regexp
 The message is @samp{Invalid regexp}.  @xref{Regular Expressions}.

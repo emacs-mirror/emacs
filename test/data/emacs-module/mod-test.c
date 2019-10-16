@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,11 +17,29 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#include "config.h"
+
+#undef NDEBUG
 #include <assert.h>
+
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
+#include <string.h>
+#include <time.h>
+
+#ifdef HAVE_GMP
+#include <gmp.h>
+#else
+#include "mini-gmp.h"
+#define EMACS_MODULE_HAVE_MPZ_T
+#endif
+
+#define EMACS_MODULE_GMP
 #include <emacs-module.h>
+
+#include "timespec.h"
 
 int plugin_is_GPL_compatible;
 
@@ -86,7 +104,7 @@ Fmod_test_signal (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
   env->non_local_exit_signal (env, env->intern (env, "error"),
 			      env->make_integer (env, 56));
-  return env->intern (env, "nil");
+  return NULL;
 }
 
 
@@ -98,7 +116,7 @@ Fmod_test_throw (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
   env->non_local_exit_throw (env, env->intern (env, "tag"),
 			     env->make_integer (env, 65));
-  return env->intern (env, "nil");
+  return NULL;
 }
 
 
@@ -296,9 +314,98 @@ Fmod_test_invalid_finalizer (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 {
   current_env = env;
   env->make_user_ptr (env, invalid_finalizer, NULL);
-  return env->funcall (env, env->intern (env, "garbage-collect"), 0, NULL);
+  return env->intern (env, "nil");
 }
 
+static void
+signal_errno (emacs_env *env, const char *function)
+{
+  const char *message = strerror (errno);
+  emacs_value message_value = env->make_string (env, message, strlen (message));
+  emacs_value symbol = env->intern (env, "file-error");
+  emacs_value elements[2]
+    = {env->make_string (env, function, strlen (function)), message_value};
+  emacs_value data = env->funcall (env, env->intern (env, "list"), 2, elements);
+  env->non_local_exit_signal (env, symbol, data);
+}
+
+/* A long-running operation that occasionally calls `should_quit' or
+   `process_input'.  */
+
+static emacs_value
+Fmod_test_sleep_until (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                       void *data)
+{
+  assert (nargs == 2);
+  const struct timespec until = env->extract_time (env, args[0]);
+  if (env->non_local_exit_check (env))
+    return NULL;
+  const bool process_input = env->is_not_nil (env, args[1]);
+  const struct timespec amount = make_timespec(0,  10000000);
+  while (true)
+    {
+      const struct timespec now = current_timespec ();
+      if (timespec_cmp (now, until) >= 0)
+        break;
+      if (nanosleep (&amount, NULL) && errno != EINTR)
+        {
+          signal_errno (env, "nanosleep");
+          return NULL;
+        }
+      if ((process_input
+           && env->process_input (env) == emacs_process_input_quit)
+          || env->should_quit (env))
+        return NULL;
+    }
+  return env->intern (env, "finished");
+}
+
+static emacs_value
+Fmod_test_add_nanosecond (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                          void *data)
+{
+  assert (nargs == 1);
+  struct timespec time = env->extract_time (env, args[0]);
+  assert (time.tv_nsec >= 0);
+  assert (time.tv_nsec < 2000000000);  /* possible leap second */
+  time.tv_nsec++;
+  return env->make_time (env, time);
+}
+
+static emacs_value
+Fmod_test_nanoseconds (emacs_env *env, ptrdiff_t nargs, emacs_value *args, void *data) {
+  assert (nargs == 1);
+  struct timespec time = env->extract_time (env, args[0]);
+  struct emacs_mpz nanoseconds;
+  assert (LONG_MIN <= time.tv_sec && time.tv_sec <= LONG_MAX);
+  mpz_init_set_si (nanoseconds.value, time.tv_sec);
+#ifdef __MINGW32__
+  _Static_assert (1000000000 <= ULONG_MAX, "unsupported architecture");
+#else
+  static_assert (1000000000 <= ULONG_MAX, "unsupported architecture");
+#endif
+  mpz_mul_ui (nanoseconds.value, nanoseconds.value, 1000000000);
+  assert (0 <= time.tv_nsec && time.tv_nsec <= ULONG_MAX);
+  mpz_add_ui (nanoseconds.value, nanoseconds.value, time.tv_nsec);
+  emacs_value result = env->make_big_integer (env, &nanoseconds);
+  mpz_clear (nanoseconds.value);
+  return result;
+}
+
+static emacs_value
+Fmod_test_double (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                  void *data)
+{
+  assert (nargs == 1);
+  emacs_value arg = args[0];
+  struct emacs_mpz value;
+  mpz_init (value.value);
+  env->extract_big_integer (env, arg, &value);
+  mpz_mul_ui (value.value, value.value, 2);
+  emacs_value result = env->make_big_integer (env, &value);
+  mpz_clear (value.value);
+  return result;
+}
 
 /* Lisp utilities for easier readability (simple wrappers).  */
 
@@ -328,6 +435,11 @@ bind_function (emacs_env *env, const char *name, emacs_value Sfun)
 int
 emacs_module_init (struct emacs_runtime *ert)
 {
+  /* Check that EMACS_MAJOR_VERSION is defined and an integral
+     constant.  */
+  char dummy[EMACS_MAJOR_VERSION];
+  assert (27 <= sizeof dummy);
+
   if (ert->size < sizeof *ert)
     {
       fprintf (stderr, "Runtime size of runtime structure (%"pT" bytes) "
@@ -367,6 +479,10 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-invalid-load", Fmod_test_invalid_load, 0, 0, NULL, NULL);
   DEFUN ("mod-test-invalid-finalizer", Fmod_test_invalid_finalizer, 0, 0,
          NULL, NULL);
+  DEFUN ("mod-test-sleep-until", Fmod_test_sleep_until, 2, 2, NULL, NULL);
+  DEFUN ("mod-test-add-nanosecond", Fmod_test_add_nanosecond, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-nanoseconds", Fmod_test_nanoseconds, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-double", Fmod_test_double, 1, 1, NULL, NULL);
 
 #undef DEFUN
 

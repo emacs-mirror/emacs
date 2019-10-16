@@ -1,6 +1,6 @@
 ;;; semantic/dep.el --- Methods for tracking dependencies (include files)
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

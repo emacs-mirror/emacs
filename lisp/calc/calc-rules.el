@@ -1,6 +1,6 @@
 ;;; calc-rules.el --- rules for simplifying algebraic expressions in Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 

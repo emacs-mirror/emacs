@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
-   Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "window.h"
 #include "region-cache.h"
+#include "pdumper.h"
 
 static void insert_from_string_1 (Lisp_Object, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				  ptrdiff_t, bool, bool);
@@ -114,7 +115,7 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
   i = GPT_BYTE;
   to = GAP_END_ADDR;
   from = GPT_ADDR;
-  new_s1 = GPT_BYTE;
+  new_s1 = GPT_BYTE; /* May point in the middle of multibyte sequences.  */
 
   /* Now copy the characters.  To move the gap down,
      copy characters up.  */
@@ -132,11 +133,17 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
 	 make_gap_smaller set inhibit-quit.  */
       if (QUITP)
 	{
+          /* FIXME: This can point in the middle of a multibyte character.  */
 	  bytepos = new_s1;
 	  charpos = BYTE_TO_CHAR (bytepos);
 	  break;
 	}
       /* Move at most 32000 chars before checking again for a quit.  */
+      /* FIXME: This 32KB chunk size dates back to before 1991.
+         Maybe we should bump it to reflect the >1000x increase
+         in memory size and bandwidth since that time.
+         Is it even worthwhile checking `quit` within this loop?
+         Especially since make_gap_smaller/larger binds inhibit-quit anyway!  */
       if (i > 32000)
 	i = 32000;
       new_s1 -= i;
@@ -163,7 +170,7 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   register unsigned char *to, *from;
   register ptrdiff_t i;
-  ptrdiff_t new_s1;
+  ptrdiff_t new_s1; /* May point in the middle of multibyte sequences.  */
 
   BUF_COMPUTE_UNCHANGED (current_buffer, charpos, GPT);
 
@@ -188,6 +195,7 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
 	 make_gap_smaller set inhibit-quit.  */
       if (QUITP)
 	{
+          /* FIXME: This can point in the middle of a multibyte character.  */
 	  bytepos = new_s1;
 	  charpos = BYTE_TO_CHAR (bytepos);
 	  break;
@@ -707,7 +715,7 @@ insert_char (int c)
   insert ((char *) str, len);
 }
 
-/* Insert the null-terminated string S before point.  */
+/* Insert the NUL-terminated string S before point.  */
 
 void
 insert_string (const char *s)
@@ -902,7 +910,7 @@ insert_1_both (const char *string,
      the insertion.  This, together with recording the insertion,
      will add up to the right stuff in the undo list.  */
   record_insert (PT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   memcpy (GPT_ADDR, string, nbytes);
@@ -1030,7 +1038,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 #endif
 
   record_insert (PT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1071,6 +1079,34 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
    starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
+   GPT_ADDR (if not text_at_gap_tail).
+   Contrary to insert_from_gap, this does not invalidate any cache,
+   nor update any markers, nor record any buffer modification information
+   of any sort.  */
+void
+insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
+{
+  eassert (NILP (BVAR (current_buffer, enable_multibyte_characters))
+           ? nchars == nbytes : nchars <= nbytes);
+
+  GAP_SIZE -= nbytes;
+  if (! text_at_gap_tail)
+    {
+      GPT += nchars;
+      GPT_BYTE += nbytes;
+    }
+  ZV += nchars;
+  Z += nchars;
+  ZV_BYTE += nbytes;
+  Z_BYTE += nbytes;
+
+  /* Put an anchor to ensure multi-byte form ends at gap.  */
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0;
+  eassert (GPT <= GPT_BYTE);
+}
+
+/* Insert a sequence of NCHARS chars which occupy NBYTES bytes
+   starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
    GPT_ADDR (if not text_at_gap_tail).  */
 
 void
@@ -1087,21 +1123,9 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
      of this dance.  */
   invalidate_buffer_caches (current_buffer, GPT, GPT);
   record_insert (GPT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
 
-  GAP_SIZE -= nbytes;
-  if (! text_at_gap_tail)
-    {
-      GPT += nchars;
-      GPT_BYTE += nbytes;
-    }
-  ZV += nchars;
-  Z += nchars;
-  ZV_BYTE += nbytes;
-  Z_BYTE += nbytes;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-
-  eassert (GPT <= GPT_BYTE);
+  insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 
   adjust_overlays_for_insert (ins_charpos, nchars);
   adjust_markers_for_insert (ins_charpos, ins_bytepos,
@@ -1227,7 +1251,7 @@ insert_from_buffer_1 (struct buffer *buf,
 #endif
 
   record_insert (PT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1328,7 +1352,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 
   if (len == 0)
     evaporate_overlays (from);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 }
 
@@ -1523,7 +1547,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   check_markers ();
 
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   if (adjust_match_data)
@@ -1654,7 +1678,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   check_markers ();
 
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 }
 
@@ -1829,7 +1853,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
      at the end of the text before the gap.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   /* Relocate point as if it were a marker.  */
@@ -1883,7 +1907,7 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   BUF_COMPUTE_UNCHANGED (current_buffer, start - 1, end);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   bset_point_before_scroll (current_buffer, Qnil);
@@ -1926,6 +1950,14 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
   XSETFASTINT (temp, start);
   if (!NILP (BVAR (current_buffer, read_only)))
     Fbarf_if_buffer_read_only (temp);
+
+  /* If we're about to modify a buffer the contents of which come from
+     a dump file, copy the contents to private storage first so we
+     don't take a COW fault on the buffer text and keep it around
+     forever.  */
+  if (pdumper_object_p (BEG_ADDR))
+    enlarge_buffer_text (current_buffer, 0);
+  eassert (!pdumper_object_p (BEG_ADDR));
 
   run_undoable_change();
 
@@ -1970,7 +2002,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
     Vsaved_region_selection
-      = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
+      = call1 (Vregion_extract_function, Qnil);
 
   signal_before_change (start, end, preserve_ptr);
   Fset (Qdeactivate_mark, Qt);
@@ -2169,6 +2201,7 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
+  Lisp_Object tmp, save_insert_behind_hooks, save_insert_in_from_hooks;
 
   if (inhibit_modification_hooks)
     return;
@@ -2177,7 +2210,16 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
      and there are no before-change functions,
      just record the args that we were going to use.  */
   if (! NILP (Vcombine_after_change_calls)
-      && NILP (Vbefore_change_functions)
+      /* It's OK to defer after-changes even if syntax-ppss-flush-cache
+       * is on before-change-functions, which is common enough to be worth
+       * adding a special case for it.  */
+      && (NILP (Vbefore_change_functions)
+          || (CONSP (Vbefore_change_functions)
+              && EQ (Qt, XCAR (Vbefore_change_functions))
+              && NILP (Fdefault_value (Qbefore_change_functions))
+              && CONSP (tmp = XCDR (Vbefore_change_functions))
+              && NILP (XCDR (tmp))
+              && EQ (XCAR (tmp), Qsyntax_ppss_flush_cache)))
       && !buffer_has_overlays ())
     {
       Lisp_Object elt;
@@ -2194,6 +2236,12 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 
       return;
     }
+
+  /* Save and restore the insert-*-hooks, because other hooks like
+     after-change-functions, called below, could clobber them if they
+     manipulate text properties.  */
+  save_insert_behind_hooks = interval_insert_behind_hooks;
+  save_insert_in_from_hooks = interval_insert_in_front_hooks;
 
   if (!NILP (combine_after_change_list))
     Fcombine_after_change_execute ();
@@ -2216,6 +2264,9 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
       /* There was no error: unarm the reset_on_error.  */
       rvoe_arg.errorp = 0;
     }
+
+  interval_insert_behind_hooks = save_insert_behind_hooks;
+  interval_insert_in_front_hooks = save_insert_in_from_hooks;
 
   if (buffer_has_overlays ())
     report_overlay_modification (make_fixnum (charpos),
@@ -2255,7 +2306,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
 
   /* It is rare for combine_after_change_buffer to be invalid, but
      possible.  It can happen when combine-after-change-calls is
-     non-nil, and insertion calls a file handler (e.g. through
+     non-nil, and insertion calls a file name handler (e.g. through
      lock_file) which scribbles into a temp file -- cyd  */
   if (!BUFFERP (combine_after_change_buffer)
       || !BUFFER_LIVE_P (XBUFFER (combine_after_change_buffer)))
@@ -2334,6 +2385,7 @@ syms_of_insdel (void)
   combine_after_change_buffer = Qnil;
 
   DEFSYM (Qundo_auto__undoable_change, "undo-auto--undoable-change");
+  DEFSYM (Qsyntax_ppss_flush_cache, "syntax-ppss-flush-cache");
 
   DEFVAR_LISP ("combine-after-change-calls", Vcombine_after_change_calls,
 	       doc: /* Used internally by the function `combine-after-change-calls' macro.  */);
@@ -2348,8 +2400,6 @@ whether files are locked by another Emacs session, as well as
 handling of the active region per `select-active-regions'.  */);
   inhibit_modification_hooks = 0;
   DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
-
-  DEFSYM (Qregion_extract_function, "region-extract-function");
 
   defsubr (&Scombine_after_change_execute);
 }

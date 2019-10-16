@@ -1,6 +1,6 @@
 ;;; erc-xdcc.el --- XDCC file-server support for ERC
 
-;; Copyright (C) 2003-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -134,6 +134,4 @@ being evaluated and should return strings."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

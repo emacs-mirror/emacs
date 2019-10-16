@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2019 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -350,13 +350,14 @@ This variable is buffer-local."
 ;; Ubuntu's sudo prompts like `[sudo] password for user:'
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 ;; Something called "perforce" uses "Enter password:".
-;; See M-x comint-testsuite--test-comint-password-prompt-regexp.
+;; OpenVPN prints a prompt like: "Enter Auth Password:".
+;; See ert test `comint-test-password-regexp'.
 (defcustom comint-password-prompt-regexp
   (concat
    "\\(^ *\\|"
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
-      "Old" "old" "New" "new" "'s" "login"
+      "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "Repeat" "Bad" "Retype")
     t)
@@ -759,16 +760,24 @@ Returns the (possibly newly created) process buffer."
   (apply #'make-comint-in-buffer name nil program startfile switches))
 
 ;;;###autoload
-(defun comint-run (program)
-  "Run PROGRAM in a Comint buffer and switch to it.
+(defun comint-run (program &optional switches)
+  "Run PROGRAM in a Comint buffer and switch to that buffer.
+
+If SWITCHES are supplied, they are passed to PROGRAM.  With prefix argument
+\\[universal-argument] prompt for SWITCHES as well as PROGRAM.
+
 The buffer name is made by surrounding the file name of PROGRAM with `*'s.
 The file name is used to make a symbol name, such as `comint-sh-hook', and any
 hooks on this symbol are run in the buffer.
+
 See `make-comint' and `comint-exec'."
   (declare (interactive-only make-comint))
-  (interactive "sRun program: ")
+  (interactive
+   (list (read-string "Run program: ")
+         (and (consp current-prefix-arg)
+              (split-string-and-unquote (read-string "Switches: ")))))
   (let ((name (file-name-nondirectory program)))
-    (switch-to-buffer (make-comint name program))
+    (switch-to-buffer (apply #'make-comint name program nil switches))
     (run-hooks (intern-soft (concat "comint-" name "-hook")))))
 
 (defun comint-exec (buffer name command startfile switches)
@@ -962,7 +971,11 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		;; to huge numbers.  Don't allocate a huge ring right
 		;; away; there might not be that much history.
 		(ring-size (min 1500 comint-input-ring-size))
-		(ring (make-ring ring-size)))
+		(ring (make-ring ring-size))
+                ;; Use possibly buffer-local values of these variables.
+                (ring-separator comint-input-ring-separator)
+                (history-ignore comint-input-history-ignore)
+                (ignoredups comint-input-ignoredups))
 	   (with-temp-buffer
              (insert-file-contents file)
              ;; Save restriction in case file is already visited...
@@ -970,19 +983,16 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
              (goto-char (point-max))
              (let (start end history)
                (while (and (< count comint-input-ring-size)
-                           (re-search-backward comint-input-ring-separator
-                                               nil t)
+                           (re-search-backward ring-separator nil t)
                            (setq end (match-beginning 0)))
                  (setq start
-                       (if (re-search-backward comint-input-ring-separator
-                                               nil t)
+                       (if (re-search-backward ring-separator nil t)
                            (match-end 0)
                          (point-min)))
                  (setq history (buffer-substring start end))
                  (goto-char start)
-                 (when (and (not (string-match comint-input-history-ignore
-					       history))
-			    (or (null comint-input-ignoredups)
+                 (when (and (not (string-match history-ignore history))
+			    (or (null ignoredups)
 				(ring-empty-p ring)
 				(not (string-equal (ring-ref ring 0)
 						   history))))
@@ -1618,8 +1628,8 @@ Go to the history element by the absolute history position HIST-POS."
 (defun comint-within-quotes (beg end)
   "Return t if the number of quotes between BEG and END is odd.
 Quotes are single and double."
-  (let ((countsq (comint-how-many-region "\\(^\\|[^\\\\]\\)'" beg end))
-	(countdq (comint-how-many-region "\\(^\\|[^\\\\]\\)\"" beg end)))
+  (let ((countsq (comint-how-many-region "\\(^\\|[^\\]\\)'" beg end))
+	(countdq (comint-how-many-region "\\(^\\|[^\\]\\)\"" beg end)))
     (or (= (mod countsq 2) 1) (= (mod countdq 2) 1))))
 
 (defun comint-how-many-region (regexp beg end)
@@ -2072,20 +2082,6 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process))
 	    (set-marker comint-last-output-start (point))
 
-            ;; Try to skip repeated prompts, which can occur as a result of
-            ;; commands sent without inserting them in the buffer.
-            (let ((bol (save-excursion (forward-line 0) (point)))) ;No fields.
-              (when (and (not (bolp))
-                         (looking-back comint-prompt-regexp bol))
-                (let* ((prompt (buffer-substring bol (point)))
-                       (prompt-re (concat "\\`" (regexp-quote prompt))))
-                  (while (string-match prompt-re string)
-                    (setq string (substring string (match-end 0)))))))
-            (while (string-match (concat "\\(^" comint-prompt-regexp
-                                         "\\)\\1+")
-                                 string)
-              (setq string (replace-match "\\1" nil nil string)))
-
 	    ;; insert-before-markers is a bad thing. XXX
 	    ;; Luckily we don't have to use it any more, we use
 	    ;; window-point-insertion-type instead.
@@ -2385,6 +2381,8 @@ Security bug: your string can still be temporarily recovered with
 
 (define-obsolete-function-alias 'send-invisible #'comint-send-invisible "27.1")
 
+(defvar comint--prompt-recursion-depth 0)
+
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
 Looks for a match to `comint-password-prompt-regexp' in order
@@ -2395,7 +2393,10 @@ This function could be in the list `comint-output-filter-functions'."
 	  (string-match comint-password-prompt-regexp string))
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
-    (comint-send-invisible string)))
+    (let ((comint--prompt-recursion-depth (1+ comint--prompt-recursion-depth)))
+      (if (> comint--prompt-recursion-depth 10)
+          (message "Password prompt recursion too deep")
+        (comint-send-invisible string)))))
 
 ;; Low-level process communication
 
@@ -2536,13 +2537,16 @@ Useful if you accidentally suspend the top-level process."
 
 (defun comint-skip-input ()
   "Skip all pending input, from last stuff output by interpreter to point.
-This means mark it as if it had been sent as input, without sending it."
+This means mark it as if it had been sent as input, without
+sending it.  The command keys used to trigger the command that
+called this function are inserted into the buffer."
   (let ((comint-input-sender 'ignore)
 	(comint-input-filter-functions nil))
     (comint-send-input t t))
   (end-of-line)
   (let ((pos (point))
-	(marker (process-mark (get-buffer-process (current-buffer)))))
+	(marker (process-mark (get-buffer-process (current-buffer))))
+        (inhibit-read-only t))
     (insert "  " (key-description (this-command-keys)))
     (if (= marker pos)
 	(set-marker marker (point)))))
@@ -3089,7 +3093,7 @@ interpreter (e.g., the percent notation of cmd.exe on Windows)."
 	(let (env-var-name
 	      env-var-val)
 	  (save-match-data
-	    (while (string-match "%\\([^\\\\/]*\\)%" name)
+	    (while (string-match "%\\([^\\/]*\\)%" name)
 	      (setq env-var-name (match-string 1 name))
 	      (setq env-var-val (or (getenv env-var-name) ""))
 	      (setq name (replace-match env-var-val t t name))))))
@@ -3481,7 +3485,7 @@ the process mark is at the beginning of the accumulated input."
     (message "Process mark set")))
 
 
-;; Author:  Peter Breton <pbreton@cs.umb.edu>
+;; Author: Peter Breton <pbreton@cs.umb.edu>
 
 ;; This little add-on for comint is intended to make it easy to get
 ;; output from currently active comint buffers into another buffer,

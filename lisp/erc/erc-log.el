@@ -1,6 +1,6 @@
 ;;; erc-log.el --- Logging facilities for ERC.
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Maintainer: emacs-devel@gnu.org
@@ -195,9 +195,7 @@ If you set this to nil, you may want to enable both
   :group 'erc-log
   :type 'boolean)
 
-(defcustom erc-log-file-coding-system (if (featurep 'xemacs)
-					  'binary
-					'emacs-mule)
+(defcustom erc-log-file-coding-system 'emacs-mule
   "The coding system ERC should use for writing log files.
 
 This should ideally, be a \"catch-all\" coding system, like
@@ -342,7 +340,7 @@ filename is downcased."
   "Return the logfile to use for BUFFER.
 If BUFFER is nil, the value of `current-buffer' is used.
 This is determined by `erc-generate-log-file-name-function'.
-The result is converted to lowercase, as IRC is case-insensitive"
+The result is converted to lowercase, as IRC is case-insensitive."
   (unless buffer (setq buffer (current-buffer)))
   (with-current-buffer buffer
     (let ((target (or (buffer-name buffer) (erc-default-target)))
@@ -458,6 +456,4 @@ You can save every individual message by putting this function on
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

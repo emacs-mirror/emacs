@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -180,7 +180,7 @@ extern char *tzname[];
           if (digits == 0 && _n < _w)                                         \
             {                                                                 \
               size_t _delta = width - _n;                                     \
-              if (pad == L_('0'))                                             \
+              if (pad == L_('0') || pad == L_('+'))                           \
                 memset_zero (p, _delta);                                      \
               else                                                            \
                 memset_space (p, _delta);                                     \
@@ -418,7 +418,7 @@ iso_week_days (int yday, int wday)
 
 static size_t __strftime_internal (STREAM_OR_CHAR_T *, STRFTIME_ARG (size_t)
                                    const CHAR_T *, const struct tm *,
-                                   bool, bool *
+                                   bool, int, int, bool *
                                    extra_args_spec LOCALE_PARAM);
 
 /* Write information from TP into S according to the format
@@ -433,8 +433,8 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              const struct tm *tp extra_args_spec LOCALE_PARAM)
 {
   bool tzset_called = false;
-  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp,
-                              false, &tzset_called extra_args LOCALE_ARG);
+  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
+                              0, -1, &tzset_called extra_args LOCALE_ARG);
 }
 #if defined _LIBC && ! FPRINTFTIME
 libc_hidden_def (my_strftime)
@@ -446,7 +446,8 @@ libc_hidden_def (my_strftime)
 static size_t
 __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      const CHAR_T *format,
-                     const struct tm *tp, bool upcase, bool *tzset_called
+                     const struct tm *tp, bool upcase,
+                     int yr_spec, int width, bool *tzset_called
                      extra_args_spec LOCALE_PARAM)
 {
 #if defined _LIBC && defined USE_IN_EXTENDED_LOCALE_MODEL
@@ -558,7 +559,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     if (hour12 == 0)
       hour12 = 12;
 
-  for (f = format; *f != '\0'; ++f)
+  for (f = format; *f != '\0'; width = -1, f++)
     {
       int pad = 0;              /* Padding for number ('-', '_', or 0).  */
       int modifier;             /* Field modifier ('E', 'O', or 0).  */
@@ -576,12 +577,12 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                  + (sizeof (int) < sizeof (time_t)
                     ? INT_STRLEN_BOUND (time_t)
                     : INT_STRLEN_BOUND (int))];
-      int width = -1;
       bool to_lowcase = false;
       bool to_uppcase = upcase;
       size_t colons;
       bool change_case = false;
       int format_char;
+      int subwidth;
 
 #if DO_MULTIBYTE && !defined COMPILE_WIDE
       switch (*f)
@@ -679,6 +680,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               /* This influences the number formats.  */
             case L_('_'):
             case L_('-'):
+            case L_('+'):
             case L_('0'):
               pad = *f;
               continue;
@@ -697,7 +699,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           break;
         }
 
-      /* As a GNU extension we allow the field width to be specified.  */
       if (ISDIGIT (*f))
         {
           width = 0;
@@ -743,12 +744,16 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             }                                                                 \
           while (0)
 #define DO_SIGNED_NUMBER(d, negative, v) \
+          DO_MAYBE_SIGNED_NUMBER (d, negative, v, do_signed_number)
+#define DO_YEARISH(d, negative, v) \
+          DO_MAYBE_SIGNED_NUMBER (d, negative, v, do_yearish)
+#define DO_MAYBE_SIGNED_NUMBER(d, negative, v, label) \
           do                                                                  \
             {                                                                 \
               digits = d;                                                     \
               negative_number = negative;                                     \
               u_number_value = v;                                             \
-              goto do_signed_number;                                          \
+              goto label;                                                     \
             }                                                                 \
           while (0)
 
@@ -850,7 +855,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('O'))
             goto bad_format;
 #ifdef _NL_CURRENT
-          if (! (modifier == 'E'
+          if (! (modifier == L_('E')
                  && (*(subfmt =
                        (const CHAR_T *) _NL_CURRENT (LC_TIME,
                                                      NLW(ERA_D_T_FMT)))
@@ -861,15 +866,17 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #endif
 
         subformat:
+          subwidth = -1;
+        subformat_width:
           {
             size_t len = __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
-                                              subfmt,
-                                              tp, to_uppcase, tzset_called
+                                              subfmt, tp, to_uppcase,
+                                              pad, subwidth, tzset_called
                                               extra_args LOCALE_ARG);
             add (len, __strftime_internal (p,
                                            STRFTIME_ARG (maxsize - i)
-                                           subfmt,
-                                           tp, to_uppcase, tzset_called
+                                           subfmt, tp, to_uppcase,
+                                           pad, subwidth, tzset_called
                                            extra_args LOCALE_ARG));
           }
           break;
@@ -930,7 +937,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           {
             int century = tp->tm_year / 100 + TM_YEAR_BASE / 100;
             century -= tp->tm_year % 100 < 0 && 0 < century;
-            DO_SIGNED_NUMBER (2, tp->tm_year < - TM_YEAR_BASE, century);
+            DO_YEARISH (2, tp->tm_year < - TM_YEAR_BASE, century);
           }
 
         case L_('x'):
@@ -939,7 +946,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #ifdef _NL_CURRENT
           if (! (modifier == L_('E')
                  && (*(subfmt =
-                       (const CHAR_T *)_NL_CURRENT (LC_TIME, NLW(ERA_D_FMT)))
+                       (const CHAR_T *) _NL_CURRENT (LC_TIME, NLW(ERA_D_FMT)))
                      != L_('\0'))))
             subfmt = (const CHAR_T *) _NL_CURRENT (LC_TIME, NLW(D_FMT));
           goto subformat;
@@ -971,9 +978,17 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           always_output_a_sign = true;
           goto do_number_body;
 
+        do_yearish:
+          if (pad == 0)
+            pad = yr_spec;
+          always_output_a_sign
+            = (pad == L_('+')
+               && ((digits == 2 ? 99 : 9999) < u_number_value
+                   || digits < width));
+          goto do_maybe_signed_number;
+
         do_number_spacepad:
-          /* Force '_' flag unless overridden by '0' or '-' flag.  */
-          if (pad != L_('0') && pad != L_('-'))
+          if (pad == 0)
             pad = L_('_');
 
         do_number:
@@ -983,6 +998,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
         do_signed_number:
           always_output_a_sign = false;
+
+        do_maybe_signed_number:
           tz_colon_mask = 0;
 
         do_number_body:
@@ -1087,8 +1104,19 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
         case L_('F'):
           if (modifier != 0)
             goto bad_format;
+          if (pad == 0 && width < 0)
+            {
+              pad = L_('+');
+              subwidth = 4;
+            }
+          else
+            {
+              subwidth = width - 6;
+              if (subwidth < 0)
+                subwidth = 0;
+            }
           subfmt = L_("%Y-%m-%d");
-          goto subformat;
+          goto subformat_width;
 
         case L_('H'):
           if (modifier == L_('E'))
@@ -1297,17 +1325,18 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               case L_('g'):
                 {
                   int yy = (tp->tm_year % 100 + year_adjust) % 100;
-                  DO_NUMBER (2, (0 <= yy
-                                 ? yy
-                                 : tp->tm_year < -TM_YEAR_BASE - year_adjust
-                                 ? -yy
-                                 : yy + 100));
+                  DO_YEARISH (2, false,
+                              (0 <= yy
+                               ? yy
+                               : tp->tm_year < -TM_YEAR_BASE - year_adjust
+                               ? -yy
+                               : yy + 100));
                 }
 
               case L_('G'):
-                DO_SIGNED_NUMBER (4, tp->tm_year < -TM_YEAR_BASE - year_adjust,
-                                  (tp->tm_year + (unsigned int) TM_YEAR_BASE
-                                   + year_adjust));
+                DO_YEARISH (4, tp->tm_year < -TM_YEAR_BASE - year_adjust,
+                            (tp->tm_year + (unsigned int) TM_YEAR_BASE
+                             + year_adjust));
 
               default:
                 DO_NUMBER (2, days / 7 + 1);
@@ -1327,7 +1356,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           DO_NUMBER (1, tp->tm_wday);
 
         case L_('Y'):
-          if (modifier == 'E')
+          if (modifier == L_('E'))
             {
 #if HAVE_STRUCT_ERA_ENTRY
               struct era_entry *era = _nl_get_era_entry (tp HELPER_LOCALE_ARG);
@@ -1338,6 +1367,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # else
                   subfmt = era->era_format;
 # endif
+                  if (pad == 0)
+                    pad = yr_spec;
                   goto subformat;
                 }
 #else
@@ -1347,8 +1378,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('O'))
             goto bad_format;
 
-          DO_SIGNED_NUMBER (4, tp->tm_year < -TM_YEAR_BASE,
-                            tp->tm_year + (unsigned int) TM_YEAR_BASE);
+          DO_YEARISH (4, tp->tm_year < -TM_YEAR_BASE,
+                      tp->tm_year + (unsigned int) TM_YEAR_BASE);
 
         case L_('y'):
           if (modifier == L_('E'))
@@ -1358,7 +1389,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               if (era)
                 {
                   int delta = tp->tm_year - era->start_date[0];
-                  DO_NUMBER (1, (era->offset
+                  if (pad == 0)
+                    pad = yr_spec;
+                  DO_NUMBER (2, (era->offset
                                  + delta * era->absolute_direction));
                 }
 #else
@@ -1370,7 +1403,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             int yy = tp->tm_year % 100;
             if (yy < 0)
               yy = tp->tm_year < - TM_YEAR_BASE ? -yy : yy + 100;
-            DO_NUMBER (2, yy);
+            DO_YEARISH (2, false, yy);
           }
 
         case L_('Z'):

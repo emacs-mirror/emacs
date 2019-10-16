@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -131,9 +131,36 @@
   :group 'external
   :group 'comm)
 
+(defvar browse-url--browser-defcustom-type
+  '(choice
+    (function-item :tag "Emacs W3" :value  browse-url-w3)
+    (function-item :tag "eww" :value  eww-browse-url)
+    (function-item :tag "Mozilla" :value  browse-url-mozilla)
+    (function-item :tag "Firefox" :value browse-url-firefox)
+    (function-item :tag "Google Chrome" :value browse-url-chrome)
+    (function-item :tag "Chromium" :value browse-url-chromium)
+    (function-item :tag "Epiphany" :value  browse-url-epiphany)
+    (function-item :tag "Conkeror" :value  browse-url-conkeror)
+    (function-item :tag "Text browser in an xterm window"
+		   :value browse-url-text-xterm)
+    (function-item :tag "Text browser in an Emacs window"
+		   :value browse-url-text-emacs)
+    (function-item :tag "KDE" :value browse-url-kde)
+    (function-item :tag "Elinks" :value browse-url-elinks)
+    (function-item :tag "Specified by `Browse Url Generic Program'"
+		   :value browse-url-generic)
+    (function-item :tag "Default Windows browser"
+		   :value browse-url-default-windows-browser)
+    (function-item :tag "Default macOS browser"
+		   :value browse-url-default-macosx-browser)
+    (function-item :tag "Default browser"
+		   :value browse-url-default-browser)
+    (function :tag "Your own function")
+    (alist :tag "Regexp/function association list"
+	   :key-type regexp :value-type function)))
+
 ;;;###autoload
-(defcustom browse-url-browser-function
-  'browse-url-default-browser
+(defcustom browse-url-browser-function 'browse-url-default-browser
   "Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -142,35 +169,22 @@ If the value is not a function it should be a list of pairs
 \(REGEXP . FUNCTION).  In this case the function called will be the one
 associated with the first REGEXP which matches the current URL.  The
 function is passed the URL and any other args of `browse-url'.  The last
-regexp should probably be \".\" to specify a default browser."
-  :type '(choice
-	  (function-item :tag "Emacs W3" :value  browse-url-w3)
-	  (function-item :tag "eww" :value  eww-browse-url)
-	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
-	  (function-item :tag "Firefox" :value browse-url-firefox)
-	  (function-item :tag "Google Chrome" :value browse-url-chrome)
-	  (function-item :tag "Chromium" :value browse-url-chromium)
-	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
-	  (function-item :tag "Conkeror" :value  browse-url-conkeror)
-	  (function-item :tag "Text browser in an xterm window"
-			 :value browse-url-text-xterm)
-	  (function-item :tag "Text browser in an Emacs window"
-			 :value browse-url-text-emacs)
-	  (function-item :tag "KDE" :value browse-url-kde)
-	  (function-item :tag "Elinks" :value browse-url-elinks)
-	  (function-item :tag "Specified by `Browse Url Generic Program'"
-			 :value browse-url-generic)
-	  (function-item :tag "Default Windows browser"
-			 :value browse-url-default-windows-browser)
-	  (function-item :tag "Default macOS browser"
-			 :value browse-url-default-macosx-browser)
-	  (function-item :tag "Default browser"
-			 :value browse-url-default-browser)
-	  (function :tag "Your own function")
-	  (alist :tag "Regexp/function association list"
-		 :key-type regexp :value-type function))
-  :version "24.1"
-  :group 'browse-url)
+regexp should probably be \".\" to specify a default browser.
+
+Also see `browse-url-secondary-browser-function'."
+  :type browse-url--browser-defcustom-type
+  :version "24.1")
+
+(defcustom browse-url-secondary-browser-function 'browse-url-default-browser
+  "Function used to launch an alternative browser.
+This is usually an external browser (that is, not eww or w3m),
+used as the secondary browser choice, typically when a prefix
+argument is given to a URL-opening command in those modes that
+support this (for instance, eww/shr).
+
+Also see `browse-url-browser-function'."
+  :version "27.1"
+  :type browse-url--browser-defcustom-type)
 
 (defcustom browse-url-mailto-function 'browse-url-mail
   "Function to display mailto: links.
@@ -181,8 +195,7 @@ be used instead."
   :type '(choice
 	  (function-item :tag "Emacs Mail" :value browse-url-mail)
 	  (function-item :tag "None" nil))
-  :version "24.1"
-  :group 'browse-url)
+  :version "24.1")
 
 (defcustom browse-url-man-function 'browse-url-man
   "Function to display man: links."
@@ -190,8 +203,28 @@ be used instead."
           (function-item :tag "Emacs Man" :value browse-url-man)
           (const :tag "None" nil)
           (function :tag "Other function"))
-  :version "26.1"
-  :group 'browse-url)
+  :version "26.1")
+
+(defcustom browse-url-button-regexp
+  (concat
+   "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|"
+   "nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
+   "\\(//[-a-z0-9_.]+:[0-9]*\\)?"
+   (let ((chars "-a-z0-9_=#$@~%&*+\\/[:word:]")
+	 (punct "!?:;.,"))
+     (concat
+      "\\(?:"
+      ;; Match paired parentheses, e.g. in Wikipedia URLs:
+      ;; http://thread.gmane.org/47B4E3B2.3050402@gmail.com
+      "[" chars punct "]+" "(" "[" chars punct "]+" "[" chars "]*)"
+      "\\(?:" "[" chars punct "]+" "[" chars "]" "\\)?"
+      "\\|"
+      "[" chars punct "]+" "[" chars "]"
+      "\\)"))
+   "\\)")
+  "Regular expression that matches URLs."
+  :version "27.1"
+  :type 'regexp)
 
 (defcustom browse-url-netscape-program "netscape"
   ;; Info about netscape-remote from Karl Berry.
@@ -202,15 +235,13 @@ The free program `netscape-remote' from
 up very much quicker than `netscape'.  Reported to compile on a GNU
 system, given vroot.h from the same directory, with cc flags
  -DSTANDALONE -L/usr/X11R6/lib -lXmu -lX11."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (make-obsolete-variable 'browse-url-netscape-program nil "25.1")
 
 (defcustom browse-url-netscape-arguments nil
   "A list of strings to pass to Netscape as arguments."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-netscape-arguments nil "25.1")
 
@@ -218,33 +249,27 @@ system, given vroot.h from the same directory, with cc flags
   "A list of strings to pass to Netscape when it starts up.
 Defaults to the value of `browse-url-netscape-arguments' at the time
 `browse-url' is loaded."
-  :type '(repeat (string :tag "Argument"))
-
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-netscape-startup-arguments nil "25.1")
 
 (defcustom browse-url-browser-display nil
   "The X display for running the browser, if not same as Emacs's."
-  :type '(choice string (const :tag "Default" nil))
-  :group 'browse-url)
+  :type '(choice string (const :tag "Default" nil)))
 
 (defcustom browse-url-mozilla-program "mozilla"
   "The name by which to invoke Mozilla."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (defcustom browse-url-mozilla-arguments nil
   "A list of strings to pass to Mozilla as arguments."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-mozilla-startup-arguments browse-url-mozilla-arguments
   "A list of strings to pass to Mozilla when it starts up.
 Defaults to the value of `browse-url-mozilla-arguments' at the time
 `browse-url' is loaded."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-firefox-program
   (let ((candidates '("icecat" "iceweasel" "firefox")))
@@ -252,20 +277,17 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
       (setq candidates (cdr candidates)))
     (or (car candidates) "firefox"))
   "The name by which to invoke Firefox or a variant of it."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (defcustom browse-url-firefox-arguments nil
   "A list of strings to pass to Firefox (or variant) as arguments."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-firefox-startup-arguments browse-url-firefox-arguments
   "A list of strings to pass to Firefox (or variant) when it starts up.
 Defaults to the value of `browse-url-firefox-arguments' at the time
 `browse-url' is loaded."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-firefox-startup-arguments
                         "it no longer has any effect." "24.5")
@@ -277,14 +299,12 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
     (or (car candidates) "chromium"))
   "The name by which to invoke the Chrome browser."
   :type 'string
-  :version "25.1"
-  :group 'browse-url)
+  :version "25.1")
 
 (defcustom browse-url-chrome-arguments nil
   "A list of strings to pass to Google Chrome as arguments."
   :type '(repeat (string :tag "Argument"))
-  :version "25.1"
-  :group 'browse-url)
+  :version "25.1")
 
 (defcustom browse-url-chromium-program
   (let ((candidates '("chromium" "chromium-browser")))
@@ -293,26 +313,22 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
     (or (car candidates) "chromium"))
   "The name by which to invoke Chromium."
   :type 'string
-  :version "24.1"
-  :group 'browse-url)
+  :version "24.1")
 
 (defcustom browse-url-chromium-arguments nil
   "A list of strings to pass to Chromium as arguments."
   :type '(repeat (string :tag "Argument"))
-  :version "24.1"
-  :group 'browse-url)
+  :version "24.1")
 
 (defcustom browse-url-galeon-program "galeon"
   "The name by which to invoke Galeon."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (make-obsolete-variable 'browse-url-galeon-program nil "25.1")
 
 (defcustom browse-url-galeon-arguments nil
   "A list of strings to pass to Galeon as arguments."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-galeon-arguments nil "25.1")
 
@@ -320,27 +336,23 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   "A list of strings to pass to Galeon when it starts up.
 Defaults to the value of `browse-url-galeon-arguments' at the time
 `browse-url' is loaded."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-galeon-startup-arguments nil "25.1")
 
 (defcustom browse-url-epiphany-program "epiphany"
   "The name by which to invoke Epiphany."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (defcustom browse-url-epiphany-arguments nil
   "A list of strings to pass to Epiphany as arguments."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-epiphany-startup-arguments browse-url-epiphany-arguments
   "A list of strings to pass to Epiphany when it starts up.
 Defaults to the value of `browse-url-epiphany-arguments' at the time
 `browse-url' is loaded."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 ;; GNOME means of invoking either Mozilla or Netscape.
 (defvar browse-url-gnome-moz-program "gnome-moz-remote")
@@ -350,8 +362,7 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
 (defcustom browse-url-gnome-moz-arguments '()
   "A list of strings passed to the GNOME mozilla viewer as arguments."
   :version "21.1"
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-gnome-moz-arguments nil "25.1")
 
@@ -359,30 +370,26 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-mozilla' is asked to open it in a new window."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (defcustom browse-url-firefox-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-firefox' is asked to open it in a new window."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (defcustom browse-url-conkeror-new-window-is-buffer nil
   "Whether to open up new windows in a buffer or a new window.
 If non-nil, then open the URL in a new buffer rather than a new window if
 `browse-url-conkeror' is asked to open it in a new window."
   :version "25.1"
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (defcustom browse-url-galeon-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-galeon' is asked to open it in a new window."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (make-obsolete-variable 'browse-url-galeon-new-window-is-tab nil "25.1")
 
@@ -390,16 +397,14 @@ If non-nil, then open the URL in a new tab rather than a new window if
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-epiphany' is asked to open it in a new window."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (defcustom browse-url-netscape-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new
 window if `browse-url-netscape' is asked to open it in a new
 window."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (make-obsolete-variable 'browse-url-netscape-new-window-is-tab nil "25.1")
 
@@ -407,42 +412,36 @@ window."
   "Non-nil means always open a new browser window with appropriate browsers.
 Passing an interactive argument to \\[browse-url], or specific browser
 commands reverses the effect of this variable."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (defcustom browse-url-mosaic-program "xmosaic"
   "The name by which to invoke Mosaic (or mMosaic)."
   :type 'string
-  :version "20.3"
-  :group 'browse-url)
+  :version "20.3")
 
 (make-obsolete-variable 'browse-url-mosaic-program nil "25.1")
 
 (defcustom browse-url-mosaic-arguments nil
   "A list of strings to pass to Mosaic as arguments."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (make-obsolete-variable 'browse-url-mosaic-arguments nil "25.1")
 
 (defcustom browse-url-mosaic-pidfile "~/.mosaicpid"
   "The name of the pidfile created by Mosaic."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (make-obsolete-variable 'browse-url-mosaic-pidfile nil "25.1")
 
 (defcustom browse-url-conkeror-program "conkeror"
   "The name by which to invoke Conkeror."
   :type 'string
-  :version "25.1"
-  :group 'browse-url)
+  :version "25.1")
 
 (defcustom browse-url-conkeror-arguments nil
   "A list of strings to pass to Conkeror as arguments."
   :version "25.1"
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-filename-alist
   `(("^/\\(ftp@\\|anonymous@\\)?\\([^:/]+\\):/*" . "ftp://\\2/")
@@ -473,26 +472,22 @@ address to an HTTP URL:
   :type '(repeat (cons :format "%v"
                        (regexp :tag "Regexp")
                        (string :tag "Replacement")))
-  :version "25.1"
-  :group 'browse-url)
+  :version "25.1")
 
 (defcustom browse-url-save-file nil
   "If non-nil, save the buffer before displaying its file.
 Used by the `browse-url-of-file' command."
-  :type 'boolean
-  :group 'browse-url)
+  :type 'boolean)
 
 (defcustom browse-url-of-file-hook nil
   "Hook run after `browse-url-of-file' has asked a browser to load a file."
-  :type 'hook
-  :group 'browse-url)
+  :type 'hook)
 
 (defcustom browse-url-CCI-port 3003
   "Port to access XMosaic via CCI.
 This can be any number between 1024 and 65535 but must correspond to
 the value set in the browser."
-  :type 'integer
-  :group 'browse-url)
+  :type 'integer)
 
 (make-obsolete-variable 'browse-url-CCI-port nil "25.1")
 
@@ -500,8 +495,7 @@ the value set in the browser."
   "Host to access XMosaic via CCI.
 This should be the host name of the machine running XMosaic with CCI
 enabled.  The port number should be set in `browse-url-CCI-port'."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (make-obsolete-variable 'browse-url-CCI-host nil "25.1")
 
@@ -511,57 +505,48 @@ enabled.  The port number should be set in `browse-url-CCI-port'."
 (defcustom browse-url-xterm-program "xterm"
   "The name of the terminal emulator used by `browse-url-text-xterm'.
 This might, for instance, be a separate color version of xterm."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (defcustom browse-url-xterm-args nil
   "A list of strings defining options for `browse-url-xterm-program'.
 These might set its size, for instance."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-gnudoit-program "gnudoit"
   "The name of the `gnudoit' program used by `browse-url-w3-gnudoit'."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (defcustom browse-url-gnudoit-args '("-q")
   "A list of strings defining options for `browse-url-gnudoit-program'.
 These might set the port, for instance."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-generic-program nil
   "The name of the browser program used by `browse-url-generic'."
-  :type '(choice string (const :tag "None" nil))
-  :group 'browse-url)
+  :type '(choice string (const :tag "None" nil)))
 
 (defcustom browse-url-generic-args nil
   "A list of strings defining options for `browse-url-generic-program'."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-temp-dir temporary-file-directory
   "The name of a directory for browse-url's temporary files.
 Such files are generated by functions like `browse-url-of-region'.
 You might want to set this to somewhere with restricted read permissions
 for privacy's sake."
-  :type 'string
-  :group 'browse-url)
+  :type 'string)
 
 (defcustom browse-url-netscape-version 3
   "The version of Netscape you are using.
 This affects how URL reloading is done; the mechanism changed
 incompatibly at version 4."
-  :type 'number
-  :group 'browse-url)
+  :type 'number)
 
 (make-obsolete-variable 'browse-url-netscape-version nil "25.1")
 
 (defcustom browse-url-text-browser "lynx"
   "The name of the text browser to invoke."
   :type 'string
-  :group 'browse-url
   :version "23.1")
 
 (defcustom browse-url-text-emacs-args (and (not window-system)
@@ -572,8 +557,7 @@ The default is none in a window system, otherwise `-show_cursor' to
 indicate the position of the current link in the absence of
 highlighting, assuming the normal default for showing the cursor."
   :type '(repeat (string :tag "Argument"))
-  :version "23.1"
-  :group 'browse-url)
+  :version "23.1")
 
 (defcustom browse-url-text-input-field 'avoid
   "Action on selecting an existing text browser buffer at an input field.
@@ -586,36 +570,30 @@ down (this *won't* always work)."
   :type '(choice (const :tag "Move to try to avoid field" :value avoid)
                  (const :tag "Disregard" :value nil)
                  (const :tag "Warn, don't emit URL" :value warn))
-  :version "23.1"
-  :group 'browse-url)
+  :version "23.1")
 
 (defcustom browse-url-text-input-attempts 10
   "How many times to try to move down from a series of text browser input fields."
   :type 'integer
-  :version "23.1"
-  :group 'browse-url)
+  :version "23.1")
 
 (defcustom browse-url-text-input-delay 0.2
   "Seconds to wait for a text browser between moves down from an input field."
   :type 'number
-  :version "23.1"
-  :group 'browse-url)
+  :version "23.1")
 
 (defcustom browse-url-kde-program "kfmclient"
   "The name by which to invoke the KDE web browser."
   :type 'string
-  :version "21.1"
-  :group 'browse-url)
+  :version "21.1")
 
 (defcustom browse-url-kde-args '("openURL")
   "A list of strings defining options for `browse-url-kde-program'."
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-elinks-wrapper '("xterm" "-e")
   "Wrapper command prepended to the Elinks command-line."
-  :type '(repeat (string :tag "Wrapper"))
-  :group 'browse-url)
+  :type '(repeat (string :tag "Wrapper")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL encoding
@@ -736,16 +714,18 @@ narrowed."
 	   (and (not (buffer-narrowed-p))
 		(or buffer-file-name
 		    (and (boundp 'dired-directory) dired-directory)))))
-      (or file-name
-	  (progn
-	    (or browse-url-temp-file-name
-		(setq browse-url-temp-file-name
-		      (convert-standard-filename
-		       (make-temp-file
-			(expand-file-name "burl" browse-url-temp-dir)
-			nil ".html"))))
-	    (setq file-name browse-url-temp-file-name)
-	    (write-region (point-min) (point-max) file-name nil 'no-message)))
+      (when (or (not file-name)
+                ;; This can happen when we're looking at a file from a
+                ;; zip file buffer, for instance.
+                (not (file-exists-p file-name)))
+	(unless browse-url-temp-file-name
+	  (setq browse-url-temp-file-name
+		(convert-standard-filename
+		 (make-temp-file
+		  (expand-file-name "burl" browse-url-temp-dir)
+		  nil ".html"))))
+	(setq file-name browse-url-temp-file-name)
+	(write-region (point-min) (point-max) file-name nil 'no-message))
       (browse-url-of-file file-name))))
 
 (defun browse-url-delete-temp-file (&optional temp-file-name)
@@ -801,7 +781,9 @@ as ARGS."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
-  (when (and url-handler-mode (not (file-name-absolute-p url)))
+  (when (and url-handler-mode
+             (not (file-name-absolute-p url))
+             (not (string-match "\\`[a-z]+:" url)))
     (setq url (expand-file-name url)))
   (let ((process-environment (copy-sequence process-environment))
 	(function (or (and (string-match "\\`mailto:" url)
@@ -895,7 +877,7 @@ The optional NEW-WINDOW argument is not used."
 
 (defun browse-url-default-macosx-browser (url &optional _new-window)
   "Invoke the macOS system's default Web browser.
-The optional NEW-WINDOW argument is not used"
+The optional NEW-WINDOW argument is not used."
   (interactive (browse-url-interactive-arg "URL: "))
   (start-process (concat "open " url) nil "open" url))
 
@@ -1672,6 +1654,67 @@ from `browse-url-elinks-wrapper'."
     (exit-status
      (error "Unrecognized exit-code %d of process `elinks'"
             exit-status))))
+
+;;; Adding buttons to a buffer to call `browse-url' when you hit them.
+
+(defvar browse-url-button-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'browse-url-button-open)
+    (define-key map [mouse-2] 'browse-url-button-open)
+    (define-key map "w" 'browse-url-button-copy)
+    map)
+  "The keymap used for browse-url buttons.")
+
+(defface browse-url-button
+  '((t :inherit link))
+  "Face for browse-url buttons (i.e., links)."
+  :version "27.1")
+
+(defun browse-url-add-buttons ()
+  "Add clickable buttons to the text following point in the current buffer.
+Everything that matches `browse-url-button-regexp' will be made
+clickable and will use `browse-url' to open the URLs in question."
+  (let ((inhibit-read-only t))
+    (save-excursion
+      (while (re-search-forward browse-url-button-regexp nil t)
+        (add-text-properties (match-beginning 0)
+                             (match-end 0)
+                             `(help-echo "Open the URL under point"
+                                         keymap ,browse-url-button-map
+                                         face browse-url-button
+                                         button t
+                                         category browse-url
+                                         browse-url-data ,(match-string 0)))))))
+
+(defun browse-url-button-open (&optional external mouse-event)
+  "Follow the link under point using `browse-url'.
+If EXTERNAL (the prefix if used interactively), open with the
+external browser instead of the default one."
+  (interactive (list current-prefix-arg last-nonmenu-event))
+  (mouse-set-point mouse-event)
+  (let ((url (get-text-property (point) 'browse-url-data)))
+    (unless url
+      (error "No URL under point"))
+    (if external
+        (funcall browse-url-secondary-browser-function url)
+      (browse-url url))))
+
+(defun browse-url-button-open-url (url)
+  "Open URL using `browse-url'.
+If `current-prefix-arg' is non-nil, use
+`browse-url-secondary-browser-function' instead."
+  (if current-prefix-arg
+      (funcall browse-url-secondary-browser-function url)
+    (browse-url url)))
+
+(defun browse-url-button-copy ()
+  "Copy the URL under point."
+  (interactive)
+  (let ((url (get-text-property (point) 'browse-url-data)))
+    (unless url
+      (error "No URL under point"))
+    (kill-new url)
+    (message "Copied %s" url)))
 
 (provide 'browse-url)
 

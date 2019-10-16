@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
@@ -124,7 +124,7 @@ point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
 leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
 is negative, it deletes newlines in addition to spaces and tabs,
-leaving @var{-n} spaces before point.  The command @code{cycle-spacing}
+leaving @minus{}@var{n} spaces before point.  The command @code{cycle-spacing}
 acts like a more flexible version of @code{just-one-space}.  It
 does different things if you call it repeatedly in succession.
 The first call acts like @code{just-one-space}, the next removes
@@ -605,16 +605,19 @@ This command does not alter the kill ring.
 @kindex M-mouse-1
 @item M-mouse-1
 Set one endpoint for the @dfn{secondary selection}
-(@code{mouse-start-secondary}).
+(@code{mouse-start-secondary}); use @kbd{M-mouse-3} to set the other
+end and complete the selection.  This command cancels any existing
+secondary selection, when it starts a new one.
 
 @findex mouse-secondary-save-then-kill
 @kindex M-mouse-3
 @item M-mouse-3
-Set the secondary selection, with one end at the position clicked and
-the other at the position specified with @kbd{M-mouse-1}
-(@code{mouse-secondary-save-then-kill}).  This also puts the selected
-text in the kill ring.  A second @kbd{M-mouse-3} at the same place
-kills the secondary selection just made.
+Set the secondary selection (@code{mouse-secondary-save-then-kill}),
+with one end at the position you click @kbd{M-mouse-3}, and the other
+at the position specified previously with @kbd{M-mouse-1}.  This also
+puts the selected text in the kill ring.  A second @kbd{M-mouse-3} at
+the same place kills the text selected by the secondary selection just
+made.
 
 @findex mouse-yank-secondary
 @kindex M-mouse-2

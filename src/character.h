@@ -558,12 +558,13 @@ enum
 
 /* Return a non-outlandish value for the tab width.  */
 
-#define SANE_TAB_WIDTH(buf) \
-  sanitize_tab_width (XFIXNAT (BVAR (buf, tab_width)))
+#define SANE_TAB_WIDTH(buf) sanitize_tab_width (BVAR (buf, tab_width))
+
 INLINE int
-sanitize_tab_width (EMACS_INT width)
+sanitize_tab_width (Lisp_Object width)
 {
-  return 0 < width && width <= 1000 ? width : 8;
+  return (FIXNUMP (width) && 0 < XFIXNUM (width) && XFIXNUM (width) <= 1000
+	  ? XFIXNUM (width) : 8);
 }
 
 /* Return the width of ASCII character C.  The width is measured by

@@ -1,6 +1,6 @@
 ;;; doc-tests.el --- Tests for doc.c
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 
@@ -58,6 +58,7 @@ SPC		minibuffer-complete-word
 
 M-v		switch-to-completions
 
+M-<		minibuffer-beginning-of-buffer
 M-n		next-history-element
 M-p		previous-history-element
 M-r		previous-matching-history-element

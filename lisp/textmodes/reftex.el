@@ -1,5 +1,5 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (C) 1997-2000, 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -390,7 +390,7 @@ If the symbols for the current master file do not exist, they are created."
           (buffer-file-name)))))
     (cond
      ((null master)
-      (error "Need a filename for this buffer,  please save it first"))
+      (error "Need a filename for this buffer, please save it first"))
      ((or (file-exists-p (concat master ".tex"))
           (reftex-get-buffer-visiting (concat master ".tex")))
       ;; Ahh, an extra .tex was missing...

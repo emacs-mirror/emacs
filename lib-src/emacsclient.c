@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2018 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,6 +74,7 @@ char *w32_getenv (const char *);
 #include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -82,11 +83,8 @@ char *w32_getenv (const char *);
 #include <dosname.h>
 #include <intprops.h>
 #include <min-max.h>
+#include <pathmax.h>
 #include <unlocked-io.h>
-
-#ifndef VERSION
-#define VERSION "unspecified"
-#endif
 
 /* Work around GCC bug 88251.  */
 #if GNUC_PREREQ (7, 0, 0)
@@ -242,22 +240,31 @@ char *get_current_dir_name (void);
 char *
 get_current_dir_name (void)
 {
+  /* The maximum size of a directory name, including the terminating NUL.
+     Leave room so that the caller can append a trailing slash.  */
+  ptrdiff_t dirsize_max = min (PTRDIFF_MAX, SIZE_MAX) - 1;
+
+  /* The maximum size of a buffer for a file name, including the
+     terminating NUL.  This is bounded by PATH_MAX, if available.  */
+  ptrdiff_t bufsize_max = dirsize_max;
+#ifdef PATH_MAX
+  bufsize_max = min (bufsize_max, PATH_MAX);
+#endif
+
   char *buf;
   struct stat dotstat, pwdstat;
+  size_t pwdlen;
   /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
   char const *pwd = egetenv ("PWD");
   if (pwd
-      && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
+      && (pwdlen = strnlen (pwd, bufsize_max)) < bufsize_max
+      && IS_DIRECTORY_SEP (pwd[pwdlen && IS_DEVICE_SEP (pwd[1]) ? 2 : 0])
       && stat (pwd, &pwdstat) == 0
       && stat (".", &dotstat) == 0
       && dotstat.st_ino == pwdstat.st_ino
-      && dotstat.st_dev == pwdstat.st_dev
-# ifdef MAXPATHLEN
-      && strlen (pwd) < MAXPATHLEN
-# endif
-      )
+      && dotstat.st_dev == pwdstat.st_dev)
     {
       buf = xmalloc (strlen (pwd) + 1);
       strcpy (buf, pwd);
@@ -546,7 +553,7 @@ decode_options (int argc, char **argv)
 	  break;
 
 	case 'V':
-	  message (false, "emacsclient %s\n", VERSION);
+	  message (false, "emacsclient %s\n", PACKAGE_VERSION);
 	  exit (EXIT_SUCCESS);
 	  break;
 
@@ -903,22 +910,38 @@ initialize_sockets (void)
 #endif /* WINDOWSNT */
 
 
-/* If the home directory is HOME, return the configuration file with
-   basename CONFIG_FILE.  Fail if there is no home directory or if the
-   configuration file could not be opened.  */
+/* If the home directory is HOME, and XDG_CONFIG_HOME's value is XDG,
+   return the configuration file with basename CONFIG_FILE.  Fail if
+   the configuration file could not be opened.  */
 
 static FILE *
-open_config (char const *home, char const *config_file)
+open_config (char const *home, char const *xdg, char const *config_file)
 {
-  if (!home)
-    return NULL;
-  ptrdiff_t homelen = strlen (home);
-  static char const emacs_d_server[] = "/.emacs.d/server/";
-  ptrdiff_t suffixsize = sizeof emacs_d_server + strlen (config_file);
-  char *configname = xmalloc (homelen + suffixsize);
-  strcpy (stpcpy (stpcpy (configname, home), emacs_d_server), config_file);
+  ptrdiff_t xdgsubdirsize = xdg ? strlen (xdg) + sizeof "/emacs/server/" : 0;
+  ptrdiff_t homesuffixsizemax = max (sizeof "/.config/emacs/server/",
+				     sizeof "/.emacs.d/server/");
+  ptrdiff_t homesubdirsizemax = home ? strlen (home) + homesuffixsizemax : 0;
+  char *configname = xmalloc (max (xdgsubdirsize, homesubdirsizemax)
+			      + strlen (config_file));
+  FILE *config;
+  if (xdg || home)
+    {
+      strcpy ((xdg
+	       ? stpcpy (stpcpy (configname, xdg), "/emacs/server/")
+	       : stpcpy (stpcpy (configname, home), "/.config/emacs/server/")),
+	      config_file);
+      config = fopen (configname, "rb");
+    }
+  else
+    config = NULL;
 
-  FILE *config = fopen (configname, "rb");
+  if (! config && home)
+    {
+      strcpy (stpcpy (stpcpy (configname, home), "/.emacs.d/server/"),
+	      config_file);
+      config = fopen (configname, "rb");
+    }
+
   free (configname);
   return config;
 }
@@ -938,10 +961,11 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
     config = fopen (config_file, "rb");
   else
     {
-      config = open_config (egetenv ("HOME"), config_file);
+      char const *xdg = egetenv ("XDG_CONFIG_HOME");
+      config = open_config (egetenv ("HOME"), xdg, config_file);
 #ifdef WINDOWSNT
       if (!config)
-	config = open_config (egetenv ("APPDATA"), config_file);
+	config = open_config (egetenv ("APPDATA"), xdg, config_file);
 #endif
     }
 
@@ -1357,6 +1381,7 @@ set_local_socket (char const *server_name)
   int tmpdirlen = -1;
   int socknamelen = -1;
   uid_t uid = geteuid ();
+  bool tmpdir_used = false;
 
   if (strchr (server_name, '/')
       || (ISSLASH ('\\') && strchr (server_name, '\\')))
@@ -1389,6 +1414,7 @@ set_local_socket (char const *server_name)
 	    }
 	  socknamelen = local_sockname (sockname, socknamesize, tmpdirlen,
 					uid, server_name);
+	  tmpdir_used = true;
 	}
     }
 
@@ -1462,11 +1488,27 @@ set_local_socket (char const *server_name)
   if (sock_status < 0)
     message (true, "%s: Invalid socket owner\n", progname);
   else if (sock_status == ENOENT)
-    message (true,
-	     ("%s: can't find socket; have you started the server?\n"
-	      "%s: To start the server in Emacs,"
-	      " type \"M-x server-start\".\n"),
-	     progname, progname);
+    {
+      if (tmpdir_used)
+	{
+	  uintmax_t id = uid;
+	  char sockdirname[socknamesize];
+	  int sockdirnamelen = snprintf (sockdirname, sizeof sockdirname,
+					 "/run/user/%"PRIuMAX, id);
+	  if (0 <= sockdirnamelen && sockdirnamelen < sizeof sockdirname
+	      && faccessat (AT_FDCWD, sockdirname, X_OK, AT_EACCESS) == 0)
+	    message
+	      (true,
+	       ("%s: Should XDG_RUNTIME_DIR='%s' be in the environment?\n"
+		"%s: (Be careful: XDG_RUNTIME_DIR is security-related.)\n"),
+	       progname, sockdirname, progname);
+	}
+      message (true,
+	       ("%s: can't find socket; have you started the server?\n"
+		"%s: To start the server in Emacs,"
+		" type \"M-x server-start\".\n"),
+	       progname, progname);
+    }
   else
     message (true, "%s: can't stat %s: %s\n",
 	     progname, sockname, strerror (sock_status));

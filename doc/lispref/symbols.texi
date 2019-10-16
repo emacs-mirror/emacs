@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Symbols
@@ -558,9 +558,12 @@ deleted from the local value of a hook variable when changing major
 modes.  @xref{Setting Hooks}.
 
 @item pure
+@cindex @code{pure} property
 If the value is non-@code{nil}, the named function is considered to be
-side-effect free.  Calls with constant arguments can be evaluated at
-compile time.  This may shift run time errors to compile time.
+pure (@pxref{What Is a Function}).  Calls with constant arguments can
+be evaluated at compile time.  This may shift run time errors to
+compile time.  Not to be confused with pure storage (@pxref{Pure
+Storage}).
 
 @item risky-local-variable
 If the value is non-@code{nil}, the named variable is considered risky
@@ -579,9 +582,13 @@ The value specifies a function for determining safe file-local values
 for the named variable.  @xref{File Local Variables}.
 
 @item side-effect-free
+@cindex @code{side-effect-free} property
 A non-@code{nil} value indicates that the named function is free of
-side-effects, for determining function safety (@pxref{Function
-Safety}) as well as for byte compiler optimizations.  Do not set it.
+side effects (@pxref{What Is a Function}), so the byte compiler may
+ignore a call whose value is unused.  If the property's value is
+@code{error-free}, the byte compiler may even delete such unused
+calls.  In addition to byte compiler optimizations, this property is
+also used for determining function safety (@pxref{Function Safety}).
 
 @item variable-documentation
 If non-@code{nil}, this specifies the named variable's documentation

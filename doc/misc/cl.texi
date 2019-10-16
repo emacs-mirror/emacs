@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -24,7 +24,7 @@ modify this GNU manual.''
 
 @dircategory Emacs lisp libraries
 @direntry
-* CL: (cl).                     Partial Common Lisp support for Emacs Lisp.
+* CL-Lib: (cl).                 Partial Common Lisp support for Emacs Lisp.
 @end direntry
 
 @finalout
@@ -323,6 +323,7 @@ arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.
 @end defmac
 
+@cindex &allow-other-keys
 @defmac cl-defmacro name arglist body@dots{}
 This is identical to the regular @code{defmacro} form,
 except that @var{arglist} is allowed to be a full Common Lisp
@@ -438,6 +439,7 @@ function call, like this:
 (bar :a 10 'baz 42)
 @end example
 
+@cindex &allow-other-keys
 Ordinarily, it is an error to pass an unrecognized keyword to
 a function, e.g., @code{(foo 1 2 :c 3 :goober 4)}.  You can ask
 Lisp to ignore unrecognized keywords, either by adding the
@@ -1359,7 +1361,8 @@ Because of the nature of macros, @code{cl-macrolet} is always lexically
 scoped.  The @code{cl-macrolet} binding will
 affect only calls that appear physically within the body
 @var{forms}, possibly after expansion of other macros in the
-body.
+body.  Calls of @code{cl-macrolet} bound macros are expanded in the
+global environment.
 @end defmac
 
 @defmac cl-symbol-macrolet (bindings@dots{}) forms@dots{}
@@ -3819,8 +3822,7 @@ are compared by @code{eql} by default; you can use the @code{:test},
 
 The standard Emacs lisp function @code{member} uses @code{equal} for
 comparisons; it is equivalent to @code{(cl-member @var{item} @var{list}
-:test 'equal)}.  With no keyword arguments, @code{cl-member} is
-equivalent to @code{memq}.
+:test 'equal)}.
 @end defun
 
 @findex cl-member-if
@@ -4036,12 +4038,6 @@ is either a slot symbol or a list of the form @samp{(@var{slot-name}
 is a Lisp form that is evaluated any time an instance of the
 structure type is created without specifying that slot's value.
 
-Common Lisp defines several slot options, but the only one
-implemented in this package is @code{:read-only}.  A non-@code{nil}
-value for this option means the slot should not be @code{setf}-able;
-the slot's value is determined when the object is created and does
-not change afterward.
-
 @example
 (cl-defstruct person
      (name nil :read-only t)
@@ -4049,7 +4045,23 @@ not change afterward.
      (sex 'unknown))
 @end example
 
-Any slot options other than @code{:read-only} are ignored.
+@var{slot-options} is a list of keyword-value pairs, where the
+following keywords can be used:
+
+@table @code
+@item :read-only
+A non-nil value means the slot should not be @code{setf}-able;
+the slot's value is determined when the object is created and does
+not change afterward.
+
+@item :type
+The expected type of the values held in this slot.
+
+@item :documentation
+A documentation string describing the slot.
+@end table
+
+Other slot options are currently ignored.
 
 For obscure historical reasons, structure options take a different
 form than slot options.  A structure option is either a keyword
@@ -4149,7 +4161,7 @@ package, @code{cl-typep} simply looks for a function called
 only if they used the default predicate name.
 
 @item :include
-This option implements a very limited form of C++-style inheritance.
+This option implements a very limited form of C@t{++}-style inheritance.
 The argument is the name of another structure type previously
 created with @code{cl-defstruct}.  The effect is to cause the new
 structure type to inherit all of the included structure's slots
@@ -4193,6 +4205,10 @@ other way around).  Every @code{astronaut} includes all the slots
 of a @code{person}, plus extra slots that are specific to
 astronauts.  Operations that work on people (like @code{person-name})
 work on astronauts just like other people.
+
+@item :noinline
+If this option is present, this structure's functions will not be
+inlined, even functions that normally would.
 
 @item :print-function
 In full Common Lisp, this option allows you to specify a function

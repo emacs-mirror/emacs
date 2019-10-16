@@ -1,6 +1,6 @@
 ;;; notifications.el --- Client interface to desktop notifications.
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm desktop notifications

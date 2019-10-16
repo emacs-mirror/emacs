@@ -1,6 +1,6 @@
 ;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 ;;   2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -67,7 +67,7 @@ system, including many technical ones.  Examples:
     (and (characterp char) (< char 128)))
 
   (defmacro latin-ltx--define-rules (&rest rules)
-    (load "uni-name")
+    (load "uni-name" nil t)
     (let ((newrules ()))
       (dolist (rule rules)
         (pcase rule
@@ -105,10 +105,11 @@ system, including many technical ones.  Examples:
                   (setq rules (delq c rules)))
                 (message "Conflict for %S: %S"
                          (car rule) (apply #'string conflicts)))))))
-      (let ((inputs (mapcar #'car newrules)))
-        (setq inputs (delete-dups inputs))
-        (message "latin-ltx: %d rules (+ %d conflicts)!"
-                 (length inputs) (- (length newrules) (length inputs))))
+      (let* ((inputs (delete-dups (mapcar #'car newrules)))
+             (conflicts (- (length newrules) (length inputs))))
+        (unless (zerop conflicts)
+          (message "latin-ltx: %d rules (+ %d conflicts)!"
+                   (length inputs) conflicts)))
       `(quail-define-rules ,@(nreverse newrules)))))
 
 (latin-ltx--define-rules
@@ -453,10 +454,10 @@ system, including many technical ones.  Examples:
  ("\\lneq" ?≨)
  ("\\lneqq" ?≨)
  ("\\lnsim" ?⋦)
- ("\\longleftarrow" ?←)
- ("\\longleftrightarrow" ?↔)
- ("\\longmapsto" ?↦)
- ("\\longrightarrow" ?→)
+ ("\\longleftarrow" ?⟵)
+ ("\\longleftrightarrow" ?⟷)
+ ("\\longmapsto" ?⟼)
+ ("\\longrightarrow" ?⟶)
  ("\\looparrowleft" ?↫)
  ("\\looparrowright" ?↬)
  ("\\lozenge" ?✧)

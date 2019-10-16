@@ -1,6 +1,6 @@
 ;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Igor Kuzmin <kzuminig@iro.umontreal.ca>
 ;; Maintainer: emacs-devel@gnu.org
@@ -556,7 +556,7 @@ places where they originally did not directly appear."
 
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,
-     ;; if, catch, progn, prog1, prog2, while, until
+     ;; if, catch, progn, prog1, while, until
      `(,func . ,(mapcar (lambda (form)
                           (cconv-convert form env extend))
                         forms)))

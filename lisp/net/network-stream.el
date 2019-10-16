@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -48,6 +48,7 @@
 
 (declare-function starttls-available-p "starttls" ())
 (declare-function starttls-negotiate "starttls" (process))
+(declare-function starttls-open-stream "starttls" (name buffer host port))
 
 (autoload 'gnutls-negotiate "gnutls")
 (autoload 'open-gnutls-stream "gnutls")
@@ -196,7 +197,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	  (car result))))))
 
 (defun network-stream-certificate (host service parameters)
-  (let ((spec (plist-get :client-certificate parameters)))
+  (let ((spec (plist-get parameters :client-certificate)))
     (cond
      ((listp spec)
       ;; Either nil or a list with a key/certificate pair.
@@ -375,7 +376,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	(goto-char start)
 	(while (and (memq (process-status stream) '(open run))
 		    (not (re-search-forward end-of-command nil t)))
-	  (accept-process-output stream 0 50)
+	  (accept-process-output stream 0.05)
 	  (goto-char start))
 	;; Return the data we got back, or nil if the process died.
 	(unless (= start (point))
@@ -389,7 +390,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	   (stream
             (if (gnutls-available-p)
                 (open-gnutls-stream name buffer host service
-                                    (plist-get parameters :nowait))
+                                    parameters)
               (require 'tls)
               (open-tls-stream name buffer host service)))
 	   (eoc (plist-get parameters :end-of-command)))

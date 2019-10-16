@@ -12,7 +12,7 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright @copyright{} 2001--2018 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2019 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*
@@ -21,7 +21,7 @@ Copyright @copyright{} 1990, 1991, 1992 Joseph Brian Wells@*
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
 (``FAQ'') may be translated into other languages, transformed into other
-formats (e.g., Texinfo, Info, WWW, WAIS), and updated with new information.
+formats (e.g., Texinfo, Info, HTML, PDF), and updated with new information.
 
 The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved
@@ -34,7 +34,7 @@ the FAQ may not be embedded in a larger literary work unless that work
 itself allows free copying and redistribution.
 
 [This version has been heavily edited since it was included in the Emacs
-distribution.]
+distribution in 1999.]
 @end quotation
 @end copying
 
@@ -280,9 +280,8 @@ For information on some of the files in the @file{etc} directory,
 @pxref{Informational files for Emacs}.
 
 @node Common acronyms
-@section What are FSF, LPF, GNU, RMS, FTP, and GPL?
+@section What are FSF, GNU, RMS, FTP, and GPL?
 @cindex FSF, definition of
-@cindex LPF, definition of
 @cindex GNU, definition of
 @cindex RMS, definition of
 @cindex Stallman, Richard, acronym for
@@ -297,9 +296,6 @@ For information on some of the files in the @file{etc} directory,
 @item FSF
 Free Software Foundation
 
-@item LPF
-League for Programming Freedom
-
 @item GNU
 GNU's Not Unix
 
@@ -313,10 +309,6 @@ File Transfer Protocol
 GNU General Public License
 
 @end table
-
-Avoid confusing the FSF and the LPF@.  The LPF opposes
-look-and-feel copyrights and software patents.  The FSF aims to make
-high quality free software available for everyone.
 
 The word ``free'' in the title of the Free Software Foundation refers to
 ``freedom,'' not ``zero cost.''  Anyone can charge any price for
@@ -334,7 +326,6 @@ This chapter contains general questions having to do with Emacs, the
 Free Software Foundation, and related organizations.
 
 @menu
-* The LPF::
 * Real meaning of copyleft::
 * Guidelines for newsgroup postings::
 * Newsgroup archives::
@@ -342,17 +333,6 @@ Free Software Foundation, and related organizations.
 * Unsubscribing from Emacs lists::
 * Contacting the FSF::
 @end menu
-
-@node The LPF
-@section What is the LPF?
-@cindex LPF, description of
-@cindex League for Programming Freedom
-@cindex Software patents, opposition to
-@cindex Patents for software, opposition to
-
-The LPF opposes the expanding danger of software patents and
-look-and-feel copyrights.  More information on the LPF's views is
-available at @uref{http://progfree.org/, the LPF home page}.
 
 @node Real meaning of copyleft
 @section What is the real legal meaning of the GNU copyleft?
@@ -426,11 +406,6 @@ archive can be browsed over the web at
 Web-based Usenet search services, such as
 @uref{http://groups.google.com/groups/dir?q=gnu&, Google}, also
 archive the @code{gnu.*} groups.
-
-You can also read the archives of the @code{gnu.*} groups and post new
-messages at @uref{http://gmane.org/, Gmane}.  Gmane is a service that
-presents mailing lists as newsgroups (even those without a traditional
-mail-to-news gateway).
 
 @node Reporting bugs
 @section Where should I report bugs and other problems with Emacs?
@@ -1687,11 +1662,21 @@ mode-line-format @key{RET}}) for more information on how to set and use
 this variable.
 
 @cindex Set number capability in @code{vi} emulators
-The @samp{linum} package (distributed with Emacs since version 23.1)
-displays line numbers in the left margin, like the ``set number''
-capability of @code{vi}.  The packages @samp{setnu} and
-@samp{wb-line-number} (not distributed with Emacs) also implement this
-feature.
+The @samp{display-line-numbers} package (added to Emacs in version
+26.1) displays line numbers in the text area, before each line, like
+the ``set number'' capability of @samp{vi}.  Customize the
+buffer-local variable @code{display-line-numbers} to activate this
+optional display.  Alternatively, you can use the
+@code{display-line-numbers-mode} minor mode or the global
+@code{global-display-line-numbers-mode}.  When using these modes,
+customize @code{display-line-numbers-type} with the same value as you
+would use with @code{display-line-numbers}.
+
+There is also the @samp{linum} package (distributed with Emacs since
+version 23.1) which will henceforth become obsolete.  Users and
+developers are encouraged to use @samp{display-line-numbers} instead.
+The packages @samp{setnu} and @samp{wb-line-number} (not distributed
+with Emacs) also implement this feature.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
@@ -2005,19 +1990,6 @@ or by invoking @code{server-start} from @file{.emacs}:
 (if (@var{some conditions are met}) (server-start))
 @end lisp
 
-When this is done, Emacs by default creates a Unix domain socket named
-@file{server} in a well-known directory, typically
-@file{$XDG_RUNTIME_DIR/emacs} if Emacs is running under an X Window System
-desktop and @file{$TMPDIR/emacs@var{userid}} otherwise.  See the variable
-@code{server-socket-dir}.  Traditionally, Emacs used
-@file{$TMPDIR/emacs@var{userid}} even when running under an X desktop;
-if you prefer this traditional (and less-secure) behavior, you
-can set the environment variable @env{EMACS_SOCKET_NAME} to
-@samp{$TMPDIR/emacs@var{userid}/server} before invoking Emacs and
-@samp{emacsclient}, although it will be your responsibility to create
-the directory @samp{$TMPDIR/emacs@var{userid}} with appropriate
-ownership and permissions.
-
 To get your news reader, mail reader, etc., to invoke
 @samp{emacsclient}, try setting the environment variable @code{EDITOR}
 (or sometimes @code{VISUAL}) to the value @samp{emacsclient}.  You may
@@ -2059,6 +2031,8 @@ The most recent @samp{gnuserv} package is available at
 @uref{http://meltin.net/hacks/emacs/}
 
 @end itemize
+
+For more information, @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
 
 @node Compiler error messages
 @section How do I make Emacs recognize my compiler's funny error messages?
@@ -3887,7 +3861,7 @@ if you do build Emacs with Xt; please let us know if you've done this!)
 The only way to affect the behavior of keys within Emacs is through
 @code{xmodmap} (outside Emacs) or @code{define-key} (inside Emacs).  The
 @code{define-key} command should be used in conjunction with the
-@code{function-key-map} map.  For instance,
+@code{local-function-key-map} map.  For instance,
 
 @lisp
 (define-key function-key-map [M-@key{TAB}] [?\M-\t])

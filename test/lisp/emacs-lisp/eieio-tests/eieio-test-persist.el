@@ -1,8 +1,8 @@
 ;;; eieio-test-persist.el --- Tests for eieio-persistent class
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -274,7 +274,7 @@ persistent class.")
     :type vector
     :initarg :random-vector)))
 
-(ert-deftest eieio-test-persist-hash-and-vector ()
+(defun eieio-test-persist-hash-and-vector ()
   (let* ((jane (make-instance 'person :name "Jane"))
          (bob  (make-instance 'person :name "Bob"))
          (hans (make-instance 'person :name "Hans"))
@@ -294,9 +294,17 @@ persistent class.")
     (aset (car (slot-value class 'janitors)) 1 hans)
     (aset (nth 1 (slot-value class 'janitors)) 1 dierdre)
     (unwind-protect
-        ;; FIXME: This should not error.
-        (should-error (persist-test-save-and-compare class))
+        (persist-test-save-and-compare class)
       (delete-file (oref class file)))))
+
+(ert-deftest eieio-persist-hash-and-vector-backward-compatibility ()
+  (let ((eieio-backward-compatibility t)) ; The default.
+    (eieio-test-persist-hash-and-vector)))
+
+(ert-deftest eieio-persist-hash-and-vector-no-backward-compatibility ()
+  :expected-result :failed ;; Bug#29220.
+  (let ((eieio-backward-compatibility nil))
+    (eieio-test-persist-hash-and-vector)))
 
 ;; Extra quotation of lists inside other objects (Gnus registry), also
 ;; bug#29220.
@@ -312,7 +320,7 @@ persistent class.")
     :initarg :htab
     :type hash-table)))
 
-(ert-deftest eieio-test-persist-interior-lists ()
+(defun eieio-test-persist-interior-lists ()
   (let* ((thing (make-instance
                  'eieio-container
                  :vec [nil]
@@ -332,8 +340,16 @@ persistent class.")
     (setf (nth 2 (cadar alst)) john
           (nth 2 (cadadr alst)) alexie)
     (unwind-protect
-        ;; FIXME: Should not error.
-        (should-error (persist-test-save-and-compare thing))
+        (persist-test-save-and-compare thing)
       (delete-file (slot-value thing 'file)))))
+
+(ert-deftest eieio-test-persist-interior-lists-backward-compatibility ()
+  (let ((eieio-backward-compatibility t)) ; The default.
+    (eieio-test-persist-interior-lists)))
+
+(ert-deftest eieio-test-persist-interior-lists-no-backward-compatibility ()
+  :expected-result :failed ;; Bug#29220.
+  (let ((eieio-backward-compatibility nil))
+    (eieio-test-persist-interior-lists)))
 
 ;;; eieio-test-persist.el ends here

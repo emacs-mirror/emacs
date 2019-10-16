@@ -1,5 +1,5 @@
-# unistd_h.m4 serial 74
-dnl Copyright (C) 2006-2018 Free Software Foundation, Inc.
+# unistd_h.m4 serial 76
+dnl Copyright (C) 2006-2019 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -41,9 +41,9 @@ AC_DEFUN([gl_UNISTD_H],
 #  include <io.h>
 # endif
 #endif
-    ]], [chdir chown dup dup2 dup3 environ euidaccess faccessat fchdir fchownat
-    fdatasync fsync ftruncate getcwd getdomainname getdtablesize getgroups
-    gethostname getlogin getlogin_r getpagesize getpass
+    ]], [access chdir chown dup dup2 dup3 environ euidaccess faccessat fchdir
+    fchownat fdatasync fsync ftruncate getcwd getdomainname getdtablesize
+    getgroups gethostname getlogin getlogin_r getpagesize getpass
     getusershell setusershell endusershell
     group_member isatty lchown link linkat lseek pipe pipe2 pread pwrite
     readlink readlinkat rmdir sethostname sleep symlink symlinkat
@@ -61,9 +61,11 @@ AC_DEFUN([gl_UNISTD_MODULE_INDICATOR],
 
 AC_DEFUN([gl_UNISTD_H_DEFAULTS],
 [
+  GNULIB_ACCESS=0;               AC_SUBST([GNULIB_ACCESS])
   GNULIB_CHDIR=0;                AC_SUBST([GNULIB_CHDIR])
   GNULIB_CHOWN=0;                AC_SUBST([GNULIB_CHOWN])
   GNULIB_CLOSE=0;                AC_SUBST([GNULIB_CLOSE])
+  GNULIB_COPY_FILE_RANGE=0;      AC_SUBST([GNULIB_COPY_FILE_RANGE])
   GNULIB_DUP=0;                  AC_SUBST([GNULIB_DUP])
   GNULIB_DUP2=0;                 AC_SUBST([GNULIB_DUP2])
   GNULIB_DUP3=0;                 AC_SUBST([GNULIB_DUP3])
@@ -113,6 +115,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   GNULIB_WRITE=0;                AC_SUBST([GNULIB_WRITE])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_CHOWN=1;           AC_SUBST([HAVE_CHOWN])
+  HAVE_COPY_FILE_RANGE=1; AC_SUBST([HAVE_COPY_FILE_RANGE])
   HAVE_DUP2=1;            AC_SUBST([HAVE_DUP2])
   HAVE_DUP3=1;            AC_SUBST([HAVE_DUP3])
   HAVE_EUIDACCESS=1;      AC_SUBST([HAVE_EUIDACCESS])
@@ -157,6 +160,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   HAVE_DECL_TTYNAME_R=1;  AC_SUBST([HAVE_DECL_TTYNAME_R])
   HAVE_OS_H=0;            AC_SUBST([HAVE_OS_H])
   HAVE_SYS_PARAM_H=0;     AC_SUBST([HAVE_SYS_PARAM_H])
+  REPLACE_ACCESS=0;       AC_SUBST([REPLACE_ACCESS])
   REPLACE_CHOWN=0;        AC_SUBST([REPLACE_CHOWN])
   REPLACE_CLOSE=0;        AC_SUBST([REPLACE_CLOSE])
   REPLACE_DUP=0;          AC_SUBST([REPLACE_DUP])

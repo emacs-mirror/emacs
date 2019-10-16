@@ -1,8 +1,8 @@
 ;;; cedet-utests.el --- Run all unit tests in the CEDET suite.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -57,7 +57,7 @@
 			 (require 'eieio-custom)
 			 (customize-variable 'eieio-widget-test)))
     ("eieio: chart" . (lambda ()
-			(if (cedet-utest-noninteractive)
+			(if noninteractive
 			    (message " ** Skipping test in noninteractive mode.")
 			  (chart-test-it-all))))
     ;;
@@ -77,7 +77,7 @@
     ("semanticdb: data cache" . semantic-test-data-cache)
     ("semantic: throw-on-input" .
      (lambda ()
-       (if (cedet-utest-noninteractive)
+       (if noninteractive
 	   (message " ** Skipping test in noninteractive mode.")
 	 (semantic-test-throw-on-input))))
 
@@ -145,14 +145,13 @@ of just logging the error."
 
 (defun cedet-utest-noninteractive ()
   "Return non-nil if running non-interactively."
-  (if (featurep 'xemacs)
-      (noninteractive)
-    noninteractive))
+  (declare (obsolete nil "27.1"))
+  noninteractive)
 
 ;;;###autoload
 (defun cedet-utest-batch ()
   "Run the CEDET unit test in BATCH mode."
-  (unless (cedet-utest-noninteractive)
+  (unless noninteractive
     (error "`cedet-utest-batch' is to be used only with -batch"))
   (condition-case err
       (when (catch 'cedet-utest-exit-on-error
@@ -200,7 +199,7 @@ of just logging the error."
   "Setup a frame and buffer for unit testing.
 Optional argument TITLE is the title of this testing session."
   (setq cedet-utest-log-timer (current-time))
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       (message "\n>> Setting up %s tests to run @ %s\n"
 	       (or title "")
 	       (current-time-string))
@@ -245,7 +244,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 
 (defun cedet-utest-log-shutdown-msg (title startime endtime)
   "Show a shutdown message with TITLE, STARTIME, and ENDTIME."
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       (progn
 	(message "\n>> Test Suite %s ended at @ %s"
 		 title
@@ -266,7 +265,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 
 (defun cedet-utest-show-log-end ()
   "Show the end of the current unit test log."
-  (unless (cedet-utest-noninteractive)
+  (unless noninteractive
     (let* ((cb (current-buffer))
 	   (cf (selected-frame))
 	   (bw (or (get-buffer-window cedet-utest-buffer t)
@@ -282,7 +281,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 
 (defun cedet-utest-post-command-hook ()
   "Hook run after the current log command was run."
-    (if (cedet-utest-noninteractive)
+    (if noninteractive
 	(message "")
       (save-excursion
 	(set-buffer cedet-utest-buffer)
@@ -299,7 +298,7 @@ ERRORCONDITION is some error that may have occurred during testing."
     ;; This next line makes sure we clear out status during logging.
     (add-hook 'post-command-hook 'cedet-utest-post-command-hook)
 
-    (if (cedet-utest-noninteractive)
+    (if noninteractive
 	(message " - Running %s ..." item)
       (save-excursion
 	(set-buffer cedet-utest-buffer)
@@ -316,7 +315,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 Apply NOTES to the doneness of the log.
 Apply ERR if there was an error in previous item.
 Optional argument PRECR indicates to prefix the done msg w/ a newline."
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       ;; Non-interactive-mode - show a message.
       (if notes
 	  (message "   * %s {%s}" (or err "done") notes)
@@ -356,7 +355,7 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
 (defun cedet-utest-log(format &rest args)
   "Log the text string FORMAT.
 The rest of the ARGS are used to fill in FORMAT with `format'."
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       (apply 'message format args)
     (save-excursion
       (set-buffer cedet-utest-buffer)

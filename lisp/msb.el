@@ -1,6 +1,6 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
-;; Copyright (C) 1993-1995, 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -64,7 +64,7 @@
 ;;  Larry Rosenberg <ljr@ictv.com>
 ;;  Will Henney <will@astroscu.unam.mx>
 ;;  Jari Aalto <jaalto@tre.tele.nokia.fi>
-;;  Michael Kifer <kifer@sbkifer.cs.sunysb.edu>
+;;  Michael Kifer <kifer@cs.stonybrook.edu>
 ;;  Gael Marziou <gael@gnlab030.grenoble.hp.com>
 ;;  Dave Gillespie <daveg@thymus.synaptics.com>
 ;;  Alon Albert <alon@milcse.rtsg.mot.com>

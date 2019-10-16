@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -240,7 +240,7 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (define-derived-mode vc-mtn-log-view-mode log-view-mode "Mtn-Log-View"
   ;; Don't match anything.
-  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
+  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
   (set (make-local-variable 'log-view-per-file-logs) nil)
   ;; TODO: Use a more precise regexp than "[ |/]+" to avoid false positives
   ;; in the ChangeLog text.

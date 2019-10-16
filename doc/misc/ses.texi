@@ -12,7 +12,7 @@
 @copying
 This file documents @acronym{SES}: the Simple Emacs Spreadsheet.
 
-Copyright @copyright{} 2002--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2002--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

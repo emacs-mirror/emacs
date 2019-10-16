@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -1311,7 +1311,6 @@ re_node_set_insert (re_node_set *set, Idx elem)
      first element separately to skip a check in the inner loop.  */
   if (elem < set->elems[0])
     {
-      idx = 0;
       for (idx = set->nelem; idx > 0; idx--)
 	set->elems[idx] = set->elems[idx - 1];
     }
@@ -1716,15 +1715,19 @@ create_cd_newstate (const re_dfa_t *dfa, const re_node_set *nodes,
 	{
 	  if (newstate->entrance_nodes == &newstate->nodes)
 	    {
-	      newstate->entrance_nodes = re_malloc (re_node_set, 1);
-	      if (__glibc_unlikely (newstate->entrance_nodes == NULL))
+	      re_node_set *entrance_nodes = re_malloc (re_node_set, 1);
+	      if (__glibc_unlikely (entrance_nodes == NULL))
 		{
 		  free_state (newstate);
 		  return NULL;
 		}
+	      newstate->entrance_nodes = entrance_nodes;
 	      if (re_node_set_init_copy (newstate->entrance_nodes, nodes)
 		  != REG_NOERROR)
-		return NULL;
+		{
+		  free_state (newstate);
+		  return NULL;
+		}
 	      nctx_nodes = 0;
 	      newstate->has_constraint = 1;
 	    }

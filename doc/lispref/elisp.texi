@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -574,8 +574,8 @@ Advising Emacs Lisp Functions
 
 * Core Advising Primitives::  Primitives to manipulate advice.
 * Advising Named Functions::  Advising named functions.
-* Advice combinators::        Ways to compose advice.
-* Porting old advice::        Adapting code using the old defadvice.
+* Advice Combinators::        Ways to compose advice.
+* Porting Old Advice::        Adapting code using the old defadvice.
 
 Macros
 
@@ -1298,6 +1298,9 @@ Regular Expressions
 
 * Syntax of Regexps::       Rules for writing regular expressions.
 * Regexp Example::          Illustrates regular expression syntax.
+@ifnottex
+* Rx Notation::             An alternative, structured regexp notation.
+@end ifnottex
 * Regexp Functions::        Functions for operating on regular expressions.
 
 Syntax of Regular Expressions
@@ -1533,10 +1536,8 @@ Operating System Interface
 * System Environment::      Distinguish the name and kind of system.
 * User Identification::     Finding the name and user id of the user.
 * Time of Day::             Getting the current time.
-* Time Conversion::         Converting a time from numeric form to
-                              calendrical data and vice versa.
-* Time Parsing::            Converting a time from numeric form to text
-                              and vice versa.
+* Time Conversion::         Converting among timestamp forms.
+* Time Parsing::            Converting timestamps to text and vice versa.
 * Processor Run Time::      Getting the run time used by Emacs.
 * Time Calculations::       Adding, subtracting, comparing times, etc.
 * Timers::                  Setting a timer to call a function at a

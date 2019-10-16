@@ -1,8 +1,8 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
-;; Author: Per Abhiddenware
+;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 
 ;; This file is part of GNU Emacs.
 
@@ -92,7 +92,7 @@ The first regexp group should match the Supercite attribution."
 ;;     -----Original Message-----
 ;;     From: ...
 ;;     To: ...
-;;     Sent: ...   [date, in non-RFC-2822 format]
+;;     Sent: ...   [date, in non-RFC-822-or-later format]
 ;;     Subject: ...
 ;;
 ;;     Cited message, with no prefixes
@@ -1128,7 +1128,7 @@ Returns nil if there is no such line before LIMIT, t otherwise."
     (let ((cdepth (min (length (apply 'concat
 				      (split-string
 				       (match-string-no-properties 0)
-				       "[ \t [:alnum:]]+")))
+				       "[\t [:alnum:]]+")))
 		       gnus-message-max-citation-depth))
 	  (mlist (make-list (* (1+ gnus-message-max-citation-depth) 2) nil))
 	  (start (point-at-bol))
@@ -1163,7 +1163,7 @@ When enabled, it automatically turns on `font-lock-mode'."
   nil ;; init-value
   "" ;; lighter
   nil ;; keymap
-  (when (eq major-mode 'message-mode)   ;FIXME: Use derived-mode-p.
+  (when (derived-mode-p 'message-mode)
     ;; FIXME: Use font-lock-add-keywords!
     (let ((defaults (car font-lock-defaults))
 	  default keywords)

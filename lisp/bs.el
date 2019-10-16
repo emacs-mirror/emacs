@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -181,12 +181,7 @@ return a string representing the column's value."
    (list (bs--make-header-match-string)
 	 '(1 font-lock-type-face append) '(1 'bold append))
    ;; Buffername embedded by *
-   (list "^\\(.*\\*.*\\*.*\\)$"
-	 1
-	 ;; problem in XEmacs with font-lock-constant-face
-	 (if (facep 'font-lock-constant-face)
-	     'font-lock-constant-face
-	   'font-lock-comment-face))
+   (list "^\\(.*\\*.*\\*.*\\)$" 1 'font-lock-constant-face)
    ;; Dired-Buffers
    '("^..\\(.*Dired .*\\)$" 1 font-lock-function-name-face)
    ;; the star for modified buffers
@@ -343,11 +338,6 @@ configuration.
 A value of `never' means to never show the buffer.
 A value of `always' means to show buffer regardless of the configuration.")
 
-;; Make face named region (for XEmacs)
-(unless (facep 'region)
-  (make-face 'region)
-  (set-face-background 'region "gray75"))
-
 (defun bs--sort-by-name (b1 b2)
   "Compare buffers B1 and B2 by buffer name."
   (string< (buffer-name b1)
@@ -448,8 +438,7 @@ Used internally, only.")
     (define-key map "f"       'bs-select)
     (define-key map "v"       'bs-view)
     (define-key map "!"       'bs-select-in-one-window)
-    (define-key map [mouse-2] 'bs-mouse-select)	;; for GNU EMACS
-    (define-key map [button2] 'bs-mouse-select) ;; for XEmacs
+    (define-key map [mouse-2] 'bs-mouse-select)
     (define-key map "F"       'bs-select-other-frame)
     (let ((key ?1))
       (while (<= key ?9)
@@ -459,10 +448,7 @@ Used internally, only.")
     (define-key map "\e-"     'negative-argument)
     (define-key map "o"       'bs-select-other-window)
     (define-key map "\C-o"    'bs-tmp-select-other-window)
-    ;; for GNU EMACS
     (define-key map [mouse-3] 'bs-mouse-select-other-frame)
-    ;; for XEmacs
-    (define-key map [button3] 'bs-mouse-select-other-frame)
     (define-key map [up]      'bs-up)
     (define-key map "n"       'bs-down)
     (define-key map "p"       'bs-up)

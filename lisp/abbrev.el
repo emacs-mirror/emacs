@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -352,6 +352,7 @@ Expands the abbreviation after defining it."
   (let (name exp start end)
     (save-excursion
       (forward-word (1+ (- arg)))
+      (skip-syntax-backward "^w")
       (setq end (point))
       (backward-word 1)
       (setq start (point)
@@ -369,13 +370,16 @@ Expands the abbreviation after defining it."
 
 (defun abbrev-prefix-mark (&optional arg)
   "Mark current point as the beginning of an abbrev.
-Abbrev to be expanded starts here rather than at beginning of word.
-This way, you can expand an abbrev with a prefix: insert the prefix,
-use this command, then insert the abbrev.  This command inserts a
-temporary hyphen after the prefix (until the intended abbrev
-expansion occurs).
-If the prefix is itself an abbrev, this command expands it, unless
-ARG is non-nil.  Interactively, ARG is the prefix argument."
+The abbrev to be expanded starts here rather than at beginning of
+word.  This way, you can expand an abbrev with a prefix: insert
+the prefix, use this command, then insert the abbrev.
+
+This command inserts a hyphen after the prefix, and if the abbrev
+is subsequently expanded, this hyphen will be removed.
+
+If the prefix is itself an abbrev, this command expands it,
+unless ARG is non-nil.  Interactively, ARG is the prefix
+argument."
   (interactive "P")
   (or arg (expand-abbrev))
   (setq abbrev-start-location (point-marker)
@@ -940,8 +944,7 @@ If READABLE is nil, an expression is inserted.  The expression is
 a call to `define-abbrev-table' that when evaluated will define
 the abbrev table NAME exactly as it is currently defined.
 Abbrevs marked as \"system abbrevs\" are ignored."
-  (let ((table (symbol-value name))
-        (symbols (abbrev--table-symbols name readable)))
+  (let ((symbols (abbrev--table-symbols name readable)))
     (setq symbols (sort symbols 'string-lessp))
     (let ((standard-output (current-buffer)))
       (if readable

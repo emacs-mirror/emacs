@@ -1,9 +1,8 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
-;; Author:        Didier Verna <didier@xemacs.org>
-;; Maintainer:    Didier Verna <didier@xemacs.org>
+;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Fri Jul 16 18:55:42 1999
 ;; Keywords:      calendar mail news
 
@@ -122,7 +121,7 @@ Diary articles will appear again, as if they'd been just received.
 
 Entries look like (3 . day) which means something like \"Please
 Hortense, would you be so kind as to remind me of my appointments 3 days
-before the date, thank you very much. Anda, hmmm... by the way, are you
+before the date, thank you very much.  Anda, hmmm... by the way, are you
 doing anything special tonight ?\".
 
 The units of measure are 'minute 'hour 'day 'week 'month and 'year (no,
@@ -219,7 +218,7 @@ The hook functions will be called with the article in the current buffer."
 (defvoo nndiary-get-new-mail nil
   "Whether nndiary gets new mail and split it.
 Contrary to traditional mail back ends, this variable can be set to t
-even if your primary mail back end also retrieves mail. In such a case,
+even if your primary mail back end also retrieves mail.  In such a case,
 NDiary uses its own mail-sources and split-methods.")
 
 (defvoo nndiary-nov-is-evil nil
@@ -979,7 +978,7 @@ all.  This may very well take some time.")
   "Add a nov line for the GROUP base."
   (with-current-buffer (nndiary-open-nov group)
     (goto-char (point-max))
-    (mail-header-set-number headers article)
+    (setf (mail-header-number headers) article)
     (nnheader-insert-nov headers)))
 
 (defsubst nndiary-header-value ()
@@ -994,8 +993,8 @@ all.  This may very well take some time.")
 	 (goto-char (point-min))
 	 (if (search-forward "\n\n" nil t) (1- (point)) (point-max))))
       (let ((headers (nnheader-parse-naked-head)))
-	(mail-header-set-chars headers chars)
-	(mail-header-set-number headers number)
+	(setf (mail-header-chars  headers) chars)
+	(setf (mail-header-number headers) number)
 	headers))))
 
 (defun nndiary-open-nov (group)
@@ -1016,7 +1015,7 @@ all.  This may very well take some time.")
 (defun nndiary-save-nov ()
   (save-excursion
     (while nndiary-nov-buffer-alist
-      (when (buffer-name (cdar nndiary-nov-buffer-alist))
+      (when (buffer-live-p (cdar nndiary-nov-buffer-alist))
 	(set-buffer (cdar nndiary-nov-buffer-alist))
 	(when (buffer-modified-p)
 	  (nnmail-write-region 1 (point-max) nndiary-nov-buffer-file-name
@@ -1265,12 +1264,12 @@ all.  This may very well take some time.")
 	 (date-elts (decode-time date))
 	 ;; ### NOTE: out-of-range values are accepted by encode-time. This
 	 ;; makes our life easier.
-	 (monday (- (nth 3 date-elts)
+	 (monday (- (decoded-time-day date-elts)
 		    (if nndiary-week-starts-on-monday
-			(if (zerop (nth 6 date-elts))
+			(if (zerop (decoded-time-weekday date-elts))
 			    6
-			  (- (nth 6 date-elts) 1))
-		      (nth 6 date-elts))))
+			  (- (decoded-time-weekday date-elts) 1))
+		      (decoded-time-weekday date-elts))))
 	 reminder res)
     ;; remove the DOW and DST entries
     (setcdr (nthcdr 5 date-elts) (nthcdr 8 date-elts))
@@ -1278,28 +1277,28 @@ all.  This may very well take some time.")
       (push
        (cond ((eq (cdr reminder) 'minute)
 	      (time-subtract
-	       (apply 'encode-time 0 (nthcdr 1 date-elts))
-	       (seconds-to-time (* (car reminder) 60.0))))
+	       (apply #'encode-time 0 (nthcdr 1 date-elts))
+	       (* (car reminder) 60)))
 	     ((eq (cdr reminder) 'hour)
 	      (time-subtract
-	       (apply 'encode-time 0 0 (nthcdr 2 date-elts))
-	       (seconds-to-time (* (car reminder) 3600.0))))
+	       (apply #'encode-time 0 0 (nthcdr 2 date-elts))
+	       (* (car reminder) 3600)))
 	     ((eq (cdr reminder) 'day)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 (nthcdr 3 date-elts))
-	       (seconds-to-time (* (car reminder) 86400.0))))
+	       (apply #'encode-time 0 0 0 (nthcdr 3 date-elts))
+	       (* (car reminder) 86400)))
 	     ((eq (cdr reminder) 'week)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 monday (nthcdr 4 date-elts))
-	       (seconds-to-time (* (car reminder) 604800.0))))
+	       (apply #'encode-time 0 0 0 monday (nthcdr 4 date-elts))
+	       (* (car reminder) 604800)))
 	     ((eq (cdr reminder) 'month)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 1 (nthcdr 4 date-elts))
-	       (seconds-to-time (* (car reminder) 18748800.0))))
+	       (apply #'encode-time 0 0 0 1 (nthcdr 4 date-elts))
+	       (* (car reminder) 18748800)))
 	     ((eq (cdr reminder) 'year)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
-	       (seconds-to-time (* (car reminder) 400861056.0)))))
+	       (apply #'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
+	       (* (car reminder) 400861056))))
        res))
     (sort res 'time-less-p)))
 
@@ -1344,9 +1343,10 @@ all.  This may very well take some time.")
 		 ;; have to know which day is the 1st one for this month.
 		 ;; Maybe there's simpler, but decode-time(encode-time) will
 		 ;; give us the answer.
-		 (let ((first (nth 6 (decode-time
-				      (encode-time 0 0 0 1 month year
-						   time-zone))))
+		 (let ((first (decoded-time-weekday
+			       (decode-time
+				(encode-time 0 0 0 1 month year
+					     time-zone))))
 		       (max (cond ((= month 2)
 				   (if (date-leap-year-p year) 29 28))
 				  ((<= month 7)
@@ -1391,11 +1391,11 @@ all.  This may very well take some time.")
   ;; If there's no next occurrence, returns the last one (if any) which is then
   ;; in the past.
   (let* ((today (decode-time now))
-	 (this-minute (nth 1 today))
-	 (this-hour (nth 2 today))
-	 (this-day (nth 3 today))
-	 (this-month (nth 4 today))
-	 (this-year (nth 5 today))
+	 (this-minute (decoded-time-minute today))
+	 (this-hour (decoded-time-hour today))
+	 (this-day (decoded-time-day today))
+	 (this-month (decoded-time-month today))
+	 (this-year (decoded-time-year today))
 	 (minute-list (sort (nndiary-flatten (nth 0 sched) 0 59) '<))
 	 (hour-list (sort (nndiary-flatten (nth 1 sched) 0 23) '<))
 	 (dom-list (nth 2 sched))
@@ -1446,9 +1446,10 @@ all.  This may very well take some time.")
 		 ;; have to know which day is the 1st one for this month.
 		 ;; Maybe there's simpler, but decode-time(encode-time) will
 		 ;; give us the answer.
-		 (let ((first (nth 6 (decode-time
-				      (encode-time 0 0 0 1 month year
-						   time-zone))))
+		 (let ((first (decoded-time-weekday
+			       (decode-time
+				(encode-time 0 0 0 1 month year
+					     time-zone))))
 		       (max (cond ((= month 2)
 				   (if (date-leap-year-p year) 29 28))
 				  ((<= month 7)

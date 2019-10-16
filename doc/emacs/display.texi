@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -199,12 +199,13 @@ screen lines between point and the top or bottom of the window
 (@pxref{Auto Scrolling}).
 
   You can also give @kbd{C-l} a prefix argument.  A plain prefix
-argument, @kbd{C-u C-l}, simply recenters point.  A positive argument
-@var{n} puts point @var{n} lines down from the top of the window.  An
-argument of zero puts point on the topmost line.  A negative argument
-@var{-n} puts point @var{n} lines from the bottom of the window.  When
-given an argument, @kbd{C-l} does not clear the screen or cycle
-through different screen positions.
+argument, @kbd{C-u C-l}, simply recenters the line showing point.  A
+positive argument @var{n} moves line showing point @var{n} lines down
+from the top of the window.  An argument of zero moves point's line to
+the top of the window.  A negative argument @minus{}@var{n} moves point's
+line @var{n} lines from the bottom of the window.  When given an
+argument, @kbd{C-l} does not clear the screen or cycle through
+different screen positions.
 
 @vindex recenter-redisplay
   If the variable @code{recenter-redisplay} has a non-@code{nil}
@@ -555,14 +556,14 @@ Font Lock mode.
 
 @node Colors
 @section Colors for Faces
-@cindex color name
-@cindex RGB triplet
 
   Faces can have various foreground and background colors.  When you
 specify a color for a face---for instance, when customizing the face
 (@pxref{Face Customization})---you can use either a @dfn{color name}
 or an @dfn{RGB triplet}.
 
+@subsection Color Names
+@cindex color name
 @findex list-colors-display
 @vindex list-colors-sort
   A color name is a pre-defined name, such as @samp{dark orange} or
@@ -577,12 +578,16 @@ such terminals.  However, Emacs understands X11 color names even on
 text terminals; if a face is given a color specified by an X11 color
 name, it is displayed using the closest-matching terminal color.
 
+@subsection RGB Triplets
+@cindex RGB triplet
   An RGB triplet is a string of the form @samp{#RRGGBB}.  Each of the
-R, G, and B components is a hexadecimal number specifying the
-component's relative intensity, one to four digits long (usually two
-digits are used).  The components must have the same number of digits.
-For hexadecimal values A to F, either upper or lower case are
-acceptable.
+primary color components is represented by a hexadecimal number
+between @samp{00} (intensity 0) and @samp{FF} (the maximum intensity).
+It is also possible to use one, three, or four hex digits for each
+component, so @samp{red} can be represented as @samp{#F00},
+@samp{#fff000000}, or @samp{#ffff00000000}.  The components must have
+the same number of digits.  For hexadecimal values A to F, either
+upper or lower case are acceptable.
 
   The @kbd{M-x list-colors-display} command also shows the equivalent
 RGB triplet for each named color.  For instance, @samp{medium sea
@@ -717,6 +722,10 @@ Similar to @code{highlight} and @code{mode-line-highlight}, but used
 for mouse-sensitive portions of text on header lines.  This is a
 separate face because the @code{header-line} face might be customized
 in a way that does not interact well with @code{highlight}.
+@item tab-line
+@cindex @code{tab-line} face
+Similar to @code{mode-line} for a window's tab line, which appears
+at the top of a window with tabs representing window buffers.
 @item vertical-border
 @cindex @code{vertical-border} face
 This face is used for the vertical divider between windows on text
@@ -758,6 +767,8 @@ This face determines the visual appearance of the scroll bar.
 @xref{Scroll Bars}.
 @item tool-bar
 This face determines the color of tool bar icons.  @xref{Tool Bars}.
+@item tab-bar
+This face determines the color of tab bar icons.  @xref{Tab Bars}.
 @item menu
 @cindex menu bar appearance
 @cindex @code{menu} face, no effect if customized
@@ -835,10 +846,10 @@ for instance, programming language modes fontify syntactically
 relevant constructs like comments, strings, and function names.
 
 @findex font-lock-mode
-  Font Lock mode is enabled by default.  To toggle it in the current
-buffer, type @kbd{M-x font-lock-mode}.  A positive numeric argument
-unconditionally enables Font Lock mode, and a negative or zero
-argument disables it.
+  Font Lock mode is enabled by default in major modes that support it.
+To toggle it in the current buffer, type @kbd{M-x font-lock-mode}.  A
+positive numeric argument unconditionally enables Font Lock mode, and
+a negative or zero argument disables it.
 
 @findex global-font-lock-mode
 @vindex global-font-lock-mode
@@ -1111,7 +1122,8 @@ the arrows scrolls the display horizontally in the direction of the
 arrow.
 
   The fringes can also indicate other things, such as buffer
-boundaries (@pxref{Displaying Boundaries}), and where a program you
+boundaries (@pxref{Displaying Boundaries}), unused lines near the end
+of the window (@pxref{indicate-empty-lines}), and where a program you
 are debugging is executing (@pxref{Debuggers}).
 
 @vindex overflow-newline-into-fringe
@@ -1140,6 +1152,55 @@ right-to-left paragraphs.
 
 @node Displaying Boundaries
 @section Displaying Boundaries
+
+@cindex mode, display-fill-column-indicator
+@findex display-fill-column-indicator-mode
+@findex global-display-fill-column-indicator-mode
+  Emacs can add an indicator to display a fill column position.  The
+fill column indicator is a useful functionality specially in
+prog-mode to indicate the position of an specific column.
+
+  You can set the buffer-local variables @code{display-fill-column-indicator}
+and @code{display-fill-column-indicator-character} to activate the
+indicator and controls how the indicator looks.
+
+Alternatively you can type @w{@kbd{M-x display-fill-column-indicator-mode}}
+or @w{@kbd{M-x global-display-fill-column-indicator-mode}} which enables the
+indicator locally and globally respectively and also chooses the
+character to use if none is set already.  It is possible to use the
+first one to activate the indicator in a hook or the second one to
+enable it globally.
+
+There are 2 buffer local variables and 1 face to customize this mode:
+
+@table @code
+@item display-fill-column-indicator-column
+@vindex display-fill-column-indicator-column
+Specifies the column number where the indicator should be set.  It can
+take positive numerical values for the column or the special value
+@code{t} which means that the variable @code{fill-column} will be
+used.
+
+Any other value disables the indicator.  The default value is @code{t}.
+
+@item display-fill-column-indicator-character
+@vindex display-fill-column-indicator-character
+Specifies the character used for the indicator.  This character can be
+any valid char including unicode ones if the actual font supports
+them.
+
+When the mode is enabled through the functions
+@code{display-fill-column-indicator-mode} or
+@code{global-display-fill-column-indicator-mode}, the initialization
+functions check if this variable is @code{non-nil}, otherwise the
+initialization tries to set it to U+2502 or @samp{|}.
+
+@item fill-column-indicator
+@vindex fill-column-indicator
+Specifies the face used to display the indicator.  It inherits its
+default values from shadow but without background color.  To change
+the indicator color you need to set only the foreground color of this face.
+@end table
 
 @vindex indicate-buffer-boundaries
   On graphical displays, Emacs can indicate the buffer boundaries in
@@ -1204,6 +1265,7 @@ extra spaces at the end of each line in the region.
 @vindex indicate-empty-lines
 @cindex unused lines
 @cindex fringes, and unused line indication
+@anchor{indicate-empty-lines}
   On graphical displays, Emacs can indicate unused lines at the end of
 the window with a small image in the left fringe (@pxref{Fringes}).
 The image appears for screen lines that do not correspond to any
@@ -1486,9 +1548,9 @@ a new line, while the tab character (@code{U+0009}) is displayed as a
 space that extends to the next tab stop column (normally every 8
 columns).  The number of spaces per tab is controlled by the
 buffer-local variable @code{tab-width}, which must have an integer
-value between 1 and 1000, inclusive.  Note that how the tab character
-in the buffer is displayed has nothing to do with the definition of
-@key{TAB} as a command.
+value between 1 and 1000, inclusive.  Note that the way the tab
+character in the buffer is displayed has nothing to do with the
+definition of @key{TAB} as a command.
 
   Other @acronym{ASCII} control characters, whose codes are below
 @code{U+0020} (octal 40, decimal 32), are displayed as a caret
@@ -1558,11 +1620,11 @@ curved quotes.  You can influence or inhibit this translation by
 customizing the user option @code{text-quoting-style} (@pxref{Keys in
 Documentation,,, elisp, The Emacs Lisp Reference Manual}).
 
-  If the curved quotes @samp{‘}, @samp{’}, @samp{“}, and @samp{”} are
+  If the curved quotes @t{‘}, @t{’}, @t{“}, and @t{”} are
 known to look just like @acronym{ASCII} characters, they are shown
 with the @code{homoglyph} face.  Curved quotes that are known not to
 be displayable are shown as their @acronym{ASCII} approximations
-@samp{`}, @samp{'}, and @samp{"} with the @code{homoglyph} face.
+@t{`}, @t{'}, and @t{"} with the @code{homoglyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor
@@ -1809,7 +1871,12 @@ The line numbers are displayed in a special face @code{line-number}.
 The current line number is displayed in a different face,
 @code{line-number-current-line}, so you can make the current line's
 number have a distinct appearance, which will help locating the line
-showing point.
+showing point. Additional faces @code{line-number-major-tick} and
+@code{line-number-minor-tick} can be used to highlight the line numbers
+of lines which are a multiple of certain numbers.  Customize
+@code{display-line-numbers-major-tick} and
+@code{display-line-numbers-minor-tick} respectively to set those
+numbers.
 
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts

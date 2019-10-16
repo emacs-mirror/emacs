@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997-1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -188,67 +188,79 @@ from; the default is `load-path'."
   ;; Allow compressed files also.
   (setq package--builtins nil)
   (setq finder-keywords-hash (make-hash-table :test 'eq))
-  (let ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
-	package-override files base-name ; processed
-	summary keywords package version entry desc)
-    (dolist (d (or dirs load-path))
-      (when (file-exists-p (directory-file-name d))
-	(message "Scanning %s for finder" d)
-	(setq package-override
+  (let* ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
+         (file-count 0)
+         (files (cl-loop for d in (or dirs load-path)
+                         when (file-exists-p (directory-file-name d))
+                         append (mapcar
+                                 (lambda (f)
+                                   (cons d f))
+                                 (directory-files d nil el-file-regexp))))
+         (progress (make-progress-reporter
+                    (byte-compile-info-string "Scanning files for finder")
+                    0 (length files)))
+	 package-override base-name ; processed
+	 summary keywords package version entry desc)
+    (dolist (elem files)
+      (let* ((d (car elem))
+             (f (cdr elem))
+             (package-override
 	      (intern-soft
 	       (cdr-safe
-		(assoc (file-name-nondirectory (directory-file-name d))
-		       finder--builtins-alist))))
-	(setq files (directory-files d nil el-file-regexp))
-	(dolist (f files)
-	  (unless (or (string-match finder-no-scan-regexp f)
-		      (null (setq base-name
-				  (and (string-match el-file-regexp f)
-				       (intern (match-string 1 f))))))
-;;		      (memq base-name processed))
-;; There are multiple files in the tree with the same basename.
-;; So skipping files based on basename means you randomly (depending
-;; on which order the files are traversed in) miss some packages.
-;; https://debbugs.gnu.org/14010
-;; You might think this could lead to two files providing the same package,
-;; but it does not, because the duplicates are (at time of writing)
-;; all due to files in cedet, which end up with package-override set.
-;; FIXME this is obviously fragile.
-;; Make the (eq base-name package) case below issue a warning if
-;; package-override is nil?
-;;	    (push base-name processed)
-	    (with-temp-buffer
-	      (insert-file-contents (expand-file-name f d))
-	      (setq keywords (mapcar 'intern (lm-keywords-list))
-		    package  (or package-override
-				 (let ((str (lm-header "package")))
-				   (if str (intern str)))
-				 base-name)
-		    summary  (or (cdr
-				  (assq package finder--builtins-descriptions))
-				 (lm-synopsis))
-		    version  (lm-header "version")))
-	    (when summary
-	      (setq version (ignore-errors (version-to-list version)))
-	      (setq entry (assq package package--builtins))
-	      (cond ((null entry)
-		     (push (cons package
-                                 (package-make-builtin version summary))
-			   package--builtins))
-		    ;; The idea here is that eg calc.el gets to define
-		    ;; the description of the calc package.
-		    ;; This does not work for eg nxml-mode.el.
-		    ((or (eq base-name package) version)
-		     (setq desc (cdr entry))
-		     (aset desc 0 version)
-		     (aset desc 2 summary)))
-	      (dolist (kw keywords)
-		(puthash kw
-			 (cons package
-			       (delq package
-				     (gethash kw finder-keywords-hash)))
-			 finder-keywords-hash))))))))
-
+	        (assoc (file-name-nondirectory
+                        (directory-file-name d))
+		       finder--builtins-alist)))))
+        (progress-reporter-update progress (setq file-count (1+ file-count)))
+        (unless (or (string-match finder-no-scan-regexp f)
+		    (null (setq base-name
+			        (and (string-match el-file-regexp f)
+				     (intern (match-string 1 f))))))
+          ;; (memq base-name processed))
+          ;; There are multiple files in the tree with the same
+          ;; basename.  So skipping files based on basename means you
+          ;; randomly (depending on which order the files are
+          ;; traversed in) miss some packages.
+          ;; https://debbugs.gnu.org/14010
+          ;; You might think this could lead to two files providing
+          ;; the same package, but it does not, because the duplicates
+          ;; are (at time of writing) all due to files in cedet, which
+          ;; end up with package-override set.  FIXME this is
+          ;; obviously fragile.  Make the (eq base-name package) case
+          ;; below issue a warning if package-override is nil?
+          ;;	    (push base-name processed)
+	  (with-temp-buffer
+	    (insert-file-contents (expand-file-name f d))
+	    (setq keywords (mapcar 'intern (lm-keywords-list))
+		  package  (or package-override
+			       (let ((str (lm-header "package")))
+			         (if str (intern str)))
+			       base-name)
+		  summary  (or (cdr
+			        (assq package finder--builtins-descriptions))
+			       (lm-synopsis))
+		  version  (lm-header "version")))
+	  (when summary
+	    (setq version (or (ignore-errors (version-to-list version))
+                              (alist-get package package--builtin-versions)))
+	    (setq entry (assq package package--builtins))
+	    (cond ((null entry)
+		   (push (cons package
+                               (package-make-builtin version summary))
+		         package--builtins))
+		  ;; The idea here is that eg calc.el gets to define
+		  ;; the description of the calc package.
+		  ;; This does not work for eg nxml-mode.el.
+		  ((or (eq base-name package) version)
+		   (setq desc (cdr entry))
+		   (aset desc 0 version)
+		   (aset desc 2 summary)))
+	    (dolist (kw keywords)
+	      (puthash kw
+		       (cons package
+			     (delq package
+				   (gethash kw finder-keywords-hash)))
+		       finder-keywords-hash))))))
+    (progress-reporter-done progress))
   (setq package--builtins
 	(sort package--builtins
 	      (lambda (a b) (string< (symbol-name (car a))
@@ -453,11 +465,12 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
   "Exit Finder mode.
-Delete the window and kill all Finder-related buffers."
+Quit the window and kill all Finder-related buffers."
   (interactive)
-  (ignore-errors (delete-window))
   (let ((buf "*Finder*"))
-    (and (get-buffer buf) (kill-buffer buf))))
+    (if (equal (current-buffer) buf)
+        (quit-window t)
+      (and (get-buffer buf) (kill-buffer buf)))))
 
 (defun finder-unload-function ()
   "Unload the Finder library."

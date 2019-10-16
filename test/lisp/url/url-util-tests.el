@@ -1,6 +1,6 @@
 ;;; url-util-tests.el --- Test suite for url-util.
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data

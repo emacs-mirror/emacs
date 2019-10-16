@@ -1,6 +1,6 @@
 ;;; dissociate.el --- scramble text amusingly for Emacs
 
-;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games

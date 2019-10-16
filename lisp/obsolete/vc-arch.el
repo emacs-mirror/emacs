@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -133,7 +133,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	(file-error (insert (format "%s <%s> %s"
 				    (current-time-string)
 				    user-mail-address
-				    (+ (% (car (encode-time nil 1000000))
+				    (+ (% (car (time-convert nil 1000000))
 					  1000000)
 				       (buffer-size)))))))
     (comment-region beg (point))))

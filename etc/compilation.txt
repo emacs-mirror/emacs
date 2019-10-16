@@ -286,6 +286,7 @@ jade:dbcommon.dsl:133:17:E: missing argument for function call
 G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 {standard input}:27041: Warning: end of file not at end of a line; newline inserted
+boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contexts, use -ftemplate-backtrace-limit=0 to disable ]
 
 
 * Guile backtrace, 2.0.11
@@ -625,7 +626,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004-2018 Free Software Foundation, Inc.
+Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

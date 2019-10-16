@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1997-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
@@ -418,7 +418,7 @@ already set or has been customized; otherwise, just use
 @code{set-default}.
 
 @item custom-initialize-delay
-This functions behaves like @code{custom-initialize-set}, but it
+This function behaves like @code{custom-initialize-set}, but it
 delays the actual initialization to the next Emacs start.  This should
 be used in files that are preloaded (or for autoloaded variables), so
 that the initialization is done in the run-time context rather than
@@ -486,8 +486,10 @@ Internally, @code{defcustom} uses the symbol property
 @code{saved-value} to record the value saved by the user with the
 customization buffer, and @code{customized-value} to record the value
 set by the user with the customization buffer, but not saved.
-@xref{Symbol Properties}.  These properties are lists, the car of
-which is an expression that evaluates to the value.
+@xref{Symbol Properties}.  In addition, there's @code{themed-value},
+which is used to record the value set by a theme (@pxref{Custom
+Themes}).  These properties are lists, the car of which is an
+expression that evaluates to the value.
 
 @defun custom-reevaluate-setting symbol
 This function re-evaluates the standard value of @var{symbol}, which
@@ -950,10 +952,10 @@ possibilities:
 
 @itemize @bullet
 @item
-A predicate---that is, a function of one argument that has no side
-effects, and returns either @code{nil} or non-@code{nil} according to
-the argument.  Using a predicate in the list says that objects for which
-the predicate returns non-@code{nil} are acceptable.
+A predicate---that is, a function of one argument that returns either
+@code{nil} or non-@code{nil} according to the argument.  Using a
+predicate in the list says that objects for which the predicate
+returns non-@code{nil} are acceptable.
 
 @item
 A quoted constant---that is, @code{'@var{object}}.  This sort of element

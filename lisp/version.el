@@ -1,6 +1,6 @@
 ;;; version.el --- record version number of Emacs
 
-;; Copyright (C) 1985, 1992, 1994-1995, 1999-2018 Free Software
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -120,7 +120,7 @@ or if we could not determine the revision.")
 	       (with-demoted-errors "Error running git rev-parse: %S"
 		 (call-process "git" nil '(t nil) nil "rev-parse" "HEAD")))
 	   (progn (goto-char (point-min))
-		  (looking-at "[0-9a-fA-F]\\{40\\}"))
+		  (looking-at "[[:xdigit:]]\\{40\\}"))
 	   (match-string 0)))))
 
 (defun emacs-repository-get-version (&optional dir external)

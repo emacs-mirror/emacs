@@ -1,6 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -61,8 +61,6 @@ If a list, it is a list of the types of messages to be logged."
 
 ;;;###autoload
 (defun url-debug (tag &rest args)
-  (if quit-flag
-      (error "Interrupted!"))
   (if (or (eq url-debug t)
 	  (numberp url-debug)
 	  (and (listp url-debug) (memq tag url-debug)))
@@ -74,61 +72,51 @@ If a list, it is a list of the types of messages to be logged."
 
 ;;;###autoload
 (defun url-parse-args (str &optional nodowncase)
-  ;; Return an assoc list of attribute/value pairs from an RFC822-type string
-  (let (
-	name				; From name=
+  ;; Return an assoc list of attribute/value pairs from a string
+  ;; that uses RFC 822 (or later) format.
+  (let (name				; From name=
 	value				; its value
 	results				; Assoc list of results
 	name-pos			; Start of XXXX= position
-	val-pos				; Start of value position
-	st
-	nd
-	)
-    (save-excursion
-      (save-restriction
-	(set-buffer (get-buffer-create " *urlparse-temp*"))
-	(set-syntax-table url-parse-args-syntax-table)
-	(erase-buffer)
-	(insert str)
-	(setq st (point-min)
-	      nd (point-max))
-	(set-syntax-table url-parse-args-syntax-table)
-	(narrow-to-region st nd)
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (skip-chars-forward "; \n\t")
-	  (setq name-pos (point))
-	  (skip-chars-forward "^ \n\t=;")
-	  (if (not nodowncase)
-	      (downcase-region name-pos (point)))
-	  (setq name (buffer-substring name-pos (point)))
-	  (skip-chars-forward " \t\n")
-	  (if (/= (or (char-after (point)) 0)  ?=) ; There is no value
-	      (setq value nil)
-	    (skip-chars-forward " \t\n=")
-	    (setq val-pos (point)
-		  value
-		  (cond
-		   ((or (= (or (char-after val-pos) 0) ?\")
-			(= (or (char-after val-pos) 0) ?'))
-		    (buffer-substring (1+ val-pos)
-				      (condition-case ()
-					  (prog2
-					      (forward-sexp 1)
-					      (1- (point))
-					    (skip-chars-forward "\""))
-					(error
-					 (skip-chars-forward "^ \t\n")
-					 (point)))))
-		   (t
-		    (buffer-substring val-pos
-				      (progn
-					(skip-chars-forward "^;")
-					(skip-chars-backward " \t")
-					(point)))))))
-	  (setq results (cons (cons name value) results))
-	  (skip-chars-forward "; \n\t"))
-	results))))
+	val-pos)                        ; Start of value position
+    (with-temp-buffer
+      (insert str)
+      (set-syntax-table url-parse-args-syntax-table)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(skip-chars-forward "; \n\t")
+	(setq name-pos (point))
+	(skip-chars-forward "^ \n\t=;")
+	(unless nodowncase
+	  (downcase-region name-pos (point)))
+	(setq name (buffer-substring name-pos (point)))
+	(skip-chars-forward " \t\n")
+	(if (/= (or (char-after (point)) 0)  ?=) ; There is no value
+	    (setq value nil)
+	  (skip-chars-forward " \t\n=")
+	  (setq val-pos (point)
+		value
+		(cond
+		 ((or (= (or (char-after val-pos) 0) ?\")
+		      (= (or (char-after val-pos) 0) ?'))
+		  (buffer-substring (1+ val-pos)
+				    (condition-case ()
+					(prog2
+					    (forward-sexp 1)
+					    (1- (point))
+					  (skip-chars-forward "\""))
+				      (error
+				       (skip-chars-forward "^ \t\n")
+				       (point)))))
+		 (t
+		  (buffer-substring val-pos
+				    (progn
+				      (skip-chars-forward "^;")
+				      (skip-chars-backward " \t")
+				      (point)))))))
+	(setq results (cons (cons name value) results))
+	(skip-chars-forward "; \n\t"))
+      results)))
 
 ;;;###autoload
 (defun url-insert-entities-in-string (string)
@@ -182,7 +170,7 @@ Will not do anything if `url-show-status' is nil."
 	  (null url-show-status)
 	  (active-minibuffer-window)
 	  (= url-lazy-message-time
-	     (setq url-lazy-message-time (nth 1 (current-time)))))
+	     (setq url-lazy-message-time (time-convert nil 'integer))))
       nil
     (apply 'message args)))
 
@@ -502,7 +490,7 @@ WIDTH defaults to the current frame width."
 	 (urlobj nil))
     ;; The first thing that can go are the search strings
     (if (and (>= str-width fr-width)
-	     (string-match "?" url))
+	     (string-match "\\?" url))
 	(setq url (concat (substring url 0 (match-beginning 0)) "?...")
 	      str-width (length url)))
     (if (< str-width fr-width)
@@ -544,6 +532,7 @@ This uses `url-current-object', set locally to the buffer."
 (defun url-get-url-at-point (&optional pt)
   "Get the URL closest to point, but don't change position.
 Has a preference for looking backward when not directly on a symbol."
+  (declare (obsolete thing-at-point-url-at-point "27.1"))
   ;; Not at all perfect - point must be right in the name.
   (save-excursion
     (if pt (goto-char pt))

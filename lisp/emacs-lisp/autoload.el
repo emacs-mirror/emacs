@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -146,7 +146,7 @@ expression, in which case we want to handle forms differently."
                            t))))
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
-        (when (listp args) (setq doc (help-add-fundoc-usage doc args)))
+        (when (consp args) (setq doc (help-add-fundoc-usage doc args)))
         ;; (message "autoload of %S" (nth 1 form))
         `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type)))
 
@@ -165,7 +165,7 @@ expression, in which case we want to handle forms differently."
                        define-globalized-minor-mode defun defmacro
 		       easy-mmode-define-minor-mode define-minor-mode
                        define-inline cl-defun cl-defmacro cl-defgeneric
-                       pcase-defmacro))
+                       cl-defstruct pcase-defmacro))
            (macrop car)
 	   (setq expand (let ((load-file-name file)) (macroexpand form)))
 	   (memq (car expand) '(progn prog1 defalias)))
@@ -370,7 +370,6 @@ FILE's name."
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    (if lp
-		;; `load-path' should contain only directory names.
 		"(add-to-list 'load-path (directory-file-name
                          (or (file-name-directory #$) (car load-path))))\n\n")
 	    "\n"
@@ -381,7 +380,7 @@ FILE's name."
 			  (file-name-sans-extension basename))))
 	    ";; Local Variables:\n"
 	    ";; version-control: never\n"
-	    ";; no-byte-compile: t\n"
+            ";; no-byte-compile: t\n" ;; #$ is byte-compiled into nil.
 	    ";; no-update-autoloads: t\n"
 	    ";; coding: utf-8\n"
 	    ";; End:\n"
@@ -399,9 +398,8 @@ FILE's name."
   ;; Probably pointless, but replaces the old AUTOGEN_VCS in lisp/Makefile,
   ;; which was designed to handle CVSREAD=1 and equivalent.
   (and autoload-ensure-writable
-       (file-exists-p file)
        (let ((modes (file-modes file)))
-         (if (zerop (logand modes #o0200))
+	 (if (and modes (zerop (logand modes #o0200)))
              ;; Ignore any errors here, and let subsequent attempts
              ;; to write the file raise any real error.
              (ignore-errors (set-file-modes file (logior modes #o0200))))))
@@ -1124,8 +1122,17 @@ write its autoloads into the specified file instead."
             (push file done)
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
-      (let ((no-autoloads-time (or last-time '(0 0 0 0))) file-time)
+      (let ((no-autoloads-time (or last-time '(0 0 0 0)))
+            (progress (make-progress-reporter
+                       (byte-compile-info-string
+                        (concat "Scraping files for "
+                                (file-relative-name
+                                 generated-autoload-file)))
+                       0 (length files) nil 10))
+            (file-count 0)
+            file-time)
 	(dolist (file files)
+          (progress-reporter-update progress (setq file-count (1+ file-count)))
 	  (cond
 	   ;; Passing nil as second argument forces
 	   ;; autoload-generate-file-autoloads to look for the right
@@ -1136,6 +1143,7 @@ write its autoloads into the specified file instead."
 	    (if (time-less-p no-autoloads-time file-time)
 		(setq no-autoloads-time file-time)))
            (t (setq changed t))))
+        (progress-reporter-done progress)
 
 	(when no-autoloads
 	  ;; Sort them for better readability.

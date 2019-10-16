@@ -8,7 +8,7 @@
 @copying
 This file documents the GNU Emacs Web Wowser (EWW) package.
 
-Copyright @copyright{} 2014--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2014--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -85,6 +85,10 @@ searched via @code{eww-search-prefix}.  The default search engine is
 either prefix the file name with @code{file://} or use the command
 @kbd{M-x eww-open-file}.
 
+  If you invoke @code{eww} with a prefix argument, as in @w{@kbd{C-u
+M-x eww}}, it will create a new EWW buffer instead of reusing the
+default one, which is normally called @file{*eww*}.
+
 @findex eww-quit
 @findex eww-reload
 @findex eww-copy-page-url
@@ -101,7 +105,10 @@ web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
 @kindex M-RET
   The @kbd{M-@key{RET}} command (@code{eww-open-in-new-buffer}) opens the
 URL at point in a new EWW buffer, akin to opening a link in a new
-``tab'' in other browsers.
+``tab'' in other browsers.  When @code{global-tab-line-mode} is
+enabled, this buffer is displayed in the tab on the window tab line.
+When @code{tab-bar-mode} is enabled, a new tab is created on the frame
+tab bar.
 
 @findex eww-readable
 @kindex R
@@ -118,16 +125,17 @@ variable-pitch fonts or not.  This sets the @code{shr-use-fonts} variable.
 @findex eww-toggle-colors
 @findex shr-use-colors
 @kindex F
-  The @kbd{C} command (@code{eww-toggle-colors}) toggles whether to use
+  The @kbd{M-C} command (@code{eww-toggle-colors}) toggles whether to use
 HTML-specified colors or not.  This sets the @code{shr-use-colors} variable.
 
 @findex eww-download
 @vindex eww-download-directory
 @kindex d
 @cindex Download
-  A URL under the point can be downloaded with @kbd{d}
-(@code{eww-download}).  The file will be written to the directory
-specified in @code{eww-download-directory} (Default: @file{~/Downloads/}).
+  A URL can be downloaded with @kbd{d} (@code{eww-download}).  This
+will download the link under point if there is one, or else the URL of
+the current page.  The file will be written to the directory specified
+in @code{eww-download-directory} (default: @file{~/Downloads/}).
 
 @findex eww-back-url
 @findex eww-forward-url
@@ -182,7 +190,7 @@ switch EWW buffers through a minibuffer prompt, press @kbd{s}
 (@code{eww-switch-to-buffer}).
 
 @findex eww-browse-with-external-browser
-@vindex shr-external-browser
+@vindex browse-url-secondary-browser-function
 @vindex eww-use-external-browser-for-content-type
 @kindex &
 @cindex External Browser
@@ -192,10 +200,10 @@ or are not implemented (E.g., JavaScript).  If you have trouble
 viewing a website with EWW then hit @kbd{&}
 (@code{eww-browse-with-external-browser}) inside the EWW buffer to
 open the website in the external browser specified by
-@code{shr-external-browser}.  Some content types, such as video or
-audio content, do not make sense to display in GNU Emacs at all.  You
-can tell EWW to open specific content automatically in an external
-browser by customizing
+@code{browse-url-secondary-browser-function}.  Some content types,
+such as video or audio content, do not make sense to display in GNU
+Emacs at all.  You can tell EWW to open specific content automatically
+in an external browser by customizing
 @code{eww-use-external-browser-for-content-type}.
 
 @node Advanced
@@ -212,9 +220,22 @@ browser by customizing
 @findex url-cookie-list
 @kindex C
 @cindex Cookies
-  EWW handles cookies through the @ref{Top, url package, ,url}.
-You can list existing cookies with @kbd{C} (@code{url-cookie-list}).
-For details about the Cookie handling @xref{Cookies,,,url}.
+  EWW handles cookies through the @ref{Top, url package, ,url}
+package.  You can list existing cookies with @kbd{C}
+(@code{url-cookie-list}).  For details about the Cookie handling
+@xref{Cookies,,,url}.
+
+@vindex shr-cookie-policy
+  Many @acronym{HTML} pages have images embedded in them, and EWW will
+download most of these by default.  When fetching images, cookies can
+be sent and received, and these can be used to track users.  To
+control when to send cookies when retrieving these images, the
+@code{shr-cookie-policy} variable can be used.  The default value,
+@code{same-origin}, means that EWW will only send cookies when
+fetching images that originate from the same source as the
+@acronym{HTML} page.  @code{nil} means ``never send cookies when
+retrieving these images'' and @code{t} means ``always send cookies
+when retrieving these images''.
 
 @vindex eww-header-line-format
 @cindex Header
@@ -314,7 +335,7 @@ Gnus.  He started writing an Emacs HTML rendering library,
 @code{shr.el}, to read blogs in Gnus.  He eventually added a web
 browser front end and HTML form support.  Which resulted in EWW, the
 Emacs Web Wowser.  EWW was announced on 16 June 2013:
-@url{http://lars.ingebrigtsen.no/2013/06/16/eww/}.
+@url{https://lars.ingebrigtsen.no/2013/06/16/eww/}.
 
 EWW was then moved from the Gnus repository to GNU Emacs and several
 developers started contributing to it as well.

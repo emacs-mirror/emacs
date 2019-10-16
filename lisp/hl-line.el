@@ -1,8 +1,8 @@
 ;;; hl-line.el --- highlight the current line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
-;; Author:  Dave Love <fx@gnu.org>
+;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 1998-09-13
 ;; Keywords: faces, frames, emulations

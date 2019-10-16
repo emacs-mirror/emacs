@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -265,17 +265,19 @@ If that doesn't give a function, return nil."
         (condition-case ()
             (save-excursion
               (save-restriction
-                (narrow-to-region (max (point-min)
-                                       (- (point) 1000)) (point-max))
-                ;; Move up to surrounding paren, then after the open.
-                (backward-up-list 1)
-                (forward-char 1)
-                ;; If there is space here, this is probably something
-                ;; other than a real Lisp function call, so ignore it.
-                (if (looking-at "[ \t]")
-                    (error "Probably not a Lisp function call"))
-                (let ((obj (read (current-buffer))))
-                  (and (symbolp obj) (fboundp obj) obj))))
+                (let ((forward-sexp-function nil)) ;Use elisp-mode's value
+                  (narrow-to-region (max (point-min)
+                                         (- (point) 1000))
+                                    (point-max))
+                  ;; Move up to surrounding paren, then after the open.
+                  (backward-up-list 1)
+                  (forward-char 1)
+                  ;; If there is space here, this is probably something
+                  ;; other than a real Lisp function call, so ignore it.
+                  (if (looking-at "[ \t]")
+                      (error "Probably not a Lisp function call"))
+                  (let ((obj (read (current-buffer))))
+                    (and (symbolp obj) (fboundp obj) obj)))))
           (error nil))
         (let* ((str (find-tag-default))
                (sym (if str (intern-soft str))))
@@ -415,23 +417,25 @@ With argument, display info only for the selected version."
 
 (defun view-echo-area-messages ()
   "View the log of recent echo-area messages: the `*Messages*' buffer.
-The number of messages retained in that buffer
-is specified by the variable `message-log-max'."
+The number of messages retained in that buffer is specified by
+the variable `message-log-max'."
   (interactive)
   (with-current-buffer (messages-buffer)
     (goto-char (point-max))
-    (display-buffer (current-buffer))))
+    (let ((win (display-buffer (current-buffer))))
+      ;; If the buffer is already displayed, we need to forcibly set
+      ;; the window point to scroll to the end of the buffer.
+      (set-window-point win (point))
+      win)))
 
 (defun view-order-manuals ()
   "Display information on how to buy printed copies of Emacs manuals."
   (interactive)
-;;  (view-help-file "ORDERS")
   (info "(emacs)Printed Books"))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
   (interactive)
-  ;; (find-file-read-only (expand-file-name "FAQ" data-directory))
   (info "(efaq)"))
 
 (defun view-emacs-problems ()
@@ -444,7 +448,8 @@ is specified by the variable `message-log-max'."
   (interactive)
   (view-help-file "DEBUG"))
 
-;; This used to visit MORE.STUFF; maybe it should just be removed.
+;; This used to visit a plain text file etc/MORE.STUFF;
+;; maybe this command should just be removed.
 (defun view-external-packages ()
   "Display info on where to get more Emacs packages."
   (interactive)
@@ -479,7 +484,7 @@ To record all your input, use `open-dribble-file'."
         (while (not (eobp))
           (comment-indent)
 	  (forward-line 1)))
-      ;; jidanni wants to see the last keystrokes immediately.
+      ;; Show point near the end of "lossage", as we did in Emacs 24.
       (set-marker help-window-point-marker (point)))))
 
 
@@ -744,6 +749,7 @@ If NO-MOUSE-MOVEMENT is non-nil, ignore key sequences starting
 with `mouse-movement' events."
   (let ((enable-disabled-menus-and-buttons t)
         (cursor-in-echo-area t)
+        (side-event nil)
         saved-yank-menu)
     (unwind-protect
         (let (last-modifiers key-list)
@@ -762,7 +768,8 @@ with `mouse-movement' events."
                   (and (memq 'click last-modifiers)
                        (not (sit-for (/ double-click-time 1000.0) t))))
             (let* ((seq (read-key-sequence "\
-Describe the following key, mouse click, or menu item: "))
+Describe the following key, mouse click, or menu item: "
+                                           nil nil 'can-return-switch-frame))
                    (raw-seq (this-single-command-raw-keys))
                    (keyn (when (> (length seq) 0)
                            (aref seq (1- (length seq)))))
@@ -771,11 +778,18 @@ Describe the following key, mouse click, or menu item: "))
               (cond
                ((zerop (length seq)))   ;FIXME: Can this happen?
                ((and no-mouse-movement (eq base 'mouse-movement)) nil)
+               ((memq base '(mouse-movement switch-frame select-window))
+                ;; Mostly ignore these events since it's sometimes difficult to
+                ;; generate the event you care about without also generating
+                ;; these side-events along the way.
+                (setq side-event (cons seq raw-seq)))
                ((eq base 'help-echo) nil)
                (t
                 (setq last-modifiers modifiers)
                 (push (cons seq raw-seq) key-list)))))
-          (nreverse key-list))
+          (if side-event
+              (cons side-event (nreverse key-list))
+            (nreverse key-list)))
       ;; Put yank-menu back as it was, if we changed it.
       (when saved-yank-menu
         (setq yank-menu (copy-sequence saved-yank-menu))
@@ -1008,7 +1022,7 @@ appeared on the mode-line."
   (delq nil (mapcar 'symbol-name minor-mode-list)))
 
 (defun describe-minor-mode-from-symbol (symbol)
-  "Display documentation of a minor mode given as a symbol, SYMBOL"
+  "Display documentation of a minor mode given as a symbol, SYMBOL."
   (interactive (list (intern (completing-read
 			      "Minor mode symbol: "
 			      (describe-minor-mode-completion-table-for-symbol)))))
@@ -1195,7 +1209,10 @@ by `with-help-window'."
   :group 'help
   :version "23.1")
 
-(defcustom help-enable-auto-load t
+(define-obsolete-variable-alias 'help-enable-auto-load
+  'help-enable-autoload "27.1")
+
+(defcustom help-enable-autoload t
   "Whether Help commands can perform autoloading.
 If non-nil, whenever \\[describe-function] is called for an
 autoloaded function whose docstring contains any key substitution

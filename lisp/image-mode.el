@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -39,6 +39,7 @@
 ;;; Code:
 
 (require 'image)
+(require 'exif)
 (eval-when-compile (require 'cl-lib))
 
 ;;; Image mode window-info management.
@@ -53,7 +54,7 @@ See `image-mode-winprops'.")
 It is called with one argument, the initial WINPROPS.")
 
 ;; FIXME this doesn't seem mature yet. Document in manual when it is.
-(defvar image-transform-resize nil
+(defvar-local image-transform-resize nil
   "The image resize operation.
 Its value should be one of the following:
  - nil, meaning no resizing.
@@ -61,10 +62,10 @@ Its value should be one of the following:
  - `fit-width', meaning to fit the image to the window width.
  - A number, which is a scale factor (the default size is 1).")
 
-(defvar image-transform-scale 1.0
+(defvar-local image-transform-scale 1.0
   "The scale factor of the image being displayed.")
 
-(defvar image-transform-rotation 0.0
+(defvar-local image-transform-rotation 0.0
   "Rotation angle for the image in the current Image mode buffer.")
 
 (defvar image-transform-right-angle-fudge 0.0001
@@ -120,7 +121,7 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
 
 (defun image-set-window-vscroll (vscroll)
   (setf (image-mode-window-get 'vscroll) vscroll)
-  (set-window-vscroll (selected-window) vscroll))
+  (set-window-vscroll (selected-window) vscroll t))
 
 (defun image-set-window-hscroll (ncol)
   (setf (image-mode-window-get 'hscroll) ncol)
@@ -138,7 +139,7 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
            (vscroll (image-mode-window-get 'vscroll winprops)))
       (when (image-get-display-property) ;Only do it if we display an image!
 	(if hscroll (set-window-hscroll (selected-window) hscroll))
-	(if vscroll (set-window-vscroll (selected-window) vscroll))))))
+	(if vscroll (set-window-vscroll (selected-window) vscroll t))))))
 
 (defun image-mode-setup-winprops ()
   ;; Record current scroll settings.
@@ -214,16 +215,18 @@ Stop if the left edge of the image is reached."
   "Scroll image in current window upward by N lines.
 Stop if the bottom edge of the image is reached."
   (interactive "p")
+  ;; Convert N to pixels.
+  (setq n (* n (frame-char-height)))
   (cond ((= n 0) nil)
 	((< n 0)
-	 (image-set-window-vscroll (max 0 (+ (window-vscroll) n))))
+	 (image-set-window-vscroll (max 0 (+ (window-vscroll nil t) n))))
 	(t
 	 (let* ((image (image-get-display-property))
-		(edges (window-inside-edges))
+		(edges (window-edges nil t t))
 		(win-height (- (nth 3 edges) (nth 1 edges)))
-		(img-height (ceiling (cdr (image-display-size image)))))
+		(img-height (ceiling (cdr (image-display-size image t)))))
 	   (image-set-window-vscroll (min (max 0 (- img-height win-height))
-					  (+ n (window-vscroll))))))))
+					  (+ n (window-vscroll nil t))))))))
 
 (defun image-previous-line (&optional n)
   "Scroll image in current window downward by N lines.
@@ -350,10 +353,11 @@ stopping if the top or bottom edge of the image is reached."
   (interactive)
   (let* ((image (image-get-display-property))
 	 (edges (window-inside-edges))
+	 (pixel-edges (window-edges nil t t))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
 	 (img-width (ceiling (car (image-display-size image))))
-	 (win-height (- (nth 3 edges) (nth 1 edges)))
-	 (img-height (ceiling (cdr (image-display-size image)))))
+	 (win-height (- (nth 3 pixel-edges) (nth 1 pixel-edges)))
+	 (img-height (ceiling (cdr (image-display-size image t)))))
     (image-set-window-hscroll (max 0 (- img-width win-width)))
     (image-set-window-vscroll (max 0 (- img-height win-height)))))
 
@@ -429,7 +433,9 @@ call."
     (define-key map "a-" 'image-decrease-speed)
     (define-key map "a0" 'image-reset-speed)
     (define-key map "ar" 'image-reverse-speed)
-    (define-key map "k" 'image-kill-buffer)
+    (define-key map "w" 'image-mode-copy-file-name-as-kill)
+    (define-key map "m" 'image-mode-mark-file)
+    (define-key map "u" 'image-mode-unmark-file)
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
     (define-key map [remap right-char] 'image-forward-hscroll)
@@ -476,6 +482,9 @@ call."
          :help "Move to next image in this directory"]
 	["Previous Image" image-previous-file :active buffer-file-name
          :help "Move to previous image in this directory"]
+	["Copy File Name" image-mode-copy-file-name-as-kill
+         :active buffer-file-name
+         :help "Copy the current file name to the kill ring"]
 	"--"
 	["Fit Frame to Image" image-mode-fit-frame :active t
 	 :help "Resize frame to match image"]
@@ -720,11 +729,15 @@ was inserted."
 				     archive-superior-buffer))
 			   (not (and (boundp 'tar-superior-buffer)
 				     tar-superior-buffer))
+                           ;; This means the buffer holds the contents
+                           ;; of a file uncompressed by jka-compr.el.
+                           (not (and (local-variable-p
+                                      'jka-compr-really-do-compress)
+                                     jka-compr-really-do-compress))
                            ;; This means the buffer holds the
                            ;; decrypted content (bug#21870).
-                           (not (and (boundp 'epa-file-encrypt-to)
-                                     (local-variable-p
-                                      'epa-file-encrypt-to))))))
+                           (not (local-variable-p
+                                 'epa-file-encrypt-to)))))
 	 (file-or-data
           (if data-p
 	      (let ((str
@@ -736,20 +749,29 @@ was inserted."
 	 ;; If we have a `fit-width' or a `fit-height', don't limit
 	 ;; the size of the image to the window size.
 	 (edges (and (null image-transform-resize)
-		     (window-inside-pixel-edges
-		      (get-buffer-window (current-buffer)))))
+		     (window-inside-pixel-edges (get-buffer-window))))
 	 (type (if (image--imagemagick-wanted-p filename)
 		   'imagemagick
 		 (image-type file-or-data nil data-p)))
-	 (image (if (not edges)
-		    (create-image file-or-data type data-p)
-		  (create-image file-or-data type data-p
-				:max-width (- (nth 2 edges) (nth 0 edges))
-				:max-height (- (nth 3 edges) (nth 1 edges)))))
 	 (inhibit-read-only t)
 	 (buffer-undo-list t)
 	 (modified (buffer-modified-p))
-	 props)
+	 props image)
+
+    ;; Get the rotation data from the file, if any.
+    (setq image-transform-rotation
+          (or (exif-orientation
+               (ignore-error exif-error
+                 (exif-parse-buffer)))
+              0.0))
+
+    ;; :scale 1: If we do not set this, create-image will apply
+    ;; default scaling based on font size.
+    (setq image (if (not edges)
+		    (create-image file-or-data type data-p :scale 1)
+		  (create-image file-or-data type data-p :scale 1
+				:max-width (- (nth 2 edges) (nth 0 edges))
+				:max-height (- (nth 3 edges) (nth 1 edges)))))
 
     ;; Discard any stale image data before looking it up again.
     (image-flush image)
@@ -804,7 +826,7 @@ was inserted."
 
 If the current buffer is displaying an image file as an image,
 call `image-mode-as-text' to switch to text or hex display.
-Otherwise, display the image by calling `image-mode'"
+Otherwise, display the image by calling `image-mode'."
   (interactive)
   (if (image-get-display-property)
       (image-mode-as-text)
@@ -960,7 +982,19 @@ replacing the current Image mode buffer."
 	    (throw 'image-visit-next-file (1+ idx)))
 	(setq idx (1+ idx))))
     (setq idx (mod (+ idx (or n 1)) (length images)))
-    (find-alternate-file (nth idx images))))
+    (let ((image (nth idx images))
+          (dir (file-name-directory buffer-file-name)))
+      (find-alternate-file image)
+      ;; If we have dired buffer(s) open to where this image is, then
+      ;; place point on it.
+      (dolist (buffer (buffer-list))
+	(with-current-buffer buffer
+	  (when (and (derived-mode-p 'dired-mode)
+	             (equal (file-truename dir)
+		            (file-truename default-directory)))
+            (save-window-excursion
+              (switch-to-buffer (current-buffer) t t)
+              (dired-goto-file (expand-file-name image dir)))))))))
 
 (defun image-previous-file (&optional n)
   "Visit the preceding image in the same directory as the current file.
@@ -971,6 +1005,68 @@ This command visits the specified file via `find-alternate-file',
 replacing the current Image mode buffer."
   (interactive "p")
   (image-next-file (- n)))
+
+(defun image-mode-copy-file-name-as-kill ()
+  "Push the currently visited file name onto the kill ring."
+  (interactive)
+  (unless buffer-file-name
+    (error "The current buffer doesn't visit a file"))
+  (kill-new buffer-file-name)
+  (message "Copied %s" buffer-file-name))
+
+(defun image-mode-mark-file ()
+  "Mark the current file in the appropriate dired buffer(s).
+Any dired buffer that's opened to the current file's directory
+will have the line where the image appears (if any) marked.
+
+If no such buffer exists, it will be opened."
+  (interactive)
+  (unless buffer-file-name
+    (error "The current buffer doesn't visit a file."))
+  (image-mode--mark-file buffer-file-name #'dired-mark "marked"))
+
+(defun image-mode-unmark-file ()
+  "Unmark the current file in the appropriate dired buffer(s).
+Any dired buffer that's opened to the current file's directory
+will remove the mark from the line where the image appears (if
+any).
+
+If no such buffer exists, it will be opened."
+  (interactive)
+  (unless buffer-file-name
+    (error "The current buffer doesn't visit a file."))
+  (image-mode--mark-file buffer-file-name #'dired-unmark "unmarked"))
+
+(declare-function dired-mark "dired" (arg &optional interactive))
+(declare-function dired-unmark "dired" (arg &optional interactive))
+(declare-function dired-goto-file "dired" (file))
+
+(defun image-mode--mark-file (file function message)
+  (require 'dired)
+  (let* ((dir (file-name-directory file))
+	 (buffers
+          (cl-loop for buffer in (buffer-list)
+		   when (with-current-buffer buffer
+			  (and (eq major-mode 'dired-mode)
+			       (equal (file-truename dir)
+				      (file-truename default-directory))))
+		   collect buffer))
+         results)
+    (unless buffers
+      (save-excursion
+        (setq buffers (list (find-file-noselect dir)))))
+    (dolist (buffer buffers)
+      (with-current-buffer buffer
+	(if (not (dired-goto-file file))
+            (push (format "couldn't find in %s" (directory-file-name dir))
+                  results)
+	  (funcall function 1)
+          (push (format "%s in %s" message (directory-file-name dir))
+                results))))
+    ;; Capitalize first character.
+    (let ((string (mapconcat #'identity results "; ")))
+      (message "%s%s" (capitalize (substring string 0 1))
+               (substring string 1)))))
 
 (defun image-mode--images-in-directory (file)
   (let* ((dir (file-name-directory buffer-file-name))
@@ -1148,6 +1244,7 @@ compiled with ImageMagick support."
     ;; Note: `image-size' looks up and thus caches the untransformed
     ;; image.  There's no easy way to prevent that.
     (let* ((size (image-size spec t))
+           (edges (window-inside-pixel-edges (get-buffer-window)))
 	   (resized
 	    (cond
 	     ((numberp image-transform-resize)
@@ -1157,13 +1254,11 @@ compiled with ImageMagick support."
 	     ((eq image-transform-resize 'fit-width)
 	      (image-transform-fit-width
 	       (car size) (cdr size)
-	       (- (nth 2 (window-inside-pixel-edges))
-		  (nth 0 (window-inside-pixel-edges)))))
+	       (- (nth 2 edges) (nth 0 edges))))
 	     ((eq image-transform-resize 'fit-height)
 	      (let ((res (image-transform-fit-width
 			  (cdr size) (car size)
-			  (- (nth 3 (window-inside-pixel-edges))
-			     (nth 1 (window-inside-pixel-edges))))))
+			  (- (nth 3 edges) (nth 1 edges)))))
 		(cons (cdr res) (car res)))))))
       `(,@(when (car resized)
 	    (list :width (car resized)))

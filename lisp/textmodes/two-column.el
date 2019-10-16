@@ -1,6 +1,6 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
-;; Copyright (C) 1992-1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
@@ -184,7 +184,9 @@ minus this value."
 ;; This one is for historical reasons and simple keyboards, it is not
 ;; at all mnemonic.  All usual sequences containing 2 were used, and
 ;; f2 could not be set up in a standard way under Emacs 18.
-;;;###autoload (global-set-key "\C-x6" '2C-command)
+;; This prefix is bound only after loading this package
+;; to not conflict with the C-x 6 prefix used by tab commands.
+(global-set-key "\C-x6" '2C-command)
 
 ;;;###autoload (global-set-key [f2] '2C-command)
 

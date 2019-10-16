@@ -1,6 +1,6 @@
 ;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -278,7 +278,7 @@ on success"
 
 
 (defconst regex-tests-re-even-escapes
-  "\\(?:^\\|[^\\\\]\\)\\(?:\\\\\\\\\\)*"
+  "\\(?:^\\|[^\\]\\)\\(?:\\\\\\\\\\)*"
   "Regex that matches an even number of \\ characters")
 
 (defconst regex-tests-re-odd-escapes
@@ -555,11 +555,11 @@ differences in behavior.")
 
 (defconst regex-tests-PTESTS-whitelist
   [
-   ;; emacs doesn't barf on weird ranges such as [b-a], but simply
-   ;; fails to match
+   ;; emacs doesn't see DEL (0x7f) as a [:cntrl:] character
    138
 
-   ;; emacs doesn't see DEL (0x78) as a [:cntrl:] character
+   ;; emacs doesn't barf on weird ranges such as [b-a], but simply
+   ;; fails to match
    168
   ]
   "Line numbers in the PTESTS test that should be skipped.  These
@@ -682,5 +682,125 @@ This evaluates the TESTS test cases from glibc."
   (should (string-match "\\`x\\{65535\\}" (make-string 65535 ?x)))
   (should-not (string-match "\\`x\\{65535\\}" (make-string 65534 ?x)))
   (should-error (string-match "\\`x\\{65536\\}" "X") :type 'invalid-regexp))
+
+(ert-deftest regexp-unibyte-unibyte ()
+  "Test matching a unibyte regexp against a unibyte string."
+  ;; Sanity check
+  (should-not (multibyte-string-p "ab"))
+  (should-not (multibyte-string-p "\xff"))
+  ;; ASCII
+  (should (string-match "a[b]" "ab"))
+  ;; Raw
+  (should (string-match "\xf1" "\xf1"))
+  (should-not (string-match "\xf1" "\xc1\xb1"))
+  ;; Raw, char alt
+  (should (string-match "[\xf1]" "\xf1"))
+  (should-not (string-match "[\xf1]" "\xc1\xb1"))
+  ;; Raw range
+  (should (string-match "[\x82-\xd3]" "\xbb"))
+  (should-not (string-match "[\x82-\xd3]" "a"))
+  (should-not (string-match "[\x82-\xd3]" "\x81"))
+  (should-not (string-match "[\x82-\xd3]" "\xd4"))
+  ;; ASCII-raw range
+  (should (string-match "[f-\xd3]" "q"))
+  (should (string-match "[f-\xd3]" "\xbb"))
+  (should-not (string-match "[f-\xd3]" "e"))
+  (should-not (string-match "[f-\xd3]" "\xd4")))
+
+(ert-deftest regexp-multibyte-multibyte ()
+  "Test matching a multibyte regexp against a multibyte string."
+  ;; Sanity check
+  (should (multibyte-string-p "åü"))
+  ;; ASCII
+  (should (string-match (string-to-multibyte "a[b]")
+                        (string-to-multibyte "ab")))
+  ;; Unicode
+  (should (string-match "å[ü]z" "åüz"))
+  (should-not (string-match "ü" (string-to-multibyte "\xc3\xbc")))
+  ;; Raw
+  (should (string-match (string-to-multibyte "\xf1")
+                        (string-to-multibyte "\xf1")))
+  (should-not (string-match (string-to-multibyte "\xf1")
+                            (string-to-multibyte "\xc1\xb1")))
+  (should-not (string-match (string-to-multibyte "\xc1\xb1")
+                            (string-to-multibyte "\xf1")))
+  ;; Raw, char alt
+  (should (string-match (string-to-multibyte "[\xf1]")
+                        (string-to-multibyte "\xf1")))
+  ;; Raw range
+  (should (string-match (string-to-multibyte "[\x82-\xd3]")
+                        (string-to-multibyte "\xbb")))
+  (should-not (string-match (string-to-multibyte "[\x82-\xd3]") "a"))
+  (should-not (string-match (string-to-multibyte "[\x82-\xd3]") "Å"))
+  (should-not (string-match (string-to-multibyte "[\x82-\xd3]") "ü"))
+  (should-not (string-match (string-to-multibyte "[\x82-\xd3]") "\x81"))
+  (should-not (string-match (string-to-multibyte "[\x82-\xd3]") "\xd4"))
+  ;; ASCII-raw range: should exclude U+0100..U+10FFFF
+  (should (string-match (string-to-multibyte "[f-\xd3]")
+                        (string-to-multibyte "q")))
+  (should (string-match (string-to-multibyte "[f-\xd3]")
+                        (string-to-multibyte "\xbb")))
+  (should-not (string-match (string-to-multibyte "[f-\xd3]") "e"))
+  (should-not (string-match (string-to-multibyte "[f-\xd3]") "Å"))
+  (should-not (string-match (string-to-multibyte "[f-\xd3]") "ü"))
+  (should-not (string-match (string-to-multibyte "[f-\xd3]") "\xd4"))
+  ;; Unicode-raw range: should be empty
+  (should-not (string-match "[å-\xd3]" "å"))
+  (should-not (string-match "[å-\xd3]" (string-to-multibyte "\xd3")))
+  (should-not (string-match "[å-\xd3]" (string-to-multibyte "\xbb")))
+  (should-not (string-match "[å-\xd3]" "ü"))
+  ;; No equivalence between raw bytes and latin-1
+  (should-not (string-match "å" (string-to-multibyte "\xe5")))
+  (should-not (string-match "[å]" (string-to-multibyte "\xe5")))
+  (should-not (string-match "\xe5" "å"))
+  (should-not (string-match "[\xe5]" "å")))
+
+(ert-deftest regexp-unibyte-multibyte ()
+  "Test matching a unibyte regexp against a multibyte string."
+  ;; ASCII
+  (should (string-match "a[b]" (string-to-multibyte "ab")))
+  ;; Unicode
+  (should (string-match "a.[^b]c" (string-to-multibyte "aåüc")))
+  ;; Raw
+  (should (string-match "\xf1" (string-to-multibyte "\xf1")))
+  (should-not (string-match "\xc1\xb1" (string-to-multibyte "\xf1")))
+  ;; Raw, char alt
+  (should (string-match "[\xf1]" (string-to-multibyte "\xf1")))
+  (should-not (string-match "[\xc1][\xb1]" (string-to-multibyte "\xf1")))
+  ;; ASCII-raw range: should exclude U+0100..U+10FFFF
+  (should (string-match "[f-\xd3]" (string-to-multibyte "q")))
+  (should (string-match "[f-\xd3]" (string-to-multibyte "\xbb")))
+  (should-not (string-match "[f-\xd3]" "e"))
+  (should-not (string-match "[f-\xd3]" "Å"))
+  (should-not (string-match "[f-\xd3]" "ü"))
+  (should-not (string-match "[f-\xd3]" "\xd4"))
+  ;; No equivalence between raw bytes and latin-1
+  (should-not (string-match "\xe5" "å"))
+  (should-not (string-match "[\xe5]" "å")))
+
+(ert-deftest regexp-multibyte-unibyte ()
+  "Test matching a multibyte regexp against a unibyte string."
+  ;; ASCII
+  (should (string-match (string-to-multibyte "a[b]") "ab"))
+  ;; Unicode
+  (should (string-match "a[^ü]c" "abc"))
+  (should-not (string-match "ü" "\xc3\xbc"))
+  ;; Raw
+  (should (string-match (string-to-multibyte "\xf1") "\xf1"))
+  (should-not (string-match (string-to-multibyte "\xf1") "\xc1\xb1"))
+  ;; Raw, char alt
+  (should (string-match (string-to-multibyte "[\xf1]") "\xf1"))
+  (should-not (string-match (string-to-multibyte "[\xf1]") "\xc1\xb1"))
+  ;; ASCII-raw range: should exclude U+0100..U+10FFFF
+  (should (string-match (string-to-multibyte "[f-\xd3]") "q"))
+  (should (string-match (string-to-multibyte "[f-\xd3]") "\xbb"))
+  (should-not (string-match (string-to-multibyte "[f-\xd3]") "e"))
+  (should-not (string-match (string-to-multibyte "[f-\xd3]") "\xd4"))
+  ;; Unicode-raw range: should be empty
+  (should-not (string-match "[å-\xd3]" "\xd3"))
+  (should-not (string-match "[å-\xd3]" "\xbb"))
+  ;; No equivalence between raw bytes and latin-1
+  (should-not (string-match "å" "\xe5"))
+  (should-not (string-match "[å]" "\xe5")))
 
 ;;; regex-emacs-tests.el ends here

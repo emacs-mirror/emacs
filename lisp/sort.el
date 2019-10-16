@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1994-1995, 2001-2018 Free Software
+;; Copyright (C) 1986-1987, 1994-1995, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Howie Kaye
@@ -225,11 +225,17 @@ the sort order."
       (narrow-to-region beg end)
       (goto-char (point-min))
       (sort-subr reverse
-		 (function
-		  (lambda ()
-		    (while (and (not (eobp)) (looking-at paragraph-separate))
-		      (forward-line 1))))
-		 'forward-paragraph))))
+		 (lambda ()
+		   (while (and (not (eobp)) (looking-at paragraph-separate))
+		     (forward-line 1)))
+		 (lambda ()
+                   (forward-paragraph)
+                   ;; If the buffer doesn't end with a newline, add a
+                   ;; newline to avoid having paragraphs being
+                   ;; concatenated after sorting.
+                   (when (and (eobp)
+                              (not (bolp)))
+                     (insert "\n")))))))
 
 ;;;###autoload
 (defun sort-pages (reverse beg end)

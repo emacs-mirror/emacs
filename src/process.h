@@ -1,5 +1,5 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -117,9 +117,7 @@ struct Lisp_Process
 
     /* The thread a process is linked to, or nil for any thread.  */
     Lisp_Object thread;
-
-    /* After this point, there are no Lisp_Objects any more.  */
-    /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
+    /* After this point, there are no Lisp_Objects.  */
 
     /* Process ID.  A positive value is a child process ID.
        Zero is for pseudo-processes such as network or serial connections,

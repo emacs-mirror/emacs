@@ -1,6 +1,6 @@
 ;;; epg-config.el --- configuration of the EasyPG Library
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -31,8 +31,8 @@
 (defconst epg-version-number "1.0.0"
   "Version number of this package.")
 
-(defconst epg-bug-report-address "ueno@unixuser.org"
-  "Report bugs to this address.")
+(define-obsolete-variable-alias 'epg-bug-report-address
+  'report-emacs-bug-address "27.1")
 
 (defgroup epg ()
   "Interface to the GNU Privacy Guard (GnuPG)."
@@ -44,9 +44,18 @@
 (defcustom epg-gpg-program (if (executable-find "gpg2")
                                "gpg2"
                              "gpg")
-  "The `gpg' executable.
-Setting this variable directly does not take effect;
-instead use \\[customize] (see the info node `Easy Customization')."
+  "Say what gpg program to prefer (if it satisfies minimum requirements).
+
+If this variable is \"gpg2\", but the version of gpg2 installed
+is less than `epg-gpg2-minimum-version', then version 1 of
+GnuPG (i.e., \"gpg\") will be used instead.  If the version of
+version 1 is less than `epg-gpg-minimum-version', then that won't
+be used either.
+
+If you want to explicitly specify what gpg program to use, you
+have to use \\[customize] instead (see the info node `Easy
+Customization').  Setting this variable without \\[customize] has
+no effect."
   :version "25.1"
   :type 'string)
 
@@ -139,7 +148,11 @@ Otherwise, it tries the programs listed in the entry until the
 version requirement is met."
   (unless program-alist
     (setq program-alist epg-config--program-alist))
-  (let ((entry (assq protocol program-alist)))
+  (let ((entry (assq protocol program-alist))
+        ;; In many gnupg distributions (especially on Windows), the
+        ;; version string is "gpg (GnuPG) 2.2.15-unknown" or the like.
+        (version-regexp-alist (cons '("^[-._+ ]?unknown$" . -4)
+                                    version-regexp-alist)))
     (unless entry
       (error "Unknown protocol %S" protocol))
     (cl-destructuring-bind (symbol . alist)
@@ -252,6 +265,15 @@ a single minimum version string."
                        (version< version max)))
           (throw 'version-ok t)))
       (error "Unsupported version: %s" version))))
+
+(defun epg-required-version-p (protocol required-version)
+  "Verify a sufficient version of GnuPG for specific protocol.
+PROTOCOL is symbol, either `OpenPGP' or `CMS'.  REQUIRED-VERSION
+is a string containing the required version number.  Return
+non-nil if that version or higher is installed."
+  (let ((version (cdr (assq 'version (epg-find-configuration protocol)))))
+    (and (stringp version)
+         (version<= required-version version))))
 
 ;;;###autoload
 (defun epg-expand-group (config group)

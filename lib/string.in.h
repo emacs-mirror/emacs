@@ -1,6 +1,6 @@
 /* A GNU-like <string.h>.
 
-   Copyright (C) 1995-1996, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-1996, 2001-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -693,7 +693,7 @@ _GL_WARN_ON_USE (strcasestr, "strcasestr does work correctly on character "
    This is a variant of strtok() that is multithread-safe.
 
    For the POSIX documentation for this function, see:
-   http://www.opengroup.org/susv3xsh/strtok.html
+   https://pubs.opengroup.org/onlinepubs/9699919799/functions/strtok.html
 
    Caveat: It modifies the original string.
    Caveat: These functions cannot be used on constant strings.

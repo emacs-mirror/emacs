@@ -1,6 +1,6 @@
 ;;; cus-dep.el --- find customization dependencies
 ;;
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -27,6 +27,7 @@
 
 (require 'widget)
 (require 'cus-face)
+(require 'cl-lib)
 
 (defvar generated-custom-dependencies-file "cus-load.el"
   "Output file for `custom-make-dependencies'.")
@@ -53,69 +54,81 @@ ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
-  (let ((enable-local-eval nil)
-	(enable-local-variables :safe)
-	subdir)
+  (let* ((enable-local-eval nil)
+	 (enable-local-variables :safe)
+         (preloaded (concat "\\`\\(\\./+\\)?"
+                            (regexp-opt preloaded-file-list t)
+                            "\\.el\\'"))
+         (file-count 0)
+         (files
+          ;; Use up command-line-args-left else Emacs can try to open
+          ;; the args as directories after we are done.
+          (cl-loop for subdir = (pop command-line-args-left)
+                   while subdir
+                   append (mapcar (lambda (f)
+                                    (cons subdir f))
+                                  (directory-files subdir nil
+                                                   "\\`[^=.].*\\.el\\'"))))
+	 (progress (make-progress-reporter
+                    (byte-compile-info-string "Scanning files for custom")
+                    0 (length files) nil 10)))
     (with-temp-buffer
-      ;; Use up command-line-args-left else Emacs can try to open
-      ;; the args as directories after we are done.
-      (while (setq subdir (pop command-line-args-left))
-        (message "Scanning %s for custom" subdir)
-        (let ((files (directory-files subdir nil "\\`[^=.].*\\.el\\'"))
-              (default-directory
-                (file-name-as-directory (expand-file-name subdir)))
-              (preloaded (concat "\\`\\(\\./+\\)?"
-                                 (regexp-opt preloaded-file-list t)
-                                 "\\.el\\'")))
-          (dolist (file files)
-            (unless (or (string-match custom-dependencies-no-scan-regexp file)
-                        (string-match preloaded (format "%s/%s" subdir file))
-                        (not (file-exists-p file)))
-              (erase-buffer)
-              (kill-all-local-variables)
-              (insert-file-contents file)
-              (hack-local-variables)
-              (goto-char (point-min))
-              (string-match "\\`\\(.*\\)\\.el\\'" file)
-              (let ((name (or generated-autoload-load-name ; see bug#5277
-                              (file-name-nondirectory (match-string 1 file))))
-                    (load-file-name file))
-                (if (save-excursion
-                      (re-search-forward
+      (dolist (elem files)
+        (let* ((subdir (car elem))
+               (file (cdr elem))
+               (default-directory
+                 (directory-file-name (expand-file-name subdir))))
+          (progress-reporter-update progress (setq file-count (1+ file-count)))
+          (unless (or (string-match custom-dependencies-no-scan-regexp file)
+                      (string-match preloaded (format "%s/%s" subdir file))
+                      (not (file-exists-p file)))
+            (erase-buffer)
+            (kill-all-local-variables)
+            (insert-file-contents file)
+            (hack-local-variables)
+            (goto-char (point-min))
+            (string-match "\\`\\(.*\\)\\.el\\'" file)
+            (let ((name (or generated-autoload-load-name ; see bug#5277
+                            (file-name-nondirectory (match-string 1 file))))
+                  (load-file-name file))
+              (if (save-excursion
+                    (re-search-forward
 		     (concat "(\\(cc-\\)?provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
 			     (regexp-quote name) "[ \t\n)]")
 		     nil t))
-                    (setq name (intern name)))
-                (condition-case nil
-                    (while (re-search-forward
-                            "^(def\\(custom\\|face\\|group\\)" nil t)
-                      (beginning-of-line)
-                      (let ((type (match-string 1))
-			    (expr (read (current-buffer))))
-                        (condition-case nil
-                            (let ((custom-dont-initialize t))
-                              ;; Eval to get the 'custom-group, -tag,
-                              ;; -version, group-documentation etc properties.
-                              (put (nth 1 expr) 'custom-where name)
-                              (eval expr))
-                          ;; Eval failed for some reason.  Eg maybe the
-                          ;; defcustom uses something defined earlier
-                          ;; in the file (we haven't loaded the file).
-                          ;; In most cases, we can still get the :group.
-                          (error
-                           (ignore-errors
-                             (let ((group (cadr (memq :group expr))))
-                               (and group
-                                    (eq (car group) 'quote)
-                                    (custom-add-to-group
-                                     (cadr group)
-                                     (nth 1 expr)
-                                     (intern (format "custom-%s"
-                                                     (if (equal type "custom")
-                                                         "variable"
-                                                       type)))))))))))
-                  (error nil)))))))))
-  (message "Generating %s..." generated-custom-dependencies-file)
+                  (setq name (intern name)))
+              (condition-case nil
+                  (while (re-search-forward
+                          "^(def\\(custom\\|face\\|group\\)" nil t)
+                    (beginning-of-line)
+                    (let ((type (match-string 1))
+			  (expr (read (current-buffer))))
+                      (condition-case nil
+                          (let ((custom-dont-initialize t))
+                            ;; Eval to get the 'custom-group, -tag,
+                            ;; -version, group-documentation etc properties.
+                            (put (nth 1 expr) 'custom-where name)
+                            (eval expr))
+                        ;; Eval failed for some reason.  Eg maybe the
+                        ;; defcustom uses something defined earlier
+                        ;; in the file (we haven't loaded the file).
+                        ;; In most cases, we can still get the :group.
+                        (error
+                         (ignore-errors
+                           (let ((group (cadr (memq :group expr))))
+                             (and group
+                                  (eq (car group) 'quote)
+                                  (custom-add-to-group
+                                   (cadr group)
+                                   (nth 1 expr)
+                                   (intern (format "custom-%s"
+                                                   (if (equal type "custom")
+                                                       "variable"
+                                                     type)))))))))))
+                (error nil)))))))
+    (progress-reporter-done progress))
+  (byte-compile-info-message "Generating %s..."
+                             generated-custom-dependencies-file)
   (set-buffer (find-file-noselect generated-custom-dependencies-file))
   (setq buffer-undo-list t)
   (erase-buffer)
@@ -204,7 +217,8 @@ elements the files that have variables or faces that contain that
 version.  These files should be loaded before showing the customization
 buffer that `customize-changed-options' generates.\")\n\n"))
   (save-buffer)
-  (message "Generating %s...done" generated-custom-dependencies-file))
+  (byte-compile-info-message "Generating %s...done"
+                             generated-custom-dependencies-file))
 
 
 (provide 'cus-dep)

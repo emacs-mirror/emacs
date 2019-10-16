@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -262,10 +262,18 @@ of whether to copy a character or a symbol is heuristic.)
 
 @kindex M-s C-e @r{(Incremental search)}
 @findex isearch-yank-line
-  Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
+  @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
 of the current line to the search string.  If point is already at the
 end of a line, it appends the next line.  With a prefix argument
 @var{n}, it appends the next @var{n} lines.
+
+@kindex C-M-z @r{(Incremental search)}
+@findex isearch-yank-until-char
+  Similarly, @kbd{C-M-z} (@code{isearch-yank-until-char}) appends to
+the search string everything from point until the next occurence of
+a specified character (not including that character).  This is especially
+useful for keyboard macros, for example in programming languages or
+markup languages in which that character marks a token boundary.
 
 @kindex C-y @r{(Incremental search)}
 @kindex M-y @r{(Incremental search)}
@@ -453,13 +461,16 @@ key sequence if you want to use it (@pxref{Rebinding}).
 
 @kindex M-s h r @r{(Incremental Search)}
 @findex isearch-highlight-regexp
-  You can exit the search while leaving the matches for the last
-search string highlighted on display.  To this end, type @kbd{M-s h r}
-(@code{isearch-highlight-regexp}), which will run
-@code{highlight-regexp} (@pxref{Highlight Interactively}) passing
-it the regexp derived from the last search string and prompting you
-for the face to use for highlighting.  To remove the highlighting,
-type @kbd{M-s h u} (@code{unhighlight-regexp}).
+@kindex M-s h l @r{(Incremental Search)}
+@findex isearch-highlight-lines-matching-regexp
+  You can exit the search while leaving the matches highlighted by
+typing @kbd{M-s h r} (@code{isearch-highlight-regexp}).  This runs
+@code{highlight-regexp} (@pxref{Highlight Interactively}), passing it
+the regexp derived from the search string and prompting you for the face
+to use for highlighting.  To highlight @emph{whole lines} containing
+matches (rather than @emph{just} the matches), type @kbd{M-s h l}
+(@code{isearch-highlight-lines-matching-regexp}).  In either case, to
+remove the highlighting, type @kbd{M-s h u} (@code{unhighlight-regexp}).
 
 @cindex incremental search, help on special keys
 @kindex C-h C-h @r{(Incremental Search)}
@@ -684,6 +695,8 @@ matching}) has no effect on them.
 @kindex M-s M-w
 @findex eww-search-words
 @vindex eww-search-prefix
+@cindex Internet search
+@cindex search Internet for keywords
   To search the Web for the text in region, type @kbd{M-s M-w}.  This
 command performs an Internet search for the words in region using the
 search engine whose @acronym{URL} is specified by the variable
@@ -845,7 +858,7 @@ Expressions,,, elisp, The Emacs Lisp Reference Manual}, for additional
 features used mainly in Lisp programs.
 
   Regular expressions have a syntax in which a few characters are
-special constructs and the rest are @dfn{ordinary}.  An ordinary
+@dfn{special constructs} and the rest are @dfn{ordinary}.  An ordinary
 character matches that same character and nothing else.  The special
 characters are @samp{$^.*+?[\}.  The character @samp{]} is special if
 it ends a character alternative (see below).  The character @samp{-}
@@ -972,11 +985,10 @@ character class inside a character alternative.  For instance,
 elisp, The Emacs Lisp Reference Manual}, for a list of character
 classes.
 
-To include a @samp{]} in a character set, you must make it the first
-character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To
-include a @samp{-}, write @samp{-} as the first or last character of the
-set, or put it after a range.  Thus, @samp{[]-]} matches both @samp{]}
-and @samp{-}.
+To include a @samp{]} in a character set, you must make it the first character.
+For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To include a @samp{-},
+write @samp{-} as the last character of the set, tho you can also put it first
+or after a range.  Thus, @samp{[]-]} matches both @samp{]} and @samp{-}.
 
 To include @samp{^} in a set, put it anywhere but at the beginning of
 the set.  (At the beginning, it complements the set---see below.)
@@ -1327,14 +1339,14 @@ of its accented cousins like @code{@"a} and @code{@'a}, i.e., the
 match disregards the diacritics that distinguish these
 variants.  In addition, @code{a} matches other characters that
 resemble it, or have it as part of their graphical representation,
-such as @sc{u+249c parenthesized latin small letter a} and @sc{u+2100
-account of} (which looks like a small @code{a} over @code{c}).
+such as U+249C @sc{parenthesized latin small letter a} and U+2100
+@sc{account of} (which looks like a small @code{a} over @code{c}).
 Similarly, the @acronym{ASCII} double-quote character @code{"} matches
 all the other variants of double quotes defined by the Unicode
 standard.  Finally, character folding can make a sequence of one or
 more characters match another sequence of a different length: for
-example, the sequence of two characters @code{ff} matches @sc{u+fb00
-latin small ligature ff}.  Character sequences that are not identical,
+example, the sequence of two characters @code{ff} matches U+FB00
+@sc{latin small ligature ff}.  Character sequences that are not identical,
 but match under character folding are known as @dfn{equivalent
 character sequences}.
 
@@ -1350,10 +1362,21 @@ folding, but only for that search.  (Replace commands have a different
 default, controlled by a separate option; see @ref{Replacement and Lax
 Matches}.)
 
-  Like with case folding, typing an explicit variant of a character,
-such as @code{@"a}, as part of the search string disables character
-folding for that search.  If you delete such a character from the
-search string, this effect ceases.
+@vindex char-fold-symmetric
+  By default, typing an explicit variant of a character, such as
+@code{@"a}, as part of the search string doesn't match its base
+character, such as @code{a}.  But if you customize the variable
+@code{char-fold-symmetric} to @code{t}, then search commands treat
+equivalent characters the same and use of any of a set of equivalent
+characters in a search string finds any of them in the text being
+searched, so typing an accented character @code{@"a} matches the
+letter @code{a} as well as all the other variants like @code{@'a}.
+
+@vindex char-fold-include
+@vindex char-fold-exclude
+  You can add new foldings using the customizable variable
+@code{char-fold-include}, or remove the existing ones using the
+customizable variable @code{char-fold-exclude}.
 
 @node Replace
 @section Replacement Commands
@@ -1482,8 +1505,7 @@ multiple digits, and the value of @samp{\@var{d}} is @code{nil} if the
 @samp{\#} here too stands for the number of already-completed
 replacements.
 
-  Repeating our example to exchange @samp{x} and @samp{y}, we can thus
-do it also this way:
+  For example, we can exchange @samp{x} and @samp{y} this way:
 
 @example
 M-x replace-regexp @key{RET} \(x\)\|y @key{RET}
@@ -1660,8 +1682,9 @@ replacement has already been made, @key{DEL} and @key{SPC} are
 equivalent in this situation; both move to the next occurrence.
 
 You can type @kbd{C-r} at this point (see below) to alter the replaced
-text.  You can also type @kbd{C-x u} to undo the replacement; this exits
-the @code{query-replace}, so if you want to do further replacement you
+text.  You can also undo the replacement with the @code{undo} command
+(e.g., type @kbd{C-x u}; @pxref{Undo}); this exits the
+@code{query-replace}, so if you want to do further replacement you
 must use @kbd{C-x @key{ESC} @key{ESC} @key{RET}} to restart
 (@pxref{Repetition}).
 
@@ -1872,11 +1895,13 @@ region instead.
 @findex flush-lines
 @item M-x flush-lines
 Prompt for a regexp, and delete each line that contains a match for
-it, operating on the text after point.  This command deletes the
-current line if it contains a match starting after point.  If the
-region is active, it operates on the region instead; if a line
-partially contained in the region contains a match entirely contained
-in the region, it is deleted.
+it, operating on the text after point.  When the command finishes,
+it prints the number of deleted matching lines.
+
+This command deletes the current line if it contains a match starting
+after point.  If the region is active, it operates on the region
+instead; if a line partially contained in the region contains a match
+entirely contained in the region, it is deleted.
 
 If a match is split across lines, @code{flush-lines} deletes all those
 lines.  It deletes the lines before starting to look for the next

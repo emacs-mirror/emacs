@@ -1,6 +1,6 @@
 ;;; bindat.el --- binary data structure packing and unpacking.
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Assignment name: struct.el
@@ -256,7 +256,7 @@
     (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
       (setq bindat-idx (+ bindat-idx len))
       (if (stringp s) s
-	(string-make-unibyte (concat s)))))
+	(apply #'unibyte-string s))))
    ((eq type 'strz)
     (let ((i 0) s)
       (while (and (< i len) (/= (aref bindat-raw (+ bindat-idx i)) 0))
@@ -264,7 +264,7 @@
       (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
       (setq bindat-idx (+ bindat-idx len))
       (if (stringp s) s
-	(string-make-unibyte (concat s)))))
+	(apply #'unibyte-string s))))
    ((eq type 'vec)
     (let ((v (make-vector len 0)) (i 0) (vlen 1))
       (if (consp vectype)

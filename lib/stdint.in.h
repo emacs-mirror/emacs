@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2002, 2004-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2002, 2004-2019 Free Software Foundation, Inc.
    Written by Paul Eggert, Bruno Haible, Sam Steingold, Peter Burwood.
    This file is part of gnulib.
 
@@ -17,7 +17,7 @@
 
 /*
  * ISO C 99 <stdint.h> for platforms that lack it.
- * <http://www.opengroup.org/susv3xbd/stdint.h.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stdint.h.html>
  */
 
 #ifndef _@GUARD_PREFIX@_STDINT_H

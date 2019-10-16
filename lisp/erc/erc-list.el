@@ -1,6 +1,6 @@
 ;;; erc-list.el --- /list support for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -226,6 +226,4 @@ to RFC and send the LIST header (#321) at start of list transmission."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

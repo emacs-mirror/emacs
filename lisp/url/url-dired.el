@@ -1,6 +1,6 @@
 ;;; url-dired.el --- URL Dired minor mode
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, files
 

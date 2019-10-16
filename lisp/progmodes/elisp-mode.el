@@ -1,6 +1,6 @@
 ;;; elisp-mode.el --- Emacs Lisp mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -219,6 +219,18 @@ Comments in the form will be lost."
   :type 'hook
   :group 'lisp)
 
+(defun emacs-lisp-set-electric-text-pairs ()
+  "Set `electric-pair-text-pairs' for all `emacs-lisp-mode' buffers."
+  (defvar electric-pair-text-pairs)
+  (let ((elisp-pairs (append '((?\` . ?\') (?‘ . ?’))
+                             electric-pair-text-pairs)))
+    (save-current-buffer
+      (dolist (buf (buffer-list))
+        (set-buffer buf)
+        (when (derived-mode-p 'emacs-lisp-mode)
+          (setq-local electric-pair-text-pairs elisp-pairs)))))
+  (remove-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
+
 ;;;###autoload
 (define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
@@ -231,12 +243,12 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (defvar project-vc-external-roots-function)
   (lisp-mode-variables nil nil 'elisp)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
-  (unless noninteractive
-    (require 'elec-pair)
-    (defvar electric-pair-text-pairs)
-    (setq-local electric-pair-text-pairs
-                (append '((?\` . ?\') (?‘ . ?’)) electric-pair-text-pairs))
-    (setq-local electric-quote-string t))
+  (if (boundp 'electric-pair-text-pairs)
+      (setq-local electric-pair-text-pairs
+                  (append '((?\` . ?\') (?‘ . ?’))
+                          electric-pair-text-pairs))
+    (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
+  (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil)
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'elisp-eldoc-documentation-function)
@@ -488,16 +500,26 @@ functions are annotated with \"<f>\" via the
 		(scan-error pos))))
            ;; t if in function position.
            (funpos (eq (char-before beg) ?\())
-           (quoted (elisp--form-quoted-p beg)))
+           (quoted (elisp--form-quoted-p beg))
+           (fun-sym (condition-case nil
+                        (save-excursion
+                          (up-list -1)
+                          (forward-char 1)
+                          (and (memq (char-syntax (char-after)) '(?w ?_))
+                               (read (current-buffer))))
+                      (error nil))))
       (when (and end (or (not (nth 8 (syntax-ppss)))
                          (memq (char-before beg) '(?` ?‘))))
         (let ((table-etc
                (if (or (not funpos) quoted)
-                   ;; FIXME: We could look at the first element of the list and
-                   ;; use it to provide a more specific completion table in some
-                   ;; cases.  E.g. filter out keywords that are not understood by
-                   ;; the macro/function being called.
                    (cond
+                    ;; FIXME: We could look at the first element of
+                    ;; the current form and use it to provide a more
+                    ;; specific completion table in more cases.
+                    ((eq fun-sym 'ignore-error)
+                     (list t obarray
+                           :predicate (lambda (sym)
+                                        (get sym 'error-conditions))))
                     ((elisp--expect-function-p beg)
                      (list nil obarray
                            :predicate #'fboundp
@@ -556,6 +578,11 @@ functions are annotated with \"<f>\" via the
                                         (< (point) beg)))))
                         (list t obarray
                               :predicate (lambda (sym) (get sym 'error-conditions))))
+                       ;; `ignore-error' with a list CONDITION parameter.
+                       ('ignore-error
+                        (list t obarray
+                              :predicate (lambda (sym)
+                                           (get sym 'error-conditions))))
                        ((and (or ?\( 'let 'let*)
                              (guard (save-excursion
                                       (goto-char (1- beg))
@@ -1177,10 +1204,11 @@ POS specifies the starting position where EXP was found and defaults to point."
                 "(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
                 pos t)
           (let ((var (intern (match-string 1))))
-            (and (not (special-variable-p var))
-                 (save-excursion
-                   (zerop (car (syntax-ppss (match-beginning 0)))))
-                 (push var vars))))
+            (unless (or (special-variable-p var)
+                        (syntax-ppss-toplevel-pos
+                         (save-excursion
+                           (syntax-ppss (match-beginning 0)))))
+              (push var vars))))
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
@@ -1543,14 +1571,12 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 ;; Return a list of current function name and argument index.
 (defun elisp--fnsym-in-current-sexp ()
   (save-excursion
-    (let ((argument-index (1- (elisp--beginning-of-sexp))))
-      ;; If we are at the beginning of function name, this will be -1.
-      (when (< argument-index 0)
-	(setq argument-index 0))
-      ;; Don't do anything if current word is inside a string.
-      (if (= (or (char-after (1- (point))) 0) ?\")
-	  nil
-	(list (elisp--current-symbol) argument-index)))))
+    (unless (nth 8 (syntax-ppss))
+      (let ((argument-index (1- (elisp--beginning-of-sexp))))
+        ;; If we are at the beginning of function name, this will be -1.
+        (when (< argument-index 0)
+          (setq argument-index 0))
+        (list (elisp--current-symbol) argument-index)))))
 
 ;; Move to the beginning of current sexp.  Return the number of nested
 ;; sexp the point was over or after.

@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
@@ -104,7 +104,6 @@ misprints are the Gnus team's fault, sorry.
 * FAQ 1-5::    I sometimes read references to No Gnus and Oort Gnus,
                what are those?
 * FAQ 1-6::    Which version of Emacs do I need?
-* FAQ 1-7::    How do I run Gnus on both Emacs and XEmacs?
 @end menu
 
 @node FAQ 1-1
@@ -161,12 +160,11 @@ Where and how to get Gnus?
 
 @subsubheading Answer
 
-Gnus is released independent from releases of Emacs and XEmacs.
-Therefore, the version bundled with Emacs or the version in XEmacs's
-package system might not be up to date (e.g., Gnus 5.9 bundled with Emacs
-21 is outdated).
+Gnus is released independent from releases of Emacs.  Therefore, the
+version bundled with Emacs might not be up to date (e.g., Gnus 5.9
+bundled with Emacs 21 is outdated).
 You can get the latest released version of Gnus from
-@uref{http://www.gnus.org/dist/gnus.tar.gz}
+@uref{https://www.gnus.org/dist/gnus.tar.gz}
 or from
 @uref{https://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
 
@@ -180,20 +178,17 @@ What to do with the tarball now?
 Untar it via @samp{tar xvzf gnus.tar.gz} and do the common
 @samp{./configure; make; make install} circle.
 (under MS-Windows either get the Cygwin environment from
-@uref{http://www.cygwin.com}
+@uref{https://www.cygwin.com}
 which allows you to do what's described above or unpack the
-tarball with some packer (e.g., Winace from
-@uref{http://www.winace.com})
+tarball with some packer (e.g., Winace)
 and use the batch-file make.bat included in the tarball to install
 Gnus.) If you don't want to (or aren't allowed to) install Gnus
 system-wide, you can install it in your home directory and add the
-following lines to your ~/.xemacs/init.el or ~/.emacs:
+following lines to your ~/.emacs:
 
 @example
 (add-to-list 'load-path "/path/to/gnus/lisp")
-(if (featurep 'xemacs)
-    (add-to-list 'Info-directory-list "/path/to/gnus/texi/")
-  (add-to-list 'Info-default-directory-list "/path/to/gnus/texi/"))
+(add-to-list 'Info-default-directory-list "/path/to/gnus/texi/")
 @end example
 @noindent
 
@@ -224,20 +219,8 @@ Which version of Emacs do I need?
 @subsubheading Answer
 
 Gnus 5.13 requires an Emacs version that is greater than or equal
-to Emacs 23.1 or XEmacs 21.1, although there are some features that
+to Emacs 23.1, although there are some features that
 only work on Emacs 24.
-
-@node FAQ 1-7
-@subsubheading Question 1.7
-
-How do I run Gnus on both Emacs and XEmacs?
-
-@subsubheading Answer
-
-You can't use the same copy of Gnus in both as the Lisp
-files are byte-compiled to a format which is different
-depending on which Emacs did the compilation. Get one copy
-of Gnus for Emacs and one for XEmacs.
 
 @node FAQ 2 - Startup / Group buffer
 @subsection Startup / Group buffer
@@ -284,7 +267,7 @@ what's this?
 @subsubheading Answer
 
 You get the message described in the q/a pair above while
-starting Gnus, right? It's an other symptom for the same
+starting Gnus, right? It's another symptom for the same
 problem, so read the answer above.
 
 @node FAQ 2-3
@@ -707,7 +690,7 @@ retrieves via POP3?
 
 Yes, if the POP3 server supports the UIDL control (maybe almost servers
 do it nowadays).  To do that, add a @code{:leave VALUE} pair to each
-POP3 mail source.  See @pxref{Mail Source Specifiers} for VALUE.
+POP3 mail source.  @xref{Mail Source Specifiers}, for details on VALUE.
 
 @node FAQ 4 - Reading messages
 @subsection Reading messages
@@ -1383,15 +1366,14 @@ Is there a spell-checker? Perhaps even on-the-fly spell-checking?
 
 You can use ispell.el to spell-check stuff in Emacs. So the
 first thing to do is to make sure that you've got either
-@uref{http://fmg-www.cs.ucla.edu/fmg-members/geoff/ispell.html, ispell}
-or @uref{http://aspell.sourceforge.net/, aspell}
+@uref{https://www.cs.hmc.edu/~geoff/ispell.html, ispell}
+or @uref{http://aspell.net, aspell}
 installed and in your Path. Then you need
-@uref{http://www.kdstevens.com/~stevens/ispell-page.html, ispell.el}
+ispell.el
 and for on-the-fly spell-checking
-@uref{http://www-sop.inria.fr/members/Manuel.Serrano/flyspell/flyspell.html, flyspell.el}.
-Ispell.el is shipped with Emacs and available through the XEmacs package system,
-flyspell.el is shipped with Emacs and part of XEmacs text-modes package which is
-available through the package system, so there should be no need to install them
+@uref{https://www-sop.inria.fr/members/Manuel.Serrano/flyspell/flyspell.html, flyspell.el}.
+Ispell.el is shipped with Emacs,
+flyspell.el is shipped with Emacs, so there should be no need to install them
 manually.
 
 Ispell.el assumes you use ispell, if you choose aspell say
@@ -1465,7 +1447,7 @@ node "Mail Aliases" in Message (not Gnus) manual for
 details.
 
 However, what you really want is the Insidious Big Brother
-Database bbdb. Get it through the XEmacs package system or from
+Database bbdb. Get it from
 @uref{http://bbdb.sourceforge.net/, bbdb's homepage}.
 Now place the following in @file{~/.gnus.el}, to activate bbdb for Gnus:
 
@@ -1532,7 +1514,7 @@ cat file.face | sed 's/["\\]/\\&/g' > file.face.quoted
 @noindent
 
 If you can't use compface, there's an online X-face converter at
-@uref{http://www.dairiki.org/xface/}.
+@uref{https://www.dairiki.org/xface/}.
 If you use MS Windows, you could also use the WinFace program,
 which used to be available from
 @indicateurl{http://www.xs4all.nl/~walterln/winface/}.
@@ -1730,7 +1712,7 @@ The easiest way is to tell your old mail program to
 export the messages in mbox format. Most Unix mailers
 are able to do this, if you come from the MS Windows
 world, you may find tools at
-@uref{http://mbx2mbox.sourceforge.net/}.
+@uref{https://sourceforge.net/projects/mbx2mbox/}.
 
 Now you've got to import this mbox file into Gnus. To do
 this, create a nndoc group based on the mbox file by
@@ -1774,9 +1756,7 @@ more then one article."
   (let ((archive-name
          (format
           "nnml:1.%s"
-          (if (featurep 'xemacs)
-              (replace-in-string gnus-newsgroup-name "^.*:" "")
-            (replace-regexp-in-string "^.*:" "" gnus-newsgroup-name)))))
+          (replace-in-string gnus-newsgroup-name "^.*:" ""))))
     (gnus-summary-copy-article n archive-name)))
 @end example
 @noindent
@@ -1806,7 +1786,7 @@ How to search for a specific message?
 
 There are several ways for this, too. For a posting from
 a Usenet group the easiest solution is probably to ask
-@uref{http://groups.google.com, groups.google.com},
+@uref{https://groups.google.com, groups.google.com},
 if you found the posting there, tell Google to display
 the raw message, look for the message-id, and say
 @samp{M-^ the@@message.id @key{RET}} in a
@@ -1961,23 +1941,21 @@ when you're online.
 Let's talk about Unix systems first: For the news part,
 the easiest solution is a small nntp server like
 @uref{http://www.leafnode.org/, Leafnode} or
-@uref{http://infa.abo.fi/~patrik/sn/, sn},
+@uref{http://patrik.iki.fi/sn/, sn},
 of course you can also install a full featured news
 server like
-@uref{http://www.isc.org/software/inn/, inn}.
+@uref{https://www.isc.org/othersoftware/, inn}.
 Then you want to fetch your Mail, popular choices
-are @uref{http://www.catb.org/~esr/fetchmail/, fetchmail}
+are @uref{http://www.fetchmail.info/, fetchmail}
 and @uref{http://pyropus.ca/software/getmail/, getmail}.
 You should tell those to write the mail to your disk and
 Gnus to read it from there. Last but not least the mail
 sending part: This can be done with every MTA like
-@uref{http://www.sendmail.org/, sendmail},
-@uref{http://www.qmail.org/, postfix},
-@uref{http://www.exim.org/, exim} or
-@uref{http://www.qmail.org/, qmail}.
+@uref{https://www.proofpoint.com/us/open-source-email-solution, sendmail} or
+@uref{https://www.exim.org/, exim}.
 
 On windows boxes I'd vote for
-@uref{http://www.tglsoft.de/, Hamster},
+@uref{http://www.tglsoft.de/freeware_hamster.html, Hamster},
 it's a small freeware, open-source program which fetches
 your mail and news from remote servers and offers them
 to Gnus (or any other mail and/or news reader) via nntp
@@ -2121,7 +2099,7 @@ Which websites should I know?
 @subsubheading Answer
 
 The most important one is the
-@uref{http://www.gnus.org, official Gnus website}.
+@uref{https://www.gnus.org, official Gnus website}.
 
 Tell me about other sites which are interesting.
 
@@ -2132,9 +2110,7 @@ Which mailing lists and newsgroups are there?
 
 @subsubheading Answer
 
-There's the newsgroup gnu.emacs.gnus (also available as
-@uref{http://dir.gmane.org/gmane.emacs.gnus.user,
-gmane.emacs.gnus.user}) which deals with general Gnus
+There's the newsgroup gnu.emacs.gnus which deals with general Gnus
 questions.  If you have questions about development versions of
 Gnus, you should better ask on the ding mailing list, see below.
 
@@ -2145,9 +2121,7 @@ the above groups).  If you speak German, there's
 de.comm.software.gnus.
 
 The ding mailing list (ding@@gnus.org) deals with development of
-Gnus. You can read the ding list via NNTP, too under the name
-@uref{http://dir.gmane.org/gmane.emacs.gnus.general,
-gmane.emacs.gnus.general} from news.gmane.org.
+Gnus.
 
 @node FAQ 8-5
 @subsubheading Question 8.5
@@ -2289,8 +2263,8 @@ whatever-server which offers Gnus a standardized interface
 to functions like "get message", "get Headers" etc.
 
 @item Emacs
-When the term Emacs is used in this FAQ, it means either GNU
-Emacs or XEmacs.
+When the term Emacs is used in this FAQ, it means GNU
+Emacs.
 
 @item Message
 In this FAQ message means either a mail or a posting to a

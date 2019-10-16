@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -302,7 +302,10 @@ the Transport Layer Security (@acronym{TLS}) features.
 @vindex network-security-level
 The @code{network-security-level} variable determines the security
 level that @acronym{NSM} enforces.  If its value is @code{low}, no
-security checks are performed.
+security checks are performed.  This is not recommended, and will
+basically mean that your network connections can't be trusted.
+However, the setting can be useful in limited circumstances, as when
+testing network issues.
 
 If this variable is @code{medium} (which is the default), a number of
 checks will be performed.  If as result @acronym{NSM} determines that
@@ -325,13 +328,12 @@ The protocol network checks is controlled via the
 @code{network-security-protocol-checks} variable.
 
 It's an alist where the first element of each association is the name
-of the check, the second element is the security level where the check
-should be used, and the optional third element is a parameter supplied
-to the check.
+of the check, and the second element is the security level where the
+check should be used.
 
 An element like @code{(rc4 medium)} will result in the function
 @code{nsm-protocol-check--rc4} being called like thus:
-@w{@code{(nsm-protocol-check--rc4 host port status optional-parameter)}}.
+@w{@code{(nsm-protocol-check--rc4 host port status settings)}}.
 The function should return non-@code{nil} if the connection should
 proceed and @code{nil} otherwise.
 
@@ -566,12 +568,15 @@ way (@code{doc-view-scroll-down-or-previous-page}).
 @findex doc-view-enlarge
 @findex doc-view-shrink
 @vindex doc-view-resolution
+@vindex doc-view-scale-internally
 @kindex + @r{(DocView mode)}
 @kindex - @r{(DocView mode)}
   You can enlarge or shrink the document with @kbd{+}
-(@code{doc-view-enlarge}) and @kbd{-} (@code{doc-view-shrink}).  These
-commands work by reconverting the document at the new size.  To
-specify the default size for DocView, customize the variable
+(@code{doc-view-enlarge}) and @kbd{-} (@code{doc-view-shrink}).  By
+default, these commands just rescale the already-rendered image.  If
+you instead want the image to be re-rendered at the new size, set
+@code{doc-view-scale-internally} to @code{nil}.  To specify the
+default size for DocView, customize the variable
 @code{doc-view-resolution}.
 
 @node DocView Searching
@@ -775,6 +780,13 @@ documentation for more possibilities.
 displayed only when the command generates output, set
 @code{async-shell-command-display-buffer} to @code{nil}.
 
+@vindex async-shell-command-width
+  The option @code{async-shell-command-width} defines the number of display
+columns available for output of asynchronous shell commands.
+A positive integer tells the shell to use that number of columns for
+command output.  The default value is @code{nil} that means to use
+the same number of columns as provided by the shell.
+
 @kindex M-|
 @findex shell-command-on-region
   @kbd{M-|} (@code{shell-command-on-region}) is like @kbd{M-!}, but
@@ -794,6 +806,10 @@ to @command{gpg}.  This will output the list of keys to the
 @env{SHELL} environment variable when Emacs is started.  If the file
 name is relative, Emacs searches the directories listed in
 @code{exec-path} (@pxref{Shell}).
+
+  If the default directory is remote (@pxref{Remote Files}), the
+default value is @file{/bin/sh}.  This can be changed by declaring
+@code{shell-file-name} connection-local (@pxref{Connection Variables}).
 
   To specify a coding system for @kbd{M-!} or @kbd{M-|}, use the command
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Communication Coding}.
@@ -1088,7 +1104,8 @@ the directory tracking feature, and a few user commands.
 @findex comint-run
   You can use @kbd{M-x comint-run} to execute any program of your choice
 in a subprocess using unmodified Comint mode---without the
-specializations of Shell mode.
+specializations of Shell mode.  To pass arguments to the program, use
+@kbd{C-u M-x comint-run}.
 
 @node Shell Prompts
 @subsection Shell Prompts
@@ -1241,12 +1258,17 @@ history list, not from the shell buffer itself.  Thus, editing the shell
 buffer, or even killing large parts of it, does not affect the history
 that these commands access.
 
-@vindex shell-input-ring-file-name
+@vindex comint-input-ring-file-name
   Some shells store their command histories in files so that you can
 refer to commands from previous shell sessions.  Emacs reads
 the command history file for your chosen shell, to initialize its own
 command history.  The file name is @file{~/.bash_history} for bash,
 @file{~/.sh_history} for ksh, and @file{~/.history} for other shells.
+
+@vindex tramp-histfile-override
+  If you run the shell on a remote host, this setting might be
+overwritten by the variable @code{tramp-histfile-override}.  It is
+recommended to set this variable to @code{nil}.
 
 @node Shell History Copying
 @subsubsection Shell History Copying
@@ -1693,7 +1715,9 @@ each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} "foo" @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
-name, using the @samp{-s} option (@pxref{emacsclient Options}).
+name, using the @samp{-s} or the @samp{-f} option (@pxref{emacsclient
+Options}), depending on whether or not the server uses a TCP socket
+(@pxref{TCP Emacs server}).
 
   If you want to run multiple Emacs daemons (@pxref{Initial Options}),
 you can give each daemon its own server name like this:
@@ -1758,21 +1782,23 @@ use @kbd{M-x server-generate-key} to get a random key.
   When you start a TCP Emacs server, Emacs creates a @dfn{server file}
 containing the TCP information to be used by @command{emacsclient} to
 connect to the server.  The variable @code{server-auth-dir} specifies
-the directory containing the server file; by default, this is
+the default directory containing the server file; by default, this is
 @file{~/.emacs.d/server/}.  In the absence of a local socket with file
 permissions, the permissions of this directory determine which users
 can have their @command{emacsclient} processes talk to the Emacs
-server.
+server.  If @code{server-name} is an absolute file name, the server
+file is created where specified by that file name.
 
 @vindex EMACS_SERVER_FILE@r{, environment variable}
   To tell @command{emacsclient} to connect to the server over TCP with
 a specific server file, use the @samp{-f} or @samp{--server-file}
 option, or set the @env{EMACS_SERVER_FILE} environment variable
 (@pxref{emacsclient Options}).  If @code{server-auth-dir} is set to a
-non-standard value, @command{emacsclient} needs an absolute file name
-to the server file, as the default @code{server-auth-dir} is
-hard-coded in @command{emacsclient} to be used as the directory for
-resolving relative filenames.
+non-standard value, or if @code{server-name} is set to an absolute
+file name, @command{emacsclient} needs an absolute file name to the
+server file, as the default @code{server-auth-dir} is hard-coded in
+@command{emacsclient} to be used as the directory for resolving
+relative filenames.
 
 @node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
@@ -1961,10 +1987,16 @@ evaluation performed is for side-effect rather than result.
 
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
-Connect to the Emacs server named @var{server-name}.  The server name
-is given by the variable @code{server-name} on the Emacs server.  If
-this option is omitted, @command{emacsclient} connects to the first
-server it finds.  (This option is not supported on MS-Windows.)
+Connect to the Emacs server named @var{server-name}.  (This option is
+not supported on MS-Windows.)  The server name is given by the
+variable @code{server-name} on the Emacs server.  If this option is
+omitted, @command{emacsclient} connects to the first server it finds.
+If you set @code{server-name} of the Emacs server to an absolute file
+name, give the same absolute file name as @var{server-name} to this
+option to instruct @command{emacsclient} to connect to that server.
+You need to use this option if you started Emacs as daemon
+(@pxref{Initial Options}) and specified the name for the server
+started by the daemon.
 
 Alternatively, you can set the @env{EMACS_SOCKET_NAME} environment
 variable to point to the server socket.  (The command-line option
@@ -2464,10 +2496,13 @@ automatically back to binary.
 into hex.  This is useful if you visit a file normally and then discover
 it is a binary file.
 
-  Ordinary text characters overwrite in Hexl mode.  This is to reduce
+  Inserting text always overwrites in Hexl mode.  This is to reduce
 the risk of accidentally spoiling the alignment of data in the file.
-There are special commands for insertion.  Here is a list of the
-commands of Hexl mode:
+Ordinary text characters insert themselves (i.e., overwrite with
+themselves).  There are commands for insertion of special characters
+by their code.  Most cursor motion keys, as well as @kbd{C-x C-s}, are
+bound in Hexl mode to commands that produce the same effect.  Here is
+a list of other important commands special to Hexl mode:
 
 @c I don't think individual index entries for these commands are useful--RMS.
 @table @kbd
@@ -2479,6 +2514,12 @@ Insert a byte with a code typed in octal.
 
 @item C-M-x
 Insert a byte with a code typed in hex.
+
+@item C-M-a
+Move to the beginning of a 512-byte page.
+
+@item C-M-e
+Move to the end of a 512-byte page.
 
 @item C-x [
 Move to the beginning of a 1k-byte page.

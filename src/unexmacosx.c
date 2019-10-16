@@ -1,5 +1,5 @@
 /* Dump Emacs in Mach-O format for use on macOS.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -97,9 +97,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "unexec.h"
 #include "lisp.h"
+#include "sysstdio.h"
 
 #include <errno.h>
-#include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -303,9 +303,9 @@ unexec_error (const char *format, ...)
   va_list ap;
 
   va_start (ap, format);
-  fprintf (stderr, "unexec: ");
+  fputs ("unexec: ", stderr);
   vfprintf (stderr, format, ap);
-  fprintf (stderr, "\n");
+  putc ('\n', stderr);
   va_end (ap);
   exit (1);
 }
@@ -447,7 +447,7 @@ unexec_regions_recorder (task_t task, void *rr, unsigned type,
 
   while (num && num_unexec_regions < MAX_UNEXEC_REGIONS)
     {
-      /* Subtract the size of trailing null bytes from filesize.  It
+      /* Subtract the size of trailing NUL bytes from filesize.  It
 	 can be smaller than vmsize in segment commands.  In such a
 	 case, trailing bytes are initialized with zeros.  */
       for (p = ranges->address + ranges->size; p > ranges->address; p--)

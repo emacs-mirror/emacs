@@ -1,6 +1,6 @@
 ;;; timefns-tests.el -- tests for timefns.c
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,6 +18,12 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (require 'ert)
+
+(defun timefns-tests--decode-time (look zone decoded-time)
+  (should (equal (decode-time look zone t) decoded-time))
+  (should (equal (decode-time look zone 'integer)
+		 (cons (time-convert (car decoded-time) 'integer)
+		       (cdr decoded-time)))))
 
 ;;; Check format-time-string and decode-time with various TZ settings.
 ;;; Use only POSIX-compatible TZ values, since the tests should work
@@ -40,23 +46,29 @@
 		    (7879679999900 . 100000)
 		    (78796799999999999999 . 1000000000000)))
       ;; UTC.
+     (let* ((look-ticks-hz (time-convert look t))
+	    (hz (cdr look-ticks-hz))
+	    (look-integer (time-convert look 'integer))
+	    (sec (time-add (time-convert 59 hz)
+			   (time-subtract look-ticks-hz
+					  (time-convert look-integer hz)))))
       (should (string-equal
 	       (format-time-string "%Y-%m-%d %H:%M:%S.%3N %z" look t)
 	       "1972-06-30 23:59:59.999 +0000"))
-      (should (equal (decode-time look t)
-		     '(59 59 23 30 6 1972 5 nil 0)))
+      (timefns-tests--decode-time look t
+				  (list sec 59 23 30 6 1972 5 nil 0))
       ;; "UTC0".
       (should (string-equal
 	       (format-time-string format look "UTC0")
 	       "1972-06-30 23:59:59.999 +0000 (UTC)"))
-      (should (equal (decode-time look "UTC0")
-		     '(59 59 23 30 6 1972 5 nil 0)))
+      (timefns-tests--decode-time look "UTC0"
+				  (list sec 59 23 30 6 1972 5 nil 0))
       ;; Negative UTC offset, as a Lisp list.
       (should (string-equal
 	       (format-time-string format look '(-28800 "PST"))
 	       "1972-06-30 15:59:59.999 -0800 (PST)"))
-      (should (equal (decode-time look '(-28800 "PST"))
-		     '(59 59 15 30 6 1972 5 nil -28800)))
+      (timefns-tests--decode-time look '(-28800 "PST")
+				  (list sec 59 15 30 6 1972 5 nil -28800))
       ;; Negative UTC offset, as a Lisp integer.
       (should (string-equal
 	       (format-time-string format look -28800)
@@ -65,14 +77,14 @@
 	       (if (eq system-type 'windows-nt)
 		   "1972-06-30 15:59:59.999 -0800 (ZZZ)"
 		 "1972-06-30 15:59:59.999 -0800 (-08)")))
-      (should (equal (decode-time look -28800)
-		     '(59 59 15 30 6 1972 5 nil -28800)))
+      (timefns-tests--decode-time look -28800
+				  (list sec 59 15 30 6 1972 5 nil -28800))
       ;; Positive UTC offset that is not an hour multiple, as a string.
       (should (string-equal
 	       (format-time-string format look "IST-5:30")
 	       "1972-07-01 05:29:59.999 +0530 (IST)"))
-      (should (equal (decode-time look "IST-5:30")
-		     '(59 29 5 1 7 1972 6 nil 19800))))))
+      (timefns-tests--decode-time look "IST-5:30"
+				  (list sec 29 5 1 7 1972 6 nil 19800))))))
 
 (ert-deftest decode-then-encode-time ()
   (let ((time-values (list 0 -2 1 0.0 -0.0 -2.0 1.0
@@ -85,11 +97,13 @@
 			   (cons (1+ most-positive-fixnum) 1000000000000)
 			   (cons 1000000000000 (1+ most-positive-fixnum)))))
     (dolist (a time-values)
-      (let* ((d (ignore-errors (decode-time a t)))
-	     (e (encode-time d))
-	     (diff (float-time (time-subtract a e))))
-	(should (or (not d)
-		    (and (<= 0 diff) (< diff 1))))))))
+      (let* ((d (ignore-errors (decode-time a t t)))
+             (d-integer (ignore-errors (decode-time a t 'integer)))
+	     (e (if d (encode-time d)))
+	     (e-integer (if d-integer (encode-time d-integer))))
+	(should (or (not d) (time-equal-p a e)))
+	(should (or (not d-integer) (time-equal-p (time-convert a 'integer)
+                                                  e-integer)))))))
 
 ;;; This should not dump core.
 (ert-deftest format-time-string-with-outlandish-zone ()
@@ -115,6 +129,12 @@
 			   most-negative-fixnum most-positive-fixnum
 			   (1- most-negative-fixnum)
 			   (1+ most-positive-fixnum)
+			   1e1 -1e1 1e-1 -1e-1
+			   1e8 -1e8 1e-8 -1e-8
+			   1e9 -1e9 1e-9 -1e-9
+			   1e10 -1e10 1e-10 -1e-10
+			   1e16 -1e16 1e-16 -1e-16
+			   1e37 -1e37 1e-37 -1e-37
 			   1e+INF -1e+INF 1e+NaN -1e+NaN
 			   '(0 0 0 1) '(0 0 1 0) '(0 1 0 0) '(1 0 0 0)
 			   '(-1 0 0 0) '(1 2 3 4) '(-1 2 3 4)
@@ -122,6 +142,10 @@
 			   (cons (1+ most-positive-fixnum) 1000000000000)
 			   (cons 1000000000000 (1+ most-positive-fixnum)))))
     (dolist (a time-values)
+      (should-error (time-add a 'ouch))
+      (should-error (time-add 'ouch a))
+      (should-error (time-subtract a 'ouch))
+      (should-error (time-subtract 'ouch a))
       (dolist (b time-values)
 	(let ((aa (time-subtract (time-add a b) b)))
 	  (should (or (time-equal-p a aa) (and (floatp aa) (isnan aa)))))
@@ -142,3 +166,30 @@
 		      (< 0.99 (/ x y) 1.01)
 		      (< 0.99 (/ (- (float-time a)) (float-time b))
 			 1.01))))))))
+
+(ert-deftest time-rounding-tests ()
+  (should (time-equal-p 1e-13 (time-add 0 1e-13))))
+
+(ert-deftest encode-time-dst-numeric-zone ()
+    "Check for Bug#35502."
+    (should (time-equal-p
+             (encode-time '(29 31 17 30 4 2019 2 t 7200))
+             '(23752 27217))))
+
+(ert-deftest float-time-precision ()
+  (should (< 0 (float-time '(1 . 10000000000))))
+  (should (< (float-time '(-1 . 10000000000)) 0))
+
+  (let ((x 1.0))
+    (while (not (zerop x))
+      (dolist (multiplier '(-1.9 -1.5 -1.1 -1 1 1.1 1.5 1.9))
+        (let ((xmult (* x multiplier)))
+          (should (= xmult (float-time (time-convert xmult t))))))
+      (setq x (/ x 2))))
+
+  (let ((x 1.0))
+    (while (ignore-errors (time-convert x t))
+      (dolist (divisor '(-1.9 -1.5 -1.1 -1 1 1.1 1.5 1.9))
+        (let ((xdiv (/ x divisor)))
+          (should (= xdiv (float-time (time-convert xdiv t))))))
+      (setq x (* x 2)))))

@@ -1,9 +1,9 @@
 ;;; cal-julian.el --- calendar functions for the Julian calendar
 
-;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Julian calendar, Julian day number, calendar, diary
 ;; Package: calendar
@@ -183,9 +183,13 @@ Echo astronomical (Julian) day number unless NOECHO is non-nil."
   (or noecho (calendar-astro-print-day-number)))
 
 
-(defvar date)
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-julian-date ()
   "Julian calendar equivalent of date diary entry."

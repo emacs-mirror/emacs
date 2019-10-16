@@ -1,6 +1,6 @@
 ;;; data-tests.el --- tests for src/data.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -653,9 +653,20 @@ comparing the subr with a much slower lisp implementation."
     (data-tests-check-sign (% -1 -3) (% nb1 nb3))
     (data-tests-check-sign (mod -1 -3) (mod nb1 nb3))))
 
+(ert-deftest data-tests-mod-0 ()
+  (dolist (num (list (1- most-negative-fixnum) -1 0 1
+                     (1+ most-positive-fixnum)))
+    (should-error (mod num 0)))
+  (when (ignore-errors (/ 0.0 0))
+    (should (equal (abs (mod 0.0 0)) (abs (- 0.0 (/ 0.0 0)))))))
+
 (ert-deftest data-tests-ash-lsh ()
   (should (= (ash most-negative-fixnum 1)
              (* most-negative-fixnum 2)))
+  (should (= (ash 0 (* 2 most-positive-fixnum)) 0))
+  (should (= (ash 1000 (* 2 most-negative-fixnum)) 0))
+  (should (= (ash -1000 (* 2 most-negative-fixnum)) -1))
+  (should (= (ash (* 2 most-negative-fixnum) (* 2 most-negative-fixnum)) -1))
   (should (= (lsh most-negative-fixnum 1)
              (* most-negative-fixnum 2)))
   (should (= (ash (* 2 most-negative-fixnum) -1)
@@ -664,5 +675,23 @@ comparing the subr with a much slower lisp implementation."
   (should (= (lsh most-negative-fixnum -1) (lsh (- most-negative-fixnum) -1)))
   (should (= (lsh -1 -1) most-positive-fixnum))
   (should-error (lsh (1- most-negative-fixnum) -1)))
+
+(ert-deftest data-tests-make-local-forwarded-var () ;bug#34318
+  ;; Boy, this bug is tricky to trigger.  You need to:
+  ;; - call make-local-variable on a forwarded var (i.e. one that
+  ;;   has a corresponding C var linked via DEFVAR_(LISP|INT|BOOL))
+  ;; - cause the C code to modify this variable from the C side of the
+  ;;   forwarding, but this needs to happen before the var is accessed
+  ;;   from the Lisp side and before we switch to another buffer.
+  ;; The trigger in bug#34318 doesn't exist any more because the C code has
+  ;; changes.  Instead I found the trigger below.
+  (with-temp-buffer
+    (setq last-coding-system-used 'bug34318)
+    (make-local-variable 'last-coding-system-used)
+    ;; This should set last-coding-system-used to `no-conversion'.
+    (decode-coding-string "hello" nil)
+    (should (equal (list last-coding-system-used
+                         (default-value 'last-coding-system-used))
+                   '(no-conversion bug34318)))))
 
 ;;; data-tests.el ends here

@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2018 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -12,24 +12,21 @@ debugging techniques.
 *** Configuring Emacs for debugging
 
 It is best to configure and build Emacs with special options that will
-make the debugging easier.  Here's the configure-time options we
+make the debugging easier.  Here are the configure-time options we
 recommend (they are in addition to any other options you might need,
 such as --prefix):
 
   ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type \
     CFLAGS='-O0 -g3'
 
-The CFLAGS value is important: debugging optimized code can be very
-hard.  (If the problem only happens with optimized code, you may need
-to enable optimizations.  If that happens, try using -Og first,
-instead of -O2, as the former will disable some optimizations that
-make debugging some code exceptionally hard.)
+The -O0 flag is important, as debugging optimized code can be hard.
+If the problem happens only with optimized code, you may need to
+enable optimizations.  If that happens, try using -Og first instead of
+-O2, as -Og disables some optimizations that make debugging some code
+exceptionally hard.
 
-Modern versions of GCC support more elaborate debug info that is
-available by just using the -g3 compiler switch.  Try using -gdwarf-4
-in addition to -g3, and if that fails, try -gdwarf-3.  This is
-especially important if you have to debug optimized code.  More info
-about this is available below; search for "analyze failed assertions".
+Older versions of GCC may need more than just the -g3 flag.  For more,
+search for "analyze failed assertions" below.
 
 The 2 --enable-* switches are optional.  They don't have any effect on
 debugging with GDB, but will compile additional code that might catch
@@ -184,20 +181,15 @@ Good luck!
 
 ** When you are trying to analyze failed assertions or backtraces, it
 is essential to compile Emacs with flags suitable for debugging.
-With GCC 4.8 or later, you can invoke 'make' with CFLAGS="-Og -g3".
-With older GCC or non-GCC compilers, you can use CFLAGS="-O0 -g3".
+Although CFLAGS="-O0 -g3" often suffices with modern compilers,
+you may benefit further by using CFLAGS="-O0 -g3 -gdwarf-4", replacing
+"4" by the highest version of DWARF that your compiler supports;
+this is especially important for GCC versions older than 4.8.
 With GCC and higher optimization levels such as -O2, the
 -fno-omit-frame-pointer and -fno-crossjumping options are often
 essential.  The latter prevents GCC from using the same abort call for
 all assertions in a given function, rendering the stack backtrace
 useless for identifying the specific failed assertion.
-Some versions of GCC support recent versions of the DWARF standard for
-debugging info, but default to older versions; for example, they could
-support -gdwarf-4 compiler option (for DWARF v4), but default to
-version 2 of the DWARF standard.  For best results in debugging
-abilities, find out the highest version of DWARF your GCC can support,
-and use the corresponding -gdwarf-N switch instead of just -g (you
-will still need -g3, as in "-gdwarf-4 -g3").
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able
@@ -923,41 +915,97 @@ setting the new-console option before running Emacs under GDB:
   (gdb) set new-console 1
   (gdb) run
 
-** Running Emacs built with malloc debugging packages
+** Running Emacs with undefined-behavior sanitization
 
-If Emacs exhibits bugs that seem to be related to use of memory
-allocated off the heap, it might be useful to link Emacs with a
-special debugging library, such as Electric Fence (a.k.a. efence) or
-GNU Checker, which helps find such problems.
+Building Emacs with undefined-behavior sanitization can help find
+several kinds of low-level problems in C code, including:
 
-Emacs compiled with such packages might not run without some hacking,
-because Emacs replaces the system's memory allocation functions with
-its own versions, and because the dumping process might be
-incompatible with the way these packages use to track allocated
-memory.  Here are some of the changes you might find necessary:
+  * Out-of-bounds access of many (but not all) arrays.
+  * Signed integer overflow, e.g., (INT_MAX + 1).
+  * Integer shifts by a negative or wider-than-word value.
+  * Misaligned pointers and pointer overflow.
+  * Loading a bool or enum value that is out of range for its type.
+  * Passing NULL to or returning NULL from a function requiring nonnull.
+  * Passing a size larger than the corresponding array to memcmp etc.
+  * Passing invalid values to some builtin functions, e.g., __builtin_clz (0).
+  * Reaching __builtin_unreachable calls (in Emacs, 'eassume' failure).
 
-  - Edit configure, to set system_malloc and CANNOT_DUMP to "yes".
+To use UndefinedBehaviorSanitizer with GCC and similar compilers,
+append '-fsanitize=undefined' to CFLAGS, either when running
+'configure' or running 'make'.  When supported, you can also specify
+'bound-strict' and 'float-cast-overflow'.  For example:
 
-  - Configure with a different --prefix= option.  If you use GCC,
-    version 2.7.2 is preferred, as some malloc debugging packages
-    work a lot better with it than with 2.95 or later versions.
+  ./configure \
+    CFLAGS='-O0 -g3 -fsanitize=undefined,bounds-strict,float-cast-overflow'
 
-  - Type "make" then "make -k install".
+You may need to append '-static-libubsan' to CFLAGS if your version of
+GCC is installed in an unusual location.
 
-  - If required, invoke the package-specific command to prepare
-    src/temacs for execution.
+When using GDB to debug an executable with undefined-behavior
+sanitization, the GDB command:
 
-  - cd ..; src/temacs
+  (gdb) rbreak ^__ubsan_handle_
 
-(Note that this runs 'temacs' instead of the usual 'emacs' executable.
-This avoids problems with dumping Emacs mentioned above.)
+will let you gain control when an error is detected and before
+UndefinedBehaviorSanitizer outputs to stderr or terminates the
+program.
 
-Some malloc debugging libraries might print lots of false alarms for
-bitfields used by Emacs in some data structures.  If you want to get
-rid of the false alarms, you will have to hack the definitions of
-these data structures on the respective headers to remove the ':N'
-bitfield definitions (which will cause each such field to use a full
-int).
+** Running Emacs with address sanitization
+
+Building Emacs with address sanitization can help debug memory-use
+problems, such as freeing the same object twice.  To use
+AddressSanitizer with GCC and similar compilers, append
+'-fsanitize=address' to CFLAGS, either when running 'configure' or
+running 'make'.  Configure, build and run Emacs with
+ASAN_OPTIONS='detect_leaks=0' in the environment to suppress
+diagnostics of minor memory leaks in Emacs.  For example:
+
+  export ASAN_OPTIONS='detect_leaks=0'
+  ./configure CFLAGS='-O0 -g3 -fsanitize=address'
+  make
+  src/emacs
+
+You may need to append '-static-libasan' to CFLAGS if your version of
+GCC is installed in an unusual location.
+
+When using GDB to debug an executable with address sanitization, the
+GDB command:
+
+  (gdb) rbreak ^__asan_report_
+
+will let you gain control when an error is detected and before
+AddressSanitizer outputs to stderr or terminates the program.
+
+Address sanitization is incompatible with undefined-behavior
+sanitization, unfortunately.  Address sanitization is also
+incompatible with the --with-dumping=unexec option of 'configure'.
+
+** Running Emacs under Valgrind
+
+Valgrind <http://valgrind.org/> is free software that can be useful
+when debugging low-level Emacs problems.  Unlike GCC sanitizers,
+Valgrind does not need you to compile Emacs with special debugging
+flags, so it can be helpful in investigating problems that vanish when
+Emacs is recompiled with debugging enabled.  However, by default
+Valgrind generates many false alarms with Emacs, and you will need to
+maintain a suppressions file to suppress these false alarms and use
+Valgrind effectively.  For example, you might invoke Valgrind this
+way:
+
+   valgrind --suppressions=valgrind.supp ./emacs
+
+where valgrind.supp contains groups of lines like the following, which
+suppresses some Valgrind false alarms during Emacs garbage collection:
+
+   {
+     Fgarbage_collect Cond - conservative garbage collection
+     Memcheck:Cond
+     ...
+     fun:Fgarbage_collect
+   }
+
+Unfortunately Valgrind suppression files tend to be system-dependent,
+so you will need to keep one around that matches your system.
 
 ** How to recover buffer contents from an Emacs core dump file
 

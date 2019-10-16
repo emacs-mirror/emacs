@@ -1,6 +1,6 @@
 ;;; lao-util.el --- utilities for Lao -*- coding: utf-8; -*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -489,10 +489,10 @@ syllable.  In that case, FROM and TO are indexes to STR."
       lao-str)))
 
 ;;;###autoload
-(defun lao-composition-function (gstring)
+(defun lao-composition-function (gstring direction)
   (if (= (lgstring-char-len gstring) 1)
-      (compose-gstring-for-graphic gstring)
-    (or (font-shape-gstring gstring)
+      (compose-gstring-for-graphic gstring direction)
+    (or (font-shape-gstring gstring direction)
 	(let ((glyph-len (lgstring-glyph-len gstring))
 	      (i 0)
 	      glyph)

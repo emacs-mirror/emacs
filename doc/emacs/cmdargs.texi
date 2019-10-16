@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -39,7 +39,7 @@ corresponding long form.
 
   The long forms with @samp{--} are easier to remember, but longer to
 type.  However, you don't have to spell out the whole option name; any
-unambiguous abbreviation is enough.  When a long option takes an
+unambiguous abbreviation is enough.  When a long option requires an
 argument, you can use either a space or an equal sign to separate the
 option name and the argument.  Thus, for the option @samp{--display},
 you can write either @samp{--display sugar-bombs:0.0} or
@@ -347,13 +347,15 @@ Start Emacs with minimum customizations.  This is similar to using
 @itemx --bg-daemon[=@var{name}]
 @itemx --fg-daemon[=@var{name}]
 Start Emacs as a daemon: after Emacs starts up, it starts the Emacs
-server without opening any frames.
-(Optionally, you can specify an explicit @var{name} for the server.)
-You can then use the @command{emacsclient} command to connect to Emacs
-for editing.  @xref{Emacs Server}, for information about using Emacs
-as a daemon.  A ``background'' daemon disconnects from the terminal
-and runs in the background (@samp{--daemon} is an alias for
-@samp{--bg-daemon}).
+server without opening any frames.  You can then use the
+@command{emacsclient} command to connect to Emacs for editing.
+(Optionally, you can specify an explicit @var{name} for the server; if
+you do, you will need to specify the same @var{name} when you invoke
+@command{emacsclient}, via its @option{--socket-name} option, see
+@ref{emacsclient Options}.)  @xref{Emacs Server}, for information
+about using Emacs as a daemon.  A ``background'' daemon disconnects
+from the terminal and runs in the background (@samp{--daemon} is an
+alias for @samp{--bg-daemon}).
 
 @item --no-desktop
 @opindex --no-desktop
@@ -383,6 +385,21 @@ verify that their module conforms to the module API requirements.  The
 option makes Emacs abort if a module-related assertion triggers.
 @xref{Writing Dynamic Modules,, Writing Dynamically-Loaded Modules,
 elisp, The GNU Emacs Lisp Reference Manual}.
+
+@item --dump-file=@var{file}
+@opindex --dump-file
+@cindex specify dump file
+Load the dumped Emacs state from the named @var{file}.  By default, an
+installed Emacs will look for its dump state in a file named
+@file{@var{emacs}.pdmp} in the directory where the Emacs installation
+puts the architecture-dependent files; the variable
+@code{exec-directory} holds the name of that directory.  @var{emacs}
+is the name of the Emacs executable file, normally just @file{emacs}.
+(When you invoke Emacs from the @file{src} directory where it was
+built without installing it, it will look for the dump file in the
+directory of the executable.)  If you rename or move the dump file to
+a different place, you can use this option to tell Emacs where to find
+that file.
 @end table
 
 @node Command Example
@@ -1034,7 +1051,7 @@ specifies a window 164 columns wide, enough for two ordinary width
 windows side by side, and 55 lines tall.
 
   The default frame width is 80 characters and the default height is
-40 lines.  You can omit either the width or the height or both.  If
+36 lines.  You can omit either the width or the height or both.  If
 you start the geometry with an integer, Emacs interprets it as the
 width.  If you start with an @samp{x} followed by an integer, Emacs
 interprets it as the height.  Thus, @samp{81} specifies just the

@@ -1,6 +1,6 @@
 ;;; radix-tree.el --- A simple library of radix trees  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -196,8 +196,8 @@ If not found, return nil."
 
 (eval-and-compile
   (pcase-defmacro radix-tree-leaf (vpat)
-    "Build a `pcase' pattern that matches radix-tree leaf EXPVAL.
-VPAT is a `pcase' pattern to extract the value."
+    "Pattern which matches a radix-tree leaf.
+The pattern VPAT is matched against the leaf's carried value."
     ;; FIXME: We'd like to use a negative pattern (not consp), but pcase
     ;; doesn't support it.  Using `atom' works but generates sub-optimal code.
     `(or `(t . ,,vpat) (and (pred atom) ,vpat))))

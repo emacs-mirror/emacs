@@ -11,7 +11,7 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2018
+Copyright @copyright{} 1994--1995, 1999, 2001--2019
 Free Software Foundation, Inc.
 
 @quotation
@@ -240,7 +240,11 @@ alignment.  Use @code{"\n"} as the first or last string element of a
 skeleton to insert a newline unconditionally.
 @item @code{_}
 Interesting point.  When wrapping skeletons around successive regions, they are
-put at these places.  Point is left at first @code{_} where nothing is wrapped.
+put at these places.  Point is left at first @code{_} where nothing is
+wrapped.
+@item @code{-}
+Interesting point with no inter-region interaction; overrides
+interesting point set by @code{_}.
 @item @code{>}
 Indent line according to major mode.  When following element is @code{_}, and
 there is an interregion that will be wrapped here, indent that interregion.
@@ -250,6 +254,8 @@ something, do following element.
 @item @code{|}
 Logical xor.  If preceding element didn't move point, i.e., usually inserted
 nothing, do following element.
+@item @code{@@}
+Add position to @code{skeleton-positions}.
 @item @code{-@var{number}}
 Delete preceding number characters.  Depends on value of
 @code{skeleton-untabify}.
@@ -275,6 +281,10 @@ prompt is a lisp-expression that returns successive list-elements.
 @item @code{resume:}
 Ignored.  Execution resumes here if the user quits during skeleton
 interpretation.
+@item @code{help}
+Help form during interaction with the user or @code{nil}.
+@item @code{input}
+Initial input (a string or a cons with index) while reading the input.
 @item @code{quit}
 A constant which is non-@code{nil} when the @code{resume:} section was entered
 because the user quit.
@@ -582,8 +592,7 @@ specify that @kbd{M-x quickurl} should insert @var{URL} if the word
 
 @example
 (("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
- ("emacs"  . "http://www.emacs.org/")
- ("hagbard"  "http://www.hagbard.demon.co.uk" "Hagbard's World"))
+ ("emacs"  . "https://www.gnu.org/software/emacs/"))
 @end example
 
 @findex quickurl-add-url
