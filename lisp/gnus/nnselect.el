@@ -294,7 +294,7 @@ If this variable is nil, or if the provided function returns nil,
 				   (mail-header-number novitem)))
 		       (art (car (rassq artno artids))))
 		  (when art
-		    (mail-header-set-number novitem art)
+		    (setf (mail-header-number novitem) art)
 		    (push novitem headers))
 		  (forward-line 1)))))
 	  (setq headers
