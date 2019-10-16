@@ -71,6 +71,8 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
+(defvar company-backends) ; forward-declare, but don't require company yet
+
 
 
 ;;; User tweakable stuff
@@ -1196,6 +1198,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
     (eglot--setq-saving xref-prompt-for-identifier nil)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
+    (eglot--setq-saving company-backends '(company-capf))
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
