@@ -77,7 +77,11 @@ See `tool-bar-mode' for more information."
 
 (defvar tool-bar-map (make-sparse-keymap)
   "Keymap for the tool bar.
-Define this locally to override the global tool bar.")
+
+To override the global tool bar, define this variable
+buffer-locally and add the items you want to it with
+`tool-bar-add-item', `tool-bar-add-item-from-menu' and related
+functions.")
 
 (global-set-key [tool-bar]
 		`(menu-item ,(purecopy "tool bar") ignore

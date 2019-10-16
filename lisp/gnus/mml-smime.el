@@ -348,8 +348,7 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'mml-compute-boundary "mml")
 
 (defun mml-smime-epg-sign (cont)
-  (let ((inhibit-redisplay t)
-	(boundary (mml-compute-boundary cont)))
+  (let ((boundary (mml-compute-boundary cont)))
     (goto-char (point-min))
     (let* ((pair (mml-secure-epg-sign 'CMS cont))
 	   (signature (car pair))

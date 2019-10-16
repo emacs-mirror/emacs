@@ -6268,7 +6268,7 @@ a non-nil value in your init file.  */);
 
   DEFVAR_LISP ("frame-inhibit-implied-resize", frame_inhibit_implied_resize,
 	       doc: /* Whether frames should be resized implicitly.
-If this option is nil, setting font, menu bar, tool bar, internal
+If this option is nil, setting font, menu bar, tool bar, tab bar, internal
 borders, fringes or scroll bars of a specific frame may resize the frame
 in order to preserve the number of columns or lines it displays.  If
 this option is t, no such resizing is done.  Note that the size of
@@ -6278,8 +6278,8 @@ width of fullwidth frames never change implicitly.
 The value of this option can be also be a list of frame parameters.  In
 this case, resizing is inhibited when changing a parameter that appears
 in that list.  The parameters currently handled by this option include
-`font', `font-backend', `internal-border-width', `menu-bar-lines' and
-`tool-bar-lines'.
+`font', `font-backend', `internal-border-width', `menu-bar-lines',
+`tool-bar-lines' and `tab-bar-lines'.
 
 Changing any of the parameters `scroll-bar-width', `scroll-bar-height',
 `vertical-scroll-bars', `horizontal-scroll-bars', `left-fringe' and
@@ -6290,21 +6290,22 @@ width by the width of one scroll bar provided this option is nil and
 keep it unchanged if this option is either t or a list containing
 `vertical-scroll-bars'.
 
-The default value is \\='(tool-bar-lines) on Lucid, Motif and Windows
-\(which means that adding/removing a tool bar does not change the frame
-height), nil on all other window systems including GTK+ (which means
-that changing any of the parameters listed above may change the size of
-the frame), and t otherwise (which means the frame size never changes
-implicitly when there's no window system support).
+In GTK+ and NS that use the external tool bar, the default value is
+\\='(tab-bar-lines) which means that adding/removing a tab bar does
+not change the frame height.  On all other types of GUI frames, the
+default value is \\='(tab-bar-lines tool-bar-lines) which means that
+adding/removing a tool bar or tab bar does not change the frame
+height.  Otherwise it's t which means the frame size never changes
+implicitly when there's no window system support.
 
 Note that when a frame is not large enough to accommodate a change of
 any of the parameters listed above, Emacs may try to enlarge the frame
 even if this option is non-nil.  */);
 #if defined (HAVE_WINDOW_SYSTEM)
-#if defined (USE_LUCID) || defined (USE_MOTIF) || defined (HAVE_NTGUI)
-  frame_inhibit_implied_resize = list2 (Qtab_bar_lines, Qtool_bar_lines);
+#if defined (USE_GTK) || defined (HAVE_NS)
+  frame_inhibit_implied_resize = list1 (Qtab_bar_lines);
 #else
-  frame_inhibit_implied_resize = Qnil;
+  frame_inhibit_implied_resize = list2 (Qtab_bar_lines, Qtool_bar_lines);
 #endif
 #else
   frame_inhibit_implied_resize = Qt;

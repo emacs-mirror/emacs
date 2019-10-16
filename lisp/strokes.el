@@ -1216,9 +1216,7 @@ the stroke as a character in some language."
 
 ;;(defun strokes-edit-quit ()
 ;;  (interactive)
-;;  (or (one-window-p t 0)
-;;      (delete-window))
-;;  (kill-buffer "*Strokes List*"))
+;;  (quit-windows-on "*Strokes List*" t))
 
 ;;(define-derived-mode edit-strokes-mode list-mode
 ;;  "Edit-Strokes"

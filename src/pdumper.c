@@ -630,7 +630,7 @@ dump_set_have_current_referrer (struct dump_context *ctx, bool have)
 #endif
 }
 
-/* Return true if if objects should be enqueued in CTX to refer to an
+/* Return true if objects should be enqueued in CTX to refer to an
    object that the caller should store into CTX->current_referrer.
 
    Until dump_clear_referrer is called, any objects enqueued are being
@@ -1093,7 +1093,7 @@ dump_calc_link_score (dump_off basis,
   return powf (link_score, (float) link_weight / 1000.0f);
 }
 
-/* Compute the score score for a queued object.
+/* Compute the score for a queued object.
 
    OBJECT is the object to query, which must currently be queued for
    dumping.  BASIS is the offset at which we would be

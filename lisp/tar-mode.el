@@ -127,6 +127,11 @@ the file never exists on disk."
 This information is useful, but it takes screen space away from file names."
   :type 'boolean)
 
+(defcustom tar-copy-preserve-time nil
+  "Non-nil means that Tar mode preserves the timestamp when copying files."
+  :type 'boolean
+  :version "27.1")
+
 (defvar tar-parse-info nil)
 (defvar tar-superior-buffer nil
   "Buffer containing the tar archive from which a member was extracted.")
@@ -1001,11 +1006,16 @@ actually appear on disk when you save the tar-file's buffer."
 (defun tar-copy (&optional to-file)
   "In Tar mode, extract this entry of the tar file into a file on disk.
 If TO-FILE is not supplied, it is prompted for, defaulting to the name of
-the current tar-entry."
+the current tar-entry.
+
+If `tar-copy-preserve-time' is non-nil, the original
+timestamp (if present in the tar file) will be used on the
+extracted file."
   (interactive (list (tar-read-file-name)))
   (let* ((descriptor (tar-get-descriptor))
 	 (name (tar-header-name descriptor))
 	 (size (tar-header-size descriptor))
+	 (date (tar-header-date descriptor))
 	 (start (tar-header-data-start descriptor))
 	 (end (+ start size))
 	 (inhibit-file-name-handlers inhibit-file-name-handlers)
@@ -1024,7 +1034,10 @@ the current tar-entry."
 			   inhibit-file-name-handlers))
 		inhibit-file-name-operation 'write-region))
       (let ((coding-system-for-write 'no-conversion))
-	(write-region start end to-file nil nil nil t)))
+	(write-region start end to-file nil nil nil t))
+      (when (and tar-copy-preserve-time
+                 date)
+        (set-file-times to-file date)))
     (message "Copied tar entry %s to %s" name to-file)))
 
 (defun tar-new-entry (filename &optional index)

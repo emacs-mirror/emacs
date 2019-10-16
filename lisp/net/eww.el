@@ -1919,8 +1919,8 @@ If CHARSET is nil then use UTF-8."
 (defvar eww-history-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\r" 'eww-history-browse)
-;;    (define-key map "n" 'next-error-no-select)
-;;    (define-key map "p" 'previous-error-no-select)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
 
     (easy-menu-define nil map
       "Menu for `eww-history-mode-map'."

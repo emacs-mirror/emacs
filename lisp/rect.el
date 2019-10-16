@@ -520,7 +520,8 @@ Called from a program, takes three args; START, END and STRING."
                (read-string (format "String rectangle (default %s): "
                                     (or (car string-rectangle-history) ""))
                             nil 'string-rectangle-history
-                            (car string-rectangle-history)))))))
+                            (car string-rectangle-history)
+                            'inherit-input-method))))))
   ;; If we undo this change, we want to have the point back where we
   ;; are now, and not after the first line in the rectangle (which is
   ;; the first line to be changed by the following command).
@@ -613,7 +614,7 @@ with a prefix argument, prompt for START-AT and FORMAT."
     (apply-on-rectangle 'rectangle-number-line-callback
 			start end format)))
 
-;;; New rectangle integration with kill-ring.
+;;; Rectangle integration with kill-ring.
 
 ;; FIXME: known problems with the new rectangle support:
 ;; - lots of commands handle the region without paying attention to its

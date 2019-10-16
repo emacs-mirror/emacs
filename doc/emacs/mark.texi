@@ -23,6 +23,11 @@ When the mark is active, we say also that the region is active; Emacs
 indicates its extent by highlighting the text within it, using the
 @code{region} face (@pxref{Face Customization}).
 
+This is one of the few faces that has the @code{:extend t} attribute
+by default, which implies that the same face is used to highlight the
+text and space between end of line and the window border.  To
+highlight only the text you could set this attribute to @code{nil}.
+
 @cindex deactivating the mark
   After certain non-motion commands, including any command that
 changes the text in the buffer, Emacs automatically @dfn{deactivates}

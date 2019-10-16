@@ -190,32 +190,34 @@ The format is (FUNCTION ARGS...).")
 		   (customize-face v))
   'help-echo (purecopy "mouse-2, RET: customize face"))
 
+(defun help-function-def--button-function (fun &optional file type)
+  (or file
+      (setq file (find-lisp-object-file-name fun type)))
+  (if (not file)
+      (message "Unable to find defining file")
+    (require 'find-func)
+    (when (eq file 'C-source)
+      (setq file
+            (help-C-file-name (indirect-function fun) 'fun)))
+    ;; Don't use find-function-noselect because it follows
+    ;; aliases (which fails for built-in functions).
+    (let* ((location
+            (find-function-search-for-symbol fun type file))
+           (position (cdr location)))
+      (pop-to-buffer (car location))
+      (run-hooks 'find-function-after-hook)
+      (if position
+          (progn
+            ;; Widen the buffer if necessary to go to this position.
+            (when (or (< position (point-min))
+                      (> position (point-max)))
+              (widen))
+            (goto-char position))
+        (message "Unable to find location in file")))))
+
 (define-button-type 'help-function-def
   :supertype 'help-xref
-  'help-function (lambda (fun &optional file type)
-                   (or file
-                       (setq file (find-lisp-object-file-name fun type)))
-                   (if (not file)
-                       (message "Unable to find defining file")
-                     (require 'find-func)
-                     (when (eq file 'C-source)
-                       (setq file
-                             (help-C-file-name (indirect-function fun) 'fun)))
-                     ;; Don't use find-function-noselect because it follows
-                     ;; aliases (which fails for built-in functions).
-                     (let* ((location
-                             (find-function-search-for-symbol fun type file))
-                            (position (cdr location)))
-                       (pop-to-buffer (car location))
-                       (run-hooks 'find-function-after-hook)
-                       (if position
-                           (progn
-                             ;; Widen the buffer if necessary to go to this position.
-                             (when (or (< position (point-min))
-                                       (> position (point-max)))
-                               (widen))
-                             (goto-char position))
-                         (message "Unable to find location in file")))))
+  'help-function #'help-function-def--button-function
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
 
 (define-button-type 'help-function-cmacro ; FIXME: Obsolete since 24.4.

@@ -1282,6 +1282,12 @@ renaming only, rather than modified in-place."
   (should (equal (file-size-human-readable 10000 'si " " "bit") "10 kbit"))
   (should (equal (file-size-human-readable 10000 'iec " " "bit") "9.8 Kibit"))
 
+  (should (equal (file-size-human-readable 2048) "2k"))
+  (should (equal (file-size-human-readable 2046) "2k"))
+  (should (equal (file-size-human-readable 2050) "2k"))
+  (should (equal (file-size-human-readable 1950) "1.9k"))
+  (should (equal (file-size-human-readable 2100) "2.1k"))
+
   (should (equal (file-size-human-readable-iec 0) "0 B"))
   (should (equal (file-size-human-readable-iec 1) "1 B"))
   (should (equal (file-size-human-readable-iec 9621) "9.4 KiB"))

@@ -243,7 +243,7 @@ It is filled with some text."
 
 ;;; From srecode-document:
 
-(require 'srecode/doc)
+(require 'srecode/document)
 
 (defun srecode-document-function-comment-extract-test ()
   "Test old comment extraction.

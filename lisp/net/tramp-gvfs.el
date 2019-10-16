@@ -481,6 +481,7 @@ It has been changed in GVFS 1.14.")
     "type"
     "standard::display-name"
     "standard::symlink-target"
+    "standard::is-volatile"
     "unix::nlink"
     "unix::uid"
     "owner::user"
@@ -937,8 +938,9 @@ file names."
 	(tramp-message v 5 "directory gvfs attributes: %s" localname)
 	;; Send command.
 	(tramp-gvfs-send-command
-	 v "gvfs-ls" "-h" "-n" "-a"
-	 (string-join tramp-gvfs-file-attributes ",")
+	 v "gvfs-ls" "-h"
+	 (unless (string-equal (file-remote-p directory 'method) "gdrive") "-n")
+	 "-a" (string-join tramp-gvfs-file-attributes ",")
 	 (tramp-gvfs-url-file-name directory))
 	;; Parse output.
 	(with-current-buffer (tramp-get-connection-buffer v)
@@ -1021,7 +1023,12 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       ;; ... directory or symlink
       (setq dirp (if (equal "directory" (cdr (assoc "type" attributes))) t))
       (setq res-symlink-target
-	    (cdr (assoc "standard::symlink-target" attributes)))
+	    ;; Google-drive creates file blobs and links to them.  We
+	    ;; don't want to see them.
+	    (and
+	     (not
+	      (equal (cdr (assoc "standard::is-volatile" attributes)) "TRUE"))
+	     (cdr (assoc "standard::symlink-target" attributes))))
       (when (stringp res-symlink-target)
 	(setq res-symlink-target
 	      ;; Parse unibyte codes "\xNN".  We assume they are
@@ -1941,7 +1948,8 @@ is applied, and it returns t if the return code is zero."
 	   process-environment)))
     (when (tramp-gvfs-gio-tool-p vec)
       ;; Use gio tool.
-      (setq args (cons (cdr (assoc command tramp-gvfs-gio-mapping)) args)
+      (setq args (cons (cdr (assoc command tramp-gvfs-gio-mapping))
+		       (delq nil args))
 	    command "gio"))
 
     (with-current-buffer (tramp-get-connection-buffer vec)

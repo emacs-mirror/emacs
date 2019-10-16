@@ -1,4 +1,4 @@
-;;; tree-widget.el --- Tree widget
+;;; tree-widget.el --- Tree widget  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
@@ -126,7 +126,6 @@
 (defcustom tree-widget-image-enable t
   "Non-nil means that tree-widget will try to use images."
   :type  'boolean
-  :group 'tree-widget
   :version "27.1")
 
 (defvar tree-widget-themes-load-path
@@ -134,8 +133,8 @@
     (let ((dir data-directory))
       (and dir (list dir (expand-file-name "images" dir)))))
   "List of locations in which to search for the themes sub-directory.
-Each element is an expression that will be recursively evaluated until
-it returns a single directory or a list of directories.
+Each element is an expression that returns a single directory or a list
+of directories.
 The default is to search in the `load-path' first, then in the
 \"images\" sub directory in the data directory, then in the data
 directory.
@@ -149,8 +148,7 @@ directory in the path specified by `tree-widget-themes-load-path'.
 The default is to use the \"tree-widget\" relative name."
   :type '(choice (const :tag "Default" "tree-widget")
                  (const :tag "Where is this library" nil)
-                 (directory :format "%{%t%}:\n%v"))
-  :group 'tree-widget)
+                 (directory :format "%{%t%}:\n%v")))
 
 (defcustom tree-widget-theme nil
   "Name of the theme in which to look for images.
@@ -185,26 +183,22 @@ icon widgets used to draw the tree.  By default these images are used:
 \"leaf\"
   Icon associated to a leaf node."
   :type '(choice (const  :tag "Default" nil)
-                 (string :tag "Name"))
-  :group 'tree-widget)
+                 (string :tag "Name")))
 
 (defcustom tree-widget-image-properties-emacs
   '(:ascent center :mask (heuristic t))
   "Default properties of Emacs images."
-  :type 'plist
-  :group 'tree-widget)
+  :type 'plist)
 
 (defcustom tree-widget-image-properties-xemacs
   nil
   "Default properties of XEmacs images."
-  :type 'plist
-  :group 'tree-widget)
+  :type 'plist)
 
 (defcustom tree-widget-space-width 0.5
   "Amount of space between an icon image and a node widget.
 Must be a valid space :width display property.
 See Info node `(elisp)Specified Space'."
-  :group 'tree-widget
   :type '(choice (number :tag "Multiple of normal character width")
                  sexp))
 
@@ -220,7 +214,7 @@ See Info node `(elisp)Specified Space'."
   "Create an image of type TYPE from FILE, and return it.
 Give the image the specified properties PROPS."
   (declare (obsolete create-image "27.1"))
-  (apply 'create-image `(,file ,type nil ,@props)))
+  (apply #'create-image `(,file ,type nil ,@props)))
 
 (defsubst tree-widget-image-formats ()
   "Return the alist of image formats/file name extensions.
@@ -252,7 +246,8 @@ The default parent theme is the \"default\" theme."
         (when (file-accessible-directory-p dir)
           (throw 'found
                  (load (expand-file-name
-                        "tree-widget-theme-setup" dir) t)))))))
+                        "tree-widget-theme-setup" dir)
+                       t)))))))
 
 (defun tree-widget-set-theme (&optional name)
   "In the current buffer, set the theme to use for images.
@@ -278,25 +273,19 @@ Typically it should contain something like this:
       (tree-widget-set-parent-theme name)
       (tree-widget-set-parent-theme "default")))
 
-(defun tree-widget--locate-sub-directory (name path &optional found)
+(defun tree-widget--locate-sub-directory (name path)
   "Locate all occurrences of the sub-directory NAME in PATH.
 Return a list of absolute directory names in reverse order, or nil if
 not found."
-  (condition-case err
-      (dolist (elt path)
-        (setq elt (eval elt))
-        (cond
-         ((stringp elt)
-          (and (file-accessible-directory-p
-                (setq elt (expand-file-name name elt)))
-               (push elt found)))
-         (elt
-          (setq found (tree-widget--locate-sub-directory
-                       name (if (atom elt) (list elt) elt) found)))))
-    (error
-     (message "In tree-widget--locate-sub-directory: %s"
-              (error-message-string err))))
-  found)
+  (let ((found '()))
+    (dolist (elt path)
+      (with-demoted-errors "In tree-widget--locate-sub-directory: %S"
+        (let ((dirs (eval elt t)))
+          (dolist (dir (if (listp dirs) dirs (list dirs)))
+            (and (file-accessible-directory-p
+                  (setq dir (expand-file-name name dir)))
+                 (push dir found))))))
+    found))
 
 (defun tree-widget-themes-path ()
   "Return the path where to search for a theme.
@@ -658,7 +647,7 @@ This hook should be local in the buffer setup to display widgets.")
           ;; Request children at run time, when requested.
           (when (and (widget-get tree :expander)
                      (widget-apply tree :expander-p))
-            (setq args (mapcar 'widget-convert
+            (setq args (mapcar #'widget-convert
                                (widget-apply tree :expander)))
             (widget-put tree :args args))
           ;; Defer the node widget creation after icon creation.

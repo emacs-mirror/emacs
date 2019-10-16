@@ -788,7 +788,7 @@ IGNORE-LABELS is non-nil.  (FIXME: Doesn't work if we stop at a known
 statement start keyword.)  Otherwise, each label is treated as a
 separate statement.
 
-Macros are ignored \(i.e. skipped over) unless point is within one, in
+Macros are ignored (i.e. skipped over) unless point is within one, in
 which case the content of the macro is treated as normal code.  Aside
 from any normal statement starts found in it, stop at the first token
 of the content in the macro, i.e. the expression of an \"#if\" or the
@@ -4706,7 +4706,7 @@ comment at the start of cc-engine.el for more info."
   "Return non-nil if the point is on or directly after an identifier.
 Keywords are recognized and not considered identifiers.  If an
 identifier is detected, the returned value is its starting position.
-If an identifier ends at the point and another begins at it \(can only
+If an identifier ends at the point and another begins at it (can only
 happen in Pike) then the point for the preceding one is returned.
 
 Note that this function might do hidden buffer changes.  See the
@@ -4905,7 +4905,7 @@ over the final token in a buffer, up to EOB."
 (defun c-forward-token-2 (&optional count balanced limit)
   "Move forward by tokens.
 A token is defined as all symbols and identifiers which aren't
-syntactic whitespace \(note that multicharacter tokens like \"==\" are
+syntactic whitespace (note that multicharacter tokens like \"==\" are
 treated properly).  Point is always either left at the beginning of a
 token or not moved at all.  COUNT specifies the number of tokens to
 move; a negative COUNT moves in the opposite direction.  A COUNT of 0
@@ -4917,11 +4917,11 @@ LIMIT sets the limit for the movement and defaults to the point limit.
 The case when LIMIT is set in the middle of a token, comment or macro
 is handled correctly, i.e. the point won't be left there.
 
-Return the number of tokens left to move \(positive or negative).  If
+Return the number of tokens left to move (positive or negative).  If
 BALANCED is true, a move over a balanced paren counts as one.  Note
 that if COUNT is 0 and no appropriate token beginning is found, 1 will
 be returned.  Thus, a return value of 0 guarantees that point is at
-the requested position and a return value less \(without signs) than
+the requested position and a return value less (without signs) than
 COUNT guarantees that point is at the beginning of some token.
 
 Note that this function might do hidden buffer changes.  See the
@@ -5065,7 +5065,7 @@ inside a literal there.
 If PAREN-LEVEL is non-nil, an additional restriction is added to
 ignore matches in nested paren sexps.  The search will also not go
 outside the current list sexp, which has the effect that if the point
-should be moved to BOUND when no match is found \(i.e. NOERROR is
+should be moved to BOUND when no match is found (i.e. NOERROR is
 neither nil nor t), then it will be at the closing paren if the end of
 the current list sexp is encountered first.
 
@@ -5090,7 +5090,7 @@ hand not safe to assume that the \"look behind\" subexpression never
 matches syntactic whitespace.
 
 Bug: Unbalanced parens inside cpp directives are currently not handled
-correctly \(i.e. they don't get ignored as they should) when
+correctly (i.e. they don't get ignored as they should) when
 PAREN-LEVEL is set.
 
 Note that this function might do hidden buffer changes.  See the
@@ -6922,7 +6922,15 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; FIXME!!!  This routine ignores the possibility of macros entirely.
   ;; 2010-01-29.
-  (when (and (> end beg)
+  (when (and (or (> end beg)
+		 (and (> c-<-pseudo-digraph-cont-len 0)
+		      (goto-char beg)
+		      (progn
+			(skip-chars-backward
+			 "^<" (max (- (point) c-<-pseudo-digraph-cont-len)
+				   (point-min)))
+			(eq (char-before) ?<))
+		      (looking-at c-<-pseudo-digraph-cont-regexp)))
 	     (or
 	      (progn
 		(goto-char beg)
@@ -7948,7 +7956,8 @@ comment at the start of cc-engine.el for more info."
 
       (forward-char) ; Forward over the opening '<'.
 
-      (unless (looking-at c-<-op-cont-regexp)
+      (unless (and (looking-at c-<-op-cont-regexp)
+		   (not (looking-at c-<-pseudo-digraph-cont-regexp)))
 	;; go forward one non-alphanumeric character (group) per iteration of
 	;; this loop.
 	(while (and
@@ -8026,7 +8035,8 @@ comment at the start of cc-engine.el for more info."
 		  (let (id-start id-end subres keyword-match)
 		    (cond
 		     ;; The '<' begins a multi-char operator.
-		     ((looking-at c-<-op-cont-regexp)
+		     ((and (looking-at c-<-op-cont-regexp)
+			   (not (looking-at c-<-pseudo-digraph-cont-regexp)))
 		      (goto-char (match-end 0)))
 		     ;; We're at a nested <.....>
 		     ((progn
@@ -8955,7 +8965,7 @@ point unchanged and return nil."
 
 	 ;; Search syntactically to the end of the declarator (";",
 	 ;; ",", a closing paren, eob etc) or to the beginning of an
-	 ;; initializer or function prototype ("=" or "\\s\(").
+	 ;; initializer or function prototype ("=" or "\\s(").
 	 ;; Note that square brackets are now not also treated as
 	 ;; initializers, since this broke when there were also
 	 ;; initializing brace lists.
@@ -12552,7 +12562,8 @@ comment at the start of cc-engine.el for more info."
 		  (/= (char-before placeholder) ?<)
 		  (progn
 		    (goto-char (1+ placeholder))
-		    (not (looking-at c-<-op-cont-regexp))))))
+		    (or (not (looking-at c-<-op-cont-regexp))
+			(looking-at c-<-pseudo-digraph-cont-regexp))))))
       (goto-char placeholder)
       (c-beginning-of-statement-1 containing-sexp t)
       (if (save-excursion

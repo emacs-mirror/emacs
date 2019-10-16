@@ -230,24 +230,27 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :group 'dired-x)
 
 ;;; KEY BINDINGS.
+(when (keymapp (lookup-key dired-mode-map "*"))
+  (define-key dired-mode-map "*(" 'dired-mark-sexp)
+  (define-key dired-mode-map "*O" 'dired-mark-omitted)
+  (define-key dired-mode-map "*." 'dired-mark-extension))
+
+(when (keymapp (lookup-key dired-mode-map "%"))
+  (define-key dired-mode-map "%Y" 'dired-do-relsymlink-regexp))
 
 (define-key dired-mode-map "\C-x\M-o" 'dired-omit-mode)
-(define-key dired-mode-map "*O" 'dired-mark-omitted)
 (define-key dired-mode-map "\M-(" 'dired-mark-sexp)
-(define-key dired-mode-map "*(" 'dired-mark-sexp)
-(define-key dired-mode-map "*." 'dired-mark-extension)
 (define-key dired-mode-map "\M-!" 'dired-smart-shell-command)
 (define-key dired-mode-map "\M-G" 'dired-goto-subdir)
 (define-key dired-mode-map "F" 'dired-do-find-marked-files)
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)
-(define-key dired-mode-map "%Y" 'dired-do-relsymlink-regexp)
 (define-key dired-mode-map "V" 'dired-do-run-mail)
 
 ;;; MENU BINDINGS
 
 (require 'easymenu)
 
-(let ((menu (lookup-key dired-mode-map [menu-bar])))
+(when-let ((menu (lookup-key dired-mode-map [menu-bar])))
   (easy-menu-add-item menu '("Operate")
                       ["Find Files" dired-do-find-marked-files
                        :help "Find current or marked files"]

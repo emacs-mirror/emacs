@@ -1230,13 +1230,13 @@ If SEND-IF-FORCE, only send authinfo to the server if the
        (format " *server %s %s %s*"
                nntp-address nntp-port-number buffer))
     (mm-disable-multibyte)
-    (setq-local after-change-functions nil)
-    (setq-local nntp-process-wait-for nil)
-    (setq-local nntp-process-callback nil)
-    (setq-local nntp-process-to-buffer nil)
-    (setq-local nntp-process-start-point nil)
-    (setq-local nntp-process-decode nil)
-    (setq-local nntp-retrieval-in-progress nil)
+    (setq-local after-change-functions nil
+		nntp-process-wait-for nil
+		nntp-process-callback nil
+		nntp-process-to-buffer nil
+		nntp-process-start-point nil
+		nntp-process-decode nil
+		nntp-retrieval-in-progress nil)
     (current-buffer)))
 
 (defun nntp-open-connection (buffer)

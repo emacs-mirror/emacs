@@ -20,7 +20,6 @@
 #ifndef _REGEX_INTERNAL_H
 #define _REGEX_INTERNAL_H 1
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +33,14 @@
 #include <stdint.h>
 
 #include <intprops.h>
+#include <verify.h>
+
+#if defined DEBUG && DEBUG != 0
+# include <assert.h>
+# define DEBUG_ASSERT(x) assert (x)
+#else
+# define DEBUG_ASSERT(x) assume (x)
+#endif
 
 #ifdef _LIBC
 # include <libc-lock.h>
@@ -44,22 +51,7 @@
 # define lock_unlock(lock) __libc_lock_unlock (lock)
 #elif defined GNULIB_LOCK && !defined USE_UNLOCKED_IO
 # include "glthread/lock.h"
-  /* Use gl_lock_define if empty macro arguments are known to work.
-     Otherwise, fall back on less-portable substitutes.  */
-# if ((defined __GNUC__ && !defined __STRICT_ANSI__) \
-      || (defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__))
-#  define lock_define(name) gl_lock_define (, name)
-# elif USE_POSIX_THREADS
-#  define lock_define(name) pthread_mutex_t name;
-# elif USE_PTH_THREADS
-#  define lock_define(name) pth_mutex_t name;
-# elif USE_SOLARIS_THREADS
-#  define lock_define(name) mutex_t name;
-# elif USE_WINDOWS_THREADS
-#  define lock_define(name) gl_lock_t name;
-# else
-#  define lock_define(name)
-# endif
+# define lock_define(name) gl_lock_define (, name)
 # define lock_init(lock) glthread_lock_init (&(lock))
 # define lock_fini(lock) glthread_lock_destroy (&(lock))
 # define lock_lock(lock) glthread_lock_lock (&(lock))
@@ -618,11 +610,7 @@ typedef struct
 {
   /* The string object corresponding to the input string.  */
   re_string_t input;
-#if defined _LIBC || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L)
   const re_dfa_t *const dfa;
-#else
-  const re_dfa_t *dfa;
-#endif
   /* EFLAGS of the argument of regexec.  */
   int eflags;
   /* Where the matching ends.  */

@@ -289,9 +289,9 @@ nil."
   "Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.  If nil, hitting
 TAB indents the current line if point is at the left margin or in the
-line's indentation, otherwise it inserts a `real' tab character \(see
-note).  If some other value \(not nil or t), then tab is inserted only
-within literals \(comments and strings), but the line is always
+line's indentation, otherwise it inserts a `real' tab character (see
+note).  If some other value (not nil or t), then tab is inserted only
+within literals (comments and strings), but the line is always
 reindented.
 
 Note: The value of `indent-tabs-mode' will determine whether a real
@@ -345,10 +345,11 @@ of the macro content.  The default context inside the macro is the
 same as the top level, so if it contains \"bare\" statements they
 might be indented wrongly, although there are special cases that
 handle this in most cases.  If this problem occurs, it's usually
-countered easily by surrounding the statements by a block \(or even
-better with the \"do { ... } while \(0)\" trick)."
+countered easily by surrounding the statements by a block (or even
+better with the \"do { ... } while (0)\" trick)."
   :type 'boolean
   :group 'c)
+
 (put 'c-syntactic-indentation-in-macros 'safe-local-variable 'booleanp)
 
 (defcustom c-defun-tactic 'go-outward
@@ -1293,7 +1294,7 @@ OFFSET can specify an offset in several different ways:
 this variable are normally taken from the style system in CC Mode
 \(see `c-default-style' and `c-style-alist').  However, any offsets
 put explicitly on this list will override the style system when a CC
-Mode buffer is initialized \(there is a variable
+Mode buffer is initialized (there is a variable
 `c-old-style-variable-behavior' that changes this, though).
 
 Here is the current list of valid syntactic element symbols:
@@ -1670,7 +1671,7 @@ this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
 (make-variable-buffer-local 'c-noise-macro-names)
 
 (defcustom c-noise-macro-with-parens-names nil
-  "A list of names of macros \(or compiler extensions like \"__attribute__\")
+  "A list of names of macros (or compiler extensions like \"__attribute__\")
 which optionally have arguments in parentheses, and which expand to nothing.
 These are recognized by CC Mode only in declarations."
   :version "26.1"
@@ -1718,7 +1719,7 @@ Alternatively it can be a string, a regular expression which
 matches all such symbols.
 
 The \"symbols\" must be syntactically valid identifiers in the
-target language \(C, C++, Objective C), or \(as the case may be)
+target language (C, C++, Objective C), or (as the case may be)
 the regular expression must match only valid identifiers.
 
 If you change this variable's value, call the function
@@ -1788,9 +1789,9 @@ as designated in the variable `c-file-style'.")
 It is a list with one element for each syntactic symbol pertinent to the
 line, for example \"((defun-block-intro 1) (comment-intro))\".
 
-It is dynamically bound when calling \(i) a brace hanging \"action
-function\"; \(ii) a semicolon/comma hanging \"criteria function\"; \(iii) a
-\"line-up function\"; \(iv) a c-special-indent-hook function.  It is also
+It is dynamically bound when calling (i) a brace hanging \"action
+function\"; (ii) a semicolon/comma hanging \"criteria function\"; (iii) a
+\"line-up function\"; (iv) a c-special-indent-hook function.  It is also
 used internally by CC Mode.
 
 c-syntactic-context is always bound dynamically.  It must NEVER be set

@@ -2923,6 +2923,7 @@ An error is signaled if @var{directory} is not the name of a directory
 that can be read.
 @end defun
 
+@cindex recursive traverse of directory tree
 @defun directory-files-recursively directory regexp &optional include-directories predicate follow-symlinks
 Return all files under @var{directory} whose names match @var{regexp}.
 This function searches the specified @var{directory} and its
@@ -2947,6 +2948,25 @@ if the directory is to be descended into.
 
 Symbolic links to subdirectories are not followed by default, but if
 @var{follow-symlinks} is non-@code{nil}, they are followed.
+@end defun
+
+
+@defun locate-dominating-file file name
+Starting at @var{file}, go up the directory tree hierarchy looking for
+the first directory where @var{name}, a string, exists, and return that
+directory.  If @var{file} is a file, its directory will serve as the
+starting point for the search; otherwise @var{file} should be a
+directory from which to start.  The function looks in the starting
+directory, then in its parent, then in its parent's parent, etc.,
+until it either finds a directory with @var{name} or reaches the root
+directory of the filesystem without finding @var{name} -- in the
+latter case the function returns @code{nil}.
+
+The argument @code{name} can also be a predicate function.  The
+predicate is called for every directory examined by the function,
+starting from @var{file} (even if @var{file} is not a directory).  It
+is called with one argument (the file or directory) and should return
+non-@code{nil} if that directory is the one it is looking for.
 @end defun
 
 @defun directory-files-and-attributes directory &optional full-name match-regexp nosort id-format

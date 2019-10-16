@@ -8271,7 +8271,7 @@ If we do not know about MODULE, just return KEYWORD literally."
       (select-window olh-window)
       (idlwave-help-quit))
     (when (window-live-p ri-window)
-      (delete-window ri-window))))
+      (quit-window nil ri-window))))
 
 (defun idlwave-display-calling-sequence (name type class
 					      &optional initial-class)

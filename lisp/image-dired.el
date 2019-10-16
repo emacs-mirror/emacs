@@ -538,7 +538,9 @@ with the comment."
   "Name of external viewer.
 Including parameters.  Used when displaying original image from
 `image-dired-thumbnail-mode'."
-  :type 'string
+  :version "27.1"
+  :type '(choice string
+                 (const :tag "Not Set" nil))
   :group 'image-dired)
 
 (defcustom image-dired-main-image-directory "~/pics/"

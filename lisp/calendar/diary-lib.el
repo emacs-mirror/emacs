@@ -214,7 +214,10 @@ you will probably also want to add `diary-include-other-diary-files' to
 This hook runs after `diary-nongregorian-marking-hook'.  These two hooks
 differ only if you are using included diary files.  In that case,
 `diary-nongregorian-marking-hook' runs for each file, whereas
-`diary-mark-entries-hook' only runs once, for the main diary file."
+`diary-mark-entries-hook' only runs once, for the main diary file.
+
+`displayed-year' and `displayed-month' are dynamically bound when
+this hook is called."
   :type 'hook
   :options '(diary-mark-included-diary-files)
   :group 'diary)

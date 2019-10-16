@@ -61,7 +61,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 (defcustom winner-boring-buffers-regexp nil
   "`winner-undo' will not restore windows with buffers matching this regexp."
-  :type 'string
+  :type '(choice (regexp :tag "Regexp")
+                 (const :tag "Not Set" nil))
   :version "27.1")
 
 

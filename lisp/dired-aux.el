@@ -365,9 +365,17 @@ List has a form of (file-name full-file-name (attribute-list))."
 ;;;###autoload
 (defun dired-do-chmod (&optional arg)
   "Change the mode of the marked (or next ARG) files.
-Symbolic modes like `g+w' are allowed.
-Type M-n to pull the file attributes of the file at point
-into the minibuffer."
+Both octal numeric modes like `644' and symbolic modes like `g+w'
+are supported.  Type M-n to pull the file attributes of the file
+at point into the minibuffer.
+
+See Info node `(coreutils)File permissions' for more information.
+Alternatively, see the man page for \"chmod\", using the command
+\\[man] in Emacs.
+
+Note that on MS-Windows only the `w' (write) bit is meaningful:
+resetting it makes the file read-only.  Changing any other bit
+has no effect on MS-Windows."
   (interactive "P")
   (let* ((files (dired-get-marked-files t arg nil nil t))
 	 ;; The source of default file attributes is the file at point.
@@ -735,7 +743,11 @@ instead of in a subdir.
 
 In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument, which
-can be produced by `dired-get-marked-files', for example."
+can be produced by `dired-get-marked-files', for example.
+
+`dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-user' are consulted when the user is
+prompted for the shell command to use interactively."
 ;;Functions dired-run-shell-command and dired-shell-stuff-it do the
 ;;actual work and can be redefined for customization.
   (interactive

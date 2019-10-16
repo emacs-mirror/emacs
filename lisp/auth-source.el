@@ -1184,7 +1184,8 @@ FILE is the file from which we obtained this token."
           (auth-source--pad auth-source--session-nonce
                             (plist-get cdata :cipher-keysize))
           (list 'iv-auto (plist-get cdata :cipher-ivsize))
-          (auth-source--pad string (plist-get cdata :cipher-blocksize)))
+          (auth-source--pad (encode-coding-string string 'utf-8)
+                            (plist-get cdata :cipher-blocksize)))
          "-"))
     (mapcar #'1- string)))
 
@@ -1203,14 +1204,16 @@ FILE is the file from which we obtained this token."
            (gnutls-available-p))
       (let ((cdata (car (last (gnutls-ciphers))))
             (bits (split-string data "-")))
-        (auth-source--unpad
-         (car
-          (gnutls-symmetric-decrypt
-           (pop cdata)
-           (auth-source--pad auth-source--session-nonce
-                             (plist-get cdata :cipher-keysize))
-           (base64-decode-string (cadr bits))
-           (base64-decode-string (car bits))))))
+        (decode-coding-string
+         (auth-source--unpad
+          (car
+           (gnutls-symmetric-decrypt
+            (pop cdata)
+            (auth-source--pad auth-source--session-nonce
+                              (plist-get cdata :cipher-keysize))
+            (base64-decode-string (cadr bits))
+            (base64-decode-string (car bits)))))
+         'utf-8))
     (apply #'string (mapcar #'1+ data))))
 
 (cl-defun auth-source-netrc-search (&rest spec
@@ -2046,9 +2049,9 @@ entries for git.gnus.org:
                                           (if (or (null v)
                                                   (eq t v))
                                               nil
-                                            (if (stringp v)
-                                                (setq v (list v)))
-                                            (list k v))))
+                                            (list
+                                             k
+                                             (auth-source-ensure-strings v)))))
                                       search-keys)))
          ;; needed keys (always including host, login, port, and secret)
          (returned-keys (delete-dups (append

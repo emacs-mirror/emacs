@@ -1,4 +1,4 @@
-;;; semantic-ia-utest.el --- Analyzer unit tests
+;;; semantic-utest-ia.el --- Analyzer unit tests
 
 ;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
@@ -35,101 +35,77 @@
 (require 'semantic/symref)
 (require 'semantic/symref/filter)
 
-(load-file "cedet-utests.el")
+(defvar cedet-utest-directory
+  (let* ((C (file-name-directory (locate-library "cedet")))
+         (D (expand-file-name "../../test/manual/cedet/" C)))
+    D)
+  "Location of test files for this test suite.")
 
-(defvar semantic-ia-utest-file-list
-  '(
-    "tests/testdoublens.cpp"
-    "tests/testsubclass.cpp"
-    "tests/testtypedefs.cpp"
-    "tests/testfriends.cpp"
-    "tests/testnsp.cpp"
-    "tests/testsppcomplete.c"
-    "tests/testvarnames.c"
-    "tests/testjavacomp.java"
-    )
-  "List of files with analyzer completion test points.")
+(defvar semantic-utest-test-directory (expand-file-name "tests" cedet-utest-directory)
+  "Location of test files.")
 
-(defvar semantic-ia-utest-error-log-list nil
-  "List of errors occurring during a run.")
+(ert-deftest semantic-utest-ia-doublens.cpp ()
+  (let ((tst (expand-file-name "testdoublens.cpp" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-;;;###autoload
-(defun semantic-ia-utest (&optional arg)
-  "Run the semantic ia unit test against stored sources.
-Argument ARG specifies which set of tests to run.
- 1 - ia utests
- 2 - regs utests
- 3 - symrefs utests
- 4 - symref count utests"
-  (interactive "P")
-  (save-excursion
+(ert-deftest semantic-utest-ia-subclass.cpp ()
+  (let ((tst (expand-file-name "testsubclass.cpp" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-    (let ((fl semantic-ia-utest-file-list)
-	  (semantic-ia-utest-error-log-list nil)
-	  )
+(ert-deftest semantic-utest-ia-typedefs.cpp ()
+  (let ((tst (expand-file-name "testtypedefs.cpp" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-      (cedet-utest-log-setup "ANALYZER")
+(ert-deftest semantic-utest-ia-friends.cpp ()
+  (let ((tst (expand-file-name "testfriends.cpp" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-      (set-buffer (semantic-find-file-noselect
-		   (or (locate-library "semantic-ia-utest.el")
-		       "semantic-ia-utest.el")))
+(ert-deftest semantic-utest-ia-namespace.cpp ()
+  (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-      (while fl
+(ert-deftest semantic-utest-ia-sppcomplete.c ()
+  (let ((tst (expand-file-name "testsppcomplete.c" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-	;; Make sure we have the files we think we have.
-	(when (not (file-exists-p (car fl)))
-	  (error "Cannot find unit test file: %s" (car fl)))
+(ert-deftest semantic-utest-ia-varnames.c ()
+  (let ((tst (expand-file-name "testvarnames.c" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-	;; Run the tests.
-	(let ((fb (find-buffer-visiting (car fl)))
-	      (b (semantic-find-file-noselect (car fl) t)))
+(ert-deftest semantic-utest-ia-javacomp.java ()
+  (let ((tst (expand-file-name "testjavacomp.java" semantic-utest-test-directory)))
+    (should (file-exists-p tst))
+    (should-not (semantic-ia-utest tst))))
 
-	  ;; Run the test on it.
-	  (save-excursion
-	    (set-buffer b)
+;;; Core testing utility
+(defun semantic-ia-utest (testfile)
+  "Run the semantic ia unit test against stored sources."
+  (semantic-mode 1)
+  (let ((b (semantic-find-file-noselect testfile t)))
 
-	    ;; This line will also force the include, scope, and typecache.
-	    (semantic-clear-toplevel-cache)
-	    ;; Force tags to be parsed.
-	    (semantic-fetch-tags)
+    ;; Run the test on it.
+    (with-current-buffer b
 
-	    (semantic-ia-utest-log "  ** Starting tests in %s"
-				   (buffer-name))
+      ;; This line will also force the include, scope, and typecache.
+      (semantic-clear-toplevel-cache)
+      ;; Force tags to be parsed.
+      (semantic-fetch-tags)
 
-	    (when (or (not arg) (= arg 1))
-	      (semantic-ia-utest-buffer))
+      (prog1
+          (or (semantic-ia-utest-buffer)
+              (semantic-ia-utest-buffer-refs)
+              (semantic-sr-utest-buffer-refs)
+              (semantic-src-utest-buffer-refs))
 
-	    (when (or (not arg) (= arg 2))
-	      (set-buffer b)
-	      (semantic-ia-utest-buffer-refs))
-
-	    (when (or (not arg) (= arg 3))
-	      (set-buffer b)
-	      (semantic-sr-utest-buffer-refs))
-
-	    (when (or (not arg) (= arg 4))
-	      (set-buffer b)
-	      (semantic-src-utest-buffer-refs))
-
-	    (semantic-ia-utest-log "  ** Completed tests in %s\n"
-				   (buffer-name))
-	    )
-
-	  ;; If it wasn't already in memory, whack it.
-	  (when (not fb)
-	    (kill-buffer b))
-	  )
-	(setq fl (cdr fl)))
-
-      (cedet-utest-log-shutdown
-       "ANALYZER"
-       (when semantic-ia-utest-error-log-list
-	 (format "%s Failures found."
-		 (length semantic-ia-utest-error-log-list))))
-      (when semantic-ia-utest-error-log-list
-	(error "Failures found during analyzer unit tests"))
-      ))
-  )
+        (kill-buffer b)
+        ))))
 
 (defun semantic-ia-utest-buffer ()
   "Run analyzer completion unit-test pass in the current buffer."
@@ -148,6 +124,7 @@ Argument ARG specifies which set of tests to run.
 	 (semanticdb-find-default-throttle
 	  (remq 'system semanticdb-find-default-throttle))
 	 )
+
     ;; Keep looking for test points until we run out.
     (while (save-excursion
 	     (setq regex-p (concat "//\\s-*-" (number-to-string idx) "-" )
@@ -182,29 +159,19 @@ Argument ARG specifies which set of tests to run.
 
 	(if (equal actual desired)
 	    (setq pass (cons idx pass))
-	  (setq fail (cons idx fail))
-	  (semantic-ia-utest-log
-	   "    Failed %d.  Desired: %S Actual %S"
-	   idx desired actual)
-	  (add-to-list 'semantic-ia-utest-error-log-list
-		       (list (buffer-name) idx desired actual)
-		       )
-
-	  )
-	)
+	  (setq fail (cons
+                      (list
+                       (format "Failed %d.  Desired: %S Actual %S"
+	                       idx desired actual)
+                       )
+                      fail)))
 
       (setq p nil a nil)
       (setq idx (1+ idx)))
+      )
 
-    (if fail
-	(progn
-	  (semantic-ia-utest-log
-	   "    Unit tests (completions) failed tests %S"
-	   (reverse fail))
-	  )
-      (semantic-ia-utest-log "    Unit tests (completions) passed (%d total)"
-			     (- idx 1)))
-
+    (when fail
+      (cons "COMPLETION SUBTEST" fail))
     ))
 
 (defun semantic-ia-utest-buffer-refs ()
@@ -287,34 +254,22 @@ Argument ARG specifies which set of tests to run.
 	       (throw 'failed t)
 	       )))
 
-	   (if (not pf)
+	  (if (not pf)
 	      ;; We passed
 	      (setq pass (cons idx pass))
 	    ;; We failed.
-	    (setq fail (cons idx fail))
-	    (semantic-ia-utest-log
-	     "    Failed %d.  For %s (Num impls %d) (Num protos %d)"
-	     idx (if ct (semantic-tag-name ct) "<No tag found>")
-	     (length impl) (length proto))
-	    (add-to-list 'semantic-ia-utest-error-log-list
-			 (list (buffer-name) idx)
-			 )
+	    (setq fail (cons
+                        (list
+	                 (message "Test id %d.  For %s (Num impls %d) (Num protos %d)"
+	                          idx (if ct (semantic-tag-name ct) "<No tag found>")
+	                          (length impl) (length proto))
+                         )
+                        fail))
 	    ))
-
 	(setq p nil)
-	(setq idx (1+ idx))
-
-	))
-
-    (if fail
-	(progn
-	  (semantic-ia-utest-log
-	   "    Unit tests (refs) failed tests")
-	  )
-      (semantic-ia-utest-log "    Unit tests (refs) passed (%d total)"
-			     (- idx 1)))
-
-    ))
+	(setq idx (1+ idx))))
+    (when fail
+      (cons "ANALYZER REF COUNTING SUBTEST" fail))))
 
 (defun semantic-sr-utest-buffer-refs ()
   "Run a symref unit-test pass in the current buffer."
@@ -358,14 +313,7 @@ Argument ARG specifies which set of tests to run.
       (if (not actual-result)
 	  (progn
 	    (setq fail (cons idx fail))
-	    (semantic-ia-utest-log
-	     "  Failed FNames %d: No results." idx)
-	    (semantic-ia-utest-log
-	     "  Failed Tool: %s" (object-name symref-tool-used))
-
-	    (add-to-list 'semantic-ia-utest-error-log-list
-			 (list (buffer-name) idx)
-			 )
+	    (message "Failed Tool: %s" (eieio-object-name symref-tool-used))
 	    )
 
 	(setq actual (list (sort (mapcar
@@ -383,38 +331,28 @@ Argument ARG specifies which set of tests to run.
 	    ;; We passed
 	    (setq pass (cons idx pass))
 	  ;; We failed.
-	  (setq fail (cons idx fail))
-	  (when (not (equal (car actual) (car desired)))
-	    (semantic-ia-utest-log
-	     "  Failed FNames %d: Actual: %S Desired: %S"
-	     idx (car actual) (car desired))
-	    (semantic-ia-utest-log
-	     "  Failed Tool: %s" (object-name symref-tool-used))
-	    )
-	  (when (not (equal (car (cdr actual)) (car (cdr desired))))
-	    (semantic-ia-utest-log
-	     "  Failed TNames %d: Actual: %S Desired: %S"
-	     idx (car (cdr actual)) (car (cdr desired)))
-	    (semantic-ia-utest-log
-	     "  Failed Tool: %s" (object-name symref-tool-used))
-	    )
-	  (add-to-list 'semantic-ia-utest-error-log-list
-		       (list (buffer-name) idx)
-		       )
+	  (setq fail
+                (cons (list
+	               (when (not (equal (car actual) (car desired)))
+                         (list
+	                  (format "Actual: %S Desired: %S"
+	                          (car actual) (car desired))
+	                  (format "Failed Tool: %s" (eieio-object-name symref-tool-used))
+	                  ))
+	               (when (not (equal (car (cdr actual)) (car (cdr desired))))
+	                 (list (format
+	                        "Actual: %S Desired: %S"
+	                        (car (cdr actual)) (car (cdr desired)))
+	                       (format
+	                        "Failed Tool: %s" (eieio-object-name symref-tool-used)))))
+                      fail))
 	  ))
 
       (setq idx (1+ idx))
       (setq tag nil))
 
-    (if fail
-	(progn
-	  (semantic-ia-utest-log
-	   "    Unit tests (symrefs) failed tests")
-	  )
-      (semantic-ia-utest-log "    Unit tests (symrefs) passed (%d total)"
-			     (- idx 1)))
-
-    ))
+    (when fail
+      (cons "SYMREF SUBTEST" fail))))
 
 (defun semantic-symref-test-count-hits-in-tag ()
   "Lookup in the current tag the symbol under point.
@@ -431,10 +369,6 @@ tag that contains point, and return that."
        target (lambda (start end prefix) (setq Lcount (1+ Lcount)))
        (semantic-tag-start tag)
        (semantic-tag-end tag))
-      (when (interactive-p)
-	(message "Found %d occurrences of %s in %.2f seconds"
-		 Lcount (semantic-tag-name target)
-		 (semantic-elapsed-time start nil)))
       Lcount)))
 
 (defun semantic-src-utest-buffer-refs ()
@@ -474,54 +408,33 @@ tag that contains point, and return that."
 
       (if (not actual)
 	  (progn
-	    (setq fail (cons idx fail))
-	    (semantic-ia-utest-log
-	     "  Failed symref count %d: No results." idx)
+	    (setq fail (cons
+                        (list
+	                 (format
+	                  "Symref id %d: No results." idx))
+                         fail))
 
-	    (add-to-list 'semantic-ia-utest-error-log-list
-			 (list (buffer-name) idx)
-			 )
 	    )
 
 	(if (equal desired actual)
 	    ;; We passed
 	    (setq pass (cons idx pass))
 	  ;; We failed.
-	  (setq fail (cons idx fail))
-	  (when (not (equal actual desired))
-	    (semantic-ia-utest-log
-	     "  Failed symref count %d: Actual: %S Desired: %S"
-	     idx actual desired)
-	    )
-
-	  (add-to-list 'semantic-ia-utest-error-log-list
-		       (list (buffer-name) idx)
-		       )
+	  (setq fail (cons (list
+	                    (when (not (equal actual desired))
+	                      (format
+	                       "Symref id %d: Actual: %S Desired: %S"
+	                       idx actual desired)
+	                      )
+                            )
+                           fail))
 	  ))
 
       (setq idx (1+ idx))
       )
 
-    (if fail
-	(progn
-	  (semantic-ia-utest-log
-	   "    Unit tests (symrefs counter) failed tests")
-	  )
-      (semantic-ia-utest-log "    Unit tests (symrefs counter) passed (%d total)"
-			     (- idx 1)))
-
-    ))
-
-(defun semantic-ia-utest-start-log ()
-  "Start up a testlog for a run."
-  ;; Redo w/ CEDET utest framework.
-  (cedet-utest-log-start "semantic: analyzer tests"))
-
-(defun semantic-ia-utest-log (&rest args)
-  "Log some test results.
-Pass ARGS to format to create the log message."
-  ;; Forward to CEDET utest framework.
-  (apply 'cedet-utest-log args))
+    (when fail
+      (cons "SYMREF COUNTING SUBTEST" fail))))
 
 (provide 'semantic-ia-utest)
 

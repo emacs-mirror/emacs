@@ -78,7 +78,7 @@ when `global-hl-line-sticky-flag' is non-nil.")
   :group 'convenience)
 
 (defface hl-line
-  '((t :inherit highlight))
+  '((t :inherit highlight :extend t))
   "Default face for highlighting the current line in Hl-Line mode."
   :version "22.1"
   :group 'hl-line)

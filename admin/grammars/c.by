@@ -187,7 +187,7 @@
 
 ;; Types
 %token VOID "void"
-%put VOID summary "Built in typeless type: void"
+%put VOID summary "Built in type: void"
 %token CHAR "char"
 %put CHAR summary "Integral Character Type: (0 to 256)"
 %token WCHAR "wchar_t"

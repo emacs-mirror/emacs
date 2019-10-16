@@ -91,7 +91,7 @@ output escape sequences.
 
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults' when the default value is `auto-detect'.
-To change the default value, use Customize or call the function
+To change the default value, use \\[customize] or call the function
 `grep-apply-setting'."
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
@@ -121,7 +121,7 @@ include it when specifying `grep-command'.
 
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
-Customize or call the function `grep-apply-setting'."
+\\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
   :set 'grep-apply-setting
@@ -138,7 +138,7 @@ The following place holders should be present in the string:
 
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
-Customize or call the function `grep-apply-setting'."
+\\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
   :set 'grep-apply-setting
@@ -153,7 +153,7 @@ necessary if the grep program used supports the `-H' option.
 
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
-Customize or call the function `grep-apply-setting'."
+\\[customize] or call the function `grep-apply-setting'."
   :type '(choice (const :tag "Do Not Append Null Device" nil)
 		 (const :tag "Append Null Device" t)
 		 (other :tag "Not Set" auto-detect))
@@ -175,7 +175,7 @@ This is done to disambiguate file names in `grep's output."
   "The default find command for \\[grep-find].
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
-Customize or call the function `grep-apply-setting'."
+\\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
   :set 'grep-apply-setting
@@ -191,7 +191,7 @@ The following place holders should be present in the string:
  <R> - the regular expression searched for.
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
-Customize or call the function `grep-apply-setting'."
+\\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
   :set 'grep-apply-setting
@@ -216,11 +216,12 @@ Customize or call the function `grep-apply-setting'."
   :type 'alist
   :group 'grep)
 
-(defcustom grep-find-ignored-directories
-  vc-directory-exclusion-list
+(defcustom grep-find-ignored-directories vc-directory-exclusion-list
   "List of names of sub-directories which `rgrep' shall not recurse into.
 If an element is a cons cell, the car is called on the search directory
-to determine whether cdr should not be recursed into."
+to determine whether cdr should not be recursed into.
+
+The default value is inherited from `vc-directory-exclusion-list'."
   :type '(choice (repeat :tag "Ignored directories" string)
 		 (const :tag "No ignored directories" nil))
   :group 'grep)
@@ -617,6 +618,11 @@ This function is called from `compilation-filter-hook'."
 
 ;;;###autoload
 (defun grep-compute-defaults ()
+  "Compute the defaults for the `grep' command.
+The value depends on `grep-command', `grep-template',
+`grep-use-null-device', `grep-find-command', `grep-find-template',
+`grep-use-null-filename-separator', `grep-find-use-xargs' and
+`grep-highlight-matches'."
   ;; Keep default values.
   (unless grep-host-defaults-alist
     (add-to-list
@@ -872,7 +878,9 @@ This function is called from `compilation-filter-hook'."
 
 ;;;###autoload
 (defun grep (command-args)
-  "Run Grep with user-specified COMMAND-ARGS, collect output in a buffer.
+  "Run Grep with user-specified COMMAND-ARGS.
+The output from the command goes to the \"*grep*\" buffer.
+
 While Grep runs asynchronously, you can use \\[next-error] (M-x next-error),
 or \\<grep-mode-map>\\[compile-goto-error] in the *grep* \
 buffer, to go to the lines where Grep found
@@ -912,7 +920,7 @@ list is empty)."
 ;;;###autoload
 (defun grep-find (command-args)
   "Run grep via find, with user-specified args COMMAND-ARGS.
-Collect output in a buffer.
+Collect output in the \"*grep*\" buffer.
 While find runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
@@ -946,11 +954,15 @@ easily repeat a find command."
     ("<X>" . excl)
     ("<R>" . (shell-quote-argument (or regexp ""))))
   "List of substitutions performed by `grep-expand-template'.
-If car of an element matches, the cdr is evalled in to get the
-substitution string.  Note dynamic scoping of variables.")
+If car of an element matches, the cdr is evalled in order to get the
+substitution string.
+
+The substitution is based on variables bound dynamically, and
+these include `opts', `dir', `files', `null-device', `excl' and
+`regexp'.")
 
 (defun grep-expand-template (template &optional regexp files dir excl)
-  "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
+  "Expand grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
   (let* ((command template)
          (env `((opts . ,(let (opts)
                            (when (and case-fold-search
@@ -985,7 +997,9 @@ substitution string.  Note dynamic scoping of variables.")
   "Read a file-name pattern arg for interactive grep.
 The pattern can include shell wildcards.  As whitespace triggers
 completion when entering a pattern, including it requires
-quoting, e.g. `\\[quoted-insert]<space>'."
+quoting, e.g. `\\[quoted-insert]<space>'.
+
+REGEXP is used as a string in the prompt."
   (let* ((grep-read-files-function (get major-mode 'grep-read-files))
 	 (file-name-at-point
 	   (run-hook-with-args-until-success 'file-name-at-point-functions))
@@ -1051,12 +1065,15 @@ With \\[universal-argument] prefix, you can edit the constructed shell command l
 before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
 
-Collect output in a buffer.  While grep runs asynchronously, you
+Collect output in the \"*grep*\" buffer.  While grep runs asynchronously, you
 can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
 in the grep output buffer,
 to go to the lines where grep found matches.
 
-This command shares argument histories with \\[rgrep] and \\[grep]."
+This command shares argument histories with \\[rgrep] and \\[grep].
+
+If CONFIRM is non-nil, the user will be given an opportunity to edit the
+command before it's run."
   (interactive
    (progn
      (grep-compute-defaults)
@@ -1132,7 +1149,7 @@ With \\[universal-argument] prefix, you can edit the constructed shell command l
 before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-find-command'.
 
-Collect output in a buffer.  While the recursive grep is running,
+Collect output in the \"*grep*\" buffer.  While the recursive grep is running,
 you can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
 in the grep output buffer,
 to visit the lines where matches were found.  To kill the job
@@ -1141,7 +1158,10 @@ before it finishes, type \\[kill-compilation].
 This command shares argument histories with \\[lgrep] and \\[grep-find].
 
 When called programmatically and FILES is nil, REGEXP is expected
-to specify a command to run."
+to specify a command to run.
+
+If CONFIRM is non-nil, the user will be given an opportunity to edit the
+command before it's run."
   (interactive
    (progn
      (grep-compute-defaults)
@@ -1253,7 +1273,10 @@ to specify a command to run."
 (defun zrgrep (regexp &optional files dir confirm template)
   "Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
 Like `rgrep' but uses `zgrep' for `grep-program', sets the default
-file name to `*.gz', and sets `grep-highlight-matches' to `always'."
+file name to `*.gz', and sets `grep-highlight-matches' to `always'.
+
+If CONFIRM is non-nil, the user will be given an opportunity to edit the
+command before it's run."
   (interactive
    (progn
      ;; Compute standard default values.

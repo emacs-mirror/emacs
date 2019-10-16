@@ -331,7 +331,7 @@ Thus, this does not include the shell's current directory.")
   "Command used by `shell-resync-dirs' to query the shell.")
 
 (defvar shell-mode-map
-  (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-f" 'shell-forward-command)
     (define-key map "\C-c\C-b" 'shell-backward-command)
     (define-key map "\t" 'completion-at-point)
@@ -696,7 +696,7 @@ The buffer is put in Shell mode, giving commands for sending input
 and controlling the subjobs of the shell.  See `shell-mode'.
 See also the variable `shell-prompt-pattern'.
 
-To specify a coding system for converting non-ASCII characters
+\\<shell-mode-map>To specify a coding system for converting non-ASCII characters
 in the input and output to the shell, use \\[universal-coding-system-argument]
 before \\[shell].  You can also specify this with \\[set-buffer-process-coding-system]
 in the shell buffer, after you start the shell.

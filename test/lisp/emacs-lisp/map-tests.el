@@ -340,7 +340,8 @@ Evaluate BODY for each created map.
 
 (ert-deftest test-map-into ()
   (let* ((alist '((a . 1) (b . 2)))
-         (ht (map-into alist 'hash-table)))
+         (ht (map-into alist 'hash-table))
+         (ht2 (map-into alist '(hash-table :test equal))))
     (should (hash-table-p ht))
     (should (equal (map-into (map-into alist 'hash-table) 'list)
                    alist))
@@ -349,6 +350,8 @@ Evaluate BODY for each created map.
                    (map-keys ht)))
     (should (equal (map-values (map-into (map-into ht 'list) 'hash-table))
                    (map-values ht)))
+    (should (equal (map-into ht 'alist) (map-into ht2 'alist)))
+    (should (eq (hash-table-test ht2) 'equal))
     (should (null (map-into nil 'list)))
     (should (map-empty-p (map-into nil 'hash-table)))
     (should-error (map-into [1 2 3] 'string))))

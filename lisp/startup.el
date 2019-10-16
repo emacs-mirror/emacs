@@ -1512,18 +1512,22 @@ as `x-initialize-window-system' for X, either at startup (prior
 to reading the init file), or afterwards when the user first
 opens a graphical frame.
 
-This can set the values of `menu-bar-mode', `tool-bar-mode', and
-`no-blinking-cursor', as well as the `cursor' face.  Changed
-settings will be marked as \"CHANGED outside of Customize\"."
+This can set the values of `menu-bar-mode', `tool-bar-mode',
+`tab-bar-mode', and `no-blinking-cursor', as well as the `cursor' face.
+Changed settings will be marked as \"CHANGED outside of Customize\"."
   (let ((no-vals  '("no" "off" "false" "0"))
 	(settings '(("menuBar" "MenuBar" menu-bar-mode nil)
-		    ("tabBar" "TabBar" tab-bar-mode nil)
 		    ("toolBar" "ToolBar" tool-bar-mode nil)
 		    ("scrollBar" "ScrollBar" scroll-bar-mode nil)
 		    ("cursorBlink" "CursorBlink" no-blinking-cursor t))))
     (dolist (x settings)
       (if (member (x-get-resource (nth 0 x) (nth 1 x)) no-vals)
 	  (set (nth 2 x) (nth 3 x)))))
+  (let ((yes-vals  '("yes" "on" "true" "1"))
+	(settings '(("tabBar" "TabBar" tab-bar-mode 1))))
+    (dolist (x settings)
+      (if (member (x-get-resource (nth 0 x) (nth 1 x)) yes-vals)
+	  (funcall (nth 2 x) (nth 3 x)))))
   (let ((color (x-get-resource "cursorColor" "Foreground")))
     (when color
       (put 'cursor 'theme-face
@@ -1856,9 +1860,7 @@ a face or button specification."
 		  (customize-set-variable 'inhibit-startup-screen t)
 		  (customize-mark-to-save 'inhibit-startup-screen)
 		  (custom-save-all))
-		(let ((w (get-buffer-window "*GNU Emacs*")))
-		  (and w (not (one-window-p)) (delete-window w)))
-		(kill-buffer "*GNU Emacs*")))
+		(quit-windows-on "*GNU Emacs*" t)))
      "  ")
     (when (or user-init-file custom-file)
       (let ((checked (create-image "checked.xpm"

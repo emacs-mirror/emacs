@@ -61,7 +61,7 @@ syntactic information for the current line.  Be silent about syntactic
 errors if the optional argument QUIET is non-nil, even if
 `c-report-syntactic-errors' is non-nil.  Normally the position of
 point is used to decide where the old indentation is on a lines that
-is otherwise empty \(ignoring any line continuation backslash), but
+is otherwise empty (ignoring any line continuation backslash), but
 that's not done if IGNORE-POINT-POS is non-nil.  Returns the amount of
 indentation change \(in columns)."
 
@@ -3257,7 +3257,7 @@ to call `c-scan-conditionals' directly instead."
 A prefix argument acts as a repeat count.  With a negative argument,
 move backward across a preprocessor conditional.
 
-If there aren't enough conditionals after \(or before) point, an
+If there aren't enough conditionals after (or before) point, an
 error is signaled.
 
 \"#elif\" is treated like \"#else\" followed by \"#if\", except that

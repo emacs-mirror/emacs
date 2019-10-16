@@ -90,7 +90,6 @@
 (defcustom tramp-mode t
   "Whether Tramp is enabled.
 If it is set to nil, all remote file names are used literally."
-  :group 'tramp
   :type 'boolean)
 
 (defcustom tramp-verbose 3
@@ -108,7 +107,6 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
  8  connection properties
  9  test commands
 10  traces (huge)."
-  :group 'tramp
   :type 'integer)
 
 (defcustom tramp-backup-directory-alist nil
@@ -122,7 +120,6 @@ name prefix \(method, user, host) of file.
 
 gives the same backup policy for Tramp files on their hosts like the
 policy for local files."
-  :group 'tramp
   :type '(repeat (cons (regexp :tag "Regexp matching filename")
 		       (directory :tag "Backup directory name"))))
 
@@ -130,7 +127,6 @@ policy for local files."
   "Put auto-save files in this directory, if set.
 The idea is to use a local directory so that auto-saving is faster.
 This setting has precedence over `auto-save-file-name-transforms'."
-  :group 'tramp
   :type '(choice (const :tag "Use default" nil)
 		 (directory :tag "Auto save directory name")))
 
@@ -140,8 +136,8 @@ This setting has precedence over `auto-save-file-name-transforms'."
     (or (tramp-compat-funcall 'w32-shell-name) "/bin/sh"))
   "Use this program for encoding and decoding commands on the local host.
 This shell is used to execute the encoding and decoding command on the
-local host, so if you want to use `~' in those commands, you should
-choose a shell here which groks tilde expansion.  `/bin/sh' normally
+local host, so if you want to use \"~\" in those commands, you should
+choose a shell here which groks tilde expansion.  \"/bin/sh\" normally
 does not understand tilde expansion.
 
 For encoding and decoding, commands like the following are executed:
@@ -157,7 +153,6 @@ If the shell must be forced to be interactive, see
 Note that this variable is not used for remote commands.  There are
 mechanisms in tramp.el which automatically determine the right shell to
 use for the remote host."
-  :group 'tramp
   :type '(file :must-match t))
 
 ;; Suppress `shell-file-name' for w32 systems.
@@ -166,7 +161,6 @@ use for the remote host."
     (if (tramp-compat-funcall 'w32-shell-dos-semantics) "/c" "-c"))
   "Use this switch together with `tramp-encoding-shell' for local commands.
 See the variable `tramp-encoding-shell' for more information."
-  :group 'tramp
   :type 'string)
 
 ;; Suppress `shell-file-name' for w32 systems.
@@ -176,7 +170,6 @@ See the variable `tramp-encoding-shell' for more information."
   "Use this switch together with `tramp-encoding-shell' for interactive shells.
 See the variable `tramp-encoding-shell' for more information."
   :version "24.1"
-  :group 'tramp
   :type '(choice (const nil) string))
 
 (defvar tramp-methods nil
@@ -377,7 +370,6 @@ useful only in combination with `tramp-default-proxies-alist'.")
   "Default method to use for transferring files.
 See `tramp-methods' for possibilities.
 Also see `tramp-default-method-alist'."
-  :group 'tramp
   :type 'string)
 
 (defcustom tramp-default-method-alist nil
@@ -392,7 +384,6 @@ If the file name does not specify the user, lookup is done using the
 empty string for the user name.
 
 See `tramp-methods' for a list of possibilities for METHOD."
-  :group 'tramp
   :type '(repeat (list (choice :tag "Host regexp" regexp sexp)
 		       (choice :tag "User regexp" regexp sexp)
 		       (choice :tag "Method name" string (const nil)))))
@@ -406,7 +397,6 @@ It is nil by default; otherwise settings in configuration files like
 \"~/.ssh/config\" would be overwritten.  Also see `tramp-default-user-alist'.
 
 This variable is regarded as obsolete, and will be removed soon."
-  :group 'tramp
   :type '(choice (const nil) string))
 
 (defcustom tramp-default-user-alist nil
@@ -419,7 +409,6 @@ matches, the variable `tramp-default-user' takes effect.
 
 If the file name does not specify the method, lookup is done using the
 empty string for the method name."
-  :group 'tramp
   :type '(repeat (list (choice :tag "Method regexp" regexp sexp)
 		       (choice :tag "  Host regexp" regexp sexp)
 		       (choice :tag "    User name" string (const nil)))))
@@ -427,7 +416,6 @@ empty string for the method name."
 (defcustom tramp-default-host (system-name)
   "Default host to use for transferring files.
 Useful for su and sudo methods mostly."
-  :group 'tramp
   :type 'string)
 
 (defcustom tramp-default-host-alist nil
@@ -440,7 +428,6 @@ matches, the variable `tramp-default-host' takes effect.
 
 If the file name does not specify the method, lookup is done using the
 empty string for the method name."
-  :group 'tramp
   :version "24.4"
   :type '(repeat (list (choice :tag "Method regexp" regexp sexp)
 		       (choice :tag "  User regexp" regexp sexp)
@@ -466,14 +453,12 @@ carries the non-nil text property `tramp-ad-hoc'.
 HOST, USER or PROXY could also be Lisp forms, which will be
 evaluated.  The result must be a string or nil, which is
 interpreted as a regular expression which always matches."
-  :group 'tramp
   :type '(repeat (list (choice :tag "Host regexp" regexp sexp)
 		       (choice :tag "User regexp" regexp sexp)
 		       (choice :tag " Proxy name" string (const nil)))))
 
 (defcustom tramp-save-ad-hoc-proxies nil
   "Whether to save ad-hoc proxies persistently."
-  :group 'tramp
   :version "24.3"
   :type 'boolean)
 
@@ -486,7 +471,6 @@ a registered shell like \"rbash\".  Those hosts can be used as
 proxies only, see `tramp-default-proxies-alist'.  If the local
 host runs a registered shell, it shall be added to this list, too."
   :version "24.3"
-  :group 'tramp
   :type '(repeat (regexp :tag "Host regexp")))
 
 (defcustom tramp-local-host-regexp
@@ -498,7 +482,6 @@ host runs a registered shell, it shall be added to this list, too."
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
   :version "27.1"
-  :group 'tramp
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 
@@ -551,14 +534,12 @@ the remote shell.")
   (if (memq system-type '(windows-nt)) "\r\n" "\n")
   "String used for end of line in local processes."
   :version "24.1"
-  :group 'tramp
   :type 'string)
 
 (defcustom tramp-rsh-end-of-line "\n"
   "String used for end of line in rsh connections.
 I don't think this ever needs to be changed, so please tell me about it
 if you need to change this."
-  :group 'tramp
   :type 'string)
 
 (defcustom tramp-login-prompt-regexp
@@ -567,7 +548,6 @@ if you need to change this."
 The regexp should match at end of buffer.
 
 Sometimes the prompt is reported to look like \"login as:\"."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-shell-prompt-pattern
@@ -589,7 +569,6 @@ which should work well in many cases.
 
 This regexp must match both `tramp-initial-end-of-output' and
 `tramp-end-of-output'."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-password-prompt-regexp
@@ -599,7 +578,6 @@ The regexp should match at end of buffer.
 
 The `sudo' program appears to insert a `^@' character into the prompt."
   :version "24.4"
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-wrong-passwd-regexp
@@ -624,7 +602,6 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 	  "\\).*")
   "Regexp matching a `login failed' message.
 The regexp should match at end of buffer."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-yesno-prompt-regexp
@@ -638,7 +615,6 @@ The regexp should match at end of buffer."
 The confirmation should be done with yes or no.
 The regexp should match at end of buffer.
 See also `tramp-yn-prompt-regexp'."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-yn-prompt-regexp
@@ -651,7 +627,6 @@ See also `tramp-yn-prompt-regexp'."
 The confirmation should be done with y or n.
 The regexp should match at end of buffer.
 See also `tramp-yesno-prompt-regexp'."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-terminal-prompt-regexp
@@ -663,7 +638,6 @@ See also `tramp-yesno-prompt-regexp'."
   "Regular expression matching all terminal setting prompts.
 The regexp should match at end of buffer.
 The answer will be provided by `tramp-action-terminal', which see."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
@@ -672,7 +646,6 @@ The answer will be provided by `tramp-action-terminal', which see."
   "Regular expression matching keep-date problems in (s)cp operations.
 Copying has been performed successfully already, so this message can
 be ignored safely."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-copy-failed-regexp
@@ -684,7 +657,6 @@ be ignored safely."
                       t)
           "\\)\\s-*")
   "Regular expression matching copy problems in (s)cp operations."
-  :group 'tramp
   :type 'regexp)
 
 (defcustom tramp-process-alive-regexp
@@ -694,7 +666,6 @@ In fact this expression is empty by intention, it will be used only to
 check regularly the status of the associated process.
 The answer will be provided by `tramp-action-process-alive',
 `tramp-action-out-of-band', which see."
-  :group 'tramp
   :type 'regexp)
 
 (defconst tramp-temp-name-prefix "tramp."
@@ -726,7 +697,6 @@ It can have the following values:
 
 Do not change the value by `setq', it must be changed only via
 Customize.  See also `tramp-change-syntax'."
-  :group 'tramp
   :version "26.1"
   :package-version '(Tramp . "2.3.3")
   :type '(choice (const :tag "Default" default)
@@ -1041,7 +1011,6 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
 (defcustom tramp-ignored-file-name-regexp nil
   "Regular expression matching file names that are not under Tramp’s control."
   :version "27.1"
-  :group 'tramp
   :type '(choice (const nil) regexp))
 
 (defconst tramp-completion-file-name-regexp-default
@@ -1186,7 +1155,6 @@ in the third line of the code.
 
 Please raise a bug report via \"M-x tramp-bug\" if your system needs
 this variable to be set as well."
-  :group 'tramp
   :type '(choice (const nil) integer))
 
 ;; Logging in to a remote host normally requires obtaining a pty.  But
@@ -1197,7 +1165,6 @@ this variable to be set as well."
   "Overrides `process-connection-type' for connections from Tramp.
 Tramp binds `process-connection-type' to the value given here before
 opening a connection to a remote host."
-  :group 'tramp
   :type '(choice (const nil) (const t) (const pty)))
 
 (defcustom tramp-connection-timeout 60
@@ -1205,7 +1172,6 @@ opening a connection to a remote host."
 This can be overwritten for different connection types in `tramp-methods'.
 
 The timeout does not include the time reading a password."
-  :group 'tramp
   :version "24.4"
   :type 'integer)
 
@@ -1219,7 +1185,6 @@ necessary, when several out-of-order copy operations are
 performed, or when several asynchronous processes will be started
 in a short time frame.  In those cases it is recommended to
 let-bind this variable."
-  :group 'tramp
   :version "24.4"
   :type '(choice (const nil) integer))
 
@@ -1232,7 +1197,6 @@ more than `tramp-completion-reread-directory-timeout' seconds
 have been gone since last remote command execution.  A value of t
 would require an immediate reread during filename completion, nil
 means to use always cached values for the directory contents."
-  :group 'tramp
   :type '(choice (const nil) (const t) integer))
 
 ;;; Internal Variables:
@@ -1842,7 +1806,8 @@ signal identifier to be raised, remaining arguments passed to
 	(list signal
 	      (get signal 'error-message)
 	      (apply #'format-message fmt-string arguments)))))
-    (signal signal (list (apply #'format-message fmt-string arguments)))))
+    (signal signal (list (substring-no-properties
+			  (apply #'format-message fmt-string arguments))))))
 
 (defsubst tramp-error-with-buffer
   (buf vec-or-proc signal fmt-string &rest arguments)
@@ -2632,11 +2597,13 @@ not in completion mode."
 (defun tramp-completion-handle-file-name-completion
   (filename directory &optional predicate)
   "Like `file-name-completion' for Tramp files."
-  (try-completion
-   filename
-   (mapcar #'list (file-name-all-completions filename directory))
-   (when (and predicate (tramp-connectable-p directory))
-     (lambda (x) (funcall predicate (expand-file-name (car x) directory))))))
+  ;; Suppress eager completion on not connected hosts.
+  (let ((non-essential t))
+    (try-completion
+     filename
+     (mapcar #'list (file-name-all-completions filename directory))
+     (when (and predicate (tramp-connectable-p directory))
+       (lambda (x) (funcall predicate (expand-file-name (car x) directory)))))))
 
 ;; I misuse a little bit the `tramp-file-name' structure in order to
 ;; handle completion possibilities for partial methods / user names /
@@ -2798,7 +2765,6 @@ for all methods.  Resulting data are derived from default settings."
   "Whether to use `auth-source-search' for completion of user and host names.
 This could be disturbing, if it requires a password / passphrase,
 as for \"~/.authinfo.gpg\"."
-  :group 'tramp
   :version "27.1"
   :type 'boolean)
 
@@ -3006,7 +2972,7 @@ User is always nil."
 
 (defun tramp-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
-  (unless (file-readable-p filename)
+  (unless (file-readable-p (file-truename filename))
     (tramp-error
      (tramp-dissect-file-name filename) tramp-file-missing
      "%s: No such file or directory %s" string filename)))

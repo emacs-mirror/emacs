@@ -1855,6 +1855,13 @@ the variable @code{display-line-numbers-widen} to a non-@code{nil}
 value, line numbers will disregard any narrowing and will start at the
 first character of the buffer.
 
+@vindex display-line-numbers-offset
+If the value of @code{display-line-numbers-offset} is non-zero, it is
+added to each absolute line number, and lines are counted from the
+beginning of the buffer, as if @code{display-line-numbers-widen} were
+non-@code{nil}.  It has no effect when set to zero, or when line
+numbers are not absolute.
+
 @vindex display-line-numbers-width-start
 @vindex display-line-numbers-grow-only
 @vindex display-line-numbers-width

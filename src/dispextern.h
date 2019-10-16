@@ -1607,6 +1607,7 @@ enum lface_attribute_index
   LFACE_INHERIT_INDEX,
   LFACE_FONTSET_INDEX,
   LFACE_DISTANT_FOREGROUND_INDEX,
+  LFACE_EXTEND_INDEX,
   LFACE_VECTOR_SIZE
 };
 
@@ -1632,6 +1633,7 @@ enum face_box_type
 
 enum face_underline_type
 {
+  FACE_NO_UNDERLINE = 0,
   FACE_UNDER_LINE,
   FACE_UNDER_WAVE
 };
@@ -1675,11 +1677,9 @@ struct face
   /* Pixel value or color index of background color.  */
   unsigned long background;
 
-  /* Pixel value or color index of underline color.  */
+  /* Pixel value or color index of underline, overlined,
+     strike-through, or box color.  */
   unsigned long underline_color;
-
-  /* Pixel value or color index of overlined, strike-through, or box
-     color.  */
   unsigned long overline_color;
   unsigned long strike_through_color;
   unsigned long box_color;
@@ -1706,7 +1706,7 @@ struct face
   ENUM_BF (face_box_type) box : 2;
 
   /* Style of underlining. */
-  ENUM_BF (face_underline_type) underline_type : 1;
+  ENUM_BF (face_underline_type) underline : 2;
 
   /* If `box' above specifies a 3D type, true means use box_color for
      drawing shadows.  */
@@ -1714,7 +1714,6 @@ struct face
 
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */
-  bool_bf underline_p : 1;
   bool_bf overline_p : 1;
   bool_bf strike_through_p : 1;
 
@@ -1724,14 +1723,10 @@ struct face
   bool_bf foreground_defaulted_p : 1;
   bool_bf background_defaulted_p : 1;
 
-  /* True means that either no color is specified for underlining or that
-     the specified color couldn't be loaded.  Use the foreground
-     color when drawing in that case. */
-  bool_bf underline_defaulted_p : 1;
-
   /* True means that either no color is specified for the corresponding
      attribute or that the specified color couldn't be loaded.
      Use the foreground color when drawing in that case. */
+  bool_bf underline_defaulted_p : 1;
   bool_bf overline_color_defaulted_p : 1;
   bool_bf strike_through_color_defaulted_p : 1;
   bool_bf box_color_defaulted_p : 1;
@@ -1866,6 +1861,9 @@ struct face_cache
   (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
    ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
    : NULL)
+
+#define FACE_EXTENSIBLE_P(F)			\
+  (!NILP (F->lface[LFACE_EXTEND_INDEX]))
 
 /* True if FACE is suitable for displaying ASCII characters.  */
 INLINE bool
@@ -3553,12 +3551,13 @@ int lookup_derived_face (struct window *, struct frame *,
 void init_frame_faces (struct frame *);
 void free_frame_faces (struct frame *);
 void recompute_basic_faces (struct frame *);
-int face_at_buffer_position (struct window *, ptrdiff_t, ptrdiff_t *, ptrdiff_t,
-                             bool, int);
+int face_at_buffer_position (struct window *, ptrdiff_t, ptrdiff_t *,
+                             ptrdiff_t, bool, int, enum lface_attribute_index);
 int face_for_overlay_string (struct window *, ptrdiff_t, ptrdiff_t *, ptrdiff_t,
                              bool, Lisp_Object);
 int face_at_string_position (struct window *, Lisp_Object, ptrdiff_t, ptrdiff_t,
-                             ptrdiff_t *, enum face_id, bool);
+                             ptrdiff_t *, enum face_id, bool,
+                             enum lface_attribute_index);
 int merge_faces (struct window *, Lisp_Object, int, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);

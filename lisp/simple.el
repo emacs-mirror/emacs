@@ -45,6 +45,14 @@ wait this many seconds after Emacs becomes idle before doing an update."
   :group 'display
   :version "22.1")
 
+(defvar amalgamating-undo-limit 20
+  "The maximum number of changes to possibly amalgamate when undoing changes.
+The `undo' command will normally consider \"similar\" changes
+(like inserting characters) to be part of the same change.  This
+is called \"amalgamating\" the changes.  This variable says what
+the maximum number of changes condidered is when amalgamating.  A
+value of 1 means that nothing is amalgamated.")
+
 (defgroup killing nil
   "Killing and yanking commands."
   :group 'editing)
@@ -1994,12 +2002,15 @@ makes the search case-sensitive.
 See also `minibuffer-history-case-insensitive-variables'."
   (interactive
    (let* ((enable-recursive-minibuffers t)
-	  (regexp (read-from-minibuffer "Previous element matching (regexp): "
-					nil
-					minibuffer-local-map
-					nil
-					'minibuffer-history-search-history
-					(car minibuffer-history-search-history))))
+	  (regexp (read-from-minibuffer
+                   (format "Previous element matching regexp%s: "
+                           (if minibuffer-history-search-history
+                               (format " (default %s)"
+                                       (car minibuffer-history-search-history))
+                             ""))
+		   nil minibuffer-local-map nil
+		   'minibuffer-history-search-history
+		   (car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
@@ -3124,7 +3135,7 @@ behavior."
          (undo-auto--last-boundary-amalgamating-number)))
     (setq undo-auto--this-command-amalgamating t)
     (when last-amalgamating-count
-      (if (and (< last-amalgamating-count 20)
+      (if (and (< last-amalgamating-count amalgamating-undo-limit)
                (eq this-command last-command))
           ;; Amalgamate all buffers that have changed.
           ;; This may be needed for example if some *-change-functions
@@ -3376,6 +3387,13 @@ command output."
   :group 'shell
   :version "27.1")
 
+(defcustom shell-command-prompt-show-cwd nil
+  "If non-nil, show current directory when prompting for a shell command.
+This affects `shell-command' and `async-shell-command'."
+  :type 'boolean
+  :group 'shell
+  :version "27.1")
+
 (defcustom shell-command-dont-erase-buffer nil
   "If non-nil, output buffer is not erased between shell commands.
 Also, a non-nil value sets the point in the output buffer
@@ -3465,7 +3483,12 @@ directly, since it offers more control and does not impose the use of
 a shell (with its need to quote arguments)."
   (interactive
    (list
-    (read-shell-command "Async shell command: " nil nil
+    (read-shell-command (if shell-command-prompt-show-cwd
+                            (format-message "Async shell command in `%s': "
+                                            (abbreviate-file-name
+                                             default-directory))
+                          "Async shell command: ")
+                        nil nil
 			(let ((filename
 			       (cond
 				(buffer-file-name)
@@ -3538,7 +3561,12 @@ impose the use of a shell (with its need to quote arguments)."
 
   (interactive
    (list
-    (read-shell-command "Shell command: " nil nil
+    (read-shell-command (if shell-command-prompt-show-cwd
+                            (format-message "Shell command in `%s': "
+                                            (abbreviate-file-name
+                                             default-directory))
+                          "Shell command: ")
+                        nil nil
 			(let ((filename
 			       (cond
 				(buffer-file-name)
@@ -5131,12 +5159,80 @@ and KILLP is t if a prefix arg was specified."
     ;; Avoid warning about delete-backward-char
     (with-no-warnings (delete-backward-char n killp))))
 
+(defvar read-char-with-history--history nil
+  "The default history for `read-char-with-history'.")
+
+(defun read-char-with-history (prompt &optional inherit-input-method seconds
+                                      history)
+  "Like `read-char', but allows navigating in a history.
+HISTORY is like HIST in `read-from-minibuffer'.
+
+The navigation commands are `M-p' and `M-n', with `RET' to select
+a character from history."
+  (let* ((result nil)
+         (real-prompt prompt)
+         (hist-format
+          (lambda (char)
+            (if (string-match ": *\\'" real-prompt)
+                (format "%s (default %c): "
+                        (substring real-prompt 0 (match-beginning 0))
+                        char)
+              (format "%s (default %c) " real-prompt char))))
+         (index 0)
+         histvar)
+    ;; Use the same history interface as `read-from-minibuffer'.
+    (cond
+     ((null history)
+      (setq histvar 'read-char-with-history--history))
+     ((consp history)
+      (setq histvar (car history)
+            index (cdr history)))
+     ((symbolp history)
+      (setq histvar history))
+     (t
+      (error "Invalid history: %s" history)))
+    (while (not result)
+      (setq result (read-char prompt inherit-input-method seconds))
+      ;; Go back in history.
+      (cond
+       ((eq result ?\M-p)
+        (if (>= index (length (symbol-value histvar)))
+            (progn
+              (message "Beginning of history; no preceding item")
+              (ding)
+              (sit-for 2))
+          (setq index (1+ index)
+                prompt (funcall hist-format
+                                (elt (symbol-value histvar) (1- index)))))
+        (setq result nil))
+       ;; Go forward in history.
+       ((eq result ?\M-n)
+        (if (zerop index)
+            (progn
+              (message "End of history; no next item")
+              (ding)
+              (sit-for 2))
+          (setq index (1- index)
+                prompt (if (zerop index)
+                           real-prompt
+                         (funcall hist-format
+                                  (elt (symbol-value histvar) (1- index))))))
+        (setq result nil))
+       ;; The user hits RET to either select a history item or to
+       ;; return RET.
+       ((eq result ?\r)
+        (unless (zerop index)
+          (setq result (elt (symbol-value histvar) (1- index)))))))
+    ;; Record the chosen key.
+    (set histvar (cons result (symbol-value histvar)))
+    result))
+
 (defun zap-to-char (arg char)
   "Kill up to and including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
   (interactive (list (prefix-numeric-value current-prefix-arg)
-		     (read-char "Zap to char: " t)))
+		     (read-char-with-history "Zap to char: " t)))
   ;; Avoid "obsolete" warnings for translation-table-for-input.
   (with-no-warnings
     (if (char-table-p translation-table-for-input)
@@ -5585,7 +5681,8 @@ the region must not be empty.  Otherwise, the return value is nil.
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'."
   (and (region-active-p)
-       (or use-empty-active-region (> (region-end) (region-beginning)))))
+       (or use-empty-active-region (> (region-end) (region-beginning)))
+       t))
 
 (defun region-active-p ()
   "Return non-nil if Transient Mark mode is enabled and the mark is active.

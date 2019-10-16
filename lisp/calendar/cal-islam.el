@@ -45,8 +45,9 @@
 
 (defun calendar-islamic-leap-year-p (year)
   "Return t if YEAR is a leap year on the Islamic calendar."
-  (memq (% year 30)
-        (list 2 5 7 10 13 16 18 21 24 26 29)))
+  (and (memq (% year 30)
+             (list 2 5 7 10 13 16 18 21 24 26 29))
+       t))
 
 (defun calendar-islamic-last-day-of-month (month year)
   "The last day in MONTH during YEAR on the Islamic calendar."

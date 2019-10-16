@@ -568,7 +568,7 @@ REF must have been previously obtained with `gv-ref'."
 (gv-define-setter gv-deref (v ref) `(funcall (cdr ,ref) ,v))
 
 ;; (defmacro gv-letref (vars place &rest body)
-;;   (declare (indent 2) (debug (sexp form &rest body)))
+;;   (declare (indent 2) (debug (sexp form body)))
 ;;   (require 'cl-lib) ;Can't require cl-lib at top-level for bootstrap reasons!
 ;;   (gv-letplace (getter setter) place
 ;;     `(cl-macrolet ((,(nth 0 vars) () ',getter)

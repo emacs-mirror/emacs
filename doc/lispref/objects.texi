@@ -52,6 +52,7 @@ to use these types can be found in later chapters.
 
 @menu
 * Printed Representation::      How Lisp objects are represented as text.
+* Special Read Syntax::         An overview of all the special sequences.
 * Comments::                    Comments and their formatting conventions.
 * Programming Types::           Types found in all Lisp systems.
 * Editing Types::               Types specific to Emacs.
@@ -105,6 +106,79 @@ evaluation and reading are separate activities.  Reading returns the
 Lisp object represented by the text that is read; the object may or may
 not be evaluated later.  @xref{Input Functions}, for a description of
 @code{read}, the basic function for reading objects.
+
+@node Special Read Syntax
+@section Special Read Syntax
+@cindex special read syntax
+
+  Emacs Lisp represents many special objects and constructs via
+special hash notations.
+
+@table @samp
+@item #<@dots{}>
+Objects that have no read syntax are presented like this
+(@pxref{Printed Representation}).
+
+@item ##
+The printed representation of an interned symbol whose name is an
+empty string (@pxref{Symbol Type}).
+
+@item #:
+The printed representation of an uninterned symbol whose name is
+@var{foo} is @samp{#:@var{foo}} (@pxref{Symbol Type}).
+
+@item #N
+When printing circular structures, this construct is used to represent
+where the structure loops back onto itself, and @samp{N} is the
+starting list count:
+
+@lisp
+(let ((a (list 1)))
+  (setcdr a a))
+=> (1 . #0)
+@end lisp
+
+@item #N=
+@itemx #N#
+@samp{#N=} gives the name to an object, and @samp{#N#} represents that
+object, so when reading back the object, they will be the same object
+instead of copies (@pxref{Circular Objects}).
+
+@item #@@N
+Skip the next @samp{N} characters (@pxref{Comments}).
+
+@item #xN
+@samp{N} represented as a hexadecimal number (@samp{#x2a}).
+
+@item #oN
+@samp{N} represented as an octal number (@samp{#o52}).
+
+@item #bN
+@samp{N} represented as a binary number (@samp{#b101010}).
+
+@item #(@dots{})
+A string text properties (@pxref{Text Props and Strings}).
+
+@item #^
+A char table (@pxref{Char-Table Type}).
+
+@item #s(hash-table @dots{})
+A hash table (@pxref{Hash Table Type}).
+
+@item ?C
+A character (@pxref{Basic Char Syntax}).
+
+@item #$
+The current file name in byte-compiled files (@pxref{Docs and
+Compilation}).  This is not meant to be used in Emacs Lisp source
+files.
+
+@item #@@N
+Skip the next @samp{N} characters (@pxref{Comments}).  This is used in
+byte-compiled files, and is not meant to be used in Emacs Lisp source
+files.
+@end table
+
 
 @node Comments
 @section Comments

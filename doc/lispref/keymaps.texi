@@ -2152,10 +2152,16 @@ binding looks like this:
 
 @noindent
 Here, @var{item-name} is an expression which evaluates to the menu item
-string.  Thus, the string need not be a constant.  The third element,
-@var{real-binding}, is the command to execute.  The tail of the list,
-@var{item-property-list}, has the form of a property list which contains
-other information.
+string.  Thus, the string need not be a constant.
+
+The third element, @var{real-binding}, can be the command to execute
+(in which case you get a normal menu item).  It can also be a keymap,
+which will result in a submenu.  Finally, it can be @code{nil}, in
+which case you will get a non-selectable menu item.  This is mostly
+useful when creating separator lines and the like.
+
+The tail of the list, @var{item-property-list}, has the form of a
+property list which contains other information.
 
   Here is a table of the properties that are supported:
 

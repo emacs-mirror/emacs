@@ -233,7 +233,11 @@
 	     (file :tag "File"
 		   :help-echo "Name of bitmap file."
 		   :must-match t)))
-
+    (:extend
+     (choice :tag "Extend"
+	     :help-echo "Control whether attributes should be extended after EOL."
+	     (const :tag "Off" nil)
+	     (const :tag "On" t)))
     (:inherit
      (repeat :tag "Inherit"
 	     :help-echo "List of faces to inherit attributes from."

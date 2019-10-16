@@ -169,7 +169,9 @@ changes to a supertype are not reflected in its subtypes)."
 ;;; Button properties and other attributes
 
 (defun button-start (button)
-  "Return the position at which BUTTON starts."
+  "Return the position at which BUTTON starts.
+
+This function only works when BUTTON is in the current buffer."
   (if (overlayp button)
       (overlay-start button)
     ;; Must be a text-property button.
@@ -177,7 +179,9 @@ changes to a supertype are not reflected in its subtypes)."
 	(point-min))))
 
 (defun button-end (button)
-  "Return the position at which BUTTON ends."
+  "Return the position at which BUTTON ends.
+
+This function only works when BUTTON is in the current buffer."
   (if (overlayp button)
       (overlay-end button)
     ;; Must be a text-property button.
@@ -185,7 +189,9 @@ changes to a supertype are not reflected in its subtypes)."
 	(point-max))))
 
 (defun button-get (button prop)
-  "Get the property of button BUTTON named PROP."
+  "Get the property of button BUTTON named PROP.
+
+This function only works when BUTTON is in the current buffer."
   (cond ((overlayp button)
 	 (overlay-get button prop))
 	((button--area-button-p button)
@@ -197,7 +203,9 @@ changes to a supertype are not reflected in its subtypes)."
 	 (get-text-property button prop))))
 
 (defun button-put (button prop val)
-  "Set BUTTON's PROP property to VAL."
+  "Set BUTTON's PROP property to VAL.
+
+This function only works when BUTTON is in the current buffer."
   ;; Treat some properties specially.
   (cond ((memq prop '(type :type))
          ;; We translate a `type' property to a `category' property,
@@ -235,7 +243,9 @@ overlay, a buffer position, or (for buttons in the mode-line or
 header-line) a string.
 
 If BUTTON has a `button-data' value, call the function with this
-value instad of BUTTON."
+value instad of BUTTON.
+
+This function only works when BUTTON is in the current buffer."
   (let ((action (or (and use-mouse-action (button-get button 'mouse-action))
 		    (button-get button 'action)))
         (data (button-get button 'button-data)))
@@ -247,7 +257,9 @@ value instad of BUTTON."
       (funcall action (or data button)))))
 
 (defun button-label (button)
-  "Return BUTTON's text label."
+  "Return BUTTON's text label.
+
+This function only works when BUTTON is in the current buffer."
   (if (button--area-button-p button)
       (substring-no-properties (button--area-button-string button))
     (buffer-substring-no-properties (button-start button)

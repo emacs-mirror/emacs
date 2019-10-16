@@ -485,7 +485,8 @@ set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
           (set-buffer mh-show-buffer))
       (let ((from-header (mh-extract-from-header-value)))
         (and from-header
-             (mh-alias-address-to-alias from-header))))))
+             (mh-alias-address-to-alias from-header)
+             t)))))
 
 (defun mh-alias-add-alias-to-file (alias address &optional file)
   "Add ALIAS for ADDRESS in alias FILE without alias check or prompts.

@@ -1821,11 +1821,11 @@ priority list for coding systems, thus making their priority higher
 than all the rest.
 @end defun
 
-@defmac with-coding-priority coding-systems &rest body@dots{}
-This macro execute @var{body}, like @code{progn} does
-(@pxref{Sequencing, progn}), with @var{coding-systems} at the front of
-the priority list for coding systems.  @var{coding-systems} should be
-a list of coding systems to prefer during execution of @var{body}.
+@defmac with-coding-priority coding-systems &rest body
+This macro executes @var{body}, like @code{progn} does
+(@pxref{Sequencing}), with @var{coding-systems} at the front of the
+priority list for coding systems.  @var{coding-systems} should be a
+list of coding systems to prefer during execution of @var{body}.
 @end defmac
 
 @node Explicit Encoding

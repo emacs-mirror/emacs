@@ -288,8 +288,10 @@ on this first line as a comment delimiter.
 @opindex --no-build-details
 @cindex build details
 @cindex deterministic build
-Omit details like system name and build time from the Emacs executable,
-so that builds are more deterministic.
+Omit details like system name and build time from the Emacs
+executable, so that builds are more deterministic.  This switch is not
+meant for regular (or interactive) use, since it makes commands like
+@code{system-name} return @code{nil}.
 
 @item -q
 @opindex -q
@@ -1051,11 +1053,12 @@ specifies a window 164 columns wide, enough for two ordinary width
 windows side by side, and 55 lines tall.
 
   The default frame width is 80 characters and the default height is
-36 lines.  You can omit either the width or the height or both.  If
-you start the geometry with an integer, Emacs interprets it as the
-width.  If you start with an @samp{x} followed by an integer, Emacs
-interprets it as the height.  Thus, @samp{81} specifies just the
-width; @samp{x45} specifies just the height.
+between 35 and 40 lines, depending on the OS and the window manager.
+You can omit either the width or the height or both.  If you start the
+geometry with an integer, Emacs interprets it as the width.  If you
+start with an @samp{x} followed by an integer, Emacs interprets it as
+the height.  Thus, @samp{81} specifies just the width; @samp{x45}
+specifies just the height.
 
   If you start the geometry with @samp{+} or @samp{-}, that introduces
 an offset, which means both sizes are omitted.  Thus, @samp{-3}
@@ -1234,9 +1237,9 @@ Disable the blinking cursor on graphical displays.
 @opindex -D
 @itemx --basic-display
 @opindex --basic-display
-Disable the menu-bar, the tool-bar, the scroll-bars, and tool tips,
-and turn off the blinking cursor.  This can be useful for making a
-test case that simplifies debugging of display problems.
+Disable the menu-bar, the tool-bar, the scroll-bars, tool tips, and
+turn off font-lock-mode and the blinking cursor.  This can be useful
+for making a test case that simplifies debugging of display problems.
 @end table
 
   The @samp{--xrm} option (@pxref{Resources}) specifies additional

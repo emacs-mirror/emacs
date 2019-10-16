@@ -1851,10 +1851,15 @@ For non-interactive use, superceded by `fileloop-initialize-replace'."
 
 (defun tags-complete-tags-table-file (string predicate what)
   "Complete STRING from file names in the current tags table.
-The meaning of the arguments are the same as the function form of
-COLLECTION as explained in Info node `(elisp) Programmed
-Completion', except that if WHAT does not equal t, it is treated
-as if it were nil."
+PREDICATE, if non-nil, is a function to filter possible matches:
+if it returns nil, the match is ignored.  If PREDICATE is nil,
+every possible match is acceptable.
+WHAT is a flag specifying the type of completion: t means `all-completions'
+operation, any other value means `try-completions' operation.
+
+This function serves as COLLECTION argument to `completing-read',
+see the Info node `(elisp) Programmed Completion' for more detailed
+description of the arguments."
   (save-excursion
     ;; If we need to ask for the tag table, allow that.
     (let ((enable-recursive-minibuffers t))

@@ -201,14 +201,14 @@ deactivating the mark.  @xref{Shift Selection}.
 @vindex mouse-wheel-progressive-speed
   Some mice have a ``wheel'' which can be used for scrolling.  Emacs
 supports scrolling windows with the mouse wheel, by default, on most
-graphical displays.  There is also support for increasing or
-decreasing the height of the default face, by default bound to
-scrolling with the @key{Ctrl} modifier.  To toggle this feature, use
-@kbd{M-x mouse-wheel-mode}.  The variables
-@code{mouse-wheel-follow-mouse} and @code{mouse-wheel-scroll-amount}
-determine where and by how much buffers are scrolled.  The variable
+graphical displays.  To toggle this feature, use @kbd{M-x
+mouse-wheel-mode}.  The variables @code{mouse-wheel-follow-mouse} and
+@code{mouse-wheel-scroll-amount} determine where and by how much
+buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
-speed is linked to how fast you move the wheel.
+speed is linked to how fast you move the wheel.  This mode also
+supports increasing or decreasing the height of the default face, by
+default bound to scrolling with the @key{Ctrl} modifier.
 
 @vindex mouse-wheel-tilt-scroll
 @vindex mouse-wheel-flip-direction
@@ -1282,6 +1282,10 @@ runs @code{find-file-other-tab}.  @xref{Visiting}.
 @item C-x 6 d @var{directory} @key{RET}
 Select a Dired buffer for directory @var{directory} in another tab.
 This runs @code{dired-other-tab}.  @xref{Dired}.
+@item C-x 6 r @var{tabname} @key{RET}
+Renames the current tab to @var{tabname}.  You can control the
+programmatic name given to a tab by default by customizing the
+variable @code{tab-bar-tab-name-function}.
 @end table
 
 @vindex tab-bar-new-tab-choice

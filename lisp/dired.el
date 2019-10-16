@@ -431,6 +431,13 @@ Subexpression 2 must end right before the \\n.")
 (defvar dired-perm-write-face 'dired-perm-write
   "Face name used for permissions of group- and world-writable files.")
 
+(defface dired-set-id
+  '((((type w32 pc)) :inherit default)  ;; These default to rw-rw-rw.
+    (t (:inherit font-lock-warning-face)))
+  "Face used to highlight permissions of suid and guid files."
+  :group 'dired-faces
+  :version "27.1")
+
 (defface dired-directory
   '((t (:inherit font-lock-function-name-face)))
   "Face used for subdirectories."
@@ -499,6 +506,12 @@ Subexpression 2 must end right before the \\n.")
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d].......\\(w\\).")	; world writable
 	 '(1 dired-perm-write-face))
+   (list (concat dired-re-maybe-mark dired-re-inode-size
+		 "[-d]..\\(s\\)......")	; suid
+	 '(1 'dired-set-id))
+   (list (concat dired-re-maybe-mark dired-re-inode-size
+		 "[-d].....\\(S\\)...")	; guid
+	 '(1 'dired-set-id))
    ;;
    ;; Subdirectories.
    (list dired-re-dir

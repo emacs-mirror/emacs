@@ -89,7 +89,7 @@ If this is nil, then `senator-tag-ring' is used.")
 The hook is called with two arguments, the TAG and DICT
 to be augmented.")
 
-(define-overload srecode-semantic-apply-tag-to-dict (tagobj dict)
+(define-overloadable-function srecode-semantic-apply-tag-to-dict (tagobj dict)
   "Insert features of TAGOBJ into the dictionary DICT.
 TAGOBJ is an object of class `srecode-semantic-tag'.  This class
 is a compound inserter value.
@@ -227,7 +227,7 @@ Assumes the cursor is in a tag of class type.  If not, throw an error."
 ;;; INSERT A TAG API
 ;;
 ;; Routines that take a tag, and insert into a buffer.
-(define-overload srecode-semantic-find-template (class prototype ctxt)
+(define-overloadable-function srecode-semantic-find-template (class prototype ctxt)
   "Find a template for a tag of class CLASS based on context.
 PROTOTYPE is non-nil if we want a prototype template instead."
   )

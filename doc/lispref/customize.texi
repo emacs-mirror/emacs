@@ -1047,6 +1047,9 @@ overall list has two elements and the second element is @code{t}.  If
 the user chooses the second alternative, then the overall list has three
 elements and the second and third must be strings.
 
+  The widgets can specify predicates to say whether an inline value
+matches the widget with the @code{:match-inline} element.
+
 @node Type Keywords
 @subsection Type Keywords
 
@@ -1164,6 +1167,14 @@ Specify how to decide whether a value matches the type.  The
 corresponding value, @var{function}, should be a function that accepts
 two arguments, a widget and a value; it should return non-@code{nil} if
 the value is acceptable.
+
+@item :match-inline @var{function}
+@kindex match-inline@r{, customization keyword}
+Specify how to decide whether an inline value matches the type.  The
+corresponding value, @var{function}, should be a function that accepts
+two arguments, a widget and an inline value; it should return
+non-@code{nil} if the value is acceptable.  See @ref{Splicing into
+Lists} for more information about inline values.
 
 @item :validate @var{function}
 Specify a validation function for input.  @var{function} takes a

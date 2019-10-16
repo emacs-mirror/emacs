@@ -929,12 +929,12 @@ that accept function arguments are often called @dfn{functionals}.
 function as the argument.  Here are two different kinds of no-op
 function:
 
-@defun identity arg
-This function returns @var{arg} and has no side effects.
+@defun identity argument
+This function returns @var{argument} and has no side effects.
 @end defun
 
-@defun ignore &rest args
-This function ignores any arguments and returns @code{nil}.
+@defun ignore &rest arguments
+This function ignores any @var{arguments} and returns @code{nil}.
 @end defun
 
   Some functions are user-visible @dfn{commands}, which can be called

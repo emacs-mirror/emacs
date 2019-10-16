@@ -1469,13 +1469,22 @@ the same names as used in the original source code, when possible."
 (defun help--make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
-		  (if (not (symbolp arg)) arg
+		  (cond
+                   ;; Parameter name.
+                   ((symbolp arg)
 		    (let ((name (symbol-name arg)))
 		      (cond
                        ((string-match "\\`&" name) arg)
                        ((string-match "\\`_." name)
                         (intern (upcase (substring name 1))))
-                       (t (intern (upcase name)))))))
+                       (t (intern (upcase name))))))
+                   ;; Parameter with a default value (from
+                   ;; cl-defgeneric etc).
+                   ((and (consp arg)
+                         (symbolp (car arg)))
+                    (cons (intern (upcase (symbol-name (car arg)))) (cdr arg)))
+                   ;; Something else.
+                   (t arg)))
 		arglist)))
 
 (define-obsolete-function-alias 'help-make-usage 'help--make-usage "25.1")

@@ -176,6 +176,7 @@ See `replace-regexp' and `query-replace-regexp-eval'.")
 
 (defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
+Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should be a regexp.
 The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
   (if query-replace-interactive
@@ -253,6 +254,7 @@ wants to replace FROM with TO."
 
 (defun query-replace-compile-replacement (to regexp-flag)
   "Maybe convert a regexp replacement TO to Lisp.
+REGEXP-FLAG non-nil means TO is a regexp.
 Returns a list suitable for `perform-replace' if necessary,
 the original string if not."
   (if (and regexp-flag
@@ -293,7 +295,8 @@ the original string if not."
 
 
 (defun query-replace-read-to (from prompt regexp-flag)
-  "Query and return the `to' argument of a query-replace operation."
+  "Query and return the `to' argument of a query-replace operation.
+Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should a regexp."
   (query-replace-compile-replacement
    (save-excursion
      (let* ((history-add-new-input nil)
@@ -627,6 +630,9 @@ to the end of the buffer).  Interactively, if Transient Mark mode is
 enabled and the mark is active, operates on the contents of the region;
 otherwise from point to the end of the buffer's accessible portion.
 
+Arguments BACKWARD and REGION-NONCONTIGUOUS-P are passed
+to `perform-replace' (which see).
+
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search string to the minibuffer
 that reads FROM-STRING.
@@ -681,6 +687,9 @@ only matches surrounded by word boundaries.  A negative prefix arg means
 replace backward.
 
 Fourth and fifth arg START and END specify the region to operate on.
+
+Arguments BACKWARD and REGION-NONCONTIGUOUS-P are passed
+to `perform-replace' (which see).
 
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for whatever matched
@@ -1232,7 +1241,8 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 
 (defalias 'occur-mode-mouse-goto 'occur-mode-goto-occurrence)
 (defun occur-mode-goto-occurrence (&optional event)
-  "Go to the occurrence on the current line."
+  "Go to the occurrence specified by EVENT, a mouse click.
+If not invoked by a mouse click, go to occurrence on the current line."
   (interactive (list last-nonmenu-event))
   (let ((buffer (when event (current-buffer)))
         (pos
@@ -1298,8 +1308,9 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
   (occur-find-match n #'previous-single-property-change "No earlier matches"))
 
 (defun occur-next-error (&optional argp reset)
-  "Move to the Nth (default 1) next match in an Occur mode buffer.
-Compatibility function for \\[next-error] invocations."
+  "Move to the ARGPth (default 1) next match in an Occur mode buffer.
+RESET non-nil means rewind to the first match.
+This is a compatibility function for \\[next-error] invocations."
   (interactive "p")
   (goto-char (cond (reset (point-min))
 		   ((< argp 0) (line-beginning-position))
@@ -1409,11 +1420,12 @@ which means to discard all text properties."
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
 Here `original-buffer-name' is the buffer name where Occur was originally run.
-When given the prefix argument, or called non-interactively, the renaming
-will not clobber the existing buffer(s) of that name, but use
-`generate-new-buffer-name' instead.  You can add this to `occur-hook'
-if you always want a separate *Occur* buffer for each buffer where you
-invoke `occur'."
+If UNIQUE-P is non-nil (interactively, the prefix argument), or called
+non-interactively with INTERACTIVE-P nil, the renaming will not clobber
+the existing buffer(s) of that name, but will use `generate-new-buffer-name'
+instead.
+You can add this to `occur-hook' if you always want a separate
+*Occur* buffer for each buffer where you invoke `occur'."
   (interactive "P\np")
   (with-current-buffer
       (if (eq major-mode 'occur-mode) (current-buffer) (get-buffer "*Occur*"))
@@ -1483,6 +1495,8 @@ is not modified."
 
 (defun multi-occur (bufs regexp &optional nlines)
   "Show all lines in buffers BUFS containing a match for REGEXP.
+Optional argument NLINES specifies the number of context lines to show
+with each match, see `list-matching-lines-default-context-lines'.
 This function acts on multiple buffers; otherwise, it is exactly like
 `occur'.  When you invoke this command interactively, you must specify
 the buffer names that you want, one by one.
@@ -1509,7 +1523,9 @@ See also `multi-occur-in-matching-buffers'."
 (defun multi-occur-in-matching-buffers (bufregexp regexp &optional allbufs)
   "Show all lines matching REGEXP in buffers specified by BUFREGEXP.
 Normally BUFREGEXP matches against each buffer's visited file name,
-but if you specify a prefix argument, it matches against the buffer name.
+but ALLBUFS non-nil (interactively, if you specify a prefix argument),
+it matches against the buffer name and includes also buffers that
+don't visit files.
 See also `multi-occur'."
   (interactive
    (cons

@@ -2019,17 +2019,6 @@ the user is done editing a file, the user can type @kbd{C-x #} (or
 requested by @code{emacsclient}, Emacs will switch to it; otherwise
 @code{emacsclient} will exit, signaling the calling program to continue.
 
-@cindex @code{gnuserv}
-There is an alternative version of @samp{emacsclient} called
-@c ange@@hplb.hpl.hp.com
-@samp{gnuserv}, written by Andy Norman
-(@pxref{Packages that do not come with Emacs}).  @samp{gnuserv} uses
-Internet domain sockets, so it can work across most network connections.
-
-The most recent @samp{gnuserv} package is available at
-
-@uref{http://meltin.net/hacks/emacs/}
-
 @end itemize
 
 For more information, @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.

@@ -9613,7 +9613,7 @@ get_char_bytes (int c, int *len)
    byte of the same value.
 
    If HANDLE-OVER-UNI is Qt, encode an over-unicode character
-   into the the same 4 or 5-byte sequence.
+   into the same 4 or 5-byte sequence.
 
    If the two arguments are Qnil, return Qnil if STRING has a
    non-Unicode character.  */

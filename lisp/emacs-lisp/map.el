@@ -338,7 +338,8 @@ The default implementation delegates to `map-apply'."
     t))
 
 (defun map-merge (type &rest maps)
-  "Merge into a map of type TYPE all the key/value pairs in MAPS."
+  "Merge into a map of type TYPE all the key/value pairs in MAPS.
+See `map-into' for all supported values of TYPE."
   (let ((result (map-into (pop maps) type)))
     (while maps
       ;; FIXME: When `type' is `list', we get an O(N^2) behavior.
@@ -354,7 +355,8 @@ The default implementation delegates to `map-apply'."
   "Merge into a map of type TYPE all the key/value pairs in MAPS.
 When two maps contain the same key (`eql'), call FUNCTION on the two
 values and use the value returned by it.
-MAP can be a list, hash-table or array."
+MAP can be a list, hash-table or array.
+See `map-into' for all supported values of TYPE."
   (let ((result (map-into (pop maps) type))
         (not-found (cons nil nil)))
     (while maps
@@ -458,16 +460,27 @@ If you want to insert an element in place, use `map-put!'."
                      (funcall function index elt))
                    array))
 
-(cl-defmethod map-into (map (_type (eql hash-table)))
-  "Convert MAP into a hash-table."
-  ;; FIXME: Just knowing we want a hash-table is insufficient, since that
-  ;; doesn't tell us the test function to use with it!
-  (let ((ht (make-hash-table :size (map-length map)
-                             :test 'equal)))
+(defun map--into-hash (map keyword-args)
+  "Convert MAP into a hash-table.
+KEYWORD-ARGS are forwarded to `make-hash-table'."
+  (let ((ht (apply #'make-hash-table keyword-args)))
     (map-apply (lambda (key value)
-                 (setf (map-elt ht key) value))
+                 (setf (gethash key ht) value))
                map)
     ht))
+
+(cl-defmethod map-into (map (_type (eql hash-table)))
+  "Convert MAP into a hash-table."
+  (map--into-hash map (list :size (map-length map) :test 'equal)))
+
+(cl-defmethod map-into (map (type (head hash-table)))
+  "Convert MAP into a hash-table.
+TYPE is a list where the car is `hash-table' and the cdr are the keyword-args
+forwarded to `make-hash-table'.
+
+Example:
+    (map-into '((1 . 3)) '(hash-table :test eql))"
+  (map--into-hash map (cdr type)))
 
 (defun map--make-pcase-bindings (args)
   "Return a list of pcase bindings from ARGS to the elements of a map."

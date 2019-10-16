@@ -36,7 +36,7 @@
 
 ;;; Code:
 
-(define-overload srecode-calculate-context ()
+(define-overloadable-function srecode-calculate-context ()
   "Calculate the context at the current point.
 The returned context is a list, with the top-most context first.
 Each returned context is a string that would show up in a `context'

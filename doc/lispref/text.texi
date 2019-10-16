@@ -1399,6 +1399,7 @@ appropriate time.
 
 @defun undo-auto-amalgamate
 @cindex amalgamating commands, and undo
+@vindex amalgamating-undo-limit
 The editor command loop automatically calls @code{undo-boundary} just
 before executing each key sequence, so that each undo normally undoes
 the effects of one command.  A few exceptional commands are
@@ -1416,6 +1417,10 @@ will be called in each of the affected buffers.
 This function can be called before an amalgamating command.  It
 removes the previous @code{undo-boundary} if a series of such calls
 have been made.
+
+The maximum number of changes that can be amalgamated is controlled by
+the @code{amalgamating-undo-limit} variable.  If this variable is 1,
+no changes are amalgamated.
 @end defun
 
 @defvar undo-auto-current-boundary-timer
@@ -3733,15 +3738,16 @@ effectively disable them.
 @end defvar
 
 @defvar show-help-function
-@anchor{Help display} If this variable is non-@code{nil}, it specifies a
-function called to display help strings.  These may be @code{help-echo}
-properties, menu help strings (@pxref{Simple Menu Items},
-@pxref{Extended Menu Items}), or tool bar help strings (@pxref{Tool
-Bar}).  The specified function is called with one argument, the help
-string to display, which is passed through
+@anchor{Help display} If this variable is non-@code{nil}, it specifies
+a function called to display help strings.  These may be
+@code{help-echo} properties, menu help strings (@pxref{Simple Menu
+Items}, @pxref{Extended Menu Items}), or tool bar help strings
+(@pxref{Tool Bar}).  The specified function is called with one
+argument, the help string to display, which is passed through
 @code{substitute-command-keys} before being given to the function; see
-@ref{Keys in Documentation}.  Tooltip mode (@pxref{Tooltips,,, emacs,
-The GNU Emacs Manual}) provides an example.
+@ref{Keys in Documentation}.  See the code of Tooltip mode
+(@pxref{Tooltips,,, emacs, The GNU Emacs Manual}) for an example of a
+mode that uses @code{show-help-function}.
 @end defvar
 
 @defvar face-filters-always-match
@@ -4614,7 +4620,7 @@ the decoded text.
 
 The decoding functions ignore newline characters in the encoded text.
 
-If optional argument @var{base64url} is is non-@code{nil}, then padding
+If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
 @end deffn
 

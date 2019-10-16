@@ -2166,8 +2166,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     w->pixel_left = 0;
     w->left_col = 0;
-    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f);
-    w->top_line = FRAME_MENU_BAR_LINES (f);
+    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f)
+      + (!NILP (Vtab_bar_position) ? FRAME_TOOL_BAR_HEIGHT (f) : 0);
+    w->top_line = FRAME_MENU_BAR_LINES (f)
+      + (!NILP (Vtab_bar_position) ? FRAME_TOOL_BAR_LINES (f) : 0);
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
@@ -2196,8 +2198,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     w->pixel_left = 0;
     w->left_col = 0;
-    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f) + FRAME_TAB_BAR_HEIGHT (f);
-    w->top_line = FRAME_MENU_BAR_LINES (f) + FRAME_TAB_BAR_LINES (f);
+    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f)
+      + (NILP (Vtab_bar_position) ? FRAME_TAB_BAR_HEIGHT (f) : 0);
+    w->top_line = FRAME_MENU_BAR_LINES (f)
+      + (NILP (Vtab_bar_position) ? FRAME_TAB_BAR_LINES (f) : 0);
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
@@ -6568,6 +6572,11 @@ See `buffer-display-table' for more information.  */);
      done regardless of this setting if there's pending input at the
      beginning of the next redisplay).  */
   redisplay_dont_pause = true;
+
+  DEFVAR_LISP ("tab-bar-position", Vtab_bar_position,
+	       doc: /* Specify on which side from the tool bar the tab bar shall be.
+Possible values are `t' (below the tool bar), `nil' (above the tool bar).
+This option affects only builds where the tool bar is not external.  */);
 
   pdumper_do_now_and_after_load (syms_of_display_for_pdumper);
 }

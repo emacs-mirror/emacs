@@ -1903,14 +1903,21 @@ same thing as @kbd{M-a}.  This concerns only alphabetical characters,
 and does not apply to shifted versions of other keys; for
 instance, @kbd{C-@@} is not the same as @kbd{C-2}.
 
-  A @key{Control}-modified alphabetical character is always considered
-case-insensitive: Emacs always treats @kbd{C-A} as @kbd{C-a},
-@kbd{C-B} as @kbd{C-b}, and so forth.  The reason for this is
-historical.
+  A @key{Control}-modified alphabetical character is generally
+considered case-insensitive: Emacs always treats @kbd{C-A} as
+@kbd{C-a}, @kbd{C-B} as @kbd{C-b}, and so forth.  The reason for this
+is historical: In non-graphical environments there is no distinction
+between those keystrokes.  However, you can bind shifted @key{Control}
+alphabetical keystrokes in GUI frames:
+
+@lisp
+(global-set-key (kbd "C-S-n") #'previous-line)
+@end lisp
 
   For all other modifiers, you can make the modified alphabetical
-characters case-sensitive when you customize Emacs.  For instance, you
-could make @kbd{M-a} and @kbd{M-A} run different commands.
+characters case-sensitive (even on non-graphical frames) when you
+customize Emacs.  For instance, you could make @kbd{M-a} and @kbd{M-A}
+run different commands.
 
   Although only the @key{Control} and @key{Meta} modifier keys are
 commonly used, Emacs supports three other modifier keys.  These are

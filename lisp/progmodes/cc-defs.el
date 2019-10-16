@@ -566,11 +566,11 @@ known to be writable.  That way, these text properties remain set
 even if the user undoes the command which set them.
 
 This macro should ALWAYS be placed around \"temporary\" internal buffer
-changes \(like adding a newline to calculate a text-property then
+changes (like adding a newline to calculate a text-property then
 deleting it again), so that the user never sees them on his
 `buffer-undo-list'.  See also `c-tentative-buffer-changes'.
 
-However, any user-visible changes to the buffer \(like auto-newlines)
+However, any user-visible changes to the buffer (like auto-newlines)
 must not be within a `c-save-buffer-state', since the user then
 wouldn't be able to undo them.
 
@@ -597,7 +597,7 @@ was in before BODY.  Any changes are kept if the last form in BODY
 returns non-nil.  Otherwise it's undone using the undo facility, and
 various other buffer state that might be affected by the changes is
 restored.  That includes the current buffer, point, mark, mark
-activation \(similar to `save-excursion'), and the modified state.
+activation (similar to `save-excursion'), and the modified state.
 The state is also restored if BODY exits nonlocally.
 
 If BODY makes a change that unconditionally is undone then wrap this
@@ -2360,7 +2360,7 @@ VAL is not evaluated right away but rather when the value is requested
 with `c-lang-const'.  Thus it's possible to use `c-lang-const' inside
 VAL to refer to language constants that haven't been defined yet.
 However, if the definition of a language constant is in another file
-then that file must be loaded \(at compile time) before it's safe to
+then that file must be loaded (at compile time) before it's safe to
 reference the constant.
 
 The assignments in ARGS are processed in sequence like `setq', so

@@ -2738,7 +2738,7 @@ N defaults to the current message."
       ;; (a default of "text/plain; charset=US-ASCII" is assumed) or
       ;; the base content type is either text or message.
       (or (not content-type-header)
-	  (string-match text-regexp content-type-header)))))
+	  (and (string-match text-regexp content-type-header) t)))))
 
 (defcustom rmail-show-message-verbose-min 200000
   "Message size at which to show progress messages for displaying it."

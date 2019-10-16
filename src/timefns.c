@@ -1719,7 +1719,7 @@ DEFUN ("time-convert", Ftime_convert, Stime_convert, 1, 2, 0,
 With optional FORM, convert to that timestamp form.
 Truncate the returned value toward minus infinity.
 
-If FORM is nil (the default), return the the same form as `current-time'.
+If FORM is nil (the default), return the same form as `current-time'.
 If FORM is a positive integer, return a pair of integers (TICKS . FORM),
 where TICKS is the number of clock ticks and FORM is the clock frequency
 in ticks per second.  (Currently the positive integer should be at least

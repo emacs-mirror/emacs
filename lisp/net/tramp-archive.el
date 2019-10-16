@@ -409,7 +409,7 @@ used `tramp-file-name' structure for tramp-gvfs, and the file
 name of a local copy, if any.")
 
 (defsubst tramp-archive-gvfs-host (archive)
-  "Return host name of ARCHIVE as used in GVFS for mounting"
+  "Return host name of ARCHIVE as used in GVFS for mounting."
   (url-hexify-string (tramp-gvfs-url-file-name archive)))
 
 (defun tramp-archive-dissect-file-name (name)

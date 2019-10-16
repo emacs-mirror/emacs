@@ -29,7 +29,7 @@
 ;;; Code:
 
 (eval-after-load "quail/PY-b5"
-  '(quail-defrule "ling2" ?○ nil t))
+  '(quail-defrule "ling2" ?〇 nil t))
 
 ;; Enable inputting full-width space (U+3000).
 (eval-after-load "quail/Punct"

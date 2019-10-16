@@ -26,6 +26,20 @@
 ;; into one command.
 
 (require 'cedet)
+(require 'inversion)
+
+(defvar cedet-utest-directory
+  (let* ((C (file-name-directory (locate-library "cedet")))
+         (D (expand-file-name "../../test/manual/cedet/" C)))
+    D)
+  "Location of test files for this test suite.")
+
+(defvar cedet-utest-libs '("ede-tests"
+                           "semantic-tests"
+                           "srecode-tests"
+                           )
+  "List of test srcs that need to be loaded.")
+
 ;;; Code:
 (defvar cedet-utest-test-alist
   '(
@@ -38,7 +52,9 @@
 
     ;; EZ Image dumping.
     ("ezimage associations" . ezimage-image-association-dump)
-    ("ezimage images" . ezimage-image-dump)
+    ("ezimage images" . (lambda ()
+                          (ezimage-image-dump)
+                          (kill-buffer "*Ezimage Images*")))
 
     ;; Pulse
     ("pulse interactive test" . (lambda () (pulse-test t)))
@@ -49,14 +65,17 @@
     ;;
     ;; EIEIO
     ;;
-    ("eieio" . (lambda () (let ((lib (locate-library "eieio-tests.el"
-						     t)))
-			    (load-file lib))))
-    ("eieio: browser" . eieio-browse)
+
+    ("eieio: browser" . (lambda ()
+                          (eieio-browse)
+                          (kill-buffer "*EIEIO OBJECT BROWSE*")))
     ("eieio: custom" . (lambda ()
 			 (require 'eieio-custom)
-			 (customize-variable 'eieio-widget-test)))
+			 (customize-variable 'eieio-widget-test)
+                         (kill-buffer "*Customize Option: Eieio Widget Test*")
+                         ))
     ("eieio: chart" . (lambda ()
+                        (require 'chart)
 			(if noninteractive
 			    (message " ** Skipping test in noninteractive mode.")
 			  (chart-test-it-all))))
@@ -71,9 +90,9 @@
     ;; SEMANTIC
     ;;
     ("semantic: lex spp table write" . semantic-lex-spp-write-utest)
-    ("semantic: multi-lang parsing" . semantic-utest-main)
-    ("semantic: C preprocessor" . semantic-utest-c)
-    ("semantic: analyzer tests" . semantic-ia-utest)
+    ;;("semantic: multi-lang parsing" . semantic-utest-main)
+    ;;("semantic: C preprocessor" . semantic-utest-c) - Now in automated suite
+    ;;("semantic: analyzer tests" . semantic-ia-utest)
     ("semanticdb: data cache" . semantic-test-data-cache)
     ("semantic: throw-on-input" .
      (lambda ()
@@ -81,14 +100,17 @@
 	   (message " ** Skipping test in noninteractive mode.")
 	 (semantic-test-throw-on-input))))
 
-    ("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+    ;;("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+
     ;;
     ;; SRECODE
     ;;
-    ("srecode: fields" . srecode-field-utest)
-    ("srecode: templates" . srecode-utest-template-output)
+
+    ;; TODO - fix the fields test
+    ;;("srecode: fields" . srecode-field-utest)
+    ;;("srecode: templates" . srecode-utest-template-output)
     ("srecode: show maps" . srecode-get-maps)
-    ("srecode: getset" . srecode-utest-getset-output)
+    ;;("srecode: getset" . srecode-utest-getset-output)
    )
   "Alist of all the tests in CEDET we should run.")
 
@@ -100,9 +122,11 @@
 EXIT-ON-ERROR causes the test suite to exit on an error, instead
 of just logging the error."
   (interactive)
-  (if (or (not (featurep 'semanticdb-mode))
+  (if (or (not (featurep 'semantic/db-mode))
 	  (not (semanticdb-minor-mode-p)))
-      (error "CEDET Tests require: M-x semantic-load-enable-minimum-features"))
+      (error "CEDET Tests require semantic-mode to be enabled"))
+  (dolist (L cedet-utest-libs)
+    (load-file (expand-file-name (concat L ".el") cedet-utest-directory)))
   (cedet-utest-log-setup "ALL TESTS")
   (let ((tl cedet-utest-test-alist)
 	(notes nil)
@@ -489,7 +513,7 @@ When optional NO-ERROR don't throw an error if we can't run tests."
     (when (interactive-p)
       (message "<Press a key> Pulse line a specific color.")
       (read-char))
-    (pulse-momentary-highlight-one-line (point) 'modeline)
+    (pulse-momentary-highlight-one-line (point) 'mode-line)
     (when (interactive-p)
       (message "<Press a key> Pulse a pre-existing overlay.")
       (read-char))

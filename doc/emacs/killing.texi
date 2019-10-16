@@ -244,7 +244,10 @@ with @kbd{C-x @key{DEL}} and @kbd{M-k} (@pxref{Sentences}).
 searching: it reads a character and kills from point up to (and
 including) the next occurrence of that character in the buffer.  A
 numeric argument acts as a repeat count; a negative argument means to
-search backward and kill text before point.
+search backward and kill text before point.  A history of previously
+used characters is maintained and can be accessed via the
+@kbd{M-p}/@kbd{M-n} keystrokes.  This is mainly useful if the
+character to be used has to be entered via a complicated input method.
 
 @node Kill Options
 @subsection Options for Killing

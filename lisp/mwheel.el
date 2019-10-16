@@ -137,7 +137,8 @@ of button events."
 
 (defcustom mouse-wheel-follow-mouse t
   "Whether the mouse wheel should scroll the window that the mouse is over.
-This can be slightly disconcerting, but some people prefer it."
+This affects both the commands for scrolling and changing the
+face height."
   :group 'mouse
   :type 'boolean)
 
@@ -210,34 +211,40 @@ This can be slightly disconcerting, but some people prefer it."
     (intern "mouse-7"))
   "Event used for scrolling right.")
 
+(defun mouse-wheel--get-scroll-window (event)
+  "Return window for mouse wheel event EVENT.
+If `mouse-wheel-follow-mouse' is non-nil, return the window that
+the mouse pointer is over.  Otherwise, return the currently
+active window."
+  (or (catch 'found
+        (let* ((window (if mouse-wheel-follow-mouse
+                           (mwheel-event-window event)
+                         (selected-window)))
+               (frame (when (window-live-p window)
+                        (frame-parameter
+                         (window-frame window) 'mouse-wheel-frame))))
+          (when (frame-live-p frame)
+            (let* ((pos (mouse-absolute-pixel-position))
+                   (pos-x (car pos))
+                   (pos-y (cdr pos)))
+              (walk-window-tree
+               (lambda (window-1)
+                 (let ((edges (window-edges window-1 nil t t)))
+                   (when (and (<= (nth 0 edges) pos-x)
+                              (<= pos-x (nth 2 edges))
+                              (<= (nth 1 edges) pos-y)
+                              (<= pos-y (nth 3 edges)))
+                     (throw 'found window-1))))
+               frame nil t)))))
+      (mwheel-event-window event)))
+
 (defun mwheel-scroll (event)
   "Scroll up or down according to the EVENT.
 This should be bound only to mouse buttons 4, 5, 6, and 7 on
 non-Windows systems."
   (interactive (list last-input-event))
   (let* ((selected-window (selected-window))
-         (scroll-window
-          (or (catch 'found
-                (let* ((window (if mouse-wheel-follow-mouse
-                                   (mwheel-event-window event)
-                                 (selected-window)))
-                       (frame (when (window-live-p window)
-                                (frame-parameter
-                                 (window-frame window) 'mouse-wheel-frame))))
-                  (when (frame-live-p frame)
-                    (let* ((pos (mouse-absolute-pixel-position))
-                           (pos-x (car pos))
-                           (pos-y (cdr pos)))
-                      (walk-window-tree
-                       (lambda (window-1)
-                         (let ((edges (window-edges window-1 nil t t)))
-                           (when (and (<= (nth 0 edges) pos-x)
-                                      (<= pos-x (nth 2 edges))
-                                      (<= (nth 1 edges) pos-y)
-                                      (<= pos-y (nth 3 edges)))
-                             (throw 'found window-1))))
-                       frame nil t)))))
-              (mwheel-event-window event)))
+         (scroll-window (mouse-wheel--get-scroll-window event))
 	 (old-point
           (and (eq scroll-window selected-window)
 	       (eq (car-safe transient-mark-mode) 'only)
@@ -322,6 +329,20 @@ non-Windows systems."
 
 (put 'mwheel-scroll 'scroll-command t)
 
+(defun mouse-wheel-text-scale (event)
+  "Increase or decrease the height of the default face according to the EVENT."
+  (interactive (list last-input-event))
+  (let ((selected-window (selected-window))
+        (scroll-window (mouse-wheel--get-scroll-window event))
+        (button (mwheel-event-button event)))
+    (select-window scroll-window 'mark-for-redisplay)
+    (unwind-protect
+        (cond ((eq button mouse-wheel-down-event)
+               (text-scale-increase 1))
+              ((eq button mouse-wheel-up-event)
+               (text-scale-decrease 1)))
+      (select-window selected-window))))
+
 (defvar mwheel-installed-bindings nil)
 (defvar mwheel-installed-text-scale-bindings nil)
 
@@ -347,8 +368,7 @@ This is a helper function for `mouse-wheel-mode'."
   (mouse-wheel--remove-bindings mwheel-installed-bindings
                                 '(mwheel-scroll))
   (mouse-wheel--remove-bindings mwheel-installed-text-scale-bindings
-                                '(text-scale-increase
-                                  text-scale-decrease))
+                                '(mouse-wheel-text-scale))
   (setq mwheel-installed-bindings nil)
   (setq mwheel-installed-text-scale-bindings nil)
   ;; Setup bindings as needed.
@@ -357,12 +377,10 @@ This is a helper function for `mouse-wheel-mode'."
       (cond
        ;; Bindings for changing font size.
        ((and (consp binding) (eq (cdr binding) 'text-scale))
-        (let ((increase-key `[,(list (caar binding) mouse-wheel-down-event)])
-              (decrease-key `[,(list (caar binding) mouse-wheel-up-event)]))
-          (global-set-key increase-key 'text-scale-increase)
-          (global-set-key decrease-key 'text-scale-decrease)
-          (push increase-key mwheel-installed-text-scale-bindings)
-          (push decrease-key mwheel-installed-text-scale-bindings)))
+        (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
+          (let ((key `[,(list (caar binding) event)]))
+            (global-set-key key 'mouse-wheel-text-scale)
+            (push key mwheel-installed-text-scale-bindings))))
        ;; Bindings for scrolling.
        (t
         (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event

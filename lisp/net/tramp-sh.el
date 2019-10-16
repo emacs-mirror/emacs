@@ -537,7 +537,7 @@ based on the Tramp and Emacs versions, and should not be set here."
 ;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
   '(("/bash\\'" . "-norc -noprofile")
-    ("/zsh\\'" . "-f +Z"))
+    ("/zsh\\'" . "-f +Z -V"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
@@ -547,6 +547,7 @@ This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
 shell from reading its init file."
   :group 'tramp
+  :version "27.1"
   :type '(alist :key-type regexp :value-type string))
 
 (defconst tramp-actions-before-shell
@@ -4661,13 +4662,11 @@ Goes through the list `tramp-inline-compress-commands'."
 	     ;; Host.
 	     (string-match-p
 	      (or (eval (nth 0 item)) "")
-	      (or (tramp-file-name-host-port (car target-alist))
-		  ""))
+	      (or (tramp-file-name-host-port (car target-alist)) ""))
 	     ;; User.
 	     (string-match-p
 	      (or (eval (nth 1 item)) "")
-	      (or (tramp-file-name-user-domain (car target-alist))
-		  "")))
+	      (or (tramp-file-name-user-domain (car target-alist)) "")))
 	(if (null proxy)
 	    ;; No more hops needed.
 	    (setq choices nil)
@@ -4869,6 +4868,7 @@ connection if a previous connection has died for some reason."
 		     ;; W32 systems.
 		     (process-coding-system-alist nil)
 		     (coding-system-for-read nil)
+		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
 		     ;; This must be done in order to avoid our file
 		     ;; name handler.
 		     (p (let ((default-directory
@@ -4877,10 +4877,11 @@ connection if a previous connection has died for some reason."
 			   #'start-process
 			   (tramp-get-connection-name vec)
 			   (tramp-get-connection-buffer vec)
-			   (if tramp-encoding-command-interactive
-			       (list tramp-encoding-shell
-				     tramp-encoding-command-interactive)
-			     (list tramp-encoding-shell))))))
+			   (append
+			    (list tramp-encoding-shell)
+			    (and tramp-encoding-command-interactive
+				 (list tramp-encoding-command-interactive))
+			    (and extra-args (split-string extra-args)))))))
 
 		;; Set sentinel and query flag.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)

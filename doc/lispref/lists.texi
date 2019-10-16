@@ -1781,6 +1781,41 @@ compares the @sc{cdr} of each @var{alist} association instead of the
 @sc{car}.
 @end defun
 
+@defmac let-alist alist body
+Creates a binding for each symbol used as keys the association list
+@var{alist}, prefixed with dot.  This can be useful when accessing
+several items in the same association list, and it's best understood
+through a simple example:
+
+@lisp
+(setq colors '((rose . red) (lily . white) (buttercup . yellow)))
+(let-alist colors
+  (if (eq .rose 'red)
+      .lily))
+=> white
+@end lisp
+
+The @var{body} is inspected at compilation time, and only the symbols
+that appear in @var{body} with a @samp{.} as the first character in
+the symbol name will be bound.  Finding the keys is done with
+@code{assq}, and the @code{cdr} of the return value of this
+@code{assq} is assigned as the value for the binding.
+
+Nested association lists is supported:
+
+@lisp
+(setq colors '((rose . red) (lily (belladonna . yellow) (brindisi . pink))))
+(let-alist colors
+  (if (eq .rose 'red)
+      .lily.belladonna))
+=> yellow
+@end lisp
+
+Nesting @code{let-alist} inside each other is allowed, but the code in
+the inner @code{let-alist} can't access the variables bound by the
+outer @code{let-alist}.
+@end defmac
+
 @node Property Lists
 @section Property Lists
 @cindex property list

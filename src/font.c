@@ -3785,10 +3785,10 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 
       if (STRINGP (string))
 	face_id = face_at_string_position (w, string, pos, 0, &endptr,
-					   DEFAULT_FACE_ID, false);
+	                                   DEFAULT_FACE_ID, false, 0);
       else
 	face_id = face_at_buffer_position (w, pos, &endptr,
-					   pos + 100, false, -1);
+	                                   pos + 100, false, -1, 0);
       face = FACE_FROM_ID (f, face_id);
     }
   if (multibyte)
@@ -3832,7 +3832,7 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 
       if (NILP (string))
 	  face_id = face_at_buffer_position (w, pos, &ignore, *limit,
-					     false, -1);
+	                                     false, -1, 0);
       else
 	{
 	  face_id =
@@ -3841,7 +3841,7 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 	    : lookup_basic_face (w, f, DEFAULT_FACE_ID);
 
 	  face_id = face_at_string_position (w, string, pos, 0, &ignore,
-					     face_id, false);
+	                                     face_id, false, 0);
 	}
       face = FACE_FROM_ID (f, face_id);
     }
@@ -4618,7 +4618,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       w = XWINDOW (window);
       f = XFRAME (w->frame);
       face_id = face_at_buffer_position (w, pos, &dummy,
-					 pos + 100, false, -1);
+                                         pos + 100, false, -1, 0);
     }
   if (! CHAR_VALID_P (c))
     return Qnil;

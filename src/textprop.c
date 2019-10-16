@@ -1351,7 +1351,7 @@ into it.  */)
 			 (NILP (append)
 			  ? TEXT_PROPERTY_PREPEND
 			  : TEXT_PROPERTY_APPEND),
-			 !STRINGP (object));
+			 false);
   return Qnil;
 }
 

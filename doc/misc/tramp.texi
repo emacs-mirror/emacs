@@ -2101,7 +2101,7 @@ be recomputed.  To force @value{tramp} to recompute afresh, call
 @section Remote shell setup hints
 
 
-@subsection Changing the default remote shell
+@subsection Changing the default remote or local shell
 @cindex zsh setup
 
 Per default, @value{tramp} uses the command @command{/bin/sh} for
@@ -2123,9 +2123,22 @@ remote login shell, like @option{sshx} or @option{plink}.  See
 @ref{Inline methods} and @ref{External methods} for connection methods
 which support this.
 
+@vindex tramp-sh-extra-args
 This approach has also the advantage, that settings in
-@code{tramp-sh-extra-args} will be applied.  For zsh, the trouble
-with the shell prompt due to set zle options will be avoided.
+@code{tramp-sh-extra-args} will be applied.  For @command{zsh}, the
+trouble with the shell prompt due to set zle options will be avoided.
+
+Similar problems can happen with the local shell Tramp uses to create
+a process.  Per default, it uses the command @command{/bin/sh} for
+this, which could also be a link to another shell.  In order to
+overwrite this, you might apply
+
+@vindex tramp-encoding-shell
+@lisp
+(customize-set-variable 'tramp-encoding-shell "/usr/bin/zsh")
+@end lisp
+
+This uses also the settings in @code{tramp-sh-extra-args}.
 
 
 @subsection Other remote shell setup hints

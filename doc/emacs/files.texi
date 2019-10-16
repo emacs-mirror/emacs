@@ -419,6 +419,9 @@ about other buffers.
 View the buffer that you are currently being asked about.  When you exit
 View mode, you get back to @code{save-some-buffers}, which asks the
 question again.
+@item C-f
+Exit @code{save-some-buffers} and visit the buffer that you are
+currently being asked about.
 @item d
 Diff the buffer against its corresponding file, so you can see what
 changes you would be saving.  This calls the command

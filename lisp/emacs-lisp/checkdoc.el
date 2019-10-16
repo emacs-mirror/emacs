@@ -1952,11 +1952,10 @@ from the comment."
 	;; new obarray.
 	(if (not (listp lst)) (setq lst nil))
 	(unless is-advice
-          ;; lst here can be something like ((foo bar) baz) from
+          ;; (car lst) can be something like ((foo bar) baz) from
           ;; cl-lib methods; flatten it:
-          (setq lst (flatten-tree lst))
 	  (while lst
-	    (setq ret (cons (symbol-name (car lst)) ret)
+	    (setq ret (cons (symbol-name (car (flatten-tree (car lst)))) ret)
 		  lst (cdr lst)))))
       (nreverse ret))))
 

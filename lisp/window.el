@@ -4422,7 +4422,9 @@ shall not be switched to in future invocations of this command.
 As a special case, if BURY-OR-KILL equals `append', this means to
 move the buffer to the end of WINDOW's previous buffers list so a
 future invocation of `switch-to-prev-buffer' less likely switches
-to it."
+to it.
+
+This function is called by `prev-buffer'."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
@@ -4545,7 +4547,7 @@ to it."
   "In WINDOW switch to next buffer.
 WINDOW must be a live window and defaults to the selected one.
 Return the buffer switched to, nil if no suitable buffer could be
-found."
+found.  This function is called by `next-buffer'."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
@@ -4745,27 +4747,33 @@ displayed there."
   (interactive)
   (switch-to-buffer (last-buffer)))
 
-(defun next-buffer ()
-  "In selected window switch to next buffer."
-  (interactive)
+(defun next-buffer (&optional arg)
+  "In selected window switch to ARGth next buffer.
+Call `switch-to-next-buffer' unless the selected window is the
+minibuffer window or is dedicated to its buffer."
+  (interactive "p")
   (cond
    ((window-minibuffer-p)
-    (error "Cannot switch buffers in minibuffer window"))
+    (user-error "Cannot switch buffers in minibuffer window"))
    ((eq (window-dedicated-p) t)
-    (error "Window is strongly dedicated to its buffer"))
+    (user-error "Window is strongly dedicated to its buffer"))
    (t
-    (switch-to-next-buffer))))
+    (dotimes (_ (or arg 1))
+      (switch-to-next-buffer)))))
 
-(defun previous-buffer ()
-  "In selected window switch to previous buffer."
-  (interactive)
+(defun previous-buffer (&optional arg)
+  "In selected window switch to ARGth previous buffer.
+Call `switch-to-prev-buffer' unless the selected window is the
+minibuffer window or is dedicated to its buffer."
+  (interactive "p")
   (cond
    ((window-minibuffer-p)
-    (error "Cannot switch buffers in minibuffer window"))
+    (user-error "Cannot switch buffers in minibuffer window"))
    ((eq (window-dedicated-p) t)
-    (error "Window is strongly dedicated to its buffer"))
+    (user-error "Window is strongly dedicated to its buffer"))
    (t
-    (switch-to-prev-buffer))))
+    (dotimes (_ (or arg 1))
+      (switch-to-prev-buffer)))))
 
 (defun delete-windows-on (&optional buffer-or-name frame)
   "Delete all windows showing BUFFER-OR-NAME.
@@ -8501,6 +8509,41 @@ WINDOW must be a live window and defaults to the selected one."
 			     (eobp)
 			     window))))
 
+(defun window-default-font-height (&optional window)
+  "Return height in pixels of WINDOW's default face font.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value accounts for any remapping of the default face
+font on WINDOW's frame."
+  (let* ((window (window-normalize-window window t))
+	 (frame (window-frame window))
+	 (default-font (face-font 'default frame)))
+    (if (and (display-multi-font-p (frame-parameter frame 'display))
+	     (not (string-equal (frame-parameter frame 'font) default-font)))
+        (aref (font-info default-font frame) 3)
+      (frame-char-height frame))))
+
+(defun window-default-line-height (&optional window)
+  "Return height in pixels of a text line in WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value includes any line spacing defined for WINDOW's
+buffer or frame and accounts for any remapping of the default
+face on WINDOW's frame."
+  (let* ((window (window-normalize-window window t))
+	 (font-height (window-default-font-height window))
+	 (frame (window-frame window))
+	 (buffer (window-buffer window))
+	 (space-height
+	  (or (and (display-graphic-p frame)
+		   (or (buffer-local-value 'line-spacing buffer)
+		       (frame-parameter frame 'line-spacing)))
+	      0)))
+    (+ font-height
+       (if (floatp space-height)
+           (truncate (* (frame-char-height frame) space-height))
+         space-height))))
+
 ;;; Resizing windows and frames to fit their contents exactly.
 (defcustom fit-window-to-buffer-horizontally nil
   "Non-nil means `fit-window-to-buffer' can resize windows horizontally.
@@ -8643,6 +8686,7 @@ parameters of FRAME."
            (char-height (frame-char-height frame))
            ;; WINDOW is FRAME's root window.
            (window (frame-root-window frame))
+           (line-height (window-default-line-height window))
            (parent (frame-parent frame))
            (monitor-attributes
             (unless parent
@@ -8739,16 +8783,16 @@ parameters of FRAME."
            (max-height
             (min
              (cond
-              ((numberp max-height) (* max-height char-height))
-              ((numberp (nth 0 sizes)) (* (nth 0 sizes) char-height))
+              ((numberp max-height) (* max-height line-height))
+              ((numberp (nth 0 sizes)) (* (nth 0 sizes) line-height))
               (t parent-or-display-height))
              ;; The following is the maximum height that fits into the
              ;; top and bottom margins.
              (max (- bottom-margin top-margin outer-minus-body-height))))
            (min-height
             (cond
-             ((numberp min-height) (* min-height char-height))
-             ((numberp (nth 1 sizes)) (* (nth 1 sizes) char-height))
+             ((numberp min-height) (* min-height line-height))
+             ((numberp (nth 1 sizes)) (* (nth 1 sizes) line-height))
              (t (window-min-size window nil nil t))))
            (max-width
             (min
@@ -8871,124 +8915,118 @@ accessible position."
 	 max-height min-height max-width min-width
 	 (and (memq fit-frame-to-buffer '(vertically horizontally))
 	      fit-frame-to-buffer)))
-    (with-selected-window window
-      (let* ((pixelwise window-resize-pixelwise)
-	     (char-height (frame-char-height))
-	     (char-width (frame-char-width))
-	     (total-height (window-size window nil pixelwise))
-	     (body-height (window-body-height window pixelwise))
-	     (body-width (window-body-width window pixelwise))
-	     (min-height
-	      ;; Sanitize MIN-HEIGHT.
-	      (if (numberp min-height)
-		  ;; Can't get smaller than `window-safe-min-height'.
-		  (max (if pixelwise
-			   (* char-height min-height)
-			 min-height)
-		       (if pixelwise
-			   (window-safe-min-pixel-height window)
-			 window-safe-min-height))
-		;; Preserve header and mode line if present.
-		(max (if pixelwise
-			 (* char-height window-min-height)
-		       window-min-height)
-		     (window-min-size window nil window pixelwise))))
-	     (max-height
-	      ;; Sanitize MAX-HEIGHT.
-	      (if (numberp max-height)
-		  (min
-		   (+ total-height
-		      (window-max-delta
-		       window nil window nil t nil pixelwise))
-		   (if pixelwise
-		       (* char-height max-height)
-		     max-height))
-		(+ total-height (window-max-delta
-				 window nil window nil t nil pixelwise))))
-	     height)
-	(cond
-	 ;; If WINDOW is vertically combined, try to resize it
-	 ;; vertically.
-	 ((and (not (eq fit-window-to-buffer-horizontally 'only))
-	       (not (window-size-fixed-p window 'preserved))
-	       (window-combined-p))
+    (let* ((pixelwise window-resize-pixelwise)
+           (frame (window-frame window))
+           (char-height (frame-char-height frame)))
+      (cond
+       ;; If WINDOW is vertically combined, try to resize it
+       ;; vertically.
+       ((and (not (eq fit-window-to-buffer-horizontally 'only))
+	     (not (window-size-fixed-p window 'preserved))
+	     (window-combined-p window))
+        (let* ((line-height (window-default-line-height window))
+	       (total-height (window-size window nil pixelwise))
+               (min-height
+	        ;; Sanitize MIN-HEIGHT.
+	        (if (numberp min-height)
+	            ;; Can't get smaller than `window-safe-min-height'.
+	            (max (if pixelwise
+			     (* line-height min-height)
+		           min-height)
+		         (if pixelwise
+			     (window-safe-min-pixel-height window)
+		           window-safe-min-height))
+	          ;; Preserve header and mode line if present.
+	          (max (if pixelwise
+		           (* line-height window-min-height)
+		         window-min-height)
+		       (window-min-size window nil window pixelwise))))
+	       (max-height
+	        ;; Sanitize MAX-HEIGHT.
+	        (if (numberp max-height)
+	            (min
+		     (+ total-height
+		        (window-max-delta
+		         window nil window nil t nil pixelwise))
+		     (if pixelwise
+		         (* line-height max-height)
+		       (/ (* line-height max-height) line-height)))
+	          (+ total-height (window-max-delta
+			           window nil window nil t nil pixelwise))))
+	       (height (+ (cdr (window-text-pixel-size
+			        window nil t nil (frame-pixel-height frame) t))
+		          (window-scroll-bar-height window)
+		          (window-bottom-divider-width window))))
 	  ;; Vertically we always want to fit the entire buffer.
 	  ;; WINDOW'S height can't get larger than its frame's pixel
 	  ;; height.  Its width remains fixed.
-	  (setq height (+ (cdr (window-text-pixel-size
-				nil nil t nil (frame-pixel-height) t))
-			  (window-scroll-bar-height window)
-			  (window-bottom-divider-width)))
 	  ;; Round height.
 	  (unless pixelwise
 	    (setq height (/ (+ height char-height -1) char-height)))
+          (setq height (max min-height (min max-height height)))
 	  (unless (= height total-height)
 	    (window-preserve-size window)
 	    (window-resize-no-error
-	     window
-	     (- (max min-height (min max-height height)) total-height)
-	     nil window pixelwise)
+	     window (- height total-height) nil window pixelwise)
 	    (when preserve-size
-	      (window-preserve-size window nil t))))
-	 ;; If WINDOW is horizontally combined, try to resize it
-	 ;; horizontally.
-	 ((and fit-window-to-buffer-horizontally
-	       (not (window-size-fixed-p window t 'preserved))
-	       (window-combined-p nil t))
-	  (let* ((total-width (window-size window t pixelwise))
-		 (min-width
-		  ;; Sanitize MIN-WIDTH.
-		  (if (numberp min-width)
-		      ;; Can't get smaller than `window-safe-min-width'.
-		      (max (if pixelwise
-			       (* char-width min-width)
-			     min-width)
-			   (if pixelwise
-			       (window-safe-min-pixel-width)
-			     window-safe-min-width))
-		    ;; Preserve fringes, margins, scrollbars if present.
+	      (window-preserve-size window nil t)))))
+       ;; If WINDOW is horizontally combined, try to resize it
+       ;; horizontally.
+       ((and fit-window-to-buffer-horizontally
+	     (not (window-size-fixed-p window t 'preserved))
+	     (window-combined-p window t))
+	(let* ((char-width (frame-char-width frame))
+               (total-width (window-size window t pixelwise))
+	       (min-width
+		;; Sanitize MIN-WIDTH.
+		(if (numberp min-width)
+		    ;; Can't get smaller than `window-safe-min-width'.
 		    (max (if pixelwise
-			     (* char-width window-min-width)
-			   window-min-width)
-			 (window-min-size nil nil window pixelwise))))
-		 (max-width
-		  ;; Sanitize MAX-WIDTH.
-		  (if (numberp max-width)
-		      (min (+ total-width
-			      (window-max-delta
-			       window t window nil t nil pixelwise))
-			   (if pixelwise
-			       (* char-width max-width)
-			     max-width))
-		    (+ total-width (window-max-delta
-				    window t window nil t nil pixelwise))))
-		 ;; When fitting horizontally, assume that WINDOW's
-		 ;; start position remains unaltered.  WINDOW can't get
-		 ;; wider than its frame's pixel width, its height
-		 ;; remains unaltered.
-		 (width (+ (car (window-text-pixel-size
-				 nil (window-start) (point-max)
-				 (frame-pixel-width)
-				 ;; Add one char-height to assure that
-				 ;; we're on the safe side.  This
-				 ;; overshoots when the first line below
-				 ;; the bottom is wider than the window.
-				 (* body-height
-				    (if pixelwise 1 char-height))))
-			   (window-right-divider-width))))
-	    (unless pixelwise
-	      (setq width (/ (+ width char-width -1) char-width)))
-	    (unless (= width body-width)
-	      (window-preserve-size window t)
-	      (window-resize-no-error
-	       window
-	       (- (max min-width
-		       (min max-width
-			    (+ total-width (- width body-width))))
-		  total-width)
-	       t window pixelwise)
-	      (when preserve-size
-		(window-preserve-size window t t))))))))))
+			     (* char-width min-width)
+			   min-width)
+			 (if pixelwise
+			     (window-safe-min-pixel-width window)
+			   window-safe-min-width))
+		  ;; Preserve fringes, margins, scrollbars if present.
+		  (max (if pixelwise
+			   (* char-width window-min-width)
+			 window-min-width)
+		       (window-min-size window nil window pixelwise))))
+	       (max-width
+		;; Sanitize MAX-WIDTH.
+		(if (numberp max-width)
+		    (min (+ total-width
+			    (window-max-delta
+			     window t window nil t nil pixelwise))
+			 (if pixelwise
+			     (* char-width max-width)
+			   max-width))
+		  (+ total-width (window-max-delta
+				  window t window nil t nil pixelwise))))
+	       ;; When fitting horizontally, assume that WINDOW's
+	       ;; start position remains unaltered.  WINDOW can't get
+	       ;; wider than its frame's pixel width, its height
+	       ;; remains unaltered.
+	       (width (+ (car (window-text-pixel-size
+			       window (window-start) (point-max)
+			       (frame-pixel-width)
+			       ;; Add one line-height to assure that
+			       ;; we're on the safe side.  This
+			       ;; overshoots when the first line below
+			       ;; the bottom is wider than the window.
+			       (* (window-body-height window pixelwise)
+				  (if pixelwise 1 char-height))))
+                         (- total-width
+                            (window-body-width window pixelwise)))))
+	  (unless pixelwise
+	    (setq width (/ (+ width char-width -1) char-width)))
+          (setq width (max min-width (min max-width width)))
+	  (unless (= width total-width)
+	    (window-preserve-size window t)
+	    (window-resize-no-error
+             window (- width total-width) t window pixelwise)
+	    (when preserve-size
+	      (window-preserve-size window t t)))))))))
 
 (defun window-safely-shrinkable-p (&optional window)
   "Return t if WINDOW can be shrunk without shrinking other windows.

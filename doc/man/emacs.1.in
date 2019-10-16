@@ -280,10 +280,11 @@ The geometry specification is in the standard X format; see
 .BR X (7)
 for more information.
 The width and height are specified in characters; the default for GUI
-frames is 80 by 36.
+frames is a width of 80 and a height between 35 and 40, depending on
+the OS and the window manager.
 See the Emacs manual, section "Options for Window Size and Position",
 for information on how window sizes interact
-with selecting or deselecting the tool bar and menu bar.
+with selecting or deselecting the tool bar, tab bar and menu bar.
 .TP
 .BI \-lsp " pixels\fR,\fP " \-\-line\-spacing= "pixels"
 Additional space to put between lines.
@@ -515,6 +516,9 @@ window.
 .TP
 .BR toolBar " (class " ToolBar )
 Number of lines to reserve for the tool bar.
+.TP
+.BR tabBar " (class " TabBar )
+Number of lines to reserve for the tab bar.
 .TP
 .BR useXIM " (class " UseXIM )
 Turns off use of X input methods (XIM) if

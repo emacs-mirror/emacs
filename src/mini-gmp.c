@@ -3427,7 +3427,7 @@ gmp_lucas_mod (mpz_t V, mpz_t Qk, long Q,
       gmp_lucas_step_k_2k (V, Qk, n);
 
       /* A step k->k+1 is performed if the bit in $n$ is 1	*/
-      /* mpz_tstbit(n,bs) or the the bit is 0 in $n$ but	*/
+      /* mpz_tstbit(n,bs) or the bit is 0 in $n$ but	*/
       /* should be 1 in $n+1$ (bs == b0)			*/
       if (b0 == bs || mpz_tstbit (n, bs))
 	{
@@ -4492,7 +4492,7 @@ mpz_export (void *r, size_t *countp, int order, size_t size, int endian,
       ptrdiff_t word_step;
       /* The current (partial) limb. */
       mp_limb_t limb;
-      /* The number of bytes left to to in this limb. */
+      /* The number of bytes left to do in this limb. */
       size_t bytes;
       /* The index where the limb was read. */
       mp_size_t i;

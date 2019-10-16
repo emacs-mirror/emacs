@@ -650,7 +650,8 @@ indentation looks like this (different):
       </element>
   )"
   :version "27.1"
-  :type 'integer
+  :type '(choice integer
+                 (const :tag "Not Set" nil))
   :safe (lambda (x) (or (null x) (integerp x)))
   :group 'js)
 ;; This is how indentation behaved out-of-the-box until Emacs 27.  JSX

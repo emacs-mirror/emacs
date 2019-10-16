@@ -241,8 +241,8 @@ Return a bovination list to use."
        (semantic-elisp-desymbolify-args (nth 2 form))
        :user-visible-flag (eq (car-safe (nth 4 form)) 'interactive)
        :documentation (semantic-elisp-do-doc (nth 3 form))
-       :overloadable (or (eq (car form) 'define-overload)
-			 (eq (car form) 'define-overloadable-function))
+       :overloadable (memq (car form) '(define-overload
+                                        define-overloadable-function))
        ))
   defun
   defun*

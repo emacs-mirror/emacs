@@ -3265,7 +3265,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	   (tmp-name3 (tramp--test-make-temp-name 'local quoted))
 	   (tmp-name4 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name5
-	    (expand-file-name (file-name-nondirectory tmp-name1) tmp-name4)))
+	    (expand-file-name (file-name-nondirectory tmp-name1) tmp-name4))
+	   (tmp-name6 (tramp--test-make-temp-name nil quoted)))
       ;; Check `make-symbolic-link'.
       (unwind-protect
 	  (tramp--test-ignore-make-symbolic-link-error
@@ -3333,17 +3334,20 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (if quoted #'tramp-compat-file-name-unquote #'identity)
 	       (file-remote-p tmp-name1 'localname))
 	      (file-symlink-p tmp-name5)))
-	    ;; `smbclient' does not show symlinks in directories, so
-	    ;; we cannot delete a non-empty directory.  We delete the
-	    ;; file explicitly.
-	    (delete-file tmp-name5))
+	    ;; Check, that files in symlinked directories still work.
+	    (make-symbolic-link tmp-name4 tmp-name6)
+	    (write-region "foo" nil (expand-file-name "foo" tmp-name6))
+	    (delete-file (expand-file-name "foo" tmp-name6))
+	    (should-not (file-exists-p (expand-file-name "foo" tmp-name4)))
+	    (should-not (file-exists-p (expand-file-name "foo" tmp-name6))))
 
 	;; Cleanup.
-	(ignore-errors
-	  (delete-file tmp-name1)
-	  (delete-file tmp-name2)
-	  (delete-file tmp-name3)
-	  (delete-directory tmp-name4 'recursive)))
+	(ignore-errors (delete-file tmp-name1))
+	(ignore-errors (delete-file tmp-name2))
+	(ignore-errors (delete-file tmp-name3))
+	(ignore-errors (delete-file tmp-name5))
+	(ignore-errors (delete-file tmp-name6))
+	(ignore-errors (delete-directory tmp-name4 'recursive)))
 
       ;; Check `add-name-to-file'.
       (unwind-protect

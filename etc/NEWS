@@ -131,6 +131,9 @@ builds respectively.
 
 ** New make target 'help' shows a summary of common make targets.
 
+** Emacs now builds with dynamic module support by default.  Pass
+'--without-modules' to 'configure' to disable dynamic module support.
+
 
 * Startup Changes in Emacs 27.1
 
@@ -384,6 +387,14 @@ matches strings where the pattern appears as a subsequence.  Put
 simply, makes "foo" complete to both "barfoo" and "frodo".  Add 'flex'
 to 'completion-styles' or 'completion-category-overrides' to use it.
 
++++
+** New face attribute ':extend' to control face extension at EOL.
+The new face attribute ':extend' controls whether to use the face for
+displaying the empty space beyond end of line (EOL) till the edge of
+the window.  By default, this attribute is non-nil only for 'region'
+and 'hl-line' faces; any other face that crosses end of line will not
+affect the display of the empty space at EOL.
+
 ** Connection-local variables
 
 +++
@@ -452,6 +463,21 @@ Note that this key binding will not work on MS-Windows systems if
 
 
 * Editing Changes in Emacs 27.1
+
++++
+** 'zap-to-char' now uses history of characters you used to zap to.
+'zap-to-char' uses the new 'read-char-with-history' function to allow
+navigating through the history of characters that have been input.
+This is mostly useful for characters that have complex input methods
+where inputting the character again may involve many keystrokes.
+
++++
+** 'save-some-buffers' now has a new action in the prompt: 'C-f' will
+exit the command and switch to the buffer currently being asked about.
+
++++
+** The new 'amalgamating-undo-limit' variable can be used to control
+how many changes should be amalgamated when using the 'undo' command.
 
 ---
 ** The 'newline-and-indent' command (commonly bound to 'RET' in many
@@ -540,6 +566,11 @@ current and the previous or the next line, as before.
 * Changes in Specialized Modes and Packages in Emacs 27.1
 
 ---
+** The 'C' command in 'tar-mode' will now preserve the timestamp of
+the extracted file if the new variable 'tar-copy-preserve-time' is
+non-nil.
+
+---
 ** 'autoconf-mode' is now used instead of 'm4-mode' for the
 acinclude.m4/aclocal.m4/acsite.m4 files.
 
@@ -560,10 +591,14 @@ now prompts the user for the directory containing the desktop file.
 
 +++
 ** display-line-numbers-mode
+
 *** New faces 'line-number-major-tick' and 'line-number-minor-tick',
 and customizable variables 'display-line-numbers-major-tick' and
 'display-line-numbers-minor-tick' can be used to highlight the line
 numbers of lines multiple of certain numbers.
+
+*** New variable `display-line-numbers-offset', when non-zero, adds
+an offset to absolute line numbers.
 
 +++
 ** winner
@@ -608,6 +643,10 @@ be functions.
 nil, but instead of scrolling the current line to the top of the
 screen when there is no left fringe, it inserts a visible arrow before
 column zero.
+---
+*** The new 'compilation-transform-file-match-alist' variable can be used
+to transform file name matches compilation output, and remove known
+false positives being recognised as warnings/errors.
 
 ** cl-lib.el
 +++
@@ -653,6 +692,8 @@ at the end of the active minibuffer.
 *** New generic function 'map-insert'.
 
 +++
+** The 'type' arg can be a list '(hash-table :key1 VAL1 :key2 VAL2 ...)'
+
 ** seq.el
 New convenience functions 'seq-first' and 'seq-rest' give easy access
 to respectively the first and all but the first elements of sequences.
@@ -733,6 +774,10 @@ In 'bibtex-mode-map', 'forward-paragraph' and 'backward-paragraph' are
 remapped to these, respectively.
 
 ** Dired
+
+---
+*** On systems that support suid/guid files, Dired now fontifies the
+permissions of such files with a special face 'dired-set-id'.
 
 +++
 *** New command 'dired-create-empty-file'.
@@ -1556,6 +1601,10 @@ variable for remote shells.  It still defaults to "/bin/sh".
 *** 'async-shell-command-width' defines the number of display columns
 available for output of asynchronous shell commands.
 
++++
+*** Prompt for shell commands can now show the current directory.
+Customize 'shell-command-prompt-show-cwd' to enable it.
+
 ** Pcomplete
 
 *** The 'pcomplete' command is now obsolete
@@ -2058,14 +2107,17 @@ Emacs init file does not expose you to this change.  However,
 if you set 'time-stamp-format' or 'time-stamp-pattern' with a
 file-local variable, you may need to update the value.
 
+** mode-local
+*** define-overload is declared obsolete
+
 
 * New Modes and Packages in Emacs 27.1
 
 ** Tab Bars
 
 +++
-*** Tab-Bar mode
-The new command 'tab-bar-mode' enables the tab-bar at the top of each
+*** Tab Bar mode
+The new command 'tab-bar-mode' enables the tab bar at the top of each
 frame, where you can use tabs to switch between named persistent
 window configurations.
 
@@ -2076,20 +2128,26 @@ edit file in another tab; and 'C-TAB' and 'S-C-TAB' switch to the next
 or previous tab.  You can also switch between tabs and create/delete
 tabs with a mouse.
 
-Tab-related commands are available even when the Tab-Bar mode is
-disabled: by default, they enable Tab-Bar mode in that case.
+Tab-related commands are available even when the tab-bar-mode is
+disabled: by default, they enable tab-bar-mode in that case.
+
+The X resource "tabBar", class "TabBar" enables the tab bar
+when its value is "on", "yes" or "1".
+
+The variable 'tab-bar-position' specifies where to show the tab bar.
 
 Read the new Info node "(emacs) Tab Bars" for full description
 of all related features.
 
-*** Tab-Line mode
-The new command 'global-tab-line-mode' enables the tab-line above each
+*** Tab Line mode
+The new command 'global-tab-line-mode' enables the tab line above each
 window, which you can use to switch buffers in the window.  Selecting
 the previous window-local tab is the same as typing 'C-x <LEFT>'
 (previous-buffer), selecting the next tab is the same as 'C-x <RIGHT>'
-(next-buffer).  Clicking on the plus icon adds a new buffer to the
-window-local tab-line of buffers.  Using the mouse wheel on the
-tab-line scrolls tabs that display the window buffers.
+(next-buffer).  Both commands support a numeric prefix argument as
+a repeat count.  Clicking on the plus icon adds a new buffer to the
+window-local tab line of buffers.  Using the mouse wheel on the tab
+line scrolls tabs that display the window buffers.
 
 ** fileloop.el lets one setup multifile operations like search&replace.
 
@@ -2335,8 +2393,26 @@ To get the old behaviour back, customize the variable
 (customize-set-variable 'mouse-wheel-scroll-amount
                         '(5 ((shift) . 1) ((control) . nil)))
 
+By default, the font size will be changed in the window that the mouse
+pointer is over.  To change this behaviour, you can customize the
+option 'mouse-wheel-follow-mouse'.  Note that this will also affect
+scrolling.
+
 
 * Lisp Changes in Emacs 27.1
+
++++
+** New macro 'benchmark-progn'.
+This macro works like 'progn', but messages how long it takes to
+evaluate the body forms.  The value of the last form is the return
+value.
+
+** New function 'read-char-with-history'.
+This function works like 'read-char', but maintains a history that can
+be navigated via the 'M-p'/'M-n' keystrokes.
+
+** 'setq-local' can now set an arbitrary number of variables, which
+makes the syntax more like 'setq'.
 
 ** 'reveal-mode' can now also be used for more than to toggle between
 invisible and visible: It can also toggle 'display' properties in

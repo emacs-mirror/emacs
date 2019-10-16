@@ -3748,8 +3748,9 @@ be installed in `emacs-lisp-mode-map'.")
     map)
   "Global map of edebug commands, available from any buffer.")
 
-(global-unset-key global-edebug-prefix)
-(global-set-key global-edebug-prefix global-edebug-map)
+(when global-edebug-prefix
+  (global-unset-key global-edebug-prefix)
+  (global-set-key global-edebug-prefix global-edebug-map))
 
 
 (defun edebug-help ()

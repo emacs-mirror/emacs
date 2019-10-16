@@ -815,9 +815,14 @@ Returns nil if line starts inside a string, t if in a comment."
 	   state
 	   containing-sexp
 	   found-next-line)
-      (if parse-start
-	  (goto-char parse-start)
-	(beginning-of-defun))
+      (cond
+       (parse-start
+	(goto-char parse-start))
+       ((not (beginning-of-defun))
+        ;; If we're not in a function, don't use
+        ;; `tcl-beginning-of-defun-function'.
+        (let ((beginning-of-defun-function nil))
+          (beginning-of-defun))))
       (while (< (point) indent-point)
 	(setq parse-start (point))
 	(setq state (parse-partial-sexp (point) indent-point 0))
@@ -1216,7 +1221,6 @@ first word following a semicolon, opening brace, or opening bracket."
      (t
       (memq (preceding-char) '(?\; ?{ ?\[))))))
 
-;; FIXME doesn't actually return t.  See last case.
 (defun tcl-real-comment-p ()
   "Return t if point is just after the `#' beginning a real comment.
 Does not check to see if previous char is actually `#'.
@@ -1225,7 +1229,7 @@ preceded only by whitespace on the line, or has a preceding
 semicolon, opening brace, or opening bracket on the same line."
   (save-excursion
     (backward-char)
-    (tcl-real-command-p)))
+    (and (tcl-real-command-p) t)))
 
 (defun tcl-hairy-scan-for-comment (state end always-stop)
   "Determine if point is in a comment.

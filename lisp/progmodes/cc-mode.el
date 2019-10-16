@@ -377,7 +377,7 @@ control).  See \"cc-mode.el\" for more info."
     ;; to special combinations like C-c C-<delete>, so we have to hook
     ;; into the `normal-erase-is-backspace' system to bind it directly
     ;; as appropriate.
-    (add-hook 'normal-erase-is-backspace-hook 'c-bind-special-erase-keys)
+    (add-hook 'normal-erase-is-backspace-mode-hook 'c-bind-special-erase-keys)
     (c-bind-special-erase-keys))
 
   (when (fboundp 'delete-forward-p)

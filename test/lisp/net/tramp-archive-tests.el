@@ -569,7 +569,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	     (looking-at-p
 	      (concat
 	       ;; There might be a summary line.
-	       "\\(total.+[[:digit:]]+\n\\)?"
+	       "\\(total.+[[:digit:]]+ ?[kKMGTPEZY]?i?B?\n\\)?"
 	       ;; We don't know in which order the files appear.
 	       (format
 		"\\(.+ %s\\( ->.+\\)?\n\\)\\{%d\\}"

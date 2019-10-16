@@ -2482,6 +2482,19 @@ faces (@pxref{Displaying Faces}).  If the face to inherit from is
 never merges @code{:inherit} attributes.  If a list of faces is used,
 attributes from faces earlier in the list override those from later
 faces.
+
+@item :extend
+Whether or not this face will be extended beyond end of line and will
+affect the display of the empty space between the end of line and the
+edge of the window.  The value should be @code{t} to display the empty
+space between end of line and edge of the window using this face, or
+@code{nil} to not use this face for the space between the end of the
+line and the edge of the window.  When Emacs merges several faces for
+displaying the empty space beyond end of line, only those faces with
+@code{:extend} non-@code{nil} will be merged.  By default, only
+@code{region} and @code{hl-line} faces have this attribute set to
+@code{t}.
+
 @end table
 
 @defun font-family-list &optional frame
@@ -2842,6 +2855,11 @@ This sets the @code{:inverse-video} attribute of @var{face} to
 This swaps the foreground and background colors of face @var{face}.
 @end deffn
 
+@deffn Command set-face-extend face extend &optional frame
+This sets the @code{:extend} attribute of @var{face} to
+@var{extend}.
+@end deffn
+
   The following functions examine the attributes of a face.  They
 mostly provide compatibility with old versions of Emacs.  If you don't
 specify @var{frame}, they refer to the selected frame; @code{t} refers
@@ -2899,6 +2917,12 @@ a non-@code{nil} @code{:underline} attribute.
 This function returns non-@code{nil} if face @var{face} specifies
 a non-@code{nil} @code{:inverse-video} attribute.
 @end defun
+
+@defun face-extend-p face &optional frame
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:extend} attribute.
+@end defun
+
 
 @node Displaying Faces
 @subsection Displaying Faces

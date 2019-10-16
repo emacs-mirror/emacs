@@ -158,7 +158,10 @@ If the purpose of a function is to tell you whether a certain
 condition is true or false, give the function a name that ends in
 @samp{p} (which stands for ``predicate'').  If the name is one word,
 add just @samp{p}; if the name is multiple words, add @samp{-p}.
-Examples are @code{framep} and @code{frame-live-p}.
+Examples are @code{framep} and @code{frame-live-p}.  We recommend to
+avoid using this @code{-p} suffix in boolean variable names, unless
+the variable is bound to a predicate function; instead, use a
+@code{-flag} suffix or names like @code{is-foo}.
 
 @item
 If the purpose of a variable is to store a single function, give it a

@@ -3826,12 +3826,11 @@ delimit them from the body of the @code{let}.
 @findex if
 @cindex Conditional with @code{if}
 
-A third special form, in addition to @code{defun} and @code{let}, is the
-conditional @code{if}.  This form is used to instruct the computer to
-make decisions.  You can write function definitions without using
-@code{if}, but it is used often enough, and is important enough, to be
-included here.  It is used, for example, in the code for the
-function @code{beginning-of-buffer}.
+Anoter special form is the conditional @code{if}.  This form is used
+to instruct the computer to make decisions.  You can write function
+definitions without using @code{if}, but it is used often enough, and
+is important enough, to be included here.  It is used, for example, in
+the code for the function @code{beginning-of-buffer}.
 
 The basic idea behind an @code{if}, is that @emph{if} a test is true,
 @emph{then} an expression is evaluated.  If the test is not true, the
@@ -4204,8 +4203,8 @@ On the other hand, this function returns @code{nil} if the test is false.
 @findex point
 @findex mark
 
-The @code{save-excursion} function is the third and final special form
-that we will discuss in this chapter.
+The @code{save-excursion} function is the final special form that we
+will discuss in this chapter.
 
 In Emacs Lisp programs used for editing, the @code{save-excursion}
 function is very common.  It saves the location of point,

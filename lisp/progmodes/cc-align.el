@@ -322,7 +322,7 @@ if (  x < 10
 
 Since this function doesn't do anything for lines without an infix
 operator you typically want to use it together with some other line-up
-settings, e.g. as follows \(the arglist-close setting is just a
+settings, e.g. as follows (the arglist-close setting is just a
 suggestion to get a consistent style):
 
 \(c-set-offset \\='arglist-cont \\='(c-lineup-arglist-operators 0))
@@ -1246,7 +1246,7 @@ That is useful in a list expression to specify the default indentation
 on the top level.
 
 If `c-syntactic-indentation-in-macros' is nil then this function keeps
-the current indentation, except for empty lines \(ignoring the ending
+the current indentation, except for empty lines (ignoring the ending
 backslash) where it takes the indentation from the closest preceding
 nonempty line in the macro.  If there's no such line in the macro then
 the indentation is taken from the construct preceding it, as described

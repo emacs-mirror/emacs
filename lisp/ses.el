@@ -506,7 +506,7 @@ This can alter PLIST."
       (setplist name (ses-plist-delq (symbol-plist name) 'ses-cell))) ))
 
 (defmacro ses--letref (vars place &rest body)
-  (declare (indent 2) (debug (sexp form &rest body)))
+  (declare (indent 2) (debug (sexp form body)))
   (gv-letplace (getter setter) place
     `(cl-macrolet ((,(nth 0 vars) () ',getter)
                    (,(nth 1 vars) (v) (funcall ',setter v)))

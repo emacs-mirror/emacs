@@ -90,12 +90,12 @@
   (error "inline-error can only be used within define-inline"))
 
 (defmacro inline--leteval (_var-exp &rest _body)
-  (declare (indent 1) (debug (sexp &rest body)))
+  (declare (indent 1) (debug (sexp body)))
   ;; BEWARE: if we're here it's presumably via macro-expansion of
   ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 (defmacro inline--letlisteval (_list &rest _body)
-  (declare (indent 1) (debug (sexp &rest body)))
+  (declare (indent 1) (debug (sexp body)))
   ;; BEWARE: if we're here it's presumably via macro-expansion of
   ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
@@ -110,7 +110,7 @@ of arguments, in which case each argument is evaluated and the resulting
 new list is re-bound to VAR.
 
 After VARS is handled, BODY is evaluated in the new environment."
-  (declare (indent 1) (debug (sexp &rest form)))
+  (declare (indent 1) (debug (sexp body)))
   (cond
    ((consp vars)
     `(inline--leteval ,(pop vars) (inline-letevals ,vars ,@body)))

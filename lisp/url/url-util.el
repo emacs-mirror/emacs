@@ -395,9 +395,12 @@ string: \"%\" followed by two upper-case hex digits.
 
 The allowed characters are specified by ALLOWED-CHARS.  If this
 argument is nil, the list `url-unreserved-chars' determines the
-allowed characters.  Otherwise, ALLOWED-CHARS should be a vector
-whose Nth element is non-nil if character N is allowed."
-  (unless allowed-chars
+allowed characters.  Otherwise, ALLOWED-CHARS should be either a
+list of allowed chars, or a vector whose Nth element is non-nil
+if character N is allowed."
+  (if allowed-chars
+      (unless (vectorp allowed-chars)
+        (setq allowed-chars (url--allowed-chars allowed-chars)))
     (setq allowed-chars (url--allowed-chars url-unreserved-chars)))
   (mapconcat (lambda (byte)
 	       (if (aref allowed-chars byte)

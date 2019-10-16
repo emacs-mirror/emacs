@@ -212,7 +212,7 @@ build_wcs_buffer (re_string_t *pstr)
 {
 #ifdef _LIBC
   unsigned char buf[MB_LEN_MAX];
-  assert (MB_LEN_MAX >= pstr->mb_cur_max);
+  DEBUG_ASSERT (MB_LEN_MAX >= pstr->mb_cur_max);
 #else
   unsigned char buf[64];
 #endif
@@ -285,7 +285,7 @@ build_wcs_upper_buffer (re_string_t *pstr)
   size_t mbclen;
 #ifdef _LIBC
   char buf[MB_LEN_MAX];
-  assert (MB_LEN_MAX >= pstr->mb_cur_max);
+  DEBUG_ASSERT (pstr->mb_cur_max <= MB_LEN_MAX);
 #else
   char buf[64];
 #endif
@@ -685,9 +685,7 @@ re_string_reconstruct (re_string_t *pstr, Idx idx, int eflags)
 			 pstr->valid_len - offset);
 	      pstr->valid_len -= offset;
 	      pstr->valid_raw_len -= offset;
-#if defined DEBUG && DEBUG
-	      assert (pstr->valid_len > 0);
-#endif
+	      DEBUG_ASSERT (pstr->valid_len > 0);
 	    }
 	}
       else
@@ -941,10 +939,7 @@ re_string_context_at (const re_string_t *input, Idx idx, int eflags)
       Idx wc_idx = idx;
       while(input->wcs[wc_idx] == WEOF)
 	{
-#if defined DEBUG && DEBUG
-	  /* It must not happen.  */
-	  assert (wc_idx >= 0);
-#endif
+	  DEBUG_ASSERT (wc_idx >= 0);
 	  --wc_idx;
 	  if (wc_idx < 0)
 	    return input->tip_context;

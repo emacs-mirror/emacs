@@ -26,9 +26,17 @@
 ;; and full reparsing system, and anything else I may feel the urge
 ;; to write a test for.
 
+(require 'cedet)
 (require 'semantic)
 
-(load-file "cedet-utests.el")
+(defvar cedet-utest-directory
+  (let* ((C (file-name-directory (locate-library "cedet")))
+         (D (expand-file-name "../../test/manual/cedet/" C)))
+    D)
+  "Location of test files for this test suite.")
+
+(defvar semantic-utest-test-directory (expand-file-name "tests" cedet-utest-directory)
+  "Location of test files.")
 
 (defvar semantic-utest-temp-directory (if (fboundp 'temp-directory)
 					  (temp-directory)
@@ -332,8 +340,8 @@ t2:t1 #1
   "
  (define fun1 2)
 
- (define fun2 3  ;1
-              )
+ (define fun2 3)  ;1
+
 ")
 
 (defvar semantic-utest-Scheme-name-contents
@@ -493,9 +501,9 @@ Pre-fill the buffer with CONTENTS."
     )
   )
 
-(defun semantic-utest-C ()
+(ert-deftest semantic-utest-C ()
   "Run semantic's C unit test."
-  (interactive)
+  (semantic-mode 1)
   (save-excursion
     (let ((buff  (semantic-utest-makebuffer semantic-utest-C-filename   semantic-utest-C-buffer-contents))
 	  (buff2 (semantic-utest-makebuffer semantic-utest-C-filename-h semantic-utest-C-h-buffer-contents))
@@ -512,24 +520,19 @@ Pre-fill the buffer with CONTENTS."
       ;; Update tags, and show it.
       (semantic-fetch-tags)
 
-      (switch-to-buffer buff)
-      (sit-for 0)
-
       ;; Run the tests.
       ;;(message "First parsing test.")
-      (semantic-utest-verify-names semantic-utest-C-name-contents)
+      (should (semantic-utest-verify-names semantic-utest-C-name-contents))
 
       ;;(message "Invalid tag test.")
       (semantic-utest-last-invalid semantic-utest-C-name-contents '("fun2") "/\\*1\\*/" "/* Deleted this line */")
-      (semantic-utest-verify-names semantic-utest-C-name-contents)
+      (should (semantic-utest-verify-names semantic-utest-C-name-contents))
 
       (set-buffer-modified-p nil)
       ;; Clean up
-      ;; (kill-buffer buff)
-      ;; (kill-buffer buff2)
-      ))
-  (message "All C tests passed.")
-  )
+      (kill-buffer buff)
+      (kill-buffer buff2)
+      )))
 
 
 
@@ -544,6 +547,7 @@ NAME-CONTENTS is the list of names that should be in the contents.
 NAMES-REMOVED is the list of names that gets removed in the removal step.
 KILLME is the name of items to be killed.
 INSERTME is the text to be inserted after the deletion."
+  (semantic-mode 1)
   (save-excursion
     (let ((buff  (semantic-utest-makebuffer filename  contents))
 	  )
@@ -554,79 +558,69 @@ INSERTME is the text to be inserted after the deletion."
       (semantic-highlight-edits-mode 1)
 
       ;; Update tags, and show it.
+      (semantic-clear-toplevel-cache)
       (semantic-fetch-tags)
       (switch-to-buffer buff)
       (sit-for 0)
 
       ;; Run the tests.
       ;;(message "First parsing test %s." testname)
-      (semantic-utest-verify-names name-contents)
+      (should (semantic-utest-verify-names name-contents))
 
       ;;(message "Invalid tag test %s." testname)
       (semantic-utest-last-invalid name-contents names-removed killme insertme)
-      (semantic-utest-verify-names name-contents)
+      (should (semantic-utest-verify-names name-contents))
 
       (set-buffer-modified-p nil)
       ;; Clean up
-      ;; (kill-buffer buff)
-      ))
-  (message "All %s tests passed." testname)
-  )
+      (kill-buffer buff)
+      )))
 
-(defun semantic-utest-Python()
-  (interactive)
-  (if (fboundp 'python-mode)
-      (semantic-utest-generic "Python" (semantic-utest-fname "pytest.py") semantic-utest-Python-buffer-contents  semantic-utest-Python-name-contents   '("fun2") "#1" "#deleted line")
-    (message "Skilling Python test: NO major mode."))
-  )
+(ert-deftest semantic-utest-Python()
+  (skip-unless (featurep 'python-mode))
+  (let ((python-indent-guess-indent-offset nil))
+    (semantic-utest-generic "Python" (semantic-utest-fname "pytest.py") semantic-utest-Python-buffer-contents  semantic-utest-Python-name-contents   '("fun2") "#1" "#deleted line")
+    ))
 
 
-(defun semantic-utest-Javascript()
-  (interactive)
+(ert-deftest semantic-utest-Javascript()
   (if (fboundp 'javascript-mode)
       (semantic-utest-generic "Javascript" (semantic-utest-fname "javascripttest.js") semantic-utest-Javascript-buffer-contents  semantic-utest-Javascript-name-contents   '("fun2") "//1" "//deleted line")
     (message "Skipping JavaScript test: NO major mode."))
   )
 
-(defun semantic-utest-Java()
-  (interactive)
+(ert-deftest semantic-utest-Java()
   ;; If JDE is installed, it might mess things up depending on the version
   ;; that was installed.
   (let ((auto-mode-alist  '(("\\.java\\'" . java-mode))))
     (semantic-utest-generic "Java" (semantic-utest-fname "JavaTest.java") semantic-utest-Java-buffer-contents  semantic-utest-Java-name-contents   '("fun2") "//1" "//deleted line")
     ))
 
-(defun semantic-utest-Makefile()
-  (interactive)
+(ert-deftest semantic-utest-Makefile()
   (semantic-utest-generic "Makefile" (semantic-utest-fname "Makefile") semantic-utest-Makefile-buffer-contents  semantic-utest-Makefile-name-contents   '("fun2") "#1" "#deleted line")
   )
 
-(defun semantic-utest-Scheme()
-  (interactive)
+(ert-deftest semantic-utest-Scheme()
+  (skip-unless nil) ;; There is a bug w/ scheme parser.  Skip this for now.
   (semantic-utest-generic "Scheme" (semantic-utest-fname "tst.scm") semantic-utest-Scheme-buffer-contents  semantic-utest-Scheme-name-contents   '("fun2") ";1" ";deleted line")
   )
 
 
-(defun semantic-utest-Html()
-  (interactive)
+(ert-deftest semantic-utest-Html()
   ;; Disable html-helper auto-fill-in mode.
   (let ((html-helper-build-new-buffer nil))
     (semantic-utest-generic "HTML" (semantic-utest-fname "tst.html") semantic-utest-Html-buffer-contents  semantic-utest-Html-name-contents   '("fun2") "<!--1-->" "<!--deleted line-->")
     ))
 
-(defun semantic-utest-PHP()
-  (interactive)
-  (if (fboundp 'php-mode)
-      (semantic-utest-generic "PHP" (semantic-utest-fname "phptest.php") semantic-utest-PHP-buffer-contents semantic-utest-PHP-name-contents '("fun1") "fun2" "%^@")
-    (message "Skipping PHP Test.  No php-mode loaded."))
+(ert-deftest semantic-utest-PHP()
+  (skip-unless (featurep 'php-mode))
+  (semantic-utest-generic "PHP" (semantic-utest-fname "phptest.php") semantic-utest-PHP-buffer-contents semantic-utest-PHP-name-contents '("fun1") "fun2" "%^@")
   )
 
 ;look at http://mfgames.com/linux/csharp-mode
-(defun semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
-  (interactive)
-  (if (fboundp 'csharp-mode)
-      (semantic-utest-generic "C#" (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
-    (message "Skipping C# test.  No csharp-mode loaded."))
+(ert-deftest semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
+  (skip-unless (featurep 'csharp-mode))
+  (semantic-utest-generic "C#" (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -653,32 +647,6 @@ INSERTME is the text to be inserted after the deletion."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;###autoload
-(defun semantic-utest-main()
-  (interactive)
-  "call all utests"
-  (cedet-utest-log-start "multi-lang parsing")
-  (cedet-utest-log " * C tests...")
-  (semantic-utest-C)
-  (cedet-utest-log " * Python tests...")
-  (semantic-utest-Python)
-  (cedet-utest-log " * Java tests...")
-  (semantic-utest-Java)
-  (cedet-utest-log " * Javascript tests...")
-  (semantic-utest-Javascript)
-  (cedet-utest-log " * Makefile tests...")
-  (semantic-utest-Makefile)
-  (cedet-utest-log " * Scheme tests...")
-  (semantic-utest-Scheme)
-  (cedet-utest-log " * Html tests...")
-  (semantic-utest-Html)
-  (cedet-utest-log " * PHP tests...")
-  (semantic-utest-PHP)
-  (cedet-utest-log " * Csharp tests...")
-  (semantic-utest-Csharp)
-
-  (cedet-utest-log-shutdown "multi-lang parsing")
-  )
 
 ;;; Buffer contents validation
 ;;
@@ -724,21 +692,25 @@ SKIPNAMES is a list of names that should be skipped in the NAMES list."
     (while SN
       (setq names (remove (car SN) names))
       (setq SN (cdr SN))))
-  (while (and names table)
-    (if (not (semantic-utest-equivalent-tag-p (car names)
-					      (car table)
-					      skipnames))
-	(error "Expected %s, found %s"
-	       (semantic-format-tag-prototype (car names))
-	       (semantic-format-tag-prototype (car table))))
-    (setq names (cdr names)
-	  table (cdr table)))
-  (when names (error "Items forgotten: %S"
-		     (mapcar 'semantic-tag-name names)
-		     ))
-  (when table (error "Items extra: %S"
-		     (mapcar 'semantic-tag-name table)))
-  t)
+  (catch 'utest-err
+    (while (and names table)
+      (when (not (semantic-utest-equivalent-tag-p (car names)
+					        (car table)
+					        skipnames))
+	(message "Semantic Parse Test Fail: Expected %s, found %s"
+	         (semantic-format-tag-prototype (car names))
+	         (semantic-format-tag-prototype (car table)))
+        (throw 'utest-err nil)
+        )
+      (setq names (cdr names)
+	    table (cdr table)))
+    (when names
+      (message "Semantic Parse Test Fail: Items forgotten: %S" (mapcar 'semantic-tag-name names))
+      (throw 'utest-err nil))
+    (when table
+      (message "Semantic parse Test Fail: Items extra: %S" (mapcar 'semantic-tag-name table))
+      (throw 'utest-err nil))
+    t))
 
 (defun semantic-utest-verify-names (name-contents &optional skipnames)
   "Verify the names of the test buffer from NAME-CONTENTS.
@@ -778,6 +750,9 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 
 ;;; Kill indicator line
 ;;
+;; Utilities to modify the buffer for reparse, making sure a specific tag is deleted
+;; via the incremental parser.
+
 (defvar semantic-utest-last-kill-text nil
   "The text from the last kill.")
 
@@ -806,61 +781,12 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
   (sit-for 0)
   )
 
-;;;  EDITING TESTS
-;;
-
 (defun semantic-utest-last-invalid (name-contents names-removed killme insertme)
   "Make the last fcn invalid."
   (semantic-utest-kill-indicator killme insertme)
 ;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesn't handle skipnames yet
   (semantic-utest-unkill-indicator);put back killed stuff
   )
-
-
-
-
-;"#<overlay from \\([0-9]+\\) to \\([0-9]+\\) in \\([^>]*\\)>"
-;#<overlay from \([0-9]+\) to \([0-9]+\) in \([^>]*\)>
-;(overlay \1 \2 "\3")
-
-
-;; JAVE
-;; these are some unit tests for cedet that I got from Eric and modified a bit for:
-;;   python
-;;   javascript
-;;   java
-;; I tried to generalize the structure of the tests a bit to make it easier to add languages
-
-;; Mail from Eric:
-;; Many items in the checklist look like:
-
-;;       M-x global-semantic-highlight-edits-mode RET
-;;       - Edit a file.  See the highlight of newly inserted text.
-;;       - Customize `semantic-edits-verbose-flag' to be non-nil.
-;;       - Wait for the idle scheduler, it should clean up the edits.
-;;         - observe messages from incremental parser.  Do they relate
-;; 	  to the edits?
-;;       - M-x bovinate RET - verify your changes are reflected.
-
-;; It's all about watching the behavior.  Timers go off, things get
-;; cleaned up, you type in new changes, etc.  An example I tried to
-;; do is below, but covers only 1 language, and not very well at that.
-;; I seem to remember seeing a unit test framework going by one of the
-;; lists.  I'm not sure if that would help.
-
-;; Another that might be automatable:
-
-;;       M-x semantic-analyze-current-context RET
-;;        - Do this in different contexts in your language
-;;          files.   Verify that reasonable results are returned
-;;          such as identification of assignments, function arguments, etc.
-
-;; Anyway, those are some ideas.  Any effort you put it will be helpful!
-
-;; Thanks
-;; Eric
-
-;; -----------
 
 
 

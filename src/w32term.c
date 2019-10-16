@@ -2481,9 +2481,9 @@ w32_draw_glyph_string (struct glyph_string *s)
   if (!s->for_overlaps)
     {
       /* Draw underline.  */
-      if (s->face->underline_p)
+      if (s->face->underline)
         {
-          if (s->face->underline_type == FACE_UNDER_WAVE)
+          if (s->face->underline == FACE_UNDER_WAVE)
             {
               COLORREF color;
 
@@ -2494,13 +2494,13 @@ w32_draw_glyph_string (struct glyph_string *s)
 
               w32_draw_underwave (s, color);
             }
-          else if (s->face->underline_type == FACE_UNDER_LINE)
+          else if (s->face->underline == FACE_UNDER_LINE)
             {
               unsigned long thickness, position;
               int y;
 
-              if (s->prev && s->prev->face->underline_p
-		  && s->prev->face->underline_type == FACE_UNDER_LINE)
+              if (s->prev
+	          && s->prev->face->underline == FACE_UNDER_LINE)
                 {
                   /* We use the same underline style as the previous one.  */
                   thickness = s->prev->underline_thickness;
@@ -2514,7 +2514,7 @@ w32_draw_glyph_string (struct glyph_string *s)
 		  BOOL use_underline_position_properties;
 		  Lisp_Object val
 		    = buffer_local_value (Qunderline_minimum_offset,
-					s->w->contents);
+		                          s->w->contents);
 		  if (FIXNUMP (val))
 		    minimum_offset = max (0, XFIXNUM (val));
 		  else

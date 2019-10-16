@@ -287,6 +287,7 @@ Format of Descriptions
 Lisp Data Types
 
 * Printed Representation::  How Lisp objects are represented as text.
+* Special Read Syntax::     An overview of all the special sequences.
 * Comments::                Comments and their formatting conventions.
 * Programming Types::       Types found in all Lisp systems.
 * Editing Types::           Types specific to Emacs.

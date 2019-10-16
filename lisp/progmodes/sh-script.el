@@ -4356,27 +4356,29 @@ The document is bounded by `sh-here-document-word'."
   (or arg (sh--maybe-here-document)))
 
 (defun sh--maybe-here-document ()
-  (or (not (looking-back "[^<]<<" (line-beginning-position)))
+  (when (and (looking-back "[^<]<<[ E]" (line-beginning-position))
+             (save-excursion
+	       (backward-char 2)
+               (not
+                (or (sh-quoted-p)
+                    (sh--inside-noncommand-expression (point)))))
+             (not (nth 8 (syntax-ppss))))
+    (let ((tabs (if (string-match "\\`-" sh-here-document-word)
+                    (make-string (/ (current-indentation) tab-width) ?\t)
+                  ""))
+          (delim (replace-regexp-in-string "['\"]" ""
+                                           sh-here-document-word)))
+      (delete-char -1)
+      (insert sh-here-document-word)
+      (or (eolp) (looking-at "[ \t]") (insert ?\s))
+      (end-of-line 1)
+      (while
+	  (sh-quoted-p)
+	(end-of-line 2))
+      (insert ?\n tabs)
       (save-excursion
-	(backward-char 2)
-        (or (sh-quoted-p)
-            (sh--inside-noncommand-expression (point))))
-      (nth 8 (syntax-ppss))
-      (let ((tabs (if (string-match "\\`-" sh-here-document-word)
-                      (make-string (/ (current-indentation) tab-width) ?\t)
-                    ""))
-            (delim (replace-regexp-in-string "['\"]" ""
-                                            sh-here-document-word)))
-	(insert sh-here-document-word)
-	(or (eolp) (looking-at "[ \t]") (insert ?\s))
-	(end-of-line 1)
-	(while
-	    (sh-quoted-p)
-	  (end-of-line 2))
-	(insert ?\n tabs)
-	(save-excursion
-          (insert ?\n tabs (replace-regexp-in-string
-                            "\\`-?[ \t]*" "" delim))))))
+        (insert ?\n tabs (replace-regexp-in-string
+                          "\\`-?[ \t]*" "" delim))))))
 
 (define-minor-mode sh-electric-here-document-mode
   "Make << insert a here document skeleton."

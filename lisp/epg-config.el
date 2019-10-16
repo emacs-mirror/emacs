@@ -148,11 +148,7 @@ Otherwise, it tries the programs listed in the entry until the
 version requirement is met."
   (unless program-alist
     (setq program-alist epg-config--program-alist))
-  (let ((entry (assq protocol program-alist))
-        ;; In many gnupg distributions (especially on Windows), the
-        ;; version string is "gpg (GnuPG) 2.2.15-unknown" or the like.
-        (version-regexp-alist (cons '("^[-._+ ]?unknown$" . -4)
-                                    version-regexp-alist)))
+  (let ((entry (assq protocol program-alist)))
     (unless entry
       (error "Unknown protocol %S" protocol))
     (cl-destructuring-bind (symbol . alist)

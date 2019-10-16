@@ -504,12 +504,25 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
 (defconst diff-separator-re "^--+ ?$")
 
 (defvar diff-narrowed-to nil)
+(defvar diff-buffer-type nil)
 
 (defun diff-hunk-style (&optional style)
   (when (looking-at diff-hunk-header-re)
     (setq style (cdr (assq (char-after) '((?@ . unified) (?* . context)))))
     (goto-char (match-end 0)))
   style)
+
+(defun diff-prev-line-if-patch-separator ()
+  "Return previous line if it has patch separator as produced by git."
+  (pcase diff-buffer-type
+    ('git
+     (save-excursion
+       (let ((old-point (point)))
+         (forward-line -1)
+         (if (looking-at "^-- $")
+             (point)
+           old-point))))
+    (_ (point))))
 
 (defun diff-end-of-hunk (&optional style donttrustheader)
   "Advance to the end of the current hunk, and return its position."
@@ -561,7 +574,8 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
         (goto-char (or end (point-max)))
         (while (eq ?\n (char-before (1- (point))))
           (forward-char -1)
-          (setq end (point)))))
+          (setq end (point))))
+      (setq end (diff-prev-line-if-patch-separator)))
     ;; The return value is used by easy-mmode-define-navigation.
     (goto-char (or end (point-max)))))
 
@@ -1491,7 +1505,12 @@ a diff with \\[diff-reverse-direction].
   (add-function :filter-return (local 'filter-buffer-substring-function)
                 #'diff--filter-substring)
   (unless buffer-file-name
-    (hack-dir-local-variables-non-file-buffer)))
+    (hack-dir-local-variables-non-file-buffer))
+  (save-excursion
+    (setq-local diff-buffer-type
+                (if (re-search-forward "^diff --git" nil t)
+                    'git
+                  nil))))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode

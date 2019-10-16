@@ -43,6 +43,8 @@
 
 (defface tab-line
   '((((type x w32 ns) (class color))
+     :inherit variable-pitch
+     :height 0.9
      :background "grey85"
      :foreground "black")
     (((type x) (class mono))
@@ -54,9 +56,10 @@
   :group 'tab-line-faces)
 
 (defface tab-line-tab
-  '((((class color) (min-colors 88))
-     :box (:line-width 1 :style released-button)
-     :background "grey85")
+  '((default
+      :inherit tab-line)
+    (((class color) (min-colors 88))
+     :box (:line-width 1 :style released-button))
     (t
      :inverse-video nil))
   "Tab line face for selected tab."
@@ -127,9 +130,7 @@ If nil, don't show the new tab button."
 (defvar tab-line-new-button
   (propertize " + "
               'display `(image :type xpm
-                               :file ,(expand-file-name
-                                       "images/tabs/new.xpm"
-                                       data-directory)
+                               :file "tabs/new.xpm"
                                :margin (2 . 0)
                                :ascent center)
               'keymap tab-line-add-map
@@ -157,9 +158,7 @@ If nil, don't show it at all."
 (defvar tab-line-close-button
   (propertize " x"
               'display `(image :type xpm
-                               :file ,(expand-file-name
-                                       "images/tabs/close.xpm"
-                                       data-directory)
+                               :file "tabs/close.xpm"
                                :margin (2 . 0)
                                :ascent center)
               'keymap tab-line-tab-close-map

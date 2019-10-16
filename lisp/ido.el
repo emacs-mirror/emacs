@@ -3890,7 +3890,7 @@ frame, rather than all frames, regardless of value of `ido-all-frames'."
 
 (defun ido-ignore-item-p (name re-list &optional ignore-ext)
   "Return t if the buffer or file NAME should be ignored."
-  (or (member name ido-ignore-item-temp-list)
+  (or (and (member name ido-ignore-item-temp-list) t)
       (and
        ido-process-ignore-lists re-list
        (save-match-data

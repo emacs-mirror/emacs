@@ -945,7 +945,7 @@ of these functions are called, and add a call to
 @anchor{Defining Lisp variables in C}
 @vindex byte-boolean-vars
 @cindex defining Lisp variables in C
-@cindex @code{DEFVAR_INT}, @code{DEFVAR_LISP}, @code{DEFVAR_BOOL}
+@cindex @code{DEFVAR_INT}, @code{DEFVAR_LISP}, @code{DEFVAR_BOOL}, @code{DEFSYM}
   The function @code{syms_of_@var{filename}} is also the place to define
 any C variables that are to be visible as Lisp variables.
 @code{DEFVAR_LISP} makes a C variable of type @code{Lisp_Object} visible
@@ -956,15 +956,78 @@ with a value that is either @code{t} or @code{nil}.  Note that variables
 defined with @code{DEFVAR_BOOL} are automatically added to the list
 @code{byte-boolean-vars} used by the byte compiler.
 
+  These macros all expect three arguments:
+
+@table @code
+@item lname
+The name of the variable to be used by Lisp programs.
+@item vname
+The name of the variable in the C sources.
+@item doc
+The documentation for the variable, as a C
+comment.  @xref{Documentation Basics} for more details.
+@end table
+
+  By convention, when defining variables of a ``native'' type
+(@code{int} and @code{bool}), the name of the C variable is the name
+of the Lisp variable with @code{-} replaced by @code{_}.  When the
+variable has type @code{Lisp_Object}, the convention is to also prefix
+the C variable name with @code{V}.  i.e.
+
+@smallexample
+DEFVAR_INT ("my-int-variable", my_int_variable,
+           doc: /* An integer variable.  */);
+
+DEFVAR_LISP ("my-lisp-variable", Vmy_lisp_variable,
+           doc: /* A Lisp variable.  */);
+@end smallexample
+
+  There are situations in Lisp where you need to refer to the symbol
+itself rather than the value of that symbol.  One such case is when
+temporarily overriding the value of a variable, which in Lisp is done
+with @code{let}.  In C sources, this is done by defining a
+corresponding, constant symbol, and using @code{specbind}.  By
+convention, @code{Qmy_lisp_variable} corresponds to
+@code{Vmy_lisp_variable}; to define it, use the @code{DEFSYM} macro.
+i.e.
+
+@smallexample
+DEFSYM (Qmy_lisp_variable, "my-lisp-variable");
+@end smallexample
+
+  To perform the actual binding:
+
+@smallexample
+specbind (Qmy_lisp_variable, Qt);
+@end smallexample
+
+  In Lisp symbols sometimes need to be quoted, to achieve the same
+effect in C you again use the corresponding constant symbol
+@code{Qmy_lisp_variable}.  For example, when creating a buffer-local
+variable (@pxref{Buffer-Local Variables}) in Lisp you would write:
+
+@smallexample
+(make-variable-buffer-local 'my-lisp-variable)
+@end smallexample
+
+In C the corresponding code uses @code{Fmake_variable_buffer_local} in
+combination with @code{DEFSYM}, i.e.
+
+@smallexample
+DEFSYM (Qmy_lisp_variable, "my-lisp-variable");
+Fmake_variable_buffer_local (Qmy_lisp_variable);
+@end smallexample
+
 @cindex defining customization variables in C
   If you want to make a Lisp variable that is defined in C behave
 like one declared with @code{defcustom}, add an appropriate entry to
-@file{cus-start.el}.
+@file{cus-start.el}.  @xref{Variable Definitions}, for a description of
+the format to use.
 
 @cindex @code{staticpro}, protection from GC
-  If you define a file-scope C variable of type @code{Lisp_Object},
-you must protect it from garbage-collection by calling @code{staticpro}
-in @code{syms_of_@var{filename}}, like this:
+  If you directly define a file-scope C variable of type
+@code{Lisp_Object}, you must protect it from garbage-collection by
+calling @code{staticpro} in @code{syms_of_@var{filename}}, like this:
 
 @example
 staticpro (&@var{variable});
@@ -2020,8 +2083,8 @@ information.
 
 @item markers
 The markers that refer to this buffer.  This is actually a single
-marker, and successive elements in its marker @code{chain} are the other
-markers referring to this buffer text.
+marker, and successive elements in its marker @dfn{chain} (a linked
+list) are the other markers referring to this buffer text.
 
 @item intervals
 The interval tree which records the text properties of this buffer.
@@ -2261,8 +2324,8 @@ minibuffer or the echo area.
 Non-zero if this window is a @dfn{pseudo window}.  A pseudo window is
 either a window used to display the menu bar or the tool bar (when
 Emacs uses toolkits that don't display their own menu bar and tool
-bar) or a window showing a tooltip on a tooltip frame.  Pseudo windows
-are in general not accessible from Lisp code.
+bar) or the tab bar or a window showing a tooltip on a tooltip frame.
+Pseudo windows are in general not accessible from Lisp code.
 
 @item parent
 Internally, Emacs arranges windows in a tree; each group of siblings
@@ -2339,7 +2402,7 @@ The value of @code{pointm} at the last redisplay time.
 
 @item force_start
 If this flag is non-@code{nil}, it says that the window has been
-scrolled explicitly by the Lisp program, and the value of the the
+scrolled explicitly by the Lisp program, and the value of the
 window's @code{start} was set for redisplay to honor.  This affects
 what the next redisplay does if point is off the screen: instead of
 scrolling the window to show the text around point, it moves point to

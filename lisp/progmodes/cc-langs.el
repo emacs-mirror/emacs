@@ -545,7 +545,7 @@ buffer local variables c-new-BEG and c-new-END.
 The functions are called even when font locking is disabled.
 
 When the mode is initialized, these functions are called with
-parameters \(point-min), \(point-max) and <buffer size>.")
+parameters (point-min), (point-max) and <buffer size>.")
 
 (c-lang-defconst c-before-context-fontification-functions
   t 'c-context-expand-fl-region
@@ -878,7 +878,7 @@ literal are multiline."
   t (mapcar (lambda (delim)
 	      (cons
 	       delim
-	       (concat "\\(\\\\\\(.\\|\n\\|\r\\)\\|[^\\\n\r"
+	       (concat "\\(\\\\\\(.\\|\n\\)\\|[^\\\n\r"
 		       (string delim)
 		       "]\\)*")))
 	    (and
@@ -1405,6 +1405,23 @@ operators."
 		    "\\`<."
 		    (lambda (op) (substring op 1)))))
 (c-lang-defvar c-<-op-cont-regexp (c-lang-const c-<-op-cont-regexp))
+
+(c-lang-defconst c-<-pseudo-digraph-cont-regexp
+  "Regexp matching the continuation of a pseudo digraph starting \"<\".
+This is used only in C++ Mode, where \"<::\" is handled as a
+template opener followed by the \"::\" operator - usually."
+  t regexp-unmatchable
+  c++ "::\\([^:>]\\|$\\)")
+(c-lang-defvar c-<-pseudo-digraph-cont-regexp
+	       (c-lang-const c-<-pseudo-digraph-cont-regexp))
+
+(c-lang-defconst c-<-pseudo-digraph-cont-len
+  "The maximum length of the main bit of a `c-<pseudp-digraph-cont-regexp' match.
+This doesn't count the merely contextual bits of the regexp match."
+  t 0
+  c++ 2)
+(c-lang-defvar c-<-pseudo-digraph-cont-len
+	       (c-lang-const c-<-pseudo-digraph-cont-len))
 
 (c-lang-defconst c->-op-cont-tokens
   ;; A list of second and subsequent characters of all multicharacter tokens
@@ -2321,7 +2338,7 @@ will be handled."
 (c-lang-defvar c-typedef-decl-key (c-lang-const c-typedef-decl-key))
 
 (c-lang-defconst c-typeless-decl-kwds
-  "Keywords introducing declarations where the \(first) identifier
+  "Keywords introducing declarations where the (first) identifier
 \(declarator) follows directly after the keyword, without any type.
 
 If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
@@ -2425,7 +2442,7 @@ Note that unrecognized plain symbols are skipped anyway if they occur
 before the type, so such things are not necessary to mention here.
 Mentioning them here is necessary only if they can occur in other
 places, or if they are followed by a construct that must be skipped
-over \(like the parens in the \"__attribute__\" and \"__declspec\"
+over (like the parens in the \"__attribute__\" and \"__declspec\"
 examples above).  In the last case, they alse need to be present on
 one of `c-type-list-kwds', `c-ref-list-kwds',
 `c-colon-type-list-kwds', `c-paren-nontype-kwds', `c-paren-type-kwds',
@@ -2557,7 +2574,7 @@ The keywords on list are assumed to also be present on one of the
 
 (c-lang-defconst c-postfix-decl-spec-kwds
   "Keywords introducing extra declaration specifiers in the region
-between the header and the body \(i.e. the \"K&R-region\") in
+between the header and the body (i.e. the \"K&R-region\") in
 declarations."
   t    nil
   java '("extends" "implements" "throws")
@@ -2909,7 +2926,7 @@ expressions."
 
 (c-lang-defconst c-inexpr-block-kwds
   "Keywords that start constructs followed by statement blocks which can
-be used in expressions \(the gcc extension for this in C and C++ is
+be used in expressions (the gcc extension for this in C and C++ is
 handled separately by `c-recognize-paren-inexpr-blocks')."
   t    nil
   pike '("catch" "gauge"))
@@ -3386,7 +3403,7 @@ possible for good performance."
 identifier in a declaration, e.g. the \"*\" in \"char *argv\".  This
 regexp should match \"(\" if parentheses are valid in declarators.
 The end of the first submatch is taken as the end of the operator.
-Identifier syntax is in effect when this is matched \(see
+Identifier syntax is in effect when this is matched (see
 `c-identifier-syntax-table')."
   t (if (c-lang-const c-type-modifier-kwds)
 	(concat (regexp-opt (c-lang-const c-type-modifier-kwds) t) "\\>")
@@ -3427,7 +3444,7 @@ Identifier syntax is in effect when this is matched \(see
 that might precede the identifier in a declaration, e.g. the
 \"*\" in \"char *argv\".  The end of the first submatch is taken
 as the end of the operator.  Identifier syntax is in effect when
-this is matched \(see `c-identifier-syntax-table')."
+this is matched (see `c-identifier-syntax-table')."
   t ;; Default to a regexp that never matches.
     regexp-unmatchable
   ;; Check that there's no "=" afterwards to avoid matching tokens

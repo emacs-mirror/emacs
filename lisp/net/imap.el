@@ -1672,8 +1672,9 @@ non-nil, return these properties."
   "Return t if FLAG can be permanently saved on articles.
 MAILBOX specifies a mailbox on the server in BUFFER."
   (with-current-buffer (or buffer (current-buffer))
-    (or (member "\\*" (imap-mailbox-get 'permanentflags mailbox))
-	(member flag (imap-mailbox-get 'permanentflags mailbox)))))
+    (and (or (member "\\*" (imap-mailbox-get 'permanentflags mailbox))
+	     (member flag (imap-mailbox-get 'permanentflags mailbox)))
+         t)))
 
 (defun imap-message-flags-set (articles flags &optional silent buffer)
   (when (and articles flags)

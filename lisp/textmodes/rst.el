@@ -4380,10 +4380,15 @@ buffer, if the region is not selected."
   "Convert the document to a PDF file and launch a preview program."
   (interactive)
   (let* ((tmp-filename (make-temp-file "rst_el" nil ".pdf"))
+         (pdf-compile-program (cadr (assq 'pdf rst-compile-toolsets)))
 	 (command (format "%s %s %s && %s %s ; rm %s"
-			  (cadr (assq 'pdf rst-compile-toolsets))
+			  pdf-compile-program
 			  buffer-file-name tmp-filename
 			  rst-pdf-program tmp-filename tmp-filename)))
+    (unless (executable-find pdf-compile-program)
+      (error "Cannot find executable `%s'" pdf-compile-program))
+    (unless (executable-find rst-pdf-program)
+      (error "Cannot find executable `%s'" rst-pdf-program))
     (start-process-shell-command "rst-pdf-preview" nil command)
     ;; Note: you could also use (compile command) to view the compilation
     ;; output.

@@ -49,11 +49,11 @@ static bool internal_equal (Lisp_Object, Lisp_Object,
 			    enum equal_kind, int, Lisp_Object);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
-       doc: /* Return the argument unchanged.  */
+       doc: /* Return the ARGUMENT unchanged.  */
        attributes: const)
-  (Lisp_Object arg)
+  (Lisp_Object argument)
 {
-  return arg;
+  return argument;
 }
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,

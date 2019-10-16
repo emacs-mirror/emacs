@@ -221,6 +221,7 @@ URI's @var{port} slot is @code{nil}.
 @section URI Encoding
 
 @cindex percent encoding
+@findex url-generic-parse-url
   The @code{url-generic-parse-url} parser does not obey RFC 3986 in
 one respect: it allows non-@acronym{ASCII} characters in URI strings.
 
@@ -233,6 +234,7 @@ then percent encoded to @samp{%D3%A7}.  (Certain ``reserved''
 @acronym{ASCII} characters must also be percent encoded when they
 appear in URI components.)
 
+@findex url-encode-url
   The function @code{url-encode-url} can be used to convert a URI
 string containing arbitrary characters to one that is properly
 percent-encoded in accordance with RFC 3986.
@@ -244,6 +246,8 @@ e.g., converting the scheme component to lowercase if it was
 previously uppercase.
 @end defun
 
+@findex url-hexify-string
+@findex url-unhex-string
   To convert between a string containing arbitrary characters and a
 percent-encoded all-@acronym{ASCII} string, use the functions
 @code{url-hexify-string} and @code{url-unhex-string}:
@@ -263,8 +267,8 @@ The allowed characters are specified by @var{allowed-chars}.  If this
 argument is @code{nil}, the allowed characters are those specified as
 @dfn{unreserved characters} by RFC 3986 (see the variable
 @code{url-unreserved-chars}).  Otherwise, @var{allowed-chars} should
-be a vector whose @var{n}-th element is non-@code{nil} if character
-@var{n} is allowed.
+be either a list of allowed chars, or a vector whose Nth element is
+non-nil if character N is allowed.
 @end defun
 
 @defun url-unhex-string string &optional allow-newlines

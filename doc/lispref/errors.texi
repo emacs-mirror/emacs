@@ -43,13 +43,13 @@ The message is @samp{Quit}.  @xref{Quitting}.
 @item args-out-of-range
 The message is @samp{Args out of range}.  This happens when trying to
 access an element beyond the range of a sequence, buffer, or other
-container-like object.  @xref{Sequences Arrays Vectors}, and
-@xref{Text}.
+container-like object.  @xref{Sequences Arrays Vectors}, and see
+@ref{Text}.
 
 @item arith-error
 The message is @samp{Arithmetic error}.  This occurs when trying to
 perform integer division by zero.  @xref{Numeric Conversions}, and
-@xref{Arithmetic Operations}.
+see @ref{Arithmetic Operations}.
 
 @item beginning-of-buffer
 The message is @samp{Beginning of buffer}.  @xref{Character Motion}.
@@ -172,7 +172,7 @@ syntax-parsing functions find invalid syntax or mismatched
 parentheses.  Conventionally raised with three argument: a
 human-readable error message, the start of the obstacle that cannot be
 moved over, and the end of the obstacle.  @xref{List Motion}, and
-@xref{Parsing Expressions}.
+see @ref{Parsing Expressions}.
 
 @item search-failed
 The message is @samp{Search failed}.  @xref{Searching and Matching}.
@@ -198,8 +198,8 @@ The message is the empty string.  @xref{Signaling Errors}.
 
 @item user-search-failed
 This is like @samp{search-failed}, but doesn't trigger the debugger,
-like @samp{user-error}.  @xref{Signaling Errors}, and @xref{Searching
-and Matching}.  This is used for searching in Info files, @xref{Search
+like @samp{user-error}.  @xref{Signaling Errors}, and see @ref{Searching
+and Matching}.  This is used for searching in Info files, see @ref{Search
 Text,,,info,Info}.
 
 @item void-function

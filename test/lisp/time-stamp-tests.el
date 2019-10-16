@@ -24,7 +24,7 @@
 (require 'time-stamp)
 
 (defmacro with-time-stamp-test-env (&rest body)
-  "Evaluates BODY with some standard time-stamp test variables bound."
+  "Evaluate BODY with some standard time-stamp test variables bound."
   `(let ((user-login-name "test-logname")
          (user-full-name "Time Stamp Tester")
          (buffer-file-name "/emacs/test/time-stamped-file")
@@ -46,8 +46,7 @@
 (put 'with-time-stamp-test-env 'lisp-indent-hook 'defun)
 
 (defmacro time-stamp-should-warn (form)
-  "Similar to `should' but verifies that a format warning is generated.
-In use before 2019 changes; will be used again after those changes settle."
+  "Similar to `should' but verifies that a format warning is generated."
   `(let ((warning-count 0))
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
                 (lambda (_old _new)
@@ -248,6 +247,35 @@ In use before 2019 changes; will be used again after those changes settle."
     (should (equal (time-stamp-string "%S" ref-time) "05"))
     (should (equal (time-stamp-string "%S" ref-time2) "15"))))
 
+(ert-deftest time-stamp-test-year-2digit ()
+  "Test time-stamp formats for %y."
+  (with-time-stamp-test-env
+    ;; implemented and documented since 1995
+    (should (equal (time-stamp-string "%02y" ref-time) "06"))
+    (should (equal (time-stamp-string "%02y" ref-time2) "16"))
+    ;; documented 1997-2019
+    (should (equal (time-stamp-string "%:y" ref-time) "2006"))
+    (should (equal (time-stamp-string "%:y" ref-time2) "2016"))
+    ;; warned 1997-2019, changed in 2019
+    ;; (We don't expect the %-y or %_y form to be useful,
+    ;; but we test both so that we can confidently state that
+    ;; `-' and `_' affect all 2-digit conversions identically.)
+    (should (equal (time-stamp-string "%-y" ref-time) "6"))
+    (should (equal (time-stamp-string "%-y" ref-time2) "16"))
+    (should (equal (time-stamp-string "%_y" ref-time) " 6"))
+    (should (equal (time-stamp-string "%_y" ref-time2) "16"))
+    (should (equal (time-stamp-string "%y" ref-time) "06"))
+    (should (equal (time-stamp-string "%y" ref-time2) "16"))
+    ;; implemented since 1995, warned since 2019, will change
+    (time-stamp-should-warn (equal (time-stamp-string "%04y" ref-time) "2006"))
+    (time-stamp-should-warn (equal (time-stamp-string "%4y" ref-time) "2006"))))
+
+(ert-deftest time-stamp-test-year-4digit ()
+  "Test time-stamp format %Y."
+  (with-time-stamp-test-env
+    ;; implemented since 1997, documented since 2019
+    (should (equal (time-stamp-string "%Y" ref-time) "2006"))))
+
 (ert-deftest time-stamp-test-am-pm ()
   "Test time-stamp formats for AM and PM strings."
   (with-time-stamp-test-env
@@ -267,27 +295,17 @@ In use before 2019 changes; will be used again after those changes settle."
     (should (equal (time-stamp-string "%w" ref-time2) "5"))
     (should (equal (time-stamp-string "%w" ref-time3) "0"))))
 
-(ert-deftest time-stamp-test-year ()
-  "Test time-stamp formats for year."
-  (with-time-stamp-test-env
-    ;; implemented and documented since 1995
-    (should (equal (time-stamp-string "%02y" ref-time) "06"))
-    ;; documented 1997-2019
-    (should (equal (time-stamp-string "%:y" ref-time) "2006"))
-    ;; implemented since 1997, documented since 2019
-    (should (equal (time-stamp-string "%Y" ref-time) "2006"))
-    ;; warned 1997-2019, changed in 2019
-    (should (equal (time-stamp-string "%y" ref-time) "06"))))
-
 (ert-deftest time-stamp-test-time-zone ()
   "Test time-stamp formats for time zone."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
-    (should (equal (time-stamp-string "%Z" ref-time) "GMT"))
-    ;; documented 1995-2019
-    (should (equal (time-stamp-string "%z" ref-time) "gmt"))
-    ;; implemented since 1997, documented since 2019
-    (should (equal (time-stamp-string "%#Z" ref-time) "gmt"))))
+    (let ((UTC-abbr (format-time-string "%Z" ref-time t))
+	  (utc-abbr (format-time-string "%#Z" ref-time t)))
+      ;; implemented and documented since 1995
+      (should (equal (time-stamp-string "%Z" ref-time) UTC-abbr))
+      ;; documented 1995-2019
+      (should (equal (time-stamp-string "%z" ref-time) utc-abbr))
+      ;; implemented since 1997, documented since 2019
+      (should (equal (time-stamp-string "%#Z" ref-time) utc-abbr)))))
 
 (ert-deftest time-stamp-test-non-date-conversions ()
   "Test time-stamp formats for non-date items."

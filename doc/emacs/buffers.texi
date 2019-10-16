@@ -127,7 +127,8 @@ Modes}).
 (@code{previous-buffer}) selects the previous buffer (following the
 order of most recent selection in the current frame), while @kbd{C-x
 @key{RIGHT}} (@code{next-buffer}) moves through buffers in the reverse
-direction.
+direction.  Both commands support a numeric prefix argument that
+serves as a repeat count.
 
 @kindex C-x 4 b
 @findex switch-to-buffer-other-window

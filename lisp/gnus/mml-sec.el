@@ -944,6 +944,8 @@ If no one is selected, symmetric encryption will be performed.  "
 	 (signer-names (mml-secure-signer-names protocol sender))
 	 (signers (mml-secure-signers context signer-names))
 	 signature micalg)
+    (unless signers
+      (error "Couldn't find any signer names.  Perhaps `mml-secure-smime-sign-with-sender' should be set?"))
     (when (eq 'OpenPGP protocol)
       (setf (epg-context-armor context) t)
       (setf (epg-context-textmode context) t)

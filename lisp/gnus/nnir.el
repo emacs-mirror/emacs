@@ -412,7 +412,25 @@ that it is for notmuch, not Namazu."
   :type '(regexp)
   :group 'nnir)
 
-;;;  Extension Variable:
+(defcustom nnir-notmuch-filter-group-names-function nil
+  "Whether and how to use Gnus group names as \"path:\" search terms.
+When nil, the groups being searched in are not used as notmuch
+:path search terms.  It's still possible to use \"path:\" terms
+manually within the search query, however.
+
+When a function, map this function over all the group names.  To
+use the group names unchanged, set to (lambda (g) g).  Multiple
+transforms (for instance, converting \".\" to \"/\") can be added
+like so:
+
+\(add-function :filter-return
+   nnir-notmuch-filter-group-names-function
+   (lambda (g) (replace-regexp-in-string \"\\\\.\" \"/\" g)))"
+  :version "27.1"
+  :type '(choice function
+		 (const :tag "No" nil)))
+
+;;; Developer Extension Variable:
 
 (defvar nnir-engines
   `((imap    nnir-run-imap

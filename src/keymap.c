@@ -912,8 +912,10 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
   return def;
 }
 
+static Lisp_Object copy_keymap_1 (Lisp_Object keymap, int depth);
+
 static Lisp_Object
-copy_keymap_item (Lisp_Object elt)
+copy_keymap_item (Lisp_Object elt, int depth)
 {
   Lisp_Object res, tem;
 
@@ -943,7 +945,7 @@ copy_keymap_item (Lisp_Object elt)
 	  elt = XCDR (elt);
 	  tem = XCAR (elt);
 	  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
-	    XSETCAR (elt, Fcopy_keymap (tem));
+	    XSETCAR (elt, copy_keymap_1 (tem, depth));
 	  tem = XCDR (elt);
 	}
     }
@@ -964,18 +966,65 @@ copy_keymap_item (Lisp_Object elt)
 	      tem = XCDR (elt);
 	    }
 	  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
-	    XSETCDR (elt, Fcopy_keymap (tem));
+	    XSETCDR (elt, copy_keymap_1 (tem, depth));
 	}
       else if (EQ (XCAR (tem), Qkeymap))
-	res = Fcopy_keymap (elt);
+	res = copy_keymap_1 (elt, depth);
     }
   return res;
 }
 
 static void
-copy_keymap_1 (Lisp_Object chartable, Lisp_Object idx, Lisp_Object elt)
+copy_keymap_set_char_table (Lisp_Object chartable_and_depth, Lisp_Object idx,
+			    Lisp_Object elt)
 {
-  Fset_char_table_range (chartable, idx, copy_keymap_item (elt));
+  Fset_char_table_range
+    (XCAR (chartable_and_depth), idx,
+     copy_keymap_item (elt, XFIXNUM (XCDR (chartable_and_depth))));
+}
+
+static Lisp_Object
+copy_keymap_1 (Lisp_Object keymap, int depth)
+{
+  Lisp_Object copy, tail;
+
+  if (depth > 100)
+    error ("Possible infinite recursion when copying keymap");
+
+  keymap = get_keymap (keymap, 1, 0);
+  copy = tail = list1 (Qkeymap);
+  keymap = XCDR (keymap);		/* Skip the `keymap' symbol.  */
+
+  while (CONSP (keymap) && !EQ (XCAR (keymap), Qkeymap))
+    {
+      Lisp_Object elt = XCAR (keymap);
+      if (CHAR_TABLE_P (elt))
+	{
+	  elt = Fcopy_sequence (elt);
+	  map_char_table (copy_keymap_set_char_table, Qnil, elt,
+			  Fcons (elt, make_fixnum (depth + 1)));
+	}
+      else if (VECTORP (elt))
+	{
+	  int i;
+	  elt = Fcopy_sequence (elt);
+	  for (i = 0; i < ASIZE (elt); i++)
+	    ASET (elt, i, copy_keymap_item (AREF (elt, i), depth + 1));
+	}
+      else if (CONSP (elt))
+	{
+	  if (EQ (XCAR (elt), Qkeymap))
+	    /* This is a sub keymap.  */
+	    elt = copy_keymap_1 (elt, depth + 1);
+	  else
+	    elt = Fcons (XCAR (elt), copy_keymap_item (XCDR (elt), depth + 1));
+	}
+      XSETCDR (tail, list1 (elt));
+      tail = XCDR (tail);
+      keymap = XCDR (keymap);
+    }
+  XSETCDR (tail, keymap);
+  return copy;
 }
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
@@ -997,41 +1046,9 @@ However, a key definition which is a symbol whose definition is a keymap
 is not copied.  */)
   (Lisp_Object keymap)
 {
-  Lisp_Object copy, tail;
-  keymap = get_keymap (keymap, 1, 0);
-  copy = tail = list1 (Qkeymap);
-  keymap = XCDR (keymap);		/* Skip the `keymap' symbol.  */
-
-  while (CONSP (keymap) && !EQ (XCAR (keymap), Qkeymap))
-    {
-      Lisp_Object elt = XCAR (keymap);
-      if (CHAR_TABLE_P (elt))
-	{
-	  elt = Fcopy_sequence (elt);
-	  map_char_table (copy_keymap_1, Qnil, elt, elt);
-	}
-      else if (VECTORP (elt))
-	{
-	  int i;
-	  elt = Fcopy_sequence (elt);
-	  for (i = 0; i < ASIZE (elt); i++)
-	    ASET (elt, i, copy_keymap_item (AREF (elt, i)));
-	}
-      else if (CONSP (elt))
-	{
-	  if (EQ (XCAR (elt), Qkeymap))
-	    /* This is a sub keymap.  */
-	    elt = Fcopy_keymap (elt);
-	  else
-	    elt = Fcons (XCAR (elt), copy_keymap_item (XCDR (elt)));
-	}
-      XSETCDR (tail, list1 (elt));
-      tail = XCDR (tail);
-      keymap = XCDR (keymap);
-    }
-  XSETCDR (tail, keymap);
-  return copy;
+  return copy_keymap_1 (keymap, 0);
 }
+
 
 /* Simple Keymap mutators and accessors.				*/
 

@@ -7598,8 +7598,7 @@ and `verilog-separator-keywords'.)"
 	       (display-completion-list allcomp))
 	     ;; Wait for a key press. Then delete *Completion*  window
 	     (momentary-string-display "" (point))
-	     (delete-window (get-buffer-window (get-buffer "*Completions*")))
-	     )))))
+	     (quit-window nil (get-buffer-window "*Completions*")))))))
 
 (defun verilog-show-completions ()
   "Show all possible completions at current point."
@@ -7611,7 +7610,8 @@ and `verilog-separator-keywords'.)"
     (display-completion-list (nth 2 (verilog-completion-at-point))))
   ;; Wait for a key press. Then delete *Completion*  window
   (momentary-string-display "" (point))
-  (delete-window (get-buffer-window (get-buffer "*Completions*"))))
+  (quit-window nil (get-buffer-window "*Completions*")))
+
 
 (defun verilog-get-default-symbol ()
   "Return symbol around current point as a string."

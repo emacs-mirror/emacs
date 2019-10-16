@@ -560,7 +560,8 @@ OVERARGS is a list of arguments passed to the override and
      (put ',name 'mode-local-overload t)))
 (put :override-with-args 'lisp-indent-function 1)
 
-(defalias 'define-overload 'define-overloadable-function)
+(define-obsolete-function-alias 'define-overload
+  #'define-overloadable-function "27.1")
 
 (defsubst function-overload-p (symbol)
   "Return non-nil if SYMBOL is a function which can be overloaded."

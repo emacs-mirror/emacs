@@ -2600,14 +2600,12 @@ goes wrong and syntax highlighting in the shell gets messed up."
 
 (defun python-shell-font-lock-comint-output-filter-function (output)
   "Clean up the font-lock buffer after any OUTPUT."
-  (if (and (not (string= "" output))
-           ;; Is end of output and is not just a prompt.
-           (not (member
-                 (python-shell-comint-end-of-output-p
-                  (ansi-color-filter-apply output))
-                 '(nil 0))))
-      ;; If output is other than an input prompt then "real" output has
-      ;; been received and the font-lock buffer must be cleaned up.
+  (if (let ((output (ansi-color-filter-apply output)))
+        (and (python-shell-comint-end-of-output-p output)
+             ;; Assume "..." represents a continuation prompt.
+             (not (string-match "\\.\\.\\." output))))
+      ;; If output ends with an initial (not continuation) input prompt
+      ;; then the font-lock buffer must be cleaned up.
       (python-shell-font-lock-cleanup-buffer)
     ;; Otherwise just add a newline.
     (python-shell-font-lock-with-font-lock-buffer

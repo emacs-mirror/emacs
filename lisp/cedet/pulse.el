@@ -179,6 +179,9 @@ Optional argument FACE specifies the face to do the highlighting."
   ;; We don't support simultaneous highlightings.
   (pulse-momentary-unhighlight)
   (overlay-put o 'original-face (overlay-get o 'face))
+  ;; Make this overlay take priority over the `transient-mark-mode'
+  ;; overlay.
+  (overlay-put o 'priority 1)
   (setq pulse-momentary-overlay o)
   (if (eq pulse-flag 'never)
       nil

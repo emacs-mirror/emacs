@@ -599,6 +599,17 @@ Drops the shape one square, testing for collision."
 
   (use-local-map tetris-null-map)
 
+  (unless (featurep 'emacs)
+    (setq mode-popup-menu
+	  '("Tetris Commands"
+	    ["Start new game"	tetris-start-game]
+	    ["End game"		tetris-end-game
+	     (tetris-active-p)]
+	    ["Pause"		tetris-pause-game
+	     (and (tetris-active-p) (not tetris-paused))]
+	    ["Resume"		tetris-pause-game
+	     (and (tetris-active-p) tetris-paused)])))
+
   (setq show-trailing-whitespace nil)
 
   (setq gamegrid-use-glyphs tetris-use-glyphs)

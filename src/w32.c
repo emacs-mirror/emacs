@@ -6259,7 +6259,7 @@ acl_valid (acl_t acl)
   return is_valid_security_descriptor ((PSECURITY_DESCRIPTOR)acl) ? 0 : -1;
 }
 
-char *
+char * ATTRIBUTE_MALLOC
 acl_to_text (acl_t acl, ssize_t *size)
 {
   LPTSTR str_acl;

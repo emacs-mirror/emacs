@@ -607,6 +607,8 @@ SORT-PRED if desired."
   (chart-bar-quickie 'vertical "Test Bar Chart"
 		     '( "U1" "ME2" "C3" "B4" "QT" "EZ") "Items"
 		     '( 5 -10 23 20 30 -3) "Values")
+  (if (not (called-interactively-p 'any))
+      (kill-buffer "*Test Bar Chart*"))
   )
 
 ;;; Sample utility function

@@ -431,17 +431,26 @@ static Lisp_Object list_of_error;
    met, return the (nonnegative) column number, else return a negative
    value.  */
 static int
-fill_column_indicator_column (struct it *it)
+fill_column_indicator_column (struct it *it, int char_width)
 {
   if (Vdisplay_fill_column_indicator
+      && !it->w->pseudo_window_p
       && it->continuation_lines_width == 0
       && CHARACTERP (Vdisplay_fill_column_indicator_character))
     {
       Lisp_Object col = (EQ (Vdisplay_fill_column_indicator_column, Qt)
 			 ? BVAR (current_buffer, fill_column)
 			 : Vdisplay_fill_column_indicator_column);
+
+      /* The stretch width needs to consider the latter
+	 added glyph in append_space_for_newline.  */
       if (RANGED_FIXNUMP (0, col, INT_MAX))
-	return XFIXNUM (col);
+	{
+          int icol = XFIXNUM (col);
+	  if (!INT_MULTIPLY_WRAPV (char_width, icol, &icol)
+	      && !INT_ADD_WRAPV (it->lnum_pixel_width, icol, &icol))
+	    return icol;
+	}
     }
   return -1;
 }
@@ -984,7 +993,7 @@ static int handle_display_spec (struct it *, Lisp_Object, Lisp_Object,
 static int handle_single_display_spec (struct it *, Lisp_Object, Lisp_Object,
 				       Lisp_Object, struct text_pos *,
 				       ptrdiff_t, int, bool, bool);
-static int underlying_face_id (struct it *);
+static int underlying_face_id (const struct it *);
 
 #define face_before_it_pos(IT) face_before_or_after_it_pos (IT, true)
 #define face_after_it_pos(IT)  face_before_or_after_it_pos (IT, false)
@@ -4148,56 +4157,20 @@ handle_fontified_prop (struct it *it)
 				Faces
  ***********************************************************************/
 
-/* Set up iterator IT from face properties at its current position.
-   Called from handle_stop.  */
-
-static enum prop_handled
-handle_face_prop (struct it *it)
+static int
+face_at_pos (const struct it *it, enum lface_attribute_index attr_filter)
 {
-  int new_face_id;
   ptrdiff_t next_stop;
 
   if (!STRINGP (it->string))
     {
-      new_face_id
-	= face_at_buffer_position (it->w,
-				   IT_CHARPOS (*it),
-				   &next_stop,
-				   (IT_CHARPOS (*it)
-				    + TEXT_PROP_DISTANCE_LIMIT),
-				   false, it->base_face_id);
-
-      /* Is this a start of a run of characters with box face?
-	 Caveat: this can be called for a freshly initialized
-	 iterator; face_id is -1 in this case.  We know that the new
-	 face will not change until limit, i.e. if the new face has a
-	 box, all characters up to limit will have one.  But, as
-	 usual, we don't know whether limit is really the end.  */
-      if (new_face_id != it->face_id)
-	{
-	  struct face *new_face = FACE_FROM_ID (it->f, new_face_id);
-	  /* If it->face_id is -1, old_face below will be NULL, see
-	     the definition of FACE_FROM_ID_OR_NULL.  This will happen
-	     if this is the initial call that gets the face.  */
-	  struct face *old_face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
-
-	  /* If the value of face_id of the iterator is -1, we have to
-	     look in front of IT's position and see whether there is a
-	     face there that's different from new_face_id.  */
-	  if (!old_face && IT_CHARPOS (*it) > BEG)
-	    {
-	      int prev_face_id = face_before_it_pos (it);
-
-	      old_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
-	    }
-
-	  /* If the new face has a box, but the old face does not,
-	     this is the start of a run of characters with box face,
-	     i.e. this character has a shadow on the left side.  */
-	  it->start_of_box_run_p = (new_face->box != FACE_NO_BOX
-				    && (old_face == NULL || !old_face->box));
-	  it->face_box_p = new_face->box != FACE_NO_BOX;
-	}
+      return face_at_buffer_position (it->w,
+                                      IT_CHARPOS (*it),
+                                      &next_stop,
+                                      (IT_CHARPOS (*it)
+				       + TEXT_PROP_DISTANCE_LIMIT),
+                                      false, it->base_face_id,
+                                      attr_filter);
     }
   else
     {
@@ -4207,7 +4180,7 @@ handle_face_prop (struct it *it)
       Lisp_Object from_overlay
 	= (it->current.overlay_string_index >= 0
 	   ? it->string_overlays[it->current.overlay_string_index
-				 % OVERLAY_STRING_CHUNK_SIZE]
+	                         % OVERLAY_STRING_CHUNK_SIZE]
 	   : Qnil);
 
       /* See if we got to this string directly or indirectly from
@@ -4222,7 +4195,7 @@ handle_face_prop (struct it *it)
 	    if (it->stack[i].current.overlay_string_index >= 0)
 	      from_overlay
 		= it->string_overlays[it->stack[i].current.overlay_string_index
-				      % OVERLAY_STRING_CHUNK_SIZE];
+		                      % OVERLAY_STRING_CHUNK_SIZE];
 	    else if (! NILP (it->stack[i].from_overlay))
 	      from_overlay = it->stack[i].from_overlay;
 
@@ -4237,12 +4210,12 @@ handle_face_prop (struct it *it)
 	     only on text properties and ignores overlays.  */
 	  base_face_id
 	    = face_for_overlay_string (it->w,
-				       IT_CHARPOS (*it),
-				       &next_stop,
-				       (IT_CHARPOS (*it)
-					+ TEXT_PROP_DISTANCE_LIMIT),
-				       false,
-				       from_overlay);
+	                               IT_CHARPOS (*it),
+	                               &next_stop,
+	                               (IT_CHARPOS (*it)
+				        + TEXT_PROP_DISTANCE_LIMIT),
+	                               false,
+	                               from_overlay);
 	}
       else
 	{
@@ -4271,35 +4244,60 @@ handle_face_prop (struct it *it)
 	    : underlying_face_id (it);
 	}
 
-      new_face_id = face_at_string_position (it->w,
-					     it->string,
-					     IT_STRING_CHARPOS (*it),
-					     bufpos,
-					     &next_stop,
-					     base_face_id, false);
+      return face_at_string_position (it->w,
+                                      it->string,
+                                      IT_STRING_CHARPOS (*it),
+                                      bufpos,
+                                      &next_stop,
+                                      base_face_id, false,
+                                      attr_filter);
+    } // !STRINGP (it->string))
+}
 
-      /* Is this a start of a run of characters with box?  Caveat:
-	 this can be called for a freshly allocated iterator; face_id
-	 is -1 is this case.  We know that the new face will not
-	 change until the next check pos, i.e. if the new face has a
-	 box, all characters up to that position will have a
-	 box.  But, as usual, we don't know whether that position
-	 is really the end.  */
-      if (new_face_id != it->face_id)
+
+/* Set up iterator IT from face properties at its current position.
+   Called from handle_stop.  */
+static enum prop_handled
+handle_face_prop (struct it *it)
+{
+  const int new_face_id = face_at_pos (it, 0);
+
+
+  /* Is this a start of a run of characters with box face?
+     Caveat: this can be called for a freshly initialized
+     iterator; face_id is -1 in this case.  We know that the new
+     face will not change until limit, i.e. if the new face has a
+     box, all characters up to limit will have one.  But, as
+     usual, we don't know whether limit is really the end.  */
+  if (new_face_id != it->face_id)
+    {
+      struct face *new_face = FACE_FROM_ID (it->f, new_face_id);
+      /* If it->face_id is -1, old_face below will be NULL, see
+	 the definition of FACE_FROM_ID_OR_NULL.  This will happen
+	 if this is the initial call that gets the face.  */
+      struct face *old_face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
+
+      /* If the value of face_id of the iterator is -1, we have to
+	 look in front of IT's position and see whether there is a
+	 face there that's different from new_face_id.  */
+      if (!STRINGP (it->string)
+          && !old_face
+          && IT_CHARPOS (*it) > BEG)
 	{
-	  struct face *new_face = FACE_FROM_ID (it->f, new_face_id);
-	  struct face *old_face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
+	  const int prev_face_id = face_before_it_pos (it);
 
-	  /* If new face has a box but old face hasn't, this is the
-	     start of a run of characters with box, i.e. it has a
-	     shadow on the left side.  */
-	  it->start_of_box_run_p
-	    = new_face->box && (old_face == NULL || !old_face->box);
-	  it->face_box_p = new_face->box != FACE_NO_BOX;
+	  old_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
 	}
+
+      /* If the new face has a box, but the old face does not,
+	 this is the start of a run of characters with box face,
+	 i.e. this character has a shadow on the left side.  */
+      it->face_id = new_face_id;
+      it->start_of_box_run_p = (new_face->box != FACE_NO_BOX
+                                && (old_face == NULL || !old_face->box));
+      it->face_box_p = new_face->box != FACE_NO_BOX;
     }
 
-  it->face_id = new_face_id;
   return HANDLED_NORMALLY;
 }
 
@@ -4310,7 +4308,7 @@ handle_face_prop (struct it *it)
    Otherwise, use the iterator's base_face_id.  */
 
 static int
-underlying_face_id (struct it *it)
+underlying_face_id (const struct it *it)
 {
   int face_id = it->base_face_id, i;
 
@@ -4423,12 +4421,9 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
       base_face_id = underlying_face_id (it);
 
       /* Get the face for ASCII, or unibyte.  */
-      face_id = face_at_string_position (it->w,
-					 it->string,
-					 charpos,
-					 bufpos,
-					 &next_check_charpos,
-					 base_face_id, false);
+      face_id = face_at_string_position (it->w, it->string, charpos,
+                                         bufpos, &next_check_charpos,
+                                         base_face_id, false, 0);
 
       /* Correct the face for charsets different from ASCII.  Do it
 	 for the multibyte case only.  The face returned above is
@@ -4527,7 +4522,7 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
       face_id = face_at_buffer_position (it->w,
 					 CHARPOS (pos),
 					 &next_check_charpos,
-					 limit, false, -1);
+                                         limit, false, -1, 0);
 
       /* Correct the face for charsets different from ASCII.  Do it
 	 for the multibyte case only.  The face returned above is
@@ -7638,7 +7633,8 @@ get_next_display_element (struct it *it)
 			  next_face_id
 			    = face_at_string_position (it->w, base_string,
 						       CHARPOS (pos), 0,
-						       &ignore, face_id, false);
+						       &ignore, face_id,
+			                               false, 0);
 			  it->end_of_box_run_p
 			    = (FACE_FROM_ID (it->f, next_face_id)->box
 			       == FACE_NO_BOX);
@@ -7649,10 +7645,11 @@ get_next_display_element (struct it *it)
 		  else
 		    {
 		      next_face_id =
-			face_at_buffer_position (it->w, CHARPOS (pos), &ignore,
+			face_at_buffer_position (it->w, CHARPOS (pos),
+			                         &ignore,
 						 CHARPOS (pos)
 						 + TEXT_PROP_DISTANCE_LIMIT,
-						 false, -1);
+			                         false, -1, 0);
 		      it->end_of_box_run_p
 			= (FACE_FROM_ID (it->f, next_face_id)->box
 			   == FACE_NO_BOX);
@@ -13334,7 +13331,6 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
 {
   Lisp_Object window = f->tab_bar_window;
   struct window *w = XWINDOW (window);
-  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos, vpos;
   struct glyph *glyph;
@@ -13344,7 +13340,6 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
   int prop_idx;
   bool close_p;
   enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
-  bool mouse_down_p;
   int rc;
 
   /* Function note_mouse_highlight is called with negative X/Y
@@ -13368,18 +13363,17 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
 
   clear_mouse_face (hlinfo);
 
+  bool mouse_down_p = false;
 #ifndef HAVE_NS
   /* Mouse is down, but on different tab-bar item?  */
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   mouse_down_p = (gui_mouse_grabbed (dpyinfo)
 		  && f == dpyinfo->last_mouse_frame);
 
   if (mouse_down_p && f->last_tab_bar_item != prop_idx)
     return;
-
+#endif
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
-#else
-  draw = DRAW_IMAGE_RAISED;
-#endif /* HAVE_NS */
 
   /* If tab-bar item is not enabled, don't highlight it.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
@@ -21369,80 +21363,78 @@ compute_line_metrics (struct it *it)
 static bool
 append_space_for_newline (struct it *it, bool default_face_p)
 {
-#ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (it->f))
+  int n = it->glyph_row->used[TEXT_AREA];
+
+  if (it->glyph_row->glyphs[TEXT_AREA] + n
+      < it->glyph_row->glyphs[1 + TEXT_AREA])
     {
-      int n = it->glyph_row->used[TEXT_AREA];
+      /* Save some values that must not be changed.
+	 Must save IT->c and IT->len because otherwise
+	 ITERATOR_AT_END_P wouldn't work anymore after
+	 append_space_for_newline has been called.  */
+      enum display_element_type saved_what = it->what;
+      int saved_c = it->c, saved_len = it->len;
+      int saved_char_to_display = it->char_to_display;
+      int saved_x = it->current_x;
+      const int saved_face_id = it->face_id;
+      bool saved_box_end = it->end_of_box_run_p;
+      struct text_pos saved_pos = it->position;
+      Lisp_Object saved_object = it->object;
+      struct face *face;
 
-      if (it->glyph_row->glyphs[TEXT_AREA] + n
-	  < it->glyph_row->glyphs[1 + TEXT_AREA])
+      it->what = IT_CHARACTER;
+      memset (&it->position, 0, sizeof it->position);
+      it->object = Qnil;
+      it->len = 1;
+
+      int char_width = 1;
+
+      if (default_face_p
+#ifdef HAVE_WINDOW_SYSTEM
+          || FRAME_WINDOW_P (it->f)
+#endif
+	  )
 	{
-	  /* Save some values that must not be changed.
-	     Must save IT->c and IT->len because otherwise
-	     ITERATOR_AT_END_P wouldn't work anymore after
-	     append_space_for_newline has been called.  */
-	  enum display_element_type saved_what = it->what;
-	  int saved_c = it->c, saved_len = it->len;
-	  int saved_char_to_display = it->char_to_display;
-	  int saved_x = it->current_x;
-	  int saved_face_id = it->face_id;
-	  bool saved_box_end = it->end_of_box_run_p;
-	  struct text_pos saved_pos;
-	  Lisp_Object saved_object;
-	  struct face *face;
-
-	  saved_object = it->object;
-	  saved_pos = it->position;
-
-	  it->what = IT_CHARACTER;
-	  memset (&it->position, 0, sizeof it->position);
-	  it->object = Qnil;
-	  it->len = 1;
-
-	  int local_default_face_id =
+	  const int local_default_face_id =
 	    lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
 	  struct face* default_face =
 	    FACE_FROM_ID_OR_NULL (it->f, local_default_face_id);
 
-	  /* Corner case for when display-fill-column-indicator-mode
-	     is active and the extra character should be added in the
-	     same place than the line.  */
-	  int indicator_column = (it->w->pseudo_window_p == 0
-				  ? fill_column_indicator_column (it)
-				  : -1);
-	  if (indicator_column >= 0)
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (FRAME_WINDOW_P (it->f))
 	    {
-	       struct font *font = (default_face->font
-				    ? default_face->font
-				    : FRAME_FONT (it->f));
-	       const int char_width = (font->average_width
-				       ? font->average_width
-				       : font->space_width);
-	       int column_x;
-
-	       if (!INT_MULTIPLY_WRAPV (indicator_column, char_width,
-					&column_x)
-		   && !INT_ADD_WRAPV (it->lnum_pixel_width, column_x,
-				      &column_x)
-		   && it->current_x == column_x)
-	         {
-	           it->c = it->char_to_display
-		     = XFIXNAT (Vdisplay_fill_column_indicator_character);
-	           it->face_id
-		     = merge_faces (it->w, Qfill_column_indicator,
-				    0, saved_face_id);
-	           face = FACE_FROM_ID (it->f, it->face_id);
-	           goto produce_glyphs;
-	         }
+	      struct font *font = (default_face->font
+	                           ? default_face->font
+	                           : FRAME_FONT (it->f));
+	      char_width = (font->average_width
+	                    ? font->average_width
+	                    : font->space_width);
 	    }
+#endif
+	  if (default_face_p)
+	    it->face_id = local_default_face_id;
+	}
+      /* Corner case for when display-fill-column-indicator-mode
+	 is active and the extra character should be added in the
+	 same place than the line.  */
 
+      const int indicator_column =
+	fill_column_indicator_column (it, char_width);
+
+      if (it->current_x == indicator_column)
+	{
+	  it->c = it->char_to_display
+	    = XFIXNAT (Vdisplay_fill_column_indicator_character);
+	  it->face_id
+	    = merge_faces (it->w, Qfill_column_indicator,
+	                   0, saved_face_id);
+	  face = FACE_FROM_ID (it->f, it->face_id);
+	}
+      else
+	{
 	  it->c = it->char_to_display = ' ';
 	  /* If the default face was remapped, be sure to use the
 	     remapped face for the appended newline.  */
-	  if (default_face_p)
-	    it->face_id = local_default_face_id;
-	  else if (it->face_before_selective_p)
-	    it->face_id = it->saved_face_id;
 
 	  face = FACE_FROM_ID (it->f, it->face_id);
 	  it->face_id = FACE_FOR_CHAR (it->f, face, 0, -1, Qnil);
@@ -21456,10 +21448,11 @@ append_space_for_newline (struct it *it, bool default_face_p)
 		 so leave the box flag set.  */
 	      && saved_x + FRAME_COLUMN_WIDTH (it->f) < it->last_visible_x)
 	    it->end_of_box_run_p = false;
-
-	produce_glyphs:
-	  PRODUCE_GLYPHS (it);
-
+	}
+      PRODUCE_GLYPHS (it);
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (it->f))
+	{
 	  /* Make sure this space glyph has the right ascent and
 	     descent values, or else cursor at end of line will look
 	     funny, and height of empty lines will be incorrect.  */
@@ -21480,8 +21473,8 @@ append_space_for_newline (struct it *it, bool default_face_p)
 		 gui_produce_glyph for newline characters.  */
 	      height = get_it_property (it, Qline_height);
 	      if (CONSP (height)
-		  && CONSP (XCDR (height))
-		  && NILP (XCDR (XCDR (height))))
+	          && CONSP (XCDR (height))
+	          && NILP (XCDR (XCDR (height))))
 		{
 		  total_height = XCAR (XCDR (height));
 		  height = XCAR (height);
@@ -21510,12 +21503,12 @@ append_space_for_newline (struct it *it, bool default_face_p)
 
 		  if (!NILP (total_height))
 		    spacing = calc_line_height_property (it, total_height, font,
-							 boff, false);
+		                                         boff, false);
 		  else
 		    {
 		      spacing = get_it_property (it, Qline_spacing);
 		      spacing = calc_line_height_property (it, spacing, font,
-							   boff, false);
+		                                           boff, false);
 		    }
 		  if (FIXNUMP (spacing))
 		    {
@@ -21538,22 +21531,21 @@ append_space_for_newline (struct it *it, bool default_face_p)
 
 	  g->ascent = it->max_ascent;
 	  g->descent = it->max_descent;
-
-	  it->override_ascent = -1;
-	  it->constrain_row_ascent_descent_p = false;
-	  it->current_x = saved_x;
-	  it->object = saved_object;
-	  it->position = saved_pos;
-	  it->what = saved_what;
-	  it->face_id = saved_face_id;
-	  it->len = saved_len;
-	  it->c = saved_c;
-	  it->char_to_display = saved_char_to_display;
-	  it->end_of_box_run_p = saved_box_end;
-	  return true;
 	}
+#endif /* HAVE_WINDOW_SYSTEM  */
+      it->override_ascent = -1;
+      it->constrain_row_ascent_descent_p = false;
+      it->current_x = saved_x;
+      it->object = saved_object;
+      it->position = saved_pos;
+      it->what = saved_what;
+      it->face_id = saved_face_id;
+      it->len = saved_len;
+      it->c = saved_c;
+      it->char_to_display = saved_char_to_display;
+      it->end_of_box_run_p = saved_box_end;
+      return true;
     }
-#endif
 
   return false;
 }
@@ -21569,7 +21561,6 @@ append_space_for_newline (struct it *it, bool default_face_p)
 static void
 extend_face_to_end_of_line (struct it *it)
 {
-  struct face *face;
   struct frame *f = it->f;
 
   /* If line is already filled, do nothing.  Non window-system frames
@@ -21587,12 +21578,17 @@ extend_face_to_end_of_line (struct it *it)
 	   || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0))
     return;
 
-  /* Face extension extends the background and box of IT->face_id
+  const int extend_face_id = (it->face_id == DEFAULT_FACE_ID
+                              || it->s != NULL)
+    ? DEFAULT_FACE_ID
+    : face_at_pos (it, LFACE_EXTEND_INDEX);
+
+  /* Face extension extends the background and box of IT->extend_face_id
      to the end of the line.  If the background equals the background
      of the frame, we don't have to do anything.  */
-  face = FACE_FROM_ID (f, (it->face_before_selective_p
-			   ? it->saved_face_id
-			   : it->face_id));
+  struct face *face = FACE_FROM_ID (f, (it->face_before_selective_p
+                                        ? it->saved_face_id
+                                        : extend_face_id));
 
   if (FRAME_WINDOW_P (f)
       && MATRIX_ROW_DISPLAYS_TEXT_P (it->glyph_row)
@@ -21615,9 +21611,7 @@ extend_face_to_end_of_line (struct it *it)
      that the character will always be single byte in unibyte
      text.  */
   if (!ASCII_CHAR_P (it->c))
-    {
       it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
-    }
 
   /* The default face, possibly remapped. */
   struct face *default_face =
@@ -21668,79 +21662,81 @@ extend_face_to_end_of_line (struct it *it)
 	  /* Display fill column indicator if not in modeline or
 	     toolbar and display fill column indicator mode is
 	     active.  */
-	  int indicator_column = (it->w->pseudo_window_p == 0
-				  ? fill_column_indicator_column (it)
-				  : -1);
-	  if (indicator_column >= 0)
+
+	  struct font *font = (default_face->font
+	                       ? default_face->font
+	                       : FRAME_FONT (f));
+
+	  const int char_width = (font->average_width
+	                          ? font->average_width
+	                          : font->space_width);
+
+	  const int indicator_column =
+	    fill_column_indicator_column (it, char_width);
+
+	  const char saved_char = it->char_to_display;
+	  const struct text_pos saved_pos = it->position;
+	  const bool saved_avoid_cursor = it->avoid_cursor_p;
+	  const bool saved_box_start = it->start_of_box_run_p;
+	  Lisp_Object save_object = it->object;
+	  const int saved_face_id = it->face_id;
+
+	  it->face_id = extend_face_id;
+	  it->avoid_cursor_p = true;
+	  it->object = Qnil;
+
+	  if (indicator_column >= 0
+	      && indicator_column > it->current_x
+	      && indicator_column < it->last_visible_x)
             {
-	      struct font *font = (default_face->font
-				   ? default_face->font
-				   : FRAME_FONT (f));
-	      const int char_width = (font->average_width
-				      ? font->average_width
-				      : font->space_width);
-	      int column_x;
 
-	      if (!INT_MULTIPLY_WRAPV (indicator_column, char_width, &column_x)
-		  && !INT_ADD_WRAPV (it->lnum_pixel_width, column_x, &column_x)
-		  && column_x >= it->current_x
-		  && column_x <= it->last_visible_x)
-	        {
-	          const char saved_char = it->char_to_display;
-	          const struct text_pos saved_pos = it->position;
-	          const bool saved_avoid_cursor = it->avoid_cursor_p;
-	          const int saved_face_id = it->face_id;
-	          const bool saved_box_start = it->start_of_box_run_p;
-	          Lisp_Object save_object = it->object;
+	      /* Here we substract char_width because we want the
+		 column indicator in the column INDICATOR_COLUMN, not
+		 after it.  */
+	      const int stretch_width =
+		indicator_column - it->current_x - char_width;
 
-	          /* The stretch width needs to considet the latter
-	             added glyph.  */
-	          const int stretch_width
-		    = column_x - it->current_x - char_width;
+	      memset (&it->position, 0, sizeof it->position);
 
-	          memset (&it->position, 0, sizeof it->position);
-	          it->avoid_cursor_p = true;
-	          it->object = Qnil;
+	      /* Only generate a stretch glyph if there is distance
+		 between current_x and and the indicator position.  */
+	      if (stretch_width > 0)
+		{
+		  int stretch_ascent = (((it->ascent + it->descent)
+		                         * FONT_BASE (font)) / FONT_HEIGHT (font));
+		  append_stretch_glyph (it, Qnil, stretch_width,
+		                        it->ascent + it->descent,
+		                        stretch_ascent);
+		}
 
-	          /* Only generate a stretch glyph if there is distance
-	             between current_x and and the indicator position.  */
-	          if (stretch_width > 0)
-		    {
-		      int stretch_ascent = (((it->ascent + it->descent)
-		                             * FONT_BASE (font)) / FONT_HEIGHT (font));
-		      append_stretch_glyph (it, Qnil, stretch_width,
-		                            it->ascent + it->descent,
-		                            stretch_ascent);
-		    }
-
-	          /* Generate the glyph indicator only if
-	             append_space_for_newline didn't already.  */
-	          if (it->current_x < column_x)
-	            {
-		      it->char_to_display
-			= XFIXNAT (Vdisplay_fill_column_indicator_character);
-	              it->face_id
-			= merge_faces (it->w, Qfill_column_indicator,
-				       0, saved_face_id);
-	              PRODUCE_GLYPHS (it);
-	            }
-
-	          /* Restore the face after the indicator was generated.  */
-	          it->face_id = saved_face_id;
-
-	          /* If there is space after the indicator generate an
-	             extra empty glyph to restore the face.  Issue was
-	             observed in X systems.  */
-	          it->char_to_display = ' ';
-	          PRODUCE_GLYPHS (it);
-
-	          it->char_to_display = saved_char;
-	          it->position = saved_pos;
-	          it->avoid_cursor_p = saved_avoid_cursor;
-	          it->start_of_box_run_p = saved_box_start;
-	          it->object = save_object;
-	        }
+	      /* Generate the glyph indicator only if
+		 append_space_for_newline didn't already.  */
+	      if (it->current_x < indicator_column)
+		{
+		  const int save_face_id = it->face_id;
+		  it->char_to_display
+		    = XFIXNAT (Vdisplay_fill_column_indicator_character);
+		  it->face_id
+		    = merge_faces (it->w, Qfill_column_indicator,
+		                   0, extend_face_id);
+		  PRODUCE_GLYPHS (it);
+		  it->face_id = save_face_id;
+		}
             }
+
+	  /* If there is space after the indicator generate an
+	     extra empty glyph to restore the face.  Issue was
+	     observed in X systems.  */
+	  it->char_to_display = ' ';
+	  PRODUCE_GLYPHS (it);
+
+	  it->char_to_display = saved_char;
+	  it->position = saved_pos;
+	  it->avoid_cursor_p = saved_avoid_cursor;
+	  it->start_of_box_run_p = saved_box_start;
+	  it->object = save_object;
+	  it->face_id = saved_face_id;
+
 	}
       if (it->glyph_row->reversed_p)
 	{
@@ -21786,10 +21782,9 @@ extend_face_to_end_of_line (struct it *it)
 	      /* The last row's stretch glyph should get the default
 		 face, to avoid painting the rest of the window with
 		 the region face, if the region ends at ZV.  */
-	      if (it->glyph_row->ends_at_zv_p)
-		it->face_id = default_face->id;
-	      else
-		it->face_id = face->id;
+	      it->face_id = (it->glyph_row->ends_at_zv_p ?
+	                     default_face->id : face->id);
+
 	      it->start_of_box_run_p = false;
 	      append_stretch_glyph (it, Qnil, stretch_width,
 				    it->ascent + it->descent, stretch_ascent);
@@ -21811,13 +21806,10 @@ extend_face_to_end_of_line (struct it *it)
     {
       /* Save some values that must not be changed.  */
       int saved_x = it->current_x;
-      struct text_pos saved_pos;
-      Lisp_Object saved_object;
+      struct text_pos saved_pos = it->position;
+      Lisp_Object saved_object = it->object;;
       enum display_element_type saved_what = it->what;
       int saved_face_id = it->face_id;
-
-      saved_object = it->object;
-      saved_pos = it->position;
 
       it->what = IT_CHARACTER;
       memset (&it->position, 0, sizeof it->position);
@@ -21857,34 +21849,31 @@ extend_face_to_end_of_line (struct it *it)
       /* The last row's blank glyphs should get the default face, to
 	 avoid painting the rest of the window with the region face,
 	 if the region ends at ZV.  */
-      if (it->glyph_row->ends_at_zv_p)
-	it->face_id = default_face->id;
-      else
-	it->face_id = face->id;
+      it->face_id = (it->glyph_row->ends_at_zv_p ?
+                     default_face->id : face->id);
 
       /* Display fill-column indicator if needed.  */
-      int indicator_column = fill_column_indicator_column (it);
-      if (indicator_column >= 0
-	  && INT_ADD_WRAPV (it->lnum_pixel_width, indicator_column,
-			    &indicator_column))
-	indicator_column = -1;
+      /* We need to subtract 1 to the indicator_column here because we
+	 will add the indicator IN the column indicator number, not
+	 after it.  We compare the variable it->current_x before
+	 producing the glyph.  When FRAME_WINDOW_P we substract
+	 CHAR_WIDTH calculating STRETCH_WIDTH for the same reason.  */
+      const int indicator_column =
+	fill_column_indicator_column (it, 1) - 1;
       do
 	{
-	  int saved_face_id;
-	  bool indicate = it->current_x == indicator_column;
-	  if (indicate)
+	  if (it->current_x != indicator_column)
+	    PRODUCE_GLYPHS (it);
+	  else
 	    {
-	      saved_face_id = it->face_id;
+	      int saved_face_id = it->face_id;
 	      it->face_id
-		= merge_faces (it->w, Qfill_column_indicator, 0, saved_face_id);
+		= merge_faces (it->w, Qfill_column_indicator, 0, extend_face_id);
 	      it->c = it->char_to_display
 		= XFIXNAT (Vdisplay_fill_column_indicator_character);
-	    }
 
-	  PRODUCE_GLYPHS (it);
+	      PRODUCE_GLYPHS (it);
 
-	  if (indicate)
-	    {
 	      it->face_id = saved_face_id;
 	      it->c = it->char_to_display = ' ';
 	    }
@@ -22512,9 +22501,21 @@ maybe_produce_line_number (struct it *it)
   ptrdiff_t start_from, bytepos;
   ptrdiff_t this_line;
   bool first_time = false;
-  ptrdiff_t beg_byte = display_line_numbers_widen ? BEG_BYTE : BEGV_BYTE;
-  ptrdiff_t z_byte = display_line_numbers_widen ? Z_BYTE : ZV_BYTE;
+  ptrdiff_t beg_byte;
+  ptrdiff_t z_byte;
+  bool line_numbers_wide;
   void *itdata = bidi_shelve_cache ();
+
+  if (display_line_numbers_offset
+      && !display_line_numbers_widen
+      && !EQ (Vdisplay_line_numbers, Qvisual)
+      && !EQ (Vdisplay_line_numbers, Qrelative))
+    line_numbers_wide = true;
+  else
+    line_numbers_wide = display_line_numbers_widen;
+
+  beg_byte = line_numbers_wide ? BEG_BYTE : BEGV_BYTE;
+  z_byte = line_numbers_wide ? Z_BYTE : ZV_BYTE;
 
   if (EQ (Vdisplay_line_numbers, Qvisual))
     this_line = display_count_lines_visually (it);
@@ -22530,7 +22531,7 @@ maybe_produce_line_number (struct it *it)
 		 numbers, so we cannot use its data if the user wants
 		 line numbers that disregard narrowing, or if the
 		 buffer's narrowing has just changed.  */
-	      && !(display_line_numbers_widen
+	      && !(line_numbers_wide
 		   && (BEG_BYTE != BEGV_BYTE || Z_BYTE != ZV_BYTE))
 	      && !current_buffer->clip_changed)
 	    {
@@ -22620,6 +22621,8 @@ maybe_produce_line_number (struct it *it)
     lnum_offset = it->pt_lnum;
   else if (EQ (Vdisplay_line_numbers, Qvisual))
     lnum_offset = 0;
+  else if (display_line_numbers_offset)
+    lnum_offset -= display_line_numbers_offset;
 
   /* Under 'relative', display the absolute line number for the
      current line, unless the user requests otherwise.  */
@@ -22657,29 +22660,33 @@ maybe_produce_line_number (struct it *it)
   int width_limit =
     tem_it.last_visible_x - tem_it.first_visible_x
     - 3 * FRAME_COLUMN_WIDTH (it->f);
-  /* Produce glyphs for the line number in a scratch glyph_row.  */
-  for (const char *p = lnum_buf; *p; p++)
+
+  tem_it.face_id = lnum_face_id;
+  /* Avoid displaying any face other than line-number on
+     empty lines beyond EOB.  */
+  if (lnum_face_id != current_lnum_face_id
+      && (EQ (Vdisplay_line_numbers, Qvisual)
+	  ? this_line == 0
+	  : this_line == it->pt_lnum)
+      && it->what != IT_EOB)
+    tem_it.face_id = current_lnum_face_id;
+  else if (!beyond_zv)
     {
-      /* For continuation lines and lines after ZV, instead of a line
-	 number, produce a blank prefix of the same width.  */
-      if (lnum_face_id != current_lnum_face_id
-	  && (EQ (Vdisplay_line_numbers, Qvisual)
-	      ? this_line == 0
-	      : this_line == it->pt_lnum)
-	  /* Avoid displaying the line-number-current-line face on
-	     empty lines beyond EOB.  */
-	  && it->what != IT_EOB)
-	tem_it.face_id = current_lnum_face_id;
-      else if (display_line_numbers_major_tick > 0
-	       && (lnum_to_display % display_line_numbers_major_tick == 0))
+      if (display_line_numbers_major_tick > 0
+	  && (lnum_to_display % display_line_numbers_major_tick == 0))
 	tem_it.face_id = merge_faces (it->w, Qline_number_major_tick,
 				      0, DEFAULT_FACE_ID);
       else if (display_line_numbers_minor_tick > 0
 	       && (lnum_to_display % display_line_numbers_minor_tick == 0))
 	tem_it.face_id = merge_faces (it->w, Qline_number_minor_tick,
 				      0, DEFAULT_FACE_ID);
-      else
-	tem_it.face_id = lnum_face_id;
+    }
+
+  /* Produce glyphs for the line number in a scratch glyph_row.  */
+  for (const char *p = lnum_buf; *p; p++)
+    {
+      /* For continuation lines and lines after ZV, instead of a line
+	 number, produce a blank prefix of the same width.  */
       if (beyond_zv
 	  /* Don't display the same line number more than once.  */
 	  || (!EQ (Vdisplay_line_numbers, Qvisual)
@@ -26566,8 +26573,8 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
   /* Initialize the iterator IT for iteration over STRING beginning
      with index START.  */
-  reseat_to_string (it, NILP (lisp_string) ? string : NULL, lisp_string, start,
-		    precision, field_width, multibyte);
+  reseat_to_string (it, NILP (lisp_string) ? string : NULL, lisp_string,
+                    start, precision, field_width, multibyte);
   if (string && STRINGP (lisp_string))
     /* LISP_STRING is the one returned by decode_mode_spec.  We should
        ignore its text properties.  */
@@ -26582,7 +26589,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
       it->face_id
 	= face_at_string_position (it->w, face_string, face_string_pos,
-				   0, &endptr, it->base_face_id, false);
+	                           0, &endptr, it->base_face_id, false, 0);
       face = FACE_FROM_ID (it->f, it->face_id);
       it->face_box_p = face->box != FACE_NO_BOX;
     }
@@ -28487,7 +28494,7 @@ font_for_underline_metrics (struct glyph_string *s)
   for (g = s->first_glyph - 1; g >= g0; g--)
     {
       struct face *prev_face = FACE_FROM_ID (s->f, g->face_id);
-      if (!(prev_face && prev_face->underline_p))
+      if (!(prev_face && prev_face->underline != FACE_NO_UNDERLINE))
 	break;
     }
 
@@ -32053,7 +32060,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   hlinfo->mouse_face_face_id
     = face_at_buffer_position (w, mouse_charpos, &ignore,
 			       mouse_charpos + 1,
-			       !hlinfo->mouse_face_hidden, -1);
+                               !hlinfo->mouse_face_hidden, -1, 0);
   show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 }
 
@@ -32742,11 +32749,10 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  hlinfo->mouse_face_past_end = false;
 	  hlinfo->mouse_face_window   = window;
 
-	  hlinfo->mouse_face_face_id = face_at_string_position (w, string,
-								charpos,
-								0, &ignore,
-								glyph->face_id,
-								true);
+	  hlinfo->mouse_face_face_id =
+	    face_at_string_position (w, string, charpos, 0, &ignore,
+	                             glyph->face_id, true, 0);
+
 	  show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 	  mouse_face_shown = true;
 
@@ -33172,7 +33178,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      hlinfo->mouse_face_window = window;
 	      hlinfo->mouse_face_face_id
 		= face_at_string_position (w, object, pos, 0, &ignore,
-					   glyph->face_id, true);
+		                           glyph->face_id, true, 0);
 	      show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 	      cursor = No_Cursor;
 	    }
@@ -34707,12 +34713,18 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
 
   DEFVAR_LISP ("display-line-numbers", Vdisplay_line_numbers,
     doc: /* Non-nil means display line numbers.
+
 If the value is t, display the absolute number of each line of a buffer
 shown in a window.  Absolute line numbers count from the beginning of
-the current narrowing, or from buffer beginning.  If the value is
-`relative', display for each line not containing the window's point its
-relative number instead, i.e. the number of the line relative to the
-line showing the window's point.
+the current narrowing, or from buffer beginning.  The variable
+`display-line-numbers-offset', if non-zero, is a signed offset added
+to each absolute line number; it also forces line numbers to be counted
+from the beginning of the buffer, as if `display-line-numbers-wide'
+were non-nil.  It has no effect when line numbers are not absolute.
+
+If the value is `relative', display for each line not containing the
+window's point its relative number instead, i.e. the number of the line
+relative to the line showing the window's point.
 
 In either case, line numbers are displayed at the beginning of each
 non-continuation line that displays buffer text, i.e. after each newline
@@ -34752,6 +34764,15 @@ either `relative' or `visual'.  */);
   display_line_numbers_widen = false;
   DEFSYM (Qdisplay_line_numbers_widen, "display-line-numbers-widen");
   Fmake_variable_buffer_local (Qdisplay_line_numbers_widen);
+
+  DEFVAR_INT ("display-line-numbers-offset", display_line_numbers_offset,
+    doc: /* A signed integer added to each absolute line number.
+When this variable is non-zero, line numbers are always counted from
+the beginning of the buffer even if `display-line-numbers-widen' is nil.
+It has no effect when set to 0, or when line numbers are not absolute.  */);
+  display_line_numbers_offset = 0;
+  DEFSYM (Qdisplay_line_numbers_offset, "display-line-numbers-offset");
+  Fmake_variable_buffer_local (Qdisplay_line_numbers_offset);
 
   DEFVAR_BOOL ("display-fill-column-indicator", Vdisplay_fill_column_indicator,
     doc: /* Non-nil means display the fill column indicator.  */);

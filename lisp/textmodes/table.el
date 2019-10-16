@@ -4938,7 +4938,8 @@ When optional LOCATION is provided the test is performed at that location."
 	   (save-excursion
 	     (goto-char location)
 	     (table--probe-cell))
-	 (table--probe-cell))))
+	 (table--probe-cell))
+       t))
 
 (defun table--region-in-cell-p (beg end)
   "Return t when location BEG and END are in a valid table cell in the current buffer."

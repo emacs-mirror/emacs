@@ -1041,9 +1041,9 @@ functions written in Lisp, it cannot profile Emacs primitives.
 @cindex benchmarking
 You can measure the time it takes to evaluate individual Emacs Lisp
 forms using the @file{benchmark} library.  See the macros
-@code{benchmark-run} and @code{benchmark-run-compiled} in
-@file{benchmark.el}.  You can also use the @code{benchmark} command
-for timing forms interactively.
+@code{benchmark-run}, @code{benchmark-run-compiled} and
+@code{benchmark-progn} in @file{benchmark.el}.  You can also use the
+@code{benchmark} command for timing forms interactively.
 
 @c Not worth putting in the printed manual.
 @ifnottex

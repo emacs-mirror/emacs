@@ -626,7 +626,7 @@ ENDFUN should return the end position (with or without moving point).
 NARROWFUN non-nil means to check for narrowing before moving, and if
 found, do `widen' first and then call NARROWFUN with no args after moving.
 BODY is executed after moving to the destination location."
-  (declare (indent 5) (debug (exp exp exp def-form def-form &rest def-body)))
+  (declare (indent 5) (debug (exp exp exp def-form def-form def-body)))
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next")))

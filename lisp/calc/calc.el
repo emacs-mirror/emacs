@@ -3400,7 +3400,12 @@ See Info node `(calc)Defining Functions'."
     (cons key key)))
 
 (defun calc-unread-command (&optional input)
-  (push (or input last-command-event) unread-command-events))
+  (let ((event (or input last-command-event)))
+    ;; Avoid recording twice the keys pressed while defining a
+    ;; keyboard macro.
+    (when defining-kbd-macro
+      (setq event (cons 'no-record event)))
+    (push event unread-command-events)))
 
 (defun calc-clear-unread-commands ()
   (setq unread-command-events nil))

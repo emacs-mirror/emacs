@@ -92,9 +92,13 @@ open (const char *filename, int flags, ...)
 #endif
 
 #if OPEN_TRAILING_SLASH_BUG
-  /* If the filename ends in a slash and one of O_CREAT, O_WRONLY, O_RDWR
-     is specified, then fail.
-     Rationale: POSIX <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html>
+  /* Fail if one of O_CREAT, O_WRONLY, O_RDWR is specified and the filename
+     ends in a slash, as POSIX says such a filename must name a directory
+     <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13>:
+       "A pathname that contains at least one non-<slash> character and that
+        ends with one or more trailing <slash> characters shall not be resolved
+        successfully unless the last pathname component before the trailing
+        <slash> characters names an existing directory"
      If the named file already exists as a directory, then
        - if O_CREAT is specified, open() must fail because of the semantics
          of O_CREAT,
@@ -164,6 +168,12 @@ open (const char *filename, int flags, ...)
 #if OPEN_TRAILING_SLASH_BUG
   /* If the filename ends in a slash and fd does not refer to a directory,
      then fail.
+     Rationale: POSIX says such a filename must name a directory
+     <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13>:
+       "A pathname that contains at least one non-<slash> character and that
+        ends with one or more trailing <slash> characters shall not be resolved
+        successfully unless the last pathname component before the trailing
+        <slash> characters names an existing directory"
      If the named file without the slash is not a directory, open() must fail
      with ENOTDIR.  */
   if (fd >= 0)

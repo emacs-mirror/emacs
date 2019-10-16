@@ -646,7 +646,11 @@ means list those buffers and no others."
 (defun list-buffers--refresh (&optional buffer-list old-buffer)
   ;; Set up `tabulated-list-format'.
   (let ((name-width Buffer-menu-name-width)
-	(size-width Buffer-menu-size-width))
+	(size-width Buffer-menu-size-width)
+        (marked-buffers (Buffer-menu-marked-buffers))
+        (buffer-menu-buffer (current-buffer))
+	(show-non-file (not Buffer-menu-files-only))
+	entries)
     ;; Handle obsolete variable:
     (if Buffer-menu-buffer+size-width
 	(setq name-width (- Buffer-menu-buffer+size-width size-width)))
@@ -656,14 +660,11 @@ means list those buffers and no others."
 		  '("M" 1 t)
 		  `("Buffer" ,name-width t)
 		  `("Size" ,size-width tabulated-list-entry-size->
-                           :right-align t)
+                    :right-align t)
 		  `("Mode" ,Buffer-menu-mode-width t)
-		  '("File" 1 t))))
-  (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
-  ;; Collect info for each buffer we're interested in.
-  (let ((buffer-menu-buffer (current-buffer))
-	(show-non-file (not Buffer-menu-files-only))
-	entries)
+		  '("File" 1 t)))
+    (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
+    ;; Collect info for each buffer we're interested in.
     (dolist (buffer (or buffer-list
 			(buffer-list (if Buffer-menu-use-frame-buffer-list
 					 (selected-frame)))))
@@ -677,12 +678,16 @@ means list those buffers and no others."
 			      (not (eq buffer buffer-menu-buffer))
 			      (or file show-non-file))))
 	    (push (list buffer
-			(vector (if (eq buffer old-buffer) "." " ")
+			(vector (cond
+                                 ((eq buffer old-buffer) ".")
+                                 ((member buffer marked-buffers) ">")
+                                 (t " "))
 				(if buffer-read-only "%" " ")
 				(if (buffer-modified-p) "*" " ")
 				(Buffer-menu--pretty-name name)
 				(number-to-string (buffer-size))
-				(concat (format-mode-line mode-name nil nil buffer)
+				(concat (format-mode-line mode-name
+                                                          nil nil buffer)
 					(if mode-line-process
 					    (format-mode-line mode-line-process
 							      nil nil buffer)))

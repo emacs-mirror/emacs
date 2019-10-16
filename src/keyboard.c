@@ -12063,7 +12063,7 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
 The special values `dragging' and `dropping' assert that the mouse
 cursor retains its appearance during mouse motion.  Any non-nil value
 but `dropping' asserts that motion events always relate to the frame
-where the the mouse movement started.  The value `dropping' asserts
+where the mouse movement started.  The value `dropping' asserts
 that motion events relate to the frame where the mouse cursor is seen
 when generating the event.  If there's no such frame, such motion
 events relate to the frame where the mouse movement started.  */);

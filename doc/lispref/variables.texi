@@ -268,12 +268,22 @@ Compare the following example with the example above for @code{let}.
 @end defspec
 
 @defspec letrec (bindings@dots{}) forms@dots{}
-This special form is like @code{let}, but all the variables are bound
+This special form is like @code{let*}, but all the variables are bound
 before any of the local values are computed.  The values are then
 assigned to the locally bound variables.  This is only useful when
 lexical binding is in effect, and you want to create closures that
 refer to bindings that would otherwise not yet be in effect when using
-@code{let}.
+@code{let*}.
+
+For instance, here's a closure that removes itself from a hook after
+being run once:
+
+@lisp
+(letrec ((hookfun (lambda ()
+                    (message "Run once")
+                    (remove-hook 'post-command-hook hookfun))))
+  (add-hook 'post-command-hook hookfun))
+@end lisp
 @end defspec
 
   Here is a complete list of the other facilities that create local
@@ -1420,11 +1430,17 @@ needed if you use the @var{local} argument to @code{add-hook} or
 @code{remove-hook}.
 @end deffn
 
-@defmac setq-local variable value
-This macro creates a buffer-local binding in the current buffer for
-@var{variable}, and gives it the buffer-local value @var{value}.  It
-is equivalent to calling @code{make-local-variable} followed by
-@code{setq}.  @var{variable} should be an unquoted symbol.
+@defmac setq-local &rest pairs
+@var{pairs} is a list of variable and value pairs.  This macro creates
+a buffer-local binding in the current buffer for each of the
+variables, and gives them a buffer-local value.  It is equivalent to
+calling @code{make-local-variable} followed by @code{setq} for each of
+the variables.  The variables should be unquoted symbols.
+
+@lisp
+(setq-local var1 "value1"
+            var2 "value2")
+@end lisp
 @end defmac
 
 @deffn Command make-variable-buffer-local variable
@@ -1987,7 +2003,7 @@ files, Emacs uses the settings from the deepest file it finds starting
 from the file's directory and moving up the directory tree.  This
 constant is also used to derive the name of a second dir-locals file
 @file{.dir-locals-2.el}.  If this second dir-locals file is present,
-then that is loaded instead of @file{.dir-locals.el}.  This is useful
+then that is loaded in addition to @file{.dir-locals.el}.  This is useful
 when @file{.dir-locals.el} is under version control in a shared
 repository and cannot be used for personal customizations.  The file
 specifies local variables as a specially formatted list; see
