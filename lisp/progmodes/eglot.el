@@ -1889,7 +1889,7 @@ is not active."
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
-       (lambda (comp _pred action)
+       (lambda (comp pred action)
          (cond
           ((eq action 'metadata) metadata)                  ; metadata
           ((eq action 'lambda) (member comp completions))   ; test-completion
@@ -1904,20 +1904,23 @@ is not active."
                   (items (if (vectorp resp) resp (plist-get resp :items))))
              (setq
               completions
-              (mapcar
-               (jsonrpc-lambda
-                   (&rest all &key label insertText insertTextFormat
-                          &allow-other-keys)
-                 (let ((completion
-                        (cond ((and (eql insertTextFormat 2)
-                                    (eglot--snippet-expansion-fn))
-                               (string-trim-left label))
-                              (t
-                               (or insertText (string-trim-left label))))))
-                   (put-text-property 0 1 'eglot--lsp-completion
-                                      all completion)
-                   completion))
-               items))))))
+              (all-completions ; <-stuck with prefix-comp because <facepalm> LSP
+               comp
+               (mapcar
+                (jsonrpc-lambda
+                    (&rest all &key label insertText insertTextFormat
+                           &allow-other-keys)
+                  (let ((completion
+                         (cond ((and (eql insertTextFormat 2)
+                                     (eglot--snippet-expansion-fn))
+                                (string-trim-left label))
+                               (t
+                                (or insertText (string-trim-left label))))))
+                    (put-text-property 0 1 'eglot--lsp-completion
+                                       all completion)
+                    completion))
+                items)
+               pred))))))
        :annotation-function
        (lambda (obj)
          (eglot--dbind ((CompletionItem) detail kind insertTextFormat)
