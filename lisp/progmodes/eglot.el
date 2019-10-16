@@ -1907,7 +1907,8 @@ is not active."
                                     (string-trim-left label))
                                    (t
                                     (or insertText (string-trim-left label))))))
-                        (put-text-property 0 1 'eglot--lsp-item item proxy)
+                        (unless (zerop (length proxy))
+                          (put-text-property 0 1 'eglot--lsp-item item proxy))
                         proxy))
                     items))
            (bounds
