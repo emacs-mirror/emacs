@@ -1791,14 +1791,15 @@ Try to visit the target file for a richer summary line."
                         (cadr (split-string (symbol-name method)
                                             "/"))))))
     (eglot--error "Sorry, this server doesn't do %s" method))
-  (eglot--collecting-xrefs (collect)
-    (mapc
-     (eglot--lambda ((Location) uri range)
-       (collect (eglot--xref-make (symbol-at-point) uri range)))
-     (jsonrpc-request
-      (eglot--current-server-or-lose) method (append
-                                              (eglot--TextDocumentPositionParams)
-                                              extra-params)))))
+  (let ((response
+         (jsonrpc-request
+          (eglot--current-server-or-lose)
+          method (append (eglot--TextDocumentPositionParams) extra-params))))
+    (eglot--collecting-xrefs (collect)
+      (mapc
+       (eglot--lambda ((Location) uri range)
+         (collect (eglot--xref-make (symbol-at-point) uri range)))
+       (if (vectorp response) response (list response))))))
 
 (cl-defun eglot--lsp-xref-helper (method &key extra-params capability )
   "Helper for `eglot-find-declaration' & friends."
