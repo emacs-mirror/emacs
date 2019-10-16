@@ -1087,7 +1087,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
-(defun nnir-run-notmuch (query server &optional _group)
+(defun nnir-run-notmuch (query server &optional groups)
   "Run QUERY against notmuch.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually).  If GROUPS is a list of group names, use them to
