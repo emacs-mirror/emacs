@@ -1874,57 +1874,69 @@ is not active."
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
-  (let* ((bounds (bounds-of-thing-at-point 'symbol))
-        (server (eglot--current-server-or-lose))
-        (completion-capability (eglot--server-capable :completionProvider))
-        (sort-completions (lambda (completions)
-                            (sort completions
-                                  (lambda (a b)
-                                    (string-lessp
-                                     (or (get-text-property 0 :sortText a) "")
-                                     (or (get-text-property 0 :sortText b) ""))))))
-        (metadata `(metadata . ((display-sort-function . ,sort-completions))))
-        completions)
-    (when completion-capability
+  ;; Commit logs for this function help understand what's going on.
+  (when-let (completion-capability (eglot--server-capable :completionProvider))
+    (let* ((server (eglot--current-server-or-lose))
+           (sort-completions (lambda (completions)
+                               (sort completions
+                                     (lambda (a b)
+                                       (string-lessp
+                                        (or (get-text-property 0 :sortText a) "")
+                                        (or (get-text-property 0 :sortText b) ""))))))
+           (metadata `(metadata . ((display-sort-function . ,sort-completions))))
+           (response (jsonrpc-request server
+                                      :textDocument/completion
+                                      (eglot--CompletionParams)
+                                      :deferred :textDocument/completion
+                                      :cancel-on-input t))
+           (items (append ; coerce to list
+                   (if (vectorp response) response (plist-get response :items))
+                   nil))
+           (proxies
+            (mapcar (jsonrpc-lambda
+                        (&rest item &key label insertText insertTextFormat
+                               &allow-other-keys)
+                      (let ((proxy
+                             (cond ((and (eql insertTextFormat 2)
+                                         (eglot--snippet-expansion-fn))
+                                    (string-trim-left label))
+                                   (t
+                                    (or insertText (string-trim-left label))))))
+                        (put-text-property 0 1 'eglot--lsp-item item proxy)
+                        proxy))
+                    items))
+           (bounds
+            (cl-loop with probe =
+                     (plist-get (plist-get (car items) :textEdit) :range)
+                     for item in (cdr items)
+                     for range = (plist-get (plist-get item :textEdit) :range)
+                     unless (and range (equal range probe))
+                     return (bounds-of-thing-at-point 'symbol)
+                     finally (cl-return (or (and probe
+                                                 (eglot--range-region probe))
+                                            (bounds-of-thing-at-point 'symbol))))))
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
-       (lambda (comp pred action)
+       (lambda (probe pred action)
          (cond
-          ((eq action 'metadata) metadata)                  ; metadata
-          ((eq action 'lambda) (member comp completions))   ; test-completion
-          ((eq (car-safe action) 'boundaries) nil)          ; boundaries
-          ((and (null action) (member comp completions) t)) ; try-completion
-          ((eq action t)                                    ; all-completions
-           (let* ((resp (jsonrpc-request server
-                                         :textDocument/completion
-                                         (eglot--CompletionParams)
-                                         :deferred :textDocument/completion
-                                         :cancel-on-input t))
-                  (items (if (vectorp resp) resp (plist-get resp :items))))
-             (setq
-              completions
-              (all-completions ; <-stuck with prefix-comp because <facepalm> LSP
-               comp
-               (mapcar
-                (jsonrpc-lambda
-                    (&rest all &key label insertText insertTextFormat
-                           &allow-other-keys)
-                  (let ((completion
-                         (cond ((and (eql insertTextFormat 2)
-                                     (eglot--snippet-expansion-fn))
-                                (string-trim-left label))
-                               (t
-                                (or insertText (string-trim-left label))))))
-                    (put-text-property 0 1 'eglot--lsp-completion
-                                       all completion)
-                    completion))
-                items)
-               pred))))))
+          ((eq action 'metadata) metadata)               ; metadata
+          ((eq action 'lambda) (member probe proxies))   ; test-completion
+          ((eq (car-safe action) 'boundaries) nil)       ; boundaries
+          ((and (null action) (member probe proxies) t)) ; try-completion
+          ((eq action t)                                 ; all-completions
+           (cl-remove-if-not
+            (lambda (proxy)
+              (let* ((item (get-text-property 0 'eglot--lsp-item proxy))
+                     (filterText (plist-get item :filterText)))
+                (and (or (null pred) (funcall pred proxy))
+                     (string-prefix-p
+                      probe (or filterText proxy) completion-ignore-case))))
+            proxies))))
        :annotation-function
-       (lambda (obj)
+       (lambda (proxy)
          (eglot--dbind ((CompletionItem) detail kind insertTextFormat)
-             (get-text-property 0 'eglot--lsp-completion obj)
+             (get-text-property 0 'eglot--lsp-item proxy)
            (let* ((detail (and (stringp detail)
                                (not (string= detail ""))
                                detail))
@@ -1939,10 +1951,9 @@ is not active."
                             (eglot--snippet-expansion-fn)
                             " (snippet)"))))))
        :company-doc-buffer
-       (lambda (obj)
+       (lambda (proxy)
          (let* ((documentation
-                 (let ((lsp-comp
-                        (get-text-property 0 'eglot--lsp-completion obj)))
+                 (let ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy)))
                    (or (plist-get lsp-comp :documentation)
                        (and (eglot--server-capable :completionProvider
                                                    :resolveProvider)
@@ -1966,46 +1977,45 @@ is not active."
              (cl-coerce (cl-getf completion-capability :triggerCharacters) 'list))
             (line-beginning-position))))
        :exit-function
-       (lambda (comp _status)
-         (let ((comp (if (get-text-property 0 'eglot--lsp-completion comp)
-                         comp
-                       ;; When selecting from the *Completions*
-                       ;; buffer, `comp' won't have any properties.  A
-                       ;; lookup should fix that (github#148)
-                       (cl-find comp completions :test #'string=))))
-           (eglot--dbind ((CompletionItem) insertTextFormat
-                          insertText
-                          textEdit
-                          additionalTextEdits)
-               (get-text-property 0 'eglot--lsp-completion comp)
-             (let ((snippet-fn (and (eql insertTextFormat 2)
-                                    (eglot--snippet-expansion-fn))))
-               (cond (textEdit
-                      ;; Undo the just the completed bit.  If before
-                      ;; completion the buffer was "foo.b" and now is
-                      ;; "foo.bar", `comp' will be "bar".  We want to
-                      ;; delete only "ar" (`comp' minus the symbol
-                      ;; whose bounds we've calculated before)
-                      ;; (github#160).
-                      (delete-region (+ (- (point) (length comp))
-                                        (if bounds (- (cdr bounds) (car bounds)) 0))
-                                     (point))
-                      (eglot--dbind ((TextEdit) range newText) textEdit
-                        (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                          (delete-region beg end)
-                          (goto-char beg)
-                          (funcall (or snippet-fn #'insert) newText)))
-                      (when (cl-plusp (length additionalTextEdits))
-                        (eglot--apply-text-edits additionalTextEdits)))
-                     (snippet-fn
-                      ;; A snippet should be inserted, but using plain
-                      ;; `insertText'.  This requires us to delete the
-                      ;; whole completion, since `insertText' is the full
-                      ;; completion's text.
-                      (delete-region (- (point) (length comp)) (point))
-                      (funcall snippet-fn insertText))))
-             (eglot--signal-textDocument/didChange)
-             (eglot-eldoc-function))))))))
+       (lambda (proxy _status)
+         (eglot--dbind ((CompletionItem) insertTextFormat
+                        insertText
+                        textEdit
+                        additionalTextEdits)
+             (or (get-text-property 0 'eglot--lsp-item proxy)
+                 ;; When selecting from the *Completions*
+                 ;; buffer, `proxy' won't have any properties.  A
+                 ;; lookup should fix that (github#148)
+                 (get-text-property
+                  0 'eglot--lsp-item (cl-find proxy proxies :test #'string=)))
+           (let ((snippet-fn (and (eql insertTextFormat 2)
+                                  (eglot--snippet-expansion-fn))))
+             (cond (textEdit
+                    ;; Undo (yes, undo) the newly inserted completion.
+                    ;; If before completion the buffer was "foo.b" and
+                    ;; now is "foo.bar", `proxy' will be "bar".  We
+                    ;; want to delete only "ar" (`proxy' minus the
+                    ;; symbol whose bounds we've calculated before)
+                    ;; (github#160).
+                    (delete-region (+ (- (point) (length proxy))
+                                      (if bounds (- (cdr bounds) (car bounds)) 0))
+                                   (point))
+                    (eglot--dbind ((TextEdit) range newText) textEdit
+                      (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                        (delete-region beg end)
+                        (goto-char beg)
+                        (funcall (or snippet-fn #'insert) newText)))
+                    (when (cl-plusp (length additionalTextEdits))
+                      (eglot--apply-text-edits additionalTextEdits)))
+                   (snippet-fn
+                    ;; A snippet should be inserted, but using plain
+                    ;; `insertText'.  This requires us to delete the
+                    ;; whole completion, since `insertText' is the full
+                    ;; completion's text.
+                    (delete-region (- (point) (length proxy)) (point))
+                    (funcall snippet-fn insertText))))
+           (eglot--signal-textDocument/didChange)
+           (eglot-eldoc-function)))))))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
