@@ -1173,9 +1173,10 @@ and just return it.  PROMPT shouldn't end with a question mark."
   "Bindings saved by `eglot--setq-saving'.")
 
 (defmacro eglot--setq-saving (symbol binding)
-  `(progn (push (cons ',symbol (symbol-value ',symbol))
-                eglot--saved-bindings)
-          (setq-local ,symbol ,binding)))
+  `(when (boundp ',symbol)
+     (push (cons ',symbol (symbol-value ',symbol))
+           eglot--saved-bindings)
+     (setq-local ,symbol ,binding)))
 
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some EGLOT project."
