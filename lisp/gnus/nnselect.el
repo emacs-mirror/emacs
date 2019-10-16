@@ -391,8 +391,9 @@ If this variable is nil, or if the provided function returns nil,
 	      (error "Couldn't open server for group %s" artgroup))
 	    (push (mapcar #'(lambda (art)
 			      (car (rassq art artids)))
-			  (gnus-request-expire-articles
-			   artlist artgroup force))
+			  (let ((nnimap-expunge 'immediately))
+			    (gnus-request-expire-articles
+			     artlist artgroup force)))
 		  not-expired)))
 	(sort (delq nil not-expired) '<))
     articles))
