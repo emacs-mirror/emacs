@@ -864,7 +864,11 @@ This docstring appeases checkdoc, that's all."
                           (jsonrpc-notify server :initialized (make-hash-table))
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
-                              (eglot--maybe-activate-editing-mode server)))
+                              ;; No need to pass SERVER as an argument: it has
+                              ;; been registered in `eglot--servers-by-project',
+                              ;; so that it can be obtained from the function
+                              ;; `eglot--current-server' in any managed buffer.
+                              (eglot--maybe-activate-editing-mode)))
                           (setf (eglot--inhibit-autoreconnect server)
                                 (cond
                                  ((booleanp eglot-autoreconnect)
@@ -1294,27 +1298,19 @@ For example, to keep your Company customization use
   "Eglot's `after-revert-hook'."
   (when revert-buffer-preserve-modes (eglot--signal-textDocument/didOpen)))
 
-(defun eglot--maybe-activate-editing-mode (&optional server)
-  "Maybe activate mode function `eglot--managed-mode'.
-If SERVER is supplied, do it only if BUFFER is managed by it.  In
-that case, also signal textDocument/didOpen."
+(defun eglot--maybe-activate-editing-mode ()
+  "Maybe activate `eglot--managed-mode'.
+
+If it is activated, also signal textDocument/didOpen."
   (unless eglot--managed-mode
-    (unless server
-      (when eglot--cached-current-server
-        (display-warning
-         :eglot "`eglot--cached-current-server' is non-nil, but it shouldn't be!\n\
-Please report this as a possible bug.")
-        (setq eglot--cached-current-server nil)))
     ;; Called when `revert-buffer-in-progress-p' is t but
     ;; `revert-buffer-preserve-modes' is nil.
-    (let* ((cur (and buffer-file-name (eglot--current-server)))
-           (server (or (and (null server) cur) (and server (eq server cur) cur))))
+    (let ((server (and buffer-file-name (eglot--current-server))))
       (when server
         (setq eglot--unreported-diagnostics `(:just-opened . nil))
         (setq eglot--cached-current-server server)
         (eglot--managed-mode)
         (eglot--signal-textDocument/didOpen)))))
-
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
