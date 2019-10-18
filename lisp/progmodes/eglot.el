@@ -588,7 +588,7 @@ SERVER.  ."
         (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
-      (eglot--with-live-buffer buffer (eglot--managed-mode-onoff server nil)))
+      (eglot--with-live-buffer buffer (eglot--managed-mode-off)))
     ;; Now ask jsonrpc.el to shut down the server (which under normal
     ;; conditions should return immediately).
     (jsonrpc-shutdown server (not preserve-buffers))
@@ -598,7 +598,7 @@ SERVER.  ."
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
   (dolist (buffer (eglot--managed-buffers server))
-    (eglot--with-live-buffer buffer (eglot--managed-mode-onoff server nil)))
+    (eglot--with-live-buffer buffer (eglot--managed-mode-off)))
   ;; Kill any expensive watches
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
@@ -1217,7 +1217,7 @@ For example, to keep your Company customization use
    (eglot--managed-mode
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
-    (add-hook 'kill-buffer-hook 'eglot--managed-mode-onoff nil t)
+    (add-hook 'kill-buffer-hook #'eglot--managed-mode-off nil t)
     ;; Prepend "didClose" to the hook after the "onoff", so it will run first
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
@@ -1226,7 +1226,7 @@ For example, to keep your Company customization use
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
     (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
-    (add-hook 'change-major-mode-hook 'eglot--managed-mode-onoff nil t)
+    (add-hook 'change-major-mode-hook #'eglot--managed-mode-off nil t)
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
     (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
@@ -1236,10 +1236,12 @@ For example, to keep your Company customization use
     (eglot--setq-saving company-tooltip-align-annotations t)
     (eglot--setq-saving imenu-create-index-function #'eglot-imenu)
     (flymake-mode 1)
-    (eldoc-mode 1))
+    (eldoc-mode 1)
+    (cl-pushnew (current-buffer) (eglot--managed-buffers eglot--cached-current-server)))
    (t
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
+    (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
     (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t)
     (remove-hook 'before-revert-hook 'eglot--signal-textDocument/didClose t)
     (remove-hook 'after-revert-hook 'eglot--after-revert-hook t)
@@ -1247,37 +1249,28 @@ For example, to keep your Company customization use
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
-    (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
+    (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
-    (setq eglot--current-flymake-report-fn nil))))
+    (setq eglot--current-flymake-report-fn nil)
+    (let ((server eglot--cached-current-server))
+      (setq eglot--cached-current-server nil)
+      (when server
+        (setf (eglot--managed-buffers server)
+              (delq (current-buffer) (eglot--managed-buffers server)))
+        (when (and eglot-autoshutdown
+                   (not (eglot--shutdown-requested server))
+                   (not (eglot--managed-buffers server)))
+          (eglot-shutdown server)))))))
+
+(defun eglot--managed-mode-off ()
+  "Turn off `eglot--managed-mode' unconditionally."
+  (eglot--managed-mode -1))
 
 (defvar-local eglot--cached-current-server nil
-  "A cached reference to the current EGLOT server.
-Reset in `eglot--managed-mode-onoff'.")
-
-(defun eglot--managed-mode-onoff (&optional server turn-on)
-  "Proxy for function `eglot--managed-mode' with TURN-ON and SERVER."
-  (let ((buf (current-buffer)))
-    (cond ((and server turn-on)
-           (eglot--managed-mode 1)
-           (setq eglot--cached-current-server server)
-           (cl-pushnew buf (eglot--managed-buffers server)))
-          (t
-           (eglot--managed-mode -1)
-           (let ((server
-                  (or server
-                      eglot--cached-current-server)))
-             (setq eglot--cached-current-server nil)
-             (when server
-               (setf (eglot--managed-buffers server)
-                     (delq buf (eglot--managed-buffers server)))
-               (when (and eglot-autoshutdown
-                          (not (eglot--shutdown-requested server))
-                          (not (eglot--managed-buffers server)))
-                 (eglot-shutdown server))))))))
+  "A cached reference to the current EGLOT server.")
 
 (defun eglot--current-server ()
   "Find the current logical EGLOT server."
@@ -1318,7 +1311,8 @@ Please report this as a possible bug.")
            (server (or (and (null server) cur) (and server (eq server cur) cur))))
       (when server
         (setq eglot--unreported-diagnostics `(:just-opened . nil))
-        (eglot--managed-mode-onoff server t)
+        (setq eglot--cached-current-server server)
+        (eglot--managed-mode)
         (eglot--signal-textDocument/didOpen)))))
 
 
