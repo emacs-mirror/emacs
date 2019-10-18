@@ -1889,47 +1889,46 @@ is not active."
                                         (or (get-text-property 0 :sortText a) "")
                                         (or (get-text-property 0 :sortText b) ""))))))
            (metadata `(metadata . ((display-sort-function . ,sort-completions))))
-           (response (jsonrpc-request server
-                                      :textDocument/completion
-                                      (eglot--CompletionParams)
-                                      :deferred :textDocument/completion
-                                      :cancel-on-input t))
-           (items (append ; coerce to list
-                   (if (vectorp response) response (plist-get response :items))
-                   nil))
+           resp items (cached-proxies :none)
            (proxies
-            (mapcar (jsonrpc-lambda
-                        (&rest item &key label insertText insertTextFormat
-                               &allow-other-keys)
-                      (let ((proxy
-                             (cond ((and (eql insertTextFormat 2)
-                                         (eglot--snippet-expansion-fn))
-                                    (string-trim-left label))
-                                   (t
-                                    (or insertText (string-trim-left label))))))
-                        (unless (zerop (length proxy))
-                          (put-text-property 0 1 'eglot--lsp-item item proxy))
-                        proxy))
-                    items))
-           (bounds
-            (cl-loop with probe =
-                     (plist-get (plist-get (car items) :textEdit) :range)
-                     for item in (cdr items)
-                     for range = (plist-get (plist-get item :textEdit) :range)
-                     unless (and range (equal range probe))
-                     return (bounds-of-thing-at-point 'symbol)
-                     finally (cl-return (or (and probe
-                                                 (eglot--range-region probe))
-                                            (bounds-of-thing-at-point 'symbol))))))
+            (lambda ()
+              (if (listp cached-proxies) cached-proxies
+                (setq resp
+                      (jsonrpc-request server
+                                       :textDocument/completion
+                                       (eglot--CompletionParams)
+                                       :deferred :textDocument/completion
+                                       :cancel-on-input t))
+                (setq items (append
+                             (if (vectorp resp) resp (plist-get resp :items))
+                             nil))
+                (setq cached-proxies
+                      (mapcar
+                       (jsonrpc-lambda
+                           (&rest item &key label insertText insertTextFormat
+                                  &allow-other-keys)
+                         (let ((proxy
+                                (cond ((and (eql insertTextFormat 2)
+                                            (eglot--snippet-expansion-fn))
+                                       (string-trim-left label))
+                                      (t
+                                       (or insertText (string-trim-left label))))))
+                           (unless (zerop (length item))
+                             (put-text-property 0 1 'eglot--lsp-item item proxy))
+                           proxy))
+                       items)))))
+           (bounds (bounds-of-thing-at-point 'symbol)))
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
        (lambda (probe pred action)
          (cond
           ((eq action 'metadata) metadata)               ; metadata
-          ((eq action 'lambda) (member probe proxies))   ; test-completion
+          ((eq action 'lambda)                           ; test-completion
+           (member probe (funcall proxies)))
           ((eq (car-safe action) 'boundaries) nil)       ; boundaries
-          ((and (null action) (member probe proxies) t)) ; try-completion
+          ((and (null action)                            ; try-completion
+                (member probe (funcall proxies)) t))
           ((eq action t)                                 ; all-completions
            (cl-remove-if-not
             (lambda (proxy)
@@ -1938,7 +1937,7 @@ is not active."
                 (and (or (null pred) (funcall pred proxy))
                      (string-prefix-p
                       probe (or filterText proxy) completion-ignore-case))))
-            proxies))))
+            (funcall proxies)))))
        :annotation-function
        (lambda (proxy)
          (eglot--dbind ((CompletionItem) detail kind insertTextFormat)
@@ -1993,7 +1992,8 @@ is not active."
                  ;; buffer, `proxy' won't have any properties.  A
                  ;; lookup should fix that (github#148)
                  (get-text-property
-                  0 'eglot--lsp-item (cl-find proxy proxies :test #'string=)))
+                  0 'eglot--lsp-item
+                  (cl-find proxy (funcall proxies) :test #'string=)))
            (let ((snippet-fn (and (eql insertTextFormat 2)
                                   (eglot--snippet-expansion-fn))))
              (cond (textEdit
