@@ -461,6 +461,12 @@ If INPUT is a string this is the file path to be compiled."
   (when (member (car inst) comp-lap-eob-ops)
     t))
 
+(defsubst comp-lap-fall-through-p (inst)
+  "Return t if INST fall through.
+nil otherwise."
+  (when (not (member (car inst) '(byte-goto byte-return)))
+    t))
+
 (defsubst comp-sp ()
   "Current stack pointer."
   (comp-limplify-sp comp-pass))
@@ -498,7 +504,7 @@ Restore the original value afterwards."
 (cl-defun comp-block-maybe-mark-pending (&rest args &key name sp &allow-other-keys)
   "Create a basic block and mark it as pending."
   (if-let ((bb (gethash name (comp-func-blocks comp-func))))
-      ;; If was already limplified sanity check sp.
+      ;; If was already declared sanity check sp.
       (cl-assert (or (null sp) (= sp (comp-block-sp bb)))
                  (sp (comp-block-sp bb)) "sp %d %d differs")
     ;; Mark it pending in case is not already.
@@ -590,15 +596,15 @@ The block is returned."
 TARGET-OFFSET is the positive offset on the SP when branching to the target
 block.
 If NEGATED non null negate the tested condition."
-  (cl-destructuring-bind (label-num . stack-depth) lap-label
-    (cl-assert (= stack-depth (+ target-offset (comp-sp))))
+  (cl-destructuring-bind (label-num . target-sp) lap-label
+    (cl-assert (= target-sp (+ target-offset (comp-sp))))
     (let ((bb (comp-new-block-sym)) ; Fall through block.
           (target (comp-lap-to-limple-bb label-num)))
       (comp-block-maybe-mark-pending :name bb
-                                     :sp stack-depth
+                                     :sp (comp-sp)
                                      :addr (1+ (comp-limplify-pc comp-pass)))
       (comp-block-maybe-mark-pending :name target
-                                     :sp (+ target-offset stack-depth)
+                                     :sp target-sp
                                      :addr (comp-label-to-addr label-num))
       (comp-emit (if negated
 		     (list 'cond-jump a b target bb)
@@ -1008,27 +1014,34 @@ This will be called at load-time."
 
 (defun comp-limplify-block (bb)
   "Limplify basic-block BB and add it to the current function."
-  (setf (comp-limplify-curr-block comp-pass) bb)
-  (setf (comp-limplify-sp comp-pass) (comp-block-sp bb))
-  (setf (comp-limplify-pc comp-pass) (comp-block-addr bb))
-  (cl-loop
-   for inst-cell on (nthcdr (comp-limplify-pc comp-pass)
-                            (comp-func-lap comp-func))
-   for inst = (car inst-cell)
-   for next-inst = (car-safe (cdr inst-cell))
-   do (comp-limplify-lap-inst inst)
-      (cl-incf (comp-limplify-pc comp-pass))
-   when (eq (car next-inst) 'TAG)
-     do ; That's a fall through.
-     (let ((bb (or (comp-addr-to-bb-name (comp-limplify-pc comp-pass))
-                   (comp-new-block-sym))))
-       (comp-block-maybe-mark-pending :name bb
-                                      :sp (comp-sp)
-                                      :addr (comp-limplify-pc comp-pass))
-       (comp-emit `(jump ,bb)))
-     and return nil
-   until (comp-lap-eob-p inst))
-  (puthash (comp-block-name bb) bb (comp-func-blocks comp-func)))
+  (cl-flet ((add-next-block (sp ff)
+              ;; Maybe create next block. Emit a jump to it if FF.
+              (let ((next-bb (or (comp-addr-to-bb-name (comp-limplify-pc comp-pass))
+                                 (comp-new-block-sym))))
+                (comp-block-maybe-mark-pending :name next-bb
+                                               :sp sp
+                                               :addr (comp-limplify-pc comp-pass))
+                (when ff
+                  (comp-emit `(jump ,next-bb))))))
+    (setf (comp-limplify-curr-block comp-pass) bb)
+    (setf (comp-limplify-sp comp-pass) (comp-block-sp bb))
+    (setf (comp-limplify-pc comp-pass) (comp-block-addr bb))
+    (cl-loop
+     for inst-cell on (nthcdr (comp-limplify-pc comp-pass)
+                              (comp-func-lap comp-func))
+     for inst = (car inst-cell)
+     for next-inst = (car-safe (cdr inst-cell))
+     for fall-through = (comp-lap-fall-through-p inst)
+     do (comp-limplify-lap-inst inst)
+        (cl-incf (comp-limplify-pc comp-pass))
+        (pcase next-inst
+          (`(TAG ,_label . ,target-sp)
+           (when fall-through
+             (cl-assert (= target-sp (comp-sp))))
+           (add-next-block target-sp fall-through)
+           (return)))
+        until (comp-lap-eob-p inst))
+    (puthash (comp-block-name bb) bb (comp-func-blocks comp-func))))
 
 (defun comp-limplify-function (func)
   "Limplify a single function FUNC."
@@ -1231,7 +1244,7 @@ Top level forms for the current context are rendered too."
              (cl-loop for insn in (comp-block-insns bb)
                       when (and (comp-assign-op-p (car insn))
                                 (= slot-n (comp-mvar-slot (cadr insn))))
-                        return t)))
+                      return t)))
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
