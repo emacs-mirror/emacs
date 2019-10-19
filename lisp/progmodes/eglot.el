@@ -1172,8 +1172,33 @@ and just return it.  PROMPT shouldn't end with a question mark."
 (defvar-local eglot--saved-bindings nil
   "Bindings saved by `eglot--setq-saving'.")
 
+(defvar eglot-stay-out-of '()
+  "List of Emacs things that Eglot should try to stay of.
+Before Eglot starts \"managing\" a particular buffer, it
+opinionatedly sets some peripheral Emacs facilites, such as
+Flymake, Xref and Company.  These overriding settings help ensure
+consistent Eglot behaviour and only stay in place until
+\"managing\" stops (usually via `eglot-shutdown'), whereupon the
+previous settings are restored.
+
+However, if you wish for Eglot to stay out of a particular Emacs
+facility that you'd like to keep control of, add a string, a
+symbol, or a regexp here that will be matched against the
+variable's name, and Eglot will refrain from setting it.
+
+For example, to keep your Company customization use
+
+(add-to-list 'eglot-stay-out-of 'company)")
+
 (defmacro eglot--setq-saving (symbol binding)
-  `(when (boundp ',symbol)
+  `(when (and (boundp ',symbol)
+              (not (cl-find (symbol-name ',symbol)
+                            eglot-stay-out-of
+                            :test
+                            (lambda (s thing)
+                              (let ((re (if (symbolp thing) (symbol-name thing)
+                                          thing)))
+                                (string-match re s))))))
      (push (cons ',symbol (symbol-value ',symbol))
            eglot--saved-bindings)
      (setq-local ,symbol ,binding)))
@@ -1200,11 +1225,10 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (eglot--setq-saving xref-prompt-for-identifier nil)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
     (eglot--setq-saving company-backends '(company-capf))
-    (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
+    (eglot--setq-saving imenu-create-index-function #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
    (t
-    (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
     (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t)
