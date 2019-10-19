@@ -642,10 +642,6 @@ Return value is the fall through block name."
                        handler-bb
                        guarded-bb)))))
 
-(defun comp-stack-adjust (n)
-  "Move sp by N."
-  (cl-incf (comp-sp) n))
-
 (defun comp-limplify-listn (n)
   "Limplify list N."
   (comp-with-sp (+ (comp-sp) n -1)
@@ -760,7 +756,7 @@ the annotation emission."
                                ,(concat "LAP op " op-name)))
                           ;; Emit the stack adjustment if present.
                           ,(when (and sp-delta (not (eq 0 sp-delta)))
-			     `(comp-stack-adjust ,sp-delta))
+			     `(cl-incf (comp-sp) ,sp-delta))
                           ,@(comp-body-eff body op-name sp-delta))
                 else
 		collect `(',op (error ,(concat "Unsupported LAP op "
@@ -791,7 +787,7 @@ the annotation emission."
                              (make-comp-mvar :constant arg)
                              (comp-slot+1))))
       (byte-call
-       (comp-stack-adjust (- arg))
+       (cl-incf (comp-sp) (- arg))
        (comp-emit-set-call (comp-callref 'funcall (1+ arg) (comp-sp))))
       (byte-unbind
        (comp-emit (comp-call 'helper_unbind_n
@@ -945,20 +941,20 @@ the annotation emission."
       (byte-numberp auto)
       (byte-integerp auto)
       (byte-listN
-       (comp-stack-adjust (- 1 arg))
+       (cl-incf (comp-sp) (- 1 arg))
        (comp-emit-set-call (comp-callref 'list arg (comp-sp))))
       (byte-concatN
-       (comp-stack-adjust (- 1 arg))
+       (cl-incf (comp-sp) (- 1 arg))
        (comp-emit-set-call (comp-callref 'concat arg (comp-sp))))
       (byte-insertN
-       (comp-stack-adjust (- 1 arg))
+       (cl-incf (comp-sp) (- 1 arg))
        (comp-emit-set-call (comp-callref 'insert arg (comp-sp))))
       (byte-stack-set
        (comp-with-sp (1+ (comp-sp)) ;; FIXME!!
          (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
       (byte-stack-set2 (cl-assert nil)) ;; TODO
       (byte-discardN
-       (comp-stack-adjust (- arg)))
+       (cl-incf (comp-sp) (- arg)))
       (byte-switch
        ;; Assume to follow the emission of a setimm.
        ;; This is checked into comp-emit-switch.
@@ -968,7 +964,7 @@ the annotation emission."
       (byte-constant
        (comp-emit-set-const arg))
       (byte-discardN-preserve-tos
-       (comp-stack-adjust (- arg))
+       (cl-incf (comp-sp) (- arg))
        (comp-copy-slot (+ arg (comp-sp)))))))
 
 (defun comp-emit-narg-prologue (minarg nonrest)
