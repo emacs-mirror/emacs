@@ -218,10 +218,9 @@ static void
 ice (const char* msg)
 {
   if (msg)
-    msg = format_string ("Internal native compiler error: %s", msg);
+    error ("Internal native compiler error: %s", msg);
   else
-    msg = "Internal native compiler error";
-  error ("%s", msg);
+    error ("Internal native compiler error");
 }
 
 static void
