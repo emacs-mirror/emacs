@@ -171,6 +171,7 @@ typedef struct {
   Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
   Lisp_Object exported_funcs_h; /* subr_name -> gcc_jit_function *.  */
   Lisp_Object imported_funcs_h; /* subr_name -> reloc_field.  */
+  Lisp_Object buffer_handler_vec; /* All locals used to store non local exit values.   */
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
   gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
@@ -280,7 +281,7 @@ retrive_block (Lisp_Object block_name)
 static void
 declare_block (Lisp_Object block_name)
 {
-  char *name_str = (char *) SDATA (SYMBOL_NAME (block_name));
+  char *name_str = SSDATA (SYMBOL_NAME (block_name));
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, name_str);
   Lisp_Object value = make_mint_ptr (block);
   ICE_IF (!NILP (Fgethash (block_name, comp.func_blocks_h, Qnil)),
@@ -1151,23 +1152,12 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 
 static void
 emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
-			  gcc_jit_block *handler_bb, gcc_jit_block *guarded_bb,
-			  Lisp_Object clobbered_mvar)
+			  EMACS_UINT handler_buff_n, gcc_jit_block *handler_bb,
+			  gcc_jit_block *guarded_bb, Lisp_Object clobbered_mvar)
 {
-  /*
-     Ex: (push-handler #s(comp-mvar 1 8 nil nil nil nil)
-                       #s(comp-mvar 1 7 t done symbol nil)
-		       catcher bb_2 bb_1).
-  */
-
-  static unsigned pushhandler_n; /* FIXME move at ctxt or func level.  */
-
-  /* struct handler *c = push_handler (POP, type); */
+   /* struct handler *c = push_handler (POP, type); */
   gcc_jit_lvalue *c =
-    gcc_jit_function_new_local (comp.func,
-				NULL,
-				comp.handler_ptr_type,
-				format_string ("c_%u", pushhandler_n));
+    xmint_pointer (AREF (comp.buffer_handler_vec, handler_buff_n));
 
   gcc_jit_rvalue *args[] = { handler, handler_type };
   gcc_jit_block_add_assignment (
@@ -1189,29 +1179,6 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
   res =
     emit_call (intern_c_string (SETJMP_NAME), comp.int_type, 1, args, false);
   emit_cond_jump (res, handler_bb, guarded_bb);
-
-  /* This emit the handler part.  */
-
-  comp.block = handler_bb;
-  gcc_jit_lvalue *m_handlerlist =
-    gcc_jit_rvalue_dereference_field (comp.current_thread,
-				      NULL,
-				      comp.m_handlerlist);
-  gcc_jit_block_add_assignment (
-    comp.block,
-    NULL,
-    m_handlerlist,
-    gcc_jit_lvalue_as_rvalue(
-      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
-					NULL,
-					comp.handler_next_field)));
-  emit_frame_assignment (
-    clobbered_mvar,
-    gcc_jit_lvalue_as_rvalue(
-      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
-					NULL,
-					comp.handler_val_field)));
-  ++pushhandler_n;
 }
 
 static void
@@ -1221,6 +1188,16 @@ emit_limple_insn (Lisp_Object insn)
   Lisp_Object args = XCDR (insn);
   Lisp_Object arg0 UNINIT;
   gcc_jit_rvalue *res;
+
+  Lisp_Object arg[6];
+  Lisp_Object p = XCDR (insn);
+  ptrdiff_t n_args = list_length (p);
+  unsigned i = 0;
+  FOR_EACH_TAIL (p)
+    {
+      eassert (i < n_args);
+      arg[i++] = XCAR (p);
+    }
 
   if (CONSP (args))
     arg0 = XCAR (args);
@@ -1269,9 +1246,11 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qpush_handler))
     {
-      gcc_jit_rvalue *handler = emit_mvar_val (arg0);
+      /* (push-handler condition-case #s(comp-mvar 0 3 t (arith-error) cons nil) 1 bb_2 bb_1) */
+      gcc_jit_rvalue *handler = emit_mvar_val (arg[1]);
       int h_num UNINIT;
-      Lisp_Object handler_spec = THIRD (args);
+      Lisp_Object handler_spec = arg[0];
+      EMACS_UINT handler_buff_n = XFIXNUM (arg[2]);
       if (EQ (handler_spec, Qcatcher))
 	h_num = CATCHER;
       else if (EQ (handler_spec, Qcondition_case))
@@ -1282,10 +1261,10 @@ emit_limple_insn (Lisp_Object insn)
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     h_num);
-      gcc_jit_block *handler_bb = retrive_block (FORTH (args));
-      gcc_jit_block *guarded_bb = retrive_block (FIFTH (args));
-      emit_limple_push_handler (handler, handler_type, handler_bb, guarded_bb,
-				arg0);
+      gcc_jit_block *handler_bb = retrive_block (arg[3]);
+      gcc_jit_block *guarded_bb = retrive_block (arg[4]);
+      emit_limple_push_handler (handler, handler_type, handler_buff_n,
+				handler_bb, guarded_bb, arg0);
     }
   else if (EQ (op, Qpop_handler))
     {
@@ -1308,6 +1287,30 @@ emit_limple_insn (Lisp_Object insn)
 	    NULL,
 	    comp.handler_next_field)));
 
+    }
+  else if (EQ (op, Qfetch_handler))
+    {
+      EMACS_UINT handler_buff_n = XFIXNUM (SECOND (args));
+      gcc_jit_lvalue *c =
+	xmint_pointer (AREF (comp.buffer_handler_vec, handler_buff_n));
+      gcc_jit_lvalue *m_handlerlist =
+        gcc_jit_rvalue_dereference_field (comp.current_thread,
+					  NULL,
+					  comp.m_handlerlist);
+      gcc_jit_block_add_assignment (
+        comp.block,
+        NULL,
+        m_handlerlist,
+        gcc_jit_lvalue_as_rvalue(
+          gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
+					    NULL,
+					    comp.handler_next_field)));
+      emit_frame_assignment (
+        arg0,
+        gcc_jit_lvalue_as_rvalue(
+          gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
+					    NULL,
+					    comp.handler_val_field)));
     }
   else if (EQ (op, Qcall))
     {
@@ -2759,7 +2762,7 @@ compile_function (Lisp_Object func)
 				      frame_size),
       "local");
   comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
-  for (unsigned i = 0; i < frame_size; ++i)
+  for (EMACS_INT i = 0; i < frame_size; ++i)
     comp.frame[i] =
       gcc_jit_context_new_array_access (
         comp.ctxt,
@@ -2788,6 +2791,16 @@ compile_function (Lisp_Object func)
 				      comp.lisp_obj_type,
 				      format_string ("local%u", i));
     }
+
+  EMACS_UINT non_local_handlers = XFIXNUM (FUNCALL1 (comp-func-handler-cnt, func));
+  comp.buffer_handler_vec = make_vector (non_local_handlers, Qnil);
+  for (unsigned i = 0; i < non_local_handlers; ++i)
+    ASET (comp.buffer_handler_vec, i,
+	  make_mint_ptr (
+	    gcc_jit_function_new_local (comp.func,
+					NULL,
+					comp.handler_ptr_type,
+					format_string ("handler_%u", i))));
 
   comp.func_blocks_h = CALLN (Fmake_hash_table);
 
@@ -3304,6 +3317,7 @@ syms_of_comp (void)
   /* Others.  */
   DEFSYM (Qpush_handler, "push-handler");
   DEFSYM (Qpop_handler, "pop-handler");
+  DEFSYM (Qfetch_handler, "fetch-handler");
   DEFSYM (Qcondition_case, "condition-case");
   /* call operands.  */
   DEFSYM (Qcatcher, "catcher"); /* FIXME use these allover.  */

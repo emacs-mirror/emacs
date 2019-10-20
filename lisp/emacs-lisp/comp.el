@@ -92,7 +92,7 @@ Can be used by code that wants to expand differently in this case.")
                              set-rest-args-to-local)
   "Limple set operators.")
 
-(defconst comp-limple-assignments `(push-handler
+(defconst comp-limple-assignments `(fetch-handler
                                     ,@comp-limple-sets)
   "Limple operators that clobbers the first mvar argument.")
 
@@ -217,7 +217,9 @@ structure.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
                 :documentation "Generates edges numbers.")
   (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
-              :documentation "Counter to create ssa limple vars."))
+               :documentation "Counter to create ssa limple vars.")
+  (handler-cnt 0 :type number
+               :documentation "Number of non local handler buffers."))
 
 (defun comp-func-reset-generators (func)
   "Reset unique id generators for FUNC."
@@ -505,7 +507,8 @@ Restore the original value afterwards."
       (error "Can't find label %d" label)))
 
 (cl-defun comp-block-maybe-mark-pending (&rest args &key name sp &allow-other-keys)
-  "Create a basic block and mark it as pending."
+  "Create a basic block and mark it as pending.
+The basic block is returned."
   (if-let ((bb (gethash name (comp-func-blocks comp-func))))
       ;; If was already declared sanity check sp.
       (cl-assert (or (null sp) (= sp (comp-block-sp bb)))
@@ -514,8 +517,8 @@ Restore the original value afterwards."
     (unless (cl-find-if (lambda (bb)
                           (eq (comp-block-name bb) name))
                         (comp-limplify-pending-blocks comp-pass))
-      (push (apply #'make--comp-block args)
-            (comp-limplify-pending-blocks comp-pass)))))
+      (car (push (apply #'make--comp-block args)
+                 (comp-limplify-pending-blocks comp-pass))))))
 
 (defun comp-call (func &rest args)
   "Emit a call for function FUNC with ARGS."
@@ -545,10 +548,11 @@ Restore the original value afterwards."
            do (aset v i mvar)
            finally (return v)))
 
-(defsubst comp-emit (insn)
-  "Emit INSN into current basic block."
-  (cl-assert (not (comp-block-closed (comp-limplify-curr-block comp-pass))))
-  (push insn (comp-block-insns (comp-limplify-curr-block comp-pass))))
+(defsubst comp-emit (insn &optional bb)
+  "Emit INSN in BB is specified or the current basic block otherwise."
+  (let ((bb (or bb (comp-limplify-curr-block comp-pass))))
+    (cl-assert (not (comp-block-closed bb)))
+    (push insn (comp-block-insns bb))))
 
 (defun comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
@@ -634,22 +638,26 @@ Return value is the fall through block name."
 (defun comp-emit-handler (lap-label handler-type)
   "Emit a non local exit handler to LAP-LABEL of type HANDLER-TYPE."
   (cl-destructuring-bind (label-num . label-sp) lap-label
-    (let ((guarded-bb (comp-new-block-sym))
-          (handler-bb (comp-lap-to-limple-bb label-num)))
-      (cl-assert (= (- label-sp 2) (comp-sp)))
-      (comp-block-maybe-mark-pending :name guarded-bb
+    (cl-assert (= (- label-sp 2) (comp-sp)))
+    (let* ((guarded-name (comp-new-block-sym))
+           (handler-name (comp-lap-to-limple-bb label-num))
+           (handler-buff-n (comp-func-handler-cnt comp-func))
+           (handler-bb (comp-block-maybe-mark-pending :name handler-name
+                                                      :sp (1+ (comp-sp))
+                                                      :addr
+                                                      (comp-label-to-addr label-num))))
+      (comp-block-maybe-mark-pending :name guarded-name
                                      :sp (comp-sp)
                                      :addr (1+ (comp-limplify-pc comp-pass)))
-      (comp-block-maybe-mark-pending :name handler-bb
-                                     :sp (1+ (comp-sp))
-                                     :addr (comp-label-to-addr label-num))
       (comp-emit (list 'push-handler
-                       (comp-slot+1)
-                       (comp-slot+1)
                        handler-type
-                       handler-bb
-                       guarded-bb))
-      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t))))
+                       (comp-slot+1)
+                       handler-buff-n
+                       handler-name
+                       guarded-name))
+      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t)
+      (comp-emit `(fetch-handler ,(comp-slot+1) ,handler-buff-n) handler-bb)
+      (cl-incf (comp-func-handler-cnt comp-func)))))
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
