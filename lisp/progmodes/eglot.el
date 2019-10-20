@@ -1277,13 +1277,15 @@ For example, to keep your Company customization use
   "A cached reference to the current EGLOT server.")
 
 (defun eglot--current-server ()
-  "Find the current logical EGLOT server."
+  "Find and cache logical EGLOT server for current buffer."
   (or
    eglot--cached-current-server
-   (let* ((probe (or (project-current)
-                     `(transient . ,default-directory))))
-     (cl-find major-mode (gethash probe eglot--servers-by-project)
-              :key #'eglot--major-mode))))
+   (setq eglot--cached-current-server
+         (cl-find major-mode
+                  (gethash (or (project-current)
+                               `(transient . ,default-directory))
+                           eglot--servers-by-project)
+                  :key #'eglot--major-mode))))
 
 (defun eglot--current-server-or-lose ()
   "Return current logical EGLOT server connection or error."
@@ -1305,12 +1307,10 @@ If it is activated, also signal textDocument/didOpen."
   (unless eglot--managed-mode
     ;; Called when `revert-buffer-in-progress-p' is t but
     ;; `revert-buffer-preserve-modes' is nil.
-    (let ((server (and buffer-file-name (eglot--current-server))))
-      (when server
-        (setq eglot--unreported-diagnostics `(:just-opened . nil))
-        (setq eglot--cached-current-server server)
-        (eglot--managed-mode)
-        (eglot--signal-textDocument/didOpen)))))
+    (when (and buffer-file-name (eglot--current-server))
+      (setq eglot--unreported-diagnostics `(:just-opened . nil))
+      (eglot--managed-mode)
+      (eglot--signal-textDocument/didOpen))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
