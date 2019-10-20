@@ -455,7 +455,7 @@ Points to the next slot to be filled.")
 (defconst comp-lap-eob-ops
   '(byte-goto byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
               byte-goto-if-not-nil-else-pop byte-return byte-pushcatch
-              byte-switch)
+              byte-switch byte-pushconditioncase)
   "LAP end of basic blocks op codes.")
 
 (defsubst comp-lap-eob-p (inst)
@@ -609,11 +609,11 @@ TARGET-OFFSET is the positive offset on the SP when branching to the target
 block.
 If NEGATED non null negate the tested condition.
 Return value is the fall through block name."
-  (cl-destructuring-bind (label-num . target-sp) lap-label
-    (let ((target-sp (1- target-sp))
-          (bb (comp-new-block-sym)) ; Fall through block.
-          (target (comp-lap-to-limple-bb label-num)))
-      (cl-assert (= target-sp (+ target-offset (comp-sp))))
+  (cl-destructuring-bind (label-num . label-sp) lap-label
+    (let ((bb (comp-new-block-sym)) ; Fall through block.
+          (target (comp-lap-to-limple-bb label-num))
+          (target-sp (+ target-offset (comp-sp))))
+      (cl-assert (= (1- label-sp) (+ target-offset (comp-sp))))
       (comp-block-maybe-mark-pending :name bb
                                      :sp (comp-sp)
                                      :addr (1+ (comp-limplify-pc comp-pass)))
@@ -627,15 +627,15 @@ Return value is the fall through block name."
 
 (defun comp-emit-handler (lap-label handler-type)
   "Emit a non local exit handler to LAP-LABEL of type HANDLER-TYPE."
-  (cl-destructuring-bind (label-num . stack-depth) lap-label
-    (cl-assert (= stack-depth (comp-sp)))
+  (cl-destructuring-bind (label-num . label-sp) lap-label
     (let ((guarded-bb (comp-new-block-sym))
           (handler-bb (comp-lap-to-limple-bb label-num)))
+      (cl-assert (= (- label-sp 2) (comp-sp)))
       (comp-block-maybe-mark-pending :name guarded-bb
-                                     :sp stack-depth
+                                     :sp (comp-sp)
                                      :addr (1+ (comp-limplify-pc comp-pass)))
       (comp-block-maybe-mark-pending :name handler-bb
-                                     :sp (1+ stack-depth)
+                                     :sp (1+ (comp-sp))
                                      :addr (comp-label-to-addr label-num))
       (comp-emit (list 'push-handler
                        (comp-slot+1)
@@ -1057,7 +1057,7 @@ The block name is returned."
         (`(TAG ,_label . ,target-sp)
          (when fall-through
            (cl-assert (= (1- target-sp) (comp-sp))))
-         (let ((next-bb (comp-add-pending-block (1- target-sp))))
+         (let ((next-bb (comp-add-pending-block (comp-sp))))
            (when fall-through
              (comp-emit `(jump ,next-bb))))
          (return)))
