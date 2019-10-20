@@ -982,11 +982,13 @@ the annotation emission."
               (comp-emit `(set-args-to-local ,(comp-slot-n i)))
               (comp-emit '(inc-args))
            finally (comp-emit '(jump entry_rest_args)))
-  (cl-loop for i from minarg below nonrest
-           do (comp-with-sp i
-                (comp-make-curr-block (intern (format "entry_fallback_%s" i))
-                                      (comp-sp))
-                (comp-emit-set-const nil)))
+  (when (not (= minarg nonrest))
+    (cl-loop for i from minarg below nonrest
+             do (comp-with-sp i
+                  (comp-make-curr-block (intern (format "entry_fallback_%s" i))
+                                        (comp-sp))
+                  (comp-emit-set-const nil))
+             finally (comp-emit '(jump entry_rest_args))))
   (comp-make-curr-block 'entry_rest_args (comp-sp))
   (comp-emit `(set-rest-args-to-local ,(comp-slot-n nonrest))))
 
