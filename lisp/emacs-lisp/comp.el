@@ -1054,10 +1054,10 @@ The block name is returned."
    do (comp-limplify-lap-inst inst)
       (cl-incf (comp-limplify-pc comp-pass))
       (pcase next-inst
-        (`(TAG ,_label . ,target-sp)
+        (`(TAG ,_label . ,label-sp)
          (when fall-through
-           (cl-assert (= (1- target-sp) (comp-sp))))
-         (let ((next-bb (comp-add-pending-block (comp-sp))))
+           (cl-assert (= (1- label-sp) (comp-sp))))
+         (let ((next-bb (comp-add-pending-block (1- label-sp))))
            (when fall-through
              (comp-emit `(jump ,next-bb))))
          (return)))
