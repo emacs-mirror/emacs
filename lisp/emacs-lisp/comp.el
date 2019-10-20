@@ -158,6 +158,8 @@ into it.")
         :documentation "Start block LAP address.")
   (insns () :type list
          :documentation "List of instructions.")
+  (closed nil :type boolean
+          :documentation "t if closed.")
   ;; All the followings are for SSA and CGF analysis.
   (in-edges () :type list
             :documentation "List of incoming edges.")
@@ -545,6 +547,7 @@ Restore the original value afterwards."
 
 (defsubst comp-emit (insn)
   "Emit INSN into current basic block."
+  (cl-assert (not (comp-block-closed (comp-limplify-curr-block comp-pass))))
   (push insn (comp-block-insns (comp-limplify-curr-block comp-pass))))
 
 (defun comp-emit-set-call (call)
@@ -601,7 +604,8 @@ The block is returned."
       (comp-block-maybe-mark-pending :name target
                                      :sp (comp-sp)
                                      :addr (comp-label-to-addr label-num))
-      (comp-emit `(jump ,target)))))
+      (comp-emit `(jump ,target))
+      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t))))
 
 (defun comp-emit-cond-jump (a b target-offset lap-label negated)
   "Emit a conditional jump to LAP-LABEL when A and B satisfy EQ.
@@ -624,6 +628,7 @@ Return value is the fall through block name."
       (comp-emit (if negated
 		     (list 'cond-jump a b target bb)
 		   (list 'cond-jump a b bb target)))
+      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t)
       bb)))
 
 (defun comp-emit-handler (lap-label handler-type)
@@ -643,7 +648,8 @@ Return value is the fall through block name."
                        (comp-slot+1)
                        handler-type
                        handler-bb
-                       guarded-bb)))))
+                       guarded-bb))
+      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t))))
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
@@ -1068,7 +1074,8 @@ The block name is returned."
                                    (comp-sp)
                                  (error "Unknown stack depth."))))
                (next-bb (comp-add-pending-block stack-depth)))
-           (when fall-through
+           (when (and fall-through
+                      (not (comp-block-closed bb)))
              (comp-emit `(jump ,next-bb))))
          (return)))
    until (comp-lap-eob-p inst)))
