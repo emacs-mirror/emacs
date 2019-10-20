@@ -1690,6 +1690,7 @@ If INPUT is a string, use it as the file path to be native compiled."
                     :output (if (symbolp input)
                                 (symbol-name input)
                               (file-name-sans-extension (expand-file-name input))))))
+    (comp-log "\n\n")
     (mapc (lambda (pass)
             (comp-log (format "Running pass %s:\n" pass))
             (setq data (funcall pass data)))
