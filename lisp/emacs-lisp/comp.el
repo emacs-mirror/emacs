@@ -442,8 +442,9 @@ If INPUT is a string this is the file path to be compiled."
          :documentation "Meta-stack used to flat LAP.")
   (curr-block nil :type comp-block
               :documentation "Current block baing limplified.")
-  (sp 0 :type number
-      :documentation "Current stack pointer while walking LAP.")
+  (sp -1 :type number
+      :documentation "Current stack pointer while walking LAP.
+Points to the next slot to be filled.")
   (pc 0 :type number
       :documentation "Current program counter while walking LAP.")
   (label-to-addr nil :type hash-table
@@ -595,10 +596,10 @@ The block is returned."
 (defun comp-emit-uncond-jump (lap-label)
   "Emit an unconditional branch to LAP-LABEL."
   (cl-destructuring-bind (label-num . stack-depth) lap-label
-    (cl-assert (= stack-depth (comp-sp)))
+    (cl-assert (= (1- stack-depth) (comp-sp)))
     (let ((target (comp-lap-to-limple-bb label-num)))
       (comp-block-maybe-mark-pending :name target
-                                     :sp stack-depth
+                                     :sp (comp-sp)
                                      :addr (comp-label-to-addr label-num))
       (comp-emit `(jump ,target)))))
 
@@ -609,9 +610,10 @@ block.
 If NEGATED non null negate the tested condition.
 Return value is the fall through block name."
   (cl-destructuring-bind (label-num . target-sp) lap-label
-    (cl-assert (= target-sp (+ target-offset (comp-sp))))
-    (let ((bb (comp-new-block-sym)) ; Fall through block.
+    (let ((target-sp (1- target-sp))
+          (bb (comp-new-block-sym)) ; Fall through block.
           (target (comp-lap-to-limple-bb label-num)))
+      (cl-assert (= target-sp (+ target-offset (comp-sp))))
       (comp-block-maybe-mark-pending :name bb
                                      :sp (comp-sp)
                                      :addr (1+ (comp-limplify-pc comp-pass)))
@@ -772,7 +774,7 @@ the annotation emission."
     (comp-op-case
       (TAG
        ;; Paranoically sanity check stack depth.
-       (cl-assert (= (cddr insn) (comp-limplify-sp comp-pass))))
+       (cl-assert (= (1- (cddr insn)) (comp-limplify-sp comp-pass))))
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
@@ -1054,8 +1056,8 @@ The block name is returned."
       (pcase next-inst
         (`(TAG ,_label . ,target-sp)
          (when fall-through
-           (cl-assert (= target-sp (comp-sp))))
-         (let ((next-bb (comp-add-pending-block target-sp)))
+           (cl-assert (= (1- target-sp) (comp-sp))))
+         (let ((next-bb (comp-add-pending-block (1- target-sp))))
            (when fall-through
              (comp-emit `(jump ,next-bb))))
          (return)))
