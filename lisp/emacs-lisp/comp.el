@@ -613,7 +613,8 @@ Return value is the fall through block name."
     (let ((bb (comp-new-block-sym)) ; Fall through block.
           (target (comp-lap-to-limple-bb label-num))
           (target-sp (+ target-offset (comp-sp))))
-      (cl-assert (= (1- label-sp) (+ target-offset (comp-sp))))
+      (when label-sp
+        (cl-assert (= (1- label-sp) (+ target-offset (comp-sp)))))
       (comp-block-maybe-mark-pending :name bb
                                      :sp (comp-sp)
                                      :addr (1+ (comp-limplify-pc comp-pass)))
@@ -773,8 +774,10 @@ the annotation emission."
                (cdr insn))))
     (comp-op-case
       (TAG
-       ;; Paranoically sanity check stack depth.
-       (cl-assert (= (1- (cddr insn)) (comp-limplify-sp comp-pass))))
+       (cl-destructuring-bind (_TAG _label-num . label-sp) insn
+         ;; Paranoid?
+         (when label-sp
+           (cl-assert (= (1- label-sp) (comp-limplify-sp comp-pass))))))
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
@@ -1057,9 +1060,14 @@ The block name is returned."
       (cl-incf (comp-limplify-pc comp-pass))
       (pcase next-inst
         (`(TAG ,_label . ,label-sp)
-         (when fall-through
+         (when (and label-sp fall-through)
            (cl-assert (= (1- label-sp) (comp-sp))))
-         (let ((next-bb (comp-add-pending-block (1- label-sp))))
+         (let* ((stack-depth (if label-sp
+                                 (1- label-sp)
+                               (if fall-through
+                                   (comp-sp)
+                                 (error "Unknown stack depth."))))
+               (next-bb (comp-add-pending-block stack-depth)))
            (when fall-through
              (comp-emit `(jump ,next-bb))))
          (return)))
