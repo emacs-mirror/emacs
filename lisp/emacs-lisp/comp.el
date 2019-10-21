@@ -511,12 +511,14 @@ Restore the original value afterwards."
 The basic block is returned."
   (if-let ((bb (gethash name (comp-func-blocks comp-func))))
       ;; If was already declared sanity check sp.
-      (cl-assert (or (null sp) (= sp (comp-block-sp bb)))
-                 (sp (comp-block-sp bb)) "sp %d %d differs")
-    ;; Mark it pending in case is not already.
-    (unless (cl-find-if (lambda (bb)
-                          (eq (comp-block-name bb) name))
-                        (comp-limplify-pending-blocks comp-pass))
+      (progn
+        (cl-assert (or (null sp) (= sp (comp-block-sp bb)))
+                   (sp (comp-block-sp bb)) "sp %d %d differs")
+        bb)
+    ;; Look into the pendings and add the a new one there if necessary.
+    (or (cl-find-if (lambda (bb)
+                      (eq (comp-block-name bb) name))
+                    (comp-limplify-pending-blocks comp-pass))
       (car (push (apply #'make--comp-block args)
                  (comp-limplify-pending-blocks comp-pass))))))
 
@@ -548,11 +550,16 @@ The basic block is returned."
            do (aset v i mvar)
            finally (return v)))
 
-(defsubst comp-emit (insn &optional bb)
-  "Emit INSN in BB is specified or the current basic block otherwise."
-  (let ((bb (or bb (comp-limplify-curr-block comp-pass))))
+(defsubst comp-emit (insn)
+  "Emit INSN into basic block BB."
+  (let ((bb (comp-limplify-curr-block comp-pass)))
     (cl-assert (not (comp-block-closed bb)))
     (push insn (comp-block-insns bb))))
+
+(defsubst comp-emit-as-head (insn bb)
+  "Emit INSN at the head of basic block BB.
+NOTE: this is used for late fixup therefore ignore if the basic block is closed."
+  (setf (comp-block-insns bb) (nconc (comp-block-insns bb) (list insn))))
 
 (defun comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
@@ -656,7 +663,7 @@ Return value is the fall through block name."
                        handler-name
                        guarded-name))
       (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t)
-      (comp-emit `(fetch-handler ,(comp-slot+1) ,handler-buff-n) handler-bb)
+      (comp-emit-as-head `(fetch-handler ,(comp-slot+1) ,handler-buff-n) handler-bb)
       (cl-incf (comp-func-handler-cnt comp-func)))))
 
 (defun comp-limplify-listn (n)
