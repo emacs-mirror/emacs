@@ -1693,6 +1693,7 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;;; Compiler entry points.
 
+;;;###autoload
 (defun native-compile (input)
   "Compile INPUT into native code.
 This is the entrypoint for the Emacs Lisp native compiler.
