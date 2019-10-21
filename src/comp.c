@@ -37,13 +37,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define COMP_DEBUG 1
 
-/*
-  If 1 always favorite the emission of direct constants when these are know
-  instead of the corresponding frame slot access.
-  This has to prove to have some perf advantage but certainly makes the
-  generated code C-like code more bloated.
-*/
-
 /* C symbols emited for the load relocation mechanism.  */
 #define DATA_RELOC_SYM "d_reloc"
 #define IMPORTED_FUNC_RELOC_SYM "f_reloc"
@@ -60,10 +53,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   XCAR (XCDR (x))
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
-#define FORTH(x)				\
-  XCAR (XCDR (XCDR (XCDR (x))))
-#define FIFTH(x)				\
-  XCAR (XCDR (XCDR (XCDR (XCDR (x)))))
 
 #define FUNCALL1(fun, arg)			\
   CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
