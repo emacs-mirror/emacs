@@ -2005,6 +2005,7 @@ is not active."
                (erase-buffer)
                (insert formatted)
                (current-buffer)))))
+       :company-require-match 'never
        :company-prefix-length
        (save-excursion
          (when (car bounds) (goto-char (car bounds)))
