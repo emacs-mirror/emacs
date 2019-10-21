@@ -1214,6 +1214,7 @@ For example, to keep your Company customization use
     ;; Prepend "didClose" to the hook after the "onoff", so it will run first
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
+    (add-hook 'after-revert-hook 'eglot--after-revert-hook nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
     (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
@@ -1233,6 +1234,7 @@ For example, to keep your Company customization use
     (remove-hook 'before-change-functions 'eglot--before-change t)
     (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t)
     (remove-hook 'before-revert-hook 'eglot--signal-textDocument/didClose t)
+    (remove-hook 'after-revert-hook 'eglot--after-revert-hook t)
     (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
@@ -1286,6 +1288,11 @@ Reset in `eglot--managed-mode-onoff'.")
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported Flymake diagnostics for this buffer.")
 
+(defvar revert-buffer-preserve-modes)
+(defun eglot--after-revert-hook ()
+  "Eglot's `after-revert-hook'."
+  (when revert-buffer-preserve-modes (eglot--signal-textDocument/didOpen)))
+
 (defun eglot--maybe-activate-editing-mode (&optional server)
   "Maybe activate mode function `eglot--managed-mode'.
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
@@ -1297,7 +1304,8 @@ that case, also signal textDocument/didOpen."
          :eglot "`eglot--cached-current-server' is non-nil, but it shouldn't be!\n\
 Please report this as a possible bug.")
         (setq eglot--cached-current-server nil)))
-    ;; Called even when revert-buffer-in-progress-p
+    ;; Called when `revert-buffer-in-progress-p' is t but
+    ;; `revert-buffer-preserve-modes' is nil.
     (let* ((cur (and buffer-file-name (eglot--current-server)))
            (server (or (and (null server) cur) (and server (eq server cur) cur))))
       (when server
