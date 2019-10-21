@@ -1186,35 +1186,30 @@ emit_limple_insn (Lisp_Object insn)
 {
   Lisp_Object op = XCAR (insn);
   Lisp_Object args = XCDR (insn);
-  Lisp_Object arg0 UNINIT;
   gcc_jit_rvalue *res;
-
   Lisp_Object arg[6];
+
   Lisp_Object p = XCDR (insn);
-  ptrdiff_t n_args = list_length (p);
   unsigned i = 0;
   FOR_EACH_TAIL (p)
     {
-      eassert (i < n_args);
+      eassert (i < sizeof (arg));
       arg[i++] = XCAR (p);
     }
-
-  if (CONSP (args))
-    arg0 = XCAR (args);
 
   if (EQ (op, Qjump))
     {
       /* Unconditional branch.	*/
-      gcc_jit_block *target = retrive_block (arg0);
+      gcc_jit_block *target = retrive_block (arg[0]);
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
     }
   else if (EQ (op, Qcond_jump))
     {
       /* Conditional branch.  */
-      gcc_jit_rvalue *a = emit_mvar_val (arg0);
-      gcc_jit_rvalue *b =  emit_mvar_val (SECOND (args));
-      gcc_jit_block *target1 = retrive_block (THIRD (args));
-      gcc_jit_block *target2 = retrive_block (FORTH (args));
+      gcc_jit_rvalue *a = emit_mvar_val (arg[0]);
+      gcc_jit_rvalue *b =  emit_mvar_val (arg[1]);
+      gcc_jit_block *target1 = retrive_block (arg[2]);
+      gcc_jit_block *target2 = retrive_block (arg[3]);
 
       emit_cond_jump (emit_EQ (a, b), target2, target1);
     }
@@ -1229,9 +1224,9 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
-					     XFIXNUM (arg0));
-      gcc_jit_block *target1 = retrive_block (SECOND (args));
-      gcc_jit_block *target2 = retrive_block (THIRD (args));
+					     XFIXNUM (arg[0]));
+      gcc_jit_block *target1 = retrive_block (arg[1]);
+      gcc_jit_block *target2 = retrive_block (arg[2]);
       gcc_jit_rvalue *test = gcc_jit_context_new_comparison (
 			       comp.ctxt,
 			       NULL,
@@ -1264,7 +1259,7 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *handler_bb = retrive_block (arg[3]);
       gcc_jit_block *guarded_bb = retrive_block (arg[4]);
       emit_limple_push_handler (handler, handler_type, handler_buff_n,
-				handler_bb, guarded_bb, arg0);
+				handler_bb, guarded_bb, arg[0]);
     }
   else if (EQ (op, Qpop_handler))
     {
@@ -1290,7 +1285,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qfetch_handler))
     {
-      EMACS_UINT handler_buff_n = XFIXNUM (SECOND (args));
+      EMACS_UINT handler_buff_n = XFIXNUM (arg[1]);
       gcc_jit_lvalue *c =
 	xmint_pointer (AREF (comp.buffer_handler_vec, handler_buff_n));
       gcc_jit_lvalue *m_handlerlist =
@@ -1306,7 +1301,7 @@ emit_limple_insn (Lisp_Object insn)
 					    NULL,
 					    comp.handler_next_field)));
       emit_frame_assignment (
-        arg0,
+        arg[0],
         gcc_jit_lvalue_as_rvalue(
           gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
 					    NULL,
@@ -1335,7 +1330,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qset))
     {
-      Lisp_Object arg1 = SECOND (args);
+      Lisp_Object arg1 = arg[1];
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
 	res = emit_mvar_val (arg1);
@@ -1352,16 +1347,16 @@ emit_limple_insn (Lisp_Object insn)
 
       ICE_IF (!res, gcc_jit_context_get_first_error (comp.ctxt));
 
-      emit_frame_assignment (arg0, res);
+      emit_frame_assignment (arg[0], res);
     }
   else if (EQ (op, Qset_par_to_local))
     {
       /* Ex: (setpar #s(comp-mvar 2 0 nil nil nil) 0).  */
-      EMACS_UINT param_n = XFIXNUM (SECOND (args));
+      EMACS_UINT param_n = XFIXNUM (arg[1]);
       gcc_jit_rvalue *param =
 	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
 							     param_n));
-      emit_frame_assignment (arg0, param);
+      emit_frame_assignment (arg[0], param);
     }
   else if (EQ (op, Qset_args_to_local))
     {
@@ -1376,7 +1371,7 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_rvalue *res =
 	gcc_jit_lvalue_as_rvalue (gcc_jit_rvalue_dereference (gcc_args, NULL));
 
-      emit_frame_assignment (arg0, res);
+      emit_frame_assignment (arg[0], res);
     }
   else if (EQ (op, Qset_rest_args_to_local))
     {
@@ -1385,7 +1380,7 @@ emit_limple_insn (Lisp_Object insn)
         C: local[2] = list (nargs - 2, args);
       */
 
-      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg0));
+      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg[0]));
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
@@ -1407,7 +1402,7 @@ emit_limple_insn (Lisp_Object insn)
       res = emit_call (Qlist, comp.lisp_obj_type, 2,
 		       list_args, false);
 
-      emit_frame_assignment (arg0, res);
+      emit_frame_assignment (arg[0], res);
     }
   else if (EQ (op, Qinc_args))
     {
@@ -1433,10 +1428,10 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_rvalue *reloc_n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
-					     XFIXNUM (SECOND (args)));
-      emit_comment (SSDATA (Fprin1_to_string (THIRD (args), Qnil)));
+					     XFIXNUM (arg[1]));
+      emit_comment (SSDATA (Fprin1_to_string (arg[2], Qnil)));
       emit_frame_assignment (
-	arg0,
+	arg[0],
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_context_new_array_access (comp.ctxt,
 					    NULL,
@@ -1446,13 +1441,13 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qcomment))
     {
       /* Ex: (comment "Function: foo").	 */
-      emit_comment((char *) SDATA (arg0));
+      emit_comment (SSDATA (arg[0]));
     }
   else if (EQ (op, Qreturn))
     {
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_mvar_val (arg0));
+				     emit_mvar_val (arg[0]));
     }
   else
     {
