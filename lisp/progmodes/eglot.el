@@ -2252,10 +2252,11 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          :deferred :textDocument/documentHighlight))))
   eldoc-last-message)
 
-(defun eglot-imenu (oldfun)
-  "EGLOT's `imenu-create-index-function' overriding OLDFUN."
-  (if (eglot--server-capable :documentSymbolProvider)
-      (let ((entries
+(defun eglot-imenu ()
+  "EGLOT's `imenu-create-index-function'."
+  (unless (eglot--server-capable :documentSymbolProvider)
+    (eglot--error "Server isn't a :documentSymbolProvider"))
+  (let ((entries
              (mapcar
               (eglot--lambda
                   ((SymbolInformation) name kind location containerName)
@@ -2283,7 +2284,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                           elems)))))
          (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
                        entries)))
-    (funcall oldfun)))
+  )
 
 (defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
