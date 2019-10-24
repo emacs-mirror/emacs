@@ -3671,23 +3671,6 @@ if test "${HAVE_ZLIB}" = "yes"; then
 fi
 AC_SUBST(LIBZ)
 
-### Emacs Lisp native compiler support
-HAVE_NATIVE_COMP=no
-LIBGCCJIT_LIB=
-COMP_OBJ=
-if test "${with_nativecomp}" != "no"; then
-  AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes, , -lgccjit)
-  if test "${HAVE_NATIVE_COMP}" = "yes"; then
-    LIBGCCJIT_LIB="-lgccjit -ldl"
-    COMP_OBJ="dynlib.o comp.o"
-    AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
-    AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
-     [System extension for native compiled elisp])
-  fi
-fi
-AC_SUBST(LIBGCCJIT_LIB)
-AC_SUBST(COMP_OBJ)
-
 ### Dynamic modules support
 LIBMODULES=
 HAVE_MODULES=no
@@ -3753,6 +3736,28 @@ module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST(emacs_major_version)
+
+### Emacs Lisp native compiler support
+HAVE_NATIVE_COMP=no
+LIBGCCJIT_LIB=
+COMP_OBJ=
+if test "${with_nativecomp}" != "no"; then
+  AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes, , -lgccjit)
+  if test "${HAVE_NATIVE_COMP}" = "yes"; then
+    LIBGCCJIT_LIB="-lgccjit -ldl"
+    if test "${HAVE_MODULES}" = yes; then
+      COMP_OBJ="comp.o"
+    else
+      COMP_OBJ="dynlib.o comp.o"
+    fi
+    AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
+    AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
+     [System extension for native compiled elisp])
+  fi
+fi
+AC_SUBST(LIBGCCJIT_LIB)
+AC_SUBST(COMP_OBJ)
+
 
 ### Use -lpng if available, unless '--with-png=no'.
 HAVE_PNG=no
