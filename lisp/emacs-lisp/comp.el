@@ -1092,7 +1092,7 @@ The block name is returned."
            (when (and fall-through
                       (not (comp-block-closed bb)))
              (comp-emit `(jump ,next-bb))))
-         (return)))
+         (cl-return)))
    until (comp-lap-eob-p inst)))
 
 (defun comp-limplify-function (func)
