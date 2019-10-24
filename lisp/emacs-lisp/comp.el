@@ -610,7 +610,8 @@ The block is returned."
 (defun comp-emit-uncond-jump (lap-label)
   "Emit an unconditional branch to LAP-LABEL."
   (cl-destructuring-bind (label-num . stack-depth) lap-label
-    (cl-assert (= (1- stack-depth) (comp-sp)))
+    (when stack-depth
+      (cl-assert (= (1- stack-depth) (comp-sp))))
     (let ((target (comp-lap-to-limple-bb label-num)))
       (comp-block-maybe-mark-pending :name target
                                      :sp (comp-sp)
