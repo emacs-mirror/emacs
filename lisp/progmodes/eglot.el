@@ -2512,19 +2512,6 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (setf (eglot--spinner server) (list id title done message)))
 
 
-;;; cquery-specific
-;;;
-(defclass eglot-cquery (eglot-lsp-server) ()
-  :documentation "Cquery's C/C++ langserver.")
-
-(cl-defmethod eglot-initialization-options ((server eglot-cquery))
-  "Passes through required cquery initialization options"
-  (let* ((root (car (project-roots (eglot--project server))))
-         (cache (expand-file-name ".cquery_cached_index/" root)))
-    (list :cacheDirectory (file-name-as-directory cache)
-          :progressReportFrequencyMs -1)))
-
-
 ;;; eclipse-jdt-specific
 ;;;
 (defclass eglot-eclipse-jdt (eglot-lsp-server) ()
