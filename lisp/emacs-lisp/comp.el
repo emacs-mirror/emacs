@@ -796,10 +796,11 @@ the annotation emission."
                (cdr insn))))
     (comp-op-case
       (TAG
-       (cl-destructuring-bind (_TAG _label-num . label-sp) insn
+       (cl-destructuring-bind (_TAG label-num . label-sp) insn
          ;; Paranoid?
          (when label-sp
-           (cl-assert (= (1- label-sp) (comp-limplify-sp comp-pass))))))
+           (cl-assert (= (1- label-sp) (comp-limplify-sp comp-pass))))
+         (comp-emit-annotation (format "LAP TAG %d" label-num))))
       (byte-stack-ref
        (comp-copy-slot (- (comp-sp) arg 1)))
       (byte-varref
