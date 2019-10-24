@@ -545,8 +545,9 @@ The basic block is returned."
   "Return a clean frame of meta variables of size SIZE."
   (cl-loop with v = (make-vector size nil)
            for i below size
-           for mvar = (if ssa (make-comp-ssa-mvar :slot i)
-                          (make-comp-mvar :slot i))
+           for mvar = (if ssa
+                          (make-comp-ssa-mvar :slot i)
+                        (make-comp-mvar :slot i))
            do (aset v i mvar)
            finally (return v)))
 
@@ -561,7 +562,7 @@ The basic block is returned."
 NOTE: this is used for late fixup therefore ignore if the basic block is closed."
   (setf (comp-block-insns bb) (nconc (comp-block-insns bb) (list insn))))
 
-(defun comp-emit-set-call (call)
+(defsubst comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
 If the callee function is known to have a return type propagate it."
   (cl-assert call)
@@ -575,7 +576,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
       (cl-assert src-slot)
       (comp-emit `(set ,(comp-slot) ,src-slot)))))
 
-(defun comp-emit-annotation (str)
+(defsubst comp-emit-annotation (str)
   "Emit annotation STR."
   (comp-emit `(comment ,str)))
 
