@@ -78,6 +78,25 @@
   "nnselect groups description file.")
 
 ;;; Helper routines.
+(defun nnselect-compress-artlist (artlist)
+  (let (selection)
+    (pcase-dolist (`(,artgroup . ,arts)
+                   (nnselect-categorize artlist 'nnselect-artitem-group))
+      (let (list)
+        (pcase-dolist (`(,rsv . ,articles)
+                       (nnselect-categorize
+                        arts 'nnselect-artitem-rsv 'nnselect-artitem-number))
+          (push (cons rsv (gnus-compress-sequence (sort articles '<)))
+                list))
+        (push (cons artgroup list) selection)))
+    selection))
+
+(defun nnselect-uncompress-artlist (artlist)
+  (let (selection)
+    (pcase-dolist (`(,artgroup (,artrsv . ,artseq)) artlist)
+      (dolist (art (reverse (gnus-uncompress-sequence artseq)))
+        (push (vector artgroup art artrsv) selection)))
+    (apply #'vector selection)))
 
 (defun nnselect-group-server (group)
   (gnus-group-server group))
@@ -190,9 +209,12 @@ as `(keyfunc member)' and the corresponding element is just
 (defmacro nnselect-get-artlist (group)
   "Retrieve the list of articles for the group"
   `(when (gnus-nnselect-group-p ,group)
-    (gnus-group-get-parameter
-     ,group
-     'nnselect-artlist t)))
+     (let ((artlist
+	    (gnus-group-get-parameter ,group 'nnselect-artlist t)))
+       (if (vectorp artlist)
+	   artlist
+	 (nnselect-uncompress-artlist artlist)))))
+
 
 ;;; User Customizable Variables:
 
@@ -237,9 +259,9 @@ If this variable is nil, or if the provided function returns nil,
     (unless nnselect-artlist
       (gnus-group-set-parameter
        group 'nnselect-artlist
-       (setq nnselect-artlist
+       (nnselect-compress-artlist (setq nnselect-artlist
 	     (nnselect-run
-	      (gnus-group-get-parameter group 'nnselect-specs t))))
+	      (gnus-group-get-parameter group 'nnselect-specs t)))))
       (nnselect-request-update-info
        group (or info (gnus-get-info group))))
     (if (zerop (setq length (nnselect-artlist-length nnselect-artlist)))
@@ -549,7 +571,7 @@ If this variable is nil, or if the provided function returns nil,
 	    (gnus-group-set-parameter
 	     group
 	     'nnselect-artlist
-	     gnus-newsgroup-selection)
+	     (nnselect-compress-artlist gnus-newsgroup-selection))
 	    (when (>= last first)
 	      (let (new-marks)
 		(pcase-dolist (`(,artgroup . ,artids)
@@ -607,8 +629,8 @@ If this variable is nil, or if the provided function returns nil,
     (gnus-group-set-parameter group 'nnselect-specs nnselect-specs)
     (gnus-group-set-parameter
      group 'nnselect-artlist
-     (or  (alist-get 'nnselect-artlist args)
-         (nnselect-run nnselect-specs)))
+     (nnselect-compress-artlist (or  (alist-get 'nnselect-artlist args)
+         (nnselect-run nnselect-specs))))
     (nnselect-request-update-info group (gnus-get-info group)))
   t)
 
@@ -642,10 +664,8 @@ If this variable is nil, or if the provided function returns nil,
   (let ((group (nnselect-add-prefix group)))
     (gnus-group-set-parameter
      group 'nnselect-artlist
-     (nnselect-run
-      (gnus-group-get-parameter group 'nnselect-specs t)))
-    ;; (nnselect-request-update-info
-    ;;  group (or info (gnus-get-info group)))
+     (nnselect-compress-artlist (nnselect-run
+      (gnus-group-get-parameter group 'nnselect-specs t))))
     ))
 
 ;; Add any undefined required backend functions
