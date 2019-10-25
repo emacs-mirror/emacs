@@ -800,7 +800,7 @@ originating groups."
 	       (sort (cdr (assoc artgroup select-unreads)) '<))))
 	    (gnus-get-unread-articles-in-group
 	     group-info (gnus-active artgroup) t)
-	    (gnus-group-update-group artgroup t)))))))
+	    (gnus-group-update-group artgroup t t)))))))
 
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
