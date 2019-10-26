@@ -218,6 +218,7 @@ let the buffer grow forever."
   (defvar eglot--lsp-interface-alist
     `(
       (CodeAction (:title) (:kind :diagnostics :edit :command))
+      (ConfigurationItem () (:scopeUri :section))
       (Command (:title :command) (:arguments))
       (CompletionItem (:label)
                       (:kind :detail :documentation :deprecated :preselect
@@ -474,7 +475,8 @@ treated as in `eglot-dbind'."
                         :executeCommand `(:dynamicRegistration :json-false)
                         :workspaceEdit `(:documentChanges :json-false)
                         :didChangeWatchedFiles `(:dynamicRegistration t)
-                        :symbol `(:dynamicRegistration :json-false))
+                        :symbol `(:dynamicRegistration :json-false)
+                        :configuration t)
             :textDocument
             (list
              :synchronization (list
@@ -1655,9 +1657,9 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
             '((name . eglot--signal-textDocument/didChange)))
 
 (defvar-local eglot-workspace-configuration ()
-  "Alist of (SETTING . VALUE) entries configuring the LSP server.
-Setting should be a keyword, value can be any value that can be
-converted to JSON.")
+  "Alist of (SECTION . VALUE) entries configuring the LSP server.
+SECTION should be a keyword or a string, value can be anything
+that can be converted to JSON.")
 
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
 
@@ -1669,11 +1671,33 @@ When called interactively, use the currently active server"
    server :workspace/didChangeConfiguration
    (list
     :settings
-    (cl-loop for (k . v) in eglot-workspace-configuration
-             collect (if (keywordp k)
-                         k
-                       (intern (format ":%s" k)))
+    (cl-loop for (section . v) in eglot-workspace-configuration
+             collect (if (keywordp section)
+                         section
+                       (intern (format ":%s" section)))
              collect v))))
+
+(cl-defmethod eglot-handle-request
+  (server (_method (eql workspace/configuration)) &key items)
+  "Handle server request workspace/configuration."
+  (apply #'vector
+         (mapcar
+          (eglot--lambda ((ConfigurationItem) scopeUri section)
+            (let* ((path (eglot--uri-to-path scopeUri)))
+              (when (file-directory-p path)
+                (with-temp-buffer
+                  (let ((default-directory path))
+                    (setq-local major-mode (eglot--major-mode server))
+                    (hack-dir-local-variables-non-file-buffer)
+                    (alist-get section eglot-workspace-configuration
+                               nil nil
+                               (lambda (wsection section)
+                                 (string=
+                                  (if (keywordp wsection)
+                                      (substring (symbol-name wsection) 1)
+                                    wsection)
+                                  section))))))))
+          items)))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
