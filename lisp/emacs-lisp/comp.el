@@ -1079,21 +1079,18 @@ The block name is returned."
                             (comp-func-lap comp-func))
    for inst = (car inst-cell)
    for next-inst = (car-safe (cdr inst-cell))
-   for fall-through = (comp-lap-fall-through-p inst)
    do (comp-limplify-lap-inst inst)
       (cl-incf (comp-limplify-pc comp-pass))
-      (pcase next-inst
+   when (comp-lap-fall-through-p inst)
+   do (pcase next-inst
         (`(TAG ,_label . ,label-sp)
-         (when (and label-sp fall-through)
+         (when label-sp
            (cl-assert (= (1- label-sp) (comp-sp))))
          (let* ((stack-depth (if label-sp
                                  (1- label-sp)
-                               (if fall-through
-                                   (comp-sp)
-                                 (error "Unknown stack depth."))))
-               (next-bb (comp-add-pending-block stack-depth)))
-           (when (and fall-through
-                      (not (comp-block-closed bb)))
+                               (comp-sp)))
+                (next-bb (comp-add-pending-block stack-depth)))
+           (unless (comp-block-closed bb)
              (comp-emit `(jump ,next-bb))))
          (cl-return)))
    until (comp-lap-eob-p inst)))
