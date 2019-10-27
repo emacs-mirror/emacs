@@ -507,7 +507,7 @@ Restore the original value afterwards."
       (error "Can't find label %d" label)))
 
 (cl-defun comp-block-maybe-mark-pending (&rest args &key name sp &allow-other-keys)
-  "Create a basic block and mark it as pending.
+  "If necessary create a pending basic block.
 The basic block is returned."
   (if-let ((bb (gethash name (comp-func-blocks comp-func))))
       ;; If was already declared sanity check sp.
@@ -1062,7 +1062,7 @@ This will be called at load-time."
                  do (return (comp-block-name bb))))))
 
 (defun comp-add-pending-block (sp)
-  "Add next basic block to the pending queue.
+  "Create basic block and add it to the pending queue if necessary.
 The block name is returned."
   (let ((next-bb (or (comp-addr-to-bb-name (comp-limplify-pc comp-pass))
                      (comp-new-block-sym))))
@@ -1126,6 +1126,12 @@ The block name is returned."
     (cl-loop for next-bb = (pop (comp-limplify-pending-blocks comp-pass))
              while next-bb
              do (comp-limplify-block next-bb))
+    ;; Sanity check against block duplication.
+    (cl-loop with addr-h = (make-hash-table)
+             for bb being the hash-value in (comp-func-blocks func)
+             for addr = (comp-block-addr bb)
+             do (cl-assert (null (gethash addr addr-h)))
+                (puthash addr t addr-h))
     (comp-limplify-finalize-function func)))
 
 (defun comp-add-func-to-ctxt (func)
