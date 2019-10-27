@@ -1182,7 +1182,8 @@ emit_limple_insn (Lisp_Object insn)
   unsigned i = 0;
   FOR_EACH_TAIL (p)
     {
-      eassert (i < sizeof (arg));
+      if (i == sizeof (arg) / sizeof (Lisp_Object))
+	break;
       arg[i++] = XCAR (p);
     }
 
