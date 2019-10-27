@@ -1083,7 +1083,9 @@ Doubles as an indicator of snippet support."
                        major-mode))))
     (with-temp-buffer
       (insert string)
-      (ignore-errors (funcall mode)) (font-lock-ensure) (buffer-string))))
+      (ignore-errors (delay-mode-hooks (funcall mode)))
+      (font-lock-ensure)
+      (buffer-string))))
 
 (defcustom eglot-ignored-server-capabilites (list)
   "LSP server capabilities that Eglot could use, but won't.
