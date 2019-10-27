@@ -885,7 +885,7 @@ the annotation emission."
       (byte-preceding-char preceding-char)
       (byte-current-column auto)
       (byte-indent-to
-       (comp-emit-set-call (comp-call 'indent_to
+       (comp-emit-set-call (comp-call 'indent-to
                                       (comp-slot)
                                       (make-comp-mvar :constant nil))))
       (byte-scan-buffer-OBSOLETE)
@@ -908,7 +908,7 @@ the annotation emission."
       (byte-buffer-substring auto)
       (byte-delete-region auto)
       (byte-narrow-to-region
-       (comp-emit-set-call (comp-call 'narrow_to_region
+       (comp-emit-set-call (comp-call 'narrow-to-region
                                       (comp-slot)
                                       (comp-slot+1))))
       (byte-widen
