@@ -1075,24 +1075,10 @@ The block name is returned."
   (setf (comp-limplify-pc comp-pass) (comp-block-addr bb))
   (puthash (comp-block-name bb) bb (comp-func-blocks comp-func))
   (cl-loop
-   for inst-cell on (nthcdr (comp-limplify-pc comp-pass)
+   for inst in (nthcdr (comp-limplify-pc comp-pass)
                             (comp-func-lap comp-func))
-   for inst = (car inst-cell)
-   for next-inst = (car-safe (cdr inst-cell))
    do (comp-limplify-lap-inst inst)
       (cl-incf (comp-limplify-pc comp-pass))
-   when (comp-lap-fall-through-p inst)
-   do (pcase next-inst
-        (`(TAG ,_label . ,label-sp)
-         (when label-sp
-           (cl-assert (= (1- label-sp) (comp-sp))))
-         (let* ((stack-depth (if label-sp
-                                 (1- label-sp)
-                               (comp-sp)))
-                (next-bb (comp-add-pending-block stack-depth)))
-           (unless (comp-block-closed bb)
-             (comp-emit `(jump ,next-bb))))
-         (cl-return)))
    until (comp-lap-eob-p inst)))
 
 (defun comp-limplify-function (func)
