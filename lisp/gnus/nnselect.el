@@ -92,11 +92,17 @@
     selection))
 
 (defun nnselect-uncompress-artlist (artlist)
-  (let (selection)
-    (pcase-dolist (`(,artgroup (,artrsv . ,artseq)) artlist)
-      (dolist (art (reverse (gnus-uncompress-sequence artseq)))
-        (push (vector artgroup art artrsv) selection)))
-    (apply #'vector selection)))
+  (if (vectorp artlist)
+      artlist
+    (let (selection)
+      (pcase-dolist (`(,artgroup (,artrsv . ,artseq)) artlist)
+	(setq selection
+	      (vconcat
+	       (map 'vector
+		    #'(lambda (art)
+			(vector artgroup art artrsv))
+		    (gnus-uncompress-sequence artseq)) selection)))
+      selection)))
 
 (defun nnselect-group-server (group)
   (gnus-group-server group))
@@ -211,9 +217,7 @@ as `(keyfunc member)' and the corresponding element is just
   `(when (gnus-nnselect-group-p ,group)
      (let ((artlist
 	    (gnus-group-get-parameter ,group 'nnselect-artlist t)))
-       (if (or (not artlist) (vectorp artlist))
-	   artlist
-	 (nnselect-uncompress-artlist artlist)))))
+       (nnselect-uncompress-artlist artlist))))
 
 
 ;;; User Customizable Variables:
