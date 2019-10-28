@@ -96,16 +96,6 @@ Read passwords from user, possibly using a password cache.
 @c As of 2005-10-21...
 There are no Gnus dependencies in this file.
 
-@item tls.el
-TLS/SSL support via wrapper around GnuTLS
-@c As of 2005-10-21...
-There are no Gnus dependencies in this file.
-
-@item pgg*.el
-Glue for the various PGP implementations.
-@c As of 2005-10-21...
-There are no Gnus dependencies in these files.
-
 @item sha1.el
 SHA1 Secure Hash Algorithm.
 @c As of 2007-08-25...

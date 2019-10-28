@@ -27910,7 +27910,7 @@ The revised Gnus @acronym{FAQ} is included in the manual,
 @acronym{TLS} wrapper shipped with Gnus
 
 @acronym{TLS}/@acronym{SSL} is now supported in @acronym{IMAP} and
-@acronym{NNTP} via @file{tls.el} and GnuTLS.
+@acronym{NNTP} via GnuTLS.
 
 @item
 Improved anti-spam features.
