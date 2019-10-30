@@ -1979,6 +1979,20 @@ is not active."
                              (put-text-property 0 1 'eglot--lsp-item item proxy))
                            proxy))
                        items)))))
+           resolved
+           (resolve-maybe
+            ;; Maybe completion/resolve JSON object `lsp-comp' into
+            ;; another JSON object, if at all possible.  Otherwise,
+            ;; just return lsp-comp.
+            (lambda (lsp-comp)
+              (cond (resolved resolved)
+                    ((and (eglot--server-capable :completionProvider
+                                                 :resolveProvider)
+                          (plist-get lsp-comp :data))
+                     (setq resolved
+                           (jsonrpc-request server :completionItem/resolve
+                                            lsp-comp :cancel-on-input t)))
+                    (t lsp-comp))))
            (bounds (bounds-of-thing-at-point 'symbol)))
       (list
        (or (car bounds) (point))
@@ -2021,13 +2035,7 @@ is not active."
        (lambda (proxy)
          (let* ((documentation
                  (let ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy)))
-                   (or (plist-get lsp-comp :documentation)
-                       (and (eglot--server-capable :completionProvider
-                                                   :resolveProvider)
-                            (plist-get
-                             (jsonrpc-request server :completionItem/resolve
-                                              lsp-comp :cancel-on-input t)
-                             :documentation)))))
+                   (plist-get (funcall resolve-maybe lsp-comp) :documentation)))
                 (formatted (and documentation
                                 (eglot--format-markup documentation))))
            (when formatted
@@ -2050,13 +2058,15 @@ is not active."
                         insertText
                         textEdit
                         additionalTextEdits)
-             (or (get-text-property 0 'eglot--lsp-item proxy)
-                 ;; When selecting from the *Completions*
-                 ;; buffer, `proxy' won't have any properties.  A
-                 ;; lookup should fix that (github#148)
-                 (get-text-property
-                  0 'eglot--lsp-item
-                  (cl-find proxy (funcall proxies) :test #'string=)))
+             (funcall
+              resolve-maybe
+              (or (get-text-property 0 'eglot--lsp-item proxy)
+                        ;; When selecting from the *Completions*
+                        ;; buffer, `proxy' won't have any properties.
+                        ;; A lookup should fix that (github#148)
+                        (get-text-property
+                         0 'eglot--lsp-item
+                         (cl-find proxy (funcall proxies) :test #'string=))))
            (let ((snippet-fn (and (eql insertTextFormat 2)
                                   (eglot--snippet-expansion-fn))))
              (cond (textEdit
