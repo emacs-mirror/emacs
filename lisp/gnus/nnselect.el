@@ -664,12 +664,14 @@ If this variable is nil, or if the provided function returns nil,
 
 
 (deffoo nnselect-request-group-scan (group &optional _server _info)
-  (let ((group (nnselect-add-prefix group)))
+  (let* ((group (nnselect-add-prefix group))
+	 (artlist (nnselect-run
+		   (gnus-group-get-parameter group 'nnselect-specs t))))
+    (gnus-set-active group (cons 1 (nnselect-artlist-length
+				    artlist)))
     (gnus-group-set-parameter
      group 'nnselect-artlist
-     (nnselect-compress-artlist (nnselect-run
-      (gnus-group-get-parameter group 'nnselect-specs t))))
-    ))
+     (nnselect-compress-artlist artlist))))
 
 ;; Add any undefined required backend functions
 
