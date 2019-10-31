@@ -493,7 +493,9 @@ If this variable is nil, or if the provided function returns nil,
 	     (artids (cl-sort nartids '< :key 'car))
 	     (group-info (gnus-get-info artgroup))
 	     (marks (gnus-info-marks group-info))
-	     (read (gnus-uncompress-sequence (gnus-info-read group-info))))
+	     (unread (gnus-uncompress-sequence
+		      (gnus-range-difference (gnus-active artgroup)
+					     (gnus-info-read group-info)))))
 	(gnus-atomic-progn
 	  (gnus-info-set-read
 	   info
@@ -502,7 +504,7 @@ If this variable is nil, or if the provided function returns nil,
 	    (delq nil
 		  (mapcar
 		   #'(lambda (art)
-		       (when (memq (cdr art) read) (car art)))
+		       (unless (memq (cdr art) unread) (car art)))
 		   artids))))
 	  (pcase-dolist (`(,type . ,range) marks)
 	    (setq range (gnus-uncompress-sequence range))
