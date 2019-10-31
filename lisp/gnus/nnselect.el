@@ -215,9 +215,8 @@ as `(keyfunc member)' and the corresponding element is just
 (defmacro nnselect-get-artlist (group)
   "Retrieve the list of articles for the group"
   `(when (gnus-nnselect-group-p ,group)
-     (let ((artlist
-	    (gnus-group-get-parameter ,group 'nnselect-artlist t)))
-       (nnselect-uncompress-artlist artlist))))
+     (nnselect-uncompress-artlist
+      (gnus-group-get-parameter ,group 'nnselect-artlist t))))
 
 
 ;;; User Customizable Variables:
