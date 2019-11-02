@@ -556,7 +556,7 @@ The basic block is returned regardless it was already declared or not."
                           (make-comp-ssa-mvar :slot i)
                         (make-comp-mvar :slot i))
            do (aset v i mvar)
-           finally (return v)))
+           finally return v))
 
 (defsubst comp-emit (insn)
   "Emit INSN into basic block BB."
@@ -1051,7 +1051,7 @@ This will be called at load-time."
         (comp-block-name pending)
       (cl-loop for bb being the hash-value in (comp-func-blocks comp-func)
                when (pred bb)
-                 do (return (comp-block-name bb))))))
+                 return (comp-block-name bb)))))
 
 (defun comp-limplify-block (bb)
   "Limplify basic-block BB and add it to the current function."
@@ -1285,7 +1285,7 @@ Top level forms for the current context are rendered too."
              (cl-loop for insn in (comp-block-insns bb)
                       when (and (comp-assign-op-p (car insn))
                                 (= slot-n (comp-mvar-slot (cadr insn))))
-                      return t)))
+                        return t)))
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
