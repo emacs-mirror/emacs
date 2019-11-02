@@ -1702,7 +1702,8 @@ Prepare every function for final compilation and drive the C back-end."
   "Compile INPUT into native code.
 This is the entrypoint for the Emacs Lisp native compiler.
 If INPUT is a symbol, native-compile its function definition.
-If INPUT is a string, use it as the file path to be native compiled."
+If INPUT is a string, use it as the file path to be native compiled.
+Return the compilation unit filename."
   (unless (or (symbolp input)
               (stringp input))
     (error "Trying to native compile something not a symbol function or file"))
@@ -1716,7 +1717,8 @@ If INPUT is a string, use it as the file path to be native compiled."
     (mapc (lambda (pass)
             (comp-log (format "Running pass %s:\n" pass))
             (setq data (funcall pass data)))
-          comp-passes)))
+          comp-passes)
+    data))
 
 (provide 'comp)
 

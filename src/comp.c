@@ -3061,16 +3061,15 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
     gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
-  const char *filename =
-    (const char *) SDATA (CALLN (Fconcat, ctxtname, dot_so));
+  Lisp_Object out_file = CALLN (Fconcat, ctxtname, dot_so);
 
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
-				   filename);
+				   SSDATA (out_file));
 
   pthread_sigmask (SIG_SETMASK, &oldset, 0);
 
-  return Qt;
+  return out_file;
 }
 
 
