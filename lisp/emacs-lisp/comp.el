@@ -205,6 +205,8 @@ Is in use to help the SSA rename pass."))
                :documentation "The function name in the native world.")
   (byte-func nil
              :documentation "Byte compiled version.")
+  (doc nil :type string
+       :documentation "Doc string.")
   (lap () :type list
        :documentation "LAP assembly representation.")
   (args nil :type comp-args-base)
