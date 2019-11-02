@@ -1123,9 +1123,8 @@ This will be called at load-time."
 (defun comp-limplify (lap-funcs)
   "Compute the LIMPLE ir for LAP-FUNCS.
 Top level forms for the current context are rendered too."
-  (mapc #'comp-add-func-to-ctxt
-        (cons (comp-limplify-top-level)
-              (mapcar #'comp-limplify-function lap-funcs))))
+  (mapc #'comp-add-func-to-ctxt (mapcar #'comp-limplify-function lap-funcs))
+  (comp-add-func-to-ctxt (comp-limplify-top-level)))
 
 
 ;;; SSA pass specific code.
