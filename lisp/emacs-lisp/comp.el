@@ -145,7 +145,9 @@ To be used when ncall-conv is nil."))
   "Describe args when the functin signature is of kind:
 (ptrdiff_t nargs, Lisp_Object *args)."
   (nonrest nil :type number
-           :documentation "Number of non rest arguments."))
+           :documentation "Number of non rest arguments.")
+  (rest nil :type boolean
+        :documentation "t if rest argument is present."))
 
 (cl-defstruct (comp-block (:copier nil)
                           (:constructor make--comp-block
@@ -371,7 +373,8 @@ Put PREFIX in front of it."
         (make-comp-args :min mandatory
                         :max nonrest)
       (make-comp-nargs :min mandatory
-                       :nonrest nonrest))))
+                       :nonrest nonrest
+                       :rest rest))))
 
 (defun comp-byte-frame-size (byte-compiled-func)
   "Given BYTE-COMPILED-FUNC return the frame size to be allocated."
@@ -982,7 +985,7 @@ the annotation emission."
        (cl-incf (comp-sp) (- arg))
        (comp-copy-slot (+ arg (comp-sp)))))))
 
-(defun comp-emit-narg-prologue (minarg nonrest)
+(defun comp-emit-narg-prologue (minarg nonrest rest)
   "Emit the prologue for a narg function."
   (cl-loop for i below minarg
            do (comp-emit `(set-args-to-local ,(comp-slot-n i)))
@@ -1006,7 +1009,10 @@ the annotation emission."
                   (comp-emit-set-const nil)
                   (comp-emit `(jump ,next-bb)))))
   (comp-make-curr-block 'entry_rest_args (comp-sp))
-  (comp-emit `(set-rest-args-to-local ,(comp-slot-n nonrest))))
+  (comp-emit `(set-rest-args-to-local ,(comp-slot-n nonrest)))
+  (setf (comp-sp) nonrest)
+  (when (and (> nonrest 8) (null rest))
+    (cl-decf (comp-sp))))
 
 (defun comp-limplify-finalize-function (func)
   "Reverse insns into all basic blocks of FUNC."
@@ -1080,8 +1086,7 @@ This will be called at load-time."
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :frame (comp-new-frame frame-size)))
-         (args (comp-func-args func))
-         (args-min (comp-args-base-min args)))
+         (args (comp-func-args func)))
     (comp-fill-label-h)
     ;; Prologue
     (comp-make-curr-block 'entry (comp-sp))
@@ -1091,9 +1096,9 @@ This will be called at load-time."
         (cl-loop for i below (comp-args-max args)
                  do (cl-incf (comp-sp))
                     (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
-      (let ((nonrest (comp-nargs-nonrest args)))
-        (comp-emit-narg-prologue args-min nonrest)
-        (cl-incf (comp-sp) (1+ nonrest))))
+      (comp-emit-narg-prologue (comp-args-base-min args)
+                               (comp-nargs-nonrest args)
+                               (comp-nargs-rest args)))
     (comp-emit '(jump bb_0))
     ;; Body
     (comp-bb-maybe-add 0 (comp-sp))
