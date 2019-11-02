@@ -384,53 +384,57 @@ Put PREFIX in front of it."
   ;; For the 1+ see bytecode.c:365 (finger crossed).
   (1+ (aref byte-compiled-func 3)))
 
-(defun comp-spill-lap-function (function-name)
+(defun comp-spill-lap-function (_function-name)
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
-  (let* ((f (symbol-function function-name))
-         (func (make-comp-func :symbol-name function-name
-                               :c-func-name (comp-c-func-name
-                                             function-name
-                                             "F"))))
-      (when (byte-code-function-p f)
-        (error "Can't native compile an already bytecompiled function"))
-      (setf (comp-func-byte-func func)
-            (byte-compile (comp-func-symbol-name func)))
-      (let ((lap (alist-get function-name (reverse byte-to-native-bytecode))))
-        (cl-assert lap)
-        (comp-log lap)
-        (let ((lambda-list (aref (comp-func-byte-func func) 0)))
-          (setf (comp-func-args func)
-                (comp-decrypt-lambda-list lambda-list)))
-        (setf (comp-func-lap func) lap)
-        (setf (comp-func-frame-size func)
-              (comp-byte-frame-size (comp-func-byte-func func)))
-        func)))
+  (error "To be reimplemented")
+  ;; (let* ((f (symbol-function function-name))
+  ;;        (func (make-comp-func :symbol-name function-name
+  ;;                              :c-func-name (comp-c-func-name
+  ;;                                            function-name
+  ;;                                            "F"))))
+  ;;     (when (byte-code-function-p f)
+  ;;       (error "Can't native compile an already bytecompiled function"))
+  ;;     (setf (comp-func-byte-func func)
+  ;;           (byte-compile (comp-func-symbol-name func)))
+  ;;     (let ((lap (alist-get function-name (reverse byte-to-native-bytecode))))
+  ;;       (cl-assert lap)
+  ;;       (comp-log lap)
+  ;;       (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+  ;;         (setf (comp-func-args func)
+  ;;               (comp-decrypt-lambda-list lambda-list)))
+  ;;       (setf (comp-func-lap func) lap)
+  ;;       (setf (comp-func-frame-size func)
+  ;;             (comp-byte-frame-size (comp-func-byte-func func)))
+  ;;       func))
+  )
 
 (defun comp-spill-lap-functions-file (filename)
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
-  (setf (comp-ctxt-top-level-defvars comp-ctxt)
-        (reverse (mapcar (lambda (x)
-                           (cl-ecase (car x)
-                             ('defvar (cdr x))
-                             ('defconst (cdr x))))
-                         byte-to-native-top-level-forms)))
-  (cl-loop for (name . bytecode) in byte-to-native-bytecode
-           for lap = (alist-get name byte-to-native-lap)
-           for lambda-list = (aref bytecode 0)
-           for func = (make-comp-func :symbol-name name
-                                      :byte-func bytecode
-                                      :c-func-name (comp-c-func-name
-                                                    name
-                                                    "F")
-                                      :args (comp-decrypt-lambda-list lambda-list)
-                                      :lap lap
-                                      :frame-size (comp-byte-frame-size
-                                                   bytecode))
-           do (when (> comp-verbose 1)
-                (comp-log (format "Function %s:\n" name))
-                (comp-log lap))
-           collect func))
+  (setf (comp-ctxt-top-level-forms comp-ctxt) (reverse byte-to-native-top-level-forms))
+  (cl-loop
+   for f in (cl-loop for x in byte-to-native-top-level-forms ; All non anonymous.
+                     when (and (byte-to-native-function-p x)
+                               (byte-to-native-function-name x))
+                       collect x)
+   for name = (byte-to-native-function-name f)
+   for data = (byte-to-native-function-data f)
+   for doc = (when (>= (length data) 5) (aref data 4))
+   for lap = (alist-get name byte-to-native-lap)
+   for lambda-list = (aref data 0)
+   for func = (make-comp-func :symbol-name name
+                              :byte-func data
+                              :doc doc
+                              :c-func-name (comp-c-func-name
+                                            name
+                                            "F")
+                              :args (comp-decrypt-lambda-list lambda-list)
+                              :lap lap
+                              :frame-size (comp-byte-frame-size data))
+   when (> comp-verbose 1)
+     do (comp-log (format "Function %s:\n" name))
+        (comp-log lap)
+   collect func))
 
 (defun comp-spill-lap (input)
   "Byte compile and spill the LAP rapresentation for INPUT.
