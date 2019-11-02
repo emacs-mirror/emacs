@@ -116,8 +116,8 @@ Can be used by code that wants to expand differently in this case.")
   "Lisp side of the compiler context."
   (output nil :type string
           :documentation "Target output filename for the compilation.")
-  (top-level-defvars nil :type list
-                   :documentation "List of top level form to be exp.")
+  (top-level-forms () :type list
+                   :documentation "List of spilled top level forms.")
   (exp-funcs () :type list
              :documentation "Exported functions list.")
   (funcs-h (make-hash-table) :type hash-table
