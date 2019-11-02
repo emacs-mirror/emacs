@@ -564,14 +564,19 @@ Each element is (INDEX . VALUE)")
 (defvar byte-compile-maxdepth 0 "Maximum depth of execution stack.")
 
 ;; These are use by comp.el to spill data out of here
-(defvar byte-native-compiling nil)
+(cl-defstruct byte-to-native-function
+  "Named or anonymous function defined a top level."
+              name data)
+(cl-defstruct byte-to-native-top-level
+  "All other top level forms."
+              form)
+(defvar byte-native-compiling nil
+  "t while native compiling.")
 (defvar byte-to-native-lap nil
-  "Alist to accumulate lap.
-Each element is (NAME . LAP)")
-(defvar byte-to-native-bytecode nil
-  "Alist to accumulate bytecode.
-Each element is (NAME . BYTECODE)")
-(defvar byte-to-native-top-level-forms nil)
+  "A-list to accumulate LAP.
+Each pair is (NAME . LAP)")
+(defvar byte-to-native-top-level-forms nil
+  "List of top level forms.")
 
 
 ;;; The byte codes; this information is duplicated in bytecomp.c
@@ -2245,6 +2250,10 @@ Call from the source buffer."
   ;; defalias calls are output directly by byte-compile-file-form-defmumble;
   ;; it does not pay to first build the defalias in defmumble and then parse
   ;; it here.
+  (when byte-native-compiling
+    ;; Spill output for the native compiler here
+    (push (make-byte-to-native-top-level :form form)
+          byte-to-native-top-level-forms))
   (let ((print-escape-newlines t)
         (print-length nil)
         (print-level nil)
@@ -2276,10 +2285,6 @@ we output that argument and the following argument
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
 `defvaralias', `autoload' and `custom-declare-variable' need that."
-  (when (and byte-native-compiling name)
-    ;; Spill bytecode output for the native compiler here
-    (push (cons name (apply #'vector form))
-          byte-to-native-bytecode))
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
@@ -2496,9 +2501,6 @@ list that represents a doc string reference.
            (setq form (copy-sequence form))
            (setcar (cdr (cdr form))
                    (byte-compile-top-level (nth 2 form) nil 'file))))
-    (when byte-native-compiling
-      ;; Spill output for the native compiler here
-      (push form byte-to-native-top-level-forms))
     form))
 
 (put 'define-abbrev-table 'byte-hunk-handler
@@ -2706,6 +2708,13 @@ not to take responsibility for the actual compilation of the code."
                  ;; If there's no doc string, provide -1 as the "doc string
                  ;; index" so that no element will be treated as a doc string.
                  (if (not (stringp (documentation code t))) -1 4)))
+            (when byte-native-compiling
+              ;; Spill output for the native compiler here.
+              (push (if macro
+                        (make-byte-to-native-top-level
+                         :form `(defalias ,name (macro . ,code) nil))
+                      (make-byte-to-native-function :name name :data code))
+                    byte-to-native-top-level-forms))
             ;; Output the form by hand, that's much simpler than having
             ;; b-c-output-file-form analyze the defalias.
             (byte-compile-output-docform
