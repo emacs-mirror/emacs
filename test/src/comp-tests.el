@@ -124,6 +124,12 @@
   (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4)
                  '(1 2 (3 4))))
 
+  (should (equal (comp-tests-ffuncall-callee-more8-f 1 2 3 4 5 6 7 8 9 10)
+                 '(1 2 3 4 5 6 7 8 9 10)))
+
+  (should (equal (comp-tests-ffuncall-callee-more8-rest-f 1 2 3 4 5 6 7 8 9 10 11)
+                 '(1 2 3 4 5 6 7 8 9 (10 11))))
+
   (should (equal (comp-tests-ffuncall-native-f) [nil]))
 
   (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))

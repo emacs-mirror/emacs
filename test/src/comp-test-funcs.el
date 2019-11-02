@@ -81,6 +81,14 @@
 (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
   (list a b c))
 
+(defun comp-tests-ffuncall-callee-more8-f (p1 p2 p3 p4 p5 p6 p7 p8 p9 p10)
+  ;; More then 8 args.
+  (list p1 p2 p3 p4 p5 p6 p7 p8 p9 p10))
+
+(defun comp-tests-ffuncall-callee-more8-rest-f (p1 p2 p3 p4 p5 p6 p7 p8 p9 &rest p10)
+  ;; More then 8 args.
+  (list p1 p2 p3 p4 p5 p6 p7 p8 p9 p10))
+
 (defun comp-tests-ffuncall-native-f ()
   "Call a primitive with no dedicate op."
   (make-vector 1 nil))
@@ -342,6 +350,7 @@
 
 (defun comp-test-callee (_ __) t)
 (defun comp-test-silly-frame1 (x)
+  ;; Check robustness against dead code.
   (cl-case x
     (0 (comp-test-callee
         (pcase comp-tests-var1
@@ -350,6 +359,7 @@
         3))))
 
 (defun comp-test-silly-frame2 (token)
+  ;; Check robustness against dead code.
   (while c
     (cl-case c
       (?< 1)
