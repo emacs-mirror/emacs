@@ -328,12 +328,11 @@ If this variable is nil, or if the provided function returns nil,
 		(_ (error "Unknown header type %s while requesting articles \
                     of group %s" gnus-headers-retrieved-by artgroup)))))
 	  (setq headers
-		(sort headers
-		      (lambda (x y)
-			(< (mail-header-number x) (mail-header-number y)))))
-	  (erase-buffer)
-	  (mapc 'nnheader-insert-nov headers)
-	  'nov)))))
+		(sort
+		 headers
+		 (lambda (x y)
+		   (< (mail-header-number x) (mail-header-number y))))))))))
+
 
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
   (let* ((gnus-override-method nil)
