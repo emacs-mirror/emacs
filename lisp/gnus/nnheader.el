@@ -209,19 +209,23 @@ on your system, you could say something like:
 	;; about twice as fast, even though it looks messier.  You
 	;; can't have everything, I guess.  Speed and elegance don't
 	;; always go hand in hand.
-	(vector
+	(make-full-mail-header
 	 ;; Number.
 	 (or number 0)
 	 ;; Subject.
 	 (progn
 	   (goto-char p)
 	   (if (search-forward "\nsubject:" nil t)
-	       (nnheader-header-value) "(none)"))
+	       (funcall gnus-decode-encoded-word-function
+			(nnheader-header-value))
+	     "(none)"))
 	 ;; From.
 	 (progn
 	   (goto-char p)
 	   (if (search-forward "\nfrom:" nil t)
-	       (nnheader-header-value) "(nobody)"))
+	       (funcall gnus-decode-encoded-address-function
+			(nnheader-header-value))
+	     "(nobody)"))
 	 ;; Date.
 	 (progn
 	   (goto-char p)
@@ -349,11 +353,20 @@ on your system, you could say something like:
 
 (defun nnheader-parse-nov ()
   (let ((eol (point-at-eol))
-	(number (nnheader-nov-read-integer)))
-    (vector
+	(number (nnheader-nov-read-integer))
+	x)
+    (make-full-mail-header
      number				; number
-     (nnheader-nov-field)		; subject
-     (nnheader-nov-field)		; from
+     (condition-case ()	        	; subject
+	 (gnus-remove-odd-characters
+	  (funcall gnus-decode-encoded-word-function
+		   (setq x (nnheader-nov-field))))
+       (error x))
+     (condition-case ()	                ; from
+	 (gnus-remove-odd-characters
+	  (funcall gnus-decode-encoded-address-function
+		   (setq x (nnheader-nov-field))))
+       (error x))
      (nnheader-nov-field)		; date
      (nnheader-nov-read-message-id number) ; id
      (nnheader-nov-field)		; refs
