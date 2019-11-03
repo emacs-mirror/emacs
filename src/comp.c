@@ -41,7 +41,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define DATA_RELOC_SYM "d_reloc"
 #define IMPORTED_FUNC_RELOC_SYM "f_reloc"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
-#define TEXT_EXPORTED_FUNC_RELOC_SYM "text_exported_funcs"
 #define TEXT_IMPORTED_FUNC_RELOC_SYM "text_imported_funcs"
 
 #define STR_VALUE(s) #s
@@ -1802,9 +1801,6 @@ emit_ctxt_code (void)
       gcc_jit_struct_as_type (f_reloc_struct),
       IMPORTED_FUNC_RELOC_SYM);
 
-  /* Exported functions info.  */
-  Lisp_Object func_list = FUNCALL1 (comp-ctxt-exp-funcs, Vcomp_ctxt);
-  emit_static_object (TEXT_EXPORTED_FUNC_RELOC_SYM, func_list);
   SAFE_FREE ();
 }
 
@@ -3127,6 +3123,7 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /**************************************/
 
 static Lisp_Object Vnative_elisp_refs_hash;
+dynlib_handle_ptr load_handle;
 
 static void
 prevent_gc (Lisp_Object obj)
@@ -3150,9 +3147,9 @@ static int
 load_comp_unit (dynlib_handle_ptr handle)
 {
   /* Imported data.  */
-  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  Lisp_Object *data_relocs = dynlib_sym (load_handle, DATA_RELOC_SYM);
 
-  Lisp_Object d_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
+  Lisp_Object d_vec = load_static_obj (load_handle, TEXT_DATA_RELOC_SYM);
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
@@ -3163,11 +3160,11 @@ load_comp_unit (dynlib_handle_ptr handle)
 
   /* Imported functions.  */
   Lisp_Object (**f_relocs)(void) =
-    dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
+    dynlib_sym (load_handle, IMPORTED_FUNC_RELOC_SYM);
   Lisp_Object f_vec =
-    load_static_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
+    load_static_obj (load_handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
   EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
-    for (EMACS_UINT i = 0; i < f_vec_len; i++)
+  for (EMACS_UINT i = 0; i < f_vec_len; i++)
     {
       Lisp_Object f_sym = AREF (f_vec, i);
       char *f_str = SSDATA (SYMBOL_NAME (f_sym));
@@ -3215,38 +3212,37 @@ load_comp_unit (dynlib_handle_ptr handle)
 	}
     }
 
-  /* Exported functions.  */
-  Lisp_Object func_list = load_static_obj (handle, TEXT_EXPORTED_FUNC_RELOC_SYM);
-
-  while (func_list)
-    {
-      Lisp_Object el = XCAR (func_list);
-      Lisp_Object Qsym = AREF (el, 0);
-      char *c_func_name = SSDATA (AREF (el, 1));
-      Lisp_Object args = AREF (el, 2);
-      ptrdiff_t minargs = XFIXNUM (XCAR (args));
-      ptrdiff_t maxargs = FIXNUMP (XCDR (args)) ? XFIXNUM (XCDR (args)) : MANY;
-      /* char *doc = SSDATA (AREF (el, 3)); */
-      void *func = dynlib_sym (handle, c_func_name);
-      eassert (func);
-
-      union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
-      x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
-      x->s.function.a0 = func;
-      x->s.min_args = minargs;
-      x->s.max_args = maxargs;
-      x->s.symbol_name = SSDATA (Fsymbol_name (Qsym));
-      x->s.native_elisp = true;
-      defsubr(x);
-
-      func_list = XCDR (func_list);
-    }
-
-  /* Finally execute top level forms.  */
-  void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
+  /* Executing this will perform all the expected environment modification.  */
+  void (*top_level_run)(void) = dynlib_sym (load_handle, "top_level_run");
   top_level_run ();
 
   return 0;
+}
+
+DEFUN ("comp--register-subr", Fcomp__register_subr,
+       Scomp__register_subr,
+       5, 5, 0,
+       doc: /* This gets called by top_level_run during load phase to register
+	       each exported subr.  */)
+     (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
+      Lisp_Object c_name, Lisp_Object doc)
+{
+  if (!load_handle)
+    error ("comp--register-subr can only be called during native code load phase.");
+
+  void *func = dynlib_sym (load_handle, SSDATA (c_name));
+  eassert (func);
+
+  union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+  x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
+  x->s.function.a0 = func;
+  x->s.min_args = XFIXNUM (minarg);
+  x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
+  x->s.symbol_name = SSDATA (Fsymbol_name (name));
+  x->s.native_elisp = true;
+  defsubr(x);
+
+  return Qnil;
 }
 
 /* Load related routines. */
@@ -3254,14 +3250,14 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
        doc: /* Load native elisp code FILE.  */)
   (Lisp_Object file)
 {
-  dynlib_handle_ptr handle;
-
   CHECK_STRING (file);
-  handle = dynlib_open (SSDATA (file));
-  if (!handle)
+  load_handle = dynlib_open (SSDATA (file));
+  if (!load_handle)
     xsignal2 (Qcomp_unit_open_failed, file, build_string (dynlib_error ()));
 
-  int r = load_comp_unit (handle);
+  int r = load_comp_unit (load_handle);
+
+  load_handle = NULL;
 
   if (r != 0)
     xsignal2 (Qcomp_unit_init_failed, file, INT_TO_INTEGER (r));
@@ -3332,6 +3328,7 @@ syms_of_comp (void)
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
+  defsubr (&Scomp__register_subr);
   defsubr (&Snative_elisp_load);
 
   staticpro (&comp.exported_funcs_h);

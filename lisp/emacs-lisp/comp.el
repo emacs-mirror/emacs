@@ -118,8 +118,6 @@ Can be used by code that wants to expand differently in this case.")
           :documentation "Target output filename for the compilation.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
-  (exp-funcs () :type list
-             :documentation "Exported functions list.")
   (funcs-h (make-hash-table) :type hash-table
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
@@ -1029,6 +1027,35 @@ the annotation emission."
     (comp-log-func func))
   func)
 
+(cl-defgeneric comp-emit-for-top-level (form)
+  "Emit the limple code for top level FORM.")
+
+(cl-defmethod comp-emit-for-top-level ((form byte-to-native-function))
+  (let* ((name (byte-to-native-function-name form))
+         (f (gethash name (comp-ctxt-funcs-h comp-ctxt)))
+         (args (comp-func-args f))
+         (c-name (comp-func-c-func-name f))
+         (doc (comp-func-doc f)))
+    (cl-assert (and name f))
+    (comp-emit (comp-call 'comp--register-subr
+                          (make-comp-mvar :constant name)
+                          (make-comp-mvar :constant (comp-args-base-min args))
+                          (make-comp-mvar :constant (if (comp-args-p args)
+                                                        (comp-args-max args)
+                                                      'many))
+                          (make-comp-mvar :constant c-name)
+                          (make-comp-mvar :constant doc)))))
+
+(cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
+  (let* ((form (byte-to-native-top-level-form form))
+         (func-name (car form))
+         (args (cdr form)))
+    (if (eq 'unevalled (cdr (subr-arity (symbol-function func-name))))
+        (comp-emit (comp-call func-name (make-comp-mvar :constant args)))
+      (comp-emit (apply #'comp-call func-name
+                        (mapcar (lambda (x) (make-comp-mvar :constant x))
+                                args))))))
+
 (defun comp-limplify-top-level ()
   "Create a limple function doing the business for top level forms.
 This will be called at load-time."
@@ -1042,9 +1069,8 @@ This will be called at load-time."
                      :frame (comp-new-frame 0))))
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation "Top level")
-    (cl-loop for args in (comp-ctxt-top-level-defvars comp-ctxt)
-             do (comp-emit (comp-call 'defvar (make-comp-mvar :constant args))))
-    (comp-emit `(return ,(make-comp-mvar :constant nil)))
+    (mapc #'comp-emit-for-top-level (comp-ctxt-top-level-forms comp-ctxt))
+    (comp-emit `(return ,(make-comp-mvar :constant t)))
     (comp-limplify-finalize-function func)))
 
 (defun comp-addr-to-bb-name (addr)
@@ -1659,19 +1685,6 @@ These are substituted with normals 'set'."
 Prepare every function for final compilation and drive the C back-end."
   (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
                 (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
-  (setf (comp-ctxt-exp-funcs comp-ctxt)
-        (cl-loop with h = (comp-ctxt-funcs-h comp-ctxt)
-                 for f being each hash-value of h
-                 for args = (comp-func-args f)
-                 for doc = (when (> (length (comp-func-byte-func f)) 4)
-                             (aref (comp-func-byte-func f) 4))
-                 collect (vector (comp-func-symbol-name f)
-                                 (comp-func-c-func-name f)
-                                 (cons (comp-args-base-min args)
-                                       (if (comp-args-p args)
-                                           (comp-args-max args)
-                                         'many))
-                                 doc)))
   (comp--compile-ctxt-to-file name))
 
 (defun comp-final (_)
