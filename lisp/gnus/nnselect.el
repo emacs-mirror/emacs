@@ -65,6 +65,9 @@
 (defvar gnus-inhibit-demon)
 (defvar gnus-message-group-art)
 
+(fset 'nov 'nnheader-parse-nov)
+(fset 'headers 'nnheader-parse-head)
+
 ;; For future use
 (defvoo nnselect-directory gnus-directory
   "Directory for the nnselect backend.")
@@ -218,6 +221,14 @@ as `(keyfunc member)' and the corresponding element is just
      (nnselect-uncompress-artlist
       (gnus-group-get-parameter ,group 'nnselect-artlist t))))
 
+(defmacro nnselect-add-novitem (novitem)
+  `(let* ((novitem ,novitem)
+	  (artno (and novitem
+		      (mail-header-number novitem)))
+	  (art (car-safe (rassq artno artids))))
+     (when art
+       (setf (mail-header-number novitem) art)
+       (push novitem headers))))
 
 ;;; User Customizable Variables:
 
@@ -296,8 +307,7 @@ If this variable is nil, or if the provided function returns nil,
 		   (or
 		    (car-safe
 		     (gnus-group-find-parameter artgroup 'gnus-fetch-old-headers t))
-		    fetch-old))
-		  parsefunc)
+		    fetch-old)))
 	      (erase-buffer)
 	      (pcase (setq gnus-headers-retrieved-by
 			   (or
@@ -306,22 +316,17 @@ If this variable is nil, or if the provided function returns nil,
 			     (funcall nnselect-retrieve-headers-override-function
 				      artlist artgroup))
 			    (gnus-retrieve-headers artlist artgroup fetch-old)))
-		('nov
-		 (setq parsefunc 'nnheader-parse-nov))
-		('headers
-		 (setq parsefunc 'nnheader-parse-head))
+		((pred symbol-function)
+		 (goto-char (point-min))
+		 (while (not (eobp))
+		   (nnselect-add-novitem
+		    (funcall (symbol-function gnus-headers-retrieved-by)))
+		   (forward-line 1)))
+		((pred listp)
+		 (dolist (novitem gnus-headers-retrieved-by)
+		   (nnselect-add-novitem novitem) headers))
 		(_ (error "Unknown header type %s while requesting articles \
-                    of group %s" gnus-headers-retrieved-by artgroup)))
-	      (goto-char (point-min))
-	      (while (not (eobp))
-		(let* ((novitem (funcall parsefunc))
-		       (artno (and novitem
-				   (mail-header-number novitem)))
-		       (art (car (rassq artno artids))))
-		  (when art
-		    (setf (mail-header-number novitem) art)
-		    (push novitem headers))
-		  (forward-line 1)))))
+                    of group %s" gnus-headers-retrieved-by artgroup)))))
 	  (setq headers
 		(sort headers
 		      (lambda (x y)
@@ -329,7 +334,6 @@ If this variable is nil, or if the provided function returns nil,
 	  (erase-buffer)
 	  (mapc 'nnheader-insert-nov headers)
 	  'nov)))))
-
 
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
   (let* ((gnus-override-method nil)

@@ -5646,22 +5646,32 @@ or a straight list of headers."
   "Fetch headers of ARTICLES."
   (gnus-message 7 "Fetching headers for %s..." gnus-newsgroup-name)
   (prog1
-      (if (eq 'nov
-	      (setq gnus-headers-retrieved-by
-		    (gnus-retrieve-headers
-		     articles gnus-newsgroup-name
-		     (or limit
-			 ;; We might want to fetch old headers, but
-			 ;; not if there is only 1 article.
-			 (and (or (and
-				   (not (eq gnus-fetch-old-headers 'some))
-				   (not (numberp gnus-fetch-old-headers)))
-				  (> (length articles) 1))
-			      gnus-fetch-old-headers)))))
-	  (gnus-get-newsgroup-headers-xover
-	   articles force-new dependencies gnus-newsgroup-name t)
-	(gnus-get-newsgroup-headers dependencies force-new))
-    (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
+      (pcase (setq gnus-headers-retrieved-by
+		   (gnus-retrieve-headers
+		    articles gnus-newsgroup-name
+		    (or limit
+			;; We might want to fetch old headers, but
+			;; not if there is only 1 article.
+			(and (or (and
+				  (not (eq gnus-fetch-old-headers 'some))
+				  (not (numberp gnus-fetch-old-headers)))
+				 (> (length articles) 1))
+			     gnus-fetch-old-headers))))
+    ('nov
+     (gnus-get-newsgroup-headers-xover
+      articles force-new dependencies gnus-newsgroup-name t))
+    ('headers
+     (gnus-get-newsgroup-headers dependencies force-new))
+    ((pred listp)
+     (let ((dependencies
+	    (or dependencies
+		(with-current-buffer gnus-summary-buffer
+		  gnus-newsgroup-dependencies))))
+     (delq nil (mapcar   #'(lambda (header)
+			     (gnus-dependencies-add-header
+			      header dependencies force-new))
+			 gnus-headers-retrieved-by)))))
+  (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
 
 (defun gnus-select-newsgroup (group &optional read-all select-articles)
   "Select newsgroup GROUP.
