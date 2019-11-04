@@ -1047,14 +1047,10 @@ the annotation emission."
                           (make-comp-mvar :constant doc)))))
 
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
-  (let* ((form (byte-to-native-top-level-form form))
-         (func-name (car form))
-         (args (cdr form)))
-    (if (eq 'unevalled (cdr (subr-arity (symbol-function func-name))))
-        (comp-emit (comp-call func-name (make-comp-mvar :constant args)))
-      (comp-emit (apply #'comp-call func-name
-                        (mapcar (lambda (x) (make-comp-mvar :constant x))
-                                args))))))
+  (let ((form (byte-to-native-top-level-form form)))
+    (comp-emit (comp-call 'eval
+                          (make-comp-mvar :constant form)
+                          (make-comp-mvar :constant t)))))
 
 (defun comp-limplify-top-level ()
   "Create a limple function doing the business for top level forms.
