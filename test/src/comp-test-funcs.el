@@ -365,4 +365,6 @@
       (?< 1)
       (?> 2))))
 
+(provide 'comp-test-funcs)
+
 ;;; comp-test-funcs.el ends here

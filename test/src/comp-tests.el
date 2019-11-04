@@ -36,8 +36,11 @@
           "comp-test-funcs.el"))
 
 (message "Compiling %s" comp-test-src)
-(native-compile comp-test-src)
-(load (concat comp-test-src "n"))
+(load (native-compile comp-test-src))
+
+(ert-deftest comp-tests-provide ()
+  "Testing top level provide."
+  (should (featurep 'comp-test-funcs)))
 
 (ert-deftest comp-tests-varref ()
   "Testing varref."
