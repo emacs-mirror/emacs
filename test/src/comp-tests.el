@@ -274,6 +274,10 @@
 (ert-deftest comp-tests-recursive ()
   (should (= (comp-tests-fib-f 10) 55)))
 
+(ert-deftest comp-tests-macro ()
+  "Just check we can define macros"
+  (should (macrop (symbol-function 'comp-tests-macro-m))))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;

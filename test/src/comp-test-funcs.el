@@ -235,6 +235,9 @@
 	(t (+ (comp-tests-fib-f (- n 1))
 	      (comp-tests-fib-f (- n 2))))))
 
+(defmacro comp-tests-macro-m (x)
+  x)
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
