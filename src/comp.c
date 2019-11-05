@@ -3123,7 +3123,7 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /**************************************/
 
 static Lisp_Object Vnative_elisp_refs_hash;
-dynlib_handle_ptr load_handle;
+static Lisp_Object load_handle_stack;
 
 static void
 prevent_gc (Lisp_Object obj)
@@ -3147,9 +3147,9 @@ static int
 load_comp_unit (dynlib_handle_ptr handle)
 {
   /* Imported data.  */
-  Lisp_Object *data_relocs = dynlib_sym (load_handle, DATA_RELOC_SYM);
+  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
 
-  Lisp_Object d_vec = load_static_obj (load_handle, TEXT_DATA_RELOC_SYM);
+  Lisp_Object d_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_UINT i = 0; i < d_vec_len; i++)
@@ -3160,9 +3160,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 
   /* Imported functions.  */
   Lisp_Object (**f_relocs)(void) =
-    dynlib_sym (load_handle, IMPORTED_FUNC_RELOC_SYM);
+    dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
   Lisp_Object f_vec =
-    load_static_obj (load_handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
+    load_static_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
   EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
   for (EMACS_UINT i = 0; i < f_vec_len; i++)
     {
@@ -3213,7 +3213,7 @@ load_comp_unit (dynlib_handle_ptr handle)
     }
 
   /* Executing this will perform all the expected environment modification.  */
-  void (*top_level_run)(void) = dynlib_sym (load_handle, "top_level_run");
+  void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
   top_level_run ();
 
   return 0;
@@ -3227,10 +3227,11 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
      (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
       Lisp_Object c_name, Lisp_Object doc)
 {
-  if (!load_handle)
+  dynlib_handle_ptr handle = xmint_pointer (XCAR (load_handle_stack));
+  if (!handle)
     error ("comp--register-subr can only be called during native code load phase.");
 
-  void *func = dynlib_sym (load_handle, SSDATA (c_name));
+  void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
 
   union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
@@ -3251,16 +3252,16 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   (Lisp_Object file)
 {
   CHECK_STRING (file);
-  load_handle = dynlib_open (SSDATA (file));
-  if (!load_handle)
+  dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
+  load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
+  if (!handle)
     xsignal2 (Qcomp_unit_open_failed, file, build_string (dynlib_error ()));
 
-  int r = load_comp_unit (load_handle);
-
-  load_handle = NULL;
-
+  int r = load_comp_unit (handle);
   if (r != 0)
     xsignal2 (Qcomp_unit_init_failed, file, INT_TO_INTEGER (r));
+
+  load_handle_stack = XCDR (load_handle_stack);
 
   return Qt;
 }
@@ -3269,12 +3270,6 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 void
 syms_of_comp (void)
 {
-  staticpro (&Vnative_elisp_refs_hash);
-  Vnative_elisp_refs_hash
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
-		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
-		       Qnil, false);
-
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
   DEFSYM (Qjump, "jump");
@@ -3345,8 +3340,16 @@ syms_of_comp (void)
 	       doc: /*
 		     The compiler context. */);
   Vcomp_ctxt = Qnil;
-
   comp_speed = DEFAULT_SPEED;
+
+  /* Load mechanism.  */
+  staticpro (&Vnative_elisp_refs_hash);
+  Vnative_elisp_refs_hash
+    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
+		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
+		       Qnil, false);
+  staticpro (&load_handle_stack);
+  load_handle_stack = Qnil;
 }
 
 #endif /* HAVE_NATIVE_COMP */
