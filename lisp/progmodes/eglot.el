@@ -1678,20 +1678,23 @@ When called interactively, use the currently active server"
   (apply #'vector
          (mapcar
           (eglot--lambda ((ConfigurationItem) scopeUri section)
-            (let* ((path (eglot--uri-to-path scopeUri)))
-              (when (file-directory-p path)
-                (with-temp-buffer
-                  (let ((default-directory path))
-                    (setq-local major-mode (eglot--major-mode server))
-                    (hack-dir-local-variables-non-file-buffer)
-                    (alist-get section eglot-workspace-configuration
-                               nil nil
-                               (lambda (wsection section)
-                                 (string=
-                                  (if (keywordp wsection)
-                                      (substring (symbol-name wsection) 1)
-                                    wsection)
-                                  section))))))))
+            (with-temp-buffer
+              (let* ((uri-path (eglot--uri-to-path scopeUri))
+                     (default-directory
+                       (if (and (not (string-empty-p uri-path))
+                                (file-directory-p uri-path))
+                           uri-path
+                           (car (project-roots (eglot--project server))))))
+                (setq-local major-mode (eglot--major-mode server))
+                (hack-dir-local-variables-non-file-buffer)
+                (alist-get section eglot-workspace-configuration
+                           nil nil
+                           (lambda (wsection section)
+                             (string=
+                              (if (keywordp wsection)
+                                  (substring (symbol-name wsection) 1)
+                                wsection)
+                              section))))))
           items)))
 
 (defun eglot--signal-textDocument/didChange ()
