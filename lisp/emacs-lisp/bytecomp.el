@@ -2713,7 +2713,10 @@ not to take responsibility for the actual compilation of the code."
               (push (if macro
                         (make-byte-to-native-top-level
                          :form `(defalias ',name '(macro . ,code) nil))
-                      (make-byte-to-native-function :name name :data code))
+                      (if (commandp code)
+                          (make-byte-to-native-top-level ;FIXME compile interactive functions.
+                           :form `(defalias ',name ,code))
+                        (make-byte-to-native-function :name name :data code)))
                     byte-to-native-top-level-forms))
             ;; Output the form by hand, that's much simpler than having
             ;; b-c-output-file-form analyze the defalias.
