@@ -176,7 +176,7 @@
 
 - For extension authors, there is a new customization variable
   `use-package-merge-key-alist` that specifies how values passed to multiple
-  occurences of the same key should be merged into a single value, during
+  occurrences of the same key should be merged into a single value, during
   normalization of the `use-package` declaration into a proper plist. The
   default behavior is to simply append the values together (since they are
   always normalized to lists).

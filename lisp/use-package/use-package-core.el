@@ -1029,7 +1029,7 @@ meaning:
   "use-package statistics"
   "Show current statistics gathered about use-package declarations."
   (setq tabulated-list-format
-        ;; The sum of column width is 80 caracters:
+        ;; The sum of column width is 80 characters:
         #[("Package" 25 t)
           ("Status" 13 t)
           ("Last Event" 23 t)
