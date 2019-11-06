@@ -1968,8 +1968,11 @@ is not active."
                                 (cond ((and (eql insertTextFormat 2)
                                             (eglot--snippet-expansion-fn))
                                        (string-trim-left label))
+                                      ((and insertText
+                                            (not (string-empty-p insertText)))
+                                       insertText)
                                       (t
-                                       (or insertText (string-trim-left label))))))
+                                       (string-trim-left label)))))
                            (unless (zerop (length item))
                              (put-text-property 0 1 'eglot--lsp-item item proxy))
                            proxy))
