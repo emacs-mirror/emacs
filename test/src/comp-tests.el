@@ -278,6 +278,9 @@
   "Just check we can define macros"
   (should (macrop (symbol-function 'comp-tests-macro-m))))
 
+(ert-deftest comp-tests-string-trim ()
+  (should (string= (comp-tests-string-trim-f "dsaf ") "dsaf")))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;

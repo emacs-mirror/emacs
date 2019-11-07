@@ -238,6 +238,9 @@
 (defmacro comp-tests-macro-m (x)
   x)
 
+(defun comp-tests-string-trim-f (url)
+  (string-trim url))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
