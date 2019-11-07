@@ -1489,7 +1489,9 @@ This can run just once."
      (when (cl-reduce #'eq (mapcar #'comp-mvar-type rest))
        (setf (comp-mvar-type lval) (comp-mvar-type (car rest))))
      ;; Reference propagation.
-     (setf (comp-mvar-ref lval) (cl-every #'comp-mvar-ref rest)))))
+     (let ((operands (cons lval rest)))
+       (when (cl-some #'comp-mvar-ref operands)
+         (mapc (lambda (x) (setf (comp-mvar-ref x) t)) rest))))))
 
 (defun comp-propagate* ()
   "Propagate for set and phi operands."
