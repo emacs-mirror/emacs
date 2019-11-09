@@ -1491,7 +1491,7 @@ This can run just once."
      ;; Reference propagation.
      (let ((operands (cons lval rest)))
        (when (cl-some #'comp-mvar-ref operands)
-         (mapc (lambda (x) (setf (comp-mvar-ref x) t)) rest))))))
+         (mapc (lambda (x) (setf (comp-mvar-ref x) t)) operands))))))
 
 (defun comp-propagate* ()
   "Propagate for set and phi operands."
