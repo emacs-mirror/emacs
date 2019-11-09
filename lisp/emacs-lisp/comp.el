@@ -42,8 +42,8 @@
   "Compiler verbosity. From 0 to 3.
 - 0 no logging
 - 1 final limple is logged
-- 2 LAP and final limple are logged
-- 3 all passes are dumping"
+- 2 LAP and final limple and some pass info are logged
+- 3 max verbosity"
   :type 'number
   :group 'comp)
 
@@ -300,43 +300,46 @@ BODY is evaluate only if `comp-verbose' is > 0."
          (goto-char (point-max))
          ,@body))))
 
-(defun comp-log (data)
+(defun comp-log (data verbosity)
   "Log DATA."
-  (if (and noninteractive
-           (> comp-verbose 0))
-      (if (atom data)
-          (message "%s" data)
-	(mapc (lambda (x)
-                (message "%s"(prin1-to-string x)))
-              data))
-    (comp-within-log-buff
-      (if (and data (atom data))
-          (insert data)
-        (mapc (lambda (x)
-                (insert (prin1-to-string x) "\n"))
-              data)
-        (insert "\n")))))
+  (when (>= comp-verbose verbosity)
+    (if noninteractive
+        (if (atom data)
+            (message "%s" data)
+	  (mapc (lambda (x)
+                  (message "%s"(prin1-to-string x)))
+                data))
+      (comp-within-log-buff
+        (if (and data (atom data))
+            (insert data)
+          (mapc (lambda (x)
+                  (insert (prin1-to-string x) "\n"))
+                data)
+          (insert "\n"))))))
 
-(defun comp-log-func (func)
+(defun comp-log-func (func verbosity)
   "Log function FUNC."
-  (comp-log (format "\nFunction: %s" (comp-func-symbol-name func)))
-  (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
-           using (hash-value bb)
-           do (comp-log (concat "<" (symbol-name block-name) ">\n"))
-              (comp-log (comp-block-insns bb))))
+  (when (>= comp-verbose verbosity)
+    (comp-log (format "\nFunction: %s\n" (comp-func-symbol-name func)) verbosity)
+    (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
+             using (hash-value bb)
+             do (comp-log (concat "<" (symbol-name block-name) ">\n") verbosity)
+                (comp-log (comp-block-insns bb) verbosity))))
 
 (defun comp-log-edges (func)
   "Log edges in FUNC."
   (let ((edges (comp-func-edges func)))
     (when (> comp-verbose 2)
       (comp-log (format "\nEdges in function: %s\n"
-                        (comp-func-symbol-name func))))
+                        (comp-func-symbol-name func))
+                0))
     (mapc (lambda (e)
             (when (> comp-verbose 2)
               (comp-log (format "n: %d src: %s dst: %s\n"
                                 (comp-edge-number e)
                                 (comp-block-name (comp-edge-src e))
-                                (comp-block-name (comp-edge-dst e))))))
+                                (comp-block-name (comp-edge-dst e)))
+                        0)))
           edges)))
 
 
@@ -429,9 +432,8 @@ Put PREFIX in front of it."
                               :args (comp-decrypt-lambda-list lambda-list)
                               :lap lap
                               :frame-size (comp-byte-frame-size data))
-   when (> comp-verbose 1)
-     do (comp-log (format "Function %s:\n" name))
-        (comp-log lap)
+   do (comp-log (format "Function %s:\n" name) 1)
+      (comp-log lap 1)
    collect func))
 
 (defun comp-spill-lap (input)
@@ -1023,8 +1025,7 @@ the annotation emission."
   (cl-loop for bb being the hash-value in (comp-func-blocks func)
            do (setf (comp-block-insns bb)
                     (nreverse (comp-block-insns bb))))
-  (when (> comp-verbose 2)
-    (comp-log-func func))
+  (comp-log-func func 2)
   func)
 
 (cl-defgeneric comp-emit-for-top-level (form)
@@ -1252,8 +1253,7 @@ Top level forms for the current context are rendered too."
                with changed = t
                while changed
                initially (progn
-                           (when (> comp-verbose 2)
-                             (comp-log "Computing dominator tree...\n"))
+                           (comp-log "Computing dominator tree...\n" 2)
                            (setf (comp-block-dom entry) entry)
                            ;; Set the post order number.
                            (cl-loop for name in (reverse rev-bb-list)
@@ -1292,12 +1292,12 @@ Top level forms for the current context are rendered too."
   (maphash (lambda (name bb)
              (let ((dom (comp-block-dom bb))
                    (df (comp-block-df bb)))
-               (when (> comp-verbose 2)
-                 (comp-log (format "block: %s idom: %s DF %s\n"
-                                   name
-                                   (when dom (comp-block-name dom))
-                                   (cl-loop for b being each hash-keys of df
-                                            collect b))))))
+               (comp-log (format "block: %s idom: %s DF %s\n"
+                                 name
+                                 (when dom (comp-block-name dom))
+                                 (cl-loop for b being each hash-keys of df
+                                          collect b))
+                         3)))
            (comp-func-blocks comp-func)))
 
 (defun comp-place-phis ()
@@ -1380,8 +1380,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 (defun comp-ssa-rename ()
   "Entry point to rename SSA within the current function."
-  (when (> comp-verbose 2)
-    (comp-log "Renaming\n"))
+  (comp-log "Renaming\n" 2)
   (let ((frame-size (comp-func-frame-size comp-func))
         (visited (make-hash-table)))
     (cl-labels ((ssa-rename-rec (bb in-frame)
@@ -1430,8 +1429,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                (comp-place-phis)
                (comp-ssa-rename)
                (comp-finalize-phis)
-               (when (> comp-verbose 2)
-                 (comp-log-func comp-func))))
+               (comp-log-func comp-func 3)))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
@@ -1522,9 +1520,8 @@ Return t if something was changed."
                (cl-loop
                 for i from 1
                 while (comp-propagate*)
-                finally (comp-log (format "Propagation run %d times\n" i)))
-                        (when (> comp-verbose 2)
-                          (comp-log-func comp-func))))
+                finally (comp-log (format "Propagation run %d times\n" i) 2))
+                        (comp-log-func comp-func 3)))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
@@ -1651,11 +1648,12 @@ Return t if something was changed."
     ;; Every l-value appearing that does not appear as r-value has no right to
     ;; exist and gets nuked.
     (let ((nuke-list (cl-set-difference l-vals r-vals)))
-      (when (> comp-verbose 2)
-        (comp-log (format "Function %s\n" (comp-func-symbol-name comp-func)))
-        (comp-log (format "l-vals %s\n" l-vals))
-        (comp-log (format "r-vals %s\n" r-vals))
-        (comp-log (format "Nuking ids: %s\n" nuke-list)))
+      (comp-log (format "Function %s\nl-vals %s\nr-vals %s\nNuking ids: %s\n"
+                        (comp-func-symbol-name comp-func)
+                        l-vals
+                        r-vals
+                        nuke-list)
+                3)
       (cl-loop
        for b being each hash-value of (comp-func-blocks comp-func)
        do (cl-loop
@@ -1689,7 +1687,7 @@ These are substituted with normals 'set'."
                (let ((comp-func f))
                  (comp-dead-assignments-func)
                  (comp-remove-type-hints-func)
-                 (comp-log-func comp-func)))
+                 (comp-log-func comp-func 3)))
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
@@ -1746,9 +1744,9 @@ Return the compilation unit filename."
                     :output (if (symbolp input)
                                 (symbol-name input)
                               (file-name-sans-extension (expand-file-name input))))))
-    (comp-log "\n\n")
+    (comp-log "\n\n" 1)
     (mapc (lambda (pass)
-            (comp-log (format "Running pass %s:\n" pass))
+            (comp-log (format "Running pass %s:\n" pass) 2)
             (setq data (funcall pass data)))
           comp-passes)
     data))
