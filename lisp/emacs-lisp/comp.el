@@ -39,7 +39,7 @@
   :group 'lisp)
 
 (defcustom comp-verbose 0
-  "Compiler verbosity. From 0 to 3.
+  "Compiler verbosity.  From 0 to 3.
 - 0 no logging
 - 1 final limple is logged
 - 2 LAP and final limple and some pass info are logged
@@ -48,7 +48,7 @@
   :group 'comp)
 
 (defconst native-compile-log-buffer "*Native-compile-Log*"
-  "Name of the native-compiler's log buffer.")
+  "Name of the native-compiler log buffer.")
 
 (defvar comp-native-compiling nil
   "This gets bound to t while native compilation.
@@ -301,7 +301,7 @@ BODY is evaluate only if `comp-verbose' is > 0."
          ,@body))))
 
 (defun comp-log (data verbosity)
-  "Log DATA."
+  "Log DATA given VERBOSITY."
   (when (>= comp-verbose verbosity)
     (if noninteractive
         (if (atom data)
@@ -650,7 +650,6 @@ Return value is the fall through block name."
            (handler-bb (comp-bb-maybe-add (comp-label-to-addr label-num)
                                           (1+ (comp-sp))))
            (handler-buff-n (comp-func-handler-cnt comp-func)))
-
       (comp-emit (list 'push-handler
                        handler-type
                        (comp-slot+1)
