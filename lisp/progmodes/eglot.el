@@ -576,7 +576,7 @@ If PRESERVE-BUFFERS is non-nil (interactively, when called with a
 prefix argument), do not kill events and output buffers of
 SERVER.  ."
   (interactive (list (eglot--read-server "Shutdown which server"
-                                         (eglot--current-server))
+                                         (eglot-current-server))
                      t nil current-prefix-arg))
   (eglot--message "Asking %s politely to terminate" (jsonrpc-name server))
   (unwind-protect
@@ -726,7 +726,7 @@ described in `eglot-server-programs', which see.
 
 INTERACTIVE is t if called interactively."
   (interactive (append (eglot--guess-contact t) '(t)))
-  (let* ((current-server (eglot--current-server))
+  (let* ((current-server (eglot-current-server))
          (live-p (and current-server (jsonrpc-running-p current-server))))
     (if (and live-p
              interactive
@@ -866,8 +866,9 @@ This docstring appeases checkdoc, that's all."
                             (with-current-buffer buffer
                               ;; No need to pass SERVER as an argument: it has
                               ;; been registered in `eglot--servers-by-project',
-                              ;; so that it can be obtained from the function
-                              ;; `eglot--current-server' in any managed buffer.
+                              ;; so that it can be found (and cached) from
+                              ;; `eglot--maybe-activate-editing-mode' in any
+                              ;; managed buffer.
                               (eglot--maybe-activate-editing-mode)))
                           (setf (eglot--inhibit-autoreconnect server)
                                 (cond
@@ -1159,7 +1160,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (cond ((null servers)
            (eglot--error "No servers!"))
           ((or (cdr servers) (not dont-if-just-the-one))
-           (let* ((default (when-let ((current (eglot--current-server)))
+           (let* ((default (when-let ((current (eglot-current-server)))
                              (funcall name current)))
                   (read (completing-read
                          (if default
@@ -1276,20 +1277,13 @@ For example, to keep your Company customization use
 (defvar-local eglot--cached-current-server nil
   "A cached reference to the current EGLOT server.")
 
-(defun eglot--current-server ()
-  "Find and cache logical EGLOT server for current buffer."
-  (or
-   eglot--cached-current-server
-   (setq eglot--cached-current-server
-         (cl-find major-mode
-                  (gethash (or (project-current)
-                               `(transient . ,default-directory))
-                           eglot--servers-by-project)
-                  :key #'eglot--major-mode))))
+(defun eglot-current-server ()
+  "Return logical EGLOT server for current buffer, nil if none."
+  eglot--cached-current-server)
 
 (defun eglot--current-server-or-lose ()
   "Return current logical EGLOT server connection or error."
-  (or (eglot--current-server)
+  (or eglot--cached-current-server
       (jsonrpc-error "No current JSON-RPC connection")))
 
 (defvar-local eglot--unreported-diagnostics nil
@@ -1307,7 +1301,15 @@ If it is activated, also signal textDocument/didOpen."
   (unless eglot--managed-mode
     ;; Called when `revert-buffer-in-progress-p' is t but
     ;; `revert-buffer-preserve-modes' is nil.
-    (when (and buffer-file-name (eglot--current-server))
+    (when (and buffer-file-name
+               (or
+                eglot--cached-current-server
+                (setq eglot--cached-current-server
+                      (cl-find major-mode
+                               (gethash (or (project-current)
+                                            `(transient . ,default-directory))
+                                        eglot--servers-by-project)
+                               :key #'eglot--major-mode))))
       (setq eglot--unreported-diagnostics `(:just-opened . nil))
       (eglot--managed-mode)
       (eglot--signal-textDocument/didOpen))))
@@ -1354,7 +1356,7 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (defun eglot--mode-line-format ()
   "Compose the EGLOT's mode-line."
-  (pcase-let* ((server (eglot--current-server))
+  (pcase-let* ((server (eglot-current-server))
                (nick (and server (eglot--project-nickname server)))
                (pending (and server (hash-table-count
                                      (jsonrpc--request-continuations server))))
