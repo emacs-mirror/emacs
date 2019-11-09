@@ -230,7 +230,7 @@ structure.")
   (setf (comp-func-edge-cnt-gen func) (comp-gen-counter))
   (setf (comp-func-ssa-cnt-gen func) (comp-gen-counter)))
 
-(cl-defstruct (comp-mvar (:copier nil) (:constructor make--comp-mvar))
+(cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
   (slot nil :type fixnum
         :documentation "Slot number.")
@@ -1445,6 +1445,14 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
       'fixnum
     (type-of obj)))
 
+(defun comp-copy-insn (insn)
+  "Deep copy INSN."
+  (cl-loop for op in insn
+	   collect (cl-typecase op
+		     (cons (comp-copy-insn op))
+		     (comp-mvar (copy-comp-mvar op))
+		     (t op))))
+
 (defun comp-basic-const-propagate ()
   "Propagate simple constants for setimm operands.
 This can run just once."
@@ -1465,6 +1473,7 @@ This can run just once."
   (setf (comp-mvar-type lval) (comp-mvar-type rval)))
 
 (defun comp-propagate-insn (insn)
+  "Propagate within INSN."
   (pcase insn
     (`(set ,lval ,rval)
      (pcase rval
@@ -1494,20 +1503,28 @@ This can run just once."
          (mapc (lambda (x) (setf (comp-mvar-ref x) t)) operands))))))
 
 (defun comp-propagate* ()
-  "Propagate for set and phi operands."
-  (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+  "Propagate for set* and phi operands.
+Return t if something was changed."
+  (cl-loop with modified = nil
+           for b being each hash-value of (comp-func-blocks comp-func)
            do (cl-loop for insn in (comp-block-insns b)
-                       do (comp-propagate-insn insn))))
+                       for orig-insn = (unless modified ; Save consing after 1th change.
+                                         (comp-copy-insn insn))
+                       do (comp-propagate-insn insn)
+                       when (and (null modified) (not (equal insn orig-insn)))
+                         do (setf modified t))
+           finally (cl-return modified)))
 
 (defun comp-propagate (_)
   (maphash (lambda (_ f)
              (let ((comp-func f))
                (comp-basic-const-propagate)
-               ;; FIXME: unbelievably dumb...
-               (cl-loop repeat 10
-                        do (comp-propagate*))
-               (when (> comp-verbose 2)
-                 (comp-log-func comp-func))))
+               (cl-loop
+                for i from 1
+                while (comp-propagate*)
+                finally (comp-log (format "Propagation run %d times\n" i)))
+                        (when (> comp-verbose 2)
+                          (comp-log-func comp-func))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
