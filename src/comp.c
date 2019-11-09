@@ -515,6 +515,7 @@ emit_lval_XLI (gcc_jit_lvalue *obj)
 				      comp.lisp_obj_as_num);
 }
 
+/*
 static gcc_jit_rvalue *
 emit_XLP (gcc_jit_rvalue *obj)
 {
@@ -533,8 +534,7 @@ emit_lval_XLP (gcc_jit_lvalue *obj)
   return gcc_jit_lvalue_access_field (obj,
 				      NULL,
 				      comp.lisp_obj_as_ptr);
-}
-
+} */
 static gcc_jit_rvalue *
 emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
 {
