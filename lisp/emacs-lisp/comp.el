@@ -932,7 +932,7 @@ the annotation emission."
        (comp-emit (comp-call 'record_unwind_protect_excursion)))
       (byte-save-window-excursion-OBSOLETE)
       (byte-save-restriction
-       (comp-call 'helper-save-restriction))
+       (comp-emit (comp-call 'helper_save_restriction)))
       (byte-catch) ;; Obsolete
       (byte-unwind-protect
        (comp-emit (comp-call 'helper_unwind_protect (comp-slot+1))))

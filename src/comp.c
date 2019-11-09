@@ -183,6 +183,7 @@ Lisp_Object helper_save_window_excursion (Lisp_Object v1);
 void helper_unwind_protect (Lisp_Object handler);
 Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
+void helper_save_restriction (void);
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code);
 
 
@@ -1695,6 +1696,8 @@ declare_runtime_imported_funcs (void)
   args[0] = comp.lisp_obj_type;
   ADD_IMPORTED ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 
+  ADD_IMPORTED ("helper_save_restriction", comp.void_type, 0, NULL);
+
   ADD_IMPORTED ("record_unwind_current_buffer", comp.void_type, 0, NULL);
 
   args[0] = args[1] = args[2] = comp.lisp_obj_type;
@@ -3109,6 +3112,13 @@ helper_unbind_n (Lisp_Object n)
   return unbind_to (SPECPDL_INDEX () - XFIXNUM (n), Qnil);
 }
 
+void
+helper_save_restriction (void)
+{
+  record_unwind_protect (save_restriction_restore,
+			 save_restriction_save ());
+}
+
 bool
 helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 {
@@ -3194,6 +3204,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 	} else if (!strcmp (f_str, "helper_unbind_n"))
 	{
 	  f_relocs[i] = (void *) helper_unbind_n;
+	} else if (!strcmp (f_str, "helper_save_restriction"))
+	{
+	  f_relocs[i] = (void *) helper_save_restriction;
 	} else if (!strcmp (f_str, "record_unwind_current_buffer"))
 	{
 	  f_relocs[i] = (void *) record_unwind_current_buffer;
