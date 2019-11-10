@@ -2807,7 +2807,7 @@ compile_function (Lisp_Object func)
   comp.loc_handler =  gcc_jit_function_new_local (comp.func,
 						  NULL,
 						  comp.handler_ptr_type,
-						  "handler");
+						  "c");
 
   comp.func_blocks_h = CALLN (Fmake_hash_table);
 

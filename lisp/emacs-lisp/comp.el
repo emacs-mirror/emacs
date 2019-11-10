@@ -527,6 +527,10 @@ Restore the original value afterwards."
   (or (gethash label (comp-limplify-label-to-addr comp-pass))
       (error "Can't find label %d" label)))
 
+(defsubst comp-mark-curr-bb-closed ()
+  "Mark the current basic block as closed."
+  (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t))
+
 (defun comp-bb-maybe-add (lap-addr &optional sp)
   "If necessary create a pending basic block for LAP-ADDR with stack depth SP.
 The basic block is returned regardless it was already declared or not."
@@ -580,11 +584,6 @@ The basic block is returned regardless it was already declared or not."
     (cl-assert (not (comp-block-closed bb)))
     (push insn (comp-block-insns bb))))
 
-(defsubst comp-emit-as-head (insn bb)
-  "Emit INSN at the head of basic block BB.
-NOTE: this is used for late fixup therefore ignore if the basic block is closed."
-  (setf (comp-block-insns bb) (nconc (comp-block-insns bb) (list insn))))
-
 (defsubst comp-emit-set-call (call)
   "Emit CALL assigning the result the the current slot frame.
 If the callee function is known to have a return type propagate it."
@@ -629,7 +628,7 @@ The block is returned."
     (let ((target (comp-bb-maybe-add (comp-label-to-addr label-num)
                                      (comp-sp))))
       (comp-emit `(jump ,(comp-block-name target)))
-      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t))))
+      (comp-mark-curr-bb-closed))))
 
 (defun comp-emit-cond-jump (a b target-offset lap-label negated)
   "Emit a conditional jump to LAP-LABEL when A and B satisfy EQ.
@@ -648,7 +647,7 @@ Return value is the fall through block name."
       (comp-emit (if negated
 		     (list 'cond-jump a b target bb)
 		   (list 'cond-jump a b bb target)))
-      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t)
+      (comp-mark-curr-bb-closed)
       bb)))
 
 (defun comp-emit-handler (lap-label handler-type)
@@ -658,14 +657,20 @@ Return value is the fall through block name."
     (let* ((guarded-bb (comp-bb-maybe-add (1+ (comp-limplify-pc comp-pass))
                                           (comp-sp)))
            (handler-bb (comp-bb-maybe-add (comp-label-to-addr label-num)
-                                          (1+ (comp-sp)))))
+                                          (1+ (comp-sp))))
+           (pop-bb (make--comp-block nil (comp-sp) (comp-new-block-sym))))
       (comp-emit (list 'push-handler
                        handler-type
                        (comp-slot+1)
-                       (comp-block-name handler-bb)
+                       (comp-block-name pop-bb)
                        (comp-block-name guarded-bb)))
-      (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t)
-      (comp-emit-as-head `(fetch-handler ,(comp-slot+1)) handler-bb))))
+      (comp-mark-curr-bb-closed)
+      ;; Emit the basic block to pop the handler if we got the non local.
+      (puthash (comp-block-name pop-bb) pop-bb (comp-func-blocks comp-func))
+      (setf (comp-limplify-curr-block comp-pass) pop-bb)
+      (comp-emit `(fetch-handler ,(comp-slot+1)))
+      (comp-emit `(jump ,(comp-block-name handler-bb)))
+      (comp-mark-curr-bb-closed))))
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
