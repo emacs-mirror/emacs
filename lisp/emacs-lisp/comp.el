@@ -53,7 +53,7 @@
 - 0 no debug facility.
 - 1 emit debug symbols and dump pseudo C code.
 - 2 dump gcc passes and libgccjit log file.
-- 3 dump libgccjit reproducer."
+- 3 dump libgccjit reproducers."
   :type 'number
   :group 'comp)
 
@@ -64,6 +64,11 @@
 - 2 LAP and final limple and some pass info are logged.
 - 3 max verbosity."
   :type 'number
+  :group 'comp)
+
+(defcustom comp-always-compile nil
+  "Unconditionally (re-)compile all files."
+  :type 'boolean
   :group 'comp)
 
 (defconst native-compile-log-buffer "*Native-compile-Log*"
@@ -1750,6 +1755,37 @@ Prepare every function for final compilation and drive the C back-end."
   (cl-assert (consp x)))
 
 
+;; Some entry point support code.
+
+(defvar comp-src-pool ()
+  "List containing the files to be compiled.")
+
+(defvar comp-src-pool-mutex (make-mutex)
+  "Mutex for `comp-src-pool'.")
+
+(defun comp-to-file-p (file)
+  "Return t if FILE has to be compiled."
+  (let ((compiled-f (concat file "n")))
+    (or comp-always-compile
+        (not (and (file-exists-p compiled-f)
+                  (file-newer-than-file-p compiled-f file))))))
+
+(defun comp-start-async-worker ()
+  "Start an async compiler worker."
+  (make-thread
+   (lambda ()
+     (let (f)
+       (while (setf f (with-mutex comp-src-pool-mutex
+                        (pop comp-src-pool)))
+         (when (comp-to-file-p f)
+           (let* ((cmd (concat "emacs --batch --eval="
+                               "'(native-compile \"" f "\")'"))
+                  (prc (start-process-shell-command (concat "async compilation: " f)
+                                                    "async-compile-buffer"
+                                                    cmd)))
+             (while (accept-process-output prc)
+               (thread-yield)))))))))
+
 ;;; Compiler entry points.
 
 ;;;###autoload
@@ -1774,6 +1810,25 @@ Return the compilation unit filename."
             (setq data (funcall pass data)))
           comp-passes)
     data))
+
+;;;###autoload
+(defun native-compile-async (input &optional jobs recursively)
+  "Compile INPUT asyncronosly.
+INPUT can be either a folder or a file.
+JOBS specifies the number of jobs (commands) to run simultaneously (1 default).
+Follow folders RECURSIVELY if non nil."
+  (let ((jobs (or jobs 1))
+        (files (if (file-directory-p input)
+                   (if recursively
+                       (directory-files-recursively input "\\.el$")
+                     (directory-files input t "\\.el$"))
+                 (if (file-exists-p input)
+                     (list input)
+                   (error "Input not a file nor directory")))))
+    (with-mutex comp-src-pool-mutex
+      (setf comp-src-pool (nconc files comp-src-pool)))
+    (cl-loop repeat jobs
+             do (comp-start-async-worker))))
 
 (provide 'comp)
 
