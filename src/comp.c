@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* C symbols emited for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
+#define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
 #define IMPORTED_FUNC_RELOC_SYM "f_reloc"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
@@ -119,7 +120,7 @@ typedef struct {
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread_ref;
   /* other globals */
-  gcc_jit_rvalue *pure;
+  gcc_jit_rvalue *pure_ref;
   /* libgccjit has really limited support for casting therefore this union will
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
@@ -1000,7 +1001,9 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 	GCC_JIT_BINARY_OP_MINUS,
 	comp.uintptr_type,
 	emit_cast (comp.uintptr_type, ptr),
-	emit_cast (comp.uintptr_type, comp.pure)),
+	emit_cast (comp.uintptr_type,
+		   gcc_jit_lvalue_as_rvalue (
+		     gcc_jit_rvalue_dereference (comp.pure_ref, NULL)))),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.uintptr_type,
 					   PURESIZE));
@@ -1736,6 +1739,15 @@ emit_ctxt_code (void)
         GCC_JIT_GLOBAL_EXPORTED,
         gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
         CURRENT_THREAD_RELOC_SYM));
+
+  comp.pure_ref =
+    gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_global (
+        comp.ctxt,
+        NULL,
+        GCC_JIT_GLOBAL_EXPORTED,
+        gcc_jit_type_get_pointer (comp.void_ptr_type),
+        PURE_RELOC_SYM));
 
   declare_runtime_imported_data ();
   /* Imported objects.  */
@@ -2998,11 +3010,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   define_thread_state_struct ();
   define_cast_union ();
 
-  /* FIXME!!  */
-  comp.pure =
-    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
-					 comp.void_ptr_type,
-					 pure);
   return Qt;
 }
 
@@ -3169,6 +3176,10 @@ load_comp_unit (dynlib_handle_ptr handle)
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   *current_thread_reloc = &current_thread;
+
+  EMACS_INT ***pure_reloc =
+    dynlib_sym (handle, PURE_RELOC_SYM);
+  *pure_reloc = (EMACS_INT **)&pure;
 
   /* Imported data.  */
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
