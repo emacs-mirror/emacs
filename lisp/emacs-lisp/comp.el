@@ -1439,13 +1439,20 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 (defun comp-copy-insn (insn)
   "Deep copy INSN."
-  (cond
-   ((and (listp insn) (listp (cdr insn)))
-    (mapcar #'comp-copy-insn insn))
-   ((consp insn) ; Pair
-    (cons (car insn) (cdr insn)))
-   ((comp-mvar-p insn) (copy-comp-mvar insn))
-   (t insn)))
+  ;; Adapted from `copy-tree'.
+  (if (consp insn)
+      (let (result)
+	(while (consp insn)
+	  (let ((newcar (car insn)))
+	    (if (or (consp (car insn)) (comp-mvar-p (car insn)))
+		(setq newcar (comp-copy-insn (car insn))))
+	    (push newcar result))
+	  (setq insn (cdr insn)))
+	(nconc (nreverse result)
+               (if (comp-mvar-p insn) (comp-copy-insn insn) insn)))
+    (if (comp-mvar-p insn)
+        (copy-comp-mvar insn)
+      insn)))
 
 (defun comp-basic-const-propagate ()
   "Propagate simple constants for setimm operands.
