@@ -3175,15 +3175,22 @@ load_comp_unit (dynlib_handle_ptr handle)
 {
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
-  *current_thread_reloc = &current_thread;
+  EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
+  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  Lisp_Object (**f_relocs)(void) = dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
+  void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
 
-  EMACS_INT ***pure_reloc =
-    dynlib_sym (handle, PURE_RELOC_SYM);
+  if (!(current_thread_reloc
+	&& pure_reloc
+	&& data_relocs
+	&& f_relocs
+	&& top_level_run))
+    return -1;
+
+  *current_thread_reloc = &current_thread;
   *pure_reloc = (EMACS_INT **)&pure;
 
   /* Imported data.  */
-  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-
   Lisp_Object d_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
   EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
 
@@ -3194,8 +3201,6 @@ load_comp_unit (dynlib_handle_ptr handle)
     }
 
   /* Imported functions.  */
-  Lisp_Object (**f_relocs)(void) =
-    dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
   Lisp_Object f_vec =
     load_static_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
   EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
@@ -3251,7 +3256,6 @@ load_comp_unit (dynlib_handle_ptr handle)
     }
 
   /* Executing this will perform all the expected environment modification.  */
-  void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
   top_level_run ();
 
   return 0;
