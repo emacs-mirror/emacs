@@ -34,8 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "blockinput.h"
 
-#define DEFAULT_SPEED 2 /* See comp-speed var.  */
-
 #define COMP_DEBUG 1
 
 /* C symbols emited for the load relocation mechanism.  */
@@ -287,7 +285,7 @@ get_slot (Lisp_Object mvar)
 {
   EMACS_INT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar));
   gcc_jit_lvalue **frame =
-    (FUNCALL1 (comp-mvar-ref, mvar) || comp_speed < 2)
+    (FUNCALL1 (comp-mvar-ref, mvar) || SPEED < 2)
     ? comp.frame : comp.f_frame;
   return frame[slot_n];
 }
@@ -2794,7 +2792,7 @@ compile_function (Lisp_Object func)
      - Allow gcc to trigger other optimizations that are prevented by memory
        referencing.
   */
-  if (comp_speed >= 2)
+  if (SPEED >= 2)
     {
       comp.f_frame = SAFE_ALLOCA (frame_size * sizeof (*comp.f_frame));
       for (unsigned i = 0; i < frame_size; ++i)
@@ -3036,7 +3034,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
-				  comp_speed);
+				  SPEED);
   /* Gcc doesn't like being interrupted at all.  */
   block_input ();
   sigset_t oldset;
@@ -3312,6 +3310,8 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 void
 syms_of_comp (void)
 {
+  /* Compiler control customize.  */
+  DEFSYM (Qcomp_speed, "comp-speed");
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
   DEFSYM (Qjump, "jump");
@@ -3376,13 +3376,10 @@ syms_of_comp (void)
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
 
-  DEFVAR_INT ("comp-speed", comp_speed,
-	      doc: /* From 0 to 3.  */);
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /*
 		     The compiler context. */);
   Vcomp_ctxt = Qnil;
-  comp_speed = DEFAULT_SPEED;
 
   /* Load mechanism.  */
   staticpro (&Vnative_elisp_refs_hash);

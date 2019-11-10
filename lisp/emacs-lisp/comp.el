@@ -38,6 +38,10 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
+(defcustom comp-speed 2
+  "Compiler optimization level.  From 0 to 3."
+  :type 'number
+  :group 'comp)
 (defcustom comp-verbose 0
   "Compiler verbosity.  From 0 to 3.
 - 0 no logging
