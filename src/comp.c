@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "dynlib.h"
 #include "buffer.h"
+#include "blockinput.h"
 
 #define DEFAULT_SPEED 2 /* See comp-speed var.  */
 
@@ -3037,6 +3038,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  comp_speed);
   /* Gcc doesn't like being interrupted at all.  */
+  block_input ();
   sigset_t oldset;
   sigset_t blocked;
   sigemptyset (&blocked);
@@ -3081,6 +3083,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				   SSDATA (out_file));
 
   pthread_sigmask (SIG_SETMASK, &oldset, 0);
+  unblock_input ();
 
   return out_file;
 }
