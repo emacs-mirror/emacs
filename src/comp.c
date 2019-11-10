@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define COMP_DEBUG 1
 
 /* C symbols emited for the load relocation mechanism.  */
+#define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define DATA_RELOC_SYM "d_reloc"
 #define IMPORTED_FUNC_RELOC_SYM "f_reloc"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
@@ -116,7 +117,7 @@ typedef struct {
   gcc_jit_struct *thread_state_s;
   gcc_jit_field *m_handlerlist;
   gcc_jit_type *thread_state_ptr_type;
-  gcc_jit_rvalue *current_thread;
+  gcc_jit_rvalue *current_thread_ref;
   /* other globals */
   gcc_jit_rvalue *pure;
   /* libgccjit has really limited support for casting therefore this union will
@@ -1258,9 +1259,11 @@ emit_limple_insn (Lisp_Object insn)
 	     current_thread->m_handlerlist->next;
       */
       gcc_jit_lvalue *m_handlerlist =
-	gcc_jit_rvalue_dereference_field (comp.current_thread,
-					  NULL,
-					  comp.m_handlerlist);
+	gcc_jit_rvalue_dereference_field (
+          gcc_jit_lvalue_as_rvalue (
+	    gcc_jit_rvalue_dereference (comp.current_thread_ref, NULL)),
+	  NULL,
+	  comp.m_handlerlist);
 
       gcc_jit_block_add_assignment(
 	comp.block,
@@ -1279,7 +1282,9 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_lvalue *c =
 	xmint_pointer (AREF (comp.buffer_handler_vec, handler_buff_n));
       gcc_jit_lvalue *m_handlerlist =
-        gcc_jit_rvalue_dereference_field (comp.current_thread,
+        gcc_jit_rvalue_dereference_field (
+	  gcc_jit_lvalue_as_rvalue (
+	    gcc_jit_rvalue_dereference (comp.current_thread_ref, NULL)),
 					  NULL,
 					  comp.m_handlerlist);
       gcc_jit_block_add_assignment (
@@ -1722,6 +1727,15 @@ static void
 emit_ctxt_code (void)
 {
   USE_SAFE_ALLOCA;
+
+  comp.current_thread_ref =
+    gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_global (
+        comp.ctxt,
+        NULL,
+        GCC_JIT_GLOBAL_EXPORTED,
+        gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
+        CURRENT_THREAD_RELOC_SYM));
 
   declare_runtime_imported_data ();
   /* Imported objects.  */
@@ -2984,15 +2998,11 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   define_thread_state_struct ();
   define_cast_union ();
 
-  comp.current_thread =
-    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
-					 comp.thread_state_ptr_type,
-					 current_thread);
+  /* FIXME!!  */
   comp.pure =
     gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 					 comp.void_ptr_type,
 					 pure);
-
   return Qt;
 }
 
@@ -3156,6 +3166,10 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 static int
 load_comp_unit (dynlib_handle_ptr handle)
 {
+  struct thread_state ***current_thread_reloc =
+    dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
+  *current_thread_reloc = &current_thread;
+
   /* Imported data.  */
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
 
