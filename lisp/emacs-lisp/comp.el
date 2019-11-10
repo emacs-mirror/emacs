@@ -457,7 +457,6 @@ If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
         (byte-to-native-lap ())
-        (byte-to-native-bytecode ())
         (byte-to-native-top-level-forms ()))
     (cl-typecase input
       (symbol (list (comp-spill-lap-function input)))
