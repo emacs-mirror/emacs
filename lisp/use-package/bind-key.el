@@ -94,7 +94,7 @@
 ;;
 ;;   M-x describe-personal-keybindings
 ;;
-;; This display will tell you if you've overriden a default keybinding, and
+;; This display will tell you if you've overridden a default keybinding, and
 ;; what the default was.  Also, it will tell you if the key was rebound after
 ;; your binding it with `bind-key', and what it was rebound it to.
 
