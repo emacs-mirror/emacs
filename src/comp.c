@@ -34,8 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "blockinput.h"
 
-#define COMP_DEBUG 1
-
 /* C symbols emited for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -43,6 +41,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define IMPORTED_FUNC_RELOC_SYM "f_reloc"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_IMPORTED_FUNC_RELOC_SYM "text_imported_funcs"
+
+#define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
+#define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
 
 #define STR_VALUE(s) #s
 #define STR(s) STR_VALUE (s)
@@ -3070,7 +3071,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       gcc_jit_context_dump_to_file (comp.ctxt,
 				    format_string ("%s.c", SSDATA (ctxtname)),
 				    1);
-  if (COMP_DEBUG > 1)
+  if (COMP_DEBUG > 2)
     gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
@@ -3312,6 +3313,7 @@ syms_of_comp (void)
 {
   /* Compiler control customize.  */
   DEFSYM (Qcomp_speed, "comp-speed");
+  DEFSYM (Qcomp_debug, "comp-debug");
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
   DEFSYM (Qjump, "jump");

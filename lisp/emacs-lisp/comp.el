@@ -42,6 +42,16 @@
   "Compiler optimization level.  From 0 to 3."
   :type 'number
   :group 'comp)
+
+(defcustom comp-debug 0
+  "Compiler debug level.  From 0 to 3.
+- 0 no debug facility
+- 1 emit debug symbols and dump pseudo C code
+- 2 dump gcc passes and libgccjit log file
+- 3 dump libgccjit reproducer"
+  :type 'number
+  :group 'comp)
+
 (defcustom comp-verbose 0
   "Compiler verbosity.  From 0 to 3.
 - 0 no logging
