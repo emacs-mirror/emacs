@@ -958,9 +958,9 @@ N can be 1 for to mean \"completion-try-completion\" or 2 to mean
                                  (_ n))
                                style string table pred point)))
            (completion--styles md))))
-    (if requote
-        (funcall requote result n)
-      result)))
+    (when requote
+      (setcar result (funcall requote (car result) n)))
+    result))
 
 (defun completion-try-completion (string table pred point &optional metadata)
   "Try to complete STRING using completion table TABLE.
