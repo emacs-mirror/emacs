@@ -55,6 +55,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
 
+/* FIXME with call1 */
 #define FUNCALL1(fun, arg)			\
   CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
 
@@ -114,6 +115,7 @@ typedef struct {
   gcc_jit_field *handler_val_field;
   gcc_jit_field *handler_next_field;
   gcc_jit_type *handler_ptr_type;
+  gcc_jit_lvalue *loc_handler;
   /* struct thread_state.  */
   gcc_jit_struct *thread_state_s;
   gcc_jit_field *m_handlerlist;
@@ -161,7 +163,6 @@ typedef struct {
   Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
   Lisp_Object exported_funcs_h; /* subr_name -> gcc_jit_function *.  */
   Lisp_Object imported_funcs_h; /* subr_name -> reloc_field.  */
-  Lisp_Object buffer_handler_vec; /* All locals used to store non local exit values.   */
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
   gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
@@ -1145,25 +1146,23 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 
 static void
 emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
-			  EMACS_UINT handler_buff_n, gcc_jit_block *handler_bb,
-			  gcc_jit_block *guarded_bb, Lisp_Object clobbered_mvar)
+			  gcc_jit_block *handler_bb, gcc_jit_block *guarded_bb,
+			  Lisp_Object clobbered_mvar)
 {
    /* struct handler *c = push_handler (POP, type); */
-  gcc_jit_lvalue *c =
-    xmint_pointer (AREF (comp.buffer_handler_vec, handler_buff_n));
 
   gcc_jit_rvalue *args[] = { handler, handler_type };
   gcc_jit_block_add_assignment (
 	      comp.block,
 	      NULL,
-	      c,
+	      comp.loc_handler,
 	      emit_call (intern_c_string ("push_handler"),
 			 comp.handler_ptr_type, 2, args, false));
 
   args[0] =
     gcc_jit_lvalue_get_address (
 	gcc_jit_rvalue_dereference_field (
-	  gcc_jit_lvalue_as_rvalue (c),
+	  gcc_jit_lvalue_as_rvalue (comp.loc_handler),
 	  NULL,
 	  comp.handler_jmp_field),
 	NULL);
@@ -1236,10 +1235,9 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qpush_handler))
     {
       /* (push-handler condition-case #s(comp-mvar 0 3 t (arith-error) cons nil) 1 bb_2 bb_1) */
-      gcc_jit_rvalue *handler = emit_mvar_val (arg[1]);
       int h_num UNINIT;
       Lisp_Object handler_spec = arg[0];
-      EMACS_UINT handler_buff_n = XFIXNUM (arg[2]);
+      gcc_jit_rvalue *handler = emit_mvar_val (arg[1]);
       if (EQ (handler_spec, Qcatcher))
 	h_num = CATCHER;
       else if (EQ (handler_spec, Qcondition_case))
@@ -1250,10 +1248,10 @@ emit_limple_insn (Lisp_Object insn)
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
 					     h_num);
-      gcc_jit_block *handler_bb = retrive_block (arg[3]);
-      gcc_jit_block *guarded_bb = retrive_block (arg[4]);
-      emit_limple_push_handler (handler, handler_type, handler_buff_n,
-				handler_bb, guarded_bb, arg[0]);
+      gcc_jit_block *handler_bb = retrive_block (arg[2]);
+      gcc_jit_block *guarded_bb = retrive_block (arg[3]);
+      emit_limple_push_handler (handler, handler_type, handler_bb, guarded_bb,
+				arg[0]);
     }
   else if (EQ (op, Qpop_handler))
     {
@@ -1281,29 +1279,33 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qfetch_handler))
     {
-      EMACS_UINT handler_buff_n = XFIXNUM (arg[1]);
-      gcc_jit_lvalue *c =
-	xmint_pointer (AREF (comp.buffer_handler_vec, handler_buff_n));
       gcc_jit_lvalue *m_handlerlist =
         gcc_jit_rvalue_dereference_field (
 	  gcc_jit_lvalue_as_rvalue (
 	    gcc_jit_rvalue_dereference (comp.current_thread_ref, NULL)),
-					  NULL,
-					  comp.m_handlerlist);
+	  NULL,
+	  comp.m_handlerlist);
+      gcc_jit_block_add_assignment (comp.block,
+				    NULL,
+				    comp.loc_handler,
+				    gcc_jit_lvalue_as_rvalue (m_handlerlist));
+
       gcc_jit_block_add_assignment (
         comp.block,
         NULL,
         m_handlerlist,
         gcc_jit_lvalue_as_rvalue(
-          gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
-					    NULL,
-					    comp.handler_next_field)));
+          gcc_jit_rvalue_dereference_field (
+	    gcc_jit_lvalue_as_rvalue (comp.loc_handler),
+	    NULL,
+	    comp.handler_next_field)));
       emit_frame_assignment (
         arg[0],
         gcc_jit_lvalue_as_rvalue(
-          gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
-					    NULL,
-					    comp.handler_val_field)));
+          gcc_jit_rvalue_dereference_field (
+	    gcc_jit_lvalue_as_rvalue (comp.loc_handler),
+	    NULL,
+	    comp.handler_val_field)));
     }
   else if (EQ (op, Qcall))
     {
@@ -2802,15 +2804,10 @@ compile_function (Lisp_Object func)
 				      format_string ("local%u", i));
     }
 
-  EMACS_UINT non_local_handlers = XFIXNUM (FUNCALL1 (comp-func-handler-cnt, func));
-  comp.buffer_handler_vec = make_vector (non_local_handlers, Qnil);
-  for (unsigned i = 0; i < non_local_handlers; ++i)
-    ASET (comp.buffer_handler_vec, i,
-	  make_mint_ptr (
-	    gcc_jit_function_new_local (comp.func,
-					NULL,
-					comp.handler_ptr_type,
-					format_string ("handler_%u", i))));
+  comp.loc_handler =  gcc_jit_function_new_local (comp.func,
+						  NULL,
+						  comp.handler_ptr_type,
+						  "handler");
 
   comp.func_blocks_h = CALLN (Fmake_hash_table);
 

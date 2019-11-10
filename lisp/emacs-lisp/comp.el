@@ -221,9 +221,7 @@ structure.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
                 :documentation "Generates edges numbers.")
   (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
-               :documentation "Counter to create ssa limple vars.")
-  (handler-cnt 0 :type number
-               :documentation "Number of non local handler buffers."))
+               :documentation "Counter to create ssa limple vars."))
 
 (defun comp-func-reset-generators (func)
   "Reset unique id generators for FUNC."
@@ -648,17 +646,14 @@ Return value is the fall through block name."
     (let* ((guarded-bb (comp-bb-maybe-add (1+ (comp-limplify-pc comp-pass))
                                           (comp-sp)))
            (handler-bb (comp-bb-maybe-add (comp-label-to-addr label-num)
-                                          (1+ (comp-sp))))
-           (handler-buff-n (comp-func-handler-cnt comp-func)))
+                                          (1+ (comp-sp)))))
       (comp-emit (list 'push-handler
                        handler-type
                        (comp-slot+1)
-                       handler-buff-n
                        (comp-block-name handler-bb)
                        (comp-block-name guarded-bb)))
       (setf (comp-block-closed (comp-limplify-curr-block comp-pass)) t)
-      (comp-emit-as-head `(fetch-handler ,(comp-slot+1) ,handler-buff-n) handler-bb)
-      (cl-incf (comp-func-handler-cnt comp-func)))))
+      (comp-emit-as-head `(fetch-handler ,(comp-slot+1)) handler-bb))))
 
 (defun comp-limplify-listn (n)
   "Limplify list N."
@@ -1181,7 +1176,7 @@ Top level forms for the current context are rendered too."
     (cl-loop with blocks = (comp-func-blocks comp-func)
              for bb being each hash-value of blocks
              for last-insn = (car (last (comp-block-insns bb)))
-             for (op first second third forth fifth) = last-insn
+             for (op first second third forth) = last-insn
              do (cl-case op
                   (jump
                    (edge-add :src bb :dst (gethash first blocks)))
@@ -1192,8 +1187,8 @@ Top level forms for the current context are rendered too."
                    (edge-add :src bb :dst (gethash second blocks))
                    (edge-add :src bb :dst (gethash third blocks)))
                   (push-handler
-                   (edge-add :src bb :dst (gethash forth blocks))
-                   (edge-add :src bb :dst (gethash fifth blocks)))
+                   (edge-add :src bb :dst (gethash third blocks))
+                   (edge-add :src bb :dst (gethash forth blocks)))
                   (return)
                   (otherwise
                    (error "Block %s does not end with a branch in func %s"
