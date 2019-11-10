@@ -807,11 +807,6 @@ Additionally the user can use the char \"*\" as a glob pattern.")
 I.e. when completing \"foo_bar\" (where _ is the position of point),
 it will consider all completions candidates matching the glob
 pattern \"*foo*bar*\".")
-    (flex
-     completion-flex-try-completion completion-flex-all-completions
-     "Completion of an in-order subset of characters.
-When completing \"foo\" the glob \"*f*o*o*\" is used, so that
-\"foo\" can complete to \"frodo\".")
     (initials
      completion-initials-try-completion completion-initials-all-completions
      "Completion of acronyms and initialisms.
@@ -907,8 +902,25 @@ This overrides the defaults specified in `completion-category-defaults'."
         (delete-dups (append (cdr over) (copy-sequence completion-styles)))
        completion-styles)))
 
+(cl-defgeneric completion-styles-try-completion
+    (style string table pred point &rest _)
+  "Implementation of the `completion-try-completion' for STYLE."
+  (funcall (nth 1 (assq style completion-styles-alist))
+           string table pred point))
+
+(cl-defgeneric completion-styles-all-completions
+    (style string table pred point &rest _)
+  "Implementation of the `completion-all-completions' for STYLE.
+Should return a pair (COMPLETIONS . PROPS) where PROPS
+is an alist of metadata properties like those of `completion-metadata'."
+  (list
+   (funcall (nth 2 (assq style completion-styles-alist))
+            string table pred point)))
+
 (defun completion--nth-completion (n string table pred point metadata)
-  "Call the Nth method of completion styles."
+  "Call the Nth method of completion styles.
+N can be 1 for to mean \"completion-try-completion\" or 2 to mean
+\"completion-all-completions\"."
   ;; We provide special support for quoting/unquoting here because it cannot
   ;; reliably be done within the normal completion-table routines: Completion
   ;; styles such as `substring' or `partial-completion' need to match the
@@ -938,20 +950,17 @@ This overrides the defaults specified in `completion-category-defaults'."
               (setq point (pop new))
               (cl-assert (<= point (length string)))
               (pop new))))
-         (result-and-style
+         (result
           (completion--some
-           (lambda (style)
-             (let ((probe (funcall (nth n (assq style
-                                                completion-styles-alist))
-                                   string table pred point)))
-               (and probe (cons probe style))))
-           (completion--styles md)))
-         (adjust-fn (get (cdr result-and-style) 'completion--adjust-metadata)))
-    (when (and adjust-fn metadata)
-      (setcdr metadata (cdr (funcall adjust-fn metadata))))
+           (lambda (style) (condition-case err (funcall (pcase-exhaustive n
+                                 (1 #'completion-styles-try-completion)
+                                 (2 #'completion-styles-all-completions)
+                                 (_ n))
+                               style string table pred point)))
+           (completion--styles md))))
     (if requote
-        (funcall requote (car result-and-style) n)
-      (car result-and-style))))
+        (funcall requote result n)
+      result)))
 
 (defun completion-try-completion (string table pred point &optional metadata)
   "Try to complete STRING using completion table TABLE.
@@ -971,7 +980,13 @@ The return value is a list of completions and may contain the base-size
 in the last `cdr'."
   ;; FIXME: We need to additionally return the info needed for the
   ;; second part of completion-base-position.
-  (completion--nth-completion 2 string table pred point metadata))
+  (pcase-let* ((`(,comps . ,props)
+                (completion--nth-completion
+                 2 string table pred point metadata)))
+    (when (and metadata props)
+      (setf (cdr metadata)
+            (append props (cdr metadata))))
+    comps))
 
 (defun minibuffer--bitset (modified completions exact)
   (logior (if modified    4 0)
@@ -3482,8 +3497,6 @@ that is non-nil."
 ;;; "flex" completion, also known as flx/fuzzy/scatter completion
 ;; Completes "foo" to "frodo" and "farfromsober"
 
-(put 'flex 'completion--adjust-metadata 'completion--flex-adjust-metadata)
-
 (defun completion--flex-adjust-metadata (metadata)
   (cl-flet ((compose-flex-sort-fn
              (existing-sort-fn) ; wish `cl-flet' had proper indentation...
@@ -3499,8 +3512,7 @@ that is non-nil."
                         (let ((s1 (get-text-property 0 'completion-score c1))
                               (s2 (get-text-property 0 'completion-score c2)))
                           (> (or s1 0) (or s2 0))))))))))
-    `(metadata
-      (display-sort-function
+    `((display-sort-function
        . ,(compose-flex-sort-fn
            (completion-metadata-get metadata 'display-sort-function)))
       (cycle-sort-function
@@ -3525,7 +3537,8 @@ which is at the core of flex logic.  The extra
               (list elem)))
           pattern))
 
-(defun completion-flex-try-completion (string table pred point)
+(cl-defmethod completion-styles-try-completion ((_style (eql flex))
+                                                string table pred point &rest _)
   "Try to flex-complete STRING in TABLE given PRED and POINT."
   (pcase-let ((`(,all ,pattern ,prefix ,suffix ,_carbounds)
                (completion-substring--all-completions
@@ -3541,15 +3554,18 @@ which is at the core of flex logic.  The extra
     ;; "farfromsober".
     (completion-pcm--merge-try pattern all prefix suffix)))
 
-(defun completion-flex-all-completions (string table pred point)
+(cl-defmethod completion-styles-all-completions ((_style (eql flex))
+                                                 string table pred point &rest _)
   "Get flex-completions of STRING in TABLE, given PRED and POINT."
   (pcase-let ((`(,all ,pattern ,prefix ,_suffix ,_carbounds)
                (completion-substring--all-completions
                 string table pred point
                 #'completion-flex--make-flex-pattern)))
     (when all
-      (nconc (completion-pcm--hilit-commonality pattern all)
-             (length prefix)))))
+      (cons
+       (nconc (completion-pcm--hilit-commonality pattern all)
+              (length prefix))
+       (completion--flex-adjust-metadata nil)))))
 
 ;; Initials completion
 ;; Complete /ums to /usr/monnier/src or lch to list-command-history.
