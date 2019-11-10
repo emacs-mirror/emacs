@@ -30,6 +30,7 @@
 (require 'comp)
 
 (setq comp-speed 3)
+(setq comp-debug 1)
 
 (defconst comp-test-src
   (concat (file-name-directory (or load-file-name buffer-file-name))
