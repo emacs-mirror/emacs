@@ -38,26 +38,31 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-speed 2
-  "Compiler optimization level.  From 0 to 3."
+(defcustom comp-speed 0
+  "Compiler optimization level.  From 0 to 3.
+- 0 no otimizations are performed, compile time is favored.
+- 1 lite optimizations.
+- 2 heavy optimizations.
+- 3 max optimization level, to be used only when necessary.
+    The compiler can inline within the compilation unit..."
   :type 'number
   :group 'comp)
 
 (defcustom comp-debug 0
   "Compiler debug level.  From 0 to 3.
-- 0 no debug facility
-- 1 emit debug symbols and dump pseudo C code
-- 2 dump gcc passes and libgccjit log file
-- 3 dump libgccjit reproducer"
+- 0 no debug facility.
+- 1 emit debug symbols and dump pseudo C code.
+- 2 dump gcc passes and libgccjit log file.
+- 3 dump libgccjit reproducer."
   :type 'number
   :group 'comp)
 
 (defcustom comp-verbose 0
   "Compiler verbosity.  From 0 to 3.
-- 0 no logging
-- 1 final limple is logged
-- 2 LAP and final limple and some pass info are logged
-- 3 max verbosity"
+- 0 no logging.
+- 1 final limple is logged.
+- 2 LAP and final limple and some pass info are logged.
+- 3 max verbosity."
   :type 'number
   :group 'comp)
 
@@ -1752,7 +1757,7 @@ Prepare every function for final compilation and drive the C back-end."
 (defun native-compile (input)
   "Compile INPUT into native code.
 This is the entrypoint for the Emacs Lisp native compiler.
-If INPUT is a symbol, native-compile its function definition.
+If INPUT is a symbol, native compile its function definition.
 If INPUT is a string, use it as the file path to be native compiled.
 Return the compilation unit filename."
   (unless (or (symbolp input)
