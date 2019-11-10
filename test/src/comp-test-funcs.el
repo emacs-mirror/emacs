@@ -26,7 +26,7 @@
 (defvar comp-tests-var1 3)
 
 (defun comp-tests-varref-f ()
-    comp-tests-var1)
+  comp-tests-var1)
 
 (defun comp-tests-list-f ()
   (list 1 2 3))

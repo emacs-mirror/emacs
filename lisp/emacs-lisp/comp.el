@@ -244,8 +244,6 @@ structure.")
   (ref nil :type boolean
        :documentation "When t this is used by reference."))
 
-(defvar comp-ctxt) ;; FIXME (to be removed)
-
 ;; Special vars used by some passes
 (defvar comp-func)
 
