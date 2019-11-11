@@ -44,7 +44,7 @@
 - 1 lite optimizations.
 - 2 heavy optimizations.
 - 3 max optimization level, to be used only when necessary.
-    The compiler can inline within the compilation unit..."
+    Warning: the compiler is free to perform dangerous optimizations."
   :type 'number
   :group 'comp)
 
@@ -1778,8 +1778,12 @@ Prepare every function for final compilation and drive the C back-end."
        (while (setf f (with-mutex comp-src-pool-mutex
                         (pop comp-src-pool)))
          (when (comp-to-file-p f)
-           (let* ((cmd (concat "emacs --batch --eval="
-                               "'(native-compile \"" f "\")'"))
+           (let* ((code `(let ((comp-speed ,comp-speed)
+                               (comp-debug ,comp-debug)
+                               (comp-verbose ,comp-verbose))
+                           (native-compile ,f)))
+                  (cmd (concat "emacs --batch --eval='"
+                               (prin1-to-string code) "'"))
                   (prc (start-process-shell-command (concat "async compilation: " f)
                                                     "async-compile-buffer"
                                                     cmd)))
