@@ -55,7 +55,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
 
-/* FIXME with call1 */
 #define FUNCALL1(fun, arg)			\
   CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
 
@@ -1137,8 +1136,8 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
                     #s(comp-mvar 2 11 t 10 integer t)).  */
 
   Lisp_Object callee = FIRST (insn);
-  EMACS_UINT nargs = XFIXNUM (Flength (CDR (insn)));
-  EMACS_UINT base_ptr = XFIXNUM (FUNCALL1 (comp-mvar-slot, SECOND (insn)));
+  EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
+  EMACS_INT base_ptr = XFIXNUM (FUNCALL1 (comp-mvar-slot, SECOND (insn)));
   return emit_call_ref (callee, nargs, comp.frame[base_ptr], direct);
 }
 
@@ -1352,7 +1351,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qset_par_to_local))
     {
       /* Ex: (setpar #s(comp-mvar 2 0 nil nil nil) 0).  */
-      EMACS_UINT param_n = XFIXNUM (arg[1]);
+      EMACS_INT param_n = XFIXNUM (arg[1]);
       gcc_jit_rvalue *param =
 	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
 							     param_n));
@@ -1380,7 +1379,7 @@ emit_limple_insn (Lisp_Object insn)
         C: local[2] = list (nargs - 2, args);
       */
 
-      EMACS_UINT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg[0]));
+      EMACS_INT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg[0]));
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
@@ -1753,7 +1752,7 @@ emit_ctxt_code (void)
 
   declare_runtime_imported_data ();
   /* Imported objects.  */
-  EMACS_UINT d_reloc_len =
+  EMACS_INT d_reloc_len =
     XFIXNUM (FUNCALL1 (hash-table-count,
 		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
   Lisp_Object d_reloc = Fnreverse (FUNCALL1 (comp-ctxt-data-relocs-l, Vcomp_ctxt));
@@ -1775,7 +1774,7 @@ emit_ctxt_code (void)
 
   /* Imported functions from non Lisp code.  */
   Lisp_Object f_runtime = declare_runtime_imported_funcs ();
-  EMACS_UINT f_reloc_len = XFIXNUM (Flength (f_runtime));
+  EMACS_INT f_reloc_len = XFIXNUM (Flength (f_runtime));
 
   /* Imported subrs. */
   Lisp_Object f_subr = FUNCALL1 (comp-ctxt-func-relocs-l, Vcomp_ctxt);
@@ -2595,7 +2594,7 @@ define_PSEUDOVECTORP (void)
   comp.block = ret_false_b;
   gcc_jit_block_end_with_return (ret_false_b,
 				 NULL,
-				 gcc_jit_context_new_rvalue_from_int(
+				 gcc_jit_context_new_rvalue_from_int (
 				   comp.ctxt,
 				   comp.bool_type,
 				   false));
@@ -3191,9 +3190,9 @@ load_comp_unit (dynlib_handle_ptr handle)
 
   /* Imported data.  */
   Lisp_Object d_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
-  EMACS_UINT d_vec_len = XFIXNUM (Flength (d_vec));
+  EMACS_INT d_vec_len = XFIXNUM (Flength (d_vec));
 
-  for (EMACS_UINT i = 0; i < d_vec_len; i++)
+  for (EMACS_INT i = 0; i < d_vec_len; i++)
     {
       data_relocs[i] = AREF (d_vec, i);
       prevent_gc (data_relocs[i]);
@@ -3202,8 +3201,8 @@ load_comp_unit (dynlib_handle_ptr handle)
   /* Imported functions.  */
   Lisp_Object f_vec =
     load_static_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
-  EMACS_UINT f_vec_len = XFIXNUM (Flength (f_vec));
-  for (EMACS_UINT i = 0; i < f_vec_len; i++)
+  EMACS_INT f_vec_len = XFIXNUM (Flength (f_vec));
+  for (EMACS_INT i = 0; i < f_vec_len; i++)
     {
       Lisp_Object f_sym = AREF (f_vec, i);
       char *f_str = SSDATA (SYMBOL_NAME (f_sym));
