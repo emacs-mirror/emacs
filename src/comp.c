@@ -3210,7 +3210,9 @@ load_comp_unit (dynlib_handle_ptr handle)
       Lisp_Object subr = Fsymbol_function (f_sym);
       if (!NILP (subr))
 	{
-	  eassert (SUBRP (subr));
+	  /* FIXME: This is really not robust in case of subr redefinition.  */
+	  if (!SUBRP (subr))
+	    error ("Native code load error, subr redefined or wrong relocation.");
 	  f_relocs[i] = XSUBR (subr)->function.a0;
 	} else if (!strcmp (f_str, "wrong_type_argument"))
 	{
