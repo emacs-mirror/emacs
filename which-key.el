@@ -110,7 +110,7 @@ artificially reducing the available width in the buffer.
 The default of 3 means allow for the total extra width
 contributed by any wide unicode characters to be up to one
 additional ASCII character in the which-key buffer.  Increase this
-number if you are seeing charaters get cutoff on the right side
+number if you are seeing characters get cutoff on the right side
 of the which-key popup."
   :group 'which-key
   :type 'integer)
@@ -1538,7 +1538,7 @@ in order for which-key to allow looking up a description for the key."
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
 A title is possibly returned using
-`which-key--prefix-title-alist'.  An empty stiring is returned if
+`which-key--prefix-title-alist'.  An empty string is returned if
 no title exists."
   (cond
    ((not (string-equal keys ""))

@@ -473,7 +473,7 @@
       ;; prefixes). Descriptions that are longer are truncated and have ".." added.
       (setq which-key-max-description-length 27)
 
-      ;; Use additonal padding between columns of keys. This variable specifies the
+      ;; Use additional padding between columns of keys. This variable specifies the
       ;; number of spaces to add to the left of each column.
       (setq which-key-add-column-padding 0)
 
