@@ -51,6 +51,7 @@
 (defcustom comp-debug 0
   "Compiler debug level.  From 0 to 3.
 - 0 no debug facility.
+    This is the raccomanded value unless you are debugging the compiler itself.
 - 1 emit debug symbols and dump pseudo C code.
 - 2 dump gcc passes and libgccjit log file.
 - 3 dump libgccjit reproducers."
@@ -1288,7 +1289,7 @@ Top level forms for the current context are rendered too."
                    initially (setf changed nil)
                    do (cl-loop for p in (delq new-idom preds)
                                when (comp-block-dom p)
-                               do (setf new-idom (intersect p new-idom)))
+                                 do (setf new-idom (intersect p new-idom)))
                    unless (eq (comp-block-dom b) new-idom)
                    do (setf (comp-block-dom b) new-idom)
                       (setf changed t))))))
@@ -1782,7 +1783,8 @@ Prepare every function for final compilation and drive the C back-end."
                                (comp-debug ,comp-debug)
                                (comp-verbose ,comp-verbose))
                            (native-compile ,f)))
-                  (cmd (concat "emacs --batch --eval='"
+                  (cmd (concat invocation-directory invocation-name
+                               " --batch --eval='"
                                (prin1-to-string code) "'"))
                   (prc (start-process-shell-command (concat "async compilation: " f)
                                                     "async-compile-buffer"
