@@ -57,11 +57,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Like call1 but stringify and intern.  */
 #define CALL1I(fun, arg)				\
-  CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
+  CALLN (Ffuncall, intern_c_string (STR (fun)), arg)
 
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
-    gcc_jit_function_new_block ((func), STR(name))
+    gcc_jit_function_new_block ((func), STR (name))
 
 #ifdef HAVE__SETJMP
 #define SETJMP _setjmp
@@ -72,11 +72,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define ICE_IF(test, msg)			\
   do {						\
-  if (test)					\
-    ice (msg);					\
+    if (test)					\
+      ice (msg);				\
   } while (0)
 
-/* C side of the compiler context. */
+/* C side of the compiler context.  */
 
 typedef struct {
   gcc_jit_context *ctxt;
@@ -340,10 +340,10 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 	types[i] = comp.lisp_obj_type;
     }
 
-  /* String containing the function ptr name. */
+  /* String containing the function ptr name.  */
   Lisp_Object f_ptr_name =
     CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
-	   subr_sym, make_string("R", 1));
+	   subr_sym, make_string ("R", 1));
 
   gcc_jit_type *f_ptr_type =
     gcc_jit_context_new_function_ptr_type (comp.ctxt,
@@ -381,7 +381,8 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 				       xmint_pointer (func),
 				       nargs,
 				       args);
-    } else {
+    }
+  else {
     gcc_jit_lvalue *f_ptr =
       gcc_jit_lvalue_access_field (comp.func_relocs,
 				   NULL,
@@ -402,9 +403,9 @@ emit_call_ref (Lisp_Object subr_sym, unsigned nargs,
 	       gcc_jit_lvalue *base_arg, bool direct)
 {
   gcc_jit_rvalue *args[] =
-    { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
-					  comp.ptrdiff_type,
-					  nargs),
+    { gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.ptrdiff_type,
+					   nargs),
       gcc_jit_lvalue_get_address (base_arg, NULL) };
   return emit_call (subr_sym, comp.lisp_obj_type, 2, args, direct);
 }
@@ -757,7 +758,7 @@ emit_NUMBERP (gcc_jit_rvalue *obj)
 					NULL,
 					GCC_JIT_BINARY_OP_LOGICAL_OR,
 					comp.bool_type,
-					emit_INTEGERP(obj),
+					emit_INTEGERP (obj),
 					emit_cast (comp.bool_type,
 						   emit_FLOATP (obj)));
 }
@@ -962,7 +963,7 @@ emit_XSETCAR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
 {
   emit_comment ("XSETCAR");
 
-  gcc_jit_block_add_assignment(
+  gcc_jit_block_add_assignment (
     comp.block,
     NULL,
     gcc_jit_rvalue_dereference (
@@ -976,7 +977,7 @@ emit_XSETCDR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
 {
   emit_comment ("XSETCDR");
 
-  gcc_jit_block_add_assignment(
+  gcc_jit_block_add_assignment (
     comp.block,
     NULL,
     gcc_jit_rvalue_dereference (
@@ -1033,9 +1034,9 @@ emit_mvar_val (Lisp_Object mvar)
 	     (read fixnums).  */
 	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
 	  gcc_jit_rvalue *word =
-	    gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-						comp.void_ptr_type,
-						constant);
+	    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+						 comp.void_ptr_type,
+						 constant);
 	  return emit_cast (comp.lisp_obj_type, word);
 	}
       /* Other const objects are fetched from the reloc array.  */
@@ -1079,7 +1080,7 @@ emit_set_internal (Lisp_Object args)
 		    gcc_args, false);
 }
 
-/* This is for a regular function with arguments as m-var.   */
+/* This is for a regular function with arguments as m-var.  */
 
 static gcc_jit_rvalue *
 emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type, bool direct)
@@ -1192,7 +1193,7 @@ emit_limple_insn (Lisp_Object insn)
 
   if (EQ (op, Qjump))
     {
-      /* Unconditional branch.	*/
+      /* Unconditional branch.  */
       gcc_jit_block *target = retrive_block (arg[0]);
       gcc_jit_block_end_with_jump (comp.block, NULL, target);
     }
@@ -1230,7 +1231,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qphi))
     {
-      /* Nothing to do for phis into the backend.   */
+      /* Nothing to do for phis into the backend.  */
     }
   else if (EQ (op, Qpush_handler))
     {
@@ -1266,7 +1267,7 @@ emit_limple_insn (Lisp_Object insn)
 	  NULL,
 	  comp.m_handlerlist);
 
-      gcc_jit_block_add_assignment(
+      gcc_jit_block_add_assignment (
 	comp.block,
 	NULL,
 	m_handlerlist,
@@ -1294,14 +1295,14 @@ emit_limple_insn (Lisp_Object insn)
         comp.block,
         NULL,
         m_handlerlist,
-        gcc_jit_lvalue_as_rvalue(
+        gcc_jit_lvalue_as_rvalue (
           gcc_jit_rvalue_dereference_field (
 	    gcc_jit_lvalue_as_rvalue (comp.loc_handler),
 	    NULL,
 	    comp.handler_next_field)));
       emit_frame_assignment (
         arg[0],
-        gcc_jit_lvalue_as_rvalue(
+        gcc_jit_lvalue_as_rvalue (
           gcc_jit_rvalue_dereference_field (
 	    gcc_jit_lvalue_as_rvalue (comp.loc_handler),
 	    NULL,
@@ -1667,7 +1668,7 @@ static Lisp_Object
 declare_runtime_imported_funcs (void)
 {
   /* For subr imported by the runtime we rely on the standard mechanism in place
-     for functions imported by lisp code. */
+     for functions imported by lisp code.  */
   CALL1I (comp-add-subr-to-relocs, intern_c_string ("1+"));
   CALL1I (comp-add-subr-to-relocs, intern_c_string ("1-"));
   CALL1I (comp-add-subr-to-relocs, Qplus);
@@ -1760,7 +1761,7 @@ emit_ctxt_code (void)
   d_reloc = Fvconcat (1, &d_reloc);
 
   comp.data_relocs =
-    gcc_jit_lvalue_as_rvalue(
+    gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
 	comp.ctxt,
 	NULL,
@@ -1777,7 +1778,7 @@ emit_ctxt_code (void)
   Lisp_Object f_runtime = declare_runtime_imported_funcs ();
   EMACS_INT f_reloc_len = XFIXNUM (Flength (f_runtime));
 
-  /* Imported subrs. */
+  /* Imported subrs.  */
   Lisp_Object f_subr = CALL1I (comp-ctxt-func-relocs-l, Vcomp_ctxt);
   f_reloc_len += XFIXNUM (Flength (f_subr));
 
@@ -1805,7 +1806,7 @@ emit_ctxt_code (void)
 				   FIXNUMP (maxarg) ? XFIXNUM (maxarg) :
 				   EQ (maxarg, Qmany) ? MANY : UNEVALLED,
 				   NULL);
-	  fields [n_frelocs++] = field;
+	  fields[n_frelocs++] = field;
 	  f_reloc_list = Fcons (subr_sym, f_reloc_list);
 	}
     }
@@ -2261,7 +2262,7 @@ define_CAR_CDR (void)
 	gcc_jit_context_new_function (comp.ctxt, NULL,
 				      GCC_JIT_FUNCTION_INTERNAL,
 				      comp.lisp_obj_type,
-				      f_name [i],
+				      f_name[i],
 				      2, param, 0);
 
       gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param[0]);
@@ -2865,7 +2866,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 
   if (NILP (comp.emitter_dispatcher))
     {
-      /* Move this into syms_of_comp the day will be dumpable.   */
+      /* Move this into syms_of_comp the day will be dumpable.  */
       comp.emitter_dispatcher = CALLN (Fmake_hash_table);
       register_emitter (Qset_internal, emit_set_internal);
       register_emitter (Qhelper_unbind_n, emit_simple_limple_call_lisp_ret);
@@ -2890,7 +2891,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
       register_emitter (Qintegerp, emit_integerp);
     }
 
-  comp.ctxt = gcc_jit_context_acquire();
+  comp.ctxt = gcc_jit_context_acquire ();
 
   if (COMP_DEBUG)
     {
@@ -3016,7 +3017,7 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
      (void)
 {
   if (comp.ctxt)
-    gcc_jit_context_release(comp.ctxt);
+    gcc_jit_context_release (comp.ctxt);
 
   if (logfile)
     fclose (logfile);
@@ -3049,7 +3050,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   emit_ctxt_code ();
 
   /* Define inline functions.  */
-  define_CAR_CDR();
+  define_CAR_CDR ();
   define_PSEUDOVECTORP ();
   define_CHECK_TYPE ();
   define_CHECK_IMPURE ();
@@ -3165,7 +3166,7 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 {
   static_obj_t *(*f)(void) = dynlib_sym (handle, name);
   eassert (f);
-  static_obj_t *res = f();
+  static_obj_t *res = f ();
   return Fread (make_string (res->data, res->len));
 }
 
@@ -3284,12 +3285,12 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = SSDATA (Fsymbol_name (name));
   x->s.native_elisp = true;
-  defsubr(x);
+  defsubr (x);
 
   return Qnil;
 }
 
-/* Load related routines. */
+/* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
        doc: /* Load native elisp code FILE.  */)
   (Lisp_Object file)
@@ -3382,7 +3383,7 @@ syms_of_comp (void)
 
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /*
-		     The compiler context. */);
+		     The compiler context.  */);
   Vcomp_ctxt = Qnil;
 
   /* Load mechanism.  */

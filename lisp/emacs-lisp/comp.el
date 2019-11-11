@@ -1428,7 +1428,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                                for e in (comp-block-in-edges b)
                                for b = (comp-edge-src e)
                                for in-frame = (comp-block-final-frame b)
-                               collect (aref in-frame slot-n))) ))
+                               collect (aref in-frame slot-n)))))
 
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
              do (cl-loop for (op . args) in (comp-block-insns b)
