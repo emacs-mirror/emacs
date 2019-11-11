@@ -55,7 +55,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
 
-#define FUNCALL1(fun, arg)			\
+/* Like call1 but stringify and intern.  */
+#define CALL1I(fun, arg)				\
   CALLN (Ffuncall, intern_c_string (STR(fun)), arg)
 
 #define DECL_BLOCK(name, func)				\
@@ -283,9 +284,9 @@ declare_block (Lisp_Object block_name)
 static gcc_jit_lvalue *
 get_slot (Lisp_Object mvar)
 {
-  EMACS_INT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, mvar));
+  EMACS_INT slot_n = XFIXNUM (CALL1I (comp-mvar-slot, mvar));
   gcc_jit_lvalue **frame =
-    (FUNCALL1 (comp-mvar-ref, mvar) || SPEED < 2)
+    (CALL1I (comp-mvar-ref, mvar) || SPEED < 2)
     ? comp.frame : comp.f_frame;
   return frame[slot_n];
 }
@@ -806,7 +807,7 @@ emit_const_lisp_obj (Lisp_Object obj)
 							   comp.void_ptr_type,
 							   NULL));
 
-  Lisp_Object d_reloc_idx = FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt);
+  Lisp_Object d_reloc_idx = CALL1I (comp-ctxt-data-relocs-idx, Vcomp_ctxt);
   ptrdiff_t reloc_fixn = XFIXNUM (Fgethash (obj, d_reloc_idx, Qnil));
   gcc_jit_rvalue *reloc_n =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -1021,8 +1022,8 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_val (Lisp_Object mvar)
 {
-  Lisp_Object const_vld = FUNCALL1 (comp-mvar-const-vld, mvar);
-  Lisp_Object constant = FUNCALL1 (comp-mvar-constant, mvar);
+  Lisp_Object const_vld = CALL1I (comp-mvar-const-vld, mvar);
+  Lisp_Object constant = CALL1I (comp-mvar-constant, mvar);
 
   if (!NILP (const_vld))
     {
@@ -1137,7 +1138,7 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
-  EMACS_INT base_ptr = XFIXNUM (FUNCALL1 (comp-mvar-slot, SECOND (insn)));
+  EMACS_INT base_ptr = XFIXNUM (CALL1I (comp-mvar-slot, SECOND (insn)));
   return emit_call_ref (callee, nargs, comp.frame[base_ptr], direct);
 }
 
@@ -1379,7 +1380,7 @@ emit_limple_insn (Lisp_Object insn)
         C: local[2] = list (nargs - 2, args);
       */
 
-      EMACS_INT slot_n = XFIXNUM (FUNCALL1 (comp-mvar-slot, arg[0]));
+      EMACS_INT slot_n = XFIXNUM (CALL1I (comp-mvar-slot, arg[0]));
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
@@ -1463,7 +1464,7 @@ static gcc_jit_rvalue *
 emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 			  Lisp_Object type)
 {
-  bool type_hint = EQ (FUNCALL1 (comp-mvar-type, SECOND (insn)), type);
+  bool type_hint = EQ (CALL1I (comp-mvar-type, SECOND (insn)), type);
   gcc_jit_rvalue *args[] =
     { emit_mvar_val (SECOND (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -1478,7 +1479,7 @@ static gcc_jit_rvalue *
 emit_call2_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 			   Lisp_Object type)
 {
-  bool type_hint = EQ (FUNCALL1 (comp-mvar-type, SECOND (insn)), type);
+  bool type_hint = EQ (CALL1I (comp-mvar-type, SECOND (insn)), type);
   gcc_jit_rvalue *args[] =
     { emit_mvar_val (SECOND (insn)),
       emit_mvar_val (THIRD (insn)),
@@ -1652,10 +1653,10 @@ static void
 declare_runtime_imported_data (void)
 {
   /* Imported symbols by inliner functions.  */
-  FUNCALL1 (comp-add-const-to-relocs, Qnil);
-  FUNCALL1 (comp-add-const-to-relocs, Qt);
-  FUNCALL1 (comp-add-const-to-relocs, Qconsp);
-  FUNCALL1 (comp-add-const-to-relocs, Qlistp);
+  CALL1I (comp-add-const-to-relocs, Qnil);
+  CALL1I (comp-add-const-to-relocs, Qt);
+  CALL1I (comp-add-const-to-relocs, Qconsp);
+  CALL1I (comp-add-const-to-relocs, Qlistp);
 }
 
 /*
@@ -1667,11 +1668,11 @@ declare_runtime_imported_funcs (void)
 {
   /* For subr imported by the runtime we rely on the standard mechanism in place
      for functions imported by lisp code. */
-  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1+"));
-  FUNCALL1 (comp-add-subr-to-relocs, intern_c_string ("1-"));
-  FUNCALL1 (comp-add-subr-to-relocs, Qplus);
-  FUNCALL1 (comp-add-subr-to-relocs, Qminus);
-  FUNCALL1 (comp-add-subr-to-relocs, Qlist);
+  CALL1I (comp-add-subr-to-relocs, intern_c_string ("1+"));
+  CALL1I (comp-add-subr-to-relocs, intern_c_string ("1-"));
+  CALL1I (comp-add-subr-to-relocs, Qplus);
+  CALL1I (comp-add-subr-to-relocs, Qminus);
+  CALL1I (comp-add-subr-to-relocs, Qlist);
 
   Lisp_Object field_list = Qnil;
 #define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
@@ -1753,9 +1754,9 @@ emit_ctxt_code (void)
   declare_runtime_imported_data ();
   /* Imported objects.  */
   EMACS_INT d_reloc_len =
-    XFIXNUM (FUNCALL1 (hash-table-count,
-		       FUNCALL1 (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
-  Lisp_Object d_reloc = Fnreverse (FUNCALL1 (comp-ctxt-data-relocs-l, Vcomp_ctxt));
+    XFIXNUM (CALL1I (hash-table-count,
+		       CALL1I (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
+  Lisp_Object d_reloc = Fnreverse (CALL1I (comp-ctxt-data-relocs-l, Vcomp_ctxt));
   d_reloc = Fvconcat (1, &d_reloc);
 
   comp.data_relocs =
@@ -1777,7 +1778,7 @@ emit_ctxt_code (void)
   EMACS_INT f_reloc_len = XFIXNUM (Flength (f_runtime));
 
   /* Imported subrs. */
-  Lisp_Object f_subr = FUNCALL1 (comp-ctxt-func-relocs-l, Vcomp_ctxt);
+  Lisp_Object f_subr = CALL1I (comp-ctxt-func-relocs-l, Vcomp_ctxt);
   f_reloc_len += XFIXNUM (Flength (f_subr));
 
   gcc_jit_field **fields = SAFE_ALLOCA (f_reloc_len * sizeof (*fields));
@@ -2702,14 +2703,14 @@ static void
 declare_function (Lisp_Object func)
 {
   gcc_jit_function *gcc_func;
-  char *c_name = SSDATA (FUNCALL1 (comp-func-c-func-name, func));
-  Lisp_Object args = FUNCALL1 (comp-func-args, func);
-  bool nargs = (FUNCALL1 (comp-nargs-p, args));
+  char *c_name = SSDATA (CALL1I (comp-func-c-func-name, func));
+  Lisp_Object args = CALL1I (comp-func-args, func);
+  bool nargs = (CALL1I (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
 
   if (!nargs)
     {
-      EMACS_INT max_args = XFIXNUM (FUNCALL1 (comp-args-max, args));
+      EMACS_INT max_args = XFIXNUM (CALL1I (comp-args-max, args));
       gcc_jit_type **type = SAFE_ALLOCA (max_args * sizeof (*type));
       for (unsigned i = 0; i < max_args; i++)
 	type[i] = comp.lisp_obj_type;
@@ -2747,7 +2748,7 @@ declare_function (Lisp_Object func)
 				      c_name, 2, param, 0);
     }
 
-  Fputhash (FUNCALL1 (comp-func-symbol-name, func),
+  Fputhash (CALL1I (comp-func-symbol-name, func),
 	    make_mint_ptr (gcc_func),
 	    comp.exported_funcs_h);
 
@@ -2758,9 +2759,9 @@ static void
 compile_function (Lisp_Object func)
 {
   USE_SAFE_ALLOCA;
-  EMACS_INT frame_size = XFIXNUM (FUNCALL1 (comp-func-frame-size, func));
+  EMACS_INT frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
 
-  comp.func = xmint_pointer (Fgethash (FUNCALL1 (comp-func-symbol-name, func),
+  comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-symbol-name, func),
 				       comp.exported_funcs_h, Qnil));
 
   gcc_jit_lvalue *frame_array =
@@ -2813,7 +2814,7 @@ compile_function (Lisp_Object func)
   /* Pre declare all basic blocks to gcc.
      The "entry" block must be declared as first.  */
   declare_block (Qentry);
-  Lisp_Object blocks = FUNCALL1 (comp-func-blocks, func);
+  Lisp_Object blocks = CALL1I (comp-func-blocks, func);
   Lisp_Object entry_block = Fgethash (Qentry, blocks, Qnil);
   struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
   for (ptrdiff_t i = 0; i < ht->count; i++)
@@ -2827,7 +2828,7 @@ compile_function (Lisp_Object func)
     {
       Lisp_Object block_name = HASH_KEY (ht, i);
       Lisp_Object block = HASH_VALUE (ht, i);
-      Lisp_Object insns = FUNCALL1 (comp-block-insns, block);
+      Lisp_Object insns = CALL1I (comp-block-insns, block);
       ICE_IF (NILP (block) || NILP (insns), "basic block is missing or empty");
 
       comp.block = retrive_block (block_name);
@@ -2841,7 +2842,7 @@ compile_function (Lisp_Object func)
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
   ICE_IF (err,
 	  format_string ("failing to compile function %s with error: %s",
-			 SSDATA (SYMBOL_NAME (FUNCALL1 (comp-func-symbol-name, func))),
+			 SSDATA (SYMBOL_NAME (CALL1I (comp-func-symbol-name, func))),
 			 err));
   SAFE_FREE ();
 }
@@ -3058,7 +3059,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   define_negate ();
 
   struct Lisp_Hash_Table *func_h
-    = XHASH_TABLE (FUNCALL1 (comp-ctxt-funcs-h, Vcomp_ctxt));
+    = XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     declare_function (HASH_VALUE (func_h, i));
   /* Compile all functions. Can't be done before because the
