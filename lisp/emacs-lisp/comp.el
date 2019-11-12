@@ -1767,9 +1767,10 @@ Prepare every function for final compilation and drive the C back-end."
 (defun comp-to-file-p (file)
   "Return t if FILE has to be compiled."
   (let ((compiled-f (concat file "n")))
-    (or comp-always-compile
-        (not (and (file-exists-p compiled-f)
-                  (file-newer-than-file-p compiled-f file))))))
+    (and (null (string-match-p "autoloads.el" file))
+         (or comp-always-compile
+             (not (and (file-exists-p compiled-f)
+                       (file-newer-than-file-p compiled-f file)))))))
 
 (defun comp-start-async-worker ()
   "Start an async compiler worker."
