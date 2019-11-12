@@ -3325,7 +3325,6 @@ syms_of_comp (void)
   DEFSYM (Qcallref, "callref");
   DEFSYM (Qdirect_call, "direct-call");
   DEFSYM (Qdirect_callref, "direct-callref");
-  DEFSYM (Qncall, "ncall");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
   DEFSYM (Qcomp_mvar, "comp-mvar");
