@@ -229,7 +229,7 @@ let the buffer grow forever."
       (DocumentHighlight (:range) (:kind))
       (FileSystemWatcher (:globPattern) (:kind))
       (Hover (:contents) (:range))
-      (InitializeResult (:capabilities))
+      (InitializeResult (:capabilities) (:serverInfo))
       (Location (:uri :range))
       (LogMessageParams (:type :message))
       (MarkupContent (:kind :value))
@@ -531,6 +531,9 @@ treated as in `eglot-dbind'."
    (capabilities
     :documentation "JSON object containing server capabilities."
     :accessor eglot--capabilities)
+   (server-info
+    :documentation "JSON object containing server info."
+    :accessor eglot--server-info)
    (shutdown-requested
     :documentation "Flag set when server is shutting down."
     :accessor eglot--shutdown-requested)
@@ -856,11 +859,12 @@ This docstring appeases checkdoc, that's all."
                                                     server)
                             :capabilities (eglot-client-capabilities server))
                       :success-fn
-                      (eglot--lambda ((InitializeResult) capabilities)
+                      (eglot--lambda ((InitializeResult) capabilities serverInfo)
                         (unless cancelled
                           (push server
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
+                          (setf (eglot--server-info server) serverInfo)
                           (jsonrpc-notify server :initialized (make-hash-table))
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
@@ -888,7 +892,9 @@ This docstring appeases checkdoc, that's all."
                           (eglot--message
                            "Connected! Server `%s' now managing `%s' buffers \
 in project `%s'."
-                           (jsonrpc-name server) managed-major-mode
+                           (or (plist-get serverInfo :name)
+                               (jsonrpc-name server))
+                           managed-major-mode
                            (eglot--project-nickname server))
                           (when tag (throw tag t))))
                       :timeout eglot-connect-timeout
