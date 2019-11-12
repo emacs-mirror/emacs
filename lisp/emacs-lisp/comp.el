@@ -1779,18 +1779,23 @@ Prepare every function for final compilation and drive the C back-end."
        (while (setf f (with-mutex comp-src-pool-mutex
                         (pop comp-src-pool)))
          (when (comp-to-file-p f)
-           (let* ((code `(let ((comp-speed ,comp-speed)
-                               (comp-debug ,comp-debug)
-                               (comp-verbose ,comp-verbose))
+           (let* ((code `(progn
+                           (require 'comp)
+                           (setq comp-speed ,comp-speed)
+                           (setq comp-debug ,comp-debug)
+                           (setq comp-verbose ,comp-verbose)
+                           (setq load-path ',load-path)
+                           (message "Compiling %s started." ,f)
                            (native-compile ,f)))
-                  (cmd (concat invocation-directory invocation-name
-                               " --batch --eval='"
-                               (prin1-to-string code) "'"))
-                  (prc (start-process-shell-command (concat "async compilation: " f)
-                                                    "async-compile-buffer"
-                                                    cmd)))
+                  (prc (start-process (concat "Compiling: " f)
+                                      "async-compile-buffer"
+                                      (concat invocation-directory invocation-name)
+                                      "--batch"
+                                      "--eval"
+                                      (prin1-to-string code))))
              (while (accept-process-output prc)
-               (thread-yield)))))))))
+               (thread-yield)))))))
+   "compilation thread"))
 
 ;;; Compiler entry points.
 
