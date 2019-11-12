@@ -3285,6 +3285,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = SSDATA (Fsymbol_name (name));
   x->s.intspec = NULL;
+  x->s.doc = 0; /* FIXME */
   x->s.native_elisp = true;
   defsubr (x);
 
