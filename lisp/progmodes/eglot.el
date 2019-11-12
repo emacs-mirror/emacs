@@ -1208,17 +1208,16 @@ For example, to keep your Company customization use
 
 (add-to-list 'eglot-stay-out-of 'company)")
 
+(defun eglot--stay-out-of-p (symbol)
+  "Tell if EGLOT should stay of of SYMBOL."
+  (cl-find (symbol-name symbol) eglot-stay-out-of
+           :test (lambda (s thing)
+                   (let ((re (if (symbolp thing) (symbol-name thing) thing)))
+                     (string-match re s)))))
+
 (defmacro eglot--setq-saving (symbol binding)
-  `(when (and (boundp ',symbol)
-              (not (cl-find (symbol-name ',symbol)
-                            eglot-stay-out-of
-                            :test
-                            (lambda (s thing)
-                              (let ((re (if (symbolp thing) (symbol-name thing)
-                                          thing)))
-                                (string-match re s))))))
-     (push (cons ',symbol (symbol-value ',symbol))
-           eglot--saved-bindings)
+  `(unless (or (not (boundp ',symbol)) (eglot--stay-out-of-p ',symbol))
+     (push (cons ',symbol (symbol-value ',symbol)) eglot--saved-bindings)
      (setq-local ,symbol ,binding)))
 
 (define-minor-mode eglot--managed-mode
@@ -1245,7 +1244,8 @@ For example, to keep your Company customization use
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
     (eglot--setq-saving company-backends '(company-capf))
     (eglot--setq-saving company-tooltip-align-annotations t)
-    (eglot--setq-saving imenu-create-index-function #'eglot-imenu)
+    (unless (eglot--stay-out-of-p 'imenu)
+      (add-function :before-until imenu-create-index-function #'eglot-imenu))
     (flymake-mode 1)
     (eldoc-mode 1)
     (cl-pushnew (current-buffer) (eglot--managed-buffers eglot--cached-current-server)))
@@ -2298,37 +2298,36 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 
 (defun eglot-imenu ()
   "EGLOT's `imenu-create-index-function'."
-  (unless (eglot--server-capable :documentSymbolProvider)
-    (eglot--error "Server isn't a :documentSymbolProvider"))
   (let ((entries
-             (mapcar
-              (eglot--lambda
-                  ((SymbolInformation) name kind location containerName)
-                (cons (propertize
-                       name
-                       :kind (alist-get kind eglot--symbol-kind-names
-                                        "Unknown")
-                       :containerName (and (stringp containerName)
-                                           (not (string-empty-p containerName))
-                                           containerName))
-                      (eglot--lsp-position-to-point
-                       (plist-get (plist-get location :range) :start))))
-              (jsonrpc-request (eglot--current-server-or-lose)
-                               :textDocument/documentSymbol
-                               `(:textDocument ,(eglot--TextDocumentIdentifier))))))
-        (mapcar
-         (pcase-lambda (`(,kind . ,syms))
-           (let ((syms-by-scope (seq-group-by
-                                 (lambda (e)
-                                   (get-text-property 0 :containerName (car e)))
-                                 syms)))
-             (cons kind (cl-loop for (scope . elems) in syms-by-scope
-                                 append (if scope
-                                            (list (cons scope elems))
-                                          elems)))))
-         (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
-                       entries)))
-  )
+         (and
+          (eglot--server-capable :documentSymbolProvider)
+          (mapcar
+           (eglot--lambda
+               ((SymbolInformation) name kind location containerName)
+             (cons (propertize
+                    name
+                    :kind (alist-get kind eglot--symbol-kind-names
+                                     "Unknown")
+                    :containerName (and (stringp containerName)
+                                        (not (string-empty-p containerName))
+                                        containerName))
+                   (eglot--lsp-position-to-point
+                    (plist-get (plist-get location :range) :start))))
+           (jsonrpc-request (eglot--current-server-or-lose)
+                            :textDocument/documentSymbol
+                            `(:textDocument ,(eglot--TextDocumentIdentifier)))))))
+    (mapcar
+     (pcase-lambda (`(,kind . ,syms))
+       (let ((syms-by-scope (seq-group-by
+                             (lambda (e)
+                               (get-text-property 0 :containerName (car e)))
+                             syms)))
+         (cons kind (cl-loop for (scope . elems) in syms-by-scope
+                             append (if scope
+                                        (list (cons scope elems))
+                                      elems)))))
+     (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
+                   entries))))
 
 (defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
