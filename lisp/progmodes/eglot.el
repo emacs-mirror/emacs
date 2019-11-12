@@ -2178,7 +2178,8 @@ is not active."
       (with-current-buffer (eglot--help-buffer)
         (with-help-window (current-buffer)
           (rename-buffer (format "*eglot-help for %s*" sym))
-          (with-current-buffer standard-output (insert blurb)))))))
+          (with-current-buffer standard-output (insert blurb))
+          (setq-local nobreak-char-display nil))))))
 
 (defun eglot-doc-too-large-for-echo-area (string)
   "Return non-nil if STRING won't fit in echo area.
