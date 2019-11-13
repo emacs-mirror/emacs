@@ -3170,9 +3170,10 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
   return Fread (make_string (res->data, res->len));
 }
 
-static int
-load_comp_unit (dynlib_handle_ptr handle)
+static void
+load_comp_unit (dynlib_handle_ptr handle, char *file_name)
 {
+  const char *err_msg;
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
@@ -3185,7 +3186,10 @@ load_comp_unit (dynlib_handle_ptr handle)
 	&& data_relocs
 	&& f_relocs
 	&& top_level_run))
-    return -1;
+    {
+      err_msg = "inconsistent eln file.";
+      goto exit_error;
+    }
 
   *current_thread_reloc = &current_thread;
   *pure_reloc = (EMACS_INT **)&pure;
@@ -3213,7 +3217,10 @@ load_comp_unit (dynlib_handle_ptr handle)
 	{
 	  /* FIXME: This is really not robust in case of subr redefinition.  */
 	  if (!SUBRP (subr))
-	    error ("Native code load error, subr redefined or wrong relocation.");
+	    {
+	      err_msg =  format_string ("subr %s redefined or wrong relocation?", f_str);
+	      goto exit_error;
+	    }
 	  f_relocs[i] = XSUBR (subr)->function.a0;
 	} else if (!strcmp (f_str, "wrong_type_argument"))
 	{
@@ -3253,14 +3260,16 @@ load_comp_unit (dynlib_handle_ptr handle)
 	  f_relocs[i] = (void *) specbind;
 	} else
 	{
-	  ice (format_string ("unexpected function relocation %s", f_str));
+	  err_msg = format_string ("unexpected function relocation %s.", f_str);
 	}
     }
 
   /* Executing this will perform all the expected environment modification.  */
   top_level_run ();
 
-  return 0;
+  return;
+exit_error:
+  error ("Native code load error while loading %s, %s", file_name, err_msg);
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr,
@@ -3303,9 +3312,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   if (!handle)
     xsignal2 (Qcomp_unit_open_failed, file, build_string (dynlib_error ()));
 
-  int r = load_comp_unit (handle);
-  if (r != 0)
-    xsignal2 (Qcomp_unit_init_failed, file, INT_TO_INTEGER (r));
+  load_comp_unit (handle, SSDATA (file));
 
   load_handle_stack = XCDR (load_handle_stack);
 
@@ -3364,7 +3371,6 @@ syms_of_comp (void)
   DEFSYM (Qintegerp, "integerp");
   /* Returned values.  */
   DEFSYM (Qcomp_unit_open_failed, "comp-unit-open-failed");
-  DEFSYM (Qcomp_unit_init_failed, "comp-unit-init-failed");
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
 
