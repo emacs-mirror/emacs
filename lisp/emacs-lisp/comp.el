@@ -433,6 +433,8 @@ Put PREFIX in front of it."
 (defun comp-spill-lap-functions-file (filename)
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
+  (unless byte-to-native-top-level-forms
+    (error "Empty byte compiler output"))
   (setf (comp-ctxt-top-level-forms comp-ctxt) (reverse byte-to-native-top-level-forms))
   (cl-loop
    for f in (cl-loop for x in byte-to-native-top-level-forms ; All non anonymous.
@@ -1767,10 +1769,9 @@ Prepare every function for final compilation and drive the C back-end."
 (defun comp-to-file-p (file)
   "Return t if FILE has to be compiled."
   (let ((compiled-f (concat file "n")))
-    (and (null (string-match-p "autoloads.el" file))
-         (or comp-always-compile
-             (not (and (file-exists-p compiled-f)
-                       (file-newer-than-file-p compiled-f file)))))))
+    (or comp-always-compile
+        (not (and (file-exists-p compiled-f)
+                  (file-newer-than-file-p compiled-f file))))))
 
 (defun comp-start-async-worker ()
   "Start an async compiler worker."
