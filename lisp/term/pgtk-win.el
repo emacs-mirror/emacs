@@ -368,6 +368,39 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                                          &context (window-system pgtk))
   (pgtk-get-selection-internal selection-symbol target-type))
 
+
+(defvar pgtk-preedit-overlay nil)
+
+(defun pgtk-preedit-text (e)
+  (interactive "e")
+  (when pgtk-preedit-overlay
+    (delete-overlay pgtk-preedit-overlay))
+  (setq pgtk-preedit-overlay nil)
+
+  (let ((ovstr "")
+        (idx 0)
+        atts ov str color face-name)
+    (dolist (part (nth 1 e))
+      (setq str (car part))
+      (setq face-name (intern (format "pgtk-im-%d" idx)))
+      (eval
+       `(defface ,face-name nil "face of input method preedit"))
+      (setq atts nil)
+      (when (setq color (cdr-safe (assq 'fg (cdr part))))
+        (setq atts (append atts `(:foreground ,color))))
+      (when (setq color (cdr-safe (assq 'bg (cdr part))))
+        (setq atts (append atts `(:background ,color))))
+      (when (setq color (cdr-safe (assq 'ul (cdr part))))
+        (setq atts (append atts `(:underline ,color))))
+      (face-spec-set face-name `((t . ,atts)))
+      (add-text-properties 0 (length str) `(face ,face-name) str)
+      (setq ovstr (concat ovstr str))
+      (setq idx (1+ idx)))
+
+    (setq ov (make-overlay (point) (point)))
+    (overlay-put ov 'before-string ovstr)
+    (setq pgtk-preedit-overlay ov)))
+
 (provide 'pgtk-win)
 (provide 'term/pgtk-win)
 

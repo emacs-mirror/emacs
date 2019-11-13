@@ -188,6 +188,7 @@ x_free_frame_resources (struct frame *f)
   CLEAR_IF_EQ(last_mouse_frame);
   CLEAR_IF_EQ(last_mouse_motion_frame);
   CLEAR_IF_EQ(last_mouse_glyph_frame);
+  CLEAR_IF_EQ(im.focused_frame);
 
 #undef CLEAR_IF_EQ
 
@@ -4282,6 +4283,8 @@ pgtk_delete_terminal (struct terminal *terminal)
 
   block_input ();
 
+  pgtk_im_finish (dpyinfo);
+
   /* Normally, the display is available...  */
   if (dpyinfo->gdpy)
     {
@@ -4952,6 +4955,45 @@ pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *dpyinfo, int state)
 #define IsKeypadKey(keysym)       (0xff80 <= (keysym) && (keysym) < 0xffbe)
 #define IsFunctionKey(keysym)     (0xffbe <= (keysym) && (keysym) < 0xffe1)
 
+void
+pgtk_enqueue_string(struct frame *f, gchar *str)
+{
+  gunichar *ustr;
+
+  ustr = g_utf8_to_ucs4 (str, -1, NULL, NULL, NULL);
+  if (ustr == NULL)
+    return;
+  for ( ; *ustr != 0; ustr++) {
+    union buffered_input_event inev;
+    Lisp_Object c = make_fixnum (*ustr);
+    EVENT_INIT (inev.ie);
+    inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
+		    ? ASCII_KEYSTROKE_EVENT
+		    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+    inev.ie.arg = Qnil;
+    inev.ie.code = XFIXNAT (c);
+    XSETFRAME (inev.ie.frame_or_window, f);
+    inev.ie.modifiers = 0;
+    inev.ie.timestamp = 0;
+    evq_enqueue (&inev);
+  }
+
+}
+
+void
+pgtk_enqueue_preedit(struct frame *f, Lisp_Object preedit)
+{
+  union buffered_input_event inev;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = PGTK_PREEDIT_TEXT_EVENT;
+  inev.ie.arg = preedit;
+  inev.ie.code = 0;
+  XSETFRAME (inev.ie.frame_or_window, f);
+  inev.ie.modifiers = 0;
+  inev.ie.timestamp = 0;
+  evq_enqueue (&inev);
+}
+
 static gboolean key_press_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
   struct coding_system coding;
@@ -4977,6 +5019,11 @@ static gboolean key_press_event(GtkWidget *widget, GdkEvent *event, gpointer *us
       clear_mouse_face (hlinfo);
       hlinfo->mouse_face_hidden = true;
     }
+
+  if (f != 0) {
+    if (pgtk_im_filter_keypress (f, &event->key))
+      return TRUE;
+  }
 
   if (f != 0)
     {
@@ -5462,6 +5509,9 @@ focus_in_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 		   FRAME_DISPLAY_INFO(frame), frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
+
+  pgtk_im_focus_in (frame);
+
   return TRUE;
 }
 
@@ -5483,6 +5533,9 @@ focus_out_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 		   FRAME_DISPLAY_INFO(frame), frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue(&inev);
+
+  pgtk_im_focus_out (frame);
+
   return TRUE;
 }
 
@@ -6218,6 +6271,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     init_sigio (dpyinfo->connection);
 
   pgtk_selection_init();
+
+  pgtk_im_init (dpyinfo);
 
   unblock_input ();
 

@@ -60,7 +60,7 @@ static const char *pgtk_app_name = "Emacs";
 
    ========================================================================== */
 
-static struct pgtk_display_info *
+struct pgtk_display_info *
 check_pgtk_display_info (Lisp_Object object)
 {
   struct pgtk_display_info *dpyinfo = NULL;

@@ -264,6 +264,10 @@ enum event_kind
   , FILE_NOTIFY_EVENT
 #endif
 
+#ifdef HAVE_PGTK
+  /* Pre-edit text was changed. */
+  , PGTK_PREEDIT_TEXT_EVENT
+#endif
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */

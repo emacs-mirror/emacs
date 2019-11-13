@@ -226,6 +226,14 @@ struct pgtk_display_info
 
   /* Modifier masks in gdk */
   int meta_mod_mask, alt_mod_mask;
+
+  /* whether to use Gtk's IM context. */
+
+  /* input method */
+  struct {
+    GtkIMContext *context;
+    struct frame *focused_frame;
+  } im;
 };
 
 /* This is a chain of structures for all the PGTK displays currently in use.  */
@@ -579,6 +587,7 @@ extern void syms_of_pgtkterm (void);
 extern void syms_of_pgtkfns (void);
 extern void syms_of_pgtkmenu (void);
 extern void syms_of_pgtkselect (void);
+extern void syms_of_pgtkim (void);
 
 /* Implemented in pgtkselect. */
 extern void nxatoms_of_pgtkselect (void);
@@ -601,5 +610,15 @@ extern Lisp_Object x_get_focus_frame (struct frame *frame);
 extern void pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo);
 
 extern void x_change_tab_bar_height (struct frame *, int);
+
+extern struct pgtk_display_info *check_pgtk_display_info (Lisp_Object object);
+
+extern void pgtk_enqueue_string(struct frame *f, gchar *str);
+extern void pgtk_enqueue_preedit(struct frame *f, Lisp_Object image_data);
+extern void pgtk_im_focus_in(struct frame *f);
+extern void pgtk_im_focus_out(struct frame *f);
+extern bool pgtk_im_filter_keypress(struct frame *f, GdkEventKey *ev);
+extern void pgtk_im_init(struct pgtk_display_info *dpyinfo);
+extern void pgtk_im_finish(struct pgtk_display_info *dpyinfo);
 
 #endif	/* HAVE_PGTK */
