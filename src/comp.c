@@ -3215,53 +3215,49 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
       Lisp_Object subr = Fsymbol_function (f_sym);
       if (!NILP (subr))
 	{
-	  /* FIXME: This is really not robust in case of subr redefinition.  */
 	  if (!SUBRP (subr))
 	    {
-	      err_msg =  format_string ("subr %s redefined or wrong relocation?", f_str);
-	      goto exit_error;
+	      /* If is not a subr try to recover the original one assuming was
+		 advised.  */
+	      if (!(!NILP (CALL1I (ad-has-any-advice, f_sym))
+		    && SUBRP (subr = CALL1I (ad-get-orig-definition, f_sym))))
+		{
+		  /* FIXME: This is not robust in case of primitive
+		     redefinition.  */
+		  err_msg = format_string ("primitive %s redefined "
+					   "or wrong relocation?",
+					   f_str);
+		  goto exit_error;
+		}
 	    }
 	  f_relocs[i] = XSUBR (subr)->function.a0;
-	} else if (!strcmp (f_str, "wrong_type_argument"))
-	{
-	  f_relocs[i] = (void *) wrong_type_argument;
-	} else if (!strcmp (f_str, "helper_PSEUDOVECTOR_TYPEP_XUNTAG"))
-	{
-	  f_relocs[i] = (void *) helper_PSEUDOVECTOR_TYPEP_XUNTAG;
-	} else if (!strcmp (f_str, "pure_write_error"))
-	{
-	  f_relocs[i] = (void *) pure_write_error;
-	} else if (!strcmp (f_str, "push_handler"))
-	{
-	  f_relocs[i] = (void *) push_handler;
-	} else if (!strcmp (f_str, SETJMP_NAME))
-	{
-	  f_relocs[i] = (void *) SETJMP;
-	} else if (!strcmp (f_str, "record_unwind_protect_excursion"))
-	{
-	  f_relocs[i] = (void *) record_unwind_protect_excursion;
-	} else if (!strcmp (f_str, "helper_unbind_n"))
-	{
-	  f_relocs[i] = (void *) helper_unbind_n;
-	} else if (!strcmp (f_str, "helper_save_restriction"))
-	{
-	  f_relocs[i] = (void *) helper_save_restriction;
-	} else if (!strcmp (f_str, "record_unwind_current_buffer"))
-	{
-	  f_relocs[i] = (void *) record_unwind_current_buffer;
-	} else if (!strcmp (f_str, "set_internal"))
-	{
-	  f_relocs[i] = (void *) set_internal;
-	} else if (!strcmp (f_str, "helper_unwind_protect"))
-	{
-	  f_relocs[i] = (void *) helper_unwind_protect;
-	} else if (!strcmp (f_str, "specbind"))
-	{
-	  f_relocs[i] = (void *) specbind;
-	} else
-	{
-	  err_msg = format_string ("unexpected function relocation %s.", f_str);
 	}
+      else if (!strcmp (f_str, "wrong_type_argument"))
+	f_relocs[i] = (void *) wrong_type_argument;
+      else if (!strcmp (f_str, "helper_PSEUDOVECTOR_TYPEP_XUNTAG"))
+	f_relocs[i] = (void *) helper_PSEUDOVECTOR_TYPEP_XUNTAG;
+      else if (!strcmp (f_str, "pure_write_error"))
+	f_relocs[i] = (void *) pure_write_error;
+      else if (!strcmp (f_str, "push_handler"))
+	f_relocs[i] = (void *) push_handler;
+      else if (!strcmp (f_str, SETJMP_NAME))
+	f_relocs[i] = (void *) SETJMP;
+      else if (!strcmp (f_str, "record_unwind_protect_excursion"))
+	f_relocs[i] = (void *) record_unwind_protect_excursion;
+      else if (!strcmp (f_str, "helper_unbind_n"))
+	f_relocs[i] = (void *) helper_unbind_n;
+      else if (!strcmp (f_str, "helper_save_restriction"))
+	f_relocs[i] = (void *) helper_save_restriction;
+      else if (!strcmp (f_str, "record_unwind_current_buffer"))
+	f_relocs[i] = (void *) record_unwind_current_buffer;
+      else if (!strcmp (f_str, "set_internal"))
+	f_relocs[i] = (void *) set_internal;
+      else if (!strcmp (f_str, "helper_unwind_protect"))
+	f_relocs[i] = (void *) helper_unwind_protect;
+      else if (!strcmp (f_str, "specbind"))
+	f_relocs[i] = (void *) specbind;
+      else
+	err_msg = format_string ("unexpected function relocation %s.", f_str);
     }
 
   /* Executing this will perform all the expected environment modification.  */
