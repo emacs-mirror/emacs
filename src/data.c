@@ -866,12 +866,11 @@ SUBR must be a built-in function.  */)
 
 #ifdef HAVE_NATIVE_COMP
 DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1, 0,
-       doc: /* Return t if the subr is native compiled elisp,
+       doc: /* Return t if the object is native compiled lisp function,
 nil otherwise.  */)
-  (Lisp_Object subr)
+  (Lisp_Object object)
 {
-  CHECK_SUBR (subr);
-  return XSUBR (subr)->native_elisp ? Qt : Qnil;
+  return (SUBRP (object) && XSUBR (object)->native_elisp) ? Qt : Qnil;
 }
 #endif
 
