@@ -813,15 +813,17 @@ This docstring appeases checkdoc, that's all."
                                  (setq autostart-inferior-process inferior)
                                  connection))))
                 ((stringp (car contact))
-                 `(:process ,(lambda ()
-                               (make-process
-                                :name readable-name
-                                :command contact
-                                :connection-type 'pipe
-                                :coding 'utf-8-emacs-unix
-                                :noquery t
-                                :stderr (get-buffer-create
-                                         (format "*%s stderr*" readable-name))))))))
+                 `(:process
+                   ,(lambda ()
+                      (let ((default-directory default-directory))
+                        (make-process
+                         :name readable-name
+                         :command contact
+                         :connection-type 'pipe
+                         :coding 'utf-8-emacs-unix
+                         :noquery t
+                         :stderr (get-buffer-create
+                                  (format "*%s stderr*" readable-name)))))))))
          (spread (lambda (fn) (lambda (server method params)
                                 (apply fn server method (append params nil)))))
          (server
@@ -1961,7 +1963,9 @@ is not active."
                                        :textDocument/completion
                                        (eglot--CompletionParams)
                                        :deferred :textDocument/completion
-                                       :cancel-on-input t))
+                                       :cancel-on-input (prog1 non-essential
+                                                          (when non-essential
+                                                            (message "OH IT'S NON ESSENTIAL")))))
                 (setq items (append
                              (if (vectorp resp) resp (plist-get resp :items))
                              nil))
