@@ -32,12 +32,36 @@
 (setq comp-speed 3)
 (setq comp-debug 1)
 
+(defconst comp-test-directory (file-name-directory (or load-file-name
+                                                       buffer-file-name)))
 (defconst comp-test-src
-  (concat (file-name-directory (or load-file-name buffer-file-name))
-          "comp-test-funcs.el"))
+  (concat comp-test-directory "comp-test-funcs.el"))
 
 (message "Compiling %s" comp-test-src)
 (load (native-compile comp-test-src))
+
+(ert-deftest comp-tests-bootstrap ()
+  "Compile the compiler and load it to compile it-self.
+Check that the resulting binaries do not differ."
+  (let ((comp-file (concat comp-test-directory
+                           "../../lisp/emacs-lisp/comp.el"))
+        (comp1-file (concat temporary-file-directory
+                            (make-temp-name "stage1-")
+                            ".el"))
+        (comp2-file (concat temporary-file-directory
+                            (make-temp-name "stage2-")
+                            ".el")))
+    (copy-file comp-file comp1-file)
+    (copy-file comp-file comp2-file)
+    (load (concat comp-file "c") nil nil t t)
+    (should (null (subr-native-elisp-p (symbol-function #'native-compile))))
+    (message "Compiling stage1...")
+    (load (native-compile comp1-file) nil nil t t)
+    (should (subr-native-elisp-p (symbol-function 'native-compile)))
+    (message "Compiling stage2...")
+    (native-compile comp2-file)
+    (message "Comparing %s %s" comp1-file comp2-file)
+    (should (= (call-process "cmp" nil nil nil comp1-file comp2-file) 0))))
 
 (ert-deftest comp-tests-provide ()
   "Testing top level provide."
