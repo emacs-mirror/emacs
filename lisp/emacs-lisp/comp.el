@@ -566,12 +566,13 @@ The basic block is returned regardless it was already declared or not."
   (comp-add-subr-to-relocs func)
   `(call ,func ,@args))
 
-(defun comp-callref (func &rest args)
-  "Emit a call usign narg abi for FUNC with ARGS."
+(defun comp-callref (func nargs stack-off)
+  "Emit a call usign narg abi for FUNC.
+NARGS is the number of arguments.
+STACK-OFF is the index of the first slot frame involved."
   (comp-add-subr-to-relocs func)
-  `(callref ,func ,@(cl-loop with (nargs off) = args
-                             repeat nargs
-                             for sp from off
+  `(callref ,func ,@(cl-loop repeat nargs
+                             for sp from stack-off
                              collect (comp-slot-n sp))))
 
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
