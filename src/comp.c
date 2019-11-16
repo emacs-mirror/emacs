@@ -1156,11 +1156,11 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 
   gcc_jit_rvalue *args[] = { handler, handler_type };
   gcc_jit_block_add_assignment (
-	      comp.block,
-	      NULL,
-	      comp.loc_handler,
-	      emit_call (intern_c_string ("push_handler"),
-			 comp.handler_ptr_type, 2, args, false));
+    comp.block,
+    NULL,
+    comp.loc_handler,
+    emit_call (intern_c_string ("push_handler"),
+	       comp.handler_ptr_type, 2, args, false));
 
   args[0] =
     gcc_jit_lvalue_get_address (
