@@ -241,6 +241,9 @@
 (defun comp-tests-string-trim-f (url)
   (string-trim url))
 
+(defun comp-tests-trampoline-removal-f ()
+  (make-hash-table))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;

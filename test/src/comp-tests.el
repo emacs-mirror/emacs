@@ -306,6 +306,11 @@ Check that the resulting binaries do not differ."
 (ert-deftest comp-tests-string-trim ()
   (should (string= (comp-tests-string-trim-f "dsaf ") "dsaf")))
 
+(ert-deftest comp-tests-trampoline-removal ()
+  ;; This tests that we can can call primitives with no dedicated bytecode.
+  ;; At speed >= 2 the trampoline will not be used.
+  (should (hash-table-p (comp-tests-trampoline-removal-f))))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
