@@ -1139,7 +1139,9 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
-  EMACS_INT base_ptr = XFIXNUM (CALL1I (comp-mvar-slot, SECOND (insn)));
+  EMACS_INT base_ptr = 0;
+  if (nargs)
+    base_ptr = XFIXNUM (CALL1I (comp-mvar-slot, SECOND (insn)));
   return emit_call_ref (callee, nargs, comp.frame[base_ptr], direct);
 }
 
