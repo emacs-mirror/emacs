@@ -3723,6 +3723,199 @@ the minibuffer was activated, and execute the forms."
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
 
+;;; New completion-table (aka "backend") API
+
+;; General changes:
+;; - Use cl-generic
+;; - Use a consistent `completion-table-' prefix.
+;; - No more `pred' argument.  Instead predicates should be applied
+;;   directly into the table via something like
+;;   `completion-table-with-predicate'.
+;; - No more `try-completion'.
+;;   That's a UI feature implemented in the middle-end,
+;;   not a completion-table feature.
+;; - The methods should not be affected by `completion-regexp-list'.
+
+(cl-defgeneric completion-table-test (table string)
+  (condition-case nil
+      (if (functionp table)
+          (funcall table 'test (list string))
+        (with-suppressed-warnings ((callargs car)) (car)))
+    (wrong-number-of-arguments
+     (test-completion string table))))
+
+(cl-defgeneric completion-table-category (table string)
+  (condition-case nil
+      (if (functionp table)
+          (funcall table 'category ())
+        (with-suppressed-warnings ((callargs car)) (car)))
+    (wrong-number-of-arguments
+     (let ((md (completion-metadata string table nil)))
+       (alist-get 'category md)))))
+
+(cl-defgeneric completion-table-boundaries (table string point)
+  ;; FIXME: We should return an additional information to indicate
+  ;; the relation with text before the boundary:
+  ;; - For files, changing the text before the boundary can affect
+  ;;   the set of candidates, but that's not the case for
+  ;;   ${ENV} within file names or for port names after <host>:<portname>
+  ;;   so for files PCM can try and modify the /usr/b/ part of /usr/b/e
+  ;;   to find completions, but for /usr/b/${HOMT it won't help.
+  ;; - Currently, boundary separators have to be single-char, but
+  ;;   that's not right for the ${ENV} case, and is inconvenient
+  ;;   when completing a comma-separated sequence where we might
+  ;;   want to allow spaces.
+  ;; - We assume that the boundary char is unique.
+  ;;   E.g. under Windows, completing the equivalent of \usr\b\e
+  ;;   won't find /usr/bin/emacs because PCM looks for completions of
+  ;;   in \usr\b which end in `\` (the char that was found to be the boundary)
+  ;;   whereas all-completions will return `/` instead.
+  "Return the boundaries of text on which completion TABLE will operate.
+STRING is the string on which completion will be performed.
+POINT is the position of point within STRING
+
+The result is of the form (START . END) where START is the position
+in STRING of the beginning of the completion field and END is the position
+in STRING of the end of the completion field.
+E.g. for simple completion tables, the result is always (0 . (length STRING))
+and for file names the result is the positions delimited by
+the closest directory separators."
+  (condition-case nil
+      (if (functionp table)
+          (funcall table 'boundaries (list string point))
+        (with-suppressed-warnings ((callargs car)) (car)))
+    (wrong-number-of-arguments
+     (pcase-let ((`(,prepos . ,postpos)
+                  (completion-boundaries (substring string 0 point) table nil
+                                         (substring string point))))
+       `(,prepos . ,(+ postpos point))))))
+
+(cl-defgeneric completion-table-fetch-matches (pre pattern table
+                                                   &optional session)
+  "Return candidates matching PATTERN in the completion TABLE.
+PRE is the text found before PATTERN such that
+   (let ((len (length PRE)))
+     (equal (completion-table-boundaries TABLE PRE len) (cons len len)))
+
+Return either a list of strings or an alist whose `car's are strings."
+  ;; FIXME: Should we specify a possible special return value (e.g. `t')
+  ;; to mean that the completion table is unable to provide the list of
+  ;; matches, e.g. when "completing" an arbitrary number, or a URL.
+  (cl-assert
+   (let ((len (length pre)))
+     (equal (completion-table-boundaries table pre len) (cons len len))))
+  (condition-case nil
+      (if (functionp table)
+          (funcall table 'fetch-matches (list pre pattern session))
+        (with-suppressed-warnings ((callargs car)) (car)))
+    (wrong-number-of-arguments
+     (let ((completion-regexp-list nil))
+       (all-completions (concat pre pattern) table)))))
+
+(cl-defmethod completion-table-fetch-matches (pre (pattern (head regexp)) table
+                                                  &optional _session)
+  "Candidates matching a regexp."
+  ;; FIXME: if `table' is a function it may ignore `completion-regexp-list'.
+  (let ((completion-regexp-list (list (cdr pattern))))
+    ;; FIXME: Try and extract a prefix from the pattern to optimize the match.
+    (all-completions pre table)))
+
+;;; New middle-end API
+
+(cl-defgeneric completion-style-fetch-matches (style table ctx string point
+                                                     &optional session)
+  ;; Basically like `completion-pcm--find-all-completions'.
+  "Fetch matches of STRING from completion TABLE.
+CTX is a pair (PRE . POST) of the text found before/after STRING
+  (chosen according to `completion-table-boundaries').
+STYLE is the completion style to use.
+POINT is the position of point within STRING.
+
+Return a triplet (MATCHES NEWCTX PATTERN) where
+- MATCHES is a list of strings (or an alist where the `car's are strings)
+- PATTERN is the pattern that the style decided to use.
+- NEWCTX is a pair of integers (PREPOS . POSTPOS) usually identical to CTX
+  unless the completion style decided to expand its search to parts
+  of the context.
+
+So we're really completing on an input string of the form
+  (concat PRE STRING POST)
+and each candidate completion in MATCHES corresponds really to
+  (concat (substring PRE 0 PREPOS) CANDIDATE (substring POST POSTPOS))"
+  (let* ((total-string (concat (car ctx) string (cdr ctx)))
+         (total-point (+ point (length (car ctx))))
+         (matches (funcall (nth 2 (assq style completion-styles-alist))
+                           total-string table nil total-point))
+         (last (last matches)))
+    (when matches
+      (prog1 (list matches (cons (or (cdr last) 0) (length (cdr ctx)))
+                   `(old-styles-api ,total-string ,table ,total-point))
+        (setcdr last nil)))))
+
+(cl-defgeneric completion-merge-matches (pattern matches)
+  ;; Basically like `completion-pcm--merge-completions' but extensible to
+  ;; various kinds of patterns.
+  "Try and find a better STRING that would find the same MATCHES.
+PATTERN is the pattern that was used to find MATCHES.
+Return (STRING . POINT) where POINT should be the position in STRING
+that best matches the original position of point in the original string
+from which PATTERN was built.")
+
+(cl-defmethod completion-merge-matches ((pattern (head old-styles-api))
+                                        _matches)
+  ;; ¡¡BIG UGLY HACK!!
+  ;; The new styles API is "lower-level" than the old one, so it would be
+  ;; easy to implement the old one on top of the new one, but the reverse
+  ;; is impossible... except using a trick like this one.
+  (pcase-let ((`(total-string ,table ,total-point) (cdr pattern)))
+    (funcall (nth 1 (assq style completion-styles-alist))
+             total-string table nil total-point)))
+
+(defun completion-fetch-completions (table string point)
+  ;; FIXME: unquote&requote is still missing!
+  (pcase-let*
+      ((session (make-hash-table :test #'equal))
+       (category (completion-table-category table (substring string 0 point)))
+       (`(,bound-beg . ,bound-end)
+        (completion-table-boundaries table string point))
+       (_ (cl-assert (<= bound-beg point bound-end)))
+       (ctx (cons (substring string 0 bound-beg)
+                  (substring string bound-end)))
+       (pattern-string (substring string bound-beg bound-end))
+       (`(,_style ,matches ,newctx ,pattern)
+        (completion--some
+         (lambda (style)
+           (let* ((x
+                  (completion-style-fetch-matches
+                   style table ctx pattern-string (- point bound-beg) session)))
+             (when x
+               (cons style x))))
+         (completion--styles `((category . ,category))))))
+    `((all-completions . ,(lambda () matches))
+      (try-completion
+       . ,(lambda ()
+            ;; FIXME: Merge with `completion-pcm--merge-try'.
+            (if (null matches)
+                (if (completion-table-test table string)
+                    ;; `string' is valid but there's not matching candidate,
+                    ;; presumably because the completion table can't find the
+                    ;; completions.
+                    nil                 ;FIXME: Return something more explicit?
+                  nil)
+              (pcase-let* ((`(,merged . ,point)
+                            (completion-merge-matches pattern matches))
+                           (suffix (substring (cdr ctx) 0 (cdr newctx)))
+                           (mergedsuffix
+                            (completion--merge-suffix
+                             merged (max 0 (1- (length merged))) suffix))
+                           (prefix (substring (car ctx) 0 (car newctx)))
+                           (newstring (concat prefix merged mergedsuffix)))
+                (if (and (equal newstring string)
+                         (null (cdr matches)))
+                    t                   ;Sole completion!
+                  `(,newstring ,(+ point (car newctx))))))))
+      ??)))
+
 (provide 'minibuffer)
 
 ;;; minibuffer.el ends here
