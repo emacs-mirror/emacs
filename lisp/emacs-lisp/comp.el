@@ -1819,10 +1819,12 @@ Return the compilation unit filename."
                                 (symbol-name input)
                               (file-name-sans-extension (expand-file-name input))))))
     (comp-log "\n\n" 1)
-    (mapc (lambda (pass)
-            (comp-log (format "Running pass %s:\n" pass) 2)
-            (setq data (funcall pass data)))
-          comp-passes)
+    (condition-case err
+        (mapc (lambda (pass)
+                (comp-log (format "Running pass %s:\n" pass) 2)
+                (setq data (funcall pass data)))
+              comp-passes)
+      (error (error "While compiling %s: %s" input (error-message-string err))))
     data))
 
 ;;;###autoload
