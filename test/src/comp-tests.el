@@ -308,6 +308,12 @@ Check that the resulting binaries do not differ."
   ;; At speed >= 2 the trampoline will not be used.
   (should (hash-table-p (comp-tests-trampoline-removal-f))))
 
+(ert-deftest comp-tests-signal ()
+  (should (equal (condition-case err
+                     (comp-tests-signal-f)
+                   (t err))
+                 '(foo . t))))
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;

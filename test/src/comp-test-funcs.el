@@ -244,6 +244,10 @@
 (defun comp-tests-trampoline-removal-f ()
   (make-hash-table))
 
+(defun comp-tests-signal-f ()
+  (signal 'foo t))
+
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
 ;;;;;;;;;;;;;;;;;;;;
