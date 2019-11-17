@@ -3305,6 +3305,12 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   (Lisp_Object file)
 {
   CHECK_STRING (file);
+
+  if (NILP (Fhash_table_p (Vnative_units_loaded)))
+    Vnative_units_loaded = CALLN (Fmake_hash_table, QCtest, Qequal);
+
+  Fputhash (file, Qt, Vnative_units_loaded);
+
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
   if (!handle)
@@ -3387,9 +3393,13 @@ syms_of_comp (void)
   comp.emitter_dispatcher = Qnil;
 
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
-	       doc: /*
-		     The compiler context.  */);
+	       doc: /* The compiler context.  */);
   Vcomp_ctxt = Qnil;
+
+  DEFVAR_LISP ("native-units-loaded", Vnative_units_loaded,
+	       doc: /* Hash table containing all the currently loaded
+		       compilation units file names.  */);
+  Vnative_units_loaded = Qnil;
 
   /* Load mechanism.  */
   staticpro (&Vnative_elisp_refs_hash);
