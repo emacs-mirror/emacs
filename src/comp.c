@@ -3310,10 +3310,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 {
   CHECK_STRING (file);
 
-  if (NILP (Fhash_table_p (Vnative_units_loaded)))
-    Vnative_units_loaded = CALLN (Fmake_hash_table, QCtest, Qequal);
-
-  Fputhash (file, Qt, Vnative_units_loaded);
+  Vnative_load_history = Fcons (file, Vnative_load_history);
 
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
@@ -3400,10 +3397,9 @@ syms_of_comp (void)
 	       doc: /* The compiler context.  */);
   Vcomp_ctxt = Qnil;
 
-  DEFVAR_LISP ("native-units-loaded", Vnative_units_loaded,
-	       doc: /* Hash table containing all the currently loaded
-		       compilation units file names.  */);
-  Vnative_units_loaded = Qnil;
+  DEFVAR_LISP ("native-load-history", Vnative_load_history,
+	       doc: /* List with the history of the eln loaded.  */);
+  Vnative_load_history = Qnil;
 
   /* Load mechanism.  */
   staticpro (&Vnative_elisp_refs_hash);
