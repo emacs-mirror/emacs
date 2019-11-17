@@ -168,7 +168,11 @@ Check that the resulting binaries do not differ."
   "Testing jump tables"
   (should (eq (comp-tests-jump-table-1-f 'x) 'a))
   (should (eq (comp-tests-jump-table-1-f 'y) 'b))
-  (should (eq (comp-tests-jump-table-1-f 'xxx) 'c)))
+  (should (eq (comp-tests-jump-table-1-f 'xxx) 'c))
+
+  ;; Jump table not with eq as test
+  (should (eq (comp-tests-jump-table-2-f "aaa") 'a))
+  (should (eq (comp-tests-jump-table-2-f "bbb") 'b)))
 
 (ert-deftest comp-tests-conditionals ()
   "Testing conditionals."

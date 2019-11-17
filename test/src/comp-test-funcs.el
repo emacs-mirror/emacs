@@ -111,6 +111,11 @@
     ('y 'b)
     (_ 'c)))
 
+(defun comp-tests-jump-table-2-f (x)
+  (pcase x
+    ("aaa" 'a)
+    ("bbb" 'b)))
+
 (defun comp-tests-conditionals-1-f (x)
   ;; Generate goto-if-nil
   (if x 1 2))
