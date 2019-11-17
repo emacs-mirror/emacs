@@ -70,6 +70,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 #define SETJMP_NAME STR (SETJMP)
 
+/* Raise an internal compiler error if test.
+   msg is evaluated only in that case.  */
 #define ICE_IF(test, msg)			\
   do {						\
     if (test)					\
@@ -3271,7 +3273,9 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
 
   return;
 exit_error:
-  error ("Native code load error while loading %s, %s", file_name, err_msg);
+  xsignal1 (Qcomp_unit_load_failed,
+	    build_string (format_string ("while loading %s, %s",
+					 file_name, err_msg)));
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr,
@@ -3284,7 +3288,9 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
 {
   dynlib_handle_ptr handle = xmint_pointer (XCAR (load_handle_stack));
   if (!handle)
-    error ("comp--register-subr can only be called during native code load phase.");
+    xsignal1 (Qcomp_unit_load_failed,
+	      build_string ("comp--register-subr can only be called during "
+			    "native code load phase."));
 
   void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
@@ -3315,7 +3321,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
   if (!handle)
-    xsignal2 (Qcomp_unit_open_failed, file, build_string (dynlib_error ()));
+    xsignal2 (Qcomp_unit_load_failed, file, build_string (dynlib_error ()));
 
   load_comp_unit (handle, SSDATA (file));
 
@@ -3374,8 +3380,8 @@ syms_of_comp (void)
   DEFSYM (Qnegate, "negate");
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
-  /* Returned values.  */
-  DEFSYM (Qcomp_unit_open_failed, "comp-unit-open-failed");
+  /* To be signaled.  */
+  DEFSYM (Qcomp_unit_load_failed, "comp-unit-load-failed");
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
 
