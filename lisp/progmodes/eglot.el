@@ -2033,10 +2033,7 @@ is not active."
              (when annotation
                (concat " "
                        (propertize annotation
-                                   'face 'font-lock-function-name-face)
-                       (and (eql insertTextFormat 2)
-                            (eglot--snippet-expansion-fn)
-                            " (snippet)"))))))
+                                   'face 'font-lock-function-name-face))))))
        :company-doc-buffer
        (lambda (proxy)
          (let* ((documentation
