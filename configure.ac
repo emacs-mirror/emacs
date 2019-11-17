@@ -3753,6 +3753,11 @@ if test "${with_nativecomp}" != "no"; then
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
     AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
      [System extension for native compiled elisp])
+  else
+    AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
+If you are sure you want Emacs compiled without elisp native compiler, pass
+  --without-nativecomp
+to configure.])
   fi
 fi
 AC_SUBST(LIBGCCJIT_LIB)
@@ -5737,7 +5742,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs support the portable dumper?                 ${with_pdumper}
   Does Emacs support legacy unexec dumping?               ${with_unexec}
   Which dumping strategy does Emacs use?                  ${with_dumping}
-  Does Emacs have native lisp compiler?                   ${with_nativecomp}
+  Does Emacs have native lisp compiler?                   ${HAVE_NATIVE_COMP}
 "])
 
 if test -n "${EMACSDATA}"; then
