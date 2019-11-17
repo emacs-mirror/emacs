@@ -256,7 +256,8 @@ structure.")
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
   (slot nil :type fixnum
-        :documentation "Slot number.")
+        :documentation "Slot number.
+-1 is a special value and indicates the scratch slot.")
   (id nil :type (or null number)
      :documentation "SSA number.")
   (const-vld nil :type boolean
@@ -712,12 +713,15 @@ Return value is the fall through block name."
 
 (defun comp-emit-switch (var last-insn)
   "Emit a limple for a lap jump table given VAR and LAST-INSN."
+  ;; FIXME this not efficent for big jump tables. We should have a second
+  ;; strategy for this case.
   (pcase last-insn
-    (`(setimm ,_ ,_ ,const)
+    (`(setimm ,_ ,_ ,jmp-table)
      (cl-loop
-      for test being each hash-keys of const
+      for test being each hash-keys of jmp-table
       using (hash-value target-label)
-      with len = (hash-table-count const)
+      with len = (hash-table-count jmp-table)
+      with test-func = (hash-table-test jmp-table)
       for n from 1
       for last = (= n len)
       for m-test = (make-comp-mvar :constant test)
@@ -730,12 +734,21 @@ Return value is the fall through block name."
                                       (comp-sp)
                                       (comp-new-block-sym)))
       for ff-bb-name = (comp-block-name ff-bb)
-      do
-      (comp-emit (list 'cond-jump var m-test ff-bb-name target-name))
-      (unless last
-        ;; All fall through are artificially created here except the last one.
-        (puthash ff-bb-name ff-bb (comp-func-blocks comp-func))
-        (setf (comp-limplify-curr-block comp-pass) ff-bb))))
+      if (eq test-func 'eq)
+        do (comp-emit (list 'cond-jump var m-test ff-bb-name target-name))
+      else
+        ;; Store the result of the comparison into the scratch slot before
+        ;; emitting the conditional jump.
+        do (comp-emit (list 'set (make-comp-mvar :slot -1)
+                            (comp-call test-func var m-test)))
+           (comp-emit (list 'cond-jump
+                            (make-comp-mvar :slot -1)
+                            (make-comp-mvar :constant nil)
+                            target-name ff-bb-name))
+      do (unless last
+           ;; All fall through are artificially created here except the last one.
+           (puthash ff-bb-name ff-bb (comp-func-blocks comp-func))
+           (setf (comp-limplify-curr-block comp-pass) ff-bb))))
     (_ (error "Missing previous setimm while creating a switch"))))
 
 (defun comp-emit-set-call-subr (subr-name sp-delta)

@@ -146,6 +146,7 @@ typedef struct {
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue **frame; /* Frame for the current function.  */
   gcc_jit_lvalue **f_frame; /* "Floating" frame for the current function.  */
+  gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
@@ -301,6 +302,15 @@ static gcc_jit_lvalue *
 get_slot (Lisp_Object mvar)
 {
   EMACS_INT slot_n = XFIXNUM (CALL1I (comp-mvar-slot, mvar));
+  if (slot_n == -1)
+    {
+      if (!comp.scratch)
+	comp.scratch = gcc_jit_function_new_local (comp.func,
+						   NULL,
+						   comp.lisp_obj_type,
+						   "scratch");
+      return comp.scratch;
+    }
   gcc_jit_lvalue **frame =
     (CALL1I (comp-mvar-ref, mvar) || SPEED < 2)
     ? comp.frame : comp.f_frame;
@@ -2822,6 +2832,8 @@ compile_function (Lisp_Object func)
 				      comp.lisp_obj_type,
 				      format_string ("local%u", i));
     }
+
+  comp.scratch = NULL;
 
   comp.loc_handler =  gcc_jit_function_new_local (comp.func,
 						  NULL,
