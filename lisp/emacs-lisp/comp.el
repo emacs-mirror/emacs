@@ -1797,7 +1797,8 @@ Prepare every function for final compilation and drive the C back-end."
                                       "--eval"
                                       (prin1-to-string code))))
              (while (accept-process-output prc)
-               (thread-yield)))))))
+               (thread-yield)))))
+       (message "Finished compiling.")))
    "compilation thread"))
 
 ;;; Compiler entry points.
