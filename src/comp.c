@@ -3052,6 +3052,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 {
   CHECK_STRING (ctxtname);
 
+  Frequire (Qadvice, Qnil, Qnil);
+
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  SPEED);
@@ -3327,6 +3329,8 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 {
   CHECK_STRING (file);
 
+  Frequire (Qadvice, Qnil, Qnil);
+
   Vnative_load_history = Fcons (file, Vnative_load_history);
 
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
@@ -3395,6 +3399,7 @@ syms_of_comp (void)
   DEFSYM (Qcomp_unit_load_failed, "comp-unit-load-failed");
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
+  DEFSYM (Qadvice, "advice");
 
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
