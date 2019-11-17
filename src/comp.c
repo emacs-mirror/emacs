@@ -398,20 +398,21 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 				       nargs,
 				       args);
     }
-  else {
-    gcc_jit_lvalue *f_ptr =
-      gcc_jit_lvalue_access_field (comp.func_relocs,
-				   NULL,
-				   (gcc_jit_field *) xmint_pointer (func));
-    ICE_IF (!f_ptr, "undeclared function relocation");
-    emit_comment (format_string ("calling subr: %s",
-				 SSDATA (SYMBOL_NAME (subr_sym))));
-    return gcc_jit_context_new_call_through_ptr (comp.ctxt,
-						 NULL,
-						 gcc_jit_lvalue_as_rvalue (f_ptr),
-						 nargs,
-						 args);
-  }
+  else
+    {
+      gcc_jit_lvalue *f_ptr =
+	gcc_jit_lvalue_access_field (comp.func_relocs,
+				     NULL,
+				     (gcc_jit_field *) xmint_pointer (func));
+      ICE_IF (!f_ptr, "undeclared function relocation");
+      emit_comment (format_string ("calling subr: %s",
+				   SSDATA (SYMBOL_NAME (subr_sym))));
+      return gcc_jit_context_new_call_through_ptr (comp.ctxt,
+						   NULL,
+						   gcc_jit_lvalue_as_rvalue (f_ptr),
+						   nargs,
+						   args);
+    }
 }
 
 static gcc_jit_rvalue *
@@ -481,8 +482,7 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 }
 
 /*
-   Emit the equivalent of
-
+   Emit the equivalent of:
    (typeof_ptr) ((uintptr) ptr + size_of_ptr_ref * i)
 */
 
@@ -1046,8 +1046,8 @@ emit_mvar_val (Lisp_Object mvar)
     {
       if (FIXNUMP (constant))
 	{
-	  /* We can still emit directly objects that are selfcontained in a word
-	     (read fixnums).  */
+	  /* We can still emit directly objects that are self-contained in a
+	     word (read fixnums).  */
 	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
 	  gcc_jit_rvalue *word =
 	    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
@@ -1168,7 +1168,7 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 			  gcc_jit_block *handler_bb, gcc_jit_block *guarded_bb,
 			  Lisp_Object clobbered_mvar)
 {
-   /* struct handler *c = push_handler (POP, type); */
+   /* struct handler *c = push_handler (POP, type);  */
 
   gcc_jit_rvalue *args[] = { handler, handler_type };
   gcc_jit_block_add_assignment (
