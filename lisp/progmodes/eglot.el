@@ -1963,9 +1963,7 @@ is not active."
                                        :textDocument/completion
                                        (eglot--CompletionParams)
                                        :deferred :textDocument/completion
-                                       :cancel-on-input (prog1 non-essential
-                                                          (when non-essential
-                                                            (message "OH IT'S NON ESSENTIAL")))))
+                                       :cancel-on-input t))
                 (setq items (append
                              (if (vectorp resp) resp (plist-get resp :items))
                              nil))
