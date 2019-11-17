@@ -224,6 +224,20 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
+static Lisp_Object
+symbol_subr (Lisp_Object symbol)
+{
+  Lisp_Object subr = Fsymbol_function (symbol);
+
+  if (SUBRP (subr))
+    return subr;
+
+  if (!NILP (CALL1I (ad-has-any-advice, symbol)))
+    subr = CALL1I (ad-get-orig-definition, symbol);
+
+  return SUBRP (subr) ? subr : Qnil;
+}
+
 static gcc_jit_field *
 type_to_cast_field (gcc_jit_type *type)
 {
@@ -1800,7 +1814,7 @@ emit_ctxt_code (void)
   FOR_EACH_TAIL (f_subr)
     {
       Lisp_Object subr_sym = XCAR (f_subr);
-      Lisp_Object subr = Fsymbol_function (subr_sym);
+      Lisp_Object subr = symbol_subr (subr_sym);
       /* Ignore inliners. This are not real functions to be imported.  */
       if (SUBRP (subr))
 	{
@@ -3225,11 +3239,8 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
       Lisp_Object subr = Fsymbol_function (f_sym);
       if (!NILP (subr))
 	{
-	  if (!SUBRP (subr)
-	      /* If is not a subr try to recover the original one assuming was
-		 advised.  */
-	      && !(!NILP (CALL1I (ad-has-any-advice, f_sym))
-		   && SUBRP (subr = CALL1I (ad-get-orig-definition, f_sym))))
+	  subr = symbol_subr (f_sym);
+	  if (NILP (subr))
 	    {
 	      /* FIXME: This is not robust in case of primitive
 		 redefinition.  */
