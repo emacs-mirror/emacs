@@ -3217,20 +3217,18 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
       Lisp_Object subr = Fsymbol_function (f_sym);
       if (!NILP (subr))
 	{
-	  if (!SUBRP (subr))
-	    {
+	  if (!SUBRP (subr)
 	      /* If is not a subr try to recover the original one assuming was
 		 advised.  */
-	      if (!(!NILP (CALL1I (ad-has-any-advice, f_sym))
-		    && SUBRP (subr = CALL1I (ad-get-orig-definition, f_sym))))
-		{
-		  /* FIXME: This is not robust in case of primitive
-		     redefinition.  */
-		  err_msg = format_string ("primitive %s redefined "
-					   "or wrong relocation?",
-					   f_str);
-		  goto exit_error;
-		}
+	      && !(!NILP (CALL1I (ad-has-any-advice, f_sym))
+		   && SUBRP (subr = CALL1I (ad-get-orig-definition, f_sym))))
+	    {
+	      /* FIXME: This is not robust in case of primitive
+		 redefinition.  */
+	      err_msg = format_string ("primitive %s redefined "
+				       "or wrong relocation?",
+				       f_str);
+	      goto exit_error;
 	    }
 	  f_relocs[i] = XSUBR (subr)->function.a0;
 	}
