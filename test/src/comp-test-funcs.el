@@ -252,6 +252,11 @@
 (defun comp-tests-signal-f ()
   (signal 'foo t))
 
+(defun comp-tests-func-call-removal-f ()
+  (let ((a 10)
+	(b 3))
+    (% a b)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

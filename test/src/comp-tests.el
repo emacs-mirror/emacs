@@ -317,6 +317,11 @@ Check that the resulting binaries do not differ."
                      (comp-tests-signal-f)
                    (t err))
                  '(foo . t))))
+
+(ert-deftest comp-tests-func-call-removal ()
+  ;; See `comp-propagate-insn' `comp-function-call-remove'.
+  (should (= (comp-tests-func-call-removal-f) 1)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

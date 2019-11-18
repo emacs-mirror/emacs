@@ -1472,6 +1472,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 ;;; propagate pass specific code.
 ;; A very basic propagation pass follows.
+;; This propagates values and types plus in the control flow graph.
+;; Is also responsible for removing function calls to pure functions when
+;; possible.
 
 (defsubst comp-strict-type-of (obj)
   "Given OBJ return its type understanding fixnums."
@@ -1506,29 +1509,39 @@ This can run just once."
        for insn in (comp-block-insns b)
        do (pcase insn
             (`(setimm ,lval ,_ ,v)
-             (setf (comp-mvar-const-vld lval) t)
-             (setf (comp-mvar-constant lval) v)
-             (setf (comp-mvar-type lval) (comp-strict-type-of v)))))))
+             (setf (comp-mvar-const-vld lval) t
+                   (comp-mvar-constant lval) v
+                   (comp-mvar-type lval) (comp-strict-type-of v)))))))
 
 (defsubst comp-mvar-propagate (lval rval)
   "Propagate into LVAL properties of RVAL."
-  (setf (comp-mvar-const-vld lval) (comp-mvar-const-vld rval))
-  (setf (comp-mvar-constant lval) (comp-mvar-constant rval))
-  (setf (comp-mvar-type lval) (comp-mvar-type rval)))
+  (setf (comp-mvar-const-vld lval) (comp-mvar-const-vld rval)
+        (comp-mvar-constant lval) (comp-mvar-constant rval)
+        (comp-mvar-type lval) (comp-mvar-type rval)))
+
+(defsubst comp-function-call-remove (insn f args)
+  "Given INSN when F is pure if all ARGS are known remove the function call."
+  (when (and (get f 'pure) ; Can we just optimize pure here? See byte-opt.el
+             (cl-every #'comp-mvar-const-vld args))
+    (let ((val (apply f (mapcar #'comp-mvar-constant args))))
+      (setf (car insn) 'setimm
+            (caddr insn) (comp-add-const-to-relocs val)))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
   (pcase insn
     (`(set ,lval ,rval)
      (pcase rval
-       (`(,(or 'call 'direct-call) ,f . ,_)
+       (`(,(or 'call 'direct-call) ,f . ,args)
         (setf (comp-mvar-type lval)
-              (alist-get f comp-known-ret-types)))
+              (alist-get f comp-known-ret-types))
+        (comp-function-call-remove insn f args))
        (`(,(or 'callref 'direct-callref) ,f . ,args)
         (cl-loop for v in args
                  do (setf (comp-mvar-ref v) t))
         (setf (comp-mvar-type lval)
-              (alist-get f comp-known-ret-types)))
+              (alist-get f comp-known-ret-types))
+        (comp-function-call-remove insn f args))
        (_
         (comp-mvar-propagate lval rval))))
     (`(phi ,lval . ,rest)
