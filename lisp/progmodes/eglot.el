@@ -1872,7 +1872,9 @@ Try to visit the target file for a richer summary line."
                                method
                                :extra-params extra-params
                                :capability capability)))
-    (xref-find-references "LSP identifier at point.")))
+    (if eglot--lsp-xref-refs
+        (xref-find-references "LSP identifier at point.")
+      (eglot--message "%s returned no references" method))))
 
 (defun eglot-find-declaration ()
   "Find declaration for SYM, the identifier at point."
