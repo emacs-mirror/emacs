@@ -40,6 +40,11 @@ mingw-w64-x86_64-libxml2
 mingw-w64-x86_64-xpm-nox'''.split()
 
 
+## This list is some extra things that we want to add because they are useful
+PKG_REQ=PKG_REQ+'''
+mingw-w64-x86_64-diffutils'''.split()
+
+
 ## Options
 DRY_RUN=False
 
