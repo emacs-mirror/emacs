@@ -1571,7 +1571,7 @@ Return t if something was changed."
                        do (comp-propagate-insn insn)
                        when (and (null modified) (not (equal insn orig-insn)))
                          do (setf modified t))
-           finally (cl-return modified)))
+           finally return modified))
 
 (defun comp-propagate (_)
   (maphash (lambda (_ f)
