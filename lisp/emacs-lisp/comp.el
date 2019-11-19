@@ -1524,8 +1524,9 @@ This can run just once."
   (when (and (get f 'pure) ; Can we just optimize pure here? See byte-opt.el
              (cl-every #'comp-mvar-const-vld args))
     (let ((val (apply f (mapcar #'comp-mvar-constant args))))
+      ;; See `comp-emit-set-const'.
       (setf (car insn) 'setimm
-            (caddr insn) (comp-add-const-to-relocs val)))))
+            (cddr insn) (list (comp-add-const-to-relocs val) val)))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
