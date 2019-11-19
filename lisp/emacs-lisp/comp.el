@@ -1684,13 +1684,14 @@ Return t if something was changed."
   "Collect the mvar unique identifiers into INSN."
   (cl-loop for x in insn
            if (consp x)
-           append (comp-collect-mvar-ids x)
+             append (comp-collect-mvar-ids x)
            else
-           when (comp-mvar-p x)
-           collect (comp-mvar-id x)))
+             when (comp-mvar-p x)
+               collect (comp-mvar-id x)))
 
 (defun comp-dead-assignments-func ()
-  "Clean-up dead assignments into current function."
+  "Clean-up trivial dead assignments into current function.
+Return the list of m-var ids nuked."
   (let ((l-vals ())
         (r-vals ()))
     ;; Collect used r and l values.
@@ -1725,7 +1726,8 @@ Return t if something was changed."
                         (if (comp-limple-insn-call-p rest)
                             rest
                           `(comment ,(format "optimized out: %s"
-                                             insn)))))))))
+                                             insn))))))
+      nuke-list)))
 
 (defun comp-remove-type-hints-func ()
   "Remove type hints from the current function.
@@ -1744,7 +1746,11 @@ These are substituted with normals 'set'."
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
                (let ((comp-func f))
-                 (comp-dead-assignments-func)
+                 (cl-loop
+                  for i from 1
+                  while (comp-dead-assignments-func)
+                  finally (comp-log (format "dead code rm run %d times\n" i) 2)
+                          (comp-log-func comp-func 3))
                  (comp-remove-type-hints-func)
                  (comp-log-func comp-func 3)))
              (comp-ctxt-funcs-h comp-ctxt))))
