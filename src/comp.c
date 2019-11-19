@@ -3343,8 +3343,6 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 
   Frequire (Qadvice, Qnil, Qnil);
 
-  Vnative_load_history = Fcons (file, Vnative_load_history);
-
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
   if (!handle)
@@ -3430,10 +3428,6 @@ syms_of_comp (void)
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /* The compiler context.  */);
   Vcomp_ctxt = Qnil;
-
-  DEFVAR_LISP ("native-load-history", Vnative_load_history,
-	       doc: /* List with the history of the eln loaded.  */);
-  Vnative_load_history = Qnil;
 
   /* Load mechanism.  */
   staticpro (&Vnative_elisp_refs_hash);
