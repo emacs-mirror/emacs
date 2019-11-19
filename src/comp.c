@@ -362,7 +362,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
   else if (!types)
     {
       types = alloca (nargs * sizeof (* types));
-      for (unsigned i = 0; i < nargs; i++)
+      for (ptrdiff_t i = 0; i < nargs; i++)
 	types[i] = comp.lisp_obj_type;
     }
 
@@ -390,7 +390,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 
 /* Emit calls fetching from existing declarations.  */
 static gcc_jit_rvalue *
-emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
+emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
 	   gcc_jit_rvalue **args, bool direct)
 {
   Lisp_Object func =
@@ -426,7 +426,7 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, unsigned nargs,
 }
 
 static gcc_jit_rvalue *
-emit_call_ref (Lisp_Object subr_sym, unsigned nargs,
+emit_call_ref (Lisp_Object subr_sym, ptrdiff_t nargs,
 	       gcc_jit_lvalue *base_arg, bool direct)
 {
   gcc_jit_rvalue *args[] =
@@ -468,7 +468,7 @@ emit_cond_jump (gcc_jit_rvalue *test,
 static gcc_jit_rvalue *
 emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 {
-  static unsigned i;
+  static ptrdiff_t i;
 
   gcc_jit_field *orig_field =
     type_to_cast_field (gcc_jit_rvalue_get_type (obj));
@@ -478,7 +478,7 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
     gcc_jit_function_new_local (comp.func,
 				NULL,
 				comp.cast_union_type,
-				format_string ("union_cast_%u", i++));
+				format_string ("union_cast_%td", i++));
   gcc_jit_block_add_assignment (comp.block,
 				NULL,
 				gcc_jit_lvalue_access_field (tmp_u,
@@ -566,7 +566,7 @@ emit_lval_XLP (gcc_jit_lvalue *obj)
 				      comp.lisp_obj_as_ptr);
 } */
 static gcc_jit_rvalue *
-emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
+emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, ptrdiff_t lisp_word_tag)
 {
   /* #define XUNTAG(a, type, ctype) ((ctype *)
      ((char *) XLP (a) - LISP_WORD_TAG (type))) */
@@ -608,7 +608,7 @@ emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 }
 
 static gcc_jit_rvalue *
-emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
+emit_TAGGEDP (gcc_jit_rvalue *obj, ptrdiff_t tag)
 {
    /* (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
@@ -1211,7 +1211,7 @@ emit_limple_insn (Lisp_Object insn)
   Lisp_Object arg[6];
 
   Lisp_Object p = XCDR (insn);
-  unsigned i = 0;
+  ptrdiff_t i = 0;
   FOR_EACH_TAIL (p)
     {
       if (i == sizeof (arg) / sizeof (Lisp_Object))
@@ -2428,7 +2428,7 @@ define_add1_sub1 (void)
     { comp.most_positive_fixnum, comp.most_negative_fixnum };
   enum gcc_jit_binary_op op[] =
     { GCC_JIT_BINARY_OP_PLUS, GCC_JIT_BINARY_OP_MINUS };
-  for (unsigned i = 0; i < 2; i++)
+  for (ptrdiff_t i = 0; i < 2; i++)
     {
       gcc_jit_param *param[] =
 	{ gcc_jit_context_new_param (comp.ctxt,
@@ -2741,7 +2741,7 @@ declare_function (Lisp_Object func)
     {
       EMACS_INT max_args = XFIXNUM (CALL1I (comp-args-max, args));
       gcc_jit_type **type = SAFE_ALLOCA (max_args * sizeof (*type));
-      for (unsigned i = 0; i < max_args; i++)
+      for (ptrdiff_t i = 0; i < max_args; i++)
 	type[i] = comp.lisp_obj_type;
 
       gcc_jit_param **param = SAFE_ALLOCA (max_args *sizeof (*param));
@@ -2825,12 +2825,12 @@ compile_function (Lisp_Object func)
   if (SPEED >= 2)
     {
       comp.f_frame = SAFE_ALLOCA (frame_size * sizeof (*comp.f_frame));
-      for (unsigned i = 0; i < frame_size; ++i)
+      for (ptrdiff_t i = 0; i < frame_size; ++i)
 	comp.f_frame[i] =
 	  gcc_jit_function_new_local (comp.func,
 				      NULL,
 				      comp.lisp_obj_type,
-				      format_string ("local%u", i));
+				      format_string ("local%td", i));
     }
 
   comp.scratch = NULL;
