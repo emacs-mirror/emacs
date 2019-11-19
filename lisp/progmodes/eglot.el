@@ -220,6 +220,8 @@ let the buffer grow forever."
     (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
     (17 . "File") (18 . "Reference")))
 
+(defconst eglot--{} (make-hash-table) "The empty JSON object.")
+
 
 
 ;;; Message verification helpers
@@ -595,9 +597,9 @@ SERVER.  ."
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (jsonrpc-request server :shutdown (make-hash-table)
+        (jsonrpc-request server :shutdown eglot--{}
                          :timeout (or timeout 1.5))
-        (jsonrpc-notify server :exit (make-hash-table)))
+        (jsonrpc-notify server :exit eglot--{}))
     ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))
     (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
@@ -874,7 +876,7 @@ This docstring appeases checkdoc, that's all."
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
                           (setf (eglot--server-info server) serverInfo)
-                          (jsonrpc-notify server :initialized (make-hash-table))
+                          (jsonrpc-notify server :initialized eglot--{})
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
                               ;; No need to pass SERVER as an argument: it has
