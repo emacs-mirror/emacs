@@ -3209,9 +3209,8 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 }
 
 static void
-load_comp_unit (dynlib_handle_ptr handle, char *file_name)
+load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
 {
-  const char *err_msg;
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
@@ -3224,10 +3223,7 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
 	&& data_relocs
 	&& f_relocs
 	&& top_level_run))
-    {
-      err_msg = "inconsistent eln file.";
-      goto exit_error;
-    }
+    xsignal1 (Qnative_lisp_file_inconsistent, file);
 
   *current_thread_reloc = &current_thread;
   *pure_reloc = (EMACS_INT **)&pure;
@@ -3255,14 +3251,10 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
 	{
 	  subr = symbol_subr (f_sym);
 	  if (NILP (subr))
-	    {
-	      /* FIXME: This is not robust in case of primitive
-		 redefinition.  */
-	      err_msg = format_string ("primitive %s redefined "
-				       "or wrong relocation?",
-				       f_str);
-	      goto exit_error;
-	    }
+	    /* FIXME: This is not robust in case of primitive
+	       redefinition.  */
+	    xsignal2 (Qnative_lisp_wrong_reloc, f_sym, file);
+
 	  f_relocs[i] = XSUBR (subr)->function.a0;
 	}
       else if (!strcmp (f_str, "wrong_type_argument"))
@@ -3290,20 +3282,13 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
       else if (!strcmp (f_str, "specbind"))
 	f_relocs[i] = (void *) specbind;
       else
-	{
-	  err_msg = format_string ("unexpected function relocation %s.", f_str);
-	  goto exit_error;
-	}
+	xsignal2 (Qnative_lisp_wrong_reloc, f_sym, file);
     }
 
   /* Executing this will perform all the expected environment modification.  */
   top_level_run ();
 
   return;
-exit_error:
-  xsignal1 (Qcomp_unit_load_failed,
-	    build_string (format_string ("while loading %s, %s",
-					 file_name, err_msg)));
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr,
@@ -3316,9 +3301,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
 {
   dynlib_handle_ptr handle = xmint_pointer (XCAR (load_handle_stack));
   if (!handle)
-    xsignal1 (Qcomp_unit_load_failed,
-	      build_string ("comp--register-subr can only be called during "
-			    "native code load phase."));
+    xsignal0 (Qwrong_register_subr_call);
 
   void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
@@ -3349,9 +3332,9 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
   if (!handle)
-    xsignal2 (Qcomp_unit_load_failed, file, build_string (dynlib_error ()));
+    xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
 
-  load_comp_unit (handle, SSDATA (file));
+  load_comp_unit (handle, file);
 
   load_handle_stack = XCDR (load_handle_stack);
 
@@ -3408,11 +3391,35 @@ syms_of_comp (void)
   DEFSYM (Qnegate, "negate");
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
-  /* To be signaled.  */
-  DEFSYM (Qcomp_unit_load_failed, "comp-unit-load-failed");
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qadvice, "advice");
+
+  /* To be signaled.  */
+  DEFSYM (Qnative_lisp_load_failed, "native-lisp-load-failed");
+  Fput (Qnative_lisp_load_failed, Qerror_conditions,
+	pure_list (Qnative_lisp_load_failed, Qerror));
+  Fput (Qnative_lisp_load_failed, Qerror_message,
+        build_pure_c_string ("Native elisp load failed"));
+
+  DEFSYM (Qnative_lisp_wrong_reloc, "native-lisp-wrong-reloc");
+  Fput (Qnative_lisp_wrong_reloc, Qerror_conditions,
+	pure_list (Qnative_lisp_wrong_reloc, Qnative_lisp_load_failed, Qerror));
+  Fput (Qnative_lisp_wrong_reloc, Qerror_message,
+        build_pure_c_string ("Primitive redefined or wrong relocation"));
+
+  DEFSYM (Qwrong_register_subr_call, "wrong-register-subr-call");
+  Fput (Qwrong_register_subr_call, Qerror_conditions,
+	pure_list (Qwrong_register_subr_call, Qnative_lisp_load_failed, Qerror));
+  Fput (Qwrong_register_subr_call, Qerror_message,
+        build_pure_c_string ("comp--register-subr can only be called during "
+			    "native lisp load phase."));
+
+  DEFSYM (Qnative_lisp_file_inconsistent, "native-lisp-file-inconsistent");
+  Fput (Qnative_lisp_file_inconsistent, Qerror_conditions,
+	pure_list (Qnative_lisp_file_inconsistent, Qnative_lisp_load_failed, Qerror));
+  Fput (Qnative_lisp_file_inconsistent, Qerror_message,
+        build_pure_c_string ("inconsistent eln file"));
 
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
