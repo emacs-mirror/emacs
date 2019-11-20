@@ -228,15 +228,15 @@ bcall0 (Lisp_Object f)
 static Lisp_Object
 symbol_subr (Lisp_Object symbol)
 {
-  Lisp_Object subr = Fsymbol_function (symbol);
+  Lisp_Object maybe_subr = Fsymbol_function (symbol);
 
-  if (SUBRP (subr))
-    return subr;
+  if (SUBRP (maybe_subr))
+    return maybe_subr;
 
-  if (!NILP (CALL1I (ad-has-any-advice, symbol)))
-    subr = CALL1I (ad-get-orig-definition, symbol);
+  if (!NILP (CALL1I (advice--p, maybe_subr)))
+    maybe_subr = CALL1I (ad-get-orig-definition, symbol);
 
-  return SUBRP (subr) ? subr : Qnil;
+  return SUBRP (maybe_subr) ? maybe_subr : Qnil;
 }
 
 static gcc_jit_field *
