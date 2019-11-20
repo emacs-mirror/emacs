@@ -1691,7 +1691,7 @@ Return t if something was changed."
                collect (comp-mvar-id x)))
 
 (defun comp-dead-assignments-func ()
-  "Clean-up trivial dead assignments into current function.
+  "Clean-up dead assignments into current function.
 Return the list of m-var ids nuked."
   (let ((l-vals ())
         (r-vals ()))
