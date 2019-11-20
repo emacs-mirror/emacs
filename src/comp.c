@@ -214,9 +214,9 @@ static void
 ice (const char* msg)
 {
   if (msg)
-    error ("Internal native compiler error: %s", msg);
+    xsignal1 (Qinternal_native_compiler_error, build_string (msg));
   else
-    error ("Internal native compiler error");
+    xsignal0 (Qinternal_native_compiler_error);
 }
 
 static void
@@ -3396,6 +3396,12 @@ syms_of_comp (void)
   DEFSYM (Qadvice, "advice");
 
   /* To be signaled.  */
+  DEFSYM (Qinternal_native_compiler_error, "internal-native-compiler-error");
+  Fput (Qinternal_native_compiler_error, Qerror_conditions,
+	pure_list (Qinternal_native_compiler_error, Qerror));
+  Fput (Qinternal_native_compiler_error, Qerror_message,
+        build_pure_c_string ("Internal native compiler error"));
+
   DEFSYM (Qnative_lisp_load_failed, "native-lisp-load-failed");
   Fput (Qnative_lisp_load_failed, Qerror_conditions,
 	pure_list (Qnative_lisp_load_failed, Qerror));
