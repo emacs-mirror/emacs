@@ -1247,7 +1247,8 @@ For example, to keep your Company customization use
     (eglot--setq-saving company-backends '(company-capf))
     (eglot--setq-saving company-tooltip-align-annotations t)
     (unless (eglot--stay-out-of-p 'imenu)
-      (add-function :before-until imenu-create-index-function #'eglot-imenu))
+      (add-function :before-until (local 'imenu-create-index-function)
+                    #'eglot-imenu))
     (flymake-mode 1)
     (eldoc-mode 1)
     (cl-pushnew (current-buffer) (eglot--managed-buffers eglot--cached-current-server)))
@@ -1267,6 +1268,7 @@ For example, to keep your Company customization use
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
+    (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
     (setq eglot--current-flymake-report-fn nil)
     (let ((server eglot--cached-current-server))
       (setq eglot--cached-current-server nil)
