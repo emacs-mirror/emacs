@@ -87,7 +87,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 ;;; Completion table manipulation
 
@@ -2108,22 +2108,129 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
       (delq (assq 'completion-in-region-mode minor-mode-map-alist)
             minor-mode-map-alist))
 
+(cl-defun make-completion-at-point-function (&rest all
+                                                   &key bounds
+                                                   metadata
+                                                   test-completion
+                                                   boundaries
+                                                   try-completion
+                                                   all-completions
+                                                   annotation-function
+                                                   doc-function
+                                                   forced-style
+                                                   exit-function
+                                                   display-sort-function
+                                                   &allow-other-keys)
+  ;; FIXME: world-class docstring
+  "Does the thing.
+BOUNDS
+METADATA
+TEST-COMPLETION
+BOUNDARIES
+TRY-COMPLETION
+ALL-COMPLETIONS
+ANNOTATION-FUNCTION
+DOC-FUNCTION
+FORCED-STYLE
+EXIT-FUNCTION
+DISPLAY-SORT-FUNCTION
+ALL."
+  (let ((bounds (or (and (functionp bounds) (funcall bounds))
+                    bounds
+                    (bounds-of-thing-at-point 'symbol)
+                    (cons (point) (point))))
+        (forced-category (and forced-style
+                              (cl-gensym "forces-style-category"))))
+    (cl-assert all-completions nil "ALL-COMPLETIONS is a mandatory keyword arg.")
+    (when forced-category
+      ;; FIXME: Yes, I know, Stefan.
+      (add-to-list 'completion-category-defaults
+                   `(,forced-category (styles . (,forced-style)))))
+    (cl-list*
+     (car bounds)
+     (cdr bounds)
+     (lambda (pattern pred action)
+       (let* (cached-all-completions
+              (get-all-completions
+               (lambda ()
+                 (or cached-all-completions
+                     (setf cached-all-completions
+                           (let ((res (funcall all-completions pattern)))
+                             (if pred (cl-remove-if-not pred res) res)))))))
+         (cond
+          ((eq action 'metadata)
+           (or (and (functionp metadata)
+                    (funcall metadata))
+               metadata
+               `(metadata
+                 .
+                 (,@(when display-sort-function
+                      `((display-sort-function . ,display-sort-function)))
+                  ,@(when forced-category
+                      `((category . ,forced-category)))))))
+          ((eq action 'lambda)
+           (if test-completion
+               ;; FIXME: should we pass PRED to the user, use it here
+               ;; directly, or ignore it?
+               (funcall test-completion pattern)
+             (and (member pattern (funcall get-all-completions))
+                  t)))
+          ((eq (car-safe action) 'boundaries)
+           (and boundaries
+                ;; FIXME: same question
+                (funcall boundaries pattern)))
+          ((null action)
+           (if try-completion
+               ;; FIXME: same question
+               (funcall try-completion pattern)
+             (try-completion pattern (funcall get-all-completions))))
+          ((eq action t)
+           (funcall get-all-completions)))))
+     :annotation-function annotation-function
+     :company-doc-buffer doc-function
+     :exit-function exit-function
+     (cl-loop for (k v) on all by #'cddr
+              unless (memq k
+                           ;; FIXME: define this list at compilation
+                           ;; time
+                           '(:bounds
+                             :metadata
+                             :test-completion
+                             :boundaries
+                             :try-completion
+                             :all-completions
+                             :annotation-function
+                             :doc-function
+                             :forced-style
+                             :exit-function
+                             :display-sort-function))
+              collect k collect v))))
+
 (defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the entity at point.
-Each function on this hook is called in turn without any argument and
+Each function on this hook is called in turn and should return
+non-nil if it is applicable at point.
+
+The recommended way to create functions to add to this list is
+via `make-completion-at-point-function' (which see).  The
+remainder of the this docstring, described older, unencouraged
+ways, to create such functions.
+
+The functions in this hook are called without any argument and
 should return either nil, meaning it is not applicable at point,
-or a function of no arguments to perform completion (discouraged),
-or a list of the form (START END COLLECTION . PROPS), where:
- START and END delimit the entity to complete and should include point,
- COLLECTION is the completion table to use to complete the entity, and
- PROPS is a property list for additional information.
-Currently supported properties are all the properties that can appear in
-`completion-extra-properties' plus:
- `:predicate'	a predicate that completion candidates need to satisfy.
- `:exclusive'	value of `no' means that if the completion table fails to
-   match the text at point, then instead of reporting a completion
-   failure, the completion should try the next completion function.
-As is the case with most hooks, the functions are responsible for
+or a function of no arguments to perform
+completion (discouraged), or a list of the form (START END
+COLLECTION . PROPS), where: START and END delimit the entity to
+complete and should include point, COLLECTION is the completion
+table to use to complete the entity, and PROPS is a property list
+for additional information.  Currently supported properties are
+all the properties that can appear in
+`completion-extra-properties' plus: `:predicate' a predicate that
+completion candidates need to satisfy.  `:exclusive' value of
+`no' means that if the completion table fails to match the text
+at point, then instead of reporting a completion failure, the
+completion should try the next completion function.  As is the
+case with most hooks, the functions are responsible for
 preserving things like point and current buffer.
 
 NOTE: These functions should be cheap to run since they're sometimes
