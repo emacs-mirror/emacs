@@ -3290,7 +3290,10 @@ load_comp_unit (dynlib_handle_ptr handle, char *file_name)
       else if (!strcmp (f_str, "specbind"))
 	f_relocs[i] = (void *) specbind;
       else
-	err_msg = format_string ("unexpected function relocation %s.", f_str);
+	{
+	  err_msg = format_string ("unexpected function relocation %s.", f_str);
+	  goto exit_error;
+	}
     }
 
   /* Executing this will perform all the expected environment modification.  */
