@@ -389,7 +389,8 @@ Put PREFIX in front of it."
 (defun comp-decrypt-lambda-list (x)
   "Decript lambda list X."
   (unless (fixnump x)
-    (error "Can't native compile a non lexical scoped function"))
+    (signal 'native-compiler-error
+            "can't native compile a non lexical scoped function"))
   (let ((rest (not (= (logand x 128) 0)))
         (mandatory (logand x 127))
         (nonrest (ash x -8)))
@@ -409,7 +410,7 @@ Put PREFIX in front of it."
 
 (defun comp-spill-lap-function (_function-name)
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
-  (error "To be reimplemented")
+  (signal 'native-ice "to be reimplemented")
   ;; (let* ((f (symbol-function function-name))
   ;;        (func (make-comp-func :symbol-name function-name
   ;;                              :c-func-name (comp-c-func-name
@@ -435,7 +436,7 @@ Put PREFIX in front of it."
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
-    (error "Empty byte compiler output"))
+    (signal 'native-compiler-error "empty byte compiler output"))
   (setf (comp-ctxt-top-level-forms comp-ctxt) (reverse byte-to-native-top-level-forms))
   (cl-loop
    for f in (cl-loop for x in byte-to-native-top-level-forms ; All non anonymous.
@@ -538,7 +539,7 @@ Restore the original value afterwards."
 (defsubst comp-label-to-addr (label)
   "Find the address of LABEL."
   (or (gethash label (comp-limplify-label-to-addr comp-pass))
-      (error "Can't find label %d" label)))
+      (signal 'native-ice (list "label not found" label))))
 
 (defsubst comp-mark-curr-bb-closed ()
   "Mark the current basic block as closed."
@@ -556,8 +557,9 @@ The basic block is returned regardless it was already declared or not."
                             (comp-limplify-pending-blocks comp-pass)))))
     (if bb
         (progn
-          (cl-assert (or (null sp) (= sp (comp-block-sp bb)))
-                     (sp (comp-block-sp bb)) "sp %d %d differs")
+          (unless (or (null sp) (= sp (comp-block-sp bb)))
+            (signal 'native-ice (list "incoherent stack pointers"
+                                      sp (comp-block-sp bb))))
           bb)
       (car (push (make--comp-block lap-addr sp (comp-new-block-sym))
                  (comp-limplify-pending-blocks comp-pass))))))
@@ -607,7 +609,7 @@ If the callee function is known to have a return type propagate it."
 (defun comp-copy-slot (src-n &optional dst-n)
   "Set slot number DST-N to slot number SRC-N as source.
 If DST-N is specified use it otherwise assume it to be the current slot."
-  (comp-with-sp (if dst-n dst-n (comp-sp))
+  (comp-with-sp (or dst-n (comp-sp))
     (let ((src-slot (comp-slot-n src-n)))
       (cl-assert src-slot)
       (comp-emit `(set ,(comp-slot) ,src-slot)))))
@@ -749,28 +751,28 @@ Return value is the fall through block name."
            ;; All fall through are artificially created here except the last one.
            (puthash ff-bb-name ff-bb (comp-func-blocks comp-func))
            (setf (comp-limplify-curr-block comp-pass) ff-bb))))
-    (_ (error "Missing previous setimm while creating a switch"))))
+    (_ (signal 'native-ice
+               "missing previous setimm while creating a switch"))))
 
 (defun comp-emit-set-call-subr (subr-name sp-delta)
     "Emit a call for SUBR-NAME.
 SP-DELTA is the stack adjustment."
     (let ((subr (symbol-function subr-name))
-          (subr-str (symbol-name subr-name))
           (nargs (1+ (- sp-delta))))
-      (cl-assert (subrp subr) nil
-                 "%s not a subr" subr-str)
+      (unless (subrp subr)
+        (signal 'native-ice (list "not a subr" subr)))
       (let* ((arity (subr-arity subr))
              (minarg (car arity))
              (maxarg (cdr arity)))
-        (cl-assert (not (eq maxarg 'unevalled)) nil
-                   "%s contains unevalled arg" subr-name)
+        (when (eq maxarg 'unevalled)
+          (signal 'native-ice (list "subr contains  unevalled args" subr-name)))
         (if (eq maxarg 'many)
             ;; callref case.
             (comp-emit-set-call (comp-callref subr-name nargs (comp-sp)))
           ;; Normal call.
-          (cl-assert (and (>= maxarg nargs) (<= minarg nargs))
-                     (nargs maxarg minarg)
-                     "Incoherent stack adjustment %d, maxarg %d minarg %d")
+          (unless (and (>= maxarg nargs) (<= minarg nargs))
+            (signal 'native-ice
+                    (list "incoherent stack adjustment" nargs maxarg minarg)))
           (let* ((subr-name subr-name)
                  (slots (cl-loop for i from 0 below maxarg
                                  collect (comp-slot-n (+ i (comp-sp))))))
@@ -817,9 +819,9 @@ the annotation emission."
 			     `(cl-incf (comp-sp) ,sp-delta))
                           ,@(comp-body-eff body op-name sp-delta))
                 else
-		collect `(',op (error ,(concat "Unsupported LAP op "
-                                               op-name))))
-     (_ (error "Unexpected LAP op %s" (symbol-name op)))))
+		collect `(',op (signal 'native-ice
+                                       (list "unsupported LAP op" ',op-name))))
+     (_ (signal 'native-ice (list "unexpected LAP op" (symbol-name op))))))
 
 (defun comp-limplify-lap-inst (insn)
   "Limplify LAP instruction INSN pushng it in the proper basic block."
@@ -1011,8 +1013,7 @@ the annotation emission."
        (cl-incf (comp-sp) (- 1 arg))
        (comp-emit-set-call (comp-callref 'insert arg (comp-sp))))
       (byte-stack-set
-       (comp-with-sp (1+ (comp-sp)) ;; FIXME!!
-         (comp-copy-slot (comp-sp) (- (comp-sp) arg))))
+       (comp-copy-slot (1+ (comp-sp)) (- (comp-sp) arg -1)))
       (byte-stack-set2 (cl-assert nil)) ;; TODO
       (byte-discardN
        (cl-incf (comp-sp) (- arg)))
@@ -1203,9 +1204,9 @@ Top level forms for the current context are rendered too."
 ;; This pass should be run every time basic blocks or mvar are shuffled.
 
 (cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
-  (make--comp-mvar  :id (funcall (comp-func-ssa-cnt-gen comp-func))
-                    :slot slot :const-vld const-vld :constant constant
-                    :type type))
+  (make--comp-mvar :id (funcall (comp-func-ssa-cnt-gen comp-func))
+                   :slot slot :const-vld const-vld :constant constant
+                   :type type))
 
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
@@ -1234,8 +1235,10 @@ Top level forms for the current context are rendered too."
                    (edge-add :src bb :dst (gethash forth blocks)))
                   (return)
                   (otherwise
-                   (error "Block %s does not end with a branch in func %s"
-                          bb (comp-func-symbol-name comp-func))))
+                   (signal 'native-ice
+                           (list "block does not end with a branch"
+                                 bb
+                                 (comp-func-symbol-name comp-func)))))
              finally (progn
                        (setf (comp-func-edges comp-func)
                              (nreverse (comp-func-edges comp-func)))
@@ -1280,7 +1283,7 @@ Top level forms for the current context are rendered too."
             (first-processed (l)
               (if-let ((p (cl-find-if (lambda (p) (comp-block-dom p)) l)))
                   p
-                (error "Cant't find first preprocessed"))))
+                (signal 'native-ice "cant't find first preprocessed"))))
 
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
@@ -1845,7 +1848,8 @@ If INPUT is a string, use it as the file path to be native compiled.
 Return the compilation unit filename."
   (unless (or (symbolp input)
               (stringp input))
-    (error "Trying to native compile something not a symbol function or file"))
+    (signal 'native-compiler-error
+          (list "not a symbol function or file" input)))
   (let ((data input)
         (comp-native-compiling t)
         (comp-ctxt (make-comp-ctxt
@@ -1858,7 +1862,12 @@ Return the compilation unit filename."
                 (comp-log (format "Running pass %s:\n" pass) 2)
                 (setq data (funcall pass data)))
               comp-passes)
-      (error (error "While compiling %s: %s" input (error-message-string err))))
+      (native-compiler-error
+       ;; Add source input.
+       (let ((err-val (cdr err)))
+         (signal (car err) (if (consp err-val)
+                               (cons input err-val)
+                             (list input err-val))))))
     data))
 
 ;;;###autoload
@@ -1874,7 +1883,8 @@ Follow folders RECURSIVELY if non nil."
                      (directory-files input t "\\.el$"))
                  (if (file-exists-p input)
                      (list input)
-                   (error "Input not a file nor directory")))))
+                   (signal 'native-compiler-error
+                           "input not a file nor directory")))))
     (with-mutex comp-src-pool-mutex
       (setf comp-src-pool (nconc files comp-src-pool)))
     (cl-loop repeat jobs

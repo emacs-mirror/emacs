@@ -70,14 +70,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 #define SETJMP_NAME STR (SETJMP)
 
-/* Raise an internal compiler error if test.
-   msg is evaluated only in that case.  */
-#define ICE_IF(test, msg)			\
-  do {						\
-    if (test)					\
-      ice (msg);				\
-  } while (0)
-
 /* C side of the compiler context.  */
 
 typedef struct {
@@ -211,15 +203,6 @@ format_string (const char *format, ...)
 }
 
 static void
-ice (const char* msg)
-{
-  if (msg)
-    xsignal1 (Qinternal_native_compiler_error, build_string (msg));
-  else
-    xsignal0 (Qinternal_native_compiler_error);
-}
-
-static void
 bcall0 (Lisp_Object f)
 {
   Ffuncall (1, &f);
@@ -273,7 +256,7 @@ type_to_cast_field (gcc_jit_type *type)
   else if (type == comp.lisp_obj_ptr_type)
     field = comp.cast_union_as_lisp_obj_ptr;
   else
-    ice ("unsupported cast");
+    xsignal1 (Qnative_ice, build_string ("unsupported cast"));
 
   return field;
 }
@@ -282,7 +265,9 @@ static gcc_jit_block *
 retrive_block (Lisp_Object block_name)
 {
   Lisp_Object value = Fgethash (block_name, comp.func_blocks_h, Qnil);
-  ICE_IF (NILP (value), "missing basic block");
+
+  if (NILP (value))
+    xsignal1 (Qnative_ice, build_string ("missing basic block"));
 
   return (gcc_jit_block *) xmint_pointer (value);
 }
@@ -293,8 +278,10 @@ declare_block (Lisp_Object block_name)
   char *name_str = SSDATA (SYMBOL_NAME (block_name));
   gcc_jit_block *block = gcc_jit_function_new_block (comp.func, name_str);
   Lisp_Object value = make_mint_ptr (block);
-  ICE_IF (!NILP (Fgethash (block_name, comp.func_blocks_h, Qnil)),
-	  "double basic block declaration");
+
+  if (!NILP (Fgethash (block_name, comp.func_blocks_h, Qnil)))
+    xsignal1 (Qnative_ice, build_string ("double basic block declaration"));
+
   Fputhash (block_name, value, comp.func_blocks_h);
 }
 
@@ -343,8 +330,10 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 		       int nargs, gcc_jit_type **types)
 {
   /* Don't want to declare the same function two times.  */
-  ICE_IF (!NILP (Fgethash (subr_sym, comp.imported_funcs_h, Qnil)),
-	  "unexpected double function declaration");
+  if (!NILP (Fgethash (subr_sym, comp.imported_funcs_h, Qnil)))
+    xsignal2 (Qnative_ice,
+	      build_string ("unexpected double function declaration"),
+	      subr_sym);
 
   if (nargs == MANY)
     {
@@ -396,7 +385,10 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
   Lisp_Object func =
     Fgethash (subr_sym, direct ? comp.exported_funcs_h: comp.imported_funcs_h,
 	      Qnil);
-  ICE_IF (NILP (func), "missing function declaration");
+  if (NILP (func))
+      xsignal2 (Qnative_ice,
+		build_string ("missing function declaration"),
+		subr_sym);
 
   if (direct)
     {
@@ -414,7 +406,10 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
 	gcc_jit_lvalue_access_field (comp.func_relocs,
 				     NULL,
 				     (gcc_jit_field *) xmint_pointer (func));
-      ICE_IF (!f_ptr, "undeclared function relocation");
+      if (!f_ptr)
+	xsignal2 (Qnative_ice,
+		  build_string ("missing function relocation"),
+		  subr_sym);
       emit_comment (format_string ("calling subr: %s",
 				   SSDATA (SYMBOL_NAME (subr_sym))));
       return gcc_jit_context_new_call_through_ptr (comp.ctxt,
@@ -1092,7 +1087,11 @@ emit_set_internal (Lisp_Object args)
 	      #s(comp-mvar 6 1 t 3 nil))
   */
   /* TODO: Inline the most common case.  */
-  ICE_IF (list_length (args) != 3, "unexpected arg length for insns");
+  if (list_length (args) != 3)
+    xsignal2 (Qnative_ice,
+	      build_string ("unexpected arg length for insns"),
+	      args);
+
   args = XCDR (args);
   int i = 0;
   gcc_jit_rvalue *gcc_args[4];
@@ -1272,7 +1271,7 @@ emit_limple_insn (Lisp_Object insn)
       else if (EQ (handler_spec, Qcondition_case))
 	h_num = CONDITION_CASE;
       else
-	ice ("incoherent insn");
+	xsignal2 (Qnative_ice, build_string ("incoherent insn"), insn);
       gcc_jit_rvalue *handler_type =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
@@ -1372,9 +1371,13 @@ emit_limple_insn (Lisp_Object insn)
       else if (EQ (FIRST (arg1), Qdirect_callref))
 	res = emit_limple_call_ref (XCDR (arg1), true);
       else
-	ice ("LIMPLE inconsistent arg1 for op =");
+	xsignal2 (Qnative_ice,
+		  build_string ("LIMPLE inconsistent arg1 for insn"),
+		  insn);
 
-      ICE_IF (!res, gcc_jit_context_get_first_error (comp.ctxt));
+      if (!res)
+	xsignal1 (Qnative_ice,
+		  build_string (gcc_jit_context_get_first_error (comp.ctxt)));
 
       emit_frame_assignment (arg[0], res);
     }
@@ -1480,7 +1483,9 @@ emit_limple_insn (Lisp_Object insn)
     }
   else
     {
-      ice ("LIMPLE op inconsistent");
+      xsignal2 (Qnative_ice,
+		build_string ("LIMPLE op inconsistent"),
+		op);
     }
 }
 
@@ -2860,7 +2865,10 @@ compile_function (Lisp_Object func)
       Lisp_Object block_name = HASH_KEY (ht, i);
       Lisp_Object block = HASH_VALUE (ht, i);
       Lisp_Object insns = CALL1I (comp-block-insns, block);
-      ICE_IF (NILP (block) || NILP (insns), "basic block is missing or empty");
+      if (NILP (block) || NILP (insns))
+	xsignal1 (Qnative_ice,
+		  build_string ("basic block is missing or empty"));
+
 
       comp.block = retrive_block (block_name);
       while (CONSP (insns))
@@ -2871,10 +2879,12 @@ compile_function (Lisp_Object func)
 	}
     }
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
-  ICE_IF (err,
-	  format_string ("failing to compile function %s with error: %s",
-			 SSDATA (SYMBOL_NAME (CALL1I (comp-func-symbol-name, func))),
-			 err));
+  if (err)
+    xsignal3 (Qnative_ice,
+	      build_string ("failing to compile function"),
+	      CALL1I (comp-func-symbol-name, func),
+	      build_string (err));
+
   SAFE_FREE ();
 }
 
@@ -2890,7 +2900,8 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 {
   if (comp.ctxt)
     {
-      ice ("compiler context already taken");
+      xsignal1 (Qnative_ice,
+		build_string ("compiler context already taken"));
       return Qnil;
     }
 
@@ -3396,12 +3407,21 @@ syms_of_comp (void)
   DEFSYM (Qadvice, "advice");
 
   /* To be signaled.  */
-  DEFSYM (Qinternal_native_compiler_error, "internal-native-compiler-error");
-  Fput (Qinternal_native_compiler_error, Qerror_conditions,
-	pure_list (Qinternal_native_compiler_error, Qerror));
-  Fput (Qinternal_native_compiler_error, Qerror_message,
+
+  /* By the compiler.  */
+  DEFSYM (Qnative_compiler_error, "native-compiler-error");
+  Fput (Qnative_compiler_error, Qerror_conditions,
+	pure_list (Qnative_compiler_error, Qerror));
+  Fput (Qnative_compiler_error, Qerror_message,
+        build_pure_c_string ("Native compiler error"));
+
+  DEFSYM (Qnative_ice, "native-ice");
+  Fput (Qnative_ice, Qerror_conditions,
+	pure_list (Qnative_ice, Qnative_compiler_error, Qerror));
+  Fput (Qnative_ice, Qerror_message,
         build_pure_c_string ("Internal native compiler error"));
 
+  /* By the load machinery.  */
   DEFSYM (Qnative_lisp_load_failed, "native-lisp-load-failed");
   Fput (Qnative_lisp_load_failed, Qerror_conditions,
 	pure_list (Qnative_lisp_load_failed, Qerror));
