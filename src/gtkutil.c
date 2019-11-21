@@ -223,6 +223,9 @@ xg_get_gdk_scale (void)
 int
 xg_get_scale (struct frame *f)
 {
+#ifdef HAVE_PGTK
+  return 1;
+#endif
 #ifdef HAVE_GTK3
   if (FRAME_GTK_WIDGET (f))
     return gtk_widget_get_scale_factor (FRAME_GTK_WIDGET (f));
