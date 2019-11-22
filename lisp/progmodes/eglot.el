@@ -536,7 +536,8 @@ treated as in `eglot-dbind'."
 (defclass eglot-lsp-server (jsonrpc-process-connection)
   ((project-nickname
     :documentation "Short nickname for the associated project."
-    :accessor eglot--project-nickname)
+    :accessor eglot--project-nickname
+    :reader eglot-project-nickname)
    (major-mode
     :documentation "Major mode symbol."
     :accessor eglot--major-mode)
@@ -906,7 +907,7 @@ in project `%s'."
                            (or (plist-get serverInfo :name)
                                (jsonrpc-name server))
                            managed-major-mode
-                           (eglot--project-nickname server))
+                           (eglot-project-nickname server))
                           (when tag (throw tag t))))
                       :timeout eglot-connect-timeout
                       :error-fn (eglot--lambda ((ResponseError) code message)
@@ -1172,7 +1173,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
                           being hash-values of eglot--servers-by-project
                           append servers))
         (name (lambda (srv)
-                (format "%s/%s" (eglot--project-nickname srv)
+                (format "%s/%s" (eglot-project-nickname srv)
                         (eglot--major-mode srv)))))
     (cond ((null servers)
            (eglot--error "No servers!"))
@@ -1388,7 +1389,7 @@ Uses THING, FACE, DEFS and PREPEND."
 (defun eglot--mode-line-format ()
   "Compose the EGLOT's mode-line."
   (pcase-let* ((server (eglot-current-server))
-               (nick (and server (eglot--project-nickname server)))
+               (nick (and server (eglot-project-nickname server)))
                (pending (and server (hash-table-count
                                      (jsonrpc--request-continuations server))))
                (`(,_id ,doing ,done-p ,_detail) (and server (eglot--spinner server)))
