@@ -1244,16 +1244,15 @@ Top level forms for the current context are rendered too."
                            (list "block does not end with a branch"
                                  bb
                                  (comp-func-symbol-name comp-func)))))
-             finally (progn
-                       (setf (comp-func-edges comp-func)
-                             (nreverse (comp-func-edges comp-func)))
-                       ;; Update edge refs into blocks.
-                       (cl-loop for edge in (comp-func-edges comp-func)
-                                do (push edge
-                                         (comp-block-out-edges (comp-edge-src edge)))
-                                   (push edge
-                                         (comp-block-in-edges (comp-edge-dst edge))))
-                       (comp-log-edges comp-func)))))
+             finally (setf (comp-func-edges comp-func)
+                           (nreverse (comp-func-edges comp-func)))
+                     ;; Update edge refs into blocks.
+                     (cl-loop for edge in (comp-func-edges comp-func)
+                              do (push edge
+                                       (comp-block-out-edges (comp-edge-src edge)))
+                              (push edge
+                                    (comp-block-in-edges (comp-edge-dst edge))))
+                     (comp-log-edges comp-func))))
 
 (defun comp-collect-rev-post-order (basic-block)
   "Walk BASIC-BLOCK children and return their name in reversed post-order."
