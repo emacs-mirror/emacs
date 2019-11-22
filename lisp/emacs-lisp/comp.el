@@ -40,7 +40,7 @@
 
 (defcustom comp-speed 0
   "Compiler optimization level.  From 0 to 3.
-- 0 no otimizations are performed, compile time is favored.
+- 0 no optimizations are performed, compile time is favored.
 - 1 lite optimizations.
 - 2 heavy optimizations.
 - 3 max optimization level, to be used only when necessary.
@@ -50,8 +50,9 @@
 
 (defcustom comp-debug 0
   "Compiler debug level.  From 0 to 3.
+This intended for debugging the compiler itself.
 - 0 no debug facility.
-    This is the raccomanded value unless you are debugging the compiler itself.
+    This is the recommended value unless you are debugging the compiler itself.
 - 1 emit debug symbols and dump pseudo C code.
 - 2 dump gcc passes and libgccjit log file.
 - 3 dump libgccjit reproducers."
@@ -60,6 +61,7 @@
 
 (defcustom comp-verbose 0
   "Compiler verbosity.  From 0 to 3.
+This intended for debugging the compiler itself.
 - 0 no logging.
 - 1 final limple is logged.
 - 2 LAP and final limple and some pass info are logged.
@@ -92,7 +94,6 @@ Can be used by code that wants to expand differently in this case.")
                         comp-final)
   "Passes to be executed in order.")
 
-;; TODO hash here.
 (defconst comp-known-ret-types '((cons . cons)
                                  (1+ . number)
                                  (1- . number)
@@ -119,7 +120,7 @@ Can be used by code that wants to expand differently in this case.")
 
 (defconst comp-limple-assignments `(fetch-handler
                                     ,@comp-limple-sets)
-  "Limple operators that clobbers the first mvar argument.")
+  "Limple operators that clobbers the first m-var argument.")
 
 (defconst comp-limple-calls '(call
                               callref
@@ -140,7 +141,7 @@ Can be used by code that wants to expand differently in this case.")
 (cl-defstruct comp-ctxt
   "Lisp side of the compiler context."
   (output nil :type string
-          :documentation "Target output filename for the compilation.")
+          :documentation "Target output file-name for the compilation.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
   (funcs-h (make-hash-table) :type hash-table
@@ -165,7 +166,7 @@ This is to build the prev field.")
 To be used when ncall-conv is nil."))
 
 (cl-defstruct (comp-nargs (:include comp-args-base))
-  "Describe args when the functin signature is of kind:
+  "Describe args when the function signature is of kind:
 (ptrdiff_t nargs, Lisp_Object *args)."
   (nonrest nil :type number
            :documentation "Number of non rest arguments.")
@@ -191,7 +192,7 @@ into it.")
   (in-edges () :type list
             :documentation "List of incoming edges.")
   (out-edges () :type list
-             :documentation "List of outcoming edges.")
+             :documentation "List of out-coming edges.")
   (dom nil :type comp-block
         :documentation "Immediate dominator.")
   (df (make-hash-table) :type hash-table
@@ -223,7 +224,7 @@ Is in use to help the SSA rename pass."))
 (cl-defstruct (comp-func (:copier nil))
   "LIMPLE representation of a function."
   (symbol-name nil
-               :documentation "Function symbol's name.")
+               :documentation "Function's symbol name.")
   (c-func-name nil :type string
                :documentation "The function name in the native world.")
   (byte-func nil
@@ -259,16 +260,18 @@ structure.")
         :documentation "Slot number.
 -1 is a special value and indicates the scratch slot.")
   (id nil :type (or null number)
-     :documentation "SSA number.")
+     :documentation "SSA number when in SSA form.")
   (const-vld nil :type boolean
              :documentation "Valid signal for the following slot.")
   (constant nil
-            :documentation "When const-vld non nil this is used for constant
- propagation.")
+            :documentation "When const-vld non nil this is used for holding
+ a value known at compile time.")
   (type nil
-        :documentation "When non nil is used for type propagation.")
+        :documentation "When non nil is used for type when known at compile
+ time.")
   (ref nil :type boolean
-       :documentation "When t this is used by reference."))
+       :documentation "When t the m-var is involved in a call where is passed by
+ reference."))
 
 ;; Special vars used by some passes
 (defvar comp-func)
@@ -340,7 +343,8 @@ BODY is evaluate only if `comp-verbose' is > 0."
           (insert "\n"))))))
 
 (defun comp-log-func (func verbosity)
-  "Log function FUNC."
+  "Log function FUNC.
+VERBOSITY is a number between 0 and 3."
   (when (>= comp-verbose verbosity)
     (comp-log (format "\nFunction: %s\n" (comp-func-symbol-name func)) verbosity)
     (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
@@ -462,7 +466,7 @@ Put PREFIX in front of it."
    collect func))
 
 (defun comp-spill-lap (input)
-  "Byte compile and spill the LAP rapresentation for INPUT.
+  "Byte compile and spill the LAP representation for INPUT.
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
@@ -480,7 +484,7 @@ If INPUT is a string this is the file path to be compiled."
   (frame nil :type vector
          :documentation "Meta-stack used to flat LAP.")
   (curr-block nil :type comp-block
-              :documentation "Current block baing limplified.")
+              :documentation "Current block being limplified.")
   (sp -1 :type number
       :documentation "Current stack pointer while walking LAP.
 Points to the next slot to be filled.")
@@ -570,7 +574,7 @@ The basic block is returned regardless it was already declared or not."
   `(call ,func ,@args))
 
 (defun comp-callref (func nargs stack-off)
-  "Emit a call usign narg abi for FUNC.
+  "Emit a call using narg abi for FUNC.
 NARGS is the number of arguments.
 STACK-OFF is the index of the first slot frame involved."
   (comp-add-subr-to-relocs func)
@@ -585,7 +589,8 @@ STACK-OFF is the index of the first slot frame involved."
                    :type type))
 
 (defun comp-new-frame (size &optional ssa)
-  "Return a clean frame of meta variables of size SIZE."
+  "Return a clean frame of meta variables of size SIZE.
+If SSA non nil populate it of m-var in ssa form."
   (cl-loop with v = (make-vector size nil)
            for i below size
            for mvar = (if ssa
@@ -715,7 +720,7 @@ Return value is the fall through block name."
 
 (defun comp-emit-switch (var last-insn)
   "Emit a limple for a lap jump table given VAR and LAST-INSN."
-  ;; FIXME this not efficent for big jump tables. We should have a second
+  ;; FIXME this not efficient for big jump tables. We should have a second
   ;; strategy for this case.
   (pcase last-insn
     (`(setimm ,_ ,_ ,jmp-table)
@@ -785,8 +790,8 @@ SP-DELTA is the stack adjustment."
 
   (defun comp-body-eff (body op-name sp-delta)
     "Given the original body BODY compute the effective one.
-When BODY is auto guess function name form the LAP bytecode
-name. Othewise expect lname fnname."
+When BODY is auto guess function name form the LAP byte-code
+name.  Otherwise expect lname fnname."
     (pcase (car body)
       ('auto
        (list `(comp-emit-set-call-subr
@@ -799,7 +804,7 @@ name. Othewise expect lname fnname."
       (_ body))))
 
 (defmacro comp-op-case (&rest cases)
-  "Expand CASES into the corresponding pcase.
+  "Expand CASES into the corresponding `pcase' expansion.
 This is responsible for generating the proper stack adjustment when known and
 the annotation emission."
   (declare (debug (body))
@@ -824,7 +829,7 @@ the annotation emission."
      (_ (signal 'native-ice (list "unexpected LAP op" (symbol-name op))))))
 
 (defun comp-limplify-lap-inst (insn)
-  "Limplify LAP instruction INSN pushng it in the proper basic block."
+  "Limplify LAP instruction INSN pushing it in the proper basic block."
   (let ((op (car insn))
         (arg (if (consp (cdr insn))
                  (cadr insn)
@@ -1110,7 +1115,7 @@ This will be called at load-time."
 
 (defun comp-addr-to-bb-name (addr)
   "Search for a block starting at ADDR into pending or limplified blocks."
-  ;; FIXME: Actually we could have another hash for this.
+  ;; FIXME Actually we could have another hash for this.
   (cl-flet ((pred (bb)
               (equal (comp-block-addr bb) addr)))
     (if-let ((pending (cl-find-if #'pred
@@ -1201,7 +1206,7 @@ Top level forms for the current context are rendered too."
 ;; plus placing the needed phis.
 ;; Because the number of phis placed is (supposed) to be the minimum necessary
 ;; this form is called 'minimal SSA form'.
-;; This pass should be run every time basic blocks or mvar are shuffled.
+;; This pass should be run every time basic blocks or m-var are shuffled.
 
 (cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
   (make--comp-mvar :id (funcall (comp-func-ssa-cnt-gen comp-func))
@@ -1251,7 +1256,7 @@ Top level forms for the current context are rendered too."
                        (comp-log-edges comp-func)))))
 
 (defun comp-collect-rev-post-order (basic-block)
-  "Walk BASIC-BLOCK childs and return their name in reversed post-oder."
+  "Walk BASIC-BLOCK children and return their name in reversed post-order."
   (let ((visited (make-hash-table))
         (acc ()))
     (cl-labels ((collect-rec (bb)
@@ -1314,6 +1319,7 @@ Top level forms for the current context are rendered too."
                       (setf changed t))))))
 
 (defun comp-compute-dominator-frontiers ()
+  "Compute the dominator frontier for each basic block in `comp-func'."
   ;; Originally based on: "A Simple, Fast Dominance Algorithm"
   ;; Cooper, Keith D.; Harvey, Timothy J.; Kennedy, Ken (2001).
   (cl-loop with blocks = (comp-func-blocks comp-func)
@@ -1393,7 +1399,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 (cl-defstruct (comp-ssa (:copier nil))
   "Support structure used while SSA renaming."
   (frame (comp-new-frame (comp-func-frame-size comp-func) t) :type vector
-         :documentation "Vector of mvars."))
+         :documentation "Vector of m-vars."))
 
 (defun comp-ssa-rename-insn (insn frame)
   (dotimes (slot-n (comp-func-frame-size comp-func))
@@ -1419,7 +1425,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
            (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn)))))))))
 
 (defun comp-ssa-rename ()
-  "Entry point to rename SSA within the current function."
+  "Entry point to rename into SSA within the current function."
   (comp-log "Renaming\n" 2)
   (let ((frame-size (comp-func-frame-size comp-func))
         (visited (make-hash-table)))
@@ -1442,7 +1448,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 (defun comp-finalize-phis ()
   "Fixup r-values into phis in all basic blocks."
   (cl-flet ((finalize-phi (args b)
-              ;; Concatenate into args all incoming mvars for this phi.
+              ;; Concatenate into args all incoming m-vars for this phi.
               (setcdr args
                       (cl-loop with slot-n = (comp-mvar-slot (car args))
                                for e in (comp-block-in-edges b)
@@ -1456,7 +1462,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                          do (finalize-phi args b)))))
 
 (defun comp-ssa (_)
-  "Port FUNCS into mininal SSA form."
+  "Port all functions into mininal SSA form."
   (maphash (lambda (_ f)
              (let ((comp-func f))
                ;; TODO: if this is run more than once we should clean all CFG
@@ -1475,8 +1481,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 
 ;;; propagate pass specific code.
 ;; A very basic propagation pass follows.
-;; This propagates values and types plus in the control flow graph.
-;; Is also responsible for removing function calls to pure functions when
+;; This propagates values and types plus ref property in the control flow graph.
+;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
 (defsubst comp-strict-type-of (obj)
@@ -1650,7 +1656,7 @@ Return t if something was changed."
           `(call ,callee ,@args)))))))
 
 (defun comp-call-optim-func ()
-  "Perform trampoline call optimization for the current function."
+  "Perform the trampoline call optimization for the current function."
   (cl-loop
    with self = (comp-func-symbol-name comp-func)
    for b being each hash-value of (comp-func-blocks comp-func)
@@ -1668,7 +1674,7 @@ Return t if something was changed."
                (setcar insn-cell new-form)))))))
 
 (defun comp-call-optim (_)
-  "Given FUNCS try to avoid funcall trampoline usage when possible."
+  "Try to optimize out funcall trampoline usage when possible."
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
                (let ((comp-func f))
@@ -1679,13 +1685,12 @@ Return t if something was changed."
 ;;; Dead code elimination pass specific code.
 ;; This simple pass try to eliminate insns became useful after propagation.
 ;; Even if gcc would take care of this is good to perform this here
-;; in the hope of removing memory references (remember that most lisp
-;; objects are loaded from the reloc array).
+;; in the hope of removing memory references.
 ;;
 ;; This pass can be run as last optim.
 
 (defun comp-collect-mvar-ids (insn)
-  "Collect the mvar unique identifiers into INSN."
+  "Collect the m-var unique identifiers into INSN."
   (cl-loop for x in insn
            if (consp x)
              append (comp-collect-mvar-ids x)
@@ -1698,7 +1703,7 @@ Return t if something was changed."
 Return the list of m-var ids nuked."
   (let ((l-vals ())
         (r-vals ()))
-    ;; Collect used r and l values.
+    ;; Collect used r and l-values.
     (cl-loop
      for b being each hash-value of (comp-func-blocks comp-func)
      do (cl-loop
@@ -1735,7 +1740,7 @@ Return the list of m-var ids nuked."
 
 (defun comp-remove-type-hints-func ()
   "Remove type hints from the current function.
-These are substituted with normals 'set'."
+These are substituted with a normal 'set' op."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do (cl-loop
@@ -1770,7 +1775,7 @@ Prepare every function for final compilation and drive the C back-end."
   (comp--compile-ctxt-to-file name))
 
 (defun comp-final (_)
-  "Final pass driving DATA into the C back-end for code emission."
+  "Final pass driving the C back-end for code emission."
   (let (compile-result)
     (comp--init-ctxt)
     (unwind-protect
@@ -1844,10 +1849,10 @@ Prepare every function for final compilation and drive the C back-end."
 ;;;###autoload
 (defun native-compile (input)
   "Compile INPUT into native code.
-This is the entrypoint for the Emacs Lisp native compiler.
+This is the entry-point for the Emacs Lisp native compiler.
 If INPUT is a symbol, native compile its function definition.
 If INPUT is a string, use it as the file path to be native compiled.
-Return the compilation unit filename."
+Return the compilation unit file name."
   (unless (or (symbolp input)
               (stringp input))
     (signal 'native-compiler-error
@@ -1874,7 +1879,7 @@ Return the compilation unit filename."
 
 ;;;###autoload
 (defun native-compile-async (input &optional jobs recursively)
-  "Compile INPUT asyncronosly.
+  "Compile INPUT asynchronously.
 INPUT can be either a folder or a file.
 JOBS specifies the number of jobs (commands) to run simultaneously (1 default).
 Follow folders RECURSIVELY if non nil."
