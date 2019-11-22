@@ -1234,6 +1234,17 @@ For example, to keep your Company customization use
 (defvar-local eglot--cached-server nil
   "A cached reference to the current EGLOT server.")
 
+(defun eglot-managed-p ()
+  "Tell if current buffer is managed by EGLOT."
+  eglot--managed-mode)
+
+(make-obsolete-variable
+ 'eglot--managed-mode-hook 'eglot-managed-mode-hook "1.6")
+
+(defvar eglot-managed-mode-hook nil
+  "A hook run by EGLOT after it started/stopped managing a buffer.
+Use `eglot-managed-p' to determine if current buffer is managed.")
+
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some EGLOT project."
   nil nil eglot-mode-map
@@ -1289,7 +1300,9 @@ For example, to keep your Company customization use
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
                    (null (eglot--managed-buffers server)))
-          (eglot-shutdown server)))))))
+          (eglot-shutdown server))))))
+  ;; Note: the public hook runs before the internal eglot--managed-mode-hook.
+  (run-hooks 'eglot-managed-mode-hook))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
