@@ -79,16 +79,12 @@ Check that the resulting binaries do not differ."
   (should (equal (comp-tests-list2-f 1 2 3) '(1 2 3)))
   (should (= (comp-tests-car-f '(1 . 2)) 1))
   (should (null (comp-tests-car-f nil)))
-  (should (= (condition-case err
-                 (comp-tests-car-f 3)
-               (error 10))
-             10))
+  (should-error (comp-tests-car-f 3)
+                :type 'wrong-type-argument)
   (should (= (comp-tests-cdr-f '(1 . 2)) 2))
   (should (null (comp-tests-cdr-f nil)))
-  (should (= (condition-case err
-                 (comp-tests-cdr-f 3)
-               (error 10))
-             10))
+  (should-error (comp-tests-cdr-f 3)
+                :type 'wrong-type-argument)
   (should (= (comp-tests-car-safe-f '(1 . 2)) 1))
   (should (null (comp-tests-car-safe-f 'a)))
   (should (= (comp-tests-cdr-safe-f '(1 . 2)) 2))
@@ -191,24 +187,18 @@ Check that the resulting binaries do not differ."
   (should (= (comp-tests-fixnum-1-minus-f 10) 9))
   (should (= (comp-tests-fixnum-1-minus-f most-negative-fixnum)
              (1- most-negative-fixnum)))
-  (should (equal (condition-case err
-                     (comp-tests-fixnum-1-minus-f 'a)
-                   (error err))
-                 '(wrong-type-argument number-or-marker-p a)))
+  (should-error (comp-tests-fixnum-1-minus-f 'a)
+                :type 'wrong-type-argument)
   (should (= (comp-tests-fixnum-1-plus-f 10) 11))
   (should (= (comp-tests-fixnum-1-plus-f most-positive-fixnum)
              (1+ most-positive-fixnum)))
-  (should (equal (condition-case err
-                     (comp-tests-fixnum-1-plus-f 'a)
-                   (error err))
-                 '(wrong-type-argument number-or-marker-p a)))
+  (should-error (comp-tests-fixnum-1-plus-f 'a)
+                :type 'wrong-type-argument)
   (should (= (comp-tests-fixnum-minus-f 10) -10))
   (should (= (comp-tests-fixnum-minus-f most-negative-fixnum)
              (- most-negative-fixnum)))
-  (should (equal (condition-case err
-                     (comp-tests-fixnum-minus-f 'a)
-                   (error err))
-                 '(wrong-type-argument number-or-marker-p a))))
+  (should-error (comp-tests-fixnum-minus-f 'a)
+                :type 'wrong-type-argument))
 
 (ert-deftest comp-tests-arith-comp ()
   "Testing arithmetic comparisons."
@@ -232,16 +222,10 @@ Check that the resulting binaries do not differ."
   "Testing setcar setcdr."
   (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
   (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3)))
-  (should (equal (condition-case
-                     err
-                     (comp-tests-setcar-f 3 10)
-                   (error err))
-                 '(wrong-type-argument consp 3)))
-  (should (equal (condition-case
-                     err
-                     (comp-tests-setcdr-f 3 10)
-                   (error err))
-                 '(wrong-type-argument consp 3))))
+  (should-error (comp-tests-setcar-f 3 10)
+                :type 'wrong-type-argument)
+  (should-error (comp-tests-setcdr-f 3 10)
+                :type 'wrong-type-argument))
 
 (ert-deftest comp-tests-bubble-sort ()
   "Run bubble sort."
