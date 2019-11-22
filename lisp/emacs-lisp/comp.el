@@ -1789,10 +1789,12 @@ Prepare every function for final compilation and drive the C back-end."
 ;; are assumed just to be true. Use with extreme caution...
 
 (defun comp-hint-fixnum (x)
-  (cl-assert (fixnump x)))
+  (unless (fixnump x)
+    (signal 'wrong-type-argument x)))
 
 (defun comp-hint-cons (x)
-  (cl-assert (consp x)))
+  (unless (consp x)
+    (signal 'wrong-type-argument x)))
 
 
 ;; Some entry point support code.
