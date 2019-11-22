@@ -251,8 +251,8 @@ structure.")
 
 (defun comp-func-reset-generators (func)
   "Reset unique id generators for FUNC."
-  (setf (comp-func-edge-cnt-gen func) (comp-gen-counter))
-  (setf (comp-func-ssa-cnt-gen func) (comp-gen-counter)))
+  (setf (comp-func-edge-cnt-gen func) (comp-gen-counter)
+        (comp-func-ssa-cnt-gen func) (comp-gen-counter)))
 
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
@@ -320,7 +320,7 @@ BODY is evaluate only if `comp-verbose' is > 0."
            (indent defun))
   `(when (> comp-verbose 0)
      (with-current-buffer (get-buffer-create native-compile-log-buffer)
-       (setq buffer-read-only t)
+       (setf buffer-read-only t)
        (let ((inhibit-read-only t))
          (goto-char (point-max))
          ,@body))))
@@ -635,9 +635,9 @@ ENTRY-SP is the sp value when entering.
 The block is added to the current function.
 The block is returned."
   (let ((bb (make--comp-block addr entry-sp block-name)))
-    (setf (comp-limplify-curr-block comp-pass) bb)
-    (setf (comp-limplify-pc comp-pass) addr)
-    (setf (comp-limplify-sp comp-pass) (comp-block-sp bb))
+    (setf (comp-limplify-curr-block comp-pass) bb
+          (comp-limplify-pc comp-pass) addr
+          (comp-limplify-sp comp-pass) (comp-block-sp bb))
     (puthash (comp-block-name bb) bb (comp-func-blocks comp-func))
     bb))
 
@@ -1127,9 +1127,9 @@ This will be called at load-time."
 
 (defun comp-limplify-block (bb)
   "Limplify basic-block BB and add it to the current function."
-  (setf (comp-limplify-curr-block comp-pass) bb)
-  (setf (comp-limplify-sp comp-pass) (comp-block-sp bb))
-  (setf (comp-limplify-pc comp-pass) (comp-block-addr bb))
+  (setf (comp-limplify-curr-block comp-pass) bb
+        (comp-limplify-sp comp-pass) (comp-block-sp bb)
+        (comp-limplify-pc comp-pass) (comp-block-addr bb))
   (puthash (comp-block-name bb) bb (comp-func-blocks comp-func))
   (cl-loop
    for inst-cell on (nthcdr (comp-limplify-pc comp-pass)
@@ -1278,11 +1278,11 @@ Top level forms for the current context are rendered too."
                     (finger2 (comp-block-post-num b2)))
                 (while (not (= finger1 finger2))
                   (while (< finger1 finger2)
-                    (setf b1 (comp-block-dom b1))
-                    (setf finger1 (comp-block-post-num b1)))
+                    (setf b1 (comp-block-dom b1)
+                          finger1 (comp-block-post-num b1)))
                   (while (< finger2 finger1)
-                    (setf b2 (comp-block-dom b2))
-                    (setf finger2 (comp-block-post-num b2))))
+                    (setf b2 (comp-block-dom b2)
+                          finger2 (comp-block-post-num b2))))
                 b1))
             (first-processed (l)
               (if-let ((p (cl-find-if (lambda (p) (comp-block-dom p)) l)))
@@ -1314,8 +1314,8 @@ Top level forms for the current context are rendered too."
                                when (comp-block-dom p)
                                  do (setf new-idom (intersect p new-idom)))
                    unless (eq (comp-block-dom b) new-idom)
-                   do (setf (comp-block-dom b) new-idom)
-                      (setf changed t))))))
+                   do (setf (comp-block-dom b) new-idom
+                            changed t))))))
 
 (defun comp-compute-dominator-frontiers ()
   "Compute the dominator frontier for each basic block in `comp-func'."
@@ -1409,8 +1409,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
               (new-lvalue ()
                 ;; If is an assignment make a new mvar and put it as l-value.
                 (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
-                  (setf (aref frame slot-n) mvar)
-                  (setf (cadr insn) mvar))))
+                  (setf (aref frame slot-n) mvar
+                        (cadr insn) mvar))))
       (pcase insn
         (`(,(pred comp-assign-op-p) ,(pred targetp) . ,_)
          (let ((mvar (aref frame slot-n)))
@@ -1499,9 +1499,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 	(while (consp insn)
 	  (let ((newcar (car insn)))
 	    (if (or (consp (car insn)) (comp-mvar-p (car insn)))
-		(setq newcar (comp-copy-insn (car insn))))
+		(setf newcar (comp-copy-insn (car insn))))
 	    (push newcar result))
-	  (setq insn (cdr insn)))
+	  (setf insn (cdr insn)))
 	(nconc (nreverse result)
                (if (comp-mvar-p insn) (comp-copy-insn insn) insn)))
     (if (comp-mvar-p insn)
@@ -1778,7 +1778,7 @@ Prepare every function for final compilation and drive the C back-end."
   (let (compile-result)
     (comp--init-ctxt)
     (unwind-protect
-        (setq compile-result
+        (setf compile-result
               (comp-compile-ctxt-to-file (comp-ctxt-output comp-ctxt)))
       (and (comp--release-ctxt)
            compile-result))))
@@ -1826,10 +1826,10 @@ Prepare every function for final compilation and drive the C back-end."
          (when (comp-to-file-p f)
            (let* ((code `(progn
                            (require 'comp)
-                           (setq comp-speed ,comp-speed)
-                           (setq comp-debug ,comp-debug)
-                           (setq comp-verbose ,comp-verbose)
-                           (setq load-path ',load-path)
+                           (setf comp-speed ,comp-speed
+                                 comp-debug ,comp-debug
+                                 comp-verbose ,comp-verbose
+                                 load-path ',load-path)
                            (message "Compiling %s started." ,f)
                            (native-compile ,f)))
                   (prc (start-process (concat "Compiling: " f)
@@ -1866,7 +1866,7 @@ Return the compilation unit file name."
     (condition-case err
         (mapc (lambda (pass)
                 (comp-log (format "Running pass %s:\n" pass) 2)
-                (setq data (funcall pass data)))
+                (setf data (funcall pass data)))
               comp-passes)
       (native-compiler-error
        ;; Add source input.
