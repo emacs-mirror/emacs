@@ -45,16 +45,12 @@
 Check that the resulting binaries do not differ."
   (let* ((comp-src (concat comp-test-directory
                            "../../lisp/emacs-lisp/comp.el"))
-         (comp1-src (concat temporary-file-directory
-                            (make-temp-name "stage1-")
-                            ".el"))
-         (comp2-src (concat temporary-file-directory
-                            (make-temp-name "stage2-")
-                            ".el"))
+         (comp1-src (make-temp-file "stage1-" nil ".el"))
+         (comp2-src (make-temp-file "stage2-" nil ".el"))
          (comp1 (concat comp1-src "n"))
          (comp2 (concat comp2-src "n")))
-    (copy-file comp-src comp1-src)
-    (copy-file comp-src comp2-src)
+    (copy-file comp-src comp1-src t)
+    (copy-file comp-src comp2-src t)
     (load (concat comp-src "c") nil nil t t)
     (should (null (subr-native-elisp-p (symbol-function #'native-compile))))
     (message "Compiling stage1...")
