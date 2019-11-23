@@ -102,7 +102,7 @@ Can be used by code that wants to expand differently in this case.")
                                  (* . number)
                                  (/ . number)
                                  (% . number)
-                                 ;; Type hint
+                                 ;; Type hints
                                  (comp-hint-fixnum . fixnum)
                                  (comp-hint-cons . cons))
   "Alist used for type propagation.")
@@ -412,31 +412,33 @@ Put PREFIX in front of it."
   ;; For the 1+ see bytecode.c:365 (finger crossed).
   (1+ (aref byte-compiled-func 3)))
 
-(defun comp-spill-lap-function (_function-name)
-  "Byte compile FUNCTION-NAME spilling data from the byte compiler."
-  (signal 'native-ice "to be reimplemented")
-  ;; (let* ((f (symbol-function function-name))
-  ;;        (func (make-comp-func :symbol-name function-name
-  ;;                              :c-func-name (comp-c-func-name
-  ;;                                            function-name
-  ;;                                            "F"))))
-  ;;     (when (byte-code-function-p f)
-  ;;       (error "Can't native compile an already bytecompiled function"))
-  ;;     (setf (comp-func-byte-func func)
-  ;;           (byte-compile (comp-func-symbol-name func)))
-  ;;     (let ((lap (alist-get function-name (reverse byte-to-native-bytecode))))
-  ;;       (cl-assert lap)
-  ;;       (comp-log lap)
-  ;;       (let ((lambda-list (aref (comp-func-byte-func func) 0)))
-  ;;         (setf (comp-func-args func)
-  ;;               (comp-decrypt-lambda-list lambda-list)))
-  ;;       (setf (comp-func-lap func) lap)
-  ;;       (setf (comp-func-frame-size func)
-  ;;             (comp-byte-frame-size (comp-func-byte-func func)))
-  ;;       func))
-  )
+(cl-defgeneric comp-spill-lap-function (input)
+  "Byte compile INPUT and spill lap for further stages.")
 
-(defun comp-spill-lap-functions-file (filename)
+(cl-defgeneric comp-spill-lap-function ((function-name symbol))
+  "Byte compile FUNCTION-NAME spilling data from the byte compiler."
+  (let* ((f (symbol-function function-name))
+         (func (make-comp-func :symbol-name function-name
+                               :c-func-name (comp-c-func-name
+                                             function-name
+                                             "F"))))
+      (when (byte-code-function-p f)
+        (signal 'native-compiler-error
+                "can't native compile an already bytecompiled function"))
+      (setf (comp-func-byte-func func)
+            (byte-compile (comp-func-symbol-name func)))
+      (let ((lap (alist-get nil byte-to-native-lap)))
+        (cl-assert lap)
+        (comp-log lap 1)
+        (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+          (setf (comp-func-args func)
+                (comp-decrypt-lambda-list lambda-list)
+                (comp-func-lap func) lap
+                (comp-func-frame-size func)
+                (comp-byte-frame-size (comp-func-byte-func func))))
+        (list func))))
+
+(cl-defgeneric comp-spill-lap-function ((filename string))
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
@@ -472,9 +474,7 @@ If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
         (byte-to-native-lap ())
         (byte-to-native-top-level-forms ()))
-    (cl-typecase input
-      (symbol (list (comp-spill-lap-function input)))
-      (string (comp-spill-lap-functions-file input)))))
+    (comp-spill-lap-function input)))
 
 
 ;;; Limplification pass specific code.
@@ -1860,7 +1860,7 @@ Return the compilation unit file name."
         (comp-native-compiling t)
         (comp-ctxt (make-comp-ctxt
                     :output (if (symbolp input)
-                                (symbol-name input)
+                                (make-temp-file (concat (symbol-name input) "-"))
                               (file-name-sans-extension (expand-file-name input))))))
     (comp-log "\n\n" 1)
     (condition-case err
