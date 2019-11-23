@@ -34,7 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "blockinput.h"
 
-/* C symbols emited for the load relocation mechanism.  */
+/* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
@@ -115,7 +115,7 @@ typedef struct {
   gcc_jit_field *m_handlerlist;
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread_ref;
-  /* other globals */
+  /* Other globals.  */
   gcc_jit_rvalue *pure_ref;
   /* libgccjit has really limited support for casting therefore this union will
      be used for the scope.  */
@@ -175,7 +175,7 @@ typedef struct {
 
 
 /*
-   Helper functions called by the runtime.
+   Helper functions called by the run-time.
 */
 Lisp_Object helper_save_window_excursion (Lisp_Object v1);
 void helper_unwind_protect (Lisp_Object handler);
@@ -208,6 +208,7 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
+/* Try to return the original subr from `symbol' even if this was advised.   */
 static Lisp_Object
 symbol_subr (Lisp_Object symbol)
 {
@@ -323,7 +324,7 @@ emit_comment (const char *str)
 /*
   Declare an imported function.
   When nargs is MANY (ptrdiff_t nargs, Lisp_Object *args) signature is assumed.
-  When types is NULL types is assumed to be all Lisp_Objects.
+  When types is NULL args are assumed to be all Lisp_Objects.
 */
 static gcc_jit_field *
 declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
@@ -342,7 +343,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
       types[0] = comp.ptrdiff_type;
       types[1] = comp.lisp_obj_ptr_type;
     }
-  if (nargs == UNEVALLED)
+  else if (nargs == UNEVALLED)
     {
       nargs = 1;
       types = alloca (nargs * sizeof (* types));
@@ -681,11 +682,11 @@ emit_BIGNUMP (gcc_jit_rvalue *obj)
   /* PSEUDOVECTORP (x, PVEC_BIGNUM); */
   emit_comment ("BIGNUMP");
 
-  gcc_jit_rvalue *args[2] = {
-    obj,
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.int_type,
-					 PVEC_BIGNUM) };
+  gcc_jit_rvalue *args[] =
+    { obj,
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.int_type,
+					   PVEC_BIGNUM) };
 
   return gcc_jit_context_new_call (comp.ctxt,
 				   NULL,
@@ -1598,7 +1599,7 @@ emit_integerp (Lisp_Object insn)
 }
 
 /* This is in charge of serializing an object and export a function to
-   retrive it at load time.  */
+   retrieve it at load time.  */
 static void
 emit_static_object (const char *name, Lisp_Object obj)
 {
@@ -1760,7 +1761,7 @@ declare_runtime_imported_funcs (void)
 }
 
 /*
-This emit the code needed by every compilation unit to be loaded.
+  This emit the code needed by every compilation unit to be loaded.
 */
 static void
 emit_ctxt_code (void)
@@ -2386,10 +2387,10 @@ define_setcar_setcdr (void)
       comp.func = *f_ref;
       comp.block = entry_block;
 
-      /* CHECK_CONS (cell); */
+      /* CHECK_CONS (cell);  */
       emit_CHECK_CONS (gcc_jit_param_as_rvalue (cell));
 
-      /* CHECK_IMPURE (cell, XCONS (cell)); */
+      /* CHECK_IMPURE (cell, XCONS (cell));  */
       gcc_jit_rvalue *args[] =
 	{ gcc_jit_param_as_rvalue (cell),
 	  emit_XCONS (gcc_jit_param_as_rvalue (cell)) };
@@ -2402,7 +2403,7 @@ define_setcar_setcdr (void)
 							2,
 							args));
 
-      /* XSETCDR (cell, newel); */
+      /* XSETCDR (cell, newel);  */
       if (!i)
 	emit_XSETCAR (gcc_jit_param_as_rvalue (cell),
 		      gcc_jit_param_as_rvalue (new_el));
@@ -2410,7 +2411,7 @@ define_setcar_setcdr (void)
 	emit_XSETCDR (gcc_jit_param_as_rvalue (cell),
 		      gcc_jit_param_as_rvalue (new_el));
 
-      /* return newel; */
+      /* return newel;  */
       gcc_jit_block_end_with_return (entry_block,
 				     NULL,
 				     gcc_jit_param_as_rvalue (new_el));
@@ -2733,6 +2734,7 @@ define_bool_to_lisp_obj (void)
 }
 
 /* Declare a function being compiled and add it to comp.exported_funcs_h.  */
+
 static void
 declare_function (Lisp_Object func)
 {
@@ -2823,7 +2825,7 @@ compile_function (Lisp_Object func)
      locals if the are not going to be used in a nargs call.
      This has two advantages:
      - Enable gcc for better reordering (frame array is clobbered every time is
-       passed as parameter being invoved into an nargs function call).
+       passed as parameter being involved into an nargs function call).
      - Allow gcc to trigger other optimizations that are prevented by memory
        referencing.
   */
@@ -2847,7 +2849,7 @@ compile_function (Lisp_Object func)
 
   comp.func_blocks_h = CALLN (Fmake_hash_table);
 
-  /* Pre declare all basic blocks to gcc.
+  /* Pre-declare all basic blocks to gcc.
      The "entry" block must be declared as first.  */
   declare_block (Qentry);
   Lisp_Object blocks = CALL1I (comp-func-blocks, func);
@@ -2868,7 +2870,6 @@ compile_function (Lisp_Object func)
       if (NILP (block) || NILP (insns))
 	xsignal1 (Qnative_ice,
 		  build_string ("basic block is missing or empty"));
-
 
       comp.block = retrive_block (block_name);
       while (CONSP (insns))
@@ -3139,10 +3140,10 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
 
 /******************************************************************************/
-/* Helper functions called from the runtime.				      */
+/* Helper functions called from the run-time.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
 /* Note: this are all potentially definable directly to gcc and are here just */
-/* for lazyness. Change this if a performance impact is measured.             */
+/* for laziness. Change this if a performance impact is measured.             */
 /******************************************************************************/
 
 Lisp_Object
@@ -3356,9 +3357,10 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 void
 syms_of_comp (void)
 {
-  /* Compiler control customize.  */
+  /* Compiler control customizes.  */
   DEFSYM (Qcomp_speed, "comp-speed");
   DEFSYM (Qcomp_debug, "comp-debug");
+
   /* Limple instruction set.  */
   DEFSYM (Qcomment, "comment");
   DEFSYM (Qjump, "jump");
@@ -3371,7 +3373,7 @@ syms_of_comp (void)
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
   DEFSYM (Qphi, "phi");
-  /* In use for prologue emission.  */
+  /* Ops in use for prologue emission.  */
   DEFSYM (Qset_par_to_local, "set-par-to-local");
   DEFSYM (Qset_args_to_local, "set-args-to-local");
   DEFSYM (Qset_rest_args_to_local, "set-rest-args-to-local");
@@ -3383,7 +3385,7 @@ syms_of_comp (void)
   DEFSYM (Qfetch_handler, "fetch-handler");
   DEFSYM (Qcondition_case, "condition-case");
   /* call operands.  */
-  DEFSYM (Qcatcher, "catcher"); /* FIXME use these allover.  */
+  DEFSYM (Qcatcher, "catcher");
   DEFSYM (Qentry, "entry");
   DEFSYM (Qset_internal, "set_internal");
   DEFSYM (Qrecord_unwind_current_buffer, "record_unwind_current_buffer");
@@ -3402,6 +3404,7 @@ syms_of_comp (void)
   DEFSYM (Qnegate, "negate");
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
+
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qadvice, "advice");
