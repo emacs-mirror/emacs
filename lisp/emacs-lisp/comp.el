@@ -74,8 +74,10 @@ This intended for debugging the compiler itself.
   :type 'boolean
   :group 'comp)
 
-(defconst native-compile-log-buffer "*Native-compile-Log*"
-  "Name of the native-compiler log buffer.")
+(defconst comp-log-buffer-name "*Native-compile-Log*"
+  "Name of the native-compiler log buffer."
+  :type 'string
+  :group 'comp)
 
 (defcustom comp-async-buffer-name "*Async-compilation*"
   "Name of the async compilation buffer log."
@@ -324,7 +326,7 @@ BODY is evaluate only if `comp-verbose' is > 0."
   (declare (debug (form body))
            (indent defun))
   `(when (> comp-verbose 0)
-     (with-current-buffer (get-buffer-create native-compile-log-buffer)
+     (with-current-buffer (get-buffer-create comp-log-buffer-name)
        (setf buffer-read-only t)
        (let ((inhibit-read-only t))
          (goto-char (point-max))
