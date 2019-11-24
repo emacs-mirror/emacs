@@ -77,6 +77,11 @@ This intended for debugging the compiler itself.
 (defconst native-compile-log-buffer "*Native-compile-Log*"
   "Name of the native-compiler log buffer.")
 
+(defcustom comp-async-buffer-name "*Async-compilation*"
+  "Name of the async compilation buffer log."
+  :type 'string
+  :group 'comp)
+
 (defvar comp-native-compiling nil
   "This gets bound to t while native compilation.
 Can be used by code that wants to expand differently in this case.")
@@ -1803,8 +1808,8 @@ Prepare every function for final compilation and drive the C back-end."
 (defvar comp-src-pool ()
   "List containing the files to be compiled.")
 
-(defvar comp-src-pool-mutex (make-mutex)
-  "Mutex for `comp-src-pool'.")
+(defvar comp-prc-pool ()
+  "List containing all async compilation processes.")
 
 (defun comp-to-file-p (file)
   "Return t if FILE has to be compiled."
@@ -1813,32 +1818,37 @@ Prepare every function for final compilation and drive the C back-end."
         (not (and (file-exists-p compiled-f)
                   (file-newer-than-file-p compiled-f file))))))
 
-(defun comp-start-async-worker ()
-  "Start an async compiler worker."
-  (make-thread
-   (lambda ()
-     (let (f)
-       (while (setf f (with-mutex comp-src-pool-mutex
-                        (pop comp-src-pool)))
-         (when (comp-to-file-p f)
-           (let* ((code `(progn
-                           (require 'comp)
-                           (setf comp-speed ,comp-speed
-                                 comp-debug ,comp-debug
-                                 comp-verbose ,comp-verbose
-                                 load-path ',load-path)
-                           (message "Compiling %s started." ,f)
-                           (native-compile ,f)))
-                  (prc (start-process (concat "Compiling: " f)
-                                      "async-compile-buffer"
-                                      (concat invocation-directory invocation-name)
-                                      "--batch"
-                                      "--eval"
-                                      (prin1-to-string code))))
-             (while (accept-process-output prc)
-               (thread-yield)))))
-       (message "Finished compiling.")))
-   "compilation thread"))
+(cl-defun comp-start-async-worker ()
+  "Run an async compile worker."
+  (let (f)
+    (while (setf f (pop comp-src-pool))
+      (when (comp-to-file-p f)
+        (let* ((code `(progn
+                        (require 'comp)
+                        (setf comp-speed ,comp-speed
+                              comp-debug ,comp-debug
+                              comp-verbose ,comp-verbose
+                              load-path ',load-path)
+                        (message "Compiling %s started." ,f)
+                        (native-compile ,f))))
+          (push (make-process :name (concat "Compiling: " f)
+                              :buffer (get-buffer-create comp-async-buffer-name)
+                              :command (list (concat invocation-directory
+                                                     invocation-name)
+                                             "--batch"
+                                             "--eval"
+                                             (prin1-to-string code))
+                              :sentinel (lambda (prc _event)
+                                          (accept-process-output prc)
+                                          (comp-start-async-worker)))
+                comp-prc-pool)
+          (cl-return-from comp-start-async-worker))))
+    (when (cl-notany #'process-live-p comp-prc-pool)
+      (let ((msg "Compilation finished."))
+        (setf comp-prc-pool ())
+        (with-current-buffer (get-buffer-create comp-async-buffer-name)
+          (insert msg "\n"))
+        (message msg)))))
 
 ;;; Compiler entry points.
 
@@ -1888,10 +1898,10 @@ Follow folders RECURSIVELY if non nil."
                      (list input)
                    (signal 'native-compiler-error
                            "input not a file nor directory")))))
-    (with-mutex comp-src-pool-mutex
-      (setf comp-src-pool (nconc files comp-src-pool)))
+    (setf comp-src-pool (nconc files comp-src-pool))
     (cl-loop repeat jobs
-             do (comp-start-async-worker))))
+             do (comp-start-async-worker))
+    (message "Compilation started.")))
 
 (provide 'comp)
 
