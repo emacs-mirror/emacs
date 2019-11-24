@@ -75,14 +75,10 @@ This intended for debugging the compiler itself.
   :group 'comp)
 
 (defconst comp-log-buffer-name "*Native-compile-Log*"
-  "Name of the native-compiler log buffer."
-  :type 'string
-  :group 'comp)
+  "Name of the native-compiler log buffer.")
 
-(defcustom comp-async-buffer-name "*Async-compilation*"
-  "Name of the async compilation buffer log."
-  :type 'string
-  :group 'comp)
+(defconst comp-async-buffer-name "*Async-native-compile-log*"
+  "Name of the async compilation buffer log.")
 
 (defvar comp-native-compiling nil
   "This gets bound to t while native compilation.
