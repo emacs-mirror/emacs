@@ -406,11 +406,9 @@ Put PREFIX in front of it."
                        :nonrest nonrest
                        :rest rest))))
 
-(defun comp-byte-frame-size (byte-compiled-func)
+(defsubst comp-byte-frame-size (byte-compiled-func)
   "Given BYTE-COMPILED-FUNC return the frame size to be allocated."
-  ;; Is this really correct?
-  ;; For the 1+ see bytecode.c:365 (finger crossed).
-  (1+ (aref byte-compiled-func 3)))
+  (aref byte-compiled-func 3))
 
 (cl-defgeneric comp-spill-lap-function (input)
   "Byte compile INPUT and spill lap for further stages.")
@@ -431,7 +429,8 @@ Put PREFIX in front of it."
         (let ((lambda-list (aref (comp-func-byte-func func) 0)))
           (setf (comp-func-args func)
                 (comp-decrypt-lambda-list lambda-list)
-                (comp-func-lap func) lap
+                (comp-func-lap func)
+                lap
                 (comp-func-frame-size func)
                 (comp-byte-frame-size (comp-func-byte-func func))))
         (setf (comp-ctxt-top-level-forms comp-ctxt)
