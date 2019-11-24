@@ -223,10 +223,10 @@ Is in use to help the SSA rename pass."))
 
 (cl-defstruct (comp-func (:copier nil))
   "LIMPLE representation of a function."
-  (symbol-name nil
-               :documentation "Function's symbol name.")
-  (c-func-name nil :type string
-               :documentation "The function name in the native world.")
+  (name nil :type symbol
+        :documentation "Function symbol name.")
+  (c-name nil :type string
+          :documentation "The function name in the native world.")
   (byte-func nil
              :documentation "Byte compiled version.")
   (doc nil :type string
@@ -346,7 +346,7 @@ BODY is evaluate only if `comp-verbose' is > 0."
   "Log function FUNC.
 VERBOSITY is a number between 0 and 3."
   (when (>= comp-verbose verbosity)
-    (comp-log (format "\nFunction: %s\n" (comp-func-symbol-name func)) verbosity)
+    (comp-log (format "\nFunction: %s\n" (comp-func-name func)) verbosity)
     (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
              using (hash-value bb)
              do (comp-log (concat "<" (symbol-name block-name) ">\n") verbosity)
@@ -357,7 +357,7 @@ VERBOSITY is a number between 0 and 3."
   (let ((edges (comp-func-edges func)))
     (when (> comp-verbose 2)
       (comp-log (format "\nEdges in function: %s\n"
-                        (comp-func-symbol-name func))
+                        (comp-func-name func))
                 0))
     (mapc (lambda (e)
             (when (> comp-verbose 2)
@@ -418,15 +418,13 @@ Put PREFIX in front of it."
 (cl-defgeneric comp-spill-lap-function ((function-name symbol))
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
-         (func (make-comp-func :symbol-name function-name
-                               :c-func-name (comp-c-func-name
-                                             function-name
-                                             "F"))))
+         (func (make-comp-func :name function-name
+                               :c-name (comp-c-func-name function-name"F"))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 "can't native compile an already bytecompiled function"))
       (setf (comp-func-byte-func func)
-            (byte-compile (comp-func-symbol-name func)))
+            (byte-compile (comp-func-name func)))
       (let ((lap (alist-get nil byte-to-native-lap)))
         (cl-assert lap)
         (comp-log lap 1)
@@ -454,12 +452,10 @@ Put PREFIX in front of it."
    for doc = (when (>= (length data) 5) (aref data 4))
    for lap = (alist-get name byte-to-native-lap)
    for lambda-list = (aref data 0)
-   for func = (make-comp-func :symbol-name name
+   for func = (make-comp-func :name name
                               :byte-func data
                               :doc doc
-                              :c-func-name (comp-c-func-name
-                                            name
-                                            "F")
+                              :c-name (comp-c-func-name name "F")
                               :args (comp-decrypt-lambda-list lambda-list)
                               :lap lap
                               :frame-size (comp-byte-frame-size data))
@@ -1078,7 +1074,7 @@ the annotation emission."
   (let* ((name (byte-to-native-function-name form))
          (f (gethash name (comp-ctxt-funcs-h comp-ctxt)))
          (args (comp-func-args f))
-         (c-name (comp-func-c-func-name f))
+         (c-name (comp-func-c-name f))
          (doc (comp-func-doc f)))
     (cl-assert (and name f))
     (comp-emit (comp-call 'comp--register-subr
@@ -1099,10 +1095,10 @@ the annotation emission."
 (defun comp-limplify-top-level ()
   "Create a limple function doing the business for top level forms.
 This will be called at load-time."
-  (let* ((func (make-comp-func :symbol-name 'top-level-run
-                  :c-func-name "top_level_run"
-                  :args (make-comp-args :min 0 :max 0)
-                  :frame-size 0))
+  (let* ((func (make-comp-func :name 'top-level-run
+                               :c-name "top_level_run"
+                               :args (make-comp-args :min 0 :max 0)
+                               :frame-size 0))
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block -1 0 'top-level)
@@ -1163,7 +1159,7 @@ This will be called at load-time."
     ;; Prologue
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation (concat "Lisp function: "
-                                  (symbol-name (comp-func-symbol-name func))))
+                                  (symbol-name (comp-func-name func))))
     (if (comp-args-p args)
         (cl-loop for i below (comp-args-max args)
                  do (cl-incf (comp-sp))
@@ -1188,7 +1184,7 @@ This will be called at load-time."
 
 (defun comp-add-func-to-ctxt (func)
   "Add FUNC to the current compiler contex."
-  (puthash (comp-func-symbol-name func)
+  (puthash (comp-func-name func)
            func
            (comp-ctxt-funcs-h comp-ctxt)))
 
@@ -1243,7 +1239,7 @@ Top level forms for the current context are rendered too."
                    (signal 'native-ice
                            (list "block does not end with a branch"
                                  bb
-                                 (comp-func-symbol-name comp-func)))))
+                                 (comp-func-name comp-func)))))
              finally (setf (comp-func-edges comp-func)
                            (nreverse (comp-func-edges comp-func)))
                      ;; Update edge refs into blocks.
@@ -1657,7 +1653,7 @@ Return t if something was changed."
 (defun comp-call-optim-func ()
   "Perform the trampoline call optimization for the current function."
   (cl-loop
-   with self = (comp-func-symbol-name comp-func)
+   with self = (comp-func-name comp-func)
    for b being each hash-value of (comp-func-blocks comp-func)
    do (cl-loop
        for insn-cell on (comp-block-insns b)
@@ -1717,7 +1713,7 @@ Return the list of m-var ids nuked."
     ;; exist and gets nuked.
     (let ((nuke-list (cl-set-difference l-vals r-vals)))
       (comp-log (format "Function %s\nl-vals %s\nr-vals %s\nNuking ids: %s\n"
-                        (comp-func-symbol-name comp-func)
+                        (comp-func-name comp-func)
                         l-vals
                         r-vals
                         nuke-list)

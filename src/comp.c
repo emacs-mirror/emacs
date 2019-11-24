@@ -2739,7 +2739,7 @@ static void
 declare_function (Lisp_Object func)
 {
   gcc_jit_function *gcc_func;
-  char *c_name = SSDATA (CALL1I (comp-func-c-func-name, func));
+  char *c_name = SSDATA (CALL1I (comp-func-c-name, func));
   Lisp_Object args = CALL1I (comp-func-args, func);
   bool nargs = (CALL1I (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
@@ -2784,7 +2784,7 @@ declare_function (Lisp_Object func)
 				      c_name, 2, param, 0);
     }
 
-  Fputhash (CALL1I (comp-func-symbol-name, func),
+  Fputhash (CALL1I (comp-func-name, func),
 	    make_mint_ptr (gcc_func),
 	    comp.exported_funcs_h);
 
@@ -2797,7 +2797,7 @@ compile_function (Lisp_Object func)
   USE_SAFE_ALLOCA;
   EMACS_INT frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
 
-  comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-symbol-name, func),
+  comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-name, func),
 				       comp.exported_funcs_h, Qnil));
 
   gcc_jit_lvalue *frame_array =
@@ -2883,7 +2883,7 @@ compile_function (Lisp_Object func)
   if (err)
     xsignal3 (Qnative_ice,
 	      build_string ("failing to compile function"),
-	      CALL1I (comp-func-symbol-name, func),
+	      CALL1I (comp-func-name, func),
 	      build_string (err));
 
   SAFE_FREE ();
