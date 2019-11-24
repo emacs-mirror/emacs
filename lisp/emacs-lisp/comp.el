@@ -358,17 +358,15 @@ VERBOSITY is a number between 0 and 3."
 (defun comp-log-edges (func)
   "Log edges in FUNC."
   (let ((edges (comp-func-edges func)))
-    (when (> comp-verbose 2)
-      (comp-log (format "\nEdges in function: %s\n"
-                        (comp-func-name func))
-                0))
+    (comp-log (format "\nEdges in function: %s\n"
+                      (comp-func-name func))
+              2)
     (mapc (lambda (e)
-            (when (> comp-verbose 2)
-              (comp-log (format "n: %d src: %s dst: %s\n"
-                                (comp-edge-number e)
-                                (comp-block-name (comp-edge-src e))
-                                (comp-block-name (comp-edge-dst e)))
-                        0)))
+            (comp-log (format "n: %d src: %s dst: %s\n"
+                              (comp-edge-number e)
+                              (comp-block-name (comp-edge-src e))
+                              (comp-block-name (comp-edge-dst e)))
+                      2))
           edges)))
 
 
