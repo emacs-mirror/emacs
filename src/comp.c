@@ -1083,9 +1083,8 @@ static gcc_jit_rvalue *
 emit_set_internal (Lisp_Object args)
 {
   /*
-    Ex: (call set_internal
-              #s(comp-mvar 7 nil t xxx nil)
-	      #s(comp-mvar 6 1 t 3 nil))
+    Ex: (set_internal #s(comp-mvar nil nil t comp-test-up-val nil nil)
+                      #s(comp-mvar 1 4 t nil symbol nil)).
   */
   /* TODO: Inline the most common case.  */
   if (list_length (args) != 3)
@@ -1128,8 +1127,7 @@ static gcc_jit_rvalue *
 emit_simple_limple_call_lisp_ret (Lisp_Object args)
 {
   /*
-    Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil)
-                    #s(comp-mvar 4 nil t nil nil))
+    Ex: (call Fcons #s(comp-mvar 3 0 t 1 nil) #s(comp-mvar 4 nil t nil nil)).
   */
   return emit_simple_limple_call (args, comp.lisp_obj_type, false);
 }
@@ -1160,8 +1158,9 @@ emit_limple_call (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_limple_call_ref (Lisp_Object insn, bool direct)
 {
-  /* Ex: (callref < #s(comp-mvar 1 6 nil nil nil t)
-                    #s(comp-mvar 2 11 t 10 integer t)).  */
+  /* Ex: (funcall #s(comp-mvar 1 5 t eql symbol t)
+                  #s(comp-mvar 2 6 nil nil nil t)
+		  #s(comp-mvar 3 7 t 0 fixnum t)).  */
 
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
@@ -1384,7 +1383,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qset_par_to_local))
     {
-      /* Ex: (setpar #s(comp-mvar 2 0 nil nil nil) 0).  */
+      /* Ex: (set-par-to-local #s(comp-mvar 0 3 nil nil nil nil) 0).  */
       EMACS_INT param_n = XFIXNUM (arg[1]);
       gcc_jit_rvalue *param =
 	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
@@ -1394,7 +1393,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qset_args_to_local))
     {
       /*
-	Limple: (set-args-to-local #s(comp-mvar 1 6 nil nil nil nil))
+	Ex: (set-args-to-local #s(comp-mvar 1 6 nil nil nil nil))
 	C: local[1] = *args;
       */
       gcc_jit_rvalue *gcc_args =
@@ -1409,7 +1408,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qset_rest_args_to_local))
     {
       /*
-        Limple: (set-rest-args-to-local #s(comp-mvar 2 9 nil nil nil nil))
+        Ex: (set-rest-args-to-local #s(comp-mvar 2 9 nil nil nil nil))
         C: local[2] = list (nargs - 2, args);
       */
 
@@ -1440,7 +1439,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qinc_args))
     {
       /*
-	Limple: (inc-args)
+	Ex: (inc-args)
 	C: ++args;
       */
       gcc_jit_lvalue *args =
@@ -1457,7 +1456,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qsetimm))
     {
-      /* EX: (=imm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
+      /* Ex: (=imm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
       gcc_jit_rvalue *reloc_n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
@@ -1473,7 +1472,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qcomment))
     {
-      /* Ex: (comment "Function: foo").	 */
+      /* Ex: (comment "Function: foo").  */
       emit_comment (SSDATA (arg[0]));
     }
   else if (EQ (op, Qreturn))
