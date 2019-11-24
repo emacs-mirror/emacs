@@ -434,6 +434,8 @@ Put PREFIX in front of it."
                 (comp-func-lap func) lap
                 (comp-func-frame-size func)
                 (comp-byte-frame-size (comp-func-byte-func func))))
+        (setf (comp-ctxt-top-level-forms comp-ctxt)
+              (list (make-byte-to-native-function :name function-name)))
         (list func))))
 
 (cl-defgeneric comp-spill-lap-function ((filename string))
