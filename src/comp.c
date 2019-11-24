@@ -1456,7 +1456,7 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qsetimm))
     {
-      /* Ex: (=imm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
+      /* Ex: (setimm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
       gcc_jit_rvalue *reloc_n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.int_type,
