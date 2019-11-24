@@ -30,7 +30,7 @@
 (require 'comp)
 
 ;; (setq comp-debug 1)
-(setq comp-speed 3)
+(setq comp-speed 0)
 
 (defconst comp-test-directory (file-name-directory (or load-file-name
                                                        buffer-file-name)))
@@ -306,6 +306,14 @@ Check that the resulting binaries do not differ."
 (ert-deftest comp-tests-func-call-removal ()
   ;; See `comp-propagate-insn' `comp-function-call-remove'.
   (should (= (comp-tests-func-call-removal-f) 1)))
+
+(ert-deftest comp-tests-free-fun ()
+  "Check we are able to compile a single function."
+  (defun comp-tests-free-fun-f ()
+    3)
+  (load (native-compile #'comp-tests-free-fun-f))
+  (should (subr-native-elisp-p (symbol-function #'comp-tests-free-fun-f)))
+  (should (= (comp-tests-free-fun-f) 3)))
 
 
 ;;;;;;;;;;;;;;;;;;;;
