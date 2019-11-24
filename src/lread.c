@@ -4195,16 +4195,13 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
 {
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, str, len, len);
-  Lisp_Object string;
 
   if (!SYMBOLP (tem))
     {
-      if (NILP (Vpurify_flag))
-	string = make_string (str, len);
-      else
-	string = make_pure_c_string (str, len);
-
-      tem = intern_driver (string, obarray, tem);
+      /* Creating a non-pure string from a string literal not implemented yet.
+	 We could just use make_string here and live with the extra copy.  */
+      eassert (!NILP (Vpurify_flag));
+      tem = intern_driver (make_pure_c_string (str, len), obarray, tem);
     }
   return tem;
 }

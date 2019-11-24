@@ -124,7 +124,6 @@
 (require 'backquote)
 (require 'macroexp)
 (require 'cconv)
-(require 'byte-run)
 (eval-when-compile (require 'compile))
 ;; Refrain from using cl-lib at run-time here, since it otherwise prevents
 ;; us from emitting warnings when compiling files which use cl-lib without

@@ -597,6 +597,4 @@ Otherwise, return nil.  For internal use only."
 (make-obsolete 'macro-declaration-function
                'macro-declarations-alist "24.3")
 
-(provide 'byte-run)
-
 ;;; byte-run.el ends here
