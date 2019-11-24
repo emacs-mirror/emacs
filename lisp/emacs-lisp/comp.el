@@ -428,7 +428,7 @@ Put PREFIX in front of it."
             (byte-compile (comp-func-name func)))
       (let ((lap (alist-get nil byte-to-native-lap)))
         (cl-assert lap)
-        (comp-log lap 1)
+        (comp-log lap 2)
         (let ((lambda-list (aref (comp-func-byte-func func) 0)))
           (setf (comp-func-args func)
                 (comp-decrypt-lambda-list lambda-list)
@@ -1776,6 +1776,9 @@ Prepare every function for final compilation and drive the C back-end."
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
   (let (compile-result)
+    (maphash (lambda (_ f)
+               (comp-log-func f 1))
+             (comp-ctxt-funcs-h comp-ctxt))
     (comp--init-ctxt)
     (unwind-protect
         (setf compile-result
