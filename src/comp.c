@@ -2757,7 +2757,7 @@ declare_function (Lisp_Object func)
 					      type[i],
 					      format_string ("par_%d", i));
       gcc_func = gcc_jit_context_new_function (comp.ctxt, NULL,
-					       GCC_JIT_GLOBAL_EXPORTED,
+					       GCC_JIT_FUNCTION_EXPORTED,
 					       comp.lisp_obj_type,
 					       c_name,
 					       max_args,
