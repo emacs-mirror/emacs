@@ -1553,14 +1553,19 @@ This can run just once."
         (comp-mvar-propagate lval rval))))
     (`(phi ,lval . ,rest)
      ;; Const prop here.
-     (when (and (cl-every #'comp-mvar-const-vld rest)
-                (cl-reduce #'equal (mapcar #'comp-mvar-constant rest)))
-       (setf (comp-mvar-constant lval) (comp-mvar-constant (car rest))))
+     (when-let* ((vld (cl-every #'comp-mvar-const-vld rest))
+                 (consts (mapcar #'comp-mvar-constant rest))
+                 (x (car consts))
+                 (equals (cl-every (lambda (y) (equal x y)) consts)))
+       (setf (comp-mvar-constant lval) x))
      ;; Type propagation.
      ;; FIXME: checking for type equality is not sufficient cause does not
-     ;; account type hierarchy!!
-     (when (cl-reduce #'eq (mapcar #'comp-mvar-type rest))
-       (setf (comp-mvar-type lval) (comp-mvar-type (car rest))))
+     ;; account type hierarchy!
+     (when-let* ((types (mapcar #'comp-mvar-type rest))
+                 (non-empty (cl-notany #'null types))
+                 (x (car types))
+                 (eqs (cl-every (lambda (y) (eq x y)) types)))
+       (setf (comp-mvar-type lval) x))
      ;; Reference propagation.
      (let ((operands (cons lval rest)))
        (when (cl-some #'comp-mvar-ref operands)
