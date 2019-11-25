@@ -1580,15 +1580,16 @@ Return t if something was changed."
            finally return modified))
 
 (defun comp-propagate (_)
-  (maphash (lambda (_ f)
-             (let ((comp-func f))
-               (comp-basic-const-propagate)
-               (cl-loop
-                for i from 1
-                while (comp-propagate*)
-                finally (comp-log (format "Propagation run %d times\n" i) 2))
-                        (comp-log-func comp-func 3)))
-           (comp-ctxt-funcs-h comp-ctxt)))
+  (when (>= comp-speed 2)
+    (maphash (lambda (_ f)
+               (let ((comp-func f))
+                 (comp-basic-const-propagate)
+                 (cl-loop
+                  for i from 1
+                  while (comp-propagate*)
+                  finally (comp-log (format "Propagation run %d times\n" i) 2))
+                 (comp-log-func comp-func 3)))
+             (comp-ctxt-funcs-h comp-ctxt))))
 
 
 ;;; Call optimizer pass specific code.
