@@ -1852,7 +1852,9 @@ Prepare every function for final compilation and drive the C back-end."
       (let ((msg "Compilation finished."))
         (setf comp-prc-pool ())
         (with-current-buffer (get-buffer-create comp-async-buffer-name)
-          (insert msg "\n"))
+          (save-excursion
+            (goto-char (point-max))
+            (insert msg "\n")))
         (message msg)))))
 
 ;;; Compiler entry points.
