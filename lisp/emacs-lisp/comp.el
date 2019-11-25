@@ -352,7 +352,7 @@ VERBOSITY is a number between 0 and 3."
     (comp-log (format "\nFunction: %s\n" (comp-func-name func)) verbosity)
     (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
              using (hash-value bb)
-             do (comp-log (concat "<" (symbol-name block-name) ">\n") verbosity)
+             do (comp-log (concat "<" (symbol-name block-name) ">") verbosity)
                 (comp-log (comp-block-insns bb) verbosity))))
 
 (defun comp-log-edges (func)
