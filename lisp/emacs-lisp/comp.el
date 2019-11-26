@@ -270,7 +270,7 @@ structure.")
             :documentation "When const-vld non nil this is used for holding
  a value known at compile time.")
   (type nil
-        :documentation "When non nil is used for type when known at compile
+        :documentation "When non nil indicates the type when known at compile
  time.")
   (ref nil :type boolean
        :documentation "When t the m-var is involved in a call where is passed by
