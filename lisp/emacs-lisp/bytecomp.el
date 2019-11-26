@@ -2032,7 +2032,9 @@ The value is non-nil if there were no errors, nil if errors."
 		  ;; emacs-lisp files in the build tree are
 		  ;; recompiled).  Previously this was accomplished by
 		  ;; deleting target-file before writing it.
-		  (rename-file tempfile target-file t))
+                  (if byte-native-compiling
+                      (delete-file tempfile)
+		    (rename-file tempfile target-file t)))
 		(or noninteractive (message "Wrote %s" target-file)))
 	    ;; This is just to give a better error message than write-region
 	    (let ((exists (file-exists-p target-file)))
