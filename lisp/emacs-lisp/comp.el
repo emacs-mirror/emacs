@@ -1893,18 +1893,20 @@ Return the compilation unit file name."
 ;;;###autoload
 (defun native-compile-async (input &optional jobs recursively)
   "Compile INPUT asynchronously.
-INPUT can be either a folder or a file.
+INPUT can be either a list of files a folder or a file.
 JOBS specifies the number of jobs (commands) to run simultaneously (1 default).
 Follow folders RECURSIVELY if non nil."
   (let ((jobs (or jobs 1))
-        (files (if (file-directory-p input)
-                   (if recursively
-                       (directory-files-recursively input "\\.el$")
-                     (directory-files input t "\\.el$"))
-                 (if (file-exists-p input)
-                     (list input)
-                   (signal 'native-compiler-error
-                           "input not a file nor directory")))))
+        (files (if (listp input)
+                   input
+                 (if (file-directory-p input)
+                     (if recursively
+                         (directory-files-recursively input "\\.el$")
+                       (directory-files input t "\\.el$"))
+                   (if (file-exists-p input)
+                       (list input)
+                     (signal 'native-compiler-error
+                             "input not a file nor directory"))))))
     (setf comp-src-pool (nconc files comp-src-pool))
     (cl-loop repeat jobs
              do (comp-start-async-worker))
