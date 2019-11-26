@@ -919,7 +919,7 @@ While the @code{:after} keyword delays loading until the dependencies are loaded
 the somewhat simpler @code{:requires} keyword simply never loads the package if the
 dependencies are not available at the time the @code{use-package} declaration is
 encountered. By "available" in this context it means that @code{foo} is available
-of @code{(featurep 'foo)} evaulates to a non-nil value. For example:
+of @code{(featurep 'foo)} evaluates to a non-nil value. For example:
 
 @lisp
 (use-package abbrev
