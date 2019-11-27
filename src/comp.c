@@ -2285,7 +2285,7 @@ define_CAR_CDR (void)
 	  gcc_jit_context_new_param (comp.ctxt,
 				     NULL,
 				     comp.bool_type,
-				     "is_cons") };
+				     "cert_cons") };
       /* TODO: understand why after ipa-prop pass gcc is less keen on inlining
 	 and as consequence can refuse to compile these. (see dhrystone.el)
 	 Flag this and all the one involved in ipa-prop as
@@ -2374,7 +2374,7 @@ define_setcar_setcdr (void)
 	  gcc_jit_context_new_param (comp.ctxt,
 				     NULL,
 				     comp.bool_type,
-				     "is_cons") };
+				     "cert_cons") };
 
       gcc_jit_function **f_ref = !i ? &comp.setcar : &comp.setcdr;
       *f_ref = gcc_jit_context_new_function (comp.ctxt, NULL,
@@ -2443,7 +2443,7 @@ define_add1_sub1 (void)
 	  gcc_jit_context_new_param (comp.ctxt,
 				     NULL,
 				     comp.bool_type,
-				     "is_fixnum") };
+				     "cert_fixnum") };
       comp.func = func[i] =
 	gcc_jit_context_new_function (comp.ctxt, NULL,
 				      GCC_JIT_FUNCTION_INTERNAL,
@@ -2457,7 +2457,7 @@ define_add1_sub1 (void)
 
       comp.block = entry_block;
 
-      /* is_fixnum ||
+      /* cert_fixnum ||
 	 ((FIXNUMP (n) && XFIXNUM (n) != MOST_POSITIVE_FIXNUM
 	 ? (XFIXNUM (n) + 1)
 	 : Fadd1 (n)) */
@@ -2526,7 +2526,7 @@ define_negate (void)
 	  gcc_jit_context_new_param (comp.ctxt,
 				     NULL,
 				     comp.bool_type,
-				     "is_fixnum") };
+				     "cert_fixnum") };
 
   comp.func = comp.negate =
     gcc_jit_context_new_function (comp.ctxt, NULL,
@@ -2541,7 +2541,7 @@ define_negate (void)
 
   comp.block = entry_block;
 
-  /* (is_fixnum || FIXNUMP (TOP)) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
+  /* (cert_fixnum || FIXNUMP (TOP)) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
      ? make_fixnum (- XFIXNUM (TOP)) : Fminus (1, &TOP))  */
 
   gcc_jit_lvalue *n = gcc_jit_param_as_lvalue (param[0]);
