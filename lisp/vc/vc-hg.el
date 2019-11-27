@@ -1289,12 +1289,10 @@ REV is the revision to check out into WORKFILE."
      )))
 
 (defun vc-hg-log-incoming (buffer remote-location)
-  (vc-setup-buffer buffer)
   (vc-hg-command buffer 1 nil "incoming" "-n" (unless (string= remote-location "")
 						remote-location)))
 
 (defun vc-hg-log-outgoing (buffer remote-location)
-  (vc-setup-buffer buffer)
   (vc-hg-command buffer 1 nil "outgoing" "-n" (unless (string= remote-location "")
 						remote-location)))
 
