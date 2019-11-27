@@ -341,12 +341,13 @@ a percentage out of the frame's height."
   :group 'which-key
   :type 'integer)
 
-(defcustom which-key-allow-imprecise-window-fit nil
+(defcustom which-key-allow-imprecise-window-fit (not (display-graphic-p))
   "If non-nil allow which-key to use a less intensive method of
 fitting the popup window to the buffer. If you are noticing lag
 when the which-key popup displays turning this on may help.
 
-See https://github.com/justbur/emacs-which-key/issues/130"
+See https://github.com/justbur/emacs-which-key/issues/130
+and https://github.com/justbur/emacs-which-key/issues/225."
   :group 'which-key
   :type 'boolean)
 
