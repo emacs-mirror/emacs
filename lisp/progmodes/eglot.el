@@ -999,7 +999,7 @@ CONNECT-ARGS are passed as additional arguments to
 
 (defun eglot-current-column () (- (point) (point-at-bol)))
 
-(defvar eglot-current-column-function #'eglot-current-column
+(defvar eglot-current-column-function #'eglot-lsp-abiding-column
   "Function to calculate the current column.
 
 This is the inverse operation of
@@ -1023,7 +1023,7 @@ for all others.")
          :character (progn (when pos (goto-char pos))
                            (funcall eglot-current-column-function)))))
 
-(defvar eglot-move-to-column-function #'eglot-move-to-column
+(defvar eglot-move-to-column-function #'eglot-move-to-lsp-abiding-column
   "Function to move to a column reported by the LSP server.
 
 According to the standard, LSP column/character offsets are based
