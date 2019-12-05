@@ -3736,22 +3736,39 @@ the minibuffer was activated, and execute the forms."
 ;;   not a completion-table feature.
 ;; - The methods should not be affected by `completion-regexp-list'.
 
+;; TODO:
+;; - Async support (maybe via a `completion-table-fetch-async' method)
+;; - Support try-completion filtering (maybe by having fetch-matches
+;;   return a filtering function to be applied for try-completion).
+
+(defun completion-table--call-method (table methodname args)
+  (if (functionp table)
+      (funcall table methodname args)
+    (signal 'wrong-number-of-arguments nil)))
+
 (cl-defgeneric completion-table-test (table string)
   (condition-case nil
-      (if (functionp table)
-          (funcall table 'test (list string))
-        (with-suppressed-warnings ((callargs car)) (car)))
+      (completion-table--call-method table 'test (list string))
     (wrong-number-of-arguments
      (test-completion string table))))
 
 (cl-defgeneric completion-table-category (table string)
+  "Return a description of the kind of completion taking place.
+Return value should be either nil or of the form (CATEGORY . ALIST) where
+CATEGORY should be a symbol (such as ‘buffer’ and ‘file’, used when
+completing buffer and file names, respectively).
+ALIST specifies the default settings to use for that category among:
+- ‘styles’: the list of ‘completion-styles’ to use for that category.
+- ‘cycle’: the ‘completion-cycle-threshold’ to use for that category."
   (condition-case nil
-      (if (functionp table)
-          (funcall table 'category ())
-        (with-suppressed-warnings ((callargs car)) (car)))
+      (completion-table--call-method table 'category (list string))
     (wrong-number-of-arguments
-     (let ((md (completion-metadata string table nil)))
-       (alist-get 'category md)))))
+     (let ((category
+            (let ((md (completion-metadata string table nil)))
+              (alist-get 'category md))))
+       (when category
+         (cons category
+               (alist-get category completion-category-defaults)))))))
 
 (cl-defgeneric completion-table-boundaries (table string point)
   ;; FIXME: We should return an additional information to indicate
@@ -3781,9 +3798,7 @@ E.g. for simple completion tables, the result is always (0 . (length STRING))
 and for file names the result is the positions delimited by
 the closest directory separators."
   (condition-case nil
-      (if (functionp table)
-          (funcall table 'boundaries (list string point))
-        (with-suppressed-warnings ((callargs car)) (car)))
+      (completion-table--call-method table 'boundaries (list string point))
     (wrong-number-of-arguments
      (pcase-let ((`(,prepos . ,postpos)
                   (completion-boundaries (substring string 0 point) table nil
@@ -3805,9 +3820,8 @@ Return either a list of strings or an alist whose `car's are strings."
    (let ((len (length pre)))
      (equal (completion-table-boundaries table pre len) (cons len len))))
   (condition-case nil
-      (if (functionp table)
-          (funcall table 'fetch-matches (list pre pattern session))
-        (with-suppressed-warnings ((callargs car)) (car)))
+      (completion-table--call-method
+       table 'fetch-matches (list pre pattern session))
     (wrong-number-of-arguments
      (let ((completion-regexp-list nil))
        (all-completions (concat pre pattern) table)))))
