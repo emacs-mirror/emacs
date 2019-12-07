@@ -899,6 +899,10 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
+#ifdef HAVE_NATIVE_COMP
+      if (XSUBR (fun)->native_elisp && XSUBR (fun)->native_intspec)
+	return XSUBR (fun)->native_intspec;
+#endif
       const char *spec = XSUBR (fun)->intspec;
       if (spec)
 	return list2 (Qinteractive,

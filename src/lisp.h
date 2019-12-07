@@ -2086,7 +2086,12 @@ struct Lisp_Subr
     } function;
     short min_args, max_args;
     const char *symbol_name;
-    const char *intspec;
+    union {
+      const char *intspec;
+#ifdef HAVE_NATIVE_COMP
+      Lisp_Object native_intspec;
+#endif
+    };
     union {
       EMACS_INT doc;
 #ifdef HAVE_NATIVE_COMP
@@ -3106,7 +3111,7 @@ CHECK_INTEGER (Lisp_Object x)
   static union Aligned_Lisp_Subr sname =                                \
      {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
        { .a ## maxargs = fnname },					\
-       minargs, maxargs, lname, intspec, {0}}};				\
+       minargs, maxargs, lname, {intspec}, {0}, 0}};			\
    Lisp_Object fnname
 
 /* defsubr (Sname);

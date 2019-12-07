@@ -3304,11 +3304,11 @@ load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
 
 DEFUN ("comp--register-subr", Fcomp__register_subr,
        Scomp__register_subr,
-       5, 5, 0,
+       6, 6, 0,
        doc: /* This gets called by top_level_run during load phase to register
 	       each exported subr.  */)
      (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-      Lisp_Object c_name, Lisp_Object doc)
+      Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec)
 {
   dynlib_handle_ptr handle = xmint_pointer (XCAR (load_handle_stack));
   if (!handle)
@@ -3325,7 +3325,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = xstrdup (SSDATA (Fsymbol_name (name)));
-  x->s.intspec = NULL;
+  x->s.native_intspec = intspec;
   x->s.native_doc = doc;
   x->s.native_elisp = true;
   defsubr (x);

@@ -1076,9 +1076,7 @@ the annotation emission."
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-function))
   (let* ((name (byte-to-native-function-name form))
          (f (gethash name (comp-ctxt-funcs-h comp-ctxt)))
-         (args (comp-func-args f))
-         (c-name (comp-func-c-name f))
-         (doc (comp-func-doc f)))
+         (args (comp-func-args f)))
     (cl-assert (and name f))
     (comp-emit (comp-call 'comp--register-subr
                           (make-comp-mvar :constant name)
@@ -1086,8 +1084,10 @@ the annotation emission."
                           (make-comp-mvar :constant (if (comp-args-p args)
                                                         (comp-args-max args)
                                                       'many))
-                          (make-comp-mvar :constant c-name)
-                          (make-comp-mvar :constant doc)))))
+                          (make-comp-mvar :constant (comp-func-c-name f))
+                          (make-comp-mvar :constant (comp-func-doc f))
+                          (make-comp-mvar :constant
+                                          (comp-func-int-spec f))))))
 
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
   (let ((form (byte-to-native-top-level-form form)))
