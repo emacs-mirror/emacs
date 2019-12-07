@@ -234,6 +234,8 @@ Is in use to help the SSA rename pass."))
              :documentation "Byte compiled version.")
   (doc nil :type string
        :documentation "Doc string.")
+  (int-spec nil :type list
+            :documentation "Interactive form.")
   (lap () :type list
        :documentation "LAP assembly representation.")
   (args nil :type comp-args-base)
@@ -451,15 +453,14 @@ Put PREFIX in front of it."
                        collect x)
    for name = (byte-to-native-function-name f)
    for data = (byte-to-native-function-data f)
-   for doc = (when (>= (length data) 5) (aref data 4))
    for lap = (alist-get name byte-to-native-lap)
-   for lambda-list = (aref data 0)
    for func = (make-comp-func :name name
                               :byte-func data
-                              :doc doc
+                              :doc (documentation data)
+                              :int-spec (interactive-form data)
                               :c-name (comp-c-func-name name "F")
-                              :args (comp-decrypt-lambda-list lambda-list)
-                              :lap lap
+                              :args (comp-decrypt-arg-list (aref data 0))
+                              :lap (alist-get name byte-to-native-lap)
                               :frame-size (comp-byte-frame-size data))
    do (comp-log (format "Function %s:\n" name) 1)
       (comp-log lap 1)
