@@ -391,8 +391,8 @@ Put PREFIX in front of it."
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
     (concat prefix crypted "_" human-readable)))
 
-(defun comp-decrypt-lambda-list (x)
-  "Decript lambda list X."
+(defun comp-decrypt-arg-list (x)
+  "Decript argument list X."
   (unless (fixnump x)
     (signal 'native-compiler-error
             "can't native compile a non lexical scoped function"))
@@ -427,9 +427,9 @@ Put PREFIX in front of it."
       (let ((lap (alist-get nil byte-to-native-lap)))
         (cl-assert lap)
         (comp-log lap 2)
-        (let ((lambda-list (aref (comp-func-byte-func func) 0)))
+        (let ((arg-list (aref (comp-func-byte-func func) 0)))
           (setf (comp-func-args func)
-                (comp-decrypt-lambda-list lambda-list)
+                (comp-decrypt-arg-list arg-list)
                 (comp-func-lap func)
                 lap
                 (comp-func-frame-size func)
