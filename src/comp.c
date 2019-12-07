@@ -3317,16 +3317,20 @@ DEFUN ("comp--register-subr", Fcomp__register_subr,
   void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
 
+  /* FIXME add gc support, now just leaking.  */
   union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+
   x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
   x->s.function.a0 = func;
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
-  x->s.symbol_name = SSDATA (Fsymbol_name (name));
+  x->s.symbol_name = xstrdup (SSDATA (Fsymbol_name (name)));
   x->s.intspec = NULL;
-  x->s.doc = 0; /* FIXME */
+  x->s.native_doc = doc;
   x->s.native_elisp = true;
   defsubr (x);
+
+  LOADHIST_ATTACH (Fcons (Qdefun, name));
 
   return Qnil;
 }

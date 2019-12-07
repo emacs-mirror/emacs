@@ -7450,14 +7450,14 @@ N should be nonnegative.  */);
   static union Aligned_Lisp_Subr Swatch_gc_cons_threshold =
      {{{ PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
        { .a4 = watch_gc_cons_threshold },
-       4, 4, "watch_gc_cons_threshold", 0, 0}};
+       4, 4, "watch_gc_cons_threshold", 0, {0}}};
   XSETSUBR (watcher, &Swatch_gc_cons_threshold.s);
   Fadd_variable_watcher (Qgc_cons_threshold, watcher);
 
   static union Aligned_Lisp_Subr Swatch_gc_cons_percentage =
      {{{ PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
        { .a4 = watch_gc_cons_percentage },
-       4, 4, "watch_gc_cons_percentage", 0, 0}};
+       4, 4, "watch_gc_cons_percentage", 0, {0}}};
   XSETSUBR (watcher, &Swatch_gc_cons_percentage.s);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
 }

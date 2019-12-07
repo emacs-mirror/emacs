@@ -2087,10 +2087,13 @@ struct Lisp_Subr
     short min_args, max_args;
     const char *symbol_name;
     const char *intspec;
-    EMACS_INT doc;
+    union {
+      EMACS_INT doc;
 #ifdef HAVE_NATIVE_COMP
-    bool native_elisp;
+      Lisp_Object native_doc;
 #endif
+    };
+    bool native_elisp;
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
@@ -3103,7 +3106,7 @@ CHECK_INTEGER (Lisp_Object x)
   static union Aligned_Lisp_Subr sname =                                \
      {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
        { .a ## maxargs = fnname },					\
-       minargs, maxargs, lname, intspec, 0}};				\
+       minargs, maxargs, lname, intspec, {0}}};				\
    Lisp_Object fnname
 
 /* defsubr (Sname);
