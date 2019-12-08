@@ -783,7 +783,18 @@ to their original states.
 The combination of `line-move-visual' (enabled) and `truncate-lines' (disabled)
 is important for maximising responsiveness when moving vertically within an
 extremely long line, as otherwise the full length of the line may need to be
-scanned to find the next position."
+scanned to find the next position.
+
+Bidirectional text display -- especially handling the large quantities of
+nested parentheses which are liable to occur in minified programming code --
+can be very expensive for extremely long lines, and so this support is disabled
+by default (insofar as is supported; in particular `bidi-inhibit-bpa' is not
+available in Emacs versions < 27).  For more information refer to info node
+`(emacs) Bidirectional Editing' and info node `(elisp) Bidirectional Display'.
+
+Buffers are made read-only by default to prevent potentially-slow editing from
+occurring inadvertantly, as buffers with excessively long lines are likely not
+intended to be edited manually."
   :type '(alist :key-type (variable :tag "Variable")
                 :value-type (sexp :tag "Value"))
   :options '((bidi-inhibit-bpa boolean)
@@ -1863,7 +1874,7 @@ If it appears in `%s', you should remove it."
 ; LocalWords:  defadvice nadvice whitespace ie bos eos eobp origmode un Un setq
 ; LocalWords:  docstring auf Wiedersehen longlines alist autoload Refactored Inc
 ; LocalWords:  MERCHANTABILITY RET REGEXP VAR ELPA WS mitigations EmacsWiki eval
-; LocalWords:  rx filename filenames
+; LocalWords:  rx filename filenames bidi bpa
 
 ;; So long, farewell, auf Wiedersehen, goodbye
 ;; You have to go, this code is minified
