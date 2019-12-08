@@ -257,6 +257,10 @@
 	(b 3))
     (% a b)))
 
+(defun comp-tests-doc-f ()
+  "A nice docstring"
+  t)
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

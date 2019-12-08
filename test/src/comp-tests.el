@@ -307,6 +307,12 @@ Check that the resulting binaries do not differ."
   ;; See `comp-propagate-insn' `comp-function-call-remove'.
   (should (= (comp-tests-func-call-removal-f) 1)))
 
+(ert-deftest comp-tests-doc ()
+  (should (string= (documentation #'comp-tests-doc-f)
+                   "A nice docstring"))
+  (should (string= (symbol-file #'comp-tests-doc-f)
+                   (concat comp-test-src "n"))))
+
 (ert-deftest comp-tests-free-fun ()
   "Check we are able to compile a single function."
   (defun comp-tests-free-fun-f ()
