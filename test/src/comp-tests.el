@@ -328,10 +328,18 @@ Check that the resulting binaries do not differ."
 (ert-deftest comp-tests-free-fun ()
   "Check we are able to compile a single function."
   (defun comp-tests-free-fun-f ()
+    "Some doc."
+    (interactive)
     3)
   (load (native-compile #'comp-tests-free-fun-f))
+
   (should (subr-native-elisp-p (symbol-function #'comp-tests-free-fun-f)))
-  (should (= (comp-tests-free-fun-f) 3)))
+  (should (= (comp-tests-free-fun-f) 3))
+  (should (string= (documentation #'comp-tests-free-fun-f)
+                   "Some doc."))
+  (should (commandp #'comp-tests-free-fun-f))
+  (should (equal (interactive-form #'comp-tests-free-fun-f)
+                 '(interactive))))
 
 
 ;;;;;;;;;;;;;;;;;;;;

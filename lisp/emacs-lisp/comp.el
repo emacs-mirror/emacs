@@ -420,7 +420,9 @@ Put PREFIX in front of it."
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
          (func (make-comp-func :name function-name
-                               :c-name (comp-c-func-name function-name"F"))))
+                               :c-name (comp-c-func-name function-name"F")
+                               :doc (documentation f)
+                               :int-spec (interactive-form f))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 "can't native compile an already bytecompiled function"))
