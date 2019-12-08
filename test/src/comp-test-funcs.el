@@ -261,6 +261,17 @@
   "A nice docstring"
   t)
 
+(defun comp-test-interactive-form0-f (dir)
+  (interactive "D")
+  dir)
+
+(defun comp-test-interactive-form1-f (x y)
+  (interactive '(1 2))
+  (+ x y))
+
+(defun comp-test-interactive-form2-f ()
+  (interactive))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

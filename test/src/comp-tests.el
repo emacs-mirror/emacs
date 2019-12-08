@@ -313,6 +313,18 @@ Check that the resulting binaries do not differ."
   (should (string= (symbol-file #'comp-tests-doc-f)
                    (concat comp-test-src "n"))))
 
+(ert-deftest comp-test-interactive-form ()
+  (should (equal (interactive-form #'comp-test-interactive-form0-f)
+                 '(interactive "D")))
+  (should (equal (interactive-form #'comp-test-interactive-form1-f)
+                 '(interactive '(1 2))))
+  (should (equal (interactive-form #'comp-test-interactive-form2-f)
+                 '(interactive nil)))
+  (should (cl-every #'commandp '(comp-test-interactive-form0-f
+                                 comp-test-interactive-form1-f
+                                 comp-test-interactive-form2-f)))
+  (should-not (commandp #'comp-tests-doc-f)))
+
 (ert-deftest comp-tests-free-fun ()
   "Check we are able to compile a single function."
   (defun comp-tests-free-fun-f ()
