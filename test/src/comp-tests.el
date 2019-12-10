@@ -34,8 +34,14 @@
 (defconst comp-test-src
   (concat comp-test-directory "comp-test-funcs.el"))
 
-(message "Compiling %s" comp-test-src)
+(defconst comp-test-dyn-src
+  (concat comp-test-directory "comp-test-funcs-dyn.el"))
+
+(message "Compiling tests...")
 (load (native-compile comp-test-src))
+(load (native-compile comp-test-dyn-src))
+
+
 
 (ert-deftest comp-tests-bootstrap ()
   "Compile the compiler and load it to compile it-self.
@@ -353,9 +359,9 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (eq (comp-test-40187-2-f) 'bar)))
 
 
-;;;;;;;;;;;;;;;;;;;;
-;; Tromey's tests ;;
-;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;
+;; Tromey's tests. ;;
+;;;;;;;;;;;;;;;;;;;;;
 
 (ert-deftest comp-consp ()
   (should-not (comp-test-consp 23))
@@ -519,5 +525,37 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
     (error
      nil))
   (should (eq comp-test-up-val 999)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tests for dynamic scope. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(ert-deftest comp-tests-dynamic-ffuncall ()
+  "Test calling convention for dynamic binding."
+
+  (should (equal (comp-tests-ffuncall-callee-dyn-f 1 2)
+                 '(1 2)))
+
+  (should (equal (comp-tests-ffuncall-callee-opt-dyn-f 1 2 3 4)
+                 '(1 2 3 4)))
+  (should (equal (comp-tests-ffuncall-callee-opt-dyn-f 1 2 3)
+                 '(1 2 3 nil)))
+  (should (equal (comp-tests-ffuncall-callee-opt-dyn-f 1 2)
+                 '(1 2 nil nil)))
+
+  (should (equal (comp-tests-ffuncall-callee-rest-dyn-f 1 2)
+                 '(1 2 nil)))
+  (should (equal (comp-tests-ffuncall-callee-rest-dyn-f 1 2 3)
+                 '(1 2 (3))))
+  (should (equal (comp-tests-ffuncall-callee-rest-dyn-f 1 2 3 4)
+                 '(1 2 (3 4))))
+
+  (should (equal (comp-tests-ffuncall-callee-opt-rest-dyn-f 1 2)
+                 '(1 2 nil nil)))
+  (should (equal (comp-tests-ffuncall-callee-opt-rest-dyn-f 1 2 3)
+                 '(1 2 3 nil)))
+  (should (equal (comp-tests-ffuncall-callee-opt-rest-dyn-f 1 2 3 4)
+                 '(1 2 3 (4)))))
 
 ;;; comp-tests.el ends here
