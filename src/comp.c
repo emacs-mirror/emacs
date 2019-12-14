@@ -3302,8 +3302,7 @@ load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
   return;
 }
 
-DEFUN ("comp--register-subr", Fcomp__register_subr,
-       Scomp__register_subr,
+DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
        6, 6, 0,
        doc: /* This gets called by top_level_run during load phase to register
 	       each exported subr.  */)
