@@ -70,6 +70,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 #define SETJMP_NAME SETJMP
 
+/* Max number function importable by native compiled code.  */
+#define F_RELOC_MAX_SIZE 1500
+
+typedef struct {
+  void *link_table[F_RELOC_MAX_SIZE];
+  ptrdiff_t size;
+} f_reloc_t;
+
+static f_reloc_t freloc;
+
 /* C side of the compiler context.  */
 
 typedef struct {
@@ -157,7 +167,7 @@ typedef struct {
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
   Lisp_Object exported_funcs_h; /* subr_name -> gcc_jit_function *.  */
-  Lisp_Object imported_funcs_h; /* subr_name -> reloc_field.  */
+  Lisp_Object imported_funcs_h; /* subr_name -> gcc_jit_field *reloc_field.  */
   Lisp_Object emitter_dispatcher;
   gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
   gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
@@ -183,6 +193,20 @@ Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
 void helper_save_restriction (void);
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code);
+
+void *helper_link_table[] =
+  { wrong_type_argument,
+    helper_PSEUDOVECTOR_TYPEP_XUNTAG,
+    pure_write_error,
+    push_handler,
+    SETJMP_NAME,
+    record_unwind_protect_excursion,
+    helper_unbind_n,
+    helper_save_restriction,
+    record_unwind_current_buffer,
+    set_internal,
+    helper_unwind_protect,
+    specbind };
 
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
@@ -1758,7 +1782,7 @@ declare_runtime_imported_funcs (void)
 
 #undef ADD_IMPORTED
 
-  return field_list;
+  return Freverse (field_list);
 }
 
 /*
@@ -1767,7 +1791,6 @@ declare_runtime_imported_funcs (void)
 static void
 emit_ctxt_code (void)
 {
-  USE_SAFE_ALLOCA;
 
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
@@ -1809,56 +1832,32 @@ emit_ctxt_code (void)
 
   emit_static_object (TEXT_DATA_RELOC_SYM, d_reloc);
 
-  /* Imported functions from non Lisp code.  */
+  /* Functions imported from Lisp code.  */
+
+  static gcc_jit_field *fields[F_RELOC_MAX_SIZE];
+  ptrdiff_t n_frelocs = 0;
   Lisp_Object f_runtime = declare_runtime_imported_funcs ();
-  EMACS_INT f_reloc_len = XFIXNUM (Flength (f_runtime));
-
-  /* Imported subrs.  */
-  Lisp_Object f_subr = CALL1I (comp-ctxt-func-relocs-l, Vcomp_ctxt);
-  f_reloc_len += XFIXNUM (Flength (f_subr));
-
-  gcc_jit_field **fields = SAFE_ALLOCA (f_reloc_len * sizeof (*fields));
-  Lisp_Object f_reloc_list = Qnil;
-  int n_frelocs = 0;
-
   FOR_EACH_TAIL (f_runtime)
     {
       Lisp_Object el = XCAR (f_runtime);
+      eassert (n_frelocs < ARRAYELTS (fields));
       fields[n_frelocs++] = xmint_pointer (XCDR (el));
-      f_reloc_list = Fcons (XCAR (el), f_reloc_list);
     }
 
-  FOR_EACH_TAIL (f_subr)
+  Lisp_Object subr_l = Vsubr_list;
+  FOR_EACH_TAIL (subr_l)
     {
-      Lisp_Object subr_sym = XCAR (f_subr);
-      Lisp_Object subr = symbol_subr (subr_sym);
-      /* Ignore inliners. This are not real functions to be imported.  */
-      if (SUBRP (subr))
-	{
-	  Lisp_Object maxarg = XCDR (Fsubr_arity (subr));
-	  gcc_jit_field *field =
-	    declare_imported_func (subr_sym, comp.lisp_obj_type,
-				   FIXNUMP (maxarg) ? XFIXNUM (maxarg) :
-				   EQ (maxarg, Qmany) ? MANY : UNEVALLED,
-				   NULL);
-	  fields[n_frelocs++] = field;
-	  f_reloc_list = Fcons (subr_sym, f_reloc_list);
-	}
+      struct Lisp_Subr *subr = XSUBR (XCAR (subr_l));
+      Lisp_Object subr_sym = intern_c_string (subr->symbol_name);
+      eassert (n_frelocs < ARRAYELTS (fields));
+      fields[n_frelocs++] = declare_imported_func (subr_sym, comp.lisp_obj_type,
+						   subr->max_args, NULL);
     }
-
-  Lisp_Object f_reloc_vec = make_vector (n_frelocs, Qnil);
-  f_reloc_list = Fnreverse (f_reloc_list);
-  ptrdiff_t i = 0;
-  FOR_EACH_TAIL (f_reloc_list)
-    {
-      ASET (f_reloc_vec, i++, XCAR (f_reloc_list));
-    }
-  emit_static_object (TEXT_IMPORTED_FUNC_RELOC_SYM, f_reloc_vec);
 
   gcc_jit_struct *f_reloc_struct =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
-				     "function_reloc_struct",
+				     "freloc_link_table",
 				     n_frelocs, fields);
   comp.func_relocs =
     gcc_jit_context_new_global (
@@ -1867,8 +1866,6 @@ emit_ctxt_code (void)
       GCC_JIT_GLOBAL_EXPORTED,
       gcc_jit_struct_as_type (f_reloc_struct),
       IMPORTED_FUNC_RELOC_SYM);
-
-  SAFE_FREE ();
 }
 
 
@@ -3038,8 +3035,8 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 
   comp.exported_funcs_h = CALLN (Fmake_hash_table);
   /*
-    Always reinitialize this cause old function definitions are garbage collected
-    by libgccjit when the ctxt is released.
+    Always reinitialize this cause old function definitions are garbage
+    collected by libgccjit when the ctxt is released.
   */
   comp.imported_funcs_h = CALLN (Fmake_hash_table);
 
@@ -3140,6 +3137,29 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 }
 
 
+void
+fill_freloc (void)
+{
+  if (ARRAYELTS (helper_link_table) > F_RELOC_MAX_SIZE)
+    goto overflow;
+  memcpy (freloc.link_table, helper_link_table, sizeof (freloc.link_table));
+  freloc.size = ARRAYELTS (helper_link_table);
+
+  Lisp_Object subr_l = Vsubr_list;
+  FOR_EACH_TAIL (subr_l)
+    {
+      if (freloc.size == F_RELOC_MAX_SIZE)
+	goto overflow;
+      struct Lisp_Subr *subr = XSUBR (XCAR (subr_l));
+      freloc.link_table[freloc.size] = subr->function.a0;
+      freloc.size++;
+    }
+  return;
+
+ overflow:
+  fatal ("Overflowing function relocation table, increase F_RELOC_MAX_SIZE");
+}
+
 /******************************************************************************/
 /* Helper functions called from the run-time.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
@@ -3343,6 +3363,10 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 {
   CHECK_STRING (file);
 
+  if (!freloc.link_table[0])
+    xsignal2 (Qnative_lisp_load_failed, file,
+	      build_string ("Empty relocation table"));
+
   Frequire (Qadvice, Qnil, Qnil);
 
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
@@ -3471,6 +3495,10 @@ syms_of_comp (void)
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /* The compiler context.  */);
   Vcomp_ctxt = Qnil;
+
+  /* FIXME should be initialized but not here... */
+  DEFVAR_LISP ("comp-subr-list", Vsubr_list,
+	       doc: /* List of all defined subrs.  */);
 
   /* Load mechanism.  */
   staticpro (&Vnative_elisp_refs_hash);

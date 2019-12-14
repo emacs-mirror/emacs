@@ -4750,9 +4750,10 @@ extern bool profiler_memory_running;
 extern void malloc_probe (size_t);
 extern void syms_of_profiler (void);
 
-/* Defined in comp.c.  */
 #ifdef HAVE_NATIVE_COMP
+/* Defined in comp.c.  */
 extern void syms_of_comp (void);
+extern void fill_freloc (void);
 #endif /* HAVE_NATIVE_COMP */
 
 #ifdef DOS_NT

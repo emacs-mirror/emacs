@@ -4465,6 +4465,9 @@ defsubr (union Aligned_Lisp_Subr *aname)
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
+#ifdef HAVE_NATIVE_COMP
+  Vsubr_list = Fcons (tem, Vsubr_list);
+#endif /* HAVE_NATIVE_COMP */
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */
