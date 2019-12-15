@@ -1813,13 +1813,13 @@ emit_ctxt_code (void)
 
   /* Functions imported from Lisp code.  */
 
-  static gcc_jit_field *fields[F_RELOC_MAX_SIZE];
+  gcc_jit_field **fields = xmalloc (freloc.size * sizeof (*fields));
   ptrdiff_t n_frelocs = 0;
   Lisp_Object f_runtime = declare_runtime_imported_funcs ();
   FOR_EACH_TAIL (f_runtime)
     {
       Lisp_Object el = XCAR (f_runtime);
-      eassert (n_frelocs < ARRAYELTS (fields));
+      eassert (n_frelocs < freloc.size);
       fields[n_frelocs++] = xmint_pointer (XCDR (el));
     }
 
@@ -1828,7 +1828,7 @@ emit_ctxt_code (void)
     {
       struct Lisp_Subr *subr = XSUBR (XCAR (subr_l));
       Lisp_Object subr_sym = intern_c_string (subr->symbol_name);
-      eassert (n_frelocs < ARRAYELTS (fields));
+      eassert (n_frelocs < freloc.size);
       fields[n_frelocs++] = declare_imported_func (subr_sym, comp.lisp_obj_type,
 						   subr->max_args, NULL);
     }
@@ -1845,6 +1845,8 @@ emit_ctxt_code (void)
       GCC_JIT_GLOBAL_EXPORTED,
       gcc_jit_type_get_pointer (gcc_jit_struct_as_type (f_reloc_struct)),
       IMPORTED_FUNC_LINK_TABLE);
+
+  xfree (fields);
 }
 
 
