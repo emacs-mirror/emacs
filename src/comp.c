@@ -3053,8 +3053,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 {
   CHECK_STRING (ctxtname);
 
-  Frequire (Qadvice, Qnil, Qnil);
-
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  SPEED);
@@ -3302,8 +3300,6 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
     xsignal2 (Qnative_lisp_load_failed, file,
 	      build_string ("Empty relocation table"));
 
-  Frequire (Qadvice, Qnil, Qnil);
-
   dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
   if (!handle)
@@ -3370,11 +3366,8 @@ syms_of_comp (void)
 
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
-  DEFSYM (Qadvice, "advice");
 
-  /* To be signaled.  */
-
-  /* By the compiler.  */
+  /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");
   Fput (Qnative_compiler_error, Qerror_conditions,
 	pure_list (Qnative_compiler_error, Qerror));
