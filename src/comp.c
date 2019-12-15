@@ -68,7 +68,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #else
 #define SETJMP setjmp
 #endif
-#define SETJMP_NAME STR (SETJMP)
+#define SETJMP_NAME SETJMP
 
 /* C side of the compiler context.  */
 
@@ -1199,7 +1199,7 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 
   gcc_jit_rvalue *res;
   res =
-    emit_call (intern_c_string (SETJMP_NAME), comp.int_type, 1, args, false);
+    emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 1, args, false);
   emit_cond_jump (res, handler_bb, guarded_bb);
 }
 
@@ -1713,7 +1713,7 @@ declare_runtime_imported_funcs (void)
   Lisp_Object field_list = Qnil;
 #define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
   {									       \
-    Lisp_Object name = intern_c_string (f_name);			       \
+    Lisp_Object name = intern_c_string (STR (f_name));			       \
     Lisp_Object field =							       \
       make_mint_ptr (declare_imported_func (name, ret_type, nargs, args));     \
     Lisp_Object el = Fcons (name, field);				       \
@@ -1722,39 +1722,39 @@ declare_runtime_imported_funcs (void)
 
   gcc_jit_type *args[4];
 
-  ADD_IMPORTED ("wrong_type_argument", comp.void_type, 2, NULL);
+  ADD_IMPORTED (wrong_type_argument, comp.void_type, 2, NULL);
 
   args[0] = comp.lisp_obj_type;
   args[1] = comp.int_type;
-  ADD_IMPORTED ("helper_PSEUDOVECTOR_TYPEP_XUNTAG", comp.bool_type, 2, args);
+  ADD_IMPORTED (helper_PSEUDOVECTOR_TYPEP_XUNTAG, comp.bool_type, 2, args);
 
-  ADD_IMPORTED ("pure_write_error", comp.void_type, 1, NULL);
+  ADD_IMPORTED (pure_write_error, comp.void_type, 1, NULL);
 
   args[0] = comp.lisp_obj_type;
   args[1] = comp.int_type;
-  ADD_IMPORTED ("push_handler", comp.handler_ptr_type, 2, args);
+  ADD_IMPORTED (push_handler, comp.handler_ptr_type, 2, args);
 
   args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
   ADD_IMPORTED (SETJMP_NAME, comp.int_type, 1, args);
 
-  ADD_IMPORTED ("record_unwind_protect_excursion", comp.void_type, 0, NULL);
+  ADD_IMPORTED (record_unwind_protect_excursion, comp.void_type, 0, NULL);
 
   args[0] = comp.lisp_obj_type;
-  ADD_IMPORTED ("helper_unbind_n", comp.lisp_obj_type, 1, args);
+  ADD_IMPORTED (helper_unbind_n, comp.lisp_obj_type, 1, args);
 
-  ADD_IMPORTED ("helper_save_restriction", comp.void_type, 0, NULL);
+  ADD_IMPORTED (helper_save_restriction, comp.void_type, 0, NULL);
 
-  ADD_IMPORTED ("record_unwind_current_buffer", comp.void_type, 0, NULL);
+  ADD_IMPORTED (record_unwind_current_buffer, comp.void_type, 0, NULL);
 
   args[0] = args[1] = args[2] = comp.lisp_obj_type;
   args[3] = comp.int_type;
-  ADD_IMPORTED ("set_internal", comp.void_type, 4, args);
+  ADD_IMPORTED (set_internal, comp.void_type, 4, args);
 
   args[0] = comp.lisp_obj_type;
-  ADD_IMPORTED ("helper_unwind_protect", comp.void_type, 1, args);
+  ADD_IMPORTED (helper_unwind_protect, comp.void_type, 1, args);
 
   args[0] = args[1] = comp.lisp_obj_type;
-  ADD_IMPORTED ("specbind", comp.void_type, 2, args);
+  ADD_IMPORTED (specbind, comp.void_type, 2, args);
 
 #undef ADD_IMPORTED
 
@@ -3278,7 +3278,7 @@ load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
 	f_relocs[i] = (void *) pure_write_error;
       else if (!strcmp (f_str, "push_handler"))
 	f_relocs[i] = (void *) push_handler;
-      else if (!strcmp (f_str, SETJMP_NAME))
+      else if (!strcmp (f_str, STR (SETJMP_NAME)))
 	f_relocs[i] = (void *) SETJMP;
       else if (!strcmp (f_str, "record_unwind_protect_excursion"))
 	f_relocs[i] = (void *) record_unwind_protect_excursion;
