@@ -153,11 +153,7 @@ This is to build the prev field.")
   (data-relocs-l () :type list
                :documentation "Constant objects used by functions.")
   (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
-                   :documentation "Obj -> position into data-relocs.")
-  (func-relocs-l () :type list
-               :documentation "Native functions imported.")
-  (func-relocs-idx (make-hash-table :test #'equal) :type hash-table
-                   :documentation "Obj -> position into func-relocs."))
+                   :documentation "Obj -> position into data-relocs."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -308,15 +304,6 @@ The corresponding index is returned."
         idx
       (push obj (comp-ctxt-data-relocs-l comp-ctxt))
       (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
-
-(defun comp-add-subr-to-relocs (subr-name)
-  "Keep track of SUBR-NAME into the ctxt relocations.
-The corresponding index is returned."
-  (let ((func-relocs-idx (comp-ctxt-func-relocs-idx comp-ctxt)))
-    (if-let ((idx (gethash subr-name func-relocs-idx)))
-        idx
-      (push subr-name (comp-ctxt-func-relocs-l comp-ctxt))
-      (puthash subr-name (hash-table-count func-relocs-idx) func-relocs-idx))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -569,16 +556,14 @@ The basic block is returned regardless it was already declared or not."
       (car (push (make--comp-block lap-addr sp (comp-new-block-sym))
                  (comp-limplify-pending-blocks comp-pass))))))
 
-(defun comp-call (func &rest args)
+(defsubst comp-call (func &rest args)
   "Emit a call for function FUNC with ARGS."
-  (comp-add-subr-to-relocs func)
   `(call ,func ,@args))
 
 (defun comp-callref (func nargs stack-off)
   "Emit a call using narg abi for FUNC.
 NARGS is the number of arguments.
 STACK-OFF is the index of the first slot frame involved."
-  (comp-add-subr-to-relocs func)
   `(callref ,func ,@(cl-loop repeat nargs
                              for sp from stack-off
                              collect (comp-slot-n sp))))
@@ -1644,7 +1629,6 @@ Return t if something was changed."
                  (args (if (eq call-type 'callref)
                            args
                          (fill-args args maxarg))))
-            (comp-add-subr-to-relocs callee)
             `(,call-type ,callee ,@(clean-args-ref args))))
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers that for non self calls too!!

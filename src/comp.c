@@ -38,9 +38,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
-#define IMPORTED_FUNC_RELOC_SYM "f_reloc"
+#define IMPORTED_FUNC_LINK_TABLE "freloc_link_table"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
-#define TEXT_IMPORTED_FUNC_RELOC_SYM "text_imported_funcs"
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
 #define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
@@ -232,21 +231,6 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
-/* Try to return the original subr from `symbol' even if this was advised.   */
-static Lisp_Object
-symbol_subr (Lisp_Object symbol)
-{
-  Lisp_Object maybe_subr = Fsymbol_function (symbol);
-
-  if (SUBRP (maybe_subr))
-    return maybe_subr;
-
-  if (!NILP (CALL1I (advice--p, maybe_subr)))
-    maybe_subr = CALL1I (ad-get-orig-definition, symbol);
-
-  return SUBRP (maybe_subr) ? maybe_subr : Qnil;
-}
-
 static gcc_jit_field *
 type_to_cast_field (gcc_jit_type *type)
 {
@@ -430,9 +414,11 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
   else
     {
       gcc_jit_lvalue *f_ptr =
-	gcc_jit_lvalue_access_field (comp.func_relocs,
-				     NULL,
-				     (gcc_jit_field *) xmint_pointer (func));
+	gcc_jit_rvalue_dereference_field (
+	  gcc_jit_lvalue_as_rvalue (comp.func_relocs),
+	  NULL,
+	  (gcc_jit_field *) xmint_pointer (func));
+
       if (!f_ptr)
 	xsignal2 (Qnative_ice,
 		  build_string ("missing function relocation"),
@@ -1726,15 +1712,8 @@ declare_runtime_imported_data (void)
 static Lisp_Object
 declare_runtime_imported_funcs (void)
 {
-  /* For subr imported by the runtime we rely on the standard mechanism in place
-     for functions imported by lisp code.  */
-  CALL1I (comp-add-subr-to-relocs, intern_c_string ("1+"));
-  CALL1I (comp-add-subr-to-relocs, intern_c_string ("1-"));
-  CALL1I (comp-add-subr-to-relocs, Qplus);
-  CALL1I (comp-add-subr-to-relocs, Qminus);
-  CALL1I (comp-add-subr-to-relocs, Qlist);
-
   Lisp_Object field_list = Qnil;
+
 #define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
   {									       \
     Lisp_Object name = intern_c_string (STR (f_name));			       \
@@ -1864,8 +1843,8 @@ emit_ctxt_code (void)
       comp.ctxt,
       NULL,
       GCC_JIT_GLOBAL_EXPORTED,
-      gcc_jit_struct_as_type (f_reloc_struct),
-      IMPORTED_FUNC_RELOC_SYM);
+      gcc_jit_type_get_pointer (gcc_jit_struct_as_type (f_reloc_struct)),
+      IMPORTED_FUNC_LINK_TABLE);
 }
 
 
@@ -3248,13 +3227,13 @@ load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-  Lisp_Object (**f_relocs)(void) = dynlib_sym (handle, IMPORTED_FUNC_RELOC_SYM);
+  void **freloc_link_table = dynlib_sym (handle, IMPORTED_FUNC_LINK_TABLE);
   void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
 
   if (!(current_thread_reloc
 	&& pure_reloc
 	&& data_relocs
-	&& f_relocs
+	&& freloc_link_table
 	&& top_level_run))
     xsignal1 (Qnative_lisp_file_inconsistent, file);
 
@@ -3272,51 +3251,7 @@ load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
     }
 
   /* Imported functions.  */
-  Lisp_Object f_vec =
-    load_static_obj (handle, TEXT_IMPORTED_FUNC_RELOC_SYM);
-  EMACS_INT f_vec_len = XFIXNUM (Flength (f_vec));
-  for (EMACS_INT i = 0; i < f_vec_len; i++)
-    {
-      Lisp_Object f_sym = AREF (f_vec, i);
-      char *f_str = SSDATA (SYMBOL_NAME (f_sym));
-      Lisp_Object subr = Fsymbol_function (f_sym);
-      if (!NILP (subr))
-	{
-	  subr = symbol_subr (f_sym);
-	  if (NILP (subr))
-	    /* FIXME: This is not robust in case of primitive
-	       redefinition.  */
-	    xsignal2 (Qnative_lisp_wrong_reloc, f_sym, file);
-
-	  f_relocs[i] = XSUBR (subr)->function.a0;
-	}
-      else if (!strcmp (f_str, "wrong_type_argument"))
-	f_relocs[i] = (void *) wrong_type_argument;
-      else if (!strcmp (f_str, "helper_PSEUDOVECTOR_TYPEP_XUNTAG"))
-	f_relocs[i] = (void *) helper_PSEUDOVECTOR_TYPEP_XUNTAG;
-      else if (!strcmp (f_str, "pure_write_error"))
-	f_relocs[i] = (void *) pure_write_error;
-      else if (!strcmp (f_str, "push_handler"))
-	f_relocs[i] = (void *) push_handler;
-      else if (!strcmp (f_str, STR (SETJMP_NAME)))
-	f_relocs[i] = (void *) SETJMP;
-      else if (!strcmp (f_str, "record_unwind_protect_excursion"))
-	f_relocs[i] = (void *) record_unwind_protect_excursion;
-      else if (!strcmp (f_str, "helper_unbind_n"))
-	f_relocs[i] = (void *) helper_unbind_n;
-      else if (!strcmp (f_str, "helper_save_restriction"))
-	f_relocs[i] = (void *) helper_save_restriction;
-      else if (!strcmp (f_str, "record_unwind_current_buffer"))
-	f_relocs[i] = (void *) record_unwind_current_buffer;
-      else if (!strcmp (f_str, "set_internal"))
-	f_relocs[i] = (void *) set_internal;
-      else if (!strcmp (f_str, "helper_unwind_protect"))
-	f_relocs[i] = (void *) helper_unwind_protect;
-      else if (!strcmp (f_str, "specbind"))
-	f_relocs[i] = (void *) specbind;
-      else
-	xsignal2 (Qnative_lisp_wrong_reloc, f_sym, file);
-    }
+  *freloc_link_table = freloc.link_table;
 
   /* Executing this will perform all the expected environment modification.  */
   top_level_run ();
