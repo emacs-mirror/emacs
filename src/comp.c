@@ -330,6 +330,7 @@ static gcc_jit_field *
 declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 		       int nargs, gcc_jit_type **types)
 {
+  USE_SAFE_ALLOCA;
   /* Don't want to declare the same function two times.  */
   if (!NILP (Fgethash (subr_sym, comp.imported_funcs_h, Qnil)))
     xsignal2 (Qnative_ice,
@@ -339,19 +340,19 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
   if (nargs == MANY)
     {
       nargs = 2;
-      types = alloca (nargs * sizeof (* types));
+      types = SAFE_ALLOCA (nargs * sizeof (* types));
       types[0] = comp.ptrdiff_type;
       types[1] = comp.lisp_obj_ptr_type;
     }
   else if (nargs == UNEVALLED)
     {
       nargs = 1;
-      types = alloca (nargs * sizeof (* types));
+      types = SAFE_ALLOCA (nargs * sizeof (* types));
       types[0] = comp.lisp_obj_type;
     }
   else if (!types)
     {
-      types = alloca (nargs * sizeof (* types));
+      types = SAFE_ALLOCA (nargs * sizeof (* types));
       for (ptrdiff_t i = 0; i < nargs; i++)
 	types[i] = comp.lisp_obj_type;
     }
@@ -375,6 +376,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 			       SSDATA (f_ptr_name));
 
   Fputhash (subr_sym, make_mint_ptr (field), comp.imported_funcs_h);
+  SAFE_FREE ();
   return field;
 }
 
