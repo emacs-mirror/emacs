@@ -3282,7 +3282,10 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   x->s.native_intspec = intspec;
   x->s.native_doc = doc;
   x->s.native_elisp = true;
-  defsubr (x);
+  XSETPVECTYPE (&x->s, PVEC_SUBR);
+  Lisp_Object tem;
+  XSETSUBR (tem, &x->s);
+  set_symbol_function (name, tem);
 
   LOADHIST_ATTACH (Fcons (Qdefun, name));
 
