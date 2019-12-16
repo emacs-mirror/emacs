@@ -1910,8 +1910,7 @@ define_lisp_cons (void)
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "comp_cdr_u",
-				    sizeof (cdr_u_fields)
-				    / sizeof (*cdr_u_fields),
+				    ARRAYELTS (cdr_u_fields),
 				    cdr_u_fields);
 
   comp.lisp_cons_u_s_car = gcc_jit_context_new_field (comp.ctxt,
@@ -1930,8 +1929,7 @@ define_lisp_cons (void)
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_cons_s",
-				     sizeof (cons_s_fields)
-				     / sizeof (*cons_s_fields),
+				     ARRAYELTS (cons_s_fields),
 				     cons_s_fields);
 
   comp.lisp_cons_u_s = gcc_jit_context_new_field (comp.ctxt,
@@ -1954,8 +1952,7 @@ define_lisp_cons (void)
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "comp_cons_u",
-				    sizeof (cons_u_fields)
-				    / sizeof (*cons_u_fields),
+				    ARRAYELTS (cons_u_fields),
 				    cons_u_fields);
 
   comp.lisp_cons_u =
@@ -2046,7 +2043,7 @@ define_handler_struct (void)
 	"pad2") };
   gcc_jit_struct_set_fields (comp.handler_s,
 			     NULL,
-			     sizeof (fields) / sizeof (*fields),
+			     ARRAYELTS (fields),
 			     fields);
 
 }
@@ -2090,7 +2087,7 @@ define_thread_state_struct (void)
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_thread_state",
-				     sizeof (fields) / sizeof (*fields),
+				     ARRAYELTS (fields),
 				     fields);
   comp.thread_state_ptr_type =
     gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state_s));
@@ -2191,8 +2188,7 @@ define_cast_union (void)
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "cast_union",
-				    sizeof (cast_union_fields)
-				    / sizeof (*cast_union_fields),
+				    ARRAYELTS (cast_union_fields),
 				    cast_union_fields);
 }
 
@@ -2976,12 +2972,12 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 
   gcc_jit_field *lisp_obj_fields[] = { comp.lisp_obj_as_ptr,
 				       comp.lisp_obj_as_num };
-  comp.lisp_obj_type = gcc_jit_context_new_union_type (comp.ctxt,
-						       NULL,
-						       "comp_Lisp_Object",
-						       sizeof (lisp_obj_fields)
-						       / sizeof (*lisp_obj_fields),
-						       lisp_obj_fields);
+  comp.lisp_obj_type =
+    gcc_jit_context_new_union_type (comp.ctxt,
+				    NULL,
+				    "comp_Lisp_Object",
+				    ARRAYELTS (lisp_obj_fields),
+				    lisp_obj_fields);
   comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
 
   comp.most_positive_fixnum =
@@ -3274,7 +3270,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   eassert (func);
 
   /* FIXME add gc support, now just leaking.  */
-  union Aligned_Lisp_Subr *x = xmalloc (sizeof (union Aligned_Lisp_Subr));
+  union Aligned_Lisp_Subr *x = xmalloc (sizeof (*x));
 
   x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
   x->s.function.a0 = func;
