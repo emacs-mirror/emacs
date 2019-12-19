@@ -297,8 +297,9 @@ declare_block (Lisp_Object block_name)
 static gcc_jit_lvalue *
 get_slot (Lisp_Object mvar)
 {
-  EMACS_INT slot_n = XFIXNUM (CALL1I (comp-mvar-slot, mvar));
-  if (slot_n == -1)
+  Lisp_Object mvar_slot = CALL1I (comp-mvar-slot, mvar);
+
+  if (EQ (mvar_slot, Qscratch))
     {
       if (!comp.scratch)
 	comp.scratch = gcc_jit_function_new_local (comp.func,
@@ -307,6 +308,7 @@ get_slot (Lisp_Object mvar)
 						   "scratch");
       return comp.scratch;
     }
+  EMACS_INT slot_n = XFIXNUM (mvar_slot);
   gcc_jit_lvalue **frame =
     (CALL1I (comp-mvar-ref, mvar) || SPEED < 2)
     ? comp.frame : comp.f_frame;
@@ -3366,6 +3368,7 @@ syms_of_comp (void)
 
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
+  DEFSYM (Qscratch, "scratch");
 
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");

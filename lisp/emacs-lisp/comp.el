@@ -257,9 +257,8 @@ structure.")
 
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
-  (slot nil :type fixnum
-        :documentation "Slot number.
--1 is a special value and indicates the scratch slot.")
+  (slot nil :type (or fixnum symbol)
+        :documentation "Slot number if a number or 'scratch' for scratch slot.")
   (id nil :type (or null number)
      :documentation "SSA number when in SSA form.")
   (const-vld nil :type boolean
@@ -732,10 +731,10 @@ Return value is the fall through block name."
       else
         ;; Store the result of the comparison into the scratch slot before
         ;; emitting the conditional jump.
-        do (comp-emit (list 'set (make-comp-mvar :slot -1)
+        do (comp-emit (list 'set (make-comp-mvar :slot 'scratch)
                             (comp-call test-func var m-test)))
            (comp-emit (list 'cond-jump
-                            (make-comp-mvar :slot -1)
+                            (make-comp-mvar :slot 'scratch)
                             (make-comp-mvar :constant nil)
                             target-name ff-bb-name))
       do (unless last
@@ -1180,7 +1179,7 @@ This will be called at load-time."
 
 (defun comp-limplify (lap-funcs)
   "Compute the LIMPLE ir for LAP-FUNCS.
-Top level forms for the current context are rendered too."
+Top-level forms for the current context are rendered too."
   (mapc #'comp-add-func-to-ctxt (mapcar #'comp-limplify-function lap-funcs))
   (comp-add-func-to-ctxt (comp-limplify-top-level)))
 
@@ -1342,7 +1341,7 @@ Top level forms for the current context are rendered too."
              ;; Return t if a SLOT-N was assigned within BB.
              (cl-loop for insn in (comp-block-insns bb)
                       when (and (comp-assign-op-p (car insn))
-                                (= slot-n (comp-mvar-slot (cadr insn))))
+                                (eql slot-n (comp-mvar-slot (cadr insn))))
                         return t)))
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
