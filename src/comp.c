@@ -1770,7 +1770,6 @@ declare_runtime_imported_funcs (void)
 static void
 emit_ctxt_code (void)
 {
-
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
@@ -1804,9 +1803,9 @@ emit_ctxt_code (void)
 	NULL,
 	GCC_JIT_GLOBAL_EXPORTED,
 	gcc_jit_context_new_array_type (comp.ctxt,
-			    NULL,
-			    comp.lisp_obj_type,
-			    d_reloc_len),
+					NULL,
+					comp.lisp_obj_type,
+					d_reloc_len),
 	DATA_RELOC_SYM));
 
   emit_static_object (TEXT_DATA_RELOC_SYM, d_reloc);
@@ -2726,8 +2725,8 @@ declare_function (Lisp_Object func)
       for (ptrdiff_t i = 0; i < max_args; i++)
 	type[i] = comp.lisp_obj_type;
 
-      gcc_jit_param **param = SAFE_ALLOCA (max_args *sizeof (*param));
-      for (int i = max_args - 1; i >= 0; i--)
+      gcc_jit_param **param = SAFE_ALLOCA (max_args * sizeof (*param));
+      for (int i = 0; i < max_args; ++i)
 	param[i] = gcc_jit_context_new_param (comp.ctxt,
 					      NULL,
 					      type[i],
