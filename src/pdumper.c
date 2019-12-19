@@ -2938,7 +2938,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
   DUMP_FIELD_COPY (&out, subr, doc);
 #ifdef HAVE_NATIVE_COMP
-  DUMP_FIELD_COPY (&out, subr, native_elisp);
+  dump_field_emacs_ptr (ctx, &out, subr, &subr->native_comp_u);
 #endif
   return dump_object_finish (ctx, &out, sizeof (out));
 }
