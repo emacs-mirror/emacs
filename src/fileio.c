@@ -1989,6 +1989,55 @@ clone_file (int dest, int source)
 }
 #endif
 
+/* Copy data to OFD from IFD if possible.  Return NEWSIZE.  */
+off_t
+copy_file_fd (int ofd, int ifd, struct stat *st, Lisp_Object newname,
+	      Lisp_Object file)
+{
+  off_t newsize;
+
+  if (clone_file (ofd, ifd))
+    newsize = st->st_size;
+  else
+    {
+      off_t insize = st->st_size;
+      ssize_t copied;
+
+      for (newsize = 0; newsize < insize; newsize += copied)
+	{
+	  /* Copy at most COPY_MAX bytes at a time; this is min
+	     (PTRDIFF_MAX, SIZE_MAX) truncated to a value that is
+	     surely aligned well.  */
+	  ssize_t ssize_max = TYPE_MAXIMUM (ssize_t);
+	  ptrdiff_t copy_max = min (ssize_max, SIZE_MAX) >> 30 << 30;
+	  off_t intail = insize - newsize;
+	  ptrdiff_t len = min (intail, copy_max);
+	  copied = copy_file_range (ifd, NULL, ofd, NULL, len, 0);
+	  if (copied <= 0)
+	    break;
+	  maybe_quit ();
+	}
+
+      /* Fall back on read+write if copy_file_range failed, or if the
+	 input is empty and so could be a /proc file.  read+write will
+	 either succeed, or report an error more precisely than
+	 copy_file_range would.  */
+      if (newsize != insize || insize == 0)
+	{
+	  char buf[MAX_ALLOCA];
+	  for (; (copied = emacs_read_quit (ifd, buf, sizeof buf));
+	       newsize += copied)
+	    {
+	      if (copied < 0)
+		report_file_error ("Read error", file);
+	      if (emacs_write_quit (ofd, buf, copied) != copied)
+		report_file_error ("Write error", newname);
+	    }
+	}
+    }
+  return newsize;
+}
+
 DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 6,
        "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
@@ -2143,45 +2192,7 @@ permissions.  */)
 
   maybe_quit ();
 
-  if (clone_file (ofd, ifd))
-    newsize = st.st_size;
-  else
-    {
-      off_t insize = st.st_size;
-      ssize_t copied;
-
-      for (newsize = 0; newsize < insize; newsize += copied)
-	{
-	  /* Copy at most COPY_MAX bytes at a time; this is min
-	     (PTRDIFF_MAX, SIZE_MAX) truncated to a value that is
-	     surely aligned well.  */
-	  ssize_t ssize_max = TYPE_MAXIMUM (ssize_t);
-	  ptrdiff_t copy_max = min (ssize_max, SIZE_MAX) >> 30 << 30;
-	  off_t intail = insize - newsize;
-	  ptrdiff_t len = min (intail, copy_max);
-	  copied = copy_file_range (ifd, NULL, ofd, NULL, len, 0);
-	  if (copied <= 0)
-	    break;
-	  maybe_quit ();
-	}
-
-      /* Fall back on read+write if copy_file_range failed, or if the
-	 input is empty and so could be a /proc file.  read+write will
-	 either succeed, or report an error more precisely than
-	 copy_file_range would.  */
-      if (newsize != insize || insize == 0)
-	{
-	  char buf[MAX_ALLOCA];
-	  for (; (copied = emacs_read_quit (ifd, buf, sizeof buf));
-	       newsize += copied)
-	    {
-	      if (copied < 0)
-		report_file_error ("Read error", file);
-	      if (emacs_write_quit (ofd, buf, copied) != copied)
-		report_file_error ("Write error", newname);
-	    }
-	}
-    }
+  newsize = copy_file_fd (ofd, ifd, &st, newname, file);
 
   /* Truncate any existing output file after writing the data.  This
      is more likely to work than truncation before writing, if the
