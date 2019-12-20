@@ -27,6 +27,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <libgccjit.h>
 
+#include <sys/types.h> /* For getpid.  */
+#include <unistd.h>
+#include <sys/stat.h> /* For O_RDONLY.  */
+#include <fcntl.h>
+/* FIXME non portable.  */
+#include <sys/mman.h> /* For memfd_create.  */
+
 #include "lisp.h"
 #include "puresize.h"
 #include "window.h"
@@ -3301,7 +3308,22 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
     xsignal2 (Qnative_lisp_load_failed, file,
 	      build_string ("Empty relocation table"));
 
-  dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
+  /* FIXME non portable.  */
+  /* We copy the content of the file to be loaded in a memory mapped
+     file.  We then keep track of this in the struct
+     Lisp_Native_Compilation_Unit.  In case this will be overwritten
+     or delete we'll dump the right data.  */
+  int fd_in = emacs_open (SSDATA (file), O_RDONLY, 0);
+  int fd_out = memfd_create (SSDATA (file), 0);
+  if (fd_in < 0 || fd_out < 0)
+    xsignal2 (Qnative_lisp_load_failed, file,
+	      build_string ("Failing to get file descriptor"));
+  struct stat st;
+  if (fstat (fd_in, &st) != 0)
+    report_file_error ("Input file status", file);
+  copy_file_fd (fd_out, fd_in, &st, Qnil, file);
+  dynlib_handle_ptr handle =
+    dynlib_open (format_string ("/proc/%d/fd/%d", getpid (), fd_out));
   load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
   if (!handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
