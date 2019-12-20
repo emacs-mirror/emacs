@@ -4,8 +4,9 @@
 
 ;; Author: akrl@sdf.org
 ;; Maintainer: akrl@sdf.org
-;; Version: 1.0
+;; Version: 1.1
 ;; Keywords: languages, lisp
+;; Package-Type: multi
 ;; Created: 2019-01-12
 
 ;; This program is free software; you can redistribute it and/or modify
