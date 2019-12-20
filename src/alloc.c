@@ -6566,7 +6566,7 @@ mark_object (Lisp_Object arg)
 
 	  case PVEC_SUBR:
 #ifdef HAVE_NATIVE_COMP
-	    if (XSUBR (obj)->native_comp_u)
+	    if (SUBRP_NATIVE_COMPILEDP (obj))
 	      set_vector_marked (ptr);
 #endif
 	    break;
@@ -6715,7 +6715,7 @@ survives_gc_p (Lisp_Object obj)
     case Lisp_Vectorlike:
 #ifdef HAVE_NATIVE_COMP
       survives_p =
-	(SUBRP (obj) && !XSUBR (obj)->native_comp_u) ||
+	(SUBRP (obj) && !SUBRP_NATIVE_COMPILEDP (obj)) ||
 	vector_marked_p (XVECTOR (obj));
 #else
       survives_p = SUBRP (obj) || vector_marked_p (XVECTOR (obj));

@@ -2136,6 +2136,14 @@ enum char_table_specials
       = PSEUDOVECSIZE (struct Lisp_Sub_Char_Table, contents) - 1
   };
 
+#ifdef HAVE_NATIVE_COMP
+INLINE bool
+SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
+{
+  return SUBRP (a) && XSUBR (a)->native_comp_u;
+}
+#endif
+
 /* Sanity-check pseudovector layout.  */
 verify (offsetof (struct Lisp_Char_Table, defalt) == header_size);
 verify (offsetof (struct Lisp_Char_Table, extras)
