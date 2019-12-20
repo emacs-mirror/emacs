@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2019  Free Software Foundation, Inc.
 
-;; Author: akrl@sdf.org
-;; Maintainer: akrl@sdf.org
+;; Author: Andrea Corallo <akrl@sdf.org>
+;; Maintainer: Andrea Corallo <akrl@sdf.org>
 ;; Version: 1.1
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
