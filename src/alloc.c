@@ -3023,6 +3023,15 @@ cleanup_vector (struct Lisp_Vector *vector)
       if (uptr->finalizer)
 	uptr->finalizer (uptr->p);
     }
+#ifdef HAVE_NATIVE_COMP
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
+    {
+      struct Lisp_Native_Compilation_Unit *cu =
+	PSEUDOVEC_STRUCT (vector, Lisp_Native_Compilation_Unit);
+      eassert (cu->handle);
+      dynlib_close (cu->handle);
+    }
+#endif
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -6556,6 +6565,10 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
+	    if (XSUBR (obj)->native_comp_u)
+	      set_vector_marked (ptr);
+#endif
 	    break;
 
 	  case PVEC_FREE:
@@ -6700,7 +6713,13 @@ survives_gc_p (Lisp_Object obj)
       break;
 
     case Lisp_Vectorlike:
+#ifdef HAVE_NATIVE_COMP
+      survives_p =
+	(SUBRP (obj) && !XSUBR (obj)->native_comp_u) ||
+	vector_marked_p (XVECTOR (obj));
+#else
       survives_p = SUBRP (obj) || vector_marked_p (XVECTOR (obj));
+#endif
       break;
 
     case Lisp_Cons:
