@@ -1828,7 +1828,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 #ifdef HAVE_NATIVE_COMP
     case PVEC_NATIVE_COMP_UNIT:
       {
-	print_c_string ("#<native compilation unit>", printcharfun);
+	print_c_string ("#<native compilation unit ", printcharfun);
 	int len = sprintf (buf, "%d", XCOMPILATION_UNIT (obj)->fd);
 	strout (buf, len, len, printcharfun);
 	printchar ('>', printcharfun);

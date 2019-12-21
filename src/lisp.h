@@ -1342,6 +1342,7 @@ dead_object (void)
 #define XSETTHREAD(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_THREAD))
 #define XSETMUTEX(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_MUTEX))
 #define XSETCONDVAR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CONDVAR))
+#define XSETNATIVE_COMP_UNIT(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_NATIVE_COMP_UNIT))
 
 /* Efficiently convert a pointer to a Lisp object and back.  The
    pointer is represented as a fixnum, so the garbage collector
@@ -2100,7 +2101,7 @@ struct Lisp_Subr
       Lisp_Object native_doc;
     };
 #ifdef HAVE_NATIVE_COMP
-    Lisp_Object native_comp_u;;
+    Lisp_Object native_comp_u;
 #endif
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
@@ -2137,14 +2138,6 @@ enum char_table_specials
     SUB_CHAR_TABLE_OFFSET
       = PSEUDOVECSIZE (struct Lisp_Sub_Char_Table, contents) - 1
   };
-
-#ifdef HAVE_NATIVE_COMP
-INLINE bool
-SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
-{
-  return SUBRP (a) && XSUBR (a)->native_comp_u;
-}
-#endif
 
 /* Sanity-check pseudovector layout.  */
 verify (offsetof (struct Lisp_Char_Table, defalt) == header_size);
@@ -4768,6 +4761,29 @@ extern void syms_of_profiler (void);
 /* Defined in msdos.c, w32.c.  */
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
+
+#ifdef HAVE_NATIVE_COMP
+INLINE bool
+SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
+{
+  return SUBRP (a) && XSUBR (a)->native_comp_u;
+}
+
+INLINE Lisp_Object
+make_native_comp_u (int fd, dynlib_handle_ptr handle)
+{
+  struct Lisp_Native_Compilation_Unit *x =
+    (struct Lisp_Native_Compilation_Unit *) allocate_pseudovector (
+				  VECSIZE (struct Lisp_Native_Compilation_Unit),
+				  0, VECSIZE (struct Lisp_Native_Compilation_Unit),
+				  PVEC_NATIVE_COMP_UNIT);
+  x->fd = fd;
+  x->handle = handle;
+  Lisp_Object cu;
+  XSETNATIVE_COMP_UNIT (cu, x);
+  return cu;
+}
+#endif
 
 /* Defined in lastfile.c.  */
 extern char my_edata[];

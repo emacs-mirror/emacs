@@ -6567,10 +6567,18 @@ mark_object (Lisp_Object arg)
 	  case PVEC_SUBR:
 #ifdef HAVE_NATIVE_COMP
 	    if (SUBRP_NATIVE_COMPILEDP (obj))
-	      set_vector_marked (ptr);
+	      {
+		set_vector_marked (ptr);
+		struct Lisp_Subr *subr = XSUBR (obj);
+		mark_object (subr->native_comp_u);
+	      }
+	    break;
+	  case PVEC_NATIVE_COMP_UNIT:
+	    set_vector_marked (ptr);
+	    /* FIXME see comp.h.  */
+	    mark_object (XCOMPILATION_UNIT (obj)->data_vec);
 #endif
 	    break;
-
 	  case PVEC_FREE:
 	    emacs_abort ();
 

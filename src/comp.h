@@ -29,6 +29,7 @@ struct Lisp_Native_Compilation_Unit
   /* Compilation unit file descriptor and handle.  */
   int fd;
   dynlib_handle_ptr handle;
+  Lisp_Object data_vec; /* FIXME this should be in the normal lisp slot.  */
 };
 
 INLINE bool

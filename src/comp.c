@@ -3225,8 +3225,10 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 }
 
 static void
-load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
+load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
 {
+  struct Lisp_Native_Compilation_Unit *comp_u = XCOMPILATION_UNIT (comp_u_obj);
+  dynlib_handle_ptr handle = comp_u->handle;
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
@@ -3249,11 +3251,9 @@ load_comp_unit (dynlib_handle_ptr handle, Lisp_Object file)
   EMACS_INT d_vec_len = XFIXNUM (Flength (d_vec));
 
   for (EMACS_INT i = 0; i < d_vec_len; i++)
-    {
       data_relocs[i] = AREF (d_vec, i);
-      prevent_gc (data_relocs[i]);
-    }
 
+  comp_u->data_vec = d_vec;
   /* Imported functions.  */
   *freloc_link_table = freloc.link_table;
 
@@ -3270,24 +3270,26 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
      (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
       Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec)
 {
-  dynlib_handle_ptr handle = xmint_pointer (XCAR (load_handle_stack));
+  Lisp_Object comp_u = XCAR (load_handle_stack);
+  dynlib_handle_ptr handle = XCOMPILATION_UNIT (comp_u)->handle;
   if (!handle)
     xsignal0 (Qwrong_register_subr_call);
 
   void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
 
-  /* FIXME add gc support, now just leaking.  */
-  union Aligned_Lisp_Subr *x = xmalloc (sizeof (*x));
-
-  x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
+  union Aligned_Lisp_Subr *x =
+    (union Aligned_Lisp_Subr *) allocate_pseudovector (
+				  VECSIZE (union Aligned_Lisp_Subr),
+				  0, VECSIZE (union Aligned_Lisp_Subr),
+				  PVEC_SUBR);
   x->s.function.a0 = func;
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = xstrdup (SSDATA (Fsymbol_name (name)));
   x->s.native_intspec = intspec;
   x->s.native_doc = doc;
-  XSETPVECTYPE (&x->s, PVEC_SUBR);
+  x->s.native_comp_u = comp_u;
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
   set_symbol_function (name, tem);
@@ -3324,11 +3326,12 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   copy_file_fd (fd_out, fd_in, &st, Qnil, file);
   dynlib_handle_ptr handle =
     dynlib_open (format_string ("/proc/%d/fd/%d", getpid (), fd_out));
-  load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
+  Lisp_Object comp_u = make_native_comp_u (fd_in, handle);
+  load_handle_stack = Fcons (comp_u, load_handle_stack);
   if (!handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
 
-  load_comp_unit (handle, file);
+  load_comp_unit (comp_u, file);
 
   load_handle_stack = XCDR (load_handle_stack);
 
