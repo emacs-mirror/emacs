@@ -198,7 +198,7 @@ Other options offered by the customize interface are more restrictive."
 		 "^\\([<>]?[-+^.0-9]*[0-9][-+^.0-9eEdDx()%]*\\|[<>]?[-+]?0[xX][[:xdigit:].]+\\|[<>]?[-+]?[0-9]+#[0-9a-zA-Z.]+\\|nan\\|[-+u]?inf\\)$")
 	  (const :tag "Very General Number-Like, including hex and Calc radix, allows comma as decimal mark"
 		 "^\\([<>]?[-+^.,0-9]*[0-9][-+^.0-9eEdDx()%]*\\|[<>]?[-+]?0[xX][[:xdigit:].]+\\|[<>]?[-+]?[0-9]+#[0-9a-zA-Z.]+\\|nan\\|[-+u]?inf\\)$")
-	  (string :tag "Regexp:")))
+	  (regexp :tag "Regexp:")))
 
 (defcustom org-table-number-fraction 0.5
   "Fraction of numbers in a column required to make the column align right.

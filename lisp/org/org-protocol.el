@@ -278,7 +278,7 @@ This should be a single regexp string."
   :group 'org-protocol
   :version "24.4"
   :package-version '(Org . "8.0")
-  :type 'string)
+  :type 'regexp)
 
 ;;; Helper functions:
 

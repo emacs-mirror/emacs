@@ -182,14 +182,14 @@ definition is displayed instead."
 which specifies the `name' section.  Can be used for localization
 support."
   :group 'idlwave-online-help
-  :type 'string)
+  :type 'regexp)
 
 (defcustom idlwave-help-doclib-keyword "KEYWORD"
   "A regexp for the heading word to search for in doclib headers
 which specifies the `keywords' section.  Can be used for localization
 support."
   :group 'idlwave-online-help
-  :type 'string)
+  :type 'regexp)
 
 (defface idlwave-help-link
   '((t :inherit link))

@@ -74,7 +74,7 @@ By default, include only headers since the semantic use of EBrowse
 is only for searching via semanticdb, and thus only headers would
 be searched."
   :group 'semanticdb
-  :type 'string)
+  :type 'regexp)
 
 ;;; SEMANTIC Database related Code
 ;;; Classes:

@@ -75,7 +75,7 @@ List elements are cons cells of the form
 
 If a file name matches REGEXP, then use help mode MODE instead of the
 buffer's major mode."
-  :group 'info-lookup :type '(repeat (cons (string :tag "Regexp")
+  :group 'info-lookup :type '(repeat (cons (regexp :tag "Regexp")
 					   (symbol :tag "Mode"))))
 
 (defvar info-lookup-history nil

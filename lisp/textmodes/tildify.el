@@ -67,7 +67,7 @@ matching the white space).  The pattern is matched case-sensitive regardless of
 the value of `case-fold-search' setting."
   :version "25.1"
   :group 'tildify
-  :type 'string
+  :type 'regexp
   :safe t)
 
 (defcustom tildify-pattern-alist ()
@@ -417,7 +417,7 @@ of a space at point.  The regexp is always case sensitive, regardless of the
 current `case-fold-search' setting."
   :version "25.1"
   :group 'tildify
-  :type 'string)
+  :type 'regexp)
 
 (defcustom tildify-space-predicates '(tildify-space-region-predicate)
   "A list of predicate functions for `tildify-space' function."

@@ -60,7 +60,7 @@ e-mail transmission, news posting, etc."
 
 (defcustom rfc1843-newsgroups-regexp "chinese\\|hz"
   "Regexp of newsgroups in which might be HZ encoded."
-  :type 'string
+  :type 'regexp
   :group 'mime)
 
 (defun rfc1843-decode-region (from to)

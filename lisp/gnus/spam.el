@@ -579,7 +579,7 @@ This must be a list.  For example, `(\"-C\" \"configfile\")'."
 (defcustom spam-spamassassin-positive-spam-flag-header "YES"
   "The regex on `spam-spamassassin-spam-flag-header' for positive spam
 identification."
-  :type 'string
+  :type 'regexp
   :group 'spam-spamassassin)
 
 (defcustom spam-spamassassin-spam-status-header "X-Spam-Status"

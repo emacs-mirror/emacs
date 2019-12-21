@@ -197,7 +197,7 @@ It takes only one argument, the filename."
   "Regex to remove from the `<style> a' variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-unstyle"
-  :type  '(string))
+  :type  '(regexp))
 
 (defcustom hfy-link-extn nil
   "File extension used for href links.

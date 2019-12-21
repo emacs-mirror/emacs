@@ -905,7 +905,7 @@ it automatically."
 		 (const  :tag "Default Terminator" t)
 		 (string :tag "Terminator String")
 		 (cons   :tag "Terminator Pattern and String"
-			 (string :tag "Terminator Pattern")
+			 (regexp :tag "Terminator Pattern")
 			 (string :tag "Terminator String")))
   :version "22.2"
   :group 'SQL)
@@ -1033,7 +1033,7 @@ All products share this list; products should define a regexp to
 identify additional keywords in a variable defined by
 the :statement feature."
   :version "24.1"
-  :type 'string
+  :type 'regexp
   :group 'SQL)
 
 ;; Customization for Oracle

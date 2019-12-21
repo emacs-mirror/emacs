@@ -641,7 +641,7 @@ They should include commonly existing directories which are not
 useful.  It is no longer necessary to include version-control
 directories here; see `vc-directory-exclusion-list'."
   :group 'speedbar
-  :type 'string)
+  :type 'regexp)
 
 (defcustom speedbar-file-unshown-regexp
   (let ((nstr "") (noext completion-ignored-extensions))
@@ -654,7 +654,7 @@ directories here; see `vc-directory-exclusion-list'."
   "Regexp matching files we don't want displayed in a speedbar buffer.
 It is generated from the variable `completion-ignored-extensions'."
   :group 'speedbar
-  :type 'string)
+  :type 'regexp)
 
 (defvar speedbar-file-regexp nil
   "Regular expression matching files we know how to expand.

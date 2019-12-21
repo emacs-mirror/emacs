@@ -1203,7 +1203,7 @@ no longer matches to transformed string.  Used by function
 feedmail-tidy-up-slug and indirectly by feedmail-queue-subject-slug-maker."
   :version "24.1"
   :group 'feedmail-queue
-  :type 'string
+  :type 'regexp
 )
 
 

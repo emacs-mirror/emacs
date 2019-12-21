@@ -1239,7 +1239,7 @@ calling `org-latex-compile'."
   :package-version '(Org . "8.3")
   :type '(repeat
 	  (cons
-	   (string :tag "Regexp")
+	   (regexp :tag "Regexp")
 	   (string :tag "Message"))))
 
 

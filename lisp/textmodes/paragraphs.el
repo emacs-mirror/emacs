@@ -168,7 +168,7 @@ to obtain the value of this variable."
 (defcustom sentence-end-base "[.?!…‽][]\"'”’)}»›]*"
   "Regexp matching the basic end of a sentence, not including following space."
   :group 'paragraphs
-  :type 'string
+  :type 'regexp
   :version "25.1")
 (put 'sentence-end-base 'safe-local-variable 'stringp)
 

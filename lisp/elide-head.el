@@ -64,8 +64,8 @@ elided with an invisible overlay from the end of the line where the
 first match is found to the end of the match for the corresponding
 cdr."
   :group 'elide-head
-  :type '(alist :key-type  (string :tag "Start regexp")
-		:value-type (string :tag "End regexp")))
+  :type '(alist :key-type  (regexp :tag "Start regexp")
+		:value-type (regexp :tag "End regexp")))
 
 (defvar elide-head-overlay nil)
 (make-variable-buffer-local 'elide-head-overlay)

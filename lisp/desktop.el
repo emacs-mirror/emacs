@@ -344,7 +344,7 @@ to the value obtained by evaluating FORM."
 Each element is a regular expression.  Buffers with a name matched by any of
 these won't be deleted."
   :version "23.3"                       ; added Warnings - bug#6336
-  :type '(repeat string)
+  :type '(repeat regexp)
   :group 'desktop)
 
 ;;;###autoload

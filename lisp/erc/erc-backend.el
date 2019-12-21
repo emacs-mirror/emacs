@@ -375,7 +375,7 @@ Example: If you know that the channel #linux-ru uses the coding-system
 `cyrillic-koi8', then add (\"#linux-ru\" . cyrillic-koi8) to the
 alist."
   :group 'erc-server
-  :type '(repeat (cons (string :tag "Target")
+  :type '(repeat (cons (regexp :tag "Target")
                        coding-system)))
 
 (defcustom erc-server-connect-function #'erc-open-network-stream

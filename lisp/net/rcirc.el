@@ -254,7 +254,7 @@ Examples:
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
   (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
   (\"quakenet.org\" quakenet \"bobby\" \"sekrit\"))"
-  :type '(alist :key-type (string :tag "Server")
+  :type '(alist :key-type (regexp :tag "Server")
 		:value-type (choice (list :tag "NickServ"
 					  (const nickserv)
 					  (string :tag "Nick")
@@ -359,9 +359,9 @@ If VAL is a coding system, it is used for both decoding and encoding
 messages.
 If VAL is a cons of coding systems, the car part is used for decoding,
 and the cdr part is used for encoding."
-  :type '(alist :key-type (choice (string :tag "Channel Regexp")
-					  (cons (string :tag "Channel Regexp")
-						(string :tag "Server Regexp")))
+  :type '(alist :key-type (choice (regexp :tag "Channel Regexp")
+					  (cons (regexp :tag "Channel Regexp")
+						(regexp :tag "Server Regexp")))
 		:value-type (choice coding-system
 				    (cons (coding-system :tag "Decode")
                                           (coding-system :tag "Encode")))))

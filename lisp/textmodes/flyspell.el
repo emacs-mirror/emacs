@@ -89,7 +89,7 @@ EXCEPTION-LIST is a list of strings.  The checked word is
 downcased before comparing with these exceptions."
   :group 'flyspell
   :type '(alist :key-type (choice (const :tag "All dictionaries" nil)
-				  string)
+				  regexp)
 		:value-type (repeat string))
   :version "24.1")
 
@@ -234,7 +234,7 @@ Ispell's ultimate default dictionary."
   "A string that is the regular expression that matches TeX commands."
   :group 'flyspell
   :version "21.1"
-  :type 'string)
+  :type 'regexp)
 
 (defcustom flyspell-check-tex-math-command nil
   "Non-nil means check even inside TeX math environment.

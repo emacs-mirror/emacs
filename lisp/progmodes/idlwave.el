@@ -314,7 +314,7 @@ split then a terminal beep and warning are issued."
 expression will not be changed.  Note that the indentation of a comment
 at the beginning of a line is never changed."
   :group 'idlwave-code-formatting
-  :type 'string)
+  :type 'regexp)
 
 (defcustom idlwave-begin-line-comment nil
   "A comment anchored at the beginning of line.

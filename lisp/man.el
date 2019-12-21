@@ -253,7 +253,7 @@ the associated section number."
   "Regexp that matches the text that precedes the command's name.
 Used in `bookmark-set' to get the default bookmark name."
   :version "24.1"
-  :type 'string :group 'bookmark)
+  :type 'regexp :group 'bookmark)
 
 (defcustom manual-program "man"
   "Program used by `man' to produce man pages."

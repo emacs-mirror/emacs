@@ -674,7 +674,7 @@ These normally have names of the form `man?'.  Its default value is
 \"[Mm][Aa][Nn]\", which is case-insensitive mainly for the benefit of
 Microsoft platforms.  Its purpose is to avoid `cat?', `.', `..', etc."
   ;; Based on a suggestion by Wei-Xue Shi.
-  :type 'string
+  :type 'regexp
   :group 'woman-interface)
 
 (defcustom woman-path
@@ -753,7 +753,7 @@ Default is t."
 An alist with elements of the form (MENU-TITLE REGEXP INDEX) --
 see the documentation for `imenu-generic-expression'."
   :type '(alist :key-type (choice :tag "Title" (const nil) string)
-                :value-type (group (choice (string :tag "Regexp")
+                :value-type (group (choice (regexp :tag "Regexp")
                                            function)
                                    integer))
   :group 'woman-interface)

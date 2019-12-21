@@ -1282,7 +1282,7 @@ Do not start with `~/' or `~USERNAME/'."
 (defcustom ediff-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
   "Regexp that matches characters that must be quoted with `\\' in shell command line.
 This default should work without changes."
-  :type 'string
+  :type 'regexp
   :group 'ediff)
 
 ;; needed to simulate frame-char-width in XEmacs.

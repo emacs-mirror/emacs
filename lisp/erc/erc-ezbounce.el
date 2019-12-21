@@ -34,7 +34,7 @@
 (defcustom erc-ezb-regexp "^ezbounce!srv$"
   "Regexp used by the EZBouncer to identify itself to the user."
   :group 'erc-ezbounce
-  :type 'string)
+  :type 'regexp)
 
 (defcustom erc-ezb-login-alist '()
   "Alist of logins suitable for the server we're connecting to.

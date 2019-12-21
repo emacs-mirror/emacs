@@ -405,7 +405,7 @@ editing a remote file.
 On MS-DOS filesystems without long names this variable is always
 ignored."
   :group 'auto-save
-  :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")
+  :type '(repeat (list (regexp :tag "Regexp") (string :tag "Replacement")
 					   (boolean :tag "Uniquify")))
   :initialize 'custom-initialize-delay
   :version "21.1")

@@ -838,7 +838,7 @@ If nil, prompt the user for a password."
   "If non-nil, regexp matching hosts on which `dir' command lists directory."
   :group 'ange-ftp
   :type '(choice (const :tag "Default" nil)
-		 string))
+		 regexp))
 
 (defcustom ange-ftp-binary-file-name-regexp ""
   "If a file matches this regexp then it is transferred in binary mode."

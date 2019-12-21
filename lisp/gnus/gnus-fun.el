@@ -40,7 +40,7 @@
   "Regexp to match faces in `gnus-x-face-directory' to be omitted."
   :version "25.1"
   :group 'gnus-fun
-  :type '(choice (const nil) string))
+  :type '(choice (const nil) regexp))
 
 (defcustom gnus-face-directory (expand-file-name "faces" gnus-directory)
   "Directory where Face PNG files are stored."
@@ -52,7 +52,7 @@
   "Regexp to match faces in `gnus-face-directory' to be omitted."
   :version "25.1"
   :group 'gnus-fun
-  :type '(choice (const nil) string))
+  :type '(choice (const nil) regexp))
 
 (defcustom gnus-convert-pbm-to-x-face-command "pbmtoxbm %s | compface"
   "Command for converting a PBM to an X-Face."

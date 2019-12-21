@@ -182,7 +182,7 @@ is the \"--template\" argument string to pass to Mercurial,
 REGEXP is a regular expression matching the resulting Mercurial
 output, and KEYWORDS is a list of `font-lock-keywords' for
 highlighting the Log View buffer."
-  :type '(list string string (repeat sexp))
+  :type '(list string regexp (repeat sexp))
   :group 'vc-hg
   :version "24.5")
 

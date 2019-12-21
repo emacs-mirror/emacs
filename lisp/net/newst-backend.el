@@ -363,7 +363,7 @@ description are marked as immortal."
                                (const :tag "Title" title)
                                (const :tag "Description" description)
                                (const :tag "All" all))
-                              (string :tag "Regexp")))))
+                              (regexp :tag "Regexp")))))
   :group 'newsticker-headline-processing)
 
 ;; ======================================================================

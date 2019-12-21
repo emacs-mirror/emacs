@@ -266,21 +266,21 @@
   "\\(On \\|Am \\)?\\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),[^,]+, "
   "Regular expression matching the beginning of an attribution line that should be cut off."
   :version "22.1"
-  :type 'string
+  :type 'regexp
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-attrib-verb-regexp
   "wrote\\|writes\\|says\\|schrieb\\|schreibt\\|meinte\\|skrev\\|a écrit\\|schreef\\|escribió"
   "Regular expression matching the verb used in an attribution line."
   :version "22.1"
-  :type 'string
+  :type 'regexp
   :group 'gnus-outlook-deuglify)
 
 (defcustom  gnus-outlook-deuglify-attrib-end-regexp
   ": *\\|\\.\\.\\."
   "Regular expression matching the end of an attribution line."
   :version "22.1"
-  :type 'string
+  :type 'regexp
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-display-hook nil

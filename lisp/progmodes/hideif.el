@@ -162,7 +162,7 @@ This behavior is generally undesirable.  If this option is non-nil, the outermos
   "\\.h\\(h\\|xx\\|pp\\|\\+\\+\\)?\\'"
   "C/C++ header file name patterns to determine if current buffer is a header.
 Effective only if `hide-ifdef-expand-reinclusion-protection' is t."
-  :type 'string
+  :type 'regexp
   :version "25.1")
 
 (defvar hide-ifdef-mode-submap
