@@ -2049,9 +2049,10 @@ max-lines max-width avl-lines avl-width (which-key--pages-height result))
   (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
          (paging-key-bound (eq 'which-key-C-h-dispatch
                                (key-binding (kbd paging-key))))
+         (key (key-description (vector help-char)))
          (key (if paging-key-bound
-                  which-key-paging-key
-                (key-description (vector help-char)))))
+                  (concat key " or " which-key-paging-key)
+                key)))
     (when which-key-use-C-h-commands
       (which-key--propertize (format "[%s paging/help]" key)
                              'face 'which-key-note-face))))
