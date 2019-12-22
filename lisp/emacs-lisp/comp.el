@@ -1073,7 +1073,10 @@ the annotation emission."
                           (make-comp-mvar :constant (comp-func-c-name f))
                           (make-comp-mvar :constant (comp-func-doc f))
                           (make-comp-mvar :constant
-                                          (comp-func-int-spec f))))))
+                                          (comp-func-int-spec f))
+                          ;; This is the compilation unit it-self passed as
+                          ;; parameter.
+                          (make-comp-mvar :slot 0)))))
 
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
   (let ((form (byte-to-native-top-level-form form)))
@@ -1083,17 +1086,24 @@ the annotation emission."
 
 (defun comp-limplify-top-level ()
   "Create a limple function doing the business for top level forms.
-This will be called at load-time."
+This will be called at load-time.
+
+Synthesize a function called 'top_level_run' that gets one single
+parameter (the compilation unit it-self).  To define native
+functions 'top_level_run' will call back `comp--register-subr'
+into the C code forwarding the compilation unit."
   (let* ((func (make-comp-func :name 'top-level-run
                                :c-name "top_level_run"
-                               :args (make-comp-args :min 0 :max 0)
-                               :frame-size 0))
+                               :args (make-comp-args :min 1 :max 1)
+                               :frame-size 1))
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block -1 0 'top-level)
-                     :frame (comp-new-frame 0))))
+                     :frame (comp-new-frame 1))))
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation "Top level")
+    ;; Assign the compilation unit incoming as parameter to the slot frame 0.
+    (comp-emit `(set-par-to-local ,(comp-slot-n 0) 0))
     (mapc #'comp-emit-for-top-level (comp-ctxt-top-level-forms comp-ctxt))
     (comp-emit `(return ,(make-comp-mvar :constant t)))
     (comp-limplify-finalize-function func)))

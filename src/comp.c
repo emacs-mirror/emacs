@@ -3204,8 +3204,6 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /**************************************/
 
 static Lisp_Object Vnative_elisp_refs_hash;
-static Lisp_Object load_handle_stack;
-
 static void
 prevent_gc (Lisp_Object obj)
 {
@@ -3234,7 +3232,7 @@ load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
   void **freloc_link_table = dynlib_sym (handle, IMPORTED_FUNC_LINK_TABLE);
-  void (*top_level_run)(void) = dynlib_sym (handle, "top_level_run");
+  void (*top_level_run)(Lisp_Object) = dynlib_sym (handle, "top_level_run");
 
   if (!(current_thread_reloc
 	&& pure_reloc
@@ -3258,19 +3256,19 @@ load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
   *freloc_link_table = freloc.link_table;
 
   /* Executing this will perform all the expected environment modification.  */
-  top_level_run ();
+  top_level_run (comp_u_obj);
 
   return;
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
-       6, 6, 0,
+       7, 7, 0,
        doc: /* This gets called by top_level_run during load phase to register
 	       each exported subr.  */)
      (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-      Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec)
+      Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
+      Lisp_Object comp_u)
 {
-  Lisp_Object comp_u = XCAR (load_handle_stack);
   dynlib_handle_ptr handle = XNATIVE_COMP_UNIT (comp_u)->handle;
   if (!handle)
     xsignal0 (Qwrong_register_subr_call);
@@ -3327,13 +3325,10 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   dynlib_handle_ptr handle =
     dynlib_open (format_string ("/proc/%d/fd/%d", getpid (), fd_out));
   Lisp_Object comp_u = make_native_comp_u (fd_in, handle);
-  load_handle_stack = Fcons (comp_u, load_handle_stack);
   if (!handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
 
   load_comp_unit (comp_u, file);
-
-  load_handle_stack = XCDR (load_handle_stack);
 
   return Qt;
 }
@@ -3461,8 +3456,6 @@ syms_of_comp (void)
     = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
 		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
 		       Qnil, false);
-  staticpro (&load_handle_stack);
-  load_handle_stack = Qnil;
 }
 
 #endif /* HAVE_NATIVE_COMP */
