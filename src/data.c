@@ -265,6 +265,8 @@ for example, (type-of 1) returns `integer'.  */)
           }
         case PVEC_MODULE_FUNCTION:
           return Qmodule_function;
+	case PVEC_NATIVE_COMP_UNIT:
+          return Qnative_comp_unit;
         case PVEC_XWIDGET:
           return Qxwidget;
         case PVEC_XWIDGET_VIEW:
@@ -3876,6 +3878,7 @@ syms_of_data (void)
   DEFSYM (Qoverlay, "overlay");
   DEFSYM (Qfinalizer, "finalizer");
   DEFSYM (Qmodule_function, "module-function");
+  DEFSYM (Qnative_comp_unit, "native-comp-unit");
   DEFSYM (Quser_ptr, "user-ptr");
   DEFSYM (Qfloat, "float");
   DEFSYM (Qwindow_configuration, "window-configuration");
