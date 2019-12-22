@@ -3204,11 +3204,6 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /**************************************/
 
 static Lisp_Object Vnative_elisp_refs_hash;
-static void
-prevent_gc (Lisp_Object obj)
-{
-  Fputhash (obj, Qt, Vnative_elisp_refs_hash);
-}
 
 typedef char *(*comp_lit_str_func) (void);
 
