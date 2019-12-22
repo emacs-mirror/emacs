@@ -3218,9 +3218,8 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 }
 
 static void
-load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
+load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
 {
-  struct Lisp_Native_Comp_Unit *comp_u = XNATIVE_COMP_UNIT (comp_u_obj);
   dynlib_handle_ptr handle = comp_u->handle;
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
@@ -3234,7 +3233,7 @@ load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
 	&& data_relocs
 	&& freloc_link_table
 	&& top_level_run))
-    xsignal1 (Qnative_lisp_file_inconsistent, file);
+    xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
   *current_thread_reloc = &current_thread;
   *pure_reloc = (EMACS_INT **)&pure;
@@ -3249,6 +3248,9 @@ load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
   comp_u->data_vec = d_vec;
   /* Imported functions.  */
   *freloc_link_table = freloc.link_table;
+
+  Lisp_Object comp_u_obj;
+  XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
 
   /* Executing this will perform all the expected environment modification.  */
   top_level_run (comp_u_obj);
@@ -3319,11 +3321,13 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   copy_file_fd (fd_out, fd_in, &st, Qnil, file);
   dynlib_handle_ptr handle =
     dynlib_open (format_string ("/proc/%d/fd/%d", getpid (), fd_out));
-  Lisp_Object comp_u = make_native_comp_u (fd_in, handle);
   if (!handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
-
-  load_comp_unit (comp_u, file);
+  struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit();
+  comp_u->file = file;
+  comp_u->fd = fd_out;
+  comp_u->handle = handle;
+  load_comp_unit (comp_u);
 
   return Qt;
 }

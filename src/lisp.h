@@ -4769,17 +4769,11 @@ SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
   return SUBRP (a) && XSUBR (a)->native_comp_u;
 }
 
-INLINE Lisp_Object
-make_native_comp_u (int fd, dynlib_handle_ptr handle)
+INLINE struct Lisp_Native_Comp_Unit *
+allocate_native_comp_unit (void)
 {
-  struct Lisp_Native_Comp_Unit *x =
-    ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Native_Comp_Unit, data_vec,
-				  PVEC_NATIVE_COMP_UNIT);
-  x->fd = fd;
-  x->handle = handle;
-  Lisp_Object cu;
-  XSETNATIVE_COMP_UNIT (cu, x);
-  return cu;
+  return ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Native_Comp_Unit, data_vec,
+				       PVEC_NATIVE_COMP_UNIT);
 }
 #endif
 
