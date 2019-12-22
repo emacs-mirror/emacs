@@ -3125,7 +3125,7 @@ fill_freloc (void)
 {
   if (ARRAYELTS (helper_link_table) > F_RELOC_MAX_SIZE)
     goto overflow;
-  memcpy (freloc.link_table, helper_link_table, sizeof (freloc.link_table));
+  memcpy (freloc.link_table, helper_link_table, sizeof (helper_link_table));
   freloc.size = ARRAYELTS (helper_link_table);
 
   Lisp_Object subr_l = Vsubr_list;
