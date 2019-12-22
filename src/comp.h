@@ -26,10 +26,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 struct Lisp_Native_Comp_Unit
 {
   union vectorlike_header header;
+  /* Analogous to the constant vector but per compilation unit.  */
+  Lisp_Object data_vec;
   /* Compilation unit file descriptor and handle.  */
   int fd;
   dynlib_handle_ptr handle;
-  Lisp_Object data_vec; /* FIXME this should be in the normal lisp slot.  */
 };
 
 INLINE bool

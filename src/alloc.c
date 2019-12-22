@@ -6572,13 +6572,9 @@ mark_object (Lisp_Object arg)
 		struct Lisp_Subr *subr = XSUBR (obj);
 		mark_object (subr->native_comp_u);
 	      }
-	    break;
-	  case PVEC_NATIVE_COMP_UNIT:
-	    set_vector_marked (ptr);
-	    /* FIXME see comp.h.  */
-	    mark_object (XNATIVE_COMP_UNIT (obj)->data_vec);
 #endif
 	    break;
+
 	  case PVEC_FREE:
 	    emacs_abort ();
 

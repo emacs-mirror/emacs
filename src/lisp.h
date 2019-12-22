@@ -4773,10 +4773,8 @@ INLINE Lisp_Object
 make_native_comp_u (int fd, dynlib_handle_ptr handle)
 {
   struct Lisp_Native_Comp_Unit *x =
-    (struct Lisp_Native_Comp_Unit *) allocate_pseudovector (
-				       VECSIZE (struct Lisp_Native_Comp_Unit),
-				       0, VECSIZE (struct Lisp_Native_Comp_Unit),
-				       PVEC_NATIVE_COMP_UNIT);
+    ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Native_Comp_Unit, data_vec,
+				  PVEC_NATIVE_COMP_UNIT);
   x->fd = fd;
   x->handle = handle;
   Lisp_Object cu;
