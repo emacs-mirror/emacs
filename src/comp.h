@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <dynlib.h>
 
-struct Lisp_Native_Compilation_Unit
+struct Lisp_Native_Comp_Unit
 {
   union vectorlike_header header;
   /* Compilation unit file descriptor and handle.  */
@@ -33,16 +33,16 @@ struct Lisp_Native_Compilation_Unit
 };
 
 INLINE bool
-COMPILATIONP_UNITP (Lisp_Object a)
+NATIVE_COMP_UNITP (Lisp_Object a)
 {
   return PSEUDOVECTORP (a, PVEC_NATIVE_COMP_UNIT);
 }
 
-INLINE struct Lisp_Native_Compilation_Unit *
-XCOMPILATION_UNIT (Lisp_Object a)
+INLINE struct Lisp_Native_Comp_Unit *
+XNATIVE_COMP_UNIT (Lisp_Object a)
 {
-  eassert (COMPILATIONP_UNITP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Native_Compilation_Unit);
+  eassert (NATIVE_COMP_UNITP (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Native_Comp_Unit);
 }
 
 /* Defined in comp.c.  */

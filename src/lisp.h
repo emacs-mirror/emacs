@@ -4772,11 +4772,11 @@ SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
 INLINE Lisp_Object
 make_native_comp_u (int fd, dynlib_handle_ptr handle)
 {
-  struct Lisp_Native_Compilation_Unit *x =
-    (struct Lisp_Native_Compilation_Unit *) allocate_pseudovector (
-				  VECSIZE (struct Lisp_Native_Compilation_Unit),
-				  0, VECSIZE (struct Lisp_Native_Compilation_Unit),
-				  PVEC_NATIVE_COMP_UNIT);
+  struct Lisp_Native_Comp_Unit *x =
+    (struct Lisp_Native_Comp_Unit *) allocate_pseudovector (
+				       VECSIZE (struct Lisp_Native_Comp_Unit),
+				       0, VECSIZE (struct Lisp_Native_Comp_Unit),
+				       PVEC_NATIVE_COMP_UNIT);
   x->fd = fd;
   x->handle = handle;
   Lisp_Object cu;

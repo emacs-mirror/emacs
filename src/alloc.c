@@ -3026,8 +3026,8 @@ cleanup_vector (struct Lisp_Vector *vector)
 #ifdef HAVE_NATIVE_COMP
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
     {
-      struct Lisp_Native_Compilation_Unit *cu =
-	PSEUDOVEC_STRUCT (vector, Lisp_Native_Compilation_Unit);
+      struct Lisp_Native_Comp_Unit *cu =
+	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
       eassert (cu->handle);
       dynlib_close (cu->handle);
     }
@@ -6576,7 +6576,7 @@ mark_object (Lisp_Object arg)
 	  case PVEC_NATIVE_COMP_UNIT:
 	    set_vector_marked (ptr);
 	    /* FIXME see comp.h.  */
-	    mark_object (XCOMPILATION_UNIT (obj)->data_vec);
+	    mark_object (XNATIVE_COMP_UNIT (obj)->data_vec);
 #endif
 	    break;
 	  case PVEC_FREE:

@@ -3227,7 +3227,7 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 static void
 load_comp_unit (Lisp_Object comp_u_obj, Lisp_Object file)
 {
-  struct Lisp_Native_Compilation_Unit *comp_u = XCOMPILATION_UNIT (comp_u_obj);
+  struct Lisp_Native_Comp_Unit *comp_u = XNATIVE_COMP_UNIT (comp_u_obj);
   dynlib_handle_ptr handle = comp_u->handle;
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
@@ -3271,7 +3271,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
       Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec)
 {
   Lisp_Object comp_u = XCAR (load_handle_stack);
-  dynlib_handle_ptr handle = XCOMPILATION_UNIT (comp_u)->handle;
+  dynlib_handle_ptr handle = XNATIVE_COMP_UNIT (comp_u)->handle;
   if (!handle)
     xsignal0 (Qwrong_register_subr_call);
 
@@ -3313,7 +3313,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   /* FIXME non portable.  */
   /* We copy the content of the file to be loaded in a memory mapped
      file.  We then keep track of this in the struct
-     Lisp_Native_Compilation_Unit.  In case this will be overwritten
+     Lisp_Native_Comp_Unit.  In case this will be overwritten
      or delete we'll dump the right data.  */
   int fd_in = emacs_open (SSDATA (file), O_RDONLY, 0);
   int fd_out = memfd_create (SSDATA (file), 0);
