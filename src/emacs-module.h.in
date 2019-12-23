@@ -68,7 +68,7 @@ struct emacs_runtime
   struct emacs_runtime_private *private_members;
 
   /* Return an environment pointer.  */
-  emacs_env *(*get_environment) (struct emacs_runtime *ert)
+  emacs_env *(*get_environment) (struct emacs_runtime *runtime)
     EMACS_ATTRIBUTE_NONNULL(1);
 };
 
@@ -126,7 +126,7 @@ struct emacs_env_27
 };
 
 /* Every module should define a function as follows.  */
-extern int emacs_module_init (struct emacs_runtime *ert)
+extern int emacs_module_init (struct emacs_runtime *runtime)
   EMACS_NOEXCEPT
   EMACS_ATTRIBUTE_NONNULL(1);
 

@@ -1228,9 +1228,9 @@ the @var{runtime} structure with the value compiled into the module:
 
 @example
 int
-emacs_module_init (struct emacs_runtime *ert)
+emacs_module_init (struct emacs_runtime *runtime)
 @{
-  if (ert->size < sizeof (*ert))
+  if (ert->size < sizeof (*runtime))
     return 1;
 @}
 @end example
@@ -1247,7 +1247,7 @@ assumes it is part of the @code{emacs_module_init} function shown
 above:
 
 @example
-  emacs_env *env = ert->get_environment (ert);
+  emacs_env *env = ert->get_environment (runtime);
   if (env->size < sizeof (*env))
     return 2;
 @end example
@@ -1264,7 +1264,7 @@ Emacs, by comparing the size of the environment passed by Emacs with
 known sizes, like this:
 
 @example
-  emacs_env *env = ert->get_environment (ert);
+  emacs_env *env = ert->get_environment (runtime);
   if (env->size >= sizeof (struct emacs_env_26))
     emacs_version = 26;  /* Emacs 26 or later.  */
   else if (env->size >= sizeof (struct emacs_env_25))
@@ -1388,7 +1388,7 @@ Combining the above steps, code that arranges for a C function
 look like this, as part of the module initialization function:
 
 @example
- emacs_env *env = ert->get_environment (ert);
+ emacs_env *env = ert->get_environment (runtime);
  emacs_value func = env->make_function (env, min_arity, max_arity,
                                         module_func, docstring, data);
  emacs_value symbol = env->intern (env, "module-func");
@@ -1525,12 +1525,11 @@ This function returns the value of a Lisp float specified by
 @var{arg}, as a C @code{double} value.
 @end deftypefn
 
-@deftypefn Function struct timespec extract_time (emacs_env *@var{env}, emacs_value @var{time})
-This function, which is available since Emacs 27, interprets
-@var{time} as an Emacs Lisp time value and returns the corresponding
-@code{struct timespec}.  @xref{Time of Day}.  @code{struct timespec}
-represents a timestamp with nanosecond precision.  It has the
-following members:
+@deftypefn Function struct timespec extract_time (emacs_env *@var{env}, emacs_value @var{arg})
+This function, which is available since Emacs 27, interprets @var{arg}
+as an Emacs Lisp time value and returns the corresponding @code{struct
+timespec}.  @xref{Time of Day}.  @code{struct timespec} represents a
+timestamp with nanosecond precision.  It has the following members:
 
 @table @code
 @item time_t tv_sec
@@ -1728,9 +1727,9 @@ next_prime (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 @}
 
 int
-emacs_module_init (struct emacs_runtime *ert)
+emacs_module_init (struct emacs_runtime *runtime)
 @{
-  emacs_env *env = ert->get_environment (ert);
+  emacs_env *env = ert->get_environment (runtime);
   emacs_value symbol = env->intern (env, "next-prime");
   emacs_value func
     = env->make_function (env, 1, 1, next_prime, NULL, NULL);
@@ -1757,16 +1756,15 @@ there's no requirement that @var{time} be normalized.  This means that
 @code{@var{time}.tv_nsec} can be negative or larger than 999,999,999.
 @end deftypefn
 
-@deftypefn Function emacs_value make_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{strlen})
+@deftypefn Function emacs_value make_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{len})
 This function creates an Emacs string from C text string pointed by
 @var{str} whose length in bytes, not including the terminating null
-byte, is @var{strlen}.  The original string in @var{str} can be either
-an @acronym{ASCII} string or a UTF-8 encoded non-@acronym{ASCII}
-string; it can include embedded null bytes, and doesn't have to end in
-a terminating null byte at @code{@var{str}[@var{strlen}]}.  The
-function raises the @code{overflow-error} error condition if
-@var{strlen} is negative or exceeds the maximum length of an Emacs
-string.
+byte, is @var{len}.  The original string in @var{str} can be either an
+@acronym{ASCII} string or a UTF-8 encoded non-@acronym{ASCII} string;
+it can include embedded null bytes, and doesn't have to end in a
+terminating null byte at @code{@var{str}[@var{len}]}.  The function
+raises the @code{overflow-error} error condition if @var{len} is
+negative or exceeds the maximum length of an Emacs string.
 @end deftypefn
 
 The @acronym{API} does not provide functions to manipulate Lisp data
@@ -1823,25 +1821,27 @@ garbage-collected.  Don't run any expensive code in a finalizer,
 because GC must finish quickly to keep Emacs responsive.
 @end deftypefn
 
-@deftypefn Function void *get_user_ptr (emacs_env *@var{env}, emacs_value val)
+@deftypefn Function void *get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
 This function extracts the C pointer from the Lisp object represented
-by @var{val}.
+by @var{arg}.
 @end deftypefn
 
-@deftypefn Function void set_user_ptr (emacs_env *@var{env}, emacs_value @var{value}, void *@var{ptr})
+@deftypefn Function void set_user_ptr (emacs_env *@var{env}, emacs_value @var{arg}, void *@var{ptr})
 This function sets the C pointer embedded in the @code{user-ptr}
-object represented by @var{value} to @var{ptr}.
+object represented by @var{arg} to @var{ptr}.
 @end deftypefn
 
-@deftypefn Function emacs_finalizer get_user_finalizer (emacs_env *@var{env}, emacs_value val)
+@deftypefn Function emacs_finalizer get_user_finalizer (emacs_env *@var{env}, emacs_value @var{arg})
 This function returns the finalizer of the @code{user-ptr} object
-represented by @var{val}, or @code{NULL} if it doesn't have a finalizer.
+represented by @var{arg}, or @code{NULL} if it doesn't have a
+finalizer.
 @end deftypefn
 
-@deftypefn Function void set_user_finalizer (emacs_env *@var{env}, emacs_value @var{val}, emacs_finalizer @var{fin})
+@deftypefn Function void set_user_finalizer (emacs_env *@var{env}, emacs_value @var{arg}, emacs_finalizer @var{fin})
 This function changes the finalizer of the @code{user-ptr} object
-represented by @var{val} to be @var{fin}.  If @var{fin} is a
-@code{NULL} pointer, the @code{user-ptr} object will have no finalizer.
+represented by @var{arg} to be @var{fin}.  If @var{fin} is a
+@code{NULL} pointer, the @code{user-ptr} object will have no
+finalizer.
 @end deftypefn
 
 @node Module Misc
@@ -1854,20 +1854,20 @@ be called via the @code{emacs_env} pointer.  Description of functions
 that were introduced after Emacs 25 calls out the first version where
 they became available.
 
-@deftypefn Function bool eq (emacs_env *@var{env}, emacs_value @var{val1}, emacs_value @var{val2})
+@deftypefn Function bool eq (emacs_env *@var{env}, emacs_value @var{a}, emacs_value @var{b})
 This function returns @code{true} if the Lisp objects represented by
-@var{val1} and @var{val2} are identical, @code{false} otherwise.  This
-is the same as the Lisp function @code{eq} (@pxref{Equality
-Predicates}), but avoids the need to intern the objects represented by
-the arguments.
+@var{a} and @var{b} are identical, @code{false} otherwise.  This is
+the same as the Lisp function @code{eq} (@pxref{Equality Predicates}),
+but avoids the need to intern the objects represented by the
+arguments.
 
 There are no @acronym{API} functions for other equality predicates, so
 you will need to use @code{intern} and @code{funcall}, described
 below, to perform more complex equality tests.
 @end deftypefn
 
-@deftypefn Function bool is_not_nil (emacs_env *@var{env}, emacs_value @var{val})
-This function tests whether the Lisp object represented by @var{val}
+@deftypefn Function bool is_not_nil (emacs_env *@var{env}, emacs_value @var{arg})
+This function tests whether the Lisp object represented by @var{arg}
 is non-@code{nil}; it returns @code{true} or @code{false} accordingly.
 
 Note that you could implement an equivalent test by using
@@ -1876,12 +1876,12 @@ then use @code{eq}, described above, to test for equality.  But using
 this function is more convenient.
 @end deftypefn
 
-@deftypefn Function emacs_value type_of (emacs_env *@var{env}, emacs_value @code{object})
-This function returns the type of @var{object} as a value that
-represents a symbol: @code{string} for a string, @code{integer} for an
-integer, @code{process} for a process, etc.  @xref{Type Predicates}.
-You can use @code{intern} and @code{eq} to compare against known type
-symbols, if your code needs to depend on the object type.
+@deftypefn Function emacs_value type_of (emacs_env *@var{env}, emacs_value @code{arg})
+This function returns the type of @var{arg} as a value that represents
+a symbol: @code{string} for a string, @code{integer} for an integer,
+@code{process} for a process, etc.  @xref{Type Predicates}.  You can
+use @code{intern} and @code{eq} to compare against known type symbols,
+if your code needs to depend on the object type.
 @end deftypefn
 
 @anchor{intern}
@@ -2055,11 +2055,12 @@ One use of this function is when you want to re-throw a non-local exit
 from one of the called @acronym{API} or Lisp functions.
 @end deftypefn
 
-@deftypefn Function void non_local_exit_signal (emacs_env *@var{env}, emacs_value @var{error}, emacs_value @var{data})
-This function signals the error represented by @var{error} with the
-specified error data @var{data}.  The module function should return
-soon after calling this function.  This function could be useful,
-e.g., for signaling errors from module functions to Emacs.
+@deftypefn Function void non_local_exit_signal (emacs_env *@var{env}, emacs_value @var{symbol}, emacs_value @var{data})
+This function signals the error represented by the error symbol
+@var{symbol} with the specified error data @var{data}.  The module
+function should return soon after calling this function.  This
+function could be useful, e.g., for signaling errors from module
+functions to Emacs.
 @end deftypefn
 
 
