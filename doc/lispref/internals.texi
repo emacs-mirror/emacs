@@ -1230,7 +1230,7 @@ the @var{runtime} structure with the value compiled into the module:
 int
 emacs_module_init (struct emacs_runtime *runtime)
 @{
-  if (ert->size < sizeof (*runtime))
+  if (runtime->size < sizeof (*runtime))
     return 1;
 @}
 @end example
@@ -1247,7 +1247,7 @@ assumes it is part of the @code{emacs_module_init} function shown
 above:
 
 @example
-  emacs_env *env = ert->get_environment (runtime);
+  emacs_env *env = runtime->get_environment (runtime);
   if (env->size < sizeof (*env))
     return 2;
 @end example
@@ -1264,7 +1264,7 @@ Emacs, by comparing the size of the environment passed by Emacs with
 known sizes, like this:
 
 @example
-  emacs_env *env = ert->get_environment (runtime);
+  emacs_env *env = runtime->get_environment (runtime);
   if (env->size >= sizeof (struct emacs_env_26))
     emacs_version = 26;  /* Emacs 26 or later.  */
   else if (env->size >= sizeof (struct emacs_env_25))
@@ -1388,7 +1388,7 @@ Combining the above steps, code that arranges for a C function
 look like this, as part of the module initialization function:
 
 @example
- emacs_env *env = ert->get_environment (runtime);
+ emacs_env *env = runtime->get_environment (runtime);
  emacs_value func = env->make_function (env, min_arity, max_arity,
                                         module_func, docstring, data);
  emacs_value symbol = env->intern (env, "module-func");
@@ -1729,7 +1729,7 @@ next_prime (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 int
 emacs_module_init (struct emacs_runtime *runtime)
 @{
-  emacs_env *env = ert->get_environment (runtime);
+  emacs_env *env = runtime->get_environment (runtime);
   emacs_value symbol = env->intern (env, "next-prime");
   emacs_value func
     = env->make_function (env, 1, 1, next_prime, NULL, NULL);
