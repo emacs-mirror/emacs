@@ -4005,7 +4005,9 @@ types.  */)
   eassert (initialized);
 
   if (! noninteractive)
-    error ("Dumping Emacs works only in batch mode");
+    error ("Dumping Emacs currently works only in batch mode.  "
+           "If you'd like it to work interactively, please consider "
+           "contributing a patch to Emacs.");
 
   if (will_dump_with_unexec_p ())
     error ("This Emacs instance was started under the assumption "
