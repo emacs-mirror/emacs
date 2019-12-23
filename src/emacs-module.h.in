@@ -50,7 +50,7 @@ extern "C" {
 #endif
 
 /* Current environment.  */
-typedef struct emacs_env_27 emacs_env;
+typedef struct emacs_env_@emacs_major_version@ emacs_env;
 
 /* Opaque pointer representing an Emacs Lisp value.
    BEWARE: Do not assume NULL is a valid value!  */
