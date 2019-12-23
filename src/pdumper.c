@@ -2931,17 +2931,48 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   struct Lisp_Subr out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
+#ifdef HAVE_NATIVE_COMP
+  if (subr->native_comp_u)
+    out.function.a0 = NULL;
+  else
+    dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
+#else
   dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
+#endif
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
   dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
+#ifdef HAVE_NATIVE_COMP
+  if (subr->native_comp_u)
+    {
+      dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
+      dump_field_lv (ctx, &out, subr, &subr->native_doc, WEIGHT_NORMAL);
+    }
+  else
+    {
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+      DUMP_FIELD_COPY (&out, subr, doc);
+    }
+  dump_field_lv (ctx, &out, subr, &subr->native_comp_u, WEIGHT_NORMAL);
+#else
   dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
   DUMP_FIELD_COPY (&out, subr, doc);
-#ifdef HAVE_NATIVE_COMP
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->native_comp_u);
 #endif
   return dump_object_finish (ctx, &out, sizeof (out));
 }
+
+#ifdef HAVE_NATIVE_COMP
+static dump_off
+dump_native_comp_unit (struct dump_context *ctx,
+		       const struct Lisp_Native_Comp_Unit *comp_u)
+{
+  START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
+  dump_pseudovector_lisp_fields (ctx, &out->header, &comp_u->header);
+  out->fd = 0;
+  out->handle = 0;
+  return finish_dump_pvec (ctx, &out->header);
+}
+#endif
 
 static void
 fill_pseudovec (union vectorlike_header *header, Lisp_Object item)
@@ -3044,6 +3075,11 @@ dump_vectorlike (struct dump_context *ctx,
       error_unsupported_dump_object (ctx, lv, "condvar");
     case PVEC_MODULE_FUNCTION:
       error_unsupported_dump_object (ctx, lv, "module function");
+#ifdef HAVE_NATIVE_COMP
+    case PVEC_NATIVE_COMP_UNIT:
+      offset = dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
+      break;
+#endif
     default:
       error_unsupported_dump_object(ctx, lv, "weird pseudovector");
     }

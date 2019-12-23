@@ -510,13 +510,15 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	    XSETCAR (tem, make_fixnum (offset));
 	}
     }
-
+#ifdef HAVE_NATIVE_COMP
+  else if (SUBRP_NATIVE_COMPILEDP (fun))
+    {
+      XSUBR (fun)->native_doc = Qnil;
+    }
+#endif
   /* Lisp_Subrs have a slot for it.  */
   else if (SUBRP (fun))
     {
-#ifdef HAVE_NATIVE_COMP
-      eassert (NILP (Fsubr_native_elisp_p (fun)));
-#endif
       XSUBR (fun)->doc = offset;
     }
 
