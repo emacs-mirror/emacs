@@ -867,12 +867,21 @@ SUBR must be a built-in function.  */)
 }
 
 #ifdef HAVE_NATIVE_COMP
-DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1, 0,
-       doc: /* Return t if the object is native compiled lisp function,
+DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1,
+       0, doc: /* Return t if the object is native compiled lisp function,
 nil otherwise.  */)
   (Lisp_Object object)
 {
   return SUBRP_NATIVE_COMPILEDP (object) ? Qt : Qnil;
+}
+
+DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
+       Ssubr_native_comp_unit, 1, 1, 0,
+       doc: /* Return the native compilation unit.  */)
+  (Lisp_Object subr)
+{
+  CHECK_SUBR (subr);
+  return XSUBR (subr)->native_comp_u;
 }
 #endif
 
@@ -4002,6 +4011,7 @@ syms_of_data (void)
   defsubr (&Ssubr_name);
 #ifdef HAVE_NATIVE_COMP
   defsubr (&Ssubr_native_elisp_p);
+  defsubr (&Ssubr_native_compilation_unit);
 #endif
 #ifdef HAVE_MODULES
   defsubr (&Suser_ptrp);
