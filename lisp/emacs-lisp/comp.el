@@ -360,12 +360,12 @@ VERBOSITY is a number between 0 and 3."
 
 ;;; spill-lap pass specific code.
 
-(defun comp-c-func-name (symbol prefix)
-  "Given SYMBOL return a name suitable for the native code.
+(defun comp-c-func-name (name prefix)
+  "Given NAME return a name suitable for the native code.
 Put PREFIX in front of it."
   ;; Unfortunatelly not all symbol names are valid as C function names...
   ;; Nassi's algorithm here:
-  (let* ((orig-name (symbol-name symbol))
+  (let* ((orig-name (if (symbolp name) (symbol-name name) name))
          (crypted (cl-loop with str = (make-string (* 2 (length orig-name)) 0)
 	                   for j from 0 by 2
 	                   for i across orig-name
