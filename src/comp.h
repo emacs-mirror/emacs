@@ -26,7 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 struct Lisp_Native_Comp_Unit
 {
   union vectorlike_header header;
-  /* Original eln file loaded (just for debug purpose). */
+  /* Original eln file loaded. */
   Lisp_Object file;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
