@@ -442,6 +442,24 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 					  (cdr tem)))))
     (add-hook 'pre-command-hook  'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook 'icomplete-post-command-hook nil t)))
+
+(defun icomplete--sorted-completions ()
+  (let ((all (completion-all-sorted-completions
+              (icomplete--field-beg) (icomplete--field-end))))
+    (if (and fido-mode
+             (window-minibuffer-p)
+             (not minibuffer-default)
+             (eq (icomplete--category) 'file))
+        (cl-loop for l on all
+                 while (listp (cdr l))
+                 for comp = (cadr l)
+                 when (string= comp "./")
+                 do (setf (cdr l) (cddr l))
+                 and return
+                 (setq completion-all-sorted-completions (cons comp all))
+                 finally return all)
+      all)))
+
 
 
 
@@ -550,8 +568,7 @@ matches exist."
                          (funcall predicate cand))))
             predicate))
 	 (md (completion--field-metadata (icomplete--field-beg)))
-	 (comps (completion-all-sorted-completions
-                 (icomplete--field-beg) (icomplete--field-end)))
+	 (comps (icomplete--sorted-completions))
          (last (if (consp comps) (last comps)))
          (base-size (cdr last))
          (open-bracket (if require-match "(" "["))
