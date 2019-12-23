@@ -3608,16 +3608,21 @@ that is non-nil."
                    (> (or s1 0) (or s2 0))))))
              (minibuffer-default
               ;; If we have an empty pattern and a non-nil default, we
-              ;; probably want to make sure that default is bubbled to
-              ;; the top so that a "force-completion" operation will
-              ;; select it.  We want that to happen even if it doesn't
-              ;; match the completion perfectly.
+              ;; want to make sure that default is bubbled to the top
+              ;; so that a "force-completion" operation will select
+              ;; it.  We want that to happen even if it doesn't match
+              ;; the completion perfectly.
               (cl-loop
-               for l on pre-sorted
-               for comp = (cadr l)
-               when (string-prefix-p minibuffer-default comp)
-               do (setf (cdr l) (cddr l))
-               and return (cons comp pre-sorted)
+               ;; JT@2019-12-23: FIXME: ideally, we want to use
+               ;; flex-matching itself on the default itself, not
+               ;; `equal' or `string-prefix-p'.
+               for fn in '(equal string-prefix-p)
+               thereis (cl-loop
+                        for l on pre-sorted
+                        for comp = (cadr l)
+                        when (funcall fn minibuffer-default comp)
+                        do (setf (cdr l) (cddr l))
+                        and return (cons comp pre-sorted))
                finally return pre-sorted))
              (t
               pre-sorted))))))
