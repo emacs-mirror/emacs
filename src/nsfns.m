@@ -255,7 +255,10 @@ ns_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   [col getRed: &r green: &g blue: &b alpha: &alpha];
   FRAME_FOREGROUND_PIXEL (f) =
-    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
+    ARGB_TO_ULONG ((unsigned long) (alpha * 0xff),
+                   (unsigned long) (r * 0xff),
+                   (unsigned long) (g * 0xff),
+                   (unsigned long) (b * 0xff));
 
   if (FRAME_NS_VIEW (f))
     {
@@ -296,7 +299,10 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   [col getRed: &r green: &g blue: &b alpha: &alpha];
   FRAME_BACKGROUND_PIXEL (f) =
-    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
+    ARGB_TO_ULONG ((unsigned long) (alpha * 0xff),
+                   (unsigned long) (r * 0xff),
+                   (unsigned long) (g * 0xff),
+                   (unsigned long) (b * 0xff));
 
   if (view != nil)
     {

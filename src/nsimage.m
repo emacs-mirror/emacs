@@ -407,9 +407,10 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   if (pixmapData[0] != NULL)
     {
       int loc = x + y * [self size].width;
-      return (pixmapData[3][loc] << 24) /* alpha */
-       | (pixmapData[0][loc] << 16) | (pixmapData[1][loc] << 8)
-       | (pixmapData[2][loc]);
+      return (((unsigned long) pixmapData[3][loc] << 24) /* alpha */
+              | ((unsigned long) pixmapData[0][loc] << 16)
+              | ((unsigned long) pixmapData[1][loc] << 8)
+              | (unsigned long) pixmapData[2][loc]);
     }
   else
     {

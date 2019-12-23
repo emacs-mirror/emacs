@@ -2303,8 +2303,10 @@ ns_color_index_to_rgba(int idx, struct frame *f)
       EmacsCGFloat r, g, b, a;
       [col getRed: &r green: &g blue: &b alpha: &a];
 
-      return ARGB_TO_ULONG((int)(a*255),
-                           (int)(r*255), (int)(g*255), (int)(b*255));
+      return ARGB_TO_ULONG((unsigned long) (a * 255),
+                           (unsigned long) (r * 255),
+                           (unsigned long) (g * 255),
+                           (unsigned long) (b * 255));
     }
   else
     return idx;
@@ -2327,8 +2329,10 @@ ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
 
   if (setPixel == YES)
     color_def->pixel
-      = ARGB_TO_ULONG((int)(a*255),
-		      (int)(r*255), (int)(g*255), (int)(b*255));
+      = ARGB_TO_ULONG((unsigned long) (a * 255),
+		      (unsigned long) (r * 255),
+                      (unsigned long) (g * 255),
+                      (unsigned long) (b * 255));
 }
 
 bool
