@@ -4004,6 +4004,9 @@ types.  */)
 {
   eassert (initialized);
 
+  if (! noninteractive)
+    error ("Dumping Emacs works only in batch mode");
+
   if (will_dump_with_unexec_p ())
     error ("This Emacs instance was started under the assumption "
            "that it would be dumped with unexec, not the portable "
