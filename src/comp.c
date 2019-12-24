@@ -1824,7 +1824,7 @@ emit_ctxt_code (void)
       fields[n_frelocs++] = xmint_pointer (XCDR (el));
     }
 
-  Lisp_Object subr_l = Vsubr_list;
+  Lisp_Object subr_l = Vcomp_subr_list;
   FOR_EACH_TAIL (subr_l)
     {
       struct Lisp_Subr *subr = XSUBR (XCAR (subr_l));
@@ -3121,7 +3121,7 @@ fill_freloc (void)
   memcpy (freloc.link_table, helper_link_table, sizeof (helper_link_table));
   freloc.size = ARRAYELTS (helper_link_table);
 
-  Lisp_Object subr_l = Vsubr_list;
+  Lisp_Object subr_l = Vcomp_subr_list;
   FOR_EACH_TAIL (subr_l)
     {
       if (freloc.size == F_RELOC_MAX_SIZE)
@@ -3290,7 +3290,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   XSETSUBR (tem, &x->s);
   set_symbol_function (name, tem);
 
-  Fputhash (name, c_name, Vsym_subr_c_name_h);
+  Fputhash (name, c_name, Vcomp_sym_subr_c_name_h);
   LOADHIST_ATTACH (Fcons (Qdefun, name));
 
   return Qnil;
@@ -3431,12 +3431,12 @@ syms_of_comp (void)
   Vcomp_ctxt = Qnil;
 
   /* FIXME should be initialized but not here... */
-  DEFVAR_LISP ("comp-subr-list", Vsubr_list,
+  DEFVAR_LISP ("comp-subr-list", Vcomp_subr_list,
 	       doc: /* List of all defined subrs.  */);
-  DEFVAR_LISP ("comp-sym-subr-c-name-h", Vsym_subr_c_name_h,
+  DEFVAR_LISP ("comp-sym-subr-c-name-h", Vcomp_sym_subr_c_name_h,
 	       doc: /* Hash table symbol-function -> function-c-name.  For
 		       internal use during  */);
-  Vsym_subr_c_name_h = CALLN (Fmake_hash_table);
+  Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table);
 }
 
 #endif /* HAVE_NATIVE_COMP */

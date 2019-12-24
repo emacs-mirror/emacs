@@ -5323,7 +5323,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  XNATIVE_COMP_UNIT (subr->native_comp_u);
 	if (!comp_u->handle)
 	  error ("can't relocate native subr with not loaded compilation unit");
-	Lisp_Object c_name = Fgethash (name, Vsym_subr_c_name_h, Qnil);
+	Lisp_Object c_name = Fgethash (name, Vcomp_sym_subr_c_name_h, Qnil);
 	if (NILP (c_name))
 	  error ("missing label name");
 	void *func = dynlib_sym (comp_u->handle, SSDATA (c_name));
