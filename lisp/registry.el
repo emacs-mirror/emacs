@@ -317,7 +317,7 @@ Errors out if the key exists already."
 	     (message "reindexing: %d of %d (%.2f%%)"
 		      count expected (/ (* 100.0 count) expected)))
 	   (dolist (val (cdr-safe (assq tr v)))
-	     (let* ((value-keys (registry-lookup-secondary-value db tr val)))
+	     (let ((value-keys (registry-lookup-secondary-value db tr val)))
 	       (push key value-keys)
 	       (registry-lookup-secondary-value db tr val value-keys))))
 	 (oref db data))))))

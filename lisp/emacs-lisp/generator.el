@@ -155,7 +155,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
 (defun cps--add-state (kind body)
   "Create a new CPS state with body BODY and return the state's name."
   (declare (indent 1))
-  (let* ((state (cps--gensym "cps-state-%s-" kind)))
+  (let ((state (cps--gensym "cps-state-%s-" kind)))
     (push (list state body cps--cleanup-function) cps--states)
     (push state cps--bindings)
     state))
