@@ -1887,6 +1887,11 @@ Return the compilation unit file name."
     data))
 
 ;;;###autoload
+(defun batch-native-compile ()
+  "Ultra cheap impersonation of `batch-byte-compile'."
+  (mapc #'native-compile command-line-args-left))
+
+;;;###autoload
 (defun native-compile-async (input &optional jobs recursively)
   "Compile INPUT asynchronously.
 INPUT can be either a list of files a folder or a file.
