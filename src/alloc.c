@@ -3023,15 +3023,14 @@ cleanup_vector (struct Lisp_Vector *vector)
       if (uptr->finalizer)
 	uptr->finalizer (uptr->p);
     }
-#ifdef HAVE_NATIVE_COMP
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
+  else if (NATIVE_COMP_FLAG
+	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
     {
       struct Lisp_Native_Comp_Unit *cu =
 	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
       eassert (cu->handle);
       dynlib_close (cu->handle);
     }
-#endif
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -6565,14 +6564,12 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
-#ifdef HAVE_NATIVE_COMP
 	    if (SUBRP_NATIVE_COMPILEDP (obj))
 	      {
 		set_vector_marked (ptr);
 		struct Lisp_Subr *subr = XSUBR (obj);
-		mark_object (subr->native_comp_u);
+		mark_object (subr->native_comp_u[0]);
 	      }
-#endif
 	    break;
 
 	  case PVEC_FREE:
@@ -6717,13 +6714,9 @@ survives_gc_p (Lisp_Object obj)
       break;
 
     case Lisp_Vectorlike:
-#ifdef HAVE_NATIVE_COMP
       survives_p =
 	(SUBRP (obj) && !SUBRP_NATIVE_COMPILEDP (obj)) ||
 	vector_marked_p (XVECTOR (obj));
-#else
-      survives_p = SUBRP (obj) || vector_marked_p (XVECTOR (obj));
-#endif
       break;
 
     case Lisp_Cons:
@@ -7473,14 +7466,14 @@ N should be nonnegative.  */);
   static union Aligned_Lisp_Subr Swatch_gc_cons_threshold =
      {{{ PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
        { .a4 = watch_gc_cons_threshold },
-       4, 4, "watch_gc_cons_threshold", {0}, {0}, 0}};
+       4, 4, "watch_gc_cons_threshold", {0}, {0}}};
   XSETSUBR (watcher, &Swatch_gc_cons_threshold.s);
   Fadd_variable_watcher (Qgc_cons_threshold, watcher);
 
   static union Aligned_Lisp_Subr Swatch_gc_cons_percentage =
      {{{ PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
        { .a4 = watch_gc_cons_percentage },
-       4, 4, "watch_gc_cons_percentage", {0}, {0}, 0}};
+       4, 4, "watch_gc_cons_percentage", {0}, {0}}};
   XSETSUBR (watcher, &Swatch_gc_cons_percentage.s);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
 }

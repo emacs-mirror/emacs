@@ -2948,18 +2948,13 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   struct Lisp_Subr out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
-#ifdef HAVE_NATIVE_COMP
-  if (subr->native_comp_u)
+  if (NATIVE_COMP_FLAG && subr->native_comp_u[0])
     out.function.a0 = NULL;
   else
     dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
-#else
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
-#endif
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-#ifdef HAVE_NATIVE_COMP
-  if (subr->native_comp_u)
+  if (NATIVE_COMP_FLAG && subr->native_comp_u[0])
     {
       dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
       dump_remember_cold_op (ctx,
@@ -2974,15 +2969,11 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
       DUMP_FIELD_COPY (&out, subr, doc);
     }
-  dump_field_lv (ctx, &out, subr, &subr->native_comp_u, WEIGHT_NORMAL);
-#else
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
-  DUMP_FIELD_COPY (&out, subr, doc);
-#endif
+  if (NATIVE_COMP_FLAG)
+    dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
 
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
-  if (ctx->flags.dump_object_contents && subr->native_comp_u)
+  if (ctx->flags.dump_object_contents && subr->native_comp_u[0])
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
@@ -5320,7 +5311,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);
 	Lisp_Object name = intern (subr->symbol_name);
 	struct Lisp_Native_Comp_Unit *comp_u =
-	  XNATIVE_COMP_UNIT (subr->native_comp_u);
+	  XNATIVE_COMP_UNIT (subr->native_comp_u[0]);
 	if (!comp_u->handle)
 	  error ("can't relocate native subr with not loaded compilation unit");
 	Lisp_Object c_name = Fgethash (name, Vcomp_sym_subr_c_name_h, Qnil);

@@ -1281,11 +1281,9 @@ Return t if the file exists and loads successfully.  */)
   bool is_module = false;
 #endif
 
-#ifdef HAVE_NATIVE_COMP
-  bool is_native_elisp = suffix_p (found, NATIVE_ELISP_SUFFIX);
-#else
-  bool is_native_elisp = false;
-#endif
+  bool is_native_elisp =
+    NATIVE_COMP_FLAG && suffix_p (found, NATIVE_ELISP_SUFFIX) ? true : false;
+
   /* Check if we're stuck in a recursive load cycle.
 
      2000-09-21: It's not possible to just check for the file loaded
@@ -1486,15 +1484,16 @@ Return t if the file exists and loads successfully.  */)
     }
   else if (is_native_elisp)
     {
-#ifdef HAVE_NATIVE_COMP
-      specbind (Qcurrent_load_list, Qnil);
-      LOADHIST_ATTACH (found);
-      Fnative_elisp_load (found);
-      build_load_history (found, true);
-#else
-      /* This cannot happen.  */
-      emacs_abort ();
-#endif
+      if (NATIVE_COMP_FLAG)
+	{
+	  specbind (Qcurrent_load_list, Qnil);
+	  LOADHIST_ATTACH (found);
+	  Fnative_elisp_load (found);
+	  build_load_history (found, true);
+	}
+      else
+	/* This cannot happen.  */
+	emacs_abort ();
     }
   else
     {
@@ -4465,9 +4464,8 @@ defsubr (union Aligned_Lisp_Subr *aname)
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
-#ifdef HAVE_NATIVE_COMP
-  Vcomp_subr_list = Fcons (tem, Vcomp_subr_list);
-#endif /* HAVE_NATIVE_COMP */
+  if (NATIVE_COMP_FLAG)
+    Vcomp_subr_list = Fcons (tem, Vcomp_subr_list);
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */

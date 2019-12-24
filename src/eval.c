@@ -219,14 +219,17 @@ void
 init_eval_once (void)
 {
   /* Don't forget to update docs (lispref node "Local Variables").  */
-#ifndef HAVE_NATIVE_COMP
-  max_specpdl_size = 1600; /* 1500 is not enough for cl-generic.el.  */
-  max_lisp_eval_depth = 800;
-#else
-  /* Original values increased for comp.el.  */
-  max_specpdl_size = 2100;
-  max_lisp_eval_depth = 1400;
-#endif
+  if (!NATIVE_COMP_FLAG)
+    {
+      max_specpdl_size = 1600; /* 1500 is not enough for cl-generic.el.  */
+      max_lisp_eval_depth = 800;
+    }
+  else
+    {
+      /* Original values increased for comp.el.  */
+      max_specpdl_size = 2100;
+      max_lisp_eval_depth = 1400;
+    }
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }

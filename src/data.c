@@ -881,7 +881,7 @@ DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
   (Lisp_Object subr)
 {
   CHECK_SUBR (subr);
-  return XSUBR (subr)->native_comp_u;
+  return XSUBR (subr)->native_comp_u[0];
 }
 
 DEFUN ("native-comp-unit-file", Fnative_comp_unit_file,
@@ -919,10 +919,9 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-#ifdef HAVE_NATIVE_COMP
       if (SUBRP_NATIVE_COMPILEDP (fun) && XSUBR (fun)->native_intspec)
 	return XSUBR (fun)->native_intspec;
-#endif
+
       const char *spec = XSUBR (fun)->intspec;
       if (spec)
 	return list2 (Qinteractive,

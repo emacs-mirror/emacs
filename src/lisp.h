@@ -2098,9 +2098,7 @@ struct Lisp_Subr
       EMACS_INT doc;
       Lisp_Object native_doc;
     };
-#ifdef HAVE_NATIVE_COMP
-    Lisp_Object native_comp_u;
-#endif
+    Lisp_Object native_comp_u[NATIVE_COMP_FLAG];
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
@@ -3113,7 +3111,7 @@ CHECK_INTEGER (Lisp_Object x)
   static union Aligned_Lisp_Subr sname =                                \
      {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
        { .a ## maxargs = fnname },					\
-       minargs, maxargs, lname, {intspec}, {0}, 0}};			\
+       minargs, maxargs, lname, {intspec}, {0}}};			\
    Lisp_Object fnname
 
 /* defsubr (Sname);
@@ -4763,7 +4761,7 @@ extern char *emacs_root_dir (void);
 INLINE bool
 SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
 {
-  return SUBRP (a) && XSUBR (a)->native_comp_u;
+  return SUBRP (a) && XSUBR (a)->native_comp_u[0];
 }
 
 INLINE struct Lisp_Native_Comp_Unit *
@@ -4772,6 +4770,13 @@ allocate_native_comp_unit (void)
   return ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Native_Comp_Unit, data_vec,
 				       PVEC_NATIVE_COMP_UNIT);
 }
+#else
+INLINE bool
+SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
+{
+  return false;
+}
+
 #endif
 
 /* Defined in lastfile.c.  */

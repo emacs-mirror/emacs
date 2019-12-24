@@ -3285,7 +3285,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   x->s.symbol_name = xstrdup (SSDATA (Fsymbol_name (name)));
   x->s.native_intspec = intspec;
   x->s.native_doc = doc;
-  x->s.native_comp_u = comp_u;
+  x->s.native_comp_u[0] = comp_u;
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
   set_symbol_function (name, tem);
