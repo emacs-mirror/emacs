@@ -341,6 +341,20 @@ dump_fingerprint (char const *label,
   fprintf (stderr, "%s: %.*s\n", label, hexbuf_size, hexbuf);
 }
 
+/* To be used if some order in the relocation process has to be enforced. */
+enum reloc_phase
+  {
+    /* First to run.  Place here every relocation with no dependecy.  */
+    EARLY_RELOCS,
+    /* Run just after EARLY_RELOCS.  */
+    LATE_RELOCS,
+    /* Relocated at the very last after all hooks has been run.  All
+       lisp machinery (allocation included) is at disposal.  */
+    VERY_LATE_RELOCS,
+    /* Fake, must be last.  */
+    RELOC_NUM_PHASES
+  };
+
 /* Format of an Emacs dump file.  All offsets are relative to
    the beginning of the file.  An Emacs dump file is coupled
    to exactly the Emacs binary that produced it, so details of
@@ -368,7 +382,7 @@ struct dump_header
 
   /* Relocation table for the dump file; each entry is a
      struct dump_reloc.  */
-  struct dump_table_locator dump_relocs;
+  struct dump_table_locator dump_relocs[RELOC_NUM_PHASES];
 
   /* "Relocation" table we abuse to hold information about the
      location and type of each lisp object in the dump.  We need for
@@ -546,7 +560,7 @@ struct dump_context
   Lisp_Object cold_queue;
 
   /* Relocations in the dump.  */
-  Lisp_Object dump_relocs;
+  Lisp_Object dump_relocs[RELOC_NUM_PHASES];
 
   /* Object starts.  */
   Lisp_Object object_starts;
@@ -1430,7 +1444,7 @@ dump_reloc_dump_to_emacs_ptr_raw (struct dump_context *ctx,
                                   dump_off dump_offset)
 {
   if (ctx->flags.dump_object_contents)
-    dump_push (&ctx->dump_relocs,
+    dump_push (&ctx->dump_relocs[EARLY_RELOCS],
                list2 (make_fixnum (RELOC_DUMP_TO_EMACS_PTR_RAW),
                       dump_off_to_lisp (dump_offset)));
 }
@@ -1463,7 +1477,7 @@ dump_reloc_dump_to_dump_lv (struct dump_context *ctx,
       emacs_abort ();
     }
 
-  dump_push (&ctx->dump_relocs,
+  dump_push (&ctx->dump_relocs[EARLY_RELOCS],
              list2 (make_fixnum (reloc_type),
                     dump_off_to_lisp (dump_offset)));
 }
@@ -1479,7 +1493,7 @@ dump_reloc_dump_to_dump_ptr_raw (struct dump_context *ctx,
                                  dump_off dump_offset)
 {
   if (ctx->flags.dump_object_contents)
-    dump_push (&ctx->dump_relocs,
+    dump_push (&ctx->dump_relocs[EARLY_RELOCS],
                list2 (make_fixnum (RELOC_DUMP_TO_DUMP_PTR_RAW),
                       dump_off_to_lisp (dump_offset)));
 }
@@ -1512,7 +1526,7 @@ dump_reloc_dump_to_emacs_lv (struct dump_context *ctx,
       emacs_abort ();
     }
 
-  dump_push (&ctx->dump_relocs,
+  dump_push (&ctx->dump_relocs[EARLY_RELOCS],
              list2 (make_fixnum (reloc_type),
                     dump_off_to_lisp (dump_offset)));
 }
@@ -2229,7 +2243,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
          Lisp_Bignum instead of the actual mpz field so that the
          relocation offset is aligned.  The relocation-application
          code knows to actually advance past the header.  */
-      dump_push (&ctx->dump_relocs,
+      dump_push (&ctx->dump_relocs[EARLY_RELOCS],
                  list2 (make_fixnum (RELOC_BIGNUM),
                         dump_off_to_lisp (bignum_offset)));
     }
@@ -4123,7 +4137,8 @@ types.  */)
   ctx->symbol_aux = Qnil;
   ctx->copied_queue = Qnil;
   ctx->cold_queue = Qnil;
-  ctx->dump_relocs = Qnil;
+  for (int i = 0; i < RELOC_NUM_PHASES; ++i)
+    ctx->dump_relocs[i] = Qnil;
   ctx->object_starts = Qnil;
   ctx->emacs_relocs = Qnil;
   ctx->bignum_data = make_eq_hash_table ();
@@ -4278,8 +4293,9 @@ types.  */)
   /* Emit instructions for Emacs to execute when loading the dump.
      Note that this relocation information ends up in the cold section
      of the dump.  */
-  drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
-		    &ctx->dump_relocs, &ctx->header.dump_relocs);
+  for (int i = 0; i < RELOC_NUM_PHASES; ++i)
+    drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
+		      &ctx->dump_relocs[i], &ctx->header.dump_relocs[i]);
   unsigned number_hot_relocations = ctx->number_hot_relocations;
   ctx->number_hot_relocations = 0;
   unsigned number_discardable_relocations = ctx->number_discardable_relocations;
@@ -4297,7 +4313,8 @@ types.  */)
   eassert (NILP (ctx->deferred_symbols));
   eassert (NILP (ctx->deferred_hash_tables));
   eassert (NILP (ctx->fixups));
-  eassert (NILP (ctx->dump_relocs));
+  for (int i = 0; i < RELOC_NUM_PHASES; ++i)
+    eassert (NILP (ctx->dump_relocs[i]));
   eassert (NILP (ctx->emacs_relocs));
 
   /* Dump is complete.  Go back to the header and write the magic
@@ -5295,11 +5312,12 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 }
 
 static void
-dump_do_all_dump_relocations (const struct dump_header *const header,
-			      const uintptr_t dump_base)
+dump_do_all_dump_reloc_for_phase (const struct dump_header *const header,
+				  const uintptr_t dump_base,
+				  const enum reloc_phase phase)
 {
-  struct dump_reloc *r = dump_ptr (dump_base, header->dump_relocs.offset);
-  dump_off nr_entries = header->dump_relocs.nr_entries;
+  struct dump_reloc *r = dump_ptr (dump_base, header->dump_relocs[phase].offset);
+  dump_off nr_entries = header->dump_relocs[phase].nr_entries;
   for (dump_off i = 0; i < nr_entries; ++i)
     dump_do_dump_relocation (dump_base, r[i]);
 }
@@ -5511,7 +5529,8 @@ pdumper_load (const char *dump_filename)
   dump_public.start = dump_base;
   dump_public.end = dump_public.start + dump_size;
 
-  dump_do_all_dump_relocations (header, dump_base);
+  dump_do_all_dump_reloc_for_phase (header, dump_base, EARLY_RELOCS);
+  dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_emacs_relocations (header, dump_base);
 
   dump_mmap_discard_contents (&sections[DS_DISCARDABLE]);
@@ -5522,6 +5541,7 @@ pdumper_load (const char *dump_filename)
      initialization.  */
   for (int i = 0; i < nr_dump_hooks; ++i)
     dump_hooks[i] ();
+  dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
   initialized = true;
 
   struct timespec load_timespec =
