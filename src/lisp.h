@@ -34,8 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include <verify.h>
 
-#include <sys/stat.h>
-
 INLINE_HEADER_BEGIN
 
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
@@ -4320,7 +4318,6 @@ extern char *splice_dir_file (char *, char const *, char const *);
 extern bool file_name_absolute_p (const char *);
 extern char const *get_homedir (void);
 extern Lisp_Object expand_and_dir_to_file (Lisp_Object);
-extern off_t copy_file_fd (int, int, struct stat *, Lisp_Object, Lisp_Object);
 extern Lisp_Object write_region (Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, int);
