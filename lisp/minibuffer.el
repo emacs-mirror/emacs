@@ -3596,9 +3596,10 @@ that is non-nil."
                   ;; JT@2019-12-23: FIXME: this is still wrong.  What
                   ;; we need to test here is "some input that actually
                   ;; leads to flex filtering", not "something after
-                  ;; the minibuffer prompt".  The latter is always
-                  ;; true for file searches, meaning the next clauses
-                  ;; will be ignored.
+                  ;; the minibuffer prompt".  Among other
+                  ;; inconsistencies, the latter is always true for
+                  ;; file searches, meaning the next clauses will be
+                  ;; ignored.
                   (> (point-max) (minibuffer-prompt-end)))
               (sort
                pre-sorted
@@ -3606,26 +3607,7 @@ that is non-nil."
                  (let ((s1 (get-text-property 0 'completion-score c1))
                        (s2 (get-text-property 0 'completion-score c2)))
                    (> (or s1 0) (or s2 0))))))
-             (minibuffer-default
-              ;; If we have an empty pattern and a non-nil default, we
-              ;; want to make sure that default is bubbled to the top
-              ;; so that a "force-completion" operation will select
-              ;; it.  We want that to happen even if it doesn't match
-              ;; the completion perfectly.
-              (cl-loop
-               ;; JT@2019-12-23: FIXME: ideally, we want to use
-               ;; flex-matching itself on the default itself, not
-               ;; `equal' or `string-prefix-p'.
-               for fn in '(equal string-prefix-p)
-               thereis (cl-loop
-                        for l on pre-sorted
-                        for comp = (cadr l)
-                        when (funcall fn minibuffer-default comp)
-                        do (setf (cdr l) (cddr l))
-                        and return (cons comp pre-sorted))
-               finally return pre-sorted))
-             (t
-              pre-sorted))))))
+             (t pre-sorted))))))
     `(metadata
       (display-sort-function
        . ,(compose-flex-sort-fn

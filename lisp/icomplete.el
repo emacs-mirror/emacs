@@ -446,19 +446,33 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 (defun icomplete--sorted-completions ()
   (let ((all (completion-all-sorted-completions
               (icomplete--field-beg) (icomplete--field-end))))
-    (if (and fido-mode
-             (window-minibuffer-p)
-             (not minibuffer-default)
-             (eq (icomplete--category) 'file))
-        (cl-loop for l on all
-                 while (listp (cdr l))
-                 for comp = (cadr l)
-                 when (string= comp "./")
-                 do (setf (cdr l) (cddr l))
-                 and return
-                 (setq completion-all-sorted-completions (cons comp all))
-                 finally return all)
-      all)))
+    (cl-loop
+     for fn in (cond ((and minibuffer-default
+                           (= (icomplete--field-end) (icomplete--field-beg)))
+                      ;; When we have a non-nil default and no input
+                      ;; whatsoever: we want to make sure that default
+                      ;; is bubbled to the top so that
+                      ;; `icomplete-force-complete-and-exit' will
+                      ;; select it (do that even if the match doesn't
+                      ;; match the completion perfectly.
+                      `(,(lambda (comp)
+                           (equal minibuffer-default comp))
+                        ,(lambda (comp)
+                           (string-prefix-p minibuffer-default comp))))
+                     ((and fido-mode
+                           (not minibuffer-default)
+                           (eq (icomplete--category) 'file))
+                      `(,(lambda (comp)
+                           (string= "./" comp)))))
+     thereis (cl-loop
+              for l on all
+              while (consp (cdr l))
+              for comp = (cadr l)
+              when (funcall fn comp)
+              do (setf (cdr l) (cddr l))
+              and return
+              (setq completion-all-sorted-completions (cons comp all)))
+     finally return all)))
 
 
 
