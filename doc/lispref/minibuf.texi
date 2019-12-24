@@ -645,6 +645,15 @@ A history list for variable-name arguments read by
 @code{read-variable}.
 @end defvar
 
+@defvar read-number-history
+A history list for numbers read by @code{read-number}.
+@end defvar
+
+@defvar goto-line-history
+A history list for arguments to @code{goto-line}.  This variable is
+buffer local.
+@end defvar
+
 @c Less common: coding-system-history, input-method-history,
 @c command-history, grep-history, grep-find-history,
 @c read-envvar-name-history, setenv-history, yes-or-no-p-history.

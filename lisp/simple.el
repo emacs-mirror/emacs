@@ -1212,6 +1212,10 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
+(defvar goto-line-history nil
+  "History of values entered with `goto-line'.")
+(make-variable-buffer-local 'goto-line-history)
+
 (defun goto-line (line &optional buffer)
   "Go to LINE, counting from line 1 at beginning of buffer.
 If called interactively, a numeric prefix argument specifies
@@ -1256,7 +1260,8 @@ rather than line counts."
 	       "")))
        ;; Read the argument, offering that number (if any) as default.
        (list (read-number (format "Goto line%s: " buffer-prompt)
-                          (list default (line-number-at-pos)))
+                          (list default (line-number-at-pos))
+                          'goto-line-history)
 	     buffer))))
   ;; Switch to the desired buffer, one way or another.
   (if buffer
