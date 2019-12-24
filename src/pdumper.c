@@ -198,6 +198,7 @@ enum dump_reloc_type
     RELOC_DUMP_TO_DUMP_PTR_RAW,
     /* dump_mpz = [rebuild bignum]  */
     RELOC_NATIVE_COMP_UNIT,
+    RELOC_NATIVE_SUBR,
     RELOC_BIGNUM,
     /* dump_lv = make_lisp_ptr (dump_lv + dump_base,
 				type - RELOC_DUMP_TO_DUMP_LV)
@@ -2979,7 +2980,15 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
   DUMP_FIELD_COPY (&out, subr, doc);
 #endif
-  return dump_object_finish (ctx, &out, sizeof (out));
+
+  dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
+  if (ctx->flags.dump_object_contents && subr->native_comp_u)
+    /* We'll do the final addr relocation during VERY_LATE_RELOCS time
+       after the compilation units has been loaded. */
+    dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
+	       list2 (make_fixnum (RELOC_NATIVE_SUBR),
+		      dump_off_to_lisp (subr_off)));
+  return subr_off;
 }
 
 #ifdef HAVE_NATIVE_COMP
@@ -2993,8 +3002,8 @@ dump_native_comp_unit (struct dump_context *ctx,
 
   dump_off comp_u_off = finish_dump_pvec (ctx, &out->header);
   if (ctx->flags.dump_object_contents)
-    /* We'll do the real elf load during the LATE_RELOCS_1 relocation time. */
-    dump_push (&ctx->dump_relocs[LATE_RELOCS_1],
+    /* We'll do the real elf load during LATE_RELOCS relocation time. */
+    dump_push (&ctx->dump_relocs[LATE_RELOCS],
 	       list2 (make_fixnum (RELOC_NATIVE_COMP_UNIT),
 		      dump_off_to_lisp (comp_u_off)));
   return comp_u_off;
@@ -5304,8 +5313,25 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());
 	load_comp_unit (comp_u, true);
+	break;
       }
-      break;
+    case RELOC_NATIVE_SUBR:
+      {
+	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);
+	Lisp_Object name = intern (subr->symbol_name);
+	struct Lisp_Native_Comp_Unit *comp_u =
+	  XNATIVE_COMP_UNIT (subr->native_comp_u);
+	if (!comp_u->handle)
+	  error ("can't relocate native subr with not loaded compilation unit");
+	Lisp_Object c_name = Fgethash (name, Vsym_subr_c_name_h, Qnil);
+	if (NILP (c_name))
+	  error ("missing label name");
+	void *func = dynlib_sym (comp_u->handle, SSDATA (c_name));
+	if (!func)
+	  error ("can't function in compilation unit");
+	subr->function.a0 = func;
+	break;
+      }
     case RELOC_BIGNUM:
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);

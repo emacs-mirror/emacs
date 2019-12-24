@@ -3202,8 +3202,6 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /* Functions used to load eln files.  */
 /**************************************/
 
-static Lisp_Object Vnative_elisp_refs_hash;
-
 typedef char *(*comp_lit_str_func) (void);
 
 /* Deserialize read and return static object.  */
@@ -3292,6 +3290,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   XSETSUBR (tem, &x->s);
   set_symbol_function (name, tem);
 
+  Fputhash (name, c_name, Vsym_subr_c_name_h);
   LOADHIST_ATTACH (Fcons (Qdefun, name));
 
   return Qnil;
@@ -3434,13 +3433,10 @@ syms_of_comp (void)
   /* FIXME should be initialized but not here... */
   DEFVAR_LISP ("comp-subr-list", Vsubr_list,
 	       doc: /* List of all defined subrs.  */);
-
-  /* Load mechanism.  */
-  staticpro (&Vnative_elisp_refs_hash);
-  Vnative_elisp_refs_hash
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
-		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
-		       Qnil, false);
+  DEFVAR_LISP ("comp-sym-subr-c-name-h", Vsym_subr_c_name_h,
+	       doc: /* Hash table symbol-function -> function-c-name.  For
+		       internal use during  */);
+  Vsym_subr_c_name_h = CALLN (Fmake_hash_table);
 }
 
 #endif /* HAVE_NATIVE_COMP */
