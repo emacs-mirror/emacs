@@ -414,12 +414,13 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   if (!enable_recursive_minibuffers
       && minibuf_level > 0)
     {
+      Lisp_Object str = build_string ("Command attempted to use minibuffer"
+                                      "while in minibuffer");
       if (EQ (selected_window, minibuf_window))
-	error ("Command attempted to use minibuffer while in minibuffer");
+	Fsignal (Quser_error, (list1 (str)));
       else
 	/* If we're in another window, cancel the minibuffer that's active.  */
-	Fthrow (Qexit,
-		build_string ("Command attempted to use minibuffer while in minibuffer"));
+	Fthrow (Qexit, str);
     }
 
   if ((noninteractive
