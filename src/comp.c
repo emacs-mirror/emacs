@@ -3217,7 +3217,7 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 }
 
 void
-load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
+load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 {
   dynlib_handle_ptr handle = comp_u->handle;
   struct thread_state ***current_thread_reloc =
@@ -3237,22 +3237,26 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
   *current_thread_reloc = &current_thread;
   *pure_reloc = (EMACS_INT **)&pure;
 
-  /* Imported data.  */
-  Lisp_Object d_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
-  EMACS_INT d_vec_len = XFIXNUM (Flength (d_vec));
-
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
-      data_relocs[i] = AREF (d_vec, i);
-
-  comp_u->data_vec = d_vec;
   /* Imported functions.  */
   *freloc_link_table = freloc.link_table;
 
-  Lisp_Object comp_u_obj;
-  XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
+  /* Imported data.  */
+  if (!loading_dump)
+    comp_u->data_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
 
-  /* Executing this will perform all the expected environment modification.  */
-  top_level_run (comp_u_obj);
+  EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
+
+  for (EMACS_INT i = 0; i < d_vec_len; i++)
+    data_relocs[i] = AREF (comp_u->data_vec, i);
+
+  if (!loading_dump)
+    {
+      Lisp_Object comp_u_obj;
+      XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
+      /* Executing this will perform all the expected environment
+	 modification.  */
+      top_level_run (comp_u_obj);
+    }
 
   return;
 }
@@ -3308,7 +3312,8 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
   comp_u->file = file;
-  load_comp_unit (comp_u);
+  comp_u->data_vec = Qnil;
+  load_comp_unit (comp_u, false);
 
   return Qt;
 }

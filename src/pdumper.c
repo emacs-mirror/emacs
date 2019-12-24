@@ -197,6 +197,7 @@ enum dump_reloc_type
     /* dump_ptr = dump_ptr + dump_base  */
     RELOC_DUMP_TO_DUMP_PTR_RAW,
     /* dump_mpz = [rebuild bignum]  */
+    RELOC_NATIVE_COMP_UNIT,
     RELOC_BIGNUM,
     /* dump_lv = make_lisp_ptr (dump_lv + dump_base,
 				type - RELOC_DUMP_TO_DUMP_LV)
@@ -2991,6 +2992,11 @@ dump_native_comp_unit (struct dump_context *ctx,
   out->handle = NULL;
 
   dump_off comp_u_off = finish_dump_pvec (ctx, &out->header);
+  if (ctx->flags.dump_object_contents)
+    /* We'll do the real elf load during the LATE_RELOCS_1 relocation time. */
+    dump_push (&ctx->dump_relocs[LATE_RELOCS_1],
+	       list2 (make_fixnum (RELOC_NATIVE_COMP_UNIT),
+		      dump_off_to_lisp (comp_u_off)));
   return comp_u_off;
 }
 #endif
@@ -5290,6 +5296,16 @@ dump_do_dump_relocation (const uintptr_t dump_base,
         dump_write_word_to_dump (dump_base, reloc_offset, value);
         break;
       }
+    case RELOC_NATIVE_COMP_UNIT:
+      {
+	struct Lisp_Native_Comp_Unit *comp_u =
+	  dump_ptr (dump_base, reloc_offset);
+	comp_u->handle = dynlib_open (SSDATA (comp_u->file));
+	if (!comp_u->handle)
+	  error ("%s", dynlib_error ());
+	load_comp_unit (comp_u, true);
+      }
+      break;
     case RELOC_BIGNUM:
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);

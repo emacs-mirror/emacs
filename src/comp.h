@@ -47,7 +47,8 @@ XNATIVE_COMP_UNIT (Lisp_Object a)
 }
 
 /* Defined in comp.c.  */
-extern void load_comp_unit (struct Lisp_Native_Comp_Unit *);
+extern void load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u,
+			    bool loading_dump);
 extern void syms_of_comp (void);
 /* Fill the freloc structure. Must be called before any eln is loaded.  */
 extern void fill_freloc (void);
