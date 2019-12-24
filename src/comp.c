@@ -3136,6 +3136,12 @@ fill_freloc (void)
   fatal ("Overflowing function relocation table, increase F_RELOC_MAX_SIZE");
 }
 
+int
+filled_freloc (void)
+{
+  return freloc.link_table[0] ? 1 : 0;
+}
+
 /******************************************************************************/
 /* Helper functions called from the run-time.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
@@ -3210,7 +3216,7 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
   return Fread (make_string (res->data, res->len));
 }
 
-static void
+void
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
 {
   dynlib_handle_ptr handle = comp_u->handle;
@@ -3297,15 +3303,11 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
   if (!freloc.link_table[0])
     xsignal2 (Qnative_lisp_load_failed, file,
 	      build_string ("Empty relocation table"));
-
-  dynlib_handle_ptr handle = dynlib_open (SSDATA (file));
-  load_handle_stack = Fcons (make_mint_ptr (handle), load_handle_stack);
-  if (!handle)
-    xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit();
+  comp_u->handle = dynlib_open (SSDATA (file));
+  if (!comp_u->handle)
+    xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
   comp_u->file = file;
-  comp_u->fd = fd_out;
-  comp_u->handle = handle;
   load_comp_unit (comp_u);
 
   return Qt;

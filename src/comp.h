@@ -30,8 +30,6 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object file;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
-  /* Compilation unit file descriptor and handle.  */
-  int fd;
   dynlib_handle_ptr handle;
 };
 
@@ -49,8 +47,12 @@ XNATIVE_COMP_UNIT (Lisp_Object a)
 }
 
 /* Defined in comp.c.  */
+extern void load_comp_unit (struct Lisp_Native_Comp_Unit *);
 extern void syms_of_comp (void);
+/* Fill the freloc structure. Must be called before any eln is loaded.  */
 extern void fill_freloc (void);
+/* Return 1 if freloc is filled or 0 otherwise.  */
+extern int filled_freloc (void);
 
 #endif
 #endif

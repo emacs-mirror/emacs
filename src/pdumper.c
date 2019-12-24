@@ -446,6 +446,7 @@ enum cold_op
     COLD_OP_CHARSET,
     COLD_OP_BUFFER,
     COLD_OP_BIGNUM,
+    COLD_OP_NATIVE_SUBR,
   };
 
 /* This structure controls what operations we perform inside
@@ -939,7 +940,7 @@ dump_note_reachable (struct dump_context *ctx, Lisp_Object object)
 static void *
 dump_object_emacs_ptr (Lisp_Object lv)
 {
-  if (SUBRP (lv))
+  if (SUBRP (lv) && !SUBRP_NATIVE_COMPILEDP (lv))
     return XSUBR (lv);
   if (dump_builtin_symbol_p (lv))
     return XSYMBOL (lv);
@@ -2941,20 +2942,25 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 #endif
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
 #ifdef HAVE_NATIVE_COMP
   if (subr->native_comp_u)
     {
+      dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
+      dump_remember_cold_op (ctx,
+                             COLD_OP_NATIVE_SUBR,
+			     make_lisp_ptr ((void *) subr, Lisp_Vectorlike));
       dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
       dump_field_lv (ctx, &out, subr, &subr->native_doc, WEIGHT_NORMAL);
     }
   else
     {
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
       DUMP_FIELD_COPY (&out, subr, doc);
     }
   dump_field_lv (ctx, &out, subr, &subr->native_comp_u, WEIGHT_NORMAL);
 #else
+  dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
   dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
   DUMP_FIELD_COPY (&out, subr, doc);
 #endif
@@ -2968,9 +2974,10 @@ dump_native_comp_unit (struct dump_context *ctx,
 {
   START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &comp_u->header);
-  out->fd = 0;
-  out->handle = 0;
-  return finish_dump_pvec (ctx, &out->header);
+  out->handle = NULL;
+
+  dump_off comp_u_off = finish_dump_pvec (ctx, &out->header);
+  return comp_u_off;
 }
 #endif
 
@@ -3051,6 +3058,11 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_BIGNUM:
       offset = dump_bignum (ctx, lv);
       break;
+#ifdef HAVE_NATIVE_COMP
+    case PVEC_NATIVE_COMP_UNIT:
+      offset = dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
+      break;
+#endif
     case PVEC_WINDOW_CONFIGURATION:
       error_unsupported_dump_object (ctx, lv, "window configuration");
     case PVEC_OTHER:
@@ -3075,11 +3087,6 @@ dump_vectorlike (struct dump_context *ctx,
       error_unsupported_dump_object (ctx, lv, "condvar");
     case PVEC_MODULE_FUNCTION:
       error_unsupported_dump_object (ctx, lv, "module function");
-#ifdef HAVE_NATIVE_COMP
-    case PVEC_NATIVE_COMP_UNIT:
-      offset = dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
-      break;
-#endif
     default:
       error_unsupported_dump_object(ctx, lv, "weird pseudovector");
     }
@@ -3455,6 +3462,22 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
 }
 
 static void
+dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
+{
+  /* Dump subr contents.  */
+  dump_off subr_offset = dump_recall_object (ctx, subr);
+  eassert (subr_offset > 0);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     subr_offset + dump_offsetof (struct Lisp_Subr, symbol_name),
+     ctx->offset);
+  const char *symbol_name = XSUBR (subr)->symbol_name;
+  ALLOW_IMPLICIT_CONVERSION;
+  dump_write (ctx, symbol_name, 1 + strlen (symbol_name));
+  DISALLOW_IMPLICIT_CONVERSION;
+}
+
+static void
 dump_drain_cold_data (struct dump_context *ctx)
 {
   Lisp_Object cold_queue = Fnreverse (ctx->cold_queue);
@@ -3497,6 +3520,9 @@ dump_drain_cold_data (struct dump_context *ctx)
         case COLD_OP_BIGNUM:
           dump_cold_bignum (ctx, data);
           break;
+	case COLD_OP_NATIVE_SUBR:
+	  dump_cold_native_subr (ctx, data);
+	  break;
         default:
           emacs_abort ();
         }
@@ -3916,7 +3942,7 @@ dump_do_fixup (struct dump_context *ctx,
       /* Dump wants a pointer to a Lisp object.
          If DUMP_FIXUP_LISP_OBJECT_RAW, we should stick a C pointer in
          the dump; otherwise, a Lisp_Object.  */
-      if (SUBRP (arg))
+      if (SUBRP (arg) && !SUBRP_NATIVE_COMPILEDP(arg))
         {
           dump_value = emacs_offset (XSUBR (arg));
           if (type == DUMP_FIXUP_LISP_OBJECT)
