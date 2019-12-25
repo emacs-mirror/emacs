@@ -8603,6 +8603,17 @@ extern WandExport void PixelGetMagickColor (const PixelWand *,
 					    MagickPixelPacket *);
 #endif
 
+static void
+imagemagick_initialize (void)
+{
+  static bool imagemagick_initialized;
+  if (!imagemagick_initialized)
+    {
+      imagemagick_initialized = true;
+      MagickWandGenesis ();
+    }
+}
+
 /* Log ImageMagick error message.
    Useful when an ImageMagick function returns the status `MagickFalse'.  */
 
@@ -8874,14 +8885,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   double rotation;
   char hint_buffer[MaxTextExtent];
   char *filename_hint = NULL;
-
-  /* Initialize the ImageMagick environment.  */
-  static bool imagemagick_initialized;
-  if (!imagemagick_initialized)
-    {
-      imagemagick_initialized = true;
-      MagickWandGenesis ();
-    }
+  imagemagick_initialize ();
 
   /* Handle image index for image types who can contain more than one image.
      Interface :index is same as for GIF.  First we "ping" the image to see how
@@ -9290,6 +9294,7 @@ and `imagemagick-types-inhibit'.  */)
   char **imtypes;
   size_t i;
 
+  imagemagick_initialize ();
   ex = AcquireExceptionInfo ();
   imtypes = GetMagickList ("*", &numf, ex);
   DestroyExceptionInfo (ex);

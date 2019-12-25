@@ -256,8 +256,8 @@ The default value is 30000, as the previously hard-coded threshold.
 ** The function 'read-passwd' uses "*" as default character to hide passwords.
 
 ** The function 'read-answer' now accepts not only single character
-answers, but also function keys like F1, character events such as C-M-h,
-and control characters like C-h.
+answers, but also function keys like 'F1', character events such as
+'C-M-h', and control characters like 'C-h'.
 
 ** Lexical binding is now used when evaluating interactive Elisp forms.
 More specifically, lexical-binding is now used for 'M-:', '--eval', as
@@ -350,7 +350,7 @@ certificates via 'auth-source'.
 ** New user option 'network-stream-use-client-certificates'.
 When non-nil, 'open-network-stream' performs lookups of client
 certificates using 'auth-source' as if ':client-certificate t' were
-specified iff there is no explicit ':client-certificate' parameter.
+specified if there is no explicit ':client-certificate' parameter.
 Defaults to nil.
 
 +++
@@ -419,14 +419,14 @@ respects display actions specified by 'display-buffer-alist' and
 'display-buffer-overriding-action'.
 
 +++
-** The option 'switch-to-visible-buffer' is now obsolete.
+** The user option 'switch-to-visible-buffer' is now obsolete.
 Customize 'switch-to-prev-buffer-skip' instead.
 
 +++
-** New option 'switch-to-prev-buffer-skip'.
-This option allows to specify the set of buffers that may be shown by
-'switch-to-prev-buffer' and 'switch-to-next-buffer' more stringently
-than the now obsolete 'switch-to-visible-buffer'.
+** New user option 'switch-to-prev-buffer-skip'.
+This user option allows to specify the set of buffers that may be
+shown by 'switch-to-prev-buffer' and 'switch-to-next-buffer' more
+stringently than the now obsolete 'switch-to-visible-buffer'.
 
 ** New 'flex' completion style
 An implementation of popular "flex/fuzzy/scatter" completion which
@@ -535,8 +535,8 @@ their own separated input history list if desired.
 
 ** 'backup-by-copying-when-privileged-mismatch' applies to file gid, too.
 In addition to checking the file owner uid, Emacs also checks that the
-group gid is not greater than backup-by-copying-when-privileged-mismatch;
-if so, backup-by-copying-when-mismatch will be forced on.
+group gid is not greater than 'backup-by-copying-when-privileged-mismatch';
+if so, 'backup-by-copying-when-mismatch' will be forced on.
 
 
 * Editing Changes in Emacs 27.1
@@ -660,10 +660,10 @@ re-fontifies the buffer.
 ** Font Lock is smarter about fontifying unterminated strings and comments.
 When you type a quote that starts a string, or a comment delimiter
 that starts a comment, font-lock will not immediately refontify the
-following characters in font-lock-string-face or
-font-lock-comment-face.  Instead, it will delay the fontification
+following characters in 'font-lock-string-face' or
+'font-lock-comment-face'.  Instead, it will delay the fontification
 beyond the current line to give you a chance to close the string or
-comment.  This is controlled by the new customizable variable
+comment.  This is controlled by the new user option
 'jit-lock-antiblink-grace', which specifies the delay in seconds.  The
 default is 2 seconds; set to nil to get back the old behavior.
 
@@ -784,7 +784,7 @@ the minibuffer.  If non-nil, point will move to the end of the prompt
 +++
 *** When the minibuffer is active, echo-area messages are displayed at
 the end of the minibuffer instead of hiding the minibuffer by the echo
-area display.  The new option 'minibuffer-message-clear-timeout'
+area display.  The new user option 'minibuffer-message-clear-timeout'
 controls how messages displayed in this situation are removed from the
 minibuffer.
 
@@ -795,8 +795,8 @@ at the end of the active minibuffer.
 +++
 *** 'y-or-n-p' now uses the minibuffer to read 'y' or 'n' answer.
 
-*** Some commands that previously used read-char-choice now read
-a character using the minibuffer by read-char-from-minibuffer.
+*** Some commands that previously used 'read-char-choice' now read
+a character using the minibuffer by 'read-char-from-minibuffer'.
 
 ** map.el
 *** Now also understands plists.
@@ -807,7 +807,7 @@ a character using the minibuffer by read-char-from-minibuffer.
 *** New generic function 'map-insert'.
 
 +++
-*** The 'type' arg can be a list '(hash-table :key1 VAL1 :key2 VAL2 ...)'
+*** The 'type' arg can be a list '(hash-table :key1 VAL1 :key2 VAL2 ...)'.
 
 ** seq.el
 New convenience functions 'seq-first' and 'seq-rest' give easy access
@@ -943,9 +943,9 @@ The default value is 'find-dired-sort-by-filename'.
 
 ---
 *** New user option 'vc-tor'.
-When non-nil, this option causes the VC commands to communicate with
-the repository via Tor's proxy, using the 'torsocks' wrapper script.
-The default is nil.
+When non-nil, this user option causes the VC commands to communicate
+with the repository via Tor's proxy, using the 'torsocks' wrapper
+script.  The default is nil.
 
 +++
 *** New command 'log-edit-generate-changelog-from-diff', bound to 'C-c C-w'.
@@ -1131,16 +1131,16 @@ end.
 *** 'comint-run' can now accept a list of switches to pass to the program.
 'C-u M-x comint-run' will prompt for the switches interactively.
 
-*** Abnormal hook `comint-password-function' has been added.
+*** Abnormal hook 'comint-password-function' has been added.
 This hook permits a derived mode to supply a password for the
 underlying command interpreter without prompting the user.  For
-example, in sql-mode, the password for connecting to the database may
+example, in 'sql-mode', the password for connecting to the database may
 be stored in the connection wallet and may be passed on the command
 line to start the SQL interpreter.  This is a potential security flaw
 that could expose user's database passwords on the command line
 through the use of a process list (Bug#8427).  With this hook, it is
 possible to not pass the password on the command line and wait for the
-program to prompt for the password.  When it does so, the password cam
+program to prompt for the password.  When it does so, the password can
 be supplied to the SQL interpreter without involving the user just as
 if it had been supplied on the command line.
 
@@ -1150,7 +1150,7 @@ if it had been supplied on the command line.
 SQL Mode now supports the ELPA 'sql-indent' package for assisting
 sophisticated SQL indenting rules.  Note, however, that SQL is not
 like other programming languages like C, Java, or Python where code is
-sparse and rules for formatting are fairly well established. Instead
+sparse and rules for formatting are fairly well established.  Instead
 SQL is more like COBOL (from which it came) and code tends to be very
 dense and line ending decisions driven by syntax and line length
 considerations to make readable code.  Experienced SQL developers may
@@ -1164,17 +1164,18 @@ indentation support in 'sql-mode' and 'sql-interactive-mode'.
 
 **** 'sql-mode-hook' and 'sql-interactive-mode-hook' changed.
 Both hook variables have had 'sql-indent-enable' added to their
-default values. If you have existing customizations to these variables,
-you should make sure that the new default entry is included.
+default values.  If you have existing customizations to these
+variables, you should make sure that the new default entry is
+included.
 
 *** Connection Wallet
 Database passwords can now by stored in NETRC or JSON data files that
-may optionally be encrypted. When establishing an interactive session
+may optionally be encrypted.  When establishing an interactive session
 with the database via 'sql-connect' or a product specific function,
 like 'sql-mysql' or 'my-postgres', the password wallet will be
-searched for the password. The 'sql-product', 'sql-server',
+searched for the password.  The 'sql-product', 'sql-server',
 'sql-database', and the 'sql-username' will be used to identify the
-appropriate authorization. This eliminates the discouraged practice of
+appropriate authorization.  This eliminates the discouraged practice of
 embedding database passwords in your Emacs initialization.
 
 See the 'auth-source' module for complete documentation on the file
@@ -1254,7 +1255,7 @@ Example use in auctex.el: '(defconst auctex-version (package-get-version))'
 When 'package-quickstart' is non-nil, package.el precomputes a big
 autoloads file so that activation of packages can be done much faster,
 which can speed up your startup significantly.
-It also causes variables like 'package-user-dir' and
+It also causes user options like 'package-user-dir' and
 'package-load-list' to be consulted when 'package-quickstart-refresh'
 is run rather than at startup so you don't need to set them in your
 early init file.
@@ -1281,7 +1282,7 @@ the 'package-menu-clear-filter' function, bound to '/ /' by default.
 *** In Package Menu, 'g' now updates package data from archives.
 Previously, 'g' invoked 'tabulated-list-revert' which did not update
 the cached archive data.  It is now bound to 'revert-buffer', which
-will now update the data.
+will update the data.
 
 'package-menu-refresh' is an obsolete alias for 'revert-buffer'.
 
@@ -1305,7 +1306,6 @@ The new user option 'Man-width-max' (80 by default) limits the number
 of columns passed to the 'man' program for formatting man pages.  This
 is to enhance readability when man pages are displayed in very wide
 windows (which are customary with today's large displays).
-
 
 ** Xref
 
@@ -1348,9 +1348,9 @@ A new command 'xref-revert-buffer' is bound to 'g'.
 +++
 *** New minor mode Fido mode.
 This mode is based on Icomplete, and its name stands for "Fake Ido".
-The point of this mode is to be an ido-mode workalike, but provide
+The point of this mode is to be an 'ido-mode' workalike, but provide
 most of the functionality present in Icomplete that is not in
-ido-mode, while being much more compatible with all of Emacs's
+'ido-mode', while being much more compatible with all of Emacs's
 completion facilities.
 
 ** Ecomplete
@@ -1582,9 +1582,8 @@ killed when pdbtracking session is finished.
 
 ---
 *** New function 'python-shell-send-region'.
-It send the statement delimited by 'python-nav-beginning-of-statement' and
-'python-nav-end-of-statement' to the inferior Python process.
-
+It sends the statement delimited by 'python-nav-beginning-of-statement'
+and 'python-nav-end-of-statement' to the inferior Python process.
 
 ** Help
 
@@ -1737,7 +1736,7 @@ previously-set breakpoints.  If the code has changed substantially,
 this may not be possible.
 
 +++
-*** New command 'edebug-remove-instrumentation.
+*** New command 'edebug-remove-instrumentation'.
 This command removes Edebug instrumentation from all functions that
 have been instrumented.
 
@@ -1996,7 +1995,7 @@ GnuTLS manual) is recommended instead.
 
 ** Message
 
-*** Completion of email addresses can use the standard completion UI
+*** Completion of email addresses can use the standard completion UI.
 This is controlled by 'message-expand-name-standard-ui'.
 With the standard UI the different sources (ecomplete, bbdb, and eudc)
 are matched together and try to obey 'completion-styles'.
@@ -2034,11 +2033,11 @@ set gpg's "--sender email@domain" option.
 The option is useful for two reasons when verifying the signature:
 
  1. GnuPG's TOFU statistics are updated for the specific user id
-    (email) only. See gpg(1) man page about "--sender".
+    (email) only.  See gpg(1) man page about "--sender".
 
  2. GnuPG's '--auto-key-retrieve' functionality can use WKD (web key
-    directory) method for finding the signer's key. You need GnuPG
-    2.2.17 to fully benefit from this feature. See gpg(1) man page for
+    directory) method for finding the signer's key.  You need GnuPG
+    2.2.17 to fully benefit from this feature.  See gpg(1) man page for
     '--auto-key-retrieve'.
 
 ---
@@ -2056,8 +2055,8 @@ been removed.  Use 'encode-coding-string', 'decode-coding-string', and
 
 *** 'epg-context' structure supports now 'sender' slot.
 The value of the new 'sender' slot (if a string) is used to set gpg's
-'--sender' option. This feature is used by
-'mml-secure-openpgp-sign-with-sender'. See gpg(1) manual page about
+'--sender' option.  This feature is used by
+'mml-secure-openpgp-sign-with-sender'.  See gpg(1) manual page about
 '--sender' for more information.
 
 ---
@@ -2135,11 +2134,11 @@ the 128...255 range, as expected.
 
 ---
 *** The rx 'or' and 'seq' forms no longer require any arguments.
-(or) produces a regexp that never matches anything, while (seq)
+'(or)' produces a regexp that never matches anything, while '(seq)'
 matches the empty string, each being an identity for the operation.
 This also works for their aliases: '|' for 'or'; ':', 'and' and
 'sequence' for 'seq'.
-The symbol 'unmatchable' can be used as an alternative to (or).
+The symbol 'unmatchable' can be used as an alternative to '(or)'.
 
 ---
 *** 'regexp' and new 'literal' accept arbitrary lisp as arguments.
@@ -2427,16 +2426,16 @@ if you set 'time-stamp-format' or 'time-stamp-pattern' with a
 file-local variable, you may need to update the value.
 
 ** mode-local
-*** Declare 'define-overload' and 'define-child-mode' as obsolete
-*** Rename several internal functions to use a ''mode-local-' prefix
+*** Declare 'define-overload' and 'define-child-mode' as obsolete.
+*** Rename several internal functions to use a 'mode-local-' prefix.
 
 ** CC Mode
 
 +++
-*** You can now flag "wrong style" comments with font-lock-warning-face.
-To do this, use c-toggle-comment-style, if needed, to set the desired
-default comment style (block or line); then set the option
-c-mark-wrong-style-of-comment to non-nil.
+*** You can now flag "wrong style" comments with 'font-lock-warning-face'.
+To do this, use 'c-toggle-comment-style', if needed, to set the desired
+default comment style (block or line); then set the user option
+'c-mark-wrong-style-of-comment' to non-nil.
 
 
 * New Modes and Packages in Emacs 27.1
@@ -2538,7 +2537,6 @@ very end (when append/depth is t) any more because other functions on
 the hook may have specified higher/lower depths.  This makes it
 possible to control the ordering of functions more precisely, as was
 already possible in 'add-function' and 'advice-add'.
-
 
 ** In 'compilation-error-regexp-alist' the old undocumented feature
 where 'line' could be a function of 2 arguments has been dropped.
@@ -2725,7 +2723,7 @@ scrolling.
 where it scales the image under the mouse pointer.
 
 ---
-** help-follow-symbol now signals 'user-error' if point (or the
+** 'help-follow-symbol' now signals 'user-error' if point (or the
 position pointed to by the argument POS) is not in a symbol.
 
 
@@ -2856,9 +2854,9 @@ functions like 'process-id' that compute process IDs, and functions like
 'user-uid' and 'group-gid' that compute user and group IDs.
 
 +++
-** overflow-error is now documented as a subcategory of range-error.
+** 'overflow-error' is now documented as a subcategory of 'range-error'.
 Formerly it was undocumented, and was (incorrectly) a subcategory
-of domain-error.
+of 'domain-error'.
 
 ** Time values
 
@@ -3159,7 +3157,7 @@ are implemented in C using the Jansson library.
 
 +++
 ** New function 'flatten-tree'.
-'flatten-list' is provided as an alias. These functions take a tree
+'flatten-list' is provided as an alias.  These functions take a tree
 and 'flatten' it such that the result is a list of all the terminal
 nodes.
 
@@ -3367,7 +3365,7 @@ non-nil.  This is used by 'mouse-drag-region' to make the effect
 easier to undo immediately afterwards.
 
 ---
-** When called interactively, next-buffer and previous-buffer now
+** When called interactively, 'next-buffer' and 'previous-buffer' now
 signal 'user-error' if there is no buffer to switch to.
 
 

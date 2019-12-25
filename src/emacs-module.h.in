@@ -17,6 +17,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/*
+This file defines the Emacs module API.  Please see the chapter
+`Dynamic Modules' in the GNU Emacs Lisp Reference Manual for
+information how to write modules and use this header file.
+*/
+
 #ifndef EMACS_MODULE_H
 #define EMACS_MODULE_H
 

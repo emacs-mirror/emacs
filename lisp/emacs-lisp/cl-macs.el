@@ -2017,7 +2017,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
 Each definition can take the form (FUNC EXP) where
 FUNC is the function name, and EXP is an expression that returns the
 function value to which it should be bound, or it can take the more common
-form \(FUNC ARGLIST BODY...) which is a shorthand
+form (FUNC ARGLIST BODY...) which is a shorthand
 for (FUNC (lambda ARGLIST BODY)).
 
 FUNC is defined only within FORM, not BODY, so you can't write

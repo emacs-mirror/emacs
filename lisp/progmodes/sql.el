@@ -860,7 +860,7 @@ The specified function will be called as:
   (wallet-func WALLET PRODUCT USER SERVER DATABASE PORT)
 
 It is expected to return either a string containing the password,
-a function returning the password, or nil, If you want to support
+a function returning the password, or nil.  If you want to support
 another format of password file, then implement a different
 search wallet function and identify the location of the password
 store with `sql-password-wallet'.")

@@ -3297,7 +3297,13 @@ static Lisp_Object base64_encode_string_1 (Lisp_Object, bool,
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
        2, 3, "r",
        doc: /* Base64-encode the region between BEG and END.
-Return the length of the encoded text.
+The data in the region is assumed to represent bytes, not text.  If
+you want to base64-encode text, the text has to be converted into data
+first by using `encode-coding-region' with the appropriate coding
+system first.
+
+Return the length of the encoded data.
+
 Optional third argument NO-LINE-BREAK means do not break long lines
 into shorter lines.  */)
   (Lisp_Object beg, Lisp_Object end, Lisp_Object no_line_break)
@@ -3544,7 +3550,13 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
 DEFUN ("base64-decode-region", Fbase64_decode_region, Sbase64_decode_region,
        2, 3, "r",
        doc: /* Base64-decode the region between BEG and END.
-Return the length of the decoded text.
+Return the length of the decoded data.
+
+Note that after calling this function, the data in the region will
+represent bytes, not text.  If you want to end up with text, you have
+to call `decode-coding-region' afterwards with an appropriate coding
+system.
+
 If the region can't be decoded, signal an error and don't modify the buffer.
 Optional third argument BASE64URL determines whether to use the URL variant
 of the base 64 encoding, as defined in RFC 4648.  */)

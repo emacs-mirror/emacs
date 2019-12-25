@@ -2629,7 +2629,7 @@ region and the first line of the next region."
   "Display this many lines of leading context before the current message.
 If nil or t, and the left fringe is displayed, don't scroll the
 compilation output window; an arrow in the left fringe points to
-the current message.  With no left fringe, If nil, the message
+the current message.  With no left fringe, if nil, the message
 scrolls to the top of the window; there is no arrow.  If t, don't
 scroll the compilation output window at all; an arrow before
 column zero points to the current message."

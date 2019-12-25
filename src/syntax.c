@@ -2280,7 +2280,7 @@ in_classes (int c, Lisp_Object iso_classes)
      for nested comments and should be zero or negative else.
      ST_COMMENT_STYLE cannot be nested.
    PREV_SYNTAX is the SYNTAX_WITH_FLAGS of the previous character
-     (or 0 If the search cannot start in the middle of a two-character).
+     (or 0 if the search cannot start in the middle of a two-character).
 
    If successful, return true and store the charpos of the comment's
    end into *CHARPOS_PTR and the corresponding bytepos into

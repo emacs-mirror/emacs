@@ -87,7 +87,7 @@
 ;; for maintenance reasons, you have to edit files 'as root': before
 ;; patching term.el, I su-ed in a term.el buffer and used vi :), now I
 ;; simply do a C-x C-f and, via ange-ftp, the file is automatically loaded
-;; 'as-root'.  ( If you don't want to enter the root password every time you
+;; 'as-root'.  (If you don't want to enter the root password every time you
 ;; can put it in your .netrc: note that this is -not- advisable if you're
 ;; connected to the internet or if somebody else works on your workstation!)
 ;;

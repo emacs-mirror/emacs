@@ -141,7 +141,8 @@ In the base definition, MAP can be an alist, hash-table, or array."
   "Associate KEY with VALUE in MAP and return VALUE.
 If KEY is already present in MAP, replace the associated value
 with VALUE.
-When MAP is a list, test equality with TESTFN if non-nil, otherwise use `eql'.
+When MAP is a list, test equality with TESTFN if non-nil,
+otherwise use `eql'.
 
 MAP can be a list, hash-table or array."
   (declare (obsolete "use map-put! or (setf (map-elt ...) ...) instead" "27.1"))
@@ -287,7 +288,7 @@ The default implementation delegates to `map-length'."
   ;; so specifying `testfn' here is problematic: e.g. for hash-tables
   ;; we shouldn't use `gethash' unless `testfn' is the same as the map's own
   ;; test function!
-  "Return non-nil If and only if MAP contains KEY.
+  "Return non-nil if and only if MAP contains KEY.
 TESTFN is deprecated.  Its default depends on MAP.
 The default implementation delegates to `map-do'."
   (unless testfn (setq testfn #'equal))
@@ -325,7 +326,7 @@ The default implementation delegates to `map-apply'."
     nil))
 
 (cl-defgeneric map-every-p (pred map)
-  "Return non-nil if (PRED key val) is non-nil for all elements of the map MAP.
+  "Return non-nil if (PRED key val) is non-nil for all elements of MAP.
 The default implementation delegates to `map-apply'."
   ;; FIXME: Not sure if there's much benefit to defining it as defgeneric,
   ;; since as defined, I can't think of a map-type where we could provide an
@@ -475,8 +476,8 @@ KEYWORD-ARGS are forwarded to `make-hash-table'."
 
 (cl-defmethod map-into (map (type (head hash-table)))
   "Convert MAP into a hash-table.
-TYPE is a list where the car is `hash-table' and the cdr are the keyword-args
-forwarded to `make-hash-table'.
+TYPE is a list where the car is `hash-table' and the cdr are the
+keyword-args forwarded to `make-hash-table'.
 
 Example:
     (map-into '((1 . 3)) '(hash-table :test eql))"

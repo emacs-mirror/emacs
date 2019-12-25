@@ -268,21 +268,15 @@ This can also be a list of the above values."
   :type 'plist
   :group 'gnus-article-hiding)
 
-;; Fixme: This isn't the right thing for mixed graphical and non-graphical
-;; frames in a session.
-(defcustom gnus-article-x-face-command
-  (if (gnus-image-type-available-p 'pbm)
-      'gnus-display-x-face-in-from
-    "{ echo \
-'/* Format_version=1, Width=48, Height=48, Depth=1, Valid_bits_per_item=16 */'\
-; uncompface; } | icontopbm | display -")
+(defcustom gnus-article-x-face-command (and (gnus-image-type-available-p 'pbm)
+					    'gnus-display-x-face-in-from)
   "String or function to be executed to display an X-Face header.
 If it is a string, the command will be executed in a sub-shell
 asynchronously.  The compressed face will be piped to this command."
   :type '(choice string
 		 (function-item gnus-display-x-face-in-from)
 		 function)
-  :version "21.1"
+  :version "27.1"
   :group 'gnus-picon
   :group 'gnus-article-washing)
 

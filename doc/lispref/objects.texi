@@ -160,7 +160,7 @@ Skip the next @samp{N} characters (@pxref{Comments}).
 @samp{N} represented as a binary number (@samp{#b101010}).
 
 @item #(@dots{})
-A string text properties (@pxref{Text Props and Strings}).
+String text properties (@pxref{Text Props and Strings}).
 
 @item #^
 A char table (@pxref{Char-Table Type}).

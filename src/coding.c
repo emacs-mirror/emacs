@@ -9415,6 +9415,13 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
        3, 4, "r\nzCoding system: ",
        doc: /* Decode the current region from the specified coding system.
+
+What's meant by \"decoding\" is transforming bytes into text
+(characters).  If, for instance, you have a region that contains data
+that represents the two bytes #xc2 #xa9, after calling this function
+with the utf-8 coding system, the region will contain the single
+character ?\\N{COPYRIGHT SIGN}.
+
 When called from a program, takes four arguments:
 	START, END, CODING-SYSTEM, and DESTINATION.
 START and END are buffer positions.
@@ -9438,6 +9445,13 @@ not fully specified.)  */)
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
        3, 4, "r\nzCoding system: ",
        doc: /* Encode the current region by specified coding system.
+
+What's meant by \"encoding\" is transforming textual data (characters)
+into bytes.  If, for instance, you have a region that contains the
+single character ?\\N{COPYRIGHT SIGN}, after calling this function with
+the utf-8 coding system, the data in the region will represent the two
+bytes #xc2 #xa9.
+
 When called from a program, takes four arguments:
         START, END, CODING-SYSTEM and DESTINATION.
 START and END are buffer positions.

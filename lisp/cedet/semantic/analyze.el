@@ -80,8 +80,7 @@
   "Collection of any errors thrown during analysis.")
 
 (defun semantic-analyze-push-error (err)
-  "Push the error in ERR-DATA onto the error stack.
-Argument ERR."
+  "Push the error data in ERR onto the error stack."
   (push err semantic-analyze-error-stack))
 
 ;;; Analysis Classes

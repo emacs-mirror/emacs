@@ -381,7 +381,7 @@ terms (if this variable is nil, default)."
 
 (defcustom prolog-paren-indent 4
   "The indentation increase for parenthesis expressions.
-Only used in ( If -> Then ; Else) and ( Disj1 ; Disj2 ) style expressions."
+Only used in ( If -> Then ; Else ) and ( Disj1 ; Disj2 ) style expressions."
   :version "24.1"
   :group 'prolog-indentation
   :type 'integer
