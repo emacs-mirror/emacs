@@ -227,8 +227,8 @@ init_eval_once (void)
   else
     {
       /* Original values increased for comp.el.  */
-      max_specpdl_size = 2100;
-      max_lisp_eval_depth = 1400;
+      max_specpdl_size = 2500;
+      max_lisp_eval_depth = 1600;
     }
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
