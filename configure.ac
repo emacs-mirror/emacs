@@ -3676,7 +3676,12 @@ HAVE_MODULES=no
 MODULES_OBJ=
 case $opsys in
   cygwin|mingw32) MODULES_SUFFIX=".dll" ;;
+  darwin) MODULES_SUFFIX=".dylib" ;;
   *) MODULES_SUFFIX=".so" ;;
+esac
+case "${opsys}" in
+  darwin) MODULES_SECONDARY_SUFFIX='.so' ;;
+  *) MODULES_SECONDARY_SUFFIX='' ;;
 esac
 if test "${with_modules}" != "no"; then
   case $opsys in
@@ -3708,11 +3713,16 @@ if test "${HAVE_MODULES}" = yes; then
    AC_DEFINE(HAVE_MODULES, 1, [Define to 1 if dynamic modules are enabled])
    AC_DEFINE_UNQUOTED(MODULES_SUFFIX, "$MODULES_SUFFIX",
      [System extension for dynamic libraries])
+   if test -n "${MODULES_SECONDARY_SUFFIX}"; then
+     AC_DEFINE_UNQUOTED(MODULES_SECONDARY_SUFFIX, "$MODULES_SECONDARY_SUFFIX",
+       [Alternative system extension for dynamic libraries.])
+   fi
 fi
 AC_SUBST(MODULES_OBJ)
 AC_SUBST(LIBMODULES)
 AC_SUBST(HAVE_MODULES)
 AC_SUBST(MODULES_SUFFIX)
+AC_SUBST(MODULES_SECONDARY_SUFFIX)
 
 AC_CONFIG_FILES([src/emacs-module.h])
 AC_SUBST_FILE([module_env_snippet_25])

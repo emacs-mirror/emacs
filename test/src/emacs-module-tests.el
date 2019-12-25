@@ -384,4 +384,22 @@ Interactively, you can try hitting \\[keyboard-quit] to quit."
     (ert-info ((format "input: %d" input))
       (should (= (mod-test-double input) (* 2 input))))))
 
+(ert-deftest module-darwin-secondary-suffix ()
+  "Check that on Darwin, both .so and .dylib suffixes work.
+See Bug#36226."
+  (skip-unless (eq system-type 'darwin))
+  (should (member ".dylib" load-suffixes))
+  (should (member ".so" load-suffixes))
+  ;; Preserve the old `load-history'.  This is needed for some of the
+  ;; other unit tests that indirectly rely on `load-history'.
+  (let ((load-history load-history)
+        (dylib (concat mod-test-file ".dylib"))
+        (so (concat mod-test-file ".so")))
+    (should (file-regular-p dylib))
+    (should-not (file-exists-p so))
+    (add-name-to-file dylib so)
+    (unwind-protect
+        (load so nil nil :nosuffix :must-suffix)
+      (delete-file so))))
+
 ;;; emacs-module-tests.el ends here

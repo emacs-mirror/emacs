@@ -1199,6 +1199,9 @@ Return t if the file exists and loads successfully.  */)
 	      || suffix_p (file, ".elc")
 #ifdef HAVE_MODULES
 	      || suffix_p (file, MODULES_SUFFIX)
+#ifdef MODULES_SECONDARY_SUFFIX
+              || suffix_p (file, MODULES_SECONDARY_SUFFIX)
+#endif
 #endif
 	      )
 	    must_suffix = Qnil;
@@ -1268,7 +1271,12 @@ Return t if the file exists and loads successfully.  */)
     }
 
 #ifdef HAVE_MODULES
-  bool is_module = suffix_p (found, MODULES_SUFFIX);
+  bool is_module =
+    suffix_p (found, MODULES_SUFFIX)
+#ifdef MODULES_SECONDARY_SUFFIX
+    || suffix_p (found, MODULES_SECONDARY_SUFFIX)
+#endif
+    ;
 #else
   bool is_module = false;
 #endif
@@ -4856,9 +4864,16 @@ This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a suffix is allowed or required.  */);
 #ifdef HAVE_MODULES
+#ifdef MODULES_SECONDARY_SUFFIX
+  Vload_suffixes = list4 (build_pure_c_string (".elc"),
+			  build_pure_c_string (".el"),
+			  build_pure_c_string (MODULES_SUFFIX),
+                          build_pure_c_string (MODULES_SECONDARY_SUFFIX));
+#else
   Vload_suffixes = list3 (build_pure_c_string (".elc"),
 			  build_pure_c_string (".el"),
 			  build_pure_c_string (MODULES_SUFFIX));
+#endif
 #else
   Vload_suffixes = list2 (build_pure_c_string (".elc"),
 			  build_pure_c_string (".el"));
