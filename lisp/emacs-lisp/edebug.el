@@ -3708,7 +3708,6 @@ Return the result of the last expression."
                         (prin1-to-string edebug-arg))
 		      (cdr value) ", ")))
 
-(defvar print-readably) ; defined by lemacs
 ;; Alternatively, we could change the definition of
 ;; edebug-safe-prin1-to-string to only use these if defined.
 
@@ -3716,8 +3715,7 @@ Return the result of the last expression."
   (let ((print-escape-newlines t)
 	(print-length (or edebug-print-length print-length))
 	(print-level (or edebug-print-level print-level))
-	(print-circle (or edebug-print-circle print-circle))
-	(print-readably nil)) ; lemacs uses this.
+	(print-circle (or edebug-print-circle print-circle)))
     (edebug-prin1-to-string value)))
 
 (defun edebug-compute-previous-result (previous-value)
