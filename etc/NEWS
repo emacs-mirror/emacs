@@ -48,9 +48,10 @@ applies, and please also update docstrings as needed.
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
-** On macOS, Emacs can now also load dynamic modules with a .dylib
-suffix.  'module-file-suffix' will have the value ".dylib" on macOS,
-but .so suffix is supported as well.
++++
+** On macOS, Emacs can now load dynamic modules with a '.dylib' suffix.
+'module-file-suffix' now has the value ".dylib" on macOS, but the
+'.so' suffix is supported as well.
 
 
 ----------------------------------------------------------------------
