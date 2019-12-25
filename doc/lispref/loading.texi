@@ -1170,9 +1170,12 @@ extension, a.k.a.@: ``suffix''.  This suffix is platform-dependent.
 
 @defvar module-file-suffix
 This variable holds the system-dependent value of the file-name
-extension of the module files.  Its value is @file{.so} on POSIX hosts
-and @file{.dll} on MS-Windows.
+extension of the module files.  Its value is @file{.so} on POSIX
+hosts, @file{.dylib} on macOS, and @file{.dll} on MS-Windows.
 @end defvar
+
+  On macOS, dynamic modules can also have the suffix @file{.so} in
+addition to @file{.dylib}.
 
 @findex emacs_module_init
 @vindex plugin_is_GPL_compatible
