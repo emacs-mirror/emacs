@@ -226,6 +226,34 @@ format_string (const char *format, ...)
 }
 
 static void
+freloc_check_fill (void)
+{
+  if (freloc.size)
+    return;
+
+  eassert (!NILP (Vcomp_subr_list));
+
+  if (ARRAYELTS (helper_link_table) > F_RELOC_MAX_SIZE)
+    goto overflow;
+  memcpy (freloc.link_table, helper_link_table, sizeof (helper_link_table));
+  freloc.size = ARRAYELTS (helper_link_table);
+
+  Lisp_Object subr_l = Vcomp_subr_list;
+  FOR_EACH_TAIL (subr_l)
+    {
+      if (freloc.size == F_RELOC_MAX_SIZE)
+	goto overflow;
+      struct Lisp_Subr *subr = XSUBR (XCAR (subr_l));
+      freloc.link_table[freloc.size] = subr->function.a0;
+      freloc.size++;
+    }
+  return;
+
+ overflow:
+  fatal ("Overflowing function relocation table, increase F_RELOC_MAX_SIZE");
+}
+
+static void
 bcall0 (Lisp_Object f)
 {
   Ffuncall (1, &f);
@@ -1813,7 +1841,7 @@ emit_ctxt_code (void)
   emit_static_object (TEXT_DATA_RELOC_SYM, d_reloc);
 
   /* Functions imported from Lisp code.  */
-
+  freloc_check_fill ();
   gcc_jit_field **fields = xmalloc (freloc.size * sizeof (*fields));
   ptrdiff_t n_frelocs = 0;
   Lisp_Object f_runtime = declare_runtime_imported_funcs ();
@@ -3113,34 +3141,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 }
 
 
-static void
-freloc_check_fill (void)
-{
-  if (freloc.size)
-    return;
-
-  if (ARRAYELTS (helper_link_table) > F_RELOC_MAX_SIZE)
-    goto overflow;
-  memcpy (freloc.link_table, helper_link_table, sizeof (helper_link_table));
-  freloc.size = ARRAYELTS (helper_link_table);
-
-  eassert (!NILP (Vcomp_subr_list));
-
-  Lisp_Object subr_l = Vcomp_subr_list;
-  FOR_EACH_TAIL (subr_l)
-    {
-      if (freloc.size == F_RELOC_MAX_SIZE)
-	goto overflow;
-      struct Lisp_Subr *subr = XSUBR (XCAR (subr_l));
-      freloc.link_table[freloc.size] = subr->function.a0;
-      freloc.size++;
-    }
-  return;
-
- overflow:
-  fatal ("Overflowing function relocation table, increase F_RELOC_MAX_SIZE");
-}
-
 /******************************************************************************/
 /* Helper functions called from the run-time.				      */
 /* These can't be statics till shared mechanism is used to solve relocations. */
