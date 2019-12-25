@@ -276,15 +276,13 @@ require user confirmation."
   (interactive)
   (let* ((dir (and (eq (icomplete--category) 'file)
                    (file-name-directory (icomplete--field-string))))
-         (current (car (completion-all-sorted-completions)))
+         (current (car completion-all-sorted-completions))
          (probe (and dir current
                      (expand-file-name (directory-file-name current) dir))))
     (cond ((and probe (file-directory-p probe) (not (string= current "./")))
            (icomplete-force-complete))
-          (current
-           (icomplete-force-complete-and-exit))
           (t
-           (exit-minibuffer)))))
+           (icomplete-force-complete-and-exit)))))
 
 (defun icomplete-fido-backward-updir ()
   "Delete char before or go up directory, like `ido-mode'."
