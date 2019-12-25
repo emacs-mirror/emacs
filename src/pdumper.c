@@ -348,7 +348,7 @@ enum reloc_phase
   {
     /* First to run.  Place here every relocation with no dependecy.  */
     EARLY_RELOCS,
-    /* Run just after EARLY_RELOCS.  */
+    /* Running after emacs relocations.  */
     LATE_RELOCS,
     /* Relocated at the very last after all hooks has been run.  All
        lisp machinery (allocation included) is at disposal.  */
@@ -5563,8 +5563,8 @@ pdumper_load (const char *dump_filename)
   dump_public.end = dump_public.start + dump_size;
 
   dump_do_all_dump_reloc_for_phase (header, dump_base, EARLY_RELOCS);
-  dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_emacs_relocations (header, dump_base);
+  dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
 
   dump_mmap_discard_contents (&sections[DS_DISCARDABLE]);
   for (int i = 0; i < ARRAYELTS (sections); ++i)
