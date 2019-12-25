@@ -2166,9 +2166,9 @@ If that fails, try to open it with `find-file-literally'
                       (* total-free-memory 1024)))))))))
 
 (defun files--message (format &rest args)
-  "Like `message', except sometimes don't print to minibuffer.
-If the variable `save-silently' is non-nil, the message is not
-displayed on the minibuffer."
+  "Like `message', except sometimes don't show the message text.
+If the variable `save-silently' is non-nil, the message will not
+be visible in the echo area."
   (apply #'message format args)
   (when save-silently (message nil)))
 

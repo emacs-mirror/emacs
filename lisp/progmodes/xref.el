@@ -814,7 +814,7 @@ GROUP is a string for decoration purposes and XREF is an
            for line-format = (and max-line-width
                                   (format "%%%dd: " max-line-width))
            do
-           (xref--insert-propertized '(face xref-file-header 'xref-group t)
+           (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
            (cl-loop for (xref . more2) on xrefs do
                     (with-slots (summary location) xref

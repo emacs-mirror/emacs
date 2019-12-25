@@ -1460,20 +1460,22 @@ Argument BACKEND is the backend you are using."
 ;; Subroutine for `vc-git-ignore' and `vc-hg-ignore'.
 (defun vc--add-line (string file)
   "Add STRING as a line to FILE."
-  (with-temp-buffer
-    (insert-file-contents file)
+  (with-current-buffer (find-file-noselect file)
+    (goto-char (point-min))
     (unless (re-search-forward (concat "^" (regexp-quote string) "$") nil t)
       (goto-char (point-max))
-      (insert (concat "\n" string))
-      (write-region (point-min) (point-max) file))))
+      (unless (bolp) (insert "\n"))
+      (insert string "\n")
+      (save-buffer))))
 
 (defun vc--remove-regexp (regexp file)
   "Remove all matching for REGEXP in FILE."
-  (with-temp-buffer
-    (insert-file-contents file)
-    (while (re-search-forward regexp nil t)
-      (replace-match ""))
-    (write-region (point-min) (point-max) file)))
+  (if (file-exists-p file)
+      (with-current-buffer (find-file-noselect file)
+        (goto-char (point-min))
+        (while (re-search-forward regexp nil t)
+          (replace-match ""))
+        (save-buffer))))
 
 (defun vc-checkout (file &optional rev)
   "Retrieve a copy of the revision REV of FILE.
