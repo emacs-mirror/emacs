@@ -135,6 +135,7 @@ src/gl-stamp
 *.o
 *.res
 *.so
+*.dylib
 core
 core.*[0-9]
 gmon.out
