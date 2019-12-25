@@ -2050,10 +2050,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     moncontrol (0);
 #endif
 
-#ifdef HAVE_NATIVE_COMP
-  fill_freloc ();
-#endif
-
   initialized = true;
 
   if (dump_mode)

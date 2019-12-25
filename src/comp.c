@@ -3113,13 +3113,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 }
 
 
-void
-fill_freloc (void)
+static void
+freloc_check_fill (void)
 {
+  if (freloc.size)
+    return;
+
   if (ARRAYELTS (helper_link_table) > F_RELOC_MAX_SIZE)
     goto overflow;
   memcpy (freloc.link_table, helper_link_table, sizeof (helper_link_table));
   freloc.size = ARRAYELTS (helper_link_table);
+
+  eassert (!NILP (Vcomp_subr_list));
 
   Lisp_Object subr_l = Vcomp_subr_list;
   FOR_EACH_TAIL (subr_l)
@@ -3134,12 +3139,6 @@ fill_freloc (void)
 
  overflow:
   fatal ("Overflowing function relocation table, increase F_RELOC_MAX_SIZE");
-}
-
-int
-filled_freloc (void)
-{
-  return freloc.link_table[0] ? 1 : 0;
 }
 
 /******************************************************************************/
@@ -3217,6 +3216,8 @@ load_static_obj (dynlib_handle_ptr handle, const char *name)
 void
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 {
+  freloc_check_fill ();
+
   dynlib_handle_ptr handle = comp_u->handle;
   struct thread_state ***current_thread_reloc =
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
@@ -3303,9 +3304,6 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
 {
   CHECK_STRING (file);
 
-  if (!freloc.link_table[0])
-    xsignal2 (Qnative_lisp_load_failed, file,
-	      build_string ("Empty relocation table"));
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit();
   comp_u->handle = dynlib_open (SSDATA (file));
   if (!comp_u->handle)
@@ -3430,7 +3428,8 @@ syms_of_comp (void)
 	       doc: /* The compiler context.  */);
   Vcomp_ctxt = Qnil;
 
-  /* FIXME should be initialized but not here... */
+  /* FIXME should be initialized but not here...  Plus this don't have
+     to be necessarily exposed to lisp but can easy debug for now.  */
   DEFVAR_LISP ("comp-subr-list", Vcomp_subr_list,
 	       doc: /* List of all defined subrs.  */);
   DEFVAR_LISP ("comp-sym-subr-c-name-h", Vcomp_sym_subr_c_name_h,
