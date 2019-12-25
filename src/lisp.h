@@ -4759,7 +4759,7 @@ extern char *emacs_root_dir (void);
 
 #ifdef HAVE_NATIVE_COMP
 INLINE bool
-SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
+SUBR_NATIVE_COMPILEDP (Lisp_Object a)
 {
   return SUBRP (a) && XSUBR (a)->native_comp_u[0];
 }
@@ -4772,7 +4772,7 @@ allocate_native_comp_unit (void)
 }
 #else
 INLINE bool
-SUBRP_NATIVE_COMPILEDP (Lisp_Object a)
+SUBR_NATIVE_COMPILEDP (Lisp_Object a)
 {
   return false;
 }

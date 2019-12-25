@@ -872,7 +872,7 @@ DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1,
 nil otherwise.  */)
   (Lisp_Object object)
 {
-  return SUBRP_NATIVE_COMPILEDP (object) ? Qt : Qnil;
+  return SUBR_NATIVE_COMPILEDP (object) ? Qt : Qnil;
 }
 
 DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
@@ -919,7 +919,7 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      if (SUBRP_NATIVE_COMPILEDP (fun) && XSUBR (fun)->native_intspec)
+      if (SUBR_NATIVE_COMPILEDP (fun) && XSUBR (fun)->native_intspec)
 	return XSUBR (fun)->native_intspec;
 
       const char *spec = XSUBR (fun)->intspec;

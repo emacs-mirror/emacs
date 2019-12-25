@@ -510,7 +510,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	    XSETCAR (tem, make_fixnum (offset));
 	}
     }
-  else if (SUBRP_NATIVE_COMPILEDP (fun))
+  else if (SUBR_NATIVE_COMPILEDP (fun))
     {
       XSUBR (fun)->native_doc = Qnil;
     }

@@ -6564,7 +6564,7 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
-	    if (SUBRP_NATIVE_COMPILEDP (obj))
+	    if (SUBR_NATIVE_COMPILEDP (obj))
 	      {
 		set_vector_marked (ptr);
 		struct Lisp_Subr *subr = XSUBR (obj);
@@ -6715,7 +6715,7 @@ survives_gc_p (Lisp_Object obj)
 
     case Lisp_Vectorlike:
       survives_p =
-	(SUBRP (obj) && !SUBRP_NATIVE_COMPILEDP (obj)) ||
+	(SUBRP (obj) && !SUBR_NATIVE_COMPILEDP (obj)) ||
 	vector_marked_p (XVECTOR (obj));
       break;
 
