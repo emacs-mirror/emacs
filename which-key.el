@@ -1671,7 +1671,12 @@ and `which-key-show-docstrings' is non-nil. If
 return the docstring."
   (let* ((orig-sym (intern original))
          (doc (when (commandp orig-sym)
-                (documentation orig-sym)))
+                (string-trim-left
+                 (documentation orig-sym)
+                 (concat "\\(?::"
+                         "\\(?:\\(?:after\\|before\\)\\(?:-\\(?:until\\|while\\)\\)?\\|around\\|override\\|filter-\\(?:args\\|return\\)\\)"
+                         " advice: [^\n]+\n"
+                         "\\)+\n"))))
          (docstring (when doc
                       (which-key--propertize (car (split-string doc "\n"))
                                              'face 'which-key-docstring-face))))
