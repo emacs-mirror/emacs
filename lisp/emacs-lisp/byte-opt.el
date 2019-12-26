@@ -480,6 +480,13 @@
                                                  backwards)))))
 	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
 
+	  ((eq fn 'while)
+           (unless (consp (cdr form))
+	     (byte-compile-warn "too few arguments for `while'"))
+           (cons fn
+                 (cons (byte-optimize-form (cadr form) nil)
+                       (byte-optimize-body (cddr form) t))))
+
 	  ((eq fn 'interactive)
 	   (byte-compile-warn "misplaced interactive spec: `%s'"
 			      (prin1-to-string form))
