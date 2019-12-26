@@ -727,7 +727,7 @@ an alist of attribute/value pairs."
 	  (setq record nil)
 	  (skip-chars-forward " \t\n")
 	  (message "Parsing results... %d" numres)
-	  (1+ numres))
+	  (setq numres (1+ numres)))
 	(message "Parsing results... done")
 	(nreverse result)))))
 
