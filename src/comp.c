@@ -2239,7 +2239,7 @@ define_CHECK_TYPE (void)
 				 "x") };
   comp.check_type =
     gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  GCC_JIT_FUNCTION_INTERNAL,
 				  comp.void_type,
 				  "CHECK_TYPE",
 				  3,
@@ -2613,7 +2613,7 @@ define_PSEUDOVECTORP (void)
 
   comp.pseudovectorp =
     gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  GCC_JIT_FUNCTION_INTERNAL,
 				  comp.bool_type,
 				  "PSEUDOVECTORP",
 				  2,
@@ -2665,7 +2665,7 @@ define_CHECK_IMPURE (void)
 				 "ptr") };
   comp.check_impure =
     gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  GCC_JIT_FUNCTION_INTERNAL,
 				  comp.void_type,
 				  "CHECK_IMPURE",
 				  2,
@@ -2709,7 +2709,7 @@ define_bool_to_lisp_obj (void)
 						    "x");
   comp.bool_to_lisp_obj =
     gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  GCC_JIT_FUNCTION_INTERNAL,
 				  comp.lisp_obj_type,
 				  "bool_to_lisp_obj",
 				  1,
