@@ -1912,8 +1912,7 @@ calling the more powerful Emacs @code{intern} function
 emacs_value fintern = env->intern (env, "intern");
 emacs_value sym_name =
   env->make_string (env, name_str, strlen (name_str));
-emacs_value intern_args[] = @{ sym_name, env->intern (env, "nil") @};
-emacs_value symbol = env->funcall (env, fintern, 2, intern_args);
+emacs_value symbol = env->funcall (env, fintern, 1, &sym_name);
 @end example
 
 @end deftypefn
