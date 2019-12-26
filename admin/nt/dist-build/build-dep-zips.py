@@ -26,7 +26,7 @@ import re
 from subprocess import check_output
 
 ## Constants
-EMACS_MAJOR_VERSION="27"
+EMACS_MAJOR_VERSION="28"
 
 # This list derives from the features we want Emacs to compile with.
 PKG_REQ='''mingw-w64-x86_64-giflib
