@@ -45,6 +45,10 @@ applies, and please also update docstrings as needed.
 
 * Lisp Changes in Emacs 28.1
 
+** The module header 'emacs-module.h' now contains type aliases
+'emacs_function' and 'emacs_finalizer' for module functions and
+finalizers, respectively.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 

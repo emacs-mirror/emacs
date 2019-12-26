@@ -1314,7 +1314,8 @@ subsection describes how to write such @dfn{module functions}.
 
 A module function has the following general form and signature:
 
-@deftypefn Function emacs_value module_func (emacs_env *@var{env}, ptrdiff_t @var{nargs}, emacs_value *@var{args}, void *@var{data})
+@deftypefn Function emacs_value emacs_function (emacs_env *@var{env}, ptrdiff_t @var{nargs}, emacs_value *@var{args}, void *@var{data})
+@tindex emacs_function
 The @var{env} argument provides a pointer to the @acronym{API}
 environment, needed to access Emacs objects and functions.  The
 @var{nargs} argument is the required number of arguments, which can be
@@ -1323,7 +1324,7 @@ of the argument number), and @var{args} is a pointer to the array of
 the function arguments.  The argument @var{data} points to additional
 data required by the function, which was arranged when
 @code{make_function} (see below) was called to create an Emacs
-function from @code{module_func}.
+function from @code{emacs_function}.
 
 Module functions use the type @code{emacs_value} to communicate Lisp
 objects between Emacs and the module (@pxref{Module Values}).  The
@@ -1338,6 +1339,10 @@ However, if the user typed @kbd{C-g}, or if the module function or its
 callees signaled an error or exited nonlocally (@pxref{Module
 Nonlocal}), Emacs will ignore the returned value and quit or throw as
 it does when Lisp code encounters the same situations.
+
+The header @file{emacs-module.h} provides the type
+@code{emacs_function} as an alias type for a function pointer to a
+module function.
 @end deftypefn
 
 After writing your C code for a module function, you should make a
@@ -1348,11 +1353,11 @@ normally done in the module initialization function (@pxref{module
 initialization function}), after verifying the @acronym{API}
 compatibility.
 
-@deftypefn Function emacs_value make_function (emacs_env *@var{env}, ptrdiff_t @var{min_arity}, ptrdiff_t @var{max_arity}, subr @var{func}, const char *@var{docstring}, void *@var{data})
+@deftypefn Function emacs_value make_function (emacs_env *@var{env}, ptrdiff_t @var{min_arity}, ptrdiff_t @var{max_arity}, emacs_function @var{func}, const char *@var{docstring}, void *@var{data})
 @vindex emacs_variadic_function
 This returns an Emacs function created from the C function @var{func},
-whose signature is as described for @code{module_func} above (assumed
-here to be @code{typedef}'ed as @code{subr}).  The arguments
+whose signature is as described for @code{emacs_function} above.
+The arguments
 @var{min_arity} and @var{max_arity} specify the minimum and maximum
 number of arguments that @var{func} can accept.  The @var{max_arity}
 argument can have the special value @code{emacs_variadic_function},
@@ -1843,6 +1848,12 @@ represented by @var{arg} to be @var{fin}.  If @var{fin} is a
 @code{NULL} pointer, the @code{user-ptr} object will have no
 finalizer.
 @end deftypefn
+
+@deftypefun void emacs_finalizer (void *@var{ptr})
+The header @file{emacs-module.h} provides the type
+@code{emacs_finalizer} as a type alias for an Emacs finalizer
+function.
+@end deftypefun
 
 @node Module Misc
 @subsection Miscellaneous Convenience Functions for Modules

@@ -122,12 +122,6 @@ To add a new module function, proceed as follows:
 /* Function prototype for the module init function.  */
 typedef int (*emacs_init_function) (struct emacs_runtime *);
 
-/* Function prototype for module user-pointer finalizers.  These
-   should not throw C++ exceptions, so emacs-module.h declares the
-   corresponding interfaces with EMACS_NOEXCEPT.  There is only C code
-   in this module, though, so this constraint is not enforced here.  */
-typedef void (*emacs_finalizer) (void *);
-
 
 /* Memory management.  */
 
@@ -466,10 +460,6 @@ module_non_local_exit_throw (emacs_env *env, emacs_value tag, emacs_value value)
 				   value_to_lisp (value));
 }
 
-/* Function prototype for the module Lisp functions.  */
-typedef emacs_value (*emacs_subr) (emacs_env *, ptrdiff_t,
-				   emacs_value *, void *);
-
 /* Module function.  */
 
 /* A function environment is an auxiliary structure returned by
@@ -486,7 +476,7 @@ struct Lisp_Module_Function
 
   /* Fields ignored by GC.  */
   ptrdiff_t min_arity, max_arity;
-  emacs_subr subr;
+  emacs_function subr;
   void *data;
 } GCALIGNED_STRUCT;
 
@@ -505,7 +495,7 @@ allocate_module_function (void)
 
 static emacs_value
 module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
-		      emacs_subr func, const char *docstring, void *data)
+		      emacs_function func, const char *docstring, void *data)
 {
   MODULE_FUNCTION_BEGIN (NULL);
 
