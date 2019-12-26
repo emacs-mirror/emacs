@@ -103,6 +103,7 @@ redefine OBJECT if it is a symbol."
               (when (re-search-forward "^.*<.*>:" nil t 2)
                 (delete-region (match-beginning 0) (point-max)))
               (asm-mode)
+              (setq buffer-read-only t)
               (cl-return-from disassemble-internal))
 	  (error "Can't disassemble #<subr %s>" name)))
     (if (eq (car-safe obj) 'macro)	;Handle macros.
