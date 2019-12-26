@@ -193,6 +193,11 @@ let the buffer grow forever."
   :type '(choice (const :tag "No limit" nil)
                  (integer :tag "Number of characters")))
 
+(defcustom eglot-confirm-server-initiated-edits 'confirm
+  "Non-nil if server-initiated edits should be confirmed with user."
+  :type '(choice (const :tag "Don't show confirmation prompt" nil)
+                 (symbol :tag "Show confirmation prompt" 'confirm)))
+
 
 ;;; Constants
 ;;;
@@ -1547,7 +1552,7 @@ THINGS are either registrations or unregisterations (sic)."
 (cl-defmethod eglot-handle-request
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit"
-  (eglot--apply-workspace-edit edit 'confirm))
+  (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
