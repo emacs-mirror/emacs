@@ -33,12 +33,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dynlib.h"
 #include "buffer.h"
 #include "blockinput.h"
+#include "sha512.h"
 
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
+#define LINK_TABLE_HASH_SYM "freloc_hash"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
@@ -223,6 +225,21 @@ format_string (const char *format, ...)
     }
   va_end (va);
   return scratch_area;
+}
+
+/* Produce a key hashing Vcomp_subr_list.  */
+
+static Lisp_Object
+hash_subr_list (void)
+{
+  Lisp_Object string = Fmapconcat (intern_c_string ("subr-name"),
+				   Vcomp_subr_list, build_string (" "));
+  Lisp_Object digest = make_uninit_string (SHA512_DIGEST_SIZE * 2);
+
+  sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
+  hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
+
+  return digest;
 }
 
 static void
@@ -1852,6 +1869,9 @@ emit_ctxt_code (void)
       fields[n_frelocs++] = xmint_pointer (XCDR (el));
     }
 
+  /* Compute and store function link table hash.  */
+  emit_static_object (LINK_TABLE_HASH_SYM, hash_subr_list ());
+
   Lisp_Object subr_l = Vcomp_subr_list;
   FOR_EACH_TAIL (subr_l)
     {
@@ -3205,10 +3225,12 @@ typedef char *(*comp_lit_str_func) (void);
 
 /* Deserialize read and return static object.  */
 static Lisp_Object
-load_static_obj (dynlib_handle_ptr handle, const char *name)
+load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 {
-  static_obj_t *(*f)(void) = dynlib_sym (handle, name);
-  eassert (f);
+  static_obj_t *(*f)(void) = dynlib_sym (comp_u->handle, name);
+  if (!f)
+    xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+
   static_obj_t *res = f ();
   return Fread (make_string (res->data, res->len));
 }
@@ -3230,7 +3252,9 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 	&& pure_reloc
 	&& data_relocs
 	&& freloc_link_table
-	&& top_level_run))
+	&& top_level_run)
+      || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
+			      hash_subr_list ())))
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
   *current_thread_reloc = &current_thread;
@@ -3241,7 +3265,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 
   /* Imported data.  */
   if (!loading_dump)
-    comp_u->data_vec = load_static_obj (handle, TEXT_DATA_RELOC_SYM);
+    comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
 
@@ -3408,7 +3432,8 @@ syms_of_comp (void)
   Fput (Qnative_lisp_file_inconsistent, Qerror_conditions,
 	pure_list (Qnative_lisp_file_inconsistent, Qnative_lisp_load_failed, Qerror));
   Fput (Qnative_lisp_file_inconsistent, Qerror_message,
-        build_pure_c_string ("inconsistent eln file"));
+        build_pure_c_string ("eln file inconsistent with current runtime "
+			     "configuration, please recompile"));
 
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
