@@ -262,8 +262,15 @@ backend implementation of `project-external-roots'.")
 
 (defun project-try-vc (dir)
   (let* ((backend (ignore-errors (vc-responsible-backend dir)))
-         (root (and backend (ignore-errors
-                              (vc-call-backend backend 'root dir)))))
+         (root
+          (pcase backend
+            ('Git
+             ;; Don't stop at submodule boundary.
+             (or (vc-file-getprop dir 'project-git-root)
+                 (vc-file-setprop dir 'project-git-root
+                                  (vc-find-root dir ".git/"))))
+            ('nil nil)
+            (_ (ignore-errors (vc-call-backend backend 'root dir))))))
     (and root (cons 'vc root))))
 
 (cl-defmethod project-roots ((project (head vc)))
@@ -303,7 +310,8 @@ backend implementation of `project-external-roots'.")
   (pcase backend
     (`Git
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args '("-z")))
+           (args '("-z"))
+           files)
        ;; Include unregistered.
        (setq args (append args '("-c" "-o" "--exclude-standard")))
        (when extra-ignores
@@ -315,11 +323,26 @@ backend implementation of `project-external-roots'.")
                                          (format ":!/:%s" (substring i 2))
                                        (format ":!:%s" i)))
                                    extra-ignores)))))
-       (mapcar
-        (lambda (file) (concat default-directory file))
-        (split-string
-         (apply #'vc-git--run-command-string nil "ls-files" args)
-         "\0" t))))
+       (setq files
+             (mapcar
+              (lambda (file) (concat default-directory file))
+              (split-string
+               (apply #'vc-git--run-command-string nil "ls-files" args)
+               "\0" t)))
+       ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
+       (let* ((submodules (project--git-submodules))
+              (sub-files
+               (mapcar
+                (lambda (module)
+                  (when (file-directory-p module)
+                    (project--vc-list-files
+                     (concat default-directory module)
+                     backend
+                     extra-ignores)))
+                submodules)))
+         (setq files
+               (apply #'nconc files sub-files)))
+       files))
     (`Hg
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
            args)
@@ -336,6 +359,18 @@ backend implementation of `project-external-roots'.")
          (mapcar
           (lambda (s) (concat default-directory s))
           (split-string (buffer-string) "\0" t)))))))
+
+(defun project--git-submodules ()
+  ;; 'git submodule foreach' is much slower.
+  (condition-case nil
+      (with-temp-buffer
+        (insert-file-contents ".gitmodules")
+        (let (res)
+          (goto-char (point-min))
+          (while (re-search-forward "path *= *\\(.+\\)" nil t)
+            (push (match-string 1) res))
+          (nreverse res)))
+    (file-missing nil)))
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (let* ((root (cdr project))
@@ -485,7 +520,7 @@ pattern to search for."
                     (buffer-substring (point-min) (line-end-position))))
       (while (re-search-forward grep-re nil t)
         (push (list (string-to-number (match-string line-group))
-                    (concat remote-id (match-string file-group))
+                    (match-string file-group)
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
     (setq xrefs (xref--convert-hits (nreverse hits) regexp))

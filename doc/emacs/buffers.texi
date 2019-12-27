@@ -13,6 +13,10 @@ the directory listing.  If you send a message with @kbd{C-x m}, a
 buffer is used to hold the text of the message.  When you ask for a
 command's documentation, that appears in a buffer named @file{*Help*}.
 
+  Buffers exist as long as they are in use, and are deleted
+(``killed'') when no longer needed, either by you (@pxref{Kill
+Buffer}) or by Emacs (e.g., when you exit Emacs, @pxref{Exiting}).
+
   Each buffer has a unique name, which can be of any length.  When a
 buffer is displayed in a window, its name is shown in the mode line
 (@pxref{Mode Line}).  The distinction between upper and lower case
