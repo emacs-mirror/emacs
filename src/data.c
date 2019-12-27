@@ -919,7 +919,7 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      if (SUBR_NATIVE_COMPILEDP (fun) && XSUBR (fun)->native_intspec)
+      if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->native_intspec))
 	return XSUBR (fun)->native_intspec;
 
       const char *spec = XSUBR (fun)->intspec;

@@ -2948,13 +2948,13 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   struct Lisp_Subr out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
-  if (NATIVE_COMP_FLAG && subr->native_comp_u[0])
+  if (NATIVE_COMP_FLAG && !NILP (subr->native_comp_u[0]))
     out.function.a0 = NULL;
   else
     dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-  if (NATIVE_COMP_FLAG && subr->native_comp_u[0])
+  if (NATIVE_COMP_FLAG && !NILP (subr->native_comp_u[0]))
     {
       dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
       dump_remember_cold_op (ctx,
@@ -2973,7 +2973,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
     dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
 
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
-  if (ctx->flags.dump_object_contents && subr->native_comp_u[0])
+  if (ctx->flags.dump_object_contents && !NILP (subr->native_comp_u[0]))
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],

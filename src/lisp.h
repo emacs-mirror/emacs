@@ -4761,7 +4761,7 @@ extern char *emacs_root_dir (void);
 INLINE bool
 SUBR_NATIVE_COMPILEDP (Lisp_Object a)
 {
-  return SUBRP (a) && XSUBR (a)->native_comp_u[0];
+  return SUBRP (a) && !NILP (XSUBR (a)->native_comp_u[0]);
 }
 
 INLINE struct Lisp_Native_Comp_Unit *

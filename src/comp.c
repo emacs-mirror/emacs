@@ -866,7 +866,7 @@ emit_const_lisp_obj (Lisp_Object obj)
   emit_comment (format_string ("const lisp obj: %s",
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
 
-  if (Qnil == NULL && EQ (obj, Qnil))
+  if (NIL_IS_ZERO && EQ (obj, Qnil))
     return emit_cast (comp.lisp_obj_type,
 		      gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 							   comp.void_ptr_type,
