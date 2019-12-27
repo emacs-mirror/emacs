@@ -38,7 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
-#define IMPORTED_FUNC_LINK_TABLE "freloc_link_table"
+#define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
@@ -1873,7 +1873,7 @@ emit_ctxt_code (void)
       NULL,
       GCC_JIT_GLOBAL_EXPORTED,
       gcc_jit_type_get_pointer (gcc_jit_struct_as_type (f_reloc_struct)),
-      IMPORTED_FUNC_LINK_TABLE);
+      FUNC_LINK_TABLE_SYM);
 
   xfree (fields);
 }
@@ -3223,7 +3223,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-  void **freloc_link_table = dynlib_sym (handle, IMPORTED_FUNC_LINK_TABLE);
+  void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
   void (*top_level_run)(Lisp_Object) = dynlib_sym (handle, "top_level_run");
 
   if (!(current_thread_reloc
