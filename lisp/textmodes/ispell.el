@@ -1951,18 +1951,7 @@ quit          spell session exited."
       (or quietly
 	  (message "Checking spelling of %s..."
 		   (funcall ispell-format-word-function word)))
-      (ispell-send-string "%\n")	; put in verbose mode
-      (ispell-send-string (concat "^" word "\n"))
-      ;; wait until ispell has processed word
-      (while (progn
-	       (ispell-accept-output)
-	       (not (string= "" (car ispell-filter)))))
-      ;;(ispell-send-string "!\n") ;back to terse mode.
-      (setq ispell-filter (cdr ispell-filter)) ; remove extra \n
-      (if (and ispell-filter (listp ispell-filter))
-	  (if (> (length ispell-filter) 1)
-	      (error "Ispell and its process have different character maps")
-	    (setq poss (ispell-parse-output (car ispell-filter)))))
+      (setq poss (ispell--run-on-word word))
       (cond ((eq poss t)
 	     (or quietly
 		 (message "%s is correct"
@@ -2024,6 +2013,43 @@ quit          spell session exited."
       (goto-char cursor-location)	; return to original location
       replace))))
 
+(defun ispell--run-on-word (word)
+  "Run ispell on WORD."
+  (ispell-send-string "%\n")	; put in verbose mode
+  (ispell-send-string (concat "^" word "\n"))
+  ;; wait until ispell has processed word
+  (while (progn
+           (ispell-accept-output)
+           (not (string= "" (car ispell-filter)))))
+  (setq ispell-filter (cdr ispell-filter))
+  (when (and ispell-filter (listp ispell-filter))
+    (if (> (length ispell-filter) 1)
+        (error "Ispell and its processs have different character maps: %s" ispell-filter)
+      (ispell-parse-output (car ispell-filter)))))
+
+(defun ispell-error-checking-word (word)
+  "Return a string describing that checking for WORD failed."
+  (format "Error checking word %s using %s with %s dictionary"
+          (funcall ispell-format-word-function word)
+          (file-name-nondirectory ispell-program-name)
+          (or ispell-current-dictionary "default")))
+
+(defun ispell-correct-p (&optional following)
+  "Return t if the word at point is correct. Nil otherwise.
+
+If optional argument FOLLOWING is non-nil then the following
+word (rather than preceding) is checked when the cursor is not
+over a word."
+  (save-excursion
+    ;; reset ispell-filter so it only contains the result of
+    ;; spell-checking the current-word:
+    (setq ispell-filter nil)
+    (let* ((word-and-boundaries (ispell-get-word following))
+           (word (car word-and-boundaries))
+           (poss (ispell--run-on-word word)))
+      (unless poss (error (ispell-error-checking-word word)))
+      (or (eq poss t)
+          (stringp poss)))))
 
 (defun ispell-get-word (following &optional extra-otherchars)
   "Return the word for spell-checking according to ispell syntax.
