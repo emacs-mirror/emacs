@@ -1408,6 +1408,22 @@ the function to that symbol.  Note that it is possible to use
 @code{fset} instead of @code{defalias}; the differences are described
 in @ref{Defining Functions, defalias}.
 
+Module functions including the @code{emacs_module_init} function
+(@pxref{module initialization function}) may only interact with Emacs
+by calling environment functions from some live @code{emacs_env}
+pointer while being called directly or indirectly from Emacs.  In
+other words, if a module function wants to call Lisp functions or
+Emacs primitives, convert @code{emacs_value} objects to and from C
+datatypes (@pxref{Module Values}), or interact with Emacs in any other
+way, some call from Emacs to @code{emacs_module_init} or to a module
+function must be in the callstack.  Module function may not interact
+with Emacs while garbage collection is running; @pxref{Garbage
+Collection}.  They may only interact with Emacs from Lisp interpreter
+threads (including the main thread) created by Emacs; @pxref{Threads}.
+The @kbd{--module-assertions} command-line option can detect some
+violations of the above requirements.  @xref{Initial Options,,,emacs,
+The GNU Emacs Manual}.
+
 Using the module @acronym{API}, it is possible to define more complex
 function and data types: interactive functions, inline functions,
 macros, etc.  However, the resulting C code will be cumbersome and
@@ -1428,8 +1444,8 @@ following simple Lisp wrapper:
 @end lisp
 
 The Lisp package which goes with your module could then load the
-module using the @code{module-load} primitive (@pxref{Dynamic
-Modules}) when the package is loaded into Emacs.
+module using the @code{load} primitive (@pxref{Dynamic Modules}) when
+the package is loaded into Emacs.
 
 @node Module Values
 @subsection Conversion Between Lisp and Module Values

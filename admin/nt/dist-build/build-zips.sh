@@ -160,23 +160,27 @@ while getopts "36gb:hnsiV:" opt; do
   esac
 done
 
-if [ -z $VERSION ];
+
+## ACTUAL_VERSION is the version declared by emacs
+if [ -z $ACTUAL_VERSION ];
 then
-    VERSION=`
+    ACTUAL_VERSION=`
   sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 ,)]*\).*/\1/p' < ../../../configure.ac
 `
 fi
 
-if [ -z $VERSION ];
+if [ -z $ACTUAL_VERSION ];
 then
     echo [build] Cannot determine Emacs version
     exit 1
 fi
 
+## VERSION is the version that we want to call Emacs
+VERSION=$ACTUAL_VERSION
+
+
 MAJOR_VERSION="$(echo $VERSION | cut -d'.' -f1)"
 
-## ACTUAL VERSION is the version declared by emacs
-ACTUAL_VERSION=$VERSION
 
 ## VERSION includes the word snapshot if necessary
 VERSION=$VERSION$SNAPSHOT

@@ -318,6 +318,21 @@ An existing calc stack is reused, otherwise a new one is created."
            '(vec (calcFunc-eq (var x var-x) 3)
                  (calcFunc-eq (var y var-y) 0)))))
 
+(ert-deftest calc-poly-div ()
+  "Test polynomial division, and that the remainder is recorded in the trail."
+  (with-current-buffer (calc-trail-buffer)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+
+      (calc-eval "2x**3+1" 'push)
+      (calc-eval "x**2+2x" 'push)
+      (calc-poly-div nil)
+      (let ((tos (calc-top-n 1))
+            (trail (buffer-string)))
+        (calc-pop 0)
+        (should (equal tos '(- (* 2 (var x var-x)) 4)))
+        (should (equal trail "pdiv 2 * x - 4\nprem 8 * x + 1\n"))))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 

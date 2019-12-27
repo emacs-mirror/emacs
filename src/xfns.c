@@ -4576,7 +4576,6 @@ On MS Windows, this just returns nil.  */)
    Return false if and only if the workarea information cannot be
    obtained via the _NET_WORKAREA root window property.  */
 
-#ifndef HAVE_GTK3
 static bool
 x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 {
@@ -4634,7 +4633,6 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 
   return result;
 }
-#endif
 
 #ifndef USE_GTK
 

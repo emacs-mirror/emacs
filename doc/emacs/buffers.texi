@@ -308,6 +308,8 @@ Offer to kill all buffers matching a regular expression.
 
 @findex kill-buffer
 @kindex C-x k
+@cindex killing unsaved buffers
+@cindex unsaved buffers, killing
   @kbd{C-x k} (@code{kill-buffer}) kills one buffer, whose name you
 specify in the minibuffer.  The default, used if you type just
 @key{RET} in the minibuffer, is to kill the current buffer.  If you

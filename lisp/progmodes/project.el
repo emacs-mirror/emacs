@@ -450,6 +450,10 @@ pattern to search for."
        (status nil)
        (hits nil)
        (xrefs nil)
+       ;; Support for remote files.  The assumption is that, if the
+       ;; first file is remote, they all are, and on the same host.
+       (dir (file-name-directory (car files)))
+       (remote-id (file-remote-p dir))
        ;; 'git ls-files' can output broken symlinks.
        (command (format "xargs -0 grep %s -snHE -e %s"
                         (if (and case-fold-search
@@ -457,10 +461,13 @@ pattern to search for."
                             "-i"
                           "")
                         (shell-quote-argument (xref--regexp-to-extended regexp)))))
+    (when remote-id
+      (setq files (mapcar #'file-local-name files)))
     (with-current-buffer output
       (erase-buffer)
       (with-temp-buffer
         (insert (mapconcat #'identity files "\0"))
+        (setq default-directory dir)
         (setq status
               (project--process-file-region (point-min)
                                             (point-max)
@@ -478,7 +485,7 @@ pattern to search for."
                     (buffer-substring (point-min) (line-end-position))))
       (while (re-search-forward grep-re nil t)
         (push (list (string-to-number (match-string line-group))
-                    (match-string file-group)
+                    (concat remote-id (match-string file-group))
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
     (setq xrefs (xref--convert-hits (nreverse hits) regexp))

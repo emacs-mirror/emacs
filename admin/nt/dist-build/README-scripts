@@ -68,7 +68,8 @@ uploaded.
 Build Process
 -------------
 
-For each major version:
+For each major version
+----------------------
 
 The dependencies files need to be created. This can be around the time
 of the pre-tests, then used for all releases of that version, to
@@ -78,9 +79,9 @@ To do this:
 
 Update msys to the latest version with `pacman -Syu`.
 
-Then run build-dep-zips.py, in this directory. Three zips will be
-created, containing the 64bit and 32bit dependencies, as well as the
-source for these.
+Then run build-dep-zips.py, in the ~/emacs-build/deps directory. Three
+zips will be created, containing the 64bit and 32bit dependencies, as
+well as the source for these.
 
 For emacs release or pre-test version:
 
@@ -90,3 +91,47 @@ with the tag of the last version.
 Then run `build-zips.sh` in this worktree. Eventually, four new zip
 files will be created in ~/emacs-upload from where they can be signed
 and uploaded with `gnupload`.
+
+
+For snapshots from Master
+-------------------------
+
+Snapshots are generally created from master when there is a release
+branch on which a release has already been created. At this point,
+only pre-tests or full releases need to happen from the release
+branch.
+
+To do this:
+
+Update msys to the latest version with `pacman -Syu`.
+
+Then run build-dep-zips.py, in ~/emacs-build/deps directory. Three
+zips will be created, containing the 64bit and 32bit dependencies, as
+well as the source for these. These deps files contain the date of
+creation in their name. The deps file can be reused as desired, or a
+new version created. Where multiple deps files exist, the most
+recent will be used.
+
+Now, run `build-zips.sh -s` to build a snapshot release.
+
+
+For snapshots from a Release Branch
+-----------------------------------
+
+Snapshots can be built from a release branch; this is really only
+useful before a pre-test has happened.
+
+The process is the same as for building from the master branch, except
+that the release branch should already exist as a worktree, and the
+version number must be added to the command line with `build-zips.sh
+-V 27 -s`.  The final zips will be named after the branch rather than
+the version (e.g emacs-27-2019-12-26.zip) rather than than the Emacs
+version (e.g emacs-27.0.50.zip).
+
+For snapshots from another branch
+---------------------------------
+
+Snapshots can be build from any other branch.  There is rarely a need
+to do this, except where some significant, wide-ranging feature is
+being added on a feature branch.  In this case, the branch can be
+given using `build-zips.sh -b pdumper -s` for example.

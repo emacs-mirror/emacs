@@ -1220,6 +1220,12 @@ during the initialization.  If the initialization succeeds,
 @code{module-load} returns @code{t}.  Note that @var{file} must
 already have the proper file-name extension, as this function doesn't
 try looking for files with known extensions, unlike @code{load}.
+
+Unlike @code{load}, @code{module-load} doesn't record the module in
+@code{load-history}, doesn't print any messages, and doesn't protect
+against recursive loads.  Most users should therefore use @code{load},
+@code{load-file}, @code{load-library}, or @code{require} instead of
+@code{module-load}.
 @end defun
 
 Loadable modules in Emacs are enabled by using the

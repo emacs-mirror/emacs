@@ -30,6 +30,8 @@
 
 ;;; Algebra commands.
 
+(defvar math-simplify-only)
+
 (defun calc-alg-evaluate (arg)
   (interactive "p")
   (calc-slow-wrapper
@@ -37,6 +39,8 @@
     (let ((math-simplify-only nil))
       (calc-modify-simplify-mode arg)
       (calc-enter-result 1 "dsmp" (calc-top 1))))))
+
+(defvar calc-simplify-mode)
 
 (defun calc-modify-simplify-mode (arg)
   (if (= (math-abs arg) 2)
@@ -66,6 +70,8 @@
   (calc-slow-wrapper
    (calc-with-default-simplification
     (calc-enter-result 1 "esmp" (math-simplify-extended (calc-top-n 1))))))
+
+(defvar math-expand-formulas)
 
 (defun calc-expand-formula (arg)
   (interactive "p")
@@ -159,6 +165,8 @@
   (calc-slow-wrapper
    (calc-binary-op "pgcd" 'calcFunc-pgcd arg)))
 
+
+(defvar calc-poly-div-remainder)
 
 (defun calc-poly-div (arg)
   (interactive "P")
@@ -303,6 +311,7 @@
 		  (math-beforep (car a) (car b)))))
 	(t (string-lessp (car a) (car b)))))
 
+(defvar math-living-dangerously)
 
 (defsubst math-simplify-extended (a)
   (let ((math-living-dangerously t))
@@ -363,6 +372,9 @@
 
 ;; math-normalize-error is declared in calc.el.
 (defvar math-normalize-error)
+(defvar math-simplifying)
+(defvar calc-angle-mode)
+
 (defun math-simplify (top-expr)
   (let ((math-simplifying t)
         (calc-angle-mode (if (calc-input-angle-units top-expr)
@@ -676,6 +688,8 @@ and should return the simplified expression to use (or nil)."
 	(and (Math-integerp b) (setq b (list 'frac b 1)))
 	(math-make-frac (math-gcd (nth 1 a) (nth 1 b))
 			(math-gcd (nth 2 a) (nth 2 b)))))))
+
+(defvar calc-prefer-frac)
 
 (math-defsimplify %
   (and (Math-realp (nth 2 expr))
@@ -1671,6 +1685,7 @@ and should return the simplified expression to use (or nil)."
 (defvar math-is-poly-degree)
 (defvar math-is-poly-loose)
 (defvar math-var)
+(defvar math-poly-base-variable)
 
 (defun math-is-polynomial (expr var &optional degree loose)
   (let* ((math-poly-base-variable (if loose

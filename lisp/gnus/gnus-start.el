@@ -2871,7 +2871,6 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		    (nth 1 (gethash g gnus-newsrc-hashtb)))
 		  (delete "dummy.group" gnus-group-list)))
     (let* ((print-quoted t)
-           (print-readably t)
            (print-escape-multibyte nil)
            (print-escape-nonascii t)
            (print-length nil)
