@@ -361,7 +361,10 @@ If ARG is non-nil, mark the key."
 				 'start-open t
 				 'end-open t)))))
 
-(defun epa--list-keys (name secret)
+(defun epa--list-keys (name secret &optional doc)
+  "NAME specifies which key to list.
+SECRET says list data on the secret key (default, the public key).
+DOC is documentation text to insert at the start."
   (unless (and epa-keys-buffer
 	       (buffer-live-p epa-keys-buffer))
     (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
@@ -371,13 +374,28 @@ If ARG is non-nil, mark the key."
 	buffer-read-only
 	(point (point-min))
 	(context (epg-make-context epa-protocol)))
+
+    ;; Find the end of the documentation text at the start.
+    ;; Set POINT to where it ends, or nil if ends at eob.
     (unless (get-text-property point 'epa-list-keys)
       (setq point (next-single-property-change point 'epa-list-keys)))
+
+    ;; If caller specified documentation text for that, replace the old
+    ;; documentation text (if any) with what was specified.
+    ;; Otherwise, preserve whatever intro text is present.
+    (when doc
+      (if (or point (not (eobp)))
+          (delete-region (point-min) point))
+      (insert doc)
+      (setq point (point)))
+
+    ;; Now delete the key description text, if any.
     (when point
       (delete-region point
 		     (or (next-single-property-change point 'epa-list-keys)
 			 (point-max)))
       (goto-char point))
+
     (epa--insert-keys (epg-list-keys context name secret))
     (widget-setup)
     (set-keymap-parent (current-local-map) widget-keymap))
@@ -396,7 +414,13 @@ If ARG is non-nil, mark the key."
 				    (car epa-list-keys-arguments)))))
 	 (list (if (equal name "") nil name)))
      (list nil)))
-  (epa--list-keys name nil))
+  (epa--list-keys name nil
+                  "The letters at the start of a line have these meanings.
+e  expired key.  n  never trust.  m  trust marginally.  u  trust ultimately.
+f  trust fully (keys you have signed, usually).
+q  trust status questionable.  -  trust status unspecified.
+ See GPG documentaion for more explanation.
+\n"))
 
 ;;;###autoload
 (defun epa-list-secret-keys (&optional name)
