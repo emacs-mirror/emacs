@@ -1333,7 +1333,7 @@ string name) to insert this group before."
 	    (let ((method (gnus-method-simplify
 			   (or gnus-override-subscribe-method
 			       (gnus-group-method group)))))
-	      (gnus-info-make group level nil nil method)))
+	      (setq info (gnus-info-make group level nil nil method))))
 	  ;; Add group.  The exact ordering only matters for
 	  ;; `gnus-group-list', though we need to keep the dummy group
 	  ;; at the head of `gnus-newsrc-alist'.
