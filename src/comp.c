@@ -146,6 +146,7 @@ typedef struct {
   gcc_jit_field *cast_union_as_lisp_obj;
   gcc_jit_field *cast_union_as_lisp_obj_ptr;
   gcc_jit_function *func; /* Current function being compiled.  */
+  bool func_has_non_local; /* From comp-func has-non-local slot.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue **frame; /* Frame for the current function.  */
   gcc_jit_lvalue **f_frame; /* "Floating" frame for the current function.  */
@@ -355,7 +356,11 @@ get_slot (Lisp_Object mvar)
     }
   EMACS_INT slot_n = XFIXNUM (mvar_slot);
   gcc_jit_lvalue **frame =
-    (CALL1I (comp-mvar-ref, mvar) || SPEED < 2)
+    /* Disable floating frame for functions with non local jumps.
+       This is probably overkill cause we could do it just for blocks
+       dominated by push-handler.  */
+    comp.func_has_non_local
+    || (CALL1I (comp-mvar-ref, mvar) || SPEED < 2)
     ? comp.frame : comp.f_frame;
   return frame[slot_n];
 }
@@ -2823,6 +2828,8 @@ compile_function (Lisp_Object func)
 
   comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-name, func),
 				       comp.exported_funcs_h, Qnil));
+
+  comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
 
   gcc_jit_lvalue *frame_array =
     gcc_jit_function_new_local (

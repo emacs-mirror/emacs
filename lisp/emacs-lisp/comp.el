@@ -248,7 +248,9 @@ structure.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
                 :documentation "Generates edges numbers.")
   (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
-               :documentation "Counter to create ssa limple vars."))
+               :documentation "Counter to create ssa limple vars.")
+  (has-non-local nil :type boolean
+                 :documentation "t if non local jumps are present."))
 
 (defun comp-func-reset-generators (func)
   "Reset unique id generators for FUNC."
@@ -660,6 +662,7 @@ Return value is the fall through block name."
   "Emit a non local exit handler to LAP-LABEL of type HANDLER-TYPE."
   (cl-destructuring-bind (label-num . label-sp) lap-label
     (cl-assert (= (- label-sp 2) (comp-sp)))
+    (setf (comp-func-has-non-local comp-func) t)
     (let* ((guarded-bb (comp-bb-maybe-add (1+ (comp-limplify-pc comp-pass))
                                           (comp-sp)))
            (handler-bb (comp-bb-maybe-add (comp-label-to-addr label-num)
@@ -1350,8 +1353,12 @@ Top-level forms for the current context are rendered too."
             (slot-assigned-p (slot-n bb)
              ;; Return t if a SLOT-N was assigned within BB.
              (cl-loop for insn in (comp-block-insns bb)
-                      when (and (comp-assign-op-p (car insn))
-                                (eql slot-n (comp-mvar-slot (cadr insn))))
+                      for op = (car insn)
+                      when (or (and (comp-assign-op-p op)
+                                    (eql slot-n (comp-mvar-slot (cadr insn))))
+                               ;; fetch-handler is after a non local
+                               ;; therefore clobbers all frame!!!
+                               (eq op 'fetch-handler))
                         return t)))
 
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
@@ -1411,6 +1418,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
          (let ((mvar (aref frame slot-n)))
            (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn))))
          (new-lvalue))
+        (`(fetch-handler . ,_)
+         ;; Clobber all no matter what!
+         (setf (aref frame slot-n) (make-comp-ssa-mvar :slot slot-n)))
         (`(phi  ,n)
          (when (equal n slot-n)
            (new-lvalue)))
