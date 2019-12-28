@@ -1609,13 +1609,15 @@ Return t if something was changed."
 (defun comp-propagate (_)
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
-               (let ((comp-func f))
-                 (comp-basic-const-propagate)
-                 (cl-loop
-                  for i from 1
-                  while (comp-propagate*)
-                  finally (comp-log (format "Propagation run %d times\n" i) 2))
-                 (comp-log-func comp-func 3)))
+               ;; FIXME remove the following condition when tested.
+               (unless (comp-func-has-non-local f)
+                 (let ((comp-func f))
+                   (comp-basic-const-propagate)
+                   (cl-loop
+                    for i from 1
+                    while (comp-propagate*)
+                    finally (comp-log (format "Propagation run %d times\n" i) 2))
+                   (comp-log-func comp-func 3))))
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
@@ -1780,13 +1782,15 @@ These are substituted with a normal 'set' op."
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
                (let ((comp-func f))
-                 (cl-loop
-                  for i from 1
-                  while (comp-dead-assignments-func)
-                  finally (comp-log (format "dead code rm run %d times\n" i) 2)
-                          (comp-log-func comp-func 3))
-                 (comp-remove-type-hints-func)
-                 (comp-log-func comp-func 3)))
+                 ;; FIXME remove the following condition when tested.
+                 (unless (comp-func-has-non-local comp-func)
+                   (cl-loop
+                    for i from 1
+                    while (comp-dead-assignments-func)
+                    finally (comp-log (format "dead code rm run %d times\n" i) 2)
+                            (comp-log-func comp-func 3))
+                   (comp-remove-type-hints-func)
+                   (comp-log-func comp-func 3))))
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
