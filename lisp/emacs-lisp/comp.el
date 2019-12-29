@@ -1657,7 +1657,8 @@ Return t if something was changed."
         (cond
          ((and subrp (not (subr-native-elisp-p f)))
           ;; Trampoline removal.
-          (let* ((maxarg (cdr (subr-arity f)))
+          (let* ((callee (intern (subr-name f))) ; Fix aliased names.
+                 (maxarg (cdr (subr-arity f)))
                  (call-type (if (if subrp
                                     (not (numberp maxarg))
                                   (comp-nargs-p callee-in-unit))
