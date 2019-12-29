@@ -34,12 +34,12 @@ AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 
 AM_V_ELN = $(am__v_ELN_@AM_V@)
 am__v_ELN_ = $(am__v_ELN_@AM_DEFAULT_V@)
-am__v_ELN_0 = @echo "  ELN     " $@;
+am__v_ELN_0 = @echo "  ELC+ELN     " $@;
 am__v_ELN_1 =
 
 AM_V_ELC = $(am__v_ELC_@AM_V@)
 am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
-am__v_ELC_0 = @echo "  ELC     " $@;
+am__v_ELC_0 = @echo " ELC+ELN  " $@;
 am__v_ELC_1 =
 
 AM_V_GEN = $(am__v_GEN_@AM_V@)
@@ -133,7 +133,7 @@ SUBDIRS_SUBDIRS = $(filter-out ${srcdir}/cedet% ${srcdir}/leim%,${SUBDIRS})
 
 # cus-load and finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
-all: compile-main compile-native-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
+all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 
 PHONY_EXTRAS =
 .PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS)
@@ -280,19 +280,19 @@ TAGS: ${ETAGS} ${tagsfiles}
 # src/Makefile.in to rebuild a particular Lisp file, no questions asked.
 # Use byte-compile-refresh-preloaded to try and work around some of
 # the most common problems of not bootstrapping from a clean state.
+# THEFILE = no-such-file
+# .PHONY: $(THEFILE)c
+# $(THEFILE)c:
+# 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+# 		-l bytecomp -f byte-compile-refresh-preloaded \
+# 		-f batch-byte-compile $(THEFILE)
+
 THEFILE = no-such-file
 .PHONY: $(THEFILE)c
 $(THEFILE)c:
-	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
-		-l bytecomp -f byte-compile-refresh-preloaded \
-		-f batch-byte-compile $(THEFILE)
-
-THEFILE = no-such-file
-.PHONY: $(THEFILE)n
-$(THEFILE)n:
 	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l comp -f byte-compile-refresh-preloaded \
-		-f batch-native-compile $(THEFILE)
+		-f batch-byte-native-compile-for-bootstrap $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
@@ -306,7 +306,8 @@ $(THEFILE)n:
 # An old-fashioned suffix rule, which, according to the GNU Make manual,
 # cannot have prerequisites.
 .el.elc:
-	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	-l comp -f batch-byte-native-compile-for-bootstrap $<
 
 .el.eln:
 	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-native-compile $<
@@ -345,21 +346,6 @@ compile-main: gen-lisp compile-clean
 	  $(MAKE) compile-targets TARGETS="$$chunk"; \
 	done
 
-# Obsiusly copy pasted from above. Just do it on elns + ignoring errors...
-compile-native-main: gen-lisp compile-clean
-	@(cd $(lisp) && 			     \
-	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
-	for el in ${MAIN_FIRST} $$els; do            \
-	  test -f $$el || continue; 		     \
-	  test ! -f $${el}c && 			     \
-	      GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-byte-compile: *t' $$el > /dev/null && \
-	      continue; 			     \
-	  echo "$${el}n";                            \
-	done | xargs $(XARGS_LIMIT) echo) | 	     \
-	while read chunk; do 			     \
-	  $(MAKE) -i compile-targets TARGETS="$$chunk"; \
-	done
-
 .PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
@@ -394,8 +380,6 @@ semantic:
 # Calling make recursively because suffix rule cannot have prerequisites.
 compile: $(LOADDEFS) autoloads compile-first
 	$(MAKE) compile-main
-# Ignore error for now cause we can't compile dynamic code
-	$(MAKE) -i compile-native-main
 
 # Compile all Lisp files.  This is like 'compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
