@@ -2902,8 +2902,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (sort (copy-sequence `(,tmp-name3 ,tmp-name4)) 'string<))))
 
 	;; Cleanup.
-	(ignore-errors
-	  (delete-directory tmp-name1 'recursive))))))
+	(ignore-errors (delete-directory tmp-name1 'recursive))))))
 
 (ert-deftest tramp-test17-insert-directory ()
   "Check `insert-directory'."
@@ -4354,8 +4353,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
       ;; Process with stderr.  tramp-adb.el doesn't support it (yet).
       (unless (tramp--test-adb-p)
-	(let ((stderr
-	       (generate-new-buffer (generate-new-buffer-name "stderr"))))
+	(let ((stderr (generate-new-buffer "*stderr*")))
 	  (unwind-protect
 	      (with-temp-buffer
 		(setq proc
@@ -4458,6 +4456,20 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name)))
 
+      ;; Test `shell-command' with error buffer.
+      (let ((stderr (generate-new-buffer "*stderr*")))
+	(unwind-protect
+	    (with-temp-buffer
+	      (shell-command "error" (current-buffer) stderr)
+	      (should (= (point-min) (point-max)))
+	      (should
+	       (string-match
+		"error:.+not found"
+		(with-current-buffer stderr (buffer-string)))))
+
+	  ;; Cleanup.
+	  (ignore-errors (kill-buffer stderr))))
+
       ;; Test ordinary `async-shell-command'.
       (unwind-protect
 	  (with-temp-buffer
@@ -4475,10 +4487,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (while
 		(re-search-forward tramp-display-escape-sequence-regexp nil t)
 	      (replace-match "" nil nil))
-	    ;; There might be a nasty "Process *Async Shell* finished" message.
-	    (goto-char (point-min))
-	    (forward-line)
-	    (narrow-to-region (point-min) (point))
 	    (should
 	     (string-equal
 	      (format "%s\n" (file-name-nondirectory tmp-name))
@@ -4505,13 +4513,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (while
 		(re-search-forward tramp-display-escape-sequence-regexp nil t)
 	      (replace-match "" nil nil))
-	    ;; There might be a nasty "Process *Async Shell* finished" message.
-	    (goto-char (point-min))
-	    (forward-line)
-	    (narrow-to-region (point-min) (point))
+	    ;; We cannot use `string-equal', because tramp-adb.el
+	    ;; echoes also the sent string.
 	    (should
-	     (string-equal
-	      (format "%s\n" (file-name-nondirectory tmp-name))
+	     (string-match
+	      (format "\\`%s" (regexp-quote (file-name-nondirectory tmp-name)))
 	      (buffer-string))))
 
 	;; Cleanup.

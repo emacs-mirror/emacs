@@ -7,8 +7,9 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.3-pre
+;; Version: 2.4.3
 ;; Package-Requires: ((emacs "24.4"))
+;; Package-Type: multi
 ;; URL: https://savannah.gnu.org/projects/tramp
 
 ;; This file is part of GNU Emacs.
@@ -3681,7 +3682,9 @@ support symbolic links."
 
     (setq buffer (if (and (not asynchronous) error-buffer)
 		     (with-parsed-tramp-file-name default-directory nil
-		       (list output-buffer (tramp-make-tramp-temp-file v)))
+		       (list output-buffer
+			     (tramp-make-tramp-file-name
+			      v (tramp-make-tramp-temp-file v))))
 		   output-buffer))
 
     (if current-buffer-p
@@ -3735,7 +3738,7 @@ support symbolic links."
 
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
-  ;; `make-process' knows the `:file-error' argument since Emacs 27.1.
+  ;; `make-process' knows the `:file-handler' argument since Emacs 27.1 only.
   (tramp-file-name-handler
    'make-process
    :name name
