@@ -450,7 +450,8 @@ Put PREFIX in front of it."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))
-  (setf (comp-ctxt-top-level-forms comp-ctxt) (reverse byte-to-native-top-level-forms))
+  (setf (comp-ctxt-top-level-forms comp-ctxt)
+        (reverse byte-to-native-top-level-forms))
   (cl-loop
    for f in (cl-loop for x in byte-to-native-top-level-forms ; All non anonymous.
                      when (and (byte-to-native-function-p x)
@@ -1551,10 +1552,15 @@ This can run just once."
   "Given INSN when F is pure if all ARGS are known remove the function call."
   (when (and (get f 'pure) ; Can we just optimize pure here? See byte-opt.el
              (cl-every #'comp-mvar-const-vld args))
-    (let ((val (apply f (mapcar #'comp-mvar-constant args))))
-      ;; See `comp-emit-set-const'.
-      (setf (car insn) 'setimm
-            (cddr insn) (list (comp-add-const-to-relocs val) val)))))
+    (condition-case err
+        (let ((val (apply f (mapcar #'comp-mvar-constant args))))
+          ;; See `comp-emit-set-const'.
+          (setf (car insn) 'setimm
+                (cddr insn) (list (comp-add-const-to-relocs val) val)))
+      ;; FIXME Should we crash?  At least we should complain once.
+      (t (message "Native compiler trying to move run-time error into \
+compile-time? %S calling %S inside function %S." err f
+(comp-func-name comp-func))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
