@@ -570,7 +570,9 @@ Each element is (INDEX . VALUE)")
   "All other top level forms."
               form)
 (defvar byte-native-compiling nil
-  "t while native compiling.")
+  "Non nil while native compiling.")
+(defvar byte-native-always-write-elc nil
+  "Always write the elc file also while native compiling.")
 (defvar byte-to-native-lap nil
   "A-list to accumulate LAP.
 Each pair is (NAME . LAP)")
@@ -2032,7 +2034,8 @@ The value is non-nil if there were no errors, nil if errors."
 		  ;; emacs-lisp files in the build tree are
 		  ;; recompiled).  Previously this was accomplished by
 		  ;; deleting target-file before writing it.
-                  (if byte-native-compiling
+                  (if (and byte-native-compiling
+                           (not byte-native-always-write-elc))
                       (delete-file tempfile)
 		    (rename-file tempfile target-file t)))
 		(or noninteractive (message "Wrote %s" target-file)))

@@ -140,6 +140,13 @@ Can be used by code that wants to expand differently in this case.")
                               direct-callref)
   "Limple operators use to call subrs.")
 
+(define-error 'native-compiler-error-dyn-func
+  "can't native compile a non lexical scoped function"
+  'native-compiler-error)
+(define-error 'native-compiler-error-empty-byte
+  "empty byte compiler output"
+  'native-compiler-error)
+
 (eval-when-compile
   (defconst comp-op-stack-info
     (cl-loop with h = (make-hash-table)
@@ -390,11 +397,10 @@ Put PREFIX in front of it."
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
     (concat prefix crypted "_" human-readable)))
 
-(defun comp-decrypt-arg-list (x)
-  "Decript argument list X."
+(defun comp-decrypt-arg-list (x function-name)
+  "Decript argument list X for FUNCTION-NAME."
   (unless (fixnump x)
-    (signal 'native-compiler-error
-            "can't native compile a non lexical scoped function"))
+    (signal 'native-compiler-error-dyn-func function-name))
   (let ((rest (not (= (logand x 128) 0)))
         (mandatory (logand x 127))
         (nonrest (ash x -8)))
@@ -430,7 +436,7 @@ Put PREFIX in front of it."
         (comp-log lap 2)
         (let ((arg-list (aref (comp-func-byte-func func) 0)))
           (setf (comp-func-args func)
-                (comp-decrypt-arg-list arg-list)
+                (comp-decrypt-arg-list arg-list function-name)
                 (comp-func-lap func)
                 lap
                 (comp-func-frame-size func)
@@ -443,7 +449,7 @@ Put PREFIX in front of it."
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
   (unless byte-to-native-top-level-forms
-    (signal 'native-compiler-error "empty byte compiler output"))
+    (signal 'native-compiler-error-empty-byte filename))
   (setf (comp-ctxt-top-level-forms comp-ctxt) (reverse byte-to-native-top-level-forms))
   (cl-loop
    for f in (cl-loop for x in byte-to-native-top-level-forms ; All non anonymous.
@@ -458,7 +464,7 @@ Put PREFIX in front of it."
                               :doc (documentation data)
                               :int-spec (interactive-form data)
                               :c-name (comp-c-func-name name "F")
-                              :args (comp-decrypt-arg-list (aref data 0))
+                              :args (comp-decrypt-arg-list (aref data 0) name)
                               :lap (alist-get name byte-to-native-lap)
                               :frame-size (comp-byte-frame-size data))
    do (comp-log (format "Function %s:\n" name) 1)
@@ -1910,6 +1916,17 @@ Return the compilation unit file name."
 (defun batch-native-compile ()
   "Ultra cheap impersonation of `batch-byte-compile'."
   (mapc #'native-compile command-line-args-left))
+
+;;;###autoload
+(defun batch-byte-native-compile-for-bootstrap ()
+  "As `batch-byte-compile' but used for booststrap.
+Always generate elc files too and handle native compiler expected errors."
+  ;; FIXME remove when dynamic scope support is implemented.
+  (let ((byte-native-always-write-elc t))
+    (condition-case _
+        (batch-native-compile)
+      (native-compiler-error-dyn-func)
+      (native-compiler-error-empty-byte))))
 
 ;;;###autoload
 (defun native-compile-async (input &optional jobs recursively)
