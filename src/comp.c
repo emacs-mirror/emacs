@@ -3284,7 +3284,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
       Lisp_Object comp_u_obj;
       XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
       /* Executing this will perform all the expected environment
-	 modification.  */
+	 modifications.  */
       top_level_run (comp_u_obj);
     }
 
