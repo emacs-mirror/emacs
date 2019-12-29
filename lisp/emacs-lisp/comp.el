@@ -74,6 +74,15 @@ This intended for debugging the compiler itself.
   :type 'boolean
   :group 'comp)
 
+(defcustom comp-never-optimize-functions
+  '(macroexpand scroll-down scroll-up narrow-to-region widen rename-buffer
+                make-indirect-buffer delete-file top-level abort-recursive-edit)
+  "Primitive functions for which we do not perform trampoline optimization.
+This is especially usefull for primitives known to be advised if bootstrap is
+performed at `comp-speed' > 0."
+  :type 'list
+  :group 'comp)
+
 (defconst comp-log-buffer-name "*Native-compile-Log*"
   "Name of the native-compiler log buffer.")
 
@@ -1631,7 +1640,8 @@ Return t if something was changed."
                       (setf (comp-mvar-ref arg) nil))
                     args)
               args))
-    (when (symbolp callee) ; Do nothing if callee is a byte compiled func.
+    (when (and (symbolp callee)  ; Do nothing if callee is a byte compiled func.
+               (not (member callee comp-never-optimize-functions)))
       (let* ((f (symbol-function callee))
              (subrp (subrp f))
              (callee-in-unit (gethash callee
