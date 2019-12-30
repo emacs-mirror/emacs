@@ -296,22 +296,21 @@ structure.")
 
 
 
-(defun comp-set-op-p (op)
+(defsubst comp-set-op-p (op)
   "Assignment predicate for OP."
-  (cl-find op comp-limple-sets))
+  (when (member op comp-limple-sets) t))
 
-(defun comp-assign-op-p (op)
+(defsubst comp-assign-op-p (op)
   "Assignment predicate for OP."
-  (cl-find op comp-limple-assignments))
+  (when (member op comp-limple-assignments) t))
 
-(defun comp-limple-insn-call-p (insn)
+(defsubst comp-limple-insn-call-p (insn)
   "Limple INSN call predicate."
-  (when (member (car-safe insn) comp-limple-calls)
-    t))
+  (when (member (car-safe insn) comp-limple-calls) t))
 
-(defun comp-type-hint-p (func)
+(defsubst comp-type-hint-p (func)
   "Type hint predicate for function name FUNC."
-  (member func comp-type-hints))
+  (when (member func comp-type-hints) t))
 
 (defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
