@@ -2024,6 +2024,23 @@ other top level construct with a brace block."
 	     (c-backward-syntactic-ws)
 	     (point))))
 
+	 ((and (c-major-mode-is 'objc-mode) (looking-at "[-+]\\s-*("))     ; Objective-C method
+	  ;; Move to the beginning of the method name.
+	  (c-forward-token-2 2 t)
+	  (let* ((class
+		  (save-excursion
+		    (when (re-search-backward
+			   "^\\s-*@\\(implementation\\|class\\|interface\\)\\s-+\\(\\sw+\\)" nil t)
+		      (match-string-no-properties 2))))
+		 (limit (save-excursion (re-search-forward "[;{]" nil t)))
+		 (method (when (re-search-forward "\\(\\sw+:?\\)" limit t)
+			   (match-string-no-properties 1))))
+	    (when (and class method)
+	      ;; Add the parameter labels onto name.  They always end in ':'.
+	      (while (re-search-forward "\\(\\sw+:\\)" limit 1)
+		(setq method (concat method (match-string-no-properties 1))))
+	      (concat "[" class " " method "]"))))
+
 	 (t				; Normal function or initializer.
 	  (when (looking-at c-defun-type-name-decl-key) ; struct, etc.
 	    (goto-char (match-end 0))
