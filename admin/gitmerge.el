@@ -52,7 +52,7 @@
   ;; caused false positives.  --Stef
   (let ((skip "back[- ]?port\\|cherry picked from commit\\|\
 \\(do\\( no\\|n['’]\\)t\\|no need to\\) merge\\|not to be merged\\|\
-bump \\(Emacs \\)?version\\|Auto-commit"))
+bump Emacs version\\|Auto-commit"))
     (if noninteractive skip
       ;; "Regenerate" is quite prone to false positives.
       ;; We only want to skip merging things like AUTHORS and ldefs-boot.
