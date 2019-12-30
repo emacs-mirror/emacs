@@ -3151,15 +3151,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
 
   Lisp_Object out_file = CALLN (Fconcat, ctxtname, dot_so);
-
-  /* Remove the old eln before creating the new one to get a new inode and
-     prevent crashes in case the old one is currently loaded.  */
-  if (!NILP (Ffile_exists_p (out_file)))
-    Fdelete_file (out_file, Qnil);
-
+  Lisp_Object tmp_file =
+    Fmake_temp_file_internal (ctxtname, Qnil, dot_so, Qnil);
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
-				   SSDATA (out_file));
+				   SSDATA (tmp_file));
+
+  /* Remove the old eln instead of copying the new one into ti to get
+     a new inode and prevent crashes in case the old one is currently
+     loaded.  */
+  if (!NILP (Ffile_exists_p (out_file)))
+    Fdelete_file (out_file, Qnil);
+  Frename_file (tmp_file, out_file, Qnil);
 
   pthread_sigmask (SIG_SETMASK, &oldset, 0);
   unblock_input ();
