@@ -1293,9 +1293,7 @@ Such as the current syntax table and the applied syntax properties."
   (pcase-let* ((`(,line ,file ,text) hit)
                (remote-id (file-remote-p default-directory))
                (file (and file (concat remote-id file)))
-               (buf (unless remote-id
-                      ;; find-buffer-visiting is slow on remote.
-                      (xref--find-buffer-visiting file)))
+               (buf (xref--find-buffer-visiting file))
                (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (if buf
         (with-current-buffer buf
@@ -1354,7 +1352,7 @@ Such as the current syntax table and the applied syntax properties."
 (defun xref--find-buffer-visiting (file)
   (unless (equal (car xref--last-visiting-buffer) file)
     (setq xref--last-visiting-buffer
-          (cons file (find-buffer-visiting file))))
+          (cons file (get-file-buffer file))))
   (cdr xref--last-visiting-buffer))
 
 (provide 'xref)
