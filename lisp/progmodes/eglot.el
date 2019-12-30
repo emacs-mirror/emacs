@@ -2254,8 +2254,7 @@ potentially rename EGLOT's help buffer."
     (eldoc-message string)))
 
 (defun eglot-eldoc-function ()
-  "EGLOT's `eldoc-documentation-function' function.
-If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
+  "EGLOT's `eldoc-documentation-function' function."
   (let* ((buffer (current-buffer))
          (server (eglot--current-server-or-lose))
          (position-params (eglot--TextDocumentPositionParams))
