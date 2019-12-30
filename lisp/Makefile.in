@@ -32,14 +32,15 @@ XARGS_LIMIT = @XARGS_LIMIT@
 # 'make' verbosity.
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 
-AM_V_ELN = $(am__v_ELN_@AM_V@)
-am__v_ELN_ = $(am__v_ELN_@AM_DEFAULT_V@)
-am__v_ELN_0 = @echo "  ELC+ELN     " $@;
-am__v_ELN_1 =
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
 AM_V_ELC = $(am__v_ELC_@AM_V@)
 am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
+ifeq ($(HAVE_NATIVE_COMP),yes)
 am__v_ELC_0 = @echo " ELC+ELN  " $@;
+else
+am__v_ELC_0 = @echo "  ELC     " $@;
+endif
 am__v_ELC_1 =
 
 AM_V_GEN = $(am__v_GEN_@AM_V@)
@@ -103,9 +104,11 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/macroexp.elc \
 	$(lisp)/emacs-lisp/cconv.elc    \
 	$(lisp)/emacs-lisp/byte-opt.elc \
-	$(lisp)/emacs-lisp/bytecomp.elc \
-	$(lisp)/emacs-lisp/autoload.elc \
-	$(lisp)/emacs-lisp/comp.elc
+	$(lisp)/emacs-lisp/bytecomp.elc
+ifeq ($(HAVE_NATIVE_COMP),yes)
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
+endif
+COMPILE_FIRST += $(lisp)/emacs-lisp/autoload.elc
 
 # Files to compile early in compile-main.  Works around bug#25556.
 MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
@@ -280,19 +283,18 @@ TAGS: ${ETAGS} ${tagsfiles}
 # src/Makefile.in to rebuild a particular Lisp file, no questions asked.
 # Use byte-compile-refresh-preloaded to try and work around some of
 # the most common problems of not bootstrapping from a clean state.
-# THEFILE = no-such-file
-# .PHONY: $(THEFILE)c
-# $(THEFILE)c:
-# 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
-# 		-l bytecomp -f byte-compile-refresh-preloaded \
-# 		-f batch-byte-compile $(THEFILE)
-
 THEFILE = no-such-file
 .PHONY: $(THEFILE)c
 $(THEFILE)c:
-	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) \
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l comp -f byte-compile-refresh-preloaded \
 		-f batch-byte-native-compile-for-bootstrap $(THEFILE)
+else
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l bytecomp -f byte-compile-refresh-preloaded \
+		-f batch-byte-compile $(THEFILE)
+endif
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
@@ -305,12 +307,14 @@ $(THEFILE)c:
 
 # An old-fashioned suffix rule, which, according to the GNU Make manual,
 # cannot have prerequisites.
+ifeq ($(HAVE_NATIVE_COMP),yes)
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 	-l comp -f batch-byte-native-compile-for-bootstrap $<
-
-.el.eln:
-	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-native-compile $<
+else
+.el.elc:
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
+endif
 
 .PHONY: compile-first compile-main compile compile-always
 

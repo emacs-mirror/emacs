@@ -513,7 +513,6 @@ lisp.mk: $(lispsource)/loadup.el
 	  sed -e 's/$$/.elc \\/' -e 's/\.el\.elc/.el/'; \
 	echo "" ) > $@
 
-
 -include lisp.mk
 shortlisp_filter = leim/leim-list.el site-load.elc site-init.elc
 shortlisp := $(filter-out ${shortlisp_filter},${shortlisp})

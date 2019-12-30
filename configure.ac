@@ -3760,9 +3760,9 @@ If you are sure you want Emacs compiled without elisp native compiler, pass
 to configure.])
   fi
 fi
+AC_SUBST(HAVE_NATIVE_COMP)
 AC_SUBST(LIBGCCJIT_LIB)
 AC_SUBST(COMP_OBJ)
-
 
 ### Use -lpng if available, unless '--with-png=no'.
 HAVE_PNG=no
