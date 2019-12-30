@@ -33491,7 +33491,7 @@ expose_area (struct window *w, struct glyph_row *row, const Emacs_Rectangle *r,
 
   if (area == TEXT_AREA && row->fill_line_p)
     /* If row extends face to end of line write the whole line.  */
-    draw_glyphs (w, 0, row, area,
+    draw_glyphs (w, row->x, row, area,
 		 0, row->used[area],
 		 DRAW_NORMAL_TEXT, 0);
   else

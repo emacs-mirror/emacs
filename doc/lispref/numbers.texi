@@ -316,11 +316,11 @@ and returns the result.  @var{x1} and @var{x2} must be floating point.
 @end defun
 
 @defun logb x
-This function returns the binary exponent of @var{x}.  More
-precisely, if @var{x} is finite and nonzero, the value is the
-logarithm base 2 of @math{|x|}, rounded down to an integer.
-If @var{x} is zero, infinite, or a NaN, the value is minus infinity,
-plus infinity, or a NaN respectively.
+This function returns the binary exponent of @var{x}.  More precisely,
+if @var{x} is finite and nonzero, the value is the logarithm base 2 of
+@math{|x|}, rounded down to an integer.  If @var{x} is zero or
+infinite, the value is infinity; if @var{x} is a NaN, the value is a
+NaN.
 
 @example
 (logb 10)

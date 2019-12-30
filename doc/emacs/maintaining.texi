@@ -968,6 +968,9 @@ Display the changes that will be sent by the next ``push'' operation
 @item C-x v h
 Display the history of changes made in the region of file visited by
 the current buffer (@code{vc-region-history}).
+
+@item M-x vc-log-search @key{RET}
+Search the change history for a specified pattern.
 @end table
 
 @kindex C-x v l
@@ -1102,6 +1105,13 @@ it pops up, you can use all of the commands available in the
 defined by Diff mode (@pxref{Diff Mode}).
 
 This command is currently available only with Git and Mercurial (hg).
+
+@findex vc-log-search
+The command @code{vc-log-search} allows searching for a pattern in the
+log of changes.  It prompts for a pattern (a regular expression), and
+displays all entries in the change history whose log messages match
+the pattern.  When invoked with a prefix argument, the command will
+also prompt for a specific VCS shell command to run for this purpose.
 
 @node VC Undo
 @subsection Undoing Version Control Actions
@@ -2000,6 +2010,11 @@ buffer (@code{xref-quit-and-goto-xref}).
 Perform interactive query-replace on references that match
 @var{pattern} (@code{xref-query-replace-in-results}), replacing
 the match with @var{replacement}.  @xref{Identifier Search}.
+
+@item g
+@findex xref-revert-buffer
+Refresh the contents of the @file{*xref*} buffer
+(@code{xref-revert-buffer}.
 
 @findex xref-quit
 @item q

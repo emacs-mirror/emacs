@@ -168,10 +168,14 @@ matches that begin after it.
 the one you expected to find: the @samp{FOO} you were aiming for
 occurs later in the buffer.  In this event, type another @kbd{C-s}
 (@code{isearch-repeat-forward}) to move to the next occurrence of the
-search string.  You can repeat this any number of times.  If you
-overshoot, you can cancel some @kbd{C-s} commands with @key{DEL}.
-Similarly, each @kbd{C-r} (@code{isearch-repeat-backward}) in a
-backward incremental search repeats the backward search.
+search string, or @kbd{C-r} (@code{isearch-repeat-backward}) to move
+to the previous occurrence.  You can repeat these commands any number
+of times.  Alternatively, you can supply a numeric prefix argument of
+@var{n} to @kbd{C-s} and @kbd{C-r} to find the @var{n}th next or
+previous occurrence.  If you overshoot, you can cancel some @kbd{C-s}
+commands with @key{DEL}.  Similarly, each @kbd{C-r}
+(@code{isearch-repeat-backward}) in a backward incremental search
+repeats the backward search.
 
 @cindex lazy search highlighting
   If you pause for a little while during incremental search, Emacs
@@ -251,14 +255,18 @@ that conveniently.
   @kbd{C-w} (@code{isearch-yank-word-or-char}) appends the next
 character or word at point to the search string.  This is an easy way
 to search for another occurrence of the text at point.  (The decision
-of whether to copy a character or a word is heuristic.)
+of whether to copy a character or a word is heuristic.)  With a prefix
+numeric argument of @var{n}, append the next @var{n} characters or
+words.
 
 @kindex C-M-w @r{(Incremental search)}
 @findex isearch-yank-symbol-or-char
   @kbd{C-M-w} (@code{isearch-yank-symbol-or-char}) appends the next
 character or symbol at point to the search string.  This is an easy way
 to search for another occurrence of the symbol at point.  (The decision
-of whether to copy a character or a symbol is heuristic.)
+of whether to copy a character or a symbol is heuristic.)  With a prefix
+numeric argument of @var{n}, append the next @var{n} characters or
+symbols.
 
 @kindex M-s C-e @r{(Incremental search)}
 @findex isearch-yank-line
@@ -270,10 +278,12 @@ end of a line, it appends the next line.  With a prefix argument
 @kindex C-M-z @r{(Incremental search)}
 @findex isearch-yank-until-char
   Similarly, @kbd{C-M-z} (@code{isearch-yank-until-char}) appends to
-the search string everything from point until the next occurence of
+the search string everything from point until the next occurrence of
 a specified character (not including that character).  This is especially
 useful for keyboard macros, for example in programming languages or
-markup languages in which that character marks a token boundary.
+markup languages in which that character marks a token boundary.  With
+a prefix numeric argument of @var{n}, the command appends everything
+from point to the @var{n}th occurrence of the specified character.
 
 @kindex C-y @r{(Incremental search)}
 @kindex M-y @r{(Incremental search)}
@@ -481,6 +491,16 @@ remove the highlighting, type @kbd{M-s h u} (@code{unhighlight-regexp}).
 including a list of special key bindings.  These key bindings are part
 of the keymap @code{isearch-mode-map} (@pxref{Keymaps}).
 
+@cindex incremental search, go to first or last occurrence
+@kindex M-s M->
+@kindex M-s M-<
+  When incremental search is active, typing @kbd{M-s M->} will go to
+the last occurrence of the search string, and @kbd{M-s M-<} will go to
+the first occurrence.  With a prefix numeric argument of @var{n},
+these commands will go to the @var{n}th occurrence of the search
+string counting from the beginning or end of the buffer,
+respectively.
+
 @node Not Exiting Isearch
 @subsection Not Exiting Incremental Search
 
@@ -530,7 +550,9 @@ commands like @kbd{C-v}, @kbd{M-v}, and @kbd{C-l} (@pxref{Scrolling}).
 This applies only to calling these commands via their bound key
 sequences---typing @kbd{M-x} will still exit the search.  You can give
 prefix arguments to these commands in the usual way.  This feature
-won't let you scroll the current match out of visibility, however.
+normally won't let you scroll the current match out of visibility; but
+if you customize @code{isearch-allow-scroll} to the special value
+@code{unlimited}, that restriction is lifted.
 
   The @code{isearch-allow-scroll} feature also affects some other
 commands, such as @kbd{C-x 2} (@code{split-window-below}) and
@@ -739,15 +761,18 @@ Search backward for @var{symbol}, nonincrementally.
 @findex isearch-forward-symbol-at-point
   To begin a forward incremental symbol search, type @kbd{M-s _} (or
 @kbd{M-s .} if the symbol to search is near point).  If incremental
-search is not already active, this runs the command
-@code{isearch-forward-symbol}.  If incremental search is already
-active, @kbd{M-s _} switches to a symbol search, preserving the
-direction of the search and the current search string; you can disable
-symbol search by typing @kbd{M-s _} again.  In incremental symbol
-search, while you are typing the search string, only the beginning
-of the search string is required to match the beginning of a symbol,
-and @samp{Pending} appears in the search prompt until you use a search
-repeating key like @kbd{C-s}.
+search is not already active, @kbd{M-s _} runs the command
+@code{isearch-forward-symbol} and @kbd{M-s .} runs the command
+@code{isearch-forward-symbol-at-point}.  With a numeric prefix
+argument of @var{n}, @kbd{M-s .} will search for the @var{n}the next
+occurrence of the symbol at point; negative values of @var{n} search
+backwards.  If incremental search is already active, @kbd{M-s _}
+switches to a symbol search, preserving the direction of the search
+and the current search string; you can disable symbol search by typing
+@kbd{M-s _} again.  In incremental symbol search, while you are typing
+the search string, only the beginning of the search string is required
+to match the beginning of a symbol, and @samp{Pending} appears in the
+search prompt until you use a search repeating key like @kbd{C-s}.
 
   To begin a nonincremental symbol search, type @kbd{M-s _ @key{RET}}
 for a forward search, or @kbd{M-s _ C-r @key{RET}} or a backward
@@ -1955,17 +1980,32 @@ highlighting:
 
 @table @code
 @item lazy-highlight-initial-delay
+@vindex lazy-highlight-initial-delay
 Time in seconds to wait before highlighting visible matches.
 
 @item lazy-highlight-interval
+@vindex lazy-highlight-interval
 Time in seconds between highlighting successive matches.
 
 @item lazy-highlight-max-at-a-time
+@vindex lazy-highlight-max-at-a-time
 The maximum number of matches to highlight before checking for input.
 A large number can take some time to highlight, so if you want to
 continue searching and type @kbd{C-s} or @kbd{C-r} during that time,
 Emacs will not respond until it finishes highlighting all those
 matches.  Thus, smaller values make Emacs more responsive.
+
+@item isearch-lazy-count
+@vindex isearch-lazy-count
+Show the current match number and the total number of matches in the
+search prompt.
+
+@item lazy-count-prefix-format
+@itemx lazy-count-suffix-format
+@vindex lazy-count-prefix-format
+@vindex lazy-count-suffix-format
+These two variables determine the format of showing the current and
+the total number of matches for @code{isearch-lazy-count}.
 @end table
 
 @vindex search-nonincremental-instead

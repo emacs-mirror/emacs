@@ -222,6 +222,9 @@ be tilted.  This feature is off by default; the variable
 the direction of horizontal scrolling, customize the variable
 @code{mouse-wheel-flip-direction} to a non-@code{nil} value.
 
+When the mouse pointer is over an image, scrolling the mouse wheel
+with the @key{Ctrl} modifier scales the image under the mouse pointer.
+
 
 @node Word and Line Mouse
 @section Mouse Commands for Words and Lines

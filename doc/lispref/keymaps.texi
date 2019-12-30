@@ -1171,6 +1171,8 @@ the second example.
 @end group
 @end example
 
+The @var{keymap} argument can also be a list of keymaps.
+
 Unlike @code{read-key-sequence}, this function does not modify the
 specified events in ways that discard information (@pxref{Key Sequence
 Input}).  In particular, it does not convert letters to lower case and

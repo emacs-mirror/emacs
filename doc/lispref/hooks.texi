@@ -110,6 +110,10 @@ Function to call to quit the current buffer.
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
 
+@item comint-password-function
+This abnormal hook permits a derived mode to supply a password for the
+underlying command interpreter without prompting the user.
+
 @item command-line-functions
 @xref{Command-Line Arguments}.
 

@@ -258,7 +258,11 @@ option has the value @code{allow-unsigned}, and a usable OpenPGP
 configuration is found, signed packages will be checked, but you can
 still install a package that is not signed.  If you use some archives
 that do not sign their packages, you can add them to the list
-@code{package-unsigned-archives}.
+@code{package-unsigned-archives}.  (If the value is
+@code{allow-unsigned} and no usable OpenPGP is found, this option is
+treated as if its value was @code{nil}.)  If the value is @code{t}, at
+least one signature must be valid; if the value is @code{all}, all of
+them must be valid.
 
   For more information on cryptographic keys and signing,
 @pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.

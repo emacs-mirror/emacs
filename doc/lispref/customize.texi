@@ -427,6 +427,13 @@ the build-time context.  This also has the side-effect that the
 @xref{Building Emacs}.
 @end table
 
+@item :local @var{value}
+@kindex local@r{, @code{defcustom} keyword}
+If the @var{value} is @code{t}, mark @var{option} as automatically
+buffer-local; if the value is @code{permanent}, also set @var{option}s
+@code{permanent-local} property to @code{t}.  @xref {Creating
+Buffer-Local}.
+
 @item :risky @var{value}
 @kindex risky@r{, @code{defcustom} keyword}
 Set the variable's @code{risky-local-variable} property to

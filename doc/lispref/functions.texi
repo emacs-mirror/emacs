@@ -2090,7 +2090,7 @@ alias for a function or macro can also be marked as obsolete; this
 makes the alias itself obsolete, not the function or macro which it
 resolves to.
 
-@defun make-obsolete obsolete-name current-name &optional when
+@defun make-obsolete obsolete-name current-name when
 This function marks @var{obsolete-name} as obsolete.
 @var{obsolete-name} should be a symbol naming a function or macro, or
 an alias for a function or macro.
@@ -2104,11 +2104,11 @@ should begin in lower case, and end with a period.  It can also be
 @code{nil}, in which case the warning message provides no additional
 details.
 
-If provided, @var{when} should be a string indicating when the function
+The argument @var{when} should be a string indicating when the function
 was first made obsolete---for example, a date or a release number.
 @end defun
 
-@defmac define-obsolete-function-alias obsolete-name current-name &optional when doc
+@defmac define-obsolete-function-alias obsolete-name current-name when &optional doc
 This convenience macro marks the function @var{obsolete-name} obsolete
 and also defines it as an alias for the function @var{current-name}.
 It is equivalent to the following:

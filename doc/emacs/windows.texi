@@ -542,6 +542,16 @@ Reference Manual}), and cannot exceed the size of the containing frame.
 @node Window Convenience
 @section Convenience Features for Window Handling
 
+@findex global-tab-line-mode
+@cindex tab line
+  The command @code{global-tab-line-mode} toggles the display of a
+@dfn{tab line} on the top screen line of each window.  The tab line
+shows special buttons (``tabs'') for each buffer that was displayed in
+a window, and allows switching to any of these buffers by clicking the
+corresponding button.  You can add a tab by clicking on the @kbd{+}
+icon and delete a tab by clicking on the @kbd{x} icon of a tab.  The
+mouse wheel on the tab line scrolls the tabs horizontally.
+
 @findex winner-mode
 @vindex winner-dont-bind-my-keys
 @vindex winner-ring-size

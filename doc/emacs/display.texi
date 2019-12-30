@@ -797,12 +797,19 @@ would be selected if you click a mouse or press @key{RET}.
 @kindex C-x C--
 @kindex C-x C-=
 @kindex C-x C-0
+@kindex C-wheel-down
+@kindex C-wheel-up
   To increase the height of the default face in the current buffer,
 type @kbd{C-x C-+} or @kbd{C-x C-=}.  To decrease it, type @kbd{C-x
 C--}.  To restore the default (global) face height, type @kbd{C-x
 C-0}.  These keys are all bound to the same command,
 @code{text-scale-adjust}, which looks at the last key typed to
 determine which action to take.
+
+  Similarly, scrolling the mouse wheel with the @kbd{Ctrl} modifier
+pressed, when the mouse pointer is above buffer text, will increase or
+decrease the height of the default face, depending on the direction of
+the scrolling.
 
   The final key of these commands may be repeated without the leading
 @kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face

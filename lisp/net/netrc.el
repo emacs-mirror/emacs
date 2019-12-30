@@ -49,8 +49,8 @@
 (defvar netrc-cache nil)
 
 (defun netrc-parse (&optional file)
-  (interactive "fFile to Parse: ")
   "Parse FILE and return a list of all entries in the file."
+  (interactive "fFile to Parse: ")
   (unless file
     (setq file netrc-file))
   (if (listp file)

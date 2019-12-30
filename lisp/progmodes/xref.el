@@ -261,7 +261,7 @@ find a search tool; by default, this uses \"find | grep\" in the
 `project-current' roots."
   (cl-mapcan
    (lambda (dir)
-     (xref-collect-references identifier dir))
+     (xref-references-in-directory identifier dir))
    (let ((pr (project-current t)))
      (append
       (project-roots pr)
@@ -1129,8 +1129,11 @@ and just use etags."
 (declare-function grep-expand-template "grep")
 (defvar ede-minor-mode) ;; ede.el
 
-(defun xref-collect-references (symbol dir)
-  "Collect references to SYMBOL inside DIR.
+;;;###autoload
+(defun xref-references-in-directory (symbol dir)
+  "Find all references to SYMBOL in directory DIR.
+Return a list of xref values.
+
 This function uses the Semantic Symbol Reference API, see
 `semantic-symref-tool-alist' for details on which tools are used,
 and when."
@@ -1158,13 +1161,19 @@ and when."
     (xref--convert-hits (semantic-symref-perform-search inst)
                         (format "\\_<%s\\_>" (regexp-quote symbol)))))
 
+(define-obsolete-function-alias
+  'xref-collect-references
+  #'xref-references-in-directory
+  "27.1")
+
 ;;;###autoload
-(defun xref-collect-matches (regexp files dir ignores)
-  "Collect matches for REGEXP inside FILES in DIR.
+(defun xref-matches-in-directory (regexp files dir ignores)
+  "Find all matches for REGEXP in directory DIR.
+Return a list of xref values.
+Only files matching some of FILES and none of IGNORES are searched.
 FILES is a string with glob patterns separated by spaces.
-IGNORES is a list of glob patterns."
+IGNORES is a list of glob patterns for files to ignore."
   ;; DIR can also be a regular file for now; let's not advertise that.
-  (require 'semantic/fw)
   (grep-compute-defaults)
   (defvar grep-find-template)
   (defvar grep-highlight-matches)
@@ -1197,6 +1206,61 @@ IGNORES is a list of glob patterns."
       (when (and (/= (point-min) (point-max))
                  (not (looking-at grep-re)))
         (user-error "Search failed with status %d: %s" status (buffer-string)))
+      (while (re-search-forward grep-re nil t)
+        (push (list (string-to-number (match-string line-group))
+                    (match-string file-group)
+                    (buffer-substring-no-properties (point) (line-end-position)))
+              hits)))
+    (xref--convert-hits (nreverse hits) regexp)))
+
+(define-obsolete-function-alias
+  'xref-collect-matches
+  #'xref-matches-in-directory
+  "27.1")
+
+;;;###autoload
+(defun xref-matches-in-files (regexp files)
+  "Find all matches for REGEXP in FILES.
+Return a list of xref values.
+FILES must be a list of absolute file names."
+  (pcase-let*
+      ((output (get-buffer-create " *project grep output*"))
+       (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
+       (status nil)
+       (hits nil)
+       ;; Support for remote files.  The assumption is that, if the
+       ;; first file is remote, they all are, and on the same host.
+       (dir (file-name-directory (car files)))
+       (remote-id (file-remote-p dir))
+       ;; 'git ls-files' can output broken symlinks.
+       (command (format "xargs -0 grep %s -snHE -e %s"
+                        (if (and case-fold-search
+                                 (isearch-no-upper-case-p regexp t))
+                            "-i"
+                          "")
+                        (shell-quote-argument (xref--regexp-to-extended regexp)))))
+    (when remote-id
+      (setq files (mapcar #'file-local-name files)))
+    (with-current-buffer output
+      (erase-buffer)
+      (with-temp-buffer
+        (insert (mapconcat #'identity files "\0"))
+        (setq default-directory dir)
+        (setq status
+              (project--process-file-region (point-min)
+                                            (point-max)
+                                            shell-file-name
+                                            output
+                                            nil
+                                            shell-command-switch
+                                            command)))
+      (goto-char (point-min))
+      (when (and (/= (point-min) (point-max))
+                 (not (looking-at grep-re))
+                 ;; TODO: Show these matches as well somehow?
+                 (not (looking-at "Binary file .* matches")))
+        (user-error "Search failed with status %d: %s" status
+                    (buffer-substring (point-min) (line-end-position))))
       (while (re-search-forward grep-re nil t)
         (push (list (string-to-number (match-string line-group))
                     (match-string file-group)
@@ -1278,11 +1342,11 @@ Such as the current syntax table and the applied syntax properties."
                      (in ?b ?B ?< ?> ?w ?W ?_ ?s ?S))
                     str)))
 
-(defvar xref--last-visiting-buffer nil)
+(defvar xref--last-file-buffer nil)
 (defvar xref--temp-buffer-file-name nil)
 
 (defun xref--convert-hits (hits regexp)
-  (let (xref--last-visiting-buffer
+  (let (xref--last-file-buffer
         (tmp-buffer (generate-new-buffer " *xref-temp*")))
     (unwind-protect
         (cl-mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
@@ -1293,7 +1357,7 @@ Such as the current syntax table and the applied syntax properties."
   (pcase-let* ((`(,line ,file ,text) hit)
                (remote-id (file-remote-p default-directory))
                (file (and file (concat remote-id file)))
-               (buf (xref--find-buffer-visiting file))
+               (buf (xref--find-file-buffer file))
                (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (if buf
         (with-current-buffer buf
@@ -1349,11 +1413,13 @@ Such as the current syntax table and the applied syntax properties."
               matches)))
     (nreverse matches)))
 
-(defun xref--find-buffer-visiting (file)
-  (unless (equal (car xref--last-visiting-buffer) file)
-    (setq xref--last-visiting-buffer
+(defun xref--find-file-buffer (file)
+  (unless (equal (car xref--last-file-buffer) file)
+    (setq xref--last-file-buffer
+          ;; `find-buffer-visiting' is considerably slower,
+          ;; especially on remote files.
           (cons file (get-file-buffer file))))
-  (cdr xref--last-visiting-buffer))
+  (cdr xref--last-file-buffer))
 
 (provide 'xref)
 
