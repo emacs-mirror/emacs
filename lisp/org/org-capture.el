@@ -513,9 +513,8 @@ Turning on this mode runs the normal hook `org-capture-mode-hook'."
   (setq-local
    header-line-format
    (substitute-command-keys
-    "\\<org-capture-mode-map>Capture buffer.  Finish \
-`\\[org-capture-finalize]', refile `\\[org-capture-refile]', \
-abort `\\[org-capture-kill]'.")))
+    "Capture buffer.  Finish `\\[org-capture-finalize]', refile \
+`\\[org-capture-refile]', abort `\\[org-capture-kill]'.")))
 
 ;;; The main commands
 
