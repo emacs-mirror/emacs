@@ -1318,6 +1318,11 @@ command_loop_1 (void)
 	  message1 (0);
 	  safe_run_hooks (Qecho_area_clear_hook);
 
+	  /* We cleared the echo area, and the minibuffer will now
+	     show, so resize the mini-window in case the minibuffer
+	     needs more or less space than the echo area.  */
+	  resize_mini_window (XWINDOW (minibuf_window), false);
+
 	  unbind_to (count, Qnil);
 
 	  /* If a C-g came in before, treat it as input now.  */
@@ -2989,6 +2994,16 @@ read_char (int commandflag, Lisp_Object map,
 	{
 	  safe_run_hooks (Qecho_area_clear_hook);
 	  clear_message (1, 0);
+	  /* If we were showing the echo-area message on top of an
+	     active minibuffer, resize the mini-window, since the
+	     minibuffer may need more or less space than the echo area
+	     we've just wiped.  */
+	  if (minibuf_level
+	      && EQ (minibuf_window, echo_area_window)
+	      /* The case where minibuffer-message-timeout is a number
+		 was already handled near the beginning of command_loop_1.  */
+	      && !NUMBERP (Vminibuffer_message_timeout))
+	    resize_mini_window (XWINDOW (minibuf_window), false);
 	}
       else if (FUNCTIONP (Vclear_message_function))
         clear_message (1, 0);

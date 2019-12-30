@@ -223,10 +223,14 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
   "Round S up to the next multiple of 512."
   (ash (ash (+ s 511) -9) 9))
 
-(defun tar-header-block-tokenize (pos coding)
+(defun tar-header-block-tokenize (pos coding &optional disable-slash)
   "Return a `tar-header' structure.
 This is a list of name, mode, uid, gid, size,
-write-date, checksum, link-type, and link-name."
+write-date, checksum, link-type, and link-name.
+CODING is our best guess for decoding non-ASCII file names.
+DISABLE-SLASH, if non-nil, means don't decide an entry is a directory
+based on the trailing slash, only based on the \"link-type\" field
+of the file header.  This is used for \"old GNU\" Tar format."
   (if (> (+ pos 512) (point-max)) (error "Malformed Tar header"))
   (cl-assert (zerop (mod (- pos (point-min)) 512)))
   (cl-assert (not enable-multibyte-characters))
@@ -272,7 +276,7 @@ write-date, checksum, link-type, and link-name."
               (decode-coding-string name coding)
               linkname
               (decode-coding-string linkname coding))
-        (if (and (null link-p) (string-match "/\\'" name))
+        (if (and (null link-p) (null disable-slash) (string-match "/\\'" name))
             (setq link-p 5))            ; directory
 
         (if (and (equal name "././@LongLink")
@@ -283,12 +287,23 @@ write-date, checksum, link-type, and link-name."
             ;; This is a GNU Tar long-file-name header.
             (let* ((size (tar-parse-octal-integer
                           string tar-size-offset tar-time-offset))
-                   ;; -1 so as to strip the terminating 0 byte.
+                   ;; The long name is in the next 512-byte block.
+                   ;; We've already moved POS there, when we computed
+                   ;; STRING above.
 		   (name (decode-coding-string
+                          ;; -1 so as to strip the terminating 0 byte.
 			  (buffer-substring pos (+ pos size -1)) coding))
+                   ;; Tokenize the header of the _real_ file entry,
+                   ;; which is further 512 bytes into the archive.
                    (descriptor (tar-header-block-tokenize
-                                (+ pos (tar-roundup-512 size))
-				coding)))
+                                (+ pos (tar-roundup-512 size)) coding
+                                ;; Don't intuit directories from
+                                ;; the trailing slash, because the
+                                ;; truncated name might by chance end
+                                ;; in a slash.
+				'ignore-trailing-slash)))
+              ;; Fix the descriptor of the real file entry by using
+              ;; the information from the long name entry.
               (cond
                ((eq link-p (- ?L ?0))      ;GNUTYPE_LONGNAME.
                 (setf (tar-header-name descriptor) name))
@@ -296,6 +311,10 @@ write-date, checksum, link-type, and link-name."
                 (setf (tar-header-link-name descriptor) name))
                (t
                 (message "Unrecognized GNU Tar @LongLink format")))
+              ;; Fix the "link-type" attribute, based on the long name.
+              (if (and (null (tar-header-link-type descriptor))
+                       (string-match "/\\'" name))
+                  (setf (tar-header-link-type descriptor) 5)) ; directory
               (setf (tar-header-header-start descriptor)
                     (copy-marker (- pos 512) t))
               descriptor)

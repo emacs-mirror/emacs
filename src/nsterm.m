@@ -2290,26 +2290,21 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
 
 /* Convert an index into the color table into an RGBA value.  Used in
    xdisp.c:extend_face_to_end_of_line when comparing faces and frame
-   color values.  No-op on non-gui frames.  */
+   color values.  */
 
 unsigned long
 ns_color_index_to_rgba(int idx, struct frame *f)
 {
-  if (FRAME_DISPLAY_INFO (f))
-    {
-      NSColor *col;
-      col = ns_lookup_indexed_color (idx, f);
+  NSColor *col;
+  col = ns_lookup_indexed_color (idx, f);
 
-      EmacsCGFloat r, g, b, a;
-      [col getRed: &r green: &g blue: &b alpha: &a];
+  EmacsCGFloat r, g, b, a;
+  [col getRed: &r green: &g blue: &b alpha: &a];
 
-      return ARGB_TO_ULONG((unsigned long) (a * 255),
-                           (unsigned long) (r * 255),
-                           (unsigned long) (g * 255),
-                           (unsigned long) (b * 255));
-    }
-  else
-    return idx;
+  return ARGB_TO_ULONG((unsigned long) (a * 255),
+                       (unsigned long) (r * 255),
+                       (unsigned long) (g * 255),
+                       (unsigned long) (b * 255));
 }
 
 void
@@ -2330,7 +2325,7 @@ ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
   if (setPixel == YES)
     color_def->pixel
       = ARGB_TO_ULONG((unsigned long) (a * 255),
-		      (unsigned long) (r * 255),
+                      (unsigned long) (r * 255),
                       (unsigned long) (g * 255),
                       (unsigned long) (b * 255));
 }

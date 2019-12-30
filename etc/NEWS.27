@@ -296,6 +296,14 @@ To get the old, less-secure behavior, you can set the
 *** When run by root, emacsclient no longer connects to non-root sockets.
 (Instead you can use Tramp methods to run root commands in a non-root Emacs.)
 
+---
+** 'xft-ignore-color-fonts' now ignores even more color fonts.
+There are color fonts that managed to bypass the existing checks,
+causing XFT crashes, they are now filtered out.  Setting
+'xft-ignore-color-fonts' to nil removes those checks, which might
+require setting 'face-ignored-fonts' to filter out problematic fonts.
+Known problematic fonts are "Noto Color Emoji" and "Emoji One".
+
 +++
 ** New user option 'what-cursor-show-names'.
 When non-nil, 'what-cursor-position' will show the name of the character

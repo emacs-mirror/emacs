@@ -865,6 +865,9 @@ ftfont_list (struct frame *f, Lisp_Object spec)
 #ifdef FC_FONTFORMAT
 			     FC_FONTFORMAT,
 #endif
+#if defined HAVE_XFT && defined FC_COLOR
+                             FC_COLOR,
+#endif
 			     NULL);
   if (! objset)
     goto err;
@@ -904,7 +907,19 @@ ftfont_list (struct frame *f, Lisp_Object spec)
   for (i = 0; i < fontset->nfont; i++)
     {
       Lisp_Object entity;
-
+#if defined HAVE_XFT && defined FC_COLOR
+      {
+        /* Some fonts, notably NotoColorEmoji, have an FC_COLOR value
+           that's neither FcTrue nor FcFalse, which means FcFontList
+           returns them even when it shouldn't really do so, so we
+           need to manually skip them here (Bug#37786).  */
+        FcBool b;
+        if (Vxft_ignore_color_fonts
+            && FcPatternGetBool (fontset->fonts[i], FC_COLOR, 0, &b)
+            == FcResultMatch && b != FcFalse)
+            continue;
+      }
+#endif
       if (spacing >= 0)
 	{
 	  int this;

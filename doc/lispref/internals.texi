@@ -972,7 +972,7 @@ The name of the variable to be used by Lisp programs.
 The name of the variable in the C sources.
 @item doc
 The documentation for the variable, as a C
-comment.  @xref{Documentation Basics} for more details.
+comment.  @xref{Documentation Basics}, for more details.
 @end table
 
   By convention, when defining variables of a ``native'' type
@@ -1651,7 +1651,7 @@ little-endian magnitude of the return value.
 
 The following example uses the GNU Multiprecision Library (GMP) to
 calculate the next probable prime after a given integer.
-@xref{Top,,,gmp} for a general overview of GMP, and @pxref{Integer
+@xref{Top,,,gmp}, for a general overview of GMP, and @pxref{Integer
 Import and Export,,,gmp} for how to convert the @code{magnitude} array
 to and from GMP @code{mpz_t} values.
 
