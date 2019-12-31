@@ -82,7 +82,8 @@
 
 (ert-deftest completion-table-test-quoting ()
   (let ((process-environment
-         `("CTTQ1=ed" "CTTQ2=et/" ,@process-environment)))
+         `("CTTQ1=ed" "CTTQ2=et/" ,@process-environment))
+        (default-directory (expand-file-name "test" source-directory)))
     (pcase-dolist (`(,input ,output)
                    '(
                      ;; Test that $ in files is properly $$ quoted.

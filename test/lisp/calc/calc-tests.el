@@ -29,6 +29,7 @@
 (require 'calc)
 (require 'calc-ext)
 (require 'calc-units)
+(require 'calc-forms)
 
 ;; XXX The order in which calc libraries (in particular calc-units)
 ;; are loaded influences whether a calc integer in an expression
