@@ -2041,7 +2041,7 @@ NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
   if test "$with_toolkit_scroll_bars" = "no"; then
-    AC_MSG_ERROR([Non-toolkit scroll bars are not implemented for Nextstep.])
+    AC_MSG_WARN([Non-toolkit scroll bars are not implemented for Nextstep.])
   fi
 
   window_system=nextstep
