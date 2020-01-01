@@ -135,11 +135,6 @@ int _cdecl _spawnlp (int, const char *, const char *, ...);
 # include <sys/socket.h>
 #endif
 
-/* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
-#ifndef ULLONG_MAX
-#define ULLONG_MAX TYPE_MAXIMUM (unsigned long long int)
-#endif
-
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
@@ -3141,7 +3136,7 @@ make_lisp_timeval (struct timeval t)
 
 #endif
 
-#if defined GNU_LINUX && defined HAVE_LONG_LONG_INT
+#ifdef GNU_LINUX
 static struct timespec
 time_from_jiffies (unsigned long long tval, long hz)
 {
