@@ -1,6 +1,6 @@
 ;;; ob-stan.el --- Babel Functions for Stan          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Kyle Meyer
 ;; Keywords: literate programming, reproducible research

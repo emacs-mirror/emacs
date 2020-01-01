@@ -1,6 +1,6 @@
 ;;; org-attach-git.el --- Automatic git commit extension to org-attach -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
 ;; Original Author: John Wiegley <johnw@newartisans.com>
 ;; Restructurer: Gustav Wikström <gustav@whil.se>

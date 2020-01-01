@@ -1,6 +1,6 @@
 ;;; org-protocol.el --- Intercept Calls from Emacsclient to Trigger Custom Actions -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Daniel M German <dmg AT uvic DOT org>

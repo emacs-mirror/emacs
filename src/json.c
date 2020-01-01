@@ -1,6 +1,6 @@
 /* JSON parsing and serialization.
 
-Copyright (C) 2017-2019 Free Software Foundation, Inc.
+Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

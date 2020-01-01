@@ -1,6 +1,6 @@
 ;;; ox-org.el --- Org Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: org, wp

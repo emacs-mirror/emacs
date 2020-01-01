@@ -1,6 +1,6 @@
 ;;; org-entities.el --- Support for Special Entities -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>,
 ;;         Ulf Stegemann <ulf at zeitform dot de>

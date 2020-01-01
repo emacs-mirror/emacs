@@ -1,6 +1,6 @@
 ;;; org-num.el --- Dynamic Headlines Numbering  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp

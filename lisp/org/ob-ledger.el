@@ -1,6 +1,6 @@
 ;;; ob-ledger.el --- Babel Functions for Ledger      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;; Keywords: literate programming, reproducible research, accounting

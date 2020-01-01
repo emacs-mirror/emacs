@@ -1,6 +1,6 @@
 ;;; fns-tests.el --- tests for src/fns.c
 
-;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

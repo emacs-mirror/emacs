@@ -1,6 +1,6 @@
 ;;; ob-picolisp.el --- Babel Functions for Picolisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Authors: Thorsten Jolitz
 ;;	 Eric Schulte

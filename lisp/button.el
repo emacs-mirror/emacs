@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions, hypermedia

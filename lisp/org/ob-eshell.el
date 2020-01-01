@@ -1,6 +1,6 @@
 ;;; ob-eshell.el --- Babel Functions for Eshell      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: stardiviner <numbchild@gmail.com>
 ;; Keywords: literate programming, reproducible research

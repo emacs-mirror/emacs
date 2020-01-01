@@ -1,6 +1,6 @@
 ;;; org-ctags.el - Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
 

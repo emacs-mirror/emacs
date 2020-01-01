@@ -1,6 +1,6 @@
 ;;; ob-lua.el --- Org Babel functions for Lua evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014, 2016-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2020 Free Software Foundation, Inc.
 
 ;; Authors: Dieter Schoen
 ;; Keywords: literate programming, reproducible research

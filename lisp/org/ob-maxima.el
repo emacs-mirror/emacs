@@ -1,6 +1,6 @@
 ;;; ob-maxima.el --- Babel Functions for Maxima      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;;	Eric Schulte

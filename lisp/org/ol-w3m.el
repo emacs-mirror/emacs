@@ -1,6 +1,6 @@
 ;;; ol-w3m.el --- Copy and Paste From W3M            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp

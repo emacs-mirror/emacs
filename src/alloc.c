@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2019 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2020 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.

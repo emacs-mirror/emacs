@@ -1,6 +1,6 @@
 ;;; ol-bbdb.el --- Links to BBDB entries             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 ;; Authors: Carsten Dominik <carsten at orgmode dot org>
 ;;       Thomas Baumann <thomas dot baumann at ch dot tum dot de>

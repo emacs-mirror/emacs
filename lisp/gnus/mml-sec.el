@@ -1,6 +1,6 @@
 ;;; mml-sec.el --- A package with security functions for MML documents
 
-;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 

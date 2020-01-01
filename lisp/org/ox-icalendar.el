@@ -1,6 +1,6 @@
 ;;; ox-icalendar.el --- iCalendar Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;      Nicolas Goaziou <n dot goaziou at gmail dot com>

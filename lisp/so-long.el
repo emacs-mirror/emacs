@@ -1,6 +1,6 @@
 ;;; so-long.el --- Say farewell to performance problems with minified code.  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2015, 2016, 2018, 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016, 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: Phil Sainty <psainty@orcon.net.nz>
 ;; Maintainer: Phil Sainty <psainty@orcon.net.nz>

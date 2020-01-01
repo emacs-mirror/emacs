@@ -1,6 +1,6 @@
 ;;; ob-R.el --- Babel Functions for R                -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison

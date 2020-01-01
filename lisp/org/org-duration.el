@@ -1,6 +1,6 @@
 ;;; org-duration.el --- Library handling durations   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp

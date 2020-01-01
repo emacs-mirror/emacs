@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2017-2019 Free Software Foundation, Inc.
+Copyright (C) 2017-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -164,7 +164,7 @@ and will override their traditional locations (the home directory,
 "~/.emacs.d", etc.).
 
 Emacs will still look for init files in their traditional locations if
-XDG_CONFIG_HOME does not exist, so invoking Emacs with
+XDG_CONFIG_HOME/emacs does not exist, so invoking Emacs with
 XDG_CONFIG_HOME='/nowhere' might be useful if your new-location init
 files are scrambled, or if you want to force Emacs to ignore files
 under XDG_CONFIG_HOME for some other reason.

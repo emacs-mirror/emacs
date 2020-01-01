@@ -1,6 +1,6 @@
 ;;; ob-io.el --- Babel Functions for Io              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Andrzej Lichnerowicz
 ;; Keywords: literate programming, reproducible research

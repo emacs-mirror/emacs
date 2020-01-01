@@ -1,6 +1,6 @@
 ;;; org-lint.el --- Linting for Org documents        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp

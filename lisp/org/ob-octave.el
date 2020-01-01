@@ -1,6 +1,6 @@
 ;;; ob-octave.el --- Babel Functions for Octave and Matlab -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research

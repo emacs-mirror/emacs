@@ -1,6 +1,6 @@
 ;;; ox-md.el --- Markdown Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: org, wp, markdown

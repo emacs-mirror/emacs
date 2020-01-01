@@ -1,6 +1,6 @@
 ;;; faceup-test-basics.el --- Tests for the `faceup' package.
 
-;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: languages, faces
