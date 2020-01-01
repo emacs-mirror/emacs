@@ -4572,7 +4572,7 @@ On MS Windows, this just returns nil.  */)
     return Qnil;
 }
 
-#ifndef USE_GTK
+#if !defined USE_GTK || !defined HAVE_GTK3
 
 /* Store the geometry of the workarea on display DPYINFO into *RECT.
    Return false if and only if the workarea information cannot be
