@@ -599,9 +599,6 @@ SERVER.  ."
         ;; this one is supposed to always fail, because it asks the
         ;; server to exit itself. Hence ignore-errors.
         (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
-    ;; Turn off `eglot--managed-mode' where appropriate.
-    (dolist (buffer (eglot--managed-buffers server))
-      (eglot--with-live-buffer buffer (eglot--managed-mode-off)))
     ;; Now ask jsonrpc.el to shut down the server (which under normal
     ;; conditions should return immediately).
     (jsonrpc-shutdown server (not preserve-buffers))
@@ -611,7 +608,9 @@ SERVER.  ."
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
   (dolist (buffer (eglot--managed-buffers server))
-    (eglot--with-live-buffer buffer (eglot--managed-mode-off)))
+    (let (;; Avoid duplicate shutdowns (github#389)
+          (eglot-autoshutdown nil))
+      (eglot--with-live-buffer buffer (eglot--managed-mode-off))))
   ;; Kill any expensive watches
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
@@ -1289,8 +1288,7 @@ For example, to keep your Company customization use
         (setf (eglot--managed-buffers server)
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
-                   (not (eglot--shutdown-requested server))
-                   (not (eglot--managed-buffers server)))
+                   (null (eglot--managed-buffers server)))
           (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()
