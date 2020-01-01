@@ -4572,8 +4572,6 @@ On MS Windows, this just returns nil.  */)
     return Qnil;
 }
 
-#ifndef USE_GTK
-
 /* Store the geometry of the workarea on display DPYINFO into *RECT.
    Return false if and only if the workarea information cannot be
    obtained via the _NET_WORKAREA root window property.  */
@@ -4635,6 +4633,8 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 
   return result;
 }
+
+#ifndef USE_GTK
 
 /* Return monitor number where F is "most" or closest to.  */
 static int
