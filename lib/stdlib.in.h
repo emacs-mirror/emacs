@@ -1,7 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2020 Free Software Foundation,
-   Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -600,7 +599,9 @@ _GL_CXXALIAS_RPL (random, long, (void));
 #  if !@HAVE_RANDOM@
 _GL_FUNCDECL_SYS (random, long, (void));
 #  endif
-_GL_CXXALIAS_SYS (random, long, (void));
+/* Need to cast, because on Haiku, the return type is
+                               int.  */
+_GL_CXXALIAS_SYS_CAST (random, long, (void));
 # endif
 _GL_CXXALIASWARN (random);
 #elif defined GNULIB_POSIXCHECK
@@ -767,9 +768,11 @@ _GL_FUNCDECL_SYS (initstate_r, int,
                    struct random_data *rand_state)
                   _GL_ARG_NONNULL ((2, 4)));
 #  endif
-_GL_CXXALIAS_SYS (initstate_r, int,
-                  (unsigned int seed, char *buf, size_t buf_size,
-                   struct random_data *rand_state));
+/* Need to cast, because on Haiku, the third parameter is
+                                                     unsigned long buf_size.  */
+_GL_CXXALIAS_SYS_CAST (initstate_r, int,
+                       (unsigned int seed, char *buf, size_t buf_size,
+                        struct random_data *rand_state));
 # endif
 _GL_CXXALIASWARN (initstate_r);
 #elif defined GNULIB_POSIXCHECK
@@ -797,8 +800,10 @@ _GL_FUNCDECL_SYS (setstate_r, int,
                   (char *arg_state, struct random_data *rand_state)
                   _GL_ARG_NONNULL ((1, 2)));
 #  endif
-_GL_CXXALIAS_SYS (setstate_r, int,
-                  (char *arg_state, struct random_data *rand_state));
+/* Need to cast, because on Haiku, the first parameter is
+                        void *arg_state.  */
+_GL_CXXALIAS_SYS_CAST (setstate_r, int,
+                       (char *arg_state, struct random_data *rand_state));
 # endif
 _GL_CXXALIASWARN (setstate_r);
 #elif defined GNULIB_POSIXCHECK

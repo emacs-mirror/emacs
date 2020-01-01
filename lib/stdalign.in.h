@@ -102,7 +102,7 @@
 #  define _Alignas(a) alignas (a)
 # elif ((defined __APPLE__ && defined __MACH__                  \
          ? 4 < __GNUC__ + (1 <= __GNUC_MINOR__)                 \
-         : __GNUC__)                                            \
+         : __GNUC__ && !defined __ibmxl__) \
         || (__ia64 && (61200 <= __HP_cc || 61200 <= __HP_aCC)) \
         || __ICC || 0x590 <= __SUNPRO_C || 0x0600 <= __xlC__)
 #  define _Alignas(a) __attribute__ ((__aligned__ (a)))

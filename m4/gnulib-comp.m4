@@ -220,9 +220,6 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([copy-file-range])
   fi
   gl_UNISTD_MODULE_INDICATOR([copy-file-range])
-  gl_COUNT_LEADING_ZEROS
-  gl_COUNT_ONE_BITS
-  gl_COUNT_TRAILING_ZEROS
   gl_MD5
   gl_SHA1
   gl_SHA256
@@ -484,7 +481,6 @@ AC_DEFUN([gl_INIT],
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
   {
     if ! $gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b; then
-      AC_LIBOBJ([openat-proc])
       gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=true
       func_gl_gnulib_m4code_open
     fi
@@ -1050,9 +1046,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/canonicalize.m4
   m4/clock_time.m4
   m4/copy-file-range.m4
-  m4/count-leading-zeros.m4
-  m4/count-one-bits.m4
-  m4/count-trailing-zeros.m4
   m4/d-type.m4
   m4/dirent_h.m4
   m4/dirfd.m4
@@ -1094,7 +1087,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/largefile.m4
   m4/limits-h.m4
   m4/localtime-buffer.m4
-  m4/longlong.m4
   m4/lstat.m4
   m4/malloca.m4
   m4/manywarnings-c++.m4

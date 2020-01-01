@@ -92,7 +92,6 @@ count_trailing_zeros_l (unsigned long int x)
   COUNT_TRAILING_ZEROS (__builtin_ctzl, _BitScanForward, unsigned long int);
 }
 
-#if HAVE_UNSIGNED_LONG_LONG_INT
 /* Compute and return the number of trailing zeros in X. */
 COUNT_TRAILING_ZEROS_INLINE int
 count_trailing_zeros_ll (unsigned long long int x)
@@ -100,7 +99,6 @@ count_trailing_zeros_ll (unsigned long long int x)
   COUNT_TRAILING_ZEROS (__builtin_ctzll, _BitScanForward64,
                         unsigned long long int);
 }
-#endif
 
 _GL_INLINE_HEADER_END
 

@@ -112,14 +112,10 @@ enum
    among all elementary types.  */
   sa_alignment_long = sa_alignof (long),
   sa_alignment_double = sa_alignof (double),
-#if HAVE_LONG_LONG_INT
   sa_alignment_longlong = sa_alignof (long long),
-#endif
   sa_alignment_longdouble = sa_alignof (long double),
   sa_alignment_max = ((sa_alignment_long - 1) | (sa_alignment_double - 1)
-#if HAVE_LONG_LONG_INT
                       | (sa_alignment_longlong - 1)
-#endif
                       | (sa_alignment_longdouble - 1)
                      ) + 1
 };

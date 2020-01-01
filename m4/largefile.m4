@@ -5,6 +5,22 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
+# The following macro works around a problem in Autoconf's AC_FUNC_FSEEKO:
+# It does not set _LARGEFILE_SOURCE=1 on HP-UX/ia64 32-bit, although this
+# setting of _LARGEFILE_SOURCE is needed so that <stdio.h> declares fseeko
+# and ftello in C++ mode as well.
+AC_DEFUN([gl_SET_LARGEFILE_SOURCE],
+[
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_FUNC_FSEEKO
+  case "$host_os" in
+    hpux*)
+      AC_DEFINE([_LARGEFILE_SOURCE], [1],
+        [Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2).])
+      ;;
+  esac
+])
+
 # The following implementation works around a problem in autoconf <= 2.69;
 # AC_SYS_LARGEFILE does not configure for large inodes on Mac OS X 10.5,
 # or configures them incorrectly in some cases.

@@ -141,7 +141,7 @@ shr (long_int a, int b)
   long_int one = 1;
   return (-one >> 1 == -1
 	  ? a >> b
-	  : a / (one << b) - (a % (one << b) < 0));
+	  : (a + (a < 0)) / (one << b) - (a < 0));
 }
 
 /* Bounds for the intersection of __time64_t and long_int.  */
@@ -211,8 +211,8 @@ ydhms_diff (long_int year1, long_int yday1, int hour1, int min1, int sec1,
      Take care to avoid integer overflow here.  */
   int a4 = shr (year1, 2) + shr (TM_YEAR_BASE, 2) - ! (year1 & 3);
   int b4 = shr (year0, 2) + shr (TM_YEAR_BASE, 2) - ! (year0 & 3);
-  int a100 = a4 / 25 - (a4 % 25 < 0);
-  int b100 = b4 / 25 - (b4 % 25 < 0);
+  int a100 = (a4 + (a4 < 0)) / 25 - (a4 < 0);
+  int b100 = (b4 + (b4 < 0)) / 25 - (b4 < 0);
   int a400 = shr (a100, 2);
   int b400 = shr (b100, 2);
   int intervening_leap_days = (a4 - b4) - (a100 - b100) + (a400 - b400);

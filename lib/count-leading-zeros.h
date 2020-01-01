@@ -100,7 +100,6 @@ count_leading_zeros_l (unsigned long int x)
   COUNT_LEADING_ZEROS (__builtin_clzl, _BitScanReverse, unsigned long int);
 }
 
-#if HAVE_UNSIGNED_LONG_LONG_INT
 /* Compute and return the number of leading zeros in X. */
 COUNT_LEADING_ZEROS_INLINE int
 count_leading_zeros_ll (unsigned long long int x)
@@ -108,7 +107,6 @@ count_leading_zeros_ll (unsigned long long int x)
   COUNT_LEADING_ZEROS (__builtin_clzll, _BitScanReverse64,
                        unsigned long long int);
 }
-#endif
 
 _GL_INLINE_HEADER_END
 

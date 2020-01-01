@@ -1259,7 +1259,9 @@ _GL_FUNCDECL_SYS (vdprintf, int, (int fd, const char *format, va_list args)
 _GL_CXXALIAS_SYS_CAST (vdprintf, int,
                        (int fd, const char *format, va_list args));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (vdprintf);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef vdprintf
 # if HAVE_RAW_DECL_VDPRINTF
