@@ -3748,8 +3748,6 @@ if test "${with_nativecomp}" != "no"; then
     LIBGCCJIT_LIB="-lgccjit -ldl"
     COMP_OBJ+=comp.o
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
-    AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
-     [System extension for native compiled elisp])
   else
     AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
 If you are sure you want Emacs compiled without elisp native compiler, pass
@@ -3757,6 +3755,8 @@ If you are sure you want Emacs compiled without elisp native compiler, pass
 to configure.])
   fi
 fi
+AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
+  [System extension for native compiled elisp])
 AC_SUBST(HAVE_NATIVE_COMP)
 AC_SUBST(LIBGCCJIT_LIB)
 AC_SUBST(COMP_OBJ)

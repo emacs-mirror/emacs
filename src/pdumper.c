@@ -5296,6 +5296,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
         dump_write_word_to_dump (dump_base, reloc_offset, value);
         break;
       }
+#ifdef HAVE_NATIVE_COMP
     case RELOC_NATIVE_COMP_UNIT:
       {
 	struct Lisp_Native_Comp_Unit *comp_u =
@@ -5323,6 +5324,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	subr->function.a0 = func;
 	break;
       }
+#endif
     case RELOC_BIGNUM:
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);

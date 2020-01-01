@@ -29,8 +29,6 @@ enum {
 #endif
 };
 
-#ifdef HAVE_NATIVE_COMP
-
 #include <dynlib.h>
 
 struct Lisp_Native_Comp_Unit
@@ -42,6 +40,8 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object data_vec;
   dynlib_handle_ptr handle;
 };
+
+#ifdef HAVE_NATIVE_COMP
 
 INLINE bool
 NATIVE_COMP_UNITP (Lisp_Object a)
