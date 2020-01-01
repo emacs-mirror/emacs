@@ -1551,15 +1551,15 @@ This can run just once."
   "Given INSN when F is pure if all ARGS are known remove the function call."
   (when (and (get f 'pure) ; Can we just optimize pure here? See byte-opt.el
              (cl-every #'comp-mvar-const-vld args))
-    (condition-case err
-        (let ((val (apply f (mapcar #'comp-mvar-constant args))))
-          ;; See `comp-emit-set-const'.
-          (setf (car insn) 'setimm
-                (cddr insn) (list (comp-add-const-to-relocs val) val)))
-      ;; FIXME Should we crash?  At least we should complain once.
-      (t (message "Native compiler trying to move run-time error into \
-compile-time? %S calling %S inside function %S." err f
-(comp-func-name comp-func))))))
+    (ignore-errors
+      ;; No point to complain here because we should do basic block
+      ;; pruning in order to be sure that this is not dead-code.  This
+      ;; is now left to gcc, to be implemented only if we want a
+      ;; reliable diagnostic here.
+      (let ((val (apply f (mapcar #'comp-mvar-constant args))))
+        ;; See `comp-emit-set-const'.
+        (setf (car insn) 'setimm
+              (cddr insn) (list (comp-add-const-to-relocs val) val))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
