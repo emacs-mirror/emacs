@@ -7334,7 +7334,10 @@ exists.  If NO-ASYNC is non-nil, call diff synchronously.
 
 When called interactively with a prefix argument, prompt
 interactively for diff switches.  Otherwise, the switches
-specified in the variable `diff-switches' are passed to the diff command.
+specified in the variable `diff-switches' are passed to the
+diff command.
+
+Non-interactively, OLD and NEW may each be a file or a buffer.
 
 \(fn OLD NEW &optional SWITCHES NO-ASYNC)" t nil)
 
@@ -7357,6 +7360,23 @@ View the differences between BUFFER and its associated file.
 This requires the external program `diff' to be in your `exec-path'.
 
 \(fn &optional BUFFER)" t nil)
+
+(autoload 'diff-buffers "diff" "\
+Find and display the differences between OLD and NEW buffers.
+
+When called interactively, read NEW, then OLD, using the
+minibuffer.  The default for NEW is the current buffer, and the
+default for OLD is the most recently selected other buffer.
+If NO-ASYNC is non-nil, call diff synchronously.
+
+When called interactively with a prefix argument, prompt
+interactively for diff switches.  Otherwise, the switches
+specified in the variable `diff-switches' are passed to the
+diff command.
+
+OLD and NEW may each be a buffer or a buffer name.
+
+\(fn OLD NEW &optional SWITCHES NO-ASYNC)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff" '("diff-")))
 
@@ -11576,6 +11596,17 @@ see `eudc-inline-expansion-servers'.
 
 \(fn &optional REPLACE)" t nil)
 
+(autoload 'eudc-query-with-words "eudc" "\
+Query the directory server, and return the matching responses.
+The variable `eudc-inline-query-format' controls how to associate the
+individual QUERY-WORDS with directory attribute names.
+After querying the server for the given string, the expansion specified by
+`eudc-inline-expansion-format' is applied to the matches before returning them.inserted in the buffer at point.
+Multiple servers can be tried with the same query until one finds a match,
+see `eudc-inline-expansion-servers'.
+
+\(fn QUERY-WORDS)" nil nil)
+
 (autoload 'eudc-query-form "eudc" "\
 Display a form to query the directory server.
 If given a non-nil argument GET-FIELDS-FROM-SERVER, the function first
@@ -13442,7 +13473,7 @@ and choose the directory as the fortune-file.
 Minimum set of parameters to filter for live (on-session) framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
-(defvar frameset-persistent-filter-alist (nconc '((background-color . frameset-filter-sanitize-color) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (outer-window-id . :never) (parent-frame . :never) (parent-id . :never) (mouse-wheel-frame . :never) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-id . :never) (window-system . :never)) frameset-session-filter-alist) "\
+(defvar frameset-persistent-filter-alist (nconc '((background-color . frameset-filter-sanitize-color) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (outer-window-id . :never) (parent-frame . :never) (parent-id . :never) (mouse-wheel-frame . :never) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-id . :never) (window-system . :never)) frameset-session-filter-alist) "\
 Parameters to filter for persistent framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
@@ -14662,9 +14693,6 @@ Add NUM into sorted LIST by side effect.
 
 (autoload 'gnus-registry-initialize "gnus-registry" "\
 Initialize the Gnus registry." t nil)
-
-(autoload 'gnus-registry-install-hooks "gnus-registry" "\
-Install the registry hooks." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnus-registry" '("gnus-")))
 
@@ -18934,7 +18962,7 @@ one of the aforementioned options instead of using this mode.
 
 ;;;### (autoloads nil "jsonrpc" "jsonrpc.el" (0 0 0 0))
 ;;; Generated autoloads from jsonrpc.el
-(push (purecopy '(jsonrpc 1 0 8)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 9)) package--builtin-versions)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jsonrpc" '("jrpc-default-request-timeout" "jsonrpc-")))
 
@@ -22700,6 +22728,13 @@ Many aspects this mode can be customized using
 
 ;;;***
 
+;;;### (autoloads nil "ob-eshell" "org/ob-eshell.el" (0 0 0 0))
+;;; Generated autoloads from org/ob-eshell.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-eshell" '("ob-eshell-session-live-p" "org-babel-")))
+
+;;;***
+
 ;;;### (autoloads nil "ob-eval" "org/ob-eval.el" (0 0 0 0))
 ;;; Generated autoloads from org/ob-eval.el
 
@@ -22774,14 +22809,6 @@ Many aspects this mode can be customized using
 ;;; Generated autoloads from org/ob-js.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-js" '("org-babel-")))
-
-;;;***
-
-;;;### (autoloads "actual autoloads are elsewhere" "ob-keys" "org/ob-keys.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from org/ob-keys.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-keys" '("org-babel-")))
 
 ;;;***
 
@@ -22943,7 +22970,7 @@ Many aspects this mode can be customized using
 
 ;;;### (autoloads nil "ob-sed" "org/ob-sed.el" (0 0 0 0))
 ;;; Generated autoloads from org/ob-sed.el
-(push (purecopy '(ob-sed 0 1 0)) package--builtin-versions)
+(push (purecopy '(ob-sed 0 1 1)) package--builtin-versions)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ob-sed" '("org-babel-")))
 
@@ -23056,6 +23083,189 @@ startup file, `~/.emacs-octave'.
 
 ;;;***
 
+;;;### (autoloads nil "ol" "org/ol.el" (0 0 0 0))
+;;; Generated autoloads from org/ol.el
+
+(autoload 'org-next-link "ol" "\
+Move forward to the next link.
+If the link is in hidden text, expose it.  When SEARCH-BACKWARD
+is non-nil, move backward.
+
+\(fn &optional SEARCH-BACKWARD)" t nil)
+
+(autoload 'org-previous-link "ol" "\
+Move backward to the previous link.
+If the link is in hidden text, expose it." t nil)
+
+(autoload 'org-toggle-link-display "ol" "\
+Toggle the literal or descriptive display of links." t nil)
+
+(autoload 'org-store-link "ol" "\
+Store a link to the current location.
+\\<org-mode-map>
+This link is added to `org-stored-links' and can later be inserted
+into an Org buffer with `org-insert-link' (`\\[org-insert-link]').
+
+For some link types, a `\\[universal-argument]' prefix ARG is interpreted.  A single
+`\\[universal-argument]' negates `org-context-in-file-links' for file links or
+`org-gnus-prefer-web-links' for links to Usenet articles.
+
+A `\\[universal-argument] \\[universal-argument]' prefix ARG forces skipping storing functions that are not
+part of Org core.
+
+A `\\[universal-argument] \\[universal-argument] \\[universal-argument]' prefix ARG forces storing a link for each line in the
+active region.
+
+Assume the function is called interactively if INTERACTIVE? is
+non-nil.
+
+\(fn ARG &optional INTERACTIVE\\=\\?)" t nil)
+
+(autoload 'org-insert-link "ol" "\
+Insert a link.  At the prompt, enter the link.
+
+Completion can be used to insert any of the link protocol prefixes in use.
+
+The history can be used to select a link previously stored with
+`org-store-link'.  When the empty string is entered (i.e. if you just
+press `RET' at the prompt), the link defaults to the most recently
+stored link.  As `SPC' triggers completion in the minibuffer, you need to
+use `M-SPC' or `C-q SPC' to force the insertion of a space character.
+
+You will also be prompted for a description, and if one is given, it will
+be displayed in the buffer instead of the link.
+
+If there is already a link at point, this command will allow you to edit
+link and description parts.
+
+With a `\\[universal-argument]' prefix, prompts for a file to link to.  The file name can be
+selected using completion.  The path to the file will be relative to the
+current directory if the file is in the current directory or a subdirectory.
+Otherwise, the link will be the absolute path as completed in the minibuffer
+\(i.e. normally ~/path/to/file).  You can configure this behavior using the
+option `org-link-file-path-type'.
+
+With a `\\[universal-argument] \\[universal-argument]' prefix, enforce an absolute path even if the file is in
+the current directory or below.
+
+A `\\[universal-argument] \\[universal-argument] \\[universal-argument]' prefix negates `org-link-keep-stored-after-insertion'.
+
+If the LINK-LOCATION parameter is non-nil, this value will be used as
+the link location instead of reading one interactively.
+
+If the DESCRIPTION parameter is non-nil, this value will be used as the
+default description.  Otherwise, if `org-link-make-description-function'
+is non-nil, this function will be called with the link target, and the
+result will be the default link description.  When called non-interactively,
+don't allow to edit the default description.
+
+\(fn &optional COMPLETE-FILE LINK-LOCATION DESCRIPTION)" t nil)
+
+(autoload 'org-insert-all-links "ol" "\
+Insert all links in `org-stored-links'.
+When a universal prefix, do not delete the links from `org-stored-links'.
+When `ARG' is a number, insert the last N link(s).
+`PRE' and `POST' are optional arguments to define a string to
+prepend or to append.
+
+\(fn ARG &optional PRE POST)" t nil)
+
+(autoload 'org-insert-last-stored-link "ol" "\
+Insert the last link stored in `org-stored-links'.
+
+\(fn ARG)" t nil)
+
+(autoload 'org-insert-link-global "ol" "\
+Insert a link like Org mode does.
+This command can be called in any mode to insert a link in Org syntax." t nil)
+
+(autoload 'org-update-radio-target-regexp "ol" "\
+Find all radio targets in this file and update the regular expression.
+Also refresh fontification if needed." t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol" '("org-")))
+
+;;;***
+
+;;;### (autoloads "actual autoloads are elsewhere" "ol-bbdb" "org/ol-bbdb.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from org/ol-bbdb.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-bbdb" '("org-bbdb-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-bibtex" "org/ol-bibtex.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-bibtex.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-bibtex" '("org-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-docview" "org/ol-docview.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-docview.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-docview" '("org-docview-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-eshell" "org/ol-eshell.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-eshell.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-eshell" '("org-eshell-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-eww" "org/ol-eww.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-eww.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-eww" '("org-eww-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-gnus" "org/ol-gnus.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-gnus.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-gnus" '("org-gnus-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-info" "org/ol-info.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-info.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-info" '("org-info-")))
+
+;;;***
+
+;;;### (autoloads "actual autoloads are elsewhere" "ol-irc" "org/ol-irc.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from org/ol-irc.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-irc" '("org-irc-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-mhe" "org/ol-mhe.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-mhe.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-mhe" '("org-mhe-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-rmail" "org/ol-rmail.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-rmail.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-rmail" '("org-rmail-")))
+
+;;;***
+
+;;;### (autoloads nil "ol-w3m" "org/ol-w3m.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-w3m.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ol-w3m" '("org-w3m-")))
+
+;;;***
+
 ;;;### (autoloads nil "opascal" "progmodes/opascal.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/opascal.el
 
@@ -23095,7 +23305,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 1 9)) package--builtin-versions)
+(push (purecopy '(org 9 3)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -23105,9 +23315,9 @@ Load the languages defined in `org-babel-load-languages'.
 (autoload 'org-babel-load-file "org" "\
 Load Emacs Lisp source code blocks in the Org FILE.
 This function exports the source code using `org-babel-tangle'
-and then loads the resulting file using `load-file'.  With prefix
-arg (noninteractively: 2nd arg) COMPILE the tangled Emacs Lisp
-file to byte-code before it is loaded.
+and then loads the resulting file using `load-file'.  With
+optional prefix argument COMPILE, the tangled Emacs Lisp file is
+byte-compiled before it is loaded.
 
 \(fn FILE &optional COMPILE)" t nil)
 
@@ -23119,9 +23329,6 @@ In non-interactive uses, a reduced version string is output unless
 FULL is given.
 
 \(fn &optional HERE FULL MESSAGE)" t nil)
-
-(autoload 'turn-on-orgtbl "org" "\
-Unconditionally turn on `orgtbl-mode'." nil nil)
 
 (autoload 'org-clock-persistence-insinuate "org" "\
 Set up hooks for clock persistence." nil nil)
@@ -23205,27 +23412,6 @@ With `\\[universal-argument]' prefix ARG, switch to startup visibility.
 With a numeric prefix, show all headlines up to that level.
 
 \(fn &optional ARG)" t nil)
-(put 'orgstruct-heading-prefix-regexp 'safe-local-variable 'stringp)
-
-(autoload 'orgstruct-mode "org" "\
-Toggle the minor mode `orgstruct-mode'.
-This mode is for using Org mode structure commands in other
-modes.  The following keys behave as if Org mode were active, if
-the cursor is on a headline, or on a plain list item (both as
-defined by Org mode).
-
-If called interactively, enable OrgStruct mode if ARG is positive, and
-disable it if ARG is zero or negative.  If called from Lisp, also
-enable the mode if ARG is omitted or nil, and toggle it if ARG is
-`toggle'; disable the mode otherwise.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'turn-on-orgstruct "org" "\
-Unconditionally turn on `orgstruct-mode'." nil nil)
-
-(autoload 'turn-on-orgstruct++ "org" "\
-Unconditionally turn on `orgstruct++-mode'." nil nil)
 
 (autoload 'org-run-like-in-org-mode "org" "\
 Run a command, pretending that the current buffer is in Org mode.
@@ -23235,39 +23421,46 @@ call CMD.
 
 \(fn CMD)" nil nil)
 
-(autoload 'org-store-link "org" "\
-Store an org-link to the current location.
-\\<org-mode-map>
-This link is added to `org-stored-links' and can later be inserted
-into an Org buffer with `org-insert-link' (`\\[org-insert-link]').
+(autoload 'org-open-file "org" "\
+Open the file at PATH.
+First, this expands any special file name abbreviations.  Then the
+configuration variable `org-file-apps' is checked if it contains an
+entry for this file type, and if yes, the corresponding command is launched.
 
-For some link types, a `\\[universal-argument]' prefix ARG is interpreted.  A single
-`\\[universal-argument]' negates `org-context-in-file-links' for file links or
-`org-gnus-prefer-web-links' for links to Usenet articles.
+If no application is found, Emacs simply visits the file.
 
-A `\\[universal-argument] \\[universal-argument]' prefix ARG forces skipping storing functions that are not
-part of Org core.
+With optional prefix argument IN-EMACS, Emacs will visit the file.
+With a double \\[universal-argument] \\[universal-argument] prefix arg, Org tries to avoid opening in Emacs
+and to use an external application to visit the file.
 
-A `\\[universal-argument] \\[universal-argument] \\[universal-argument]' prefix ARG forces storing a link for each line in the
-active region.
+Optional LINE specifies a line to go to, optional SEARCH a string
+to search for.  If LINE or SEARCH is given, the file will be
+opened in Emacs, unless an entry from `org-file-apps' that makes
+use of groups in a regexp matches.
 
-\(fn ARG)" t nil)
+If you want to change the way frames are used when following a
+link, please customize `org-link-frame-setup'.
 
-(autoload 'org-insert-link-global "org" "\
-Insert a link like Org mode does.
-This command can be called in any mode to insert a link in Org syntax." t nil)
+If the file does not exist, throw an error.
+
+\(fn PATH &optional IN-EMACS LINE SEARCH)" nil nil)
 
 (autoload 'org-open-at-point-global "org" "\
-Follow a link or time-stamp like Org mode does.
-This command can be called in any mode to follow an external link
-or a time-stamp that has Org mode syntax.  Its behavior is
-undefined when called on internal links (e.g., fuzzy links).
-Raise an error when there is nothing to follow." t nil)
+Follow a link or a time-stamp like Org mode does.
+Also follow links and emails as seen by `thing-at-point'.
+This command can be called in any mode to follow an external
+link or a time-stamp that has Org mode syntax.  Its behavior
+is undefined when called on internal links like fuzzy links.
+Raise a user error when there is nothing to follow." t nil)
 
-(autoload 'org-open-link-from-string "org" "\
-Open a link in the string S, as if it was in Org mode.
+(autoload 'org-offer-links-in-entry "org" "\
+Offer links in the current entry and return the selected link.
+If there is only one link, return it.
+If NTH is an integer, return the NTH link found.
+If ZERO is a string, check also this string for a link, and if
+there is one, return it.
 
-\(fn S &optional ARG REFERENCE-BUFFER)" t nil)
+\(fn BUFFER MARKER &optional NTH ZERO)" nil nil)
 
 (autoload 'org-switchb "org" "\
 Switch between Org buffers.
@@ -23301,7 +23494,7 @@ With prefix arg UNCOMPILED, load the uncompiled versions.
 (autoload 'org-customize "org" "\
 Call the customize function with org as argument." t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org" '("org" "turn-on-org-cdlatex")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org" '("org-" "turn-on-org-cdlatex")))
 
 ;;;***
 
@@ -23389,7 +23582,7 @@ todo         The todo keyword, if any
 tags         All tags including inherited ones, separated by colons
 date         The relevant date, like 2007-2-14
 time         The time, like 15:00-16:50
-extra        Sting with extra planning info
+extra        String with extra planning info
 priority-l   The priority letter if any was given
 priority-n   The computed numerical priority
 agenda-day   The day in the agenda where this is listed
@@ -23528,10 +23721,13 @@ Do we have a reason to ignore this TODO entry because it has a time stamp?
 \(fn &optional END)" nil nil)
 
 (autoload 'org-agenda-set-restriction-lock "org-agenda" "\
-Set restriction lock for agenda, to current subtree or file.
-Restriction will be the file if TYPE is `file', or if type is the
-universal prefix \\='(4), or if the cursor is before the first headline
-in the file.  Otherwise, restriction will be to the current subtree.
+Set restriction lock for agenda to current subtree or file.
+When in a restricted subtree, remove it.
+
+The restriction will span over the entire file if TYPE is `file',
+or if type is '(4), or if the cursor is before the first headline
+in the file. Otherwise, only apply the restriction to the current
+subtree.
 
 \(fn &optional TYPE)" t nil)
 
@@ -23582,7 +23778,7 @@ to override `appt-message-warning-time'.
 ;;;;;;  "org/org-archive.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-archive.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-archive" '("org-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-archive" '("org-a")))
 
 ;;;***
 
@@ -23594,18 +23790,11 @@ to override `appt-message-warning-time'.
 
 ;;;***
 
-;;;### (autoloads "actual autoloads are elsewhere" "org-bbdb" "org/org-bbdb.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from org/org-bbdb.el
+;;;### (autoloads nil "org-attach-git" "org/org-attach-git.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from org/org-attach-git.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-bbdb" '("org-bbdb-")))
-
-;;;***
-
-;;;### (autoloads nil "org-bibtex" "org/org-bibtex.el" (0 0 0 0))
-;;; Generated autoloads from org/org-bibtex.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-bibtex" '("org-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-attach-git" '("org-attach-git-")))
 
 ;;;***
 
@@ -23651,7 +23840,7 @@ of the day at point (if any) or the current HH:MM time.
 (autoload 'org-capture-import-remember-templates "org-capture" "\
 Set `org-capture-templates' to be similar to `org-remember-templates'." t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-capture" '("org-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-capture" '("org-capture-")))
 
 ;;;***
 
@@ -23693,24 +23882,54 @@ column specification.
 
 (autoload 'org-dblock-write:columnview "org-colview" "\
 Write the column view table.
+
 PARAMS is a property list of parameters:
 
-:id       the :ID: property of the entry where the columns view
-	  should be built.  When the symbol `local', call locally.
-	  When `global' call column view with the cursor at the beginning
-	  of the buffer (usually this means that the whole buffer switches
-	  to column view).  When \"file:path/to/file.org\", invoke column
-	  view at the start of that file.  Otherwise, the ID is located
-	  using `org-id-find'.
-:hlines   When t, insert a hline before each item.  When a number, insert
-	  a hline before each level <= that number.
-:indent   When non-nil, indent each ITEM field according to its level.
-:vlines   When t, make each column a colgroup to enforce vertical lines.
-:maxlevel When set to a number, don't capture headlines below this level.
-:skip-empty-rows
-	  When t, skip rows where all specifiers other than ITEM are empty.
-:width    apply widths specified in columns format using <N> specifiers.
-:format   When non-nil, specify the column view format to use.
+`:id' (mandatory)
+
+    The ID property of the entry where the columns view should be
+    built.  When the symbol `local', call locally.  When `global'
+    call column view with the cursor at the beginning of the
+    buffer (usually this means that the whole buffer switches to
+    column view).  When \"file:path/to/file.org\", invoke column
+    view at the start of that file.  Otherwise, the ID is located
+    using `org-id-find'.
+
+`:exclude-tags'
+
+    List of tags to exclude from column view table.
+
+`:format'
+
+    When non-nil, specify the column view format to use.
+
+`:hlines'
+
+    When non-nil, insert a hline before each item.  When
+    a number, insert a hline before each level inferior or equal
+    to that number.
+
+`:indent'
+
+    When non-nil, indent each ITEM field according to its level.
+
+`:match'
+
+    When set to a string, use this as a tags/property match filter.
+
+`:maxlevel'
+
+    When set to a number, don't capture headlines below this level.
+
+`:skip-empty-rows'
+
+    When non-nil, skip rows where all specifiers other than ITEM
+    are empty.
+
+`:vlines'
+
+    When non-nil, make each column a column group to enforce
+    vertical lines.
 
 \(fn PARAMS)" nil nil)
 
@@ -23753,13 +23972,6 @@ Try very hard to provide sensible version strings." nil t)
 ;;; Generated autoloads from org/org-datetree.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-datetree" '("org-datetree-")))
-
-;;;***
-
-;;;### (autoloads nil "org-docview" "org/org-docview.el" (0 0 0 0))
-;;; Generated autoloads from org/org-docview.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-docview" '("org-docview-")))
 
 ;;;***
 
@@ -23834,20 +24046,6 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 
 ;;;***
 
-;;;### (autoloads nil "org-eshell" "org/org-eshell.el" (0 0 0 0))
-;;; Generated autoloads from org/org-eshell.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-eshell" '("org-eshell-")))
-
-;;;***
-
-;;;### (autoloads nil "org-eww" "org/org-eww.el" (0 0 0 0))
-;;; Generated autoloads from org/org-eww.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-eww" '("org-eww-")))
-
-;;;***
-
 ;;;### (autoloads nil "org-faces" "org/org-faces.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-faces.el
 
@@ -23871,10 +24069,39 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 
 ;;;***
 
-;;;### (autoloads nil "org-gnus" "org/org-gnus.el" (0 0 0 0))
-;;; Generated autoloads from org/org-gnus.el
+;;;### (autoloads nil "org-goto" "org/org-goto.el" (0 0 0 0))
+;;; Generated autoloads from org/org-goto.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-gnus" '("org-gnus-")))
+(autoload 'org-goto-location "org-goto" "\
+Let the user select a location in current buffer.
+This function uses a recursive edit.  It returns the selected
+position or nil.
+
+\(fn &optional BUF HELP)" nil nil)
+
+(autoload 'org-goto "org-goto" "\
+Look up a different location in the current file, keeping current visibility.
+
+When you want look-up or go to a different location in a
+document, the fastest way is often to fold the entire buffer and
+then dive into the tree.  This method has the disadvantage, that
+the previous location will be folded, which may not be what you
+want.
+
+This command works around this by showing a copy of the current
+buffer in an indirect buffer, in overview mode.  You can dive
+into the tree in that copy, use org-occur and incremental search
+to find a location.  When pressing RET or `Q', the command
+returns to the original buffer in which the visibility is still
+unchanged.  After RET it will also jump to the location selected
+in the indirect buffer and expose the headline hierarchy above.
+
+With a prefix argument, use the alternative interface: e.g., if
+`org-goto-interface' is `outline' use `outline-path-completion'.
+
+\(fn &optional ALTERNATIVE-INTERFACE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-goto" '("org-goto-")))
 
 ;;;***
 
@@ -23901,13 +24128,6 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 
 ;;;***
 
-;;;### (autoloads nil "org-info" "org/org-info.el" (0 0 0 0))
-;;; Generated autoloads from org/org-info.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-info" '("org-info-")))
-
-;;;***
-
 ;;;### (autoloads nil "org-inlinetask" "org/org-inlinetask.el" (0
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from org/org-inlinetask.el
@@ -23916,11 +24136,13 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 
 ;;;***
 
-;;;### (autoloads "actual autoloads are elsewhere" "org-irc" "org/org-irc.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from org/org-irc.el
+;;;### (autoloads nil "org-keys" "org/org-keys.el" (0 0 0 0))
+;;; Generated autoloads from org/org-keys.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-irc" '("org-irc-")))
+(autoload 'org-babel-describe-bindings "org-keys" "\
+Describe all keybindings behind `org-babel-key-prefix'." t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-keys" '("org-")))
 
 ;;;***
 
@@ -23968,13 +24190,6 @@ Load FILE with optional arguments NOERROR and MUSTSUFFIX.
 
 ;;;***
 
-;;;### (autoloads nil "org-mhe" "org/org-mhe.el" (0 0 0 0))
-;;; Generated autoloads from org/org-mhe.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-mhe" '("org-mhe-")))
-
-;;;***
-
 ;;;### (autoloads "actual autoloads are elsewhere" "org-mobile" "org/org-mobile.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from org/org-mobile.el
@@ -23987,6 +24202,29 @@ Load FILE with optional arguments NOERROR and MUSTSUFFIX.
 ;;; Generated autoloads from org/org-mouse.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-mouse" '("org-mouse-")))
+
+;;;***
+
+;;;### (autoloads nil "org-num" "org/org-num.el" (0 0 0 0))
+;;; Generated autoloads from org/org-num.el
+
+(autoload 'org-num-default-format "org-num" "\
+Default numbering display function.
+NUMBERING is a list of numbers.
+
+\(fn NUMBERING)" nil nil)
+
+(autoload 'org-num-mode "org-num" "\
+Dynamic numbering of headlines in an Org buffer.
+
+If called interactively, enable Org-Num mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp, also
+enable the mode if ARG is omitted or nil, and toggle it if ARG is
+`toggle'; disable the mode otherwise.
+
+\(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-num" '("org-num-")))
 
 ;;;***
 
@@ -24014,13 +24252,6 @@ Load FILE with optional arguments NOERROR and MUSTSUFFIX.
 
 ;;;***
 
-;;;### (autoloads nil "org-rmail" "org/org-rmail.el" (0 0 0 0))
-;;; Generated autoloads from org/org-rmail.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-rmail" '("org-rmail-")))
-
-;;;***
-
 ;;;### (autoloads nil "org-src" "org/org-src.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-src.el
 
@@ -24033,6 +24264,13 @@ Load FILE with optional arguments NOERROR and MUSTSUFFIX.
 ;;; Generated autoloads from org/org-table.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-table" '("org")))
+
+;;;***
+
+;;;### (autoloads nil "org-tempo" "org/org-tempo.el" (0 0 0 0))
+;;; Generated autoloads from org/org-tempo.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-tempo" '("org-tempo-")))
 
 ;;;***
 
@@ -24054,13 +24292,6 @@ Inserted by installing Org mode or when a release is made." nil nil)
 (autoload 'org-git-version "org-version" "\
 The Git version of Org mode.
 Inserted by installing Org or when a release is made." nil nil)
-
-;;;***
-
-;;;### (autoloads nil "org-w3m" "org/org-w3m.el" (0 0 0 0))
-;;; Generated autoloads from org/org-w3m.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-w3m" '("org-w3m-")))
 
 ;;;***
 
@@ -27123,11 +27354,11 @@ nil
     necessary to ensure that a postfix operator appended to it will
     apply to the whole expression.
 
-The optional argument KEEP-ORDER, if nil or omitted, allows the
-returned regexp to match the strings in any order.  If non-nil,
-the match is guaranteed to be performed in the order given, as if
-the strings were made into a regexp by joining them with the
-`\\|' operator.
+The optional argument KEEP-ORDER, if non-nil, forces the match to
+be performed in the order given, as if the strings were made into
+a regexp by joining them with the `\\|' operator.  If nil or
+omitted, the returned regexp is will always match the longest
+string possible.
 
 Up to reordering, the resulting regexp is equivalent to but
 usually more efficient than that of a simplified version:
@@ -28167,8 +28398,12 @@ CHAR           Match a literal character.
                 character, a string, a range as string \"A-Z\" or cons
                 (?A . ?Z), or a character class (see below).  Alias: in, char.
 \(not CHARSPEC)  Match one character not matched by CHARSPEC.  CHARSPEC
-                can be (any ...), (syntax ...), (category ...),
+                can be a character, single-char string, (any ...), (or ...),
+                (intersection ...), (syntax ...), (category ...),
                 or a character class.
+\(intersection CHARSET...) Match all CHARSETs.
+                CHARSET is (any...), (not...), (or...) or (intersection...),
+                a character or a single-char string.
 not-newline     Match any character except a newline.  Alias: nonl.
 anychar         Match any character.  Alias: anything.
 unmatchable     Never match anything at all.
@@ -29570,6 +29805,12 @@ If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called.
 
 \(fn FUNCTION SEQUENCE INITIAL-VALUE)" nil nil)
 
+(autoload 'seq-some "seq" "\
+Return non-nil if PRED is satisfied for at least one element of SEQUENCE.
+If so, return the first non-nil value returned by PRED.
+
+\(fn PRED SEQUENCE)" nil nil)
+
 (autoload 'seq-find "seq" "\
 Return the first element for which (PRED element) is non-nil in SEQUENCE.
 If no element is found, return DEFAULT.
@@ -29705,7 +29946,7 @@ These are active only in the minibuffer, when entering or editing a
 formula:
 \\{ses-mode-edit-map}" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ses" '("1value" "noreturn" "ses")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ses" '("ses")))
 
 ;;;***
 
@@ -30424,7 +30665,7 @@ values), despite potential performance issues, type \\[so-long-revert].
 
 Use \\[so-long-commentary] for more information.
 
-Use \\[so-long-customize] to configure the behaviour.
+Use \\[so-long-customize] to configure the behavior.
 
 \(fn)" t nil)
 
@@ -30461,7 +30702,7 @@ or call the function `global-so-long-mode'.")
 (custom-autoload 'global-so-long-mode "so-long" nil)
 
 (autoload 'global-so-long-mode "so-long" "\
-Toggle automated performance mitigations for files with long lines.
+Toggle automated performance mitigation for files with long lines.
 
 If called interactively, enable Global So-Long mode if ARG is
 positive, and disable it if ARG is zero or negative.  If called from
@@ -30480,7 +30721,7 @@ When such files are detected by `so-long-predicate', we invoke the selected
 
 Use \\[so-long-commentary] for more information.
 
-Use \\[so-long-customize] to configure the behaviour.
+Use \\[so-long-customize] to configure the behavior.
 
 \(fn &optional ARG)" t nil)
 
@@ -33326,7 +33567,7 @@ Return the symbol at point, or nil if none is found." nil nil)
 (autoload 'number-at-point "thingatpt" "\
 Return the number at point, or nil if none is found.
 Decimal numbers like \"14\" or \"-14.5\", as well as hex numbers
-like \"0xBEEF09\" or \"#xBEEF09\", are regognized." nil nil)
+like \"0xBEEF09\" or \"#xBEEF09\", are recognized." nil nil)
 
 (autoload 'list-at-point "thingatpt" "\
 Return the Lisp list at point, or nil if none is found.
@@ -34156,7 +34397,7 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
-(push (purecopy '(tramp 2 4 3 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 4 3)) package--builtin-versions)
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
@@ -34164,7 +34405,7 @@ If it is set to nil, all remote file names are used literally.")
 
 (custom-autoload 'tramp-mode "tramp" t)
 
-(defconst tramp-initial-file-name-regexp "\\`/.+:.*:" "\
+(defconst tramp-initial-file-name-regexp "\\`/[^/:]+:[^/:]*:" "\
 Value for `tramp-file-name-regexp' for autoload.
 It must match the initial `tramp-syntax' settings.")
 
@@ -34198,8 +34439,8 @@ Unload Tramp file name handlers from `file-name-handler-alist'." (dolist (fnh fi
 (defvar tramp-completion-mode nil "\
 If non-nil, external packages signal that they are in file name completion.")
 
-(autoload 'tramp-unload-tramp "tramp" "\
-Discard Tramp from loading remote files." t nil)
+(defun tramp-unload-tramp nil "\
+Discard Tramp from loading remote files." (interactive) (ignore-errors (unload-feature 'tramp 'force)))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tramp" '("tramp-" "with-")))
 
@@ -36240,7 +36481,7 @@ Key bindings:
 ;;;### (autoloads nil "verilog-mode" "progmodes/verilog-mode.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from progmodes/verilog-mode.el
-(push (purecopy '(verilog-mode 2019 11 21 248091482)) package--builtin-versions)
+(push (purecopy '(verilog-mode 2019 12 17 268053413)) package--builtin-versions)
 
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
@@ -38031,6 +38272,11 @@ Display the next buffer in the same window.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'windmove-display-new-tab "windmove" "\
+Display the next buffer in a new tab.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'windmove-display-default-keybindings "windmove" "\
 Set up keybindings for directional buffer display.
 Keys are bound to commands that display the next buffer in the specified
@@ -38344,12 +38590,31 @@ The argument has the same meaning as in `apropos'.
  (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
  (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 
-(autoload 'xref-collect-matches "xref" "\
-Collect matches for REGEXP inside FILES in DIR.
+(autoload 'xref-references-in-directory "xref" "\
+Find all references to SYMBOL in directory DIR.
+Return a list of xref values.
+
+This function uses the Semantic Symbol Reference API, see
+`semantic-symref-tool-alist' for details on which tools are used,
+and when.
+
+\(fn SYMBOL DIR)" nil nil)
+
+(autoload 'xref-matches-in-directory "xref" "\
+Find all matches for REGEXP in directory DIR.
+Return a list of xref values.
+Only files matching some of FILES and none of IGNORES are searched.
 FILES is a string with glob patterns separated by spaces.
-IGNORES is a list of glob patterns.
+IGNORES is a list of glob patterns for files to ignore.
 
 \(fn REGEXP FILES DIR IGNORES)" nil nil)
+
+(autoload 'xref-matches-in-files "xref" "\
+Find all matches for REGEXP in FILES.
+Return a list of xref values.
+FILES must be a list of absolute file names.
+
+\(fn REGEXP FILES)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "xref" '("xref-")))
 
@@ -38555,25 +38820,25 @@ Zone out, completely." t nil)
 ;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
 ;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "mh-e/mh-loaddefs.el"
 ;;;;;;  "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el" "newcomment.el"
-;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-keys.el" "org/ob-lob.el"
-;;;;;;  "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el" "org/org-archive.el"
-;;;;;;  "org/org-attach.el" "org/org-bbdb.el" "org/org-clock.el"
+;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
+;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
+;;;;;;  "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
 ;;;;;;  "org/org-datetree.el" "org/org-element.el" "org/org-feed.el"
 ;;;;;;  "org/org-footnote.el" "org/org-id.el" "org/org-indent.el"
-;;;;;;  "org/org-install.el" "org/org-irc.el" "org/org-mobile.el"
-;;;;;;  "org/org-plot.el" "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el"
-;;;;;;  "org/ox-beamer.el" "org/ox-html.el" "org/ox-icalendar.el"
-;;;;;;  "org/ox-latex.el" "org/ox-man.el" "org/ox-md.el" "org/ox-odt.el"
-;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
-;;;;;;  "progmodes/elisp-mode.el" "progmodes/prog-mode.el" "ps-mule.el"
-;;;;;;  "register.el" "replace.el" "rfn-eshadow.el" "select.el" "simple.el"
-;;;;;;  "startup.el" "subdirs.el" "subr.el" "tab-bar.el" "textmodes/fill.el"
-;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
-;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
-;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
-;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/text-mode.el"
-;;;;;;  "uniquify.el" "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el"
-;;;;;;  "widget.el" "window.el") (0 0 0 0))
+;;;;;;  "org/org-install.el" "org/org-mobile.el" "org/org-plot.el"
+;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
+;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
+;;;;;;  "org/ox-man.el" "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el"
+;;;;;;  "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
+;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
+;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
+;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/page.el"
+;;;;;;  "textmodes/paragraphs.el" "textmodes/reftex-auc.el" "textmodes/reftex-cite.el"
+;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-global.el" "textmodes/reftex-index.el"
+;;;;;;  "textmodes/reftex-parse.el" "textmodes/reftex-ref.el" "textmodes/reftex-sel.el"
+;;;;;;  "textmodes/reftex-toc.el" "textmodes/text-mode.el" "uniquify.el"
+;;;;;;  "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el" "widget.el"
+;;;;;;  "window.el") (0 0 0 0))
 
 ;;;***
 
