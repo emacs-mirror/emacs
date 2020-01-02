@@ -2466,12 +2466,10 @@ potentially rename EGLOT's help buffer."
          (menu `("Eglot code actions:" ("dummy" ,@menu-items)))
          (action (if (listp last-nonmenu-event)
                      (x-popup-menu last-nonmenu-event menu)
-                   (let ((never-mind (gensym)) retval)
-                     (setcdr (cadr menu)
-                             (cons `("never mind..." . ,never-mind) (cdadr menu)))
-                     (if (eq (setq retval (tmm-prompt menu)) never-mind)
-                         (keyboard-quit)
-                       retval)))))
+                   (cdr (assoc (completing-read "[eglot] Pick an action: " 
+						menu-items nil t
+						nil nil (car menu-items))
+                               menu-items)))))
     (eglot--dcase action
         (((Command) command arguments)
          (eglot-execute-command server (intern command) arguments))
