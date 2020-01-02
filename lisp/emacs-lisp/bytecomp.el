@@ -2035,10 +2035,12 @@ The value is non-nil if there were no errors, nil if errors."
 		  ;; recompiled).  Previously this was accomplished by
 		  ;; deleting target-file before writing it.
                   (if (and byte-native-compiling
-                           (not byte-native-always-write-elc))
+                           (null byte-native-always-write-elc))
                       (delete-file tempfile)
 		    (rename-file tempfile target-file t)))
-		(or noninteractive (message "Wrote %s" target-file)))
+		(or noninteractive
+                    byte-native-compiling
+                    (message "Wrote %s" target-file)))
 	    ;; This is just to give a better error message than write-region
 	    (let ((exists (file-exists-p target-file)))
 	      (signal (if exists 'file-error 'file-missing)
