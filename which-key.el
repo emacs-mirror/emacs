@@ -1671,12 +1671,17 @@ and `which-key-show-docstrings' is non-nil. If
 return the docstring."
   (let* ((orig-sym (intern original))
          (doc (when (commandp orig-sym)
-                (string-trim-left
-                 (documentation orig-sym)
-                 (concat "\\(?::"
-                         "\\(?:\\(?:after\\|before\\)\\(?:-\\(?:until\\|while\\)\\)?\\|around\\|override\\|filter-\\(?:args\\|return\\)\\)"
+                (documentation orig-sym)))
+         (doc (when doc
+                (replace-regexp-in-string
+                 (concat "^\\(?::"
+                         (regexp-opt '("around" "override"
+                                       "after" "after-until" "after-while"
+                                       "before" "before-until" "before-while"
+                                       "filter-args" "filter-return"))
                          " advice: [^\n]+\n"
-                         "\\)+\n"))))
+                         "\\)+\n")
+                 "" doc)))
          (docstring (when doc
                       (which-key--propertize (car (split-string doc "\n"))
                                              'face 'which-key-docstring-face))))
