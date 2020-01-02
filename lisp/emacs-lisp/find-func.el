@@ -167,7 +167,8 @@ See the functions `find-function' and `find-variable'."
 (defun find-library-suffixes ()
   (let ((suffixes nil))
     (dolist (suffix (get-load-suffixes) (nreverse suffixes))
-      (unless (string-match "elc" suffix) (push suffix suffixes)))))
+      (unless (string-match "el[cn]" suffix)
+        (push suffix suffixes)))))
 
 (defun find-library--load-name (library)
   (let ((name library))
@@ -183,7 +184,7 @@ See the functions `find-function' and `find-variable'."
 LIBRARY should be a string (the name of the library)."
   ;; If the library is byte-compiled, try to find a source library by
   ;; the same name.
-  (when (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+  (when (string-match "\\.el\\([cn]\\(\\..*\\)?\\)\\'" library)
     (setq library (replace-match "" t t library)))
   (or
    (locate-file library
