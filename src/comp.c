@@ -3110,16 +3110,19 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  SPEED);
-  /* Gcc doesn't like being interrupted at all.  */
-  block_input ();
   sigset_t oldset;
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, SIGALRM);
-  sigaddset (&blocked, SIGINT);
-  sigaddset (&blocked, SIGIO);
-  pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 
+  if (!noninteractive)
+    {
+      sigset_t blocked;
+      /* Gcc doesn't like being interrupted at all.  */
+      block_input ();
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGALRM);
+      sigaddset (&blocked, SIGINT);
+      sigaddset (&blocked, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
+    }
   emit_ctxt_code ();
 
   /* Define inline functions.  */
@@ -3164,8 +3167,11 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
     Fdelete_file (out_file, Qnil);
   Frename_file (tmp_file, out_file, Qnil);
 
-  pthread_sigmask (SIG_SETMASK, &oldset, 0);
-  unblock_input ();
+  if (!noninteractive)
+    {
+      pthread_sigmask (SIG_SETMASK, &oldset, 0);
+      unblock_input ();
+    }
 
   return out_file;
 }
