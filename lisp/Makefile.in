@@ -365,6 +365,8 @@ compile-clean:
 	  if test -f "$$el" || test ! -f "$${el}c"; then :; else \
 	    echo rm "$${el}c"; \
 	    rm "$${el}c"; \
+	  fi; \
+	  if test -f "$$el" || test ! -f "$${el}n"; then :; else \
 	    echo rm "$${el}n"; \
 	    rm "$${el}n"; \
 	  fi; \
@@ -485,7 +487,7 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
 .PHONY: bootstrap-clean distclean maintainer-clean extraclean
 
 bootstrap-clean:
-	find $(lisp) -name '*.elc' $(FIND_DELETE)
+	find $(lisp) -regex '.*\.elc\|.*\.eln' $(FIND_DELETE)
 	rm -f $(AUTOGENEL)
 
 distclean:
