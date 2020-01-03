@@ -498,15 +498,12 @@
 	   form)
 
 	  ((eq fn 'condition-case)
-           (if byte-compile--use-old-handlers
-               ;; Will be optimized later.
-               form
-             `(condition-case ,(nth 1 form) ;Not evaluated.
-                  ,(byte-optimize-form (nth 2 form) for-effect)
-                ,@(mapcar (lambda (clause)
-                            `(,(car clause)
-                              ,@(byte-optimize-body (cdr clause) for-effect)))
-                          (nthcdr 3 form)))))
+           `(condition-case ,(nth 1 form) ;Not evaluated.
+                ,(byte-optimize-form (nth 2 form) for-effect)
+              ,@(mapcar (lambda (clause)
+                          `(,(car clause)
+                            ,@(byte-optimize-body (cdr clause) for-effect)))
+                        (nthcdr 3 form))))
 
 	  ((eq fn 'unwind-protect)
 	   ;; the "protected" part of an unwind-protect is compiled (and thus
@@ -521,12 +518,7 @@
 	  ((eq fn 'catch)
 	   (cons fn
 		 (cons (byte-optimize-form (nth 1 form) nil)
-                       (if byte-compile--use-old-handlers
-                           ;; The body of a catch is compiled (and thus
-                           ;; optimized) as a top-level form, so don't do it
-                           ;; here.
-                           (cdr (cdr form))
-                         (byte-optimize-body (cdr form) for-effect)))))
+                       (byte-optimize-body (cdr form) for-effect))))
 
 	  ((eq fn 'ignore)
 	   ;; Don't treat the args to `ignore' as being

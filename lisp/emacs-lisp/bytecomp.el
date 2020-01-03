@@ -4529,96 +4529,25 @@ binding slots have been popped."
 ;; (byte-defop-compiler-1 save-window-excursion)      ;Obsolete: now a macro.
 ;; (byte-defop-compiler-1 with-output-to-temp-buffer) ;Obsolete: now a macro.
 
-(defvar byte-compile--use-old-handlers nil
-  "If nil, use new byte codes introduced in Emacs-24.4.")
-
 (defun byte-compile-catch (form)
   (byte-compile-form (car (cdr form)))
-  (if (not byte-compile--use-old-handlers)
-      (let ((endtag (byte-compile-make-tag)))
-        (byte-compile-goto 'byte-pushcatch endtag)
-        (byte-compile-body (cddr form) nil)
-        (byte-compile-out 'byte-pophandler)
-        (byte-compile-out-tag endtag))
-    (pcase (cddr form)
-      (`(:fun-body ,f)
-       (byte-compile-form `(list 'funcall ,f)))
-      (body
-       (byte-compile-push-constant
-        (byte-compile-top-level (cons 'progn body) byte-compile--for-effect))))
-    (byte-compile-out 'byte-catch 0)))
+  (let ((endtag (byte-compile-make-tag)))
+    (byte-compile-goto 'byte-pushcatch endtag)
+    (byte-compile-body (cddr form) nil)
+    (byte-compile-out 'byte-pophandler)
+    (byte-compile-out-tag endtag)))
 
 (defun byte-compile-unwind-protect (form)
   (pcase (cddr form)
     (`(:fun-body ,f)
-     (byte-compile-form
-      (if byte-compile--use-old-handlers `(list (list 'funcall ,f)) f)))
+     (byte-compile-form f))
     (handlers
-     (if byte-compile--use-old-handlers
-         (byte-compile-push-constant
-          (byte-compile-top-level-body handlers t))
-       (byte-compile-form `#'(lambda () ,@handlers)))))
+     (byte-compile-form `#'(lambda () ,@handlers))))
   (byte-compile-out 'byte-unwind-protect 0)
   (byte-compile-form-do-effect (car (cdr form)))
   (byte-compile-out 'byte-unbind 1))
 
 (defun byte-compile-condition-case (form)
-  (if byte-compile--use-old-handlers
-      (byte-compile-condition-case--old form)
-    (byte-compile-condition-case--new form)))
-
-(defun byte-compile-condition-case--old (form)
-  (let* ((var (nth 1 form))
-	 (fun-bodies (eq var :fun-body))
-         (byte-compile-bound-variables
-	  (if (and var (not fun-bodies))
-              (cons var byte-compile-bound-variables)
-	    byte-compile-bound-variables)))
-    (byte-compile-set-symbol-position 'condition-case)
-    (unless (symbolp var)
-      (byte-compile-warn
-       "`%s' is not a variable-name or nil (in condition-case)" var))
-    (if fun-bodies (setq var (make-symbol "err")))
-    (byte-compile-push-constant var)
-    (if fun-bodies
-        (byte-compile-form `(list 'funcall ,(nth 2 form)))
-      (byte-compile-push-constant
-       (byte-compile-top-level (nth 2 form) byte-compile--for-effect)))
-    (let ((compiled-clauses
-           (mapcar
-            (lambda (clause)
-              (let ((condition (car clause)))
-                (cond ((not (or (symbolp condition)
-                                (and (listp condition)
-                                     (let ((ok t))
-                                       (dolist (sym condition)
-                                         (if (not (symbolp sym))
-                                             (setq ok nil)))
-                                       ok))))
-                       (byte-compile-warn
-                        "`%S' is not a condition name or list of such (in condition-case)"
-                        condition))
-                      ;; (not (or (eq condition 't)
-                      ;;         (and (stringp (get condition 'error-message))
-                      ;;              (consp (get condition
-                      ;;                          'error-conditions)))))
-                      ;; (byte-compile-warn
-                      ;;   "`%s' is not a known condition name
-                      ;;   (in condition-case)"
-                      ;;   condition))
-                      )
-                (if fun-bodies
-                    `(list ',condition (list 'funcall ,(cadr clause) ',var))
-                  (cons condition
-                        (byte-compile-top-level-body
-                         (cdr clause) byte-compile--for-effect)))))
-            (cdr (cdr (cdr form))))))
-      (if fun-bodies
-          (byte-compile-form `(list ,@compiled-clauses))
-        (byte-compile-push-constant compiled-clauses)))
-    (byte-compile-out 'byte-condition-case 0)))
-
-(defun byte-compile-condition-case--new (form)
   (let* ((var (nth 1 form))
          (body (nth 2 form))
          (depth byte-compile-depth)

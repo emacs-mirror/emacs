@@ -462,20 +462,7 @@ places where they originally did not directly appear."
                        ;; and may be an invalid expression (e.g. ($# . 678)).
                        (cdr forms)))))
 
-					;condition-case
-    ((and `(condition-case ,var ,protected-form . ,handlers)
-          (guard byte-compile--use-old-handlers))
-     (let ((newform (cconv--convert-function
-                     () (list protected-form) env form)))
-       `(condition-case :fun-body ,newform
-          ,@(mapcar (lambda (handler)
-                      (list (car handler)
-                            (cconv--convert-function
-                             (list (or var cconv--dummy-var))
-                             (cdr handler) env form)))
-                    handlers))))
-
-                                        ; condition-case with new byte-codes.
+                                        ; condition-case
     (`(condition-case ,var ,protected-form . ,handlers)
      `(condition-case ,var
           ,(cconv-convert protected-form env extend)
@@ -496,10 +483,8 @@ places where they originally did not directly appear."
                        `((let ((,var (list ,var))) ,@body))))))
              handlers))))
 
-    (`(,(and head (or (and 'catch (guard byte-compile--use-old-handlers))
-                      'unwind-protect))
-       ,form . ,body)
-     `(,head ,(cconv-convert form env extend)
+    (`(unwind-protect ,form . ,body)
+     `(unwind-protect ,(cconv-convert form env extend)
         :fun-body ,(cconv--convert-function () body env form)))
 
     (`(setq . ,forms)                   ; setq special form
@@ -718,15 +703,6 @@ and updates the data stored in ENV."
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote
 
-    ((and `(condition-case ,var ,protected-form . ,handlers)
-          (guard byte-compile--use-old-handlers))
-     ;; FIXME: The bytecode for condition-case forces us to wrap the
-     ;; form and handlers in closures.
-     (cconv--analyze-function () (list protected-form) env form)
-     (dolist (handler handlers)
-       (cconv--analyze-function (if var (list var)) (cdr handler)
-                                env form)))
-
     (`(condition-case ,var ,protected-form . ,handlers)
      (cconv-analyze-form protected-form env)
      (when (and var (symbolp var) (byte-compile-not-lexical-var-p var))
@@ -741,9 +717,7 @@ and updates the data stored in ENV."
                                    form "variable"))))
 
     ;; FIXME: The bytecode for unwind-protect forces us to wrap the unwind.
-    (`(,(or (and 'catch (guard byte-compile--use-old-handlers))
-            'unwind-protect)
-       ,form . ,body)
+    (`(unwind-protect ,form . ,body)
      (cconv-analyze-form form env)
      (cconv--analyze-function () body env form))
 
