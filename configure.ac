@@ -3743,7 +3743,7 @@ LIBGCCJIT_LIB=
 COMP_OBJ=
 if test "${with_nativecomp}" != "no"; then
   AC_CHECK_HEADER(libgccjit.h,
-    AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes, , -lgccjit))
+    AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes))
   if test "${HAVE_NATIVE_COMP}" = "yes"; then
     LIBGCCJIT_LIB="-lgccjit -ldl"
     COMP_OBJ+=comp.o
