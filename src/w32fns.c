@@ -2146,6 +2146,9 @@ w32_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
 		    | SWP_FRAMECHANGED);
       FRAME_UNDECORATED (f) = false;
     }
+
+  f->output_data.w32->dwStyle = GetWindowLong (hwnd, GWL_STYLE);
+
   unblock_input ();
 }
 

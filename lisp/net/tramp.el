@@ -1329,6 +1329,25 @@ entry does not exist, return nil."
        (string-match-p tramp-file-name-regexp name)
        t))
 
+;; This function bypasses the file name handler approach.  It is NOT
+;; recommended to use it in any package if not absolutely necessary,
+;; because it won't work for remote file names not supported by Tramp.
+;; However, it is more performant than `file-local-name', and might be
+;; useful where performance matters, like in operations over a bulk
+;; list of file names.
+(defun tramp-file-local-name (name)
+  "Return the local name component of NAME.
+This function removes from NAME the specification of the remote
+host and the method of accessing the host, leaving only the part
+that identifies NAME locally on the remote system.  NAME must be
+a string that matches `tramp-file-name-regexp'.  The returned
+file name can be used directly as argument of ‘process-file’,
+‘start-file-process’, or ‘shell-command’."
+  (save-match-data
+    (and (tramp-tramp-file-p name)
+         (string-match (nth 0 tramp-file-name-structure) name)
+         (match-string (nth 4 tramp-file-name-structure) name))))
+
 (defun tramp-find-method (method user host)
   "Return the right method string to use depending on USER and HOST.
 This is METHOD, if non-nil.  Otherwise, do a lookup in

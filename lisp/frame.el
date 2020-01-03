@@ -2725,6 +2725,9 @@ See also `toggle-frame-maximized'."
         line-prefix
         wrap-prefix
         truncate-lines
+        mode-line-format
+        header-line-format
+        tab-line-format
         display-line-numbers
         display-line-numbers-width
         display-line-numbers-current-absolute

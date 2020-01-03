@@ -1093,44 +1093,59 @@ window_box_height (struct window *w)
 
   /* Note: the code below that determines the mode-line/header-line/tab-line
      height is essentially the same as that contained in the macro
-     CURRENT_{MODE,HEADER}_LINE_HEIGHT, except that it checks whether
-     the appropriate glyph row has its `mode_line_p' flag set,
-     and if it doesn't, uses estimate_mode_line_height instead.  */
+     CURRENT_{MODE,HEADER,TAB}_LINE_HEIGHT, except that it checks whether
+     the appropriate glyph row has its `mode_line_p' flag set, and if
+     it doesn't, uses estimate_mode_line_height instead.  */
 
   if (window_wants_mode_line (w))
     {
-      struct glyph_row *ml_row
-	= (w->current_matrix && w->current_matrix->rows
-	   ? MATRIX_MODE_LINE_ROW (w->current_matrix)
-	   : 0);
-      if (ml_row && ml_row->mode_line_p)
-	height -= ml_row->height;
+      if (w->mode_line_height >= 0)
+	height -= w->mode_line_height;
       else
-	height -= estimate_mode_line_height (f, CURRENT_MODE_LINE_FACE_ID (w));
+	{
+	  struct glyph_row *ml_row
+	    = (w->current_matrix && w->current_matrix->rows
+	       ? MATRIX_MODE_LINE_ROW (w->current_matrix)
+	       : 0);
+	  if (ml_row && ml_row->mode_line_p)
+	    height -= ml_row->height;
+	  else
+	    height -= estimate_mode_line_height (f,
+						 CURRENT_MODE_LINE_FACE_ID (w));
+	}
     }
 
   if (window_wants_tab_line (w))
     {
-      struct glyph_row *tl_row
-	= (w->current_matrix && w->current_matrix->rows
-	   ? MATRIX_TAB_LINE_ROW (w->current_matrix)
-	   : 0);
-      if (tl_row && tl_row->mode_line_p)
-	height -= tl_row->height;
+      if (w->tab_line_height >= 0)
+	height -= w->tab_line_height;
       else
-	height -= estimate_mode_line_height (f, TAB_LINE_FACE_ID);
+	{
+	  struct glyph_row *tl_row
+	    = (w->current_matrix && w->current_matrix->rows
+	       ? MATRIX_TAB_LINE_ROW (w->current_matrix)
+	       : 0);
+	  if (tl_row && tl_row->mode_line_p)
+	    height -= tl_row->height;
+	  else
+	    height -= estimate_mode_line_height (f, TAB_LINE_FACE_ID);
+	}
     }
 
   if (window_wants_header_line (w))
     {
-      struct glyph_row *hl_row
-	= (w->current_matrix && w->current_matrix->rows
-	   ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
-	   : 0);
-      if (hl_row && hl_row->mode_line_p)
-	height -= hl_row->height;
-      else
-	height -= estimate_mode_line_height (f, HEADER_LINE_FACE_ID);
+      if (w->header_line_height >= 0)
+	height -= w->header_line_height;
+      {
+	struct glyph_row *hl_row
+	  = (w->current_matrix && w->current_matrix->rows
+	     ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
+	     : 0);
+	if (hl_row && hl_row->mode_line_p)
+	  height -= hl_row->height;
+	else
+	  height -= estimate_mode_line_height (f, HEADER_LINE_FACE_ID);
+      }
     }
 
   /* With a very small font and a mode-line that's taller than

@@ -39,7 +39,7 @@
 (defvar inhibit-message)
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.4.3"
+(defconst tramp-version "2.4.3.27.1"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -73,7 +73,7 @@
 ;; Check for Emacs version.
 (let ((x   (if (not (string-lessp emacs-version "24.4"))
       "ok"
-    (format "Tramp 2.4.3 is not fit for %s"
+    (format "Tramp 2.4.3.27.1 is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
@@ -92,7 +92,8 @@
 	 ("2.2.13.25.1" . "25.1") ("2.2.13.25.2" . "25.2")
 	 ("2.2.13.25.2" . "25.3")
          ("2.3.3" . "26.1") ("2.3.3.26.1" . "26.1") ("2.3.5.26.2" . "26.2")
-         ("2.3.5.26.3" . "26.3")))
+         ("2.3.5.26.3" . "26.3")
+         ("2.4.3.27.1" . "27.1")))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

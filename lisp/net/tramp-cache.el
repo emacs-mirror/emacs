@@ -474,7 +474,7 @@ used to cache connection properties of the local machine."
 		  tramp-persistency-file-name))
 	     (error "\n"))
 	   ";; Tramp connection history.  Don't change this file.\n"
-	   ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
+	   ";; Run `M-x tramp-cleanup-all-connections' instead.\n\n"
 	   (with-output-to-string
 	     (pp (read (format "(%s)" (tramp-cache-print cache)))))))))))
 
