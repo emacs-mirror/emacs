@@ -245,7 +245,9 @@
 (load "language/cham")
 
 (load "indent")
-(load "emacs-lisp/cl-generic")
+(let ((max-specpdl-size (max max-specpdl-size 1800)))
+  ;; A particularly demanding file to load; 1600 does not seem to be enough.
+  (load "emacs-lisp/cl-generic"))
 (load "minibuffer") ;Needs cl-generic (and define-minor-mode).
 (load "frame")
 (load "startup")

@@ -886,7 +886,10 @@ See `custom-known-themes' for a list of known themes."
 	(put theme 'theme-settings
 	     (cons (list prop symbol theme value)
 		   (delq res theme-settings)))
-	(setcar (cdr setting) value)))
+        ;; It's tempting to use setcar here, but that could
+        ;; inadvertently modify other properties in SYMBOL's proplist,
+        ;; if those just happen to share elements with the value of PROP.
+        (put symbol prop (cons (list theme value) (delq setting old)))))
      ;; Add a new setting:
      (t
       (when (custom--should-apply-setting theme)
