@@ -1012,9 +1012,10 @@ fully LSP-compliant servers, this should be set to
 `eglot-lsp-abiding-column' (the default), and
 `eglot-current-column' for all others.")
 
-(defun eglot-lsp-abiding-column ()
-  "Calculate current COLUMN as defined by the LSP spec."
-  (/ (- (length (encode-coding-region (line-beginning-position)
+(defun eglot-lsp-abiding-column (&optional lbp)
+  "Calculate current COLUMN as defined by the LSP spec.
+LBP defaults to `line-beginning-position'."
+  (/ (- (length (encode-coding-region (or lbp (line-beginning-position))
                                       (point) 'utf-16 t))
         2)
      2))
@@ -1057,9 +1058,7 @@ be set to `eglot-move-to-lsp-abiding-column' (the default), and
      (narrow-to-region lbp (line-end-position))
      (move-to-column column)
      for diff = (- column
-                   (/ (- (length (encode-coding-region lbp (point) 'utf-16 t))
-                         2)
-                      2))
+                   (eglot-lsp-abiding-column lbp))
      until (zerop diff)
      do (condition-case eob-err
             (forward-char (/ (if (> diff 0) (1+ diff) (1- diff)) 2))
