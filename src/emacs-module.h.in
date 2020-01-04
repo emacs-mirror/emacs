@@ -88,11 +88,11 @@ struct emacs_runtime
 typedef emacs_value (*emacs_function) (emacs_env *env, ptrdiff_t nargs,
                                        emacs_value *args,
                                        void *data)
-  EMACS_NOEXCEPT EMACS_ATTRIBUTE_NONNULL (1);
+  EMACS_ATTRIBUTE_NONNULL (1);
 
 /* Function prototype for module user-pointer and function finalizers.
    These must not throw C++ exceptions.  */
-typedef void (*emacs_finalizer) (void *data) EMACS_NOEXCEPT;
+typedef void (*emacs_finalizer) (void *data);
 
 /* Possible Emacs function call outcomes.  */
 enum emacs_funcall_exit
