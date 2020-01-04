@@ -1256,19 +1256,19 @@ INFO-LIST), otherwise it's a list in the format of the
 `gnus-newsrc-hashtb' entries.  LEVEL is the new level of the
 group, OLDLEVEL is the old level and PREVIOUS is the group (a
 string name) to insert this group before."
-  (let (group info active num)
-    ;; Glean what info we can from the arguments.
-    (if (consp entry)
-	(setq group (if fromkilled (nth 1 entry) (car (nth 1 entry))))
-      (setq group entry))
+  ;; Glean what info we can from the arguments.
+  (let ((group (if (consp entry)
+	           (if fromkilled (nth 1 entry) (car (nth 1 entry)))
+	         entry))
+	info active num)
     (when (and (stringp entry)
 	       oldlevel
 	       (< oldlevel gnus-level-zombie))
       (setq entry (gnus-group-entry entry)))
-    (if (and (not oldlevel)
-	     (consp entry))
-	(setq oldlevel (gnus-info-level (nth 1 entry)))
-      (setq oldlevel (or oldlevel gnus-level-killed)))
+    (setq oldlevel (if (and (not oldlevel)
+	                    (consp entry))
+	               (gnus-info-level (nth 1 entry))
+	             (or oldlevel gnus-level-killed)))
 
     ;; This table is used for completion, so put a dummy entry there.
     (unless (gethash group gnus-active-hashtb)
