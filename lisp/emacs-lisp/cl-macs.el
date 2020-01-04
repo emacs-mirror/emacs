@@ -1318,7 +1318,10 @@ For more details, see Info node `(cl)Loop Facility'.
                                                 (nreverse cl--loop-conditions)))
                                          ,then ,var))
                               loop-for-steps))
-		    (push `(,var (if ,first-assign ,start ,then)) loop-for-sets))))
+                    (push (if (eq start then)
+		              `(,var ,then)
+                            `(,var (if ,first-assign ,start ,then)))
+                          loop-for-sets))))
 
 	       ((memq word '(across across-ref))
 		(let ((temp-vec (make-symbol "--cl-vec--"))
