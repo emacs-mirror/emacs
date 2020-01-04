@@ -2321,7 +2321,7 @@ bool-vector.  IDX starts at 0.  */)
 
 	      memcpy (str, SDATA (array), nbytes);
 	      allocate_string_data (XSTRING (array), nchars,
-				    nbytes + new_bytes - prev_bytes);
+				    nbytes + new_bytes - prev_bytes, false);
 	      memcpy (SDATA (array), str, idxval_byte);
 	      p1 = SDATA (array) + idxval_byte;
 	      memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,

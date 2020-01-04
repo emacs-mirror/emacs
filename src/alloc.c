@@ -1782,11 +1782,13 @@ allocate_string (void)
    plus a NUL byte at the end.  Allocate an sdata structure DATA for
    S, and set S->u.s.data to SDATA->u.data.  Store a NUL byte at the
    end of S->u.s.data.  Set S->u.s.size to NCHARS and S->u.s.size_byte
-   to NBYTES.  Free S->u.s.data if it was initially non-null.  */
+   to NBYTES.  Free S->u.s.data if it was initially non-null.
+
+   If CLEARIT, also clear the other bytes of S->u.s.data.  */
 
 void
 allocate_string_data (struct Lisp_String *s,
-		      EMACS_INT nchars, EMACS_INT nbytes)
+		      EMACS_INT nchars, EMACS_INT nbytes, bool clearit)
 {
   sdata *data, *old_data;
   struct sblock *b;
@@ -1817,7 +1819,7 @@ allocate_string_data (struct Lisp_String *s,
         mallopt (M_MMAP_MAX, 0);
 #endif
 
-      b = lisp_malloc (size + GC_STRING_EXTRA, false, MEM_TYPE_NON_LISP);
+      b = lisp_malloc (size + GC_STRING_EXTRA, clearit, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       if (!mmap_lisp_allowed_p ())
@@ -1850,6 +1852,8 @@ allocate_string_data (struct Lisp_String *s,
     {
       b = current_sblock;
       data = b->next_free;
+      if (clearit)
+	memset (SDATA_DATA (data), 0, nbytes);
     }
 
   data->string = s;
@@ -2114,6 +2118,9 @@ string_overflow (void)
   error ("Maximum string size exceeded");
 }
 
+static Lisp_Object make_clear_string (EMACS_INT, bool);
+static Lisp_Object make_clear_multibyte_string (EMACS_INT, EMACS_INT, bool);
+
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 3, 0,
        doc: /* Return a newly created string of length LENGTH, with INIT in each element.
 LENGTH must be an integer.
@@ -2122,19 +2129,20 @@ If optional argument MULTIBYTE is non-nil, the result will be
 a multibyte string even if INIT is an ASCII character.  */)
   (Lisp_Object length, Lisp_Object init, Lisp_Object multibyte)
 {
-  register Lisp_Object val;
-  int c;
+  Lisp_Object val;
   EMACS_INT nbytes;
 
   CHECK_FIXNAT (length);
   CHECK_CHARACTER (init);
 
-  c = XFIXNAT (init);
+  int c = XFIXNAT (init);
+  bool clearit = !c;
+
   if (ASCII_CHAR_P (c) && NILP (multibyte))
     {
       nbytes = XFIXNUM (length);
-      val = make_uninit_string (nbytes);
-      if (nbytes)
+      val = make_clear_string (nbytes, clearit);
+      if (nbytes && !clearit)
 	{
 	  memset (SDATA (val), c, nbytes);
 	  SDATA (val)[nbytes] = 0;
@@ -2145,26 +2153,27 @@ a multibyte string even if INIT is an ASCII character.  */)
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       ptrdiff_t len = CHAR_STRING (c, str);
       EMACS_INT string_len = XFIXNUM (length);
-      unsigned char *p, *beg, *end;
 
       if (INT_MULTIPLY_WRAPV (len, string_len, &nbytes))
 	string_overflow ();
-      val = make_uninit_multibyte_string (string_len, nbytes);
-      for (beg = SDATA (val), p = beg, end = beg + nbytes; p < end; p += len)
+      val = make_clear_multibyte_string (string_len, nbytes, clearit);
+      if (!clearit)
 	{
-	  /* First time we just copy `str' to the data of `val'.  */
-	  if (p == beg)
-	    memcpy (p, str, len);
-	  else
+	  unsigned char *beg = SDATA (val), *end = beg + nbytes;
+	  for (unsigned char *p = beg; p < end; p += len)
 	    {
-	      /* Next time we copy largest possible chunk from
-		 initialized to uninitialized part of `val'.  */
-	      len = min (p - beg, end - p);
-	      memcpy (p, beg, len);
+	      /* First time we just copy STR to the data of VAL.  */
+	      if (p == beg)
+		memcpy (p, str, len);
+	      else
+		{
+		  /* Next time we copy largest possible chunk from
+		     initialized to uninitialized part of VAL.  */
+		  len = min (p - beg, end - p);
+		  memcpy (p, beg, len);
+		}
 	    }
 	}
-      if (nbytes)
-	*p = 0;
     }
 
   return val;
@@ -2334,26 +2343,37 @@ make_specified_string (const char *contents,
 
 
 /* Return a unibyte Lisp_String set up to hold LENGTH characters
-   occupying LENGTH bytes.  */
+   occupying LENGTH bytes.  If CLEARIT, clear its contents to null
+   bytes; otherwise, the contents are uninitialized.  */
 
-Lisp_Object
-make_uninit_string (EMACS_INT length)
+static Lisp_Object
+make_clear_string (EMACS_INT length, bool clearit)
 {
   Lisp_Object val;
 
   if (!length)
     return empty_unibyte_string;
-  val = make_uninit_multibyte_string (length, length);
+  val = make_clear_multibyte_string (length, length, clearit);
   STRING_SET_UNIBYTE (val);
   return val;
 }
 
-
-/* Return a multibyte Lisp_String set up to hold NCHARS characters
-   which occupy NBYTES bytes.  */
+/* Return a unibyte Lisp_String set up to hold LENGTH characters
+   occupying LENGTH bytes.  */
 
 Lisp_Object
-make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
+make_uninit_string (EMACS_INT length)
+{
+  return make_clear_string (length, false);
+}
+
+
+/* Return a multibyte Lisp_String set up to hold NCHARS characters
+   which occupy NBYTES bytes.  If CLEARIT, clear its contents to null
+   bytes; otherwise, the contents are uninitialized.  */
+
+static Lisp_Object
+make_clear_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clearit)
 {
   Lisp_Object string;
   struct Lisp_String *s;
@@ -2365,10 +2385,19 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
 
   s = allocate_string ();
   s->u.s.intervals = NULL;
-  allocate_string_data (s, nchars, nbytes);
+  allocate_string_data (s, nchars, nbytes, clearit);
   XSETSTRING (string, s);
   string_chars_consed += nbytes;
   return string;
+}
+
+/* Return a multibyte Lisp_String set up to hold NCHARS characters
+   which occupy NBYTES bytes.  */
+
+Lisp_Object
+make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
+{
+  return make_clear_multibyte_string (nchars, nbytes, false);
 }
 
 /* Print arguments to BUF according to a FORMAT, then return
