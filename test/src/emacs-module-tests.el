@@ -403,11 +403,23 @@ See Bug#36226."
       (delete-file so))))
 
 (ert-deftest module/function-finalizer ()
-  (mod-test-make-function-with-finalizer)
-  (let* ((previous-calls (mod-test-function-finalizer-calls))
-         (expected-calls (copy-sequence previous-calls)))
-    (cl-incf (car expected-calls))
+  "Test that module function finalizers are properly called."
+  ;; We create and leak a couple of module functions with attached
+  ;; finalizer.  Creating only one function risks spilling it to the
+  ;; stack, where it wouldn't be garbage-collected.  However, with one
+  ;; hundred functions, there should be at least one that's
+  ;; unreachable.
+  (dotimes (_ 100)
+    (mod-test-make-function-with-finalizer))
+  (cl-destructuring-bind (valid-before invalid-before)
+      (mod-test-function-finalizer-calls)
+    (should (zerop invalid-before))
     (garbage-collect)
-    (should (equal (mod-test-function-finalizer-calls) expected-calls))))
+    (cl-destructuring-bind (valid-after invalid-after)
+        (mod-test-function-finalizer-calls)
+      (should (zerop invalid-after))
+      ;; We don't require exactly 100 invocations of the finalizer,
+      ;; but at least one.
+      (should (> valid-after valid-before)))))
 
 ;;; emacs-module-tests.el ends here
