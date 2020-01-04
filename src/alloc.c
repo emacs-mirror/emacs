@@ -1831,26 +1831,27 @@ allocate_string_data (struct Lisp_String *s,
       b->next_free = data;
       large_sblocks = b;
     }
-  else if (current_sblock == NULL
-	   || (((char *) current_sblock + SBLOCK_SIZE
-		- (char *) current_sblock->next_free)
-	       < (needed + GC_STRING_EXTRA)))
-    {
-      /* Not enough room in the current sblock.  */
-      b = lisp_malloc (SBLOCK_SIZE, false, MEM_TYPE_NON_LISP);
-      data = b->data;
-      b->next = NULL;
-      b->next_free = data;
-
-      if (current_sblock)
-	current_sblock->next = b;
-      else
-	oldest_sblock = b;
-      current_sblock = b;
-    }
   else
     {
       b = current_sblock;
+
+      if (b == NULL
+	  || (SBLOCK_SIZE - GC_STRING_EXTRA
+	      < (char *) b->next_free - (char *) b + needed))
+	{
+	  /* Not enough room in the current sblock.  */
+	  b = lisp_malloc (SBLOCK_SIZE, false, MEM_TYPE_NON_LISP);
+	  data = b->data;
+	  b->next = NULL;
+	  b->next_free = data;
+
+	  if (current_sblock)
+	    current_sblock->next = b;
+	  else
+	    oldest_sblock = b;
+	  current_sblock = b;
+	}
+
       data = b->next_free;
       if (clearit)
 	memset (SDATA_DATA (data), 0, nbytes);
