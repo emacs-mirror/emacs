@@ -540,7 +540,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(ash (aref data (1+ offset)) 8)
 		(aref data offset))
 	   (+ (ash (aref data offset) 24)
-	      (aref data (1+ offset) 16)
+	      (ash (aref data (1+ offset)) 16)
 	      (ash (aref data (+ 2 offset)) 8)
 	      (aref data (+ 3 offset)))))))
 
