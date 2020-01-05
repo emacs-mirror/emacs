@@ -719,14 +719,15 @@ otherwise pop it")
   "to make a binding to record entire window configuration")
 (byte-defop 140  0 byte-save-restriction
   "to make a binding to record the current buffer clipping restrictions")
-(byte-defop 141 -1 byte-catch
+(byte-defop 141 -1 byte-catch-OBSOLETE   ; Not generated since Emacs 25.
   "for catch.  Takes, on stack, the tag and an expression for the body")
 (byte-defop 142 -1 byte-unwind-protect
   "for unwind-protect.  Takes, on stack, an expression for the unwind-action")
 
 ;; For condition-case.  Takes, on stack, the variable to bind,
 ;; an expression for the body, and a list of clauses.
-(byte-defop 143 -2 byte-condition-case)
+;; Not generated since Emacs 25.
+(byte-defop 143 -2 byte-condition-case-OBSOLETE)
 
 (byte-defop 144  0 byte-temp-output-buffer-setup-OBSOLETE)
 (byte-defop 145 -1 byte-temp-output-buffer-show-OBSOLETE)
