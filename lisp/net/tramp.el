@@ -1033,7 +1033,7 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
 
 ;;;###autoload
 (defcustom tramp-ignored-file-name-regexp nil
-  "Regular expression matching file names that are not under Tramp’s control."
+  "Regular expression matching file names that are not under Tramp's control."
   :version "27.1"
   :type '(choice (const nil) regexp))
 
@@ -1341,8 +1341,8 @@ This function removes from NAME the specification of the remote
 host and the method of accessing the host, leaving only the part
 that identifies NAME locally on the remote system.  NAME must be
 a string that matches `tramp-file-name-regexp'.  The returned
-file name can be used directly as argument of ‘process-file’,
-‘start-file-process’, or ‘shell-command’."
+file name can be used directly as argument of `process-file',
+`start-file-process', or `shell-command'."
   (save-match-data
     (and (tramp-tramp-file-p name)
          (string-match (nth 0 tramp-file-name-structure) name)
@@ -3799,10 +3799,10 @@ support symbolic links."
 	filename))))
 
 (defconst tramp-time-dont-know '(0 0 0 1000)
-  "An invalid time value, used as \"Don’t know\" value.")
+  "An invalid time value, used as \"Don't know\" value.")
 
 (defconst tramp-time-doesnt-exist '(-1 65535)
-  "An invalid time value, used as \"Doesn’t exist\" value.")
+  "An invalid time value, used as \"Doesn't exist\" value.")
 
 (defun tramp-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
