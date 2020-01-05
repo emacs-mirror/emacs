@@ -60,8 +60,9 @@
     (should (eq 0
                 (string-match
                  (concat "#<module function "
-                         "\\(at \\(0x\\)?[[:xdigit:]]+\\( from .*\\)?"
-                         "\\|Fmod_test_sum from .*\\)>")
+                         "\\(at \\(0x\\)?[[:xdigit:]]+ "
+                         "with data 0x1234\\( from .*\\)?"
+                         "\\|Fmod_test_sum with data 0x1234 from .*\\)>")
                  (prin1-to-string (nth 1 descr)))))
     (should (= (nth 2 descr) 3)))
   (should-error (mod-test-sum "1" 2) :type 'wrong-type-argument)
@@ -97,6 +98,7 @@ changes."
              (rx bos "#<module function "
                  (or "Fmod_test_sum"
                      (and "at 0x" (+ hex-digit)))
+                 " with data 0x1234"
                  (? " from " (* nonl) "mod-test" (* nonl) )
                  ">" eos)
              (prin1-to-string func)))))

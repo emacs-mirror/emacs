@@ -4245,6 +4245,7 @@ extern Lisp_Object module_function_documentation
   (struct Lisp_Module_Function const *);
 extern module_funcptr module_function_address
   (struct Lisp_Module_Function const *);
+extern void *module_function_data (const struct Lisp_Module_Function *);
 extern void module_finalize_function (const struct Lisp_Module_Function *);
 extern void mark_modules (void);
 extern void init_module_assertions (bool);

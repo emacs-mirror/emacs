@@ -1098,6 +1098,12 @@ module_function_address (const struct Lisp_Module_Function *function)
   return (module_funcptr) function->subr;
 }
 
+void *
+module_function_data (const struct Lisp_Module_Function *function)
+{
+  return function->data;
+}
+
 
 /* Helper functions.  */
 

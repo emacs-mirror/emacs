@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,7 @@ static emacs_value
 Fmod_test_sum (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   assert (nargs == 2);
+  assert ((uintptr_t) data == 0x1234);
 
   intmax_t a = env->extract_integer (env, args[0]);
   intmax_t b = env->extract_integer (env, args[1]);
@@ -587,7 +589,8 @@ emacs_module_init (struct emacs_runtime *ert)
 		 env->make_function (env, amin, amax, csym, doc, data))
 
   DEFUN ("mod-test-return-t", Fmod_test_return_t, 1, 1, NULL, NULL);
-  DEFUN ("mod-test-sum", Fmod_test_sum, 2, 2, "Return A + B\n\n(fn a b)", NULL);
+  DEFUN ("mod-test-sum", Fmod_test_sum, 2, 2, "Return A + B\n\n(fn a b)",
+         (void *) (uintptr_t) 0x1234);
   DEFUN ("mod-test-signal", Fmod_test_signal, 0, 0, NULL, NULL);
   DEFUN ("mod-test-throw", Fmod_test_throw, 0, 0, NULL, NULL);
   DEFUN ("mod-test-non-local-exit-funcall", Fmod_test_non_local_exit_funcall,
