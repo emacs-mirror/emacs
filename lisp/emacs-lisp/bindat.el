@@ -149,9 +149,6 @@
 ;;          |  ip                       -- 4 byte vector
 ;;          |  bits LEN                 -- List with bits set in LEN bytes.
 ;;
-;;          -- Note: 32 bit values may be limited by emacs' INTEGER
-;;             implementation limits.
-;;
 ;;          -- Example: `bits 2' will unpack 0x28 0x1c to (2 3 4 11 13)
 ;;                                       and 0x1c 0x28 to (3 5 10 11 12).
 
