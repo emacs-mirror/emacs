@@ -1365,6 +1365,22 @@ data_from_funcptr (void (*funcptr) (void))
      interchangeably, so it's OK to assume that here too.  */
   return (void const *) funcptr;
 }
+
+/* Print the value of the pointer PTR.  */
+
+static void
+print_pointer (Lisp_Object printcharfun, char *buf, const char *prefix,
+               const void *ptr)
+{
+  uintptr_t ui = (uintptr_t) ptr;
+
+  /* In theory this assignment could lose info on pre-C99 hosts, but
+     in practice it doesn't.  */
+  uintmax_t up = ui;
+
+  int len = sprintf (buf, "%s 0x%" PRIxMAX, prefix, up);
+  strout (buf, len, len, printcharfun);
+}
 #endif
 
 static bool
@@ -1803,33 +1819,15 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	dynlib_addr (ptr, &file, &symbol);
 
 	if (symbol == NULL)
-	  {
-	    uintptr_t ui = (uintptr_t) data_from_funcptr (ptr);
-
-	    /* In theory this assignment could lose info on pre-C99
-	       hosts, but in practice it doesn't.  */
-	    uintmax_t up = ui;
-
-	    int len = sprintf (buf, "at 0x%"PRIxMAX, up);
-	    strout (buf, len, len, printcharfun);
-	  }
-	else
+          print_pointer (printcharfun, buf, "at", data_from_funcptr (ptr));
+        else
 	  print_c_string (symbol, printcharfun);
 
         void *data = module_function_data (function);
         if (data != NULL)
-          {
-	    uintptr_t ui = (uintptr_t) data;
+          print_pointer (printcharfun, buf, " with data", data);
 
-	    /* In theory this assignment could lose info on pre-C99
-	       hosts, but in practice it doesn't.  */
-	    uintmax_t up = ui;
-
-	    int len = sprintf (buf, " with data 0x%"PRIxMAX, up);
-	    strout (buf, len, len, printcharfun);
-          }
-
-	if (file != NULL)
+        if (file != NULL)
 	  {
 	    print_c_string (" from ", printcharfun);
 	    print_c_string (file, printcharfun);
