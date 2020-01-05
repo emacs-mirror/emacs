@@ -596,11 +596,8 @@ SERVER.  ."
       (progn
         (setf (eglot--shutdown-requested server) t)
         (jsonrpc-request server :shutdown nil :timeout (or timeout 1.5))
-        ;; this one is supposed to always fail, because it asks the
-        ;; server to exit itself. Hence ignore-errors.
-        (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
-    ;; Now ask jsonrpc.el to shut down the server (which under normal
-    ;; conditions should return immediately).
+        (jsonrpc-notify server :exit nil))
+    ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))
     (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
 
