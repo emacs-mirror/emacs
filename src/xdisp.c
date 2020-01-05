@@ -1136,16 +1136,17 @@ window_box_height (struct window *w)
     {
       if (w->header_line_height >= 0)
 	height -= w->header_line_height;
-      {
-	struct glyph_row *hl_row
-	  = (w->current_matrix && w->current_matrix->rows
-	     ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
-	     : 0);
-	if (hl_row && hl_row->mode_line_p)
-	  height -= hl_row->height;
-	else
-	  height -= estimate_mode_line_height (f, HEADER_LINE_FACE_ID);
-      }
+      else
+	{
+	  struct glyph_row *hl_row
+	    = (w->current_matrix && w->current_matrix->rows
+	       ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
+	       : 0);
+	  if (hl_row && hl_row->mode_line_p)
+	    height -= hl_row->height;
+	  else
+	    height -= estimate_mode_line_height (f, HEADER_LINE_FACE_ID);
+	}
     }
 
   /* With a very small font and a mode-line that's taller than

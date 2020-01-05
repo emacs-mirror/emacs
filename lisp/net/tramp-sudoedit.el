@@ -508,21 +508,21 @@ the result will be a local, non-Tramp, file name."
       (tramp-message v 5 "file system info: %s" localname)
       (when (tramp-sudoedit-send-command
 	     v "df" "--block-size=1" "--output=size,used,avail"
-	     (tramp-compat-file-name-unquote localname)))
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(goto-char (point-min))
-	(forward-line)
-	(when (looking-at
-	       (eval-when-compile
-		 (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)")))
-	  (list (string-to-number (match-string 1))
-		;; The second value is the used size.  We need the
-		;; free size.
-		(- (string-to-number (match-string 1))
-		   (string-to-number (match-string 2)))
-		(string-to-number (match-string 3))))))))
+	     (tramp-compat-file-name-unquote localname))
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (forward-line)
+	  (when (looking-at
+		 (eval-when-compile
+		   (concat "[[:space:]]*\\([[:digit:]]+\\)"
+			   "[[:space:]]+\\([[:digit:]]+\\)"
+			   "[[:space:]]+\\([[:digit:]]+\\)")))
+	    (list (string-to-number (match-string 1))
+		  ;; The second value is the used size.  We need the
+		  ;; free size.
+		  (- (string-to-number (match-string 1))
+		     (string-to-number (match-string 2)))
+		  (string-to-number (match-string 3)))))))))
 
 (defun tramp-sudoedit-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."

@@ -154,14 +154,9 @@ Whether the passphrase is cached at all is controlled by
 	  (write-region (point-min) (point-max) file))
 	(push file certfiles)
 	(push file tmpfiles)))
-    (if (smime-encrypt-buffer certfiles)
-	(progn
-	  (while (setq tmp (pop tmpfiles))
-	    (delete-file tmp))
-	  t)
-      (while (setq tmp (pop tmpfiles))
-	(delete-file tmp))
-      nil))
+    (smime-encrypt-buffer certfiles)
+    (while (setq tmp (pop tmpfiles))
+      (delete-file tmp)))
   (goto-char (point-max)))
 
 (defvar gnus-extract-address-components)

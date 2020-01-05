@@ -733,8 +733,8 @@ system.")
                      (null buffer-file-name))
                 (auto-revert-notify-rm-watch)
                 ;; Restart the timer if it wasn't running.
-                (unless auto-revert-timer)
-                  (auto-revert-set-timer))))
+                (unless auto-revert-timer
+                  (auto-revert-set-timer)))))
 
         ;; Loop over all buffers, in order to find the intended one.
         (cl-dolist (buffer buffers)

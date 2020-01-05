@@ -221,6 +221,8 @@ Sets the current buffer to the show buffer."
              ;; pgp.el uses this.
              (if (boundp 'write-contents-hooks) ;Emacs 19
                  (kill-local-variable 'write-contents-hooks))
+             (font-lock-mode -1)
+             (mh-show-mode)
              (if formfile
                  (mh-exec-lib-cmd-output "mhl" "-nobell" "-noclear"
                                          (if (stringp formfile)
@@ -232,7 +234,6 @@ Sets the current buffer to the show buffer."
                (mh-add-missing-mime-version-header)
                (setf (mh-buffer-data) (mh-make-buffer-data))
                (mh-mime-display))
-             (mh-show-mode)
              ;; Header cleanup
              (goto-char (point-min))
              (cond (clean-message-header
@@ -252,13 +253,11 @@ Sets the current buffer to the show buffer."
              (setq buffer-backed-up nil)
              (auto-save-mode 1)
              (set-mark nil)
-             (unwind-protect
-                 (when (and mh-decode-mime-flag (not formfile))
-                   (setq buffer-read-only nil)
-                   (mh-display-smileys)
-                   (mh-display-emphasis))
-               (setq buffer-read-only t))
+             (when (and mh-decode-mime-flag (not formfile))
+               (mh-display-smileys)
+               (mh-display-emphasis))
              (set-buffer-modified-p nil)
+             (setq buffer-read-only t)
              (setq mh-show-folder-buffer folder)
              (setq mode-line-buffer-identification
                    (list (format mh-show-buffer-mode-line-buffer-id
@@ -870,7 +869,6 @@ See also `mh-folder-mode'.
   (easy-menu-add mh-show-folder-menu)
   (make-local-variable 'mh-show-folder-buffer)
   (buffer-disable-undo)
-  (setq buffer-read-only t)
   (use-local-map mh-show-mode-map))
 
 

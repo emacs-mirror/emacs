@@ -4970,9 +4970,11 @@ WINDOW must be a live window and defaults to the selected one.
 
 According to information stored in WINDOW's `quit-restore' window
 parameter either (1) delete WINDOW and its frame, (2) delete
-WINDOW, (3) restore the buffer previously displayed in WINDOW,
-or (4) make WINDOW display some other buffer than the present
-one.  If non-nil, reset `quit-restore' parameter to nil.
+WINDOW but leave its frame alone, (3) restore the buffer
+previously shown in WINDOW, or (4) make WINDOW display some other
+buffer.  If WINDOW is not deleted, reset its `quit-restore'
+parameter to nil.  See Info node `(elisp) Quitting Windows' for
+more details.
 
 Optional second argument BURY-OR-KILL tells how to proceed with
 the buffer of WINDOW.  The following values are handled:
@@ -5083,11 +5085,9 @@ WINDOW must be a live window and defaults to the selected one.
 With prefix argument KILL non-nil, kill the buffer instead of
 burying it.
 
-According to information stored in WINDOW's `quit-restore' window
-parameter either (1) delete WINDOW and its frame, (2) delete
-WINDOW, (3) restore the buffer previously displayed in WINDOW,
-or (4) make WINDOW display some other buffer than the present
-one.  If non-nil, reset `quit-restore' parameter to nil.
+This calls the function `quit-restore-window' to delete WINDOW or
+show some other buffer in it.  See Info node `(elisp) Quitting
+Windows' for more details.
 
 The functions in `quit-window-hook' will be run before doing
 anything else."

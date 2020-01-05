@@ -478,21 +478,6 @@ Argument COMMAND is the command to use for compiling the target."
   "Don't rescan this project from the sources."
   (message "cpp-root has nothing to rescan."))
 
-;;; Quick Hack
-(defun ede-create-lots-of-projects-under-dir (dir projfile &rest attributes)
-  "Create a bunch of projects under directory DIR.
-PROJFILE is a file name sans directory that indicates a subdirectory
-is a project directory.
-Generic ATTRIBUTES, such as :include-path can be added.
-Note: This needs some work."
-  (let ((files (directory-files dir t)))
-    (dolist (F files)
-      (if (file-exists-p (expand-file-name projfile F))
-	  `(ede-cpp-root-project (file-name-nondirectory F)
-				 :name (file-name-nondirectory F)
-				 :file (expand-file-name projfile F)
-				 attributes)))))
-
 (provide 'ede/cpp-root)
 
 ;; Local variables:

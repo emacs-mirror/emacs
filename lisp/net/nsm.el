@@ -311,9 +311,9 @@ See also: `network-security-protocol-checks' and `nsm-noninteractive'"
                                                   (map-values results)
                                                   "\n")
                                                  "\n")
-                                                "\n* ")))))
-                 (delete-process process)
-                 (setq process nil)))
+						"\n* "))))))
+	(delete-process process)
+	(setq process nil))
       (run-hook-with-args 'nsm-tls-post-check-functions
                           host port status settings results)))
   process)

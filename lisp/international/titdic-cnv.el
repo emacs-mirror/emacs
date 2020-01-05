@@ -737,8 +737,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; method is for inputting CNS characters.
 
 (defun tsang-quick-converter (dicbuf tsang-p big5-p)
-  (let ((fulltitle (if tsang-p (if big5-p "倉頡" "倉頡")
-		     (if big5-p "簡易" "簡易")))
+  (let ((fulltitle (if tsang-p "倉頡" "簡易"))
 	dic)
     (goto-char (point-max))
     (if big5-p
