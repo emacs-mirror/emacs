@@ -736,7 +736,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; input method is for inputting Big5 characters.  Otherwise the input
 ;; method is for inputting CNS characters.
 
-(defun tsang-quick-converter (dicbuf name title tsang-p big5-p)
+(defun tsang-quick-converter (dicbuf tsang-p big5-p)
   (let ((fulltitle (if tsang-p (if big5-p "$(06AQo(B" "$(GT?on(B")
 		     (if big5-p "$(0X|/y(B" "$(Gv|Mx(B")))
 	dic)
