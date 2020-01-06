@@ -1188,9 +1188,7 @@ component is used as the target of the symlink."
       (let ((non-essential t))
 	(when (and (tramp-tramp-file-p target)
 		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target
-		(tramp-file-name-localname
-		 (tramp-dissect-file-name (expand-file-name target))))))
+	  (setq target (tramp-file-local-name (expand-file-name target)))))
 
       ;; If TARGET is still remote, quote it.
       (if (tramp-tramp-file-p target)
@@ -1244,7 +1242,7 @@ component is used as the target of the symlink."
 	(setq infile (expand-file-name infile))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (with-parsed-tramp-file-name infile nil localname))
+	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input))

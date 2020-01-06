@@ -41,6 +41,7 @@
 (require 'shell)
 (require 'subr-x)
 
+;; `temporary-file-directory' as function is introduced with Emacs 26.1.
 (declare-function tramp-handle-temporary-file-directory "tramp")
 
 ;; For not existing functions, obsolete functions, or functions with a

@@ -265,10 +265,8 @@ absolute file names."
 	      v 0 (format "%s %s to %s" msg-operation filename newname)
 	    (unless (tramp-sudoedit-send-command
 		     v sudoedit-operation
-		     (tramp-compat-file-name-unquote
-		      (tramp-compat-file-local-name filename))
-		     (tramp-compat-file-name-unquote
-		      (tramp-compat-file-local-name newname)))
+		     (tramp-unquote-file-local-name filename)
+		     (tramp-unquote-file-local-name newname))
 	      (tramp-error
 	       v 'file-error
 	       "Error %s `%s' `%s'" msg-operation filename newname))))
@@ -615,9 +613,7 @@ component is used as the target of the symlink."
       (let ((non-essential t))
 	(when (and (tramp-tramp-file-p target)
 		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target
-		(tramp-file-name-localname
-		 (tramp-dissect-file-name (expand-file-name target))))))
+	  (setq target (tramp-file-local-name (expand-file-name target)))))
 
       ;; If TARGET is still remote, quote it.
       (if (tramp-tramp-file-p target)
@@ -715,8 +711,7 @@ ID-FORMAT valid values are `string' and `integer'."
        (format "%d:%d"
 	       (or uid (tramp-sudoedit-get-remote-uid v 'integer))
 	       (or gid (tramp-sudoedit-get-remote-gid v 'integer)))
-       (tramp-compat-file-name-unquote
-	(tramp-compat-file-local-name filename)))))
+       (tramp-unquote-file-local-name filename))))
 
 (defun tramp-sudoedit-handle-write-region
   (start end filename &optional append visit lockname mustbenew)

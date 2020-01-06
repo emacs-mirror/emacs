@@ -725,8 +725,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(with-tramp-progress-reporter
 	    v 0 (format "Copying %s to %s" filename newname)
 	  (if (and t1 t2 (tramp-equal-remote filename newname))
-	      (let ((l1 (tramp-compat-file-local-name filename))
-		    (l2 (tramp-compat-file-local-name newname)))
+	      (let ((l1 (tramp-file-local-name filename))
+		    (l2 (tramp-file-local-name newname)))
 		;; We must also flush the cache of the directory,
 		;; because `file-attributes' reads the values from
 		;; there.
@@ -809,8 +809,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (if (and t1 t2
 		   (tramp-equal-remote filename newname)
 		   (not (file-directory-p filename)))
-	      (let ((l1 (tramp-compat-file-local-name filename))
-		    (l2 (tramp-compat-file-local-name newname)))
+	      (let ((l1 (tramp-file-local-name filename))
+		    (l2 (tramp-file-local-name newname)))
 		;; We must also flush the cache of the directory, because
 		;; `file-attributes' reads the values from there.
 		(tramp-flush-file-properties v l1)
@@ -846,7 +846,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(setq infile (expand-file-name infile))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (with-parsed-tramp-file-name infile nil localname))
+	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input))
@@ -877,8 +877,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (setcar (cdr destination) (expand-file-name (cadr destination)))
 	  (if (tramp-equal-remote default-directory (cadr destination))
 	      ;; stderr is on the same remote host.
-	      (setq stderr (with-parsed-tramp-file-name
-			       (cadr destination) nil localname))
+	      (setq stderr (tramp-file-local-name (cadr destination)))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
 	    (setq stderr (tramp-make-tramp-temp-file v)
@@ -1062,7 +1061,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (read (current-buffer)))
 	":" 'omit)))
    ;; The equivalent to `exec-directory'.
-   `(,(tramp-compat-file-local-name default-directory))))
+   `(,(tramp-file-local-name (expand-file-name default-directory)))))
 
 (defun tramp-adb-get-device (vec)
   "Return full host name from VEC to be used in shell execution.

@@ -1051,9 +1051,7 @@ component is used as the target of the symlink."
       (let ((non-essential t))
 	(when (and (tramp-tramp-file-p target)
 		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target
-		(tramp-file-name-localname
-		 (tramp-dissect-file-name (expand-file-name target))))))
+	  (setq target (tramp-file-local-name (expand-file-name target)))))
 
       ;; If TARGET is still remote, quote it.
       (if (tramp-tramp-file-p target)
@@ -2171,8 +2169,8 @@ the uid and gid from FILENAME."
 			    v 'file-error
 			    "Unknown operation `%s', must be `copy' or `rename'"
 			    op))))
-	     (localname1 (tramp-compat-file-local-name filename))
-	     (localname2 (tramp-compat-file-local-name newname))
+	     (localname1 (tramp-file-local-name filename))
+	     (localname2 (tramp-file-local-name newname))
 	     (prefix (file-remote-p (if t1 filename newname)))
              cmd-result)
 	(when (and (eq op 'copy) (file-directory-p filename))
@@ -2797,7 +2795,8 @@ the result will be a local, non-Tramp, file name."
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
 (defun tramp-sh-handle-make-process (&rest args)
-  "Like `make-process' for Tramp files."
+  "Like `make-process' for Tramp files.
+STDERR can also be a file name."
   (when args
     (with-parsed-tramp-file-name (expand-file-name default-directory) nil
       (let ((name (plist-get args :name))
@@ -2829,14 +2828,21 @@ the result will be a local, non-Tramp, file name."
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
 	(unless (or (null stderr) (bufferp stderr) (stringp stderr))
 	  (signal 'wrong-type-argument (list #'stringp stderr)))
+	(when (and (stringp stderr) (tramp-tramp-file-p stderr)
+		   (not (tramp-equal-remote default-directory stderr)))
+	  (signal 'file-error (list "Wrong stderr" stderr)))
 
 	(let* ((buffer
 		(if buffer
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
-	       (stderr (and stderr (get-buffer-create stderr)))
-	       (tmpstderr (and stderr (tramp-make-tramp-temp-file v)))
+	       ;; STDERR can also be a file name.
+	       (tmpstderr
+		(and stderr
+		     (if (and (stringp stderr) (tramp-tramp-file-p stderr))
+			 (tramp-unquote-file-local-name stderr)
+		       (tramp-make-tramp-temp-file v))))
 	       (program (car command))
 	       (args (cdr command))
 	       ;; When PROGRAM matches "*sh", and the first arg is
@@ -2965,13 +2971,20 @@ the result will be a local, non-Tramp, file name."
 		      (ignore-errors
 			(set-process-query-on-exit-flag p (null noquery))
 			(set-marker (process-mark p) (point)))
+		      ;; Copy tmpstderr file.
+		      (when (and (stringp stderr)
+				 (not (tramp-tramp-file-p stderr)))
+			(add-function
+			 :after (process-sentinel p)
+			 (lambda (_proc _msg)
+			   (rename-file
+			    (tramp-make-tramp-file-name v tmpstderr) stderr))))
 		      ;; Provide error buffer.  This shows only
 		      ;; initial error messages; messages arriving
 		      ;; later on shall be inserted by `auto-revert'.
-		      ;; The temporary file will still be existing.
-		      ;; TODO: Write a sentinel, which deletes the
-		      ;; temporary file.
-		      (when tmpstderr
+		      ;; The temporary file will exist until the
+		      ;; process is deleted.
+		      (when (bufferp stderr)
 			;; We must flush them here already; otherwise
 			;; `insert-file-contents' will fail.
 			(tramp-flush-connection-property v "process-name")
@@ -2979,7 +2992,13 @@ the result will be a local, non-Tramp, file name."
 			(with-current-buffer stderr
 			  (insert-file-contents
 			   (tramp-make-tramp-file-name v tmpstderr) 'visit)
-			  (auto-revert-mode)))
+			  (auto-revert-mode))
+			;; Delete tmpstderr file.
+			(add-function
+			 :after (process-sentinel p)
+			 (lambda (_proc _msg)
+			   (delete-file
+			    (tramp-make-tramp-file-name v tmpstderr)))))
 		      ;; Return process.
 		      p)))
 
@@ -3028,7 +3047,7 @@ the result will be a local, non-Tramp, file name."
 	(setq infile (expand-file-name infile))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (with-parsed-tramp-file-name infile nil localname))
+	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input 'nohop))
@@ -3059,8 +3078,7 @@ the result will be a local, non-Tramp, file name."
 	  (setcar (cdr destination) (expand-file-name (cadr destination)))
 	  (if (tramp-equal-remote default-directory (cadr destination))
 	      ;; stderr is on the same remote host.
-	      (setq stderr (with-parsed-tramp-file-name
-			       (cadr destination) nil localname))
+	      (setq stderr (tramp-file-local-name (cadr destination)))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
 	    (setq stderr (tramp-make-tramp-temp-file v)
@@ -3122,7 +3140,7 @@ the result will be a local, non-Tramp, file name."
   (append
    (tramp-get-remote-path (tramp-dissect-file-name default-directory))
    ;; The equivalent to `exec-directory'.
-   `(,(tramp-compat-file-local-name default-directory))))
+   `(,(tramp-file-local-name (expand-file-name default-directory)))))
 
 (defun tramp-sh-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
@@ -3995,8 +4013,7 @@ variable PATH."
       (setq tmpfile
 	    (tramp-make-tramp-file-name vec (tramp-make-tramp-temp-file vec)))
       (write-region command nil tmpfile)
-      (tramp-send-command
-       vec (format ". %s" (tramp-compat-file-local-name tmpfile)))
+      (tramp-send-command vec (format ". %s" (tramp-file-local-name tmpfile)))
       (delete-file tmpfile))))
 
 ;; ------------------------------------------------------------
@@ -4513,7 +4530,7 @@ Goes through the list `tramp-local-coding-commands' and
 			      (format-spec
 			       value
 			       (format-spec-make
-				?t (tramp-compat-file-local-name tmpfile)))))
+				?t (tramp-file-local-name tmpfile)))))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-dec name)))
 		  (tramp-message
@@ -4796,7 +4813,7 @@ If there is just some editing, retry it after 5 seconds."
 	 vec 5 "Cannot timeout session, trying it again in %s seconds." 5)
 	(run-at-time 5 nil 'tramp-timeout-session vec))
     (tramp-message
-     vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'localname))
+     vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
     (tramp-cleanup-connection vec 'keep-debug)))
 
 (defun tramp-maybe-open-connection (vec)
@@ -5594,7 +5611,7 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	   "%s -t %s %s"
 	   result
 	   (format-time-string "%Y%m%d%H%M.%S")
-	   (tramp-compat-file-local-name tmpfile))))
+	   (tramp-file-local-name tmpfile))))
 	(delete-file tmpfile))
       result)))
 

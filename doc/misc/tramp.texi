@@ -3840,8 +3840,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on Emacs 24, Emacs 25, Emacs 26, and
-Emacs 27.
+The package works successfully on Emacs 24, Emacs 25, Emacs 26, Emacs
+27, and Emacs 28.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as

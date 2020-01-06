@@ -564,7 +564,7 @@ connection if a previous connection has died for some reason."
 		 ,(tramp-rclone-mount-point vec)
 		 ;; This could be nil.
 		 ,(tramp-get-method-parameter vec 'tramp-mount-args))))
-	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'localname)))
+	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
 	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
 
 	;; Mark it as connected.

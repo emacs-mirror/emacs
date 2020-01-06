@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.3
+;; Version: 2.4.4-pre
 ;; Package-Requires: ((emacs "24.4"))
 ;; Package-Type: multi
 ;; URL: https://savannah.gnu.org/projects/tramp
@@ -1340,13 +1340,20 @@ entry does not exist, return nil."
 This function removes from NAME the specification of the remote
 host and the method of accessing the host, leaving only the part
 that identifies NAME locally on the remote system.  NAME must be
-a string that matches `tramp-file-name-regexp'.  The returned
-file name can be used directly as argument of `process-file',
-`start-file-process', or `shell-command'."
+a string that matches `tramp-file-name-regexp'.  If NAME does not
+match `tramp-file-name-regexp', just NAME is returned.  The
+returned file name can be used directly as argument of
+`process-file', `start-file-process', or `shell-command'."
   (save-match-data
-    (and (tramp-tramp-file-p name)
-         (string-match (nth 0 tramp-file-name-structure) name)
-         (match-string (nth 4 tramp-file-name-structure) name))))
+    (or (and (tramp-tramp-file-p name)
+             (string-match (nth 0 tramp-file-name-structure) name)
+             (match-string (nth 4 tramp-file-name-structure) name))
+	name)))
+
+;; The localname can be quoted with "/:".  Extract this.
+(defun tramp-unquote-file-local-name (name)
+  "Return unquoted localname of NAME."
+  (tramp-compat-file-name-unquote (tramp-file-local-name name)))
 
 (defun tramp-find-method (method user host)
   "Return the right method string to use depending on USER and HOST.
@@ -1593,7 +1600,7 @@ necessary only.  This function will be used in file name completion."
 		  tramp-prefix-ipv6-format host tramp-postfix-ipv6-format)
 	       host)
 	     tramp-postfix-host-format))
-	  (when localname localname)))
+	  localname))
 
 (defun tramp-get-buffer (vec &optional dont-create)
   "Get the connection buffer to be used for VEC.
@@ -1649,7 +1656,7 @@ version, the function does nothing."
   "Set connection-local variables in the current buffer.
 If connection-local variables are not supported by this Emacs
 version, the function does nothing."
-  (when (file-remote-p default-directory)
+  (when (tramp-tramp-file-p default-directory)
     ;; `hack-connection-local-variables-apply' exists since Emacs 26.1.
     (tramp-compat-funcall
      'hack-connection-local-variables-apply
@@ -3248,7 +3255,7 @@ User is always nil."
 		  ;; lower case letters.  This avoids us to create a
 		  ;; temporary file.
 		  (while (and (string-match-p
-			       "[a-z]" (tramp-compat-file-local-name candidate))
+			       "[a-z]" (tramp-file-local-name candidate))
 			      (not (file-exists-p candidate)))
 		    (setq candidate
 			  (directory-file-name
@@ -3258,8 +3265,7 @@ User is always nil."
 		  ;; to Emacs 26+ like `file-name-case-insensitive-p',
 		  ;; so there is no compatibility problem calling it.
 		  (unless
-		      (string-match-p
-		       "[a-z]" (tramp-compat-file-local-name candidate))
+		      (string-match-p "[a-z]" (tramp-file-local-name candidate))
 		    (setq tmpfile
 			  (let ((default-directory
 				  (file-name-directory filename)))
@@ -3272,7 +3278,7 @@ User is always nil."
 		      (file-exists-p
 		       (concat
 			(file-remote-p candidate)
-			(upcase (tramp-compat-file-local-name candidate))))
+			(upcase (tramp-file-local-name candidate))))
 		    ;; Cleanup.
 		    (when tmpfile (delete-file tmpfile)))))))))))
 
@@ -3414,7 +3420,7 @@ User is always nil."
 	       (tramp-error
 		v1 'file-error
 		"Maximum number (%d) of symlinks exceeded" numchase-limit)))
-	   (tramp-compat-file-local-name (directory-file-name result)))))))))
+	   (tramp-file-local-name (directory-file-name result)))))))))
 
 (defun tramp-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -3699,7 +3705,7 @@ support symbolic links."
 	  (rename-uniquely))
         (setq output-buffer (get-buffer-create bname)))))
 
-    (setq buffer (if (and (not asynchronous) error-buffer)
+    (setq buffer (if error-buffer
 		     (with-parsed-tramp-file-name default-directory nil
 		       (list output-buffer
 			     (tramp-make-tramp-file-name
@@ -3727,13 +3733,24 @@ support symbolic links."
 	      ;; Run the process.
 	      (setq p (start-file-process-shell-command
 		       (buffer-name output-buffer) buffer command))
-	    ;; Display output.
-	    (with-current-buffer output-buffer
-	      (display-buffer output-buffer '(nil (allow-no-window . t)))
-	      (setq mode-line-process '(":%s"))
-	      (shell-mode)
-	      (set-process-sentinel p #'shell-command-sentinel)
-	      (set-process-filter p #'comint-output-filter))))
+	    (if (process-live-p p)
+		;; Display output.
+		(with-current-buffer output-buffer
+		  (display-buffer output-buffer '(nil (allow-no-window . t)))
+		  (setq mode-line-process '(":%s"))
+		  (shell-mode)
+		  (set-process-filter p #'comint-output-filter)
+		  (set-process-sentinel
+		   p (if (listp buffer)
+			 (lambda (_proc _string)
+			   (with-current-buffer error-buffer
+			     (insert-file-contents (cadr buffer)))
+			   (delete-file (cadr buffer)))
+		       #'shell-command-sentinel)))
+	      ;; Show stderr.
+	      (with-current-buffer error-buffer
+		(insert-file-contents (cadr buffer)))
+	      (delete-file (cadr buffer)))))
 
       (prog1
 	  ;; Run the process.
@@ -3756,13 +3773,16 @@ support symbolic links."
 	    (display-message-or-buffer output-buffer)))))))
 
 (defun tramp-handle-start-file-process (name buffer program &rest args)
-  "Like `start-file-process' for Tramp files."
+  "Like `start-file-process' for Tramp files.
+BUFFER might be a list, in this case STDERR is separated."
   ;; `make-process' knows the `:file-handler' argument since Emacs 27.1 only.
   (tramp-file-name-handler
    'make-process
    :name name
-   :buffer buffer
+   :buffer (if (listp buffer) (car buffer) buffer)
    :command (and program (cons program args))
+   ;; `shell-command' adds an errfile to `buffer'.
+   :stderr (when (listp buffer) (cadr buffer))
    :noquery nil
    :file-handler t))
 
@@ -4363,7 +4383,7 @@ would yield t.  On the other hand, the following check results in nil:
   (tramp-equal-remote \"/sudo::/etc\" \"/su::/etc\")
 
 If both files are local, the function returns t."
-  (or (and (null (file-remote-p file1)) (null (file-remote-p file2)))
+  (or (and (null (tramp-tramp-file-p file1)) (null (tramp-tramp-file-p file2)))
       (and (tramp-tramp-file-p file1) (tramp-tramp-file-p file2)
 	   (string-equal (file-remote-p file1) (file-remote-p file2)))))
 
@@ -4633,7 +4653,7 @@ This handles also chrooted environments, which are not regarded as local."
 	   (tramp-make-tramp-file-name
 	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
       (or (and (file-directory-p dir) (file-writable-p dir)
-	       (tramp-compat-file-local-name dir))
+	       (tramp-file-local-name dir))
 	  (tramp-error vec 'file-error "Directory %s not accessible" dir))
       dir)))
 
@@ -4656,7 +4676,7 @@ Return the local name of the temporary file."
 	(set-file-modes result #o0700)))
 
     ;; Return the local part.
-    (with-parsed-tramp-file-name result nil localname)))
+    (tramp-file-local-name result)))
 
 (defun tramp-delete-temp-file-function ()
   "Remove temporary files related to current buffer."
@@ -4683,7 +4703,7 @@ this file, if that variable is non-nil."
 
   (let ((system-type
 	 (if (and (stringp tramp-auto-save-directory)
-		  (file-remote-p tramp-auto-save-directory))
+		  (tramp-tramp-file-p tramp-auto-save-directory))
 	     'not-windows
 	   system-type))
 	(auto-save-file-name-transforms
