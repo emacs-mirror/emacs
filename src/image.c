@@ -1616,7 +1616,7 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
 static void
 uncache_image (struct frame *f, Lisp_Object spec)
 {
-  struct image *img = search_image_cache (f, spec, sxhash (spec, 0));
+  struct image *img = search_image_cache (f, spec, sxhash (spec));
   if (img)
     {
       free_image (f, img);
@@ -2281,7 +2281,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
   eassert (valid_image_p (spec));
 
   /* Look up SPEC in the hash table of the image cache.  */
-  hash = sxhash (spec, 0);
+  hash = sxhash (spec);
   img = search_image_cache (f, spec, hash);
   if (img && img->load_failed_p)
     {

@@ -47,6 +47,7 @@ static void sort_vector_copy (Lisp_Object, ptrdiff_t,
 enum equal_kind { EQUAL_NO_QUIT, EQUAL_PLAIN, EQUAL_INCLUDING_PROPERTIES };
 static bool internal_equal (Lisp_Object, Lisp_Object,
 			    enum equal_kind, int, Lisp_Object);
+static EMACS_UINT sxhash_obj (Lisp_Object, int);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the ARGUMENT unchanged.  */
@@ -4022,7 +4023,7 @@ hashfn_eq (Lisp_Object key, struct Lisp_Hash_Table *h)
 Lisp_Object
 hashfn_equal (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
-  return make_ufixnum (sxhash (key, 0));
+  return make_ufixnum (sxhash (key));
 }
 
 /* Ignore HT and return a hash code for KEY which uses 'eql' to compare keys.
@@ -4042,7 +4043,7 @@ hashfn_user_defined (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
   Lisp_Object args[] = { h->test.user_hash_function, key };
   Lisp_Object hash = hash_table_user_defined_call (ARRAYELTS (args), args, h);
-  return FIXNUMP (hash) ? hash : make_ufixnum (sxhash (hash, 0));
+  return FIXNUMP (hash) ? hash : make_ufixnum (sxhash (hash));
 }
 
 struct hash_table_test const
@@ -4606,13 +4607,13 @@ sxhash_list (Lisp_Object list, int depth)
 	 CONSP (list) && i < SXHASH_MAX_LEN;
 	 list = XCDR (list), ++i)
       {
-	EMACS_UINT hash2 = sxhash (XCAR (list), depth + 1);
+	EMACS_UINT hash2 = sxhash_obj (XCAR (list), depth + 1);
 	hash = sxhash_combine (hash, hash2);
       }
 
   if (!NILP (list))
     {
-      EMACS_UINT hash2 = sxhash (list, depth + 1);
+      EMACS_UINT hash2 = sxhash_obj (list, depth + 1);
       hash = sxhash_combine (hash, hash2);
     }
 
@@ -4632,7 +4633,7 @@ sxhash_vector (Lisp_Object vec, int depth)
   n = min (SXHASH_MAX_LEN, hash & PSEUDOVECTOR_FLAG ? PVSIZE (vec) : hash);
   for (i = 0; i < n; ++i)
     {
-      EMACS_UINT hash2 = sxhash (AREF (vec, i), depth + 1);
+      EMACS_UINT hash2 = sxhash_obj (AREF (vec, i), depth + 1);
       hash = sxhash_combine (hash, hash2);
     }
 
@@ -4675,7 +4676,13 @@ sxhash_bignum (Lisp_Object bignum)
    structure.  Value is an unsigned integer clipped to INTMASK.  */
 
 EMACS_UINT
-sxhash (Lisp_Object obj, int depth)
+sxhash (Lisp_Object obj)
+{
+  return sxhash_obj (obj, 0);
+}
+
+static EMACS_UINT
+sxhash_obj (Lisp_Object obj, int depth)
 {
   EMACS_UINT hash;
 
