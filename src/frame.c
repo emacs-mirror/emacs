@@ -904,7 +904,7 @@ make_frame (bool mini_p)
   f->last_tool_bar_item = -1;
 #endif
 #ifdef NS_IMPL_COCOA
-  f->ns_appearance = ns_appearance_aqua;
+  f->ns_appearance = ns_appearance_system_default;
   f->ns_transparent_titlebar = false;
 #endif
 #endif

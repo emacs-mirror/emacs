@@ -2025,17 +2025,13 @@ ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
     return;
 
   if (EQ (new_value, Qdark))
-    {
-      window.appearance = [NSAppearance
-                            appearanceNamed: NSAppearanceNameVibrantDark];
-      FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
-    }
+    FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
+  else if (EQ (new_value, Qlight))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
   else
-    {
-      window.appearance = [NSAppearance
-                            appearanceNamed: NSAppearanceNameAqua];
-      FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
-    }
+    FRAME_NS_APPEARANCE (f) = ns_appearance_system_default;
+
+  [window setAppearance];
 #endif /* MAC_OS_X_VERSION_MAX_ALLOWED >= 101000 */
 }
 
@@ -7469,16 +7465,8 @@ not_in_argv (NSString *arg)
   if (! FRAME_UNDECORATED (f))
     [self createToolbar: f];
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-#ifndef NSAppKitVersionNumber10_10
-#define NSAppKitVersionNumber10_10 1343
-#endif
 
-  if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_10
-      && FRAME_NS_APPEARANCE (f) != ns_appearance_aqua)
-    win.appearance = [NSAppearance
-                          appearanceNamed: NSAppearanceNameVibrantDark];
-#endif
+  [win setAppearance];
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
   if ([win respondsToSelector: @selector(titlebarAppearsTransparent)])
@@ -8726,6 +8714,32 @@ not_in_argv (NSString *arg)
       [self setFrame: sr display: NO];
     }
 #endif
+}
+
+- (void)setAppearance
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+  struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
+  NSAppearance *appearance = nil;
+
+  NSTRACE ("[EmacsWindow setAppearance]");
+
+#ifndef NSAppKitVersionNumber10_10
+#define NSAppKitVersionNumber10_10 1343
+#endif
+
+  if (NSAppKitVersionNumber < NSAppKitVersionNumber10_10)
+    return;
+
+  if (FRAME_NS_APPEARANCE (f) == ns_appearance_vibrant_dark)
+    appearance =
+      [NSAppearance appearanceNamed:NSAppearanceNameVibrantDark];
+  else if (FRAME_NS_APPEARANCE (f) == ns_appearance_aqua)
+    appearance =
+      [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+
+  [self setAppearance:appearance];
+#endif /* MAC_OS_X_VERSION_MAX_ALLOWED >= 101000 */
 }
 
 - (void)setFrame:(NSRect)windowFrame

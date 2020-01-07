@@ -2192,10 +2192,11 @@ it and see if it works.)
 @vindex ns-appearance@r{, a frame parameter}
 @item ns-appearance
 Only available on macOS, if set to @code{dark} draw this frame's
-window-system window using the ``vibrant dark'' theme, otherwise use
-the system default.  The ``vibrant dark'' theme can be used to set the
-toolbar and scrollbars to a dark appearance when using an Emacs theme
-with a dark background.
+window-system window using the ``vibrant dark'' theme, and if set to
+@code{light} use the ``aqua'' theme, otherwise use the system default.
+The ``vibrant dark'' theme can be used to set the toolbar and
+scrollbars to a dark appearance when using an Emacs theme with a dark
+background.
 
 @vindex ns-transparent-titlebar@r{, a frame parameter}
 @item ns-transparent-titlebar

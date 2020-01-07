@@ -471,6 +471,8 @@ typedef id instancetype;
 {
   NSPoint grabOffset;
 }
+
+- (void)setAppearance;
 @end
 
 

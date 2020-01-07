@@ -1277,14 +1277,20 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 #ifdef NS_IMPL_COCOA
   tem = gui_display_get_arg (dpyinfo, parms, Qns_appearance, NULL, NULL,
                              RES_TYPE_SYMBOL);
-  FRAME_NS_APPEARANCE (f) = EQ (tem, Qdark)
-    ? ns_appearance_vibrant_dark : ns_appearance_aqua;
-  store_frame_param (f, Qns_appearance, tem);
+  if (EQ (tem, Qdark))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
+  else if (EQ (tem, Qlight))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
+  else
+    FRAME_NS_APPEARANCE (f) = ns_appearance_system_default;
+  store_frame_param (f, Qns_appearance,
+                     (!NILP (tem) && !EQ (tem, Qunbound)) ? tem : Qnil);
 
   tem = gui_display_get_arg (dpyinfo, parms, Qns_transparent_titlebar,
                              NULL, NULL, RES_TYPE_BOOLEAN);
   FRAME_NS_TRANSPARENT_TITLEBAR (f) = !NILP (tem) && !EQ (tem, Qunbound);
-  store_frame_param (f, Qns_transparent_titlebar, tem);
+  store_frame_param (f, Qns_transparent_titlebar,
+                     FRAME_NS_TRANSPARENT_TITLEBAR (f) ? Qt : Qnil);
 #endif
 
   parent_frame = gui_display_get_arg (dpyinfo, parms, Qparent_frame, NULL, NULL,
@@ -3141,6 +3147,7 @@ syms_of_nsfns (void)
   DEFSYM (Qframe_title_format, "frame-title-format");
   DEFSYM (Qicon_title_format, "icon-title-format");
   DEFSYM (Qdark, "dark");
+  DEFSYM (Qlight, "light");
 
   DEFVAR_LISP ("ns-icon-type-alist", Vns_icon_type_alist,
                doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.
