@@ -1184,7 +1184,6 @@ extern Lisp_Object window_list (void);
 extern Lisp_Object window_parameter (struct window *, Lisp_Object parameter);
 extern struct window *decode_live_window (Lisp_Object);
 extern struct window *decode_any_window (Lisp_Object);
-extern bool compare_window_configurations (Lisp_Object, Lisp_Object, bool);
 extern void mark_window_cursors_off (struct window *);
 extern bool window_wants_mode_line (struct window *);
 extern bool window_wants_header_line (struct window *);

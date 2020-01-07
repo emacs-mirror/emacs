@@ -2434,6 +2434,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	   same size.  */
 	if (ASIZE (o2) != size)
 	  return false;
+
+	/* Compare bignums, overlays, markers, and boolvectors
+	   specially, by comparing their values.  */
 	if (BIGNUMP (o1))
 	  return mpz_cmp (*xbignum_val (o1), *xbignum_val (o2)) == 0;
 	if (OVERLAYP (o1))
@@ -2454,7 +2457,6 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 		    && (XMARKER (o1)->buffer == 0
 			|| XMARKER (o1)->bytepos == XMARKER (o2)->bytepos));
 	  }
-	/* Boolvectors are compared much like strings.  */
 	if (BOOL_VECTOR_P (o1))
 	  {
 	    EMACS_INT size = bool_vector_size (o1);
@@ -2464,11 +2466,6 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 			bool_vector_bytes (size)))
 	      return false;
 	    return true;
-	  }
-	if (WINDOW_CONFIGURATIONP (o1))
-	  {
-	    eassert (equal_kind != EQUAL_NO_QUIT);
-	    return compare_window_configurations (o1, o2, false);
 	  }
 
 	/* Aside from them, only true vectors, char-tables, compiled
@@ -4703,22 +4700,35 @@ sxhash_obj (Lisp_Object obj, int depth)
       hash = sxhash_string (SSDATA (obj), SBYTES (obj));
       break;
 
-      /* This can be everything from a vector to an overlay.  */
     case Lisp_Vectorlike:
-      if (BIGNUMP (obj))
-	hash = sxhash_bignum (obj);
-      else if (VECTORP (obj) || RECORDP (obj))
-	/* According to the CL HyperSpec, two arrays are equal only if
-	   they are `eq', except for strings and bit-vectors.  In
-	   Emacs, this works differently.  We have to compare element
-	   by element.  Same for records.  */
-	hash = sxhash_vector (obj, depth);
-      else if (BOOL_VECTOR_P (obj))
-	hash = sxhash_bool_vector (obj);
-      else
-	/* Others are `equal' if they are `eq', so let's take their
-	   address as hash.  */
-	hash = XHASH (obj);
+      {
+	enum pvec_type pvec_type = PSEUDOVECTOR_TYPE (XVECTOR (obj));
+	if (! (PVEC_NORMAL_VECTOR < pvec_type && pvec_type < PVEC_COMPILED))
+	  {
+	    /* According to the CL HyperSpec, two arrays are equal only if
+	       they are 'eq', except for strings and bit-vectors.  In
+	       Emacs, this works differently.  We have to compare element
+	       by element.  Same for pseudovectors that internal_equal
+	       examines the Lisp contents of.  */
+	    hash = sxhash_vector (obj, depth);
+	    break;
+	  }
+	else if (pvec_type == PVEC_BIGNUM)
+	  hash = sxhash_bignum (obj);
+	else if (pvec_type == PVEC_MARKER)
+	  {
+	    ptrdiff_t bytepos
+	      = XMARKER (obj)->buffer ? XMARKER (obj)->bytepos : 0;
+	    hash = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
+	    hash = SXHASH_REDUCE (hash);
+	  }
+	else if (pvec_type == PVEC_BOOL_VECTOR)
+	  hash = sxhash_bool_vector (obj);
+	else
+	  /* Others are 'equal' if they are 'eq', so take their
+	     address as hash.  */
+	  hash = XHASH (obj);
+      }
       break;
 
     case Lisp_Cons:

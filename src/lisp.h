@@ -1069,7 +1069,7 @@ DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
    with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR,
+  PVEC_NORMAL_VECTOR,	/* Should be first, for sxhash_obj.  */
   PVEC_FREE,
   PVEC_BIGNUM,
   PVEC_MARKER,
@@ -1094,7 +1094,7 @@ enum pvec_type
   PVEC_CONDVAR,
   PVEC_MODULE_FUNCTION,
 
-  /* These should be last, check internal_equal to see why.  */
+  /* These should be last, for internal_equal and sxhash_obj.  */
   PVEC_COMPILED,
   PVEC_CHAR_TABLE,
   PVEC_SUB_CHAR_TABLE,

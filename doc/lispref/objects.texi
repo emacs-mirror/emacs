@@ -2336,8 +2336,12 @@ same sequence of character codes and all these codes are in the range
 @end group
 @end example
 
-However, two distinct buffers are never considered @code{equal}, even if
-their textual contents are the same.
+The @code{equal} function recursively compares the contents of objects
+if they are integers, strings, markers, vectors, bool-vectors,
+byte-code function objects, char-tables, records, or font objects.
+Other objects are considered @code{equal} only if they are @code{eq}.
+For example, two distinct buffers are never considered @code{equal},
+even if their textual contents are the same.
 @end defun
 
   For @code{equal}, equality is defined recursively; for example, given

@@ -42,6 +42,12 @@ applies, and please also update docstrings as needed.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+** 'equal' no longer examines some contents of window configurations.
+Instead, it considers window configurations to be equal only if they
+are eq.  To compare contents, use compare-window-configurations
+instead.  This change helps fix a bug in sxhash-equal, which returned
+incorrect hashes for window configurations and some other objects.
+
 
 * Lisp Changes in Emacs 28.1
 

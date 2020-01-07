@@ -74,7 +74,7 @@ left alone when opening a URL in an external browser."
              (urls nil)
              (ffap-url-fetcher (lambda (url) (push url urls) nil)))
     (should-not (ffap-other-window "https://www.gnu.org"))
-    (should (equal (current-window-configuration) old))
+    (should (compare-window-configurations (current-window-configuration) old))
     (should (equal urls '("https://www.gnu.org")))))
 
 (provide 'ffap-tests)
