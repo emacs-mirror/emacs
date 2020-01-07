@@ -968,17 +968,27 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
 	(unless (or (null stderr) (bufferp stderr) (stringp stderr))
 	  (signal 'wrong-type-argument (list #'stringp stderr)))
+	(when (and (stringp stderr) (tramp-tramp-file-p stderr)
+		   (not (tramp-equal-remote default-directory stderr)))
+	  (signal 'file-error (list "Wrong stderr" stderr)))
 
 	(let* ((buffer
 		(if buffer
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
+	       ;; STDERR can also be a file name.
+	       (tmpstderr
+		(and stderr
+		     (if (and (stringp stderr) (tramp-tramp-file-p stderr))
+			 (tramp-unquote-file-local-name stderr)
+		       (tramp-make-tramp-temp-file v))))
 	       (program (car command))
 	       (args (cdr command))
 	       (command
-		(format "cd %s && exec %s"
+		(format "cd %s && exec %s %s"
 			(tramp-shell-quote-argument localname)
+			(if tmpstderr (format "2>'%s'" tmpstderr) "")
 			(mapconcat #'tramp-shell-quote-argument
 				   (cons program args) " ")))
 	       (tramp-process-connection-type
@@ -1028,6 +1038,20 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			(ignore-errors
 			  (set-process-query-on-exit-flag p (null noquery))
 			  (set-marker (process-mark p) (point)))
+			;; We must flush them here already; otherwise
+			;; `rename-file', `delete-file' or
+			;; `insert-file-contents' will fail.
+			(tramp-flush-connection-property v "process-name")
+			(tramp-flush-connection-property v "process-buffer")
+			;; Copy tmpstderr file.
+			(when (and (stringp stderr)
+				   (not (tramp-tramp-file-p stderr)))
+			  (add-function
+			   :after (process-sentinel p)
+			   (lambda (_proc _msg)
+			     (rename-file
+			      (tramp-make-tramp-file-name v tmpstderr)
+			      stderr))))
 			;; Read initial output.  Remove the first line,
 			;; which is the command echo.
 			(while
@@ -1036,6 +1060,22 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			      (not (re-search-forward "[\n]" nil t)))
 			  (tramp-accept-process-output p 0))
 			(delete-region (point-min) (point))
+			;; Provide error buffer.  This shows only
+			;; initial error messages; messages arriving
+			;; later on shall be inserted by
+			;; `auto-revert'.  The temporary file will
+			;; exist until the process is deleted.
+			(when (bufferp stderr)
+			  (with-current-buffer stderr
+			    (insert-file-contents
+			     (tramp-make-tramp-file-name v tmpstderr) 'visit)
+			    (auto-revert-mode))
+			  ;; Delete tmpstderr file.
+			  (add-function
+			   :after (process-sentinel p)
+			   (lambda (_proc _msg)
+			     (delete-file
+			      (tramp-make-tramp-file-name v tmpstderr)))))
 			;; Return process.
 			p))))
 

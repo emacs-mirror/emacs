@@ -2971,6 +2971,11 @@ STDERR can also be a file name."
 		      (ignore-errors
 			(set-process-query-on-exit-flag p (null noquery))
 			(set-marker (process-mark p) (point)))
+		      ;; We must flush them here already; otherwise
+		      ;; `rename-file', `delete-file' or
+		      ;; `insert-file-contents' will fail.
+		      (tramp-flush-connection-property v "process-name")
+		      (tramp-flush-connection-property v "process-buffer")
 		      ;; Copy tmpstderr file.
 		      (when (and (stringp stderr)
 				 (not (tramp-tramp-file-p stderr)))
@@ -2985,10 +2990,6 @@ STDERR can also be a file name."
 		      ;; The temporary file will exist until the
 		      ;; process is deleted.
 		      (when (bufferp stderr)
-			;; We must flush them here already; otherwise
-			;; `insert-file-contents' will fail.
-			(tramp-flush-connection-property v "process-name")
-			(tramp-flush-connection-property v "process-buffer")
 			(with-current-buffer stderr
 			  (insert-file-contents
 			   (tramp-make-tramp-file-name v tmpstderr) 'visit)

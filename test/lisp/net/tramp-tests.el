@@ -4352,56 +4352,54 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      ;; Process with stderr buffer.  tramp-adb.el doesn't support it (yet).
-      (unless (tramp--test-adb-p)
-	(let ((stderr (generate-new-buffer "*stderr*")))
-	  (unwind-protect
+      ;; Process with stderr buffer.
+      (let ((stderr (generate-new-buffer "*stderr*")))
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc
+		    (with-no-warnings
+		      (make-process
+		       :name "test5" :buffer (current-buffer)
+		       :command '("cat" "/")
+		       :stderr stderr
+		       :file-handler t)))
+	      (should (processp proc))
+	      ;; Read stderr.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc 0 nil t)))
+	      (delete-process proc)
+	      (with-current-buffer stderr
+		(should
+		 (string-match "cat:.* Is a directory" (buffer-string)))))
+
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))
+	  (ignore-errors (kill-buffer stderr))))
+
+      ;; Process with stderr file.
+      (dolist (tmpfile `(,tmp-name1 ,tmp-name2))
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc
+		    (with-no-warnings
+		      (make-process
+		       :name "test6" :buffer (current-buffer)
+		       :command '("cat" "/")
+		       :stderr tmpfile
+		       :file-handler t)))
+	      (should (processp proc))
+	      ;; Read stderr.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc nil nil t)))
+	      (delete-process proc)
 	      (with-temp-buffer
-		(setq proc
-		      (with-no-warnings
-			(make-process
-			 :name "test5" :buffer (current-buffer)
-			 :command '("cat" "/")
-			 :stderr stderr
-			 :file-handler t)))
-		(should (processp proc))
-		;; Read stderr.
-		(with-timeout (10 (tramp--test-timeout-handler))
-		  (while (accept-process-output proc 0 nil t)))
-		(delete-process proc)
-		(with-current-buffer stderr
-		  (should
-		   (string-match "cat:.* Is a directory" (buffer-string)))))
+		(insert-file-contents tmpfile)
+		(should
+		 (string-match "cat:.* Is a directory" (buffer-string)))))
 
-	    ;; Cleanup.
-	    (ignore-errors (delete-process proc)))
-	    (ignore-errors (kill-buffer stderr))))
-
-      ;; Process with stderr file.  tramp-adb.el doesn't support it (yet).
-      (unless (tramp--test-adb-p)
-	(dolist (tmpfile `(,tmp-name1 ,tmp-name2))
-	  (unwind-protect
-	      (with-temp-buffer
-		(setq proc
-		      (with-no-warnings
-			(make-process
-			 :name "test6" :buffer (current-buffer)
-			 :command '("cat" "/")
-			 :stderr tmpfile
-			 :file-handler t)))
-		(should (processp proc))
-		;; Read stderr.
-		(with-timeout (10 (tramp--test-timeout-handler))
-		  (while (accept-process-output proc nil nil t)))
-		(delete-process proc)
-		(with-temp-buffer
-		  (insert-file-contents tmpfile)
-		  (should
-		   (string-match "cat:.* Is a directory" (buffer-string)))))
-
-	    ;; Cleanup.
-	    (ignore-errors (delete-process proc))
-	    (ignore-errors (delete-file tmpfile))))))))
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))
+	  (ignore-errors (delete-file tmpfile)))))))
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
@@ -4521,25 +4519,23 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name)))
 
-      ;; Test `async-shell-command' with error buffer.  tramp-adb.el
-      ;; doesn't support it (yet).
-      (unless (tramp--test-adb-p)
-	(let ((stderr (generate-new-buffer "*stderr*")) proc)
-	  (unwind-protect
-	      (with-temp-buffer
-		(async-shell-command "cat /; sleep 1" (current-buffer) stderr)
-		(setq proc (get-buffer-process (current-buffer)))
-		;; Read stderr.
-		(when (processp proc)
-		  (with-timeout (10 (tramp--test-timeout-handler))
-		    (while (accept-process-output proc nil nil t)))
-		  (delete-process proc))
-		(with-current-buffer stderr
-		  (should
-		   (string-match "cat:.* Is a directory" (buffer-string)))))
+      ;; Test `async-shell-command' with error buffer.
+      (let ((stderr (generate-new-buffer "*stderr*")) proc)
+	(unwind-protect
+	    (with-temp-buffer
+	      (async-shell-command "cat /; sleep 1" (current-buffer) stderr)
+	      (setq proc (get-buffer-process (current-buffer)))
+	      ;; Read stderr.
+	      (when (processp proc)
+		(with-timeout (10 (tramp--test-timeout-handler))
+		  (while (accept-process-output proc nil nil t)))
+		(delete-process proc))
+	      (with-current-buffer stderr
+		(should
+		 (string-match "cat:.* Is a directory" (buffer-string)))))
 
 	    ;; Cleanup.
-	    (ignore-errors (kill-buffer stderr)))))
+	    (ignore-errors (kill-buffer stderr))))
 
       ;; Test sending string to `async-shell-command'.
       (unwind-protect
@@ -6243,8 +6239,6 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;;   do not work properly for `nextcloud'.
 ;; * Fix `tramp-test29-start-file-process' and
 ;;   `tramp-test30-make-process' on MS Windows (`process-send-eof'?).
-;; * Implement stderr for `adb' in `tramp-test30-make-process' and
-;;   `tramp-test32-shell-command'.
 ;; * Implement `tramp-test31-interrupt-process' for `adb'.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
