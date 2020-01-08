@@ -81,6 +81,10 @@ sys_thread_equal (sys_thread_t t, sys_thread_t u)
 {
   return t == u;
 }
+void
+sys_thread_set_name (const char *name)
+{
+}
 
 bool
 sys_thread_create (sys_thread_t *t, thread_creation_function *func, void *datum)
