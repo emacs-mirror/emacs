@@ -999,15 +999,15 @@ CONNECT-ARGS are passed as additional arguments to
 
 (defun eglot-current-column () (- (point) (point-at-bol)))
 
-(defvar eglot-current-column-function #'eglot-lsp-abiding-column
+(defvar eglot-current-column-function #'eglot-current-column
   "Function to calculate the current column.
 
 This is the inverse operation of
 `eglot-move-to-column-function' (which see).  It is a function of
 no arguments returning a column number.  For buffers managed by
 fully LSP-compliant servers, this should be set to
-`eglot-lsp-abiding-column' (the default), and
-`eglot-current-column' for all others.")
+`eglot-lsp-abiding-column', and `eglot-current-column' (the default)
+for all others.")
 
 (defun eglot-lsp-abiding-column ()
   "Calculate current COLUMN as defined by the LSP spec."
@@ -1023,7 +1023,7 @@ fully LSP-compliant servers, this should be set to
          :character (progn (when pos (goto-char pos))
                            (funcall eglot-current-column-function)))))
 
-(defvar eglot-move-to-column-function #'eglot-move-to-lsp-abiding-column
+(defvar eglot-move-to-column-function #'eglot-move-to-column
   "Function to move to a column reported by the LSP server.
 
 According to the standard, LSP column/character offsets are based
@@ -1033,8 +1033,8 @@ where X is a multi-byte character, it actually means `b', not
 `c'. However, many servers don't follow the spec this closely.
 
 For buffers managed by fully LSP-compliant servers, this should
-be set to `eglot-move-to-lsp-abiding-column' (the default), and
-`eglot-move-to-column' for all others.")
+be set to `eglot-move-to-lsp-abiding-column', and
+`eglot-move-to-column' (the default) for all others.")
 
 (defun eglot-move-to-column (column)
   "Move to COLUMN without closely following the LSP spec."
