@@ -1006,8 +1006,8 @@ This is the inverse operation of
 `eglot-move-to-column-function' (which see).  It is a function of
 no arguments returning a column number.  For buffers managed by
 fully LSP-compliant servers, this should be set to
-`eglot-lsp-abiding-column', and `eglot-current-column' (the default)
-for all others.")
+`eglot-lsp-abiding-column' (the default), and
+`eglot-current-column' for all others.")
 
 (defun eglot-lsp-abiding-column ()
   "Calculate current COLUMN as defined by the LSP spec."
@@ -1033,8 +1033,8 @@ where X is a multi-byte character, it actually means `b', not
 `c'. However, many servers don't follow the spec this closely.
 
 For buffers managed by fully LSP-compliant servers, this should
-be set to `eglot-move-to-lsp-abiding-column', and
-`eglot-move-to-column' (the default) for all others.")
+be set to `eglot-move-to-lsp-abiding-column' (the default), and
+`eglot-move-to-column' for all others.")
 
 (defun eglot-move-to-column (column)
   "Move to COLUMN without closely following the LSP spec."
