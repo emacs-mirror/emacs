@@ -1330,8 +1330,7 @@ entry does not exist, return nil."
        t))
 
 ;; This function bypasses the file name handler approach.  It is NOT
-;; recommended to use it in any package if not absolutely necessary,
-;; because it won't work for remote file names not supported by Tramp.
+;; recommended to use it in any package if not absolutely necessary.
 ;; However, it is more performant than `file-local-name', and might be
 ;; useful where performance matters, like in operations over a bulk
 ;; list of file names.
@@ -1339,16 +1338,14 @@ entry does not exist, return nil."
   "Return the local name component of NAME.
 This function removes from NAME the specification of the remote
 host and the method of accessing the host, leaving only the part
-that identifies NAME locally on the remote system.  NAME must be
-a string that matches `tramp-file-name-regexp'.  If NAME does not
-match `tramp-file-name-regexp', just NAME is returned.  The
-returned file name can be used directly as argument of
-`process-file', `start-file-process', or `shell-command'."
-  (save-match-data
-    (or (and (tramp-tramp-file-p name)
-             (string-match (nth 0 tramp-file-name-structure) name)
-             (match-string (nth 4 tramp-file-name-structure) name))
-	name)))
+that identifies NAME locally on the remote system.  If NAME does
+not match `tramp-file-name-regexp', just `file-local-name' is
+called.  The returned file name can be used directly as argument
+of `process-file', `start-file-process', or `shell-command'."
+  (or (and (tramp-tramp-file-p name)
+           (string-match (nth 0 tramp-file-name-structure) name)
+           (match-string (nth 4 tramp-file-name-structure) name))
+      (tramp-compat-file-local-name name)))
 
 ;; The localname can be quoted with "/:".  Extract this.
 (defun tramp-unquote-file-local-name (name)

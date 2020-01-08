@@ -1242,6 +1242,10 @@ prepare_image_for_display (struct frame *f, struct image *img)
       if (img->cr_data == NULL || (cairo_pattern_get_type (img->cr_data)
 				   != CAIRO_PATTERN_TYPE_SURFACE))
 	{
+	  /* Fill in the background/background_transparent field while
+	     we have img->pixmap->data/img->mask->data.  */
+	  IMAGE_BACKGROUND (img, f, img->pixmap);
+	  IMAGE_BACKGROUND_TRANSPARENT (img, f, img->mask);
 	  cr_put_image_to_cr_data (img);
 	  if (img->cr_data == NULL)
 	    {

@@ -1218,6 +1218,9 @@ IGNORES is a list of glob patterns for files to ignore."
   #'xref-matches-in-directory
   "27.1")
 
+(declare-function tramp-tramp-file-p "tramp")
+(declare-function tramp-file-local-name "tramp")
+
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
@@ -1240,7 +1243,12 @@ FILES must be a list of absolute file names."
                           "")
                         (shell-quote-argument (xref--regexp-to-extended regexp)))))
     (when remote-id
-      (setq files (mapcar #'file-local-name files)))
+      (require 'tramp)
+      (setq files (mapcar
+                   (if (tramp-tramp-file-p dir)
+                       #'tramp-file-local-name
+                       #'file-local-name)
+                   files)))
     (with-current-buffer output
       (erase-buffer)
       (with-temp-buffer

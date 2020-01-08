@@ -1767,7 +1767,7 @@ AC_CHECK_HEADERS_ONCE(
   sys/sysinfo.h
   coff.h pty.h
   sys/resource.h
-  sys/utsname.h pwd.h utmp.h util.h sys/prctl.h)
+  sys/utsname.h pwd.h utmp.h util.h)
 
 AC_CACHE_CHECK([for ADDR_NO_RANDOMIZE],
   [emacs_cv_personality_addr_no_randomize],
@@ -4192,8 +4192,25 @@ pthread_sigmask strsignal setitimer timer_getoverrun \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
-cfmakeraw cfsetspeed __executable_start log2 prctl)
+cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np)
 LIBS=$OLD_LIBS
+
+if test "$ac_cv_func_pthread_setname_np" = "yes"; then
+  AC_CACHE_CHECK(
+   [whether pthread_setname_np takes a single argument],
+   [emacs_cv_pthread_setname_np_1arg],
+   [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM(
+       [[#include <pthread.h>]],
+       [[pthread_setname_np ("a");]])],
+     [emacs_cv_pthread_setname_np_1arg=yes],
+     [emacs_cv_pthread_setname_np_1arg=no])])
+  if test "$emacs_cv_pthread_setname_np_1arg" = "yes"; then
+    AC_DEFINE(
+      HAVE_PTHREAD_SETNAME_NP_1ARG, 1,
+      [Define to 1 if pthread_setname_np takes a single argument.])
+  fi
+fi
 
 dnl No need to check for posix_memalign if aligned_alloc works.
 AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])

@@ -5089,6 +5089,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #elif defined HAVE_GTK3
       scale = gdk_screen_get_monitor_scale_factor (gscreen, i);
 #endif
+      rec.x *= scale;
+      rec.y *= scale;
       rec.width *= scale;
       rec.height *= scale;
       work.x *= scale;
