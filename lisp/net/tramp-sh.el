@@ -866,8 +866,12 @@ Escape sequence %s is replaced with name of Perl binary.")
   "Perl program to use for decoding a file.
 Escape sequence %s is replaced with name of Perl binary.")
 
+(defconst tramp-hexdump-encode "%h -v -e '16/1 \" %%02x\" \"\\n\"'"
+  "`hexdump' program to use for encoding a file.
+This string is passed to `format', so percent characters need to be doubled.")
+
 (defconst tramp-awk-encode
-  "od -v -t x1 -A n | busybox awk '\\
+  "%a '\\
 BEGIN {
   b64 = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\"
   b16 = \"0123456789abcdef\"
@@ -897,11 +901,25 @@ END {
   }
   printf tail
 }'"
-  "Awk program to use for encoding a file.
+  "`awk' program to use for encoding a file.
+This string is passed to `format', so percent characters need to be doubled.")
+
+(defconst tramp-hexdump-awk-encode
+  (format "%s | %s" tramp-hexdump-encode tramp-awk-encode)
+  "`hexdump' / `awk' pipe to use for encoding a file.
+This string is passed to `format', so percent characters need to be doubled.")
+
+(defconst tramp-od-encode "%o -v -t x1 -A n"
+  "`od' program to use for encoding a file.
+This string is passed to `format', so percent characters need to be doubled.")
+
+(defconst tramp-od-awk-encode
+  (format "%s | %s" tramp-od-encode tramp-awk-encode)
+  "`od' / `awk' pipe to use for encoding a file.
 This string is passed to `format', so percent characters need to be doubled.")
 
 (defconst tramp-awk-decode
-  "busybox awk '\\
+  "%a '\\
 BEGIN {
   b64 = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\"
 }
@@ -925,12 +943,6 @@ BEGIN {
 }'"
   "Awk program to use for decoding a file.
 This string is passed to `format', so percent characters need to be doubled.")
-
-(defconst tramp-awk-coding-test
-  "test -c /dev/zero && \
-od -v -t x1 -A n </dev/null && \
-busybox awk '{}' </dev/null"
-  "Test command for checking `tramp-awk-encode' and `tramp-awk-decode'.")
 
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
@@ -4401,7 +4413,7 @@ and end of region, and are expected to replace the region contents
 with the encoded or decoded results, respectively.")
 
 (defconst tramp-remote-coding-commands
-  `((b64 "base64" "base64 -d -i")
+  '((b64 "base64" "base64 -d -i")
     ;; "-i" is more robust with older base64 from GNU coreutils.
     ;; However, I don't know whether all base64 versions do supports
     ;; this option.
@@ -4412,8 +4424,9 @@ with the encoded or decoded results, respectively.")
     (b64 "recode data..base64" "recode base64..data")
     (b64 tramp-perl-encode-with-module tramp-perl-decode-with-module)
     (b64 tramp-perl-encode tramp-perl-decode)
-    ;; This is painful slow, so we put it on the end.
-    (b64 tramp-awk-encode tramp-awk-decode ,tramp-awk-coding-test)
+    ;; These are painfully slow, so we put them on the end.
+    (b64 tramp-hexdump-awk-encode tramp-awk-decode)
+    (b64 tramp-od-awk-encode tramp-awk-decode)
     (uu  "uuencode xxx" "uudecode -o /dev/stdout" "test -c /dev/stdout")
     (uu  "uuencode xxx" "uudecode -o -")
     (uu  "uuencode xxx" "uudecode -p")
@@ -4439,6 +4452,8 @@ Perl or Shell implementation for this functionality.  This
 program will be transferred to the remote host, and it is
 available as shell function with the same name.  A \"%t\" format
 specifier in the variable value denotes a temporary file.
+\"%a\", \"%h\" and \"%o\" format specifiers are replaced by the
+respective `awk', `hexdump' and `od' commands.
 
 The optional TEST command can be used for further tests, whether
 ENCODING and DECODING are applicable.")
@@ -4489,11 +4504,6 @@ Goes through the list `tramp-local-coding-commands' and
 		     vec 5 "Checking remote test command `%s'" rem-test)
 		    (unless (tramp-send-command-and-check vec rem-test t)
 		      (throw 'wont-work-remote nil)))
-		  ;; Check if remote perl exists when necessary.
-		  (when (and (symbolp rem-enc)
-			     (string-match-p "perl" (symbol-name rem-enc))
-			     (not (tramp-get-remote-perl vec)))
-		    (throw 'wont-work-remote nil))
 		  ;; Check if remote encoding and decoding commands can be
 		  ;; called remotely with null input and output.  This makes
 		  ;; sure there are no syntax errors and the command is really
@@ -4503,10 +4513,36 @@ Goes through the list `tramp-local-coding-commands' and
 		  ;; redirecting "mimencode" output to /dev/null, then as root
 		  ;; it might change the permissions of /dev/null!
 		  (unless (stringp rem-enc)
-		    (let ((name (symbol-name rem-enc)))
+		    (let ((name (symbol-name rem-enc))
+			  (value (symbol-value rem-enc)))
+		      ;; Check if remote perl exists when necessary.
+		      (and (string-match-p "perl" name)
+			   (not (tramp-get-remote-perl vec))
+			   (throw 'wont-work-remote nil))
+		      ;; Check if remote awk exists when necessary.
+		      (and (string-match-p "\\(^\\|[^%]\\)%a" value)
+			   (not (tramp-get-remote-awk vec))
+			   (throw 'wont-work-remote nil))
+		      ;; Check if remote hexdump exists when necessary.
+		      (and (string-match-p "\\(^\\|[^%]\\)%h" value)
+			   (not (tramp-get-remote-hexdump vec))
+			   (throw 'wont-work-remote nil))
+		      ;; Check if remote od exists when necessary.
+		      (and (string-match-p "\\(^\\|[^%]\\)%o" value)
+			   (not (tramp-get-remote-od vec))
+			   (throw 'wont-work-remote nil))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
-		      (tramp-maybe-send-script vec (symbol-value rem-enc) name)
+		      (when (string-match-p "\\(^\\|[^%]\\)%[aho]" value)
+			(setq value
+			      (format-spec
+			       value
+			       (format-spec-make
+				?a (tramp-get-remote-awk vec)
+				?h (tramp-get-remote-hexdump vec)
+				?o (tramp-get-remote-od vec)))
+			      value (replace-regexp-in-string "%" "%%" value)))
+		      (tramp-maybe-send-script vec value name)
 		      (setq rem-enc name)))
 		  (tramp-message
 		   vec 5
@@ -4521,6 +4557,15 @@ Goes through the list `tramp-local-coding-commands' and
 			  tmpfile)
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (when (string-match-p "\\(^\\|[^%]\\)%[aho]" value)
+			(setq value
+			      (format-spec
+			       value
+			       (format-spec-make
+				?a (tramp-get-remote-awk vec)
+				?h (tramp-get-remote-hexdump vec)
+				?o (tramp-get-remote-od vec)))
+			      value (replace-regexp-in-string "%" "%%" value)))
 		      (when (string-match-p "\\(^\\|[^%]\\)%t" value)
 			(setq tmpfile
 			      (make-temp-name
@@ -5786,6 +5831,47 @@ ID-FORMAT valid values are `string' and `integer'."
        ((and (equal id-format 'string) (not (stringp res)))
 	tramp-unknown-id-string)
        (t res)))))
+
+(defun tramp-get-remote-busybox (vec)
+  "Determine remote `busybox' command."
+  (with-tramp-connection-property vec "busybox"
+    (tramp-message vec 5 "Finding a suitable `busybox' command")
+    (tramp-find-executable vec "busybox" (tramp-get-remote-path vec))))
+
+(defun tramp-get-remote-awk (vec)
+  "Determine remote `awk' command."
+  (with-tramp-connection-property vec "awk"
+    (tramp-message vec 5 "Finding a suitable `awk' command")
+    (or (tramp-find-executable vec "awk" (tramp-get-remote-path vec))
+	(let* ((busybox (tramp-get-remote-busybox vec))
+	       (command (format "%s %s" busybox "awk")))
+	  (and busybox
+	       (tramp-send-command-and-check
+		vec (concat command " {} </dev/null"))
+	       command)))))
+
+(defun tramp-get-remote-hexdump (vec)
+  "Determine remote `hexdump' command."
+  (with-tramp-connection-property vec "hexdump"
+    (tramp-message vec 5 "Finding a suitable `hexdump' command")
+    (or (tramp-find-executable vec "hexdump" (tramp-get-remote-path vec))
+	(let* ((busybox (tramp-get-remote-busybox vec))
+	       (command (format "%s %s" busybox "hexdump")))
+	  (and busybox
+	       (tramp-send-command-and-check vec (concat command " </dev/null"))
+	       command)))))
+
+(defun tramp-get-remote-od (vec)
+  "Determine remote `od' command."
+  (with-tramp-connection-property vec "od"
+    (tramp-message vec 5 "Finding a suitable `od' command")
+    (or (tramp-find-executable vec "od" (tramp-get-remote-path vec))
+	(let* ((busybox (tramp-get-remote-busybox vec))
+	       (command (format "%s %s" busybox "od")))
+	  (and busybox
+	       (tramp-send-command-and-check
+		vec (concat command " -A n </dev/null"))
+	       command)))))
 
 (defun tramp-get-env-with-u-option (vec)
   "Check, whether the remote `env' command supports the -u option."
