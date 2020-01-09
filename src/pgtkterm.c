@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "blockinput.h"
+#include "frame.h"
 #include "sysselect.h"
 #include "gtkutil.h"
 #include "systime.h"
@@ -96,6 +97,13 @@ static void pgtk_clip_to_row (struct window *w, struct glyph_row *row,
 				enum glyph_row_area area, cairo_t *cr);
 static struct frame *
 pgtk_any_window_to_frame (GdkWindow *window);
+
+/*
+ * This is not a flip context in the same sense as gpu rendering
+ * scences, it only occurs when a new context was required due to a
+ * resize or other fundamental change.  This is called when that
+ * context's surface has completed drawing
+ */
 
 static void flip_cr_context(struct frame *f)
 {
@@ -356,22 +364,35 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
      External: Position the window
    -------------------------------------------------------------------------- */
 {
-  /* not working on wayland. */
-
   PGTK_TRACE("x_set_offset: %d,%d,%d.", xoff, yoff, change_gravity);
 
-  if (change_gravity > 0)
-    {
-      PGTK_TRACE("x_set_offset: change_gravity > 0");
-      f->top_pos = yoff;
-      f->left_pos = xoff;
-      f->size_hint_flags &= ~ (XNegative | YNegative);
-      if (xoff < 0)
-	f->size_hint_flags |= XNegative;
-      if (yoff < 0)
-	f->size_hint_flags |= YNegative;
-      f->win_gravity = NorthWestGravity;
+  struct frame *parent = FRAME_PARENT_FRAME(f);
+  GtkAllocation a = {0};
+  if (change_gravity > 0) {
+    if (parent) {
+      /* determing the "height" of the titlebar, by finding the
+	 location of the "emacsfixed" widget on the surface/window */
+      GtkWidget *w = FRAME_GTK_WIDGET(parent);
+      gtk_widget_get_allocation(w, &a);
     }
+
+    f->size_hint_flags &= ~ (XNegative | YNegative);
+    /* if the value is negative, don't include the titlebar offset */
+    if (xoff < 0) {
+      f->size_hint_flags |= XNegative;
+      f->left_pos = xoff;
+    } else {
+      f->left_pos = xoff + a.x; //~25
+    }
+
+    if (yoff < 0){
+      f->size_hint_flags |= YNegative;
+      f->top_pos = yoff;
+    } else {
+      f->top_pos = yoff + a.y; //~60
+    }
+    f->win_gravity = NorthWestGravity;
+  }
 
   x_calc_absolute_position (f);
 
@@ -431,8 +452,6 @@ pgtk_set_window_size (struct frame *f,
   for (GtkWidget *w = FRAME_GTK_WIDGET(f); w != NULL; w = gtk_widget_get_parent(w)) {
     gint wd, hi;
     gtk_widget_get_size_request(w, &wd, &hi);
-    GtkAllocation alloc;
-    gtk_widget_get_allocation(w, &alloc);
   }
 
   f->output_data.pgtk->preferred_width = pixelwidth;
@@ -671,6 +690,56 @@ x_display_pixel_width (struct pgtk_display_info *dpyinfo)
   GdkScreen *gscr = gdk_display_get_default_screen(gdpy);
   PGTK_TRACE(" = %d", gdk_screen_get_width(gscr));
   return gdk_screen_get_width(gscr);
+}
+
+void
+x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+/* --------------------------------------------------------------------------
+     Set frame F's `parent-frame' parameter.  If non-nil, make F a child
+     frame of the frame specified by that parameter.  Technically, this
+     makes F's window-system window a child window of the parent frame's
+     window-system window.  If nil, make F's window-system window a
+     top-level window--a child of its display's root window.
+
+     A child frame's `left' and `top' parameters specify positions
+     relative to the top-left corner of its parent frame's native
+     rectangle.  On macOS moving a parent frame moves all its child
+     frames too, keeping their position relative to the parent
+     unaltered.  When a parent frame is iconified or made invisible, its
+     child frames are made invisible.  When a parent frame is deleted,
+     its child frames are deleted too.
+
+     Whether a child frame has a tool bar may be window-system or window
+     manager dependent.  It's advisable to disable it via the frame
+     parameter settings.
+
+     Some window managers may not honor this parameter.
+   -------------------------------------------------------------------------- */
+{
+  struct frame *p = NULL;
+  PGTK_TRACE ("x_set_parent_frame x: %d, y: %d", f->left_pos, f->top_pos);
+
+  if (!NILP (new_value)
+      && (!FRAMEP (new_value)
+	  || !FRAME_LIVE_P (p = XFRAME (new_value))
+	  || !FRAME_PGTK_P (p)))
+    {
+      store_frame_param (f, Qparent_frame, old_value);
+      error ("Invalid specification of `parent-frame'");
+    }
+
+  if (p != FRAME_PARENT_FRAME (f)
+      && (p != NULL))
+    {
+      block_input ();
+      gtk_window_set_transient_for(FRAME_NATIVE_WINDOW(f), FRAME_NATIVE_WINDOW(p));
+      gtk_window_set_attached_to(FRAME_NATIVE_WINDOW(f), FRAME_GTK_WIDGET(p));
+      gtk_window_move(FRAME_NATIVE_WINDOW(f), f->left_pos, f->top_pos);
+      gtk_window_set_keep_above(FRAME_NATIVE_WINDOW(f), true);
+      unblock_input ();
+
+      fset_parent_frame (f, new_value);
+    }
 }
 
 
@@ -2627,7 +2696,6 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 {
   PGTK_TRACE("draw_window_cursor: %d, %d, %d, %d, %d, %d.",
 	       x, y, cursor_type, cursor_width, on_p, active_p);
-
   if (on_p)
     {
       w->phys_cursor_type = cursor_type;
@@ -2676,6 +2744,7 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	  xic_set_preeditarea (w, x, y);
 #endif
     }
+
 }
 
 static void
@@ -6538,10 +6607,16 @@ If set to a non-float value, there will be no wait at all.  */);
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qpgtk, Qnil);
-
 }
 
-
+/* Cairo does not allow resizing a surface/context after it is
+ * created, so we need to trash the old context, create a new context
+ * on the next cr_clip_begin with the new dimensions and request a
+ * re-draw.
+ *
+ * This Will leave the active context available to present on screen
+ * until a redrawn frame is completed.
+ */
 void
 pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height)
 {

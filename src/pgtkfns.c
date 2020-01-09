@@ -915,7 +915,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
   pgtk_set_tool_bar_position,
   0, /* x_set_inhibit_double_buffering */
   x_set_undecorated,
-  0, /* x_set_parent_frame, */
+  x_set_parent_frame,
   x_set_skip_taskbar,
   x_set_no_focus_on_map,
   x_set_no_accept_focus,
@@ -1454,17 +1454,23 @@ This function is an internal primitive--use `make-frame' instead.  */)
   gui_default_parameter (f, parms, Qalpha, Qnil,
 		       "alpha", "Alpha", RES_TYPE_NUMBER);
 
-#if 0
   if (!NILP (parent_frame))
     {
       struct frame *p = XFRAME (parent_frame);
 
       block_input ();
-      XReparentWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		       FRAME_X_WINDOW (p), f->left_pos, f->top_pos);
+      PGTK_TRACE ("x_set_parent_frame x: %d, y: %d", f->left_pos, f->top_pos);
+      gtk_window_set_transient_for(GTK_WINDOW(FRAME_GTK_OUTER_WIDGET(f)),
+				   GTK_WINDOW(FRAME_GTK_OUTER_WIDGET(p)));
+      gtk_window_set_attached_to(GTK_WINDOW(FRAME_GTK_OUTER_WIDGET(f)),
+				 FRAME_GTK_WIDGET(p));
+      gtk_window_set_destroy_with_parent(GTK_WINDOW(FRAME_GTK_OUTER_WIDGET(f)),
+					 TRUE);
+      gtk_widget_show_all(FRAME_GTK_OUTER_WIDGET(f));
       unblock_input ();
     }
-#endif
+
+  gtk_widget_show_all(FRAME_GTK_OUTER_WIDGET(f));
 
   gui_default_parameter (f, parms, Qno_focus_on_map, Qnil,
 		       NULL, NULL, RES_TYPE_BOOLEAN);
@@ -3153,7 +3159,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   DEFSYM (Qreverse_landscape, "reverse-landscape");
 }
 
-#ifdef PGTK_DEBUG
+
 
 #include <stdarg.h>
 #include <time.h>
@@ -3175,7 +3181,7 @@ void pgtk_log(const char *file, int lineno, const char *fmt, ...)
   va_end(ap);
   fputc('\n', stderr);
 }
-
+#ifdef PGTK_DEBUG
 void pgtk_backtrace(const char *file, int lineno)
 {
   Lisp_Object bt = make_uninit_vector(10);

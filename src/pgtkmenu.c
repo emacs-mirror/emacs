@@ -457,9 +457,8 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
        doc: /* SKIP: real doc in xmenu.c.  */)
   (void)
 {
-  struct frame *f;
-  f = SELECTED_FRAME ();
-  //  return (f->output_data.pgtk->menubar_active > 0) ? Qt : Qnil;
+  /* struct frame *f = SELECTED_FRAME (); */
+  /* return (f->output_data.pgtk->menubar_active > 0) ? Qt : Qnil; */
   return Qnil;
 }
 
