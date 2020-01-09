@@ -2920,8 +2920,24 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       else
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1070 */
         {
+          CGSize offset;
+          offset = CGSizeMake (0, 0);
+
           CGContextSetFont (context, macfont_info->cgfont);
           CGContextSetFontSize (context, font_size);
+
+          /*
+             Put shadows under text.
+
+             A 'shadow' style is described by:
+             - blur (default = 5?)
+             - offset (default = (0, 0))
+             - color (default = foreground)
+
+             TODO: make it a text property
+          */
+          CGContextSetShadow (context, offset, 5.0);
+
           CGContextShowGlyphsAtPositions (context, glyphs, positions, len);
         }
     }
