@@ -2661,5 +2661,7 @@ If INTERACTIVE, prompt user for details."
 ;;; eglot.el ends here
 
 ;; Local Variables:
+;; bug-reference-bug-regexp: "\\(github#\\([0-9]+\\)\\)"
+;; bug-reference-url-format: "https://github.com/joaotavora/eglot/issues/%s"
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
