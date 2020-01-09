@@ -1114,9 +1114,6 @@ syms_of_threads (void)
       staticpro (&last_thread_error);
       last_thread_error = Qnil;
 
-      Fdefalias (intern_c_string ("thread-alive-p"),
-		 intern_c_string ("thread-live-p"), Qnil);
-
       Fprovide (intern_c_string ("threads"), Qnil);
     }
 
