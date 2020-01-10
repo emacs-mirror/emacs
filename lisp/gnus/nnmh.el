@@ -296,7 +296,7 @@ as unread by Gnus.")
 
 (deffoo nnmh-request-move-article (article group server accept-form
 					   &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nnmh move*"))
+  (let ((buf (gnus-get-buffer-create " *nnmh move*"))
 	result)
     (and
      (nnmh-deletable-article-p group article)

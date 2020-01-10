@@ -742,7 +742,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 
 (defun mail-source-call-script (script)
   (let ((background nil)
-	(stderr (get-buffer-create " *mail-source-stderr*"))
+	(stderr (gnus-get-buffer-create " *mail-source-stderr*"))
 	result)
     (when (string-match "& *$" script)
       (setq script (substring script 0 (match-beginning 0))

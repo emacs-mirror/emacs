@@ -465,7 +465,7 @@ all.  This may very well take some time.")
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
   (save-excursion
-    (let ((buf (get-buffer-create " *nnfolder move*"))
+    (let ((buf (gnus-get-buffer-create " *nnfolder move*"))
 	  result)
       (and
        (nnfolder-request-article article group server)
@@ -1096,7 +1096,7 @@ This command does not work if you use short group names."
 
 (defun nnfolder-open-nov (group)
   (or (cdr (assoc group nnfolder-nov-buffer-alist))
-      (let ((buffer (get-buffer-create (format " *nnfolder overview %s*" group))))
+      (let ((buffer (gnus-get-buffer-create (format " *nnfolder overview %s*" group))))
 	(with-current-buffer buffer
 	  (set (make-local-variable 'nnfolder-nov-buffer-file-name)
 	       (nnfolder-group-nov-pathname group))

@@ -330,7 +330,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	      (replace-match "-----BEGIN PGP SIGNATURE-----" t t))
 	  (if (re-search-forward "^-----END PGP [^-]+-----\r?$" nil t)
 	      (replace-match "-----END PGP SIGNATURE-----" t t)))
-	(let ((mc-gpg-debug-buffer (get-buffer-create " *gnus gpg debug*")))
+	(let ((mc-gpg-debug-buffer (gnus-get-buffer-create " *gnus gpg debug*")))
 	  (unless (condition-case err
 		      (prog1
 			  (funcall mml2015-verify-function)
@@ -359,7 +359,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
       handle)))
 
 (defun mml2015-mailcrypt-clear-verify ()
-  (let ((mc-gpg-debug-buffer (get-buffer-create " *gnus gpg debug*")))
+  (let ((mc-gpg-debug-buffer (gnus-get-buffer-create " *gnus gpg debug*")))
     (if (condition-case err
 	    (prog1
 		(funcall mml2015-verify-function)

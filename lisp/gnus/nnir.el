@@ -1234,7 +1234,7 @@ Windows NT 4.0."
       (when (equal "" qstring)
         (error "swish++: You didn't enter anything"))
 
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
+      (set-buffer (gnus-get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
 
       (if groupspec
@@ -1316,7 +1316,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
       (when (equal "" qstring)
         (error "swish-e: You didn't enter anything"))
 
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
+      (set-buffer (gnus-get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
 
       (message "Doing swish-e query %s..." query)
@@ -1401,7 +1401,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
         (setq groupspec
 	      (regexp-opt
 	       (mapcar (lambda (x) (gnus-group-real-name x)) group))))
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
+      (set-buffer (gnus-get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
       (message "Doing hyrex-search query %s..." query)
       (let* ((cp-list
@@ -1480,7 +1480,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
           score group article
           (process-environment (copy-sequence process-environment)))
       (setenv "LC_MESSAGES" "C")
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
+      (set-buffer (gnus-get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
       (let* ((cp-list
               `( ,nnir-namazu-program
@@ -1561,7 +1561,7 @@ construct path: search terms (see the variable
       (when (equal "" qstring)
         (error "notmuch: You didn't enter anything"))
 
-      (set-buffer (get-buffer-create nnir-tmp-buffer))
+      (set-buffer (gnus-get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
 
       (if groups
@@ -1635,7 +1635,7 @@ construct path: search terms (see the variable
 		 (message "Searching %s using find-grep..."
 			  (or group server))
 		 (save-window-excursion
-		   (set-buffer (get-buffer-create nnir-tmp-buffer))
+		   (set-buffer (gnus-get-buffer-create nnir-tmp-buffer))
 		   (if (> gnus-verbose 6)
 		       (pop-to-buffer (current-buffer)))
 		   (cd directory) ; Using relative paths simplifies

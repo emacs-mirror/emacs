@@ -477,7 +477,7 @@ in the buffer specified by `smime-details-buffer'."
 ;; Various operations
 
 (defun smime-new-details-buffer ()
-  (with-current-buffer (get-buffer-create smime-details-buffer)
+  (with-current-buffer (gnus-get-buffer-create smime-details-buffer)
     (erase-buffer)))
 
 (defun smime-pkcs7-region (b e)
@@ -645,7 +645,7 @@ The following commands are available:
 
 (defun smime-certificate-info (certfile)
   (interactive "fCertificate file: ")
-  (let ((buffer (get-buffer-create (format "*certificate %s*" certfile))))
+  (let ((buffer (gnus-get-buffer-create (format "*certificate %s*" certfile))))
     (switch-to-buffer buffer)
     (erase-buffer)
     (call-process smime-openssl-program nil buffer 'display
@@ -670,7 +670,7 @@ The following commands are available:
   "Go to the SMIME buffer."
   (interactive)
   (unless (get-buffer smime-buffer)
-    (with-current-buffer (get-buffer-create smime-buffer)
+    (with-current-buffer (gnus-get-buffer-create smime-buffer)
       (smime-mode)))
   (smime-draw-buffer)
   (switch-to-buffer smime-buffer))

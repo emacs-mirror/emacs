@@ -309,7 +309,7 @@ backend doesn't catch this error.")
 
 (defun nntp-record-command (string)
   "Record the command STRING."
-  (with-current-buffer (get-buffer-create "*nntp-log*")
+  (with-current-buffer (gnus-get-buffer-create "*nntp-log*")
     (goto-char (point-max))
     (insert (format-time-string "%Y%m%dT%H%M%S.%3N")
 	    " " nntp-address " " string "\n")))

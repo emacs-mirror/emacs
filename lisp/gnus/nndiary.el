@@ -597,7 +597,7 @@ all.  This may very well take some time.")
 
 (deffoo nndiary-request-move-article
     (article group server accept-form &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nndiary move*"))
+  (let ((buf (gnus-get-buffer-create " *nndiary move*"))
 	result)
     (nndiary-possibly-change-directory group server)
     (nndiary-update-file-alist)
@@ -831,7 +831,7 @@ all.  This may very well take some time.")
 
 ;; Find an article number in the current group given the Message-ID.
 (defun nndiary-find-group-number (id)
-  (with-current-buffer (get-buffer-create " *nndiary id*")
+  (with-current-buffer (gnus-get-buffer-create " *nndiary id*")
     (let ((alist nndiary-group-alist)
 	  number)
       ;; We want to look through all .overview files, but we want to
@@ -999,8 +999,8 @@ all.  This may very well take some time.")
 
 (defun nndiary-open-nov (group)
   (or (cdr (assoc group nndiary-nov-buffer-alist))
-      (let ((buffer (get-buffer-create (format " *nndiary overview %s*"
-					       group))))
+      (let ((buffer (gnus-get-buffer-create
+                     (format " *nndiary overview %s*" group))))
 	(with-current-buffer buffer
 	  (set (make-local-variable 'nndiary-nov-buffer-file-name)
 	       (expand-file-name
@@ -1086,7 +1086,7 @@ all.  This may very well take some time.")
 (defun nndiary-generate-nov-file (dir files)
   (let* ((dir (file-name-as-directory dir))
 	 (nov (concat dir nndiary-nov-file-name))
-	 (nov-buffer (get-buffer-create " *nov*"))
+	 (nov-buffer (gnus-get-buffer-create " *nov*"))
 	 chars file headers)
     ;; Init the nov buffer.
     (with-current-buffer nov-buffer

@@ -85,7 +85,7 @@ Whether the passphrase is cached at all is controlled by
 (defun mml1991-mailcrypt-sign (cont)
   (let ((text (current-buffer))
 	headers signature
-	(result-buffer (get-buffer-create "*GPG Result*")))
+	(result-buffer (gnus-get-buffer-create "*GPG Result*")))
     ;; Save MIME Content[^ ]+: headers from signing
     (goto-char (point-min))
     (while (looking-at "^Content[^ ]+:") (forward-line))
@@ -130,7 +130,7 @@ Whether the passphrase is cached at all is controlled by
 			    'not))))
 	     'never))
 	cipher
-	(result-buffer (get-buffer-create "*GPG Result*")))
+	(result-buffer (gnus-get-buffer-create "*GPG Result*")))
     ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMORED
     (goto-char (point-min))
     (while (looking-at "^Content[^ ]+:") (forward-line))

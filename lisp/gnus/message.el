@@ -7310,7 +7310,7 @@ If ARG, allow editing of the cancellation message."
 	;; Make control message.
 	(if arg
 	    (message-news)
-	  (setq buf (set-buffer (get-buffer-create " *message cancel*"))))
+	  (setq buf (set-buffer (gnus-get-buffer-create " *message cancel*"))))
 	(erase-buffer)
 	(insert "Newsgroups: " newsgroups "\n"
 		"From: " from "\n"
@@ -7731,7 +7731,7 @@ is for the internal use."
 	  gcc beg)
       ;; We first set up a normal mail buffer.
       (unless (message-mail-user-agent)
-	(set-buffer (get-buffer-create " *message resend*"))
+	(set-buffer (gnus-get-buffer-create " *message resend*"))
 	(let ((inhibit-read-only t))
 	  (erase-buffer)))
       (let ((message-this-is-mail t)

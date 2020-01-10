@@ -248,7 +248,7 @@ If DONT-POP is nil, display the buffer after setting it up."
       (let ((article narticle))
         (message-mail nil nil nil nil
                       (if dont-pop
-                          (lambda (buf) (set-buffer (get-buffer-create buf)))))
+                          (lambda (buf) (set-buffer (gnus-get-buffer-create buf)))))
         (let ((inhibit-read-only t))
           (erase-buffer))
         (if (not (gnus-request-restore-buffer article group))
