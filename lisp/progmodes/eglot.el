@@ -527,7 +527,10 @@ treated as in `eglot-dbind'."
                                          :json-false))
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
-                                       :contentFormat ["markdown" "plaintext"])
+                                       :contentFormat
+                                       (if (fboundp 'gfm-view-mode)
+                                           ["markdown" "plaintext"]
+                                         ["plaintext"]))
              :signatureHelp      (list :dynamicRegistration :json-false
                                        :signatureInformation
                                        `(:parameterInformation
