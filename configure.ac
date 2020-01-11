@@ -3655,7 +3655,7 @@ AC_SUBST(LIBXPM)
 ### Use -ljpeg if available, unless '--with-jpeg=no'.
 HAVE_JPEG=no
 LIBJPEG=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
+if test "${HAVE_X11}" = "yes" || test "$window_system" = "pgtk" || test "${HAVE_W32}" = "yes" \
    || test "${HAVE_NS}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     AC_CACHE_CHECK([for jpeglib 6b or later],
