@@ -167,7 +167,7 @@ Can be used by code that wants to expand differently in this case.")
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
   (data-relocs-l () :type list
-               :documentation "Constant objects used by functions.")
+                 :documentation "List of pairs (impure . obj-to-reloc).")
   (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
                    :documentation "Obj -> position into data-relocs."))
 
@@ -288,8 +288,10 @@ structure.")
         :documentation "When non nil indicates the type when known at compile
  time.")
   (ref nil :type boolean
-       :documentation "When t the m-var is involved in a call where is passed by
- reference."))
+       :documentation "When non nil the m-var is involved in a
+ call where is passed by reference.")
+  (impure nil :type boolean
+          :documentation "When non nil can't be copied into pure space."))
 
 ;; Special vars used by some passes
 (defvar comp-func)
@@ -312,14 +314,16 @@ structure.")
   "Type hint predicate for function name FUNC."
   (when (member func comp-type-hints) t))
 
-(defun comp-add-const-to-relocs (obj)
+(defun comp-add-const-to-relocs (obj &optional impure)
   "Keep track of OBJ into the ctxt relocations.
+When IMPURE is non nil OBJ cannot be copied into pure space.
 The corresponding index is returned."
-  (let ((data-relocs-idx (comp-ctxt-data-relocs-idx comp-ctxt)))
-    (if-let ((idx (gethash obj data-relocs-idx)))
+  (let ((data-relocs-idx (comp-ctxt-data-relocs-idx comp-ctxt))
+        (packed-obj (cons impure obj)))
+    (if-let ((idx (gethash packed-obj data-relocs-idx)))
         idx
-      (push obj (comp-ctxt-data-relocs-l comp-ctxt))
-      (puthash obj (hash-table-count data-relocs-idx) data-relocs-idx))))
+      (push packed-obj (comp-ctxt-data-relocs-l comp-ctxt))
+      (puthash packed-obj (hash-table-count data-relocs-idx) data-relocs-idx))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -584,11 +588,12 @@ STACK-OFF is the index of the first slot frame involved."
                              for sp from stack-off
                              collect (comp-slot-n sp))))
 
-(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
+(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type
+                               impure)
   (when const-vld
-    (comp-add-const-to-relocs constant))
+    (comp-add-const-to-relocs constant impure))
   (make--comp-mvar :slot slot :const-vld const-vld :constant constant
-                   :type type))
+                   :type type :impure impure))
 
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
@@ -1099,7 +1104,7 @@ the annotation emission."
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
   (let ((form (byte-to-native-top-level-form form)))
     (comp-emit (comp-call 'eval
-                          (make-comp-mvar :constant form)
+                          (make-comp-mvar :constant form :impure t)
                           (make-comp-mvar :constant t)))))
 
 (defun comp-limplify-top-level ()
