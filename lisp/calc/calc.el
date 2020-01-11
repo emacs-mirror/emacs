@@ -2288,7 +2288,7 @@ the United States."
        (calc-alg-digit-entry)
      (setq calc-aborted-prefix nil)
      (let* ((calc-digit-value nil)
-	    (calc-prev-char nil)
+	    (calc-prev-char last-command-event)
 	    (calc-prev-prev-char nil)
 	    (calc-buffer (current-buffer))
 	    (buf

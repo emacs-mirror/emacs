@@ -1381,7 +1381,7 @@ function runs.  To disable other themes, use `disable-theme'."
 	    (custom-theme-recalc-variable symbol)))))))
   (unless (eq theme 'user)
     (setq custom-enabled-themes
-	  (cons theme (delq theme custom-enabled-themes)))
+	  (cons theme (remq theme custom-enabled-themes)))
     ;; Give the `user' theme the highest priority.
     (enable-theme 'user)))
 

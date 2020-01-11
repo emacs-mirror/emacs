@@ -135,12 +135,25 @@ non-@code{nil} value, it returns that value; otherwise it returns
 @node Setting Hooks
 @subsection Setting Hooks
 
-  Here's an example that uses a mode hook to turn on Auto Fill mode when
-in Lisp Interaction mode:
+  Here's an example that adds a funtion to a mode hook to turn
+on Auto Fill mode when in Lisp Interaction mode:
 
 @example
 (add-hook 'lisp-interaction-mode-hook 'auto-fill-mode)
 @end example
+
+  The value of a hook variable should be a list of functions.  You can
+manipulate that list using the normal Lisp facilities, but the modular
+way is to use the functions @code{add-hook} and @code{remove-hook},
+defined below.  They take care to handle some unusual situations and
+avoid problems.
+
+  It works to put a @code{lambda}-expression function on a hook, but
+we recommend avoiding this because it can lead to confusion.  If you
+add the same @code{lambda}-expression a second time but write it
+slightly differently, you will get two equivalent but distinct
+functions on the hook.  If you then remove one of them, the other will
+still be on it.
 
 @defun add-hook hook function &optional depth local
 This function is the handy way to add function @var{function} to hook

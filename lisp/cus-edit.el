@@ -3035,17 +3035,18 @@ Update the widget to show that value.  The value that was current
 before this operation becomes the backup value."
   (let* ((symbol (widget-value widget))
 	 (saved-value (get symbol 'saved-value))
-	 (comment (get symbol 'saved-variable-comment)))
+	 (comment (get symbol 'saved-variable-comment))
+         value)
     (custom-variable-backup-value widget)
     (if (not (or saved-value comment))
-	;; If there is no saved value, remove the setting.
-	(custom-push-theme 'theme-value symbol 'user 'reset)
-      ;; Otherwise, apply the saved value.
-      (put symbol 'variable-comment comment)
-      (custom-push-theme 'theme-value symbol 'user 'set (car-safe saved-value))
-      (ignore-errors
-	(funcall (or (get symbol 'custom-set) 'set-default)
-		 symbol (eval (car saved-value)))))
+        ;; If there is no saved value, remove the setting.
+        (custom-push-theme 'theme-value symbol 'user 'reset)
+      (setq value (car-safe saved-value))
+      (custom-push-theme 'theme-value symbol 'user 'set value)
+      (put symbol 'variable-comment comment))
+    (ignore-errors
+      (funcall (or (get symbol 'custom-set) #'set-default) symbol
+               (eval (or value (car (get symbol 'standard-value))))))
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
     (widget-put widget :custom-state 'unknown)
@@ -4295,6 +4296,7 @@ This works for both graphical and text displays."
 	     (widget-put widget :children children)
 	     (custom-group-state-update widget))
 	   ;; End line
+           (insert "\n")
            (custom-group--draw-horizontal-line)))))
 
 (defvar custom-group-menu
