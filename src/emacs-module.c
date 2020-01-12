@@ -213,6 +213,25 @@ static bool value_storage_contains_p (const struct emacs_value_storage *,
 
 static bool module_assertions = false;
 
+
+/* Small helper functions.  */
+
+/* Interprets the string at STR with length LEN as UTF-8 string.
+   Signals an error if it's not a valid UTF-8 string.  */
+
+static Lisp_Object
+module_decode_utf_8 (const char *str, ptrdiff_t len)
+{
+  /* We set HANDLE-8-BIT and HANDLE-OVER-UNI to nil to signal an error
+     if the argument is not a valid UTF-8 string.  While it isn't
+     documented how make_string and make_function behave in this case,
+     signaling an error is the most defensive and obvious reaction. */
+  Lisp_Object s = decode_string_utf_8 (Qnil, str, len, Qnil, false, Qnil, Qnil);
+  CHECK_TYPE (!NILP (s), Qutf_8_string_p, make_string_from_utf8 (str, len));
+  return s;
+}
+
+
 /* Convenience macros for non-local exit handling.  */
 
 /* FIXME: The following implementation for non-local exit handling
@@ -521,7 +540,8 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
   function->finalizer = NULL;
 
   if (docstring)
-    function->documentation = build_string_from_utf8 (docstring);
+    function->documentation
+      = module_decode_utf_8 (docstring, strlen (docstring));
 
   Lisp_Object result;
   XSET_MODULE_FUNCTION (result, function);
@@ -694,7 +714,7 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t len)
   MODULE_FUNCTION_BEGIN (NULL);
   if (! (0 <= len && len <= STRING_BYTES_BOUND))
     overflow_error ();
-  Lisp_Object lstr = make_string_from_utf8 (str, len);
+  Lisp_Object lstr = module_decode_utf_8 (str, len);
   return lisp_to_value (env, lstr);
 }
 
