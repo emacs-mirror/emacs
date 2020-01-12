@@ -38,6 +38,9 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object file;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
+  /* Same but for data that cannot be moved to pure space.
+     Must be the last lisp object here.   */
+  Lisp_Object data_impure_vec;
   dynlib_handle_ptr handle;
 };
 

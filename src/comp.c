@@ -39,9 +39,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
+#define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
+#define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
 #define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
@@ -171,8 +173,12 @@ typedef struct {
   Lisp_Object exported_funcs_h; /* subr_name -> gcc_jit_function *.  */
   Lisp_Object imported_funcs_h; /* subr_name -> gcc_jit_field *reloc_field.  */
   Lisp_Object emitter_dispatcher;
-  gcc_jit_rvalue *data_relocs; /* Synthesized struct holding data relocs.  */
-  gcc_jit_lvalue *func_relocs; /* Synthesized struct holding func relocs.  */
+  /* Synthesized struct holding data relocs.  */
+  gcc_jit_rvalue *data_relocs;
+  /* Same as before but can't go in pure space. */
+  gcc_jit_rvalue *data_relocs_impure;
+  /* Synthesized struct holding func relocs.  */
+  gcc_jit_lvalue *func_relocs;
 } comp_t;
 
 static comp_t comp;
@@ -894,9 +900,10 @@ emit_const_lisp_obj (Lisp_Object obj, Lisp_Object impure)
 							   comp.void_ptr_type,
 							   NULL));
 
-  Lisp_Object d_reloc_idx = CALL1I (comp-ctxt-data-relocs-idx, Vcomp_ctxt);
-  Lisp_Object packed_obj = Fcons (impure, obj);
-  Lisp_Object reloc_idx = Fgethash (packed_obj, d_reloc_idx, Qnil);
+  Lisp_Object container = impure ? CALL1I (comp-ctxt-d-impure, Vcomp_ctxt)
+                                 : CALL1I (comp-ctxt-d-base, Vcomp_ctxt);
+  Lisp_Object reloc_idx =
+    Fgethash (obj, CALL1I (comp-data-container-idx, container), Qnil);
   eassert (!NILP (reloc_idx));
   gcc_jit_rvalue *reloc_n =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -906,7 +913,8 @@ emit_const_lisp_obj (Lisp_Object obj, Lisp_Object impure)
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_array_access (comp.ctxt,
 					NULL,
-					comp.data_relocs,
+					impure ? comp.data_relocs_impure
+					       : comp.data_relocs,
 					reloc_n));
 }
 
@@ -1749,14 +1757,52 @@ emit_static_object (const char *name, Lisp_Object obj)
   gcc_jit_block_end_with_return (block, NULL, res);
 }
 
+static gcc_jit_rvalue *
+declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
+			      const char *text_symbol)
+{
+  /* Imported objects.  */
+  EMACS_INT d_reloc_len =
+    XFIXNUM (CALL1I (hash-table-count,
+		     CALL1I (comp-data-container-idx, container)));
+  Lisp_Object d_reloc = Fnreverse (CALL1I (comp-data-container-l, container));
+  d_reloc = Fvconcat (1, &d_reloc);
+
+  gcc_jit_rvalue *reloc_struct =
+    gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_global (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.lisp_obj_type,
+					d_reloc_len),
+	code_symbol));
+
+  emit_static_object (text_symbol, d_reloc);
+
+  return reloc_struct;
+}
+
 static void
-declare_runtime_imported_data (void)
+declare_imported_data (void)
 {
   /* Imported symbols by inliner functions.  */
   CALL1I (comp-add-const-to-relocs, Qnil);
   CALL1I (comp-add-const-to-relocs, Qt);
   CALL1I (comp-add-const-to-relocs, Qconsp);
   CALL1I (comp-add-const-to-relocs, Qlistp);
+
+  /* Imported objects.  */
+  comp.data_relocs =
+    declare_imported_data_relocs (CALL1I (comp-ctxt-d-base, Vcomp_ctxt),
+				  DATA_RELOC_SYM,
+				  TEXT_DATA_RELOC_SYM);
+  comp.data_relocs_impure =
+    declare_imported_data_relocs (CALL1I (comp-ctxt-d-impure, Vcomp_ctxt),
+				  DATA_RELOC_IMPURE_SYM,
+				  TEXT_DATA_RELOC_IMPURE_SYM);
 }
 
 /*
@@ -1842,27 +1888,7 @@ emit_ctxt_code (void)
         gcc_jit_type_get_pointer (comp.void_ptr_type),
         PURE_RELOC_SYM));
 
-  declare_runtime_imported_data ();
-  /* Imported objects.  */
-  EMACS_INT d_reloc_len =
-    XFIXNUM (CALL1I (hash-table-count,
-		       CALL1I (comp-ctxt-data-relocs-idx, Vcomp_ctxt)));
-  Lisp_Object d_reloc = Fnreverse (CALL1I (comp-ctxt-data-relocs-l, Vcomp_ctxt));
-  d_reloc = Fvconcat (1, &d_reloc);
-
-  comp.data_relocs =
-    gcc_jit_lvalue_as_rvalue (
-      gcc_jit_context_new_global (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_context_new_array_type (comp.ctxt,
-					NULL,
-					comp.lisp_obj_type,
-					d_reloc_len),
-	DATA_RELOC_SYM));
-
-  emit_static_object (TEXT_DATA_RELOC_SYM, d_reloc);
+  declare_imported_data ();
 
   /* Functions imported from Lisp code.  */
   freloc_check_fill ();
@@ -3263,12 +3289,14 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
     dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
   EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
   void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
   void (*top_level_run)(Lisp_Object) = dynlib_sym (handle, "top_level_run");
 
   if (!(current_thread_reloc
 	&& pure_reloc
 	&& data_relocs
+	&& data_imp_relocs
 	&& freloc_link_table
 	&& top_level_run)
       || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
@@ -3283,21 +3311,23 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 
   /* Imported data.  */
   if (!loading_dump)
-    comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
+    {
+      comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
+      comp_u->data_impure_vec =
+	load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
+
+      if (!NILP (Vpurify_flag))
+	/* Non impure can be copied into pure space.  */
+	comp_u->data_vec = Fpurecopy (comp_u->data_vec);
+    }
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-
-  if (!loading_dump && !NILP (Vpurify_flag))
-    for (EMACS_INT i = 0; i < d_vec_len; i++)
-      {
-	Lisp_Object packed_obj = AREF (comp_u->data_vec, i);
-	if (NILP (XCAR (packed_obj)))
-	  /* If is not impure can be copied into pure space.  */
-	  XSETCDR (packed_obj, Fpurecopy (XCDR (packed_obj)));
-      }
-
   for (EMACS_INT i = 0; i < d_vec_len; i++)
-    data_relocs[i] = XCDR (AREF (comp_u->data_vec, i));
+    data_relocs[i] = AREF (comp_u->data_vec, i);
+
+  d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
+  for (EMACS_INT i = 0; i < d_vec_len; i++)
+    data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
 
   if (!loading_dump)
     {

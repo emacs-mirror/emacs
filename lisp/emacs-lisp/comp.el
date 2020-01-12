@@ -157,6 +157,13 @@ Can be used by code that wants to expand differently in this case.")
 	     finally return h)
     "Hash table lap-op -> stack adjustment."))
 
+(cl-defstruct comp-data-container
+  "Data relocation container structure."
+  (l () :type list
+     :documentation "Constant objects used by functions.")
+  (idx (make-hash-table :test #'equal) :type hash-table
+       :documentation "Obj -> position into the previous field."))
+
 (cl-defstruct comp-ctxt
   "Lisp side of the compiler context."
   (output nil :type string
@@ -166,10 +173,11 @@ Can be used by code that wants to expand differently in this case.")
   (funcs-h (make-hash-table) :type hash-table
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
-  (data-relocs-l () :type list
-                 :documentation "List of pairs (impure . obj-to-reloc).")
-  (data-relocs-idx (make-hash-table :test #'equal) :type hash-table
-                   :documentation "Obj -> position into data-relocs."))
+  (d-base (make-comp-data-container) :type comp-data-container
+          :documentation "Standard data relocated in use by functions.")
+  (d-impure (make-comp-data-container) :type comp-data-container
+          :documentation "Data relocated that cannot be moved into pure space.
+This is tipically for top-level forms other than defun."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -314,16 +322,28 @@ structure.")
   "Type hint predicate for function name FUNC."
   (when (member func comp-type-hints) t))
 
+(defun comp-data-container-check (cont)
+  "Sanity check CONT coherency."
+  (cl-assert (= (length (comp-data-container-l cont))
+                (hash-table-count (comp-data-container-idx cont)))))
+
+(defun comp-add-const-to-relocs-to-cont (obj cont)
+  "Keep track of OBJ into the CONT relocation container.
+The corresponding index is returned."
+  (let ((h (comp-data-container-idx cont)))
+    (if-let ((idx (gethash obj h)))
+        idx
+      (push obj (comp-data-container-l cont))
+      (puthash obj (hash-table-count h) h))))
+
 (defun comp-add-const-to-relocs (obj &optional impure)
   "Keep track of OBJ into the ctxt relocations.
 When IMPURE is non nil OBJ cannot be copied into pure space.
 The corresponding index is returned."
-  (let ((data-relocs-idx (comp-ctxt-data-relocs-idx comp-ctxt))
-        (packed-obj (cons impure obj)))
-    (if-let ((idx (gethash packed-obj data-relocs-idx)))
-        idx
-      (push packed-obj (comp-ctxt-data-relocs-l comp-ctxt))
-      (puthash packed-obj (hash-table-count data-relocs-idx) data-relocs-idx))))
+  (comp-add-const-to-relocs-to-cont obj
+                                    (if impure
+                                        (comp-ctxt-d-impure comp-ctxt)
+                                        (comp-ctxt-d-base comp-ctxt))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -1810,8 +1830,8 @@ These are substituted with a normal 'set' op."
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
 Prepare every function for final compilation and drive the C back-end."
-  (cl-assert (= (length (comp-ctxt-data-relocs-l comp-ctxt))
-                (hash-table-count (comp-ctxt-data-relocs-idx comp-ctxt))))
+  (comp-data-container-check (comp-ctxt-d-base comp-ctxt))
+  (comp-data-container-check (comp-ctxt-d-impure comp-ctxt))
   (comp--compile-ctxt-to-file name))
 
 (defun comp-final (_)
