@@ -1053,9 +1053,6 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
       change_frame_size (f, width, height, 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
-#ifdef HAVE_PGTK
-      pgtk_cr_destroy_surface (f);
-#endif
     }
 }
 
@@ -1449,7 +1446,10 @@ xg_create_frame_widgets (struct frame *f)
      FIXME: gtk_widget_set_double_buffered is deprecated and might stop
      working in the future.  We need to migrate away from combining
      X and GTK+ drawing to a pure GTK+ build.  */
+
+#ifndef HAVE_PGTK
   gtk_widget_set_double_buffered (wfixed, FALSE);
+#endif
 
 #if ! GTK_CHECK_VERSION (3, 22, 0)
   gtk_window_set_wmclass (GTK_WINDOW (wtop),

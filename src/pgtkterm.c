@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    interpretation of even the system includes. */
 #include <config.h>
 
+#include <cairo.h>
 #include <fcntl.h>
 #include <math.h>
 #include <pthread.h>
@@ -63,6 +64,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define FRAME_CR_CONTEXT(f)	((f)->output_data.pgtk->cr_context)
 #define FRAME_CR_SURFACE(f)	((f)->output_data.pgtk->cr_surface)
+#define FRAME_CR_SURFACE_DESIRED_WIDTH(f)		\
+  ((f)->output_data.pgtk->cr_surface_desired_width)
+#define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
+  ((f)->output_data.pgtk->cr_surface_desired_height)
+
 
 struct pgtk_display_info *x_display_list; /* Chain of existing displays */
 extern Lisp_Object tip_frame;
@@ -4851,6 +4857,7 @@ static void size_allocate(GtkWidget *widget, GtkAllocation *alloc, gpointer *use
   if (f) {
     PGTK_TRACE("%dx%d", alloc->width, alloc->height);
     xg_frame_resized(f, alloc->width, alloc->height);
+    pgtk_cr_update_surface_desired_size(f, alloc->width, alloc->height);
   }
 }
 
@@ -5274,6 +5281,7 @@ static gboolean configure_event(GtkWidget *widget, GdkEvent *event, gpointer *us
   if (f && widget == FRAME_GTK_OUTER_WIDGET (f)) {
     PGTK_TRACE("%dx%d", event->configure.width, event->configure.height);
     xg_frame_resized(f, event->configure.width, event->configure.height);
+    pgtk_cr_update_surface_desired_size(f, event->configure.width, event->configure.height);
   }
   return TRUE;
 }
@@ -6573,6 +6581,40 @@ If set to a non-float value, there will be no wait at all.  */);
   Fprovide (Qpgtk, Qnil);
 
 }
+
+
+void
+pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height)
+{
+  PGTK_TRACE("pgtk_cr_update_surface_desired_size");
+
+  if (FRAME_CR_SURFACE_DESIRED_WIDTH (f) != width
+      || FRAME_CR_SURFACE_DESIRED_HEIGHT (f) != height)
+    {
+      cairo_surface_t *old_surface = FRAME_CR_SURFACE(f);
+      cairo_t *cr = NULL;
+      cairo_t *old_cr = FRAME_CR_CONTEXT(f);
+      FRAME_CR_SURFACE(f) = gdk_window_create_similar_surface(gtk_widget_get_window(FRAME_GTK_WIDGET(f)),
+							      CAIRO_CONTENT_COLOR_ALPHA,
+							      width,
+							      height);
+
+      if (old_surface){
+	cr = cairo_create(FRAME_CR_SURFACE(f));
+	cairo_set_source_surface (cr, old_surface, 0, 0);
+
+	cairo_paint(cr);
+	FRAME_CR_CONTEXT (f) = cr;
+
+        cairo_destroy(old_cr);
+	cairo_surface_destroy (old_surface);
+      }
+      gtk_widget_queue_draw(FRAME_GTK_WIDGET(f));
+      FRAME_CR_SURFACE_DESIRED_WIDTH (f) = width;
+      FRAME_CR_SURFACE_DESIRED_HEIGHT (f) = height;
+    }
+}
+
 
 cairo_t *
 pgtk_begin_cr_clip (struct frame *f)

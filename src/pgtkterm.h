@@ -366,6 +366,7 @@ struct pgtk_output
 #ifdef USE_CAIRO
   /* Cairo drawing context.  */
   cairo_t *cr_context;
+  int cr_surface_desired_width, cr_surface_desired_height;
   /* Cairo surface for double buffering */
   cairo_surface_t *cr_surface;
   cairo_surface_t *cr_surface_visible_bell;
@@ -568,6 +569,7 @@ extern int pgtk_select (int nfds, fd_set *readfds, fd_set *writefds,
 			sigset_t *sigmask);
 
 /* Cairo related functions implemented in pgtkterm.c */
+extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int);
 extern cairo_t *pgtk_begin_cr_clip (struct frame *f);
 extern void pgtk_end_cr_clip (struct frame *f);
 extern void pgtk_set_cr_source_with_gc_foreground (struct frame *f, Emacs_GC *gc);
