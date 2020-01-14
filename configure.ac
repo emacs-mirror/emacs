@@ -1508,6 +1508,7 @@ case "$opsys" in
    UNEXEC_OBJ=unexelf.o
    ;;
 esac
+AC_SUBST(UNEXEC_OBJ)
 
 LD_SWITCH_SYSTEM=
 test "$with_unexec" = no || case "$opsys" in
@@ -1561,8 +1562,6 @@ C_SWITCH_MACHINE=
 test $with_unexec = yes &&
 case $canonical in
  alpha*)
-  AC_CHECK_DECL([__ELF__])
-  if test "$ac_cv_have_decl___ELF__" = "yes"; then
     ## With ELF, make sure that all common symbols get allocated to in the
     ## data section.  Otherwise, the dump of temacs may miss variables in
     ## the shared library that have been initialized.  For example, with
@@ -1573,17 +1572,9 @@ case $canonical in
     else
       AC_MSG_ERROR([Non-GCC compilers are not supported.])
     fi
-  else
-      dnl This was the unexalpha.c case.  Removed in 24.1, 2010-07-24,
-      dnl albeit under the mistaken assumption that said file
-      dnl was no longer used.
-      AC_MSG_ERROR([Non-ELF systems are not supported since Emacs 24.1.])
-  fi
   ;;
 esac
 AC_SUBST(C_SWITCH_MACHINE)
-
-AC_SUBST(UNEXEC_OBJ)
 
 C_SWITCH_SYSTEM=
 ## Some programs in src produce warnings saying certain subprograms
@@ -4215,6 +4206,12 @@ fi
 dnl No need to check for posix_memalign if aligned_alloc works.
 AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
 AC_CHECK_DECLS([aligned_alloc], [], [], [[#include <stdlib.h>]])
+
+case $with_unexec,$canonical in
+  yes,alpha*)
+    AC_CHECK_DECL([__ELF__], [],
+      [AC_MSG_ERROR([Non-ELF systems are not supported on this platform.])]);;
+esac
 
 # Dump loading
 AC_CHECK_FUNCS([posix_madvise])
