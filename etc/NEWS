@@ -24,6 +24,10 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
+** Cairo is now used by default if found.
+'--with-cairo' is now the default, if the appropriate development files
+are found by 'configure'
+
 
 * Startup Changes in Emacs 28.1
 

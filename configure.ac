@@ -430,7 +430,7 @@ OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
-OPTION_DEFAULT_OFF([cairo],[compile with Cairo drawing])
+OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([json], [don't compile with native JSON support])
@@ -3300,14 +3300,13 @@ if test "${HAVE_X11}" = "yes"; then
     EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
     if test $HAVE_CAIRO = yes; then
       AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
+      CFLAGS="$CFLAGS $CAIRO_CFLAGS"
+      LIBS="$LIBS $CAIRO_LIBS"
+      AC_SUBST(CAIRO_CFLAGS)
+      AC_SUBST(CAIRO_LIBS)
     else
-      AC_MSG_ERROR([cairo requested but not found.])
+      AC_MSG_WARN([cairo requested but not found.])
     fi
-
-    CFLAGS="$CFLAGS $CAIRO_CFLAGS"
-    LIBS="$LIBS $CAIRO_LIBS"
-    AC_SUBST(CAIRO_CFLAGS)
-    AC_SUBST(CAIRO_LIBS)
   fi
 fi
 
