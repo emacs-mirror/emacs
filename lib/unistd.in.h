@@ -141,7 +141,7 @@
 
 
 /* Get getopt(), optarg, optind, opterr, optopt.  */
-#if @GNULIB_UNISTD_H_GETOPT@ && !defined _GL_SYSTEM_GETOPT
+#if @GNULIB_GETOPT_POSIX@ && @GNULIB_UNISTD_H_GETOPT@ && !defined _GL_SYSTEM_GETOPT
 # include <getopt-cdefs.h>
 # include <getopt-pfx-core.h>
 #endif

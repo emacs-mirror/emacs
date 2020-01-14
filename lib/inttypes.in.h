@@ -38,6 +38,8 @@
 #  endif
 
 #  @INCLUDE_NEXT@ @NEXT_INTTYPES_H@
+
+#  define _GL_FINISHED_INCLUDING_SYSTEM_INTTYPES_H
 # endif
 #endif
 

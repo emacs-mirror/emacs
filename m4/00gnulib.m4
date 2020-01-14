@@ -1,13 +1,14 @@
-# 00gnulib.m4 serial 3
+# 00gnulib.m4 serial 5
 dnl Copyright (C) 2009-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl This file must be named something that sorts before all other
-dnl gnulib-provided .m4 files.  It is needed until such time as we can
-dnl assume Autoconf 2.64, with its improved AC_DEFUN_ONCE and
-dnl m4_divert semantics.
+dnl gnulib-provided .m4 files.  The first part is needed until such time
+dnl as we can assume Autoconf 2.64, with its improved AC_DEFUN_ONCE and
+dnl m4_divert semantics.  The second part is needed until the clang fix
+dnl has been included in Autoconf.
 
 # Until autoconf 2.63, handling of the diversion stack required m4_init
 # to be called first; but this does not happen with aclocal.  Wrapping
@@ -38,6 +39,67 @@ m4_version_prereq([2.63.263], [],
     [AC_REQUIRE([_gl_DEFUN_ONCE([$1])],
       [m4_indir([_gl_DEFUN_ONCE([$1])])])])]dnl
 [AC][_DEFUN([_gl_DEFUN_ONCE([$1])], [$2])])])
+
+# The following definitions arrange to use a compiler option
+# -Werror=implicit-function-declaration in AC_CHECK_DECL, when the
+# compiler is clang.  Without it, clang implicitly declares "known"
+# library functions in C mode, but not in C++ mode, which would cause
+# Gnulib to omit a declaration and thus later produce an error in C++
+# mode.  As of clang 9.0, these "known" functions are identified through
+# LIBBUILTIN invocations in the LLVM source file
+# llvm/tools/clang/include/clang/Basic/Builtins.def.
+AC_DEFUN([gl_COMPILER_CLANG],
+[
+  AC_REQUIRE([AC_PROG_CC])
+  AC_CACHE_CHECK([whether the compiler is clang],
+    [gl_cv_compiler_clang],
+    [AC_EGREP_CPP([barfbarf],[
+#ifdef __clang__
+barfbarf
+#endif
+       ],
+       [gl_cv_compiler_clang=yes],
+       [gl_cv_compiler_clang=no])
+    ])
+])
+AC_DEFUN_ONCE([gl_COMPILER_PREPARE_CHECK_DECL],
+[
+  AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([gl_COMPILER_CLANG])
+  AC_CACHE_CHECK([for compiler option needed when checking for declarations],
+    [gl_cv_compiler_check_decl_option],
+    [if test $gl_cv_compiler_clang = yes; then
+       dnl Test whether the compiler supports the option
+       dnl '-Werror=implicit-function-declaration'.
+       save_ac_compile="$ac_compile"
+       ac_compile="$ac_compile -Werror=implicit-function-declaration"
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],
+         [gl_cv_compiler_check_decl_option='-Werror=implicit-function-declaration'],
+         [gl_cv_compiler_check_decl_option=none])
+       ac_compile="$save_ac_compile"
+     else
+       gl_cv_compiler_check_decl_option=none
+     fi
+    ])
+  if test "x$gl_cv_compiler_check_decl_option" != xnone; then
+    ac_compile_for_check_decl="$ac_compile $gl_cv_compiler_check_decl_option"
+  else
+    ac_compile_for_check_decl="$ac_compile"
+  fi
+])
+dnl Redefine _AC_CHECK_DECL_BODY so that it references ac_compile_for_check_decl
+dnl instead of ac_compile.
+m4_define([_AC_CHECK_DECL_BODY],
+[  ac_save_ac_compile="$ac_compile"
+  ac_compile="$ac_compile_for_check_decl"]
+m4_defn([_AC_CHECK_DECL_BODY])[  ac_compile="$ac_save_ac_compile"
+])
+  ])
+dnl Redefine AC_CHECK_DECL so that it starts with an invocation of
+dnl gl_COMPILER_PREPARE_CHECK_DECL.
+m4_define([AC_CHECK_DECL],
+  [gl_COMPILER_PREPARE_CHECK_DECL dnl
+]m4_defn([AC_CHECK_DECL]))
 
 # gl_00GNULIB
 # -----------
