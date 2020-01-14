@@ -2860,6 +2860,21 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       CGAffineTransform atfm;
 
+      if (face->shadow_p)
+        {
+          CGSize offset;
+          offset = CGSizeMake (face->shadow_offset.x, face->shadow_offset.y);
+          if (!face->shadow_color_defaulted_p)
+            {
+              CGColorRef color = get_cgcolor (face->shadow_color, f);
+              CGContextSetShadowWithColor (context, offset, face->shadow_blur,
+                                           color);
+              CGColorRelease (color);
+            }
+          else
+            CGContextSetShadow (context, offset, face->shadow_blur);
+        }
+
       CGContextScaleCTM (context, 1, -1);
       CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND (context, face, s->f);
       if (macfont_info->synthetic_italic_p)
@@ -2880,16 +2895,16 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
           if ([[FRAME_NS_VIEW(f) window] respondsToSelector:
                                            @selector(backingScaleFactor)])
-#endif
+#endif  // MAC_OS_X_VERSION_MIN_REQUIRED < 1070
             CGContextSetLineWidth (context, synthetic_bold_factor * font_size
                                    * [[FRAME_NS_VIEW(f) window] backingScaleFactor]);
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
           else
-#endif
-#endif
+#endif  // MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+#endif  // MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
             CGContextSetLineWidth (context, synthetic_bold_factor * font_size);
-#endif
+#endif  // MAC_OS_X_VERSION_MIN_REQUIRED < 1070
           CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND (context, face, f);
         }
       if (no_antialias_p)
@@ -2920,24 +2935,8 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       else
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1070 */
         {
-          CGSize offset;
-          offset = CGSizeMake (0, 0);
-
           CGContextSetFont (context, macfont_info->cgfont);
           CGContextSetFontSize (context, font_size);
-
-          /*
-             Put shadows under text.
-
-             A 'shadow' style is described by:
-             - blur (default = 5?)
-             - offset (default = (0, 0))
-             - color (default = foreground)
-
-             TODO: make it a text property
-          */
-          CGContextSetShadow (context, offset, 5.0);
-
           CGContextShowGlyphsAtPositions (context, glyphs, positions, len);
         }
     }

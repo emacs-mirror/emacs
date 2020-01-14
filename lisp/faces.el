@@ -1177,6 +1177,7 @@ an integer value."
     (:height . "height in 1/10 pt")
     (:weight . "weight")
     (:slant . "slant")
+    (:shadow . "shadow")
     (:underline . "underline")
     (:overline . "overline")
     (:extend . "extend")
