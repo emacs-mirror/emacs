@@ -4403,7 +4403,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  :tags '(:expensive-test)
+  ;; The test fails from time to time, w/o a reproducible pattern.  So
+  ;; we mark it as unstable.
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   ;; Since Emacs 26.1.
@@ -4424,7 +4426,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (interrupt-process proc))
 	  ;; Let the process accept the interrupt.
 	  (with-timeout (10 (tramp--test-timeout-handler))
-	    (while (accept-process-output proc nil nil 0)))
+	    (while (process-live-p proc)
+	      (while (accept-process-output proc 0 nil t))))
 	  (should-not (process-live-p proc))
 	  ;; An interrupted process cannot be interrupted, again.
 	  (should-error
@@ -4434,14 +4437,27 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       ;; Cleanup.
       (ignore-errors (delete-process proc)))))
 
+(defun tramp--test-async-shell-command
+    (command output-buffer &optional error-buffer input)
+  "Like `async-shell-command', reading the output.
+INPUT, if non-nil, is a string sent to the process."
+  (let ((proc (async-shell-command command output-buffer error-buffer)))
+    (when (stringp input)
+      (process-send-string proc input))
+    (with-timeout
+	((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
+      (while (accept-process-output proc nil nil t))
+      (should-not (process-live-p proc)))
+    ;; `ls' could produce colorized output.
+    (with-current-buffer output-buffer
+      (goto-char (point-min))
+      (while (re-search-forward tramp-display-escape-sequence-regexp nil t)
+	(replace-match "" nil nil)))))
+
 (defun tramp--test-shell-command-to-string-asynchronously (command)
   "Like `shell-command-to-string', but for asynchronous processes."
   (with-temp-buffer
-    (async-shell-command command (current-buffer))
-    (with-timeout
-        ((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
-      (while (accept-process-output
-	      (get-buffer-process (current-buffer)) nil nil t)))
+    (tramp--test-async-shell-command command (current-buffer))
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (ert-deftest tramp-test32-shell-command ()
@@ -4460,101 +4476,55 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (inhibit-message t)
 	  kill-buffer-query-functions)
 
-      ;; Test ordinary `shell-command'.
-      (unwind-protect
-	  (with-temp-buffer
-	    (write-region "foo" nil tmp-name)
-	    (should (file-exists-p tmp-name))
-	    (shell-command
-	     (format "ls %s" (file-name-nondirectory tmp-name))
-	     (current-buffer))
-	    ;; `ls' could produce colorized output.
-	    (goto-char (point-min))
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "" nil nil))
-	    (should
-	     (string-equal
-	      (format "%s\n" (file-name-nondirectory tmp-name))
-	      (buffer-string))))
+      (dolist (this-shell-command
+	       '(;; Synchronously.
+		 shell-command
+		 ;; Asynchronously.
+		 tramp--test-async-shell-command))
 
-	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))
-
-      ;; Test `shell-command' with error buffer.
-      (let ((stderr (generate-new-buffer "*stderr*")))
+	;; Test ordinary `{async-}shell-command'.
 	(unwind-protect
 	    (with-temp-buffer
-	      (shell-command "cat /" (current-buffer) stderr)
-	      (should (= (point-min) (point-max)))
-	      (with-current-buffer stderr
-		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+	      (write-region "foo" nil tmp-name)
+	      (should (file-exists-p tmp-name))
+	      (funcall
+	       this-shell-command
+	       (format "ls %s" (file-name-nondirectory tmp-name))
+	       (current-buffer))
+	      (should
+	       (string-equal
+		(format "%s\n" (file-name-nondirectory tmp-name))
+		(buffer-string))))
 
 	  ;; Cleanup.
-	  (ignore-errors (kill-buffer stderr))))
+	  (ignore-errors (delete-file tmp-name)))
 
-      ;; Test ordinary `async-shell-command'.
-      (unwind-protect
-	  (with-temp-buffer
-	    (write-region "foo" nil tmp-name)
-	    (should (file-exists-p tmp-name))
-	    (async-shell-command
-	     (format "ls %s" (file-name-nondirectory tmp-name))
-	     (current-buffer))
-	    ;; Read output.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (accept-process-output
-		      (get-buffer-process (current-buffer)) nil nil t)))
-	    ;; `ls' could produce colorized output.
-	    (goto-char (point-min))
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "" nil nil))
-	    (should
-	     (string-equal
-	      (format "%s\n" (file-name-nondirectory tmp-name))
-	      (buffer-string))))
-
-	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))
-
-      ;; Test `async-shell-command' with error buffer.
-      (let ((stderr (generate-new-buffer "*stderr*")) proc)
-	(unwind-protect
-	    (with-temp-buffer
-	      (async-shell-command "cat /; sleep 1" (current-buffer) stderr)
-	      (setq proc (get-buffer-process (current-buffer)))
-	      ;; Read stderr.
-	      (when (processp proc)
-		(with-timeout (10 (tramp--test-timeout-handler))
-		  (while (accept-process-output proc nil nil t)))
-		(delete-process proc))
-	      (with-current-buffer stderr
-		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+	;; Test `{async-}shell-command' with error buffer.
+	(let ((stderr (generate-new-buffer "*stderr*")))
+	  (unwind-protect
+	      (with-temp-buffer
+		(funcall
+		 this-shell-command "cat /; sleep 1" (current-buffer) stderr)
+		;; Check stderr.
+		(when (eq this-shell-command #'tramp--test-async-shell-command)
+		  (ignore-errors
+		    (delete-process (get-buffer-process (current-buffer)))))
+		(should (zerop (buffer-size)))
+		(with-current-buffer stderr
+		  (should
+		   (string-match "cat:.* Is a directory" (buffer-string)))))
 
 	    ;; Cleanup.
-	    (ignore-errors (kill-buffer stderr))))
+	    (ignore-errors (kill-buffer stderr)))))
 
       ;; Test sending string to `async-shell-command'.
       (unwind-protect
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
 	    (should (file-exists-p tmp-name))
-	    (async-shell-command "read line; ls $line" (current-buffer))
-	    (process-send-string
-	     (get-buffer-process (current-buffer))
+	    (tramp--test-async-shell-command
+	     "read line; ls $line" (current-buffer) nil
 	     (format "%s\n" (file-name-nondirectory tmp-name)))
-	    ;; Read output.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (accept-process-output
-		      (get-buffer-process (current-buffer)) nil nil t)))
-	    ;; `ls' could produce colorized output.
-	    (goto-char (point-min))
-	    (while
-		(re-search-forward tramp-display-escape-sequence-regexp nil t)
-	      (replace-match "" nil nil))
 	    (should
 	     (string-equal
 	      ;; tramp-adb.el echoes, so we must add the string.
@@ -6239,7 +6209,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;;   do not work properly for `nextcloud'.
 ;; * Fix `tramp-test29-start-file-process' and
 ;;   `tramp-test30-make-process' on MS Windows (`process-send-eof'?).
-;; * Implement `tramp-test31-interrupt-process' for `adb'.
+;; * Implement `tramp-test31-interrupt-process' for `adb'.  Fix `:unstable'.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
 

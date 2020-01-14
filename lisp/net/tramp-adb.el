@@ -935,6 +935,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
+;; The complete STDERR buffer is available only when the process has
+;; terminated.
 (defun tramp-adb-handle-make-process (&rest args)
   "Like `make-process' for Tramp files."
   (when args
@@ -983,6 +985,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (if (and (stringp stderr) (tramp-tramp-file-p stderr))
 			 (tramp-unquote-file-local-name stderr)
 		       (tramp-make-tramp-temp-file v))))
+	       (remote-tmpstderr
+		(and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
 	       (program (car command))
 	       (args (cdr command))
 	       (command
@@ -1049,9 +1053,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			  (add-function
 			   :after (process-sentinel p)
 			   (lambda (_proc _msg)
-			     (rename-file
-			      (tramp-make-tramp-file-name v tmpstderr)
-			      stderr))))
+			     (rename-file remote-tmpstderr stderr))))
 			;; Read initial output.  Remove the first line,
 			;; which is the command echo.
 			(while
@@ -1062,20 +1064,19 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			(delete-region (point-min) (point))
 			;; Provide error buffer.  This shows only
 			;; initial error messages; messages arriving
-			;; later on shall be inserted by
-			;; `auto-revert'.  The temporary file will
-			;; exist until the process is deleted.
+			;; later on will be inserted when the process
+			;; is deleted.  The temporary file will exist
+			;; until the process is deleted.
 			(when (bufferp stderr)
 			  (with-current-buffer stderr
-			    (insert-file-contents
-			     (tramp-make-tramp-file-name v tmpstderr) 'visit)
-			    (auto-revert-mode))
+			    (insert-file-contents remote-tmpstderr 'visit))
 			  ;; Delete tmpstderr file.
 			  (add-function
 			   :after (process-sentinel p)
 			   (lambda (_proc _msg)
-			     (delete-file
-			      (tramp-make-tramp-file-name v tmpstderr)))))
+			     (with-current-buffer stderr
+			       (insert-file-contents remote-tmpstderr 'visit))
+			     (delete-file remote-tmpstderr))))
 			;; Return process.
 			p))))
 
