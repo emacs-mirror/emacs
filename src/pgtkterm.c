@@ -62,8 +62,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define STORE_KEYSYM_FOR_DEBUG(keysym) ((void)0)
 
-#define FRAME_CR_CONTEXT(f)	((f)->output_data.pgtk->cr_context)
-#define FRAME_CR_SURFACE(f)	((f)->output_data.pgtk->cr_surface)
+#define FRAME_CR_CONTEXT(f) ((f)->output_data.pgtk->cr_context)
+#define FRAME_CR_ACTIVE_CONTEXT(f)	((f)->output_data.pgtk->cr_active)
+#define FRAME_CR_SURFACE(f) (cairo_get_target(FRAME_CR_CONTEXT(f)))
 #define FRAME_CR_SURFACE_DESIRED_WIDTH(f)		\
   ((f)->output_data.pgtk->cr_surface_desired_width)
 #define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
@@ -95,6 +96,21 @@ static void pgtk_clip_to_row (struct window *w, struct glyph_row *row,
 				enum glyph_row_area area, cairo_t *cr);
 static struct frame *
 pgtk_any_window_to_frame (GdkWindow *window);
+
+static void flip_cr_context(struct frame *f)
+{
+  PGTK_TRACE("flip_cr_context");
+  cairo_t * cr = FRAME_CR_ACTIVE_CONTEXT(f);
+
+  block_input();
+  if ( cr != FRAME_CR_CONTEXT(f))
+    {
+      cairo_destroy(cr);
+      FRAME_CR_ACTIVE_CONTEXT(f) = cairo_reference(FRAME_CR_CONTEXT(f));
+
+    }
+  unblock_input();
+}
 
 
 static void evq_enqueue(union buffered_input_event *ev)
@@ -2667,8 +2683,6 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	  xic_set_preeditarea (w, x, y);
 #endif
     }
-
-  gtk_widget_queue_draw(FRAME_GTK_WIDGET(f));
 }
 
 static void
@@ -2771,38 +2785,6 @@ pgtk_scroll_run (struct window *w, struct run *run)
 static void
 pgtk_update_begin (struct frame *f)
 {
-  if (! NILP (tip_frame) && XFRAME (tip_frame) == f
-      && ! FRAME_VISIBLE_P (f))
-    return;
-
-  if (! FRAME_CR_SURFACE (f))
-    {
-      int width, height;
-      if (FRAME_GTK_WIDGET (f))
-	{
-	  GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
-	  width = gdk_window_get_width (w);
-	  height = gdk_window_get_height (w);
-	}
-      else
-	{
-	  width = FRAME_PIXEL_WIDTH (f);
-	  height = FRAME_PIXEL_HEIGHT (f);
-	  if (! FRAME_EXTERNAL_TOOL_BAR (f))
-	    height += FRAME_TOOL_BAR_HEIGHT (f);
-	  if (! FRAME_EXTERNAL_MENU_BAR (f))
-	    height += FRAME_MENU_BAR_HEIGHT (f);
-	}
-
-      if (width > 0 && height > 0)
-	{
-	  block_input();
-	  FRAME_CR_SURFACE (f) = cairo_image_surface_create
-	    (CAIRO_FORMAT_ARGB32, width, height);
-	  unblock_input();
-	}
-    }
-
   pgtk_clear_under_internal_border (f);
 }
 
@@ -2965,8 +2947,12 @@ pgtk_update_window_end (struct window *w, bool cursor_on_p,
 static void
 pgtk_update_end (struct frame *f)
 {
+  GtkWidget *widget = FRAME_GTK_WIDGET(f);
   /* Mouse highlight may be displayed again.  */
   MOUSE_HL_INFO (f)->mouse_face_defer = false;
+
+  gtk_widget_queue_draw (widget);
+  flip_cr_context(f);
 }
 
 /* Return the current position of the mouse.
@@ -3139,13 +3125,10 @@ pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
 		 int src_x, int src_y, int width, int height,
 		 int dest_x, int dest_y, bool overlay_p)
 {
-  cairo_t *cr;
-  cairo_matrix_t matrix;
-  cairo_surface_t *surface;
-  cairo_format_t format;
+  cairo_t *cr = pgtk_begin_cr_clip (f);
 
   PGTK_TRACE("pgtk_cr_draw_image: 0: %d,%d,%d,%d,%d,%d,%d.", src_x, src_y, width, height, dest_x, dest_y, overlay_p);
-  cr = pgtk_begin_cr_clip (f);
+
   if (overlay_p)
     cairo_rectangle (cr, dest_x, dest_y, width, height);
   else
@@ -3154,42 +3137,24 @@ pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
       cairo_rectangle (cr, dest_x, dest_y, width, height);
       cairo_fill_preserve (cr);
     }
-  cairo_clip (cr);
-  cairo_matrix_init_translate (&matrix, src_x - dest_x, src_y - dest_y);
-  cairo_pattern_set_matrix (image, &matrix);
+  cairo_translate (cr, dest_x - src_x, dest_y - src_y);
+
+  cairo_surface_t *surface;
   cairo_pattern_get_surface (image, &surface);
-  format = cairo_image_surface_get_format (surface);
+  cairo_format_t format = cairo_image_surface_get_format (surface);
   if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
     {
-      PGTK_TRACE("other format.");
       cairo_set_source (cr, image);
       cairo_fill (cr);
     }
   else
     {
-      if (format == CAIRO_FORMAT_A8)
-	PGTK_TRACE("format A8.");
-      else if (format == CAIRO_FORMAT_A1)
-	PGTK_TRACE("format A1.");
-      else
-	PGTK_TRACE("format ??.");
       pgtk_set_cr_source_with_gc_foreground (f, gc);
-      cairo_rectangle_list_t *rects = cairo_copy_clip_rectangle_list(cr);
-      PGTK_TRACE("rects:");
-      PGTK_TRACE(" status: %u", rects->status);
-      PGTK_TRACE(" rectangles:");
-      for (int i = 0; i < rects->num_rectangles; i++) {
-	PGTK_TRACE("  %fx%f+%f+%f",
-		rects->rectangles[i].width,
-		rects->rectangles[i].height,
-		rects->rectangles[i].x,
-		rects->rectangles[i].y);
-      }
-      cairo_rectangle_list_destroy(rects);
+      cairo_clip (cr);
       cairo_mask (cr, image);
     }
+
   pgtk_end_cr_clip (f);
-  PGTK_TRACE("pgtk_cr_draw_image: 9.");
 }
 
 static void
@@ -3375,8 +3340,6 @@ recover_from_visible_bell(struct atimer *timer)
 
   if (FRAME_X_OUTPUT(f)->atimer_visible_bell != NULL)
     FRAME_X_OUTPUT(f)->atimer_visible_bell = NULL;
-
-  gtk_widget_queue_draw(FRAME_GTK_WIDGET(f));
 }
 
 static void
@@ -3436,8 +3399,6 @@ pgtk_flash (struct frame *f)
 			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
       FRAME_X_OUTPUT(f)->cr_surface_visible_bell = surface;
-      gtk_widget_queue_draw(FRAME_GTK_WIDGET(f));
-
       {
 	struct timespec delay = make_timespec (0, 50 * 1000 * 1000);
 	if (FRAME_X_OUTPUT(f)->atimer_visible_bell != NULL) {
@@ -4843,12 +4804,12 @@ pgtk_handle_draw(GtkWidget *widget, cairo_t *cr, gpointer *data)
     PGTK_TRACE("  f=%p", f);
     if (f != NULL) {
       src = FRAME_X_OUTPUT(f)->cr_surface_visible_bell;
-      if (src == NULL)
-	src = FRAME_CR_SURFACE(f);
+      if (src == NULL && FRAME_CR_ACTIVE_CONTEXT(f) != NULL)
+	src = cairo_get_target(FRAME_CR_ACTIVE_CONTEXT(f));
     }
-    PGTK_TRACE("  surface=%p", src);
+    APGTK_TRACE("  surface=%p", src);
     if (src != NULL) {
-      PGTK_TRACE("  resized_p=%d", f->resized_p);
+      APGTK_TRACE("  resized_p=%d", f->resized_p);
       PGTK_TRACE("  garbaged=%d", f->garbaged);
       PGTK_TRACE("  scroll_bar_width=%f", (double) PGTK_SCROLL_BAR_WIDTH(f));
       // PGTK_TRACE("  scroll_bar_adjust=%d", PGTK_SCROLL_BAR_ADJUST(f));
@@ -6596,27 +6557,10 @@ pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height)
   if (FRAME_CR_SURFACE_DESIRED_WIDTH (f) != width
       || FRAME_CR_SURFACE_DESIRED_HEIGHT (f) != height)
     {
-      cairo_surface_t *old_surface = FRAME_CR_SURFACE(f);
-      cairo_t *cr = NULL;
-      cairo_t *old_cr = FRAME_CR_CONTEXT(f);
-      FRAME_CR_SURFACE(f) = gdk_window_create_similar_surface(gtk_widget_get_window(FRAME_GTK_WIDGET(f)),
-							      CAIRO_CONTENT_COLOR_ALPHA,
-							      width,
-							      height);
-
-      if (old_surface){
-	cr = cairo_create(FRAME_CR_SURFACE(f));
-	cairo_set_source_surface (cr, old_surface, 0, 0);
-
-	cairo_paint(cr);
-	FRAME_CR_CONTEXT (f) = cr;
-
-        cairo_destroy(old_cr);
-	cairo_surface_destroy (old_surface);
-      }
-      gtk_widget_queue_draw(FRAME_GTK_WIDGET(f));
+      pgtk_cr_destroy_frame_context(f);
       FRAME_CR_SURFACE_DESIRED_WIDTH (f) = width;
       FRAME_CR_SURFACE_DESIRED_HEIGHT (f) = height;
+      SET_FRAME_GARBAGED(f);
     }
 }
 
@@ -6627,16 +6571,17 @@ pgtk_begin_cr_clip (struct frame *f)
   cairo_t *cr = FRAME_CR_CONTEXT (f);
 
   PGTK_TRACE("pgtk_begin_cr_clip");
-  if (! FRAME_CR_SURFACE (f))
-    {
-      FRAME_CR_SURFACE(f) = gdk_window_create_similar_surface(gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
-							      CAIRO_CONTENT_COLOR_ALPHA,
-							      FRAME_PIXEL_WIDTH (f),
-							      FRAME_PIXEL_HEIGHT (f));
-    }
-
   if (!cr)
     {
+      cairo_surface_t *surface =
+	gdk_window_create_similar_surface(gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
+					  CAIRO_CONTENT_COLOR_ALPHA,
+					  FRAME_CR_SURFACE_DESIRED_WIDTH (f),
+					  FRAME_CR_SURFACE_DESIRED_HEIGHT (f));
+
+      cr = FRAME_CR_CONTEXT (f) = cairo_create (surface);
+      cairo_surface_destroy (surface);
+
       cr = cairo_create (FRAME_CR_SURFACE (f));
       FRAME_CR_CONTEXT (f) = cr;
     }
@@ -6651,9 +6596,6 @@ pgtk_end_cr_clip (struct frame *f)
 {
   PGTK_TRACE("pgtk_end_cr_clip");
   cairo_restore (FRAME_CR_CONTEXT (f));
-
-  GtkWidget *widget = FRAME_GTK_WIDGET(f);
-  gtk_widget_queue_draw(widget);
 }
 
 void
@@ -6690,18 +6632,13 @@ pgtk_cr_draw_frame (cairo_t *cr, struct frame *f)
 }
 
 void
-pgtk_cr_destroy_surface(struct frame *f)
+pgtk_cr_destroy_frame_context(struct frame *f)
 {
-  PGTK_TRACE("pgtk_cr_destroy_surface");
+  PGTK_TRACE("pgtk_cr_destroy_frame_context");
   if (FRAME_CR_CONTEXT(f) != NULL) {
     cairo_destroy(FRAME_CR_CONTEXT(f));
     FRAME_CR_CONTEXT(f) = NULL;
   }
-  if (FRAME_CR_SURFACE(f) != NULL) {
-    cairo_surface_destroy(FRAME_CR_SURFACE(f));
-    FRAME_CR_SURFACE(f) = NULL;
-  }
-  SET_FRAME_GARBAGED (f);
 }
 
 void
