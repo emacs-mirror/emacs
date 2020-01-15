@@ -19,7 +19,7 @@ Nothing so far.
 
 ## WIP
 
-- Colorful Shadows.  [Like this one.](https://marketplace.visualstudio.com/items?itemName=webrender.synthwave-x-fluoromachine).
+- Colorful Shadows.  [Like this one.](https://marketplace.visualstudio.com/items?itemName=webrender.synthwave-x-fluoromachine)
 
 ## Planned
 
