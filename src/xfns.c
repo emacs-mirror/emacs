@@ -3878,8 +3878,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&xfthbfont_driver, f);
 #endif
-#else	/* not HAVE_XFT */
-  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */
@@ -6364,8 +6362,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&xfthbfont_driver, f);
 #endif
-#else	/* not HAVE_XFT */
-  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */

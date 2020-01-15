@@ -15,8 +15,6 @@ The new files are:
 		device-independent methods of struct font_driver.
 	xftfont.c -- font-driver on X using Xft for FreeType fonts
 		utilizing methods provided by ftfont.c.
-	ftxfont.c -- font-driver on X directly using FreeType fonts
-		utilizing methods provided by ftfont.c.
 	w32font.c -- font driver on w32 using Windows native fonts,
 		corresponding to xfont.c
 	w32uniscribe.c -- font driver on w32, using the uniscribe API

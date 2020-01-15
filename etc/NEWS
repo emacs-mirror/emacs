@@ -28,6 +28,10 @@ applies, and please also update docstrings as needed.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'
 
+---
+** The ftx font backend driver has been removed.
+It was declared obsolete in Emacs 27.1.
+
 
 * Startup Changes in Emacs 28.1
 

@@ -5545,7 +5545,6 @@ cause Xft crashes.  Only has an effect in Xft builds.  */);
 #ifdef USE_CAIRO
   syms_of_ftcrfont ();
 #else
-  syms_of_ftxfont ();
 #ifdef HAVE_XFT
   syms_of_xftfont ();
 #endif  /* HAVE_XFT */

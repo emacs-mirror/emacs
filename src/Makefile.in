@@ -295,8 +295,8 @@ EMACSRES = @EMACSRES@
 W32_RES_LINK=@W32_RES_LINK@
 
 ## Empty if !HAVE_X_WINDOWS
-## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
-## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
+## xfont.o ftfont.o xftfont.o if HAVE_XFT
+## xfont.o ftfont.o if HAVE_FREETYPE
 ## xfont.o ftfont.o ftcrfont.o if USE_CAIRO
 ## else xfont.o
 ## if HAVE_HARFBUZZ, hbfont.o is added regardless of the rest
@@ -436,7 +436,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o \
   w32.o w32console.o w32cygwinx.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
-  w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
+  w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o hbfont.o
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.

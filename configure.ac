@@ -3372,8 +3372,6 @@ if test "${HAVE_X11}" = "yes"; then
       fi                          # "$HAVE_XFT" != no
     fi                            # "x${with_xft}" != "xno"
 
-    ## We used to allow building with FreeType and without Xft.
-    ## However, the ftx font backend driver is not in good shape.
     if test "$HAVE_XFT" != "yes"; then
        dnl For the "Does Emacs use" message at the end.
        HAVE_XFT=no
@@ -5280,9 +5278,9 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   if test "$HAVE_CAIRO" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o ftcrfont.o"
   elif test "$HAVE_XFT" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o"
   elif test "$HAVE_FREETYPE" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+    FONT_OBJ="$FONT_OBJ ftfont.o"
   fi
 fi
 if test "${HAVE_HARFBUZZ}" = "yes" ; then
