@@ -81,9 +81,7 @@
   '((default
       :inherit tab-line-tab)
     (((class color) (min-colors 88))
-     :background "grey85")
-    (t
-     :inverse-video t))
+     :background "grey85"))
   "Tab line face for tab with current buffer in selected window."
   :version "27.1"
   :group 'tab-line-faces)

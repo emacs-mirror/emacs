@@ -8953,7 +8953,7 @@ and setting it to nil."
 
 (defun messages-buffer ()
   "Return the \"*Messages*\" buffer.
-If it does not exist, create and it switch it to `messages-buffer-mode'."
+If it does not exist, create it and switch it to `messages-buffer-mode'."
   (or (get-buffer "*Messages*")
       (with-current-buffer (get-buffer-create "*Messages*")
         (messages-buffer-mode)

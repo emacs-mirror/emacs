@@ -13516,6 +13516,10 @@ tty_handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
     f->last_tab_bar_item = prop_idx;
   else
     {
+      /* Force reset of up_modifier bit from the event modifiers.  */
+      if (event->modifiers & up_modifier)
+        event->modifiers &= ~up_modifier;
+
       /* Generate a TAB_BAR_EVENT event.  */
       Lisp_Object frame;
       Lisp_Object key = AREF (f->tab_bar_items,

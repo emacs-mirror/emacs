@@ -337,8 +337,9 @@ answers, but also function keys like 'F1', character events such as
 'C-M-h', and control characters like 'C-h'.
 
 ** Lexical binding is now used when evaluating interactive Elisp forms.
-More specifically, lexical-binding is now used for 'M-:', '--eval', as
-well as in the "*scratch*" and "*ielm*" buffers.
+More specifically, 'lexical-binding' is now used for 'M-:', '--eval',
+as well as in 'lisp-interaction-mode' and 'ielm-mode', used in the
+"*scratch*" and "*ielm*" buffers.
 
 ---
 ** The new user option 'tooltip-resize-echo-area' avoids truncating
@@ -781,8 +782,8 @@ cases that have plagued it for years, and on the other experiments indicated
 that it doesn't bring any measurable benefit.
 
 ---
-*** The 'g' keystroke in *Compile-Log* buffers has been bound to a new
-command that will recompile the file previously compiled with 'M-x
+*** The 'g' keystroke in "*Compile-Log*" buffers has been bound to a
+new command that will recompile the file previously compiled with 'M-x
 byte-compile-file' and the like.
 
 ** compile.el
@@ -1568,6 +1569,18 @@ and its value has been changed to Duck Duck Go.
 *** 'erc-send-pre-hook' and 'erc-send-this' have been obsoleted.
 The user option to use instead to alter text to be sent is now
 'erc-pre-send-functions'.
+
+---
+*** Improve matching/highlighting of nicknames.
+Open and close parenthesis and apostrophe are not considered valid
+nick characters anymore, matching the given grammar in RFC 2812
+section 2.3.1.  This enables correct matching and highlighting of
+nicks when they are surrounded by parentheses, like "(nick)", and when
+adjacent to an apostrophe, like "nick's".
+
+---
+*** Set 'erc-button-url-regexp' to 'browse-url-button-regexp'
+which better handles surrounding pair of parentheses.
 
 ** EUDC
 

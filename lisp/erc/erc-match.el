@@ -246,14 +246,11 @@ and other miscellaneous functions."
 ;; just put it in erc.el
 (defvar erc-match-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\( "w" table)
-    (modify-syntax-entry ?\) "w" table)
     (modify-syntax-entry ?\[ "w" table)
     (modify-syntax-entry ?\] "w" table)
     (modify-syntax-entry ?\{ "w" table)
     (modify-syntax-entry ?\} "w" table)
     (modify-syntax-entry ?` "w" table)
-    (modify-syntax-entry ?' "w" table)
     (modify-syntax-entry ?^ "w" table)
     (modify-syntax-entry ?- "w" table)
     (modify-syntax-entry ?_ "w" table)

@@ -1099,6 +1099,7 @@ Hyperlinking and Navigation Features
 Emacs Lisp Packages
 
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 

@@ -1435,8 +1435,7 @@ please check its value")
   (if (get-buffer "*scratch*")
       (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
-	    (funcall initial-major-mode))
-        (setq-local lexical-binding t)))
+	    (funcall initial-major-mode))))
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
@@ -2317,7 +2316,6 @@ A fancy display is used on graphic displays, normal otherwise."
   (or (get-buffer "*scratch*")
       (with-current-buffer (get-buffer-create "*scratch*")
         (set-buffer-major-mode (current-buffer))
-        (setq-local lexical-binding t)
         (current-buffer))))
 
 (defun command-line-1 (args-left)

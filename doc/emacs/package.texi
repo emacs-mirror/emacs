@@ -32,6 +32,7 @@ Manual}.
 
 @menu
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 @end menu
@@ -57,19 +58,12 @@ The package's version number (e.g., @samp{11.86}).
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed},
 @c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
-or @samp{built-in} (included in Emacs by default).  The status
-@samp{external} means the package is not built-in and not from the
-directory specified by @code{package-user-dir} (@pxref{Package
-Files}).  External packages are treated much like built-in: they
-cannot be deleted through the package menu, and are not considered for
-upgrading.
+or @samp{built-in} (included in Emacs by default).
+@xref{Package Statuses}.
 
-The status can also be @samp{new}.  This is equivalent to
-@samp{available}, except that it means the package became newly
-available on the package archive after your last invocation of
-@kbd{M-x list-packages}.  In other instances, a package may have the
-status @samp{held}, @samp{disabled}, or @samp{obsolete}.
-@xref{Package Installation}.
+@item
+Which package archive this package is from, if you have more than one
+package archive enabled.
 
 @item
 A short description of the package.
@@ -139,7 +133,7 @@ current line by an @kbd{i} or @kbd{d} command
 Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
-installed versions.
+installed versions (marked with status @samp{obsolete}).
 
 @item x
 @kindex x @r{(Package Menu)}
@@ -194,6 +188,60 @@ from lower-priority archives (@code{package-menu-toggle-hiding}).
 @noindent
 For example, you can install a package by typing @kbd{i} on the line
 listing that package, followed by @kbd{x}.
+
+@node Package Statuses
+@section Package Statuses
+@cindex package status
+
+A package can have one of the following statuses:
+
+@table @samp
+@item available
+The package is not installed, but can be downloaded and installed from
+the package archive.
+
+@item avail-obso
+The package is available for installation, but a newer version is also
+available.  Packages with this status are hidden by default.
+
+@item built-in
+The package is included in Emacs by default.  It cannot be deleted
+through the package menu, and is not considered for upgrading.
+
+@item dependency
+The package was installed automatically to satisfy a dependency of
+another package.
+
+@item disabled
+The package has been disabled using the @code{package-load-list}
+variable.
+
+@item external
+The package is not built-in and not from the directory specified by
+@code{package-user-dir} (@pxref{Package Files}).  External packages
+are treated much like @samp{built-in} packages and cannot be deleted.
+
+@item held
+The package is held, @xref{Package Installation}.
+
+@item incompat
+The package cannot be installed for some reason, for example because
+it depends on uninstallable packages.
+
+@item installed
+The package is installed.
+
+@item new
+Equivalent to @samp{available}, except that the package became newly
+available on the package archive after your last invocation of
+@kbd{M-x list-packages}.
+
+@item obsolete
+The package is an outdated installed version; in addition to this
+version of the package, a newer version is also installed.
+
+@c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
+@end table
 
 @node Package Installation
 @section Package Installation

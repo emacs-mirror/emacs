@@ -728,6 +728,18 @@ and ps-mule to print Unicode characters.
 
 You may have bad fonts.
 
+** Under X, some characters are unexpectedly wide.
+
+e.g. recent versions of Inconsolata show this issue for almost all of
+its characters.  Due to what is probably an Xft bug, the determination
+of the width of some characters is incorrect.  One workaround is to
+build emacs with Cairo enabled ("configure --with-cairo" and have the
+appropriate Cairo development packages installed) as this
+configuration does not suffer from this problem.  See
+<https://github.com/googlefonts/Inconsolata/issues/42> and
+<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-01/msg00456.html>
+for more discussion.
+
 ** Under X, an unexpected monospace font is used as the default font.
 
 When compiled with XFT, Emacs tries to use a default font named

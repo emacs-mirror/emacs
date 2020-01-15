@@ -933,7 +933,8 @@ Paragraphs are separated only by blank lines.
 Semicolons start comments.
 
 \\{lisp-interaction-mode-map}"
-  :abbrev-table nil)
+  :abbrev-table nil
+  (setq-local lexical-binding t))
 
 ;;; Emacs Lisp Byte-Code mode
 

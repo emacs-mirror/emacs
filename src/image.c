@@ -6235,7 +6235,7 @@ pbm_load (struct frame *f, struct image *img)
 				 PNG
  ***********************************************************************/
 
-#if defined (HAVE_PNG) || defined (HAVE_NS) || defined (USE_CAIRO)
+#if defined (HAVE_PNG) || defined (HAVE_NS)
 
 /* Indices of image specification fields in png_format, below.  */
 
@@ -6286,10 +6286,10 @@ png_image_p (Lisp_Object object)
   return fmt[PNG_FILE].count + fmt[PNG_DATA].count == 1;
 }
 
-#endif /* HAVE_PNG || HAVE_NS || USE_CAIRO */
+#endif /* HAVE_PNG || HAVE_NS */
 
 
-#if (defined HAVE_PNG && !defined HAVE_NS) || defined USE_CAIRO
+#if defined HAVE_PNG && !defined HAVE_NS
 
 # ifdef WINDOWSNT
 /* PNG library details.  */
@@ -10164,7 +10164,7 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qsvg), svg_image_p, svg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_svg_functions) },
 #endif
-#if defined HAVE_PNG || defined HAVE_NS || defined USE_CAIRO
+#if defined HAVE_PNG || defined HAVE_NS
  { SYMBOL_INDEX (Qpng), png_image_p, png_load, image_clear_image,
    IMAGE_TYPE_INIT (init_png_functions) },
 #endif
