@@ -149,13 +149,20 @@ letters, digits, plus or minus signs or colons."
 ;;;###autoload
 (defun parse-time-string (string)
   "Parse the time in STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-STRING should be something resembling an RFC 822 (or later) date-time, e.g.,
-\"Fri, 25 Mar 2016 16:24:56 +0100\", but this function is
+STRING should be an ISO 8601 time string, e.g., \"2020-01-15T16:12:21-08:00\",
+or something resembling an RFC 822 (or later) date-time, e.g.,
+\"Wed, 15 Jan 2020 16:12:21 -0800\".  This function is
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
 any unknown values other than DST are returned as nil, and an
 unknown DST value is returned as -1."
+  (condition-case ()
+      (decoded-time-set-defaults (iso8601-parse string))
+    (wrong-type-argument
+     (parse-time--rfc-822ish string))))
+
+(defun parse-time--rfc-822ish (string)
   (let ((time (list nil nil nil nil nil nil nil -1 nil))
 	(temp (parse-time-tokenize (downcase string))))
     (while temp
@@ -196,15 +203,11 @@ unknown DST value is returned as -1."
     time))
 
 (defun parse-iso8601-time-string (date-string)
-  "Parse an ISO 8601 time string, such as 2016-12-01T23:35:06-05:00.
-If DATE-STRING cannot be parsed, it falls back to
-`parse-time-string'."
-  (when-let ((time
-              (if (iso8601-valid-p date-string)
-                  (decoded-time-set-defaults (iso8601-parse date-string))
-                ;; Fall back to having `parse-time-string' do fancy
-                ;; things for us.
-                (parse-time-string date-string))))
+  "Parse an ISO 8601 time string, such as \"2020-01-15T16:12:21-08:00\".
+Fall back on parsing something resembling an RFC 822 (or later) date-time.
+This function is like `parse-time-string' except that it returns
+a Lisp timestamp when successful."
+  (when-let ((time (parse-time-string date-string)))
     (encode-time time)))
 
 (provide 'parse-time)

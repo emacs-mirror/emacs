@@ -70,6 +70,9 @@ called when the function object is garbage-collected.  Use
 'set_function_finalizer' to set the finalizer and
 'get_function_finalizer' to retrieve it.
 
+** 'parse-time-string' can now parse ISO 8601 format strings,
+such as "2020-01-15T16:12:21-08:00".
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
