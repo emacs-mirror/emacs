@@ -160,47 +160,44 @@ unknown DST value is returned as -1."
   (condition-case ()
       (decoded-time-set-defaults (iso8601-parse string))
     (wrong-type-argument
-     (parse-time--rfc-822ish string))))
-
-(defun parse-time--rfc-822ish (string)
-  (let ((time (list nil nil nil nil nil nil nil -1 nil))
-	(temp (parse-time-tokenize (downcase string))))
-    (while temp
-      (let ((parse-time-elt (pop temp))
-	    (rules parse-time-rules)
-	    (exit nil))
-	(while (and rules (not exit))
-	  (let* ((rule (pop rules))
-		 (slots (pop rule))
-		 (predicate (pop rule))
-		 (parse-time-val))
-	    (when (and (not (nth (car slots) time)) ;not already set
-		       (setq parse-time-val
-			     (cond ((and (consp predicate)
-					 (not (functionp predicate)))
-				    (and (numberp parse-time-elt)
-					 (<= (car predicate) parse-time-elt)
-					 (or (not (cdr predicate))
-					     (<= parse-time-elt
-						 (cadr predicate)))
-					 parse-time-elt))
-				   ((symbolp predicate)
-				    (cdr (assoc parse-time-elt
-						(symbol-value predicate))))
-				   ((funcall predicate)))))
-	      (setq exit t)
-	      (while slots
-		(let ((new-val (if rule
-				   (let ((this (pop rule)))
-				     (if (vectorp this)
-					 (cl-parse-integer
-					  parse-time-elt
-					  :start (aref this 0)
-					  :end (aref this 1))
-				       (funcall this)))
-				 parse-time-val)))
-		  (setf (nth (pop slots) time) new-val))))))))
-    time))
+     (let ((time (list nil nil nil nil nil nil nil -1 nil))
+	   (temp (parse-time-tokenize (downcase string))))
+       (while temp
+	 (let ((parse-time-elt (pop temp))
+	       (rules parse-time-rules)
+	       (exit nil))
+	   (while (and rules (not exit))
+	     (let* ((rule (pop rules))
+		    (slots (pop rule))
+		    (predicate (pop rule))
+		    (parse-time-val))
+	       (when (and (not (nth (car slots) time)) ;not already set
+			  (setq parse-time-val
+				(cond ((and (consp predicate)
+					    (not (functionp predicate)))
+				       (and (numberp parse-time-elt)
+					    (<= (car predicate) parse-time-elt)
+					    (or (not (cdr predicate))
+						(<= parse-time-elt
+						    (cadr predicate)))
+					    parse-time-elt))
+				      ((symbolp predicate)
+				       (cdr (assoc parse-time-elt
+						   (symbol-value predicate))))
+				      ((funcall predicate)))))
+		 (setq exit t)
+		 (while slots
+		   (let ((new-val (if rule
+				      (let ((this (pop rule)))
+					(if (vectorp this)
+					    (cl-parse-integer
+					     parse-time-elt
+					     :start (aref this 0)
+					     :end (aref this 1))
+					  (funcall this)))
+				    parse-time-val)))
+		     (setf (nth (pop slots) time) new-val))))))))
+       time))))
 
 (defun parse-iso8601-time-string (date-string)
   "Parse an ISO 8601 time string, such as \"2020-01-15T16:12:21-08:00\".
