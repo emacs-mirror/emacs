@@ -497,28 +497,28 @@ DIRS are relative."
 (defvar startup--xdg-config-home-emacs)
 
 ;; Return the name of the init file directory for Emacs, assuming
-;; XDG-DIR is the XDG location and USER-NAME is the user name.
-;; If USER-NAME is nil or "", use the current user.
-;; Prefer the XDG location unless it does does not exist and the
-;; .emacs.d location does exist.
+;; XDG-DIR is the XDG location and USER-NAME is the user name.  If
+;; USER-NAME is nil or "", use the current user.  Prefer the XDG
+;; location only if the .emacs.d location does not exist.
 (defun startup--xdg-or-homedot (xdg-dir user-name)
-  (if (file-exists-p xdg-dir)
-      xdg-dir
-    (let ((emacs-d-dir (concat "~" user-name
-			       (if (eq system-type 'ms-dos)
-				   "/_emacs.d/"
-				 "/.emacs.d/"))))
-      (if (or (file-exists-p emacs-d-dir)
-	      (if (eq system-type 'windows-nt)
-                  (if (file-directory-p (concat "~" user-name))
-                      (directory-files (concat "~" user-name) nil
-                                       "\\`[._]emacs\\(\\.elc?\\)?\\'"))
-		(file-exists-p (concat "~" init-file-user
-				       (if (eq system-type 'ms-dos)
-					   "/_emacs"
-					 "/.emacs")))))
-	  emacs-d-dir
-	xdg-dir))))
+  (let ((emacs-d-dir (concat "~" user-name
+                             (if (eq system-type 'ms-dos)
+                                 "/_emacs.d/"
+                               "/.emacs.d/"))))
+    (cond
+     ((or (file-exists-p emacs-d-dir)
+          (if (eq system-type 'windows-nt)
+              (if (file-directory-p (concat "~" user-name))
+                  (directory-files (concat "~" user-name) nil
+                                   "\\`[._]emacs\\(\\.elc?\\)?\\'"))
+            (file-exists-p (concat "~" init-file-user
+                                   (if (eq system-type 'ms-dos)
+                                       "/_emacs"
+                                     "/.emacs")))))
+      emacs-d-dir)
+     ((file-exists-p xdg-dir)
+      xdg-dir)
+     (t emacs-d-dir))))
 
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.

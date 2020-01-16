@@ -924,21 +924,22 @@ open_config (char const *home, char const *xdg, char const *config_file)
   char *configname = xmalloc (max (xdgsubdirsize, homesubdirsizemax)
 			      + strlen (config_file));
   FILE *config;
-  if (xdg || home)
+
+  if (home)
     {
-      strcpy ((xdg
-	       ? stpcpy (stpcpy (configname, xdg), "/emacs/server/")
-	       : stpcpy (stpcpy (configname, home), "/.config/emacs/server/")),
-	      config_file);
+      strcpy (stpcpy (stpcpy (configname, home), "/.emacs.d/server/"),
+              config_file);
       config = fopen (configname, "rb");
     }
   else
     config = NULL;
 
-  if (! config && home)
+  if (! config && (xdg || home))
     {
-      strcpy (stpcpy (stpcpy (configname, home), "/.emacs.d/server/"),
-	      config_file);
+      strcpy ((xdg
+               ? stpcpy (stpcpy (configname, xdg), "/emacs/server/")
+               : stpcpy (stpcpy (configname, home), "/.config/emacs/server/")),
+              config_file);
       config = fopen (configname, "rb");
     }
 

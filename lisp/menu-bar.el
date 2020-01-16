@@ -1649,6 +1649,27 @@ mail status in mode line"))
 
     menu))
 
+(defvar menu-bar-shell-commands-menu
+  (let ((menu (make-sparse-keymap "Shell Commands")))
+    (bindings--define-key menu [interactive-shell]
+      '(menu-item "Run Shell Interactively" shell
+                  :help "Run a subshell interactively"))
+
+    (bindings--define-key menu [async-shell-command]
+      '(menu-item "Async Shell Command..." async-shell-command
+                  :help "Invoke a shell command asynchronously in background"))
+
+    (bindings--define-key menu [shell-on-region]
+      '(menu-item "Shell Command on Region..." shell-command-on-region
+                  :enable mark-active
+                  :help "Pass marked region to a shell command"))
+
+    (bindings--define-key menu [shell]
+      '(menu-item "Shell Command..." shell-command
+                  :help "Invoke a shell command and catch its output"))
+
+    menu))
+
 (defun menu-bar-read-mail ()
   "Read mail using `read-mail-command'."
   (interactive)
@@ -1740,16 +1761,14 @@ mail status in mode line"))
     (bindings--define-key menu [gdb]
       '(menu-item "Debugger (GDB)..." gdb
                   :help "Debug a program from within Emacs with GDB"))
-    (bindings--define-key menu [shell-on-region]
-      '(menu-item "Shell Command on Region..." shell-command-on-region
-                  :enable mark-active
-                  :help "Pass marked region to a shell command"))
-    (bindings--define-key menu [shell]
-      '(menu-item "Shell Command..." shell-command
-                  :help "Invoke a shell command and catch its output"))
     (bindings--define-key menu [compile]
       '(menu-item "Compile..." compile
                   :help "Invoke compiler or Make, view compilation errors"))
+
+    (bindings--define-key menu [shell-commands]
+      `(menu-item "Shell Commands"
+                  ,menu-bar-shell-commands-menu))
+
     (bindings--define-key menu [rgrep]
       '(menu-item "Recursive Grep..." rgrep
                   :help "Interactively ask for parameters and search recursively"))

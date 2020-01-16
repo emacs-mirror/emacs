@@ -2737,8 +2737,13 @@ See `read-file-name' for the meaning of the arguments."
   (unless dir (setq dir (or default-directory "~/")))
   (unless (file-name-absolute-p dir) (setq dir (expand-file-name dir)))
   (unless default-filename
-    (setq default-filename (if initial (expand-file-name initial dir)
-                             buffer-file-name)))
+    (setq default-filename
+          (cond
+           ((null initial) buffer-file-name)
+           ;; Special-case "" because (expand-file-name "" "/tmp/") returns
+           ;; "/tmp" rather than "/tmp/" (bug#39057).
+           ((equal "" initial) dir)
+           (t (expand-file-name initial dir)))))
   ;; If dir starts with user's homedir, change that to ~.
   (setq dir (abbreviate-file-name dir))
   ;; Likewise for default-filename.

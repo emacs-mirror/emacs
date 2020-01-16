@@ -2655,26 +2655,37 @@ library.  @xref{Hooks}.
 
   Emacs normally finds your init file in a location under your home
 directory.  @xref{Init File}.  By default this location is
-@file{~/.config/emacs/init.el} where @file{~/} stands for your home directory.
+@file{~/.emacs.d/init.el} where @file{~/} stands for your home directory.
 This default can be overridden as described below.
 
-  If @env{XDG_CONFIG_HOME} is set in your environment, its
-value replaces @file{~/.config} in the name of the default
-init file.
-
-  If the default init file's parent directory does not exist but the
-directory @file{~/.emacs.d} does exist, Emacs looks for your init file
+Emacs looks for your init file
 using the filenames @file{~/.emacs.el}, @file{~/.emacs}, or
 @file{~/.emacs.d/init.el}; you can choose to use any one of these
 names.  (Note that only the locations directly in your home directory
-have a leading dot in the location's basename.)  Although this is
-backward-compatible with older Emacs versions, modern POSIX platforms
-prefer putting your initialization files under @file{~/.config} so
-that troubleshooting a problem that might be due to a bad init file,
-or archiving a collection of init files, can be done by renaming that
-directory.  To help older Emacs versions find configuration files in
-their current default locations, you can execute the following
-Emacs Lisp code:
+have a leading dot in the location's basename.)
+
+Emacs can also look in an XDG-compatible location for @file{init.el},
+the default is the directory @file{~/.config/emacs}.  This can be
+overriden by setting @env{XDG_CONFIG_HOME} in your environment, its
+value replaces @file{~/.config} in the name of the default XDG init
+file.  However @file{~/.emacs.d} and @file{~/.emacs} are always
+preferred if they exist, which means that you must delete or rename
+them in order to use the XDG location.
+
+Note also that if neither the XDG location nor @file{~/.emacs.d}
+exist, then Emacs will create @file{~/.emacs.d} (and therefore use it
+during subsequent invocations).
+
+Emacs will set @var{user-emacs-directory} to the directory it decides
+to use.
+
+Although this is backward-compatible with older Emacs versions, modern
+POSIX platforms prefer putting your initialization files under
+@file{~/.config} so that troubleshooting a problem that might be due
+to a bad init file, or archiving a collection of init files, can be
+done by renaming that directory.  To help older Emacs versions find
+configuration files in their current default locations, you can
+execute the following Emacs Lisp code:
 
 @example
 (make-symbolic-link ".config/emacs" "~/.emacs.d")
@@ -2694,7 +2705,7 @@ otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
 
   For brevity the rest of the Emacs documentation generally uses just
-the current default location @file{~/.config/emacs/init.el} for the
+the current default location @file{~/.emacs.d/init.el} for the
 init file.
 @c  LocalWords:  backtab
 
@@ -2740,7 +2751,7 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @xref{Init File}.  However, it is sometimes desirable
 to have customizations that take effect during Emacs startup earlier than the
 normal init file is processed.  Such customizations can be put in the early
-init file, @file{~/.config/emacs.d/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
+init file, @file{~/.config/emacs/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
 package system and GUI is initialized, so in it you can customize variables
 that affect frame appearance as well as the package initialization process,
 such as @code{package-enable-at-startup}, @code{package-load-list}, and
