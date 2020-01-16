@@ -924,7 +924,6 @@ untar into a directory named DIR; otherwise, signal an error."
                (if (> (length file-list) 1) 'tar 'single))))
       ('tar
        (make-directory package-user-dir t)
-       ;; FIXME: should we delete PKG-DIR if it exists?
        (let* ((default-directory (file-name-as-directory package-user-dir)))
          (package-untar-buffer dirname)))
       ('single
