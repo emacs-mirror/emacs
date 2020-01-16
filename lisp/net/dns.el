@@ -258,10 +258,8 @@ If TCP-P, the first two bytes of the package with be the length field."
       (nreverse spec))))
 
 (defun dns-read-int32 ()
-  ;; Full 32 bit Integers can't be handled by 32-bit Emacsen.  If we
-  ;; use floats, it works.
-  (format "%.0f" (+ (* (dns-read-bytes 1) 16777216.0)
-		    (dns-read-bytes 3))))
+  (declare (obsolete nil "28.1"))
+  (number-to-string (dns-read-bytes 4)))
 
 (defun dns-read-type (string type)
   (let ((buffer (current-buffer))
@@ -286,11 +284,11 @@ If TCP-P, the first two bytes of the package with be the length field."
            ((eq type 'SOA)
             (list (list 'mname (dns-read-name buffer))
                   (list 'rname (dns-read-name buffer))
-                  (list 'serial (dns-read-int32))
-                  (list 'refresh (dns-read-int32))
-                  (list 'retry (dns-read-int32))
-                  (list 'expire (dns-read-int32))
-                  (list 'minimum (dns-read-int32))))
+		  (list 'serial (dns-read-bytes 4))
+		  (list 'refresh (dns-read-bytes 4))
+		  (list 'retry (dns-read-bytes 4))
+		  (list 'expire (dns-read-bytes 4))
+		  (list 'minimum (dns-read-bytes 4))))
            ((eq type 'SRV)
             (list (list 'priority (dns-read-bytes 2))
                   (list 'weight (dns-read-bytes 2))

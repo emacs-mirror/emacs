@@ -58,6 +58,11 @@ incorrect hashes for window configurations and some other objects.
 
 ** The obsolete function 'thread-alive-p' has been removed.
 
+** dns-query now consistently uses Lisp integers to represent integers.
+Formerly it made an exception for integer components of SOA records,
+because SOA serial numbers can exceed fixnum ranges on 32-bit platforms.
+Emacs now supports bignums so this old glitch is no longer needed.
+
 
 * Lisp Changes in Emacs 28.1
 
