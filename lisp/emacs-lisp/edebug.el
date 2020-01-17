@@ -4518,17 +4518,6 @@ With prefix argument, make it a temporary breakpoint."
   (edebug-modify-breakpoint t condition arg))
 
 (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-
-;;; Autoloading of Edebug accessories
-
-;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
-(defun edebug--require-cl-read ()
-  (require 'edebug-cl-read))
-
-(if (featurep 'cl-read)
-    (add-hook 'edebug-setup-hook #'edebug--require-cl-read)
-  ;; The following causes edebug-cl-read to be loaded when you load cl-read.el.
-  (add-hook 'cl-read-load-hooks #'edebug--require-cl-read))
 
 
 ;;; Finalize Loading
@@ -4564,7 +4553,6 @@ With prefix argument, make it a temporary breakpoint."
       (run-with-idle-timer 0 nil #'(lambda () (unload-feature 'edebug)))))
   (remove-hook 'called-interactively-p-functions
                #'edebug--called-interactively-skip)
-  (remove-hook 'cl-read-load-hooks #'edebug--require-cl-read)
   (edebug-uninstall-read-eval-functions)
   ;; Continue standard unloading.
   nil)
