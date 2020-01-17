@@ -2015,7 +2015,7 @@ quit          spell session exited."
 
 (defun ispell--run-on-word (word)
   "Run ispell on WORD."
-  (ispell-send-string "%\n")	; put in verbose mode
+  (ispell-send-string "%\n")	; Put the speller in verbose mode.
   (ispell-send-string (concat "^" word "\n"))
   ;; wait until ispell has processed word
   (while (progn
@@ -2035,13 +2035,13 @@ quit          spell session exited."
           (or ispell-current-dictionary "default")))
 
 (defun ispell-correct-p (&optional following)
-  "Return t if the word at point is correct. Nil otherwise.
+  "Return t if the word at point is correct, nil otherwise.
 
 If optional argument FOLLOWING is non-nil then the following
 word (rather than preceding) is checked when the cursor is not
 over a word."
   (save-excursion
-    ;; reset ispell-filter so it only contains the result of
+    ;; Reset ispell-filter so it only contains the result of
     ;; spell-checking the current-word:
     (setq ispell-filter nil)
     (let* ((word-and-boundaries (ispell-get-word following))

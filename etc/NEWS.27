@@ -1458,6 +1458,14 @@ A new command 'xref-revert-buffer' is bound to 'g'.
 ---
 *** Imenu support has been added to 'xref--xref-buffer-mode'.
 
+** Checkdoc
+
+---
+*** Checkdoc can now optionally spell-check doc strings.
+Invoking 'checkdoc-buffer' with a non-nil TAKE-NOTES argument
+(interactively, with a prefix arg) will now spell-check the doc
+strings and report all the spelling mistakes.
+
 ** Icomplete
 
 +++

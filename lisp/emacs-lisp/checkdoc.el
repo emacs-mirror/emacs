@@ -2110,8 +2110,8 @@ nil."
   (unless ispell-process
     (condition-case nil
 	(progn
-          (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
-          (ispell-accept-buffer-local-defs)   ; use the correct dictionary
+          (ispell-set-spellchecker-params)    ; Initialize variables and dict alists.
+          (ispell-accept-buffer-local-defs)   ; Use the correct dictionary.
 	  ;; This code copied in part from ispell.el Emacs 19.34
 	  (dolist (w checkdoc-ispell-lisp-words)
 	    (process-send-string ispell-process (concat "@" w "\n"))))
