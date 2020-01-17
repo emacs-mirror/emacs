@@ -16148,7 +16148,7 @@ expansion function)."
 
 ;; initialize speedbar
 (if (not (boundp 'speedbar-frame))
-    (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize)
+    (with-no-warnings (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize))
   (vhdl-speedbar-initialize)
   (when speedbar-frame (vhdl-speedbar-refresh)))
 
