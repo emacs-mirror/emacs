@@ -242,6 +242,8 @@ For more information, see Info node `(emacs)Autorevert'."
   :tag "Load Hook"
   :group 'auto-revert
   :type 'hook)
+(make-obsolete-variable 'auto-revert-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom auto-revert-check-vc-info nil
   "If non-nil Auto-Revert Mode reliably updates version control info.

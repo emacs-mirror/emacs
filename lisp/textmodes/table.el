@@ -793,6 +793,8 @@ simply by any key input."
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
+(make-obsolete-variable 'table-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."

@@ -129,6 +129,8 @@
   "Hook that gets run after the aligner has been loaded."
   :type 'hook
   :group 'align)
+(make-obsolete-variable 'align-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom align-indent-before-aligning nil
   "If non-nil, indent the marked region before aligning it."

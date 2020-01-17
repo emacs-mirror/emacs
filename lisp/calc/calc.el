@@ -884,6 +884,8 @@ Used by `calc-user-invocation'.")
 
 (defvar calc-load-hook nil
   "Hook run when calc.el is loaded.")
+(make-obsolete-variable 'calc-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defvar calc-window-hook nil
   "Hook called to create the Calc window.")

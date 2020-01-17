@@ -452,6 +452,8 @@ For each buffer, the hooks are run with that buffer made current."
   "Hook run after Ediff is loaded.  Can be used to change defaults."
   :type 'hook
   :group 'ediff-hook)
+(make-obsolete-variable 'ediff-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom ediff-mode-hook nil
   "Hook run just after ediff-mode is set up in the control buffer.

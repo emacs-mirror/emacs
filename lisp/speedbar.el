@@ -302,6 +302,8 @@ The default buffer is the buffer in the selected window in the attached frame."
   "Hooks run when speedbar is loaded."
   :group 'speedbar
   :type 'hook)
+(make-obsolete-variable 'speedbar-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom speedbar-reconfigure-keymaps-hook nil
   "Hooks run when the keymaps are regenerated."

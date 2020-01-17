@@ -430,6 +430,8 @@ Should be one of:
   "Hook run after initializing the URL library."
   :group 'url
   :type 'hook)
+(make-obsolete-variable 'url-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defconst url-working-buffer " *url-work")
 

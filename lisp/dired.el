@@ -230,6 +230,8 @@ The target is used in the prompt for file copy, rename etc."
 You can customize key bindings or load extensions with this."
   :group 'dired
   :type 'hook)
+(make-obsolete-variable 'dired-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom dired-mode-hook nil
   "Run at the very end of `dired-mode'."
@@ -2210,7 +2212,6 @@ Hooks (use \\[describe-variable] to see their documentation):
   `dired-before-readin-hook'
   `dired-after-readin-hook'
   `dired-mode-hook'
-  `dired-load-hook'
 
 Keybindings:
 \\{dired-mode-map}"

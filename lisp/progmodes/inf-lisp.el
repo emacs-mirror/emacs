@@ -130,9 +130,8 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 
 ;;;  "This function binds many inferior-lisp commands to C-c <letter> bindings,
 ;;;where they are more accessible. C-c <letter> bindings are reserved for the
-;;;user, so these bindings are non-standard. If you want them, you should
-;;;have this function called by the inferior-lisp-load-hook:
-;;;  (add-hook 'inferior-lisp-load-hook 'inferior-lisp-install-letter-bindings)
+;;;user, so these bindings are non-standard. If you want them:
+;;;  (with-eval-after-load 'inf-lisp 'inferior-lisp-install-letter-bindings)
 ;;;You can modify this function to install just the bindings you want."
 (defun inferior-lisp-install-letter-bindings ()
   (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
@@ -632,6 +631,8 @@ See variable `lisp-describe-sym-command'."
 ;;;===============================
 (defvar inferior-lisp-load-hook nil
   "This hook is run when the library `inf-lisp' is loaded.")
+(make-obsolete-variable 'inferior-lisp-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (run-hooks 'inferior-lisp-load-hook)
 
