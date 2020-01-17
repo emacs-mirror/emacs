@@ -97,7 +97,7 @@ reliably than eny such display indicator.
 
 @item
 We removed the features that made visiting large files easier.  Thus,
-Emacs will no longer suggest visiting a large file literally, nor will
+Emacs will no longer suggest visiting a large file literally, nor
 offer the @code{so-long} mode to deal with overly-long lines.  We
 decided that this simplification is worthwhile, given that the general
 tendency of having very large files is becoming a rarity as we move
