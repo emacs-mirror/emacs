@@ -2533,9 +2533,8 @@ To avoid seeing backup files (and other ``uninteresting'' files) in Dired,
 load @code{dired-x} by adding the following to your @file{.emacs} file:
 
 @lisp
-(add-hook 'dired-load-hook
-          (lambda ()
-           (require 'dired-x)))
+(with-eval-after-load 'dired
+  (require 'dired-x))
 @end lisp
 
 With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.

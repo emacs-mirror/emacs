@@ -1068,7 +1068,7 @@ You can integrate @semantic{} with the Speedbar.
 line to your init file:
 
 @example
-(add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
+(with-eval-after-load 'speedbar (require 'semantic/sb))
 @end example
 
 @noindent
