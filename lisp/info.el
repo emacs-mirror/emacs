@@ -5135,9 +5135,8 @@ first line or header line, and for breadcrumb links.")
   "Additional menu-items to add to speedbar frame.")
 
 ;; Make sure our special speedbar major mode is loaded
-(if (featurep 'speedbar)
-    (Info-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook 'Info-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (Info-install-speedbar-variables))
 
 ;;; Info hierarchy display method
 ;;;###autoload

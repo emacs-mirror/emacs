@@ -486,9 +486,8 @@ The value t means that there is no stack, and we are in display-file mode.")
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
-(if (featurep 'speedbar)
-    (gud-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (gud-install-speedbar-variables))
 
 (defun gud-expansion-speedbar-buttons (_directory _zero)
   "Wrapper for call to `speedbar-add-expansion-list'.

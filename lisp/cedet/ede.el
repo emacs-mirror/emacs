@@ -1527,8 +1527,7 @@ It does not apply the value to buffers."
 
 ;; If this does not occur after the provide, we can get a recursive
 ;; load.  Yuck!
-(if (featurep 'speedbar)
-    (ede-speedbar-file-setup)
-  (add-hook 'speedbar-load-hook 'ede-speedbar-file-setup))
+(with-eval-after-load 'speedbar
+  (ede-speedbar-file-setup))
 
 ;;; ede.el ends here
