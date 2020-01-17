@@ -48,6 +48,13 @@ It was declared obsolete in Emacs 27.1.
 ** The sb-image.el library is now marked obsolete.
 This file was a compatibility kludge which is no longer needed.
 
+** Edebug
+
++++
+*** Edebug specification lists can use the new keyword '&error', which
+unconditionally aborts the current edebug instrumentation with the
+supplied error message.
+
 
 * New Modes and Packages in Emacs 28.1
 
