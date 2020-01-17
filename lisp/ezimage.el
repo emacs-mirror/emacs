@@ -270,4 +270,4 @@ See `ezimage-expand-image-button-alist' for details."
 
 (provide 'ezimage)
 
-;;; sb-image.el ends here
+;;; ezimage.el ends here

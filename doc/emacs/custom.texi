@@ -2676,7 +2676,7 @@ Note also that if neither the XDG location nor @file{~/.emacs.d}
 exist, then Emacs will create @file{~/.emacs.d} (and therefore use it
 during subsequent invocations).
 
-Emacs will set @var{user-emacs-directory} to the directory it decides
+Emacs will set @code{user-emacs-directory} to the directory it decides
 to use.
 
 Although this is backward-compatible with older Emacs versions, modern
