@@ -44,6 +44,10 @@ It was declared obsolete in Emacs 27.1.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+---
+** The sb-image.el library is now marked obsolete.
+This file was a compatibility kludge which is no longer needed.
+
 
 * New Modes and Packages in Emacs 28.1
 
