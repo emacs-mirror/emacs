@@ -125,6 +125,15 @@ Return first line of the output of (describe-function-1 FUNC)."
 
 
 ;;; Tests for describe-keymap
+(ert-deftest help-fns-test-find-keymap-name ()
+  (should (equal (help-fns-find-keymap-name lisp-mode-map) 'lisp-mode-map))
+  ;; Follow aliasing.
+  (unwind-protect
+      (progn
+        (defvaralias 'foo-test-map 'lisp-mode-map)
+        (should (equal (help-fns-find-keymap-name foo-test-map) 'lisp-mode-map)))
+    (makunbound 'foo-test-map)))
+
 (ert-deftest help-fns-test-describe-keymap/symbol ()
   (describe-keymap 'minibuffer-local-must-match-map)
   (with-current-buffer "*Help*"

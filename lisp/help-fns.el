@@ -1562,17 +1562,55 @@ BUFFER should be a buffer or a buffer name."
 	  (insert "\nThe parent category table is:")
 	  (describe-vector table 'help-describe-category-set))))))
 
+(defun help-fns-find-keymap-name (keymap)
+  "Find the name of the variable with value KEYMAP.
+Return nil if KEYMAP is not a valid keymap, or if there is no
+variable with value KEYMAP."
+  (when (keymapp keymap)
+    (let ((name (catch 'found-keymap
+                  (mapatoms (lambda (symb)
+                              (when (and (boundp symb)
+                                         (eq (symbol-value symb) keymap)
+                                         (not (eq symb 'keymap))
+                                         (throw 'found-keymap symb)))))
+                  nil)))
+      ;; Follow aliasing.
+      (or (ignore-errors (indirect-variable name)) name))))
+
+(defun help-fns--most-relevant-active-keymap ()
+  "Return the name of the most relevant active keymap.
+The heuristic to determine which keymap is most likely to be
+relevant to a user follows this order:
+
+1. 'keymap' text property at point
+2. 'local-map' text property at point
+3. the `current-local-map'
+
+This is used to set the default value for the interactive prompt
+in `describe-keymap'.  See also `Searching the Active Keymaps'."
+  (help-fns-find-keymap-name (or (get-char-property (point) 'keymap)
+                         (if (get-text-property (point) 'local-map)
+                             (get-char-property (point) 'local-map)
+                           (current-local-map)))))
+
 ;;;###autoload
 (defun describe-keymap (keymap)
   "Describe key bindings in KEYMAP.
 When called interactively, prompt for a variable that has a
 keymap value."
-  (interactive (list
-                (intern (completing-read "Keymap: " obarray
-                                         (lambda (m)
-                                           (and (boundp m)
-                                                (keymapp (symbol-value m))))
-                                         t nil 'variable-name-history))))
+  (interactive
+   (let* ((km (help-fns--most-relevant-active-keymap))
+          (val (completing-read
+                (format "Keymap (default %s): " km)
+                obarray
+                (lambda (m) (and (boundp m) (keymapp (symbol-value m))))
+                t nil 'keymap-name-history
+                (symbol-name km))))
+     (unless (equal val "")
+       (setq km (intern val)))
+     (unless (and km (keymapp (symbol-value km)))
+       (user-error "Not a keymap: %s" km))
+     (list km)))
   (let (used-gentemp)
     (unless (and (symbolp keymap)
                  (boundp keymap)
