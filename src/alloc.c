@@ -104,6 +104,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32heap.h"	/* for sbrk */
 #endif
 
+/* MALLOC_SIZE_NEAR (N) is a good number to pass to malloc when
+   allocating a block of memory with size close to N bytes.
+   For best results N should be a power of 2.
+
+   When calculating how much memory to allocate, GNU malloc (SIZE)
+   adds sizeof (size_t) to SIZE for internal overhead, and then rounds
+   up to a multiple of MALLOC_ALIGNMENT.  Emacs can improve
+   performance a bit on GNU platforms by arranging for the resulting
+   size to be a power of two.  This heuristic is good for glibc 2.0
+   (1997) through at least glibc 2.31 (2020), and does not affect
+   correctness on other platforms.  */
+
+#define MALLOC_SIZE_NEAR(n) \
+  (ROUNDUP (max (n, sizeof (size_t)), MALLOC_ALIGNMENT) - sizeof (size_t))
+#ifdef __i386
+enum { MALLOC_ALIGNMENT = 16 };
+#else
+enum { MALLOC_ALIGNMENT = max (2 * sizeof (size_t), alignof (long double)) };
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 
 /* Specify maximum number of areas to mmap.  It would be nice to use a
@@ -1332,11 +1352,11 @@ lrealloc (void *p, size_t size)
 			 Interval Allocation
  ***********************************************************************/
 
-/* Number of intervals allocated in an interval_block structure.
-   The 1020 is 1024 minus malloc overhead.  */
+/* Number of intervals allocated in an interval_block structure.  */
 
-#define INTERVAL_BLOCK_SIZE \
-  ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
+enum { INTERVAL_BLOCK_SIZE
+         = ((MALLOC_SIZE_NEAR (1024) - sizeof (struct interval_block *))
+	    / sizeof (struct interval)) };
 
 /* Intervals are allocated in chunks in the form of an interval_block
    structure.  */
@@ -1448,10 +1468,9 @@ mark_interval_tree (INTERVAL i)
    longer used, can be easily recognized, and it's easy to compact the
    sblocks of small strings which we do in compact_small_strings.  */
 
-/* Size in bytes of an sblock structure used for small strings.  This
-   is 8192 minus malloc overhead.  */
+/* Size in bytes of an sblock structure used for small strings.  */
 
-#define SBLOCK_SIZE 8188
+enum { SBLOCK_SIZE = MALLOC_SIZE_NEAR (8192) };
 
 /* Strings larger than this are considered large strings.  String data
    for large strings is allocated from individual sblocks.  */
@@ -1526,11 +1545,11 @@ struct sblock
   sdata data[FLEXIBLE_ARRAY_MEMBER];
 };
 
-/* Number of Lisp strings in a string_block structure.  The 1020 is
-   1024 minus malloc overhead.  */
+/* Number of Lisp strings in a string_block structure.  */
 
-#define STRING_BLOCK_SIZE \
-  ((1020 - sizeof (struct string_block *)) / sizeof (struct Lisp_String))
+enum { STRING_BLOCK_SIZE
+         = ((MALLOC_SIZE_NEAR (1024) - sizeof (struct string_block *))
+	    / sizeof (struct Lisp_String)) };
 
 /* Structure describing a block from which Lisp_String structures
    are allocated.  */
