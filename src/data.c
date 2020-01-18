@@ -2293,45 +2293,45 @@ bool-vector.  IDX starts at 0.  */)
     }
   else /* STRINGP */
     {
-      int c;
-
       CHECK_IMPURE (array, XSTRING (array));
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_CHARACTER (newelt);
-      c = XFIXNAT (newelt);
+      int c = XFIXNAT (newelt);
+      ptrdiff_t idxval_byte;
+      int prev_bytes;
+      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
       if (STRING_MULTIBYTE (array))
 	{
-	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf;
-	  ptrdiff_t idxval_byte = string_char_to_byte (array, idxval);
-	  unsigned char *p1 = SDATA (array) + idxval_byte;
-
-	  int prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-	  int new_bytes = CHAR_STRING (c, p0);
-	  if (prev_bytes != new_bytes)
-	    p1 = resize_string_data (array, idxval_byte, prev_bytes, new_bytes);
-
-	  do
-	    *p1++ = *p0++;
-	  while (--new_bytes != 0);
+	  idxval_byte = string_char_to_byte (array, idxval);
+	  p1 = SDATA (array) + idxval_byte;
+	  prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
+	}
+      else if (SINGLE_BYTE_CHAR_P (c))
+	{
+	  SSET (array, idxval, c);
+	  return newelt;
 	}
       else
 	{
-	  if (! SINGLE_BYTE_CHAR_P (c))
-	    {
-	      ptrdiff_t i;
-
-	      for (i = SBYTES (array) - 1; i >= 0; i--)
-		if (SREF (array, i) >= 0x80)
-		  args_out_of_range (array, newelt);
-	      /* ARRAY is an ASCII string.  Convert it to a multibyte
-		 string, and try `aset' again.  */
-	      STRING_SET_MULTIBYTE (array);
-	      return Faset (array, idx, newelt);
-	    }
-	  SSET (array, idxval, c);
+	  for (ptrdiff_t i = SBYTES (array) - 1; i >= 0; i--)
+	    if (!ASCII_CHAR_P (SREF (array, i)))
+	      args_out_of_range (array, newelt);
+	  /* ARRAY is an ASCII string.  Convert it to a multibyte string.  */
+	  STRING_SET_MULTIBYTE (array);
+	  idxval_byte = idxval;
+	  p1 = SDATA (array) + idxval_byte;
+	  prev_bytes = 1;
 	}
+
+      int new_bytes = CHAR_STRING (c, p0);
+      if (prev_bytes != new_bytes)
+	p1 = resize_string_data (array, idxval_byte, prev_bytes, new_bytes);
+
+      do
+	*p1++ = *p0++;
+      while (--new_bytes != 0);
     }
 
   return newelt;
