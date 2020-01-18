@@ -2460,12 +2460,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	if (BOOL_VECTOR_P (o1))
 	  {
 	    EMACS_INT size = bool_vector_size (o1);
-	    if (size != bool_vector_size (o2))
-	      return false;
-	    if (memcmp (bool_vector_data (o1), bool_vector_data (o2),
-			bool_vector_bytes (size)))
-	      return false;
-	    return true;
+	    return (size == bool_vector_size (o2)
+		    && !memcmp (bool_vector_data (o1), bool_vector_data (o2),
+			        bool_vector_bytes (size)));
 	  }
 
 	/* Aside from them, only true vectors, char-tables, compiled
@@ -2491,16 +2488,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
       break;
 
     case Lisp_String:
-      if (SCHARS (o1) != SCHARS (o2))
-	return false;
-      if (SBYTES (o1) != SBYTES (o2))
-	return false;
-      if (memcmp (SDATA (o1), SDATA (o2), SBYTES (o1)))
-	return false;
-      if (equal_kind == EQUAL_INCLUDING_PROPERTIES
-	  && !compare_string_intervals (o1, o2))
-	return false;
-      return true;
+      return (SCHARS (o1) == SCHARS (o2)
+	      && SBYTES (o1) == SBYTES (o2)
+	      && !memcmp (SDATA (o1), SDATA (o2), SBYTES (o1))
+	      && (equal_kind != EQUAL_INCLUDING_PROPERTIES
+	          || compare_string_intervals (o1, o2)));
 
     default:
       break;
@@ -4681,24 +4673,19 @@ sxhash (Lisp_Object obj)
 static EMACS_UINT
 sxhash_obj (Lisp_Object obj, int depth)
 {
-  EMACS_UINT hash;
-
   if (depth > SXHASH_MAX_DEPTH)
     return 0;
 
   switch (XTYPE (obj))
     {
     case_Lisp_Int:
-      hash = XUFIXNUM (obj);
-      break;
+      return XUFIXNUM (obj);
 
     case Lisp_Symbol:
-      hash = XHASH (obj);
-      break;
+      return XHASH (obj);
 
     case Lisp_String:
-      hash = sxhash_string (SSDATA (obj), SBYTES (obj));
-      break;
+      return sxhash_string (SSDATA (obj), SBYTES (obj));
 
     case Lisp_Vectorlike:
       {
@@ -4710,40 +4697,46 @@ sxhash_obj (Lisp_Object obj, int depth)
 	       Emacs, this works differently.  We have to compare element
 	       by element.  Same for pseudovectors that internal_equal
 	       examines the Lisp contents of.  */
-	    hash = sxhash_vector (obj, depth);
-	    break;
+	    return (SUB_CHAR_TABLE_P (obj)
+	            /* 'sxhash_vector' can't be applies to a sub-char-table and
+	              it's probably not worth looking into them anyway!  */
+	            ? 42
+	            : sxhash_vector (obj, depth));
 	  }
 	else if (pvec_type == PVEC_BIGNUM)
-	  hash = sxhash_bignum (obj);
+	  return sxhash_bignum (obj);
 	else if (pvec_type == PVEC_MARKER)
 	  {
 	    ptrdiff_t bytepos
 	      = XMARKER (obj)->buffer ? XMARKER (obj)->bytepos : 0;
-	    hash = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
-	    hash = SXHASH_REDUCE (hash);
+	    EMACS_UINT hash
+	      = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
+	    return SXHASH_REDUCE (hash);
 	  }
 	else if (pvec_type == PVEC_BOOL_VECTOR)
-	  hash = sxhash_bool_vector (obj);
+	  return sxhash_bool_vector (obj);
+	else if (pvec_type == PVEC_OVERLAY)
+	  {
+	    EMACS_UINT hash = sxhash_obj (OVERLAY_START (obj), depth);
+	    hash = sxhash_combine (hash, sxhash_obj (OVERLAY_END (obj), depth));
+	    hash = sxhash_combine (hash, sxhash_obj (XOVERLAY (obj)->plist, depth));
+	    return SXHASH_REDUCE (hash);
+	  }
 	else
 	  /* Others are 'equal' if they are 'eq', so take their
 	     address as hash.  */
-	  hash = XHASH (obj);
+	  return XHASH (obj);
       }
-      break;
 
     case Lisp_Cons:
-      hash = sxhash_list (obj, depth);
-      break;
+      return sxhash_list (obj, depth);
 
     case Lisp_Float:
-      hash = sxhash_float (XFLOAT_DATA (obj));
-      break;
+      return sxhash_float (XFLOAT_DATA (obj));
 
     default:
       emacs_abort ();
     }
-
-  return hash;
 }
 
 
