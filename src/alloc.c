@@ -1786,13 +1786,12 @@ allocate_string (void)
 
    If CLEARIT, also clear the other bytes of S->u.s.data.  */
 
-void
+static void
 allocate_string_data (struct Lisp_String *s,
 		      EMACS_INT nchars, EMACS_INT nbytes, bool clearit)
 {
-  sdata *data, *old_data;
+  sdata *data;
   struct sblock *b;
-  ptrdiff_t old_nbytes;
 
   if (STRING_BYTES_MAX < nbytes)
     string_overflow ();
@@ -1800,13 +1799,6 @@ allocate_string_data (struct Lisp_String *s,
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
   ptrdiff_t needed = sdata_size (nbytes);
-  if (s->u.s.data)
-    {
-      old_data = SDATA_OF_STRING (s);
-      old_nbytes = STRING_BYTES (s);
-    }
-  else
-    old_data = NULL;
 
   MALLOC_BLOCK_INPUT;
 
@@ -1875,16 +1867,53 @@ allocate_string_data (struct Lisp_String *s,
 	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
 
-  /* Note that Faset may call to this function when S has already data
-     assigned.  In this case, mark data as free by setting it's string
-     back-pointer to null, and record the size of the data in it.  */
-  if (old_data)
+  tally_consing (needed);
+}
+
+/* Reallocate the data for STRING when a single character is replaced.
+   The character is at byte offset CIDX_BYTE in the string.
+   The character being replaced is CLEN bytes long,
+   and the character that will replace it is NEW_CLEN bytes long.
+   Return the address of where the caller should store the
+   the new character.  */
+
+unsigned char *
+resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
+		    int clen, int new_clen)
+{
+  sdata *old_sdata = SDATA_OF_STRING (XSTRING (string));
+  ptrdiff_t nchars = SCHARS (string);
+  ptrdiff_t nbytes = SBYTES (string);
+  ptrdiff_t new_nbytes = nbytes + (new_clen - clen);
+  unsigned char *data = SDATA (string);
+  unsigned char *new_charaddr;
+
+  if (sdata_size (nbytes) == sdata_size (new_nbytes))
     {
-      SDATA_NBYTES (old_data) = old_nbytes;
-      old_data->string = NULL;
+      /* No need to reallocate, as the size change falls within the
+	 alignment slop.  */
+      new_charaddr = data + cidx_byte;
+      memmove (new_charaddr + new_clen, new_charaddr + clen,
+	       nbytes - (cidx_byte + (clen - 1)));
+    }
+  else
+    {
+      allocate_string_data (XSTRING (string), nchars, new_nbytes, false);
+      unsigned char *new_data = SDATA (string);
+      new_charaddr = new_data + cidx_byte;
+      memcpy (new_charaddr + new_clen, data + cidx_byte + clen,
+	      nbytes - (cidx_byte + clen));
+      memcpy (new_data, data, cidx_byte);
+
+      /* Mark old string data as free by setting its string back-pointer
+	 to null, and record the size of the data in it.  */
+      SDATA_NBYTES (old_sdata) = nbytes;
+      old_sdata->string = NULL;
     }
 
-  tally_consing (needed);
+  clear_string_char_byte_cache ();
+
+  return new_charaddr;
 }
 
 

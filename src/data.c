@@ -2303,34 +2303,18 @@ bool-vector.  IDX starts at 0.  */)
 
       if (STRING_MULTIBYTE (array))
 	{
-	  ptrdiff_t idxval_byte, nbytes;
-	  int prev_bytes, new_bytes;
-	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
+	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf;
+	  ptrdiff_t idxval_byte = string_char_to_byte (array, idxval);
+	  unsigned char *p1 = SDATA (array) + idxval_byte;
 
-	  nbytes = SBYTES (array);
-	  idxval_byte = string_char_to_byte (array, idxval);
-	  p1 = SDATA (array) + idxval_byte;
-	  prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-	  new_bytes = CHAR_STRING (c, p0);
+	  int prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
+	  int new_bytes = CHAR_STRING (c, p0);
 	  if (prev_bytes != new_bytes)
-	    {
-	      /* We must relocate the string data.  */
-	      ptrdiff_t nchars = SCHARS (array);
-	      USE_SAFE_ALLOCA;
-	      unsigned char *str = SAFE_ALLOCA (nbytes);
+	    p1 = resize_string_data (array, idxval_byte, prev_bytes, new_bytes);
 
-	      memcpy (str, SDATA (array), nbytes);
-	      allocate_string_data (XSTRING (array), nchars,
-				    nbytes + new_bytes - prev_bytes, false);
-	      memcpy (SDATA (array), str, idxval_byte);
-	      p1 = SDATA (array) + idxval_byte;
-	      memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
-		      nbytes - (idxval_byte + prev_bytes));
-	      SAFE_FREE ();
-	      clear_string_char_byte_cache ();
-	    }
-	  while (new_bytes--)
+	  do
 	    *p1++ = *p0++;
+	  while (--new_bytes != 0);
 	}
       else
 	{
