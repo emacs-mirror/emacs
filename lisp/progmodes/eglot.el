@@ -1050,15 +1050,20 @@ be set to `eglot-move-to-lsp-abiding-column', and
 
 (defun eglot-move-to-lsp-abiding-column (column)
   "Move to COLUMN abiding by the LSP spec."
-  (cl-loop
-   initially (move-to-column column)
-   with lbp = (line-beginning-position)
-   for diff = (- column
-                 (/ (- (length (encode-coding-region lbp (point) 'utf-16 t))
-                       2)
-                    2))
-   until (zerop diff)
-   do (forward-char (/ (if (> diff 0) (1+ diff) (1- diff)) 2))))
+  (save-restriction
+    (cl-loop
+     with lbp = (line-beginning-position)
+     initially
+     (narrow-to-region lbp (line-end-position))
+     (move-to-column column)
+     for diff = (- column
+                   (/ (- (length (encode-coding-region lbp (point) 'utf-16 t))
+                         2)
+                      2))
+     until (zerop diff)
+     do (condition-case eob-err
+            (forward-char (/ (if (> diff 0) (1+ diff) (1- diff)) 2))
+          (end-of-buffer (cl-return eob-err))))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
