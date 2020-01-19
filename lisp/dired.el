@@ -3858,9 +3858,10 @@ With prefix argument, unmark or unflag these files."
 	    (if fn (backup-file-name-p fn))))
      "backup file")))
 
-(defun dired-change-marks (&optional old new)
+(defun dired-change-marks (old new)
   "Change all OLD marks to NEW marks.
 OLD and NEW are both characters used to mark files."
+  (declare (advertised-calling-convention '(old new) "28.1"))
   (interactive
    (let* ((cursor-in-echo-area t)
 	  (old (progn (message "Change (old mark): ") (read-char)))
