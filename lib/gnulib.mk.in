@@ -127,7 +127,6 @@
 #  pipe2 \
 #  pselect \
 #  pthread_sigmask \
-#  putenv \
 #  qcopy-acl \
 #  readlink \
 #  readlinkat \
@@ -2161,17 +2160,6 @@ EXTRA_libgnu_a_SOURCES += pthread_sigmask.c
 
 endif
 ## end   gnulib module pthread_sigmask
-
-## begin gnulib module putenv
-ifeq (,$(OMIT_GNULIB_MODULE_putenv))
-
-
-EXTRA_DIST += putenv.c
-
-EXTRA_libgnu_a_SOURCES += putenv.c
-
-endif
-## end   gnulib module putenv
 
 ## begin gnulib module qcopy-acl
 ifeq (,$(OMIT_GNULIB_MODULE_qcopy-acl))
