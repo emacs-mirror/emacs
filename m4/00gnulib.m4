@@ -1,4 +1,4 @@
-# 00gnulib.m4 serial 5
+# 00gnulib.m4 serial 7
 dnl Copyright (C) 2009-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -48,24 +48,34 @@ m4_version_prereq([2.63.263], [],
 # mode.  As of clang 9.0, these "known" functions are identified through
 # LIBBUILTIN invocations in the LLVM source file
 # llvm/tools/clang/include/clang/Basic/Builtins.def.
+# It's not possible to AC_REQUIRE the extra tests from AC_CHECK_DECL,
+# because AC_CHECK_DECL, like other Autoconf built-ins, is not supposed
+# to AC_REQUIRE anything: some configure.ac files have their first
+# AC_CHECK_DECL executed conditionally.  Therefore append the extra tests
+# to AC_PROG_CC.
 AC_DEFUN([gl_COMPILER_CLANG],
 [
-  AC_REQUIRE([AC_PROG_CC])
+dnl AC_REQUIRE([AC_PROG_CC])
   AC_CACHE_CHECK([whether the compiler is clang],
     [gl_cv_compiler_clang],
-    [AC_EGREP_CPP([barfbarf],[
-#ifdef __clang__
-barfbarf
-#endif
-       ],
-       [gl_cv_compiler_clang=yes],
-       [gl_cv_compiler_clang=no])
+    [dnl Use _AC_COMPILE_IFELSE instead of AC_EGREP_CPP, to avoid error
+     dnl "circular dependency of AC_LANG_COMPILER(C)" if AC_PROG_CC has
+     dnl not yet been invoked.
+     _AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[
+           #ifdef __clang__
+           barfbarf
+           #endif
+           ]],[[]])
+        ],
+        [gl_cv_compiler_clang=no],
+        [gl_cv_compiler_clang=yes])
     ])
 ])
-AC_DEFUN_ONCE([gl_COMPILER_PREPARE_CHECK_DECL],
+AC_DEFUN([gl_COMPILER_PREPARE_CHECK_DECL],
 [
-  AC_REQUIRE([AC_PROG_CC])
-  AC_REQUIRE([gl_COMPILER_CLANG])
+dnl AC_REQUIRE([AC_PROG_CC])
+dnl AC_REQUIRE([gl_COMPILER_CLANG])
   AC_CACHE_CHECK([for compiler option needed when checking for declarations],
     [gl_cv_compiler_check_decl_option],
     [if test $gl_cv_compiler_clang = yes; then
@@ -73,7 +83,9 @@ AC_DEFUN_ONCE([gl_COMPILER_PREPARE_CHECK_DECL],
        dnl '-Werror=implicit-function-declaration'.
        save_ac_compile="$ac_compile"
        ac_compile="$ac_compile -Werror=implicit-function-declaration"
-       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],
+       dnl Use _AC_COMPILE_IFELSE instead of AC_COMPILE_IFELSE, to avoid a
+       dnl warning "AC_COMPILE_IFELSE was called before AC_USE_SYSTEM_EXTENSIONS".
+       _AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],
          [gl_cv_compiler_check_decl_option='-Werror=implicit-function-declaration'],
          [gl_cv_compiler_check_decl_option=none])
        ac_compile="$save_ac_compile"
@@ -88,18 +100,15 @@ AC_DEFUN_ONCE([gl_COMPILER_PREPARE_CHECK_DECL],
   fi
 ])
 dnl Redefine _AC_CHECK_DECL_BODY so that it references ac_compile_for_check_decl
-dnl instead of ac_compile.
+dnl instead of ac_compile.  If, for whatever reason, the override of AC_PROG_CC
+dnl in zzgnulib.m4 is inactive, use the original ac_compile.
 m4_define([_AC_CHECK_DECL_BODY],
 [  ac_save_ac_compile="$ac_compile"
-  ac_compile="$ac_compile_for_check_decl"]
+  if test -n "$ac_compile_for_check_decl"; then
+    ac_compile="$ac_compile_for_check_decl"
+  fi]
 m4_defn([_AC_CHECK_DECL_BODY])[  ac_compile="$ac_save_ac_compile"
 ])
-  ])
-dnl Redefine AC_CHECK_DECL so that it starts with an invocation of
-dnl gl_COMPILER_PREPARE_CHECK_DECL.
-m4_define([AC_CHECK_DECL],
-  [gl_COMPILER_PREPARE_CHECK_DECL dnl
-]m4_defn([AC_CHECK_DECL]))
 
 # gl_00GNULIB
 # -----------
