@@ -181,10 +181,9 @@ It is used for TCP/IP devices."
   "Invoke the ADB handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 ARGUMENTS to pass to the OPERATION."
-  (let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) arguments))
-      (tramp-run-real-handler operation arguments))))
+  (if-let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) arguments))
+    (tramp-run-real-handler operation arguments)))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -234,8 +233,7 @@ ARGUMENTS to pass to the OPERATION."
   "Like `file-truename' for Tramp files."
   ;; Preserve trailing "/".
   (funcall
-   (if (tramp-compat-directory-name-p filename)
-       #'file-name-as-directory #'identity)
+   (if (directory-name-p filename) #'file-name-as-directory #'identity)
    ;; Quote properly.
    (funcall
     (if (tramp-compat-file-name-quoted-p filename)
@@ -719,7 +717,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(with-tramp-progress-reporter
@@ -739,39 +737,37 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (tramp-shell-quote-argument l2))
 		 "Error copying %s to %s" filename newname))
 
-	    (let ((tmpfile (file-local-copy filename)))
+	    (if-let ((tmpfile (file-local-copy filename)))
+		;; Remote filename.
+		(condition-case err
+		    (rename-file tmpfile newname ok-if-already-exists)
+		  ((error quit)
+		   (delete-file tmpfile)
+		   (signal (car err) (cdr err))))
 
-	      (if tmpfile
-		  ;; Remote filename.
-		  (condition-case err
-		      (rename-file tmpfile newname ok-if-already-exists)
-		    ((error quit)
-		     (delete-file tmpfile)
-		     (signal (car err) (cdr err))))
+	      ;; Remote newname.
+	      (when (and (file-directory-p newname)
+			 (directory-name-p newname))
+		(setq newname
+		      (expand-file-name
+		       (file-name-nondirectory filename) newname)))
 
-		;; Remote newname.
-		(when (and (file-directory-p newname)
-			   (tramp-compat-directory-name-p newname))
-		  (setq newname
-			(expand-file-name
-			 (file-name-nondirectory filename) newname)))
+	      (with-parsed-tramp-file-name newname nil
+		(when (and (not ok-if-already-exists)
+			   (file-exists-p newname))
+		  (tramp-error v 'file-already-exists newname))
 
-		(with-parsed-tramp-file-name newname nil
-		  (when (and (not ok-if-already-exists)
-			     (file-exists-p newname))
-		    (tramp-error v 'file-already-exists newname))
-
-		  ;; We must also flush the cache of the directory,
-		  ;; because `file-attributes' reads the values from
-		  ;; there.
-		  (tramp-flush-file-properties v localname)
-		  (when (tramp-adb-execute-adb-command
-			 v "push"
-			 (tramp-compat-file-name-unquote filename)
-			 (tramp-compat-file-name-unquote localname))
-		    (tramp-error
-		     v 'file-error
-		     "Cannot copy `%s' `%s'" filename newname)))))))))
+		;; We must also flush the cache of the directory,
+		;; because `file-attributes' reads the values from
+		;; there.
+		(tramp-flush-file-properties v localname)
+		(when (tramp-adb-execute-adb-command
+		       v "push"
+		       (tramp-compat-file-name-unquote filename)
+		       (tramp-compat-file-name-unquote localname))
+		  (tramp-error
+		   v 'file-error
+		   "Cannot copy `%s' `%s'" filename newname))))))))
 
     ;; KEEP-DATE handling.
     (when keep-date
@@ -801,7 +797,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(with-tramp-progress-reporter

@@ -67,8 +67,6 @@
 (defvar tramp-remote-path)
 (defvar tramp-remote-process-environment)
 
-;; Needed for Emacs 24.
-(defvar inhibit-message)
 ;; Needed for Emacs 25.
 (defvar connection-local-criteria-alist)
 (defvar connection-local-profile-alist)
@@ -100,8 +98,8 @@
       (add-to-list
        'tramp-default-host-alist
        `("\\`mock\\'" nil ,(system-name)))
-      ;; Emacs' Makefile sets $HOME to a nonexistent value.  Needed in
-      ;; batch mode only, therefore.
+      ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
+      ;; in batch mode only, therefore.
       (unless (and (null noninteractive) (file-directory-p "~/"))
         (setenv "HOME" temporary-file-directory))
       (format "/mock::%s" temporary-file-directory)))
@@ -112,7 +110,6 @@
       remote-file-name-inhibit-cache nil
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-copy-size-limit nil
-      tramp-message-show-message nil
       tramp-persistency-file-name nil
       tramp-verbose 0)
 
@@ -177,7 +174,6 @@ Print the content of the Tramp connection and debug buffers, if
 properly.  BODY shall not contain a timeout."
   (declare (indent 1) (debug (natnump body)))
   `(let ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
-	 (tramp-message-show-message t)
 	 (debug-ignored-errors
 	  (append
 	   '("^make-symbolic-link not supported$"
@@ -2039,7 +2035,7 @@ properly.  BODY shall not contain a timeout."
       "/method:host:/:/path//foo"))
 
     ;; Forwhatever reasons, the following tests let Emacs crash for
-    ;; Emacs 24 and Emacs 25, occasionally. No idea what's up.
+    ;; Emacs 25, occasionally. No idea what's up.
     (when (tramp--test-emacs26-p)
       (should
        (string-equal (substitute-in-file-name "/method:host://~foo") "/~foo"))
@@ -2238,7 +2234,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (string-equal
 	    (file-name-as-directory file)
-	    (if (tramp-completion-mode-p)
+	    (if non-essential
 		file (concat file (if (tramp--test-ange-ftp-p) "/" "./")))))
 	  (should (string-equal (file-name-directory file) file))
 	  (should (string-equal (file-name-nondirectory file) "")))))))
@@ -2376,7 +2372,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    ;; Check message.
 	    ;; Macro `ert-with-message-capture' was introduced in Emacs 26.1.
 	    (with-no-warnings (when (symbol-plist 'ert-with-message-capture)
-	      (let ((tramp-message-show-message t))
+	      (let (inhibit-message)
 		(dolist
 		    (noninteractive (unless (tramp--test-ange-ftp-p) '(nil t)))
 		  (dolist (visit '(nil t "string" no-message))
@@ -4242,8 +4238,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
-  ;; `make-process' has been inserted in Emacs 25.1.  It supports file
-  ;; name handlers since Emacs 27.
+  ;; `make-process' supports file name handlers since Emacs 27.
   (skip-unless (tramp--test-emacs27-p))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
@@ -4965,13 +4960,9 @@ INPUT, if non-nil, is a string sent to the process."
 		(error (ert-skip "`vc-create-repo' not supported")))
 	      ;; The structure of VC-FILESET is not documented.  Let's
 	      ;; hope it won't change.
-	      (condition-case nil
-		  (vc-register
-		   (list (car vc-handled-backends)
-			 (list (file-name-nondirectory tmp-name2))))
-		;; `vc-register' has changed its arguments in Emacs
-		;; 25.1.  Let's skip it for older Emacsen.
-		(error (skip-unless (tramp--test-emacs25-p))))
+	      (vc-register
+	       (list (car vc-handled-backends)
+		     (list (file-name-nondirectory tmp-name2))))
 	      ;; vc-git uses an own process sentinel, Tramp's sentinel
 	      ;; for flushing the cache isn't used.
 	      (dired-uncache (concat (file-remote-p default-directory) "/"))
@@ -5227,12 +5218,6 @@ INPUT, if non-nil, is a string sent to the process."
     (should (file-directory-p tmp-file))
     (delete-directory tmp-file)
     (should-not (file-exists-p tmp-file))))
-
-(defun tramp--test-emacs25-p ()
-  "Check for Emacs version >= 25.1.
-Some semantics has been changed for there, w/o new functions or
-variables, so we check the Emacs version directly."
-  (>= emacs-major-version 25))
 
 (defun tramp--test-emacs26-p ()
   "Check for Emacs version >= 26.1.
@@ -6162,12 +6147,14 @@ Since it unloads Tramp, it shall be the last test to run."
      (and (or (and (boundp x) (null (local-variable-if-set-p x)))
 	      (and (functionp x) (null (autoloadp (symbol-function x)))))
 	  (string-match "^tramp" (symbol-name x))
+	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
+	  (not (eq 'tramp-completion-mode x))
 	  (not (string-match "^tramp\\(-archive\\)?--?test" (symbol-name x)))
 	  (not (string-match "unload-hook$" (symbol-name x)))
 	  (ert-fail (format "`%s' still bound" x)))))
   ;; The defstruct `tramp-file-name' and all its internal functions
-  ;; shall be purged.  `cl--find-class' must be protected in Emacs 24.
-  (with-no-warnings (should-not (cl--find-class 'tramp-file-name)))
+  ;; shall be purged.
+  (should-not (cl--find-class 'tramp-file-name))
   (mapatoms
    (lambda (x)
      (and (functionp x)
@@ -6214,4 +6201,5 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
 
 (provide 'tramp-tests)
+
 ;;; tramp-tests.el ends here

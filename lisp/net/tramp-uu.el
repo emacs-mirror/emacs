@@ -94,8 +94,3 @@
 (provide 'tramp-uu)
 
 ;;; tramp-uu.el ends here
-
-;; Local Variables:
-;; mode: Emacs-Lisp
-;; coding: utf-8
-;; End:

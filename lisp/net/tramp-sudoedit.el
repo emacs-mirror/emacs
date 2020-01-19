@@ -153,10 +153,9 @@ See `tramp-actions-before-shell' for more info.")
   "Invoke the SUDOEDIT handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -248,7 +247,7 @@ absolute file names."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(if (or (and (file-remote-p filename) (not t1))
@@ -541,8 +540,7 @@ the result will be a local, non-Tramp, file name."
   "Like `file-truename' for Tramp files."
   ;; Preserve trailing "/".
   (funcall
-   (if (tramp-compat-directory-name-p filename)
-       #'file-name-as-directory #'identity)
+   (if (directory-name-p filename) #'file-name-as-directory #'identity)
    ;; Quote properly.
    (funcall
     (if (tramp-compat-file-name-quoted-p filename)

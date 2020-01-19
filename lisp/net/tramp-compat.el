@@ -23,15 +23,15 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is Emacs 27.  This
-;; package provides compatibility functions for Emacs 24, Emacs 25 and
-;; Emacs 26.
+;; Tramp's main Emacs version for development is Emacs 28.  This
+;; package provides compatibility functions for Emacs 25, Emacs 26 and
+;; Emacs 27.
 
 ;;; Code:
 
-;; In Emacs 24 and 25, `tramp-unload-file-name-handlers' is not
-;; autoloaded.  So we declare it here in order to avoid recursive
-;; load.  This will be overwritten in tramp.el.
+;; In Emacs 25, `tramp-unload-file-name-handlers' is not autoloaded.
+;; So we declare it here in order to avoid recursive load.  This will
+;; be overwritten in tramp.el.
 (defun tramp-unload-file-name-handlers () ".")
 
 (require 'auth-source)
@@ -51,6 +51,8 @@
   "Call FUNCTION with ARGUMENTS if it exists.  Do not raise compiler warnings."
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
+
+(put #'tramp-compat-funcall 'tramp-suppress-trace t)
 
 (defsubst tramp-compat-temporary-file-directory ()
   "Return name of directory for temporary files.
@@ -78,28 +80,18 @@ Add the extension of F, if existing."
 (defun tramp-compat-process-running-p (process-name)
   "Return t if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)
-    (cond
-     ;; GNU Emacs 22 on w32.
-     ((fboundp 'w32-window-exists-p)
-      (tramp-compat-funcall 'w32-window-exists-p process-name process-name))
+    (let (result)
+      (dolist (pid (tramp-compat-funcall 'list-system-processes) result)
+	(let ((attributes (process-attributes pid)))
+	  (and (string-equal (cdr (assoc 'user attributes)) (user-login-name))
+               (when-let ((comm (cdr (assoc 'comm attributes))))
+                 ;; The returned command name could be truncated to 15
+                 ;; characters.  Therefore, we cannot check for
+                 ;; `string-equal'.
+		 (string-match-p (concat "^" (regexp-quote comm)) process-name))
+	       (setq result t)))))))
 
-     ;; GNU Emacs 23+.
-     ((and (fboundp 'list-system-processes) (fboundp 'process-attributes))
-      (let (result)
-	(dolist (pid (tramp-compat-funcall 'list-system-processes) result)
-	  (let ((attributes (process-attributes pid)))
-	    (when (and (string-equal
-                        (cdr (assoc 'user attributes)) (user-login-name))
-                       (let ((comm (cdr (assoc 'comm attributes))))
-                         ;; The returned command name could be truncated
-                         ;; to 15 characters.  Therefore, we cannot check
-                         ;; for `string-equal'.
-                         (and comm (string-match-p
-                                    (concat "^" (regexp-quote comm))
-                                    process-name))))
-	      (setq result t)))))))))
-
-;; `file-attribute-*' are introduced in Emacs 25.1.
+;; `file-attribute-*' are introduced in Emacs 26.1.
 
 (defalias 'tramp-compat-file-attribute-type
   (if (fboundp 'file-attribute-type)
@@ -181,24 +173,6 @@ and later, and is a float in Emacs 26 and earlier."
 This is a string of ten letters or dashes as in ls -l."
       (nth 8 attributes))))
 
-;; `format-message' is new in Emacs 25.1.
-(unless (fboundp 'format-message)
-  (defalias 'format-message #'format))
-
-;; `directory-name-p' is new in Emacs 25.1.
-(defalias 'tramp-compat-directory-name-p
-  (if (fboundp 'directory-name-p)
-      #'directory-name-p
-    (lambda (name)
-      "Return non-nil if NAME ends with a directory separator character."
-      (let ((len (length name))
-            (lastc ?.))
-	(if (> len 0)
-            (setq lastc (aref name (1- len))))
-	(or (= lastc ?/)
-            (and (memq system-type '(windows-nt ms-dos))
-		 (= lastc ?\\)))))))
-
 ;; `file-missing' is introduced in Emacs 26.1.
 (defconst tramp-file-missing
   (if (get 'file-missing 'error-conditions) 'file-missing 'file-error)
@@ -266,13 +240,6 @@ NAME is unquoted."
 	((eq tramp-syntax 'sep) 'separate)
 	(t tramp-syntax)))
 
-;; `cl-struct-slot-info' has been introduced with Emacs 25.
-(defmacro tramp-compat-tramp-file-name-slots ()
-  "Return a list of slot names."
-  (if (fboundp 'cl-struct-slot-info)
-      '(cdr (mapcar #'car (cl-struct-slot-info 'tramp-file-name)))
-    '(cdr (mapcar #'car (get 'tramp-file-name 'cl-struct-slots)))))
-
 ;; The signature of `tramp-make-tramp-file-name' has been changed.
 ;; Therefore, we cannot use `url-tramp-convert-url-to-tramp' prior
 ;; Emacs 26.1.  We use `temporary-file-directory' as indicator.
@@ -285,10 +252,9 @@ NAME is unquoted."
       #'exec-path
     (lambda ()
       "List of directories to search programs to run in remote subprocesses."
-      (let ((handler (find-file-name-handler default-directory 'exec-path)))
-	(if handler
-	    (funcall handler 'exec-path)
-	  exec-path)))))
+      (if-let ((handler (find-file-name-handler default-directory 'exec-path)))
+	  (funcall handler 'exec-path)
+	exec-path))))
 
 ;; `time-equal-p' has appeared in Emacs 27.1.
 (defalias 'tramp-compat-time-equal-p
@@ -327,11 +293,6 @@ A nil value for either argument stands for the current time."
 	  (lambda ()
 	    (unload-feature 'tramp-loaddefs 'force)
 	    (unload-feature 'tramp-compat 'force)))
-
-;;; TODO:
-;;
-;; * Starting with Emacs 25.1, replace `tramp-message-show-message' by
-;;   the reverse of `inhibit-message'.
 
 (provide 'tramp-compat)
 

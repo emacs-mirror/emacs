@@ -1114,8 +1114,7 @@ component is used as the target of the symlink."
   "Like `file-truename' for Tramp files."
   ;; Preserve trailing "/".
   (funcall
-   (if (tramp-compat-directory-name-p filename)
-       #'file-name-as-directory #'identity)
+   (if (directory-name-p filename) #'file-name-as-directory #'identity)
    ;; Quote properly.
    (funcall
     (if (tramp-compat-file-name-quoted-p filename)
@@ -1273,8 +1272,8 @@ component is used as the target of the symlink."
 (defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
   (let (symlinkp dirp
-		 res-inode res-filemodes res-numlinks
-		 res-uid res-gid res-size res-symlink-target)
+	res-inode res-filemodes res-numlinks
+	res-uid res-gid res-size res-symlink-target)
     (tramp-message vec 5 "file attributes with ls: %s" localname)
     ;; We cannot send all three commands combined, it could exceed
     ;; NAME_MAX or PATH_MAX.  Happened on macOS, for example.
@@ -1958,7 +1957,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	  ;; scp or rsync DTRT.
 	  (progn
 	    (when (and (file-directory-p newname)
-		       (not (tramp-compat-directory-name-p newname)))
+		       (not (directory-name-p newname)))
 	      (tramp-error v 'file-already-exists newname))
 	    (setq dirname (directory-file-name (expand-file-name dirname))
 		  newname (directory-file-name (expand-file-name newname)))
@@ -2040,7 +2039,7 @@ file names."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(with-tramp-progress-reporter
@@ -2724,7 +2723,7 @@ The method used must be an out-of-band method."
 	    (when (file-symlink-p filename)
 	      (goto-char (search-backward "->" beg 'noerror)))
 	    (search-backward
-	     (if (tramp-compat-directory-name-p filename)
+	     (if (directory-name-p filename)
 		 "."
 	       (file-name-nondirectory filename))
 	     beg 'noerror)
@@ -2734,12 +2733,11 @@ The method used must be an out-of-band method."
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
 	  (when (re-search-forward "^\\([[:space:]]*total\\)" nil t)
-	    (let ((available (get-free-disk-space ".")))
-	      (when available
-		;; Replace "total" with "total used", to avoid confusion.
-		(replace-match "\\1 used in directory")
-		(end-of-line)
-		(insert " available " available))))
+	    (when-let ((available (get-free-disk-space ".")))
+	      ;; Replace "total" with "total used", to avoid confusion.
+	      (replace-match "\\1 used in directory")
+	      (end-of-line)
+	      (insert " available " available)))
 
 	  (goto-char (point-max)))))))
 
@@ -3501,8 +3499,7 @@ STDERR can also be a file name."
 (defun tramp-sh-handle-vc-registered (file)
   "Like `vc-registered' for Tramp files."
   (when vc-handled-backends
-    (let ((tramp-message-show-message
-	   (and (not revert-buffer-in-progress-p) tramp-message-show-message))
+    (let ((inhibit-message (or revert-buffer-in-progress-p inhibit-message))
 	  (temp-message (unless revert-buffer-in-progress-p "")))
       (with-temp-message temp-message
 	(with-parsed-tramp-file-name file nil
@@ -3592,10 +3589,9 @@ STDERR can also be a file name."
 (defun tramp-sh-file-name-handler (operation &rest args)
   "Invoke remote-shell Tramp file name handler.
 Fall back to normal file name handler if no Tramp handler exists."
-  (let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;; This must be the last entry, because `identity' always matches.
 ;;;###tramp-autoload
@@ -4883,11 +4879,8 @@ connection if a previous connection has died for some reason."
 		(not (tramp-file-name-equal-p
 		      vec (car tramp-current-connection)))
 		(time-less-p
-		 ;; `current-time' can be removed once we get rid of Emacs 24.
-		 (time-since (or (cdr tramp-current-connection) (current-time)))
-		 ;; `seconds-to-time' can be removed once we get rid
-		 ;; of Emacs 24.
-		 (seconds-to-time (or tramp-connection-min-time-diff 0))))
+		 (time-since (cdr tramp-current-connection))
+		 (or tramp-connection-min-time-diff 0)))
       (throw 'suppress 'suppress))
 
     ;; If too much time has passed since last command was sent, look
@@ -4898,11 +4891,9 @@ connection if a previous connection has died for some reason."
     ;; try to send a command from time to time, then look again
     ;; whether the process is really alive.
     (condition-case nil
-	;; `seconds-to-time' can be removed once we get rid of Emacs 24.
-	(when (and (time-less-p (seconds-to-time 60)
-				(time-since
-				 (tramp-get-connection-property
-				  p "last-cmd-time" (seconds-to-time 0))))
+	(when (and (time-less-p
+		    60 (time-since
+			(tramp-get-connection-property p "last-cmd-time" 0)))
 		   (process-live-p p))
 	  (tramp-send-command vec "echo are you awake" t t)
 	  (unless (and (process-live-p p)
@@ -5994,9 +5985,6 @@ function cell is returned to be applied on a buffer."
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
-;;
-;; * Don't search for perl5 and perl.  Instead, only search for perl and
-;;   then look if it's the right version (with `perl -v').
 ;;
 ;; * When editing a remote CVS controlled file as a different user, VC
 ;;   gets confused about the file locking status.  Try to find out why

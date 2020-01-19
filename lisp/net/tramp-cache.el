@@ -130,13 +130,8 @@ Returns DEFAULT if not set."
 	     (or (null remote-file-name-inhibit-cache)
 		 (and (integerp remote-file-name-inhibit-cache)
 		      (time-less-p
-		       ;; `current-time' can be nil once we get rid of Emacs 24.
-		       (current-time)
-		       (time-add
-			(car value)
-		       ;; `seconds-to-time' can be removed once we get
-		       ;; rid of Emacs 24.
-			(seconds-to-time remote-file-name-inhibit-cache))))
+		       nil
+		       (time-add (car value) remote-file-name-inhibit-cache)))
 		 (and (consp remote-file-name-inhibit-cache)
 		      (time-less-p
 		       remote-file-name-inhibit-cache (car value)))))
@@ -386,20 +381,15 @@ used to cache connection properties of the local machine."
       (maphash
        (lambda (key value)
 	 ;; Remove text properties from KEY and VALUE.
-	 ;; `cl-struct-slot-*' functions exist since Emacs 25 only; we
-	 ;; ignore errors.
 	 (when (tramp-file-name-p key)
-	   ;; (dolist
-	   ;;     (slot
-	   ;; 	(mapcar #'car (cdr (cl-struct-slot-info 'tramp-file-name))))
-	   ;;   (when (stringp (cl-struct-slot-value 'tramp-file-name slot key))
-	   ;;     (setf (cl-struct-slot-value 'tramp-file-name slot key)
-	   ;; 	     (substring-no-properties
-	   ;; 	      (cl-struct-slot-value 'tramp-file-name slot key))))))
-	   (dotimes (i (length key))
-	     (when (stringp (elt key i))
-	       (setf (elt key i) (substring-no-properties (elt key i))))))
-	 (when (stringp key)
+           (dolist
+               (slot
+                (mapcar #'car (cdr (cl-struct-slot-info 'tramp-file-name))))
+             (when (stringp (cl-struct-slot-value 'tramp-file-name slot key))
+               (setf (cl-struct-slot-value 'tramp-file-name slot key)
+                     (substring-no-properties
+                      (cl-struct-slot-value 'tramp-file-name slot key))))))
+         (when (stringp key)
 	   (setq key (substring-no-properties key)))
 	 (when (stringp value)
 	   (setq value (substring-no-properties value)))

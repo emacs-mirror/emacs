@@ -8,9 +8,9 @@
 @c In the Tramp GIT, the version numbers are auto-frobbed from
 @c tramp.el, and the bug report address is auto-frobbed from
 @c configure.ac.
-@set trampver 2.4.4-pre
+@set trampver 2.5.0-pre
 @set tramp-bug-report-address tramp-devel@@gnu.org
-@set emacsver 24.4
+@set emacsver 25.1
 
 @c Other flags from configuration.
 @set instprefix /usr/local

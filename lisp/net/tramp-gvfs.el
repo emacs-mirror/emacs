@@ -457,7 +457,7 @@ It has been changed in GVFS 1.14.")
 ;; </interface>
 
 ;; The basic structure for GNOME Online Accounts.  We use a list :type,
-;; in order to be compatible with Emacs 24 and 25.
+;; in order to be compatible with Emacs 25.
 (cl-defstruct (tramp-goa-name (:type list) :named) method user host port)
 
 ;; "gvfs-<command>" utilities have been deprecated in GVFS 1.31.1.  We
@@ -625,10 +625,9 @@ First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
   (unless tramp-gvfs-enabled
     (tramp-user-error nil "Package `tramp-gvfs' not supported"))
-  (let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;;;###tramp-autoload
 (when (featurep 'dbusbind)
@@ -649,13 +648,12 @@ pass to the OPERATION."
   "Like `dbus-byte-array-to-string' but remove trailing \\0 if exists.
 Return nil for null BYTE-ARRAY."
   ;; The byte array could be a variant.  Take care.
-  (let ((byte-array
-	 (if (and (consp byte-array) (atom (car byte-array)))
-	     byte-array (car byte-array))))
-    (and byte-array
-	 (dbus-byte-array-to-string
-	  (if (and (consp byte-array) (zerop (car (last byte-array))))
-	      (butlast byte-array) byte-array)))))
+  (when-let ((byte-array
+	      (if (and (consp byte-array) (atom (car byte-array)))
+		  byte-array (car byte-array))))
+    (dbus-byte-array-to-string
+     (if (and (consp byte-array) (zerop (car (last byte-array))))
+	 (butlast byte-array) byte-array))))
 
 (defun tramp-gvfs-stringify-dbus-message (message)
   "Convert a D-Bus MESSAGE into readable UTF8 strings, used for traces."
@@ -680,6 +678,8 @@ The call will be traced by Tramp with trace level 6."
     (tramp-message vec 6 "%s" result(tramp-gvfs-stringify-dbus-message result))
     result))
 
+(put #'tramp-dbus-function 'tramp-suppress-trace t)
+
 (defmacro with-tramp-dbus-call-method
   (vec synchronous bus service path interface method &rest args)
   "Apply a D-Bus call on bus BUS.
@@ -689,14 +689,13 @@ it is an asynchronous call, with `ignore' as callback function.
 
 The other arguments have the same meaning as with `dbus-call-method'
 or `dbus-call-method-asynchronously'."
+  (declare (indent 2) (debug t))
   `(let ((func (if ,synchronous
 		   #'dbus-call-method #'dbus-call-method-asynchronously))
 	 (args (append (list ,bus ,service ,path ,interface ,method)
 		       (if ,synchronous (list ,@args) (list 'ignore ,@args)))))
      (tramp-dbus-function ,vec func args)))
 
-(put 'with-tramp-dbus-call-method 'lisp-indent-function 2)
-(put 'with-tramp-dbus-call-method 'edebug-form-spec '(form symbolp body))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-dbus-call-method\\>"))
 
 (defmacro with-tramp-dbus-get-all-properties
@@ -704,6 +703,7 @@ or `dbus-call-method-asynchronously'."
   "Return all properties of INTERFACE.
 The call will be traced by Tramp with trace level 6."
      ;; Check, that interface exists at object path.  Retrieve properties.
+  (declare (indent 1) (debug t))
   `(when (member
 	  ,interface
 	  (tramp-dbus-function
@@ -712,8 +712,6 @@ The call will be traced by Tramp with trace level 6."
      (tramp-dbus-function
       ,vec #'dbus-get-all-properties (list ,bus ,service ,path ,interface))))
 
-(put 'with-tramp-dbus-get-all-properties 'lisp-indent-function 1)
-(put 'with-tramp-dbus-get-all-properties 'edebug-form-spec '(form symbolp body))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-dbus-get-all-properties\\>"))
 
 (defvar tramp-gvfs-dbus-event-vector nil
@@ -772,7 +770,7 @@ file names."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(if (or (and equal-remote

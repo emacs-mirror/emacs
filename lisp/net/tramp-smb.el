@@ -329,10 +329,9 @@ This can be used to disable echo etc."
   "Invoke the SMB related OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let ((fn (assoc operation tramp-smb-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let ((fn (assoc operation tramp-smb-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;;;###tramp-autoload
 (unless (memq system-type '(cygwin windows-nt))
@@ -420,7 +419,7 @@ pass to the OPERATION."
 	     v tramp-file-missing
 	     "Copying directory" "No such file or directory" dirname))
 	  (when (and (file-directory-p newname)
-		     (not (tramp-compat-directory-name-p newname)))
+		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-already-exists newname))
 	  (cond
 	   ;; We must use a local temporary directory.
@@ -581,40 +580,39 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	 tramp-file-missing
 	 "Copying file" "No such file or directory" filename))
 
-      (let ((tmpfile (file-local-copy filename)))
-	(if tmpfile
-	    ;; Remote filename.
-	    (condition-case err
-		(rename-file tmpfile newname ok-if-already-exists)
-	      ((error quit)
-	       (delete-file tmpfile)
-	       (signal (car err) (cdr err))))
+      (if-let ((tmpfile (file-local-copy filename)))
+	  ;; Remote filename.
+	  (condition-case err
+	      (rename-file tmpfile newname ok-if-already-exists)
+	    ((error quit)
+	     (delete-file tmpfile)
+	     (signal (car err) (cdr err))))
 
-	  ;; Remote newname.
+	;; Remote newname.
+	(when (and (file-directory-p newname)
+		   (directory-name-p newname))
+	  (setq newname
+		(expand-file-name (file-name-nondirectory filename) newname)))
+
+	(with-parsed-tramp-file-name newname nil
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
 	  (when (and (file-directory-p newname)
-		     (tramp-compat-directory-name-p newname))
-	    (setq newname
-		  (expand-file-name (file-name-nondirectory filename) newname)))
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  (with-parsed-tramp-file-name newname nil
-	    (when (and (not ok-if-already-exists) (file-exists-p newname))
-	      (tramp-error v 'file-already-exists newname))
-	    (when (and (file-directory-p newname)
-		       (not (tramp-compat-directory-name-p newname)))
-	      (tramp-error v 'file-error "File is a directory %s" newname))
-
-	    ;; We must also flush the cache of the directory, because
-	    ;; `file-attributes' reads the values from there.
-	    (tramp-flush-file-properties v localname)
-	    (unless (tramp-smb-get-share v)
-	      (tramp-error
-	       v 'file-error "Target `%s' must contain a share name" newname))
-	    (unless (tramp-smb-send-command
-		     v (format "put \"%s\" \"%s\""
-			       (tramp-compat-file-name-unquote filename)
-			       (tramp-smb-get-localname v)))
-	      (tramp-error
-	       v 'file-error "Cannot copy `%s' to `%s'" filename newname))))))
+	  ;; We must also flush the cache of the directory, because
+	  ;; `file-attributes' reads the values from there.
+	  (tramp-flush-file-properties v localname)
+	  (unless (tramp-smb-get-share v)
+	    (tramp-error
+	     v 'file-error "Target `%s' must contain a share name" newname))
+	  (unless (tramp-smb-send-command
+		   v (format "put \"%s\" \"%s\""
+			     (tramp-compat-file-name-unquote filename)
+			     (tramp-smb-get-localname v)))
+	    (tramp-error
+	     v 'file-error "Cannot copy `%s' to `%s'" filename newname)))))
 
     ;; KEEP-DATE handling.
     (when keep-date
@@ -1003,7 +1001,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename))
   (unless switches (setq switches ""))
   ;; Mark trailing "/".
-  (when (and (tramp-compat-directory-name-p filename)
+  (when (and (directory-name-p filename)
 	     (not full-directory-p))
     (setq switches (concat switches "F")))
   (if full-directory-p
@@ -1355,7 +1353,7 @@ component is used as the target of the symlink."
     (when (and (not ok-if-already-exists) (file-exists-p newname))
       (tramp-error v 'file-already-exists newname))
     (when (and (file-directory-p newname)
-	       (not (tramp-compat-directory-name-p newname)))
+	       (not (directory-name-p newname)))
       (tramp-error v 'file-error "File is a directory %s" newname))
 
     (with-tramp-progress-reporter
@@ -1922,11 +1920,9 @@ If ARGUMENT is non-nil, use it as argument for
     ;; connection timeout.
     (with-current-buffer buf
       (goto-char (point-min))
-      ;; `seconds-to-time' can be removed once we get rid of Emacs 24.
-      (when (and (time-less-p (seconds-to-time 60)
-			      (time-since
-			       (tramp-get-connection-property
-				p "last-cmd-time" (seconds-to-time 0))))
+      (when (and (time-less-p
+		  60 (time-since
+		      (tramp-get-connection-property p "last-cmd-time" 0)))
 		 (process-live-p p)
 		 (re-search-forward tramp-smb-errors nil t))
 	(delete-process p)
@@ -1992,7 +1988,7 @@ If ARGUMENT is non-nil, use it as argument for
 	      (set-process-query-on-exit-flag p nil)
 
 	      (condition-case err
-		  (let (tramp-message-show-message)
+		  (let ((inhibit-message t))
 		    ;; Play login scenario.
 		    (tramp-process-actions
 		     p vec nil
@@ -2130,7 +2126,5 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 ;;
 ;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
-;;
-;; * Ignore case in file names.
 
 ;;; tramp-smb.el ends here
