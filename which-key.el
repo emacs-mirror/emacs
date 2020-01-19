@@ -2290,7 +2290,7 @@ after first page."
   (which-key--create-buffer-and-show nil nil nil "Top-level bindings"))
 
 ;;;###autoload
-(defun which-key-show-major-mode ()
+(defun which-key-show-major-mode (&optional all)
   "Show top-level bindings in the map of the current major mode.
 
 This function will also detect evil bindings made using
@@ -2299,11 +2299,22 @@ current evil state. "
   (interactive)
   (let ((map-sym (intern (format "%s-map" major-mode))))
     (if (and (boundp map-sym) (keymapp (symbol-value map-sym)))
-        (which-key--create-buffer-and-show
-         nil nil
+        (which-key--show-keymap
+         "Major-mode bindings"
+         (symbol-value map-sym)
          (apply-partially #'which-key--map-binding-p (symbol-value map-sym))
-         "Major-mode bindings")
+         all)
       (message "which-key: No map named %s" map-sym))))
+
+;;;###autoload
+(defun which-key-show-full-major-mode ()
+  "Show all bindings in the map of the current major mode.
+
+This function will also detect evil bindings made using
+`evil-define-key' in this map. These bindings will depend on the
+current evil state. "
+  (interactive)
+  (which-key-show-major-mode t))
 
 ;;;###autoload
 (defun which-key-dump-bindings (prefix buffer-name)
@@ -2485,7 +2496,7 @@ selected interactively from all available keymaps."
                           nil t))
 
 ;;;###autoload
-(defun which-key-show-minor-mode-keymap ()
+(defun which-key-show-minor-mode-keymap (&optional all)
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively by mode in `minor-mode-map-alist'."
   (interactive)
@@ -2501,12 +2512,19 @@ is selected interactively by mode in `minor-mode-map-alist'."
                     minor-mode-map-alist))
            nil t nil 'which-key-keymap-history))))
     (which-key--show-keymap (symbol-name mode-sym)
-                            (cdr (assq mode-sym minor-mode-map-alist)))))
+                            (cdr (assq mode-sym minor-mode-map-alist))
+                            all)))
+;;;###autoload
+(defun which-key-show-full-minor-mode-keymap ()
+  "Show all bindings in KEYMAP using which-key. KEYMAP
+is selected interactively by mode in `minor-mode-map-alist'."
+  (interactive)
+  (which-key-show-minor-mode-keymap t))
 
 (defun which-key--show-keymap
-    (keymap-name keymap &optional prior-args all no-paging)
+    (keymap-name keymap &optional prior-args all no-paging filter)
   (when prior-args (push prior-args which-key--prior-show-keymap-args))
-  (let ((bindings (which-key--get-bindings nil keymap nil all)))
+  (let ((bindings (which-key--get-bindings nil keymap filter all)))
     (if (= (length bindings) 0)
         (message "which-key: No bindings found in %s" keymap-name)
       (cond ((listp which-key-side-window-location)
