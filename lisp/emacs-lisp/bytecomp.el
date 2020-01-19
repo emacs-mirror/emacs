@@ -1202,7 +1202,7 @@ message buffer `default-directory'."
 			    byte-compile-last-warned-form))))
       (insert (format "\nIn %s:\n" form)))
     (when level
-      (insert (format "%s%s" file pos))))
+      (insert (format "%s%s " file pos))))
   (setq byte-compile-last-logged-file byte-compile-current-file
 	byte-compile-last-warned-form byte-compile-current-form)
   entry)
