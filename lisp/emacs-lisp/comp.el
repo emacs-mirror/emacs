@@ -308,19 +308,19 @@ structure.")
 
 (defsubst comp-set-op-p (op)
   "Assignment predicate for OP."
-  (when (member op comp-limple-sets) t))
+  (when (memq op comp-limple-sets) t))
 
 (defsubst comp-assign-op-p (op)
   "Assignment predicate for OP."
-  (when (member op comp-limple-assignments) t))
+  (when (memq op comp-limple-assignments) t))
 
 (defsubst comp-limple-insn-call-p (insn)
   "Limple INSN call predicate."
-  (when (member (car-safe insn) comp-limple-calls) t))
+  (when (memq (car-safe insn) comp-limple-calls) t))
 
 (defsubst comp-type-hint-p (func)
   "Type hint predicate for function name FUNC."
-  (when (member func comp-type-hints) t))
+  (when (memq func comp-type-hints) t))
 
 (defun comp-data-container-check (cont)
   "Sanity check CONT coherency."
@@ -531,12 +531,12 @@ Points to the next slot to be filled.")
 
 (defsubst comp-lap-eob-p (inst)
   "Return t if INST closes the current basic blocks, nil otherwise."
-  (when (member (car inst) comp-lap-eob-ops)
+  (when (memq (car inst) comp-lap-eob-ops)
     t))
 
 (defsubst comp-lap-fall-through-p (inst)
   "Return t if INST fall through, nil otherwise."
-  (when (not (member (car inst) '(byte-goto byte-return)))
+  (when (not (memq (car inst) '(byte-goto byte-return)))
     t))
 
 (defsubst comp-sp ()
@@ -1679,7 +1679,7 @@ Return t if something was changed."
                     args)
               args))
     (when (and (symbolp callee)  ; Do nothing if callee is a byte compiled func.
-               (not (member callee comp-never-optimize-functions)))
+               (not (memq callee comp-never-optimize-functions)))
       (let* ((f (symbol-function callee))
              (subrp (subrp f))
              (callee-in-unit (gethash callee
@@ -1788,7 +1788,7 @@ Return the list of m-var ids nuked."
            for insn = (car insn-cell)
            for (op arg0 rest) = insn
            when (and (comp-set-op-p op)
-                     (member (comp-mvar-id arg0) nuke-list))
+                     (memq (comp-mvar-id arg0) nuke-list))
              do (setcar insn-cell
                         (if (comp-limple-insn-call-p rest)
                             rest
