@@ -485,10 +485,12 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	((equal "XdndDrop" message)
 	 (if (windowp window) (select-window window))
 	 (let* ((dnd-source (aref data 0))
+		(timestamp (aref data 2))
 		(value (and (x-dnd-current-type window)
 			    (x-get-selection-internal
 			     'XdndSelection
-			     (intern (x-dnd-current-type window)))))
+			     (intern (x-dnd-current-type window))
+			     timestamp)))
 		success action)
 
 	   (setq action (if value
