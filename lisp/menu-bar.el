@@ -1476,6 +1476,18 @@ mail status in mode line"))
     (bindings--define-key menu [cursor-separator]
       menu-bar-separator)
 
+    (bindings--define-key menu [save-desktop]
+      (menu-bar-make-toggle
+       toggle-save-desktop-globally desktop-save-mode
+       "Save State between Sessions"
+       "Saving desktop state %s"
+       "Visit desktop of previous session when restarting Emacs"
+       (require 'desktop)
+       ;; Do it by name, to avoid a free-variable
+       ;; warning during byte compilation.
+       (set-default
+	'desktop-save-mode (not (symbol-value 'desktop-save-mode)))))
+
     (bindings--define-key menu [save-place]
       (menu-bar-make-toggle
        toggle-save-place-globally save-place-mode

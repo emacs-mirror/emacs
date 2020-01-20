@@ -2038,6 +2038,14 @@ variable for remote shells.  It still defaults to "/bin/sh".
 ** Single shell commands
 
 +++
+*** 'shell-command-dont-erase-buffer' accepts the value 'erase' to
+force to erase the output buffer before execution of the command.
+
+*** The new functions 'shell-command-save-pos-or-erase' and
+'shell-command-set-point-after-cmd' control how point is handled
+between two consecutive shell commands in the same buffer.
+
++++
 *** 'async-shell-command-width' defines the number of display columns
 available for output of asynchronous shell commands.
 

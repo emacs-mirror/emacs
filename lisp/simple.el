@@ -3436,19 +3436,28 @@ This affects `shell-command' and `async-shell-command'."
   :version "27.1")
 
 (defcustom shell-command-dont-erase-buffer nil
-  "If non-nil, output buffer is not erased between shell commands.
-Also, a non-nil value sets the point in the output buffer
-once the command completes.
+  "Control if the output buffer is erased before the command.
+
+A nil value erases the output buffer before execution of the
+shell command, except when the output buffer is the current one.
+
+The value `erase' ensures the output buffer is erased before
+execution of the shell command.
+
+Other non-nil values prevent the output buffer from being erased and
+set the point after execution of the shell command.
+
 The value `beg-last-out' sets point at the beginning of the output,
 `end-last-out' sets point at the end of the buffer, `save-point'
 restores the buffer position before the command."
   :type '(choice
-          (const :tag "Erase buffer" nil)
+          (const :tag "Erase output buffer if not the current one" nil)
+          (const :tag "Always erase output buffer" erase)
           (const :tag "Set point to beginning of last output" beg-last-out)
           (const :tag "Set point to end of last output" end-last-out)
           (const :tag "Save point" save-point))
   :group 'shell
-  :version "26.1")
+  :version "27.1")
 
 (defvar shell-command-saved-pos nil
   "Record of point positions in output buffers after command completion.
@@ -3457,8 +3466,11 @@ where BUFFER is the output buffer, and POS is the point position
 in BUFFER once the command finishes.
 This variable is used when `shell-command-dont-erase-buffer' is non-nil.")
 
-(defun shell-command--save-pos-or-erase ()
+(defun shell-command-save-pos-or-erase (&optional output-to-current-buffer)
   "Store a buffer position or erase the buffer.
+Optional argument OUTPUT-TO-CURRENT-BUFFER, if non-nil, means that the output
+of the shell command goes to the caller current buffer.
+
 See `shell-command-dont-erase-buffer'."
   (let ((sym shell-command-dont-erase-buffer)
         pos)
@@ -3469,7 +3481,9 @@ See `shell-command-dont-erase-buffer'."
     (setq pos
           (cond ((eq sym 'save-point) (point))
                 ((eq sym 'beg-last-out) (point-max))
-                ((not sym)
+                ;;((not sym)
+                ((or (eq sym 'erase)
+                     (and (null sym) (not output-to-current-buffer)))
                  (let ((inhibit-read-only t))
                    (erase-buffer) nil))))
     (when pos
@@ -3477,7 +3491,7 @@ See `shell-command-dont-erase-buffer'."
       (push (cons (current-buffer) pos)
             shell-command-saved-pos))))
 
-(defun shell-command--set-point-after-cmd (&optional buffer)
+(defun shell-command-set-point-after-cmd (&optional buffer)
   "Set point in BUFFER after command complete.
 BUFFER is the output buffer of the command; if nil, then defaults
 to the current BUFFER.
@@ -3492,12 +3506,19 @@ whose `car' is BUFFER."
       (when (buffer-live-p buf)
         (let ((win   (car (get-buffer-window-list buf)))
               (pmax  (with-current-buffer buf (point-max))))
-          (unless (and pos (memq sym '(save-point beg-last-out)))
+
+          ;; The first time we run a command in a fresh created buffer
+          ;; we have not saved positions yet; advance to `point-max', so that
+          ;; succesive commands knows the position where the new comman start.
+          ;; (unless (and pos (memq sym '(save-point beg-last-out)))
+          (unless (and pos (memq sym '(save-point beg-last-out end-last-out)))
             (setq pos pmax))
           ;; Set point in the window displaying buf, if any; otherwise
           ;; display buf temporary in selected frame and set the point.
           (if win
               (set-window-point win pos)
+            (when pos
+              (with-current-buffer buf (goto-char pos)))
             (save-window-excursion
               (let ((win (display-buffer
                           buf
@@ -3625,7 +3646,9 @@ impose the use of a shell (with its need to quote arguments)."
     (if handler
 	(funcall handler 'shell-command command output-buffer error-buffer)
       (if (and output-buffer
-	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
+               (or (eq output-buffer (current-buffer))
+                   (and (stringp output-buffer) (eq (get-buffer output-buffer) (current-buffer)))
+	           (not (or (bufferp output-buffer) (stringp output-buffer))))) ; Bug#39067
 	  ;; Output goes in current buffer.
 	  (let ((error-file
                  (and error-buffer
@@ -3635,6 +3658,7 @@ impose the use of a shell (with its need to quote arguments)."
                                              temporary-file-directory))))))
 	    (barf-if-buffer-read-only)
 	    (push-mark nil t)
+            (shell-command-save-pos-or-erase 'output-to-current-buffer)
 	    ;; We do not use -f for csh; we will not support broken use of
 	    ;; .cshrcs.  Even the BSD csh manual says to use
 	    ;; "if ($?prompt) exit" before things that are not useful
@@ -3663,7 +3687,8 @@ impose the use of a shell (with its need to quote arguments)."
 	    ;; because we inserted text.
 	    (goto-char (prog1 (mark t)
 			 (set-marker (mark-marker) (point)
-				     (current-buffer)))))
+				     (current-buffer))))
+            (shell-command-set-point-after-cmd))
 	;; Output goes in a separate buffer.
 	;; Preserve the match data in case called from a program.
         ;; FIXME: It'd be ridiculous for an Elisp function to call
@@ -3708,7 +3733,7 @@ impose the use of a shell (with its need to quote arguments)."
 		      (rename-uniquely))
                     (setq buffer (get-buffer-create bname)))))
 		(with-current-buffer buffer
-                  (shell-command--save-pos-or-erase)
+                  (shell-command-save-pos-or-erase)
 		  (setq default-directory directory)
 		  (let ((process-environment
 			 (if (natnump async-shell-command-width)
@@ -3814,7 +3839,7 @@ and are used only if a pop-up buffer is displayed."
 ;; `shell-command-dont-erase-buffer' is non-nil.
 (defun shell-command-sentinel (process signal)
   (when (memq (process-status process) '(exit signal))
-    (shell-command--set-point-after-cmd (process-buffer process))
+    (shell-command-set-point-after-cmd (process-buffer process))
     (message "%s: %s."
              (car (cdr (cdr (process-command process))))
              (substring signal 0 -1))))
@@ -3933,7 +3958,7 @@ interactively, this is t."
           (set-buffer-major-mode buffer) ; Enable globalized modes (bug#38111)
           (unwind-protect
               (if (and (eq buffer (current-buffer))
-                       (or (not shell-command-dont-erase-buffer)
+                       (or (memq shell-command-dont-erase-buffer '(nil erase))
                            (and (not (eq buffer (get-buffer "*Shell Command Output*")))
                                 (not (region-active-p)))))
                   ;; If the input is the same buffer as the output,
@@ -3956,7 +3981,7 @@ interactively, this is t."
                   (with-current-buffer buffer
                     (if (not output-buffer)
                         (setq default-directory directory))
-                    (shell-command--save-pos-or-erase)))
+                    (shell-command-save-pos-or-erase)))
                 (setq exit-status
                       (call-shell-region start end command nil
                                            (if error-file
@@ -3975,7 +4000,7 @@ interactively, this is t."
                 ;; There's some output, display it
                 (progn
                   (display-message-or-buffer buffer)
-                  (shell-command--set-point-after-cmd buffer))
+                  (shell-command-set-point-after-cmd buffer))
             ;; No output; error?
               (let ((output
                      (if (and error-file

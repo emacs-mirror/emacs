@@ -520,12 +520,14 @@ the selected tab visible."
             (add-face-text-property (point-min) (point-max) 'tab-line)
             (if (> (vertical-motion 1) 0)
                 (let* ((point (previous-single-property-change (point) 'tab))
-                       (tab-prop (or (get-pos-property point 'tab)
-                                     (get-pos-property
-                                      (previous-single-property-change point 'tab) 'tab)))
-                       (new-hscroll (seq-position strings tab-prop
-                                                  (lambda (str tab)
-                                                    (eq (get-pos-property 1 'tab str) tab)))))
+                       (tab-prop (when point
+                                   (or (get-pos-property point 'tab)
+                                       (and (setq point (previous-single-property-change point 'tab))
+                                            (get-pos-property point 'tab)))))
+                       (new-hscroll (when tab-prop
+                                      (seq-position strings tab-prop
+                                                    (lambda (str tab)
+                                                      (eq (get-pos-property 1 'tab str) tab))))))
                   (when new-hscroll
                     (setq hscroll (- new-hscroll))
                     (set-window-parameter nil 'tab-line-hscroll hscroll)))
@@ -545,12 +547,14 @@ the selected tab visible."
               (add-face-text-property (point-min) (point-max) 'tab-line)
               (when (> (vertical-motion 1) 0)
                 (let* ((point (previous-single-property-change (point) 'tab))
-                       (tab-prop (or (get-pos-property point 'tab)
-                                     (get-pos-property
-                                      (previous-single-property-change point 'tab) 'tab)))
-                       (new-hscroll (seq-position strings tab-prop
-                                                  (lambda (str tab)
-                                                    (eq (get-pos-property 1 'tab str) tab)))))
+                       (tab-prop (when point
+                                   (or (get-pos-property point 'tab)
+                                       (and (setq point (previous-single-property-change point 'tab))
+                                            (get-pos-property point 'tab)))))
+                       (new-hscroll (when tab-prop
+                                      (seq-position strings tab-prop
+                                                    (lambda (str tab)
+                                                      (eq (get-pos-property 1 'tab str) tab))))))
                   (when new-hscroll
                     (setq hscroll (- new-hscroll))
                     (set-window-parameter nil 'tab-line-hscroll hscroll)))))))))

@@ -826,12 +826,14 @@ the output buffer.  But if you change the value of the variable
 inserted into a buffer of that name.
 
 @vindex shell-command-dont-erase-buffer
-  By default, the output buffer is erased between shell commands.
-If you change the value of the variable
-@code{shell-command-dont-erase-buffer} to a non-@code{nil} value,
-the output buffer is not erased.  This variable also controls where to
-set the point in the output buffer after the command completes; see the
-documentation of the variable for details.
+  By default, the output buffer is erased between shell commands, except
+when the output goes to the current buffer.  If you change the value
+of the option @code{shell-command-dont-erase-buffer} to @code{erase},
+then the output buffer is always erased.  Any other non-@code{nil}
+value prevents to erase the output buffer.
+
+This option also controls where to set the point in the output buffer
+after the command completes; see the documentation of the option for details.
 
 @node Interactive Shell
 @subsection Interactive Subshell

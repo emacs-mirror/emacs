@@ -3068,8 +3068,8 @@ begun}.
 @cindex Ignored X resources
 @cindex @file{.Xdefaults}
 
-As of version 19, Emacs searches for X resources in the files specified
-by the following environment variables:
+Emacs searches for X resources in the files specified by the following
+environment variables:
 
 @itemize @bullet
 
