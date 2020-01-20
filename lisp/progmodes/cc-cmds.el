@@ -512,11 +512,11 @@ function to control that."
 	(let ((src (default-value 'post-self-insert-hook)))
 	  (while src
 	    (unless (memq (car src) c--unsafe-post-self-insert-hook-functions)
-	      (add-hook 'dest (car src) t)) ; Preserve the order of the functions.
+	      (push (car src) dest))
 	    (setq src (cdr src)))))
-       (t (add-hook 'dest (car src) t))) ; Preserve the order of the functions.
+       (t (push (car src) dest)))
       (setq src (cdr src)))
-    (run-hooks 'dest)))
+    (mapc #'funcall (nreverse dest)))) ; Preserve the order of the functions.
 
 (defmacro c--call-post-self-insert-hook-more-safely ()
   ;; Call post-self-insert-hook, if such exists.  See comment for
