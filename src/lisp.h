@@ -4605,6 +4605,8 @@ extern void seed_random (void *, ptrdiff_t);
 extern void init_random (void);
 extern void emacs_backtrace (int);
 extern AVOID emacs_abort (void) NO_INLINE;
+extern int emacs_fstatat (int, char const *, void *, int);
+extern int emacs_openat (int, char const *, int, int);
 extern int emacs_open (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);

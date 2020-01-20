@@ -1952,7 +1952,10 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
 
   encoded_filename = ENCODE_FILE (absname);
 
-  if (! known_to_exist && lstat (SSDATA (encoded_filename), &statbuf) == 0)
+  if (! known_to_exist
+      && (emacs_fstatat (AT_FDCWD, SSDATA (encoded_filename),
+			 &statbuf, AT_SYMLINK_NOFOLLOW)
+	  == 0))
     {
       if (S_ISDIR (statbuf.st_mode))
 	xsignal2 (Qfile_error,
@@ -2555,7 +2558,9 @@ This is what happens in interactive use with M-x.  */)
   bool dirp = !NILP (Fdirectory_name_p (file));
   if (!dirp)
     {
-      if (lstat (SSDATA (encoded_file), &file_st) != 0)
+      if (emacs_fstatat (AT_FDCWD, SSDATA (encoded_file),
+			 &file_st, AT_SYMLINK_NOFOLLOW)
+	  != 0)
 	report_file_error ("Renaming", list2 (file, newname));
       dirp = S_ISDIR (file_st.st_mode) != 0;
     }
@@ -2928,7 +2933,8 @@ file_directory_p (Lisp_Object file)
 #else
 # ifdef O_PATH
   /* Use O_PATH if available, as it avoids races and EOVERFLOW issues.  */
-  int fd = openat (AT_FDCWD, SSDATA (file), O_PATH | O_CLOEXEC | O_DIRECTORY);
+  int fd = emacs_openat (AT_FDCWD, SSDATA (file),
+			 O_PATH | O_CLOEXEC | O_DIRECTORY, 0);
   if (0 <= fd)
     {
       emacs_close (fd);
@@ -2939,9 +2945,9 @@ file_directory_p (Lisp_Object file)
   /* O_PATH is defined but evidently this Linux kernel predates 2.6.39.
      Fall back on generic POSIX code.  */
 # endif
-  /* Use file_accessible_directory_p, as it avoids stat EOVERFLOW
+  /* Use file_accessible_directory_p, as it avoids fstatat EOVERFLOW
      problems and could be cheaper.  However, if it fails because FILE
-     is inaccessible, fall back on stat; if the latter fails with
+     is inaccessible, fall back on fstatat; if the latter fails with
      EOVERFLOW then FILE must have been a directory unless a race
      condition occurred (a problem hard to work around portably).  */
   if (file_accessible_directory_p (file))
@@ -2949,7 +2955,7 @@ file_directory_p (Lisp_Object file)
   if (errno != EACCES)
     return false;
   struct stat st;
-  if (stat (SSDATA (file), &st) != 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (file), &st, 0) != 0)
     return errno == EOVERFLOW;
   if (S_ISDIR (st.st_mode))
     return true;
@@ -3080,7 +3086,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   Vw32_get_true_file_attributes = Qt;
 #endif
 
-  int stat_result = stat (SSDATA (absname), &st);
+  int stat_result = emacs_fstatat (AT_FDCWD, SSDATA (absname), &st, 0);
 
 #ifdef WINDOWSNT
   Vw32_get_true_file_attributes = true_attributes;
@@ -3340,7 +3346,7 @@ Return nil if FILENAME does not exist.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_modes, absname);
 
-  if (stat (SSDATA (ENCODE_FILE (absname)), &st) != 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname)), &st, 0) != 0)
     return file_attribute_errno (absname, errno);
   return make_fixnum (st.st_mode & 07777);
 }
@@ -3486,7 +3492,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
     return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
 
   int err1;
-  if (stat (SSDATA (ENCODE_FILE (absname1)), &st1) == 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname1)), &st1, 0) == 0)
     err1 = 0;
   else
     {
@@ -3494,7 +3500,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
       if (err1 != EOVERFLOW)
 	return file_attribute_errno (absname1, err1);
     }
-  if (stat (SSDATA (ENCODE_FILE (absname2)), &st2) != 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname2)), &st2, 0) != 0)
     {
       file_attribute_errno (absname2, errno);
       return Qt;
@@ -3880,7 +3886,7 @@ by calling `format-decode', which see.  */)
 	  if (end_offset < 0)
 	    buffer_overflow ();
 
-	  /* The file size returned from stat may be zero, but data
+	  /* The file size returned from fstat may be zero, but data
 	     may be readable nonetheless, for example when this is a
 	     file in the /proc filesystem.  */
 	  if (end_offset == 0)
@@ -5625,7 +5631,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 
   filename = ENCODE_FILE (BVAR (b, filename));
 
-  mtime = (stat (SSDATA (filename), &st) == 0
+  mtime = (emacs_fstatat (AT_FDCWD, SSDATA (filename), &st, 0) == 0
 	   ? get_stat_mtime (&st)
 	   : time_error_value (errno));
   if (timespec_cmp (mtime, b->modtime) == 0
@@ -5689,7 +5695,8 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
 	/* The handler can find the file name the same way we did.  */
 	return call2 (handler, Qset_visited_file_modtime, Qnil);
 
-      if (stat (SSDATA (ENCODE_FILE (filename)), &st) == 0)
+      if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (filename)), &st, 0)
+	  == 0)
         {
 	  current_buffer->modtime = get_stat_mtime (&st);
           current_buffer->modtime_size = st.st_size;
@@ -5728,12 +5735,14 @@ auto_save_1 (void)
   /* Get visited file's mode to become the auto save file's mode.  */
   if (! NILP (BVAR (current_buffer, filename)))
     {
-      if (stat (SSDATA (BVAR (current_buffer, filename)), &st) >= 0)
+      if (emacs_fstatat (AT_FDCWD, SSDATA (BVAR (current_buffer, filename)),
+			 &st, 0)
+	  == 0)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
       else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
 	       FIXNUMP (modes))
-	/* Remote files don't cooperate with stat.  */
+	/* Remote files don't cooperate with fstatat.  */
 	auto_save_mode_bits = (XFIXNUM (modes) | 0600) & 0777;
     }
 

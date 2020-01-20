@@ -347,7 +347,8 @@ rename_lock_file (char const *old, char const *new, bool force)
 	 potential race condition since some other process may create
 	 NEW immediately after the existence check, but it's the best
 	 we can portably do here.  */
-      if (lstat (new, &st) == 0 || errno == EOVERFLOW)
+      if (emacs_fstatat (AT_FDCWD, new, &st, AT_SYMLINK_NOFOLLOW) == 0
+	  || errno == EOVERFLOW)
 	{
 	  errno = EEXIST;
 	  return -1;

@@ -1353,11 +1353,11 @@ Return t if the file exists and loads successfully.  */)
              ignores suffix order due to load_prefer_newer.  */
           if (!load_prefer_newer && is_elc)
             {
-              result = stat (SSDATA (efound), &s1);
+	      result = emacs_fstatat (AT_FDCWD, SSDATA (efound), &s1, 0);
               if (result == 0)
                 {
                   SSET (efound, SBYTES (efound) - 1, 0);
-                  result = stat (SSDATA (efound), &s2);
+		  result = emacs_fstatat (AT_FDCWD, SSDATA (efound), &s2, 0);
                   SSET (efound, SBYTES (efound) - 1, 'c');
                 }
 
