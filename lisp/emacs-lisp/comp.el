@@ -1529,6 +1529,17 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
 ;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
+(defvar comp-propagate-classes '(byte-optimize-associative-math
+                                 byte-optimize-binary-predicate
+                                 byte-optimize-concat
+                                 byte-optimize-equal
+                                 byte-optimize-identity
+                                 byte-optimize-member
+                                 byte-optimize-memq
+                                 byte-optimize-predicate)
+  "We optimize functions with 'byte-optimizer' property set to
+ one of these symbols.  See byte-opt.el.")
+
 (defsubst comp-strict-type-of (obj)
   "Given OBJ return its type understanding fixnums."
   ;; Should be certainly smarter but now we take advantages just from fixnums.
@@ -1572,19 +1583,34 @@ This can run just once."
         (comp-mvar-constant lval) (comp-mvar-constant rval)
         (comp-mvar-type lval) (comp-mvar-type rval)))
 
+;; Here should fall most of (defun byte-optimize-* equivalents.
+(defsubst comp-function-optimizable (f args)
+  "Given function F called with ARGS return non nil when optimizable."
+  (when (cl-every #'comp-mvar-const-vld args)
+    (or (get f 'pure)
+        (memq (get f 'byte-optimizer) comp-propagate-classes)
+        (let ((values (mapcar #'comp-mvar-constant args)))
+          (pcase f
+            ;; Simple integer operation.
+            ;; Note: byte-opt uses `byte-opt--portable-numberp'
+            ;; instead of just`fixnump'.
+            ((or '+ '- '* '1+ '-1) (and (cl-every #'fixnump values)
+                                        (fixnump (apply f values))))
+            ('/ (and (cl-every #'fixnump values)
+                     (not (= (car (last values)) 0)))))))))
+
 (defsubst comp-function-call-remove (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
-  (when (and (get f 'pure) ; Can we just optimize pure here? See byte-opt.el
-             (cl-every #'comp-mvar-const-vld args))
+  (when (comp-function-optimizable f args)
     (ignore-errors
       ;; No point to complain here because we should do basic block
       ;; pruning in order to be sure that this is not dead-code.  This
       ;; is now left to gcc, to be implemented only if we want a
       ;; reliable diagnostic here.
-      (let ((val (apply f (mapcar #'comp-mvar-constant args))))
+      (let ((values (apply f (mapcar #'comp-mvar-constant args))))
         ;; See `comp-emit-set-const'.
         (setf (car insn) 'setimm
-              (cddr insn) (list (comp-add-const-to-relocs val) val))))))
+              (cddr insn) (list (comp-add-const-to-relocs values) values))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
