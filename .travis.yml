@@ -1,0 +1,21 @@
+language: c
+compiler: clang
+
+addons:
+  apt:
+    update: true
+    packages:
+    - libxml2-dev
+    - libgtk-3-dev
+    - libxpm-dev
+    - libgif-dev
+    - libgnutls-dev
+
+jobs:
+  include:
+  - os: osx
+    before_script: ./autogen.sh && ./configure --without-makeinfo --with-ns --without-xml2
+    script: make -j8
+  - os: linux
+    before_script: ./autogen.sh && ./configure --without-makeinfo --with-x --with-x-toolkit=gtk3
+    script: make -j8
