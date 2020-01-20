@@ -93,7 +93,7 @@ The optional display of the fill-column indicator is no longer
 supported.  With the display sizes becoming smaller and smaller as you
 move back in time, we feel that the display itself will always show
 you where to fill or wrap your text, and do this much more easily and
-reliably than eny such display indicator.
+reliably than any such display indicator.
 
 @item
 We removed the features that made visiting large files easier.  Thus,

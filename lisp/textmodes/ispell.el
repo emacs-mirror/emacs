@@ -2024,7 +2024,7 @@ quit          spell session exited."
   (setq ispell-filter (cdr ispell-filter))
   (when (and ispell-filter (listp ispell-filter))
     (if (> (length ispell-filter) 1)
-        (error "Ispell and its processs have different character maps: %s" ispell-filter)
+        (error "Ispell and its process have different character maps: %s" ispell-filter)
       (ispell-parse-output (car ispell-filter)))))
 
 (defun ispell-error-checking-word (word)

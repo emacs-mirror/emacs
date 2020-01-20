@@ -287,6 +287,10 @@ recognize and then delegate the work to an external process."
 (cl-defgeneric xref-backend-identifier-completion-table (backend)
   "Return the completion table for identifiers.")
 
+(cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
+  "Return t if case is not significant in identifier completion."
+  completion-ignore-case)
+
 
 ;;; misc utilities
 (defun xref--alistify (list key test)
@@ -967,7 +971,9 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 (defun xref--read-identifier (prompt)
   "Return the identifier at point or read it from the minibuffer."
   (let* ((backend (xref-find-backend))
-         (def (xref-backend-identifier-at-point backend)))
+         (def (xref-backend-identifier-at-point backend))
+         (completion-ignore-case
+          (xref-backend-identifier-completion-ignore-case backend)))
     (cond ((or current-prefix-arg
                (not def)
                (xref--prompt-p this-command))

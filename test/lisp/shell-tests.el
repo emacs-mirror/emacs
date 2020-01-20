@@ -34,8 +34,7 @@
   (with-temp-buffer
     (shell-mode)
     (insert "cd ba;")
-    (forward-char -1)
     (should (equal (shell--parse-pcomplete-arguments)
-                   '(("cd" "ba") 1 4)))))
+                   '(("cd" "ba" "") 1 4)))))
 
 ;;; shell-tests.el ends here

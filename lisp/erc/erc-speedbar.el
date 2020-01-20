@@ -4,7 +4,7 @@
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Contributor: Eric M. Ludlam <zappo@gnu.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

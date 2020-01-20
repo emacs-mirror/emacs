@@ -37,7 +37,7 @@
 ;; buffers which control the execution and describe the state of your program.
 ;; It separates the input/output of your program from that of GDB and displays
 ;; expressions and their current values in their own buffers.  It also uses
-;; features of Emacs 21 such as the fringe/display margin for breakpoints, and
+;; features such as the fringe/display margin for breakpoints, and
 ;; the toolbar (see the GDB Graphical Interface section in the Emacs info
 ;; manual).
 

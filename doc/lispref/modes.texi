@@ -135,7 +135,7 @@ non-@code{nil} value, it returns that value; otherwise it returns
 @node Setting Hooks
 @subsection Setting Hooks
 
-  Here's an example that adds a funtion to a mode hook to turn
+  Here's an example that adds a function to a mode hook to turn
 on Auto Fill mode when in Lisp Interaction mode:
 
 @example

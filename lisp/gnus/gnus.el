@@ -2821,7 +2821,7 @@ See Info node `(gnus)Formatting Variables'."
                (:constructor gnus-info-make
                 (group rank read &optional marks method params))
                (:constructor nil)
-               ;; FIMXE: gnus-newsrc-alist contains a list of those,
+	       ;; FIXME: gnus-newsrc-alist contains a list of those,
                ;; so changing them to a real struct will take more work!
                (:type list))
   group rank read marks method params)

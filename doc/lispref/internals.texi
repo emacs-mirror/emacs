@@ -1416,7 +1416,7 @@ other words, if a module function wants to call Lisp functions or
 Emacs primitives, convert @code{emacs_value} objects to and from C
 datatypes (@pxref{Module Values}), or interact with Emacs in any other
 way, some call from Emacs to @code{emacs_module_init} or to a module
-function must be in the callstack.  Module function may not interact
+function must be in the call stack.  Module function may not interact
 with Emacs while garbage collection is running; @pxref{Garbage
 Collection}.  They may only interact with Emacs from Lisp interpreter
 threads (including the main thread) created by Emacs; @pxref{Threads}.
