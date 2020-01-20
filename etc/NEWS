@@ -26,7 +26,17 @@ applies, and please also update docstrings as needed.
 
 ** Cairo is now used by default if found.
 '--with-cairo' is now the default, if the appropriate development files
-are found by 'configure'.
+are found by 'configure'.  Note that building with Cairo means using
+Pango instead of libXFT for font support.  Since Pango 1.44 has
+removed support for bitmapped fonts, this may require you to adjust
+your font settings.
+
+Note also that 'FontBackend' settings in .Xdefaults or .Xresources, or
+'font-backend' frame parameter settings in your init files, may need
+to be adjusted, as 'xft' is no longer a valid backend when using
+Cairo.  Use either 'ftcr' or 'ftcrhb' instead for FreeType and
+FreeType + HarfBuzz respectively.  'x' is still a valid backend.
+
 
 ---
 ** The ftx font backend driver has been removed.
