@@ -29,9 +29,6 @@
 (require 'cl-lib)
 (require 'comp)
 
-;; (setq comp-debug 1)
-(setq comp-speed 0)
-
 (defconst comp-test-directory (file-name-directory (or load-file-name
                                                        buffer-file-name)))
 (defconst comp-test-src
