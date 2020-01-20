@@ -48,7 +48,9 @@ Check that the resulting binaries do not differ."
          (comp1-src (make-temp-file "stage1-" nil ".el"))
          (comp2-src (make-temp-file "stage2-" nil ".el"))
          (comp1 (concat comp1-src "n"))
-         (comp2 (concat comp2-src "n")))
+         (comp2 (concat comp2-src "n"))
+         ;; Can't use debug symbols.
+         (comp-debug 0))
     (copy-file comp-src comp1-src t)
     (copy-file comp-src comp2-src t)
     (load (concat comp-src "c") nil nil t t)
