@@ -289,7 +289,7 @@ wrong, use this command again to toggle back to the right mode."
 (defun mule-cmds--prefixed-command-pch ()
   (if (not mule-cmds--prefixed-command-next-coding-system)
       (progn
-        (remove-hook 'pre-command-hook #'mule-cmds--prefixed-command)
+        (remove-hook 'pre-command-hook #'mule-cmds--prefixed-command-pch)
         (remove-hook 'prefix-command-echo-keystrokes-functions
                      #'mule-cmds--prefixed-command-echo)
         (remove-hook 'prefix-command-preserve-state-hook
