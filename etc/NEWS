@@ -36,7 +36,10 @@ Note also that 'FontBackend' settings in .Xdefaults or .Xresources, or
 to be adjusted, as 'xft' is no longer a valid backend when using
 Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz support,
 and 'ftcr' otherwise.  You can determine this by checking
-'system-configuration-features'.  'x' is still a valid backend.
+'system-configuration-features'.  The 'ftcr' backend will still be
+available when HarfBuzz is supported, but will not be used by default.
+We strongly recommend building with HarBuzz support. 'x' is still a
+valid backend.
 
 ---
 ** The ftx font backend driver has been removed.
