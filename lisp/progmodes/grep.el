@@ -64,8 +64,7 @@ SYMBOL should be one of `grep-command', `grep-template',
   "Number of lines in a grep window.  If nil, use `compilation-window-height'."
   :type '(choice (const :tag "Default" nil)
 		 integer)
-  :version "22.1"
-  :group 'grep)
+  :version "22.1")
 
 (defcustom grep-highlight-matches 'auto-detect
   "Use special markers to highlight grep matches.
@@ -98,9 +97,8 @@ To change the default value, use \\[customize] or call the function
 		 (const :tag "Use --color=always" always)
 		 (const :tag "Use --color" auto)
 		 (other :tag "Not Set" auto-detect))
-  :set 'grep-apply-setting
-  :version "22.1"
-  :group 'grep)
+  :set #'grep-apply-setting
+  :version "22.1")
 
 (defcustom grep-scroll-output nil
   "Non-nil to scroll the *grep* buffer window as output appears.
@@ -109,8 +107,7 @@ Setting it causes the grep commands to put point at the end of their
 output window so that the end of the output is always visible rather
 than the beginning."
   :type 'boolean
-  :version "22.1"
-  :group 'grep)
+  :version "22.1")
 
 ;;;###autoload
 (defcustom grep-command nil
@@ -124,8 +121,7 @@ by `grep-compute-defaults'; to change the default value, use
 \\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
-  :set 'grep-apply-setting
-  :group 'grep)
+  :set #'grep-apply-setting)
 
 (defcustom grep-template nil
   "The default command to run for \\[lgrep].
@@ -141,9 +137,8 @@ by `grep-compute-defaults'; to change the default value, use
 \\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
-  :set 'grep-apply-setting
-  :version "22.1"
-  :group 'grep)
+  :set #'grep-apply-setting
+  :version "22.1")
 
 (defcustom grep-use-null-device 'auto-detect
   "If t, append the value of `null-device' to `grep' commands.
@@ -157,8 +152,7 @@ by `grep-compute-defaults'; to change the default value, use
   :type '(choice (const :tag "Do Not Append Null Device" nil)
 		 (const :tag "Append Null Device" t)
 		 (other :tag "Not Set" auto-detect))
-  :set 'grep-apply-setting
-  :group 'grep)
+  :set #'grep-apply-setting)
 
 (defcustom grep-use-null-filename-separator 'auto-detect
   "If non-nil, use `grep's `--null' option.
@@ -167,8 +161,7 @@ This is done to disambiguate file names in `grep's output."
   :type '(choice (const :tag "Do Not Use `--null'" nil)
                  (const :tag "Use `--null'" t)
                  (other :tag "Not Set" auto-detect))
-  :set 'grep-apply-setting
-  :group 'grep)
+  :set #'grep-apply-setting)
 
 ;;;###autoload
 (defcustom grep-find-command nil
@@ -178,8 +171,7 @@ by `grep-compute-defaults'; to change the default value, use
 \\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
-  :set 'grep-apply-setting
-  :group 'grep)
+  :set #'grep-apply-setting)
 
 (defcustom grep-find-template nil
   "The default command to run for \\[rgrep].
@@ -194,9 +186,8 @@ by `grep-compute-defaults'; to change the default value, use
 \\[customize] or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
-  :set 'grep-apply-setting
-  :version "22.1"
-  :group 'grep)
+  :set #'grep-apply-setting
+  :version "22.1")
 
 (defcustom grep-files-aliases
   '(("all" .   "* .[!.]* ..?*") ;; Don't match `..'. See bug#22577
@@ -213,8 +204,7 @@ by `grep-compute-defaults'; to change the default value, use
     ("texi" .  "*.texi")
     ("asm" .   "*.[sS]"))
   "Alist of aliases for the FILES argument to `lgrep' and `rgrep'."
-  :type 'alist
-  :group 'grep)
+  :type 'alist)
 
 (defcustom grep-find-ignored-directories vc-directory-exclusion-list
   "List of names of sub-directories which `rgrep' shall not recurse into.
@@ -223,8 +213,7 @@ to determine whether cdr should not be recursed into.
 
 The default value is inherited from `vc-directory-exclusion-list'."
   :type '(choice (repeat :tag "Ignored directories" string)
-		 (const :tag "No ignored directories" nil))
-  :group 'grep)
+		 (const :tag "No ignored directories" nil)))
 
 (defcustom grep-find-ignored-files
   (cons ".#*" (delq nil (mapcar (lambda (s)
@@ -235,8 +224,7 @@ The default value is inherited from `vc-directory-exclusion-list'."
 If an element is a cons cell, the car is called on the search directory
 to determine whether cdr should not be excluded."
   :type '(choice (repeat :tag "Ignored file" string)
-		 (const :tag "No ignored files" nil))
-  :group 'grep)
+		 (const :tag "No ignored files" nil)))
 
 (defcustom grep-save-buffers 'ask
   "If non-nil, save buffers before running the grep commands.
@@ -251,22 +239,19 @@ to limit saving to files located under `my-grep-root'."
           (const :tag "Ask before saving" ask)
           (const :tag "Don't save buffers" nil)
           function
-          (other :tag "Save all buffers" t))
-  :group 'grep)
+          (other :tag "Save all buffers" t)))
 
 (defcustom grep-error-screen-columns nil
   "If non-nil, column numbers in grep hits are screen columns.
 See `compilation-error-screen-columns'."
   :type '(choice (const :tag "Default" nil)
 		 integer)
-  :version "22.1"
-  :group 'grep)
+  :version "22.1")
 
 ;;;###autoload
 (defcustom grep-setup-hook nil
   "List of hook functions run by `grep-process-setup' (see `run-hooks')."
-  :type 'hook
-  :group 'grep)
+  :type 'hook)
 
 (defvar grep-mode-map
   (let ((map (make-sparse-keymap)))
@@ -333,7 +318,10 @@ See `compilation-error-screen-columns'."
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
   ;; so don't do anything.
   (when (keymapp (butlast tool-bar-map))
+    ;; We have to `copy-keymap' rather than use keymap inheritance because
+    ;; we want to put the new items at the *end* of the tool-bar.
     (let ((map (butlast (copy-keymap tool-bar-map)))
+	  ;; FIXME: Nowadays the last button is not "help" but "search"!
 	  (help (last tool-bar-map))) ;; Keep Help last in tool bar
       (tool-bar-local-item
        "left-arrow" 'previous-error-no-select 'previous-error-no-select map
@@ -439,15 +427,13 @@ and reveals the entire command line.  The visibility of the
 abbreviated part can also be toggled with
 `grep-find-toggle-abbreviation'."
   :type 'boolean
-  :version "27.1"
-  :group 'grep)
+  :version "27.1")
 
 (defcustom grep-search-path '(nil)
   "List of directories to search for files named in grep messages.
 Elements should be directory names, not file names of
 directories.  The value nil as an element means the grep messages
 buffer `default-directory'."
-  :group 'grep
   :version "27.1"
   :type '(repeat (choice (const :tag "Default" nil)
 			 (string :tag "Directory"))))
@@ -528,9 +514,8 @@ This variable's value takes effect when `grep-compute-defaults' is called."
                  (const :tag "find -print0 | sort -z | xargs -0'" gnu-sort)
                  string
 		 (const :tag "Not Set" nil))
-  :set 'grep-apply-setting
-  :version "27.1"
-  :group 'grep)
+  :set #'grep-apply-setting
+  :version "27.1")
 
 ;; History of grep commands.
 ;;;###autoload
@@ -562,7 +547,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:sl=:cx=:ne"))
   (setq-local grep-num-matches-found 0)
   (set (make-local-variable 'compilation-exit-message-function)
-       'grep-exit-message)
+       #'grep-exit-message)
   (run-hooks 'grep-setup-hook))
 
 (defun grep-exit-message (status code msg)
@@ -612,7 +597,7 @@ This function is called from `compilation-filter-hook'."
 (defun grep-probe (command args &optional func result)
   (let (process-file-side-effects)
     (equal (condition-case nil
-	       (apply (or func 'process-file) command args)
+	       (apply (or func #'process-file) command args)
 	     (error nil))
 	   (or result 0))))
 
@@ -808,7 +793,7 @@ The value depends on `grep-command', `grep-template',
 	   (buffer-substring-no-properties (point) (mark)))
       (funcall (or find-tag-default-function
 		   (get major-mode 'find-tag-default-function)
-		   'find-tag-default))
+		   #'find-tag-default))
       ""))
 
 (defun grep-default-command ()
@@ -863,11 +848,11 @@ The value depends on `grep-command', `grep-template',
   (set (make-local-variable 'compilation-directory-matcher)
        (list regexp-unmatchable))
   (set (make-local-variable 'compilation-process-setup-function)
-       'grep-process-setup)
+       #'grep-process-setup)
   (set (make-local-variable 'compilation-disable-input) t)
   (set (make-local-variable 'compilation-error-screen-columns)
        grep-error-screen-columns)
-  (add-hook 'compilation-filter-hook 'grep-filter nil t))
+  (add-hook 'compilation-filter-hook #'grep-filter nil t))
 
 (defun grep--save-buffers ()
   (when grep-save-buffers
@@ -914,7 +899,7 @@ list is empty)."
   (compilation-start (if (and grep-use-null-device null-device)
 			 (concat command-args " " null-device)
 		       command-args)
-		     'grep-mode))
+		     #'grep-mode))
 
 
 ;;;###autoload
@@ -993,23 +978,31 @@ these include `opts', `dir', `files', `null-device', `excl' and
   "Read regexp arg for interactive grep using `read-regexp'."
   (read-regexp "Search for" 'grep-tag-default 'grep-regexp-history))
 
+(defvar grep-read-files-function #'grep-read-files--default)
+
+(defun grep-read-files--default ()
+  ;; Instead of a `grep-read-files-function' variable, we used to lookup
+  ;; mode-specific functions in the major mode's symbol properties, so preserve
+  ;; this behavior for backward compatibility.
+  (let ((old-function (get major-mode 'grep-read-files))) ;Obsolete since 28.1
+    (if old-function
+	(funcall old-function)
+      (let ((file-name-at-point
+	     (run-hook-with-args-until-success 'file-name-at-point-functions)))
+	(or (if (and (stringp file-name-at-point)
+		     (not (file-directory-p file-name-at-point)))
+		file-name-at-point)
+	    (buffer-file-name)
+	    (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name)))))))
+
 (defun grep-read-files (regexp)
   "Read a file-name pattern arg for interactive grep.
-The pattern can include shell wildcards.  As whitespace triggers
+The pattern can include shell wildcards.  As SPC can triggers
 completion when entering a pattern, including it requires
 quoting, e.g. `\\[quoted-insert]<space>'.
 
 REGEXP is used as a string in the prompt."
-  (let* ((grep-read-files-function (get major-mode 'grep-read-files))
-	 (file-name-at-point
-	   (run-hook-with-args-until-success 'file-name-at-point-functions))
-	 (bn (if grep-read-files-function
-		 (funcall grep-read-files-function)
-	       (or (if (and (stringp file-name-at-point)
-			    (not (file-directory-p file-name-at-point)))
-		       file-name-at-point)
-		   (buffer-file-name)
-		   (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name)))))
+  (let* ((bn (funcall grep-read-files-function))
 	 (fn (and bn
 		  (stringp bn)
 		  (file-name-nondirectory bn)))
@@ -1022,7 +1015,7 @@ REGEXP is used as a string in the prompt."
 		    (setq alias (car aliases)
 			  aliases (cdr aliases))
 		    (if (string-match (mapconcat
-				       'wildcard-to-regexp
+				       #'wildcard-to-regexp
 				       (split-string (cdr alias) nil t)
 				       "\\|")
 				      fn)
@@ -1043,11 +1036,11 @@ REGEXP is used as a string in the prompt."
 			 "\" in files matching wildcard"
 			 (if default (concat " (default " default ")"))
 			 ": ")
-		 'read-file-name-internal
+		 #'read-file-name-internal
 		 nil nil nil 'grep-files-history
 		 (delete-dups
 		  (delq nil (append (list default default-alias default-extension)
-				    (mapcar 'car grep-files-aliases)))))))
+				    (mapcar #'car grep-files-aliases)))))))
     (and files
 	 (or (cdr (assoc files grep-files-aliases))
 	     files))))

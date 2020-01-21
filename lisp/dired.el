@@ -851,7 +851,6 @@ If a directory or nothing is found at point, return nil."
     (if (and file-name
 	     (not (file-directory-p file-name)))
 	file-name)))
-(put 'dired-mode 'grep-read-files 'dired-grep-read-files)
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -2244,6 +2243,7 @@ Keybindings:
   (setq-local font-lock-defaults
               '(dired-font-lock-keywords t nil nil beginning-of-line))
   (setq-local desktop-save-buffer 'dired-desktop-buffer-misc-data)
+  (setq-local grep-read-files-function #'dired-grep-read-files)
   (setq dired-switches-alist nil)
   (hack-dir-local-variables-non-file-buffer) ; before sorting
   (dired-sort-other dired-actual-switches t)
