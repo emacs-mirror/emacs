@@ -353,6 +353,10 @@ HOSTNAME, USER and PORT are passed unchanged to
   (auth-source-pass--with-store '(("bar.com:8080"))
     (should (auth-source-pass-match-entry-p "bar.com:8080" "bar.com" nil "8080"))))
 
+(ert-deftest auth-source-pass--matching-entries-find-entries-with-a-port-when-passed-multiple-ports ()
+  (auth-source-pass--with-store '(("bar.com:8080"))
+    (should (auth-source-pass-match-entry-p "bar.com:8080" "bar.com" nil '("http" "https" "80" "8080")))))
+
 (ert-deftest auth-source-pass--matching-entries-find-entries-with-slash ()
   ;; match if entry filename matches user
   (auth-source-pass--with-store '(("foo.com/user"))
