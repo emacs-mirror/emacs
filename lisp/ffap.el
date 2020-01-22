@@ -1080,7 +1080,7 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     ;; Slightly controversial decisions:
     ;; * strip trailing "@", ":" and enclosing "{"/"}".
     ;; * no commas (good for latex)
-    (file "--:\\\\${}+<>@-Z_[:alpha:]~*?" "{<@" "@>;.,!:}")
+    (file "--:\\\\${}+<>@-Z_[:alpha:]~*?#" "{<@" "@>;.,!:}")
     ;; An url, or maybe an email/news message-id:
     (url "--:=&?$+@-Z_[:alpha:]~#,%;*()!'" "^[0-9a-zA-Z]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
