@@ -319,6 +319,8 @@ from all windows in the window configuration."
                         tab-bar-tab-name-current)
                  (const :tag "Selected window buffer with window count"
                         tab-bar-tab-name-current-with-count)
+                 (const :tag "Truncated buffer name"
+                        tab-bar-tab-name-truncated)
                  (const :tag "All window buffers"
                         tab-bar-tab-name-all)
                  (function  :tag "Function"))
@@ -349,6 +351,29 @@ Also add the number of windows in the window configuration."
                                   (window-list-1 (frame-first-window)
                                                  'nomini)))
              ", "))
+
+(defcustom tab-bar-tab-name-truncated-max 20
+  "Maximum length of the tab name from the current buffer.
+Effective when `tab-bar-tab-name-function' is customized
+to `tab-bar-tab-name-truncated'."
+  :type 'integer
+  :group 'tab-bar
+  :version "27.1")
+
+(defvar tab-bar-tab-name-truncated-ellipsis
+  (if (char-displayable-p ?…) "…" "..."))
+
+(defun tab-bar-tab-name-truncated ()
+  "Generate tab name from the buffer of the selected window.
+Truncate it to the length specified by `tab-bar-tab-name-truncated-max'.
+Append ellipsis `tab-bar-tab-name-truncated-ellipsis' in this case."
+  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window)))))
+    (if (< (length tab-name) tab-bar-tab-name-truncated-max)
+        tab-name
+      (propertize (truncate-string-to-width
+                   tab-name tab-bar-tab-name-truncated-max nil nil
+                   tab-bar-tab-name-truncated-ellipsis)
+                  'help-echo tab-name))))
 
 
 (defvar tab-bar-tabs-function #'tab-bar-tabs

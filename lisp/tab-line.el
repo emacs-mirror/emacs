@@ -213,9 +213,6 @@ If nil, don't show it at all."
 
 (defvar tab-line-separator nil)
 
-(defvar tab-line-tab-name-ellipsis
-  (if (char-displayable-p ?…) "…" "..."))
-
 
 (defcustom tab-line-tab-name-function #'tab-line-tab-name-buffer
   "Function to get a tab name.
@@ -240,23 +237,30 @@ This function can be overridden by changing the default value of the
 variable `tab-line-tab-name-function'."
   (buffer-name buffer))
 
-(defun tab-line-tab-name-truncated-buffer (buffer &optional buffers)
+(defcustom tab-line-tab-name-truncated-max 20
+  "Maximum length of the tab name from the current buffer.
+Effective when `tab-line-tab-name-function' is customized
+to `tab-line-tab-name-truncated-buffer'."
+  :type 'integer
+  :group 'tab-line
+  :version "27.1")
+
+(defvar tab-line-tab-name-ellipsis
+  (if (char-displayable-p ?…) "…" "..."))
+
+(defun tab-line-tab-name-truncated-buffer (buffer &optional _buffers)
   "Generate tab name from BUFFER.
-Reduce tab width proportionally to space taken by other tabs."
-  (let ((tab-name (buffer-name buffer))
-        (limit (when buffers
-                 (max 1 (- (/ (window-width) (length buffers)) 3)))))
-    (if (or (not limit) (< (length tab-name) limit))
+Truncate it to the length specified by `tab-line-tab-name-truncated-max'.
+Append ellipsis `tab-line-tab-name-ellipsis' in this case."
+  (let ((tab-name (buffer-name buffer)))
+    (if (< (length tab-name) tab-line-tab-name-truncated-max)
         tab-name
-      (propertize (truncate-string-to-width tab-name limit nil nil
-                                            tab-line-tab-name-ellipsis)
+      (propertize (truncate-string-to-width
+                   tab-name tab-line-tab-name-truncated-max nil nil
+                   tab-line-tab-name-ellipsis)
                   'help-echo tab-name))))
 
 
-(defvar tab-line-tabs-limit nil
-  "Maximum number of buffer tabs displayed in the tab line.
-If nil, no limit.")
-
 (defcustom tab-line-tabs-function #'tab-line-tabs-window-buffers
   "Function to get a list of tabs to display in the tab line.
 This function should return either a list of buffers whose names will
@@ -395,22 +399,9 @@ variable `tab-line-tabs-function'."
          (prev-buffers (seq-filter #'buffer-live-p prev-buffers))
          ;; Remove next-buffers from prev-buffers
          (prev-buffers (seq-difference prev-buffers next-buffers)))
-    (if (natnump tab-line-tabs-limit)
-        (let* ((half-limit (/ tab-line-tabs-limit 2))
-               (prev-buffers-limit
-                (if (> (length prev-buffers) half-limit)
-                    (if (> (length next-buffers) half-limit)
-                        half-limit
-                      (+ half-limit (- half-limit (length next-buffers))))
-                  (length prev-buffers)))
-               (next-buffers-limit
-                (- tab-line-tabs-limit prev-buffers-limit)))
-          (append (reverse (seq-take prev-buffers prev-buffers-limit))
-                  (list buffer)
-                  (seq-take next-buffers next-buffers-limit)))
-      (append (reverse prev-buffers)
-              (list buffer)
-              next-buffers))))
+    (append (reverse prev-buffers)
+            (list buffer)
+            next-buffers)))
 
 
 (defun tab-line-format-template (tabs)
@@ -681,15 +672,17 @@ Its effect is the same as using the `next-buffer' command
             (switch-to-buffer buffer)))))))
 
 
-(defcustom tab-line-close-tab-action 'bury-buffer
+(defcustom tab-line-close-tab-function 'bury-buffer
   "Defines what to do on closing the tab.
 If `bury-buffer', put the tab's buffer at the end of the list of all
 buffers that effectively hides the buffer's tab from the tab line.
 If `kill-buffer', kills the tab's buffer.
+When a function, it is called with the tab as its argument.
 This option is useful when `tab-line-tabs-function' has the value
 `tab-line-tabs-window-buffers'."
   :type '(choice (const :tag "Bury buffer" bury-buffer)
-                 (const :tag "Kill buffer" kill-buffer))
+                 (const :tag "Kill buffer" kill-buffer)
+                 (function :tag "Function"))
   :group 'tab-line
   :version "27.1")
 
@@ -703,18 +696,20 @@ from the tab line."
          (window (and posnp (posn-window posnp)))
          (tab (get-pos-property 1 'tab (car (posn-string posnp))))
          (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
-         (close-action (unless (bufferp tab) (cdr (assq 'close tab)))))
+         (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
     (with-selected-window (or window (selected-window))
       (cond
-       ((functionp close-action)
-        (funcall close-action))
-       ((eq tab-line-close-tab-action 'kill-buffer)
+       ((functionp close-function)
+        (funcall close-function))
+       ((eq tab-line-close-tab-function 'kill-buffer)
         (kill-buffer buffer))
-       ((eq tab-line-close-tab-action 'bury-buffer)
+       ((eq tab-line-close-tab-function 'bury-buffer)
         (if (eq buffer (current-buffer))
             (bury-buffer)
           (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
-          (set-window-next-buffers nil (delq buffer (window-next-buffers))))))
+          (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
+       ((functionp tab-line-close-tab-function)
+        (funcall tab-line-close-tab-function)))
       (force-mode-line-update))))
 
 

@@ -1644,6 +1644,7 @@ ns_free_frame_resources (struct frame *f)
   [view release];
 
   xfree (f->output_data.ns);
+  f->output_data.ns = NULL;
 
   unblock_input ();
 }
