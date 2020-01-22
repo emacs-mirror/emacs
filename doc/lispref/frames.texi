@@ -2301,17 +2301,17 @@ available font backends: @code{x} (the X core font driver), @code{xft}
 HarfBuzz text shaping).  If built with Cairo drawing, there are also
 three potentially available font backends on X: @code{x}, @code{ftcr}
 (the FreeType font driver on Cairo), and @code{ftcrhb} (the FreeType
-font driver on Cairo with HarfBuzz text shaping).  Note that the
-@code{ftcr} and @code{ftcrhb} drivers are mutually exclusive (and
-similarly for @code{xft} and @code{xfthb}), with the choice being made
-at build time.  On MS-Windows, there are currently three available
-font backends: @code{gdi} (the core MS-Windows font driver),
-@code{uniscribe} (font driver for OTF and TTF fonts with text shaping
-by the Uniscribe engine), and @code{harfbuzz} (font driver for OTF and
-TTF fonts with HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs,
-The GNU Emacs Manual}).  On other systems, there is only one available
-font backend, so it does not make sense to modify this frame
-parameter.
+font driver on Cairo with HarfBuzz text shaping).  When Emacs is built
+with HarfBuzz, the default font driver is @code{ftcrhb}, although use
+of the @code{ftcr} driver is still possible, but not recommended.  On
+MS-Windows, there are currently three available font backends:
+@code{gdi} (the core MS-Windows font driver), @code{uniscribe} (font
+driver for OTF and TTF fonts with text shaping by the Uniscribe
+engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
+HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
+Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
+other systems, there is only one available font backend, so it does
+not make sense to modify this frame parameter.
 
 @vindex background-mode@r{, a frame parameter}
 @item background-mode

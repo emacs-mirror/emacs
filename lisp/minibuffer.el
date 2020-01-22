@@ -766,7 +766,7 @@ and `clear-minibuffer-message' called automatically via
 (defun set-minibuffer-message (message)
   "Temporarily display MESSAGE at the end of the minibuffer.
 The text is displayed for `minibuffer-message-clear-timeout' seconds
-(if the value is a number), or until the next input event arrives,
+\(if the value is a number), or until the next input event arrives,
 whichever comes first.
 Unlike `minibuffer-message', this function is called automatically
 via `set-message-function'."
@@ -790,8 +790,14 @@ via `set-message-function'."
         ;; The current C cursor code doesn't know to use the overlay's
         ;; marker's stickiness to figure out whether to place the cursor
         ;; before or after the string, so let's spoon-feed it the pos.
-        (put-text-property 0 1 'cursor t message))
+        (put-text-property 0 1 'cursor 1 message))
       (overlay-put minibuffer-message-overlay 'after-string message)
+      ;; Make sure the overlay with the message is displayed before
+      ;; any other overlays in that position, in case they have
+      ;; resize-mini-windows set to nil and the other overlay strings
+      ;; are too long for the mini-window width.  This makes sure the
+      ;; temporary message will always be visible.
+      (overlay-put minibuffer-message-overlay 'priority 1100)
 
       (when (numberp minibuffer-message-clear-timeout)
         (setq minibuffer-message-timer

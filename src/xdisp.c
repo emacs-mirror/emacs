@@ -19191,6 +19191,14 @@ try_window_reusing_current_matrix (struct window *w)
   if (!NILP (Vdisplay_line_numbers))
     return false;
 
+  /* Can't scroll the display of w32 GUI frames when position of point
+     is indicated by the system caret, because scrolling the display
+     will then "copy" the pixles used by the caret.  */
+#ifdef HAVE_NTGUI
+  if (w32_use_visible_system_caret)
+    return false;
+#endif
+
   /* The variable new_start now holds the new window start.  The old
      start `start' can be determined from the current matrix.  */
   SET_TEXT_POS_FROM_MARKER (new_start, w->start);
@@ -20174,6 +20182,15 @@ try_window_id (struct window *w)
   row = MATRIX_ROW (current_matrix, w->window_end_vpos);
   if (MATRIX_ROW_START_CHARPOS (row) == MATRIX_ROW_END_CHARPOS (row))
     GIVE_UP (20);
+
+  /* Can't let scroll_run_hook below run on w32 GUI frames when
+     position of point is indicated by the system caret, because
+     scrolling the display will then "copy" the pixles used by the
+     caret.  */
+#ifdef HAVE_NTGUI
+  if (FRAME_W32_P (f) && w32_use_visible_system_caret)
+    GIVE_UP (25);
+#endif
 
   /* Compute the position at which we have to start displaying new
      lines.  Some of the lines at the top of the window might be

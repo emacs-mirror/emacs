@@ -3743,11 +3743,10 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
-  block_input ();
-
   /* Pseudo windows don't have cursors, so don't display them here.  */
   if (!w->pseudo_window_p)
     {
+      block_input ();
 
       if (cursor_on_p)
 	display_and_set_cursor (w, true,
@@ -3761,6 +3760,7 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
 	  else
 	    gui_draw_vertical_border (w);
 	}
+      unblock_input ();
     }
 
   /* If a row with mouse-face was overwritten, arrange for
@@ -3778,7 +3778,6 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
     FRAME_RIF (f)->update_window_end_hook (w,
                                            cursor_on_p,
                                            mouse_face_overwritten_p);
-  unblock_input ();
 }
 
 #endif /* HAVE_WINDOW_SYSTEM  */
@@ -4357,6 +4356,14 @@ scrolling_window (struct window *w, int tab_line_p)
      bytes in 64-bit builds, and thus the comparison of u.val values
      done by GLYPH_EQUAL_P doesn't work reliably, since it assumes the
      size of the union is 4 bytes.  FIXME.  */
+    return 0;
+#endif
+
+  /* Can't scroll the display of w32 GUI frames when position of point
+     is indicated by the system caret, because scrolling the display
+     will then "copy" the pixles used by the caret.  */
+#ifdef HAVE_NTGUI
+  if (w32_use_visible_system_caret)
     return 0;
 #endif
 
