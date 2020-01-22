@@ -557,13 +557,16 @@ of the local file name is the share exported by the remote host,
 @cindex method @option{davs}
 @cindex @option{dav} method
 @cindex @option{davs} method
+@cindex method @option{media}
+@cindex @option{media} method
 
 On systems, which have installed @acronym{GVFS, the GNOME Virtual File
 System}, its offered methods could be used by @value{tramp}.  Examples
 are @file{@trampfn{sftp,user@@host,/path/to/file}},
 @file{@trampfn{afp,user@@host,/path/to/file}} (accessing Apple's AFP
-file system), @file{@trampfn{dav,user@@host,/path/to/file}} and
-@file{@trampfn{davs,user@@host,/path/to/file}} (for WebDAV shares).
+file system), @file{@trampfn{dav,user@@host,/path/to/file}},
+@file{@trampfn{davs,user@@host,/path/to/file}} (for WebDAV shares) and
+@file{@trampfn{media,device,/path/to/file}} (for media devices).
 
 
 @anchor{Quick Start Guide: GNOME Online Accounts based methods}
@@ -1126,7 +1129,8 @@ Emacs.
 @value{tramp} does not require a host name part of the remote file
 name when a single Android device is connected to @command{adb}.
 @value{tramp} instead uses @file{@trampfn{adb,,}} as the default name.
-@command{adb devices} shows available host names.
+@command{adb devices}, run in a shell outside Emacs, shows available
+host names.
 
 @option{adb} method normally does not need user name to authenticate
 on the Android device because it runs under the @command{adbd}
@@ -1243,6 +1247,26 @@ Since Google Drive uses cryptic blob file names internally,
 could produce unexpected behavior in case two files in the same
 directory have the same @code{display-name}, such a situation must be avoided.
 
+@item @option{media}
+@cindex method @option{media}
+@cindex @option{media} method
+@cindex media
+
+Media devices, like cell phones, tablets, cameras, can be accessed via
+the @option{media} method.  Just the device name is needed in order to
+specify the remote part of file name.  However, the device must
+already be connected via USB, before accessing it.
+
+Depending on the device type, the access could be read-only.  Some
+devices are accessible under different names in parallel, offering
+different parts of their file system.
+
+@c @value{tramp} does not require a device name as part of the remote
+@c file name when a single media device is connected.  @value{tramp}
+@c instead uses @file{@trampfn{media,,}} as the default name.
+@c @c @command{adb devices}, run in a shell outside Emacs, shows available
+@c @c host names.
+
 @item @option{nextcloud}
 @cindex method @option{nextcloud}
 @cindex @option{nextcloud} method
@@ -1267,11 +1291,11 @@ that for security reasons refuse @command{ssh} connections.
 @defopt tramp-gvfs-methods
 This user option is a list of external methods for @acronym{GVFS}@.
 By default, this list includes @option{afp}, @option{dav},
-@option{davs}, @option{gdrive}, @option{nextcloud} and @option{sftp}.
-Other methods to include are @option{ftp}, @option{http},
-@option{https} and @option{smb}.  These methods are not intended to be
-used directly as @acronym{GVFS}-based method.  Instead, they are added
-here for the benefit of @ref{Archive file names}.
+@option{davs}, @option{gdrive}, @option{media}, @option{nextcloud} and
+@option{sftp}.  Other methods to include are @option{ftp},
+@option{http}, @option{https} and @option{smb}.  These methods are not
+intended to be used directly as @acronym{GVFS}-based method.  Instead,
+they are added here for the benefit of @ref{Archive file names}.
 
 If you want to use @acronym{GVFS}-based @option{ftp} or @option{smb}
 methods, you must add them to @code{tramp-gvfs-methods}, and you must

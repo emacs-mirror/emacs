@@ -2059,6 +2059,9 @@ letter into the file name.  This function removes it."
 
 ;;; Config Manipulation Functions:
 
+(defconst tramp-dns-sd-service-regexp "^_[-[:alnum:]]+\\._tcp$"
+  "DNS-SD service regexp.")
+
 (defun tramp-set-completion-function (method function-list)
   "Set the list of completion functions for METHOD.
 FUNCTION-LIST is a list of entries of the form (FUNCTION FILE).
@@ -2091,9 +2094,9 @@ Example:
 			  (zerop
 			   (tramp-call-process
 			    v "reg" nil nil nil "query" (nth 1 (car v))))))
-		    ;; Zeroconf service type.
+		    ;; DNS-SD service type.
 		    ((string-match-p
-		      "^_[[:alpha:]]+\\._[[:alpha:]]+$" (nth 1 (car v))))
+		      tramp-dns-sd-service-regexp (nth 1 (car v))))
 		    ;; Configuration file or empty string.
 		    (t (file-exists-p (nth 1 (car v))))))
 	(setq r (delete (car v) r)))

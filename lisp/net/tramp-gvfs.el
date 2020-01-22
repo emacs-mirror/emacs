@@ -49,10 +49,14 @@
 
 ;; The user option `tramp-gvfs-methods' contains the list of supported
 ;; connection methods.  Per default, these are "afp", "dav", "davs",
-;; "gdrive", "nextcloud" and "sftp".
+;; "gdrive", "media", "nextcloud" and "sftp".
 
 ;; "gdrive" and "nextcloud" connection methods require a respective
 ;; account in GNOME Online Accounts, with enabled "Files" service.
+
+;; The "media" connection method is responsible for media devices,
+;; like cell phones, tablets, cameras etc.  The device must already be
+;; connected via USB, before accessing it.
 
 ;; Other possible connection methods are "ftp", "http", "https" and
 ;; "smb".  When one of these methods is added to the list, the remote
@@ -127,10 +131,10 @@
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods
-  '("afp" "dav" "davs" "gdrive" "nextcloud" "sftp")
+  '("afp" "dav" "davs" "gdrive" "media" "nextcloud" "sftp")
   "List of methods for remote files, accessed with GVFS."
   :group 'tramp
-  :version "27.1"
+  :version "28.1"
   :type '(repeat (choice (const "afp")
 			 (const "dav")
 			 (const "davs")
@@ -138,10 +142,12 @@
 			 (const "gdrive")
 			 (const "http")
 			 (const "https")
+			 (const "media")
 			 (const "nextcloud")
 			 (const "sftp")
 			 (const "smb"))))
 
+;;;###tramp-autoload
 (defconst tramp-goa-methods '("gdrive" "nextcloud")
   "List of methods which require registration at GNOME Online Accounts.")
 
@@ -151,15 +157,23 @@
   (dolist (method tramp-goa-methods)
     (setq tramp-gvfs-methods (delete method tramp-gvfs-methods))))
 
-;; Add defaults for `tramp-default-user-alist' and `tramp-default-host-alist'.
 ;;;###tramp-autoload
-(tramp--with-startup
- (when (string-match "\\(.+\\)@\\(\\(?:gmail\\|googlemail\\)\\.com\\)"
-		     user-mail-address)
-   (add-to-list 'tramp-default-user-alist
-	        `("\\`gdrive\\'" nil ,(match-string 1 user-mail-address)))
-   (add-to-list 'tramp-default-host-alist
-	        '("\\`gdrive\\'" nil ,(match-string 2 user-mail-address)))))
+(defvar tramp-media-methods '("afc" "gphoto2" "mtp")
+  "List of GVFS methods which are covered by the \"media\" method.
+They are checked during start up via
+`tramp-gvfs-interface-remotevolumemonitor'.")
+
+(defsubst tramp-gvfs-service-volumemonitor (method)
+  "Return the well known name of the volume monitor responsible for METHOD."
+  (symbol-value
+   (intern-soft (format "tramp-gvfs-service-%s-volumemonitor" method))))
+
+;; Remove media methods if not supported.
+(when tramp-gvfs-enabled
+  (dolist (method tramp-media-methods)
+    (unless (member (tramp-gvfs-service-volumemonitor method)
+		    (dbus-list-known-names :session))
+      (setq tramp-media-methods (delete method tramp-media-methods)))))
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-zeroconf-domain "local"
@@ -169,13 +183,15 @@
   :type 'string)
 
 ;; Add the methods to `tramp-methods', in order to allow minibuffer
-;; completion.
+;; completion.  Add defaults for `tramp-default-host-alist'.
 ;;;###tramp-autoload
 (when (featurep 'dbusbind)
   (tramp--with-startup
-   (dolist (elt tramp-gvfs-methods)
-     (unless (assoc elt tramp-methods)
-       (add-to-list 'tramp-methods (cons elt nil))))))
+   (dolist (method tramp-gvfs-methods)
+     (unless (assoc method tramp-methods)
+       (add-to-list 'tramp-methods `(,method)))
+     (when (member method (cons "media" tramp-goa-methods))
+       (add-to-list 'tramp-default-host-alist `(,method nil ""))))))
 
 (defconst tramp-gvfs-path-tramp (concat dbus-path-emacs "/Tramp")
   "The preceding object path for own objects.")
@@ -458,7 +474,208 @@ It has been changed in GVFS 1.14.")
 
 ;; The basic structure for GNOME Online Accounts.  We use a list :type,
 ;; in order to be compatible with Emacs 25.
-(cl-defstruct (tramp-goa-name (:type list) :named) method user host port)
+(cl-defstruct (tramp-goa-account (:type list) :named) method user host port)
+
+;;;###tramp-autoload
+(defconst tramp-gvfs-service-afc-volumemonitor "org.gtk.vfs.AfcVolumeMonitor"
+  "The well known name of the AFC volume monitor.")
+
+;; This one is not needed yet.
+(defconst tramp-gvfs-service-goa-volumemonitor "org.gtk.vfs.GoaVolumeMonitor"
+  "The well known name of the GOA volume monitor.")
+
+;;;###tramp-autoload
+(defconst tramp-gvfs-service-gphoto2-volumemonitor
+  "org.gtk.vfs.GPhoto2VolumeMonitor"
+  "The well known name of the GPhoto2 volume monitor.")
+
+;;;###tramp-autoload
+(defconst tramp-gvfs-service-mtp-volumemonitor "org.gtk.vfs.MTPVolumeMonitor"
+  "The well known name of the MTP volume monitor.")
+
+(defconst tramp-gvfs-path-remotevolumemonitor
+  "/org/gtk/Private/RemoteVolumeMonitor"
+  "The object path of the remote volume monitor.")
+
+(defconst tramp-gvfs-interface-remotevolumemonitor
+  "org.gtk.Private.RemoteVolumeMonitor"
+  "The volume monitor interface.")
+
+;; <interface name='org.gtk.Private.RemoteVolumeMonitor'>
+;;   <method name="IsSupported">
+;;     <arg type='b' name='is_supported' direction='out'/>
+;;   </method>
+;;   <method name="List">
+;;     <arg type='a(ssssbbbbbbbbuasa{ss}sa{sv})' name='drives' direction='out'/>
+;;     <arg type='a(ssssssbbssa{ss}sa{sv})' name='volumes' direction='out'/>
+;;     <arg type='a(ssssssbsassa{sv})' name='mounts' direction='out'/>
+;;   </method>
+;;   <method name="CancelOperation">
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;     <arg type='b' name='was_cancelled' direction='out'/>
+;;   </method>
+;;   <method name="MountUnmount">
+;;     <arg type='s' name='id' direction='in'/>
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;     <arg type='u' name='unmount_flags' direction='in'/>
+;;     <arg type='s' name='mount_op_id' direction='in'/>
+;;   </method>
+;;   <method name="VolumeMount">
+;;     <arg type='s' name='id' direction='in'/>
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;     <arg type='u' name='mount_flags' direction='in'/>
+;;     <arg type='s' name='mount_op_id' direction='in'/>
+;;   </method>
+;;   <method name="DriveEject">
+;;     <arg type='s' name='id' direction='in'/>
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;     <arg type='u' name='unmount_flags' direction='in'/>
+;;     <arg type='s' name='mount_op_id' direction='in'/>
+;;   </method>
+;;   <method name="DrivePollForMedia">
+;;     <arg type='s' name='id' direction='in'/>
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;   </method>
+;;   <method name="DriveStart">
+;;     <arg type='s' name='id' direction='in'/>
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;     <arg type='u' name='flags' direction='in'/>
+;;     <arg type='s' name='mount_op_id' direction='in'/>
+;;   </method>
+;;   <method name="DriveStop">
+;;     <arg type='s' name='id' direction='in'/>
+;;     <arg type='s' name='cancellation_id' direction='in'/>
+;;     <arg type='u' name='unmount_flags' direction='in'/>
+;;     <arg type='s' name='mount_op_id' direction='in'/>
+;;   </method>
+;;   <method name="MountOpReply">
+;;     <arg type='s' name='mount_op_id' direction='in'/>
+;;     <arg type='i' name='result' direction='in'/>
+;;     <arg type='s' name='user_name' direction='in'/>
+;;     <arg type='s' name='domain' direction='in'/>
+;;     <arg type='s' name='encoded_password' direction='in'/>
+;;     <arg type='i' name='password_save' direction='in'/>
+;;     <arg type='i' name='choice' direction='in'/>
+;;     <arg type='b' name='anonymous' direction='in'/>
+;;   </method>
+;;   <signal name="DriveChanged">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssbbbbbbbbuasa{ss}sa{sv})' name='drive'/>
+;;   </signal>
+;;   <signal name="DriveConnected">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssbbbbbbbbuasa{ss}sa{sv})' name='drive'/>
+;;   </signal>
+;;   <signal name="DriveDisconnected">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssbbbbbbbbuasa{ss}sa{sv})' name='drive'/>
+;;   </signal>
+;;   <signal name="DriveEjectButton">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssbbbbbbbbuasa{ss}sa{sv})' name='drive'/>
+;;   </signal>
+;;   <signal name="DriveStopButton">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssbbbbbbbbuasa{ss}sa{sv})' name='drive'/>
+;;   </signal>
+;;   <signal name="VolumeChanged">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbbssa{ss}sa{sv})' name='volume'/>
+;;   </signal>
+;;   <signal name="VolumeAdded">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbbssa{ss}sa{sv})' name='volume'/>
+;;   </signal>
+;;   <signal name="VolumeRemoved">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbbssa{ss}sa{sv})' name='volume'/>
+;;   </signal>
+;;   <signal name="MountChanged">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbsassa{sv})' name='mount'/>
+;;   </signal>
+;;   <signal name="MountAdded">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbsassa{sv})' name='mount'/>
+;;   </signal>
+;;   <signal name="MountPreUnmount">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbsassa{sv})' name='mount'/>
+;;   </signal>
+;;   <signal name="MountRemoved">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='(ssssssbsassa{sv})' name='mount'/>
+;;   </signal>
+;;   <signal name="MountOpAskPassword">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='s' name='message_to_show'/>
+;;     <arg type='s' name='default_user'/>
+;;     <arg type='s' name='default_domain'/>
+;;     <arg type='u' name='flags'/>
+;;   </signal>
+;;   <signal name="MountOpAskQuestion">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='s' name='message_to_show'/>
+;;     <arg type='as' name='choices'/>
+;;   </signal>
+;;   <signal name="MountOpShowProcesses">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='s' name='message_to_show'/>
+;;     <arg type='ai' name='pid'/>
+;;     <arg type='as' name='choices'/>
+;;   </signal>
+;;   <signal name="MountOpShowUnmountProgress">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;     <arg type='s' name='message_to_show'/>
+;;     <arg type='x' name='time_left'/>
+;;     <arg type='x' name='bytes_left'/>
+;;   </signal>
+;;   <signal name="MountOpAborted">
+;;     <arg type='s' name='dbus_name'/>
+;;     <arg type='s' name='id'/>
+;;   </signal>
+;; </interface>
+
+;; STRUCT		volume
+;;   STRING		  id
+;;   STRING		  name
+;;   STRING		  gicon_data
+;;   STRING		  symbolic_gicon_data
+;;   STRING		  uuid
+;;   STRING		  activation_uri
+;;   BOOLEAN		  can-mount
+;;   BOOLEAN		  should-automount
+;;   STRING		  drive-id
+;;   STRING		  mount-id
+;;   ARRAY		  identifiers
+;;     DICT
+;;       STRING		    key (unix-device, class, uuid, ...)
+;;       STRING		    value
+;;   STRING		  sort_key
+;;   ARRAY		  expansion
+;;     DICT
+;;       STRING		    key (always-call-mount, is-removable, ...)
+;;       VARIANT	    value (boolean?)
+
+;; The basic structure for media devices.  We use a list :type, in
+;; order to be compatible with Emacs 25.
+(cl-defstruct (tramp-media-device (:type list) :named) method host port)
 
 ;; "gvfs-<command>" utilities have been deprecated in GVFS 1.31.1.  We
 ;; must use "gio <command>" tool instead.
@@ -1381,36 +1598,45 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 
 ;; File name conversions.
 
+(defun tramp-gvfs-activation-uri (filename)
+  "Return activation URI to be used in gio commands."
+  (if (tramp-tramp-file-p filename)
+      (with-parsed-tramp-file-name filename nil
+	;; Ensure that media devices are cached.
+	(when (string-equal method "media")
+	  (tramp-get-media-device v))
+	(with-tramp-connection-property v "activation-uri"
+	  (setq localname "/")
+	  (when (string-equal "gdrive" method)
+	    (setq method "google-drive"))
+	  (when (string-equal "nextcloud" method)
+	    (setq method "davs"
+		  localname
+		  (concat (tramp-gvfs-get-remote-prefix v) localname)))
+	  (when (and user domain)
+	    (setq user (concat domain ";" user)))
+	  (url-recreate-url
+	   (url-parse-make-urlobj
+	    method (and user (url-hexify-string user))
+	    nil (and host (url-hexify-string host))
+	    (if (stringp port) (string-to-number port) port)
+	    localname nil nil t))))
+    ;; Local URI.
+    (url-recreate-url
+     (url-parse-make-urlobj "file" nil nil nil nil nil nil nil t))))
+
 (defun tramp-gvfs-url-file-name (filename)
   "Return FILENAME in URL syntax."
-  ;; "/" must NOT be hexified.
   (setq filename (tramp-compat-file-name-unquote filename))
-  (let ((url-unreserved-chars (cons ?/ url-unreserved-chars))
-	result)
-    (setq
-     result
-     (url-recreate-url
-      (if (tramp-tramp-file-p filename)
-	  (with-parsed-tramp-file-name filename nil
-	    (when (string-equal "gdrive" method)
-	      (setq method "google-drive"))
-	    (when (string-equal "nextcloud" method)
-	      (setq method "davs"
-		    localname
-		    (concat (tramp-gvfs-get-remote-prefix v) localname)))
-	    (when (and user domain)
-	      (setq user (concat domain ";" user)))
-	    (url-parse-make-urlobj
-	     method (and user (url-hexify-string user))
-	     nil (and host (url-hexify-string host))
-	     (if (stringp port) (string-to-number port) port)
-	     (and localname (url-hexify-string localname)) nil nil t))
-	(url-parse-make-urlobj
-	 "file" nil nil nil nil
-	 (url-hexify-string (file-truename filename)) nil nil t))))
+  (let* (;; "/" must NOT be hexified.
+	 (url-unreserved-chars (cons ?/ url-unreserved-chars))
+	 (result
+	  (concat (substring (tramp-gvfs-activation-uri filename) 0 -1)
+		  (url-hexify-string (tramp-file-local-name filename)))))
     (when (tramp-tramp-file-p filename)
-      (with-parsed-tramp-file-name filename nil
-	(tramp-message v 10 "remote file `%s' is URL `%s'" filename result)))
+      (tramp-message
+       (tramp-dissect-file-name filename) 10
+       "remote file `%s' is URL `%s'" filename result))
     result))
 
 (defun tramp-gvfs-object-path (filename)
@@ -1567,6 +1793,17 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 		user (url-user uri)
 		host (url-host uri)
 		port (url-portspec uri)))
+	(when (member method tramp-media-methods)
+	  ;; Ensure that media devices are cached.
+	  (tramp-get-media-devices nil)
+	  (let ((v (tramp-get-connection-property
+		    (make-tramp-media-device
+		     :method method :host (downcase host) :port port)
+		    "vector" nil)))
+	    (when v
+	      (setq method (tramp-file-name-method v)
+		    host (tramp-file-name-host v)
+		    port (tramp-file-name-port v)))))
 	(when (member method tramp-gvfs-methods)
 	  (with-parsed-tramp-file-name
 	      (tramp-make-tramp-file-name method user domain host port "") nil
@@ -1657,6 +1894,17 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 		 user (url-user uri)
 		 host (url-host uri)
 		 port (url-portspec uri)))
+	 (when (member method tramp-media-methods)
+	   ;; Ensure that media devices are cached.
+	   (tramp-get-media-devices vec)
+	   (let ((v (tramp-get-connection-property
+		     (make-tramp-media-device
+		      :method method :host (downcase host) :port port)
+		     "vector" nil)))
+	     (when v
+	       (setq method (tramp-file-name-method v)
+		     host (tramp-file-name-host v)
+		     port (tramp-file-name-port v)))))
 	 (when (and
 		(string-equal method (tramp-file-name-method vec))
 		(string-equal user (tramp-file-name-user vec))
@@ -1694,11 +1942,16 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 
 (defun tramp-gvfs-mount-spec (vec)
   "Return a mount-spec for \"org.gtk.vfs.MountTracker.mountLocation\"."
-  (let* ((method (tramp-file-name-method vec))
+  (let* ((media (tramp-get-media-device vec))
+	 (method (if media
+		     (tramp-media-device-method media)
+		   (tramp-file-name-method vec)))
 	 (user (tramp-file-name-user vec))
 	 (domain (tramp-file-name-domain vec))
-	 (host (tramp-file-name-host vec))
-	 (port (tramp-file-name-port vec))
+	 (host (if media
+		   (tramp-media-device-host media) (tramp-file-name-host vec)))
+	 (port (if media
+		   (tramp-media-device-port media) (tramp-file-name-port vec)))
 	 (localname (tramp-file-name-unquote-localname vec))
 	 (share (when (string-match "^/?\\([^/]+\\)" localname)
 		  (match-string 1 localname)))
@@ -1792,7 +2045,7 @@ This is relevant for GNOME Online Accounts."
     ;; Ensure that GNOME Online Accounts are cached.
     (when (member (tramp-file-name-method vec) tramp-goa-methods)
       (tramp-get-goa-accounts vec))
-    (tramp-get-connection-property (tramp-make-goa-name vec) "prefix" "/")))
+    (tramp-get-connection-property (tramp-get-goa-account vec) "prefix" "/")))
 
 (defun tramp-gvfs-maybe-open-connection (vec)
   "Maybe open a connection VEC.
@@ -1841,7 +2094,7 @@ connection if a previous connection has died for some reason."
 	;; Ensure that GNOME Online Accounts are cached.
 	(tramp-get-goa-accounts vec)
 	(when (tramp-get-connection-property
-	       (tramp-make-goa-name vec) "FilesDisabled" t)
+	       (tramp-get-goa-account vec) "FilesDisabled" t)
 	  (tramp-user-error
 	   vec "There is no Online Account `%s'"
 	   (tramp-make-tramp-file-name vec 'noloc))))
@@ -1966,12 +2219,12 @@ is applied, and it returns t if the return code is zero."
 	  (and (tramp-flush-file-properties vec "/") nil)))))
 
 
-;; D-Bus GNOME Online Accounts functions.
+;; GNOME Online Accounts functions.
 
-(defun tramp-make-goa-name (vec)
-  "Transform VEC into a `tramp-goa-name' structure."
+(defun tramp-get-goa-account (vec)
+  "Transform VEC into a `tramp-goa-account' structure."
   (when (tramp-file-name-p vec)
-    (make-tramp-goa-name
+    (make-tramp-goa-account
      :method (tramp-file-name-method vec)
      :user (tramp-file-name-user vec)
      :host (tramp-file-name-host vec)
@@ -1979,12 +2232,12 @@ is applied, and it returns t if the return code is zero."
 
 (defun tramp-get-goa-accounts (vec)
   "Retrieve GNOME Online Accounts, and cache them.
-The hash key is a `tramp-goa-name' structure.  The value is an
+The hash key is a `tramp-goa-account' structure.  The value is an
 alist of the properties of `tramp-goa-interface-account' and
-`tramp-goa-interface-files' of the corresponding GNOME online
-account.  Additionally, a property \"prefix\" is added.
+`tramp-goa-interface-files' of the corresponding GNOME Online
+Account.  Additionally, a property \"prefix\" is added.
 VEC is used only for traces."
-  (with-tramp-connection-property (tramp-make-goa-name vec) "goa-accounts"
+  (with-tramp-connection-property nil "goa-accounts"
     (dolist
 	(object-path
 	 (mapcar
@@ -2010,15 +2263,15 @@ VEC is used only for traces."
 		(cdr (assoc "ProviderType" account-properties))
 		'("google" "owncloud"))
 	       (string-match tramp-goa-identity-regexp identity))
-	  (setq key (make-tramp-goa-name
+	  (setq key (make-tramp-goa-account
 		     :method (cdr (assoc "ProviderType" account-properties))
 		     :user (match-string 1 identity)
 		     :host (match-string 2 identity)
 		     :port (match-string 3 identity)))
-	  (when (string-equal (tramp-goa-name-method key) "google")
-	    (setf (tramp-goa-name-method key) "gdrive"))
-	  (when (string-equal (tramp-goa-name-method key) "owncloud")
-	    (setf (tramp-goa-name-method key) "nextcloud"))
+	  (when (string-equal (tramp-goa-account-method key) "google")
+	    (setf (tramp-goa-account-method key) "gdrive"))
+	  (when (string-equal (tramp-goa-account-method key) "owncloud")
+	    (setf (tramp-goa-account-method key) "nextcloud"))
 	  ;; Cache all properties.
 	  (dolist (prop (nconc account-properties files-properties))
 	    (tramp-set-connection-property key (car prop) (cdr prop)))
@@ -2033,6 +2286,80 @@ VEC is used only for traces."
 	       (tramp-get-connection-property key "Uri" "file:///")))))))))
     ;; Mark, that goa accounts have been cached.
     "cached"))
+
+(defun tramp-parse-goa-accounts (service)
+  "Return a list of (user host) tuples allowed to access.
+It checks for registered GNOME Online Accounts."
+  ;; SERVICE might be encoded as a DNS-SD service.
+  (and (string-match tramp-dns-sd-service-regexp service)
+       (setq service (match-string 1 service)))
+  (let (result)
+    (maphash
+     (lambda (key _value)
+       (if (and (tramp-goa-account-p key)
+		(string-equal service (tramp-goa-account-method key)))
+	   (push (list (tramp-goa-account-user key)
+		       (tramp-goa-account-host key))
+		 result)))
+     tramp-cache-data)
+    result))
+
+
+;; Media devices functions.
+
+(defun tramp-get-media-device (vec)
+  "Transform VEC into a `tramp-media-device' structure.
+Check, that respective cache values do exist."
+  (if-let* ((media (tramp-get-connection-property vec "media-device" nil))
+	    (prop (tramp-get-connection-property media "vector" nil)))
+      media
+    (tramp-get-media-devices vec)
+    (tramp-get-connection-property vec "media-device" nil)))
+
+(defun tramp-get-media-devices (vec)
+  "Retrieve media devices, and cache them.
+The hash key is a `tramp-media-device' structure.
+VEC is used only for traces."
+;  (with-tramp-connection-property nil "media-devices"
+    (dolist (method tramp-media-methods)
+      (dolist (volume (cadr (with-tramp-dbus-call-method vec t
+			      :session (tramp-gvfs-service-volumemonitor method)
+			      tramp-gvfs-path-remotevolumemonitor
+			      tramp-gvfs-interface-remotevolumemonitor "List")))
+	(let* ((uri (url-generic-parse-url (nth 5 volume)))
+	       (vec (make-tramp-file-name
+		     :method "media"
+		     ;; A host name cannot contain spaces.
+		     :host (replace-regexp-in-string " " "_" (nth 1 volume))))
+	       (media (make-tramp-media-device
+		       :method method
+		       :host (url-host uri)
+		       :port (and (url-portspec uri)
+				  (number-to-string (url-portspec uri))))))
+	  (tramp-set-connection-property vec "activation-uri" (nth 5 volume))
+	  (tramp-set-connection-property vec "media-device" media)
+	  (tramp-set-connection-property media "vector" vec))))
+    ;; Mark, that media devices have been cached.
+);    "cached"))
+
+(defun tramp-parse-media-names (service)
+  "Return a list of (user host) tuples allowed to access.
+It checks for mounted media devices."
+  ;; SERVICE might be encoded as a DNS-SD service.
+  (and (string-match tramp-dns-sd-service-regexp service)
+       (setq service (match-string 1 service)))
+  (let (result)
+    (maphash
+     (lambda (key _value)
+       (if (and (tramp-media-device-p key)
+		(string-equal service (tramp-media-device-method key))
+		(tramp-get-connection-property key "vector" nil))
+	   (push
+	    (list nil (tramp-file-name-host
+		       (tramp-get-connection-property key "vector" nil)))
+	    result)))
+     tramp-cache-data)
+    result))
 
 
 ;; D-Bus zeroconf functions.
@@ -2078,39 +2405,61 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 	  (list user host)))
       result))))
 
-;; Add completion functions for AFP, DAV, DAVS, SFTP and SMB methods.
 (when tramp-gvfs-enabled
-  ;; Suppress D-Bus error messages.
-  (let (tramp-gvfs-dbus-event-vector)
+  ;; Suppress D-Bus error messages and Tramp traces.
+  (let (tramp-gvfs-dbus-event-vector tramp-verbose fun)
+    ;; Add completion functions for services announced by DNS-SD.
+    ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
     (zeroconf-init tramp-gvfs-zeroconf-domain)
-    (if (zeroconf-list-service-types)
-	(progn
-	  (tramp-set-completion-function
-	   "afp" '((tramp-zeroconf-parse-device-names "_afpovertcp._tcp")))
-	  (tramp-set-completion-function
-	   "dav" '((tramp-zeroconf-parse-device-names "_webdav._tcp")))
-	  (tramp-set-completion-function
-	   "davs" '((tramp-zeroconf-parse-device-names "_webdav._tcp")))
-	  (tramp-set-completion-function
-	   "sftp" '((tramp-zeroconf-parse-device-names "_ssh._tcp")
-		    (tramp-zeroconf-parse-device-names "_workstation._tcp")))
-	  (when (member "smb" tramp-gvfs-methods)
-	    (tramp-set-completion-function
-	     "smb" '((tramp-zeroconf-parse-device-names "_smb._tcp")))))
+    (when (setq fun (or (and (zeroconf-list-service-types)
+			     #'tramp-zeroconf-parse-device-names)
+			(and (executable-find "avahi-browse")
+			     #'tramp-gvfs-parse-device-names)))
+      (when (member "afp" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "afp" `((,fun "_afpovertcp._tcp"))))
+      (when (member "dav" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "dav" `((,fun "_webdav._tcp")
+		 (,fun "_webdavs._tcp"))))
+      (when (member "davs" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "davs" `((,fun "_webdav._tcp")
+		  (,fun "_webdavs._tcp"))))
+      (when (member "ftp" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "ftp" `((,fun "_ftp._tcp"))))
+      (when (member "http" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "http" `((,fun "_http._tcp")
+		  (,fun "_https._tcp"))))
+      (when (member "https" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "https" `((,fun "_http._tcp")
+		   (,fun "_https._tcp"))))
+      (when (member "sftp" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "sftp" `((,fun "_sftp-ssh._tcp")
+		  (,fun "_ssh._tcp")
+		  (,fun "_workstation._tcp"))))
+      (when (member "smb" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "smb" `((,fun "_smb._tcp")))))
 
-      (when (executable-find "avahi-browse")
+    ;; Add completion functions for GNOME Online Accounts.
+    (tramp-get-goa-accounts nil)
+    (dolist (method tramp-goa-methods)
+      (when (member method tramp-gvfs-methods)
 	(tramp-set-completion-function
-	 "afp" '((tramp-gvfs-parse-device-names "_afpovertcp._tcp")))
-	(tramp-set-completion-function
-	 "dav" '((tramp-gvfs-parse-device-names "_webdav._tcp")))
-	(tramp-set-completion-function
-	 "davs" '((tramp-gvfs-parse-device-names "_webdav._tcp")))
-	(tramp-set-completion-function
-	 "sftp" '((tramp-gvfs-parse-device-names "_ssh._tcp")
-		  (tramp-gvfs-parse-device-names "_workstation._tcp")))
-	(when (member "smb" tramp-gvfs-methods)
-	  (tramp-set-completion-function
-	   "smb" '((tramp-gvfs-parse-device-names "_smb._tcp"))))))))
+	 method `((tramp-parse-goa-accounts ,(format "_%s._tcp" method))))))
+
+    ;; Add completion functions for media devices.
+    (tramp-get-media-devices nil)
+    (tramp-set-completion-function
+     "media"
+     (mapcar
+      (lambda (method) `(tramp-parse-media-names ,(format "_%s._tcp" method)))
+      tramp-media-methods))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
@@ -2120,10 +2469,14 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 
 ;;; TODO:
 
+;; * Support /media::.
+;;
+;; * React on media mount/unmount.
+;;
 ;; * (Customizable) unmount when exiting Emacs.  See tramp-archive.el.
 ;;
 ;; * Host name completion for existing mount points (afp-server,
-;;   smb-server, google-drive, nextcloud) or via smb-network or network.
+;;   smb-server) or via smb-network or network.
 ;;
 ;; * Check, how two shares of the same SMB server can be mounted in
 ;;   parallel.
