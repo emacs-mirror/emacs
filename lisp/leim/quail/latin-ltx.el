@@ -705,6 +705,7 @@ system, including many technical ones.  Examples:
  ("\\defs" ?≙)				; per fuzz/zed
  ("\\sqrt" ?√)
  ("\\sqrt[3]" ?∛)
+ ("\\sqrt[4]" ?∜)
  ("\\llbracket" ?\〚) 			; stmaryrd
  ("\\rrbracket" ?\〛)
  ;; ("\\lbag" ?\〚) 			; fuzz
