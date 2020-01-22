@@ -72,6 +72,11 @@ line numbers that were previously jumped to.
 ** The sb-image.el library is now marked obsolete.
 This file was a compatibility kludge which is no longer needed.
 
+---
+** 'lisp-mode' now uses 'common-lisp-indent-function'.
+To revert to the previous behaviour,
+(setq lisp-indent-function 'lisp-indent-function) from 'lisp-mode-hook'.
+
 ** Edebug
 
 +++
