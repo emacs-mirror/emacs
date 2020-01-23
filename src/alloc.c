@@ -1889,7 +1889,7 @@ allocate_string_data (struct Lisp_String *s,
   tally_consing (needed);
 }
 
-/* Reallocate the data for STRING when a single character is replaced.
+/* Reallocate multibyte STRING data when a single character is replaced.
    The character is at byte offset CIDX_BYTE in the string.
    The character being replaced is CLEN bytes long,
    and the character that will replace it is NEW_CLEN bytes long.
@@ -1900,6 +1900,7 @@ unsigned char *
 resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
 		    int clen, int new_clen)
 {
+  eassume (STRING_MULTIBYTE (string));
   sdata *old_sdata = SDATA_OF_STRING (XSTRING (string));
   ptrdiff_t nchars = SCHARS (string);
   ptrdiff_t nbytes = SBYTES (string);
@@ -1911,6 +1912,7 @@ resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
     {
       /* No need to reallocate, as the size change falls within the
 	 alignment slop.  */
+      XSTRING (string)->u.s.size_byte = new_nbytes;
       new_charaddr = data + cidx_byte;
       memmove (new_charaddr + new_clen, new_charaddr + clen,
 	       nbytes - (cidx_byte + (clen - 1)));
