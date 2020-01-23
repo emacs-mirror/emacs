@@ -2153,36 +2153,36 @@ With argument ARG, insert value in current buffer after the form."
   (when (< (point-max) (position-bytes (point-max)))
     (goto-char (point-min))
     ;; Find the comment that describes the version condition.
-    (search-forward "\n;;; This file uses")
-    (narrow-to-region (line-beginning-position) (point-max))
-    ;; Find the first line of ballast semicolons.
-    (search-forward ";;;;;;;;;;")
-    (beginning-of-line)
-    (narrow-to-region (point-min) (point))
-    (let ((old-header-end (point))
-	  (minimum-version "23")
-	  delta)
-      (delete-region (point-min) (point-max))
-      (insert
-       ";;; This file contains utf-8 non-ASCII characters,\n"
-       ";;; and so cannot be loaded into Emacs 22 or earlier.\n"
-       ;; Have to check if emacs-version is bound so that this works
-       ;; in files loaded early in loadup.el.
-       "(and (boundp 'emacs-version)\n"
-       ;; If there is a name at the end of emacs-version,
-       ;; don't try to check the version number.
-       "     (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-       (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
-       ;; Because the header must fit in a fixed width, we cannot
-       ;; insert arbitrary-length file names (Bug#11585).
-       "     (error \"`%s' was compiled for "
-       (format "Emacs %s or later\" #$))\n\n" minimum-version))
-      ;; Now compensate for any change in size, to make sure all
-      ;; positions in the file remain valid.
-      (setq delta (- (point-max) old-header-end))
-      (goto-char (point-max))
-      (widen)
-      (delete-char delta))))
+    (when (search-forward "\n;;; This file does not contain utf-8" nil t)
+      (narrow-to-region (line-beginning-position) (point-max))
+      ;; Find the first line of ballast semicolons.
+      (search-forward ";;;;;;;;;;")
+      (beginning-of-line)
+      (narrow-to-region (point-min) (point))
+      (let ((old-header-end (point))
+	    (minimum-version "23")
+	    delta)
+        (delete-region (point-min) (point-max))
+        (insert
+         ";;; This file contains utf-8 non-ASCII characters,\n"
+         ";;; and so cannot be loaded into Emacs 22 or earlier.\n"
+         ;; Have to check if emacs-version is bound so that this works
+         ;; in files loaded early in loadup.el.
+         "(and (boundp 'emacs-version)\n"
+         ;; If there is a name at the end of emacs-version,
+         ;; don't try to check the version number.
+         "     (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+         (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
+         ;; Because the header must fit in a fixed width, we cannot
+         ;; insert arbitrary-length file names (Bug#11585).
+         "     (error \"`%s' was compiled for "
+         (format "Emacs %s or later\" #$))\n\n" minimum-version))
+        ;; Now compensate for any change in size, to make sure all
+        ;; positions in the file remain valid.
+        (setq delta (- (point-max) old-header-end))
+        (goto-char (point-max))
+        (widen)
+        (delete-char delta)))))
 
 (defun byte-compile-insert-header (_filename outbuffer)
   "Insert a header at the start of OUTBUFFER.
@@ -2221,6 +2221,7 @@ Call from the source buffer."
        ;; Insert semicolons as ballast, so that byte-compile-fix-header
        ;; can delete them so as to keep the buffer positions
        ;; constant for the actual compiled code.
+       ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
        ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
        ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))))
 
