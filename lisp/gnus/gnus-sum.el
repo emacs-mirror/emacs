@@ -3124,7 +3124,7 @@ follow up an article, type `\\[gnus-summary-followup]'.  To mail a reply to the 
 of an article, type `\\[gnus-summary-reply]'.
 
 There are approx. one gazillion commands you can execute in this
-buffer; read the info pages for more information (`\\[gnus-info-find-node]').
+buffer; read the Info manual for more information (`\\[gnus-info-find-node]').
 
 The following commands are available:
 
