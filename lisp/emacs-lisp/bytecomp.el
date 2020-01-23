@@ -2214,11 +2214,7 @@ Call from the source buffer."
        ".\n"
        (if dynamic ";;; Function definitions are lazy-loaded.\n"
 	 "")
-       "\n;;; This file uses "
-       (if dynamic-docstrings
-	   "dynamic docstrings, first added in Emacs 19.29"
-	 "opcodes that do not exist in Emacs 18")
-       ".\n\n"
+       "\n"
        ;; Note that byte-compile-fix-header may change this.
        ";;; This file does not contain utf-8 non-ASCII characters,\n"
        ";;; and so can be loaded in Emacs versions earlier than 23.\n\n"
