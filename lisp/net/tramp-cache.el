@@ -141,7 +141,7 @@ Returns DEFAULT if not set."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
-	     (val (or (bound-and-true-p var)
+	     (val (or (numberp (bound-and-true-p var))
 		      (progn
 			(add-hook 'tramp-cache-unload-hook
 				  (lambda () (makunbound var)))
@@ -165,7 +165,7 @@ Returns VALUE."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-set-count-" property)))
-	     (val (or (bound-and-true-p var)
+	     (val (or (numberp (bound-and-true-p var))
 		      (progn
 			(add-hook 'tramp-cache-unload-hook
 				  (lambda () (makunbound var)))

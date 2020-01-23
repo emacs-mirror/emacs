@@ -1254,18 +1254,17 @@ directory have the same @code{display-name}, such a situation must be avoided.
 
 Media devices, like cell phones, tablets, cameras, can be accessed via
 the @option{media} method.  Just the device name is needed in order to
-specify the remote part of file name.  However, the device must
-already be connected via USB, before accessing it.
+specify the host in the file name.  However, the device must already
+be connected via USB, before accessing it.  Possible device names are
+visible via host name completion, @ref{File name completion}.
 
 Depending on the device type, the access could be read-only.  Some
 devices are accessible under different names in parallel, offering
 different parts of their file system.
 
-@c @value{tramp} does not require a device name as part of the remote
-@c file name when a single media device is connected.  @value{tramp}
-@c instead uses @file{@trampfn{media,,}} as the default name.
-@c @c @command{adb devices}, run in a shell outside Emacs, shows available
-@c @c host names.
+@value{tramp} does not require a host name as part of the remote file
+name when a single media device is connected.  @value{tramp} instead
+uses @file{@trampfn{media,,}} as the default name.
 
 @item @option{nextcloud}
 @cindex method @option{nextcloud}

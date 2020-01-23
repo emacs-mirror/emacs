@@ -190,7 +190,7 @@ They are checked during start up via
    (dolist (method tramp-gvfs-methods)
      (unless (assoc method tramp-methods)
        (add-to-list 'tramp-methods `(,method)))
-     (when (member method (cons "media" tramp-goa-methods))
+     (when (member method tramp-goa-methods)
        (add-to-list 'tramp-default-host-alist `(,method nil ""))))))
 
 (defconst tramp-gvfs-path-tramp (concat dbus-path-emacs "/Tramp")
@@ -2002,6 +2002,38 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
     ;; Return.
     `(:struct ,(tramp-gvfs-dbus-string-to-byte-array mount-pref) ,mount-spec)))
 
+(defun tramp-gvfs-handler-volumeadded-volumeremoved (_dbus-name _id volume)
+  "Signal handler for the \"org.gtk.Private.RemoteVolumeMonitor.VolumeAdded\" \
+and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
+  (ignore-errors
+    (let* ((signal-name (dbus-event-member-name last-input-event))
+	   (uri (url-generic-parse-url (nth 5 volume)))
+	   (method (url-type uri))
+	   (vec (make-tramp-file-name
+		 :method "media"
+		 ;; A host name cannot contain spaces.
+		 :host (replace-regexp-in-string " " "_" (nth 1 volume))))
+	   (media (make-tramp-media-device
+		   :method method
+		   :host (url-host uri)
+		   :port (and (url-portspec uri)))))
+      (when (member method tramp-media-methods)
+	(tramp-message
+	 vec 6 "%s %s" signal-name (tramp-gvfs-stringify-dbus-message volume))
+	(tramp-flush-connection-properties vec)
+	(tramp-flush-connection-properties media)
+	(tramp-get-media-devices nil)))))
+
+(when tramp-gvfs-enabled
+  (dbus-register-signal
+   :session nil tramp-gvfs-path-remotevolumemonitor
+   tramp-gvfs-interface-remotevolumemonitor "VolumeAdded"
+   #'tramp-gvfs-handler-volumeadded-volumeremoved)
+  (dbus-register-signal
+   :session nil tramp-gvfs-path-remotevolumemonitor
+   tramp-gvfs-interface-remotevolumemonitor "VolumeRemoved"
+   #'tramp-gvfs-handler-volumeadded-volumeremoved))
+
 
 ;; Connection functions.
 
@@ -2320,7 +2352,7 @@ Check, that respective cache values do exist."
   "Retrieve media devices, and cache them.
 The hash key is a `tramp-media-device' structure.
 VEC is used only for traces."
-;  (with-tramp-connection-property nil "media-devices"
+  (let (devices)
     (dolist (method tramp-media-methods)
       (dolist (volume (cadr (with-tramp-dbus-call-method vec t
 			      :session (tramp-gvfs-service-volumemonitor method)
@@ -2336,11 +2368,18 @@ VEC is used only for traces."
 		       :host (url-host uri)
 		       :port (and (url-portspec uri)
 				  (number-to-string (url-portspec uri))))))
+	  (push (tramp-file-name-host vec) devices)
 	  (tramp-set-connection-property vec "activation-uri" (nth 5 volume))
 	  (tramp-set-connection-property vec "media-device" media)
 	  (tramp-set-connection-property media "vector" vec))))
-    ;; Mark, that media devices have been cached.
-);    "cached"))
+
+    ;; Adapt default host name, supporting /media:: when possible.
+    (setq tramp-default-host-alist
+	  (append
+	   `(("media" nil ,(if (= (length devices) 1) (car devices) "")))
+	   (delete
+	    (assoc "media" tramp-default-host-alist)
+	    tramp-default-host-alist)))))
 
 (defun tramp-parse-media-names (service)
   "Return a list of (user host) tuples allowed to access.
@@ -2469,10 +2508,6 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 
 ;;; TODO:
 
-;; * Support /media::.
-;;
-;; * React on media mount/unmount.
-;;
 ;; * (Customizable) unmount when exiting Emacs.  See tramp-archive.el.
 ;;
 ;; * Host name completion for existing mount points (afp-server,
