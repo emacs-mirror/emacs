@@ -3646,10 +3646,11 @@ impose the use of a shell (with its need to quote arguments)."
     (if handler
 	(funcall handler 'shell-command command output-buffer error-buffer)
       (if (and output-buffer
+               (not (string-match "[ \t]*&[ \t]*\\'" command))
                (or (eq output-buffer (current-buffer))
                    (and (stringp output-buffer) (eq (get-buffer output-buffer) (current-buffer)))
 	           (not (or (bufferp output-buffer) (stringp output-buffer))))) ; Bug#39067
-	  ;; Output goes in current buffer.
+	  ;; Synchronous command with output in current buffer.
 	  (let ((error-file
                  (and error-buffer
                       (make-temp-file
