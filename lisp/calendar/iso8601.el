@@ -136,7 +136,8 @@ See `decode-time' for the meaning of FORM."
       (when zone-string
         (setf (decoded-time-zone date)
               ;; The time zone in decoded times are in seconds.
-              (* (iso8601-parse-zone zone-string) 60)))
+	      (* (iso8601-parse-zone zone-string) 60))
+	(setf (decoded-time-dst date) nil))
       date)))
 
 (defun iso8601-parse-date (string)
@@ -332,6 +333,9 @@ Return the number of minutes."
     (list start end
           (or duration
 	      ;; FIXME: Support subseconds.
+	      ;; FIXME: It makes no sense to decode a time difference
+	      ;; according to (decoded-time-zone end), or according to
+	      ;; any other time zone for that matter.
               (decode-time (time-subtract (iso8601--encode-time end)
                                           (iso8601--encode-time start))
 			   (or (decoded-time-zone end) 0) 'integer)))))
@@ -354,7 +358,7 @@ Return the number of minutes."
         (iso8601--value month)
         (iso8601--value year)
         nil
-        dst
+	(if (or dst zone) dst -1)
         zone))
 
 (defun iso8601--encode-time (time)
