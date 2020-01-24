@@ -687,6 +687,7 @@ It has been changed in GVFS 1.14.")
     ("gvfs-monitor-file" . "monitor")
     ("gvfs-mount" . "mount")
     ("gvfs-move" . "move")
+    ("gvfs-rename" . "rename")
     ("gvfs-rm" . "remove")
     ("gvfs-set-attribute" . "set")
     ("gvfs-trash" . "trash"))
@@ -973,11 +974,15 @@ file names."
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
 
-    (let ((t1 (tramp-tramp-file-p filename))
-	  (t2 (tramp-tramp-file-p newname))
-	  (equal-remote (tramp-equal-remote filename newname))
-	  (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
-	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+    (let* ((t1 (tramp-tramp-file-p filename))
+	   (t2 (tramp-tramp-file-p newname))
+	   (equal-remote (tramp-equal-remote filename newname))
+	   (gvfs-operation
+	    (cond
+	     ((eq op 'copy) "gvfs-copy")
+	     (equal-remote "gvfs-rename")
+	     (t "gvfs-move")))
+	   (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
@@ -1048,8 +1053,8 @@ file names."
   (filename newname &optional ok-if-already-exists keep-date
    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
 	  (tramp-tramp-file-p newname))
@@ -1545,8 +1550,8 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Like `rename-file' for Tramp files."
   ;; Check if both files are local -- invoke normal rename-file.
   ;; Otherwise, use Tramp from local system.
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
           (tramp-tramp-file-p newname))
@@ -1613,6 +1618,12 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (setq method "davs"
 		  localname
 		  (concat (tramp-gvfs-get-remote-prefix v) localname)))
+	  (when (string-equal "media" method)
+	    (when-let
+		((media (tramp-get-connection-property v "media-device" nil)))
+	      (setq method (tramp-media-device-method media)
+		    host (tramp-media-device-host media)
+		    port (tramp-media-device-port media))))
 	  (when (and user domain)
 	    (setq user (concat domain ";" user)))
 	  (url-recreate-url
@@ -1647,6 +1658,14 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Retrieve file name from D-Bus OBJECT-PATH."
   (dbus-unescape-from-identifier
    (replace-regexp-in-string "^.*/\\([^/]+\\)$" "\\1" object-path)))
+
+(defun tramp-gvfs-url-host (url)
+  "Return the host name part of URL, a string.
+We cannot use `url-host', because `url-generic-parse-url' returns
+a downcased host name only."
+  (and (stringp url)
+       (string-match "^[[:alnum:]]+://\\([^/:]+\\)" url)
+       (match-string 1 url)))
 
 
 ;; D-Bus GVFS functions.
@@ -1788,17 +1807,17 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(when (string-equal "google-drive" method)
 	  (setq method "gdrive"))
 	(when (and (string-equal "http" method) (stringp uri))
-	  (setq uri (url-generic-parse-url uri)
+	  (setq host (tramp-gvfs-url-host uri)
+		uri (url-generic-parse-url uri)
 		method (url-type uri)
 		user (url-user uri)
-		host (url-host uri)
 		port (url-portspec uri)))
 	(when (member method tramp-media-methods)
 	  ;; Ensure that media devices are cached.
 	  (tramp-get-media-devices nil)
 	  (let ((v (tramp-get-connection-property
 		    (make-tramp-media-device
-		     :method method :host (downcase host) :port port)
+		     :method method :host host :port port)
 		    "vector" nil)))
 	    (when v
 	      (setq method (tramp-file-name-method v)
@@ -1889,17 +1908,17 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	 (when (string-equal "google-drive" method)
 	   (setq method "gdrive"))
 	 (when (and (string-equal "http" method) (stringp uri))
-	   (setq uri (url-generic-parse-url uri)
+	   (setq host (tramp-gvfs-url-host uri)
+		 uri (url-generic-parse-url uri)
 		 method (url-type uri)
 		 user (url-user uri)
-		 host (url-host uri)
 		 port (url-portspec uri)))
 	 (when (member method tramp-media-methods)
 	   ;; Ensure that media devices are cached.
 	   (tramp-get-media-devices vec)
 	   (let ((v (tramp-get-connection-property
 		     (make-tramp-media-device
-		      :method method :host (downcase host) :port port)
+		      :method method :host host :port port)
 		     "vector" nil)))
 	     (when v
 	       (setq method (tramp-file-name-method v)
@@ -2015,7 +2034,7 @@ and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
 		 :host (replace-regexp-in-string " " "_" (nth 1 volume))))
 	   (media (make-tramp-media-device
 		   :method method
-		   :host (url-host uri)
+		   :host (tramp-gvfs-url-host (nth 5 volume))
 		   :port (and (url-portspec uri)))))
       (when (member method tramp-media-methods)
 	(tramp-message
@@ -2342,8 +2361,8 @@ It checks for registered GNOME Online Accounts."
 (defun tramp-get-media-device (vec)
   "Transform VEC into a `tramp-media-device' structure.
 Check, that respective cache values do exist."
-  (if-let* ((media (tramp-get-connection-property vec "media-device" nil))
-	    (prop (tramp-get-connection-property media "vector" nil)))
+  (if-let ((media (tramp-get-connection-property vec "media-device" nil))
+	   (prop (tramp-get-connection-property media "vector" nil)))
       media
     (tramp-get-media-devices vec)
     (tramp-get-connection-property vec "media-device" nil)))
@@ -2365,7 +2384,7 @@ VEC is used only for traces."
 		     :host (replace-regexp-in-string " " "_" (nth 1 volume))))
 	       (media (make-tramp-media-device
 		       :method method
-		       :host (url-host uri)
+		       :host (tramp-gvfs-url-host (nth 5 volume))
 		       :port (and (url-portspec uri)
 				  (number-to-string (url-portspec uri))))))
 	  (push (tramp-file-name-host vec) devices)
