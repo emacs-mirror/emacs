@@ -1199,9 +1199,9 @@ component is used as the target of the symlink."
 		   (tramp-error
 		    v 'file-error
 		    "Maximum number (%d) of symlinks exceeded" numchase-limit))
-		 (setq result (reverse result))
-		 ;; Combine list to form string.
-		 (setq result
+		 (setq result (reverse result)
+		       ;; Combine list to form string.
+		       result
 		       (if result (string-join (cons "" result) "/") "/"))
 		 (when (string-empty-p result) (setq result "/")))))
 
@@ -1987,8 +1987,8 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
   "Like `rename-file' for Tramp files."
   ;; Check if both files are local -- invoke normal rename-file.
   ;; Otherwise, use Tramp from local system.
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
           (tramp-tramp-file-p newname))
@@ -3976,8 +3976,8 @@ This function expects to be in the right *tramp* buffer."
 	  ;; Remove all ~/foo directories from dirlist.
 	  (let (newdl d)
 	    (while dirlist
-	      (setq d (car dirlist))
-	      (setq dirlist (cdr dirlist))
+	      (setq d (car dirlist)
+		    dirlist (cdr dirlist))
 	      (unless (char-equal ?~ (aref d 0))
 		(setq newdl (cons d newdl))))
 	    (setq dirlist (nreverse newdl))))
@@ -4470,8 +4470,8 @@ Goes through the list `tramp-local-coding-commands' and
 	(catch 'wont-work-local
 	  (let ((format (nth 0 litem))
 		(remote-commands tramp-remote-coding-commands))
-	    (setq loc-enc (nth 1 litem))
-	    (setq loc-dec (nth 2 litem))
+	    (setq loc-enc (nth 1 litem)
+		  loc-dec (nth 2 litem))
 	    ;; If the local encoder or decoder is a string, the
 	    ;; corresponding command has to work locally.
 	    (if (not (stringp loc-enc))
@@ -4493,9 +4493,9 @@ Goes through the list `tramp-local-coding-commands' and
 	      (setq ritem (pop remote-commands))
 	      (catch 'wont-work-remote
 		(when (equal format (nth 0 ritem))
-		  (setq rem-enc (nth 1 ritem))
-		  (setq rem-dec (nth 2 ritem))
-		  (setq rem-test (nth 3 ritem))
+		  (setq rem-enc (nth 1 ritem)
+			rem-dec (nth 2 ritem)
+			rem-test (nth 3 ritem))
 		  ;; Check the remote test command if exists.
 		  (when (stringp rem-test)
 		    (tramp-message
@@ -4592,9 +4592,9 @@ Goes through the list `tramp-local-coding-commands' and
 		      (throw 'wont-work-remote nil)))
 
 		  ;; `rem-enc' and `rem-dec' could be a string meanwhile.
-		  (setq rem-enc (nth 1 ritem))
-		  (setq rem-dec (nth 2 ritem))
-		  (setq found t)))))))
+		  (setq rem-enc (nth 1 ritem)
+			rem-dec (nth 2 ritem)
+			found t)))))))
 
       (when found
 	;; Set connection properties.  Since the commands are risky

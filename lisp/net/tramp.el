@@ -1369,8 +1369,8 @@ This is METHOD, if non-nil.  Otherwise, do a lookup in
 		 (setq item (pop choices))
 		 (when (and (string-match-p (or (nth 0 item) "") (or host ""))
 			    (string-match-p (or (nth 1 item) "") (or user "")))
-		   (setq lmethod (nth 2 item))
-		   (setq choices nil)))
+		   (setq lmethod (nth 2 item)
+			 choices nil)))
 	       lmethod)
 	     tramp-default-method)))
     ;; We must mark, whether a default value has been used.
@@ -1390,8 +1390,8 @@ This is USER, if non-nil.  Otherwise, do a lookup in
 		 (setq item (pop choices))
 		 (when (and (string-match-p (or (nth 0 item) "") (or method ""))
 			    (string-match-p (or (nth 1 item) "") (or host "")))
-		   (setq luser (nth 2 item))
-		   (setq choices nil)))
+		   (setq luser (nth 2 item)
+			 choices nil)))
 	       luser)
 	     tramp-default-user)))
     ;; We must mark, whether a default value has been used.
@@ -1411,8 +1411,8 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
 		 (setq item (pop choices))
 		 (when (and (string-match-p (or (nth 0 item) "") (or method ""))
 			    (string-match-p (or (nth 1 item) "") (or user "")))
-		   (setq lhost (nth 2 item))
-		   (setq choices nil)))
+		   (setq lhost (nth 2 item)
+			 choices nil)))
 	       lhost)
 	     tramp-default-host)))
     ;; We must mark, whether a default value has been used.
@@ -3554,8 +3554,8 @@ User is always nil."
 	;; Save exit.
 	(progn
 	  (when visit
-	    (setq buffer-file-name filename)
-	    (setq buffer-read-only (not (file-writable-p filename)))
+	    (setq buffer-file-name filename
+		  buffer-read-only (not (file-writable-p filename)))
 	    (set-visited-file-modtime)
 	    (set-buffer-modified-p nil))
 	  (when (and (stringp local-copy)
@@ -4069,9 +4069,9 @@ See `tramp-process-actions' for the format of ACTIONS."
       (while (tramp-accept-process-output proc 0))
       (setq todo actions)
       (while todo
-	(setq item (pop todo))
-	(setq pattern (format "\\(%s\\)\\'" (symbol-value (nth 0 item))))
-	(setq action (nth 1 item))
+	(setq item (pop todo)
+	      pattern (format "\\(%s\\)\\'" (symbol-value (nth 0 item)))
+	      action (nth 1 item))
 	(tramp-message
 	 vec 5 "Looking for regexp \"%s\" from remote shell" pattern)
 	(when (tramp-check-for-regexp proc pattern)
@@ -4121,9 +4121,8 @@ performed successfully.  Any other value means an error."
 		      (catch 'tramp-action
 			(tramp-process-one-action proc vec actions)))))
 	  (while (not exit)
-	    (setq exit
-		  (catch 'tramp-action
-		    (tramp-process-one-action proc vec actions)))))
+	    (setq exit (catch 'tramp-action
+			 (tramp-process-one-action proc vec actions)))))
 	(with-current-buffer (tramp-get-connection-buffer vec)
 	  (widen)
 	  (tramp-message vec 6 "\n%s" (buffer-string)))
@@ -4441,9 +4440,9 @@ This is used to map a mode number to a permission string.")
 	(suid	(> (logand (ash mode -9) 4) 0))
 	(sgid	(> (logand (ash mode -9) 2) 0))
 	(sticky	(> (logand (ash mode -9) 1) 0)))
-    (setq user  (tramp-file-mode-permissions user  suid "s"))
-    (setq group (tramp-file-mode-permissions group sgid "s"))
-    (setq other (tramp-file-mode-permissions other sticky "t"))
+    (setq user  (tramp-file-mode-permissions user  suid "s")
+	  group (tramp-file-mode-permissions group sgid "s")
+	  other (tramp-file-mode-permissions other sticky "t"))
     (concat type user group other)))
 
 (defun tramp-file-mode-permissions (perm suid suid-text)
