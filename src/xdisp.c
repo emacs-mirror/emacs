@@ -19193,7 +19193,7 @@ try_window_reusing_current_matrix (struct window *w)
 
   /* Can't scroll the display of w32 GUI frames when position of point
      is indicated by the system caret, because scrolling the display
-     will then "copy" the pixles used by the caret.  */
+     will then "copy" the pixels used by the caret.  */
 #ifdef HAVE_NTGUI
   if (w32_use_visible_system_caret)
     return false;
@@ -20185,7 +20185,7 @@ try_window_id (struct window *w)
 
   /* Can't let scroll_run_hook below run on w32 GUI frames when
      position of point is indicated by the system caret, because
-     scrolling the display will then "copy" the pixles used by the
+     scrolling the display will then "copy" the pixels used by the
      caret.  */
 #ifdef HAVE_NTGUI
   if (FRAME_W32_P (f) && w32_use_visible_system_caret)

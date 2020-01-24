@@ -1980,20 +1980,12 @@ With prefix argument ARG, display image in its original size."
       (clear-image-cache thumb))))
 
 (defun image-dired-rotate-thumbnail-left ()
-  "Rotate thumbnail left (counter clockwise) 90 degrees.
-The result of the rotation is displayed in the image display area
-and a confirmation is needed before the original image files is
-overwritten.  This confirmation can be turned off using
-`image-dired-rotate-original-ask-before-overwrite'."
+  "Rotate thumbnail left (counter clockwise) 90 degrees."
   (interactive)
   (image-dired-rotate-thumbnail "270"))
 
 (defun image-dired-rotate-thumbnail-right ()
-  "Rotate thumbnail counter right (clockwise) 90 degrees.
-The result of the rotation is displayed in the image display area
-and a confirmation is needed before the original image files is
-overwritten.  This confirmation can be turned off using
-`image-dired-rotate-original-ask-before-overwrite'."
+  "Rotate thumbnail counter right (clockwise) 90 degrees."
   (interactive)
   (image-dired-rotate-thumbnail "90"))
 
@@ -2035,12 +2027,20 @@ overwritten.  This confirmation can be turned off using
           (image-dired-display-image file))))))
 
 (defun image-dired-rotate-original-left ()
-  "Rotate original image left (counter clockwise) 90 degrees."
+  "Rotate original image left (counter clockwise) 90 degrees.
+The result of the rotation is displayed in the image display area
+and a confirmation is needed before the original image files is
+overwritten.  This confirmation can be turned off using
+`image-dired-rotate-original-ask-before-overwrite'."
   (interactive)
   (image-dired-rotate-original "270"))
 
 (defun image-dired-rotate-original-right ()
-  "Rotate original image right (clockwise) 90 degrees."
+  "Rotate original image right (clockwise) 90 degrees.
+The result of the rotation is displayed in the image display area
+and a confirmation is needed before the original image files is
+overwritten.  This confirmation can be turned off using
+`image-dired-rotate-original-ask-before-overwrite'."
   (interactive)
   (image-dired-rotate-original "90"))
 

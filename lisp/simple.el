@@ -3507,10 +3507,9 @@ whose `car' is BUFFER."
         (let ((win   (car (get-buffer-window-list buf)))
               (pmax  (with-current-buffer buf (point-max))))
 
-          ;; The first time we run a command in a fresh created buffer
+          ;; The first time we run a command in a freshly created buffer
           ;; we have not saved positions yet; advance to `point-max', so that
-          ;; succesive commands knows the position where the new comman start.
-          ;; (unless (and pos (memq sym '(save-point beg-last-out)))
+          ;; successive commands know where to start.
           (unless (and pos (memq sym '(save-point beg-last-out end-last-out)))
             (setq pos pmax))
           ;; Set point in the window displaying buf, if any; otherwise

@@ -38,7 +38,7 @@ HarfBuzz text shaping engine.  It is on by default; use './configure
 --without-harfbuzz' to build without it.  The HarfBuzz text shaping is
 available via new font backend drivers 'xfthb' and 'ftcrhb' for Xft
 and Cairo drawings, respectively, and via the 'harfbuzz' backend on
-MS-Windows.  The Harfbuzz text shaping is preferred to the previously
+MS-Windows.  The HarfBuzz text shaping is preferred to the previously
 supported ones, so the font backends that use older shaping engines
 (FLT on GNU and Unix systems and Uniscribe on MS-Windows) are not
 enabled by default; they can be enabled via the 'font-backend' frame

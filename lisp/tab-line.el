@@ -709,7 +709,7 @@ from the tab line."
           (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
           (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
        ((functionp tab-line-close-tab-function)
-        (funcall tab-line-close-tab-function)))
+        (funcall tab-line-close-tab-function tab)))
       (force-mode-line-update))))
 
 
