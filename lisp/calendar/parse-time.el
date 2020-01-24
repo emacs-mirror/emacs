@@ -158,7 +158,7 @@ The values returned are identical to those of `decode-time', but
 any unknown values other than DST are returned as nil, and an
 unknown DST value is returned as -1."
   (condition-case ()
-      (decoded-time-set-defaults (iso8601-parse string))
+      (iso8601-parse string)
     (wrong-type-argument
      (let ((time (list nil nil nil nil nil nil nil -1 nil))
 	   (temp (parse-time-tokenize (downcase string))))
