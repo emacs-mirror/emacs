@@ -5892,17 +5892,18 @@ you can continue to support by using '$0 --with-pop'.])
 fi
 
 if test "${HAVE_XFT}" = yes; then
-AC_MSG_WARN([This configuration uses libXft,
-    which has a number of font rendering issues, and is being considered for
-    removal in the next release of Emacs.  Please consider using Cairo + HarfBuzz
-    instead (they are auto-detected if the relevant development headers are
-    installed).])
+  AC_MSG_WARN([This configuration uses libXft, which has a number of
+    font rendering issues, and is being considered for removal in the
+    next release of Emacs.  Please consider using Cairo graphics +
+    HarfBuzz text shaping instead (they are auto-detected if the
+    relevant development headers are installed).])
 fi
 
 if test "${HAVE_CAIRO}" = "yes" && test "${HAVE_HARFBUZZ}" = no; then
-   AC_MSG_WARN([This configuration uses Cairo, but not HarfBuzz.  We
-    recommend the use of HarfBuzz when using Cairo, please install
-    HarfBuzz development packages.])
+  AC_MSG_WARN([This configuration uses the Cairo graphics library,
+    but not the HarfBuzz font shaping library.  We recommend the use
+    of HarfBuzz when using Cairo, please install HarfBuzz development
+    packages.])
 fi
 
 # Let plain 'make' work.

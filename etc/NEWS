@@ -24,22 +24,22 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
-** Cairo is now used by default if found.
+** Cairo graphics library is now used by default if found.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
 Pango instead of libXFT for font support.  Since Pango 1.44 has
 removed support for bitmapped fonts, this may require you to adjust
 your font settings.
 
-Note also that 'FontBackend' settings in ".Xdefaults" or ".Xresources",
-or 'font-backend' frame parameter settings in your init files, may need
-to be adjusted, as 'xft' is no longer a valid backend when using
-Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz support,
-and 'ftcr' otherwise.  You can determine this by checking
-'system-configuration-features'.  The 'ftcr' backend will still be
-available when HarfBuzz is supported, but will not be used by default.
-We strongly recommend building with HarBuzz support. 'x' is still a
-valid backend.
+Note also that 'FontBackend' settings in ".Xdefaults" or
+".Xresources", or 'font-backend' frame parameter settings in your init
+files, may need to be adjusted, as 'xft' is no longer a valid backend
+when using Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz
+text shaping support, and 'ftcr' otherwise.  You can determine this by
+checking 'system-configuration-features'.  The 'ftcr' backend will
+still be available when HarfBuzz is supported, but will not be used by
+default.  We strongly recommend building with HarBuzz support. 'x' is
+still a valid backend.
 
 ---
 ** 'configure' now warns about building with libXft support.
@@ -51,8 +51,8 @@ Cairo + HarfBuzz instead.
 ---
 ** 'configure' now warns about not using HarfBuzz if using Cairo.
 We want to encourage people to use the most modern font features
-available, and this is Cairo + HarfBuzz, so 'configure' now recommends
-that combination.
+available, and this is the Cairo graphics library + HarfBuzz for font
+shaping, so 'configure' now recommends that combination.
 
 ---
 ** The ftx font backend driver has been removed.
