@@ -4492,25 +4492,20 @@ INPUT, if non-nil, is a string sent to the process."
 		(buffer-string))))
 
 	  ;; Cleanup.
-	  (ignore-errors (delete-file tmp-name)))
+	  (ignore-errors (delete-file tmp-name))))
 
-	;; Test `{async-}shell-command' with error buffer.
-	(let ((stderr (generate-new-buffer "*stderr*")))
-	  (unwind-protect
-	      (with-temp-buffer
-		(funcall
-		 this-shell-command "cat /; sleep 1" (current-buffer) stderr)
-		;; Check stderr.
-		(when (eq this-shell-command #'tramp--test-async-shell-command)
-		  (ignore-errors
-		    (delete-process (get-buffer-process (current-buffer)))))
-		(should (zerop (buffer-size)))
-		(with-current-buffer stderr
-		  (should
-		   (string-match "cat:.* Is a directory" (buffer-string)))))
+      ;; Test `shell-command' with error buffer.
+      (let ((stderr (generate-new-buffer "*stderr*")))
+	(unwind-protect
+	    (with-temp-buffer
+	      (shell-command "echo foo; echo bar >&2" (current-buffer) stderr)
+	      (should (string-equal "foo\n" (buffer-string)))
+	      ;; Check stderr.
+	      (with-current-buffer stderr
+		(should (string-equal "bar\n" (buffer-string)))))
 
-	    ;; Cleanup.
-	    (ignore-errors (kill-buffer stderr)))))
+	  ;; Cleanup.
+	  (ignore-errors (kill-buffer stderr))))
 
       ;; Test sending string to `async-shell-command'.
       (unwind-protect
