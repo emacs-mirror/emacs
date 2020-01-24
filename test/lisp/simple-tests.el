@@ -427,7 +427,7 @@ See bug#35036."
   (with-temp-buffer
     (switch-to-buffer (current-buffer))
     (setq buffer-undo-list nil)
-    (insert "a\nb\n\c\n")
+    (insert "a\nb\nc\n")
     (goto-char (point-max))
     ;; We use a keyboard macro because it adds undo events in the same
     ;; way as if a user were involved.

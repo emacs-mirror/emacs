@@ -371,7 +371,7 @@ Reference:
 Sheffer, Holz, Saint-Andre (May 2015).  \"Recommendations for Secure
 Use of Transport Layer Security (TLS) and Datagram Transport Layer
 Security (DTLS)\", \"(4.1.  General Guidelines)\"
-`https://tools.ietf.org/html/rfc7525\#section-4.1'"
+`https://tools.ietf.org/html/rfc7525#section-4.1'"
   (let ((kx (plist-get status :key-exchange)))
     (and (string-match "^\\bRSA\\b" kx)
          (format-message
@@ -468,7 +468,7 @@ Reference:
 
 GnuTLS authors (2018). \"GnuTLS Manual 4.3.3 Anonymous
 authentication\",
-`https://www.gnutls.org/manual/gnutls.html\#Anonymous-authentication'"
+`https://www.gnutls.org/manual/gnutls.html#Anonymous-authentication'"
   (let ((kx (plist-get status :key-exchange)))
     (and (string-match "\\bANON\\b" kx)
          (format-message
@@ -603,7 +603,7 @@ References:
 full SHA-1\", `https://shattered.io/static/shattered.pdf'
 [2]: Chromium Security Education TLS/SSL.  \"Deprecated and Removed
 Features (SHA-1 Certificate Signatures)\",
-`https://www.chromium.org/Home/chromium-security/education/tls\#TOC-SHA-1-Certificate-Signatures'
+`https://www.chromium.org/Home/chromium-security/education/tls#TOC-SHA-1-Certificate-Signatures'
 [3]: Jones J.C (2017).  \"The end of SHA-1 on the Public Web\",
 `https://blog.mozilla.org/security/2017/02/23/the-end-of-sha-1-on-the-public-web/'
 [4]: Apple Support (2017).  \"Move to SHA-256 signed certificates to

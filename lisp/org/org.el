@@ -11410,8 +11410,8 @@ D      Show deadlines and scheduled items between a date range."
   (setq type (or type org-sparse-tree-default-date-type))
   (setq org-ts-type type)
   (message "Sparse tree: [r]egexp [t]odo [T]odo-kwd [m]atch [p]roperty
-             \[d]eadlines [b]efore-date [a]fter-date [D]ates range
-             \[c]ycle through date types: %s"
+             [d]eadlines [b]efore-date [a]fter-date [D]ates range
+             [c]ycle through date types: %s"
 	   (cl-case type
 	     (all "all timestamps")
 	     (scheduled "only scheduled")
