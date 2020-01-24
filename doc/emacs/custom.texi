@@ -1930,10 +1930,12 @@ commonly used, Emacs supports three other modifier keys.  These are
 called @key{Super}, @key{Hyper}, and @key{Alt}.  Few terminals provide
 ways to use these modifiers; the key labeled @key{Alt} on most
 keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
-standard key bindings in Emacs do not include any characters with
-these modifiers.  However, you can customize Emacs to assign meanings
-to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
-@samp{A-} respectively.
+standard key bindings in Emacs do not include any characters with the
+@key{Super} and @key{Hyper} modifiers, and only a small number of
+standard key bindings use @key{Alt}.  However, you can customize Emacs
+to assign meanings to key bindings that use these modifiers.  The
+modifier bits are labeled as @samp{s-}, @samp{H-} and @samp{A-}
+respectively.
 
   Even if your keyboard lacks these additional modifier keys, you can
 enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to

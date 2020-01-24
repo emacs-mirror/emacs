@@ -1634,7 +1634,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     dirS = [dirS stringByExpandingTildeInPath];
 
   panel = isSave ?
-    (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
+    (id)[NSSavePanel savePanel] : (id)[NSOpenPanel openPanel];
 
   [panel setTitle: promptS];
 
@@ -3088,29 +3088,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
   return ret;
 }
-
-@implementation EmacsSavePanel
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
-{
-  BOOL ret = handlePanelKeys (self, theEvent);
-  if (! ret)
-    ret = [super performKeyEquivalent:theEvent];
-  return ret;
-}
-@end
-
-
-@implementation EmacsOpenPanel
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
-{
-  // NSOpenPanel inherits NSSavePanel, so passing self is OK.
-  BOOL ret = handlePanelKeys (self, theEvent);
-  if (! ret)
-    ret = [super performKeyEquivalent:theEvent];
-  return ret;
-}
-@end
-
 
 @implementation EmacsFileDelegate
 /* --------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: irc, button, url, regexp
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcButton
+;; URL: https://www.emacswiki.org/emacs/ErcButton
 
 ;; This file is part of GNU Emacs.
 

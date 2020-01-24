@@ -5,6 +5,7 @@
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Contributor: Eric M. Ludlam <zappo@gnu.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcSpeedbar
 
 ;; This file is part of GNU Emacs.
 

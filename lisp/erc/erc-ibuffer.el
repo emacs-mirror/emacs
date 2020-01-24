@@ -5,7 +5,6 @@
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcIbuffer
 
 ;; This file is part of GNU Emacs.
 

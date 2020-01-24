@@ -1079,6 +1079,7 @@ want to make permanent.  Instead, auto-saving is done in a different
 file called the @dfn{auto-save file}, and the visited file is changed
 only when you request saving explicitly (such as with @kbd{C-x C-s}).
 
+@cindex @file{#}, in auto-save file names
   Normally, the auto-save file name is made by appending @samp{#} to the
 front and rear of the visited file name.  Thus, a buffer visiting file
 @file{foo.c} is auto-saved in a file @file{#foo.c#}.  Most buffers that

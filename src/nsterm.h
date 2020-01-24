@@ -597,22 +597,6 @@ typedef id instancetype;
 @end
 
 
-/* ==========================================================================
-
-   File open/save panels
-   This and next override methods to handle keyboard input in panels.
-
-   ========================================================================== */
-
-@interface EmacsSavePanel : NSSavePanel
-{
-}
-@end
-@interface EmacsOpenPanel : NSOpenPanel
-{
-}
-@end
-
 @interface EmacsFileDelegate : NSObject
 {
 }

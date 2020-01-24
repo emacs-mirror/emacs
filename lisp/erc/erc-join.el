@@ -5,7 +5,7 @@
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: irc
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoJoin
+;; URL: https://www.emacswiki.org/emacs/ErcAutoJoin
 
 ;; This file is part of GNU Emacs.
 

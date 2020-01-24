@@ -4,6 +4,7 @@
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcTruncation
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; This file is part of GNU Emacs.

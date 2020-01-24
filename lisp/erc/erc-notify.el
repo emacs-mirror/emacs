@@ -4,6 +4,7 @@
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcNotify
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

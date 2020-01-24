@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/ERC
+;; URL: https://www.emacswiki.org/emacs/ERC
 
 ;; This file is part of GNU Emacs.
 

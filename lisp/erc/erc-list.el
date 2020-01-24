@@ -5,6 +5,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Old-Version: 0.1
+;; URL: https://www.emacswiki.org/emacs/ErcList
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

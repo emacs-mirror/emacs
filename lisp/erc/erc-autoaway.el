@@ -4,7 +4,7 @@
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
+;; URL: https://www.emacswiki.org/emacs/ErcAutoAway
 
 ;; This file is part of GNU Emacs.
 

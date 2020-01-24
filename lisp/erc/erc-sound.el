@@ -3,6 +3,7 @@
 ;; Copyright (C) 2002-2003, 2006-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcSound
 
 ;; This file is part of GNU Emacs.
 

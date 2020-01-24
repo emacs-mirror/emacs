@@ -5,7 +5,7 @@
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Old-Version: 1.0.0
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcLang
+;; URL: https://www.emacswiki.org/emacs/ErcLang
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
