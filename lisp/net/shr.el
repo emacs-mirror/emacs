@@ -1265,7 +1265,9 @@ START, and END.  Note that START and END should be markers."
                           (format "%s (%s)" iri title)
                         iri))
 	 'follow-link t
-	 'mouse-face 'highlight))
+         ;; Make separate regions not `eq' so that they'll get
+         ;; separate mouse highlights.
+	 'mouse-face (list 'highlight)))
   ;; Don't overwrite any keymaps that are already in the buffer (i.e.,
   ;; image keymaps).
   (while (and start
