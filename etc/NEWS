@@ -42,6 +42,19 @@ We strongly recommend building with HarBuzz support. 'x' is still a
 valid backend.
 
 ---
+** 'configure' now warns about building with libXft support.
+libXft is unmaintained, and causes a number of problems with modern
+fonts including but not limited to crashes; support for it may be
+removed in a future version of Emacs.  Please consider using
+Cairo + HarfBuzz instead.
+
+---
+** 'configure' now warns about not using HarfBuzz if using Cairo.
+We want to encourage people to use the most modern font features
+available, and this is Cairo + HarfBuzz, so 'configure' now recommends
+that combination.
+
+---
 ** The ftx font backend driver has been removed.
 It was declared obsolete in Emacs 27.1.
 
