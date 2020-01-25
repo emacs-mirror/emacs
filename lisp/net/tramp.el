@@ -2412,10 +2412,11 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 (defun tramp-completion-file-name-handler (operation &rest args)
   "Invoke Tramp file name completion handler for OPERATION and ARGS.
 Falls back to normal file name handler if no Tramp file name handler exists."
-  (when tramp-mode
-    (if-let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let
+      ((fn (and tramp-mode
+		(assoc operation tramp-completion-file-name-handler-alist))))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;;;###autoload
 (progn (defun tramp-autoload-file-name-handler (operation &rest args)
