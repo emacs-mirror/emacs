@@ -214,41 +214,42 @@ like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
 eg 'emacs25').  On Red Hat-based systems, the corresponding command is
 'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
+
+DEBUGGING AN INSTALLED EMACS
+
+* Installed Emacs source code
+
+Emacs installs a compressed copy of much of its source code, to make
+it easy for users to read the source code of Emacs via commands like
+M-x describe-function (C-h f) to display the definition of a function.
+This compressed copy ordinarily includes both the Elisp source code
+that Emacs is mostly written in, as well as the C source code for the
+core Emacs executable.
+
 * GNU/Linux source and debug packages
 
 Many GNU/Linux systems provide separate packages containing the
-sources and debug symbols of Emacs.  They are useful if you want to
-check the source code of Emacs primitive functions or debug Emacs on
-the C level.
+sources and debug symbols of Emacs.  They can help you debug the
+installed Emacs on the C level.  The procedures for installing these
+packages depend on the GNU/Linux system that you use.
 
-The names of the packages that you need vary according to the
-GNU/Linux distribution that you use.  On Debian-based systems, you can
-install a source package of Emacs with a command like 'apt-get source
-emacs' (on older systems, replace 'emacs' with eg 'emacs25').  The
-target directory for unpacking the source tree is the current
-directory.  On Red Hat-based systems, the corresponding command is
-'dnf install emacs-debugsource', with target directory /usr/src/debug
-(this requires to add the *-debuginfo repositories first, via 'dnf
-config-manager --set-enabled fedora-debuginfo updates-debuginfo').
+Emacs debugging symbols are distributed by a debug package if one
+exists for your system.  On Debian-based systems, you can
+install a debug package of Emacs with a command like 'apt-get install
+emacs-dbg' (on older systems, replace 'emacs' with e.g. 'emacs25').
+On Red Hat-based systems, the corresponding command is 'dnf
+debuginfo-install emacs'; this may require adding the *-debuginfo
+repositories first, via 'dnf config-manager --set-enabled
+fedora-debuginfo updates-debuginfo'.
 
-Once you have installed the source package, for example at
-/path/to/emacs-26.1, add the following line to your startup file:
-
-     (setq find-function-C-source-directory
-           "/path/to/emacs-26.1/src")
-
-The installation directory of the Emacs source package will contain
-the exact package name and version number Emacs is installed on your
-system.  If a new Emacs package is installed, the source package must
-be reinstalled as well, and the setting in your startup file must be
-updated.
-
-Emacs debugging symbols are distributed by a debug package.  It does
-not exist for every released Emacs package, this depends on the
-distribution.  On Debian-based systems, you can install a debug
-package of Emacs with a command like 'apt-get install emacs-dbg' (on
-older systems, replace 'emacs' with eg 'emacs25').  On Red Hat-based
-systems, the corresponding command is 'dnf debuginfo-install emacs'.
+Some systems also have an Emacs source package that is also helpful
+when debugging the installed Emacs.  To unpack an Emacs source package
+into the current directory on Debian-based systems, you can use a
+command like 'apt-get source emacs' (on older systems, replace 'emacs'
+with e.g. 'emacs25'); you may first need to add the appropriate
+'source' URIs to your sources.list.  On Red Hat-based systems,
+installing the debugging symbols automatically installs the
+corresponding source package in the appropriate location.
 
 
 DETAILED BUILDING AND INSTALLATION:

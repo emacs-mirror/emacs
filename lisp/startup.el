@@ -623,7 +623,8 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
-	(dolist (filesym '(data-directory doc-directory exec-directory
+	(dolist (filesym '(data-directory doc-directory emacs-source-directory
+					  exec-directory
 					  installation-directory
 					  invocation-directory invocation-name
 					  source-directory

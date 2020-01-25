@@ -266,6 +266,9 @@ etcdir=@etcdir@
 # once.
 archlibdir=@archlibdir@
 
+# Where to install Emacs C source code, or empty if it is not installed.
+emacs_srcdir=@emacs_srcdir@
+
 # Where to put the etc/DOC file.
 etcdocdir=@etcdocdir@
 
@@ -374,6 +377,7 @@ epaths-force:
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 $(PATH_GAME);'			\
+	  -e 's;\(#.*PATH_EMACS_SOURCE\).*$$;\1 "${emacs_srcdir}";'	\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
@@ -461,7 +465,7 @@ $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
 # ==================== Installation ====================
 
 .PHONY: install install-arch-dep install-arch-indep install-etcdoc install-info
-.PHONY: install-man install-etc install-strip install-$(NTDIR)
+.PHONY: install-man install-c-src install-etc install-strip install-$(NTDIR)
 .PHONY: uninstall uninstall-$(NTDIR)
 
 ## If we let lib-src do its own installation, that means we
@@ -568,7 +572,8 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
 ## https://lists.gnu.org/r/autoconf-patches/2004-11/msg00005.html
-install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+install-arch-indep: lisp install-info install-man install-c-src \
+  $(INSTALL_ARCH_INDEP_EXTRA)
 	umask 022 && $(MKDIR_P) "$(DESTDIR)$(includedir)"
 	$(INSTALL_DATA) src/emacs-module.h "$(DESTDIR)$(includedir)/emacs-module.h"
 	-set ${COPYDESTS} ; \
@@ -699,6 +704,28 @@ install-man:
 	  rm -f "$(DESTDIR)${man1dir}/$${dest}.gz"; \
 	  ${GZIP_PROG} -9n "$(DESTDIR)${man1dir}/$${dest}" || true; \
 	done
+
+install-c-src:
+ifneq (,$(emacs_srcdir))
+	-unset CDPATH; \
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(emacs_srcdir)/src" && \
+	exp_sourcesrcdir=`cd "$(DESTDIR)$(emacs_srcdir)/src" && /bin/pwd` && \
+	[ "`cd $(srcdir)/src && /bin/pwd`" = "$$exp_sourcesrcdir" ] || { \
+	  $(set_installuser); \
+	  printf 'Copying compressed C sources to %s ...\n' \
+		 "$(DESTDIR)$(emacs_srcdir)/src"; \
+	  for file in `cd $(srcdir) && echo src/*.[cm]`; do \
+	    installed_file="$(DESTDIR)$(emacs_srcdir)/$$file" && \
+	    $(INSTALL_DATA) "$$file" "$$installed_file" && \
+	    [ -z "$(GZIP_PROG)" ] || { \
+	      rm -f "$$installed_file.gz" && \
+	      $(GZIP_PROG) -9n "$$installed_file" && \
+	      installed_file=$$installed_file.gz; \
+	    } || exit; \
+	    chown $$installuser "$$installed_file" || true; \
+	  done; \
+	}
+endif
 
 ## Install those items from etc/ that need to end up elsewhere.
 
