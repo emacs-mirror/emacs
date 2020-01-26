@@ -219,8 +219,8 @@ DEBUGGING AN INSTALLED EMACS
 
 * Installed Emacs source code
 
-Emacs installs a compressed copy of much of its source code, to make
-it easy for users to read the source code of Emacs via commands like
+Emacs typically installs a compressed copy of much of its source code,
+to make it easy for users to read Emacs source code via commands like
 M-x describe-function (C-h f) to display the definition of a function.
 This compressed copy ordinarily includes both the Elisp source code
 that Emacs is mostly written in, as well as the C source code for the

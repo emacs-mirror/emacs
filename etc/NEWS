@@ -148,8 +148,9 @@ called when the function object is garbage-collected.  Use
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".
 
-** The new variable 'emacs-source-directory' gives the Emacs source
-code location.
+** The new variable 'emacs-source-directory' gives the location of
+a copy of the Emacs source code, which is now typically installed as a
+set of compressed source-code files.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
