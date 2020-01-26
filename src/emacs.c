@@ -1242,6 +1242,9 @@ main (int argc, char **argv)
   char *lc_all = getenv ("LC_ALL");
   if (! (lc_all && strcmp (lc_all, "C") == 0))
     {
+      #ifdef HAVE_NS
+        ns_init_locale ();
+      #endif
       setlocale (LC_ALL, "");
       fixup_locale ();
     }
@@ -1610,10 +1613,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef HAVE_NS
   ns_pool = ns_alloc_autorelease_pool ();
-#ifdef NS_IMPL_GNUSTEP
-  /* GNUstep stupidly resets our locale settings after we made them.  */
-  fixup_locale ();
-#endif
 
   if (!noninteractive)
     {
@@ -1722,11 +1721,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef HAVE_GFILENOTIFY
   globals_of_gfilenotify ();
-#endif
-
-#ifdef HAVE_NS
-  /* Initialize the locale from user defaults.  */
-  ns_init_locale ();
 #endif
 
   /* Initialize and GC-protect Vinitial_environment and
