@@ -3618,6 +3618,7 @@ support symbolic links."
   (let* ((asynchronous (string-match-p "[ \t]*&[ \t]*\\'" command))
 	 (command (substring command 0 asynchronous))
 	 current-buffer-p
+	 (output-buffer-p output-buffer)
 	 (output-buffer
 	  (cond
 	   ((bufferp output-buffer) output-buffer)
@@ -3635,6 +3636,7 @@ support symbolic links."
 	   ((stringp error-buffer) (get-buffer-create error-buffer))))
 	 (bname (buffer-name output-buffer))
 	 (p (get-buffer-process output-buffer))
+	 (dir default-directory)
 	 buffer)
 
     ;; The following code is taken from `shell-command', slightly
@@ -3670,6 +3672,10 @@ support symbolic links."
 	(with-current-buffer output-buffer
 	  (rename-uniquely))
         (setq output-buffer (get-buffer-create bname)))))
+
+    (unless output-buffer-p
+      (with-current-buffer output-buffer
+	(setq default-directory dir)))
 
     (setq buffer (if error-buffer
 		     (with-parsed-tramp-file-name default-directory nil
