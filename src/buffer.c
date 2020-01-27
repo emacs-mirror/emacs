@@ -6247,6 +6247,9 @@ Values are interpreted as follows:
   t               use the cursor specified for the frame
   nil             don't display a cursor
   box             display a filled box cursor
+  (box . SIZE)    display a filled box cursor, but make it
+                  hollow if cursor is under masked image larger than
+                  SIZE pixels in either dimension.
   hollow          display a hollow box cursor
   bar             display a vertical bar cursor with default width
   (bar . WIDTH)   display a vertical bar cursor with width WIDTH

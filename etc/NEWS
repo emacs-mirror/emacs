@@ -64,6 +64,12 @@ It was declared obsolete in Emacs 27.1.
 
 * Changes in Emacs 28.1
 
+** Support for '(box . SIZE)' cursor-type.
+By default, 'box' cursor always has a filled box shape.  Unless you
+specify cursor-type to be '(box . SIZE)'.  In such case, cursor
+becomes a hollow box if the point is under masked image larger than
+'SIZE' pixels in any dimension.
+
 
 * Editing Changes in Emacs 28.1
 
