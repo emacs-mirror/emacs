@@ -2844,7 +2844,7 @@ User is always nil."
   (let ((default-directory (tramp-compat-temporary-file-directory)))
     (when (file-readable-p filename)
       (with-temp-buffer
-	(insert-file-contents filename)
+	(insert-file-contents-literally filename)
 	(goto-char (point-min))
         (cl-loop while (not (eobp)) collect (funcall function))))))
 
@@ -3699,32 +3699,37 @@ support symbolic links."
 	      ;; Run the process.
 	      (setq p (start-file-process-shell-command
 		       (buffer-name output-buffer) buffer command))
-	    (if (process-live-p p)
-		;; Display output.
-		(with-current-buffer output-buffer
-		  (display-buffer output-buffer '(nil (allow-no-window . t)))
-		  (setq mode-line-process '(":%s"))
-		  (shell-mode)
-		  (set-process-filter p #'comint-output-filter)
-		  (set-process-sentinel
-		   p (if (listp buffer)
-			 (lambda (_proc _string)
-			   (with-current-buffer error-buffer
-			     (insert-file-contents (cadr buffer)))
-			   (delete-file (cadr buffer)))
-		       #'shell-command-sentinel)))
-	      ;; Show stderr.
+	    ;; Insert error messages if they were separated.
+	    (when (consp buffer)
 	      (with-current-buffer error-buffer
-		(insert-file-contents (cadr buffer)))
-	      (delete-file (cadr buffer)))))
+		(insert-file-contents-literally (cadr buffer))))
+	    (if (process-live-p p)
+	      ;; Display output.
+	      (with-current-buffer output-buffer
+		(display-buffer output-buffer '(nil (allow-no-window . t)))
+		(setq mode-line-process '(":%s"))
+		(shell-mode)
+		(set-process-filter p #'comint-output-filter)
+		(set-process-sentinel p #'shell-command-sentinel)
+		(when (consp buffer)
+		  (add-function
+		   :after (process-sentinel p)
+		   (lambda (_proc _string)
+		     (with-current-buffer error-buffer
+		       (insert-file-contents-literally
+			(cadr buffer) nil nil nil 'replace))
+		     (delete-file (cadr buffer))))))
+
+	      (when (consp buffer)
+		(delete-file (cadr buffer))))))
 
       (prog1
 	  ;; Run the process.
 	  (process-file-shell-command command nil buffer nil)
 	;; Insert error messages if they were separated.
-	(when (listp buffer)
+	(when (consp buffer)
 	  (with-current-buffer error-buffer
-	    (insert-file-contents (cadr buffer)))
+	    (insert-file-contents-literally (cadr buffer)))
 	  (delete-file (cadr buffer)))
 	(if current-buffer-p
 	    ;; This is like exchange-point-and-mark, but doesn't
@@ -3745,10 +3750,10 @@ BUFFER might be a list, in this case STDERR is separated."
   (tramp-file-name-handler
    'make-process
    :name name
-   :buffer (if (listp buffer) (car buffer) buffer)
+   :buffer (if (consp buffer) (car buffer) buffer)
    :command (and program (cons program args))
    ;; `shell-command' adds an errfile to `buffer'.
-   :stderr (when (listp buffer) (cadr buffer))
+   :stderr (when (consp buffer) (cadr buffer))
    :noquery nil
    :file-handler t))
 

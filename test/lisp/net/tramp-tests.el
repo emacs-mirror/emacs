@@ -4410,6 +4410,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   ;; order to establish the connection prior running an asynchronous
   ;; process.
   (let ((default-directory (file-truename tramp-test-temporary-file-directory))
+	(delete-exited-processes t)
 	kill-buffer-query-functions proc)
     (unwind-protect
 	(with-temp-buffer
@@ -4436,18 +4437,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (command output-buffer &optional error-buffer input)
   "Like `async-shell-command', reading the output.
 INPUT, if non-nil, is a string sent to the process."
-  (let ((proc (async-shell-command command output-buffer error-buffer)))
+  (let ((proc (async-shell-command command output-buffer error-buffer))
+	(delete-exited-processes t))
     (when (stringp input)
       (process-send-string proc input))
     (with-timeout
 	((if (getenv "EMACS_EMBA_CI") 30 10) (tramp--test-timeout-handler))
-      (while (accept-process-output proc nil nil t))
-      (should-not (process-live-p proc)))
-    ;; `ls' could produce colorized output.
-    (with-current-buffer output-buffer
-      (goto-char (point-min))
-      (while (re-search-forward tramp-display-escape-sequence-regexp nil t)
-	(replace-match "" nil nil)))))
+      (while (or (accept-process-output proc nil nil t) (process-live-p proc))))
+    (accept-process-output proc nil nil t)))
 
 (defun tramp--test-shell-command-to-string-asynchronously (command)
   "Like `shell-command-to-string', but for asynchronous processes."
@@ -4486,26 +4483,33 @@ INPUT, if non-nil, is a string sent to the process."
 	       this-shell-command
 	       (format "ls %s" (file-name-nondirectory tmp-name))
 	       (current-buffer))
+	      ;; `ls' could produce colorized output.
+	      (goto-char (point-min))
+	      (while
+		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
+		(replace-match "" nil nil))
 	      (should
 	       (string-equal
 		(format "%s\n" (file-name-nondirectory tmp-name))
 		(buffer-string))))
 
 	  ;; Cleanup.
-	  (ignore-errors (delete-file tmp-name))))
+	  (ignore-errors (delete-file tmp-name)))
 
-      ;; Test `shell-command' with error buffer.
-      (let ((stderr (generate-new-buffer "*stderr*")))
-	(unwind-protect
-	    (with-temp-buffer
-	      (shell-command "echo foo; echo bar >&2" (current-buffer) stderr)
-	      (should (string-equal "foo\n" (buffer-string)))
-	      ;; Check stderr.
-	      (with-current-buffer stderr
-		(should (string-equal "bar\n" (buffer-string)))))
+	;; Test `{async-}shell-command' with error buffer.
+	(let ((stderr (generate-new-buffer "*stderr*")))
+	  (unwind-protect
+	      (with-temp-buffer
+		(funcall
+		 this-shell-command
+		 "echo foo >&2; echo bar" (current-buffer) stderr)
+		(should (string-equal "bar\n" (buffer-string)))
+		;; Check stderr.
+		(with-current-buffer stderr
+		  (should (string-equal "foo\n" (buffer-string)))))
 
-	  ;; Cleanup.
-	  (ignore-errors (kill-buffer stderr))))
+	    ;; Cleanup.
+	    (ignore-errors (kill-buffer stderr)))))
 
       ;; Test sending string to `async-shell-command'.
       (unwind-protect
@@ -4514,6 +4518,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    (should (file-exists-p tmp-name))
 	    (tramp--test-async-shell-command
 	     "read line; ls $line" (current-buffer) nil
+	     ;; String to be sent.
 	     (format "%s\n" (file-name-nondirectory tmp-name)))
 	    (should
 	     (string-equal

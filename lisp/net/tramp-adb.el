@@ -1065,13 +1065,15 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			;; until the process is deleted.
 			(when (bufferp stderr)
 			  (with-current-buffer stderr
-			    (insert-file-contents remote-tmpstderr 'visit))
+			    (insert-file-contents-literally
+			     remote-tmpstderr 'visit))
 			  ;; Delete tmpstderr file.
 			  (add-function
 			   :after (process-sentinel p)
 			   (lambda (_proc _msg)
 			     (with-current-buffer stderr
-			       (insert-file-contents remote-tmpstderr 'visit))
+			       (insert-file-contents-literally
+				remote-tmpstderr 'visit nil nil 'replace))
 			     (delete-file remote-tmpstderr))))
 			;; Return process.
 			p))))
