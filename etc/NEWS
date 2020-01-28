@@ -58,12 +58,6 @@ shaping, so 'configure' now recommends that combination.
 ** The ftx font backend driver has been removed.
 It was declared obsolete in Emacs 27.1.
 
----
-** Emacs now installs a copy of its C source code, used for debugging help.
-For example, pressing the first button in the *Help* buffer generated
-by 'C-h f car RET' now takes you to a copy of the C-language
-implementation of the function 'car'.
-
 
 * Startup Changes in Emacs 28.1
 
@@ -147,10 +141,6 @@ called when the function object is garbage-collected.  Use
 
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".
-
-** The new variable 'emacs-source-directory' gives the location of
-a copy of the Emacs source code, which is now typically installed as a
-set of compressed source-code files.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

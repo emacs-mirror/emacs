@@ -44,7 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "pdumper.h"
 #include <c-ctype.h>
-#include <dosname.h>
 #include <vla.h>
 
 #ifdef MSDOS
@@ -4993,17 +4992,10 @@ and is not meant for users to change.  */);
 
   DEFVAR_LISP ("source-directory", Vsource_directory,
 	       doc: /* Directory in which Emacs sources were found when Emacs was built.
-You cannot count on them to still be there!  Also see
-`emacs-source-directory'.  */);
+You cannot count on them to still be there!  */);
   Vsource_directory
     = Fexpand_file_name (build_string ("../"),
 			 Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0)));
-
-  DEFVAR_LISP ("emacs-source-directory", Vemacs_source_directory,
-	       doc: /* Directory where Emacs sources can be found.  */);
-  Vemacs_source_directory = (IS_ABSOLUTE_FILE_NAME (PATH_EMACS_SOURCE)
-			     ? build_string (PATH_EMACS_SOURCE)
-			     : Vsource_directory);
 
   DEFVAR_LISP ("preloaded-file-list", Vpreloaded_file_list,
 	       doc: /* List of files that were preloaded (when dumping Emacs).  */);

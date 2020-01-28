@@ -194,7 +194,6 @@ locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 lisppath='${locallisppath}:${standardlisppath}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
-emacs_srcdir='${datadir}/emacs/${version}'
 etcdocdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
@@ -540,15 +539,6 @@ if test "${enableval}" = "no"; then
 elif test "${enableval}" != "yes"; then
   locallisppath=${enableval} locallisppathset=yes
 fi)
-
-AC_ARG_ENABLE([install-srcdir],
-  [AS_HELP_STRING([--disable-install-srcdir],
-     [do not install low-level Emacs source code useful for debugging.])],
-  [case $enableval in
-     yes) ;;
-     no) emacs_srcdir=;;
-     *) AC_MSG_ERROR([invalid install-srcdir]);;
-   esac])
 
 AC_ARG_ENABLE(checking,
 [AS_HELP_STRING([--enable-checking@<:@=LIST@:>@],
@@ -2058,9 +2048,6 @@ if test "${HAVE_NS}" = yes; then
      dnl This one isn't really used, only archlibdir is.
      libexecdir="\${ns_appbindir}/libexec"
      archlibdir="\${ns_appbindir}/libexec"
-     case $emacs_srcdir in
-       ?*) emacs_srcdir="\${ns_appresdir}";;
-     esac
      etcdocdir="\${ns_appresdir}/etc"
      etcdir="\${ns_appresdir}/etc"
      dnl FIXME maybe set datarootdir instead.
@@ -5243,7 +5230,6 @@ AC_SUBST(lisppath)
 AC_SUBST(x_default_search_path)
 AC_SUBST(etcdir)
 AC_SUBST(archlibdir)
-AC_SUBST([emacs_srcdir])
 AC_SUBST(etcdocdir)
 AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)

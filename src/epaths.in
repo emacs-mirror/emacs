@@ -73,9 +73,5 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Where Emacs should store game score files.  */
 #define PATH_GAME "/usr/local/var/games/emacs"
 
-/* Where Emacs should look for its own installed source code,
-   or the empty string if the source code is not installed.  */
-#define PATH_EMACS_SOURCE "/usr/local/share/emacs"
-
 /* Where Emacs should look for the application default file. */
 #define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"

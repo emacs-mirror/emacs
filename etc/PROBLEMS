@@ -318,6 +318,83 @@ element from LD_LIBRARY_PATH before starting emacs proper.
 Or you could recompile Emacs with an -Wl,-rpath option that
 gives the location of the correct libotf.
 
+* Problems when reading or debugging Emacs C code
+
+Because Emacs does not install a copy of its C source code, users
+normally cannot easily read that code via commands like 'M-x
+describe-function' (C-h f) that display the definition of a function.
+However, some GNU/Linux systems provide separate packages containing
+this source code which can get C-h f to work if you are willing to do
+some tinkering, and some systems also provide packages containing
+debug info, which when combined with the source can be used to debug
+Emacs at the C level.
+
+** Debian-based source and debuginfo
+
+On recent Debian-based systems, you can obtain and use a source
+package of Emacs as follows.
+
+*** Add the appropriate URI to /etc/apt/sources.list.
+
+To do this, become superuser and uncomment or add the appropriate
+'deb-src' line.  Details depend on the distribution.
+
+*** Execute a command like 'apt-get source emacs'.
+
+On older systems, append the top-level version number, e.g., 'apt-get
+source emacs25'.  The target directory for unpacking the source tree
+is the current directory.
+
+*** Set find-function-C-source-directory accordingly.
+
+Once you have installed the source package, for example at
+/home/myself/deb-src/emacs-26.3, add the following line to your
+startup file:
+
+     (setq find-function-C-source-directory
+           "/home/myself/deb-src/emacs-26.3/src/")
+
+The installation directory of the Emacs source package will contain
+the exact package name and version number of Emacs that is installed
+on your system.  If a new Emacs package is installed, the source
+package must be reinstalled as well, and the setting in your startup
+file must be updated.
+
+*** Debian-based debuginfo
+
+You can also install a debug package of Emacs with a command like
+'apt-get install emacs-dbg' (on older systems, 'apt-get install
+emacs25-dbg').  You need to arrange for GDB to find where you
+installed the source code, e.g., by using GDB's 'directory' command.
+
+** Red Hat-based source and debuginfo
+
+On recent Red Hat-based systems, you can install source and debug info
+via superuser commands like the following:
+
+  # Add the *-debuginfo repositories (exact command depends on system).
+  dnf config-manager --set-enabled fedora-debuginfo updates-debuginfo'
+
+  # Install Emacs source and debug info.
+  dnf install emacs-debugsource
+
+To get describe-function and similar commands to work, you can then
+add something like the following to your startup file:
+
+     (setq find-function-C-source-directory
+           "/usr/src/debug/emacs-26.3-1.fc31.x86_64/src/")
+
+However, the exact directory name will depend on the system, and you
+will need to both upgrade source and debug info when your system
+upgrades or patches Emacs, and change your startup file accordingly.
+
+** Source and debuginfo for other systems
+
+If your system follows neither the Debian nor the Red Hat patterns,
+you can obtain the source and debuginfo by obtaining the source code
+of Emacs, building Emacs with the appropriate debug flags enabled, and
+running the just-built Emacs.
+
 * General runtime problems
 
 ** Lisp problems
