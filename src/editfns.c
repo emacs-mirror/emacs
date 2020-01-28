@@ -3031,7 +3031,7 @@ width, and precision specifiers, as follows:
   %<field><flags><width><precision>character
 
 where field is [0-9]+ followed by a literal dollar "$", flags is
-[+ #-0]+, width is [0-9]+, and precision is a literal period "."
+[+ #0-]+, width is [0-9]+, and precision is a literal period "."
 followed by [0-9]+.
 
 If a %-sequence is numbered with a field with positive value N, the

@@ -3338,6 +3338,10 @@ versions.
 'forward-comment', 'scan-sexps', and 'forward-sexp' when parsing backward.
 The new variable 'comment-use-syntax-ppss' can be set to nil to recover
 the old behavior if needed.
+This also means that there is no longer any need to precede opening
+brackets at the start of a line inside documentation strings with a
+backslash, although there is no harm in doing so to make the code
+easier to edit with an older Emacs version.
 
 ---
 ** The 'server-name' and 'server-socket-dir' variables are set when a

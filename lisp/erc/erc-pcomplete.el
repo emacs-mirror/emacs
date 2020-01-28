@@ -5,7 +5,7 @@
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm, convenience
-;; URL: http://wwws.emacswiki.org/emacs/ErcCompletion
+;; URL: https://www.emacswiki.org/emacs/ErcCompletion
 
 ;; This file is part of GNU Emacs.
 

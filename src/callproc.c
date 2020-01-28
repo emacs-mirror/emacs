@@ -794,7 +794,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
              signal_after_change hasn't.  A continue statement
              restarts the enclosing while (1) loop.  A second,
              unwanted, call to `prepare_to_modify_buffer' is inhibited
-             by the test perpared_pos < PT.  The data are inserted
+	     by the test prepared_pos < PT.  The data are inserted
              again, and this time signal_after_change gets called,
              balancing the previous call to prepare_to_modify_buffer.  */
           if ((prepared_pos < PT) && nread)

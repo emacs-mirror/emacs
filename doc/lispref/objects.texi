@@ -266,8 +266,8 @@ but many machines provide a wider range.
   Bignums can have arbitrary precision.  Operations that overflow a
 fixnum will return a bignum instead.
 
-  Fixnums can be compared with @code{eq}, but bignums require
-@code{eql} or @code{=}.  To test whether an integer is a fixnum or a
+  All numbers can be compared with @code{eql} or @code{=}; fixnums can
+also be compared with @code{eq}.  To test whether an integer is a fixnum or a
 bignum, you can compare it to @code{most-negative-fixnum} and
 @code{most-positive-fixnum}, or you can use the convenience predicates
 @code{fixnump} and @code{bignump} on any object.
@@ -2167,17 +2167,20 @@ appropriate chapter describing the data type.
 This function returns @code{t} if @var{object1} and @var{object2} are
 the same object, and @code{nil} otherwise.
 
-If @var{object1} and @var{object2} are fixnums with the same value,
-they are considered to be the same object (i.e., @code{eq} returns
-@code{t}).  If @var{object1} and @var{object2} are symbols with the
+If @var{object1} and @var{object2} are symbols with the
 same name, they are normally the same object---but see @ref{Creating
-Symbols} for exceptions.  For other types (e.g., lists, vectors,
+Symbols} for exceptions.  For other non-numeric types (e.g., lists, vectors,
 strings), two arguments with the same contents or elements are not
 necessarily @code{eq} to each other: they are @code{eq} only if they
 are the same object, meaning that a change in the contents of one will
 be reflected by the same change in the contents of the other.
-For other types of objects whose contents cannot be changed (e.g.,
-bignums and floats), two arguments with the same contents might or might not be
+
+If @var{object1} and @var{object2} are numbers with differing types or values,
+then they cannot be the same object and @code{eq} returns @code{nil}.
+If they are fixnums with the same value,
+then they are the same object and @code{eq} returns @code{t}.
+If they were computed separately but happen to have the same value
+and the same non-fixnum numeric type, then they might or might not be
 the same object, and @code{eq} returns @code{t} or @code{nil}
 depending on whether the Lisp interpreter created one object or two.
 
@@ -2188,26 +2191,25 @@ depending on whether the Lisp interpreter created one object or two.
 @end group
 
 @group
-(eq 456 456)
+(eq ?A ?A)
      @result{} t
 @end group
 
 @group
 (eq 3.0 3.0)
      @result{} t @r{or} nil
-;; @r{The result is implementation-dependent.}
+;; @r{Equal floats may or may not be the same object.}
 @end group
 
 @group
-(eq "asdf" "asdf")
+(eq (make-string 3 ?A) (make-string 3 ?A))
      @result{} nil
 @end group
 
 @group
-(eq "" "")
-     @result{} t
-;; @r{This exception occurs because Emacs Lisp}
-;; @r{makes just one multibyte empty string, to save space.}
+(eq "asdf" "asdf")
+     @result{} t @r{or} nil
+;; @r{Equal string constants or may not be the same object.}
 @end group
 
 @group
