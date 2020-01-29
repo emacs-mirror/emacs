@@ -109,6 +109,9 @@ like cell phones, tablets or cameras.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+** When 'suggest-key-bindings' is non-nil, the completion list of M-x
+shows equivalent key-bindings for all commands that have them.
+
 ** 'equal' no longer examines some contents of window configurations.
 Instead, it considers window configurations to be equal only if they
 are 'eq'.  To compare contents, use 'compare-window-configurations'

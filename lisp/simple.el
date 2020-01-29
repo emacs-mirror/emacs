@@ -1788,23 +1788,36 @@ to get different commands to edit and resubmit."
 	     ;; and it serves as a shorthand for "Extended command: ".
 	     "M-x ")
      (lambda (string pred action)
-       (let ((pred
-              (if (memq action '(nil t))
-                  ;; Exclude obsolete commands from completions.
-                  (lambda (sym)
-                    (and (funcall pred sym)
-                         (or (equal string (symbol-name sym))
-                             (not (get sym 'byte-obsolete-info)))))
-                pred)))
-         (complete-with-action action obarray string pred)))
+       (if (and suggest-key-bindings (eq action 'metadata))
+	   '(metadata
+	     (annotation-function . read-extended-command--annotation)
+	     (category . command))
+         (let ((pred
+                (if (memq action '(nil t))
+                    ;; Exclude obsolete commands from completions.
+                    (lambda (sym)
+                      (and (funcall pred sym)
+                           (or (equal string (symbol-name sym))
+                               (not (get sym 'byte-obsolete-info)))))
+                  pred)))
+           (complete-with-action action obarray string pred))))
      #'commandp t nil 'extended-command-history)))
+
+(defun read-extended-command--annotation (command-name)
+  (let* ((function (and (stringp command-name) (intern-soft command-name)))
+         (binding (where-is-internal function overriding-local-map t)))
+    (when (and binding (not (stringp binding)))
+      (format " (%s)" (key-description binding)))))
 
 (defcustom suggest-key-bindings t
   "Non-nil means show the equivalent key-binding when M-x command has one.
 The value can be a length of time to show the message for.
 If the value is non-nil and not a number, we wait 2 seconds.
 
-Also see `extended-command-suggest-shorter'."
+Also see `extended-command-suggest-shorter'.
+
+Equivalent key-bindings are also shown in the completion list of
+M-x for all commands that have them."
   :group 'keyboard
   :type '(choice (const :tag "off" nil)
                  (integer :tag "time" 2)
