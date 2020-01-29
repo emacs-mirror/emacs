@@ -660,7 +660,7 @@ be used directly.")
 (defun gnus-add-buffer ()
   "Add the current buffer to the list of Gnus buffers."
   (gnus-prune-buffers)
-  (push (current-buffer) gnus-buffers))
+  (cl-pushnew (current-buffer) gnus-buffers))
 
 (defmacro gnus-kill-buffer (buffer)
   "Kill BUFFER and remove from the list of Gnus buffers."
