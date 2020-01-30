@@ -234,7 +234,7 @@ This is set by hooking into Gnus.")
 (defun spam-stat-store-current-buffer ()
   "Store a copy of the current buffer in `spam-stat-buffer'."
   (let ((buf (current-buffer)))
-    (with-current-buffer (gnus-get-buffer-create spam-stat-buffer-name)
+    (with-current-buffer (get-buffer-create spam-stat-buffer-name)
       (erase-buffer)
       (insert-buffer-substring buf)
       (setq spam-stat-buffer (current-buffer)))))

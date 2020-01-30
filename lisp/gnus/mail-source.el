@@ -740,7 +740,9 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
   (when delay
     (sleep-for delay)))
 
+(declare-function gnus-get-buffer-create "gnus" (name))
 (defun mail-source-call-script (script)
+  (require 'gnus)
   (let ((background nil)
 	(stderr (gnus-get-buffer-create " *mail-source-stderr*"))
 	result)

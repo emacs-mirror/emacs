@@ -1986,6 +1986,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'gnus-delay-article "gnus-delay")
 (autoload 'gnus-extract-address-components "gnus-util")
 (autoload 'gnus-find-method-for-group "gnus")
+(autoload 'gnus-get-buffer-create "gnus")
 (autoload 'gnus-group-name-charset "gnus-group")
 (autoload 'gnus-group-name-decode "gnus-group")
 (autoload 'gnus-groups-from-server "gnus")

@@ -293,6 +293,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 		   (substring alg (match-end 0))
 		 alg))))
 
+(autoload 'gnus-get-buffer-create "gnus")
+
 (defun mml2015-mailcrypt-verify (handle ctl)
   (catch 'error
     (let (part)
@@ -725,6 +727,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
 
+(autoload 'gnus-create-image "gnus-util")
+
 (defun mml2015-epg-key-image (key-id)
   "Return the image of a key, if any."
   (with-temp-buffer
@@ -949,7 +953,6 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 ;;; General wrapper
 
 (autoload 'gnus-buffer-live-p "gnus-util")
-(autoload 'gnus-get-buffer-create "gnus")
 
 (defun mml2015-clean-buffer ()
   (if (gnus-buffer-live-p mml2015-result-buffer)

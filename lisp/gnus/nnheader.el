@@ -502,6 +502,8 @@ the line could be found."
   "Coding system used in file backends of Gnus.")
 (defvar nnheader-callback-function nil)
 
+(autoload 'gnus-get-buffer-create "gnus")
+
 (defun nnheader-init-server-buffer ()
   "Initialize the Gnus-backend communication buffer."
   (unless (gnus-buffer-live-p nntp-server-buffer)

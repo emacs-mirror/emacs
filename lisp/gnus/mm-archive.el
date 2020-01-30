@@ -24,6 +24,7 @@
 
 (require 'mm-decode)
 (autoload 'gnus-recursive-directory-files "gnus-util")
+(autoload 'gnus-get-buffer-create "gnus")
 (autoload 'mailcap-extension-to-mime "mailcap")
 
 (defvar mm-archive-decoders
