@@ -69,6 +69,8 @@
   "\\([+-]?[0-9][0-9][0-9][0-9]\\)-\\([0-9][0-9]\\)")
 (defconst iso8601--outdated-date-match
   "--\\([0-9][0-9]\\)-?\\([0-9][0-9]\\)")
+(defconst iso8601--outdated-reduced-precision-date-match
+  "---?\\([0-9][0-9]\\)")
 (defconst iso8601--week-date-match
   "\\([+-]?[0-9][0-9][0-9][0-9]\\)-?W\\([0-9][0-9]\\)-?\\([0-9]\\)?")
 (defconst iso8601--ordinal-date-match
@@ -79,6 +81,7 @@
          iso8601--full-date-match
          iso8601--without-day-match
          iso8601--outdated-date-match
+         iso8601--outdated-reduced-precision-date-match
          iso8601--week-date-match
          iso8601--ordinal-date-match)))
 
