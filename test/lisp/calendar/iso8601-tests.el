@@ -44,6 +44,14 @@
   (should (equal (iso8601-parse-date "--0201")
 		  '(nil nil nil 1 2 nil nil -1 nil))))
 
+(ert-deftest test-iso8601-date-obsolete-2000 ()
+  ;; These are forms in 5.2.1.3 of the 2000 version of the standard,
+  ;; e) and f).
+  (should (equal (iso8601-parse-date "--02")
+                 '(nil nil nil nil 2 nil nil -1 nil)))
+  (should (equal (iso8601-parse-date "---12")
+                 '(nil nil nil 12 nil nil nil -1 nil))))
+
 (ert-deftest test-iso8601-date-weeks ()
   (should (equal (iso8601-parse-date "2008W39-6")
 		  '(nil nil nil 27 9 2008 nil -1 nil)))

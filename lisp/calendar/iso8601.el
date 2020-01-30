@@ -202,6 +202,12 @@ See `decode-time' for the meaning of FORM."
       (iso8601--decoded-time :year year
                              :month (decoded-time-month month-day)
                              :day (decoded-time-day month-day))))
+   ;; Obsolete format with implied year: --MM
+   ((iso8601--match "--\\([0-9][0-9]\\)" string)
+    (iso8601--decoded-time :month (string-to-number (match-string 1 string))))
+   ;; Obsolete format with implied year and month: ---DD
+   ((iso8601--match "---\\([0-9][0-9]\\)" string)
+    (iso8601--decoded-time :day (string-to-number (match-string 1 string))))
    (t
     (signal 'wrong-type-argument string))))
 
