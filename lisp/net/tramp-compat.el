@@ -77,20 +77,6 @@ Add the extension of F, if existing."
       #'temporary-file-directory
     #'tramp-handle-temporary-file-directory))
 
-(defun tramp-compat-process-running-p (process-name)
-  "Return t if system process PROCESS-NAME is running for `user-login-name'."
-  (when (stringp process-name)
-    (let (result)
-      (dolist (pid (tramp-compat-funcall 'list-system-processes) result)
-	(let ((attributes (process-attributes pid)))
-	  (and (string-equal (cdr (assoc 'user attributes)) (user-login-name))
-               (when-let ((comm (cdr (assoc 'comm attributes))))
-                 ;; The returned command name could be truncated to 15
-                 ;; characters.  Therefore, we cannot check for
-                 ;; `string-equal'.
-		 (string-match-p (concat "^" (regexp-quote comm)) process-name))
-	       (setq result t)))))))
-
 ;; `file-attribute-*' are introduced in Emacs 26.1.
 
 (defalias 'tramp-compat-file-attribute-type
@@ -295,5 +281,10 @@ A nil value for either argument stands for the current time."
 	    (unload-feature 'tramp-compat 'force)))
 
 (provide 'tramp-compat)
+
+;;; TODO:
+;;
+;; * Starting with Emacs 27.1, there's no need to escape open
+;;   parentheses with a backslash in docstrings anymore.
 
 ;;; tramp-compat.el ends here

@@ -1999,9 +1999,9 @@ without a visible progress reporter."
            (tm
             ;; We start a pulsing progress reporter after 3
             ;; seconds. Display only when there is a minimum level.
-            (when (<= ,level (min tramp-verbose 3))
-	      (when-let ((pr (make-progress-reporter ,message nil nil)))
-		(run-at-time 3 0.1 #'tramp-progress-reporter-update pr)))))
+	    (when-let ((pr (and (<= ,level (min tramp-verbose 3))
+				(make-progress-reporter ,message nil nil))))
+	      (run-at-time 3 0.1 #'tramp-progress-reporter-update pr))))
        (unwind-protect
            ;; Execute the body.
            (prog1 (progn ,@body) (setq cookie "done"))
@@ -4815,6 +4815,19 @@ verbosity of 6."
 	     (tramp-error vec (car err) (cdr err)))))
     (tramp-message vec 6 "%s" result)
     result))
+
+(defun tramp-process-running-p (process-name)
+  "Return t if system process PROCESS-NAME is running for `user-login-name'."
+  (when (stringp process-name)
+    (catch 'result
+      (dolist (pid (tramp-compat-funcall 'list-system-processes))
+	(let ((attributes (process-attributes pid)))
+	  (and (string-equal (cdr (assoc 'user attributes)) (user-login-name))
+               (when-let ((comm (cdr (assoc 'comm attributes))))
+                 ;; The returned command name could be truncated to 15
+                 ;; characters.  Therefore, we cannot check for `string-equal'.
+		 (string-prefix-p comm process-name))
+	       (throw 'result t)))))))
 
 (defun tramp-read-passwd (proc &optional prompt)
   "Read a password from user (compat function).

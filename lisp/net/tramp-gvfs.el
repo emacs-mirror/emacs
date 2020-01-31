@@ -125,8 +125,8 @@
 	 (autoload 'zeroconf-init "zeroconf")
 	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
-	 (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
-	     (tramp-compat-process-running-p "gvfsd-fuse"))))
+	 (or (tramp-process-running-p "gvfs-fuse-daemon")
+	     (tramp-process-running-p "gvfsd-fuse"))))
   "Non-nil when GVFS is available.")
 
 ;;;###tramp-autoload
