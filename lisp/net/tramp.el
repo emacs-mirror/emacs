@@ -3621,8 +3621,13 @@ support symbolic links."
 	 (output-buffer-p output-buffer)
 	 (output-buffer
 	  (cond
-	   ((bufferp output-buffer) output-buffer)
-	   ((stringp output-buffer) (get-buffer-create output-buffer))
+	   ((bufferp output-buffer)
+	    (setq current-buffer-p (eq (current-buffer) output-buffer))
+	    output-buffer)
+	   ((stringp output-buffer)
+	    (setq current-buffer-p
+		  (eq (buffer-name (current-buffer)) output-buffer))
+	    (get-buffer-create output-buffer))
 	   (output-buffer
 	    (setq current-buffer-p t)
 	    (current-buffer))
@@ -3634,6 +3639,11 @@ support symbolic links."
 	  (cond
 	   ((bufferp error-buffer) error-buffer)
 	   ((stringp error-buffer) (get-buffer-create error-buffer))))
+	 (error-file
+	  (and error-buffer
+	       (with-parsed-tramp-file-name default-directory nil
+		 (tramp-make-tramp-file-name
+		  v (tramp-make-tramp-temp-file v)))))
 	 (bname (buffer-name output-buffer))
 	 (p (get-buffer-process output-buffer))
 	 (dir default-directory)
@@ -3641,7 +3651,7 @@ support symbolic links."
 
     ;; The following code is taken from `shell-command', slightly
     ;; adapted.  Shouldn't it be factored out?
-    (when p
+    (when (and (integerp asynchronous) p)
       (cond
        ((eq async-shell-command-buffer 'confirm-kill-process)
 	;; If will kill a process, query first.
@@ -3677,22 +3687,21 @@ support symbolic links."
       (with-current-buffer output-buffer
 	(setq default-directory dir)))
 
-    (setq buffer (if error-buffer
-		     (with-parsed-tramp-file-name default-directory nil
-		       (list output-buffer
-			     (tramp-make-tramp-file-name
-			      v (tramp-make-tramp-temp-file v))))
-		   output-buffer))
+    (setq buffer (if error-file (list output-buffer error-file) output-buffer))
 
-    (if current-buffer-p
-	(progn
-	  (barf-if-buffer-read-only)
-	  (push-mark nil t))
-      (with-current-buffer output-buffer
+    (with-current-buffer output-buffer
+      (when current-buffer-p
+	(barf-if-buffer-read-only)
+	(push-mark nil t))
+      ;; `shell-command-save-pos-or-erase' has been introduced with
+      ;; Emacs 27.1.
+      (if (fboundp 'shell-command-save-pos-or-erase)
+	  (tramp-compat-funcall
+	   'shell-command-save-pos-or-erase current-buffer-p)
 	(setq buffer-read-only nil)
 	(erase-buffer)))
 
-    (if (and (not current-buffer-p) (integerp asynchronous))
+    (if (integerp asynchronous)
 	(let ((tramp-remote-process-environment
 	       ;; `async-shell-command-width' has been introduced with
 	       ;; Emacs 27.1.
@@ -3706,9 +3715,9 @@ support symbolic links."
 	      (setq p (start-file-process-shell-command
 		       (buffer-name output-buffer) buffer command))
 	    ;; Insert error messages if they were separated.
-	    (when (consp buffer)
+	    (when error-file
 	      (with-current-buffer error-buffer
-		(insert-file-contents-literally (cadr buffer))))
+		(insert-file-contents-literally error-file)))
 	    (if (process-live-p p)
 	      ;; Display output.
 	      (with-current-buffer output-buffer
@@ -3717,34 +3726,40 @@ support symbolic links."
 		(shell-mode)
 		(set-process-filter p #'comint-output-filter)
 		(set-process-sentinel p #'shell-command-sentinel)
-		(when (consp buffer)
+		(when error-file
 		  (add-function
 		   :after (process-sentinel p)
 		   (lambda (_proc _string)
 		     (with-current-buffer error-buffer
 		       (insert-file-contents-literally
-			(cadr buffer) nil nil nil 'replace))
-		     (delete-file (cadr buffer))))))
+			error-file nil nil nil 'replace))
+		     (delete-file error-file)))))
 
-	      (when (consp buffer)
-		(delete-file (cadr buffer))))))
+	      (when error-file
+		(delete-file error-file)))))
 
       (prog1
 	  ;; Run the process.
 	  (process-file-shell-command command nil buffer nil)
 	;; Insert error messages if they were separated.
-	(when (consp buffer)
+	(when error-file
 	  (with-current-buffer error-buffer
-	    (insert-file-contents-literally (cadr buffer)))
-	  (delete-file (cadr buffer)))
+	    (insert-file-contents-literally error-file))
+	  (delete-file error-file))
 	(if current-buffer-p
 	    ;; This is like exchange-point-and-mark, but doesn't
 	    ;; activate the mark.  It is cleaner to avoid activation,
 	    ;; even though the command loop would deactivate the mark
 	    ;; because we inserted text.
-	    (goto-char (prog1 (mark t)
-			 (set-marker (mark-marker) (point)
-				     (current-buffer))))
+	    (progn
+	      (goto-char (prog1 (mark t)
+			   (set-marker (mark-marker) (point)
+				       (current-buffer))))
+              ;; `shell-command-set-point-after-cmd' has been
+	      ;; introduced with Emacs 27.1.
+	      (if (fboundp 'shell-command-set-point-after-cmd)
+		  (tramp-compat-funcall
+		   'shell-command-set-point-after-cmd)))
 	  ;; There's some output, display it.
 	  (when (with-current-buffer output-buffer (> (point-max) (point-min)))
 	    (display-message-or-buffer output-buffer)))))))

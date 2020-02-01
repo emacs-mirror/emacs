@@ -72,6 +72,8 @@
 (defvar connection-local-profile-alist)
 ;; Needed for Emacs 26.
 (defvar async-shell-command-width)
+;; Needed for Emacs 27.
+(defvar shell-command-dont-erase-buffer)
 
 ;; Beautify batch mode.
 (when noninteractive
@@ -2389,14 +2391,14 @@ This checks also `file-name-as-directory', `file-name-directory',
 			tramp--test-messages))))))))
 
 	    ;; Do not overwrite if excluded.
-	    (cl-letf (((symbol-function 'y-or-n-p) (lambda (_prompt) t))
+	    (cl-letf (((symbol-function #'y-or-n-p) (lambda (_prompt) t))
 		      ;; Ange-FTP.
 		      ((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
 	      (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
 	    ;; `mustbenew' is passed to Tramp since Emacs 26.1.
 	    (when (tramp--test-emacs26-p)
 	      (should-error
-	       (cl-letf (((symbol-function 'y-or-n-p) 'ignore)
+	       (cl-letf (((symbol-function #'y-or-n-p) #'ignore)
 			 ;; Ange-FTP.
 			 ((symbol-function 'yes-or-no-p) 'ignore))
 		 (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
@@ -3416,11 +3418,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       :type 'file-already-exists))
 	    (when (tramp--test-expensive-test)
 	      ;; A number means interactive case.
-	      (cl-letf (((symbol-function 'yes-or-no-p) #'ignore))
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
 		(should-error
 		 (make-symbolic-link tmp-name1 tmp-name2 0)
 		 :type 'file-already-exists)))
-	    (cl-letf (((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
+	    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
 	      (make-symbolic-link tmp-name1 tmp-name2 0)
 	      (should
 	       (string-equal
@@ -3492,11 +3494,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (add-name-to-file tmp-name1 tmp-name2)
 	      :type 'file-already-exists)
 	     ;; A number means interactive case.
-	     (cl-letf (((symbol-function 'yes-or-no-p) #'ignore))
+	     (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
 	       (should-error
 		(add-name-to-file tmp-name1 tmp-name2 0)
 		:type 'file-already-exists))
-	     (cl-letf (((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
+	     (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
 	       (add-name-to-file tmp-name1 tmp-name2 0)
 	       (should (file-regular-p tmp-name2)))
 	     (add-name-to-file tmp-name1 tmp-name2 'ok-if-already-exists)
@@ -4437,7 +4439,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (command output-buffer &optional error-buffer input)
   "Like `async-shell-command', reading the output.
 INPUT, if non-nil, is a string sent to the process."
-  (let ((proc (async-shell-command command output-buffer error-buffer))
+  (async-shell-command command output-buffer error-buffer)
+  (let ((proc (get-buffer-process output-buffer))
 	(delete-exited-processes t))
     (when (stringp input)
       (process-send-string proc input))
@@ -4532,25 +4535,111 @@ INPUT, if non-nil, is a string sent to the process."
 	      (buffer-string))))
 
 	;; Cleanup.
-	(ignore-errors (delete-file tmp-name)))
+	(ignore-errors (delete-file tmp-name)))))
 
-      ;; Test `async-shell-command-width'.  Since Emacs 27.1.
-      (when (ignore-errors
-	      (and (boundp 'async-shell-command-width)
-		   (zerop (call-process "tput" nil nil nil "cols"))
-                   (zerop (process-file "tput" nil nil nil "cols"))))
-	(let (async-shell-command-width)
-	  (should
-	   (string-equal
-	    (format "%s\n" (car (process-lines "tput" "cols")))
-	    (tramp--test-shell-command-to-string-asynchronously
-	     "tput cols")))
-	  (setq async-shell-command-width 1024)
-	  (should
-	   (string-equal
-	    "1024\n"
-	    (tramp--test-shell-command-to-string-asynchronously
-	     "tput cols"))))))))
+  ;; Test `async-shell-command-width'.  It exists since Emacs 26.1,
+  ;; but seems to work since Emacs 27.1 only.
+  (when (and (tramp--test-sh-p) (tramp--test-emacs27-p))
+    (let* ((async-shell-command-width 1024)
+	   (cols (ignore-errors
+		   (read (tramp--test-shell-command-to-string-asynchronously
+			  "tput cols")))))
+      (when (natnump cols)
+	(should (= cols async-shell-command-width))))))
+
+(ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
+  "Check `shell-command'."
+  :tags '(:expensive-test)
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
+  ;; Prior Emacs 27, `shell-command-dont-erase-buffer' wasn't working properly.
+  (skip-unless (tramp--test-emacs27-p))
+
+  ;; We check both the local and remote case, in order to guarantee
+  ;; that they behave similar.
+  (dolist (default-directory
+	    `(,temporary-file-directory ,tramp-test-temporary-file-directory))
+    (let ((buffer (generate-new-buffer "foo"))
+	  ;; Suppress nasty messages.
+	  (inhibit-message t)
+	  point kill-buffer-query-functions)
+      (unwind-protect
+	  (progn
+	    ;; Don't erase if buffer is the current one.  Point is not moved.
+	    (let (shell-command-dont-erase-buffer)
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= point (point)))))
+
+	    ;; Erase if the buffer is not current one.
+	    (let (shell-command-dont-erase-buffer)
+	      (with-current-buffer buffer
+		(erase-buffer)
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(with-temp-buffer
+		  (shell-command "echo baz" buffer))
+		(should (string-equal "baz\n" (buffer-string)))
+		(should (= point (point)))))
+
+	    ;; Erase if buffer is the current one, but
+	    ;; `shell-command-dont-erase-buffer' is set to `erase'.
+	    (let ((shell-command-dont-erase-buffer 'erase))
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "baz\n" (buffer-string)))
+		(should (= (point) (point-max)))))
+
+	    ;; Don't erase if `shell-command-dont-erase-buffer' is set
+	    ;; to `beg-last-out'.  Check point.
+	    (let ((shell-command-dont-erase-buffer 'beg-last-out))
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= point (point)))))
+
+	    ;; Don't erase if `shell-command-dont-erase-buffer' is set
+	    ;; to `end-last-out'.  Check point.
+	    (let ((shell-command-dont-erase-buffer 'end-last-out))
+	      (with-temp-buffer
+		(insert "bar")
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (point-max)))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= (point) (point-max)))))
+
+	    ;; Don't erase if `shell-command-dont-erase-buffer' is set
+	    ;; to `save-point'.  Check point.
+	    (let ((shell-command-dont-erase-buffer 'save-point))
+	      (with-temp-buffer
+		(insert "bar")
+		(goto-char (1- (point-max)))
+		(setq point (point))
+		(should (string-equal "bar" (buffer-string)))
+		(should (= (point) (1- (point-max))))
+		(shell-command "echo baz" (current-buffer))
+		(should (string-equal "barbaz\n" (buffer-string)))
+		(should (= point (point))))))
+
+	;; Cleanup.
+	(ignore-errors (kill-buffer buffer))))))
 
 ;; This test is inspired by Bug#23952.
 (ert-deftest tramp-test33-environment-variables ()
