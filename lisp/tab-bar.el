@@ -1123,7 +1123,7 @@ function `tab-bar-tab-name-function'."
 
 (define-minor-mode tab-bar-history-mode
   "Toggle tab history mode for the tab bar."
-  :global t
+  :global t :group 'tab-bar
   (if tab-bar-history-mode
       (progn
         (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-back-button)))
@@ -1400,7 +1400,7 @@ in the selected frame."
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
-(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames)
+(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab)
   "Return a tab owning a window whose buffer is BUFFER-OR-NAME.
 BUFFER-OR-NAME may be a buffer or a buffer name and defaults to
 the current buffer.
@@ -1414,7 +1414,10 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 - A frame means consider all tabs on that frame only.
 
 Any other value of ALL-FRAMES means consider all tabs on the
-selected frame and no others."
+selected frame and no others.
+
+When the optional argument IGNORE-CURRENT-TAB is non-nil,
+don't take into account the buffers in the currently selected tab."
   (let ((buffer (if buffer-or-name
                     (get-buffer buffer-or-name)
                   (current-buffer))))
@@ -1424,7 +1427,8 @@ selected frame and no others."
          (seq-some
           (lambda (tab)
             (when (if (eq (car tab) 'current-tab)
-                      (get-buffer-window buffer frame)
+                      (unless ignore-current-tab
+                        (get-buffer-window buffer frame))
                     (let* ((state (alist-get 'ws tab))
                            (buffers (when state
                                       (window-state-buffers state))))

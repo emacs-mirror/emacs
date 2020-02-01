@@ -656,10 +656,34 @@ system, including many technical ones.  Examples:
  ("\\wp" ?℘)
  ("\\wr" ?≀)
 
- ("\\Bbb{N}" ?ℕ)			; AMS commands for blackboard bold
- ("\\Bbb{P}" ?ℙ)			; Also sometimes \mathbb.
+ ("\\Bbb{A}" ?𝔸)			; AMS commands for blackboard bold
+ ("\\Bbb{B}" ?𝔹)			; Also sometimes \mathbb.
+ ("\\Bbb{C}" ?ℂ)
+ ("\\Bbb{D}" ?𝔻)
+ ("\\Bbb{E}" ?𝔼)
+ ("\\Bbb{F}" ?𝔽)
+ ("\\Bbb{G}" ?𝔾)
+ ("\\Bbb{H}" ?ℍ)
+ ("\\Bbb{I}" ?𝕀)
+ ("\\Bbb{J}" ?𝕁)
+ ("\\Bbb{K}" ?𝕂)
+ ("\\Bbb{L}" ?𝕃)
+ ("\\Bbb{M}" ?𝕄)
+ ("\\Bbb{N}" ?ℕ)
+ ("\\Bbb{O}" ?𝕆)
+ ("\\Bbb{P}" ?ℙ)
+ ("\\Bbb{Q}" ?ℚ)
  ("\\Bbb{R}" ?ℝ)
+ ("\\Bbb{S}" ?𝕊)
+ ("\\Bbb{T}" ?𝕋)
+ ("\\Bbb{U}" ?𝕌)
+ ("\\Bbb{V}" ?𝕍)
+ ("\\Bbb{W}" ?𝕎)
+ ("\\Bbb{X}" ?𝕏)
+ ("\\Bbb{Y}" ?𝕐)
  ("\\Bbb{Z}" ?ℤ)
+ ("\\Bbb{1}" ?𝟙)
+ ("\\Bbb{2}" ?𝟚)
  ("--" ?–)
  ("---" ?—)
  ;; We used to use ~ for NBSP but that's inconvenient and may even look like

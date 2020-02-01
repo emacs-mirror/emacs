@@ -324,7 +324,10 @@ in `gdb-handler-list' and clears all pending handlers invalidated
 by the reception of this reply."
   (let ((handler-function (gdb-get-handler-function token-number)))
     (when handler-function
-      (funcall handler-function)
+      ;; Protect against errors in handler-function.
+      (condition-case err
+          (funcall handler-function)
+        (error (message (error-message-string err))))
       (gdb-delete-handler token-number))))
 
 (defun gdb-remove-all-pending-triggers ()
@@ -1001,8 +1004,10 @@ no input, and GDB is waiting for input."
 	;; Sending an EOF does not work with GDB-MI; submit an
 	;; explicit quit command.
 	(progn
-	  (insert "quit")
-	  (comint-send-input t t))
+          (if (> gdb-control-level 0)
+              (process-send-eof proc)
+            (insert "quit")
+            (comint-send-input t t)))
       (delete-char arg))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
