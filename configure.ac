@@ -5752,9 +5752,9 @@ case $opsys,$emacs_uname_r in
     AC_MSG_WARN([[building Emacs on Cygwin 1.5 is not supported.]])
            echo
 	   ;;
-  cygwin,3.0.[[0-7]]'('*)
+  cygwin,3.0.[[0-7]]'('* | cygwin,3.1.[[0-2]]'('*)
     AC_DEFINE([HAVE_CYGWIN_O_PATH_BUG], 1,
-      [Define to 1 if opening a FIFO with O_PATH causes a hang.]);;
+      [Define to 1 if opening a FIFO, socket, or symlink with O_PATH is buggy.]);;
 esac
 
 # Remove any trailing slashes in these variables.
