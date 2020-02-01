@@ -4751,6 +4751,75 @@ and runs the normal hook `command-history-hook'." t nil)
 ;;; Generated autoloads from emacs-lisp/cl-generic.el
 (push (purecopy '(cl-generic 1 0)) package--builtin-versions)
 
+(autoload 'cl-defgeneric "cl-generic" "\
+Create a generic function NAME.
+DOC-STRING is the base documentation for this class.  A generic
+function has no body, as its purpose is to decide which method body
+is appropriate to use.  Specific methods are defined with `cl-defmethod'.
+With this implementation the ARGS are currently ignored.
+OPTIONS-AND-METHODS currently understands:
+- (:documentation DOCSTRING)
+- (declare DECLARATIONS)
+- (:argument-precedence-order &rest ARGS)
+- (:method [QUALIFIERS...] ARGS &rest BODY)
+DEFAULT-BODY, if present, is used as the body of a default method.
+
+\(fn NAME ARGS [DOC-STRING] [OPTIONS-AND-METHODS...] &rest DEFAULT-BODY)" nil t)
+
+(function-put 'cl-defgeneric 'lisp-indent-function '2)
+
+(function-put 'cl-defgeneric 'doc-string-elt '3)
+
+(autoload 'cl-generic-define "cl-generic" "\
+
+
+\(fn NAME ARGS OPTIONS)" nil nil)
+
+(autoload 'cl-defmethod "cl-generic" "\
+Define a new method for generic function NAME.
+I.e. it defines the implementation of NAME to use for invocations where the
+values of the dispatch arguments match the specified TYPEs.
+The dispatch arguments have to be among the mandatory arguments, and
+all methods of NAME have to use the same set of arguments for dispatch.
+Each dispatch argument and TYPE are specified in ARGS where the corresponding
+formal argument appears as (VAR TYPE) rather than just VAR.
+
+The optional second argument QUALIFIER is a specifier that
+modifies how the method is combined with other methods, including:
+   :before  - Method will be called before the primary
+   :after   - Method will be called after the primary
+   :around  - Method will be called around everything else
+The absence of QUALIFIER means this is a \"primary\" method.
+The set of acceptable qualifiers and their meaning is defined
+\(and can be extended) by the methods of `cl-generic-combine-methods'.
+
+ARGS can also include so-called context specializers, introduced by
+`&context' (which should appear right after the mandatory arguments,
+before any &optional or &rest).  They have the form (EXPR TYPE) where
+EXPR is an Elisp expression whose value should match TYPE for the
+method to be applicable.
+
+The set of acceptable TYPEs (also called \"specializers\") is defined
+\(and can be extended) by the various methods of `cl-generic-generalizers'.
+
+\(fn NAME [QUALIFIER] ARGS &rest [DOCSTRING] BODY)" nil t)
+
+(function-put 'cl-defmethod 'doc-string-elt '3)
+
+(function-put 'cl-defmethod 'lisp-indent-function 'defun)
+
+(autoload 'cl-generic-define-method "cl-generic" "\
+
+
+\(fn NAME QUALIFIERS ARGS USES-CNM FUNCTION)" nil nil)
+
+(autoload 'cl-find-method "cl-generic" "\
+
+
+\(fn GENERIC QUALIFIERS SPECIALIZERS)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cl-generic" '("cl-")))
+
 ;;;***
 
 ;;;### (autoloads nil "cl-indent" "emacs-lisp/cl-indent.el" (0 0
@@ -7557,7 +7626,6 @@ Hooks (use \\[describe-variable] to see their documentation):
   `dired-before-readin-hook'
   `dired-after-readin-hook'
   `dired-mode-hook'
-  `dired-load-hook'
 
 Keybindings:
 \\{dired-mode-map}
@@ -8896,7 +8964,7 @@ an EDE controlled project.
 ;;;;;;  "cedet/ede/cpp-root.el" (0 0 0 0))
 ;;; Generated autoloads from cedet/ede/cpp-root.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ede/cpp-root" '("ede-c")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ede/cpp-root" '("ede-cpp-root-")))
 
 ;;;***
 
@@ -17069,7 +17137,6 @@ The main features of this mode are
 
 8. Hooks
    -----
-   Loading idlwave.el runs `idlwave-load-hook'.
    Turning on `idlwave-mode' runs `idlwave-mode-hook'.
 
 9. Documentation and Customization
@@ -19742,7 +19809,7 @@ This function is suitable for execution in an init file.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lunar" '("calendar-lunar-phases" "diary-lunar-phases" "lunar-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lunar" '("calendar-lunar-phases" "diary-lunar-phases" "eclipse-check" "lunar-")))
 
 ;;;***
 
@@ -24649,8 +24716,9 @@ matching parenthesis is highlighted in `show-paren-style' after
 
 (autoload 'parse-time-string "parse-time" "\
 Parse the time in STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-STRING should be something resembling an RFC 822 (or later) date-time, e.g.,
-\"Fri, 25 Mar 2016 16:24:56 +0100\", but this function is
+STRING should be an ISO 8601 time string, e.g., \"2020-01-15T16:12:21-08:00\",
+or something resembling an RFC 822 (or later) date-time, e.g.,
+\"Wed, 15 Jan 2020 16:12:21 -0800\".  This function is
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
@@ -28582,6 +28650,14 @@ For more details, see Info node `(elisp) Extending Rx'.
 
 ;;;***
 
+;;;### (autoloads nil "sasl-scram-sha256" "net/sasl-scram-sha256.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from net/sasl-scram-sha256.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sasl-scram-sha256" '("sasl-scram-sha")))
+
+;;;***
+
 ;;;### (autoloads nil "savehist" "savehist.el" (0 0 0 0))
 ;;; Generated autoloads from savehist.el
 (push (purecopy '(savehist 24)) package--builtin-versions)
@@ -28680,13 +28756,6 @@ file:
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "saveplace" '("load-save-place-alist-from-file" "save-place")))
-
-;;;***
-
-;;;### (autoloads nil "sb-image" "sb-image.el" (0 0 0 0))
-;;; Generated autoloads from sb-image.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sb-image" '("defimage-speedbar" "speedbar-")))
 
 ;;;***
 
@@ -33959,7 +34028,7 @@ Update the time stamp string(s) in the buffer.
 A template in a file can be automatically updated with a new time stamp
 every time you save the file.  Add this line to your init file:
     (add-hook \\='before-save-hook \\='time-stamp)
-or customize `before-save-hook' through Custom.
+or customize option `before-save-hook'.
 Normally the template must appear in the first 8 lines of a file and
 look like one of the following:
       Time-stamp: <>
@@ -34397,7 +34466,7 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
-(push (purecopy '(tramp 2 4 3)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 0 -1)) package--builtin-versions)
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
@@ -34416,7 +34485,7 @@ names.  When calling `tramp-register-file-name-handlers', the
 initial value is overwritten by the car of `tramp-file-name-structure'.")
 
 (defvar tramp-ignored-file-name-regexp nil "\
-Regular expression matching file names that are not under Tramp’s control.")
+Regular expression matching file names that are not under Tramp's control.")
 
 (custom-autoload 'tramp-ignored-file-name-regexp "tramp" t)
 
@@ -34427,17 +34496,14 @@ match file names at root of the underlying local file system,
 like \"/sys\" or \"/C:\".")
 
 (defun tramp-autoload-file-name-handler (operation &rest args) "\
-Load Tramp file name handler, and perform OPERATION." (tramp-unload-file-name-handlers) (if tramp-mode (let ((default-directory temporary-file-directory)) (load "tramp" 'noerror 'nomessage))) (apply operation args))
+Load Tramp file name handler, and perform OPERATION." (tramp-unload-file-name-handlers) (when tramp-mode (let ((default-directory temporary-file-directory)) (load "tramp" 'noerror 'nomessage))) (apply operation args))
 
 (defun tramp-register-autoload-file-name-handlers nil "\
-Add Tramp file name handlers to `file-name-handler-alist' during autoload." (add-to-list 'file-name-handler-alist (cons tramp-autoload-file-name-regexp 'tramp-autoload-file-name-handler)) (put 'tramp-autoload-file-name-handler 'safe-magic t))
+Add Tramp file name handlers to `file-name-handler-alist' during autoload." (add-to-list 'file-name-handler-alist (cons tramp-autoload-file-name-regexp 'tramp-autoload-file-name-handler)) (put #'tramp-autoload-file-name-handler 'safe-magic t))
  (tramp-register-autoload-file-name-handlers)
 
 (defun tramp-unload-file-name-handlers nil "\
 Unload Tramp file name handlers from `file-name-handler-alist'." (dolist (fnh file-name-handler-alist) (when (and (symbolp (cdr fnh)) (string-prefix-p "tramp-" (symbol-name (cdr fnh)))) (setq file-name-handler-alist (delq fnh file-name-handler-alist)))))
-
-(defvar tramp-completion-mode nil "\
-If non-nil, external packages signal that they are in file name completion.")
 
 (defun tramp-unload-tramp nil "\
 Discard Tramp from loading remote files." (interactive) (ignore-errors (unload-feature 'tramp 'force)))
@@ -34474,7 +34540,7 @@ Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\."
 (defalias 'tramp-archive-autoload-file-name-handler #'tramp-autoload-file-name-handler)
 
 (defun tramp-register-archive-file-name-handler nil "\
-Add archive file name handler to `file-name-handler-alist'." (when tramp-archive-enabled (add-to-list 'file-name-handler-alist (cons (tramp-archive-autoload-file-name-regexp) #'tramp-archive-autoload-file-name-handler)) (put 'tramp-archive-autoload-file-name-handler 'safe-magic t)))
+Add archive file name handler to `file-name-handler-alist'." (when tramp-archive-enabled (add-to-list 'file-name-handler-alist (cons (tramp-archive-autoload-file-name-regexp) #'tramp-archive-autoload-file-name-handler)) (put #'tramp-archive-autoload-file-name-handler 'safe-magic t)))
 
 (add-hook 'after-init-hook #'tramp-register-archive-file-name-handler)
 
