@@ -517,6 +517,14 @@ Lisp_Object const *staticvec[NSTATICS]
 
 int staticidx;
 
+/* Lisp of freed native compilation unit handles.
+
+   Because during GC Vcomp_loaded_handles can't be used (hash table) temporary
+   annotate here and update Vcomp_loaded_handles when finished.
+*/
+
+static Lisp_Object freed_cu_handles[NATIVE_COMP_FLAG];
+
 static void *pure_alloc (size_t, int);
 
 /* Return PTR rounded up to the next multiple of ALIGNMENT.  */
@@ -3030,6 +3038,10 @@ cleanup_vector (struct Lisp_Vector *vector)
 	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
       eassert (cu->handle);
       dynlib_close (cu->handle);
+      /* We'll update Vcomp_loaded_handles when finished.  */
+      freed_cu_handles[0] =
+	Fcons (make_mint_ptr (cu->handle), freed_cu_handles[0]);
+      set_cons_marked (XCONS (freed_cu_handles[0]));
     }
 }
 
@@ -5937,6 +5949,9 @@ garbage_collect (void)
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
+  if (NATIVE_COMP_FLAG)
+    freed_cu_handles[0] = Qnil;
+
   block_input ();
 
   shrink_regexp_cache ();
@@ -6000,6 +6015,10 @@ garbage_collect (void)
   unmark_main_thread ();
 
   gc_in_progress = 0;
+
+  if (NATIVE_COMP_FLAG)
+    FOR_EACH_TAIL (freed_cu_handles[0])
+      Fputhash (XCAR (freed_cu_handles[0]), Qnil, Vcomp_loaded_handles);
 
   unblock_input ();
 

@@ -3282,61 +3282,81 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 void
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 {
+  dynlib_handle_ptr handle = comp_u->handle;
+  Lisp_Object lisp_handle = make_mint_ptr (handle);
+  bool reloading_cu = !NILP (Fgethash (lisp_handle, Vcomp_loaded_handles, Qnil));
+  Lisp_Object comp_u_obj;
+  XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
+
+  if (reloading_cu)
+    /* 'dlopen' returns the same handle when trying to load two times
+       the same shared.  In this case touching 'd_reloc' etc leads to
+       fails in case a frame with a reference to it in a live reg is
+       active (comp-speed >= 0).
+
+       We must *never* mess with static pointers in an already loaded
+       eln.  */
+    {
+      comp_u_obj = Fgethash (lisp_handle, Vcomp_loaded_handles, Qnil);
+      comp_u = XNATIVE_COMP_UNIT (comp_u_obj);
+    }
+  else
+    Fputhash (lisp_handle, comp_u_obj, Vcomp_loaded_handles);
+
   freloc_check_fill ();
 
-  dynlib_handle_ptr handle = comp_u->handle;
-  struct thread_state ***current_thread_reloc =
-    dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
-  EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
-  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-  Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
-  void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
   void (*top_level_run)(Lisp_Object) = dynlib_sym (handle, "top_level_run");
 
-  if (!(current_thread_reloc
-	&& pure_reloc
-	&& data_relocs
-	&& data_imp_relocs
-	&& freloc_link_table
-	&& top_level_run)
-      || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
-			      hash_subr_list ())))
-    xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
-
-  *current_thread_reloc = &current_thread;
-  *pure_reloc = (EMACS_INT **)&pure;
-
-  /* Imported functions.  */
-  *freloc_link_table = freloc.link_table;
-
-  /* Imported data.  */
-  if (!loading_dump)
+  if (!reloading_cu)
     {
-      comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
-      comp_u->data_impure_vec =
-	load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
+      struct thread_state ***current_thread_reloc =
+	dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
+      EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
+      Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+      Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+      void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
 
-      if (!NILP (Vpurify_flag))
-	/* Non impure can be copied into pure space.  */
-	comp_u->data_vec = Fpurecopy (comp_u->data_vec);
+      if (!(current_thread_reloc
+	    && pure_reloc
+	    && data_relocs
+	    && data_imp_relocs
+	    && freloc_link_table
+	    && top_level_run)
+	  || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
+				  hash_subr_list ())))
+	xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+
+      *current_thread_reloc = &current_thread;
+      *pure_reloc = (EMACS_INT **)&pure;
+
+      /* Imported functions.  */
+      *freloc_link_table = freloc.link_table;
+
+      /* Imported data.  */
+      if (!loading_dump)
+	{
+	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
+	  comp_u->data_impure_vec =
+	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
+
+	  if (!NILP (Vpurify_flag))
+	    /* Non impure can be copied into pure space.  */
+	    comp_u->data_vec = Fpurecopy (comp_u->data_vec);
+	}
+
+      EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
+      for (EMACS_INT i = 0; i < d_vec_len; i++)
+	data_relocs[i] = AREF (comp_u->data_vec, i);
+
+      d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
+      for (EMACS_INT i = 0; i < d_vec_len; i++)
+	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
     }
 
-  EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
-    data_relocs[i] = AREF (comp_u->data_vec, i);
-
-  d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
-    data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
-
   if (!loading_dump)
-    {
-      Lisp_Object comp_u_obj;
-      XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
-      /* Executing this will perform all the expected environment
-	 modifications.  */
-      top_level_run (comp_u_obj);
-    }
+    /* Executing this will perform all the expected environment
+       modifications.  */
+    top_level_run (comp_u_obj);
 
   return;
 }
@@ -3518,6 +3538,10 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-function -> function-c-name.  For
 		       internal use during  */);
   Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table);
+  DEFVAR_LISP ("comp-loaded-handles", Vcomp_loaded_handles,
+	       doc: /* Hash table keeping track of the currently
+		       loaded compilation unit: handle -> comp_u */);
+  Vcomp_loaded_handles = CALLN (Fmake_hash_table, QCtest, Qequal);
 }
 
 #endif /* HAVE_NATIVE_COMP */
