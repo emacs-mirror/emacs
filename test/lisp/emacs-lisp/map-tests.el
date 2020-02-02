@@ -376,5 +376,11 @@ Evaluate BODY for each created map.
                                  '((1 . 1) (2 . 5) (3 . 0)))
                  '((3 . 0) (2 . 9) (1 . 6)))))
 
+(ert-deftest test-map-plist-pcase ()
+  (let ((plist '(:one 1 :two 2)))
+    (should (equal (pcase-let (((map :one (:two two)) plist))
+                     (list one two))
+                   '(1 2)))))
+
 (provide 'map-tests)
 ;;; map-tests.el ends here

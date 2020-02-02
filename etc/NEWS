@@ -115,6 +115,12 @@ supplied error message.
 *** New connection method "media", which allows accessing media devices
 like cell phones, tablets or cameras.
 
+** map.el
+
+*** Pcase 'map' pattern added keyword symbols abbreviation.
+A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
+equivalent to '(map (:sym sym))'.
+
 
 * New Modes and Packages in Emacs 28.1
 
