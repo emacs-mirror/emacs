@@ -4547,8 +4547,9 @@ INPUT, if non-nil, is a string sent to the process."
       (when (natnump cols)
 	(should (= cols async-shell-command-width))))))
 
+;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
-  "Check `shell-command'."
+  "Check `shell-command-dont-erase-buffer'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
