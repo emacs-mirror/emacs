@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
+#define COMP_UNIT_SYM "comp_unit"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 
@@ -1888,6 +1889,13 @@ emit_ctxt_code (void)
         gcc_jit_type_get_pointer (comp.void_ptr_type),
         PURE_RELOC_SYM));
 
+  gcc_jit_context_new_global (
+        comp.ctxt,
+        NULL,
+        GCC_JIT_GLOBAL_EXPORTED,
+        gcc_jit_type_get_pointer (comp.lisp_obj_ptr_type),
+        COMP_UNIT_SYM);
+
   declare_imported_data ();
 
   /* Functions imported from Lisp code.  */
@@ -3284,9 +3292,13 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 {
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object lisp_handle = make_mint_ptr (handle);
-  bool reloading_cu = !NILP (Fgethash (lisp_handle, Vcomp_loaded_handles, Qnil));
-  Lisp_Object comp_u_obj;
-  XSETNATIVE_COMP_UNIT (comp_u_obj, comp_u);
+  Lisp_Object comp_u_lisp_obj;
+  XSETNATIVE_COMP_UNIT (comp_u_lisp_obj, comp_u);
+
+  Lisp_Object *saved_cu = dynlib_sym (handle, COMP_UNIT_SYM);
+  if (!saved_cu)
+    xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+  bool reloading_cu = *saved_cu ? true : false;
 
   if (reloading_cu)
     /* 'dlopen' returns the same handle when trying to load two times
@@ -3297,11 +3309,11 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
        We must *never* mess with static pointers in an already loaded
        eln.  */
     {
-      comp_u_obj = Fgethash (lisp_handle, Vcomp_loaded_handles, Qnil);
-      comp_u = XNATIVE_COMP_UNIT (comp_u_obj);
+      comp_u_lisp_obj = *saved_cu;
+      comp_u = XNATIVE_COMP_UNIT (comp_u_lisp_obj);
     }
   else
-    Fputhash (lisp_handle, comp_u_obj, Vcomp_loaded_handles);
+    *saved_cu = comp_u_lisp_obj;
 
   freloc_check_fill ();
 
@@ -3356,7 +3368,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
   if (!loading_dump)
     /* Executing this will perform all the expected environment
        modifications.  */
-    top_level_run (comp_u_obj);
+    top_level_run (comp_u_lisp_obj);
 
   return;
 }
@@ -3538,10 +3550,6 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-function -> function-c-name.  For
 		       internal use during  */);
   Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table);
-  DEFVAR_LISP ("comp-loaded-handles", Vcomp_loaded_handles,
-	       doc: /* Hash table keeping track of the currently
-		       loaded compilation unit: handle -> comp_u */);
-  Vcomp_loaded_handles = CALLN (Fmake_hash_table, QCtest, Qequal);
 }
 
 #endif /* HAVE_NATIVE_COMP */

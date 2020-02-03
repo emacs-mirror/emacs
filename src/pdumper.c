@@ -5577,7 +5577,6 @@ pdumper_load (const char *dump_filename)
     dump_hooks[i] ();
 
   dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
-  Vcomp_loaded_handles = CALLN (Fmake_hash_table, QCtest, Qequal);
   dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
   initialized = true;
 
