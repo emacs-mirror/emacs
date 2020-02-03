@@ -3300,6 +3300,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
   bool reloading_cu = *saved_cu ? true : false;
 
+  /* While resurrecting from an image dump loading more than once the
+     same compilation unit does not make any sense.  */
+  eassert (!(loading_dump && reloading_cu));
+
   if (reloading_cu)
     /* 'dlopen' returns the same handle when trying to load two times
        the same shared.  In this case touching 'd_reloc' etc leads to
