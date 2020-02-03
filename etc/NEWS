@@ -86,6 +86,9 @@ shows equivalent key bindings for all commands that have them.
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
 ---
+** The old non-SMIE indentation of 'sh-mode' has been removed.
+
+---
 ** The sb-image.el library is now marked obsolete.
 This file was a compatibility kludge which is no longer needed.
 
