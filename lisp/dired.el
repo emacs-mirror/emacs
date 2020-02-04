@@ -2150,6 +2150,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
+(defvar grep-read-files-function)
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (defun dired-mode (&optional dirname switches)
