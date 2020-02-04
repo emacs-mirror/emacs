@@ -2426,18 +2426,15 @@ server is stopped; a non-@code{nil} value means yes.
 @cindex encrypted network connections
 @cindex @acronym{TLS} network connections
 @cindex @acronym{STARTTLS} network connections
-Emacs can create encrypted network connections, using either built-in
-or external support.  The built-in support uses the GnuTLS
-Transport Layer Security Library; see
+Emacs can create encrypted network connections, using the built-in
+support for the GnuTLS Transport Layer Security Library; see
 @uref{https://www.gnu.org/software/gnutls/, the GnuTLS project page}.
 If your Emacs was compiled with GnuTLS support, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.  For
 more details, @pxref{Top,, Overview, emacs-gnutls, The Emacs-GnuTLS manual}.
-The external support uses the @file{starttls.el} library, which
-requires a helper utility such as @command{gnutls-cli} to be installed
-on the system.  The @code{open-network-stream} function can
-transparently handle the details of creating encrypted connections for
-you, using whatever support is available.
+The @code{open-network-stream} function can transparently handle the
+details of creating encrypted connections for you, using whatever
+support is available.
 
 @defun open-network-stream name buffer host service &rest parameters
 This function opens a TCP connection, with optional encryption, and

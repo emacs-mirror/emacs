@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001-2002, 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm, processes, menu
 
 ;; This file is part of GNU Emacs.

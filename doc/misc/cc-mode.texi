@@ -7095,22 +7095,24 @@ constitute noise macros.
 @vindex noise-macro-names @r{(c-)}
 This variable is a list of names of noise macros which never have
 parenthesized arguments.  Each element is a string, and must be a
-valid identifier.  An element in @code{c-noise-macro-names} must not
-also be in @code{c-noise-macro-with-parens-names}.  Such an element is
-treated as whitespace by @ccmode{}.
+valid identifier.  Alternatively, the variable may be a regular
+expression which matches the names of such macros.  Such a noise macro
+is treated as whitespace by @ccmode{}.  It must not also be in, or be
+matched by @code{c-noise-macro-with-parens-names}.
 @end defopt
 
 @defopt c-noise-macro-with-parens-names
 @vindex noise-macro-with-parens-names @r{(c-)}
 This variable is a list of names of noise macros which optionally have
 arguments in parentheses.  Each element of the list is a string, and
-must be a valid identifier.  An element in
-@code{c-noise-macro-with-parens-names} must not also be in
-@code{c-noise-macro-names}.  For performance reasons, such an element,
-together with the optional parenthesized arguments, is specially
-handled, but it is only handled when used in declaration
-contexts@footnote{If this restriction causes your project
-difficulties, please get in touch with @email{bug-cc-mode@@gnu.org}.}.
+must be a valid identifier.  Alternatively, the variable may be a
+regular expression which matches the names of such macros.  Such a
+noise macro must not also be in, or be matched by
+@code{c-noise-macro-names}.  For performance reasons, such a noise
+macro, including any parenthesized arguments, is specially handled,
+but it is only handled when used in declaration contexts@footnote{If
+this restriction causes your project difficulties, please get in touch
+with @email{bug-cc-mode@@gnu.org}.}.
 
 The two compiler directives @code{__attribute__} and @code{__declspec}
 have traditionally been handled specially in @ccmode{}; for example

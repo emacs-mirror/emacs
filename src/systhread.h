@@ -112,10 +112,11 @@ extern sys_thread_t sys_thread_self (void)
 extern bool sys_thread_equal (sys_thread_t, sys_thread_t)
   ATTRIBUTE_WARN_UNUSED_RESULT;
 
-extern bool sys_thread_create (sys_thread_t *, const char *,
-                               thread_creation_function *, void *)
+extern bool sys_thread_create (sys_thread_t *, thread_creation_function *,
+                               void *)
   ATTRIBUTE_WARN_UNUSED_RESULT;
 
 extern void sys_thread_yield (void);
+extern void sys_thread_set_name (const char *);
 
 #endif /* SYSTHREAD_H */

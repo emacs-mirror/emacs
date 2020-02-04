@@ -793,6 +793,8 @@ simply by any key input."
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
+(make-obsolete-variable 'table-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."
@@ -3206,11 +3208,7 @@ CALS (DocBook DTD):
 	  (while (and (re-search-forward "$" nil t)
 		      (not (eobp)))
 	    (insert "<br />")
-	    (forward-char 1)))
-	(unless (and table-html-delegate-spacing-to-user-agent
-		     (progn
-		       (goto-char (point-min))
-		       (looking-at "\\s *\\'")))))
+	    (forward-char 1))))
        ((eq language 'cals)
 	(table--remove-eol-spaces (point-min) (point-max))
 	(if (re-search-forward "\\s +\\'" nil t)

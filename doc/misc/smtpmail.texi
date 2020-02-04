@@ -295,26 +295,11 @@ encrypted connection if the server supports it.  Other possible values
 are: @code{starttls} to insist on STARTTLS; @code{ssl} to use TLS/SSL;
 and @code{plain} for no encryption.
 
-Use of any form of TLS/SSL requires support in Emacs.  You can either
-use the built-in support (in Emacs 24.1 and later), or the
-@file{starttls.el} Lisp library.  The built-in support uses the GnuTLS
-@footnote{@url{https://www.gnu.org/software/gnutls/}} library.
-If your Emacs has GnuTLS support built-in, the function
+Use of any form of TLS/SSL requires support in Emacs.  You can use the
+built-in support for the GnuTLS
+@footnote{@url{https://www.gnu.org/software/gnutls/}} library.  If your
+Emacs has GnuTLS support built-in, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.
-Otherwise, you must use the @file{starttls.el} library (see that file for
-more information on customization options, etc.).  The Lisp library
-requires one of the following external tools to be installed:
-
-@enumerate
-@item
-The GnuTLS command line tool @samp{gnutls-cli}, which you can get from
-@url{https://www.gnu.org/software/gnutls/}.  This is the recommended
-tool, mainly because it can verify server certificates.
-
-@item
-The @samp{starttls} external program, which you can get from
-@file{starttls-*.tar.gz} from @uref{ftp://ftp.opaopa.org/pub/elisp/}.
-@end enumerate
 
 @cindex certificates
 @cindex keys

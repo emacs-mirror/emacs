@@ -339,6 +339,8 @@ directory, like `default-directory'."
 (defcustom ibuffer-load-hook nil
   "Hook run when Ibuffer is loaded."
   :type 'hook)
+(make-obsolete-variable 'ibuffer-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom ibuffer-marked-face 'warning
   "Face used for displaying marked buffers."

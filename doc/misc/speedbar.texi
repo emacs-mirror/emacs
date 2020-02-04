@@ -828,9 +828,6 @@ Hooks run when speedbar visits a file in the selected frame.
 @cindex @code{speedbar-visiting-tag-hook}
 @item speedbar-visiting-tag-hook
 Hooks run when speedbar visits a tag in the selected frame.
-@cindex @code{speedbar-load-hook}
-@item speedbar-load-hook
-Hooks run when speedbar is loaded.
 @cindex @code{speedbar-reconfigure-keymaps-hook}
 @item speedbar-reconfigure-keymaps-hook
 Hooks run when the keymaps are regenerated.  Keymaps are reconfigured
@@ -913,12 +910,11 @@ bindings:
 This function creates a special keymap for use in speedbar.
 
 @item
-Call your install function, or assign it to a hook like this:
+Call your install function, like this:
 
 @smallexample
-(if (featurep 'speedbar)
-    (@var{name}-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook '@var{name}-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (@var{name}-install-speedbar-variables))
 @end smallexample
 
 @item

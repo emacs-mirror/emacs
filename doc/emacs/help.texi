@@ -601,6 +601,11 @@ is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
 which marks a defun.  However, @w{@kbd{@key{ESC} @key{F1}}} and
 @w{@kbd{@key{ESC} ?}} work fine.)
 
+@findex describe-keymap
+Finally, @kbd{M-x describe-keymap} prompts for the name of a keymap,
+with completion, and displays a listing of all key bindings in that
+keymap.
+
 @node Help Files
 @section Help Files
 

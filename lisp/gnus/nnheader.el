@@ -502,10 +502,12 @@ the line could be found."
   "Coding system used in file backends of Gnus.")
 (defvar nnheader-callback-function nil)
 
+(autoload 'gnus-get-buffer-create "gnus")
+
 (defun nnheader-init-server-buffer ()
   "Initialize the Gnus-backend communication buffer."
   (unless (gnus-buffer-live-p nntp-server-buffer)
-    (setq nntp-server-buffer (get-buffer-create " *nntpd*")))
+    (setq nntp-server-buffer (gnus-get-buffer-create " *nntpd*")))
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (mm-enable-multibyte)
@@ -630,7 +632,7 @@ the line could be found."
 
 (defun nnheader-set-temp-buffer (name &optional noerase)
   "Set-buffer to an empty (possibly new) buffer called NAME with undo disabled."
-  (set-buffer (get-buffer-create name))
+  (set-buffer (gnus-get-buffer-create name))
   (buffer-disable-undo)
   (unless noerase
     (erase-buffer))

@@ -347,7 +347,7 @@ from the document.")
 	       (file-exists-p nndoc-address)
 	       (not (file-directory-p nndoc-address))))
       (push (cons group (setq nndoc-current-buffer
-			      (get-buffer-create
+			      (gnus-get-buffer-create
 			       (concat " *nndoc " group "*"))))
 	    nndoc-group-alist)
       (setq nndoc-dissection-alist nil)

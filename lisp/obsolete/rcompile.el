@@ -89,7 +89,7 @@ nil means use the value returned by \\[user-login-name]."
   "Command to run before compilation.
 This can be used for setting up environment variables,
 since rsh does not invoke the shell as a login shell and files like .login
-\(tcsh\) and .bash_profile \(bash\) are not run.
+\(tcsh) and .bash_profile \(bash) are not run.
 nil means run no commands."
   :type '(choice string (const nil))
   :group 'remote-compile)

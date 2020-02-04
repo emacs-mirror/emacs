@@ -200,8 +200,7 @@ Return nil when any other file notification watch is still active."
 
 (setq file-notify-debug nil
       password-cache-expiry nil
-      tramp-verbose 0
-      tramp-message-show-message nil)
+      tramp-verbose 0)
 
 ;; This should happen on hydra only.
 (when (getenv "EMACS_HYDRA_CI")
@@ -929,17 +928,18 @@ delivered."
 	    ;; Modify file.  We wait for a second, in order to have
             ;; another timestamp.
             (ert-with-message-capture captured-messages
-              (sleep-for 1)
-              (write-region
-               "another text" nil file-notify--test-tmpfile nil 'no-message)
+              (let ((inhibit-message t))
+                (sleep-for 1)
+                (write-region
+                 "another text" nil file-notify--test-tmpfile nil 'no-message)
 
-              ;; Check, that the buffer has been reverted.
-              (file-notify--test-wait-for-events
-               timeout
-               (string-match
-                (format-message "Reverting buffer `%s'." (buffer-name buf))
-                captured-messages))
-              (should (string-match "another text" (buffer-string))))
+                ;; Check, that the buffer has been reverted.
+                (file-notify--test-wait-for-events
+                 timeout
+                 (string-match
+                  (format-message "Reverting buffer `%s'." (buffer-name buf))
+                  captured-messages))
+                (should (string-match "another text" (buffer-string)))))
 
             ;; Stop file notification.  Autorevert shall still work via polling.
 	    (file-notify-rm-watch auto-revert-notify-watch-descriptor)
@@ -953,17 +953,18 @@ delivered."
 	    ;; have another timestamp.  One second seems to be too
             ;; short.  And Cygwin sporadically requires more than two.
             (ert-with-message-capture captured-messages
-              (sleep-for (if (eq system-type 'cygwin) 3 2))
-              (write-region
-               "foo bla" nil file-notify--test-tmpfile nil 'no-message)
+              (let ((inhibit-message t))
+                (sleep-for (if (eq system-type 'cygwin) 3 2))
+                (write-region
+                 "foo bla" nil file-notify--test-tmpfile nil 'no-message)
 
-              ;; Check, that the buffer has been reverted.
-              (file-notify--test-wait-for-events
-               timeout
-               (string-match
-                (format-message "Reverting buffer `%s'." (buffer-name buf))
-                captured-messages))
-              (should (string-match "foo bla" (buffer-string))))
+                ;; Check, that the buffer has been reverted.
+                (file-notify--test-wait-for-events
+                 timeout
+                 (string-match
+                  (format-message "Reverting buffer `%s'." (buffer-name buf))
+                  captured-messages))
+                (should (string-match "foo bla" (buffer-string)))))
 
             ;; Stop autorevert, in order to cleanup descriptor.
             (auto-revert-mode -1))

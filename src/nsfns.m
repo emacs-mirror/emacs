@@ -287,12 +287,6 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       error ("Unknown color");
     }
 
-  /* Clear the frame; in some instances the NS-internal GC appears not
-     to update, or it does update and cannot clear old text
-     properly.  */
-  if (FRAME_VISIBLE_P (f))
-    ns_clear_frame (f);
-
   [col retain];
   [f->output_data.ns->background_color release];
   f->output_data.ns->background_color = col;
@@ -324,7 +318,10 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
         }
 
       if (FRAME_VISIBLE_P (f))
-        SET_FRAME_GARBAGED (f);
+        {
+          SET_FRAME_GARBAGED (f);
+          ns_clear_frame (f);
+        }
     }
   unblock_input ();
 }
@@ -499,11 +496,11 @@ ns_set_represented_filename (struct frame *f)
 #if defined (NS_IMPL_COCOA) && defined (MAC_OS_X_VERSION_10_7)
   /* Work around for Mach port leaks on macOS 10.15 (bug#38618).  */
   NSURL *fileURL = [NSURL fileURLWithPath:fstr isDirectory:NO];
-  BOOL isUbiquitousItem = YES;
+  NSNumber *isUbiquitousItem = @YES;
   [fileURL getResourceValue:(id *)&isUbiquitousItem
                      forKey:NSURLIsUbiquitousItemKey
                       error:nil];
-  if (isUbiquitousItem)
+  if ([isUbiquitousItem boolValue])
     fstr = @"";
 #endif
 
@@ -1277,14 +1274,20 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 #ifdef NS_IMPL_COCOA
   tem = gui_display_get_arg (dpyinfo, parms, Qns_appearance, NULL, NULL,
                              RES_TYPE_SYMBOL);
-  FRAME_NS_APPEARANCE (f) = EQ (tem, Qdark)
-    ? ns_appearance_vibrant_dark : ns_appearance_aqua;
-  store_frame_param (f, Qns_appearance, tem);
+  if (EQ (tem, Qdark))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
+  else if (EQ (tem, Qlight))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
+  else
+    FRAME_NS_APPEARANCE (f) = ns_appearance_system_default;
+  store_frame_param (f, Qns_appearance,
+                     (!NILP (tem) && !EQ (tem, Qunbound)) ? tem : Qnil);
 
   tem = gui_display_get_arg (dpyinfo, parms, Qns_transparent_titlebar,
                              NULL, NULL, RES_TYPE_BOOLEAN);
   FRAME_NS_TRANSPARENT_TITLEBAR (f) = !NILP (tem) && !EQ (tem, Qunbound);
-  store_frame_param (f, Qns_transparent_titlebar, tem);
+  store_frame_param (f, Qns_transparent_titlebar,
+                     FRAME_NS_TRANSPARENT_TITLEBAR (f) ? Qt : Qnil);
 #endif
 
   parent_frame = gui_display_get_arg (dpyinfo, parms, Qparent_frame, NULL, NULL,
@@ -1628,7 +1631,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     dirS = [dirS stringByExpandingTildeInPath];
 
   panel = isSave ?
-    (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
+    (id)[NSSavePanel savePanel] : (id)[NSOpenPanel openPanel];
 
   [panel setTitle: promptS];
 
@@ -3083,29 +3086,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
   return ret;
 }
 
-@implementation EmacsSavePanel
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
-{
-  BOOL ret = handlePanelKeys (self, theEvent);
-  if (! ret)
-    ret = [super performKeyEquivalent:theEvent];
-  return ret;
-}
-@end
-
-
-@implementation EmacsOpenPanel
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
-{
-  // NSOpenPanel inherits NSSavePanel, so passing self is OK.
-  BOOL ret = handlePanelKeys (self, theEvent);
-  if (! ret)
-    ret = [super performKeyEquivalent:theEvent];
-  return ret;
-}
-@end
-
-
 @implementation EmacsFileDelegate
 /* --------------------------------------------------------------------------
    Delegate methods for Open/Save panels
@@ -3141,6 +3121,7 @@ syms_of_nsfns (void)
   DEFSYM (Qframe_title_format, "frame-title-format");
   DEFSYM (Qicon_title_format, "icon-title-format");
   DEFSYM (Qdark, "dark");
+  DEFSYM (Qlight, "light");
 
   DEFVAR_LISP ("ns-icon-type-alist", Vns_icon_type_alist,
                doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.

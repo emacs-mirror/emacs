@@ -515,15 +515,14 @@ TIME is modified and returned."
   (unless (decoded-time-year time)
     (setf (decoded-time-year time) 0))
 
-  ;; When we don't have a time zone and we don't have a DST, then mark
-  ;; it as unknown.
-  (when (and (not (decoded-time-zone time))
-             (not (decoded-time-dst time)))
-    (setf (decoded-time-dst time) -1))
+  ;; When we don't have a time zone, default to DEFAULT-ZONE without
+  ;; DST if DEFAULT-ZONE if given, and to unknown DST otherwise.
+  (unless (decoded-time-zone time)
+    (if default-zone
+	(progn (setf (decoded-time-zone time) default-zone)
+	       (setf (decoded-time-dst time) nil))
+      (setf (decoded-time-dst time) -1)))
 
-  (when (and (not (decoded-time-zone time))
-             default-zone)
-    (setf (decoded-time-zone time) 0))
   time)
 
 (provide 'time-date)

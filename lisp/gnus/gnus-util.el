@@ -950,7 +950,7 @@ FILENAME exists and is Babyl format."
       (setq rmail-default-rmail-file filename) ; 22
     (setq rmail-default-file filename))        ; 23
   (let ((artbuf (current-buffer))
-	(tmpbuf (get-buffer-create " *Gnus-output*"))
+	(tmpbuf (gnus-get-buffer-create " *Gnus-output*"))
         ;; Babyl rmail.el defines this, mbox does not.
         (babyl (fboundp 'rmail-insert-rmail-file-header)))
     (save-excursion
@@ -1036,7 +1036,7 @@ FILENAME exists and is Babyl format."
   (require 'nnmail)
   (setq filename (expand-file-name filename))
   (let ((artbuf (current-buffer))
-	(tmpbuf (get-buffer-create " *Gnus-output*")))
+	(tmpbuf (gnus-get-buffer-create " *Gnus-output*")))
     (save-excursion
       ;; Create the file, if it doesn't exist.
       (when (and (not (get-file-buffer filename))
@@ -1457,7 +1457,7 @@ CHOICE is a list of the choice char and help message at IDX."
 	  (setq tchar (read-char))
 	  (when (not (assq tchar choice))
 	    (setq tchar nil)
-	    (setq buf (get-buffer-create "*Gnus Help*"))
+	    (setq buf (gnus-get-buffer-create "*Gnus Help*"))
 	    (pop-to-buffer buf)
 	    (fundamental-mode)
 	    (buffer-disable-undo)

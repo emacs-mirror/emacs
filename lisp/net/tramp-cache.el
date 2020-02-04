@@ -130,13 +130,8 @@ Returns DEFAULT if not set."
 	     (or (null remote-file-name-inhibit-cache)
 		 (and (integerp remote-file-name-inhibit-cache)
 		      (time-less-p
-		       ;; `current-time' can be nil once we get rid of Emacs 24.
-		       (current-time)
-		       (time-add
-			(car value)
-		       ;; `seconds-to-time' can be removed once we get
-		       ;; rid of Emacs 24.
-			(seconds-to-time remote-file-name-inhibit-cache))))
+		       nil
+		       (time-add (car value) remote-file-name-inhibit-cache)))
 		 (and (consp remote-file-name-inhibit-cache)
 		      (time-less-p
 		       remote-file-name-inhibit-cache (car value)))))
@@ -146,7 +141,7 @@ Returns DEFAULT if not set."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
-	     (val (or (bound-and-true-p var)
+	     (val (or (numberp (bound-and-true-p var))
 		      (progn
 			(add-hook 'tramp-cache-unload-hook
 				  (lambda () (makunbound var)))
@@ -170,7 +165,7 @@ Returns VALUE."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-set-count-" property)))
-	     (val (or (bound-and-true-p var)
+	     (val (or (numberp (bound-and-true-p var))
 		      (progn
 			(add-hook 'tramp-cache-unload-hook
 				  (lambda () (makunbound var)))
@@ -386,20 +381,15 @@ used to cache connection properties of the local machine."
       (maphash
        (lambda (key value)
 	 ;; Remove text properties from KEY and VALUE.
-	 ;; `cl-struct-slot-*' functions exist since Emacs 25 only; we
-	 ;; ignore errors.
 	 (when (tramp-file-name-p key)
-	   ;; (dolist
-	   ;;     (slot
-	   ;; 	(mapcar #'car (cdr (cl-struct-slot-info 'tramp-file-name))))
-	   ;;   (when (stringp (cl-struct-slot-value 'tramp-file-name slot key))
-	   ;;     (setf (cl-struct-slot-value 'tramp-file-name slot key)
-	   ;; 	     (substring-no-properties
-	   ;; 	      (cl-struct-slot-value 'tramp-file-name slot key))))))
-	   (dotimes (i (length key))
-	     (when (stringp (elt key i))
-	       (setf (elt key i) (substring-no-properties (elt key i))))))
-	 (when (stringp key)
+           (dolist
+               (slot
+                (mapcar #'car (cdr (cl-struct-slot-info 'tramp-file-name))))
+             (when (stringp (cl-struct-slot-value 'tramp-file-name slot key))
+               (setf (cl-struct-slot-value 'tramp-file-name slot key)
+                     (substring-no-properties
+                      (cl-struct-slot-value 'tramp-file-name slot key))))))
+         (when (stringp key)
 	   (setq key (substring-no-properties key)))
 	 (when (stringp value)
 	   (setq value (substring-no-properties value)))
@@ -474,7 +464,7 @@ used to cache connection properties of the local machine."
 		  tramp-persistency-file-name))
 	     (error "\n"))
 	   ";; Tramp connection history.  Don't change this file.\n"
-	   ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
+	   ";; Run `M-x tramp-cleanup-all-connections' instead.\n\n"
 	   (with-output-to-string
 	     (pp (read (format "(%s)" (tramp-cache-print cache)))))))))))
 
@@ -514,7 +504,7 @@ for all methods.  Resulting data are derived from connection history."
 	   tramp-cache-read-persistent-data)
   (condition-case err
       (with-temp-buffer
-	(insert-file-contents tramp-persistency-file-name)
+	(insert-file-contents-literally tramp-persistency-file-name)
 	(let ((list (read (current-buffer)))
 	      (tramp-verbose 0)
 	      element key item)

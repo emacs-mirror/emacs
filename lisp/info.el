@@ -3780,20 +3780,8 @@ Build a menu of the possible matches."
     ;; there is no "nxml.el" (it's nxml-mode.el).
     ;; But package.el makes the same assumption.
     ;; I think nxml is the only exception - maybe it should be just be renamed.
-    (let ((str (ignore-errors (lm-commentary (find-library-name nodename)))))
-      (if (null str)
-	  (insert "Can’t find package description.\n\n")
-	(insert
-	 (with-temp-buffer
-	   (insert str)
-	   (goto-char (point-min))
-	   (delete-blank-lines)
-	   (goto-char (point-max))
-	   (delete-blank-lines)
-	   (goto-char (point-min))
-	   (while (re-search-forward "^;+ ?" nil t)
-	     (replace-match "" nil nil))
-	   (buffer-string))))))))
+    (insert (or (ignore-errors (lm-commentary (find-library-name nodename)))
+                (insert "Can’t find package description.\n\n"))))))
 
 ;;;###autoload
 (defun info-finder (&optional keywords)
@@ -5135,9 +5123,8 @@ first line or header line, and for breadcrumb links.")
   "Additional menu-items to add to speedbar frame.")
 
 ;; Make sure our special speedbar major mode is loaded
-(if (featurep 'speedbar)
-    (Info-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook 'Info-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (Info-install-speedbar-variables))
 
 ;;; Info hierarchy display method
 ;;;###autoload

@@ -60,8 +60,9 @@
     (should (eq 0
                 (string-match
                  (concat "#<module function "
-                         "\\(at \\(0x\\)?[[:xdigit:]]+\\( from .*\\)?"
-                         "\\|Fmod_test_sum from .*\\)>")
+                         "\\(at \\(0x\\)?[[:xdigit:]]+ "
+                         "with data 0x1234\\( from .*\\)?"
+                         "\\|Fmod_test_sum with data 0x1234 from .*\\)>")
                  (prin1-to-string (nth 1 descr)))))
     (should (= (nth 2 descr) 3)))
   (should-error (mod-test-sum "1" 2) :type 'wrong-type-argument)
@@ -97,6 +98,7 @@ changes."
              (rx bos "#<module function "
                  (or "Fmod_test_sum"
                      (and "at 0x" (+ hex-digit)))
+                 " with data 0x1234"
                  (? " from " (* nonl) "mod-test" (* nonl) )
                  ">" eos)
              (prin1-to-string func)))))
@@ -401,5 +403,25 @@ See Bug#36226."
     (unwind-protect
         (load so nil nil :nosuffix :must-suffix)
       (delete-file so))))
+
+(ert-deftest module/function-finalizer ()
+  "Test that module function finalizers are properly called."
+  ;; We create and leak a couple of module functions with attached
+  ;; finalizer.  Creating only one function risks spilling it to the
+  ;; stack, where it wouldn't be garbage-collected.  However, with one
+  ;; hundred functions, there should be at least one that's
+  ;; unreachable.
+  (dotimes (_ 100)
+    (mod-test-make-function-with-finalizer))
+  (cl-destructuring-bind (valid-before invalid-before)
+      (mod-test-function-finalizer-calls)
+    (should (zerop invalid-before))
+    (garbage-collect)
+    (cl-destructuring-bind (valid-after invalid-after)
+        (mod-test-function-finalizer-calls)
+      (should (zerop invalid-after))
+      ;; We don't require exactly 100 invocations of the finalizer,
+      ;; but at least one.
+      (should (> valid-after valid-before)))))
 
 ;;; emacs-module-tests.el ends here

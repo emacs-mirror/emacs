@@ -2100,6 +2100,8 @@ construct:  \\bbb [xxx] {aaa}."
   "Hook which is being run when loading reftex.el."
   :group 'reftex-miscellaneous-configurations
   :type 'hook)
+(make-obsolete-variable 'reftex-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom reftex-mode-hook nil
   "Hook which is being run when turning on RefTeX mode."

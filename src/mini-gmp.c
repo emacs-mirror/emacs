@@ -94,11 +94,13 @@ see https://www.gnu.org/licenses/.  */
 
 #define gmp_clz(count, x) do {						\
     mp_limb_t __clz_x = (x);						\
-    unsigned __clz_c;							\
-    for (__clz_c = 0;							\
-	 (__clz_x & ((mp_limb_t) 0xff << (GMP_LIMB_BITS - 8))) == 0;	\
-	 __clz_c += 8)							\
-      __clz_x <<= 8;							\
+    unsigned __clz_c = 0;						\
+    int LOCAL_SHIFT_BITS = 8;						\
+    if (GMP_LIMB_BITS > LOCAL_SHIFT_BITS)				\
+      for (;								\
+	   (__clz_x & ((mp_limb_t) 0xff << (GMP_LIMB_BITS - 8))) == 0;	\
+	   __clz_c += 8)						\
+	{ __clz_x <<= LOCAL_SHIFT_BITS;	}				\
     for (; (__clz_x & GMP_LIMB_HIGHBIT) == 0; __clz_c++)		\
       __clz_x <<= 1;							\
     (count) = __clz_c;							\
@@ -143,27 +145,27 @@ see https://www.gnu.org/licenses/.  */
 	w1 = (mp_limb_t) (__ww >> LOCAL_GMP_LIMB_BITS);			\
       }									\
     else {								\
-    mp_limb_t __x0, __x1, __x2, __x3;					\
-    unsigned __ul, __vl, __uh, __vh;					\
-    mp_limb_t __u = (u), __v = (v);					\
+      mp_limb_t __x0, __x1, __x2, __x3;					\
+      unsigned __ul, __vl, __uh, __vh;					\
+      mp_limb_t __u = (u), __v = (v);					\
 									\
-    __ul = __u & GMP_LLIMB_MASK;					\
-    __uh = __u >> (GMP_LIMB_BITS / 2);					\
-    __vl = __v & GMP_LLIMB_MASK;					\
-    __vh = __v >> (GMP_LIMB_BITS / 2);					\
+      __ul = __u & GMP_LLIMB_MASK;					\
+      __uh = __u >> (GMP_LIMB_BITS / 2);				\
+      __vl = __v & GMP_LLIMB_MASK;					\
+      __vh = __v >> (GMP_LIMB_BITS / 2);				\
 									\
-    __x0 = (mp_limb_t) __ul * __vl;					\
-    __x1 = (mp_limb_t) __ul * __vh;					\
-    __x2 = (mp_limb_t) __uh * __vl;					\
-    __x3 = (mp_limb_t) __uh * __vh;					\
+      __x0 = (mp_limb_t) __ul * __vl;					\
+      __x1 = (mp_limb_t) __ul * __vh;					\
+      __x2 = (mp_limb_t) __uh * __vl;					\
+      __x3 = (mp_limb_t) __uh * __vh;					\
 									\
-    __x1 += __x0 >> (GMP_LIMB_BITS / 2);/* this can't give carry */	\
-    __x1 += __x2;		/* but this indeed can */		\
-    if (__x1 < __x2)		/* did we get it? */			\
-      __x3 += GMP_HLIMB_BIT;	/* yes, add it in the proper pos. */	\
+      __x1 += __x0 >> (GMP_LIMB_BITS / 2);/* this can't give carry */	\
+      __x1 += __x2;		/* but this indeed can */		\
+      if (__x1 < __x2)		/* did we get it? */			\
+	__x3 += GMP_HLIMB_BIT;	/* yes, add it in the proper pos. */	\
 									\
-    (w1) = __x3 + (__x1 >> (GMP_LIMB_BITS / 2));			\
-    (w0) = (__x1 << (GMP_LIMB_BITS / 2)) + (__x0 & GMP_LLIMB_MASK);	\
+      (w1) = __x3 + (__x1 >> (GMP_LIMB_BITS / 2));			\
+      (w0) = (__x1 << (GMP_LIMB_BITS / 2)) + (__x0 & GMP_LLIMB_MASK);	\
     }									\
   } while (0)
 
@@ -768,91 +770,81 @@ mpn_neg (mp_ptr rp, mp_srcptr up, mp_size_t n)
 mp_limb_t
 mpn_invert_3by2 (mp_limb_t u1, mp_limb_t u0)
 {
-  int GMP_LIMB_BITS_MUL_3 = GMP_LIMB_BITS * 3;
-  if (sizeof (unsigned) * CHAR_BIT > GMP_LIMB_BITS * 3)
-    {
-      return (((unsigned) 1 << GMP_LIMB_BITS_MUL_3) - 1) /
-	(((unsigned) u1 << GMP_LIMB_BITS_MUL_3 / 3) + u0);
-    }
-  else if (GMP_ULONG_BITS > GMP_LIMB_BITS * 3)
-    {
-      return (((unsigned long) 1 << GMP_LIMB_BITS_MUL_3) - 1) /
-	(((unsigned long) u1 << GMP_LIMB_BITS_MUL_3 / 3) + u0);
-    }
-  else {
-  mp_limb_t r, p, m, ql;
-  unsigned ul, uh, qh;
+  mp_limb_t r, m;
 
-  assert (u1 >= GMP_LIMB_HIGHBIT);
+  {
+    mp_limb_t p, ql;
+    unsigned ul, uh, qh;
 
-  /* For notation, let b denote the half-limb base, so that B = b^2.
-     Split u1 = b uh + ul. */
-  ul = u1 & GMP_LLIMB_MASK;
-  uh = u1 >> (GMP_LIMB_BITS / 2);
+    /* For notation, let b denote the half-limb base, so that B = b^2.
+       Split u1 = b uh + ul. */
+    ul = u1 & GMP_LLIMB_MASK;
+    uh = u1 >> (GMP_LIMB_BITS / 2);
 
-  /* Approximation of the high half of quotient. Differs from the 2/1
-     inverse of the half limb uh, since we have already subtracted
-     u0. */
-  qh = ~u1 / uh;
+    /* Approximation of the high half of quotient. Differs from the 2/1
+       inverse of the half limb uh, since we have already subtracted
+       u0. */
+    qh = (u1 ^ GMP_LIMB_MAX) / uh;
 
-  /* Adjust to get a half-limb 3/2 inverse, i.e., we want
+    /* Adjust to get a half-limb 3/2 inverse, i.e., we want
 
-     qh' = floor( (b^3 - 1) / u) - b = floor ((b^3 - b u - 1) / u
-         = floor( (b (~u) + b-1) / u),
+       qh' = floor( (b^3 - 1) / u) - b = floor ((b^3 - b u - 1) / u
+	   = floor( (b (~u) + b-1) / u),
 
-     and the remainder
+       and the remainder
 
-     r = b (~u) + b-1 - qh (b uh + ul)
+       r = b (~u) + b-1 - qh (b uh + ul)
        = b (~u - qh uh) + b-1 - qh ul
 
-     Subtraction of qh ul may underflow, which implies adjustments.
-     But by normalization, 2 u >= B > qh ul, so we need to adjust by
-     at most 2.
-  */
+       Subtraction of qh ul may underflow, which implies adjustments.
+       But by normalization, 2 u >= B > qh ul, so we need to adjust by
+       at most 2.
+    */
 
-  r = ((~u1 - (mp_limb_t) qh * uh) << (GMP_LIMB_BITS / 2)) | GMP_LLIMB_MASK;
+    r = ((~u1 - (mp_limb_t) qh * uh) << (GMP_LIMB_BITS / 2)) | GMP_LLIMB_MASK;
 
-  p = (mp_limb_t) qh * ul;
-  /* Adjustment steps taken from udiv_qrnnd_c */
-  if (r < p)
-    {
-      qh--;
-      r += u1;
-      if (r >= u1) /* i.e. we didn't get carry when adding to r */
-	if (r < p)
-	  {
-	    qh--;
-	    r += u1;
-	  }
-    }
-  r -= p;
+    p = (mp_limb_t) qh * ul;
+    /* Adjustment steps taken from udiv_qrnnd_c */
+    if (r < p)
+      {
+	qh--;
+	r += u1;
+	if (r >= u1) /* i.e. we didn't get carry when adding to r */
+	  if (r < p)
+	    {
+	      qh--;
+	      r += u1;
+	    }
+      }
+    r -= p;
 
-  /* Low half of the quotient is
+    /* Low half of the quotient is
 
        ql = floor ( (b r + b-1) / u1).
 
-     This is a 3/2 division (on half-limbs), for which qh is a
-     suitable inverse. */
+       This is a 3/2 division (on half-limbs), for which qh is a
+       suitable inverse. */
 
-  p = (r >> (GMP_LIMB_BITS / 2)) * qh + r;
-  /* Unlike full-limb 3/2, we can add 1 without overflow. For this to
-     work, it is essential that ql is a full mp_limb_t. */
-  ql = (p >> (GMP_LIMB_BITS / 2)) + 1;
+    p = (r >> (GMP_LIMB_BITS / 2)) * qh + r;
+    /* Unlike full-limb 3/2, we can add 1 without overflow. For this to
+       work, it is essential that ql is a full mp_limb_t. */
+    ql = (p >> (GMP_LIMB_BITS / 2)) + 1;
 
-  /* By the 3/2 trick, we don't need the high half limb. */
-  r = (r << (GMP_LIMB_BITS / 2)) + GMP_LLIMB_MASK - ql * u1;
+    /* By the 3/2 trick, we don't need the high half limb. */
+    r = (r << (GMP_LIMB_BITS / 2)) + GMP_LLIMB_MASK - ql * u1;
 
-  if (r >= (p << (GMP_LIMB_BITS / 2)))
-    {
-      ql--;
-      r += u1;
-    }
-  m = ((mp_limb_t) qh << (GMP_LIMB_BITS / 2)) + ql;
-  if (r >= u1)
-    {
-      m++;
-      r -= u1;
-    }
+    if (r >= (GMP_LIMB_MAX & (p << (GMP_LIMB_BITS / 2))))
+      {
+	ql--;
+	r += u1;
+      }
+    m = ((mp_limb_t) qh << (GMP_LIMB_BITS / 2)) + ql;
+    if (r >= u1)
+      {
+	m++;
+	r -= u1;
+      }
+  }
 
   /* Now m is the 2/1 inverse of u1. If u0 > 0, adjust it to become a
      3/2 inverse. */
@@ -881,7 +873,6 @@ mpn_invert_3by2 (mp_limb_t u1, mp_limb_t u0)
     }
 
   return m;
-  }
 }
 
 struct gmp_div_inverse
@@ -3332,7 +3323,7 @@ mpz_bin_uiui (mpz_t r, unsigned long n, unsigned long k)
   mpz_fac_ui (t, k);
 
   for (; k > 0; --k)
-      mpz_mul_ui (r, r, n--);
+    mpz_mul_ui (r, r, n--);
 
   mpz_divexact (r, r, t);
   mpz_clear (t);
@@ -3990,13 +3981,18 @@ gmp_popcount_limb (mp_limb_t x)
   unsigned c;
 
   /* Do 16 bits at a time, to avoid limb-sized constants. */
-  for (c = 0; x > 0; x >>= 16)
+  int LOCAL_SHIFT_BITS = 16;
+  for (c = 0; x > 0;)
     {
       unsigned w = x - ((x >> 1) & 0x5555);
       w = ((w >> 2) & 0x3333) + (w & 0x3333);
       w =  (w >> 4) + w;
       w = ((w >> 8) & 0x000f) + (w & 0x000f);
       c += w;
+      if (GMP_LIMB_BITS > LOCAL_SHIFT_BITS)
+	x >>= LOCAL_SHIFT_BITS;
+      else
+	x = 0;
     }
   return c;
 }
@@ -4503,10 +4499,15 @@ mpz_export (void *r, size_t *countp, int order, size_t size, int endian,
       limb = u->_mp_d[un-1];
       assert (limb != 0);
 
-      k = 0;
-      do {
-	k++; limb >>= CHAR_BIT;
-      } while (limb != 0);
+      k = (GMP_LIMB_BITS <= CHAR_BIT);
+      if (!k)
+	{
+	  do {
+	    int LOCAL_CHAR_BIT = CHAR_BIT;
+	    k++; limb >>= LOCAL_CHAR_BIT;
+	  } while (limb != 0);
+	}
+      /* else limb = 0; */
 
       count = (k + (un-1) * sizeof (mp_limb_t) + size - 1) / size;
 
@@ -4535,17 +4536,28 @@ mpz_export (void *r, size_t *countp, int order, size_t size, int endian,
       for (bytes = 0, i = 0, k = 0; k < count; k++, p += word_step)
 	{
 	  size_t j;
-	  for (j = 0; j < size; j++, p -= (ptrdiff_t) endian)
+	  for (j = 0; j < size; ++j, p -= (ptrdiff_t) endian)
 	    {
-	      if (bytes == 0)
+	      if (sizeof (mp_limb_t) == 1)
 		{
 		  if (i < un)
-		    limb = u->_mp_d[i++];
-		  bytes = sizeof (mp_limb_t);
+		    *p = u->_mp_d[i++];
+		  else
+		    *p = 0;
 		}
-	      *p = limb;
-	      limb >>= CHAR_BIT;
-	      bytes--;
+	      else
+		{
+		  int LOCAL_CHAR_BIT = CHAR_BIT;
+		  if (bytes == 0)
+		    {
+		      if (i < un)
+			limb = u->_mp_d[i++];
+		      bytes = sizeof (mp_limb_t);
+		    }
+		  *p = limb;
+		  limb >>= LOCAL_CHAR_BIT;
+		  bytes--;
+		}
 	    }
 	}
       assert (i == un);

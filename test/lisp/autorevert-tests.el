@@ -59,8 +59,7 @@
       auto-revert-notify-exclude-dir-regexp "nothing-to-be-excluded"
       auto-revert-stop-on-user-input nil
       file-notify-debug nil
-      tramp-verbose 0
-      tramp-message-show-message nil)
+      tramp-verbose 0)
 
 (defconst auto-revert--timeout (1+ auto-revert-interval)
   "Time to wait for a message.")

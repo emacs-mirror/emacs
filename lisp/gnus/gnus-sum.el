@@ -3124,7 +3124,7 @@ follow up an article, type `\\[gnus-summary-followup]'.  To mail a reply to the 
 of an article, type `\\[gnus-summary-reply]'.
 
 There are approx. one gazillion commands you can execute in this
-buffer; read the info pages for more information (`\\[gnus-info-find-node]').
+buffer; read the Info manual for more information (`\\[gnus-info-find-node]').
 
 The following commands are available:
 
@@ -12310,7 +12310,7 @@ no matter what the properties `:decode' and `:headers' are."
 					  (buffer-string))))))
       (put 'gnus-summary-save-in-pipe :headers headers))
     (unless (zerop (length result))
-      (if (with-current-buffer (get-buffer-create result-buffer)
+      (if (with-current-buffer (gnus-get-buffer-create result-buffer)
 	    (erase-buffer)
 	    (insert result)
 	    (prog1

@@ -287,6 +287,10 @@ recognize and then delegate the work to an external process."
 (cl-defgeneric xref-backend-identifier-completion-table (backend)
   "Return the completion table for identifiers.")
 
+(cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
+  "Return t if case is not significant in identifier completion."
+  completion-ignore-case)
+
 
 ;;; misc utilities
 (defun xref--alistify (list key test)
@@ -967,7 +971,9 @@ Accepts the same arguments as `xref-show-xrefs-function'."
 (defun xref--read-identifier (prompt)
   "Return the identifier at point or read it from the minibuffer."
   (let* ((backend (xref-find-backend))
-         (def (xref-backend-identifier-at-point backend)))
+         (def (xref-backend-identifier-at-point backend))
+         (completion-ignore-case
+          (xref-backend-identifier-completion-ignore-case backend)))
     (cond ((or current-prefix-arg
                (not def)
                (xref--prompt-p this-command))
@@ -1218,6 +1224,9 @@ IGNORES is a list of glob patterns for files to ignore."
   #'xref-matches-in-directory
   "27.1")
 
+(declare-function tramp-tramp-file-p "tramp")
+(declare-function tramp-file-local-name "tramp")
+
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
@@ -1240,7 +1249,12 @@ FILES must be a list of absolute file names."
                           "")
                         (shell-quote-argument (xref--regexp-to-extended regexp)))))
     (when remote-id
-      (setq files (mapcar #'file-local-name files)))
+      (require 'tramp)
+      (setq files (mapcar
+                   (if (tramp-tramp-file-p dir)
+                       #'tramp-file-local-name
+                       #'file-local-name)
+                   files)))
     (with-current-buffer output
       (erase-buffer)
       (with-temp-buffer

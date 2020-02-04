@@ -70,7 +70,6 @@
 (setq password-cache-expiry nil
       shadow-debug (getenv "EMACS_HYDRA_CI")
       tramp-verbose 0
-      tramp-message-show-message nil
       ;; On macOS, `temporary-file-directory' is a symlinked directory.
       temporary-file-directory (file-truename temporary-file-directory)
       shadow-test-remote-temporary-file-directory

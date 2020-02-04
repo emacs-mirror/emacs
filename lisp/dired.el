@@ -230,6 +230,8 @@ The target is used in the prompt for file copy, rename etc."
 You can customize key bindings or load extensions with this."
   :group 'dired
   :type 'hook)
+(make-obsolete-variable 'dired-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom dired-mode-hook nil
   "Run at the very end of `dired-mode'."
@@ -849,7 +851,6 @@ If a directory or nothing is found at point, return nil."
     (if (and file-name
 	     (not (file-directory-p file-name)))
 	file-name)))
-(put 'dired-mode 'grep-read-files 'dired-grep-read-files)
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -2149,6 +2150,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
+(defvar grep-read-files-function)
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (defun dired-mode (&optional dirname switches)
@@ -2210,7 +2212,6 @@ Hooks (use \\[describe-variable] to see their documentation):
   `dired-before-readin-hook'
   `dired-after-readin-hook'
   `dired-mode-hook'
-  `dired-load-hook'
 
 Keybindings:
 \\{dired-mode-map}"
@@ -2243,6 +2244,7 @@ Keybindings:
   (setq-local font-lock-defaults
               '(dired-font-lock-keywords t nil nil beginning-of-line))
   (setq-local desktop-save-buffer 'dired-desktop-buffer-misc-data)
+  (setq-local grep-read-files-function #'dired-grep-read-files)
   (setq dired-switches-alist nil)
   (hack-dir-local-variables-non-file-buffer) ; before sorting
   (dired-sort-other dired-actual-switches t)
@@ -3857,28 +3859,31 @@ With prefix argument, unmark or unflag these files."
 	    (if fn (backup-file-name-p fn))))
      "backup file")))
 
-(defun dired-change-marks (&optional old new)
+(defun dired-change-marks (old new)
   "Change all OLD marks to NEW marks.
 OLD and NEW are both characters used to mark files."
+  (declare (advertised-calling-convention '(old new) "28.1"))
   (interactive
    (let* ((cursor-in-echo-area t)
 	  (old (progn (message "Change (old mark): ") (read-char)))
 	  (new (progn (message  "Change %c marks to (new mark): " old)
 		      (read-char))))
      (list old new)))
-  (if (or (eq old ?\r) (eq new ?\r))
-      (ding)
-    (let ((string (format "\n%c" old))
-	  (inhibit-read-only t))
-      (save-excursion
-	(goto-char (point-min))
-	(while (search-forward string nil t)
-	  (if (if (= old ?\s)
-		  (save-match-data
-		    (dired-get-filename 'no-dir t))
-		t)
-	      (subst-char-in-region (match-beginning 0)
-				    (match-end 0) old new)))))))
+  (dolist (c (list new old))
+    (if (or (not (char-displayable-p c))
+            (eq c ?\r))
+        (user-error "Invalid mark character: `%c'" c)))
+  (let ((string (format "\n%c" old))
+        (inhibit-read-only t))
+    (save-excursion
+      (goto-char (point-min))
+      (while (search-forward string nil t)
+        (if (if (= old ?\s)
+                (save-match-data
+                  (dired-get-filename 'no-dir t))
+              t)
+            (subst-char-in-region (match-beginning 0)
+                                  (match-end 0) old new))))))
 
 (defun dired-unmark-all-marks ()
   "Remove all marks from all files in the Dired buffer."

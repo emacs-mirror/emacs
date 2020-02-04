@@ -3,8 +3,8 @@
 ;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: emacs-devel@gnu.org
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
+;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcAutoAway
 
 ;; This file is part of GNU Emacs.
 

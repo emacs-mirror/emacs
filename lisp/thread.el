@@ -43,8 +43,6 @@ An EVENT has the format
             (err (cddr event)))
         (message "Error %s: %S" thread err))))
 
-(make-obsolete 'thread-alive-p 'thread-live-p "27.1")
-
 ;;; The thread list buffer and list-threads command
 
 (defcustom thread-list-refresh-seconds 0.5

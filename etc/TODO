@@ -384,6 +384,12 @@ specified filters, specified timers, and specified hooks.
 
 ** Install mmc@maruska.dyndns.org's no-flicker change.
 
+  https://lists.gnu.org/archive/html/emacs-devel/2005-12/msg00699.html
+
+  I don't know if this is still relevant.  I can't reach the URLs in
+  the above message thread and double-buffering may have solved some
+  of the problems.
+
 ** Add a "current vertical pixel level" value that goes with point,
   so that motion commands can also move through tall images.
   This value would be to point as window-vscroll is to window-start.
@@ -537,11 +543,6 @@ from the emacsclient process.
 ** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
 
-** Allow unknown image types to be rendered via an external program
-  converting them to, say, PBM (in the same way as PostScript?). [does
-  doc-view.el do this, or could it be extended to do this?
-  Does ImageMagick obsolete this idea?]
-
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
   thought this was feasible.]
@@ -554,6 +555,8 @@ from the emacsclient process.
   encodings.
 
 ** Use the XIE X extension, if available, for image display.
+
+(Obsolete as XIE is now considered obsolete itself.)
 
 ** Make monochrome images display using the foreground and background
   colors of the applicable faces.
@@ -678,6 +681,10 @@ simple buttons to webkit (effectively, a web browser).
 
 Currently, xwidgets works only for the gtk+ framework but it is
 designed to be compatible with multiple Emacs ports.
+
+(See the scratch/nsxwidget branch, and the discussion around
+Objective-C code and GCC at
+https://lists.gnu.org/archive/html/emacs-devel/2019-08/msg00072.html)
 
 **** Respect 'frame-inhibit-implied-resize'
 
@@ -854,32 +861,6 @@ all build versions.
 - Console only.
 
 *** Bugs
-
-**** Incorrect translation of Super modifier with Ctrl or Meta on macOS
-
-When pressing 'M-s-a', Emacs replies "M-s-å is undefined".  What
-happened is a mix of Emacs view that Meta and Super has been pressed,
-and macOS view that ALT-a should yield "å" (U+00E5 LATIN SMALL LETTER
-A WITH RING ABOVE).
-
-The bug reports suggest two different patches; unfortunately, neither
-works properly.  For example:
-
-   Use a Swedish keyboard layout
-
-   (setq ns-alternate-modifier nil)
-
-   "CMD-ALT-9"
-
-Today, this correctly yields that s-] is undefined.  With either
-of the two patches, Emacs responds that s-9 was pressed.
-
-More investigation is needed to fix this problem.
-
-Links:
-- https://debbugs.gnu.org/19977
-- https://debbugs.gnu.org/21330
-- https://debbugs.gnu.org/21551
 
 **** Toggling the toolbar in fullheight or maximized modes
 

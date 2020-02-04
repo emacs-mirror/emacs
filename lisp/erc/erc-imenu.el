@@ -4,9 +4,9 @@
 ;; Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcImenu
+;; URL: https://www.emacswiki.org/emacs/ErcImenu
 
 ;; This file is part of GNU Emacs.
 

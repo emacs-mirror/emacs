@@ -214,42 +214,6 @@ like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
 eg 'emacs25').  On Red Hat-based systems, the corresponding command is
 'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
-* GNU/Linux source and debug packages
-
-Many GNU/Linux systems provide separate packages containing the
-sources and debug symbols of Emacs.  They are useful if you want to
-check the source code of Emacs primitive functions or debug Emacs on
-the C level.
-
-The names of the packages that you need vary according to the
-GNU/Linux distribution that you use.  On Debian-based systems, you can
-install a source package of Emacs with a command like 'apt-get source
-emacs' (on older systems, replace 'emacs' with eg 'emacs25').  The
-target directory for unpacking the source tree is the current
-directory.  On Red Hat-based systems, the corresponding command is
-'dnf install emacs-debugsource', with target directory /usr/src/debug
-(this requires to add the *-debuginfo repositories first, via 'dnf
-config-manager --set-enabled fedora-debuginfo updates-debuginfo').
-
-Once you have installed the source package, for example at
-/path/to/emacs-26.1, add the following line to your startup file:
-
-     (setq find-function-C-source-directory
-           "/path/to/emacs-26.1/src")
-
-The installation directory of the Emacs source package will contain
-the exact package name and version number Emacs is installed on your
-system.  If a new Emacs package is installed, the source package must
-be reinstalled as well, and the setting in your startup file must be
-updated.
-
-Emacs debugging symbols are distributed by a debug package.  It does
-not exist for every released Emacs package, this depends on the
-distribution.  On Debian-based systems, you can install a debug
-package of Emacs with a command like 'apt-get install emacs-dbg' (on
-older systems, replace 'emacs' with eg 'emacs25').  On Red Hat-based
-systems, the corresponding command is 'dnf debuginfo-install emacs'.
-
 
 DETAILED BUILDING AND INSTALLATION:
 

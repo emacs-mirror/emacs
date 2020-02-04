@@ -606,8 +606,10 @@ EXP should be a form read from a foo-pkg.el file.
 Convert EXP into a `package-desc' object using the
 `package-desc-from-define' constructor before pushing it to
 `package-alist'.
-If there already exists a package by that name in
-`package-alist', replace that definition with the new one."
+
+If there already exists a package by the same name in
+`package-alist', insert this object there such that the packages
+are sorted with the highest version first."
   (when (eq (car-safe exp) 'define-package)
     (let* ((new-pkg-desc (apply #'package-desc-from-define (cdr exp)))
            (name (package-desc-name new-pkg-desc))
@@ -924,7 +926,6 @@ untar into a directory named DIR; otherwise, signal an error."
                (if (> (length file-list) 1) 'tar 'single))))
       ('tar
        (make-directory package-user-dir t)
-       ;; FIXME: should we delete PKG-DIR if it exists?
        (let* ((default-directory (file-name-as-directory package-user-dir)))
          (package-untar-buffer dirname)))
       ('single
@@ -953,7 +954,7 @@ untar into a directory named DIR; otherwise, signal an error."
     pkg-dir))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
-  "Create the foo-pkg.el file for single-file packages."
+  "Create the foo-pkg.el file PKG-FILE for single-file package PKG-DESC."
   (let* ((name (package-desc-name pkg-desc)))
     (let ((print-level nil)
           (print-quoted t)
@@ -997,6 +998,7 @@ untar into a directory named DIR; otherwise, signal an error."
 (defvar version-control)
 
 (defun package-generate-autoloads (name pkg-dir)
+  "Generate autoloads in PKG-DIR for package named NAME."
   (let* ((auto-name (format "%s-autoloads.el" name))
          ;;(ignore-name (concat name "-pkg.el"))
          (generated-autoload-file (expand-file-name auto-name pkg-dir))
@@ -1177,12 +1179,14 @@ The return result is a `package-desc'."
 ;; signature checking.
 
 (defun package--write-file-no-coding (file-name)
+  "Write file FILE-NAME without encoding using coding system."
   (let ((buffer-file-coding-system 'no-conversion))
     (write-region (point-min) (point-max) file-name nil 'silent)))
 
 (declare-function url-http-file-exists-p "url-http" (url))
 
 (defun package--archive-file-exists-p (location file)
+  "Return t if FILE exists in remote LOCATION."
   (let ((http (string-match "\\`https?:" location)))
     (if http
         (progn
@@ -2372,18 +2376,9 @@ The description is read from the installed package files."
      result
 
      ;; Look for Commentary header.
-     (let ((mainsrcfile (expand-file-name (format "%s.el" (package-desc-name desc))
-                                          srcdir)))
-       (when (file-readable-p mainsrcfile)
-         (with-temp-buffer
-           (insert (or (lm-commentary mainsrcfile) ""))
-           (goto-char (point-min))
-           (when (re-search-forward "^;;; Commentary:\n" nil t)
-             (replace-match ""))
-           (while (re-search-forward "^\\(;+ ?\\)" nil t)
-             (replace-match ""))
-           (buffer-string))))
-     )))
+     (lm-commentary (expand-file-name
+                     (format "%s.el" (package-desc-name desc)) srcdir))
+     "")))
 
 (defun describe-package-1 (pkg)
   "Insert the package description for PKG.
@@ -2578,16 +2573,10 @@ Helper function for `describe-package'."
       (if built-in
           ;; For built-in packages, get the description from the
           ;; Commentary header.
-          (let ((fn (locate-file (format "%s.el" name) load-path
-                                 load-file-rep-suffixes))
-                (opoint (point)))
-            (insert (or (lm-commentary fn) ""))
-            (save-excursion
-              (goto-char opoint)
-              (when (re-search-forward "^;;; Commentary:\n" nil t)
-                (replace-match ""))
-              (while (re-search-forward "^\\(;+ ?\\)" nil t)
-                (replace-match ""))))
+          (insert (or (lm-commentary (locate-file (format "%s.el" name)
+                                                  load-path
+                                                  load-file-rep-suffixes))
+                      ""))
 
         (if (package-installed-p desc)
             ;; For installed packages, get the description from the
@@ -2820,6 +2809,7 @@ of these dependencies, similar to the list returned by
                     (push dep out)))))))))))
 
 (defun package-desc-status (pkg-desc)
+  "Return the status of `package-desc' object PKG-DESC."
   (let* ((name (package-desc-name pkg-desc))
          (dir (package-desc-dir pkg-desc))
          (lle (assq name package-load-list))

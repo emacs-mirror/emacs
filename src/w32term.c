@@ -560,7 +560,8 @@ static void
 w32_update_window_begin (struct window *w)
 {
   /* Hide the system caret during an update.  */
-  if (w32_use_visible_system_caret && w32_system_caret_hwnd)
+  if (w32_use_visible_system_caret && w32_system_caret_hwnd
+      && w == w32_system_caret_window)
     {
       SendMessageTimeout (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0,
 			  0, 6000, NULL);
@@ -657,7 +658,8 @@ w32_update_window_end (struct window *w, bool cursor_on_p,
   /* Unhide the caret.  This won't actually show the cursor, unless it
      was visible before the corresponding call to HideCaret in
      w32_update_window_begin.  */
-  if (w32_use_visible_system_caret && w32_system_caret_hwnd)
+  if (w32_use_visible_system_caret && w32_system_caret_hwnd
+      && w == w32_system_caret_window)
     {
       SendMessageTimeout (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0,
 			  0, 6000, NULL);

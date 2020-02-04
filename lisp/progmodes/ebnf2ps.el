@@ -1157,21 +1157,6 @@ Please send all bug fixes and enhancements to
 (and (string< ps-print-version "5.2.3")
      (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
 
-
-;; to avoid gripes with Emacs 20
-(or (fboundp 'assq-delete-all)
-    (defun assq-delete-all (key alist)
-      "Delete from ALIST all elements whose car is KEY.
-Return the modified alist.
-Elements of ALIST that are not conses are ignored."
-      (let ((tail alist))
-	(while tail
-	  (if (and (consp (car tail))
-		   (eq (car (car tail)) key))
-	      (setq alist (delq (car tail) alist)))
-	  (setq tail (cdr tail)))
-	alist)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -2053,8 +2038,7 @@ It must be a float between 0.0 (top) and 1.0 (bottom)."
 
 
 ;; Printing color requires x-color-values.
-(defcustom ebnf-color-p (or (fboundp 'x-color-values) ; Emacs
-			    (fboundp 'color-instance-rgb-components)) ; XEmacs
+(defcustom ebnf-color-p t
   "Non-nil means use color."
   :type 'boolean
   :version "20"
@@ -2738,8 +2722,7 @@ Used in functions `ebnf-reset-style', `ebnf-push-style' and
       (ebnf-eps-footer-font             . '(7 Helvetica "Black" "White" bold))
       (ebnf-eps-footer                  . nil)
       (ebnf-entry-percentage            . 0.5)
-      (ebnf-color-p   . (or (fboundp 'x-color-values) ; Emacs
-			    (fboundp 'color-instance-rgb-components))) ; XEmacs
+      (ebnf-color-p                     . t)
       (ebnf-line-width                  . 1.0)
       (ebnf-line-color                  . "Black")
       (ebnf-debug-ps                    . nil)

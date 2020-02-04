@@ -243,10 +243,10 @@ Use old data if FORCE-OLDER is not nil."
                 (when (or (not gnus-cloud-interactive)
                           (gnus-y-or-n-p
                            (format "%s has older different info in the cloud as of %s, update it here? "
-                                   group date))))
-                (gnus-message 2 "Installing cloud update of group %s" group)
-                (gnus-set-info group contents)
-                (gnus-group-update-group group)))
+				   group date)))
+		  (gnus-message 2 "Installing cloud update of group %s" group)
+		  (gnus-set-info group contents)
+		  (gnus-group-update-group group))))
           (gnus-error 1 "Sorry, group %s is not subscribed" group))
       (gnus-error 1 "Sorry, could not update newsrc for group %s (invalid data %S)"
                   group elem))))

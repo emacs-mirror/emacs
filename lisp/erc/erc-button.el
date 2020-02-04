@@ -3,9 +3,9 @@
 ;; Copyright (C) 1996-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: irc, button, url, regexp
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcButton
+;; URL: https://www.emacswiki.org/emacs/ErcButton
 
 ;; This file is part of GNU Emacs.
 
@@ -41,6 +41,7 @@
 (require 'erc)
 (require 'wid-edit)
 (require 'erc-fill)
+(require 'browse-url)
 
 ;;; Minor Mode
 
@@ -87,12 +88,9 @@ above them."
   :type 'face
   :group 'erc-faces)
 
-(defcustom erc-button-url-regexp
-  (concat "\\(www\\.\\|\\(s?https?\\|"
-          "ftp\\|file\\|gopher\\|news\\|telnet\\|wais\\|mailto\\):\\)"
-          "\\(//[-a-zA-Z0-9_.]+:[0-9]*\\)?"
-          "[-a-zA-Z0-9_=!?#$@~`%&*+\\/:;.,()]+[-a-zA-Z0-9_=#$@~`%&*+\\/()]")
+(defcustom erc-button-url-regexp browse-url-button-regexp
   "Regular expression that matches URLs."
+  :version "27.1"
   :group 'erc-button
   :type 'regexp)
 
@@ -223,14 +221,11 @@ PAR is a number of a regexp grouping whose text will be passed to
 
 (defvar erc-button-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\( "w" table)
-    (modify-syntax-entry ?\) "w" table)
     (modify-syntax-entry ?\[ "w" table)
     (modify-syntax-entry ?\] "w" table)
     (modify-syntax-entry ?\{ "w" table)
     (modify-syntax-entry ?\} "w" table)
     (modify-syntax-entry ?` "w" table)
-    (modify-syntax-entry ?' "w" table)
     (modify-syntax-entry ?^ "w" table)
     (modify-syntax-entry ?- "w" table)
     (modify-syntax-entry ?_ "w" table)

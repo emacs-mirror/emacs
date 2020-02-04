@@ -24,6 +24,7 @@
 
 (require 'mm-decode)
 (autoload 'gnus-recursive-directory-files "gnus-util")
+(autoload 'gnus-get-buffer-create "gnus")
 (autoload 'mailcap-extension-to-mime "mailcap")
 
 (defvar mm-archive-decoders
@@ -56,7 +57,7 @@
 			 (append (cdr decoder) (list dir)))
 		  (delete-file file))
 	      (apply 'call-process-region (point-min) (point-max) (car decoder)
-		     nil (get-buffer-create "*tnef*")
+		     nil (gnus-get-buffer-create "*tnef*")
 		     nil (append (cdr decoder) (list dir)))))
 	  `("multipart/mixed"
 	    ,handle

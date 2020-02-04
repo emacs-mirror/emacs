@@ -11745,6 +11745,8 @@ syms_of_coding (void)
 
   DEFSYM (Qignored, "ignored");
 
+  DEFSYM (Qutf_8_string_p, "utf-8-string-p");
+
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
   defsubr (&Sread_non_nil_coding_system);

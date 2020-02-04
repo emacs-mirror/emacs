@@ -446,7 +446,7 @@ May require patched `imenu' and `imenu-go'.  Obsolete."
   :group 'cperl-help-system)
 
 (defcustom cperl-info-page "perl"
-  "Name of the info page containing perl docs.
+  "Name of the Info manual containing perl docs.
 Older version of this page was called `perl5', newer `perl'."
   :type 'string
   :group 'cperl-help-system)

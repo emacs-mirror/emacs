@@ -32,7 +32,7 @@ variables:
 
 before_script:
   - apt update -qq
-  - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libc-dev gcc make autoconf automake libncurses-dev gnutls-dev git
+  - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev git
 
 stages:
   - test

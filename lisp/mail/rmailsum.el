@@ -391,7 +391,7 @@ SUBJECT is a regular expression."
 (defun rmail-summary-by-senders (senders)
   "Display a summary of all messages whose \"From\" field matches SENDERS.
 SENDERS is a regular expression.  The default for SENDERS matches the
-sender of the current messsage."
+sender of the current message."
   (interactive
    (let* ((def (rmail-get-header "From"))
           ;; We quote the default argument, because if it contains regexp

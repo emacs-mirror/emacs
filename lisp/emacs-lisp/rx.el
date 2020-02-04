@@ -273,7 +273,7 @@ Return (REGEXP . PRECEDENCE)."
   ;;   (or (+ digit) "CHARLIE" "CHAN" (+ blank))
   ;;   -> (or (+ digit) (or "CHARLIE" "CHAN") (+ blank))
   ;;
-  ;; - Optimise single-character alternatives better:
+  ;; - Optimize single-character alternatives better:
   ;;     * classes: space, alpha, ...
   ;;     * (syntax S), for some S (whitespace, word)
   ;;   so that (or "@" "%" digit (any "A-Z" space) (syntax word))

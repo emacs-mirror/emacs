@@ -597,6 +597,16 @@ free_after_dump_9x (void *ptr)
     }
 }
 
+void *
+sys_calloc (size_t number, size_t size)
+{
+  size_t nbytes = number * size;
+  void *ptr = (*the_malloc_fn) (nbytes);
+  if (ptr)
+    memset (ptr, 0, nbytes);
+  return ptr;
+}
+
 #if defined HAVE_UNEXEC && defined ENABLE_CHECKING
 void
 report_temacs_memory_usage (void)

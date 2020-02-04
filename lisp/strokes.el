@@ -296,6 +296,8 @@ the corresponding interactive function.")
 
 (defvar strokes-load-hook nil
   "Functions to be called when Strokes is loaded.")
+(make-obsolete-variable 'strokes-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 ;;; ### NOT IMPLEMENTED YET ###
 ;;(defvar edit-strokes-menu

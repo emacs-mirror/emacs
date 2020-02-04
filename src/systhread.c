@@ -81,10 +81,13 @@ sys_thread_equal (sys_thread_t t, sys_thread_t u)
 {
   return t == u;
 }
+void
+sys_thread_set_name (const char *name)
+{
+}
 
 bool
-sys_thread_create (sys_thread_t *t, const char *name,
-		   thread_creation_function *func, void *datum)
+sys_thread_create (sys_thread_t *t, thread_creation_function *func, void *datum)
 {
   return false;
 }
@@ -97,10 +100,6 @@ sys_thread_yield (void)
 #elif defined (HAVE_PTHREAD)
 
 #include <sched.h>
-
-#ifdef HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
-#endif
 
 void
 sys_mutex_init (sys_mutex_t *mutex)
@@ -204,9 +203,28 @@ sys_thread_equal (sys_thread_t t, sys_thread_t u)
   return pthread_equal (t, u);
 }
 
+void
+sys_thread_set_name (const char *name)
+{
+#ifdef HAVE_PTHREAD_SETNAME_NP
+  /* We need to truncate here otherwise pthread_setname_np
+     fails to set the name.  TASK_COMM_LEN is what the length
+     is called in the Linux kernel headers (Bug#38632).  */
+#define TASK_COMM_LEN 16
+  char p_name[TASK_COMM_LEN];
+  strncpy (p_name, name, TASK_COMM_LEN - 1);
+  p_name[TASK_COMM_LEN - 1] = '\0';
+ #ifdef HAVE_PTHREAD_SETNAME_NP_1ARG
+  pthread_setname_np (p_name);
+ #else
+  pthread_setname_np (pthread_self (), p_name);
+ #endif
+#endif
+}
+
 bool
-sys_thread_create (sys_thread_t *thread_ptr, const char *name,
-		   thread_creation_function *func, void *arg)
+sys_thread_create (sys_thread_t *thread_ptr, thread_creation_function *func,
+                   void *arg)
 {
   pthread_attr_t attr;
   bool result = false;
@@ -225,13 +243,7 @@ sys_thread_create (sys_thread_t *thread_ptr, const char *name,
     }
 
   if (!pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED))
-    {
-      result = pthread_create (thread_ptr, &attr, func, arg) == 0;
-#if defined (HAVE_SYS_PRCTL_H) && defined (HAVE_PRCTL) && defined (PR_SET_NAME)
-      if (result && name != NULL)
-	prctl (PR_SET_NAME, name);
-#endif
-    }
+    result = pthread_create (thread_ptr, &attr, func, arg) == 0;
 
  out: ;
   int error = pthread_attr_destroy (&attr);
@@ -452,26 +464,24 @@ w32_set_thread_name (DWORD thread_id, const char *name)
 
 static thread_creation_function *thread_start_address;
 
+void
+sys_thread_set_name (const char *name)
+{
+  w32_set_thread_name (GetCurrentThreadId (), name);
+}
+
 /* _beginthread wants a void function, while we are passed a function
    that returns a pointer.  So we use a wrapper.  See the command in
    w32term.h about the need for ALIGN_STACK attribute.  */
 static void ALIGN_STACK
 w32_beginthread_wrapper (void *arg)
 {
-  /* FIXME: This isn't very clean: systhread.c is not supposed to know
-     that ARG is a pointer to a thread_state object, or be familiar
-     with thread_state object's structure in general.  */
-  struct thread_state *this_thread = arg;
-
-  if (this_thread->thread_name)
-    w32_set_thread_name (GetCurrentThreadId (), this_thread->thread_name);
-
   (void)thread_start_address (arg);
 }
 
 bool
-sys_thread_create (sys_thread_t *thread_ptr, const char *name,
-		   thread_creation_function *func, void *arg)
+sys_thread_create (sys_thread_t *thread_ptr, thread_creation_function *func,
+                   void *arg)
 {
   /* FIXME: Do threads that run Lisp require some minimum amount of
      stack?  Zero here means each thread will get the same amount as

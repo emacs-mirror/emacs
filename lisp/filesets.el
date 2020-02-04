@@ -1645,10 +1645,10 @@ Replace <file-name> or <<file-name>> with filename."
 				      (dolist (this args txt)
 					(setq txt
 					      (concat txt
+						      (if (equal txt "") "" " ")
 						      (filesets-run-cmd--repl-fn
 						       this
 						       (lambda (this)
-							 (if (equal txt "") "" " ")
 							 (format "%s" this))))))))
 				   (cmd (concat fn " " args)))
 			      (filesets-cmd-show-result

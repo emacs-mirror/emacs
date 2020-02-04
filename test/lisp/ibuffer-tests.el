@@ -82,7 +82,7 @@
         (test1 '((mode . org-mode)
                  (or (size-gt . 10000)
                      (and (not (starred-name))
-                          (directory . "\<org\>")))))
+                          (directory . "<org>")))))
         (test2 '((or (mode . emacs-lisp-mode) (file-extension . "elc?")
                      (and (starred-name) (name . "elisp"))
                      (mode . lisp-interaction-mode))))

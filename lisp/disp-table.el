@@ -221,7 +221,7 @@ for a graphical frame."
 (defun make-glyph-code (char &optional face)
   "Return a glyph code representing char CHAR with face FACE."
   ;; Due to limitations on Emacs integer values, faces with
-  ;; face id greater that 512 are silently ignored.
+  ;; face id greater than 512 are silently ignored.
   (if (not face)
       char
     (let ((fid (face-id face)))

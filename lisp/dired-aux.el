@@ -992,7 +992,14 @@ command with a prefix argument (the value does not matter)."
 	  (ignore-errors (dired-remove-entry new-file))
 	  (goto-char start)
 	  ;; Now replace the current line with an entry for NEW-FILE.
-	  (dired-update-file-line new-file) nil)
+	  ;; But don't remove the current line if either FROM-FILE or
+	  ;; NEW-FILE is a directory, because compressing/uncompressing
+          ;; directories doesn't remove the original.
+          (if (or (file-directory-p from-file)
+                  (file-directory-p new-file))
+              (dired-add-entry new-file nil t)
+            (dired-update-file-line new-file))
+          nil)
       (dired-log (concat "Failed to (un)compress " from-file))
       from-file)))
 
@@ -1020,8 +1027,9 @@ command with a prefix argument (the value does not matter)."
     ("\\.7z\\'" "" "7z x -aoa -o%o %i")
     ;; This item controls naming for compression.
     ("\\.tar\\'" ".tgz" nil)
-    ;; This item controls the compression of directories
-    (":" ".tar.gz" "tar -cf - %i | gzip -c9 > %o"))
+    ;; This item controls the compression of directories.  Its REGEXP
+    ;; element should never match any valid file name.
+    ("\000" ".tar.gz" "tar -cf - %i | gzip -c9 > %o"))
   "Control changes in file name suffixes for compression and uncompression.
 Each element specifies one transformation rule, and has the form:
   (REGEXP NEW-SUFFIX PROGRAM)
@@ -1145,7 +1153,7 @@ Return nil if no change in files."
            (condition-case nil
                (if (file-directory-p file)
                    (progn
-                     (setq suffix (cdr (assoc ":" dired-compress-file-suffixes)))
+                     (setq suffix (cdr (assoc "\000" dired-compress-file-suffixes)))
                      (when suffix
                        (let ((out-name (concat file (car suffix)))
                              (default-directory (file-name-directory file)))

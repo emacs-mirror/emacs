@@ -201,7 +201,7 @@ variable default values, and other things."
   (let ((tag (or srecode-semantic-selected-tag
 		 (srecode-semantic-tag-from-kill-ring))))
     (when (not tag)
-      "No tag for current template.  Use the semantic kill-ring.")
+      (error "No tag for current template.  Use the semantic kill-ring."))
     (srecode-semantic-apply-tag-to-dict
      (srecode-semantic-tag (semantic-tag-name tag)
 			   :prime tag)

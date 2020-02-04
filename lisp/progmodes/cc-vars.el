@@ -1657,9 +1657,10 @@ white space either before or after the operator, but not both."
 
 (defcustom c-noise-macro-names nil
   "A list of names of macros which expand to nothing, or compiler extensions
-like \"????\" which are syntactic noise.  Such a macro/extension is complete in
-itself, never having parentheses.  All these names must be syntactically valid
-identifiers.
+like \"INLINE\" which are syntactic noise.  Such a macro/extension is complete
+in itself, never having parentheses.  All these names must be syntactically
+valid identifiers.  Alternatively, this variable may be a regular expression
+which matches the names of such macros.
 
 If you change this variable's value, call the function
 `c-make-noise-macro-regexps' to set the necessary internal variables (or do
@@ -1673,7 +1674,13 @@ this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
 (defcustom c-noise-macro-with-parens-names nil
   "A list of names of macros (or compiler extensions like \"__attribute__\")
 which optionally have arguments in parentheses, and which expand to nothing.
-These are recognized by CC Mode only in declarations."
+All these names must be syntactically valid identifiers.  These are recognized
+by CC Mode only in declarations.  Alternatively, this variable may be a
+regular expression which matches the names of such macros.
+
+If you change this variable's value, call the function
+`c-make-noise-macro-regexps' to set the necessary internal variables (or do
+this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
   :version "26.1"
   :type '(repeat :tag "List of names (possibly empty)" string)
   :group 'c)

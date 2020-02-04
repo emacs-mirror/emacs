@@ -69,8 +69,9 @@ enum internal_border_part
 #ifdef NS_IMPL_COCOA
 enum ns_appearance_type
   {
-   ns_appearance_aqua,
-   ns_appearance_vibrant_dark
+    ns_appearance_system_default,
+    ns_appearance_aqua,
+    ns_appearance_vibrant_dark
   };
 #endif
 #endif /* HAVE_WINDOW_SYSTEM */

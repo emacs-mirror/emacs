@@ -720,8 +720,8 @@ should create non-existent directories in @var{new}.
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
 
-@vindex dired-vc-rename
-If the value of the variable @code{dired-vc-rename} is non-@code{nil},
+@vindex dired-vc-rename-file
+If the value of the variable @code{dired-vc-rename-file} is non-@code{nil},
 files are renamed using the commands of the underlying VCS, via
 @code{vc-rename-file} (@pxref{VC Delete/Rename}).
 

@@ -324,7 +324,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    ;; FIXME?
                             ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
-	     (tab-bar-mode (frames mouse) boolean nil
+	     (tab-bar-mode tab-bar boolean nil
                            ;; :initialize custom-initialize-default
 			   :set custom-set-minor-mode)
 	     (tool-bar-mode (frames mouse) boolean nil

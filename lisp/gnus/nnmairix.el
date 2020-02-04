@@ -1249,7 +1249,7 @@ Marks propagation has to be enabled for this to work."
 If THREADS is non-nil, enable full threads."
   (let ((args (cons (car command) '(nil t nil))))
     (with-current-buffer
-       (get-buffer-create nnmairix-mairix-output-buffer)
+       (gnus-get-buffer-create nnmairix-mairix-output-buffer)
       (erase-buffer)
       (when (> (length command) 1)
 	(setq args (append args (cdr command))))
@@ -1267,7 +1267,7 @@ If THREADS is non-nil, enable full threads."
   "Call mairix binary with COMMAND and QUERY in raw mode."
   (let ((args (cons (car command) '(nil t nil))))
     (with-current-buffer
-       (get-buffer-create nnmairix-mairix-output-buffer)
+       (gnus-get-buffer-create nnmairix-mairix-output-buffer)
       (erase-buffer)
       (when (> (length command) 1)
         (setq args (append args (cdr command))))
@@ -1404,7 +1404,7 @@ TYPE is either `nov' or `headers'."
   (nnheader-message 7 "nnmairix: Rewriting headers...")
   (cond
    ((eq type 'nov)
-    (let ((buf (get-buffer-create " *nnmairix buffer*"))
+    (let ((buf (gnus-get-buffer-create " *nnmairix buffer*"))
 	  (corr (not (zerop numc)))
 	  (name (buffer-name nntp-server-buffer))
 	  header cur xref)

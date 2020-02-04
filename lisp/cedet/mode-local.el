@@ -588,7 +588,7 @@ OVERARGS is a list of arguments passed to the override and
 (defmacro define-mode-local-override
   (name mode args docstring &rest body)
   "Define a mode specific override of the function overload NAME.
-Has meaning only if NAME has been created with `define-overload'.
+Has meaning only if NAME has been created with `define-overloadable-function'.
 MODE is the major mode this override is being defined for.
 ARGS are the function arguments, which should match those of the same
 named function created with `define-overload'.

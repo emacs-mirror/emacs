@@ -716,6 +716,7 @@ For example, if the current buffer name is @samp{foo},
 returns @code{"The buffer is foo"}.
 @end defmac
 
+@cindex pretty-printer
 @defun pp object &optional stream
 This function outputs @var{object} to @var{stream}, just like
 @code{prin1}, but does it in a prettier way.  That is, it'll

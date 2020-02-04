@@ -8934,6 +8934,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (f)
 	x_cr_update_surface_desired_size (f, configureEvent.xconfigure.width,
 					  configureEvent.xconfigure.height);
+      else if (any && configureEvent.xconfigure.window == FRAME_X_WINDOW (any))
+	x_cr_update_surface_desired_size (any,
+					  configureEvent.xconfigure.width,
+					  configureEvent.xconfigure.height);
 #endif
 #ifdef USE_GTK
       if (!f

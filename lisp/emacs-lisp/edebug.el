@@ -1714,6 +1714,7 @@ contains a circular object."
                 (cl-macrolet-body . edebug-match-cl-macrolet-body)
 		(&not . edebug-match-&not)
 		(&key . edebug-match-&key)
+		(&error . edebug-match-&error)
 		(place . edebug-match-place)
 		(gate . edebug-match-gate)
 		;;   (nil . edebug-match-nil)  not this one - special case it.
@@ -1847,6 +1848,15 @@ contains a circular object."
                            (car (cdr pair))))
 		 specs))))
 
+(defun edebug-match-&error (cursor specs)
+  ;; Signal an error, using the following string in the spec as argument.
+  (let ((error-string (car specs))
+        (edebug-error-point (edebug-before-offset cursor)))
+    (goto-char edebug-error-point)
+    (error "%s"
+           (if (stringp error-string)
+               error-string
+             "String expected after &error in edebug-spec"))))
 
 (defun edebug-match-gate (_cursor)
   ;; Simply set the gate to prevent backtracking at this level.
@@ -2216,6 +2226,8 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 
 (def-edebug-spec nested-backquote-form
   (&or
+   ("`" &error "Triply nested backquotes (without commas \"between\" them) \
+are too difficult to instrument")
    ;; Allow instrumentation of any , or ,@ contained within the (\, ...) or
    ;; (\,@ ...) matched on the next line.
    ([&or "," ",@"] backquote-form)
@@ -4518,17 +4530,6 @@ With prefix argument, make it a temporary breakpoint."
   (edebug-modify-breakpoint t condition arg))
 
 (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-
-;;; Autoloading of Edebug accessories
-
-;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
-(defun edebug--require-cl-read ()
-  (require 'edebug-cl-read))
-
-(if (featurep 'cl-read)
-    (add-hook 'edebug-setup-hook #'edebug--require-cl-read)
-  ;; The following causes edebug-cl-read to be loaded when you load cl-read.el.
-  (add-hook 'cl-read-load-hooks #'edebug--require-cl-read))
 
 
 ;;; Finalize Loading
@@ -4564,7 +4565,6 @@ With prefix argument, make it a temporary breakpoint."
       (run-with-idle-timer 0 nil #'(lambda () (unload-feature 'edebug)))))
   (remove-hook 'called-interactively-p-functions
                #'edebug--called-interactively-skip)
-  (remove-hook 'cl-read-load-hooks #'edebug--require-cl-read)
   (edebug-uninstall-read-eval-functions)
   ;; Continue standard unloading.
   nil)
