@@ -537,12 +537,13 @@ based on the Tramp and Emacs versions, and should not be set here."
 
 ;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
-  '(("/bash\\'" . "-norc -noprofile")
+  '(("/bash\\'" . "-noediting -norc -noprofile")
     ("/zsh\\'" . "-f +Z -V"))
   "Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
-arguments.
+arguments.  These arguments shall disable line editing, see
+`tramp-open-shell'.
 
 This variable is only used when Tramp needs to start up another shell
 for tilde expansion.  The extra arguments should typically prevent the
@@ -4103,6 +4104,19 @@ file exists and nonzero exit status otherwise."
       vec 5 (format-message "Opening remote shell `%s'" shell)
     ;; Find arguments for this shell.
     (let ((extra-args (tramp-get-sh-extra-args shell)))
+      ;; The readline library can disturb Tramp.  For example, the
+      ;; very recent version of libedit, the *BSD implementation of
+      ;; readline, confuses Tramp.  So we disable line editing.  Since
+      ;; $EDITRC is not supported on all target systems, we must move
+      ;; ~/.editrc temporarily somewhere else.  For bash and zsh we
+      ;; have disabled this already during shell invocation, see
+      ;; `tramp-sh-extra-args'.  Bug#39399.
+      (unless extra-args
+	(tramp-send-command vec "rm -f ~/.editrc.tramp" t)
+	(tramp-send-command vec "mv -f ~/.editrc ~/.editrc.tramp" t)
+	(tramp-send-command vec "echo 'edit off' >~/.editrc" t))
+      ;; It is useful to set the prompt in the following command
+      ;; because some people have a setting for $PS1 which /bin/sh
       ;; doesn't know about and thus /bin/sh will display a strange
       ;; prompt.  For example, if $PS1 has "${CWD}" in the value, then
       ;; ksh will display the current working directory but /bin/sh
@@ -4136,6 +4150,9 @@ file exists and nonzero exit status otherwise."
 	    (tramp-shell-quote-argument tramp-end-of-output)
 	    shell (or extra-args ""))
        t)
+      (unless extra-args
+	(tramp-send-command
+	 vec "test -e ~/.editrc.tramp && mv -f ~/.editrc.tramp ~/.editrc" t))
       ;; Check proper HISTFILE setting.  We give up when not working.
       (when (and (stringp tramp-histfile-override)
 		 (file-name-directory tramp-histfile-override))
