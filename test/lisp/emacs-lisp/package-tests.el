@@ -450,7 +450,7 @@ Must called from within a `tar-mode' buffer."
   "Test updating package archives."
   (with-package-test ()
     (let ((buf (package-list-packages)))
-      (package-menu-refresh)
+      (revert-buffer)
       (search-forward-regexp "^ +simple-single")
       (package-menu-mark-install)
       (package-menu-execute)
@@ -458,7 +458,7 @@ Must called from within a `tar-mode' buffer."
       (let ((package-test-data-dir
              (expand-file-name "package-resources/newer-versions" package-test-file-dir)))
         (setq package-archives `(("gnu" . ,package-test-data-dir)))
-        (package-menu-refresh)
+        (revert-buffer)
 
         ;; New version should be available and old version should be installed
         (goto-char (point-min))
@@ -470,7 +470,7 @@ Must called from within a `tar-mode' buffer."
 
         (package-menu-mark-upgrades)
         (package-menu-execute)
-        (package-menu-refresh)
+        (revert-buffer)
         (should (package-installed-p 'simple-single '(1 4)))))))
 
 (ert-deftest package-test-update-archives-async ()
@@ -632,7 +632,7 @@ Must called from within a `tar-mode' buffer."
         (should (progn (package-install 'signed-bad) 'noerror)))
       ;; Check if the installed package status is updated.
       (let ((buf (package-list-packages)))
-	(package-menu-refresh)
+	(revert-buffer)
 	(should (re-search-forward
 		 "^\\s-+signed-good\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\s-"
 		 nil t))
