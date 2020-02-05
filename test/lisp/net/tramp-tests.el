@@ -4541,6 +4541,7 @@ INPUT, if non-nil, is a string sent to the process."
   ;; but seems to work since Emacs 27.1 only.
   (when (and (tramp--test-sh-p) (tramp--test-emacs27-p))
     (let* ((async-shell-command-width 1024)
+	   (default-directory tramp-test-temporary-file-directory)
 	   (cols (ignore-errors
 		   (read (tramp--test-shell-command-to-string-asynchronously
 			  "tput cols")))))
@@ -5844,7 +5845,7 @@ Use the `ls' command."
   ;; Since Emacs 27.1.
   (skip-unless (fboundp 'file-system-info))
 
-  ;; `file-system-info' exists since Emacs 27.  We don't want to see
+  ;; `file-system-info' exists since Emacs 27.1.  We don't want to see
   ;; compiler warnings for older Emacsen.
   (let ((fsi (with-no-warnings
 	       (file-system-info tramp-test-temporary-file-directory))))
