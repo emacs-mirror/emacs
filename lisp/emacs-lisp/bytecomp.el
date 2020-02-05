@@ -2187,8 +2187,7 @@ With argument ARG, insert value in current buffer after the form."
 (defun byte-compile-insert-header (_filename outbuffer)
   "Insert a header at the start of OUTBUFFER.
 Call from the source buffer."
-  (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
-	(dynamic byte-compile-dynamic)
+  (let ((dynamic byte-compile-dynamic)
 	(optimize byte-optimize))
     (with-current-buffer outbuffer
       (goto-char (point-min))
