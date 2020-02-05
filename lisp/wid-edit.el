@@ -236,8 +236,7 @@ minibuffer."
 	 ;; Construct a menu of the choices
 	 ;; and then use it for prompting for a single character.
 	 (let* ((next-digit ?0)
-		(map (make-sparse-keymap))
-                choice some-choice-enabled value)
+		alist choice some-choice-enabled value)
 	   (with-current-buffer (get-buffer-create " widget-choose")
 	     (erase-buffer)
 	     (insert "Available choices:\n\n")
@@ -247,7 +246,7 @@ minibuffer."
                  (let* ((name (substitute-command-keys (car choice)))
                         (function (cdr choice)))
                    (insert (format "%c = %s\n" next-digit name))
-                   (define-key map (vector next-digit) function)
+                   (push (cons next-digit function) alist)
                    (setq some-choice-enabled t)))
 	       ;; Allocate digits to disabled alternatives
 	       ;; so that the digit of a given alternative never varies.
@@ -257,33 +256,17 @@ minibuffer."
 	     (forward-line))
 	   (or some-choice-enabled
 	       (error "None of the choices is currently meaningful"))
-	   (define-key map [?\M-\C-v] 'scroll-other-window)
-	   (define-key map [?\M--] 'negative-argument)
 	   (save-window-excursion
-	     (let ((buf (get-buffer " widget-choose")))
-	       (display-buffer buf
-			       '(display-buffer-in-direction
-				 (direction . bottom)
-				 (window-height . fit-window-to-buffer)))
-	       (let ((cursor-in-echo-area t)
-		     (arg 1))
-                 (while (not value)
-                   (setq value (lookup-key map (read-key-sequence (format "%s: " title))))
-                   (unless value
-                     (user-error "Canceled"))
-                   (when
-                       (cond ((eq value 'scroll-other-window)
-                               (let ((minibuffer-scroll-window
-                                      (get-buffer-window buf)))
-                                 (if (> 0 arg)
-                                     (scroll-other-window-down
-                                      (window-height minibuffer-scroll-window))
-                                   (scroll-other-window))
-                                 (setq arg 1)))
-                              ((eq value 'negative-argument)
-                               (setq arg -1)))
-                     (setq value nil))))))
-	   value))))
+             ;; Select window to be able to scroll it from minibuffer
+             (with-selected-window
+                 (display-buffer (get-buffer " widget-choose")
+                                 '(display-buffer-in-direction
+                                   (direction . bottom)
+                                   (window-height . fit-window-to-buffer)))
+               (setq value (read-char-from-minibuffer
+                            (format "%s: " title)
+                            (mapcar #'car alist)))))
+	   (cdr (assoc value alist))))))
 
 ;;; Widget text specifications.
 ;;
