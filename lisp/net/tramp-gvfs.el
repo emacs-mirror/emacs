@@ -1521,10 +1521,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   (size (cdr (assoc "filesystem::size" attr)))
 	   (used (cdr (assoc "filesystem::used" attr)))
 	   (free (cdr (assoc "filesystem::free" attr))))
-      (when (and (stringp size) (stringp used) (stringp free))
-	(list (string-to-number size)
-	      (- (string-to-number size) (string-to-number used))
-	      (string-to-number free))))))
+      (when (or size used free)
+	(list (string-to-number (or size "0"))
+	      (string-to-number (or free "0"))
+	      (- (string-to-number (or size "0"))
+		 (string-to-number (or used "0"))))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
