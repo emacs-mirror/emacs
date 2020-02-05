@@ -120,6 +120,20 @@ like cell phones, tablets or cameras.
 *** Pcase 'map' pattern added keyword symbols abbreviation.
 A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
 equivalent to '(map (:sym sym))'.
+** Package
+
++++
+*** New functions to filter the package list.
+The filter command key bindings are as follows:
+
+key             binding
+---             -------
+/ a             package-menu-filter-by-archive
+/ k             package-menu-filter-by-keyword
+/ n             package-menu-filter-by-name
+/ s             package-menu-filter-by-status
+/ v             package-menu-filter-by-version
+/ /             package-menu-filter-clear
 
 
 * New Modes and Packages in Emacs 28.1

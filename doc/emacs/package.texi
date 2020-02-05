@@ -151,27 +151,6 @@ Refresh the package list (@code{revert-buffer}).  This fetches the
 list of available packages from the package archive again, and
 redisplays the package list.
 
-@item / k
-@kindex / k @r{(Package Menu)}
-@findex package-menu-filter-by-keyword
-Filter the package list by keyword
-(@code{package-menu-filter-by-keyword}).  This prompts for a keyword
-(e.g., @samp{games}), then shows only the packages that relate to that
-keyword.
-
-@item / n
-@kindex / n @r{(Package Menu)}
-@findex package-menu-filter-by-name
-Filter the package list by name (@code{package-menu-filter-by-name}).
-This prompts for a string, then shows only the packages whose names
-match a regexp with that value.
-
-@item / /
-@kindex / / @r{(Package Menu)}
-@findex package-menu-clear-filter
-Clear filter currently applied to the package list
-(@code{package-menu-clear-filter}).
-
 @item H
 @kindex H @r{(Package Menu)}
 @findex package-menu-hide-package
@@ -183,6 +162,48 @@ Permanently hide packages that match a regexp
 @findex package-menu-toggle-hiding
 Toggle visibility of old versions of packages and also of versions
 from lower-priority archives (@code{package-menu-toggle-hiding}).
+
+@item / a
+@kindex / a @r{(Package Menu)}
+@findex package-menu-filter-by-archive
+Filter package list by archive (@code{package-menu-filter-by-archive}).
+This prompts for a package archive (e.g., @samp{gnu}), then shows only
+packages from that archive.
+
+@item / k
+@kindex / k @r{(Package Menu)}
+@findex package-menu-filter-by-keyword
+Filter package list by keyword (@code{package-menu-filter-by-keyword}).
+This prompts for a keyword (e.g., @samp{games}), then shows only
+packages with that keyword.
+
+@item / n
+@kindex / n @r{(Package Menu)}
+@findex package-menu-filter-by-name
+Filter package list by name (@code{package-menu-filter-by-name}).
+This prompts for a regular expression, then shows only packages
+with names matching that regexp.
+
+@item / s
+@kindex / s @r{(Package Menu)}
+@findex package-menu-filter-by-status
+Filter package list by status (@code{package-menu-filter-by-status}).
+This prompts for one or more statuses (e.g., @samp{available}), then
+shows only packages with matching status.
+
+@item / v
+@kindex / v @r{(Package Menu)}
+@findex package-menu-filter-by-version
+Filter package list by version (@code{package-menu-filter-by-version}).
+This prompts first for one of the qualifiers @samp{<}, @samp{>} or
+@samp{=}, and then a package version, and shows packages that has a
+lower, equal or higher version than the one specified.
+
+@item / /
+@kindex / / @r{(Package Menu)}
+@findex package-menu-filter-clear
+Clear filter currently applied to the package list
+(@code{package-menu-filter-clear}).
 @end table
 
 @noindent
