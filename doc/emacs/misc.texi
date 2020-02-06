@@ -2939,9 +2939,8 @@ done by calling @code{browse-url} as a subroutine
 
   It can be useful to add @code{goto-address-mode} to mode hooks and
 hooks for displaying an incoming message
-(e.g., @code{rmail-show-message-hook} for Rmail, and
-@code{mh-show-mode-hook} for MH-E).  This is not needed for Gnus,
-which has a similar feature of its own.
+(e.g., @code{rmail-show-message-hook} for Rmail).  This is not needed
+for Gnus or MH-E, which have similar features of their own.
 
 @node FFAP
 @subsection Finding Files and URLs at Point

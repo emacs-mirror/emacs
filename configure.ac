@@ -4192,6 +4192,21 @@ if test "$ac_cv_func_pthread_setname_np" = "yes"; then
     AC_DEFINE(
       HAVE_PTHREAD_SETNAME_NP_1ARG, 1,
       [Define to 1 if pthread_setname_np takes a single argument.])
+  else
+    AC_CACHE_CHECK(
+     [whether pthread_setname_np takes three arguments],
+     [emacs_cv_pthread_setname_np_3arg],
+     [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM(
+         [[#include <pthread.h>]],
+         [[pthread_setname_np (0, "%s", "a");]])],
+       [emacs_cv_pthread_setname_np_3arg=yes],
+       [emacs_cv_pthread_setname_np_3arg=no])])
+     if test "$emacs_cv_pthread_setname_np_3arg" = "yes"; then
+       AC_DEFINE(
+         HAVE_PTHREAD_SETNAME_NP_3ARG, 1,
+         [Define to 1 if pthread_setname_np takes three arguments.])
+     fi
   fi
 fi
 

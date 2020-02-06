@@ -1684,7 +1684,7 @@ cleaning up these problems."
             (mapcar
              #'(lambda (option)
                  (when force
-                   (add-to-list 'style (car option)))
+                   (push (car option) style))
                  (goto-char rstart)
                  (let ((regexp
                         (cond

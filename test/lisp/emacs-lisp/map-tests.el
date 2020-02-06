@@ -227,7 +227,7 @@ Evaluate BODY for each created map.
   (with-maps-do map
     (let ((result nil))
       (map-do (lambda (k v)
-                (add-to-list 'result (list (int-to-string k) v)))
+                (push (list (int-to-string k) v) result))
               map)
       (should (equal result '(("2" 5) ("1" 4) ("0" 3)))))))
 

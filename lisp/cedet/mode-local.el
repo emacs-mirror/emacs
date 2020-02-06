@@ -819,14 +819,12 @@ META-NAME is a cons (OVERLOADABLE-SYMBOL . MAJOR-MODE)."
         )
     ;; Order symbols by type
     (mapatoms
-     #'(lambda (s)
-         (add-to-list (cond
-                       ((get s 'mode-variable-flag)
-                        (if (get s 'constant-flag) 'mc 'mv))
-                       ((get s 'override-flag)
-                        (if (get s 'constant-flag) 'fo 'ov))
-                       ('us))
-                      s))
+     (lambda (s) (push s (cond
+                          ((get s 'mode-variable-flag)
+                           (if (get s 'constant-flag) mc mv))
+                          ((get s 'override-flag)
+                           (if (get s 'constant-flag) fo ov))
+                          (t us))))
      table)
     ;; Print symbols by type
     (when us

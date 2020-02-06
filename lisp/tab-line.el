@@ -42,12 +42,12 @@
   :version "27.1")
 
 (defface tab-line
-  '((((type x w32 ns) (class color))
+  '((((class color) (min-colors 88))
      :inherit variable-pitch
      :height 0.9
      :background "grey85"
      :foreground "black")
-    (((type x) (class mono))
+    (((class mono))
      :background "grey")
     (t
      :inverse-video t))

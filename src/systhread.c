@@ -214,11 +214,13 @@ sys_thread_set_name (const char *name)
   char p_name[TASK_COMM_LEN];
   strncpy (p_name, name, TASK_COMM_LEN - 1);
   p_name[TASK_COMM_LEN - 1] = '\0';
- #ifdef HAVE_PTHREAD_SETNAME_NP_1ARG
+# ifdef HAVE_PTHREAD_SETNAME_NP_1ARG
   pthread_setname_np (p_name);
- #else
+# elif defined HAVE_PTHREAD_SETNAME_NP_3ARG
+  pthread_setname_np (pthread_self (), "%s", p_name);
+# else
   pthread_setname_np (pthread_self (), p_name);
- #endif
+# endif
 #endif
 }
 

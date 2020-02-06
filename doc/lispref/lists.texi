@@ -777,6 +777,9 @@ non-@code{nil}, it is added at the end.
 The argument @var{symbol} is not implicitly quoted; @code{add-to-list}
 is an ordinary function, like @code{set} and unlike @code{setq}.  Quote
 the argument yourself if that is what you want.
+
+Do not use this function when @var{symbol} refers to a lexical
+variable.
 @end defun
 
 Here's a scenario showing how to use @code{add-to-list}:
@@ -799,8 +802,9 @@ foo                       ;; @r{@code{foo} was changed.}
 @var{value})} is this:
 
 @example
-(or (member @var{value} @var{var})
-    (setq @var{var} (cons @var{value} @var{var})))
+(if (member @var{value} @var{var})
+    @var{var}
+  (setq @var{var} (cons @var{value} @var{var})))
 @end example
 
 @defun add-to-ordered-list symbol element &optional order
@@ -828,6 +832,7 @@ and unlike @code{setq}.  Quote the argument yourself if necessary.
 
 The ordering information is stored in a hash table on @var{symbol}'s
 @code{list-order} property.
+@var{symbol} cannot refer to a lexical variable.
 @end defun
 
 Here's a scenario showing how to use @code{add-to-ordered-list}:

@@ -2630,6 +2630,14 @@ will be chosen even if you have an entry for "image/*" in your
 overrides all system and Emacs-provided defaults.  To get the old
 method back, set 'mailcap-prefer-mailcap-viewers' to nil.
 
+** MH-E
++++
+*** The hook 'mh-show-mode-hook' is now called before the message is inserted.
+Functions that want to affect the message text (for example, to change
+highlighting) can no longer use 'mh-show-mode-hook', because the
+message contents will not yet have been inserted when the hook is
+called.  Such functions should now be attached to 'mh-show-hook'.
+
 ** URL
 
 ---

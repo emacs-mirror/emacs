@@ -368,7 +368,7 @@ used to cache connection properties of the local machine."
    (let ((hash (gethash key tramp-cache-data))
 	 properties)
      (when (hash-table-p hash)
-       (maphash (lambda (x _y) (add-to-list 'properties x 'append)) hash))
+       (maphash (lambda (x _y) (push x properties)) hash))
      properties))
   (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
@@ -417,7 +417,7 @@ used to cache connection properties of the local machine."
 	 (when (and (tramp-file-name-p key)
 		    (null (tramp-file-name-localname key))
 		    (tramp-connection-property-p key "process-buffer"))
-	   (add-to-list 'result key)))
+	   (push key result)))
        tramp-cache-data)
       result))
 
