@@ -1,8 +1,9 @@
-;;; battery.el --- display battery status information
+;;; battery.el --- display battery status information  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
 
 ;; This file is part of GNU Emacs.
@@ -22,12 +23,14 @@
 
 ;;; Commentary:
 
-;; There is at present support for GNU/Linux, macOS and Windows.  This
-;; library supports UPower (https://upower.freedesktop.org) via D-Bus
-;; API or the `/proc/apm' file format of Linux version 1.3.58 or newer
-;; and the `/proc/acpi/' directory structure of Linux 2.4.20 and 2.6.
-;; Darwin (macOS) is supported by using the `pmset' program.  Windows
-;; is supported by the GetSystemPowerStatus API call.
+;; There is at present support for GNU/Linux, macOS, and Windows.
+;; This library supports:
+;; - UPower (https://upower.freedesktop.org) via D-Bus API.
+;; - the `/sys/class/power_supply/' files of Linux >= 2.6.39.
+;; - the `/proc/acpi/' directory structure of Linux 2.4.20 and 2.6.
+;; - the `/proc/apm' file format of Linux version 1.3.58 or newer.
+;; - Darwin (macOS) by using the `pmset' program.
+;; - Windows via the GetSystemPowerStatus API call.
 
 ;;; Code:
 
@@ -45,16 +48,14 @@
 Use `battery-upower-device-list' to list all available UPower devices.
 If set to nil, then autodetect `:battery' device."
   :version "28.1"
-  :type '(choice string (const :tag "Autodetect" nil))
-  :group 'battery)
+  :type '(choice string (const :tag "Autodetect" nil)))
 
 (defcustom battery-upower-line-power-device nil
   "UPower device of the `:line-power' type.
 Use `battery-upower-device-list' to list all available UPower devices.
 If set to nil, then autodetect `:battery' device."
   :version "28.1"
-  :type '(choice string (const :tag "Autodetect" nil))
-  :group 'battery)
+  :type '(choice string (const :tag "Autodetect" nil)))
 
 (defconst battery-upower-dbus-service "org.freedesktop.UPower"
   "Well-known UPower service name for the D-Bus system.")
@@ -101,8 +102,7 @@ Its cons cells are of the form
 
 CONVERSION is the character code of a \"conversion specification\"
 introduced by a `%' character in a control string."
-  :type '(choice (const nil) function)
-  :group 'battery)
+  :type '(choice (const nil) function))
 
 (defcustom battery-echo-area-format
   "Power %L, battery %B (%p%% load, remaining time %t)"
@@ -122,8 +122,7 @@ string are substituted as defined by the current value of the variable
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
-  :type '(choice string (const nil))
-  :group 'battery)
+  :type '(choice string (const nil)))
 
 (defvar battery-mode-line-string nil
   "String to display in the mode line.")
@@ -132,8 +131,7 @@ string are substituted as defined by the current value of the variable
 (defcustom battery-mode-line-limit 100
   "Percentage of full battery load below which display battery status."
   :version "24.1"
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
@@ -156,25 +154,21 @@ string are substituted as defined by the current value of the variable
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
-  :type '(choice string (const nil))
-  :group 'battery)
+  :type '(choice string (const nil)))
 
 (defcustom battery-update-interval 60
   "Seconds after which the battery status will be updated."
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defcustom battery-load-low 25
   "Upper bound of low battery load percentage.
 A battery load percentage below this number is considered low."
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defcustom battery-load-critical 10
   "Upper bound of critical battery load percentage.
 A battery load percentage below this number is considered critical."
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defvar battery-update-timer nil
   "Interval timer object.")
@@ -198,7 +192,7 @@ The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
 The mode line is be updated every `battery-update-interval'
 seconds."
-  :global t :group 'battery
+  :global t
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
   (and battery-update-timer (cancel-timer battery-update-timer))
