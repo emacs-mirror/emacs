@@ -1440,7 +1440,6 @@ of files from Macintosh, Microsoft, and Unix platforms.
 * Compiler error messages::
 * Indenting switch statements::
 * Customizing C and C++ indentation::
-* Horizontal scrolling::
 * Overwrite mode::
 * Turning off beeping::
 * Turning the volume down::
@@ -2123,23 +2122,6 @@ Java sources, etc.  If you want the same customizations to be in
 effect in @emph{all} languages supported by @code{cc-mode}, use
 @code{c-mode-common-hook}.
 
-@node Horizontal scrolling
-@section How can I make Emacs automatically scroll horizontally?
-@cindex @code{hscroll-mode}
-@cindex Horizontal scrolling
-@cindex Scrolling horizontally
-
-In Emacs 21 and later, this is on by default: if the variable
-@code{truncate-lines} is non-@code{nil} in the current buffer, Emacs
-automatically scrolls the display horizontally when point moves off the
-left or right edge of the window.
-
-Note that this is overridden by the variable
-@code{truncate-partial-width-windows} if that variable is non-@code{nil}
-and the current buffer is not full-frame width.
-
-In Emacs 20, use @code{hscroll-mode}.
-
 @node Overwrite mode
 @section How do I make Emacs ``typeover'' or ``overwrite'' instead of inserting?
 @cindex @key{Insert}
@@ -2305,9 +2287,9 @@ to investigate @file{cpp.el}, which is distributed with Emacs.
 @cindex Commands, repeating many times
 @cindex @code{.}, equivalent to @code{vi} command
 
-As of Emacs 20.3, there is indeed a @code{repeat} command (@kbd{C-x z})
-that repeats the last command.  If you preface it with a prefix
-argument, the prefix arg is applied to the command.
+Use the @code{repeat} command (@kbd{C-x z}) to repeat the last
+command.  If you preface it with a prefix argument, the prefix arg is
+applied to the command.
 
 You can also type @kbd{C-x @key{ESC} @key{ESC}}
 (@code{repeat-complex-command}) to reinvoke commands that used the
@@ -2533,9 +2515,8 @@ To avoid seeing backup files (and other ``uninteresting'' files) in Dired,
 load @code{dired-x} by adding the following to your @file{.emacs} file:
 
 @lisp
-(add-hook 'dired-load-hook
-          (lambda ()
-           (require 'dired-x)))
+(with-eval-after-load 'dired
+  (require 'dired-x))
 @end lisp
 
 With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.
@@ -2821,9 +2802,9 @@ Alternatively, use the following Lisp form in your @file{.emacs}:
 @cindex Microsoft files, editing
 @cindex Windows files, editing
 
-As of Emacs 20, detection and handling of MS-DOS (and Windows) files is
-performed transparently.  You can open MS-DOS files on a Unix system,
-edit it, and save it without having to worry about the file format.
+Detection and handling of MS-DOS (and Windows) files is performed
+transparently.  You can open MS-DOS files on a Unix system, edit it,
+and save it without having to worry about the file format.
 
 When editing an MS-DOS style file, the mode line will indicate that it
 is a DOS file.  On Unix and GNU/Linux systems, and also on a Macintosh,
@@ -3087,8 +3068,8 @@ begun}.
 @cindex Ignored X resources
 @cindex @file{.Xdefaults}
 
-As of version 19, Emacs searches for X resources in the files specified
-by the following environment variables:
+Emacs searches for X resources in the files specified by the following
+environment variables:
 
 @itemize @bullet
 

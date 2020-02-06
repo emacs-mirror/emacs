@@ -1299,6 +1299,17 @@ emacs-devel mailing list}.
 @end ifhtml
 You can ask for suggested projects or suggest your own ideas.
 
+If you have a feature request or a suggestion for how to improve
+Emacs, the best place to send it is to
+@ifnothtml
+@email{bug-gnu-emacs@@gnu.org}
+@end ifnothtml
+@ifhtml
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}
+@end ifhtml
+.  Please explain as clearly as possible what change you would like to
+see, and why and how you think it would improve Emacs.
+
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact
 @ifnothtml

@@ -430,7 +430,7 @@ OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
-OPTION_DEFAULT_OFF([cairo],[compile with Cairo drawing])
+OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([json], [don't compile with native JSON support])
@@ -461,7 +461,7 @@ OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
-OPTION_DEFAULT_ON([modules],[compile with dynamic modules support])
+OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
@@ -882,11 +882,6 @@ for func in $ac_func_list; do
   test $func = pthread_sigmask || AS_VAR_APPEND([funcs], [" $func"])
 done
 ac_func_list=$funcs
-# Use the system putenv even if it lacks GNU features, as we don't need them,
-# and the gnulib replacement runs afoul of a FreeBSD 10.1 bug; see Bug#19874.
-AC_CHECK_FUNCS_ONCE([putenv])
-AC_DEFUN([gl_FUNC_PUTENV],
-  [test "$ac_cv_func_putenv" = yes || REPLACE_PUTENV=1])
 # Emacs does not use the wchar or wctype-h modules.
 AC_DEFUN([gt_TYPE_WINT_T],
   [GNULIB_OVERRIDES_WINT_T=0
@@ -1508,6 +1503,7 @@ case "$opsys" in
    UNEXEC_OBJ=unexelf.o
    ;;
 esac
+AC_SUBST(UNEXEC_OBJ)
 
 LD_SWITCH_SYSTEM=
 test "$with_unexec" = no || case "$opsys" in
@@ -1561,8 +1557,6 @@ C_SWITCH_MACHINE=
 test $with_unexec = yes &&
 case $canonical in
  alpha*)
-  AC_CHECK_DECL([__ELF__])
-  if test "$ac_cv_have_decl___ELF__" = "yes"; then
     ## With ELF, make sure that all common symbols get allocated to in the
     ## data section.  Otherwise, the dump of temacs may miss variables in
     ## the shared library that have been initialized.  For example, with
@@ -1573,17 +1567,9 @@ case $canonical in
     else
       AC_MSG_ERROR([Non-GCC compilers are not supported.])
     fi
-  else
-      dnl This was the unexalpha.c case.  Removed in 24.1, 2010-07-24,
-      dnl albeit under the mistaken assumption that said file
-      dnl was no longer used.
-      AC_MSG_ERROR([Non-ELF systems are not supported since Emacs 24.1.])
-  fi
   ;;
 esac
 AC_SUBST(C_SWITCH_MACHINE)
-
-AC_SUBST(UNEXEC_OBJ)
 
 C_SWITCH_SYSTEM=
 ## Some programs in src produce warnings saying certain subprograms
@@ -1767,7 +1753,7 @@ AC_CHECK_HEADERS_ONCE(
   sys/sysinfo.h
   coff.h pty.h
   sys/resource.h
-  sys/utsname.h pwd.h utmp.h util.h sys/prctl.h)
+  sys/utsname.h pwd.h utmp.h util.h)
 
 AC_CACHE_CHECK([for ADDR_NO_RANDOMIZE],
   [emacs_cv_personality_addr_no_randomize],
@@ -2050,7 +2036,7 @@ NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
   if test "$with_toolkit_scroll_bars" = "no"; then
-    AC_MSG_ERROR([Non-toolkit scroll bars are not implemented for Nextstep.])
+    AC_MSG_WARN([Non-toolkit scroll bars are not implemented for Nextstep.])
   fi
 
   window_system=nextstep
@@ -3309,14 +3295,13 @@ if test "${HAVE_X11}" = "yes"; then
     EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
     if test $HAVE_CAIRO = yes; then
       AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
+      CFLAGS="$CFLAGS $CAIRO_CFLAGS"
+      LIBS="$LIBS $CAIRO_LIBS"
+      AC_SUBST(CAIRO_CFLAGS)
+      AC_SUBST(CAIRO_LIBS)
     else
-      AC_MSG_ERROR([cairo requested but not found.])
+      AC_MSG_WARN([cairo requested but not found.])
     fi
-
-    CFLAGS="$CFLAGS $CAIRO_CFLAGS"
-    LIBS="$LIBS $CAIRO_LIBS"
-    AC_SUBST(CAIRO_CFLAGS)
-    AC_SUBST(CAIRO_LIBS)
   fi
 fi
 
@@ -3382,8 +3367,6 @@ if test "${HAVE_X11}" = "yes"; then
       fi                          # "$HAVE_XFT" != no
     fi                            # "x${with_xft}" != "xno"
 
-    ## We used to allow building with FreeType and without Xft.
-    ## However, the ftx font backend driver is not in good shape.
     if test "$HAVE_XFT" != "yes"; then
        dnl For the "Does Emacs use" message at the end.
        HAVE_XFT=no
@@ -4192,12 +4175,50 @@ pthread_sigmask strsignal setitimer timer_getoverrun \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
-cfmakeraw cfsetspeed __executable_start log2 prctl)
+cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np)
 LIBS=$OLD_LIBS
+
+if test "$ac_cv_func_pthread_setname_np" = "yes"; then
+  AC_CACHE_CHECK(
+   [whether pthread_setname_np takes a single argument],
+   [emacs_cv_pthread_setname_np_1arg],
+   [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM(
+       [[#include <pthread.h>]],
+       [[pthread_setname_np ("a");]])],
+     [emacs_cv_pthread_setname_np_1arg=yes],
+     [emacs_cv_pthread_setname_np_1arg=no])])
+  if test "$emacs_cv_pthread_setname_np_1arg" = "yes"; then
+    AC_DEFINE(
+      HAVE_PTHREAD_SETNAME_NP_1ARG, 1,
+      [Define to 1 if pthread_setname_np takes a single argument.])
+  else
+    AC_CACHE_CHECK(
+     [whether pthread_setname_np takes three arguments],
+     [emacs_cv_pthread_setname_np_3arg],
+     [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM(
+         [[#include <pthread.h>]],
+         [[pthread_setname_np (0, "%s", "a");]])],
+       [emacs_cv_pthread_setname_np_3arg=yes],
+       [emacs_cv_pthread_setname_np_3arg=no])])
+     if test "$emacs_cv_pthread_setname_np_3arg" = "yes"; then
+       AC_DEFINE(
+         HAVE_PTHREAD_SETNAME_NP_3ARG, 1,
+         [Define to 1 if pthread_setname_np takes three arguments.])
+     fi
+  fi
+fi
 
 dnl No need to check for posix_memalign if aligned_alloc works.
 AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
 AC_CHECK_DECLS([aligned_alloc], [], [], [[#include <stdlib.h>]])
+
+case $with_unexec,$canonical in
+  yes,alpha*)
+    AC_CHECK_DECL([__ELF__], [],
+      [AC_MSG_ERROR([Non-ELF systems are not supported on this platform.])]);;
+esac
 
 # Dump loading
 AC_CHECK_FUNCS([posix_madvise])
@@ -5267,9 +5288,9 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   if test "$HAVE_CAIRO" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o ftcrfont.o"
   elif test "$HAVE_XFT" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o"
   elif test "$HAVE_FREETYPE" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+    FONT_OBJ="$FONT_OBJ ftfont.o"
   fi
 fi
 if test "${HAVE_HARFBUZZ}" = "yes" ; then
@@ -5746,9 +5767,9 @@ case $opsys,$emacs_uname_r in
     AC_MSG_WARN([[building Emacs on Cygwin 1.5 is not supported.]])
            echo
 	   ;;
-  cygwin,3.0.[[0-7]]'('*)
+  cygwin,3.0.[[0-7]]'('* | cygwin,3.1.[[0-2]]'('*)
     AC_DEFINE([HAVE_CYGWIN_O_PATH_BUG], 1,
-      [Define to 1 if opening a FIFO with O_PATH causes a hang.]);;
+      [Define to 1 if opening a FIFO, socket, or symlink with O_PATH is buggy.]);;
 esac
 
 # Remove any trailing slashes in these variables.
@@ -5883,6 +5904,21 @@ you can continue to support by using '$0 --with-pop'.])
       esac
       AC_MSG_NOTICE([You might want to $emacs_fix_movemail.]);;
   esac
+fi
+
+if test "${HAVE_XFT}" = yes; then
+  AC_MSG_WARN([This configuration uses libXft, which has a number of
+    font rendering issues, and is being considered for removal in the
+    next release of Emacs.  Please consider using Cairo graphics +
+    HarfBuzz text shaping instead (they are auto-detected if the
+    relevant development headers are installed).])
+fi
+
+if test "${HAVE_CAIRO}" = "yes" && test "${HAVE_HARFBUZZ}" = no; then
+  AC_MSG_WARN([This configuration uses the Cairo graphics library,
+    but not the HarfBuzz font shaping library.  We recommend the use
+    of HarfBuzz when using Cairo, please install HarfBuzz development
+    packages.])
 fi
 
 # Let plain 'make' work.

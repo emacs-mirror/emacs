@@ -371,6 +371,10 @@ struct w32_output
   /* Non-hourglass cursor that is currently active.  */
   HCURSOR current_cursor;
 
+  /* The window style for this frame.  Set up when the frame is
+     created and updated when adding/removing decorations in
+     w32_set_undecorated.  Used by w32_set_window_size to adjust the
+     frame's window rectangle.  */
   DWORD dwStyle;
 
   /* This is the Emacs structure for the display this frame is on.  */

@@ -231,7 +231,7 @@ are generated if and only if they are also in `message-draft-headers'."
 (deffoo nndraft-request-move-article (article group server accept-form
 				      &optional last move-is-internal)
   (nndraft-possibly-change-group group)
-  (let ((buf (get-buffer-create " *nndraft move*"))
+  (let ((buf (gnus-get-buffer-create " *nndraft move*"))
 	result)
     (and
      (nndraft-request-article article group server)
@@ -325,7 +325,7 @@ are generated if and only if they are also in `message-draft-headers'."
   (save-excursion
     (prog1
 	(progn
-	  (set-buffer (get-buffer-create " *draft tmp*"))
+	  (set-buffer (gnus-get-buffer-create " *draft tmp*"))
 	  (setq buffer-file-name file)
 	  (make-auto-save-file-name))
       (kill-buffer (current-buffer)))))

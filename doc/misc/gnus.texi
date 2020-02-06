@@ -1563,12 +1563,6 @@ secondary select methods.
 
 @table @code
 
-@item gnus-load-hook
-@vindex gnus-load-hook
-A hook run while Gnus is being loaded.  Note that this hook will
-normally be run just once in each Emacs session, no matter how many
-times you start Gnus.
-
 @item gnus-before-startup-hook
 @vindex gnus-before-startup-hook
 A hook called as the first thing when Gnus is started.
@@ -27910,7 +27904,7 @@ The revised Gnus @acronym{FAQ} is included in the manual,
 @acronym{TLS} wrapper shipped with Gnus
 
 @acronym{TLS}/@acronym{SSL} is now supported in @acronym{IMAP} and
-@acronym{NNTP} via @file{tls.el} and GnuTLS.
+@acronym{NNTP} via GnuTLS.
 
 @item
 Improved anti-spam features.

@@ -1353,11 +1353,11 @@ Return t if the file exists and loads successfully.  */)
              ignores suffix order due to load_prefer_newer.  */
           if (!load_prefer_newer && is_elc)
             {
-              result = stat (SSDATA (efound), &s1);
+	      result = emacs_fstatat (AT_FDCWD, SSDATA (efound), &s1, 0);
               if (result == 0)
                 {
                   SSET (efound, SBYTES (efound) - 1, 0);
-                  result = stat (SSDATA (efound), &s2);
+		  result = emacs_fstatat (AT_FDCWD, SSDATA (efound), &s2, 0);
                   SSET (efound, SBYTES (efound) - 1, 'c');
                 }
 
@@ -5070,7 +5070,7 @@ that are loaded before your customizations are read!  */);
 If nil, `load' and `read' raise errors when encountering some
 old-style variants of backquote and comma.  If non-nil, these
 constructs are always interpreted as described in the Info node
-`(elisp)Backquotes', even if that interpretation is incompatible with
+`(elisp)Backquote', even if that interpretation is incompatible with
 previous versions of Emacs.  Setting this variable to non-nil makes
 Emacs compatible with the behavior planned for Emacs 28.  In Emacs 28,
 this variable will become obsolete.  */);

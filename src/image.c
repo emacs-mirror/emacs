@@ -1242,6 +1242,10 @@ prepare_image_for_display (struct frame *f, struct image *img)
       if (img->cr_data == NULL || (cairo_pattern_get_type (img->cr_data)
 				   != CAIRO_PATTERN_TYPE_SURFACE))
 	{
+	  /* Fill in the background/background_transparent field while
+	     we have img->pixmap->data/img->mask->data.  */
+	  IMAGE_BACKGROUND (img, f, img->pixmap);
+	  IMAGE_BACKGROUND_TRANSPARENT (img, f, img->mask);
 	  cr_put_image_to_cr_data (img);
 	  if (img->cr_data == NULL)
 	    {
@@ -1616,7 +1620,7 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
 static void
 uncache_image (struct frame *f, Lisp_Object spec)
 {
-  struct image *img = search_image_cache (f, spec, sxhash (spec, 0));
+  struct image *img = search_image_cache (f, spec, sxhash (spec));
   if (img)
     {
       free_image (f, img);
@@ -2281,7 +2285,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
   eassert (valid_image_p (spec));
 
   /* Look up SPEC in the hash table of the image cache.  */
-  hash = sxhash (spec, 0);
+  hash = sxhash (spec);
   img = search_image_cache (f, spec, hash);
   if (img && img->load_failed_p)
     {
@@ -6231,7 +6235,7 @@ pbm_load (struct frame *f, struct image *img)
 				 PNG
  ***********************************************************************/
 
-#if defined (HAVE_PNG) || defined (HAVE_NS) || defined (USE_CAIRO)
+#if defined (HAVE_PNG) || defined (HAVE_NS)
 
 /* Indices of image specification fields in png_format, below.  */
 
@@ -6282,10 +6286,10 @@ png_image_p (Lisp_Object object)
   return fmt[PNG_FILE].count + fmt[PNG_DATA].count == 1;
 }
 
-#endif /* HAVE_PNG || HAVE_NS || USE_CAIRO */
+#endif /* HAVE_PNG || HAVE_NS */
 
 
-#if (defined HAVE_PNG && !defined HAVE_NS) || defined USE_CAIRO
+#if defined HAVE_PNG && !defined HAVE_NS
 
 # ifdef WINDOWSNT
 /* PNG library details.  */
@@ -10160,7 +10164,7 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qsvg), svg_image_p, svg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_svg_functions) },
 #endif
-#if defined HAVE_PNG || defined HAVE_NS || defined USE_CAIRO
+#if defined HAVE_PNG || defined HAVE_NS
  { SYMBOL_INDEX (Qpng), png_image_p, png_load, image_clear_image,
    IMAGE_TYPE_INIT (init_png_functions) },
 #endif

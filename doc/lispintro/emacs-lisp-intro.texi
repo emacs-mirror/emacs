@@ -929,7 +929,7 @@ GNU Emacs Lisp is largely inspired by Maclisp, which was written at MIT
 in the 1960s.  It is somewhat inspired by Common Lisp, which became a
 standard in the 1980s.  However, Emacs Lisp is much simpler than Common
 Lisp.  (The standard Emacs distribution contains an optional extensions
-file, @file{cl.el}, that adds many Common Lisp features to Emacs Lisp.)
+file, @file{cl-lib.el}, that adds many Common Lisp features to Emacs Lisp.)
 
 @node Note for Novices
 @unnumberedsec A Note for Novices

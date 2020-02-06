@@ -1096,6 +1096,8 @@ class-arrows         Object Arrows with class property"
   "Normal hook.  Executed when idlwave.el is loaded."
   :group 'idlwave-misc
   :type 'hook)
+(make-obsolete-variable 'idlwave-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defvar idlwave-experimental nil
   "Non-nil means turn on a few experimental features.
@@ -1870,7 +1872,6 @@ The main features of this mode are
 
 8. Hooks
    -----
-   Loading idlwave.el runs `idlwave-load-hook'.
    Turning on `idlwave-mode' runs `idlwave-mode-hook'.
 
 9. Documentation and Customization

@@ -701,10 +701,7 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 (defun hexl-end-of-line ()
   "Goto end of line in Hexl mode."
   (interactive)
-  (hexl-goto-address (let ((address (logior (hexl-current-address) 15)))
-		       (if (> address hexl-max-address)
-			   (setq address hexl-max-address))
-		       address)))
+  (hexl-goto-address (min hexl-max-address (logior (hexl-current-address) 15))))
 
 (defun hexl-scroll-down (arg)
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
@@ -749,7 +746,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 1KB boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 1023))))
+   (min hexl-max-address (logior (hexl-current-address) 1023))))
 
 (defun hexl-beginning-of-512b-page ()
   "Go to beginning of 512 byte boundary."
@@ -760,7 +757,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 512 byte boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 511))))
+   (min hexl-max-address (logior (hexl-current-address) 511))))
 
 (defun hexl-quoted-insert (arg)
   "Read next input character and insert it.
@@ -935,7 +932,7 @@ CH must be a unibyte character whose value is between 0 and 255."
 	(goto-char ascii-position)
 	(delete-char 1)
 	(insert (hexl-printable-character ch))
-	(or (eq address hexl-max-address)
+	(or (= address hexl-max-address)
 	    (setq address (1+ address)))
 	(hexl-goto-address address)
 	(if at-ascii-position

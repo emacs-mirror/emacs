@@ -153,10 +153,9 @@ See `tramp-actions-before-shell' for more info.")
   "Invoke the SUDOEDIT handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-run-real-handler operation args))))
+  (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) args))
+    (tramp-run-real-handler operation args)))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -248,7 +247,7 @@ absolute file names."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(if (or (and (file-remote-p filename) (not t1))
@@ -265,10 +264,8 @@ absolute file names."
 	      v 0 (format "%s %s to %s" msg-operation filename newname)
 	    (unless (tramp-sudoedit-send-command
 		     v sudoedit-operation
-		     (tramp-compat-file-name-unquote
-		      (tramp-compat-file-local-name filename))
-		     (tramp-compat-file-name-unquote
-		      (tramp-compat-file-local-name newname)))
+		     (tramp-unquote-file-local-name filename)
+		     (tramp-unquote-file-local-name newname))
 	      (tramp-error
 	       v 'file-error
 	       "Error %s `%s' `%s'" msg-operation filename newname))))
@@ -305,8 +302,8 @@ absolute file names."
   (filename newname &optional ok-if-already-exists keep-date
    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
 	  (tramp-tramp-file-p newname))
@@ -508,21 +505,21 @@ the result will be a local, non-Tramp, file name."
       (tramp-message v 5 "file system info: %s" localname)
       (when (tramp-sudoedit-send-command
 	     v "df" "--block-size=1" "--output=size,used,avail"
-	     (tramp-compat-file-name-unquote localname)))
-      (with-current-buffer (tramp-get-connection-buffer v)
-	(goto-char (point-min))
-	(forward-line)
-	(when (looking-at
-	       (eval-when-compile
-		 (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)")))
-	  (list (string-to-number (match-string 1))
-		;; The second value is the used size.  We need the
-		;; free size.
-		(- (string-to-number (match-string 1))
-		   (string-to-number (match-string 2)))
-		(string-to-number (match-string 3))))))))
+	     (tramp-compat-file-name-unquote localname))
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (forward-line)
+	  (when (looking-at
+		 (eval-when-compile
+		   (concat "[[:space:]]*\\([[:digit:]]+\\)"
+			   "[[:space:]]+\\([[:digit:]]+\\)"
+			   "[[:space:]]+\\([[:digit:]]+\\)")))
+	    (list (string-to-number (match-string 1))
+		  ;; The second value is the used size.  We need the
+		  ;; free size.
+		  (- (string-to-number (match-string 1))
+		     (string-to-number (match-string 2)))
+		  (string-to-number (match-string 3)))))))))
 
 (defun tramp-sudoedit-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."
@@ -543,8 +540,7 @@ the result will be a local, non-Tramp, file name."
   "Like `file-truename' for Tramp files."
   ;; Preserve trailing "/".
   (funcall
-   (if (tramp-compat-directory-name-p filename)
-       #'file-name-as-directory #'identity)
+   (if (directory-name-p filename) #'file-name-as-directory #'identity)
    ;; Quote properly.
    (funcall
     (if (tramp-compat-file-name-quoted-p filename)
@@ -615,9 +611,7 @@ component is used as the target of the symlink."
       (let ((non-essential t))
 	(when (and (tramp-tramp-file-p target)
 		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target
-		(tramp-file-name-localname
-		 (tramp-dissect-file-name (expand-file-name target))))))
+	  (setq target (tramp-file-local-name (expand-file-name target)))))
 
       ;; If TARGET is still remote, quote it.
       (if (tramp-tramp-file-p target)
@@ -646,8 +640,8 @@ component is used as the target of the symlink."
 (defun tramp-sudoedit-handle-rename-file
   (filename newname &optional ok-if-already-exists)
   "Like `rename-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (setq newname (expand-file-name newname))
+  (setq filename (expand-file-name filename)
+	newname (expand-file-name newname))
   ;; At least one file a Tramp file?
   (if (or (tramp-tramp-file-p filename)
           (tramp-tramp-file-p newname))
@@ -715,8 +709,7 @@ ID-FORMAT valid values are `string' and `integer'."
        (format "%d:%d"
 	       (or uid (tramp-sudoedit-get-remote-uid v 'integer))
 	       (or gid (tramp-sudoedit-get-remote-gid v 'integer)))
-       (tramp-compat-file-name-unquote
-	(tramp-compat-file-local-name filename)))))
+       (tramp-unquote-file-local-name filename))))
 
 (defun tramp-sudoedit-handle-write-region
   (start end filename &optional append visit lockname mustbenew)

@@ -168,6 +168,8 @@ deactivated."
   :tag "Load Hook"
   :group 'cwarn
   :type 'hook)
+(make-obsolete-variable 'cwarn-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 ;;}}}
 ;;{{{ The modes

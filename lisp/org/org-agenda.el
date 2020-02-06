@@ -8981,7 +8981,6 @@ fold drawers."
 	 (narrow-to-region (org-entry-beginning-position)
 			   (org-entry-end-position))
 	 (org-show-all '(drawers))))
-      (when arg )
       (setq org-agenda-show-window (selected-window)))
     (select-window win)))
 

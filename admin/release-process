@@ -46,18 +46,22 @@ See admin/gitmerge.el.
 Emacs uses the "blocking" feature of Debbugs for bugs that need to be
 addressed in the next release.
 
-Currently, bug#21966 is the tracking bug for release of 25.2 and
-bug#24655 is the tracking bug for release 26.1.  Say bug#123 needs
-to be fixed for Emacs 26.1.  Send a message to control@debbugs.gnu.org
+Currently, bug#39200 is the tracking bug for release of 27.1 and
+bug#39202 is the tracking bug for release 28.1.  Say bug#123 needs
+to be fixed for Emacs 27.1.  Send a message to control@debbugs.gnu.org
 that says:
 
-   block 24655 by 123
+   block 39200 by 123
 
 Change "block" to "unblock" to remove a bug from the list.  Closed
 bugs are not listed as blockers, so you do not need to explicitly
 unblock one that has been closed.  You may need to force an update of
 the tracking bug with ctrl-f5/shift-reload to see the latest version.
 
+If you use the debbugs package from GNU ELPA, you can apply the
+following form to see all bugs which block a given release:
+
+  (debbugs-gnu-emacs-release-blocking-reports "27.1")
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 

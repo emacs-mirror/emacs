@@ -251,19 +251,23 @@ The value should be nil on displays where the face
 			 (((type tty)
 			   (class color)
 			   (background dark))
-			  (:background "dark blue"))
+			  (:background "dark blue"
+			   :extend t))
 			 (((class color)
 			   (background dark))
 			  (:foreground "light yellow"
-			   :background "dark green"))
+			   :background "dark green"
+			   :extend t))
 			 (((type tty)
 			   (class color)
 			   (background light))
-			  (:foreground "dark blue"))
+			  (:foreground "dark blue"
+			   :extend t))
 			 (((class color)
 			   (background light))
 			  (:foreground "dark green"
-			   :background "light yellow"))
+			   :background "light yellow"
+			   :extend t))
 			 (t
 			  ()))
   "Face for extracted buffers."

@@ -512,11 +512,11 @@ function to control that."
 	(let ((src (default-value 'post-self-insert-hook)))
 	  (while src
 	    (unless (memq (car src) c--unsafe-post-self-insert-hook-functions)
-	      (add-hook 'dest (car src) t)) ; Preserve the order of the functions.
+	      (push (car src) dest))
 	    (setq src (cdr src)))))
-       (t (add-hook 'dest (car src) t))) ; Preserve the order of the functions.
+       (t (push (car src) dest)))
       (setq src (cdr src)))
-    (run-hooks 'dest)))
+    (mapc #'funcall (nreverse dest)))) ; Preserve the order of the functions.
 
 (defmacro c--call-post-self-insert-hook-more-safely ()
   ;; Call post-self-insert-hook, if such exists.  See comment for
@@ -2023,6 +2023,23 @@ other top level construct with a brace block."
 	     (c-forward-token-2)
 	     (c-backward-syntactic-ws)
 	     (point))))
+
+	 ((and (c-major-mode-is 'objc-mode) (looking-at "[-+]\\s-*("))     ; Objective-C method
+	  ;; Move to the beginning of the method name.
+	  (c-forward-token-2 2 t)
+	  (let* ((class
+		  (save-excursion
+		    (when (re-search-backward
+			   "^\\s-*@\\(implementation\\|class\\|interface\\)\\s-+\\(\\sw+\\)" nil t)
+		      (match-string-no-properties 2))))
+		 (limit (save-excursion (re-search-forward "[;{]" nil t)))
+		 (method (when (re-search-forward "\\(\\sw+:?\\)" limit t)
+			   (match-string-no-properties 1))))
+	    (when (and class method)
+	      ;; Add the parameter labels onto name.  They always end in ':'.
+	      (while (re-search-forward "\\(\\sw+:\\)" limit 1)
+		(setq method (concat method (match-string-no-properties 1))))
+	      (concat "[" class " " method "]"))))
 
 	 (t				; Normal function or initializer.
 	  (when (looking-at c-defun-type-name-decl-key) ; struct, etc.

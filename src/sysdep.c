@@ -312,8 +312,8 @@ get_current_dir_name_or_unreachable (void)
   if (pwd
       && (pwdlen = strnlen (pwd, bufsize_max)) < bufsize_max
       && IS_DIRECTORY_SEP (pwd[pwdlen && IS_DEVICE_SEP (pwd[1]) ? 2 : 0])
-      && stat (pwd, &pwdstat) == 0
-      && stat (".", &dotstat) == 0
+      && emacs_fstatat (AT_FDCWD, pwd, &pwdstat, 0) == 0
+      && emacs_fstatat (AT_FDCWD, ".", &dotstat, 0) == 0
       && dotstat.st_ino == pwdstat.st_ino
       && dotstat.st_dev == pwdstat.st_dev)
     {
@@ -2449,7 +2449,27 @@ emacs_abort (void)
 }
 #endif
 
-/* Open FILE for Emacs use, using open flags OFLAG and mode MODE.
+/* Assuming the directory DIRFD, store information about FILENAME into *ST,
+   using FLAGS to control how the status is obtained.
+   Do not fail merely because fetching info was interrupted by a signal.
+   Allow the user to quit.
+
+   The type of ST is void * instead of struct stat * because the
+   latter type would be problematic in lisp.h.  Some platforms may
+   play tricks like "#define stat stat64" in <sys/stat.h>, and lisp.h
+   does not include <sys/stat.h>.  */
+
+int
+emacs_fstatat (int dirfd, char const *filename, void *st, int flags)
+{
+  int r;
+  while ((r = fstatat (dirfd, filename, st, flags)) != 0 && errno == EINTR)
+    maybe_quit ();
+  return r;
+}
+
+/* Assuming the directory DIRFD, open FILE for Emacs use,
+   using open flags OFLAGS and mode MODE.
    Use binary I/O on systems that care about text vs binary I/O.
    Arrange for subprograms to not inherit the file descriptor.
    Prefer a method that is multithread-safe, if available.
@@ -2457,15 +2477,21 @@ emacs_abort (void)
    Allow the user to quit.  */
 
 int
-emacs_open (const char *file, int oflags, int mode)
+emacs_openat (int dirfd, char const *file, int oflags, int mode)
 {
   int fd;
   if (! (oflags & O_TEXT))
     oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
-  while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
+  while ((fd = openat (dirfd, file, oflags, mode)) < 0 && errno == EINTR)
     maybe_quit ();
   return fd;
+}
+
+int
+emacs_open (char const *file, int oflags, int mode)
+{
+  return emacs_openat (AT_FDCWD, file, oflags, mode);
 }
 
 /* Open FILE as a stream for Emacs use, with mode MODE.

@@ -1069,7 +1069,7 @@ DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
    with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR,
+  PVEC_NORMAL_VECTOR,	/* Should be first, for sxhash_obj.  */
   PVEC_FREE,
   PVEC_BIGNUM,
   PVEC_MARKER,
@@ -1094,7 +1094,7 @@ enum pvec_type
   PVEC_CONDVAR,
   PVEC_MODULE_FUNCTION,
 
-  /* These should be last, check internal_equal to see why.  */
+  /* These should be last, for internal_equal and sxhash_obj.  */
   PVEC_COMPILED,
   PVEC_CHAR_TABLE,
   PVEC_SUB_CHAR_TABLE,
@@ -3652,7 +3652,7 @@ extern bool sweep_weak_table (struct Lisp_Hash_Table *, bool);
 extern void hexbuf_digest (char *, void const *, int);
 extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
-EMACS_UINT sxhash (Lisp_Object, int);
+EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object hashfn_eql (Lisp_Object, struct Lisp_Hash_Table *);
 Lisp_Object hashfn_equal (Lisp_Object, struct Lisp_Hash_Table *);
 Lisp_Object hashfn_user_defined (Lisp_Object, struct Lisp_Hash_Table *);
@@ -3812,7 +3812,7 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 /* Defined in alloc.c.  */
 extern void *my_heap_start (void);
 extern void check_pure_size (void);
-extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
+unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);
 extern AVOID buffer_memory_full (ptrdiff_t);
@@ -3942,6 +3942,7 @@ extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
 extern void make_byte_code (struct Lisp_Vector *);
 extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
+extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
 
 /* Make an uninitialized vector for SIZE objects.  NOTE: you must
    be sure that GC cannot happen until the vector is completely
@@ -3977,9 +3978,7 @@ make_uninit_sub_char_table (int depth, int min_char)
 INLINE Lisp_Object
 make_nil_vector (ptrdiff_t size)
 {
-  Lisp_Object vec = make_uninit_vector (size);
-  memclear (XVECTOR (vec)->contents, size * word_size);
-  return vec;
+  return make_lisp_ptr (allocate_nil_vector (size), Lisp_Vectorlike);
 }
 
 extern struct Lisp_Vector *allocate_pseudovector (int, int, int,
@@ -4245,6 +4244,8 @@ extern Lisp_Object module_function_documentation
   (struct Lisp_Module_Function const *);
 extern module_funcptr module_function_address
   (struct Lisp_Module_Function const *);
+extern void *module_function_data (const struct Lisp_Module_Function *);
+extern void module_finalize_function (const struct Lisp_Module_Function *);
 extern void mark_modules (void);
 extern void init_module_assertions (bool);
 extern void syms_of_module (void);
@@ -4604,6 +4605,8 @@ extern void seed_random (void *, ptrdiff_t);
 extern void init_random (void);
 extern void emacs_backtrace (int);
 extern AVOID emacs_abort (void) NO_INLINE;
+extern int emacs_fstatat (int, char const *, void *, int);
+extern int emacs_openat (int, char const *, int, int);
 extern int emacs_open (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);

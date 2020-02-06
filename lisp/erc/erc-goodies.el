@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 
 ;; Most code is taken verbatim from erc.el, see there for the original
 ;; authors.

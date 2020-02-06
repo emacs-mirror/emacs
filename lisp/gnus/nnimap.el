@@ -1937,7 +1937,7 @@ Return the server's response to the SELECT or EXAMINE command."
 (defun nnimap-log-buffer ()
   (let ((name "*imap log*"))
     (or (get-buffer name)
-        (with-current-buffer (get-buffer-create name)
+        (with-current-buffer (gnus-get-buffer-create name)
 	  (setq-local window-point-insertion-type t)
           (current-buffer)))))
 

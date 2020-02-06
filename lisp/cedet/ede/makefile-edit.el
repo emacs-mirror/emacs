@@ -78,7 +78,8 @@
 If NEXT is non-nil, move to the next occurrence of MACRO."
   (let ((oldpt (point)))
     (when (not next) (goto-char (point-min)))
-    (if (re-search-forward (concat "^\\s-*" macro "\\s-*[+:?]?=") nil t)
+    (if (re-search-forward (concat "^\\s-*" (regexp-quote macro) "\\s-*[+:?]?=")
+			   nil t)
 	t
       (goto-char oldpt)
       nil)))

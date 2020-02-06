@@ -206,6 +206,7 @@ files.")
     ("Yoni Rabkin" "Yoni Rabkin Katzenell")
     ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
     ("Yutaka NIIBE" "NIIBE Yutaka")
+    (nil "stardiviner")
     )
   "Alist of author aliases.
 
@@ -440,6 +441,24 @@ Changes to files matching one of the regexps in this list are not listed.")
     "nt/subdirs.el"
     "config.nt"
     "nextstep/WISHLIST"
+    ;; Removed, replaced by gitmerge.el
+    "admin/bzrmerge.el"
+    ;; Removed in commit f5090b91299
+    "lib/fdatasync.c"
+    ;; Removed as obsolete
+    "nt/README-ftp-server"
+    "admin/notes/font-backend"
+    "gnus-overrides.texi"
+    "CENSORSHIP"
+    "GNU"
+    "LINUX-GNU"
+    "THE-GNU-PROJECT"
+    "WHY-FREE"
+    "MORE.STUFF"
+    "notes/font-backend"
+    ;; ada-mode has been deleted, now in GNU ELPA
+    "ada-mode.texi"
+    "GNUS-NEWS"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -752,6 +771,9 @@ Changes to files in this list are not listed.")
     "org-mac-message.el" "org-mew.el" "org-w3m.el" "org-vm.el" "org-wl.el"
     "org-mks.el" "org-remember.el" "org-xoxo.el" "org-docbook.el"
     "org-freemind.el" "ox-jsinfo.el"
+    "org-irc.el" "org-rmail.el" "org-docview.el" "org-keys.el" "org-mhe.el"
+    "org-gnus.el" "org-bibtex.el" "org-bbdb.el" "org-info.el" "org-eshell.el"
+    "ob-keys.el"
     "org-exp-blocks.el"		     ; maybe this is ob-exp now? dunno
     "org-lparse.el"
     "org-special-blocks.el" "org-taskjuggler.el"
@@ -1076,6 +1098,11 @@ in the repository.")
     ("src/module.c" . "src/emacs-module.c")
     ;; gnulib
     ("lib/strftime.c" . "lib/nstrftime.c")
+    ("test/src/regex-tests.el" . "test/src/regex-emacs-tests.el")
+    ("test/lisp/emacs-lisp/cl-tests.el" . "test/lisp/obsolete/cl-tests.el")
+    ("lisp/net/starttls.el" . "lisp/obsolete/starttls.el")
+    ("url-ns.el" . "lisp/obsolete/url-ns.el")
+    ("gnus-news.texi" . "doc/misc/gnus.texi")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")

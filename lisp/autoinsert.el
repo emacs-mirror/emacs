@@ -171,7 +171,7 @@ If this contains a %s, that will be replaced by the matching rule."
                  (mapatoms (lambda (mode)
                              (let ((name (symbol-name mode)))
                                (when (string-match "-mode$" name)
-                                 (add-to-list 'modes name)))))
+                                 (push name modes)))))
                  (sort modes 'string<)))
      (completing-read "Local variables for mode: " v1 nil t)
      " . (("

@@ -3,7 +3,8 @@
 ;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcNotify
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

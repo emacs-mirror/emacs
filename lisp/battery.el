@@ -1,8 +1,9 @@
-;;; battery.el --- display battery status information
+;;; battery.el --- display battery status information  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
 
 ;; This file is part of GNU Emacs.
@@ -22,15 +23,19 @@
 
 ;;; Commentary:
 
-;; There is at present support for GNU/Linux, macOS and Windows.  This
-;; library supports both the `/proc/apm' file format of Linux version
-;; 1.3.58 or newer and the `/proc/acpi/' directory structure of Linux
-;; 2.4.20 and 2.6.  Darwin (macOS) is supported by using the `pmset'
-;; program.  Windows is supported by the GetSystemPowerStatus API call.
+;; There is at present support for GNU/Linux, macOS, and Windows.
+;; This library supports:
+;; - UPower (https://upower.freedesktop.org) via D-Bus API.
+;; - the `/sys/class/power_supply/' files of Linux >= 2.6.39.
+;; - the `/proc/acpi/' directory structure of Linux 2.4.20 and 2.6.
+;; - the `/proc/apm' file format of Linux version 1.3.58 or newer.
+;; - Darwin (macOS) by using the `pmset' program.
+;; - Windows via the GetSystemPowerStatus API call.
 
 ;;; Code:
 
 (require 'timer)
+(require 'dbus)
 (eval-when-compile (require 'cl-lib))
 
 (defgroup battery nil
@@ -38,11 +43,22 @@
   :prefix "battery-"
   :group 'hardware)
 
-(defcustom battery-upower-device "battery_BAT1"
-  "Upower battery device name."
-  :version "26.1"
-  :type 'string
-  :group 'battery)
+(defcustom battery-upower-device nil
+  "UPower device of the `:battery' type.
+Use `battery-upower-device-list' to list all available UPower devices.
+If set to nil, then autodetect `:battery' device."
+  :version "28.1"
+  :type '(choice string (const :tag "Autodetect" nil)))
+
+(defcustom battery-upower-line-power-device nil
+  "UPower device of the `:line-power' type.
+Use `battery-upower-device-list' to list all available UPower devices.
+If set to nil, then autodetect `:battery' device."
+  :version "28.1"
+  :type '(choice string (const :tag "Autodetect" nil)))
+
+(defconst battery-upower-dbus-service "org.freedesktop.UPower"
+  "Well-known UPower service name for the D-Bus system.")
 
 (defun battery--find-linux-sysfs-batteries ()
   (let ((dirs nil))
@@ -54,7 +70,9 @@
     (nreverse dirs)))
 
 (defcustom battery-status-function
-  (cond ((and (eq system-type 'gnu/linux)
+  (cond ((dbus-ping :system battery-upower-dbus-service)
+         #'battery-upower)
+        ((and (eq system-type 'gnu/linux)
 	      (file-readable-p "/proc/apm"))
 	 #'battery-linux-proc-apm)
 	((and (eq system-type 'gnu/linux)
@@ -84,8 +102,7 @@ Its cons cells are of the form
 
 CONVERSION is the character code of a \"conversion specification\"
 introduced by a `%' character in a control string."
-  :type '(choice (const nil) function)
-  :group 'battery)
+  :type '(choice (const nil) function))
 
 (defcustom battery-echo-area-format
   "Power %L, battery %B (%p%% load, remaining time %t)"
@@ -105,8 +122,7 @@ string are substituted as defined by the current value of the variable
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
-  :type '(choice string (const nil))
-  :group 'battery)
+  :type '(choice string (const nil)))
 
 (defvar battery-mode-line-string nil
   "String to display in the mode line.")
@@ -115,8 +131,7 @@ string are substituted as defined by the current value of the variable
 (defcustom battery-mode-line-limit 100
   "Percentage of full battery load below which display battery status."
   :version "24.1"
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
@@ -139,25 +154,21 @@ string are substituted as defined by the current value of the variable
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
-  :type '(choice string (const nil))
-  :group 'battery)
+  :type '(choice string (const nil)))
 
 (defcustom battery-update-interval 60
   "Seconds after which the battery status will be updated."
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defcustom battery-load-low 25
   "Upper bound of low battery load percentage.
 A battery load percentage below this number is considered low."
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defcustom battery-load-critical 10
   "Upper bound of critical battery load percentage.
 A battery load percentage below this number is considered critical."
-  :type 'integer
-  :group 'battery)
+  :type 'integer)
 
 (defvar battery-update-timer nil
   "Interval timer object.")
@@ -181,7 +192,7 @@ The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
 The mode line is be updated every `battery-update-interval'
 seconds."
-  :global t :group 'battery
+  :global t
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
   (and battery-update-timer (cancel-timer battery-update-timer))
@@ -537,17 +548,68 @@ The following %-sequences are provided:
                     (t "N/A"))))))
 
 
-(declare-function dbus-get-property "dbus.el"
-                  (bus service path interface property))
-
 ;;; `upowerd' interface.
-(defsubst battery-upower-prop (pname &optional device)
+(defconst battery-upower-dbus-interface "org.freedesktop.UPower"
+  "The interface to UPower.
+See URL `https://upower.freedesktop.org/docs/'.")
+
+(defconst battery-upower-dbus-path "/org/freedesktop/UPower"
+  "D-Bus path to talk to UPower service.")
+
+(defconst battery-upower-dbus-device-interface
+  (concat battery-upower-dbus-interface ".Device")
+  "The Device interface of the UPower.
+See URL `https://upower.freedesktop.org/docs/Device.html'.")
+
+(defconst battery-upower-dbus-device-path
+  (concat battery-upower-dbus-path "/devices")
+  "D-Bus path to talk to devices part of the UPower service.")
+
+(defconst battery-upower-types
+  '((0 . :unknown) (1 . :line-power) (2 . :battery)
+    (3 . :ups) (4 . :monitor) (5 . :mouse)
+    (6 . :keyboard) (7 . :pda) (8 . :phone))
+  "Type of the device.")
+
+(defconst battery-upower-states
+  '((0 . "unknown") (1 . "charging") (2 . "discharging")
+    (3 . "empty") (4 . "fully-charged") (5 . "pending-charge")
+    (6 . "pending-discharge"))
+  "Alist of battery power states.
+Only valid for `:battery' devices.")
+
+(defun battery-upower-device-property (device property)
+  "Get value of the single PROPERTY for the UPower DEVICE."
   (dbus-get-property
-   :system
-   "org.freedesktop.UPower"
-   (concat "/org/freedesktop/UPower/devices/" (or device battery-upower-device))
-   "org.freedesktop.UPower"
-   pname))
+   :system battery-upower-dbus-service
+   (expand-file-name device battery-upower-dbus-device-path)
+   battery-upower-dbus-device-interface
+   property))
+
+(defun battery-upower-device-all-properties (device)
+  "Return value for all available properties for the UPower DEVICE."
+  (dbus-get-all-properties
+   :system battery-upower-dbus-service
+   (expand-file-name device battery-upower-dbus-device-path)
+   battery-upower-dbus-device-interface))
+
+(defun battery-upower-device-list ()
+  "Return list of all available UPower devices.
+Each element is the cons cell in form: (DEVICE . DEVICE-TYPE)."
+  (mapcar (lambda (device-path)
+            (let* ((device (file-relative-name
+                            device-path battery-upower-dbus-device-path))
+                   (type-num (battery-upower-device-property device "Type")))
+              (cons device (or (cdr (assq type-num battery-upower-types))
+                               :unknown))))
+          (dbus-call-method :system battery-upower-dbus-service
+                            battery-upower-dbus-path
+                            battery-upower-dbus-interface
+                            "EnumerateDevices")))
+
+(defun battery-upower-device-autodetect (device-type)
+  "Return first matching UPower device of DEVICE-TYPE."
+  (car (rassq device-type (battery-upower-device-list))))
 
 (defun battery-upower ()
   "Get battery status from dbus Upower interface.
@@ -559,45 +621,49 @@ The following %-sequences are provided:
 %p Battery load percentage
 %r Current rate
 %B Battery status (verbose)
+%b Battery status: empty means high, `-' means low,
+   `!' means critical, and `+' means charging
 %L AC line status (verbose)
 %s Remaining time (to charge or discharge) in seconds
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
-  (let ((percents (battery-upower-prop "Percentage"))
-        (time-to-empty (battery-upower-prop "TimeToEmpty"))
-        (time-to-full (battery-upower-prop "TimeToFull"))
-        (state (battery-upower-prop "State"))
-        (online (battery-upower-prop "Online" "line_power_ACAD"))
-        (energy (battery-upower-prop "Energy"))
-        (energy-rate (battery-upower-prop "EnergyRate"))
-        (battery-states '((0 . "unknown") (1 . "charging")
-                          (2 . "discharging") (3 . "empty")
-                          (4 . "fully-charged") (5 . "pending-charge")
-                          (6 . "pending-discharge")))
-        seconds minutes hours remaining-time)
-    (cond ((and online time-to-full)
-           (setq seconds time-to-full))
-          ((and (not online) time-to-empty)
-           (setq seconds time-to-empty)))
-    (when seconds
-      (setq minutes (/ seconds 60)
-            hours (/ minutes 60)
-	    remaining-time (format "%d:%02d" hours (mod minutes 60))))
-    (list (cons ?c (or (and energy
-                            (number-to-string (round (* 1000 energy))))
-                       "N/A"))
-          (cons ?p (or (and percents (number-to-string (round percents)))
-                       "N/A"))
-          (cons ?r (or (and energy-rate
-                            (concat (number-to-string energy-rate) " W"))
-                       "N/A"))
-          (cons ?B (or (and state (cdr (assoc state battery-states)))
-                       "unknown"))
-          (cons ?L (or (and online "on-line") "off-line"))
-          (cons ?s (or (and seconds (number-to-string seconds)) "N/A"))
-          (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))
-          (cons ?h (or (and hours (number-to-string hours)) "N/A"))
+  (let* ((bat-device (or battery-upower-device
+                         (battery-upower-device-autodetect :battery)))
+         (bat-props (when bat-device
+                      (battery-upower-device-all-properties bat-device)))
+         (percents (cdr (assoc "Percentage" bat-props)))
+         (time-to-empty (cdr (assoc "TimeToEmpty" bat-props)))
+         (time-to-full (cdr (assoc "TimeToFull" bat-props)))
+         (state (cdr (assoc "State" bat-props)))
+         (level (cdr (assoc "BatteryLevel" bat-props)))
+         (energy (cdr (assoc "Energy" bat-props)))
+         (energy-rate (cdr (assoc "EnergyRate" bat-props)))
+         (lp-device (or battery-upower-line-power-device
+                        (battery-upower-device-autodetect :line-power)))
+         (online-p (when lp-device
+                     (battery-upower-device-property lp-device "Online")))
+         (seconds (if online-p time-to-full time-to-empty))
+         (minutes (when seconds (/ seconds 60)))
+         (hours (when minutes (/ minutes 60)))
+         (remaining-time (when hours
+                           (format "%d:%02d" hours (mod minutes 60)))))
+    (list (cons ?c (if energy (number-to-string (round (* 1000 energy))) "N/A"))
+          (cons ?p (if percents (number-to-string (round percents)) "N/A"))
+          (cons ?r (if energy-rate
+                       (concat (number-to-string energy-rate) " W")
+                     "N/A"))
+          (cons ?B (if state
+                       (cdr (assq state battery-upower-states))
+                     "unknown"))
+          (cons ?b (cond ((= level 3) "-")
+                         ((= level 4) "!")
+                         (online-p "+")
+                         (t "")))
+          (cons ?L (if online-p "on-line" (if lp-device "off-line" "unknown")))
+          (cons ?s (if seconds (number-to-string seconds) "N/A"))
+          (cons ?m (if minutes (number-to-string minutes) "N/A"))
+          (cons ?h (if hours (number-to-string hours) "N/A"))
           (cons ?t (or remaining-time "N/A")))))
 
 

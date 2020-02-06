@@ -937,7 +937,7 @@ file_attributes (int fd, char const *name,
   int err = EINVAL;
 
 #if defined O_PATH && !defined HAVE_CYGWIN_O_PATH_BUG
-  int namefd = openat (fd, name, O_PATH | O_CLOEXEC | O_NOFOLLOW);
+  int namefd = emacs_openat (fd, name, O_PATH | O_CLOEXEC | O_NOFOLLOW, 0);
   if (namefd < 0)
     err = errno;
   else
@@ -970,7 +970,7 @@ file_attributes (int fd, char const *name,
 	 information to be accurate.  */
       w32_stat_get_owner_group = 1;
 #endif
-      err = fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW) == 0 ? 0 : errno;
+      err = emacs_fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW) == 0 ? 0 : errno;
 #ifdef WINDOWSNT
       w32_stat_get_owner_group = 0;
 #endif

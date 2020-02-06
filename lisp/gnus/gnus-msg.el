@@ -1985,13 +1985,14 @@ process-mark several articles, they will all be attached."
                                       buffers t nil nil (car buffers))))
       (gnus-summary-mail-other-window)
       (setq destination (current-buffer)))
+    (gnus-summary-expand-window)
     (gnus-summary-iterate n
       (gnus-summary-select-article)
-      (set-buffer destination)
-      ;; Attach at the end of the buffer.
-      (save-excursion
-	(goto-char (point-max))
-	(message-forward-make-body-mime gnus-original-article-buffer)))
+      (with-current-buffer destination
+       ;; Attach at the end of the buffer.
+       (save-excursion
+	 (goto-char (point-max))
+	 (message-forward-make-body-mime gnus-original-article-buffer))))
     (gnus-configure-windows 'message t)))
 
 (provide 'gnus-msg)

@@ -799,7 +799,7 @@ be a select method."
   (let ((gnus-command-method method)
 	(gnus-agent nil))
     (when (file-exists-p (gnus-agent-lib-file "flags"))
-      (set-buffer (get-buffer-create " *Gnus Agent flag synchronize*"))
+      (set-buffer (gnus-get-buffer-create " *Gnus Agent flag synchronize*"))
       (erase-buffer)
       (nnheader-insert-file-contents (gnus-agent-lib-file "flags"))
       (cond ((null gnus-plugged)

@@ -427,7 +427,7 @@ See bug#35036."
   (with-temp-buffer
     (switch-to-buffer (current-buffer))
     (setq buffer-undo-list nil)
-    (insert "a\nb\n\c\n")
+    (insert "a\nb\nc\n")
     (goto-char (point-max))
     ;; We use a keyboard macro because it adds undo events in the same
     ;; way as if a user were involved.
@@ -710,6 +710,62 @@ See Bug#21722."
                (process (and buffer (get-buffer-process buffer))))
           (when process (delete-process process))
           (when buffer (kill-buffer buffer)))))))
+
+
+;;; Tests for shell-command-dont-erase-buffer
+
+(defmacro with-shell-command-dont-erase-buffer (str output-buffer-is-current &rest body)
+  (declare (debug (form &body)) (indent 2))
+  (let ((expected (make-symbol "expected"))
+        (command (make-symbol "command"))
+        (caller-buf (make-symbol "caller-buf"))
+        (output-buf (make-symbol "output-buf")))
+    `(let* ((,caller-buf (generate-new-buffer "caller-buf"))
+            (,output-buf (if ,output-buffer-is-current ,caller-buf
+                           (generate-new-buffer "output-buf")))
+            (emacs (expand-file-name invocation-name invocation-directory))
+            (,command (format "%s -Q --batch --eval '(princ \"%s\")'"
+                              emacs ,str))
+            (inhibit-message t))
+       (unwind-protect
+           ;; Feature must work the same regardless how we specify the 2nd arg of `shell-command', ie,
+           ;; as a buffer, buffer name (or t, if the output must go to the current buffer).
+           (dolist (output (append (list ,output-buf (buffer-name ,output-buf))
+                                   (if ,output-buffer-is-current '(t) nil)))
+             (dolist (save-pos '(erase nil beg-last-out end-last-out save-point))
+               (let ((shell-command-dont-erase-buffer save-pos))
+                 (with-current-buffer ,output-buf (erase-buffer))
+                 (with-current-buffer ,caller-buf
+                   (dotimes (_ 2) (shell-command ,command output)))
+                 (with-current-buffer ,output-buf
+                   ,@body))))
+         (kill-buffer ,caller-buf)
+         (when (buffer-live-p ,output-buf)
+           (kill-buffer ,output-buf))))))
+
+(ert-deftest simple-tests-shell-command-39067 ()
+  "The output buffer is erased or not according to `shell-command-dont-erase-buffer'."
+  (let ((str "foo\n"))
+    (dolist (output-current '(t nil))
+      (with-shell-command-dont-erase-buffer str output-current
+        (let ((expected (cond ((eq shell-command-dont-erase-buffer 'erase) str)
+                              ((null shell-command-dont-erase-buffer)
+                               (if output-current (concat str str)
+                                 str))
+                              (t (concat str str)))))
+          (should (string= expected (buffer-string))))))))
+
+(ert-deftest simple-tests-shell-command-dont-erase-buffer ()
+  "The point is set at the expected position after execution of the command."
+  (let* ((str "foo\n")
+         (expected-point `((beg-last-out . ,(1+ (length str)))
+                           (end-last-out . ,(1+ (* 2 (length str))))
+                           (save-point . 1))))
+    (dolist (output-buffer-is-current '(t ni))
+      (with-shell-command-dont-erase-buffer str output-buffer-is-current
+        (when (memq shell-command-dont-erase-buffer '(beg-last-out end-last-out save-point))
+          (should (= (point) (alist-get shell-command-dont-erase-buffer expected-point))))))))
+
 
 (provide 'simple-test)
 ;;; simple-test.el ends here

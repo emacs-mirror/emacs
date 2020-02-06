@@ -283,8 +283,42 @@ wrong, use this command again to toggle back to the right mode."
   (interactive)
   (view-file (expand-file-name "HELLO" data-directory)))
 
+(defvar mule-cmds--prefixed-command-next-coding-system nil)
+(defvar mule-cmds--prefixed-command-last-coding-system nil)
+
+(defun mule-cmds--prefixed-command-pch ()
+  (if (not mule-cmds--prefixed-command-next-coding-system)
+      (progn
+        (remove-hook 'pre-command-hook #'mule-cmds--prefixed-command-pch)
+        (remove-hook 'prefix-command-echo-keystrokes-functions
+                     #'mule-cmds--prefixed-command-echo)
+        (remove-hook 'prefix-command-preserve-state-hook
+                     #'mule-cmds--prefixed-command-preserve))
+    (setq this-command
+          (let ((cmd this-command)
+                (coding-system mule-cmds--prefixed-command-next-coding-system))
+            (lambda ()
+              (interactive)
+              (setq this-command cmd)
+              (let ((coding-system-for-read coding-system)
+	            (coding-system-for-write coding-system)
+	            (coding-system-require-warning t))
+	        (call-interactively cmd)))))
+    (setq mule-cmds--prefixed-command-last-coding-system
+          mule-cmds--prefixed-command-next-coding-system)
+    (setq mule-cmds--prefixed-command-next-coding-system nil)))
+
+(defun mule-cmds--prefixed-command-echo ()
+  (when mule-cmds--prefixed-command-next-coding-system
+    (format "With coding-system %S"
+            mule-cmds--prefixed-command-next-coding-system)))
+
+(defun mule-cmds--prefixed-command-preserve ()
+  (setq mule-cmds--prefixed-command-next-coding-system
+        mule-cmds--prefixed-command-last-coding-system))
+
 (defun universal-coding-system-argument (coding-system)
-  "Execute an I/O command using the specified coding system."
+  "Execute an I/O command using the specified CODING-SYSTEM."
   (interactive
    (let ((default (and buffer-file-coding-system
 		       (not (eq (coding-system-type buffer-file-coding-system)
@@ -295,41 +329,13 @@ wrong, use this command again to toggle back to the right mode."
 		(format "Coding system for following command (default %s): " default)
 	      "Coding system for following command: ")
 	    default))))
-  ;; FIXME: This "read-key-sequence + call-interactively" loop is trying to
-  ;; reproduce the normal command loop, but this "can't" be done faithfully so
-  ;; it necessarily suffers from breakage in corner cases (e.g. it fails to run
-  ;; pre/post-command-hook, doesn't properly set this-command/last-command, it
-  ;; doesn't handle keyboard macros, ...).
-  (let* ((keyseq (read-key-sequence
-		  (format "Command to execute with %s:" coding-system)))
-	 (cmd (key-binding keyseq)))
-    ;; read-key-sequence ignores quit, so make an explicit check.
-    (if (equal last-input-event (nth 3 (current-input-mode)))
-	(keyboard-quit))
-    (when (memq cmd '(universal-argument digit-argument))
-      (call-interactively cmd)
-
-      ;; Process keys bound in `universal-argument-map'.
-      (while (progn
-	       (setq keyseq (read-key-sequence nil t)
-		     cmd (key-binding keyseq t))
-	       (memq cmd '(negative-argument digit-argument
-	                   universal-argument-more)))
-	(setq current-prefix-arg prefix-arg prefix-arg nil)
-	;; Have to bind `last-command-event' here so that
-	;; `digit-argument', for instance, can compute the
-	;; `prefix-arg'.
-	(setq last-command-event (aref keyseq 0))
-	(call-interactively cmd)))
-
-    (let ((coding-system-for-read coding-system)
-	  (coding-system-for-write coding-system)
-	  (coding-system-require-warning t))
-      (setq current-prefix-arg prefix-arg prefix-arg nil)
-      ;; Have to bind `last-command-event' e.g. for `self-insert-command'.
-      (setq last-command-event (aref keyseq 0))
-      (message "")
-      (call-interactively cmd))))
+  (prefix-command-preserve-state)
+  (setq mule-cmds--prefixed-command-next-coding-system coding-system)
+  (add-hook 'pre-command-hook #'mule-cmds--prefixed-command-pch)
+  (add-hook 'prefix-command-echo-keystrokes-functions
+            #'mule-cmds--prefixed-command-echo)
+  (add-hook 'prefix-command-preserve-state-hook
+            #'mule-cmds--prefixed-command-preserve))
 
 (defun set-default-coding-systems (coding-system)
   "Set default value of various coding systems to CODING-SYSTEM.
@@ -700,8 +706,8 @@ DEFAULT is the coding system to use by default in the query."
       ;; buffer is displayed.
       (when (and unsafe (not (stringp from)))
 	(pop-to-buffer bufname)
-	(goto-char (apply 'min (mapcar #'(lambda (x) (car (cadr x)))
-				       unsafe))))
+	(goto-char (apply #'min (mapcar (lambda (x) (or (car (cadr x)) (point-max)))
+				        unsafe))))
       ;; Then ask users to select one from CODINGS while showing
       ;; the reason why none of the defaults are not used.
       (with-output-to-temp-buffer "*Warning*"
@@ -1402,13 +1408,13 @@ The commands `describe-input-method' and `list-input-methods' need
 these duplicated values to show some information about input methods
 without loading the relevant Quail packages.
 \n(fn INPUT-METHOD LANG-ENV ACTIVATE-FUNC TITLE DESCRIPTION &rest ARGS)"
-  (if (symbolp lang-env)
-      (setq lang-env (symbol-name lang-env))
-    (setq lang-env (purecopy lang-env)))
-  (if (symbolp input-method)
-      (setq input-method (symbol-name input-method))
-    (setq input-method (purecopy input-method)))
-  (setq args (mapcar 'purecopy args))
+  (setq lang-env (if (symbolp lang-env)
+                     (symbol-name lang-env)
+                   (purecopy lang-env)))
+  (setq input-method (if (symbolp input-method)
+                         (symbol-name input-method)
+                       (purecopy input-method)))
+  (setq args (mapcar #'purecopy args))
   (let ((info (cons lang-env args))
 	(slot (assoc input-method input-method-alist)))
     (if slot

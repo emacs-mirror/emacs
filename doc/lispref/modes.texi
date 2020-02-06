@@ -135,7 +135,7 @@ non-@code{nil} value, it returns that value; otherwise it returns
 @node Setting Hooks
 @subsection Setting Hooks
 
-  Here's an example that adds a funtion to a mode hook to turn
+  Here's an example that adds a function to a mode hook to turn
 on Auto Fill mode when in Lisp Interaction mode:
 
 @example
@@ -2673,6 +2673,7 @@ Setting this variable makes it buffer-local in the current buffer.
 @node Font Lock Mode
 @section Font Lock Mode
 @cindex Font Lock mode
+@cindex syntax highlighting and coloring
 
   @dfn{Font Lock mode} is a buffer-local minor mode that automatically
 attaches @code{face} properties to certain parts of the buffer based on

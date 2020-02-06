@@ -213,6 +213,25 @@ static bool value_storage_contains_p (const struct emacs_value_storage *,
 
 static bool module_assertions = false;
 
+
+/* Small helper functions.  */
+
+/* Interprets the string at STR with length LEN as UTF-8 string.
+   Signals an error if it's not a valid UTF-8 string.  */
+
+static Lisp_Object
+module_decode_utf_8 (const char *str, ptrdiff_t len)
+{
+  /* We set HANDLE-8-BIT and HANDLE-OVER-UNI to nil to signal an error
+     if the argument is not a valid UTF-8 string.  While it isn't
+     documented how make_string and make_function behave in this case,
+     signaling an error is the most defensive and obvious reaction. */
+  Lisp_Object s = decode_string_utf_8 (Qnil, str, len, Qnil, false, Qnil, Qnil);
+  CHECK_TYPE (!NILP (s), Qutf_8_string_p, make_string_from_utf8 (str, len));
+  return s;
+}
+
+
 /* Convenience macros for non-local exit handling.  */
 
 /* FIXME: The following implementation for non-local exit handling
@@ -325,6 +344,12 @@ static bool module_assertions = false;
 #define MODULE_FUNCTION_BEGIN(error_retval)      \
   MODULE_FUNCTION_BEGIN_NO_CATCH (error_retval); \
   MODULE_HANDLE_NONLOCAL_EXIT (error_retval)
+
+static void
+CHECK_MODULE_FUNCTION (Lisp_Object obj)
+{
+  CHECK_TYPE (MODULE_FUNCTIONP (obj), Qmodule_function_p, obj);
+}
 
 static void
 CHECK_USER_PTR (Lisp_Object obj)
@@ -478,6 +503,7 @@ struct Lisp_Module_Function
   ptrdiff_t min_arity, max_arity;
   emacs_function subr;
   void *data;
+  emacs_finalizer finalizer;
 } GCALIGNED_STRUCT;
 
 static struct Lisp_Module_Function *
@@ -511,15 +537,43 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
   function->max_arity = max_arity;
   function->subr = func;
   function->data = data;
+  function->finalizer = NULL;
 
   if (docstring)
-    function->documentation = build_string_from_utf8 (docstring);
+    function->documentation
+      = module_decode_utf_8 (docstring, strlen (docstring));
 
   Lisp_Object result;
   XSET_MODULE_FUNCTION (result, function);
   eassert (MODULE_FUNCTIONP (result));
 
   return lisp_to_value (env, result);
+}
+
+static emacs_finalizer
+module_get_function_finalizer (emacs_env *env, emacs_value arg)
+{
+  MODULE_FUNCTION_BEGIN (NULL);
+  Lisp_Object lisp = value_to_lisp (arg);
+  CHECK_MODULE_FUNCTION (lisp);
+  return XMODULE_FUNCTION (lisp)->finalizer;
+}
+
+static void
+module_set_function_finalizer (emacs_env *env, emacs_value arg,
+                               emacs_finalizer fin)
+{
+  MODULE_FUNCTION_BEGIN ();
+  Lisp_Object lisp = value_to_lisp (arg);
+  CHECK_MODULE_FUNCTION (lisp);
+  XMODULE_FUNCTION (lisp)->finalizer = fin;
+}
+
+void
+module_finalize_function (const struct Lisp_Module_Function *func)
+{
+  if (func->finalizer != NULL)
+    func->finalizer (func->data);
 }
 
 static emacs_value
@@ -660,7 +714,7 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t len)
   MODULE_FUNCTION_BEGIN (NULL);
   if (! (0 <= len && len <= STRING_BYTES_BOUND))
     overflow_error ();
-  Lisp_Object lstr = make_string_from_utf8 (str, len);
+  Lisp_Object lstr = module_decode_utf_8 (str, len);
   return lisp_to_value (env, lstr);
 }
 
@@ -1064,6 +1118,12 @@ module_function_address (const struct Lisp_Module_Function *function)
   return (module_funcptr) function->subr;
 }
 
+void *
+module_function_data (const struct Lisp_Module_Function *function)
+{
+  return function->data;
+}
+
 
 /* Helper functions.  */
 
@@ -1329,6 +1389,8 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_time = module_make_time;
   env->extract_big_integer = module_extract_big_integer;
   env->make_big_integer = module_make_big_integer;
+  env->get_function_finalizer = module_get_function_finalizer;
+  env->set_function_finalizer = module_set_function_finalizer;
   Vmodule_environments = Fcons (make_mint_ptr (env), Vmodule_environments);
   return env;
 }

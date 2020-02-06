@@ -2568,6 +2568,14 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event,
   else {
     f->mouse_moved = 0;
     term_mouse_click (&ie, event, f);
+    if (tty_handle_tab_bar_click (f, event->x, event->y,
+                                 (ie.modifiers & down_modifier) != 0, &ie))
+      {
+       /* tty_handle_tab_bar_click stores 2 events in the event
+          queue, so we are done here.  */
+       count += 2;
+       return count;
+      }
   }
 
  done:

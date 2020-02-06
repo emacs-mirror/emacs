@@ -497,28 +497,28 @@ DIRS are relative."
 (defvar startup--xdg-config-home-emacs)
 
 ;; Return the name of the init file directory for Emacs, assuming
-;; XDG-DIR is the XDG location and USER-NAME is the user name.
-;; If USER-NAME is nil or "", use the current user.
-;; Prefer the XDG location unless it does does not exist and the
-;; .emacs.d location does exist.
+;; XDG-DIR is the XDG location and USER-NAME is the user name.  If
+;; USER-NAME is nil or "", use the current user.  Prefer the XDG
+;; location only if the .emacs.d location does not exist.
 (defun startup--xdg-or-homedot (xdg-dir user-name)
-  (if (file-exists-p xdg-dir)
-      xdg-dir
-    (let ((emacs-d-dir (concat "~" user-name
-			       (if (eq system-type 'ms-dos)
-				   "/_emacs.d/"
-				 "/.emacs.d/"))))
-      (if (or (file-exists-p emacs-d-dir)
-	      (if (eq system-type 'windows-nt)
-                  (if (file-directory-p (concat "~" user-name))
-                      (directory-files (concat "~" user-name) nil
-                                       "\\`[._]emacs\\(\\.elc?\\)?\\'"))
-		(file-exists-p (concat "~" init-file-user
-				       (if (eq system-type 'ms-dos)
-					   "/_emacs"
-					 "/.emacs")))))
-	  emacs-d-dir
-	xdg-dir))))
+  (let ((emacs-d-dir (concat "~" user-name
+                             (if (eq system-type 'ms-dos)
+                                 "/_emacs.d/"
+                               "/.emacs.d/"))))
+    (cond
+     ((or (file-exists-p emacs-d-dir)
+          (if (eq system-type 'windows-nt)
+              (if (file-directory-p (concat "~" user-name))
+                  (directory-files (concat "~" user-name) nil
+                                   "\\`[._]emacs\\(\\.elc?\\)?\\'"))
+            (file-exists-p (concat "~" init-file-user
+                                   (if (eq system-type 'ms-dos)
+                                       "/_emacs"
+                                     "/.emacs")))))
+      emacs-d-dir)
+     ((file-exists-p xdg-dir)
+      xdg-dir)
+     (t emacs-d-dir))))
 
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
@@ -1435,8 +1435,7 @@ please check its value")
   (if (get-buffer "*scratch*")
       (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
-	    (funcall initial-major-mode))
-        (setq-local lexical-binding t)))
+	    (funcall initial-major-mode))))
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
@@ -2317,7 +2316,6 @@ A fancy display is used on graphic displays, normal otherwise."
   (or (get-buffer "*scratch*")
       (with-current-buffer (get-buffer-create "*scratch*")
         (set-buffer-major-mode (current-buffer))
-        (setq-local lexical-binding t)
         (current-buffer))))
 
 (defun command-line-1 (args-left)

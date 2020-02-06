@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 76
+# unistd_h.m4 serial 77
 dnl Copyright (C) 2006-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -84,6 +84,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   GNULIB_GETHOSTNAME=0;          AC_SUBST([GNULIB_GETHOSTNAME])
   GNULIB_GETLOGIN=0;             AC_SUBST([GNULIB_GETLOGIN])
   GNULIB_GETLOGIN_R=0;           AC_SUBST([GNULIB_GETLOGIN_R])
+  GNULIB_GETOPT_POSIX=0;         AC_SUBST([GNULIB_GETOPT_POSIX])
   GNULIB_GETPAGESIZE=0;          AC_SUBST([GNULIB_GETPAGESIZE])
   GNULIB_GETPASS=0;              AC_SUBST([GNULIB_GETPASS])
   GNULIB_GETUSERSHELL=0;         AC_SUBST([GNULIB_GETUSERSHELL])

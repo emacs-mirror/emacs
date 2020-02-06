@@ -24,6 +24,40 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
+** Cairo graphics library is now used by default if found.
+'--with-cairo' is now the default, if the appropriate development files
+are found by 'configure'.  Note that building with Cairo means using
+Pango instead of libXFT for font support.  Since Pango 1.44 has
+removed support for bitmapped fonts, this may require you to adjust
+your font settings.
+
+Note also that 'FontBackend' settings in ".Xdefaults" or
+".Xresources", or 'font-backend' frame parameter settings in your init
+files, may need to be adjusted, as 'xft' is no longer a valid backend
+when using Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz
+text shaping support, and 'ftcr' otherwise.  You can determine this by
+checking 'system-configuration-features'.  The 'ftcr' backend will
+still be available when HarfBuzz is supported, but will not be used by
+default.  We strongly recommend building with HarBuzz support. 'x' is
+still a valid backend.
+
+---
+** 'configure' now warns about building with libXft support.
+libXft is unmaintained, and causes a number of problems with modern
+fonts including but not limited to crashes; support for it may be
+removed in a future version of Emacs.  Please consider using
+Cairo + HarfBuzz instead.
+
+---
+** 'configure' now warns about not using HarfBuzz if using Cairo.
+We want to encourage people to use the most modern font features
+available, and this is the Cairo graphics library + HarfBuzz for font
+shaping, so 'configure' now recommends that combination.
+
+---
+** The ftx font backend driver has been removed.
+It was declared obsolete in Emacs 27.1.
+
 
 * Startup Changes in Emacs 28.1
 
@@ -33,14 +67,97 @@ applies, and please also update docstrings as needed.
 
 * Editing Changes in Emacs 28.1
 
++++
+** 'read-number' now has its own history variable.
+Additionally, the function now accepts a HIST argument which can be
+used to specify a custom history variable.
+
++++
+** Input history for 'goto-line' is now local to every buffer.
+Each buffer will keep a separate history of line numbers used with
+'goto-line'.  This should help making faster the process of finding
+line numbers that were previously jumped to.
+
++++
+** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'
+shows equivalent key bindings for all commands that have them.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+** Help
+
++++
+*** New command 'describe-keymap' describes keybindings in a keymap.
+
+---
+** The old non-SMIE indentation of 'sh-mode' has been removed.
+
+---
+** The sb-image.el library is now marked obsolete.
+This file was a compatibility kludge which is no longer needed.
+
+---
+** 'lisp-mode' now uses 'common-lisp-indent-function'.
+To revert to the previous behaviour,
+'(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
+
+** Edebug
+
++++
+*** Edebug specification lists can use the new keyword '&error', which
+unconditionally aborts the current edebug instrumentation with the
+supplied error message.
+
+** Tramp
+
++++
+*** New connection method "media", which allows accessing media devices
+like cell phones, tablets or cameras.
+
+** map.el
+
+*** Pcase 'map' pattern added keyword symbols abbreviation.
+A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
+equivalent to '(map (:sym sym))'.
+** Package
+
++++
+*** New functions to filter the package list.
+The filter command key bindings are as follows:
+
+key             binding
+---             -------
+/ a             package-menu-filter-by-archive
+/ k             package-menu-filter-by-keyword
+/ n             package-menu-filter-by-name
+/ s             package-menu-filter-by-status
+/ v             package-menu-filter-by-version
+/ /             package-menu-filter-clear
 
 
 * New Modes and Packages in Emacs 28.1
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
+** 'equal' no longer examines some contents of window configurations.
+Instead, it considers window configurations to be equal only if they
+are 'eq'.  To compare contents, use 'compare-window-configurations'
+instead.  This change helps fix a bug in 'sxhash-equal', which returned
+incorrect hashes for window configurations and some other objects.
+
+---
+** The obsolete function 'thread-alive-p' has been removed.
+
+** 'dns-query' now consistently uses Lisp integers to represent integers.
+Formerly it made an exception for integer components of SOA records,
+because SOA serial numbers can exceed fixnum ranges on 32-bit platforms.
+Emacs now supports bignums so this old glitch is no longer needed.
+
+** The Lisp variables 'previous-system-messages-locale' and
+'previous-system-time-locale' have been removed, as they were created
+by mistake and were not useful to Lisp code.
 
 
 * Lisp Changes in Emacs 28.1
@@ -49,13 +166,21 @@ applies, and please also update docstrings as needed.
 'emacs_function' and 'emacs_finalizer' for module functions and
 finalizers, respectively.
 
+** Module functions can now install an optional finalizer that is
+called when the function object is garbage-collected.  Use
+'set_function_finalizer' to set the finalizer and
+'get_function_finalizer' to retrieve it.
+
+** 'parse-time-string' can now parse ISO 8601 format strings,
+such as "2020-01-15T16:12:21-08:00".
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
 +++
-** On macOS, Emacs can now load dynamic modules with a '.dylib' suffix.
+** On macOS, Emacs can now load dynamic modules with a ".dylib" suffix.
 'module-file-suffix' now has the value ".dylib" on macOS, but the
-'.so' suffix is supported as well.
+".so" suffix is supported as well.
 
 
 ----------------------------------------------------------------------
@@ -73,17 +198,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-+++
-** 'read-number' now has its own history variable.
-Additionally, the function now accepts a HIST argument which can be
-used to specify a custom history variable.
-
-+++
-** Input history for 'goto-line' is now local to every buffer.
-Each buffer will keep a separate history of line numbers used with
-'goto-line'.  This should help making faster the process of finding
-line numbers that were previously jumped to.
 
 
 Local variables:

@@ -350,7 +350,7 @@ arguments to pass to the OPERATION."
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
 		       #'tramp-archive-autoload-file-name-handler))
-    (put 'tramp-archive-autoload-file-name-handler 'safe-magic t))))
+    (put #'tramp-archive-autoload-file-name-handler 'safe-magic t))))
 
 ;;;###autoload
 (progn
@@ -366,7 +366,7 @@ arguments to pass to the OPERATION."
 (tramp-register-archive-file-name-handler)
 
 ;; Mark `operations' the handler is responsible for.
-(put 'tramp-archive-file-name-handler 'operations
+(put #'tramp-archive-file-name-handler 'operations
      (mapcar #'car tramp-archive-file-name-handler-alist))
 
 ;; `tramp-archive-file-name-handler' must be placed before `url-file-handler'.
@@ -517,13 +517,16 @@ offered."
   (declare (debug (form symbolp body))
            (indent 2))
   (let ((bindings
-         (mapcar (lambda (elem)
-                   `(,(if var (intern (format "%s-%s" var elem)) elem)
-                     (,(intern (format "tramp-file-name-%s" elem))
-                      ,(or var 'v))))
-		 `,(cons
-		    'archive
-		    (delete 'hop (tramp-compat-tramp-file-name-slots))))))
+         (mapcar
+	  (lambda (elem)
+            `(,(if var (intern (format "%s-%s" var elem)) elem)
+              (,(intern (format "tramp-file-name-%s" elem))
+               ,(or var 'v))))
+	  (cons
+	   'archive
+	   (delete
+	    'hop
+	    (cdr (mapcar #'car (cl-struct-slot-info 'tramp-file-name))))))))
     `(let* ((,(or var 'v) (tramp-archive-dissect-file-name ,filename))
             ,@bindings)
        ;; We don't know which of those vars will be used, so we bind them all,

@@ -1752,10 +1752,10 @@ state.  If @code{nil}, the cursor stays where it was before the switch.
 @item viper-always t
 @code{t} means: leave it to Viper to decide when a buffer must be brought
 up in Vi state,
-Insert state, or Emacs state.  This heuristics works well in virtually all
-cases.  @code{nil} means you either has to invoke @code{viper-mode} manually
+Insert state, or Emacs state.  This heuristic works well in virtually all
+cases.  @code{nil} means you either have to invoke @code{viper-mode} manually
 for each buffer (or you can add @code{viper-mode} to the appropriate major mode
-hooks using @code{viper-load-hook}).
+hooks using @code{with-eval-after-load}).
 
 This option must be set in your Viper customization file.
 @item viper-custom-file-name "~/.emacs.d/viper"
@@ -1903,9 +1903,6 @@ List of (parameterless) functions called just after entering Replace state
 @item viper-emacs-state-hook nil
 List of (parameterless) functions called just after switching from Vi state
 to Emacs state.
-@item viper-load-hook nil
-List of (parameterless) functions called just after loading Viper.  This is
-the last chance to do customization before Viper is up and running.
 @end table
 @noindent
 You can reset some of these constants in Viper with the Ex command @kbd{:set}

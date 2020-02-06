@@ -517,6 +517,8 @@ command to run."
 This is a good place to put keybindings."
   :type 'hook
   :group 'cmuscheme)
+(make-obsolete-variable 'cmuscheme-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (run-hooks 'cmuscheme-load-hook)
 

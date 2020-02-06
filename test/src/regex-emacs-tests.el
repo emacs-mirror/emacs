@@ -161,7 +161,7 @@ what failed, if anything; valid values are 'search-failed,
 'compilation-failed and nil.  I compare the beginning/end of each
 group with their expected values.  This is done with either
 BOUNDS-REF or SUBSTRING-REF; one of those should be non-nil.
-BOUNDS-REF is a sequence \[start-ref0 end-ref0 start-ref1
+BOUNDS-REF is a sequence [start-ref0 end-ref0 start-ref1
 end-ref1 ....] while SUBSTRING-REF is the expected substring
 obtained by indexing the input string by start/end-ref.
 
@@ -327,7 +327,7 @@ emacs requires an extra symbol character"
 (defun regex-tests-BOOST-frob-escapes (s ispattern)
   "Mangle \\ the way it is done in frob_escapes() in
 regex-tests-BOOST.c in glibc: \\t, \\n, \\r are interpreted;
-\\\\, \\^, \{, \\|, \} are unescaped for the string (not
+\\\\, \\^, \\{, \\|, \\} are unescaped for the string (not
 pattern)"
 
   ;; this is all similar to (regex-tests-unextend)

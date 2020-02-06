@@ -940,7 +940,7 @@ See `org-odt--build-date-styles' for implementation details."
 	 (has-time-p (or (not timestamp)
 			 (org-timestamp-has-time-p timestamp)))
 	 (iso-date (let ((format (if has-time-p "%Y-%m-%dT%H:%M:%S"
-				   "%Y-%m-%dT%H:%M:%S")))
+				   "%Y-%m-%d")))
 		     (funcall format-timestamp timestamp format end))))
     (if iso-date-p iso-date
       (let* ((style (if has-time-p "OrgDate2" "OrgDate1"))

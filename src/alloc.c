@@ -104,6 +104,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32heap.h"	/* for sbrk */
 #endif
 
+/* MALLOC_SIZE_NEAR (N) is a good number to pass to malloc when
+   allocating a block of memory with size close to N bytes.
+   For best results N should be a power of 2.
+
+   When calculating how much memory to allocate, GNU malloc (SIZE)
+   adds sizeof (size_t) to SIZE for internal overhead, and then rounds
+   up to a multiple of MALLOC_ALIGNMENT.  Emacs can improve
+   performance a bit on GNU platforms by arranging for the resulting
+   size to be a power of two.  This heuristic is good for glibc 2.0
+   (1997) through at least glibc 2.31 (2020), and does not affect
+   correctness on other platforms.  */
+
+#define MALLOC_SIZE_NEAR(n) \
+  (ROUNDUP (max (n, sizeof (size_t)), MALLOC_ALIGNMENT) - sizeof (size_t))
+#ifdef __i386
+enum { MALLOC_ALIGNMENT = 16 };
+#else
+enum { MALLOC_ALIGNMENT = max (2 * sizeof (size_t), alignof (long double)) };
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 
 /* Specify maximum number of areas to mmap.  It would be nice to use a
@@ -694,7 +714,7 @@ malloc_unblock_input (void)
       malloc_probe (size);			\
   } while (0)
 
-static void *lmalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
+static void *lmalloc (size_t, bool) ATTRIBUTE_MALLOC_SIZE ((1));
 static void *lrealloc (void *, size_t);
 
 /* Like malloc but check for no memory and block interrupt input.  */
@@ -705,7 +725,7 @@ xmalloc (size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
-  val = lmalloc (size);
+  val = lmalloc (size, false);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
@@ -722,12 +742,11 @@ xzalloc (size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
-  val = lmalloc (size);
+  val = lmalloc (size, true);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
     memory_full (size);
-  memset (val, 0, size);
   MALLOC_PROBE (size);
   return val;
 }
@@ -743,7 +762,7 @@ xrealloc (void *block, size_t size)
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
-    val = lmalloc (size);
+    val = lmalloc (size, false);
   else
     val = lrealloc (block, size);
   MALLOC_UNBLOCK_INPUT;
@@ -939,7 +958,7 @@ void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 #endif
 
 static void *
-lisp_malloc (size_t nbytes, enum mem_type type)
+lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
 {
   register void *val;
 
@@ -949,7 +968,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
   allocated_mem_type = type;
 #endif
 
-  val = lmalloc (nbytes);
+  val = lmalloc (nbytes, clearit);
 
 #if ! USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
@@ -1290,16 +1309,21 @@ laligned (void *p, size_t size)
    that's never really exercised) for little benefit.  */
 
 static void *
-lmalloc (size_t size)
+lmalloc (size_t size, bool clearit)
 {
 #ifdef USE_ALIGNED_ALLOC
   if (! MALLOC_IS_LISP_ALIGNED && size % LISP_ALIGNMENT == 0)
-    return aligned_alloc (LISP_ALIGNMENT, size);
+    {
+      void *p = aligned_alloc (LISP_ALIGNMENT, size);
+      if (clearit && p)
+	memclear (p, size);
+      return p;
+    }
 #endif
 
   while (true)
     {
-      void *p = malloc (size);
+      void *p = clearit ? calloc (1, size) : malloc (size);
       if (laligned (p, size))
 	return p;
       free (p);
@@ -1328,11 +1352,11 @@ lrealloc (void *p, size_t size)
 			 Interval Allocation
  ***********************************************************************/
 
-/* Number of intervals allocated in an interval_block structure.
-   The 1020 is 1024 minus malloc overhead.  */
+/* Number of intervals allocated in an interval_block structure.  */
 
-#define INTERVAL_BLOCK_SIZE \
-  ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
+enum { INTERVAL_BLOCK_SIZE
+         = ((MALLOC_SIZE_NEAR (1024) - sizeof (struct interval_block *))
+	    / sizeof (struct interval)) };
 
 /* Intervals are allocated in chunks in the form of an interval_block
    structure.  */
@@ -1377,7 +1401,7 @@ make_interval (void)
       if (interval_block_index == INTERVAL_BLOCK_SIZE)
 	{
 	  struct interval_block *newi
-	    = lisp_malloc (sizeof *newi, MEM_TYPE_NON_LISP);
+	    = lisp_malloc (sizeof *newi, false, MEM_TYPE_NON_LISP);
 
 	  newi->next = interval_block;
 	  interval_block = newi;
@@ -1444,10 +1468,9 @@ mark_interval_tree (INTERVAL i)
    longer used, can be easily recognized, and it's easy to compact the
    sblocks of small strings which we do in compact_small_strings.  */
 
-/* Size in bytes of an sblock structure used for small strings.  This
-   is 8192 minus malloc overhead.  */
+/* Size in bytes of an sblock structure used for small strings.  */
 
-#define SBLOCK_SIZE 8188
+enum { SBLOCK_SIZE = MALLOC_SIZE_NEAR (8192) };
 
 /* Strings larger than this are considered large strings.  String data
    for large strings is allocated from individual sblocks.  */
@@ -1522,11 +1545,11 @@ struct sblock
   sdata data[FLEXIBLE_ARRAY_MEMBER];
 };
 
-/* Number of Lisp strings in a string_block structure.  The 1020 is
-   1024 minus malloc overhead.  */
+/* Number of Lisp strings in a string_block structure.  */
 
-#define STRING_BLOCK_SIZE \
-  ((1020 - sizeof (struct string_block *)) / sizeof (struct Lisp_String))
+enum { STRING_BLOCK_SIZE
+         = ((MALLOC_SIZE_NEAR (1024) - sizeof (struct string_block *))
+	    / sizeof (struct Lisp_String)) };
 
 /* Structure describing a block from which Lisp_String structures
    are allocated.  */
@@ -1730,7 +1753,7 @@ allocate_string (void)
      add all the Lisp_Strings in it to the free-list.  */
   if (string_free_list == NULL)
     {
-      struct string_block *b = lisp_malloc (sizeof *b, MEM_TYPE_STRING);
+      struct string_block *b = lisp_malloc (sizeof *b, false, MEM_TYPE_STRING);
       int i;
 
       b->next = string_blocks;
@@ -1778,15 +1801,16 @@ allocate_string (void)
    plus a NUL byte at the end.  Allocate an sdata structure DATA for
    S, and set S->u.s.data to SDATA->u.data.  Store a NUL byte at the
    end of S->u.s.data.  Set S->u.s.size to NCHARS and S->u.s.size_byte
-   to NBYTES.  Free S->u.s.data if it was initially non-null.  */
+   to NBYTES.  Free S->u.s.data if it was initially non-null.
 
-void
+   If CLEARIT, also clear the other bytes of S->u.s.data.  */
+
+static void
 allocate_string_data (struct Lisp_String *s,
-		      EMACS_INT nchars, EMACS_INT nbytes)
+		      EMACS_INT nchars, EMACS_INT nbytes, bool clearit)
 {
-  sdata *data, *old_data;
+  sdata *data;
   struct sblock *b;
-  ptrdiff_t old_nbytes;
 
   if (STRING_BYTES_MAX < nbytes)
     string_overflow ();
@@ -1794,13 +1818,6 @@ allocate_string_data (struct Lisp_String *s,
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
   ptrdiff_t needed = sdata_size (nbytes);
-  if (s->u.s.data)
-    {
-      old_data = SDATA_OF_STRING (s);
-      old_nbytes = STRING_BYTES (s);
-    }
-  else
-    old_data = NULL;
 
   MALLOC_BLOCK_INPUT;
 
@@ -1813,7 +1830,7 @@ allocate_string_data (struct Lisp_String *s,
         mallopt (M_MMAP_MAX, 0);
 #endif
 
-      b = lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
+      b = lisp_malloc (size + GC_STRING_EXTRA, clearit, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       if (!mmap_lisp_allowed_p ())
@@ -1825,27 +1842,30 @@ allocate_string_data (struct Lisp_String *s,
       b->next_free = data;
       large_sblocks = b;
     }
-  else if (current_sblock == NULL
-	   || (((char *) current_sblock + SBLOCK_SIZE
-		- (char *) current_sblock->next_free)
-	       < (needed + GC_STRING_EXTRA)))
-    {
-      /* Not enough room in the current sblock.  */
-      b = lisp_malloc (SBLOCK_SIZE, MEM_TYPE_NON_LISP);
-      data = b->data;
-      b->next = NULL;
-      b->next_free = data;
-
-      if (current_sblock)
-	current_sblock->next = b;
-      else
-	oldest_sblock = b;
-      current_sblock = b;
-    }
   else
     {
       b = current_sblock;
+
+      if (b == NULL
+	  || (SBLOCK_SIZE - GC_STRING_EXTRA
+	      < (char *) b->next_free - (char *) b + needed))
+	{
+	  /* Not enough room in the current sblock.  */
+	  b = lisp_malloc (SBLOCK_SIZE, false, MEM_TYPE_NON_LISP);
+	  data = b->data;
+	  b->next = NULL;
+	  b->next_free = data;
+
+	  if (current_sblock)
+	    current_sblock->next = b;
+	  else
+	    oldest_sblock = b;
+	  current_sblock = b;
+	}
+
       data = b->next_free;
+      if (clearit)
+	memset (SDATA_DATA (data), 0, nbytes);
     }
 
   data->string = s;
@@ -1866,16 +1886,55 @@ allocate_string_data (struct Lisp_String *s,
 	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
 
-  /* Note that Faset may call to this function when S has already data
-     assigned.  In this case, mark data as free by setting it's string
-     back-pointer to null, and record the size of the data in it.  */
-  if (old_data)
+  tally_consing (needed);
+}
+
+/* Reallocate multibyte STRING data when a single character is replaced.
+   The character is at byte offset CIDX_BYTE in the string.
+   The character being replaced is CLEN bytes long,
+   and the character that will replace it is NEW_CLEN bytes long.
+   Return the address of where the caller should store the
+   the new character.  */
+
+unsigned char *
+resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
+		    int clen, int new_clen)
+{
+  eassume (STRING_MULTIBYTE (string));
+  sdata *old_sdata = SDATA_OF_STRING (XSTRING (string));
+  ptrdiff_t nchars = SCHARS (string);
+  ptrdiff_t nbytes = SBYTES (string);
+  ptrdiff_t new_nbytes = nbytes + (new_clen - clen);
+  unsigned char *data = SDATA (string);
+  unsigned char *new_charaddr;
+
+  if (sdata_size (nbytes) == sdata_size (new_nbytes))
     {
-      SDATA_NBYTES (old_data) = old_nbytes;
-      old_data->string = NULL;
+      /* No need to reallocate, as the size change falls within the
+	 alignment slop.  */
+      XSTRING (string)->u.s.size_byte = new_nbytes;
+      new_charaddr = data + cidx_byte;
+      memmove (new_charaddr + new_clen, new_charaddr + clen,
+	       nbytes - (cidx_byte + (clen - 1)));
+    }
+  else
+    {
+      allocate_string_data (XSTRING (string), nchars, new_nbytes, false);
+      unsigned char *new_data = SDATA (string);
+      new_charaddr = new_data + cidx_byte;
+      memcpy (new_charaddr + new_clen, data + cidx_byte + clen,
+	      nbytes - (cidx_byte + clen));
+      memcpy (new_data, data, cidx_byte);
+
+      /* Mark old string data as free by setting its string back-pointer
+	 to null, and record the size of the data in it.  */
+      SDATA_NBYTES (old_sdata) = nbytes;
+      old_sdata->string = NULL;
     }
 
-  tally_consing (needed);
+  clear_string_char_byte_cache ();
+
+  return new_charaddr;
 }
 
 
@@ -2110,6 +2169,9 @@ string_overflow (void)
   error ("Maximum string size exceeded");
 }
 
+static Lisp_Object make_clear_string (EMACS_INT, bool);
+static Lisp_Object make_clear_multibyte_string (EMACS_INT, EMACS_INT, bool);
+
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 3, 0,
        doc: /* Return a newly created string of length LENGTH, with INIT in each element.
 LENGTH must be an integer.
@@ -2118,19 +2180,20 @@ If optional argument MULTIBYTE is non-nil, the result will be
 a multibyte string even if INIT is an ASCII character.  */)
   (Lisp_Object length, Lisp_Object init, Lisp_Object multibyte)
 {
-  register Lisp_Object val;
-  int c;
+  Lisp_Object val;
   EMACS_INT nbytes;
 
   CHECK_FIXNAT (length);
   CHECK_CHARACTER (init);
 
-  c = XFIXNAT (init);
+  int c = XFIXNAT (init);
+  bool clearit = !c;
+
   if (ASCII_CHAR_P (c) && NILP (multibyte))
     {
       nbytes = XFIXNUM (length);
-      val = make_uninit_string (nbytes);
-      if (nbytes)
+      val = make_clear_string (nbytes, clearit);
+      if (nbytes && !clearit)
 	{
 	  memset (SDATA (val), c, nbytes);
 	  SDATA (val)[nbytes] = 0;
@@ -2141,26 +2204,27 @@ a multibyte string even if INIT is an ASCII character.  */)
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       ptrdiff_t len = CHAR_STRING (c, str);
       EMACS_INT string_len = XFIXNUM (length);
-      unsigned char *p, *beg, *end;
 
       if (INT_MULTIPLY_WRAPV (len, string_len, &nbytes))
 	string_overflow ();
-      val = make_uninit_multibyte_string (string_len, nbytes);
-      for (beg = SDATA (val), p = beg, end = beg + nbytes; p < end; p += len)
+      val = make_clear_multibyte_string (string_len, nbytes, clearit);
+      if (!clearit)
 	{
-	  /* First time we just copy `str' to the data of `val'.  */
-	  if (p == beg)
-	    memcpy (p, str, len);
-	  else
+	  unsigned char *beg = SDATA (val), *end = beg + nbytes;
+	  for (unsigned char *p = beg; p < end; p += len)
 	    {
-	      /* Next time we copy largest possible chunk from
-		 initialized to uninitialized part of `val'.  */
-	      len = min (p - beg, end - p);
-	      memcpy (p, beg, len);
+	      /* First time we just copy STR to the data of VAL.  */
+	      if (p == beg)
+		memcpy (p, str, len);
+	      else
+		{
+		  /* Next time we copy largest possible chunk from
+		     initialized to uninitialized part of VAL.  */
+		  len = min (p - beg, end - p);
+		  memcpy (p, beg, len);
+		}
 	    }
 	}
-      if (nbytes)
-	*p = 0;
     }
 
   return val;
@@ -2330,26 +2394,37 @@ make_specified_string (const char *contents,
 
 
 /* Return a unibyte Lisp_String set up to hold LENGTH characters
-   occupying LENGTH bytes.  */
+   occupying LENGTH bytes.  If CLEARIT, clear its contents to null
+   bytes; otherwise, the contents are uninitialized.  */
 
-Lisp_Object
-make_uninit_string (EMACS_INT length)
+static Lisp_Object
+make_clear_string (EMACS_INT length, bool clearit)
 {
   Lisp_Object val;
 
   if (!length)
     return empty_unibyte_string;
-  val = make_uninit_multibyte_string (length, length);
+  val = make_clear_multibyte_string (length, length, clearit);
   STRING_SET_UNIBYTE (val);
   return val;
 }
 
-
-/* Return a multibyte Lisp_String set up to hold NCHARS characters
-   which occupy NBYTES bytes.  */
+/* Return a unibyte Lisp_String set up to hold LENGTH characters
+   occupying LENGTH bytes.  */
 
 Lisp_Object
-make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
+make_uninit_string (EMACS_INT length)
+{
+  return make_clear_string (length, false);
+}
+
+
+/* Return a multibyte Lisp_String set up to hold NCHARS characters
+   which occupy NBYTES bytes.  If CLEARIT, clear its contents to null
+   bytes; otherwise, the contents are uninitialized.  */
+
+static Lisp_Object
+make_clear_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clearit)
 {
   Lisp_Object string;
   struct Lisp_String *s;
@@ -2361,10 +2436,19 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
 
   s = allocate_string ();
   s->u.s.intervals = NULL;
-  allocate_string_data (s, nchars, nbytes);
+  allocate_string_data (s, nchars, nbytes, clearit);
   XSETSTRING (string, s);
   string_chars_consed += nbytes;
   return string;
+}
+
+/* Return a multibyte Lisp_String set up to hold NCHARS characters
+   which occupy NBYTES bytes.  */
+
+Lisp_Object
+make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
+{
+  return make_clear_multibyte_string (nchars, nbytes, false);
 }
 
 /* Print arguments to BUF according to a FORMAT, then return
@@ -3023,6 +3107,14 @@ cleanup_vector (struct Lisp_Vector *vector)
       if (uptr->finalizer)
 	uptr->finalizer (uptr->p);
     }
+#ifdef HAVE_MODULES
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))
+    {
+      ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
+        = (struct Lisp_Module_Function *) vector;
+      module_finalize_function (function);
+    }
+#endif
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -3137,7 +3229,7 @@ sweep_vectors (void)
    at most VECTOR_ELTS_MAX.  */
 
 static struct Lisp_Vector *
-allocate_vectorlike (ptrdiff_t len)
+allocate_vectorlike (ptrdiff_t len, bool clearit)
 {
   eassert (0 < len && len <= VECTOR_ELTS_MAX);
   ptrdiff_t nbytes = header_size + len * word_size;
@@ -3151,11 +3243,15 @@ allocate_vectorlike (ptrdiff_t len)
 #endif
 
   if (nbytes <= VBLOCK_BYTES_MAX)
-    p = allocate_vector_from_block (vroundup (nbytes));
+    {
+      p = allocate_vector_from_block (vroundup (nbytes));
+      if (clearit)
+	memclear (p, nbytes);
+    }
   else
     {
       struct large_vector *lv = lisp_malloc (large_vector_offset + nbytes,
-					     MEM_TYPE_VECTORLIKE);
+					     clearit, MEM_TYPE_VECTORLIKE);
       lv->next = large_vectors;
       large_vectors = lv;
       p = large_vector_vec (lv);
@@ -3178,18 +3274,35 @@ allocate_vectorlike (ptrdiff_t len)
 }
 
 
-/* Allocate a vector with LEN slots.  */
+/* Allocate a vector with LEN slots.  If CLEARIT, clear its slots;
+   otherwise the vector's slots are uninitialized.  */
 
-struct Lisp_Vector *
-allocate_vector (ptrdiff_t len)
+static struct Lisp_Vector *
+allocate_clear_vector (ptrdiff_t len, bool clearit)
 {
   if (len == 0)
     return XVECTOR (zero_vector);
   if (VECTOR_ELTS_MAX < len)
     memory_full (SIZE_MAX);
-  struct Lisp_Vector *v = allocate_vectorlike (len);
+  struct Lisp_Vector *v = allocate_vectorlike (len, clearit);
   v->header.size = len;
   return v;
+}
+
+/* Allocate a vector with LEN uninitialized slots.  */
+
+struct Lisp_Vector *
+allocate_vector (ptrdiff_t len)
+{
+  return allocate_clear_vector (len, false);
+}
+
+/* Allocate a vector with LEN nil slots.  */
+
+struct Lisp_Vector *
+allocate_nil_vector (ptrdiff_t len)
+{
+  return allocate_clear_vector (len, true);
 }
 
 
@@ -3208,7 +3321,7 @@ allocate_pseudovector (int memlen, int lisplen,
   eassert (lisplen <= size_max);
   eassert (memlen <= size_max + rest_max);
 
-  struct Lisp_Vector *v = allocate_vectorlike (memlen);
+  struct Lisp_Vector *v = allocate_vectorlike (memlen, false);
   /* Only the first LISPLEN slots will be traced normally by the GC.  */
   memclear (v->contents, zerolen * word_size);
   XSETPVECTYPESIZE (v, tag, lisplen, memlen - lisplen);
@@ -3218,7 +3331,7 @@ allocate_pseudovector (int memlen, int lisplen,
 struct buffer *
 allocate_buffer (void)
 {
-  struct buffer *b = lisp_malloc (sizeof *b, MEM_TYPE_BUFFER);
+  struct buffer *b = lisp_malloc (sizeof *b, false, MEM_TYPE_BUFFER);
 
   BUFFER_PVEC_INIT (b);
   /* Put B on the chain of all buffers including killed ones.  */
@@ -3238,7 +3351,7 @@ allocate_record (EMACS_INT count)
   if (count > PSEUDOVECTOR_SIZE_MASK)
     error ("Attempt to allocate a record of %"pI"d slots; max is %d",
 	   count, PSEUDOVECTOR_SIZE_MASK);
-  struct Lisp_Vector *p = allocate_vectorlike (count);
+  struct Lisp_Vector *p = allocate_vectorlike (count, false);
   p->header.size = count;
   XSETPVECTYPE (p, PVEC_RECORD);
   return p;
@@ -3291,9 +3404,11 @@ See also the function `vector'.  */)
 Lisp_Object
 make_vector (ptrdiff_t length, Lisp_Object init)
 {
-  struct Lisp_Vector *p = allocate_vector (length);
-  for (ptrdiff_t i = 0; i < length; i++)
-    p->contents[i] = init;
+  bool clearit = NIL_IS_ZERO && NILP (init);
+  struct Lisp_Vector *p = allocate_clear_vector (length, clearit);
+  if (!clearit)
+    for (ptrdiff_t i = 0; i < length; i++)
+      p->contents[i] = init;
   return make_lisp_ptr (p, Lisp_Vectorlike);
 }
 
@@ -3442,7 +3557,7 @@ Its value is void, and its function definition and property list are nil.  */)
       if (symbol_block_index == SYMBOL_BLOCK_SIZE)
 	{
 	  struct symbol_block *new
-	    = lisp_malloc (sizeof *new, MEM_TYPE_SYMBOL);
+	    = lisp_malloc (sizeof *new, false, MEM_TYPE_SYMBOL);
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
@@ -3904,10 +4019,10 @@ refill_memory_reserve (void)
 					 MEM_TYPE_SPARE);
   if (spare_memory[5] == 0)
     spare_memory[5] = lisp_malloc (sizeof (struct string_block),
-				   MEM_TYPE_SPARE);
+				   false, MEM_TYPE_SPARE);
   if (spare_memory[6] == 0)
     spare_memory[6] = lisp_malloc (sizeof (struct string_block),
-				   MEM_TYPE_SPARE);
+				   false, MEM_TYPE_SPARE);
   if (spare_memory[0] && spare_memory[1] && spare_memory[5])
     Vmemory_full = Qnil;
 #endif

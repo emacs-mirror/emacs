@@ -7976,19 +7976,17 @@ foreach_window_1 (struct window *w, bool (*fn) (struct window *, void *),
 /* Return true if window configurations CONFIGURATION1 and CONFIGURATION2
    describe the same state of affairs.  This is used by Fequal.
 
-   IGNORE_POSITIONS means ignore non-matching scroll positions
-   and the like.
+   Ignore non-matching scroll positions and the like.
 
    This ignores a couple of things like the dedication status of
    window, combination_limit and the like.  This might have to be
    fixed.  */
 
-bool
+static bool
 compare_window_configurations (Lisp_Object configuration1,
-			       Lisp_Object configuration2,
-			       bool ignore_positions)
+			       Lisp_Object configuration2)
 {
-  register struct save_window_data *d1, *d2;
+  struct save_window_data *d1, *d2;
   struct Lisp_Vector *sws1, *sws2;
   ptrdiff_t i;
 
@@ -8006,9 +8004,6 @@ compare_window_configurations (Lisp_Object configuration1,
       || d1->frame_menu_bar_lines != d2->frame_menu_bar_lines
       || !EQ (d1->selected_frame, d2->selected_frame)
       || !EQ (d1->f_current_buffer, d2->f_current_buffer)
-      || (!ignore_positions
-	  && (!EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window)
-	      || !EQ (d1->minibuf_selected_window, d2->minibuf_selected_window)))
       || !EQ (d1->focus_frame, d2->focus_frame)
       /* Verify that the two configurations have the same number of windows.  */
       || sws1->header.size != sws2->header.size)
@@ -8041,12 +8036,6 @@ compare_window_configurations (Lisp_Object configuration1,
 	     equality.  */
 	  || !EQ (sw1->parent, sw2->parent)
 	  || !EQ (sw1->prev, sw2->prev)
-	  || (!ignore_positions
-	      && (!EQ (sw1->hscroll, sw2->hscroll)
-		  || !EQ (sw1->min_hscroll, sw2->min_hscroll)
-		  || !EQ (sw1->start_at_line_beg, sw2->start_at_line_beg)
-		  || NILP (Fequal (sw1->start, sw2->start))
-		  || NILP (Fequal (sw1->pointm, sw2->pointm))))
 	  || !EQ (sw1->left_margin_cols, sw2->left_margin_cols)
 	  || !EQ (sw1->right_margin_cols, sw2->right_margin_cols)
 	  || !EQ (sw1->left_fringe_width, sw2->left_fringe_width)
@@ -8071,7 +8060,7 @@ This function ignores details such as the values of point
 and scrolling positions.  */)
   (Lisp_Object x, Lisp_Object y)
 {
-  if (compare_window_configurations (x, y, true))
+  if (compare_window_configurations (x, y))
     return Qt;
   return Qnil;
 }

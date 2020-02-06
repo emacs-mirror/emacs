@@ -63,8 +63,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
 
-/* And the select implementation does 1-byte read-ahead waiting
-   for received packets, so datagrams are broken too.  */
+/* Our select emulation does 1-byte read-ahead waiting for received
+   packets, so datagrams are broken.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
 #define MAIL_USE_SYSTEM_LOCK 1
@@ -499,6 +499,8 @@ extern void *malloc_after_dump_9x(size_t);
 extern void *realloc_after_dump_9x(void *, size_t);
 extern void free_after_dump_9x(void *);
 
+extern void *sys_calloc(size_t, size_t);
+
 extern malloc_fn the_malloc_fn;
 extern realloc_fn the_realloc_fn;
 extern free_fn the_free_fn;
@@ -506,6 +508,7 @@ extern free_fn the_free_fn;
 #define malloc(size) (*the_malloc_fn)(size)
 #define free(ptr)   (*the_free_fn)(ptr)
 #define realloc(ptr, size) (*the_realloc_fn)(ptr, size)
+#define calloc(num, size) sys_calloc(num, size)
 
 #endif
 

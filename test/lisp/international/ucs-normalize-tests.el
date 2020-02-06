@@ -299,7 +299,7 @@ implementations:
   (list " var var))
   (dolist (linos (seq-partition newval 8))
     (insert (mapconcat #'number-to-string linos " ") "\n"))
-  (insert ")\)"))
+  (insert "))"))
 
 (defun ucs-normalize-check-failing-lines ()
   (interactive)

@@ -747,6 +747,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
   (lisp-mode-variables nil t)
+  (setq-local lisp-indent-function 'common-lisp-indent-function)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
 	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")

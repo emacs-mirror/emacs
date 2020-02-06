@@ -1365,6 +1365,22 @@ data_from_funcptr (void (*funcptr) (void))
      interchangeably, so it's OK to assume that here too.  */
   return (void const *) funcptr;
 }
+
+/* Print the value of the pointer PTR.  */
+
+static void
+print_pointer (Lisp_Object printcharfun, char *buf, const char *prefix,
+               const void *ptr)
+{
+  uintptr_t ui = (uintptr_t) ptr;
+
+  /* In theory this assignment could lose info on pre-C99 hosts, but
+     in practice it doesn't.  */
+  uintmax_t up = ui;
+
+  int len = sprintf (buf, "%s 0x%" PRIxMAX, prefix, up);
+  strout (buf, len, len, printcharfun);
+}
 #endif
 
 static bool
@@ -1796,26 +1812,22 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
     case PVEC_MODULE_FUNCTION:
       {
 	print_c_string ("#<module function ", printcharfun);
-        module_funcptr ptr = module_function_address (XMODULE_FUNCTION (obj));
+        const struct Lisp_Module_Function *function = XMODULE_FUNCTION (obj);
+        module_funcptr ptr = module_function_address (function);
 	char const *file;
 	char const *symbol;
 	dynlib_addr (ptr, &file, &symbol);
 
 	if (symbol == NULL)
-	  {
-	    uintptr_t ui = (uintptr_t) data_from_funcptr (ptr);
-
-	    /* In theory this assignment could lose info on pre-C99
-	       hosts, but in practice it doesn't.  */
-	    uintmax_t up = ui;
-
-	    int len = sprintf (buf, "at 0x%"PRIxMAX, up);
-	    strout (buf, len, len, printcharfun);
-	  }
-	else
+          print_pointer (printcharfun, buf, "at", data_from_funcptr (ptr));
+        else
 	  print_c_string (symbol, printcharfun);
 
-	if (file != NULL)
+        void *data = module_function_data (function);
+        if (data != NULL)
+          print_pointer (printcharfun, buf, " with data", data);
+
+        if (file != NULL)
 	  {
 	    print_c_string (" from ", printcharfun);
 	    print_c_string (file, printcharfun);
@@ -1838,7 +1850,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
   char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
 		max (sizeof " . #" + INT_STRLEN_BOUND (intmax_t),
-		     max ((sizeof "at 0x"
+		     max ((sizeof " with data 0x"
 			   + (sizeof (uintmax_t) * CHAR_BIT + 4 - 1) / 4),
 			  40)))];
   current_thread->stack_top = buf;

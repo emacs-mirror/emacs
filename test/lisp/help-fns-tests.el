@@ -56,28 +56,28 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-macro ()
-  (let ((regexp "a Lisp macro in .subr\.el")
+  (let ((regexp "a Lisp macro in .subr\\.el")
         (result (help-fns-tests--describe-function 'when)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defun ()
-  (let ((regexp "a compiled Lisp function in .subr\.el")
+  (let ((regexp "a compiled Lisp function in .subr\\.el")
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defsubst ()
-  (let ((regexp "a compiled Lisp function in .subr\.el")
+  (let ((regexp "a compiled Lisp function in .subr\\.el")
         (result (help-fns-tests--describe-function 'posn-window)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-alias-to-defun ()
-  (let ((regexp "an alias for .set-file-modes. in .subr\.el")
+  (let ((regexp "an alias for .set-file-modes. in .subr\\.el")
         (result (help-fns-tests--describe-function 'chmod)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-bug23887 ()
   "Test for https://debbugs.gnu.org/23887 ."
-  (let ((regexp "an alias for .re-search-forward. in .subr\.el")
+  (let ((regexp "an alias for .re-search-forward. in .subr\\.el")
         (result (help-fns-tests--describe-function 'search-forward-regexp)))
     (should (string-match regexp result))))
 
@@ -122,5 +122,42 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (> (point-max) 1))
     (goto-char (point-min))
     (should (looking-at "^font-lock-comment-face is "))))
+
+
+;;; Tests for describe-keymap
+(ert-deftest help-fns-test-find-keymap-name ()
+  (should (equal (help-fns-find-keymap-name lisp-mode-map) 'lisp-mode-map))
+  ;; Follow aliasing.
+  (unwind-protect
+      (progn
+        (defvaralias 'foo-test-map 'lisp-mode-map)
+        (should (equal (help-fns-find-keymap-name foo-test-map) 'lisp-mode-map)))
+    (makunbound 'foo-test-map)))
+
+(ert-deftest help-fns-test-describe-keymap/symbol ()
+  (describe-keymap 'minibuffer-local-must-match-map)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^minibuffer-local-must-match-map is"))))
+
+(ert-deftest help-fns-test-describe-keymap/value ()
+  (describe-keymap minibuffer-local-must-match-map)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^key"))))
+
+(ert-deftest help-fns-test-describe-keymap/not-keymap ()
+  (should-error (describe-keymap nil))
+  (should-error (describe-keymap emacs-version)))
+
+(ert-deftest help-fns-test-describe-keymap/let-bound ()
+  (let ((foobar minibuffer-local-must-match-map))
+    (describe-keymap foobar)
+    (with-current-buffer "*Help*"
+      (should (looking-at "^key")))))
+
+(ert-deftest help-fns-test-describe-keymap/dynamically-bound-no-file ()
+  (setq help-fns-test--describe-keymap-foo minibuffer-local-must-match-map)
+  (describe-keymap 'help-fns-test--describe-keymap-foo)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^help-fns-test--describe-keymap-foo is"))))
 
 ;;; help-fns-tests.el ends here

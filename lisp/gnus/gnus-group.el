@@ -3761,10 +3761,10 @@ group line."
      (newsrc
       ;; Toggle subscription flag.
       (gnus-group-change-level
-       newsrc (if level level (if (<= (gnus-info-level (nth 1 newsrc))
-				      gnus-level-subscribed)
-				  (1+ gnus-level-subscribed)
-				gnus-level-default-subscribed)))
+       newsrc (or level (if (<= (gnus-info-level (nth 1 newsrc))
+				gnus-level-subscribed)
+			    (1+ gnus-level-subscribed)
+			  gnus-level-default-subscribed)))
       (unless silent
 	(gnus-group-update-group group)))
      ((and (stringp group)
@@ -3773,7 +3773,7 @@ group line."
       ;; Add new newsgroup.
       (gnus-group-change-level
        group
-       (if level level gnus-level-default-subscribed)
+       (or level gnus-level-default-subscribed)
        (or (and (member group gnus-zombie-list)
 		gnus-level-zombie)
 	   gnus-level-killed)

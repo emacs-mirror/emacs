@@ -39,8 +39,8 @@ numbers have a fixed amount of precision.
   Under the hood, though, there are two kinds of integers: smaller
 ones, called @dfn{fixnums}, and larger ones, called @dfn{bignums}.
 Some functions in Emacs accept only fixnums.  Also, while fixnums can
-always be compared for numeric equality with @code{eq}, bignums
-require more-heavyweight equality predicates like @code{eql}.
+be compared for numeric equality with @code{eq}, bignums require
+more-heavyweight equality predicates like @code{eql} and @code{=}.
 
   The range of values for bignums is limited by the amount of main
 memory, by machine characteristics such as the size of the word used

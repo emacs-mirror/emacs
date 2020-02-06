@@ -256,11 +256,19 @@ nontrivial changes to the build process.
 
 	etc/tutorials/TUTORIAL.ja
 
+ * iso-2022-7bit
+
+     This file contains multiple Chinese charsets, and converting it
+     to UTF-8 would lose the charset property and would change the
+     code's behavior.  Although this could be worked around by
+     propertizing the strings, that hasn't been done.
+
+	lisp/international/titdic-cnv.el
+
  * utf-8-emacs
 
      These files contain characters that cannot be encoded in UTF-8.
 
-	lisp/international/titdic-cnv.el
 	lisp/language/ethio-util.el
 	lisp/language/ethiopic.el
 	lisp/language/ind-util.el

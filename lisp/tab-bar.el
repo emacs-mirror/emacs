@@ -51,11 +51,11 @@
   :version "27.1")
 
 (defface tab-bar
-  '((((type x w32 ns) (class color))
+  '((((class color) (min-colors 88))
      :inherit variable-pitch
      :background "grey85"
      :foreground "black")
-    (((type x) (class mono))
+    (((class mono))
      :background "grey")
     (t
      :inverse-video t))
@@ -319,6 +319,8 @@ from all windows in the window configuration."
                         tab-bar-tab-name-current)
                  (const :tag "Selected window buffer with window count"
                         tab-bar-tab-name-current-with-count)
+                 (const :tag "Truncated buffer name"
+                        tab-bar-tab-name-truncated)
                  (const :tag "All window buffers"
                         tab-bar-tab-name-all)
                  (function  :tag "Function"))
@@ -349,6 +351,29 @@ Also add the number of windows in the window configuration."
                                   (window-list-1 (frame-first-window)
                                                  'nomini)))
              ", "))
+
+(defcustom tab-bar-tab-name-truncated-max 20
+  "Maximum length of the tab name from the current buffer.
+Effective when `tab-bar-tab-name-function' is customized
+to `tab-bar-tab-name-truncated'."
+  :type 'integer
+  :group 'tab-bar
+  :version "27.1")
+
+(defvar tab-bar-tab-name-ellipsis
+  (if (char-displayable-p ?…) "…" "..."))
+
+(defun tab-bar-tab-name-truncated ()
+  "Generate tab name from the buffer of the selected window.
+Truncate it to the length specified by `tab-bar-tab-name-truncated-max'.
+Append ellipsis `tab-bar-tab-name-ellipsis' in this case."
+  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window)))))
+    (if (< (length tab-name) tab-bar-tab-name-truncated-max)
+        tab-name
+      (propertize (truncate-string-to-width
+                   tab-name tab-bar-tab-name-truncated-max nil nil
+                   tab-bar-tab-name-ellipsis)
+                  'help-echo tab-name))))
 
 
 (defvar tab-bar-tabs-function #'tab-bar-tabs
@@ -697,11 +722,14 @@ Interactively, ARG selects the ARGth different frame to move to."
 If `leftmost', create as the first tab.
 If `left', create to the left from the current tab.
 If `right', create to the right from the current tab.
-If `rightmost', create as the last tab."
+If `rightmost', create as the last tab.
+If the value is a function, it should return a number as a position
+on the tab bar specifying where to insert a new tab."
   :type '(choice (const :tag "First tab" leftmost)
                  (const :tag "To the left" left)
                  (const :tag "To the right" right)
-                 (const :tag "Last tab" rightmost))
+                 (const :tag "Last tab" rightmost)
+                 (function :tag "Function"))
   :group 'tab-bar
   :version "27.1")
 
@@ -748,7 +776,9 @@ After the tab is created, the hooks in
                           ('leftmost 0)
                           ('rightmost (length tabs))
                           ('left (1- (or from-index 1)))
-                          ('right (1+ (or from-index 0)))))))
+                          ('right (1+ (or from-index 0)))
+                          ((pred functionp)
+                           (funcall tab-bar-new-tab-to))))))
       (setq to-index (max 0 (min (or to-index 0) (length tabs))))
       (cl-pushnew to-tab (nthcdr to-index tabs))
 
@@ -1093,7 +1123,7 @@ function `tab-bar-tab-name-function'."
 
 (define-minor-mode tab-bar-history-mode
   "Toggle tab history mode for the tab bar."
-  :global t
+  :global t :group 'tab-bar
   (if tab-bar-history-mode
       (progn
         (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-back-button)))
@@ -1370,7 +1400,7 @@ in the selected frame."
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
-(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames)
+(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab)
   "Return a tab owning a window whose buffer is BUFFER-OR-NAME.
 BUFFER-OR-NAME may be a buffer or a buffer name and defaults to
 the current buffer.
@@ -1384,7 +1414,10 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 - A frame means consider all tabs on that frame only.
 
 Any other value of ALL-FRAMES means consider all tabs on the
-selected frame and no others."
+selected frame and no others.
+
+When the optional argument IGNORE-CURRENT-TAB is non-nil,
+don't take into account the buffers in the currently selected tab."
   (let ((buffer (if buffer-or-name
                     (get-buffer buffer-or-name)
                   (current-buffer))))
@@ -1394,7 +1427,8 @@ selected frame and no others."
          (seq-some
           (lambda (tab)
             (when (if (eq (car tab) 'current-tab)
-                      (get-buffer-window buffer frame)
+                      (unless ignore-current-tab
+                        (get-buffer-window buffer frame))
                     (let* ((state (alist-get 'ws tab))
                            (buffers (when state
                                       (window-state-buffers state))))

@@ -588,7 +588,7 @@ OVERARGS is a list of arguments passed to the override and
 (defmacro define-mode-local-override
   (name mode args docstring &rest body)
   "Define a mode specific override of the function overload NAME.
-Has meaning only if NAME has been created with `define-overload'.
+Has meaning only if NAME has been created with `define-overloadable-function'.
 MODE is the major mode this override is being defined for.
 ARGS are the function arguments, which should match those of the same
 named function created with `define-overload'.
@@ -819,14 +819,12 @@ META-NAME is a cons (OVERLOADABLE-SYMBOL . MAJOR-MODE)."
         )
     ;; Order symbols by type
     (mapatoms
-     #'(lambda (s)
-         (add-to-list (cond
-                       ((get s 'mode-variable-flag)
-                        (if (get s 'constant-flag) 'mc 'mv))
-                       ((get s 'override-flag)
-                        (if (get s 'constant-flag) 'fo 'ov))
-                       ('us))
-                      s))
+     (lambda (s) (push s (cond
+                          ((get s 'mode-variable-flag)
+                           (if (get s 'constant-flag) mc mv))
+                          ((get s 'override-flag)
+                           (if (get s 'constant-flag) fo ov))
+                          (t us))))
      table)
     ;; Print symbols by type
     (when us

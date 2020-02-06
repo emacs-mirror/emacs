@@ -1362,6 +1362,11 @@ while matching the remainder of the specifications at this level.  This
 is primarily used to generate more specific syntax error messages.  See
 @ref{Backtracking}, for more details.  Also see the @code{let} example.
 
+@item &error
+@code{&error} should be followed by a string, an error message, in the
+edebug-spec; it aborts the instrumentation, displaying the message in
+the minibuffer.
+
 @item @var{other-symbol}
 @cindex indirect specifications
 Any other symbol in a specification list may be a predicate or an

@@ -1047,7 +1047,7 @@ will be copied over from that buffer."
 				  (list (list group ""))
 				nnmail-split-methods)))
     ;; Insert the incoming file.
-    (with-current-buffer (get-buffer-create nnmail-article-buffer)
+    (with-current-buffer (gnus-get-buffer-create nnmail-article-buffer)
       (erase-buffer)
       (if (bufferp incoming)
 	  (insert-buffer-substring incoming)
@@ -1574,7 +1574,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
       ()				; The buffer is open.
     (with-current-buffer
        (setq nnmail-cache-buffer
-	     (get-buffer-create " *nnmail message-id cache*"))
+	     (gnus-get-buffer-create " *nnmail message-id cache*"))
       (gnus-add-buffer)
       (when (file-exists-p nnmail-message-id-cache-file)
 	(nnheader-insert-file-contents nnmail-message-id-cache-file))
@@ -2065,7 +2065,7 @@ Doesn't change point."
   (when nnmail-split-tracing
     (push split nnmail-split-trace))
   (when nnmail-debug-splitting
-    (with-current-buffer (get-buffer-create "*nnmail split*")
+    (with-current-buffer (gnus-get-buffer-create "*nnmail split*")
       (goto-char (point-max))
       (insert (format-time-string "%FT%T")
 	      " "

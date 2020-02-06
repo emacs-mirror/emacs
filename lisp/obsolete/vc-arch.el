@@ -5,6 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
 ;; Package: vc
+;; Obsolete-since: 25.1
 
 ;; This file is part of GNU Emacs.
 

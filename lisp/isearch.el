@@ -1225,6 +1225,9 @@ used to set the value of `isearch-regexp-function'."
 	isearch-pre-scroll-point nil
 	isearch-pre-move-point nil
 
+	isearch-lazy-count-current nil
+	isearch-lazy-count-total nil
+
 	;; Save the original value of `minibuffer-message-timeout', and
 	;; set it to nil so that isearch's messages don't get timed out.
 	isearch-original-minibuffer-message-timeout minibuffer-message-timeout
@@ -3776,7 +3779,7 @@ by other Emacs features."
 			         isearch-lazy-highlight-window-end))))))
     ;; something important did indeed change
     (lazy-highlight-cleanup t (not (equal isearch-string ""))) ;stop old timer
-    (when isearch-lazy-count
+    (when (and isearch-lazy-count isearch-mode (null isearch-message-function))
       (when (or (equal isearch-string "")
                 ;; Check if this place was reached by a condition above
                 ;; other than changed window boundaries (that shouldn't
@@ -3794,7 +3797,7 @@ by other Emacs features."
         (clrhash isearch-lazy-count-hash)
         (setq isearch-lazy-count-current nil
               isearch-lazy-count-total nil)
-        (funcall (or isearch-message-function #'isearch-message))))
+        (isearch-message)))
     (setq isearch-lazy-highlight-window-start-changed nil)
     (setq isearch-lazy-highlight-window-end-changed nil)
     (setq isearch-lazy-highlight-error isearch-error)

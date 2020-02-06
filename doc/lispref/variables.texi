@@ -1187,6 +1187,9 @@ When evaluating Emacs Lisp code directly using an @code{eval} call,
 lexical binding is enabled if the @var{lexical} argument to
 @code{eval} is non-@code{nil}.  @xref{Eval}.
 
+Lexical binding is also enabled in Lisp Interaction and IELM
+mode, used in the @file{*scratch*} and @file{*ielm*} buffers.
+
 @cindex special variables
   Even when lexical binding is enabled, certain variables will
 continue to be dynamically bound.  These are called @dfn{special

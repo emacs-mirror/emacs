@@ -719,14 +719,15 @@ otherwise pop it")
   "to make a binding to record entire window configuration")
 (byte-defop 140  0 byte-save-restriction
   "to make a binding to record the current buffer clipping restrictions")
-(byte-defop 141 -1 byte-catch
+(byte-defop 141 -1 byte-catch-OBSOLETE   ; Not generated since Emacs 25.
   "for catch.  Takes, on stack, the tag and an expression for the body")
 (byte-defop 142 -1 byte-unwind-protect
   "for unwind-protect.  Takes, on stack, an expression for the unwind-action")
 
 ;; For condition-case.  Takes, on stack, the variable to bind,
 ;; an expression for the body, and a list of clauses.
-(byte-defop 143 -2 byte-condition-case)
+;; Not generated since Emacs 25.
+(byte-defop 143 -2 byte-condition-case-OBSOLETE)
 
 (byte-defop 144  0 byte-temp-output-buffer-setup-OBSOLETE)
 (byte-defop 145 -1 byte-temp-output-buffer-show-OBSOLETE)
@@ -1201,7 +1202,7 @@ message buffer `default-directory'."
 			    byte-compile-last-warned-form))))
       (insert (format "\nIn %s:\n" form)))
     (when level
-      (insert (format "%s%s" file pos))))
+      (insert (format "%s%s " file pos))))
   (setq byte-compile-last-logged-file byte-compile-current-file
 	byte-compile-last-warned-form byte-compile-current-form)
   entry)
@@ -2152,42 +2153,41 @@ With argument ARG, insert value in current buffer after the form."
   (when (< (point-max) (position-bytes (point-max)))
     (goto-char (point-min))
     ;; Find the comment that describes the version condition.
-    (search-forward "\n;;; This file uses")
-    (narrow-to-region (line-beginning-position) (point-max))
-    ;; Find the first line of ballast semicolons.
-    (search-forward ";;;;;;;;;;")
-    (beginning-of-line)
-    (narrow-to-region (point-min) (point))
-    (let ((old-header-end (point))
-	  (minimum-version "23")
-	  delta)
-      (delete-region (point-min) (point-max))
-      (insert
-       ";;; This file contains utf-8 non-ASCII characters,\n"
-       ";;; and so cannot be loaded into Emacs 22 or earlier.\n"
-       ;; Have to check if emacs-version is bound so that this works
-       ;; in files loaded early in loadup.el.
-       "(and (boundp 'emacs-version)\n"
-       ;; If there is a name at the end of emacs-version,
-       ;; don't try to check the version number.
-       "     (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-       (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
-       ;; Because the header must fit in a fixed width, we cannot
-       ;; insert arbitrary-length file names (Bug#11585).
-       "     (error \"`%s' was compiled for "
-       (format "Emacs %s or later\" #$))\n\n" minimum-version))
-      ;; Now compensate for any change in size, to make sure all
-      ;; positions in the file remain valid.
-      (setq delta (- (point-max) old-header-end))
-      (goto-char (point-max))
-      (widen)
-      (delete-char delta))))
+    (when (search-forward "\n;;; This file does not contain utf-8" nil t)
+      (narrow-to-region (line-beginning-position) (point-max))
+      ;; Find the first line of ballast semicolons.
+      (search-forward ";;;;;;;;;;")
+      (beginning-of-line)
+      (narrow-to-region (point-min) (point))
+      (let ((old-header-end (point))
+	    (minimum-version "23")
+	    delta)
+        (delete-region (point-min) (point-max))
+        (insert
+         ";;; This file contains utf-8 non-ASCII characters,\n"
+         ";;; and so cannot be loaded into Emacs 22 or earlier.\n"
+         ;; Have to check if emacs-version is bound so that this works
+         ;; in files loaded early in loadup.el.
+         "(and (boundp 'emacs-version)\n"
+         ;; If there is a name at the end of emacs-version,
+         ;; don't try to check the version number.
+         "     (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+         (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
+         ;; Because the header must fit in a fixed width, we cannot
+         ;; insert arbitrary-length file names (Bug#11585).
+         "     (error \"`%s' was compiled for "
+         (format "Emacs %s or later\" #$))\n\n" minimum-version))
+        ;; Now compensate for any change in size, to make sure all
+        ;; positions in the file remain valid.
+        (setq delta (- (point-max) old-header-end))
+        (goto-char (point-max))
+        (widen)
+        (delete-char delta)))))
 
 (defun byte-compile-insert-header (_filename outbuffer)
   "Insert a header at the start of OUTBUFFER.
 Call from the source buffer."
-  (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
-	(dynamic byte-compile-dynamic)
+  (let ((dynamic byte-compile-dynamic)
 	(optimize byte-optimize))
     (with-current-buffer outbuffer
       (goto-char (point-min))
@@ -2213,17 +2213,14 @@ Call from the source buffer."
        ".\n"
        (if dynamic ";;; Function definitions are lazy-loaded.\n"
 	 "")
-       "\n;;; This file uses "
-       (if dynamic-docstrings
-	   "dynamic docstrings, first added in Emacs 19.29"
-	 "opcodes that do not exist in Emacs 18")
-       ".\n\n"
+       "\n"
        ;; Note that byte-compile-fix-header may change this.
        ";;; This file does not contain utf-8 non-ASCII characters,\n"
        ";;; and so can be loaded in Emacs versions earlier than 23.\n\n"
        ;; Insert semicolons as ballast, so that byte-compile-fix-header
        ;; can delete them so as to keep the buffer positions
        ;; constant for the actual compiled code.
+       ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
        ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
        ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))))
 
@@ -4529,96 +4526,25 @@ binding slots have been popped."
 ;; (byte-defop-compiler-1 save-window-excursion)      ;Obsolete: now a macro.
 ;; (byte-defop-compiler-1 with-output-to-temp-buffer) ;Obsolete: now a macro.
 
-(defvar byte-compile--use-old-handlers nil
-  "If nil, use new byte codes introduced in Emacs-24.4.")
-
 (defun byte-compile-catch (form)
   (byte-compile-form (car (cdr form)))
-  (if (not byte-compile--use-old-handlers)
-      (let ((endtag (byte-compile-make-tag)))
-        (byte-compile-goto 'byte-pushcatch endtag)
-        (byte-compile-body (cddr form) nil)
-        (byte-compile-out 'byte-pophandler)
-        (byte-compile-out-tag endtag))
-    (pcase (cddr form)
-      (`(:fun-body ,f)
-       (byte-compile-form `(list 'funcall ,f)))
-      (body
-       (byte-compile-push-constant
-        (byte-compile-top-level (cons 'progn body) byte-compile--for-effect))))
-    (byte-compile-out 'byte-catch 0)))
+  (let ((endtag (byte-compile-make-tag)))
+    (byte-compile-goto 'byte-pushcatch endtag)
+    (byte-compile-body (cddr form) nil)
+    (byte-compile-out 'byte-pophandler)
+    (byte-compile-out-tag endtag)))
 
 (defun byte-compile-unwind-protect (form)
   (pcase (cddr form)
     (`(:fun-body ,f)
-     (byte-compile-form
-      (if byte-compile--use-old-handlers `(list (list 'funcall ,f)) f)))
+     (byte-compile-form f))
     (handlers
-     (if byte-compile--use-old-handlers
-         (byte-compile-push-constant
-          (byte-compile-top-level-body handlers t))
-       (byte-compile-form `#'(lambda () ,@handlers)))))
+     (byte-compile-form `#'(lambda () ,@handlers))))
   (byte-compile-out 'byte-unwind-protect 0)
   (byte-compile-form-do-effect (car (cdr form)))
   (byte-compile-out 'byte-unbind 1))
 
 (defun byte-compile-condition-case (form)
-  (if byte-compile--use-old-handlers
-      (byte-compile-condition-case--old form)
-    (byte-compile-condition-case--new form)))
-
-(defun byte-compile-condition-case--old (form)
-  (let* ((var (nth 1 form))
-	 (fun-bodies (eq var :fun-body))
-         (byte-compile-bound-variables
-	  (if (and var (not fun-bodies))
-              (cons var byte-compile-bound-variables)
-	    byte-compile-bound-variables)))
-    (byte-compile-set-symbol-position 'condition-case)
-    (unless (symbolp var)
-      (byte-compile-warn
-       "`%s' is not a variable-name or nil (in condition-case)" var))
-    (if fun-bodies (setq var (make-symbol "err")))
-    (byte-compile-push-constant var)
-    (if fun-bodies
-        (byte-compile-form `(list 'funcall ,(nth 2 form)))
-      (byte-compile-push-constant
-       (byte-compile-top-level (nth 2 form) byte-compile--for-effect)))
-    (let ((compiled-clauses
-           (mapcar
-            (lambda (clause)
-              (let ((condition (car clause)))
-                (cond ((not (or (symbolp condition)
-                                (and (listp condition)
-                                     (let ((ok t))
-                                       (dolist (sym condition)
-                                         (if (not (symbolp sym))
-                                             (setq ok nil)))
-                                       ok))))
-                       (byte-compile-warn
-                        "`%S' is not a condition name or list of such (in condition-case)"
-                        condition))
-                      ;; (not (or (eq condition 't)
-                      ;;         (and (stringp (get condition 'error-message))
-                      ;;              (consp (get condition
-                      ;;                          'error-conditions)))))
-                      ;; (byte-compile-warn
-                      ;;   "`%s' is not a known condition name
-                      ;;   (in condition-case)"
-                      ;;   condition))
-                      )
-                (if fun-bodies
-                    `(list ',condition (list 'funcall ,(cadr clause) ',var))
-                  (cons condition
-                        (byte-compile-top-level-body
-                         (cdr clause) byte-compile--for-effect)))))
-            (cdr (cdr (cdr form))))))
-      (if fun-bodies
-          (byte-compile-form `(list ,@compiled-clauses))
-        (byte-compile-push-constant compiled-clauses)))
-    (byte-compile-out 'byte-condition-case 0)))
-
-(defun byte-compile-condition-case--new (form)
   (let* ((var (nth 1 form))
          (body (nth 2 form))
          (depth byte-compile-depth)

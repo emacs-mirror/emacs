@@ -133,7 +133,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module pipe2:
   # Code from module pselect:
   # Code from module pthread_sigmask:
-  # Code from module putenv:
   # Code from module qcopy-acl:
   # Code from module readlink:
   # Code from module readlinkat:
@@ -303,6 +302,7 @@ AC_DEFUN([gl_INIT],
     GNULIB_GL_UNISTD_H_GETOPT=1
   fi
   AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
+  gl_UNISTD_MODULE_INDICATOR([getopt-posix])
   gl_GETTIME
   gl_FUNC_GETTIMEOFDAY
   if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
@@ -367,12 +367,6 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_PTHREAD_SIGMASK
   fi
   gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
-  gl_FUNC_PUTENV
-  if test $REPLACE_PUTENV = 1; then
-    AC_LIBOBJ([putenv])
-    gl_PREREQ_PUTENV
-  fi
-  gl_STDLIB_MODULE_INDICATOR([putenv])
   gl_FUNC_READLINK
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     AC_LIBOBJ([readlink])
@@ -972,7 +966,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/pipe2.c
   lib/pselect.c
   lib/pthread_sigmask.c
-  lib/putenv.c
   lib/qcopy-acl.c
   lib/readlink.c
   lib/readlinkat.c
@@ -1111,7 +1104,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pipe2.m4
   m4/pselect.m4
   m4/pthread_sigmask.m4
-  m4/putenv.m4
   m4/readlink.m4
   m4/readlinkat.m4
   m4/regex.m4
@@ -1158,4 +1150,5 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/warnings.m4
   m4/wchar_t.m4
   m4/wint_t.m4
+  m4/zzgnulib.m4
 ])

@@ -353,7 +353,7 @@
 ;; this caveat is the `mode' pseudo-variable, which is processed early in all
 ;; versions of Emacs, and can be set to `so-long-mode' if desired.
 
-;;; * Change Log:
+;; * Change Log:
 ;;
 ;; 1.0   - Included in Emacs 27.1, and in GNU ELPA for prior versions of Emacs.
 ;;       - New global mode `global-so-long-mode' to enable/disable the library.
@@ -944,8 +944,10 @@ This command calls `so-long' with the selected action as an argument.")
     (cl-letf (((symbol-function 'finder-summary) #'ignore))
       (finder-commentary "so-long"))
     (let ((inhibit-read-only t))
-      (when (looking-at "^Commentary:\n\n")
-        (replace-match "so-long.el\n\n"))
+      (if (looking-at "^Commentary:\n\n")
+          (replace-match "so-long.el\n\n")
+        (insert "so-long.el\n")
+        (forward-line 1))
       (save-excursion
         (while (re-search-forward "^-+$" nil :noerror)
           (replace-match ""))))

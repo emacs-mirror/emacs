@@ -35,7 +35,7 @@
 
 (put 'use-hard-newlines 'permanent-local t)
 (define-minor-mode use-hard-newlines
-  "Toggle distinguishing between hard and soft newlines.
+  "Toggle between hard and soft newlines in the current buffer.
 
 When enabled, the functions `newline' and `open-line' add the
 text-property `hard' to newlines that they insert, and a line is

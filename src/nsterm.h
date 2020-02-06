@@ -417,6 +417,9 @@ typedef id instancetype;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
    BOOL fs_is_native;
+#ifdef NS_IMPL_COCOA
+   NSBitmapImageRep *drawingBuffer;
+#endif
 @public
    struct frame *emacsframe;
    int rows, cols;
@@ -457,7 +460,13 @@ typedef id instancetype;
 #endif
 - (int)fullscreenState;
 
-/* Non-notification versions of NSView methods.  Used for direct calls.  */
+#ifdef NS_IMPL_COCOA
+- (void)focusOnDrawingBuffer;
+#endif
+- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
+- (void)createDrawingBufferWithRect:(NSRect)rect;
+
+/* Non-notification versions of NSView methods. Used for direct calls.  */
 - (void)windowWillEnterFullScreen;
 - (void)windowDidEnterFullScreen;
 - (void)windowWillExitFullScreen;
@@ -471,6 +480,8 @@ typedef id instancetype;
 {
   NSPoint grabOffset;
 }
+
+- (void)setAppearance;
 @end
 
 
@@ -594,22 +605,6 @@ typedef id instancetype;
 - (NSRect) frame;
 @end
 
-
-/* ==========================================================================
-
-   File open/save panels
-   This and next override methods to handle keyboard input in panels.
-
-   ========================================================================== */
-
-@interface EmacsSavePanel : NSSavePanel
-{
-}
-@end
-@interface EmacsOpenPanel : NSOpenPanel
-{
-}
-@end
 
 @interface EmacsFileDelegate : NSObject
 {

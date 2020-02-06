@@ -277,6 +277,8 @@ If `file-name-history' is not empty, do nothing."
    "Normal hook run at end of loading the `recentf' package."
   :group 'recentf
   :type 'hook)
+(make-obsolete-variable 'recentf-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom recentf-filename-handlers nil
   "Functions to post process recent file names.

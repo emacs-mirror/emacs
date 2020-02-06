@@ -428,7 +428,7 @@ Thus, this does not include the shell's current directory.")
     (save-excursion
       (goto-char begin)
       (while (< (point) end)
-	(skip-chars-forward " \t\n")
+	(skip-chars-forward " \t\n;")
 	(push (point) begins)
         (let ((arg ()))
           (while (looking-at

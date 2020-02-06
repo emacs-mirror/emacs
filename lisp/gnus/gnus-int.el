@@ -253,7 +253,7 @@ If it is down, start it up (again)."
 
 (defun gnus-backend-trace (type form)
   (when gnus-backend-trace
-    (with-current-buffer (get-buffer-create "*gnus trace*")
+    (with-current-buffer (gnus-get-buffer-create "*gnus trace*")
       (buffer-disable-undo)
       (goto-char (point-max))
       (insert (format-time-string "%H:%M:%S")

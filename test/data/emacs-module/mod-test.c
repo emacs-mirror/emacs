@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,7 @@ static emacs_value
 Fmod_test_sum (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   assert (nargs == 2);
+  assert ((uintptr_t) data == 0x1234);
 
   intmax_t a = env->extract_integer (env, args[0]);
   intmax_t b = env->extract_integer (env, args[1]);
@@ -373,13 +375,18 @@ Fmod_test_add_nanosecond (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 }
 
 static void
-memory_full (emacs_env *env)
+signal_error (emacs_env *env, const char *message)
 {
-  const char *message = "Memory exhausted";
   emacs_value data = env->make_string (env, message, strlen (message));
   env->non_local_exit_signal (env, env->intern (env, "error"),
                               env->funcall (env, env->intern (env, "list"), 1,
                                             &data));
+}
+
+static void
+memory_full (emacs_env *env)
+{
+  signal_error (env, "Memory exhausted");
 }
 
 enum
@@ -490,6 +497,42 @@ Fmod_test_double (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return result;
 }
 
+static int function_data;
+static int finalizer_calls_with_correct_data;
+static int finalizer_calls_with_incorrect_data;
+
+static void
+finalizer (void *data)
+{
+  if (data == &function_data)
+    ++finalizer_calls_with_correct_data;
+  else
+    ++finalizer_calls_with_incorrect_data;
+}
+
+static emacs_value
+Fmod_test_make_function_with_finalizer (emacs_env *env, ptrdiff_t nargs,
+                                        emacs_value *args, void *data)
+{
+  emacs_value fun
+    = env->make_function (env, 2, 2, Fmod_test_sum, NULL, &function_data);
+  env->set_function_finalizer (env, fun, finalizer);
+  if (env->get_function_finalizer (env, fun) != finalizer)
+    signal_error (env, "Invalid finalizer");
+  return fun;
+}
+
+static emacs_value
+Fmod_test_function_finalizer_calls (emacs_env *env, ptrdiff_t nargs,
+                                    emacs_value *args, void *data)
+{
+  emacs_value Flist = env->intern (env, "list");
+  emacs_value list_args[]
+    = {env->make_integer (env, finalizer_calls_with_correct_data),
+       env->make_integer (env, finalizer_calls_with_incorrect_data)};
+  return env->funcall (env, Flist, 2, list_args);
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -546,7 +589,8 @@ emacs_module_init (struct emacs_runtime *ert)
 		 env->make_function (env, amin, amax, csym, doc, data))
 
   DEFUN ("mod-test-return-t", Fmod_test_return_t, 1, 1, NULL, NULL);
-  DEFUN ("mod-test-sum", Fmod_test_sum, 2, 2, "Return A + B\n\n(fn a b)", NULL);
+  DEFUN ("mod-test-sum", Fmod_test_sum, 2, 2, "Return A + B\n\n(fn a b)",
+         (void *) (uintptr_t) 0x1234);
   DEFUN ("mod-test-signal", Fmod_test_signal, 0, 0, NULL, NULL);
   DEFUN ("mod-test-throw", Fmod_test_throw, 0, 0, NULL, NULL);
   DEFUN ("mod-test-non-local-exit-funcall", Fmod_test_non_local_exit_funcall,
@@ -566,6 +610,10 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-add-nanosecond", Fmod_test_add_nanosecond, 1, 1, NULL, NULL);
   DEFUN ("mod-test-nanoseconds", Fmod_test_nanoseconds, 1, 1, NULL, NULL);
   DEFUN ("mod-test-double", Fmod_test_double, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-make-function-with-finalizer",
+         Fmod_test_make_function_with_finalizer, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-function-finalizer-calls",
+         Fmod_test_function_finalizer_calls, 0, 0, NULL, NULL);
 
 #undef DEFUN
 

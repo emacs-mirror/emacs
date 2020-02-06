@@ -3878,8 +3878,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&xfthbfont_driver, f);
 #endif
-#else	/* not HAVE_XFT */
-  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */
@@ -4572,7 +4570,7 @@ On MS Windows, this just returns nil.  */)
     return Qnil;
 }
 
-#ifndef USE_GTK
+#if !defined USE_GTK || !defined HAVE_GTK3
 
 /* Store the geometry of the workarea on display DPYINFO into *RECT.
    Return false if and only if the workarea information cannot be
@@ -5089,6 +5087,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #elif defined HAVE_GTK3
       scale = gdk_screen_get_monitor_scale_factor (gscreen, i);
 #endif
+      rec.x *= scale;
+      rec.y *= scale;
       rec.width *= scale;
       rec.height *= scale;
       work.x *= scale;
@@ -6362,8 +6362,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&xfthbfont_driver, f);
 #endif
-#else	/* not HAVE_XFT */
-  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */

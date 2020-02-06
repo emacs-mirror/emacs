@@ -3,7 +3,8 @@
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcLogging
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; Created 2003-04-26

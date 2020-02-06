@@ -256,17 +256,17 @@ supported keys depend on the service type.")
   "Return all discovered Avahi service names as list."
   (let (result)
     (maphash
-     (lambda (_key value) (add-to-list 'result (zeroconf-service-name value)))
+     (lambda (_key value) (push (zeroconf-service-name value) result))
      zeroconf-services-hash)
-    result))
+    (delete-dups result)))
 
 (defun zeroconf-list-service-types ()
   "Return all discovered Avahi service types as list."
   (let (result)
     (maphash
-     (lambda (_key value) (add-to-list 'result (zeroconf-service-type value)))
+     (lambda (_key value) (push (zeroconf-service-type value) result))
      zeroconf-services-hash)
-    result))
+    (delete-dups result)))
 
 (defun zeroconf-list-services (type)
   "Return all discovered Avahi services for a given service type TYPE.
@@ -278,9 +278,9 @@ format of SERVICE."
     (maphash
      (lambda (_key value)
        (when (equal type (zeroconf-service-type value))
-	 (add-to-list 'result value)))
+	 (push value result)))
      zeroconf-services-hash)
-    result))
+    (delete-dups result)))
 
 (defvar zeroconf-service-added-hooks-hash (make-hash-table :test 'equal)
   "Hash table of hooks for newly added services.

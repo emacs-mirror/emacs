@@ -293,7 +293,7 @@
 
 (deffoo nnbabyl-request-move-article
     (article group server accept-form &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nnbabyl move*"))
+  (let ((buf (gnus-get-buffer-create " *nnbabyl move*"))
 	result)
     (and
      (nnbabyl-request-article article group server)

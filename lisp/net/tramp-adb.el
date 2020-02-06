@@ -181,10 +181,9 @@ It is used for TCP/IP devices."
   "Invoke the ADB handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 ARGUMENTS to pass to the OPERATION."
-  (let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) arguments))
-      (tramp-run-real-handler operation arguments))))
+  (if-let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
+      (save-match-data (apply (cdr fn) arguments))
+    (tramp-run-real-handler operation arguments)))
 
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -234,8 +233,7 @@ ARGUMENTS to pass to the OPERATION."
   "Like `file-truename' for Tramp files."
   ;; Preserve trailing "/".
   (funcall
-   (if (tramp-compat-directory-name-p filename)
-       #'file-name-as-directory #'identity)
+   (if (directory-name-p filename) #'file-name-as-directory #'identity)
    ;; Quote properly.
    (funcall
     (if (tramp-compat-file-name-quoted-p filename)
@@ -719,14 +717,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(with-tramp-progress-reporter
 	    v 0 (format "Copying %s to %s" filename newname)
 	  (if (and t1 t2 (tramp-equal-remote filename newname))
-	      (let ((l1 (tramp-compat-file-local-name filename))
-		    (l2 (tramp-compat-file-local-name newname)))
+	      (let ((l1 (tramp-file-local-name filename))
+		    (l2 (tramp-file-local-name newname)))
 		;; We must also flush the cache of the directory,
 		;; because `file-attributes' reads the values from
 		;; there.
@@ -739,39 +737,37 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (tramp-shell-quote-argument l2))
 		 "Error copying %s to %s" filename newname))
 
-	    (let ((tmpfile (file-local-copy filename)))
+	    (if-let ((tmpfile (file-local-copy filename)))
+		;; Remote filename.
+		(condition-case err
+		    (rename-file tmpfile newname ok-if-already-exists)
+		  ((error quit)
+		   (delete-file tmpfile)
+		   (signal (car err) (cdr err))))
 
-	      (if tmpfile
-		  ;; Remote filename.
-		  (condition-case err
-		      (rename-file tmpfile newname ok-if-already-exists)
-		    ((error quit)
-		     (delete-file tmpfile)
-		     (signal (car err) (cdr err))))
+	      ;; Remote newname.
+	      (when (and (file-directory-p newname)
+			 (directory-name-p newname))
+		(setq newname
+		      (expand-file-name
+		       (file-name-nondirectory filename) newname)))
 
-		;; Remote newname.
-		(when (and (file-directory-p newname)
-			   (tramp-compat-directory-name-p newname))
-		  (setq newname
-			(expand-file-name
-			 (file-name-nondirectory filename) newname)))
+	      (with-parsed-tramp-file-name newname nil
+		(when (and (not ok-if-already-exists)
+			   (file-exists-p newname))
+		  (tramp-error v 'file-already-exists newname))
 
-		(with-parsed-tramp-file-name newname nil
-		  (when (and (not ok-if-already-exists)
-			     (file-exists-p newname))
-		    (tramp-error v 'file-already-exists newname))
-
-		  ;; We must also flush the cache of the directory,
-		  ;; because `file-attributes' reads the values from
-		  ;; there.
-		  (tramp-flush-file-properties v localname)
-		  (when (tramp-adb-execute-adb-command
-			 v "push"
-			 (tramp-compat-file-name-unquote filename)
-			 (tramp-compat-file-name-unquote localname))
-		    (tramp-error
-		     v 'file-error
-		     "Cannot copy `%s' `%s'" filename newname)))))))))
+		;; We must also flush the cache of the directory,
+		;; because `file-attributes' reads the values from
+		;; there.
+		(tramp-flush-file-properties v localname)
+		(when (tramp-adb-execute-adb-command
+		       v "push"
+		       (tramp-compat-file-name-unquote filename)
+		       (tramp-compat-file-name-unquote localname))
+		  (tramp-error
+		   v 'file-error
+		   "Cannot copy `%s' `%s'" filename newname))))))))
 
     ;; KEEP-DATE handling.
     (when keep-date
@@ -801,7 +797,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
-		   (not (tramp-compat-directory-name-p newname)))
+		   (not (directory-name-p newname)))
 	  (tramp-error v 'file-error "File is a directory %s" newname))
 
 	(with-tramp-progress-reporter
@@ -809,8 +805,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (if (and t1 t2
 		   (tramp-equal-remote filename newname)
 		   (not (file-directory-p filename)))
-	      (let ((l1 (tramp-compat-file-local-name filename))
-		    (l2 (tramp-compat-file-local-name newname)))
+	      (let ((l1 (tramp-file-local-name filename))
+		    (l2 (tramp-file-local-name newname)))
 		;; We must also flush the cache of the directory, because
 		;; `file-attributes' reads the values from there.
 		(tramp-flush-file-properties v l1)
@@ -846,7 +842,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(setq infile (expand-file-name infile))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (with-parsed-tramp-file-name infile nil localname))
+	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input))
@@ -877,8 +873,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (setcar (cdr destination) (expand-file-name (cadr destination)))
 	  (if (tramp-equal-remote default-directory (cadr destination))
 	      ;; stderr is on the same remote host.
-	      (setq stderr (with-parsed-tramp-file-name
-			       (cadr destination) nil localname))
+	      (setq stderr (tramp-file-local-name (cadr destination)))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
 	    (setq stderr (tramp-make-tramp-temp-file v)
@@ -936,6 +931,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
+;; The complete STDERR buffer is available only when the process has
+;; terminated.
 (defun tramp-adb-handle-make-process (&rest args)
   "Like `make-process' for Tramp files."
   (when args
@@ -969,17 +966,29 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
 	(unless (or (null stderr) (bufferp stderr) (stringp stderr))
 	  (signal 'wrong-type-argument (list #'stringp stderr)))
+	(when (and (stringp stderr) (tramp-tramp-file-p stderr)
+		   (not (tramp-equal-remote default-directory stderr)))
+	  (signal 'file-error (list "Wrong stderr" stderr)))
 
 	(let* ((buffer
 		(if buffer
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
+	       ;; STDERR can also be a file name.
+	       (tmpstderr
+		(and stderr
+		     (if (and (stringp stderr) (tramp-tramp-file-p stderr))
+			 (tramp-unquote-file-local-name stderr)
+		       (tramp-make-tramp-temp-file v))))
+	       (remote-tmpstderr
+		(and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
 	       (program (car command))
 	       (args (cdr command))
 	       (command
-		(format "cd %s && exec %s"
+		(format "cd %s && exec %s %s"
 			(tramp-shell-quote-argument localname)
+			(if tmpstderr (format "2>'%s'" tmpstderr) "")
 			(mapconcat #'tramp-shell-quote-argument
 				   (cons program args) " ")))
 	       (tramp-process-connection-type
@@ -1029,6 +1038,18 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			(ignore-errors
 			  (set-process-query-on-exit-flag p (null noquery))
 			  (set-marker (process-mark p) (point)))
+			;; We must flush them here already; otherwise
+			;; `rename-file', `delete-file' or
+			;; `insert-file-contents' will fail.
+			(tramp-flush-connection-property v "process-name")
+			(tramp-flush-connection-property v "process-buffer")
+			;; Copy tmpstderr file.
+			(when (and (stringp stderr)
+				   (not (tramp-tramp-file-p stderr)))
+			  (add-function
+			   :after (process-sentinel p)
+			   (lambda (_proc _msg)
+			     (rename-file remote-tmpstderr stderr))))
 			;; Read initial output.  Remove the first line,
 			;; which is the command echo.
 			(while
@@ -1037,6 +1058,23 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			      (not (re-search-forward "[\n]" nil t)))
 			  (tramp-accept-process-output p 0))
 			(delete-region (point-min) (point))
+			;; Provide error buffer.  This shows only
+			;; initial error messages; messages arriving
+			;; later on will be inserted when the process
+			;; is deleted.  The temporary file will exist
+			;; until the process is deleted.
+			(when (bufferp stderr)
+			  (with-current-buffer stderr
+			    (insert-file-contents-literally
+			     remote-tmpstderr 'visit))
+			  ;; Delete tmpstderr file.
+			  (add-function
+			   :after (process-sentinel p)
+			   (lambda (_proc _msg)
+			     (with-current-buffer stderr
+			       (insert-file-contents-literally
+				remote-tmpstderr 'visit nil nil 'replace))
+			     (delete-file remote-tmpstderr))))
 			;; Return process.
 			p))))
 
@@ -1062,7 +1100,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (read (current-buffer)))
 	":" 'omit)))
    ;; The equivalent to `exec-directory'.
-   `(,(tramp-compat-file-local-name default-directory))))
+   `(,(tramp-file-local-name (expand-file-name default-directory)))))
 
 (defun tramp-adb-get-device (vec)
   "Return full host name from VEC to be used in shell execution.

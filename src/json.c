@@ -1121,7 +1121,6 @@ syms_of_json (void)
 
   DEFSYM (Qstring_without_embedded_nulls_p, "string-without-embedded-nulls-p");
   DEFSYM (Qjson_value_p, "json-value-p");
-  DEFSYM (Qutf_8_string_p, "utf-8-string-p");
 
   DEFSYM (Qjson_error, "json-error");
   DEFSYM (Qjson_out_of_memory, "json-out-of-memory");

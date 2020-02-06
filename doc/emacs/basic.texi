@@ -117,9 +117,9 @@ which is Unicode code-point U+2018 @sc{left single quotation mark},
 sometimes called a left single ``curved quote'' or ``curly quote''.
 Similarly, @kbd{C-x 8 ]}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the
 curved quotes @t{’}, @t{“} and @t{”}, respectively.  Also, a working
-Alt key acts like @kbd{C-x 8}; e.g., @kbd{A-[} acts like @kbd{C-x 8 [}
-and inserts @t{‘}.  To see which characters have @kbd{C-x 8}
-shorthands, type @kbd{C-x 8 C-h}.
+@key{Alt} key acts like @kbd{C-x 8} (unless followed by @key{RET});
+e.g., @kbd{A-[} acts like @kbd{C-x 8 [} and inserts @t{‘}.  To see
+which characters have @kbd{C-x 8} shorthands, type @kbd{C-x 8 C-h}.
 
   Alternatively, you can use the command @kbd{C-x 8 @key{RET}}
 (@code{insert-char}).  This prompts for the Unicode name or code-point

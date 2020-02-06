@@ -2055,11 +2055,10 @@ the appropriate place for that."
   "Keywords that might act as prefixes for primitive types.  Assumed to
 be a subset of `c-primitive-type-kwds'."
   t       nil
-  (c c++) '("long" "short" "signed" "unsigned")
-  idl     '("long" "unsigned"
+  (c c++ objc) '("long" "short" "signed" "unsigned")
+  idl	  '("long" "unsigned"
 	    ;; In CORBA PSDL:
 	    "strong"))
-
 (c-lang-defconst c-typedef-kwds
   "Prefix keyword(s) like \"typedef\" which make a type declaration out
 of a variable declaration."

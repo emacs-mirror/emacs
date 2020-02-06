@@ -1689,7 +1689,8 @@ following form:
 @noindent
 The format of this list is the same as what @code{decode-time} accepts
 (@pxref{Time Conversion}), and is described in more detail there.  Any
-element that cannot be determined from the input will be set to
+@code{dst} element that cannot be determined from the input is set to
+@minus{}1, and any other unknown element is set to
 @code{nil}.  The argument @var{string} should resemble an RFC 822 (or later) or
 ISO 8601 string, like ``Fri, 25 Mar 2016 16:24:56 +0100'' or
 ``1998-09-12T12:21:54-0200'', but this function will attempt to parse

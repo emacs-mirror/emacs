@@ -1675,10 +1675,8 @@ valid values."
   ;; least in emacs 21, 22.1, and xemacs 21.4.
   (put 'allout-exposure-category 'isearch-open-invisible
        'allout-isearch-end-handler)
-  (if (featurep 'xemacs)
-      (put 'allout-exposure-category 'start-open t)
-    (put 'allout-exposure-category 'insert-in-front-hooks
-         '(allout-overlay-insert-in-front-handler)))
+  (put 'allout-exposure-category 'insert-in-front-hooks
+       '(allout-overlay-insert-in-front-handler))
   (put 'allout-exposure-category 'modification-hooks
        '(allout-overlay-interior-modification-handler)))
 ;;;_  > define-minor-mode allout-mode
@@ -2115,9 +2113,7 @@ internal functions use this feature cohesively bunch changes."
                               (allout-show-to-offshoot)))
           (when (not first)
             (setq first (point))))
-        (goto-char (if (featurep 'xemacs)
-                       (next-property-change (1+ (point)) nil end)
-                     (next-char-property-change (1+ (point)) end))))
+        (goto-char (next-char-property-change (1+ (point)) end)))
       (when first
         (goto-char first)
         (condition-case nil
@@ -2141,18 +2137,7 @@ See `allout-overlay-interior-modification-handler' for details."
   (when (and (allout-mode-p) undo-in-progress)
     (setq allout-just-did-undo t)
     (if (allout-hidden-p)
-        (allout-show-children)))
-
-  ;; allout-overlay-interior-modification-handler on an overlay handles
-  ;; this in other emacs, via `allout-exposure-category's 'modification-hooks.
-  (when (and (featurep 'xemacs) (allout-mode-p))
-    ;; process all of the pending overlays:
-    (save-excursion
-      (goto-char beg)
-      (let ((overlay (allout-get-invisibility-overlay)))
-        (if overlay
-            (allout-overlay-interior-modification-handler
-             overlay nil beg end nil))))))
+        (allout-show-children))))
 ;;;_  > allout-isearch-end-handler (&optional overlay)
 (defun allout-isearch-end-handler (&optional _overlay)
   "Reconcile allout outline exposure on arriving in hidden text after isearch.
@@ -2453,7 +2438,7 @@ Outermost is first."
       (progn
         (if (and (not (bolp))
                  (allout-hidden-p (1- (point))))
-            (goto-char (allout-previous-single-char-property-change
+            (goto-char (previous-single-char-property-change
                         (1- (point)) 'invisible)))
         (move-beginning-of-line 1))
     (allout-depth)
@@ -3443,7 +3428,7 @@ Offer one suitable for current depth DEPTH as default."
                     (format-message
                      "Select bullet: %s (`%s' default): "
                      sans-escapes
-                     (allout-substring-no-properties default-bullet))
+                     (substring-no-properties default-bullet))
                     sans-escapes
                     t)))
     (message "")
@@ -4458,9 +4443,9 @@ Topic exposure is marked with text-properties, to be used by
           (if (not (allout-hidden-p))
               (setq next
                     (max (1+ (point))
-                         (allout-next-single-char-property-change (point)
-                                                                  'invisible
-                                                                  nil end))))
+                         (next-single-char-property-change (point)
+                                                           'invisible
+                                                           nil end))))
           (if (or (not next) (eq prev next))
               ;; still not at start of hidden area -- must not be any left.
               (setq done t)
@@ -4499,7 +4484,7 @@ Topic exposure is marked with text-properties, to be used by
       (while (not done)
         ;; at or advance to start of next annotation:
         (if (not (get-text-property (point) 'allout-was-hidden))
-            (setq next (allout-next-single-char-property-change
+            (setq next (next-single-char-property-change
                         (point) 'allout-was-hidden nil end)))
         (if (or (not next) (eq prev next))
             ;; no more or not advancing -- must not be any left.
@@ -4510,7 +4495,7 @@ Topic exposure is marked with text-properties, to be used by
               ;; still not at start of annotation.
               (setq done t)
             ;; advance to just after end of this annotation:
-            (setq next (allout-next-single-char-property-change
+            (setq next (next-single-char-property-change
                         (point) 'allout-was-hidden nil end))
             (let ((o (make-overlay prev next nil 'front-advance)))
               (overlay-put o 'category 'allout-exposure-category)
@@ -4543,12 +4528,12 @@ however, are left exactly like normal, non-allout-specific yanks."
   (interactive "*P")
 					; Get to beginning, leaving
 					; region around subject:
-  (if (< (allout-mark-marker t) (point))
+  (if (< (mark-marker) (point))
       (exchange-point-and-mark))
   (save-match-data
     (let* ((subj-beg (point))
            (into-bol (bolp))
-           (subj-end (allout-mark-marker t))
+           (subj-end (mark-marker))
            ;; 'resituate' if yanking an entire topic into topic header:
            (resituate (and (let ((allout-inhibit-aberrance-doublecheck t))
                              (allout-e-o-prefix-p))
@@ -4642,8 +4627,8 @@ however, are left exactly like normal, non-allout-specific yanks."
                                             t)))
               (message ""))))
       (if (or into-bol resituate)
-          (allout-hide-by-annotation (point) (allout-mark-marker t))
-        (allout-deannotate-hidden (allout-mark-marker t) (point)))
+          (allout-hide-by-annotation (point) (mark-marker))
+        (allout-deannotate-hidden (mark-marker) (point)))
       (if (not resituate)
           (exchange-point-and-mark))
       (run-hook-with-args 'allout-structure-added-functions subj-beg subj-end))))
@@ -4752,14 +4737,7 @@ this function."
   (when flag
     (let ((o (make-overlay from to nil 'front-advance)))
       (overlay-put o 'category 'allout-exposure-category)
-      (overlay-put o 'evaporate t)
-      (when (featurep 'xemacs)
-        (let ((props (symbol-plist 'allout-exposure-category)))
-          (while props
-            (condition-case nil
-                ;; as of 2008-02-27, xemacs lacks modification-hooks
-                (overlay-put o (pop props) (pop props))
-              (error nil))))))
+      (overlay-put o 'evaporate t))
     (setq allout-this-command-hid-text t))
   (run-hook-with-args 'allout-exposure-change-functions from to flag))
 ;;;_   > allout-flag-current-subtree (flag)
@@ -5946,7 +5924,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
         ;; they're encrypted, so the coding system is set to accommodate
         ;; them.
         (setq buffer-file-coding-system
-              (allout-select-safe-coding-system subtree-beg subtree-end))
+              (select-safe-coding-system subtree-beg subtree-end))
         ;; if the coding system for the text being encrypted is different
         ;; than that prevailing, then there a real risk that the coding
         ;; system can't be noticed by emacs when the file is visited.  to
@@ -6542,204 +6520,15 @@ If BEG is bigger than END we return 0."
          (mapcar (lambda (char) (if (= char ?%) "%%" (char-to-string char)))
                  string)))
 (define-obsolete-function-alias 'allout-flatten #'flatten-tree "27.1")
-;;;_  : Compatibility:
-;;;_   : xemacs undo-in-progress provision:
-(unless (boundp 'undo-in-progress)
-  (defvar undo-in-progress nil
-    "Placeholder defvar for XEmacs compatibility from allout.el.")
-  (defadvice undo-more (around allout activate)
-    ;; This defadvice used only in emacs that lack undo-in-progress, eg xemacs.
-    (let ((undo-in-progress t)) ad-do-it)))
-
-;;;_   > allout-mark-marker to accommodate divergent emacsen:
-(defun allout-mark-marker (&optional force buffer)
-  "Accommodate the different signature for `mark-marker' across Emacsen.
-
-XEmacs takes two optional args, while Emacs does not,
-so pass them along when appropriate."
-  (if (featurep 'xemacs)
-      (apply 'mark-marker force buffer)
-    (mark-marker)))
-;;;_   > subst-char-in-string if necessary
-(if (not (fboundp 'subst-char-in-string))
-    (defun subst-char-in-string (fromchar tochar string &optional inplace)
-      "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
-Unless optional argument INPLACE is non-nil, return a new string."
-      (let ((i (length string))
-            (newstr (if inplace string (copy-sequence string))))
-        (while (> i 0)
-          (setq i (1- i))
-          (if (eq (aref newstr i) fromchar)
-              (aset newstr i tochar)))
-        newstr)))
-;;;_   > wholenump if necessary
-(if (not (fboundp 'wholenump))
-    (defalias 'wholenump 'natnump))
-;;;_   > remove-overlays if necessary
-(if (not (fboundp 'remove-overlays))
-    (defun remove-overlays (&optional beg end name val)
-      "Clear BEG and END of overlays whose property NAME has value VAL.
-Overlays might be moved and/or split.
-BEG and END default respectively to the beginning and end of buffer."
-      (unless beg (setq beg (point-min)))
-      (unless end (setq end (point-max)))
-      (if (< end beg)
-          (setq beg (prog1 end (setq end beg))))
-      (save-excursion
-        (dolist (o (overlays-in beg end))
-          (when (eq (overlay-get o name) val)
-            ;; Either push this overlay outside beg...end
-            ;; or split it to exclude beg...end
-            ;; or delete it entirely (if it is contained in beg...end).
-            (if (< (overlay-start o) beg)
-                (if (> (overlay-end o) end)
-                    (progn
-                      (move-overlay (copy-overlay o)
-                                    (overlay-start o) beg)
-                      (move-overlay o end (overlay-end o)))
-                  (move-overlay o (overlay-start o) beg))
-              (if (> (overlay-end o) end)
-                  (move-overlay o end (overlay-end o))
-                (delete-overlay o)))))))
-  )
-;;;_   > copy-overlay if necessary -- xemacs ~ 21.4
-(if (not (fboundp 'copy-overlay))
-    (defun copy-overlay (o)
-      "Return a copy of overlay O."
-      (let ((o1 (make-overlay (overlay-start o) (overlay-end o)
-                              ;; FIXME: there's no easy way to find the
-                              ;; insertion-type of the two markers.
-                              (overlay-buffer o)))
-            (props (overlay-properties o)))
-        (while props
-          (overlay-put o1 (pop props) (pop props)))
-        o1)))
-;;;_   > add-to-invisibility-spec if necessary -- xemacs ~ 21.4
-(if (not (fboundp 'add-to-invisibility-spec))
-    (defun add-to-invisibility-spec (element)
-      "Add ELEMENT to `buffer-invisibility-spec'.
-See documentation for `buffer-invisibility-spec' for the kind of elements
-that can be added."
-      (if (eq buffer-invisibility-spec t)
-          (setq buffer-invisibility-spec (list t)))
-      (setq buffer-invisibility-spec
-            (cons element buffer-invisibility-spec))))
-;;;_   > remove-from-invisibility-spec if necessary -- xemacs ~ 21.4
-(if (not (fboundp 'remove-from-invisibility-spec))
-    (defun remove-from-invisibility-spec (element)
-      "Remove ELEMENT from `buffer-invisibility-spec'."
-      (if (consp buffer-invisibility-spec)
-          (setq buffer-invisibility-spec (delete element
-                                                 buffer-invisibility-spec)))))
-;;;_   > move-beginning-of-line if necessary -- older emacs, xemacs
-(if (not (fboundp 'move-beginning-of-line))
-    (defun move-beginning-of-line (arg)
-      "Move point to beginning of current line as displayed.
-\(This disregards invisible newlines such as those
-which are part of the text that an image rests on.)
-
-With argument ARG not nil or 1, move forward ARG - 1 lines first.
-If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
-      (interactive "p")
-      (or arg (setq arg 1))
-      (if (/= arg 1)
-          (condition-case nil (line-move (1- arg)) (error nil)))
-
-      ;; Move to beginning-of-line, ignoring fields and invisible text.
-      (skip-chars-backward "^\n")
-      (while (and (not (bobp))
-                  (let ((prop
-                          (get-char-property (1- (point)) 'invisible)))
-                    (if (eq buffer-invisibility-spec t)
-                        prop
-                      (or (memq prop buffer-invisibility-spec)
-                          (assq prop buffer-invisibility-spec)))))
-        (goto-char (if (featurep 'xemacs)
-                       (previous-property-change (point))
-                     (previous-char-property-change (point))))
-        (skip-chars-backward "^\n"))
-      (vertical-motion 0))
-)
-;;;_   > move-end-of-line if necessary -- Emacs < 22.1, xemacs
-(if (not (fboundp 'move-end-of-line))
-    (defun move-end-of-line (arg)
-      "Move point to end of current line as displayed.
-\(This disregards invisible newlines such as those
-which are part of the text that an image rests on.)
-
-With argument ARG not nil or 1, move forward ARG - 1 lines first.
-If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
-      (interactive "p")
-      (or arg (setq arg 1))
-      (let (done)
-        (while (not done)
-          (let ((newpos
-                 (save-excursion
-                   (let ((goal-column 0))
-                     (and (condition-case nil
-                              (or (line-move arg) t)
-                            (error nil))
-                          (not (bobp))
-                          (progn
-                            (while
-                                (and
-                                 (not (bobp))
-                                 (let ((prop
-                                        (get-char-property (1- (point))
-                                                           'invisible)))
-                                   (if (eq buffer-invisibility-spec t)
-                                       prop
-                                     (or (memq prop
-                                               buffer-invisibility-spec)
-                                         (assq prop
-                                               buffer-invisibility-spec)))))
-                              (goto-char
-                               (previous-char-property-change (point))))
-                            (backward-char 1)))
-                     (point)))))
-            (goto-char newpos)
-            (if (and (> (point) newpos)
-                     (eq (preceding-char) ?\n))
-                (backward-char 1)
-              (if (and (> (point) newpos) (not (eobp))
-                       (not (eq (following-char) ?\n)))
-                  ;; If we skipped something intangible
-                  ;; and now we're not really at eol,
-                  ;; keep going.
-                  (setq arg 1)
-                (setq done t)))))))
-  )
-;;;_   > allout-next-single-char-property-change -- alias unless lacking
-(defalias 'allout-next-single-char-property-change
-  (if (fboundp 'next-single-char-property-change)
-      'next-single-char-property-change
-    'next-single-property-change)
-  ;; No docstring because xemacs defalias doesn't support it.
-  )
-;;;_   > allout-previous-single-char-property-change -- alias unless lacking
-(defalias 'allout-previous-single-char-property-change
-  (if (fboundp 'previous-single-char-property-change)
-      'previous-single-char-property-change
-    'previous-single-property-change)
-  ;; No docstring because xemacs defalias doesn't support it.
-  )
-;;;_   > allout-select-safe-coding-system
-(defalias 'allout-select-safe-coding-system
-  (if (fboundp 'select-safe-coding-system)
-      'select-safe-coding-system
-    'detect-coding-region)
- )
-;;;_   > allout-substring-no-properties
-;; define as alias first, so byte compiler is happy.
-(defalias 'allout-substring-no-properties 'substring-no-properties)
-;; then supplant with definition if underlying alias absent.
-(if (not (fboundp 'substring-no-properties))
-  (defun allout-substring-no-properties (string &optional start end)
-    (substring string (or start 0) end))
-  )
-
+(define-obsolete-function-alias 'allout-mark-marker #'mark-marker "28.1")
+(define-obsolete-function-alias 'allout-substring-no-properties
+  #'substring-no-properties "28.1")
+(define-obsolete-function-alias 'allout-select-safe-coding-system
+  #'select-safe-coding-system "28.1")
+(define-obsolete-function-alias 'allout-previous-single-char-property-change
+  #'previous-single-char-property-change "28.1")
+(define-obsolete-function-alias 'allout-next-single-char-property-change
+  #'next-single-char-property-change "28.1")
 ;;;_ #10 Unfinished
 ;;;_  > allout-bullet-isearch (&optional bullet)
 (defun allout-bullet-isearch (&optional bullet)

@@ -5915,10 +5915,6 @@ This function compares two window configurations as regards the
 structure of windows, but ignores the values of point and the
 saved scrolling positions---it can return @code{t} even if those
 aspects differ.
-
-The function @code{equal} can also compare two window configurations; it
-regards configurations as unequal if they differ in any respect, even a
-saved point.
 @end defun
 
 @defun window-configuration-frame config

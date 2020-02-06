@@ -193,6 +193,8 @@ to today."
 (defcustom timeclock-load-hook nil
   "Hook that gets run after timeclock has been loaded."
   :type 'hook)
+(make-obsolete-variable 'timeclock-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom timeclock-in-hook nil
   "A hook run every time an \"in\" event is recorded."

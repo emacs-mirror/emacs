@@ -1037,9 +1037,10 @@ For more details, see Info node `(cl)Loop Facility'.
 
 (defmacro cl--push-clause-loop-body (clause)
   "Apply CLAUSE to both `cl--loop-conditions' and `cl--loop-body'."
-  `(progn
-     (push ,clause cl--loop-conditions)
-     (push ,clause cl--loop-body)))
+  (macroexp-let2 nil sym clause
+    `(progn
+       (push ,sym cl--loop-conditions)
+       (push ,sym cl--loop-body))))
 
 ;; Below is a complete spec for cl-loop, in several parts that correspond
 ;; to the syntax given in CLtL2.  The specs do more than specify where
@@ -1318,7 +1319,10 @@ For more details, see Info node `(cl)Loop Facility'.
                                                 (nreverse cl--loop-conditions)))
                                          ,then ,var))
                               loop-for-steps))
-		    (push `(,var (if ,first-assign ,start ,then)) loop-for-sets))))
+                    (push (if (eq start then)
+		              `(,var ,then)
+                            `(,var (if ,first-assign ,start ,then)))
+                          loop-for-sets))))
 
 	       ((memq word '(across across-ref))
 		(let ((temp-vec (make-symbol "--cl-vec--"))

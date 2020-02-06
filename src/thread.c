@@ -725,6 +725,9 @@ run_thread (void *state)
   self->m_stack_bottom = self->stack_top = (char *) &stack_pos;
   self->thread_id = sys_thread_self ();
 
+  if (self->thread_name)
+    sys_thread_set_name (self->thread_name);
+
   acquire_global_lock (self);
 
   /* Put a dummy catcher at top-level so that handlerlist is never NULL.
@@ -826,13 +829,13 @@ If NAME is given, it must be a string; it names the new thread.  */)
   new_thread->next_thread = all_threads;
   all_threads = new_thread;
 
-  char const *c_name = !NILP (name) ? SSDATA (ENCODE_UTF_8 (name)) : NULL;
+  char const *c_name = !NILP (name) ? SSDATA (ENCODE_SYSTEM (name)) : NULL;
   if (c_name)
     new_thread->thread_name = xstrdup (c_name);
   else
     new_thread->thread_name = NULL;
   sys_thread_t thr;
-  if (! sys_thread_create (&thr, c_name, run_thread, new_thread))
+  if (! sys_thread_create (&thr, run_thread, new_thread))
     {
       /* Restore the previous situation.  */
       all_threads = all_threads->next_thread;
@@ -1110,9 +1113,6 @@ syms_of_threads (void)
 
       staticpro (&last_thread_error);
       last_thread_error = Qnil;
-
-      Fdefalias (intern_c_string ("thread-alive-p"),
-		 intern_c_string ("thread-live-p"), Qnil);
 
       Fprovide (intern_c_string ("threads"), Qnil);
     }

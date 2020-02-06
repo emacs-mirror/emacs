@@ -814,7 +814,7 @@ These will be used to retrieve the RSVP information from ical events."
         (let ((subject (concat (capitalize (symbol-name status))
                                ": " (gnus-icalendar-event:summary event))))
 
-          (with-current-buffer (get-buffer-create gnus-icalendar-reply-bufname)
+          (with-current-buffer (gnus-get-buffer-create gnus-icalendar-reply-bufname)
             (delete-region (point-min) (point-max))
             (insert reply)
             (fold-icalendar-buffer)

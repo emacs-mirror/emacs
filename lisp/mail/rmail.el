@@ -4392,9 +4392,8 @@ browsing, and moving of messages."
 		  (text face mouse function &optional token prevline))
 
 ;; Make sure our special speedbar major mode is loaded
-(if (featurep 'speedbar)
-    (rmail-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook 'rmail-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (rmail-install-speedbar-variables))
 
 (defun rmail-speedbar-buttons (buffer)
   "Create buttons for BUFFER containing rmail messages.

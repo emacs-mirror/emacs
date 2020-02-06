@@ -244,6 +244,27 @@
               (error-message-string (should-error (version-to-list "beta22_8alpha3")))
               "Invalid version syntax: `beta22_8alpha3' (must start with a number)"))))
 
+(ert-deftest subr-test-version-list-< ()
+  (should (version-list-< '(0) '(1)))
+  (should (version-list-< '(0 9) '(1 0)))
+  (should (version-list-< '(1 -1) '(1 0)))
+  (should (version-list-< '(1 -2) '(1 -1)))
+  (should (not (version-list-< '(1) '(0))))
+  (should (not (version-list-< '(1 1) '(1 0))))
+  (should (not (version-list-< '(1) '(1 0))))
+  (should (not (version-list-< '(1 0) '(1 0 0)))))
+
+(ert-deftest subr-test-version-list-= ()
+  (should (version-list-= '(1) '(1)))
+  (should (version-list-= '(1 0) '(1)))
+  (should (not (version-list-= '(0) '(1)))))
+
+(ert-deftest subr-test-version-list-<= ()
+  (should (version-list-<= '(0) '(1)))
+  (should (version-list-<= '(1) '(1)))
+  (should (version-list-<= '(1 0) '(1)))
+  (should (not (version-list-<= '(1) '(0)))))
+
 (defun subr-test--backtrace-frames-with-backtrace-frame (base)
   "Reference implementation of `backtrace-frames'."
   (let ((idx 0)

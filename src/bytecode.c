@@ -220,10 +220,10 @@ DEFINE (Bdup, 0211)							\
 DEFINE (Bsave_excursion, 0212)						\
 DEFINE (Bsave_window_excursion, 0213) /* Obsolete since Emacs-24.1.  */	\
 DEFINE (Bsave_restriction, 0214)					\
-DEFINE (Bcatch, 0215)							\
+DEFINE (Bcatch, 0215)		/* Obsolete since Emacs-25.  */         \
 									\
 DEFINE (Bunwind_protect, 0216)						\
-DEFINE (Bcondition_case, 0217)						\
+DEFINE (Bcondition_case, 0217)	/* Obsolete since Emacs-25.  */         \
 DEFINE (Btemp_output_buffer_setup, 0220) /* Obsolete since Emacs-24.1.  */ \
 DEFINE (Btemp_output_buffer_show, 0221)  /* Obsolete since Emacs-24.1.  */ \
 									\
@@ -763,7 +763,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_restriction_save ());
 	  NEXT;
 
-	CASE (Bcatch):		/* Obsolete since 24.4.  */
+	CASE (Bcatch):		/* Obsolete since 25.  */
 	  {
 	    Lisp_Object v1 = POP;
 	    TOP = internal_catch (TOP, eval_sub, v1);
@@ -807,7 +807,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    NEXT;
 	  }
 
-	CASE (Bcondition_case):		/* Obsolete since 24.4.  */
+	CASE (Bcondition_case):		/* Obsolete since 25.  */
 	  {
 	    Lisp_Object handlers = POP, body = POP;
 	    TOP = internal_lisp_condition_case (TOP, body, handlers);

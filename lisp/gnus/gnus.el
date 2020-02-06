@@ -660,7 +660,7 @@ be used directly.")
 (defun gnus-add-buffer ()
   "Add the current buffer to the list of Gnus buffers."
   (gnus-prune-buffers)
-  (push (current-buffer) gnus-buffers))
+  (cl-pushnew (current-buffer) gnus-buffers))
 
 (defmacro gnus-kill-buffer (buffer)
   "Kill BUFFER and remove from the list of Gnus buffers."
@@ -2821,7 +2821,7 @@ See Info node `(gnus)Formatting Variables'."
                (:constructor gnus-info-make
                 (group rank read &optional marks method params))
                (:constructor nil)
-               ;; FIMXE: gnus-newsrc-alist contains a list of those,
+	       ;; FIXME: gnus-newsrc-alist contains a list of those,
                ;; so changing them to a real struct will take more work!
                (:type list))
   group rank read marks method params)

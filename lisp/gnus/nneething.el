@@ -381,7 +381,7 @@ included.")
 
 (defun nneething-get-head (file)
   "Either find the head in FILE or make a head for FILE."
-  (with-current-buffer (get-buffer-create nneething-work-buffer)
+  (with-current-buffer (gnus-get-buffer-create nneething-work-buffer)
     (setq case-fold-search nil)
     (buffer-disable-undo)
     (erase-buffer)

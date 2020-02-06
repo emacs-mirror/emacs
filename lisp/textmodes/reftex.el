@@ -2371,7 +2371,7 @@ what in fact did happen.
 Check if the bug is reproducible with an up-to-date version of
 RefTeX available from https://www.gnu.org/software/auctex/.
 
-If the bug is triggered by a specific \(La)TeX file, you should try
+If the bug is triggered by a specific (La)TeX file, you should try
 to produce a minimal sample file showing the problem and include it
 in your report.
 

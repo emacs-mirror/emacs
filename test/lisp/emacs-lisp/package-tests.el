@@ -349,49 +349,108 @@ Must called from within a `tar-mode' buffer."
           (goto-char (point-min))
           (should (re-search-forward re nil t)))))))
 
+
+;;; Package Menu tests
+
+(defmacro with-package-menu-test (&rest body)
+  "Set up Package Menu (\"*Packages*\") buffer for testing."
+  (declare (indent 0) (debug (([&rest form]) body)))
+  `(with-package-test ()
+     (let ((buf (package-list-packages)))
+       (unwind-protect
+           (progn ,@body)
+         (kill-buffer buf)))))
+
 (ert-deftest package-test-update-listing ()
   "Ensure installed package status is updated."
-  (with-package-test ()
-    (let ((buf (package-list-packages)))
-      (search-forward-regexp "^ +simple-single")
-      (package-menu-mark-install)
-      (package-menu-execute)
-      (run-hooks 'post-command-hook)
-      (should (package-installed-p 'simple-single))
-      (switch-to-buffer "*Packages*")
-      (goto-char (point-min))
-      (should (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+installed" nil t))
-      (goto-char (point-min))
-      (should-not (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+\\(available\\|new\\)" nil t))
-      (kill-buffer buf))))
+  (with-package-menu-test
+    (search-forward-regexp "^ +simple-single")
+    (package-menu-mark-install)
+    (package-menu-execute)
+    (run-hooks 'post-command-hook)
+    (should (package-installed-p 'simple-single))
+    (switch-to-buffer "*Packages*")
+    (goto-char (point-min))
+    (should (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+installed" nil t))
+    (goto-char (point-min))
+    (should-not (re-search-forward "^\\s-+simple-single\\s-+1.3\\s-+\\(available\\|new\\)" nil t))))
+
+(ert-deftest package-test-list-filter-by-archive ()
+  "Ensure package list is filtered correctly by archive version."
+  (with-package-menu-test
+    ;; TODO: Add another package archive to test filtering, because
+    ;;       the testing environment currently only has one.
+    (package-menu-filter-by-archive "gnu")
+    (goto-char (point-min))
+    (should (looking-at "^\\s-+multi-file"))
+    (should (= (count-lines (point-min) (point-max)) 4))
+    (should-error (package-menu-filter-by-archive "non-existent archive"))))
+
+(ert-deftest package-test-list-filter-by-keyword ()
+  "Ensure package list is filtered correctly by package keyword."
+  (with-package-menu-test
+    (package-menu-filter-by-keyword "frobnicate")
+    (goto-char (point-min))
+    (should (re-search-forward "^\\s-+simple-single" nil t))
+    (should (= (count-lines (point-min) (point-max)) 1))
+    (should-error (package-menu-filter-by-keyword "non-existent-keyword"))))
 
 (ert-deftest package-test-list-filter-by-name ()
   "Ensure package list is filtered correctly by package name."
-  (with-package-test ()
-    (let ((buf (package-list-packages)))
-      (package-menu-filter-by-name "tetris")
-      (goto-char (point-min))
-      (should (re-search-forward "^\\s-+tetris" nil t))
-      (should (= (count-lines (point-min) (point-max)) 1))
-      (kill-buffer buf))))
+  (with-package-menu-test ()
+    (package-menu-filter-by-name "tetris")
+    (goto-char (point-min))
+    (should (re-search-forward "^\\s-+tetris" nil t))
+    (should (= (count-lines (point-min) (point-max)) 1))))
+
+(ert-deftest package-test-list-filter-by-status ()
+  "Ensure package list is filtered correctly by package status."
+  (with-package-menu-test
+    (package-menu-filter-by-status "available")
+    (goto-char (point-min))
+    (should (re-search-forward "^\\s-+multi-file" nil t))
+    (should (= (count-lines (point-min) (point-max)) 4))
+    ;; No installed packages in default environment.
+    (should-error (package-menu-filter-by-status "installed"))))
+
+(ert-deftest package-test-list-filter-by-version ()
+  (with-package-menu-test
+    (should-error (package-menu-filter-by-version "1.1" 'unknown-symbol)))  )
+
+(defun package-test-filter-by-version (version predicate name)
+  (with-package-menu-test
+    (package-menu-filter-by-version version predicate)
+    (goto-char (point-min))
+    ;; We just check that the given package is included in the
+    ;; listing.  One could be more ambitious.
+    (should (re-search-forward name))))
+
+(ert-deftest package-test-list-filter-by-version-= ()
+  "Ensure package list is filtered correctly by package version (=)."
+  (package-test-filter-by-version "1.1" '= "^\\s-+simple-two-depend"))
+
+(ert-deftest package-test-list-filter-by-version-< ()
+  "Ensure package list is filtered correctly by package version (<)."
+  (package-test-filter-by-version "1.2" '< "^\\s-+simple-two-depend"))
+
+(ert-deftest package-test-list-filter-by-version-> ()
+  "Ensure package list is filtered correctly by package version (>)."
+  (package-test-filter-by-version "1.0" '> "^\\s-+simple-two-depend"))
 
 (ert-deftest package-test-list-clear-filter ()
   "Ensure package list filter is cleared correctly."
-  (with-package-test ()
-    (let ((buf (package-list-packages)))
-      (let ((num-packages (count-lines (point-min) (point-max))))
-        (should (> num-packages 1))
-        (package-menu-filter-by-name "tetris")
-        (should (= (count-lines (point-min) (point-max)) 1))
-        (package-menu-clear-filter)
-        (should (= (count-lines (point-min) (point-max)) num-packages)))
-      (kill-buffer buf))))
+  (with-package-menu-test
+    (let ((num-packages (count-lines (point-min) (point-max))))
+      (package-menu-filter-by-name "tetris")
+      (should (= (count-lines (point-min) (point-max)) 1))
+      (package-menu-clear-filter)
+      (should (= (count-lines (point-min) (point-max)) num-packages)))))
 
 (ert-deftest package-test-update-archives ()
   "Test updating package archives."
   (with-package-test ()
     (let ((buf (package-list-packages)))
-      (package-menu-refresh)
+      (revert-buffer)
       (search-forward-regexp "^ +simple-single")
       (package-menu-mark-install)
       (package-menu-execute)
@@ -399,7 +458,7 @@ Must called from within a `tar-mode' buffer."
       (let ((package-test-data-dir
              (expand-file-name "package-resources/newer-versions" package-test-file-dir)))
         (setq package-archives `(("gnu" . ,package-test-data-dir)))
-        (package-menu-refresh)
+        (revert-buffer)
 
         ;; New version should be available and old version should be installed
         (goto-char (point-min))
@@ -411,7 +470,7 @@ Must called from within a `tar-mode' buffer."
 
         (package-menu-mark-upgrades)
         (package-menu-execute)
-        (package-menu-refresh)
+        (revert-buffer)
         (should (package-installed-p 'simple-single '(1 4)))))))
 
 (ert-deftest package-test-update-archives-async ()
@@ -573,7 +632,7 @@ Must called from within a `tar-mode' buffer."
         (should (progn (package-install 'signed-bad) 'noerror)))
       ;; Check if the installed package status is updated.
       (let ((buf (package-list-packages)))
-	(package-menu-refresh)
+	(revert-buffer)
 	(should (re-search-forward
 		 "^\\s-+signed-good\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\s-"
 		 nil t))

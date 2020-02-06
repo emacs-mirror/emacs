@@ -44,9 +44,8 @@
 
 ;; Because semantic imenu tags will hose the current imenu handling
 ;; code in speedbar, force semantic/sb in.
-(if (featurep 'speedbar)
-    (require 'semantic/sb)
-  (add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb))))
+(with-eval-after-load 'speedbar
+  (require 'semantic/sb))
 
 (defgroup semantic-imenu nil
   "Semantic interface to Imenu."

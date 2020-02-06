@@ -946,7 +946,12 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 	      ")\n"))))
 
 ;; ----------------------------------------------------------------------------
-(defvar desktop-buffers-not-to-save-function nil)
+(defvar desktop-buffers-not-to-save-function nil
+  "Function identifying buffers that are to be excluded from saving.
+Like `desktop-buffers-not-to-save' it can be used to check whether
+a given buffer should not be saved.  It takes the same arguments as
+`desktop-save-buffer-p' and should return nil if buffer should not
+have its state saved in the desktop file.")
 
 (defun desktop-save-buffer-p (filename bufname mode &rest rest)
   "Return t if buffer should have its state saved in the desktop file.

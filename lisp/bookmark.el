@@ -2321,6 +2321,8 @@ strings returned are not."
 ;; Load Hook
 (defvar bookmark-load-hook nil
   "Hook run at the end of loading library `bookmark.el'.")
+(make-obsolete-variable 'bookmark-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 ;; Exit Hook, called from kill-emacs-hook
 (defvar bookmark-exit-hook nil
