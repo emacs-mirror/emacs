@@ -3212,9 +3212,9 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
        doc: /* Compile as native code the current context to file.  */)
-     (Lisp_Object ctxtname)
+     (Lisp_Object base_name)
 {
-  CHECK_STRING (ctxtname);
+  CHECK_STRING (base_name);
 
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
@@ -3261,16 +3261,16 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   if (COMP_DEBUG)
       gcc_jit_context_dump_to_file (comp.ctxt,
-				    format_string ("%s.c", SSDATA (ctxtname)),
+				    format_string ("%s.c", SSDATA (base_name)),
 				    1);
   if (COMP_DEBUG > 2)
     gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
   AUTO_STRING (dot_so, NATIVE_ELISP_SUFFIX);
 
-  Lisp_Object out_file = CALLN (Fconcat, ctxtname, dot_so);
+  Lisp_Object out_file = CALLN (Fconcat, base_name, dot_so);
   Lisp_Object tmp_file =
-    Fmake_temp_file_internal (ctxtname, Qnil, dot_so, Qnil);
+    Fmake_temp_file_internal (base_name, Qnil, dot_so, Qnil);
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
