@@ -2014,9 +2014,12 @@ Update all insn accordingly."
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
 Prepare every function for final compilation and drive the C back-end."
-  (comp-finalize-relocs)
-  (unless comp-dry-run
-    (comp--compile-ctxt-to-file name)))
+  (let ((dir (file-name-directory name)))
+    (comp-finalize-relocs)
+    (unless (file-exists-p dir)
+      (make-directory dir))
+    (unless comp-dry-run
+      (comp--compile-ctxt-to-file name))))
 
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
@@ -2118,9 +2121,17 @@ Return the compilation unit file name."
   (let ((data input)
         (comp-native-compiling t)
         (comp-ctxt (make-comp-ctxt
-                    :output (if (symbolp input)
-                                (make-temp-file (concat (symbol-name input) "-"))
-                              (file-name-sans-extension (expand-file-name input))))))
+                    :output
+                    (if (symbolp input)
+                        (make-temp-file (concat (symbol-name input) "-"))
+                      (let ((exp-file (expand-file-name input)))
+                        (concat
+                         (file-name-as-directory
+                          (concat
+                           (file-name-directory exp-file)
+                           system-configuration))
+                         (file-name-sans-extension
+                          (file-name-nondirectory exp-file))))))))
     (comp-log "\n\n" 1)
     (condition-case err
         (mapc (lambda (pass)
