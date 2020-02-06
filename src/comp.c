@@ -3291,7 +3291,6 @@ void
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 {
   dynlib_handle_ptr handle = comp_u->handle;
-  Lisp_Object lisp_handle = make_mint_ptr (handle);
   Lisp_Object comp_u_lisp_obj;
   XSETNATIVE_COMP_UNIT (comp_u_lisp_obj, comp_u);
 
