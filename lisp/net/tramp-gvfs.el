@@ -2466,7 +2466,8 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 
 (when tramp-gvfs-enabled
   ;; Suppress D-Bus error messages and Tramp traces.
-  (let (tramp-gvfs-dbus-event-vector tramp-verbose fun)
+  (let ((tramp-verbose 0)
+	tramp-gvfs-dbus-event-vector fun)
     ;; Add completion functions for services announced by DNS-SD.
     ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
     (zeroconf-init tramp-gvfs-zeroconf-domain)

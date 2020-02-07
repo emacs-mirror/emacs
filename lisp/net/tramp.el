@@ -2555,7 +2555,7 @@ Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
   "Check, whether it is possible to connect the remote host w/o side-effects.
 This is true, if either the remote host is already connected, or if we are
 not in completion mode."
-  (let (tramp-verbose
+  (let ((tramp-verbose 0)
 	(vec
 	 (cond
 	  ((tramp-file-name-p vec-or-filename) vec-or-filename)
@@ -3431,7 +3431,7 @@ User is always nil."
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
       (let (ls-lisp-use-insert-directory-program start)
 	;; Silence byte compiler.
-	ls-lisp-use-insert-directory-program
+	(ignore ls-lisp-use-insert-directory-program)
 	(tramp-run-real-handler
 	 #'insert-directory
 	 (list filename switches wildcard full-directory-p))

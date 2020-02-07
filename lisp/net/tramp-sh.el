@@ -491,8 +491,8 @@ The string is used in `tramp-methods'.")
 For every remote host, this variable will be set buffer local,
 keeping the list of existing directories on that host.
 
-You can use `~' in this list, but when searching for a shell which groks
-tilde expansion, all directory names starting with `~' will be ignored.
+You can use \"~\" in this list, but when searching for a shell which groks
+tilde expansion, all directory names starting with \"~\" will be ignored.
 
 `Default Directories' represent the list of directories given by
 the command \"getconf PATH\".  It is recommended to use this
@@ -3953,7 +3953,7 @@ hosts, or files, disagree."
 First arg VEC specifies the connection, PROGNAME is the program
 to search for, and DIRLIST gives the list of directories to
 search.  If IGNORE-TILDE is non-nil, directory names starting
-with `~' will be ignored.  If IGNORE-PATH is non-nil, searches
+with \"~\" will be ignored.  If IGNORE-PATH is non-nil, searches
 only in DIRLIST.
 
 Returns the absolute file name of PROGNAME, if found, and nil otherwise.
@@ -4103,18 +4103,26 @@ file exists and nonzero exit status otherwise."
   (with-tramp-progress-reporter
       vec 5 (format-message "Opening remote shell `%s'" shell)
     ;; Find arguments for this shell.
-    (let ((extra-args (tramp-get-sh-extra-args shell)))
+    (let ((extra-args (tramp-get-sh-extra-args shell))
+	  (p (tramp-get-connection-process vec)))
       ;; The readline library can disturb Tramp.  For example, the
       ;; very recent version of libedit, the *BSD implementation of
       ;; readline, confuses Tramp.  So we disable line editing.  Since
       ;; $EDITRC is not supported on all target systems, we must move
       ;; ~/.editrc temporarily somewhere else.  For bash and zsh we
       ;; have disabled this already during shell invocation, see
-      ;; `tramp-sh-extra-args'.  Bug#39399.
+      ;; `tramp-sh-extra-args' (Bug#39399).
+      ;; The shell prompt might not be set yet, so we must read any
+      ;; prompt via `tramp-barf-if-no-shell-prompt'.
       (unless extra-args
-	(tramp-send-command vec "rm -f ~/.editrc.tramp" t)
-	(tramp-send-command vec "mv -f ~/.editrc ~/.editrc.tramp" t)
-	(tramp-send-command vec "echo 'edit off' >~/.editrc" t))
+	(tramp-send-command vec "rm -f ~/.editrc.tramp" t t)
+	(tramp-barf-if-no-shell-prompt p 10 "Couldn't find remote shell prompt")
+	(tramp-send-command
+	 vec "test -e ~/.editrc && mv -f ~/.editrc ~/.editrc.tramp" t t)
+	(tramp-barf-if-no-shell-prompt p 10 "Couldn't find remote shell prompt")
+	(tramp-send-command vec "echo 'edit off' >~/.editrc" t t)
+	(tramp-barf-if-no-shell-prompt
+	 p 10 "Couldn't find remote shell prompt"))
       ;; It is useful to set the prompt in the following command
       ;; because some people have a setting for $PS1 which /bin/sh
       ;; doesn't know about and thus /bin/sh will display a strange
@@ -4150,7 +4158,9 @@ file exists and nonzero exit status otherwise."
 	    (tramp-shell-quote-argument tramp-end-of-output)
 	    shell (or extra-args ""))
        t)
+      ;; Reset ~/.editrc.
       (unless extra-args
+	(tramp-send-command vec "rm -f ~/.editrc" t)
 	(tramp-send-command
 	 vec "test -e ~/.editrc.tramp && mv -f ~/.editrc.tramp ~/.editrc" t))
       ;; Check proper HISTFILE setting.  We give up when not working.

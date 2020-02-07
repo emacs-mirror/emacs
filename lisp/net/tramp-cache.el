@@ -411,15 +411,16 @@ used to cache connection properties of the local machine."
 ;;;###tramp-autoload
 (defun tramp-list-connections ()
   "Return all known `tramp-file-name' structs according to `tramp-cache'."
-    (let (result tramp-verbose)
-      (maphash
-       (lambda (key _value)
-	 (when (and (tramp-file-name-p key)
-		    (null (tramp-file-name-localname key))
-		    (tramp-connection-property-p key "process-buffer"))
-	   (push key result)))
-       tramp-cache-data)
-      result))
+  (let ((tramp-verbose 0)
+	result)
+    (maphash
+     (lambda (key _value)
+       (when (and (tramp-file-name-p key)
+		  (null (tramp-file-name-localname key))
+		  (tramp-connection-property-p key "process-buffer"))
+	 (push key result)))
+     tramp-cache-data)
+    result))
 
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file `tramp-persistency-file-name'."
