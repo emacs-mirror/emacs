@@ -1,5 +1,6 @@
 * which-key
-  [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[https://travis-ci.org/justbur/emacs-which-key][file:https://travis-ci.org/justbur/emacs-which-key.svg?branch=master]]
+  [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
+  [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[build][https://github.com/justbur/emacs-which-key/workflows/which-key-test-workflow/badge.svg]]
 
 ** Recent Changes
 
