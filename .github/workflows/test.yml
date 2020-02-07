@@ -1,0 +1,33 @@
+name: which-key-test-workflow
+on:
+  pull-request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest, macos-latest]
+    strategy:
+      matrix:
+        emacs_version:
+          - 24.1
+          - 24.2
+          - 24.3
+          - 24.4
+          - 24.5
+          - 25.1
+          - 25.2
+          - 25.3
+          - 26.1
+          - 26.2
+          - 26.3
+          - snapshot
+    steps:
+    - uses: purcell/setup-emacs@master
+      with:
+        version: ${{ matrix.emacs_version }}
+
+    - uses: actions/checkout@v2
+    - name: Run tests
+      run: 'emacs -Q -batch -L . -l which-key-tests.el -f ert-run-tests-batch-and-exit'
