@@ -30884,26 +30884,28 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
   if (!w->cursor_off_p)
     {
       if (glyph != NULL && glyph->type == XWIDGET_GLYPH)
-        return NO_CURSOR;
+	return NO_CURSOR;
       if (glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
 	  if (cursor_type == FILLED_BOX_CURSOR)
 	    {
-	      /* Using a block cursor on large images can be very annoying.
-		 So use a hollow cursor for "large" images.
-		 If image is not transparent (no mask), also use hollow cursor.  */
+	      /* Using a block cursor on large images can be very
+		 annoying.  So use a hollow cursor for "large" images.
+		 If image is not transparent (no mask), also use
+		 hollow cursor.  */
 	      struct image *img = IMAGE_OPT_FROM_ID (f, glyph->u.img_id);
 	      if (img != NULL && IMAGEP (img->spec))
 		{
-		  /* Interpret "large" as >SIZExSIZE and >NxN
-                     where SIZE is the value from cursor-type in form (box . SIZE),
-		     where N = size of default frame font size.
-                     So, setting cursor-type to (box . 32) should cover most of
-                     the "tiny" icons people may use.  */
+		  /* Interpret "large" as >SIZExSIZE and >NxN where
+		     SIZE is the value from cursor-type of the form
+		     (box . SIZE), where N = size of default frame
+		     font size.  So, setting cursor-type to (box . 32)
+		     should cover most of the "tiny" icons people may
+		     use.  */
 		  if (!img->mask
-                      || (CONSP (BVAR (b, cursor_type))
-                          && img->width > max (*width, WINDOW_FRAME_COLUMN_WIDTH (w))
-                          && img->height > max (*width, WINDOW_FRAME_LINE_HEIGHT (w))))
+		      || (CONSP (BVAR (b, cursor_type))
+			  && img->width > max (*width, WINDOW_FRAME_COLUMN_WIDTH (w))
+			  && img->height > max (*width, WINDOW_FRAME_LINE_HEIGHT (w))))
 		    cursor_type = HOLLOW_BOX_CURSOR;
 		}
 	    }
