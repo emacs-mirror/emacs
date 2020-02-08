@@ -1,4 +1,4 @@
-name: which-key-test-workflow
+name: which-key-test
 on:
   pull_request:
   push:
