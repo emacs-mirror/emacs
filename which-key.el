@@ -1329,7 +1329,7 @@ width) in lines and characters respectively."
      ((not which-key-sort-uppercase-first)
       (let ((aup (not (string-equal da a)))
             (bup (not (string-equal db b))))
-        (if (or (and aup bup) (and (not aup) (not bup)))
+        (if (eq aup bup)
             (string-lessp a b)
           bup)))
      (t (string-lessp a b)))))
