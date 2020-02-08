@@ -1315,14 +1315,24 @@ width) in lines and characters respectively."
 ;;; Sorting functions
 
 (defun which-key--string< (a b &optional alpha)
-  (let* ((da (downcase a))
-         (db (downcase b)))
-    (cond ((string-equal da db)
-           (if which-key-sort-uppercase-first
-               (string-lessp a b)
-             (not (string-lessp a b))))
-          (alpha (string-lessp da db))
-          (t (string-lessp a b)))))
+  (let ((da (downcase a))
+        (db (downcase b)))
+    (cond
+     ((and alpha (not which-key-sort-uppercase-first))
+      (if (string-equal da db)
+          (string-lessp a b)
+        (string-lessp da db)))
+     ((and alpha which-key-sort-uppercase-first)
+      (if (string-equal da db)
+          (not (string-lessp a b))
+        (string-lessp da db)))
+     ((not which-key-sort-uppercase-first)
+      (let ((aup (not (string-equal da a)))
+            (bup (not (string-equal db b))))
+        (if (not (xor aup bup))
+            (string-lessp a b)
+          bup)))
+     (t (string-lessp a b)))))
 
 (defun which-key--key-description< (a b &optional alpha)
   "Sorting function used for `which-key-key-order' and
