@@ -2662,6 +2662,30 @@ Contrary to `undo', this will not redo a previous undo."
   (interactive "*p")
   (let ((undo-no-redo t)) (undo arg)))
 
+(defun undo--last-change-was-undo-p (undo-list)
+  (while (and (consp undo-list) (eq (car undo-list) nil))
+    (setq undo-list (cdr undo-list)))
+  (gethash undo-list undo-equiv-table))
+
+(defun undo-redo (&optional arg)
+  "Undo the last ARG undos."
+  (interactive "*p")
+  (cond
+   ((not (undo--last-change-was-undo-p buffer-undo-list))
+    (user-error "No undo to undo"))
+   (t
+    (let* ((ul buffer-undo-list)
+           (new-ul
+            (let ((undo-in-progress t))
+              (while (and (consp ul) (eq (car ul) nil))
+                (setq ul (cdr ul)))
+              (primitive-undo arg ul)))
+           (new-pul (undo--last-change-was-undo-p new-ul)))
+      (message "Redo%s" (if undo-in-region " in region" ""))
+      (setq this-command 'undo)
+      (setq pending-undo-list new-pul)
+      (setq buffer-undo-list new-ul)))))
+
 (defvar undo-in-progress nil
   "Non-nil while performing an undo.
 Some change-hooks test this variable to do something different.")

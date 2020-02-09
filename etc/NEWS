@@ -74,6 +74,9 @@ dimension.
 * Editing Changes in Emacs 28.1
 
 +++
+** New command 'undo-redo'
+
++++
 ** 'read-number' now has its own history variable.
 Additionally, the function now accepts a HIST argument which can be
 used to specify a custom history variable.

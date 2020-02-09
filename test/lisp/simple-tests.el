@@ -392,6 +392,48 @@ See bug#35036."
       (should (equal ?\s (char-syntax ?\n))))))
 
 
+;;; undo tests
+
+(defun simple-tests--exec (cmds)
+  (dolist (cmd cmds)
+    (setq last-command this-command)
+    (setq this-command cmd)
+    (run-hooks 'pre-command-hook)
+    (command-execute cmd)
+    (run-hooks 'post-command-hook)
+    (undo-boundary)))
+
+(ert-deftest simple-tests--undo ()
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (dolist (x '("a" "b" "c" "d" "e"))
+      (insert x)
+      (undo-boundary))
+    (should (equal (buffer-string) "abcde"))
+    (simple-tests--exec '(undo undo))
+    (should (equal (buffer-string) "abc"))
+    (simple-tests--exec '(backward-char undo))
+    (should (equal (buffer-string) "abcd"))
+    (simple-tests--exec '(undo))
+    (should (equal (buffer-string) "abcde"))
+    (simple-tests--exec '(backward-char undo undo))
+    (should (equal (buffer-string) "abc"))
+    (simple-tests--exec '(backward-char undo-redo))
+    (should (equal (buffer-string) "abcd"))
+    (simple-tests--exec '(undo))
+    (should (equal (buffer-string) "abc"))
+    (simple-tests--exec '(backward-char undo-redo undo-redo))
+    (should (equal (buffer-string) "abcde"))
+    (simple-tests--exec '(undo undo))
+    (should (equal (buffer-string) "abc"))
+    (simple-tests--exec '(backward-char undo-only undo-only))
+    (should (equal (buffer-string) "a"))
+    (simple-tests--exec '(backward-char undo-redo undo-redo))
+    (should (equal (buffer-string) "abc"))
+    (simple-tests--exec '(backward-char undo-redo undo-redo))
+    (should (equal (buffer-string) "abcde"))
+    ))
+
 ;;; undo auto-boundary tests
 (ert-deftest undo-auto-boundary-timer ()
   (should
