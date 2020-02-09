@@ -1599,7 +1599,7 @@ This can run just once."
             ('/ (and (cl-every #'fixnump values)
                      (not (= (car (last values)) 0)))))))))
 
-(defsubst comp-function-call-remove (insn f args)
+(defsubst comp-function-call-maybe-remove (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
   (when (comp-function-optimizable f args)
     (ignore-errors
@@ -1620,13 +1620,11 @@ This can run just once."
        (`(,(or 'call 'direct-call) ,f . ,args)
         (setf (comp-mvar-type lval)
               (alist-get f comp-known-ret-types))
-        (comp-function-call-remove insn f args))
+        (comp-function-call-maybe-remove insn f args))
        (`(,(or 'callref 'direct-callref) ,f . ,args)
-        (cl-loop for v in args
-                 do (setf (comp-mvar-ref v) t))
         (setf (comp-mvar-type lval)
               (alist-get f comp-known-ret-types))
-        (comp-function-call-remove insn f args))
+        (comp-function-call-maybe-remove insn f args))
        (_
         (comp-mvar-propagate lval rval))))
     (`(phi ,lval . ,rest)
