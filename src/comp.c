@@ -150,10 +150,10 @@ typedef struct {
   gcc_jit_field *cast_union_as_lisp_obj_ptr;
   gcc_jit_function *func; /* Current function being compiled.  */
   bool func_has_non_local; /* From comp-func has-non-local slot.  */
-  gcc_jit_block *block;  /* Current basic block being compiled.  */
-  gcc_jit_lvalue **frame; /* Frame for the current function.  */
   gcc_jit_lvalue **f_frame; /* "Floating" frame for the current function.  */
+  gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
+  gcc_jit_lvalue ***arrays;  /* Array index -> gcc_jit_lvalue **. */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
@@ -348,7 +348,7 @@ declare_block (Lisp_Object block_name)
 }
 
 static gcc_jit_lvalue *
-get_slot (Lisp_Object mvar)
+emit_mvar_access (Lisp_Object mvar)
 {
   Lisp_Object mvar_slot = CALL1I (comp-mvar-slot, mvar);
 
@@ -361,15 +361,18 @@ get_slot (Lisp_Object mvar)
 						   "scratch");
       return comp.scratch;
     }
+
+  EMACS_INT arr_idx = XFIXNUM (CALL1I (comp-mvar-array-idx, mvar));
   EMACS_INT slot_n = XFIXNUM (mvar_slot);
-  gcc_jit_lvalue **frame =
-    /* Disable floating frame for functions with non local jumps.
-       This is probably overkill cause we could do it just for blocks
-       dominated by push-handler.  */
-    comp.func_has_non_local
-    || (CALL1I (comp-mvar-ref, mvar) || SPEED < 2)
-    ? comp.frame : comp.f_frame;
-  return frame[slot_n];
+  if (comp.func_has_non_local || !SPEED)
+    return comp.arrays[arr_idx][slot_n];
+  else
+    {
+      if (arr_idx)
+	return comp.arrays[arr_idx][slot_n];
+      else
+	return comp.f_frame[slot_n];
+    }
 }
 
 static void
@@ -1140,7 +1143,7 @@ emit_mvar_val (Lisp_Object mvar)
       return emit_const_lisp_obj (constant, CALL1I (comp-mvar-impure, mvar));
     }
 
-  return gcc_jit_lvalue_as_rvalue (get_slot (mvar));
+  return gcc_jit_lvalue_as_rvalue (emit_mvar_access (mvar));
 }
 
 static void
@@ -1150,7 +1153,7 @@ emit_frame_assignment (Lisp_Object dst_mvar, gcc_jit_rvalue *val)
   gcc_jit_block_add_assignment (
     comp.block,
     NULL,
-    get_slot (dst_mvar),
+    emit_mvar_access (dst_mvar),
     val);
 }
 
@@ -1239,10 +1242,28 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
-  EMACS_INT base_ptr = 0;
-  if (nargs)
-    base_ptr = XFIXNUM (CALL1I (comp-mvar-slot, SECOND (insn)));
-  return emit_call_ref (callee, nargs, comp.frame[base_ptr], direct);
+
+  if (!nargs)
+    return emit_call_ref (callee,
+			  nargs,
+			  comp.arrays[0][0],
+			  direct);
+
+  Lisp_Object first_arg = SECOND (insn);
+  Lisp_Object arr_idx = CALL1I (comp-mvar-array-idx, first_arg);
+
+  /* Make sure all the arguments are layout-ed into the same array.  */
+  Lisp_Object p = XCDR (XCDR (insn));
+  FOR_EACH_TAIL (p)
+    if (!EQ (arr_idx, CALL1I (comp-mvar-array-idx, XCAR (p))))
+      xsignal2 (Qnative_ice, build_string ("incoherent array idx for insn"),
+		insn);
+
+  EMACS_INT first_slot = XFIXNUM (CALL1I (comp-mvar-slot, first_arg));
+  return emit_call_ref (callee,
+			nargs,
+			comp.arrays[XFIXNUM (arr_idx)][first_slot],
+			direct);
 }
 
 /* Register an handler for a non local exit.  */
@@ -2867,34 +2888,43 @@ compile_function (Lisp_Object func)
 
   comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
 
-  gcc_jit_lvalue *frame_array =
-    gcc_jit_function_new_local (
-      comp.func,
-      NULL,
-      gcc_jit_context_new_array_type (comp.ctxt,
-				      NULL,
-				      comp.lisp_obj_type,
-				      frame_size),
-      "local");
-  comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
-  for (EMACS_INT i = 0; i < frame_size; ++i)
-    comp.frame[i] =
-      gcc_jit_context_new_array_access (
-        comp.ctxt,
-	NULL,
-	gcc_jit_lvalue_as_rvalue (frame_array),
-	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.int_type,
-					     i));
+  struct Lisp_Hash_Table *array_h =
+    XHASH_TABLE (CALL1I (comp-func-array-h, func));
+  comp.arrays = SAFE_ALLOCA (array_h->count * sizeof (*comp.arrays));
+  for (ptrdiff_t i = 0; i < array_h->count; i++)
+    {
+      EMACS_INT array_len = XFIXNUM (HASH_VALUE (array_h, i));
+      comp.arrays[i] = SAFE_ALLOCA (array_len * sizeof (**comp.arrays));
+
+      gcc_jit_lvalue *arr =
+	gcc_jit_function_new_local (
+	  comp.func,
+	  NULL,
+	  gcc_jit_context_new_array_type (comp.ctxt,
+					  NULL,
+					  comp.lisp_obj_type,
+					  array_len),
+	  format_string ("arr_%td", i));
+
+      for (ptrdiff_t j = 0; j < array_len; j++)
+	comp.arrays[i][j] =
+	  gcc_jit_context_new_array_access (
+	    comp.ctxt,
+	    NULL,
+	    gcc_jit_lvalue_as_rvalue (arr),
+	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						 comp.int_type,
+						 j));
+    }
 
   /*
-     The floating frame is a copy of the normal frame that can be used to store
-     locals if the are not going to be used in a nargs call.
-     This has two advantages:
-     - Enable gcc for better reordering (frame array is clobbered every time is
-       passed as parameter being involved into an nargs function call).
-     - Allow gcc to trigger other optimizations that are prevented by memory
-       referencing.
+    The floating frame is a copy of the normal frame that can be used to store
+    locals if the are not going to be used in a nargs call.
+    This has two advantages:
+    - Enable gcc for better reordering (frame array is clobbered every time is
+    passed as parameter being involved into an nargs function call).
+    - Allow gcc to trigger other optimizations that are prevented by memory
+    referencing.
   */
   if (SPEED >= 2)
     {
@@ -2952,7 +2982,6 @@ compile_function (Lisp_Object func)
 	      build_string ("failing to compile function"),
 	      CALL1I (comp-func-name, func),
 	      build_string (err));
-
   SAFE_FREE ();
 }
 

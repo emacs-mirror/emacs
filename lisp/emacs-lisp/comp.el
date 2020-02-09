@@ -274,7 +274,9 @@ structure.")
   (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
                :documentation "Counter to create ssa limple vars.")
   (has-non-local nil :type boolean
-                 :documentation "t if non local jumps are present."))
+                 :documentation "t if non local jumps are present.")
+  (array-h (make-hash-table) :type hash-table
+           :documentation "array idx -> array length."))
 
 (defun comp-func-reset-generators (func)
   "Reset unique id generators for FUNC."
@@ -285,6 +287,8 @@ structure.")
   "A meta-variable being a slot in the meta-stack."
   (slot nil :type (or fixnum symbol)
         :documentation "Slot number if a number or 'scratch' for scratch slot.")
+  (array-idx 0 :type fixnum
+             :documentation "Array index.")
   (id nil :type (or null number)
      :documentation "SSA number when in SSA form.")
   (const-vld nil :type boolean
@@ -295,9 +299,6 @@ structure.")
   (type nil
         :documentation "When non nil indicates the type when known at compile
  time.")
-  (ref nil :type boolean
-       :documentation "When non nil the m-var is involved in a
- call where is passed by reference.")
   (impure nil :type boolean
           :documentation "When non nil can't be copied into pure space."))
 
@@ -466,6 +467,8 @@ Put PREFIX in front of it."
                 (comp-byte-frame-size (comp-func-byte-func func))))
         (setf (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-function :name function-name)))
+        ;; Create the default array.
+        (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
         (list func))))
 
 (cl-defgeneric comp-spill-lap-function ((filename string))
@@ -491,7 +494,10 @@ Put PREFIX in front of it."
                               :args (comp-decrypt-arg-list (aref data 0) name)
                               :lap (alist-get name byte-to-native-lap)
                               :frame-size (comp-byte-frame-size data))
-   do (comp-log (format "Function %s:\n" name) 1)
+   do
+      ;; Create the default array.
+      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
+      (comp-log (format "Function %s:\n" name) 1)
       (comp-log lap 1)
    collect func))
 
@@ -1149,6 +1155,7 @@ into the C code forwarding the compilation unit."
     (comp-emit `(set-par-to-local ,(comp-slot-n 0) 0))
     (mapc #'comp-emit-for-top-level (comp-ctxt-top-level-forms comp-ctxt))
     (comp-emit `(return ,(make-comp-mvar :constant t)))
+    (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
     (comp-limplify-finalize-function func)))
 
 (defun comp-addr-to-bb-name (addr)
@@ -1564,14 +1571,38 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
         (copy-comp-mvar insn)
       insn)))
 
-(defun comp-basic-const-propagate ()
-  "Propagate simple constants for setimm operands.
-This can run just once."
+(defun comp-ref-args-to-array (args)
+  "Given ARGS assign them to a dedicated array."
+  (when (and args
+             ;; Never rename an already renamed array index.
+             (= (comp-mvar-array-idx (car args)) 0))
+    (cl-loop with array-h = (comp-func-array-h comp-func)
+             with arr-idx = (hash-table-count array-h)
+             for i from 0
+             for arg in args
+             initially
+               (puthash arr-idx (length args) array-h)
+             do
+               ;; Just check that all args have zeroed arr-idx.
+               ;; (arrays must be used once).
+               (cl-assert (= (comp-mvar-array-idx arg) 0))
+               (setf (comp-mvar-slot arg) i)
+               (setf (comp-mvar-array-idx arg) arr-idx))))
+
+(defun comp-propagate-once ()
+  "Prologue for the propagate pass.
+Here goes everything that can be done not iteratively (read once).
+- Forward propagate immediate involed in assignments
+- Backward propagate placement into arrays"
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do (cl-loop
        for insn in (comp-block-insns b)
        do (pcase insn
+            (`(set ,_lval (,(or 'callref 'direct-callref) ,_f . ,args))
+             (comp-ref-args-to-array args))
+            (`(,(or 'callref 'direct-callref) ,_f . ,args)
+             (comp-ref-args-to-array args))
             (`(setimm ,lval ,_ ,v)
              (setf (comp-mvar-const-vld lval) t
                    (comp-mvar-constant lval) v
@@ -1628,13 +1659,13 @@ This can run just once."
        (_
         (comp-mvar-propagate lval rval))))
     (`(phi ,lval . ,rest)
-     ;; Const prop here.
+     ;; Forward const prop here.
      (when-let* ((vld (cl-every #'comp-mvar-const-vld rest))
                  (consts (mapcar #'comp-mvar-constant rest))
                  (x (car consts))
                  (equals (cl-every (lambda (y) (equal x y)) consts)))
        (setf (comp-mvar-constant lval) x))
-     ;; Type propagation.
+     ;; Forward type propagation.
      ;; FIXME: checking for type equality is not sufficient cause does not
      ;; account type hierarchy!
      (when-let* ((types (mapcar #'comp-mvar-type rest))
@@ -1642,10 +1673,14 @@ This can run just once."
                  (x (car types))
                  (eqs (cl-every (lambda (y) (eq x y)) types)))
        (setf (comp-mvar-type lval) x))
-     ;; Reference propagation.
-     (let ((operands (cons lval rest)))
-       (when (cl-some #'comp-mvar-ref operands)
-         (mapc (lambda (x) (setf (comp-mvar-ref x) t)) operands))))))
+     ;; Backward propagate array index and slot.
+     (let ((arr-idx (comp-mvar-array-idx lval)))
+       (when (> arr-idx 0)
+         (cl-loop with slot = (comp-mvar-slot lval)
+                  for arg in rest
+                  do
+                  (setf (comp-mvar-array-idx arg) arr-idx)
+                  (setf (comp-mvar-slot arg) slot)))))))
 
 (defun comp-propagate* ()
   "Propagate for set* and phi operands.
@@ -1666,7 +1701,7 @@ Return t if something was changed."
                ;; FIXME remove the following condition when tested.
                (unless (comp-func-has-non-local f)
                  (let ((comp-func f))
-                   (comp-basic-const-propagate)
+                   (comp-propagate-once)
                    (cl-loop
                     for i from 1
                     while (comp-propagate*)
@@ -1695,13 +1730,7 @@ Return t if something was changed."
   (cl-flet ((fill-args (args total)
               ;; Fill missing args to reach TOTAL
               (append args (cl-loop repeat (- total (length args))
-                                    collect (make-comp-mvar :constant nil))))
-            (clean-args-ref (args)
-              ;; Clean-up the ref slot in all args
-              (mapc (lambda (arg)
-                      (setf (comp-mvar-ref arg) nil))
-                    args)
-              args))
+                                    collect (make-comp-mvar :constant nil)))))
     (when (and (symbolp callee)  ; Do nothing if callee is a byte compiled func.
                (not (memq callee comp-never-optimize-functions)))
       (let* ((f (symbol-function callee))
@@ -1721,7 +1750,7 @@ Return t if something was changed."
                  (args (if (eq call-type 'callref)
                            args
                          (fill-args args maxarg))))
-            `(,call-type ,callee ,@(clean-args-ref args))))
+            `(,call-type ,callee ,@args)))
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers that for non self calls too!!
          ((or (eq callee self)
@@ -1733,7 +1762,7 @@ Return t if something was changed."
                  (args (if (eq call-type 'direct-callref)
                            args
                          (fill-args args (comp-args-max func-args)))))
-            `(,call-type ,callee ,@(clean-args-ref args))))
+            `(,call-type ,callee ,@args)))
          ((comp-type-hint-p callee)
           `(call ,callee ,@args)))))))
 
