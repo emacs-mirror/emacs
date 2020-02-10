@@ -77,8 +77,8 @@ undo commands.
 
   Alternatively, if you want to resume undoing, without redoing
 previous undo commands, use @kbd{M-x undo-only}.  This is like
-@code{undo}, but will not redo changes you have just undone.
-To complement it @kbd{M-x undo-redo} will undo previous undo commands
+@code{undo}, but will not redo changes you have just undone.  To
+complement it, @kbd{M-x undo-redo} will undo previous undo commands
 (and will not record itself as an undoable command).
 
   If you notice that a buffer has been modified accidentally, the

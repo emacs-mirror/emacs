@@ -74,7 +74,9 @@ dimension.
 * Editing Changes in Emacs 28.1
 
 +++
-** New command 'undo-redo'
+** New command 'undo-redo'.
+It undoes previous undo commands, but doesn't record itself as an
+undoable command.
 
 +++
 ** 'read-number' now has its own history variable.
