@@ -3721,9 +3721,9 @@ support symbolic links."
 	    (if (process-live-p p)
 	      ;; Display output.
 	      (with-current-buffer output-buffer
-		(display-buffer output-buffer '(nil (allow-no-window . t)))
 		(setq mode-line-process '(":%s"))
-		(shell-mode)
+		(unless (eq major-mode 'shell-mode)
+		  (shell-mode))
 		(set-process-filter p #'comint-output-filter)
 		(set-process-sentinel p #'shell-command-sentinel)
 		(when error-file
@@ -3733,7 +3733,8 @@ support symbolic links."
 		     (with-current-buffer error-buffer
 		       (insert-file-contents-literally
 			error-file nil nil nil 'replace))
-		     (delete-file error-file)))))
+		     (delete-file error-file))))
+		(display-buffer output-buffer '(nil (allow-no-window . t))))
 
 	      (when error-file
 		(delete-file error-file)))))
