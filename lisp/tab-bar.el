@@ -1467,8 +1467,7 @@ This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
-  (let* ((tab-name (alist-get 'tab-name alist))
-         (reusable-frames (alist-get 'reusable-frames alist))
+  (let* ((reusable-frames (alist-get 'reusable-frames alist))
          (reusable-tab (when reusable-frames
                          (tab-bar-get-buffer-tab buffer reusable-frames))))
     (if reusable-tab
@@ -1480,26 +1479,55 @@ indirectly called by the latter."
             (tab-bar-select-tab (1+ index)))
           (when (get-buffer-window buffer frame)
             (select-window (get-buffer-window buffer frame))))
+      (let ((tab-name (alist-get 'tab-name alist)))
+        (when (functionp tab-name)
+          (setq tab-name (funcall tab-name buffer alist)))
+        (if tab-name
+            (let ((tab-index (tab-bar--tab-index-by-name tab-name)))
+              (if tab-index
+                  (progn
+                    (tab-bar-select-tab (1+ tab-index))
+                    (when (get-buffer-window buffer)
+                      (select-window (get-buffer-window buffer))))
+                (display-buffer-in-new-tab buffer alist)))
+          (display-buffer-in-new-tab buffer alist))))))
+
+(defun display-buffer-in-new-tab (buffer alist)
+  "Display BUFFER in a new tab.
+ALIST is an association list of action symbols and values.  See
+Info node `(elisp) Buffer Display Action Alists' for details of
+such alists.
+
+Like `display-buffer-in-tab', but always creates a new tab unconditionally,
+without checking if a suitable tab already exists.
+
+If ALIST contains a `tab-name' entry, it creates a new tab with that name
+and displays BUFFER in a new tab.  The `tab-name' entry can be a function,
+then it is called with two arguments: BUFFER and ALIST, and should return
+the tab name.  When a `tab-name' entry is omitted, create a new tab without
+an explicit name.
+
+This is an action function for buffer display, see Info
+node `(elisp) Buffer Display Action Functions'.  It should be
+called only by `display-buffer' or a function directly or
+indirectly called by the latter."
+  (let ((tab-bar-new-tab-choice t))
+    (tab-bar-new-tab)
+    (let ((tab-name (alist-get 'tab-name alist)))
       (when (functionp tab-name)
         (setq tab-name (funcall tab-name buffer alist)))
-      (if tab-name
-          (let ((tab-index (tab-bar--tab-index-by-name tab-name)))
-            (if tab-index
-                (tab-bar-select-tab (1+ tab-index))
-              (let ((tab-bar-new-tab-choice t))
-                (tab-bar-new-tab)
-                (tab-bar-rename-tab tab-name))))
-        (let ((tab-bar-new-tab-choice t))
-          (tab-bar-new-tab))))))
+      (when tab-name
+        (tab-bar-rename-tab tab-name)))
+    (window--display-buffer buffer (selected-window) 'tab alist)))
 
 (defun switch-to-buffer-other-tab (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another tab.
 Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
-  (display-buffer buffer-or-name '((display-buffer-in-tab
-                                    display-buffer-same-window)
-                                   (inhibit-same-window . nil))
+  (display-buffer buffer-or-name '((display-buffer-in-tab)
+                                   (inhibit-same-window . nil)
+                                   (reusable-frames . t))
                   norecord))
 
 (defun find-file-other-tab (filename &optional wildcards)
