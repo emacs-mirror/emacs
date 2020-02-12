@@ -1167,7 +1167,8 @@ is shown, or if there is no need to start the closing timer."
   "Slightly modified version of `fit-buffer-to-window'.
 Use &rest params because `fit-buffer-to-window' has a different
 call signature in different emacs versions"
-  (let ((fit-window-to-buffer-horizontally t))
+  (let ((fit-window-to-buffer-horizontally t)
+        (window-min-height 1))
     (apply #'fit-window-to-buffer window params)))
 
 (defun which-key--show-buffer-side-window (act-popup-dim)
