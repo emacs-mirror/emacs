@@ -50,6 +50,7 @@
 (require 'vc-hg)
 
 (declare-function tramp-find-executable "tramp-sh")
+(declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
@@ -3113,22 +3114,38 @@ This tests also `access-file', `file-readable-p',
 	     (file-remote-p tmp-name1)
 	     (replace-regexp-in-string
 	      "/" "//" (file-remote-p tmp-name1 'localname))))
+	   ;; `file-ownership-preserved-p' is implemented only in tramp-sh.el.
+	   (test-file-ownership-preserved-p (tramp--test-sh-p))
 	   attr)
       (unwind-protect
 	  (progn
+	    ;; A sticky bit could damage the `file-ownership-preserved-p' test.
+	    (when
+		(and test-file-ownership-preserved-p
+		     (zerop (logand
+			     #o1000
+			     (file-modes tramp-test-temporary-file-directory))))
+	      (write-region "foo" nil tmp-name1)
+	      (setq test-file-ownership-preserved-p
+		    (= (tramp-compat-file-attribute-group-id
+			(file-attributes tmp-name1))
+		       (tramp-get-remote-gid
+			(tramp-dissect-file-name tmp-name1) 'integer)))
+	      (delete-file tmp-name1))
+
 	    (should-error
 	     (access-file tmp-name1 "error")
 	     :type tramp-file-missing)
 	    ;; `file-ownership-preserved-p' should return t for
-	    ;; non-existing files.  It is implemented only in tramp-sh.el.
-	    (when (tramp--test-sh-p)
+	    ;; non-existing files.
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
 	    (should (file-readable-p tmp-name1))
 	    (should (file-regular-p tmp-name1))
 	    (should-not (access-file tmp-name1 "error"))
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 
 	    ;; We do not test inodes and device numbers.
@@ -3158,16 +3175,16 @@ This tests also `access-file', `file-readable-p',
 	    (should (stringp (tramp-compat-file-attribute-group-id attr)))
 
 	    (tramp--test-ignore-make-symbolic-link-error
-	     (should-error
-	      (access-file tmp-name2 "error")
-	      :type tramp-file-missing)
-	      (when (tramp--test-sh-p)
+	      (should-error
+	       (access-file tmp-name2 "error")
+	       :type tramp-file-missing)
+	      (when test-file-ownership-preserved-p
 		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (make-symbolic-link tmp-name1 tmp-name2)
 	      (should (file-exists-p tmp-name2))
 	      (should (file-symlink-p tmp-name2))
 	      (should-not (access-file tmp-name2 "error"))
-	      (when (tramp--test-sh-p)
+	      (when test-file-ownership-preserved-p
 		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (setq attr (file-attributes tmp-name2))
 	      (should
@@ -3198,7 +3215,7 @@ This tests also `access-file', `file-readable-p',
 		 (tramp-dissect-file-name tmp-name3))))
 	      (delete-file tmp-name2))
 
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (delete-file tmp-name1)
 	    (make-directory tmp-name1)
@@ -3206,7 +3223,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (file-readable-p tmp-name1))
 	    (should-not (file-regular-p tmp-name1))
 	    (should-not (access-file tmp-name1 ""))
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
 	    (should (eq (tramp-compat-file-attribute-type attr) t)))
@@ -4357,7 +4374,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (with-no-warnings
 		      (make-process
 		       :name "test5" :buffer (current-buffer)
-		       :command '("cat" "/")
+		       :command '("cat" "/does-not-exist")
 		       :stderr stderr
 		       :file-handler t)))
 	      (should (processp proc))
@@ -4367,7 +4384,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (delete-process proc)
 	      (with-current-buffer stderr
 		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+		 (string-match
+		  "cat:.* No such file or directory" (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
@@ -4381,7 +4399,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (with-no-warnings
 		      (make-process
 		       :name "test6" :buffer (current-buffer)
-		       :command '("cat" "/")
+		       :command '("cat" "/does-not-exist")
 		       :stderr tmpfile
 		       :file-handler t)))
 	      (should (processp proc))
@@ -4392,7 +4410,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (with-temp-buffer
 		(insert-file-contents tmpfile)
 		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+		 (string-match
+		  "cat:.* No such file or directory" (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
