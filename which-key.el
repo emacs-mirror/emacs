@@ -1321,11 +1321,11 @@ width) in lines and characters respectively."
     (cond
      ((and alpha (not which-key-sort-uppercase-first))
       (if (string-equal da db)
-          (string-lessp a b)
+          (not (string-lessp a b))
         (string-lessp da db)))
      ((and alpha which-key-sort-uppercase-first)
       (if (string-equal da db)
-          (not (string-lessp a b))
+          (string-lessp a b)
         (string-lessp da db)))
      ((not which-key-sort-uppercase-first)
       (let ((aup (not (string-equal da a)))

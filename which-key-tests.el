@@ -170,12 +170,12 @@
       (should
        (equal
         (mapcar 'car (sort (copy-sequence keys) 'which-key-key-order-alpha))
-        '("SPC" "a" "A" "b" "B" "p" "C-a"))))
+        '("SPC" "A" "a" "B" "b" "p" "C-a"))))
     (let (which-key-sort-uppercase-first)
       (should
        (equal
         (mapcar 'car (sort (copy-sequence keys) 'which-key-key-order-alpha))
-        '("SPC" "A" "a" "B" "b" "p" "C-a"))))
+        '("SPC" "a" "A" "b" "B" "p" "C-a"))))
     (let ((which-key-sort-uppercase-first t))
       (should
        (equal
