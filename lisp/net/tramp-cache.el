@@ -197,13 +197,11 @@ Returns VALUE."
 	    key (copy-tramp-file-name key))
       (setf (tramp-file-name-localname key) file
 	    (tramp-file-name-hop key) nil)
-      (maphash
-       (lambda (property _value)
-	 (when (string-match-p
-		"^\\(directory-\\|file-name-all-completions\\|file-entries\\)"
-		property)
-	   (tramp-flush-file-property key file property)))
-       (tramp-get-hash-table key)))))
+      (dolist (property (hash-table-keys (tramp-get-hash-table key)))
+	(when (string-match-p
+	       "^\\(directory-\\|file-name-all-completions\\|file-entries\\)"
+	       property)
+	  (tramp-flush-file-property key file property))))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-properties (key file)
@@ -234,14 +232,12 @@ Remove also properties of all files in subdirectories."
 		    #'directory-file-name (list directory)))
 	 (truename (tramp-get-file-property key directory "file-truename" nil)))
     (tramp-message key 8 "%s" directory)
-    (maphash
-     (lambda (key _value)
-       (when (and (tramp-file-name-p key)
-		  (stringp (tramp-file-name-localname key))
-		  (string-match-p (regexp-quote directory)
-				  (tramp-file-name-localname key)))
-	 (remhash key tramp-cache-data)))
-     tramp-cache-data)
+    (dolist (key (hash-table-keys tramp-cache-data))
+      (when (and (tramp-file-name-p key)
+		 (stringp (tramp-file-name-localname key))
+		 (string-match-p (regexp-quote directory)
+				 (tramp-file-name-localname key)))
+	(remhash key tramp-cache-data)))
     ;; Remove file properties of symlinks.
     (when (and (stringp truename)
 	       (not (string-equal directory (directory-file-name truename))))
@@ -365,11 +361,8 @@ used to cache connection properties of the local machine."
 	  (tramp-file-name-hop key) nil))
   (tramp-message
    key 7 "%s %s" key
-   (let ((hash (gethash key tramp-cache-data))
-	 properties)
-     (when (hash-table-p hash)
-       (maphash (lambda (x _y) (push x properties)) hash))
-     properties))
+   (let ((hash (gethash key tramp-cache-data)))
+     (when (hash-table-p hash) (hash-table-keys hash))))
   (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
 
@@ -411,16 +404,14 @@ used to cache connection properties of the local machine."
 ;;;###tramp-autoload
 (defun tramp-list-connections ()
   "Return all known `tramp-file-name' structs according to `tramp-cache'."
-  (let ((tramp-verbose 0)
-	result)
-    (maphash
-     (lambda (key _value)
-       (when (and (tramp-file-name-p key)
-		  (null (tramp-file-name-localname key))
-		  (tramp-connection-property-p key "process-buffer"))
-	 (push key result)))
-     tramp-cache-data)
-    result))
+  (let ((tramp-verbose 0))
+    (delq nil (mapcar
+	       (lambda (key)
+		 (and (tramp-file-name-p key)
+		      (null (tramp-file-name-localname key))
+		      (tramp-connection-property-p key "process-buffer")
+		      key))
+	       (hash-table-keys tramp-cache-data)))))
 
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file `tramp-persistency-file-name'."
@@ -481,17 +472,14 @@ used to cache connection properties of the local machine."
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
-  (let (res)
-    (maphash
-     (lambda (key _value)
-       (if (and (tramp-file-name-p key)
-		(string-equal method (tramp-file-name-method key))
-		(not (tramp-file-name-localname key)))
-	   (push (list (tramp-file-name-user key)
-		       (tramp-file-name-host key))
-		 res)))
-     tramp-cache-data)
-    res))
+  (mapcar
+   (lambda (key)
+     (and (tramp-file-name-p key)
+	  (string-equal method (tramp-file-name-method key))
+	  (not (tramp-file-name-localname key))
+	  (list (tramp-file-name-user key)
+		(tramp-file-name-host key))))
+   (hash-table-keys tramp-cache-data)))
 
 ;; When "emacs -Q" has been called, both variables are nil.  We do not
 ;; load the persistency file then, in order to have a clean test environment.
