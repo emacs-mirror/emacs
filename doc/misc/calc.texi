@@ -27155,7 +27155,7 @@ anywhere in the formula.
 It is possible for a rule set to get into an infinite loop.  The
 most obvious case, replacing a formula with itself, is not a problem
 because a rule is not considered to ``succeed'' unless the righthand
-side actually comes out to something different than the original
+side actually comes out to something different from the original
 formula or sub-formula that was matched.  But if you accidentally
 had both @samp{ln(a b) := ln(a) + ln(b)} and the reverse
 @samp{ln(a) + ln(b) := ln(a b)} in your rule set, Calc would
@@ -28075,7 +28075,7 @@ for angstroms.
 
 The unit @code{pt} stands for pints; the name @code{point} stands for
 a typographical point, defined by @samp{72 point = 1 in}.  This is
-slightly different than the point defined by the American Typefounder's
+slightly different from the point defined by the American Typefounder's
 Association in 1886, but the point used by Calc has become standard
 largely due to its use by the PostScript page description language.
 There is also @code{texpt}, which stands for a printer's point as

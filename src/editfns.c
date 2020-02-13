@@ -717,7 +717,7 @@ position of the first character in logical order, i.e. the smallest
 character position on the line.
 
 This function constrains the returned position to the current field
-unless that position would be on a different line than the original,
+unless that position would be on a different line from the original,
 unconstrained result.  If N is nil or 1, and a front-sticky field
 starts at point, the scan stops as soon as it starts.  To ignore field
 boundaries, bind `inhibit-field-text-motion' to t.
@@ -750,7 +750,7 @@ position of the last character in logical order, i.e. the largest
 character position on the line.
 
 This function constrains the returned position to the current field
-unless that would be on a different line than the original,
+unless that would be on a different line from the original,
 unconstrained result.  If N is nil or 1, and a rear-sticky field ends
 at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.

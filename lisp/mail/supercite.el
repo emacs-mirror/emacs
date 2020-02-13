@@ -1311,7 +1311,7 @@ use it instead of `sc-citation-root-regexp'."
 ;; filling
 (defun sc-fill-if-different (&optional prefix)
   "Fill the region bounded by `sc-fill-begin' and point.
-Only fill if optional PREFIX is different than `sc-fill-line-prefix'.
+Only fill if optional PREFIX is different from `sc-fill-line-prefix'.
 If `sc-auto-fill-region-p' is nil, do not fill region.  If PREFIX is
 not supplied, initialize fill variables.  This is useful for a regi
 `begin' frame-entry."

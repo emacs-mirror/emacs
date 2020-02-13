@@ -3502,7 +3502,7 @@ Returns nil if frame not found."
 
 (defun idlwave-shell-new-bp (bp)
   "Find the new breakpoint in IDL's list and update with DATA.
-The actual line number for a breakpoint in IDL may be different than
+The actual line number for a breakpoint in IDL may be different from
 the line number used with the IDL breakpoint command.
 Looks for a new breakpoint index number in the list.  This is
 considered the new breakpoint if the file name of frame matches."

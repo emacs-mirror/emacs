@@ -3046,7 +3046,7 @@ See also `ps-use-face-background'."
 (defcustom ps-fg-list nil
   "Specify foreground color list.
 
-This list is used to chose a text foreground color which is different than the
+This list is used to chose a text foreground color which is different from the
 background color.  It'll be used the first foreground color in `ps-fg-list'
 which is different from the background color.
 
@@ -6028,8 +6028,8 @@ to the equivalent Latin-1 characters.")
 
   ;; Specify a foreground color only if:
   ;;    one's specified,
-  ;;    it's different than the background (if `ps-fg-validate-p' is non-nil)
-  ;;    and it's different than the current.
+  ;;    it's different from the background (if `ps-fg-validate-p' is non-nil)
+  ;;    and it's different from the current.
   (let ((fg (or fg-color ps-default-foreground)))
     (if ps-fg-validate-p
 	(let ((bg (or bg-color ps-default-background))

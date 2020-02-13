@@ -12919,7 +12919,7 @@ familiar part of this function.
 @unnumberedsubsec The @code{let*} expression
 
 The next line of the @code{forward-paragraph} function begins a
-@code{let*} expression.  This is a different than @code{let}.  The
+@code{let*} expression.  This is different from @code{let}.  The
 symbol is @code{let*} not @code{let}.
 
 @findex let*

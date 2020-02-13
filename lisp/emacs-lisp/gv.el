@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; This is a re-implementation of the setf machinery using a different
-;; underlying approach than the one used earlier in CL, which was based on
+;; underlying approach from the one used earlier in CL, which was based on
 ;; define-setf-expander.
 ;; `define-setf-expander' makes every "place-expander" return a 5-tuple
 ;;   (VARS VALUES STORES GETTER SETTER)

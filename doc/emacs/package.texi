@@ -154,8 +154,11 @@ redisplays the package list.
 @item H
 @kindex H @r{(Package Menu)}
 @findex package-menu-hide-package
-Permanently hide packages that match a regexp
-(@code{package-menu-hide-package}).
+Hide packages whose names match a regexp
+(@code{package-menu-hide-package}).  This prompts for a regexp, and
+then hides the packages with matching names.  The default value of the
+regexp will hide only the package whose name is at point, so just
+pressing @key{RET} to the prompt will hide the current package.
 
 @item (
 @kindex ( @r{(Package Menu)}

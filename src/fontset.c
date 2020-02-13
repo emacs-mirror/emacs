@@ -353,7 +353,7 @@ fontset_add (Lisp_Object fontset, Lisp_Object range, Lisp_Object elt, Lisp_Objec
 			      (NILP (args[idx]) ? args[1 - idx]
 			       : CALLMANY (Fvconcat, args)));
 	from = to1 + 1;
-      } while (from < to);
+      } while (from <= to);
     }
   else
     {

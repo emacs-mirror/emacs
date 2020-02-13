@@ -1222,7 +1222,7 @@ external program defined by `sendmail-program'."
 		  (delete-region (line-beginning-position)
 				 (line-beginning-position 2))))
             ;; Apparently this causes a duplicate Sender.
-	    ;; ;; If the From is different than current user, insert Sender.
+	    ;; ;; If the From is different from current user, insert Sender.
 	    ;; (goto-char (point-min))
 	    ;; (and (re-search-forward "^From:"  delimline t)
 	    ;;      (progn

@@ -53,7 +53,7 @@
     ;; positions!
     ,@(unless (mm-coding-system-p 'iso-8859-15)
 	'((iso-8859-15 . iso-8859-1)))
-    ;; BIG-5HKSCS is similar to, but different than, BIG-5.
+    ;; BIG-5HKSCS is similar to, but different from, BIG-5.
     ,@(unless (mm-coding-system-p 'big5-hkscs)
 	'((big5-hkscs . big5)))
     ;; A Microsoft misunderstanding.

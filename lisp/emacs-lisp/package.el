@@ -2724,7 +2724,7 @@ either a full name or nil, and EMAIL is a valid email address."
      ["Filter by Version" package-menu-filter-by-version :help "Filter packages by version"]
      ["Clear Filter" package-menu-clear-filter :help "Clear package list filter"])
 
-    ["Hide by Regexp" package-menu-hide-package :help "Permanently hide all packages matching a regexp"]
+    ["Hide by Regexp" package-menu-hide-package :help "Hide all packages matching a regexp"]
     ["Display Older Versions" package-menu-toggle-hiding
      :style toggle :selected (not package-menu--hide-packages)
      :help "Display package even if a newer version is already installed"]
@@ -3189,8 +3189,9 @@ function.  The args ARG and NOCONFIRM, passed from
 (define-obsolete-function-alias 'package-menu-refresh 'revert-buffer "27.1")
 
 (defun package-menu-hide-package ()
-  "Hide a package under point in Package Menu.
-If optional arg BUTTON is non-nil, describe its associated package."
+  "Hide in Package Menu packages that match a regexp.
+Prompts for the regexp to match against package names.
+The default regexp will hide only the package whose name is at point."
   (interactive)
   (package--ensure-package-menu-mode)
   (declare (interactive-only "change `package-hidden-regexps' instead."))
