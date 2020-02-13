@@ -3591,6 +3591,12 @@ Setting this on the first character of a help string disables
 conversions via 'substitute-command-keys'.
 
 +++
+** New text property 'minibuffer-message'.
+Setting this on a character of the minibuffer text will display the
+temporary echo messages before that character, when messages need to
+be displayed while minibuffer is active.
+
++++
 ** 'undo' can be made to ignore the active region for a command
 by setting 'undo-inhibit-region' symbol property of that command to
 non-nil.  This is used by 'mouse-drag-region' to make the effect

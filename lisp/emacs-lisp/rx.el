@@ -290,7 +290,7 @@ Return (REGEXP . PRECEDENCE)."
    ((null (cdr body))              ; Single item.
     (rx--translate (car body)))
    ((rx--every #'stringp body)     ; All strings.
-    (cons (list (regexp-opt body nil t))
+    (cons (list (regexp-opt body nil))
           t))
    ((rx--every #'rx--charset-p body)  ; All charsets.
     (rx--translate-union nil body))

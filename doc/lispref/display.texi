@@ -319,7 +319,10 @@ the echo area.  See also @code{clear-message-function} that can be
 used to clear the message displayed by this function.
 
 The default value is the function that displays the message at the end
-of the minibuffer when the minibuffer is active.
+of the minibuffer when the minibuffer is active.  However, if the text
+shown in the active minibuffer has the @code{minibuffer-message} text
+property (@pxref{Special Properties}) on some character, the message
+will be displayed before the first character having that property.
 @end defvar
 
 @defvar clear-message-function
@@ -332,8 +335,8 @@ after displaying an echo-area message.  The function is expected to
 clear the message displayed by its counterpart function specified by
 @code{set-message-function}.
 
-The default value is the function that clears the message displayed at
-the end of the minibuffer when the minibuffer is active.
+The default value is the function that clears the message displayed in
+an active minibuffer.
 @end defvar
 
 @defvar inhibit-message

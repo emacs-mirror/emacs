@@ -763,8 +763,21 @@ and `clear-minibuffer-message' called automatically via
 (defvar minibuffer-message-timer nil)
 (defvar minibuffer-message-overlay nil)
 
+(defun minibuffer--message-overlay-pos ()
+  "Return position where `set-minibuffer-message' shall put message overlay."
+  ;; Starting from point, look for non-nil 'minibuffer-message'
+  ;; property, and return its position.  If none found, return the EOB
+  ;; position.
+  (let* ((pt (point))
+         (propval (get-text-property pt 'minibuffer-message)))
+    (if propval pt
+      (next-single-property-change pt 'minibuffer-message nil (point-max)))))
+
 (defun set-minibuffer-message (message)
   "Temporarily display MESSAGE at the end of the minibuffer.
+If some part of the minibuffer text has the `minibuffer-message' property,
+the message will be displayed before the first such character, instead of
+at the end of the minibuffer.
 The text is displayed for `minibuffer-message-clear-timeout' seconds
 \(if the value is a number), or until the next input event arrives,
 whichever comes first.
@@ -784,8 +797,9 @@ via `set-message-function'."
 
       (clear-minibuffer-message)
 
-      (setq minibuffer-message-overlay
-            (make-overlay (point-max) (point-max) nil t t))
+      (let ((ovpos (minibuffer--message-overlay-pos)))
+        (setq minibuffer-message-overlay
+              (make-overlay ovpos ovpos nil t t)))
       (unless (zerop (length message))
         ;; The current C cursor code doesn't know to use the overlay's
         ;; marker's stickiness to figure out whether to place the cursor
