@@ -2901,6 +2901,12 @@ read_char (int commandflag, Lisp_Object map,
 	   example banishing the mouse under mouse-avoidance-mode.  */
 	timer_resume_idle ();
 
+#ifdef HAVE_NS
+      if (CONSP (c)
+          && (EQ (XCAR (c), intern ("ns-unput-working-text"))))
+        input_was_pending = input_pending;
+#endif
+
       if (current_buffer != prev_buffer)
 	{
 	  /* The command may have changed the keymaps.  Pretend there

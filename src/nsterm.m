@@ -6457,6 +6457,10 @@ not_in_argv (NSString *arg)
   if (!emacs_event)
     return;
 
+  /* First, clear any working text.  */
+  if (workingText != nil)
+    [self deleteWorkingText];
+
   /* It might be preferable to use getCharacters:range: below,
      cf. https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CocoaPerformance/Articles/StringDrawing.html#//apple_ref/doc/uid/TP40001445-112378.
      However, we probably can't use SAFE_NALLOCA here because it might
@@ -6485,10 +6489,6 @@ not_in_argv (NSString *arg)
       emacs_event->code = code;
       EV_TRAILER ((id)nil);
     }
-
-  /* Last, clear any working text.  */
-  if (workingText != nil)
-    [self deleteWorkingText];
 }
 
 
@@ -6584,12 +6584,17 @@ not_in_argv (NSString *arg)
 {
   NSRect rect;
   NSPoint pt;
-  struct window *win = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
+  struct window *win;
 
   NSTRACE ("[EmacsView firstRectForCharacterRange:]");
 
   if (NS_KEYLOG)
     NSLog (@"firstRectForCharRange request");
+
+  if (WINDOWP (echo_area_window) && ! NILP (call0 (intern ("ns-in-echo-area"))))
+    win = XWINDOW (echo_area_window);
+  else
+    win = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
 
   rect.size.width = theRange.length * FRAME_COLUMN_WIDTH (emacsframe);
   rect.size.height = FRAME_LINE_HEIGHT (emacsframe);
@@ -6696,8 +6701,6 @@ not_in_argv (NSString *arg)
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
 
   NSTRACE ("[EmacsView mouseDown:]");
-
-  [self deleteWorkingText];
 
   if (!emacs_event)
     return;
@@ -7325,7 +7328,6 @@ not_in_argv (NSString *arg)
 
   if (emacs_event && is_focus_frame)
     {
-      [self deleteWorkingText];
       emacs_event->kind = FOCUS_OUT_EVENT;
       EV_TRAILER ((id)nil);
     }
