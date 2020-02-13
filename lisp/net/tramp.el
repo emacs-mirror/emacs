@@ -5006,10 +5006,12 @@ name of a process or buffer, or nil to default to the current buffer."
 	  (tramp-error proc 'error "Process %s is not active" proc)
 	(tramp-message proc 5 "Interrupt process %s with pid %s" proc pid)
 	;; This is for tramp-sh.el.  Other backends do not support this (yet).
+	;; Not all "kill" implementations support process groups by
+	;; negative pid, so we try both variants.
 	(tramp-compat-funcall
 	 'tramp-send-command
 	 (process-get proc 'vector)
-	 (format "kill -2 -%d" pid))
+	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>/dev/null" pid pid))
 	;; Wait, until the process has disappeared.  If it doesn't,
 	;; fall back to the default implementation.
         (while (tramp-accept-process-output proc 0))
@@ -5064,10 +5066,5 @@ name of a process or buffer, or nil to default to the current buffer."
 ;;   and friends, for most of the handlers this is the major
 ;;   difference between the different backends.  Other handlers but
 ;;   *-process-file would profit from this as well.
-;;
-;; * Get rid of `shell-command'.  In its primary implementation, it
-;;   uses `process-file-shell-command' and
-;;   `start-file-process-shell-command', which is sufficient due to
-;;   connection-local `shell-file-name'.
 
 ;;; tramp.el ends here

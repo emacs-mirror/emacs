@@ -2217,11 +2217,10 @@ This checks also `file-name-as-directory', `file-name-directory',
 
   ;; Bug#10085.
   (when (tramp--test-enabled) ;; Packages like tramp-gvfs.el might be disabled.
-    (dolist (n-e '(nil t))
+    (dolist (non-essential '(nil t))
       ;; We must clear `tramp-default-method'.  On hydra, it is "ftp",
       ;; which ruins the tests.
-      (let ((non-essential n-e)
-	    (tramp-default-method
+      (let ((tramp-default-method
 	     (file-remote-p tramp-test-temporary-file-directory 'method))
 	    (host (file-remote-p tramp-test-temporary-file-directory 'host)))
 	(dolist
@@ -4035,10 +4034,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
         (tramp-change-syntax orig-syntax))))
 
-  (dolist (n-e '(nil t))
+  (dolist (non-essential '(nil t))
     (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
-      (let ((non-essential n-e)
-	    (tmp-name (tramp--test-make-temp-name nil quoted)))
+      (let ((tmp-name (tramp--test-make-temp-name nil quoted)))
 
 	(unwind-protect
 	    (progn
@@ -4419,9 +4417,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  ;; The test fails from time to time, w/o a reproducible pattern.  So
-  ;; we mark it as unstable.
-  :tags '(:expensive-test :unstable)
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   ;; Since Emacs 26.1.
@@ -4435,7 +4431,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	kill-buffer-query-functions proc)
     (unwind-protect
 	(with-temp-buffer
-	  (setq proc (start-file-process "test" (current-buffer) "sleep" "10"))
+	  (setq proc (start-file-process-shell-command
+		      "test" (current-buffer)
+		      "trap 'echo boom; exit 1' 2; sleep 100"))
 	  (should (processp proc))
 	  (should (process-live-p proc))
 	  (should (equal (process-status proc) 'run))
