@@ -173,7 +173,8 @@ by mistake and were not useful to Lisp code.
 
 * Lisp Changes in Emacs 28.1
 
-** Remove final remaining traces of old-style backquotes
+** Remove the 'force-new-style-backquotes' variable.
+This removes the final remaining trace of old-style backquotes.
 
 ** The module header 'emacs-module.h' now contains type aliases
 'emacs_function' and 'emacs_finalizer' for module functions and
