@@ -258,16 +258,15 @@ Check that the resulting binaries do not differ."
 
 (ert-deftest comp-tests-non-locals ()
   "Test non locals."
-  (let ((gc-cons-threshold most-positive-fixnum)) ;; FIXME!!
-    (should (string= (comp-tests-condition-case-0-f)
-                     "arith-error Arithmetic error catched"))
-    (should (string= (comp-tests-condition-case-1-f)
-                     "error foo catched"))
-    (should (= (comp-tests-catch-f
-                                (lambda () (throw 'foo 3)))
-               3))
-    (should (= (catch 'foo
-                 (comp-tests-throw-f 3))))))
+  (should (string= (comp-tests-condition-case-0-f)
+                   "arith-error Arithmetic error catched"))
+  (should (string= (comp-tests-condition-case-1-f)
+                   "error foo catched"))
+  (should (= (comp-tests-catch-f
+              (lambda () (throw 'foo 3)))
+             3))
+  (should (= (catch 'foo
+               (comp-tests-throw-f 3)))))
 
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
