@@ -43,7 +43,7 @@
   (should (equal (rx (or "ab" (| "c" nonl) "de"))
                  "ab\\|c\\|.\\|de"))
   (should (equal (rx (or "ab" "abc" "a"))
-                 "\\(?:ab\\|abc\\|a\\)"))
+                 "\\(?:a\\(?:bc?\\)?\\)"))
   (should (equal (rx (| nonl "a") (| "b" blank))
                  "\\(?:.\\|a\\)\\(?:b\\|[[:blank:]]\\)"))
   (should (equal (rx (|))

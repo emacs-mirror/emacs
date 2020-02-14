@@ -1521,10 +1521,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   (size (cdr (assoc "filesystem::size" attr)))
 	   (used (cdr (assoc "filesystem::used" attr)))
 	   (free (cdr (assoc "filesystem::free" attr))))
-      (when (and (stringp size) (stringp used) (stringp free))
-	(list (string-to-number size)
-	      (- (string-to-number size) (string-to-number used))
-	      (string-to-number free))))))
+      (when (or size used free)
+	(list (string-to-number (or size "0"))
+	      (string-to-number (or free "0"))
+	      (- (string-to-number (or size "0"))
+		 (string-to-number (or used "0"))))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -2344,16 +2345,13 @@ It checks for registered GNOME Online Accounts."
   ;; SERVICE might be encoded as a DNS-SD service.
   (and (string-match tramp-dns-sd-service-regexp service)
        (setq service (match-string 1 service)))
-  (let (result)
-    (maphash
-     (lambda (key _value)
-       (if (and (tramp-goa-account-p key)
-		(string-equal service (tramp-goa-account-method key)))
-	   (push (list (tramp-goa-account-user key)
-		       (tramp-goa-account-host key))
-		 result)))
-     tramp-cache-data)
-    result))
+  (mapcar
+   (lambda (key)
+     (and (tramp-goa-account-p key)
+	  (string-equal service (tramp-goa-account-method key))
+	  (list (tramp-goa-account-user key)
+		(tramp-goa-account-host key))))
+   (hash-table-keys tramp-cache-data)))
 
 
 ;; Media devices functions.
@@ -2406,18 +2404,14 @@ It checks for mounted media devices."
   ;; SERVICE might be encoded as a DNS-SD service.
   (and (string-match tramp-dns-sd-service-regexp service)
        (setq service (match-string 1 service)))
-  (let (result)
-    (maphash
-     (lambda (key _value)
-       (if (and (tramp-media-device-p key)
-		(string-equal service (tramp-media-device-method key))
-		(tramp-get-connection-property key "vector" nil))
-	   (push
-	    (list nil (tramp-file-name-host
-		       (tramp-get-connection-property key "vector" nil)))
-	    result)))
-     tramp-cache-data)
-    result))
+  (mapcar
+   (lambda (key)
+     (and (tramp-media-device-p key)
+	  (string-equal service (tramp-media-device-method key))
+	  (tramp-get-connection-property key "vector" nil)
+	  (list nil (tramp-file-name-host
+		     (tramp-get-connection-property key "vector" nil)))))
+   (hash-table-keys tramp-cache-data)))
 
 
 ;; D-Bus zeroconf functions.
@@ -2465,7 +2459,8 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 
 (when tramp-gvfs-enabled
   ;; Suppress D-Bus error messages and Tramp traces.
-  (let (tramp-gvfs-dbus-event-vector tramp-verbose fun)
+  (let ((tramp-verbose 0)
+	tramp-gvfs-dbus-event-vector fun)
     ;; Add completion functions for services announced by DNS-SD.
     ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
     (zeroconf-init tramp-gvfs-zeroconf-domain)

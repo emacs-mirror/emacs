@@ -572,6 +572,7 @@ and returns the updated history list.  It limits the list length to
 the value of @var{maxelt} (if non-@code{nil}) or @code{history-length}
 (described below).  The possible values of @var{maxelt} have the same
 meaning as the values of @code{history-length}.
+@var{history-var} cannot refer to a lexical variable.
 
 Normally, @code{add-to-history} removes duplicate members from the
 history list if @code{history-delete-duplicates} is non-@code{nil}.

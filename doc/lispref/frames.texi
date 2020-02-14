@@ -2220,6 +2220,9 @@ How to display the cursor.  Legitimate values are:
 @table @code
 @item box
 Display a filled box.  (This is the default.)
+@item (box . @var{size})
+Display a filled box.  However, display it as a hollow box if point is
+under masked image larger than @var{size} pixels in either dimension.
 @item hollow
 Display a hollow box.
 @item nil

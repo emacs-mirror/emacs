@@ -4492,8 +4492,6 @@ For details of keybindings, see `ido-find-file'."
 	(ido-tidy))
       (throw 'ido contents))))
 
-(defvar ido--overlay nil)
-
 (defun ido-exhibit ()
   "Post command hook for Ido."
   ;; Find matching files and display a list in the minibuffer.
@@ -4728,13 +4726,13 @@ For details of keybindings, see `ido-find-file'."
 	(let ((inf (ido-completions contents)))
 	  (setq ido-show-confirm-message nil)
 	  (ido-trace "inf" inf)
-          (when ido--overlay
-            (delete-overlay ido--overlay))
-          (let ((o (make-overlay (point-max) (point-max) nil t t)))
-            (when (> (length inf) 0)
-              (put-text-property 0 1 'cursor t inf))
-            (overlay-put o 'after-string inf)
-            (setq ido--overlay o)))
+          (let ((pos (point)))
+            (insert inf)
+            (if (< pos (point-max))
+                ;; Tell set-minibuffer-message where to display the
+                ;; overlay with temporary messages.
+                (put-text-property pos (1+ pos) 'minibuffer-message t)))
+          )
 	))))
 
 (defun ido-completions (name)

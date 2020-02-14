@@ -2532,6 +2532,11 @@ A redo record for ordinary undo maps to the following (earlier) undo.")
   "Within a run of consecutive undo commands, list remaining to be undone.
 If t, we undid all the way to the end of it.")
 
+(defun undo--last-change-was-undo-p (undo-list)
+  (while (and (consp undo-list) (eq (car undo-list) nil))
+    (setq undo-list (cdr undo-list)))
+  (gethash undo-list undo-equiv-table))
+
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
@@ -2567,12 +2572,7 @@ as an argument limits undo to changes within the current region."
 		 (or (eq pending-undo-list t)
 		     ;; If something (a timer or filter?) changed the buffer
 		     ;; since the previous command, don't continue the undo seq.
-		     (let ((list buffer-undo-list))
-		       (while (eq (car list) nil)
-			 (setq list (cdr list)))
-		       ;; If the last undo record made was made by undo
-		       ;; it shows nothing else happened in between.
-		       (gethash list undo-equiv-table))))
+		     (undo--last-change-was-undo-p buffer-undo-list)))
       (setq undo-in-region
 	    (and (or (region-active-p) (and arg (not (numberp arg))))
                  (not inhibit-region)))
@@ -2661,6 +2661,25 @@ A numeric ARG serves as a repeat count.
 Contrary to `undo', this will not redo a previous undo."
   (interactive "*p")
   (let ((undo-no-redo t)) (undo arg)))
+
+(defun undo-redo (&optional arg)
+  "Undo the last ARG undos."
+  (interactive "*p")
+  (cond
+   ((not (undo--last-change-was-undo-p buffer-undo-list))
+    (user-error "No undo to undo"))
+   (t
+    (let* ((ul buffer-undo-list)
+           (new-ul
+            (let ((undo-in-progress t))
+              (while (and (consp ul) (eq (car ul) nil))
+                (setq ul (cdr ul)))
+              (primitive-undo arg ul)))
+           (new-pul (undo--last-change-was-undo-p new-ul)))
+      (message "Redo%s" (if undo-in-region " in region" ""))
+      (setq this-command 'undo)
+      (setq pending-undo-list new-pul)
+      (setq buffer-undo-list new-ul)))))
 
 (defvar undo-in-progress nil
   "Non-nil while performing an undo.
@@ -2751,7 +2770,7 @@ Return what remains of the list."
                    ;; said it would do.
                    (unless (and (= start start-mark)
                                 (= (+ delta end) end-mark))
-                     (error "Changes to be undone by function different than announced"))
+                     (error "Changes to be undone by function different from announced"))
                    (set-marker start-mark nil)
                    (set-marker end-mark nil))
                (apply fun-args))

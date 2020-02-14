@@ -64,8 +64,19 @@ It was declared obsolete in Emacs 27.1.
 
 * Changes in Emacs 28.1
 
+** Support for '(box . SIZE)' cursor-type.
+By default, 'box' cursor always has a filled box shape.  But if you
+specify cursor-type to be '(box . SIZE)', the cursor becomes a hollow
+box if the point is on an image larger than 'SIZE' pixels in any
+dimension.
+
 
 * Editing Changes in Emacs 28.1
+
++++
+** New command 'undo-redo'.
+It undoes previous undo commands, but doesn't record itself as an
+undoable command.
 
 +++
 ** 'read-number' now has its own history variable.
@@ -115,6 +126,26 @@ supplied error message.
 *** New connection method "media", which allows accessing media devices
 like cell phones, tablets or cameras.
 
+** map.el
+
+*** Pcase 'map' pattern added keyword symbols abbreviation.
+A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
+equivalent to '(map (:sym sym))'.
+** Package
+
++++
+*** New functions to filter the package list.
+The filter command key bindings are as follows:
+
+key             binding
+---             -------
+/ a             package-menu-filter-by-archive
+/ k             package-menu-filter-by-keyword
+/ n             package-menu-filter-by-name
+/ s             package-menu-filter-by-status
+/ v             package-menu-filter-by-version
+/ /             package-menu-filter-clear
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -141,6 +172,9 @@ by mistake and were not useful to Lisp code.
 
 
 * Lisp Changes in Emacs 28.1
+
+** Remove the 'force-new-style-backquotes' variable.
+This removes the final remaining trace of old-style backquotes.
 
 ** The module header 'emacs-module.h' now contains type aliases
 'emacs_function' and 'emacs_finalizer' for module functions and

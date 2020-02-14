@@ -2098,7 +2098,9 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                     ;; For non-interactive, skip any questions
                     (let ((enable-local-variables :safe) ;; to find `mode:'
                           (buffer-file-name file))
-                      (ignore-errors (set-auto-mode)))
+                      ;; Don't run hooks that might assume buffer-file-name
+                      ;; really associates buffer with a file (bug#39190).
+                      (ignore-errors (delay-mode-hooks (set-auto-mode))))
                   (normal-mode))
 	        (set-buffer-modified-p nil)
                 (setq buffer-read-only t))

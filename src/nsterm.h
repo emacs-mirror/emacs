@@ -418,7 +418,7 @@ typedef id instancetype;
    NSWindow *nonfs_window;
    BOOL fs_is_native;
 #ifdef NS_IMPL_COCOA
-   NSBitmapImageRep *drawingBuffer;
+   CGContextRef drawingBuffer;
 #endif
 @public
    struct frame *emacsframe;
@@ -464,7 +464,7 @@ typedef id instancetype;
 - (void)focusOnDrawingBuffer;
 #endif
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
-- (void)createDrawingBufferWithRect:(NSRect)rect;
+- (void)createDrawingBuffer;
 
 /* Non-notification versions of NSView methods. Used for direct calls.  */
 - (void)windowWillEnterFullScreen;

@@ -2555,7 +2555,7 @@ Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
   "Check, whether it is possible to connect the remote host w/o side-effects.
 This is true, if either the remote host is already connected, or if we are
 not in completion mode."
-  (let (tramp-verbose
+  (let ((tramp-verbose 0)
 	(vec
 	 (cond
 	  ((tramp-file-name-p vec-or-filename) vec-or-filename)
@@ -3431,7 +3431,7 @@ User is always nil."
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
       (let (ls-lisp-use-insert-directory-program start)
 	;; Silence byte compiler.
-	ls-lisp-use-insert-directory-program
+	(ignore ls-lisp-use-insert-directory-program)
 	(tramp-run-real-handler
 	 #'insert-directory
 	 (list filename switches wildcard full-directory-p))
@@ -3721,9 +3721,9 @@ support symbolic links."
 	    (if (process-live-p p)
 	      ;; Display output.
 	      (with-current-buffer output-buffer
-		(display-buffer output-buffer '(nil (allow-no-window . t)))
 		(setq mode-line-process '(":%s"))
-		(shell-mode)
+		(unless (eq major-mode 'shell-mode)
+		  (shell-mode))
 		(set-process-filter p #'comint-output-filter)
 		(set-process-sentinel p #'shell-command-sentinel)
 		(when error-file
@@ -3733,7 +3733,8 @@ support symbolic links."
 		     (with-current-buffer error-buffer
 		       (insert-file-contents-literally
 			error-file nil nil nil 'replace))
-		     (delete-file error-file)))))
+		     (delete-file error-file))))
+		(display-buffer output-buffer '(nil (allow-no-window . t))))
 
 	      (when error-file
 		(delete-file error-file)))))
@@ -4848,7 +4849,12 @@ verbosity of 6."
   "Read a password from user (compat function).
 Consults the auth-source package.
 Invokes `password-read' if available, `read-passwd' else."
-  (let* ((case-fold-search t)
+  (let* (;; If `auth-sources' contains "~/.authinfo.gpg", and
+	 ;; `exec-path' contains a relative file name like ".", it
+	 ;; could happen that the "gpg" command is not found.  So we
+	 ;; adapt `default-directory'.  (Bug#39389, Bug#39489)
+	 (default-directory (tramp-compat-temporary-file-directory))
+	 (case-fold-search t)
 	 (key (tramp-make-tramp-file-name
 	       ;; In tramp-sh.el, we must use "password-vector" due to
 	       ;; multi-hop.
@@ -5000,10 +5006,12 @@ name of a process or buffer, or nil to default to the current buffer."
 	  (tramp-error proc 'error "Process %s is not active" proc)
 	(tramp-message proc 5 "Interrupt process %s with pid %s" proc pid)
 	;; This is for tramp-sh.el.  Other backends do not support this (yet).
+	;; Not all "kill" implementations support process groups by
+	;; negative pid, so we try both variants.
 	(tramp-compat-funcall
 	 'tramp-send-command
 	 (process-get proc 'vector)
-	 (format "kill -2 -%d" pid))
+	 (format "(\\kill -2 -%d || \\kill -2 %d) 2>/dev/null" pid pid))
 	;; Wait, until the process has disappeared.  If it doesn't,
 	;; fall back to the default implementation.
         (while (tramp-accept-process-output proc 0))
@@ -5058,10 +5066,5 @@ name of a process or buffer, or nil to default to the current buffer."
 ;;   and friends, for most of the handlers this is the major
 ;;   difference between the different backends.  Other handlers but
 ;;   *-process-file would profit from this as well.
-;;
-;; * Get rid of `shell-command'.  In its primary implementation, it
-;;   uses `process-file-shell-command' and
-;;   `start-file-process-shell-command', which is sufficient due to
-;;   connection-local `shell-file-name'.
 
 ;;; tramp.el ends here

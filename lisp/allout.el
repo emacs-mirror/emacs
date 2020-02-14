@@ -5926,7 +5926,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
         (setq buffer-file-coding-system
               (select-safe-coding-system subtree-beg subtree-end))
         ;; if the coding system for the text being encrypted is different
-        ;; than that prevailing, then there a real risk that the coding
+        ;; from that prevailing, then there a real risk that the coding
         ;; system can't be noticed by emacs when the file is visited.  to
         ;; mitigate that, offer to preserve the coding system using a file
         ;; local variable.

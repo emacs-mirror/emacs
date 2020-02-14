@@ -27658,7 +27658,7 @@ added.  A plethora of new commands and modes have been added.
 @xref{Gnus Unplugged}, for the full story.
 
 @item
-The @code{nndraft} back end has returned, but works differently than
+The @code{nndraft} back end has returned, but works differently from
 before.  All Message buffers are now also articles in the @code{nndraft}
 group, which is created automatically.
 

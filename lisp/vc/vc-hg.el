@@ -1352,14 +1352,17 @@ REV is the revision to check out into WORKFILE."
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
-(defun vc-hg-dir-status-files (_dir files update-function)
+(defun vc-hg-dir-status-files (dir files update-function)
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
-  ;; If honoring DIR ever becomes important, try using '-I DIR/'.
-  (vc-hg-command (current-buffer) 'async files
-                 "status"
-                 (concat "-mardu" (if files "i"))
-                 "-C")
+  (let ((default-directory dir))
+    ;; TODO: Use "--config 'status.relative=1'" instead of "re:"
+    ;; when we're allowed to depend on Mercurial 4.2+
+    ;; (it's a bit faster).
+    (vc-hg-command (current-buffer) 'async files
+                   "status" "re:" "-I" "."
+                   (concat "-mardu" (if files "i"))
+                   "-C"))
   (vc-run-delayed
     (vc-hg-after-dir-status update-function)))
 

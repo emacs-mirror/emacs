@@ -3932,7 +3932,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
      allocate space for that if we're not allocating space for anything
      else (see below).  Also, we never need info about register 0 for
      any of the other register vectors, and it seems rather a kludge to
-     treat 'best_regend' differently than the rest.  So we keep track of
+     treat 'best_regend' differently from the rest.  So we keep track of
      the end of the best match so far in a separate variable.  We
      initialize this to NULL so that when we backtrack the first time
      and need to test it, it's not garbage.  */

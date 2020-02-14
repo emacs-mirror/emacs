@@ -12498,7 +12498,7 @@ save those articles instead."
 		       (gnus-activate-group to-newsgroup nil nil to-method)
 		       (gnus-subscribe-group to-newsgroup))
 		  (error "Couldn't create group %s" to-newsgroup)))
-	  (error "No such group: %s" to-newsgroup))
+	  (user-error "No such group: %s" to-newsgroup))
       to-newsgroup)))
 
 (defvar gnus-summary-save-parts-counter)

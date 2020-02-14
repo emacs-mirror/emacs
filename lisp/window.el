@@ -5009,6 +5009,13 @@ nil means to not handle the buffer in a particular way.  This
 	 quad entry)
     (cond
      ((and (not prev-buffer)
+	   (eq (nth 1 quit-restore) 'tab)
+	   (eq (nth 3 quit-restore) buffer))
+      (tab-bar-close-tab)
+      ;; If the previously selected window is still alive, select it.
+      (when (window-live-p (nth 2 quit-restore))
+	(select-window (nth 2 quit-restore))))
+     ((and (not prev-buffer)
 	   (or (eq (nth 1 quit-restore) 'frame)
 	       (and (eq (nth 1 quit-restore) 'window)
 		    ;; If the window has been created on an existing
@@ -6367,7 +6374,12 @@ fourth element is BUFFER."
     ;; WINDOW has been created on a new frame.
     (set-window-parameter
      window 'quit-restore
-     (list 'frame 'frame (selected-window) buffer)))))
+     (list 'frame 'frame (selected-window) buffer)))
+   ((eq type 'tab)
+    ;; WINDOW has been created on a new tab.
+    (set-window-parameter
+     window 'quit-restore
+     (list 'tab 'tab (selected-window) buffer)))))
 
 (defcustom display-buffer-function nil
   "If non-nil, function to call to handle `display-buffer'.
@@ -7034,7 +7046,7 @@ Return WINDOW if BUFFER and WINDOW are live."
        ;; use that.
        (display-buffer-mark-dedicated
         (set-window-dedicated-p window display-buffer-mark-dedicated))))
-    (when (memq type '(window frame))
+    (when (memq type '(window frame tab))
       (set-window-prev-buffers window nil))
     (let ((quit-restore (window-parameter window 'quit-restore))
 	  (height (cdr (assq 'window-height alist)))

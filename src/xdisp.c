@@ -30741,14 +30741,6 @@ get_specified_cursor_type (Lisp_Object arg, int *width)
       return BAR_CURSOR;
     }
 
-  if (CONSP (arg)
-      && EQ (XCAR (arg), Qbar)
-      && RANGED_FIXNUMP (0, XCDR (arg), INT_MAX))
-    {
-      *width = XFIXNUM (XCDR (arg));
-      return BAR_CURSOR;
-    }
-
   if (EQ (arg, Qhbar))
     {
       *width = 2;
@@ -30756,11 +30748,16 @@ get_specified_cursor_type (Lisp_Object arg, int *width)
     }
 
   if (CONSP (arg)
-      && EQ (XCAR (arg), Qhbar)
       && RANGED_FIXNUMP (0, XCDR (arg), INT_MAX))
     {
       *width = XFIXNUM (XCDR (arg));
-      return HBAR_CURSOR;
+
+      if (EQ (XCAR (arg), Qbox))
+          return FILLED_BOX_CURSOR;
+      else if (EQ (XCAR (arg), Qbar))
+          return BAR_CURSOR;
+      else if (EQ (XCAR (arg), Qhbar))
+          return HBAR_CURSOR;
     }
 
   /* Treat anything unknown as "hollow box cursor".
@@ -30887,23 +30884,28 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
   if (!w->cursor_off_p)
     {
       if (glyph != NULL && glyph->type == XWIDGET_GLYPH)
-        return NO_CURSOR;
+	return NO_CURSOR;
       if (glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
 	  if (cursor_type == FILLED_BOX_CURSOR)
 	    {
-	      /* Using a block cursor on large images can be very annoying.
-		 So use a hollow cursor for "large" images.
-		 If image is not transparent (no mask), also use hollow cursor.  */
+	      /* Using a block cursor on large images can be very
+		 annoying.  So use a hollow cursor for "large" images.
+		 If image is not transparent (no mask), also use
+		 hollow cursor.  */
 	      struct image *img = IMAGE_OPT_FROM_ID (f, glyph->u.img_id);
 	      if (img != NULL && IMAGEP (img->spec))
 		{
-		  /* Arbitrarily, interpret "Large" as >32x32 and >NxN
-		     where N = size of default frame font size.
-		     This should cover most of the "tiny" icons people may use.  */
+		  /* Interpret "large" as >SIZExSIZE and >NxN where
+		     SIZE is the value from cursor-type of the form
+		     (box . SIZE), where N = size of default frame
+		     font size.  So, setting cursor-type to (box . 32)
+		     should cover most of the "tiny" icons people may
+		     use.  */
 		  if (!img->mask
-		      || img->width > max (32, WINDOW_FRAME_COLUMN_WIDTH (w))
-		      || img->height > max (32, WINDOW_FRAME_LINE_HEIGHT (w)))
+		      || (CONSP (BVAR (b, cursor_type))
+			  && img->width > max (*width, WINDOW_FRAME_COLUMN_WIDTH (w))
+			  && img->height > max (*width, WINDOW_FRAME_LINE_HEIGHT (w))))
 		    cursor_type = HOLLOW_BOX_CURSOR;
 		}
 	    }

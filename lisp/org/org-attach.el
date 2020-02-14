@@ -429,7 +429,7 @@ attachment-folder.
 
 Change of attachment-folder due to unset might be if an ID
 property is set on the node, or if a separate inherited
-DIR-property exists (that is different than the unset one)."
+DIR-property exists (that is different from the unset one)."
   (interactive)
   (let ((old (org-attach-dir))
 	(new

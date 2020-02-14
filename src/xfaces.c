@@ -4940,7 +4940,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
    that a face containing all the attributes in ATTRS, when merged with the
    default face for display, can be represented in a way that's
 
-    (1) different in appearance than the default face, and
+    (1) different in appearance from the default face, and
     (2) `close in spirit' to what the attributes specify, if not exact.  */
 
 static bool
@@ -5043,7 +5043,7 @@ gui_supports_face_attributes_p (struct frame *f,
    that a face containing all the attributes in ATTRS, when merged
    with the default face for display, can be represented in a way that's
 
-    (1) different in appearance than the default face, and
+    (1) different in appearance from the default face, and
     (2) `close in spirit' to what the attributes specify, if not exact.
 
    Point (2) implies that a `:weight black' attribute will be satisfied
@@ -5160,7 +5160,7 @@ tty_supports_face_attributes_p (struct frame *f,
 	       > TTY_SAME_COLOR_THRESHOLD)
 	return false;		/* displayed color is too different */
       else
-	/* Make sure the color is really different than the default.  */
+	/* Make sure the color is really different from the default.  */
 	{
 	  Emacs_Color def_fg_color;
 	  if (tty_lookup_color (f, def_fg, &def_fg_color, 0)
@@ -5184,7 +5184,7 @@ tty_supports_face_attributes_p (struct frame *f,
 	       > TTY_SAME_COLOR_THRESHOLD)
 	return false;		/* displayed color is too different */
       else
-	/* Make sure the color is really different than the default.  */
+	/* Make sure the color is really different from the default.  */
 	{
 	  Emacs_Color def_bg_color;
 	  if (tty_lookup_color (f, def_bg, &def_bg_color, 0)
@@ -5226,7 +5226,7 @@ The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
 with the default face for display, can be represented in a way that's
 
- (1) different in appearance than the default face, and
+ (1) different in appearance from the default face, and
  (2) `close in spirit' to what the attributes specify, if not exact.
 
 Point (2) implies that a `:weight black' attribute will be satisfied by

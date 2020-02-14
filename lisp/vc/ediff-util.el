@@ -1540,10 +1540,10 @@ the width of the A/B/C windows."
    ;; hscrolling.
    (if (= last-command-event ?<)
        (lambda (arg)
-	 (let ((prefix-arg arg))
+	 (let ((current-prefix-arg arg))
 	   (call-interactively #'scroll-left)))
      (lambda (arg)
-       (let ((prefix-arg arg))
+       (let ((current-prefix-arg arg))
 	 (call-interactively #'scroll-right))))
    ;; calculate argument to scroll-left/right
    ;; if there is an explicit argument

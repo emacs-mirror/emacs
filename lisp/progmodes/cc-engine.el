@@ -388,14 +388,17 @@ comment at the start of cc-engine.el for more info."
 			 (forward-char)
 			 t)))
 	      (let ((cand-EOM (point)))
-		(if (and c-last-open-c-comment-start-on-line-re
+		(if (and c-open-c-comment-on-logical-line-re
 			 (re-search-backward
-			  c-last-open-c-comment-start-on-line-re
-			  (c-point 'bol) t))
-		    (progn
-		      (goto-char (match-beginning 1))
-		      (and (c-forward-single-comment)
-			   (> (point) cand-EOM)))
+			  c-open-c-comment-on-logical-line-re
+			  nil t)
+			 (match-beginning 1)
+			 (progn
+			   (goto-char (match-beginning 1))
+			   (and (c-forward-single-comment)
+				(> (point) cand-EOM))))
+		    t
+		  (goto-char cand-EOM)
 		  nil)))))
 
       (when (and (car c-macro-cache)

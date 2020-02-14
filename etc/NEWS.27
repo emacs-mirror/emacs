@@ -2630,6 +2630,14 @@ will be chosen even if you have an entry for "image/*" in your
 overrides all system and Emacs-provided defaults.  To get the old
 method back, set 'mailcap-prefer-mailcap-viewers' to nil.
 
+** MH-E
++++
+*** The hook 'mh-show-mode-hook' is now called before the message is inserted.
+Functions that want to affect the message text (for example, to change
+highlighting) can no longer use 'mh-show-mode-hook', because the
+message contents will not yet have been inserted when the hook is
+called.  Such functions should now be attached to 'mh-show-hook'.
+
 ** URL
 
 ---
@@ -3581,6 +3589,12 @@ in other packages are now obsolete aliases of 'xor'.
 ** New text property 'help-echo-inhibit-substitution'.
 Setting this on the first character of a help string disables
 conversions via 'substitute-command-keys'.
+
++++
+** New text property 'minibuffer-message'.
+Setting this on a character of the minibuffer text will display the
+temporary echo messages before that character, when messages need to
+be displayed while minibuffer is active.
 
 +++
 ** 'undo' can be made to ignore the active region for a command

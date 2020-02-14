@@ -1654,6 +1654,8 @@ Customization}).  (The other attributes of this face have no effect;
 the text shown under the cursor is drawn using the frame's background
 color.)  To change its shape, customize the buffer-local variable
 @code{cursor-type}; possible values are @code{box} (the default),
+@code{(box . @var{size})} (box cursor becoming a hollow box under
+masked images larger than @var{size} pixels in either dimension),
 @code{hollow} (a hollow box), @code{bar} (a vertical bar), @code{(bar
 . @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar} (a
 horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}

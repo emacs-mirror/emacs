@@ -1845,6 +1845,7 @@ COMPARE-FN if that's non-nil.
 If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
 ELEMENT is added at the end.
+LIST-VAR should not refer to a lexical variable.
 
 The return value is the new value of LIST-VAR.
 
@@ -1934,6 +1935,7 @@ of ELEMENT if it has one.
 
 The list order for each element is stored in LIST-VAR's
 `list-order' property.
+LIST-VAR cannot refer to a lexical variable.
 
 The return value is the new value of LIST-VAR."
   (let ((ordering (get list-var 'list-order)))
@@ -1962,7 +1964,8 @@ variable.  The possible values of maximum length have the same meaning as
 the values of `history-length'.
 Remove duplicates of NEWELT if `history-delete-duplicates' is non-nil.
 If optional fourth arg KEEP-ALL is non-nil, add NEWELT to history even
-if it is empty or duplicates the most recent entry in the history."
+if it is empty or duplicates the most recent entry in the history.
+HISTORY-VAR cannot refer to a lexical variable."
   (unless maxelt
     (setq maxelt (or (get history-var 'history-length)
 		     history-length)))

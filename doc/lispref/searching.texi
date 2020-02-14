@@ -1080,7 +1080,10 @@ Corresponding string regexp: @samp{@var{A}@var{B}@dots{}}
 @cindex @code{or} in rx
 @itemx @code{(| @var{rx}@dots{})}
 @cindex @code{|} in rx
-Match exactly one of the @var{rx}s, trying from left to right.
+Match exactly one of the @var{rx}s.
+If all arguments are string literals, the longest possible match
+will always be used.  Otherwise, either the longest match or the
+first (in left-to-right order) will be used.
 Without arguments, the expression will not match anything at all.@*
 Corresponding string regexp: @samp{@var{A}\|@var{B}\|@dots{}}.
 

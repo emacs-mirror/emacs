@@ -1847,7 +1847,7 @@ Optional HAS-SUCCESSOR is true if the item is followed by a sibling.
 We also hide the header-prefix string.
 
 Guides are established according to the item-widget's :guide-column-flags,
-when different than :was-guide-column-flags.  Changing that property and
+when different from :was-guide-column-flags.  Changing that property and
 reapplying this method will rectify the glyphs."
 
   (when (not (widget-get item-widget :is-container))

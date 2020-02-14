@@ -467,18 +467,19 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
          (minibuffer-depth (minibuffer-depth))
          (action (lambda (buffer alist)
                    (unless (> (minibuffer-depth) minibuffer-depth)
-                     (let ((window (cond
-                                    ((eq dir 'new-tab)
-                                     (let ((tab-bar-new-tab-choice t))
-                                       (tab-bar-new-tab))
-                                     (selected-window))
-                                    ((eq dir 'same-window)
-                                     (selected-window))
-                                    (t (window-in-direction
-                                        dir nil nil
-                                        (and arg (prefix-numeric-value arg))
-                                        windmove-wrap-around))))
-                           (type 'reuse))
+                     (let* ((type 'reuse)
+                            (window (cond
+                                     ((eq dir 'new-tab)
+                                      (let ((tab-bar-new-tab-choice t))
+                                        (tab-bar-new-tab))
+                                      (setq type 'tab)
+                                      (selected-window))
+                                     ((eq dir 'same-window)
+                                      (selected-window))
+                                     (t (window-in-direction
+                                         dir nil nil
+                                         (and arg (prefix-numeric-value arg))
+                                         windmove-wrap-around)))))
                        (unless window
                          (setq window (split-window nil nil dir) type 'window))
                        (setq new-window (window--display-buffer buffer window

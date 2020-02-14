@@ -50,6 +50,7 @@
 (require 'vc-hg)
 
 (declare-function tramp-find-executable "tramp-sh")
+(declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
@@ -2216,11 +2217,10 @@ This checks also `file-name-as-directory', `file-name-directory',
 
   ;; Bug#10085.
   (when (tramp--test-enabled) ;; Packages like tramp-gvfs.el might be disabled.
-    (dolist (n-e '(nil t))
+    (dolist (non-essential '(nil t))
       ;; We must clear `tramp-default-method'.  On hydra, it is "ftp",
       ;; which ruins the tests.
-      (let ((non-essential n-e)
-	    (tramp-default-method
+      (let ((tramp-default-method
 	     (file-remote-p tramp-test-temporary-file-directory 'method))
 	    (host (file-remote-p tramp-test-temporary-file-directory 'host)))
 	(dolist
@@ -3113,22 +3113,38 @@ This tests also `access-file', `file-readable-p',
 	     (file-remote-p tmp-name1)
 	     (replace-regexp-in-string
 	      "/" "//" (file-remote-p tmp-name1 'localname))))
+	   ;; `file-ownership-preserved-p' is implemented only in tramp-sh.el.
+	   (test-file-ownership-preserved-p (tramp--test-sh-p))
 	   attr)
       (unwind-protect
 	  (progn
+	    ;; A sticky bit could damage the `file-ownership-preserved-p' test.
+	    (when
+		(and test-file-ownership-preserved-p
+		     (zerop (logand
+			     #o1000
+			     (file-modes tramp-test-temporary-file-directory))))
+	      (write-region "foo" nil tmp-name1)
+	      (setq test-file-ownership-preserved-p
+		    (= (tramp-compat-file-attribute-group-id
+			(file-attributes tmp-name1))
+		       (tramp-get-remote-gid
+			(tramp-dissect-file-name tmp-name1) 'integer)))
+	      (delete-file tmp-name1))
+
 	    (should-error
 	     (access-file tmp-name1 "error")
 	     :type tramp-file-missing)
 	    ;; `file-ownership-preserved-p' should return t for
-	    ;; non-existing files.  It is implemented only in tramp-sh.el.
-	    (when (tramp--test-sh-p)
+	    ;; non-existing files.
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
 	    (should (file-readable-p tmp-name1))
 	    (should (file-regular-p tmp-name1))
 	    (should-not (access-file tmp-name1 "error"))
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 
 	    ;; We do not test inodes and device numbers.
@@ -3158,16 +3174,16 @@ This tests also `access-file', `file-readable-p',
 	    (should (stringp (tramp-compat-file-attribute-group-id attr)))
 
 	    (tramp--test-ignore-make-symbolic-link-error
-	     (should-error
-	      (access-file tmp-name2 "error")
-	      :type tramp-file-missing)
-	      (when (tramp--test-sh-p)
+	      (should-error
+	       (access-file tmp-name2 "error")
+	       :type tramp-file-missing)
+	      (when test-file-ownership-preserved-p
 		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (make-symbolic-link tmp-name1 tmp-name2)
 	      (should (file-exists-p tmp-name2))
 	      (should (file-symlink-p tmp-name2))
 	      (should-not (access-file tmp-name2 "error"))
-	      (when (tramp--test-sh-p)
+	      (when test-file-ownership-preserved-p
 		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (setq attr (file-attributes tmp-name2))
 	      (should
@@ -3198,7 +3214,7 @@ This tests also `access-file', `file-readable-p',
 		 (tramp-dissect-file-name tmp-name3))))
 	      (delete-file tmp-name2))
 
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (delete-file tmp-name1)
 	    (make-directory tmp-name1)
@@ -3206,7 +3222,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (file-readable-p tmp-name1))
 	    (should-not (file-regular-p tmp-name1))
 	    (should-not (access-file tmp-name1 ""))
-	    (when (tramp--test-sh-p)
+	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
 	    (should (eq (tramp-compat-file-attribute-type attr) t)))
@@ -4018,10 +4034,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
         (tramp-change-syntax orig-syntax))))
 
-  (dolist (n-e '(nil t))
+  (dolist (non-essential '(nil t))
     (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
-      (let ((non-essential n-e)
-	    (tmp-name (tramp--test-make-temp-name nil quoted)))
+      (let ((tmp-name (tramp--test-make-temp-name nil quoted)))
 
 	(unwind-protect
 	    (progn
@@ -4179,7 +4194,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (setq proc (start-file-process "test1" (current-buffer) "cat"))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4222,7 +4237,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (set-process-filter
 	     proc
 	     (lambda (p s) (with-current-buffer (process-buffer p) (insert s))))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4260,7 +4275,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4309,7 +4324,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
@@ -4335,7 +4350,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo")
+	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    (delete-process proc)
 	    ;; Read output.
@@ -4343,8 +4358,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (while (accept-process-output proc 0 nil t)))
 	    ;; We cannot use `string-equal', because tramp-adb.el
 	    ;; echoes also the sent string.  And a remote macOS sends
-	    ;; a slightly modified string.
-	    (should (string-match "killed.*\n\\'" (buffer-string))))
+	    ;; a slightly modified string. On MS-Windows,
+	    ;; `delete-process' sends an unknown signal.
+	    (should
+	     (string-match
+	      (if (eq system-type 'windows-nt)
+		  "unknown signal\n\\'" "killed.*\n\\'")
+	      (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4357,7 +4377,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (with-no-warnings
 		      (make-process
 		       :name "test5" :buffer (current-buffer)
-		       :command '("cat" "/")
+		       :command '("cat" "/does-not-exist")
 		       :stderr stderr
 		       :file-handler t)))
 	      (should (processp proc))
@@ -4367,7 +4387,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (delete-process proc)
 	      (with-current-buffer stderr
 		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+		 (string-match
+		  "cat:.* No such file or directory" (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
@@ -4381,7 +4402,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (with-no-warnings
 		      (make-process
 		       :name "test6" :buffer (current-buffer)
-		       :command '("cat" "/")
+		       :command '("cat" "/does-not-exist")
 		       :stderr tmpfile
 		       :file-handler t)))
 	      (should (processp proc))
@@ -4392,7 +4413,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (with-temp-buffer
 		(insert-file-contents tmpfile)
 		(should
-		 (string-match "cat:.* Is a directory" (buffer-string)))))
+		 (string-match
+		  "cat:.* No such file or directory" (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
@@ -4400,9 +4422,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  ;; The test fails from time to time, w/o a reproducible pattern.  So
-  ;; we mark it as unstable.
-  :tags '(:expensive-test :unstable)
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   ;; Since Emacs 26.1.
@@ -4416,7 +4436,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	kill-buffer-query-functions proc)
     (unwind-protect
 	(with-temp-buffer
-	  (setq proc (start-file-process "test" (current-buffer) "sleep" "10"))
+	  (setq proc (start-file-process-shell-command
+		      "test" (current-buffer)
+		      "trap 'echo boom; exit 1' 2; sleep 100"))
 	  (should (processp proc))
 	  (should (process-live-p proc))
 	  (should (equal (process-status proc) 'run))
@@ -4541,6 +4563,7 @@ INPUT, if non-nil, is a string sent to the process."
   ;; but seems to work since Emacs 27.1 only.
   (when (and (tramp--test-sh-p) (tramp--test-emacs27-p))
     (let* ((async-shell-command-width 1024)
+	   (default-directory tramp-test-temporary-file-directory)
 	   (cols (ignore-errors
 		   (read (tramp--test-shell-command-to-string-asynchronously
 			  "tput cols")))))
@@ -5844,7 +5867,7 @@ Use the `ls' command."
   ;; Since Emacs 27.1.
   (skip-unless (fboundp 'file-system-info))
 
-  ;; `file-system-info' exists since Emacs 27.  We don't want to see
+  ;; `file-system-info' exists since Emacs 27.1.  We don't want to see
   ;; compiler warnings for older Emacsen.
   (let ((fsi (with-no-warnings
 	       (file-system-info tramp-test-temporary-file-directory))))
@@ -6284,9 +6307,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
 ;;   do not work properly for `nextcloud'.
-;; * Fix `tramp-test29-start-file-process' and
-;;   `tramp-test30-make-process' on MS Windows (`process-send-eof'?).
-;; * Implement `tramp-test31-interrupt-process' for `adb'.  Fix `:unstable'.
+;; * Implement `tramp-test31-interrupt-process' for `adb'.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
 

@@ -227,6 +227,7 @@ Unlike `reverse', this keeps the property-value pairs intact."
 (define-error 'json-string-format "Bad string format" 'json-error)
 (define-error 'json-key-format "Bad JSON object key" 'json-error)
 (define-error 'json-object-format "Bad JSON object" 'json-error)
+(define-error 'json-array-format "Bad JSON array" 'json-error)
 (define-error 'json-end-of-file "End of file while parsing JSON"
   '(end-of-file json-error))
 
@@ -640,7 +641,7 @@ become JSON objects."
       (when (/= (json-peek) ?\])
         (if (= (json-peek) ?,)
             (json-advance)
-          (signal 'json-error (list 'bleah)))))
+          (signal 'json-array-format (list ?, (json-peek))))))
     ;; Skip over the "]"
     (json-advance)
     (pcase json-array-type

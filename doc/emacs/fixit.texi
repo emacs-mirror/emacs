@@ -66,6 +66,7 @@ changes have already been undone, the undo command signals an error.
 
 @cindex redo
 @findex undo-only
+@findex undo-redo
   Any command other than an undo command breaks the sequence of undo
 commands.  Starting from that moment, the entire sequence of undo
 commands that you have just performed are themselves placed into the
@@ -76,7 +77,9 @@ undo commands.
 
   Alternatively, if you want to resume undoing, without redoing
 previous undo commands, use @kbd{M-x undo-only}.  This is like
-@code{undo}, but will not redo changes you have just undone.
+@code{undo}, but will not redo changes you have just undone.  To
+complement it, @kbd{M-x undo-redo} will undo previous undo commands
+(and will not record itself as an undoable command).
 
   If you notice that a buffer has been modified accidentally, the
 easiest way to recover is to type @kbd{C-/} repeatedly until the stars

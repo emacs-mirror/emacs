@@ -261,7 +261,7 @@ The possible settings for `align-region-separate' are:
  `group'   Each contiguous set of lines where a specific alignment
 	   occurs is considered a section for that alignment rule.
 	   Note that each rule may have any entirely different set
-           of section divisions than another.
+           of section divisions from another.
 
 	     int    alpha = 1; /* one */
 	     double beta  = 2.0;

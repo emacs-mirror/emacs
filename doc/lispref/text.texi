@@ -3741,6 +3741,16 @@ single glyph composed from components.  But the value of the property
 itself is completely internal to Emacs and should not be manipulated
 directly by, for instance, @code{put-text-property}.
 
+@item minibuffer-message
+@kindex minibuffer-message @r{(text property)}
+This text property tells where to display temporary messages in an
+active minibuffer.  Specifically, the first character of the
+minibuffer text which has this property will have the temporary
+message displayed before it.  The default is to display temporary
+messages at the end of the minibuffer text.  This text property is
+used by the function that is the default value of
+@code{set-message-function} (@pxref{Displaying Messages}).
+
 @end table
 
 @defvar inhibit-point-motion-hooks
