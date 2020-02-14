@@ -152,12 +152,6 @@ static ptrdiff_t prev_saved_doc_string_length;
 /* This is the file position that string came from.  */
 static file_offset prev_saved_doc_string_position;
 
-/* True means inside a new-style backquote with no surrounding
-   parentheses.  Fread initializes this to the value of
-   `force_new_style_backquotes', so we need not specbind it or worry
-   about what happens to it when there is an error.  */
-static bool new_backquote_flag;
-
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
 
@@ -1033,18 +1027,6 @@ static Lisp_Object
 load_error_handler (Lisp_Object data)
 {
   return Qnil;
-}
-
-static AVOID
-load_error_old_style_backquotes (void)
-{
-  if (NILP (Vload_file_name))
-    xsignal1 (Qerror, build_string ("Old-style backquotes detected!"));
-  else
-    {
-      AUTO_STRING (format, "Loading `%s': old-style backquotes detected!");
-      xsignal1 (Qerror, CALLN (Fformat_message, format, Vload_file_name));
-    }
 }
 
 static void
@@ -2283,7 +2265,6 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
   Lisp_Object retval;
 
   readchar_count = 0;
-  new_backquote_flag = force_new_style_backquotes;
   /* We can get called from readevalloop which may have set these
      already.  */
   if (! HASH_TABLE_P (read_objects_map)
@@ -3271,70 +3252,24 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       return list2 (Qquote, read0 (readcharfun));
 
     case '`':
-      {
-	int next_char = READCHAR;
-	UNREAD (next_char);
-	/* Transition from old-style to new-style:
-	   If we see "(`" it used to mean old-style, which usually works
-	   fine because ` should almost never appear in such a position
-	   for new-style.  But occasionally we need "(`" to mean new
-	   style, so we try to distinguish the two by the fact that we
-	   can either write "( `foo" or "(` foo", where the first
-	   intends to use new-style whereas the second intends to use
-	   old-style.  For Emacs-25, we should completely remove this
-	   first_in_list exception (old-style can still be obtained via
-	   "(\`" anyway).  */
-	if (!new_backquote_flag && first_in_list && next_char == ' ')
-	  load_error_old_style_backquotes ();
-	else
-	  {
-	    Lisp_Object value;
-	    bool saved_new_backquote_flag = new_backquote_flag;
+      return list2 (Qbackquote, read0 (readcharfun));
 
-	    new_backquote_flag = 1;
-	    value = read0 (readcharfun);
-	    new_backquote_flag = saved_new_backquote_flag;
-
-	    return list2 (Qbackquote, value);
-	  }
-      }
     case ',':
       {
-	int next_char = READCHAR;
-	UNREAD (next_char);
-	/* Transition from old-style to new-style:
-           It used to be impossible to have a new-style , other than within
-	   a new-style `.  This is sufficient when ` and , are used in the
-	   normal way, but ` and , can also appear in args to macros that
-	   will not interpret them in the usual way, in which case , may be
-	   used without any ` anywhere near.
-	   So we now use the same heuristic as for backquote: old-style
-	   unquotes are only recognized when first on a list, and when
-	   followed by a space.
-	   Because it's more difficult to peek 2 chars ahead, a new-style
-	   ,@ can still not be used outside of a `, unless it's in the middle
-	   of a list.  */
-	if (new_backquote_flag
-	    || !first_in_list
-	    || (next_char != ' ' && next_char != '@'))
-	  {
-	    Lisp_Object comma_type = Qnil;
-	    Lisp_Object value;
-	    int ch = READCHAR;
+	Lisp_Object comma_type = Qnil;
+	Lisp_Object value;
+	int ch = READCHAR;
 
-	    if (ch == '@')
-	      comma_type = Qcomma_at;
-	    else
-	      {
-		if (ch >= 0) UNREAD (ch);
-		comma_type = Qcomma;
-	      }
-
-	    value = read0 (readcharfun);
-	    return list2 (comma_type, value);
-	  }
+	if (ch == '@')
+	  comma_type = Qcomma_at;
 	else
-	  load_error_old_style_backquotes ();
+	  {
+	    if (ch >= 0) UNREAD (ch);
+	    comma_type = Qcomma;
+	  }
+
+	value = read0 (readcharfun);
+	return list2 (comma_type, value);
       }
     case '?':
       {
@@ -5064,17 +4999,6 @@ newest.
 Note that if you customize this, obviously it will not affect files
 that are loaded before your customizations are read!  */);
   load_prefer_newer = 0;
-
-  DEFVAR_BOOL ("force-new-style-backquotes", force_new_style_backquotes,
-               doc: /* Non-nil means to always use the current syntax for backquotes.
-If nil, `load' and `read' raise errors when encountering some
-old-style variants of backquote and comma.  If non-nil, these
-constructs are always interpreted as described in the Info node
-`(elisp)Backquote', even if that interpretation is incompatible with
-previous versions of Emacs.  Setting this variable to non-nil makes
-Emacs compatible with the behavior planned for Emacs 28.  In Emacs 28,
-this variable will become obsolete.  */);
-  force_new_style_backquotes = false;
 
   /* Vsource_directory was initialized in init_lread.  */
 
