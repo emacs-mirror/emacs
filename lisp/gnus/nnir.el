@@ -617,7 +617,8 @@ A non-nil `specs' arg must be an alist with `nnir-query-spec' and
 		       (list (gnus-group-group-name))
 		     (mapcar (lambda (entry)
 			       (gnus-info-group (cadr entry)))
-			     (gnus-topic-find-groups (gnus-group-topic-name)))))
+			     (gnus-topic-find-groups (gnus-group-topic-name)
+						     nil t nil t))))
 	       gnus-group-server))))
 	 (query-spec
 	  (or (cdr (assq 'nnir-query-spec specs))
