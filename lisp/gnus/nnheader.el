@@ -209,7 +209,7 @@ on your system, you could say something like:
 	;; about twice as fast, even though it looks messier.  You
 	;; can't have everything, I guess.  Speed and elegance don't
 	;; always go hand in hand.
-	(vector
+	(make-full-mail-header
 	 ;; Number.
 	 (or number 0)
 	 ;; Subject.
