@@ -2532,6 +2532,11 @@ A redo record for ordinary undo maps to the following (earlier) undo.")
   "Within a run of consecutive undo commands, list remaining to be undone.
 If t, we undid all the way to the end of it.")
 
+(defun undo--last-change-was-undo-p (undo-list)
+  (while (and (consp undo-list) (eq (car undo-list) nil))
+    (setq undo-list (cdr undo-list)))
+  (gethash undo-list undo-equiv-table))
+
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
@@ -2567,12 +2572,7 @@ as an argument limits undo to changes within the current region."
 		 (or (eq pending-undo-list t)
 		     ;; If something (a timer or filter?) changed the buffer
 		     ;; since the previous command, don't continue the undo seq.
-		     (let ((list buffer-undo-list))
-		       (while (eq (car list) nil)
-			 (setq list (cdr list)))
-		       ;; If the last undo record made was made by undo
-		       ;; it shows nothing else happened in between.
-		       (gethash list undo-equiv-table))))
+		     (undo--last-change-was-undo-p buffer-undo-list)))
       (setq undo-in-region
 	    (and (or (region-active-p) (and arg (not (numberp arg))))
                  (not inhibit-region)))
@@ -2661,11 +2661,6 @@ A numeric ARG serves as a repeat count.
 Contrary to `undo', this will not redo a previous undo."
   (interactive "*p")
   (let ((undo-no-redo t)) (undo arg)))
-
-(defun undo--last-change-was-undo-p (undo-list)
-  (while (and (consp undo-list) (eq (car undo-list) nil))
-    (setq undo-list (cdr undo-list)))
-  (gethash undo-list undo-equiv-table))
 
 (defun undo-redo (&optional arg)
   "Undo the last ARG undos."
