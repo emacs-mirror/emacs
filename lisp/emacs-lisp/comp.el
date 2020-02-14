@@ -38,7 +38,7 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-speed 0
+(defcustom comp-speed 2
   "Compiler optimization level.  From 0 to 3.
 - 0 no optimizations are performed, compile time is favored.
 - 1 lite optimizations.
