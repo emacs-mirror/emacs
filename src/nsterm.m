@@ -8295,8 +8295,9 @@ not_in_argv (NSString *arg)
      offset the top left so when we draw back into the buffer the
      correct part of the image is drawn.  */
   CGContextScaleCTM(drawingBuffer, 1, -1);
-  CGContextTranslateCTM(drawingBuffer, 0, -NSHeight (frame)
-                        - (NSMinY (dstRect) - NSMinY (srcRect)));
+  CGContextTranslateCTM(drawingBuffer,
+                        NSMinX (dstRect) - NSMinX (srcRect),
+                        -NSHeight (frame) - (NSMinY (dstRect) - NSMinY (srcRect)));
 
   /* Take a copy of the buffer and then draw it back to the buffer,
      limited by the clipping rectangle.  */
@@ -8328,7 +8329,7 @@ not_in_argv (NSString *arg)
 
 - (void)updateLayer
 {
-  NSTRACE ("EmacsView updateLayer]");
+  NSTRACE ("[EmacsView updateLayer]");
 
   CGImageRef contentsImage = CGBitmapContextCreateImage(drawingBuffer);
   [[self layer] setContents:(id)contentsImage];
