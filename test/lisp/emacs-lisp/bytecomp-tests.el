@@ -615,17 +615,6 @@ literals (Bug#20852)."
         (let ((byte-compile-dest-file-function (lambda (_) destination)))
           (should (byte-compile-file source)))))))
 
-(ert-deftest bytecomp-tests--old-style-backquotes ()
-  "Check that byte compiling warns about old-style backquotes."
-  (bytecomp-tests--with-temp-file source
-    (write-region "(` (a b))" nil source)
-    (bytecomp-tests--with-temp-file destination
-      (let* ((byte-compile-dest-file-function (lambda (_) destination))
-             (byte-compile-debug t)
-             (err (should-error (byte-compile-file source))))
-        (should (equal (cdr err) '("Old-style backquotes detected!")))))))
-
-
 (ert-deftest bytecomp-tests-function-put ()
   "Check `function-put' operates during compilation."
   (bytecomp-tests--with-temp-file source
