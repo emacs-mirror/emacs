@@ -28,7 +28,7 @@ void Date::setDate ( int d , int m , int y ){
 	t = mktime ( date ) ;
 }
 
-// Addition operation ::: Warning ::: A combination of addition and substraction does not give a proper result
+// Addition operation ::: Warning ::: A combination of addition and subtraction does not give a proper result
 void Date::plus ( int days , int month , int year ){
 	if ( ! set () )
 		return;
@@ -38,7 +38,7 @@ void Date::plus ( int days , int month , int year ){
 	mktime ( date );
 }
 
-//Substraction operation ::: Warning ::: A combination of addition and substraction does not give a proper result
+//Subtraction operation ::: Warning ::: A combination of addition and subtraction does not give a proper result
 void Date::minus ( int days , int month , int year ){
 	if ( ! set () )
 		return;
@@ -74,7 +74,7 @@ Date & Date::operator += ( int days ){
 	return(*this);
 }
 
-// Substract number of days
+// Subtract number of days
 Date & Date::operator -= ( int days ){
 	if ( set () ){
 		date->tm_mday -= days ;

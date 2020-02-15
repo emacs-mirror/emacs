@@ -1,8 +1,8 @@
 ;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -32,6 +32,7 @@
 (require 'cl-generic)
 (require 'srecode)
 (require 'srecode/table)
+(require 'srecode/fields)
 (eval-when-compile (require 'semantic))
 
 (declare-function srecode-compile-parse-inserter "srecode/compile")
@@ -41,7 +42,6 @@
 (declare-function srecode-insert-code-stream "srecode/insert")
 (declare-function data-debug-new-buffer "data-debug")
 (declare-function data-debug-insert-object-slots "eieio-datadebug")
-(declare-function srecode-field "srecode/fields")
 
 (defclass srecode-dictionary ()
   ((namehash :initarg :namehash
@@ -122,7 +122,7 @@ Makes sure that :value is compiled."
 
     (cl-call-next-method this (nreverse newfields))
     (when (not (slot-boundp this 'compiled))
-      (let ((val (oref this :value))
+      (let ((val (oref this value))
 	    (comp nil))
 	(while val
 	  (let ((nval (car val))
@@ -141,13 +141,13 @@ Makes sure that :value is compiled."
 		   (error "Don't know how to handle variable value %S" nval)))
 	    )
 	  (setq val (cdr val)))
-	(oset this :compiled (nreverse comp))))))
+	(oset this compiled (nreverse comp))))))
 
 ;;; DICTIONARY METHODS
 ;;
 
 (defun srecode-create-dictionary (&optional buffer-or-parent)
-  "Create a dictionary for BUFFER.
+  "Create a dictionary for BUFFER-OR-PARENT.
 If BUFFER-OR-PARENT is not specified, assume a buffer, and
 use the current buffer.
 If BUFFER-OR-PARENT is another dictionary, then remember the
@@ -172,7 +172,7 @@ associated with a buffer or parent."
 	      initfrombuff t))
 
        ;; Parent is another dictionary
-       ((srecode-dictionary-child-p buffer-or-parent)
+       ((cl-typep buffer-or-parent 'srecode-dictionary)
 	(setq parent buffer-or-parent
 	      buffer (oref buffer-or-parent buffer)
 	      origin (concat (eieio-object-name buffer-or-parent) " in "
@@ -223,7 +223,7 @@ TPL is an object representing a compiled template file."
     ;; Tables are sorted with highest priority first, useful for looking
     ;; up templates, but this means we need to install the variables in
     ;; reverse order so higher priority variables override lower ones.
-    (let ((tabs (reverse (oref tpl :tables))))
+    (let ((tabs (reverse (oref tpl tables))))
       (require 'srecode/find) ; For srecode-template-table-in-project-p
       (while tabs
 	(when (srecode-template-table-in-project-p (car tabs))
@@ -326,8 +326,8 @@ inserted dictionaries."
 					   entries &optional state)
   "Add ENTRIES to DICT.
 
-ENTRIES is a list of even length of dictionary entries to
-add. ENTRIES looks like this:
+ENTRIES is a list of even length of dictionary entries to add.
+ENTRIES looks like this:
 
   (NAME_1 VALUE_1 NAME_2 VALUE_2 ...)
 
@@ -340,7 +340,7 @@ and for values
  * Otherwise, a compound variable is created for VALUE_N.
 
 The optional argument STATE has to non-nil when compound values
-are inserted. An error is signaled if ENTRIES contains compound
+are inserted.  An error is signaled if ENTRIES contains compound
 values but STATE is nil."
   (while entries
     (let ((name  (nth 0 entries))
@@ -356,7 +356,7 @@ values but STATE is nil."
 	(srecode-dictionary-set-value dict name value))
 
        ;; Value is a dictionary; insert as child dictionary.
-       ((srecode-dictionary-child-p value)
+       ((cl-typep value 'srecode-dictionary)
 	(srecode-dictionary-merge
 	 (srecode-dictionary-add-section-dictionary dict name)
 	 value t))
@@ -409,8 +409,8 @@ OTHERDICT."
 					   name &optional non-recursive)
   "Return information about DICT's value for NAME.
 DICT is a dictionary, and NAME is a string that is treated as the
-name of an entry in the dictionary. If such an entry exists, its
-value is returned. Otherwise, nil is returned. Normally, the
+name of an entry in the dictionary.  If such an entry exists, its
+value is returned.  Otherwise, nil is returned. Normally, the
 lookup is recursive in the sense that the parent of DICT is
 searched for NAME if it is not found in DICT.  This recursive
 lookup can be disabled by the optional argument NON-RECURSIVE.
@@ -505,7 +505,6 @@ inserted with a new editable field.")
 				     function
 				     dictionary)
   "Convert this field into an insertable string."
-  (require 'srecode/fields)
   ;; If we are not in a buffer, then this is not supported.
   (when (not (bufferp standard-output))
     (error "FIELDS invoked while inserting template to non-buffer"))
@@ -518,13 +517,13 @@ inserted with a new editable field.")
     (let* ((dv (oref cp defaultvalue))
 	   (sti (oref cp firstinserter))
 	   (start (point))
-	   (name (oref sti :object-name)))
+	   (name (oref sti object-name)))
 
       (cond
        ;; No default value.
        ((not dv) (insert name))
        ;; A compound value as the default?  Recurse.
-       ((srecode-dictionary-compound-value-child-p dv)
+       ((cl-typep dv 'srecode-dictionary-compound-value)
 	(srecode-compound-toString dv function dictionary))
        ;; A string that is empty?  Use the name.
        ((and (stringp dv) (string= dv ""))
@@ -553,7 +552,7 @@ inserted with a new editable field.")
   "Create a dictionary with entries according to TAGS.
 
 TAGS should be in the format produced by the template file
-grammar. That is
+grammar.  That is
 
 TAGS = (ENTRY_1 ENTRY_2 ...)
 
@@ -561,9 +560,9 @@ where
 
 ENTRY_N = (NAME ENTRY_N_1 ENTRY_N_2 ...) | TAG
 
-where TAG is a semantic tag of class 'variable. The (NAME ... )
+where TAG is a semantic tag of class `variable'.  The (NAME ... )
 form creates a child dictionary which is stored under the name
-NAME. The TAG form creates a value entry or section dictionary
+NAME.  The TAG form creates a value entry or section dictionary
 entry whose name is the name of the tag.
 
 STATE is the current compiler state."
@@ -660,7 +659,7 @@ STATE is the current compiler state."
 			))
 		    (princ "\n")
 		    )
-		   ((srecode-dictionary-compound-value-child-p entry)
+		   ((cl-typep entry 'srecode-dictionary-compound-value)
 		    (srecode-dump entry indent)
 		    (princ "\n")
 		    )

@@ -1,14 +1,14 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Author: Kenichi HANDA <handa@etl.go.jp>
-;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
-;; Maintainer: Kenichi HANDA <handa@etl.go.jp>
+;; Author: Kenichi Handa <handa@gnu.org>
+;;	   Naoto Takahashi <ntakahas@etl.go.jp>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mule, multilingual, input method, i18n
 
 ;; This file is part of GNU Emacs.
@@ -568,7 +568,7 @@ While this input method is active, the variable
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil)
 	    (quail-hide-guidance)
-	    (remove-hook 'post-command-hook 'quail-show-guidance t)
+	    (remove-hook 'post-command-hook #'quail-show-guidance t)
 	    (run-hooks 'quail-deactivate-hook))
 	(kill-local-variable 'input-method-function))
     ;; Let's activate Quail input method.
@@ -579,19 +579,18 @@ While this input method is active, the variable
 	      (setq name (car (car quail-package-alist)))
 	    (error "No Quail package loaded"))
 	  (quail-select-package name)))
-    (setq deactivate-current-input-method-function 'quail-deactivate)
-    (setq describe-current-input-method-function 'quail-help)
+    (setq deactivate-current-input-method-function #'quail-deactivate)
+    (setq describe-current-input-method-function #'quail-help)
     (quail-delete-overlays)
     (setq quail-guidance-str "")
     (quail-show-guidance)
     ;; If we are in minibuffer, turn off the current input method
     ;; before exiting.
     (when (eq (selected-window) (minibuffer-window))
-      (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)
-      (add-hook 'post-command-hook 'quail-show-guidance nil t))
+      (add-hook 'minibuffer-exit-hook #'quail-exit-from-minibuffer)
+      (add-hook 'post-command-hook #'quail-show-guidance nil t))
     (run-hooks 'quail-activate-hook)
-    (make-local-variable 'input-method-function)
-    (setq input-method-function 'quail-input-method)))
+    (setq-local input-method-function #'quail-input-method)))
 
 (define-obsolete-variable-alias
   'quail-inactivate-hook
@@ -1330,7 +1329,8 @@ If STR has `advice' text property, append the following special event:
 (defvar quail-conversion-str nil)
 
 (defun quail-input-method (key)
-  (if (or (and buffer-read-only
+  (if (or (and (or buffer-read-only
+                   (get-char-property (point) 'read-only))
 	       (not (or inhibit-read-only
 			(get-char-property (point) 'inhibit-read-only))))
 	  (and overriding-terminal-local-map
@@ -1367,9 +1367,7 @@ If STR has `advice' text property, append the following special event:
   (let ((start (overlay-start overlay))
 	(end (overlay-end overlay)))
     (if (< start end)
-	(prog1
-	    (string-to-list (buffer-substring start end))
-	  (delete-region start end)))))
+	(string-to-list (delete-and-extract-region start end)))))
 
 (defsubst quail-delete-region ()
   "Delete the text in the current translation region of Quail."
@@ -3063,7 +3061,6 @@ of each directory."
       (when dirname
 	(setq pkg-list (directory-files dirname 'full "\\.el$"))
 	(while pkg-list
-	  (message "Checking %s ..." (car pkg-list))
 	  (with-temp-buffer
 	    (insert-file-contents (car pkg-list))
 	    (goto-char (point-min))

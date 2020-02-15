@@ -1,6 +1,6 @@
 ;;; reftex-cite.el --- creating citations with RefTeX
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -74,7 +74,7 @@ The expanded value is cached."
 ;;;###autoload
 (defun reftex-bib-or-thebib ()
   "Test if BibTeX or \\begin{thebibliography} should be used for the citation.
-Find the bof of the current file"
+Find the bof of the current file."
   (let* ((docstruct (symbol-value reftex-docstruct-symbol))
          (rest (or (member (list 'bof (buffer-file-name)) docstruct)
                    docstruct))
@@ -172,7 +172,7 @@ If RETURN is non-nil, just return the entry and restore point."
         (if item
             (progn (end-of-line)
                    (re-search-forward
-                    "\\\\bibitem\\|\\end{thebibliography}")
+                    "\\\\bibitem\\|\\\\end{thebibliography}")
                    (1- (match-beginning 0)))
           (progn (forward-list 1) (point)))
       (error (min (point-max) (+ 300 (point)))))))
@@ -447,7 +447,7 @@ If FIELD is empty try \"editor\" field."
         (setq names (reftex-get-bib-field "editor" entry)))
     (while (string-match "\\band\\b[ \t]*" names)
       (setq names (replace-match "\n" nil t names)))
-    (while (string-match "[\\.a-zA-Z\\-]+\\.[ \t]*\\|,.*\\|[{}]+" names)
+    (while (string-match "[-.a-zA-Z]+\\.[ \t]*\\|,.*\\|[{}]+" names)
       (setq names (replace-match "" nil t names)))
     (while (string-match "^[ \t]+\\|[ \t]+$" names)
       (setq names (replace-match "" nil t names)))
@@ -763,7 +763,10 @@ in order to only add another reference in the same cite command."
       (setq format "%l"))
 
      ((and (stringp macro)
-           (string-match "\\`\\\\cite\\|cite\\'" macro))
+           ;; Match also commands from biblatex ending with `s'
+           ;; (\parencites) or `*' (\parencite*) and `texts?'
+           ;; (\footcitetext and \footcitetexts).
+           (string-match "\\`\\\\cite\\|cite\\([s*]\\|texts?\\)?\\'" macro))
       ;; We are already inside a cite macro
       (if (or (not arg) (not (listp arg)))
           (setq format

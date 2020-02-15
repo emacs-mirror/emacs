@@ -1,6 +1,6 @@
 ;;; ob.el --- Working with Code Blocks in Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -24,11 +24,11 @@
 ;;; Code:
 (require 'org-macs)
 (require 'org-compat)
+(require 'org-keys)
 (require 'ob-eval)
 (require 'ob-core)
 (require 'ob-comint)
 (require 'ob-exp)
-(require 'ob-keys)
 (require 'ob-table)
 (require 'ob-lob)
 (require 'ob-ref)

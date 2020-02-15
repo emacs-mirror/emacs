@@ -1,5 +1,6 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Windows-specific parts of the HarfBuzz font backend.
+   Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,6 +30,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define _WIN32_WINNT 0x0600
 #include <windows.h>
 #include <usp10.h>
+#ifdef HAVE_HARFBUZZ
+# include <hb.h>
+# include <hb-ot.h>	/* for hb_ot_font_set_funcs */
+# if GNUC_PREREQ (4, 3, 0)
+#  define bswap_32(v)  __builtin_bswap32(v)
+# else
+#  include <byteswap.h>
+# endif
+#endif
 
 #include "lisp.h"
 #include "w32term.h"
@@ -36,12 +46,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "font.h"
 #include "w32font.h"
+#include "pdumper.h"
 #include "w32common.h"
 
+/* Extension of w32font_info used by Uniscribe and HarfBuzz backends.  */
 struct uniscribe_font_info
 {
   struct w32font_info w32_font;
-  SCRIPT_CACHE cache;
+  /* This is used by the Uniscribe backend as a pointer to the script
+     cache, and by the HarfBuzz backend as a pointer to a hb_font_t
+     object.  */
+  void *cache;
+  /* This is used by the HarfBuzz backend to store the font scale.  */
+  double scale;
 };
 
 int uniscribe_available = 0;
@@ -50,6 +67,41 @@ int uniscribe_available = 0;
 static int CALLBACK ALIGN_STACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
 								NEWTEXTMETRICEX *,
 								DWORD, LPARAM);
+#ifdef HAVE_HARFBUZZ
+
+struct font_driver harfbuzz_font_driver;
+int harfbuzz_available = 0;
+
+/* Typedefs for HarfBuzz functions which we call through function
+   pointers initialized after we load the HarfBuzz DLL.  */
+DEF_DLL_FN (hb_blob_t *, hb_blob_create,
+	    (const char *, unsigned int, hb_memory_mode_t, void *,
+	     hb_destroy_func_t));
+DEF_DLL_FN (hb_face_t *, hb_face_create_for_tables,
+	    (hb_reference_table_func_t, void *, hb_destroy_func_t));
+DEF_DLL_FN (unsigned, hb_face_get_glyph_count, (const hb_face_t *));
+DEF_DLL_FN (hb_font_t *, hb_font_create, (hb_face_t *));
+DEF_DLL_FN (void, hb_font_destroy, (hb_font_t *));
+DEF_DLL_FN (void, hb_face_destroy, (hb_face_t *));
+DEF_DLL_FN (unsigned int, hb_face_get_upem, (hb_face_t *));
+DEF_DLL_FN (hb_bool_t, hb_font_get_nominal_glyph,
+	    (hb_font_t *, hb_codepoint_t, hb_codepoint_t *));
+DEF_DLL_FN (hb_bool_t, hb_font_get_variation_glyph,
+	    (hb_font_t *, hb_codepoint_t, hb_codepoint_t, hb_codepoint_t *));
+DEF_DLL_FN (void, hb_ot_font_set_funcs, (hb_font_t *));
+
+#define hb_blob_create fn_hb_blob_create
+#define hb_face_create_for_tables fn_hb_face_create_for_tables
+#define hb_face_get_glyph_count fn_hb_face_get_glyph_count
+#define hb_font_create fn_hb_font_create
+#define hb_font_destroy fn_hb_font_destroy
+#define hb_face_destroy fn_hb_face_destroy
+#define hb_face_get_upem fn_hb_face_get_upem
+#define hb_font_get_nominal_glyph fn_hb_font_get_nominal_glyph
+#define hb_font_get_variation_glyph fn_hb_font_get_variation_glyph
+#define hb_ot_font_set_funcs fn_hb_ot_font_set_funcs
+#endif
+
 /* Used by uniscribe_otf_capability.  */
 static Lisp_Object otf_features (HDC context, const char *table);
 
@@ -116,7 +168,10 @@ uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) XFONT_OBJECT (font_object);
 
-  ASET (font_object, FONT_TYPE_INDEX, Quniscribe);
+  if (!NILP (AREF (font_entity, FONT_TYPE_INDEX)))
+    ASET (font_object, FONT_TYPE_INDEX, AREF (font_entity, FONT_TYPE_INDEX));
+  else	/* paranoia: this should never happen */
+    ASET (font_object, FONT_TYPE_INDEX, Quniscribe);
 
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
@@ -126,10 +181,15 @@ uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   /* Initialize the cache for this font.  */
   uniscribe_font->cache = NULL;
 
-  /* Uniscribe backend uses glyph indices.  */
+  /* Uniscribe and HarfBuzz backends use glyph indices.  */
   uniscribe_font->w32_font.glyph_idx = ETO_GLYPH_INDEX;
 
-  uniscribe_font->w32_font.font.driver = &uniscribe_font_driver;
+#ifdef HAVE_HARFBUZZ
+  if (EQ (AREF (font_object, FONT_TYPE_INDEX), Qharfbuzz))
+    uniscribe_font->w32_font.font.driver = &harfbuzz_font_driver;
+  else
+#endif  /* HAVE_HARFBUZZ */
+    uniscribe_font->w32_font.font.driver = &uniscribe_font_driver;
 
   return font_object;
 }
@@ -140,8 +200,16 @@ uniscribe_close (struct font *font)
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
 
+#ifdef HAVE_HARFBUZZ
+  if (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver
+      && uniscribe_font->cache)
+    hb_font_destroy ((hb_font_t *) uniscribe_font->cache);
+  else
+#endif
   if (uniscribe_font->cache)
-    ScriptFreeCache (&(uniscribe_font->cache));
+    ScriptFreeCache ((SCRIPT_CACHE) &(uniscribe_font->cache));
+
+  uniscribe_font->cache = NULL;
 
   w32font_close (font);
 }
@@ -177,6 +245,11 @@ uniscribe_otf_capability (struct font *font)
   Lisp_Object features;
 
   f = XFRAME (selected_frame);
+  /* Prevent quitting while we cons the lists in otf_features.
+     That's because get_frame_dc acquires the critical section, so we
+     cannot quit before we release it in release_frame_dc.  */
+  Lisp_Object prev_quit = Vinhibit_quit;
+  Vinhibit_quit = Qt;
   context = get_frame_dc (f);
   old_font = SelectObject (context, FONT_HANDLE (font));
 
@@ -187,6 +260,7 @@ uniscribe_otf_capability (struct font *font)
 
   SelectObject (context, old_font);
   release_frame_dc (f, context);
+  Vinhibit_quit = prev_quit;
 
   return capability;
 }
@@ -198,6 +272,9 @@ uniscribe_otf_capability (struct font *font)
    (N+1)th element of LGSTRING is nil, input of shaping is from the
    1st to (N)th elements.  In each input glyph, FROM, TO, CHAR, and
    CODE are already set.
+   DIRECTION is either L2R or R2L, or nil if unknown.  During
+   redisplay, this comes from applying the UBA, is passed from
+   composition_reseat_it, and is used by the HarfBuzz shaper.
 
    This function updates all fields of the input glyphs.  If the
    output glyphs (M) are more than the input glyphs (N), (N+1)th
@@ -206,7 +283,7 @@ uniscribe_otf_capability (struct font *font)
    than the length of LGSTRING, nil should be returned.  In that case,
    this function is called again with a larger LGSTRING.  */
 static Lisp_Object
-uniscribe_shape (Lisp_Object lgstring)
+uniscribe_shape (Lisp_Object lgstring, Lisp_Object direction)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring));
   struct uniscribe_font_info *uniscribe_font
@@ -280,7 +357,7 @@ uniscribe_shape (Lisp_Object lgstring)
 
       /* Context may be NULL here, in which case the cache should be
          used without needing to select the font.  */
-      result = ScriptShape (context, &(uniscribe_font->cache),
+      result = ScriptShape (context, (SCRIPT_CACHE) &(uniscribe_font->cache),
 			    chars + items[i].iCharPos, nchars_in_run,
 			    max_glyphs - done_glyphs, &(items[i].a),
 			    glyphs, clusters, attributes, &nglyphs);
@@ -294,7 +371,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	  context = get_frame_dc (f);
 	  old_font = SelectObject (context, FONT_HANDLE (font));
 
-	  result = ScriptShape (context, &(uniscribe_font->cache),
+	  result = ScriptShape (context, (SCRIPT_CACHE) &(uniscribe_font->cache),
 				chars + items[i].iCharPos, nchars_in_run,
 				max_glyphs - done_glyphs, &(items[i].a),
 				glyphs, clusters, attributes, &nglyphs);
@@ -319,7 +396,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	}
       else
 	{
-	  result = ScriptPlace (context, &(uniscribe_font->cache),
+	  result = ScriptPlace (context, (SCRIPT_CACHE) &(uniscribe_font->cache),
 				glyphs, nglyphs, attributes, &(items[i].a),
 				advances, offsets, &overall_metrics);
 	  if (result == E_PENDING && !context)
@@ -329,13 +406,15 @@ uniscribe_shape (Lisp_Object lgstring)
 	      context = get_frame_dc (f);
 	      old_font = SelectObject (context, FONT_HANDLE (font));
 
-	      result = ScriptPlace (context, &(uniscribe_font->cache),
+	      result = ScriptPlace (context,
+				    (SCRIPT_CACHE) &(uniscribe_font->cache),
 				    glyphs, nglyphs, attributes, &(items[i].a),
 				    advances, offsets, &overall_metrics);
 	    }
           if (SUCCEEDED (result))
 	    {
 	      int j, from, to, adj_offset = 0;
+	      int cluster_offset = 0;
 
 	      from = 0;
 	      to = from;
@@ -379,6 +458,7 @@ uniscribe_shape (Lisp_Object lgstring)
 				}
 			    }
 			}
+		      cluster_offset = 0;
 
 		      /* For RTL text, the Uniscribe shaper prepares
 			 the values in ADVANCES array for layout in
@@ -394,6 +474,8 @@ uniscribe_shape (Lisp_Object lgstring)
 			 adjustment for the base character, which is
 			 then updated for each successive glyph in the
 			 grapheme cluster.  */
+		      /* FIXME: Should we use DIRECTION here instead
+			 of what ScriptItemize guessed?  */
 		      if (items[i].a.fRTL)
 			{
 			  int j1 = j;
@@ -407,8 +489,11 @@ uniscribe_shape (Lisp_Object lgstring)
 			}
 		    }
 
-		  LGLYPH_SET_CHAR (lglyph, chars[items[i].iCharPos
-						 + from]);
+		  int char_idx = items[i].iCharPos + from + cluster_offset;
+		  if (from + cluster_offset > to)
+		    char_idx = items[i].iCharPos + to;
+		  cluster_offset++;
+		  LGLYPH_SET_CHAR (lglyph, chars[char_idx]);
 		  LGLYPH_SET_FROM (lglyph, items[i].iCharPos + from);
 		  LGLYPH_SET_TO (lglyph, items[i].iCharPos + to);
 
@@ -417,18 +502,18 @@ uniscribe_shape (Lisp_Object lgstring)
 		  LGLYPH_SET_ASCENT (lglyph, font->ascent);
 		  LGLYPH_SET_DESCENT (lglyph, font->descent);
 
-		  result = ScriptGetGlyphABCWidth (context,
-						   &(uniscribe_font->cache),
-						   glyphs[j], &char_metric);
+		  result = ScriptGetGlyphABCWidth
+		    (context, (SCRIPT_CACHE) &(uniscribe_font->cache),
+		     glyphs[j], &char_metric);
 		  if (result == E_PENDING && !context)
 		    {
 		      /* Cache incomplete... */
 		      f = XFRAME (selected_frame);
 		      context = get_frame_dc (f);
 		      old_font = SelectObject (context, FONT_HANDLE (font));
-		      result = ScriptGetGlyphABCWidth (context,
-						       &(uniscribe_font->cache),
-						       glyphs[j], &char_metric);
+		      result = ScriptGetGlyphABCWidth
+			(context, (SCRIPT_CACHE) &(uniscribe_font->cache),
+			 glyphs[j], &char_metric);
 		    }
 
 		  if (SUCCEEDED (result))
@@ -560,7 +645,8 @@ uniscribe_encode_char (struct font *font, int c)
 	     order.  */
 	  items[0].a.fLogicalOrder = 1;
 
-          result = ScriptShape (context, &(uniscribe_font->cache),
+          result = ScriptShape (context,
+				(SCRIPT_CACHE) &(uniscribe_font->cache),
                                 ch, len, 2, &(items[0].a),
                                 glyphs, clusters, attrs, &nglyphs);
 
@@ -571,7 +657,8 @@ uniscribe_encode_char (struct font *font, int c)
               f = XFRAME (selected_frame);
               context = get_frame_dc (f);
               old_font = SelectObject (context, FONT_HANDLE (font));
-              result = ScriptShape (context, &(uniscribe_font->cache),
+              result = ScriptShape (context,
+				    (SCRIPT_CACHE) &(uniscribe_font->cache),
                                     ch, len, 2, &(items[0].a),
                                     glyphs, clusters, attrs, &nglyphs);
             }
@@ -589,7 +676,8 @@ uniscribe_encode_char (struct font *font, int c)
                  when shaped. But we still need the return from here
                  to be valid for the shaping engine to be invoked
                  later.  */
-              result = ScriptGetCMap (context, &(uniscribe_font->cache),
+              result = ScriptGetCMap (context,
+				      (SCRIPT_CACHE) &(uniscribe_font->cache),
                                       ch, len, 0, glyphs);
               if (SUCCEEDED (result) && glyphs[0])
                 code = glyphs[0];
@@ -1136,6 +1224,215 @@ font_table_error:
   return Qnil;
 }
 
+#ifdef HAVE_HARFBUZZ
+
+/* W32 implementation of the 'list' method for HarfBuzz backend.  */
+static Lisp_Object
+w32hb_list (struct frame *f, Lisp_Object font_spec)
+{
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, true);
+  FONT_ADD_LOG ("harfbuzz-list", font_spec, fonts);
+
+  for (Lisp_Object tail = fonts; CONSP (tail); tail = XCDR (tail))
+    ASET (XCAR (tail), FONT_TYPE_INDEX, Qharfbuzz);
+
+  return fonts;
+}
+
+/* W32 implementation of the 'match' method for HarfBuzz backend.  */
+static Lisp_Object
+w32hb_match (struct frame *f, Lisp_Object font_spec)
+{
+  Lisp_Object entity = w32font_match_internal (f, font_spec, true);
+  FONT_ADD_LOG ("harfbuzz-match", font_spec, entity);
+
+  if (! NILP (entity))
+    ASET (entity, FONT_TYPE_INDEX, Qharfbuzz);
+  return entity;
+}
+
+/* Callback function to free memory.  We need this so we could pass it
+   to HarfBuzz as the function to call to destroy objects for which we
+   allocated data by calling our 'malloc' (as opposed to 'malloc' from
+   the MS CRT, against which HarfBuzz was linked).  */
+static void
+free_cb (void *ptr)
+{
+  free (ptr);
+}
+
+/* A function used as reference_table_func for HarfBuzz.  It returns
+   the data of a specified table of a font as a blob.  */
+static hb_blob_t *
+w32hb_get_font_table (hb_face_t *face, hb_tag_t tag, void *data)
+{
+  struct frame *f = XFRAME (selected_frame);
+  HDC context = get_frame_dc (f);
+  HFONT old_font = SelectObject (context, (HFONT) data);
+  char *font_data = NULL;
+  DWORD font_data_size = 0, val;
+  DWORD table = bswap_32 (tag);
+  hb_blob_t *blob = NULL;
+
+  val = GetFontData (context, table, 0, font_data, font_data_size);
+  if (val != GDI_ERROR)
+    {
+      font_data_size = val;
+      /* Don't call xmalloc, because it can signal an error, while
+	 we are inside a critical section established by get_frame_dc.  */
+      font_data = malloc (font_data_size);
+      if (font_data)
+	{
+	  val = GetFontData (context, table, 0, font_data, font_data_size);
+	  if (val != GDI_ERROR)
+	    blob = hb_blob_create (font_data, font_data_size,
+				   HB_MEMORY_MODE_READONLY, font_data, free_cb);
+	}
+    }
+
+  /* Restore graphics context.  */
+  SelectObject (context, old_font);
+  release_frame_dc (f, context);
+
+  return blob;
+}
+
+/* Helper function used by the HarfBuzz implementations of the
+   encode_char, has_char, and begin_hb_font methods.  It creates an
+   hb_font_t object for a given Emacs font.  */
+static hb_font_t *
+w32hb_get_font (struct font *font, double *scale)
+{
+  hb_font_t *hb_font = NULL;
+  HFONT font_handle = FONT_HANDLE (font);
+  hb_face_t *hb_face =
+    hb_face_create_for_tables (w32hb_get_font_table, font_handle, NULL);
+  if (hb_face_get_glyph_count (hb_face) > 0)
+    {
+      hb_font = hb_font_create (hb_face);
+      /* This is needed for HarfBuzz before 2.0.0; it is the default
+	 in later versions.  */
+      hb_ot_font_set_funcs (hb_font);
+    }
+
+  struct uniscribe_font_info *uniscribe_font =
+    (struct uniscribe_font_info *) font;
+  unsigned upem = hb_face_get_upem (hb_face);
+  eassert (upem > 0);
+  /* https://support.microsoft.com/en-sg/help/74299/info-calculating-the-logical-height-and-point-size-of-a-font.  */
+  LONG font_point_size =
+    uniscribe_font->w32_font.metrics.tmHeight
+    - uniscribe_font->w32_font.metrics.tmInternalLeading;
+  /* https://docs.microsoft.com/en-us/typography/opentype/spec/ttch01,
+     under "Converting FUnits to pixels".  */
+  *scale = font_point_size * 1.0 / upem;
+
+  hb_face_destroy (hb_face);
+
+  /* FIXME: Can hb_font be non-NULL and yet invalid?  Compare to get_empty?  */
+  return hb_font;
+}
+
+/* W32 implementation of encode_char method for HarfBuzz backend.  */
+static unsigned
+w32hb_encode_char (struct font *font, int c)
+{
+  struct uniscribe_font_info *uniscribe_font
+    = (struct uniscribe_font_info *) font;
+  eassert (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver);
+  hb_font_t *hb_font = uniscribe_font->cache;
+
+  /* First time we use this font with HarfBuzz, create the hb_font_t
+     object and cache it.  */
+  if (!hb_font)
+    {
+      double scale;
+      hb_font = w32hb_get_font (font, &scale);
+      if (!hb_font)
+	return FONT_INVALID_CODE;
+
+      uniscribe_font->cache = hb_font;
+      eassert (scale > 0.0);
+      uniscribe_font->scale = scale;
+    }
+  hb_codepoint_t glyph;
+  if (hb_font_get_nominal_glyph (hb_font, c, &glyph))
+    return glyph;
+  return FONT_INVALID_CODE;
+}
+
+/* W32 implementation of HarfBuzz begin_hb_font and end_hb_font
+   methods.  */
+
+/* Return a HarfBuzz font object for FONT and store in POSITION_UNIT
+   the scale factor to convert a hb_position_t value to the number of
+   pixels.  Return NULL if HarfBuzz font object is not available for
+   FONT.  */
+static hb_font_t *
+w32hb_begin_font (struct font *font, double *position_unit)
+{
+  struct uniscribe_font_info *uniscribe_font
+    = (struct uniscribe_font_info *) font;
+  eassert (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver);
+
+  /* First time we use this font with HarfBuzz, create the hb_font_t
+     object and cache it.  */
+  if (!uniscribe_font->cache)
+    {
+      double scale;
+      uniscribe_font->cache = w32hb_get_font (font, &scale);
+      eassert (scale > 0.0);
+      uniscribe_font->scale = scale;
+    }
+  *position_unit = uniscribe_font->scale;
+  return (hb_font_t *) uniscribe_font->cache;
+}
+
+/* W32 implementation of get_variation_glyphs method for HarfBuzz.
+
+   Return the number of variation glyphs of character C supported by
+   FONT.  VARIATIONS is an array of 256 elements.  If the variation
+   selector N (1..256) defines a glyph, that glyph code is stored in
+   the (N-1)th element of VARIATIONS.  */
+static int
+w32hb_get_variation_glyphs (struct font *font, int c, unsigned variations[256])
+{
+  struct uniscribe_font_info *uniscribe_font
+    = (struct uniscribe_font_info *) font;
+  eassert (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver);
+
+  /* First time we use this font with HarfBuzz, create the hb_font_t
+     object and cache it.  */
+  if (!uniscribe_font->cache)
+    {
+      double scale;
+      uniscribe_font->cache = w32hb_get_font (font, &scale);
+      eassert (scale > 0.0);
+      uniscribe_font->scale = scale;
+    }
+
+  int i, n = 0;
+  hb_font_t *hb_font = uniscribe_font->cache;
+  for (i = 0; i < 16; i++)
+    {
+      if (hb_font_get_variation_glyph (hb_font, c, 0xFE00 + i, &variations[i]))
+	n++;
+      else
+	variations[i] = 0;
+    }
+  for ( ; i < 256; i++)
+    {
+      if (hb_font_get_variation_glyph (hb_font, c, 0xE0100 + (i - 16),
+				       &variations[i]))
+	n++;
+      else
+	variations[i] = 0;
+    }
+
+  return n;
+}
+#endif	/* HAVE_HARFBUZZ */
+
 #undef OTF_INT16_VAL
 #undef OTF_TAG_VAL
 #undef OTF_TAG
@@ -1176,17 +1473,41 @@ struct font_driver uniscribe_font_driver =
    as it needs to test for the existence of the Uniscribe library.  */
 void syms_of_w32uniscribe (void);
 
+static void syms_of_w32uniscribe_for_pdumper (void);
+
 void
 syms_of_w32uniscribe (void)
 {
-  HMODULE uniscribe;
+  pdumper_do_now_and_after_load (syms_of_w32uniscribe_for_pdumper);
+}
 
-  /* Don't init uniscribe when dumping */
+#ifdef HAVE_HARFBUZZ
+static bool
+load_harfbuzz_funcs (HMODULE library)
+{
+  LOAD_DLL_FN (library, hb_blob_create);
+  LOAD_DLL_FN (library, hb_face_create_for_tables);
+  LOAD_DLL_FN (library, hb_face_get_glyph_count);
+  LOAD_DLL_FN (library, hb_font_create);
+  LOAD_DLL_FN (library, hb_font_destroy);
+  LOAD_DLL_FN (library, hb_face_get_upem);
+  LOAD_DLL_FN (library, hb_face_destroy);
+  LOAD_DLL_FN (library, hb_font_get_nominal_glyph);
+  LOAD_DLL_FN (library, hb_font_get_variation_glyph);
+  LOAD_DLL_FN (library, hb_ot_font_set_funcs);
+  return hbfont_init_w32_funcs (library);
+}
+#endif	/* HAVE_HARFBUZZ */
+
+static void
+syms_of_w32uniscribe_for_pdumper (void)
+{
+  /* Don't init Uniscribe and HarfBuzz when dumping */
   if (!initialized)
     return;
 
-  /* Don't register if uniscribe is not available.  */
-  uniscribe = GetModuleHandle ("usp10");
+  /* Don't register if Uniscribe is not available.  */
+  HMODULE uniscribe = GetModuleHandle ("usp10");
   if (!uniscribe)
     return;
 
@@ -1206,4 +1527,33 @@ syms_of_w32uniscribe (void)
     uniscribe_new_apis = true;
   else
     uniscribe_new_apis = false;
+
+#ifdef HAVE_HARFBUZZ
+  /* Currently, HarfBuzz DLLs are always named libharfbuzz-0.dll, as
+     the project keeps the ABI backward-compatible.  So we can
+     hard-code the name of the library here, for now.  If they ever
+     break ABI compatibility, we may need to load the DLL that
+     corresponds to the HarfBuzz version for which Emacs was built.  */
+  HMODULE harfbuzz = LoadLibrary ("libharfbuzz-0.dll");
+  /* Don't register if HarfBuzz is not available.  */
+  if (!harfbuzz)
+    return;
+
+  if (!load_harfbuzz_funcs (harfbuzz))
+    return;
+
+  Fput (Quniscribe, Qfont_driver_superseded_by, Qharfbuzz);
+  harfbuzz_available = 1;
+  harfbuzz_font_driver = uniscribe_font_driver;
+  harfbuzz_font_driver.type = Qharfbuzz;
+  harfbuzz_font_driver.list = w32hb_list;
+  harfbuzz_font_driver.match = w32hb_match;
+  harfbuzz_font_driver.encode_char = w32hb_encode_char;
+  harfbuzz_font_driver.otf_capability = hbfont_otf_capability;
+  harfbuzz_font_driver.shape = hbfont_shape;
+  harfbuzz_font_driver.get_variation_glyphs = w32hb_get_variation_glyphs;
+  harfbuzz_font_driver.combining_capability = hbfont_combining_capability;
+  harfbuzz_font_driver.begin_hb_font = w32hb_begin_font;
+  register_font_driver (&harfbuzz_font_driver, NULL);
+#endif	/* HAVE_HARFBUZZ */
 }

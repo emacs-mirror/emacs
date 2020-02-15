@@ -1,6 +1,6 @@
 ;;; mh-gnus.el --- make MH-E compatible with various versions of Gnus
 
-;; Copyright (C) 2003-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -79,7 +79,7 @@
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
 ;; Gnus to avoid compiler warning.
 (defun-mh mh-mm-possibly-verify-or-decrypt
-  mm-possibly-verify-or-decrypt (parts ctl)
+  mm-possibly-verify-or-decrypt (_parts _ctl)
   nil)
 
 ;; Copy of macro in mm-decode.el.
@@ -110,16 +110,16 @@
     (and (> (current-column) length)
          (current-column))))
 
-(defun-mh mh-mm-keep-viewer-alive-p mm-keep-viewer-alive-p (handle)
+(defun-mh mh-mm-keep-viewer-alive-p mm-keep-viewer-alive-p (_handle)
   ;; Released Gnus doesn't keep handles associated with externally displayed
   ;; MIME parts. So this will always return nil.
   nil)
 
-(defun-mh mh-mm-destroy-parts mm-destroy-parts (list)
+(defun-mh mh-mm-destroy-parts mm-destroy-parts (_list)
   "Older versions of Emacs don't have this function."
   nil)
 
-(defun-mh mh-mm-uu-dissect-text-parts mm-uu-dissect-text-parts (handles)
+(defun-mh mh-mm-uu-dissect-text-parts mm-uu-dissect-text-parts (_handles)
   "Emacs 21 and XEmacs don't have this function."
   nil)
 

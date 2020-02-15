@@ -1,6 +1,6 @@
 ;;; cyrillic.el --- support for Cyrillic -*- coding: utf-8; -*-
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -9,7 +9,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
-;; Author: Kenichi Handa <handa@etl.go.jp>
+;; Author: Kenichi Handa <handa@gnu.org>
 ;; Keywords: multilingual, Cyrillic, i18n
 
 ;; This file is part of GNU Emacs.
@@ -95,7 +95,7 @@
 (define-coding-system-alias 'cp878 'cyrillic-koi8)
 
 (set-language-info-alist
- "Cyrillic-KOI8" `((charset koi8)
+ "Cyrillic-KOI8" '((charset koi8)
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
 		   (ctext-non-standard-encodings "koi8-r")
@@ -131,7 +131,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
   :mime-charset 'koi8-u)
 
 (set-language-info-alist
- "Ukrainian" `((charset koi8-u)
+ "Ukrainian" '((charset koi8-u)
 	       (coding-system koi8-u)
 	       (coding-priority koi8-u)
 	       (nonascii-translation . koi8-u)
@@ -151,7 +151,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
 
 (set-language-info-alist
- "Cyrillic-ALT" `((charset alternativnyj)
+ "Cyrillic-ALT" '((charset alternativnyj)
 		  (coding-system cyrillic-alternativnyj)
 		  (coding-priority cyrillic-alternativnyj)
 		  (nonascii-translation . alternativnyj)
@@ -229,7 +229,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 ;;  '("Cyrillic"))
 
 (set-language-info-alist
- "Tajik" `((coding-system koi8-t)
+ "Tajik" '((coding-system koi8-t)
 	   (coding-priority koi8-t)
 	   (nonascii-translation . cyrillic-koi8-t)
 	   (charset koi8-t)
@@ -239,7 +239,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
  '("Cyrillic"))
 
 (set-language-info-alist
- "Bulgarian" `((coding-system windows-1251)
+ "Bulgarian" '((coding-system windows-1251)
 	       (coding-priority windows-1251)
 	       (nonascii-translation . windows-1251)
 	       (charset windows-1251)
@@ -250,7 +250,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
  '("Cyrillic"))
 
 (set-language-info-alist
- "Belarusian" `((coding-system windows-1251)
+ "Belarusian" '((coding-system windows-1251)
 		(coding-priority windows-1251)
 		(nonascii-translation . windows-1251)
 		(charset windows-1251)
@@ -262,7 +262,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
  '("Cyrillic"))
 
 (set-language-info-alist
- "Ukrainian" `((coding-system koi8-u)
+ "Ukrainian" '((coding-system koi8-u)
 	       (coding-priority koi8-u)
 	       (input-method . "ukrainian-computer")
 	       (documentation

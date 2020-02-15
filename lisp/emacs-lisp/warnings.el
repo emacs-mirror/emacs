@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -153,6 +153,11 @@ also call that function before the next warning.")
 (defvar warning-fill-prefix nil
   "Non-nil means fill each warning text using this string as `fill-prefix'.")
 
+;; I don't see why it can't just use the buffer-local fill-column,
+;; but at least this is better than hard-coding 78.
+(defvar warning-fill-column 78
+  "Value to use for `fill-column' when filling warnings.")
+
 ;; The autoload cookie is so that programs can bind this variable
 ;; safely, testing the existing value, before they call one of the
 ;; warnings functions.
@@ -222,8 +227,9 @@ has to create the buffer, it disables undo in the buffer.
 
 See the `warnings' custom group for user customization features.
 
-See also `warning-series', `warning-prefix-function' and
-`warning-fill-prefix' for additional programming features."
+See also `warning-series', `warning-prefix-function',
+`warning-fill-prefix', and `warning-fill-column' for additional
+programming features."
   (if (not (or after-init-time noninteractive (daemonp)))
       ;; Ensure warnings that happen early in the startup sequence
       ;; are visible when startup completes (bug#20792).
@@ -271,7 +277,7 @@ See also `warning-series', `warning-prefix-function' and
               (funcall newline)
 	      (when (and warning-fill-prefix (not (string-match "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)
-		      (fill-column 78))
+		      (fill-column warning-fill-column))
 		  (fill-region start (point))))
 	      (setq end (point)))
 	    (when (and (markerp warning-series)
@@ -314,7 +320,7 @@ See also `warning-series', `warning-prefix-function' and
 			 (set-window-start window warning-series))
 		       (sit-for 0)))))))))
 
-;; Use \\<special-mode-map> so that help-enable-auto-load can do its thing.
+;; Use \\<special-mode-map> so that help-enable-autoload can do its thing.
 ;; Any keymap that is defined will do.
 ;;;###autoload
 (defun lwarn (type level message &rest args)

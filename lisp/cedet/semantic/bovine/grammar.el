@@ -1,9 +1,8 @@
 ;;; semantic/bovine/grammar.el --- Bovine's input grammar mode
 ;;
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
-;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 26 Aug 2002
 ;; Keywords: syntax
 
@@ -439,8 +438,8 @@ Menu items are appended to the common grammar menu.")
   "Major mode for editing Bovine grammars."
   (semantic-grammar-setup-menu bovine-grammar-menu)
   (semantic-install-function-overrides
-   '((grammar-parsetable-builder . bovine-grammar-parsetable-builder)
-     (grammar-setupcode-builder  . bovine-grammar-setupcode-builder))))
+   '((semantic-grammar-parsetable-builder . bovine-grammar-parsetable-builder)
+     (semantic-grammar-setupcode-builder  . bovine-grammar-setupcode-builder))))
 
 (add-to-list 'auto-mode-alist '("\\.by\\'" . bovine-grammar-mode))
 

@@ -128,7 +128,7 @@
 
 
 ;;;###autoload
-(defun tai-viet-composition-function (from to font-object string)
+(defun tai-viet-composition-function (from to font-object string _direction)
   (if string
       (if (string-match tai-viet-re string from)
 	  (tai-viet-compose-string from (match-end 0) string))

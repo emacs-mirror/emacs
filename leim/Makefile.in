@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1997-2018 Free Software Foundation, Inc.
+# Copyright (C) 1997-2020 Free Software Foundation, Inc.
 # Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 #   2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -84,7 +84,8 @@ MISC= \
 	${leimdir}/quail/PY.el		\
 	${leimdir}/quail/ZIRANMA.el	\
 	${leimdir}/quail/CTLau.el	\
-	${leimdir}/quail/CTLau-b5.el
+	${leimdir}/quail/CTLau-b5.el    \
+	${srcdir}/../lisp/language/pinyin.el
 
 ## All the generated .el files.
 TIT_MISC = ${TIT_GB} ${TIT_BIG5} ${MISC}
@@ -142,6 +143,9 @@ ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
 	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" "$<"
 
+${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map
+	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f pinyin-convert $< $@
+
 
 .PHONY: bootstrap-clean distclean maintainer-clean extraclean
 
@@ -155,7 +159,7 @@ maintainer-clean: distclean bootstrap-clean
 
 ## We do not delete ja-dic, even in a bootstrap, because it rarely
 ## changes and is slow to regenerate.
-extraclean:
+extraclean: bootstrap-clean
 	rm -rf ${leimdir}/ja-dic
 
 ### Makefile.in ends here

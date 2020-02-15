@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -44,7 +44,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(require 'diff-mode)                    ;For diff-auto-refine-mode.
+(require 'diff)				;For diff-check-labels.
+(require 'diff-mode)                    ;For diff-refine.
 (require 'newcomment)
 
 ;;; The real definition comes later.
@@ -76,41 +77,41 @@ Used in `smerge-diff-base-upper' and related functions."
 
 (defface smerge-upper
   '((((class color) (min-colors 88) (background light))
-     :background "#ffdddd")
+     :background "#ffdddd" :extend t)
     (((class color) (min-colors 88) (background dark))
-     :background "#553333")
+     :background "#553333" :extend t)
     (((class color))
-     :foreground "red"))
+     :foreground "red" :extend))
   "Face for the `upper' version of a conflict.")
 (define-obsolete-face-alias 'smerge-mine 'smerge-upper "26.1")
 (defvar smerge-upper-face 'smerge-upper)
 
 (defface smerge-lower
   '((((class color) (min-colors 88) (background light))
-     :background "#ddffdd")
+     :background "#ddffdd" :extend t)
     (((class color) (min-colors 88) (background dark))
-     :background "#335533")
+     :background "#335533" :extend t)
     (((class color))
-     :foreground "green"))
+     :foreground "green" :extend))
   "Face for the `lower' version of a conflict.")
 (define-obsolete-face-alias 'smerge-other 'smerge-lower "26.1")
 (defvar smerge-lower-face 'smerge-lower)
 
 (defface smerge-base
   '((((class color) (min-colors 88) (background light))
-     :background "#ffffaa")
+     :background "#ffffaa" :extend t)
     (((class color) (min-colors 88) (background dark))
-     :background "#888833")
+     :background "#888833" :extend t)
     (((class color))
-     :foreground "yellow"))
+     :foreground "yellow" :extend t))
   "Face for the base code.")
 (defvar smerge-base-face 'smerge-base)
 
 (defface smerge-markers
   '((((background light))
-     (:background "grey85"))
+     (:background "grey85" :extend t))
     (((background dark))
-     (:background "grey30")))
+     (:background "grey30" :extend t)))
   "Face for the conflict markers.")
 (defvar smerge-markers-face 'smerge-markers)
 
@@ -264,7 +265,7 @@ Can be nil if the style is undecided, or else:
 
 ;; Define smerge-next and smerge-prev
 (easy-mmode-define-navigation smerge smerge-begin-re "conflict" nil nil
-  (if diff-auto-refine-mode
+  (if diff-refine
       (condition-case nil (smerge-refine) (error nil))))
 
 (defconst smerge-match-names ["conflict" "upper" "base" "lower"])
@@ -363,9 +364,9 @@ function should only apply safe heuristics) and with the match data set
 according to `smerge-match-conflict'.")
 
 (defvar smerge-text-properties
-  `(help-echo "merge conflict: mouse-3 shows a menu"
-    ;; mouse-face highlight
-    keymap (keymap (down-mouse-3 . smerge-popup-context-menu))))
+  '(help-echo "merge conflict: mouse-3 shows a menu"
+              ;; mouse-face highlight
+              keymap (keymap (down-mouse-3 . smerge-popup-context-menu))))
 
 (defun smerge-remove-props (beg end)
   (remove-overlays beg end 'smerge 'refine)
@@ -796,7 +797,10 @@ An error is raised if not inside a conflict."
 	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
-	       (_ (cl-assert (< orig-point (match-end 0))))
+	       (_ (when (< (match-end 0) orig-point)
+	            ;; Point is not within the conflict we found,
+                    ;; so this conflict is not ours.
+	            (signal 'search-failed (list smerge-begin-re))))
 
 	       (lower-end (match-beginning 0))
 	       (end (match-end 0))
@@ -1243,9 +1247,12 @@ spacing of the \"Lower\" chunk."
 	    (let ((status
 		   (apply 'call-process diff-command nil t nil
 			  (append smerge-diff-switches
-				  (list "-L" (concat name1 "/" file)
-					"-L" (concat name2 "/" file)
-					file1 file2)))))
+				  (and (diff-check-labels)
+				       (list "--label"
+					     (concat name1 "/" file)
+					     "--label"
+					     (concat name2 "/" file)))
+				  (list file1 file2)))))
 	      (if (eq status 0) (insert "No differences found.\n"))))
 	  (goto-char (point-min))
 	  (diff-mode)
@@ -1431,6 +1438,40 @@ If no conflict maker is found, turn off `smerge-mode'."
       (unless (looking-at smerge-begin-re)
         (smerge-next))
     (error (smerge-auto-leave))))
+
+(defcustom smerge-change-buffer-confirm t
+  "If non-nil, request confirmation before moving to another buffer."
+  :type 'boolean)
+
+(defun smerge-vc-next-conflict ()
+  "Go to next conflict, possibly in another file.
+First tries to go to the next conflict in the current buffer, and if not
+found, uses VC to try and find the next file with conflict."
+  (interactive)
+  (let ((buffer (current-buffer)))
+    (condition-case nil
+        ;; FIXME: Try again from BOB before moving to the next file.
+        (smerge-next)
+      (error
+       (if (and (or smerge-change-buffer-confirm
+                    (and (buffer-modified-p) buffer-file-name))
+                (not (or (eq last-command this-command)
+                         (eq ?\r last-command-event)))) ;Called via M-x!?
+           ;; FIXME: Don't emit this message if `vc-find-conflicted-file' won't
+           ;; go to another file anyway (because there are no more conflicted
+           ;; files).
+           (message (if (buffer-modified-p)
+                        "No more conflicts here.  Repeat to save and go to next buffer"
+                      "No more conflicts here.  Repeat to go to next buffer"))
+         (if (and (buffer-modified-p) buffer-file-name)
+             (save-buffer))
+         (vc-find-conflicted-file)
+         (if (eq buffer (current-buffer))
+             ;; Do nothing: presumably `vc-find-conflicted-file' already
+             ;; emitted a message explaining there aren't any more conflicts.
+             nil
+           (goto-char (point-min))
+           (smerge-next)))))))
 
 (provide 'smerge-mode)
 

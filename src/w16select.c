@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
 
 Author: Dale P. Smith <dpsm@en.com>
 
@@ -220,7 +220,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   /* need to know final size after '\r' chars are inserted (the
      standard CF_OEMTEXT clipboard format uses CRLF line endings,
      while Emacs uses just LF internally).  */
-  truelen = Size + 1;		/* +1 for the terminating null */
+  truelen = Size + 1;		/* +1 for the terminating NUL */
 
   if (!Raw)
     {
@@ -243,7 +243,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
     {
       dosmemput (Data, Size, xbuf_addr);
 
-      /* Terminate with a null, otherwise Windows does strange things
+      /* Terminate with a NUL, otherwise Windows does strange things
 	 when the text size is an integral multiple of 32 bytes. */
       _farpokeb (_dos_ds, xbuf_addr + Size, '\0');
     }
@@ -255,7 +255,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
       while (Size--)
 	{
 	  /* Don't allow them to put binary data into the clipboard, since
-	     it will cause yanked data to be truncated at the first null.  */
+	     it will cause yanked data to be truncated at the first NUL.  */
 	  if (*dp == '\0')
 	    return 2;
 	  if (*dp == '\n')
@@ -263,7 +263,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 	  _farnspokeb (buf_offset++, *dp++);
 	}
 
-      /* Terminate with a null, otherwise Windows does strange things
+      /* Terminate with a NUL, otherwise Windows does strange things
 	 when the text size is an integral multiple of 32 bytes. */
       _farnspokeb (buf_offset, '\0');
     }
@@ -354,13 +354,13 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   __dpmi_int (0x2f, &regs);
   if (regs.x.ax != 0)
     {
-      unsigned char null_char = '\0';
+      unsigned char nul_char = '\0';
       unsigned long xbuf_beg = xbuf_addr;
 
       /* If last_clipboard_text is NULL, we don't want to slow down
 	 the next loop by an additional test.  */
       register unsigned char *lcdp =
-	last_clipboard_text == NULL ? &null_char : last_clipboard_text;
+	last_clipboard_text == NULL ? &nul_char : last_clipboard_text;
 
       /* Copy data from low memory, remove CR
 	 characters before LF if needed.  */
@@ -383,7 +383,7 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 	  /* Windows reportedly rounds up the size of clipboard data
 	     (passed in SIZE) to a multiple of 32, and removes trailing
 	     spaces from each line without updating SIZE.  We therefore
-	     bail out when we see the first null character.  */
+	     bail out when we see the first NUL character.  */
 	  else if (c == '\0')
 	    break;
 	}
@@ -392,7 +392,7 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 	 last time set_clipboard_data was called, pretend there's no
 	 data in the clipboard.  This is so we don't pass our own text
 	 from the clipboard (which might be troublesome if the killed
-	 text includes null characters).  */
+	 text includes NUL characters).  */
       if (last_clipboard_text &&
 	  xbuf_addr - xbuf_beg == (long)(lcdp - last_clipboard_text))
 	dp = (unsigned char *)Data + 1;

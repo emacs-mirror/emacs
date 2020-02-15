@@ -1,6 +1,6 @@
 /* Filesystem notifications support for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
 

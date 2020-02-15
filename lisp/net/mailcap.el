@@ -1,6 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -421,38 +421,41 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
   (interactive (list nil t))
   (when (or (not mailcap-parsed-p)
 	    force)
+    ;; Clear out all old data.
+    (setq mailcap-mime-data nil)
     (cond
      (path nil)
-     ((getenv "MAILCAPS") (setq path (getenv "MAILCAPS")))
+     ((getenv "MAILCAPS")
+      (setq path (getenv "MAILCAPS")))
      ((memq system-type mailcap-poor-system-types)
-      (setq path '("~/.mailcap" "~/mail.cap" "~/etc/mail.cap")))
-     (t (setq path
-	      ;; This is per RFC 1524, specifically with /usr before
-	      ;; /usr/local.
-	      '("~/.mailcap"
-                ("/etc/mailcap" 'after)
-                ("/usr/etc/mailcap" 'after)
-		("/usr/local/etc/mailcap" 'after)))))
-    ;; We read the entries from ~/.mailcap before the built-in values,
-    ;; but place the rest of then afterwards as fallback values.
+      (setq path '(("~/.mailcap" user)
+                   ("~/mail.cap" user)
+                   ("~/etc/mail.cap" user))))
+     (t
+      (setq path
+	    ;; This is per RFC 1524, specifically with /usr before
+	    ;; /usr/local.
+	    '(("~/.mailcap" user)
+              ("/etc/mailcap" system)
+              ("/usr/etc/mailcap" system)
+	      ("/usr/local/etc/mailcap" system)))))
+    ;; The ~/.mailcap entries will end up first in the resulting data.
     (dolist (spec (reverse
-                        (if (stringp path)
-                            (split-string path path-separator t)
-                          path)))
-      (let ((afterp (and (consp spec)
-                         (cadr spec)))
+                   (if (stringp path)
+                       (split-string path path-separator t)
+                     path)))
+      (let ((source (and (consp spec) (cadr spec)))
             (file-name (if (stringp spec)
                            spec
                          (car spec))))
         (when (and (file-readable-p file-name)
                    (file-regular-p file-name))
-          (mailcap-parse-mailcap file-name afterp))))
+          (mailcap-parse-mailcap file-name source))))
     (setq mailcap-parsed-p t)))
 
-(defun mailcap-parse-mailcap (fname &optional after)
+(defun mailcap-parse-mailcap (fname &optional source)
   "Parse out the mailcap file specified by FNAME.
-If AFTER, place the entries from the file after the ones that are
-already there."
+If SOURCE, mark the entry with this as the source."
   (let (major				; The major mime type (image/audio/etc)
 	minor				; The minor mime type (gif, basic, etc)
 	save-pos			; Misc saved positions used in parsing
@@ -522,7 +525,10 @@ already there."
 							  "*" minor))))
 			    (mailcap-parse-mailcap-extras save-pos (point))))
 	  (mailcap-mailcap-entry-passes-test info)
-	  (mailcap-add-mailcap-entry major minor info after))
+          ;; Record where the data came from.
+          (when source
+            (setq info (nconc info (list (cons 'source source)))))
+	  (mailcap-add-mailcap-entry major minor info))
 	(beginning-of-line)))))
 
 (defun mailcap-parse-mailcap-extras (st nd)
@@ -607,15 +613,13 @@ the test clause will be unchanged."
 
 (defun mailcap-possible-viewers (major minor)
   "Return a list of possible viewers from MAJOR for minor type MINOR."
-  (let ((exact '())
-	(wildcard '()))
+  (let ((result nil))
     (pcase-dolist (`(,type . ,attrs) major)
-      (cond
-       ((equal type minor)
-	(push attrs exact))
-       ((and minor (string-match (concat "^" type "$") minor))
-	(push attrs wildcard))))
-    (nconc exact wildcard)))
+      (when (or (equal type minor)
+                (and minor
+                     (string-match (concat "^" type "$") minor)))
+	(push attrs result)))
+    (nreverse result)))
 
 (defun mailcap-unescape-mime-test (test type-info)
   (let (save-pos save-chr subst)
@@ -705,7 +709,7 @@ to supply to the test."
 	   (push (list otest result) mailcap-viewer-test-cache)
 	   result))))
 
-(defun mailcap-add-mailcap-entry (major minor info &optional after)
+(defun mailcap-add-mailcap-entry (major minor info)
   (let ((old-major (assoc major mailcap-mime-data)))
     (if (null old-major)		; New major area
 	(push (cons major (list (cons minor info))) mailcap-mime-data)
@@ -714,22 +718,16 @@ to supply to the test."
 	 ((or (null cur-minor)		; New minor area, or
 	      (assq 'test info))	; Has a test, insert at beginning
 	  (setcdr old-major
-                  (if after ; Or after, if specified.
-                      (nconc (cdr old-major)
-                             (list (cons minor info)))
-                    (cons (cons minor info) (cdr old-major)))))
+                  (cons (cons minor info) (cdr old-major))))
 	 ((and (not (assq 'test info))	; No test info, replace completely
 	       (not (assq 'test cur-minor))
 	       (equal (assq 'viewer info)  ; Keep alternative viewer
 		      (assq 'viewer cur-minor)))
-          (unless after
-	    (setcdr cur-minor info)))
+	  (setcdr cur-minor info))
 	 (t
 	  (setcdr old-major
-                  (if after
-                      (nconc (cdr old-major) (list (cons minor info)))
-                    (setcdr old-major
-                            (cons (cons minor info) (cdr old-major)))))))))))
+                  (setcdr old-major
+                          (cons (cons minor info) (cdr old-major))))))))))
 
 (defun mailcap-add (type viewer &optional test)
   "Add VIEWER as a handler for TYPE.
@@ -812,7 +810,7 @@ If NO-DECODE is non-nil, don't decode STRING."
           (setq passed (list viewer))
         ;; None found, so heuristically select some applicable viewer
         ;; from `mailcap-mime-data'.
-        (mailcap-parse-mailcaps)
+        (mailcap-parse-mailcaps nil t)
         (setq major (split-string (car ctl) "/"))
         (setq minor (cadr major)
               major (car major))
@@ -824,11 +822,16 @@ If NO-DECODE is non-nil, don't decode STRING."
             (dolist (entry viewers)
               (when (mailcap-viewer-passes-test entry info)
                 (push entry passed)))
-            ;; The data is in "logical" order; entries from ~/.mailcap
-            ;; are first, so we don't need to do any sorting if the
-            ;; user wants ~/.mailcap to be preferred.
-            (unless mailcap-prefer-mailcap-viewers
-              (setq passed (sort passed 'mailcap-viewer-lessp)))
+            (setq passed (sort (nreverse passed) 'mailcap-viewer-lessp))
+            ;; When we want to prefer entries from the user's
+            ;; ~/.mailcap file, then we filter out the system entries
+            ;; and see whether we have anything left.
+            (when mailcap-prefer-mailcap-viewers
+              (when-let ((user-entry
+                          (seq-find (lambda (elem)
+                                      (eq (cdr (assq 'source elem)) 'user))
+                                    passed)))
+                (setq passed (list user-entry))))
             (setq viewer (car passed))))
         (when (and (stringp (cdr (assq 'viewer viewer)))
                    passed)

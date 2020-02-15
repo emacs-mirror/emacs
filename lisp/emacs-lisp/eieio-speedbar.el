@@ -1,6 +1,6 @@
 ;;; eieio-speedbar.el -- Classes for managing speedbar displays.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2002, 2005, 2007-2018 Free Software Foundation,
+;; Copyright (C) 1999-2002, 2005, 2007-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -140,11 +140,7 @@ MENU-VAR is the symbol containing an easymenu compatible menu part to use.
 MODENAME is a string used to identify this browser mode.
 FETCHER is a generic function used to fetch the base object list used when
 creating the speedbar display."
-  (if (not (featurep 'speedbar))
-      (add-hook 'speedbar-load-hook
-		(list 'lambda nil
-		      (list 'eieio-speedbar-create-engine
-			    map-fn map-var menu-var modename fetcher)))
+  (with-eval-after-load 'speedbar
     (eieio-speedbar-create-engine map-fn map-var menu-var modename fetcher)))
 
 (defun eieio-speedbar-create-engine (map-fn map-var menu-var modename fetcher)
@@ -348,7 +344,7 @@ The object is at indentation level INDENT."
 (defun eieio-speedbar-object-expand (text token indent)
   "Expand object represented by TEXT.
 TOKEN is the object.  INDENT is the current indentation level."
-  (cond ((string-match "+" text)	;we have to expand this file
+  (cond ((string-match "\\+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (oset token expanded t)
 	 (speedbar-with-writable

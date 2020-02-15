@@ -1,6 +1,6 @@
 ;;; nnvirtual.el --- virtual newsgroups access for Gnus
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -97,7 +97,7 @@ component group will show up when you enter the virtual group.")
       (if (stringp (car articles))
 	  'headers
 	(let ((vbuf (nnheader-set-temp-buffer
-		     (get-buffer-create " *virtual headers*")))
+		     (gnus-get-buffer-create " *virtual headers*")))
 	      (carticles (nnvirtual-partition-sequence articles))
 	      (sysname (system-name))
 	      cgroup carticle article result prefix)
@@ -234,14 +234,12 @@ component group will show up when you enter the virtual group.")
 	  nnvirtual-mapping-marks nil
 	  nnvirtual-info-installed nil)
     (when nnvirtual-component-regexp
-      ;; Go through the newsrc alist and find all component groups.
-      (let ((newsrc (cdr gnus-newsrc-alist))
-	    group)
-	(while (setq group (car (pop newsrc)))
-	  (when (string-match nnvirtual-component-regexp group) ; Match
-	    ;; Add this group to the list of component groups.
-	    (setq nnvirtual-component-groups
-		  (cons group (delete group nnvirtual-component-groups)))))))
+      ;; Go through the list of groups and find all component groups.
+      (dolist (group (cdr gnus-group-list))
+	(when (string-match nnvirtual-component-regexp group) ; Match
+	  ;; Add this group to the list of component groups.
+	  (setq nnvirtual-component-groups
+		(cons group (delete group nnvirtual-component-groups))))))
     (if (not nnvirtual-component-groups)
 	(nnheader-report 'nnvirtual "No component groups: %s" server)
       t)))
@@ -372,7 +370,7 @@ component group will show up when you enter the virtual group.")
 (defun nnvirtual-convert-headers ()
   "Convert HEAD headers into NOV headers."
   (with-current-buffer nntp-server-buffer
-    (let* ((dependencies (make-vector 100 0))
+    (let* ((dependencies (make-hash-table :test #'equal))
 	   (headers (gnus-get-newsgroup-headers dependencies)))
       (erase-buffer)
       (mapc 'nnheader-insert-nov headers))))
@@ -465,11 +463,10 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 	(dolist (group nnvirtual-component-groups)
 	  (when (and (setq info (gnus-get-info group))
 		     (gnus-info-marks info))
-	    (gnus-info-set-marks
-	     info
-	     (if (assq 'score (gnus-info-marks info))
-		 (list (assq 'score (gnus-info-marks info)))
-	       nil))))
+	    (setf (gnus-info-marks info)
+		  (if (assq 'score (gnus-info-marks info))
+		      (list (assq 'score (gnus-info-marks info)))
+		    nil))))
 
 	;; Ok, currently type-marks is an assq list with keys of a mark type,
 	;; with data of an assq list with keys of component group names
@@ -493,9 +490,9 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 
 
 
-;;; This is currently O(kn^2) to merge n lists of length k.
-;;; You could do it in O(knlogn), but we have a small n, and the
-;;; overhead of the other approach is probably greater.
+;; This is currently O(kn^2) to merge n lists of length k.
+;; You could do it in O(knlogn), but we have a small n, and the
+;; overhead of the other approach is probably greater.
 (defun nnvirtual-merge-sorted-lists (&rest lists)
   "Merge many sorted lists of numbers."
   (if (null (cdr lists))
@@ -503,68 +500,68 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
     (sort (apply 'nconc lists) '<)))
 
 
-;;; We map between virtual articles and real articles in a manner
-;;; which keeps the size of the virtual active list the same as the
-;;; sum of the component active lists.
+;; We map between virtual articles and real articles in a manner
+;; which keeps the size of the virtual active list the same as the
+;; sum of the component active lists.
 
-;;; To achieve fair mixing of the groups, the last article in each of
-;;; N component groups will be in the last N articles in the virtual
-;;; group.
+;; To achieve fair mixing of the groups, the last article in each of
+;; N component groups will be in the last N articles in the virtual
+;; group.
 
-;;; If you have 3 components A, B and C, with articles 1-8, 1-5, and
-;;; 6-7 respectively, then the virtual article numbers look like:
-;;;
-;;;  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
-;;;  A1 A2 A3 A4 B1 A5 B2 A6 B3 A7 B4 C6 A8 B5 C7
+;; If you have 3 components A, B and C, with articles 1-8, 1-5, and
+;; 6-7 respectively, then the virtual article numbers look like:
+;;
+;;  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+;;  A1 A2 A3 A4 B1 A5 B2 A6 B3 A7 B4 C6 A8 B5 C7
 
-;;; To compute these mappings we generate a couple tables and then
-;;; do some fast operations on them.  Tables for the example above:
-;;;
-;;; Offsets - [(A 0) (B -3) (C -1)]
-;;;
-;;;               a  b  c  d  e
-;;; Mapping - ([  3  0  1  3  0 ]
-;;;            [  6  3  2  9  3 ]
-;;;            [  8  6  3 15  9 ])
-;;;
-;;; (note column 'e' is different in real algorithm, which is slightly
-;;;  different than described here, but this gives you the methodology.)
-;;;
-;;; The basic idea is this, when going from component->virtual, apply
-;;; the appropriate offset to the article number.  Then search the first
-;;; column of the table for a row where 'a' is less than or equal to the
-;;; modified number.  You can see that only group A can therefore go to
-;;; the first row, groups A and B to the second, and all to the last.
-;;; The third column of the table is telling us the number of groups
-;;; which might be able to reach that row (it might increase by more than
-;;; 1 if several groups have the same size).
-;;; Then column 'b' provides an additional offset you apply when you have
-;;; found the correct row.  You then multiply by 'c' and add on the groups
-;;; _position_ in the offset table.  The basic idea here is that on
-;;; any given row we are going to map back and forth using X'=X*c+Y and
-;;; X=(X'/c), Y=(X' mod c).  Then once you've done this transformation,
-;;; you apply a final offset from column 'e' to give the virtual article.
-;;;
-;;; Going the other direction, you instead search on column 'd' instead
-;;; of 'a', and apply everything in reverse order.
+;; To compute these mappings we generate a couple tables and then
+;; do some fast operations on them.  Tables for the example above:
+;;
+;; Offsets - [(A 0) (B -3) (C -1)]
+;;
+;;               a  b  c  d  e
+;; Mapping - ([  3  0  1  3  0 ]
+;;            [  6  3  2  9  3 ]
+;;            [  8  6  3 15  9 ])
+;;
+;; (note column 'e' is different in real algorithm, which is slightly
+;;  different than described here, but this gives you the methodology.)
+;;
+;; The basic idea is this, when going from component->virtual, apply
+;; the appropriate offset to the article number.  Then search the first
+;; column of the table for a row where 'a' is less than or equal to the
+;; modified number.  You can see that only group A can therefore go to
+;; the first row, groups A and B to the second, and all to the last.
+;; The third column of the table is telling us the number of groups
+;; which might be able to reach that row (it might increase by more than
+;; 1 if several groups have the same size).
+;; Then column 'b' provides an additional offset you apply when you have
+;; found the correct row.  You then multiply by 'c' and add on the groups
+;; _position_ in the offset table.  The basic idea here is that on
+;; any given row we are going to map back and forth using X'=X*c+Y and
+;; X=(X'/c), Y=(X' mod c).  Then once you've done this transformation,
+;; you apply a final offset from column 'e' to give the virtual article.
+;;
+;; Going the other direction, you instead search on column 'd' instead
+;; of 'a', and apply everything in reverse order.
 
-;;; Convert component -> virtual:
-;;; set num = num - Offset(group)
-;;; find first row in Mapping where num <= 'a'
-;;; num = (num-'b')*c + Position(group) + 'e'
+;; Convert component -> virtual:
+;; set num = num - Offset(group)
+;; find first row in Mapping where num <= 'a'
+;; num = (num-'b')*c + Position(group) + 'e'
 
-;;; Convert virtual -> component:
-;;; find first row in Mapping where num <= 'd'
-;;; num = num - 'e'
-;;; group_pos = num mod 'c'
-;;; num = (num / 'c') + 'b' + Offset(group_pos)
+;; Convert virtual -> component:
+;; find first row in Mapping where num <= 'd'
+;; num = num - 'e'
+;; group_pos = num mod 'c'
+;; num = (num / 'c') + 'b' + Offset(group_pos)
 
-;;; Easy no? :)
-;;;
-;;; Well actually, you need to keep column e offset smaller by the 'c'
-;;; column for that line, and always add 1 more when going from
-;;; component -> virtual.  Otherwise you run into a problem with
-;;; unique reverse mapping.
+;; Easy no? :)
+;;
+;; Well actually, you need to keep column e offset smaller by the 'c'
+;; column for that line, and always add 1 more when going from
+;; component -> virtual.  Otherwise you run into a problem with
+;; unique reverse mapping.
 
 (defun nnvirtual-map-article (article)
   "Return a cons of the component group and article corresponding to the given virtual ARTICLE."

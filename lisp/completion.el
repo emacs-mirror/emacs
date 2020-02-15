@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2018 Free Software
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -409,10 +409,7 @@ Used to decide whether to save completions.")
 (defun cmpl-coerce-string-case (string case-type)
   (cond ((eq case-type :down) (downcase string))
 	((eq case-type :up) (upcase string))
-	((eq case-type :capitalized)
-	 (setq string (downcase string))
-	 (aset string 0 (logand ?\337 (aref string 0)))
-	 string)
+	((eq case-type :capitalized) (capitalize string))
 	(t string)))
 
 (defun cmpl-merge-string-cases (string-to-coerce given-string)
@@ -435,7 +432,7 @@ Used to decide whether to save completions.")
 
 
 (defun cmpl-hours-since-origin ()
-  (floor (float-time) 3600))
+  (floor (time-convert nil 'integer) 3600))
 
 ;;---------------------------------------------------------------------------
 ;; "Symbol" parsing functions
@@ -1065,7 +1062,9 @@ and downcased.  Sets up `cmpl-db-prefix-symbol'."
 (defvar inside-locate-completion-entry nil)
 ;; used to trap lossage in silent error correction
 
-(defun locate-completion-entry (completion-entry prefix-entry)
+(define-obsolete-function-alias 'locate-completion-entry
+  #'completion-locate-entry "27.1")
+(defun completion-locate-entry (completion-entry prefix-entry)
   "Locate the completion entry.
 Returns a pointer to the element before the completion entry or nil if
 the completion entry is at the head.
@@ -1088,14 +1087,16 @@ Must be called after `find-exact-completion'."
 		     cmpl--completion-string))
 	     (inside-locate-completion-entry
 	      ;; recursive error: really scrod
-	      (locate-completion-db-error))
+	      (completion-locate-db-error))
 	     (t
 	       ;; Patch out
 	       (set cmpl-db-symbol nil)
 	       ;; Retry
-	       (locate-completion-entry-retry completion-entry)))))))
+	       (completion-locate-entry-retry completion-entry)))))))
 
-(defun locate-completion-entry-retry (old-entry)
+(define-obsolete-function-alias 'locate-completion-entry-retry
+  #'completion-locate-entry-retry "27.1")
+(defun completion-locate-entry-retry (old-entry)
   (let ((inside-locate-completion-entry t))
     (add-completion (completion-string old-entry)
 		    (completion-num-uses old-entry)
@@ -1108,11 +1109,13 @@ Must be called after `find-exact-completion'."
 			     0 completion-prefix-min-length)))))
       (if (and cmpl-entry pref-entry)
 	  ;; try again
-	  (locate-completion-entry cmpl-entry pref-entry)
+	  (completion-locate-entry cmpl-entry pref-entry)
 	  ;; still losing
-	  (locate-completion-db-error)))))
+	  (completion-locate-db-error)))))
 
-(defun locate-completion-db-error ()
+(define-obsolete-function-alias 'locate-completion-db-error
+  #'completion-locate-db-error "27.1")
+(defun completion-locate-db-error ()
   ;; recursive error: really scrod
   (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report"))
 
@@ -1161,7 +1164,7 @@ Returns the completion entry."
         (let* ((prefix-entry (find-cmpl-prefix-entry
                               (substring cmpl-db-downcase-string 0
                                          completion-prefix-min-length)))
-               (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry))
+               (splice-ptr (completion-locate-entry cmpl-db-entry prefix-entry))
                (cmpl-ptr (cdr splice-ptr)))
           ;; update entry
           (set-completion-string cmpl-db-entry completion-string)
@@ -1205,7 +1208,8 @@ String must be longer than `completion-prefix-min-length'."
         (let* ((prefix-entry (find-cmpl-prefix-entry
                               (substring cmpl-db-downcase-string 0
                                          completion-prefix-min-length)))
-               (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry)))
+               (splice-ptr (completion-locate-entry
+                            cmpl-db-entry prefix-entry)))
           ;; delete symbol reference
           (set cmpl-db-symbol nil)
           ;; remove from prefix list
@@ -2134,7 +2138,7 @@ Also sets up so that exiting Emacs will automatically save the file."
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
 The command \\[yank] can retrieve it from there.
-/(If you want to kill and then yank immediately, use \\[copy-region-as-kill].)
+\(If you want to kill and then yank immediately, use \\[copy-region-as-kill].)
 
 This is the primitive for programs to kill text (as opposed to deleting it).
 Supply two arguments, character positions indicating the stretch of text

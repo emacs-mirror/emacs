@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,11 +17,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#include "config.h"
+
+#undef NDEBUG
 #include <assert.h>
+
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
+#include <string.h>
+#include <time.h>
+
+#ifdef HAVE_GMP
+#include <gmp.h>
+#else
+#include "mini-gmp.h"
+#endif
+
 #include <emacs-module.h>
+
+#include "timespec.h"
 
 int plugin_is_GPL_compatible;
 
@@ -48,6 +65,8 @@ int plugin_is_GPL_compatible;
 # error "INTPTR_MAX too large"
 #endif
 
+/* Smoke test to verify that EMACS_LIMB_MAX is defined. */
+_Static_assert (0 < EMACS_LIMB_MAX, "EMACS_LIMB_MAX missing or incorrect");
 
 /* Always return symbol 't'.  */
 static emacs_value
@@ -68,6 +87,7 @@ static emacs_value
 Fmod_test_sum (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   assert (nargs == 2);
+  assert ((uintptr_t) data == 0x1234);
 
   intmax_t a = env->extract_integer (env, args[0]);
   intmax_t b = env->extract_integer (env, args[1]);
@@ -86,7 +106,7 @@ Fmod_test_signal (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
   env->non_local_exit_signal (env, env->intern (env, "error"),
 			      env->make_integer (env, 56));
-  return env->intern (env, "nil");
+  return NULL;
 }
 
 
@@ -98,7 +118,7 @@ Fmod_test_throw (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
   env->non_local_exit_throw (env, env->intern (env, "tag"),
 			     env->make_integer (env, 65));
-  return env->intern (env, "nil");
+  return NULL;
 }
 
 
@@ -296,9 +316,222 @@ Fmod_test_invalid_finalizer (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 {
   current_env = env;
   env->make_user_ptr (env, invalid_finalizer, NULL);
-  return env->funcall (env, env->intern (env, "garbage-collect"), 0, NULL);
+  return env->intern (env, "nil");
 }
 
+static void
+signal_errno (emacs_env *env, const char *function)
+{
+  const char *message = strerror (errno);
+  emacs_value message_value = env->make_string (env, message, strlen (message));
+  emacs_value symbol = env->intern (env, "file-error");
+  emacs_value elements[2]
+    = {env->make_string (env, function, strlen (function)), message_value};
+  emacs_value data = env->funcall (env, env->intern (env, "list"), 2, elements);
+  env->non_local_exit_signal (env, symbol, data);
+}
+
+/* A long-running operation that occasionally calls `should_quit' or
+   `process_input'.  */
+
+static emacs_value
+Fmod_test_sleep_until (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                       void *data)
+{
+  assert (nargs == 2);
+  const struct timespec until = env->extract_time (env, args[0]);
+  if (env->non_local_exit_check (env))
+    return NULL;
+  const bool process_input = env->is_not_nil (env, args[1]);
+  const struct timespec amount = make_timespec(0,  10000000);
+  while (true)
+    {
+      const struct timespec now = current_timespec ();
+      if (timespec_cmp (now, until) >= 0)
+        break;
+      if (nanosleep (&amount, NULL) && errno != EINTR)
+        {
+          signal_errno (env, "nanosleep");
+          return NULL;
+        }
+      if ((process_input
+           && env->process_input (env) == emacs_process_input_quit)
+          || env->should_quit (env))
+        return NULL;
+    }
+  return env->intern (env, "finished");
+}
+
+static emacs_value
+Fmod_test_add_nanosecond (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                          void *data)
+{
+  assert (nargs == 1);
+  struct timespec time = env->extract_time (env, args[0]);
+  assert (time.tv_nsec >= 0);
+  assert (time.tv_nsec < 2000000000);  /* possible leap second */
+  time.tv_nsec++;
+  return env->make_time (env, time);
+}
+
+static void
+signal_error (emacs_env *env, const char *message)
+{
+  emacs_value data = env->make_string (env, message, strlen (message));
+  env->non_local_exit_signal (env, env->intern (env, "error"),
+                              env->funcall (env, env->intern (env, "list"), 1,
+                                            &data));
+}
+
+static void
+memory_full (emacs_env *env)
+{
+  signal_error (env, "Memory exhausted");
+}
+
+enum
+{
+  max_count = ((SIZE_MAX < PTRDIFF_MAX ? SIZE_MAX : PTRDIFF_MAX)
+               / sizeof (emacs_limb_t))
+};
+
+static bool
+extract_big_integer (emacs_env *env, emacs_value arg, mpz_t result)
+{
+  int sign;
+  ptrdiff_t count;
+  bool success = env->extract_big_integer (env, arg, &sign, &count, NULL);
+  if (!success)
+    return false;
+  if (sign == 0)
+    {
+      mpz_set_ui (result, 0);
+      return true;
+    }
+  enum { order = -1, size = sizeof (emacs_limb_t), endian = 0, nails = 0 };
+  assert (0 < count && count <= max_count);
+  emacs_limb_t *magnitude = malloc (count * size);
+  if (magnitude == NULL)
+    {
+      memory_full (env);
+      return false;
+    }
+  success = env->extract_big_integer (env, arg, NULL, &count, magnitude);
+  assert (success);
+  mpz_import (result, count, order, size, endian, nails, magnitude);
+  free (magnitude);
+  if (sign < 0)
+    mpz_neg (result, result);
+  return true;
+}
+
+static emacs_value
+make_big_integer (emacs_env *env, const mpz_t value)
+{
+  if (mpz_sgn (value) == 0)
+    return env->make_integer (env, 0);
+  /* See
+     https://gmplib.org/manual/Integer-Import-and-Export.html#index-Export. */
+  enum
+  {
+    order = -1,
+    size = sizeof (emacs_limb_t),
+    endian = 0,
+    nails = 0,
+    numb = 8 * size - nails
+  };
+  size_t count = (mpz_sizeinbase (value, 2) + numb - 1) / numb;
+  if (max_count < count)
+    {
+      memory_full (env);
+      return NULL;
+    }
+  emacs_limb_t *magnitude = malloc (count * size);
+  if (magnitude == NULL)
+    {
+      memory_full (env);
+      return NULL;
+    }
+  size_t written;
+  mpz_export (magnitude, &written, order, size, endian, nails, value);
+  assert (written == count);
+  assert (count <= PTRDIFF_MAX);
+  emacs_value result = env->make_big_integer (env, mpz_sgn (value),
+                                              (ptrdiff_t) count, magnitude);
+  free (magnitude);
+  return result;
+}
+
+static emacs_value
+Fmod_test_nanoseconds (emacs_env *env, ptrdiff_t nargs, emacs_value *args, void *data) {
+  assert (nargs == 1);
+  struct timespec time = env->extract_time (env, args[0]);
+  mpz_t nanoseconds;
+  assert (LONG_MIN <= time.tv_sec && time.tv_sec <= LONG_MAX);
+  mpz_init_set_si (nanoseconds, time.tv_sec);
+#ifdef __MINGW32__
+  _Static_assert (1000000000 <= ULONG_MAX, "unsupported architecture");
+#else
+  static_assert (1000000000 <= ULONG_MAX, "unsupported architecture");
+#endif
+  mpz_mul_ui (nanoseconds, nanoseconds, 1000000000);
+  assert (0 <= time.tv_nsec && time.tv_nsec <= ULONG_MAX);
+  mpz_add_ui (nanoseconds, nanoseconds, time.tv_nsec);
+  emacs_value result = make_big_integer (env, nanoseconds);
+  mpz_clear (nanoseconds);
+  return result;
+}
+
+static emacs_value
+Fmod_test_double (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                  void *data)
+{
+  assert (nargs == 1);
+  emacs_value arg = args[0];
+  mpz_t value;
+  mpz_init (value);
+  extract_big_integer (env, arg, value);
+  mpz_mul_ui (value, value, 2);
+  emacs_value result = make_big_integer (env, value);
+  mpz_clear (value);
+  return result;
+}
+
+static int function_data;
+static int finalizer_calls_with_correct_data;
+static int finalizer_calls_with_incorrect_data;
+
+static void
+finalizer (void *data)
+{
+  if (data == &function_data)
+    ++finalizer_calls_with_correct_data;
+  else
+    ++finalizer_calls_with_incorrect_data;
+}
+
+static emacs_value
+Fmod_test_make_function_with_finalizer (emacs_env *env, ptrdiff_t nargs,
+                                        emacs_value *args, void *data)
+{
+  emacs_value fun
+    = env->make_function (env, 2, 2, Fmod_test_sum, NULL, &function_data);
+  env->set_function_finalizer (env, fun, finalizer);
+  if (env->get_function_finalizer (env, fun) != finalizer)
+    signal_error (env, "Invalid finalizer");
+  return fun;
+}
+
+static emacs_value
+Fmod_test_function_finalizer_calls (emacs_env *env, ptrdiff_t nargs,
+                                    emacs_value *args, void *data)
+{
+  emacs_value Flist = env->intern (env, "list");
+  emacs_value list_args[]
+    = {env->make_integer (env, finalizer_calls_with_correct_data),
+       env->make_integer (env, finalizer_calls_with_incorrect_data)};
+  return env->funcall (env, Flist, 2, list_args);
+}
 
 /* Lisp utilities for easier readability (simple wrappers).  */
 
@@ -328,6 +561,11 @@ bind_function (emacs_env *env, const char *name, emacs_value Sfun)
 int
 emacs_module_init (struct emacs_runtime *ert)
 {
+  /* Check that EMACS_MAJOR_VERSION is defined and an integral
+     constant.  */
+  char dummy[EMACS_MAJOR_VERSION];
+  assert (27 <= sizeof dummy);
+
   if (ert->size < sizeof *ert)
     {
       fprintf (stderr, "Runtime size of runtime structure (%"pT" bytes) "
@@ -351,7 +589,8 @@ emacs_module_init (struct emacs_runtime *ert)
 		 env->make_function (env, amin, amax, csym, doc, data))
 
   DEFUN ("mod-test-return-t", Fmod_test_return_t, 1, 1, NULL, NULL);
-  DEFUN ("mod-test-sum", Fmod_test_sum, 2, 2, "Return A + B\n\n(fn a b)", NULL);
+  DEFUN ("mod-test-sum", Fmod_test_sum, 2, 2, "Return A + B\n\n(fn a b)",
+         (void *) (uintptr_t) 0x1234);
   DEFUN ("mod-test-signal", Fmod_test_signal, 0, 0, NULL, NULL);
   DEFUN ("mod-test-throw", Fmod_test_throw, 0, 0, NULL, NULL);
   DEFUN ("mod-test-non-local-exit-funcall", Fmod_test_non_local_exit_funcall,
@@ -367,6 +606,14 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-invalid-load", Fmod_test_invalid_load, 0, 0, NULL, NULL);
   DEFUN ("mod-test-invalid-finalizer", Fmod_test_invalid_finalizer, 0, 0,
          NULL, NULL);
+  DEFUN ("mod-test-sleep-until", Fmod_test_sleep_until, 2, 2, NULL, NULL);
+  DEFUN ("mod-test-add-nanosecond", Fmod_test_add_nanosecond, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-nanoseconds", Fmod_test_nanoseconds, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-double", Fmod_test_double, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-make-function-with-finalizer",
+         Fmod_test_make_function_with_finalizer, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-function-finalizer-calls",
+         Fmod_test_function_finalizer_calls, 0, 0, NULL, NULL);
 
 #undef DEFUN
 

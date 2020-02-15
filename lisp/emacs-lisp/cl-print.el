@@ -1,6 +1,6 @@
 ;;; cl-print.el --- CL-style generic printing  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -548,21 +548,22 @@ limit."
   ;; call_debugger (bug#31919).
   (let* ((print-length (when limit (min limit 50)))
          (print-level (when limit (min 8 (truncate (log limit)))))
-         (delta (when limit
-                  (max 1 (truncate (/ print-length print-level))))))
+         (delta-length (when limit
+                         (max 1 (truncate (/ print-length print-level))))))
     (with-temp-buffer
       (catch 'done
         (while t
           (erase-buffer)
           (funcall print-function value (current-buffer))
-          ;; Stop when either print-level is too low or the value is
-          ;; successfully printed in the space allowed.
-          (when (or (not limit)
-                    (< (- (point-max) (point-min)) limit)
-                    (= print-level 2))
-            (throw 'done (buffer-string)))
-          (cl-decf print-level)
-          (cl-decf print-length delta))))))
+          (let ((result (- (point-max) (point-min))))
+            ;; Stop when either print-level is too low or the value is
+            ;; successfully printed in the space allowed.
+            (when (or (not limit) (< result limit) (<= print-level 2))
+              (throw 'done (buffer-string)))
+            (let* ((ratio (/ result limit))
+                   (delta-level (max 1 (min (- print-level 2) ratio))))
+              (cl-decf print-level delta-level)
+              (cl-decf print-length (* delta-length delta-level)))))))))
 
 (provide 'cl-print)
 ;;; cl-print.el ends here

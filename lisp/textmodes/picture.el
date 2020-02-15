@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -387,7 +387,8 @@ Interactively, ARG is the numeric argument, and defaults to 1."
 \\[picture-set-tab-stops] and \\[picture-tab-search].
 The syntax for this variable is like the syntax used inside of `[...]'
 in a regular expression--but without the `[' and the `]'.
-It is NOT a regular expression, any regexp special characters will be quoted.
+It is NOT a regular expression, and should follow the usual
+rules for the contents of a character alternative.
 It defines a set of \"interesting characters\" to look for when setting
 \(or searching for) tab stops, initially \"!-~\" (all printing characters).
 For example, suppose that you are editing a table which is formatted thus:
@@ -425,7 +426,7 @@ stops computed are displayed in the minibuffer with `:' at each stop."
       (if arg
 	  (setq tabs (or (default-value 'tab-stop-list)
 			 (indent-accumulate-tab-stops (window-width))))
-	(let ((regexp (concat "[ \t]+[" (regexp-quote picture-tab-chars) "]")))
+	(let ((regexp (concat "[ \t]+[" picture-tab-chars "]")))
 	  (beginning-of-line)
 	  (let ((bol (point)))
 	    (end-of-line)
@@ -433,8 +434,8 @@ stops computed are displayed in the minibuffer with `:' at each stop."
 	      (skip-chars-forward " \t")
 	      (setq tabs (cons (current-column) tabs)))
 	    (if (null tabs)
-		(error "No characters in set %s on this line"
-		       (regexp-quote picture-tab-chars))))))
+		(error "No characters in set [%s] on this line"
+		       picture-tab-chars)))))
       (setq tab-stop-list tabs)
       (let ((blurb (make-string (1+ (nth (1- (length tabs)) tabs)) ?\ )))
 	(while tabs
@@ -455,12 +456,13 @@ If no such character is found, move to beginning of line."
 	       (progn
 		 (beginning-of-line)
 		 (skip-chars-backward
-		  (concat "^" (regexp-quote picture-tab-chars))
+		  (concat "^" (replace-regexp-in-string
+			       "\\\\" "\\\\" picture-tab-chars nil t))
 		  (point-min))
 		 (not (bobp))))
 	  (move-to-column target))
       (if (re-search-forward
-	   (concat "[ \t]+[" (regexp-quote picture-tab-chars) "]")
+	   (concat "[ \t]+[" picture-tab-chars "]")
 	   (line-end-position)
 	   'move)
 	  (setq target (1- (current-column)))
@@ -622,7 +624,6 @@ Leaves the region surrounding the rectangle."
 
 (defvar picture-mode-map
   (let ((map (make-keymap)))
-    (define-key map [remap self-insert-command] 'picture-self-insert)
     (define-key map [remap self-insert-command] 'picture-self-insert)
     (define-key map [remap completion-separator-self-insert-command]
 			  'picture-self-insert)

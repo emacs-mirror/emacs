@@ -1,6 +1,6 @@
 /* Internals of a lightweight menubar widget.
 
-Copyright (C) 2002-2018 Free Software Foundation, Inc.
+Copyright (C) 2002-2020 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -23,8 +23,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "xlwmenu.h"
 #include <X11/CoreP.h>
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
+#ifdef USE_CAIRO
+#include "lwlib-utils.h"
+#else  /* HAVE_XFT */
 #include <X11/Xft/Xft.h>
+#endif
 #endif
 
 /* Elements in the stack arrays. */
@@ -42,7 +46,7 @@ typedef struct _window_state
 
   /* Width of toggle buttons or radio buttons.  */
   Dimension     button_width;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   XftDraw*      xft_draw;
 #endif
 } window_state;
@@ -56,7 +60,7 @@ typedef struct _XlwMenu_part
   XFontSet	fontSet;
   XFontSetExtents *font_extents;
 #endif
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   int           default_face;
   XftFont*      xft_font;
   XftColor      xft_fg, xft_bg, xft_disabled_fg;

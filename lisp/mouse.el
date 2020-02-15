@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware, mouse
@@ -98,7 +98,7 @@ point at the click position."
 
 (defun mouse--down-1-maybe-follows-link (&optional _prompt)
   (when mouse-1-click-follows-link
-    (setq mouse--last-down (cons (car-safe last-input-event) (float-time))))
+    (setq mouse--last-down (cons (car-safe last-input-event) (current-time))))
   nil)
 
 (defun mouse--click-1-maybe-follows-link (&optional _prompt)
@@ -110,8 +110,10 @@ Expects to be bound to `(double-)mouse-1' in `key-translation-map'."
          ('double (eq 'double-mouse-1 (car-safe last-input-event)))
          (_ (and (eq 'mouse-1 (car-safe last-input-event))
                  (or (not (numberp mouse-1-click-follows-link))
-                     (funcall (if (< mouse-1-click-follows-link 0) #'> #'<)
-                              (- (float-time) (cdr mouse--last-down))
+		     (funcall (if (< mouse-1-click-follows-link 0)
+				  (lambda (a b) (time-less-p b a))
+				#'time-less-p)
+			      (time-since (cdr mouse--last-down))
                               (/ (abs mouse-1-click-follows-link) 1000.0))))))
        (eq (car mouse--last-down)
            (event-convert-list (list 'down (car-safe last-input-event))))
@@ -620,9 +622,9 @@ START-EVENT is the starting mouse event of the drag action.  Its
 position window denotes the frame that will be dragged.
 
 PART specifies the part that has been dragged and must be one of
-the symbols 'left', 'top', 'right', 'bottom', 'top-left',
-'top-right', 'bottom-left', 'bottom-right' to drag an internal
-border or edge.  If PART equals 'move', this means to move the
+the symbols `left', `top', `right', `bottom', `top-left',
+`top-right', `bottom-left', `bottom-right' to drag an internal
+border or edge.  If PART equals `move', this means to move the
 frame with the mouse."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
@@ -1043,10 +1045,12 @@ the mouse has moved.  However, it always scrolls at least the number
 of lines specified by this variable."
   :type 'integer)
 
-(defun mouse-scroll-subr (window jump &optional overlay start)
+(defun mouse-scroll-subr (window jump &optional overlay start adjust)
   "Scroll the window WINDOW, JUMP lines at a time, until new input arrives.
 If OVERLAY is an overlay, let it stretch from START to the far edge of
 the newly visible text.
+ADJUST, if non-nil, is a function, without arguments, to call after
+setting point.
 Upon exit, point is at the far edge of the newly visible text."
   (cond
    ((and (> jump 0) (< jump mouse-scroll-min-lines))
@@ -1075,6 +1079,8 @@ Upon exit, point is at the far edge of the newly visible text."
 		   ;; so that we don't mess up the selected window.
 		   (or (eq window (selected-window))
 		       (goto-char opoint))
+                   (when adjust
+                     (funcall adjust))
 		   (sit-for mouse-scroll-delay)))))
     (or (eq window (selected-window))
 	(goto-char opoint))))
@@ -1102,6 +1108,12 @@ is dragged over to."
     (run-hooks 'mouse-leave-buffer-hook)
     (mouse-drag-track start-event)))
 
+;; Inhibit the region-confinement when undoing mouse-drag-region
+;; immediately after the command.  Otherwise, the selection left
+;; active around the dragged text would prevent an undo of the whole
+;; operation.
+(put 'mouse-drag-region 'undo-inhibit-region t)
+
 (defun mouse-posn-property (pos property)
   "Look for a property at click position.
 POS may be either a buffer position or a click position like
@@ -1114,6 +1126,10 @@ its value is returned."
   (if (consp pos)
       (let ((w (posn-window pos)) (pt (posn-point pos))
 	    (str (posn-string pos)))
+        ;; FIXME: When STR has a `category' property and there's another
+        ;; `category' property at PT, we should probably disregard the
+        ;; `category' property at PT while doing the (get-char-property
+        ;; pt property w)!
 	(or (and str
 		 (get-text-property (cdr str) property (car str)))
             ;; Mouse clicks in the fringe come with a position in
@@ -1290,7 +1306,7 @@ The region will be defined with mark and point."
      t (lambda ()
          (setq track-mouse old-track-mouse)
          (setq auto-hscroll-mode auto-hscroll-mode-saved)
-          (deactivate-mark)
+         (deactivate-mark)
          (pop-mark)))))
 
 (defun mouse--drag-set-mark-and-point (start click click-count)
@@ -1586,7 +1602,7 @@ previous region was just saved to the kill ring).
 
 If this command is called a second consecutive time with the same
 CLICK position, kill the region (or delete it
-if `mouse-drag-copy-region' is non-nil)"
+if `mouse-drag-copy-region' is non-nil)."
   (interactive "e")
   (mouse-minibuffer-check click)
   (let* ((posn     (event-start click))
@@ -1948,6 +1964,132 @@ When there is no region, this function does nothing."
     (move-overlay mouse-secondary-overlay (region-beginning) (region-end))))
 
 
+(declare-function rectangle--col-pos "rect" (col kind))
+(declare-function rectangle--reset-point-crutches "rect" ())
+
+(defconst mouse--rectangle-track-cursor t
+  "Whether the mouse tracks the cursor when selecting a rectangle.
+If nil, the mouse tracks the rectangle corner instead.")
+
+(defun mouse-drag-region-rectangle (start-event)
+  "Set the region to the rectangle that the mouse is dragged over.
+This must be bound to a button-down mouse event."
+  (interactive "e")
+  (let* ((scroll-margin 0)
+         (start-pos (event-start start-event))
+         (start-posn (event-start start-event))
+         (start-point (posn-point start-posn))
+         (start-window (posn-window start-posn))
+         (start-hscroll (window-hscroll start-window))
+         (start-col (+ (car (posn-col-row start-pos)) start-hscroll))
+         (bounds (window-edges start-window))
+         (top (nth 1 bounds))
+         (bottom (if (window-minibuffer-p start-window)
+                     (nth 3 bounds)
+                   (1- (nth 3 bounds))))
+         (extra-margin (round (line-number-display-width 'columns)))
+         (dragged nil)
+         (old-track-mouse track-mouse)
+         (old-mouse-fine-grained-tracking mouse-fine-grained-tracking)
+         ;; For right-to-left text, columns are counted from the right margin;
+         ;; translate from mouse events, which always count from the left.
+         (adjusted-col (lambda (col)
+                         (if (eq (current-bidi-paragraph-direction)
+                                 'right-to-left)
+                             (- (window-width) col extra-margin
+                                (if mouse--rectangle-track-cursor 1 -1))
+                           (- col extra-margin))))
+         (map (make-sparse-keymap)))
+    (define-key map [switch-frame] #'ignore)
+    (define-key map [select-window] #'ignore)
+    (define-key map [mouse-movement]
+      (lambda (event)
+        (interactive "e")
+        (unless dragged
+          ;; This is actually a drag.
+          (setq dragged t)
+          (mouse-minibuffer-check start-event)
+          (deactivate-mark)
+          (setq-local transient-mark-mode
+                      (if (eq transient-mark-mode 'lambda)
+                          '(only)
+                        (cons 'only transient-mark-mode)))
+          (posn-set-point start-pos)
+          (rectangle-mark-mode)
+          ;; Only tell rectangle about the exact column if we are possibly
+          ;; beyond end-of-line or in a tab, since the column we got from
+          ;; the mouse position isn't necessarily accurate for use in
+          ;; specifying a rectangle (which uses the `move-to-column'
+          ;; measure).
+          (when (or (eolp) (eq (following-char) ?\t))
+            (let ((col (funcall adjusted-col start-col)))
+              (rectangle--col-pos col 'mark)
+              (rectangle--col-pos col 'point))))
+
+        (let* ((posn (event-end event))
+               (window (posn-window posn))
+               (hscroll (if (window-live-p window)
+                            (window-hscroll window)
+                          0))
+               (mouse-row (cddr (mouse-position)))
+               (mouse-col (+ (car (posn-col-row posn)) hscroll
+                             (if mouse--rectangle-track-cursor 0 1)))
+               (set-col (lambda ()
+                          (if (or (eolp) (eq (following-char) ?\t))
+                              (rectangle--col-pos
+                               (funcall adjusted-col mouse-col) 'point)
+                            (unless mouse--rectangle-track-cursor
+                              (forward-char))
+                            (rectangle--reset-point-crutches))))
+               (scroll-adjust (lambda ()
+                                (move-to-column
+                                 (funcall adjusted-col mouse-col))
+                                (funcall set-col))))
+          (if (and (eq window start-window)
+                   mouse-row
+                   (<= top mouse-row (1- bottom)))
+              ;; Drag inside the same window.
+              (progn
+                (posn-set-point posn)
+                (funcall set-col))
+            ;; Drag outside the window: scroll.
+            (cond
+             ((null mouse-row))
+             ((< mouse-row top)
+              (mouse-scroll-subr
+               start-window (- mouse-row top) nil start-point
+               scroll-adjust))
+             ((>= mouse-row bottom)
+              (mouse-scroll-subr
+               start-window (1+ (- mouse-row bottom)) nil start-point
+               scroll-adjust)))))))
+    (condition-case err
+        (progn
+          (setq track-mouse t)
+          (setq mouse-fine-grained-tracking t)
+          (set-transient-map
+           map t
+           (lambda ()
+             (setq track-mouse old-track-mouse)
+             (setq mouse-fine-grained-tracking old-mouse-fine-grained-tracking)
+             (when (or (not dragged)
+                       (not (mark))
+                       (equal (rectangle-dimensions (mark) (point)) '(0 . 1)))
+               ;; No nontrivial region selected; deactivate rectangle mode.
+               (deactivate-mark)))))
+      ;; Clean up in case something went wrong.
+      (error (setq track-mouse old-track-mouse)
+             (setq mouse-fine-grained-tracking old-mouse-fine-grained-tracking)
+             (signal (car err) (cdr err))))))
+
+;; The drag event must be bound to something but does not need any effect,
+;; as everything takes place in `mouse-drag-region-rectangle'.
+;; The click event can be anything; `mouse-set-point' is just a convenience.
+(global-set-key [C-M-down-mouse-1] #'mouse-drag-region-rectangle)
+(global-set-key [C-M-drag-mouse-1] #'ignore)
+(global-set-key [C-M-mouse-1]      #'mouse-set-point)
+
+
 (defcustom mouse-buffer-menu-maxlen 20
   "Number of buffers in one pane (submenu) of the buffer menu.
 If we have lots of buffers, divide them into groups of
@@ -1967,14 +2109,14 @@ a large number if you prefer a mixed multitude.  The default is 4."
 (defvar mouse-buffer-menu-mode-groups
   (mapcar (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
   '(("Info\\|Help\\|Apropos\\|Man" . "Help")
-    ("\\bVM\\b\\|\\bMH\\b\\|Message\\|Mail\\|Group\\|Score\\|Summary\\|Article"
+    ("\\bVM\\b\\|\\bMH\\b\\|Message\\b\\|Mail\\|Group\\|Score\\|Summary\\|Article"
      . "Mail/News")
     ("\\<C\\>" . "C")
     ("ObjC" . "C")
     ("Text" . "Text")
     ("Outline" . "Text")
     ("\\(HT\\|SG\\|X\\|XHT\\)ML" . "SGML")
-    ("log\\|diff\\|vc\\|cvs\\|Annotate" . "Version Control") ; "Change Management"?
+    ("log\\|diff\\|vc\\|cvs\\|Git\\|Annotate" . "Version Control")
     ("Threads\\|Memory\\|Disassembly\\|Breakpoints\\|Frames\\|Locals\\|Registers\\|Inferior I/O\\|Debugger"
      . "GDB")
     ("Lisp" . "Lisp")))
@@ -2396,6 +2538,10 @@ highlight the original region when
 `mouse-drag-and-drop-region-show-cursor' is non-nil."
   :version "26.1")
 
+(declare-function rectangle-dimensions "rect" (start end))
+(declare-function rectangle-position-as-coordinates "rect" (position))
+(declare-function rectangle-intersect-p "rect" (pos1 size1 pos2 size2))
+
 (defun mouse-drag-and-drop-region (event)
   "Move text in the region to point where mouse is dragged to.
 The transportation of text is also referred as `drag and drop'.
@@ -2457,12 +2603,13 @@ is copied instead of being cut."
 
     (ignore-errors
       (track-mouse
+        (setq track-mouse 'dropping)
         ;; When event was "click" instead of "drag", skip loop.
         (while (progn
                  (setq event (read-key))      ; read-event or read-key
                  (or (mouse-movement-p event)
                      ;; Handle `mouse-autoselect-window'.
-                     (eq (car-safe event) 'select-window)))
+                     (memq (car event) '(select-window switch-frame))))
           ;; Obtain the dragged text in region.  When the loop was
           ;; skipped, value-selection remains nil.
           (unless value-selection
@@ -2723,6 +2870,7 @@ is copied instead of being cut."
 ;; versions.
 (global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
 (global-set-key [header-line mouse-1] 'mouse-select-window)
+(global-set-key [tab-line mouse-1] 'mouse-select-window)
 ;; (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
 (global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
 (global-set-key [mode-line mouse-1] 'mouse-select-window)

@@ -1,8 +1,8 @@
 ;;; semantic/db-debug.el --- Extra level debugging routines for Semantic
 
-;;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -74,7 +74,7 @@
 (defun semanticdb-table-oob-sanity-check (cache)
   "Validate that CACHE tags do not have any overlays in them."
   (while cache
-    (when (semantic-overlay-p (semantic-tag-overlay cache))
+    (when (overlayp (semantic-tag-overlay cache))
       (message "Tag %s has an erroneous overlay!"
 	       (semantic-format-tag-summarize (car cache))))
     (semanticdb-table-oob-sanity-check

@@ -1,6 +1,6 @@
 ;;; mh-thread.el --- MH-E threading support
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -76,14 +76,14 @@
 (require 'mh-e)
 (require 'mh-scan)
 
-(mh-defstruct (mh-thread-message (:conc-name mh-message-)
+(cl-defstruct (mh-thread-message (:conc-name mh-message-)
                                  (:constructor mh-thread-make-message))
   (id nil)
   (references ())
   (subject "")
   (subject-re-p nil))
 
-(mh-defstruct (mh-thread-container (:conc-name mh-container-)
+(cl-defstruct (mh-thread-container (:conc-name mh-container-)
                                    (:constructor mh-thread-make-container))
   message parent children
   (real-child-p t))
@@ -258,7 +258,7 @@ sibling."
       (beginning-of-line)
       (forward-char address-start-offset)
       (while (char-equal (char-after) ? )
-        (incf level)
+        (cl-incf level)
         (forward-char))
       level)))
 
@@ -292,7 +292,7 @@ at the end."
       (setq begin (point))
       (setq spaces (format (format "%%%ss" (1+ level)) ""))
       (forward-line)
-      (block nil
+      (cl-block nil
         (while (not (eobp))
           (forward-char address-start-offset)
           (unless (equal (string-match spaces (buffer-substring-no-properties
@@ -300,7 +300,7 @@ at the end."
                          0)
             (beginning-of-line)
             (backward-char)
-            (return))
+            (cl-return))
           (forward-line)))
       (list begin (point)))))
 
@@ -388,8 +388,8 @@ the id-table is updated."
          (parent-container (mh-container-parent child-container)))
     (when parent-container
       (setf (mh-container-children parent-container)
-            (loop for elem in (mh-container-children parent-container)
-                  unless (eq child-container elem) collect elem))
+            (cl-loop for elem in (mh-container-children parent-container)
+                     unless (eq child-container elem) collect elem))
       (setf (mh-container-parent child-container) nil))))
 
 (defsubst mh-thread-add-link (parent child &optional at-end-p)
@@ -442,9 +442,9 @@ added to the end of the children list of PARENT."
   "Return t if ANCESTOR is really an ancestor of SUCCESSOR and nil otherwise.
 In the limit, the function returns t if ANCESTOR and SUCCESSOR
 are the same containers."
-  (block nil
+  (cl-block nil
     (while successor
-      (when (eq ancestor successor) (return t))
+      (when (eq ancestor successor) (cl-return t))
       (setq successor (mh-container-parent successor)))
     nil))
 
@@ -525,12 +525,12 @@ children."
   (cond ((and (mh-container-message container)
               (mh-message-id (mh-container-message container)))
          (mh-message-subject (mh-container-message container)))
-        (t (block nil
+        (t (cl-block nil
              (dolist (kid (mh-container-children container))
                (when (and (mh-container-message kid)
                           (mh-message-id (mh-container-message kid)))
                  (let ((kid-message (mh-container-message kid)))
-                   (return (mh-message-subject kid-message)))))
+                   (cl-return (mh-message-subject kid-message)))))
              (error "This can't happen")))))
 
 (defsubst mh-thread-update-id-index-maps (id index)
@@ -595,9 +595,9 @@ Only information about messages in MSG-LIST are added to the tree."
     (goto-char (point-min))
     (let ((roots ())
           (case-fold-search t))
-      (block nil
+      (cl-block nil
         (while (not (eobp))
-          (block process-message
+          (cl-block process-message
             (let* ((index-line
                     (prog1 (buffer-substring (point) (mh-line-end-position))
                       (forward-line)))
@@ -616,26 +616,26 @@ Only information about messages in MSG-LIST are added to the tree."
                               (forward-line)))
                    (subject-re-p nil))
               (unless (gethash index mh-thread-scan-line-map)
-                (return-from process-message))
-              (unless (integerp index) (return)) ;Error message here
-              (multiple-value-setq (subject subject-re-p)
-                (values-list (mh-thread-prune-subject subject)))
+                (cl-return-from process-message))
+              (unless (integerp index) (cl-return)) ;Error message here
+              (cl-multiple-value-setq (subject subject-re-p)
+                (cl-values-list (mh-thread-prune-subject subject)))
               (setq in-reply-to (mh-thread-process-in-reply-to in-reply-to))
-              (setq refs (loop for x in (append (split-string refs) in-reply-to)
-                               when (string-match mh-message-id-regexp x)
-                               collect x))
+              (setq refs
+                    (cl-loop for x in (append (split-string refs) in-reply-to)
+                             when (string-match mh-message-id-regexp x)
+                             collect x))
               (setq id (mh-thread-canonicalize-id id))
               (mh-thread-update-id-index-maps id index)
               (setq refs (mapcar #'mh-thread-canonicalize-id refs))
               (mh-thread-get-message id subject-re-p subject refs)
-              (do ((ancestors refs (cdr ancestors)))
+              (cl-do ((ancestors refs (cdr ancestors)))
                   ((null (cdr ancestors))
                    (when (car ancestors)
                      (mh-thread-remove-parent-link id)
                      (mh-thread-add-link (car ancestors) id)))
                 (mh-thread-add-link (car ancestors) (cadr ancestors)))))))
-      (maphash #'(lambda (k v)
-                   (declare (ignore k))
+      (maphash #'(lambda (_k v)
                    (when (null (mh-container-parent v))
                      (push v roots)))
                mh-thread-id-table)
@@ -720,8 +720,7 @@ For now it will take the last string inside angles."
                      mh-thread-history)
                (mh-thread-remove-parent-link node)))))
     (let ((results ()))
-      (maphash #'(lambda (k v)
-                   (declare (ignore k))
+      (maphash #'(lambda (_k v)
                    (when (and (null (mh-container-parent v))
                               (gethash (mh-message-id (mh-container-message v))
                                        mh-thread-id-index-map))
@@ -751,17 +750,18 @@ For now it will take the last string inside angles."
         (mh-thread-last-ancestor nil))
     (if (null mh-index-data)
         (mh-thread-generate-scan-lines thread-tree -2)
-      (loop for x in (mh-index-group-by-folder)
-            do (let* ((old-map mh-thread-scan-line-map)
-                      (mh-thread-scan-line-map (make-hash-table)))
-                 (setq mh-thread-last-ancestor nil)
-                 (loop for msg in (cdr x)
-                       do (let ((v (gethash msg old-map)))
-                            (when v
-                              (setf (gethash msg mh-thread-scan-line-map) v))))
-                 (when (> (hash-table-count mh-thread-scan-line-map) 0)
-                   (insert (if (bobp) "" "\n") (car x) "\n")
-                   (mh-thread-generate-scan-lines thread-tree -2))))
+      (cl-loop for x in (mh-index-group-by-folder)
+               do (let* ((old-map mh-thread-scan-line-map)
+                         (mh-thread-scan-line-map (make-hash-table)))
+                    (setq mh-thread-last-ancestor nil)
+                    (cl-loop for msg in (cdr x)
+                             do (let ((v (gethash msg old-map)))
+                                  (when v
+                                    (setf (gethash msg mh-thread-scan-line-map)
+                                          v))))
+                    (when (> (hash-table-count mh-thread-scan-line-map) 0)
+                      (insert (if (bobp) "" "\n") (car x) "\n")
+                      (mh-thread-generate-scan-lines thread-tree -2))))
       (mh-index-create-imenu-index))))
 
 (defun mh-thread-generate-scan-lines (tree level)
@@ -826,8 +826,8 @@ MSG is the message being notated with NOTATION at OFFSET."
   (let* ((msg (or msg (mh-get-msg-num nil)))
          (cur-scan-line (and mh-thread-scan-line-map
                              (gethash msg mh-thread-scan-line-map)))
-         (old-scan-lines (loop for map in mh-thread-scan-line-map-stack
-                               collect (and map (gethash msg map)))))
+         (old-scan-lines (cl-loop for map in mh-thread-scan-line-map-stack
+                                  collect (and map (gethash msg map)))))
     (when cur-scan-line
       (setf (aref (car cur-scan-line) offset) notation))
     (dolist (line old-scan-lines)

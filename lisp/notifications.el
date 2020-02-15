@@ -1,6 +1,6 @@
 ;;; notifications.el --- Client interface to desktop notifications.
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm desktop notifications
@@ -232,8 +232,8 @@ of another `notifications-notify' call."
 	(add-to-list 'hints `(:dict-entry
 			      "urgency"
 			      (:variant :byte ,(pcase urgency
-						 (`low 0)
-						 (`critical 2)
+						 ('low 0)
+						 ('critical 2)
 						 (_ 1)))) t))
       (when category
 	(add-to-list 'hints `(:dict-entry

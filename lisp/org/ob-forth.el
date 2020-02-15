@@ -1,6 +1,6 @@
 ;;; ob-forth.el --- Babel Functions for Forth        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, forth
@@ -33,16 +33,16 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 
 (declare-function forth-proc "ext:gforth" ())
-(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-default-header-args:forth '((:session . "yes"))
   "Default header arguments for forth code blocks.")
 
 (defun org-babel-execute:forth (body params)
   "Execute a block of Forth code with org-babel.
-This function is called by `org-babel-execute-src-block'"
+This function is called by `org-babel-execute-src-block'."
   (if (string= "none" (cdr (assq :session params)))
       (error "Non-session evaluation not supported for Forth code blocks")
     (let ((all-results (org-babel-forth-session-execute body params)))
@@ -53,7 +53,7 @@ This function is called by `org-babel-execute-src-block'"
 (defun org-babel-forth-session-execute (body params)
   (require 'forth-mode)
   (let ((proc (forth-proc))
-	(rx " \\(\n:\\|compiled\n\\\|ok\n\\)")
+	(rx " \\(\n:\\|compiled\n\\|ok\n\\)")
 	(result-start))
     (with-current-buffer (process-buffer (forth-proc))
       (mapcar (lambda (line)

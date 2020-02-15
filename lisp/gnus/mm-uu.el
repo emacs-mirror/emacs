@@ -1,6 +1,6 @@
-;;; mm-uu.el --- Return uu stuff as mm handles
+;;; mm-uu.el --- Return uu stuff as mm handles  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -29,6 +29,7 @@
 (require 'mm-decode)
 (require 'mailcap)
 (require 'mml2015)
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'uudecode-decode-region "uudecode")
 (autoload 'uudecode-decode-region-external "uudecode")
@@ -76,10 +77,9 @@ This can be either \"inline\" or \"attachment\".")
   :type 'regexp
   :group 'gnus-article-mime)
 
-(defcustom mm-uu-diff-groups-regexp
-  "\\(gmane\\|gnu\\)\\..*\\(diff\\|commit\\|cvs\\|bug\\|devel\\)"
+(defcustom mm-uu-diff-groups-regexp "."
   "Regexp matching diff groups."
-  :version "22.1"
+  :version "27.1"
   :type 'regexp
   :group 'gnus-article-mime)
 
@@ -90,124 +90,126 @@ This can be either \"inline\" or \"attachment\".")
   :group 'gnus-article-mime)
 
 (defvar mm-uu-type-alist
-  '((postscript
+  `((postscript
      "^%!PS-"
      "^%%EOF$"
-     mm-uu-postscript-extract
+     ,#'mm-uu-postscript-extract
      nil)
     (uu ;; Maybe we should have a more strict test here.
      "^begin[ \t]+0?[0-7][0-7][0-7][ \t]+"
      "^end[ \t]*$"
-     mm-uu-uu-extract
-     mm-uu-uu-filename)
+     ,#'mm-uu-uu-extract
+     ,#'mm-uu-uu-filename)
     (binhex
      "^:.\\{63,63\\}$"
      ":$"
-     mm-uu-binhex-extract
+     ,#'mm-uu-binhex-extract
      nil
-     mm-uu-binhex-filename)
+     ,#'mm-uu-binhex-filename)
     (yenc
      "^=ybegin.*size=[0-9]+.*name=.*$"
      "^=yend.*size=[0-9]+"
-     mm-uu-yenc-extract
-     mm-uu-yenc-filename)
+     ,#'mm-uu-yenc-extract
+     ,#'mm-uu-yenc-filename)
     (shar
      "^#! */bin/sh"
      "^exit 0$"
-     mm-uu-shar-extract)
+     ,#'mm-uu-shar-extract)
     (forward
      ;; Thanks to Edward J. Sabol <sabol@alderaan.gsfc.nasa.gov> and
      ;; Peter von der Ahé <pahe@daimi.au.dk>
      "^-+ \\(Start of \\)?Forwarded message"
      "^-+ End \\(of \\)?forwarded message"
-     mm-uu-forward-extract
+     ,#'mm-uu-forward-extract
      nil
-     mm-uu-forward-test)
+     ,#'mm-uu-forward-test)
     (gnatsweb
      "^----gnatsweb-attachment----"
      nil
-     mm-uu-gnatsweb-extract)
+     ,#'mm-uu-gnatsweb-extract)
     (pgp-signed
      "^-----BEGIN PGP SIGNED MESSAGE-----"
      "^-----END PGP SIGNATURE-----"
-     mm-uu-pgp-signed-extract
+     ,#'mm-uu-pgp-signed-extract
      nil
      nil)
     (pgp-encrypted
      "^-----BEGIN PGP MESSAGE-----"
      "^-----END PGP MESSAGE-----"
-     mm-uu-pgp-encrypted-extract
+     ,#'mm-uu-pgp-encrypted-extract
      nil
      nil)
     (pgp-key
      "^-----BEGIN PGP PUBLIC KEY BLOCK-----"
      "^-----END PGP PUBLIC KEY BLOCK-----"
-     mm-uu-pgp-key-extract
-     mm-uu-gpg-key-skip-to-last
+     ,#'mm-uu-pgp-key-extract
+     ,#'mm-uu-gpg-key-skip-to-last
      nil)
     (emacs-sources
      "^;;;?[ \t]*[^ \t]+\\.el[ \t]*--"
      "^;;;?[ \t]*\\([^ \t]+\\.el\\)[ \t]+ends here"
-     mm-uu-emacs-sources-extract
+     ,#'mm-uu-emacs-sources-extract
      nil
-     mm-uu-emacs-sources-test)
+     ,#'mm-uu-emacs-sources-test)
     (diff
      "^Index: "
      nil
-     mm-uu-diff-extract
+     ,#'mm-uu-diff-extract
      nil
-     mm-uu-diff-test)
+     ,#'mm-uu-diff-test)
     (diff
      "^=== modified file "
      nil
-     mm-uu-diff-extract
+     ,#'mm-uu-diff-extract
      nil
-     mm-uu-diff-test)
+     ,#'mm-uu-diff-test)
     (git-format-patch
      "^diff --git "
      "^-- "
-     mm-uu-diff-extract
+     ,#'mm-uu-diff-extract
      nil
-     mm-uu-diff-test)
+     ,#'mm-uu-diff-test)
     (message-marks
      ;; Text enclosed with tags similar to `message-mark-insert-begin' and
      ;; `message-mark-insert-end'.  Don't use those variables to avoid
      ;; dependency on `message.el'.
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
-     (lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
+     ,(lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
      nil)
     ;; Omitting [a-z8<] leads to false positives (bogus signature separators
     ;; and mailing list banners).
     (insert-marks
      "^ *\\(-\\|_\\)\\{30,\\}.*[a-z8<].*\\(-\\|_\\)\\{30,\\} *$"
      "^ *\\(-\\|_\\)\\{30,\\}.*[a-z8<].*\\(-\\|_\\)\\{30,\\} *$"
-     (lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
+     ,(lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
      nil)
     (verbatim-marks
      ;; slrn-style verbatim marks, see
      ;; http://slrn.sourceforge.net/docs/slrn-manual-6.html#process_verbatim_marks
      "^#v\\+"
      "^#v\\-$"
-     (lambda () (mm-uu-verbatim-marks-extract 0 0))
+     ,(lambda () (mm-uu-verbatim-marks-extract 0 0))
      nil)
     (LaTeX
      "^\\([\\\\%][^\n]+\n\\)*\\\\documentclass.*[[{%]"
      "^\\\\end{document}"
-     mm-uu-latex-extract
+     ,#'mm-uu-latex-extract
      nil
-     mm-uu-latex-test)
+     ,#'mm-uu-latex-test)
     (org-src-code-block
      "^[ \t]*#\\+begin_"
      "^[ \t]*#\\+end_"
-     mm-uu-org-src-code-block-extract)
+     ,#'mm-uu-org-src-code-block-extract)
     (org-meta-line
      "^[ \t]*#\\+[[:alpha:]]+: "
      "$"
-     mm-uu-org-src-code-block-extract))
+     ,#'mm-uu-org-src-code-block-extract))
   "A list of specifications for non-MIME attachments.
-Each element consist of the following entries: label,
-start-regexp, end-regexp, extract-function, test-function.
+Each element consist of a `mm-uu-entry'.
+The functions in the last 3 slots of this type can make use of the following
+dynamically-scoped variables:
+`file-name', `start-point', and `end-point'.
 
 After modifying this list you must run \\[mm-uu-configure].
 
@@ -230,23 +232,11 @@ To disable dissecting shar codes, for instance, add
 
 ;; functions
 
-(defsubst mm-uu-type (entry)
-  (car entry))
-
-(defsubst mm-uu-beginning-regexp (entry)
-  (nth 1 entry))
-
-(defsubst mm-uu-end-regexp (entry)
-  (nth 2 entry))
-
-(defsubst mm-uu-function-extract (entry)
-  (nth 3 entry))
-
-(defsubst mm-uu-function-1 (entry)
-  (nth 4 entry))
-
-(defsubst mm-uu-function-2 (entry)
-  (nth 5 entry))
+(cl-defstruct (mm-uu-entry
+               (:conc-name mm-uu-)
+               (:constructor nil)
+               (:type list))
+  type beginning-regexp end-regexp function-extract function-1 function-2)
 
 (defcustom mm-uu-hide-markers (< 16 (length (defined-colors)))
   "If non-nil, hide verbatim markers.
@@ -261,19 +251,23 @@ The value should be nil on displays where the face
 			 (((type tty)
 			   (class color)
 			   (background dark))
-			  (:background "dark blue"))
+			  (:background "dark blue"
+			   :extend t))
 			 (((class color)
 			   (background dark))
 			  (:foreground "light yellow"
-			   :background "dark green"))
+			   :background "dark green"
+			   :extend t))
 			 (((type tty)
 			   (class color)
 			   (background light))
-			  (:foreground "dark blue"))
+			  (:foreground "dark blue"
+			   :extend t))
 			 (((class color)
 			   (background light))
 			  (:foreground "dark green"
-			   :background "light yellow"))
+			   :background "light yellow"
+			   :extend t))
 			 (t
 			  ()))
   "Face for extracted buffers."
@@ -309,15 +303,15 @@ apply the face `mm-uu-extract'."
   "Configure detection of non-MIME attachments."
   (interactive)
   (if symbol (set-default symbol value))
-  (setq mm-uu-beginning-regexp nil)
-  (mapcar (lambda (mm-uu-entry)
-	     (if (mm-uu-configure-p (mm-uu-type mm-uu-entry) 'disabled)
-		 nil
-	       (setq mm-uu-beginning-regexp
-		     (concat mm-uu-beginning-regexp
-			     (if mm-uu-beginning-regexp "\\|")
-			     (mm-uu-beginning-regexp mm-uu-entry)))))
-	  mm-uu-type-alist))
+  (setq mm-uu-beginning-regexp
+        (mapconcat #'mm-uu-beginning-regexp
+	           (delq nil (mapcar
+	                      (lambda (entry)
+	                        (if (mm-uu-configure-p (mm-uu-type entry)
+		                                       'disabled)
+		                    nil entry))
+		              mm-uu-type-alist))
+		   "\\|")))
 
 (mm-uu-configure)
 
@@ -481,7 +475,7 @@ apply the face `mm-uu-extract'."
     (narrow-to-region (point) end-point)
     (mm-dissect-buffer t)))
 
-(defun mm-uu-pgp-signed-test (&rest rest)
+(defun mm-uu-pgp-signed-test (&rest _)
   (and
    mml2015-use
    (mml2015-clear-verify-function)
@@ -495,7 +489,7 @@ apply the face `mm-uu-extract'."
 
 (defvar gnus-newsgroup-charset)
 
-(defun mm-uu-pgp-signed-extract-1 (handles ctl)
+(defun mm-uu-pgp-signed-extract-1 (_handles _ctl)
   (let ((buf (mm-uu-copy-to-buffer (point-min) (point-max))))
     (with-current-buffer buf
       (if (mm-uu-pgp-signed-test)
@@ -509,8 +503,8 @@ apply the face `mm-uu-extract'."
 					      'iso-8859-1)))
 	      (funcall (mml2015-clear-verify-function))))
 	(when (and mml2015-use (null (mml2015-clear-verify-function)))
-	  (mm-set-handle-multipart-parameter
-	   mm-security-handle 'gnus-details
+	  (mm-sec-status
+	   'gnus-details
 	   (format-message
 	    "Clear verification not supported by `%s'.\n" mml2015-use)))
 	(mml2015-extract-cleartext-signature))
@@ -530,7 +524,7 @@ apply the face `mm-uu-extract'."
 					  mm-security-handle)))
     mm-security-handle))
 
-(defun mm-uu-pgp-encrypted-test (&rest rest)
+(defun mm-uu-pgp-encrypted-test (&rest _)
   (and
    mml2015-use
    (mml2015-clear-decrypt-function)
@@ -542,7 +536,7 @@ apply the face `mm-uu-extract'."
 	   (y-or-n-p "Decrypt pgp encrypted part? ")
 	 (message ""))))))
 
-(defun mm-uu-pgp-encrypted-extract-1 (handles ctl)
+(defun mm-uu-pgp-encrypted-extract-1 (_handles _ctl)
   (let ((buf (mm-uu-copy-to-buffer (point-min) (point-max)))
 	(first t)
 	charset)
@@ -599,6 +593,9 @@ apply the face `mm-uu-extract'."
     mm-security-handle))
 
 (defun mm-uu-gpg-key-skip-to-last ()
+  ;; FIXME: Don't use mm-uu-entry (we know which entry it is anyway!).
+  ;; FIXME: Move it to function-2 so it doesn't need to check
+  ;; mm-uu-configure-p.
   (let ((point (point))
 	(end-regexp (mm-uu-end-regexp mm-uu-entry))
 	(beginning-regexp (mm-uu-beginning-regexp mm-uu-entry)))
@@ -623,7 +620,7 @@ MIME-TYPE specifies a MIME type and parameters, which defaults to the
 value of `mm-uu-text-plain-type'."
   (let ((case-fold-search t)
 	(mm-uu-text-plain-type (or mime-type mm-uu-text-plain-type))
-	text-start start-point end-point file-name result mm-uu-entry func)
+	text-start start-point end-point file-name result mm-uu-entry)
     (save-excursion
       (goto-char (point-min))
       (cond
@@ -644,8 +641,7 @@ value of `mm-uu-text-plain-type'."
 			      beginning-regexp)
 		(setq mm-uu-entry (car alist))
 	      (pop alist))))
-	(if (setq func (mm-uu-function-1 mm-uu-entry))
-	    (funcall func))
+	(funcall (or (mm-uu-function-1 mm-uu-entry) #'ignore))
 	(forward-line);; in case of failure
 	(when (and (not (mm-uu-configure-p (mm-uu-type mm-uu-entry) 'disabled))
 		   (let ((end-regexp (mm-uu-end-regexp mm-uu-entry)))
@@ -655,8 +651,8 @@ value of `mm-uu-text-plain-type'."
 			   (re-search-forward end-regexp nil t)
 			 (forward-line)
 			 (setq end-point (point)))))
-		   (or (not (setq func (mm-uu-function-2 mm-uu-entry)))
-		       (funcall func)))
+		   (funcall (or (mm-uu-function-2 mm-uu-entry)
+		                (lambda () t))))
 	  (if (and (> start-point text-start)
 		   (progn
 		     (goto-char text-start)

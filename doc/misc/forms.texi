@@ -19,7 +19,8 @@
 @copying
 This file documents Forms mode, a form-editing major mode for GNU Emacs.
 
-Copyright @copyright{} 1989, 1997, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1997, 2001--2020 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -431,7 +432,7 @@ file.  Example:
 If the control file does not set @code{forms-format-list} a default
 format is used.  In this situation, Forms mode will deduce the number of
 fields from the data file providing this file exists and
-@code{forms-number-of-records} has not been set in the control file.
+@code{forms-number-of-fields} has not been set in the control file.
 
 The control file can optionally set the following additional Forms mode
 variables.  Most of them have default values that are good for most

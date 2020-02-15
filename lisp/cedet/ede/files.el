@@ -1,8 +1,8 @@
 ;;; ede/files.el --- Associate projects with files and directories.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -120,7 +120,7 @@ of the anchor file for the project."
   "Get the inode of the directory project PROJ is in."
   (if (slot-boundp proj 'dirinode)
       (oref proj dirinode)
-    (oset proj dirinode (ede--inode-for-dir (oref proj :directory)))))
+    (oset proj dirinode (ede--inode-for-dir (oref proj directory)))))
 
 (defun ede--inode-get-toplevel-open-project (inode)
   "Return an already open toplevel project that is managing INODE.
@@ -159,7 +159,8 @@ If DIR is the root project, then it is the same."
     (when rootreturn (set rootreturn proj))
     ;; Find subprojects.
     (when (and proj (if ede--disable-inode
-			(not (string= ft (expand-file-name (oref proj :directory))))
+			(not (string= ft (expand-file-name
+                                          (oref proj directory))))
 		      (not (equal inode (ede--project-inode proj)))))
       (setq ans (ede-find-subproject-for-directory proj ft)))
     ans))
@@ -175,8 +176,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	(shortans nil))
     (while (and all (not ans))
       ;; Do the check.
-      (let ((pd (expand-file-name (oref (car all) :directory)))
-	    )
+      (let ((pd (expand-file-name (oref (car all) directory))))
 	(cond
 	 ;; Exact text match.
 	 ((string= pd ft)
@@ -187,7 +187,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	      (setq shortans (car all))
 	    ;; We already have a short answer, so see if pd (the match we found)
 	    ;; is longer.  If it is longer, then it is more precise.
-	    (when (< (length (oref shortans :directory))
+	    (when (< (length (oref shortans directory))
 		     (length pd))
 	      (setq shortans (car all))))
 	  )
@@ -208,7 +208,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	      (setq shortans (car all))
 	    ;; We already have a short answer, so see if pd (the match we found)
 	    ;; is longer.  If it is longer, then it is more precise.
-	    (when (< (length (expand-file-name (oref shortans :directory)))
+	    (when (< (length (expand-file-name (oref shortans directory)))
 		     (length pd))
 	      (setq shortans (car all))))
 	  )))
@@ -228,7 +228,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	 proj
 	 (lambda (SP)
 	   (when (not ans)
-	     (if (string= fulldir (file-truename (oref SP :directory)))
+	     (if (string= fulldir (file-truename (oref SP directory)))
 		 (setq ans SP)
 	       (ede-find-subproject-for-directory SP dir)))))
 	ans)
@@ -358,11 +358,11 @@ If DIR is not part of a project, return nil."
      ((and (string= dir default-directory)
 	   ede-object-root-project)
       ;; Try the local buffer cache first.
-      (oref ede-object-root-project :directory))
+      (oref ede-object-root-project directory))
 
      ;; See if there is an existing project in DIR.
      ((setq ans (ede-directory-get-toplevel-open-project dir))
-      (oref ans :directory))
+      (oref ans directory))
 
      ;; Detect using our file system detector.
      ((setq ans (ede-detect-directory-for-project dir))
@@ -425,7 +425,7 @@ FILENAME should be just a filename which occurs in a directory controlled
 by this project.
 Optional argument FORCE forces the default filename to be provided even if it
 doesn't exist.
-If FORCE equals 'newfile, then the cache is ignored and a new file in THIS
+If FORCE equals `newfile', then the cache is ignored and a new file in THIS
 is returned."
   (require 'ede/locate)
   (let* ((loc (ede-get-locator-object this))

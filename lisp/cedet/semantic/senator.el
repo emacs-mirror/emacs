@@ -1,6 +1,6 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -36,6 +36,7 @@
 (require 'semantic/ctxt)
 (require 'semantic/decorate)
 (require 'semantic/format)
+(require 'semantic/analyze)
 
 (eval-when-compile (require 'semantic/find))
 
@@ -43,7 +44,6 @@
 
 (declare-function semantic-analyze-tag-references "semantic/analyze/refs")
 (declare-function semantic-analyze-refs-impl "semantic/analyze/refs")
-(declare-function semantic-analyze-find-tag "semantic/analyze")
 (declare-function semantic-analyze-tag-type "semantic/analyze/fcn")
 (declare-function semantic-tag-external-class "semantic/sort")
 (declare-function imenu--mouse-menu "imenu")
@@ -148,14 +148,14 @@ Return nil otherwise."
   "Return the tag before POS or one of its parent where to step."
   (let (ol tag)
     (while (and pos (> pos (point-min)) (not tag))
-      (setq pos (semantic-overlay-previous-change pos))
+      (setq pos (previous-overlay-change pos))
       (when pos
         ;; Get overlays at position
-        (setq ol (semantic-overlays-at pos))
+        (setq ol (overlays-at pos))
         ;; find the overlay that belongs to semantic
         ;; and STARTS or ENDS at the found position.
         (while (and ol (not tag))
-          (setq tag (semantic-overlay-get (car ol) 'semantic))
+          (setq tag (overlay-get (car ol) 'semantic))
           (unless (and tag (semantic-tag-p tag)
                        (or (= (semantic-tag-start tag) pos)
                            (= (semantic-tag-end   tag) pos)))
@@ -198,7 +198,7 @@ Tags of those classes are excluded from search."
 
 (defun senator-search-default-tag-filter (tag)
   "Default function that filters searched tags.
-Ignore tags of classes in `senator-search-ignore-tag-classes'"
+Ignore tags of classes in `senator-search-ignore-tag-classes'."
   (not (memq (semantic-tag-class tag)
              senator-search-ignore-tag-classes)))
 
@@ -526,6 +526,8 @@ Some tags such as includes have other reference features."
     (if (not result)
         (error "No up reference found")
       (push-mark)
+      (when (fboundp 'xref-push-marker-stack)
+        (xref-push-marker-stack))
       (cond
        ;; A tag
        ((semantic-tag-p result)
@@ -594,7 +596,6 @@ Makes C/C++ language like assumptions."
 
 	;; Get the data type, and try to find that.
         ((semantic-tag-type tag)
-	 (require 'semantic/analyze)
 	 (let ((scope (semantic-calculate-scope (point))))
 	   (semantic-analyze-tag-type tag scope))
 	 )
@@ -718,6 +719,22 @@ yanked to."
             (message "Use C-y to recover the yank the text of %s."
                      (semantic-tag-name ft))))))
 
+(cl-defstruct (senator-register
+               (:constructor nil)
+               (:constructor senator-make-register (foreign-tag)))
+  foreign-tag)
+
+(cl-defmethod register-val-jump-to ((data senator-register) _arg)
+  (let ((ft (senator-register-foreign-tag data)))
+    (switch-to-buffer (semantic-tag-buffer ft))
+    (goto-char (semantic-tag-start ft))))
+
+(cl-defmethod register-val-describe ((data senator-register) _verbose)
+  (cl-prin1-to-string (senator-register-foreign-tag data)))
+
+(cl-defmethod register-val-insert ((data senator-register))
+  (semantic-insert-foreign-tag (senator-register-foreign-tag data)))
+
 ;;;###autoload
 (defun senator-copy-tag-to-register (register &optional kill-flag)
   "Copy the current tag into REGISTER.
@@ -733,13 +750,7 @@ if available."
   (semantic-fetch-tags)
   (let ((ft (semantic-obtain-foreign-tag)))
     (when ft
-      (set-register
-       register (registerv-make
-                 ft
-                 :insert-func #'semantic-insert-foreign-tag
-                 :jump-func (lambda (v)
-                              (switch-to-buffer (semantic-tag-buffer v))
-                              (goto-char (semantic-tag-start v)))))
+      (set-register register (senator-make-register ft))
       (if kill-flag
           (kill-region (semantic-tag-start ft)
                        (semantic-tag-end ft))))))

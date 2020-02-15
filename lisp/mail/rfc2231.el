@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -223,7 +223,7 @@ These look like:
     (mm-with-unibyte-buffer
       (insert value)
       (goto-char (point-min))
-      (while (re-search-forward "%\\([0-9A-Fa-f][0-9A-Fa-f]\\)" nil t)
+      (while (re-search-forward "%\\([[:xdigit:]][[:xdigit:]]\\)" nil t)
 	(insert
 	 (prog1
 	     (string-to-number (match-string 1) 16)

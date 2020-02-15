@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -157,7 +157,7 @@
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu"
-  `("Log-View"
+  '("Log-View"
     ;; XXX Do we need menu entries for these?
     ;; ["Quit"  quit-window]
     ;; ["Kill This Buffer"  kill-this-buffer]
@@ -196,15 +196,15 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
 
 (defface log-view-file
   '((((class color) (background light))
-     (:background "grey70" :weight bold))
-    (t (:weight bold)))
+     (:background "grey70" :weight bold :extend t))
+    (t (:weight bold :extend t)))
   "Face for the file header line in `log-view-mode'."
   :group 'log-view)
 
 (defface log-view-message
   '((((class color) (background light))
-     (:background "grey85"))
-    (t (:weight bold)))
+     (:background "grey85" :extend t))
+    (t (:weight bold :extend t)))
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 
@@ -217,7 +217,7 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
 The match group number 1 should match the file name itself.")
 
 (defvar log-view-per-file-logs t
-  "Set if to t if the logs are shown one file at a time.")
+  "Set to t if the logs are shown one file at a time.")
 
 (defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
@@ -517,8 +517,10 @@ Works like `end-of-defun'."
 If called interactively, visit the version at point."
   (interactive "d")
   (unless log-view-per-file-logs
-    (when (> (length log-view-vc-fileset) 1)
-      (error "Multiple files shown in this buffer, cannot use this command here")))
+    (when (or (> (length log-view-vc-fileset) 1)
+              (null (car log-view-vc-fileset))
+              (file-directory-p (car log-view-vc-fileset)))
+      (user-error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
     (switch-to-buffer (vc-find-revision (if log-view-per-file-logs
@@ -561,8 +563,10 @@ If called interactively, visit the version at point."
 If called interactively, annotate the version at point."
   (interactive "d")
   (unless log-view-per-file-logs
-    (when (> (length log-view-vc-fileset) 1)
-      (error "Multiple files shown in this buffer, cannot use this command here")))
+    (when (or (> (length log-view-vc-fileset) 1)
+              (null (car log-view-vc-fileset))
+              (file-directory-p (car log-view-vc-fileset)))
+      (user-error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
     (vc-annotate (if log-view-per-file-logs
@@ -614,10 +618,11 @@ considered file(s)."
     ;; When TO and FR are the same, or when point is on a line after
     ;; the last entry, look at the previous revision.
     (when (or (string-equal fr to)
-              (>= (point)
+              (>= end
                   (save-excursion
-                    (goto-char (car fr-entry))
-                    (forward-line))))
+                    (goto-char end)
+                    (log-view-end-of-defun)
+                    (point))))
       (setq fr (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
     (vc-diff-internal
      t (list log-view-vc-backend

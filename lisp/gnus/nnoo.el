@@ -1,6 +1,6 @@
 ;;; nnoo.el --- OO Gnus Backends
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -269,8 +269,7 @@
 
 (defun nnoo-server-opened (backend server)
   (and (nnoo-current-server-p backend server)
-       nntp-server-buffer
-       (buffer-name nntp-server-buffer)))
+       (buffer-live-p nntp-server-buffer)))
 
 (defmacro nnoo-define-basics (backend)
   "Define `close-server', `server-opened' and `status-message'."
@@ -278,11 +277,12 @@
      (nnoo-define-basics-1 ',backend)))
 
 (defun nnoo-define-basics-1 (backend)
-  (let ((functions '(close-server server-opened status-message)))
-    (while functions
-      (eval `(deffoo ,(nnoo-symbol backend (car functions))
-		 (&optional server)
-	       (,(nnoo-symbol 'nnoo (pop functions)) ',backend server)))))
+  (dolist (function '(server-opened status-message))
+    (eval `(deffoo ,(nnoo-symbol backend function) (&optional server)
+	     (,(nnoo-symbol 'nnoo function) ',backend server))))
+  (dolist (function '(close-server))
+    (eval `(deffoo ,(nnoo-symbol backend function) (&optional server defs)
+	     (,(nnoo-symbol 'nnoo function) ',backend server))))
   (eval `(deffoo ,(nnoo-symbol backend 'open-server)
 	     (server &optional defs)
 	   (nnoo-change-server ',backend server defs))))

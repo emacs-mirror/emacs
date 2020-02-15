@@ -1,6 +1,6 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -567,10 +567,6 @@
 ;; Consider the use of `:box' face attribute under Emacs 21
 ;; Consider the use of `modification-hooks' text property instead of
 ;; rebinding the keymap
-;; Maybe provide complete XEmacs support in the future however the
-;; "extent" is the single largest obstacle lying ahead, read the
-;; document in Emacs info.
-;; (progn (require 'info) (Info-find-node "elisp" "Not Intervals"))
 ;;
 ;;
 ;; ---------------
@@ -590,7 +586,7 @@
 ;; attempt of implementing the table feature to Emacs.  This greatly
 ;; motivated me to follow through to its completion.
 ;;
-;; Kenichi Handa <handa@etl.go.jp> kindly guided me through to
+;; Kenichi Handa <handa@gnu.org> kindly guided me through to
 ;; overcome many technical issues while I was struggling with quail
 ;; related internationalization problems.
 ;;
@@ -797,6 +793,8 @@ simply by any key input."
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
+(make-obsolete-variable 'table-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."
@@ -882,7 +880,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
   (push '(table-mode-indicator (table-fixed-width-mode " Fixed-Table" " Table"))
         minor-mode-alist))
 
-(defconst table-source-languages '(html latex cals)
+(defconst table-source-languages '(html latex cals wiki mediawiki)
   "Supported source languages.")
 (defvar table-source-info-plist nil
   "General storage for temporary information used while generating source.")
@@ -930,16 +928,16 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 ;; refill the table cache.  If the command were not listed fast
 ;; typing can cause unwanted cache refill.
 (defconst table-cell-bindings
-  '(([(control i)]	. table-forward-cell)
-    ([(control I)]	. table-backward-cell)
+  '(([(control ?i)]	. table-forward-cell)
+    ([(control ?I)]	. table-backward-cell)
     ([tab]		. table-forward-cell)
     ([(shift backtab)]	. table-backward-cell) ; for HPUX console keyboard
     ([(shift iso-lefttab)]    . table-backward-cell) ; shift-tab on a microsoft natural keyboard and redhat linux
     ([(shift tab)]	. table-backward-cell)
     ([backtab]          . table-backward-cell) ; for terminals (e.g., xterm)
     ([return]		. *table--cell-newline)
-    ([(control m)]	. *table--cell-newline)
-    ([(control j)]	. *table--cell-newline-and-indent)
+    ([(control ?m)]	. *table--cell-newline)
+    ([(control ?j)]	. *table--cell-newline-and-indent)
     ([mouse-3]		. *table--present-cell-popup-menu)
     ([(control ?>)]	. table-widen-cell)
     ([(control ?<)]	. table-narrow-cell)
@@ -961,6 +959,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     (completion-separator-self-insert-autofilling . *table--cell-self-insert-command)
     (completion-separator-self-insert-command . *table--cell-self-insert-command)
     (delete-char . *table--cell-delete-char)
+    (delete-forward-char . *table--cell-delete-char)
     (delete-backward-char . *table--cell-delete-backward-char)
     (backward-delete-char . *table--cell-delete-backward-char)
     (backward-delete-char-untabify . *table--cell-delete-backward-char)
@@ -1202,35 +1201,13 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
       :help "Move point backward by cell(s)"])
     ))
 
-;; XEmacs causes an error when encountering unknown keywords in the
-;; menu definition.  Specifically the :help keyword is new in Emacs 21
-;; and causes error for the XEmacs function `check-menu-syntax'.  IMHO
-;; it is unwise to generate an error for unknown keywords because it
-;; kills the nice backward compatible extensibility of keyword use.
-;; Unknown keywords should be quietly ignore so that future extension
-;; does not cause a problem in the old implementation.  Sigh...
-(when (featurep 'xemacs)
-  (defun table--tweak-menu-for-xemacs (menu)
-    (cond
-     ((listp menu)
-      (mapcar #'table--tweak-menu-for-xemacs menu))
-     ((vectorp menu)
-      (let ((len (length menu)))
-        (dotimes (i len)
-          ;; replace :help with something harmless.
-          (if (eq (aref menu i) :help) (aset menu i :included)))))))
-  (mapcar #'table--tweak-menu-for-xemacs
-          (list table-global-menu table-cell-menu))
-  (defvar mark-active t))
-
 ;; register table menu under global tools menu
 (unless table-disable-menu
-  (easy-menu-define table-global-menu-map nil "Table global menu" table-global-menu)
-  (if (featurep 'xemacs)
-      (progn
-	(easy-menu-add-item nil '("Tools") table-global-menu-map))
-    (easy-menu-add-item (current-global-map) '("menu-bar" "tools") "--")
-    (easy-menu-add-item (current-global-map) '("menu-bar" "tools") table-global-menu-map)))
+  (easy-menu-define table-global-menu-map nil
+    "Table global menu" table-global-menu)
+  (easy-menu-add-item (current-global-map) '("menu-bar" "tools") "--")
+  (easy-menu-add-item (current-global-map)
+                      '("menu-bar" "tools") table-global-menu-map))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1310,8 +1287,8 @@ the last cache point coordinate."
        ;; set up the update timer unless it is explicitly inhibited.
        (unless table-inhibit-update
 	 (table--update-cell)))))
-(if (or (featurep 'xemacs)
-	(null (fboundp 'font-lock-add-keywords))) nil
+(if (null (fboundp 'font-lock-add-keywords))
+    nil
   ;; Color it as a keyword.
   (font-lock-add-keywords
    'emacs-lisp-mode
@@ -2046,8 +2023,6 @@ plain text and loses all the table specific features."
 		    (erase-buffer)
 		    (table--insert-rectangle rectangle)))))
 	  (restore-buffer-modified-p modified-flag))
-	(if (featurep 'xemacs)
-	    (table--warn-incompatibility))
 	cell)))
 
 ;;;###autoload
@@ -3077,7 +3052,11 @@ CALS (DocBook DTD):
       (table-put-source-info 'row-type (if (zerop table-cals-thead-rows) "tbody" "thead"))
       (set-marker-insertion-type (table-get-source-info 'colspec-marker) nil) ;; insert after
       (insert (format "    <%s valign=\"top\">\n" (table-get-source-info 'row-type))))
-     )))
+     ((eq language 'mediawiki)
+      (insert (format
+               "<!-- This HTML table template is generated by Emacs %s -->\n"
+               emacs-version))
+      (insert "{|\n")))))
 
 (defun table--generate-source-epilogue (dest-buffer language _col-list _row-list)
   "Generate and insert source epilogue into DEST-BUFFER."
@@ -3094,7 +3073,8 @@ CALS (DocBook DTD):
 	(dolist (col (sort (table-get-source-info 'colnum-list) '<))
           (insert (format "    <colspec colnum=\"%d\" colname=\"c%d\"/>\n" col col))))
       (insert (format "    </%s>\n  </tgroup>\n</table>\n" (table-get-source-info 'row-type))))
-     )))
+     ((eq language 'mediawiki)
+      (insert "|}\n")))))
 
 (defun table--generate-source-scan-rows (dest-buffer language _origin-cell col-list row-list)
   "Generate and insert source rows into DEST-BUFFER."
@@ -3106,7 +3086,11 @@ CALS (DocBook DTD):
 	(insert "  <tr>\n"))
        ((eq language 'cals)
 	(insert "      <row>\n"))
-       ))
+       ((eq language 'wiki)
+	(insert "|"))
+       ((and (eq language 'mediawiki)
+             (> (table-get-source-info 'current-row) 1))
+	(insert "|-\n"))))
     (table--generate-source-cells-in-a-row dest-buffer language col-list row-list)
     (with-current-buffer dest-buffer
       (cond
@@ -3116,7 +3100,9 @@ CALS (DocBook DTD):
 	(insert "      </row>\n")
 	(unless (/= (table-get-source-info 'current-row) table-cals-thead-rows)
 	  (insert (format "    </%s>\n" (table-get-source-info 'row-type)))
-	  (insert (format "    <%s valign=\"top\">\n" (table-put-source-info 'row-type "tbody")))))))
+	  (insert (format "    <%s valign=\"top\">\n" (table-put-source-info 'row-type "tbody")))))
+       ((eq language 'wiki)
+	(insert "|\n"))))
     (table-put-source-info 'current-row (1+ (table-get-source-info 'current-row)))
     (setq row-list (cdr row-list))))
 
@@ -3185,7 +3171,8 @@ CALS (DocBook DTD):
 		       (not (memq valign '(top none))))
 		  (insert " valign=\"" (symbol-name valign) "\""))
 	      (insert ">\n"))
-	     ))
+	     ((memq language '(wiki mediawiki))
+	      (insert "|"))))
 	  (table--generate-source-cell-contents dest-buffer language cell)
 	  (with-current-buffer dest-buffer
 	    (cond
@@ -3193,7 +3180,10 @@ CALS (DocBook DTD):
 	      (insert (format"    </%s>\n" (table-get-source-info 'cell-type))))
 	     ((eq language 'cals)
 	      (insert "        </entry>\n"))
-	     ))
+	     ((eq language 'wiki)
+	      (insert "|"))
+	     ((eq language 'mediawiki)
+	      (insert ?\n))))
 	  (table-forward-cell 1 t)
 	  (table-put-source-info 'current-column (table-get-source-info 'next-column))
 	  ))))
@@ -3218,11 +3208,7 @@ CALS (DocBook DTD):
 	  (while (and (re-search-forward "$" nil t)
 		      (not (eobp)))
 	    (insert "<br />")
-	    (forward-char 1)))
-	(unless (and table-html-delegate-spacing-to-user-agent
-		     (progn
-		       (goto-char (point-min))
-		       (looking-at "\\s *\\'")))))
+	    (forward-char 1))))
        ((eq language 'cals)
 	(table--remove-eol-spaces (point-min) (point-max))
 	(if (re-search-forward "\\s +\\'" nil t)
@@ -3232,11 +3218,12 @@ CALS (DocBook DTD):
     (with-current-buffer dest-buffer
       (let ((beg (point)))
 	(insert cell-contents)
-	(indent-rigidly beg (point)
-			(cond
-			 ((eq language 'html) 6)
-			 ((eq language 'cals) 10)))
-	(insert ?\n)))))
+	(when (memq language '(html cals))
+	  (indent-rigidly beg (point)
+			  (cond
+			   ((eq language 'html) 6)
+			   ((eq language 'cals) 10)))
+	(insert ?\n))))))
 
 (defun table--cell-horizontal-char-p (c)
   "Test if character C is one of the horizontal characters"
@@ -3878,9 +3865,7 @@ converts a table into plain text without frames.  It is a companion to
   ;; Add menu for table cells.
   (unless table-disable-menu
     (easy-menu-define table-cell-menu-map table-cell-map
-      "Table cell menu" table-cell-menu)
-    (if (featurep 'xemacs)
-	(easy-menu-add table-cell-menu)))
+      "Table cell menu" table-cell-menu))
   (run-hooks 'table-cell-map-hook))
 
 ;; Create the keymap after running the user init file so that the user
@@ -4093,7 +4078,7 @@ When the optional parameter NOW is nil it only sets up the update
 timer.  If it is non-nil the function copies the contents of the cell
 cache buffer into the designated cell in the table buffer."
   (if (null table-update-timer) nil
-    (table--cancel-timer table-update-timer)
+    (cancel-timer table-update-timer)
     (setq table-update-timer nil))
   (if (or (not now)
 	  (and (boundp 'quail-converting)
@@ -4136,7 +4121,7 @@ cache buffer into the designated cell in the table buffer."
 (defun table--update-cell-widened (&optional now)
   "Update the contents of the cells that are affected by widening operation."
   (if (null table-widen-timer) nil
-    (table--cancel-timer table-widen-timer)
+    (cancel-timer table-widen-timer)
     (setq table-widen-timer nil))
   (if (not now)
       (setq table-widen-timer
@@ -4175,7 +4160,7 @@ cache buffer into the designated cell in the table buffer."
 (defun table--update-cell-heightened (&optional now)
   "Update the contents of the cells that are affected by heightening operation."
   (if (null table-heighten-timer) nil
-    (table--cancel-timer table-heighten-timer)
+    (cancel-timer table-heighten-timer)
     (setq table-heighten-timer nil))
   (if (not now)
       (setq table-heighten-timer
@@ -4270,10 +4255,6 @@ cdr is the history symbol."
     (read-from-minibuffer
      (format "%s (default %s): " (car prompt-history) default)
      "" nil nil (cdr prompt-history) default))
-  (and (featurep 'xemacs)
-       (equal (car (symbol-value (cdr prompt-history))) "")
-       (set (cdr prompt-history)
-	    (cdr (symbol-value (cdr prompt-history)))))
   (car (symbol-value (cdr prompt-history))))
 
 (defun table--buffer-substring-and-trim (beg end)
@@ -4584,10 +4565,7 @@ of line."
 
 (defun table--untabify (beg end)
   "Wrapper to raw untabify."
-  (untabify beg end)
-  (if (featurep 'xemacs)
-      ;; Cancel strange behavior of xemacs
-      (message "")))
+  (untabify beg end))
 
 (defun table--multiply-string (string multiplier)
   "Multiply string and return it."
@@ -4959,7 +4937,8 @@ When optional LOCATION is provided the test is performed at that location."
 	   (save-excursion
 	     (goto-char location)
 	     (table--probe-cell))
-	 (table--probe-cell))))
+	 (table--probe-cell))
+       t))
 
 (defun table--region-in-cell-p (beg end)
   "Return t when location BEG and END are in a valid table cell in the current buffer."
@@ -4970,7 +4949,7 @@ When optional LOCATION is provided the test is performed at that location."
 		(equal cell-beg (progn (goto-char end) (table--probe-cell))))))))
 
 (defun table--at-cell-p (position &optional object at-column)
-  "Returns non-nil if POSITION has table-cell property in OBJECT.
+  "Return non-nil if POSITION has table-cell property in OBJECT.
 OBJECT is optional and defaults to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil."
   (if (and at-column (stringp object))
@@ -5062,7 +5041,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
        (get-text-property (point) 'table-cell)))
 
 (defun table--probe-cell (&optional abort-on-error)
-  "Probes a table cell around the point.
+  "Probe a table cell around the point.
 Searches for the left upper corner and the right bottom corner of a table
 cell which contains the current point location.
 
@@ -5171,7 +5150,7 @@ and the right cell border character."
 
 (defun table--put-cell-face-property (beg end &optional object)
   "Put cell face property."
-  (put-text-property beg end 'face 'table-cell object))
+  (put-text-property beg end 'font-lock-face 'table-cell object))
 
 (defun table--put-cell-keymap-property (beg end &optional object)
   "Put cell keymap property."
@@ -5198,7 +5177,7 @@ instead of the current buffer and returns the OBJECT."
 				   'table-cell nil
 				   'table-justify nil
 				   'table-valign nil
-				   'face nil
+				   'font-lock-face nil
 				   'rear-nonsticky nil
 				   'cursor-sensor-functions nil
 				   'keymap nil)
@@ -5208,9 +5187,7 @@ instead of the current buffer and returns the OBJECT."
 
 (defun table--update-cell-face ()
   "Update cell face according to the current mode."
-  (if (featurep 'xemacs)
-      (set-face-property 'table-cell 'underline table-fixed-width-mode)
-    (set-face-inverse-video 'table-cell table-fixed-width-mode)))
+  (set-face-inverse-video 'table-cell table-fixed-width-mode))
 
 (table--update-cell-face)
 
@@ -5220,11 +5197,11 @@ instead of the current buffer and returns the OBJECT."
       (get-text-property (1- (cdr cell)) property)))
 
 (defun table--get-cell-justify-property (cell)
-  "Get cell's justify property."
+  "Get CELL's justify property."
   (table--get-property cell 'table-justify))
 
 (defun table--get-cell-valign-property (cell)
-  "Get cell's vertical alignment property."
+  "Get CELL's vertical alignment property."
   (table--get-property cell 'table-valign))
 
 (defun table--put-property  (cell property value)
@@ -5235,11 +5212,11 @@ instead of the current buffer and returns the OBJECT."
     (put-text-property (1- end) end property value)))
 
 (defun table--put-cell-justify-property (cell justify)
-  "Put cell's justify property."
+  "Put CELL's JUSTIFY property."
   (table--put-property cell 'table-justify justify))
 
 (defun table--put-cell-valign-property (cell valign)
-  "Put cell's vertical alignment property."
+  "Put CELL's vertical alignment property."
   (table--put-property cell 'table-valign valign))
 
 (defun table--point-entered/left-cell-function (_window _oldpos dir)
@@ -5263,27 +5240,12 @@ This feature is disabled when `table-disable-incompatibility-warning'
 is non-nil.  The warning is done only once per session for each item."
   (unless (and table-disable-incompatibility-warning
 	       (not (called-interactively-p 'interactive)))
-    (cond ((and (featurep 'xemacs)
-		(not (get 'table-disable-incompatibility-warning 'xemacs)))
-	   (put 'table-disable-incompatibility-warning 'xemacs t)
-	   (display-warning 'table
-	    "
-*** Warning ***
-
-Table package mostly works fine under XEmacs, however, due to the
-peculiar implementation of text property under XEmacs, cell splitting
-and any undo operation of table exhibit some known strange problems,
-such that a border characters dissolve into adjacent cells.  Please be
-aware of this.
-
-"
-	    :warning))
-	  ((and (boundp 'flyspell-mode)
-		flyspell-mode
-		(not (get 'table-disable-incompatibility-warning 'flyspell)))
-	   (put 'table-disable-incompatibility-warning 'flyspell t)
-	   (display-warning 'table
-	    "
+    (when (and (boundp 'flyspell-mode)
+	       flyspell-mode
+	       (not (get 'table-disable-incompatibility-warning 'flyspell)))
+      (put 'table-disable-incompatibility-warning 'flyspell t)
+      (display-warning 'table
+	               "
 *** Warning ***
 
 Flyspell minor mode is known to be incompatible with this table
@@ -5291,8 +5253,7 @@ package.  The flyspell version 1.5d at URL `http://kaolin.unice.fr/~serrano'
 works better than the previous versions however not fully compatible.
 
 "
-	    :warning))
-	  )))
+	               :warning))))
 
 (defun table--cell-blank-str (&optional n)
   "Return blank table cell string of length N."
@@ -5338,7 +5299,6 @@ Current buffer must already be set to the cache buffer."
     (setq justify (or justify table-cell-info-justify))
     (and justify
 	 (not (eq justify 'left))
-	 (not (featurep 'xemacs))
 	 (set-marker-insertion-type marker-point t))
     (table--remove-eol-spaces (point-min) (point-max))
     (if table-fixed-width-mode
@@ -5486,19 +5446,7 @@ It returns COLUMN unless STR contains some wide characters."
 
 (defun table--set-timer (seconds func args)
   "Generic wrapper for setting up a timer."
-  (if (featurep 'xemacs)
-      ;; the picky xemacs refuses to accept zero
-      (add-timeout (if (zerop seconds) 0.01 seconds) func args nil)
-    ;;(run-at-time seconds nil func args)))
-    ;; somehow run-at-time causes strange problem under Emacs 20.7
-    ;; this problem does not show up under Emacs 21.0.90
-    (run-with-idle-timer seconds nil func args)))
-
-(defun table--cancel-timer (timer)
-  "Generic wrapper for canceling a timer."
-  (if (featurep 'xemacs)
-      (disable-timeout timer)
-    (cancel-timer timer)))
+  (run-with-idle-timer seconds nil func args))
 
 (defun table--get-last-command ()
   "Generic wrapper for getting the real last command."

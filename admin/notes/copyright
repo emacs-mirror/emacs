@@ -1,4 +1,4 @@
-Copyright (C) 2007-2018 Free Software Foundation, Inc.
+Copyright (C) 2007-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -161,9 +161,6 @@ etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
 <https://lists.gnu.org/r/emacs-devel/2007-02/msg00324.html>
 
-etc/FTP, ORDERS
-  - trivial (at time of writing), no license needed
-
 etc/HELLO
   standard notices. Just a note that although the file itself is not
   really copyrightable, in the wider context of it being part of
@@ -196,14 +193,14 @@ lib-src/etags.c
   After some investigation in Feb 2007, then to the best of our
   knowledge we believe that the original 1984 Emacs version was based
   on the version in BSD4.2. See for example this 1985 post from Ken Arnold:
-  <http://groups.google.com/group/mod.sources/browse_thread/thread/ffe5c55845a640a9>
+  <https://groups.google.com/group/mod.sources/browse_thread/thread/ffe5c55845a640a9>
     I have received enough requests for the current source to ctags
     to post it. Here is the latest version (what will go out with
     4.3, modulo any bugs fixed during the beta period). It is the
     4.2 ctags with recognition of yacc and lex tags added.
 
   See also a 1984 version of ctags (no copyright) posted to net.sources:
-  <http://groups.google.com/group/net.sources/msg/a21b6c21be12a98d>
+  <https://groups.google.com/group/net.sources/msg/a21b6c21be12a98d>
   Version of etags.c in emacs-16.56 duplicates comment typos.
 
   Accordingly, in Feb 2007 we added a 1984 copyright for the
@@ -353,9 +350,7 @@ added or not, rms says (2007-02-25, "oldXmenu issues"):
 insque.c had no copyright notice until 2005. The version of insque.c
 added to Emacs 1992-01-27 is essentially the same as insremque.c added
 to glic three days later by Roland McGrath, with an FSF copyright and
-GPL, but no ChangeLog entry:
-<http://sources.redhat.com/cgi-bin/cvsweb.cgi/~checkout~/libc/misc/insremque.c?\
-rev=1.1&cvsroot=glibc>
+GPL, but no ChangeLog entry.
 To the best of his recollection, McGrath (who has a copyright
 assignment) was the author of this file (email from roland at frob.com
 to rms, 2007-02-23, "Where did insque.c come from?"). The FSF

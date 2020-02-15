@@ -1,9 +1,8 @@
 ;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
-;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
 ;; Keywords: emulations
 ;; Package: tpu-edt
 ;; Obsolete-since: 24.5

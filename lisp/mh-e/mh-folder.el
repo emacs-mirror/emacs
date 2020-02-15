@@ -1,9 +1,8 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -32,7 +31,6 @@
 
 (require 'mh-e)
 (require 'mh-scan)
-(mh-require-cl)
 
 ;; Dynamically-created functions not found in mh-loaddefs.el.
 (autoload 'mh-tool-bar-folder-buttons-init "mh-tool-bar")
@@ -81,16 +79,14 @@ the MH mail system."
     (add-to-list 'desktop-buffer-mode-handlers
                  '(mh-folder-mode . mh-restore-desktop-buffer)))
 
-(defun mh-restore-desktop-buffer (desktop-buffer-file-name
-                                  desktop-buffer-name
-                                  desktop-buffer-misc)
+(defun mh-restore-desktop-buffer (_file-name name _misc)
   "Restore an MH folder buffer specified in a desktop file.
-When desktop creates a buffer, DESKTOP-BUFFER-FILE-NAME holds the
-file name to visit, DESKTOP-BUFFER-NAME holds the desired buffer
-name, and DESKTOP-BUFFER-MISC holds a list of miscellaneous info
+When desktop creates a buffer, FILE-NAME holds the
+file name to visit, NAME holds the desired buffer
+name, and MISC holds a list of miscellaneous info
 used by the `desktop-buffer-mode-handlers' functions."
   (mh-find-path)
-  (mh-visit-folder desktop-buffer-name)
+  (mh-visit-folder name)
   (current-buffer))
 
 
@@ -519,7 +515,7 @@ font-lock is done highlighting.")
 (defmacro mh-remove-xemacs-horizontal-scrollbar ()
   "Get rid of the horizontal scrollbar that XEmacs insists on putting in."
   (when (featurep 'xemacs)
-    `(if (and (featurep 'scrollbar)
+    '(if (and (featurep 'scrollbar)
               (fboundp 'set-specifier))
          (set-specifier horizontal-scrollbar-visible-p nil
                         (cons (current-buffer) nil)))))
@@ -933,9 +929,9 @@ many unread messages to skip."
                (setq count (1- count)))
              (not (car unread-sequence)))
            (message "No more unread messages"))
-          (t (loop for msg in unread-sequence
-                   when (mh-goto-msg msg t) return nil
-                   finally (message "No more unread messages"))))))
+          (t (cl-loop for msg in unread-sequence
+                      when (mh-goto-msg msg t) return nil
+                      finally (message "No more unread messages"))))))
 
 ;;;###mh-autoload
 (defun mh-page-msg (&optional lines)
@@ -1031,9 +1027,9 @@ many unread messages to skip."
                (setq count (1- count)))
              (not (car unread-sequence)))
            (message "No more unread messages"))
-          (t (loop for msg in unread-sequence
-                   when (mh-goto-msg msg t) return nil
-                   finally (message "No more unread messages"))))))
+          (t (cl-loop for msg in unread-sequence
+                      when (mh-goto-msg msg t) return nil
+                      finally (message "No more unread messages"))))))
 
 ;;;###mh-autoload
 (defun mh-quit ()
@@ -1504,7 +1500,7 @@ function doesn't recenter the folder buffer."
          (let ((lines-from-end 2))
            (save-excursion
              (while (> (point-max) (progn (forward-line) (point)))
-               (incf lines-from-end)))
+               (cl-incf lines-from-end)))
            (recenter (- lines-from-end))))
         ;; '(4) is the same as C-u prefix argument.
         (t (recenter (or arg '(4))))))
@@ -1588,10 +1584,11 @@ after the commands are processed."
                      ;; Preserve sequences in destination folder...
                      (when mh-refile-preserves-sequences-flag
                        (clrhash dest-map)
-                       (loop for i from (1+ (or last 0))
-                             for msg in (sort (copy-sequence msgs) #'<)
-                             do (loop for seq-name in (gethash msg seq-map)
-                                      do (push i (gethash seq-name dest-map))))
+                       (cl-loop
+                        for i from (1+ (or last 0))
+                        for msg in (sort (copy-sequence msgs) #'<)
+                        do (cl-loop for seq-name in (gethash msg seq-map)
+                                    do (push i (gethash seq-name dest-map))))
                        (maphash
                         #'(lambda (seq msgs)
                             ;; Can't be run in the background, since the
@@ -1640,10 +1637,10 @@ after the commands are processed."
           (mh-delete-scan-msgs mh-whitelist)
           (when mh-whitelist-preserves-sequences-flag
             (clrhash white-map)
-            (loop for i from (1+ (or last 0))
-                  for msg in (sort (copy-sequence mh-whitelist) #'<)
-                  do (loop for seq-name in (gethash msg seq-map)
-                           do (push i (gethash seq-name white-map))))
+            (cl-loop for i from (1+ (or last 0))
+                     for msg in (sort (copy-sequence mh-whitelist) #'<)
+                     do (cl-loop for seq-name in (gethash msg seq-map)
+                                 do (push i (gethash seq-name white-map))))
             (maphash
              #'(lambda (seq msgs)
                  ;; Can't be run in background, since the current
@@ -1923,10 +1920,11 @@ exist."
           (from (or (message-fetch-field "from") ""))
           folder-name)
       (setq folder-name
-            (loop for list in mh-default-folder-list
-                  when (string-match (nth 0 list) (if (nth 2 list) to/cc from))
-                  return (nth 1 list)
-                  finally return nil))
+            (cl-loop for list in mh-default-folder-list
+                     when (string-match (nth 0 list)
+                                        (if (nth 2 list) to/cc from))
+                     return (nth 1 list)
+                     finally return nil))
 
       ;; Make sure a result from `mh-default-folder-list' begins with "+"
       ;; since 'mh-expand-file-name below depends on it
@@ -2027,8 +2025,8 @@ If MSG is nil then act on the message at point"
           (t
            (dolist (folder-msg-list mh-refile-list)
              (setf (cdr folder-msg-list) (remove msg (cdr folder-msg-list))))
-           (setq mh-refile-list (loop for x in mh-refile-list
-                                      unless (null (cdr x)) collect x))))
+           (setq mh-refile-list (cl-loop for x in mh-refile-list
+                                         unless (null (cdr x)) collect x))))
     (mh-notate nil ?  mh-cmd-note)))
 
 ;;;###mh-autoload

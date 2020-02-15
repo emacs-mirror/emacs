@@ -1,6 +1,6 @@
 ;;; semantic/analyze/debug.el --- Debug the analyzer
 
-;;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -28,6 +28,7 @@
 (require 'semantic/analyze)
 (require 'semantic/analyze/complete)
 (require 'semantic/db-typecache)
+(require 'pulse)
 
 ;; For semantic-find-tags-by-class:
 (eval-when-compile (require 'semantic/find))
@@ -408,16 +409,16 @@ or implementing a version specific to ")
 	(princ (substitute-command-keys
 		"\n\nThis file's project include search is handled by the EDE object:\n"))
 	(princ "  Buffer Target:  ")
-	(princ (object-print edeobj))
+	(princ (cl-prin1-to-string edeobj))
 	(princ "\n")
 	(when (not (eq edeobj edeproj))
 	  (princ "  Buffer Project: ")
-	  (princ (object-print edeproj))
+	  (princ (cl-prin1-to-string edeproj))
 	  (princ "\n"))
 	(when edeproj
 	  (let ((loc (ede-get-locator-object edeproj)))
 	    (princ "  Backup Locator: ")
-	    (princ (object-print loc))
+	    (princ (cl-prin1-to-string loc))
 	    (princ "\n")))
 	)
 
@@ -478,7 +479,7 @@ variable `semantic-dependency-system-include-path'."))
 (defun semantic-analyzer-debug-describe-scope (ctxt &optional classconstraint)
   "Describe the scope in CTXT for finding a global symbol.
 Optional argument CLASSCONSTRAINT says to output to tags of that class."
-  (let* ((scope (oref ctxt :scope))
+  (let* ((scope (oref ctxt scope))
 	 (parents (oref scope parents))
 	 (cc (or classconstraint (oref ctxt prefixclass)))
 	 )
@@ -558,19 +559,19 @@ PARENT is a possible parent (by nesting) tag."
 			 'mouse-face 'custom-button-pressed-face
 			 'tag tag
 			 'action
-			 `(lambda (button)
-			    (let ((buff nil)
-				  (pnt nil))
-			      (save-excursion
-				(semantic-go-to-tag
-				 (button-get button 'tag))
-				(setq buff (current-buffer))
-				(setq pnt (point)))
-			      (if (get-buffer-window buff)
-				  (select-window (get-buffer-window buff))
-				(pop-to-buffer buff t))
-			      (goto-char pnt)
-			      (pulse-line-hook-function)))
+			 (lambda (button)
+			   (let ((buff nil)
+				 (pnt nil))
+			     (save-excursion
+			       (semantic-go-to-tag
+				(button-get button 'tag))
+			       (setq buff (current-buffer))
+			       (setq pnt (point)))
+			     (if (get-buffer-window buff)
+				 (select-window (get-buffer-window buff))
+			       (pop-to-buffer buff t))
+			     (goto-char pnt)
+			     (pulse-line-hook-function)))
 			 ))
       (princ "\"")
       (princ str)

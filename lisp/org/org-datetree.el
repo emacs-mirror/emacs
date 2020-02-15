@@ -1,6 +1,6 @@
 ;;; org-datetree.el --- Create date entries in a tree -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -138,15 +138,16 @@ will be built under the headline at point."
        "^\\*+[ \t]+%d-%02d-\\([0123][0-9]\\) \\w+$"
        year month day))))
 
-(defun org-datetree--find-create (regex year &optional month day insert)
-  "Find the datetree matched by REGEX for YEAR, MONTH, or DAY.
-REGEX is passed to `format' with YEAR, MONTH, and DAY as
+(defun org-datetree--find-create
+    (regex-template year &optional month day insert)
+  "Find the datetree matched by REGEX-TEMPLATE for YEAR, MONTH, or DAY.
+REGEX-TEMPLATE is passed to `format' with YEAR, MONTH, and DAY as
 arguments.  Match group 1 is compared against the specified date
 component.  If INSERT is non-nil and there is no match then it is
 inserted into the buffer."
   (when (or month day)
     (org-narrow-to-subtree))
-  (let ((re (format regex year month day))
+  (let ((re (format regex-template year month day))
 	match)
     (goto-char (point-min))
     (while (and (setq match (re-search-forward re nil t))

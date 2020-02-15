@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2018 Free Software Foundation, Inc.
+Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 #include <X11/Xproto.h>
 
@@ -44,8 +45,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gconf/gconf-client.h>
 #endif
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
+#ifdef USE_CAIRO
+#include <fontconfig/fontconfig.h>
+#else  /* HAVE_XFT */
 #include <X11/Xft/Xft.h>
+#endif
 #endif
 
 static char *current_mono_font;
@@ -82,7 +87,7 @@ dpyinfo_valid (struct x_display_info *dpyinfo)
 
 /* Store a monospace font change event if the monospaced font changed.  */
 
-#if defined HAVE_XFT && (defined HAVE_GSETTINGS || defined HAVE_GCONF)
+#if (defined USE_CAIRO || defined HAVE_XFT) && (defined HAVE_GSETTINGS || defined HAVE_GCONF)
 static void
 store_monospaced_changed (const char *newfont)
 {
@@ -101,7 +106,7 @@ store_monospaced_changed (const char *newfont)
 
 /* Store a font name change event if the font name changed.  */
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 static void
 store_font_name_changed (const char *newfont)
 {
@@ -116,7 +121,7 @@ store_font_name_changed (const char *newfont)
                                   XCAR (first_dpyinfo->name_list_element));
     }
 }
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 
 /* Map TOOL_BAR_STYLE from a string to its corresponding Lisp value.
    Return Qnil if TOOL_BAR_STYLE is not known.  */
@@ -156,7 +161,7 @@ store_tool_bar_style_changed (const char *newstyle,
                                 XCAR (dpyinfo->name_list_element));
 }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
 #endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
@@ -173,7 +178,7 @@ enum {
 };
 struct xsettings
 {
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   FcBool aa, hinting;
   int rgba, lcdfilter, hintstyle;
   double dpi;
@@ -190,7 +195,7 @@ struct xsettings
 #define GSETTINGS_SCHEMA         "org.gnome.desktop.interface"
 #define GSETTINGS_TOOL_BAR_STYLE "toolbar-style"
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 #define GSETTINGS_MONO_FONT  "monospace-font-name"
 #define GSETTINGS_FONT_NAME  "font-name"
 #endif
@@ -223,7 +228,7 @@ something_changed_gsettingsCB (GSettings *settings,
           g_variant_unref (val);
         }
     }
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   else if (strcmp (key, GSETTINGS_MONO_FONT) == 0)
     {
       val = g_settings_get_value (settings, GSETTINGS_MONO_FONT);
@@ -252,14 +257,14 @@ something_changed_gsettingsCB (GSettings *settings,
           g_variant_unref (val);
         }
     }
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 }
 
 #endif /* HAVE_GSETTINGS */
 
 #ifdef HAVE_GCONF
 #define GCONF_TOOL_BAR_STYLE "/desktop/gnome/interface/toolbar_style"
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 #define GCONF_MONO_FONT  "/desktop/gnome/interface/monospace_font_name"
 #define GCONF_FONT_NAME  "/desktop/gnome/interface/font_name"
 #endif
@@ -285,7 +290,7 @@ something_changed_gconfCB (GConfClient *client,
       const char *value = gconf_value_get_string (v);
       store_tool_bar_style_changed (value, first_dpyinfo);
     }
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   else if (strcmp (key, GCONF_MONO_FONT) == 0)
     {
       const char *value = gconf_value_get_string (v);
@@ -296,12 +301,12 @@ something_changed_gconfCB (GConfClient *client,
       const char *value = gconf_value_get_string (v);
       store_font_name_changed (value);
     }
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 }
 
 #endif /* HAVE_GCONF */
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 
 /* Older fontconfig versions don't have FC_LCD_*.  */
 #ifndef FC_LCD_NONE
@@ -314,7 +319,7 @@ something_changed_gconfCB (GConfClient *client,
 #define FC_LCD_FILTER "lcdfilter"
 #endif
 
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 
 /* Find the window that contains the XSETTINGS property values.  */
 
@@ -338,8 +343,8 @@ get_prop_window (struct x_display_info *dpyinfo)
 #define PAD(nr)    (((nr) + 3) & ~3)
 
 /* Parse xsettings and extract those that deal with Xft.
-   See http://freedesktop.org/wiki/Specifications/XSettingsRegistry
-   and http://standards.freedesktop.org/xsettings-spec/xsettings-spec-0.5.html.
+   See https://freedesktop.org/wiki/Specifications/XSettingsRegistry/
+   and https://specifications.freedesktop.org/xsettings-spec/xsettings-spec-0.5.html.
 
    Layout of prop.  First is a header:
 
@@ -392,8 +397,8 @@ parse_settings (unsigned char *prop,
                 unsigned long bytes,
                 struct xsettings *settings)
 {
-  Lisp_Object byteorder = Fbyteorder ();
-  int my_bo = XFIXNAT (byteorder) == 'B' ? MSBFirst : LSBFirst;
+  int int1 = 1;
+  int my_bo = *(char *) &int1 == 1 ? LSBFirst : MSBFirst;
   int that_bo = prop[0];
   CARD32 n_settings;
   int bytes_parsed = 0;
@@ -439,7 +444,7 @@ parse_settings (unsigned char *prop,
       if (bytes_parsed > bytes) return settings_seen;
 
       want_this = strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
       if ((nlen > 6 && memcmp (name, "Xft/", 4) == 0)
 	  || strcmp (XSETTINGS_FONT_NAME, name) == 0)
 	want_this = true;
@@ -489,7 +494,7 @@ parse_settings (unsigned char *prop,
               dupstring (&settings->tb_style, sval);
               settings->seen |= SEEN_TB_STYLE;
             }
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
           else if (strcmp (name, XSETTINGS_FONT_NAME) == 0)
             {
               dupstring (&settings->font, sval);
@@ -552,7 +557,7 @@ parse_settings (unsigned char *prop,
               else
                 settings->seen &= ~SEEN_LCDFILTER;
             }
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 	  else
 	    want_this = false;
 	  settings_seen += want_this;
@@ -747,7 +752,7 @@ read_and_apply_settings (struct x_display_info *dpyinfo, bool send_event_p)
         current_tool_bar_style = map_tool_bar_style (settings.tb_style);
       xfree (settings.tb_style);
     }
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (settings.seen & SEEN_FONT)
     {
       if (send_event_p)
@@ -849,7 +854,7 @@ init_gsettings (void)
       g_variant_unref (val);
     }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   val = g_settings_get_value (gsettings_client, GSETTINGS_MONO_FONT);
   if (val)
     {
@@ -867,7 +872,7 @@ init_gsettings (void)
         dupstring (&current_font, g_variant_get_string (val, NULL));
       g_variant_unref (val);
     }
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 
 #endif /* HAVE_GSETTINGS */
 }
@@ -902,7 +907,7 @@ init_gconf (void)
       g_free (s);
     }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   s = gconf_client_get_string (gconf_client, GCONF_MONO_FONT, NULL);
   if (s)
     {
@@ -931,7 +936,7 @@ init_gconf (void)
                            GCONF_FONT_NAME,
                            something_changed_gconfCB,
                            NULL, NULL, NULL);
-#endif /* HAVE_XFT */
+#endif /* USE_CAIRO || HAVE_XFT */
 #endif /* HAVE_GCONF */
 }
 
@@ -1023,13 +1028,18 @@ void
 syms_of_xsettings (void)
 {
   current_mono_font = NULL;
+  PDUMPER_IGNORE (current_mono_font);
   current_font = NULL;
+  PDUMPER_IGNORE (current_font);
   first_dpyinfo = NULL;
+  PDUMPER_IGNORE (first_dpyinfo);
 #ifdef HAVE_GSETTINGS
   gsettings_client = NULL;
+  PDUMPER_IGNORE (gsettings_client);
 #endif
 #ifdef HAVE_GCONF
   gconf_client = NULL;
+  PDUMPER_IGNORE (gconf_client);
 #endif
 
   DEFSYM (Qmonospace_font_name, "monospace-font-name");
@@ -1049,7 +1059,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
                doc: /* Font settings applied to Xft.  */);
   Vxft_settings = empty_unibyte_string;
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   Fprovide (intern_c_string ("font-render-setting"), Qnil);
 #if defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
   Fprovide (intern_c_string ("system-font-setting"), Qnil);

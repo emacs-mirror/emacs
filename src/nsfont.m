@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and macOS window system.
    See font.h
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,6 +36,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "character.h"
 #include "font.h"
 #include "termchar.h"
+#include "pdumper.h"
 
 /* TODO: Drop once we can assume gnustep-gui 0.17.1.  */
 #ifdef NS_IMPL_GNUSTEP
@@ -211,7 +212,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
 
     if (NSFONT_TRACE)
       {
-	fprintf (stderr, "created font_entity:\n    ");
+	fputs ("created font_entity:\n    ", stderr);
 	debug_print (font_entity);
       }
 
@@ -576,7 +577,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 
     /* Add synthItal member if needed.  */
     family = [fdesc objectForKey: NSFontFamilyAttribute];
-    if (family != nil && !foundItal && XFIXNUM (Flength (list)) > 0)
+    if (family != nil && !foundItal && !NILP (list))
       {
         NSFontDescriptor *s1 = [NSFontDescriptor new];
         NSFontDescriptor *sDesc
@@ -595,8 +596,8 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
       return ns_fallback_entity ();
 
     if (NSFONT_TRACE)
-	fprintf (stderr, "    Returning %"pI"d entities.\n",
-                 XFIXNUM (Flength (list)));
+	fprintf (stderr, "    Returning %"pD"d entities.\n",
+		 list_length (list));
 
     return list;
 }
@@ -667,8 +668,8 @@ nsfont_list_family (struct frame *f)
   /* FIXME: escape the name?  */
 
   if (NSFONT_TRACE)
-    fprintf (stderr, "nsfont: list families returning %"pI"d entries\n",
-	     XFIXNUM (Flength (list)));
+    fprintf (stderr, "nsfont: list families returning %"pD"d entries\n",
+	     list_length (list));
 
   unblock_input ();
   return list;
@@ -721,7 +722,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   if (fabs (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05F))
       traits |= NSItalicFontMask;
 
-  /* see http://cocoadev.com/forums/comments.php?DiscussionID=74 */
+  /* see https://web.archive.org/web/20100201175731/http://cocoadev.com/forums/comments.php?DiscussionID=74 */
   fixLeopardBug = traits & NSBoldFontMask ? 10 : 5;
   nsfont = [fontMgr fontWithFamily: family
                             traits: traits weight: fixLeopardBug
@@ -944,7 +945,7 @@ nsfont_encode_char (struct font *font, int c)
    of METRICS.  The glyphs are specified by their glyph codes in
    CODE (length NGLYPHS).  */
 static void
-nsfont_text_extents (struct font *font, unsigned int *code,
+nsfont_text_extents (struct font *font, const unsigned int *code,
 		     int nglyphs, struct font_metrics *metrics)
 {
   struct nsfont_info *font_info = (struct nsfont_info *)font;
@@ -1009,7 +1010,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   NSRect r;
   struct nsfont_info *font;
   NSColor *col, *bgCol;
-  unsigned short *t = s->char2b;
+  unsigned *t = s->char2b;
   int i, len, flags;
   char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
 
@@ -1471,17 +1472,16 @@ ns_dump_glyphstring (struct glyph_string *s)
 {
   int i;
 
-  fprintf (stderr, "Glyph string len = %d at (%d, %d) overhang (%d, %d),"
-"overlap = %d, bg_filled = %d:",
+  fprintf (stderr, ("Glyph string len = %d at (%d, %d) overhang (%d, %d),"
+		    "overlap = %d, bg_filled = %d:"),
            s->nchars, s->x, s->y, s->left_overhang, s->right_overhang,
            s->row->overlapping_p, s->background_filled_p);
   for (i =0; i<s->nchars; i++)
-    {
-      int c = s->first_glyph[i].u.ch;
-      fprintf (stderr, "%c", c);
-    }
-  fprintf (stderr, "\n");
+    putc (s->first_glyph[i].u.ch, stderr);
+  putc ('\n', stderr);
 }
+
+static void syms_of_nsfont_for_pdumper (void);
 
 struct font_driver const nsfont_driver =
   {
@@ -1491,8 +1491,8 @@ struct font_driver const nsfont_driver =
   .list = nsfont_list,
   .match = nsfont_match,
   .list_family = nsfont_list_family,
-  .open = nsfont_open,
-  .close = nsfont_close,
+  .open_font = nsfont_open,
+  .close_font = nsfont_close,
   .has_char = nsfont_has_char,
   .encode_char = nsfont_encode_char,
   .text_extents = nsfont_text_extents,
@@ -1502,13 +1502,17 @@ struct font_driver const nsfont_driver =
 void
 syms_of_nsfont (void)
 {
-  register_font_driver (&nsfont_driver, NULL);
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qapple, "apple");
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to Unicode script.  */);
+  pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
+}
 
-  ascii_printable = NULL;
+static void
+syms_of_nsfont_for_pdumper (void)
+{
+  register_font_driver (&nsfont_driver, NULL);
 }

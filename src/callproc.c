@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2018 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2020 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -109,11 +108,8 @@ static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 Lisp_Object
 encode_current_directory (void)
 {
-  Lisp_Object dir;
-
-  dir = BVAR (current_buffer, directory);
-
-  dir = Funhandled_file_name_directory (dir);
+  Lisp_Object curdir = BVAR (current_buffer, directory);
+  Lisp_Object dir = Funhandled_file_name_directory (curdir);
 
   /* If the file name handler says that dir is unreachable, use
      a sensible default. */
@@ -121,17 +117,10 @@ encode_current_directory (void)
     dir = build_string ("~");
 
   dir = expand_and_dir_to_file (dir);
-
-  if (NILP (Ffile_accessible_directory_p (dir)))
-    report_file_error ("Setting current directory",
-		       BVAR (current_buffer, directory));
-
-  /* Remove "/:" from DIR and encode it.  */
   dir = ENCODE_FILE (remove_slash_colon (dir));
 
   if (! file_accessible_directory_p (dir))
-    report_file_error ("Setting current directory",
-		       BVAR (current_buffer, directory));
+    report_file_error ("Setting current directory", curdir);
 
   return dir;
 }
@@ -220,7 +209,10 @@ static mode_t const default_output_mode = 0666;
 DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
 The remaining arguments are optional.
-The program's input comes from file INFILE (nil means `/dev/null').
+
+The program's input comes from file INFILE (nil means `null-device').
+If you want to make the input come from an Emacs buffer, use
+`call-process-region' instead.
 
 Third argument DESTINATION specifies how to handle program's output.
 If DESTINATION is a buffer, or t that stands for the current buffer,
@@ -237,7 +229,7 @@ DESTINATION can also have the form (REAL-BUFFER STDERR-FILE); in that case,
  t (mix it with ordinary output), or a file name string.
 
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
-Remaining arguments are strings passed as command arguments to PROGRAM.
+Remaining arguments ARGS are strings passed as command arguments to PROGRAM.
 
 If executable PROGRAM can't be found as an executable, `call-process'
 signals a Lisp error.  `call-process' reports errors in execution of
@@ -643,19 +635,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #endif
 
       unblock_child_signal (&oldset);
-
-#ifdef DARWIN_OS
-      /* Darwin doesn't let us run setsid after a vfork, so use
-         TIOCNOTTY when necessary. */
-      int j = emacs_open (DEV_TTY, O_RDWR, 0);
-      if (j >= 0)
-        {
-          ioctl (j, TIOCNOTTY, 0);
-          emacs_close (j);
-        }
-#else
-      setsid ();
-#endif
+      dissociate_controlling_tty ();
 
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
@@ -693,7 +673,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   unblock_input ();
 
   if (pid < 0)
-    report_file_errno ("Doing vfork", Qnil, child_errno);
+    report_file_errno (CHILD_SETUP_ERROR_DESC, Qnil, child_errno);
 
   /* Close our file descriptors, except for callproc_fd[CALLPROC_PIPEREAD]
      since we will use that to read input from.  */
@@ -766,6 +746,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       int carryover = 0;
       bool display_on_the_fly = display_p;
       struct coding_system saved_coding = process_coding;
+      ptrdiff_t prepared_pos = 0; /* prepare_to_modify_buffer was last
+                                     called here.  */
 
       while (1)
 	{
@@ -793,6 +775,33 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	      if (display_on_the_fly)
 		break;
 	    }
+          /* CHANGE FUNCTIONS
+             For each iteration of the enclosing while (1) loop which
+             yields data (i.e. nread > 0), before- and
+             after-change-functions are each invoked exactly once.
+             This is done directly from the current function only, by
+             calling prepare_to_modify_buffer and signal_after_change.
+             It is not done here by directing another function such as
+             insert_1_both to call them.  The call to
+             prepare_to_modify_buffer follows this comment, and there
+             is one call to signal_after_change in each of the
+             branches of the next `else if'.
+
+             Exceptionally, the insertion into the buffer is aborted
+             at the call to del_range_2 ~45 lines further down, this
+             function removing the newly inserted data.  At this stage
+             prepare_to_modify_buffer has been called, but
+             signal_after_change hasn't.  A continue statement
+             restarts the enclosing while (1) loop.  A second,
+             unwanted, call to `prepare_to_modify_buffer' is inhibited
+	     by the test prepared_pos < PT.  The data are inserted
+             again, and this time signal_after_change gets called,
+             balancing the previous call to prepare_to_modify_buffer.  */
+          if ((prepared_pos < PT) && nread)
+            {
+              prepare_to_modify_buffer (PT, PT, NULL);
+              prepared_pos = PT;
+            }
 
 	  /* Now NREAD is the total amount of data in the buffer.  */
 
@@ -800,15 +809,16 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	    ;
 	  else if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 		   && ! CODING_MAY_REQUIRE_DECODING (&process_coding))
-	    insert_1_both (buf, nread, nread, 0, 1, 0);
+            {
+              insert_1_both (buf, nread, nread, 0, 0, 0);
+              signal_after_change (PT, 0, nread);
+            }
 	  else
 	    {			/* We have to decode the input.  */
 	      Lisp_Object curbuf;
 	      ptrdiff_t count1 = SPECPDL_INDEX ();
 
 	      XSETBUFFER (curbuf, current_buffer);
-	      /* FIXME: Call signal_after_change!  */
-	      prepare_to_modify_buffer (PT, PT, NULL);
 	      /* We cannot allow after-change-functions be run
 		 during decoding, because that might modify the
 		 buffer, while we rely on process_coding.produced to
@@ -844,6 +854,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 	      TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
 				PT_BYTE + process_coding.produced);
+              signal_after_change (PT, 0, process_coding.produced_char);
 	      carryover = process_coding.carryover_bytes;
 	      if (carryover > 0)
 		memcpy (buf, process_coding.carryover,
@@ -1045,7 +1056,8 @@ STDERR-FILE may be nil (discard standard error output),
 t (mix it with ordinary output), or a file name string.
 
 Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
-Remaining args are passed to PROGRAM at startup as command args.
+Remaining arguments ARGS are passed to PROGRAM at startup as command-line
+arguments.
 
 If BUFFER is 0, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
@@ -1146,7 +1158,7 @@ add_env (char **env, char **new_env, char *string)
    mess up the allocator's data structures in the parent.
    Report the error and exit the child.  */
 
-static _Noreturn void
+static AVOID
 exec_failed (char const *name, int err)
 {
   /* Avoid deadlock if the child's perror writes to a full pipe; the
@@ -1185,7 +1197,7 @@ exec_failed (char const *name, int err)
    executable directory by the parent.
 
    On GNUish hosts, either exec or return an error number.
-   On MS-Windows, either return a pid or signal an error.
+   On MS-Windows, either return a pid or return -1 and set errno.
    On MS-DOS, either return an exit status or signal an error.  */
 
 CHILD_SETUP_TYPE
@@ -1330,9 +1342,6 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   /* Spawn the child.  (See w32proc.c:sys_spawnve).  */
   cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
   reset_standard_handles (in, out, err, handles);
-  if (cpid == -1)
-    /* An error occurred while trying to spawn the process.  */
-    report_file_error ("Spawning child process", Qnil);
   return cpid;
 
 #else  /* not WINDOWSNT */
@@ -1582,27 +1591,24 @@ init_callproc (void)
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, tem1, srcdir;
+      Lisp_Object tem, srcdir;
       Lisp_Object lispdir = Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0));
 
       srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
 
       tem = Fexpand_file_name (build_string ("NEWS"), Vdata_directory);
-      tem1 = Ffile_exists_p (tem);
-      if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
+      if (!NILP (Fequal (srcdir, Vinvocation_directory))
+	  || NILP (Ffile_exists_p (tem)) || !NILP (Vinstallation_directory))
 	{
 	  Lisp_Object newdir;
 	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
 	  tem = Fexpand_file_name (build_string ("NEWS"), newdir);
-	  tem1 = Ffile_exists_p (tem);
-	  if (!NILP (tem1))
+	  if (!NILP (Ffile_exists_p (tem)))
 	    Vdata_directory = newdir;
 	}
     }
 
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
+  if (!will_dump_p ())
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
       if (! file_accessible_directory_p (tempdir))
@@ -1619,9 +1625,22 @@ init_callproc (void)
   Lisp_Object gamedir = Qnil;
   if (PATH_GAME)
     {
-      Lisp_Object path_game = build_unibyte_string (PATH_GAME);
+      const char *cpath_game = PATH_GAME;
+#ifdef WINDOWSNT
+      /* On MS-Windows, PATH_GAME normally starts with a literal
+	 "%emacs_dir%", so it will never work without some tweaking.  */
+      cpath_game = w32_relocate (cpath_game);
+#endif
+      Lisp_Object path_game = build_unibyte_string (cpath_game);
       if (file_accessible_directory_p (path_game))
 	gamedir = path_game;
+      else if (errno != ENOENT && errno != ENOTDIR
+#ifdef DOS_NT
+	       /* DOS/Windows sometimes return EACCES for bad file names  */
+	       && errno != EACCES
+#endif
+	       )
+	dir_warning ("game dir", path_game);
     }
   Vshared_game_score_directory = gamedir;
 }

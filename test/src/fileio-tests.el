@@ -1,6 +1,6 @@
 ;;; unit tests for src/fileio.c      -*- lexical-binding: t; -*-
 
-;; Copyright 2017-2018 Free Software Foundation, Inc.
+;; Copyright 2017-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -95,3 +95,64 @@ Also check that an encoding error can appear in a symlink."
   (should (equal (file-name-as-directory "d:/abc/") "d:/abc/"))
   (should (equal (file-name-as-directory "D:\\abc/") "d:/abc/"))
   (should (equal (file-name-as-directory "D:/abc//") "d:/abc//")))
+
+(ert-deftest fileio-tests--relative-HOME ()
+  "Test that expand-file-name works even when HOME is relative."
+  (let ((old-home (getenv "HOME")))
+    (setenv "HOME" "a/b/c")
+    (should (equal (expand-file-name "~/foo")
+                   (expand-file-name "a/b/c/foo")))
+    (when (memq system-type '(ms-dos windows-nt))
+      ;; Test expansion of drive-relative file names.
+      (setenv "HOME" "x:foo")
+      (should (equal (expand-file-name "~/bar") "x:/foo/bar")))
+    (setenv "HOME" old-home)))
+
+(ert-deftest fileio-tests--insert-file-interrupt ()
+  (let ((text "-*- coding: binary -*-\n\xc3\xc3help")
+        f)
+    (unwind-protect
+        (progn
+          (setq f (make-temp-file "ftifi"))
+          (write-region text nil f nil 'silent)
+          (with-temp-buffer
+            (catch 'toto
+              (let ((set-auto-coding-function (lambda (&rest _) (throw 'toto nil))))
+                (insert-file-contents f)))
+            (goto-char (point-min))
+            (unless (eobp)
+              (forward-line 1)
+              (let ((c1 (char-after)))
+                (forward-char 1)
+                (should (equal c1 (char-before)))
+                (should (equal c1 (char-after)))))))
+      (if f (delete-file f)))))
+
+(ert-deftest fileio-tests--relative-default-directory ()
+  "Test expand-file-name when default-directory is relative."
+  (let ((default-directory "some/relative/name"))
+    (should (file-name-absolute-p (expand-file-name "foo"))))
+  (let* ((default-directory "~foo")
+         (name (expand-file-name "bar")))
+    (should (and (file-name-absolute-p name)
+                 (not (eq (aref name 0) ?~))))))
+
+(ert-deftest fileio-tests--file-name-absolute-p ()
+  "Test file-name-absolute-p."
+  (dolist (suffix '("" "/" "//" "/foo" "/foo/" "/foo//" "/foo/bar"))
+    (unless (string-equal suffix "")
+      (should (file-name-absolute-p suffix)))
+    (should (file-name-absolute-p (concat "~" suffix)))
+    (when (user-full-name user-login-name)
+      (should (file-name-absolute-p (concat "~" user-login-name suffix))))
+    (unless (user-full-name "nosuchuser")
+      (should (not (file-name-absolute-p (concat "~nosuchuser" suffix)))))))
+
+(ert-deftest fileio-tests--circular-after-insert-file-functions ()
+  "Test after-insert-file-functions as a circular list."
+  (let ((f (make-temp-file "fileio"))
+        (after-insert-file-functions (list 'identity)))
+    (setcdr after-insert-file-functions after-insert-file-functions)
+    (write-region "hello\n" nil f nil 'silent)
+    (should-error (insert-file-contents f) :type 'circular-list)
+    (delete-file f)))

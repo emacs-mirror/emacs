@@ -1,6 +1,6 @@
 ;;; ox-md.el --- Markdown Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: org, wp, markdown
@@ -175,7 +175,7 @@ channel."
 	    value)))
 
 
-;;;; Example Block, Src Block and export Block
+;;;; Example Block, Src Block and Export Block
 
 (defun org-md-example-block (example-block _contents info)
   "Transcode EXAMPLE-BLOCK element into Markdown format.
@@ -211,8 +211,7 @@ a communication channel."
 	   (tags (and (plist-get info :with-tags)
 		      (let ((tag-list (org-export-get-tags headline info)))
 			(and tag-list
-			     (format "     :%s:"
-				     (mapconcat 'identity tag-list ":"))))))
+			     (concat "     " (org-make-tag-string tag-list))))))
 	   (priority
 	    (and (plist-get info :with-priority)
 		 (let ((char (org-element-property :priority headline)))
@@ -364,9 +363,14 @@ channel."
 	((string-match-p "\\<headlines\\>" value)
 	 (let ((depth (and (string-match "\\<[0-9]+\\>" value)
 			   (string-to-number (match-string 0 value))))
-	       (local? (string-match-p "\\<local\\>" value)))
+	       (scope
+		(cond
+		 ((string-match ":target +\\(\".+?\"\\|\\S-+\\)" value) ;link
+		  (org-export-resolve-link
+		   (org-strip-quotes (match-string 1 value)) info))
+		 ((string-match-p "\\<local\\>" value) keyword)))) ;local
 	   (org-remove-indentation
-	    (org-md--build-toc info depth keyword local?)))))))
+	    (org-md--build-toc info depth keyword scope)))))))
     (_ (org-export-with-backend 'html keyword contents info))))
 
 
@@ -449,7 +453,7 @@ a communication channel."
      (t (let* ((raw-path (org-element-property :path link))
 	       (path
 		(cond
-		 ((member type '("http" "https" "ftp" "mailto" "irc"))
+		 ((member type '("http" "https" "ftp" "mailto"))
 		  (concat type ":" raw-path))
 		 ((string= type "file")
 		  (org-export-file-uri (funcall link-org-files-as-md raw-path)))
@@ -551,7 +555,7 @@ a communication channel."
 
 ;;;; Template
 
-(defun org-md--build-toc (info &optional n keyword local)
+(defun org-md--build-toc (info &optional n _keyword scope)
   "Return a table of contents.
 
 INFO is a plist used as a communication channel.
@@ -559,13 +563,10 @@ INFO is a plist used as a communication channel.
 Optional argument N, when non-nil, is an integer specifying the
 depth of the table.
 
-Optional argument KEYWORD specifies the TOC keyword, if any, from
-which the table of contents generation has been initiated.
-
-When optional argument LOCAL is non-nil, build a table of
-contents according to the current headline."
+When optional argument SCOPE is non-nil, build a table of
+contents according to the specified element."
   (concat
-   (unless local
+   (unless scope
      (let ((style (plist-get info :md-headline-style))
 	   (title (org-html--translate "Table of Contents" info)))
        (org-md--headline-title style 1 title nil)))
@@ -575,10 +576,13 @@ contents according to the current headline."
 	      (make-string
 	       (* 4 (1- (org-export-get-relative-level headline info)))
 	       ?\s))
-	     (number (format "%d."
-			     (org-last
-			      (org-export-get-headline-number headline info))))
-	     (bullet (concat number (make-string (- 4 (length number)) ?\s)))
+	     (bullet
+	      (if (not (org-export-numbered-headline-p headline info)) "-   "
+		(let ((prefix
+		       (format "%d." (org-last (org-export-get-headline-number
+						headline info)))))
+		  (concat prefix (make-string (max 1 (- 4 (length prefix)))
+					      ?\s)))))
 	     (title
 	      (format "[%s](#%s)"
 		      (org-export-data-with-backend
@@ -589,12 +593,10 @@ contents according to the current headline."
 			  (org-export-get-reference headline info))))
 	     (tags (and (plist-get info :with-tags)
 			(not (eq 'not-in-toc (plist-get info :with-tags)))
-			(let ((tags (org-export-get-tags headline info)))
-			  (and tags
-			       (format ":%s:"
-				       (mapconcat #'identity tags ":")))))))
+			(org-make-tag-string
+			 (org-export-get-tags headline info)))))
 	(concat indentation bullet title tags)))
-    (org-export-collect-headlines info n (and local keyword)) "\n")
+    (org-export-collect-headlines info n scope) "\n")
    "\n"))
 
 (defun org-md--footnote-formatted (footnote info)

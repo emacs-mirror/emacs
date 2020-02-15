@@ -1,6 +1,6 @@
 /* Make a string describing file modes.
 
-   Copyright (C) 1998-1999, 2003, 2006, 2009-2018 Free Software Foundation,
+   Copyright (C) 1998-1999, 2003, 2006, 2009-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify

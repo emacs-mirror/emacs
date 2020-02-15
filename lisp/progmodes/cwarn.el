@@ -1,6 +1,6 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: c, languages, faces
@@ -168,6 +168,8 @@ deactivated."
   :tag "Load Hook"
   :group 'cwarn
   :type 'hook)
+(make-obsolete-variable 'cwarn-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 ;;}}}
 ;;{{{ The modes

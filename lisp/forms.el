@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994-1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1991, 1994-1997, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
@@ -933,7 +933,7 @@ Commands:                        Equivalent keys in read-only mode:
 					 '(front-sticky (read-only cursor-intangible)))))
 	      ;; Prevent insertion after the last text.
 	      (remove-text-properties (1- (point)) (point)
-				      '(rear-nonsticky)))
+                                      '(rear-nonsticky nil)))
 	    (setq forms--iif-start nil))
        `(lambda (arg)
 	  ,@(apply 'append
@@ -998,7 +998,7 @@ Commands:                        Equivalent keys in read-only mode:
   ;;			      '(front-sticky (read-only))))))
   ;;	 ;; Prevent insertion after the last text.
   ;;	 (remove-text-properties (1- (point)) (point)
-  ;;	 			 '(rear-nonsticky)))
+  ;;                             '(rear-nonsticky nil)))
   ;;
   ;;     ;; wrap up
   ;;     (setq forms--iif-start nil)

@@ -16,7 +16,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -330,8 +330,6 @@ Prompt in the minibuffer as the value is inserted.
 Use the dictionary macro name as the inserted value,
 and place a field there.  Matched fields change together.
 @end table
-
-@b{NOTE}: The field feature does not yet work with XEmacs.
 @end defun
 
 Field editing mode is supported in newer versions of Emacs.  You

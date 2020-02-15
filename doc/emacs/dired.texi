@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -435,6 +435,12 @@ the previous @minus{}@var{n} files).  If invoked on a subdirectory
 header line (@pxref{Subdirectories in Dired}), this command marks all
 the files in that subdirectory.
 
+@item * N
+@kindex * N @r{(Dired)}
+@findex dired-number-of-marked-files
+Report what the number and size of the marked files are
+(@code{dired-number-of-marked-files}).
+
 @item * *
 @kindex * * @r{(Dired)}
 @findex dired-mark-executables
@@ -648,9 +654,15 @@ commands, use the same conventions to decide which files to work on.
   Commands which ask for a destination directory, such as those which
 copy and rename files or create links for them, try to guess the default
 target directory for the operation.  Normally, they suggest the Dired
-buffer's default directory, but if the variable @code{dired-dwim-target}
-is non-@code{nil}, and if there is another Dired buffer displayed in the
-next window, that other buffer's directory is suggested instead.
+buffer's default directory, but if the option @code{dired-dwim-target}
+is non-@code{nil}, and if there is another Dired buffer displayed in
+some window, that other buffer's directory is suggested instead.
+You can customize @code{dired-dwim-target} to prefer either the next
+window with a Dired buffer, or the most recently used window with
+a Dired buffer, or to use any other function.  When the value is
+a function, it will be called with no arguments and is expected to
+return a list of directories which will be used as defaults
+(i.e. default target and ``future history'').
 
   Here are the file-manipulating Dired commands that operate on files.
 
@@ -707,6 +719,11 @@ should create non-existent directories in @var{new}.
 
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
+
+@vindex dired-vc-rename-file
+If the value of the variable @code{dired-vc-rename-file} is non-@code{nil},
+files are renamed using the commands of the underlying VCS, via
+@code{vc-rename-file} (@pxref{VC Delete/Rename}).
 
 @findex dired-do-hardlink
 @kindex H @r{(Dired)}
@@ -779,9 +796,15 @@ suitable guess made using the variables @code{lpr-command} and
 @item Z
 Compress the specified files (@code{dired-do-compress}).  If the file
 appears to be a compressed file already, uncompress it instead.  Each
-marked file is compressed into its own archive.  This uses the
+marked file is compressed into its own archive; this uses the
 @command{gzip} program if it is available, otherwise it uses
-@command{compress}.
+@command{compress}.  On a directory name, this command produces a
+compressed @file{.tar.gz} archive containing all of the directory's
+files, by running the @command{tar} command with output piped to
+@command{gzip}.  To allow decompression of compressed directories,
+typing @kbd{Z} on a @file{.tar.gz} or @file{.tgz} archive file unpacks
+all the files in the archive into a directory whose name is the
+archive name with the extension removed.
 
 @findex dired-do-compress-to
 @kindex c @r{(Dired)}

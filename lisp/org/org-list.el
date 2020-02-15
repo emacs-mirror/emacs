@@ -1,6 +1,6 @@
 ;;; org-list.el --- Plain lists for Org              -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg@gnu.org>
@@ -91,6 +91,7 @@
 (defvar org-drawer-regexp)
 (defvar org-element-all-objects)
 (defvar org-inhibit-startup)
+(defvar org-loop-over-headlines-in-active-region)
 (defvar org-odd-levels-only)
 (defvar org-outline-regexp-bol)
 (defvar org-scheduled-string)
@@ -101,43 +102,31 @@
 (declare-function org-at-heading-p "org" (&optional invisible-ok))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
-(declare-function org-combine-plists "org" (&rest plists))
 (declare-function org-current-level "org" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-interpret-data "org-element" (data))
-(declare-function
- org-element-lineage "org-element" (blob &optional types with-self))
+(declare-function org-element-lineage "org-element" (blob &optional types with-self))
 (declare-function org-element-macro-interpreter "org-element" (macro ##))
-(declare-function
- org-element-map "org-element"
- (data types fun &optional info first-match no-recursion with-affiliated))
+(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
 (declare-function org-element-normalize-string "org-element" (s))
-(declare-function org-element-parse-buffer "org-element"
-		  (&optional granularity visible-only))
+(declare-function org-element-parse-buffer "org-element" (&optional granularity visible-only))
 (declare-function org-element-property "org-element" (property element))
-(declare-function org-element-put-property "org-element"
-		  (element property value))
+(declare-function org-element-put-property "org-element" (element property value))
 (declare-function org-element-set-element "org-element" (old new))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-element-update-syntax "org-element" ())
 (declare-function org-end-of-meta-data "org" (&optional full))
-(declare-function org-entry-get "org"
-		  (pom property &optional inherit literal-nil))
+(declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-export-create-backend "ox" (&rest rest) t)
 (declare-function org-export-data-with-backend "ox" (data backend info))
 (declare-function org-export-get-backend "ox" (name))
-(declare-function org-export-get-environment "ox"
-		  (&optional backend subtreep ext-plist))
-(declare-function org-export-get-next-element "ox"
-		  (blob info &optional n))
-(declare-function org-export-with-backend "ox"
-		  (backend data &optional contents info))
+(declare-function org-export-get-environment "ox" (&optional backend subtreep ext-plist))
+(declare-function org-export-get-next-element "ox" (blob info &optional n))
+(declare-function org-export-with-backend "ox" (backend data &optional contents info))
 (declare-function org-fix-tags-on-the-fly "org" ())
-(declare-function org-get-indentation "org" (&optional line))
 (declare-function org-get-todo-state "org" ())
 (declare-function org-in-block-p "org" (names))
-(declare-function org-in-regexp "org" (re &optional nlines visually))
 (declare-function org-inlinetask-goto-beginning "org-inlinetask" ())
 (declare-function org-inlinetask-goto-end "org-inlinetask" ())
 (declare-function org-inlinetask-in-task-p "org-inlinetask" ())
@@ -147,16 +136,12 @@
 (declare-function org-outline-level "org" ())
 (declare-function org-previous-line-empty-p "org" ())
 (declare-function org-reduced-level "org" (L))
-(declare-function org-remove-indentation "org" (code &optional n))
+(declare-function org-set-tags "org" (tags))
 (declare-function org-show-subtree "org" ())
 (declare-function org-sort-remove-invisible "org" (S))
 (declare-function org-time-string-to-seconds "org" (s))
 (declare-function org-timer-hms-to-secs "org-timer" (hms))
 (declare-function org-timer-item "org-timer" (&optional arg))
-(declare-function org-trim "org" (s &optional keep-lead))
-(declare-function org-uniquify "org" (list))
-(declare-function org-invisible-p "org" (&optional pos))
-(declare-function outline-flag-region "outline" (from to flag))
 (declare-function outline-next-heading "outline" ())
 (declare-function outline-previous-heading "outline" ())
 
@@ -236,7 +221,7 @@ into
 
 (defcustom org-plain-list-ordered-item-terminator t
   "The character that makes a line with leading number an ordered list item.
-Valid values are ?. and ?\).  To get both terminators, use t.
+Valid values are ?. and ?\\).  To get both terminators, use t.
 
 This variable needs to be set before org.el is loaded.  If you
 need to make a change while Emacs is running, use the customize
@@ -343,13 +328,6 @@ with the word \"recursive\" in the value."
   :group 'org-plain-lists
   :type 'boolean)
 
-(defcustom org-list-description-max-indent 20
-  "Maximum indentation for the second line of a description list.
-When the indentation would be larger than this, it will become
-5 characters instead."
-  :group 'org-plain-lists
-  :type 'integer)
-
 (defcustom org-list-indent-offset 0
   "Additional indentation for sub-items in a list.
 By setting this to a small number, usually 1 or 2, one can more
@@ -358,44 +336,9 @@ clearly distinguish sub-items in a list."
   :version "24.1"
   :type 'integer)
 
-(defcustom org-list-radio-list-templates
-  '((latex-mode "% BEGIN RECEIVE ORGLST %n
-% END RECEIVE ORGLST %n
-\\begin{comment}
-#+ORGLST: SEND %n org-list-to-latex
--
-\\end{comment}\n")
-    (texinfo-mode "@c BEGIN RECEIVE ORGLST %n
-@c END RECEIVE ORGLST %n
-@ignore
-#+ORGLST: SEND %n org-list-to-texinfo
--
-@end ignore\n")
-    (html-mode "<!-- BEGIN RECEIVE ORGLST %n -->
-<!-- END RECEIVE ORGLST %n -->
-<!--
-#+ORGLST: SEND %n org-list-to-html
--
--->\n"))
-  "Templates for radio lists in different major modes.
-All occurrences of %n in a template will be replaced with the name of the
-list, obtained by prompting the user."
-  :group 'org-plain-lists
-  :type '(repeat
-	  (list (symbol :tag "Major mode")
-		(string :tag "Format"))))
-
 (defvar org-list-forbidden-blocks '("example" "verse" "src" "export")
   "Names of blocks where lists are not allowed.
 Names must be in lower case.")
-
-(defvar org-list-export-context '(block inlinetask)
-  "Context types where lists will be interpreted during export.
-
-Valid types are `drawer', `inlinetask' and `block'.  More
-specifically, type `block' is determined by the variable
-`org-list-forbidden-blocks'.")
-
 
 
 ;;; Predicates and regexps
@@ -462,7 +405,7 @@ group 4: description tag")
 	   (ind-ref (if (or (looking-at "^[ \t]*$")
 			    (and inlinetask-re (looking-at inlinetask-re)))
 			10000
-		      (org-get-indentation))))
+		      (current-indentation))))
       (cond
        ((eq (nth 2 context) 'invalid) nil)
        ((looking-at item-re) (point))
@@ -484,7 +427,7 @@ group 4: description tag")
 	;; Look for an item, less indented that reference line.
 	(catch 'exit
 	  (while t
-	    (let ((ind (org-get-indentation)))
+	    (let ((ind (current-indentation)))
 	      (cond
 	       ;; This is exactly what we want.
 	       ((and (looking-at item-re) (< ind ind-ref))
@@ -654,7 +597,7 @@ Assume point is at an item."
 	   (item-re (org-item-re))
 	   (inlinetask-re (and (featurep 'org-inlinetask)
 			       (org-inlinetask-outline-regexp)))
-	   (beg-cell (cons (point) (org-get-indentation)))
+	   (beg-cell (cons (point) (current-indentation)))
            itm-lst itm-lst-2 end-lst end-lst-2 struct
 	   (assoc-at-point
 	    (function
@@ -682,7 +625,7 @@ Assume point is at an item."
       (save-excursion
 	(catch 'exit
 	  (while t
-	    (let ((ind (org-get-indentation)))
+	    (let ((ind (current-indentation)))
 	      (cond
 	       ((<= (point) lim-up)
 		;; At upward limit: if we ended at an item, store it,
@@ -742,7 +685,7 @@ Assume point is at an item."
       ;;    position of items in END-LST-2.
       (catch 'exit
 	(while t
-	  (let ((ind (org-get-indentation)))
+	  (let ((ind (current-indentation)))
 	    (cond
 	     ((>= (point) lim-down)
 	      ;; At downward limit: this is de facto the end of the
@@ -861,6 +804,17 @@ This function modifies STRUCT."
 		       (t (cons pos (cdar ind-to-ori))))))
 		  (cdr struct)))))
 
+(defun org-list--delete-metadata ()
+  "Delete metadata from the heading at point.
+Metadata are tags, planning information and properties drawers."
+  (save-match-data
+    (org-with-wide-buffer
+     (org-set-tags nil)
+     (delete-region (line-beginning-position 2)
+		    (save-excursion
+		      (org-end-of-meta-data)
+		      (org-skip-whitespace)
+		      (if (eobp) (point) (line-beginning-position)))))))
 
 
 ;;; Accessors
@@ -1281,10 +1235,18 @@ function ends.
 
 This function modifies STRUCT."
   (let ((case-fold-search t))
-    ;; 1. Get information about list: position of point with regards
-    ;;    to item start (BEFOREP), blank lines number separating items
-    ;;    (BLANK-NB), if we're allowed to (SPLIT-LINE-P).
-    (let* ((item (progn (goto-char pos) (goto-char (org-list-get-item-begin))))
+    ;; 1. Get information about list: ITEM containing POS, position of
+    ;;    point with regards to item start (BEFOREP), blank lines
+    ;;    number separating items (BLANK-NB), if we're allowed to
+    ;;    (SPLIT-LINE-P).
+    (let* ((item (goto-char (catch :exit
+			      (let ((inner-item 0))
+				(pcase-dolist (`(,i . ,_) struct)
+				  (cond
+				   ((= i pos) (throw :exit i))
+				   ((< i pos) (setq inner-item i))
+				   (t (throw :exit inner-item))))
+				inner-item))))
 	   (item-end (org-list-get-item-end item struct))
 	   (item-end-no-blank (org-list-get-item-end-before-blank item struct))
 	   (beforep
@@ -1497,8 +1459,8 @@ This function returns, destructively, the new list structure."
 	 (org-M-RET-may-split-line nil)
 	 ;; Store inner overlays (to preserve visibility).
 	 (overlays (cl-remove-if (lambda (o) (or (< (overlay-start o) item)
-					     (> (overlay-end o) item)))
-				  (overlays-in item item-end))))
+						 (> (overlay-end o) item)))
+				 (overlays-in item item-end))))
     (cond
      ((eq dest 'delete) (org-list-delete-item item struct))
      ((eq dest 'kill)
@@ -1590,23 +1552,6 @@ STRUCT may be modified if `org-list-demote-modify-bullet' matches
 bullets between START and END."
   (let* (acc
 	 (set-assoc (lambda (cell) (push cell acc) cell))
-	 (change-bullet-maybe
-	  (function
-	   (lambda (item)
-	     (let ((new-bul-p
-		    (cdr (assoc
-			  ;; Normalize ordered bullets.
-			  (let ((bul (org-trim
-				      (org-list-get-bullet item struct))))
-			    (cond ((string-match "[A-Z]\\." bul) "A.")
-				  ((string-match "[A-Z])" bul) "A)")
-				  ((string-match "[a-z]\\." bul) "a.")
-				  ((string-match "[a-z])" bul) "a)")
-				  ((string-match "[0-9]\\." bul) "1.")
-				  ((string-match "[0-9])" bul) "1)")
-				  (t bul)))
-			  org-list-demote-modify-bullet))))
-	       (when new-bul-p (org-list-set-bullet item struct new-bul-p))))))
 	 (ind
 	  (lambda (cell)
 	    (let* ((item (car cell))
@@ -1622,11 +1567,24 @@ bullets between START and END."
 		;; Item is in zone...
 		(let ((prev (org-list-get-prev-item item struct prevs)))
 		  ;; Check if bullet needs to be changed.
-		  (funcall change-bullet-maybe item)
+		  (pcase (assoc (let ((b (org-list-get-bullet item struct))
+				      (case-fold-search nil))
+				  (cond ((string-match "[A-Z]\\." b) "A.")
+					((string-match "[A-Z])" b) "A)")
+					((string-match "[a-z]\\." b) "a.")
+					((string-match "[a-z])" b) "a)")
+					((string-match "[0-9]\\." b) "1.")
+					((string-match "[0-9])" b) "1)")
+					(t (org-trim b))))
+				org-list-demote-modify-bullet)
+		    (`(,_ . ,bullet)
+		     (org-list-set-bullet
+		      item struct (org-list-bullet-string bullet)))
+		    (_ nil))
 		  (cond
 		   ;; First item indented but not parent: error
-		   ((and (not prev) (< parent start))
-		    (error "Cannot indent the first item of a list"))
+		   ((and (not prev) (or (not parent) (< parent start)))
+		    (user-error "Cannot indent the first item of a list"))
 		   ;; First item and parent indented: keep same
 		   ;; parent.
 		   ((not prev) (funcall set-assoc cell))
@@ -1899,7 +1857,7 @@ Initial position of cursor is restored after the changes."
 		 (org-inlinetask-goto-beginning))
 		;; Shift only non-empty lines.
 		((looking-at-p "^[ \t]*\\S-")
-		 (indent-line-to (+ (org-get-indentation) delta))))
+		 (indent-line-to (+ (current-indentation) delta))))
 	       (forward-line -1)))))
          (modify-item
           (function
@@ -1908,7 +1866,7 @@ Initial position of cursor is restored after the changes."
 	   (lambda (item)
 	     (goto-char item)
 	     (let* ((new-ind (org-list-get-ind item struct))
-		    (old-ind (org-get-indentation))
+		    (old-ind (current-indentation))
 		    (new-bul (org-list-bullet-string
 			      (org-list-get-bullet item struct)))
 		    (old-bul (org-list-get-bullet item old-struct))
@@ -1983,7 +1941,7 @@ Initial position of cursor is restored after the changes."
 			;; Ignore empty lines.  Also ignore blocks and
 			;; drawers contents.
 			(unless (looking-at-p "[ \t]*$")
-			  (setq min-ind (min (org-get-indentation) min-ind))
+			  (setq min-ind (min (current-indentation) min-ind))
 			  (cond
 			   ((and (looking-at "#\\+BEGIN\\(:\\|_\\S-+\\)")
 				 (re-search-forward
@@ -2037,7 +1995,9 @@ doesn't correspond anymore to the real list in buffer."
       ;; 5. Eventually fix checkboxes.
       (org-list-struct-fix-box struct parents prevs))
     ;; 6. Apply structure modifications to buffer.
-    (org-list-struct-apply-struct struct old-struct)))
+    (org-list-struct-apply-struct struct old-struct))
+  ;; 7. Return the updated structure
+  struct)
 
 
 
@@ -2078,8 +2038,8 @@ Possible values are: `folded', `children' or `subtree'.  See
    ((eq view 'folded)
     (let ((item-end (org-list-get-item-end-before-blank item struct)))
       ;; Hide from eol
-      (outline-flag-region (save-excursion (goto-char item) (point-at-eol))
-			   item-end t)))
+      (org-flag-region (save-excursion (goto-char item) (line-end-position))
+		       item-end t 'outline)))
    ((eq view 'children)
     ;; First show everything.
     (org-list-set-item-visibility item struct 'subtree)
@@ -2092,31 +2052,19 @@ Possible values are: `folded', `children' or `subtree'.  See
    ((eq view 'subtree)
     ;; Show everything
     (let ((item-end (org-list-get-item-end item struct)))
-      (outline-flag-region item item-end nil)))))
+      (org-flag-region item item-end nil 'outline)))))
 
 (defun org-list-item-body-column (item)
   "Return column at which body of ITEM should start."
   (save-excursion
     (goto-char item)
-    (if (save-excursion
-	  (end-of-line)
-	  (re-search-backward
-	   "[ \t]::\\([ \t]\\|$\\)" (line-beginning-position) t))
-	;; Descriptive list item.  Body starts after item's tag, if
-	;; possible.
-	(let ((start (1+ (- (match-beginning 1) (line-beginning-position))))
-	      (ind (org-get-indentation)))
-	  (if (> start (+ ind org-list-description-max-indent))
-	      (+ ind 5)
-	    start))
-      ;; Regular item.  Body starts after bullet.
-      (looking-at "[ \t]*\\(\\S-+\\)")
-      (+ (progn (goto-char (match-end 1)) (current-column))
-	 (if (and org-list-two-spaces-after-bullet-regexp
-		  (string-match-p org-list-two-spaces-after-bullet-regexp
-				  (match-string 1)))
-	     2
-	   1)))))
+    (looking-at "[ \t]*\\(\\S-+\\)")
+    (+ (progn (goto-char (match-end 1)) (current-column))
+       (if (and org-list-two-spaces-after-bullet-regexp
+		(string-match-p org-list-two-spaces-after-bullet-regexp
+				(match-string 1)))
+	   2
+	 1))))
 
 
 
@@ -2280,7 +2228,7 @@ item is invisible."
 				(string-match "[.)]" (match-string 1))))
 			 (match-beginning 4)
 		       (match-end 0)))
-	  (if desc (backward-char 1))
+	  (when desc (backward-char 1))
 	  t)))))
 
 (defun org-list-repair ()
@@ -2678,7 +2626,7 @@ Return t if successful."
 		(error "Cannot outdent beyond margin")
 	      ;; Change bullet if necessary.
 	      (when (and (= (+ top-ind offset) 0)
-			 (string-match "*"
+			 (string-match "\\*"
 				       (org-list-get-bullet beg struct)))
 		(org-list-set-bullet beg struct
 				     (org-list-bullet-string "-")))
@@ -2707,11 +2655,12 @@ Return t if successful."
 	  (error "Cannot outdent an item without its children"))
 	 ;; Normal shifting
 	 (t
-	  (let* ((new-parents
+	  (let* ((old-struct (copy-tree struct))
+		 (new-parents
 		  (if (< arg 0)
 		      (org-list-struct-outdent beg end struct parents)
 		    (org-list-struct-indent beg end struct parents prevs))))
-	    (org-list-write-struct struct new-parents))
+	    (org-list-write-struct struct new-parents old-struct))
 	  (org-update-checkbox-count-maybe))))))
   t)
 
@@ -2840,7 +2789,8 @@ Sorting can be alphabetically, numerically, by date/time as given
 by a time stamp, by a property or by priority.
 
 Comparing entries ignores case by default.  However, with an
-optional argument WITH-CASE, the sorting considers case as well.
+optional argument WITH-CASE, the sorting considers case as well,
+if the current locale allows for it.
 
 The command prompts for the sorting type unless it has been given
 to the function through the SORTING-TYPE argument, which needs to
@@ -2886,7 +2836,7 @@ function is being called interactively."
 		   (error "Missing key extractor"))))
 	 (sort-func
 	  (cond
-	   ((= dcst ?a) #'string<)
+	   ((= dcst ?a) #'org-string-collate-lessp)
 	   ((= dcst ?f)
 	    (or compare-func
 		(and interactive?
@@ -2977,7 +2927,7 @@ With a prefix argument ARG, change the region in a single item."
 	     (save-excursion
 	       (catch 'exit
 		 (while (< (point) end)
-		   (let ((i (org-get-indentation)))
+		   (let ((i (current-indentation)))
 		     (cond
 		      ;; Skip blank lines and inline tasks.
 		      ((looking-at "^[ \t]*$"))
@@ -2993,7 +2943,7 @@ With a prefix argument ARG, change the region in a single item."
 	       (while (< (point) end)
 		 (unless (or (looking-at "^[ \t]*$")
 			     (looking-at org-outline-regexp-bol))
-		   (indent-line-to (+ (org-get-indentation) delta)))
+		   (indent-line-to (+ (current-indentation) delta)))
 		 (forward-line))))))
 	(skip-blanks
 	 (lambda (pos)
@@ -3027,6 +2977,9 @@ With a prefix argument ARG, change the region in a single item."
 	   (forward-line)))
 	;; Case 2. Start at an heading: convert to items.
 	((org-at-heading-p)
+	 ;; Remove metadata
+	 (let (org-loop-over-headlines-in-active-region)
+	   (org-list--delete-metadata))
 	 (let* ((bul (org-list-bullet-string "-"))
 		(bul-len (length bul))
 		;; Indentation of the first heading.  It should be
@@ -3047,6 +3000,9 @@ With a prefix argument ARG, change the region in a single item."
 	       ;; one, set it as reference, in order to preserve
 	       ;; subtrees.
 	       (when (< level ref-level) (setq ref-level level))
+	       ;; Remove metadata
+	       (let (org-loop-over-headlines-in-active-region)
+		 (org-list--delete-metadata))
 	       ;; Remove stars and TODO keyword.
 	       (let ((case-fold-search nil)) (looking-at org-todo-line-regexp))
 	       (delete-region (point) (or (match-beginning 3)
@@ -3079,7 +3035,7 @@ With a prefix argument ARG, change the region in a single item."
 	;;         set them as item's body.
 	(arg (let* ((bul (org-list-bullet-string "-"))
 		    (bul-len (length bul))
-		    (ref-ind (org-get-indentation)))
+		    (ref-ind (current-indentation)))
 	       (skip-chars-forward " \t")
 	       (insert bul)
 	       (forward-line)
@@ -3195,80 +3151,14 @@ Point is left at list's end."
 (defun org-list-make-subtree ()
   "Convert the plain list at point into a subtree."
   (interactive)
-  (if (not (ignore-errors (goto-char (org-in-item-p))))
-      (error "Not in a list")
-    (let ((list (save-excursion (org-list-to-lisp t))))
-      (insert (org-list-to-subtree list)))))
-
-(defun org-list-insert-radio-list ()
-  "Insert a radio list template appropriate for this major mode."
-  (interactive)
-  (let* ((e (cl-assoc-if #'derived-mode-p org-list-radio-list-templates))
-	 (txt (nth 1 e))
-	 name pos)
-    (unless e (error "No radio list setup defined for %s" major-mode))
-    (setq name (read-string "List name: "))
-    (while (string-match "%n" txt)
-      (setq txt (replace-match name t t txt)))
-    (or (bolp) (insert "\n"))
-    (setq pos (point))
-    (insert txt)
-    (goto-char pos)))
-
-(defun org-list-send-list (&optional maybe)
-  "Send a transformed version of this list to the receiver position.
-With argument MAYBE, fail quietly if no transformation is defined
-for this list."
-  (interactive)
-  (catch 'exit
-    (unless (org-at-item-p) (error "Not at a list item"))
-    (save-excursion
-      (let ((case-fold-search t))
-	(re-search-backward "^[ \t]*#\\+ORGLST:" nil t)
-	(unless (looking-at
-		 "[ \t]*#\\+ORGLST:[ \t]+SEND[ \t]+\\(\\S-+\\)[ \t]+\\([^ \t\n]+\\)")
-	  (if maybe (throw 'exit nil)
-	    (error "Don't know how to transform this list")))))
-    (let* ((name (regexp-quote (match-string 1)))
-	   (transform (intern (match-string 2)))
-	   (bottom-point
-	    (save-excursion
-	      (re-search-forward
-	       "\\(\\\\end{comment}\\|@end ignore\\|-->\\)" nil t)
-	      (match-beginning 0)))
-	   (top-point
-	    (progn
-	      (re-search-backward "#\\+ORGLST" nil t)
-	      (re-search-forward (org-item-beginning-re) bottom-point t)
-	      (match-beginning 0)))
-	   (plain-list (save-excursion
-			 (goto-char top-point)
-			 (org-list-to-lisp))))
-      (unless (fboundp transform)
-	(error "No such transformation function %s" transform))
-      (let ((txt (funcall transform plain-list)))
-	;; Find the insertion(s) place(s).
-	(save-excursion
-	  (goto-char (point-min))
-	  (let ((receiver-count 0)
-		(begin-re (format "BEGIN +RECEIVE +ORGLST +%s\\([ \t]\\|$\\)"
-				  name))
-		(end-re (format "END +RECEIVE +ORGLST +%s\\([ \t]\\|$\\)"
-				name)))
-	    (while (re-search-forward begin-re nil t)
-	      (cl-incf receiver-count)
-	      (let ((beg (line-beginning-position 2)))
-		(unless (re-search-forward end-re nil t)
-		  (user-error "Cannot find end of receiver location at %d" beg))
-		(beginning-of-line)
-		(delete-region beg (point))
-		(insert txt "\n")))
-	    (cond
-	     ((> receiver-count 1)
-	      (message "List converted and installed at receiver locations"))
-	     ((= receiver-count 1)
-	      (message "List converted and installed at receiver location"))
-	     (t (user-error "No valid receiver location found")))))))))
+  (let ((item (org-in-item-p)))
+    (unless item (error "Not in a list"))
+    (goto-char item)
+    (let ((level (pcase (org-current-level)
+		   (`nil 1)
+		   (l (1+ (org-reduced-level l)))))
+	  (list (save-excursion (org-list-to-lisp t))))
+      (insert (org-list-to-subtree list level) "\n"))))
 
 (defun org-list-to-generic (list params)
   "Convert a LIST parsed through `org-list-to-lisp' to a custom format.
@@ -3577,21 +3467,22 @@ with overruling parameters for `org-list-to-generic'."
 		 :cbtrans "[-] ")))
     (org-list-to-generic list (org-combine-plists defaults params))))
 
-(defun org-list-to-subtree (list &optional params)
+(defun org-list-to-subtree (list &optional start-level params)
   "Convert LIST into an Org subtree.
-LIST is as returned by `org-list-to-lisp'.  PARAMS is a property
-list with overruling parameters for `org-list-to-generic'."
+LIST is as returned by `org-list-to-lisp'.  Subtree starts at
+START-LEVEL or level 1 if nil.  PARAMS is a property list with
+overruling parameters for `org-list-to-generic'."
   (let* ((blank (pcase (cdr (assq 'heading org-blank-before-new-entry))
 		  (`t t)
 		  (`auto (save-excursion
 			   (org-with-limited-levels (outline-previous-heading))
 			   (org-previous-line-empty-p)))))
-	 (level (org-reduced-level (or (org-current-level) 0)))
+	 (level (or start-level 1))
 	 (make-stars
 	  (lambda (_type depth &optional _count)
 	    ;; Return the string for the heading, depending on DEPTH
 	    ;; of current sub-list.
-	    (let ((oddeven-level (+ level depth)))
+	    (let ((oddeven-level (+ level (1- depth))))
 	      (concat (make-string (if org-odd-levels-only
 				       (1- (* 2 oddeven-level))
 				     oddeven-level)

@@ -1,10 +1,10 @@
 ;;; ob-sed.el --- Babel Functions for Sed Scripts    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Bjarte Johansen
 ;; Keywords: literate programming, reproducible research
-;; Version: 0.1.0
+;; Version: 0.1.1
 
 ;; This file is part of GNU Emacs.
 
@@ -79,7 +79,7 @@ function is called by `org-babel-execute-src-block'."
          (cmd (mapconcat #'identity
 			 (remq nil
 			       (list org-babel-sed-command
-				     (format "--file=\"%s\"" code-file)
+				     (format "-f \"%s\"" code-file)
 				     cmd-line
 				     in-file))
 			 " ")))

@@ -1,7 +1,7 @@
 						-*- text -*-
             GNU Emacs availability information
 
-Copyright (C) 1986-1993, 1995, 1998, 2000-2018 Free Software Foundation,
+Copyright (C) 1986-1993, 1995, 1998, 2000-2020 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -77,8 +77,7 @@ For more information on GNU, see the file 'GNU' in this directory (see
 above).
 
 			Richard M Stallman
-			Chief GNUisance,
-			President of the Free Software Foundation
+			Chief GNUisance, Founder of the FSF
 
 This file is part of GNU Emacs.
 

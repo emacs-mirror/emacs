@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2020 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -1045,7 +1045,7 @@ printablep (int c)
 }
 
 /* Return true if C is a horizontal whitespace character, as defined
-   by http://www.unicode.org/reports/tr18/tr18-19.html#blank.  */
+   by https://www.unicode.org/reports/tr18/tr18-19.html#blank.  */
 bool
 blankp (int c)
 {
@@ -1056,52 +1056,21 @@ blankp (int c)
   return XFIXNUM (category) == UNICODE_CATEGORY_Zs; /* separator, space */
 }
 
-
-/* Return true for characters that would read as symbol characters,
-   but graphically may be confused with some kind of punctuation.  We
-   require an escaping backslash, when such characters begin a
-   symbol.  */
-bool
-confusable_symbol_character_p (int ch)
-{
-  switch (ch)
-    {
-    case 0x2018: /* LEFT SINGLE QUOTATION MARK */
-    case 0x2019: /* RIGHT SINGLE QUOTATION MARK */
-    case 0x201B: /* SINGLE HIGH-REVERSED-9 QUOTATION MARK */
-    case 0x201C: /* LEFT DOUBLE QUOTATION MARK */
-    case 0x201D: /* RIGHT DOUBLE QUOTATION MARK */
-    case 0x201F: /* DOUBLE HIGH-REVERSED-9 QUOTATION MARK */
-    case 0x301E: /* DOUBLE PRIME QUOTATION MARK */
-    case 0xFF02: /* FULLWIDTH QUOTATION MARK */
-    case 0xFF07: /* FULLWIDTH APOSTROPHE */
-      return true;
-
-    default:
-      return false;
-    }
-}
-
-signed char HEXDIGIT_CONST hexdigit[UCHAR_MAX + 1] =
+/* hexdigit[C] is one greater than C's numeric value if C is a
+   hexadecimal digit, zero otherwise.  */
+signed char const hexdigit[UCHAR_MAX + 1] =
   {
-#if HEXDIGIT_IS_CONST
-    [0 ... UCHAR_MAX] = -1,
-#endif
-    ['0'] = 0, ['1'] = 1, ['2'] = 2, ['3'] = 3, ['4'] = 4,
-    ['5'] = 5, ['6'] = 6, ['7'] = 7, ['8'] = 8, ['9'] = 9,
-    ['A'] = 10, ['B'] = 11, ['C'] = 12, ['D'] = 13, ['E'] = 14, ['F'] = 15,
-    ['a'] = 10, ['b'] = 11, ['c'] = 12, ['d'] = 13, ['e'] = 14, ['f'] = 15
+    ['0'] = 1 + 0, ['1'] = 1 + 1, ['2'] = 1 + 2, ['3'] = 1 + 3, ['4'] = 1 + 4,
+    ['5'] = 1 + 5, ['6'] = 1 + 6, ['7'] = 1 + 7, ['8'] = 1 + 8, ['9'] = 1 + 9,
+    ['A'] = 1 + 10, ['B'] = 1 + 11, ['C'] = 1 + 12,
+    ['D'] = 1 + 13, ['E'] = 1 + 14, ['F'] = 1 + 15,
+    ['a'] = 1 + 10, ['b'] = 1 + 11, ['c'] = 1 + 12,
+    ['d'] = 1 + 13, ['e'] = 1 + 14, ['f'] = 1 + 15
   };
 
 void
 syms_of_character (void)
 {
-#if !HEXDIGIT_IS_CONST
-  /* Set the non-hex digit values to -1.  */
-  for (int i = 0; i <= UCHAR_MAX; i++)
-    hexdigit[i] -= i != '0' && !hexdigit[i];
-#endif
-
   DEFSYM (Qcharacterp, "characterp");
   DEFSYM (Qauto_fill_chars, "auto-fill-chars");
 
@@ -1124,7 +1093,7 @@ syms_of_character (void)
 Vector recording all translation tables ever defined.
 Each element is a pair (SYMBOL . TABLE) relating the table to the
 symbol naming it.  The ID of a translation table is an index into this vector.  */);
-  Vtranslation_table_vector = Fmake_vector (make_fixnum (16), Qnil);
+  Vtranslation_table_vector = make_nil_vector (16);
 
   DEFVAR_LISP ("auto-fill-chars", Vauto_fill_chars,
 	       doc: /*

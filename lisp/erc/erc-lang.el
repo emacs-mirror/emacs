@@ -1,11 +1,11 @@
 ;;; erc-lang.el --- provide the LANG command to ERC
 
-;; Copyright (C) 2002, 2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Old-Version: 1.0.0
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcLang
+;; URL: https://www.emacswiki.org/emacs/ErcLang
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.

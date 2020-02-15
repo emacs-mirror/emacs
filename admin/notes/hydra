@@ -1,6 +1,6 @@
 -*- mode: outline; coding: utf-8 -*-
 
-Copyright (C) 2013-2018 Free Software Foundation, Inc.
+Copyright (C) 2013-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 NOTES FOR EMACS CONTINUOUS BUILD ON HYDRA
@@ -10,8 +10,6 @@ https://hydra.nixos.org/jobset/gnu/emacs-trunk
 
 * It builds Emacs on various platforms.
 Sometimes jobs fail due to hydra problems rather than Emacs problems.
-Eg it seems like the darwin build will never work again.
-https://lists.gnu.org/r/hydra-users/2016-01/msg00000.html
 
 * Mail notifications
 In addition to the web interface, Hydra can send notifications by
@@ -21,6 +19,8 @@ Emacs trunk to emacs-buildstatus@gnu.org.
 
 If you want to receive these notifications, please subscribe at
 https://lists.gnu.org/mailman/listinfo/emacs-buildstatus
+
+(This feature seems to have been broken for ages.)
 
 * The Emacs jobset consists of the following jobs:
 

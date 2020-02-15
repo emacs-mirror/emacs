@@ -23186,7 +23186,7 @@
 	Delete argument prop_index.
 	(font_property_table): Change arguments to validator.  Change Callers.
 	(font_lispy_object): Delete.
-	(font_at): Use font_find_object instead fo font_lispy_object.
+	(font_at): Use font_find_object instead of font_lispy_object.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2018 Free Software Foundation, Inc.
+  Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

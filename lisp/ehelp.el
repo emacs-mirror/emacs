@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
@@ -355,7 +355,10 @@ will select it.)"
 (defun electric-help-execute-extended (_prefixarg)
   (interactive "p")
   (setq electric-help-form-to-execute
-        (lambda () (execute-extended-command nil)))
+        (lambda ()
+          (with-suppressed-warnings ((interactive-only
+                                      execute-extended-command))
+            (execute-extended-command nil))))
   (electric-help-retain))
 
 ;; This is to be buond to C-x in ehelp mode. Retains ehelp buffer and then

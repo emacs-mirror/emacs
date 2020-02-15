@@ -1,6 +1,6 @@
 ;;; rmail-spam-filter.el --- spam filter for Rmail, the Emacs mail reader
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
 ;; Package: rmail
@@ -133,7 +133,7 @@ If any element matches the \"From\" header, the message is
 flagged as a valid, non-spam message.  E.g., if your domain is
 \"emacs.com\" then including \"emacs\\\\.com\" in this list would
 flag all mail (purporting to be) from your colleagues as valid."
-  :type '(repeat string)
+  :type '(repeat regexp)
   :group 'rmail-spam-filter)
 
 (defcustom rsf-definitions-alist nil
@@ -157,22 +157,22 @@ A rule matches only if all the specified elements match."
           (list :format "%v"
 	   (cons :format "%v" :value (from . "")
 		 (const :format ""  from)
-		 (string :tag "From"  ""))
+		 (regexp :tag "From"  ""))
 	   (cons :format "%v" :value (to . "")
 		 (const :format ""  to)
-		 (string :tag "To"  ""))
+		 (regexp :tag "To"  ""))
 	   (cons :format "%v" :value (subject . "")
 		 (const :format ""  subject)
-		 (string :tag "Subject"  ""))
+		 (regexp :tag "Subject"  ""))
 	   (cons :format "%v" :value (content-type . "")
 		 (const :format ""  content-type)
-		 (string :tag "Content-Type"  ""))
+		 (regexp :tag "Content-Type"  ""))
 	   (cons :format "%v" :value (contents . "")
 		 (const :format ""  contents)
-		 (string :tag "Contents"  ""))
+		 (regexp :tag "Contents"  ""))
 	   (cons :format "%v" :value (x-spam-status . "")
 		 (const :format ""  x-spam-status)
-		 (string :tag "X-Spam-Status"  ""))
+		 (regexp :tag "X-Spam-Status"  ""))
 	   (cons :format "%v" :value (action . output-and-delete)
 		 (const :format "" action)
 		 (choice :tag "Action selection"

@@ -1,5 +1,5 @@
-# strtoimax.m4 serial 15
-dnl Copyright (C) 2002-2004, 2006, 2009-2018 Free Software Foundation, Inc.
+# strtoimax.m4 serial 16
+dnl Copyright (C) 2002-2004, 2006, 2009-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -85,5 +85,4 @@ int main ()
 # Prerequisites of lib/strtoimax.c.
 AC_DEFUN([gl_PREREQ_STRTOIMAX], [
   AC_CHECK_DECLS([strtoll])
-  AC_REQUIRE([AC_TYPE_LONG_LONG_INT])
 ])

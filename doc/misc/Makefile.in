@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2018 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2020 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -65,7 +65,7 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 DOCMISC_W32 = @DOCMISC_W32@
 
 ## Info files to build and install on all platforms.
-INFO_COMMON = ada-mode auth autotype bovine calc ccmode cl \
+INFO_COMMON = auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq eww \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
@@ -267,7 +267,7 @@ install-ps: ps
 	  ${GZIP_PROG} -9n "$(DESTDIR)$(psdir)/$${file}"; \
 	done
 
-## Top-level Makefile installs the info pages.
+## Top-level Makefile installs the Info manuals.
 install-doc: install-dvi install-html install-pdf install-ps
 
 

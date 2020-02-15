@@ -1,9 +1,8 @@
 ;;; cus-test.el --- tests for custom types and load problems
 
-;; Copyright (C) 1998, 2000, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002-2020 Free Software Foundation, Inc.
 
-;; Author: Markus Rost <markus.rost@mathematik.uni-regensburg.de>
-;; Maintainer: Markus Rost <rost@math.ohio-state.edu>
+;; Author: Markus Rost <rost@math.uni-bielefeld.de>
 ;; Created: 13 Sep 1998
 ;; Keywords: maint
 

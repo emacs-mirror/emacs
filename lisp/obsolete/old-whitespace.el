@@ -1,6 +1,6 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -383,10 +383,10 @@ To disable timer scans, set this to zero."
 (defun whitespace-buffer (&optional quiet)
   "Find five different types of white spaces in buffer.
 These are:
-1. Leading space \(empty lines at the top of a file\).
-2. Trailing space \(empty lines at the end of a file\).
-3. Indentation space \(8 or more spaces, that should be replaced with TABS\).
-4. Spaces followed by a TAB. \(Almost always, we never want that\).
+1. Leading space \(empty lines at the top of a file).
+2. Trailing space \(empty lines at the end of a file).
+3. Indentation space \(8 or more spaces, that should be replaced with TABS).
+4. Spaces followed by a TAB. \(Almost always, we never want that).
 5. Spaces or TABS at the end of a line.
 
 Check for whitespace only if this buffer really contains a non-empty file

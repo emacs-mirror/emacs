@@ -1,8 +1,8 @@
 ;;; semantic/symref/cscope.el --- Semantic-symref support via cscope.
 
-;;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -51,14 +51,11 @@ See the function `cedet-cscope-search' for more details.")
 			      default-directory))
 	 ;; CScope has to be run from the project root where
 	 ;; cscope.out is.
-	 (b (cedet-cscope-search (oref tool :searchfor)
-				 (oref tool :searchtype)
-				 (oref tool :resulttype)
-				 (oref tool :searchscope)
-				 ))
-	)
-    (semantic-symref-parse-tool-output tool b)
-    ))
+	 (b (cedet-cscope-search (oref tool searchfor)
+				 (oref tool searchtype)
+				 (oref tool resulttype)
+				 (oref tool searchscope))))
+    (semantic-symref-parse-tool-output tool b)))
 
 (defconst semantic-symref-cscope--line-re
   "^\\([^ ]+\\) [^ ]+ \\([0-9]+\\) ")
@@ -66,22 +63,22 @@ See the function `cedet-cscope-search' for more details.")
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-cscope))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
-  (cond ((eq (oref tool :resulttype) 'file)
+  (cond ((eq (oref tool resulttype) 'file)
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
-	((eq (oref tool :searchtype) 'tagcompletions)
+	((eq (oref tool searchtype) 'tagcompletions)
 	 ;; Search for files
 	 (when (re-search-forward "^[^ ]+ [^ ]+ [^ ]+ \\(.*\\)$" nil t)
 	   (let ((subtxt (match-string 1))
-		 (searchtxt (oref tool :searchfor)))
+		 (searchtxt (oref tool searchfor)))
 	     (if (string-match (concat "\\<" searchtxt "\\(\\w\\|\\s_\\)*\\>")
 			       subtxt)
 		 (match-string 0 subtxt)
 	       ;; We have to return something at this point.
 	       subtxt)))
 	 )
-        ((eq (oref tool :resulttype) 'line-and-text)
+        ((eq (oref tool resulttype) 'line-and-text)
          (when (re-search-forward semantic-symref-cscope--line-re nil t)
            (list (string-to-number (match-string 2))
                  (expand-file-name (match-string 1))

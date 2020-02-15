@@ -1,6 +1,6 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986-1989, 1993-1994, 2001-2018 Free Software
+;; Copyright (C) 1986-1989, 1993-1994, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
@@ -1166,7 +1166,7 @@ subprocess started."
 	 (let ((l ()) (p 0))
 	   (while p
 	     (setq l (cons (if (string-match
-				"\\([-a-zA-Z0-9+=_.@/:]+\\)\\([ \t]+\\)*"
+				"\\([-a-zA-Z0-9+=_.@/:]+\\)[ \t]*"
 				s p)
 			       (prog1 (substring s p (match-end 1))
 				 (setq p (match-end 0))

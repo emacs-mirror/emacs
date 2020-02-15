@@ -1,6 +1,6 @@
 ;;; ob-awk.el --- Babel Functions for Awk            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -48,8 +48,8 @@
   body)
 
 (defun org-babel-execute:awk (body params)
-  "Execute a block of Awk code with org-babel.  This function is
-called by `org-babel-execute-src-block'"
+  "Execute a block of Awk code with org-babel.
+This function is called by `org-babel-execute-src-block'."
   (message "executing Awk source code block")
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))

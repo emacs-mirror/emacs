@@ -1,6 +1,6 @@
 ;;; dns.el --- Domain Name Service lookups
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network comm
@@ -106,7 +106,7 @@ updated.  Set this variable to t to disable the check.")
 
 (defun dns-read-string-name (string buffer)
   (with-temp-buffer
-    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
+    (set-buffer-multibyte nil)
     (insert string)
     (goto-char (point-min))
     (dns-read-name buffer)))
@@ -140,7 +140,7 @@ updated.  Set this variable to t to disable the check.")
   "Write a DNS packet according to SPEC.
 If TCP-P, the first two bytes of the package with be the length field."
   (with-temp-buffer
-    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
+    (set-buffer-multibyte nil)
     (dns-write-bytes (dns-get 'id spec) 2)
     (dns-write-bytes
      (logior
@@ -191,7 +191,7 @@ If TCP-P, the first two bytes of the package with be the length field."
 
 (defun dns-read (packet)
   (with-temp-buffer
-    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
+    (set-buffer-multibyte nil)
     (let ((spec nil)
           queries answers authorities additionals)
       (insert packet)
@@ -258,17 +258,15 @@ If TCP-P, the first two bytes of the package with be the length field."
       (nreverse spec))))
 
 (defun dns-read-int32 ()
-  ;; Full 32 bit Integers can't be handled by 32-bit Emacsen.  If we
-  ;; use floats, it works.
-  (format "%.0f" (+ (* (dns-read-bytes 1) 16777216.0)
-		    (dns-read-bytes 3))))
+  (declare (obsolete nil "28.1"))
+  (number-to-string (dns-read-bytes 4)))
 
 (defun dns-read-type (string type)
   (let ((buffer (current-buffer))
 	(point (point)))
     (prog1
         (with-temp-buffer
-	  (unless (featurep 'xemacs) (set-buffer-multibyte nil))
+	  (set-buffer-multibyte nil)
           (insert string)
           (goto-char (point-min))
           (cond
@@ -286,11 +284,11 @@ If TCP-P, the first two bytes of the package with be the length field."
            ((eq type 'SOA)
             (list (list 'mname (dns-read-name buffer))
                   (list 'rname (dns-read-name buffer))
-                  (list 'serial (dns-read-int32))
-                  (list 'refresh (dns-read-int32))
-                  (list 'retry (dns-read-int32))
-                  (list 'expire (dns-read-int32))
-                  (list 'minimum (dns-read-int32))))
+		  (list 'serial (dns-read-bytes 4))
+		  (list 'refresh (dns-read-bytes 4))
+		  (list 'retry (dns-read-bytes 4))
+		  (list 'expire (dns-read-bytes 4))
+		  (list 'minimum (dns-read-bytes 4))))
            ((eq type 'SRV)
             (list (list 'priority (dns-read-bytes 2))
                   (list 'weight (dns-read-bytes 2))
@@ -356,26 +354,21 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 
 ;;; Interface functions.
 (defmacro dns-make-network-process (server)
-  (if (featurep 'xemacs)
-      `(let ((coding-system-for-read 'binary)
-	     (coding-system-for-write 'binary))
-	 (open-network-stream "dns" (current-buffer)
-			      ,server "domain" 'udp))
-    `(let ((server ,server)
-	   (coding-system-for-read 'binary)
-	   (coding-system-for-write 'binary))
-       (if (fboundp 'make-network-process)
-	   (make-network-process
-	    :name "dns"
-	    :coding 'binary
-	    :buffer (current-buffer)
-	    :host server
-	    :service "domain"
-	    :type 'datagram)
-	 ;; Older versions of Emacs doesn't have
-	 ;; `make-network-process', so we fall back on opening a TCP
-	 ;; connection to the DNS server.
-	 (open-network-stream "dns" (current-buffer) server "domain")))))
+  `(let ((server ,server)
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary))
+     (if (fboundp 'make-network-process)
+	 (make-network-process
+	  :name "dns"
+	  :coding 'binary
+	  :buffer (current-buffer)
+	  :host server
+	  :service "domain"
+	  :type 'datagram)
+       ;; Older versions of Emacs doesn't have
+       ;; `make-network-process', so we fall back on opening a TCP
+       ;; connection to the DNS server.
+       (open-network-stream "dns" (current-buffer) server "domain"))))
 
 (defvar dns-cache (make-vector 4096 0))
 
@@ -409,7 +402,7 @@ If REVERSEP, look up an IP address."
   (if (not dns-servers)
       (message "No DNS server configuration found")
     (with-temp-buffer
-      (unless (featurep 'xemacs) (set-buffer-multibyte nil))
+      (set-buffer-multibyte nil)
       (let ((process (condition-case ()
                          (dns-make-network-process (car dns-servers))
                        (error
@@ -417,8 +410,6 @@ If REVERSEP, look up an IP address."
                          "dns: Got an error while trying to talk to %s"
                          (car dns-servers))
                         nil)))
-            (tcp-p (and (not (fboundp 'make-network-process))
-                        (not (featurep 'xemacs))))
             (step 100)
             (times (* dns-timeout 1000))
             (id (random 65000)))
@@ -428,20 +419,16 @@ If REVERSEP, look up an IP address."
            (dns-write `((id ,id)
                         (opcode query)
                         (queries ((,name (type ,type))))
-                        (recursion-desired-p t))
-                      tcp-p))
+                        (recursion-desired-p t))))
           (while (and (zerop (buffer-size))
                       (> times 0))
-            (sit-for (/ step 1000.0))
-            (accept-process-output process 0 step)
+	    (let ((step-sec (/ step 1000.0)))
+	      (sit-for step-sec)
+	      (accept-process-output process step-sec))
             (setq times (- times step)))
           (condition-case nil
               (delete-process process)
             (error nil))
-          (when (and tcp-p
-                     (>= (buffer-size) 2))
-            (goto-char (point-min))
-            (delete-region (point) (+ (point) 2)))
           (when (and (>= (buffer-size) 2)
                      ;; We had a time-out.
                      (> times 0))

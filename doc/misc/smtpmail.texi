@@ -4,7 +4,7 @@
 @include docstyle.texi
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2003--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -221,10 +221,18 @@ they are allowed to send mail.  Authentication usually involves
 supplying a user name and password.
 
 If you have not configured anything, then the first time you try to
-send mail via a server, Emacs (version 24.1 and later) prompts you
+send mail via a server and the SMTP server reports back that it
+requires authentication, Emacs (version 24.1 and later) prompts you
 for the user name and password to use, and then offers to save the
-information.  By default, Emacs stores authentication information in
-a file @file{~/.authinfo}.
+information.  By default, Emacs stores authentication information in a
+file @file{~/.authinfo}.
+
+@vindex smtpmail-servers-requiring-authorization
+Some SMTP servers may bandwidth-limit (or deny) requests from clients
+that try to post without authorization---even if they later do supply
+that information.  To make this library supply that information on
+first attempt, set @code{smtpmail-servers-requiring-authorization} to
+a regexp that match the server name.
 
 @cindex authinfo
 The basic format of the @file{~/.authinfo} file is one line for each
@@ -287,26 +295,11 @@ encrypted connection if the server supports it.  Other possible values
 are: @code{starttls} to insist on STARTTLS; @code{ssl} to use TLS/SSL;
 and @code{plain} for no encryption.
 
-Use of any form of TLS/SSL requires support in Emacs.  You can either
-use the built-in support (in Emacs 24.1 and later), or the
-@file{starttls.el} Lisp library.  The built-in support uses the GnuTLS
-@footnote{@url{https://www.gnu.org/software/gnutls/}} library.
-If your Emacs has GnuTLS support built-in, the function
+Use of any form of TLS/SSL requires support in Emacs.  You can use the
+built-in support for the GnuTLS
+@footnote{@url{https://www.gnu.org/software/gnutls/}} library.  If your
+Emacs has GnuTLS support built-in, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.
-Otherwise, you must use the @file{starttls.el} library (see that file for
-more information on customization options, etc.).  The Lisp library
-requires one of the following external tools to be installed:
-
-@enumerate
-@item
-The GnuTLS command line tool @samp{gnutls-cli}, which you can get from
-@url{https://www.gnu.org/software/gnutls/}.  This is the recommended
-tool, mainly because it can verify server certificates.
-
-@item
-The @samp{starttls} external program, which you can get from
-@file{starttls-*.tar.gz} from @uref{ftp://ftp.opaopa.org/pub/elisp/}.
-@end enumerate
 
 @cindex certificates
 @cindex keys
@@ -363,6 +356,13 @@ Some SMTP servers have special requirements.  The following variables
 implement support for common requirements.
 
 @table @code
+
+@item smtpmail-retries
+@vindex smtpmail-retries
+An SMTP server may return an error code saying that there's a
+transient error (a @samp{4xx} code).  In that case, smtpmail will try
+to resend the message automatically, and the number of times it tries
+before giving up is determined by this variable, which defaults to 10.
 
 @item smtpmail-local-domain
 @vindex smtpmail-local-domain

@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation library -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>
@@ -291,11 +291,11 @@ conversion.  If omitted or nil, use `color-d65-xyz'."
    (list (/ (* Y x) y) Y (/ (* Y (- 1 x y)) y))))
 
 (defun color-lab-to-lch (L a b)
-  "Convert CIE L*a*b* to L*C*h*"
+  "Convert CIE L*a*b* to L*C*h*."
   (list L (sqrt (+ (* a a) (* b b))) (atan b a)))
 
 (defun color-lch-to-lab (L C h)
-  "Convert CIE L*a*b* to L*C*h*"
+  "Convert CIE L*a*b* to L*C*h*."
   (list L (* C (cos h)) (* C (sin h))))
 
 (defun color-cie-de2000 (color1 color2 &optional kL kC kH)

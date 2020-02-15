@@ -1,6 +1,6 @@
 ;;; cl-print-tests.el --- Test suite for the cl-print facility.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,108 +19,16 @@
 
 ;;; Commentary:
 
+;; See test/src/print-tests.el for tests which apply to both
+;; cl-print.el and src/print.c.
+
 ;;; Code:
 
 (require 'ert)
 
-(cl-defstruct cl-print--test a b)
-
-(ert-deftest cl-print-tests-1 ()
-  "Test cl-print code."
-  (let ((x (make-cl-print--test :a 1 :b 2)))
-    (let ((print-circle nil))
-      (should (equal (cl-prin1-to-string `((x . ,x) (y . ,x)))
-                     "((x . #s(cl-print--test :a 1 :b 2)) (y . #s(cl-print--test :a 1 :b 2)))")))
-    (let ((print-circle t))
-      (should (equal (cl-prin1-to-string `((x . ,x) (y . ,x)))
-                     "((x . #1=#s(cl-print--test :a 1 :b 2)) (y . #1#))")))
-    (should (string-match "\\`#f(compiled-function (x) \"[^\"]+\" [^\)]*)\\'"
-                          (cl-prin1-to-string (symbol-function #'caar))))))
-
-(ert-deftest cl-print-tests-2 ()
-  (let ((x (record 'foo 1 2 3)))
-    (should (equal
-             x
-             (car (read-from-string (with-output-to-string (prin1 x))))))
-    (let ((print-circle t))
-      (should (string-match
-               "\\`(#1=#s(foo 1 2 3) #1#)\\'"
-               (cl-prin1-to-string (list x x)))))))
-
 (cl-defstruct (cl-print-tests-struct
                (:constructor cl-print-tests-con))
   a b c d e)
-
-(ert-deftest cl-print-tests-3 ()
-  "CL printing observes `print-length'."
-  (let ((long-list (make-list 5 'a))
-        (long-vec (make-vector 5 'b))
-        (long-struct (cl-print-tests-con))
-        (long-string (make-string 5 ?a))
-        (print-length 4))
-    (should (equal "(a a a a ...)" (cl-prin1-to-string long-list)))
-    (should (equal "[b b b b ...]" (cl-prin1-to-string long-vec)))
-    (should (equal "#s(cl-print-tests-struct :a nil :b nil :c nil :d nil ...)"
-                   (cl-prin1-to-string long-struct)))
-    (should (equal "\"aaaa...\"" (cl-prin1-to-string long-string)))))
-
-(ert-deftest cl-print-tests-4 ()
-  "CL printing observes `print-level'."
-  (let* ((deep-list '(a (b (c (d (e))))))
-         (buried-vector '(a (b (c (d [e])))))
-         (deep-struct (cl-print-tests-con))
-         (buried-struct `(a (b (c (d ,deep-struct)))))
-         (buried-string '(a (b (c (d #("hello" 0 5 (cl-print-test t)))))))
-         (buried-simple-string '(a (b (c (d "hello")))))
-         (print-level 4))
-    (setf (cl-print-tests-struct-a deep-struct) deep-list)
-    (should (equal "(a (b (c (d ...))))" (cl-prin1-to-string deep-list)))
-    (should (equal "(a (b (c (d ...))))" (cl-prin1-to-string buried-vector)))
-    (should (equal "(a (b (c (d ...))))" (cl-prin1-to-string buried-struct)))
-    (should (equal "(a (b (c (d ...))))" (cl-prin1-to-string buried-string)))
-    (should (equal "(a (b (c (d \"hello\"))))"
-                   (cl-prin1-to-string buried-simple-string)))
-    (should (equal "#s(cl-print-tests-struct :a (a (b (c ...))) :b nil :c nil :d nil :e nil)"
-                   (cl-prin1-to-string deep-struct)))))
-
-(ert-deftest cl-print-tests-5 ()
-  "CL printing observes `print-quoted'."
-  (let ((quoted-stuff '('a #'b `(,c ,@d))))
-    (let ((print-quoted t))
-      (should (equal "('a #'b `(,c ,@d))"
-                     (cl-prin1-to-string quoted-stuff))))
-    (let ((print-quoted nil))
-      (should (equal "((quote a) (function b) (\\` ((\\, c) (\\,@ d))))"
-                     (cl-prin1-to-string quoted-stuff))))))
-
-(ert-deftest cl-print-tests-strings ()
-  "CL printing prints strings and propertized strings."
-  (let* ((str1 "abcdefghij")
-         (str2 #("abcdefghij" 3 6 (bold t) 7 9 (italic t)))
-         (str3 #("abcdefghij" 0 10 (test t)))
-         (obj '(a b))
-         ;; Since the byte compiler reuses string literals,
-         ;; and the put-text-property call is destructive, use
-         ;; copy-sequence to make a new string.
-         (str4 (copy-sequence "abcdefghij")))
-    (put-text-property 0 5 'test obj str4)
-    (put-text-property 7 10 'test obj str4)
-
-    (should (equal "\"abcdefghij\"" (cl-prin1-to-string str1)))
-    (should (equal "#(\"abcdefghij\" 3 6 (bold t) 7 9 (italic t))"
-                   (cl-prin1-to-string str2)))
-    (should (equal "#(\"abcdefghij\" 0 10 (test t))"
-                   (cl-prin1-to-string str3)))
-    (let ((print-circle nil))
-      (should
-       (equal
-        "#(\"abcdefghij\" 0 5 (test (a b)) 7 10 (test (a b)))"
-        (cl-prin1-to-string str4))))
-    (let ((print-circle t))
-      (should
-       (equal
-        "#(\"abcdefghij\" 0 5 (test #1=(a b)) 7 10 (test #1#))"
-        (cl-prin1-to-string str4))))))
 
 (ert-deftest cl-print-tests-ellipsis-cons ()
   "Ellipsis expansion works in conses."
@@ -215,23 +123,6 @@
     (should (string-match expected result))
     (should (string-match expanded (with-output-to-string
                                      (cl-print-expand-ellipsis value nil))))))
-
-(ert-deftest cl-print-circle ()
-  (let ((x '(#1=(a . #1#) #1#)))
-    (let ((print-circle nil))
-      (should (string-match "\\`((a . #[0-9]) (a . #[0-9]))\\'"
-                            (cl-prin1-to-string x))))
-    (let ((print-circle t))
-      (should (equal "(#1=(a . #1#) #1#)" (cl-prin1-to-string x))))))
-
-(ert-deftest cl-print-circle-2 ()
-  ;; Bug#31146.
-  (let ((x '(0 . #1=(0 . #1#))))
-    (let ((print-circle nil))
-      (should (string-match "\\`(0 0 . #[0-9])\\'"
-                            (cl-prin1-to-string x))))
-    (let ((print-circle t))
-      (should (equal "(0 . #1=(0 . #1#))" (cl-prin1-to-string x))))))
 
 (ert-deftest cl-print-tests-print-to-string-with-limit ()
   (let* ((thing10 (make-list 10 'a))

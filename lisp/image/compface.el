@@ -1,9 +1,9 @@
-;;; compface.el --- functions for converting X-Face headers
+;;; compface.el --- functions for converting X-Face headers -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Keywords: news
+;; Keywords: multimedia, news
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-;;;###
 (defun uncompface (face)
   "Convert FACE to pbm.
 Requires the external programs `uncompface', and `icontopbm'.  On a
@@ -37,9 +36,8 @@ or `faces-xface' and `netpbm' or `libgr-progs', for instance."
 	  ;; At least "icontopbm" doesn't work with Windows because
 	  ;; the line-break code is converted into CRLF by default.
 	  (coding-system-for-write 'binary))
-      (and (eq 0 (apply 'call-process-region (point-min) (point-max)
-			"uncompface"
-			'delete '(t nil) nil))
+      (and (eq 0 (call-process-region (point-min) (point-max)
+                                      "uncompface" 'delete '(t nil)))
 	   (progn
 	     (goto-char (point-min))
 	     (insert "/* Format_version=1, Width=48, Height=48, Depth=1,\

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the NeXT/Open/GNUstep API.
-   Copyright (C) 1995, 2005, 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2005, 2008-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,73 +58,22 @@ typedef struct _XCharStruct
   int descent;
 } XCharStruct;
 
-/* Fake structure from Xlib.h to represent two-byte characters.  */
-#ifndef __OBJC__
-typedef unsigned short unichar;
-#endif
-typedef unichar XChar2b;
-
-#define STORE_XCHAR2B(chp, b1, b2) \
-  (*(chp) = ((XChar2b)((((b1) & 0x00ff) << 8) | ((b2) & 0x00ff))))
-
-#define XCHAR2B_BYTE1(chp) \
-  ((*(chp) & 0xff00) >> 8)
-
-#define XCHAR2B_BYTE2(chp) \
-  (*(chp) & 0x00ff)
-
-
-/* XXX: xfaces requires these structures, but the question is are we
-        forced to use them?  */
-typedef struct _XGCValues
-{
-  unsigned long foreground;
-  unsigned long background;
-#ifdef __OBJC__
-  struct ns_font *font;
-#else
-  void *font;
-#endif
-} XGCValues;
-
-typedef XGCValues * GC;
-
-#define GCForeground 0x01
-#define GCBackground 0x02
-#define GCFont 0x03
+/* Used in xdisp.c when comparing faces and frame colors.  */
+extern unsigned long ns_color_index_to_rgba(int idx, struct frame *f);
 
 #ifdef __OBJC__
-typedef id Pixmap;
+typedef id Emacs_Pixmap;
 #else
-typedef void *Pixmap;
+typedef void *Emacs_Pixmap;
 #endif
 
 #ifdef __OBJC__
-typedef NSCursor * Cursor;
+typedef NSCursor *Emacs_Cursor;
 #else
-typedef void *Cursor;
+typedef void *Emacs_Cursor;
 #endif
 
-#define No_Cursor (0)
-
-#ifdef __OBJC__
-typedef NSColor * Color;
-#else
-typedef void * Color;
-#endif
 typedef int Window;
-typedef int Display;
-
-/* Xism */
-typedef Lisp_Object XrmDatabase;
-
-
-/* Some sort of attempt to normalize rectangle handling.  Seems a bit
-   much for what is accomplished.  */
-typedef struct {
-      int x, y;
-      unsigned width, height;
-} XRectangle;
 
 #ifndef __OBJC__
 #if defined (__LP64__) && __LP64__
@@ -139,13 +88,13 @@ typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
 
 #define NativeRectangle NSRect
 
-#define CONVERT_TO_XRECT(xr, nr)		\
+#define CONVERT_TO_EMACS_RECT(xr, nr)		\
   ((xr).x     = (nr).origin.x,			\
    (xr).y     = (nr).origin.y,			\
    (xr).width = (nr).size.width,		\
    (xr).height = (nr).size.height)
 
-#define CONVERT_FROM_XRECT(xr, nr)		\
+#define CONVERT_FROM_EMACS_RECT(xr, nr)		\
   ((nr).origin.x    = (xr).x,			\
    (nr).origin.y    = (xr).y,			\
    (nr).size.width  = (xr).width,		\

@@ -1,6 +1,6 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -396,11 +396,6 @@ Two predefined functions are available:
 		(function :tag "Other" nil))
   :group 'gnus-summary-tree)
 
-(defcustom gnus-tree-mode-hook nil
-  "Hook run in tree mode buffers."
-  :type 'hook
-  :group 'gnus-summary-tree)
-
 ;;; Internal variables.
 
 (defvar gnus-tmp-name)
@@ -411,7 +406,7 @@ Two predefined functions are available:
 (defvar gnus-tmp-subject)
 
 (defvar gnus-tree-line-format-alist
-  `((?n gnus-tmp-name ?s)
+  '((?n gnus-tmp-name ?s)
     (?f gnus-tmp-from ?s)
     (?N gnus-tmp-number ?d)
     (?\[ gnus-tmp-open-bracket ?c)
@@ -445,8 +440,6 @@ Two predefined functions are available:
      'undefined 'gnus-tree-read-summary-keys map)
     map))
 
-(put 'gnus-tree-mode 'mode-class 'special)
-
 (defun gnus-tree-make-menu-bar ()
   (unless (boundp 'gnus-tree-menu)
     (easy-menu-define
@@ -454,7 +447,7 @@ Two predefined functions are available:
       '("Tree"
 	["Select article" gnus-tree-select-article t]))))
 
-(define-derived-mode gnus-tree-mode fundamental-mode "Tree"
+(define-derived-mode gnus-tree-mode gnus-mode "Tree"
   "Major mode for displaying thread trees."
   (gnus-set-format 'tree-mode)
   (gnus-set-format 'tree t)
@@ -580,9 +573,9 @@ Two predefined functions are available:
 	 (header (if (vectorp header) header
 		   (progn
 		     (setq header (make-mail-header "*****"))
-		     (mail-header-set-number header 0)
-		     (mail-header-set-lines header 0)
-		     (mail-header-set-chars header 0)
+		     (setf (mail-header-number header) 0)
+		     (setf (mail-header-lines header) 0)
+		     (setf (mail-header-chars header) 0)
 		     header)))
 	 (gnus-tmp-from (mail-header-from header))
 	 (gnus-tmp-subject (mail-header-subject header))

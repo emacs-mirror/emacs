@@ -1,6 +1,6 @@
 ;;; gnus-sieve.el --- Utilities to manage sieve scripts for Gnus
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: NAGY Andras <nagya@inf.elte.hu>,
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -128,7 +128,7 @@ Return nil if no rule could be guessed."
 	  (info (gnus-get-info gnus-newsgroup-name)))
       (if (null rule)
 	  (error "Could not guess rule for article")
-	(gnus-info-set-params info (cons rule (gnus-info-params info)))
+	(push rule (gnus-info-params info))
 	(message "Added rule in group %s for article: %s" gnus-newsgroup-name
 		 rule)))))
 

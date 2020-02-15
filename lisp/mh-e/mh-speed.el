@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- MH-E speedbar support
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -31,7 +31,6 @@
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
 
 (require 'gnus-util)
 (require 'speedbar)
@@ -163,7 +162,7 @@ The optional arguments from speedbar are IGNORED."
              (speedbar-change-expand-button-char ?-)
              (add-text-properties
               (mh-line-beginning-position) (1+ (line-beginning-position))
-              `(mh-expanded t)))))))
+              '(mh-expanded t)))))))
 
 (defun mh-speed-view (&rest ignored)
   "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
@@ -184,7 +183,7 @@ The optional arguments from speedbar are IGNORED."
 ;;; Support Routines
 
 ;;;###mh-autoload
-(defun mh-folder-speedbar-buttons (buffer)
+(defun mh-folder-speedbar-buttons (_buffer)
   "Interface function to create MH-E speedbar buffer.
 BUFFER is the MH-E buffer for which the speedbar buffer is to be
 created."
@@ -199,7 +198,7 @@ created."
                       (1+ (mh-line-beginning-position))))
     (add-text-properties
      (mh-line-beginning-position) (1+ (line-beginning-position))
-     `(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
+     '(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
     (mh-speed-stealth-update t)
     (when (> mh-speed-update-interval 0)
       (mh-speed-flists nil))))
@@ -438,7 +437,7 @@ flists is run only for that one folder."
 
 ;; Copied from mh-make-folder-list-filter...
 ;; XXX Refactor to use mh-make-folder-list-filer?
-(defun mh-speed-parse-flists-output (process output)
+(defun mh-speed-parse-flists-output (_process output)
   "Parse the incremental results from flists.
 PROCESS is the flists process and OUTPUT is the results that must
 be handled next."
@@ -451,8 +450,8 @@ be handled next."
                              mh-speed-partial-line
                              (substring output position line-end))
                 mh-speed-partial-line "")
-          (multiple-value-setq (folder unseen total)
-            (values-list
+          (cl-multiple-value-setq (folder unseen total)
+            (cl-values-list
              (mh-parse-flist-output-line line mh-speed-current-folder)))
           (when (and folder unseen total
                      (let ((old-pair (gethash folder mh-speed-flists-cache)))
@@ -555,12 +554,12 @@ The function invalidates the latest ancestor that is present."
           (last-slash (mh-search-from-end ?/ folder))
           (ancestor folder)
           (ancestor-pos nil))
-      (block while-loop
+      (cl-block while-loop
         (while last-slash
           (setq ancestor (substring ancestor 0 last-slash))
           (setq ancestor-pos (gethash ancestor mh-speed-folder-map))
           (when ancestor-pos
-            (return-from while-loop))
+            (cl-return-from while-loop))
           (setq last-slash (mh-search-from-end ?/ ancestor))))
       (unless ancestor-pos (setq ancestor nil))
       (goto-char (or ancestor-pos (gethash nil mh-speed-folder-map)))
@@ -568,7 +567,7 @@ The function invalidates the latest ancestor that is present."
         (mh-speedbar-change-expand-button-char ?+)
         (add-text-properties
          (mh-line-beginning-position) (1+ (mh-line-beginning-position))
-         `(mh-children-p t)))
+         '(mh-children-p t)))
       (when (get-text-property (mh-line-beginning-position) 'mh-expanded)
         (mh-speed-toggle))
       (setq mh-speed-refresh-flag t))))

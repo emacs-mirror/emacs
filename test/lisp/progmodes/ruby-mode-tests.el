@@ -1,6 +1,6 @@
 ;;; ruby-mode-tests.el --- Test suite for ruby-mode
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -369,7 +369,11 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-with-temp-buffer "foo {|b|\n}"
     (beginning-of-line)
     (ruby-toggle-block)
-    (should (string= "foo do |b|\nend" (buffer-string)))))
+    (should (string= "foo do |b|\nend" (buffer-string))))
+  (ruby-with-temp-buffer "foo {|b| b }"
+    (beginning-of-line)
+    (ruby-toggle-block)
+    (should (string= "foo do |b|\n  b\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
   (let ((pairs '((17 . "foo { |b| b + 2 }")
@@ -717,6 +721,96 @@ VALUES-PLIST is a list with alternating index and value elements."
     (end-of-line)
     (ruby-backward-sexp)
     (should (= 2 (line-number-at-pos)))))
+
+(ert-deftest ruby-forward-sexp-jumps-do-end-block-with-no-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do
+     |end")
+    (search-backward "do\n")
+    (ruby-forward-sexp)
+    (should (eobp))))
+
+(ert-deftest ruby-backward-sexp-jumps-do-end-block-with-no-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do
+     |end")
+    (goto-char (point-max))
+    (ruby-backward-sexp)
+    (should (looking-at "do$"))))
+
+(ert-deftest ruby-forward-sexp-jumps-do-end-block-with-empty-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do ||
+     |end")
+    (search-backward "do ")
+    (ruby-forward-sexp)
+    (should (eobp))))
+
+(ert-deftest ruby-backward-sexp-jumps-do-end-block-with-empty-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do ||
+     |end")
+    (goto-char (point-max))
+    (ruby-backward-sexp)
+    (should (looking-at "do "))))
+
+(ert-deftest ruby-forward-sexp-jumps-do-end-block-with-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do |a,b|
+     |end")
+    (search-backward "do ")
+    (ruby-forward-sexp)
+    (should (eobp))))
+
+(ert-deftest ruby-backward-sexp-jumps-do-end-block-with-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do |a,b|
+     |end")
+    (goto-char (point-max))
+    (ruby-backward-sexp)
+    (should (looking-at "do "))))
+
+(ert-deftest ruby-forward-sexp-jumps-do-end-block-with-any-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do |*|
+     |end")
+    (search-backward "do ")
+    (ruby-forward-sexp)
+    (should (eobp))))
+
+(ert-deftest ruby-forward-sexp-jumps-do-end-block-with-expanded-one-arg ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do |a,|
+     |end")
+    (search-backward "do ")
+    (ruby-forward-sexp)
+    (should (eobp))))
+
+(ert-deftest ruby-forward-sexp-jumps-do-end-block-with-one-and-any-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do |a,*|
+     |end")
+    (search-backward "do ")
+    (ruby-forward-sexp)
+    (should (eobp))))
+
+(ert-deftest ruby-backward-sexp-jumps-do-end-block-with-one-and-any-args ()
+  (ruby-with-temp-buffer
+    (ruby-test-string
+     "proc do |a,*|
+     |end")
+    (goto-char (point-max))
+    (ruby-backward-sexp)
+    (should (looking-at "do "))))
 
 (ert-deftest ruby-toggle-string-quotes-quotes-correctly ()
   (let ((pairs

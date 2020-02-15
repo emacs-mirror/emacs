@@ -1,6 +1,6 @@
 ;;; url-methods.el --- Load URL schemes as needed
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -134,11 +134,11 @@ it has not already been loaded."
 			(type (cdr cell)))
 		    (if symbol
 			(pcase type
-			  (`function
+			  ('function
 			   ;; Store the symbol name of a function
 			   (if (fboundp symbol)
 			       (setq desc (plist-put desc (car cell) symbol))))
-			  (`variable
+			  ('variable
 			   ;; Store the VALUE of a variable
 			   (if (boundp symbol)
 			       (setq desc (plist-put desc (car cell)

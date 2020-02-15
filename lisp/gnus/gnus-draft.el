@@ -1,6 +1,6 @@
 ;;; gnus-draft.el --- draft message support for Gnus
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -94,14 +94,13 @@
       (save-restriction
 	(message-narrow-to-headers)
 	(message-remove-header "date")))
-    (let ((message-draft-headers
-	   (delq 'Date (copy-sequence message-draft-headers))))
+    (let ((message-draft-headers (remq 'Date message-draft-headers)))
       (save-buffer))
     (let ((gnus-verbose-backends nil))
       (gnus-request-expire-articles (list article) group t))
     (push
      `((lambda ()
-	 (when (gnus-buffer-exists-p ,gnus-summary-buffer)
+         (when (gnus-buffer-live-p ,gnus-summary-buffer)
 	   (save-excursion
 	     (set-buffer ,gnus-summary-buffer)
 	     (gnus-cache-possibly-remove-article ,article nil nil nil t)))))
@@ -249,7 +248,7 @@ If DONT-POP is nil, display the buffer after setting it up."
       (let ((article narticle))
         (message-mail nil nil nil nil
                       (if dont-pop
-                          (lambda (buf) (set-buffer (get-buffer-create buf)))))
+                          (lambda (buf) (set-buffer (gnus-get-buffer-create buf)))))
         (let ((inhibit-read-only t))
           (erase-buffer))
         (if (not (gnus-request-restore-buffer article group))

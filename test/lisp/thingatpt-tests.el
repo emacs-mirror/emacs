@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- tests for thing-at-point.
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'thingatpt)
 
 (defvar thing-at-point-test-data
   '(("https://1.gnu.org" 1  url "https://1.gnu.org")
@@ -133,5 +134,16 @@ position to retrieve THING.")
     (should (equal (thing-at-point 'url) "http://foo/bar"))
     (goto-char 23)
     (should (equal (thing-at-point 'url) "http://foo/bar(baz)"))))
+
+(ert-deftest thing-at-point-looking-at ()
+  (with-temp-buffer
+    (insert "1abcd 2abcd 3abcd")
+    (goto-char (point-min))
+    (let ((m2 (progn (search-forward "2abcd")
+                     (match-data))))
+      (goto-char (point-min))
+      (search-forward "2ab")
+      (should (thing-at-point-looking-at "2abcd"))
+      (should (equal (match-data) m2)))))
 
 ;;; thingatpt.el ends here

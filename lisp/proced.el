@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -78,9 +78,22 @@ the external command (usually \"kill\")."
     ("KILL" . "  (9.  Kill - cannot be caught or ignored)")
     ("ALRM" . "  (14. Alarm Clock)")
     ("TERM" . "  (15. Termination)")
-    ("CONT" . "  (Continue executing)")
+    ;; signals supported on systems conforming to POSIX 1003.1-2001
+    ;; according to (info "(coreutils) Signal specifications")
+    ("BUS" . "   (Access to an undefined portion of a memory object)")
+    ("CHLD" . "  (Child process terminated, stopped, or continued)")
+    ("CONT" . "  (Continue executing, if stopped)")
+    ("FPE" . "   (Erroneous arithmetic operation)")
+    ("ILL" . "   (Illegal Instruction)")
+    ("PIPE" . "  (Write on a pipe with no one to read it)")
+    ("SEGV" . "  (Invalid memory reference)")
     ("STOP" . "  (Stop executing / pause - cannot be caught or ignored)")
-    ("TSTP" . "  (Terminal stop / pause)"))
+    ("TSTP" . "  (Terminal stop / pause)")
+    ("TTIN" . "  (Background process attempting read)")
+    ("TTOU" . "  (Background process attempting write)")
+    ("URG" . "   (High bandwidth data is available at a socket)")
+    ("USR1" . "  (User-defined signal 1)")
+    ("USR2" . "  (User-defined signal 2)"))
   "List of signals, used for minibuffer completion."
   :group 'proced
   :type '(repeat (cons (string :tag "signal name")
@@ -1194,10 +1207,7 @@ Return `equal' if T1 equals T2.  Return nil otherwise."
 
 ;;; Sorting
 
-(defsubst proced-xor (b1 b2)
-  "Return the logical exclusive or of args B1 and B2."
-  (and (or b1 b2)
-       (not (and b1 b2))))
+(define-obsolete-function-alias 'proced-xor 'xor "27.1")
 
 (defun proced-sort-p (p1 p2)
   "Predicate for sorting processes P1 and P2."
@@ -1208,8 +1218,8 @@ Return `equal' if T1 equals T2.  Return nil otherwise."
              (k2 (cdr (assq (car sorter) (cdr p2)))))
         ;; if the attributes are undefined, we should really abort sorting
         (if (and k1 k2)
-            (proced-xor (funcall (nth 1 sorter) k1 k2)
-                        (nth 2 sorter))))
+            (xor (funcall (nth 1 sorter) k1 k2)
+                 (nth 2 sorter))))
     (let ((sort-list proced-sort-internal) sorter predicate k1 k2)
       (catch 'done
         (while (setq sorter (pop sort-list))
@@ -1219,7 +1229,7 @@ Return `equal' if T1 equals T2.  Return nil otherwise."
                 (if (and k1 k2)
                     (funcall (nth 1 sorter) k1 k2)))
           (if (not (eq predicate 'equal))
-              (throw 'done (proced-xor predicate (nth 2 sorter)))))
+              (throw 'done (xor predicate (nth 2 sorter)))))
         (eq t predicate)))))
 
 (defun proced-sort (process-alist sorter descend)
@@ -1348,7 +1358,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
 
 (defun proced-format-time (time)
   "Format time interval TIME."
-  (let* ((ftime (float-time time))
+  (let* ((ftime (time-convert time 'integer))
          (days (truncate ftime 86400))
          (ftime (mod ftime 86400))
          (hours (truncate ftime 3600))
@@ -1367,12 +1377,12 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
 The return string is always 6 characters wide."
   (let ((d-start (decode-time start))
         (d-current (decode-time)))
-    (cond ( ;; process started in previous years
-           (< (nth 5 d-start) (nth 5 d-current))
+    (cond (;; process started in previous years
+           (< (decoded-time-year d-start) (decoded-time-year d-current))
            (format-time-string "  %Y" start))
           ;; process started today
-          ((and (= (nth 3 d-start) (nth 3 d-current))
-                (= (nth 4 d-start) (nth 4 d-current)))
+          ((and (= (decoded-time-day d-start) (decoded-time-day d-current))
+                (= (decoded-time-month d-start) (decoded-time-month d-current)))
            (format-time-string " %H:%M" start))
           (t ;; process started this year
            (format-time-string "%b %e" start)))))
@@ -1744,9 +1754,10 @@ The value returned is the value of the last form in BODY."
        (save-window-excursion
          ;; Analogous to `dired-pop-to-buffer'
          ;; Don't split window horizontally.  (Bug#1806)
-         (let (split-width-threshold)
-           (pop-to-buffer (current-buffer)))
-         (fit-window-to-buffer (get-buffer-window) nil 1)
+         (display-buffer (current-buffer)
+                         '(display-buffer-in-direction
+                           (direction . bottom)
+                           (window-height . fit-window-to-buffer)))
          ,@body))))
 
 (defun proced-send-signal (&optional signal process-alist)

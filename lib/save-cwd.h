@@ -1,6 +1,6 @@
 /* Save and restore current working directory.
 
-   Copyright (C) 1995, 1997-1998, 2003, 2009-2018 Free Software
+   Copyright (C) 1995, 1997-1998, 2003, 2009-2020 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify

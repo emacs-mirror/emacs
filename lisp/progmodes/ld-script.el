@@ -1,8 +1,8 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
-;; Author: Masatake YAMATO<jet@gyve.org>
+;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: languages, faces
 
 ;; This file is part of GNU Emacs.

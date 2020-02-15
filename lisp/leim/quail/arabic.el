@@ -1,6 +1,6 @@
 ;;; arabic.el --- Quail package for inputting Arabic	-*- coding: utf-8;-*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Cloos <cloos@jhcloos.com>
 ;; Keywords: mule, input method, Arabic

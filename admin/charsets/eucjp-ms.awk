@@ -21,7 +21,7 @@
 # Commentary:
 
 # eucJP-ms is one of eucJP-open encoding defined at this page:
-#  http://home.m05.itscom.net/numa/cde/ucs-conv/appendix.html
+#  https://web.archive.org/web/20120207064433/http://home.m05.itscom.net/numa/cde/ucs-conv/appendix.html
 # This program reads the mapping file EUC-JP-MS (of glibc) and
 # generates the Elisp file eucjp-ms.el that defines two translation
 # tables 'eucjp-ms-decode' and 'eucjp-ms-encode'.

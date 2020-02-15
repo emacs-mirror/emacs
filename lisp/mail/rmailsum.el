@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -391,7 +391,7 @@ SUBJECT is a regular expression."
 (defun rmail-summary-by-senders (senders)
   "Display a summary of all messages whose \"From\" field matches SENDERS.
 SENDERS is a regular expression.  The default for SENDERS matches the
-sender of the current messsage."
+sender of the current message."
   (interactive
    (let* ((def (rmail-get-header "From"))
           ;; We quote the default argument, because if it contains regexp
@@ -1360,7 +1360,7 @@ move to the previous message."
 
 (defun rmail-summary-show-message (where)
   "Show current mail message.
-Position it according to WHERE which can be BEG or END"
+Position it according to WHERE which can be BEG or END."
   (if (and (one-window-p) (not pop-up-frames))
       ;; If there is just one window, put the summary on the top.
       (let ((buffer rmail-buffer))

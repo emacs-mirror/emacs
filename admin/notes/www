@@ -1,9 +1,32 @@
 -*- outline -*-
 
-Copyright (C) 2013-2018 Free Software Foundation, Inc.
+Copyright (C) 2013-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 NOTES FOR EMACS WWW PAGES
+
+* Access
+
+Anyone with write access to the Emacs code repository has the same
+access to the web pages.  See <https://savannah.gnu.org/cvs/?group=emacs>
+for instructions.  After you commit a change to the CVS repository,
+it normally appears automatically on www.gnu.org within a few minutes.
+The basic procedure is:
+
+Initial checkout:
+cvs -z3 -d:ext:<membername>@cvs.savannah.gnu.org:/web/emacs co emacs
+
+Update from repository:
+cvs up -dP
+
+You can use Emacs's VC mode to commit files without having to worry
+about knowing CVS syntax.  You may find M-x cvs-examine a useful,
+more specialized, alternative to M-x vc-dir.
+
+* Manual pages
+
+The scripts admin/make-manuals, admin/upload-manuals can be used to do
+a complete update of the on-line manual pages (eg after a release).
 
 * Renaming pages, redirects
 
@@ -64,6 +87,21 @@ work; see manual/.htaccess in the repository.  You only have to add a
 single redirect for every given external manual, you can redirect
 html_node to hmtl_node and html_mono to html_mono.
 
+* Why CVS?
+
+Savannah supports other VCS, and no-one is especially attached to CVS.
+Rather, CVS is the only supported mechanism for getting the changes
+onto www.gnu.org.  See eg
+https://lists.gnu.org/r/bug-gnulib/2012-12/msg00072.html
+
+* CVS alternatives
+
+To use something other than CVS, convert the web-pages CVS repository
+to the other VCS, then set up a two-way sync between them.
+It needs to be two-way in case eg GNU webmasters make a change to the CVS.
+Ref eg
+https://github.com/mikjo/bigitr
+https://lists.gnu.org/r/savannah-hackers-public/2013-04/msg00022.html
 
 
 This file is part of GNU Emacs.

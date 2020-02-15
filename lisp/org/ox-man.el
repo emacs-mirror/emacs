@@ -1,6 +1,6 @@
 ;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;;      Luis R Anaya <papoanaya aroba hot mail punto com>
@@ -159,7 +159,7 @@ When nil, no transformation is made."
 ;; Src blocks
 
 (defcustom org-man-source-highlight nil
-  "Use GNU source highlight to embellish source blocks "
+  "Use GNU source highlight to embellish source blocks."
   :group 'org-export-man
   :version "24.4"
   :package-version '(Org . "8.0")
@@ -424,7 +424,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 CONTENTS is nil.  INFO is a plist holding contextual information."
   (org-man--wrap-label
    fixed-width
-   (format "\\fC\n%s\\fP"
+   (format "\\fC\n%s\n\\fP"
            (org-remove-indentation
             (org-element-property :value fixed-width)))))
 
@@ -1042,7 +1042,7 @@ holding contextual information."
 
 (defun org-man-verse-block (_verse-block contents _info)
   "Transcode a VERSE-BLOCK element from Org to Man.
-CONTENTS is verse block contents. INFO is a plist holding
+CONTENTS is verse block contents.  INFO is a plist holding
 contextual information."
   (format ".RS\n.ft I\n%s\n.ft\n.RE" contents))
 

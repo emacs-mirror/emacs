@@ -1,6 +1,6 @@
 ;;; spam-wash.el --- wash spam before analysis
 
-;; Copyright (C) 2004, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Andrew Cohen <cohen@andy.bu.edu>
 ;; Keywords: mail

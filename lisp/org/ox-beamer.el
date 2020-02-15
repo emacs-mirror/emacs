@@ -1,6 +1,6 @@
 ;;; ox-beamer.el --- Beamer Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
@@ -326,7 +326,7 @@ INFO is a plist used as a communication channel.
 
 The value is either the label specified in \"BEAMER_opt\"
 property, the custom ID, if there is one and
-`:latex-prefer-user-labels' property has a non nil value, or
+`:latex-prefer-user-labels' property has a non-nil value, or
 a unique internal label.  This function assumes HEADLINE will be
 treated as a frame."
   (cond
@@ -424,9 +424,8 @@ used as a communication channel."
 	    (let* ((beamer-opt (org-element-property :BEAMER_OPT headline))
 		   (options
 		    ;; Collect nonempty options from default value and
-		    ;; headline's properties.  Also add a label for
-		    ;; links.
-		    (cl-remove-if-not 'org-string-nw-p
+		    ;; headline's properties.
+		    (cl-remove-if-not #'org-string-nw-p
 		     (append
 		      (org-split-string
 		       (plist-get info :beamer-frame-default-options) ",")
@@ -436,29 +435,31 @@ used as a communication channel."
 			    ;; them.
 			    (and (string-match "^\\[?\\(.*\\)\\]?$" beamer-opt)
 				 (match-string 1 beamer-opt))
-			    ","))
-		      ;; Provide an automatic label for the frame
-		      ;; unless the user specified one.  Also refrain
-		      ;; from labeling `allowframebreaks' frames; this
-		      ;; is not allowed by beamer.
-		      (unless (and beamer-opt
-				   (or (string-match "\\(^\\|,\\)label=" beamer-opt)
-				       (string-match "allowframebreaks" beamer-opt)))
-			(list
-			 (let ((label (org-beamer--get-label headline info)))
-			   ;; Labels containing colons need to be
-			   ;; wrapped within braces.
-			   (format (if (string-match-p ":" label)
-				       "label={%s}"
-				     "label=%s")
-				   label))))))))
+			    ",")))))
+		   (fragile
+		    ;; Add "fragile" option if necessary.
+		    (and fragilep
+			 (not (member "fragile" options))
+			 (list "fragile")))
+		   (label
+		    ;; Provide an automatic label for the frame unless
+		    ;; the user specified one.  Also refrain from
+		    ;; labeling `allowframebreaks' frames; this is not
+		    ;; allowed by Beamer.
+		    (and (not (member "allowframebreaks" options))
+			 (not (cl-some (lambda (s) (string-match-p "^label=" s))
+				       options))
+			 (list
+			  (let ((label (org-beamer--get-label headline info)))
+			    ;; Labels containing colons need to be
+			    ;; wrapped within braces.
+			    (format (if (string-match-p ":" label)
+					"label={%s}"
+				      "label=%s")
+				    label))))))
 	      ;; Change options list into a string.
 	      (org-beamer--normalize-argument
-	       (mapconcat
-		'identity
-		(if (or (not fragilep) (member "fragile" options)) options
-		  (cons "fragile" options))
-		",")
+	       (mapconcat #'identity (append label fragile options) ",")
 	       'option))
 	    ;; Title.
 	    (let ((env (org-element-property :BEAMER_ENV headline)))
@@ -644,13 +645,22 @@ as a communication channel."
 		contents))
        ;; Case 4: HEADLINE is a note.
        ((member environment '("note" "noteNH"))
-	(format "\\note{%s}"
-		(concat (and (equal environment "note")
-			     (concat
-			      (org-export-data
-			       (org-element-property :title headline) info)
-			      "\n"))
-			(org-trim contents))))
+        (concat "\\note"
+		;; Overlay specification.
+		(let ((overlay (org-element-property :BEAMER_ACT headline)))
+		  (when overlay
+		    (org-beamer--normalize-argument
+		     overlay
+		     (if (string-match "\\`\\[.*\\]\\'" overlay)
+			 'defaction 'action))))
+		(format "{%s}"
+                        (concat (and (equal environment "note")
+                                     (concat
+                                      (org-export-data
+                                       (org-element-property :title headline)
+				       info)
+                                      "\n"))
+				(org-trim contents)))))
        ;; Case 5: HEADLINE is a frame.
        ((= level frame-level)
 	(org-beamer--format-frame headline contents info))
@@ -914,9 +924,9 @@ value."
       (org-back-to-heading t)
       ;; Filter out Beamer-related tags and install environment tag.
       (let ((tags (cl-remove-if (lambda (x) (string-match "^B_" x))
-				 (org-get-tags)))
+				(org-get-tags nil t)))
 	    (env-tag (and (org-string-nw-p value) (concat "B_" value))))
-	(org-set-tags-to (if env-tag (cons env-tag tags) tags))
+	(org-set-tags (if env-tag (cons env-tag tags) tags))
 	(when env-tag (org-toggle-tag env-tag 'on)))))
    ((equal property "BEAMER_col")
     (org-toggle-tag "BMCOL" (if (org-string-nw-p value) 'on 'off)))))
@@ -1075,12 +1085,12 @@ aid, but the tag does not have any semantic meaning."
 	 (org-tag-persistent-alist nil)
 	 (org-use-fast-tag-selection t)
 	 (org-fast-tag-selection-single-key t))
-    (org-set-tags)
-    (let ((tags (or (ignore-errors (org-get-tags-string)) "")))
+    (org-set-tags-command)
+    (let ((tags (org-get-tags nil t)))
       (cond
        ;; For a column, automatically ask for its width.
        ((eq org-last-tag-selection-key ?|)
-	(if (string-match ":BMCOL:" tags)
+	(if (member "BMCOL" tags)
 	    (org-set-property "BEAMER_col" (read-string "Column width: "))
 	  (org-delete-property "BEAMER_col")))
        ;; For an "againframe" section, automatically ask for reference
@@ -1096,8 +1106,12 @@ aid, but the tag does not have any semantic meaning."
 	   (read-string "Frame reference (*Title, #custom-id, id:...): "))
 	  (org-set-property "BEAMER_act"
 			    (read-string "Overlay specification: "))))
-       ((string-match (concat ":B_\\(" (mapconcat 'car envs "\\|") "\\):") tags)
-	(org-entry-put nil "BEAMER_env" (match-string 1 tags)))
+       ((let* ((tags-re (concat "B_" (regexp-opt (mapcar #'car envs) t)))
+	       (env (cl-some (lambda (tag)
+			       (and (string-match tags-re tag)
+				    (match-string 1 tag)))
+			     tags)))
+	  (and env (progn (org-entry-put nil "BEAMER_env" env) t))))
        (t (org-entry-delete nil "BEAMER_env"))))))
 
 ;;;###autoload

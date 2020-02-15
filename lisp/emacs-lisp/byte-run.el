@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -45,7 +45,10 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
 ;; `macro-declaration-function' are both obsolete (as marked at the end of this
 ;; file) but used in many .elc files.
 
-(defvar macro-declaration-function #'macro-declaration-function
+;; We don't use #' here, because it's an obsolete function, and we
+;; can't use `with-suppressed-warnings' here due to how this file is
+;; used in the bootstrapping process.
+(defvar macro-declaration-function 'macro-declaration-function
   "Function to process declarations in a macro definition.
 The function will be called with two args MACRO and DECL.
 MACRO is the name of the macro being defined.
@@ -375,8 +378,8 @@ is equivalent to the following two lines of code:
 \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
 \(make-obsolete \\='old-fun \\='new-fun \"22.1\")
 
-If provided, WHEN should be a string indicating when the function
-was first made obsolete, for example a date or a release number.
+WHEN should be a string indicating when the function was first
+made obsolete, for example a date or a release number.
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
   (declare (doc-string 4)
@@ -420,10 +423,10 @@ dumped with Emacs).  This is so that any user customizations are
 applied before the defcustom tries to initialize the
 variable (this is due to the way `defvaralias' works).
 
-If provided, WHEN should be a string indicating when the variable
-was first made obsolete, for example a date or a release number.
+WHEN should be a string indicating when the variable was first
+made obsolete, for example a date or a release number.
 
-For the benefit of `custom-set-variables', if OBSOLETE-NAME has
+For the benefit of Customize, if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
 `saved-value', `saved-variable-comment'."
@@ -447,8 +450,8 @@ CURRENT-NAME, if it does not already have them:
 ;; It only really affects M-x describe-face output.
 (defmacro define-obsolete-face-alias (obsolete-face current-face when)
   "Make OBSOLETE-FACE a face alias for CURRENT-FACE and mark it obsolete.
-If provided, WHEN should be a string indicating when the face
-was first made obsolete, for example a date or a release number."
+WHEN should be a string indicating when the face was first made
+obsolete, for example a date or a release number."
   `(progn
      (put ,obsolete-face 'face-alias ,current-face)
      ;; Used by M-x describe-face.
@@ -493,6 +496,69 @@ is enabled."
   (declare (indent 0))
   ;; The implementation for the interpreter is basically trivial.
   (car (last body)))
+
+(defmacro with-suppressed-warnings (warnings &rest body)
+  "Like `progn', but prevents compiler WARNINGS in BODY.
+
+WARNINGS is an associative list where the first element of each
+item is a warning type, and the rest of the elements in each item
+are symbols they apply to.  For instance, if you want to suppress
+byte compilation warnings about the two obsolete functions `foo'
+and `bar', as well as the function `zot' being called with the
+wrong number of parameters, say
+
+\(with-suppressed-warnings ((obsolete foo bar)
+                           (callargs zot))
+  (foo (bar))
+  (zot 1 2))
+
+The warnings that can be suppressed are a subset of the warnings
+in `byte-compile-warning-types'; see this variable for a fuller
+explanation of the warning types.  The types that can be
+suppressed with this macro are `free-vars', `callargs',
+`redefine', `obsolete', `interactive-only', `lexical', `mapcar',
+`constants' and `suspicious'.
+
+For the `mapcar' case, only the `mapcar' function can be used in
+the symbol list.  For `suspicious', only `set-buffer' can be used."
+  ;; Note: during compilation, this definition is overridden by the one in
+  ;; byte-compile-initial-macro-environment.
+  (declare (debug (sexp &optional body)) (indent 1))
+  (if (not (and (featurep 'macroexp)
+                (boundp 'byte-compile--suppressed-warnings)))
+      ;; If `macroexp' is not yet loaded, we're in the middle of
+      ;; bootstrapping, so better risk emitting too many warnings
+      ;; than risk breaking the bootstrap.
+      `(progn ,@body)
+    ;; We need to let-bind byte-compile--suppressed-warnings here, so as to
+    ;; silence warnings emitted during macro-expansion performed outside of
+    ;; byte-compilation.
+    (let ((byte-compile--suppressed-warnings
+           (append warnings byte-compile--suppressed-warnings)))
+      (macroexpand-all (macroexp-progn body)
+                       macroexpand-all-environment))))
+
+(defun byte-run--unescaped-character-literals-warning ()
+  "Return a warning about unescaped character literals.
+If there were any unescaped character literals in the last form
+read, return an appropriate warning message as a string.
+Otherwise, return nil.  For internal use only."
+  ;; This is called from lread.c and therefore needs to be preloaded.
+  (if lread--unescaped-character-literals
+      (let ((sorted (sort lread--unescaped-character-literals #'<)))
+        (format-message "unescaped character literals %s detected, %s expected!"
+                        (mapconcat (lambda (char) (format "`?%c'" char))
+                                   sorted ", ")
+                        (mapconcat (lambda (char) (format "`?\\%c'" char))
+                                   sorted ", ")))))
+
+(defun byte-compile-info-string (&rest args)
+  "Format ARGS in a way that looks pleasing in the compilation output."
+  (format "  %-9s%s" "INFO" (apply #'format args)))
+
+(defun byte-compile-info-message (&rest args)
+  "Message format ARGS in a way that looks pleasing in the compilation output."
+  (message "%s" (apply #'byte-compile-info-string args)))
 
 
 ;; I nuked this because it's not a good idea for users to think of using it.

@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -343,7 +343,7 @@ not be enclosed in { } or ( )."
   "List of keywords understood by gmake.")
 
 (defconst makefile-bsdmake-statements
-  `(".elif" ".elifdef" ".elifmake" ".elifndef" ".elifnmake" ".else" ".endfor"
+  '(".elif" ".elifdef" ".elifmake" ".elifndef" ".elifnmake" ".else" ".endfor"
     ".endif" ".for" ".if" ".ifdef" ".ifmake" ".ifndef" ".ifnmake" ".undef")
   "List of keywords understood by BSD make.")
 
@@ -1313,7 +1313,7 @@ Fill comments, backslashed lines, and variable definitions specially."
 	  ;; which back-to-indentation (called via fill-newline ->
 	  ;; fill-indent-to-left-margin -> indent-line-to) thinks are real code
 	  ;; (bug#13179).
-	  (remove-text-properties (point-min) (point-max) '(syntax-table))
+          (remove-text-properties (point-min) (point-max) '(syntax-table nil))
 	  (let ((fill-paragraph-function nil)
                 ;; Adjust fill-column to allow space for the backslash.
                 (fill-column (- fill-column 1)))

@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -25,6 +25,11 @@
 ;; Reveal mode is a minor mode that makes sure that text around point
 ;; is always visible.  When point enters a region of hidden text,
 ;; `reveal-mode' temporarily makes it visible.
+;;
+;; Overlays can also use the `display' property.  For them to be
+;; revealed, the `reveal-toggle-invisible' property also has to be
+;; present, and should be a function to toggle between having a
+;; display property and not.
 ;;
 ;; This is normally used in conjunction with `outline-minor-mode',
 ;; `hs-minor-mode', `hide-ifdef-mode', ...
@@ -103,21 +108,32 @@ Each element has the form (WINDOW . OVERLAY).")
                          (overlays-at (point))))
         (setq old-ols (delq ol old-ols))
         (when (overlay-start ol)        ;Check it's still live.
-          (let ((inv (overlay-get ol 'invisible)) open)
-            (when (and inv
-                       ;; There's an `invisible' property.  Make sure it's
-                       ;; actually invisible, and ellipsized.
-                       (and (consp buffer-invisibility-spec)
-                            (cdr (assq inv buffer-invisibility-spec)))
+          ;; We either have an invisible overlay, or a display
+          ;; overlay.  Always reveal invisible text, but only reveal
+          ;; display properties if `reveal-toggle-invisible' is
+          ;; present.
+          (let ((inv (overlay-get ol 'invisible))
+                (disp (and (overlay-get ol 'display)
+                           (overlay-get ol 'reveal-toggle-invisible)))
+                open)
+            (when (and (or (and inv
+                                ;; There's an `invisible' property.
+                                ;; Make sure it's actually invisible,
+                                ;; and ellipsized.
+                                (and (consp buffer-invisibility-spec)
+                                     (cdr (assq inv buffer-invisibility-spec))))
+                           disp)
                        (or (setq open
                                  (or (overlay-get ol 'reveal-toggle-invisible)
                                      (and (symbolp inv)
                                           (get inv 'reveal-toggle-invisible))
-                                     (overlay-get ol 'isearch-open-invisible-temporary)))
+                                     (overlay-get
+                                      ol 'isearch-open-invisible-temporary)))
                            (overlay-get ol 'isearch-open-invisible)
                            (and (consp buffer-invisibility-spec)
-                                (cdr (assq inv buffer-invisibility-spec))))
-                       (overlay-put ol 'reveal-invisible inv))
+                                (cdr (assq inv buffer-invisibility-spec)))))
+              (when inv
+                (overlay-put ol 'reveal-invisible inv))
               (push (cons (selected-window) ol) reveal-open-spots)
               (if (null open)
                   (overlay-put ol 'invisible nil)

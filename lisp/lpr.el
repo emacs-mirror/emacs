@@ -1,6 +1,6 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2018 Free Software
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -258,7 +258,7 @@ for further customization of the printer command."
 
 (defun lpr-print-region (start end switches name)
   (let ((buf (current-buffer))
-        (nswitches (lpr-flatten-list
+        (nswitches (flatten-tree
                     (mapcar #'lpr-eval-switch ; Dynamic evaluation
                             switches)))
         (switch-string (if switches
@@ -336,23 +336,7 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 	((consp arg) (apply (car arg) (cdr arg)))
 	(t nil)))
 
-;; `lpr-flatten-list' is defined here (copied from "message.el" and
-;; enhanced to handle dotted pairs as well) until we can get some
-;; sensible autoloads, or `flatten-list' gets put somewhere decent.
-
-;; (lpr-flatten-list '((a . b) c (d . e) (f g h) i . j))
-;; => (a b c d e f g h i j)
-
-(defun lpr-flatten-list (&rest list)
-  (lpr-flatten-list-1 list))
-
-(defun lpr-flatten-list-1 (list)
-  (cond
-   ((null list) nil)
-   ((consp list)
-    (append (lpr-flatten-list-1 (car list))
-	    (lpr-flatten-list-1 (cdr list))))
-   (t (list list))))
+(define-obsolete-function-alias 'lpr-flatten-list #'flatten-tree "27.1")
 
 (provide 'lpr)
 

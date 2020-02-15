@@ -1,6 +1,6 @@
-;;; ediff-help.el --- Code related to the contents of Ediff help buffers
+;;; ediff-help.el --- Code related to the contents of Ediff help buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -30,6 +30,7 @@
 ;; end pacifier
 
 (require 'ediff-init)
+(defvar ediff-multiframe)
 
 ;; Help messages
 
@@ -155,23 +156,18 @@ the value of this variable and the variables `ediff-help-message-*' in
 ;; the keymap that defines clicks over the quick help regions
 (defvar ediff-help-region-map (make-sparse-keymap))
 
-(define-key
-  ediff-help-region-map
-  (if (featurep 'emacs) [mouse-2] [button2])
-  'ediff-help-for-quick-help)
+(define-key ediff-help-region-map [mouse-2] 'ediff-help-for-quick-help)
 
 ;; runs in the control buffer
 (defun ediff-set-help-overlays ()
   (goto-char (point-min))
   (let (overl beg end cmd)
     (while (re-search-forward " *\\([^ \t\n|]+\\||\\) +-[^|\n]+" nil 'noerror)
-      (setq beg (match-beginning 0)
+      (setq beg (match-beginning 1)
 	    end (match-end 0)
 	    cmd (buffer-substring (match-beginning 1) (match-end 1)))
-      (setq overl (ediff-make-overlay beg end))
-      (if (featurep 'emacs)
-	  (ediff-overlay-put overl 'mouse-face 'highlight)
-	(ediff-overlay-put overl 'highlight t))
+      (setq overl (make-overlay beg end))
+      (ediff-overlay-put overl 'mouse-face 'highlight)
       (ediff-overlay-put overl 'ediff-help-info cmd))))
 
 
@@ -180,14 +176,11 @@ the value of this variable and the variables `ediff-help-message-*' in
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (let ((pos (ediff-event-point last-command-event))
-	overl cmd)
+	cmd)
 
-    (if (featurep 'xemacs)
-	(setq overl (extent-at pos (current-buffer) 'ediff-help-info)
-	      cmd   (ediff-overlay-get overl 'ediff-help-info))
-      (setq cmd (car (mapcar (lambda (elt)
-			       (overlay-get elt 'ediff-help-info))
-			     (overlays-at pos)))))
+    (setq cmd (car (mapcar (lambda (elt)
+			     (overlay-get elt 'ediff-help-info))
+			   (overlays-at pos))))
 
     (if (not (stringp cmd))
 	(user-error "Hmm...  I don't see an Ediff command around here..."))
@@ -269,8 +262,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 (defun ediff-set-help-message ()
   (setq ediff-long-help-message
 	(cond ((and ediff-long-help-message-function
-		    (or (symbolp ediff-long-help-message-function)
-			(consp ediff-long-help-message-function)))
+		    (functionp ediff-long-help-message-function))
 	       (funcall ediff-long-help-message-function))
 	      (ediff-word-mode
 	       (concat ediff-long-help-message-head
@@ -294,8 +286,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 		       ediff-long-help-message-tail))))
   (setq ediff-brief-help-message
 	(cond ((and ediff-brief-help-message-function
-		    (or (symbolp ediff-brief-help-message-function)
-			(consp ediff-brief-help-message-function)))
+                    (functionp ediff-brief-help-message-function))
 	       (funcall ediff-brief-help-message-function))
 	      ((stringp ediff-brief-help-message-function)
 	       ediff-brief-help-message-function)
@@ -315,6 +306,4 @@ the value of this variable and the variables `ediff-help-message-*' in
 
 
 (provide 'ediff-help)
-
-
 ;;; ediff-help.el ends here

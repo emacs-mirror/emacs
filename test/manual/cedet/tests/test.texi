@@ -1,0 +1,40 @@
+\input texinfo
+@setfilename test.info
+@set TITLE TEST
+@set AUTHOR Eric Ludlam
+@settitle @value{TITLE}
+
+@ifinfo
+@format
+START-INFO-DIR-ENTRY
+* test: (test).       TEST
+END-INFO-DIR-ENTRY
+@end format
+@end ifinfo
+
+@titlepage
+@sp 10
+@center @titlefont{test}
+@vskip 0pt plus 1 fill
+Copyright @copyright{} 2015 Eric Ludlam
+@end titlepage
+
+@node Top
+@top @value{TITLE}
+
+This is a simple manual filled with stuff that should test completion in texinfo mode.
+
+@m@c -1-
+@c #1# ( "@majorheading" "@macro" "@menu" "@multitable" )
+
+@menu
+* Index::
+@end menu
+
+
+@node Index
+@chapter Index
+
+@contents
+
+@bye

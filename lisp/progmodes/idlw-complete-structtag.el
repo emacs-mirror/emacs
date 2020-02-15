@@ -1,9 +1,9 @@
 ;;; idlw-complete-structtag.el --- Completion of structure tags.
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
-;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Old-Version: 1.2
 ;; Keywords: languages
 ;; Package: idlwave
@@ -128,7 +128,7 @@ an up-to-date completion list."
           ;; x[i+4].name.g*.  But it is complicated because we would have
           ;; to really parse this expression.  For now, we allow only
           ;; substructures, like "aaa.bbb.ccc.ddd"
-	  (skip-chars-backward "[a-zA-Z0-9._$]")
+	  (skip-chars-backward "a-zA-Z0-9._$")
           (setq start (point)) ;; remember the start of the completion pos.
 	  (and (< (point) pos)
 	       (not (equal (char-before) ?!)) ; no sysvars

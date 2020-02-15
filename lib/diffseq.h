@@ -1,6 +1,6 @@
 /* Analyze differences between two vectors.
 
-   Copyright (C) 1988-1989, 1992-1995, 2001-2004, 2006-2018 Free Software
+   Copyright (C) 1988-1989, 1992-1995, 2001-2004, 2006-2020 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -28,13 +28,13 @@
    The basic algorithm is described in:
    "An O(ND) Difference Algorithm and its Variations", Eugene W. Myers,
    Algorithmica Vol. 1, 1986, pp. 251-266,
-   <http://dx.doi.org/10.1007/BF01840446>.
+   <https://doi.org/10.1007/BF01840446>.
    See especially section 4.2, which describes the variation used below.
 
    The basic algorithm was independently discovered as described in:
    "Algorithms for Approximate String Matching", Esko Ukkonen,
    Information and Control Vol. 64, 1985, pp. 100-118,
-   <http://dx.doi.org/10.1016/S0019-9958(85)80046-2>.
+   <https://doi.org/10.1016/S0019-9958(85)80046-2>.
 
    Unless the 'find_minimal' flag is set, this code uses the TOO_EXPENSIVE
    heuristic, by Paul Eggert, to limit the cost to O(N**1.5 log N)

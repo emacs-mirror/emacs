@@ -1,6 +1,6 @@
 ;;; gnus-bookmark.el --- Bookmarks in Gnus
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: news
@@ -242,7 +242,7 @@ So the cdr of each bookmark is an alist too.")
     (save-window-excursion
       ;; Avoid warnings?
       ;; (message "Saving Gnus bookmarks to file %s..." gnus-bookmark-default-file)
-      (set-buffer (get-buffer-create  " *Gnus bookmarks*"))
+      (set-buffer (gnus-get-buffer-create  " *Gnus bookmarks*"))
       (erase-buffer)
       (gnus-bookmark-insert-file-format-version-stamp)
       (pp gnus-bookmark-alist (current-buffer))
@@ -357,8 +357,8 @@ deletion, or > if it is flagged for displaying."
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
   (if (called-interactively-p 'any)
-      (switch-to-buffer (get-buffer-create "*Gnus Bookmark List*"))
-    (set-buffer (get-buffer-create "*Gnus Bookmark List*")))
+      (switch-to-buffer (gnus-get-buffer-create "*Gnus Bookmark List*"))
+    (set-buffer (gnus-get-buffer-create "*Gnus Bookmark List*")))
   (let ((inhibit-read-only t)
 	alist name start end)
     (erase-buffer)
@@ -648,7 +648,7 @@ reposition and try again, else return nil."
 	(details gnus-bookmark-bookmark-details)
 	detail)
     (save-excursion
-      (pop-to-buffer (get-buffer-create "*Gnus Bookmark Annotation*") t)
+      (pop-to-buffer (gnus-get-buffer-create "*Gnus Bookmark Annotation*") t)
       (erase-buffer)
       (while details
 	(setq detail (pop details))

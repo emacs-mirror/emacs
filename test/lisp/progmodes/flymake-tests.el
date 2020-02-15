@@ -1,6 +1,6 @@
 ;;; flymake-tests.el --- Test suite for flymake -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Eduard Wiebe <usenet@pusto.de>
 
@@ -52,8 +52,8 @@
                                             (flymake-reporting-backends))
            while notdone
            unless noninteractive do (read-event "" nil 0.1)
-           do (sleep-for (+ 0.5 flymake-no-changes-timeout))
-           finally (when notdone (ert-fail
+           do (sleep-for (+ 0.5 (or flymake-no-changes-timeout 0)))
+           finally (when notdone (ert-skip
                                   (format "Some backends not reporting yet %s"
                                           notdone)))))
 

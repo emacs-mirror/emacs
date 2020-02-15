@@ -1,6 +1,6 @@
 ;;; registry.el --- Track and remember data items by various fields
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -155,7 +155,7 @@
       (setq tracker (make-hash-table :size 100 :rehash-size 2.0)))))
 
 (cl-defmethod registry-lookup ((db registry-db) keys)
-  "Search for KEYS in the registry-db THIS.
+  "Search for KEYS in the registry-db DB.
 Returns an alist of the key followed by the entry in a list, not a cons cell."
   (let ((data (oref db data)))
     (delq nil
@@ -166,7 +166,7 @@ Returns an alist of the key followed by the entry in a list, not a cons cell."
 	   keys))))
 
 (cl-defmethod registry-lookup-breaks-before-lexbind ((db registry-db) keys)
-  "Search for KEYS in the registry-db THIS.
+  "Search for KEYS in the registry-db DB.
 Returns an alist of the key followed by the entry in a list, not a cons cell."
   (let ((data (oref db data)))
     (delq nil
@@ -176,7 +176,7 @@ Returns an alist of the key followed by the entry in a list, not a cons cell."
 
 (cl-defmethod registry-lookup-secondary ((db registry-db) tracksym
 					 &optional create)
-  "Search for TRACKSYM in the registry-db THIS.
+  "Search for TRACKSYM in the registry-db DB.
 When CREATE is not nil, create the secondary index hash table if needed."
   (let ((h (gethash tracksym (oref db tracker))))
     (if h
@@ -189,7 +189,7 @@ When CREATE is not nil, create the secondary index hash table if needed."
 
 (cl-defmethod registry-lookup-secondary-value ((db registry-db) tracksym val
 					       &optional set)
-  "Search for TRACKSYM with value VAL in the registry-db THIS.
+  "Search for TRACKSYM with value VAL in the registry-db DB.
 When SET is not nil, set it for VAL (use t for an empty list)."
   ;; either we're asked for creation or there should be an existing index
   (when (or set (registry-lookup-secondary db tracksym))
@@ -220,7 +220,7 @@ When SET is not nil, set it for VAL (use t for an empty list)."
           (registry--match mode entry (cdr-safe check-list))))))
 
 (cl-defmethod registry-search ((db registry-db) &rest spec)
-  "Search for SPEC across the registry-db THIS.
+  "Search for SPEC across the registry-db DB.
 For example calling with `:member \\='(a 1 2)' will match entry \((a 3 1)).
 Calling with `:all t' (any non-nil value) will match all.
 Calling with `:regex \\='(a \"h.llo\")' will match entry \(a \"hullo\" \"bye\").
@@ -241,7 +241,7 @@ The test order is to check :all first, then :member, then :regex."
                collect k))))
 
 (cl-defmethod registry-delete ((db registry-db) keys assert &rest spec)
-  "Delete KEYS from the registry-db THIS.
+  "Delete KEYS from the registry-db DB.
 If KEYS is nil, use SPEC to do a search.
 Updates the secondary ('tracked') indices as well.
 With assert non-nil, errors out if the key does not exist already."
@@ -273,17 +273,17 @@ With assert non-nil, errors out if the key does not exist already."
     keys))
 
 (cl-defmethod registry-size ((db registry-db))
-  "Returns the size of the registry-db object THIS.
+  "Return the size of the registry-db object DB.
 This is the key count of the `data' slot."
   (hash-table-count (oref db data)))
 
 (cl-defmethod registry-full ((db registry-db))
-  "Checks if registry-db THIS is full."
+  "Check if registry-db DB is full."
   (>= (registry-size db)
       (oref db max-size)))
 
 (cl-defmethod registry-insert ((db registry-db) key entry)
-  "Insert ENTRY under KEY into the registry-db THIS.
+  "Insert ENTRY under KEY into the registry-db DB.
 Updates the secondary ('tracked') indices as well.
 Errors out if the key exists already."
   (cl-assert (not (gethash key (oref db data))) nil
@@ -304,7 +304,7 @@ Errors out if the key exists already."
   entry)
 
 (cl-defmethod registry-reindex ((db registry-db))
-  "Rebuild the secondary indices of registry-db THIS."
+  "Rebuild the secondary indices of registry-db DB."
   (let ((count 0)
 	(expected (* (length (oref db tracked)) (registry-size db))))
     (dolist (tr (oref db tracked))
@@ -317,13 +317,13 @@ Errors out if the key exists already."
 	     (message "reindexing: %d of %d (%.2f%%)"
 		      count expected (/ (* 100.0 count) expected)))
 	   (dolist (val (cdr-safe (assq tr v)))
-	     (let* ((value-keys (registry-lookup-secondary-value db tr val)))
+	     (let ((value-keys (registry-lookup-secondary-value db tr val)))
 	       (push key value-keys)
 	       (registry-lookup-secondary-value db tr val value-keys))))
 	 (oref db data))))))
 
 (cl-defmethod registry-prune ((db registry-db) &optional sortfunc)
-  "Prunes the registry-db object DB.
+  "Prune the registry-db object DB.
 
 Attempts to prune the number of entries down to \(*
 :max-size :prune-factor) less than the max-size limit, so
@@ -351,7 +351,7 @@ Returns the number of deleted entries."
 
 (cl-defmethod registry-collect-prune-candidates ((db registry-db)
 						 limit sortfunc)
-  "Collects pruning candidates from the registry-db object DB.
+  "Collect pruning candidates from the registry-db object DB.
 
 Proposes only entries without the :precious keys, and attempts to
 return LIMIT such candidates.  If SORTFUNC is provided, sort

@@ -1,9 +1,8 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: Alex Schroeder <alex@gnu.org>
 ;; Version: 3.4.2
 ;; Keywords: comm processes terminals services
 
@@ -415,15 +414,23 @@ this."
 	;; if the rest of the region should have a face, put it there
 	(funcall ansi-color-apply-face-function
 		 start-marker end-marker (ansi-color--find-face codes))
-	(setq ansi-color-context-region (if codes (list codes)))))))
+	(setq ansi-color-context-region (if codes (list codes)))))
+    ;; Clean up our temporary markers.
+    (unless (eq start-marker (cadr ansi-color-context-region))
+      (set-marker start-marker nil))
+    (set-marker end-marker nil)))
 
 (defun ansi-color-apply-overlay-face (beg end face)
   "Make an overlay from BEG to END, and apply face FACE.
 If FACE is nil, do nothing."
   (when face
-    (ansi-color-set-extent-face
-     (ansi-color-make-extent beg end)
-     face)))
+    (overlay-put (ansi-color-make-extent beg end) 'face face)))
+
+(defun ansi-color-apply-text-property-face (beg end face)
+  "Set the `font-lock-face' property to FACE in region BEG..END.
+If FACE is nil, do nothing."
+  (when face
+    (put-text-property beg end 'font-lock-face face)))
 
 ;; This function helps you look for overlapping overlays.  This is
 ;; useful in comint-buffers.  Overlapping overlays should not happen!
@@ -445,45 +452,32 @@ If FACE is nil, do nothing."
 ; 	  (message  "Reached %d." pos)))
 ;       (setq pos (next-overlay-change pos)))))
 
-;; Emacs/XEmacs compatibility layer
-
 (defun ansi-color-make-face (property color)
   "Return a face with PROPERTY set to COLOR.
 PROPERTY can be either symbol `foreground' or symbol `background'.
 
-For Emacs, we just return the cons cell (PROPERTY . COLOR).
-For XEmacs, we create a temporary face and return it."
-  (if (featurep 'xemacs)
-      (let ((face (make-face (intern (concat color "-" (symbol-name property)))
-			     "Temporary face created by ansi-color."
-			     t)))
-	(set-face-property face property color)
-	face)
-    (cond ((eq property 'foreground)
-	   (cons 'foreground-color color))
-	  ((eq property 'background)
-	   (cons 'background-color color))
-	  (t
-	   (cons property color)))))
+For Emacs, we just return the cons cell (PROPERTY . COLOR)."
+  (cond ((eq property 'foreground)
+	 (cons 'foreground-color color))
+	((eq property 'background)
+	 (cons 'background-color color))
+	(t
+	 (cons property color))))
 
-(defun ansi-color-make-extent (from to &optional object)
-  "Make an extent for the range [FROM, TO) in OBJECT.
+(defun ansi-color-make-extent (from to &optional buffer)
+  "Make an extent for the range [FROM, TO) in BUFFER.
 
-OBJECT defaults to the current buffer.  XEmacs uses `make-extent', Emacs
-uses `make-overlay'.  XEmacs can use a buffer or a string for OBJECT,
-Emacs requires OBJECT to be a buffer."
-  (if (fboundp 'make-extent)
-      (make-extent from to object)
-    ;; In Emacs, the overlay might end at the process-mark in comint
-    ;; buffers.  In that case, new text will be inserted before the
-    ;; process-mark, ie. inside the overlay (using insert-before-marks).
-    ;; In order to avoid this, we use the `insert-behind-hooks' overlay
-    ;; property to make sure it works.
-    (let ((overlay (make-overlay from to object)))
-      (overlay-put overlay 'evaporate t)
-      (overlay-put overlay 'modification-hooks '(ansi-color-freeze-overlay))
-      (overlay-put overlay 'insert-behind-hooks '(ansi-color-freeze-overlay))
-      overlay)))
+BUFFER defaults to the current buffer."
+  ;; The overlay might end at the process-mark in comint
+  ;; buffers.  In that case, new text will be inserted before the
+  ;; process-mark, ie. inside the overlay (using insert-before-marks).
+  ;; In order to avoid this, we use the `insert-behind-hooks' overlay
+  ;; property to make sure it works.
+  (let ((overlay (make-overlay from to buffer)))
+    (overlay-put overlay 'evaporate t)
+    (overlay-put overlay 'modification-hooks '(ansi-color-freeze-overlay))
+    (overlay-put overlay 'insert-behind-hooks '(ansi-color-freeze-overlay))
+    overlay))
 
 (defun ansi-color-freeze-overlay (overlay is-after begin end &optional len)
   "Prevent OVERLAY from being extended.
@@ -497,11 +491,9 @@ property."
     (move-overlay overlay (overlay-start overlay) begin)))
 
 (defun ansi-color-set-extent-face (extent face)
-  "Set the `face' property of EXTENT to FACE.
-XEmacs uses `set-extent-face', Emacs  uses `overlay-put'."
-  (if (featurep 'xemacs)
-      (set-extent-face extent face)
-    (overlay-put extent 'face face)))
+  "Set the `face' property of EXTENT to FACE."
+  (declare (obsolete overlay-put "27.1"))
+  (overlay-put extent 'face face))
 
 ;; Helper functions
 

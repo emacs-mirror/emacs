@@ -1,9 +1,9 @@
 ;;; erc-networks.el --- IRC networks
 
-;; Copyright (C) 2002, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -436,10 +436,11 @@
   ("ZiRC: Random server" ZiRC "irc.zirc.org" ((6660 6669)))
   ("ZUHnet: Random server" ZUHnet "irc.zuh.net" 6667)
   ("Zurna: Random server" Zurna "irc.zurna.net" 6667))
-  "Alist of irc servers. (NAME NET HOST PORTS) where
+  "Alist of irc servers.
+Each server is a list (NAME NET HOST PORTS) where
 NAME is a name for that server,
-NET is a symbol indicating to which network from `erc-networks-alist' this
-  server corresponds,
+NET is a symbol indicating to which network from `erc-networks-alist'
+  this server corresponds,
 HOST is the servers hostname and
 PORTS is either a number, a list of numbers, or a list of port ranges."
   :group 'erc-networks
@@ -706,12 +707,13 @@ PORTS is either a number, a list of numbers, or a list of port ranges."
     (ZiRC "zirc.org")
     (ZUHnet "zuh.net")
     (Zurna "zurna.net"))
-  "Alist of IRC networks. (NET MATCHER) where
+  "Alist of IRC networks.
+Each network is a list (NET MATCHER) where
 NET is a symbol naming that IRC network and
-MATCHER is used to find a corresponding network to a server while connected to
-  it. If it is regexp, it's used to match against `erc-server-announced-name'.
-  It can also be a function (predicate). Then it is executed with the
-  server buffer as current-buffer."
+MATCHER is used to find a corresponding network to a server while
+  connected to it.  If it is regexp, it's used to match against
+  `erc-server-announced-name'.  It can also be a function (predicate).
+  Then it is executed with the server buffer as current-buffer."
   :group 'erc-networks
   :type '(repeat
 	  (list :tag "Network"
@@ -728,9 +730,9 @@ MATCHER is used to find a corresponding network to a server while connected to
 
 ;;;###autoload
 (defun erc-determine-network ()
-  "Return the name of the network or \"Unknown\" as a symbol.  Use the
-server parameter NETWORK if provided, otherwise parse the server name and
-search for a match in `erc-networks-alist'."
+  "Return the name of the network or \"Unknown\" as a symbol.
+Use the server parameter NETWORK if provided, otherwise parse the
+server name and search for a match in `erc-networks-alist'."
   ;; The server made it easy for us and told us the name of the NETWORK
   (let ((network-name (cdr (assoc "NETWORK" erc-server-parameters))))
     (if network-name
@@ -749,8 +751,8 @@ search for a match in `erc-networks-alist'."
   (erc-with-server-buffer erc-network))
 
 (defun erc-current-network ()
-  "Deprecated.  Use `erc-network' instead.  Return the name of this server's
-network as a symbol."
+  "Deprecated.  Use `erc-network' instead.
+Return the name of this server's network as a symbol."
   (erc-with-server-buffer
     (intern (downcase (symbol-name erc-network)))))
 
@@ -758,7 +760,7 @@ network as a symbol."
 		   "Obsolete since erc-networks 1.5")
 
 (defun erc-network-name ()
-  "Returns the name of the current network as a string."
+  "Return the name of the current network as a string."
   (erc-with-server-buffer (symbol-name erc-network)))
 
 (defun erc-set-network-name (proc parsed)
@@ -871,6 +873,4 @@ VALUE is the options value.")
 ;;; erc-networks.el ends here
 ;;
 ;; Local Variables:
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

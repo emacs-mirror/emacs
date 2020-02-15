@@ -1,6 +1,6 @@
 ;;; eval-tests.el --- unit tests for src/eval.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -168,5 +168,12 @@ are found on the stack and therefore not garbage collected."
 (defun eval-tests-33014-redefine ()
   "Remove the Lisp reference to the byte-compiled object."
   (setf (symbol-function #'eval-tests-33014-func) nil))
+
+(defun eval-tests-19790-backquote-comma-dot-substitution ()
+  "Regression test for Bug#19790.
+Don't handle destructive splicing in backquote expressions (like
+in Common Lisp).  Instead, make sure substitution in backquote
+expressions works for identifiers starting with period."
+  (should (equal (let ((.x 'identity)) (eval `(,.x 'ok))) 'ok)))
 
 ;;; eval-tests.el ends here

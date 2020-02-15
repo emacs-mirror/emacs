@@ -1,6 +1,6 @@
-;;; rfc822.el --- hairy rfc822 parser for mail and news and suchlike
+;;; rfc822.el --- hairy RFC 822 (or later) parser for mail, news, etc.
 
-;; Copyright (C) 1986-1987, 1990, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1990, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
@@ -24,8 +24,8 @@
 
 ;;; Commentary:
 
-;; Support functions for parsing RFC-822 headers, used by mail and news
-;; modes.
+;; Support functions for parsing headers used by mail and news modes.
+;; The header format is specified by Internet RFC 822 and its successors.
 
 ;;; Code:
 

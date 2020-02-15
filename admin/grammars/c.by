@@ -1,5 +1,5 @@
 ;;; c.by -- LL grammar for C/C++ language specification
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;;         David Ponce <david@dponce.com>
@@ -187,7 +187,7 @@
 
 ;; Types
 %token VOID "void"
-%put VOID summary "Built in typeless type: void"
+%put VOID summary "Built in type: void"
 %token CHAR "char"
 %put CHAR summary "Integral Character Type: (0 to 256)"
 %token WCHAR "wchar_t"

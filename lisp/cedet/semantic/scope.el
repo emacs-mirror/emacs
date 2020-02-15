@@ -1,8 +1,8 @@
 ;;; semantic/scope.el --- Analyzer Scope Calculations
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -461,8 +461,8 @@ implicit \"object\"."
 (define-overloadable-function  semantic-analyze-scope-calculate-access (type scope)
   "Calculate the access class for TYPE as defined by the current SCOPE.
 Access is related to the :parents in SCOPE.  If type is a member of SCOPE
-then access would be 'private.  If TYPE is inherited by a member of SCOPE,
-the access would be 'protected.  Otherwise, access is 'public")
+then access would be `private'.  If TYPE is inherited by a member of SCOPE,
+the access would be `protected'.  Otherwise, access is `public'.")
 
 (defun semantic-analyze-scope-calculate-access-default (type scope)
   "Calculate the access class for TYPE as defined by the current SCOPE."
@@ -545,7 +545,8 @@ tag is not something you can complete from within TYPE."
   "Return all parts of TYPE, a tag representing a TYPE declaration.
 SCOPE is the scope object.
 NOINHERIT turns off searching of inherited tags.
-PROTECTION specifies the type of access requested, such as 'public or 'private."
+PROTECTION specifies the type of access requested,
+such as `public' or `private'."
   (if (not type)
       nil
     (let* ((access (semantic-analyze-scope-calculate-access type scope))
@@ -593,8 +594,8 @@ whose tags can be searched when needed, OR it may be a scope object.
 ACCESS is the level of access we filter on child supplied tags.
 For languages with protection on specific methods or slots,
 it should strip out those not accessible by methods of TYPE.
-An ACCESS of 'public means not in a method of a subclass of type.
-A value of 'private means we can access private parts of the originating
+An ACCESS of `public' means not in a method of a subclass of type.
+A value of `private' means we can access private parts of the originating
 type."
   (let ((ret nil))
     (semantic-analyze-scoped-inherited-tag-map

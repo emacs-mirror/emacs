@@ -1,6 +1,6 @@
 ;;; srecode/compile --- Compilation of srecode template files.
 
-;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -131,18 +131,6 @@ STATE is the current compilation state."
   "For the template inserter INS, apply information from STATE."
   nil)
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter))
-						  escape-start escape-end)
-  "Insert an example using inserter INS.
-Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
-  (princ "   ")
-  (princ escape-start)
-  (when (and (slot-exists-p ins 'key) (oref ins key))
-    (princ (format "%c" (oref ins key))))
-  (princ "VARNAME")
-  (princ escape-end)
-  (terpri)
-  )
 
 
 ;;; Compile State
@@ -397,8 +385,7 @@ ESCAPE_START and ESCAPE_END are regexps that indicate the beginning
 escape character, and end escape character pattern for expandable
 macro names.
 Optional argument END-NAME specifies the name of a token upon which
-parsing should stop.
-If END-NAME is specified, and the input string"
+parsing should stop."
   (let* ((what str)
 	 (end-token nil)
 	 (comp nil)
@@ -547,8 +534,8 @@ A list of defined variables VARS provides a variable table."
 
     (while lp
 
-      (let* ((objname (oref (car lp) :object-name))
-	     (context (oref (car lp) :context))
+      (let* ((objname (oref (car lp) object-name))
+	     (context (oref (car lp) context))
 	     (globalname (concat context ":" objname))
 	     )
 
@@ -583,7 +570,7 @@ A list of defined variables VARS provides a variable table."
 	   (tmpl (oref table templates)))
       ;; Loop over all the templates, and xref.
       (while tmpl
-	(oset (car tmpl) :table table)
+	(oset (car tmpl) table table)
 	(setq tmpl (cdr tmpl))))
     ))
 
@@ -629,7 +616,7 @@ Argument INDENT specifies the indentation level for the list."
       (princ ") ")
       (cond ((stringp (car code))
 	     (prin1 (car code)))
-	    ((srecode-template-inserter-child-p (car code))
+	    ((cl-typep (car code) 'srecode-template-inserter)
 	     (srecode-dump (car code) indent))
 	    (t
 	     (princ "Unknown Code: ")
@@ -644,9 +631,9 @@ Argument INDENT specifies the indentation level for the list."
   "Dump the state of the SRecode template inserter INS."
   (princ "INS: \"")
   (princ (eieio-object-name-string ins))
-  (when (oref ins :secondname)
+  (when (oref ins secondname)
     (princ "\" : \"")
-    (princ (oref ins :secondname)))
+    (princ (oref ins secondname)))
   (princ "\" type \"")
   (let* ((oc (symbol-name (eieio-object-class ins)))
 	 (junk (string-match "srecode-template-inserter-" oc))

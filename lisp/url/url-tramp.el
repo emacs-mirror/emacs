@@ -1,6 +1,6 @@
 ;;; url-tramp.el --- file-name-handler magic invoking Tramp for some protocols
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, data, processes, hypermedia
@@ -42,9 +42,9 @@ If URL contains a password, it will be added to the `password-data' cache.
 In case URL is not convertible, nil is returned."
   (let* ((obj (url-generic-parse-url (and (stringp url) url)))
          (port
-          (and (natnump (url-portspec obj))
+          (and obj (natnump (url-portspec obj))
                (number-to-string (url-portspec obj)))))
-    (when (member (url-type obj) url-tramp-protocols)
+    (when (and obj (member (url-type obj) url-tramp-protocols))
       (when (url-password obj)
 	(password-cache-add
 	 (tramp-make-tramp-file-name
@@ -60,9 +60,9 @@ In case URL is not convertible, nil is returned."
 In case FILE is not convertible, nil is returned."
   (let* ((obj (ignore-errors (tramp-dissect-file-name file)))
          (port
-          (and (stringp (tramp-file-name-port obj))
+          (and obj (stringp (tramp-file-name-port obj))
                (string-to-number (tramp-file-name-port obj)))))
-    (when (member (tramp-file-name-method obj) url-tramp-protocols)
+    (when (and obj (member (tramp-file-name-method obj) url-tramp-protocols))
       (url-recreate-url
        (url-parse-make-urlobj
 	(tramp-file-name-method obj)

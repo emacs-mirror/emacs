@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -50,7 +50,7 @@
   "Read a click and release event from XTerm.
 Similar to `xterm-mouse-translate', but using the \"1006\"
 extension, which supports coordinates >= 231 (see
-http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
+https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
   (xterm-mouse-translate-1 1006))
 
 (defun xterm-mouse-translate-1 (&optional extension)
@@ -123,20 +123,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 		      (terminal-parameter nil 'xterm-mouse-y))))
   pos)
 
-(defun xterm-mouse-truncate-wrap (f)
-  "Truncate with wrap-around."
-  (condition-case nil
-      ;; First try the built-in truncate, in case there's no overflow.
-      (truncate f)
-    ;; In case of overflow, do wraparound by hand.
-    (range-error
-     ;; In our case, we wrap around every 3 days or so, so if we assume
-     ;; a maximum of 65536 wraparounds, we're safe for a couple years.
-     ;; Using a power of 2 makes rounding errors less likely.
-     (let* ((maxwrap (* 65536 2048))
-            (dbig (truncate (/ f maxwrap)))
-            (fdiff (- f (* 1.0 maxwrap dbig))))
-       (+ (truncate fdiff) (* maxwrap dbig))))))
+(define-obsolete-function-alias 'xterm-mouse-truncate-wrap 'truncate "27.1")
 
 (defcustom xterm-mouse-utf-8 nil
   "Non-nil if UTF-8 coordinates should be used to read mouse coordinates.
@@ -256,18 +243,23 @@ which is the \"1006\" extension implemented in Xterm >= 277."
              (y    (nth 2 click))
              ;; Emulate timestamp information.  This is accurate enough
              ;; for default value of mouse-1-click-follows-link (450msec).
-             (timestamp (xterm-mouse-truncate-wrap
-                         (* 1000
-                            (- (float-time)
-                               (or xt-mouse-epoch
-                                   (setq xt-mouse-epoch (float-time)))))))
+	     (timestamp (if (not xt-mouse-epoch)
+			    (progn (setq xt-mouse-epoch (float-time)) 0)
+			  (car (time-convert (time-since xt-mouse-epoch)
+					     1000))))
              (w (window-at x y))
              (ltrb (window-edges w))
              (left (nth 0 ltrb))
              (top (nth 1 ltrb))
              (posn (if w
-                                (posn-at-x-y (- x left) (- y top) w t)
-                              (append (list nil 'menu-bar)
+		       (posn-at-x-y (- x left) (- y top) w t)
+		     (append (list nil (if (and tab-bar-mode
+                                                (or (not menu-bar-mode)
+                                                    ;; The tab-bar is on the
+                                                    ;; second row below menu-bar
+                                                    (eq y 1)))
+                                           'tab-bar
+                                         'menu-bar))
                              (nthcdr 2 (posn-at-x-y x y)))))
              (event (list type posn)))
         (setcar (nthcdr 3 posn) timestamp)

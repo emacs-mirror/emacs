@@ -1,6 +1,6 @@
 ;;; em-alias.el --- creation and management of command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -90,7 +90,7 @@
 
 ;;; Code:
 
-(require 'eshell)
+(require 'esh-mode)
 
 ;;;###autoload
 (progn
@@ -141,12 +141,12 @@ file named by `eshell-aliases-file'.")
 (defvar eshell-failed-commands-alist nil
   "An alist of command name failures.")
 
-(defun eshell-alias-initialize ()
+(defun eshell-alias-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the alias handling code."
   (make-local-variable 'eshell-failed-commands-alist)
-  (add-hook 'eshell-alternate-command-hook 'eshell-fix-bad-commands t t)
+  (add-hook 'eshell-alternate-command-hook #'eshell-fix-bad-commands t t)
   (eshell-read-aliases-list)
-  (add-hook 'eshell-named-command-hook 'eshell-maybe-replace-by-alias t t)
+  (add-hook 'eshell-named-command-hook #'eshell-maybe-replace-by-alias t t)
   (make-local-variable 'eshell-complex-commands)
   (add-to-list 'eshell-complex-commands 'eshell-command-aliased-p))
 

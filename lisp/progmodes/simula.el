@@ -1,11 +1,10 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
-;; Maintainer: simula-mode@ifi.uio.no
-;;   (above email addresses invalid as of April 2008)
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR
 ;; Keywords: languages
 
@@ -1123,7 +1122,7 @@ If COUNT is negative, move backward instead."
 		   ((eq (following-char) ?\;)
 		    (if (zerop parlevel)
 			(throw 'simula-out nil)
-		      (error "Parenthesis mismatch or misplaced ';'")))
+		      (error "Parenthesis mismatch or misplaced `;'")))
 		   ((eq (following-char) ?\()
 		    (if (zerop parlevel)
 			(throw 'simula-out (1+ (current-column)))

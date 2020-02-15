@@ -1,6 +1,6 @@
 ;;; scheme.by -- Scheme BNF language specification
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -72,6 +72,8 @@ scheme-in-list: DEFINE symbol expression
 		(INCLUDE-TAG (file-name-nondirectory (read $2)) (read $2) )
 	      | symbol sequence
 		(CODE-TAG $1 nil)
+	      | ;; No match, error
+		(TAG "Bad Tag in Sexp" 'error)
 	      ;
 
 name-args: semantic-list

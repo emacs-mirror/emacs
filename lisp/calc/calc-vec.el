@@ -1,6 +1,6 @@
 ;;; calc-vec.el --- vector functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -242,7 +242,7 @@
 	   (cdr item)))
 	((> mode 0)
 	 (let ((dims nil)
-	       type new row)
+	       type new)
 	   (setq item (list item))
 	   (while (> mode 0)
 	     (setq type (calc-unpack-type (car item))
@@ -1375,9 +1375,7 @@
 	 (aa (if neg (math-sub -1 a) a))
 	 (str (if (eq aa 0)
 		  ""
-		(if (consp aa)
-		    (math-format-bignum-binary (cdr aa))
-		  (math-format-binary aa))))
+		(math-format-binary aa)))
 	 (zero (if neg ?1 ?0))
 	 (one (if neg ?0 ?1))
 	 (len (length str))
@@ -1467,7 +1465,7 @@
   a)
 
 (defun math-clean-set (a &optional always-vec)
-  (let ((p a) res)
+  (let ((p a))
     (while (cdr p)
       (if (and (eq (car-safe (nth 1 p)) 'intv)
 	       (Math-equal (nth 2 (nth 1 p)) (nth 3 (nth 1 p))))

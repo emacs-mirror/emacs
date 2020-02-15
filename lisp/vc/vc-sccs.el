@@ -1,8 +1,8 @@
 ;;; vc-sccs.el --- support for SCCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
 
-;; Author:     FSF (see vc.el for full credits)
+;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
@@ -347,7 +347,7 @@ Remaining arguments are ignored."
       (message "Running %s in foreground..." fake-command))
     (if oldproc (delete-process oldproc))
     (dolist (file files)
-      (let ((oldfile (make-temp-file "vc-sccs"))
+      (let ((oldfile (make-nearby-temp-file "vc-sccs"))
 	    newfile)
 	(unwind-protect
 	    (progn
@@ -364,7 +364,7 @@ Remaining arguments are ignored."
 		     (this-status
 		      (apply 'process-file "diff" nil t nil
 			     (append (vc-switches 'SCCS 'diff)
-				     (list oldfile
+				     (list (file-local-name oldfile)
 					   (or newfile
 					       (file-relative-name file)))))))
 		(or (integerp this-status) (setq status 'error))

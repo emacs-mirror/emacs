@@ -12,7 +12,7 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright @copyright{} 2001--2018 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2020 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*
@@ -21,7 +21,7 @@ Copyright @copyright{} 1990, 1991, 1992 Joseph Brian Wells@*
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
 (``FAQ'') may be translated into other languages, transformed into other
-formats (e.g., Texinfo, Info, WWW, WAIS), and updated with new information.
+formats (e.g., Texinfo, Info, HTML, PDF), and updated with new information.
 
 The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved
@@ -34,7 +34,7 @@ the FAQ may not be embedded in a larger literary work unless that work
 itself allows free copying and redistribution.
 
 [This version has been heavily edited since it was included in the Emacs
-distribution.]
+distribution in 1999.]
 @end quotation
 @end copying
 
@@ -280,14 +280,12 @@ For information on some of the files in the @file{etc} directory,
 @pxref{Informational files for Emacs}.
 
 @node Common acronyms
-@section What are FSF, LPF, GNU, RMS, FTP, and GPL?
+@section What are FSF, GNU, RMS, and GPL?
 @cindex FSF, definition of
-@cindex LPF, definition of
 @cindex GNU, definition of
 @cindex RMS, definition of
 @cindex Stallman, Richard, acronym for
 @cindex Richard Stallman, acronym for
-@cindex FTP, definition of
 @cindex GPL, definition of
 @cindex Acronyms, definitions for
 @cindex Common acronyms, definitions for
@@ -297,26 +295,16 @@ For information on some of the files in the @file{etc} directory,
 @item FSF
 Free Software Foundation
 
-@item LPF
-League for Programming Freedom
-
 @item GNU
 GNU's Not Unix
 
 @item RMS
 Richard Matthew Stallman
 
-@item FTP
-File Transfer Protocol
-
 @item GPL
 GNU General Public License
 
 @end table
-
-Avoid confusing the FSF and the LPF@.  The LPF opposes
-look-and-feel copyrights and software patents.  The FSF aims to make
-high quality free software available for everyone.
 
 The word ``free'' in the title of the Free Software Foundation refers to
 ``freedom,'' not ``zero cost.''  Anyone can charge any price for
@@ -334,7 +322,6 @@ This chapter contains general questions having to do with Emacs, the
 Free Software Foundation, and related organizations.
 
 @menu
-* The LPF::
 * Real meaning of copyleft::
 * Guidelines for newsgroup postings::
 * Newsgroup archives::
@@ -342,17 +329,6 @@ Free Software Foundation, and related organizations.
 * Unsubscribing from Emacs lists::
 * Contacting the FSF::
 @end menu
-
-@node The LPF
-@section What is the LPF?
-@cindex LPF, description of
-@cindex League for Programming Freedom
-@cindex Software patents, opposition to
-@cindex Patents for software, opposition to
-
-The LPF opposes the expanding danger of software patents and
-look-and-feel copyrights.  More information on the LPF's views is
-available at @uref{http://progfree.org/, the LPF home page}.
 
 @node Real meaning of copyleft
 @section What is the real legal meaning of the GNU copyleft?
@@ -426,11 +402,6 @@ archive can be browsed over the web at
 Web-based Usenet search services, such as
 @uref{http://groups.google.com/groups/dir?q=gnu&, Google}, also
 archive the @code{gnu.*} groups.
-
-You can also read the archives of the @code{gnu.*} groups and post new
-messages at @uref{http://gmane.org/, Gmane}.  Gmane is a service that
-presents mailing lists as newsgroups (even those without a traditional
-mail-to-news gateway).
 
 @node Reporting bugs
 @section Where should I report bugs and other problems with Emacs?
@@ -1297,7 +1268,7 @@ Directory-local variables can now be defined, in a similar manner to
 file-local variables.
 
 @item
-Transient Mark mode (@pxref{Highlighting a region}) is on by default.
+Transient Mark mode is on by default.
 
 @end itemize
 
@@ -1457,7 +1428,6 @@ of files from Macintosh, Microsoft, and Unix platforms.
 * Displaying the current file name in the titlebar::
 * Turning on abbrevs by default::
 * Associating modes with files::
-* Highlighting a region::
 * Replacing highlighted text::
 * Controlling case sensitivity::
 * Working with unprintable characters::
@@ -1470,7 +1440,6 @@ of files from Macintosh, Microsoft, and Unix platforms.
 * Compiler error messages::
 * Indenting switch statements::
 * Customizing C and C++ indentation::
-* Horizontal scrolling::
 * Overwrite mode::
 * Turning off beeping::
 * Turning the volume down::
@@ -1687,11 +1656,21 @@ mode-line-format @key{RET}}) for more information on how to set and use
 this variable.
 
 @cindex Set number capability in @code{vi} emulators
-The @samp{linum} package (distributed with Emacs since version 23.1)
-displays line numbers in the left margin, like the ``set number''
-capability of @code{vi}.  The packages @samp{setnu} and
-@samp{wb-line-number} (not distributed with Emacs) also implement this
-feature.
+The @samp{display-line-numbers} package (added to Emacs in version
+26.1) displays line numbers in the text area, before each line, like
+the ``set number'' capability of @samp{vi}.  Customize the
+buffer-local variable @code{display-line-numbers} to activate this
+optional display.  Alternatively, you can use the
+@code{display-line-numbers-mode} minor mode or the global
+@code{global-display-line-numbers-mode}.  When using these modes,
+customize @code{display-line-numbers-type} with the same value as you
+would use with @code{display-line-numbers}.
+
+There is also the @samp{linum} package (distributed with Emacs since
+version 23.1) which will henceforth become obsolete.  Users and
+developers are encouraged to use @samp{display-line-numbers} instead.
+The packages @samp{setnu} and @samp{wb-line-number} (not distributed
+with Emacs) also implement this feature.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
@@ -1779,23 +1758,6 @@ when loading an interpreted script (e.g., shell, python, etc.).  Emacs
 determines which interpreter you're using by examining the first line of
 the script.  Use @kbd{C-h v} (or @kbd{M-x describe-variable}) on
 @code{interpreter-mode-alist} to learn more.
-
-@node Highlighting a region
-@section How can I highlight a region of text in Emacs?
-@cindex Highlighting text
-@cindex Text, highlighting
-@cindex @code{transient-mark-mode}
-@cindex Region, highlighting a
-
-You can cause the region to be highlighted when the mark is active by
-including
-
-@lisp
-(transient-mark-mode 1)
-@end lisp
-
-@noindent
-in your @file{.emacs} file.  Since Emacs 23.1, this feature is on by default.
 
 @node Replacing highlighted text
 @section How can I replace highlighted text with what I type?
@@ -2005,10 +1967,6 @@ or by invoking @code{server-start} from @file{.emacs}:
 (if (@var{some conditions are met}) (server-start))
 @end lisp
 
-When this is done, Emacs creates a Unix domain socket named
-@file{server} in @file{/tmp/emacs@var{userid}}. See
-@code{server-socket-dir}.
-
 To get your news reader, mail reader, etc., to invoke
 @samp{emacsclient}, try setting the environment variable @code{EDITOR}
 (or sometimes @code{VISUAL}) to the value @samp{emacsclient}.  You may
@@ -2038,18 +1996,9 @@ the user is done editing a file, the user can type @kbd{C-x #} (or
 requested by @code{emacsclient}, Emacs will switch to it; otherwise
 @code{emacsclient} will exit, signaling the calling program to continue.
 
-@cindex @code{gnuserv}
-There is an alternative version of @samp{emacsclient} called
-@c ange@@hplb.hpl.hp.com
-@samp{gnuserv}, written by Andy Norman
-(@pxref{Packages that do not come with Emacs}).  @samp{gnuserv} uses
-Internet domain sockets, so it can work across most network connections.
-
-The most recent @samp{gnuserv} package is available at
-
-@uref{http://meltin.net/hacks/emacs/}
-
 @end itemize
+
+For more information, @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
 
 @node Compiler error messages
 @section How do I make Emacs recognize my compiler's funny error messages?
@@ -2172,23 +2121,6 @@ Note that @code{c-mode-hook} runs for C source files only; use
 Java sources, etc.  If you want the same customizations to be in
 effect in @emph{all} languages supported by @code{cc-mode}, use
 @code{c-mode-common-hook}.
-
-@node Horizontal scrolling
-@section How can I make Emacs automatically scroll horizontally?
-@cindex @code{hscroll-mode}
-@cindex Horizontal scrolling
-@cindex Scrolling horizontally
-
-In Emacs 21 and later, this is on by default: if the variable
-@code{truncate-lines} is non-@code{nil} in the current buffer, Emacs
-automatically scrolls the display horizontally when point moves off the
-left or right edge of the window.
-
-Note that this is overridden by the variable
-@code{truncate-partial-width-windows} if that variable is non-@code{nil}
-and the current buffer is not full-frame width.
-
-In Emacs 20, use @code{hscroll-mode}.
 
 @node Overwrite mode
 @section How do I make Emacs ``typeover'' or ``overwrite'' instead of inserting?
@@ -2355,9 +2287,9 @@ to investigate @file{cpp.el}, which is distributed with Emacs.
 @cindex Commands, repeating many times
 @cindex @code{.}, equivalent to @code{vi} command
 
-As of Emacs 20.3, there is indeed a @code{repeat} command (@kbd{C-x z})
-that repeats the last command.  If you preface it with a prefix
-argument, the prefix arg is applied to the command.
+Use the @code{repeat} command (@kbd{C-x z}) to repeat the last
+command.  If you preface it with a prefix argument, the prefix arg is
+applied to the command.
 
 You can also type @kbd{C-x @key{ESC} @key{ESC}}
 (@code{repeat-complex-command}) to reinvoke commands that used the
@@ -2583,9 +2515,8 @@ To avoid seeing backup files (and other ``uninteresting'' files) in Dired,
 load @code{dired-x} by adding the following to your @file{.emacs} file:
 
 @lisp
-(add-hook 'dired-load-hook
-          (lambda ()
-           (require 'dired-x)))
+(with-eval-after-load 'dired
+  (require 'dired-x))
 @end lisp
 
 With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.
@@ -2871,9 +2802,9 @@ Alternatively, use the following Lisp form in your @file{.emacs}:
 @cindex Microsoft files, editing
 @cindex Windows files, editing
 
-As of Emacs 20, detection and handling of MS-DOS (and Windows) files is
-performed transparently.  You can open MS-DOS files on a Unix system,
-edit it, and save it without having to worry about the file format.
+Detection and handling of MS-DOS (and Windows) files is performed
+transparently.  You can open MS-DOS files on a Unix system, edit it,
+and save it without having to worry about the file format.
 
 When editing an MS-DOS style file, the mode line will indicate that it
 is a DOS file.  On Unix and GNU/Linux systems, and also on a Macintosh,
@@ -2968,20 +2899,29 @@ type @kbd{C-h C-p} to read it.
 @end menu
 
 @node Problems with very large files
-@section Does Emacs have problems with files larger than 8 megabytes?
+@section Does Emacs have problems with large files?
 @cindex Very large files, opening
 @cindex Large files, opening
 @cindex Opening very large files
 @cindex Maximum file size
 @cindex Files, maximum size
 
-Old versions (i.e., anything before 19.29) of Emacs had problems editing
-files larger than 8 megabytes.  In versions 19.29 and later, the maximum
-buffer size is at least @math{2^{27}-1}, or 134,217,727 bytes, or 132 MBytes.
-The maximum buffer size on 32-bit machines increased to 256 MBytes in
-Emacs 22, and again to 512 MBytes in Emacs 23.2.
+Emacs has an inherent fixed limitation on the size of buffers.  This
+limit is stricter than the maximum size of objects supported by other
+programs on the same architecture.
 
-Emacs compiled on a 64-bit machine can handle much larger buffers.
+The maximum buffer size on 32-bit machines is 512 MBytes beginning
+with version 23.2.  If Emacs was built using the
+@code{--with-wide-int} flag, the maximum buffer size on 32-bit
+machines is 2 GB.
+
+Emacs compiled on a 64-bit machine can handle much larger buffers; up
+to @code{most-positive-fixnum} (2.3 exabytes).
+
+Due to things like decoding of multibyte characters, you can only
+visit files with a size that is roughly half the buffer size limit.
+When visiting compressed archives, the file size limit will be
+smaller than that due to decompression.
 
 @node ^M in the shell buffer
 @section How do I get rid of @samp{^M} or echoed commands in my shell buffer?
@@ -3128,8 +3068,8 @@ begun}.
 @cindex Ignored X resources
 @cindex @file{.Xdefaults}
 
-As of version 19, Emacs searches for X resources in the files specified
-by the following environment variables:
+Emacs searches for X resources in the files specified by the following
+environment variables:
 
 @itemize @bullet
 
@@ -3257,23 +3197,12 @@ You can tell Emacs the shell's current directory with the command
 @itemize @bullet
 
 @item
-The @file{movemail} incident.  (No, this is not a risk.)
+Third party packages.
 
-In his book @cite{The Cuckoo's Egg}, Cliff Stoll describes this in
-chapter 4.  The site at LBL had installed the @file{/etc/movemail}
-program setuid root.  (As of version 19, @file{movemail} is in your
-architecture-specific directory; type @kbd{C-h v exec-directory
-@key{RET}} to see what it is.)  Since @code{movemail} had not been
-designed for this situation, a security hole was created and users could
-get root privileges.
-
-@code{movemail} has since been changed so that this security hole will
-not exist, even if it is installed setuid root.  However,
-@code{movemail} no longer needs to be installed setuid root, which
-should eliminate this particular risk.
-
-We have heard unverified reports that the 1988 Internet worm took
-advantage of this configuration problem.
+Any package you install into Emacs can run arbitrary code with the
+same privileges as the Emacs process itself.  Be aware of this when
+you use the package system (e.g. @code{M-x list-packages}) with third
+party archives.  Use only third parties that you can trust!
 
 @item
 The @code{file-local-variable} feature.  (Yes, a risk, but easy to
@@ -3621,15 +3550,18 @@ A list of sites mirroring @samp{ftp.gnu.org} can be found at
 @cindex Lucid Emacs
 @cindex Epoch
 
-XEmacs is a branch version of Emacs.  It was first called Lucid Emacs,
-and was initially derived from a prerelease version of Emacs 19.  In
-this FAQ, we use the name ``Emacs'' only for the official version.
+XEmacs was a branch version of Emacs that is no longer actively
+developed.  XEmacs was first called Lucid Emacs, and was initially
+derived from a prerelease version of Emacs 19.  In this FAQ, we use
+the name ``Emacs'' only for the official version.
 
-Emacs and XEmacs each come with Lisp packages that are lacking in the
-other.  The two versions have some significant differences at the Lisp
-programming level.  Their current features are roughly comparable,
-though the support for some operating systems, character sets and
-specific packages might be quite different.
+XEmacs last released a new version on January 30, 2009, and it lacks
+many important features that exists in Emacs.  In the past, it was not
+uncommon for Emacs packages to include code for compatibility with
+XEmacs.  Nowadays, although some packages still maintain such
+compatibility code, several of the more popular built-in and third
+party packages have either stopped supporting XEmacs or were developed
+exclusively for Emacs.
 
 Some XEmacs code has been contributed to Emacs, and we would like to
 use other parts, but the earlier XEmacs maintainers did not always
@@ -3878,7 +3810,7 @@ if you do build Emacs with Xt; please let us know if you've done this!)
 The only way to affect the behavior of keys within Emacs is through
 @code{xmodmap} (outside Emacs) or @code{define-key} (inside Emacs).  The
 @code{define-key} command should be used in conjunction with the
-@code{function-key-map} map.  For instance,
+@code{local-function-key-map} map.  For instance,
 
 @lisp
 (define-key function-key-map [M-@key{TAB}] [?\M-\t])

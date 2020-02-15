@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -122,12 +122,6 @@ It can use the same icons as gud.
 ** Check what minor modes don't use define-minor-mode and convert them
 to use it.
 
-** Convert all defvars with leading '*' in the doc-strings into defcustoms
-of appropriate :type and :group.
-
-** Remove any leading '*'s from defcustom doc-strings.
-[done?] [A lot of them are in CC Mode.]
-
 ** Remove unnecessary autoload cookies from defcustoms.
 This needs a bit of care, since often people have become used to
 expecting such variables to always be defined, eg when they modify
@@ -142,15 +136,6 @@ control backend, and write a test for its status parser.  Etc.
 See the 'test' directory for examples.
 
 * Small but important fixes needed in existing features:
-
-** Flymake's customization mechanism needs to be both simpler (fewer
-levels of indirection) and better documented, so it is easier to
-understand.  I find it quite hard to figure out what compilation
-command it will use.
-
-I suggest totally rewriting that part of Flymake, using the simplest
-mechanism that suffices for the specific needs.  That will be easy
-for users to customize.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
@@ -191,8 +176,6 @@ for users to customize.
 ** In Emacs Info, examples of using Customize should be clickable
    and they should create Custom buffers.
 
-** The toolbar should show keyboard equivalents in its tooltips.
-
 ** Add function to redraw the tool bar.
 
 ** Redesign the load-history data structure so it can cope better
@@ -210,8 +193,6 @@ https://lists.gnu.org/r/emacs-devel/2007-04/msg00684.html
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
 *** Related functions:
-**** gnus-bug
-**** report-calc-bug
 **** org-submit-bug-report
 **** lm-report-bug
 **** tramp-bug
@@ -237,6 +218,54 @@ https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
     25 years ago I hoped we would extend Emacs to do WYSIWYG word
     processing.  That is why we added text properties and variable
     width fonts.  However, more features are still needed to achieve this.
+
+** Support ligatures out of the box
+For the list of typographical ligatures, see
+
+  https://en.wikipedia.org/wiki/Orthographic_ligature#Ligatures_in_Unicode_(Latin_alphabets)
+
+For Text and derived modes, the job is to figure out which ligatures
+we want to support, how to let the user customize that, and probably
+define a minor mode for automatic ligation (as some contexts might not
+want, say, "fi" or "ff" always yield a ligature, and also because it
+might slow down redisplay, because character composition goes through
+Lisp).
+
+For ligature support in programming language modes, one can look at
+the various add-on packages out there that provide the feature via
+prettify-symbols-mode.  We need to figure out which ligatures are
+needed for each programming language, and provide user options to turn
+this on and off.
+
+The implementation should use the infrastructure for character
+compositions, i.e., we should define appropriate regexp-based rules
+for character sequences that need to be composed into ligatures, and
+populate composition-function-table with those rules.  See
+composite.el for examples of this, and also grep lisp/language/*.el
+for references to composition-function-table.
+
+The prettify-symbols-mode should be deprecated once ligature support
+is in place.
+
+** Support for Stylistic Sets
+This will allow using "alternate glyphs" supported by modern fonts.
+For an overview of this feature, see
+
+  https://www.typography.com/faq/157
+  https://glyphsapp.com/tutorials/stylistic-sets
+
+HarfBuzz supports this, see this discussion:
+
+  https://lists.freedesktop.org/archives/harfbuzz/2019-September/007434.html
+
+One possible way of letting Lisp program support this would be to
+introduce a new text property 'stylistic-set' whose value will be the
+set name(s), a symbol or a list of symbols.  Characters that have this
+property should be processed specially by 'get_glyph_face_and_encoding':
+instead of calling the 'encode_char' method of the font driver, we
+should invoke the 'shape' method.  'hbfont_shape' should be extended
+to pass to 'hb_shape_full' the required array of features, as
+mentioned in the above HarfBuzz discussion.
 
 ** Extend text-properties and overlays
 *** Several text-property planes
@@ -295,20 +324,6 @@ consistency checks that make sure the new code computes the same results
 as the old code.  And once that works well, we can remove the old code
 and old fields.
 
-** Having tabs above a window to switch buffers in it.
-
-** "Perspectives" are named persistent window configurations.  We have
-had the window configuration mechanism in GNU Emacs since the
-beginning but we have never developed a good user interface to take
-advantage of them.  Eclipse's user interface seems to be good.
-
-Perspectives work well even if you do the equivalent of C-x 4 C-f
-because of the distinction between view windows vs file windows.  In
-Emacs this is more or less the "dedicated window" feature, but we have
-never really made it work for this.
-
-Perspectives also need to interact with the tabs.
-
 ** FFI (foreign function interface)
 See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
@@ -316,11 +331,7 @@ One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
 
-** Replace unexec with a more portable form of dumping
-See eg https://lists.gnu.org/r/emacs-devel/2014-01/msg01034.html
-       https://lists.gnu.org/r/emacs-devel/2014-06/msg00452.html
-
-One way is to provide portable undumping using mmap (per gerd design).
+** Fix portable dumping so that you can redump without using -batch.
 
 ** Imenu could be extended into a file-structure browsing mechanism
 using code like that of customize-groups.
@@ -372,6 +383,12 @@ scroll bars are extensible.
 specified filters, specified timers, and specified hooks.
 
 ** Install mmc@maruska.dyndns.org's no-flicker change.
+
+  https://lists.gnu.org/archive/html/emacs-devel/2005-12/msg00699.html
+
+  I don't know if this is still relevant.  I can't reach the URLs in
+  the above message thread and double-buffering may have solved some
+  of the problems.
 
 ** Add a "current vertical pixel level" value that goes with point,
   so that motion commands can also move through tall images.
@@ -526,11 +543,6 @@ from the emacsclient process.
 ** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
 
-** Allow unknown image types to be rendered via an external program
-  converting them to, say, PBM (in the same way as PostScript?). [does
-  doc-view.el do this, or could it be extended to do this?
-  Does ImageMagick obsolete this idea?]
-
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
   thought this was feasible.]
@@ -544,6 +556,8 @@ from the emacsclient process.
 
 ** Use the XIE X extension, if available, for image display.
 
+(Obsolete as XIE is now considered obsolete itself.)
+
 ** Make monochrome images display using the foreground and background
   colors of the applicable faces.
 
@@ -551,10 +565,6 @@ from the emacsclient process.
 
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
-
-** Port the conservative stack marking code of Emacs's garbage collector
-  to more systems, so that we can completely get rid of GCPROs.  Note
-  that Boehm garbage collector provides this.
 
 ** Reorder defcustom's in each package so that the more important
   options come first in the Customize buffers.  This could be done by
@@ -576,9 +586,8 @@ from the emacsclient process.
   snmp-mode [?], soundex [should be interactive?], strokes [start from
   the web page], talk, thingatpt [interactive functions?], type-break,
   vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
-  feedmail [?], uce, gametree, page-ext,
-  refbib, refer, scribe, texinfo, underline,
-  cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
+  feedmail [?], uce, gametree, page-ext, refbib, refer, scribe,
+  texinfo, underline, cmacexp, hideif, pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
@@ -673,6 +682,10 @@ simple buttons to webkit (effectively, a web browser).
 Currently, xwidgets works only for the gtk+ framework but it is
 designed to be compatible with multiple Emacs ports.
 
+(See the scratch/nsxwidget branch, and the discussion around
+Objective-C code and GCC at
+https://lists.gnu.org/archive/html/emacs-devel/2019-08/msg00072.html)
+
 **** Respect 'frame-inhibit-implied-resize'
 
 When the variable 'frame-inhibit-implied-resize' is non-nil, frames
@@ -700,7 +713,7 @@ Anders Lindgren <andlind@gmail.com> has implemented
 running Emacs as root.
 
 See this article by Bozhidar Batsov for an overview of Proced:
-http://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
+https://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
 
 **** Tooltip properties
 
@@ -848,32 +861,6 @@ all build versions.
 - Console only.
 
 *** Bugs
-
-**** Incorrect translation of Super modifier with Ctrl or Meta on macOS
-
-When pressing 'M-s-a', Emacs replies "M-s-å is undefined".  What
-happened is a mix of Emacs view that Meta and Super has been pressed,
-and macOS view that ALT-a should yield "å" (U+00E5 LATIN SMALL LETTER
-A WITH RING ABOVE).
-
-The bug reports suggest two different patches; unfortunately, neither
-works properly.  For example:
-
-   Use a Swedish keyboard layout
-
-   (setq ns-alternate-modifier nil)
-
-   "CMD-ALT-9"
-
-Today, this correctly yields that s-] is undefined.  With either
-of the two patches, Emacs responds that s-9 was pressed.
-
-More investigation is needed to fix this problem.
-
-Links:
-- https://debbugs.gnu.org/19977
-- https://debbugs.gnu.org/21330
-- https://debbugs.gnu.org/21551
 
 **** Toggling the toolbar in fullheight or maximized modes
 
@@ -1493,16 +1480,24 @@ presence of multi-file documents.
 ** Replace linum.el with nlinum.el
    https://lists.gnu.org/r/emacs-devel/2013-08/msg00379.html
 
+   (Since Emacs 26 introduced native line numbers, this item is
+   probably obsolete.)
+
 ** Merge sendmail.el and messages.el.
    Probably not a complete merge, but at least arrange for messages.el to be
    a derived mode of sendmail.el.  Or arrange for messages.el to be split
    into a small core and "the rest" so that we use less resources as long as
    we stick to the features provided in sendmail.el.
 
+   (Probably obsolete, as Emacs 24 switched to message.el as the
+   default mail composer.)
+
 ** Replace gmalloc.c with the modified Doug Lea code from the current
    GNU libc so that the special mmapping of buffers can be removed --
    that apparently loses under Solaris, at least. [fx has mostly done
    this.]
+
+   (Obsolete, since gmalloc.c is nowadays only used on MS-DOS.)
 
 ** Rewrite make-docfile to be clean and maintainable.
    It might be better to replace it with Lisp, using the byte compiler.

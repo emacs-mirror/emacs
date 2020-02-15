@@ -1,6 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2018 Free Software
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2020 Free Software
 ## Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -239,9 +239,6 @@ xfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
 xftfont.o: xftfont.c dispextern.h xterm.h frame.h blockinput.h character.h \
    charset.h font.h lisp.h globals.h $(config_h) atimer.h systime.h \
    fontset.h ccl.h ftfont.h composite.h
-ftxfont.o: ftxfont.c dispextern.h xterm.h frame.h blockinput.h character.h \
-   charset.h font.h lisp.h globals.h $(config_h) atimer.h systime.h \
-   fontset.h ccl.h
 menu.o: menu.c lisp.h keyboard.h keymap.h frame.h termhooks.h blockinput.h \
    dispextern.h $(srcdir)/../lwlib/lwlib.h xterm.h gtkutil.h menu.h \
    lisp.h globals.h $(config_h) systime.h coding.h composite.h window.h \

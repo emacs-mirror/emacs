@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -440,6 +440,17 @@ This function returns the attributes of the physical monitor
 dominating (see above) @var{frame}, which defaults to the selected frame.
 @end defun
 
+On multi-monitor displays it is possible to use the command
+@code{make-frame-on-monitor} to make frames on the specified monitor.
+
+@deffn Command make-frame-on-monitor monitor &optional display parameters
+This function creates and returns a new frame on @var{monitor} located
+on @var{display}, taking the other frame parameters from the alist
+@var{parameters}.  @var{monitor} should be the name of the physical
+monitor, the same string as returned by the function
+@code{display-monitor-attributes-list} in the attribute @code{name}.
+@var{display} should be the name of an X display (a string).
+@end deffn
 
 @node Frame Geometry
 @section Frame Geometry
@@ -503,7 +514,7 @@ Height |  | | Height                           | |  | Height
 In practice not all of the areas shown in the drawing will or may be
 present.  The meaning of these areas is described below.
 
-@table @samp
+@table @asis
 @item Outer Frame
 @cindex outer frame
 @cindex outer edges
@@ -1100,6 +1111,10 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 @code{frame-resize-pixelwise} is @code{nil}, some window managers may
 refuse to truly honor the request if it does not increase/decrease the
 frame height to a multiple of its character height.
+
+When used interactively, this command will set the height of the
+currently selected frame to the number of lines specified by the
+numeric prefix.
 @end defun
 
 @defun set-frame-width frame width &optional pretend pixelwise
@@ -1112,6 +1127,10 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 @code{frame-resize-pixelwise} is @code{nil}, some window managers may
 refuse to fully honor the request if it does not increase/decrease the
 frame width to a multiple of its character width.
+
+When used interactively, this command will set the width of the
+currently selected frame to the number of columns specified by the
+numeric prefix.
 @end defun
 
 None of these three functions will make a frame smaller than needed to
@@ -1147,30 +1166,27 @@ immediately after running @code{window-size-change-functions} for
 @cindex implied resizing of frame
 
 By default, Emacs tries to keep the number of lines and columns of a
-frame's text area unaltered when, for example, adding or removing the
-menu bar, changing the default font or setting the width of the frame's
-scroll bars.  This means, however, that in such case Emacs must ask the
-window manager to resize the outer frame in order to accommodate the
-size change.  Note that wrapping a menu or tool bar usually does not
-resize the frame's outer size, hence this will alter the number of
-displayed lines.
+frame's text area unaltered when, for example, toggling its menu or
+tool bar, changing its default font or setting the width of any of its
+scroll bars.  This means that in such case Emacs must ask the window
+manager to resize the frame's window in order to accommodate the size
+change.
 
   Occasionally, such @dfn{implied frame resizing} may be unwanted, for
-example, when the frame is maximized or made full-screen (where it's
-turned off by default).  In other cases you can disable implied resizing
-with the following option:
+example, when a frame has been maximized or made full-screen (where
+it's turned off by default).  In general, users can disable implied
+resizing with the following option:
 
 @defopt frame-inhibit-implied-resize
-If this option is @code{nil}, changing font, menu bar, tool bar,
-internal borders, fringes or scroll bars of a specific frame may
-implicitly resize the frame's display area in order to preserve the
-number of columns or lines the frame displays.  If this option is
-non-@code{nil}, no implied resizing is done.
+If this option is @code{nil}, changing a frame's font, menu bar, tool
+bar, internal borders, fringes or scroll bars may resize its outer
+frame in order to keep the number of columns or lines of its text area
+unaltered.  If this option is @code{t}, no such resizing is done.
 
 The value of this option can be also a list of frame parameters.  In
-that case, implied resizing is inhibited when changing a parameter that
-appears in this list.  The frame parameters currently handled by this
-option are: @code{font}, @code{font-backend},
+that case, implied resizing is inhibited for the change of a parameter
+that appears in this list.  Parameters currently handled by this
+option are @code{font}, @code{font-backend},
 @code{internal-border-width}, @code{menu-bar-lines} and
 @code{tool-bar-lines}.
 
@@ -1181,20 +1197,30 @@ as if the frame contained just one live window.  This means, for
 example, that removing vertical scroll bars on a frame containing
 several side by side windows will shrink the outer frame width by the
 width of one scroll bar provided this option is @code{nil} and keep it
-unchanged if this option is either @code{t} or a list containing
+unchanged if this option is @code{t} or a list containing
 @code{vertical-scroll-bars}.
 
-The default value is @code{'(tool-bar-lines)} for Lucid, Motif and
-MS-Windows (which means that adding/removing a tool bar there does not
-change the outer frame height), @code{nil} on all other window systems
-including GTK+ (which means that changing any of the parameters listed
-above may change the size of the outer frame), and @code{t} otherwise
-(which means the outer frame size never changes implicitly when there's
-no window system support).
+The default value is @code{'(tab-bar-lines tool-bar-lines)} for Lucid,
+Motif and MS-Windows (which means that adding/removing a tool or tab
+bar there does not change the outer frame height),
+@code{'(tab-bar-lines)} on all other window systems including GTK+
+(which means that changing any of the parameters listed above with the
+exception of @code{tab-bar-lines} may change the size of the outer
+frame), and @code{t} otherwise (which means the outer frame size never
+changes implicitly when there's no window system support).
 
 Note that when a frame is not large enough to accommodate a change of
 any of the parameters listed above, Emacs may try to enlarge the frame
 even if this option is non-@code{nil}.
+
+Note also that window managers usually do not ask for resizing a frame
+when they change the number of lines occupied by an external menu or
+tool bar.  Typically, such ``wrappings'' occur when a user shrinks a
+frame horizontally, making it impossible to display all elements of
+its menu or tool bar.  They may also result from a change of the major
+mode altering the number of items of a menu or tool bar.  Any such
+wrappings may implicitly alter the number of lines of a frame's text
+area and are unaffected by the setting of this option.
 @end defopt
 
 
@@ -1873,6 +1899,12 @@ minibuffer window to @code{t} and vice-versa, or from @code{t} to
 @code{nil}.  If the parameter specifies a minibuffer window already,
 setting it to @code{nil} has no effect.
 
+The special value @code{child-frame} means to make a minibuffer-only
+child frame (@pxref{Child Frames}) whose parent becomes the frame
+created.  As if specified as @code{nil}, Emacs will set this parameter
+to the minibuffer window of the child frame but will not select the
+child frame after its creation.
+
 @vindex buffer-predicate@r{, a frame parameter}
 @item buffer-predicate
 The buffer-predicate function for this frame.  The function
@@ -2160,10 +2192,11 @@ it and see if it works.)
 @vindex ns-appearance@r{, a frame parameter}
 @item ns-appearance
 Only available on macOS, if set to @code{dark} draw this frame's
-window-system window using the ``vibrant dark'' theme, otherwise use
-the system default.  The ``vibrant dark'' theme can be used to set the
-toolbar and scrollbars to a dark appearance when using an Emacs theme
-with a dark background.
+window-system window using the ``vibrant dark'' theme, and if set to
+@code{light} use the ``aqua'' theme, otherwise use the system default.
+The ``vibrant dark'' theme can be used to set the toolbar and
+scrollbars to a dark appearance when using an Emacs theme with a dark
+background.
 
 @vindex ns-transparent-titlebar@r{, a frame parameter}
 @item ns-transparent-titlebar
@@ -2187,6 +2220,9 @@ How to display the cursor.  Legitimate values are:
 @table @code
 @item box
 Display a filled box.  (This is the default.)
+@item (box . @var{size})
+Display a filled box.  However, display it as a hollow box if point is
+under masked image larger than @var{size} pixels in either dimension.
 @item hollow
 Display a hollow box.
 @item nil
@@ -2261,13 +2297,24 @@ variable do not take effect immediately, only when you specify the
 @vindex font-backend@r{, a frame parameter}
 @item font-backend
 A list of symbols, specifying the @dfn{font backends} to use for
-drawing fonts in the frame, in order of priority.  On X, there are
-currently two available font backends: @code{x} (the X core font
-driver) and @code{xft} (the Xft font driver).  On MS-Windows, there are
-currently two available font backends: @code{gdi} and
-@code{uniscribe} (@pxref{Windows Fonts,,, emacs, The GNU Emacs
-Manual}).  On other systems, there is only one available font backend,
-so it does not make sense to modify this frame parameter.
+drawing characters on the frame, in order of priority.  In Emacs built
+without Cairo drawing on X, there are currently three potentially
+available font backends: @code{x} (the X core font driver), @code{xft}
+(the Xft font driver), and @code{xfthb} (the Xft font driver with
+HarfBuzz text shaping).  If built with Cairo drawing, there are also
+three potentially available font backends on X: @code{x}, @code{ftcr}
+(the FreeType font driver on Cairo), and @code{ftcrhb} (the FreeType
+font driver on Cairo with HarfBuzz text shaping).  When Emacs is built
+with HarfBuzz, the default font driver is @code{ftcrhb}, although use
+of the @code{ftcr} driver is still possible, but not recommended.  On
+MS-Windows, there are currently three available font backends:
+@code{gdi} (the core MS-Windows font driver), @code{uniscribe} (font
+driver for OTF and TTF fonts with text shaping by the Uniscribe
+engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
+HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
+Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
+other systems, there is only one available font backend, so it does
+not make sense to modify this frame parameter.
 
 @vindex background-mode@r{, a frame parameter}
 @item background-mode
@@ -2359,6 +2406,7 @@ The color to use for the background of characters.  It is equivalent to
 the @code{:background} attribute of the @code{default} face.
 
 @vindex mouse-color@r{, a frame parameter}
+@vindex mouse@r{, a face}
 @item mouse-color
 The color for the mouse pointer.  It is equivalent to the @code{:background}
 attribute of the @code{mouse} face.
@@ -3203,9 +3251,17 @@ top-level frame which also always appears on top of its parent
 window---the desktop's root window.  When a parent frame is iconified or
 made invisible (@pxref{Visibility of Frames}), its child frames are made
 invisible.  When a parent frame is deiconified or made visible, its
-child frames are made visible.  When a parent frame is about to be
-deleted (@pxref{Deleting Frames}), its child frames are recursively
-deleted before it.
+child frames are made visible.
+
+  When a parent frame is about to be deleted (@pxref{Deleting
+Frames}), its child frames are recursively deleted before it.  There
+is one exception to this rule: When the child frame serves as a
+surrogate minibuffer frame (@pxref{Minibuffers and Frames}) for
+another frame, it is retained until the parent frame has been deleted.
+If, at this time, no remaining frame uses the child frame as its
+minibuffer frame, Emacs will try to delete the child frame too.  If
+that deletion fails for whatever reason, the child frame is made a
+top-level frame.
 
   Whether a child frame can have a menu or tool bar is window-system or
 window manager dependent.  Most window-systems explicitly disallow menus
@@ -3820,7 +3876,7 @@ drop.
 
 @vindex dnd-protocol-alist
   When an URL is dropped on Emacs it may be a file, but it may also be
-another URL type (ftp, http, etc.).  Emacs first checks
+another URL type (https, etc.).  Emacs first checks
 @code{dnd-protocol-alist} to determine what to do with the URL@.  If
 there is no match there and if @code{browse-url-browser-function} is
 an alist, Emacs looks for a match there.  If no match is found the

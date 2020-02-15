@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -698,7 +698,7 @@ and what valid VAL values are."
 
 (defun semantic-lex-spp-symbol-merge (txt)
   "Merge the tokens listed in TXT.
-TXT might contain further 'spp-symbol-merge, which will
+TXT might contain further `spp-symbol-merge', which will
 be merged recursively."
   ;; We need to merge the tokens in the 'text segment together,
   ;; and produce a single symbol from it.
@@ -907,7 +907,7 @@ STR occurs in the current buffer between BEG and END."
 	    (push str semantic-lex-spp-expanded-macro-stack)
 	    )
 
-	  (semantic-lex-spp-anlyzer-do-replace sym val beg end))
+	  (semantic-lex-spp-analyzer-do-replace sym val beg end))
 
 	))
      ;; Anything else.
@@ -1071,7 +1071,7 @@ and variable state from the current buffer."
 	      (error nil))
 
 	    ;; Hack in mode-local
-	    (activate-mode-local-bindings)
+	    (mode-local--activate-bindings)
 
 	    ;; Call the major mode's setup function
 	    (let ((entry (assq major-mode semantic-new-buffer-setup-functions)))
@@ -1092,7 +1092,7 @@ and variable state from the current buffer."
 	;; the originating buffer we are parsing.  We need to do this every time
 	;; since the state changes.
 	(dolist (V important-vars)
-	  (set V (semantic-buffer-local-value V origbuff)))
+	  (set V (buffer-local-value V origbuff)))
 	(insert text)
 	(goto-char (point-min))
 
@@ -1244,7 +1244,7 @@ For languages that use the Semantic pre-processor, this can
 improve the accuracy of parsed files where include files
 can change the state of what's parsed in the current file.
 
-Note: Note implemented yet"
+Note: Not implemented yet."
   :group 'semantic
   :type 'boolean)
 
@@ -1272,7 +1272,7 @@ VALFORM are forms that return the name of the thing being included, and the
 type of include.  The return value should be of the form:
   (NAME . TYPE)
 where NAME is the name of the include, and TYPE is the type of the include,
-where a valid symbol is 'system, or nil."
+where a valid symbol is `system', or nil."
   (let ((start (make-symbol "start"))
 	(end (make-symbol "end"))
 	(val (make-symbol "val"))

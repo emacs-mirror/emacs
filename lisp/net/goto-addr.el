@@ -1,11 +1,11 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 15 Aug 1995
-;; Keywords: mh-e, www, mouse, mail
+;; Keywords: www, mouse, mail
 
 ;; This file is part of GNU Emacs.
 
@@ -32,10 +32,10 @@
 
 ;; INSTALLATION
 ;;
-;; To use goto-address in a particular mode (for example, while
-;; reading mail in mh-e), add this to your init file:
+;; To use goto-address in a particular mode (this example uses
+;; the fictional rich-text-mode), add this to your init file:
 ;;
-;; (add-hook 'mh-show-mode-hook 'goto-address)
+;; (add-hook 'rich-text-mode-hook 'goto-address)
 ;;
 ;; The mouse click method is bound to [mouse-2] on highlighted URLs or
 ;; e-mail addresses only; it functions normally everywhere else.  To bind
@@ -59,18 +59,9 @@
 
 ;;; Code:
 
+(require 'seq)
 (require 'thingatpt)
 (autoload 'browse-url-url-at-point "browse-url")
-
-;; XEmacs needs the following definitions.
-(unless (fboundp 'overlays-in)
-  (require 'overlay))
-(unless (fboundp 'line-beginning-position)
-  (defalias 'line-beginning-position 'point-at-bol))
-(unless (fboundp 'line-end-position)
-  (defalias 'line-end-position 'point-at-eol))
-(unless (fboundp 'match-string-no-properties)
-  (defalias 'match-string-no-properties 'match-string))
 
 (defgroup goto-address nil
   "Click to browse URL or to send to e-mail address."
@@ -98,32 +89,40 @@ A value of t means there is no limit--fontify regardless of the size."
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
-  "[-a-zA-Z0-9=._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
+  "[-a-zA-Z0-9=._+]+@\\([-a-zA-Z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
+(defvar goto-address-uri-schemes-ignored
+  ;; By default we exclude `mailto:' (email addresses are matched
+  ;; by `goto-address-mail-regexp') and also `data:', as it is not
+  ;; terribly useful to follow those URIs, and leaving them causes
+  ;; `use Data::Dumper;' to be fontified oddly in Perl files.
+  '("mailto:" "data:")
+  "List of URI schemes to exclude from `goto-address-uri-schemes'.
+
+Customizations to this variable made after goto-addr is loaded
+will have no effect.")
+
+(defvar goto-address-uri-schemes
+  ;; We use `thing-at-point-uri-schemes', with a few exclusions,
+  ;; as listed in `goto-address-uri-schemes-ignored'.
+  (seq-reduce (lambda (accum elt) (delete elt accum))
+              goto-address-uri-schemes-ignored
+              (copy-sequence thing-at-point-uri-schemes))
+  "List of URI schemes matched by `goto-address-url-regexp'.
+
+Customizations to this variable made after goto-addr is loaded
+will have no effect.")
+
 (defvar goto-address-url-regexp
-  (concat
-   "\\<\\("
-   (mapconcat 'identity
-              (delete "mailto:"
-		      ;; Remove `data:', as it's not terribly useful to follow
-		      ;; those.  Leaving them causes `use Data::Dumper;' to be
-		      ;; fontified oddly in Perl files.
-                      (delete "data:"
-                              (copy-sequence thing-at-point-uri-schemes)))
-              "\\|")
-   "\\)"
-   thing-at-point-url-path-regexp)
-  ;; (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
-  ;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
-  ;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
-  ;; 	  "[-a-zA-Z0-9_=#$@~`%&*+|\\/]")
+  (concat "\\<"
+          (regexp-opt goto-address-uri-schemes t)
+          thing-at-point-url-path-regexp)
   "A regular expression probably matching a URL.")
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
-    (define-key m (if (featurep 'xemacs) (kbd "<button2>") (kbd "<mouse-2>"))
-      'goto-address-at-point)
+    (define-key m (kbd "<mouse-2>") 'goto-address-at-point)
     (define-key m (kbd "C-c RET") 'goto-address-at-point)
     m)
   "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
@@ -246,7 +245,7 @@ there, then load the URL at or before point."
   "Find e-mail address around or before point.
 Then search backwards to beginning of line for the start of an e-mail
 address.  If no e-mail address found, return nil."
-  (re-search-backward "[^-_A-z0-9.@]" (line-beginning-position) 'lim)
+  (re-search-backward "[^-_A-Za-z0-9.@]" (line-beginning-position) 'lim)
   (if (or (looking-at goto-address-mail-regexp)	; already at start
 	  (and (re-search-forward goto-address-mail-regexp
 				  (line-end-position) 'lim)

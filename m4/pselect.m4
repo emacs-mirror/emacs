@@ -1,5 +1,5 @@
-# pselect.m4 serial 7
-dnl Copyright (C) 2011-2018 Free Software Foundation, Inc.
+# pselect.m4 serial 8
+dnl Copyright (C) 2011-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -55,8 +55,8 @@ AC_DEFUN([gl_FUNC_PSELECT],
             linux-* | linux) gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
                              # Guess yes on glibc systems.
             *-gnu* | gnu*)   gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
-                             # If we don't know, assume the worst.
-            *)               gl_cv_func_pselect_detects_ebadf="guessing no" ;;
+                             # If we don't know, obey --enable-cross-guesses.
+            *)               gl_cv_func_pselect_detects_ebadf="$gl_cross_guess_normal" ;;
            esac
           ])
       ])

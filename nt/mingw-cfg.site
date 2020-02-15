@@ -86,6 +86,10 @@ gl_cv_func_readlink_works=yes
 gl_cv_func_symlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
+# Avoid compiling Gnulib's canonicalize-lgpl.c, which fails
+ac_cv_func_canonicalize_file_name=yes
+ac_cv_func_realpath="not-needed"
+gl_cv_func_realpath_works="no-but-not-needed-so-yes"
 # Implemented in w32.c
 ac_cv_func_fcntl=yes
 gl_cv_func_fcntl_f_dupfd_cloexec=yes
@@ -107,8 +111,10 @@ ac_cv_func_pthread_sigmask=yes
 gl_threads_api=posix
 gl_cv_func_pthread_sigmask_return_works=yes
 gl_cv_func_pthread_sigmask_unblock_works="not relevant"
+gl_cv_func_pthread_sigmask_macro=no
 # Implemented in w32proc.c
 emacs_cv_langinfo_codeset=yes
+emacs_cv_langinfo__nl_paper_width=yes
 # Declared in ms-w32.h
 ac_cv_have_decl_alarm=yes
 # Avoid including the gnulib dup2 module
@@ -134,3 +140,8 @@ ac_cv_func_getrlimit=yes
 ac_cv_func_setrlimit=yes
 # GCC warnings that produce too much noise
 gl_cv_warn_c__Wredundant_decls=no
+# We don't want to compile lib/copy-file-range.c because it isn't used
+# on Windows, and because compiling it triggers a warning about a
+# missing prototype, since lib/unistd.h, where Gnulib has its
+# prototype, isn't built on Windows.
+gl_cv_func_copy_file_range=yes

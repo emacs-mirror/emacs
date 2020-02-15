@@ -1,6 +1,6 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
 
-;; Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -149,6 +149,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 
 
 (declare-function rmail-summary-enable "rmailsum" ())
+(declare-function rmail-summary-update-line "rmailsum" (n))
 
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
@@ -340,10 +341,11 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
         ;; Delete previous body.  This must be after all insertions at the end,
         ;; so the marker for the beginning of the next message isn't messed up.
         (delete-region end (point-max)))
-      (rmail-set-attribute rmail-edited-attr-index t))
-;;;??? BROKEN perhaps.
-;;;    (if (boundp 'rmail-summary-vector)
-;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
+      (rmail-set-attribute rmail-edited-attr-index t)
+      (if (rmail-summary-exists)
+          (let ((msgnum rmail-current-message))
+            (with-current-buffer rmail-summary-buffer
+              (rmail-summary-update-line msgnum)))))
     (rmail-show-message)
     (rmail-toggle-header (if pruned 1 0))
     ;; Restore mime display state.

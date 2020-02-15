@@ -1,8 +1,8 @@
 ;;; semantic/db-typecache.el --- Manage Datatypes
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -114,7 +114,7 @@ Said object must support `semantic-reset' methods.")
 (defun semanticdb-typecache-length (thing)
   "How long is THING?
 Debugging function."
-  (cond ((semanticdb-typecache-child-p thing)
+  (cond ((cl-typep thing 'semanticdb-typecache)
 	 (length (oref thing stream)))
 	((semantic-tag-p thing)
 	 (length (semantic-tag-type-members thing)))
@@ -412,7 +412,7 @@ found tag to be loaded."
 (defun semanticdb-typecache-find-by-name-helper (name table)
   "Find the tag with NAME in TABLE, which is from a typecache.
 If more than one tag has NAME in TABLE, we will prefer the tag that
-is of class 'type."
+is of class `type'."
   (let* ((names (semantic-find-tags-by-name name table))
 	 (nmerge (semanticdb-typecache-merge-streams names nil))
 	 (types (semantic-find-tags-by-class 'type nmerge)))
@@ -554,7 +554,7 @@ If there isn't one, create it.
 	(stream nil)
 	)
     (dolist (table (semanticdb-get-database-tables db))
-      (when (eq lmode (oref table :major-mode))
+      (when (eq lmode (oref table major-mode))
 	(setq stream
 	      (semanticdb-typecache-merge-streams
 	       stream

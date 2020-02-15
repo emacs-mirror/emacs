@@ -73,10 +73,10 @@
 
 	* mh-folder.el (mh-inc-folder): Revert SF #2321115, SF #250
 	which processed pending deletes and refiles.  Call to
-	mh-process-or-undo-commands to insure that pending changes are
+	mh-process-or-undo-commands to ensure that pending changes are
 	properly tagged after including new mail (closes SF #271).
 
-	* mh-comp.el: Insure that mail-header-separator is set before
+	* mh-comp.el: Ensure that mail-header-separator is set before
 	invoking any mml functions (closes SF #270).
 
 2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -140,7 +140,7 @@
 	(addresses SF #1916032).
 
 	* mh-folder.el (mh-inc-folder): Call mh-process-or-undo-commands
-	before running to insure we do not lose any pending changes.
+	before running to ensure we do not lose any pending changes.
 	(closes SF #2321115).
 
 2012-11-25  Ted Phelps  <phelps@gnusto.com>
@@ -3673,7 +3673,7 @@
 
 See ChangeLog.1 for earlier changes.
 
-  Copyright (C) 2005-2018 Free Software Foundation, Inc.
+  Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

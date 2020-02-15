@@ -1,6 +1,6 @@
 ;;; remember --- a mode for quickly jotting down things to remember
 
-;; Copyright (C) 1999-2001, 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -148,7 +148,7 @@
 ;; out, in the long run?  Perhaps its because the time we save
 ;; electronically in one way, we're losing electronically in another;
 ;; the tool should never dominate one's focus.  As the mystic
-;; Faridu'd-Din `Attar wrote: "Be occupied as little as possible with
+;; Farīd ud-Dīn ʿAṭṭār wrote: "Be occupied as little as possible with
 ;; things of the outer world but much with things of the inner world;
 ;; then right action will overcome inaction."
 ;;

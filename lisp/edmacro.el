@@ -1,9 +1,8 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Maintainer: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.01
 ;; Keywords: abbrev
 
@@ -623,12 +622,16 @@ This function assumes that the events can be stored in a string."
 		 (push (vector 'menu-bar (car ev)) result))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.
-		(noerror
-		 ;; Just ignore mouse events.
+		((or (mouse-event-p ev) (mouse-movement-p ev)
+		     (memq (event-basic-type ev)
+			   (list mouse-wheel-down-event mouse-wheel-up-event
+				 mouse-wheel-right-event
+				 mouse-wheel-left-event)))
 		 nil)
+		(noerror nil)
 		(t
-		 (error "Macros with mouse clicks are not %s"
-			"supported by this command"))))
+		 (error "`edmacro-fix-menu-commands': Unsupported event: %S"
+			ev))))
 	;; Reverse them again and make them back into a vector.
 	(vconcat (nreverse result)))
     macro))

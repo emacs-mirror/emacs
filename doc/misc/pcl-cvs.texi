@@ -7,7 +7,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1991--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1384,10 +1384,7 @@ If you find a bug or misfeature, don't hesitate to tell us!
 Use @kbd{M-x report-emacs-bug} to send us a report.
 You can follow the same process for feature requests.
 We prefer discussing one thing at a time.  If you find several unrelated
-bugs, please report them separately.  If you are running PCL-CVS under
-XEmacs, you should also send a copy of bug reports to
-the @url{http://lists.xemacs.org/mailman/listinfo/xemacs-beta,
-XEmacs mailing list}.
+bugs, please report them separately.
 
 If you have problems using PCL-CVS or other questions, send them to
 the @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,

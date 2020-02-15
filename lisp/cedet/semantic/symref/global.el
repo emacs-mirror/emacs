@@ -1,8 +1,8 @@
 ;;; semantic/symref/global.el --- Use GNU Global for symbol references
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -40,14 +40,11 @@ See the function `cedet-gnu-global-search' for more details.")
 
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-global))
   "Perform a search with GNU Global."
-  (let ((b (cedet-gnu-global-search (oref tool :searchfor)
-				    (oref tool :searchtype)
-				    (oref tool :resulttype)
-				    (oref tool :searchscope)
-				    ))
-	)
-    (semantic-symref-parse-tool-output tool b)
-    ))
+  (let ((b (cedet-gnu-global-search (oref tool searchfor)
+				    (oref tool searchtype)
+				    (oref tool resulttype)
+				    (oref tool searchscope))))
+    (semantic-symref-parse-tool-output tool b)))
 
 (defconst semantic-symref-global--line-re
   "^\\([^ ]+\\) +\\([0-9]+\\) \\([^ ]+\\) ")
@@ -55,12 +52,12 @@ See the function `cedet-gnu-global-search' for more details.")
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-global))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
-  (cond ((or (eq (oref tool :resulttype) 'file)
-	     (eq (oref tool :searchtype) 'tagcompletions))
+  (cond ((or (eq (oref tool resulttype) 'file)
+	     (eq (oref tool searchtype) 'tagcompletions))
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
-        ((eq (oref tool :resulttype) 'line-and-text)
+        ((eq (oref tool resulttype) 'line-and-text)
          (when (re-search-forward semantic-symref-global--line-re nil t)
            (list (string-to-number (match-string 2))
                  (match-string 3)

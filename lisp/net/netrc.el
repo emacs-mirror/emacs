@@ -1,5 +1,5 @@
 ;;; netrc.el --- .netrc parsing functionality
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -49,8 +49,8 @@
 (defvar netrc-cache nil)
 
 (defun netrc-parse (&optional file)
-  (interactive "fFile to Parse: ")
   "Parse FILE and return a list of all entries in the file."
+  (interactive "fFile to Parse: ")
   (unless file
     (setq file netrc-file))
   (if (listp file)

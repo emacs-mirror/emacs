@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic
@@ -113,13 +113,13 @@ just like digits.  Case is ignored.
 @cindex curved quotes, inserting
   A few common Unicode characters can be inserted via a command
 starting with @kbd{C-x 8}.  For example, @kbd{C-x 8 [} inserts @t{‘}
-which is Unicode code-point @code{U+2018} LEFT SINGLE QUOTATION MARK,
+which is Unicode code-point U+2018 @sc{left single quotation mark},
 sometimes called a left single ``curved quote'' or ``curly quote''.
 Similarly, @kbd{C-x 8 ]}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the
 curved quotes @t{’}, @t{“} and @t{”}, respectively.  Also, a working
-Alt key acts like @kbd{C-x 8}; e.g., @kbd{A-[} acts like @kbd{C-x 8 [}
-and inserts `.  To see which characters have @kbd{C-x 8} shorthands,
-type @kbd{C-x 8 C-h}.
+@key{Alt} key acts like @kbd{C-x 8} (unless followed by @key{RET});
+e.g., @kbd{A-[} acts like @kbd{C-x 8 [} and inserts @t{‘}.  To see
+which characters have @kbd{C-x 8} shorthands, type @kbd{C-x 8 C-h}.
 
   Alternatively, you can use the command @kbd{C-x 8 @key{RET}}
 (@code{insert-char}).  This prompts for the Unicode name or code-point
@@ -146,9 +146,9 @@ the buffer.
 how many copies of the character to insert (@pxref{Arguments}).
 
   In addition, in some contexts, if you type a quotation using grave
-accent and apostrophe @t{`like this'}, it is converted to a form
+accent and apostrophe @kbd{`like this'}, it is converted to a form
 @t{‘like this’} using single quotation marks, even without @kbd{C-x 8}
-commands.  Similarly, typing a quotation @t{``like this''} using
+commands.  Similarly, typing a quotation @kbd{``like this''} using
 double grave accent and apostrophe converts it to a form @t{“like
 this”} using double quotation marks.  @xref{Quotation Marks}.
 
@@ -696,6 +696,15 @@ position as a percentage of the total.  After @samp{column=} is the
 horizontal position of point, in columns counting from the left edge
 of the window.
 
+@vindex what-cursor-show-names
+  If the user option @code{what-cursor-show-names} is non-@code{nil},
+the name of the character, as defined by the Unicode Character
+Database, is shown as well.  The part in parentheses would then become:
+
+@smallexample
+(99, #o143, #x63, LATIN SMALL LETTER C)
+@end smallexample
+
   If the buffer has been narrowed, making some of the text at the
 beginning and the end temporarily inaccessible, @kbd{C-x =} displays
 additional text describing the currently accessible range.  For
@@ -816,9 +825,9 @@ more convenient, and they are documented in that command's
 documentation string.
 
   We use the term @dfn{prefix argument} to emphasize that you type
-such arguments before the command, and to distinguish them from
-minibuffer arguments (@pxref{Minibuffer}), which are entered after
-invoking the command.
+such arguments @emph{before} the command, and to distinguish them from
+minibuffer arguments (@pxref{Minibuffer}), which are entered
+@emph{after} invoking the command.
 
   On graphical displays, @kbd{C-0}, @kbd{C-1}, etc.@ act the same as
 @kbd{M-0}, @kbd{M-1}, etc.

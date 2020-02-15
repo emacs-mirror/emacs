@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -168,10 +168,14 @@ matches that begin after it.
 the one you expected to find: the @samp{FOO} you were aiming for
 occurs later in the buffer.  In this event, type another @kbd{C-s}
 (@code{isearch-repeat-forward}) to move to the next occurrence of the
-search string.  You can repeat this any number of times.  If you
-overshoot, you can cancel some @kbd{C-s} commands with @key{DEL}.
-Similarly, each @kbd{C-r} (@code{isearch-repeat-backward}) in a
-backward incremental search repeats the backward search.
+search string, or @kbd{C-r} (@code{isearch-repeat-backward}) to move
+to the previous occurrence.  You can repeat these commands any number
+of times.  Alternatively, you can supply a numeric prefix argument of
+@var{n} to @kbd{C-s} and @kbd{C-r} to find the @var{n}th next or
+previous occurrence.  If you overshoot, you can cancel some @kbd{C-s}
+commands with @key{DEL}.  Similarly, each @kbd{C-r}
+(@code{isearch-repeat-backward}) in a backward incremental search
+repeats the backward search.
 
 @cindex lazy search highlighting
   If you pause for a little while during incremental search, Emacs
@@ -251,21 +255,35 @@ that conveniently.
   @kbd{C-w} (@code{isearch-yank-word-or-char}) appends the next
 character or word at point to the search string.  This is an easy way
 to search for another occurrence of the text at point.  (The decision
-of whether to copy a character or a word is heuristic.)
+of whether to copy a character or a word is heuristic.)  With a prefix
+numeric argument of @var{n}, append the next @var{n} characters or
+words.
 
 @kindex C-M-w @r{(Incremental search)}
 @findex isearch-yank-symbol-or-char
   @kbd{C-M-w} (@code{isearch-yank-symbol-or-char}) appends the next
 character or symbol at point to the search string.  This is an easy way
 to search for another occurrence of the symbol at point.  (The decision
-of whether to copy a character or a symbol is heuristic.)
+of whether to copy a character or a symbol is heuristic.)  With a prefix
+numeric argument of @var{n}, append the next @var{n} characters or
+symbols.
 
 @kindex M-s C-e @r{(Incremental search)}
 @findex isearch-yank-line
-  Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
+  @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
 of the current line to the search string.  If point is already at the
 end of a line, it appends the next line.  With a prefix argument
 @var{n}, it appends the next @var{n} lines.
+
+@kindex C-M-z @r{(Incremental search)}
+@findex isearch-yank-until-char
+  Similarly, @kbd{C-M-z} (@code{isearch-yank-until-char}) appends to
+the search string everything from point until the next occurrence of
+a specified character (not including that character).  This is especially
+useful for keyboard macros, for example in programming languages or
+markup languages in which that character marks a token boundary.  With
+a prefix numeric argument of @var{n}, the command appends everything
+from point to the @var{n}th occurrence of the specified character.
 
 @kindex C-y @r{(Incremental search)}
 @kindex M-y @r{(Incremental search)}
@@ -315,7 +333,7 @@ string that failed to match is highlighted using the face
 
   At this point, there are several things you can do.  If your string
 was mistyped, use @key{DEL} to cancel a previous input item
-(@pxref{Basic Isearch}), @kbd{C-M-w} to erase one character at a time,
+(@pxref{Basic Isearch}), @kbd{C-M-d} to erase one character at a time,
 or @kbd{M-e} to edit it.  If you like the place you have found, you
 can type @key{RET} to remain there.  Or you can type @kbd{C-g}, which
 removes from the search string the characters that could not be found
@@ -453,13 +471,16 @@ key sequence if you want to use it (@pxref{Rebinding}).
 
 @kindex M-s h r @r{(Incremental Search)}
 @findex isearch-highlight-regexp
-  You can exit the search while leaving the matches for the last
-search string highlighted on display.  To this end, type @kbd{M-s h r}
-(@code{isearch-highlight-regexp}), which will run
-@code{highlight-regexp} (@pxref{Highlight Interactively}) passing
-it the regexp derived from the last search string and prompting you
-for the face to use for highlighting.  To remove the highlighting,
-type @kbd{M-s h u} (@code{unhighlight-regexp}).
+@kindex M-s h l @r{(Incremental Search)}
+@findex isearch-highlight-lines-matching-regexp
+  You can exit the search while leaving the matches highlighted by
+typing @kbd{M-s h r} (@code{isearch-highlight-regexp}).  This runs
+@code{highlight-regexp} (@pxref{Highlight Interactively}), passing it
+the regexp derived from the search string and prompting you for the face
+to use for highlighting.  To highlight @emph{whole lines} containing
+matches (rather than @emph{just} the matches), type @kbd{M-s h l}
+(@code{isearch-highlight-lines-matching-regexp}).  In either case, to
+remove the highlighting, type @kbd{M-s h u} (@code{unhighlight-regexp}).
 
 @cindex incremental search, help on special keys
 @kindex C-h C-h @r{(Incremental Search)}
@@ -469,6 +490,16 @@ type @kbd{M-s h u} (@code{unhighlight-regexp}).
 (@code{isearch-help-map}) to access interactive help options,
 including a list of special key bindings.  These key bindings are part
 of the keymap @code{isearch-mode-map} (@pxref{Keymaps}).
+
+@cindex incremental search, go to first or last occurrence
+@kindex M-s M->
+@kindex M-s M-<
+  When incremental search is active, typing @kbd{M-s M->} will go to
+the last occurrence of the search string, and @kbd{M-s M-<} will go to
+the first occurrence.  With a prefix numeric argument of @var{n},
+these commands will go to the @var{n}th occurrence of the search
+string counting from the beginning or end of the buffer,
+respectively.
 
 @node Not Exiting Isearch
 @subsection Not Exiting Incremental Search
@@ -519,7 +550,9 @@ commands like @kbd{C-v}, @kbd{M-v}, and @kbd{C-l} (@pxref{Scrolling}).
 This applies only to calling these commands via their bound key
 sequences---typing @kbd{M-x} will still exit the search.  You can give
 prefix arguments to these commands in the usual way.  This feature
-won't let you scroll the current match out of visibility, however.
+normally won't let you scroll the current match out of visibility; but
+if you customize @code{isearch-allow-scroll} to the special value
+@code{unlimited}, that restriction is lifted.
 
   The @code{isearch-allow-scroll} feature also affects some other
 commands, such as @kbd{C-x 2} (@code{split-window-below}) and
@@ -548,12 +581,12 @@ an incremental search.  This feature is disabled if
 
 @item Motion Commands
 @cindex motion commands, during incremental search
-When @code{search-exit-option} is customized to @code{shift-move},
+When @code{isearch-yank-on-move} is customized to @code{shift},
 you can extend the search string by holding down the shift key while
 typing cursor motion commands.  It will yank text that ends at the new
 position after moving point in the current buffer.
 
-When @code{search-exit-option} is @code{move}, you can extend the
+When @code{isearch-yank-on-move} is @code{t}, you can extend the
 search string without using the shift key for cursor motion commands,
 but it applies only for certain motion command that have the
 @code{isearch-move} property on their symbols.
@@ -684,6 +717,8 @@ matching}) has no effect on them.
 @kindex M-s M-w
 @findex eww-search-words
 @vindex eww-search-prefix
+@cindex Internet search
+@cindex search Internet for keywords
   To search the Web for the text in region, type @kbd{M-s M-w}.  This
 command performs an Internet search for the words in region using the
 search engine whose @acronym{URL} is specified by the variable
@@ -726,15 +761,18 @@ Search backward for @var{symbol}, nonincrementally.
 @findex isearch-forward-symbol-at-point
   To begin a forward incremental symbol search, type @kbd{M-s _} (or
 @kbd{M-s .} if the symbol to search is near point).  If incremental
-search is not already active, this runs the command
-@code{isearch-forward-symbol}.  If incremental search is already
-active, @kbd{M-s _} switches to a symbol search, preserving the
-direction of the search and the current search string; you can disable
-symbol search by typing @kbd{M-s _} again.  In incremental symbol
-search, while you are typing the search string, only the beginning
-of the search string is required to match the beginning of a symbol,
-and @samp{Pending} appears in the search prompt until you use a search
-repeating key like @kbd{C-s}.
+search is not already active, @kbd{M-s _} runs the command
+@code{isearch-forward-symbol} and @kbd{M-s .} runs the command
+@code{isearch-forward-symbol-at-point}.  With a numeric prefix
+argument of @var{n}, @kbd{M-s .} will search for the @var{n}the next
+occurrence of the symbol at point; negative values of @var{n} search
+backwards.  If incremental search is already active, @kbd{M-s _}
+switches to a symbol search, preserving the direction of the search
+and the current search string; you can disable symbol search by typing
+@kbd{M-s _} again.  In incremental symbol search, while you are typing
+the search string, only the beginning of the search string is required
+to match the beginning of a symbol, and @samp{Pending} appears in the
+search prompt until you use a search repeating key like @kbd{C-s}.
 
   To begin a nonincremental symbol search, type @kbd{M-s _ @key{RET}}
 for a forward search, or @kbd{M-s _ C-r @key{RET}} or a backward
@@ -845,7 +883,7 @@ Expressions,,, elisp, The Emacs Lisp Reference Manual}, for additional
 features used mainly in Lisp programs.
 
   Regular expressions have a syntax in which a few characters are
-special constructs and the rest are @dfn{ordinary}.  An ordinary
+@dfn{special constructs} and the rest are @dfn{ordinary}.  An ordinary
 character matches that same character and nothing else.  The special
 characters are @samp{$^.*+?[\}.  The character @samp{]} is special if
 it ends a character alternative (see below).  The character @samp{-}
@@ -972,11 +1010,10 @@ character class inside a character alternative.  For instance,
 elisp, The Emacs Lisp Reference Manual}, for a list of character
 classes.
 
-To include a @samp{]} in a character set, you must make it the first
-character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To
-include a @samp{-}, write @samp{-} as the first or last character of the
-set, or put it after a range.  Thus, @samp{[]-]} matches both @samp{]}
-and @samp{-}.
+To include a @samp{]} in a character set, you must make it the first character.
+For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To include a @samp{-},
+write @samp{-} as the last character of the set, tho you can also put it first
+or after a range.  Thus, @samp{[]-]} matches both @samp{]} and @samp{-}.
 
 To include @samp{^} in a set, put it anywhere but at the beginning of
 the set.  (At the beginning, it complements the set---see below.)
@@ -1187,7 +1224,7 @@ symbol-constituent character.
 matches any character whose syntax is @var{c}.  Here @var{c} is a
 character that designates a particular syntax class: thus, @samp{w}
 for word constituent, @samp{-} or @samp{ } for whitespace, @samp{.}
-for ordinary punctuation, etc.  @xref{Syntax Tables,, Syntax Tables,
+for ordinary punctuation, etc.  @xref{Syntax Class Table,, Syntax Class Table,
 elisp, The Emacs Lisp Reference Manual}.
 
 @item \S@var{c}
@@ -1327,14 +1364,14 @@ of its accented cousins like @code{@"a} and @code{@'a}, i.e., the
 match disregards the diacritics that distinguish these
 variants.  In addition, @code{a} matches other characters that
 resemble it, or have it as part of their graphical representation,
-such as @sc{u+249c parenthesized latin small letter a} and @sc{u+2100
-account of} (which looks like a small @code{a} over @code{c}).
+such as U+249C @sc{parenthesized latin small letter a} and U+2100
+@sc{account of} (which looks like a small @code{a} over @code{c}).
 Similarly, the @acronym{ASCII} double-quote character @code{"} matches
 all the other variants of double quotes defined by the Unicode
 standard.  Finally, character folding can make a sequence of one or
 more characters match another sequence of a different length: for
-example, the sequence of two characters @code{ff} matches @sc{u+fb00
-latin small ligature ff}.  Character sequences that are not identical,
+example, the sequence of two characters @code{ff} matches U+FB00
+@sc{latin small ligature ff}.  Character sequences that are not identical,
 but match under character folding are known as @dfn{equivalent
 character sequences}.
 
@@ -1350,10 +1387,21 @@ folding, but only for that search.  (Replace commands have a different
 default, controlled by a separate option; see @ref{Replacement and Lax
 Matches}.)
 
-  Like with case folding, typing an explicit variant of a character,
-such as @code{@"a}, as part of the search string disables character
-folding for that search.  If you delete such a character from the
-search string, this effect ceases.
+@vindex char-fold-symmetric
+  By default, typing an explicit variant of a character, such as
+@code{@"a}, as part of the search string doesn't match its base
+character, such as @code{a}.  But if you customize the variable
+@code{char-fold-symmetric} to @code{t}, then search commands treat
+equivalent characters the same and use of any of a set of equivalent
+characters in a search string finds any of them in the text being
+searched, so typing an accented character @code{@"a} matches the
+letter @code{a} as well as all the other variants like @code{@'a}.
+
+@vindex char-fold-include
+@vindex char-fold-exclude
+  You can add new foldings using the customizable variable
+@code{char-fold-include}, or remove the existing ones using the
+customizable variable @code{char-fold-exclude}.
 
 @node Replace
 @section Replacement Commands
@@ -1482,8 +1530,7 @@ multiple digits, and the value of @samp{\@var{d}} is @code{nil} if the
 @samp{\#} here too stands for the number of already-completed
 replacements.
 
-  Repeating our example to exchange @samp{x} and @samp{y}, we can thus
-do it also this way:
+  For example, we can exchange @samp{x} and @samp{y} this way:
 
 @example
 M-x replace-regexp @key{RET} \(x\)\|y @key{RET}
@@ -1660,8 +1707,9 @@ replacement has already been made, @key{DEL} and @key{SPC} are
 equivalent in this situation; both move to the next occurrence.
 
 You can type @kbd{C-r} at this point (see below) to alter the replaced
-text.  You can also type @kbd{C-x u} to undo the replacement; this exits
-the @code{query-replace}, so if you want to do further replacement you
+text.  You can also undo the replacement with the @code{undo} command
+(e.g., type @kbd{C-x u}; @pxref{Undo}); this exits the
+@code{query-replace}, so if you want to do further replacement you
 must use @kbd{C-x @key{ESC} @key{ESC} @key{RET}} to restart
 (@pxref{Repetition}).
 
@@ -1872,11 +1920,13 @@ region instead.
 @findex flush-lines
 @item M-x flush-lines
 Prompt for a regexp, and delete each line that contains a match for
-it, operating on the text after point.  This command deletes the
-current line if it contains a match starting after point.  If the
-region is active, it operates on the region instead; if a line
-partially contained in the region contains a match entirely contained
-in the region, it is deleted.
+it, operating on the text after point.  When the command finishes,
+it prints the number of deleted matching lines.
+
+This command deletes the current line if it contains a match starting
+after point.  If the region is active, it operates on the region
+instead; if a line partially contained in the region contains a match
+entirely contained in the region, it is deleted.
 
 If a match is split across lines, @code{flush-lines} deletes all those
 lines.  It deletes the lines before starting to look for the next
@@ -1930,17 +1980,32 @@ highlighting:
 
 @table @code
 @item lazy-highlight-initial-delay
+@vindex lazy-highlight-initial-delay
 Time in seconds to wait before highlighting visible matches.
 
 @item lazy-highlight-interval
+@vindex lazy-highlight-interval
 Time in seconds between highlighting successive matches.
 
 @item lazy-highlight-max-at-a-time
+@vindex lazy-highlight-max-at-a-time
 The maximum number of matches to highlight before checking for input.
 A large number can take some time to highlight, so if you want to
 continue searching and type @kbd{C-s} or @kbd{C-r} during that time,
 Emacs will not respond until it finishes highlighting all those
 matches.  Thus, smaller values make Emacs more responsive.
+
+@item isearch-lazy-count
+@vindex isearch-lazy-count
+Show the current match number and the total number of matches in the
+search prompt.
+
+@item lazy-count-prefix-format
+@itemx lazy-count-suffix-format
+@vindex lazy-count-prefix-format
+@vindex lazy-count-suffix-format
+These two variables determine the format of showing the current and
+the total number of matches for @code{isearch-lazy-count}.
 @end table
 
 @vindex search-nonincremental-instead

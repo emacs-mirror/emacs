@@ -1,11 +1,11 @@
-;;; erc-stamp.el --- Timestamping for ERC messages
+;;; erc-stamp.el --- Timestamping for ERC messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm, processes, timestamp
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcStamp
+;; URL: https://www.emacswiki.org/emacs/ErcStamp
 
 ;; This file is part of GNU Emacs.
 
@@ -186,10 +186,11 @@ or `erc-send-modify-hook'."
 	(funcall erc-insert-away-timestamp-function
 		 (erc-format-timestamp ct erc-away-timestamp-format)))
       (add-text-properties (point-min) (point-max)
-			   (list 'timestamp ct))
-      (add-text-properties (point-min) (point-max)
+			   ;; It's important for the function to
+			   ;; be different on different entries (bug#22700).
 			   (list 'cursor-sensor-functions
-				 (list #'erc-echo-timestamp))))))
+				 (list (lambda (_window _before dir)
+					 (erc-echo-timestamp dir ct))))))))
 
 (defvar erc-timestamp-last-inserted nil
   "Last timestamp inserted into the buffer.")
@@ -211,7 +212,7 @@ This is used when `erc-insert-timestamp-function' is set to
   "Insert timestamp only if its value changed since last insertion.
 If `erc-insert-timestamp-function' is `erc-insert-timestamp-left', a
 string of spaces which is the same size as the timestamp is added to
-the beginning of the line in its place. If you use
+the beginning of the line in its place.  If you use
 `erc-insert-timestamp-right', nothing gets inserted in place of the
 timestamp."
   :group 'erc-stamp
@@ -227,14 +228,10 @@ the correct column."
 	  (integer :tag "Column number")
 	  (const :tag "Unspecified" nil)))
 
-(defcustom erc-timestamp-use-align-to (and (not (featurep 'xemacs))
-					   (>= emacs-major-version 22)
-					   (eq window-system 'x))
+(defcustom erc-timestamp-use-align-to (eq window-system 'x)
   "If non-nil, use the :align-to display property to align the stamp.
 This gives better results when variable-width characters (like
 Asian language characters and math symbols) precede a timestamp.
-Unfortunately, it only works in Emacs 22 and when using the X
-Window System.
 
 A side effect of enabling this is that there will only be one
 space before a right timestamp in any saved logs."
@@ -360,7 +357,7 @@ Return the empty string if FORMAT is nil."
 	ts)
     ""))
 
-;; This function is used to munge `buffer-invisibility-spec to an
+;; This function is used to munge `buffer-invisibility-spec' to an
 ;; appropriate value. Currently, it only handles timestamps, thus its
 ;; location.  If you add other features which affect invisibility,
 ;; please modify this function and move it to a more appropriate
@@ -403,14 +400,12 @@ enabled when the message was inserted."
 	    (erc-munge-invisibility-spec)))
 	(erc-buffer-list)))
 
-(defun erc-echo-timestamp (window _before dir)
+(defun erc-echo-timestamp (dir stamp)
   "Print timestamp text-property of an IRC message."
   (when (and erc-echo-timestamps (eq 'entered dir))
-    (let* ((now (window-point window))
-	   (stamp (get-text-property now 'timestamp)))
-      (when stamp
-	(message "%s" (format-time-string erc-echo-timestamp-format
-					  stamp))))))
+    (when stamp
+      (message "%s" (format-time-string erc-echo-timestamp-format
+					stamp)))))
 
 (provide 'erc-stamp)
 
@@ -418,6 +413,4 @@ enabled when the message was inserted."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

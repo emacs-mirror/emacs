@@ -46,7 +46,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2896,9 +2896,8 @@ default.  If you want to have these key bindings available, set in your
 Note that this variable has to be set before @RefTeX{} is loaded to
 have an effect.
 
-@vindex reftex-load-hook
-Changing and adding to @RefTeX{}'s key bindings is best done in the hook
-@code{reftex-load-hook}.  For information on the keymaps
+Changing and adding to @RefTeX{}'s key bindings is best done using
+@code{with-eval-after-load}.  For information on the keymaps
 which should be used to add keys, see @ref{Keymaps and Hooks}.
 
 @node Faces
@@ -3697,7 +3696,7 @@ MicroEmacs at the time).
 Here is a summary of @RefTeX{}'s commands which can be executed from
 @LaTeX{} files.  Command which are executed from the special buffers are
 not described here.  All commands are available from the @code{Ref}
-menu.  See @xref{Key Bindings}.
+menu.  @xref{Key Bindings}.
 
 @deffn Command reftex-toc
 Show the table of contents for the current document.  When called with
@@ -5318,10 +5317,6 @@ argument.
 
 @deffn Keymap reftex-mode-map
 The keymap for @RefTeX{} mode.
-@end deffn
-
-@deffn {Normal Hook} reftex-load-hook
-Normal hook which is being run when loading @file{reftex.el}.
 @end deffn
 
 @deffn {Normal Hook} reftex-mode-hook

@@ -1,6 +1,6 @@
 ;;; thread.el --- Thread support in Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -42,8 +42,6 @@ An EVENT has the format
       (let ((thread (cadr event))
             (err (cddr event)))
         (message "Error %s: %S" thread err))))
-
-(make-obsolete 'thread-alive-p 'thread-live-p "27.1")
 
 ;;; The thread list buffer and list-threads command
 

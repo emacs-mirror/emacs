@@ -1,6 +1,6 @@
 ;;; semantic/bovine/scm.el --- Semantic details for Scheme (guile)
 
-;;; Copyright (C) 2001-2004, 2008-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2001-2004, 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

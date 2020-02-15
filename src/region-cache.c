@@ -1,6 +1,6 @@
 /* Caching facts about regions of the buffer, for optimization.
 
-Copyright (C) 1985-1989, 1993, 1995, 2001-2018 Free Software Foundation,
+Copyright (C) 1985-1989, 1993, 1995, 2001-2020 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -759,7 +759,6 @@ void pp_cache (struct region_cache *) EXTERNALLY_VISIBLE;
 void
 pp_cache (struct region_cache *c)
 {
-  ptrdiff_t i;
   ptrdiff_t beg_u = c->buffer_beg + c->beg_unchanged;
   ptrdiff_t end_u = c->buffer_end - c->end_unchanged;
 
@@ -768,19 +767,14 @@ pp_cache (struct region_cache *c)
            c->buffer_beg, c->buffer_end,
            beg_u, end_u);
 
-  for (i = 0; i < c->cache_len; i++)
+  for (ptrdiff_t i = 0; i < c->cache_len; i++)
     {
       ptrdiff_t pos = BOUNDARY_POS (c, i);
 
-      putc (((pos < beg_u) ? 'v'
-             : (pos == beg_u) ? '-'
-             : ' '),
-            stderr);
-      putc (((pos > end_u) ? '^'
-             : (pos == end_u) ? '-'
-             : ' '),
-            stderr);
-      fprintf (stderr, "%"pD"d : %d\n", pos, BOUNDARY_VALUE (c, i));
+      fprintf (stderr, "%c%c%"pD"d : %d\n",
+	       pos < beg_u ? 'v' : pos == beg_u ? '-' : ' ',
+	       pos > end_u ? '^' : pos == end_u ? '-' : ' ',
+	       pos, BOUNDARY_VALUE (c, i));
     }
 }
 

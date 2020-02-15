@@ -1,6 +1,6 @@
 ;;; isearchb --- a marriage between iswitchb and isearch
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -77,7 +77,9 @@
 
 ;;; Code:
 
-(require 'iswitchb)                     ;FIXME: Don't rely on iswitchb!
+;; FIXME: Don't rely on iswitchb!  See bug#36260.
+(with-suppressed-warnings ((obsolete iswitchb))
+  (require 'iswitchb))
 
 (defgroup isearchb nil
   "Switch between buffers using a mechanism like isearch."

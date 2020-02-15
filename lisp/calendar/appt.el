@@ -1,10 +1,10 @@
 ;;; appt.el --- appointment notification functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1994, 1998, 2001-2018 Free Software
+;; Copyright (C) 1989-1990, 1994, 1998, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Package: calendar
 
@@ -325,7 +325,7 @@ displayed in a window:
          (prev-appt-display-count appt-display-count)
          ;; Convert current time to minutes after midnight (12.01am = 1).
          (now (decode-time))
-         (now-mins (+ (* 60 (nth 2 now)) (nth 1 now)))
+         (now-mins (+ (* 60 (decoded-time-hour now)) (decoded-time-minute now)))
          appt-mins appt-warn-time min-to-app min-list string-list)
     (save-excursion                   ; FIXME ?
       ;; At first check in any day, update appointments to today's list.
@@ -647,7 +647,8 @@ Any appointments made with `appt-add' are not affected by this function."
         ;; Convert current time to minutes after midnight (12:01am = 1),
         ;; and remove elements in the list that are in the past.
         (let* ((now (decode-time))
-               (now-mins (+ (* 60 (nth 2 now)) (nth 1 now))))
+               (now-mins (+ (* 60 (decoded-time-hour now))
+                            (decoded-time-minute now))))
           (while (and appt-time-msg-list
                       (< (caar (car appt-time-msg-list)) now-mins))
             (setq appt-time-msg-list (cdr appt-time-msg-list)))))))

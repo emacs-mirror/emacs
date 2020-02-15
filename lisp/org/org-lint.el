@@ -1,6 +1,6 @@
 ;;; org-lint.el --- Linting for Org documents        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -69,13 +69,13 @@
 ;;   - duplicate footnote definitions
 ;;   - orphaned affiliated keywords
 ;;   - obsolete affiliated keywords
-;;   - missing language in src blocks
+;;   - missing language in source blocks
 ;;   - missing back-end in export blocks
 ;;   - invalid Babel call blocks
 ;;   - NAME values with a colon
 ;;   - deprecated export block syntax
 ;;   - deprecated Babel header properties
-;;   - wrong header arguments in src blocks
+;;   - wrong header arguments in source blocks
 ;;   - misuse of CATEGORY keyword
 ;;   - "coderef" links with unknown destination
 ;;   - "custom-id" links with unknown destination
@@ -100,16 +100,16 @@
 ;;   - indented diary-sexps
 ;;   - obsolete QUOTE section
 ;;   - obsolete "file+application" link
-;;   - blank headlines with tags
+;;   - spurious colons in tags
 
 
 ;;; Code:
 
 (require 'cl-lib)
-(require 'org-element)
+(require 'ob)
+(require 'ol)
 (require 'org-macro)
 (require 'ox)
-(require 'ob)
 
 
 ;;; Checkers
@@ -162,7 +162,7 @@
     :trust 'low)
    (make-org-lint-checker
     :name 'missing-language-in-src-block
-    :description "Report missing language in src blocks"
+    :description "Report missing language in source blocks"
     :categories '(babel))
    (make-org-lint-checker
     :name 'missing-backend-in-export-block
@@ -288,10 +288,14 @@
     :description "Report obsolete \"file+application\" link"
     :categories '(link obsolete))
    (make-org-lint-checker
-    :name 'empty-headline-with-tags
-    :description "Report ambiguous empty headlines with tags"
-    :categories '(headline)
-    :trust 'low))
+    :name 'percent-encoding-link-escape
+    :description "Report obsolete escape syntax in links"
+    :categories '(link obsolete)
+    :trust 'low)
+   (make-org-lint-checker
+    :name 'spurious-colons
+    :description "Report spurious colons in tags"
+    :categories '(tags)))
   "List of all available checkers.")
 
 (defun org-lint--collect-duplicates
@@ -560,8 +564,8 @@ Use :header-args: instead"
 (defun org-lint-link-to-local-file (ast)
   (org-element-map ast 'link
     (lambda (l)
-      (when (equal (org-element-property :type l) "file")
-	(let ((file (org-link-unescape (org-element-property :path l))))
+      (when (equal "file" (org-element-property :type l))
+	(let ((file (org-element-property :path l)))
 	  (and (not (file-remote-p file))
 	       (not (file-exists-p file))
 	       (list (org-element-property :begin l)
@@ -576,12 +580,13 @@ Use :header-args: instead"
     (lambda (k)
       (when (equal (org-element-property :key k) "SETUPFILE")
 	(let ((file (org-unbracket-string
-		     "\"" "\""
-		     (org-element-property :value k))))
-	  (and (not (file-remote-p file))
+			"\"" "\""
+		      (org-element-property :value k))))
+	  (and (not (org-file-url-p file))
+	       (not (file-remote-p file))
 	       (not (file-exists-p file))
 	       (list (org-element-property :begin k)
-		     (format "Non-existent setup file \"%s\"" file))))))))
+		     (format "Non-existent setup file %S" file))))))))
 
 (defun org-lint-wrong-include-link-parameter (ast)
   (org-element-map ast 'keyword
@@ -591,7 +596,7 @@ Use :header-args: instead"
 	       (path
 		(and (string-match "^\\(\".+\"\\|\\S-+\\)[ \t]*" value)
 		     (save-match-data
-		       (org-unbracket-string "\"" "\"" (match-string 1 value))))))
+		       (org-strip-quotes (match-string 1 value))))))
 	  (if (not path)
 	      (list (org-element-property :post-affiliated k)
 		    "Missing location argument in INCLUDE keyword")
@@ -608,14 +613,13 @@ Use :header-args: instead"
 			"Non-existent file argument in INCLUDE keyword")
 		(let* ((visiting (if file (find-buffer-visiting file)
 				   (current-buffer)))
-		       (buffer (or visiting (find-file-noselect file))))
+		       (buffer (or visiting (find-file-noselect file)))
+		       (org-link-search-must-match-exact-headline t))
 		  (unwind-protect
 		      (with-current-buffer buffer
 			(when (and search
-				   (not
-				    (ignore-errors
-				      (let ((org-link-search-inhibit-query t))
-					(org-link-search search nil t)))))
+				   (not (ignore-errors
+					  (org-link-search search nil t))))
 			  (list (org-element-property :post-affiliated k)
 				(format
 				 "Invalid search part \"%s\" in INCLUDE keyword"
@@ -886,6 +890,23 @@ Use \"export %s\" instead"
 	     (list (org-element-property :begin l)
 		   (format "Deprecated \"file+%s\" link type" app)))))))
 
+(defun org-lint-percent-encoding-link-escape (ast)
+  (org-element-map ast 'link
+    (lambda (l)
+      (when (eq 'bracket (org-element-property :format l))
+	(let* ((uri (org-element-property :path l))
+	       (start 0)
+	       (obsolete-flag
+		(catch :obsolete
+		  (while (string-match "%\\(..\\)?" uri start)
+		    (setq start (match-end 0))
+		    (unless (member (match-string 1 uri) '("25" "5B" "5D" "20"))
+		      (throw :obsolete nil)))
+		  (string-match-p "%" uri))))
+	  (when obsolete-flag
+	    (list (org-element-property :begin l)
+		  "Link escaped with obsolete percent-encoding syntax")))))))
+
 (defun org-lint-wrong-header-argument (ast)
   (let* ((reports)
 	 (verify
@@ -1037,14 +1058,13 @@ Use \"export %s\" instead"
 			   reports))))))))))))
     reports))
 
-(defun org-lint-empty-headline-with-tags (ast)
+(defun org-lint-spurious-colons (ast)
   (org-element-map ast '(headline inlinetask)
     (lambda (h)
-      (let ((title (org-element-property :raw-value h)))
-	(and (string-match-p "\\`:[[:alnum:]_@#%:]+:\\'" title)
-	     (list (org-element-property :begin h)
-		   (format "Headline containing only tags is ambiguous: %S"
-			   title)))))))
+      (when (member "" (org-element-property :tags h))
+	(list (org-element-property :begin h)
+	      "Tags contain a spurious colon")))))
+
 
 
 ;;; Reports UI

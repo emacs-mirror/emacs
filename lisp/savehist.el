@@ -1,8 +1,8 @@
-;;; savehist.el --- Save minibuffer history
+;;; savehist.el --- Save minibuffer history  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005-2020 Free Software Foundation, Inc.
 
-;; Author: Hrvoje Niksic <hniksic@xemacs.org>
+;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: minibuffer
 ;; Version: 24
@@ -48,8 +48,6 @@
 ;;; Code:
 
 (require 'custom)
-(eval-when-compile
-  (if (featurep 'xemacs) (require 'cl)))
 
 ;; User variables
 
@@ -62,8 +60,7 @@
   "If non-nil, save all recorded minibuffer histories.
 If you want to save only specific histories, use `savehist-save-hook'
 to modify the value of `savehist-minibuffer-history-variables'."
-  :type 'boolean
-  :group 'savehist)
+  :type 'boolean)
 
 (defcustom savehist-additional-variables ()
   "List of additional variables to save.
@@ -77,26 +74,19 @@ non-nil.
 User options should be saved with the Customize interface.  This
 list is useful for saving automatically updated variables that are not
 minibuffer histories, such as `compile-command' or `kill-ring'."
-  :type '(repeat variable)
-  :group 'savehist)
+  :type '(repeat variable))
 
 (defcustom savehist-ignored-variables nil ;; '(command-history)
   "List of additional variables not to save."
-  :type '(repeat variable)
-  :group 'savehist)
+  :type '(repeat variable))
 
 (defcustom savehist-file
   (locate-user-emacs-file "history" ".emacs-history")
   "File name where minibuffer history is saved to and loaded from.
 The minibuffer history is a series of Lisp expressions loaded
 automatically when Savehist mode is turned on.  See `savehist-mode'
-for more details.
-
-If you want your minibuffer history shared between Emacs and XEmacs,
-customize this value and make sure that `savehist-coding-system' is
-set to a coding system that exists in both emacsen."
-  :type 'file
-  :group 'savehist)
+for more details."
+  :type 'file)
 
 (defcustom savehist-file-modes #o600
   "Default permissions of the history file.
@@ -104,36 +94,28 @@ This is decimal, not octal.  The default is 384 (0600 in octal).
 Set to nil to use the default permissions that Emacs uses, typically
 mandated by umask.  The default is a bit more restrictive to protect
 the user's privacy."
-  :type 'integer
-  :group 'savehist)
+  :type 'integer)
 
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
 If set to nil, disables timer-based autosaving."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds"))
-  :group 'savehist)
+                 (integer :tag "Seconds")))
 
 (defcustom savehist-mode-hook nil
   "Hook called when Savehist mode is turned on."
-  :type 'hook
-  :group 'savehist)
+  :type 'hook)
 
 (defcustom savehist-save-hook nil
   "Hook called by `savehist-save' before saving the variables.
 You can use this hook to influence choice and content of variables
 to save."
-  :type 'hook
-  :group 'savehist)
+  :type 'hook)
 
 ;; This should be capable of representing characters used by Emacs.
 ;; We prefer UTF-8 over ISO 2022 because it is well-known outside
-;; Mule.  XEmacs prior to 21.5 had UTF-8 provided by an external
-;; package which may not be loaded, which is why we check for version.
-(defvar savehist-coding-system (if (and (featurep 'xemacs)
-					(<= emacs-major-version 21)
-					(< emacs-minor-version 5))
-				   'iso-2022-8 'utf-8-unix)
+;; Mule.
+(defvar savehist-coding-system 'utf-8-unix
   "The coding system Savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
@@ -150,21 +132,11 @@ The contents of this variable is built while Emacs is running, and saved
 along with minibuffer history.  You can change its value off
 `savehist-save-hook' to influence which variables are saved.")
 
-(defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion)
-  "Coding system without any conversion.
-This is used for calculating an internal checksum.  Should be as fast
-as possible, ideally simply exposing the internal representation of
-buffer text.")
-
 (defvar savehist-loaded nil
   "Whether the history has already been loaded.
 This prevents toggling Savehist mode from destroying existing
 minibuffer history.")
 
-(when (featurep 'xemacs)
-  ;; Must declare this under XEmacs, which doesn't have built-in
-  ;; minibuffer history truncation.
-  (defvar history-length 100))
 
 ;; Functions.
 
@@ -223,35 +195,25 @@ histories, which is probably undesirable."
 Normally invoked by calling `savehist-mode' to set the minor mode.
 Installs `savehist-autosave' in `kill-emacs-hook' and on a timer.
 To undo this, call `savehist-uninstall'."
-  (add-hook 'minibuffer-setup-hook 'savehist-minibuffer-hook)
-  (add-hook 'kill-emacs-hook 'savehist-autosave)
+  (add-hook 'minibuffer-setup-hook #'savehist-minibuffer-hook)
+  (add-hook 'kill-emacs-hook #'savehist-autosave)
   ;; Install an invocation of savehist-autosave on a timer.  This
   ;; should not cause noticeable delays for users -- savehist-autosave
   ;; executes in under 5 ms on my system.
   (when (and savehist-autosave-interval
 	     (null savehist-timer))
     (setq savehist-timer
-	  (if (featurep 'xemacs)
-	      (start-itimer
-	       "savehist" 'savehist-autosave savehist-autosave-interval
-	       savehist-autosave-interval)
-	    (run-with-timer savehist-autosave-interval
-			    savehist-autosave-interval 'savehist-autosave)))))
+	  (run-with-timer savehist-autosave-interval
+			  savehist-autosave-interval #'savehist-autosave))))
 
 (defun savehist-uninstall ()
   "Undo installing savehist.
 Normally invoked by calling `savehist-mode' to unset the minor mode."
-  (remove-hook 'minibuffer-setup-hook 'savehist-minibuffer-hook)
-  (remove-hook 'kill-emacs-hook 'savehist-autosave)
+  (remove-hook 'minibuffer-setup-hook #'savehist-minibuffer-hook)
+  (remove-hook 'kill-emacs-hook #'savehist-autosave)
   (when savehist-timer
-    (if (featurep 'xemacs)
-	(delete-itimer savehist-timer)
-      (cancel-timer savehist-timer))
+    (cancel-timer savehist-timer)
     (setq savehist-timer nil)))
-
-;; From XEmacs?
-(defvar print-readably)
-(defvar print-string-length)
 
 (defun savehist-save (&optional auto-save)
   "Save the values of minibuffer history variables.
@@ -269,9 +231,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
       savehist-coding-system))
     (run-hooks 'savehist-save-hook)
     (let ((print-length nil)
-	  (print-string-length nil)
 	  (print-level nil)
-	  (print-readably t)
 	  (print-quoted t))
       ;; Save the minibuffer histories, along with the value of
       ;; savehist-minibuffer-history-variables itself.
@@ -283,7 +243,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	(dolist (symbol savehist-minibuffer-history-variables)
 	  (when (and (boundp symbol)
 		     (not (memq symbol savehist-ignored-variables)))
-	    (let ((value (savehist-trim-history (symbol-value symbol)))
+	    (let ((value (symbol-value symbol))
 		  excess-space)
 	      (when value		; Don't save empty histories.
 		(insert "(setq ")
@@ -327,7 +287,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	      (insert ?\n))))))
     ;; If autosaving, avoid writing if nothing has changed since the
     ;; last write.
-    (let ((checksum (md5 (current-buffer) nil nil savehist-no-conversion)))
+    (let ((checksum (md5 (current-buffer) nil nil savehist-coding-system)))
       (unless (and auto-save (equal checksum savehist-last-checksum))
 	;; Set file-precious-flag when saving the buffer because we
 	;; don't want a half-finished write ruining the entire
@@ -335,7 +295,11 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	;; kill-emacs-hook, and also that multiple Emacs instances
 	;; could write to this file at once.
 	(let ((file-precious-flag t)
-	      (coding-system-for-write savehist-coding-system))
+	      (coding-system-for-write savehist-coding-system)
+              (dir (file-name-directory savehist-file)))
+          ;; Ensure that the directory exists before saving.
+          (unless (file-exists-p dir)
+            (make-directory dir t))
 	  (write-region (point-min) (point-max) savehist-file nil
 			(unless (called-interactively-p 'interactive) 'quiet)))
 	(when savehist-file-modes
@@ -348,17 +312,7 @@ Does nothing if Savehist mode is off."
   (when savehist-mode
     (savehist-save t)))
 
-(defun savehist-trim-history (value)
-  "Retain only the first `history-length' items in VALUE.
-Only used under XEmacs, which doesn't (yet) implement automatic
-trimming of history lists to `history-length' items."
-  (if (and (featurep 'xemacs)
-	   (natnump history-length)
-	   (> (length value) history-length))
-      ;; Equivalent to `(subseq value 0 history-length)', but doesn't
-      ;; need cl-extra at run-time.
-      (loop repeat history-length collect (pop value))
-    value))
+(define-obsolete-function-alias 'savehist-trim-history #'identity "27.1")
 
 (defun savehist-printable (value)
   "Return non-nil if VALUE is printable."
@@ -373,20 +327,22 @@ trimming of history lists to `history-length' items."
     ;; For others, check explicitly.
     (with-temp-buffer
       (condition-case nil
-	  (let ((print-readably t) (print-level nil))
-	  ;; Print the value into a buffer...
-	  (prin1 value (current-buffer))
-	  ;; ...and attempt to read it.
-	  (read (point-min-marker))
-	  ;; The attempt worked: the object is printable.
-	  t)
+	  (let ((print-level nil))
+	    ;; Print the value into a buffer...
+	    (prin1 value (current-buffer))
+	    ;; ...and attempt to read it.
+	    (read (point-min-marker))
+	    ;; The attempt worked: the object is printable.
+	    t)
 	;; The attempt failed: the object is not printable.
 	(error nil))))))
 
 (defun savehist-minibuffer-hook ()
   (unless (or (eq minibuffer-history-variable t)
-	      ;; XEmacs sets minibuffer-history-variable to t to mean "no
-	      ;; history is being recorded".
+	      ;; If `read-string' is called with a t HISTORY argument
+	      ;; (which `read-password' does),
+	      ;; `minibuffer-history-variable' is bound to t to mean
+	      ;; "no history is being recorded".
 	      (memq minibuffer-history-variable savehist-ignored-variables))
     (add-to-list 'savehist-minibuffer-history-variables
 		 minibuffer-history-variable)))

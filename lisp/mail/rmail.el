@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2018 Free Software
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -285,7 +285,7 @@ Otherwise, look for `movemail' in the directories in
 		  (throw 'scan x))))))))))
 
 (defvar rmail-movemail-variant-in-use nil
-  "The movemail variant currently in use. Known variants are:
+  "The movemail variant currently in use.  Known variants are:
 
   `emacs'     Means any implementation, compatible with the native Emacs one.
               This is the default;
@@ -779,8 +779,8 @@ The first parenthesized expression should match the MIME-charset name.")
     (concat
      "From "
 
-     ;; Many things can happen to an RFC 822 mailbox before it is put into
-     ;; a `From' line.  The leading phrase can be stripped, e.g.
+     ;; Many things can happen to an RFC 822 (or later) mailbox before it is
+     ;; put into a `From' line.  The leading phrase can be stripped, e.g.
      ;; `Joe <@w.x:joe@y.z>' -> `<@w.x:joe@y.z>'.  The <> can be stripped, e.g.
      ;; `<@x.y:joe@y.z>' -> `@x.y:joe@y.z'.  Everything starting with a CRLF
      ;; can be removed, e.g.
@@ -1003,8 +1003,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   "Report that the buffer is not in the mbox file format.
 MSGNUM, if present, indicates the malformed message."
   (if msgnum
-      (error "Message %d is not a valid RFC2822 message" msgnum)
-    (error "Message is not a valid RFC2822 message")))
+      (error "Message %d is not a valid RFC 822 (or later) message" msgnum)
+    (error "Message is not a valid RFC 822 (or later) message")))
 
 (defun rmail-convert-babyl-to-mbox ()
   "Convert the mail file from Babyl version 5 to mbox.
@@ -2072,7 +2072,8 @@ Value is the size of the newly read mail after conversion."
 		   ;; If we just read the password, most likely it is
 		   ;; wrong.  Otherwise, see if there is a specific
 		   ;; reason to think that the problem is a wrong passwd.
-		   (if (and (rmail-remote-proto-p proto)
+		   (if (and proto
+                            (rmail-remote-proto-p proto)
 			    (or got-password
 				(re-search-forward rmail-remote-password-error
 						   nil t)))
@@ -2147,9 +2148,9 @@ Call with point at the end of the message."
     (insert "\n")))
 
 (defun rmail-add-mbox-headers ()
-  "Validate the RFC2822 format for the new messages.
+  "Validate the RFC 822 (or later) format for the new messages.
 Point should be at the first new message.
-An error is signaled if the new messages are not RFC2822
+An error is signaled if the new messages are not RFC 822 (or later)
 compliant.
 Unless an Rmail attribute header already exists, add it to the
 new messages.  Return the number of new messages."
@@ -2307,7 +2308,7 @@ If nil, that means the current message."
 (defun rmail-get-attr-value (attr state)
   "Return the character value for ATTR.
 ATTR is a (numeric) index, an offset into the mbox attribute
-header value. STATE is one of nil, t, or a character value."
+header value.  STATE is one of nil, t, or a character value."
   (cond
    ((numberp state) state)
    ((not state) ?-)
@@ -2574,7 +2575,7 @@ the message.  Point is at the beginning of the message."
   (save-excursion
     (setq deleted-head
 	  (cons (if (and (search-forward (concat rmail-attribute-header ": ") message-end t)
-			 (looking-at "?D"))
+			 (looking-at "\\?D"))
 		    ?D
 		  ?\s) deleted-head))))
 
@@ -2737,7 +2738,7 @@ N defaults to the current message."
       ;; (a default of "text/plain; charset=US-ASCII" is assumed) or
       ;; the base content type is either text or message.
       (or (not content-type-header)
-	  (string-match text-regexp content-type-header)))))
+	  (and (string-match text-regexp content-type-header) t)))))
 
 (defcustom rmail-show-message-verbose-min 200000
   "Message size at which to show progress messages for displaying it."
@@ -3546,8 +3547,10 @@ If `rmail-confirm-expunge' is non-nil, ask user to confirm."
   (and (stringp rmail-deleted-vector)
        (string-match "D" rmail-deleted-vector)
        (if rmail-confirm-expunge
-	   (funcall rmail-confirm-expunge
-		    "Erase deleted messages from Rmail file? ")
+	   (and (funcall rmail-confirm-expunge
+			 "Erase deleted messages from Rmail file? ")
+		;; In case r-c-e's function returns non-nil, non-t
+		t)
 	 t)))
 
 (defun rmail-only-expunge (&optional dont-show)
@@ -3914,9 +3917,9 @@ which is an element of rmail-msgref-vector."
 	     (setq tem (copy-sequence tem))
 	     (set-text-properties 0 (length tem) nil tem)
 	     (setq tem (copy-sequence tem))
-	     ;; Use prin1 to fake RFC822 quoting
+	     ;; Use prin1 to fake RFC 822 (or later) quoting
 	     (let ((field (prin1-to-string tem)))
-	       ;; Wrap it in parens to make it a comment according to RFC822
+	       ;; Wrap it in parens to make it a comment.
 	       (if date
 		   (concat "(" field "'s message of " date ")")
 		 (concat "(" field ")"))))))
@@ -3945,7 +3948,7 @@ which is an element of rmail-msgref-vector."
              (if message-id
                  ;; "<AA259@bar.edu> (message from Unix Loser on 1-Apr-89)"
                  (concat message-id " (" field ")")
-	       ;; Wrap in parens to make it a comment, for RFC822.
+	       ;; Wrap in parens to make it a comment.
 	       (concat "(" field ")")))))
         (t
          ;; If we can't kludge it simply, do it correctly
@@ -4389,9 +4392,8 @@ browsing, and moving of messages."
 		  (text face mouse function &optional token prevline))
 
 ;; Make sure our special speedbar major mode is loaded
-(if (featurep 'speedbar)
-    (rmail-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook 'rmail-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (rmail-install-speedbar-variables))
 
 (defun rmail-speedbar-buttons (buffer)
   "Create buttons for BUFFER containing rmail messages.
@@ -4543,6 +4545,9 @@ Argument MIME is non-nil if this is a mime message."
 
     (unless armor-end
       (error "Encryption armor beginning has no matching end"))
+    (setq armor-start (move-marker (make-marker) armor-start))
+    (setq armor-end (move-marker (make-marker) armor-end))
+
     (goto-char armor-start)
 
     ;; Because epa--find-coding-system-for-mime-charset not autoloaded.
@@ -4575,15 +4580,16 @@ Argument MIME is non-nil if this is a mime message."
         (mail-unquote-printable-region armor-start
                                        (- (point-max) after-end))))
 
-    ;; Decrypt it, maybe in place, maybe making new buffer.
-    (epa-decrypt-region
-     armor-start (- (point-max) after-end)
-     ;; Call back this function to prepare the output.
-     (lambda ()
-       (let ((inhibit-read-only t))
-         (delete-region armor-start (- (point-max) after-end))
-         (goto-char armor-start)
-         (current-buffer))))
+    (condition-case nil
+	(epa-decrypt-region
+	 armor-start (- (point-max) after-end)
+	 ;; Call back this function to prepare the output.
+	 (lambda ()
+	   (let ((inhibit-read-only t))
+	     (delete-region armor-start (- (point-max) after-end))
+	     (goto-char armor-start)
+	     (current-buffer))))
+      (error nil))
 
     (list armor-start (- (point-max) after-end) mime
           armor-end-regexp
@@ -4619,9 +4625,14 @@ Argument MIME is non-nil if this is a mime message."
       (goto-char (point-min))
       (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
 	(let ((coding-system-for-read coding-system-for-read)
-	      (case-fold-search t))
-
-          (push (rmail-epa-decrypt-1 mime) decrypts)))
+	      (case-fold-search t)
+	      (armor-start (match-beginning 0)))
+	  ;; Don't decrypt an armor that was copied into
+	  ;; the message from a message it is a reply to.
+	  (or (equal (buffer-substring (line-beginning-position)
+				       armor-start)
+		     "> ")
+	      (push (rmail-epa-decrypt-1 mime) decrypts))))
 
       (when (and decrypts (eq major-mode 'rmail-mode))
         (rmail-add-label "decrypt"))

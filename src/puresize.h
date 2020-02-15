@@ -1,5 +1,5 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -77,7 +77,7 @@ INLINE_HEADER_BEGIN
 #define PURESIZE  (BASE_PURESIZE * PURESIZE_RATIO * PURESIZE_CHECKING_RATIO)
 #endif
 
-extern _Noreturn void pure_write_error (Lisp_Object);
+extern AVOID pure_write_error (Lisp_Object);
 
 extern EMACS_INT pure[];
 

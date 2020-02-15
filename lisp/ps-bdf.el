@@ -1,6 +1,6 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -9,7 +9,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
-;; Author: Kenichi Handa <handa@m17n.org>
+;; Author: Kenichi Handa <handa@gnu.org>
 ;; (according to ack.texi)
 ;; Keywords: wp, BDF, font, PostScript
 ;; Package: ps-print

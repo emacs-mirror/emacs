@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1994, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
@@ -716,6 +716,7 @@ For example, if the current buffer name is @samp{foo},
 returns @code{"The buffer is foo"}.
 @end defmac
 
+@cindex pretty-printer
 @defun pp object &optional stream
 This function outputs @var{object} to @var{stream}, just like
 @code{prin1}, but does it in a prettier way.  That is, it'll
@@ -740,7 +741,8 @@ The default is @code{t}, meaning display in the echo area.
 @defvar print-quoted
 If this is non-@code{nil}, that means to print quoted forms using
 abbreviated reader syntax, e.g., @code{(quote foo)} prints as
-@code{'foo}, and @code{(function foo)} as @code{#'foo}.
+@code{'foo}, and @code{(function foo)} as @code{#'foo}.  The default
+is @code{t}.
 @end defvar
 
 @defvar print-escape-newlines

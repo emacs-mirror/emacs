@@ -1,9 +1,8 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
-;; Maintainer: Stephen Eglen <stephen@gnu.org>
 ;; Keywords: completion convenience
 ;; Obsolete-since: 24.4
 
@@ -177,9 +176,6 @@
 ;; iswitch for all buffer selections in Emacs, add:
 ;; (setq read-buffer-function #'iswitchb-read-buffer)
 ;; (This variable was introduced in Emacs 20.3.)
-;; XEmacs users can get the same behavior by doing:
-;; (defalias 'read-buffer #'iswitchb-read-buffer)
-;; since `read-buffer' is defined in lisp.
 
 ;; Using iswitchb for other completion tasks.
 
@@ -1397,7 +1393,7 @@ Copied from `icomplete-tidy'."
   "Move the summaries to the end of the list.
 This is an example function which can be hooked on to
 `iswitchb-make-buflist-hook'.  Any buffer matching the regexps
-`Summary' or `output\*$'are put to the end of the list."
+`Summary' or `output\\*$'are put to the end of the list."
   (let ((summaries (delq nil
 			 (mapcar
 			  (lambda (x)

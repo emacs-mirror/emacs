@@ -1,6 +1,6 @@
-;;; makesum.el --- generate key binding summary for Emacs
+;;; makesum.el --- generate key binding summary for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -59,15 +59,14 @@ Previous contents of that buffer are killed first."
        (while (search-forward "C-i" nil t)
 	 (replace-match "TAB"))
        (goto-char (point-min))
-       (if (re-search-forward "^Local Bindings:" nil t)
-	   (progn
-	    (forward-char -1)
-	    (insert " for " (format-mode-line cur-mode) " Mode")
-	    (while (search-forward "??\n" nil t)
-	      (delete-region (point)
-			     (progn
-			      (forward-line -1)
-			      (point))))))
+       (when (re-search-forward "^Local Bindings:" nil t)
+         (forward-char -1)
+         (insert " for " (format-mode-line cur-mode) " Mode")
+         (while (search-forward "??\n" nil t)
+           (delete-region (point)
+                          (progn
+                            (forward-line -1)
+                            (point)))))
        (goto-char (point-min))
        (insert "Emacs command summary, " (substring (current-time-string) 0 10)
 	       ".\n")
@@ -84,28 +83,25 @@ Previous contents of that buffer are killed first."
   (message "Making command summary...done"))
 
 (defun double-column (start end)
+  "Reformat buffer contents from START to END into two columns."
   (interactive "r")
-  (let (half line lines nlines
+  (let (half lines
+        (nlines (count-lines start end))
 	(from-end (- (point-max) end)))
-    (setq nlines (count-lines start end))
-    (if (<= nlines 1)
-	nil
+    (when (> nlines 1)
       (setq half (/ (1+ nlines) 2))
       (goto-char start)
       (save-excursion
        (forward-line half)
-       (while (< half nlines)
-	 (setq half (1+ half))
-	 (setq line (buffer-substring (point) (line-end-position)))
-	 (setq lines (cons line lines))
+       (dotimes (_ (- nlines half))
+         (push (buffer-substring (point) (line-end-position))
+               lines)
 	 (delete-region (point) (progn (forward-line 1) (point)))))
-      (setq lines (nreverse lines))
-      (while lines
-	(end-of-line)
+      (dolist (line (nreverse lines))
+        (end-of-line)
 	(indent-to 41)
-	(insert (car lines))
-	(forward-line 1)
-	(setq lines (cdr lines))))
+        (insert line)
+        (forward-line 1)))
     (goto-char (- (point-max) from-end))))
 
 (provide 'makesum)

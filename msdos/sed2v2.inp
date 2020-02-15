@@ -2,7 +2,7 @@
 # Configuration script for src/config.h under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993-1997, 1999-2000, 2002-2018 Free Software
+# Copyright (C) 1993-1997, 1999-2000, 2002-2020 Free Software
 # Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -27,7 +27,7 @@
 #ifndef MSDOS\
 #define MSDOS\
 #endif
-/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2018 Free Software Foundation, Inc."/
+/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2020 Free Software Foundation, Inc."/
 /^#undef DIRECTORY_SEP *$/s!^.*$!#define DIRECTORY_SEP '/'!
 /^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
 /^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/
@@ -66,7 +66,7 @@
 /^#undef PACKAGE_NAME/s/^.*$/#define PACKAGE_NAME ""/
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
-/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION "27.0.50"/
+/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION "28.0.50"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/

@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -126,13 +126,15 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-(eval-and-compile
-  ;; Before Emacs-24.4, `pushnew' expands to runtime calls to `cl-adjoin'
-  ;; even for relatively simple cases such as used here.  We only test <25
-  ;; because it's easier and sufficient.
-  (when (or (featurep 'xemacs) (< emacs-major-version 25))
-    (require 'cl)))
+(eval-when-compile
+  (condition-case nil (require 'cl-lib) (file-missing (require 'cl)))
+  (defalias 'vhdl--pushnew (if (fboundp 'cl-pushnew) 'cl-pushnew 'pushnew)))
+
+;; Before Emacs-24.4, `pushnew' expands to runtime calls to `cl-adjoin'
+;; even for relatively simple cases such as used here.  We only test <25
+;; because it's easier and sufficient.
+(when (< emacs-major-version 25)
+  (condition-case nil (require 'cl-lib) (file-missing (require 'cl))))
 
 ;; Emacs 21+ handling
 (defconst vhdl-emacs-21 (and (<= 21 emacs-major-version) (not (featurep 'xemacs)))
@@ -690,7 +692,7 @@ browser.  The current project can also be changed temporarily in the menu."
 replaced by the user name (allows you to have user-specific project setups).
 The first entry is used as file name to import/export individual project
 setups.  All entries are used to automatically import project setups at
-startup (see option `vhdl-project-auto-load').  Projects loaded from the
+startup (see option `vhdl-project-autoload').  Projects loaded from the
 first entry are automatically made current.  Hint: specify local project
 setups in first entry, global setups in following entries; loading a local
 project setup will make it current, while loading the global setups
@@ -700,7 +702,11 @@ in global directories)."
   :type '(repeat (string :tag "File name" "\\1.prj"))
   :group 'vhdl-project)
 
-(defcustom vhdl-project-auto-load '(startup)
+
+(define-obsolete-variable-alias 'vhdl-project-auto-load
+  'vhdl-project-autoload "27.1")
+
+(defcustom vhdl-project-autoload '(startup)
   "Automatically load project setups from files.
 All project setup files that match the file names specified in option
 `vhdl-project-file-name' are automatically loaded.  The project of the
@@ -2474,7 +2480,7 @@ specified."
 
 (defun vhdl-resolve-env-variable (string)
   "Resolve environment variables in STRING."
-  (while (string-match "\\(.*\\)${?\\(\\(\\w\\|_\\)+\\)}?\\(.*\\)" string)
+  (while (string-match "\\(.*\\)\\${?\\(\\(\\w\\|_\\)+\\)}?\\(.*\\)" string)
     (setq string (concat (match-string 1 string)
 			 (getenv (match-string 2 string))
 			 (match-string 4 string))))
@@ -3671,11 +3677,11 @@ STRING are replaced by `-' and substrings are converted to lower case."
       ["Setup File Name..." (customize-option 'vhdl-project-file-name) t]
       ("Auto Load Setup File"
        ["At Startup"
-	(customize-set-variable 'vhdl-project-auto-load
-				(if (memq 'startup vhdl-project-auto-load)
-				   (delq 'startup vhdl-project-auto-load)
-				 (cons 'startup vhdl-project-auto-load)))
-       :style toggle :selected (memq 'startup vhdl-project-auto-load)])
+	(customize-set-variable 'vhdl-project-autoload
+				(if (memq 'startup vhdl-project-autoload)
+				   (delq 'startup vhdl-project-autoload)
+				 (cons 'startup vhdl-project-autoload)))
+       :style toggle :selected (memq 'startup vhdl-project-autoload)])
       ["Sort Projects"
        (customize-set-variable 'vhdl-project-sort (not vhdl-project-sort))
        :style toggle :selected vhdl-project-sort]
@@ -4681,7 +4687,7 @@ Usage:
     Emacs with VHDL Mode (i.e. load a VHDL file or use \"emacs -l
     vhdl-mode\") in a directory with an existing project setup file, it is
     automatically loaded and its project activated if option
-    `vhdl-project-auto-load' is non-nil.  Names/paths of the project setup
+    `vhdl-project-autoload' is non-nil.  Names/paths of the project setup
     files can be specified in option `vhdl-project-file-name'.  Multiple
     project setups can be automatically loaded from global directories.
     This is an alternative to specifying project setups with option
@@ -4852,7 +4858,7 @@ releases.  You are kindly invited to participate in beta testing.  Subscribe
 to above mailing lists by sending an email to <reto@gnu.org>.
 
 VHDL Mode is officially distributed at
-http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
+https://guest.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
 where the latest version can be found.
 
 
@@ -4861,8 +4867,8 @@ Known problems:
 
 - XEmacs: Incorrect start-up when automatically opening speedbar.
 - XEmacs: Indentation in XEmacs 21.4 (and higher).
-- Indentation incorrect for new 'postponed' VHDL keyword.
-- Indentation incorrect for 'protected body' construct.
+- Indentation incorrect for new `postponed' VHDL keyword.
+- Indentation incorrect for `protected body' construct.
 
 
                                                 The VHDL Mode Authors
@@ -6699,7 +6705,7 @@ search, and an argument indicating an interactive call."
     (if (and interactive
 	     (or (nth 3 state)
 		 (nth 4 state)
-		 (looking-at (concat "[ \t]*" comment-start-skip))))
+		 (looking-at (concat "[ \t]*\\(?:" comment-start-skip "\\)"))))
 	(forward-sentence (- count))
       (while (> count 0)
 	(vhdl-beginning-of-statement-1 lim)
@@ -7392,8 +7398,8 @@ only-lines."
 (defun vhdl-update-progress-info (string pos)
   "Update progress information."
   (when (and vhdl-progress-info (not noninteractive)
-	     (< vhdl-progress-interval
-		(- (nth 1 (current-time)) (aref vhdl-progress-info 2))))
+	     (time-less-p vhdl-progress-interval
+			  (time-since (aref vhdl-progress-info 2))))
     (let ((delta (- (aref vhdl-progress-info 1)
                     (aref vhdl-progress-info 0))))
       (message "%s... (%2d%%)" string
@@ -7401,7 +7407,7 @@ only-lines."
 		   100
                  (floor (* 100.0 (- pos (aref vhdl-progress-info 0)))
                         delta))))
-    (aset vhdl-progress-info 2 (nth 1 (current-time)))))
+    (aset vhdl-progress-info 2 (time-convert nil 'integer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indentation commands
@@ -8142,12 +8148,12 @@ depending on parameter UPPER-CASE."
 		 (upcase-word -1)
 	       (downcase-word -1)))
 	 (when (and count vhdl-progress-interval (not noninteractive)
-		    (< vhdl-progress-interval
-		       (- (nth 1 (current-time)) last-update)))
+		    (time-less-p vhdl-progress-interval
+				 (time-since last-update)))
 	   (message "Fixing case... (%2d%s)"
 		    (+ (* count 20) (/ (* 20 (- (point) beg)) (- end beg)))
 		    "%")
-	   (setq last-update (nth 1 (current-time)))))
+	   (setq last-update (time-convert nil 'integer))))
        (goto-char end)))))
 
 (defun vhdl-fix-case-region (beg end &optional arg)
@@ -8731,13 +8737,13 @@ project is defined."
        ((/= (preceding-char) ?-)	; standard dash (minus)
 	(self-insert-command count))
        (t (self-insert-command count)
-	  (message "Enter '-' for horiz. line, 'CR' for commenting-out code, else enter comment")
+	  (message "Enter `-' for horiz. line, RET for commenting-out code, else enter comment")
 	  (let ((next-input (read-char)))
 	    (if (= next-input ?-)	; triple dash
 		(progn
 		  (vhdl-comment-display-line)
 		  (message
-		   "Enter '-' for display comment, else continue coding")
+		   "Enter `-' for display comment, else continue coding")
 		  (let ((next-input (read-char)))
 		    (if (= next-input ?-) ; four dashes
 			(vhdl-comment-display t)
@@ -13124,7 +13130,7 @@ File statistics: \"%s\"\n\
 		  (list (cons new-name project-entry))))
     (vhdl-update-mode-menu)))
 
-(defun vhdl-auto-load-project ()
+(defun vhdl-autoload-project ()
   "Automatically load project setup at startup."
   (let ((file-name-list vhdl-project-file-name)
 	file-list list-length)
@@ -13143,12 +13149,14 @@ File statistics: \"%s\"\n\
 			   (not (> list-length 0)))
       (setq list-length (1- list-length))
       (setq file-list (cdr file-list)))))
+(define-obsolete-function-alias 'vhdl-auto-load-project
+  #'vhdl-autoload-project "27.1")
 
 ;; automatically load project setup when idle after startup
-(when (memq 'startup vhdl-project-auto-load)
+(when (memq 'startup vhdl-project-autoload)
   (if noninteractive
-      (vhdl-auto-load-project)
-    (vhdl-run-when-idle .1 nil 'vhdl-auto-load-project)))
+      (vhdl-autoload-project)
+    (vhdl-run-when-idle .1 nil 'vhdl-autoload-project)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -14315,7 +14323,7 @@ of PROJECT."
       (vhdl-scan-directory-contents dir-name project nil
 				    (format "(%s/%s) " act-dir num-dir)
 				    (cdr dir-list))
-      (pushnew (file-name-directory dir-name) dir-list-tmp :test #'equal)
+      (vhdl--pushnew (file-name-directory dir-name) dir-list-tmp :test #'equal)
       (setq dir-list (cdr dir-list)
 	    act-dir (1+ act-dir)))
     (vhdl-aput 'vhdl-directory-alist project (list (nreverse dir-list-tmp)))
@@ -15115,7 +15123,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-project (text token indent)
   "Expand/contract the project under the cursor."
   (cond
-   ((string-match "+" text)		; expand project
+   ((string-match "\\+" text)		; expand project
     (speedbar-change-expand-button-char ?-)
     (unless (member token vhdl-speedbar-shown-project-list)
       (setq vhdl-speedbar-shown-project-list
@@ -15137,7 +15145,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-entity (text token indent)
   "Expand/contract the entity under the cursor."
   (cond
-   ((string-match "+" text)		; expand entity
+   ((string-match "\\+" text)		; expand entity
     (let* ((key (vhdl-speedbar-line-key indent))
 	   (ent-alist (vhdl-aget vhdl-entity-alist key))
 	   (ent-entry (vhdl-aget ent-alist token))
@@ -15206,7 +15214,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-architecture (text token indent)
   "Expand/contract the architecture under the cursor."
   (cond
-   ((string-match "+" text)		; expand architecture
+   ((string-match "\\+" text)		; expand architecture
     (let* ((key (vhdl-speedbar-line-key (1- indent)))
 	   (ent-alist (vhdl-aget vhdl-entity-alist key))
 	   (conf-alist (vhdl-aget vhdl-config-alist key))
@@ -15266,7 +15274,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-config (text token indent)
   "Expand/contract the configuration under the cursor."
   (cond
-   ((string-match "+" text)		; expand configuration
+   ((string-match "\\+" text)		; expand configuration
     (let* ((key (vhdl-speedbar-line-key indent))
 	   (conf-alist (vhdl-aget vhdl-config-alist key))
 	   (conf-entry (vhdl-aget conf-alist token))
@@ -15324,7 +15332,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-package (text token indent)
   "Expand/contract the package under the cursor."
   (cond
-   ((string-match "+" text)		; expand package
+   ((string-match "\\+" text)		; expand package
     (let* ((key (vhdl-speedbar-line-key indent))
 	   (pack-alist (vhdl-aget vhdl-package-alist key))
 	   (pack-entry (vhdl-aget pack-alist token))
@@ -15729,7 +15737,7 @@ NO-POSITION non-nil means do not re-position cursor."
 
 (defun vhdl-speedbar-dired (text token indent)
   "Speedbar click handler for directory expand button in hierarchy mode."
-  (cond ((string-match "+" text)	; we have to expand this dir
+  (cond ((string-match "\\+" text)	; we have to expand this dir
 	 (setq speedbar-shown-directories
 	       (cons (expand-file-name
 		      (concat (speedbar-line-directory indent) token "/"))
@@ -16140,7 +16148,7 @@ expansion function)."
 
 ;; initialize speedbar
 (if (not (boundp 'speedbar-frame))
-    (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize)
+    (with-no-warnings (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize))
   (vhdl-speedbar-initialize)
   (when speedbar-frame (vhdl-speedbar-refresh)))
 
@@ -16407,8 +16415,8 @@ component instantiation."
 	     (if (or (member constant-name single-list)
 		     (member constant-name multi-list))
 		 (progn (setq single-list (delete constant-name single-list))
-			(pushnew constant-name multi-list :test #'equal))
-	       (pushnew constant-name single-list :test #'equal))
+			(vhdl--pushnew constant-name multi-list :test #'equal))
+	       (vhdl--pushnew constant-name single-list :test #'equal))
 	     (unless (match-string 1)
 	       (setq generic-alist (cdr generic-alist)))
 	     (vhdl-forward-syntactic-ws))
@@ -16434,12 +16442,12 @@ component instantiation."
 		     (member signal-name multi-out-list))
 		 (setq single-out-list (delete signal-name single-out-list))
 		 (setq multi-out-list (delete signal-name multi-out-list))
-		 (pushnew signal-name local-list :test #'equal))
+		 (vhdl--pushnew signal-name local-list :test #'equal))
 		((member signal-name single-in-list)
 		 (setq single-in-list (delete signal-name single-in-list))
-		 (pushnew signal-name multi-in-list :test #'equal))
+		 (vhdl--pushnew signal-name multi-in-list :test #'equal))
 		((not (member signal-name multi-in-list))
-		 (pushnew signal-name single-in-list :test #'equal)))
+		 (vhdl--pushnew signal-name single-in-list :test #'equal)))
 	     ;; output signal
 	     (cond
 	      ((member signal-name local-list)
@@ -16448,12 +16456,12 @@ component instantiation."
 		   (member signal-name multi-in-list))
 	       (setq single-in-list (delete signal-name single-in-list))
 	       (setq multi-in-list (delete signal-name multi-in-list))
-	       (pushnew signal-name local-list :test #'equal))
+	       (vhdl--pushnew signal-name local-list :test #'equal))
 	      ((member signal-name single-out-list)
 	       (setq single-out-list (delete signal-name single-out-list))
-	       (pushnew signal-name multi-out-list :test #'equal))
+	       (vhdl--pushnew signal-name multi-out-list :test #'equal))
 	      ((not (member signal-name multi-out-list))
-	       (pushnew signal-name single-out-list :test #'equal))))
+	       (vhdl--pushnew signal-name single-out-list :test #'equal))))
 	   (unless (match-string 1)
 	     (setq port-alist (cdr port-alist)))
 	   (vhdl-forward-syntactic-ws))
@@ -16536,14 +16544,14 @@ component instantiation."
 			 generic-end-pos
 			 (vhdl-compose-insert-generic constant-entry)))
 		  (setq generic-pos (point-marker))
-		  (pushnew constant-name written-list :test #'equal))
+		  (vhdl--pushnew constant-name written-list :test #'equal))
 		 (t
 		  (vhdl-goto-marker
 		   (vhdl-max-marker generic-inst-pos generic-pos))
 		  (setq generic-end-pos
 			(vhdl-compose-insert-generic constant-entry))
 		  (setq generic-inst-pos (point-marker))
-		    (pushnew constant-name written-list :test #'equal))))
+		    (vhdl--pushnew constant-name written-list :test #'equal))))
 	   (setq constant-alist (cdr constant-alist)))
 	 (when (/= constant-temp-pos generic-inst-pos)
 	   (vhdl-goto-marker (vhdl-max-marker constant-temp-pos generic-pos))
@@ -16562,14 +16570,14 @@ component instantiation."
 			(vhdl-max-marker
 			 port-end-pos (vhdl-compose-insert-port signal-entry)))
 		  (setq port-in-pos (point-marker))
-		  (pushnew signal-name written-list :test #'equal))
+		  (vhdl--pushnew signal-name written-list :test #'equal))
 		 ((member signal-name multi-out-list)
 		  (vhdl-goto-marker (vhdl-max-marker port-out-pos port-in-pos))
 		  (setq port-end-pos
 			(vhdl-max-marker
 			 port-end-pos (vhdl-compose-insert-port signal-entry)))
 		  (setq port-out-pos (point-marker))
-		  (pushnew signal-name written-list :test #'equal))
+		  (vhdl--pushnew signal-name written-list :test #'equal))
 		 ((or (member signal-name single-in-list)
 		      (member signal-name single-out-list))
 		  (vhdl-goto-marker
@@ -16578,12 +16586,12 @@ component instantiation."
 		    (vhdl-max-marker port-out-pos port-in-pos)))
 		  (setq port-end-pos (vhdl-compose-insert-port signal-entry))
 		  (setq port-inst-pos (point-marker))
-		  (pushnew signal-name written-list :test #'equal))
+		  (vhdl--pushnew signal-name written-list :test #'equal))
 		 ((equal (upcase (nth 2 signal-entry)) "OUT")
 		  (vhdl-goto-marker signal-pos)
 		  (vhdl-compose-insert-signal signal-entry)
 		  (setq signal-pos (point-marker))
-		  (pushnew signal-name written-list :test #'equal)))
+		  (vhdl--pushnew signal-name written-list :test #'equal)))
 	   (setq signal-alist (cdr signal-alist)))
 	 (when (/= port-temp-pos port-inst-pos)
 	   (vhdl-goto-marker
@@ -16934,7 +16942,7 @@ no project is defined."
   "Remove duplicate elements from IN-LIST."
   (let (out-list)
     (while in-list
-      (pushnew (car in-list) out-list :test #'equal)
+      (vhdl--pushnew (car in-list) out-list :test #'equal)
       (setq in-list (cdr in-list)))
     out-list))
 
@@ -17633,7 +17641,7 @@ specified by a target."
        'vhdl-project-alist
        'vhdl-project
        'vhdl-project-file-name
-       'vhdl-project-auto-load
+       'vhdl-project-autoload
        'vhdl-project-sort
        'vhdl-compiler-alist
        'vhdl-compiler

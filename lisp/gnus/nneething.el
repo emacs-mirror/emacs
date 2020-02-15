@@ -1,6 +1,6 @@
 ;;; nneething.el --- arbitrary file access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -297,7 +297,7 @@ included.")
 (defun nneething-decode-file-name (file &optional coding-system)
   "Decode the name of the FILE is encoded in CODING-SYSTEM."
   (let ((pos 0) buf)
-    (while (string-match "%\\([0-9a-fA-F][0-9a-fA-F]\\)" file pos)
+    (while (string-match "%\\([[:xdigit:]][[:xdigit:]]\\)" file pos)
       (setq buf (cons (string (string-to-number (match-string 1 file) 16))
 		      (cons (substring file pos (match-beginning 0)) buf))
 	    pos (match-end 0)))
@@ -319,7 +319,7 @@ included.")
      "Subject: " (file-name-nondirectory file) (or extra-msg "") "\n"
      "Message-ID: <nneething-" (nneething-encode-file-name file)
      "@" (system-name) ">\n"
-     (if (zerop (float-time (file-attribute-modification-time atts))) ""
+     (if (time-equal-p 0 (file-attribute-modification-time atts)) ""
        (concat "Date: "
 	       (current-time-string (file-attribute-modification-time atts))
 	       "\n"))
@@ -381,7 +381,7 @@ included.")
 
 (defun nneething-get-head (file)
   "Either find the head in FILE or make a head for FILE."
-  (with-current-buffer (get-buffer-create nneething-work-buffer)
+  (with-current-buffer (gnus-get-buffer-create nneething-work-buffer)
     (setq case-fold-search nil)
     (buffer-disable-undo)
     (erase-buffer)

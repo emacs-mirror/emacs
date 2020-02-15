@@ -1,6 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -328,8 +328,7 @@ all.  This may very well take some time.")
 	      (delq inf nnfolder-buffer-alist))
 	(setq nnfolder-current-buffer (cadr inf)
 	      nnfolder-current-group (car inf))))
-    (when (and nnfolder-current-buffer
-	       (buffer-name nnfolder-current-buffer))
+    (when (buffer-live-p nnfolder-current-buffer)
       (with-current-buffer nnfolder-current-buffer
 	;; If the buffer was modified, write the file out now.
 	(nnfolder-save-buffer)
@@ -466,7 +465,7 @@ all.  This may very well take some time.")
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
   (save-excursion
-    (let ((buf (get-buffer-create " *nnfolder move*"))
+    (let ((buf (gnus-get-buffer-create " *nnfolder move*"))
 	  result)
       (and
        (nnfolder-request-article article group server)
@@ -1097,7 +1096,7 @@ This command does not work if you use short group names."
 
 (defun nnfolder-open-nov (group)
   (or (cdr (assoc group nnfolder-nov-buffer-alist))
-      (let ((buffer (get-buffer-create (format " *nnfolder overview %s*" group))))
+      (let ((buffer (gnus-get-buffer-create (format " *nnfolder overview %s*" group))))
 	(with-current-buffer buffer
 	  (set (make-local-variable 'nnfolder-nov-buffer-file-name)
 	       (nnfolder-group-nov-pathname group))
@@ -1110,7 +1109,7 @@ This command does not work if you use short group names."
 (defun nnfolder-save-nov ()
   (save-excursion
     (while nnfolder-nov-buffer-alist
-      (when (buffer-name (cdar nnfolder-nov-buffer-alist))
+      (when (buffer-live-p (cdar nnfolder-nov-buffer-alist))
 	(set-buffer (cdar nnfolder-nov-buffer-alist))
 	(when (buffer-modified-p)
 	  (gnus-make-directory (file-name-directory
@@ -1162,15 +1161,15 @@ This command does not work if you use short group names."
       (with-temp-buffer
 	(insert-buffer-substring buf b e)
 	(let ((headers (nnheader-parse-naked-head)))
-	  (mail-header-set-chars headers chars)
-	  (mail-header-set-number headers number)
+	  (setf (mail-header-chars  headers) chars)
+	  (setf (mail-header-number headers) number)
 	  headers)))))
 
 (defun nnfolder-add-nov (group article headers)
   "Add a nov line for the GROUP base."
   (with-current-buffer (nnfolder-open-nov group)
     (goto-char (point-max))
-    (mail-header-set-number headers article)
+    (setf (mail-header-number headers) article)
     (nnheader-insert-nov headers)))
 
 (provide 'nnfolder)

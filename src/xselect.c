@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
-#include <stdio.h>      /* termhooks.h needs this */
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -33,8 +32,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xterm.h"	/* for all of the X includes */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
+#include "sysstdio.h"	/* TRACE_SELECTION needs this.  */
 #include "termhooks.h"
 #include "keyboard.h"
+#include "pdumper.h"
 
 #include <X11/Xproto.h>
 
@@ -62,13 +63,13 @@ static void lisp_data_to_selection_data (struct x_display_info *, Lisp_Object,
 
 #ifdef TRACE_SELECTION
 #define TRACE0(fmt) \
-  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid ())
+  fprintf (stderr, "%"PRIdMAX": " fmt "\n", (intmax_t) getpid ())
 #define TRACE1(fmt, a0) \
-  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid (), a0)
+  fprintf (stderr, "%"PRIdMAX": " fmt "\n", (intmax_t) getpid (), a0)
 #define TRACE2(fmt, a0, a1) \
-  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid (), a0, a1)
+  fprintf (stderr, "%"PRIdMAX": " fmt "\n", (intmax_t) getpid (), a0, a1)
 #define TRACE3(fmt, a0, a1, a2) \
-  fprintf (stderr, "%"pMd": " fmt "\n", (printmax_t) getpid (), a0, a1, a2)
+  fprintf (stderr, "%"PRIdMAX": " fmt "\n", (intmax_t) getpid (), a0, a1, a2)
 #else
 #define TRACE0(fmt)		(void) 0
 #define TRACE1(fmt, a0)		(void) 0
@@ -1084,10 +1085,10 @@ wait_for_property_change (struct prop_location *location)
      property_change_reply, because property_change_reply_object says so.  */
   if (! location->arrived)
     {
-      EMACS_INT timeout = max (0, x_selection_timeout);
-      EMACS_INT secs = timeout / 1000;
+      intmax_t timeout = max (0, x_selection_timeout);
+      intmax_t secs = timeout / 1000;
       int nsecs = (timeout % 1000) * 1000000;
-      TRACE2 ("  Waiting %"pI"d secs, %d nsecs", secs, nsecs);
+      TRACE2 ("  Waiting %"PRIdMAX" secs, %d nsecs", secs, nsecs);
       wait_reading_process_output (secs, nsecs, 0, false,
 				   property_change_reply, NULL, 0);
 
@@ -1157,8 +1158,6 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   Atom type_atom = (CONSP (target_type)
 		    ? symbol_to_x_atom (dpyinfo, XCAR (target_type))
 		    : symbol_to_x_atom (dpyinfo, target_type));
-  EMACS_INT timeout, secs;
-  int nsecs;
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
@@ -1194,10 +1193,10 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   unblock_input ();
 
   /* This allows quits.  Also, don't wait forever.  */
-  timeout = max (0, x_selection_timeout);
-  secs = timeout / 1000;
-  nsecs = (timeout % 1000) * 1000000;
-  TRACE1 ("  Start waiting %"pI"d secs for SelectionNotify", secs);
+  intmax_t timeout = max (0, x_selection_timeout);
+  intmax_t secs = timeout / 1000;
+  int nsecs = (timeout % 1000) * 1000000;
+  TRACE1 ("  Start waiting %"PRIdMAX" secs for SelectionNotify", secs);
   wait_reading_process_output (secs, nsecs, 0, false,
 			       reading_selection_reply, NULL, 0);
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
@@ -2138,7 +2137,7 @@ On Nextstep, TERMINAL is unused.  */)
 
 
 /* Send clipboard manager a SAVE_TARGETS request with a UTF8_STRING
-   property (http://www.freedesktop.org/wiki/ClipboardManager).  */
+   property (https://www.freedesktop.org/wiki/ClipboardManager/).  */
 
 static Lisp_Object
 x_clipboard_manager_save (Lisp_Object frame)
@@ -2173,9 +2172,10 @@ If the problem persists, set `%s' to nil.");
 static Lisp_Object
 x_clipboard_manager_error_2 (Lisp_Object err)
 {
-  fprintf (stderr, "Error saving to X clipboard manager.\n\
-If the problem persists, set '%s' \
-to nil.\n", "x-select-enable-clipboard-manager");
+  fputs (("Error saving to X clipboard manager.\n"
+	  "If the problem persists,"
+	  " set 'x-select-enable-clipboard-manager' to nil.\n"),
+	 stderr);
   return Qnil;
 }
 
@@ -2474,7 +2474,7 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
       data = (unsigned char *) idata;
     }
 
-  vec = Fmake_vector (make_fixnum (4), Qnil);
+  vec = make_nil_vector (4);
   ASET (vec, 0, SYMBOL_NAME (x_atom_to_symbol (FRAME_DISPLAY_INFO (f),
 					       event->message_type)));
   ASET (vec, 1, frame);
@@ -2613,6 +2613,9 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 }
 
 
+
+static void syms_of_xselect_for_pdumper (void);
+
 void
 syms_of_xselect (void)
 {
@@ -2628,16 +2631,8 @@ syms_of_xselect (void)
 
   reading_selection_reply = Fcons (Qnil, Qnil);
   staticpro (&reading_selection_reply);
-  reading_selection_window = 0;
-  reading_which_selection = 0;
 
-  property_change_wait_list = 0;
-  prop_location_identifier = 0;
-  property_change_reply = Fcons (Qnil, Qnil);
   staticpro (&property_change_reply);
-
-  converted_selections = NULL;
-  conversion_fail_tag = None;
 
   /* FIXME: Duplicate definition in nsselect.c.  */
   DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
@@ -2717,4 +2712,18 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (Qx_lost_selection_functions, "x-lost-selection-functions");
   DEFSYM (Qx_sent_selection_functions, "x-sent-selection-functions");
+
+  pdumper_do_now_and_after_load (syms_of_xselect_for_pdumper);
+}
+
+static void
+syms_of_xselect_for_pdumper (void)
+{
+  reading_selection_window = 0;
+  reading_which_selection = 0;
+  property_change_wait_list = 0;
+  prop_location_identifier = 0;
+  property_change_reply = Fcons (Qnil, Qnil);
+  converted_selections = NULL;
+  conversion_fail_tag = None;
 }

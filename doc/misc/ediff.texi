@@ -26,7 +26,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -210,11 +210,11 @@ ancestors.  Ediff selects only the files that are under version control.
 
 @item ediff-windows-wordwise
 @findex ediff-windows-wordwise
-Compare windows word-by-word.
+Compare text visible in 2 windows word-by-word.
 
 @item ediff-windows-linewise
 @findex ediff-windows-linewise
-Compare windows line-by-line.
+Compare text visible in 2 windows line-by-line.
 
 @item ediff-regions-wordwise
 @findex ediff-regions-wordwise
@@ -373,13 +373,12 @@ The commands @code{ediff-windows-wordwise},
 @code{ediff-windows-linewise}, @code{ediff-regions-wordwise} and
 @code{ediff-regions-linewise} do comparison on parts of existing Emacs
 buffers.  The commands @code{ediff-windows-wordwise} and
-@code{ediff-regions-wordwise} are intended for relatively small segments
-of buffers (e.g., up to 100 lines, depending on the speed of your machine),
+@code{ediff-regions-wordwise} could be slow on very large buffers,
 as they perform comparison on the basis of words rather than lines.
-(Word-wise comparison of large chunks of text can be slow.)
+(Word-wise comparison of large chunks of text is relatively expensive.)
 
-To compare large regions, use @code{ediff-regions-linewise}.  This
-command displays differences much like @code{ediff-files} and
+To compare very large regions, use @code{ediff-regions-linewise}.
+This command displays differences much like @code{ediff-files} and
 @code{ediff-buffers}.
 
 The functions @code{ediff-patch-file} and @code{ediff-patch-buffer} apply a
@@ -1148,7 +1147,7 @@ file (unlike what the @code{patch} utility would usually do).  Instead, the
 source file retains its name and the result of applying the patch is placed
 in a temporary file that has the suffix @file{_patched} attached.
 Generally, this applies to files that are handled using black magic, such
-as special file handlers (ange-ftp and some compression and encryption
+as special file name handlers (ange-ftp and some compression and encryption
 packages also use this method).
 
 Regular files are treated by the @code{patch} utility in the usual manner,
@@ -1198,10 +1197,6 @@ refer to Emacs manual for the information on how to set Emacs X resources.
 The bulk of customization can be done via the following hooks:
 
 @table @code
-@item ediff-load-hook
-@vindex ediff-load-hook
-This hook can be used to change defaults after Ediff is loaded.
-
 @item ediff-before-setup-hook
 @vindex ediff-before-setup-hook
 Hook that is run just before Ediff rearranges windows to its liking.
@@ -1212,8 +1207,8 @@ Can be used to save windows configuration.
 @vindex ediff-mode-map
 This hook can be used to alter bindings in Ediff's keymap,
 @code{ediff-mode-map}.  These hooks are
-run right after the default bindings are set but before
-@code{ediff-load-hook}.  The regular user needs not be concerned with this
+run right after the default bindings are set.
+The regular user needs not be concerned with this
 hook---it is provided for implementers of other Emacs packages built on top
 of Ediff.
 
@@ -1546,12 +1541,13 @@ directly (using @kbd{j})  to any numbered
 difference.
 
 Users can supply their own functions to specify how Ediff should do
-selective browsing.  To change the default Ediff function, add a function to
-@code{ediff-load-hook} which will do the following assignments:
+selective browsing.  To change the default Ediff function, use
+something like the following:
 
 @example
-(setq ediff-hide-regexp-matches-function 'your-hide-function)
-(setq ediff-focus-on-regexp-matches-function 'your-focus-function)
+(with-eval-after-load 'ediff
+  (setq ediff-hide-regexp-matches-function 'your-hide-function)
+  (setq ediff-focus-on-regexp-matches-function 'your-focus-function))
 @end example
 
 @strong{Useful hint}: To specify a regexp that matches everything, don't
@@ -1729,22 +1725,16 @@ difference region in buffer A (this face is not a good choice, by the way).
 
 If you are unhappy with just @emph{some} of the aspects of the default
 faces, you can modify them when Ediff is being loaded using
-@code{ediff-load-hook}.  For instance:
+@code{with-eval-after-load}.  For instance:
 
 @smallexample
-(add-hook 'ediff-load-hook
-          (lambda ()
-            (set-face-foreground
-              ediff-current-diff-face-B "blue")
-            (set-face-background
-              ediff-current-diff-face-B "red")
-            (make-face-italic
-              ediff-current-diff-face-B)))
+(with-eval-after-load 'ediff
+  (set-face-foreground
+    ediff-current-diff-face-B "blue")
+  (set-face-background
+    ediff-current-diff-face-B "red")
+  (make-face-italic ediff-current-diff-face-B))
 @end smallexample
-
-@strong{Please note:} to set Ediff's faces, use only @code{copy-face}
-or @code{set/make-face-@dots{}} as shown above. Emacs's low-level
-face-manipulation functions should be avoided.
 
 @node Narrowing
 @section Narrowing
@@ -2422,7 +2412,7 @@ Boris Goldowsky <boris@@cs.rochester.edu> made it possible to highlight
 fine differences in Ediff buffers.  Alastair Burt <burt@@dfki.uni-kl.de>
 ported Ediff to XEmacs, Eric Freudenthal <freudent@@jan.ultra.nyu.edu>
 made it work with VC, Marc Paquette <marcpa@@cam.org> wrote the
-toolbar support package for Ediff, and Hrvoje Niksic <hniksic@@xemacs.org>
+toolbar support package for Ediff, and Hrvoje Nikšić <hniksic@@xemacs.org>
 adapted it to the Emacs customization package.
 
 Many people provided help with bug reports, feature suggestions, and advice.

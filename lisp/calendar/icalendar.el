@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -344,17 +344,8 @@ mix of different line endings."
     (while (re-search-forward "\r\n\\|\n\r" nil t)
       (replace-match "\n" nil nil))))
 
-(defsubst icalendar--rris (regexp rep string &optional fixedcase literal)
-  "Replace regular expression in string.
-Pass arguments REGEXP REP STRING FIXEDCASE LITERAL to
-`replace-regexp-in-string' (Emacs) or to `replace-in-string' (XEmacs)."
-  (cond ((fboundp 'replace-regexp-in-string)
-         ;; Emacs:
-         (replace-regexp-in-string regexp rep string fixedcase literal))
-        ((fboundp 'replace-in-string)
-         ;; XEmacs:
-         (save-match-data ;; apparently XEmacs needs save-match-data
-           (replace-in-string string regexp rep literal)))))
+(define-obsolete-function-alias 'icalendar--rris
+  'replace-regexp-in-string "27.1")
 
 (defun icalendar--read-element (invalue inparams)
   "Recursively read the next iCalendar element in the current buffer.
@@ -628,6 +619,7 @@ FIXME: multiple comma-separated values should be allowed!"
         (when (> (length isodatetimestring) 14)
           ;; seconds present
           (setq second (read (substring isodatetimestring 13 15))))
+	;; FIXME: Support subseconds.
         (when (and (> (length isodatetimestring) 15)
                    ;; UTC specifier present
                    (char-equal ?Z (aref isodatetimestring 15)))
@@ -643,12 +635,14 @@ FIXME: multiple comma-separated values should be allowed!"
               (setq year  (nth 2 mdy))))
         ;; create the decoded date-time
         ;; FIXME!?!
-        (condition-case nil
-            (decode-time (encode-time second minute hour day month year zone))
-          (error
-           (message "Cannot decode \"%s\"" isodatetimestring)
-           ;; hope for the best...
-           (list second minute hour day month year 0 nil 0))))
+	(let ((decoded-time (list second minute hour day month year
+				  nil -1 zone)))
+	  (condition-case nil
+	      (decode-time (encode-time decoded-time))
+	    (error
+	     (message "Cannot decode \"%s\"" isodatetimestring)
+	     ;; Hope for the best....
+	     decoded-time))))
     ;; isodatetimestring == nil
     nil))
 
@@ -701,6 +695,7 @@ FIXME: multiple comma-separated values should be allowed!"
                 (setq minutes (read (substring isodurationstring
                                                (match-beginning 10)
                                                (match-end 10)))))
+	    ;; FIXME: Support subseconds.
             (if (match-beginning 11)
                 (setq seconds (read (substring isodurationstring
                                                (match-beginning 12)
@@ -717,14 +712,17 @@ FIXME: multiple comma-separated values should be allowed!"
   "Add TIME1 to TIME2.
 Both times must be given in decoded form.  One of these times must be
 valid (year > 1900 or something)."
-  ;; FIXME: does this function exist already?
+  ;; FIXME: does this function exist already?  Can we use decoded-time-add?
   (decode-time (encode-time
-                (+ (nth 0 time1) (nth 0 time2))
-                (+ (nth 1 time1) (nth 1 time2))
-                (+ (nth 2 time1) (nth 2 time2))
-                (+ (nth 3 time1) (nth 3 time2))
-                (+ (nth 4 time1) (nth 4 time2))
-                (+ (nth 5 time1) (nth 5 time2))
+		;; FIXME: Support subseconds.
+		(time-convert (time-add (decoded-time-second time1)
+					(decoded-time-second time2))
+			      'integer)
+                (+ (decoded-time-minute time1) (decoded-time-minute time2))
+                (+ (decoded-time-hour time1) (decoded-time-hour time2))
+                (+ (decoded-time-day time1) (decoded-time-day time2))
+                (+ (decoded-time-month time1) (decoded-time-month time2))
+                (+ (decoded-time-year time1) (decoded-time-year time2))
                 nil
                 nil
                 ;;(or (nth 6 time1) (nth 6 time2)) ;; FIXME?
@@ -971,14 +969,14 @@ TIMESTRING and has the same result as \"9:00\"."
 
 (defun icalendar--convert-string-for-export (string)
   "Escape comma and other critical characters in STRING."
-  (icalendar--rris "," "\\\\," string))
+  (replace-regexp-in-string "," "\\\\," string))
 
 (defun icalendar--convert-string-for-import (string)
   "Remove escape chars for comma, semicolon etc. from STRING."
-  (icalendar--rris
-   "\\\\n" "\n " (icalendar--rris
-                  "\\\\\"" "\"" (icalendar--rris
-                                 "\\\\;" ";" (icalendar--rris
+  (replace-regexp-in-string
+   "\\\\n" "\n " (replace-regexp-in-string
+                  "\\\\\"" "\"" (replace-regexp-in-string
+                                 "\\\\;" ";" (replace-regexp-in-string
                                               "\\\\," "," string)))))
 
 ;; ======================================================================
@@ -1225,7 +1223,7 @@ Returns an alist."
 		 (setq ct (+ ct 1))
                  (setq pos-uid (* 2 ct)))) )
         (mapc (lambda (ij)
-                (setq s (icalendar--rris (car ij) (cadr ij) s t t)))
+                (setq s (replace-regexp-in-string (car ij) (cadr ij) s t t)))
               (list
                ;; summary must be first! because of %s
                (list "%s"
@@ -1246,7 +1244,7 @@ Returns an alist."
                      (concat "\\(" icalendar-import-format-uid "\\)??"))))
 	;; Need the \' regexp in order to detect multi-line items
         (setq s (concat "\\`"
-			   (icalendar--rris "%s" "\\(.*?\\)" s nil t)
+                        (replace-regexp-in-string "%s" "\\(.*?\\)" s nil t)
                         "\\'"))
         (if (string-match s summary-and-rest)
             (let (cla des loc org sta url uid) ;; sum
@@ -1388,7 +1386,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
         (when starttimestring
           (unless endtimestring
             (let ((time
-                   (read (icalendar--rris "^T0?" ""
+                   (read (replace-regexp-in-string "^T0?" ""
                                           starttimestring))))
               (if (< time 230000)
                   ;; Case: ends on same day
@@ -1476,7 +1474,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
         (when starttimestring
           (unless endtimestring
             (let ((time (read
-                         (icalendar--rris "^T0?" ""
+                         (replace-regexp-in-string "^T0?" ""
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
@@ -1563,7 +1561,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
         (when starttimestring
           (unless endtimestring
             (let ((time (read
-                         (icalendar--rris "^T0?" ""
+                         (replace-regexp-in-string "^T0?" ""
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
@@ -1596,8 +1594,7 @@ regular expression matching the start of non-marking entries.
 ENTRY-MAIN is the first line of the diary entry.
 
 Optional argument START determines the first day of the
-enumeration, given as a time value, in same format as returned by
-`current-time' -- used for test purposes."
+enumeration, given as a Lisp time value -- used for test purposes."
   (cond ((string-match (concat nonmarker
                                "%%(and \\(([^)]+)\\))\\(\\s-*.*?\\) ?$")
                        entry-main)
@@ -1621,11 +1618,10 @@ enumeration, given as a time value, in same format as returned by
                    (mapcar
                     (lambda (offset)
                       (let* ((day (decode-time (time-add now
-                                                         (seconds-to-time
-                                                          (* offset 60 60 24)))))
-                             (d (nth 3 day))
-                             (m (nth 4 day))
-                             (y (nth 5 day))
+							 (* 60 60 24 offset))))
+                             (d (decoded-time-day day))
+                             (m (decoded-time-month day))
+                             (y (decoded-time-year day))
                              (se (diary-sexp-entry p1 p2 (list m d y)))
                              (see (cond ((stringp se) se)
                                         ((consp se) (cdr se))
@@ -1699,7 +1695,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
         (when starttimestring
           (unless endtimestring
             (let ((time
-                   (read (icalendar--rris "^T0?" ""
+                   (read (replace-regexp-in-string "^T0?" ""
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
@@ -1742,7 +1738,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                (n (nth 3 sexp))
                (day (nth 4 sexp))
                (summary
-		(replace-regexp-in-string
+                (replace-regexp-in-string
 		 "\\(^\s+\\|\s+$\\)" ""
 		 (buffer-substring (point) (point-max)))))
 
@@ -1852,7 +1848,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
         (when starttimestring
           (unless endtimestring
             (let ((time
-                   (read (icalendar--rris "^T0?" ""
+                   (read (replace-regexp-in-string "^T0?" ""
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
@@ -1921,7 +1917,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
         (when starttimestring
           (unless endtimestring
             (let ((time
-                   (read (icalendar--rris "^T0?" ""
+                   (read (replace-regexp-in-string "^T0?" ""
                                           starttimestring))))
               (setq endtimestring (format "T%06d"
                                           (+ 10000 time))))))
@@ -2046,12 +2042,12 @@ buffer `*icalendar-errors*'."
 		   (formatted-contents ""))
 	      (when (and contents (> (length contents) 0))
 		(setq formatted-contents
-		      (icalendar--rris "%s"
+		      (replace-regexp-in-string "%s"
 				       (icalendar--convert-string-for-import
 					contents)
 				       (symbol-value format)
 				       t t)))
-	      (setq string (icalendar--rris spec
+	      (setq string (replace-regexp-in-string spec
 					    formatted-contents
 					    string
 					    t t))))
@@ -2090,7 +2086,9 @@ written into the buffer `*icalendar-errors*'."
                                                              dtstart-zone))
                  (start-d (icalendar--datetime-to-diary-date
                            dtstart-dec))
-                 (start-t (icalendar--datetime-to-colontime dtstart-dec))
+                 (start-t (and dtstart
+                               (> (length dtstart) 8)
+                               (icalendar--datetime-to-colontime dtstart-dec)))
                  (dtend (icalendar--get-event-property e 'DTEND))
                  (dtend-zone (icalendar--find-time-zone
  			      (icalendar--get-event-property-attributes
@@ -2143,8 +2141,7 @@ written into the buffer `*icalendar-errors*'."
                                     (icalendar--get-event-property-attributes
                                      e 'DTEND))
                                    "DATE")))
-                            (icalendar--datetime-to-colontime dtend-dec)
-                          start-t))
+                            (icalendar--datetime-to-colontime dtend-dec)))
             (icalendar--dmsg "start-d: %s, end-d: %s" start-d end-d)
             (cond
              ;; recurring event
@@ -2444,7 +2441,7 @@ END-T is the event's end time in diary format."
                (ex-d (icalendar--datetime-to-diary-date
                       ex-start)))
           (setq result
-                (icalendar--rris "^%%(\\(and \\)?"
+                (replace-regexp-in-string "^%%(\\(and \\)?"
                                  (format
                                   "%%%%(and (not (diary-date %s)) "
                                   ex-d)
@@ -2502,20 +2499,10 @@ the entry."
     (when summary
       (setq non-marking
             (y-or-n-p (format "Make appointment non-marking? "))))
-    (save-window-excursion
-      (unless diary-filename
-        (setq diary-filename
-              (read-file-name "Add appointment to this diary file: ")))
-      ;; Note: diary-make-entry will add a trailing blank char.... :(
-      (funcall (if (fboundp 'diary-make-entry)
-                   'diary-make-entry
-                 'make-diary-entry)
-               string non-marking diary-filename)))
-  ;; Würgaround to remove the trailing blank char
-  (with-current-buffer (find-file diary-filename)
-    (goto-char (point-max))
-    (if (= (char-before) ? )
-        (delete-char -1)))
+    (unless diary-filename
+      (setq diary-filename
+            (read-file-name "Add appointment to this diary file: ")))
+    (diary-make-entry string non-marking diary-filename t t))
   ;; return diary-filename in case it has been changed interactively
   diary-filename)
 

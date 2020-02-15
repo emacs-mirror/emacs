@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Richard M. Stallman
 ;; Maintainer: emacs-devel@gnu.org
@@ -49,6 +49,36 @@
 ;; It gets modified in place when menu-bar-update-buffers is called.
 (defvar global-buffers-menu-map (make-sparse-keymap "Buffers"))
 
+(defvar menu-bar-print-menu
+  (let ((menu (make-sparse-keymap "Print")))
+    (bindings--define-key menu [ps-print-region]
+      '(menu-item "PostScript Print Region (B+W)" ps-print-region
+                  :enable mark-active
+                  :help "Pretty-print marked region in black and white to PostScript printer"))
+    (bindings--define-key menu [ps-print-buffer]
+      '(menu-item "PostScript Print Buffer (B+W)" ps-print-buffer
+                  :enable (menu-bar-menu-frame-live-and-visible-p)
+                  :help "Pretty-print current buffer in black and white to PostScript printer"))
+    (bindings--define-key menu [ps-print-region-faces]
+      '(menu-item "PostScript Print Region"
+                  ps-print-region-with-faces
+                  :enable mark-active
+                  :help "Pretty-print marked region to PostScript printer"))
+    (bindings--define-key menu [ps-print-buffer-faces]
+      '(menu-item "PostScript Print Buffer"
+                  ps-print-buffer-with-faces
+                  :enable (menu-bar-menu-frame-live-and-visible-p)
+                  :help "Pretty-print current buffer to PostScript printer"))
+    (bindings--define-key menu [print-region]
+      '(menu-item "Print Region" print-region
+                  :enable mark-active
+                  :help "Print region between mark and current position"))
+    (bindings--define-key menu [print-buffer]
+      '(menu-item "Print Buffer" print-buffer
+                  :enable (menu-bar-menu-frame-live-and-visible-p)
+                  :help "Print current buffer with page headings"))
+    menu))
+
 ;; Only declared obsolete (and only made a proper alias) in 23.3.
 (define-obsolete-variable-alias
   'menu-bar-files-menu 'menu-bar-file-menu "22.1")
@@ -63,6 +93,25 @@
     (bindings--define-key menu [separator-exit]
       menu-bar-separator)
 
+    (bindings--define-key menu [print]
+      `(menu-item "Print" ,menu-bar-print-menu))
+
+    (bindings--define-key menu [separator-print]
+      menu-bar-separator)
+
+    (unless (featurep 'ns)
+      (bindings--define-key menu [close-tab]
+        '(menu-item "Close Tab" tab-close
+                    :visible (fboundp 'tab-close)
+                    :help "Close currently selected tab"))
+      (bindings--define-key menu [make-tab]
+        '(menu-item "New Tab" tab-new
+                    :visible (fboundp 'tab-new)
+                    :help "Open a new tab"))
+
+      (bindings--define-key menu [separator-tab]
+        menu-bar-separator))
+
     ;; Don't use delete-frame as event name because that is a special
     ;; event.
     (bindings--define-key menu [delete-this-frame]
@@ -70,6 +119,10 @@
                   :visible (fboundp 'delete-frame)
                   :enable (delete-frame-enabled-p)
                   :help "Delete currently selected frame"))
+    (bindings--define-key menu [make-frame-on-monitor]
+      '(menu-item "New Frame on Monitor..." make-frame-on-monitor
+                  :visible (fboundp 'make-frame-on-monitor)
+                  :help "Open a new frame on another monitor"))
     (bindings--define-key menu [make-frame-on-display]
       '(menu-item "New Frame on Display..." make-frame-on-display
                   :visible (fboundp 'make-frame-on-display)
@@ -100,36 +153,6 @@
                   :help "Make new window below selected one"))
 
     (bindings--define-key menu [separator-window]
-      menu-bar-separator)
-
-    (bindings--define-key menu [ps-print-region]
-      '(menu-item "PostScript Print Region (B+W)" ps-print-region
-                  :enable mark-active
-                  :help "Pretty-print marked region in black and white to PostScript printer"))
-    (bindings--define-key menu [ps-print-buffer]
-      '(menu-item "PostScript Print Buffer (B+W)" ps-print-buffer
-                  :enable (menu-bar-menu-frame-live-and-visible-p)
-                  :help "Pretty-print current buffer in black and white to PostScript printer"))
-    (bindings--define-key menu [ps-print-region-faces]
-      '(menu-item "PostScript Print Region"
-                  ps-print-region-with-faces
-                  :enable mark-active
-                  :help "Pretty-print marked region to PostScript printer"))
-    (bindings--define-key menu [ps-print-buffer-faces]
-      '(menu-item "PostScript Print Buffer"
-                  ps-print-buffer-with-faces
-                  :enable (menu-bar-menu-frame-live-and-visible-p)
-                  :help "Pretty-print current buffer to PostScript printer"))
-    (bindings--define-key menu [print-region]
-      '(menu-item "Print Region" print-region
-                  :enable mark-active
-                  :help "Print region between mark and current position"))
-    (bindings--define-key menu [print-buffer]
-      '(menu-item "Print Buffer" print-buffer
-                  :enable (menu-bar-menu-frame-live-and-visible-p)
-                  :help "Print current buffer with page headings"))
-
-    (bindings--define-key menu [separator-print]
       menu-bar-separator)
 
     (bindings--define-key menu [recover-session]
@@ -277,6 +300,15 @@
 ;; The Edit->Search->Incremental Search menu
 (defvar menu-bar-i-search-menu
   (let ((menu (make-sparse-keymap "Incremental Search")))
+    (bindings--define-key menu [isearch-forward-symbol-at-point]
+      '(menu-item "Forward Symbol at Point..." isearch-forward-symbol-at-point
+        :help "Search forward for a symbol found at point"))
+    (bindings--define-key menu [isearch-forward-symbol]
+      '(menu-item "Forward Symbol..." isearch-forward-symbol
+        :help "Search forward for a symbol as you type it"))
+    (bindings--define-key menu [isearch-forward-word]
+      '(menu-item "Forward Word..." isearch-forward-word
+        :help "Search forward for a word as you type it"))
     (bindings--define-key menu [isearch-backward-regexp]
       '(menu-item "Backward Regexp..." isearch-backward-regexp
         :help "Search backwards for a regular expression as you type it"))
@@ -300,7 +332,7 @@
       menu-bar-separator)
 
     (bindings--define-key menu [tags-continue]
-      '(menu-item "Continue Tags Search" multifile-continue
+      '(menu-item "Continue Tags Search" fileloop-continue
                   :help "Continue last tags search operation"))
     (bindings--define-key menu [tags-srch]
       '(menu-item "Search Tagged Files..." tags-search
@@ -349,7 +381,7 @@
 (defvar menu-bar-replace-menu
   (let ((menu (make-sparse-keymap "Replace")))
     (bindings--define-key menu [tags-repl-continue]
-      '(menu-item "Continue Replace" multifile-continue
+      '(menu-item "Continue Replace" fileloop-continue
                   :help "Continue last tags replace operation"))
     (bindings--define-key menu [tags-repl]
       '(menu-item "Replace in Tagged Files..." tags-query-replace
@@ -423,15 +455,15 @@
   (let ((menu (make-sparse-keymap "Edit")))
 
     (bindings--define-key menu [props]
-      `(menu-item "Text Properties" facemenu-menu))
+      '(menu-item "Text Properties" facemenu-menu))
 
     ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
         (bindings--define-key menu [spell]
-          `(menu-item "Spell" ispell-menu-map)))
+          '(menu-item "Spell" ispell-menu-map)))
 
     (bindings--define-key menu [fill]
-      `(menu-item "Fill" fill-region
+      '(menu-item "Fill" fill-region
                   :enable (and mark-active (not buffer-read-only))
                   :help
                   "Fill text in region to fit between left and right margin"))
@@ -440,7 +472,7 @@
       menu-bar-separator)
 
     (bindings--define-key menu [bookmark]
-      `(menu-item "Bookmarks" menu-bar-bookmark-map))
+      '(menu-item "Bookmarks" menu-bar-bookmark-map))
 
     (bindings--define-key menu [goto]
       `(menu-item "Go To" ,menu-bar-goto-menu))
@@ -678,7 +710,7 @@ The selected font will be the default on both the existing and future frames."
 		   ;; side-effect that turning them off via X
 		   ;; resources acts like having customized them, but
 		   ;; that seems harmless.
-		   menu-bar-mode tool-bar-mode))
+		   menu-bar-mode tab-bar-mode tool-bar-mode))
       ;; FIXME ? It's a little annoying that running this command
       ;; always loads cua-base, paren, time, and battery, even if they
       ;; have not been customized in any way.  (Due to custom-load-symbol.)
@@ -1109,46 +1141,58 @@ The selected font will be the default on both the existing and future frames."
       (global-display-line-numbers-mode)
     (display-line-numbers-mode)))
 
+(defun menu-bar--display-line-numbers-mode-visual ()
+  "Turn on visual line number mode."
+  (interactive)
+  (menu-bar-display-line-numbers-mode 'visual)
+  (message "Visual line numbers enabled"))
+
+(defun menu-bar--display-line-numbers-mode-relative ()
+  "Turn on relative line number mode."
+  (interactive)
+  (menu-bar-display-line-numbers-mode 'relative)
+  (message "Relative line numbers enabled"))
+
+(defun menu-bar--display-line-numbers-mode-absolute ()
+  "Turn on absolute line number mode."
+  (interactive)
+  (menu-bar-display-line-numbers-mode t)
+  (setq display-line-numbers t)
+  (message "Absolute line numbers enabled"))
+
+(defun menu-bar--display-line-numbers-mode-none ()
+  "Disable line numbers."
+  (interactive)
+  (menu-bar-display-line-numbers-mode nil)
+  (message "Line numbers disabled"))
+
 (defvar menu-bar-showhide-line-numbers-menu
   (let ((menu (make-sparse-keymap "Line Numbers")))
 
     (bindings--define-key menu [visual]
-      `(menu-item "Visual Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode 'visual)
-                     (message "Visual line numbers enabled"))
+      '(menu-item "Visual Line Numbers"
+                  menu-bar--display-line-numbers-mode-visual
                   :help "Enable visual line numbers"
                   :button (:radio . (eq display-line-numbers 'visual))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [relative]
-      `(menu-item "Relative Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode 'relative)
-                     (message "Relative line numbers enabled"))
+      '(menu-item "Relative Line Numbers"
+                  menu-bar--display-line-numbers-mode-relative
                   :help "Enable relative line numbers"
                   :button (:radio . (eq display-line-numbers 'relative))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [absolute]
-      `(menu-item "Absolute Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode t)
-                     (setq display-line-numbers t)
-                     (message "Absolute line numbers enabled"))
+      '(menu-item "Absolute Line Numbers"
+                  menu-bar--display-line-numbers-mode-absolute
                   :help "Enable absolute line numbers"
                   :button (:radio . (eq display-line-numbers t))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [none]
-      `(menu-item "No Line Numbers"
-                  ,(lambda ()
-                     (interactive)
-                     (menu-bar-display-line-numbers-mode nil)
-                     (message "Line numbers disabled"))
+      '(menu-item "No Line Numbers"
+                  menu-bar--display-line-numbers-mode-none
                   :help "Disable line numbers"
                   :button (:radio . (null display-line-numbers))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
@@ -1207,6 +1251,12 @@ mail status in mode line"))
                                   (frame-visible-p
                                    (symbol-value 'speedbar-frame))))))
 
+    (bindings--define-key menu [showhide-tab-line-mode]
+      '(menu-item "Window Tab Line" global-tab-line-mode
+                  :help "Turn window-local tab-lines on/off"
+                  :visible (fboundp 'global-tab-line-mode)
+                  :button (:toggle . global-tab-line-mode)))
+
     (bindings--define-key menu [showhide-window-divider]
       `(menu-item "Window Divider" ,menu-bar-showhide-window-divider-menu
                   :visible (memq (window-system) '(x w32))))
@@ -1233,6 +1283,15 @@ mail status in mode line"))
                               (frame-parameter (menu-bar-frame-for-menubar)
                                                'menu-bar-lines)))))
 
+    (unless (featurep 'ns)
+      (bindings--define-key menu [showhide-tab-bar]
+        '(menu-item "Tab Bar" toggle-tab-bar-mode-from-frame
+                    :help "Turn tab bar on/off"
+                    :button
+                    (:toggle . (menu-bar-positive-p
+                                (frame-parameter (menu-bar-frame-for-menubar)
+                                                 'tab-bar-lines))))))
+
     (if (and (boundp 'menu-bar-showhide-tool-bar-menu)
              (keymapp menu-bar-showhide-tool-bar-menu))
         (bindings--define-key menu [showhide-tool-bar]
@@ -1249,16 +1308,33 @@ mail status in mode line"))
                                                  'tool-bar-lines))))))
     menu))
 
+(defun menu-bar--visual-line-mode-enable ()
+  "Enable visual line mode."
+  (interactive)
+  (unless visual-line-mode
+    (visual-line-mode 1))
+  (message "Visual-Line mode enabled"))
+
+(defun menu-bar--toggle-truncate-long-lines ()
+  "Toggle long lines mode."
+  (interactive)
+  (if visual-line-mode (visual-line-mode 0))
+  (setq word-wrap nil)
+  (toggle-truncate-lines 1))
+
+(defun menu-bar--wrap-long-lines-window-edge ()
+  "Wrap long lines at window edge."
+  (interactive)
+  (if visual-line-mode (visual-line-mode 0))
+  (setq word-wrap nil)
+  (if truncate-lines (toggle-truncate-lines -1)))
+
 (defvar menu-bar-line-wrapping-menu
   (let ((menu (make-sparse-keymap "Line Wrapping")))
 
     (bindings--define-key menu [word-wrap]
-      `(menu-item "Word Wrap (Visual Line mode)"
-                  ,(lambda ()
-                     (interactive)
-                     (unless visual-line-mode
-                       (visual-line-mode 1))
-                     (message "Visual-Line mode enabled"))
+      '(menu-item "Word Wrap (Visual Line mode)"
+                  menu-bar--visual-line-mode-enable
                   :help "Wrap long lines at word boundaries"
                   :button (:radio
                            . (and (null truncate-lines)
@@ -1267,12 +1343,8 @@ mail status in mode line"))
                   :visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (bindings--define-key menu [truncate]
-      `(menu-item "Truncate Long Lines"
-                  ,(lambda ()
-                     (interactive)
-                     (if visual-line-mode (visual-line-mode 0))
-                     (setq word-wrap nil)
-                     (toggle-truncate-lines 1))
+      '(menu-item "Truncate Long Lines"
+                  menu-bar--toggle-truncate-long-lines
                   :help "Truncate long lines at window edge"
                   :button (:radio . (or truncate-lines
                                         (truncated-partial-width-window-p)))
@@ -1280,11 +1352,8 @@ mail status in mode line"))
                   :enable (not (truncated-partial-width-window-p))))
 
     (bindings--define-key menu [window-wrap]
-      `(menu-item "Wrap at Window Edge"
-                  ,(lambda () (interactive)
-                     (if visual-line-mode (visual-line-mode 0))
-                     (setq word-wrap nil)
-                     (if truncate-lines (toggle-truncate-lines -1)))
+      '(menu-item "Wrap at Window Edge"
+                  menu-bar--wrap-long-lines-window-edge
                   :help "Wrap long lines at window edge"
                   :button (:radio
                            . (and (null truncate-lines)
@@ -1406,6 +1475,18 @@ mail status in mode line"))
        "Whether the cursor blinks (Blink Cursor mode)"))
     (bindings--define-key menu [cursor-separator]
       menu-bar-separator)
+
+    (bindings--define-key menu [save-desktop]
+      (menu-bar-make-toggle
+       toggle-save-desktop-globally desktop-save-mode
+       "Save State between Sessions"
+       "Saving desktop state %s"
+       "Visit desktop of previous session when restarting Emacs"
+       (require 'desktop)
+       ;; Do it by name, to avoid a free-variable
+       ;; warning during byte compilation.
+       (set-default
+	'desktop-save-mode (not (symbol-value 'desktop-save-mode)))))
 
     (bindings--define-key menu [save-place]
       (menu-bar-make-toggle
@@ -1580,6 +1661,27 @@ mail status in mode line"))
 
     menu))
 
+(defvar menu-bar-shell-commands-menu
+  (let ((menu (make-sparse-keymap "Shell Commands")))
+    (bindings--define-key menu [interactive-shell]
+      '(menu-item "Run Shell Interactively" shell
+                  :help "Run a subshell interactively"))
+
+    (bindings--define-key menu [async-shell-command]
+      '(menu-item "Async Shell Command..." async-shell-command
+                  :help "Invoke a shell command asynchronously in background"))
+
+    (bindings--define-key menu [shell-on-region]
+      '(menu-item "Shell Command on Region..." shell-command-on-region
+                  :enable mark-active
+                  :help "Pass marked region to a shell command"))
+
+    (bindings--define-key menu [shell]
+      '(menu-item "Shell Command..." shell-command
+                  :help "Invoke a shell command and catch its output"))
+
+    menu))
+
 (defun menu-bar-read-mail ()
   "Read mail using `read-mail-command'."
   (interactive)
@@ -1671,16 +1773,17 @@ mail status in mode line"))
     (bindings--define-key menu [gdb]
       '(menu-item "Debugger (GDB)..." gdb
                   :help "Debug a program from within Emacs with GDB"))
-    (bindings--define-key menu [shell-on-region]
-      '(menu-item "Shell Command on Region..." shell-command-on-region
-                  :enable mark-active
-                  :help "Pass marked region to a shell command"))
-    (bindings--define-key menu [shell]
-      '(menu-item "Shell Command..." shell-command
-                  :help "Invoke a shell command and catch its output"))
     (bindings--define-key menu [compile]
       '(menu-item "Compile..." compile
                   :help "Invoke compiler or Make, view compilation errors"))
+
+    (bindings--define-key menu [shell-commands]
+      `(menu-item "Shell Commands"
+                  ,menu-bar-shell-commands-menu))
+
+    (bindings--define-key menu [rgrep]
+      '(menu-item "Recursive Grep..." rgrep
+                  :help "Interactively ask for parameters and search recursively"))
     (bindings--define-key menu [grep]
       '(menu-item "Search Files (Grep)..." grep
                   :help "Search files for strings or regexps (with Grep)"))
@@ -1752,15 +1855,28 @@ key, a click, or a menu-item"))
   (interactive)
   (info "(emacs)Glossary"))
 
+(defun emacs-index--prompt ()
+  (let* ((default (thing-at-point 'sexp))
+         (topic
+          (read-from-minibuffer
+           (format "Subject to look up%s: "
+                   (if default
+                       (format " (default \"%s\")" default)
+                     ""))
+           nil nil nil nil default)))
+    (list (if (zerop (length topic))
+              default
+            topic))))
+
 (defun emacs-index-search (topic)
   "Look up TOPIC in the indices of the Emacs User Manual."
-  (interactive "sSubject to look up: ")
+  (interactive (emacs-index--prompt))
   (info "emacs")
   (Info-index topic))
 
 (defun elisp-index-search (topic)
   "Look up TOPIC in the indices of the Emacs Lisp Reference Manual."
-  (interactive "sSubject to look up: ")
+  (interactive (emacs-index--prompt))
   (info "elisp")
   (Info-index topic))
 
@@ -2353,6 +2469,7 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
   (let* ((map (cond
 	       ((keymapp menu) menu)
 	       ((and (listp menu) (keymapp (car menu))) menu)
+               ((not (listp menu)) nil)
 	       (t (let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
 			 (filter (when (symbolp map)
 				   (plist-get (get map 'menu-prop) :filter))))
@@ -2421,7 +2538,7 @@ form ((XOFFSET YOFFSET) WINDOW), or nil.
 If nil, the current mouse position is used, or nil if there is no mouse."
   (pcase position
     ;; nil -> mouse cursor position
-    (`nil
+    ('nil
      (let ((mp (mouse-pixel-position)))
        (list (list (cadr mp) (cddr mp)) (car mp))))
     ;; Value returned from `event-end' or `posn-at-point'.
@@ -2450,9 +2567,12 @@ first (leftmost) menu-bar item; you can select other items by typing
 
 This is meant to be used only for debugging TTY menus.")
 
-(defun menu-bar-open (&optional frame)
+(defun menu-bar-open (&optional frame initial-x)
   "Start key navigation of the menu bar in FRAME.
 
+Optional argument INITIAL-X gives the X coordinate of the
+first TTY menu-bar menu to be dropped down.  Interactively,
+this is the numeric argument to the command.
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
 `x-menu-bar-open'; on Windows, `w32-menu-bar-open'; otherwise it
@@ -2460,7 +2580,8 @@ calls either `popup-menu' or `tmm-menubar' depending on whether
 `tty-menu-open-use-tmm' is nil or not.
 
 If FRAME is nil or not given, use the selected frame."
-  (interactive)
+  (interactive
+   (list nil (prefix-numeric-value current-prefix-arg)))
   (let ((type (framep (or frame (selected-frame)))))
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
@@ -2473,7 +2594,7 @@ If FRAME is nil or not given, use the selected frame."
       ;; menu item that should be removed when we exit the minibuffer.
       (force-mode-line-update)
       (redisplay)
-      (let* ((x tty-menu--initial-menu-x)
+      (let* ((x (max initial-x tty-menu--initial-menu-x))
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
 		     (lookup-key-ignore-too-long

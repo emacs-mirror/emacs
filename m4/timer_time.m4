@@ -1,5 +1,5 @@
-# timer_time.m4 serial 3
-dnl Copyright (C) 2011-2018 Free Software Foundation, Inc.
+# timer_time.m4 serial 4
+dnl Copyright (C) 2011-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -16,7 +16,7 @@ AC_DEFUN([gl_TIMER_TIME],
   dnl Some packages like Emacs use --avoid=threadlib.
   dnl Write the symbol in such a way that it does not cause 'aclocal' to pick
   dnl the threadlib.m4 file that is installed in $PREFIX/share/aclocal/.
-  m4_ifdef([gl_][THREADLIB], [AC_REQUIRE([gl_][THREADLIB])])
+  m4_ifdef([gl_][PTHREADLIB], [AC_REQUIRE([gl_][PTHREADLIB])])
 
   LIB_TIMER_TIME=
   AC_SUBST([LIB_TIMER_TIME])
@@ -24,7 +24,7 @@ AC_DEFUN([gl_TIMER_TIME],
     AC_SEARCH_LIBS([timer_settime], [rt posix4],
                    [test "$ac_cv_search_timer_settime" = "none required" ||
                     LIB_TIMER_TIME=$ac_cv_search_timer_settime])
-    m4_ifdef([gl_][THREADLIB],
+    m4_ifdef([gl_][PTHREADLIB],
       [dnl GLIBC uses threads to emulate posix timers when kernel support
        dnl is not available (like Linux < 2.6 or when used with kFreeBSD)
        dnl Now the pthread lib is linked automatically in the normal case,
@@ -38,7 +38,7 @@ AC_DEFUN([gl_TIMER_TIME],
            #endif
           #endif
          ],
-         [LIB_TIMER_TIME="$LIB_TIMER_TIME $LIBMULTITHREAD"])])
+         [LIB_TIMER_TIME="$LIB_TIMER_TIME $LIBPMULTITHREAD"])])
     AC_CHECK_FUNCS([timer_settime])
   LIBS=$gl_saved_libs
 ])

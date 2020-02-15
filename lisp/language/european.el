@@ -1,6 +1,6 @@
 ;;; european.el --- support for European languages -*- coding: utf-8; -*-
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -525,7 +525,7 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
     (set-case-syntax ?ı "w" table)))
 
 ;; Polish ISO 8859-2 environment.
-;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>
+;; Maintainer: Włodek Bzyl <matwb@univ.gda.pl>
 ;; Keywords: multilingual, Polish
 
 (set-language-info-alist
@@ -541,7 +541,7 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
  '("European"))
 
 (set-language-info-alist
- "Welsh" `((coding-system utf-8 latin-8) ; the input method is Unicode-based
+ "Welsh" '((coding-system utf-8 latin-8) ; the input method is Unicode-based
 	   (coding-priority utf-8 latin-8)
 	   (nonascii-translation . iso-8859-14)
 	   (input-method . "welsh")
@@ -558,7 +558,7 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
  '("European"))
 
 (set-language-info-alist
- "Latin-7" `((coding-system latin-7)
+ "Latin-7" '((coding-system latin-7)
 	     (coding-priority latin-7)
 	     (nonascii-translation . iso-8859-13)
 	     (input-method . "latin-prefix")
@@ -566,7 +566,7 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
  '("European"))
 
 (set-language-info-alist
- "Lithuanian" `((coding-system latin-7 windows-1257)
+ "Lithuanian" '((coding-system latin-7 windows-1257)
 		(coding-priority latin-7)
 		(nonascii-translation . iso-8859-13)
 		(input-method . "lithuanian-keyboard")
@@ -574,7 +574,7 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
  '("European"))
 
 (set-language-info-alist
- "Latvian" `((coding-system latin-7 windows-1257)
+ "Latvian" '((coding-system latin-7 windows-1257)
 	     (coding-priority latin-7)
 	     (nonascii-translation . iso-8859-13)
 	     (input-method . "latvian-keyboard")

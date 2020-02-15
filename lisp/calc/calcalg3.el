@@ -1,6 +1,6 @@
 ;;; calcalg3.el --- more algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -40,7 +40,7 @@
 
 
 (defun math-map-binop (binop args1 args2)
-  "Apply BINOP to the elements of the lists ARGS1 and ARGS2"
+  "Apply BINOP to the elements of the lists ARGS1 and ARGS2."
   (if args1
       (cons
        (funcall binop (car args1) (car args2))

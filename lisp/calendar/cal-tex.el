@@ -1,10 +1,10 @@
 ;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
-;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Calendar, LaTeX
 ;; Package: calendar
@@ -71,7 +71,7 @@
 (defcustom cal-tex-which-days '(0 1 2 3 4 5 6)
   "The days of the week that are displayed on the portrait monthly calendar.
 Sunday is 0, Monday is 1, and so on.  The default is to print from Sunday to
-Saturday.  For example, use '(1 3 5) to only print Monday, Wednesday, Friday."
+Saturday.  For example, (1 3 5) prints only Monday, Wednesday, Friday."
   :type '(repeat integer)
   :group 'calendar-tex)
 
@@ -109,7 +109,7 @@ date in the weekly calendars, and in the top center of daily calendars.
 The default is ordinal day number of the year and the number of
 days remaining.  As an example, setting this to
 
-    '(calendar-hebrew-date-string date)
+    (calendar-hebrew-date-string date)
 
 will put the Hebrew date at the bottom of each day."
   :type 'sexp
@@ -925,7 +925,7 @@ argument EVENT specifies a different buffer position."
         (cal-tex-large-bf (cal-tex-LaTeXify-string (calendar-day-name date)))
         (insert ", ")
         (cal-tex-large-bf (cal-tex-month-name month))
-        (insert " ")
+        (insert "\\ ")
         (cal-tex-large-bf (number-to-string day))
         (unless (string-equal "" (setq s (cal-tex-latexify-list
                                           holidays date "; ")))
@@ -976,7 +976,7 @@ shown are hard-coded to 8-12, 13-17."
   (cal-tex-large-bf (cal-tex-LaTeXify-string (calendar-day-name date)))
   (insert ", ")
   (cal-tex-large-bf (cal-tex-month-name month))
-  (insert " ")
+  (insert "\\ ")
   (cal-tex-large-bf (number-to-string day))
   (unless (string-equal "" (setq s (cal-tex-latexify-list
                                     holidays date "; ")))

@@ -1,6 +1,6 @@
 ;;; javascript-jv.wy -- LALR grammar for Javascript
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1998-2011 Ecma International.
 
 ;; Author: Joakim Verona
@@ -25,7 +25,7 @@
 ;; The grammar itself is transcribed from the ECMAScript Language
 ;; Specification published at
 ;;
-;; http://www.ecma-international.org/publications/standards/Ecma-262.htm
+;; https://www.ecma-international.org/publications/standards/Ecma-262.htm
 ;;
 ;; and redistributed under the following license:
 
@@ -236,9 +236,9 @@
 %token <number>      NUMBER
 
 
-%token FALSE
-%token TRUE
-%token QUERY
+%token <false> FALSE
+%token <true> TRUE
+%token <query> QUERY
 
 
 %token NULL_TOKEN
@@ -296,18 +296,10 @@ FormalParameterList: OPEN_PARENTHESIS
 		     ()
 		   ;
 
-StatementList : Statement
-              | StatementList Statement
-              ;
-
 Block : BRACE_BLOCK
      ;; If you want to parse the body of the function
      ;; ( EXPANDFULL $1 BlockExpand )
       ;
-
-BlockExpand: START_BLOCK StatementList END_BLOCK
-	   | START_BLOCK END_BLOCK
-	   ;
 
 VariableStatement : VAR VariableDeclarationList SEMICOLON
 		    (VARIABLE-TAG $2 nil nil)

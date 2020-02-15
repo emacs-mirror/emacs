@@ -95,7 +95,8 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2020 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1775,7 +1776,7 @@ evaluated first, then @samp{*}, then @samp{/}, then finally
 is equivalent to
 
 @example
-2 + ((3*4*5) / (6*(7^8)) - 9
+2 + ((3*4*5) / (6*(7^8))) - 9
 @end example
 
 @noindent
@@ -2026,7 +2027,7 @@ You can also ``unstore'' a variable when you are through with it:
 
 @smallexample
 @group
-2:  2 + 5 => 5
+2:  2 + 3 => 5
 1:  2 a + 2 b => 2 a + 2 b
     .
 
@@ -11055,9 +11056,9 @@ Another day counting system in common use is, confusingly, also called
 is the numbers of days since 12:00 noon (GMT) on November 24, 4714 BC
 in the Gregorian calendar (i.e., January 1, 4713 BC in the Julian
 calendar).  In Calc's scheme (in GMT) the Julian day origin is
-@mathit{-1721422.5}, because Calc starts at midnight instead of noon.
+@mathit{-1721424.5}, because Calc starts at midnight instead of noon.
 Thus to convert a Calc date code obtained by unpacking a
-date form into a Julian day number, simply add 1721422.5 after
+date form into a Julian day number, simply add 1721424.5 after
 compensating for the time zone difference.  The built-in @kbd{t J}
 command performs this conversion for you.
 
@@ -14661,7 +14662,7 @@ conventions of Yacas, a free computer algebra system.  While the
 operators and functions in Yacas are similar to those of Calc, the names
 of built-in functions in Yacas are capitalized.  The Calc formula
 @samp{sin(2 x)}, for example, is entered and displayed @samp{Sin(2 x)}
-in Yacas mode,  and `@samp{arcsin(x^2)} is @samp{ArcSin(x^2)} in Yacas
+in Yacas mode,  and @samp{arcsin(x^2)} is @samp{ArcSin(x^2)} in Yacas
 mode.  Complex numbers are written  are written @samp{3 + 4 I}.
 The standard special constants are written @code{Pi}, @code{E},
 @code{I}, @code{GoldenRatio} and @code{Gamma}.  @code{Infinity}
@@ -27154,7 +27155,7 @@ anywhere in the formula.
 It is possible for a rule set to get into an infinite loop.  The
 most obvious case, replacing a formula with itself, is not a problem
 because a rule is not considered to ``succeed'' unless the righthand
-side actually comes out to something different than the original
+side actually comes out to something different from the original
 formula or sub-formula that was matched.  But if you accidentally
 had both @samp{ln(a b) := ln(a) + ln(b)} and the reverse
 @samp{ln(a) + ln(b) := ln(a b)} in your rule set, Calc would
@@ -28074,7 +28075,7 @@ for angstroms.
 
 The unit @code{pt} stands for pints; the name @code{point} stands for
 a typographical point, defined by @samp{72 point = 1 in}.  This is
-slightly different than the point defined by the American Typefounder's
+slightly different from the point defined by the American Typefounder's
 Association in 1886, but the point used by Calc has become standard
 largely due to its use by the PostScript page description language.
 There is also @code{texpt}, which stands for a printer's point as
@@ -35163,16 +35164,7 @@ which are called at various times.  Calc defines a number of hooks
 that help you to customize it in various ways.  Calc uses the Lisp
 function @code{run-hooks} to invoke the hooks shown below.  Several
 other customization-related variables are also described here.
-
-@defvar calc-load-hook
-This hook is called at the end of @file{calc.el}, after the file has
-been loaded, before any functions in it have been called, but after
-@code{calc-mode-map} and similar variables have been set up.
-@end defvar
-
-@defvar calc-ext-load-hook
-This hook is called at the end of @file{calc-ext.el}.
-@end defvar
+To run code after Calc has loaded, use @code{with-eval-after-load}.
 
 @defvar calc-start-hook
 This hook is called as the last step in a @kbd{M-x calc} command.

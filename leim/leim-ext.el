@@ -1,6 +1,6 @@
 ;; leim-ext.el -- extra leim configuration	-*- coding:utf-8; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -29,7 +29,9 @@
 ;;; Code:
 
 (eval-after-load "quail/PY-b5"
-  '(quail-defrule "ling2" ?○ nil t))
+  '(progn
+     (quail-defrule "ling2" ?〇 nil t)
+     (quail-defrule "wan2" ?○ nil t)))
 
 ;; Enable inputting full-width space (U+3000).
 (eval-after-load "quail/Punct"

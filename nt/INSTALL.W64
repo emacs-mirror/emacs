@@ -1,7 +1,7 @@
 	  Building and Installing Emacs on 64-bit MS-Windows
 		      using MSYS2 and MinGW-w64
 
-  Copyright (c) 2015-2018 Free Software Foundation, Inc.
+  Copyright (c) 2015-2020 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2
@@ -139,10 +139,10 @@ which 'make install' will use - in this example we set it to C:\emacs\emacs-26.
 If a prefix is not specified the files will be put in the standard Unix
 directories located in your C:\msys64 directory, but this is not recommended.
 
-Note also that we need to disable Imagemagick and D-Bus because Emacs
-does not yet support them on Windows.
+Note also that we need to disable D-Bus because Emacs does not yet
+support them on Windows.
 
-  ./configure --prefix=/c/emacs/emacs-26 --without-imagemagick --without-dbus
+  ./configure --prefix=/c/emacs/emacs-26 --without-dbus
 
 ** Run make
 

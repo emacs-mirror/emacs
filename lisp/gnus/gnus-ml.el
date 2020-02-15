@@ -1,8 +1,8 @@
 ;;; gnus-ml.el --- Mailing list minor mode for Gnus
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
-;; Author: Julien Gilles  <jgilles@free.fr>
+;; Author: Julien Gilles <jgilles@free.fr>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -58,7 +58,9 @@
 
 ;;;###autoload
 (defun turn-on-gnus-mailing-list-mode ()
-  (when (gnus-group-find-parameter gnus-newsgroup-name 'to-list)
+  (when (or (gnus-group-find-parameter gnus-newsgroup-name 'to-list)
+            (and gnus-mailing-list-groups
+                 (string-match gnus-mailing-list-groups gnus-newsgroup-name)))
     (gnus-mailing-list-mode 1)))
 
 ;;;###autoload
@@ -150,7 +152,7 @@ If FORCE is non-nil, replace the old ones."
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-archive"))))
     (cond (list-archive
-	   (if (string-match "<\\(http:[^>]*\\)>" list-archive)
+	   (if (string-match "<\\(https?:[^>]*\\)>" list-archive)
 	       (browse-url (match-string 1 list-archive))
 	     (browse-url list-archive)))
 	  (t (gnus-message 1 "no list-archive in this group")))))

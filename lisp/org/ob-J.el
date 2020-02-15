@@ -1,6 +1,6 @@
 ;;; ob-J.el --- Babel Functions for J                -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 ;; Keywords: literate programming, reproducible research
@@ -31,8 +31,8 @@
 ;;; Code:
 
 (require 'ob)
+(require 'org-macs)
 
-(declare-function org-trim "org" (s &optional keep-lead))
 (declare-function j-console-ensure-session "ext:j-console" ())
 
 (defcustom org-babel-J-command "jconsole"
@@ -72,7 +72,7 @@ PROCESSED-PARAMS isn't used yet."
 (defun org-babel-execute:J (body params)
   "Execute a block of J code BODY.
 PARAMS are given by org-babel.
-This function is called by `org-babel-execute-src-block'"
+This function is called by `org-babel-execute-src-block'."
   (message "executing J source code block")
   (let* ((processed-params (org-babel-process-params params))
 	 (sessionp (cdr (assq :session params)))

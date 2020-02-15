@@ -1,6 +1,6 @@
 ;;; url-parse.el --- Uniform Resource Locator parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -209,7 +209,7 @@ parses to
 	    ;; 3.3. Path
 	    (skip-chars-forward "^?#")
 	    ;; 3.4. Query
-	    (when (looking-at "?")
+	    (when (looking-at "\\?")
 	      (skip-chars-forward "^#"))
 	    (setq file (buffer-substring save-pos (point)))
 	    ;; 3.5 Fragment

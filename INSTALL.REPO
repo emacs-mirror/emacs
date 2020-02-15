@@ -1,8 +1,15 @@
 	     Building and Installing Emacs from the Repository
 
-Simply run 'make'.  This should work if your files are freshly checked
-out from the repository, and if you have the proper tools installed.
-If it doesn't work, or if you have special build requirements, the
+The Emacs repository is hosted on Savannah.  The following Git command
+will clone the repository to the 'emacs' subdirectory of the current
+directory on your local machine:
+
+    git clone git://git.sv.gnu.org/emacs.git
+
+To build the repository code, simply run 'make' in the 'emacs'
+directory.  This should work if your files are freshly checked out
+from the repository, and if you have the proper tools installed.  If
+it doesn't work, or if you have special build requirements, the
 following information may be helpful.
 
 Building Emacs from the source-code repository requires some tools
@@ -32,8 +39,8 @@ can invoke './configure -C'.  After configuring, build Emacs as follows:
 
   $ make
 
-If you want to install Emacs, type 'make install' instead of 'make' in
-the last command.
+You can also type 'make check' to test and 'make install' to install
+Emacs.
 
 Occasionally the file 'lisp/loaddefs.el' (and similar automatically
 generated files, such as 'esh-groups.el', and '*-loaddefs.el' in some
@@ -76,7 +83,7 @@ never platform-specific.
 
 
 
-Copyright (C) 2002-2018 Free Software Foundation, Inc.
+Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.    -*- coding: utf-8 -*-
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
-   Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      sequence.
 
    . It accepts a pointer to the end of the format string, so the format string
-     could include embedded null characters.
+     could include embedded NUL characters.
 
    . It signals an error if the length of the formatted string is about to
      overflow ptrdiff_t or size_t, to avoid producing strings longer than what
@@ -71,7 +71,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   is empty or l or the value of the pD or pI or pMd (sans "d") macros.
+   is empty or l or the value of the pD or pI or PRIdMAX (sans "d") macros.
    Also, %% in a format stands for a single % in the output.  A % that
    does not introduce a valid %-sequence causes undefined behavior.
 
@@ -88,7 +88,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    the respective argument is to be treated as `long int' or `unsigned long
    int'.  Similarly, the value of the pD macro means to use ptrdiff_t,
    the value of the pI macro means to use EMACS_INT or EMACS_UINT, the
-   value of the pMd etc. macros means to use intmax_t or uintmax_t,
+   value of the PRIdMAX etc. macros means to use intmax_t or uintmax_t,
    and the empty length modifier means `int' or `unsigned int'.
 
    The width specifier supplies a lower limit for the length of the printed
@@ -123,7 +123,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    to fit and return BUFSIZE - 1; if this truncates a multibyte
    sequence, store '\0' into the sequence's first byte.
    Returns the number of bytes stored into BUFFER, excluding
-   the terminating null byte.  Output is always null-terminated.
+   the terminating NUL byte.  Output is always NUL-terminated.
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 
@@ -179,7 +179,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	  enum {
 	    pDlen = sizeof pD - 1,
 	    pIlen = sizeof pI - 1,
-	    pMlen = sizeof pMd - 2
+	    pMlen = sizeof PRIdMAX - 2
 	  };
 	  enum {
 	    no_modifier, long_modifier, pD_modifier, pI_modifier, pM_modifier
@@ -234,7 +234,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		length_modifier = pD_modifier;
 	      if (mlen == pIlen && memcmp (fmt, pI, pIlen) == 0)
 		length_modifier = pI_modifier;
-	      if (mlen == pMlen && memcmp (fmt, pMd, pMlen) == 0)
+	      if (mlen == pMlen && memcmp (fmt, PRIdMAX, pMlen) == 0)
 		length_modifier = pM_modifier;
 	    }
 
@@ -357,8 +357,8 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
 	      string = va_arg (ap, char *);
-	      tem = strlen (string);
-	      if (STRING_BYTES_BOUND < tem)
+	      tem = strnlen (string, STRING_BYTES_BOUND + 1);
+	      if (tem == STRING_BYTES_BOUND + 1)
 		error ("String for %%s or %%S format is too long");
 	      width = strwidth (string, tem);
 	      goto doit1;

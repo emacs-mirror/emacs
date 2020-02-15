@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,12 +29,12 @@ const char *dynlib_error (void);
 
 ATTRIBUTE_MAY_ALIAS void *dynlib_sym (dynlib_handle_ptr h, const char *sym);
 
-typedef struct dynlib_function_ptr_nonce *(ATTRIBUTE_MAY_ALIAS *dynlib_function_ptr) (void);
+typedef void (ATTRIBUTE_MAY_ALIAS *dynlib_function_ptr) (void);
 dynlib_function_ptr dynlib_func (dynlib_handle_ptr h, const char *sym);
 
 /* Sets *FILE to the file name from which PTR was loaded, and *SYM to
    its symbol name.  If the file or symbol name could not be
    determined, set the corresponding argument to NULL.  */
-void dynlib_addr (void *ptr, const char **file, const char **sym);
+void dynlib_addr (void (*ptr) (void), const char **file, const char **sym);
 
 #endif /* DYNLIB_H */

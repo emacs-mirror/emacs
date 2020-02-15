@@ -1,6 +1,6 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;; Copyright (C) 2001-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -63,9 +63,9 @@ Each tag returned is of the form:
 or
  (\"NAME\" def)
 
-It is an override of 'parse-region and must be installed by the
+It is an override of `semantic-parse-region' and must be installed by the
 function `semantic-install-function-overrides'."
-  (mapcar 'semantic-texi-expand-tag
+  (mapcar #'semantic-texi-expand-tag
           (semantic-texi-parse-headings)))
 
 (defun semantic-texi-parse-changes ()
@@ -300,8 +300,8 @@ can handle the @menu environment.")
   texinfo-mode (&optional point)
   "Determine the class of tags that can be used at POINT.
 For texinfo, there two possibilities returned.
-1) 'function - for a call to a texinfo function
-2) 'word     - indicates an english word.
+1) `function' - for a call to a texinfo function
+2) `word'     - indicates an English word.
 It would be nice to know function arguments too, but not today."
   (let ((sym (semantic-ctxt-current-symbol)))
     (if (and sym (= (aref (car sym) 0) ?@))
@@ -389,12 +389,7 @@ Optional argument POINT is where to look for the environment."
 
 (defvar semantic-texi-command-completion-list
   (append (mapcar (lambda (a) (car a)) texinfo-section-list)
-	  (condition-case nil
-	      texinfo-environments
-	    (error
-	     ;; XEmacs doesn't use the above.  Split up its regexp
-	     (split-string texinfo-environment-regexp "\\\\|\\|\\^@\\\\(\\|\\\\)")
-	     ))
+	  texinfo-environments
 	  ;; Is there a better list somewhere?  Here are few
 	  ;; of the top of my head.
 	  "anchor" "asis"
@@ -413,15 +408,15 @@ Optional argument POINT is where to look for the environment."
   "List of commands that we might bother completing.")
 
 (define-mode-local-override semantic-analyze-possible-completions
-  texinfo-mode (context)
+  texinfo-mode (context &rest flags)
   "List smart completions at point.
 Since texinfo is not a programming language the default version is not
 useful.  Instead, look at the current symbol.  If it is a command
 do primitive texinfo built ins.  If not, use ispell to lookup words
 that start with that symbol."
-  (let ((prefix (car (oref context :prefix)))
+  (let ((prefix (car (oref context prefix)))
 	)
-    (cond ((member 'function (oref context :prefixclass))
+    (cond ((member 'function (oref context prefixclass))
 	   ;; Do completion for texinfo commands
 	   (let* ((cmd (substring prefix 1))
 		  (lst (all-completions
@@ -429,7 +424,7 @@ that start with that symbol."
 	     (mapcar (lambda (f) (semantic-tag (concat "@" f) 'function))
 		     lst))
 	   )
-	  ((member 'word (oref context :prefixclass))
+	  ((member 'word (oref context prefixclass))
 	   ;; Do completion for words via ispell.
 	   (require 'ispell)
 	   (let ((word-list (ispell-lookup-words prefix)))
@@ -451,8 +446,8 @@ that start with that symbol."
   "Set up a buffer for parsing of Texinfo files."
   ;; This will use our parser.
   (semantic-install-function-overrides
-   '((parse-region . semantic-texi-parse-region)
-     (parse-changes . semantic-texi-parse-changes)))
+   '((semantic-parse-region . semantic-texi-parse-region)
+     (semantic-parse-changes . semantic-texi-parse-changes)))
   (setq semantic-parser-name "TEXI"
         ;; Setup a dummy parser table to enable parsing!
         semantic--parse-table t

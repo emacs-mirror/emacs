@@ -4156,7 +4156,7 @@
 	coreutils.  Reported by Klaus Reichl
 	<Klaus.Reichl@thalesgroup.com>.
 
-2010-11-13  Hrvoje Niksic  <hniksic@xemacs.org>
+2010-11-13  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* simple.el (count-words-region): New function.
 
@@ -22802,7 +22802,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009-2018 Free Software Foundation, Inc.
+  Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

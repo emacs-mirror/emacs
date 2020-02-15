@@ -1,8 +1,8 @@
 ;;; sasl.el --- SASL client framework
 
-;; Copyright (C) 2000, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Daiki Ueno <ueno@unixuser.org>
+;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: SASL
 
 ;; This file is part of GNU Emacs.
@@ -35,8 +35,8 @@
 ;;; Code:
 
 (defvar sasl-mechanisms
-  '("SCRAM-SHA-1" "CRAM-MD5" "DIGEST-MD5" "PLAIN" "LOGIN" "ANONYMOUS"
-    "NTLM"))
+  '("SCRAM-SHA-256" "SCRAM-SHA-1" "CRAM-MD5" "DIGEST-MD5" "PLAIN" "LOGIN"
+    "ANONYMOUS" "NTLM"))
 
 (defvar sasl-mechanism-alist
   '(("CRAM-MD5" sasl-cram)
@@ -45,6 +45,7 @@
     ("LOGIN" sasl-login)
     ("ANONYMOUS" sasl-anonymous)
     ("NTLM" sasl-ntlm)
+    ("SCRAM-SHA-256" sasl-scram-sha256)
     ("SCRAM-SHA-1" sasl-scram-rfc)))
 
 (defvar sasl-unique-id-function #'sasl-unique-id-function)

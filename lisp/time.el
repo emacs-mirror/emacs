@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2018 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -434,16 +434,17 @@ update which can wait for the next redisplay."
 		((and (stringp mail-spool-file)
 		      (or (null display-time-server-down-time)
 			  ;; If have been down for 20 min, try again.
-			  (< 1200 (- (float-time now)
-				     display-time-server-down-time))))
-		 (let ((start-time (float-time)))
+			  (time-less-p 1200 (time-since
+					     display-time-server-down-time))))
+		 (let ((start-time (current-time)))
 		   (prog1
 		       (display-time-file-nonempty-p mail-spool-file)
 		     ;; Record whether mail file is accessible.
 		     (setq display-time-server-down-time
-			   (let ((end-time (float-time)))
-			     (and (< 20 (- end-time start-time))
-				  end-time))))))))
+			   (let ((end-time (current-time)))
+			     (and (time-less-p 20 (time-subtract
+						   end-time start-time))
+				  (float-time end-time)))))))))
          (24-hours (substring time 11 13))
          (hour (string-to-number 24-hours))
          (12-hours (int-to-string (1+ (% (+ hour 11) 12))))
@@ -571,8 +572,9 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
   (interactive)
   (let ((str
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
-                         (float-time
-                          (time-subtract nil before-init-time)))))
+			 (time-convert
+			  (time-since before-init-time)
+			  'integer))))
     (if (called-interactively-p 'interactive)
         (message "%s" str)
       str)))
@@ -582,7 +584,7 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
   "Return a string giving the duration of the Emacs initialization."
   (interactive)
   (let ((str
-	 (format "%.1f seconds"
+	 (format "%s seconds"
 		 (float-time
 		  (time-subtract after-init-time before-init-time)))))
     (if (called-interactively-p 'interactive)

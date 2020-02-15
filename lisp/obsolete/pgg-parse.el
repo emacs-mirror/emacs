@@ -1,6 +1,6 @@
 ;;; pgg-parse.el --- OpenPGP packet parsing
 
-;; Copyright (C) 1999, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -123,10 +123,10 @@
 	 0))
 
 (defmacro pgg-byte-after (&optional pos)
-  `(pgg-char-int (char-after ,(or pos `(point)))))
+  `(pgg-char-int (char-after ,(or pos '(point)))))
 
 (defmacro pgg-read-byte ()
-  `(pgg-char-int (char-after (prog1 (point) (forward-char)))))
+  '(pgg-char-int (char-after (prog1 (point) (forward-char)))))
 
 (defmacro pgg-read-bytes-string (nbytes)
   `(buffer-substring

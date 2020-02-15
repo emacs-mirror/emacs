@@ -1,6 +1,6 @@
 ;;; puny.el --- translate non-ASCII domain names to ASCII
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, net
@@ -63,7 +63,10 @@ For instance, \"xn--ff-2sa.org\" => \"fśf.org\"."
   "Decode an IDNA/punycode-encoded string.
 For instance \"xn--bcher-kva\" => \"bücher\"."
   (if (string-match "\\`xn--" string)
-      (puny-decode-string-internal (substring string 4))
+      (condition-case nil
+          (puny-decode-string-internal (substring string 4))
+        ;; If the string is invalid Punycode, just return the string.
+        (args-out-of-range string))
     string))
 
 (defconst puny-initial-n 128)

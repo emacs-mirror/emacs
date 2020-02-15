@@ -1,6 +1,6 @@
 ;;; mailheader.el --- mail header parsing, merging, formatting
 
-;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This package provides an abstraction to RFC822-style messages, used in
+;; This package provides an abstraction of RFC 822 (or later) format, used in
 ;; mail, news, and some other systems.  The simple syntactic rules for such
 ;; headers, such as quoting and line folding, are routinely reimplemented
 ;; in many individual packages.  This package removes the need for this
@@ -99,7 +99,8 @@ value."
   headers)
 
 ;; Advertised part of the interface; see mail-header, mail-header-set.
-(defvar headers)
+(with-suppressed-warnings ((lexical headers))
+  (defvar headers))
 
 (defsubst mail-header (header &optional header-alist)
   "Return the value associated with header HEADER in HEADER-ALIST.

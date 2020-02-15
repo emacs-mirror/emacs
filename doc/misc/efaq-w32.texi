@@ -15,7 +15,7 @@ Answers to Frequently asked Questions about using Emacs on Microsoft Windows.
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2008, 2010-2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010--2020 Free Software Foundation, Inc.
 
 @quotation
 This list of frequently asked questions about GNU Emacs on MS Windows
@@ -125,10 +125,12 @@ systems.
 @cindex Windows, versions
 @cindex supported versions of Windows
 
-Emacs @value{EMACSVER} is known to run on all versions of Windows from
-Windows 98 and Windows NT 4.0 through to Windows 8.1.  The Windows
-port is built using the Win32 API and supports most features of the X
-version, including variable width fonts, images and tooltips.
+Emacs @value{EMACSVER} is known to run on all versions of Windows 9X
+from Windows 98 onward, and all versions of the NT family starting
+from NT 4.0; this includes all the modern versions from Windows XP and
+on.  The Windows port is built using the Win32 API and supports most
+features of the X version, including variable width fonts, images and
+tooltips.
 
 Emacs on Windows can be compiled as either a 32-bit or a 64-bit
 executable, using the MinGW GCC compiler and development tools.
@@ -1820,7 +1822,8 @@ If you want a quick solution without installing extra tools, a poor
 substitute that works for simple text searches is to specify the built
 in Windows command @command{findstr} as the command to run at the
 @kbd{M-x grep} prompt.  Normally you will want to use the @option{/n}
-argument to @command{findstr}.
+argument to @command{findstr}, to have it print the line numbers for
+each hit.
 
 @menu
 * Recursive grep::
@@ -1860,7 +1863,8 @@ path to the findutils @command{find} command.
 An alternative if you have a recent version of grep is to customize
 @code{grep-find-command} to use @samp{grep -r} instead of both find
 and grep.  Another alternative if you don't need the full capabilities
-of grep is to use @samp{findstr /n /r}.
+of grep is to use @samp{findstr /n /r}; add the @samp{/s} option if
+you want a recursive search.
 
 @c ------------------------------------------------------------
 @node Developing with Emacs

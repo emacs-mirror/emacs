@@ -1,6 +1,6 @@
 ;;; refill.el --- `auto-fill' by refilling paragraphs on changes
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>
@@ -169,7 +169,7 @@ complex processing.")
   (when refill-doit ; there was a change
     ;; There's probably scope for more special cases here...
     (pcase this-command
-      (`self-insert-command
+      ('self-insert-command
        ;; Treat self-insertion commands specially, since they don't
        ;; always reset `refill-doit' -- for self-insertion commands that
        ;; *don't* cause a refill, we want to leave it turned on so that
@@ -179,9 +179,9 @@ complex processing.")
 	 ;; newline, covered below).
 	 (refill-fill-paragraph-at refill-doit)
 	 (setq refill-doit nil)))
-      ((or `quoted-insert `fill-paragraph `fill-region) nil)
-      ((or `newline `newline-and-indent `open-line `indent-new-comment-line
-           `reindent-then-newline-and-indent)
+      ((or 'quoted-insert 'fill-paragraph 'fill-region) nil)
+      ((or 'newline 'newline-and-indent 'open-line 'indent-new-comment-line
+           'default-indent-new-line 'reindent-then-newline-and-indent)
        ;; Don't zap what was just inserted.
        (save-excursion
 	 (beginning-of-line)		; for newline-and-indent

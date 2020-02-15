@@ -1,8 +1,8 @@
 ;;; cedet-utests.el --- Run all unit tests in the CEDET suite.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -26,6 +26,20 @@
 ;; into one command.
 
 (require 'cedet)
+(require 'inversion)
+
+(defvar cedet-utest-directory
+  (let* ((C (file-name-directory (locate-library "cedet")))
+         (D (expand-file-name "../../test/manual/cedet/" C)))
+    D)
+  "Location of test files for this test suite.")
+
+(defvar cedet-utest-libs '("ede-tests"
+                           "semantic-tests"
+                           "srecode-tests"
+                           )
+  "List of test srcs that need to be loaded.")
+
 ;;; Code:
 (defvar cedet-utest-test-alist
   '(
@@ -38,7 +52,9 @@
 
     ;; EZ Image dumping.
     ("ezimage associations" . ezimage-image-association-dump)
-    ("ezimage images" . ezimage-image-dump)
+    ("ezimage images" . (lambda ()
+                          (ezimage-image-dump)
+                          (kill-buffer "*Ezimage Images*")))
 
     ;; Pulse
     ("pulse interactive test" . (lambda () (pulse-test t)))
@@ -49,15 +65,18 @@
     ;;
     ;; EIEIO
     ;;
-    ("eieio" . (lambda () (let ((lib (locate-library "eieio-tests.el"
-						     t)))
-			    (load-file lib))))
-    ("eieio: browser" . eieio-browse)
+
+    ("eieio: browser" . (lambda ()
+                          (eieio-browse)
+                          (kill-buffer "*EIEIO OBJECT BROWSE*")))
     ("eieio: custom" . (lambda ()
 			 (require 'eieio-custom)
-			 (customize-variable 'eieio-widget-test)))
+			 (customize-variable 'eieio-widget-test)
+                         (kill-buffer "*Customize Option: Eieio Widget Test*")
+                         ))
     ("eieio: chart" . (lambda ()
-			(if (cedet-utest-noninteractive)
+                        (require 'chart)
+			(if noninteractive
 			    (message " ** Skipping test in noninteractive mode.")
 			  (chart-test-it-all))))
     ;;
@@ -71,24 +90,27 @@
     ;; SEMANTIC
     ;;
     ("semantic: lex spp table write" . semantic-lex-spp-write-utest)
-    ("semantic: multi-lang parsing" . semantic-utest-main)
-    ("semantic: C preprocessor" . semantic-utest-c)
-    ("semantic: analyzer tests" . semantic-ia-utest)
+    ;;("semantic: multi-lang parsing" . semantic-utest-main)
+    ;;("semantic: C preprocessor" . semantic-utest-c) - Now in automated suite
+    ;;("semantic: analyzer tests" . semantic-ia-utest)
     ("semanticdb: data cache" . semantic-test-data-cache)
     ("semantic: throw-on-input" .
      (lambda ()
-       (if (cedet-utest-noninteractive)
+       (if noninteractive
 	   (message " ** Skipping test in noninteractive mode.")
 	 (semantic-test-throw-on-input))))
 
-    ("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+    ;;("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+
     ;;
     ;; SRECODE
     ;;
-    ("srecode: fields" . srecode-field-utest)
-    ("srecode: templates" . srecode-utest-template-output)
+
+    ;; TODO - fix the fields test
+    ;;("srecode: fields" . srecode-field-utest)
+    ;;("srecode: templates" . srecode-utest-template-output)
     ("srecode: show maps" . srecode-get-maps)
-    ("srecode: getset" . srecode-utest-getset-output)
+    ;;("srecode: getset" . srecode-utest-getset-output)
    )
   "Alist of all the tests in CEDET we should run.")
 
@@ -100,9 +122,11 @@
 EXIT-ON-ERROR causes the test suite to exit on an error, instead
 of just logging the error."
   (interactive)
-  (if (or (not (featurep 'semanticdb-mode))
+  (if (or (not (featurep 'semantic/db-mode))
 	  (not (semanticdb-minor-mode-p)))
-      (error "CEDET Tests require: M-x semantic-load-enable-minimum-features"))
+      (error "CEDET Tests require semantic-mode to be enabled"))
+  (dolist (L cedet-utest-libs)
+    (load-file (expand-file-name (concat L ".el") cedet-utest-directory)))
   (cedet-utest-log-setup "ALL TESTS")
   (let ((tl cedet-utest-test-alist)
 	(notes nil)
@@ -145,14 +169,13 @@ of just logging the error."
 
 (defun cedet-utest-noninteractive ()
   "Return non-nil if running non-interactively."
-  (if (featurep 'xemacs)
-      (noninteractive)
-    noninteractive))
+  (declare (obsolete nil "27.1"))
+  noninteractive)
 
 ;;;###autoload
 (defun cedet-utest-batch ()
   "Run the CEDET unit test in BATCH mode."
-  (unless (cedet-utest-noninteractive)
+  (unless noninteractive
     (error "`cedet-utest-batch' is to be used only with -batch"))
   (condition-case err
       (when (catch 'cedet-utest-exit-on-error
@@ -200,7 +223,7 @@ of just logging the error."
   "Setup a frame and buffer for unit testing.
 Optional argument TITLE is the title of this testing session."
   (setq cedet-utest-log-timer (current-time))
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       (message "\n>> Setting up %s tests to run @ %s\n"
 	       (or title "")
 	       (current-time-string))
@@ -245,7 +268,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 
 (defun cedet-utest-log-shutdown-msg (title startime endtime)
   "Show a shutdown message with TITLE, STARTIME, and ENDTIME."
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       (progn
 	(message "\n>> Test Suite %s ended at @ %s"
 		 title
@@ -266,7 +289,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 
 (defun cedet-utest-show-log-end ()
   "Show the end of the current unit test log."
-  (unless (cedet-utest-noninteractive)
+  (unless noninteractive
     (let* ((cb (current-buffer))
 	   (cf (selected-frame))
 	   (bw (or (get-buffer-window cedet-utest-buffer t)
@@ -282,7 +305,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 
 (defun cedet-utest-post-command-hook ()
   "Hook run after the current log command was run."
-    (if (cedet-utest-noninteractive)
+    (if noninteractive
 	(message "")
       (save-excursion
 	(set-buffer cedet-utest-buffer)
@@ -299,7 +322,7 @@ ERRORCONDITION is some error that may have occurred during testing."
     ;; This next line makes sure we clear out status during logging.
     (add-hook 'post-command-hook 'cedet-utest-post-command-hook)
 
-    (if (cedet-utest-noninteractive)
+    (if noninteractive
 	(message " - Running %s ..." item)
       (save-excursion
 	(set-buffer cedet-utest-buffer)
@@ -316,7 +339,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 Apply NOTES to the doneness of the log.
 Apply ERR if there was an error in previous item.
 Optional argument PRECR indicates to prefix the done msg w/ a newline."
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       ;; Non-interactive-mode - show a message.
       (if notes
 	  (message "   * %s {%s}" (or err "done") notes)
@@ -356,7 +379,7 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
 (defun cedet-utest-log(format &rest args)
   "Log the text string FORMAT.
 The rest of the ARGS are used to fill in FORMAT with `format'."
-  (if (cedet-utest-noninteractive)
+  (if noninteractive
       (apply 'message format args)
     (save-excursion
       (set-buffer cedet-utest-buffer)
@@ -490,7 +513,7 @@ When optional NO-ERROR don't throw an error if we can't run tests."
     (when (interactive-p)
       (message "<Press a key> Pulse line a specific color.")
       (read-char))
-    (pulse-momentary-highlight-one-line (point) 'modeline)
+    (pulse-momentary-highlight-one-line (point) 'mode-line)
     (when (interactive-p)
       (message "<Press a key> Pulse a pre-existing overlay.")
       (read-char))

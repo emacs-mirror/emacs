@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1992--1994, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
@@ -229,6 +229,12 @@ definition in a way that does not instrument.  There are two ways of
 evaluating forms that never instrument them: from a file with
 @code{load}, and from the minibuffer with @code{eval-expression}
 (@kbd{M-:}).
+
+@findex edebug-remove-instrumentation
+  A different way to remove the instrumentation from a definition is
+to use the @code{edebug-remove-instrumentation} command.  It also
+allows removing the instrumentation from everything that has been
+instrumented.
 
   @xref{Edebug Eval}, for other evaluation functions available
 inside of Edebug.
@@ -493,11 +499,22 @@ Edebug commands for breakpoints:
 Set a breakpoint at the stop point at or after point
 (@code{edebug-set-breakpoint}).  If you use a prefix argument, the
 breakpoint is temporary---it turns off the first time it stops the
-program.
+program.  An overlay with the @code{edebug-enabled-breakpoint} or
+@code{edebug-disabled-breakpoint} faces is put at the breakpoint.
 
 @item u
 Unset the breakpoint (if any) at the stop point at or after
 point (@code{edebug-unset-breakpoint}).
+
+@item U
+Unset any breakpoints in the current form
+(@code{edebug-unset-breakpoints}).
+
+@item D
+Toggle whether to disable the breakpoint near point
+(@code{edebug-toggle-disable-breakpoint}).  This command is mostly
+useful if the breakpoint is conditional and it would take some work to
+recreate the condition.
 
 @item x @var{condition} @key{RET}
 Set a conditional breakpoint which stops the program only if
@@ -690,7 +707,9 @@ Evaluate expression @var{exp} in the context of Edebug itself
 
 @item C-x C-e
 Evaluate the expression before point, in the context outside of Edebug
-(@code{edebug-eval-last-sexp}).
+(@code{edebug-eval-last-sexp}).  With the prefix argument of zero
+(@kbd{C-u 0 C-x C-e}), don't shorten long items (like strings and
+lists).
 @end table
 
 @cindex lexical binding (Edebug)
@@ -720,8 +739,10 @@ Manual}) as well as these special commands:
 
 @table @kbd
 @item C-j
-Evaluate the expression before point, in the outside context, and insert
-the value in the buffer (@code{edebug-eval-print-last-sexp}).
+Evaluate the expression before point, in the outside context, and
+insert the value in the buffer (@code{edebug-eval-print-last-sexp}).
+With prefix argument of zero (@kbd{C-u 0 C-j}), don't shorten long
+items (like strings and lists).
 
 @item C-x C-e
 Evaluate the expression before point, in the context outside of Edebug
@@ -1340,6 +1361,11 @@ No argument is matched but backtracking through the gate is disabled
 while matching the remainder of the specifications at this level.  This
 is primarily used to generate more specific syntax error messages.  See
 @ref{Backtracking}, for more details.  Also see the @code{let} example.
+
+@item &error
+@code{&error} should be followed by a string, an error message, in the
+edebug-spec; it aborts the instrumentation, displaying the message in
+the minibuffer.
 
 @item @var{other-symbol}
 @cindex indirect specifications

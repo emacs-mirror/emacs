@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Modes
@@ -207,7 +207,7 @@ amount of work you can lose in case of a crash.  @xref{Auto Save}.
 
 @item
 Electric Quote mode automatically converts quotation marks.  For
-example, it requotes text typed @t{`like this'} to text @t{‘like
+example, it requotes text typed @kbd{`like this'} to text @t{‘like
 this’}.  You can control what kind of text it operates in, and you can
 disable it entirely in individual buffers.  @xref{Quotation Marks}.
 
@@ -294,6 +294,12 @@ default, but the scroll bar is only displayed on graphical terminals.
 Tool Bar mode gives each frame a tool bar.  It is enabled by default,
 but the tool bar is only displayed on graphical terminals.  @xref{Tool
 Bars}.
+
+@item
+Tab Bar mode gives each frame a tab bar.  @xref{Tab Bars}.
+
+@item
+Tab Line mode gives each window a tab line.
 
 @item
 Transient Mark mode highlights the region, and makes many Emacs

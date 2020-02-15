@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -46,25 +46,18 @@
 
 ;; Tell whether we are running as a window application or on a TTY
 
-(defsubst viper-device-type ()
-  (if (featurep 'xemacs)
-      (device-type (selected-device))
-    window-system))
+(define-obsolete-function-alias 'viper-device-type 'window-system "27.1")
 
 (defun viper-color-display-p ()
   (condition-case nil
-      (if (featurep 'xemacs)
-          (eq (device-class (selected-device)) 'color)
-        (display-color-p))
+      (display-color-p)
     (error nil)))
 
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun viper-window-display-p ()
-  (and (viper-device-type) (not (memq (viper-device-type) '(tty stream pc)))))
+  (and window-system (not (memq window-system '(tty stream pc)))))
 
-(defcustom viper-ms-style-os-p
-  (memq system-type (if (featurep 'emacs) '(ms-dos windows-nt)
-		      '(ms-dos windows-nt windows-95)))
+(defcustom viper-ms-style-os-p (memq system-type '(ms-dos windows-nt))
   "Non-nil if Emacs is running under an MS-style OS: MS-DOS, or MS-Windows."
   :type 'boolean
   :tag "Is it Microsoft-made OS?"
@@ -89,8 +82,7 @@ In all likelihood, you don't need to bother with this setting."
   (cond ((viper-window-display-p))
 	(viper-force-faces)
 	((viper-color-display-p))
-	((featurep 'emacs) (memq (viper-device-type) '(pc)))
-	((featurep 'xemacs) (memq (viper-device-type) '(tty pc)))))
+	(t (memq window-system '(pc)))))
 
 
 ;;; Macros
@@ -268,6 +260,7 @@ that deletes a file.")
 (defconst viper-BadAddress "Ill-formed address"   "")
 (defconst viper-FirstAddrExceedsSecond "First address exceeds second"   "")
 (defconst viper-NoFileSpecified "No file specified"   "")
+(defconst viper-ViperBell "Viper bell"   "")
 
 ;; Is t until viper-mode executes for the very first time.
 ;; Prevents recursive descend into startup messages.
@@ -333,25 +326,12 @@ Use `\\[viper-set-expert-level]' to change this.")
 			     (or current-input-method default-input-method))
 		   "")))))
 
-(defun viper-deactivate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'deactivate-input-method))
-	 (deactivate-input-method))
-	((and (featurep 'xemacs) (boundp 'current-input-method))
-	 ;; XEmacs had broken quail-mode for some time, so we are working around
-	 ;; it here
-	 (setq quail-mode nil)
-	 (if (featurep 'quail)
-	     (quail-delete-overlays))
-	 (setq describe-current-input-method-function nil)
-	 (setq current-input-method nil)
-	 (run-hooks 'input-method-deactivate-hook)
-	 (force-mode-line-update))
-	))
+(define-obsolete-function-alias 'viper-deactivate-input-method
+  #'deactivate-input-method "27.1")
+
 (defun viper-activate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'activate-input-method))
-	 (activate-input-method default-input-method))
-	((featurep 'xemacs)
-	 (if (fboundp 'quail-mode) (quail-mode 1)))))
+  (declare (obsolete activate-input-method "27.1"))
+  (activate-input-method default-input-method))
 
 ;; Set quail-mode to ARG
 (defun viper-set-input-method (arg)
@@ -359,10 +339,9 @@ Use `\\[viper-set-expert-level]' to change this.")
   (let (viper-mule-hook-flag) ; temporarily deactivate viper mule hooks
     (cond ((and arg (> (prefix-numeric-value arg) 0) default-input-method)
 	   ;; activate input method
-	   (viper-activate-input-method))
+	   (activate-input-method default-input-method))
 	  (t ; deactivate input method
-	   (viper-deactivate-input-method)))
-    ))
+	   (deactivate-input-method)))))
 
 
 ;; VI-style Undo
@@ -419,15 +398,6 @@ delete the text being replaced, as in standard Vi."
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
 
-;; Frame-local variables are obsolete from Emacs 22.2 onwards, so we
-;; do it by hand with viper-frame-value (qv).
-(when (and (featurep 'xemacs)
-           (fboundp 'make-variable-frame-local))
-  (make-variable-frame-local 'viper-replace-overlay-cursor-color)
-  (make-variable-frame-local 'viper-insert-state-cursor-color)
-  (make-variable-frame-local 'viper-emacs-state-cursor-color)
-  (make-variable-frame-local 'viper-vi-state-cursor-color))
-
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
 
@@ -444,8 +414,7 @@ is non-nil."
   :type 'string
   :group 'viper)
 (defcustom viper-use-replace-region-delimiters
-  (or (not (viper-has-face-support-p))
-      (and (featurep 'xemacs) (eq (viper-device-type) 'tty)))
+  (not (viper-has-face-support-p))
   "If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
 `viper-replace-region-start-delimiter' to delimit replacement regions, even on
 color displays.  By default, the delimiters are used only on TTYs."
@@ -456,15 +425,6 @@ color displays.  By default, the delimiters are used only on TTYs."
   "Function to use for prompting the user for a buffer name."
   :type 'symbol
   :group 'viper)
-
-;; XEmacs requires glyphs
-(when (featurep 'xemacs)
-  (or (glyphp viper-replace-region-end-delimiter)
-      (setq viper-replace-region-end-delimiter
-            (make-glyph viper-replace-region-end-delimiter)))
-  (or (glyphp viper-replace-region-start-delimiter)
-      (setq viper-replace-region-start-delimiter
-            (make-glyph viper-replace-region-start-delimiter))))
 
 ;; These are local marker that must be initialized to nil and moved with
 ;; `viper-move-marker-locally'
@@ -962,18 +922,16 @@ Should be set in `viper-custom-file-name'."
   "Hooks run just after loading Viper."
   :type 'hook
   :group 'viper-hooks)
+(make-obsolete-variable 'viper-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defun viper-restore-cursor-type ()
   (condition-case nil
-      (if (featurep 'xemacs)
-	  (set (make-local-variable 'bar-cursor) nil)
-	(setq cursor-type (default-value 'cursor-type)))
+      (setq cursor-type (default-value 'cursor-type))
     (error nil)))
 
 (defun viper-set-insert-cursor-type ()
-  (if (featurep 'xemacs)
-      (set (make-local-variable 'bar-cursor) 2)
-    (setq cursor-type '(bar . 2))))
+  (setq cursor-type '(bar . 2)))
 
 (defun viper-ESC-keyseq-timeout ()
   "Key sequence beginning with ESC and separated by no more than this many milliseconds is considered to be generated by a keyboard function key.

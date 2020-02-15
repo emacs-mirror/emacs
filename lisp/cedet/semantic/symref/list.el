@@ -1,8 +1,8 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -126,31 +126,23 @@ Display the references in `semantic-symref-results-mode'."
 (defvar semantic-symref-list-menu-entries
   (list
    "Symref"
-   (semantic-menu-item
-    ["Toggle Line Open"
-     semantic-symref-list-toggle-showing
-     :active t
-     :help "Toggle the current line open or closed."
-     ])
-   (semantic-menu-item
-    ["Expand All Entries"
-     semantic-symref-list-expand-all
-     :active t
-     :help "Expand every expandable entry."
-     ])
-   (semantic-menu-item
-    ["Contract All Entries"
-     semantic-symref-list-contract-all
-     :active t
-     :help "Close every expandable entry."
-     ])
-   (semantic-menu-item
-    ["Rename Symbol in Open hits"
-     semantic-symref-list-rename-open-hits
-     :active t
-     :help "Rename the searched for symbol in all hits that are currently open."
-     ])
-   )
+   ["Toggle Line Open"
+    semantic-symref-list-toggle-showing
+    :active t
+    :help "Toggle the current line open or closed." ]
+   ["Expand All Entries"
+    semantic-symref-list-expand-all
+    :active t
+    :help "Expand every expandable entry." ]
+   ["Contract All Entries"
+    semantic-symref-list-contract-all
+    :active t
+    :help "Close every expandable entry." ]
+   ["Rename Symbol in Open hits"
+    semantic-symref-list-rename-open-hits
+    :active t
+    :help "Rename the searched for symbol in all hits that are currently open."
+    ])
   "Menu entries for the Semantic Symref list mode.")
 
 (defvar semantic-symref-list-menu nil
@@ -205,7 +197,7 @@ Some useful functions are found in `semantic-format-tag-functions'."
     (erase-buffer)
     ;; Insert the contents.
     (let ((lastfile nil))
-      (dolist (T (oref results :hit-tags))
+      (dolist (T (oref results hit-tags))
 	(unless (equal lastfile (semantic-tag-file-name T))
 	  (setq lastfile (semantic-tag-file-name T))
 	  (insert-button lastfile
@@ -387,8 +379,8 @@ BUTTON is the button that was clicked."
 Hits are the line of code from the buffer, not the tag summar or file lines."
   (save-excursion
     (end-of-line)
-    (let* ((ol (car (semantic-overlays-at (1- (point)))))) ;; trust this for now
-      (when ol (semantic-overlay-get ol 'line)))))
+    (let* ((ol (car (overlays-at (1- (point)))))) ;; trust this for now
+      (when ol (overlay-get ol 'line)))))
 
 
 ;;; Keyboard Macros on a Hit
@@ -402,13 +394,13 @@ cursor to the beginning of that symbol, then record a macro as if
 {kmacro-end-macro} to end the macro, and return to the symbol found list."
   (interactive)
   (let* ((oldsym (oref (oref semantic-symref-current-results
-			    :created-by)
-		      :searchfor))
+			    created-by)
+		      searchfor))
 	 (ol (save-excursion
 	       (end-of-line)
-	       (car (semantic-overlays-at (1- (point))))))
-	 (tag (when ol (semantic-overlay-get ol 'tag)))
-	 (line (when ol (semantic-overlay-get ol 'line))))
+	       (car (overlays-at (1- (point))))))
+	 (tag (when ol (overlay-get ol 'tag)))
+	 (line (when ol (overlay-get ol 'line))))
     (when (not line)
       (error "Cannot create macro on a non-hit line"))
     ;; Go there, and do something useful.
@@ -448,8 +440,8 @@ Closed items will be skipped."
   (interactive
    (list (read-string "Rename to: "
 		      (oref (oref semantic-symref-current-results
-				  :created-by)
-			    :searchfor))))
+				  created-by)
+			    searchfor))))
   (let ((count (semantic-symref-list-map-open-hits
 		(lambda () (replace-match newname nil t)))))
     (semantic-symref-list-update-open-hits)
@@ -469,16 +461,16 @@ Return the number of occurrences FUNCTION was operated upon."
   ;;               class members. (Not Done)
 
   (let ((oldsym (oref (oref semantic-symref-current-results
-			    :created-by)
-		      :searchfor))
+			    created-by)
+		      searchfor))
 	(count 0))
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
 	;; Is this line a "hit" line?
-	(let* ((ol (car (semantic-overlays-at (1- (point))))) ;; trust this for now
-	       (tag (when ol (semantic-overlay-get ol 'tag)))
-	       (line (when ol (semantic-overlay-get ol 'line))))
+	(let* ((ol (car (overlays-at (1- (point))))) ;; trust this for now
+	       (tag (when ol (overlay-get ol 'tag)))
+	       (line (when ol (overlay-get ol 'line))))
 	  (when line
 	    ;; The "line" means we have an open hit.
 	    (with-current-buffer (semantic-tag-buffer tag)
@@ -501,8 +493,8 @@ Return the number of occurrences FUNCTION was operated upon."
     (goto-char (point-min))
     (while (re-search-forward "\\[-\\]" nil t)
       (end-of-line)
-      (let* ((ol (car (semantic-overlays-at (1- (point))))) ;; trust this for now
-	     (tag (when ol (semantic-overlay-get ol 'tag))))
+      (let* ((ol (car (overlays-at (1- (point))))) ;; trust this for now
+	     (tag (when ol (overlay-get ol 'tag))))
 	;; If there is a tag, then close/open it.
 	(when tag
 	  (semantic-symref-list-toggle-showing)

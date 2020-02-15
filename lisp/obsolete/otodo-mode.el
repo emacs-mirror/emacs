@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
@@ -925,8 +925,9 @@ If INCLUDE-SEP is non-nil, return point after the separator."
   "Major mode for editing TODO lists."
   (easy-menu-add todo-menu))
 
-(defvar date)
-(defvar entry)
+(with-suppressed-warnings ((lexical date entry))
+  (defvar date)
+  (defvar entry))
 
 ;; t-c should be used from diary code, which requires calendar.
 (declare-function calendar-current-date "calendar" (&optional offset))

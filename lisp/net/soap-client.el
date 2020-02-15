@@ -1,6 +1,6 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -334,7 +334,7 @@ element name."
   "Store ELEMENT in NS.
 Multiple elements with the same name can be stored in a
 namespace.  When retrieving the element you can specify a
-discriminant predicate to `soap-namespace-get'"
+discriminant predicate to `soap-namespace-get'."
   (let ((name (soap-element-name element)))
     (push element (gethash name (soap-namespace-elements ns)))))
 
@@ -464,8 +464,14 @@ position.
 
 This is a specialization of `soap-encode-value' for
 `soap-xs-basic-type' objects."
-  (let ((kind (soap-xs-basic-type-kind type)))
-
+  (let ((kind (soap-xs-basic-type-kind type))
+        ;; Handle conversions of this form:
+        ;; (Element (AttrA . "A") (AttrB . "B") "Value here")
+        ;; to:
+        ;; <ns:Element AttrA="A" AttrB="B">Value here</ns:Element>
+        ;; by assuming that if this is a list, it must have attributes
+        ;; preceding the basic value.
+        (value (if (listp value) (progn (car (last value))) value)))
     (when (eq kind 'anyType)
       (cond ((stringp value)
              (setq kind 'string))
@@ -555,7 +561,8 @@ gMonthDay, gDay or gMonth.
 Return a list in a format (SEC MINUTE HOUR DAY MONTH YEAR
 SEC-FRACTION DATATYPE ZONE).  This format is meant to be similar
 to that returned by `decode-time' (and compatible with
-`encode-time').  The differences are the DOW (day-of-week) field
+`encode-time').  The differences are the SEC (seconds)
+field is always an integer, the DOW (day-of-week) field
 is replaced with SEC-FRACTION, a float representing the
 fractional seconds, and the DST (daylight savings time) field is
 replaced with DATATYPE, a symbol representing the XSD primitive
@@ -629,7 +636,8 @@ disallows them."
              (<= time-zone-minute 59))
       (error "Invalid or unsupported time: %s" date-time-string))
     ;; Return a value in a format similar to that returned by decode-time, and
-    ;; suitable for (apply 'encode-time ...).
+    ;; suitable for (apply #'encode-time ...).
+    ;; FIXME: Nobody uses this idiosyncratic value.  Perhaps stop returning it?
     (list second minute hour day month year second-fraction datatype
           (if has-time-zone
               (* (rng-xsd-time-to-seconds
@@ -836,7 +844,7 @@ This is a specialization of `soap-encode-attributes' for
   "Return t if VALUE should be encoded for ELEMENT, nil otherwise."
   (cond
    ;; if value is not nil, attempt to encode it
-   (value)
+   (value t)
 
    ;; value is nil, but the element's type is a boolean, so nil in this case
    ;; means "false".  We need to encode it.
@@ -1346,14 +1354,25 @@ See also `soap-wsdl-resolve-references'."
 
 (defun soap-encode-xs-simple-type-attributes (value type)
   "Encode the XML attributes for VALUE according to TYPE.
-The xsi:type and an optional xsi:nil attributes are added.  The
-attributes are inserted in the current buffer at the current
-position.
+The attributes are inserted in the current buffer at the current
+position.  If TYPE has no attributes, the xsi:type attribute and
+an optional xsi:nil attribute are added.
 
 This is a specialization of `soap-encode-attributes' for
 `soap-xs-simple-type' objects."
-  (insert " xsi:type=\"" (soap-element-fq-name type) "\"")
-  (unless value (insert " xsi:nil=\"true\"")))
+  (let ((attributes (soap-get-xs-attributes type)))
+    (dolist (a attributes)
+      (let ((element-name (soap-element-name a)))
+        (if (soap-xs-attribute-default a)
+            (insert " " element-name
+                    "=\"" (soap-xs-attribute-default a) "\"")
+          (dolist (value-pair value)
+            (when (equal element-name (symbol-name (car-safe value-pair)))
+              (insert " " element-name
+                      "=\"" (cdr value-pair) "\""))))))
+    (unless attributes
+      (insert " xsi:type=\"" (soap-element-fq-name type) "\"")
+      (unless value (insert " xsi:nil=\"true\"")))))
 
 (defun soap-encode-xs-simple-type (value type)
   "Encode the VALUE according to TYPE.
@@ -1457,7 +1476,7 @@ This is a specialization of `soap-decode-type' for
 
 (defun soap-xs-parse-sequence (node)
   "Parse a sequence definition from XML NODE.
-Returns a `soap-xs-complex-type'"
+Returns a `soap-xs-complex-type'."
   (cl-assert (memq (soap-l2wk (xml-node-name node))
                    '(xsd:sequence xsd:choice xsd:all))
              nil
@@ -1643,7 +1662,8 @@ This is a specialization of `soap-encode-value' for
     (array
      (error "Arrays of type soap-encode-xs-complex-type are handled elsewhere"))
     ((sequence choice all nil)
-     (let ((type-list (list type)))
+     (let ((type-list (list type))
+           (type-elements '()))
 
        ;; Collect all base types
        (let ((base (soap-xs-complex-type-base type)))
@@ -1651,60 +1671,66 @@ This is a specialization of `soap-encode-value' for
            (push base type-list)
            (setq base (soap-xs-complex-type-base base))))
 
+       ;; Collect type elements, eliminating duplicates from the type
+       ;; hierarchy.
        (dolist (type type-list)
          (dolist (element (soap-xs-complex-type-elements type))
-           (catch 'done
-             (let ((instance-count 0))
-               (dolist (candidate (soap-get-candidate-elements element))
-                 (let ((e-name (soap-xs-element-name candidate)))
-                   (if e-name
-                       (let ((e-name (intern e-name)))
-                         (dolist (v value)
-                           (when (equal (car v) e-name)
-                             (cl-incf instance-count)
-                             (soap-encode-value (cdr v) candidate))))
-                     (if (soap-xs-complex-type-indicator type)
-                         (let ((current-point (point)))
-                           ;; Check if encoding happened by checking if
-                           ;; characters were inserted in the buffer.
-                           (soap-encode-value value candidate)
-                           (when (not (equal current-point (point)))
-                             (cl-incf instance-count)))
+           (unless (member element type-elements)
+             (setq type-elements (append type-elements (list element))))))
+
+       (dolist (element type-elements)
+         (catch 'done
+           (let ((instance-count 0))
+             (dolist (candidate (soap-get-candidate-elements element))
+               (let ((e-name (soap-xs-element-name candidate)))
+                 (if e-name
+                     (let ((e-name (intern e-name)))
                        (dolist (v value)
-                         (let ((current-point (point)))
-                           (soap-encode-value v candidate)
-                           (when (not (equal current-point (point)))
-                             (cl-incf instance-count))))))))
-               ;; Do some sanity checking
-               (let* ((indicator (soap-xs-complex-type-indicator type))
-                      (element-type (soap-xs-element-type element))
-                      (reference (soap-xs-element-reference element))
-                      (e-name (or (soap-xs-element-name element)
-                                  (and reference
-                                       (soap-xs-element-name reference)))))
-                 (cond ((and (eq indicator 'choice)
-                             (> instance-count 0))
-                        ;; This was a choice node and we encoded
-                        ;; one instance.
-                        (throw 'done t))
-                       ((and (not (eq indicator 'choice))
-                             (= instance-count 0)
-                             (not (soap-xs-element-optional? element))
-                             (and (soap-xs-complex-type-p element-type)
-                                  (not (soap-xs-complex-type-optional-p
-                                        element-type))))
-                        (soap-warning
-                         "While encoding %s: missing non-nillable slot %s"
-                         value e-name))
-                       ((and (> instance-count 1)
-                             (not (soap-xs-element-multiple? element))
-                             (and (soap-xs-complex-type-p element-type)
-                                  (not (soap-xs-complex-type-multiple-p
-                                        element-type))))
-                        (soap-warning
-                         (concat  "While encoding %s: expected single,"
-                                  " found multiple elements for slot %s")
-                         value e-name))))))))))
+                         (when (equal (car v) e-name)
+                           (cl-incf instance-count)
+                           (soap-encode-value (cdr v) candidate))))
+                   (if (soap-xs-complex-type-indicator type)
+                       (let ((current-point (point)))
+                         ;; Check if encoding happened by checking if
+                         ;; characters were inserted in the buffer.
+                         (soap-encode-value value candidate)
+                         (when (not (equal current-point (point)))
+                           (cl-incf instance-count)))
+                     (dolist (v value)
+                       (let ((current-point (point)))
+                         (soap-encode-value v candidate)
+                         (when (not (equal current-point (point)))
+                           (cl-incf instance-count))))))))
+             ;; Do some sanity checking
+             (let* ((indicator (soap-xs-complex-type-indicator type))
+                    (element-type (soap-xs-element-type element))
+                    (reference (soap-xs-element-reference element))
+                    (e-name (or (soap-xs-element-name element)
+                                (and reference
+                                     (soap-xs-element-name reference)))))
+               (cond ((and (eq indicator 'choice)
+                           (> instance-count 0))
+                      ;; This was a choice node and we encoded
+                      ;; one instance.
+                      (throw 'done t))
+                     ((and (not (eq indicator 'choice))
+                           (= instance-count 0)
+                           (not (soap-xs-element-optional? element))
+                           (and (soap-xs-complex-type-p element-type)
+                                (not (soap-xs-complex-type-optional-p
+                                      element-type))))
+                      (soap-warning
+                       "While encoding %s: missing non-nillable slot %s"
+                       value e-name))
+                     ((and (> instance-count 1)
+                           (not (soap-xs-element-multiple? element))
+                           (and (soap-xs-complex-type-p element-type)
+                                (not (soap-xs-complex-type-multiple-p
+                                      element-type))))
+                      (soap-warning
+                       (concat  "While encoding %s: expected single,"
+                                " found multiple elements for slot %s")
+                       value e-name)))))))))
     (t
      (error "Don't know how to encode complex type: %s"
             (soap-xs-complex-type-indicator type)))))
@@ -2788,7 +2814,7 @@ decode function to perform the actual decoding."
 (defun soap-parse-envelope (node operation wsdl)
   "Parse the SOAP envelope in NODE and return the response.
 OPERATION is the WSDL operation for which we expect the response,
-WSDL is used to decode the NODE"
+WSDL is used to decode the NODE."
   (soap-with-local-xmlns node
     (cl-assert (eq (soap-l2wk (xml-node-name node)) 'soap:Envelope)
                nil
@@ -3001,7 +3027,7 @@ SERVICE-URL should be provided when WS-Addressing is being used."
       (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope\n")
       (when (eq use 'encoded)
         (insert "    soapenc:encodingStyle=\"\
-http://schemas.xmlsoap.org/soap/encoding/\"\n"))
+https://schemas.xmlsoap.org/soap/encoding/\"\n"))
       (dolist (nstag soap-encoded-namespaces)
         (insert "    xmlns:" nstag "=\"")
         (let ((nsname (cdr (assoc nstag soap-well-known-xmlns))))

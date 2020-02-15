@@ -1,16 +1,17 @@
 ;;; ps-print.el --- print text from the buffer as PostScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2020 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
 ;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
+;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
+;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+
+(eval-when-compile (require 'cl-lib))
 
 (defconst ps-print-version "7.3.5"
   "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
@@ -46,7 +47,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; This package provides printing of Emacs buffers on PostScript printers; the
 ;; buffer's bold and italic text attributes are preserved in the printer
-;; output.  ps-print is intended for use with Emacs or XEmacs, together with a
+;; output.  ps-print is intended for use with Emacs, together with a
 ;; fontifying package such as font-lock or hilit.
 ;;
 ;; ps-print uses the same face attributes defined through font-lock or hilit to
@@ -1319,28 +1320,17 @@ Please send all bug fixes and enhancements to
 ;; Known bugs and limitations of ps-print
 ;; --------------------------------------
 ;;
-;; Although color printing will work in XEmacs 19.12, it doesn't work well; in
-;; particular, bold or italic fonts don't print in the right background color.
-;;
-;; Invisible properties aren't correctly ignored in XEmacs 19.12.
-;;
 ;; Automatic font-attribute detection doesn't work well, especially with
 ;; hilit19 and older versions of get-create-face.  Users having problems with
 ;; auto-font detection should use the lists `ps-italic-faces', `ps-bold-faces'
 ;; and `ps-underlined-faces' and/or turn off automatic detection by setting
 ;; `ps-auto-font-detect' to nil.
 ;;
-;; Automatic font-attribute detection doesn't work with XEmacs 19.12 in tty
-;; mode; use the lists `ps-italic-faces', `ps-bold-faces' and
-;; `ps-underlined-faces' instead.
-;;
 ;; Still too slow; could use some hand-optimization.
 ;;
 ;; Default background color isn't working.
 ;;
 ;; Faces are always treated as opaque.
-;;
-;; Epoch, Lucid and Emacs 22 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
@@ -1403,7 +1393,7 @@ Please send all bug fixes and enhancements to
 ;; prologue code suggestion, for odd/even printing suggestion and for
 ;; `ps-prologue-file' enhancement.
 ;;
-;; Thanks to Ken'ichi Handa <handa@m17n.org> for multi-byte buffer handling.
+;; Thanks to Ken'ichi Handa <handa@gnu.org> for multi-byte buffer handling.
 ;;
 ;; Thanks to Matthew O Persico <Matthew.Persico@lazard.com> for line number on
 ;; empty columns.
@@ -1463,16 +1453,7 @@ Please send all bug fixes and enhancements to
 
 (require 'lpr)
 
-
-(if (featurep 'xemacs)
-    (or (featurep 'lisp-float-type)
-	(error "`ps-print' requires floating point support"))
-  (unless (and (boundp 'emacs-major-version)
-	       (>= emacs-major-version 23))
-    (error "`ps-print' only supports Emacs 23 and higher")))
-
-
-;; Load XEmacs/Emacs definitions
+;; Load Emacs definitions
 (require 'ps-def)
 
 ;; autoloads for secondary file
@@ -2950,13 +2931,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
 ;;; Colors
 
 ;; Printing color requires x-color-values.
-;; XEmacs change: Need autoload for the "Options->Printing->Color Printing"
-;;                widget to work.
 ;;;###autoload
-(defcustom ps-print-color-p
-  (or (fboundp 'x-color-values)		; Emacs
-      (fboundp 'color-instance-rgb-components))
-					; XEmacs
+(defcustom ps-print-color-p (fboundp 'x-color-values)
   "Specify how buffer's text color is printed.
 
 Valid values are:
@@ -3070,7 +3046,7 @@ See also `ps-use-face-background'."
 (defcustom ps-fg-list nil
   "Specify foreground color list.
 
-This list is used to chose a text foreground color which is different than the
+This list is used to chose a text foreground color which is different from the
 background color.  It'll be used the first foreground color in `ps-fg-list'
 which is different from the background color.
 
@@ -3380,13 +3356,7 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   :version "20"
   :group 'ps-print-headers)
 
-(defcustom ps-postscript-code-directory
-  (cond ((fboundp 'locate-data-directory) ; XEmacs
-         (locate-data-directory "ps-print"))
-        ((boundp 'data-directory)       ; XEmacs and Emacs.
-         data-directory)
-        (t                              ; don't know what to do
-         (error "`ps-postscript-code-directory' isn't set properly")))
+(defcustom ps-postscript-code-directory data-directory
   "Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
@@ -3631,8 +3601,7 @@ The table depends on the current ps-print setup."
     (mapconcat
      #'ps-print-quote
      (list
-      (concat "\n;;; (" (if (featurep 'xemacs) "XEmacs" "Emacs")
-	      ") ps-print version " ps-print-version "\n")
+      (concat "\n;;; (Emacs) ps-print version " ps-print-version "\n")
       ";; internal vars"
       (ps-comment-string "emacs-version     " emacs-version)
       (ps-comment-string "lpr-windows-system" lpr-windows-system)
@@ -4612,7 +4581,9 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 (defsubst ps-output-string-prim (string)
   (insert "(")				;insert start-string delimiter
   (save-excursion			;insert string
-    (insert (string-as-unibyte string)))
+    (insert (if (multibyte-string-p string)
+                (encode-coding-string string 'utf-8)
+              string)))
   ;; Find and quote special characters as necessary for PS
   ;; This skips everything except control chars, non-ASCII chars, (, ) and \.
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
@@ -5770,9 +5741,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-footer-font-size-internal (ps-get-font-size 'ps-footer-font-size)
 	ps-control-or-escape-regexp
 	(cond ((eq ps-print-control-characters '8-bit)
-	       (string-as-unibyte "[\000-\037\177-\377]"))
+	       "[\000-\037\177-\377]")
 	      ((eq ps-print-control-characters 'control-8-bit)
-	       (string-as-unibyte "[\000-\037\177-\237]"))
+	       "[\000-\037\177-\237]")
 	      ((eq ps-print-control-characters 'control)
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
@@ -5827,6 +5798,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	;; They may be overridden by ps-mule-begin-job.
 	ps-basic-plot-string-function    'ps-basic-plot-string
 	ps-encode-header-string-function nil)
+  (cl-assert (not (multibyte-string-p ps-control-or-escape-regexp)))
   ;; initialize page dimensions
   (ps-get-page-dimensions)
   ;; final check
@@ -6056,8 +6028,8 @@ to the equivalent Latin-1 characters.")
 
   ;; Specify a foreground color only if:
   ;;    one's specified,
-  ;;    it's different than the background (if `ps-fg-validate-p' is non-nil)
-  ;;    and it's different than the current.
+  ;;    it's different from the background (if `ps-fg-validate-p' is non-nil)
+  ;;    and it's different from the current.
   (let ((fg (or fg-color ps-default-foreground)))
     (if ps-fg-validate-p
 	(let ((bg (or bg-color ps-default-background))

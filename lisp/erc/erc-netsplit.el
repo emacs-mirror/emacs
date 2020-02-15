@@ -1,9 +1,9 @@
 ;;; erc-netsplit.el --- Reduce JOIN/QUIT messages on netsplits
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -33,9 +33,9 @@
 (require 'erc)
 
 (defgroup erc-netsplit nil
-  "Netsplit detection tries to automatically figure when a
-netsplit happens, and filters the QUIT messages. It also keeps
-track of netsplits, so that it can filter the JOIN messages on a netjoin too."
+  "Netsplit detection tries to automatically figure when a netsplit
+happens, and filters the QUIT messages.  It also keeps track of
+netsplits, so that it can filter the JOIN messages on a netjoin too."
   :group 'erc)
 
 ;;;###autoload(autoload 'erc-netsplit-mode "erc-netsplit")
@@ -57,8 +57,7 @@ track of netsplits, so that it can filter the JOIN messages on a netjoin too."
   :type 'boolean)
 
 (defcustom erc-netsplit-debug nil
-  "If non-nil, debug messages will be shown in the
-sever buffer."
+  "If non-nil, debug messages will be shown in the sever buffer."
   :group 'erc-netsplit
   :type 'boolean)
 
@@ -206,6 +205,4 @@ join from that split has been detected or not.")
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

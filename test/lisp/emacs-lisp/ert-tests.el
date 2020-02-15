@@ -1,6 +1,6 @@
 ;;; ert-tests.el --- ERT's self-tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 
@@ -188,7 +188,7 @@ failed or if there was a problem."
 
 (ert-deftest ert-test-should-with-macrolet ()
   (let ((test (make-ert-test :body (lambda ()
-                                     (cl-macrolet ((foo () `(progn t nil)))
+                                     (cl-macrolet ((foo () '(progn t nil)))
                                        (should (foo)))))))
     (let ((result (let ((ert-debug-on-error nil))
                     (ert-run-test test))))
@@ -490,9 +490,9 @@ This macro is used to test if macroexpansion in `should' works."
                :name nil
                :body nil
                :tags '(a b))))
-    (should (equal (ert-select-tests `(tag a) (list test)) (list test)))
-    (should (equal (ert-select-tests `(tag b) (list test)) (list test)))
-    (should (equal (ert-select-tests `(tag c) (list test)) '()))))
+    (should (equal (ert-select-tests '(tag a) (list test)) (list test)))
+    (should (equal (ert-select-tests '(tag b) (list test)) (list test)))
+    (should (equal (ert-select-tests '(tag c) (list test)) '()))))
 
 
 ;;; Tests for utility functions.
@@ -626,6 +626,29 @@ This macro is used to test if macroexpansion in `should' works."
   (let ((sym (make-symbol "a")))
     (should (equal (ert--explain-equal 'a sym)
                    `(different-symbols-with-the-same-name a ,sym)))))
+
+(ert-deftest ert-test-explain-equal-strings ()
+  (should (equal (ert--explain-equal "abc" "axc")
+                 '(array-elt 1 (different-atoms
+                                (?b "#x62" "?b")
+                                (?x "#x78" "?x")))))
+  (should (equal (ert--explain-equal "abc" "abxc")
+                 '(arrays-of-different-length
+                   3 4 "abc" "abxc" first-mismatch-at 2)))
+  (should (equal (ert--explain-equal "xyA" "xyÅ")
+                 '(array-elt 2 (different-atoms
+                                (?A "#x41" "?A")
+                                (?Å "#xc5" "?Å")))))
+  (should (equal (ert--explain-equal "m\xff" "m\u00ff")
+                 `(array-elt
+                   1 (different-atoms
+                      (#x3fffff "#x3fffff" ,(string-to-multibyte "?\xff"))
+                      (#xff "#xff" "?ÿ")))))
+  (should (equal (ert--explain-equal (string-to-multibyte "m\xff") "m\u00ff")
+                 `(array-elt
+                   1 (different-atoms
+                      (#x3fffff "#x3fffff" ,(string-to-multibyte "?\xff"))
+                      (#xff "#xff" "?ÿ"))))))
 
 (ert-deftest ert-test-explain-equal-improper-list ()
   (should (equal (ert--explain-equal '(a . b) '(a . c))

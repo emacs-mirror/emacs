@@ -1,6 +1,6 @@
 ;;; semantic/find.el --- Search routines for Semantic
 
-;; Copyright (C) 1999-2005, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -70,10 +70,10 @@ from largest to smallest via the start location."
 	  (set-buffer (marker-buffer positionormarker))
 	(if (bufferp buffer)
 	    (set-buffer buffer))))
-    (let ((ol (semantic-overlays-at (or positionormarker (point))))
+    (let ((ol (overlays-at (or positionormarker (point))))
 	  (ret nil))
       (while ol
-	(let ((tmp (semantic-overlay-get (car ol) 'semantic)))
+	(let ((tmp (overlay-get (car ol) 'semantic)))
 	  (when (and tmp
 		     ;; We don't need with-position because no tag w/out
 		     ;; a position could exist in an overlay.
@@ -90,10 +90,10 @@ Uses overlays to determine position.
 Optional BUFFER argument specifies the buffer to use."
   (save-excursion
     (if buffer (set-buffer buffer))
-    (let ((ol (semantic-overlays-in start end))
+    (let ((ol (overlays-in start end))
 	  (ret nil))
       (while ol
-	(let ((tmp (semantic-overlay-get (car ol) 'semantic)))
+	(let ((tmp (overlay-get (car ol) 'semantic)))
 	  (when (and tmp
 		     ;; See above about position
 		     (semantic-tag-p tmp))
@@ -112,22 +112,22 @@ not the current tag."
     (if (not start) (setq start (point)))
     (let ((os start) (ol nil))
       (while (and os (< os (point-max)) (not ol))
-	(setq os (semantic-overlay-next-change os))
+	(setq os (next-overlay-change os))
 	(when os
 	  ;; Get overlays at position
-	  (setq ol (semantic-overlays-at os))
+	  (setq ol (overlays-at os))
 	  ;; find the overlay that belongs to semantic
 	  ;; and starts at the found position.
 	  (while (and ol (listp ol))
-	    (if (and (semantic-overlay-get (car ol) 'semantic)
+	    (if (and (overlay-get (car ol) 'semantic)
 		     (semantic-tag-p
-		      (semantic-overlay-get (car ol) 'semantic))
-		     (= (semantic-overlay-start (car ol)) os))
+		      (overlay-get (car ol) 'semantic))
+		     (= (overlay-start (car ol)) os))
 		(setq ol (car ol)))
 	    (when (listp ol) (setq ol (cdr ol))))))
       ;; convert ol to a tag
-      (when (and ol (semantic-tag-p (semantic-overlay-get ol 'semantic)))
-	(semantic-overlay-get ol 'semantic)))))
+      (when (and ol (semantic-tag-p (overlay-get ol 'semantic)))
+	(overlay-get ol 'semantic)))))
 
 ;;;###autoload
 (defun semantic-find-tag-by-overlay-prev (&optional start buffer)
@@ -139,25 +139,25 @@ not the current tag."
     (if (not start) (setq start (point)))
     (let ((os start) (ol nil))
       (while (and os (> os (point-min)) (not ol))
-	(setq os (semantic-overlay-previous-change os))
+	(setq os (previous-overlay-change os))
 	(when os
 	  ;; Get overlays at position
-	  (setq ol (semantic-overlays-at (1- os)))
+	  (setq ol (overlays-at (1- os)))
 	  ;; find the overlay that belongs to semantic
 	  ;; and ENDS at the found position.
 	  ;;
 	  ;; Use end because we are going backward.
 	  (while (and ol (listp ol))
-	    (if (and (semantic-overlay-get (car ol) 'semantic)
+	    (if (and (overlay-get (car ol) 'semantic)
 		     (semantic-tag-p
-		      (semantic-overlay-get (car ol) 'semantic))
-		     (= (semantic-overlay-end (car ol)) os))
+		      (overlay-get (car ol) 'semantic))
+		     (= (overlay-end (car ol)) os))
 		(setq ol (car ol)))
 	    (when (listp ol) (setq ol (cdr ol))))))
       ;; convert ol to a tag
       (when (and ol
-		 (semantic-tag-p (semantic-overlay-get ol 'semantic)))
-	(semantic-overlay-get ol 'semantic)))))
+		 (semantic-tag-p (overlay-get ol 'semantic)))
+	(overlay-get ol 'semantic)))))
 
 ;;;###autoload
 (defun semantic-find-tag-parent-by-overlay (tag)
@@ -307,7 +307,7 @@ attempting to do completions."
 (defmacro semantic-find-tags-by-class (class &optional table)
   "Find all tags of class CLASS in TABLE.
 CLASS is a symbol representing the class of the token, such as
-'variable, of 'function..
+`variable' or `function'.
 TABLE is a tag table.  See `semantic-something-to-tag-table'."
   `(semantic--find-tags-by-macro
     (eq ,class (semantic-tag-class (car tags)))
@@ -316,7 +316,7 @@ TABLE is a tag table.  See `semantic-something-to-tag-table'."
 (defmacro semantic-filter-tags-by-class (class &optional table)
   "Find all tags of class not in the list CLASS in TABLE.
 CLASS is a list of symbols representing the class of the token,
-such as 'variable, of 'function..
+such as `variable' or `function'.
 TABLE is a tag table.  See `semantic-something-to-tag-table'."
   `(semantic--find-tags-by-macro
     (not (memq (semantic-tag-class (car tags)) ,class))

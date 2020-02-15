@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -52,8 +52,9 @@
 ;; The main keymap
 
 (easy-mmode-defmap log-edit-mode-map
-  `(("\C-c\C-c" . log-edit-done)
+  '(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
+    ("\C-c\C-w" . log-edit-generate-changelog-from-diff)
     ("\C-c\C-d" . log-edit-show-diff)
     ("\C-c\C-f" . log-edit-show-files)
     ("\C-c\C-k" . log-edit-kill-buffer)
@@ -350,7 +351,7 @@ The first subexpression is the actual text of the field.")
 (defun log-edit-goto-eoh ()             ;FIXME: Almost rfc822-goto-eoh!
   (goto-char (point-min))
   (when (re-search-forward
-	 "^\\([^[:alpha:]]\\|[[:alnum:]-]+[^[:alnum:]-:]\\)" nil 'move)
+	 "^\\([^[:alpha:]]\\|[[:alnum:]-]+[^[:alnum:]-]\\)" nil 'move)
     (goto-char (match-beginning 0))))
 
 (defun log-edit--match-first-line (limit)
@@ -383,7 +384,7 @@ The first subexpression is the actual text of the field.")
          nil lax))
      ("^\n"
       (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(:height 0.1 :inverse-video t))))
+      (0 '(:height 0.1 :inverse-video t :extend t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
@@ -488,9 +489,62 @@ commands (under C-x v for VC, for example).
   (set (make-local-variable 'font-lock-defaults)
        '(log-edit-font-lock-keywords t))
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
+  (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
   (hack-dir-local-variables-non-file-buffer))
+
+(defun log-edit--insert-filled-defuns (func-names)
+  "Insert FUNC-NAMES, following ChangeLog formatting."
+  (if (not func-names)
+      (insert ":")
+    (unless (or (memq (char-before) '(?\n ?\s))
+                (> (current-column) fill-column))
+      (insert " "))
+    (cl-loop for first-fun = t then nil
+             for def in func-names do
+             (when (> (+ (current-column) (string-width def)) fill-column)
+               (unless first-fun
+                 (insert ")"))
+               (insert "\n"))
+             (insert (if (memq (char-before) '(?\n ?\s))
+                         "(" ", ")
+                     def))
+    (insert "):")))
+
+(defun log-edit-fill-entry (&optional justify)
+  "Like \\[fill-paragraph], but handle ChangeLog entries.
+Consecutive function entries without prose (i.e., lines of the
+form \"(FUNCTION):\") will be combined into \"(FUNC1, FUNC2):\"
+according to `fill-column'."
+  (save-excursion
+    (pcase-let ((`(,beg ,end) (log-edit-changelog-paragraph)))
+      (if (= beg end)
+          ;; Not a ChangeLog entry, fill as normal.
+          nil
+        (cl-callf copy-marker end)
+        (goto-char beg)
+        (cl-loop
+         for defuns-beg =
+         (and (< beg end)
+              (re-search-forward
+               (concat "\\(?1:" change-log-unindented-file-names-re
+                       "\\)\\|^\\(?1:\\)(")
+               end t)
+              (copy-marker (match-end 1)))
+         ;; Fill prose between log entries.
+         do (let ((fill-indent-according-to-mode t)
+                  (end (if defuns-beg (match-beginning 0) end))
+                  (beg (progn (goto-char beg) (line-beginning-position))))
+              (when (<= (line-end-position) end)
+                (fill-region beg end justify)))
+         while defuns-beg
+         for defuns = (progn (goto-char defuns-beg)
+                             (change-log-read-defuns end))
+         do (progn (delete-region defuns-beg (point))
+                   (log-edit--insert-filled-defuns defuns)
+                   (setq beg (point))))
+        t))))
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
@@ -726,6 +780,27 @@ to build the Fixes: header.")
       (replace-match (concat " " value) t t nil 1)
     (insert field ": " value "\n" (if (looking-at "\n") "" "\n"))))
 
+(declare-function diff-add-log-current-defuns "diff-mode" ())
+
+(defun log-edit-generate-changelog-from-diff ()
+  "Insert a log message by looking at the current diff.
+This command will generate a ChangeLog entries listing the
+functions.  You can then add a description where needed, and use
+\\[fill-paragraph] to join consecutive function names."
+  (interactive)
+  (let* ((diff-buf nil)
+         ;; Unfortunately, `log-edit-show-diff' doesn't have a NO-SHOW
+         ;; option, so we try to work around it via display-buffer
+         ;; machinery.
+         (display-buffer-overriding-action
+          `(,(lambda (buf alist)
+               (setq diff-buf buf)
+               (display-buffer-no-window buf alist))
+            . ((allow-no-window . t)))))
+    (change-log-insert-entries
+     (with-current-buffer (progn (log-edit-show-diff) diff-buf)
+       (diff-add-log-current-defuns)))))
+
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.
 The idea is to write your ChangeLog entries first, and then use this
@@ -754,7 +829,9 @@ regardless of user name or time."
 	     (log-edit-insert-changelog-entries (log-edit-files)))))
       (log-edit-set-common-indentation)
       ;; Add an Author: field if appropriate.
-      (when author (log-edit-add-field "Author" (car author)))
+      (when author
+        (log-edit-add-field "Author" (car author))
+        (log-edit-add-field "Summary" ""))
       ;; Add a Fixes: field if applicable.
       (when (consp log-edit-rewrite-fixes)
 	(rfc822-goto-eoh)
@@ -1084,6 +1161,22 @@ line of MSG."
         (delete-region (match-beginning 0) (match-end 0)))
       (if summary (insert summary "\n\n"))
       (cons (buffer-string) res))))
+
+(defun log-edit--toggle-amend (last-msg-fn)
+  (when (log-edit-toggle-header "Amend" "yes")
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))
+    (insert (funcall last-msg-fn))
+    (save-excursion
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (let ((pt (point)))
+        (and (zerop (forward-line 1))
+             (looking-at "\n\\|\\'")
+             (let ((summary (buffer-substring-no-properties pt (1- (point)))))
+               (skip-chars-forward " \n")
+               (delete-region pt (point))
+               (log-edit-set-header "Summary" summary)))))))
 
 (provide 'log-edit)
 

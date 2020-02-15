@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2018 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2020 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -246,7 +246,7 @@ install-ps: ps
 	  ${GZIP_PROG} -9n "$(DESTDIR)$(psdir)/$${file}"; \
 	done
 
-## Top-level Makefile installs the info pages.
+## Top-level Makefile installs the Info manuals.
 install-doc: install-dvi install-html install-pdf install-ps
 
 

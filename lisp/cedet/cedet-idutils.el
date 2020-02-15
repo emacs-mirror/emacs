@@ -1,8 +1,8 @@
 ;;; cedet-idutils.el --- ID Utils support for CEDET.
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
@@ -52,12 +52,12 @@
 (defun cedet-idutils-search (searchtext texttype type scope)
   "Perform a search with ID Utils, return the created buffer.
 SEARCHTEXT is text to find.
-TEXTTYPE is the type of text, such as 'regexp, 'string, 'tagname,
-'tagregexp, or 'tagcompletions.
+TEXTTYPE is the type of text, such as `regexp', `string', `tagname',
+`tagregexp', or `tagcompletions'.
 TYPE is the type of search, meaning that SEARCHTEXT is compared to
 filename, tagname (tags table), references (uses of a tag) , or
 symbol (uses of something not in the tag table.)
-SCOPE is the scope of the search, such as 'project or 'subdirs.
+SCOPE is the scope of the search, such as `project' or `subdirs'.
 Note: Scope is not yet supported."
   (if (eq type 'file)
       ;; Calls for file stuff is very simple.

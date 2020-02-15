@@ -1,6 +1,6 @@
 ;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
-;; Copyright (C) 1999-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -199,7 +199,7 @@ Other languages qualify names within a Namespace (such as C++) which
 result in a different package like structure.
 
 Languages which do not override this function will just search the
-stream for a tag of class 'package, and return that."
+stream for a tag of class `package', and return that."
   (let ((stream (semantic-something-to-tag-table
                  (or stream-or-buffer tag))))
     (:override-with-args (tag stream))))
@@ -369,7 +369,7 @@ For these PROTECTIONs, true is returned if TAG is:
     ))
 
 (define-overloadable-function semantic-tag-abstract-p (tag &optional parent)
-  "Return non nil if TAG is abstract.
+  "Return non-nil if TAG is abstract.
 Optional PARENT is the parent tag of TAG.
 In UML, abstract methods and classes have special meaning and behavior
 in how methods are overridden.  In UML, abstract methods are italicized.
@@ -393,7 +393,7 @@ See `semantic-tag-abstract-p'."
     abs))
 
 (define-overloadable-function semantic-tag-leaf-p (tag &optional parent)
-  "Return non nil if TAG is leaf.
+  "Return non-nil if TAG is leaf.
 Optional PARENT is the parent tag of TAG.
 In UML, leaf methods and classes have special meaning and behavior.
 
@@ -417,7 +417,7 @@ See `semantic-tag-leaf-p'."
     leaf))
 
 (define-overloadable-function semantic-tag-static-p (tag &optional parent)
-  "Return non nil if TAG is static.
+  "Return non-nil if TAG is static.
 Optional PARENT is the parent tag of TAG.
 In UML, static methods and attributes mean that they are allocated
 in the parent class, and are not instance specific.
@@ -436,7 +436,7 @@ See `semantic-tag-static-p'."
 
 ;;;###autoload
 (define-overloadable-function semantic-tag-prototype-p (tag)
-  "Return non nil if TAG is a prototype.
+  "Return non-nil if TAG is a prototype.
 For some languages, such as C, a prototype is a declaration of
 something without an implementation."
   )

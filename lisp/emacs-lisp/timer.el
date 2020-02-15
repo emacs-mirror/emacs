@@ -1,6 +1,6 @@
 ;;; timer.el --- run a function with args at some time in future -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -57,7 +57,7 @@
 
 (defun timer--time-setter (timer time)
   (timer--check timer)
-  (let ((lt (encode-time time 'list)))
+  (let ((lt (time-convert time 'list)))
     (setf (timer--high-seconds timer) (nth 0 lt))
     (setf (timer--low-seconds timer) (nth 1 lt))
     (setf (timer--usecs timer) (nth 2 lt))
@@ -74,7 +74,7 @@
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
-TIME must be in the internal format returned by, e.g., `current-time'.
+TIME must be a Lisp time value.
 If optional third argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (setf (timer--time timer) time)
@@ -88,7 +88,7 @@ SECS may be an integer, floating point number, or the internal
 time format returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
-  (setf (timer--time timer) (if (consp secs) secs (seconds-to-time secs)))
+  (setf (timer--time timer) secs)
   (setf (timer--repeat-delay timer) repeat)
   timer)
 
@@ -96,10 +96,7 @@ fire each time Emacs is idle for that many seconds."
   "Yield the next value after TIME that is an integral multiple of SECS.
 More precisely, the next value, after TIME, that is an integral multiple
 of SECS seconds since the epoch.  SECS may be a fraction."
-  (let* ((ticks-hz (if (and (consp time) (integerp (car time))
-			    (integerp (cdr time)) (< 0 (cdr time)))
-		       time
-		     (encode-time time 1000000000000)))
+  (let* ((ticks-hz (time-convert time t))
 	 (ticks (car ticks-hz))
 	 (hz (cdr ticks-hz))
 	 trunc-s-ticks)
@@ -109,7 +106,7 @@ of SECS seconds since the epoch.  SECS may be a fraction."
       (setq ticks (ash ticks 1))
       (setq hz (ash hz 1)))
     (let ((more-ticks (+ ticks trunc-s-ticks)))
-      (encode-time (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
+      (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds
@@ -249,8 +246,8 @@ how many will really happen."
 (defun timer-until (timer time)
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
-TIME is a time-list."
-  (- (float-time time) (float-time (timer--time timer))))
+TIME is a Lisp time value."
+  (float-time (time-subtract time (timer--time timer))))
 
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.
@@ -281,7 +278,7 @@ This function is called, by name, directly by the C code."
               ;; perhaps because Emacs was suspended for a long time,
               ;; limit how many times things get repeated.
               (if (and (numberp timer-max-repeats)
-                       (< 0 (timer-until timer nil)))
+		       (time-less-p (timer--time timer) nil))
                   (let ((repeats (/ (timer-until timer nil)
                                     (timer--repeat-delay timer))))
                     (if (> repeats timer-max-repeats)
@@ -375,8 +372,11 @@ This function returns a timer object which you can use in
 	      (now (decode-time)))
 	  (if (>= hhmm 0)
 	      (setq time
-		    (encode-time 0 (% hhmm 100) (/ hhmm 100) (nth 3 now)
-				 (nth 4 now) (nth 5 now) (nth 8 now)))))))
+		    (encode-time 0 (% hhmm 100) (/ hhmm 100)
+                                 (decoded-time-day now)
+				 (decoded-time-month now)
+                                 (decoded-time-year now)
+                                 (decoded-time-zone now)))))))
 
   (or (consp time)
       (error "Invalid time format"))

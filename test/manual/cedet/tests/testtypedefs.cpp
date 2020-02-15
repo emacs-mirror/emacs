@@ -1,8 +1,8 @@
 // testtypedefs.cpp --- Sample with some fake bits out of std::string
 
-// Copyright (C) 2008-2018 Free Software Foundation, Inc.
+// Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-// Author: Eric M. Ludlam <eric@siege-engine.com>
+// Author: Eric M. Ludlam <zappo@gnu.org>
 
 // This file is part of GNU Emacs.
 
@@ -76,5 +76,80 @@ int main()
   ntb.// -4-
     ;
   // #4# ("otherFunc")
+
+  return 0;
+}
+
+// ------------------
+// Example from Yupeng.
+
+typedef struct epd_info {
+     int a;
+} epd_info_t;
+
+static int epd_probe(struct platform_device *pdev)
+{
+     struct epd_info *db;
+     epd_info_t db1;
+
+     db.// -5-
+       ; // #5# ("a")
+     db1.// -6-
+       ;// #6# ("a")
+
+     return 1;
+}
+
+// ------------------
+// Example from Michel LAFON-PUYO
+
+typedef enum
+{
+   ENUM1,
+   ENUM2
+} e_toto;
+
+typedef struct
+{
+   int field_a;
+   int field_b;
+} t_toto;
+
+// Note: Error condition from anonymous types in a typedef
+//       was that the first (ie - the enum) would be used in
+//       place of the struct.
+int func(void)
+{
+   t_toto t;
+   t. // -7-
+     ; // #7# ( "field_a" "field_b" )
+   return 0;
+}
+
+
+// ------------------
+// Example from Dixon Ryan
+
+
+namespace NS2 {
+   class MyClass {
+
+   public:
+      void myFunction() { }
+   };
+}
+
+typedef class NS2::MyClass* MyClassHandle;
+
+int dixon ( void ) {
+  MyClassHandle mch = getMyClassHandle();
+  NS2::MyClass* mcptr = getMyClassHandle();
+
+  mcptr-> // -8-
+    ; // #8# ( "myFunction" )
+  mch-> // -    9- TODO bring over patch from SF
+    ; // #9# ( "myFunction" )
+  deleteMyClassHandle(mch);
+
   return 0;
 }

@@ -1,9 +1,9 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2018 Free
+;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2020 Free
 ;; Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: OO, chart, graph
 
@@ -518,7 +518,7 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
     (or (= (move-to-column x) x)
 	(let ((p (point)))
 	  (indent-to x)
-	  (remove-text-properties p (point) '(face))))))
+          (remove-text-properties p (point) '(face nil))))))
 
 (defun chart-zap-chars (n)
   "Zap up to N chars without deleting EOLs."
@@ -607,6 +607,8 @@ SORT-PRED if desired."
   (chart-bar-quickie 'vertical "Test Bar Chart"
 		     '( "U1" "ME2" "C3" "B4" "QT" "EZ") "Items"
 		     '( 5 -10 23 20 30 -3) "Values")
+  (if (not (called-interactively-p 'any))
+      (kill-buffer "*Test Bar Chart*"))
   )
 
 ;;; Sample utility function
@@ -704,7 +706,7 @@ SORT-PRED if desired."
 	(cntlst nil))
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "\\-[A-Z][a-z][a-z] +\\(\\w+\\)@\\w+" nil t)
+      (while (re-search-forward "-[A-Z][a-z][a-z] +\\(\\w+\\)@\\w+" nil t)
 	(let* ((nam (buffer-substring (match-beginning 1) (match-end 1)))
 	       (m (member nam nmlst)))
 	  (message "Scanned username %s" nam)

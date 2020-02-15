@@ -1,6 +1,6 @@
 ;;; semantic/sb.el --- Semantic tag display for speedbar
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -279,7 +279,7 @@ Optional MODIFIERS is additional text needed for variables."
 (defun semantic-sb-show-extra (text token indent)
   "Display additional information about the token as an expansion.
 TEXT TOKEN and INDENT are the details."
-  (cond ((string-match "+" text)	;we have to expand this file
+  (cond ((string-match "\\+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -325,7 +325,7 @@ TEXT TOKEN and INDENT are the details."
 (defun semantic-sb-expand-group (text token indent)
   "Expand a group which has semantic tokens.
 TEXT TOKEN and INDENT are the details."
-  (cond ((string-match "+" text)	;we have to expand this file
+  (cond ((string-match "\\+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion

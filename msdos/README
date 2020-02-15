@@ -1,4 +1,4 @@
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -10,7 +10,7 @@ The files emacs.ico and emacs.pif are for using the DJGPP version on
 Windows 3.X.  Since these are binary files, their copyright notice is
 reproduced here:
 
-# Copyright (C) 1993, 2002-2018 Free Software Foundation, Inc.
+# Copyright (C) 1993, 2002-2020 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #

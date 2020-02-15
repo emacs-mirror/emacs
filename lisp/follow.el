@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer
 
-;; Copyright (C) 1995-1997, 1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1995-1997, 1999, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Anders Lindgren
@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; `Follow mode' is a minor mode for Emacs and XEmacs that
-;; combines windows into one tall virtual window.
+;; `Follow mode' is a minor mode that combines windows into one tall
+;; virtual window.
 ;;
 ;; The feeling of a "virtual window" has been accomplished by the use
 ;; of two major techniques:
@@ -557,7 +557,7 @@ This is an internal function for `follow-scroll-up' and
   (let ((opoint (point))  (owin (selected-window)))
     (while
         ;; If we are too near EOB, try scrolling the previous window.
-        (condition-case nil (progn (scroll-up arg) nil)
+        (condition-case nil (progn (scroll-up-command arg) nil)
           (end-of-buffer
            (condition-case nil (progn (follow-previous-window) t)
              (error
@@ -576,7 +576,7 @@ If ARG is nil, scroll the size of the current window.
 This is an internal function for `follow-scroll-down' and
 `follow-scroll-down-window'."
   (let ((opoint (point)))
-    (scroll-down arg)
+    (scroll-down-command arg)
     (unless (and scroll-preserve-screen-position
                  (get this-command 'scroll-command))
       (goto-char opoint))
@@ -596,7 +596,7 @@ Negative ARG means scroll downward.
 Works like `scroll-up' when not in Follow mode."
   (interactive "P")
   (cond ((not follow-mode)
-	 (scroll-up arg))
+	 (scroll-up-command arg))
 	((eq arg '-)
 	 (follow-scroll-down-window))
 	(t (follow-scroll-up-arg arg))))
@@ -616,7 +616,7 @@ Negative ARG means scroll upward.
 Works like `scroll-down' when not in Follow mode."
   (interactive "P")
   (cond ((not follow-mode)
-	 (scroll-down arg))
+	 (scroll-down-command arg))
 	((eq arg '-)
 	 (follow-scroll-up-window))
 	(t (follow-scroll-down-arg arg))))
@@ -635,13 +635,16 @@ Negative ARG means scroll downward.
 Works like `scroll-up' when not in Follow mode."
   (interactive "P")
   (cond ((not follow-mode)
-	 (scroll-up arg))
+	 (scroll-up-command arg))
 	(arg (follow-scroll-up-arg arg))
         (t
 	 (let* ((windows (follow-all-followers))
 		(end (window-end (car (reverse windows)))))
 	   (if (eq end (point-max))
-	       (signal 'end-of-buffer nil)
+	       (if (or (null scroll-error-top-bottom)
+		       (eobp))
+		   (signal 'end-of-buffer nil)
+		 (goto-char (point-max)))
 	     (select-window (car windows))
 	     ;; `window-end' might return nil.
 	     (if end
@@ -663,14 +666,17 @@ Negative ARG means scroll upward.
 Works like `scroll-down' when not in Follow mode."
   (interactive "P")
   (cond ((not follow-mode)
-	 (scroll-down arg))
+	 (scroll-down-command arg))
 	(arg (follow-scroll-down-arg arg))
         (t
 	 (let* ((windows (follow-all-followers))
 		(win (car (reverse windows)))
 		(start (window-start (car windows))))
 	   (if (eq start (point-min))
-	       (signal 'beginning-of-buffer nil)
+	       (if (or (null scroll-error-top-bottom)
+		       (bobp))
+		   (signal 'beginning-of-buffer nil)
+		 (goto-char (point-min)))
 	     (select-window win)
 	     (goto-char start)
 	     (vertical-motion (- (- (window-height win)

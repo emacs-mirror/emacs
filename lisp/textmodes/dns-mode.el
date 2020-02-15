@@ -1,6 +1,6 @@
 ;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files
 
-;; Copyright (C) 2000-2001, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS master zone file SOA comm
@@ -114,9 +114,9 @@
 			"26.1" 'set)
 
 (defcustom dns-mode-font-lock-keywords
-  `((,(concat "^$" (regexp-opt dns-mode-control-entities))
+  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities))
      0 ,dns-mode-control-entity-face)
-    ("^$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
+    ("^\\$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
     (,(regexp-opt dns-mode-classes) 0 ,dns-mode-class-face)
     (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
@@ -134,6 +134,7 @@ manually with \\[dns-mode-soa-increment-serial]."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Ask" ask)
 		 (const :tag "Never" nil))
+  :safe 'symbolp
   :group 'dns-mode)
 
 ;; Syntax table.
@@ -180,9 +181,8 @@ Turning on DNS mode runs `dns-mode-hook'."
   (set (make-local-variable 'comment-start) ";")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) ";+ *")
-  (unless (featurep 'xemacs)
-    (set (make-local-variable 'font-lock-defaults)
-	 '(dns-mode-font-lock-keywords nil nil ((?_ . "w")))))
+  (set (make-local-variable 'font-lock-defaults)
+       '(dns-mode-font-lock-keywords nil nil ((?_ . "w"))))
   (add-hook 'before-save-hook 'dns-mode-soa-maybe-increment-serial
 	    nil t)
   (easy-menu-add dns-mode-menu dns-mode-map))
@@ -292,9 +292,9 @@ Examples:
   (skip-syntax-backward " ")
   (skip-syntax-backward "w_.")
   (re-search-forward "\\([[:xdigit:]:]+\\)\\(/-?[0-9]\\{2,3\\}\\)?")
-  (kill-new (match-string 0))
   (let ((address (match-string 1))
         (prefix-length (match-string 2)))
+    (kill-new (match-string 0))
     (when prefix-length
       (setq prefix-length (string-to-number (substring prefix-length 1)))
       (if negate-prefix

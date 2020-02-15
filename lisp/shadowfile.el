@@ -1,6 +1,6 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -165,6 +165,9 @@ created by `shadow-define-regexp-group'.")
 (defvar shadow-info-buffer nil)		; buf visiting shadow-info-file
 (defvar shadow-todo-buffer nil)		; buf visiting shadow-todo-file
 
+(defvar shadow-debug nil
+  "Use for debug messages.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Syntactic sugar; General list and string manipulation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -204,7 +207,7 @@ PREFIX."
 
 ;;; I use the term `site' to refer to a string which may be the
 ;;; cluster identification "/name:", a remote identification
-;;; "/method:user@host:", or "/system-name:' (the value of
+;;; "/method:user@host:", or "/system-name:" (the value of
 ;;; `shadow-system-name') for the location of local files.  All
 ;;; user-level commands should accept either.
 
@@ -414,7 +417,8 @@ filename expansion or contraction, you must do that yourself first."
              (tramp-file-name-localname file-sup))
 	  (string-equal
            (tramp-file-name-localname pattern-sup)
-           (tramp-file-name-localname file-sup))))))
+           (tramp-file-name-localname file-sup)))
+        t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; User-level Commands
@@ -554,7 +558,7 @@ permanently, remove the group from `shadow-literal-groups' or
 (defun shadow-make-group (regexp sites)
   "Make a description of a file group---
 actually a list of regexp Tramp file names---from REGEXP (name of file to
-be shadowed), and list of SITES"
+be shadowed), and list of SITES."
   (if sites
       (cons (shadow-make-fullname
              (shadow-parse-name (shadow-site-primary (car sites))) nil regexp)
@@ -604,6 +608,11 @@ and to are absolute file names."
 			canonical-file shadow-literal-groups nil)
 		       (shadow-shadows-of-1
 			canonical-file shadow-regexp-groups t)))))
+          (when shadow-debug
+            (message
+             "shadow-shadows-of: %s %s %s %s %s"
+             file (shadow-local-file file) shadow-homedir
+             absolute-file canonical-file))
 	(set (intern file shadow-hashtable) shadows))))
 
 (defun shadow-shadows-of-1 (file groups regexp)
@@ -618,6 +627,10 @@ Consider them as regular expressions if third arg REGEXP is true."
 		       (let ((realname
                               (tramp-file-name-localname
                                (shadow-parse-name file))))
+                         (when shadow-debug
+                           (message
+                            "shadow-shadows-of-1: %s %s %s"
+                            file (shadow-parse-name file) realname))
 			 (mapcar
 			  (function
 			   (lambda (x)
@@ -628,9 +641,18 @@ Consider them as regular expressions if third arg REGEXP is true."
 
 (defun shadow-add-to-todo ()
   "If current buffer has shadows, add them to the list needing to be copied."
+  (when shadow-debug
+    (message
+     "shadow-add-to-todo: %s %s"
+     (buffer-file-name (current-buffer))
+     (shadow-expand-file-name (buffer-file-name (current-buffer)))))
   (let ((shadows (shadow-shadows-of
 		  (shadow-expand-file-name
 		   (buffer-file-name (current-buffer))))))
+    (when shadow-debug
+      (message
+       "shadow-add-to-todo: %s %s\n%s"
+       shadows shadow-files-to-copy (with-output-to-string (backtrace))))
     (when shadows
       (setq shadow-files-to-copy
 	    (shadow-union shadows shadow-files-to-copy))
@@ -644,6 +666,10 @@ Consider them as regular expressions if third arg REGEXP is true."
 (defun shadow-remove-from-todo (pair)
   "Remove PAIR from `shadow-files-to-copy'.
 PAIR must be `eq' to one of the elements of that list."
+  (when shadow-debug
+    (message
+     "shadow-remove-from-todo: %s %s\n%s"
+     pair shadow-files-to-copy (with-output-to-string (backtrace))))
   (setq shadow-files-to-copy
 	(cl-remove-if (lambda (s) (eq s pair)) shadow-files-to-copy)))
 
@@ -673,7 +699,7 @@ Return t unless files were locked; then return nil."
 	(eval-buffer))
       (when shadow-todo-file
 	(set-buffer (setq shadow-todo-buffer
-			  (find-file-noselect shadow-todo-file)))
+			  (find-file-noselect shadow-todo-file 'nowarn)))
 	(when (and (not (buffer-modified-p))
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-todo-file))
@@ -714,6 +740,8 @@ With non-nil argument also saves the buffer."
     (if save (shadow-save-todo-file))))
 
 (defun shadow-save-todo-file ()
+  (when shadow-debug
+    (message "shadow-save-todo-file:\n%s" (with-output-to-string (backtrace))))
   (if (and shadow-todo-buffer (buffer-modified-p shadow-todo-buffer))
       (with-current-buffer shadow-todo-buffer
 	(condition-case nil		; have to continue even in case of
@@ -769,7 +797,7 @@ look for files that have been changed and need to be copied to other systems."
 				(buffer-list))))
 	   (yes-or-no-p "Modified buffers exist; exit anyway? "))
        (or (not (fboundp 'process-list))
-	   ;; process-list is not defined on MSDOS.
+	   ;; `process-list' is not defined on MSDOS.
 	   (let ((processes (process-list))
 		 active)
 	     (while processes

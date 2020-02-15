@@ -1,10 +1,10 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2020 Free Software Foundation, Inc.
 
-;; Maintainer: emacs-devel@gnu.org
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages tcl modes
 
 ;; This file is part of GNU Emacs.
@@ -604,9 +604,6 @@ already exist."
   (set (make-local-variable 'dabbrev-abbrev-char-regexp) "\\sw\\|\\s_")
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  ;; XEmacs has defun-prompt-regexp, but I don't believe
-  ;; that it works for end-of-defun -- only for
-  ;; beginning-of-defun.
   (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
   (set (make-local-variable 'add-log-current-defun-function)
        'tcl-add-log-defun)
@@ -614,11 +611,7 @@ already exist."
   (setq-local beginning-of-defun-function #'tcl-beginning-of-defun-function)
   (setq-local end-of-defun-function #'tcl-end-of-defun-function)
 
-  (easy-menu-add tcl-mode-menu)
-  ;; Append Tcl menu to popup menu for XEmacs.
-  (if (boundp 'mode-popup-menu)
-      (setq mode-popup-menu
-	    (cons (concat mode-name " Mode Commands") tcl-mode-menu))))
+  (easy-menu-add tcl-mode-menu))
 
 
 
@@ -815,9 +808,14 @@ Returns nil if line starts inside a string, t if in a comment."
 	   state
 	   containing-sexp
 	   found-next-line)
-      (if parse-start
-	  (goto-char parse-start)
-	(beginning-of-defun))
+      (cond
+       (parse-start
+	(goto-char parse-start))
+       ((not (beginning-of-defun))
+        ;; If we're not in a function, don't use
+        ;; `tcl-beginning-of-defun-function'.
+        (let ((beginning-of-defun-function nil))
+          (beginning-of-defun))))
       (while (< (point) indent-point)
 	(setq parse-start (point))
 	(setq state (parse-partial-sexp (point) indent-point 0))
@@ -1216,7 +1214,6 @@ first word following a semicolon, opening brace, or opening bracket."
      (t
       (memq (preceding-char) '(?\; ?{ ?\[))))))
 
-;; FIXME doesn't actually return t.  See last case.
 (defun tcl-real-comment-p ()
   "Return t if point is just after the `#' beginning a real comment.
 Does not check to see if previous char is actually `#'.
@@ -1225,7 +1222,7 @@ preceded only by whitespace on the line, or has a preceding
 semicolon, opening brace, or opening bracket on the same line."
   (save-excursion
     (backward-char)
-    (tcl-real-command-p)))
+    (and (tcl-real-command-p) t)))
 
 (defun tcl-hairy-scan-for-comment (state end always-stop)
   "Determine if point is in a comment.
@@ -1537,17 +1534,9 @@ The first line is assumed to look like \"#!.../program ...\"."
     (if (looking-at "#![^ \t]*/\\([^ \t\n/]+\\)\\([ \t]\\|$\\)")
 	(set (make-local-variable 'tcl-application) (match-string 1)))))
 
-
-
-;;
-;; XEmacs menu support.
-;; Taken from schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid),
-;; who wrote a different Tcl mode.
-;; We also have support for menus in Emacs.  We do this by
-;; loading the XEmacs menu emulation code.
-;;
-
 (defun tcl-popup-menu (_e)
+  "XEmacs menu support."
+  (declare (obsolete nil "27.1"))
   (interactive "@e")
   (popup-menu tcl-mode-menu))
 

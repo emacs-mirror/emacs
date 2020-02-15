@@ -1,6 +1,6 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -677,7 +677,8 @@ Priority order for recognizing coding systems when reading files:\n")
 			(princ (cdr (car alist)))
 			(princ "\n")
 			(setq alist (cdr alist)))))))
-	(funcall func "File I/O" file-coding-system-alist)
+	(funcall func "File I/O" (append auto-coding-alist
+                                         file-coding-system-alist))
 	(funcall func "Process I/O" process-coding-system-alist)
 	(funcall func "Network I/O" network-coding-system-alist))
       (help-mode))))
@@ -834,9 +835,16 @@ The IGNORED argument is ignored."
 
 ;;;###autoload
 (defun describe-font (fontname)
-  "Display information about a font whose name is FONTNAME.
-The font must be already used by Emacs."
-  (interactive "sFont name (default current choice for ASCII chars): ")
+  "Display information about a font whose name is FONTNAME."
+  (interactive
+   (list (completing-read
+          "Font name (default current choice for ASCII chars): "
+          (and window-system
+               (fboundp 'fontset-list)
+               ;; The final element in `fontset-list' is a default
+               ;; (generic) one, so don't include that.
+               (nconc (butlast (fontset-list))
+                      (x-list-fonts "*"))))))
   (or (and window-system (fboundp 'fontset-list))
       (error "No fonts being used"))
   (let ((xref-item (list #'describe-font fontname))
@@ -846,9 +854,8 @@ The font must be already used by Emacs."
     (setq font-info (font-info fontname))
     (if (null font-info)
 	(if (fontp fontname 'font-object)
-	    ;; The font should be surely used.  So, there's some
-	    ;; problem about getting information about it.  It is
-	    ;; better to print the fontname to show which font has
+	    ;; If there's some problem with getting information about
+	    ;; the font, print the font name to show which font has
 	    ;; this problem.
 	    (message "No information about \"%s\"" (font-xlfd-name fontname))
 	  (message "No matching font found"))

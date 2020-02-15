@@ -1,6 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -646,8 +646,9 @@ an alist of attribute/value pairs."
 	       (not (equal "" sizelimit)))
 	  (setq arglist (nconc arglist (list (format "-z%s" sizelimit)))))
       (if passwd
-	  (let* ((process-connection-type nil)
-		 (proc-args (append arglist ldap-ldapsearch-args
+	  ;; Leave process-connection-type at its default value.  See
+	  ;; discussion in Bug#33050.
+	  (let* ((proc-args (append arglist ldap-ldapsearch-args
 				    filter))
 		 (proc (apply #'start-process "ldapsearch" buf
 			      ldap-ldapsearch-prog
@@ -726,7 +727,7 @@ an alist of attribute/value pairs."
 	  (setq record nil)
 	  (skip-chars-forward " \t\n")
 	  (message "Parsing results... %d" numres)
-	  (1+ numres))
+	  (setq numres (1+ numres)))
 	(message "Parsing results... done")
 	(nreverse result)))))
 

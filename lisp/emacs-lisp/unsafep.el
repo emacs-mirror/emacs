@@ -1,9 +1,8 @@
 ;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
-;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: safety lisp utility
 
 ;; This file is part of GNU Emacs.
@@ -91,11 +90,6 @@
   "Dynamically-bound list of variables with lexical bindings at this point
 in the parse.")
 (put 'unsafep-vars 'risky-local-variable t)
-
-;;Side-effect-free functions from subr.el
-(dolist (x '(assoc-default butlast last match-string
-	     match-string-no-properties member-ignore-case remove remq))
-  (put x 'side-effect-free t))
 
 ;;Other safe functions
 (dolist (x '(;;Special forms

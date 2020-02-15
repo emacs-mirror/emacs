@@ -1,9 +1,9 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2018 Free Software
+;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2020 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.
@@ -552,13 +552,7 @@ if large.  You can use `Info-split' to do this manually."
 
 (defvar texinfo-accent-commands
   (concat
-   "@^\\|"
-   "@`\\|"
-   "@'\\|"
-   "@\"\\|"
-   "@,\\|"
-   "@=\\|"
-   "@~\\|"
+   "@[\"',=^`~]\\|"
    "@OE{\\|"
    "@oe{\\|"
    "@AA{\\|"
@@ -1292,8 +1286,7 @@ otherwise, insert URL-TITLE followed by URL in parentheses."
     ;; if url-title
     (if (nth 1 args)
         (insert  (nth 1 args) " (" (nth 0 args) ")")
-      (insert "`" (nth 0 args) "'"))
-    (goto-char texinfo-command-start)))
+      (insert "`" (nth 0 args) "'"))))
 
 
 ;;; Section headings

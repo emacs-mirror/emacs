@@ -4,7 +4,7 @@
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -342,16 +342,11 @@ list of ls option letters of which c and u are recognized).  Use
 the same method as \"ls\" to decide whether to show time-of-day or
 year, depending on distance between file date and NOW."
   (let* ((time (nth (find-lisp-time-index switches) file-attr))
-	 (diff16 (- (car time) (car now)))
-	 (diff (+ (ash diff16 16) (- (car (cdr time)) (car (cdr now)))))
-	 (past-cutoff (- (* 6 30 24 60 60)))	; 6 30-day months
+	 (diff (time-convert (time-subtract time now) 'integer))
+	 (past-cutoff -15778476)		; 1/2 of a Gregorian year
 	 (future-cutoff (* 60 60)))		; 1 hour
     (format-time-string
-     (if (and
-	  (<= past-cutoff diff) (<= diff future-cutoff)
-	  ;; Sanity check in case `diff' computation overflowed.
-	  (<= (1- (ash past-cutoff -16)) diff16)
-	  (<= diff16 (1+ (ash future-cutoff -16))))
+     (if (<= past-cutoff diff future-cutoff)
 	 "%b %e %H:%M"
        "%b %e  %Y")
      time)))

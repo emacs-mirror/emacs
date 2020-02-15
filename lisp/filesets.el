@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -139,7 +139,7 @@ the default for XEmacs prior to 21.5.  If you want to change this value
 put \"(setq filesets-menu-ensure-use-cached VALUE)\" into your startup
 file -- before loading filesets.el.
 
-So, when should you think about setting this value to t? If filesets.el
+So, when should you think about setting this value to t?  If filesets.el
 is loaded before user customizations.  Thus, if (require \\='filesets)
 precedes the `custom-set-variables' command or, for XEmacs, if init.el
 is loaded before custom.el, set this variable to t.")
@@ -545,8 +545,8 @@ computer environments."
 (defcustom filesets-tree-max-level 3
   "Maximum scan depth for directory trees.
 A :tree fileset is defined by a base directory the contents of which
-will be recursively added to the menu.  `filesets-tree-max-level' tells up
-to which level the directory structure should be scanned/listed,
+will be recursively added to the menu.  `filesets-tree-max-level' tells
+up to which level the directory structure should be scanned/listed,
 i.e. how deep the menu should be.  Try something like
 
 	(\"HOME -- only one level\"
@@ -565,7 +565,7 @@ including directory trees to the menu can take a lot of memory."
   :group 'filesets)
 
 (defcustom filesets-commands
-  `(("Isearch"
+  '(("Isearch"
      multi-isearch-files
      (filesets-cmd-isearch-getargs))
     ("Isearch (regexp)"
@@ -966,11 +966,11 @@ Example definition:
 `filesets-data' is a list of (NAME-AS-STRING . DEFINITION), DEFINITION
 being an association list with the fields:
 
-:files FILE-1 .. FILE-N ... a list of files belonging to a fileset
+:files FILE-1 .. FILE-N ... a list of files belonging to a fileset.
 
 :ingroup FILE-NAME ... an inclusion group's base file.
 
-:tree ROOT-DIR PATTERN ... a base directory and a file pattern
+:tree ROOT-DIR PATTERN ... a base directory and a file pattern.
 
 :pattern DIR PATTERN ... a base directory and a regexp matching
                          files in that directory.  Usually,
@@ -981,17 +981,17 @@ being an association list with the fields:
 :filter-dirs-flag BOOLEAN ... is only used in conjunction with :tree.
 
 :tree-max-level INTEGER ... recurse into directories this many levels
-\(see `filesets-tree-max-level' for a full explanation)
+\(see `filesets-tree-max-level' for a full explanation).
 
 :dormant-flag BOOLEAN ... non-nil means don't show this item in the
 menu; dormant filesets can still be manipulated via commands available
 from the minibuffer -- e.g. `filesets-open', `filesets-close', or
-`filesets-run-cmd'
+`filesets-run-cmd'.
 
-:dormant-p FUNCTION ... a function returning :dormant-flag
+:dormant-p FUNCTION ... a function returning :dormant-flag.
 
 :open FUNCTION ... the function used to open file belonging to this
-fileset.  The function takes a file name as argument
+fileset.  The function takes a file name as argument.
 
 :save FUNCTION ... the function used to save file belonging to this
 fileset; it takes no arguments, but works on the current buffer.
@@ -1003,7 +1003,8 @@ optional.
 
 In conjunction with the :tree tag, :save is void.  :open refers to the
 function used for opening files in a directory, not for opening the
-directory.  For browsing directories, `filesets-browse-dir-function' is used.
+directory.  For browsing directories, `filesets-browse-dir-function'
+is used.
 
 Before using :ingroup, make sure that the file type is already
 defined in `filesets-ingroup-patterns'."
@@ -1286,10 +1287,10 @@ on-close-all ... Not used"
 		  (filesets-get-external-viewer filename)))))
     (filesets-alist-get def
 			(pcase event
-			  (`on-open-all       ':ignore-on-open-all)
-			  (`on-grep           ':ignore-on-read-text)
-			  (`on-cmd nil)
-			  (`on-close-all nil))
+			  ('on-open-all       ':ignore-on-open-all)
+			  ('on-grep           ':ignore-on-read-text)
+			  ('on-cmd nil)
+			  ('on-close-all nil))
 			nil t)))
 
 (defun filesets-filetype-get-prop (property filename &optional entry)
@@ -1644,10 +1645,10 @@ Replace <file-name> or <<file-name>> with filename."
 				      (dolist (this args txt)
 					(setq txt
 					      (concat txt
+						      (if (equal txt "") "" " ")
 						      (filesets-run-cmd--repl-fn
 						       this
 						       (lambda (this)
-							 (if (equal txt "") "" " ")
 							 (format "%s" this))))))))
 				   (cmd (concat fn " " args)))
 			      (filesets-cmd-show-result
@@ -2440,10 +2441,10 @@ fileset thinks this is necessary or not."
 "Filesets: manual editing of user data required!
 
 Filesets has detected that you were using an older version before,
-which requires some manual updating. Type `y' for editing the startup
+which requires some manual updating.  Type `y' for editing the startup
 file now.
 
-The layout of `filesets-data' has changed. Please delete your cache file
+The layout of `filesets-data' has changed.  Please delete your cache file
 and edit your startup file as shown below:
 
 1. `filesets-data': Edit all :pattern filesets in your startup file and

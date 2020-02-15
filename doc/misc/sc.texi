@@ -15,7 +15,7 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -249,10 +249,10 @@ And that's what I think too.
 @end menu
 
 Note that multiple inclusions of the original messages result in a
-nesting of the @samp{@code{>}} characters.  This can sometimes be quite
+nesting of the @samp{>} characters.  This can sometimes be quite
 confusing when many levels of citations are included since it may be
 difficult or impossible to figure out who actually participated in the
-thread, and multiple nesting of @samp{@code{>}} characters can sometimes
+thread, and multiple nesting of @samp{>} characters can sometimes
 make the message very difficult for the eye to scan.
 
 @cindex non-nested citations
@@ -851,7 +851,8 @@ scanned.  Info key-value pairs are created for each header found.  Also,
 such useful information as the author's name and email address are
 extracted.  If the variable @code{sc-mail-warn-if-non-rfc822-p} is
 non-@code{nil}, then Supercite will warn you if it finds a mail header
-that does not conform to RFC822.  This is rare and indicates a problem
+that does not conform to RFC 822 (or later).
+This is rare and indicates a problem
 either with your MUA or the original author's MUA, or some MTA (mail
 transport agent) along the way.
 
@@ -1032,7 +1033,7 @@ that will be used to composed a non-nested citation string.  Supercite
 scans the various mail headers present in the original article and uses
 a number of heuristics to extract strings which it puts into the
 @dfn{attribution association list} or @dfn{attribution alist}.  This is
-analogous, but different than, the info alist previously mentioned.  Each
+analogous, but different from, the info alist previously mentioned.  Each
 element in the attribution alist is a key-value pair containing such
 information as the author's first name, middle names, and last name, the
 author's initials, and the author's email terminus.
@@ -1329,7 +1330,7 @@ co-worker that uses an uncommon citation style (say one that employs a
 possible for Supercite to recognize this and @emph{coerce} the citation
 to your preferred style, for consistency.  In theory, it is possible for
 Supercite to recognize such things as uuencoded messages or C code and
-cite or fill those differently than normal text.  None of this is
+cite or fill those differently from normal text.  None of this is
 currently part of Supercite, but contributions are welcome!
 
 @node  Using Regi

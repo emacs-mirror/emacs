@@ -6156,7 +6156,7 @@
 	* saveplace.el (load-save-place-alist-from-file): Use expanded name
 	in both messages.
 
-2006-09-16  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
+2006-09-16  Sławomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
 
 	* progmodes/python.el (python-preoutput-filter):
 	Fix arg order to string-match.
@@ -6540,7 +6540,7 @@
 	conf-space-keywords-override local.
 	Call conf-space-mode-internal directly as well as via hook.
 
-2006-09-09  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+2006-09-09  Sławomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* progmodes/python.el (python-font-lock-keywords): Add `self' and other
 	quasi-keywords.
@@ -8873,7 +8873,7 @@
 2006-06-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-running): Fix doc string.
-	(gud-menu-map): Use :visible instead fo :enable for debugger test.
+	(gud-menu-map): Use :visible instead of :enable for debugger test.
 	(gud-tooltip-modes): Add python-mode.
 	(gud-tooltip-print-command): Add pdb.  Remove perldb.
 
@@ -12040,7 +12040,7 @@
 	* emacs-lisp/edebug.el (edebug-display): Use `edebug-sit-for-seconds'
 	value instead of a literal constant (1) on more pauses.
 
-2006-03-03  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+2006-03-03  Sławomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	Be case-sensitive.
@@ -17840,7 +17840,7 @@
 	* man.el (Man-highlight-references): Doc fix.  Reformat code in a
 	more Lisp-ish way.
 
-2005-11-19  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+2005-11-19  Sławomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* ls-lisp.el (ls-lisp-format-file-size): Format file size with 9
 	digits, not 8, to avoid misalignment for files larger than 100MB.
@@ -18028,7 +18028,7 @@
 
 	* cus-edit.el (face): Enclose %t in %{...%}.
 
-2005-11-16  Hrvoje Niksic  <hniksic@xemacs.org>
+2005-11-16  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* savehist.el (savehist-mode-hook): Re-add the var.
 	(savehist-mode): Use it.
@@ -18163,7 +18163,7 @@
 	Use the `variable-documentation' property to give the mode hook a
 	docstring and expand that docstring.
 
-2005-11-14  Hrvoje Niksic  <hniksic@xemacs.org>
+2005-11-14  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* savehist.el (savehist-mode): Don't bother with
 	`custom-set-minor-mode'.
@@ -18983,7 +18983,7 @@
 	(savehist-mode) <defun>: Run the minor mode hook, set the custom state
 	and emit a message if applicable.
 
-2005-11-01  Hrvoje Niksic  <hniksic@xemacs.org>
+2005-11-01  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* savehist.el: Sync up to version 19.
 	(savehist-mode): New minor mode.
@@ -19496,7 +19496,7 @@
 	* simple.el (completion-common-substring):
 	Use `completion-common-substring' prior to `completion-base-size'.
 
-2005-10-24  Hrvoje Niksic  <hniksic@xemacs.org>
+2005-10-24  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* savehist.el: Require CL while compiling.
 	(savehist-history-variables): Remove.
@@ -20221,7 +20221,7 @@
 	(savehist-process-for-saving): Replace use of CL funs `subseq' and
 	`delete-if-not'.
 
-2005-10-16  Hrvoje Niksic  <hniksic@xemacs.org>
+2005-10-16  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* savehist.el: Newer version.
 	(savehist-autosave-interval, savehist-coding-system, savehist-timer)
@@ -21480,7 +21480,7 @@
 2005-09-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-login-prompt-regexp): Expand regexp in order
-	to cover prompts like "login as:".  Reported by Slawomir Nowaczyk
+	to cover prompts like "login as:".  Reported by Sławomir Nowaczyk
 	<slawomir.nowaczyk.847@student.lu.se>.
 
 2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
@@ -33334,7 +33334,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2018 Free Software Foundation, Inc.
+    Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998-2000, 2003, 2005, 2007-2018 Free Software
+;; Copyright (C) 1998-2000, 2003, 2005, 2007-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -491,7 +491,7 @@ This is used when subprojects are made in named subdirectories."
 		    :version ver
 		    :mailinglist (or bug "")
 		    :file fn)))
-	(oset ampf :directory (file-name-directory fn))
+	(oset ampf directory (file-name-directory fn))
 	(oset ampf configureoutputfiles cof)
 	(make-local-variable 'ede-object)
 	(setq ede-object ampf)
@@ -659,11 +659,11 @@ Strip out duplicates, and recurse on variables."
       (mapc (lambda (sp)
 	      (let* ((subdir (file-name-as-directory
 			      (expand-file-name
-			       sp (file-name-directory (oref this :file)))))
+			       sp (file-name-directory (oref this file)))))
 		     (submake (expand-file-name
 			       "Makefile.am"
 			       subdir)))
-		(if (string= submake (oref this :file))
+		(if (string= submake (oref this file))
 		    nil	;; don't recurse.. please!
 		  ;; For each project id found, see if we need to recycle,
 		  ;; and if we do not, then make a new one.  Check the deep
@@ -694,45 +694,46 @@ Strip out duplicates, and recurse on variables."
 
 (cl-defmethod project-rescan ((this project-am-program))
   "Rescan object THIS."
-  (oset this :source (makefile-macro-file-list (project-am-macro this)))
-  (unless (oref this :source)
-    (oset this :source (list (concat (oref this :name) ".c"))))
-  (oset this :ldadd (makefile-macro-file-list
-		     (concat (oref this :name) "_LDADD"))))
+  (oset this source (makefile-macro-file-list (project-am-macro this)))
+  (unless (oref this source)
+    (oset this source (list (concat (oref this name) ".c"))))
+  (oset this ldadd (makefile-macro-file-list
+		    (concat (oref this name) "_LDADD"))))
 
 (cl-defmethod project-rescan ((this project-am-lib))
   "Rescan object THIS."
-  (oset this :source (makefile-macro-file-list (project-am-macro this)))
-  (unless (oref this :source)
-    (oset this :source (list (concat (file-name-sans-extension (oref this :name)) ".c")))))
+  (oset this source (makefile-macro-file-list (project-am-macro this)))
+  (unless (oref this source)
+    (oset this source (list (concat (file-name-sans-extension
+                                     (oref this name)) ".c")))))
 
 (cl-defmethod project-rescan ((this project-am-texinfo))
   "Rescan object THIS."
-  (oset this :include (makefile-macro-file-list (project-am-macro this))))
+  (oset this include (makefile-macro-file-list (project-am-macro this))))
 
 (cl-defmethod project-rescan ((this project-am-man))
   "Rescan object THIS."
-  (oset this :source (makefile-macro-file-list (project-am-macro this))))
+  (oset this source (makefile-macro-file-list (project-am-macro this))))
 
 (cl-defmethod project-rescan ((this project-am-lisp))
   "Rescan the lisp sources."
-  (oset this :source (makefile-macro-file-list (project-am-macro this))))
+  (oset this source (makefile-macro-file-list (project-am-macro this))))
 
 (cl-defmethod project-rescan ((this project-am-header))
   "Rescan the Header sources for object THIS."
-  (oset this :source (makefile-macro-file-list (project-am-macro this))))
+  (oset this source (makefile-macro-file-list (project-am-macro this))))
 
 (cl-defmethod project-rescan ((this project-am-built-src))
   "Rescan built sources for object THIS."
-  (oset this :source (makefile-macro-file-list "BUILT_SOURCES")))
+  (oset this source (makefile-macro-file-list "BUILT_SOURCES")))
 
 (cl-defmethod project-rescan ((this project-am-extra-dist))
   "Rescan object THIS."
-  (oset this :source (makefile-macro-file-list "EXTRA_DIST")))
+  (oset this source (makefile-macro-file-list "EXTRA_DIST")))
 
 (cl-defmethod project-am-macro ((this project-am-objectcode))
   "Return the default macro to `edit' for this object type."
-  (concat (subst-char-in-string ?- ?_ (oref this :name)) "_SOURCES"))
+  (concat (subst-char-in-string ?- ?_ (oref this name)) "_SOURCES"))
 
 (cl-defmethod project-am-macro ((this project-am-header-noinst))
   "Return the default macro to `edit' for this object."
@@ -752,11 +753,11 @@ Strip out duplicates, and recurse on variables."
 
 (cl-defmethod project-am-macro ((this project-am-texinfo))
   "Return the default macro to `edit' for this object type."
-  (concat (file-name-sans-extension (oref this :name)) "_TEXINFOS"))
+  (concat (file-name-sans-extension (oref this name)) "_TEXINFOS"))
 
 (cl-defmethod project-am-macro ((this project-am-man))
   "Return the default macro to `edit' for this object type."
-  (oref this :name))
+  (oref this name))
 
 (cl-defmethod project-am-macro ((this project-am-lisp))
   "Return the default macro to `edit' for this object."
@@ -784,7 +785,7 @@ nil means that this buffer belongs to no-one."
 (cl-defmethod ede-buffer-mine ((this project-am-makefile) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (let ((efn  (expand-file-name (buffer-file-name buffer))))
-    (or (string= (oref this :file) efn)
+    (or (string= (oref this file) efn)
 	(string-match "/configure\\.ac$" efn)
 	(string-match "/configure\\.in$" efn)
 	(string-match "/configure$" efn)
@@ -798,25 +799,25 @@ nil means that this buffer belongs to no-one."
 
 (cl-defmethod ede-buffer-mine ((this project-am-objectcode) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (member (file-relative-name (buffer-file-name buffer) (oref this :path))
-	  (oref this :source)))
+  (member (file-relative-name (buffer-file-name buffer) (oref this path))
+	  (oref this source)))
 
 (cl-defmethod ede-buffer-mine ((this project-am-texinfo) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
   (let ((bfn (file-relative-name (buffer-file-name buffer)
-				 (oref this :path))))
-    (or (string= (oref this :name)  bfn)
-	(member bfn (oref this :include)))))
+				 (oref this path))))
+    (or (string= (oref this name)  bfn)
+	(member bfn (oref this include)))))
 
 (cl-defmethod ede-buffer-mine ((this project-am-man) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (string= (oref this :name)
-	   (file-relative-name (buffer-file-name buffer) (oref this :path))))
+  (string= (oref this name)
+	   (file-relative-name (buffer-file-name buffer) (oref this path))))
 
 (cl-defmethod ede-buffer-mine ((this project-am-lisp) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (member (file-relative-name (buffer-file-name buffer) (oref this :path))
-	  (oref this :source)))
+  (member (file-relative-name (buffer-file-name buffer) (oref this path))
+	  (oref this source)))
 
 (cl-defmethod project-am-subtree ((ampf project-am-makefile) subdir)
   "Return the sub project in AMPF specified by SUBDIR."
@@ -829,11 +830,11 @@ nil means that this buffer belongs to no-one."
 
 (cl-defmethod project-compile-target-command ((this project-am-objectcode))
   "Default target to use when compiling an object code target."
-  (oref this :name))
+  (oref this name))
 
 (cl-defmethod project-compile-target-command ((this project-am-texinfo))
   "Default target t- use when compiling a texinfo file."
-  (let ((n (oref this :name)))
+  (let ((n (oref this name)))
     (if (string-match "\\.texi?\\(nfo\\)?" n)
 	(setq n (replace-match ".info" t t n)))
     n))
@@ -993,7 +994,7 @@ Kill the Configure buffer if it was not already in a buffer."
   "Get the package information for directory topmost project dir over DIR.
 Calculates the info with `project-am-extract-package-info'."
   (let ((top (ede-toplevel)))
-    (when top (setq dir (oref top :directory)))
+    (when top (setq dir (oref top directory)))
     (project-am-extract-package-info dir)))
 
 ;; for simple per project include path extension

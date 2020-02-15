@@ -1,6 +1,6 @@
 ;;; flymake-cc.el --- Flymake support for GNU tools for C/C++     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: languages, c
@@ -37,7 +37,8 @@ syntax of a (Obj)C(++) program passed to it via its standard
 input and prints the result on its standard output."
   :type '(choice
           (symbol :tag "Function")
-          ((repeat :) string))
+          (repeat :tag "Command(s)" string))
+  :version "27.1"
   :group 'flymake-cc)
 
 (defun flymake-cc--make-diagnostics (source)
@@ -58,13 +59,13 @@ SOURCE."
   (cl-loop
    while
    (search-forward-regexp
-    "^\\(In file included from \\)?<stdin>:\\([0-9]+\\):\\([0-9]+\\):\n?\\(.*\\): \\(.*\\)$"
+    "^\\(In file included from \\)?<stdin>:\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?:\n?\\(.*\\): \\(.*\\)$"
     nil t)
    for msg = (match-string 5)
    for (beg . end) = (flymake-diag-region
                       source
                       (string-to-number (match-string 2))
-                      (string-to-number (match-string 3)))
+                      (and (match-string 3) (string-to-number (match-string 3))))
    for type = (if (match-string 1)
                   :error
                 (assoc-default
@@ -72,13 +73,18 @@ SOURCE."
                  '(("error" . :error)
                    ("note" . :note)
                    ("warning" . :warning))
-                 #'string-match))
+                 #'string-match
+                 :error))
    collect (flymake-make-diagnostic source beg end type msg)))
 
 (defun flymake-cc-use-special-make-target ()
   "Command for checking a file via a CHK_SOURCES Make target."
   (unless (executable-find "make") (error "Make not found"))
-  `("make" "check-syntax" "CHK_SOURCES=-x c -"))
+  `("make"
+    "check-syntax"
+    ,(format "CHK_SOURCES=-x %s -c -"
+             (cond ((derived-mode-p 'c++-mode) "c++")
+                   (t "c")))))
 
 (defvar-local flymake-cc--proc nil "Internal variable for `flymake-gcc'")
 
@@ -115,8 +121,8 @@ REPORT-FN is Flymake's callback."
         :noquery t :connection-type 'pipe
         :sentinel
         (lambda (p _ev)
-          (when (eq 'exit (process-status p))
-            (unwind-protect
+          (unwind-protect
+              (when (eq 'exit (process-status p))
                 (when (with-current-buffer source (eq p flymake-cc--proc))
                   (with-current-buffer (process-buffer p)
                     (goto-char (point-min))
@@ -130,7 +136,8 @@ REPORT-FN is Flymake's callback."
                                  :panic :explanation
                                  (buffer-substring
                                   (point-min) (progn (goto-char (point-min))
-                                                     (line-end-position))))))))
+                                                     (line-end-position)))))))))
+            (unless (process-live-p p)
               ;; (display-buffer (process-buffer p)) ; uncomment to debug
               (kill-buffer (process-buffer p)))))))
       (process-send-region flymake-cc--proc (point-min) (point-max))

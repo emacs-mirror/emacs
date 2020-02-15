@@ -1,6 +1,6 @@
 /* Emulate the X Resource Manager through the registry.
 
-Copyright (C) 1990, 1993-1994, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1990, 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
 Author: Kevin Gallo
 
@@ -21,8 +21,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
-#include "w32term.h"	/* for XrmDatabase, xrdb */
 #include "blockinput.h"
+#include "w32term.h"
 
 #include <stdio.h>
 
@@ -36,6 +36,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   "emacs.tooltip.attributeBackground:SystemInfoWindow\0"  \
   "emacs.tool-bar.attributeForeground:SystemButtonText\0" \
   "emacs.tool-bar.attributeBackground:SystemButtonFace\0" \
+  "emacs.tab-bar.attributeForeground:SystemButtonText\0" \
+  "emacs.tab-bar.attributeBackground:SystemButtonFace\0" \
   "emacs.menu.attributeForeground:SystemMenuText\0"       \
   "emacs.menu.attributeBackground:SystemMenu\0"           \
   "emacs.scroll-bar.attributeForeground:SystemScrollbar\0"
@@ -73,8 +75,8 @@ w32_get_rdb_resource (const char *rdb, const char *resource)
   return NULL;
 }
 
-static char *
-w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
+static const char *
+w32_get_string_resource_1 (const char *name, const char *class, DWORD dwexptype)
 {
   LPBYTE lpvalue = NULL;
   HKEY hrootkey = NULL;
@@ -134,15 +136,17 @@ w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
       /* Check if there are Windows specific defaults defined.  */
       return w32_get_rdb_resource (SYSTEM_DEFAULT_RESOURCES, name);
     }
-  return (char *)lpvalue;
+  return (const char *)lpvalue;
 }
 
 /* Retrieve the string resource specified by NAME with CLASS from
    database RDB. */
 
-char *
-x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
+const char *
+w32_get_string_resource (void *v_rdb, const char *name, const char *class)
 {
+  const char *rdb = *(char **) v_rdb;
+
   if (rdb)
     {
       char *resource;
@@ -157,5 +161,5 @@ x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  return w32_get_string_resource (name, class, REG_SZ);
+  return w32_get_string_resource_1 (name, class, REG_SZ);
 }

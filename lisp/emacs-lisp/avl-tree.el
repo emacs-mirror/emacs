@@ -1,6 +1,6 @@
 ;;; avl-tree.el --- balanced binary trees, AVL-trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;         Inge Wallin <inge@lysator.liu.se>
@@ -130,8 +130,8 @@ NODE is the node, and BRANCH is the branch.
 
 (defun avl-tree--del-balance (node branch dir)
   "Rebalance a tree after deleting a node.
-The deletion was done from the left (DIR=0) or right (DIR=1) sub-tree of the
-left (BRANCH=0) or right (BRANCH=1) child of NODE.
+The deletion was done from the left (DIR=0) or right (DIR=1) sub-tree
+of the left (BRANCH=0) or right (BRANCH=1) child of NODE.
 Return t if the height of the tree has shrunk."
   ;; (or is it vice-versa for BRANCH?)
   (let ((br (avl-tree--node-branch node branch))
@@ -477,11 +477,11 @@ value is non-nil."
 Matching uses the comparison function previously specified in
 `avl-tree-create' when TREE was created.
 
-If there is no such element in the tree, nil is
-returned.  Optional argument NILFLAG specifies a value to return
-instead of nil in this case.  This allows non-existent elements to
-be distinguished from a null element.  (See also
-`avl-tree-member-p', which does this for you.)"
+If there is no such element in the tree, nil is returned.
+Optional argument NILFLAG specifies a value to return instead of nil
+in this case.  This allows non-existent elements to be distinguished
+from a null element.  (See also `avl-tree-member-p', which does this
+for you.)"
   (let ((node (avl-tree--root tree))
 	(compare-function (avl-tree--cmpfun tree)))
     (catch 'found
@@ -553,13 +553,13 @@ order, or descending order if REVERSE is non-nil."
 
 
 (defun avl-tree-mapcar (fun tree &optional reverse)
-  "Apply FUNCTION to all elements in AVL tree TREE,
+  "Apply function FUN to all elements in AVL tree TREE,
 and make a list of the results.
 
-The FUNCTION is applied and the list constructed in ascending
+The function is applied and the list constructed in ascending
 order, or descending order if REVERSE is non-nil.
 
-Note that if you don't care about the order in which FUNCTION is
+Note that if you don't care about the order in which FUN is
 applied, just that the resulting list is in the correct order,
 then
 
@@ -674,7 +674,7 @@ a null element stored in the AVL tree.)"
   "Return an AVL tree iterator object.
 
 Calling `iter-next' on this object will retrieve the next element
-from TREE. If REVERSE is non-nil, elements are returned in
+from TREE.  If REVERSE is non-nil, elements are returned in
 reverse order.
 
 Note that any modification to TREE *immediately* invalidates all

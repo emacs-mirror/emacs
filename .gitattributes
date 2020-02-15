@@ -1,6 +1,6 @@
 # Attributes of Emacs files in the Git repository.
 
-# Copyright 2015-2018 Free Software Foundation, Inc.
+# Copyright 2015-2020 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -30,9 +30,6 @@ test/manual/etags/html-src/algrthms.html whitespace=cr-at-eol
 
 # The todo-mode file format includes trailing whitespace.
 *.tod[aorty] -whitespace=blank-at-eol
-
-# The upstream maintainer does not want to remove trailing whitespace.
-doc/misc/texinfo.tex -whitespace=blank-at-eol
 
 # Some files should not be treated as text when diffing or merging.
 *.cur binary

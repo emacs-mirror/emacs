@@ -1,6 +1,6 @@
 ;;; profiler.el --- UI and helper functions for Emacs's native profiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Tomohiro Matsuyama <tomo@cx4a.org>
 ;; Keywords: lisp
@@ -213,21 +213,22 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
         (t (or (profiler-running-p 'cpu)
                (profiler-running-p 'mem)))))
 
+(defvar profiler-cpu-log nil)
+(defvar profiler-memory-log nil)
+
 (defun profiler-cpu-profile ()
   "Return CPU profile."
-  (when (profiler-running-p 'cpu)
-    (profiler-make-profile
-     :type 'cpu
-     :timestamp (current-time)
-     :log (profiler-cpu-log))))
+  (profiler-make-profile
+   :type 'cpu
+   :timestamp (current-time)
+   :log profiler-cpu-log))
 
 (defun profiler-memory-profile ()
   "Return memory profile."
-  (when (profiler-memory-running-p)
-    (profiler-make-profile
-     :type 'memory
-     :timestamp (current-time)
-     :log (profiler-memory-log))))
+  (profiler-make-profile
+   :type 'memory
+   :timestamp (current-time)
+   :log profiler-memory-log))
 
 
 ;;; Calltrees
@@ -472,6 +473,7 @@ this variable directly.")
 		       (fboundp entry))
 		  (propertize (symbol-name entry)
 			      'face 'link
+                              'follow-link "\r"
 			      'mouse-face 'highlight
 			      'help-echo "\
 mouse-2: jump to definition\n\
@@ -533,9 +535,9 @@ RET: expand or collapse"))
     (define-key map "\r"    'profiler-report-toggle-entry)
     (define-key map "\t"    'profiler-report-toggle-entry)
     (define-key map "i"     'profiler-report-toggle-entry)
-    (define-key map [mouse-1] 'profiler-report-toggle-entry)
     (define-key map "f"     'profiler-report-find-entry)
     (define-key map "j"     'profiler-report-find-entry)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map [mouse-2] 'profiler-report-find-entry)
     (define-key map "d"	    'profiler-report-describe-entry)
     (define-key map "C"	    'profiler-report-render-calltree)
@@ -613,9 +615,12 @@ return it."
       (profiler-report-render-calltree))
     buffer))
 
+(defun profiler--xref-backend () 'elisp)
+
 (define-derived-mode profiler-report-mode special-mode "Profiler-Report"
   "Profiler Report Mode."
   (add-to-invisibility-spec '(profiler . t))
+  (add-hook 'xref-backend-functions #'profiler--xref-backend nil t)
   (setq buffer-read-only t
 	buffer-undo-list t
 	truncate-lines t))
@@ -829,7 +834,12 @@ Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
 (defun profiler-stop ()
   "Stop started profilers.  Profiler logs will be kept."
   (interactive)
-  (let ((cpu (if (fboundp 'profiler-cpu-stop) (profiler-cpu-stop)))
+  (when (and (fboundp 'profiler-cpu-running-p)
+             (profiler-cpu-running-p))
+    (setq profiler-cpu-log (profiler-cpu-log)))
+  (when (profiler-memory-running-p)
+    (setq profiler-memory-log (profiler-memory-log)))
+  (let ((cpu (when (fboundp 'profiler-cpu-stop) (profiler-cpu-stop)))
         (mem (profiler-memory-stop)))
     (message "%s profiler stopped"
              (cond ((and mem cpu) "CPU and memory")
@@ -840,26 +850,32 @@ Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
 (defun profiler-reset ()
   "Reset profiler logs."
   (interactive)
-  (when (fboundp 'profiler-cpu-log)
-    (ignore (profiler-cpu-log)))
-  (ignore (profiler-memory-log))
-  t)
+  (when (and (fboundp 'profiler-cpu-running-p) (profiler-cpu-running-p))
+    (profiler-cpu-stop))
+  (when (profiler-memory-running-p)
+    (profiler-memory-stop))
+  (setq profiler-cpu-log nil
+        profiler-memory-log nil))
 
 (defun profiler-report-cpu ()
-  (let ((profile (profiler-cpu-profile)))
-    (when profile
-      (profiler-report-profile-other-window profile))))
+  (when profiler-cpu-log
+    (profiler-report-profile-other-window (profiler-cpu-profile))))
 
 (defun profiler-report-memory ()
-  (let ((profile (profiler-memory-profile)))
-    (when profile
-      (profiler-report-profile-other-window profile))))
+  (when profiler-memory-log
+    (profiler-report-profile-other-window (profiler-memory-profile))))
 
 (defun profiler-report ()
   "Report profiling results."
   (interactive)
-  (profiler-report-cpu)
-  (profiler-report-memory))
+  (when (and (fboundp 'profiler-cpu-running-p) (profiler-cpu-running-p))
+    (setq profiler-cpu-log (profiler-cpu-log)))
+  (when (profiler-memory-running-p)
+    (setq profiler-memory-log (profiler-memory-log)))
+  (if (and (not profiler-cpu-log) (not profiler-memory-log))
+      (user-error "No profiler run recorded")
+    (profiler-report-cpu)
+    (profiler-report-memory)))
 
 ;;;###autoload
 (defun profiler-find-profile (filename)

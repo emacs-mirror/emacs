@@ -1,6 +1,6 @@
 * COPYRIGHT
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 * Changes in MH-E 8.6
@@ -2362,9 +2362,9 @@ header if it doesn't already exist and "~/.face" is present. See the
 new customization variables `mh-show-use-xface-flag' and `mh-x-face-file'
 (closes SF #480770).
 
-MH-E depends on the external x-face package found in
+MH-E depends on the external x-face package formerly found in
 http://www.jpl.org/pub/elisp/ to do this. The `uncompface' binary is
-also required to be in the execute PATH. It can be obtained from:
+also required to be in the execute PATH. It was formerly obtainable from:
 http://freshmeat.net/redir/compface/1439/url_tgz/compface-1.4.tar.gz.
 
 It has also been observed that if you don't see the faces, you might
@@ -2684,7 +2684,7 @@ mh-quit now cleans up the buffers named `mh-temp-buffer,'
 * Changes in mh-e 6.0
 
 mh-e is now maintained at SourceForge (see
-http://mh-e.sourceforge.net/). This is where you need to go to obtain
+https://mh-e.sourceforge.io/). This is where you need to go to obtain
 new versions of mh-e, report bugs and receive support.
 
 The maintainers have moved much of their personal configurations into

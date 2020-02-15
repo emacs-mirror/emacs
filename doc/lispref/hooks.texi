@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990--1993, 1998, 2001--2020 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Hooks
@@ -110,6 +110,10 @@ Function to call to quit the current buffer.
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
 
+@item comint-password-function
+This abnormal hook permits a derived mode to supply a password for the
+underlying command interpreter without prompting the user.
+
 @item command-line-functions
 @xref{Command-Line Arguments}.
 
@@ -158,6 +162,9 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 @xref{Auto Faces,, Automatic Face Assignment}.
 
 @item frame-auto-hide-function
+@xref{Quitting Windows}.
+
+@item quit-window-hook
 @xref{Quitting Windows}.
 
 @item kill-buffer-hook
@@ -251,6 +258,7 @@ I thought did not need to be mentioned here:
 
 Lisp:
 after-load-functions
+after-set-visited-file-name-hook
 auto-coding-functions
 choose-completion-string-functions
 completing-read-function

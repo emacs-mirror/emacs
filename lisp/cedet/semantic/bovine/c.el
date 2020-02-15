@@ -1,6 +1,6 @@
 ;;; semantic/bovine/c.el --- Semantic details for C
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -69,8 +69,10 @@ This function does not do any hidden buffer changes."
   )
 
 ;;; Code:
-(define-child-mode c++-mode c-mode
-  "`c++-mode' uses the same parser as `c-mode'.")
+(with-suppressed-warnings ((obsolete define-child-mode))
+  ;; FIXME: We should handle this some other way!
+  (define-child-mode c++-mode c-mode
+  "`c++-mode' uses the same parser as `c-mode'."))
 
 
 ;;; Include Paths
@@ -930,7 +932,7 @@ the regular parser."
 	    )				; save match data
 
 	  ;; Hack in mode-local
-	  (activate-mode-local-bindings)
+	  (mode-local--activate-bindings)
 	  ;; Setup C parser
 	  (semantic-default-c-setup)
 	  ;; CHEATER!  The following 3 lines are from
@@ -2183,7 +2185,7 @@ actually in their parent which is not accessible.")
 		      (list ede-object))))
 	  (dolist (O objs)
 	    (princ "    EDE : ")
-	    (princ (object-print O))
+	    (princ 0)
 	    (let ((ipath (ede-system-include-path O)))
 	      (if (not ipath)
 		  (princ "\n     with NO specified system include path.\n")
@@ -2221,7 +2223,7 @@ actually in their parent which is not accessible.")
 	  (princ "    in table: ")
 	  (let ((fto (semanticdb-file-table-object file)))
 	    (if fto
-		(princ (object-print fto))
+		(princ (cl-prin1-to-string fto))
 	      (princ "No Table")))
 	  (princ "\n")
 	  ))
@@ -2251,7 +2253,7 @@ actually in their parent which is not accessible.")
 	(princ "\n  Project symbol map:\n")
 	(when (and (boundp 'ede-object) ede-object)
 	  (princ "      Your project symbol map is also derived from the EDE object:\n      ")
-	  (princ (object-print ede-object)))
+	  (princ (cl-prin1-to-string ede-object)))
 	(princ "\n\n")
 	(if (obarrayp semantic-lex-spp-project-macro-symbol-obarray)
 	    (let ((macros nil))

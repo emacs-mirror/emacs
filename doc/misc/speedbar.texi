@@ -5,7 +5,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -695,18 +695,11 @@ file being edited.
 Face used when the mouse passes over a button.
 @end table
 
-You can also customize speedbar's initial frame parameters.  How this is
-accomplished is dependent on your platform being Emacs or XEmacs.
-
-@cindex @code{speedbar-frame-parameters}, Emacs
-In Emacs, change the alist @code{speedbar-frame-parameters}.  This
-variable is used to set up initial details.  Height is also
-automatically added when speedbar is created, though you can override
-it.
-
-@cindex @code{speedbar-frame-plist}, XEmacs
-In XEmacs, change the plist @code{speedbar-frame-plist}.  This is the
-XEmacs way of doing the same thing.
+@cindex @code{speedbar-frame-parameters}
+You can also customize speedbar's initial frame parameters by changing
+the alist @code{speedbar-frame-parameters}.  This variable is used to
+set up initial details.  Height is also automatically added when
+speedbar is created, though you can override it.
 
 @node Tag Hierarchy Methods
 @section Tag Hierarchy Methods
@@ -835,9 +828,6 @@ Hooks run when speedbar visits a file in the selected frame.
 @cindex @code{speedbar-visiting-tag-hook}
 @item speedbar-visiting-tag-hook
 Hooks run when speedbar visits a tag in the selected frame.
-@cindex @code{speedbar-load-hook}
-@item speedbar-load-hook
-Hooks run when speedbar is loaded.
 @cindex @code{speedbar-reconfigure-keymaps-hook}
 @item speedbar-reconfigure-keymaps-hook
 Hooks run when the keymaps are regenerated.  Keymaps are reconfigured
@@ -920,12 +910,11 @@ bindings:
 This function creates a special keymap for use in speedbar.
 
 @item
-Call your install function, or assign it to a hook like this:
+Call your install function, like this:
 
 @smallexample
-(if (featurep 'speedbar)
-    (@var{name}-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook '@var{name}-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (@var{name}-install-speedbar-variables))
 @end smallexample
 
 @item

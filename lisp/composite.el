@@ -1,13 +1,13 @@
 ;;; composite.el --- support character composition
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Author: Kenichi HANDA <handa@etl.go.jp>
+;; Author: Kenichi Handa <handa@gnu.org>
 ;; (according to ack.texi)
 ;; Keywords: mule, multilingual, character composition
 ;; Package: emacs
@@ -382,8 +382,8 @@ This function is the default value of `compose-chars-after-function'."
 			   (looking-at pattern))
 			 (<= (match-end 0) limit))
 		    (setq result
-			  (funcall func pos (match-end 0) font-obj object)))
-	      (setq result (funcall func pos limit font-obj  object)))
+			  (funcall func pos (match-end 0) font-obj object nil)))
+	      (setq result (funcall func pos limit font-obj  object nil)))
 	    (if result (setq tail nil))))))
     result))
 
@@ -524,8 +524,9 @@ after a sequence of character events."
       (setq from (1+ from)))
     gstring))
 
-(defun compose-gstring-for-graphic (gstring)
-  "Compose glyph-string GSTRING for graphic display.
+(defun compose-gstring-for-graphic (gstring direction)
+  "Compose glyph-string GSTRING under bidi DIRECTION for graphic display.
+DIRECTION is either L2R or R2L, or nil if unknown.
 Combining characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each combining character is composed as a spacing character by
@@ -554,12 +555,17 @@ All non-spacing characters have this function in
      ;; This sequence doesn't start with a proper base character.
      ((memq (get-char-code-property (lgstring-char gstring 0)
 				    'general-category)
-	    '(Mn Mc Me Zs Zl Zp Cc Cf Cs))
+            ;; "Improper" base characters are of the following general
+            ;; categories:
+            ;;   Mark (nonspacing, combining, enclosing)
+            ;;   Separator (line, paragraph)
+            ;;   Other (control, format, surrogate)
+	    '(Mn Mc Me Zl Zp Cc Cf Cs))
       nil)
 
      ;; A base character and the following non-spacing characters.
      (t
-      (let ((gstr (font-shape-gstring gstring)))
+      (let ((gstr (font-shape-gstring gstring direction)))
 	(if (and gstr
 		 (> (lglyph-to (lgstring-glyph gstr 0)) 0))
 	    gstr
@@ -646,6 +652,7 @@ All non-spacing characters have this function in
 			  de (+ de yoff)))
 		   ((and (= class 0)
 			 (eq (get-char-code-property (lglyph-char glyph)
+                                                     ;; Me = enclosing mark
 						     'general-category) 'Me))
 		    ;; Artificially laying out glyphs in an enclosing
 		    ;; mark is difficult.  All we can do is to adjust
@@ -686,12 +693,12 @@ All non-spacing characters have this function in
 	      (setq i (1+ i))))
 	  gstring))))))
 
-(defun compose-gstring-for-dotted-circle (gstring)
+(defun compose-gstring-for-dotted-circle (gstring direction)
   (let* ((dc (lgstring-glyph gstring 0)) ; glyph of dotted-circle
 	 (dc-id (lglyph-code dc))
 	 (fc (lgstring-glyph gstring 1)) ; glyph of the following char
 	 (fc-id (lglyph-code fc))
-	 (gstr (and nil (font-shape-gstring gstring))))
+	 (gstr (and nil (font-shape-gstring gstring direction))))
     (if (and gstr
 	     (or (= (lgstring-glyph-len gstr) 1)
 		 (and (= (lgstring-glyph-len gstr) 2)
@@ -742,7 +749,7 @@ All non-spacing characters have this function in
   (aset composition-function-table #x25CC
 	`([,(purecopy ".\\c^") 0 compose-gstring-for-dotted-circle])))
 
-(defun compose-gstring-for-terminal (gstring)
+(defun compose-gstring-for-terminal (gstring _direction)
   "Compose glyph-string GSTRING for terminal display.
 Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
@@ -771,7 +778,8 @@ prepending a space before it."
 					    'general-category)
 		    'Cf)
 		(progn
-		  ;; Compose by replacing with a space.
+		  ;; Compose Cf (format) control characters by
+		  ;; replacing with a space.
 		  (lglyph-set-char glyph 32)
 		  (lglyph-set-width glyph 1)
 		  (setq i (1+ i)))
@@ -799,10 +807,11 @@ prepending a space before it."
     gstring))
 
 
-(defun auto-compose-chars (func from to font-object string)
+(defun auto-compose-chars (func from to font-object string direction)
   "Compose the characters at FROM by FUNC.
-FUNC is called with one argument GSTRING which is built for characters
-in the region FROM (inclusive) and TO (exclusive).
+FUNC is called with two arguments: GSTRING, which is built for
+characters in the region FROM (inclusive) and TO (exclusive);
+and DIRECTION, which is the bidi directionality of the characters.
 
 If the character are composed on a graphic display, FONT-OBJECT
 is a font to use.  Otherwise, FONT-OBJECT is nil, and the function
@@ -819,7 +828,7 @@ This function is the default value of `auto-composition-function' (which see)."
 	gstring
       (or (fontp font-object 'font-object)
 	  (setq func 'compose-gstring-for-terminal))
-      (funcall func gstring))))
+      (funcall func gstring direction))))
 
 (put 'auto-composition-mode 'permanent-local t)
 

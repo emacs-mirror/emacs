@@ -128,20 +128,6 @@ have escaped John's notice."
 
 ----------------------------------------------------------------------
 
-Re: patch for woman (woman-topic-at-point)
-
-  "Sorry for the long message.  I wanted to make the problem clear
-also for people not familiar with 'woman'."
-  "Most hackers, I take?
-   For a moment there I thought you had a patch that you could put on
-a woman, and it would make her come right to the topic at point
-without attempting any course of action that requires an advance
-course in divination.
-   There'd be quite a sensational market for that, you know."
-                                    -- Emilio Lopes and David Kastrup
-
-----------------------------------------------------------------------
-
   "[T]here may be a good reason since the code explicitly checks for
 this; see keyboard.c:789 [...]"
   "I think I understand, but I can't find the code in keyboard.c.  Do

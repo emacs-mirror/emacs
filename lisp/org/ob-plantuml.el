@@ -1,6 +1,6 @@
 ;;; ob-plantuml.el --- Babel Functions for Plantuml  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Zhang Weize
 ;; Keywords: literate programming, reproducible research
@@ -60,16 +60,19 @@ are expected to be scalar variables."
 
 (defun org-babel-plantuml-make-body (body params)
   "Return PlantUML input string.
+
 BODY is the content of the source block and PARAMS is a property list
 of source block parameters.  This function relies on the
 `org-babel-expand-body:generic' function to extract `:var' entries
 from PARAMS and on the `org-babel-variable-assignments:plantuml'
-function to convert variables to PlantUML assignments."
-  (concat
-   "@startuml\n"
-   (org-babel-expand-body:generic
-    body params (org-babel-variable-assignments:plantuml params))
-   "\n@enduml"))
+function to convert variables to PlantUML assignments.
+
+If BODY does not contain @startXXX ... @endXXX clauses, @startuml
+... @enduml will be added."
+  (let ((assignments (org-babel-variable-assignments:plantuml params)))
+    (if (string-prefix-p "@start" body t) assignments
+      (format "@startuml\n%s\n@enduml"
+	      (org-babel-expand-body:generic body params assignments)))))
 
 (defun org-babel-execute:plantuml (body params)
   "Execute a block of plantuml code with org-babel.
@@ -93,6 +96,8 @@ This function is called by `org-babel-execute-src-block'."
 			    " -teps" "")
 			(if (string= (file-name-extension out-file) "pdf")
 			    " -tpdf" "")
+			(if (string= (file-name-extension out-file) "tex")
+			    " -tlatex" "")
 			(if (string= (file-name-extension out-file) "vdx")
 			    " -tvdx" "")
 			(if (string= (file-name-extension out-file) "xmi")

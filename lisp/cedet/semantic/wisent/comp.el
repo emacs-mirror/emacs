@@ -1,10 +1,9 @@
 ;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
 
-;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2018 Free
+;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2020 Free
 ;; Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
-;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 30 January 2002
 ;; Keywords: syntax
 
@@ -85,43 +84,6 @@
        (let* ,bindings
          ,@body))))
 
-;; A naive implementation of data structures!  But it suffice here ;-)
-
-(defmacro wisent-struct (name &rest fields)
-  "Define a simple data structure called NAME.
-Which contains data stored in FIELDS.  FIELDS is a list of symbols
-which are field names or pairs (FIELD INITIAL-VALUE) where
-INITIAL-VALUE is a constant used as the initial value of FIELD when
-the data structure is created.  INITIAL-VALUE defaults to nil.
-
-This defines a `make-NAME' constructor, get-able `NAME-FIELD' and
-set-able `set-NAME-FIELD' accessors."
-  (let ((size (length fields))
-        (i    0)
-        accors field sufx fun ivals)
-    (while (< i size)
-      (setq field  (car fields)
-            fields (cdr fields))
-      (if (consp field)
-          (setq ivals (cons (cadr field) ivals)
-                field (car field))
-        (setq ivals (cons nil ivals)))
-      (setq sufx   (format "%s-%s" name field)
-            fun    (intern (format "%s" sufx))
-            accors (cons `(defmacro ,fun (s)
-                            (list 'aref s ,i))
-                         accors)
-            fun    (intern (format "set-%s" sufx))
-            accors (cons `(defmacro ,fun (s v)
-                            (list 'aset s ,i v))
-                         accors)
-            i      (1+ i)))
-    `(progn
-      (defmacro ,(intern (format "make-%s" name)) ()
-        (cons 'vector ',(nreverse ivals)))
-      ,@accors)))
-(put 'wisent-struct 'lisp-indent-function 1)
-
 ;; Other utilities
 
 (defsubst wisent-pad-string (s n &optional left)
@@ -162,12 +124,6 @@ If optional LEFT is non-nil insert spaces on left."
   (not (zerop (logand (aref x (/ i wisent-BITS-PER-WORD))
                       (ash 1 (% i wisent-BITS-PER-WORD))))))
 
-(defsubst wisent-noninteractive ()
-  "Return non-nil if running without interactive terminal."
-  (if (featurep 'xemacs)
-      (noninteractive)
-    noninteractive))
-
 (defvar wisent-debug-flag nil
   "Non-nil means enable some debug stuff.")
 
@@ -196,11 +152,11 @@ If optional LEFT is non-nil insert spaces on left."
 (defmacro wisent-log-buffer ()
   "Return the log buffer.
 Its name is defined in constant `wisent-log-buffer-name'."
-  `(get-buffer-create wisent-log-buffer-name))
+  '(get-buffer-create wisent-log-buffer-name))
 
 (defmacro wisent-clear-log ()
   "Delete the entire contents of the log buffer."
-  `(with-current-buffer (wisent-log-buffer)
+  '(with-current-buffer (wisent-log-buffer)
      (erase-buffer)))
 
 (defvar byte-compile-current-file)
@@ -441,7 +397,10 @@ Use `eq' to locate OBJECT."
 ;; parser's strategy of making all decisions one token ahead of its
 ;; actions.
 
-(wisent-struct core
+;; FIXME: Use `wisent-' prefix to fix namespace pollution!
+
+(cl-defstruct (core
+               (:constructor make-core ()))
   next                                  ; -> core
   link                                  ; -> core
   (number 0)
@@ -449,19 +408,22 @@ Use `eq' to locate OBJECT."
   (nitems 0)
   (items [0]))
 
-(wisent-struct shifts
+(cl-defstruct (shifts
+               (:constructor make-shifts ()))
   next                                  ; -> shifts
   (number 0)
   (nshifts 0)
   (shifts [0]))
 
-(wisent-struct reductions
+(cl-defstruct (reductions
+               (:constructor make-reductions ()))
   next                                  ; -> reductions
   (number 0)
   (nreds 0)
   (rules [0]))
 
-(wisent-struct errs
+(cl-defstruct (errs
+               (:constructor make-errs ()))
   (nerrs 0)
   (errs [0]))
 
@@ -1182,17 +1144,17 @@ Subroutine of `wisent-get-state'."
           n     (- iend isp1)
           p     (make-core)
           items (make-vector n 0))
-    (set-core-accessing-symbol p symbol)
-    (set-core-number p nstates)
-    (set-core-nitems p n)
-    (set-core-items  p items)
+    (setf (core-accessing-symbol p) symbol)
+    (setf (core-number p) nstates)
+    (setf (core-nitems p) n)
+    (setf (core-items  p) items)
     (setq isp2 0) ;; isp2 = p->items
     (while (< isp1 iend)
       ;; *isp2++ = *isp1++;
       (aset items isp2 (aref kernel-items isp1))
       (setq isp1 (1+ isp1)
             isp2 (1+ isp2)))
-    (set-core-next last-state p)
+    (setf (core-next last-state) p)
     (setq last-state p
           nstates (1+ nstates))
     p))
@@ -1235,7 +1197,7 @@ equivalent one exists already.  Used by `wisent-append-states'."
                 (if (core-link sp)
                     (setq sp (core-link sp))
                   ;; sp = sp->link = new-state(symbol)
-                  (setq sp (set-core-link sp (wisent-new-state symbol))
+                  (setq sp (setf (core-link sp) (wisent-new-state symbol))
                         found t)))))
       ;; bucket is empty
       ;; state-table[key] = sp = new-state(symbol)
@@ -1281,17 +1243,18 @@ SHIFTSET is set up as a vector of state numbers of those states."
     (setq p      (make-shifts)
           shifts (make-vector nshifts 0)
           i 0)
-    (set-shifts-number p (core-number this-state))
-    (set-shifts-nshifts p nshifts)
-    (set-shifts-shifts  p shifts)
+    (setf (shifts-number p) (core-number this-state))
+    (setf (shifts-nshifts p) nshifts)
+    (setf (shifts-shifts  p) shifts)
     (while (< i nshifts)
       ;; (p->shifts)[i] = shiftset[i];
       (aset shifts i (aref shiftset i))
       (setq i (1+ i)))
 
-    (if last-shift
-        (set-shifts-next last-shift p)
-      (setq first-shift p))
+    (setf (if last-shift
+              (shifts-next last-shift)
+            first-shift)
+          p)
     (setq last-shift p)))
 
 (defun wisent-insert-start-shift ()
@@ -1300,17 +1263,17 @@ That is the state to which a shift has already been made in the
 initial state.  Subroutine of `wisent-augment-automaton'."
   (let (statep sp)
     (setq statep (make-core))
-    (set-core-number statep nstates)
-    (set-core-accessing-symbol statep start-symbol)
-    (set-core-next last-state statep)
+    (setf (core-number statep) nstates)
+    (setf (core-accessing-symbol statep) start-symbol)
+    (setf (core-next last-state) statep)
     (setq last-state statep)
     ;; Make a shift from this state to (what will be) the final state.
     (setq sp (make-shifts))
-    (set-shifts-number sp nstates)
+    (setf (shifts-number sp) nstates)
     (setq nstates (1+ nstates))
-    (set-shifts-nshifts sp 1)
-    (set-shifts-shifts sp (vector nstates))
-    (set-shifts-next last-shift sp)
+    (setf (shifts-nshifts sp) 1)
+    (setf (shifts-shifts sp) (vector nstates))
+    (setf (shifts-next last-shift) sp)
     (setq last-shift sp)))
 
 (defun wisent-augment-automaton ()
@@ -1348,9 +1311,9 @@ already."
                             (setq i (shifts-nshifts sp)
                                   sp2 (make-shifts)
                                   shifts (make-vector (1+ i) 0))
-                            (set-shifts-number sp2 k)
-                            (set-shifts-nshifts sp2 (1+ i))
-                            (set-shifts-shifts sp2 shifts)
+                            (setf (shifts-number sp2) k)
+                            (setf (shifts-nshifts sp2) (1+ i))
+                            (setf (shifts-shifts sp2) shifts)
                             (aset shifts 0 nstates)
                             (while (> i 0)
                               ;; sp2->shifts[i] = sp->shifts[i - 1];
@@ -1358,19 +1321,19 @@ already."
                               (setq i (1- i)))
                             ;; Patch sp2 into the chain of shifts in
                             ;; place of sp, following sp1.
-                            (set-shifts-next sp2 (shifts-next sp))
-                            (set-shifts-next sp1 sp2)
+                            (setf (shifts-next sp2) (shifts-next sp))
+                            (setf (shifts-next sp1) sp2)
                             (if (eq sp last-shift)
                                 (setq last-shift sp2))
                             )
                         (setq sp2 (make-shifts))
-                        (set-shifts-number sp2 k)
-                        (set-shifts-nshifts sp2 1)
-                        (set-shifts-shifts sp2 (vector nstates))
+                        (setf (shifts-number sp2) k)
+                        (setf (shifts-nshifts sp2) 1)
+                        (setf (shifts-shifts sp2) (vector nstates))
                         ;; Patch sp2 into the chain of shifts between
                         ;; sp1 and sp.
-                        (set-shifts-next sp2 sp)
-                        (set-shifts-next sp1 sp2)
+                        (setf (shifts-next sp2) sp)
+                        (setf (shifts-next sp1) sp2)
                         (if (not sp)
                             (setq last-shift sp2))
                         )
@@ -1382,8 +1345,8 @@ already."
                         sp2 (make-shifts)
                         i   (shifts-nshifts sp)
                         shifts (make-vector (1+ i) 0))
-                  (set-shifts-nshifts sp2 (1+ i))
-                  (set-shifts-shifts sp2 shifts)
+                  (setf (shifts-nshifts sp2) (1+ i))
+                  (setf (shifts-shifts sp2) shifts)
                   ;; Stick this shift into the vector at the proper place.
                   (setq statep (core-next first-state)
                         k 0
@@ -1402,7 +1365,7 @@ already."
                     (setq k (1+ k)))
                   ;; Patch sp2 into the chain of shifts in place of
                   ;; sp, at the beginning.
-                  (set-shifts-next sp2 (shifts-next sp))
+                  (setf (shifts-next sp2) (shifts-next sp))
                   (setq first-shift sp2)
                   (if (eq last-shift sp)
                       (setq last-shift sp2))
@@ -1412,10 +1375,10 @@ already."
             ;; The initial state didn't even have any shifts.  Give it
             ;; one shift, to the next-to-final state.
             (setq sp (make-shifts))
-            (set-shifts-nshifts sp 1)
-            (set-shifts-shifts sp (vector nstates))
+            (setf (shifts-nshifts sp) 1)
+            (setf (shifts-shifts sp) (vector nstates))
             ;; Patch sp into the chain of shifts at the beginning.
-            (set-shifts-next sp first-shift)
+            (setf (shifts-next sp) first-shift)
             (setq first-shift sp)
             ;; Create the next-to-final state, with shift to what will
             ;; be the final state.
@@ -1423,8 +1386,8 @@ already."
       ;; There are no shifts for any state.  Make one shift, from the
       ;; initial state to the next-to-final state.
       (setq sp (make-shifts))
-      (set-shifts-nshifts sp 1)
-      (set-shifts-shifts sp (vector nstates))
+      (setf (shifts-nshifts sp) 1)
+      (setf (shifts-shifts sp) (vector nstates))
       ;; Initialize the chain of shifts with sp.
       (setq first-shift sp
             last-shift sp)
@@ -1435,25 +1398,25 @@ already."
     ;; next-to-final state.  The symbol for that shift is 0
     ;; (end-of-file).
     (setq statep (make-core))
-    (set-core-number statep nstates)
-    (set-core-next last-state statep)
+    (setf (core-number statep) nstates)
+    (setf (core-next last-state) statep)
     (setq last-state statep)
     ;; Make the shift from the final state to the termination state.
     (setq sp (make-shifts))
-    (set-shifts-number sp nstates)
+    (setf (shifts-number sp) nstates)
     (setq nstates (1+ nstates))
-    (set-shifts-nshifts sp 1)
-    (set-shifts-shifts sp (vector nstates))
-    (set-shifts-next last-shift sp)
+    (setf (shifts-nshifts sp) 1)
+    (setf (shifts-shifts sp) (vector nstates))
+    (setf (shifts-next last-shift) sp)
     (setq last-shift sp)
     ;; Note that the variable FINAL-STATE refers to what we sometimes
     ;; call the termination state.
     (setq final-state nstates)
     ;; Make the termination state.
     (setq statep (make-core))
-    (set-core-number statep nstates)
+    (setf (core-number statep) nstates)
     (setq nstates (1+ nstates))
-    (set-core-next last-state statep)
+    (setf (core-next last-state) statep)
     (setq last-state statep)))
 
 (defun wisent-save-reductions ()
@@ -1475,17 +1438,18 @@ their rule numbers."
     (when (> count 0)
       (setq p (make-reductions)
             rules (make-vector count 0))
-      (set-reductions-number p (core-number this-state))
-      (set-reductions-nreds  p count)
-      (set-reductions-rules  p rules)
+      (setf (reductions-number p) (core-number this-state))
+      (setf (reductions-nreds  p) count)
+      (setf (reductions-rules  p) rules)
       (setq i 0)
       (while (< i count)
         ;; (p->rules)[i] = redset[i]
         (aset rules i (aref redset i))
         (setq i (1+ i)))
-      (if last-reduction
-          (set-reductions-next last-reduction p)
-        (setq first-reduction p))
+      (setf (if last-reduction
+                (reductions-next last-reduction)
+              first-reduction)
+            p)
       (setq last-reduction p))))
 
 (defun wisent-generate-states ()
@@ -2071,7 +2035,7 @@ tables so that there is no longer a conflict."
           errs  (make-vector ntokens 0)
           nerrs 0
           i 0)
-    (set-errs-errs errp errs)
+    (setf (errs-errs errp) errs)
     (while (< i ntokens)
       (setq token (aref tags i))
       (when (and (wisent-BITISSET (aref LA lookaheadnum) i)
@@ -2120,7 +2084,7 @@ tables so that there is no longer a conflict."
           )))
       (setq i (1+ i)))
     (when (> nerrs 0)
-      (set-errs-nerrs errp nerrs)
+      (setf (errs-nerrs errp) nerrs)
       (aset err-table state errp))
     ))
 
@@ -2264,26 +2228,34 @@ warning is given if there are either more or fewer conflicts, or if
 there are any reduce/reduce conflicts."
   :group 'wisent
   :type '(choice (const nil) integer))
+(make-obsolete-variable 'wisent-expected-conflicts
+                        "use %expectedconflicts in the .wy file instead"
+                        "27.1")
 
 (defun wisent-total-conflicts ()
   "Report the total number of conflicts."
-  (unless (and (zerop rrc-total)
-               (or (zerop src-total)
-                   (= src-total (or wisent-expected-conflicts 0))))
-    (let* ((src (wisent-source))
-           (src (if src (concat " in " src) ""))
-           (msg (format "Grammar%s contains" src)))
-      (if (> src-total 0)
+  (let* ((src (wisent-source))
+         (symbol (intern (format "wisent-%s--expected-conflicts"
+                                 (replace-regexp-in-string "\\.el$" "" src))
+                         obarray)))
+    (when (or (not (zerop rrc-total))
+              (and (not (zerop src-total))
+                   (not (= src-total (or wisent-expected-conflicts 0)))
+                   (or (not (boundp symbol))
+                       (not (equal (symbol-value symbol) src-total)))))
+      (let* ((src (if src (concat " in " src) ""))
+             (msg (format "Grammar%s contains" src)))
+        (when (and (> src-total 0))
           (setq msg (format "%s %d shift/reduce conflict%s"
                             msg src-total (if (> src-total 1)
                                               "s" ""))))
-      (if (and (> src-total 0) (> rrc-total 0))
-          (setq msg (format "%s and" msg)))
-      (if (> rrc-total 0)
-        (setq msg (format "%s %d reduce/reduce conflict%s"
-                          msg rrc-total (if (> rrc-total 1)
-                                            "s" ""))))
-      (message msg))))
+        (if (and (> src-total 0) (> rrc-total 0))
+            (setq msg (format "%s and" msg)))
+        (if (> rrc-total 0)
+            (setq msg (format "%s %d reduce/reduce conflict%s"
+                              msg rrc-total (if (> rrc-total 1)
+                                                "s" ""))))
+        (message msg)))))
 
 (defun wisent-print-conflicts ()
   "Report conflicts."
@@ -2655,7 +2627,7 @@ Report detailed information if `wisent-verbose-flag' or
     (wisent-print-grammar)
     (wisent-print-states))
   ;; Append output to log file when running in batch mode
-  (when (wisent-noninteractive)
+  (when noninteractive
     (wisent-append-to-log-file)
     (wisent-clear-log)))
 
@@ -2669,7 +2641,7 @@ Decide what to do for each type of token if seen as the lookahead
 token in specified state.  The value returned is used as the default
 action for the state.  In addition, ACTROW is filled with what to do
 for each kind of token, index by symbol number, with nil meaning do
-the default action.  The value 'error, means this situation is an
+the default action.  The value `error', means this situation is an
 error.  The parser recognizes this value specially.
 
 This is where conflicts are resolved.  The loop over lookahead rules
@@ -2943,7 +2915,7 @@ And returns the updated top-of-stack index."
       (aset rcode r nil)
     (let* ((actn (aref rcode r))
            (n    (aref actn 1))         ; nb of val avail. in stack
-           (NAME (apply 'format "%s:%d" (aref actn 2)))
+           (NAME (apply #'format "%s:%d" (aref actn 2)))
            (form (wisent-semantic-action-expand-body (aref actn 0) n))
            ($l   (car form))            ; list of $vars used in body
            (form (cdr form))            ; expanded form of body

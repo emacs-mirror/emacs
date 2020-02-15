@@ -997,7 +997,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2020 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.
@@ -1026,7 +1026,7 @@ using, writing, and sharing free software!
 
 本篇指南是 GNU Emacs 的一部分，并允许在下列条件的约束下发行其拷贝：
 
-   Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
+   Copyright (C) 1985, 1996, 1998, 2001-2020 Free Software Foundation,
    Inc.
 
    本文件为 GNU Emacs 的一部分。

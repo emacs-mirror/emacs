@@ -1,6 +1,6 @@
-;;; page.el --- page motion commands for Emacs
+;;; page.el --- page motion commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp convenience
@@ -38,8 +38,7 @@ A page boundary is any line whose beginning matches the regexp
     ;; In case the page-delimiter matches the null string,
     ;; don't find a match without moving.
     (if (bolp) (forward-char 1))
-    (if (re-search-forward page-delimiter nil t)
-	nil
+    (unless (re-search-forward page-delimiter nil t)
       (goto-char (point-max)))
     (setq count (1- count)))
   (while (and (< count 0) (not (bobp)))
@@ -126,39 +125,50 @@ thus showing a page other than the one point was originally in."
 			(point)))))
 (put 'narrow-to-page 'disabled t)
 
+(defun page--count-lines-page ()
+  "Return a list of line counts on the current page.
+The list is on the form (TOTAL BEFORE AFTER), where TOTAL is the
+total number of lines on the current page, while BEFORE and AFTER
+are the number of lines on the current page before and after
+point, respectively."
+  (save-excursion
+    (let ((opoint (point)))
+      (forward-page)
+      (beginning-of-line)
+      (unless (looking-at page-delimiter)
+        (end-of-line))
+      (let ((end (point)))
+        (backward-page)
+        (list (count-lines (point) end)
+              (count-lines (point) opoint)
+              (count-lines opoint end))))))
+
 (defun count-lines-page ()
   "Report number of lines on current page, and how many are before or after point."
   (interactive)
-  (save-excursion
-    (let ((opoint (point)) beg end
-	  total before after)
-      (forward-page)
-      (beginning-of-line)
-      (or (looking-at page-delimiter)
-	  (end-of-line))
-      (setq end (point))
-      (backward-page)
-      (setq beg (point))
-      (setq total (count-lines beg end)
-	    before (count-lines beg opoint)
-	    after (count-lines opoint end))
-      (message "Page has %d lines (%d + %d)" total before after))))
+  (pcase-let ((`(,total ,before ,after) (page--count-lines-page)))
+    (message (ngettext "Page has %d line (%d + %d)"
+                       "Page has %d lines (%d + %d)" total)
+             total before after)))
 
-(defun what-page ()
-  "Print page and line number of point."
-  (interactive)
+(defun page--what-page ()
+  "Return a list of the page and line number of point."
   (save-restriction
     (widen)
     (save-excursion
       (let ((count 1)
-	    (opoint (point)))
-	(goto-char (point-min))
-	(while (re-search-forward page-delimiter opoint t)
-          (if (= (match-beginning 0) (match-end 0))
-              (forward-char 1))
-	  (setq count (1+ count)))
-	(message "Page %d, line %d" count (line-number-at-pos opoint))))))
+            (opoint (point)))
+        (goto-char (point-min))
+        (while (re-search-forward page-delimiter opoint t)
+          (when (= (match-beginning 0) (match-end 0))
+            (forward-char))
+          (setq count (1+ count)))
+        (list count (line-number-at-pos opoint))))))
 
+(defun what-page ()
+  "Print page and line number of point."
+  (interactive)
+  (apply #'message (cons "Page %d, line %d" (page--what-page))))
 
 
 ;;; Place `provide' at end of file.

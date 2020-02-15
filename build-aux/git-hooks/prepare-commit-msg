@@ -1,0 +1,45 @@
+#!/bin/sh
+# Check the format of GNU Emacs change log entries.
+
+# Copyright 2019-2020 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+# Prefer gawk if available, as it handles NUL bytes properly.
+if type gawk >/dev/null 2>&1; then
+  awk=gawk
+else
+  awk=awk
+fi
+
+exec $awk '
+  # Catch the case when someone ran git-commit with -s option,
+  # which automatically adds Signed-off-by.
+  /^Signed-off-by: / {
+    print "'\''Signed-off-by:'\'' in commit message"
+    status = 1
+  }
+  END {
+    if (status != 0) {
+      print "Commit aborted; please see the file 'CONTRIBUTE'"
+    }
+    exit status
+  }
+' <"$COMMIT_MSG_FILE"

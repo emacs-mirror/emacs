@@ -1,5 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,16 +39,11 @@ PIMAGE_NT_HEADERS (__stdcall * pfnCheckSumMappedFile) (LPVOID BaseAddress,
 						       LPDWORD HeaderSum,
 						       LPDWORD CheckSum);
 
-extern BOOL ctrl_c_handler (unsigned long type);
-
 extern char my_begdata[];
 extern char my_begbss[];
 extern char *my_begbss_static;
 
 #include "w32heap.h"
-
-/* Basically, our "initialized" flag.  */
-BOOL using_dynamic_heap = FALSE;
 
 void get_section_info (file_data *p_file);
 void copy_executable_and_dump_data (file_data *, file_data *);
@@ -70,84 +65,10 @@ PCHAR  bss_start_static = 0;
 DWORD_PTR  bss_size_static = 0;
 DWORD_PTR  extra_bss_size_static = 0;
 
-/* MinGW64 doesn't add a leading underscore to external symbols,
-   whereas configure.ac sets up LD_SWITCH_SYSTEM_TEMACS to force the
-   entry point at __start, with two underscores.  */
-#ifdef __MINGW64__
-#define _start __start
-#endif
-
-extern void mainCRTStartup (void);
-
-/* Startup code for running on NT.  When we are running as the dumped
-   version, we need to bootstrap our heap and .bss section into our
-   address space before we can actually hand off control to the startup
-   code supplied by NT (primarily because that code relies upon malloc ()).  */
-void _start (void);
-
-void
-_start (void)
-{
-
-#if 1
-  /* Give us a way to debug problems with crashes on startup when
-     running under the MSVC profiler. */
-  if (GetEnvironmentVariable ("EMACS_DEBUG", NULL, 0) > 0)
-    DebugBreak ();
-#endif
-
-  /* Cache system info, e.g., the NT page size.  */
-  cache_system_info ();
-
-  /* Grab our malloc arena space now, before CRT starts up. */
-  init_heap ();
-
-  /* This prevents ctrl-c's in shells running while we're suspended from
-     having us exit.  */
-  SetConsoleCtrlHandler ((PHANDLER_ROUTINE) ctrl_c_handler, TRUE);
-
-  /* Prevent Emacs from being locked up (eg. in batch mode) when
-     accessing devices that aren't mounted (eg. removable media drives).  */
-  SetErrorMode (SEM_FAILCRITICALERRORS);
-  mainCRTStartup ();
-}
-
-
 /* File handling.  */
 
 /* Implementation note: this and the next functions work with ANSI
    codepage encoded file names!  */
-int
-open_input_file (file_data *p_file, char *filename)
-{
-  HANDLE file;
-  HANDLE file_mapping;
-  void  *file_base;
-  unsigned long size, upper_size;
-
-  file = CreateFileA (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
-		      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-  if (file == INVALID_HANDLE_VALUE)
-    return FALSE;
-
-  size = GetFileSize (file, &upper_size);
-  file_mapping = CreateFileMapping (file, NULL, PAGE_READONLY,
-				    0, size, NULL);
-  if (!file_mapping)
-    return FALSE;
-
-  file_base = MapViewOfFile (file_mapping, FILE_MAP_READ, 0, 0, size);
-  if (file_base == 0)
-    return FALSE;
-
-  p_file->name = filename;
-  p_file->size = size;
-  p_file->file = file;
-  p_file->file_mapping = file_mapping;
-  p_file->file_base = file_base;
-
-  return TRUE;
-}
 
 int
 open_output_file (file_data *p_file, char *filename, unsigned long size)
@@ -187,18 +108,6 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
   return TRUE;
 }
 
-/* Close the system structures associated with the given file.  */
-void
-close_file_data (file_data *p_file)
-{
-  UnmapViewOfFile (p_file->file_base);
-  CloseHandle (p_file->file_mapping);
-  /* For the case of output files, set final size.  */
-  SetFilePointer (p_file->file, p_file->size, NULL, FILE_BEGIN);
-  SetEndOfFile (p_file->file);
-  CloseHandle (p_file->file);
-}
-
 
 /* Routines to manipulate NT executable file sections.  */
 
@@ -214,34 +123,6 @@ find_section (const char * name, IMAGE_NT_HEADERS * nt_header)
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
       if (strcmp ((char *)section->Name, name) == 0)
-	return section;
-      section++;
-    }
-  return NULL;
-}
-
-/* Return pointer to section header for section containing the given
-   relative virtual address. */
-IMAGE_SECTION_HEADER *
-rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header)
-{
-  PIMAGE_SECTION_HEADER section;
-  int i;
-
-  section = IMAGE_FIRST_SECTION (nt_header);
-
-  for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
-    {
-      /* Some linkers (eg. the NT SDK linker I believe) swapped the
-	 meaning of these two values - or rather, they ignored
-	 VirtualSize entirely and always set it to zero.  This affects
-	 some very old exes (eg. gzip dated Dec 1993).  Since
-	 w32_executable_type relies on this function to work reliably,
-	 we need to cope with this.  */
-      DWORD_PTR real_size = max (section->SizeOfRawData,
-			     section->Misc.VirtualSize);
-      if (rva >= section->VirtualAddress
-	  && rva < section->VirtualAddress + real_size)
 	return section;
       section++;
     }
@@ -765,14 +646,7 @@ unexec (const char *new_name, const char *old_name)
       exit (1);
     }
 
-  /* Set the flag (before dumping).  */
-  using_dynamic_heap = TRUE;
-
   copy_executable_and_dump_data (&in_file, &out_file);
-
-  /* Unset it because it is plain wrong to keep it after dumping.
-     Malloc can still occur!  */
-  using_dynamic_heap = FALSE;
 
   /* Patch up header fields; profiler is picky about this. */
   {

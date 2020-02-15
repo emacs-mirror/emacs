@@ -1,6 +1,6 @@
 /* Convert string representation of a number into an intmax_t value.
 
-   Copyright (C) 1999, 2001-2004, 2006, 2009-2018 Free Software Foundation,
+   Copyright (C) 1999, 2001-2004, 2006, 2009-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -28,36 +28,30 @@
 #include "verify.h"
 
 #ifdef UNSIGNED
-# if HAVE_UNSIGNED_LONG_LONG_INT
-#  ifndef HAVE_DECL_STRTOULL
+# ifndef HAVE_DECL_STRTOULL
 "this configure-time declaration test was not run"
-#  endif
-#  if !HAVE_DECL_STRTOULL
+# endif
+# if !HAVE_DECL_STRTOULL
 unsigned long long int strtoull (char const *, char **, int);
-#  endif
 # endif
 
 #else
 
-# if HAVE_LONG_LONG_INT
-#  ifndef HAVE_DECL_STRTOLL
+# ifndef HAVE_DECL_STRTOLL
 "this configure-time declaration test was not run"
-#  endif
-#  if !HAVE_DECL_STRTOLL
+# endif
+# if !HAVE_DECL_STRTOLL
 long long int strtoll (char const *, char **, int);
-#  endif
 # endif
 #endif
 
 #ifdef UNSIGNED
-# define Have_long_long HAVE_UNSIGNED_LONG_LONG_INT
 # define Int uintmax_t
 # define Strtoimax strtoumax
 # define Strtol strtoul
 # define Strtoll strtoull
 # define Unsigned unsigned
 #else
-# define Have_long_long HAVE_LONG_LONG_INT
 # define Int intmax_t
 # define Strtoimax strtoimax
 # define Strtol strtol
@@ -68,15 +62,11 @@ long long int strtoll (char const *, char **, int);
 Int
 Strtoimax (char const *ptr, char **endptr, int base)
 {
-#if Have_long_long
   verify (sizeof (Int) == sizeof (Unsigned long int)
           || sizeof (Int) == sizeof (Unsigned long long int));
 
   if (sizeof (Int) != sizeof (Unsigned long int))
     return Strtoll (ptr, endptr, base);
-#else
-  verify (sizeof (Int) == sizeof (Unsigned long int));
-#endif
 
   return Strtol (ptr, endptr, base);
 }

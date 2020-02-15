@@ -1,6 +1,6 @@
 /* Static heap allocation for GNU Emacs.
 
-Copyright 2016-2018 Free Software Foundation, Inc.
+Copyright 2016-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,5 +27,4 @@ enum { STATIC_HEAP_SIZE = sizeof (Lisp_Object) << 22 };
 
 extern char bss_sbrk_buffer[STATIC_HEAP_SIZE];
 extern char *max_bss_sbrk_ptr;
-extern bool bss_sbrk_did_unexec;
 extern void *bss_sbrk (ptrdiff_t);

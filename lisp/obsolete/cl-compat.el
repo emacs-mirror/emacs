@@ -1,6 +1,6 @@
 ;;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)
 
-;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -142,7 +142,7 @@
     (Values (mapcar* 'list newsyms oldforms) newsyms)))
 
 (defun zip-lists (evens odds)
-  (mapcan 'list evens odds))
+  (cl-mapcan 'list evens odds))
 
 (defun unzip-lists (list)
   (let ((e nil) (o nil))

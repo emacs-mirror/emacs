@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,15 +86,14 @@ typedef int GC;
 typedef int Pixmap;
 typedef int Display;
 typedef int Window;
-typedef int XRectangle;
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 
 typedef struct tty_display_info Display_Info;
 
 extern struct tty_display_info the_only_display_info;
+extern struct tty_output the_only_tty_output;
 
-#define FRAME_X_DISPLAY(f) ((Display *) 0)
 #define FRAME_FONT(f) ((f)->output_data.tty->font)
 #define FRAME_DISPLAY_INFO(f) (&the_only_display_info)
 

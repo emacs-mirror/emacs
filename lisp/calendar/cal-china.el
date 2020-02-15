@@ -1,9 +1,9 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar
 
-;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Chinese calendar, calendar, holidays, diary
 ;; Package: calendar
@@ -632,9 +632,13 @@ Echo Chinese date unless NOECHO is non-nil."
                        (calendar-chinese-to-absolute date)))
   (or noecho (calendar-chinese-print-date)))
 
-(defvar date)
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-chinese-date ()
   "Chinese calendar equivalent of date diary entry."
@@ -650,7 +654,10 @@ Echo Chinese date unless NOECHO is non-nil."
 (autoload 'diary-make-date         "diary-lib")
 (autoload 'diary-ordinal-suffix    "diary-lib")
 (defvar diary-sexp-entry-symbol)
-(defvar entry)                    ;used by `diary-chinese-anniversary'
+;; `diary-chinese-anniversary' can be used in users' diary files, and
+;; `entry' har to be dynamically bound when that is called.
+(with-suppressed-warnings ((lexical entry))
+  (defvar entry))                    ;used by `diary-chinese-anniversary'
 
 (defvar calendar-chinese-month-name-array
   ["正月" "二月" "三月" "四月" "五月" "六月"

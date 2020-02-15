@@ -1,9 +1,8 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
-;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
@@ -208,7 +207,24 @@ expression point is on."
 (define-globalized-minor-mode global-eldoc-mode eldoc-mode turn-on-eldoc-mode
   :group 'eldoc
   :initialize 'custom-initialize-delay
-  :init-value t)
+  :init-value t
+  ;; For `read--expression', the usual global mode mechanism of
+  ;; `change-major-mode-hook' runs in the minibuffer before
+  ;; `eldoc-documentation-function' is set, so `turn-on-eldoc-mode'
+  ;; does nothing.  Configure and enable eldoc from
+  ;; `eval-expression-minibuffer-setup-hook' instead.
+  (if global-eldoc-mode
+      (add-hook 'eval-expression-minibuffer-setup-hook
+                #'eldoc--eval-expression-setup)
+    (remove-hook 'eval-expression-minibuffer-setup-hook
+                 #'eldoc--eval-expression-setup)))
+
+(defun eldoc--eval-expression-setup ()
+  ;; Setup `eldoc', similar to `emacs-lisp-mode'.  FIXME: Call
+  ;; `emacs-lisp-mode' itself?
+  (add-function :before-until (local 'eldoc-documentation-function)
+                #'elisp-eldoc-documentation-function)
+  (eldoc-mode +1))
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()
@@ -357,12 +373,15 @@ return any documentation.")
   ;; This is run from post-command-hook or some idle timer thing,
   ;; so we need to be careful that errors aren't ignored.
   (with-demoted-errors "eldoc error: %s"
-    (and (or (eldoc-display-message-p)
-             ;; Erase the last message if we won't display a new one.
-             (when eldoc-last-message
-               (eldoc-message nil)
-               nil))
-	 (eldoc-message (funcall eldoc-documentation-function)))))
+    (if (not (eldoc-display-message-p))
+        ;; Erase the last message if we won't display a new one.
+        (when eldoc-last-message
+          (eldoc-message nil))
+      (let ((non-essential t))
+        ;; Only keep looking for the info as long as the user hasn't
+        ;; requested our attention.  This also locally disables inhibit-quit.
+        (while-no-input
+          (eldoc-message (funcall eldoc-documentation-function)))))))
 
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the

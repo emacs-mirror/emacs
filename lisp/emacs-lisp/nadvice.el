@@ -1,10 +1,9 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
-;; Package: emacs
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,6 +34,11 @@
 ;;   where the place that we want to modify is a `symbol-function'.
 
 ;;; Code:
+
+;; The autoloads.el mechanism which adds package--builtin-versions
+;; maintenance to loaddefs.el doesn't work for preloaded packages (such
+;; as this one), so we have to do it by hand!
+(push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
 ;;;; Lightweight advice/hook
 (defvar advice--where-alist
@@ -83,8 +87,9 @@ Each element has the form (WHERE BYTECODE STACK) where:
   "Build the raw docstring for FUNCTION, presumably advised."
   (let* ((flist (indirect-function function))
          (docfun nil)
+         (macrop (eq 'macro (car-safe flist)))
          (docstring nil))
-    (if (eq 'macro (car-safe flist)) (setq flist (cdr flist)))
+    (if macrop (setq flist (cdr flist)))
     (while (advice--p flist)
       (let ((doc (aref flist 4))
             (where (advice--where flist)))
@@ -96,10 +101,11 @@ Each element has the form (WHERE BYTECODE STACK) where:
         (setq docstring
               (concat
                docstring
-               (propertize (format "%s advice: " where)
-                           'face 'warning)
+               (format "This %s has %s advice: "
+                       (if macrop "macro" "function")
+                       where)
                (let ((fun (advice--car flist)))
-                 (if (symbolp fun) (format-message "`%S'" fun)
+                 (if (symbolp fun) (format-message "`%S'." fun)
                    (let* ((name (cdr (assq 'name (advice--props flist))))
                           (doc (documentation fun t))
                           (usage (help-split-fundoc doc function)))
@@ -241,6 +247,8 @@ different, but `function-equal' will hopefully ignore those differences.")
   (if (local-variable-p var) (symbol-value var)
     (setq advice--buffer-local-function-sample
           ;; This function acts like the t special value in buffer-local hooks.
+          ;; FIXME: Provide an `advice-bottom' function that's like
+          ;; `advice-cd*r' but also follows through this proxy.
           (lambda (&rest args) (apply (default-value var) args)))))
 
 (eval-and-compile

@@ -1,6 +1,6 @@
 ;;; ox-icalendar.el --- iCalendar Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;      Nicolas Goaziou <n dot goaziou at gmail dot com>
@@ -33,7 +33,7 @@
 
 (require 'cl-lib)
 (require 'ox-ascii)
-(declare-function org-bbdb-anniv-export-ical "org-bbdb" nil)
+(declare-function org-bbdb-anniv-export-ical "ol-bbdb" nil)
 
 
 
@@ -87,37 +87,66 @@ keyword."
 
 This is a list with possibly several symbols in it.  Valid symbols are:
 
-`event-if-todo'       Deadlines in TODO entries become calendar events.
-`event-if-not-todo'   Deadlines in non-TODO entries become calendar events.
-`todo-due'            Use deadlines in TODO entries as due-dates."
+`event-if-todo'
+
+  Deadlines in TODO entries become calendar events.
+
+`event-if-todo-not-done'
+
+  Deadlines in TODO entries with not-DONE state become events.
+
+`event-if-not-todo'
+
+  Deadlines in non-TODO entries become calendar events.
+
+`todo-due'
+
+  Use deadlines in TODO entries as due-dates."
   :group 'org-export-icalendar
-  :type '(set :greedy t
-	      (const :tag "Deadlines in non-TODO entries become events"
-		     event-if-not-todo)
-	      (const :tag "Deadline in TODO entries become events"
-		     event-if-todo)
-	      (const :tag "Deadlines in TODO entries become due-dates"
-		     todo-due)))
+  :type
+  '(set :greedy t
+	(const :tag "DEADLINE in non-TODO entries become events"
+	       event-if-not-todo)
+	(const :tag "DEADLINE in TODO entries become events"
+	       event-if-todo)
+	(const :tag "DEADLINE in TODO entries with not-DONE state become events"
+	       event-if-todo-not-done)
+	(const :tag "DEADLINE in TODO entries become due-dates"
+	       todo-due)))
 
 (defcustom org-icalendar-use-scheduled '(todo-start)
   "Contexts where iCalendar export should use a scheduling time stamp.
 
 This is a list with possibly several symbols in it.  Valid symbols are:
 
-`event-if-todo'       Scheduling time stamps in TODO entries become an event.
-`event-if-not-todo'   Scheduling time stamps in non-TODO entries become an event.
-`todo-start'          Scheduling time stamps in TODO entries become start date.
-                      Some calendar applications show TODO entries only after
-                      that date."
+`event-if-todo'
+
+  Scheduling time stamps in TODO entries become an event.
+
+`event-if-todo-not-done'
+
+  Scheduling time stamps in TODO entries with not-DONE state
+  become events.
+
+`event-if-not-todo'
+
+  Scheduling time stamps in non-TODO entries become an event.
+
+`todo-start'
+
+  Scheduling time stamps in TODO entries become start date.  Some
+  calendar applications show TODO entries only after that date."
   :group 'org-export-icalendar
-  :type '(set :greedy t
-	      (const :tag
-		     "SCHEDULED timestamps in non-TODO entries become events"
-		     event-if-not-todo)
-	      (const :tag "SCHEDULED timestamps in TODO entries become events"
-		     event-if-todo)
-	      (const :tag "SCHEDULED in TODO entries become start date"
-		     todo-start)))
+  :type
+  '(set :greedy t
+	(const :tag "SCHEDULED timestamps in non-TODO entries become events"
+	       event-if-not-todo)
+	(const :tag "SCHEDULED timestamps in TODO entries become events"
+	       event-if-todo)
+	(const :tag "SCHEDULED in TODO entries with not-DONE state become events"
+	       event-if-todo-not-done)
+	(const :tag "SCHEDULED in TODO entries become start date"
+	       todo-start)))
 
 (defcustom org-icalendar-categories '(local-tags category)
   "Items that should be entered into the \"categories\" field.
@@ -317,7 +346,7 @@ A headline is blocked when either
     done first or is a child of a blocked grandparent entry."
   (or
    ;; Check if any child is not done.
-   (org-element-map headline 'headline
+   (org-element-map (org-element-contents headline) 'headline
      (lambda (hl) (eq (org-element-property :todo-type hl) 'todo))
      info 'first-match)
    ;; Check :ORDERED: node property.
@@ -540,6 +569,10 @@ inlinetask within the section."
 		   (org-export-get-node-property
 		    :LOCATION entry
 		    (org-property-inherit-p "LOCATION"))))
+	     (class (org-icalendar-cleanup-string
+		     (org-export-get-node-property
+		      :CLASS entry
+		      (org-property-inherit-p "CLASS"))))
 	     ;; Build description of the entry from associated section
 	     ;; (headline) or contents (inlinetask).
 	     (desc
@@ -562,20 +595,28 @@ inlinetask within the section."
 	  ;; Events: Delegate to `org-icalendar--vevent' to generate
 	  ;; "VEVENT" component from scheduled, deadline, or any
 	  ;; timestamp in the entry.
-	  (let ((deadline (org-element-property :deadline entry)))
+	  (let ((deadline (org-element-property :deadline entry))
+		(use-deadline (plist-get info :icalendar-use-deadline)))
 	    (and deadline
-		 (memq (if todo-type 'event-if-todo 'event-if-not-todo)
-		       org-icalendar-use-deadline)
+		 (pcase todo-type
+		   (`todo (or (memq 'event-if-todo-not-done use-deadline)
+			      (memq 'event-if-todo use-deadline)))
+		   (`done (memq 'event-if-todo use-deadline))
+		   (_ (memq 'event-if-not-todo use-deadline)))
 		 (org-icalendar--vevent
 		  entry deadline (concat "DL-" uid)
-		  (concat "DL: " summary) loc desc cat tz)))
-	  (let ((scheduled (org-element-property :scheduled entry)))
+		  (concat "DL: " summary) loc desc cat tz class)))
+	  (let ((scheduled (org-element-property :scheduled entry))
+		(use-scheduled (plist-get info :icalendar-use-scheduled)))
 	    (and scheduled
-		 (memq (if todo-type 'event-if-todo 'event-if-not-todo)
-		       org-icalendar-use-scheduled)
+		 (pcase todo-type
+		   (`todo (or (memq 'event-if-todo-not-done use-scheduled)
+			      (memq 'event-if-todo use-scheduled)))
+		   (`done (memq 'event-if-todo use-scheduled))
+		   (_ (memq 'event-if-not-todo use-scheduled)))
 		 (org-icalendar--vevent
 		  entry scheduled (concat "SC-" uid)
-		  (concat "S: " summary) loc desc cat tz)))
+		  (concat "S: " summary) loc desc cat tz class)))
 	  ;; When collecting plain timestamps from a headline and its
 	  ;; title, skip inlinetasks since collection will happen once
 	  ;; ENTRY is one of them.
@@ -593,7 +634,7 @@ inlinetask within the section."
 			   ((t) t)))
 		   (let ((uid (format "TS%d-%s" (cl-incf counter) uid)))
 		     (org-icalendar--vevent
-		      entry ts uid summary loc desc cat tz))))
+		      entry ts uid summary loc desc cat tz class))))
 	       info nil (and (eq type 'headline) 'inlinetask))
 	     ""))
 	  ;; Task: First check if it is appropriate to export it.  If
@@ -607,7 +648,7 @@ inlinetask within the section."
 			     (not (org-icalendar-blocked-headline-p
 				   entry info))))
 		       ((t) (eq todo-type 'todo))))
-	    (org-icalendar--vtodo entry uid summary loc desc cat tz))
+	    (org-icalendar--vtodo entry uid summary loc desc cat tz class))
 	  ;; Diary-sexp: Collect every diary-sexp element within ENTRY
 	  ;; and its title, and transcode them.  If ENTRY is
 	  ;; a headline, skip inlinetasks: they will be handled
@@ -638,7 +679,7 @@ inlinetask within the section."
        contents))))
 
 (defun org-icalendar--vevent
-    (entry timestamp uid summary location description categories timezone)
+    (entry timestamp uid summary location description categories timezone class)
   "Create a VEVENT component.
 
 ENTRY is either a headline or an inlinetask element.  TIMESTAMP
@@ -648,7 +689,9 @@ summary or subject for the event.  LOCATION defines the intended
 venue for the event.  DESCRIPTION provides the complete
 description of the event.  CATEGORIES defines the categories the
 event belongs to.  TIMEZONE specifies a time zone for this event
-only.
+only.  CLASS contains the visibility attribute.  Three of them
+(\"PUBLIC\", \"CONFIDENTIAL\", and \"PRIVATE\") are predefined, others
+should be treated as \"PRIVATE\" if they are unknown to the iCalendar server.
 
 Return VEVENT component as a string."
   (org-icalendar-fold-string
@@ -669,6 +712,7 @@ Return VEVENT component as a string."
 		       (org-element-property :repeater-value timestamp)))
 	     "SUMMARY:" summary "\n"
 	     (and (org-string-nw-p location) (format "LOCATION:%s\n" location))
+	     (and (org-string-nw-p class) (format "CLASS:%s\n" class))
 	     (and (org-string-nw-p description)
 		  (format "DESCRIPTION:%s\n" description))
 	     "CATEGORIES:" categories "\n"
@@ -677,7 +721,7 @@ Return VEVENT component as a string."
 	     "END:VEVENT"))))
 
 (defun org-icalendar--vtodo
-  (entry uid summary location description categories timezone)
+  (entry uid summary location description categories timezone class)
   "Create a VTODO component.
 
 ENTRY is either a headline or an inlinetask element.  UID is the
@@ -712,6 +756,7 @@ Return VTODO component as a string."
 			  "\n"))
 	     "SUMMARY:" summary "\n"
 	     (and (org-string-nw-p location) (format "LOCATION:%s\n" location))
+	     (and (org-string-nw-p class) (format "CLASS:%s\n" class))
 	     (and (org-string-nw-p description)
 		  (format "DESCRIPTION:%s\n" description))
 	     "CATEGORIES:" categories "\n"
@@ -963,7 +1008,7 @@ FILES is a list of files to build the calendar from."
 		files "")
 	       ;; BBDB anniversaries.
 	       (when (and org-icalendar-include-bbdb-anniversaries
-			  (require 'org-bbdb nil t))
+			  (require 'ol-bbdb nil t))
 		 (with-output-to-string (org-bbdb-anniv-export-ical)))))))
 	  (run-hook-with-args 'org-icalendar-after-save-hook
 			      org-icalendar-combined-agenda-file))

@@ -1,6 +1,6 @@
 ;;; soap-inspect.el --- Interactive WSDL inspector    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: October 2010
@@ -355,7 +355,7 @@ ATTRIBUTE is a soap-xs-attribute-group."
 
 (defun soap-inspect-xs-complex-type (type)
   "Insert information about TYPE in the current buffer.
-TYPE is a `soap-xs-complex-type'"
+TYPE is a `soap-xs-complex-type'."
   (insert "Complex type: " (soap-element-fq-name type))
   (insert "\nKind: ")
   (cl-case (soap-xs-complex-type-indicator type)

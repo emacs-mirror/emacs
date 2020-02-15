@@ -1,6 +1,6 @@
 ;;; ipa-praat.el --- Inputting IPA characters with the conventions of Praat
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Author: Oliver Scholz <epameinondas@gmx.de>
 ;; Keywords: multilingual, input method, IPA
@@ -148,7 +148,14 @@ input | example | description
 \\'1   | ˈ       | primary stress
 \\'2   | ˌ       | secondary stress
 \\cn   | t̚       | unreleased plosive
-\\rh   | ɜ˞      | rhotacized vowel
+\\hr   | ɜ˞      | rhotacized vowel
+\\^h   | ʰ       | aspiration
+\\^H   | ʱ       | voiced aspiration
+\\^w   | ʷ       | labialized, rounded
+\\^j   | ʲ       | palatalized
+\\^g   | ˠ       | velarized
+\\^9   | ˤ       | pharyngealized
+
 
 - Understrikes
 
@@ -168,7 +175,7 @@ input | example | description
 \\Uv   | d̺       | apical
 \\Dv   | d̻       | laminal
 \\nv   | u̯       | nonsyllabic
-\\e3v  | e̹       | slightly rounded
+\\3v   | e̹       | slightly rounded
 \\cv   | u̜       | slightly unrounded
 
 - Overstrikes
@@ -176,14 +183,14 @@ input | example | description
 input | example | description
 ------+---------+--------------------------------------------
 \\0^   | ɣ̊       | voiceless
-\\'^   |         | high tone
-\\`^   |         | low tone
-\\-^   |         | mid tone
-\\~^   |         | nasalized
-\\v^   |         | rising tone
-\\^^   |         | falling tone
-\\:^   |         | centralized
-\\N^   |         | short
+\\'^   | é       | high tone
+\\`^   | è       | low tone
+\\-^   | ē       | mid tone
+\\~^   | ẽ       | nasalized
+\\v^   | ě       | rising tone
+\\^^   | ê       | falling tone
+\\:^   | ë       | centralized
+\\N^   | ĕ       | short
 \\li   | k͡p      | simultaneous articulation or single segment
 "
  nil t nil nil nil nil nil nil nil nil t)
@@ -308,7 +315,13 @@ input | example | description
  ("\\'1" ?ˈ) ; primary stress
  ("\\'2" ?ˌ) ; secondary stress
  ("\\cn" #x031A) ; t̚ unreleased plosive
- ("\\rh" #x02DE) ; ɜ˞ rhotacized vowel
+ ("\\hr" #x02DE) ; ɜ˞ rhotacized vowel
+ ("\\^h" ?ʰ) ; ʰ aspiration (usually following a plosive)
+ ("\\^H" ?ʱ) ; ʱ voiced aspiration (usually following a plosive)
+ ("\\^w" ?ʷ) ; labialized
+ ("\\^j" ?ʲ) ; palatalized
+ ("\\^g" ?ˠ) ; velarized
+ ("\\^9" ?ˤ) ; pharyngealized
 
  ("\\|v" #x0329) ; n̩ syllabic consonant
  ("\\0v" #x0325) ; b̥ voiceless
@@ -324,7 +337,7 @@ input | example | description
  ("\\Uv" #x033A) ; d̺ apical
  ("\\Dv" #x033B) ; d̻ laminal
  ("\\nv" #x032F) ; u̯ nonsyllabic
- ("\\e3v" #x0339) ; e̹ slightly rounded
+ ("\\3v" #x0339) ; e̹ slightly rounded
  ("\\cv" #x031C) ; u̜ slightly unrounded
 
  ("\\0^" #x030A) ; ɣ̊ voiceless

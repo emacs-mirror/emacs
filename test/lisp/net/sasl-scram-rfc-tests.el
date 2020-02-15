@@ -1,6 +1,6 @@
-;;; sasl-scram-rfc-tests.el --- tests for SCRAM-SHA-1       -*- lexical-binding: t; -*-
+;;; sasl-scram-rfc-tests.el --- tests for SCRAM       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author: Magnus Henoch <magnus.henoch@gmail.com>
 
@@ -19,7 +19,7 @@
 
 ;;; Commentary:
 
-;; Test cases from RFC 5802.
+;; Test cases from RFC 5802 and RFC 7677.
 
 ;;; Code:
 
@@ -46,5 +46,27 @@
     ;; This should not throw an error:
     (sasl-scram-sha-1-authenticate-server client (vector nil "v=rmF9pqV8S7suAoZWja4dJRkFsKQ=
 "))))
+
+(require 'sasl-scram-sha256)
+
+(ert-deftest sasl-scram-sha-256-test ()
+  ;; The following strings are taken from section 3 of RFC 7677.
+  (let ((client
+         (sasl-make-client (sasl-find-mechanism '("SCRAM-SHA-256"))
+                           "user"
+                           "imap"
+                           "localhost"))
+        (data "r=rOprNGfwEbeRWgbNEkqO%hvYDpWUa2RaTCAfuxFIlj)hNlF$k0,s=W22ZaJ0SNY7soEsUEjb6gQ==,i=4096")
+        (c-nonce "rOprNGfwEbeRWgbNEkqO")
+        (sasl-read-passphrase
+         (lambda (_prompt) (copy-sequence "pencil"))))
+    (sasl-client-set-property client 'c-nonce c-nonce)
+    (should
+     (equal
+      (sasl-scram-sha-256-client-final-message client (vector nil data))
+      "c=biws,r=rOprNGfwEbeRWgbNEkqO%hvYDpWUa2RaTCAfuxFIlj)hNlF$k0,p=dHzbZapWIk4jUhN+Ute9ytag9zjfMHgsqmmiz7AndVQ="))
+
+    ;; This should not throw an error:
+    (sasl-scram-sha-256-authenticate-server client (vector nil "v=6rriTRBi23WpRR/wtup+mMhUZUn/dB5nLTJRsjl95G4="))))
 
 ;;; sasl-scram-rfc-tests.el ends here

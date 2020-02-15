@@ -1,8 +1,9 @@
-;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions
+;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -54,18 +55,26 @@
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 
-(defun erc-notifications-notify (nick msg)
-  "Notify that NICK send some MSG.
+(defun erc-notifications-notify (nick msg &optional privp)
+  "Notify that NICK send some MSG, where PRIVP should be non-nil for PRIVMSGs.
 This will replace the last notification sent with this function."
+  ;; TODO: can we do this without PRIVP? (by "fixing" ERC's not
+  ;; setting the current buffer to the existing query buffer)
   (dbus-ignore-errors
     (setq erc-notifications-last-notification
-          (notifications-notify :bus erc-notifications-bus
-				:title (xml-escape-string nick)
-                                :body (xml-escape-string msg)
-                                :replaces-id erc-notifications-last-notification
-                                :app-icon erc-notifications-icon))))
+          (let ((channel (if privp (erc-get-buffer nick) (current-buffer))))
+            (notifications-notify :bus erc-notifications-bus
+                                  :title (format "%s in %s"
+                                                 (xml-escape-string nick)
+                                                 channel)
+                                  :body (xml-escape-string msg)
+                                  :replaces-id erc-notifications-last-notification
+                                  :app-icon erc-notifications-icon
+                                  :actions '("default" "Switch to buffer")
+                                  :on-action (lambda (&rest _)
+                                               (pop-to-buffer channel)))))))
 
-(defun erc-notifications-PRIVMSG (proc parsed)
+(defun erc-notifications-PRIVMSG (_proc parsed)
   (let ((nick (car (erc-parse-user (erc-response.sender parsed))))
         (target (car (erc-response.command-args parsed)))
         (msg (erc-response.contents parsed)))
@@ -73,7 +82,7 @@ This will replace the last notification sent with this function."
                (not (and (boundp 'erc-track-exclude)
                          (member nick erc-track-exclude)))
                (not (erc-is-message-ctcp-and-not-action-p msg)))
-      (erc-notifications-notify nick msg)))
+      (erc-notifications-notify nick msg t)))
   ;; Return nil to continue processing by ERC
   nil)
 

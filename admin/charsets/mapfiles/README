@@ -1,4 +1,4 @@
-Copyright (C) 2009-2018 Free Software Foundation, Inc.
+Copyright (C) 2009-2020 Free Software Foundation, Inc.
 Copyright (C) 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -15,7 +15,7 @@ files based on freely available information.
 * CP932.TXT
 
 Available at:
-    <http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT>
+    <https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT>
 
 * PTCP154
 
@@ -42,8 +42,8 @@ Available at:
 * stdenc.txt and symbol.txt
 
 Available at:
-    <http://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/stdenc.txt>
-    <http://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt>
+    <https://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/stdenc.txt>
+    <https://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt>
 
 (2) Newly created files
 

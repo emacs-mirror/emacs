@@ -1,6 +1,6 @@
 ;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8 -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -39,21 +39,20 @@
 	      (input-method . "tai-sonla")
 	      (sample-text . "TaiViet (ꪁꪫꪱꪣ ꪼꪕ)\t\tꪅꪰꪙꫂ ꪨꪮꫂ ꪁꪫꪱ / ꪅꪽ ꪨꪷ ꪁꪫꪱ")
 	      (documentation . "\
-TaiViet refers to the Tai language used by Tai people in
-Vietnam, and also refers to the script used for this language.
-Both the script and language have the same origin as that of Thai
+TaiViet refers to the Tai script, which is used to write several
+Tai languages of northwestern Vietnam and surrounding areas.  These
+languages are Tai Dam (also known as Black Tai or Tai Noir),
+Tai Dón (also known as White Tai or Tai Blanc), Tày Tac,
+Tai Daeng (also known as Red Tai or Tai Rouge),
+and Thai Song (also known as Lao Song).  However, some people
+consider Tai Dam, Tai Dón and Tai Daeng to be dialects of the
+same language, and call them collectively \"Tai Viet\".
+
+Both the script and languages have the same origin as that of Thai
 language/script used in Thailand, but now they differ from each
 other in a significant way (especially the scripts are).
 
 The language name is spelled as \"ꪁꪫꪱꪣ ꪼꪕ\", and the script name is
-spelled as \"ꪎ ꪼꪕ\" in the modern form, \"ꪎꪳ ꪼꪕ\" in the traditional
-form.
-
-As the proposal for TaiViet script to the Unicode is still on
-the progress, we use the Private Use Area for TaiViet
-characters (U+F000..U+F07E).  A TaiViet font encoded accordingly
-is available at this web page:
-    http://www.m17n.org/viettai/
-")))
+spelled as \"ꪎꪳ ꪼꪕ\".")))
 
 (provide 'tai-viet)

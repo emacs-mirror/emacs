@@ -1,6 +1,6 @@
 /* Calculate what line insertion or deletion to do, and do it
 
-Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2018 Free Software
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2020 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <stdio.h>
 
 #include "lisp.h"
 #include "termchar.h"
@@ -107,10 +106,8 @@ calculate_scrolling (struct frame *frame,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * frame_total_lines);
-
-  if (baud_rate <= 0)
-    extra_cost = 1;
+  int extra_cost
+    = clip_to_bounds (1, baud_rate / (10 * 4) / frame_total_lines, INT_MAX / 2);
 
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
@@ -446,10 +443,8 @@ calculate_direct_scrolling (struct frame *frame,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * frame_total_lines);
-
-  if (baud_rate <= 0)
-    extra_cost = 1;
+  int extra_cost
+    = clip_to_bounds (1, baud_rate / (10 * 4) / frame_total_lines, INT_MAX / 2);
 
   /* Overhead of setting the scroll window, plus the extra
      cost of scrolling by a distance of one.  The extra cost is

@@ -1,9 +1,8 @@
 ;;; mh-limit.el --- MH-E display limits
 
-;; Copyright (C) 2001-2003, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -31,7 +30,6 @@
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
 (require 'mh-scan)
 
 (autoload 'message-fetch-field "message")
@@ -127,8 +125,8 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
           (mh-quote-pick-expr (mh-current-message-header-field 'subject)))))
   (setq pick-expr
         (let ((case-fold-search t))
-          (loop for s in pick-expr
-                collect (mh-replace-regexp-in-string "re: *" "" s))))
+          (cl-loop for s in pick-expr
+                   collect (mh-replace-regexp-in-string "re: *" "" s))))
   (mh-narrow-to-header-field 'subject pick-expr))
 
 ;;;###mh-autoload
@@ -250,7 +248,7 @@ Return number of messages put in the sequence:
 (defun mh-edit-pick-expr (default)
   "With prefix arg edit a pick expression.
 If no prefix arg is given, then return DEFAULT."
-  (let ((default-string (loop for x in default concat (format " %s" x))))
+  (let ((default-string (cl-loop for x in default concat (format " %s" x))))
     (if (or current-prefix-arg (equal default-string ""))
         (mh-pick-args-list (read-string "Pick expression: "
                                         default-string))
@@ -292,18 +290,18 @@ For example, the string \"-subject a b c -from Joe User
           (let* ((field (or (message-fetch-field (format "%s" header-field))
                             ""))
                  (field-option (format "-%s" header-field))
-                 (patterns (loop for x in (split-string  field "[ ]*,[ ]*")
-                                 unless (equal x "")
-                                 collect (if (string-match "<\\(.*@.*\\)>" x)
-                                             (match-string 1 x)
-                                           x))))
+                 (patterns (cl-loop for x in (split-string  field "[ ]*,[ ]*")
+                                    unless (equal x "")
+                                    collect (if (string-match "<\\(.*@.*\\)>" x)
+                                                (match-string 1 x)
+                                              x))))
             (when patterns
-              (loop with accum = `(,field-option ,(car patterns))
-                    for e in (cdr patterns)
-                    do (setq accum `(,field-option ,e "-or" ,@accum))
-                    finally return accum))))))))
+              (cl-loop with accum = `(,field-option ,(car patterns))
+                       for e in (cdr patterns)
+                       do (setq accum `(,field-option ,e "-or" ,@accum))
+                       finally return accum))))))))
 
-(defun mh-narrow-to-header-field (header-field pick-expr)
+(defun mh-narrow-to-header-field (_header-field pick-expr)
   "Limit to messages whose HEADER-FIELD match PICK-EXPR.
 The MH command pick is used to do the match."
   (let ((folder mh-current-folder)

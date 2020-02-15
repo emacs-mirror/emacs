@@ -1,6 +1,6 @@
 ;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -179,7 +179,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
-The record is filtered according to `eudc-bbdb-current-return-attributes'"
+The record is filtered according to `eudc-bbdb-current-return-attributes'."
   (require 'bbdb)
   (let ((attrs (or eudc-bbdb-current-return-attributes
 		   '(firstname lastname aka company phones addresses net notes)))

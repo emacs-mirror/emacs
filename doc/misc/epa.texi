@@ -10,7 +10,7 @@
 @copying
 This file describes EasyPG Assistant @value{VERSION}.
 
-Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -312,7 +312,7 @@ blobs inside a message body, not using modern MIME format.
 
 NOTE: Inline OpenPGP is not recommended and you should consider to use
 PGP/MIME@.  See
-@uref{http://josefsson.org/inline-openpgp-considered-harmful.html,
+@uref{https://josefsson.org/inline-openpgp-considered-harmful.html,
 Inline OpenPGP in E-mail is bad@comma{} Mm'kay?}.
 
 @noindent

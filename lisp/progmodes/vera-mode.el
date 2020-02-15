@@ -1,9 +1,8 @@
 ;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
-;; Maintainer:  Reto Zimmermann <reto@gnu.org>
 ;; Version:     2.28
 ;; Keywords:    languages vera
 ;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html
@@ -636,7 +635,7 @@ Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
    (list (concat "^\\s-*" vera-rvm-types-regexp "\\s-*\\(\\[[^]]+\\]\\s-+\\)?")
 	 '(vera-font-lock-match-item nil nil (1 font-lock-variable-name-face)))
    ;; highlight numbers
-   '("\\([0-9]*'[bdoh][0-9a-fA-FxXzZ_]+\\)" 1 vera-font-lock-number)
+   '("\\([0-9]*'[bdoh][[:xdigit:]xXzZ_]+\\)" 1 vera-font-lock-number)
    ;; highlight filenames in #include directives
    '("^#\\s-*include\\s-*\\(<[^>\"\n]*>?\\)"
      1 font-lock-string-face)

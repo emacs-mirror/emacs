@@ -1,9 +1,8 @@
 ;;; semantic-grammar.wy -- LALR grammar of Semantic input grammars
 ;;
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
-;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 26 Aug 2002
 ;; Keywords: syntax
 ;; X-RCS: $Id: semantic-grammar.wy,v 1.16 2005/09/30 20:20:27 zappo Exp $
@@ -53,6 +52,7 @@
 %keyword LEFT            "%left"
 %keyword NONASSOC        "%nonassoc"
 %keyword PACKAGE         "%package"
+%keyword EXPECTEDCONFLICTS "%expectedconflicts"
 %keyword PROVIDE         "%provide"
 %keyword PREC            "%prec"
 %keyword PUT             "%put"
@@ -136,6 +136,7 @@ decl:
   | no_default_prec_decl
   | languagemode_decl
   | package_decl
+  | expectedconflicts_decl
   | provide_decl
   | precedence_decl
   | put_decl
@@ -166,6 +167,11 @@ languagemode_decl:
 package_decl:
     PACKAGE SYMBOL
     `(PACKAGE-TAG ',$2 nil)
+  ;
+
+expectedconflicts_decl:
+    EXPECTEDCONFLICTS symbols
+    `(TAG ',(car $2) 'expectedconflicts :rest ',(cdr $2))
   ;
 
 provide_decl:

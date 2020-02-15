@@ -1,6 +1,6 @@
 ;;; undo-tests.el --- Tests of primitive-undo
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 
@@ -72,7 +72,7 @@
     (undo-boundary)
     (put-text-property (point-min) (point-max) 'face 'bold)
     (undo-boundary)
-    (remove-text-properties (point-min) (point-max) '(face default))
+    (remove-list-of-text-properties (point-min) (point-max) '(face))
     (undo-boundary)
     (set-buffer-multibyte (not enable-multibyte-characters))
     (undo-boundary)
@@ -255,7 +255,7 @@
     (insert "12345")
     (search-backward "4")
     (undo-boundary)
-    (delete-forward-char 1)
+    (funcall-interactively 'delete-forward-char 1)
     (search-backward "1")
     (undo-boundary)
     (insert "xxxx")
@@ -299,7 +299,7 @@ undo-make-selective-list."
     (insert "ddd")
     (search-backward "ad")
     (undo-boundary)
-    (delete-forward-char 2)
+    (funcall-interactively 'delete-forward-char 2)
     (undo-boundary)
     ;; Select "dd"
     (push-mark (point) t t)
@@ -348,7 +348,7 @@ undo-make-selective-list."
     (let ((m (make-marker)))
       (set-marker m 2 (current-buffer))
       (goto-char (point-min))
-      (delete-forward-char 3)
+      (funcall-interactively 'delete-forward-char 3)
       (undo-boundary)
       (should (= (point-min) (marker-position m)))
       (undo)
@@ -369,7 +369,7 @@ undo-make-selective-list."
       (push-mark (point) t t)
       (setq mark-active t)
       (goto-char (point-min))
-      (delete-forward-char 1) ;; delete region covering "ab"
+      (funcall-interactively 'delete-forward-char 1) ; delete region covering "ab"
       (undo-boundary)
       (should (= (point-min) (marker-position m)))
       ;; Resurrect "ab". m's insertion type means the reinsertion
@@ -389,7 +389,7 @@ Demonstrates bug 16818."
     (let ((m (make-marker)))
       (set-marker m 2 (current-buffer)) ; m at b
       (goto-char (point-min))
-      (delete-forward-char 3) ; m at d
+      (funcall-interactively 'delete-forward-char 3) ; m at d
       (undo-boundary)
       (set-marker m 4) ; m at g
       (undo)
@@ -422,7 +422,7 @@ Demonstrates bug 16818."
     (push-mark (point) t t)
     (setq mark-active t)
     (goto-char (- (point) 3))
-    (delete-forward-char 1)
+    (funcall-interactively 'delete-forward-char 1)
     (undo-boundary)
 
     (insert "bbb")

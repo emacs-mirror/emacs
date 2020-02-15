@@ -558,12 +558,13 @@ enum
 
 /* Return a non-outlandish value for the tab width.  */
 
-#define SANE_TAB_WIDTH(buf) \
-  sanitize_tab_width (XFIXNAT (BVAR (buf, tab_width)))
+#define SANE_TAB_WIDTH(buf) sanitize_tab_width (BVAR (buf, tab_width))
+
 INLINE int
-sanitize_tab_width (EMACS_INT width)
+sanitize_tab_width (Lisp_Object width)
 {
-  return 0 < width && width <= 1000 ? width : 8;
+  return (FIXNUMP (width) && 0 < XFIXNUM (width) && XFIXNUM (width) <= 1000
+	  ? XFIXNUM (width) : 8);
 }
 
 /* Return the width of ASCII character C.  The width is measured by
@@ -683,8 +684,6 @@ extern bool graphicp (int);
 extern bool printablep (int);
 extern bool blankp (int);
 
-extern bool confusable_symbol_character_p (int ch);
-
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR (XVECTOR (Vtranslation_table_vector)->contents[(id)]))
@@ -703,14 +702,7 @@ char_table_translate (Lisp_Object obj, int ch)
   return CHARACTERP (obj) ? XFIXNUM (obj) : ch;
 }
 
-#if defined __GNUC__ && !defined __STRICT_ANSI__
-# define HEXDIGIT_CONST const
-# define HEXDIGIT_IS_CONST true
-#else
-# define HEXDIGIT_CONST
-# define HEXDIGIT_IS_CONST false
-#endif
-extern signed char HEXDIGIT_CONST hexdigit[];
+extern signed char const hexdigit[];
 
 /* If C is a hexadecimal digit ('0'-'9', 'a'-'f', 'A'-'F'), return its
    value (0-15).  Otherwise return -1.  */
@@ -718,7 +710,7 @@ extern signed char HEXDIGIT_CONST hexdigit[];
 INLINE int
 char_hexdigit (int c)
 {
-  return 0 <= c && c <= UCHAR_MAX ? hexdigit[c] : -1;
+  return 0 <= c && c <= UCHAR_MAX ? hexdigit[c] - 1 : -1;
 }
 
 INLINE_HEADER_END

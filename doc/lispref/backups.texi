@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990--1995, 1999, 2001--2020 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Backups and Auto-Saving
@@ -232,11 +232,11 @@ non-@code{nil}.
 @defopt backup-by-copying-when-privileged-mismatch
 This variable, if non-@code{nil}, specifies the same behavior as
 @code{backup-by-copying-when-mismatch}, but only for certain user-id
-values: namely, those less than or equal to a certain number.  You set
-this variable to that number.
+and group-id values: namely, those less than or equal to a certain number.
+You set this variable to that number.
 
 Thus, if you set @code{backup-by-copying-when-privileged-mismatch}
-to 0, backup by copying is done for the superuser only,
+to 0, backup by copying is done for the superuser and group 0 only,
 when necessary to prevent a change in the owner of the file.
 
 The default is 200.

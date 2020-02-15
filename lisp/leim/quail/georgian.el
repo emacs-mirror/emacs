@@ -1,6 +1,6 @@
 ;;; georgian.el --- Quail package for inputting Georgian characters  -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -22,8 +22,14 @@
 
 ;;; Commentary:
 
-;; Georgian input following the Yudit map from Mark Leisher
-;; <mleisher@crl.nmsu.edu>.
+;; This file defines the following Georgian keyboards:
+;;
+;; - Georgian input following the Yudit map from Mark Leisher
+;;   <mleisher@crl.nmsu.edu>.
+;;
+;; - QWERTY-based Georgian.
+;;
+;; - QWERTY-based Nuskhuri script.
 
 ;;; Code:
 
@@ -74,10 +80,103 @@
  ("i1" ?ჲ)
  ("w" ?ჳ)
  ("f" ?ჶ)
- ;; Presumably, these are GEORGIAN LETTER YN, GEORGIAN LETTER ELIFI,
- ;; accepted for U+10F7, U+10F8  -- fx
- ("y" ?) ;; Letter not in Unicode (private use code).
- ("e1" ?) ;; Letter not in Unicode (private use code).
+ ("y" ?ჷ)
+ ("e1" ?ჸ)
+ )
+
+(quail-define-package
+ "georgian-qwerty" "Georgian" "ქ" t
+ "Georgian input based on QWERTY keyboard."
+ nil t nil nil t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("a" ?ა)
+ ("b" ?ბ)
+ ("g" ?გ)
+ ("d" ?დ)
+ ("e" ?ე)
+ ("v" ?ვ)
+ ("z" ?ზ)
+ ("T" ?თ)
+ ("i" ?ი)
+ ("k" ?კ)
+ ("l" ?ლ)
+ ("m" ?მ)
+ ("n" ?ნ)
+ ("o" ?ო)
+ ("p" ?პ)
+ ("J" ?ჟ)
+ ("r" ?რ)
+ ("s" ?ს)
+ ("t" ?ტ)
+ ("u" ?უ)
+ ("f" ?ფ)
+ ("q" ?ქ)
+ ("R" ?ღ)
+ ("y" ?ყ)
+ ("S" ?შ)
+ ("C" ?ჩ)
+ ("c" ?ც)
+ ("Z" ?ძ)
+ ("w" ?წ)
+ ("W" ?ჭ)
+ ("x" ?ხ)
+ ("j" ?ჯ)
+ ("h" ?ჰ)
+ ("X" ?ჴ)
+ ("H" ?ჱ)
+ ("K" ?ჵ)
+ ("I" ?ჲ)
+ ("V" ?ჳ)
+ ("F" ?ჶ)
+ ("Y" ?ჸ)
+ ("G" ?ჷ)
+ )
+
+(quail-define-package
+ "georgian-nuskhuri" "Georgian" "ⴌ" t
+ "Nuskhuri Georgian (QWERTY-based)."
+ nil t nil nil t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("a" ?ⴀ)
+ ("b" ?ⴁ)
+ ("g" ?ⴂ)
+ ("d" ?ⴃ)
+ ("e" ?ⴄ)
+ ("v" ?ⴅ)
+ ("z" ?ⴆ)
+ ("T" ?ⴇ)
+ ("i" ?ⴈ)
+ ("k" ?ⴉ)
+ ("l" ?ⴊ)
+ ("m" ?ⴋ)
+ ("n" ?ⴌ)
+ ("o" ?ⴍ)
+ ("p" ?ⴎ)
+ ("J" ?ⴏ)
+ ("r" ?ⴐ)
+ ("s" ?ⴑ)
+ ("t" ?ⴒ)
+ ("u" ?ⴓ)
+ ("f" ?ⴔ)
+ ("q" ?ⴕ)
+ ("R" ?ⴖ)
+ ("y" ?ⴗ)
+ ("S" ?ⴘ)
+ ("C" ?ⴙ)
+ ("c" ?ⴚ)
+ ("Z" ?ⴛ)
+ ("w" ?ⴜ)
+ ("W" ?ⴝ)
+ ("x" ?ⴞ)
+ ("j" ?ⴟ)
+ ("h" ?ⴠ)
+ ("X" ?ⴤ)
+ ("H" ?ⴡ)
+ ("K" ?ⴥ)
+ ("I" ?ⴢ)
+ ("V" ?ⴣ)
  )
 
 ;;; georgian.el ends here

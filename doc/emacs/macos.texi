@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2000--2020 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep
 @appendix Emacs and macOS / GNUstep
@@ -48,18 +48,8 @@ Support}), but we hope to improve it in the future.
 Emacs provides a set of key bindings using this modifier key that mimic
 other Mac / GNUstep applications (@pxref{Mac / GNUstep Events}).  You
 can change these bindings in the usual way (@pxref{Key Bindings}).
-
-@vindex ns-alternate-modifier
-@vindex ns-right-alternate-modifier
-  The variable @code{ns-right-alternate-modifier} controls the
-behavior of the right @key{Alt} and @key{Option} keys.  These keys
-behave like the left-hand keys if the value is @code{left} (the
-default).  A value of @code{control}, @code{meta}, @code{alt},
-@code{super}, or @code{hyper} makes them behave like the corresponding
-modifier keys; a value of @code{left} means be the same key as
-@code{ns-alternate-modifier}; a value of @code{none} tells Emacs to
-ignore them, in which case you get the default behavior of macOS
-accentuation system from the right @key{Option} key.
+The modifiers themselves can be customized;
+@pxref{Mac / GNUstep Customization}.
 
   @kbd{S-mouse-1} adjusts the region to the click position,
 just like @kbd{mouse-3} (@code{mouse-save-then-kill}); it does not pop
@@ -106,6 +96,52 @@ There are a few customization options that are specific to the
 Nextstep port.  For example, they affect things such as the modifier
 keys and the fullscreen behavior.  To see all such options, use
 @kbd{M-x customize-group @key{RET} ns @key{RET}}.
+
+@subsection Modifier keys
+
+The following variables control the behavior of the actual modifier
+keys:
+
+@table @code
+@vindex ns-alternate-modifier
+@vindex ns-right-alternate-modifier
+@item ns-alternate-modifier
+@itemx ns-right-alternate-modifier
+The left and right @key{Option} or @key{Alt} keys.
+
+@vindex ns-command-modifier
+@vindex ns-right-command-modifier
+@item ns-command-modifier
+@itemx ns-right-command-modifier
+The left and right @key{Command} keys.
+
+@vindex ns-control-modifier
+@vindex ns-right-control-modifier
+@item ns-control-modifier
+@itemx ns-right-control-modifier
+The left and right @key{Control} keys.
+
+@vindex ns-function-modifier
+@item ns-function-modifier
+The @key{Function} (fn) key.
+@end table
+
+The value of each variable is either a symbol, describing the key for
+any purpose, or a list of the form
+@code{(:ordinary @var{symbol} :function @var{symbol} :mouse @var{symbol})},
+which describes the modifier when used with ordinary keys, function keys
+(that do not produce a character, such as arrow keys), and mouse clicks.
+
+If the @var{symbol} is one of @code{control}, @code{meta}, @code{alt},
+@code{super} or @code{hyper}, this describes the Emacs modifier it
+represents.  If @var{symbol} is @code{none}, Emacs does not use the
+key, which retains its standard behavior.  For instance, the
+@key{Option} key in macOS is then used for composing additional
+characters.
+
+The variables for right-hand keys, like @code{ns-right-alternate-modifier},
+may also be set to @code{left}, which means to use the same behavior as
+the corresponding left-hand key.
 
 @subsection Font Panel
 
@@ -170,8 +206,25 @@ the requested line (@code{ns-open-file-select-line}).
 This event occurs when a user drags an object from another application
 into an Emacs frame.  The default behavior is to open a file in the
 window under the mouse, or to insert text at point of the window under
-the mouse.  It may sometimes be necessary to use the @key{Meta} key in
-conjunction with dragging to force text insertion.
+the mouse.
+
+The sending application has some limited ability to decide how Emacs
+handles the sent object, but the user may override the default
+behavior by holding one or more modifier key.
+
+@table @kbd
+@item control
+Insert as text in the current buffer.  If the object is a file, this
+will insert the filename.
+@item alt/option
+Attempt to open the object as though it is a file or URL.
+@item super/command
+Perform the default action for the type.  This can be useful when an
+application is overriding the default behavior.
+@end table
+
+The modifier keys listed above are defined by macOS and are unaffected
+by user changes to the modifiers in Emacs.
 
 @item ns-change-font
 This event occurs when the user selects a font in a Nextstep font

@@ -1,6 +1,6 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org
@@ -820,7 +820,7 @@ Value is the modified color alist for FRAME."
   "Return COLOR in canonical form.
 A canonicalized color name is all-lower case, with any blanks removed."
   (let ((case-fold-search nil))
-    (if (string-match "[A-Z ]" color)
+    (if (string-match-p "[A-Z ]" color)
 	(replace-regexp-in-string " +" "" (downcase color))
       color)))
 
@@ -919,57 +919,63 @@ FRAME defaults to the selected frame."
 The result is a list of integer RGB values--(RED GREEN BLUE).
 These values range from 0 to 65535; white is (65535 65535 65535).
 
-The returned value reflects the standard X definition of COLOR,
-regardless of whether the terminal can display it, so the return value
-should be the same regardless of what display is being used."
+The returned value reflects the standard Emacs definition of
+COLOR (see the info node `(emacs) Colors'), regardless of whether
+the terminal can display it, so the return value should be the
+same regardless of what display is being used."
   (let ((len (length color)))
-    (cond ((and (>= len 4) ;; X-style "#XXYYZZ" color spec
+    (cond ((and (>= len 4) ;; HTML/CSS/SVG-style "#XXYYZZ" color spec
 		(eq (aref color 0) ?#)
 		(member (aref color 1)
 			'(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-			     ?a ?b ?c ?d ?e ?f)))
-	   ;; Translate the string "#XXYYZZ" into a list
-	   ;; of numbers (XX YY ZZ).  If the primary colors
-	   ;; are specified with less than 4 hex digits,
-	   ;; the used digits represent the most significant
-	   ;; bits of the value (e.g. #XYZ = #X000Y000Z000).
+			     ?a ?b ?c ?d ?e ?f
+                             ?A ?B ?C ?D ?E ?F)))
+	   ;; Translate the string "#XXYYZZ" into a list of numbers
+	   ;; (XX YY ZZ), scaling each to the {0..65535} range.  This
+	   ;; follows the HTML color convention, where both "#fff" and
+	   ;; "#ffffff" represent the same color, white.
 	   (let* ((ndig (/ (- len 1) 3))
+		  (maxval (1- (ash 1 (* 4 ndig))))
 		  (i1 1)
 		  (i2 (+ i1 ndig))
-		  (i3 (+ i2 ndig)))
+		  (i3 (+ i2 ndig))
+                  (i4 (+ i3 ndig)))
 	     (list
-	      (ash
-	       (string-to-number (substring color i1 i2) 16)
-	       (* 4 (- 4 ndig)))
-	      (ash
-	       (string-to-number (substring color i2 i3) 16)
-	       (* 4 (- 4 ndig)))
-	      (ash
-	       (string-to-number (substring color i3) 16)
-	       (* 4 (- 4 ndig))))))
-	  ((and (>= len 9) ;; X-style RGB:xx/yy/zz color spec
+	      (/ (* (string-to-number
+		     (substring color i1 i2) 16)
+		    65535)
+		 maxval)
+	      (/ (* (string-to-number
+		     (substring color i2 i3) 16)
+		    65535)
+		 maxval)
+	      (/ (* (string-to-number
+		     (substring color i3 i4) 16)
+		    65535)
+		 maxval))))
+	  ((and (>= len 9) ;; X-style rgb:xx/yy/zz color spec
 		(string= (substring color 0 4) "rgb:"))
-	   ;; Translate the string "RGB:XX/YY/ZZ" into a list
-	   ;; of numbers (XX YY ZZ).  If fewer than 4 hex
-	   ;; digits are used, they represent the fraction
-	   ;; of the maximum value (RGB:X/Y/Z = #XXXXYYYYZZZZ).
+	   ;; Translate the string "rgb:XX/YY/ZZ" into a list of
+	   ;; numbers (XX YY ZZ), scaling each to the {0..65535}
+	   ;; range.  "rgb:F/F/F" is white.
 	   (let* ((ndig (/ (- len 3) 3))
 		  (maxval (1- (ash 1 (* 4 (- ndig 1)))))
 		  (i1 4)
 		  (i2 (+ i1 ndig))
-		  (i3 (+ i2 ndig)))
+		  (i3 (+ i2 ndig))
+                  (i4 (+ i3 ndig)))
 	     (list
 	      (/ (* (string-to-number
 		     (substring color i1 (- i2 1)) 16)
-		    255)
+		    65535)
 		 maxval)
 	      (/ (* (string-to-number
 		     (substring color i2 (- i3 1)) 16)
-		    255)
+		    65535)
 		 maxval)
 	      (/ (* (string-to-number
-		     (substring color i3) 16)
-		    255)
+		     (substring color i3 (1- i4)) 16)
+		    65535)
 		 maxval))))
 	  (t
 	   (cdr (assoc color color-name-rgb-alist))))))
@@ -977,9 +983,9 @@ should be the same regardless of what display is being used."
 (defun tty-color-translate (color &optional frame)
   "Given a color COLOR, return the index of the corresponding TTY color.
 
-COLOR must be a string that is either the color's name, or its X-style
-specification like \"#RRGGBB\" or \"RGB:rr/gg/bb\", where each primary.
-color can be given with 1 to 4 hex digits.
+COLOR must be a string that is either the color's name, or its
+color triplet specification like \"#RRGGBB\" or \"rgb:RR/GG/BB\",
+where each primary color can be given with 1 to 4 hex digits.
 
 If COLOR is a color name that is found among supported colors in
 `tty-color-alist', the associated index is returned.  Otherwise, the
@@ -987,7 +993,7 @@ RGB values of the color, either as given by the argument or from
 looking up the name in `color-name-rgb-alist', are used to find the
 supported color that is the best approximation for COLOR in the RGB
 space.
-If COLOR is neither a valid X RGB specification of the color, nor a
+If COLOR is neither a valid RGB specification of the color, nor a
 name of a color in `color-name-rgb-alist', the returned value is nil.
 
 If FRAME is unspecified or nil, it defaults to the selected frame."

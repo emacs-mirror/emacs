@@ -1,8 +1,8 @@
 //  testjavacomp.java --- Semantic unit test for Java
 
-// Copyright (C) 2009-2018 Free Software Foundation, Inc.
+// Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
-//  Author: Eric M. Ludlam <eric@siege-engine.com>
+//  Author: Eric M. Ludlam <zappo@gnu.org>
 
 //  This file is part of GNU Emacs.
 
@@ -24,6 +24,10 @@ package tests.testjavacomp;
 class secondClass {
     private void scFuncOne() {    }
     public void scFuncOne() {    }
+
+    int package_protected_field;
+    public int public_protected_field;
+    private int private_protected_field;
 }
 
 
@@ -52,15 +56,21 @@ public class testjavacomp {
 
 	secondClass SC;
 
-	SC.//-3-
+	SC.s//-3-
 	    // #3# ( "scFuncOne" )
 	    ;
+
+	// @TODO - to make this test complete, we need an import
+	//         with a package protected field that is excluded
+	//         from the completion list.
+	SC.p//-4-
+	    // #4# ( "package_protected_field" "public_protected_field" )
 
 	nestedClass NC;
 
 	// @todo - need to fix this?  I don't know if  this is legal java.
-	NC.// - 4-
-	    // #4# ( "ncFuncOne" )
+	NC.// - 5-
+	    // #5# ( "ncFuncOne" )
 	    ;
     }
 

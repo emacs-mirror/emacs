@@ -1,5 +1,5 @@
 /* Provide a more complete sys/stat.h header file.
-   Copyright (C) 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -54,9 +54,16 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 
+/* Before doing "#define mknod rpl_mknod" below, we need to include all
+   headers that may declare mknod().  OS/2 kLIBC declares mknod() in
+   <unistd.h>, not in <sys/stat.h>.  */
+#ifdef __KLIBC__
+# include <unistd.h>
+#endif
+
 /* Before doing "#define mkdir rpl_mkdir" below, we need to include all
    headers that may declare mkdir().  Native Windows platforms declare mkdir
-   in <io.h> and/or <direct.h>, not in <unistd.h>.  */
+   in <io.h> and/or <direct.h>, not in <sys/stat.h>.  */
 #if defined _WIN32 && ! defined __CYGWIN__
 # include <io.h>     /* mingw32, mingw64 */
 # include <direct.h> /* mingw64, MSVC 9 */
@@ -385,13 +392,25 @@ struct stat
 
 
 #if @GNULIB_FCHMODAT@
-# if !@HAVE_FCHMODAT@
+# if @REPLACE_FCHMODAT@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fchmodat
+#   define fchmodat rpl_fchmodat
+#  endif
+_GL_FUNCDECL_RPL (fchmodat, int,
+                  (int fd, char const *file, mode_t mode, int flag)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (fchmodat, int,
+                  (int fd, char const *file, mode_t mode, int flag));
+# else
+#  if !@HAVE_FCHMODAT@
 _GL_FUNCDECL_SYS (fchmodat, int,
                   (int fd, char const *file, mode_t mode, int flag)
                   _GL_ARG_NONNULL ((2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (fchmodat, int,
                   (int fd, char const *file, mode_t mode, int flag));
+# endif
 _GL_CXXALIASWARN (fchmodat);
 #elif defined GNULIB_POSIXCHECK
 # undef fchmodat
@@ -495,31 +514,24 @@ _GL_WARN_ON_USE (futimens, "futimens is not portable - "
 #if @GNULIB_LCHMOD@
 /* Change the mode of FILENAME to MODE, without dereferencing it if FILENAME
    denotes a symbolic link.  */
-# if !@HAVE_LCHMOD@
-/* The lchmod replacement follows symbolic links.  Callers should take
-   this into account; lchmod should be applied only to arguments that
-   are known to not be symbolic links.  On hosts that lack lchmod,
-   this can lead to race conditions between the check and the
-   invocation of lchmod, but we know of no workarounds that are
-   reliable in general.  You might try requesting support for lchmod
-   from your operating system supplier.  */
+# if @REPLACE_LCHMOD@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   define lchmod chmod
+#   undef lchmod
+#   define lchmod rpl_lchmod
 #  endif
-/* Need to cast, because on mingw, the second parameter of chmod is
-                                                int mode.  */
-_GL_CXXALIAS_RPL_CAST_1 (lchmod, chmod, int,
-                         (const char *filename, mode_t mode));
+_GL_FUNCDECL_RPL (lchmod, int,
+                  (char const *filename, mode_t mode)
+                  _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (lchmod, int,
+                  (char const *filename, mode_t mode));
 # else
-#  if 0 /* assume already declared */
+#  if !@HAVE_LCHMOD@ || defined __hpux
 _GL_FUNCDECL_SYS (lchmod, int, (const char *filename, mode_t mode)
                                _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (lchmod, int, (const char *filename, mode_t mode));
 # endif
-# if @HAVE_LCHMOD@
 _GL_CXXALIASWARN (lchmod);
-# endif
 #elif defined GNULIB_POSIXCHECK
 # undef lchmod
 # if HAVE_RAW_DECL_LCHMOD

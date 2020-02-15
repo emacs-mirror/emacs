@@ -1,6 +1,6 @@
-;;; calccomp.el --- composition functions for Calc
+;;; calccomp.el --- composition functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -121,7 +121,8 @@
                                                    calc-lang-slash-idiv)
 					     (math-float (nth 1 aa))
 					   (nth 1 aa))
-					 (nth 2 aa)) prec))
+					 (nth 2 aa))
+                                   prec))
 	    (if (and (eq calc-language 'big)
 		     (= (length (car calc-frac-format)) 1))
 		(let* ((aa (math-adjust-fraction a))
@@ -202,8 +203,9 @@
 	     (math-comp-comma-spc (or calc-vector-commas " "))
 	     (math-comp-comma (or calc-vector-commas ""))
 	     (math-comp-vector-prec (if (or (and calc-vector-commas
-				       (math-vector-no-parens a))
-				  (memq 'P calc-matrix-brackets)) 0 1000))
+				                 (math-vector-no-parens a))
+				            (memq 'P calc-matrix-brackets))
+                                        0 1000))
 	     (math-comp-just (cond ((eq calc-matrix-just 'right) 'vright)
                                       ((eq calc-matrix-just 'center) 'vcent)
                                       (t 'vleft)))
@@ -803,8 +805,7 @@
 					  ( % . calcFunc-mod )
 					  ( ^ . calcFunc-pow )
 					  ( neg . calcFunc-neg )
-					  ( | . calcFunc-vconcat ))))
-		      left right args)
+					  ( | . calcFunc-vconcat )))))
 		 (if func2
 		     (setq func (cdr func2)))
 		 (if (setq func2 (rassq func math-expr-function-mapping))
@@ -858,7 +859,7 @@
   (or (cdr (cdr a))
       (not (eq (car-safe (nth 1 a)) '*))))
 
-(defun math-compose-matrix (a col cols base)
+(defun math-compose-matrix (a _col cols base)
   (let ((col 0)
 	(res nil))
     (while (<= (setq col (1+ col)) cols)
@@ -968,8 +969,8 @@
       (and (memq (car a) '(^ calcFunc-subscr))
 	   (math-tex-expr-is-flat (nth 1 a)))))
 
-(put 'calcFunc-log 'math-compose-big 'math-compose-log)
-(defun math-compose-log (a prec)
+(put 'calcFunc-log 'math-compose-big #'math-compose-log)
+(defun math-compose-log (a _prec)
   (and (= (length a) 3)
        (list 'horiz
 	     (list 'subscr "log"
@@ -979,8 +980,8 @@
 	     (math-compose-expr (nth 1 a) 1000)
 	     ")")))
 
-(put 'calcFunc-log10 'math-compose-big 'math-compose-log10)
-(defun math-compose-log10 (a prec)
+(put 'calcFunc-log10 'math-compose-big #'math-compose-log10)
+(defun math-compose-log10 (a _prec)
   (and (= (length a) 2)
        (list 'horiz
 	     (list 'subscr "log" "10")
@@ -988,8 +989,8 @@
 	     (math-compose-expr (nth 1 a) 1000)
 	     ")")))
 
-(put 'calcFunc-deriv 'math-compose-big 'math-compose-deriv)
-(put 'calcFunc-tderiv 'math-compose-big 'math-compose-deriv)
+(put 'calcFunc-deriv 'math-compose-big #'math-compose-deriv)
+(put 'calcFunc-tderiv 'math-compose-big #'math-compose-deriv)
 (defun math-compose-deriv (a prec)
   (when (= (length a) 3)
     (math-compose-expr (list '/
@@ -1003,8 +1004,8 @@
 					 (nth 2 a))))
 		       prec)))
 
-(put 'calcFunc-sqrt 'math-compose-big 'math-compose-sqrt)
-(defun math-compose-sqrt (a prec)
+(put 'calcFunc-sqrt 'math-compose-big #'math-compose-sqrt)
+(defun math-compose-sqrt (a _prec)
   (when (= (length a) 2)
     (let* ((c (math-compose-expr (nth 1 a) 0))
 	   (a (math-comp-ascent c))
@@ -1024,8 +1025,8 @@
 		  " "
 		  c)))))
 
-(put 'calcFunc-choose 'math-compose-big 'math-compose-choose)
-(defun math-compose-choose (a prec)
+(put 'calcFunc-choose 'math-compose-big #'math-compose-choose)
+(defun math-compose-choose (a _prec)
   (let ((a1 (math-compose-expr (nth 1 a) 0))
 	(a2 (math-compose-expr (nth 2 a) 0)))
     (list 'horiz
@@ -1035,7 +1036,7 @@
 		a1 " " a2)
 	  ")")))
 
-(put 'calcFunc-integ 'math-compose-big 'math-compose-integ)
+(put 'calcFunc-integ 'math-compose-big #'math-compose-integ)
 (defun math-compose-integ (a prec)
   (and (memq (length a) '(3 5))
        (eq (car-safe (nth 2 a)) 'var)
@@ -1072,7 +1073,7 @@
 		 (list 'horiz " d" var))
 	       (if parens ")" "")))))
 
-(put 'calcFunc-sum 'math-compose-big 'math-compose-sum)
+(put 'calcFunc-sum 'math-compose-big #'math-compose-sum)
 (defun math-compose-sum (a prec)
   (and (memq (length a) '(3 5 6))
        (let* ((expr (math-compose-expr (nth 1 a) 185))
@@ -1097,7 +1098,7 @@
 	       expr
 	       (if (memq prec '(180 201)) ")" "")))))
 
-(put 'calcFunc-prod 'math-compose-big 'math-compose-prod)
+(put 'calcFunc-prod 'math-compose-big #'math-compose-prod)
 (defun math-compose-prod (a prec)
   (and (memq (length a) '(3 5 6))
        (let* ((expr (math-compose-expr (nth 1 a) 198))
@@ -1124,12 +1125,11 @@
 ;; The variables math-svo-c, math-svo-wid and math-svo-off are local
 ;; to math-stack-value-offset in calc.el, but are used by
 ;; math-stack-value-offset-fancy, which is called by math-stack-value-offset..
-(defvar math-svo-c)
 (defvar math-svo-wid)
 (defvar math-svo-off)
 
-(defun math-stack-value-offset-fancy ()
-  (let ((cwid (+ (math-comp-width math-svo-c))))
+(defun math-stack-value-offset-fancy (c)
+  (let ((cwid (+ (math-comp-width c))))
     (cond ((eq calc-display-just 'right)
 	   (if calc-display-origin
 	       (setq math-svo-wid (max calc-display-origin 5))
@@ -1215,7 +1215,7 @@
 ;; which are called by math-comp-to-string-flat.
 (defvar math-comp-pos)
 
-(defun math-comp-to-string-flat (c math-comp-full-width)
+(defun math-comp-to-string-flat (c full-width)
   (if math-comp-sel-hpos
       (let ((math-comp-pos 0))
 	(math-comp-sel-flat-term c))
@@ -1224,6 +1224,7 @@
 	  (math-comp-pos 0)
 	  (math-comp-margin 0)
 	  (math-comp-highlight (and math-comp-selected calc-show-selections))
+          (math-comp-full-width full-width)
 	  (math-comp-level -1))
       (math-comp-to-string-flat-term '(set -1 0))
       (math-comp-to-string-flat-term c)
@@ -1387,7 +1388,7 @@
 (defvar math-comp-hpos)
 (defvar math-comp-vpos)
 
-(defun math-comp-simplify (c full-width)
+(defun math-comp-simplify (c _full-width)
   (let ((math-comp-buf (list ""))
 	(math-comp-base 0)
 	(math-comp-hgt 1)

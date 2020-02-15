@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node M-x
@@ -71,6 +71,10 @@ messages by setting the variable @code{suggest-key-bindings} to
 number, in which case Emacs will show the binding for that many
 seconds before removing it from display.  The default behavior is to
 display the binding for 2 seconds.
+
+Additionally, when @code{suggest-key-bindings} is non-@code{nil}, the
+completion list of @kbd{M-x} shows equivalent key bindings for all
+commands that have them.
 
 @vindex extended-command-suggest-shorter
   Commands that don't have key bindings, can still be invoked after

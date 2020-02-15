@@ -1,6 +1,6 @@
 ;;; checkdoc-tests.el --- unit tests for checkdoc.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -36,6 +36,96 @@
     (emacs-lisp-mode)
     (insert "(defun foo())")
     (should-error (checkdoc-defun) :type 'user-error)))
+
+(ert-deftest checkdoc-cl-defmethod-ok ()
+  "Checkdoc should be happy with a simple correct cl-defmethod."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defmethod foo (a) \"Return A.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defmethod-with-types-ok ()
+  "Checkdoc should be happy with a cl-defmethod using types."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    ;; this method matches if A is the symbol `smthg' and if b is a list:
+    (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-key-ok ()
+  "Checkdoc should be happy with a cl-defun using &key."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defun foo (&key a (b 27)) \"Return :A+:B.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-allow-other-keys-ok ()
+  "Checkdoc should be happy with a cl-defun using &allow-other-keys."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defun foo (&key a &allow-other-keys) \"Return :A.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-default-optional-value-ok ()
+  "Checkdoc should be happy with a cl-defun using default values for optional args."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    ;; B is optional and equals 1+a if not provided. HAS-BS is non-nil
+    ;; if B was provided in the call:
+    (insert "(cl-defun foo (a &optional (b (1+ a) has-bs)) \"Return A + B.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-destructuring-ok ()
+  "Checkdoc should be happy with a cl-defun destructuring its arguments."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defun foo ((a b &optional c) d) \"Return A+B+C+D.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defmethod-ok ()
+  "Checkdoc should be happy with a simple correct cl-defmethod."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defmethod foo (a) \"Return A.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defmethod-with-types-ok ()
+  "Checkdoc should be happy with a cl-defmethod using types."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    ;; this method matches if A is the symbol `smthg' and if b is a list:
+    (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-key-ok ()
+  "Checkdoc should be happy with a cl-defun using &key."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defun foo (&key a (b 27)) \"Return :A+:B.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-allow-other-keys-ok ()
+  "Checkdoc should be happy with a cl-defun using &allow-other-keys."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defun foo (&key a &allow-other-keys) \"Return :A.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-default-optional-value-ok ()
+  "Checkdoc should be happy with a cl-defun using default values for optional args."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    ;; B is optional and equals 1+a if not provided. HAS-BS is non-nil
+    ;; if B was provided in the call:
+    (insert "(cl-defun foo (a &optional (b (1+ a) has-bs)) \"Return A + B.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defun-with-destructuring-ok ()
+  "Checkdoc should be happy with a cl-defun destructuring its arguments."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defun foo ((a b &optional c) d) \"Return A+B+C+D.\")")
+    (checkdoc-defun)))
 
 (ert-deftest checkdoc-tests--next-docstring ()
   "Checks that the one-argument form of `defvar' works.

@@ -1,6 +1,6 @@
-;;; secrets-tests.el --- Tests of Secret Service API
+;;; secrets-tests.el --- Tests of Secret Service API -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -21,6 +21,7 @@
 
 (require 'ert)
 (require 'secrets)
+(require 'seq)
 (require 'notifications)
 
 ;; We do not want chatty messages.
@@ -90,10 +91,6 @@
   (unwind-protect
       (progn
 	(should (secrets-open-session))
-
-	;; There must be at least the collections "Login" and "session".
-	(should (or (member "Login" (secrets-list-collections))
-                    (member "login" (secrets-list-collections))))
 	(should (member "session" (secrets-list-collections)))
 
 	;; Create a random collection.  This asks for a password
@@ -160,9 +157,6 @@
 
 	;; There shall be no items in the "session" collection.
 	(should-not (secrets-list-items "session"))
-	;; There shall be items in the "Login" collection.
-	(should (or (secrets-list-items "Login")
-                    (secrets-list-items "login")))
 
 	;; Create a new item.
 	(should (setq item-path (secrets-create-item "session" "foo" "secret")))
@@ -182,10 +176,9 @@
         (dolist (item `("bar" ,item-path))
 	  (should
 	   (string-equal (secrets-get-attribute "session" item :method) "sudo"))
-	  ;; The attributes are collected in reverse order.
-	  ;; :xdg:schema is added silently.
+          ;; The attribute :xdg:schema is added silently.
 	  (should
-	   (equal
+           (seq-set-equal-p
 	    (secrets-get-attributes "session" item)
 	    '((:xdg:schema . "org.freedesktop.Secret.Generic")
               (:host . "remote-host") (:user . "joe") (:method . "sudo")))))
@@ -249,14 +242,14 @@
          (secrets-search-items "session" :xdg:schema "org.gnu.Emacs.foo"))
 	(should
 	 (equal
-	  (sort (secrets-search-items "session" :user "joe") 'string-lessp)
+          (sort (secrets-search-items "session" :user "joe") #'string-lessp)
 	  '("baz" "foo")))
 	(should
 	 (equal
 	  (secrets-search-items "session":method "sudo" :user "joe") '("foo")))
 	(should
 	 (equal
-	  (sort (secrets-search-items "session") 'string-lessp)
+          (sort (secrets-search-items "session") #'string-lessp)
 	  '("bar" "baz" "foo"))))
 
     ;; Exit.
@@ -268,7 +261,7 @@
   "Run all tests for \\[secrets]."
   (interactive "p")
   (funcall
-   (if interactive 'ert-run-tests-interactively 'ert-run-tests-batch)
+   (if interactive #'ert-run-tests-interactively #'ert-run-tests-batch)
    "^secrets"))
 
 (provide 'secrets-tests)

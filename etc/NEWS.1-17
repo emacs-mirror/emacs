@@ -1,10 +1,10 @@
 GNU Emacs NEWS -- history of user-visible changes.  26-Mar-1986
 
-Copyright (C) 1985-1986, 2006-2018 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2006-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This file is about changes in emacs versions 1 through 17.
+This file is about changes in Emacs versions 1 through 17.
 
 
 
@@ -2339,9 +2339,9 @@ It's Beat CCA Week.
 
 ** Lisp macros now exist.
  For example, you can write
-    (defmacro cadr (arg) (list 'car (list 'cdr arg)))
+    (defmacro mycadr (arg) (list 'car (list 'cdr arg)))
  and then the expression
-    (cadr foo)
+    (mycadr foo)
  will expand into
     (car (cdr foo))
 

@@ -1,6 +1,6 @@
 ;;; cust-print.el --- handles print-level and print-circle
 
-;; Copyright (C) 1992, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Adapted-By: ESR
@@ -156,10 +156,7 @@ If nil, printing proceeds recursively and may lead to
 If non-nil, shared substructures anywhere in the structure are printed
 with `#N=' before the first occurrence (in the order of the print
 representation) and `#N#' in place of each subsequent occurrence,
-where N is a positive decimal integer.
-
-There is no way to read this representation in standard Emacs,
-but if you need to do so, try the cl-read.el package."
+where N is a positive decimal integer."
   :type 'boolean
   :group 'cust-print)
 

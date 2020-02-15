@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2018 Free Software
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -383,8 +383,8 @@ own View-like bindings."
   "Toggle View mode, a minor mode for viewing text but not editing it.
 
 When View mode is enabled, commands that do not change the buffer
-contents are available as usual.  Kill commands insert text in
-kill buffers but do not delete.  Most other commands beep and
+contents are available as usual.  Kill commands save text but
+do not delete it from the buffer.  Most other commands beep and
 tell the user that the buffer is read-only.
 
 \\<view-mode-map>
@@ -581,7 +581,7 @@ the associations of any windows with the current buffer.
 EXIT-ACTION, if non-nil, must specify a function that is called
 with the current buffer as argument and is called after disabling
 `view-mode' and removing any associations of windows with the
-current buffer. "
+current buffer."
   (when view-mode
     (let ((buffer (window-buffer)))
       (unless view-no-disable-on-exit
@@ -743,18 +743,19 @@ invocations return to earlier marks."
     (setq backward (not backward) lines (- lines)))
   (when (and maxdefault lines (> lines (view-window-size)))
     (setq lines nil))
-  (cond (backward (scroll-down lines))
+  (cond (backward (scroll-down-command lines))
 	((view-really-at-end)
 	 (if view-scroll-auto-exit
 	     (View-quit)
 	   (ding)
 	   (view-end-message)))
-	(t (scroll-up lines)
+	(t (scroll-up-command lines)
 	   (if (view-really-at-end) (view-end-message)))))
 
 (defun view-really-at-end ()
   ;; Return true if buffer end visible.  Maybe revert buffer and test.
-  (and (pos-visible-in-window-p (point-max))
+  (and (or (null scroll-error-top-bottom) (eobp))
+       (pos-visible-in-window-p (point-max))
        (let ((buf (current-buffer))
 	     (bufname (buffer-name))
 	     (file (buffer-file-name)))
@@ -957,7 +958,7 @@ for highlighting the match that is found."
      (t (error "No previous View-mode search")))
     (save-excursion
       (if end (goto-char (if (< times 0) (point-max) (point-min)))
-	(move-to-window-line (if (< times 0) 0 -1)))
+	(forward-line (if (< times 0) -1 1)))
       (if (if no (view-search-no-match-lines times regexp)
 	    (re-search-forward regexp nil t times))
 	  (setq where (point))))

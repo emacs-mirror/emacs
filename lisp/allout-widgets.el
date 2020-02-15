@@ -1,9 +1,8 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Version: 1.0
 ;; Created: Dec 2005
 ;; Keywords: outlines
@@ -70,12 +69,7 @@
 (require 'allout)
 (require 'widget)
 (require 'wid-edit)
-
-(eval-when-compile
-  (progn
-    (require 'overlay)
-    (require 'cl)
-    ))
+(eval-when-compile (require 'cl-lib))
 
 ;;;_ : internal variables needed before user-customization variables
 ;;; In order to enable activation of allout-widgets-mode via customization,
@@ -138,7 +132,7 @@ Also enable `allout-auto-activation' for this to take effect upon
 visiting an outline.
 
 When this is set you can disable allout widgets in select files
-by setting `allout-widgets-mode-inhibit'
+by setting `allout-widgets-mode-inhibit'.
 
 Instead of setting `allout-widgets-auto-activation' you can
 explicitly invoke `allout-widgets-mode' in allout buffers where
@@ -873,7 +867,7 @@ Optional RECURSING is for internal use, to limit recursion."
   )
 ;;;_   > allout-current-decorated-p ()
 (defun allout-current-decorated-p ()
-  "True if the current item is not decorated"
+  "True if the current item is not decorated."
   (save-excursion
     (if (allout-back-to-current-heading)
         (if (> allout-recent-depth 0)
@@ -960,7 +954,7 @@ posting threshold criteria."
         (when changes-pending
           (while changes-record
             (setq entry (pop changes-record))
-            (case (car entry)
+            (pcase (car entry)
               (:exposed (push entry exposures))
               (:added (push entry additions))
               (:deleted (push entry deletions))
@@ -1378,34 +1372,34 @@ FROM and TO must be in increasing order, as must be the pairs in RANGES."
 
     ;; fresh:
     (setq ranges nil)
-    (assert (equal (funcall try 3 5) '(nil ((3 5)))))
+    (cl-assert (equal (funcall try 3 5) '(nil ((3 5)))))
     ;; add range at end:
-    (assert (equal (funcall try 10 12) '(nil ((3 5) (10 12)))))
+    (cl-assert (equal (funcall try 10 12) '(nil ((3 5) (10 12)))))
     ;; add range at beginning:
-    (assert (equal (funcall try 1 2) '(nil ((1 2) (3 5) (10 12)))))
+    (cl-assert (equal (funcall try 1 2) '(nil ((1 2) (3 5) (10 12)))))
     ;; insert range somewhere in the middle:
-    (assert (equal (funcall try 7 9) '(nil ((1 2) (3 5) (7 9) (10 12)))))
+    (cl-assert (equal (funcall try 7 9) '(nil ((1 2) (3 5) (7 9) (10 12)))))
     ;; consolidate some:
-    (assert (equal (funcall try 5 8) '(t ((1 2) (3 9) (10 12)))))
+    (cl-assert (equal (funcall try 5 8) '(t ((1 2) (3 9) (10 12)))))
     ;; add more:
-    (assert (equal (funcall try 15 17) '(nil ((1 2) (3 9) (10 12) (15 17)))))
+    (cl-assert (equal (funcall try 15 17) '(nil ((1 2) (3 9) (10 12) (15 17)))))
     ;; add more:
-    (assert (equal (funcall try 20 22)
+    (cl-assert (equal (funcall try 20 22)
                    '(nil ((1 2) (3 9) (10 12) (15 17) (20 22)))))
     ;; encompass more:
-    (assert (equal (funcall try 4 11) '(t ((1 2) (3 12) (15 17) (20 22)))))
+    (cl-assert (equal (funcall try 4 11) '(t ((1 2) (3 12) (15 17) (20 22)))))
     ;; encompass all:
-    (assert (equal (funcall try 2 25) '(t ((1 25)))))
+    (cl-assert (equal (funcall try 2 25) '(t ((1 25)))))
 
     ;; fresh slate:
     (setq ranges nil)
-    (assert (equal (funcall try 20 25) '(nil ((20 25)))))
-    (assert (equal (funcall try 30 35) '(nil ((20 25) (30 35)))))
-    (assert (equal (funcall try 26 28) '(nil ((20 25) (26 28) (30 35)))))
-    (assert (equal (funcall try 15 20) '(t ((15 25) (26 28) (30 35)))))
-    (assert (equal (funcall try 10 30) '(t ((10 35)))))
-    (assert (equal (funcall try 5 6) '(nil ((5 6) (10 35)))))
-    (assert (equal (funcall try 2 100) '(t ((2 100)))))
+    (cl-assert (equal (funcall try 20 25) '(nil ((20 25)))))
+    (cl-assert (equal (funcall try 30 35) '(nil ((20 25) (30 35)))))
+    (cl-assert (equal (funcall try 26 28) '(nil ((20 25) (26 28) (30 35)))))
+    (cl-assert (equal (funcall try 15 20) '(t ((15 25) (26 28) (30 35)))))
+    (cl-assert (equal (funcall try 10 30) '(t ((10 35)))))
+    (cl-assert (equal (funcall try 5 6) '(nil ((5 6) (10 35)))))
+    (cl-assert (equal (funcall try 2 100) '(t ((2 100)))))
 
     (setq ranges nil)
     ))
@@ -1853,7 +1847,7 @@ Optional HAS-SUCCESSOR is true if the item is followed by a sibling.
 We also hide the header-prefix string.
 
 Guides are established according to the item-widget's :guide-column-flags,
-when different than :was-guide-column-flags.  Changing that property and
+when different from :was-guide-column-flags.  Changing that property and
 reapplying this method will rectify the glyphs."
 
   (when (not (widget-get item-widget :is-container))
@@ -1972,7 +1966,7 @@ reapplying this method will rectify the glyphs."
                ;; XXX we strip the prior properties without even checking if
                ;;     the prior bullet was distinctive, because the widget
                ;;     provisions to convey that info is disappearing, sigh.
-               (remove-text-properties icon-end (1+ icon-end) '(display))
+               (remove-text-properties icon-end (1+ icon-end) '(display nil))
                (setq distinctive-start icon-end distinctive-end icon-end)
                (widget-put item-widget :distinctive-start distinctive-start)
                (widget-put item-widget :distinctive-end distinctive-end))

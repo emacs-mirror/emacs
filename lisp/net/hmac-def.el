@@ -1,6 +1,6 @@
 ;;; hmac-def.el --- A macro for defining HMAC functions.
 
-;; Copyright (C) 1999, 2001, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
 ;; Keywords: HMAC, RFC2104
@@ -73,7 +73,7 @@ If BIT is non-nil, truncate output to specified bits."
 	     ,(if (and bit (< (/ bit 8) L))
 		  `(substring key-xor-opad 0 ,(/ bit 8))
 		;; return a copy of `key-xor-opad'.
-		`(concat key-xor-opad)))
+		'(concat key-xor-opad)))
 	 ;; cleanup.
 	 (fillarray key-xor-ipad 0)
 	 (fillarray key-xor-opad 0)))))

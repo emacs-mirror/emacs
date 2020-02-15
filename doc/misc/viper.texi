@@ -8,7 +8,8 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2020 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1751,10 +1752,10 @@ state.  If @code{nil}, the cursor stays where it was before the switch.
 @item viper-always t
 @code{t} means: leave it to Viper to decide when a buffer must be brought
 up in Vi state,
-Insert state, or Emacs state.  This heuristics works well in virtually all
-cases.  @code{nil} means you either has to invoke @code{viper-mode} manually
+Insert state, or Emacs state.  This heuristic works well in virtually all
+cases.  @code{nil} means you either have to invoke @code{viper-mode} manually
 for each buffer (or you can add @code{viper-mode} to the appropriate major mode
-hooks using @code{viper-load-hook}).
+hooks using @code{with-eval-after-load}).
 
 This option must be set in your Viper customization file.
 @item viper-custom-file-name "~/.emacs.d/viper"
@@ -1902,9 +1903,6 @@ List of (parameterless) functions called just after entering Replace state
 @item viper-emacs-state-hook nil
 List of (parameterless) functions called just after switching from Vi state
 to Emacs state.
-@item viper-load-hook nil
-List of (parameterless) functions called just after loading Viper.  This is
-the last chance to do customization before Viper is up and running.
 @end table
 @noindent
 You can reset some of these constants in Viper with the Ex command @kbd{:set}
@@ -2185,7 +2183,7 @@ Manual}, and the Emacs quick reference card for the general info on key
 bindings in Emacs.
 
 @vindex input-decode-map
-@vindex function-key-map
+@vindex local-function-key-map
 @vindex viper-vi-global-user-map
 @vindex viper-insert-global-user-map
 @vindex viper-emacs-global-user-map
@@ -2666,8 +2664,7 @@ menubar.
 @item viper-multiclick-timeout
 This variable controls the rate at which double-clicking must occur for the
 purpose of mouse search and mouse insert.  By default, this is set to
-@code{double-click-time} in Emacs and to
-@code{mouse-track-multi-click-time} milliseconds in XEmacs.
+@code{double-click-time}.
 @end table
 @kindex S-mouse-1
 @kindex S-mouse-2

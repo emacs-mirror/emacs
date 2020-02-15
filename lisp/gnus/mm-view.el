@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -22,7 +22,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'mail-parse)
 (require 'mailcap)
 (require 'mm-bodies)
@@ -65,8 +65,9 @@
   :group 'mime-display)
 
 (defcustom mm-inline-large-images-proportion 0.9
-  "Maximum proportion of large image resized when
-`mm-inline-large-images' is set to resize."
+  "Maximum proportion large images can occupy in the buffer.
+This is only used if `mm-inline-large-images' is set to
+`resize'."
   :type 'float
   :version "24.1"
   :group 'mime-display)
@@ -359,8 +360,8 @@
       (save-restriction
 	(narrow-to-region b (point))
 	(goto-char b)
-	(fill-flowed nil (equal (cdr (assoc 'delsp (mm-handle-type handle)))
-				"yes"))
+	(fill-flowed nil (cl-equalp (cdr (assoc 'delsp (mm-handle-type handle)))
+				    "yes"))
 	(goto-char (point-max))))
     (save-restriction
       (narrow-to-region b (point))
@@ -370,10 +371,12 @@
 	  (enriched-decode (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle
-       `(lambda ()
-          (let ((inhibit-read-only t))
-	    (delete-region ,(copy-marker (point-min) t)
-			   ,(point-max-marker))))))))
+       (if (= (point-min) (point-max))
+	   #'ignore
+	 `(lambda ()
+	    (let ((inhibit-read-only t))
+	      (delete-region ,(copy-marker (point-min) t)
+			     ,(point-max-marker)))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -470,32 +473,36 @@ If MODE is not set, try to find mode automatically."
 		       (buffer-string)))
 		    (coding-system
 		     (decode-coding-string text coding-system))
-		    (charset
-		     (mm-decode-string text charset))
-		    (t
-		     text)))
-      (require 'font-lock)
-      ;; I find font-lock a bit too verbose.
-      (let ((font-lock-verbose nil)
-	    (font-lock-support-mode nil)
+                    (t
+                     (mm-decode-string text (or charset 'undecided)))))
+      (let ((font-lock-verbose nil)     ; font-lock is a bit too verbose.
 	    (enable-local-variables nil))
-	;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
-	;; Note: XEmacs people use `font-lock-mode-hook' to run those modes.
+        ;; We used to set font-lock-mode-hook to nil to avoid enabling
+        ;; support modes, but now that we use font-lock-ensure, support modes
+        ;; aren't a problem any more.  So we could probably get rid of this
+        ;; setting now, but it seems harmless and potentially still useful.
 	(set (make-local-variable 'font-lock-mode-hook) nil)
         (setq buffer-file-name (mm-handle-filename handle))
 	(with-demoted-errors
-	  (if mode
-	      (save-window-excursion
-		(switch-to-buffer (current-buffer))
-		(funcall mode))
+	    (if mode
+                (save-window-excursion
+                  ;; According to Katsumi Yamaoka <yamaoka@jpl.org>, org-mode
+                  ;; requires the buffer to be temporarily displayed here, but
+                  ;; I could not reproduce this problem.  Furthermore, if
+                  ;; there's such a problem, we should fix org-mode rather than
+                  ;; use switch-to-buffer which can have undesirable
+                  ;; side-effects!
+                  ;;(switch-to-buffer (current-buffer))
+	          (funcall mode))
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))
-	      (set-auto-mode)))
-	  ;; The mode function might have already turned on font-lock.
+	      ;; Don't run hooks that might assume buffer-file-name
+	      ;; really associates buffer with a file (bug#39190).
+	      (delay-mode-hooks (set-auto-mode))
+	      (setq mode major-mode)))
 	  ;; Do not fontify if the guess mode is fundamental.
-	  (unless (or font-lock-mode
-		      (eq major-mode 'fundamental-mode))
+	  (unless (eq major-mode 'fundamental-mode)
 	    (font-lock-ensure))))
       (setq text (buffer-string))
       (when (eq mode 'diff-mode)
@@ -505,7 +512,7 @@ If MODE is not set, try to find mode automatically."
       ;; Set buffer unmodified to avoid confirmation when killing the
       ;; buffer.
       (set-buffer-modified-p nil))
-    (let ((b (1- (point))))
+    (let ((b (- (point) (save-restriction (widen) (point-min)))))
       (mm-insert-inline handle text)
       (dolist (ov ovs)
 	(move-overlay (nth 0 ov) (+ (nth 1 ov) b)
@@ -578,24 +585,23 @@ If MODE is not set, try to find mode automatically."
 
 (defun mm-view-pkcs7-verify (handle)
   (let ((verified nil))
-    (with-temp-buffer
-      (insert "MIME-Version: 1.0\n")
-      (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
-      (insert-buffer-substring (mm-handle-buffer handle))
-      (setq verified (smime-verify-region (point-min) (point-max))))
-    (goto-char (point-min))
-    (mm-insert-part handle)
-    (if (search-forward "Content-Type: " nil t)
-	(delete-region (point-min) (match-beginning 0)))
-    (goto-char (point-max))
-    (if (re-search-backward "--\r?\n?" nil t)
-	(delete-region (match-end 0) (point-max)))
-    (unless verified
-      (insert-buffer-substring smime-details-buffer)))
-  (goto-char (point-min))
-  (while (search-forward "\r\n" nil t)
-    (replace-match "\n"))
-  t)
+    (if (eq mml-smime-use 'epg)
+	;; Use EPG/gpgsm
+	(insert
+	 (with-temp-buffer
+	   (insert-buffer-substring (mm-handle-buffer handle))
+	   (goto-char (point-min))
+	   (let ((part (base64-decode-string (buffer-string))))
+	     (epg-verify-string (epg-make-context 'CMS) part))))
+      (with-temp-buffer
+	(insert "MIME-Version: 1.0\n")
+	(mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
+	(insert-buffer-substring (mm-handle-buffer handle))
+	(setq verified (smime-verify-region (point-min) (point-max))))
+      (if verified
+	  (insert verified)
+	(insert-buffer-substring smime-details-buffer)))
+    t))
 
 (autoload 'epg-decrypt-string "epg")
 

@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2018 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2020 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -34,11 +34,12 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs release requires about 200 MB of free
-  disk space.  Building Emacs uses about another 200 MB of space.
-  The final installed Emacs uses about 150 MB of disk space.
-  This includes the space-saving that comes from automatically
-  compressing the Lisp source files on installation.
+  1.  Obtain and unpack the Emacs release, with commands like this:
+
+		 wget https://ftp.gnu.org/gnu/emacs/emacs-VERSION.tar.xz
+		 tar -xf emacs-VERSION.tar.xz
+
+      where VERSION is the Emacs version number.
 
   2a. 'cd' to the directory where you unpacked Emacs and invoke the
       'configure' script:
@@ -81,13 +82,17 @@ sections if you need to.
 
 		 src/emacs -Q
 
+     To test Emacs further (intended mostly to help developers):
+
+		 make check
+
   6. Assuming that the program 'src/emacs' starts and displays its
      opening screen, you can install the program and its auxiliary
      files into their installation directories:
 
 		 make install
 
-  You are now ready to use Emacs.  If you wish to conserve disk space,
+  You are now ready to use Emacs.  If you wish to conserve space,
   you may remove the program binaries and object files from the
   directory where you built Emacs:
 
@@ -104,6 +109,9 @@ sections if you need to.
   (provided you have the 'gzip' program) those installed Lisp source (.el)
   files that have corresponding .elc versions, as well as the Info files.
 
+  You can read a brief summary about common make targets:
+
+                make help
 
 ADDITIONAL DISTRIBUTION FILES
 
@@ -118,7 +126,7 @@ packages.  Note that if there is a separate 'dev' or 'devel' package,
 for use at compilation time rather than run time, you will need that
 as well as the corresponding run time package; typically the dev
 package will contain header files and a library archive.  Otherwise,
-you can download the libraries from <http://www.nongnu.org/m17n/>.
+you can download the libraries from <https://www.nongnu.org/m17n/>.
 
 Note that Emacs cannot support complex scripts on a TTY, unless the
 terminal includes such a support.
@@ -162,14 +170,14 @@ can be found (in the unlikely event that your distribution does not
 provide them).  By default, libraries marked with an X are required if
 X11 is being used.
 
-    libXaw3d          https://directory.fsf.org/project/xaw3d/
-  X libxpm for XPM:   http://www.x.org/releases/current/src/lib/
+    libXaw3d          https://directory.fsf.org/project/Xaw3d
+  X libxpm for XPM:   https://www.x.org/releases/current/src/lib/
   X libpng for PNG:   http://www.libpng.org/
-    libz (for PNG):   http://www.zlib.net/
-  X libjpeg for JPEG: http://www.ijg.org/
-  X libtiff for TIFF: http://www.remotesensing.org/libtiff/
-  X libgif for GIF:   http://sourceforge.net/projects/giflib/
-    librsvg2 for SVG: http://wiki.gnome.org/action/show/Projects/LibRsvg
+    libz (for PNG):   https://www.zlib.net/
+  X libjpeg for JPEG: https://www.ijg.org/
+  X libtiff for TIFF: http://www.simplesystems.org/libtiff/
+  X libgif for GIF:   http://giflib.sourceforge.net/
+    librsvg2 for SVG: https://wiki.gnome.org/Projects/LibRsvg
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -198,7 +206,7 @@ need to compile it.  For example, to compile Emacs with support for X
 and graphics libraries, you may need to install the X development
 package(s), and development versions of the jpeg, png, etc. packages.
 
-The names of the packages that you need varies according to the
+The names of the packages that you need vary according to the
 GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
@@ -213,7 +221,7 @@ DETAILED BUILDING AND INSTALLATION:
 see nextstep/INSTALL.  For non-ancient versions of MS Windows, see
 the file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
 
-1) See the basic installation summary above for the disk space requirements.
+1) See BASIC INSTALLATION above for getting and configuring Emacs.
 
 2) In the unlikely event that 'configure' does not detect your system
 type correctly, consult './etc/MACHINES' to see what --host, --build
@@ -294,7 +302,9 @@ or more of these options:
   --without-gif          for GIF image support
   --without-png          for PNG image support
   --without-rsvg         for SVG image support
-  --without-imagemagick  for Imagemagick support
+
+Although ImageMagick support is disabled by default due to security
+and stability concerns, you can enable it with --with-imagemagick.
 
 Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 
@@ -317,6 +327,12 @@ use --without-all --without-x.  If you want to build with just a few
 features enabled, you can combine --without-all with --with-FEATURE.
 For example, you can use --without-all --without-x --with-dbus to
 build with D-Bus support and nothing more.
+
+Use --with-gnutls=ifavailable to use GnuTLS if available but go ahead
+and build without it if not available.  This overrides Emacs's default
+behavior of refusing to build if GnuTLS is absent.  When X11 support
+is enabled, the libraries for gif, jpeg, png, tiff, and xpm are in the
+same strongly-recommended category as GnuTLS, and have similar options.
 
 Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a
@@ -346,7 +362,7 @@ Use --enable-link-time-optimization to enable link-time optimization.
 With GCC, you need GCC 4.5.0 and later, and 'configure' arranges for
 linking to be parallelized if possible.  With Clang, you need GNU
 binutils with the gold linker and plugin support, along with the LLVM
-gold plugin <http://llvm.org/docs/GoldPlugin.html>.  Link time
+gold plugin <https://llvm.org/docs/GoldPlugin.html>.  Link time
 optimization is not the default as it tends to cause crashes and to
 make Emacs slower.
 

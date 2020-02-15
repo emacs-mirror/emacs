@@ -1,6 +1,6 @@
 ;;; dunnet.el --- text adventure for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -2995,6 +2995,8 @@ File not found")))
       (dun-save-val "dun-cdpath")
       (dun-save-val "dun-correct-answer")
       (dun-save-val "dun-inbus")
+      (dun-save-val "dun-endgame-question")
+
       (if (dun-compile-save-out filename)
           (dun-mprincl "Error saving to file.")
         (dun-do-logfile 'save nil)))

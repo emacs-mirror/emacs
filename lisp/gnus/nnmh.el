@@ -1,6 +1,6 @@
 ;;; nnmh.el --- mhspool access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -296,7 +296,7 @@ as unread by Gnus.")
 
 (deffoo nnmh-request-move-article (article group server accept-form
 					   &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nnmh move*"))
+  (let ((buf (gnus-get-buffer-create " *nnmh move*"))
 	result)
     (and
      (nnmh-deletable-article-p group article)

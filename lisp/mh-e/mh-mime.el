@@ -1,9 +1,8 @@
 ;;; mh-mime.el --- MH-E MIME support
 
-;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -75,10 +74,10 @@
 ;;;###mh-autoload
 (defmacro mh-buffer-data ()
   "Convenience macro to get the MIME data structures of the current buffer."
-  `(gethash (current-buffer) mh-globals-hash))
+  '(gethash (current-buffer) mh-globals-hash))
 
 ;; Structure to keep track of MIME handles on a per buffer basis.
-(mh-defstruct (mh-buffer-data (:conc-name mh-mime-)
+(cl-defstruct (mh-buffer-data (:conc-name mh-mime-)
                               (:constructor mh-make-buffer-data))
   (handles ())                          ; List of MIME handles
   (handles-cache (make-hash-table))     ; Cache to avoid multiple decodes of
@@ -612,7 +611,7 @@ If message has been encoded for transfer take that into account."
   "Choose among the alternatives, HANDLES the part that will be displayed.
 If no part is preferred then all the parts are displayed."
   (let* ((preferred (mm-preferred-alternative handles))
-         (others (loop for x in handles unless (eq x preferred) collect x)))
+         (others (cl-loop for x in handles unless (eq x preferred) collect x)))
     (cond ((and preferred
                 (stringp (car preferred)))
            (mh-mime-display-part preferred)
@@ -771,7 +770,7 @@ buttons need to be displayed multiple times (for instance when
 nested messages are opened)."
   (or (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
       (setf (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
-            (incf (mh-mime-parts-count (mh-buffer-data))))))
+            (cl-incf (mh-mime-parts-count (mh-buffer-data))))))
 
 (defun mh-small-image-p (handle)
   "Decide whether HANDLE is a \"small\" image that can be displayed inline.
@@ -840,9 +839,7 @@ being used to highlight the signature in a MIME part."
 
 ;; Shush compiler.
 (mh-do-in-xemacs
-  (defvar dots)
-  (defvar type)
-  (defvar ov))
+ (defvar ov))
 
 (defun mh-insert-mime-button (handle index displayed)
   "Insert MIME button for HANDLE.
@@ -858,23 +855,27 @@ by commands like \"K v\" which operate on individual MIME parts."
                   (mail-content-type-get (mm-handle-type handle) 'url)
                   ""))
         (type (mm-handle-media-type handle))
-        (description (mail-decode-encoded-word-string
-                      (or (mm-handle-description handle) "")))
-        (dots (if (or displayed (mm-handle-displayed-p handle)) "   " "..."))
-        long-type begin end)
+        begin end)
     (if (string-match ".*/" name) (setq name (substring name (match-end 0))))
-    (setq long-type (concat type (and (not (equal name ""))
-                                      (concat "; " name))))
-    (unless (equal description "")
-      (setq long-type (concat " --- " long-type)))
-    (unless (bolp) (insert "\n"))
-    (setq begin (point))
-    (gnus-eval-format
-     mh-mime-button-line-format mh-mime-button-line-format-alist
-     `(,@(mh-gnus-local-map-property mh-mime-button-map)
+    ;; These vars are passed by dynamic-scoping to
+    ;; mh-mime-button-line-format-alist via gnus-eval-format.
+    (mh-dlet* ((index index)
+               (description (mail-decode-encoded-word-string
+                             (or (mm-handle-description handle) "")))
+               (dots (if (or displayed (mm-handle-displayed-p handle))
+                         "   " "..."))
+               (long-type (concat type (and (not (equal name ""))
+                                            (concat "; " name)))))
+      (unless (equal description "")
+        (setq long-type (concat " --- " long-type)))
+      (unless (bolp) (insert "\n"))
+      (setq begin (point))
+      (gnus-eval-format
+       mh-mime-button-line-format mh-mime-button-line-format-alist
+       `(,@(mh-gnus-local-map-property mh-mime-button-map)
          mh-callback mh-mm-display-part
          mh-part ,index
-         mh-data ,handle))
+         mh-data ,handle)))
     (setq end (point))
     (widget-convert-button
      'link begin end
@@ -889,8 +890,6 @@ by commands like \"K v\" which operate on individual MIME parts."
 ;; Shush compiler.
 (defvar mm-verify-function-alist)       ; < Emacs 22
 (defvar mm-decrypt-function-alist)      ; < Emacs 22
-(mh-do-in-xemacs
-  (defvar pressed-details))
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."
@@ -898,42 +897,47 @@ by commands like \"K v\" which operate on individual MIME parts."
          (crypto-type (or (nth 2 (assoc protocol mm-verify-function-alist))
                           (nth 2 (assoc protocol mm-decrypt-function-alist))
                           "Unknown"))
-         (type (concat crypto-type
-                       (if (equal (car handle) "multipart/signed")
-                           " Signed" " Encrypted")
-                       " Part"))
-         (info (or (mh-mm-handle-multipart-ctl-parameter handle 'gnus-info)
-                   "Undecided"))
-         (details (mh-mm-handle-multipart-ctl-parameter handle 'gnus-details))
-         pressed-details begin end face)
-    (setq details (if details (concat "\n" details) ""))
-    (setq pressed-details (if mh-mime-security-button-pressed details ""))
-    (setq face (mh-mime-security-button-face info))
-    (unless (bolp) (insert "\n"))
-    (setq begin (point))
-    (gnus-eval-format
-     mh-mime-security-button-line-format
-     mh-mime-security-button-line-format-alist
-     `(,@(mh-gnus-local-map-property mh-mime-security-button-map)
+         begin end face)
+    ;; These vars are passed by dynamic-scoping to
+    ;; mh-mime-security-button-line-format-alist via gnus-eval-format.
+    (mh-dlet* ((type (concat crypto-type
+                             (if (equal (car handle) "multipart/signed")
+                                 " Signed" " Encrypted")
+                             " Part"))
+               (info (or (mh-mm-handle-multipart-ctl-parameter
+                          handle 'gnus-info)
+                         "Undecided"))
+               (details (mh-mm-handle-multipart-ctl-parameter
+                         handle 'gnus-details))
+               pressed-details)
+      (setq details (if details (concat "\n" details) ""))
+      (setq pressed-details (if mh-mime-security-button-pressed details ""))
+      (setq face (mh-mime-security-button-face info))
+      (unless (bolp) (insert "\n"))
+      (setq begin (point))
+      (gnus-eval-format
+       mh-mime-security-button-line-format
+       mh-mime-security-button-line-format-alist
+       `(,@(mh-gnus-local-map-property mh-mime-security-button-map)
          mh-button-pressed ,mh-mime-security-button-pressed
          mh-callback mh-mime-security-press-button
          mh-line-format ,mh-mime-security-button-line-format
          mh-data ,handle))
-    (setq end (point))
-    (widget-convert-button 'link begin end
-                           :mime-handle handle
-                           :action 'mh-widget-press-button
-                           :button-keymap mh-mime-security-button-map
-                           :button-face face
-                           :help-echo "Mouse-2 click or press RET (in show buffer) to see security details.")
-    (dolist (ov (mh-funcall-if-exists overlays-in begin end))
-      (mh-funcall-if-exists overlay-put ov 'evaporate t))
-    (when (equal info "Failed")
-      (let* ((type (if (equal (car handle) "multipart/signed")
-                       "verification" "decryption"))
-             (warning (if (equal type "decryption")
-                          "(passphrase may be incorrect)" "")))
-        (message "%s %s failed %s" crypto-type type warning)))))
+      (setq end (point))
+      (widget-convert-button 'link begin end
+                             :mime-handle handle
+                             :action 'mh-widget-press-button
+                             :button-keymap mh-mime-security-button-map
+                             :button-face face
+                             :help-echo "Mouse-2 click or press RET (in show buffer) to see security details.")
+      (dolist (ov (mh-funcall-if-exists overlays-in begin end))
+        (mh-funcall-if-exists overlay-put ov 'evaporate t))
+      (when (equal info "Failed")
+        (let* ((type (if (equal (car handle) "multipart/signed")
+                         "verification" "decryption"))
+               (warning (if (equal type "decryption")
+                            "(passphrase may be incorrect)" "")))
+          (message "%s %s failed %s" crypto-type type warning))))))
 
 (defun mh-mime-security-button-face (info)
   "Return the button face to use for encrypted/signed mail based on INFO."
@@ -996,7 +1000,7 @@ If CRITERION is a function or a symbol which has a function binding
 then that function must return non-nil at the button we stop."
   (unless (or (and (symbolp criterion) (fboundp criterion))
               (functionp criterion))
-    (setq criterion (lambda (x) t)))
+    (setq criterion (lambda (_) t)))
   ;; Move to the next button in the buffer satisfying criterion
   (goto-char (or (save-excursion
                    (beginning-of-line)
@@ -1016,7 +1020,7 @@ then that function must return non-nil at the button we stop."
                                  (not (if backward-flag (bobp) (eobp))))
                        (forward-line (if backward-flag -1 1)))
                      ;; Stop at next MIME button if any exists.
-                     (block loop
+                     (cl-block loop
                        (while (/= (progn
                                     (unless (= (forward-line
                                                 (if backward-flag -1 1))
@@ -1029,11 +1033,11 @@ then that function must return non-nil at the button we stop."
                                   point-before-current-button)
                          (when (and (get-text-property (point) 'mh-data)
                                     (funcall criterion (point)))
-                           (return-from loop (point))))
+                           (cl-return-from loop (point))))
                        nil)))
                  (point))))
 
-(defun mh-widget-press-button (widget el)
+(defun mh-widget-press-button (widget _el)
   "Callback for widget, WIDGET.
 Parameter EL is unused."
   (goto-char (widget-get widget :from))
@@ -1597,7 +1601,7 @@ the possible security methods (see `mh-mml-method-default')."
                          nil t nil 'mh-mml-cryptographic-method-history def))
     mh-mml-method-default))
 
-(defun mh-secure-message (method mode &optional identity)
+(defun mh-secure-message (method mode &optional _identity)
   "Add tag to encrypt or sign message.
 
 METHOD should be one of: \"pgpmime\", \"pgp\", \"smime\".
@@ -1698,19 +1702,19 @@ buffer, while END defaults to the end of the buffer."
   (unless begin (setq begin (point-min)))
   (unless end (setq end (point-max)))
   (save-excursion
-    (block search-for-mh-directive
+    (cl-block search-for-mh-directive
       (goto-char begin)
       (while (re-search-forward "^#" end t)
         (let ((s (buffer-substring-no-properties
                   (point) (mh-line-end-position))))
           (cond ((equal s ""))
                 ((string-match "^forw[ \t\n]+" s)
-                 (return-from search-for-mh-directive t))
+                 (cl-return-from search-for-mh-directive t))
                 (t (let ((first-token (car (split-string s "[ \t;@]"))))
                      (when (and first-token
                                 (string-match mh-media-type-regexp
                                               first-token))
-                       (return-from search-for-mh-directive t)))))))
+                       (cl-return-from search-for-mh-directive t)))))))
       nil)))
 
 (defun mh-minibuffer-read-type (filename &optional default)

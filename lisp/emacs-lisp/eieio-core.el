@@ -1,6 +1,6 @@
 ;;; eieio-core.el --- Core implementation for eieio  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -117,9 +117,6 @@ Currently under control of this var:
 (defsubst eieio--object-class-tag (obj)
   (aref obj 0))
 
-(defsubst eieio--object-class (obj)
-  (eieio--object-class-tag obj))
-
 
 ;;; Important macros used internally in eieio.
 
@@ -128,9 +125,16 @@ Currently under control of this var:
 (defsubst eieio--class-object (class)
   "Return the class object."
   (if (symbolp class)
-      ;; Keep the symbol if class-v is nil, for better error messages.
+      ;; Return the symbol if the class object doesn't exist,
+      ;; for better error messages.
       (or (cl--find-class class) class)
     class))
+
+(defsubst eieio--object-class (obj)
+  (let ((tag (eieio--object-class-tag obj)))
+    (if eieio-backward-compatibility
+        (eieio--class-object tag)
+      tag)))
 
 (defun class-p (x)
   "Return non-nil if X is a valid class vector.
@@ -163,7 +167,7 @@ Return nil if that option doesn't exist."
 (defun eieio-object-p (obj)
   "Return non-nil if OBJ is an EIEIO object."
   (and (recordp obj)
-       (eieio--class-p (eieio--object-class-tag obj))))
+       (eieio--class-p (eieio--object-class obj))))
 
 (define-obsolete-function-alias 'object-p 'eieio-object-p "25.1")
 
@@ -214,10 +218,6 @@ It creates an autoload function for CNAME's constructor."
         (make-obsolete-variable cname (format "use \\='%s instead" cname)
                                 "25.1"))
 
-      ;; Store the new class vector definition into the symbol.  We need to
-      ;; do this first so that we can call defmethod for the accessor.
-      ;; The vector will be updated by the following while loop and will not
-      ;; need to be stored a second time.
       (setf (cl--find-class cname) newc)
 
       ;; Create an autoload on top of our constructor function.
@@ -227,9 +227,17 @@ It creates an autoload function for CNAME's constructor."
         (autoload (intern (format "%s-child-p" cname)) filename "" nil nil)
         (autoload (intern (format "%s-list-p" cname)) filename "" nil nil)))))
 
-(defsubst eieio-class-un-autoload (cname)
-  "If class CNAME is in an autoload state, load its file."
-  (autoload-do-load (symbol-function cname))) ; cname
+(defun eieio--full-class-object (class)
+  "Like `eieio--class-object' but loads the class if needed."
+  (let ((c (eieio--class-object class)))
+    (and (not (symbolp c))
+         ;; If the default-object-cache slot is nil, the class object
+         ;; is still a "dummy" setup by eieio-defclass-autoload.
+         (not (eieio--class-default-object-cache c))
+         ;; FIXME: We rely on the autoload setup for the "standard"
+         ;; constructor, here!
+         (autoload-do-load (symbol-function (eieio--class-name c))))
+    c))
 
 (cl-deftype list-of (elem-type)
   `(and list
@@ -727,9 +735,7 @@ Argument FN is the function calling this verifier."
   (cl-check-type obj (or eieio-object class))
   (let* ((class (cond ((symbolp obj)
                        (error "eieio-oref called on a class: %s" obj)
-                       (let ((c (cl--find-class obj)))
-                         (if (eieio--class-p c) (eieio-class-un-autoload obj))
-                         c))
+                       (eieio--full-class-object obj))
                       (t (eieio--object-class obj))))
 	 (c (eieio--slot-name-index class slot)))
     (if (not c)
@@ -863,7 +869,6 @@ reverse-lookup that name, and recurse with the associated slot value."
 	(if fn
             ;; Accessing a slot via its :initarg is accepted by EIEIO
             ;; (but not CLOS) but is a bad idea (for one: it's slower).
-            ;; FIXME: We should emit a compile-time warning when this happens!
             (eieio--slot-name-index class fn)
           nil)))))
 
@@ -1011,16 +1016,15 @@ The order, in which the parents are returned depends on the
 method invocation orders of the involved classes."
   (if (or (null class) (eq class eieio-default-superclass))
       nil
-    (unless (eieio--class-default-object-cache class)
-      (eieio-class-un-autoload (eieio--class-name class)))
-    (cl-case (eieio--class-method-invocation-order class)
-      (:depth-first
-       (eieio--class-precedence-dfs class))
-      (:breadth-first
-       (eieio--class-precedence-bfs class))
-      (:c3
-       (eieio--class-precedence-c3 class))))
-  )
+    (let ((class (eieio--full-class-object class)))
+      (cl-case (eieio--class-method-invocation-order class)
+        (:depth-first
+         (eieio--class-precedence-dfs class))
+        (:breadth-first
+         (eieio--class-precedence-bfs class))
+        (:c3
+         (eieio--class-precedence-c3 class))))))
+
 (define-obsolete-function-alias
   'class-precedence-list 'eieio--class-precedence-list "24.4")
 
@@ -1082,6 +1086,11 @@ method invocation orders of the involved classes."
   "Support for (subclass CLASS) specializers.
 These match if the argument is the name of a subclass of CLASS."
   (list eieio--generic-subclass-generalizer))
+
+(defmacro eieio-declare-slots (&rest slots)
+  "Declare that SLOTS are known eieio object slot names."
+  `(eval-when-compile
+     (setq eieio--known-slot-names (append ',slots eieio--known-slot-names))))
 
 (provide 'eieio-core)
 

@@ -1,6 +1,6 @@
 ;;; gnus-demon.el --- daemonic Gnus behavior
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -44,7 +44,7 @@ Each handler is a list on the form
 
 FUNCTION is the function to be called.  TIME is the number of
 `gnus-demon-timestep's between each call.
-If nil, never call. If t, call each `gnus-demon-timestep'.
+If nil, never call.  If t, call each `gnus-demon-timestep'.
 
 If IDLE is t, only call each time Emacs has been idle for TIME.
 If IDLE is a number, only call when Emacs has been idle more than
@@ -93,13 +93,13 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 (defun gnus-demon-idle-since ()
   "Return the number of seconds since when Emacs is idle."
-  (float-time (or (current-idle-time) '(0 0 0))))
+  (float-time (or (current-idle-time) 0)))
 
 (defun gnus-demon-run-callback (func &optional idle time special)
   "Run FUNC if Emacs has been idle for longer than IDLE seconds.
 If not, and a TIME is given, restart a new idle timer, so FUNC
-can be called at the next opportunity. Such a special idle run is
-marked with SPECIAL."
+can be called at the next opportunity.  Such a special idle run
+is marked with SPECIAL."
   (unless gnus-inhibit-demon
     (cl-block run-callback
       (when (eq idle t)
@@ -111,7 +111,7 @@ marked with SPECIAL."
                                               func idle time))))
             ((and idle (> idle (gnus-demon-idle-since)))
              (when time
-               (nnheader-cancel-timer (plist-get gnus-demon-timers func))
+               (cancel-timer (plist-get gnus-demon-timers func))
                (setq gnus-demon-timers
                      (plist-put gnus-demon-timers func
 				(run-with-idle-timer idle nil
@@ -173,30 +173,31 @@ marked with SPECIAL."
 	 (nowParts (decode-time now))
 	 ;; obtain THEN as discrete components
 	 (thenParts (parse-time-string time))
-	 (thenHour (elt thenParts 2))
-	 (thenMin (elt thenParts 1))
+	 (thenHour (decoded-time-hour thenParts))
+	 (thenMin (decoded-time-minute thenParts))
 	 ;; convert time as elements into number of seconds since EPOCH.
-	 (then (encode-time 0
-			    thenMin
-			    thenHour
-			    ;; If THEN is earlier than NOW, make it
-			    ;; same time tomorrow.  Doc for encode-time
-			    ;; says that this is OK.
-			    (+ (elt nowParts 3)
-			       (if (or (< thenHour (elt nowParts 2))
-				       (and (= thenHour (elt nowParts 2))
-					    (<= thenMin (elt nowParts 1))))
-				   1 0))
-			    (elt nowParts 4)
-			    (elt nowParts 5)
-			    (elt nowParts 6)
-			    (elt nowParts 7)
-			    (elt nowParts 8)))
-	 ;; calculate number of seconds between NOW and THEN
-	 (diff (+ (* 65536 (- (car then) (car now)))
-		  (- (cadr then) (cadr now)))))
-    ;; return number of timesteps in the number of seconds
-    (round (/ diff gnus-demon-timestep))))
+	 (then (encode-time
+		0
+		thenMin
+		thenHour
+		;; If THEN is earlier than NOW, make it
+		;; same time tomorrow.  Doc for encode-time
+		;; says that this is OK.
+		(+ (decoded-time-day nowParts)
+		   (if (or (< thenHour (decoded-time-hour nowParts))
+			   (and (= thenHour
+				   (decoded-time-hour nowParts))
+				(<= thenMin
+				    (decoded-time-minute nowParts))))
+		       1 0))
+		(decoded-time-month nowParts)
+		(decoded-time-year nowParts)
+		(decoded-time-weekday nowParts)
+		(decoded-time-dst nowParts)
+		(decoded-time-zone nowParts)))
+	 (diff (float-time (time-subtract then now))))
+    ;; Return number of timesteps in the number of seconds.
+    (round diff gnus-demon-timestep)))
 
 (gnus-add-shutdown 'gnus-demon-cancel 'gnus)
 
@@ -204,7 +205,7 @@ marked with SPECIAL."
   "Cancel any Gnus daemons."
   (interactive)
   (dotimes (i (/ (length gnus-demon-timers) 2))
-    (nnheader-cancel-timer (nth (1+ (* i 2)) gnus-demon-timers)))
+    (cancel-timer (nth (1+ (* i 2)) gnus-demon-timers)))
   (setq gnus-demon-timers nil))
 
 (defun gnus-demon-add-disconnection ()

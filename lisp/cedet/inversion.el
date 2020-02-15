@@ -1,6 +1,6 @@
 ;;; inversion.el --- When you need something in version XX.XX
 
-;;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3
@@ -79,9 +79,9 @@
 
 (defconst inversion-decoders
   '(
-    (alpha  "^\\([0-9]+\\)\\.\\([0-9]+\\)\\.?\\([0-9]*\\)?\\s-*\\.?alpha\\([0-9]+\\)?$" 4)
-    (beta   "^\\([0-9]+\\)\\.\\([0-9]+\\)\\.?\\([0-9]*\\)?\\s-*\\.?beta\\([0-9]+\\)?$" 4)
-    (beta   "^\\([0-9]+\\)\\.\\([0-9]+\\)\\.?\\([0-9]*\\)?\\s-*\\.?(beta\\([0-9]+\\)?)$" 4)
+    (alpha  "^\\([0-9]+\\)\\.\\([0-9]+\\)\\.?\\([0-9]*\\)\\s-*\\.?alpha\\([0-9]+\\)?$" 4)
+    (beta   "^\\([0-9]+\\)\\.\\([0-9]+\\)\\.?\\([0-9]*\\)\\s-*\\.?beta\\([0-9]+\\)?$" 4)
+    (beta   "^\\([0-9]+\\)\\.\\([0-9]+\\)\\.?\\([0-9]*\\)\\s-*\\.?(beta\\([0-9]+\\)?)$" 4)
     (beta  "^[^/]+/\\w+--\\w+--\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)--patch-\\([0-9]+\\)" 4)
     (beta "^\\w+: v\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)-\\([0-9]+\\)-\\(.*\\)" 5)
     (prerelease "^\\([0-9]+\\)\\.\\([0-9]+\\)\\s-*\\.?pre\\([0-9]+\\)?$" 3)
@@ -226,7 +226,7 @@ not an indication of new features or bug fixes."
   "Check that a given version meets the minimum requirement.
 VERSION, INCOMPATIBLE-VERSION and MINIMUM are of similar format to
 return entries of `inversion-decode-version', or a classic version
-string.	 INCOMPATIBLE-VERSION can be nil.
+string.  INCOMPATIBLE-VERSION can be nil.
 RESERVED arguments are kept for a later use.
 Return:
 - nil if everything is ok.
@@ -274,7 +274,7 @@ MINIMUM is of similar format to return entries of
 RESERVED arguments are kept for a later user.
 This depends on the symbols `PACKAGE-version' and optionally
 `PACKAGE-incompatible-version' being defined in PACKAGE.
-Return nil if everything is ok.	 Return an error string otherwise."
+Return nil if everything is ok.  Return an error string otherwise."
   (let ((check (inversion-check-version
 		(inversion-package-version package)
 		(inversion-package-incompatibility-version package)
@@ -306,7 +306,7 @@ OLDVERSION is of similar format to return entries of
 RESERVED arguments are kept for a later user.
 This depends on the symbols `PACKAGE-version' and optionally
 `PACKAGE-incompatible-version' being defined in PACKAGE.
-Return nil if everything is ok.	 Return an error string otherwise."
+Return nil if everything is ok.  Return an error string otherwise."
   (let ((check (inversion-check-version
 		(inversion-package-version package)
 		(inversion-package-incompatibility-version package)

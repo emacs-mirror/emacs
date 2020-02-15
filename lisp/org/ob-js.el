@@ -1,6 +1,6 @@
 ;;; ob-js.el --- Babel Functions for Javascript      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
@@ -41,6 +41,11 @@
 (require 'ob)
 
 (declare-function run-mozilla "ext:moz" (arg))
+(declare-function httpd-start "ext:simple-httpd" ())
+(declare-function run-skewer "ext:skewer-mode" ())
+(declare-function skewer-repl "ext:skewer-repl" ())
+(declare-function indium-run-node "ext:indium-nodejs" (command))
+(declare-function indium-eval "ext:indium-interaction" (string &optional callback))
 
 (defvar org-babel-default-header-args:js '()
   "Default header arguments for js code blocks.")
@@ -52,7 +57,12 @@
   "Name of command used to evaluate js blocks."
   :group 'org-babel
   :version "24.1"
-  :type 'string)
+  :type '(choice (const "node")
+		 (const "mozrepl")
+		 (const "skewer-mode")
+		 (const "indium")
+		 (const "js-comint"))
+  :safe #'stringp)
 
 (defvar org-babel-js-function-wrapper
   "require('sys').print(require('sys').inspect(function(){\n%s\n}()));"
@@ -60,24 +70,15 @@
 
 (defun org-babel-execute:js (body params)
   "Execute a block of Javascript code with org-babel.
-This function is called by `org-babel-execute-src-block'"
+This function is called by `org-babel-execute-src-block'."
   (let* ((org-babel-js-cmd (or (cdr (assq :cmd params)) org-babel-js-cmd))
+	 (session (cdr (assq :session params)))
          (result-type (cdr (assq :result-type params)))
          (full-body (org-babel-expand-body:generic
 		     body params (org-babel-variable-assignments:js params)))
-	 (result (if (not (string= (cdr (assq :session params)) "none"))
-		     ;; session evaluation
-		     (let ((session (org-babel-prep-session:js
-				     (cdr (assq :session params)) params)))
-		       (nth 1
-			    (org-babel-comint-with-output
-				(session (format "%S" org-babel-js-eoe) t body)
-			      (mapc
-			       (lambda (line)
-				 (insert (org-babel-chomp line))
-				 (comint-send-input nil t))
-			       (list body (format "%S" org-babel-js-eoe))))))
-		   ;; external evaluation
+	 (result (cond
+		  ;; no session specified, external evaluation
+		  ((string= session "none")
 		   (let ((script-file (org-babel-temp-file "js-script-")))
 		     (with-temp-file script-file
 		       (insert
@@ -87,7 +88,24 @@ This function is called by `org-babel-execute-src-block'"
 			  full-body)))
 		     (org-babel-eval
 		      (format "%s %s" org-babel-js-cmd
-			      (org-babel-process-file-name script-file)) "")))))
+			      (org-babel-process-file-name script-file)) "")))
+		  ;; Indium Node REPL.  Separate case because Indium
+		  ;; REPL is not inherited from Comint mode.
+		  ((string= session "*JS REPL*")
+		   (require 'indium-repl)
+		   (unless (get-buffer session)
+		     (indium-run-node org-babel-js-cmd))
+		   (indium-eval full-body))
+		  ;; session evaluation
+		  (t
+		   (let ((session (org-babel-prep-session:js
+				   (cdr (assq :session params)) params)))
+		     (nth 1
+			  (org-babel-comint-with-output
+			      (session (format "%S" org-babel-js-eoe) t body)
+			    (dolist (code (list body (format "%S" org-babel-js-eoe)))
+			      (insert (org-babel-chomp code))
+			      (comint-send-input nil t)))))))))
     (org-babel-result-cond (cdr (assq :result-params params))
       result (org-babel-js-read result))))
 
@@ -123,11 +141,13 @@ specifying a variable of the same value."
 	 (var-lines (org-babel-variable-assignments:js params)))
     (when session
       (org-babel-comint-in-buffer session
-	(sit-for .5) (goto-char (point-max))
-	(mapc (lambda (var)
-		(insert var) (comint-send-input nil t)
-		(org-babel-comint-wait-for-output session)
-		(sit-for .1) (goto-char (point-max))) var-lines)))
+	(goto-char (point-max))
+	(dolist (var var-lines)
+	  (insert var)
+	  (comint-send-input nil t)
+	  (org-babel-comint-wait-for-output session)
+	  (sit-for .1)
+	  (goto-char (point-max)))))
     session))
 
 (defun org-babel-variable-assignments:js (params)
@@ -137,25 +157,47 @@ specifying a variable of the same value."
 			  (car pair) (org-babel-js-var-to-js (cdr pair))))
    (org-babel--get-vars params)))
 
-(defun org-babel-js-initiate-session (&optional session)
-  "If there is not a current inferior-process-buffer in SESSION
+(defun org-babel-js-initiate-session (&optional session _params)
+  "If there is not a current inferior-process-buffer in `SESSION'
 then create.  Return the initialized session."
-  (unless (string= session "none")
-    (cond
-     ((string= "mozrepl" org-babel-js-cmd)
-      (require 'moz)
-      (let ((session-buffer (save-window-excursion
-			      (run-mozilla nil)
-			      (rename-buffer session)
-			      (current-buffer))))
-	(if (org-babel-comint-buffer-livep session-buffer)
-	    (progn (sit-for .25) session-buffer)
-	  (sit-for .5)
-	  (org-babel-js-initiate-session session))))
-     ((string= "node" org-babel-js-cmd )
-      (error "Session evaluation with node.js is not supported"))
-     (t
-      (error "Sessions are only supported with mozrepl add \":cmd mozrepl\"")))))
+  (cond
+   ((string= session "none")
+    (warn "Session evaluation of ob-js is not supported"))
+   ((string= "*skewer-repl*" session)
+    (require 'skewer-repl)
+    (let ((session-buffer (get-buffer "*skewer-repl*")))
+      (if (and session-buffer
+	       (org-babel-comint-buffer-livep (get-buffer session-buffer))
+	       (comint-check-proc session-buffer))
+	  session-buffer
+	;; start skewer REPL.
+	(httpd-start)
+	(run-skewer)
+	(skewer-repl)
+	session-buffer)))
+   ((string= "*Javascript REPL*" session)
+    (require 'js-comint)
+    (let ((session-buffer "*Javascript REPL*"))
+      (if (and (org-babel-comint-buffer-livep (get-buffer session-buffer))
+	       (comint-check-proc session-buffer))
+	  session-buffer
+	(call-interactively 'run-js)
+	(sit-for .5)
+	session-buffer)))
+   ((string= "mozrepl" org-babel-js-cmd)
+    (require 'moz)
+    (let ((session-buffer (save-window-excursion
+			    (run-mozilla nil)
+			    (rename-buffer session)
+			    (current-buffer))))
+      (if (org-babel-comint-buffer-livep session-buffer)
+	  (progn (sit-for .25) session-buffer)
+	(sit-for .5)
+	(org-babel-js-initiate-session session))))
+   ((string= "node" org-babel-js-cmd )
+    (error "Session evaluation with node.js is not supported"))
+   (t
+    (error "Sessions are only supported with mozrepl add \":cmd mozrepl\""))))
 
 (provide 'ob-js)
 

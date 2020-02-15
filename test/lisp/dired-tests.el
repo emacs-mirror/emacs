@@ -1,6 +1,6 @@
 ;;; dired-tests.el --- Test suite. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,7 +20,6 @@
 ;;; Code:
 (require 'ert)
 (require 'dired)
-(require 'nadvice)
 
 (ert-deftest dired-autoload ()
   "Tests to see whether dired-x has been autoloaded"
@@ -54,7 +53,7 @@
         (when (buffer-live-p buf) (kill-buffer buf)))
       (delete-directory dir 'recursive))))
 
-(defvar dired-dwim-target)
+(defvar dired-query)
 (ert-deftest dired-test-bug25609 ()
   "Test for https://debbugs.gnu.org/25609 ."
   (let* ((from (make-temp-file "foo" 'dir))

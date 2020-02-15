@@ -1,6 +1,6 @@
-;;; ietf-drums.el --- Functions for parsing RFC822bis headers  -*- lexical-binding:t -*-
+;;; ietf-drums.el --- Functions for parsing RFC 2822 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -20,10 +20,10 @@
 
 ;;; Commentary:
 
-;; DRUMS is an IETF Working Group that works (or worked) on the
-;; successor to RFC822, "Standard For The Format Of Arpa Internet Text
-;; Messages".  This library is based on
-;; draft-ietf-drums-msg-fmt-05.txt, released on 1998-08-05.
+;; DRUMS is an IETF Working Group that worked on Internet RFC 2822,
+;; the successor to RFC 822 and the predecessor of RFC 5322.  This
+;; library is based on draft-ietf-drums-msg-fmt-05.txt, released on
+;; 1998-08-05.
 
 ;; Pending a real regression self test suite, Simon Josefsson added
 ;; various self test expressions snipped from bug reports, and their
@@ -294,7 +294,7 @@ a list of address strings."
 
 (defun ietf-drums-parse-date (string)
   "Return an Emacs time spec from STRING."
-  (apply 'encode-time (parse-time-string string)))
+  (encode-time (parse-time-string string)))
 
 (defun ietf-drums-narrow-to-header ()
   "Narrow to the header section in the current buffer."

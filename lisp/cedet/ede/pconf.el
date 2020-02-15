@@ -1,6 +1,6 @@
 ;;; ede/pconf.el --- configure.ac maintenance for EDE
 
-;;; Copyright (C) 1998-2000, 2005, 2008-2018 Free Software Foundation,
+;;; Copyright (C) 1998-2000, 2005, 2008-2020 Free Software Foundation,
 ;;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -56,8 +56,9 @@ don't do it.  A value of nil means to just do it.")
 	    (and (eq ede-pconf-create-file-query 'ask)
 		 (not (eq ede-pconf-create-file-query 'never))
 		 (not (y-or-n-p
-		       (format "I had to create the %s file for you.  Ok? " file)))
-		 (error "Quit")))))))
+		       (format "I had to create the %s file for you.  Ok? "
+			       file))))
+	  (error "Quit"))))))
 
 
 (cl-defmethod ede-proj-configure-synchronize ((this ede-proj-project))

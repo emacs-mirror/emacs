@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -79,6 +79,7 @@ are meaningful here.
 
 Returns the number of actions taken."
   (let* ((actions 0)
+         (msg (current-message))
 	 user-keys mouse-event map prompt char elt def
 	 ;; Non-nil means we should use mouse menus to ask.
 	 use-menus
@@ -246,9 +247,12 @@ C-g to quit (cancel the whole command);
       (if delayed-switch-frame
 	  (setq unread-command-events
 		(cons delayed-switch-frame unread-command-events))))
-    ;; Clear the last prompt from the minibuffer.
+    ;; Clear the last prompt from the minibuffer, and restore the
+    ;; previous echo-area message, if any.
     (let ((message-log-max nil))
-      (message ""))
+      (if msg
+          (message "%s" msg)
+        (message "")))
     ;; Return the number of actions that were taken.
     actions))
 
@@ -261,7 +265,7 @@ C-g to quit (cancel the whole command);
   "If non-nil, `read-answer' accepts single-character answers.
 If t, accept short (single key-press) answers to the question.
 If nil, require long answers.  If `auto', accept short answers if
-the function cell of `yes-or-no-p' is set to `y-or-on-p'."
+the function cell of `yes-or-no-p' is set to `y-or-n-p'."
   :type '(choice (const :tag "Accept short answers" t)
                  (const :tag "Require long answer" nil)
                  (const :tag "Guess preference" auto))
@@ -282,6 +286,10 @@ where
   LONG-ANSWER is a complete answer,
   SHORT-ANSWER is an abbreviated one-character answer,
   HELP-MESSAGE is a string describing the meaning of the answer.
+
+SHORT-ANSWER is not necessarily a single character answer.  It can be
+also a function key like F1, a character event such as C-M-h, or
+a control character like C-h.
 
 Example:
   \\='((\"yes\"  ?y \"perform the action\")
@@ -308,14 +316,18 @@ When `use-dialog-box' is t, pop up a dialog window to get user input."
           (format "%s(%s) " question
                   (mapconcat (lambda (a)
                                (if short
-                                   (format "%c" (nth 1 a))
+                                   (if (characterp (nth 1 a))
+                                       (format "%c" (nth 1 a))
+                                     (key-description (nth 1 a)))
                                  (nth 0 a)))
                              answers-with-help ", ")))
          (message
           (format "Please answer %s."
                   (mapconcat (lambda (a)
                                (format "`%s'" (if short
-                                                  (string (nth 1 a))
+                                                  (if (characterp (nth 1 a))
+                                                      (string (nth 1 a))
+                                                    (key-description (nth 1 a)))
                                                 (nth 0 a))))
                              answers-with-help " or ")))
          (short-answer-map
@@ -325,7 +337,9 @@ When `use-dialog-box' is t, pop up a dialog window to get user input."
                          (let ((map (make-sparse-keymap)))
                            (set-keymap-parent map minibuffer-local-map)
                            (dolist (a answers-with-help)
-                             (define-key map (vector (nth 1 a))
+                             (define-key map (if (characterp (nth 1 a))
+                                                 (vector (nth 1 a))
+                                               (nth 1 a))
                                (lambda ()
                                  (interactive)
                                  (delete-minibuffer-contents)
@@ -337,7 +351,7 @@ When `use-dialog-box' is t, pop up a dialog window to get user input."
                                (delete-minibuffer-contents)
                                (beep)
                                (message message)
-                               (sleep-for 2)))
+                               (sit-for 2)))
                            map)
                          read-answer-map--memoize))))
          answer)
@@ -357,7 +371,7 @@ When `use-dialog-box' is t, pop up a dialog window to get user input."
                                       (short
                                        (read-from-minibuffer
                                         prompt nil short-answer-map nil
-                                        'yes-or-no-p-history))
+                                        'read-char-history))
                                       (t
                                        (read-from-minibuffer
                                         prompt nil nil nil
@@ -370,14 +384,17 @@ When `use-dialog-box' is t, pop up a dialog window to get user input."
                       (mapconcat
                        (lambda (a)
                          (format "`%s'%s to %s"
-                                 (if short (string (nth 1 a)) (nth 0 a))
+                                 (if short (if (characterp (nth 1 a))
+                                               (string (nth 1 a))
+                                             (key-description (nth 1 a)))
+                                   (nth 0 a))
                                  (if short (format " (%s)" (nth 0 a)) "")
                                  (nth 2 a)))
                        answers-with-help ",\n")
                       ".\n")))
         (beep)
         (message message)
-        (sleep-for 2)))
+        (sit-for 2)))
     answer))
 
 ;;; map-ynp.el ends here

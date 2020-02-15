@@ -1,6 +1,6 @@
 ;;; mh-identity.el --- multiple identify support for MH-E
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -205,7 +205,7 @@ See `mh-identity-list'."
       (setq mh-identity-local identity))))
 
 ;;;###mh-autoload
-(defun mh-identity-handler-gpg-identity (field action &optional value)
+(defun mh-identity-handler-gpg-identity (_field action &optional value)
   "Process header FIELD \":pgg-default-user-id\".
 The ACTION is one of `remove' or `add'. If `add', the VALUE is added.
 The buffer-local variable `mh-identity-pgg-default-user-id' is set to
@@ -219,7 +219,7 @@ VALUE when action `add' is selected."
     (setq mh-identity-pgg-default-user-id value))))
 
 ;;;###mh-autoload
-(defun mh-identity-handler-signature (field action &optional value)
+(defun mh-identity-handler-signature (_field action &optional value)
   "Process header FIELD \":signature\".
 The ACTION is one of `remove' or `add'. If `add', the VALUE is
 added."
@@ -250,7 +250,7 @@ added."
   "Marker for the end of the attribution verb.")
 
 ;;;###mh-autoload
-(defun mh-identity-handler-attribution-verb (field action &optional value)
+(defun mh-identity-handler-attribution-verb (_field action &optional value)
   "Process header FIELD \":attribution-verb\".
 The ACTION is one of `remove' or `add'.  If `add', the VALUE is
 added."
@@ -282,9 +282,9 @@ If VALUE is nil, use `mh-extract-from-attribution-verb'."
 
 (defun mh-identity-handler-default (field action top &optional value)
   "Process header FIELD.
-The ACTION is one of 'remove or 'add. If TOP is non-nil, add the
+The ACTION is one of `remove' or `add'. If TOP is non-nil, add the
 field and its VALUE at the top of the header, else add it at the
-bottom of the header. If action is 'add, the VALUE is added."
+bottom of the header. If action is `add', the VALUE is added."
   (let ((field-colon (if (string-match "^.*:$" field)
                          field
                        (concat field ":"))))

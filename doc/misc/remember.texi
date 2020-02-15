@@ -9,8 +9,8 @@
 @copying
 This manual is for Remember Mode, version 2.0
 
-Copyright @copyright{} 2001, 2004--2005, 2007--2018
-Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2004--2005, 2007--2020 Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -33,7 +33,7 @@ modify this GNU manual.''
 @titlepage
 @title Guide to Remember Mode
 @subtitle a simple information manager
-@subtitle for Emacs and XEmacs
+@subtitle for Emacs
 
 @c The following two commands
 @c start the copyright page.

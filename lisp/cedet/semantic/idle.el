@@ -1,6 +1,6 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;; Copyright (C) 2003-2006, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2006, 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -40,6 +40,7 @@
 (require 'semantic/ctxt)
 (require 'semantic/format)
 (require 'semantic/tag)
+(require 'semantic/analyze)
 (require 'timer)
 ;;(require 'working)
 
@@ -48,7 +49,6 @@
 
 (defvar eldoc-last-message)
 (declare-function eldoc-message "eldoc")
-(declare-function semantic-analyze-interesting-tag "semantic/analyze")
 (declare-function semantic-analyze-unsplit-name "semantic/analyze/fcn")
 (declare-function semantic-complete-analyze-inline-idle "semantic/complete")
 (declare-function semanticdb-deep-find-tags-by-name "semantic/db-find")
@@ -91,8 +91,8 @@ run as soon as Emacs is idle."
 
 (defcustom semantic-idle-scheduler-work-idle-time 60
   "Time in seconds of idle before scheduling big work.
-This time should be long enough that once any big work is started, it is
-unlikely the user would be ready to type again right away."
+This time should be long enough that once any big work is started,
+it is unlikely the user would be ready to type again right away."
   :group 'semantic
   :type 'number
   :set (lambda (sym val)
@@ -682,7 +682,6 @@ Use the semantic analyzer to find the symbol information."
 		      (semantic-analyze-current-context (point))
 		    (error nil))))
     (when analysis
-      (require 'semantic/analyze)
       (semantic-analyze-interesting-tag analysis))))
 
 (defun semantic-idle-summary-current-symbol-info-default ()
@@ -704,8 +703,7 @@ by semanticdb as a time-saving measure."
   '(
     font-lock-comment-face
     font-lock-string-face
-    font-lock-doc-string-face           ; XEmacs.
-    font-lock-doc-face                  ; Emacs 21 and later.
+    font-lock-doc-face
     )
   "List of font-lock faces that indicate a useless summary context.
 Those are generally faces used to highlight comments.
@@ -850,18 +848,18 @@ visible, then highlight it."
 	 ;; just the stable version.
 	 (pulse-flag nil)
 	 )
-    (cond ((semantic-overlay-p region)
-	   (with-current-buffer (semantic-overlay-buffer region)
+    (cond ((overlayp region)
+	   (with-current-buffer (overlay-buffer region)
 	     (save-excursion
-	       (goto-char (semantic-overlay-start region))
+	       (goto-char (overlay-start region))
 	       (when (pos-visible-in-window-p
 		      (point) (get-buffer-window (current-buffer) 'visible))
-		 (if (< (semantic-overlay-end region) (point-at-eol))
+		 (if (< (overlay-end region) (point-at-eol))
 		     (pulse-momentary-highlight-overlay
 		      region semantic-idle-symbol-highlight-face)
 		   ;; Not the same
 		   (pulse-momentary-highlight-region
-		    (semantic-overlay-start region)
+		    (overlay-start region)
 		    (point-at-eol)
 		    semantic-idle-symbol-highlight-face))))
 	     ))
@@ -981,7 +979,7 @@ This minor mode only takes effect if Semantic is active and
 
 When enabled, Emacs displays a list of possible completions at
 idle time.  The method for displaying completions is given by
-`semantic-complete-inline-analyzer-idle-displayor-class'; the
+`semantic-complete-inline-analyzer-idle-displayer-class'; the
 default is to show completions inline.
 
 While a completion is displayed, RET accepts the completion; M-n
@@ -1005,8 +1003,8 @@ completion.
   #'semantic-idle-breadcrumbs--display-in-header-line
   "Function to display the tag under point in idle time.
 This function should take a list of Semantic tags as its only
-argument. The tags are sorted according to their nesting order,
-starting with the outermost tag. The function should call
+argument.  The tags are sorted according to their nesting order,
+starting with the outermost tag.  The function should call
 `semantic-idle-breadcrumbs-format-tag-list-function' to convert
 the tag list into a string."
   :group 'semantic
@@ -1021,13 +1019,13 @@ the tag list into a string."
   #'semantic-idle-breadcrumbs--format-linear
   "Function to format the list of tags containing point.
 This function should take a list of Semantic tags and an optional
-maximum length of the produced string as its arguments. The
-maximum length is a hint and can be ignored. When the maximum
-length is omitted, an unconstrained string should be
-produced. The tags are sorted according to their nesting order,
-starting with the outermost tag. Single tags should be formatted
-using `semantic-idle-breadcrumbs-format-tag-function' unless
-special formatting is required."
+maximum length of the produced string as its arguments.  The
+maximum length is a hint and can be ignored.  When the maximum
+length is omitted, an unconstrained string should be produced.
+The tags are sorted according to their nesting order, starting
+with the outermost tag.  Single tags should be formatted using
+`semantic-idle-breadcrumbs-format-tag-function' unless special
+formatting is required."
   :group 'semantic
   :type  '(choice
 	   (const    :tag "Format tags as list, innermost last"
@@ -1075,7 +1073,7 @@ be called."
   (let ((old-window (selected-window))
 	(window     (semantic-event-window event)))
     (select-window window t)
-    (semantic-popup-menu semantic-idle-breadcrumbs-popup-menu)
+    (popup-menu semantic-idle-breadcrumbs-popup-menu)
     (select-window old-window)))
 
 (defmacro semantic-idle-breadcrumbs--tag-function (function)
@@ -1115,65 +1113,61 @@ be called."
   "Semantic Breadcrumbs Mode Menu"
   (list
    "Breadcrumb Tag"
-   (semantic-menu-item
-    (vector
-     "Go to Tag"
-     (semantic-idle-breadcrumbs--tag-function
-      semantic-go-to-tag)
-     :active t
-     :help  "Jump to this tag"))
+   (vector
+    "Go to Tag"
+    (semantic-idle-breadcrumbs--tag-function
+     semantic-go-to-tag)
+    :active t
+    :help  "Jump to this tag")
    ;; TODO these entries need minor changes (optional tag argument) in
    ;; senator-copy-tag etc
-  ;;  (semantic-menu-item
-  ;;   (vector
-  ;;    "Copy Tag"
-  ;;    (semantic-idle-breadcrumbs--tag-function
-  ;;     senator-copy-tag)
-  ;;    :active t
-  ;;    :help   "Copy this tag"))
-  ;;   (semantic-menu-item
-  ;;    (vector
-  ;;     "Kill Tag"
-  ;;     (semantic-idle-breadcrumbs--tag-function
-  ;;      senator-kill-tag)
-  ;;     :active t
-  ;;     :help   "Kill tag text to the kill ring, and copy the tag to
-  ;; the tag ring"))
-  ;;   (semantic-menu-item
-  ;;    (vector
-  ;;     "Copy Tag to Register"
-  ;;     (semantic-idle-breadcrumbs--tag-function
-  ;;      senator-copy-tag-to-register)
-  ;;     :active t
-  ;;     :help   "Copy this tag"))
-  ;;   (semantic-menu-item
-  ;;    (vector
-  ;;     "Narrow to Tag"
-  ;;     (semantic-idle-breadcrumbs--tag-function
-  ;;      senator-narrow-to-defun)
-  ;;     :active t
-  ;;     :help   "Narrow to the bounds of the current tag"))
-  ;;   (semantic-menu-item
-  ;;    (vector
-  ;;     "Fold Tag"
-  ;;     (semantic-idle-breadcrumbs--tag-function
-  ;;      senator-fold-tag-toggle)
-  ;;     :active   t
-  ;;     :style    'toggle
-  ;;     :selected '(let ((tag (semantic-current-tag)))
-  ;;		   (and tag (semantic-tag-folded-p tag)))
-  ;;     :help     "Fold the current tag to one line"))
-    "---"
-    (semantic-menu-item
-     (vector
-      "About this Header Line"
-      (lambda ()
-	(interactive)
-	(describe-function 'semantic-idle-breadcrumbs-mode))
-      :active t
-      :help   "Display help about this header line."))
-    )
-  )
+   ;;  (semantic-menu-item
+   ;;   (vector
+   ;;    "Copy Tag"
+   ;;    (semantic-idle-breadcrumbs--tag-function
+   ;;     senator-copy-tag)
+   ;;    :active t
+   ;;    :help   "Copy this tag"))
+   ;;   (semantic-menu-item
+   ;;    (vector
+   ;;     "Kill Tag"
+   ;;     (semantic-idle-breadcrumbs--tag-function
+   ;;      senator-kill-tag)
+   ;;     :active t
+   ;;     :help   "Kill tag text to the kill ring, and copy the tag to
+   ;; the tag ring"))
+   ;;   (semantic-menu-item
+   ;;    (vector
+   ;;     "Copy Tag to Register"
+   ;;     (semantic-idle-breadcrumbs--tag-function
+   ;;      senator-copy-tag-to-register)
+   ;;     :active t
+   ;;     :help   "Copy this tag"))
+   ;;   (semantic-menu-item
+   ;;    (vector
+   ;;     "Narrow to Tag"
+   ;;     (semantic-idle-breadcrumbs--tag-function
+   ;;      senator-narrow-to-defun)
+   ;;     :active t
+   ;;     :help   "Narrow to the bounds of the current tag"))
+   ;;   (semantic-menu-item
+   ;;    (vector
+   ;;     "Fold Tag"
+   ;;     (semantic-idle-breadcrumbs--tag-function
+   ;;      senator-fold-tag-toggle)
+   ;;     :active   t
+   ;;     :style    'toggle
+   ;;     :selected '(let ((tag (semantic-current-tag)))
+   ;;		   (and tag (semantic-tag-folded-p tag)))
+   ;;     :help     "Fold the current tag to one line"))
+   "---"
+   (vector
+    "About this Header Line"
+    (lambda ()
+      (interactive)
+      (describe-function 'semantic-idle-breadcrumbs-mode))
+    :active t
+    :help   "Display help about this header line.")))
 
 (define-semantic-idle-service semantic-idle-breadcrumbs
   "Display breadcrumbs for the tag under point and its parents."

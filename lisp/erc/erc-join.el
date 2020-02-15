@@ -1,11 +1,11 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: irc
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoJoin
+;; URL: https://www.emacswiki.org/emacs/ErcAutoJoin
 
 ;; This file is part of GNU Emacs.
 
@@ -161,6 +161,10 @@ This function is run from `erc-nickserv-identified-hook'."
 	      ;; Only auto-join the channels that we aren't already in
 	      ;; using a different nick.
 	      (when (or (not buffer)
+			;; If the same channel is joined on another
+			;; server the best-effort is to just join
+			(not (string-match (car l)
+					   (process-name erc-server-process)))
 			(not (with-current-buffer buffer
 			       (erc-server-process-alive))))
 		(erc-server-join-channel server chan))))))))
@@ -216,6 +220,4 @@ This function is run from `erc-nickserv-identified-hook'."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

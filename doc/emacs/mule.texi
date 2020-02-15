@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999--2020 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -397,7 +397,7 @@ messages.  But if your locale matches an entry in the variable
 coding system instead.  For example, if the locale @samp{ja_JP.PCK}
 matches @code{japanese-shift-jis} in
 @code{locale-preferred-coding-systems}, Emacs uses that encoding even
-though it might normally use @code{japanese-iso-8bit}.
+though it might normally use @code{utf-8}.
 
   You can override the language environment chosen at startup with
 explicit use of the command @code{set-language-environment}, or with
@@ -496,6 +496,10 @@ one of them selects that alternative.  The keys @kbd{C-f}, @kbd{C-b},
 @kbd{C-n}, @kbd{C-p}, and digits continue to work as usual, but they
 do the highlighting in the buffer showing the possible characters,
 rather than in the echo area.
+
+  To enter characters according to the @dfn{pīnyīn} transliteration
+method instead, use the @code{chinese-sisheng} input method.  This is
+a composition based method, where e.g. @kbd{pi1} results in @samp{pī}.
 
   In Japanese input methods, first you input a whole word using
 phonetic spelling; then, after the word is in the buffer, Emacs
@@ -1786,7 +1790,7 @@ Reordering of bidirectional text into the @dfn{visual} order happens
 at display time.  As a result, character positions no longer increase
 monotonically with their positions on display.  Emacs implements the
 Unicode Bidirectional Algorithm (UBA) described in the
-@uref{http://unicode.org/reports/tr9/, Unicode Standard Annex #9}, for
+@uref{https://unicode.org/reports/tr9/, Unicode Standard Annex #9}, for
 reordering of bidirectional text for display.
 It deviates from the UBA only in how continuation lines are displayed
 when text direction is opposite to the base paragraph direction,

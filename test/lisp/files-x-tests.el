@@ -1,6 +1,6 @@
 ;;; files-x-tests.el --- tests for files-x.el.
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -35,6 +35,11 @@
   '((remote-null-device . "/dev/null")))
 (defconst files-x-test--variables4
   '((remote-null-device . "null")))
+(put 'remote-shell-file-name 'safe-local-variable #'identity)
+(put 'remote-shell-command-switch 'safe-local-variable #'identity)
+(put 'remote-shell-interactive-switch 'safe-local-variable #'identity)
+(put 'remote-shell-login-switch 'safe-local-variable #'identity)
+(put 'remote-null-device 'safe-local-variable #'identity)
 
 (defconst files-x-test--application '(:application 'my-application))
 (defconst files-x-test--another-application
@@ -268,7 +273,9 @@
         (should-not (local-variable-p 'remote-shell-file-name))
         (should-not (boundp 'remote-shell-file-name))))))
 
-(ert-deftest files-x-test-with-connection-local-profiles ()
+(defvar tramp-connection-local-default-profile)
+
+(ert-deftest files-x-test-with-connection-local-variables ()
   "Test setting connection-local variables."
 
   (let (connection-local-profile-alist connection-local-criteria-alist)
@@ -303,46 +310,48 @@
          (string-equal (symbol-value 'remote-null-device) "/dev/null"))
 
 	;; A candidate connection-local variable is not bound yet.
-        (should-not (local-variable-p 'remote-shell-command-switch))
+        (should-not (local-variable-p 'remote-shell-command-switch))))
 
-	;; Use the macro.
-        (with-connection-local-profiles '(remote-bash remote-ksh)
-          ;; All connection-local variables are set.  They apply in
-          ;; reverse order in `connection-local-variables-alist'.
-          ;; This variable keeps only the variables to be set inside
-          ;; the macro.
-          (should
-           (equal connection-local-variables-alist
-                  (nreverse (copy-tree files-x-test--variables1))))
-          ;; The variables exist also as local variables.
-          (should (local-variable-p 'remote-shell-file-name))
-          (should (local-variable-p 'remote-shell-command-switch))
-          ;; The proper variable values are set.  The settings from
-          ;; `remote-bash' overwrite the same variables as in
-          ;; `remote-ksh'.
-          (should
-           (string-equal (symbol-value 'remote-shell-file-name) "/bin/bash"))
-          (should
-           (string-equal (symbol-value 'remote-shell-command-switch) "-c")))
+    (with-temp-buffer
+      ;; Use the macro.  We need a remote `default-directory'.
+      (let ((enable-connection-local-variables t)
+	    (default-directory "/method:host:")
+	    (remote-null-device "null"))
+        (should-not connection-local-variables-alist)
+        (should-not (local-variable-p 'remote-shell-file-name))
+        (should-not (local-variable-p 'remote-null-device))
+        (should-not (boundp 'remote-shell-file-name))
+        (should (string-equal (symbol-value 'remote-null-device) "null"))
 
-        ;; Everything is rewound.  The old variable values are reset.
-        (should
-         (equal connection-local-variables-alist
-		(append
-		 (nreverse (copy-tree files-x-test--variables3))
-		 (nreverse (copy-tree files-x-test--variables2)))))
-        ;; The variables exist also as local variables.
-        (should (local-variable-p 'remote-shell-file-name))
-        (should (local-variable-p 'remote-null-device))
-        ;; The proper variable values are set.  The settings from
-	;; `remote-ksh' are back.
-        (should
-         (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
-        (should
-         (string-equal (symbol-value 'remote-null-device) "/dev/null"))
+	(with-connection-local-variables
+	 ;; All connection-local variables are set.  They apply in
+	 ;; reverse order in `connection-local-variables-alist'.
+	 ;; Since we ha a remote default directory, Tramp's settings
+	 ;; are appended as well.
+         (should
+          (equal
+           connection-local-variables-alist
+	   (append
+	    (nreverse (copy-tree files-x-test--variables3))
+	    (nreverse (copy-tree files-x-test--variables2))
+            (nreverse (copy-tree tramp-connection-local-default-profile)))))
+         ;; The variables exist also as local variables.
+         (should (local-variable-p 'remote-shell-file-name))
+         (should (local-variable-p 'remote-null-device))
+         ;; The proper variable values are set.
+         (should
+          (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
+         (should
+          (string-equal (symbol-value 'remote-null-device) "/dev/null")))
 
-	;; The variable set temporarily is not unbound, again.
-        (should-not (local-variable-p 'remote-shell-command-switch))))))
+	;; Everything is rewound.  The old variable values are reset.
+	(should-not connection-local-variables-alist)
+	;; The variables don't exist as local variables.
+	(should-not (local-variable-p 'remote-shell-file-name))
+	(should-not (local-variable-p 'remote-null-device))
+	;; The variable values are reset.
+	(should-not (boundp 'remote-shell-file-name))
+	(should (string-equal (symbol-value 'remote-null-device) "null"))))))
 
 (provide 'files-x-tests)
 ;;; files-x-tests.el ends here

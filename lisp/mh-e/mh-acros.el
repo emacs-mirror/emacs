@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- macros used in MH-E
 
-;; Copyright (C) 2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -40,29 +40,11 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 
 
 
 ;;; Compatibility
-
-;; TODO: Replace `cl' with `cl-lib'.
-;; `cl' is deprecated in Emacs 24.3. Use `cl-lib' instead. However,
-;; we'll likely have to insert `cl-' before each use of a Common Lisp
-;; function.
-;;;###mh-autoload
-(defmacro mh-require-cl ()
-  "Macro to load \"cl\" if needed.
-
-Emacs coding conventions require that the \"cl\" package not be
-required at runtime. However, the \"cl\" package in Emacs 21.4
-and earlier left \"cl\" routines in their macro expansions. In
-particular, the expansion of (setf (gethash ...) ...) used
-functions in \"cl\" at run time. This macro recognizes that and
-loads \"cl\" appropriately."
-  (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
-      `(require 'cl)
-    `(eval-when-compile (require 'cl))))
 
 ;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
@@ -81,6 +63,9 @@ loads \"cl\" appropriately."
 ;;;###mh-autoload
 (defmacro mh-funcall-if-exists (function &rest args)
   "Call FUNCTION with ARGS as parameters if it exists."
+  ;; FIXME: Not clear when this should be used.  If the function happens
+  ;; not to exist at compile-time (e.g. because the corresponding package
+  ;; wasn't loaded), then it won't ever be used :-(
   (when (fboundp function)
     `(when (fboundp ',function)
        (funcall ',function ,@args))))
@@ -128,55 +113,12 @@ XEmacs and versions of GNU Emacs before 21.1 require
 In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
 check if variable `transient-mark-mode' is active."
   (cond ((featurep 'xemacs)             ;XEmacs
-         `(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
+         '(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
         ((not check-transient-mark-mode-flag) ;GNU Emacs
-         `(and (boundp 'mark-active) mark-active))
+         '(and (boundp 'mark-active) mark-active))
         (t                              ;GNU Emacs
-         `(and (boundp 'transient-mark-mode) transient-mark-mode
+         '(and (boundp 'transient-mark-mode) transient-mark-mode
                (boundp 'mark-active) mark-active))))
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar struct)
-  (defvar x)
-  (defvar y))
-
-;;;###mh-autoload
-(defmacro mh-defstruct (name-spec &rest fields)
-  "Replacement for `defstruct' from the \"cl\" package.
-The `defstruct' in the \"cl\" library produces compiler warnings,
-and generates code that uses functions present in \"cl\" at
-run-time. This is a partial replacement, that avoids these
-issues.
-
-NAME-SPEC declares the name of the structure, while FIELDS
-describes the various structure fields. Lookup `defstruct' for
-more details."
-  (let* ((struct-name (if (atom name-spec) name-spec (car name-spec)))
-         (conc-name (or (and (consp name-spec)
-                             (cadr (assoc :conc-name (cdr name-spec))))
-                        (format "%s-" struct-name)))
-         (predicate (intern (format "%s-p" struct-name)))
-         (constructor (or (and (consp name-spec)
-                               (cadr (assoc :constructor (cdr name-spec))))
-                          (intern (format "make-%s" struct-name))))
-         (field-names (mapcar #'(lambda (x) (if (atom x) x (car x))) fields))
-         (field-init-forms (mapcar #'(lambda (x) (and (consp x) (cadr x)))
-                                   fields))
-         (struct (gensym "S"))
-         (x (gensym "X"))
-         (y (gensym "Y")))
-    `(progn
-       (defun* ,constructor (&key ,@(mapcar* #'(lambda (x y) (list x y))
-                                             field-names field-init-forms))
-         (list (quote ,struct-name) ,@field-names))
-       (defun ,predicate (arg)
-         (and (consp arg) (eq (car arg) (quote ,struct-name))))
-       ,@(loop for x from 1
-               for y in field-names
-               collect `(defmacro ,(intern (format "%s%s" conc-name y)) (z)
-                          (list 'nth ,x z)))
-       (quote ,struct-name))))
 
 ;;;###mh-autoload
 (defmacro with-mh-folder-updating (save-modification-flag &rest body)
@@ -218,8 +160,8 @@ Stronger than `save-excursion', weaker than `save-window-excursion'."
 ;;;###mh-autoload
 (defmacro mh-do-at-event-location (event &rest body)
   "Switch to the location of EVENT and execute BODY.
-After BODY has been executed return to original window. The
-modification flag of the buffer in the event window is
+After BODY has been executed return to original window.
+The modification flag of the buffer in the event window is
 preserved."
   (declare (debug t))
   (let ((event-window (make-symbol "event-window"))
@@ -264,7 +206,7 @@ preserved."
   "Iterate over region.
 
 VAR is bound to the message on the current line as we loop
-starting from BEGIN till END. In each step BODY is executed.
+starting from BEGIN till END.  In each step BODY is executed.
 
 If VAR is nil then the loop is executed without any binding."
   (declare (debug (symbolp body)))
@@ -288,7 +230,7 @@ If VAR is nil then the loop is executed without any binding."
 VAR is bound to each message in turn in a loop over RANGE, which
 can be a message number, a list of message numbers, a sequence, a
 region in a cons cell, or a MH range (something like last:20) in
-a string. In each iteration, BODY is executed.
+a string.  In each iteration, BODY is executed.
 
 The parameter RANGE is usually created with
 `mh-interactive-range' in order to provide a uniform interface to
@@ -322,6 +264,22 @@ MH-E functions."
                     (let ,(if binding-needed-flag `((,var v)) ())
                       ,@body))))))))
 (put 'mh-iterate-on-range 'lisp-indent-hook 'defun)
+
+(defmacro mh-dlet* (binders &rest body)
+  "Like `let*' but always dynamically scoped."
+  (declare (debug let) (indent 1))
+  ;; Works in both lexical and non-lexical mode.
+  `(progn
+     (with-suppressed-warnings ((lexical
+                                 ,@(mapcar (lambda (binder)
+                                             (if (consp binder)
+                                                 (car binder)
+                                               binder))
+                                           binders)))
+       ,@(mapcar (lambda (binder)
+                   `(defvar ,(if (consp binder) (car binder) binder)))
+                 binders)
+       (let* ,binders ,@body))))
 
 (provide 'mh-acros)
 

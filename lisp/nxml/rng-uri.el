@@ -1,6 +1,6 @@
 ;;; rng-uri.el --- URI parsing and manipulation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -30,9 +30,10 @@ Multibyte characters are left as is.  Use `rng-uri-escape-multibyte' to
 escape them using %HH."
   (setq f (expand-file-name f))
   (let ((url
-	 (replace-regexp-in-string "[\000-\032\177<>#%\"{}|\\^[]`%?;]"
-				   'rng-percent-encode
-				   f)))
+	 ;; FIXME. Explain why the pattern doesn't also have "!$&'()*+,/:@=".
+	 ;; See Internet RFC 3986 section 2.2.
+	 (replace-regexp-in-string "[]\0-\s\"#%;<>?[\\^`{|}\177]"
+				   'rng-percent-encode f)))
     (concat "file:"
 	    (if (and (> (length url) 0)
 		     (= (aref url 0) ?/))
@@ -42,7 +43,7 @@ escape them using %HH."
 
 (defun rng-uri-escape-multibyte (uri)
   "Escape multibyte characters in URI."
-  (replace-regexp-in-string "[:nonascii:]"
+  (replace-regexp-in-string "[[:nonascii:]]"
 			    'rng-percent-encode
 			    (encode-coding-string uri 'utf-8)))
 
@@ -67,7 +68,7 @@ Signal an error if URI is not a valid file URL."
 
 ;; pattern is either nil or match or replace
 (defun rng-uri-file-name-1 (uri pattern)
-  (unless (string-match "\\`\\(?:[^%]\\|%[0-9a-fA-F]{2}\\)*\\'" uri)
+  (unless (string-match "\\`\\(?:[^%]\\|%[[:xdigit:]]{2}\\)*\\'" uri)
     (rng-uri-error "Bad escapes in URI `%s'" uri))
   (setq uri (rng-uri-unescape-multibyte uri))
   (let* ((components
@@ -298,7 +299,7 @@ Both FULL and BASE must be absolute URIs."
        (mapconcat 'identity segments "/")))
 
 (defun rng-uri-unescape-multibyte (str)
-  (replace-regexp-in-string "\\(?:%[89a-fA-F][0-9a-fA-F]\\)+"
+  (replace-regexp-in-string "\\(?:%[89a-fA-F][[:xdigit:]]\\)+"
 			    'rng-multibyte-percent-decode
 			    str))
 
@@ -309,7 +310,7 @@ Both FULL and BASE must be absolute URIs."
 			 'utf-8))
 
 (defun rng-uri-unescape-unibyte (str)
-  (replace-regexp-in-string "%[0-7][0-9a-fA-F]"
+  (replace-regexp-in-string "%[0-7][[:xdigit:]]"
 			    (lambda (h)
 			      (string-to-number (substring h 1) 16))
 			    str
@@ -317,7 +318,7 @@ Both FULL and BASE must be absolute URIs."
 			    t))
 
 (defun rng-uri-unescape-unibyte-match (str)
-  (replace-regexp-in-string "%[0-7][0-9a-fA-F]\\|[^%]"
+  (replace-regexp-in-string "%[0-7][[:xdigit:]]\\|[^%]"
 			    (lambda (match)
 			      (if (string= match "*")
 				  "\\([^/]*\\)"
@@ -332,7 +333,7 @@ Both FULL and BASE must be absolute URIs."
 
 (defun rng-uri-unescape-unibyte-replace (str next-match-index)
   (replace-regexp-in-string
-   "%[0-7][0-9a-fA-F]\\|[^%]"
+   "%[0-7][[:xdigit:]]\\|[^%]"
    (lambda (match)
      (if (string= match "*")
 	 (let ((n next-match-index))

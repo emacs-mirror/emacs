@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -181,12 +181,7 @@ return a string representing the column's value."
    (list (bs--make-header-match-string)
 	 '(1 font-lock-type-face append) '(1 'bold append))
    ;; Buffername embedded by *
-   (list "^\\(.*\\*.*\\*.*\\)$"
-	 1
-	 ;; problem in XEmacs with font-lock-constant-face
-	 (if (facep 'font-lock-constant-face)
-	     'font-lock-constant-face
-	   'font-lock-comment-face))
+   (list "^\\(.*\\*.*\\*.*\\)$" 1 'font-lock-constant-face)
    ;; Dired-Buffers
    '("^..\\(.*Dired .*\\)$" 1 font-lock-function-name-face)
    ;; the star for modified buffers
@@ -343,11 +338,6 @@ configuration.
 A value of `never' means to never show the buffer.
 A value of `always' means to show buffer regardless of the configuration.")
 
-;; Make face named region (for XEmacs)
-(unless (facep 'region)
-  (make-face 'region)
-  (set-face-background 'region "gray75"))
-
 (defun bs--sort-by-name (b1 b2)
   "Compare buffers B1 and B2 by buffer name."
   (string< (buffer-name b1)
@@ -448,8 +438,7 @@ Used internally, only.")
     (define-key map "f"       'bs-select)
     (define-key map "v"       'bs-view)
     (define-key map "!"       'bs-select-in-one-window)
-    (define-key map [mouse-2] 'bs-mouse-select)	;; for GNU EMACS
-    (define-key map [button2] 'bs-mouse-select) ;; for XEmacs
+    (define-key map [mouse-2] 'bs-mouse-select)
     (define-key map "F"       'bs-select-other-frame)
     (let ((key ?1))
       (while (<= key ?9)
@@ -459,10 +448,7 @@ Used internally, only.")
     (define-key map "\e-"     'negative-argument)
     (define-key map "o"       'bs-select-other-window)
     (define-key map "\C-o"    'bs-tmp-select-other-window)
-    ;; for GNU EMACS
     (define-key map [mouse-3] 'bs-mouse-select-other-frame)
-    ;; for XEmacs
-    (define-key map [button3] 'bs-mouse-select-other-frame)
     (define-key map [up]      'bs-up)
     (define-key map "n"       'bs-down)
     (define-key map "p"       'bs-up)
@@ -626,29 +612,43 @@ manipulating the buffer list and buffers.
 For faster navigation each digit key is a digit argument.
 
 \\[bs-select] or SPACE -- select current line's buffer and other marked buffers.
-\\[bs-toggle-show-all]  -- toggle between all buffers and a special subset.
+\\[bs-select-in-one-window] -- select current's line buffer in one \
+window, and delete other
+     windows in the same frame.
 \\[bs-select-other-window] -- select current line's buffer in other window.
-\\[bs-tmp-select-other-window] -- make another window display that buffer and
-    remain in Buffer Selection Menu.
+\\[bs-tmp-select-other-window] -- display current line's buffer in \
+other window, and remain in
+     Buffer Selection Menu.
+\\[bs-select-other-frame] -- select current's line buffer in a new frame.
+\\[bs-view] -- view current's line buffer in View mode.
+\\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
 \\[bs-mouse-select] -- select current line's buffer and other marked buffers.
-\\[bs-save] -- save current line's buffer immediately.
-\\[bs-delete] -- kill current line's buffer immediately.
-\\[bs-toggle-readonly] -- toggle read-only status of current line's buffer.
-\\[bs-clear-modified] -- clear modified-flag on that buffer.
+\\[bs-mouse-select-other-frame] -- select current's line buffer in a new frame.
+
 \\[bs-mark-current] -- mark current line's buffer to be displayed.
 \\[bs-unmark-current] -- unmark current line's buffer to be displayed.
-\\[bs-unmark-all] -- unmark all buffer lines.
 \\[bs-unmark-previous] -- unmark previous line's buffer to be displayed.
-\\[bs-show-sorted] -- display buffer list sorted by next sort aspect.
-\\[bs-set-configuration-and-refresh] -- ask user for a configuration and \
-apply selected configuration.
-\\[bs-select-next-configuration] -- select and apply next \
-available Buffer Selection Menu configuration.
-\\[bs-kill] -- leave Buffer Selection Menu without a selection.
-\\[bs-toggle-current-to-show] -- toggle status of appearance.
+\\[bs-unmark-all] -- unmark all buffer lines.
+
+\\[bs-bury-buffer] -- bury current's line buffer.
+\\[bs-save] -- save current line's buffer immediately.
+\\[bs-delete] -- kill current line's buffer immediately.
+\\[bs-delete-backward] -- like \\[bs-delete], but then move to previous line.
+\\[bs-clear-modified] -- clear modified-flag on that buffer.
+\\[bs-toggle-readonly] -- toggle read-only status of current line's buffer.
 \\[bs-set-current-buffer-to-show-always] -- mark current line's buffer \
 to show always.
-\\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
+\\[bs-toggle-current-to-show] -- toggle status of appearance.
+
+\\[bs-toggle-show-all] -- toggle between all buffers and a special subset.
+\\[bs-select-next-configuration] -- select and apply next available \
+configuration.
+\\[bs-set-configuration-and-refresh] -- ask user for a configuration and \
+apply it.
+\\[bs-show-sorted] -- display buffer list sorted by next sort aspect.
+
+\\[bs-kill] -- leave Buffer Selection Menu without a selection.
+\\[bs-refresh] -- refresh Buffer Selection Menu.
 \\[bs-help] -- display this help text."
   (buffer-disable-undo)
   (setq buffer-read-only t
@@ -828,8 +828,8 @@ See `visit-tags-table'."
   (let ((res
          (with-current-buffer (bs--current-buffer)
            (setq bs-buffer-show-mark (pcase bs-buffer-show-mark
-                                       (`nil   'never)
-                                       (`never 'always)
+                                       ('nil   'never)
+                                       ('never 'always)
                                        (_       nil))))))
     (bs--update-current-line)
     (bs--set-window-height)

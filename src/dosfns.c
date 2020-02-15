@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2018 Free Software
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2020 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -74,14 +74,14 @@ REGISTERS should be a vector produced by `make-register' and
   for (i = 0; i < 8; i++)
     CHECK_FIXNUM (AREF (registers, i));
 
-  inregs.x.ax    = (unsigned long) XFIXNAT (AREF (registers, 0));
-  inregs.x.bx    = (unsigned long) XFIXNAT (AREF (registers, 1));
-  inregs.x.cx    = (unsigned long) XFIXNAT (AREF (registers, 2));
-  inregs.x.dx    = (unsigned long) XFIXNAT (AREF (registers, 3));
-  inregs.x.si    = (unsigned long) XFIXNAT (AREF (registers, 4));
-  inregs.x.di    = (unsigned long) XFIXNAT (AREF (registers, 5));
-  inregs.x.cflag = (unsigned long) XFIXNAT (AREF (registers, 6));
-  inregs.x.flags = (unsigned long) XFIXNAT (AREF (registers, 7));
+  inregs.x.ax    = (unsigned long) XFIXNUM (AREF (registers, 0));
+  inregs.x.bx    = (unsigned long) XFIXNUM (AREF (registers, 1));
+  inregs.x.cx    = (unsigned long) XFIXNUM (AREF (registers, 2));
+  inregs.x.dx    = (unsigned long) XFIXNUM (AREF (registers, 3));
+  inregs.x.si    = (unsigned long) XFIXNUM (AREF (registers, 4));
+  inregs.x.di    = (unsigned long) XFIXNUM (AREF (registers, 5));
+  inregs.x.cflag = (unsigned long) XFIXNUM (AREF (registers, 6));
+  inregs.x.flags = (unsigned long) XFIXNUM (AREF (registers, 7));
 
   int86 (no, &inregs, &outregs);
 
@@ -140,7 +140,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   for (i = 0; i < len; i++)
     {
       CHECK_FIXNUM (AREF (vector, i));
-      buf[i] = (unsigned char) XFIXNAT (AREF (vector, i)) & 0xFF;
+      buf[i] = (unsigned char) XFIXNUM (AREF (vector, i)) & 0xFF;
     }
 
   dosmemput (buf, len, offs);

@@ -7,7 +7,7 @@
 @copying
 This file documents the Ido package for GNU Emacs.
 
-Copyright @copyright{} 2013-2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2013--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -65,6 +65,7 @@ Appendices
 * GNU Free Documentation License::  The license for this documentation.
 
 Indexes
+* Function Index::              An entry for each documented function.
 * Variable Index::              An entry for each documented variable.
 
 @detailmenu
@@ -107,7 +108,7 @@ This document describes a set of features that can interactively do
 things with buffers and files.  All the features are described here
 in detail.
 
-The @dfn{Ido} package can let you switch between buffers and visit
+The @dfn{Ido} package lets you switch between buffers and visit
 files and directories with a minimum of keystrokes.  It is a superset
 of Iswitchb, the interactive buffer switching package by Stephen
 Eglen.
@@ -175,6 +176,7 @@ record.
 @end defopt
 
 @c see (info "(elisp) File Name Completion")
+@findex ido-reread-directory
 @defopt ido-max-dir-file-cache
 This user option specifies maximum number of working directories to be
 cached.  This is the size of the cache of
@@ -209,7 +211,7 @@ do with various kinds of @emph{matching}: among buffers, files, and directories.
 
 @noindent
 As you type in a substring, the list of buffers or files currently
-matching the substring are displayed as you type.  The list is
+matching the substring is displayed as you type.  The list is
 ordered so that the most recent buffers or files visited come at
 the start of the list.
 
@@ -238,14 +240,15 @@ If you then press @kbd{2}:
 Buffer: 2[3]@{123456 | 123@}
 @end example
 
-The list in @{...@} are the matching buffers, most recent first
-(buffers visible in the current frame are put at the end of the list
-by default).  At any time you can select the item at the head of the
-list by pressing @key{RET}.  You can also put the first element at the
-end of the list by pressing @kbd{C-s} or @kbd{<right>}, or bring the
-last element to the head of the list by pressing @kbd{C-r} or
-@kbd{<left>}.
+The items listed in @{...@} are the matching buffers, most recent
+first (buffers visible in the current frame are put at the end of the
+list by default).  At any time you can select the item at the head of
+the list by pressing @key{RET}.  You can also put the first element at
+the end of the list by pressing @kbd{C-s} or @key{RIGHT}, or bring
+the last element to the head of the list by pressing @kbd{C-r} or
+@key{LEFT}.
 
+@findex ido-complete
 The item in [...] indicates what can be added to your input by
 pressing @key{TAB} (@code{ido-complete}).  In this case, you will get
 "3" added to your input.
@@ -271,6 +274,7 @@ Since there is only one matching buffer left, it is given in [] and it
 is shown in the @code{ido-only-match} face (ForestGreen).  You can now
 press @key{TAB} or @key{RET} to go to that buffer.
 
+@findex ido-select-text
 If you want to create a new buffer named @file{234}, you can press
 @kbd{C-j} (@code{ido-select-text}) instead of @key{TAB} or @key{RET}.
 
@@ -283,12 +287,13 @@ Buffer: 234a [No match]
 There are no matching buffers.  If you press @key{RET} or @key{TAB},
 you can be prompted to create a new buffer called @file{234a}.
 
-Of course, where this function comes in really useful is when you can
+Of course, where this function really comes in handy is when you can
 specify the buffer using only a few keystrokes.  In the above example,
 the quickest way to get to the @file{123456} file would be just to
 type @kbd{4} and then @key{RET} (assuming there isn't any newer buffer
 with @kbd{4} in its name).
 
+@findex ido-find-file
 Likewise, if you use @kbd{C-x C-f} (@code{ido-find-file}), the list of
 files and directories in the current directory is provided in the same
 fashion as the buffers above.  The files and directories are normally
@@ -300,7 +305,7 @@ In addition to scrolling through the list using @kbd{<right>} and
 @kbd{<left>}, you can use @kbd{<up>} and @kbd{<down>} to quickly
 scroll the list to the next or previous subdirectory.
 
-To go down into a subdirectory, and continue the file selection on
+To go down into a subdirectory and continue the file selection on
 the files in that directory, simply move the directory to the head
 of the list and hit @key{RET}.
 
@@ -361,12 +366,13 @@ If for some reason you cannot specify the proper file using
 @noindent
 The standard way of completion with *nix shells and Emacs is to insert
 a @dfn{prefix} and then hitting @key{TAB} (or another completion key).
-Cause of this behavior has become second nature to a lot of Emacs
-users Ido offers in addition to the default substring matching method
-(look above) also the prefix matching method.  The kind of matching is
+Because this behavior has become second nature to a lot of Emacs
+users, Ido offers, in addition to the default substring matching method
+(see above), also the prefix matching method.  The kind of matching is
 the only difference to the description of the substring matching
 above.
 
+@findex ido-toggle-prefix
 @cindex toggle prefix matching
 You can toggle prefix matching with @kbd{C-p}
 (@code{ido-toggle-prefix}).
@@ -413,12 +419,13 @@ you to type @samp{[ch]$} for example and see all file names ending in
 @samp{c} or @samp{h}.
 
 @defopt ido-enable-regexp
+@findex ido-toggle-regexp
 If the value of this user option is non-@code{nil}, Ido will do regexp
 matching.  The value of this user option can be toggled within
 ido-mode using @code{ido-toggle-regexp}.
 @end defopt
 
-@strong{Please notice:} Ido-style completion is inhibited when you
+@strong{Please note:} Ido-style completion is inhibited when you
 enable regexp matching.
 
 @node Highlighting
@@ -426,24 +433,26 @@ enable regexp matching.
 @cindex highlighting
 
 @noindent
+@vindex ido-use-faces
 The highlighting of matching items is controlled via
 @code{ido-use-faces}.  The faces used are @code{ido-first-match},
 @code{ido-only-match} and @code{ido-subdir}.
 
-Coloring of the matching item was suggested by Carsten Dominik.
+Coloring of the matching items was suggested by Carsten Dominik.
 
 @node Hidden Buffers and Files
 @chapter Hidden Buffers and Files
 @cindex hidden buffers and files
 
-Normally, Ido does not include hidden buffers (whose name starts with
-a space) and hidden files and directories (whose name starts with
-@samp{.}) in the list of possible completions.  However, if the
+Normally, Ido does not include hidden buffers (whose names start with
+a space) and hidden files and directories (whose names start with
+@file{.}) in the list of possible completions.  However, if the
 substring you enter does not match any of the visible buffers or
 files, Ido will automatically look for completions among the hidden
 buffers or files.
 
-You can toggle display of the hidden buffers and files with @kbd{C-a}
+@findex ido-toggle-ignore
+You can toggle the display of hidden buffers and files with @kbd{C-a}
 (@code{ido-toggle-ignore}).
 
 @c @deffn Command ido-toggle-ignore
@@ -466,6 +475,7 @@ or customize a certain variable:
 M-x customize-variable @key{RET} ido-xxxxx @key{RET}
 @end example
 
+@vindex ido-setup-hook
 To modify the keybindings, use the @code{ido-setup-hook}.  For example:
 
 @example
@@ -515,7 +525,7 @@ deleting or rearranging elements.)
 
 @noindent
 Find File At Point, also known generally as ``ffap'', is an
-intelligent system for opening files, and URLs.
+intelligent system for opening files and URLs.
 
 The following expression will make Ido guess the context:
 
@@ -542,7 +552,7 @@ a URL at point.  If found, call @code{find-file-at-point} to visit it.
 
 @noindent
 Ido is capable of ignoring buffers, directories, files and extensions
-using regular expression.
+using regular expressions.
 
 @defopt ido-ignore-buffers
 This variable takes a list of regular expressions for buffers to
@@ -575,11 +585,12 @@ enable it:
 (setq ido-ignore-extensions t)
 @end example
 
+@vindex completion-ignored-extensions
 Now you can customize @code{completion-ignored-extensions} as well.
 Go ahead and add all the useless object files, backup files, shared
 library files and other computing flotsam you don't want Ido to show.
 
-@strong{Please notice:} Ido will still complete the ignored elements
+@strong{Please note:} Ido will still complete the ignored elements
 if it would otherwise not show any other matches.  So if you type out
 the name of an ignored file, Ido will still let you open it just fine.
 
@@ -707,7 +718,7 @@ packages.
 After @kbd{C-x b} (@code{ido-switch-buffer}), the buffer at the head
 of the list can be killed by pressing @kbd{C-k}.  If the buffer needs
 saving, you will be queried before the buffer is killed.  @kbd{C-S-b}
-buries the buffer at the head of the list.
+buries the buffer at the end of the list.
 
 Likewise, after @kbd{C-x C-f}, you can delete (i.e., physically
 remove) the file at the head of the list with @kbd{C-k}.  You will
@@ -715,8 +726,8 @@ always be asked for confirmation before deleting the file.
 
 If you enter @kbd{C-x b} to switch to a buffer visiting a given file,
 and you find that the file you are after is not in any buffer, you can
-press @kbd{C-f} to immediately drop into @code{ido-find-file}.  And
-you can switch back to buffer selection with @kbd{C-b}.
+press @kbd{C-f} to immediately drop into @code{ido-find-file}.  You
+can switch back to buffer selection with @kbd{C-b}.
 
 @c @deffn Command ido-magic-forward-char
 @c @deffn Command ido-magic-backward-char
@@ -748,7 +759,7 @@ want Ido to behave differently from the default minibuffer resizing
 behavior, set the variable @code{ido-max-window-height}.
 
 Also, to improve the responsiveness of Ido, the maximum number of
-matching items is limited to 12, but you can increase or removed this
+matching items is limited to 12, but you can increase or remove this
 limit via the @code{ido-max-prospects} user option.
 
 @c @defopt ido-max-prospects
@@ -763,7 +774,7 @@ this separate buffer.
 
 @noindent
 @code{ido-read-buffer} and @code{ido-read-file-name} have been written
-to be drop in replacements for the normal buffer and file name reading
+to be drop-in replacements for the normal buffer and file name reading
 functions @code{read-buffer} and @code{read-file-name}.
 
 To use ido for all buffer and file selections in Emacs, customize the
@@ -793,10 +804,10 @@ buffer name, a file name, or a directory name in the @emph{Ido} way.
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@c @node Function Index
-@c @unnumbered Function Index
+@node Function Index
+@unnumbered Function Index
 
-@c @printindex fn
+@printindex fn
 
 @node Variable Index
 @unnumbered Variable Index

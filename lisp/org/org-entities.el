@@ -1,6 +1,6 @@
 ;;; org-entities.el --- Support for Special Entities -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>,
 ;;         Ulf Stegemann <ulf at zeitform dot de>
@@ -543,11 +543,11 @@ This first checks the user list, then the built-in list."
     (dolist (e org-entities)
       (pcase e
 	(`(,name ,latex ,mathp ,html ,ascii ,latin ,utf8)
-	 (if (equal ascii "|") (setq ascii "\\vert"))
-	 (if (equal latin "|") (setq latin "\\vert"))
-	 (if (equal utf8  "|") (setq utf8  "\\vert"))
-	 (if (equal ascii "=>") (setq ascii "= >"))
-	 (if (equal latin "=>") (setq latin "= >"))
+	 (when (equal ascii "|") (setq ascii "\\vert"))
+	 (when (equal latin "|") (setq latin "\\vert"))
+	 (when (equal utf8  "|") (setq utf8  "\\vert"))
+	 (when (equal ascii "=>") (setq ascii "= >"))
+	 (when (equal latin "=>") (setq latin "= >"))
 	 (insert "|" name
 		 "|" (format "=%s=" latex)
 		 "|" (format (if mathp "$%s$" "$\\mbox{%s}$") latex)

@@ -1,6 +1,6 @@
 ;;; ob-lob.el --- Functions Supporting the Library of Babel -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
@@ -62,7 +62,7 @@ should not be inherited from a source block.")
 		  (cons (cons source info)
 			(assq-delete-all source org-babel-library-of-babel))))
 	  (cl-incf lob-ingest-count))))
-    (message "%d src block%s added to Library of Babel"
+    (message "%d source block%s added to Library of Babel"
 	     lob-ingest-count (if (> lob-ingest-count 1) "s" ""))
     lob-ingest-count))
 
@@ -138,9 +138,8 @@ see."
 			header
 			org-babel-default-lob-header-args
 			(append
-			 (org-with-wide-buffer
-			  (goto-char begin)
-			  (org-babel-params-from-properties language))
+			 (org-with-point-at begin
+			   (org-babel-params-from-properties language))
 			 (list
 			  (org-babel-parse-header-arguments
 			   (org-element-property :inside-header context))

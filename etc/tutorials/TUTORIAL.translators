@@ -41,8 +41,8 @@ Maintainer: Alfredo Finelli <alfredofnl@tiscali.it>
 	    Italian GNU Translation Group <tp@lists.linux.it>
 
 * TUTORIAL.ja:
-Author:     Kenichi Handa <handa@m17n.org>
-Maintainer: Kenichi Handa <handa@m17n.org>
+Author:     Kenichi Handa <handa@gnu.org>
+Maintainer: Kenichi Handa <handa@gnu.org>
 
 * TUTORIAL.ko:
 Author:     Koaunghi Un <koaunghi@ling.cnu.ac.kr>
@@ -94,4 +94,3 @@ Maintainer: Chao-Hong Liu <chliu@gnu.org>
 ;;; Local Variables:
 ;;; coding: utf-8
 ;;; End:
-

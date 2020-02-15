@@ -1,9 +1,8 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
-;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997
 ;; Version:    1.1i
 ;; Keywords:   PostScript, languages
@@ -458,9 +457,9 @@ If nil, use `temporary-file-directory'."
 
 (defun ps-mode-smie-rules (kind token)
   (pcase (cons kind token)
-    (`(:after . "<") (when (smie-rule-next-p "<") 0))
-    (`(:elem . basic) ps-mode-tab)
-    (`(:close-all . ">") t)
+    ('(:after . "<") (when (smie-rule-next-p "<") 0))
+    ('(:elem . basic) ps-mode-tab)
+    ('(:close-all . ">") t)
     (`(:list-intro . ,_) t)))
 
 ;;;###autoload
@@ -497,7 +496,7 @@ The keymap for this second window is:
 
 
 When Ghostscript encounters an error it displays an error message
-with a file position. Clicking mouse-2 on this number will bring
+with a file position.  Clicking mouse-2 on this number will bring
 point to the corresponding spot in the PostScript window, if input
 to the interpreter was sent from that window.
 Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect."
@@ -607,7 +606,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   "To what column should text on current line be indented?
 
 Indentation is increased if the last token on the current line
-defines the beginning of a group. These tokens are:  {  [  <<"
+defines the beginning of a group.  These tokens are:  {  [  <<"
   (save-excursion
     (beginning-of-line)
     (if (looking-at "[ \t]*\\(}\\|\\]\\|>>\\)")
@@ -725,24 +724,18 @@ Only one `%' is removed, and it has to be in the first column."
 
 (defun ps-mode-octal-region (begin end)
   "Change 8-bit characters to octal codes in region."
-  (interactive "r")
-  (if buffer-read-only
-      (progn
-	(ding)
-	(message "Buffer is read only"))
-    (save-excursion
-      (let (endm i)
-        (setq endm (make-marker))
-        (set-marker endm end)
-        (goto-char begin)
-        (setq i 0)
-        (while (re-search-forward "[\200-\377]" (marker-position endm) t)
-          (setq i (1+ i))
-          (backward-char)
-          (insert (format "\\%03o" (string-to-char (string-make-unibyte (buffer-substring (point) (1+ (point)))))))
-          (delete-char 1))
-        (message "%d change%s made" i (if (= i 1) "" "s"))
-        (set-marker endm nil)))))
+  (interactive "*r")
+  (save-excursion
+    (let ((endm (copy-marker end))
+          (i 0))
+      (goto-char begin)
+      (while (re-search-forward "[\200-\377]" (marker-position endm) t)
+        (setq i (1+ i))
+        (replace-match (format "\\%03o"
+                               (multibyte-char-to-unibyte (char-before)))
+                       t t))
+      (message "%d change%s made" i (if (= i 1) "" "s"))
+      (set-marker endm nil))))
 
 
 ;; Cookbook.
@@ -952,11 +945,11 @@ This mode is invoked from `ps-mode' and should not be called directly."
       (delete-process "ps-run"))
     (erase-buffer)
     (setq command (append command init-file))
-    (insert (mapconcat 'identity command " ") "\n")
-    (apply 'make-comint "ps-run" (car command) nil (cdr command))
+    (insert (mapconcat #'identity command " ") "\n")
+    (apply #'make-comint "ps-run" (car command) nil (cdr command))
     (with-current-buffer "*ps-run*"
       (use-local-map ps-run-mode-map)
-      (setq comint-prompt-regexp ps-run-prompt))
+      (setq-local comint-prompt-regexp ps-run-prompt))
     (select-window oldwin)))
 
 (defun ps-run-quit ()
@@ -1075,7 +1068,7 @@ grestore
 
 (defun ps-run-goto-error ()
   "Jump to buffer position read as integer at point.
-Use line numbers if `ps-run-error-line-numbers' is not nil"
+Use line numbers if `ps-run-error-line-numbers' is not nil."
   (interactive)
   (let ((p (point)))
     (unless (looking-at "[0-9]")

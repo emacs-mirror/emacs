@@ -1,9 +1,8 @@
 ;;;; testcover.el -- Visual code-coverage tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
-;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: lisp utility
 
 ;; This file is part of GNU Emacs.
@@ -151,12 +150,12 @@ call to one of the `testcover-1value-functions'."
 
 (defface testcover-nohits
   '((t (:background "DeepPink2")))
-  "Face for forms that had no hits during coverage test"
+  "Face for forms that had no hits during coverage test."
   :group 'testcover)
 
 (defface testcover-1value
   '((t (:background "Wheat2")))
-  "Face for forms that always produced the same value during coverage test"
+  "Face for forms that always produced the same value during coverage test."
   :group 'testcover)
 
 
@@ -247,7 +246,7 @@ BEFORE-INDEX is the form's index into the code-coverage vector."
   (let ((before-entry (aref testcover-vector before-index)))
     (when (eq (car-safe before-entry) 'noreturn)
       (let* ((after-index (cdr before-entry)))
-        (aset testcover-vector after-index 'ok-coverage)))))
+        (aset testcover-vector after-index 'edebug-ok-coverage)))))
 
 (defun testcover-after (_before-index after-index value)
   "Update code coverage with the result of a form's evaluation.
@@ -255,10 +254,10 @@ AFTER-INDEX is the form's index into the code-coverage
 vector.  Return VALUE."
   (let ((old-result (aref testcover-vector after-index)))
     (cond
-     ((eq 'unknown old-result)
+     ((eq 'edebug-unknown old-result)
       (aset testcover-vector after-index (testcover--copy-object value)))
      ((eq 'maybe old-result)
-      (aset testcover-vector after-index 'ok-coverage))
+      (aset testcover-vector after-index 'edebug-ok-coverage))
      ((eq '1value old-result)
       (aset testcover-vector after-index
             (cons old-result (testcover--copy-object value))))
@@ -272,7 +271,7 @@ vector.  Return VALUE."
      ((not (condition-case ()
                (equal value old-result)
              (circular-list nil)))
-      (aset testcover-vector after-index 'ok-coverage))))
+      (aset testcover-vector after-index 'edebug-ok-coverage))))
   value)
 
 ;; Add these behaviors to Edebug.
@@ -357,13 +356,13 @@ eliminated by adding more test cases."
       (while (> len 0)
 	(setq len  (1- len)
 	      data (aref coverage len))
-        (when (and (not (eq data 'ok-coverage))
+        (when (and (not (eq data 'edebug-ok-coverage))
                    (not (memq (car-safe data)
                               '(1value maybe noreturn)))
                    (setq j (+ def-mark (aref points len))))
 	  (setq ov (make-overlay (1- j) j))
 	  (overlay-put ov 'face
-                       (if (memq data '(unknown maybe 1value))
+                       (if (memq data '(edebug-unknown maybe 1value))
 			   'testcover-nohits
 			 'testcover-1value))))
       (set-buffer-modified-p changed))))
@@ -411,7 +410,7 @@ coverage tests.  This function creates many overlays."
 ;; identified and treated correctly.
 ;;
 ;; The code coverage vector entries for the beginnings of forms will
-;; be changed to `ok-coverage.', except for the beginnings of forms
+;; be changed to `edebug-ok-coverage.', except for the beginnings of forms
 ;; which should never return, which will be changed to
 ;; (noreturn . AFTER-INDEX) so that testcover-before can set the entry
 ;; for the end of the form just before it is executed.
@@ -514,7 +513,7 @@ where BEFORE-FORM is bound to either (edebug-before BEFORE-ID) or
 form to be treated accordingly."
   (let (val)
     (unless (eql before-form 0)
-      (aset testcover-vector before-id 'ok-coverage))
+      (aset testcover-vector before-id 'edebug-ok-coverage))
 
     (setq val (testcover-analyze-coverage-wrapped-form wrapped-form))
     (when (or (eq wrapper '1value) val)

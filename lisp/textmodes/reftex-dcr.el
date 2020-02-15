@@ -1,6 +1,6 @@
 ;;; reftex-dcr.el --- viewing cross references and citations with RefTeX
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -60,11 +60,15 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
       (setq reftex-call-back-to-this-buffer (current-buffer))
 
       (cond
-       ((string-match "\\`\\\\cite\\|cite\\*?\\'\\|bibentry" macro)
-	;; A citation macro: search for bibitems or BibTeX entries
+       ((string-match "\\`\\\\cite\\|cite\\([s*]\\|texts?\\)?\\'\\|bibentry" macro)
+	;; A citation macro: search for bibitems or BibTeX entries.
+        ;; Match also commands from biblatex ending with `s'
+        ;; (\parencites) or `*' (\parencite*) and `texts?'
+        ;; (\footcitetext and \footcitetexts).
 	(setq dw (reftex-view-cr-cite arg key auto-how)))
-       ((string-match "\\`\\\\ref\\|ref\\(range\\)?\\*?\\'" macro)
-	;; A reference macro: search for labels
+       ((string-match "\\`\\\\ref\\|ref\\(range\\|s\\)?\\*?\\'" macro)
+	;; A reference macro: search for labels.
+        ;; Match also commands from cleveref ending with `s' (\namecrefs).
 	(setq dw (reftex-view-cr-ref arg key auto-how)))
        (auto-how nil)  ;; No further action for automatic display (speed)
        ((or (equal macro "\\label")

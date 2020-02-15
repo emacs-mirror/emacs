@@ -1,6 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -129,6 +129,8 @@
   "Hook that gets run after the aligner has been loaded."
   :type 'hook
   :group 'align)
+(make-obsolete-variable 'align-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom align-indent-before-aligning nil
   "If non-nil, indent the marked region before aligning it."
@@ -206,7 +208,7 @@ If nil, then no messages will ever be printed to the minibuffer."
 
 (defcustom align-dq-string-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
-	  '(python-mode))
+          '(python-mode vhdl-mode))
   "A list of modes where double quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
@@ -219,7 +221,7 @@ If nil, then no messages will ever be printed to the minibuffer."
 
 (defcustom align-open-comment-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
-	  '(python-mode makefile-mode))
+          '(python-mode makefile-mode vhdl-mode))
   "A list of modes with a single-line comment syntax.
 These are comments as in Lisp, which have a beginning, but end with
 the line (i.e., `comment-end' is an empty string)."
@@ -259,7 +261,7 @@ The possible settings for `align-region-separate' are:
  `group'   Each contiguous set of lines where a specific alignment
 	   occurs is considered a section for that alignment rule.
 	   Note that each rule may have any entirely different set
-           of section divisions than another.
+           of section divisions from another.
 
 	     int    alpha = 1; /* one */
 	     double beta  = 2.0;
@@ -399,7 +401,7 @@ The possible settings for `align-region-separate' are:
 		   (lambda (end reverse)
 		     (funcall (if reverse 're-search-backward
 				're-search-forward)
-			      (concat "[^ \t\n\\\\]"
+			      (concat "[^ \t\n\\]"
 				      (regexp-quote comment-start)
 				      "\\(.+\\)$") end t))))
      (modes    . align-open-comment-modes))
@@ -411,7 +413,7 @@ The possible settings for `align-region-separate' are:
     (c-variable-declaration
      (regexp   . ,(concat "[*&0-9A-Za-z_]>?[&*]*\\(\\s-+[*&]*\\)"
 			  "[A-Za-z_][0-9A-Za-z:_]*\\s-*\\(\\()\\|"
-			  "=[^=\n].*\\|(.*)\\|\\(\\[.*\\]\\)*\\)?"
+			  "=[^=\n].*\\|(.*)\\|\\(\\[.*\\]\\)*\\)"
 			  "\\s-*[;,]\\|)\\s-*$\\)"))
      (group    . 1)
      (modes    . align-c++-modes)
@@ -438,7 +440,7 @@ The possible settings for `align-region-separate' are:
      (tab-stop . nil))
 
     (perl-assignment
-     (regexp   . ,(concat "[^=!^&*-+<>/| \t\n]\\(\\s-*\\)=[~>]?"
+     (regexp   . ,(concat "[^=!^&*+<>/| \t\n-]\\(\\s-*\\)=[~>]?"
 			  "\\(\\s-*\\)\\([^>= \t\n]\\|$\\)"))
      (group    . (1 2))
      (modes    . align-perl-modes)
@@ -452,7 +454,7 @@ The possible settings for `align-region-separate' are:
      (tab-stop . nil))
 
     (make-assignment
-     (regexp   . "^\\s-*\\w+\\(\\s-*\\):?=\\(\\s-*\\)\\([^\t\n \\\\]\\|$\\)")
+     (regexp   . "^\\s-*\\w+\\(\\s-*\\):?=\\(\\s-*\\)\\([^\t\n \\]\\|$\\)")
      (group    . (1 2))
      (modes    . '(makefile-mode))
      (tab-stop . nil))
@@ -759,7 +761,7 @@ The following attributes are meaningful:
 	  (lambda (end reverse)
 	    (funcall (if reverse 're-search-backward
 		       're-search-forward)
-		     (concat "[^ \t\n\\\\]"
+		     (concat "[^ \t\n\\]"
 			     (regexp-quote comment-start)
 			     "\\(.+\\)$") end t))))
      (modes  . align-open-comment-modes))
@@ -805,9 +807,7 @@ See the variable `align-exclude-rules-list' for more details.")
 (defvar align-regexp-history nil
   "Input history for the full user-entered regex in `align-regexp'")
 
-;; Sample extension rule set, for vhdl-mode.  This should properly be
-;; in vhdl-mode.el itself.
-
+;; Sample extension rule set for vhdl-mode.  This is now obsolete.
 (defcustom align-vhdl-rules-list
   `((vhdl-declaration
      (regexp   . "\\(signal\\|variable\\|constant\\)\\(\\s-+\\)\\S-")
@@ -842,17 +842,13 @@ See the variable `align-exclude-rules-list' for more details.")
   "Alignment rules for `vhdl-mode'.  See `align-rules-list' for more info."
   :type align-rules-list-type
   :group 'align)
-
 (put 'align-vhdl-rules-list 'risky-local-variable t)
+(make-obsolete-variable 'align-vhdl-rules-list "no longer used." "27.1")
 
 (defun align-set-vhdl-rules ()
   "Setup the `align-mode-rules-list' variable for `vhdl-mode'."
+  (declare (obsolete nil "27.1"))
   (setq align-mode-rules-list align-vhdl-rules-list))
-
-(add-hook 'vhdl-mode-hook 'align-set-vhdl-rules)
-
-(add-to-list 'align-dq-string-modes 'vhdl-mode)
-(add-to-list 'align-open-comment-modes 'vhdl-mode)
 
 ;;; User Functions:
 
@@ -1216,9 +1212,12 @@ have been aligned.  No changes will be made to the buffer."
 	  (when area
 	    (if func
 		(funcall func
-			 (marker-position (car area))
-			 (marker-position (cdr area))
-			 change)
+                         (marker-position (car area))
+                         (marker-position (if (and justify
+                                                   (consp (cdr area)))
+                                              (cadr area)
+                                            (cdr area)))
+                         change)
 	      (if (not (and justify
 			    (consp (cdr area))))
 		  (goto-char (cdr area))

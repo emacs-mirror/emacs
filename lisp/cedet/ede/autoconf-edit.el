@@ -1,6 +1,6 @@
 ;;; ede/autoconf-edit.el --- Keymap for autoconf
 
-;; Copyright (C) 1998-2000, 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project
@@ -35,7 +35,7 @@
 ROOTDIR is the root directory of a given autoconf controlled project.
 PROGRAM is the program to be configured.
 TESTFILE is the file used with AC_INIT.
-configure the initial configure script using `autoconf-new-automake-string'"
+Configure the initial configure script using `autoconf-new-automake-string'."
   (interactive "DRoot Dir: \nsProgram: \nsTest File: ")
   (require 'ede/srecode)
   (if (bufferp rootdir)
@@ -147,7 +147,7 @@ From the autoconf manual:
     (looking-at (concat "\\(A[CM]_" macro "\\|" macro "\\)"))))
 
 (defun autoconf-find-last-macro (macro &optional ignore-bol)
-  "Move to the last occurrence of MACRO in FILE, and return that point.
+  "Move to the last occurrence of MACRO, and return that point.
 The last macro is usually the one in which we would like to insert more
 items such as CHECK_HEADERS."
   (let ((op (point)) (atbol (if ignore-bol "" "^")))
@@ -160,7 +160,7 @@ items such as CHECK_HEADERS."
       nil)))
 
 (defun autoconf-parameter-strip (param)
-  "Strip the parameter PARAM  of whitespace and miscellaneous characters."
+  "Strip the parameter PARAM of whitespace and miscellaneous characters."
   ;; force greedy match for \n.
   (when (string-match "\\`\n*\\s-*\\[?\\s-*" param)
     (setq param (substring param (match-end 0))))

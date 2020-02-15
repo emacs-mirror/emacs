@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -573,7 +573,6 @@ echo area; use @code{set-buffer-modified-p} (above) instead.
 This function returns @var{buffer}'s modification-count.  This is a
 counter that increments every time the buffer is modified.  If
 @var{buffer} is @code{nil} (or omitted), the current buffer is used.
-The counter can wrap around occasionally.
 @end defun
 
 @defun buffer-chars-modified-tick &optional buffer
@@ -658,7 +657,8 @@ visiting a file or if the time has been explicitly cleared by
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
-If the buffer is not visiting a file, this function returns @minus{}1.
+If the buffer is visiting a file that doesn't exist, this function
+returns @minus{}1.
 @end defun
 
 @defun set-visited-file-modtime &optional time
@@ -935,6 +935,10 @@ This is a normal hook run whenever the buffer list changes.  Functions
 (@pxref{Creating Buffers}), @code{rename-buffer} (@pxref{Buffer Names}),
 @code{kill-buffer} (@pxref{Killing Buffers}), @code{bury-buffer} (see
 above) and @code{select-window} (@pxref{Selecting Windows}).
+
+Functions run by this hook should avoid calling @code{select-window}
+with a nil @var{norecord} argument or @code{with-temp-buffer} since
+either may lead to infinite recursion.
 @end defvar
 
 @node Creating Buffers

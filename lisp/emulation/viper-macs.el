@@ -1,6 +1,6 @@
 ;;; viper-macs.el --- functions implementing keyboard macros for Viper  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -415,7 +415,7 @@ If SCOPE is nil, the user is asked to specify the scope."
 		  t)))
 	  (if (y-or-n-p
 	       (format "Save this macro in %s? "
-		       (viper-abbreviate-file-name viper-custom-file-name)))
+		       (abbreviate-file-name viper-custom-file-name)))
 	      (viper-save-string-in-file
 	       (format "\n(viper-record-kbd-macro %S '%S %s '%S)"
 		       (viper-display-macro macro-name)
@@ -815,12 +815,7 @@ mistakes in macro names to be passed to this function is to use
 
 ;; convert strings or arrays of characters to Viper macro form
 (defun viper-char-array-to-macro (array)
-  (let ((vec (vconcat array))
-	macro)
-    (if (featurep 'xemacs)
-	(setq macro (mapcar 'character-to-event vec))
-      (setq macro vec))
-    (vconcat (mapcar 'viper-event-key macro))))
+  (vconcat (mapcar 'viper-event-key (vconcat array))))
 
 ;; For macros bodies and names, goes over MACRO and checks if all members are
 ;; names of keys (actually, it only checks if they are symbols or lists
@@ -879,7 +874,7 @@ mistakes in macro names to be passed to this function is to use
       ;; read-key then events will be converted to keys, and sometimes
       ;; (e.g., (control \[)) those keys differ from the corresponding events.
       ;; So, do not use (setq next-event (read-key))
-      (setq next-event (viper-read-event))
+      (setq next-event (read-event))
       (or (viper-mouse-event-p next-event)
 	  (setq lis (vconcat lis (vector next-event)))))
     lis))

@@ -1,6 +1,6 @@
 ;;; elide-head.el --- hide headers in files
 
-;; Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: outlines tools
@@ -52,7 +52,7 @@
 (defcustom elide-head-headers-to-hide
   '(("is free software[:;] you can redistribute it" . ; GNU boilerplate
      "\\(Boston, MA 0211\\(1-1307\\|0-1301\\), USA\\|\
-If not, see <http://www\\.gnu\\.org/licenses/>\\)\\.")
+If not, see <https?://www\\.gnu\\.org/licenses/>\\)\\.")
     ("The Regents of the University of California\\.  All rights reserved\\." .
      "SUCH DAMAGE\\.")				      ; BSD
     ("Permission is hereby granted, free of charge" . ; X11
@@ -64,8 +64,8 @@ elided with an invisible overlay from the end of the line where the
 first match is found to the end of the match for the corresponding
 cdr."
   :group 'elide-head
-  :type '(alist :key-type  (string :tag "Start regexp")
-		:value-type (string :tag "End regexp")))
+  :type '(alist :key-type  (regexp :tag "Start regexp")
+		:value-type (regexp :tag "End regexp")))
 
 (defvar elide-head-overlay nil)
 (make-variable-buffer-local 'elide-head-overlay)

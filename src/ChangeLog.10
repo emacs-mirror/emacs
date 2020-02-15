@@ -1607,7 +1607,7 @@
 	command line option and `initial-frame-alist' which is superfluous
 	after the last change to `w32_createwindow'.
 
-2006-11-04  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+2006-11-04  Sławomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
 	* w32proc.c (sys_wait): Only wait for processes with fd<0.
 	Others should be handled by sys_select instead.  Fixes problems
@@ -27912,7 +27912,7 @@ See ChangeLog.9 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001-2018 Free Software Foundation, Inc.
+    Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

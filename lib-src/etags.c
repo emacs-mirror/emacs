@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2018 Free Software
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2020 Free Software
 Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -78,16 +78,11 @@ University of California, as described above. */
  * together with a configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
-
 #ifdef DEBUG
 #  undef DEBUG
 #  define DEBUG true
 #else
-#  define DEBUG  false
-#  ifndef NDEBUG
-#   define NDEBUG		/* disable assert */
-#  endif
+#  define DEBUG false
 #endif
 
 #include <config.h>
@@ -117,6 +112,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # define O_CLOEXEC O_NOINHERIT
 #endif /* WINDOWSNT */
 
+#include <inttypes.h>
 #include <limits.h>
 #include <unistd.h>
 #include <stdarg.h>
@@ -126,16 +122,12 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <errno.h>
 #include <fcntl.h>
 #include <binary-io.h>
+#include <intprops.h>
 #include <unlocked-io.h>
 #include <c-ctype.h>
 #include <c-strcase.h>
 
 #include <assert.h>
-#ifdef NDEBUG
-# undef  assert			/* some systems have a buggy assert.h */
-# define assert(x) ((void) 0)
-#endif
-
 #include <getopt.h>
 #include <regex.h>
 
@@ -148,6 +140,14 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #else
 # define CTAGS false
 #endif
+
+/* Copy to DEST from SRC (containing LEN bytes), and append a NUL byte.  */
+static void
+memcpyz (void *dest, void const *src, ptrdiff_t len)
+{
+  char *e = mempcpy (dest, src, len);
+  *e = '\0';
+}
 
 static bool
 streq (char const *s, char const *t)
@@ -243,11 +243,11 @@ endtoken (unsigned char c)
 /*
  *	xnew, xrnew -- allocate, reallocate storage
  *
- * SYNOPSIS:	Type *xnew (int n, Type);
- *		void xrnew (OldPointer, int n, Type);
+ * SYNOPSIS:	Type *xnew (ptrdiff_t n, Type);
+ *		void xrnew (OldPointer, ptrdiff_t n, int multiplier);
  */
-#define xnew(n, Type)      ((Type *) xmalloc ((n) * sizeof (Type)))
-#define xrnew(op, n, Type) ((op) = (Type *) xrealloc (op, (n) * sizeof (Type)))
+#define xnew(n, Type) ((Type *) xnmalloc (n, sizeof (Type)))
+#define xrnew(op, n, m) ((op) = xnrealloc (op, n, (m) * sizeof *(op)))
 
 typedef void Lang_function (FILE *);
 
@@ -290,8 +290,8 @@ typedef struct node_st
   bool valid;			/* write this tag on the tag file */
   bool is_func;			/* function tag: use regexp in CTAGS mode */
   bool been_warned;		/* warning already given for duplicated tag */
-  int lno;			/* line number tag is on */
-  long cno;			/* character number line starts on */
+  intmax_t lno;			/* line number tag is on */
+  intmax_t cno;			/* character number line starts on */
 } node;
 
 /*
@@ -303,8 +303,8 @@ typedef struct node_st
  */
 typedef struct
 {
-  long size;
-  int len;
+  ptrdiff_t size;
+  ptrdiff_t len;
   char *buffer;
 } linebuffer;
 
@@ -373,7 +373,7 @@ static void just_read_file (FILE *);
 
 static language *get_language_from_langname (const char *);
 static void readline (linebuffer *, FILE *);
-static long readline_internal (linebuffer *, FILE *, char const *);
+static ptrdiff_t readline_internal (linebuffer *, FILE *, char const *);
 static bool nocase_tail (const char *);
 static void get_tag (char *, char **);
 static void get_lispy_tag (char *);
@@ -393,7 +393,7 @@ static void process_file (FILE *, char *, language *);
 static void find_entries (FILE *);
 static void free_tree (node *);
 static void free_fdesc (fdesc *);
-static void pfnote (char *, bool, char *, int, int, long);
+static void pfnote (char *, bool, char *, ptrdiff_t, intmax_t, intmax_t);
 static void invalidate_nodes (fdesc *, node **);
 static void put_entries (node *);
 
@@ -401,7 +401,7 @@ static char *concat (const char *, const char *, const char *);
 static char *skip_spaces (char *);
 static char *skip_non_spaces (char *);
 static char *skip_name (char *);
-static char *savenstr (const char *, int);
+static char *savenstr (const char *, ptrdiff_t);
 static char *savestr (const char *);
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
@@ -411,9 +411,11 @@ static bool filename_is_absolute (char *f);
 static void canonicalize_filename (char *);
 static char *etags_mktmp (void);
 static void linebuffer_init (linebuffer *);
-static void linebuffer_setlen (linebuffer *, int);
-static void *xmalloc (size_t);
-static void *xrealloc (void *, size_t);
+static void linebuffer_setlen (linebuffer *, ptrdiff_t);
+static void *xmalloc (ptrdiff_t) ATTRIBUTE_MALLOC_SIZE ((1));
+static void *xnmalloc (ptrdiff_t, ptrdiff_t) ATTRIBUTE_MALLOC_SIZE ((1,2));
+static void *xnrealloc (void *, ptrdiff_t, ptrdiff_t)
+  ATTRIBUTE_ALLOC_SIZE ((2,3));
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -428,12 +430,12 @@ static ptrdiff_t whatlen_max;	/* maximum length of any 'what' member */
 static fdesc *fdhead;		/* head of file description list */
 static fdesc *curfdp;		/* current file description */
 static char *infilename;	/* current input file name */
-static int lineno;		/* line number of current line */
-static long charno;		/* current character number */
-static long linecharno;		/* charno of start of current line */
+static intmax_t lineno;		/* line number of current line */
+static intmax_t charno;		/* current character number */
+static intmax_t linecharno;	/* charno of start of current line */
 static char *dbp;		/* pointer to start of current tag */
 
-static const int invalidcharno = -1;
+static intmax_t const invalidcharno = -1;
 
 static node *nodehead;		/* the head of the binary tree of tags */
 static node *last_node;		/* the last node created */
@@ -527,6 +529,7 @@ static compressor compressors[] =
   { "GZ", "gzip -d -c"},
   { "bz2", "bzip2 -d -c" },
   { "xz", "xz -d -c" },
+  { "zst", "zstd -d -c" },
   { NULL }
 };
 
@@ -635,7 +638,7 @@ defined in the file.";
 static const char *Erlang_interpreters [] =
   { "escript", NULL };
 
-const char *Forth_suffixes [] =
+static const char *Forth_suffixes [] =
   { "fth", "tok", NULL };
 static const char Forth_help [] =
 "In Forth code, tags are words defined by ':',\n\
@@ -869,27 +872,24 @@ followed by the name of an interpreter.  If no such sequence is found,\n\
 Fortran is tried first; if no tags are found, C is tried next.\n\
 When parsing any C file, a \"class\" or \"template\" keyword\n\
 switches to C++.");
-  puts ("Compressed files are supported using gzip, bzip2, and xz.\n\
+  puts ("Compressed files are supported using gzip, bzip2, xz, and zstd.\n\
 \n\
 For detailed help on a given language use, for example,\n\
 etags --help --lang=ada.");
 }
 
-#ifndef EMACS_NAME
-# define EMACS_NAME "standalone"
-#endif
-#ifndef VERSION
-# define VERSION "17.38.1.4"
+#if CTAGS
+# define PROGRAM_NAME "ctags"
+#else
+# define PROGRAM_NAME "etags"
 #endif
 static _Noreturn void
 print_version (void)
 {
-  char emacs_copyright[] = COPYRIGHT;
-
-  printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
-  puts (emacs_copyright);
-  puts ("This program is distributed under the terms in ETAGS.README");
-
+  fputs ((PROGRAM_NAME " (" PACKAGE_NAME " " PACKAGE_VERSION ")\n"
+	  COPYRIGHT "\n"
+	  "This program is distributed under the terms in ETAGS.README\n"),
+	 stdout);
   exit (EXIT_SUCCESS);
 }
 
@@ -1080,7 +1080,7 @@ int
 main (int argc, char **argv)
 {
   int i;
-  unsigned int nincluded_files;
+  int nincluded_files;
   char **included_files;
   argument *argbuffer;
   int current_arg, file_count;
@@ -1156,7 +1156,6 @@ main (int argc, char **argv)
 	  {
 	    error ("-o option may only be given once.");
 	    suggest_asking_for_help ();
-	    /* NOTREACHED */
 	  }
 	tagfile = optarg;
 	break;
@@ -1218,7 +1217,6 @@ main (int argc, char **argv)
       case 'w': no_warnings = true;				break;
       default:
 	suggest_asking_for_help ();
-	/* NOTREACHED */
       }
 
   /* No more options.  Store the rest of arguments. */
@@ -1237,13 +1235,11 @@ main (int argc, char **argv)
 
   if (help_asked)
     print_help (argbuffer);
-    /* NOTREACHED */
 
   if (nincluded_files == 0 && file_count == 0)
     {
       error ("no input files specified.");
       suggest_asking_for_help ();
-      /* NOTREACHED */
     }
 
   if (tagfile == NULL)
@@ -1498,7 +1494,7 @@ get_language_from_interpreter (char *interpreter)
  * Return a language given the file name.
  */
 static language *
-get_language_from_filename (char *file, int case_sensitive)
+get_language_from_filename (char *file, bool case_sensitive)
 {
   language *lang;
   const char **name, **ext, *suffix;
@@ -1821,7 +1817,7 @@ find_entries (FILE *inf)
 	}
       *cp = '\0';
 
-      if (strlen (lp) > 0)
+      if (*lp)
 	{
 	  lang = get_language_from_interpreter (lp);
 	  if (lang != NULL && lang->function != NULL)
@@ -1932,26 +1928,26 @@ find_entries (FILE *inf)
  */
 static void
 make_tag (const char *name, 	/* tag name, or NULL if unnamed */
-	  int namelen,		/* tag length */
+	  ptrdiff_t namelen,	/* tag length */
 	  bool is_func,		/* tag is a function */
 	  char *linestart,	/* start of the line where tag is */
-	  int linelen,          /* length of the line where tag is */
-	  int lno,		/* line number */
-	  long int cno)		/* character number */
+	  ptrdiff_t linelen,	/* length of the line where tag is */
+	  intmax_t lno,		/* line number */
+	  intmax_t cno)		/* character number */
 {
   bool named = (name != NULL && namelen > 0);
   char *nname = NULL;
 
   if (debug)
-    fprintf (stderr, "%s on %s:%d: %s\n",
+    fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
 	     named ? name : "(unnamed)", curfdp->taggedfname, lno, linestart);
 
   if (!CTAGS && named)		/* maybe set named to false */
     /* Let's try to make an implicit tag name, that is, create an unnamed tag
        such that etags.el can guess a name from it. */
     {
-      int i;
-      register const char *cp = name;
+      ptrdiff_t i;
+      const char *cp = name;
 
       for (i = 0; i < namelen; i++)
 	if (notinname (*cp++))
@@ -1977,8 +1973,8 @@ make_tag (const char *name, 	/* tag name, or NULL if unnamed */
 
 /* Record a tag. */
 static void
-pfnote (char *name, bool is_func, char *linestart, int linelen, int lno,
-	long int cno)
+pfnote (char *name, bool is_func, char *linestart, ptrdiff_t linelen,
+	intmax_t lno, intmax_t cno)
                 		/* tag name, or NULL if unnamed */
                   		/* tag is a function */
                      		/* start of the line where tag is */
@@ -2022,7 +2018,7 @@ pfnote (char *name, bool is_func, char *linestart, int linelen, int lno,
   np->left = np->right = NULL;
   if (CTAGS && !cxref_style)
     {
-      if (strlen (linestart) < 50)
+      if (strnlen (linestart, 50) < 50)
 	np->regex = concat (linestart, "$", "");
       else
 	np->regex = savenstr (linestart, 50);
@@ -2211,7 +2207,8 @@ add_node (node *np, node **cur_node_p)
 		  if (!no_warnings)
 		    {
 		      fprintf (stderr,
-			       "Duplicate entry in file %s, line %d: %s\n",
+			       ("Duplicate entry in file %s, "
+				"line %"PRIdMAX": %s\n"),
 			       np->fdp->infname, lineno, np->name);
 		      fprintf (stderr, "Second entry ignored\n");
 		    }
@@ -2307,12 +2304,12 @@ invalidate_nodes (fdesc *badfdp, node **npp)
 }
 
 
-static int total_size_of_entries (node *);
-static int number_len (long) ATTRIBUTE_CONST;
+static ptrdiff_t total_size_of_entries (node *);
+static int number_len (intmax_t) ATTRIBUTE_CONST;
 
 /* Length of a non-negative number's decimal representation. */
 static int
-number_len (long int num)
+number_len (intmax_t num)
 {
   int len = 1;
   while ((num /= 10) > 0)
@@ -2326,10 +2323,10 @@ number_len (long int num)
  * This count is irrelevant with etags.el since emacs 19.34 at least,
  * but is still supplied for backward compatibility.
  */
-static int
-total_size_of_entries (register node *np)
+static ptrdiff_t
+total_size_of_entries (node *np)
 {
-  register int total = 0;
+  ptrdiff_t total = 0;
 
   for (; np != NULL; np = np->right)
     if (np->valid)
@@ -2337,7 +2334,7 @@ total_size_of_entries (register node *np)
 	total += strlen (np->regex) + 1;		/* pat\177 */
 	if (np->name != NULL)
 	  total += strlen (np->name) + 1;		/* name\001 */
-	total += number_len ((long) np->lno) + 1;	/* lno, */
+	total += number_len (np->lno) + 1;		/* lno, */
 	if (np->cno != invalidcharno)			/* cno */
 	  total += number_len (np->cno);
 	total += 1;					/* newline */
@@ -2361,7 +2358,7 @@ put_entry (node *np)
 	  if (fdp != np->fdp)
 	    {
 	      fdp = np->fdp;
-	      fprintf (tagf, "\f\n%s,%d\n",
+	      fprintf (tagf, "\f\n%s,%"PRIdPTR"\n",
 		       fdp->taggedfname, total_size_of_entries (np));
 	      fdp->written = true;
 	    }
@@ -2372,9 +2369,9 @@ put_entry (node *np)
 	      fputs (np->name, tagf);
 	      fputc ('\001', tagf);
 	    }
-	  fprintf (tagf, "%d,", np->lno);
+	  fprintf (tagf, "%"PRIdMAX",", np->lno);
 	  if (np->cno != invalidcharno)
-	    fprintf (tagf, "%ld", np->cno);
+	    fprintf (tagf, "%"PRIdMAX, np->cno);
 	  fputs ("\n", tagf);
 	}
       else
@@ -2386,10 +2383,10 @@ put_entry (node *np)
 	  if (cxref_style)
 	    {
 	      if (vgrind_style)
-		fprintf (stdout, "%s %s %d\n",
+		fprintf (stdout, "%s %s %"PRIdMAX"\n",
 			 np->name, np->fdp->taggedfname, (np->lno + 63) / 64);
 	      else
-		fprintf (stdout, "%-16s %3d %-16s %s\n",
+		fprintf (stdout, "%-16s %3"PRIdMAX" %-16s %s\n",
 			 np->name, np->lno, np->fdp->taggedfname, np->regex);
 	    }
 	  else
@@ -2411,7 +2408,7 @@ put_entry (node *np)
 		}
 	      else
 		{		/* anything else; text pattern inadequate */
-		  fprintf (tagf, "%d", np->lno);
+		  fprintf (tagf, "%"PRIdMAX, np->lno);
 		}
 	      putc ('\n', tagf);
 	    }
@@ -2605,7 +2602,7 @@ hash (const char *str, int len)
 }
 
 static struct C_stab_entry *
-in_word_set (register const char *str, register unsigned int len)
+in_word_set (const char *str, ptrdiff_t len)
 {
   enum
     {
@@ -2672,9 +2669,9 @@ in_word_set (register const char *str, register unsigned int len)
 /*%>*/
 
 static enum sym_type
-C_symtype (char *str, int len, int c_ext)
+C_symtype (char *str, ptrdiff_t len, int c_ext)
 {
-  register struct C_stab_entry *se = in_word_set (str, len);
+  struct C_stab_entry *se = in_word_set (str, len);
 
   if (se == NULL || (se->c_ext && !(c_ext & se->c_ext)))
     return st_none;
@@ -2784,8 +2781,8 @@ static enum
 static struct tok
 {
   char *line;			/* string containing the token */
-  int offset;			/* where the token starts in LINE */
-  int length;			/* token length */
+  ptrdiff_t offset;		/* where the token starts in LINE */
+  ptrdiff_t length;		/* token length */
   /*
     The previous members can be used to pass strings around for generic
     purposes.  The following ones specifically refer to creating tags.  In this
@@ -2796,23 +2793,23 @@ static struct tok
 				   invalidated whenever a state machine is
 				   reset prematurely */
   bool named;			/* create a named tag */
-  int lineno;			/* source line number of tag */
-  long linepos;			/* source char number of tag */
+  intmax_t lineno;		/* source line number of tag */
+  intmax_t linepos;		/* source char number of tag */
 } token;			/* latest token read */
 
 /*
  * Variables and functions for dealing with nested structures.
  * Idea by Mykola Dzyuba <mdzyuba@yahoo.com> (2001)
  */
-static void pushclass_above (int, char *, int);
-static void popclass_above (int);
+static void pushclass_above (ptrdiff_t, char *, ptrdiff_t);
+static void popclass_above (ptrdiff_t);
 static void write_classname (linebuffer *, const char *qualifier);
 
 static struct {
   char **cname;			/* nested class names */
-  int *bracelev;		/* nested class brace level */
-  int nl;			/* class nesting level (elements used) */
-  int size;			/* length of the array */
+  ptrdiff_t *bracelev;		/* nested class brace level */
+  ptrdiff_t nl;			/* class nesting level (elements used) */
+  ptrdiff_t size;		/* length of the array */
 } cstack;			/* stack for nested declaration tags */
 /* Current struct nesting depth (namespace, class, struct, union, enum). */
 #define nestlev		(cstack.nl)
@@ -2821,17 +2818,17 @@ static struct {
 			 && bracelev == cstack.bracelev[nestlev-1] + 1)
 
 static void
-pushclass_above (int bracelev, char *str, int len)
+pushclass_above (ptrdiff_t bracelev, char *str, ptrdiff_t len)
 {
-  int nl;
+  ptrdiff_t nl;
 
   popclass_above (bracelev);
   nl = cstack.nl;
   if (nl >= cstack.size)
     {
-      int size = cstack.size *= 2;
-      xrnew (cstack.cname, size, char *);
-      xrnew (cstack.bracelev, size, int);
+      xrnew (cstack.cname, cstack.size, 2);
+      xrnew (cstack.bracelev, cstack.size, 2);
+      cstack.size *= 2;
     }
   assert (nl == 0 || cstack.bracelev[nl-1] < bracelev);
   cstack.cname[nl] = (str == NULL) ? NULL : savenstr (str, len);
@@ -2840,11 +2837,9 @@ pushclass_above (int bracelev, char *str, int len)
 }
 
 static void
-popclass_above (int bracelev)
+popclass_above (ptrdiff_t bracelev)
 {
-  int nl;
-
-  for (nl = cstack.nl - 1;
+  for (ptrdiff_t nl = cstack.nl - 1;
        nl >= 0 && cstack.bracelev[nl] >= bracelev;
        nl--)
     {
@@ -2856,8 +2851,7 @@ popclass_above (int bracelev)
 static void
 write_classname (linebuffer *cn, const char *qualifier)
 {
-  int i, len;
-  int qlen = strlen (qualifier);
+  ptrdiff_t len;
 
   if (cstack.nl == 0 || cstack.cname[0] == NULL)
     {
@@ -2871,18 +2865,22 @@ write_classname (linebuffer *cn, const char *qualifier)
       linebuffer_setlen (cn, len);
       strcpy (cn->buffer, cstack.cname[0]);
     }
-  for (i = 1; i < cstack.nl; i++)
+  for (ptrdiff_t i = 1; i < cstack.nl; i++)
     {
       char *s = cstack.cname[i];
       if (s == NULL)
 	continue;
-      linebuffer_setlen (cn, len + qlen + strlen (s));
-      len += sprintf (cn->buffer + len, "%s%s", qualifier, s);
+      int qlen = strlen (qualifier);
+      ptrdiff_t slen = strlen (s);
+      linebuffer_setlen (cn, len + qlen + slen);
+      memcpyz (stpcpy (cn->buffer + len, qualifier), s, slen);
+      len += qlen + slen;
     }
 }
 
 
-static bool consider_token (char *, int, int, int *, int, int, bool *);
+static bool consider_token (char *, ptrdiff_t, int, int *,
+			    ptrdiff_t, ptrdiff_t, bool *);
 static void make_C_tag (bool);
 
 /*
@@ -2903,8 +2901,8 @@ static void make_C_tag (bool);
  */
 
 static bool
-consider_token (char *str, int len, int c, int *c_extp,
-		int bracelev, int parlev, bool *is_func_or_var)
+consider_token (char *str, ptrdiff_t len, int c, int *c_extp,
+		ptrdiff_t bracelev, ptrdiff_t parlev, bool *is_func_or_var)
                         	/* IN: token pointer */
                       		/* IN: token length */
                     		/* IN: first char after the token */
@@ -2917,7 +2915,7 @@ consider_token (char *str, int len, int c, int *c_extp,
      structtype is the type of the preceding struct-like keyword, and
      structbracelev is the brace level where it has been seen. */
   static enum sym_type structtype;
-  static int structbracelev;
+  static ptrdiff_t structbracelev;
   static enum sym_type toktype;
 
 
@@ -3112,8 +3110,7 @@ consider_token (char *str, int len, int c, int *c_extp,
 	   fvdef = fvnone;
 	   objdef = omethodtag;
 	   linebuffer_setlen (&token_name, len);
-	   memcpy (token_name.buffer, str, len);
-	   token_name.buffer[len] = '\0';
+	   memcpyz (token_name.buffer, str, len);
 	   return true;
 	 }
        return false;
@@ -3127,11 +3124,10 @@ consider_token (char *str, int len, int c, int *c_extp,
 	   objdef = omethodtag;
 	   if (class_qualify)
 	     {
-	       int oldlen = token_name.len;
+	       ptrdiff_t oldlen = token_name.len;
 	       fvdef = fvnone;
 	       linebuffer_setlen (&token_name, oldlen + len);
-	       memcpy (token_name.buffer + oldlen, str, len);
-	       token_name.buffer[oldlen + len] = '\0';
+	       memcpyz (token_name.buffer + oldlen, str, len);
 	     }
 	   return true;
 	 }
@@ -3242,7 +3238,7 @@ consider_token (char *str, int len, int c, int *c_extp,
  */
 static struct
 {
-  long linepos;
+  intmax_t linepos;
   linebuffer lb;
 } lbs[2];
 
@@ -3316,19 +3312,19 @@ C_entries (int c_ext, FILE *inf)
                			/* extension of C */
                			/* input file */
 {
-  register char c;		/* latest char read; '\0' for end of line */
-  register char *lp;		/* pointer one beyond the character `c' */
-  int curndx, newndx;		/* indices for current and new lb */
-  register int tokoff;		/* offset in line of start of current token */
-  register int toklen;		/* length of current token */
+  char c;			/* latest char read; '\0' for end of line */
+  char *lp;			/* pointer one beyond the character `c' */
+  bool curndx, newndx;		/* indices for current and new lb */
+  ptrdiff_t tokoff;		/* offset in line of start of current token */
+  ptrdiff_t toklen;		/* length of current token */
   const char *qualifier;        /* string used to qualify names */
   int qlen;			/* length of qualifier */
-  int bracelev;			/* current brace level */
-  int bracketlev;		/* current bracket level */
-  int parlev;			/* current parenthesis level */
-  int attrparlev;		/* __attribute__ parenthesis level */
-  int templatelev;		/* current template level */
-  int typdefbracelev;		/* bracelev where a typedef struct body begun */
+  ptrdiff_t bracelev;		/* current brace level */
+  ptrdiff_t bracketlev;		/* current bracket level */
+  ptrdiff_t parlev;		/* current parenthesis level */
+  ptrdiff_t attrparlev;		/* __attribute__ parenthesis level */
+  ptrdiff_t templatelev;	/* current template level */
+  ptrdiff_t typdefbracelev;	/* bracelev where a typedef struct body begun */
   bool incomm, inquote, inchar, quotednl, midtoken;
   bool yacc_rules;		/* in the rules part of a yacc file */
   struct tok savetoken = {0};	/* token saved during preprocessor handling */
@@ -3341,7 +3337,7 @@ C_entries (int c_ext, FILE *inf)
       cstack.size = (DEBUG) ? 1 : 4;
       cstack.nl = 0;
       cstack.cname = xnew (cstack.size, char *);
-      cstack.bracelev = xnew (cstack.size, int);
+      cstack.bracelev = xnew (cstack.size, ptrdiff_t);
     }
 
   tokoff = toklen = typdefbracelev = 0; /* keep compiler quiet */
@@ -3593,20 +3589,19 @@ C_entries (int c_ext, FILE *inf)
 			    {
 			      if (class_qualify)
 				{
-				  int len;
 				  write_classname (&token_name, qualifier);
-				  len = token_name.len;
+				  ptrdiff_t len = token_name.len;
 				  linebuffer_setlen (&token_name,
 						     len + qlen + toklen);
-				  sprintf (token_name.buffer + len, "%s%.*s",
-					   qualifier, toklen,
-					   newlb.buffer + tokoff);
+				  memcpyz (stpcpy (token_name.buffer + len,
+						   qualifier),
+					   newlb.buffer + tokoff, toklen);
 				}
 			      else
 				{
 				  linebuffer_setlen (&token_name, toklen);
-				  sprintf (token_name.buffer, "%.*s",
-					   toklen, newlb.buffer + tokoff);
+				  memcpyz (token_name.buffer,
+					   newlb.buffer + tokoff, toklen);
 				}
 			      token.named = true;
 			    }
@@ -3615,17 +3610,19 @@ C_entries (int c_ext, FILE *inf)
 			    {
 			      if (class_qualify)
 				{
-				  int len = strlen (objtag) + 2 + toklen;
+				  ptrdiff_t len = strlen (objtag) + 2 + toklen;
 				  linebuffer_setlen (&token_name, len);
-				  sprintf (token_name.buffer, "%s(%.*s)",
-					   objtag, toklen,
-					   newlb.buffer + tokoff);
+				  char *p1 = stpcpy (token_name.buffer, objtag);
+				  char *p2 = stpcpy (p1, "(");
+				  char *p3 = mempcpy (p2, newlb.buffer + tokoff,
+						      toklen);
+				  strcpy (p3, ")");
 				}
 			      else
 				{
 				  linebuffer_setlen (&token_name, toklen);
-				  sprintf (token_name.buffer, "%.*s",
-					   toklen, newlb.buffer + tokoff);
+				  memcpyz (token_name.buffer,
+					   newlb.buffer + tokoff, toklen);
 				}
 			      token.named = true;
 			    }
@@ -3639,8 +3636,8 @@ C_entries (int c_ext, FILE *inf)
 			    /* GNU DEFUN and similar macros */
 			    {
 			      bool defun = (newlb.buffer[tokoff] == 'F');
-			      int off = tokoff;
-			      int len = toklen;
+			      ptrdiff_t off = tokoff;
+			      ptrdiff_t len = toklen;
 
 			      if (defun)
 				{
@@ -3649,9 +3646,8 @@ C_entries (int c_ext, FILE *inf)
 
 				  /* First, tag it as its C name */
 				  linebuffer_setlen (&token_name, toklen);
-				  memcpy (token_name.buffer,
-					  newlb.buffer + tokoff, toklen);
-				  token_name.buffer[toklen] = '\0';
+				  memcpyz (token_name.buffer,
+					   newlb.buffer + tokoff, toklen);
 				  token.named = true;
 				  token.lineno = lineno;
 				  token.offset = tokoff;
@@ -3664,9 +3660,8 @@ C_entries (int c_ext, FILE *inf)
 			      /* Rewrite the tag so that emacs lisp DEFUNs
 				 can be found also by their elisp name */
 			      linebuffer_setlen (&token_name, len);
-			      memcpy (token_name.buffer,
-				      newlb.buffer + off, len);
-			      token_name.buffer[len] = '\0';
+			      memcpyz (token_name.buffer,
+				       newlb.buffer + off, len);
 			      if (defun)
 				while (--len >= 0)
 				  if (token_name.buffer[len] == '_')
@@ -3676,9 +3671,8 @@ C_entries (int c_ext, FILE *inf)
 			  else
 			    {
 			      linebuffer_setlen (&token_name, toklen);
-			      memcpy (token_name.buffer,
-				      newlb.buffer + tokoff, toklen);
-			      token_name.buffer[toklen] = '\0';
+			      memcpyz (token_name.buffer,
+				       newlb.buffer + tokoff, toklen);
 			      /* Name macros and members. */
 			      token.named = (structdef == stagseen
 					     || typdef == ttypeseen
@@ -3804,7 +3798,7 @@ C_entries (int c_ext, FILE *inf)
 	      objdef = omethodcolon;
 	      if (class_qualify)
 		{
-		  int toklen = token_name.len;
+		  ptrdiff_t toklen = token_name.len;
 		  linebuffer_setlen (&token_name, toklen + 1);
 		  strcpy (token_name.buffer + toklen, ":");
 		}
@@ -4075,7 +4069,7 @@ C_entries (int c_ext, FILE *inf)
 		    }
 		  if (uqname > token_name.buffer)
 		    {
-		      int uqlen = strlen (uqname);
+		      ptrdiff_t uqlen = strlen (uqname);
 		      linebuffer_setlen (&token_name, uqlen);
 		      memmove (token_name.buffer, uqname, uqlen + 1);
 		    }
@@ -4290,7 +4284,7 @@ Yacc_entries (FILE *inf)
   while (perhaps_more_input (file_pointer)				\
 	 && (readline (&(line_buffer), file_pointer),			\
 	     (char_pointer) = (line_buffer).buffer,			\
-	     true))							\
+	     true))
 
 #define LOOKING_AT(cp, kw)  /* kw is the keyword, a literal string */	\
   ((assert ("" kw), true)   /* syntax error if not a literal string */	\
@@ -4993,12 +4987,11 @@ Ruby_functions (FILE *inf)
 			size_t name_len = cp - np + 1;
 			char *wr_name = xnew (name_len + 1, char);
 
-			memcpy (wr_name, np, name_len - 1);
-			memcpy (wr_name + name_len - 1, "=", 2);
+			strcpy (mempcpy (wr_name, np, name_len - 1), "=");
 			pfnote (wr_name, true, lb.buffer, cp - lb.buffer + 1,
 				lineno, linecharno);
 			if (debug)
-			  fprintf (stderr, "%s on %s:%d: %s\n", wr_name,
+			  fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n", wr_name,
 				   curfdp->taggedfname, lineno, lb.buffer);
 			continuation = false;
 		      }
@@ -5192,8 +5185,8 @@ static void
 Pascal_functions (FILE *inf)
 {
   linebuffer tline;		/* mostly copied from C_entries */
-  long save_lcno;
-  int save_lineno, namelen, taglen;
+  intmax_t save_lcno, save_lineno;
+  ptrdiff_t namelen, taglen;
   char c, *name;
 
   bool				/* each of these flags is true if: */
@@ -5469,7 +5462,7 @@ Lua_functions (FILE *inf)
 	  if (tp_dot || tp_colon)
 	    {
 	      char *p = tp_dot > tp_colon ? tp_dot : tp_colon;
-	      int len_add = p - tag_name + 1;
+	      ptrdiff_t len_add = p - tag_name + 1;
 
 	      get_tag (bp + len_add, NULL);
 	    }
@@ -5670,7 +5663,7 @@ TeX_commands (FILE *inf)
 	    if (strneq (cp, key->buffer, key->len))
 	      {
 		char *p;
-		int namelen, linelen;
+		ptrdiff_t namelen, linelen;
 		bool opgrp = false;
 
 		cp = skip_spaces (cp + key->len);
@@ -5707,8 +5700,8 @@ TeX_commands (FILE *inf)
 static void
 TEX_decode_env (const char *evarname, const char *defenv)
 {
-  register const char *env, *p;
-  int i, len;
+  const char *env, *p;
+  ptrdiff_t len;
 
   /* Append default string to environment. */
   env = getenv (evarname);
@@ -5725,7 +5718,7 @@ TEX_decode_env (const char *evarname, const char *defenv)
 
   /* Unpack environment string into token table. Be careful about */
   /* zero-length strings (leading ':', "::" and trailing ':') */
-  for (i = 0; *env != '\0';)
+  for (ptrdiff_t i = 0; *env != '\0'; )
     {
       p = strchr (env, ':');
       if (!p)			/* End of environment string. */
@@ -5825,8 +5818,7 @@ HTML_labels (FILE *inf)
 		  for (end = dbp; *end != '\0' && intoken (*end); end++)
 		    continue;
 		linebuffer_setlen (&token_name, end - dbp);
-		memcpy (token_name.buffer, dbp, end - dbp);
-		token_name.buffer[end - dbp] = '\0';
+		memcpyz (token_name.buffer, dbp, end - dbp);
 
 		dbp = end;
 		intag = false;	/* we found what we looked for */
@@ -5893,20 +5885,15 @@ HTML_labels (FILE *inf)
  * Original code by Sunichirou Sugou (1989)
  * Rewritten by Anders Lindgren (1996)
  */
-static size_t prolog_pr (char *, char *);
+static ptrdiff_t prolog_pr (char *, char *, ptrdiff_t);
 static void prolog_skip_comment (linebuffer *, FILE *);
 static size_t prolog_atom (char *, size_t);
 
 static void
 Prolog_functions (FILE *inf)
 {
-  char *cp, *last;
-  size_t len;
-  size_t allocated;
-
-  allocated = 0;
-  len = 0;
-  last = NULL;
+  char *cp, *last = NULL;
+  ptrdiff_t lastlen = 0, allocated = 0;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
@@ -5916,17 +5903,21 @@ Prolog_functions (FILE *inf)
 	continue;
       else if (cp[0] == '/' && cp[1] == '*')	/* comment. */
 	prolog_skip_comment (&lb, inf);
-      else if ((len = prolog_pr (cp, last)) > 0)
+      else
 	{
-	  /* Predicate or rule.  Store the function name so that we
-	     only generate a tag for the first clause.  */
-	  if (last == NULL)
-	    last = xnew (len + 1, char);
-	  else if (len + 1 > allocated)
-	    xrnew (last, len + 1, char);
-	  allocated = len + 1;
-	  memcpy (last, cp, len);
-	  last[len] = '\0';
+	  ptrdiff_t len = prolog_pr (cp, last, lastlen);
+	  if (0 < len)
+	    {
+	      /* Store the predicate name to avoid generating duplicate
+		 tags later.  */
+	      if (allocated <= len)
+		{
+		  xrnew (last, len + 1, 1);
+		  allocated = len + 1;
+		}
+	      memcpyz (last, cp, len);
+	      lastlen = len;
+	    }
 	}
     }
   free (last);
@@ -5959,33 +5950,25 @@ prolog_skip_comment (linebuffer *plb, FILE *inf)
  * Return the size of the name of the predicate or rule, or 0 if no
  * header was found.
  */
-static size_t
-prolog_pr (char *s, char *last)
-
-                		/* Name of last clause. */
+static ptrdiff_t
+prolog_pr (char *s, char *last, ptrdiff_t lastlen)
 {
-  size_t pos;
-  size_t len;
-
-  pos = prolog_atom (s, 0);
-  if (! pos)
+  ptrdiff_t len = prolog_atom (s, 0);
+  if (len == 0)
     return 0;
+  ptrdiff_t pos = skip_spaces (s + len) - s;
 
-  len = pos;
-  pos = skip_spaces (s + pos) - s;
-
+  /* Save only the first clause.  */
   if ((s[pos] == '.'
        || (s[pos] == '(' && (pos += 1))
        || (s[pos] == ':' && s[pos + 1] == '-' && (pos += 2)))
-      && (last == NULL		/* save only the first clause */
-	  || len != strlen (last)
-	  || !strneq (s, last, len)))
-	{
-	  make_tag (s, len, true, s, pos, lineno, linecharno);
-	  return len;
-	}
-  else
-    return 0;
+      && ! (lastlen == len && memcmp (s, last, len) == 0))
+    {
+      make_tag (s, len, true, s, pos, lineno, linecharno);
+      return len;
+    }
+
+  return 0;
 }
 
 /*
@@ -6053,20 +6036,15 @@ prolog_atom (char *s, size_t pos)
  * Assumes that Erlang functions start at column 0.
  * Original code by Anders Lindgren (1996)
  */
-static int erlang_func (char *, char *);
+static ptrdiff_t erlang_func (char *, char *, ptrdiff_t, ptrdiff_t *);
 static void erlang_attribute (char *);
-static int erlang_atom (char *);
+static ptrdiff_t erlang_atom (char *);
 
 static void
 Erlang_functions (FILE *inf)
 {
-  char *cp, *last;
-  int len;
-  int allocated;
-
-  allocated = 0;
-  len = 0;
-  last = NULL;
+  char *cp, *last = NULL;
+  ptrdiff_t lastlen = 0, allocated = 0;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
@@ -6087,19 +6065,22 @@ Erlang_functions (FILE *inf)
 	      last = NULL;
 	    }
 	}
-      else if ((len = erlang_func (cp, last)) > 0)
+      else
 	{
-	  /*
-	   * Function.  Store the function name so that we only
-	   * generates a tag for the first clause.
-	   */
-	  if (last == NULL)
-	    last = xnew (len + 1, char);
-	  else if (len + 1 > allocated)
-	    xrnew (last, len + 1, char);
-	  allocated = len + 1;
-	  memcpy (last, cp, len);
-	  last[len] = '\0';
+	  ptrdiff_t name_offset;
+	  ptrdiff_t len = erlang_func (cp, last, lastlen, &name_offset);
+	  if (0 < len)
+	    {
+	      /* Store the function name to avoid generating duplicate
+		 tags later.  */
+	      if (allocated <= len)
+		{
+		  xrnew (last, len + 1, 1);
+		  allocated = len + 1;
+		}
+	      memcpyz (last, cp + name_offset, len);
+	      lastlen = len;
+	    }
 	}
     }
   free (last);
@@ -6116,30 +6097,28 @@ Erlang_functions (FILE *inf)
  * Return the size of the name of the function, or 0 if no function
  * was found.
  */
-static int
-erlang_func (char *s, char *last)
-
-                		/* Name of last clause. */
+static ptrdiff_t
+erlang_func (char *s, char *last, ptrdiff_t lastlen, ptrdiff_t *name_offset)
 {
-  int pos;
-  int len;
-
-  pos = erlang_atom (s);
-  if (pos < 1)
+  char *name = s;
+  ptrdiff_t len = erlang_atom (s);
+  if (len == 0)
     return 0;
+  ptrdiff_t pos = skip_spaces (s + len) - s;
 
-  len = pos;
-  pos = skip_spaces (s + pos) - s;
+  /* If the name is quoted, the quotes are not part of the name. */
+  bool quoted = 2 < len && name[0] == '\'' && name[len - 1] == '\'';
+  name += quoted;
+  len -= 2 * quoted;
 
   /* Save only the first clause. */
   if (s[pos++] == '('
-      && (last == NULL
-	  || len != (int)strlen (last)
-	  || !strneq (s, last, len)))
-	{
-	  make_tag (s, len, true, s, pos, lineno, linecharno);
-	  return len;
-	}
+      && ! (lastlen == len && memcmp (name, last, len) == 0))
+    {
+      make_tag (s, len, true, s, pos, lineno, linecharno);
+      *name_offset = quoted;
+      return len;
+    }
 
   return 0;
 }
@@ -6162,9 +6141,19 @@ erlang_attribute (char *s)
   if ((LOOKING_AT (cp, "-define") || LOOKING_AT (cp, "-record"))
       && *cp++ == '(')
     {
-      int len = erlang_atom (skip_spaces (cp));
+      cp = skip_spaces (cp);
+      ptrdiff_t len = erlang_atom (cp);
+      ptrdiff_t pos = cp + len - s;
       if (len > 0)
-	make_tag (cp, len, true, s, cp + len - s, lineno, linecharno);
+	{
+	  /* If the name is quoted, the quotes are not part of the name. */
+	  if (len > 2 && cp[0] == '\'' && cp[len - 1] == '\'')
+	    {
+	      cp++;
+	      len -= 2;
+	    }
+	  make_tag (cp, len, true, s, pos, lineno, linecharno);
+	}
     }
   return;
 }
@@ -6174,10 +6163,10 @@ erlang_attribute (char *s)
  * Consume an Erlang atom (or variable).
  * Return the number of bytes consumed, or -1 if there was an error.
  */
-static int
+static ptrdiff_t
 erlang_atom (char *s)
 {
-  int pos = 0;
+  ptrdiff_t pos = 0;
 
   if (c_isalpha (s[pos]) || s[pos] == '_')
     {
@@ -6349,7 +6338,7 @@ add_regex (char *regexp_pattern, language *lang)
     single_line = false;	/* dot does not match newline */
 
 
-  if (strlen (regexp_pattern) < 3)
+  if (strnlen (regexp_pattern, 3) < 3)
     {
       error ("null regexp");
       return;
@@ -6450,10 +6439,9 @@ static char *
 substitute (char *in, char *out, struct re_registers *regs)
 {
   char *result, *t;
-  int size, dig, diglen;
 
   result = NULL;
-  size = strlen (out);
+  ptrdiff_t size = strlen (out);
 
   /* Pass 1: figure out how much to allocate by finding all \N strings. */
   if (out[size - 1] == '\\')
@@ -6463,8 +6451,8 @@ substitute (char *in, char *out, struct re_registers *regs)
        t = strchr (t + 2, '\\'))
     if (c_isdigit (t[1]))
       {
-	dig = t[1] - '0';
-	diglen = regs->end[dig] - regs->start[dig];
+	int dig = t[1] - '0';
+	ptrdiff_t diglen = regs->end[dig] - regs->start[dig];
 	size += diglen - 2;
       }
     else
@@ -6477,8 +6465,8 @@ substitute (char *in, char *out, struct re_registers *regs)
   for (t = result; *out != '\0'; out++)
     if (*out == '\\' && c_isdigit (*++out))
       {
-	dig = *out - '0';
-	diglen = regs->end[dig] - regs->start[dig];
+	int dig = *out - '0';
+	ptrdiff_t diglen = regs->end[dig] - regs->start[dig];
 	memcpy (t, in + regs->start[dig], diglen);
 	t += diglen;
       }
@@ -6487,7 +6475,7 @@ substitute (char *in, char *out, struct re_registers *regs)
   *t = '\0';
 
   assert (t <= result + size);
-  assert (t - result == (int)strlen (result));
+  assert (t == result + strlen (result));
 
   return result;
 }
@@ -6524,7 +6512,7 @@ regex_tag_multiline (void)
 
   for (rp = p_head; rp != NULL; rp = rp->p_next)
     {
-      int match = 0;
+      ptrdiff_t match = 0;
 
       if (!rp->multi_line)
 	continue;		/* skip normal regexps */
@@ -6585,7 +6573,7 @@ regex_tag_multiline (void)
 			  charno - linecharno + 1, lineno, linecharno);
 
 		  if (debug)
-		    fprintf (stderr, "%s on %s:%d: %s\n",
+		    fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
 			     name ? name : "(unnamed)", curfdp->taggedfname,
 			     lineno, buffer + linecharno);
 		}
@@ -6602,7 +6590,7 @@ regex_tag_multiline (void)
 static bool
 nocase_tail (const char *cp)
 {
-  int len = 0;
+  ptrdiff_t len = 0;
 
   while (*cp != '\0' && c_tolower (*cp) == c_tolower (dbp[len]))
     cp++, len++;
@@ -6661,7 +6649,7 @@ get_lispy_tag (register char *bp)
  * If multi-line regular expressions are requested, each line read is
  * appended to `filebuf'.
  */
-static long
+static ptrdiff_t
 readline_internal (linebuffer *lbp, FILE *stream, char const *filename)
 {
   char *buffer = lbp->buffer;
@@ -6677,8 +6665,8 @@ readline_internal (linebuffer *lbp, FILE *stream, char const *filename)
       if (p == pend)
 	{
 	  /* We're at the end of linebuffer: expand it. */
+	  xrnew (buffer, lbp->size, 2);
 	  lbp->size *= 2;
-	  xrnew (buffer, lbp->size, char);
 	  p += buffer - lbp->buffer;
 	  pend = buffer + lbp->size;
 	  lbp->buffer = buffer;
@@ -6715,13 +6703,12 @@ readline_internal (linebuffer *lbp, FILE *stream, char const *filename)
       while (filebuf.size <= filebuf.len + lbp->len + 1) /* +1 for \n */
 	{
 	  /* Expand filebuf. */
+	  xrnew (filebuf.buffer, filebuf.size, 2);
 	  filebuf.size *= 2;
-	  xrnew (filebuf.buffer, filebuf.size, char);
 	}
-      memcpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
-      filebuf.len += lbp->len;
-      filebuf.buffer[filebuf.len++] = '\n';
-      filebuf.buffer[filebuf.len] = '\0';
+      strcpy (mempcpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len),
+	      "\n");
+      filebuf.len += lbp->len + 1;
     }
 
   return lbp->len + chars_deleted;
@@ -6735,10 +6722,8 @@ readline_internal (linebuffer *lbp, FILE *stream, char const *filename)
 static void
 readline (linebuffer *lbp, FILE *stream)
 {
-  long result;
-
   linecharno = charno;		/* update global char number of line start */
-  result = readline_internal (lbp, stream, infilename); /* read line */
+  ptrdiff_t result = readline_internal (lbp, stream, infilename);
   lineno += 1;			/* increment global line number */
   charno += result;		/* increment global char number */
 
@@ -6750,10 +6735,10 @@ readline (linebuffer *lbp, FILE *stream)
       /* Check whether this is a #line directive. */
       if (result > 12 && strneq (lbp->buffer, "#line ", 6))
 	{
-	  unsigned int lno;
+	  intmax_t lno;
 	  int start = 0;
 
-	  if (sscanf (lbp->buffer, "#line %u \"%n", &lno, &start) >= 1
+	  if (sscanf (lbp->buffer, "#line %"SCNdMAX" \"%n", &lno, &start) >= 1
 	      && start > 0)	/* double quote character found */
 	    {
 	      char *endp = lbp->buffer + start;
@@ -6863,7 +6848,7 @@ readline (linebuffer *lbp, FILE *stream)
     } /* if #line directives should be considered */
 
   {
-    int match;
+    ptrdiff_t match;
     regexp *rp;
     char *name;
 
@@ -6913,7 +6898,7 @@ readline (linebuffer *lbp, FILE *stream)
 		  /* Force explicit tag name, if a name is there. */
 		  pfnote (name, true, lbp->buffer, match, lineno, linecharno);
 		  if (debug)
-		    fprintf (stderr, "%s on %s:%d: %s\n",
+		    fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
 			     name ? name : "(unnamed)", curfdp->taggedfname,
 			     lineno, lbp->buffer);
 		}
@@ -6938,11 +6923,11 @@ savestr (const char *cp)
 }
 
 /*
- * Return a pointer to a space of size LEN+1 allocated with xnew where
- * the string CP has been copied for at most the first LEN characters.
+ * Return a pointer to a space of size LEN+1 allocated with xnew
+ * with a copy of CP (containing LEN bytes) followed by a NUL byte.
  */
 static char *
-savenstr (const char *cp, int len)
+savenstr (const char *cp, ptrdiff_t len)
 {
   char *dp = xnew (len + 1, char);
   dp[len] = '\0';
@@ -7026,13 +7011,9 @@ verror (char const *format, va_list ap)
 static char *
 concat (const char *s1, const char *s2, const char *s3)
 {
-  int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
+  ptrdiff_t len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = xnew (len1 + len2 + len3 + 1, char);
-
-  strcpy (result, s1);
-  strcpy (result + len1, s2);
-  strcpy (result + len1 + len2, s3);
-
+  strcpy (stpcpy (stpcpy (result, s1), s2), s3);
   return result;
 }
 
@@ -7042,16 +7023,16 @@ concat (const char *s1, const char *s2, const char *s3)
 static char *
 etags_getcwd (void)
 {
-  int bufsize = 200;
+  ptrdiff_t bufsize = 200;
   char *path = xnew (bufsize, char);
 
   while (getcwd (path, bufsize) == NULL)
     {
       if (errno != ERANGE)
 	pfatal ("getcwd");
-      bufsize *= 2;
       free (path);
-      path = xnew (bufsize, char);
+      path = xnmalloc (bufsize, 2 * sizeof *path);
+      bufsize *= 2;
     }
 
   canonicalize_filename (path);
@@ -7112,7 +7093,7 @@ static char *
 relative_filename (char *file, char *dir)
 {
   char *fp, *dp, *afn, *res;
-  int i;
+  ptrdiff_t i;
 
   /* Find the common root of file and dir (with a trailing slash). */
   afn = absolute_filename (file, cwd);
@@ -7295,32 +7276,54 @@ linebuffer_init (linebuffer *lbp)
 
 /* Set the minimum size of a string contained in a linebuffer. */
 static void
-linebuffer_setlen (linebuffer *lbp, int toksize)
+linebuffer_setlen (linebuffer *lbp, ptrdiff_t toksize)
 {
-  while (lbp->size <= toksize)
+  if (lbp->size <= toksize)
     {
-      lbp->size *= 2;
-      xrnew (lbp->buffer, lbp->size, char);
+      ptrdiff_t multiplier = toksize / lbp->size + 1;
+      xrnew (lbp->buffer, lbp->size, multiplier);
+      lbp->size *= multiplier;
     }
   lbp->len = toksize;
 }
 
-/* Like malloc but get fatal error if memory is exhausted. */
-static void * ATTRIBUTE_MALLOC
-xmalloc (size_t size)
+/* Memory allocators with a fatal error if memory is exhausted.  */
+
+static void
+memory_full (void)
 {
+  fatal ("virtual memory exhausted");
+}
+
+static void *
+xmalloc (ptrdiff_t size)
+{
+  if (SIZE_MAX < size)
+    memory_full ();
   void *result = malloc (size);
   if (result == NULL)
-    fatal ("virtual memory exhausted");
+    memory_full ();
   return result;
 }
 
 static void *
-xrealloc (void *ptr, size_t size)
+xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  void *result = realloc (ptr, size);
-  if (result == NULL)
-    fatal ("virtual memory exhausted");
+  ptrdiff_t nbytes;
+  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes))
+    memory_full ();
+  return xmalloc (nbytes);
+}
+
+static void *
+xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
+{
+  ptrdiff_t nbytes;
+  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
+    memory_full ();
+  void *result = realloc (pa, nbytes);
+  if (!result)
+    memory_full ();
   return result;
 }
 

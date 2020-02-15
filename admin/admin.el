@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -138,13 +138,20 @@ Root must be the root of an Emacs source tree."
                               (if (eq 2 (length newversion)) 0 1))))
          (majorbump (and oldversion (not (equal oldmajor newmajor))))
          (minorbump (and oldversion (not majorbump)
-                         (not (equal (cadr oldversion) (cadr newversion)))))
+                         (or (not (equal (cadr oldversion) (cadr newversion)))
+                             ;; Eg 26.2 -> 26.2.50.
+                             (and (> (length newversion)
+                                     (length oldversion))))))
          (newsfile (expand-file-name "etc/NEWS" root))
          (oldnewsfile (expand-file-name (format "etc/NEWS.%s" oldmajor) root)))
     (unless (> (length newversion) 2)   ; pretest or release candidate?
       (with-temp-buffer
         (insert-file-contents newsfile)
-        (if (re-search-forward "^\\(+++ *\\|--- *\\)$" nil t)
+        (when (re-search-forward "^\\* [^\n]*\n+" nil t)
+          (display-warning 'admin
+                           "NEWS file contains empty sections - remove them?"))
+        (goto-char (point-min))
+        (if (re-search-forward "^\\(\\+\\+\\+ *\\|--- *\\)$" nil t)
             (display-warning 'admin
                              "NEWS file still contains temporary markup.
 Documentation changes might not have been completed!"))))
@@ -330,7 +337,7 @@ Optional argument TYPE is type of output (nil means all)."
 
 (defconst manual-doctype-string
   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"
-\"http://www.w3.org/TR/html4/loose.dtd\">\n\n")
+\"https://www.w3.org/TR/html4/loose.dtd\">\n\n")
 
 (defconst manual-meta-string
   "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
@@ -657,7 +664,7 @@ style=\"text-align:left\">")
 
 
 (defconst make-manuals-dist-output-variables
-  `(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
+  '(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
     ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
     ("^\\(clean:.*\\)" . "\\1 infoclean")
     ("@MAKEINFO@" . "makeinfo")
@@ -696,6 +703,7 @@ style=\"text-align:left\">")
     (if (file-directory-p stem)
 	(delete-directory stem t))
     (make-directory stem)
+    (setq stem (file-name-as-directory stem))
     (copy-file "../doc/misc/texinfo.tex" stem)
     (unless (equal type "emacs")
       (copy-file "../doc/emacs/emacsver.texi" stem)
@@ -718,7 +726,7 @@ style=\"text-align:left\">")
 	  (setq ats t)
 	  (message "Unexpanded: %s" (match-string 0)))
 	(if ats (error "Unexpanded configure variables in Makefile?")))
-      (write-region nil nil (expand-file-name (format "%s/Makefile" stem))
+      (write-region nil nil (expand-file-name (format "%sMakefile" stem))
 		    nil 'silent))
     (call-process "tar" nil nil nil "-cf" tarfile stem)
     (delete-directory stem t)

@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a repository checkout
 
-## Copyright (C) 2011-2018 Free Software Foundation, Inc.
+## Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -316,8 +316,16 @@ git_config transfer.fsckObjects true
 
 # Configure 'git diff' hunk header format.
 
+# This xfuncname is based on Git's built-in 'cpp' pattern.
+# The first line rejects jump targets and access declarations.
+# The second line matches top-level functions and methods.
+# The third line matches preprocessor and DEFUN macros.
+git_config diff.cpp.xfuncname \
+'!^[ \t]*[A-Za-z_][A-Za-z_0-9]*:[[:space:]]*($|/[/*])
+^((::[[:space:]]*)?[A-Za-z_][A-Za-z_0-9]*[[:space:]]*\(.*)$
+^((#define[[:space:]]|DEFUN).*)$'
 git_config diff.elisp.xfuncname \
-	   '^\(def[^[:space:]]+[[:space:]]+([^()[:space:]]+)'
+           '^\([^[:space:]]*def[^[:space:]]+[[:space:]]+([^()[:space:]]+)'
 git_config 'diff.m4.xfuncname' '^((m4_)?define|A._DEFUN(_ONCE)?)\([^),]*'
 git_config 'diff.make.xfuncname' \
 	   '^([$.[:alnum:]_].*:|[[:alnum:]_]+[[:space:]]*([*:+]?[:?]?|!?)=|define .*)'
@@ -332,7 +340,7 @@ git_config diff.texinfo.xfuncname \
 tailored_hooks=
 sample_hooks=
 
-for hook in commit-msg pre-commit; do
+for hook in commit-msg pre-commit prepare-commit-msg; do
     cmp -- build-aux/git-hooks/$hook "$hooks/$hook" >/dev/null 2>&1 ||
 	tailored_hooks="$tailored_hooks $hook"
 done

@@ -1,6 +1,6 @@
 ;;; gnus-range.el --- range and sequence functions for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -28,7 +28,7 @@
 
 (defsubst gnus-range-normalize (range)
   "Normalize RANGE.
-If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
+If RANGE is a single range, return (RANGE).  Otherwise, return RANGE."
   (if (listp (cdr-safe range)) range (list range)))
 
 (defun gnus-last-element (list)

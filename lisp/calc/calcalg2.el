@@ -1,6 +1,6 @@
 ;;; calcalg2.el --- more algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -2417,6 +2417,12 @@
 			    ((= (length math-t1) 2)
 			     (apply 'math-solve-linear
                                     (car math-t2) math-try-solve-sign math-t1))
+                            ((= (length math-t1) 1)
+                             ;; Constant polynomial.
+                             (if (eql (nth 2 math-t2) 1)
+                                 nil    ; No possible solution.
+                               ;; Root of the factor, if any.
+                               (math-try-solve-for (nth 2 math-t2) 0 nil t)))
 			    (math-solve-full
 			     (math-poly-all-roots (car math-t2) math-t1))
 			    (calc-symbolic-mode nil)

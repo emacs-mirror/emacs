@@ -15,7 +15,7 @@ This manual documents Newsticker, a feed reader for Emacs.  It
 corresponds to Emacs version @value{EMACSVER}.
 
 @noindent
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -39,7 +39,6 @@ modify this GNU manual.''
 @title Newsticker---a feed reader for Emacs
 @author Ulf Jasper
 @author @email{ulf.jasper@@web.de}
-@author @uref{http://ulf.epplejasper.de/}
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -590,8 +589,8 @@ Newsticker works with the standard RSS and Atom formats listed below
 @itemize
 @item RSS 0.91 (see @uref{http://backend.userland.com/rss091})
 @item RSS 0.92 (see @uref{http://backend.userland.com/rss092})
-@item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec})
-@item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss})
+@item RSS 1.0 (see @uref{http://web.resource.org/rss/1.0/spec})
+@item RSS 2.0 (see @uref{https://cyber.harvard.edu/rss/rss.html})
 @end itemize
 
 @subheading Atom formats

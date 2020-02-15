@@ -1,6 +1,6 @@
 ;;; ede/proj.el --- EDE Generic Project file driver
 
-;; Copyright (C) 1998-2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -165,7 +165,7 @@ These are the linkers the user can choose from when setting the
 	      :label "Part of all: target"
 	      :group make
 	      :documentation
-	      "Non nil means the rule created is part of the all: target.
+	      "Non-nil means the rule created is part of the all: target.
 Setting this to nil creates the rule to build this item, but does not
 include it in the all: rule.")
    (configuration-variables
@@ -216,7 +216,7 @@ This enables the creation of your target type."
       (setq ede-proj-target-alist
 	    (cons (cons name class) ede-proj-target-alist)))))
 
-(defclass ede-proj-project (eieio-persistent ede-project)
+(defclass ede-proj-project (eieio-persistent ede-project eieio-named)
   ((extension :initform ".ede")
    (file-header-line :initform ";; EDE Project Files are auto generated: Do Not Edit")
    (makefile-type :initarg :makefile-type

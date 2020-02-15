@@ -1,6 +1,6 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode.
 
-;; Copyright (C) 1988, 1994, 1996, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2000-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
@@ -95,7 +95,7 @@
 ;; Emacs has in the past used \r to mark hidden lines in some fashion (and
 ;; maybe still does).
 
-(defconst c-awk-esc-pair-re "\\\\\\(.\\|\n\\|\r\\|\\'\\)")
+(defconst c-awk-esc-pair-re "\\\\\\(.\\|\n\\|\\'\\)")
 ;;   Matches any escaped (with \) character-pair, including an escaped newline.
 (defconst c-awk-non-eol-esc-pair-re "\\\\\\(.\\|\\'\\)")
 ;;   Matches any escaped (with \) character-pair, apart from an escaped newline.
@@ -130,7 +130,7 @@
 ;; REGEXPS FOR "HARMLESS" STRINGS/LINES.
 (defconst c-awk-harmless-_ "_\\([^\"]\\|\\'\\)")
 ;;   Matches an underline NOT followed by ".
-(defconst c-awk-harmless-char-re "[^_#/\"{}();\\\\\n\r]")
+(defconst c-awk-harmless-char-re "[^_#/\"{}();\\\n\r]")
 ;;   Matches any character not significant in the state machine applying
 ;; syntax-table properties to "s and /s.
 (defconst c-awk-harmless-string*-re
@@ -141,7 +141,7 @@
   (concat "\\=" c-awk-harmless-string*-re))
 ;; Matches the (possibly empty) sequence of "insignificant" chars at point.
 
-(defconst c-awk-harmless-line-char-re "[^_#/\"\\\\\n\r]")
+(defconst c-awk-harmless-line-char-re "[^_#/\"\\\n\r]")
 ;;   Matches any character but a _, #, /, ", \, or newline.  N.B. _" starts a
 ;; localization string in gawk 3.1
 (defconst c-awk-harmless-line-string*-re
@@ -188,8 +188,8 @@
   "\\[:[a-z]+:\\]")
   ;; Matches a character class spec (e.g. [:alpha:]).
 (defconst c-awk-regexp-char-list-re
-  (concat "\\[" c-awk-escaped-newlines*-re "^?" c-awk-escaped-newlines*-re "]?"
-          "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-class-re
+  (concat "\\[\\(" c-awk-escaped-newlines*-re "\\^\\)?" c-awk-escaped-newlines*-re "]?"
+	  "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-class-re
 	  "\\|" "[^]\n\r]" "\\)*" "\\(]\\|$\\)"))
 ;;   Matches a regexp char list, up to (but not including) EOL if the ] is
 ;;   missing.
@@ -215,10 +215,10 @@
 (defconst c-awk-neutrals*-re
   (concat "\\(" c-awk-neutral-re "\\)*"))
 ;;   A (possibly empty) string of neutral characters (or character pairs).
-(defconst c-awk-var-num-ket-re "[])0-9a-zA-Z_$.\x80-\xff]+")
+(defconst c-awk-var-num-ket-re "[])0-9a-zA-Z_$.]+")
 ;;   Matches a char which is a constituent of a variable or number, or a ket
-;; (i.e. closing bracKET), round or square.  Assume that all characters \x80 to
-;; \xff are "letters".
+;; (i.e. closing bracKET), round or square.  (2019-07): No longer assume that
+;; all characters \x80 to \xff are "letters".
 (defconst c-awk-div-sign-re
   (concat c-awk-var-num-ket-re c-awk-neutrals*-re "/"))
 ;;   Will match a piece of AWK buffer ending in / which is a division sign, in
@@ -250,7 +250,7 @@
 ;; which can precede an expression.
 
 ;; REGEXPS USED FOR FINDING THE POSITION OF A "virtual semicolon"
-(defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\\\n\r \t]")
+(defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\n\r \t]")
 (defconst c-awk-non-/-syn-ws*-re
   (concat
    "\\(" c-awk-escaped-nls*-with-space*

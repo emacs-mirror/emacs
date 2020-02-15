@@ -1,0 +1,85 @@
+;; testwisent.wy --- unit test support file for semantic-utest-ia
+
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+
+;; Author: Eric M. Ludlam <zappo@gnu.org>
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;;
+;; Parser for nothing in particular mode
+
+%languagemode nothing-mode
+%parsetable    wisent-nothing-parser-tables
+%keywordtable  wisent-nothing-keywords
+%tokentable    wisent-nothing-tokens
+%languagemode  nothing-mode
+%setupfunction wisent-nothing-default-setup
+
+%start goal
+
+;;; Punctuation
+%type  <punctuation> ;;syntax "\\(\\s.\\|\\s$\\|\\s'\\)+" matchdatatype string
+
+%token <punctuation> DOT         "."
+%token <punctuation> COMA        ","
+%token <punctuation> COLONCOLON  "::"
+%token <punctuation> COLON       ":"
+%token <punctuation> SEMICOLON   ";"
+
+;;; KEYWORDS
+%type <keyword>
+
+%keyword COLONOSCOPY     "colonoscopy"
+%keyword SEMISOMETHING   "semisomething"
+
+%%
+
+goal
+ ;; Misc
+  : COLON ;; -1-
+ ;; #1# ( "COLONCOLON" "COLON" "COLONOSCOPY" )
+  | SEMI ;; -2-
+ ;; #2# ( "SEMI_useless_rule" "SEMICOLON" "SEMISOMETHING" )
+  | thing ;; -3-
+ ;; #3# ( "thing_term_1" "thing_term_2" )
+  ;
+
+SEMI_useless_rule
+  :
+  ;
+
+thing_term_1
+  :
+  ;
+
+thing_term_2
+  :
+  ;
+
+%%
+(define-lex wisent-nothing-lexer
+  "Lexical analyzer to handle nothing in particular buffers."
+  ;; semantic-lex-newline
+  semantic-lex-ignore-whitespace
+  semantic-lex-ignore-newline
+  semantic-lex-ignore-comments
+
+  semantic-lex-default-action
+  )
+
+;; testwisent.wy ends here

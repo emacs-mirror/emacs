@@ -1,6 +1,6 @@
 ;;; po.el --- basic support of PO translation files
 
-;; Copyright (C) 1995-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1998, 2000-2020 Free Software Foundation, Inc.
 
 ;; Authors: François Pinard <pinard@iro.umontreal.ca>,
 ;;          Greg McGary <gkm@magilla.cichlid.com>,
@@ -121,12 +121,6 @@ in BUFFER."
   "Return a (DECODING . ENCODING) pair, according to PO file's charset.
 Called through `file-coding-system-alist', before the file is visited for real."
   (po-find-file-coding-system-guts (car arg-list) (car (cdr arg-list))))
-;; This is for XEmacs.
-;(defun po-find-file-coding-system (operation filename)
-;  "\
-;Return a Mule (DECODING . ENCODING) pair, according to PO file charset.
-;Called through file-coding-system-alist, before the file is visited for real."
-;  (po-find-file-coding-system-guts operation filename))
 
 (provide 'po)
 

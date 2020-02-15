@@ -1,6 +1,6 @@
-;;; ediff-diff.el --- diff-related utilities
+;;; ediff-diff.el --- diff-related utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -25,8 +25,6 @@
 ;;; Code:
 
 
-(provide 'ediff-diff)
-
 (require 'ediff-init)
 (require 'ediff-util)
 
@@ -37,13 +35,11 @@
 
 (defcustom ediff-diff-program "diff"
   "Program to use for generating the differential of the two files."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 (defcustom ediff-diff3-program "diff3"
   "Program to be used for three-way comparison.
 Must produce output compatible with Unix's diff3 program."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 
 ;; The following functions must precede all defcustom-defined variables.
@@ -60,21 +56,18 @@ will do.  However, some people set $prompt or other things
 incorrectly, which leads to undesirable output messages.  These may
 cause Ediff to fail.  In such a case, set `ediff-shell' to a shell that
 you are not using or, better, fix your shell's startup file."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (defcustom ediff-cmp-program "cmp"
   "Utility to use to determine if two files are identical.
 It must return code 0, if its arguments are identical files."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (defcustom ediff-cmp-options nil
   "Options to pass to `ediff-cmp-program'.
 If GNU diff is used as `ediff-cmp-program', then the most useful options
 are `-I REGEXP', to ignore changes whose lines match the REGEXP."
-  :type '(repeat string)
-  :group 'ediff-diff)
+  :type '(repeat string))
 
 (defun ediff-set-diff-options (symbol value)
   (set symbol value)
@@ -95,8 +88,7 @@ This variable is not for customizing the look of the differences produced by
 the command \\[ediff-show-diff-output]. Use the variable
 `ediff-custom-diff-options' for that."
   :set 'ediff-set-diff-options
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (ediff-defvar-local ediff-ignore-case nil
   "If t, skip over difference regions that differ only in letter case.
@@ -105,14 +97,12 @@ Use `setq-default' if setting it in .emacs")
 
 (defcustom ediff-ignore-case-option "-i"
   "Option that causes the diff program to ignore case of letters."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (defcustom ediff-ignore-case-option3 ""
   "Option that causes the diff3 program to ignore case of letters.
 GNU diff3 doesn't have such an option."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 ;; the actual options used in comparison
 (ediff-defvar-local ediff-actual-diff-options ediff-diff-options "")
@@ -120,12 +110,10 @@ GNU diff3 doesn't have such an option."
 (defcustom ediff-custom-diff-program ediff-diff-program
   "Program to use for generating custom diff output for saving it in a file.
 This output is not used by Ediff internally."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 (defcustom ediff-custom-diff-options "-c"
   "Options to pass to `ediff-custom-diff-program'."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 ;;; Support for diff3
 
@@ -134,8 +122,7 @@ This output is not used by Ediff internally."
 (defcustom ediff-diff3-options ""
   "Options to pass to `ediff-diff3-program'."
   :set 'ediff-set-diff-options
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 ;; the actual options used in comparison
 (ediff-defvar-local ediff-actual-diff3-options ediff-diff3-options "")
@@ -144,8 +131,7 @@ This output is not used by Ediff internally."
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
   "Regexp that matches normal output lines from `ediff-diff3-program'.
 Lines that do not match are assumed to be error messages."
-  :type 'regexp
-  :group 'ediff-diff)
+  :type 'regexp)
 
 ;; keeps the status of the current diff in 3-way jobs.
 ;; the status can be =diff(A), =diff(B), or =diff(A+B)
@@ -842,7 +828,7 @@ delimiter regions"))
       )
     (setq overlay-list (reverse overlay-list))
     (ediff-set-fine-diff-vector
-     reg-num 'C (apply 'vector overlay-list))
+     reg-num 'C (apply #'vector overlay-list))
     ))
 
 
@@ -1170,30 +1156,30 @@ are ignored."
 	(eq buffer ediff-fine-diff-buffer)
 	(setq args (delete "--binary" args)))
     (unwind-protect
-	(let ((directory default-directory)
-	      proc)
-	  (with-current-buffer buffer
-	    (erase-buffer)
-	    (setq default-directory directory)
-	    (if (or (memq system-type '(ms-dos windows-nt))
-		    synch)
-		;; In Windows do it synchronously, since Windows doesn't let us
-		;; delete files used by other processes. Thus, in ediff-buffers
-		;; and similar functions, we can't delete temp files because
-		;; they might be used by the asynch process that computes
-		;; custom diffs. So, we have to wait till custom diff
-		;; subprocess is done.
-		;; In DOS, must synchronize because DOS doesn't have
-		;; asynchronous processes.
-		(apply 'call-process program nil buffer nil args)
-	      ;; On other systems, do it asynchronously.
-	      (setq proc (get-buffer-process buffer))
-	      (if proc (kill-process proc))
-	      (setq proc
-		    (apply 'start-process "Custom Diff" buffer program args))
+        (with-current-buffer buffer
+          (erase-buffer)
+          ;; default-directory may be on some remote machine
+          ;; (e.g. accessed via Tramp or url-handler) or a non-existing dir.
+          (setq default-directory "/")
+          (if (or (memq system-type '(ms-dos windows-nt))
+                  synch)
+              ;; In Windows do it synchronously, since Windows doesn't let us
+              ;; delete files used by other processes. Thus, in ediff-buffers
+              ;; and similar functions, we can't delete temp files because
+              ;; they might be used by the asynch process that computes
+              ;; custom diffs. So, we have to wait till custom diff
+              ;; subprocess is done.
+              ;; In DOS, must synchronize because DOS doesn't have
+              ;; asynchronous processes.
+              (apply #'call-process program nil buffer nil args)
+            ;; On other systems, do it asynchronously.
+            (let ((proc (get-buffer-process buffer)))
+	      (if proc (kill-process proc)))
+	    (let ((proc
+		   (apply #'start-process "Custom Diff" buffer program args)))
 	      (setq mode-line-process '(":%s"))
-	      (set-process-sentinel proc 'ediff-process-sentinel)
-	      (set-process-filter proc 'ediff-process-filter)
+	      (set-process-sentinel proc #'ediff-process-sentinel)
+	      (set-process-filter proc #'ediff-process-filter)
 	      )))
       (store-match-data data))))
 
@@ -1235,10 +1221,9 @@ are ignored."
 
 ;;; Word functions used to refine the current diff
 
-(defvar ediff-forward-word-function 'ediff-forward-word
+(defvar-local ediff-forward-word-function #'ediff-forward-word
   "Function to call to move to the next word.
 Used for splitting difference regions into individual words.")
-(make-variable-buffer-local 'ediff-forward-word-function)
 
 ;; \240 is Unicode symbol for nonbreakable whitespace
 (defvar ediff-whitespace " \n\t\f\r\240"
@@ -1246,8 +1231,7 @@ Used for splitting difference regions into individual words.")
 These characters are ignored when differing regions are split into words.")
 (make-variable-buffer-local 'ediff-whitespace)
 
-(defvar ediff-word-1
-  (if (featurep 'xemacs) "a-zA-Z---_" "-[:word:]_")
+(defvar ediff-word-1 "-[:word:]_"
   "Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")
@@ -1341,7 +1325,7 @@ arguments to `skip-chars-forward'."
 	(syntax-tbl ediff-syntax-table))
     (ediff-with-current-buffer buf
       (skip-chars-forward ediff-whitespace)
-      (ediff-with-syntax-table syntax-tbl
+      (with-syntax-table syntax-tbl
 	(while (> n 1)
 	  (funcall fwd-word-fun)
 	  (skip-chars-forward ediff-whitespace)
@@ -1358,7 +1342,7 @@ arguments to `skip-chars-forward'."
 	  (let ((res
 		 ;; In the remote case, this works only if F1 and F2 are
 		 ;; located on the same remote host.
-		 (apply 'process-file ediff-cmp-program nil nil nil
+		 (apply #'process-file ediff-cmp-program nil nil nil
 			(append ediff-cmp-options
 				(list (expand-file-name (file-local-name f1))
 				      (expand-file-name (file-local-name f2)))))
@@ -1418,8 +1402,8 @@ affects only files whose names match the expression."
   ;; First, check only the names (works quickly and ensures a
   ;; precondition for subsequent code)
   (if (and (= (length entries-1) (length entries-2))
-	   (equal (mapcar 'file-name-nondirectory entries-1)
-		  (mapcar 'file-name-nondirectory entries-2)))
+	   (equal (mapcar #'file-name-nondirectory entries-1)
+		  (mapcar #'file-name-nondirectory entries-2)))
       ;; With name equality established, compare the entries
       ;; through recursion.
       (let ((continue t))
@@ -1482,12 +1466,5 @@ affects only files whose names match the expression."
 	 (ediff-update-diffs)))
   )
 
-
-
-;; Local Variables:
-;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
-;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
-;; End:
-
+(provide 'ediff-diff)
 ;;; ediff-diff.el ends here

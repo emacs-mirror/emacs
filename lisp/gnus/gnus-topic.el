@@ -1,6 +1,6 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -31,6 +31,8 @@
 (require 'gnus-group)
 (require 'gnus-start)
 (require 'gnus-util)
+(eval-when-compile
+  (require 'subr-x))
 
 (defgroup gnus-topic nil
   "Group topics."
@@ -85,7 +87,7 @@ See Info node `(gnus)Formatting Variables'."
 (defvar gnus-topic-inhibit-change-level nil)
 
 (defconst gnus-topic-line-format-alist
-  `((?n name ?s)
+  '((?n name ?s)
     (?v visible ?s)
     (?i indentation ?s)
     (?g number-of-groups ?d)
@@ -99,8 +101,7 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-group-topic-name ()
   "The name of the topic on the current line."
-  (let ((topic (get-text-property (point-at-bol) 'gnus-topic)))
-    (and topic (symbol-name topic))))
+  (get-text-property (point-at-bol) 'gnus-topic))
 
 (defun gnus-group-topic-level ()
   "The level of the topic on the current line."
@@ -144,8 +145,7 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-topic-goto-topic (topic)
   (when topic
-    (gnus-goto-char (text-property-any (point-min) (point-max)
-				       'gnus-topic (intern topic)))))
+    (gnus-text-property-search 'gnus-topic topic nil 'goto)))
 
 (defun gnus-topic-jump-to-topic (topic)
   "Go to TOPIC."
@@ -167,8 +167,7 @@ See Info node `(gnus)Formatting Variables'."
 				     (point) 'gnus-topic))
 		    (get-text-property (max (1- (point)) (point-min))
 				       'gnus-topic))))))
-    (when result
-      (symbol-name result))))
+    result))
 
 (defun gnus-current-topics (&optional topic)
   "Return a list of all current topics, lowest in hierarchy first.
@@ -195,7 +194,7 @@ If RECURSIVE is t, return groups in its subtopics too."
     (while groups
       (when (setq group (pop groups))
 	(setq entry (gnus-group-entry group)
-	      info (nth 2 entry)
+	      info (nth 1 entry)
 	      params (gnus-info-params info)
 	      active (gnus-active group)
 	      unread (or (car entry)
@@ -462,7 +461,7 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
 	(gnus-group-prepare-flat-list-dead
 	 (seq-remove (lambda (group)
 			   (or (gnus-group-entry group)
-			       (gnus-gethash group gnus-killed-hashtb)))
+			       (gethash group gnus-killed-hashtb)))
 			 not-in-list)
 	 gnus-level-killed ?K regexp)))
 
@@ -536,7 +535,7 @@ articles in the topic and its subtopics."
 		    (funcall regexp entry))
 		   ((null regexp) t)
 		   (t nil))))
-	      (setq info (nth 2 entry))
+	      (setq info (nth 1 entry))
 	      (gnus-group-prepare-logic
 	       (gnus-info-group info)
 	       (and (or (not gnus-group-listed-groups)
@@ -557,7 +556,7 @@ articles in the topic and its subtopics."
 		      (car active))
 	       nil)
 	    ;; Living groups.
-	    (when (setq info (nth 2 entry))
+	    (when (setq info (nth 1 entry))
 	      (gnus-group-insert-group-line
 	       (gnus-info-group info)
 	       (gnus-info-level info) (gnus-info-marks info)
@@ -646,7 +645,7 @@ articles in the topic and its subtopics."
 	 (point)
 	 (prog1 (1+ (point))
 	   (eval gnus-topic-line-format-spec))
-	 (list 'gnus-topic (intern name)
+	 (list 'gnus-topic name
 	       'gnus-topic-level level
 	       'gnus-topic-unread unread
 	       'gnus-active active-topic
@@ -844,10 +843,9 @@ articles in the topic and its subtopics."
   ;; they belong to some topic.
   (let* ((tgroups (apply 'append (mapcar 'cdr gnus-topic-alist)))
 	 (entry (last (assoc (caar gnus-topic-topology) gnus-topic-alist)))
-	 (newsrc (cdr gnus-newsrc-alist))
-	 group)
-    (while newsrc
-      (unless (member (setq group (gnus-info-group (pop newsrc))) tgroups)
+	 (groups (cdr gnus-group-list)))
+    (dolist (group groups)
+      (unless (member group tgroups)
 	(setcdr entry (list group))
 	(setq entry (cdr entry)))))
   ;; Go through all topics and make sure they contain only living groups.
@@ -888,7 +886,7 @@ articles in the topic and its subtopics."
 	(while (setq group (pop topic))
 	  (when (and (or (gnus-active group)
 			 (gnus-info-method (gnus-get-info group)))
-		     (not (gnus-gethash group gnus-killed-hashtb)))
+		     (not (gethash group gnus-killed-hashtb)))
 	    (push group filtered-topic)))
 	(push (cons topic-name (nreverse filtered-topic)) result)))
     (setq gnus-topic-alist (nreverse result))))
@@ -898,7 +896,7 @@ articles in the topic and its subtopics."
   (with-current-buffer gnus-group-buffer
     (let ((inhibit-read-only t))
       (unless gnus-topic-inhibit-change-level
-	(gnus-group-goto-group (or (car (nth 2 previous)) group))
+	(gnus-group-goto-group (or (car (nth 1 previous)) group))
 	(when (and gnus-topic-mode
 		   gnus-topic-alist
 		   (not gnus-topic-inhibit-change-level))
@@ -956,7 +954,7 @@ articles in the topic and its subtopics."
   (if (not group)
       (if (not (memq 'gnus-topic props))
 	  (goto-char (point-max))
-	(let ((topic (symbol-name (cadr (memq 'gnus-topic props)))))
+	(let ((topic (cadr (memq 'gnus-topic props))))
 	  (or (gnus-topic-goto-topic topic)
 	      (gnus-topic-goto-topic (gnus-topic-next-topic topic)))))
     (if (gnus-group-goto-group group)
@@ -992,12 +990,8 @@ articles in the topic and its subtopics."
   ;; First we make sure that we have really read the active file.
   (when (or force
 	    (not gnus-topic-active-alist))
-    (let (groups)
-      ;; Get a list of all groups available.
-      (mapatoms (lambda (g) (when (symbol-value g)
-			      (push (symbol-name g) groups)))
-		gnus-active-hashtb)
-      (setq groups (sort groups 'string<))
+    ;; Get a list of all groups available.
+    (let ((groups (sort (hash-table-keys gnus-active-hashtb) #'string<)))
       ;; Init the variables.
       (setq gnus-topic-active-topology (list (list "" 'visible)))
       (setq gnus-topic-active-alist nil)
@@ -1202,7 +1196,7 @@ If performed over a topic line, toggle folding the topic."
     (save-excursion
       (gnus-message 5 "Expiring groups in %s..." topic)
       (let ((gnus-group-marked
-	     (mapcar (lambda (entry) (car (nth 2 entry)))
+	     (mapcar (lambda (entry) (car (nth 1 entry)))
 		     (gnus-topic-find-groups topic gnus-level-killed t
 					     nil t))))
 	(gnus-group-expire-articles nil))
@@ -1216,7 +1210,7 @@ Also see `gnus-group-catchup'."
       (call-interactively 'gnus-group-catchup-current)
     (save-excursion
       (let* ((groups
-              (mapcar (lambda (entry) (car (nth 2 entry)))
+              (mapcar (lambda (entry) (car (nth 1 entry)))
                       (gnus-topic-find-groups topic gnus-level-killed t
                                               nil t)))
 	     (inhibit-read-only t)
@@ -1449,7 +1443,7 @@ If NON-RECURSIVE (which is the prefix) is t, don't mark its subtopics."
 					    (not non-recursive))))
 	(while groups
 	  (funcall (if unmark 'gnus-group-remove-mark 'gnus-group-set-mark)
-		   (gnus-info-group (nth 2 (pop groups)))))))))
+		   (gnus-info-group (nth 1 (pop groups)))))))))
 
 (defun gnus-topic-unmark-topic (topic &optional _dummy non-recursive)
   "Remove the process mark from all groups in the TOPIC.

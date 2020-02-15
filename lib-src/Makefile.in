@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2018 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2020 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -163,11 +163,11 @@ INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} $(CLIENTW) \
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES = profile${EXEEXT} hexl${EXEEXT} \
+UTILITIES = hexl${EXEEXT} 			 	 \
 	    $(if $(with_mailutils), , movemail${EXEEXT}) \
             $(and $(use_gamedir), update-game-score${EXEEXT})
 
-DONT_INSTALL= make-docfile${EXEEXT}
+DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -204,8 +204,8 @@ LIBRESOLV=@LIBRESOLV@
 LIBS_MAIL=@LIBS_MAIL@
 ## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
-## empty or -lrt or -lposix4 if HAVE_FDATASYNC
-LIB_FDATASYNC = @LIB_FDATASYNC@
+## Whatever libraries are needed for euidaccess
+LIB_EACCESS=@LIB_EACCESS@
 ## empty or -lwsock2 for MinGW
 LIB_WSOCK32=@LIB_WSOCK32@
 
@@ -362,29 +362,26 @@ TAGS: etags${EXEEXT} ${tagsfiles}
 	$(MAKE) -C ../lib all
 
 etags_deps = ${srcdir}/etags.c $(NTLIB) $(config_h)
-etags_cflags = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" -o $@
 etags_libs = $(NTLIB) $(LOADLIBES)
 
 etags${EXEEXT}: ${etags_deps}
-	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(etags_cflags) $< $(etags_libs)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
 
 ## ctags.c is distinct from etags.c so that parallel makes do not write two
 ## etags.o files on top of each other.
 ## FIXME?
 ## Can't we use a wrapper that calls 'etags --ctags'?
 ctags${EXEEXT}: ${srcdir}/ctags.c ${etags_deps}
-	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(etags_cflags) $< $(etags_libs)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
                    $(config_h)
-	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
-	  $< $(NTLIB) $(LOADLIBES) -o $@
-
-profile${EXEEXT}: ${srcdir}/profile.c $(NTLIB) $(config_h)
-	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< \
-	  $(NTLIB) $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o $@
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(NTLIB) $(LOADLIBES)
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(NTLIB) $(config_h)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(NTLIB) $(LOADLIBES) -o $@
+
+make-fingerprint${EXEEXT}: ${srcdir}/make-fingerprint.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(NTLIB) $(LOADLIBES) -o $@
 
 movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
@@ -396,13 +393,13 @@ pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< \
-	   -DVERSION="\"${version}\"" $(NTLIB) $(LOADLIBES) $(LIB_FDATASYNC) \
-	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
+	   $(NTLIB) $(LOADLIBES) \
+	   $(LIB_WSOCK32) $(LIB_EACCESS) $(LIBS_ECLIENT) -o $@
 
 emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows $< \
-	   -DVERSION="\"${version}\"" $(LOADLIBES) $(LIB_FDATASYNC) \
-	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
+	   $(LOADLIBES) \
+	   $(LIB_WSOCK32) $(LIB_EACCESS) $(LIBS_ECLIENT) -o $@
 
 NTINC = ${srcdir}/../nt/inc
 NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \

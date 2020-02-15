@@ -1,6 +1,6 @@
 ;;; faceup.el --- Markup language for faces and font-lock regression testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Version: 0.0.6

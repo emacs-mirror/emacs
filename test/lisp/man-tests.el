@@ -1,6 +1,6 @@
 ;;; man-tests.el --- Test suite for man.
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Jenkner <wjenkner@inode.at>
 ;; Keywords: help, internal, unix
@@ -24,6 +24,7 @@
 
 (require 'ert)
 (require 'man)
+(require 'seq)
 
 (defconst man-tests-parse-man-k-tests
   '(;; GNU/Linux: man-db-2.6.1
@@ -112,6 +113,53 @@ in the cdr of the element.")
   "Test man."
   (dolist (test man-tests-parse-man-k-tests)
     (should (man-tests-parse-man-k-test-case test))))
+
+(defun man-tests-filter-strings (buffer strings)
+  "Run `Man-bgproc-filter' on each of STRINGS.
+The formatted result will be inserted into BUFFER."
+  (let ((proc (start-process "dummy man-tests proc" (current-buffer) "cat")))
+    (set-process-query-on-exit-flag proc nil)
+    (dolist (str strings)
+      (Man-bgproc-filter proc str))))
+
+(ert-deftest man-bgproc-filter-buttonize-includes ()
+  ;; Test with abridged version of printf man page (Bug#36927).
+  (let ((str "\
+PRINTF(3)              Linux Programmer's Manual             PRINTF(3)
+
+NAME
+       printf, fprintf, dprintf, sprintf, snprintf, vprintf, vfprintf,
+
+SYNOPSIS
+       #include <stdio.h>
+
+       int printf(const char *format, ...);
+
+       #include <stdarg.h>
+
+       int vsprintf(char *str, const char *format, va_list ap);
+
+DESCRIPTION
+       The functions in the printf() family produce  output  according\n"))
+    (with-temp-buffer
+      (dolist (chunks
+               (list
+                ;; Test a few different kinds of chunking.
+                (list str)
+                (seq-mapcat (lambda (line)
+                              (list line "\n"))
+                            (split-string str "\n"))
+                (mapcar #'string str)))
+        (erase-buffer)
+        (man-tests-filter-strings (current-buffer) chunks)
+        (goto-char (point-min))
+        (ert-info ((format "%S" chunks) :prefix "Input: ")
+          (search-forward "#include <stdio.h>")
+          (let ((button (button-at (match-beginning 0))))
+            (should (and button (eq 'Man-xref-header-file (button-type button)))))
+          (search-forward "#include <stdarg.h>")
+          (let ((button (button-at (match-beginning 0))))
+            (should (and button (eq 'Man-xref-header-file (button-type button))))))))))
 
 (provide 'man-tests)
 

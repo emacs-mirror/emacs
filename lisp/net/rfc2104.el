@@ -1,6 +1,6 @@
 ;;; rfc2104.el --- RFC2104 Hashed Message Authentication Codes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -36,8 +36,6 @@
 ;;
 ;; 64 is block length of hash function (64 for MD5 and SHA), 16 is
 ;; resulting hash length (16 for MD5, 20 for SHA).
-;;
-;; Tested with Emacs 20.2 and XEmacs 20.3.
 ;;
 ;; Test case reference: RFC 2202.
 
@@ -84,14 +82,6 @@
       (setq ls (cdr ls)))
     v))
 
-(eval-when-compile
-  (defmacro rfc2104-string-make-unibyte (string)
-    "Return the unibyte equivalent of STRING.
-In XEmacs return just STRING."
-    (if (featurep 'xemacs)
-	string
-      `(string-make-unibyte ,string))))
-
 (defun rfc2104-hash (hash block-length hash-length key text)
   (let* (;; if key is longer than B, reset it to HASH(key)
 	 (key (if (> (length key) block-length)
@@ -107,8 +97,7 @@ In XEmacs return just STRING."
       (aset ipad i (logxor rfc2104-ipad c))
       (aset opad i (logxor rfc2104-opad c)))
     ;; Perform inner hash.
-    (setq partial (rfc2104-string-make-unibyte
-		   (funcall hash (concat ipad text))))
+    (setq partial (funcall hash (concat ipad text)))
     ;; Pack latter part of opad.
     (cl-do ((r 0 (+ 2 r))
             (w block-length (1+ w)))
@@ -117,7 +106,7 @@ In XEmacs return just STRING."
             (+ (* 16 (aref rfc2104-nybbles (aref partial     r)))
                (      aref rfc2104-nybbles (aref partial (1+ r))))))
     ;; Perform outer hash.
-    (rfc2104-string-make-unibyte (funcall hash opad))))
+    (funcall hash opad)))
 
 (provide 'rfc2104)
 

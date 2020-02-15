@@ -1,6 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990-1993, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
@@ -832,9 +832,12 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                           ;;
                           ;; Note that choose-completion-string-functions
                           ;; plays around with point.
-                          (setq completion-base-size (if dirname
-                                                         dirlength
-                                                       (- beg prompt-end))))))
+                          (with-suppressed-warnings ((obsolete
+                                                      completion-base-size))
+                            (setq completion-base-size
+                                  (if dirname
+                                      dirlength
+                                    (- beg prompt-end)))))))
                              (PC-temp-minibuffer-message " [Next char not unique]"))
                          ;; Expansion of filenames is not reversible,
                          ;; so just keep the prefix.

@@ -1,6 +1,6 @@
 ;;; thai-util.el --- utilities for Thai -*- coding: utf-8; -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -225,10 +225,10 @@ positions (integers or markers) specifying the region."
   (thai-compose-region (point-min) (point-max)))
 
 ;;;###autoload
-(defun thai-composition-function (gstring)
+(defun thai-composition-function (gstring direction)
   (if (= (lgstring-char-len gstring) 1)
-      (compose-gstring-for-graphic gstring)
-    (or (font-shape-gstring gstring)
+      (compose-gstring-for-graphic gstring direction)
+    (or (font-shape-gstring gstring direction)
 	(let ((glyph-len (lgstring-glyph-len gstring))
 	      (last-char (lgstring-char gstring
 					(1- (lgstring-char-len gstring))))

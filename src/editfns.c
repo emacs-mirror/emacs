@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1989, 1993-2018 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "intervals.h"
 #include "ptr-bounds.h"
+#include "systime.h"
 #include "character.h"
 #include "buffer.h"
 #include "window.h"
@@ -668,7 +669,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {
-      ptrdiff_t shortage;
+      ptrdiff_t counted;
       Lisp_Object field_bound;
 
       if (fwd)
@@ -691,8 +692,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 		 there's an intervening newline or not.  */
 	      || (find_newline (XFIXNAT (new_pos), -1,
 				XFIXNAT (field_bound), -1,
-				fwd ? -1 : 1, &shortage, NULL, 1),
-		  shortage != 0)))
+				fwd ? -1 : 1, &counted, NULL, 1),
+		  counted == 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */
 	new_pos = field_bound;
 
@@ -716,7 +717,7 @@ position of the first character in logical order, i.e. the smallest
 character position on the line.
 
 This function constrains the returned position to the current field
-unless that position would be on a different line than the original,
+unless that position would be on a different line from the original,
 unconstrained result.  If N is nil or 1, and a front-sticky field
 starts at point, the scan stops as soon as it starts.  To ignore field
 boundaries, bind `inhibit-field-text-motion' to t.
@@ -749,7 +750,7 @@ position of the last character in logical order, i.e. the largest
 character position on the line.
 
 This function constrains the returned position to the current field
-unless that would be on a different line than the original,
+unless that would be on a different line from the original,
 unconstrained result.  If N is nil or 1, and a rear-sticky field ends
 at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.
@@ -1176,6 +1177,24 @@ Value is a fixnum, if it's small enough, otherwise a bignum.  */)
   return INT_TO_INTEGER (uid);
 }
 
+DEFUN ("group-name", Fgroup_name, Sgroup_name, 1, 1, 0,
+       doc: /* Return the name of the group whose numeric group ID is GID.
+The argument GID should be an integer or a float.
+Return nil if a group with such GID does not exists or is not known.  */)
+  (Lisp_Object gid)
+{
+  struct group *gr;
+  gid_t id;
+
+  if (!NUMBERP (gid) && !CONSP (gid))
+    error ("Invalid GID specification");
+  CONS_TO_INTEGER (gid, gid_t, id);
+  block_input ();
+  gr = getgrgid (id);
+  unblock_input ();
+  return gr ? build_string (gr->gr_name) : Qnil;
+}
+
 DEFUN ("group-gid", Fgroup_gid, Sgroup_gid, 0, 0, 0,
        doc: /* Return the effective gid of Emacs.
 Value is a fixnum, if it's small enough, otherwise a bignum.  */)
@@ -1242,7 +1261,7 @@ name, or nil if there is no such user.  */)
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
-      Lisp_Object login = Fuser_login_name (make_fixnum (pw->pw_uid));
+      Lisp_Object login = Fuser_login_name (INT_TO_INTEGER (pw->pw_uid));
       USE_SAFE_ALLOCA;
       char *r = SAFE_ALLOCA (strlen (p) + SBYTES (login) + 1);
       memcpy (r, p, q - p);
@@ -1453,7 +1472,8 @@ called interactively, INHERIT is t.  */)
   CHECK_CHARACTER (character);
   if (NILP (count))
     XSETFASTINT (count, 1);
-  CHECK_FIXNUM (count);
+  else
+    CHECK_FIXNUM (count);
   c = XFIXNAT (character);
 
   if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
@@ -1891,6 +1911,7 @@ determines whether case is significant or ignored.  */)
 
 #undef ELEMENT
 #undef EQUAL
+#define USE_HEURISTIC
 
 /* Counter used to rarely_quit in replace-buffer-contents.  */
 static unsigned short rbc_quitcounter;
@@ -1913,30 +1934,53 @@ static unsigned short rbc_quitcounter;
   /* Bit vectors recording for each character whether it was deleted
      or inserted.  */                           \
   unsigned char *deletions;                     \
-  unsigned char *insertions;
+  unsigned char *insertions;			\
+  struct timespec time_limit;			\
+  unsigned int early_abort_tests;
 
 #define NOTE_DELETE(ctx, xoff) set_bit ((ctx)->deletions, (xoff))
 #define NOTE_INSERT(ctx, yoff) set_bit ((ctx)->insertions, (yoff))
+#define EARLY_ABORT(ctx) compareseq_early_abort (ctx)
 
 struct context;
 static void set_bit (unsigned char *, OFFSET);
 static bool bit_is_set (const unsigned char *, OFFSET);
 static bool buffer_chars_equal (struct context *, OFFSET, OFFSET);
+static bool compareseq_early_abort (struct context *);
 
 #include "minmax.h"
 #include "diffseq.h"
 
 DEFUN ("replace-buffer-contents", Freplace_buffer_contents,
-       Sreplace_buffer_contents, 1, 1, "bSource buffer: ",
+       Sreplace_buffer_contents, 1, 3, "bSource buffer: ",
        doc: /* Replace accessible portion of current buffer with that of SOURCE.
 SOURCE can be a buffer or a string that names a buffer.
 Interactively, prompt for SOURCE.
+
 As far as possible the replacement is non-destructive, i.e. existing
 buffer contents, markers, properties, and overlays in the current
 buffer stay intact.
-Warning: this function can be slow if there's a large number of small
-differences between the two buffers.  */)
-  (Lisp_Object source)
+
+Because this function can be very slow if there is a large number of
+differences between the two buffers, there are two optional arguments
+mitigating this issue.
+
+The MAX-SECS argument, if given, defines a hard limit on the time used
+for comparing the buffers.  If it takes longer than MAX-SECS, the
+function falls back to a plain `delete-region' and
+`insert-buffer-substring'.  (Note that the checks are not performed
+too evenly over time, so in some cases it may run a bit longer than
+allowed).
+
+The optional argument MAX-COSTS defines the quality of the difference
+computation.  If the actual costs exceed this limit, heuristics are
+used to provide a faster but suboptimal solution.  The default value
+is 1000000.
+
+This function returns t if a non-destructive replacement could be
+performed.  Otherwise, i.e., if MAX-SECS was exceeded, it returns
+nil.  */)
+  (Lisp_Object source, Lisp_Object max_secs, Lisp_Object max_costs)
 {
   struct buffer *a = current_buffer;
   Lisp_Object source_buffer = Fget_buffer (source);
@@ -1961,15 +2005,18 @@ differences between the two buffers.  */)
      empty.  */
 
   if (a_empty && b_empty)
-    return Qnil;
+    return Qt;
 
   if (a_empty)
-    return Finsert_buffer_substring (source, Qnil, Qnil);
+    {
+      Finsert_buffer_substring (source, Qnil, Qnil);
+      return Qt;
+    }
 
   if (b_empty)
     {
       del_range_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, true);
-      return Qnil;
+      return Qt;
     }
 
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1983,6 +2030,23 @@ differences between the two buffers.  */)
   ptrdiff_t *buffer;
   USE_SAFE_ALLOCA;
   SAFE_NALLOCA (buffer, 2, diags);
+
+  if (NILP (max_costs))
+    XSETFASTINT (max_costs, 1000000);
+  else
+    CHECK_FIXNUM (max_costs);
+
+  struct timespec time_limit = make_timespec (0, -1);
+  if (!NILP (max_secs))
+    {
+      struct timespec
+	tlim = timespec_add (current_timespec (),
+			     lisp_time_argument (max_secs)),
+	tmax = make_timespec (TYPE_MAXIMUM (time_t), TIMESPEC_HZ - 1);
+      if (timespec_cmp (tlim, tmax) < 0)
+	time_limit = tlim;
+    }
+
   /* Micro-optimization: Casting to size_t generates much better
      code.  */
   ptrdiff_t del_bytes = (size_t) size_a / CHAR_BIT + 1;
@@ -1998,17 +2062,25 @@ differences between the two buffers.  */)
     .insertions = SAFE_ALLOCA (ins_bytes),
     .fdiag = buffer + size_b + 1,
     .bdiag = buffer + diags + size_b + 1,
-    /* FIXME: Find a good number for .too_expensive.  */
-    .too_expensive = 1000000,
+    .heuristic = true,
+    .too_expensive = XFIXNUM (max_costs),
+    .time_limit = time_limit,
+    .early_abort_tests = 0
   };
   memclear (ctx.deletions, del_bytes);
   memclear (ctx.insertions, ins_bytes);
+
   /* compareseq requires indices to be zero-based.  We add BEGV back
      later.  */
   bool early_abort = compareseq (0, size_a, 0, size_b, false, &ctx);
-  /* Since we didn’t define EARLY_ABORT, we should never abort
-     early.  */
-  eassert (! early_abort);
+
+  if (early_abort)
+    {
+      del_range (min_a, ZV);
+      Finsert_buffer_substring (source, Qnil,Qnil);
+      SAFE_FREE_UNBIND_TO (count, Qnil);
+      return Qnil;
+    }
 
   rbc_quitcounter = 0;
 
@@ -2070,6 +2142,7 @@ differences between the two buffers.  */)
       --i;
       --j;
     }
+
   SAFE_FREE_UNBIND_TO (count, Qnil);
   rbc_quitcounter = 0;
 
@@ -2079,7 +2152,7 @@ differences between the two buffers.  */)
       update_compositions (BEGV, ZV, CHECK_INSIDE);
     }
 
-  return Qnil;
+  return Qt;
 }
 
 static void
@@ -2144,6 +2217,14 @@ buffer_chars_equal (struct context *ctx,
       == UNIBYTE_TO_CHAR (BUF_FETCH_BYTE (ctx->buffer_b, bpos_b));
   return BUF_FETCH_MULTIBYTE_CHAR (ctx->buffer_a, bpos_a)
     == BUF_FETCH_MULTIBYTE_CHAR (ctx->buffer_b, bpos_b);
+}
+
+static bool
+compareseq_early_abort (struct context *ctx)
+{
+  if (ctx->time_limit.tv_nsec < 0)
+    return false;
+  return timespec_cmp (ctx->time_limit, current_timespec ()) < 0;
 }
 
 
@@ -2272,10 +2353,11 @@ Both characters must have the same length of multi-byte form.  */)
 
 	      if (! NILP (noundo))
 		{
-		  if (MODIFF - 1 == SAVE_MODIFF)
-		    SAVE_MODIFF++;
-		  if (MODIFF - 1 == BUF_AUTOSAVE_MODIFF (current_buffer))
-		    BUF_AUTOSAVE_MODIFF (current_buffer)++;
+		  modiff_count m = MODIFF;
+		  if (SAVE_MODIFF == m - 1)
+		    SAVE_MODIFF = m;
+		  if (BUF_AUTOSAVE_MODIFF (current_buffer) == m - 1)
+		    BUF_AUTOSAVE_MODIFF (current_buffer) = m;
 		}
 
 	      /* The before-change-function may have moved the gap
@@ -2303,7 +2385,7 @@ Both characters must have the same length of multi-byte form.  */)
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
-			     0, 0, 1, 0);
+			     false, false, true, false);
 	      pos_byte_next = CHAR_TO_BYTE (pos);
 	      if (pos_byte_next > pos_byte)
 		/* Before combining happened.  We should not increment
@@ -2414,60 +2496,53 @@ From START to END, translate characters according to TABLE.
 TABLE is a string or a char-table; the Nth character in it is the
 mapping for the character with code N.
 It returns the number of characters changed.  */)
-  (Lisp_Object start, Lisp_Object end, register Lisp_Object table)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object table)
 {
-  register unsigned char *tt;	/* Trans table. */
-  register int nc;		/* New character. */
-  int cnt;			/* Number of changes made. */
-  ptrdiff_t size;		/* Size of translate table. */
-  ptrdiff_t pos, pos_byte, end_pos;
+  int translatable_chars = MAX_CHAR + 1;
   bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   bool string_multibyte UNINIT;
 
   validate_region (&start, &end);
-  if (CHAR_TABLE_P (table))
+  if (STRINGP (table))
     {
-      if (! EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table))
-	error ("Not a translation table");
-      size = MAX_CHAR;
-      tt = NULL;
-    }
-  else
-    {
-      CHECK_STRING (table);
-
-      if (! multibyte && (SCHARS (table) < SBYTES (table)))
+      if (! multibyte)
 	table = string_make_unibyte (table);
-      string_multibyte = SCHARS (table) < SBYTES (table);
-      size = SBYTES (table);
-      tt = SDATA (table);
+      translatable_chars = min (translatable_chars, SBYTES (table));
+      string_multibyte = STRING_MULTIBYTE (table);
     }
+  else if (! (CHAR_TABLE_P (table)
+	      && EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table)))
+    error ("Not a translation table");
 
-  pos = XFIXNUM (start);
-  pos_byte = CHAR_TO_BYTE (pos);
-  end_pos = XFIXNUM (end);
+  ptrdiff_t pos = XFIXNUM (start);
+  ptrdiff_t pos_byte = CHAR_TO_BYTE (pos);
+  ptrdiff_t end_pos = XFIXNUM (end);
   modify_text (pos, end_pos);
 
-  cnt = 0;
-  for (; pos < end_pos; )
+  ptrdiff_t characters_changed = 0;
+
+  while (pos < end_pos)
     {
       unsigned char *p = BYTE_POS_ADDR (pos_byte);
       unsigned char *str UNINIT;
       unsigned char buf[MAX_MULTIBYTE_LENGTH];
-      int len, str_len;
-      int oc;
-      Lisp_Object val;
+      int len, oc;
 
       if (multibyte)
 	oc = STRING_CHAR_AND_LENGTH (p, len);
       else
 	oc = *p, len = 1;
-      if (oc < size)
+      if (oc < translatable_chars)
 	{
-	  if (tt)
+	  int nc; /* New character.  */
+	  int str_len;
+	  Lisp_Object val;
+
+	  if (STRINGP (table))
 	    {
 	      /* Reload as signal_after_change in last iteration may GC.  */
-	      tt = SDATA (table);
+	      unsigned char *tt = SDATA (table);
+
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
@@ -2516,7 +2591,8 @@ It returns the number of characters changed.  */)
 		  /* This is less efficient, because it moves the gap,
 		     but it should handle multibyte characters correctly.  */
 		  string = make_multibyte_string ((char *) str, 1, str_len);
-		  replace_range (pos, pos + 1, string, 1, 0, 1, 0);
+		  replace_range (pos, pos + 1, string,
+				 true, false, true, false);
 		  len = str_len;
 		}
 	      else
@@ -2527,12 +2603,10 @@ It returns the number of characters changed.  */)
 		  signal_after_change (pos, 1, 1);
 		  update_compositions (pos, pos + 1, CHECK_BORDER);
 		}
-	      ++cnt;
+	      characters_changed++;
 	    }
 	  else if (nc < 0)
 	    {
-	      Lisp_Object string;
-
 	      if (CONSP (val))
 		{
 		  val = check_translation (pos, pos_byte, end_pos, val);
@@ -2549,18 +2623,14 @@ It returns the number of characters changed.  */)
 	      else
 		len = 1;
 
-	      if (VECTORP (val))
-		{
-		  string = Fconcat (1, &val);
-		}
-	      else
-		{
-		  string = Fmake_string (make_fixnum (1), val, Qnil);
-		}
-	      replace_range (pos, pos + len, string, 1, 0, 1, 0);
+	      Lisp_Object string
+		= (VECTORP (val)
+		   ? Fconcat (1, &val)
+		   : Fmake_string (make_fixnum (1), val, Qnil));
+	      replace_range (pos, pos + len, string, true, false, true, false);
 	      pos_byte += SBYTES (string);
 	      pos += SCHARS (string);
-	      cnt += SCHARS (string);
+	      characters_changed += SCHARS (string);
 	      end_pos += SCHARS (string) - len;
 	      continue;
 	    }
@@ -2569,7 +2639,7 @@ It returns the number of characters changed.  */)
       pos++;
     }
 
-  return make_fixnum (cnt);
+  return make_fixnum (characters_changed);
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
@@ -2616,8 +2686,9 @@ but is not deleted; if you save the buffer in a file, the invisible
 text is included in the file.  \\[widen] makes all visible again.
 See also `save-restriction'.
 
-When calling from a program, pass two arguments; positions (integers
-or markers) bounding the text that should remain visible.  */)
+When calling from Lisp, pass two arguments START and END:
+positions (integers or markers) bounding the text that should
+remain visible.  */)
   (register Lisp_Object start, Lisp_Object end)
 {
   CHECK_FIXNUM_COERCE_MARKER (start);
@@ -2764,6 +2835,25 @@ usage: (save-restriction &rest BODY)  */)
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
   val = Fprogn (body);
   return unbind_to (count, val);
+}
+
+/* i18n (internationalization).  */
+
+DEFUN ("ngettext", Fngettext, Sngettext, 3, 3, 0,
+       doc: /* Return the translation of MSGID (plural MSGID-PLURAL) depending on N.
+MSGID is the singular form of the string to be converted;
+use it as the key for the search in the translation catalog.
+MSGID-PLURAL is the plural form.  Use N to select the proper translation.
+If no message catalog is found, MSGID is returned if N is equal to 1,
+otherwise MSGID-PLURAL.  */)
+  (Lisp_Object msgid, Lisp_Object msgid_plural, Lisp_Object n)
+{
+  CHECK_STRING (msgid);
+  CHECK_STRING (msgid_plural);
+  CHECK_INTEGER (n);
+
+  /* Placeholder implementation until we get our act together.  */
+  return EQ (n, make_fixnum (1)) ? msgid : msgid_plural;
 }
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
@@ -2919,8 +3009,8 @@ the next available argument, or the argument explicitly specified:
 
 %s means print a string argument.  Actually, prints any object, with `princ'.
 %d means print as signed number in decimal.
-%o means print as unsigned number in octal.
-%x means print as unsigned number in hex.
+%o means print a number in octal.
+%x means print a number in hex.
 %X is like %x, but uses upper case.
 %e means print a number in exponential notation.
 %f means print a number in decimal-point notation.
@@ -2931,6 +3021,8 @@ the next available argument, or the argument explicitly specified:
 %S means print any object as an s-expression (using `prin1').
 
 The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
+%o, %x, and %X treat arguments as unsigned if `binary-as-unsigned' is t
+  (this is experimental; email 32252@debbugs.gnu.org if you need it).
 Use %% to put a single % into the output.
 
 A %-sequence other than %% may contain optional field number, flag,
@@ -2939,7 +3031,7 @@ width, and precision specifiers, as follows:
   %<field><flags><width><precision>character
 
 where field is [0-9]+ followed by a literal dollar "$", flags is
-[+ #-0]+, width is [0-9]+, and precision is a literal period "."
+[+ #0-]+, width is [0-9]+, and precision is a literal period "."
 followed by [0-9]+.
 
 If a %-sequence is numbered with a field with positive value N, the
@@ -3014,7 +3106,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 			      : FLT_RADIX == 16 ? 4
 			      : -1)),
 
-   /* Maximum number of bytes (including terminating null) generated
+   /* Maximum number of bytes (including terminating NUL) generated
       by any format, if precision is no more than USEFUL_PRECISION_MAX.
       On all practical hosts, %Lf is the worst case.  */
    SPRINTF_BUFSIZE = (sizeof "-." + (LDBL_MAX_10_EXP + 1)
@@ -3051,7 +3143,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
     /* The start and end bytepos in the output string.  */
     ptrdiff_t start, end;
 
-    /* The start of the spec in the format string.  */
+    /* The start bytepos of the spec in the format string.  */
     ptrdiff_t fbeg;
 
     /* Whether the argument is a string with intervals.  */
@@ -3385,8 +3477,8 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	    error ("Format specifier doesn't match argument type");
 	  else
 	    {
-	      /* Length of pM (that is, of pMd without the trailing "d").  */
-	      enum { pMlen = sizeof pMd - 2 };
+	      /* Length of PRIdMAX without the trailing "d".  */
+	      enum { pMlen = sizeof PRIdMAX - 2 };
 
 	      /* Avoid undefined behavior in underlying sprintf.  */
 	      if (conversion == 'd' || conversion == 'i')
@@ -3395,7 +3487,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      /* Create the copy of the conversion specification, with
 		 any width and precision removed, with ".*" inserted,
 		 with "L" possibly inserted for floating-point formats,
-		 and with pM inserted for integer formats.
+		 and with PRIdMAX (sans "d") inserted for integer formats.
 		 At most two flags F can be specified at once.  */
 	      char convspec[sizeof "%FF.*d" + max (sizeof "L" - 1, pMlen)];
 	      char *f = convspec;
@@ -3408,7 +3500,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      *f++ = '*';
 	      if (! (float_conversion || conversion == 'c'))
 		{
-		  memcpy (f, pMd, pMlen);
+		  memcpy (f, PRIdMAX, pMlen);
 		  f += pMlen;
 		  zero_flag &= ! precision_given;
 		}
@@ -3447,7 +3539,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 		  bool format_as_long_double = false;
 		  double darg;
-		  long double ldarg;
+		  long double ldarg UNINIT;
 
 		  if (FLOATP (arg))
 		    darg = XFLOAT_DATA (arg);
@@ -3502,6 +3594,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  sprintf_bytes = prec != 0;
 		}
 	      else if (BIGNUMP (arg))
+	      bignum_arg:
 		{
 		  int base = ((conversion == 'd' || conversion == 'i') ? 10
 			      : conversion == 'o' ? 8 : 16);
@@ -3524,7 +3617,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		{
 		  if (FIXNUMP (arg))
 		    {
-		      printmax_t x = XFIXNUM (arg);
+		      intmax_t x = XFIXNUM (arg);
 		      sprintf_bytes = sprintf (p, convspec, prec, x);
 		    }
 		  else
@@ -3544,7 +3637,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		}
 	      else
 		{
-		  uprintmax_t x;
+		  uintmax_t x;
 		  bool negative;
 		  if (FIXNUMP (arg))
 		    {
@@ -3563,11 +3656,17 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  else
 		    {
 		      double d = XFLOAT_DATA (arg);
-		      double uprintmax = TYPE_MAXIMUM (uprintmax_t);
-		      if (! (0 <= d && d < uprintmax + 1))
-			xsignal1 (Qoverflow_error, arg);
-		      x = d;
-		      negative = false;
+		      double abs_d = fabs (d);
+		      if (abs_d < UINTMAX_MAX + 1.0)
+			{
+			  negative = d <= -1;
+			  x = abs_d;
+			}
+		      else
+			{
+			  arg = double_to_integer (d);
+			  goto bignum_arg;
+			}
 		    }
 		  p[0] = negative ? '-' : plus_flag ? '+' : ' ';
 		  bool signedp = negative | plus_flag | space_flag;
@@ -3855,7 +3954,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		    {
 		      position++;
 		      if (fieldn < nspec
-			  && position > info[fieldn].fbeg
+			  && bytepos >= info[fieldn].fbeg
 			  && translated == info[fieldn].start)
 			{
 			  translated += info[fieldn].end - info[fieldn].start;
@@ -3877,7 +3976,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		    {
 		      position++;
 		      if (fieldn < nspec
-			  && position > info[fieldn].fbeg
+			  && bytepos >= info[fieldn].fbeg
 			  && translated == info[fieldn].start)
 			{
 			  translated += info[fieldn].end - info[fieldn].start;
@@ -4413,17 +4512,13 @@ functions if all the text being accessed has this property.  */);
 	       binary_as_unsigned,
 	       doc: /* Non-nil means `format' %x and %o treat integers as unsigned.
 This has machine-dependent results.  Nil means to treat integers as
-signed, which is portable; for example, if N is a negative integer,
-(read (format "#x%x") N) returns N only when this variable is nil.
+signed, which is portable and is the default; for example, if N is a
+negative integer, (read (format "#x%x" N)) returns N only when this
+variable is nil.
 
 This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
-  /* For now, default to true if bignums exist, false in traditional Emacs.  */
-#ifdef lisp_h_FIXNUMP
   binary_as_unsigned = false;
-#else
-  binary_as_unsigned = true;
-#endif
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);
@@ -4486,7 +4581,10 @@ it to be non-nil.  */);
   defsubr (&Sinsert_char);
   defsubr (&Sinsert_byte);
 
+  defsubr (&Sngettext);
+
   defsubr (&Suser_login_name);
+  defsubr (&Sgroup_name);
   defsubr (&Suser_real_login_name);
   defsubr (&Suser_uid);
   defsubr (&Suser_real_uid);

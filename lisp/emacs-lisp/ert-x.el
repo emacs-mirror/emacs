@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008, 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;;         Christian Ohler <ohler@gnu.org>
@@ -321,7 +321,7 @@ code under test from the behavior of the *Messages* buffer."
 COLLECTOR will be called with the message before it is passed
 to the real `message'."
   (lambda (func &rest args)
-    (if (or (null args) (equal (car args) ""))
+    (if (or (null args) (member (car args) '("" nil)))
         (apply func args)
       (let ((msg (apply #'format-message args)))
         (funcall collector (concat msg "\n"))

@@ -1,6 +1,6 @@
 ;;; semantic/html.el --- Semantic details for html files
 
-;; Copyright (C) 2004-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -247,13 +247,15 @@ tag with greater section value than LEVEL is found."
 	semantic-stickyfunc-sticky-classes '(section)
 	)
   (semantic-install-function-overrides
-   '((tag-components . semantic-html-components)
+   '((semantic-tag-components . semantic-html-components)
      )
    t)
   )
 
-(define-child-mode html-helper-mode html-mode
-  "`html-helper-mode' needs the same semantic support as `html-mode'.")
+;; `html-helper-mode' hasn't been updated since 2004, so it's not very
+;; relevant nowadays.
+;;(define-child-mode html-helper-mode html-mode
+;;  "`html-helper-mode' needs the same semantic support as `html-mode'.")
 
 (provide 'semantic/html)
 

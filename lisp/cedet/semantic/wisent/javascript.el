@@ -1,8 +1,8 @@
 ;;; semantic/wisent/javascript.el --- javascript parser support
 
-;; Copyright (C) 2005, 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2020 Free Software Foundation, Inc.
 
-;; Author: Eric Ludlam <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
 
 ;; This file is part of GNU Emacs.
@@ -64,13 +64,13 @@ to this variable NAME."
 ;; the tags created by the javascript parser.
 ;; Local context
 (define-mode-local-override semantic-get-local-variables
-  javascript-mode ()
+  js-mode ()
   "Get local values from a specific context.
 This function overrides `get-local-variables'."
   ;; Does javascript have identifiable local variables?
   nil)
 
-(define-mode-local-override semantic-tag-protection javascript-mode (tag &optional parent)
+(define-mode-local-override semantic-tag-protection js-mode (tag &optional parent)
   "Return protection information about TAG with optional PARENT.
 This function returns on of the following symbols:
    nil         - No special protection.  Language dependent.
@@ -85,14 +85,14 @@ The default behavior (if not overridden with `tag-protection'
 is to return a symbol based on type modifiers."
   nil)
 
-(define-mode-local-override semantic-analyze-scope-calculate-access javascript-mode (type scope)
+(define-mode-local-override semantic-analyze-scope-calculate-access js-mode (type scope)
   "Calculate the access class for TYPE as defined by the current SCOPE.
 Access is related to the :parents in SCOPE.  If type is a member of SCOPE
-then access would be 'private.  If TYPE is inherited by a member of SCOPE,
-the access would be 'protected.  Otherwise, access is 'public."
+then access would be `private'.  If TYPE is inherited by a member of SCOPE,
+the access would be `protected'.  Otherwise, access is `public'."
   nil)
 
-(define-mode-local-override semantic-ctxt-current-symbol javascript-mode (&optional point)
+(define-mode-local-override semantic-ctxt-current-symbol js-mode (&optional point)
   "Return the current symbol the cursor is on at POINT in a list.
 This is a very simple implementation for Javascript symbols.  It
 will at maximum do one split, so that the first part is seen as
@@ -117,13 +117,6 @@ This is currently needed for the mozrepl omniscient database."
 
 ;;; Setup Function
 ;;
-;; Since javascript-mode is an alias for js-mode, let it inherit all
-;; the overrides.
-(define-child-mode js-mode javascript-mode)
-
-;; Since javascript-mode is an alias for js-mode, let it inherit all
-;; the overrides.
-(define-child-mode js-mode javascript-mode)
 
 ;; In semantic-imenu.el, not part of Emacs.
 (defvar semantic-imenu-summary-function)

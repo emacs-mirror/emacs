@@ -1,10 +1,10 @@
 ;;; erc-autoaway.el --- Provides autoaway for ERC
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: emacs-devel@gnu.org
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
+;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcAutoAway
 
 ;; This file is part of GNU Emacs.
 
@@ -37,7 +37,7 @@ yourself back when you type something."
 
 (defvar erc-autoaway-idletimer nil
   "The Emacs idletimer.
-This is only used when `erc-autoaway-idle-method' is set to 'emacs.")
+This is only used when `erc-autoaway-idle-method' is set to `emacs'.")
 
 (defvar erc-autoaway-last-sent-time (erc-current-time)
   "The last time the user sent something.")
@@ -50,7 +50,7 @@ user's away status.")
 
 (defun erc-autoaway-reestablish-idletimer ()
   "Reestablish the Emacs idletimer.
-If `erc-autoaway-idle-method' is 'emacs, you must call this
+If `erc-autoaway-idle-method' is `emacs', you must call this
 function each time you change `erc-autoaway-idle-seconds'."
   (interactive)
   (when erc-autoaway-idletimer
@@ -70,7 +70,7 @@ If none is found, return nil."
   "Add autoaway reset function to `post-command-hook' if at least one
 ERC process is alive.
 
-This is used when `erc-autoaway-idle-method' is 'user."
+This is used when `erc-autoaway-idle-method' is `user'."
   (when (or server (erc-autoaway-some-server-buffer))
     (add-hook 'post-command-hook 'erc-autoaway-reset-idle-user)))
 
@@ -78,7 +78,7 @@ This is used when `erc-autoaway-idle-method' is 'user."
   "Remove the autoaway reset function from `post-command-hook' if
 no ERC process is alive.
 
-This is used when `erc-autoaway-idle-method' is 'user."
+This is used when `erc-autoaway-idle-method' is `user'."
   (unless (erc-autoaway-some-server-buffer)
     (remove-hook 'post-command-hook 'erc-autoaway-reset-idle-user)))
 
@@ -140,9 +140,9 @@ Related variables: `erc-public-away-p' and `erc-away-nickname'."
 
 (defcustom erc-autoaway-idle-method 'user
   "The method used to determine how long you have been idle.
-If 'user, the time of the last command sent to Emacs is used.
-If 'emacs, the idle time in Emacs is used.
-If 'irc, the time of the last IRC command is used.
+If `user', the time of the last command sent to Emacs is used.
+If `emacs', the idle time in Emacs is used.
+If `irc', the time of the last IRC command is used.
 
 The time itself is specified by `erc-autoaway-idle-seconds'.
 
@@ -283,6 +283,4 @@ active server buffer available."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

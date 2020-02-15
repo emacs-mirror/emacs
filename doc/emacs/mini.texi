@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer
@@ -222,9 +222,13 @@ can also scroll the help text with @kbd{M-@key{PageUp}} and
 possible completions.  @xref{Other Window}.
 
 @vindex enable-recursive-minibuffers
+@findex minibuffer-depth-indicate-mode
   Emacs normally disallows most commands that use the minibuffer while
 the minibuffer is active.  To allow such commands in the minibuffer,
 set the variable @code{enable-recursive-minibuffers} to @code{t}.
+You might need also to enable @code{minibuffer-depth-indicate-mode}
+to show the current recursion depth in the minibuffer prompt
+on recursive use of the minibuffer.
 
 @findex minibuffer-inactive-mode
   When not active, the minibuffer is in @code{minibuffer-inactive-mode},

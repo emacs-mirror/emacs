@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -37,7 +37,7 @@
 ;; buffers which control the execution and describe the state of your program.
 ;; It separates the input/output of your program from that of GDB and displays
 ;; expressions and their current values in their own buffers.  It also uses
-;; features of Emacs 21 such as the fringe/display margin for breakpoints, and
+;; features such as the fringe/display margin for breakpoints, and
 ;; the toolbar (see the GDB Graphical Interface section in the Emacs info
 ;; manual).
 
@@ -105,13 +105,24 @@
 (defvar speedbar-initial-expansion-list-name)
 (defvar speedbar-frame)
 
-(defvar	gdb-memory-address "main")
-(defvar	gdb-memory-last-address nil
+(defvar-local gdb-memory-address-expression "main"
+  "This expression is passed to gdb.
+Possible value: main, $rsp, x+3.")
+(defvar-local gdb-memory-address nil
+  "Address of memory display.")
+(defvar-local gdb-memory-last-address nil
   "Last successfully accessed memory address.")
 (defvar	gdb-memory-next-page nil
   "Address of next memory page for program memory buffer.")
 (defvar	gdb-memory-prev-page nil
   "Address of previous memory page for program memory buffer.")
+(defvar-local gdb--memory-display-warning nil
+  "Display warning on memory header if t.
+
+When error occurs when retrieving memory, gdb-mi displays the
+last successful page.  In that case the expression might not
+match the memory displayed.  We want to let the user be aware of
+that, so display a warning exclamation mark in the header line.")
 
 (defvar gdb-thread-number nil
   "Main current thread.
@@ -154,7 +165,7 @@ May be manually changed by user with `gdb-select-frame'.")
   "Associative list of threads provided by \"-thread-info\" MI command.
 
 Keys are thread numbers (in strings) and values are structures as
-returned from -thread-info by `gdb-json-partial-output'. Updated in
+returned from -thread-info by `gdb-json-partial-output'.  Updated in
 `gdb-thread-list-handler-custom'.")
 
 (defvar gdb-running-threads-count nil
@@ -324,7 +335,10 @@ in `gdb-handler-list' and clears all pending handlers invalidated
 by the reception of this reply."
   (let ((handler-function (gdb-get-handler-function token-number)))
     (when handler-function
-      (funcall handler-function)
+      ;; Protect against errors in handler-function.
+      (condition-case err
+          (funcall handler-function)
+        (error (message (error-message-string err))))
       (gdb-delete-handler token-number))))
 
 (defun gdb-remove-all-pending-triggers ()
@@ -378,18 +392,18 @@ Must be a list of pairs with cars being buffers and cdr's being
 valid signal handlers.")
 
 (defgroup gdb nil
-  "GDB graphical interface"
+  "GDB graphical interface."
   :group 'tools
   :link '(info-link "(emacs)GDB Graphical Interface")
   :version "23.2")
 
 (defgroup gdb-non-stop nil
-  "GDB non-stop debugging settings"
+  "GDB non-stop debugging settings."
   :group 'gdb
   :version "23.2")
 
 (defgroup gdb-buffers nil
-  "GDB buffers"
+  "GDB buffers."
   :group 'gdb
   :version "23.2")
 
@@ -657,7 +671,7 @@ When `gdb-non-stop' is nil, return COMMAND unchanged."
   "`gud-call' wrapper which adds --thread/--all options between
 CMD1 and CMD2.  NOALL is the same as in `gdb-gud-context-command'.
 
-NOARG must be t when this macro is used outside `gud-def'"
+NOARG must be t when this macro is used outside `gud-def'."
   `(gud-call
     (concat (gdb-gud-context-command ,cmd1 ,noall) " " ,cmd2)
     ,(when (not noarg) 'arg)))
@@ -955,6 +969,7 @@ detailed description of this mode.
     (gdb-input "-gdb-set non-stop 1" 'gdb-non-stop-handler))
 
   (gdb-input "-enable-pretty-printing" 'ignore)
+  (gdb-input "-enable-frame-filters" 'ignore)
 
   ;; Find source file and compilation directory here.
   (if gdb-create-source-file-list
@@ -1000,8 +1015,10 @@ no input, and GDB is waiting for input."
 	;; Sending an EOF does not work with GDB-MI; submit an
 	;; explicit quit command.
 	(progn
-	  (insert "quit")
-	  (comint-send-input t t))
+          (if (> gdb-control-level 0)
+              (process-send-eof proc)
+            (insert "quit")
+            (comint-send-input t t)))
       (delete-char arg))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
@@ -1120,13 +1137,15 @@ line, and no execution takes place."
 (defcustom gdb-show-changed-values t
   "If non-nil change the face of out of scope variables and changed values.
 Out of scope variables are suppressed with `shadow' face.
-Changed values are highlighted with the face `font-lock-warning-face'."
+Changed values are highlighted with the face `font-lock-warning-face'.
+Used by Speedbar."
   :type 'boolean
   :group 'gdb
   :version "22.1")
 
 (defcustom gdb-max-children 40
-  "Maximum number of children before expansion requires confirmation."
+  "Maximum number of children before expansion requires confirmation.
+Used by Speedbar."
   :type 'integer
   :group 'gdb
   :version "22.1")
@@ -1371,7 +1390,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node.
 INDENT is the current indentation depth."
-  (cond ((string-match "+" text)        ;expand this node
+  (cond ((string-match "\\+" text)        ;expand this node
 	 (let* ((var (assoc token gdb-var-list))
 		(expr (nth 1 var)) (children (nth 2 var)))
 	   (if (or (<= (string-to-number children) gdb-max-children)
@@ -1792,7 +1811,7 @@ commands to be prefixed by \"-interpreter-exec console\".")
   "A comint send filter for gdb."
   (with-current-buffer gud-comint-buffer
     (let ((inhibit-read-only t))
-      (remove-text-properties (point-min) (point-max) '(face))))
+      (remove-text-properties (point-min) (point-max) '(face nil))))
   ;; mimic <RET> key to repeat previous command in GDB
   (when (= gdb-control-level 0)
     (if (not (string= "" string))
@@ -1825,7 +1844,7 @@ commands to be prefixed by \"-interpreter-exec console\".")
 		      " "))
       (setq gdb-first-done-or-error t)
       (let ((to-send (concat "-interpreter-exec console "
-                             (gdb-mi-quote (concat gdb-continuation string " "))
+                             (gdb-mi-quote (concat gdb-continuation string))
                              "\n")))
         (if gdb-enable-debug
             (push (cons 'mi-send to-send) gdb-debug-log))
@@ -1841,7 +1860,7 @@ commands to be prefixed by \"-interpreter-exec console\".")
   ;; Python and Guile commands that have an argument don't enter the
   ;; recursive reading loop.
   (let* ((control-command-p (string-match gdb-control-commands-regexp string))
-         (command-arg (match-string 3 string))
+         (command-arg (and control-command-p (match-string 3 string)))
          (python-or-guile-p (string-match gdb-python-guile-commands-regexp
                                           string)))
     (if (and control-command-p
@@ -1931,10 +1950,10 @@ If NO-PROC is non-nil, do not try to contact the GDB process."
   ;; gdb-break-list is maintained in breakpoints handler
   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
 
+  (gdb-get-changed-registers)
   (unless no-proc
     (gdb-emit-signal gdb-buf-publisher 'update))
 
-  (gdb-get-changed-registers)
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     (dolist (var gdb-var-list)
       (setcar (nthcdr 5 var) nil))
@@ -2679,7 +2698,7 @@ in MI messages, e.g.: [key=.., key=..].  -stack-list-frames and
 responses.
 
 If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
-\"FIX-LIST=[..]\" prior to parsing. This is used to fix broken
+\"FIX-LIST=[..]\" prior to parsing.  This is used to fix broken
 -break-info output when it contains breakpoint script field
 incompatible with GDB/MI output syntax.
 
@@ -2712,7 +2731,7 @@ If `default-directory' is remote, full file names are adapted accordingly."
               (insert "]"))))))
     (goto-char (point-min))
     (insert "{")
-    (let ((re (concat "\\([[:alnum:]-_]+\\)=")))
+    (let ((re (concat "\\([[:alnum:]_-]+\\)=")))
       (while (re-search-forward re nil t)
         (replace-match "\"\\1\":" nil nil)
         (if (eq (char-after) ?\") (forward-sexp) (forward-char))))
@@ -3442,7 +3461,7 @@ line."
 (def-gdb-trigger-and-handler
   gdb-invalidate-memory
   (format "-data-read-memory %s %s %d %d %d"
-          gdb-memory-address
+          (gdb-mi-quote gdb-memory-address-expression)
           gdb-memory-format
           gdb-memory-unit
           gdb-memory-rows
@@ -3482,6 +3501,9 @@ in `gdb-memory-format'."
          (err-msg (bindat-get-field res 'msg)))
     (if (not err-msg)
         (let ((memory (bindat-get-field res 'memory)))
+          (when gdb-memory-last-address
+            ;; Nil means last retrieve emits error or just started the session.
+            (setq gdb--memory-display-warning nil))
           (setq gdb-memory-address (bindat-get-field res 'addr))
           (setq gdb-memory-next-page (bindat-get-field res 'next-page))
           (setq gdb-memory-prev-page (bindat-get-field res 'prev-page))
@@ -3495,10 +3517,15 @@ in `gdb-memory-format'."
                                             gdb-memory-format)))))
             (newline)))
       ;; Show last page instead of empty buffer when out of bounds
-      (progn
-        (let ((gdb-memory-address gdb-memory-last-address))
+      (when gdb-memory-last-address
+        (let ((gdb-memory-address-expression gdb-memory-last-address))
+          ;; If we don't set `gdb-memory-last-address' to nil,
+          ;; `gdb-invalidate-memory' eventually calls
+          ;; `gdb-read-memory-custom', making an infinite loop.
+          (setq gdb-memory-last-address nil
+                gdb--memory-display-warning t)
           (gdb-invalidate-memory 'update)
-          (error err-msg))))))
+          (user-error "Error when retrieving memory: %s Displaying last successful page" err-msg))))))
 
 (defvar gdb-memory-mode-map
   (let ((map (make-sparse-keymap)))
@@ -3532,7 +3559,7 @@ in `gdb-memory-format'."
   "Set the start memory address."
   (interactive)
   (let ((arg (read-from-minibuffer "Memory address: ")))
-    (setq gdb-memory-address arg))
+    (setq gdb-memory-address-expression arg))
   (gdb-invalidate-memory 'update))
 
 (defmacro def-gdb-set-positive-number (name variable echo-string &optional doc)
@@ -3715,7 +3742,19 @@ DOC is an optional documentation string."
 (defvar gdb-memory-header
   '(:eval
     (concat
-     "Start address["
+     "Start address "
+     ;; If `gdb-memory-address-expression' is nil, `propertize' would error.
+     (propertize (or gdb-memory-address-expression "N/A")
+                 'face font-lock-warning-face
+                 'help-echo "mouse-1: set start address"
+                 'mouse-face 'mode-line-highlight
+                 'local-map (gdb-make-header-line-mouse-map
+                             'mouse-1
+                             #'gdb-memory-set-address-event))
+     (if gdb--memory-display-warning
+         (propertize " !" 'face '(:inherit error :weight bold))
+       "")
+     " ["
      (propertize "-"
                  'face font-lock-warning-face
                  'help-echo "mouse-1: decrement address"
@@ -3732,13 +3771,9 @@ DOC is an optional documentation string."
                              'mouse-1
                              #'gdb-memory-show-next-page))
      "]: "
-     (propertize gdb-memory-address
-                 'face font-lock-warning-face
-                 'help-echo "mouse-1: set start address"
-                 'mouse-face 'mode-line-highlight
-                 'local-map (gdb-make-header-line-mouse-map
-                             'mouse-1
-                             #'gdb-memory-set-address-event))
+     ;; If `gdb-memory-address' is nil, `propertize' would error.
+     (propertize (or gdb-memory-address "N/A")
+                 'face font-lock-warning-face)
      "  Rows: "
      (propertize (number-to-string gdb-memory-rows)
                  'face font-lock-warning-face
@@ -4151,7 +4186,7 @@ member."
         (when (not value)
           (setq value "<complex data type>"))
         (if (or (not value)
-                (string-match "\\0x" value))
+                (string-match "0x" value))
             (add-text-properties 0 (length name)
                                  `(mouse-face highlight
                                               help-echo "mouse-2: create watch expression"

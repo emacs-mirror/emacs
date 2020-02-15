@@ -1,8 +1,8 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
 
-;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
+;; Author: Martin Lorentzson <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: vc tools
 ;; Package: vc
@@ -541,7 +541,9 @@ Return a cons (REV . FILENAME)."
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
                                fname rev))
-	(vc-annotate-warp-revision prev-rev fname)))))
+	(if (not prev-rev)
+            (message "No previous revisions")
+          (vc-annotate-warp-revision prev-rev fname))))))
 
 (defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
@@ -723,6 +725,7 @@ The annotations are relative to the current time, unless overridden by OFFSET."
                ;; Make the face if not done.
                (face (or (intern-soft face-name)
                          (let ((tmp-face (make-face (intern face-name))))
+                           (set-face-extend tmp-face t)
                            (cond
                             (vc-annotate-background-mode
                              (set-face-background tmp-face (cdr color)))

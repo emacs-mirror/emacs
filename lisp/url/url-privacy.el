@@ -1,6 +1,6 @@
 ;;; url-privacy.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -24,9 +24,8 @@
 (require 'url-vars)
 
 (defun url-device-type (&optional device)
-  (if (fboundp 'device-type)
-      (device-type device)              ; XEmacs
-    (or window-system 'tty)))
+  (declare (obsolete nil "27.1"))
+  (or window-system 'tty))
 
 ;;;###autoload
 (defun url-setup-privacy-info ()
@@ -42,12 +41,12 @@
 	 ;; combinations
 	 ((eq system-type 'windows-nt) "Windows-NT; 32bit")
 	 ((eq system-type 'ms-dos) "MS-DOS; 32bit")
-	 ((memq (url-device-type) '(win32 w32)) "Windows; 32bit")
+	 ((memq (or window-system 'tty) '(win32 w32)) "Windows; 32bit")
 	 (t
-	  (pcase (url-device-type)
-	    (`x "X11")
-	    (`ns "OpenStep")
-	    (`tty "TTY")
+	  (pcase (or window-system 'tty)
+	    ('x "X11")
+	    ('ns "OpenStep")
+	    ('tty "TTY")
 	    (_ nil)))))
 
   (setq url-personal-mail-address (or url-personal-mail-address

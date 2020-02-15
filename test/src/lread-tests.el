@@ -1,6 +1,6 @@
 ;;; lread-tests.el --- tests for lread.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -140,24 +140,9 @@ literals (Bug#20852)."
     (should (equal (lread-tests--last-message)
                    (concat (format-message "Loading `%s': " file-name)
                            "unescaped character literals "
-                           "`?\"', `?(', `?)', `?;', `?[', `?]' detected!")))))
-
-(ert-deftest lread-tests--funny-quote-symbols ()
-  "Check that 'smart quotes' or similar trigger errors in symbol names."
-  (dolist (quote-char
-           '(#x2018 ;; LEFT SINGLE QUOTATION MARK
-             #x2019 ;; RIGHT SINGLE QUOTATION MARK
-             #x201B ;; SINGLE HIGH-REVERSED-9 QUOTATION MARK
-             #x201C ;; LEFT DOUBLE QUOTATION MARK
-             #x201D ;; RIGHT DOUBLE QUOTATION MARK
-             #x201F ;; DOUBLE HIGH-REVERSED-9 QUOTATION MARK
-             #x301E ;; DOUBLE PRIME QUOTATION MARK
-             #xFF02 ;; FULLWIDTH QUOTATION MARK
-             #xFF07 ;; FULLWIDTH APOSTROPHE
-             ))
-    (let ((str (format "%cfoo" quote-char)))
-     (should-error (read str) :type 'invalid-read-syntax)
-     (should (eq (read (concat "\\" str)) (intern str))))))
+                           "`?\"', `?(', `?)', `?;', `?[', `?]' detected, "
+                           "`?\\\"', `?\\(', `?\\)', `?\\;', `?\\[', `?\\]' "
+                           "expected!")))))
 
 (ert-deftest lread-test-bug26837 ()
   "Test for https://debbugs.gnu.org/26837 ."
@@ -171,22 +156,6 @@ literals (Bug#20852)."
     (should (string-suffix-p "/somelib2.el" (caar load-history)))
     (load "somelib" nil t)
     (should (string-suffix-p "/somelib.el" (caar load-history)))))
-
-(ert-deftest lread-tests--old-style-backquotes ()
-  "Check that loading doesn't accept old-style backquotes."
-  (lread-tests--with-temp-file file-name
-    (write-region "(` (a b))" nil file-name)
-    (let ((data (should-error (load file-name nil :nomessage :nosuffix))))
-      (should (equal (cdr data)
-                     (list (concat (format-message "Loading `%s': " file-name)
-                                   "old-style backquotes detected!")))))))
-
-(ert-deftest lread-tests--force-new-style-backquotes ()
-  (let ((data (should-error (read "(` (a b))"))))
-    (should (equal (cdr data) '("Old-style backquotes detected!"))))
-  (should (equal (let ((force-new-style-backquotes t))
-                   (read "(` (a b))"))
-                 '(`(a b)))))
 
 (ert-deftest lread-lread--substitute-object-in-subtree ()
   (let ((x (cons 0 1)))
@@ -217,5 +186,8 @@ literals (Bug#20852)."
                    (1+ most-positive-fixnum)
                    (* most-positive-fixnum most-positive-fixnum)))
     (should (= n (string-to-number (format "%d." n))))))
+
+(ert-deftest lread-circular-hash ()
+  (should-error (read "#s(hash-table data #0=(#0# . #0#))")))
 
 ;;; lread-tests.el ends here

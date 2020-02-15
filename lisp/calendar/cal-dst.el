@@ -1,10 +1,10 @@
 ;;; cal-dst.el --- calendar functions for daylight saving rules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2020 Free Software Foundation, Inc.
 
-;; Author: Paul Eggert <eggert@twinsun.com>
+;; Author: Paul Eggert <eggert@cs.ucla.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: daylight saving time, calendar, diary, holidays
 ;; Package: calendar
@@ -61,11 +61,11 @@ list and for correcting times of day in the solar and lunar calculations.
 For example, if daylight saving time is mandated to start on October 1,
 you would set `calendar-daylight-savings-starts' to
 
-      '(10 1 year)
+      (10 1 year)
 
 If it starts on the first Sunday in April, you would set it to
 
-      '(calendar-nth-named-day 1 0 4 year)
+      (calendar-nth-named-day 1 0 4 year)
 
 If the locale never uses daylight saving time, set this to nil."
   :type 'sexp
@@ -127,7 +127,7 @@ after midnight UTC on absolute date ABS-DATE."
   "Return the time of the next time zone transition after TIME.
 Both TIME and the result are acceptable arguments to `current-time-zone'.
 Return nil if no such transition can be found."
-  (let* ((time (encode-time time 'integer))
+  (let* ((time (time-convert time 'integer))
          (time-zone (current-time-zone time))
          (time-utc-diff (car time-zone))
          hi
@@ -154,7 +154,7 @@ Return nil if no such transition can be found."
        (while
            ;; Set PROBE to halfway between LO and HI, rounding down.
            ;; If PROBE equals LO, we are done.
-           (not (= lo (setq probe (/ (+ lo hi) 2))))
+           (not (= lo (setq probe (floor (+ lo hi) 2))))
          ;; Set either LO or HI to PROBE, depending on probe results.
          (if (eq (car (current-time-zone probe)) hi-utc-diff)
              (setq hi probe)
@@ -231,7 +231,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
 ;; https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html
 (defun calendar-dst-find-data (&optional time)
   "Find data on the first daylight saving time transitions after TIME.
-TIME defaults to `current-time'.  Return value is as described
+TIME defaults to the current time.  Return value is as described
 for `calendar-current-time-zone'."
   (let* ((t0 (or time (current-time)))
          (t0-zone (current-time-zone t0))
@@ -259,7 +259,7 @@ for `calendar-current-time-zone'."
                             (car t2-date-sec) t1-utc-diff))
                  (t1-time (/ (cdr t1-date-sec) 60))
                  (t2-time (/ (cdr t2-date-sec) 60)))
-            (if (nth 7 (decode-time t1))
+            (if (decoded-time-dst (decode-time t1))
                 (list (/ t0-utc-diff 60) (/ (- t1-utc-diff t0-utc-diff) 60)
                       t0-name t1-name t1-rules t2-rules t1-time t2-time)
               (list (/ t1-utc-diff 60) (/ (- t0-utc-diff t1-utc-diff) 60)
@@ -276,11 +276,11 @@ function `calendar-dst-find-startend'.")
   "Find the dates in YEAR on which daylight saving time starts and ends.
 Returns a list (YEAR START END), where START and END are
 expressions that when evaluated return the start and end dates,
-respectively. This function first attempts to use pre-calculated
+respectively.  This function first attempts to use pre-calculated
 data from `calendar-dst-transition-cache', otherwise it calls
 `calendar-dst-find-data' (and adds the results to the cache).
-If dates in YEAR cannot be handled by `encode-time' (e.g. if they
-are too large to be represented as a lisp integer), then rather
+If dates in YEAR cannot be handled by `encode-time' (e.g.,
+if they are out of range for POSIX time_t), then rather
 than an error this function returns the result appropriate for
 the current year."
   (let ((e (assoc year calendar-dst-transition-cache))
@@ -291,7 +291,8 @@ the current year."
                    (condition-case nil
                        (encode-time 1 0 0 1 1 year)
                      (error
-                      (encode-time 1 0 0 1 1 (nth 5 (decode-time))))))
+                      (encode-time 1 0 0 1 1
+                                   (decoded-time-year (decode-time))))))
                 f (nth 4 e)
                 e (list year f (nth 5 e))
                 calendar-dst-transition-cache

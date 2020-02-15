@@ -1,6 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, faces
@@ -126,7 +126,7 @@ buffer local value for `font-lock-defaults', via its mode hook.
 
 The above is the default behavior of `font-lock-mode'; you may
 specify your own function which is called when `font-lock-mode'
-is toggled via `font-lock-function'. "
+is toggled via `font-lock-function'."
   nil nil nil
   :after-hook (font-lock-initial-fontify)
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a

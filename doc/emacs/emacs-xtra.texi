@@ -16,7 +16,7 @@
 @copying
 This manual describes specialized features of Emacs.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -59,7 +59,7 @@ modify this GNU manual.''
 * Picture Mode::        Editing pictures made up of characters using
                          the quarter-plane screen model.
 
-* Autorevert::          Auto Reverting non-file buffers.
+* Non-File Buffers::    Auto Reverting non-file buffers.
 * Subdir Switches::     Subdirectory switches in Dired.
 * Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
 * Emerge::              A convenient way of merging two versions of a program.

@@ -1,6 +1,6 @@
 ;;; macros.el --- non-primitive commands for keyboard macros -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2018 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -35,6 +35,16 @@
 
 ;;;###autoload
 (defalias 'name-last-kbd-macro #'kmacro-name-last-macro)
+
+(defun macros--insert-vector-macro (definition)
+  "Print DEFINITION, a vector, into the current buffer."
+  (insert ?\[
+          (mapconcat (lambda (event)
+                       (or (prin1-char event)
+                           (prin1-to-string event)))
+                     definition
+                     " ")
+          ?\]))
 
 ;;;###autoload
 (defun insert-kbd-macro (macroname &optional keys)
@@ -111,19 +121,17 @@ use this command, and then save the file."
 		     (delete-region (point) (1+ (point)))
 		     (insert "\\M-\\C-?"))))))
       (if (vectorp definition)
-	  (let ((len (length definition)) (i 0) char)
-	    (while (< i len)
-	      (insert (if (zerop i) ?\[ ?\s))
-	      (setq char (aref definition i)
-		    i (1+ i))
-	      (if (not (numberp char))
-                  (prin1 char (current-buffer))
-                (princ (prin1-char char) (current-buffer))))
-	    (insert ?\]))
-        ;; FIXME: For kmacros, we shouldn't write the (lambda ...)
-        ;; gunk but instead we should write something more abstract like
-        ;; (kmacro-create [<keys>] 0 "%d").
-	(prin1 definition (current-buffer))))
+          (macros--insert-vector-macro definition)
+        (pcase (kmacro-extract-lambda definition)
+          (`(,vecdef ,counter ,format)
+           (insert "(kmacro-lambda-form ")
+           (macros--insert-vector-macro vecdef)
+           (insert " ")
+           (prin1 counter (current-buffer))
+           (insert " ")
+           (prin1 format (current-buffer))
+           (insert ")"))
+          (_ (prin1 definition (current-buffer))))))
     (insert ")\n")
     (if keys
         (let ((keys (or (where-is-internal (symbol-function macroname)

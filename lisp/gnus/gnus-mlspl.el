@@ -1,6 +1,6 @@
 ;;; gnus-mlspl.el --- a group params-based mail splitting mechanism
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Oliva <oliva@lsd.ic.unicamp.br>
 ;; Keywords: news, mail
@@ -48,7 +48,7 @@ group parameters.
 If AUTO-UPDATE is non-nil (prefix argument accepted, if called
 interactively), it makes sure nnmail-split-fancy is re-computed before
 getting new mail, by adding `gnus-group-split-update' to
-`nnmail-pre-get-new-mail-hook'.
+`gnus-get-top-new-news-hook'.
 
 A non-nil CATCH-ALL replaces the current value of
 `gnus-group-split-default-catch-all-group'.  This variable is only used
@@ -64,9 +64,14 @@ match any of the group-specified splitting rules.  See
   (setq nnmail-split-methods 'nnmail-split-fancy)
   (when catch-all
     (setq gnus-group-split-default-catch-all-group catch-all))
-  (gnus-group-split-update)
-  (when auto-update
-    (add-hook 'nnmail-pre-get-new-mail-hook 'gnus-group-split-update)))
+  (add-hook
+   (if auto-update
+       'gnus-get-top-new-news-hook
+     ;; Split updating requires `gnus-newsrc-hashtb' to be
+     ;; initialized; the read newsrc hook is the only hook that comes
+     ;; after initialization, but before checking for new news.
+     'gnus-read-newsrc-el-hook)
+   #'gnus-group-split-update))
 
 ;;;###autoload
 (defun gnus-group-split-update (&optional catch-all)

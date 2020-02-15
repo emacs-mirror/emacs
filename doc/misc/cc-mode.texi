@@ -148,7 +148,17 @@ CC Mode
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @comment Define an index for syntactic symbols.
+@c Version for Texinfo <= 4.x
+@ifclear txicommandconditionals
+@ifnottex @c In texi2dvi, the @defindex would create an empty cc-mode.ss
+          @c For Info, unlike tex, @syncodeindex needs a matching @defindex.
 @defindex ss
+@end ifnottex
+@end ifclear
+@c Version for Texinfo >= 5.x
+@ifset txicommandconditionals
+@defindex ss
+@end ifset
 
 @comment Combine key, syntactic symbol and concept indices into one.
 @syncodeindex ss cp
@@ -157,7 +167,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -187,7 +197,7 @@ modify this GNU manual.''
 @titlepage
 @sp 10
 
-@center @titlefont{CC Mode 5.32}
+@center @titlefont{CC Mode 5.34}
 @sp 2
 @center A GNU Emacs mode for editing C and C-like languages
 @sp 2
@@ -377,13 +387,13 @@ was added in version 5.30.
 
 This manual describes @ccmode{}
 @comment The following line must appear on its own, so that the
-version 5.32.
+version 5.34.
 @comment Release.py script can update the version number automatically
 
 @ccmode{} supports the editing of C, C++, Objective-C,
 Java, CORBA's Interface Definition Language, Pike@footnote{A C-like
 scripting language with its roots in the LPC language used in some MUD
-engines.  See @uref{http://pike.ida.liu.se/}.} and AWK files.  In this
+engines.  See @uref{https://pike.lysator.liu.se/}.} and AWK files.  In this
 way, you can easily set up consistent font locking and coding styles for
 use in editing all of these languages, although AWK is not yet as
 uniformly integrated as the other languages.
@@ -659,7 +669,7 @@ expression, to some statements, or perhaps to whole functions, the
 syntactic recognition can be wrong.  @ccmode{} manages to figure it
 out correctly most of the time, though.
 
-Some macros, when invoked, ''have their own semicolon''.  To get the
+Some macros, when invoked, ``have their own semicolon''.  To get the
 next line indented correctly, rather than as a continuation line,
 @xref{Macros with ;}.
 
@@ -1050,7 +1060,7 @@ there's a piece of normal text without having to think much about it.
 and so on.
 
 You can configure the exact way comments get filled and broken, and
-where Emacs does auto-filling (see @pxref{Custom Filling and
+where Emacs does auto-filling (@pxref{Custom Filling and
 Breaking}).  Typically, the style system (@pxref{Styles}) will have
 set this up for you, so you probably won't have to bother.
 
@@ -1139,7 +1149,9 @@ find useful while writing new code or editing old code:
 @table @asis
 @item comment style
 This specifies whether comment commands (such as @kbd{M-;}) insert
-block comments or line comments.
+block comments or line comments@footnote{You can emphasize
+non-default style comments in your code by giving their delimiters
+@code{font-lock-warning-face}.  @xref{Wrong Comment Style}.}.
 @item electric mode
 When this is enabled, certain visible characters cause reformatting as
 they are typed.  This is normally helpful, but can be a nuisance when
@@ -1468,7 +1480,7 @@ normal, with no @kbd{C-u} prefix).
 @end itemize
 
 You can configure the precise circumstances in which newlines get
-inserted (see @pxref{Custom Auto-newlines}).  Typically, the style
+inserted (@pxref{Custom Auto-newlines}).  Typically, the style
 system (@pxref{Styles}) will have set this up for you, so you probably
 won't have to bother.
 
@@ -1856,6 +1868,7 @@ sections apply to the other languages.
 * Font Locking Preliminaries::
 * Faces::
 * Doc Comments::
+* Wrong Comment Style::
 * Misc Font Locking::
 * AWK Mode Font Locking::
 @end menu
@@ -2059,7 +2072,7 @@ since those aren't syntactic errors in themselves.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Doc Comments, Misc Font Locking, Faces, Font Locking
+@node    Doc Comments, Wrong Comment Style, Faces, Font Locking
 @comment node-name, next, previous, up
 @section Documentation Comments
 @cindex documentation comments
@@ -2130,13 +2143,38 @@ with @code{c-doc-comment-style}: Supply a variable or function
 in @code{c-doc-comment-style}.  If it's a variable, it's prepended to
 @code{font-lock-keywords}.  If it's a function, it's called at mode
 initialization and the result is prepended.  For an example, see
-@code{javadoc-font-lock-keywords} in @file{cc-fonts.el}.
+@code{javadoc-font-lock-keywords} in @file{cc-fonts.el}.  It is even
+possible, to a limited extent, to fontify constructs inside a doc
+comment with other faces.  For an example, see pike autodoc comment
+style towards the end of @file{cc-fonts-el}.
 
 If you add support for another doc comment style, please consider
 contributing it: send a note to @email{bug-cc-mode@@gnu.org}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Misc Font Locking, AWK Mode Font Locking, Doc Comments, Font Locking
+@node    Wrong Comment Style, Misc Font Locking, Doc Comments, Font Locking
+@comment  node-name,  next,  previous,  up
+@section Marking ``Wrong'' style comments
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Most languages supported by @ccmode{} have two styles of comments,
+namely block comments and line comments.  Your project may have such a
+strong preference for one of them, that you wish ``wrong'' style
+comments to be clearly marked.
+
+You can get @ccmode{} to do this by setting the default comment style,
+if necessary, (@pxref{Minor Modes}) and setting the customizable
+option @code{c-mark-wrong-style-of-comment} to non-@code{nil}.
+
+@defvar c-mark-wrong-style-of-comment
+@vindex mark-wrong-style-of-comment (c-)
+When this customizable option is non-@code{nil}, comment delimiters
+which aren't of the default style will be fontified with
+@code{font-lock-warning-face}.
+@end defvar
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Misc Font Locking, AWK Mode Font Locking, Wrong Comment Style, Font Locking
 @comment  node-name,  next,  previous,  up
 @section Miscellaneous Font Locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2282,6 +2320,8 @@ method, ``Top-level commands or the customization interface''.
 
 If you make conflicting settings in several of these ways, the way
 that takes precedence is the one that appears latest in this list:
+@c Version of list for Texinfo <= 4.x
+@ifclear txicommandconditionals
 @itemize @w{}
 @item
 @table @asis
@@ -2292,6 +2332,18 @@ that takes precedence is the one that appears latest in this list:
 @itemx File Local Variable setting
 @end table
 @end itemize
+@end ifclear
+@c Version of list for Texinfo >= 5.x
+@ifset txicommandconditionals
+@itemize @w{}
+@item Style
+@item File Style@footnote{In earlier versions of @ccmode{}, a File Style setting took precedence over any other setting apart from a File Local Variable setting.}
+@item Top-level command or ``customization interface''
+@item Hook
+@item File Local Variable setting
+@end itemize
+@end ifset
+
 
 Here is a summary of the different ways of writing your configuration
 settings:
@@ -2548,7 +2600,7 @@ Basics}).
 @item
 The style variable @code{c-offsets-alist} (@pxref{c-offsets-alist}) is
 an association list with an element for each syntactic symbol.  It's
-handled a little differently from the other style variables.  It's
+handled a little differently from the other style variables.  Its
 default global binding is the empty list @code{nil}, rather than
 @code{set-from-style}.  Before the style system is initialized, you
 can add individual elements to @code{c-offsets-alist} by calling
@@ -2666,7 +2718,7 @@ The classic Stroustrup style for C++ code.
 Popular C++ coding standards as defined by ``Programming in C++, Rules
 and Recommendations,'' Erik Nyquist and Mats Henricson,
 Ellemtel@footnote{This document is available at
-@uref{http://www.doc.ic.ac.uk/lab/cplus/c++.rules/} among other
+@uref{https://www.doc.ic.ac.uk/lab/cplus/c++.rules/} among other
 places.}.
 @c N.B.  This URL was still valid at 2005/8/28  (ACM).
 
@@ -2678,7 +2730,7 @@ C coding standard for Linux (the kernel).
 @cindex Python style
 C coding standard for Python extension modules@footnote{Python is a
 high level scripting language with a C/C++ foreign function interface.
-For more information, see @uref{http://www.python.org/}.}.
+For more information, see @uref{https://www.python.org/}.}.
 
 @item java
 @cindex Java style
@@ -2858,11 +2910,11 @@ should not be changed directly; use @code{c-add-style} instead.
 
 Instead of specifying a style, you can get @ccmode{} to @dfn{guess}
 your style by examining an already formatted code buffer.  @ccmode{}
-then determines the ''most frequent'' offset (@pxref{c-offsets-alist})
+then determines the ``most frequent'' offset (@pxref{c-offsets-alist})
 for each of the syntactic symbols (@pxref{Indentation Engine Basics})
-encountered in the buffer, and the ''most frequent'' value of
+encountered in the buffer, and the ``most frequent'' value of
 c-basic-offset (@pxref{Customizing Indentation}), then merges the
-current style with these ''guesses'' to form a new style.  This
+current style with these ``guesses'' to form a new style.  This
 combined style is known as the @dfn{guessed style}.
 
 To do this, call @code{c-guess} (or one of the other 5 guessing
@@ -5286,7 +5338,7 @@ The simplest and most used kind of ``offset'' setting in
 @defopt c-basic-offset
 @vindex basic-offset @r{(c-)}
 This style variable holds the basic offset between indentation levels.
-It's factory default is 4, but all the built-in styles set it
+Its factory default is 4, but all the built-in styles set it
 themselves, to some value between 2 (for @code{gnu} style) and 8 (for
 @code{bsd}, @code{linux}, and @code{python} styles).
 @end defopt
@@ -5614,9 +5666,9 @@ any problems writing custom line-up functions for AWK mode.
 
 The calling convention for line-up functions is described fully in
 @ref{Custom Line-Up}.  Roughly speaking, the return value is either an
-offset itself (such as @code{+} or @code{[0]}) or it's @code{nil},
-meaning ``this function is inappropriate in this case; try a
-different one''.  @xref{c-offsets-alist}.
+offset itself (such as @code{+} or @code{[0]}), another line-up
+function, or it's @code{nil}, meaning ``this function is inappropriate
+in this case - try a different one''.  @xref{c-offsets-alist}.
 
 The subsections below describe all the standard line-up functions,
 categorized by the sort of token the lining-up centers around.  For
@@ -5967,6 +6019,125 @@ brace block.
 @workswith @code{defun-block-intro}, @code{brace-list-intro},
 @code{statement-block-intro}, @code{statement-case-intro},
 @code{arglist-intro}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-2nd-brace-entry-in-arglist
+@findex lineup-2nd-brace-entry-in-arglist (c-)
+Line up the second entry of a brace block under the first, when the
+first line is also contained in an arglist or an enclosing brace
+@emph{on that line}.
+
+I.e. handle something like the following:
+
+@example
+@group
+set_line (line_t @{point_t@{0.4, 0.2@},
+                  point_t@{0.2, 0.5@},       @hereFn{brace-list-intro}
+                  .....@});
+         ^ enclosing parenthesis.
+@end group
+@end example
+
+
+The middle line of that example will have a syntactic context with
+three syntactic symbols, @code{arglist-cont-nonempty},
+@code{brace-list-intro}, and @code{brace-list-entry} (@pxref{Brace
+List Symbols}).
+
+This function is intended for use in a list.  If the construct being
+analyzed isn't like the preceding, the function returns nil.
+Otherwise it returns the function
+@code{c-lineup-arglist-intro-after-paren}, which the caller then uses
+to perform indentation.
+
+@workswith{} @code{brace-list-intro}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-class-decl-init-+
+@findex lineup-class-decl-init-+ (c-)
+Line up the second entry of a class (etc.) initializer
+@code{c-basic-offset} characters in from the identifier when:
+@enumerate
+@item
+The type is a class, struct, union, etc. (but not an enum);
+@item
+There is a brace block in the type declaration, specifying it; and
+@item
+The first element of the initializer is on the same line as its
+opening brace.
+@end enumerate
+
+I.e. we have a construct like this:
+
+@example
+@group
+struct STR @{
+    int i; float f;
+@} str_1 = @{1, 1.7@},
+    str_2 = @{2,
+         3.1          @hereFn{brace-list-intro}
+    @};
+    @sssTBasicOffset{}
+@end group
+@end example
+
+
+Note that the syntactic context of the @code{brace-list-intro} line
+also has a syntactic element with the symbol @code{brace-list-entry}
+(@pxref{Brace List Symbols}).
+
+This function is intended for use in a list.  If the above structure
+isn't present, the function returns nil, allowing a different offset
+specification to indent the line.
+
+@workswith{} @code{brace-list-intro}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-class-decl-init-after-brace
+@findex lineup-class-decl-init-after-brace (c-)
+Line up the second entry of a class (etc.) initializer after its
+opening brace when:
+@enumerate
+@item
+The type is a class, struct, union, etc. (but not an enum);
+@item
+There is a brace block in the type declaration, specifying it; and
+@item
+The first element of the initializer is on the same line as its
+opening brace.
+@end enumerate
+
+I.e. we have a construct like this:
+
+@example
+@group
+struct STR @{
+    int i; float f;
+@} str_1 = @{1, 1.7@},
+    str_2 = @{2,
+             3.1      @hereFn{brace-list-intro}
+    @};
+@end group
+@end example
+
+
+Note that the syntactic context of the @code{brace-list-intro} line
+also has a syntactic element with the symbol @code{brace-list-entry}
+(@pxref{Brace List Symbols}).  Also note that this function works by
+returning the symbol @code{c-lineup-arglist-intro-after-paren}, which
+the caller then uses to perform the indentation.
+
+This function is intended for use in a list.  If the above structure
+isn't present, the function returns nil, allowing a different offset
+specification to indent the line.
+
+@workswith{} @code{brace-list-intro}.
 @end defun
 
 @comment ------------------------------------------------------------
@@ -6707,7 +6878,7 @@ custom line-up function associated with it.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 To configure macros which you invoke without a terminating @samp{;},
-see @xref{Macros with ;}.
+@pxref{Macros with ;}.
 
 Here are the remaining odds and ends regarding indentation:
 
@@ -6781,7 +6952,7 @@ is @code{nil}, all lines inside macro definitions are analyzed as
 Because a macro can expand into anything at all, near where one is
 invoked @ccmode{} can only indent and fontify code heuristically.
 Sometimes it gets it wrong.  Usually you should try to design your
-macros so that they ''look like ordinary code'' when you invoke them.
+macros so that they ``look like ordinary code'' when you invoke them.
 However, two situations are so common that @ccmode{} handles them
 specially: that is when certain macros needn't (or mustn't) be
 followed by a @samp{;}, and when certain macros (or compiler
@@ -6924,22 +7095,24 @@ constitute noise macros.
 @vindex noise-macro-names @r{(c-)}
 This variable is a list of names of noise macros which never have
 parenthesized arguments.  Each element is a string, and must be a
-valid identifier.  An element in @code{c-noise-macro-names} must not
-also be in @code{c-noise-macro-with-parens-names}.  Such an element is
-treated as whitespace by @ccmode{}.
+valid identifier.  Alternatively, the variable may be a regular
+expression which matches the names of such macros.  Such a noise macro
+is treated as whitespace by @ccmode{}.  It must not also be in, or be
+matched by @code{c-noise-macro-with-parens-names}.
 @end defopt
 
 @defopt c-noise-macro-with-parens-names
 @vindex noise-macro-with-parens-names @r{(c-)}
 This variable is a list of names of noise macros which optionally have
 arguments in parentheses.  Each element of the list is a string, and
-must be a valid identifier.  An element in
-@code{c-noise-macro-with-parens-names} must not also be in
-@code{c-noise-macro-names}.  For performance reasons, such an element,
-together with the optional parenthesized arguments, is specially
-handled, but it is only handled when used in declaration
-contexts@footnote{If this restriction causes your project
-difficulties, please get in touch with @email{bug-cc-mode@@gnu.org}.}.
+must be a valid identifier.  Alternatively, the variable may be a
+regular expression which matches the names of such macros.  Such a
+noise macro must not also be in, or be matched by
+@code{c-noise-macro-names}.  For performance reasons, such a noise
+macro, including any parenthesized arguments, is specially handled,
+but it is only handled when used in declaration contexts@footnote{If
+this restriction causes your project difficulties, please get in touch
+with @email{bug-cc-mode@@gnu.org}.}.
 
 The two compiler directives @code{__attribute__} and @code{__declspec}
 have traditionally been handled specially in @ccmode{}; for example
@@ -7285,13 +7458,15 @@ could amend your C++ Mode hook like this:
 @emph{How do I stop my C++ lambda expressions being indented way over
 to the right?}
 
-Change the offset associated with @code{inlambda} from its default,
-the function @code{c-lineup-inexpr-block}, to 0.  For example, if you
-are setting offsets in a hook function you might include the following
-line:
+This is now the default, so you don't need to do anything.  To restore
+the previous default, indenting lambda expressions to the right of the
+constructs which introduce them, change the offset associated with
+@code{inlambda} from 0 to @code{c-lineup-inexpr-block}.  For example,
+if you are setting offsets in a hook function you might include the
+following line:
 
 @example
-(c-set-offset 'inlambda 0)
+(c-set-offset 'inlambda 'c-lineup-inexpr-block)
 @end example
 
 For details of the different ways you can make this setting,

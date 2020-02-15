@@ -1,6 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -45,6 +45,7 @@
 (cc-bytecomp-defvar imenu-case-fold-search)
 (cc-bytecomp-defvar imenu-generic-expression)
 (cc-bytecomp-defvar imenu-create-index-function)
+(cc-bytecomp-defun c-literal-limits)
 
 
 ;; imenu integration
@@ -437,55 +438,56 @@ Example:
     (goto-char (point-max))
     ;;
     (while (re-search-backward cc-imenu-objc-generic-expression nil t)
-      (setq langnum (if (match-beginning OBJC)
-			OBJC
-		      (cond
-		       ((match-beginning Cproto) Cproto)
-		       ((match-beginning Cgeneralfunc) Cgeneralfunc)
-		       ((match-beginning Cnoreturn) Cnoreturn))))
-      (setq str (funcall func (match-beginning langnum) (match-end langnum)))
-      ;;
-      (cond
-       ;;
-       ;; C
-       ;;
-       ((not (eq langnum OBJC))
-	(setq clist (cons (cons str (match-beginning langnum)) clist)))
-       ;;
-       ;; ObjC
-       ;;
-       ;; An instance Method
-       ((eq (aref str 0) ?-)
-	(setq str (concat "-" (cc-imenu-objc-method-to-selector str)))
-	(setq methodlist (cons (cons str
-			      (match-beginning langnum))
-			methodlist)))
-       ;; A factory Method
-       ((eq (aref str 0) ?+)
-	(setq str (concat "+" (cc-imenu-objc-method-to-selector str)))
-	(setq methodlist (cons (cons str
-			      (match-beginning langnum))
-			methodlist)))
-       ;; Interface or implementation or protocol
-       ((eq (aref str 0) ?@)
-	(setq classcount (1+ classcount))
+      (when (not (c-literal-limits))
+	(setq langnum (if (match-beginning OBJC)
+			  OBJC
+			(cond
+			 ((match-beginning Cproto) Cproto)
+			 ((match-beginning Cgeneralfunc) Cgeneralfunc)
+			 ((match-beginning Cnoreturn) Cnoreturn))))
+	(setq str (funcall func (match-beginning langnum) (match-end langnum)))
+	;;
 	(cond
-	 ((and (> (length str) implen)
-	       (string= (substring  str 0 implen) "@implementation"))
-	  (setq str (substring str implen)
-		str2 "@implementation"))
-	 ((string= (substring  str 0 intflen) "@interface")
-	  (setq str (substring str intflen)
-		str2 "@interface"))
-	 ((string= (substring  str 0 prtlen) "@protocol")
-	  (setq str (substring str prtlen)
-		str2 "@protocol")))
-	(setq str (cc-imenu-objc-remove-white-space str))
-	(setq methodlist (cons (cons str2
-				     (match-beginning langnum))
-			       methodlist))
-	(setq toplist (cons (cons str methodlist) toplist)
-	      methodlist nil))))
+	 ;;
+	 ;; C
+	 ;;
+	 ((not (eq langnum OBJC))
+	  (setq clist (cons (cons str (match-beginning langnum)) clist)))
+	 ;;
+	 ;; ObjC
+	 ;;
+	 ;; An instance Method
+	 ((eq (aref str 0) ?-)
+	  (setq str (concat "-" (cc-imenu-objc-method-to-selector str)))
+	  (setq methodlist (cons (cons str
+				       (match-beginning langnum))
+				 methodlist)))
+	 ;; A factory Method
+	 ((eq (aref str 0) ?+)
+	  (setq str (concat "+" (cc-imenu-objc-method-to-selector str)))
+	  (setq methodlist (cons (cons str
+				       (match-beginning langnum))
+				 methodlist)))
+	 ;; Interface or implementation or protocol
+	 ((eq (aref str 0) ?@)
+	  (setq classcount (1+ classcount))
+	  (cond
+	   ((and (> (length str) implen)
+		 (string= (substring  str 0 implen) "@implementation"))
+	    (setq str (substring str implen)
+		  str2 "@implementation"))
+	   ((string= (substring  str 0 intflen) "@interface")
+	    (setq str (substring str intflen)
+		  str2 "@interface"))
+	   ((string= (substring  str 0 prtlen) "@protocol")
+	    (setq str (substring str prtlen)
+		  str2 "@protocol")))
+	  (setq str (cc-imenu-objc-remove-white-space str))
+	  (setq methodlist (cons (cons str2
+				       (match-beginning langnum))
+				 methodlist))
+	  (setq toplist (cons (cons str methodlist) toplist)
+		methodlist nil)))))
 
     ;; In this buffer, there is only one or zero @{interface|implementation|protocol}.
     (if (< classcount 2)

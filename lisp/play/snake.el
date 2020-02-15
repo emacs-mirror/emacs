@@ -1,6 +1,6 @@
 ;;; snake.el --- implementation of Snake for Emacs
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Created: 1997-09-10
@@ -179,14 +179,51 @@ and then start moving it leftwards.")
 
     (define-key map [left]	'snake-move-left)
     (define-key map [right]	'snake-move-right)
-    (define-key map [up]		'snake-move-up)
+    (define-key map [up]	'snake-move-up)
     (define-key map [down]	'snake-move-down)
-    map))
+
+    (define-key map "\C-b"	'snake-move-left)
+    (define-key map "\C-f"	'snake-move-right)
+    (define-key map "\C-p"	'snake-move-up)
+    (define-key map "\C-n"	'snake-move-down)
+    map)
+  "Keymap for Snake games.")
 
 (defvar snake-null-map
   (let ((map (make-sparse-keymap 'snake-null-map)))
     (define-key map "n"		'snake-start-game)
-    map))
+    map)
+  "Keymap for finished Snake games.")
+
+(defconst snake--menu-def
+  '("Snake"
+    ["Start new game" snake-start-game
+     :help "Start a new Snake game"]
+    ["End game"       snake-end-game
+     :active (snake-active-p)
+     :help "End the current Snake game"]
+    ;; FIXME: Pause and resume from the menu currently doesn't work
+    ;;        very well and is therefore disabled.  The game continues
+    ;;        running while navigating the menu.  See also
+    ;;        `tetris--menu-def' which has the same problem.
+    ;; ["Pause"          snake-pause-game
+    ;;  :active (and (snake-active-p) (not snake-paused))
+    ;;  :help "Pause running Snake game"]
+    ;; ["Resume"         snake-pause-game
+    ;;  :active (and (snake-active-p) snake-paused)
+    ;;  :help "Resume paused Snake game"]
+    )
+  "Menu for `snake'.  Used to initialize menus.")
+
+(easy-menu-define
+  snake-mode-menu snake-mode-map
+  "Menu for running Snake games."
+  snake--menu-def)
+
+(easy-menu-define
+  snake-null-menu snake-null-map
+  "Menu for finished Snake games."
+  snake--menu-def)
 
 ;; ;;;;;;;;;;;;;;;; game functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -362,17 +399,6 @@ Argument SNAKE-BUFFER is the name of the buffer."
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map snake-null-map)
-
-  (unless (featurep 'emacs)
-    (setq mode-popup-menu
-	  '("Snake Commands"
-	    ["Start new game"	snake-start-game]
-	    ["End game"		snake-end-game
-	     (snake-active-p)]
-	    ["Pause"		snake-pause-game
-	     (and (snake-active-p) (not snake-paused))]
-	    ["Resume"		snake-pause-game
-	     (and (snake-active-p) snake-paused)])))
 
   (setq gamegrid-use-glyphs snake-use-glyphs-flag)
   (setq gamegrid-use-color snake-use-color-flag)

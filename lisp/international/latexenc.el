@@ -1,6 +1,6 @@
 ;;; latexenc.el --- guess correct coding system in LaTeX files -*-coding: utf-8 -*-
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Arne Jørgensen <arne@arnested.dk>
 ;; Keywords: mule, coding system, latex
@@ -68,9 +68,9 @@
     ("latin2" . iso-8859-2)
     ("latin3" . iso-8859-3)
     ("latin4" . iso-8859-4)
-    ("latin5" . iso-8859-5)
+    ("latin5" . iso-8859-9)
     ("latin9" . iso-8859-15)
-    ;; ("latin10" . undecided)
+    ("latin10" . iso-8859-16)
     ;; ("macce" . undecided) ; Apple Central European
     ("next" . next) ; The Next encoding
     ("utf8" . utf-8)

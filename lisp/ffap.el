@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point
 
-;; Copyright (C) 1995-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -112,8 +112,6 @@
 
 (defgroup ffap nil
   "Find file or URL at point."
-  ;; Dead 2009/07/05.
-;;  :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
   :group 'matching
   :group 'convenience)
 
@@ -409,8 +407,7 @@ See `mail-extr.el' for the known domains."
 (defun ffap-what-domain (domain)
   ;; Like what-domain in mail-extr.el, returns string or nil.
   (require 'mail-extr)
-  (let ((ob (or (ffap-symbol-value 'mail-extr-all-top-level-domains)
-		(ffap-symbol-value 'all-top-level-domains)))) ; XEmacs
+  (let ((ob (ffap-symbol-value 'mail-extr-all-top-level-domains)))
     (and ob (get (intern-soft (downcase domain) ob) 'domain-name))))
 
 (defun ffap-machine-p (host &optional service quiet strategy)
@@ -513,7 +510,9 @@ When using jka-compr (a.k.a. `auto-compression-mode'), the returned
 name may have a suffix added from `ffap-compression-suffixes'.
 The optional NOMODIFY argument suppresses the extra search."
   (cond
-   ((not file) nil)			; quietly reject nil
+   ((or (not file)			; quietly reject nil
+	(zerop (length file)))		; and also ""
+    nil)
    ((file-exists-p file) file)		; try unmodified first
    ;; three reasons to suppress search:
    (nomodify nil)
@@ -948,7 +947,7 @@ appending SUFFIX.")
 
 (defun ffap-latex-mode (name)
   "`ffap' function suitable for latex buffers.
-This uses the program kpsewhich if available. In this case, the
+This uses the program kpsewhich if available.  In this case, the
 variable `ffap-latex-guess-rules' is used for building a filename
 out of NAME."
   (cond ((file-exists-p name)
@@ -1079,9 +1078,9 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
   '(
     ;; The default, used when the `major-mode' is not found.
     ;; Slightly controversial decisions:
-    ;; * strip trailing "@" and ":"
+    ;; * strip trailing "@", ":" and enclosing "{"/"}".
     ;; * no commas (good for latex)
-    (file "--:\\\\${}+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
+    (file "--:\\\\${}+<>@-Z_[:alpha:]~*?#" "{<@" "@>;.,!:}")
     ;; An url, or maybe an email/news message-id:
     (url "--:=&?$+@-Z_[:alpha:]~#,%;*()!'" "^[0-9a-zA-Z]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
@@ -1326,6 +1325,7 @@ which may actually result in an URL rather than a filename."
 	 ;; If it contains a colon, get rid of it (and return if exists)
 	 ((and (string-match path-separator name)
 	       (setq name (ffap-string-at-point 'nocolon))
+	       (> (length name) 0)
 	       (ffap-file-exists-string name)))
 	 ;; File does not exist, try the alist:
 	 ((let ((alist ffap-alist) tem try case-fold-search)
@@ -1397,64 +1397,27 @@ which may actually result in an URL rather than a filename."
 ;;
 ;; We want to complete filenames as in read-file-name, but also url's
 ;; which read-file-name-internal would truncate at the "//" string.
-;; The solution here is to replace read-file-name-internal with
-;; `ffap-read-file-or-url-internal', which checks the minibuffer
-;; contents before attempting to complete filenames.
+;; The solution here is to forcefully activate url-handler-mode, which
+;; takes care of it for us.
 
 (defun ffap-read-file-or-url (prompt guess)
   "Read file or URL from minibuffer, with PROMPT and initial GUESS."
   (or guess (setq guess default-directory))
-  (let (dir)
-    ;; Tricky: guess may have or be a local directory, like "w3/w3.elc"
-    ;; or "w3/" or "../el/ffap.el" or "../../../"
-    (unless (ffap-url-p guess)
-      (unless (ffap-file-remote-p guess)
-	(setq guess
-	      (abbreviate-file-name (expand-file-name guess))))
-      (setq dir (file-name-directory guess)))
-    (let ((minibuffer-completing-file-name t)
-	  (completion-ignore-case read-file-name-completion-ignore-case)
-          (fnh-elem (cons ffap-url-regexp 'url-file-handler)))
-      ;; Explain to `rfn-eshadow' that we can use URLs here.
-      (push fnh-elem file-name-handler-alist)
-      (unwind-protect
-          (setq guess
-                (let ((default-directory (if dir (expand-file-name dir)
-                                           default-directory)))
-                  (completing-read
-                   prompt
-                   'ffap-read-file-or-url-internal
-                   nil
-                   nil
-                   (if dir (cons guess (length dir)) guess)
-                   'file-name-history
-                   (and buffer-file-name
-                        (abbreviate-file-name buffer-file-name)))))
-        ;; Remove the special handler manually.  We used to just let-bind
-        ;; file-name-handler-alist to preserve its value, but that caused
-        ;; other modifications to be lost (e.g. when Tramp gets loaded
-        ;; during the completing-read call).
-        (setq file-name-handler-alist (delq fnh-elem file-name-handler-alist))))
-    (or (ffap-url-p guess)
-	(substitute-in-file-name guess))))
-
-(defun ffap-read-url-internal (string pred action)
-  "Complete URLs from history, treating given string as valid."
-  (let ((hist (ffap-symbol-value 'url-global-history-hash-table)))
-    (cond
-     ((not action)
-      (or (try-completion string hist pred) string))
-     ((eq action t)
-      (or (all-completions string hist pred) (list string)))
-     ;; action == lambda, documented where?  Tests whether string is a
-     ;; valid "match".  Let us always say yes.
-     (t t))))
-
-(defun ffap-read-file-or-url-internal (string pred action)
-  (let ((url (ffap-url-p string)))
-    (if url
-	(ffap-read-url-internal url pred action)
-      (read-file-name-internal (or string default-directory) pred action))))
+  ;; Tricky: guess may have or be a local directory, like "w3/w3.elc"
+  ;; or "w3/" or "../el/ffap.el" or "../../../"
+  (if (ffap-url-p guess)
+      ;; FIXME: We earlier tried to make use of `url-file-handler' so
+      ;; `read-file-name' could also be used for URLs, but it
+      ;; introduced all kinds of subtle breakage such as:
+      ;; - (file-name-directory "http://a") returning "http://a/"
+      ;; - Trying to contact remote hosts with no justification
+      ;; These should be fixed in url-handler-mode before we can try
+      ;; using it here again.
+      (read-string prompt guess nil nil t)
+    (unless (ffap-file-remote-p guess)
+      (setq guess (abbreviate-file-name (expand-file-name guess))))
+    (read-file-name prompt (file-name-directory guess) nil nil
+                    (file-name-nondirectory guess))))
 
 ;; The rest of this page is just to work with package complete.el.
 ;; This code assumes that you load ffap.el after complete.el.
@@ -1510,7 +1473,7 @@ Uses the face `ffap' if it is defined, or else `highlight'."
       (ffap-file-at-point)		; may yield url!
       (ffap-fixup-machine (ffap-machine-at-point))))
 
-(defun ffap-prompter (&optional guess)
+(defun ffap-prompter (&optional guess suffix)
   ;; Does guess and prompt step for find-file-at-point.
   ;; Extra complication for the temporary highlighting.
   (unwind-protect
@@ -1518,7 +1481,9 @@ Uses the face `ffap' if it is defined, or else `highlight'."
       ;; and then maybe skip over this prompt (ff-paths, for example).
       (catch 'ffap-prompter
 	(ffap-read-file-or-url
-	 (if ffap-url-regexp "Find file or URL: " "Find file: ")
+	 (if ffap-url-regexp
+             (format "Find file or URL%s: " (or suffix ""))
+           (format "Find file%s: " (or suffix "")))
 	 (prog1
              (let ((mark-active nil))
                ;; Don't use the region here, since it can be something
@@ -1765,18 +1730,18 @@ Return value:
 ;; at least two new user variables, and there is no w3-fetch-noselect.
 ;; So instead, we just fake it with a slow save-window-excursion.
 
-(defun ffap-other-window ()
+(defun ffap-other-window (filename)
   "Like `ffap', but put buffer in another window.
 Only intended for interactive use."
-  (interactive)
-  (pcase (save-window-excursion (call-interactively 'ffap))
+  (interactive (list (ffap-prompter nil " other window")))
+  (pcase (save-window-excursion (find-file-at-point filename))
     ((or (and (pred bufferp) b) `(,(and (pred bufferp) b) . ,_))
      (switch-to-buffer-other-window b))))
 
-(defun ffap-other-frame ()
+(defun ffap-other-frame (filename)
   "Like `ffap', but put buffer in another frame.
 Only intended for interactive use."
-  (interactive)
+  (interactive (list (ffap-prompter nil " other frame")))
   ;; Extra code works around dedicated windows (noted by JENS, 7/96):
   (let* ((win (selected-window))
 	 (wdp (window-dedicated-p win))
@@ -1786,7 +1751,7 @@ Only intended for interactive use."
 	  (set-window-dedicated-p win nil)
 	  (switch-to-buffer-other-frame
 	   (save-window-excursion
-	     (setq value (call-interactively 'ffap))
+	     (setq value (find-file-at-point filename))
 	     (unless (or (bufferp value) (bufferp (car-safe value)))
 	       (setq value (current-buffer)))
 	     (current-buffer))))
@@ -1800,52 +1765,52 @@ Only intended for interactive use."
     (with-current-buffer buffer
       (read-only-mode 1))))
 
-(defun ffap-read-only ()
+(defun ffap-read-only (filename)
   "Like `ffap', but mark buffer as read-only.
 Only intended for interactive use."
-  (interactive)
-  (let ((value (call-interactively 'ffap)))
+  (interactive (list (ffap-prompter nil " read only")))
+  (let ((value (find-file-at-point filename)))
     (unless (or (bufferp value) (bufferp (car-safe value)))
       (setq value (current-buffer)))
     (ffap--toggle-read-only value)
     value))
 
-(defun ffap-read-only-other-window ()
+(defun ffap-read-only-other-window (filename)
   "Like `ffap', but put buffer in another window and mark as read-only.
 Only intended for interactive use."
-  (interactive)
-  (let ((value (ffap-other-window)))
+  (interactive (list (ffap-prompter nil " read only other window")))
+  (let ((value (ffap-other-window filename)))
     (ffap--toggle-read-only value)
     value))
 
-(defun ffap-read-only-other-frame ()
+(defun ffap-read-only-other-frame (filename)
   "Like `ffap', but put buffer in another frame and mark as read-only.
 Only intended for interactive use."
-  (interactive)
-  (let ((value (ffap-other-frame)))
+  (interactive (list (ffap-prompter nil " read only other frame")))
+  (let ((value (ffap-other-frame filename)))
     (ffap--toggle-read-only value)
     value))
 
-(defun ffap-alternate-file ()
+(defun ffap-alternate-file (filename)
   "Like `ffap' and `find-alternate-file'.
 Only intended for interactive use."
-  (interactive)
+  (interactive (list (ffap-prompter nil " alternate file")))
   (let ((ffap-file-finder 'find-alternate-file))
-    (call-interactively 'ffap)))
+    (find-file-at-point filename)))
 
-(defun ffap-alternate-file-other-window ()
+(defun ffap-alternate-file-other-window (filename)
   "Like `ffap' and `find-alternate-file-other-window'.
 Only intended for interactive use."
-  (interactive)
+  (interactive (list (ffap-prompter nil " alternate file other window")))
   (let ((ffap-file-finder 'find-alternate-file-other-window))
-    (call-interactively 'ffap)))
+    (find-file-at-point filename)))
 
-(defun ffap-literally ()
+(defun ffap-literally (filename)
   "Like `ffap' and command `find-file-literally'.
 Only intended for interactive use."
-  (interactive)
+  (interactive (list (ffap-prompter nil " literally")))
   (let ((ffap-file-finder 'find-file-literally))
-    (call-interactively 'ffap)))
+    (find-file-at-point filename)))
 
 (defalias 'find-file-literally-at-point 'ffap-literally)
 
@@ -2042,19 +2007,19 @@ This hook is intended to be put in `file-name-at-point-functions'."
    '((global-set-key [S-mouse-3] 'ffap-at-mouse)
      (global-set-key [C-S-mouse-3] 'ffap-menu)
 
-     (global-set-key "\C-x\C-f" 'find-file-at-point)
-     (global-set-key "\C-x\C-r" 'ffap-read-only)
-     (global-set-key "\C-x\C-v" 'ffap-alternate-file)
+     (global-set-key [remap find-file] 'find-file-at-point)
+     (global-set-key [remap find-file-read-only] 'ffap-read-only)
+     (global-set-key [remap find-alternate-file] 'ffap-alternate-file)
 
-     (global-set-key "\C-x4f"   'ffap-other-window)
-     (global-set-key "\C-x5f"   'ffap-other-frame)
-     (global-set-key "\C-x4r"   'ffap-read-only-other-window)
-     (global-set-key "\C-x5r"   'ffap-read-only-other-frame)
+     (global-set-key [remap find-file-other-window] 'ffap-other-window)
+     (global-set-key [remap find-file-other-frame] 'ffap-other-frame)
+     (global-set-key [remap find-file-read-only-other-window] 'ffap-read-only-other-window)
+     (global-set-key [remap find-file-read-only-other-frame] 'ffap-read-only-other-frame)
 
-     (global-set-key "\C-xd"    'dired-at-point)
-     (global-set-key "\C-x4d"   'ffap-dired-other-window)
-     (global-set-key "\C-x5d"   'ffap-dired-other-frame)
-     (global-set-key "\C-x\C-d" 'ffap-list-directory)
+     (global-set-key [remap dired] 'dired-at-point)
+     (global-set-key [remap dired-other-window] 'ffap-dired-other-window)
+     (global-set-key [remap dired-other-frame] 'ffap-dired-other-frame)
+     (global-set-key [remap list-directory] 'ffap-list-directory)
 
      (add-hook 'gnus-summary-mode-hook 'ffap-gnus-hook)
      (add-hook 'gnus-article-mode-hook 'ffap-gnus-hook)

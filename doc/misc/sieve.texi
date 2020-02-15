@@ -1,7 +1,5 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@include gnus-overrides.texi
-
 @setfilename ../../info/sieve.info
 @settitle Emacs Sieve Manual
 @include docstyle.texi
@@ -12,7 +10,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -238,8 +236,8 @@ the @code{fileinto} command.
 @example
 require "fileinto";
 
-if address "sender" "owner-w3-beta@@xemacs.org" @{
-        fileinto "INBOX.w3-beta";
+if address "sender" "emacs-devel@@gnu.org" @{
+        fileinto "INBOX.emacs-devel";
 @}
 @end example
 

@@ -125,7 +125,7 @@ the char-table has no extra slot.  */)
     }
 
   size = CHAR_TABLE_STANDARD_SLOTS + n_extras;
-  vector = Fmake_vector (make_fixnum (size), init);
+  vector = make_vector (size, init);
   XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
   set_char_table_parent (vector, Qnil);
   set_char_table_purpose (vector, purpose);
@@ -184,16 +184,13 @@ copy_sub_char_table (Lisp_Object table)
 Lisp_Object
 copy_char_table (Lisp_Object table)
 {
-  Lisp_Object copy;
   int size = PVSIZE (table);
-  int i;
-
-  copy = Fmake_vector (make_fixnum (size), Qnil);
+  Lisp_Object copy = make_nil_vector (size);
   XSETPVECTYPE (XVECTOR (copy), PVEC_CHAR_TABLE);
   set_char_table_defalt (copy, XCHAR_TABLE (table)->defalt);
   set_char_table_parent (copy, XCHAR_TABLE (table)->parent);
   set_char_table_purpose (copy, XCHAR_TABLE (table)->purpose);
-  for (i = 0; i < chartab_size[0]; i++)
+  for (int i = 0; i < chartab_size[0]; i++)
     set_char_table_contents
       (copy, i,
        (SUB_CHAR_TABLE_P (XCHAR_TABLE (table)->contents[i])
@@ -201,7 +198,7 @@ copy_char_table (Lisp_Object table)
 	: XCHAR_TABLE (table)->contents[i]));
   set_char_table_ascii (copy, char_table_ascii (copy));
   size -= CHAR_TABLE_STANDARD_SLOTS;
-  for (i = 0; i < size; i++)
+  for (int i = 0; i < size; i++)
     set_char_table_extras (copy, i, XCHAR_TABLE (table)->extras[i]);
 
   XSETCHAR_TABLE (copy, XCHAR_TABLE (copy));
@@ -1249,7 +1246,7 @@ uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)
     set_char_table_extras (table, 4,
 			   CALLN (Fvconcat,
 				  XCHAR_TABLE (table)->extras[4],
-				  Fmake_vector (make_fixnum (1), value)));
+				  make_vector (1, value)));
   return make_fixnum (i);
 }
 
@@ -1291,7 +1288,7 @@ uniprop_table (Lisp_Object prop)
   if (STRINGP (table))
     {
       AUTO_STRING (intl, "international/");
-      result = Fload (concat2 (intl, table), Qt, Qt, Qt, Qt);
+      result = save_match_data_load (concat2 (intl, table), Qt, Qt, Qt, Qt);
       if (NILP (result))
 	return Qnil;
       table = XCDR (val);
@@ -1324,22 +1321,25 @@ and put an element value.  */)
   return Fcdr (Fassq (prop, Vchar_code_property_alist));
 }
 
+Lisp_Object
+get_unicode_property (Lisp_Object char_table, int ch)
+{
+  Lisp_Object val = CHAR_TABLE_REF (char_table, ch);
+  uniprop_decoder_t decoder = uniprop_get_decoder (char_table);
+  return (decoder ? decoder (char_table, val) : val);
+}
+
 DEFUN ("get-unicode-property-internal", Fget_unicode_property_internal,
        Sget_unicode_property_internal, 2, 2, 0,
        doc: /* Return an element of CHAR-TABLE for character CH.
 CHAR-TABLE must be what returned by `unicode-property-table-internal'. */)
   (Lisp_Object char_table, Lisp_Object ch)
 {
-  Lisp_Object val;
-  uniprop_decoder_t decoder;
-
   CHECK_CHAR_TABLE (char_table);
   CHECK_CHARACTER (ch);
   if (! UNIPROP_TABLE_P (char_table))
     error ("Invalid Unicode property table");
-  val = CHAR_TABLE_REF (char_table, XFIXNUM (ch));
-  decoder = uniprop_get_decoder (char_table);
-  return (decoder ? decoder (char_table, val) : val);
+  return get_unicode_property (char_table, XFIXNUM (ch));
 }
 
 DEFUN ("put-unicode-property-internal", Fput_unicode_property_internal,

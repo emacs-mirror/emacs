@@ -1,6 +1,6 @@
 ;;; ede/auto.el --- Autoload features for EDE
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -31,6 +31,7 @@
 
 (require 'eieio)
 (require 'cl-generic)
+(require 'eieio-base)
 
 (declare-function ede-directory-safe-p "ede")
 (declare-function ede-add-project-to-global-list "ede")
@@ -136,7 +137,7 @@ into memory.")
 (declare-function ede-directory-safe-p "ede")
 (declare-function ede-add-project-to-global-list "ede")
 
-(defclass ede-project-autoload ()
+(defclass ede-project-autoload (eieio-named)
   ((name :initarg :name
 	 :documentation "Name of this project type")
    (file :initarg :file

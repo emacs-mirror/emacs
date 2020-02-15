@@ -1,4 +1,4 @@
-/* Copyright (C) 1985-1988, 1990, 1992, 1999-2018 Free Software
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2020 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -187,7 +187,8 @@ verify ((! TYPE_SIGNED (ElfW (Half))
 	&& TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
 
 #ifdef UNEXELF_DEBUG
-# define DEBUG_LOG(expr) fprintf (stderr, #expr " 0x%jx\n", (uintmax_t) (expr))
+# define DEBUG_LOG(expr) fprintf (stderr, #expr " 0x%"PRIxMAX"\n", \
+				  (uintmax_t) (expr))
 #endif
 
 /* Get the address of a particular section or program header entry,
@@ -304,6 +305,7 @@ unexec (const char *new_name, const char *old_name)
 	      || seg->p_vaddr > old_bss_seg->p_vaddr))
 	old_bss_seg = seg;
     }
+  eassume (old_bss_seg);
 
   /* Note that old_bss_addr may be lower than the first bss section
      address, since the section may need aligning.  */

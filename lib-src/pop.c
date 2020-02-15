@@ -1,6 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2018 Free Software
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2020 Free Software
 Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
@@ -285,7 +285,7 @@ pop_open (char *host, char *username, char *password, int flags)
   /*
    * I really shouldn't use the pop_error variable like this, but....
    */
-  if (strlen (username) > ERROR_MAX - 6)
+  if (strnlen (username, ERROR_MAX - 6 + 1) == ERROR_MAX - 6 + 1)
     {
       pop_close (server);
       strcpy (pop_error,
@@ -299,7 +299,7 @@ pop_open (char *host, char *username, char *password, int flags)
       return (0);
     }
 
-  if (strlen (password) > ERROR_MAX - 6)
+  if (strnlen (password, ERROR_MAX - 6 + 1) == ERROR_MAX - 6 + 1)
     {
       pop_close (server);
       strcpy (pop_error,
@@ -1275,7 +1275,7 @@ pop_getline (popserver server, char **line)
       server->buffer_index = 0;
     }
 
-  while (1)
+  while (true)
     {
       /* There's a "- 1" here to leave room for the null that we put
          at the end of the read data below.  We put the null there so
@@ -1288,7 +1288,7 @@ pop_getline (popserver server, char **line)
 	    {
 	      strcpy (pop_error, "Out of memory in pop_getline");
 	      pop_trash (server);
-	      return (-1);
+	      break;
 	    }
 	}
       ret = RECV (server->file, server->buffer + server->data,
@@ -1298,13 +1298,13 @@ pop_getline (popserver server, char **line)
 	  snprintf (pop_error, ERROR_MAX, "%s%s",
 		    GETLINE_ERROR, strerror (errno));
 	  pop_trash (server);
-	  return (-1);
+	  break;
 	}
       else if (ret == 0)
 	{
 	  strcpy (pop_error, "Unexpected EOF from server in pop_getline");
 	  pop_trash (server);
-	  return (-1);
+	  break;
 	}
       else
 	{
@@ -1332,7 +1332,7 @@ pop_getline (popserver server, char **line)
 	}
     }
 
-  /* NOTREACHED */
+  return -1;
 }
 
 /*

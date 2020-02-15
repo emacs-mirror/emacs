@@ -1,8 +1,8 @@
 ;;; srecode-template.wy --- Semantic Recoder Template parser
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
-;; Author: Eric Ludlam <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
 ;; X-RCS: $Id: srecode-template.wy,v 1.10 2009-01-09 23:01:54 zappo Exp $
 

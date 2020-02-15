@@ -3,31 +3,25 @@
 @setfilename ../../info/emacs.info
 @settitle GNU Emacs Manual
 @include docstyle.texi
-
-@c The edition number appears in more than one place in this file
-@c I don't really know what it means...
-@c For example, it has said "Sixteenth" since sometime in the Emacs 22
-@c series, all through 23, and into 24.  So it is not very useful IMO,
-@c and offers nothing that EMACSVER does not.  I guess it relates
-@c mainly to the published book sold by the FSF.  Hence no longer
-@c bother including it except iftex.  Really, I think it should not be
-@c here at all (since anyone can make a pdf version), but should just
-@c be something added by the FSF during the publishing process.
-@c Also, the lispref uses a float (3.0), whereas this uses an ordinal,
-@c so the format is not even consistent.
-@set EDITION   Seventeenth
 @include emacsver.texi
 
+@c When printing, define EDITION to be the printed edition number, in
+@c the preferred style for ordinal edition numbers.  E.g., run the
+@c shell command "texi2any -D 'EDITION Nineteenth'" for the 19th
+@c printed edition where the edition number is spelled out in English.
+@c This relates mainly to the published book sold by the FSF.
+
 @copying
-@iftex
+@ifset EDITION
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
-@end iftex
-@ifnottex
+@end ifset
+@ifclear EDITION
 This is the @cite{GNU Emacs Manual},
-@end ifnottex
+@end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1985--1987, 1993--2020 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -82,7 +76,12 @@ developing GNU and promoting software freedom.''
 @sp 6
 @center @titlefont{GNU Emacs Manual}
 @sp 4
+@ifset EDITION
 @center @value{EDITION} Edition, Updated for Emacs Version @value{EMACSVER}.
+@end ifset
+@ifclear EDITION
+@center Updated for Emacs Version @value{EMACSVER}
+@end ifclear
 @sp 5
 @center Richard Stallman et al.
 @page
@@ -220,7 +219,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 25.
+* Antinews::            Information about Emacs version 26.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
@@ -443,9 +442,7 @@ File Handling
 * Visiting::            Visiting a file prepares Emacs to edit the file.
 * Saving::              Saving makes your changes permanent.
 * Reverting::           Reverting cancels all the changes not saved.
-@ifnottex
-* Autorevert::          Auto Reverting non-file buffers.
-@end ifnottex
+* Auto Revert::         Keeping buffers automatically up-to-date.
 * Auto Save::           Auto Save periodically protects against loss of data.
 * File Aliases::        Handling multiple names for one file.
 * Directories::         Creating, deleting, and listing file directories.
@@ -542,6 +539,7 @@ Frames and Graphical Displays
 * Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
+* Tab Bars::            Enabling and disabling the tab bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
@@ -1101,6 +1099,7 @@ Hyperlinking and Navigation Features
 Emacs Lisp Packages
 
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 
@@ -1114,6 +1113,7 @@ Customization
                           By changing them, you can redefine keys.
 * Init File::           How to write common customizations in the
                           initialization file.
+* Authentication::      Keeping persistent authentication information.
 
 Easy Customization Interface
 
@@ -1134,6 +1134,8 @@ Variables
 * Locals::              Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
 * Directory Variables:: How variable values can be specified by directory.
+* Connection Variables:: Variables which are valid for buffers with a
+                           remote default directory.
 
 Local Variables in Files
 
@@ -1175,6 +1177,7 @@ Dealing with Emacs Trouble
 * Crashing::            What Emacs does when it crashes.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    What to do if Emacs stops responding.
+* Long Lines::          Mitigating slowness due to extremely long lines.
 
 Reporting Bugs
 
@@ -1314,7 +1317,7 @@ Emacs editors, all sharing common principles of organization.  For
 information on the underlying philosophy of Emacs and the lessons
 learned from its development, see @cite{Emacs, the Extensible,
 Customizable Self-Documenting Display Editor}, available from
-@url{http://hdl.handle.net/1721.1/5736}.
+@url{https://dspace.mit.edu/handle/1721.1/5736}.
 
 This version of the manual is mainly intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on
@@ -1402,6 +1405,7 @@ Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
 Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Ken Brown, Stefan Bruda,
+Daniel Colascione,
 Georges Brun-Cottan, Joe Buehler, Scott Byer, Włodek Bzyl, Tino Calancha,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
@@ -1427,7 +1431,7 @@ Guillaume, Dmitry Gutov, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, C
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
 Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Anders Holst,
-Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Tom Houlder, Joakim
+Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
@@ -1447,7 +1451,7 @@ Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J. Madsen, Neil M. Mager, Artur Malabarba, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
-Megginson, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
+Megginson, Jimmy Aguilar Mena, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
 Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Möllmann, Dani Moncayo, Stefan
 Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
 Don Morrison, Diane Murray, Riccardo Murri, Sen Nagata, Erik Naggum,
@@ -1466,7 +1470,7 @@ Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
 Roberts, Roland B. Roberts, John Robinson, Denis B. Roegel, Danny
 Roozendaal, Sebastian Rose, William Rosenblatt, Markus Rost, Guillermo
 J. Rozas, Martin Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang
-Rupprecht, Benjamin Rutt, Kevin Ryde, James B. Salem, Masahiko Sato,
+Rupprecht, Benjamin Rutt, Kevin Ryde, Phil Sainty, James B. Salem, Masahiko Sato,
 Timo Savola, Jorgen Schäfer, Holger Schauer, William Schelter, Ralph
 Schleicher, Gregor Schmid, Michael Schmidt, Ronald S. Schnell,
 Philippe Schnoebelen, Jan Schormann, Alex Schroeder, Stefan Schoef,
@@ -1479,9 +1483,9 @@ South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Philipp Stephani, Peter Stephenson, Ken
 Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.
 Storm, Steve Strassmann, Christopher Suckling, Olaf Sylvester, Naoto
-Takahashi, Steven Tamm, Jan Tatarik, Luc Teirlinck, Jean-Philippe Theberge, Jens
-T. Berger Thielemann, Spencer Thomas, Jim Thompson, Toru Tomabechi,
-David O'Toole, Markus Triska, Tom Tromey, Enami Tsugutomo, Eli
+Takahashi, Steven Tamm, Jan Tatarik, João Távora, Luc Teirlinck,
+Jean-Philippe Theberge, Jens T.@: Berger Thielemann, Spencer Thomas,
+Jim Thompson, Toru Tomabechi, David O'Toole, Markus Triska, Tom Tromey, Eli
 Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil
 W. Van Dyke, Didier Verna, Joakim Verona, Ulrik Vieth, Geoffrey
 Voelker, Johan Vromans, Inge Wallin, John Paul Wallington, Colin
@@ -1514,10 +1518,11 @@ is not silent.)
 
   We call Emacs @dfn{advanced} because it can do much more than simple
 insertion and deletion of text.  It can control subprocesses, indent
-programs automatically, show multiple files at once, and more.
-Emacs editing commands operate in terms of characters, words, lines,
-sentences, paragraphs, and pages, as well as expressions and comments
-in various programming languages.
+programs automatically, show multiple files at once, edit remote files
+like they were local files, and more.  Emacs editing commands operate
+in terms of characters, words, lines, sentences, paragraphs, and
+pages, as well as expressions and comments in various programming
+languages.
 
   @dfn{Self-documenting} means that at any time you can use special
 commands, known as @dfn{help commands}, to find out what your options

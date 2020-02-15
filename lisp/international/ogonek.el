@@ -1,6 +1,6 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Włodek Bzyl
 ;;	   Ryszard Kubiak
@@ -62,8 +62,8 @@
                      136 141 171 184 196 151 230 144 253))
  )
   "The constant `ogonek-name-encoding-alist' is a list of (NAME.LIST) pairs.
-Each LIST contains codes for 18 Polish diacritic characters. The codes
-are given in the following order:
+Each LIST contains codes for 18 Polish diacritic characters.
+The codes are given in the following order:
   Aogonek Cacute Eogonek Lslash Nacute Oacute Sacute Zacute Zdotaccent
   aogonek cacute eogonek lslash nacute oacute sacute zacute zdotaccent.")
 
@@ -173,7 +173,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
   "  THE INTERACTIVE FUNCTIONS PROVIDED BY THE LIBRARY `ogonek'.
 
 If you read this text then you are either looking at the library's
-source text or you have called the `ogonek-how' command. In the
+source text or you have called the `ogonek-how' command.  In the
 latter case you may remove this text using `\\[kill-buffer]'.
 
 The library provides functions for changing the encoding of Polish
@@ -182,13 +182,13 @@ The functions come in the following groups.
 
  1. `ogonek-recode-region' and `ogonek-recode-buffer' to change
     between one-character encodings, such as `iso-8859-2', `mazovia',
-    plain `ascii' or `TeX'. As the names suggest you may recode
+    plain `ascii' or `TeX'.  As the names suggest you may recode
     either the entire current buffer or just a marked region
-    in it. You may use the functions interactively as commands.
+    in it.  You may use the functions interactively as commands.
     Once you call a command you will be asked about the code
     currently used in your text and the target encoding, the one
-    you want to get. The following example shows a non-interactive
-    use of the functions in a program. This also illustrates what
+    you want to get.  The following example shows a non-interactive
+    use of the functions in a program.  This also illustrates what
     type of parameters the functions expect to be called with:
 
       (ogonek-recode-region
@@ -210,11 +210,11 @@ The functions come in the following groups.
       (ogonek-prefixify-buffer prefix-char to-code-name)
 
  The TAB character used in interactive mode makes `emacs'
- display the list of encodings recognized by the library. The list
+ display the list of encodings recognized by the library.  The list
  is stored in the constant `ogonek-name-encoding-alist'.
 
  The `ogonek' functions refer to five variables in which the suggested
- answers to dialogue questions are stored. The variables and their
+ answers to dialogue questions are stored.  The variables and their
  default values are:
 
    ogonek-from-encoding           iso8859-2
@@ -239,7 +239,7 @@ The functions come in the following groups.
    (autoload \\='ogonek-deprefixify-region \"ogonek\")
 
  The most frequent function calls can be abbreviated and assigned to
- keyboard keys. Here are a few practical examples:
+ keyboard keys.  Here are a few practical examples:
 
    (defun deprefixify-iso8859-2-region (start end)
      (interactive \"*r\")
@@ -329,7 +329,7 @@ PROMPT is a string to be shown when the user is asked for a new prefix."
 (defun ogonek-lookup-encoding (encoding)
   "Pick up an association for ENCODING in `ogonek-name-encoding-alist'.
 Before returning a result test whether the string ENCODING is in
-the list `ogonek-name-encoding-alist'"
+the list `ogonek-name-encoding-alist'."
   (let ((code-list (assoc encoding ogonek-name-encoding-alist)))
     (if (null code-list)
       (error "! Name `%s' not known in `ogonek-name-encoding-alist'"
@@ -449,8 +449,8 @@ PREFIX-CHAR itself gets doubled."
 (defun ogonek-deprefixify-region (start end prefix-char to-encoding)
   "In a region, replace PREFIX pairs with their corresponding TO-encodings.
 PREFIX-CHAR followed by a Polish character from the `ogonek-prefix-code'
-list is replaced with the corresponding TO-encoded character. A doubled
-PREFIX-CHAR gets replaced with a single one. A combination of PREFIX-CHAR
+list is replaced with the corresponding TO-encoded character.  A doubled
+PREFIX-CHAR gets replaced with a single one.  A combination of PREFIX-CHAR
 followed by a non-Polish character, that is one not listed in the
 `ogonek-prefix-code' constant, is left unchanged."
   (interactive (progn (barf-if-buffer-read-only)

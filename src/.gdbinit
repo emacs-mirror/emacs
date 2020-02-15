@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2020 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -382,7 +382,7 @@ define pwinx
   xgetptr $w->contents
   set $tem = (struct buffer *) $ptr
   xgetptr $tem->name_
-  printf "%s", ((struct Lisp_String *) $ptr)->u.s.data
+  printf "%s", $ptr ? (char *) ((struct Lisp_String *) $ptr)->u.s.data : "DEAD"
   printf "\n"
   xgetptr $w->start
   set $tem = (struct Lisp_Marker *) $ptr
@@ -508,7 +508,12 @@ define pgx
   xgettype ($g.object)
   if ($type == Lisp_String)
     xgetptr $g.object
-    printf " str=0x%x[%d]", ((struct Lisp_String *)$ptr)->u.s.data, $g.charpos
+    if ($ptr)
+      printf " str=0x%x", ((struct Lisp_String *)$ptr)->u.s.data
+    else
+      printf " str=DEAD"
+    end
+    printf "[%d]", $g.charpos
   else
     printf " pos=%d", $g.charpos
   end
@@ -879,7 +884,7 @@ define xbuffer
   xgetptr $
   print (struct buffer *) $ptr
   xgetptr $->name_
-  output ((struct Lisp_String *) $ptr)->u.s.data
+  output $ptr ? (char *) ((struct Lisp_String *) $ptr)->u.s.data : "DEAD"
   echo \n
 end
 document xbuffer
@@ -1046,21 +1051,27 @@ Print $ as a lisp object of any type.
 end
 
 define xprintstr
-  set $data = (char *) $arg0->u.s.data
-  set $strsize = ($arg0->u.s.size_byte < 0) ? ($arg0->u.s.size & ~ARRAY_MARK_FLAG) : $arg0->u.s.size_byte
-  # GDB doesn't like zero repetition counts
-  if $strsize == 0
-    output ""
+  if (! $arg0)
+    output "DEAD"
   else
-    output ($arg0->u.s.size > 1000) ? 0 : ($data[0])@($strsize)
+    set $data = (char *) $arg0->u.s.data
+    set $strsize = ($arg0->u.s.size_byte < 0) ? ($arg0->u.s.size & ~ARRAY_MARK_FLAG) : $arg0->u.s.size_byte
+    # GDB doesn't like zero repetition counts
+    if $strsize == 0
+      output ""
+    else
+      output ($arg0->u.s.size > 1000) ? 0 : ($data[0])@($strsize)
+    end
   end
 end
 
 define xprintsym
   xsymname $arg0
   xgetptr $symname
-  set $sym_name = (struct Lisp_String *) $ptr
-  xprintstr $sym_name
+  if $ptr != 0
+    set $sym_name = (struct Lisp_String *) $ptr
+    xprintstr $sym_name
+  end
 end
 document xprintsym
   Print argument as a symbol.
@@ -1219,24 +1230,12 @@ show environment TERM
 # terminate_due_to_signal when an assertion failure is non-fatal.
 break terminate_due_to_signal
 
-# x_error_quitter is defined only on X.  But window-system is set up
-# only at run time, during Emacs startup, so we need to defer setting
-# the breakpoint.  init_sys_modes is the first function called on
-# every platform after init_display, where window-system is set.
-tbreak init_sys_modes
-commands
-  silent
-  xsymname globals.f_Vinitial_window_system
-  xgetptr $symname
-  set $tem = (struct Lisp_String *) $ptr
-  set $tem = (char *) $tem->u.s.data
-  # If we are running in synchronous mode, we want a chance to look
-  # around before Emacs exits.  Perhaps we should put the break
-  # somewhere else instead...
-  if $tem[0] == 'x' && $tem[1] == '\0'
-    break x_error_quitter
-  end
-  continue
+# x_error_quitter is defined only if defined_HAVE_X_WINDOWS.
+# If we are running in synchronous mode, we want a chance to look
+# around before Emacs exits.  Perhaps we should put the break
+# somewhere else instead...
+if defined_HAVE_X_WINDOWS
+  break x_error_quitter
 end
 
 
@@ -1315,7 +1314,7 @@ if hasattr(gdb, 'printing'):
       # simpler and works regardless of whether VAL is a pointer or
       # integer.  Also, val.cast (gdb.lookup.type ("EMACS_UINT"))
       # would have problems with GDB 7.12.1; see
-      # <http://patchwork.sourceware.org/patch/11557/>.
+      # <https://patchwork.sourceware.org/patch/11557/>
       ival = long (val)
 
       # For nil, yield "XIL(0)", which is easier to read than "XIL(0x0)".
@@ -1326,7 +1325,7 @@ if hasattr(gdb, 'printing'):
       itype = ival >> (0 if USE_LSB_TAG else VALBITS)
       itype = itype & ((1 << GCTYPEBITS) - 1)
 
-      # For a Lisp integer N, yield "make_number(N)".
+      # For a Lisp fixnum N, yield "make_fixnum(N)".
       if itype == Lisp_Int0 or itype == Lisp_Int1:
         if USE_LSB_TAG:
           ival = ival >> (GCTYPEBITS - 1)
@@ -1334,7 +1333,7 @@ if hasattr(gdb, 'printing'):
           ival = ival | (-1 << VALBITS)
         else:
           ival = ival & ((1 << VALBITS) - 1)
-        return "make_number(%d)" % ival
+        return "make_fixnum(%d)" % ival
 
       # For non-integers other than nil yield "XIL(N)", where N is a C integer.
       # This helps humans distinguish Lisp_Object values from ordinary

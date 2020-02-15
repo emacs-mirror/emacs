@@ -1,8 +1,8 @@
 ;;; srecode/el.el --- Emacs Lisp specific arguments
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -86,7 +86,7 @@ Calls `srecode-semantic-apply-tag-to-dict-default' first."
   (srecode-semantic-apply-tag-to-dict-default tagobj dict)
 
   ;; Pull out the tag for the individual pieces.
-  (let* ((tag (oref tagobj :prime))
+  (let* ((tag (oref tagobj prime))
 	 (doc (semantic-tag-docstring tag)))
 
     ;; It is much more common to have doc on ELisp.

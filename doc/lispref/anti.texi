@@ -1,281 +1,189 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2002-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2002--2020 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This node must have no pointers.
 
 @node Antinews
-@appendix Emacs 25 Antinews
+@appendix Emacs 26 Antinews
 @c Update the elisp.texi Antinews menu entry with the above version number.
 
 For those users who live backwards in time, here is information about
-downgrading to Emacs version 25.3.  We hope you will enjoy the greater
+downgrading to Emacs version 26.3.  We hope you will enjoy the greater
 simplicity that results from the absence of many @w{Emacs
 @value{EMACSVER}} features.
 
-@section Old Lisp Features in Emacs 25
-
 @itemize @bullet
 @item
-The concurrency features have been removed.  Even in its limited
-``mostly cooperative'' form, with only one Lisp thread running at any
-given time, it made Emacs significantly more complex for Lisp programs
-that need to work correctly in the presence of additional threads.
+Lisp objects are again implemented on the C level as integer types,
+not as pointers.  This might be a small step for Emacs Lisp users, but
+it's a giant leap for the Emacs developers who work on the C level,
+since it is now again easy to print Lisp object in the debugger in the
+decimal format, which is so much easier for debugging.  It also makes
+calling Emacs functions from the debugger easier, and allows us to
+freely mix integers and Lisp objects in the C code.
 
 @item
-Handling of file attributes has been simplified by discarding the
-accessor functions, such as @code{file-attribute-type} and
-@code{file-attribute-modification-time}.  Real Lisp programmers always
-access the individual attributes by their ordinal numbers, and can
-recite those numbers in their sleep.
+The test suite was removed from the distribution tarball.  We believe
+that tests need seldom if ever be run, certainly not by the end
+users.  Removing the tests from the tarball makes it much smaller,
+which is important since disk space becomes more and more at premium
+as you move back in time.
 
 @item
-The networking code is back at its pristine simplicity, as we deleted
-the use of asynchronous DNS resolution, connection, and TLS
-negotiation for TLS streams.  You no longer need to consider the
-resulting complexity and interesting race conditions when you write
-Lisp programs that use network communications.  As a direct
-consequence, the @code{:complete-negotiation} parameter of
-@code{gnutls-boot} has become unnecessary, and was removed---just one
-example of how removal of asynchronicity simplifies Emacs.
+Dynamic module support is disabled by default.  This both makes Emacs
+smaller (a worthy goal by itself), and removes the complications and
+additional complexity related with installing module support files and
+letting random shared objects an opportunity to be loaded into Emacs
+and mess with it.
 
 @item
-We've removed the @file{puny.el} library, so Web sites with
-non-@acronym{ASCII} URLs are no longer easily accessible.  But such
-sites become more and more rare as you move back in time, so having a
-specialized library for their support was deemed an unnecessary
-maintenance burden.
+You now must activate any installed packages only after loading your
+init files.  That requires an explicit call to
+@code{package-initialize} in your init file, which is a Good Thing, as
+it makes you think seriously where and indeed whether you'd like your
+packages to become available to your sessions.  Simplicity should
+tramp convenience!
 
 @item
-The time conversion functions @code{current-time-string},
-@code{current-time-zone}, @code{decode-time},
-@code{format-time-string}, and @code{set-time-zone-rule} no longer
-accept integer offsets as time zone rules, to make it more of a
-challenge to convert foreign timestamps.  Also,
-@code{format-time-string} no longer converts @samp{%q} to the calendar
-quarter, as that is something you can easily do for yourself.
+To reduce the amount of code in Emacs related to unimportant features,
+we've removed native rotation and resizing of images.  You will have
+to build Emacs with ImageMagick if you want to resize or rotate images
+inside Emacs.  We don't expect anyone to miss that.
 
 @item
-Field numbers like @samp{%2$} in format specifiers are no longer
-available.  We decided that their use makes code reading and
-comprehension much harder, and that having them is unjustified in the
-past where similar features in popular C libraries will also be gone.
+We've re-enabled color fonts usage by the XFT font back-end.  We
+consider the availability of these fonts more important than a random
+crash here and there, especially since the use of these fonts for
+displaying Emoji will become less and less important as we travel back
+in time, and will completely disappear in some past Emacs version.
 
 @item
-Since the built-in capability to display line numbers has been removed
-(@pxref{Antinews,,, emacs, The GNU Emacs Manual}), we've also deleted
-the @code{line-number-display-width} function and the support for the
-@code{display-line-numbers-disable} property, as Lisp programs that do
-their own display layout decisions no longer need to cater to this
-tricky feature.
+The function @code{network-interface-list} can now return only IPv4
+addresses.  We consider the complexity introduced by IPv6 to be too
+much to be justified, and on the other hand its removal is the step in
+the right direction, given that IPv6 is expected to be completely
+removed as we move back in time.
 
 @item
-Regular expressions have been simplified by removing support for
-Unicode character properties in the @code{[:blank:]} regexp class.  As
-result, this class will match only spaces and tabs.  Once again, this
-is in line with diminishing importance of Unicode as you move back in
-time.
+The limit on repetitions in regular expressions was reduced to
+@ifnottex
+2**15 @minus{} 1.
+@end ifnottex
+@tex
+@math{2^{15}-1}.
+@end tex
+We envision that regular expressions will become more and more simple
+as we move towards the distant past.
 
 @item
-For similar reasons, we removed the function @code{char-from-name}.
-It should be easy enough to access the full list of Unicode characters
-returned by @code{ucs-names} instead, for as long as Unicode support
-in Emacs exists (which shouldn't be too long).
+To simplify code and reduce complexity, we removed the capability of
+searching programs on remote hosts in @code{executable-find}.  If you
+really need this feature (why would you?), you can always write your
+own shell script and run it on the remote.
 
 @item
-Various functions that accept file names as arguments, such as
-@code{file-attributes}, @code{file-symlink-p}, and
-@code{make-symbolic-link} gained back the special support for file
-names quoted with @samp{/:}, and they now interpret @samp{~} in
-symlink targets as you'd expect: to mean your home directory.  The
-confusing differences between the operation of these functions in
-interactive and non-interactive invocations has been removed.
+The @code{:extend} face attribute is no longer available; all faces
+have their background color extended by default past end of line.
+This should significantly simplify face management and remove
+unnecessary code bloat, as well as make faces significantly simpler to
+understand and use.
 
 @item
-Several functions that create or rename their files now treat their
-destination specially if it happens to be a directory, even when its
-name does not appear to be that of a directory.  For example,
-@code{(rename-file "A" "B")} no longer renames @file{A} to @file{B} if
-@file{B} happens to be a directory.  This is so that dealing with
-files becomes more of an adventure.
+The predicates @code{display-blink-cursor-p} and
+@code{display-symbol-keys-p} were deleted.  They are rarely if ever
+needed, and can easily be substituted by appropriate calls to old and
+proven APIs like @code{display-graphic-p}.  As an additional bonus,
+writing Lisp programs that depend on this functionality will make sure
+the programmer understands better what exactly is the required
+features of the display terminal.
 
 @item
-The @code{format} function now returns new strings in more cases, to
-place more stress on the Emacs memory manager and thereby test Emacs
-better.
+Relative directories in the value of the @env{HOME} environment
+variable are once again interpreted relative to the
+@code{default-directory} of the current buffer.  This is much simpler,
+and also allows @env{HOME} to resolve to a different place in
+different buffers, which allows some interesting applications.
+
+For the same reasons, @code{file-name-absolute-p} now again considers
+@file{~foo} an absolute file name, even if there's no known user
+@samp{foo}.  This means a Lisp program which uses such file names will
+always work the same on any system, regardless of its known users.
 
 @item
-The function @file{assoc} has been simplified by removing its third
-optional argument.  It now always uses @code{equal} for comparison.
-Likewise, @code{alist-get} always uses @code{assq}, and @code{map-get}
-and @code{map-put} always use @code{eql} for their comparisons.
+File-related primitives like @code{file-attributes},
+@code{file-modes}, @code{file-newer-than-file-p}, and some others once
+again return @code{nil} when the underlying low-level APIs fail,
+instead of signaling an error.  We decided that functions which signal
+errors require more complex code from Lisp programs which use them,
+and found this complexity unjustified when returning @code{nil} will
+do.
 
 @item
-Numeric comparisons and the functions @code{format},
-@code{make-hash-table}, @code{min}, @code{max} and @code{logb} now
-occasionally round values internally to make their results less
-predictable.
+Similarly, old-style backquotes no longer signal errors; they generate
+warnings instead.  You can remove error handling from programs that
+use backquotes.
 
 @item
-The functions @code{ffloor}, @code{fceiling}l, @code{ftruncate} and
-@code{fround} now accept integer arguments.  Conversely, functions
-like @code{decode-char} that accept floating-point integers now accept
-arguments that are not integers.  In both cases the results are
-amusingly nonsensical sometimes.
+Formatting floating-point numbers has been sped up by letting the
+underlying implementation produce unpredictable values, instead of
+signaling errors when the number is too large to format correctly.  We
+believe the Emacs Lisp programmers should always know what they are
+doing when they deal with floating-point values.
 
 @item
-GnuTLS cryptographic functions are no longer available in Emacs.  We
-have decided that the needs for such functionality are deteriorating,
-and their cumbersome interfaces make them hard to use.
+The function @code{read-char-from-minibuffer} was deleted.  We decided
+that @code{read-char} should be enough for any Lisp program that needs
+to ask the user for a single-character input, in recognition of the
+fact that nothing makes Emacs Lisp hackers rejoice more than the need
+to sit down and write yet another interactive question-and-answer
+function, and make it optimal for each specific case.  Consequently,
+no history is provided for such responses (why would someone want
+history of single-key strokes, anyway?).
 
 @item
-We have removed support for records of user-defined types, and
-@code{cl-defstruct} no longer uses records.  This removes the
-potential for quite a few places where existing and past code could be
-broken by records.
+The function @code{ngettext} was deleted.  Non-English languages will
+become less and less widespread, let alone useful, as you move back in
+time, so we took this small step in that direction, and simplified
+Emacs as a nice bonus.
 
 @item
-You can again use @code{string-as-unibyte},
-@code{string-make-multibyte}, and other similar functions, without
-being annoyed by messages about their deprecation.  This is in
-preparation for removal of multibyte text from Emacs in the distant
-past.
+Focus-change notifications on text-mode frames are no longer
+recognized or supported.  You can now safely disregard the possibility
+of receiving such notifications on TTY frames.  This is one small step
+on the long road of removing all non-character input events Emacs
+supports on TTY frames.
 
 @item
-The @code{string-version-lessp} function has been removed, to
-encourage programmers to use their own idiosyncratic methods to
-determine whether one version string precedes another.
+Face specifications in @code{face-remapping-alist} now have to be
+buffer-specific, without any differences between windows showing the
+same buffers.  This allowed us to remove a lot of unneeded code bloat
+from Emacs, and make the face handling much simpler.
 
 @item
-The function @code{read-color} no longer displays color names using
-each color as the background.  We have determined that this surprises
-users and produces funny inconsistent results on color-challenged
-terminals.
+The @samp{%o} and @samp{%x} formats now always produce unsigned
+values, as you'd expect.  This allows you to reveal the underlying
+machine representation, which is different on each architecture,
+something we consider a valuable feature.
 
 @item
-Support for 24-bit color on text terminals has been dropped, since
-it wasn't needed long ago.
+We no longer highlight in @code{font-lock-warning-face} symbols with
+confusable quote characters, such as U+2018.  Detecting them
+needed  non-trivial amount of code, and we firmly believe that Lisp
+programmers always know what they are doing, and don't need to be
+annoyed with typefaces that stand out and distract.
 
 @item
-We removed the function @code{file-name-case-insensitive-p}, as
-testing for the OS symbol should be enough for the observable past to
-come, and learning to use yet another API is a burden.
+The function @code{file-system-info} was dropped on Posix platforms,
+since you can always invoke @command{df} instead and parse its
+output.
 
 @item
-The function @code{read-multiple-choice} is also gone, in recognition
-of the fact that nothing makes Emacs Lisp hackers rejoice more than
-the need to sit down and write yet another interactive
-question-and-answer function, and make it optimal for each specific
-case.
-
-@item
-The function @code{add-variable-watcher} and the corresponding
-debugger command @code{debug-on-variable-change} have been removed.
-They make debugging more complicated, while examining the value of a
-variable at each stop point is easy enough to cover the same use
-cases.  Let simplicity rule!
-
-@item
-The function @code{mapcan} is gone; use @code{mapcar} instead, and
-process the resulting list as you see fit.
-
-@item
-Low-level list functions like @code{length} and @code{member} can now
-loop indefinitely when given cyclic lists, causing Emacs to freeze.
-This can help these functions run a tiny bit faster in the usual case
-where the input is not cyclic.
-
-@item
-The @code{write-region} function no longer propagates its
-@var{lockname} argument to file name handlers.
-
-@item
-You can once again write a Lisp program that returns funny random
-values from @code{file-attributes} by having another process alter the
-filesystem while Emacs is accessing the file.  This can give rise to
-some interesting applications in the near past.
-
-@item
-The functions @code{file-attributes}, @code{file-symlink-p}, and
-@code{make-symbolic-link} now quietly mutate the target of a local
-symbolic link in some cases, to make it more of a challenge to deal
-with arbitrary symlinks in Emacs code.
-
-@item
-The error @code{file-missing} has been removed; operations now lump
-such errors into the @code{file-error} category instead.
-
-@item
-The function @code{delete-directory} now signals an error if operating
-recursively and some other process deletes the directory before this
-function gets to it.
-
-@item
-The @code{dutch} input method now attempts to support Turkish too,
-albeit incorrectly.  Also, it converts @samp{IJ} and @samp{ij} to
-special characters instead of leaving them alone.
-
-@item
-Non-breaking hyphens and approximations to quotes are now displayed
-just with the @code{escape-glyph} face instead of having faces of
-their own.  This is simpler and gives the user amusing puzzles to
-solve when viewing text containing these characters.
-
-@item
-The user option @code{electric-quote-context-sensitive} and the
-variable @code{electric-quote-inhibit-functions}, so that electric
-quoting is simpler and more likely to do the wrong thing.
-
-@item
-The user option @code{text-quoting-style} has been removed, and is now
-just a variable.
-
-@item
-We have removed the functions @code{file-name-quote},
-@code{file-name-unquote}, and @code{file-name-quoted-p}.  Writing code
-that checks whether a file name is already quoted is easy, and doubly
-quoting a file name should not produce any problems for well-written
-Lisp code.
-
-@item
-Frame parameters like @code{z-group}, @code{min-width},
-@code{parent-frame}, @code{delete-before}, etc. have been removed.
-Emacs should not replace your window-manager, certainly not as
-window-managers become less and less capable.
-
-@item
-We decided that the format of mode line and header line should be
-customizable only based on buffers; the @code{mode-line-format} and
-@code{header-line-format} window parameters have been removed.
-
-@item
-Emacs now normally builds a limited @command{movemail} substitute that
-retrieves POP3 email only via insecure channels, and the
-configure-time option @option{--with-mailutils} has been removed.
-This simplifies Emacs setup when security is not important.
-
-@item
-The configure-time option @option{--enable-gcc-warnings=warn-only}
-has been removed, so that build-time warnings are always fatal now.
-
-@item
-The configure-time option @option{--disable-build-details} has been
-removed.  This way, Emacs builds are unique and irreproducible.
-
-@item
-The variable @code{emacs-version} now includes the build number
-instead of storing it separately in @code{emacs-build-number}.
-
-@item
-Emacs has been ported to IRIX.
-
-@item
-Several options and variables have been removed to simplify Emacs and
-potentially make it less reliable.  These include the
-@option{--module-assertions} option, the
-@code{attempt-stack-overflow-recovery} variable, and the
-@code{attempt-orderly-shutdown-on-fatal-signal} variable.
+The functions that implement the @samp{base64url} encoding were
+removed, as they can always be emulated by suitable tweaking of the
+normal base-64 encoding.  No need to bloat Emacs and force Lisp
+programmers learn more interfaces on this account.
 
 @item
 As part of the ongoing quest for simplicity, many other functions and

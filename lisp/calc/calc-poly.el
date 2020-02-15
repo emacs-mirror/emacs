@@ -1,6 +1,6 @@
-;;; calc-poly.el --- polynomial functions for Calc
+;;; calc-poly.el --- polynomial functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -177,8 +177,8 @@
     (math-add (car res) (math-div (cdr res) pd))))
 
 
-;;; Multiply two terms, expanding out products of sums.
 (defun math-mul-thru (lhs rhs)
+  "Multiply two terms, expanding out products of sums."
   (if (memq (car-safe lhs) '(+ -))
       (list (car lhs)
 	    (math-mul-thru (nth 1 lhs) rhs)
@@ -197,8 +197,8 @@
     (math-div num den)))
 
 
-;;; Sort the terms of a sum into canonical order.
 (defun math-sort-terms (expr)
+  "Sort the terms of a sum into canonical order."
   (if (memq (car-safe expr) '(+ -))
       (math-list-to-sum
        (sort (math-sum-to-list expr)
@@ -223,8 +223,8 @@
 		(math-sum-to-list (nth 2 tree) (not neg))))
 	(t (list (cons tree neg)))))
 
-;;; Check if the polynomial coefficients are modulo forms.
 (defun math-poly-modulus (expr &optional expr2)
+  "Check if the polynomial coefficients are modulo forms."
   (or (math-poly-modulus-rec expr)
       (and expr2 (math-poly-modulus-rec expr2))
       1))
@@ -237,12 +237,13 @@
 	     (math-poly-modulus-rec (nth 2 expr))))))
 
 
-;;; Divide two polynomials.  Return (quotient . remainder).
 (defvar math-poly-div-base nil)
-(defun math-poly-div (u v &optional math-poly-div-base)
-  (if math-poly-div-base
-      (math-do-poly-div u v)
-    (math-do-poly-div (calcFunc-expand u) (calcFunc-expand v))))
+(defun math-poly-div (u v &optional div-base)
+  "Divide two polynomials.  Return (quotient . remainder)."
+  (let ((math-poly-div-base div-base))
+    (if div-base
+        (math-do-poly-div u v)
+      (math-do-poly-div (calcFunc-expand u) (calcFunc-expand v)))))
 
 (defun math-poly-div-exact (u v &optional base)
   (let ((res (math-poly-div u v base)))
@@ -308,8 +309,8 @@
 		       (math-div (math-build-polynomial-expr (cdr res) base)
 				 v)))))))
 
-;;; Divide two polynomials in coefficient-list form.  Return (quot . rem).
 (defun math-poly-div-coefs (u v)
+  "Divide two polynomials in coefficient-list form.  Return (quot . rem)."
   (cond ((null v) (math-reject-arg nil "Division by zero"))
 	((< (length u) (length v)) (cons nil u))
 	((cdr u)
@@ -334,9 +335,9 @@
 	 (cons (list (math-poly-div-rec (car u) (car v)))
 	       nil))))
 
-;;; Perform a pseudo-division of polynomials.  (See Knuth section 4.6.1.)
-;;; This returns only the remainder from the pseudo-division.
 (defun math-poly-pseudo-div (u v)
+  "Perform a pseudo-division of polynomials.  (See Knuth section 4.6.1.)
+This returns only the remainder from the pseudo-division."
   (cond ((null v) nil)
 	((< (length u) (length v)) u)
 	((or (cdr u) (cdr v))
@@ -359,8 +360,8 @@
 	   (nreverse (mapcar 'math-simplify urev))))
 	(t nil)))
 
-;;; Compute the GCD of two multivariate polynomials.
 (defun math-poly-gcd (u v)
+  "Compute the GCD of two multivariate polynomials."
   (cond ((Math-equal u v) u)
 	((math-constp u)
 	 (if (Math-zerop u)
@@ -423,7 +424,7 @@
 (defun math-poly-gcd-coefs (u v)
   (let ((d (math-poly-gcd (math-poly-gcd-list u)
 			  (math-poly-gcd-list v)))
-	(g 1) (h 1) (z 0) hh r delta ghd)
+	(g 1) (h 1) (z 0) r delta)
     (while (and u v (Math-zerop (car u)) (Math-zerop (car v)))
       (setq u (cdr u) v (cdr v) z (1+ z)))
     (or (eq d 1)
@@ -452,8 +453,8 @@
     v))
 
 
-;;; Return true if is a factor containing no sums or quotients.
 (defun math-atomic-factorp (expr)
+  "Return true if is a factor containing no sums or quotients."
   (cond ((eq (car-safe expr) '*)
 	 (and (math-atomic-factorp (nth 1 expr))
 	      (math-atomic-factorp (nth 2 expr))))
@@ -463,14 +464,13 @@
 	 (math-atomic-factorp (nth 1 expr)))
 	(t t)))
 
-;;; Find a suitable base for dividing a by b.
-;;; The base must exist in both expressions.
-;;; The degree in the numerator must be higher or equal than the
-;;; degree in the denominator.
-;;; If the above conditions are not met the quotient is just a remainder.
-;;; Return nil if this is the case.
-
 (defun math-poly-div-base (a b)
+  "Find a suitable base for dividing a by b.
+The base must exist in both expressions.
+The degree in the numerator must be higher or equal than the
+degree in the denominator.
+If the above conditions are not met the quotient is just a remainder.
+Return nil if this is the case."
   (let (a-base b-base)
     (and (setq a-base (math-total-polynomial-base a))
 	 (setq b-base (math-total-polynomial-base b))
@@ -482,12 +482,11 @@
 		       (throw 'return (car (car a-base))))))
 	     (setq a-base (cdr a-base)))))))
 
-;;; Same as above but for gcd algorithm.
-;;; Here there is no requirement that degree(a) > degree(b).
-;;; Take the base that has the highest degree considering both a and b.
-;;; ("a^20+b^21+x^3+a+b", "a+b^2+x^5+a^22+b^10") --> (a 22)
-
 (defun math-poly-gcd-base (a b)
+  "Same as `math-poly-div-base' but for gcd algorithm.
+Here there is no requirement that degree(a) > degree(b).
+Take the base that has the highest degree considering both a and b.
+  (\"a^20+b^21+x^3+a+b\", \"a+b^2+x^5+a^22+b^10\") --> (a 22)"
   (let (a-base b-base)
     (and (setq a-base (math-total-polynomial-base a))
 	 (setq b-base (math-total-polynomial-base b))
@@ -501,8 +500,8 @@
 		   (throw 'return (car (car b-base)))
 		 (setq b-base (cdr b-base)))))))))
 
-;;; Sort a list of polynomial bases.
 (defun math-sort-poly-base-list (lst)
+  "Sort a list of polynomial bases."
   (sort lst (function (lambda (a b)
 			(or (> (nth 1 a) (nth 1 b))
 			    (and (= (nth 1 a) (nth 1 b))
@@ -511,20 +510,17 @@
 ;;; Given an expression find all variables that are polynomial bases.
 ;;; Return list in the form '( (var1 degree1) (var2 degree2) ... ).
 
-;; The variable math-poly-base-total-base is local to
-;; math-total-polynomial-base, but is used by math-polynomial-p1,
-;; which is called by math-total-polynomial-base.
+;; The variable math-poly-base-total-base and math-poly-base-top-expr are local
+;; to math-total-polynomial-base, but used by math-polynomial-p1, which is
+;; called by math-total-polynomial-base.
 (defvar math-poly-base-total-base)
+(defvar math-poly-base-top-expr)
 
 (defun math-total-polynomial-base (expr)
-  (let ((math-poly-base-total-base nil))
-    (math-polynomial-base expr 'math-polynomial-p1)
+  (let ((math-poly-base-total-base nil)
+        (math-poly-base-top-expr expr))
+    (math-polynomial-base expr #'math-polynomial-p1)
     (math-sort-poly-base-list math-poly-base-total-base)))
-
-;; The variable math-poly-base-top-expr is local to math-polynomial-base
-;; in calc-alg.el, but is used by math-polynomial-p1 which is called
-;; by math-polynomial-base.
-(defvar math-poly-base-top-expr)
 
 (defun math-polynomial-p1 (subexpr)
   (or (assoc subexpr math-poly-base-total-base)
@@ -554,28 +550,30 @@
 ;; called (indirectly) by calcFunc-factors and calcFunc-factor.
 (defvar math-to-list)
 
-(defun calcFunc-factors (math-fact-expr &optional var)
+(defun calcFunc-factors (expr &optional var)
   (let ((math-factored-vars (if var t nil))
 	(math-to-list t)
 	(calc-prefer-frac t))
     (or var
-	(setq var (math-polynomial-base math-fact-expr)))
+	(setq var (math-polynomial-base expr)))
     (let ((res (math-factor-finish
-		(or (catch 'factor (math-factor-expr-try var))
-		    math-fact-expr))))
+		(or (catch 'factor
+                      (let ((math-fact-expr expr)) (math-factor-expr-try var)))
+		    expr))))
       (math-simplify (if (math-vectorp res)
 			 res
 		       (list 'vec (list 'vec res 1)))))))
 
-(defun calcFunc-factor (math-fact-expr &optional var)
+(defun calcFunc-factor (expr &optional var)
   (let ((math-factored-vars nil)
 	(math-to-list nil)
 	(calc-prefer-frac t))
     (math-simplify (math-factor-finish
 		    (if var
-			(let ((math-factored-vars t))
-			  (or (catch 'factor (math-factor-expr-try var)) math-fact-expr))
-		      (math-factor-expr math-fact-expr))))))
+			(let ((math-factored-vars t)
+                              (math-fact-expr expr))
+			  (or (catch 'factor (math-factor-expr-try var)) expr))
+		      (math-factor-expr expr))))))
 
 (defun math-factor-finish (x)
   (if (Math-primp x)
@@ -589,18 +587,19 @@
       (list 'calcFunc-Fac-Prot x)
     x))
 
-(defun math-factor-expr (math-fact-expr)
-  (cond ((eq math-factored-vars t) math-fact-expr)
-	((or (memq (car-safe math-fact-expr) '(* / ^ neg))
-	     (assq (car-safe math-fact-expr) calc-tweak-eqn-table))
-	 (cons (car math-fact-expr) (mapcar 'math-factor-expr (cdr math-fact-expr))))
-	((memq (car-safe math-fact-expr) '(+ -))
+(defun math-factor-expr (expr)
+  (cond ((eq math-factored-vars t) expr)
+	((or (memq (car-safe expr) '(* / ^ neg))
+	     (assq (car-safe expr) calc-tweak-eqn-table))
+	 (cons (car expr) (mapcar 'math-factor-expr (cdr expr))))
+	((memq (car-safe expr) '(+ -))
 	 (let* ((math-factored-vars math-factored-vars)
-		(y (catch 'factor (math-factor-expr-part math-fact-expr))))
+		(y (catch 'factor (let ((math-fact-expr expr))
+                                    (math-factor-expr-part expr)))))
 	   (if y
 	       (math-factor-expr y)
-	     math-fact-expr)))
-	(t math-fact-expr)))
+	     expr)))
+	(t expr)))
 
 (defun math-factor-expr-part (x)    ; uses "expr"
   (if (memq (car-safe x) '(+ - * / ^ neg))
@@ -616,20 +615,20 @@
 ;; used by math-factor-poly-coefs, which is called by math-factor-expr-try.
 (defvar math-fet-x)
 
-(defun math-factor-expr-try (math-fet-x)
+(defun math-factor-expr-try (x)
   (if (eq (car-safe math-fact-expr) '*)
       (let ((res1 (catch 'factor (let ((math-fact-expr (nth 1 math-fact-expr)))
-				   (math-factor-expr-try math-fet-x))))
+				   (math-factor-expr-try x))))
 	    (res2 (catch 'factor (let ((math-fact-expr (nth 2 math-fact-expr)))
-				   (math-factor-expr-try math-fet-x)))))
+				   (math-factor-expr-try x)))))
 	(and (or res1 res2)
 	     (throw 'factor (math-accum-factors (or res1 (nth 1 math-fact-expr)) 1
 						(or res2 (nth 2 math-fact-expr))))))
-    (let* ((p (math-is-polynomial math-fact-expr math-fet-x 30 'gen))
+    (let* ((p (math-is-polynomial math-fact-expr x 30 'gen))
 	   (math-poly-modulus (math-poly-modulus math-fact-expr))
 	   res)
       (and (cdr p)
-	   (setq res (math-factor-poly-coefs p))
+	   (setq res (let ((math-fet-x x)) (math-factor-poly-coefs p)))
 	   (throw 'factor res)))))
 
 (defun math-accum-factors (fac pow facs)
@@ -735,7 +734,6 @@
 		   (let ((roots (car t1))
 			 (csign (if (math-negp (nth (1- (length p)) p)) -1 1))
 			 (expr 1)
-			 (unfac (nth 1 t1))
 			 (scale (nth 2 t1)))
 		     (while roots
 		       (let ((coef0 (car (car roots)))
@@ -1108,7 +1106,7 @@ If no partial fraction representation can be found, return nil."
 	(t expr)))
 
 (defun calcFunc-expand (expr &optional many)
-  (math-normalize (math-map-tree 'math-expand-term expr many)))
+  (math-normalize (math-map-tree #'math-expand-term expr many)))
 
 (defun math-expand-power (x n &optional var else-nil)
   (or (and (natnump n)

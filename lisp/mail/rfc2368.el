@@ -1,6 +1,6 @@
 ;;; rfc2368.el --- support for rfc2368
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: mail
@@ -61,7 +61,7 @@
 ;; only an approximation?
 ;; see rfc 1738
 (defconst rfc2368-mailto-regexp
-  "^\\(mailto:\\)\\([^?]+\\)*\\(\\?\\(.*\\)\\)*"
+  "^\\(mailto:\\)\\([^?]+\\)?\\(\\?\\(.*\\)\\)*"
   "Regular expression to match and aid in parsing a mailto url.")
 
 ;; describes 'mailto:'

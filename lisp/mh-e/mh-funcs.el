@@ -1,9 +1,8 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -124,7 +123,7 @@ folder. This is useful for folders that are easily regenerated."
         (message "Folder %s removed" folder))
     (message "Folder not removed")))
 
-(defun mh-rmf-daemon (process output)
+(defun mh-rmf-daemon (_process output)
   "The rmf PROCESS puts OUTPUT in temporary buffer.
 Display the results only if something went wrong."
   (set-buffer (get-buffer-create mh-temp-buffer))

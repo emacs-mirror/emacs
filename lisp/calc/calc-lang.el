@@ -1,6 +1,6 @@
 ;;; calc-lang.el --- calc language functions
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -243,7 +243,7 @@
 (put 'pascal 'math-lang-read-symbol
      '((?\$
         (eq (string-match
-             "\\(\\$[0-9a-fA-F]+\\)\\($\\|[^0-9a-zA-Zα-ωΑ-Ω]\\)"
+             "\\(\\$[[:xdigit:]]+\\)\\($\\|[^0-9a-zA-Zα-ωΑ-Ω]\\)"
              math-exp-str math-exp-pos)
             math-exp-pos)
         (setq math-exp-token 'number
@@ -753,8 +753,8 @@
                  right " \\right)"))
           ((and (eq (aref func 0) ?\\)
                 (not (or
-                      (string-match "\\hbox{" func)
-                      (string-match "\\text{" func)))
+                      (string-match "\\\\hbox{" func)
+                      (string-match "\\\\text{" func)))
                 (= (length a) 2)
                 (or (Math-realp (nth 1 a))
                     (memq (car (nth 1 a)) '(var *))))
@@ -1127,7 +1127,7 @@
                  (math-read-token)))))))
 
 (put 'eqn 'math-lang-read
-     '((eq (string-match "->\\|<-\\|+-\\|\\\\dots\\|~\\|\\^"
+     '((eq (string-match "->\\|<-\\|\\+-\\|\\\\dots\\|~\\|\\^"
                          math-exp-str math-exp-pos)
            math-exp-pos)
        (progn

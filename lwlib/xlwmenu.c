@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994-1995, 1997, 1999-2018 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2020 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -107,7 +107,7 @@ xlwMenuResources[] =
   {XtNfontSet,  XtCFontSet, XtRFontSet, sizeof(XFontSet),
      offset(menu.fontSet), XtRFontSet, NULL},
 #endif
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 #define DEFAULT_FONTNAME "Sans-10"
 #else
 #define DEFAULT_FONTNAME "XtDefaultFont"
@@ -325,14 +325,14 @@ string_width (XlwMenuWidget mw, char *s)
 {
   XCharStruct xcs;
   int drop;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (mw->menu.xft_font)
     {
       XGlyphInfo gi;
       XftTextExtentsUtf8 (XtDisplay (mw), mw->menu.xft_font,
                           (FcChar8 *) s,
                           strlen (s), &gi);
-      return gi.width;
+      return gi.xOff;
     }
 #endif
 #ifdef HAVE_X_I18N
@@ -349,7 +349,7 @@ string_width (XlwMenuWidget mw, char *s)
 
 }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 #define MENU_FONT_HEIGHT(mw)                                    \
   ((mw)->menu.xft_font != NULL                                  \
    ? (mw)->menu.xft_font->height                                \
@@ -965,7 +965,7 @@ display_menu_item (XlwMenuWidget mw,
   int width;
   enum menu_separator separator;
   int separator_p = lw_separator_p (val->name, &separator, 0);
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   XftColor *xftfg;
 #endif
 
@@ -1005,7 +1005,7 @@ display_menu_item (XlwMenuWidget mw,
       else
 	text_gc = mw->menu.disabled_gc;
       deco_gc = mw->menu.foreground_gc;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
       xftfg = val->enabled ? &mw->menu.xft_fg : &mw->menu.xft_disabled_fg;
 #endif
 
@@ -1032,10 +1032,13 @@ display_menu_item (XlwMenuWidget mw,
 	    x_offset += ws->button_width;
 
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
           if (ws->xft_draw)
             {
               int draw_y = y + v_spacing + shadow;
+#ifdef USE_CAIRO
+	      cairo_surface_mark_dirty (cairo_get_target (ws->xft_draw));
+#endif
               XftDrawStringUtf8 (ws->xft_draw, xftfg,
                                  mw->menu.xft_font,
                                  x_offset, draw_y + font_ascent,
@@ -1078,7 +1081,7 @@ display_menu_item (XlwMenuWidget mw,
 		}
 	      else if (val->key)
 		{
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
                   if (ws->xft_draw)
                     {
                       int draw_x = ws->width - ws->max_rest_width
@@ -1119,6 +1122,10 @@ display_menu_item (XlwMenuWidget mw,
 	      draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height,
 				     True, False);
 	    }
+#ifdef USE_CAIRO
+	  if (ws->xft_draw)
+	    cairo_surface_flush (cairo_get_target (ws->xft_draw));
+#endif
 
 	  if (highlighted_p)
 	    draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height, False,
@@ -1320,7 +1327,7 @@ make_windows_if_needed (XlwMenuWidget mw, int n)
      XtAddEventHandler (windows [i].w, ExposureMask, False, expose_cb, mw);
      windows [i].window = XtWindow (windows [i].w);
      windows [i].pixmap = None;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
      windows [i].xft_draw = 0;
 #endif
      set_window_type (windows [i].w, mw);
@@ -1411,7 +1418,7 @@ create_pixmap_for_menu (window_state* ws, XlwMenuWidget mw)
   ws->pixmap = XCreatePixmap (XtDisplay (ws->w), ws->window,
                               ws->width, ws->height,
                               DefaultDepthOfScreen (XtScreen (ws->w)));
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (ws->xft_draw)
     XftDrawDestroy (ws->xft_draw);
   if (mw->menu.xft_font)
@@ -1831,7 +1838,7 @@ release_shadow_gcs (XlwMenuWidget mw)
   XtReleaseGC ((Widget) mw, mw->menu.shadow_bottom_gc);
 }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 static XftFont *
 getDefaultXftFont (XlwMenuWidget mw)
 {
@@ -1887,7 +1894,7 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 				   gray_width, gray_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (openXftFont (mw))
     ;
   else
@@ -1933,7 +1940,7 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
   mw->menu.windows [0].height = 0;
   mw->menu.windows [0].max_rest_width = 0;
   mw->menu.windows [0].pixmap = None;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   mw->menu.windows [0].xft_draw = 0;
 #endif
   size_menu (mw, 0);
@@ -1981,7 +1988,7 @@ XlwMenuRealize (Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
   set_window_type (mw->menu.windows [0].w, mw);
   create_pixmap_for_menu (&mw->menu.windows [0], mw);
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (mw->menu.xft_font)
     {
       XColor colors[3];
@@ -2078,7 +2085,7 @@ XlwMenuDestroy (Widget w)
   if (mw->menu.font)
     XFreeFont (XtDisplay (mw), mw->menu.font);
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (mw->menu.windows [0].xft_draw)
     XftDrawDestroy (mw->menu.windows [0].xft_draw);
   if (mw->menu.xft_font)
@@ -2092,7 +2099,7 @@ XlwMenuDestroy (Widget w)
     {
       if (mw->menu.windows [i].pixmap != None)
         XFreePixmap (XtDisplay (mw), mw->menu.windows [i].pixmap);
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
       if (mw->menu.windows [i].xft_draw)
         XftDrawDestroy (mw->menu.windows [i].xft_draw);
 #endif
@@ -2102,7 +2109,7 @@ XlwMenuDestroy (Widget w)
     XtFree ((char *) mw->menu.windows);
 }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
 static int
 fontname_changed (XlwMenuWidget newmw,
                   XlwMenuWidget oldmw)
@@ -2134,7 +2141,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
       || fontname_changed (newmw, oldmw)
 #endif
 #ifdef HAVE_X_I18N
@@ -2170,7 +2177,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 	  }
     }
 
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   if (fontname_changed (newmw, oldmw))
     {
       int i;

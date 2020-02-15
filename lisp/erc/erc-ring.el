@@ -1,11 +1,11 @@
 ;; erc-ring.el -- Command history handling for erc using ring.el
 
-;; Copyright (C) 2001-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcHistory
+;; URL: https://www.emacswiki.org/emacs/ErcHistory
 
 ;; This file is part of GNU Emacs.
 
@@ -46,10 +46,10 @@
 (define-erc-module ring nil
   "Stores input in a ring so that previous commands and messages can
 be recalled using M-p and M-n."
-  ((add-hook 'erc-send-pre-hook 'erc-add-to-input-ring)
+  ((add-hook 'erc-pre-send-functions 'erc-add-to-input-ring)
    (define-key erc-mode-map "\M-p" 'erc-previous-command)
    (define-key erc-mode-map "\M-n" 'erc-next-command))
-  ((remove-hook 'erc-send-pre-hook 'erc-add-to-input-ring)
+  ((remove-hook 'erc-pre-send-functions 'erc-add-to-input-ring)
    (define-key erc-mode-map "\M-p" 'undefined)
    (define-key erc-mode-map "\M-n" 'undefined)))
 
@@ -59,7 +59,7 @@ be recalled using M-p and M-n."
 (defvar erc-input-ring-index nil
   "Position in the input ring for erc.
 If nil, the input line is blank and the user is conceptually after
-the most recently added item in the ring. If an integer, the input
+the most recently added item in the ring.  If an integer, the input
 line is non-blank and displays the item from the ring indexed by this
 variable.")
 (make-variable-buffer-local 'erc-input-ring-index)
@@ -71,10 +71,10 @@ Call this function when setting up the mode."
     (setq erc-input-ring (make-ring comint-input-ring-size)))
   (setq erc-input-ring-index nil))
 
-(defun erc-add-to-input-ring (s)
+(defun erc-add-to-input-ring (state)
   "Add string S to the input ring and reset history position."
   (unless erc-input-ring (erc-input-ring-setup))
-  (ring-insert erc-input-ring s)
+  (ring-insert erc-input-ring (erc-input-string state))
   (setq erc-input-ring-index nil))
 
 (defun erc-clear-input-ring ()
@@ -147,5 +147,4 @@ containing a password."
 ;;; erc-ring.el ends here
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: nil
 ;; End:

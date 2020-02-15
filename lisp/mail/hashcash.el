@@ -1,6 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org
@@ -158,7 +158,7 @@ For example, you may want to set this to (\"-Z2\") to reduce header length."
     (or (nth 1 val) (nth 0 val) addr)))
 
 (defun hashcash-generate-payment (str val)
-  "Generate a hashcash payment by finding a VAL-bit collison on STR."
+  "Generate a hashcash payment by finding a VAL-bit collision on STR."
   (if (and (> val 0)
 	   hashcash-program)
       (with-current-buffer (get-buffer-create " *hashcash*")
@@ -171,7 +171,7 @@ For example, you may want to set this to (\"-Z2\") to reduce header length."
     (error "No `hashcash' binary found")))
 
 (defun hashcash-generate-payment-async (str val callback)
-  "Generate a hashcash payment by finding a VAL-bit collison on STR.
+  "Generate a hashcash payment by finding a VAL-bit collision on STR.
 Return immediately.  Call CALLBACK with process and result when ready."
   (if (and (> val 0)
 	   hashcash-program)
@@ -182,8 +182,7 @@ Return immediately.  Call CALLBACK with process and result when ready."
 	(setq hashcash-process-alist (cons
 				      (cons process (current-buffer))
 				      hashcash-process-alist))
-	(set-process-filter process `(lambda (process output)
-				       (funcall ,callback process output))))
+	(set-process-filter process callback))
     (funcall callback nil nil)))
 
 (defun hashcash-check-payment (token str val)
@@ -227,7 +226,7 @@ Return immediately.  Call CALLBACK with process and result when ready."
 
 ;;;###autoload
 (defun hashcash-insert-payment (arg)
-  "Insert X-Payment and X-Hashcash headers with a payment for ARG"
+  "Insert X-Payment and X-Hashcash headers with a payment for ARG."
   (interactive "sPay to: ")
   (unless (hashcash-already-paid-p arg)
     (let ((pay (hashcash-generate-payment (hashcash-payment-to arg)
@@ -244,8 +243,9 @@ Only start calculation.  Results are inserted when ready."
     (hashcash-generate-payment-async
      (hashcash-payment-to arg)
      (hashcash-payment-required arg)
-     `(lambda (process payment)
-	(hashcash-insert-payment-async-2 ,(current-buffer) process payment)))))
+     (let ((buf (current-buffer)))
+       (lambda (process payment)
+         (hashcash-insert-payment-async-2 buf process payment))))))
 
 (defun hashcash-insert-payment-async-2 (buffer process pay)
   (when (buffer-live-p buffer)
@@ -294,7 +294,7 @@ BUFFER defaults to the current buffer."
 
 ;;;###autoload
 (defun hashcash-verify-payment (token &optional resource amount)
-  "Verify a hashcash payment"
+  "Verify a hashcash payment."
   (let* ((split (split-string token ":"))
 	 (key (if (< (hashcash-version token) 1.2)
 		  (nth 1 split)

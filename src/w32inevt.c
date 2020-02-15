@@ -1,5 +1,5 @@
 /* Input event support for Emacs on the Microsoft Windows API.
-   Copyright (C) 1992-1993, 1995, 2001-2018 Free Software Foundation,
+   Copyright (C) 1992-1993, 1995, 2001-2020 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -492,7 +492,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 	    if (!NILP (Vmouse_autoselect_window))
 	      {
 		Lisp_Object mouse_window = window_from_coordinates (f, mx, my,
-								    0, 0);
+								    0, 0, 0);
 		/* A window will be selected only when it is not
 		   selected now, and the last mouse movement event was
 		   not in it.  A minibuffer window will be selected iff
@@ -534,6 +534,12 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
     case MOUSE_HWHEELED:
       {
 	struct frame *f = get_frame ();
+	/* Mouse positions in console wheel events are reported to
+	   ReadConsoleInput relative to the display's top-left
+	   corner(!), not relative to the origin of the console screen
+	   buffer.  This makes these coordinates unusable; e.g.,
+	   scrolling the tab-line in general doesn't work.
+	   FIXME (but how?).  */
 	int mx = event->dwMousePosition.X, my = event->dwMousePosition.Y;
 	bool down_p = (event->dwButtonState & 0x10000000) != 0;
 
@@ -559,8 +565,6 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
       if (event->dwButtonState == button_state)
 	return 0;
 
-      emacs_ev->kind = MOUSE_CLICK_EVENT;
-
       /* Find out what button has changed state since the last button
 	 event.  */
       but_change = button_state ^ event->dwButtonState;
@@ -576,15 +580,24 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 	  }
 
       button_state = event->dwButtonState;
-      emacs_ev->modifiers =
-	w32_kbd_mods_to_emacs (event->dwControlKeyState, 0)
-	| ((event->dwButtonState & mask) ? down_modifier : up_modifier);
-
-      XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
-      XSETFASTINT (emacs_ev->y, event->dwMousePosition.Y);
-      XSETFRAME (emacs_ev->frame_or_window, get_frame ());
-      emacs_ev->arg = Qnil;
+      emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState, 0);
       emacs_ev->timestamp = GetTickCount ();
+
+      int x = event->dwMousePosition.X;
+      int y = event->dwMousePosition.Y;
+      struct frame *f = get_frame ();
+      if (tty_handle_tab_bar_click (f, x, y, (button_state & mask) != 0,
+				    emacs_ev))
+	return 0;	/* tty_handle_tab_bar_click adds the event to queue */
+
+      emacs_ev->modifiers |= ((button_state & mask)
+			      ? down_modifier : up_modifier);
+
+      emacs_ev->kind = MOUSE_CLICK_EVENT;
+      XSETFASTINT (emacs_ev->x, x);
+      XSETFASTINT (emacs_ev->y, y);
+      XSETFRAME (emacs_ev->frame_or_window, f);
+      emacs_ev->arg = Qnil;
 
       return 1;
     }
@@ -596,7 +609,8 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
   struct frame *f = get_frame ();
 
   change_frame_size (f, event->dwSize.X, event->dwSize.Y
-		     - FRAME_MENU_BAR_LINES (f), 0, 1, 0, 0);
+		     - FRAME_MENU_BAR_LINES (f)
+		     - FRAME_TAB_BAR_LINES (f), 0, 1, 0, 0);
   SET_FRAME_GARBAGED (f);
 }
 
@@ -613,7 +627,8 @@ maybe_generate_resize_event (void)
   change_frame_size (f,
 		     1 + info.srWindow.Right - info.srWindow.Left,
 		     1 + info.srWindow.Bottom - info.srWindow.Top
-		     - FRAME_MENU_BAR_LINES (f), 0, 1, 0, 0);
+		     - FRAME_MENU_BAR_LINES (f)
+		     - FRAME_TAB_BAR_LINES (f), 0, 1, 0, 0);
 }
 
 #if HAVE_W32NOTIFY
@@ -680,7 +695,7 @@ handle_file_notifications (struct input_event *hold_quit)
 		     already be defined at this point.  */
 		  Lisp_Object fname
 		    = code_convert_string_norecord (utf_16_fn, cs, 0);
-		  Lisp_Object action = lispy_file_action (fni->Action);
+		  Lisp_Object action = w32_lispy_file_action (fni->Action);
 
 		  inev.kind = FILE_NOTIFY_EVENT;
 		  inev.timestamp = GetTickCount ();

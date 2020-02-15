@@ -1,6 +1,6 @@
 ;;; semantic/doc.el --- Routines for documentation strings
 
-;; Copyright (C) 1999-2003, 2005, 2008-2018 Free Software Foundation,
+;; Copyright (C) 1999-2003, 2005, 2008-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -103,7 +103,8 @@ If NOSNARF is `lex', then return the lex token."
 	    nil
 	  ;; ok, try to clean the text up.
 	  ;; Comment start thingy
-	  (while (string-match (concat "^\\s-*" comment-start-skip) ct)
+	  (while (string-match (concat "^\\s-*\\(?:" comment-start-skip "\\)")
+                               ct)
 	    (setq ct (concat (substring ct 0 (match-beginning 0))
 			     (substring ct (match-end 0)))))
 	  ;; Arbitrary punctuation at the beginning of each line.

@@ -1,6 +1,6 @@
 ;;; pong.el --- classical implementation of pong
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Drieu <bdrieu@april.org>
 ;; Keywords: games
@@ -262,7 +262,7 @@
 
 
 (defun pong-move-left ()
-  "Move bat 2 up.
+  "Move bat 1 up.
 This is called left for historical reasons, since in some pong
 implementations you move with left/right paddle."
   (interactive)
@@ -274,7 +274,7 @@ implementations you move with left/right paddle."
 
 
 (defun pong-move-right ()
-  "Move bat 2 up."
+  "Move bat 1 down."
   (interactive)
   (if (< (+ pong-bat-player1 pong-bat-width) (1- pong-height))
       (and
@@ -349,46 +349,61 @@ detection and checks if a player scores."
 
     (let ((old-x pong-x)
 	  (old-y pong-y))
+      ;; Erase the last ball position.
+      (when (and (> old-y 0)
+                 (< old-y (- pong-height 1)))
+        ;; If the ball hit the bat in the column where bats are positioned,
+        ;; and therefore changed its x direction, draw again the bat cell.
+        (if (or (and (= old-x 2) (< 0 pong-xx))
+                (and (= old-x (- pong-width 3)) (> 0 pong-xx)))
+            (gamegrid-set-cell old-x old-y pong-bat)
+          (gamegrid-set-cell old-x old-y pong-blank)))
 
+      ;; Update the ball position.
       (setq pong-x (+ pong-x pong-xx))
-      (setq pong-y (+ pong-y pong-yy))
+      ;; If the ball would go out of bounds, put it against the border.
+      (cond
+       ((<= (+ pong-y pong-yy) 0)
+        (setq pong-yy (- pong-yy))
+        (setq pong-y 1))
+       ((>= (+ pong-y pong-yy) (- pong-height 1))
+        (setq pong-yy (- pong-yy))
+        (setq pong-y (- pong-height 2)))
+       (t
+        (setq pong-y (+ pong-y pong-yy))
+        ;; Check if the ball is against the border now,
+        ;; and change the y direction if it is.
+        (when (or (<= pong-y 1) (>= pong-y (- pong-height 2)))
+          (setq pong-yy (- pong-yy)))))
 
-      (if (and (> old-y 0)
-	       (< old-y (- pong-height 1)))
-	  (gamegrid-set-cell old-x old-y pong-blank))
-
+      ;; Draw the ball in its new position.
       (if (and (> pong-y 0)
 	       (< pong-y (- pong-height 1)))
 	  (gamegrid-set-cell pong-x pong-y pong-ball))
 
+      ;; Hit bat, score a goal, or nothing.
       (cond
-       ((or (= pong-x 3) (= pong-x 2))
-	(if (and (>= pong-y pong-bat-player1)
-		 (< pong-y (+ pong-bat-player1 pong-bat-width)))
-	    (and
-	     (setq pong-yy (+ pong-yy
-			      (cond
-			       ((= pong-y pong-bat-player1) -1)
-			       ((= pong-y (1+ pong-bat-player1)) 0)
-			       (t 1))))
-	     (setq pong-xx (- pong-xx)))))
+       ((and (or (= pong-x 3) (= pong-x 2))
+             (> 0 pong-xx) ; Collide with the bat if headed towards it.
+             (>= pong-y pong-bat-player1)
+             (< pong-y (+ pong-bat-player1 pong-bat-width)))
+        (setq pong-yy (+ pong-yy
+			 (cond
+			  ((= pong-y pong-bat-player1) -1)
+			  ((= pong-y (1+ pong-bat-player1)) 0)
+			  (t 1))))
+        (setq pong-xx (- pong-xx)))
 
-       ((or (= pong-x (- pong-width 4)) (= pong-x (- pong-width 3)))
-	(if (and (>= pong-y pong-bat-player2)
-		 (< pong-y (+ pong-bat-player2 pong-bat-width)))
-	    (and
-	     (setq pong-yy (+ pong-yy
-			      (cond
-			       ((= pong-y pong-bat-player2) -1)
-			       ((= pong-y (1+ pong-bat-player2)) 0)
-			       (t 1))))
-	     (setq pong-xx (- pong-xx)))))
-
-       ((<= pong-y 1)
-	(setq pong-yy (- pong-yy)))
-
-       ((>= pong-y (- pong-height 2))
-	(setq pong-yy (- pong-yy)))
+       ((and (or (= pong-x (- pong-width 4)) (= pong-x (- pong-width 3)))
+             (< 0 pong-xx) ; Collide with the bat if headed towards it.
+             (>= pong-y pong-bat-player2)
+             (< pong-y (+ pong-bat-player2 pong-bat-width)))
+	(setq pong-yy (+ pong-yy
+			 (cond
+			  ((= pong-y pong-bat-player2) -1)
+			  ((= pong-y (1+ pong-bat-player2)) 0)
+			  (t 1))))
+	(setq pong-xx (- pong-xx)))
 
        ((< pong-x 1)
 	(setq pong-score-player2 (1+ pong-score-player2))

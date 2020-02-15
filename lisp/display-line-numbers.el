@@ -1,6 +1,6 @@
 ;;; display-line-numbers.el --- interface for display-line-numbers -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -92,9 +92,7 @@ the mode is on, set `display-line-numbers' directly."
 
 (defun display-line-numbers--turn-on ()
   "Turn on `display-line-numbers-mode'."
-  (unless (or (minibufferp)
-              ;; taken from linum.el
-              (and (daemonp) (null (frame-parameter nil 'client))))
+  (unless (minibufferp)
     (display-line-numbers-mode)))
 
 ;;;###autoload

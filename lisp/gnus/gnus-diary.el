@@ -1,9 +1,8 @@
 ;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
-;; Author:        Didier Verna <didier@xemacs.org>
-;; Maintainer:    Didier Verna <didier@xemacs.org>
+;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Tue Jul 20 10:42:55 1999
 ;; Keywords:      calendar mail news
 
@@ -65,7 +64,7 @@ Please refer to `format-time-string' for information on possible values."
   "Function called to format a diary delay string.
 It is passed two arguments.  The first one is non-nil if the delay is in
 the past.  The second one is of the form ((NUM . UNIT) ...) where NUM is
-an integer and UNIT is one of 'year 'month 'week 'day 'hour or 'minute.
+an integer and UNIT is one of `year' `month' `week' `day' `hour' or `minute'.
 It should return strings like \"In 2 months, 3 weeks\", \"3 hours,
 1 minute ago\" and so on.
 
@@ -159,32 +158,29 @@ There are currently two built-in format functions:
   ;; Code partly stolen from article-make-date-line
   (let* ((extras (mail-header-extra header))
 	 (sched (gnus-diary-header-schedule extras))
-	 (occur (nndiary-next-occurrence sched (current-time)))
 	 (now (current-time))
+	 (occur (nndiary-next-occurrence sched now))
 	 (real-time (time-subtract occur now)))
-    (if (null real-time)
-	"?????"
-      (let* ((sec (+ (* (float (car real-time)) 65536) (cadr real-time)))
-	     (past (< sec 0))
-	     delay)
-	(and past (setq sec (- sec)))
-	(unless (zerop sec)
-	  ;; This is a bit convoluted, but basically we go through the time
-	  ;; units for years, weeks, etc, and divide things to see whether
-	  ;; that results in positive answers.
-	  (let ((units `((year . ,(* 365.25 24 3600))
-			 (month . ,(* 31 24 3600))
-			 (week . ,(* 7 24 3600))
-			 (day . ,(* 24 3600))
-			 (hour . 3600)
-			 (minute . 60)))
-		unit num)
-	    (while (setq unit (pop units))
-	      (unless (zerop (setq num (ffloor (/ sec (cdr unit)))))
-		(setq delay (append delay `((,(floor num) . ,(car unit))))))
-	      (setq sec (- sec (* num (cdr unit)))))))
-	(funcall gnus-diary-delay-format-function past delay)))
-    ))
+    (let* ((sec (time-convert real-time 'integer))
+	   (past (< sec 0))
+	   delay)
+      (and past (setq sec (- sec)))
+      (unless (zerop sec)
+	;; This is a bit convoluted, but basically we go through the time
+	;; units for years, weeks, etc, and divide things to see whether
+	;; that results in positive answers.
+	(let ((units `((year . ,(round (* 365.25 24 3600)))
+		       (month . ,(* 31 24 3600))
+		       (week . ,(* 7 24 3600))
+		       (day . ,(* 24 3600))
+		       (hour . 3600)
+		       (minute . 60)))
+	      unit num)
+	  (while (setq unit (pop units))
+	    (unless (zerop (setq num (floor sec (cdr unit))))
+	      (setq delay (append delay `((,num . ,(car unit))))))
+	    (setq sec (mod sec (cdr unit))))))
+      (funcall gnus-diary-delay-format-function past delay))))
 
 ;; #### NOTE: Gnus sometimes gives me a HEADER not corresponding to any
 ;; message, with all fields set to nil here. I don't know what it is for, and

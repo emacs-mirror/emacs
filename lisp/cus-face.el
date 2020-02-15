@@ -1,6 +1,6 @@
 ;;; cus-face.el --- customization support for faces
 ;;
-;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -84,22 +84,22 @@
      (choice :tag "Weight"
 	     :help-echo "Font weight."
 	     :value normal		; default
-	     (const :tag "black" ultra-bold)
-	     (const :tag "bold" bold)
-	     (const :tag "book" semi-light)
-	     (const :tag "demibold" semi-bold)
+	     (const :tag "ultralight" ultra-light)
 	     (const :tag "extralight" extra-light)
-	     (const :tag "extrabold" extra-bold)
-	     (const :tag "heavy" extra-bold)
 	     (const :tag "light" light)
-	     (const :tag "medium" normal)
+	     (const :tag "thin" thin)
+	     (const :tag "semilight" semi-light)
+	     (const :tag "book" semi-light)
 	     (const :tag "normal" normal)
 	     (const :tag "regular" normal)
+	     (const :tag "medium" normal)
 	     (const :tag "semibold" semi-bold)
-	     (const :tag "semilight" semi-light)
-	     (const :tag "ultralight" ultra-light)
+	     (const :tag "demibold" semi-bold)
+	     (const :tag "bold" bold)
+	     (const :tag "extrabold" extra-bold)
+	     (const :tag "heavy" extra-bold)
 	     (const :tag "ultrabold" ultra-bold)
-	     (const :tag "thin" thin)))
+	     (const :tag "black" ultra-bold)))
 
     (:slant
      (choice :tag "Slant"
@@ -233,7 +233,11 @@
 	     (file :tag "File"
 		   :help-echo "Name of bitmap file."
 		   :must-match t)))
-
+    (:extend
+     (choice :tag "Extend"
+	     :help-echo "Control whether attributes should be extended after EOL."
+	     (const :tag "Off" nil)
+	     (const :tag "On" t)))
     (:inherit
      (repeat :tag "Inherit"
 	     :help-echo "List of faces to inherit attributes from."

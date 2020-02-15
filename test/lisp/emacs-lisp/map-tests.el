@@ -1,6 +1,6 @@
 ;;; map-tests.el --- Tests for map.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -38,17 +38,19 @@ Evaluate BODY for each created map.
 \(fn (var map) body)"
   (declare (indent 1) (debug (symbolp body)))
   (let ((alist (make-symbol "alist"))
+        (plist (make-symbol "plist"))
         (vec (make-symbol "vec"))
         (ht (make-symbol "ht")))
    `(let ((,alist (list (cons 0 3)
                         (cons 1 4)
                         (cons 2 5)))
+          (,plist (list 0 3 1 4 2 5))
           (,vec (vector 3 4 5))
           (,ht (make-hash-table)))
       (puthash 0 3 ,ht)
       (puthash 1 4 ,ht)
       (puthash 2 5 ,ht)
-      (dolist (,var (list ,alist ,vec ,ht))
+      (dolist (,var (list ,alist ,plist ,vec ,ht))
         ,@body))))
 
 (ert-deftest test-map-elt ()
@@ -76,13 +78,26 @@ Evaluate BODY for each created map.
                          'b
                          '2))))
 
-(ert-deftest test-map-put ()
+(ert-deftest test-map-put! ()
   (with-maps-do map
     (setf (map-elt map 2) 'hello)
     (should (eq (map-elt map 2) 'hello)))
   (with-maps-do map
     (map-put map 2 'hello)
     (should (eq (map-elt map 2) 'hello)))
+  (with-maps-do map
+    (map-put! map 2 'hello)
+    (should (eq (map-elt map 2) 'hello))
+    (if (not (or (hash-table-p map)
+                 (and (listp map) (not (listp (car map)))))) ;plist!
+        (should-error (map-put! map 5 'value)
+                      ;; For vectors, it could arguably signal
+                      ;; map-not-inplace as well, but it currently doesn't.
+                      :type (if (listp map)
+                                'map-not-inplace
+                              'error))
+      (map-put! map 5 'value)
+      (should (eq (map-elt map 5) 'value))))
   (let ((ht (make-hash-table)))
     (setf (map-elt ht 2) 'a)
     (should (eq (map-elt ht 2)
@@ -92,7 +107,7 @@ Evaluate BODY for each created map.
     (should (eq (map-elt alist 2)
                 'a)))
   (let ((vec [3 4 5]))
-   (should-error (setf (map-elt vec 3) 6))))
+    (should-error (setf (map-elt vec 3) 6))))
 
 (ert-deftest test-map-put-alist-new-key ()
   "Regression test for Bug#23105."
@@ -105,9 +120,9 @@ Evaluate BODY for each created map.
   (let ((alist (list (cons "a" 1) (cons "b" 2)))
         ;; Make sure to use a non-eq "a", even when compiled.
         (noneq-key (string ?a)))
-    (map-put alist noneq-key 3 'equal)
+    (map-put alist noneq-key 3 #'equal)
     (should-not (cddr alist))
-    (map-put alist noneq-key 9)
+    (map-put alist noneq-key 9 #'eql)
     (should (cddr alist))))
 
 (ert-deftest test-map-put-return-value ()
@@ -212,7 +227,7 @@ Evaluate BODY for each created map.
   (with-maps-do map
     (let ((result nil))
       (map-do (lambda (k v)
-                (add-to-list 'result (list (int-to-string k) v)))
+                (push (list (int-to-string k) v) result))
               map)
       (should (equal result '(("2" 5) ("1" 4) ("0" 3)))))))
 
@@ -325,7 +340,8 @@ Evaluate BODY for each created map.
 
 (ert-deftest test-map-into ()
   (let* ((alist '((a . 1) (b . 2)))
-         (ht (map-into alist 'hash-table)))
+         (ht (map-into alist 'hash-table))
+         (ht2 (map-into alist '(hash-table :test equal))))
     (should (hash-table-p ht))
     (should (equal (map-into (map-into alist 'hash-table) 'list)
                    alist))
@@ -334,6 +350,8 @@ Evaluate BODY for each created map.
                    (map-keys ht)))
     (should (equal (map-values (map-into (map-into ht 'list) 'hash-table))
                    (map-values ht)))
+    (should (equal (map-into ht 'alist) (map-into ht2 'alist)))
+    (should (eq (hash-table-test ht2) 'equal))
     (should (null (map-into nil 'list)))
     (should (map-empty-p (map-into nil 'hash-table)))
     (should-error (map-into [1 2 3] 'string))))
@@ -357,6 +375,12 @@ Evaluate BODY for each created map.
                                  '((1 . 3) (2 . 4))
                                  '((1 . 1) (2 . 5) (3 . 0)))
                  '((3 . 0) (2 . 9) (1 . 6)))))
+
+(ert-deftest test-map-plist-pcase ()
+  (let ((plist '(:one 1 :two 2)))
+    (should (equal (pcase-let (((map :one (:two two)) plist))
+                     (list one two))
+                   '(1 2)))))
 
 (provide 'map-tests)
 ;;; map-tests.el ends here

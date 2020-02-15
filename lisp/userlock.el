@@ -1,6 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985-1986, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Richard King
 ;; (according to authors.el)
@@ -33,6 +33,9 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+
+;;;###autoload
+(put 'create-lockfiles 'safe-local-variable 'booleanp)
 
 (define-error 'file-locked "File is locked" 'file-error)
 
@@ -100,11 +103,11 @@ You can <q>uit; don't modify this file.")
 
 (define-error 'file-supersession nil 'file-error)
 
-(defun userlock--check-content-unchanged (fn)
+(defun userlock--check-content-unchanged (filename)
   (with-demoted-errors "Unchanged content check: %S"
-    ;; Even tho we receive `fn', we know that `fn' refers to the current
+    ;; Even tho we receive `filename', we know that `filename' refers to the current
     ;; buffer's file.
-    (cl-assert (equal fn (expand-file-name buffer-file-truename)))
+    (cl-assert (equal filename (expand-file-name buffer-file-truename)))
     ;; Note: rather than read the file and compare to the buffer, we could save
     ;; the buffer and compare to the file, but for encrypted data this
     ;; wouldn't work well (and would risk exposing the data).
@@ -120,7 +123,7 @@ You can <q>uit; don't modify this file.")
         (when (with-temp-buffer
                 (let ((coding-system-for-read cs)
                       (non-essential t))
-                  (insert-file-contents fn))
+                  (insert-file-contents filename))
                 (when (= (buffer-size) (- end start)) ;Minor optimization.
                   (= 0 (let ((case-fold-search nil))
                          (compare-buffer-substrings
@@ -130,13 +133,13 @@ You can <q>uit; don't modify this file.")
           'unchanged)))))
 
 ;;;###autoload
-(defun userlock--ask-user-about-supersession-threat (fn)
+(defun userlock--ask-user-about-supersession-threat (filename)
   ;; Called from filelock.c.
-  (unless (userlock--check-content-unchanged fn)
-    (ask-user-about-supersession-threat fn)))
+  (unless (userlock--check-content-unchanged filename)
+    (ask-user-about-supersession-threat filename)))
 
 ;;;###autoload
-(defun ask-user-about-supersession-threat (fn)
+(defun ask-user-about-supersession-threat (filename)
   "Ask a user who is about to modify an obsolete buffer what to do.
 This function has two choices: it can return, in which case the modification
 of the buffer will proceed, or it can (signal \\='file-supersession (file)),
@@ -149,14 +152,14 @@ The buffer in question is current when this function is called."
     (let ((prompt
 	   (format "%s changed on disk; \
 really edit the buffer? (y, n, r or C-h) "
-		   (file-name-nondirectory fn)))
+		   (file-name-nondirectory filename)))
 	  (choices '(?y ?n ?r ?? ?\C-h))
 	  answer)
       (when noninteractive
 	(message "%s" prompt)
 	(error "Cannot resolve conflict in batch mode"))
       (while (null answer)
-	(setq answer (read-char-choice prompt choices))
+	(setq answer (read-char-from-minibuffer prompt choices))
 	(cond ((memq answer '(?? ?\C-h))
 	       (ask-user-about-supersession-help)
 	       (setq answer nil))
@@ -164,17 +167,19 @@ really edit the buffer? (y, n, r or C-h) "
 	       ;; Ask for confirmation if buffer modified
 	       (revert-buffer nil (not (buffer-modified-p)))
 	       (signal 'file-supersession
-		       (list "File reverted" fn)))
+		       (list "File reverted" filename)))
 	      ((eq answer ?n)
 	       (signal 'file-supersession
-		       (list "File changed on disk" fn)))))
+		       (list "File changed on disk" filename)))))
       (message
        "File on disk now will become a backup file if you save these changes.")
       (setq buffer-backed-up nil))))
 
 (defun ask-user-about-supersession-help ()
   (with-output-to-temp-buffer "*Help*"
-    (princ "You want to modify a buffer whose disk file has changed
+    (princ
+     (substitute-command-keys
+      "You want to modify a buffer whose disk file has changed
 since you last read it in or saved it with this buffer.
 
 If you say `y' to go ahead and modify this buffer,
@@ -184,7 +189,7 @@ from the file on disk.
 If you say `n', the change you started to make will be aborted.
 
 Usually, you should type `n' and then `\\[revert-buffer]',
-to get the latest version of the file, then make the change again.")
+to get the latest version of the file, then make the change again."))
     (with-current-buffer standard-output
       (help-mode))))
 

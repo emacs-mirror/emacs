@@ -1,6 +1,6 @@
-;;; kkc.el --- Kana Kanji converter    -*- coding: iso-2022-7bit; -*-
+;;; kkc.el --- Kana Kanji converter
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -36,7 +36,7 @@
 
 (require 'ja-dic-utl)
 
-(defvar kkc-input-method-title "$B4A(B"
+(defvar kkc-input-method-title "漢"
   "String denoting KKC input method.
 This string is shown at mode line when users are in KKC mode.")
 
@@ -59,7 +59,7 @@ This string is shown at mode line when users are in KKC mode.")
 (defconst kkc-lookup-cache-tag 'kkc-lookup-cache-2)
 
 (defun kkc-save-init-file ()
-  "Save initial setup code for KKC to a file specified by `kkc-init-file-name'"
+  "Save initial setup code for KKC to a file specified by `kkc-init-file-name'."
   (if (and kkc-init-file-flag
 	   (not (eq kkc-init-file-flag t)))
       (let ((coding-system-for-write 'iso-2022-7bit)
@@ -613,7 +613,7 @@ and change the current conversion to the last one in the group."
       (message "%s" msg))))
 
 ;; Update the conversion area with the latest conversion selected.
-;; ALL if non nil means to update the whole area, else update only
+;; ALL if non-nil means to update the whole area, else update only
 ;; inside quail-overlay-head.
 
 (defun kkc-update-conversion (&optional all)

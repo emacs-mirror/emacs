@@ -1,9 +1,9 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 
 ;; Most code is taken verbatim from erc.el, see there for the original
 ;; authors.
@@ -55,13 +55,20 @@ argument to `recenter'."
 (define-erc-module scrolltobottom nil
   "This mode causes the prompt to stay at the end of the window."
   ((add-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
+   (add-hook 'erc-insert-done-hook 'erc-possibly-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
        (erc-add-scroll-to-bottom))))
   ((remove-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
+   (remove-hook 'erc-insert-done-hook 'erc-possibly-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
        (remove-hook 'post-command-hook 'erc-scroll-to-bottom t)))))
+
+(defun erc-possibly-scroll-to-bottom ()
+  "Like `erc-add-scroll-to-bottom', but only if window is selected."
+  (when (eq (selected-window) (get-buffer-window))
+    (erc-scroll-to-bottom)))
 
 (defun erc-add-scroll-to-bottom ()
   "A hook function for `erc-mode-hook' to recenter output at bottom of window.
@@ -177,18 +184,20 @@ does not appear in the ERC buffer after the user presses ENTER.")
   "This mode distinguishes non-commands.
 Commands listed in `erc-insert-this' know how to display
 themselves."
-  ((add-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands))
-  ((remove-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands)))
+  ((add-hook 'erc-pre-send-functions 'erc-send-distinguish-noncommands))
+  ((remove-hook 'erc-pre-send-functions 'erc-send-distinguish-noncommands)))
 
-(defun erc-send-distinguish-noncommands (str)
-  "If STR is an ERC non-command, set `erc-insert-this' to nil."
-  (let* ((command (erc-extract-command-from-line str))
+(defun erc-send-distinguish-noncommands (state)
+  "If STR is an ERC non-command, set `insertp' in STATE to nil."
+  (let* ((string (erc-input-string state))
+         (command (erc-extract-command-from-line string))
          (cmd-fun (and command
                        (car command))))
     (when (and cmd-fun
-               (not (string-match "\n.+$" str))
+               (not (string-match "\n.+$" string))
                (memq cmd-fun erc-noncommands-list))
-      (setq erc-insert-this nil))))
+      ;; Inhibit sending this string.
+      (setf (erc-input-insertp state) nil))))
 
 ;;; IRC control character processing.
 (defgroup erc-control-characters nil
@@ -548,7 +557,7 @@ channel that has weird people talking in morse to each other.
 
 See also `unmorse-region'."
   (goto-char (point-min))
-  (when (re-search-forward "[.-]+\\([.-]*/? *\\)+[.-]+/?" nil t)
+  (when (re-search-forward "[.-]+[./ -]*[.-]/?" nil t)
     (save-restriction
       (narrow-to-region (match-beginning 0) (match-end 0))
       ;; Turn " / " into "  "

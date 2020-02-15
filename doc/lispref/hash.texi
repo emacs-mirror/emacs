@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2001--2020 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Hash Tables
 @chapter Hash Tables
@@ -240,13 +240,18 @@ to understand how hash tables work, and what a @dfn{hash code} means.
   You can think of a hash table conceptually as a large array of many
 slots, each capable of holding one association.  To look up a key,
 @code{gethash} first computes an integer, the hash code, from the key.
-It reduces this integer modulo the length of the array, to produce an
+It can reduce this integer modulo the length of the array, to produce an
 index in the array.  Then it looks in that slot, and if necessary in
 other nearby slots, to see if it has found the key being sought.
 
   Thus, to define a new method of key lookup, you need to specify both a
 function to compute the hash code from a key, and a function to compare
-two keys directly.
+two keys directly.  The two functions should be consistent with each
+other: that is, two keys' hash codes should be the same if the keys
+compare as equal.  Also, since the two functions can be called at any
+time (such as by the garbage collector), the functions should be free
+of side effects and should return quickly, and their behavior should
+depend on only on properties of the keys that do not change.
 
 @defun define-hash-table-test name test-fn hash-fn
 This function defines a new hash table test, named @var{name}.
@@ -261,8 +266,8 @@ return non-@code{nil} if they are considered the same.
 
 The function @var{hash-fn} should accept one argument, a key, and return
 an integer that is the hash code of that key.  For good results, the
-function should use the whole range of integers for hash codes,
-including negative integers.
+function should use the whole range of fixnums for hash codes,
+including negative fixnums.
 
 The specified functions are stored in the property list of @var{name}
 under the property @code{hash-table-test}; the property value's form is
@@ -271,7 +276,7 @@ under the property @code{hash-table-test}; the property value's form is
 
 @defun sxhash-equal obj
 This function returns a hash code for Lisp object @var{obj}.
-This is an integer which reflects the contents of @var{obj}
+This is an integer that reflects the contents of @var{obj}
 and the other Lisp objects it points to.
 
 If two objects @var{obj1} and @var{obj2} are @code{equal}, then
@@ -332,6 +337,11 @@ and equal-looking objects are considered the same key.
 
 (make-hash-table :test 'contents-hash)
 @end example
+
+Lisp programs should @emph{not} rely on hash codes being preserved
+between Emacs sessions, as the implementation of the hash functions
+uses some details of the object storage that can change between
+sessions and between different architectures.
 
 @node Other Hash
 @section Other Hash Table Functions

@@ -1,9 +1,9 @@
 ;;; cal-persia.el --- calendar functions for the Persian calendar
 
-;; Copyright (C) 1996-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Persian calendar, calendar, diary
 ;; Package: calendar
@@ -100,13 +100,7 @@ Gregorian date Sunday, December 31, 1 BC."
          (d2                         ; prior days not in n2820 or n768
           (mod d1 280506))
          (n1        ; years not in n2820 or n768
-          ;; Want:
-          ;; (floor (+ (* 2820 d2) (* 2820 366)) 1029983))
-          ;; but that causes overflow, so use the following.
-          ;; Use 366 as the divisor because (2820*366 mod 1029983) is small.
-          (let ((a (floor d2 366))
-                (b (mod d2 366)))
-            (+ 1 a (floor (+ (* 2137 a) (* 2820 b) 2137) 1029983))))
+	  (floor (* 2820 (+ d2 366)) 1029983))
          (year (+ (* 2820 n2820)        ; complete 2820 year cycles
                   (* 768 n768)          ; complete 768 year cycles
                   ;; Remaining years.
@@ -196,9 +190,13 @@ Echo Persian date unless NOECHO is non-nil."
   (or noecho (calendar-persian-print-date)))
 
 
-(defvar date)
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-persian-date ()
   "Persian calendar equivalent of date diary entry."

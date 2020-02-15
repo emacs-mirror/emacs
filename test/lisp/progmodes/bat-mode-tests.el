@@ -1,6 +1,6 @@
 ;;; bat-mode-tests.el --- Tests for bat-mode.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Author: Vladimir Panteleev <vladimir@thecybershadow.net>
 ;; Keywords:

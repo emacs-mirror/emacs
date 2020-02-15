@@ -1,11 +1,12 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2004--2020 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
 @c printed version) or in the main Emacs manual (for the on-line version).
-@node Autorevert
-@section Auto Reverting Non-File Buffers
+
+@node Non-File Buffers
+@subsection Auto Reverting Non-File Buffers
 
 Global Auto Revert Mode normally only reverts file buffers.  There are
 two ways to auto-revert certain non-file buffers: by enabling Auto
@@ -34,6 +35,14 @@ the Buffer Menu.)  In this case, Auto Revert does not print any
 messages while reverting, even when @code{auto-revert-verbose} is
 non-@code{nil}.
 
+@vindex buffer-auto-revert-by-notification
+Some non-file buffers can be updated reliably by file notification on
+their default directory; Dired buffers is an example.  The major mode
+can indicate this by setting @code{buffer-auto-revert-by-notification}
+to a non-@code{nil} value in that buffer, allowing Auto Revert to
+avoid periodic polling.  Such notification does not include changes to
+files in that directory, only to the directory itself.
+
 The details depend on the particular types of buffers and are
 explained in the corresponding sections.
 
@@ -43,7 +52,7 @@ explained in the corresponding sections.
 @end menu
 
 @node Auto Reverting the Buffer Menu
-@subsection Auto Reverting the Buffer Menu
+@subsubsection Auto Reverting the Buffer Menu
 
 If auto-reverting of non-file buffers is enabled, the Buffer Menu
 @iftex
@@ -65,7 +74,7 @@ adding marks sets the buffer's modified flag prevents Auto Revert from
 automatically erasing the marks.
 
 @node Auto Reverting Dired
-@subsection Auto Reverting Dired buffers
+@subsubsection Auto Reverting Dired buffers
 
 Dired buffers only auto-revert when the file list of the buffer's main
 directory changes (e.g., when a new file is added or deleted).  They

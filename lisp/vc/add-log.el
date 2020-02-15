@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2020 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -35,6 +35,8 @@
 ;;   special places.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defgroup change-log nil
   "Change log maintenance."
@@ -239,7 +241,7 @@ a case simply use the directory containing the changed file."
     ;; wrongly with a non-date line existing as a random note.  In
     ;; addition, using any kind of fixed setting like this doesn't
     ;; work if a user customizes add-log-time-format.
-    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\t \\{3,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-z][a-z][a-z] [0-9:+ ]+"
+    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\t \\{3,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-Z][a-z][a-z] [0-9:+ ]+"
      (0 'change-log-date)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
      ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
@@ -308,6 +310,43 @@ a case simply use the directory containing the changed file."
 	  ;; We must be before any file name, look forward.
 	  (re-search-forward change-log-file-names-re nil t)
 	  (match-string-no-properties 2))))))
+
+(defconst change-log-unindented-file-names-re "^[*] \\([^ ,:([\n]+\\)")
+
+(defun change-log-read-entries (&optional end)
+  "Read ChangeLog entries at point until END.
+Move point to the end of entries that were read.  Return a list
+in the same form as `diff-add-log-current-defuns'."
+  (cl-loop while (and (or (not end) (< (point) end))
+                      (looking-at change-log-unindented-file-names-re))
+           do (goto-char (match-end 0))
+           collect (cons (match-string-no-properties 1)
+                         (change-log-read-defuns end))))
+
+(defvar change-log-tag-re) ; add-log.el
+(defun change-log-read-defuns (&optional end)
+  "Read ChangeLog formatted function names at point until END.
+Move point to the end of names read and return the function names
+as a list of strings."
+  (cl-loop while (and (skip-chars-forward ":\n[:blank:]" end)
+                      (or (not end) (< (point) end))
+                      (looking-at change-log-tag-re))
+           do (goto-char (match-end 0))
+           nconc (split-string (match-string-no-properties 1)
+                               ",[[:blank:]]*" t)
+           finally do (skip-chars-backward "\n[:blank:]")))
+
+(defun change-log-insert-entries (changelogs)
+  "Format and insert CHANGELOGS into current buffer.
+CHANGELOGS is a list in the form returned by
+`diff-add-log-current-defuns'."
+  (cl-loop for (file . defuns) in changelogs do
+           (insert "* " file)
+           (if (not defuns)
+               (insert ":\n")
+             (insert " ")
+             (cl-loop for def in defuns
+                      do (insert "(" def "):\n")))))
 
 (defun change-log-find-file ()
   "Visit the file for the change under point."
@@ -772,7 +811,7 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
   "If non-nil, don't create ChangeLog files for log entries.
 If a ChangeLog file does not already exist, a non-nil value
 means to put log entries in a suitably named buffer."
-  :type :boolean
+  :type 'boolean
   :version "27.1")
 
 (put 'add-log-dont-create-changelog-file 'safe-local-variable 'booleanp)

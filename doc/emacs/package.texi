@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -32,6 +32,7 @@ Manual}.
 
 @menu
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 @end menu
@@ -57,19 +58,12 @@ The package's version number (e.g., @samp{11.86}).
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed},
 @c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
-or @samp{built-in} (included in Emacs by default).  The status
-@samp{external} means the package is not built-in and not from the
-directory specified by @code{package-user-dir} (@pxref{Package
-Files}).  External packages are treated much like built-in: they
-cannot be deleted through the package menu, and are not considered for
-upgrading.
+or @samp{built-in} (included in Emacs by default).
+@xref{Package Statuses}.
 
-The status can also be @samp{new}.  This is equivalent to
-@samp{available}, except that it means the package became newly
-available on the package archive after your last invocation of
-@kbd{M-x list-packages}.  In other instances, a package may have the
-status @samp{held}, @samp{disabled}, or @samp{obsolete}.
-@xref{Package Installation}.
+@item
+Which package archive this package is from, if you have more than one
+package archive enabled.
 
 @item
 A short description of the package.
@@ -85,16 +79,23 @@ The following commands are available in the package menu:
 
 @table @kbd
 @item h
+@kindex h @r{(Package Menu)}
+@findex package-menu-quick-help
 Print a short message summarizing how to use the package menu
 (@code{package-menu-quick-help}).
 
 @item ?
 @itemx @key{RET}
+@kindex ? @r{(Package Menu)}
+@kindex RET @r{(Package Menu)}
+@findex package-menu-describe-package
 Display a help buffer for the package on the current line
 (@code{package-menu-describe-package}), similar to the help window
 displayed by the @kbd{C-h P} command (@pxref{Packages}).
 
 @item i
+@kindex i @r{(Package Menu)}
+@findex package-menu-mark-install
 Mark the package on the current line for installation
 (@code{package-menu-mark-install}).  If the package status is
 @samp{available}, this adds an @samp{I} character to the start of the
@@ -102,6 +103,8 @@ line; typing @kbd{x} (see below) will download and install the
 package.
 
 @item d
+@kindex d @r{(Package Menu)}
+@findex package-menu-mark-delete
 Mark the package on the current line for deletion
 (@code{package-menu-mark-delete}).  If the package status is
 @samp{installed}, this adds a @samp{D} character to the start of the
@@ -110,50 +113,159 @@ line; typing @kbd{x} (see below) will delete the package.
 entails.
 
 @item ~
+@kindex ~ @r{(Package Menu)}
+@findex package-menu-mark-obsolete-for-deletion
 Mark all obsolete packages for deletion
 (@code{package-menu-mark-obsolete-for-deletion}).  This marks for
 deletion all the packages whose status is @samp{obsolete}.
 
 @item u
 @itemx @key{DEL}
+@kindex u @r{(Package Menu)}
+@findex package-menu-mark-unmark
 Remove any installation or deletion mark previously added to the
-current line by an @kbd{i} or @kbd{d} command.
+current line by an @kbd{i} or @kbd{d} command
+(@code{package-menu-mark-unmark}).
 
 @item U
+@kindex U @r{(Package Menu)}
+@findex package-menu-mark-upgrades
 Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
-installed versions.
+installed versions (marked with status @samp{obsolete}).
 
 @item x
+@kindex x @r{(Package Menu)}
 @vindex package-menu-async
+@findex package-menu-execute
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}
 (@code{package-menu-execute}).  This also removes the marks.
 
+@item g
 @item r
-Refresh the package list (@code{package-menu-refresh}).  This fetches
-the list of available packages from the package archive again, and
-recomputes the package list.
-
-@item f
-Filter the package list (@code{package-menu-filter}).  This prompts
-for a keyword (e.g., @samp{games}), then shows only the packages
-that relate to that keyword.  To restore the full package list,
-type @kbd{q}.
+@kindex g @r{(Package Menu)}
+@kindex r @r{(Package Menu)}
+Refresh the package list (@code{revert-buffer}).  This fetches the
+list of available packages from the package archive again, and
+redisplays the package list.
 
 @item H
-Permanently hide packages that match a regexp
-(@code{package-menu-hide-package}).
+@kindex H @r{(Package Menu)}
+@findex package-menu-hide-package
+Hide packages whose names match a regexp
+(@code{package-menu-hide-package}).  This prompts for a regexp, and
+then hides the packages with matching names.  The default value of the
+regexp will hide only the package whose name is at point, so just
+pressing @key{RET} to the prompt will hide the current package.
 
 @item (
+@kindex ( @r{(Package Menu)}
+@findex package-menu-toggle-hiding
 Toggle visibility of old versions of packages and also of versions
 from lower-priority archives (@code{package-menu-toggle-hiding}).
+
+@item / a
+@kindex / a @r{(Package Menu)}
+@findex package-menu-filter-by-archive
+Filter package list by archive (@code{package-menu-filter-by-archive}).
+This prompts for a package archive (e.g., @samp{gnu}), then shows only
+packages from that archive.
+
+@item / k
+@kindex / k @r{(Package Menu)}
+@findex package-menu-filter-by-keyword
+Filter package list by keyword (@code{package-menu-filter-by-keyword}).
+This prompts for a keyword (e.g., @samp{games}), then shows only
+packages with that keyword.
+
+@item / n
+@kindex / n @r{(Package Menu)}
+@findex package-menu-filter-by-name
+Filter package list by name (@code{package-menu-filter-by-name}).
+This prompts for a regular expression, then shows only packages
+with names matching that regexp.
+
+@item / s
+@kindex / s @r{(Package Menu)}
+@findex package-menu-filter-by-status
+Filter package list by status (@code{package-menu-filter-by-status}).
+This prompts for one or more statuses (e.g., @samp{available}), then
+shows only packages with matching status.
+
+@item / v
+@kindex / v @r{(Package Menu)}
+@findex package-menu-filter-by-version
+Filter package list by version (@code{package-menu-filter-by-version}).
+This prompts first for one of the qualifiers @samp{<}, @samp{>} or
+@samp{=}, and then a package version, and shows packages that has a
+lower, equal or higher version than the one specified.
+
+@item / /
+@kindex / / @r{(Package Menu)}
+@findex package-menu-filter-clear
+Clear filter currently applied to the package list
+(@code{package-menu-filter-clear}).
 @end table
 
 @noindent
 For example, you can install a package by typing @kbd{i} on the line
 listing that package, followed by @kbd{x}.
+
+@node Package Statuses
+@section Package Statuses
+@cindex package status
+
+A package can have one of the following statuses:
+
+@table @samp
+@item available
+The package is not installed, but can be downloaded and installed from
+the package archive.
+
+@item avail-obso
+The package is available for installation, but a newer version is also
+available.  Packages with this status are hidden by default.
+
+@item built-in
+The package is included in Emacs by default.  It cannot be deleted
+through the package menu, and is not considered for upgrading.
+
+@item dependency
+The package was installed automatically to satisfy a dependency of
+another package.
+
+@item disabled
+The package has been disabled using the @code{package-load-list}
+variable.
+
+@item external
+The package is not built-in and not from the directory specified by
+@code{package-user-dir} (@pxref{Package Files}).  External packages
+are treated much like @samp{built-in} packages and cannot be deleted.
+
+@item held
+The package is held, @xref{Package Installation}.
+
+@item incompat
+The package cannot be installed for some reason, for example because
+it depends on uninstallable packages.
+
+@item installed
+The package is installed.
+
+@item new
+Equivalent to @samp{available}, except that the package became newly
+available on the package archive after your last invocation of
+@kbd{M-x list-packages}.
+
+@item obsolete
+The package is an outdated installed version; in addition to this
+version of the package, a newer version is also installed.
+
+@c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
+@end table
 
 @node Package Installation
 @section Package Installation
@@ -179,7 +291,7 @@ maintained by the Emacs developers.  This is controlled by the
 variable @code{package-archives}, whose value is a list of package
 archives known to Emacs.  Each list element must have the form
 @code{(@var{id} . @var{location})}, where @var{id} is the name of a
-package archive and @var{location} is the @acronym{HTTP} address or
+package archive and @var{location} is the @acronym{URL} or
 name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
@@ -214,9 +326,15 @@ in the @file{etc/package-keyring.gpg}.  Emacs uses it automatically.
 @vindex package-unsigned-archives
   If the user option @code{package-check-signature} is non-@code{nil},
 Emacs attempts to verify signatures when you install packages.  If the
-option has the value @code{allow-unsigned}, you can still install a
-package that is not signed.  If you use some archives that do not sign
-their packages, you can add them to the list @code{package-unsigned-archives}.
+option has the value @code{allow-unsigned}, and a usable OpenPGP
+configuration is found, signed packages will be checked, but you can
+still install a package that is not signed.  If you use some archives
+that do not sign their packages, you can add them to the list
+@code{package-unsigned-archives}.  (If the value is
+@code{allow-unsigned} and no usable OpenPGP is found, this option is
+treated as if its value was @code{nil}.)  If the value is @code{t}, at
+least one signature must be valid; if the value is @code{all}, all of
+them must be valid.
 
   For more information on cryptographic keys and signing,
 @pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.

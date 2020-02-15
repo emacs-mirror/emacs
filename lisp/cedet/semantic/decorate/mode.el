@@ -1,6 +1,6 @@
 ;;; semantic/decorate/mode.el --- Minor mode for decorating tags
 
-;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -76,20 +76,20 @@ add items to this list."
 ;;
 (defsubst semantic-decoration-p (object)
   "Return non-nil if OBJECT is a tag decoration."
-  (and (semantic-overlay-p object)
-       (semantic-overlay-get object 'semantic-decoration)))
+  (and (overlayp object)
+       (overlay-get object 'semantic-decoration)))
 
 (defsubst semantic-decoration-set-property (deco property value)
   "Set the DECO decoration's PROPERTY to VALUE.
 Return DECO."
   (cl-assert (semantic-decoration-p deco))
-  (semantic-overlay-put deco property value)
+  (overlay-put deco property value)
   deco)
 
 (defsubst semantic-decoration-get-property (deco property)
   "Return the DECO decoration's PROPERTY value."
   (cl-assert (semantic-decoration-p deco))
-  (semantic-overlay-get deco property))
+  (overlay-get deco property))
 
 (defsubst semantic-decoration-set-face (deco face)
   "Set the face of the decoration DECO to FACE.
@@ -114,7 +114,7 @@ Return DECO."
   "Move the decoration DECO on the region between BEGIN and END.
 Return DECO."
   (cl-assert (semantic-decoration-p deco))
-  (semantic-overlay-move deco begin end)
+  (move-overlay deco begin end)
   deco)
 
 ;;; Tag decoration
@@ -127,7 +127,7 @@ Return the overlay that makes up the new decoration."
   (let ((deco (semantic-tag-create-secondary-overlay tag)))
     ;; We do not use the unlink property because we do not want to
     ;; save the highlighting information in the DB.
-    (semantic-overlay-put deco 'semantic-decoration t)
+    (overlay-put deco 'semantic-decoration t)
     (semantic-decoration-move deco begin end)
     (semantic-decoration-set-face deco face)
     deco))
@@ -156,9 +156,9 @@ BUFFER defaults to the current buffer.
 Should be used to flush decorations that might remain in BUFFER, for
 example, after tags have been refreshed."
   (with-current-buffer (or buffer (current-buffer))
-    (dolist (o (semantic-overlays-in (point-min) (point-max)))
+    (dolist (o (overlays-in (point-min) (point-max)))
       (and (semantic-decoration-p o)
-           (semantic-overlay-delete o)))))
+           (delete-overlay o)))))
 
 (defun semantic-decorate-clear-decorations (tag-list)
   "Remove decorations found in tags in TAG-LIST."
@@ -213,7 +213,6 @@ Applies only to the current BUFFER.
 The setting of FCN will be removed after it is run."
   (save-excursion
     (when buffer (set-buffer buffer))
-    (semantic-make-local-hook 'semantic-decorate-flush-pending-decorations)
     (add-hook 'semantic-decorate-pending-decoration-hook fcn nil t)))
 
 (defun semantic-decorate-flush-pending-decorations (&optional buffer)
@@ -267,10 +266,8 @@ non-nil if the minor mode is enabled."
             (error "Buffer %s was not set up for parsing"
                    (buffer-name)))
         ;; Add hooks
-        (semantic-make-local-hook 'semantic-after-partial-cache-change-hook)
         (add-hook 'semantic-after-partial-cache-change-hook
                   'semantic-decorate-tags-after-partial-reparse nil t)
-        (semantic-make-local-hook 'semantic-after-toplevel-cache-change-hook)
         (add-hook 'semantic-after-toplevel-cache-change-hook
                   'semantic-decorate-tags-after-full-reparse nil t)
         ;; Add decorations to available tags.  The above hooks ensure

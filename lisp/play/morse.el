@@ -1,6 +1,6 @@
-;;; morse.el --- convert text to morse code and back
+;;; morse.el --- convert text to morse code and back  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>
 ;; Keywords: games

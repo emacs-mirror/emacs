@@ -1,6 +1,6 @@
 /* Replacement langinfo.h file for building GNU Emacs on Windows.
 
-Copyright (C) 2006-2018 Free Software Foundation, Inc.
+Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,6 +27,7 @@ enum {
   DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7,
   MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7, MON_8, MON_9, MON_10,
   MON_11, MON_12,
+  _NL_PAPER_WIDTH, _NL_PAPER_HEIGHT,
 
   /* Number of enumerated values.  */
   _NL_NUM
@@ -54,6 +55,9 @@ enum {
 #define MON_10	MON_10
 #define MON_11	MON_11
 #define MON_12	MON_12
+
+#define _NL_PAPER_WIDTH  _NL_PAPER_WIDTH
+#define _NL_PAPER_HEIGHT _NL_PAPER_HEIGHT
 
 extern char *nl_langinfo (nl_item);
 

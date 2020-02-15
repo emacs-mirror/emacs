@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993-1994, 2000-2018 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2020 Free Software Foundation,
    Inc.
 
 Author: Joseph Arceneaux
@@ -60,12 +60,12 @@ x_get_customization_string (XrmDatabase db, const char *name,
 {
   char *full_name = alloca (strlen (name) + sizeof "customization" + 3);
   char *full_class = alloca (strlen (class) + sizeof "Customization" + 3);
-  char *result;
+  const char *result;
 
   sprintf (full_name,  "%s.%s", name,  "customization");
   sprintf (full_class, "%s.%s", class, "Customization");
 
-  result = x_get_string_resource (db, full_name, full_class);
+  result = x_get_string_resource (&db, full_name, full_class);
   return result ? xstrdup (result) : NULL;
 }
 
@@ -202,35 +202,6 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
 }
 
 
-static char *
-gethomedir (void)
-{
-  struct passwd *pw;
-  char *ptr;
-  char *copy;
-
-  if ((ptr = getenv ("HOME")) == NULL)
-    {
-      if ((ptr = getenv ("LOGNAME")) != NULL
-	  || (ptr = getenv ("USER")) != NULL)
-	pw = getpwnam (ptr);
-      else
-	pw = getpwuid (getuid ());
-
-      if (pw)
-	ptr = pw->pw_dir;
-    }
-
-  if (ptr == NULL)
-    return xstrdup ("/");
-
-  ptrdiff_t len = strlen (ptr);
-  copy = xmalloc (len + 2);
-  strcpy (copy + len, "/");
-  return memcpy (copy, ptr, len);
-}
-
-
 /* Find the first element of SEARCH_PATH which exists and is readable,
    after expanding the %-escapes.  Return 0 if we didn't find any, and
    the path name of the one we found otherwise.  */
@@ -316,12 +287,11 @@ get_user_app (const char *class)
   if (! db)
     {
       /* Check in the home directory.  This is a bit of a hack; let's
-	 hope one's home directory doesn't contain any %-escapes.  */
-      char *home = gethomedir ();
+	 hope one's home directory doesn't contain ':' or '%'.  */
+      char const *home = get_homedir ();
       db = search_magic_path (home, class, "%L/%N");
       if (! db)
 	db = search_magic_path (home, class, "%N");
-      xfree (home);
     }
 
   return db;
@@ -346,10 +316,9 @@ get_user_db (Display *display)
   else
     {
       /* Use ~/.Xdefaults.  */
-      char *home = gethomedir ();
-      ptrdiff_t homelen = strlen (home);
-      char *filename = xrealloc (home, homelen + sizeof xdefaults);
-      strcpy (filename + homelen, xdefaults);
+      char const *home = get_homedir ();
+      char *filename = xmalloc (strlen (home) + 1 + sizeof xdefaults);
+      splice_dir_file (filename, home, xdefaults);
       db = XrmGetFileDatabase (filename);
       xfree (filename);
     }
@@ -380,13 +349,12 @@ get_environ_db (void)
       if (STRINGP (system_name))
 	{
 	  /* Use ~/.Xdefaults-HOSTNAME.  */
-	  char *home = gethomedir ();
-	  ptrdiff_t homelen = strlen (home);
-	  ptrdiff_t filenamesize = (homelen + sizeof xdefaults
-				    + 1 + SBYTES (system_name));
-	  p = filename = xrealloc (home, filenamesize);
-	  lispstpcpy (stpcpy (stpcpy (filename + homelen, xdefaults), "-"),
-		      system_name);
+	  char const *home = get_homedir ();
+	  p = filename = xmalloc (strlen (home) + 1 + sizeof xdefaults
+				  + 1 + SBYTES (system_name));
+	  char *e = splice_dir_file (p, home, xdefaults);
+	  *e++ = '/';
+	  lispstpcpy (e, system_name);
 	}
     }
 
@@ -415,7 +383,7 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
-#if defined USE_MOTIF || !defined HAVE_XFT || !defined USE_LUCID
+#if defined USE_MOTIF || !(defined USE_CAIRO || defined HAVE_XFT) || !defined USE_LUCID
   const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
 #endif
 
@@ -488,7 +456,7 @@ x_load_resources (Display *display, const char *xrm_string,
 
   sprintf (line, "Emacs.dialog*.background: grey75");
   XrmPutLineResource (&rdb, line);
-#if !defined (HAVE_XFT) || !defined (USE_LUCID)
+#if !(defined USE_CAIRO || defined HAVE_XFT) || !defined (USE_LUCID)
   sprintf (line, "Emacs.dialog*.font: %s", helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "*XlwMenu*font: %s", helv);
@@ -579,19 +547,20 @@ x_get_resource (XrmDatabase rdb, const char *name, const char *class,
 /* Retrieve the string resource specified by NAME with CLASS from
    database RDB. */
 
-char *
-x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
+const char *
+x_get_string_resource (void *v_rdb, const char *name, const char *class)
 {
+  XrmDatabase *rdb = v_rdb;
   XrmValue value;
 
   if (inhibit_x_resources)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  if (x_get_resource (rdb, name, class, x_rm_string, &value))
-    return (char *) value.addr;
+  if (x_get_resource (*rdb, name, class, x_rm_string, &value))
+    return (const char *) value.addr;
 
-  return 0;
+  return NULL;
 }
 
 /* Stand-alone test facilities.  */
@@ -680,7 +649,7 @@ main (int argc, char **argv)
 	  printf ("Class: ");
 	  gets (query_class);
 
-	  value = x_get_string_resource (xdb, query_name, query_class);
+	  value = x_get_string_resource (&xdb, query_name, query_class);
 
 	  if (value != NULL)
 	    printf ("\t%s(%s):  %s\n\n", query_name, query_class, value);

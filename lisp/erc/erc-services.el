@@ -1,8 +1,9 @@
 ;;; erc-services.el --- Identify to NickServ  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcNickserv
 
 ;; This file is part of GNU Emacs.
 
@@ -289,7 +290,7 @@ NICK is nickserv's nickname.  Use nick@server where necessary/possible.
 KEYWORD is the keyword to use in the reply message to identify yourself.
 USE-CURRENT indicates whether the current nickname must be used when
   identifying.
-ANSWER is the command to use for the answer.  The default is 'privmsg.
+ANSWER is the command to use for the answer.  The default is `privmsg'.
 SUCCESS-REGEXP is a regular expression matching the message nickserv
   sends when you've successfully identified.
 The last two elements are optional."
@@ -454,6 +455,4 @@ When called interactively, read the password using `read-passwd'."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

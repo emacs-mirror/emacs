@@ -1,8 +1,8 @@
 ;;; ede/config.el --- Configuration Handler baseclass
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
-;; Author: Eric Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -55,6 +55,7 @@
 
 ;;; Code:
 (require 'ede)
+(require 'semantic/db)
 
 ;;; CONFIG
 ;;
@@ -138,7 +139,7 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
       (setq config nil))
 
     (when (not config)
-      (let* ((top (oref proj :directory))
+      (let* ((top (oref proj directory))
 	     (fname (expand-file-name (oref proj config-file-basename) top))
 	     (class (oref proj config-class))
 	     (ignore-type nil))
@@ -257,7 +258,7 @@ programs from a project.")
   "Run the current project derived from TARGET in a debugger."
   (let* ((proj (ede-target-parent target))
 	 (config (ede-config-get-configuration proj t))
-	 (debug (oref config :debug-command))
+	 (debug (oref config debug-command))
 	 (cmd (read-from-minibuffer
 	       "Debug Command: "
 	       debug))
@@ -274,7 +275,7 @@ programs from a project.")
   "Run the current project derived from TARGET."
   (let* ((proj (ede-target-parent target))
 	 (config (ede-config-get-configuration proj t))
-	 (run (concat "./" (oref config :run-command)))
+	 (run (concat "./" (oref config run-command)))
 	 (cmd (read-from-minibuffer "Run (like this): " run)))
     (ede-shell-run-something target cmd)))
 
@@ -299,13 +300,13 @@ This class brings in method overloads for building.")
 (defclass ede-target-with-config-build ()
   ()
   "Class to mix into a project with configuration for builds.
-This class brings in method overloads for for building.")
+This class brings in method overloads for building.")
 
 (cl-defmethod project-compile-project ((proj ede-project-with-config-build) &optional command)
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   (let* ((config (ede-config-get-configuration proj t))
-	 (comp (oref config :build-command)))
+	 (comp (oref config build-command)))
     (compile comp)))
 
 (cl-defmethod project-compile-target ((obj ede-target-with-config-build) &optional command)
@@ -360,11 +361,6 @@ parsed again."))
 This target brings in methods used by Semantic to query
 the preprocessor map, and include paths.")
 
-(declare-function semanticdb-file-table-object "semantic/db"
-		  (file &optional dontload))
-(declare-function semanticdb-needs-refresh-p "semantic/db" (arg &rest args))
-(declare-function semanticdb-refresh-table "semantic/db" (arg &rest args))
-
 (cl-defmethod ede-preprocessor-map ((this ede-target-with-config-c))
   "Get the pre-processor map for some generic C code."
   (require 'semantic/sb)
@@ -374,7 +370,7 @@ the preprocessor map, and include paths.")
 	 filemap
 	 )
     ;; Preprocessor files
-    (dolist (G (oref config :c-preprocessor-files))
+    (dolist (G (oref config c-preprocessor-files))
       (let ((table (semanticdb-file-table-object
 		    (ede-expand-filename root G))))
 	(when table
@@ -383,7 +379,7 @@ the preprocessor map, and include paths.")
 	  (setq filemap (append filemap (oref table lexical-table)))
 	  )))
     ;; The core table
-    (setq filemap (append filemap (oref config :c-preprocessor-table)))
+    (setq filemap (append filemap (oref config c-preprocessor-table)))
 
     filemap
     ))
@@ -410,9 +406,14 @@ java class path.")
   ()
   "Class to mix into a project to support java.")
 
+(eieio-declare-slots classpath)
+
 (cl-defmethod ede-java-classpath ((proj ede-project-with-config-java))
   "Return the classpath for this project."
-  (oref (ede-config-get-configuration proj) :classpath))
+  ;; The `classpath' slot only exists in the Java parts of cedet, and
+  ;; those have not been merged into Emacs.  Suppress the warning
+  ;; about the unknown slot by using `intern'.
+  (oref (ede-config-get-configuration proj) classpath))
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"

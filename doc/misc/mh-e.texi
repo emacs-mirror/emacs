@@ -17,15 +17,15 @@
 @set UPDATE-MONTH April, 2016
 
 @c Other variables.
-@set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
-@set MH-E-HOME http://mh-e.sourceforge.net/
+@set MH-BOOK-HOME https://rand-mh.sourceforge.io/book/
+@set MH-E-HOME https://mh-e.sourceforge.io/
 
 @c Copyright
 @copying
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001--2003, 2005--2018 Free Software
+Copyright @copyright{} 1995, 2001--2003, 2005--2020 Free Software
 Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
@@ -256,9 +256,9 @@ This manual is available in both Info and online formats. The Info
 version is distributed with Emacs and can be accessed with the
 @command{info} command (@samp{info mh-e}) or within Emacs (@kbd{C-h i
 m mh-e @key{RET}}). The online version is available at
-@uref{http://mh-e.sourceforge.net/manual/, SourceForge}. Another great
+@uref{https://mh-e.sourceforge.io/manual/, SourceForge}. Another great
 online resource is the book
-@uref{http://rand-mh.sourceforge.net/book/, @cite{MH & nmh: Email for
+@uref{https://rand-mh.sourceforge.io/book/, @cite{MH & nmh: Email for
 Users & Programmers}} (also known as @dfn{the MH book}).
 
 I hope you enjoy this manual! If you have any comments, or suggestions
@@ -554,8 +554,8 @@ to install MH or tell MH-E where to find MH.
 If you don't have MH on your system already, you must install a
 variant of MH@. The Debian mh-e package does this for you
 automatically (@pxref{Getting MH-E}). Most people use
-@uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
-trying out @uref{http://mailutils.org/, GNU mailutils MH}, which
+@uref{https://www.nongnu.org/nmh/, nmh}, but you may be interested in
+trying out @uref{https://mailutils.org/, GNU mailutils MH}, which
 supports IMAP@. Your GNU/Linux distribution probably has packages for
 both of these.
 
@@ -2092,7 +2092,7 @@ This feature will be turned on by default if your system supports it.
 The first header field used, if present, is the Gnus-specific
 @samp{Face:} field@footnote{The @samp{Face:} field appeared in GNU
 Emacs 21 and XEmacs. For more information, see
-@uref{http://quimby.gnus.org/circus/face/}.}.
+@uref{https://quimby.gnus.org/circus/face/}.}.
 
 @cindex @command{uncompface}
 @cindex Emacs, packages, @samp{x-face}
@@ -2100,6 +2100,7 @@ Emacs 21 and XEmacs. For more information, see
 @cindex @samp{x-face} package
 @vindex mh-show-xface
 
+@c FIXME: These URLs do not seem to work any more.
 Next is the traditional @samp{X-Face:} header field@footnote{The
 display of this field requires the
 @uref{ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z,
@@ -2122,7 +2123,7 @@ Finally, MH-E will display images referenced by the
 @samp{X-Face:} fields are present@footnote{The display of the images
 requires the @uref{https://www.gnu.org/software/wget/wget.html,
 @command{wget} program} to fetch the image and the @command{convert}
-program from the @uref{http://www.imagemagick.org/script/index.php,
+program from the @uref{https://www.imagemagick.org/script/index.php,
 ImageMagick suite}.}. Of the three header fields this is the most
 efficient in terms of network usage since the image doesn't need to be
 transmitted with every single mail. The option
@@ -2255,10 +2256,10 @@ signature block is more to your liking.
 Two hooks can be used to control how messages are displayed. The first
 hook, @code{mh-show-mode-hook}, is called early on in the process of
 the message display. It is usually used to perform some action on the
-message's content. The second hook, @code{mh-show-hook}, is the last
+message's buffer. The second hook, @code{mh-show-hook}, is the last
 thing called after messages are displayed. It's used to affect the
-behavior of MH-E in general or when @code{mh-show-mode-hook} is too
-early.
+message's content, the behavior of MH-E in general, or when
+@code{mh-show-mode-hook} is too early.
 
 @cindex MH-Show mode
 @cindex modes, MH-Show
@@ -2509,9 +2510,9 @@ For additional information on buttons, see
 @ref{Article Buttons,,,gnus}, and @ref{MIME Commands,,,gnus}.
 @end ifinfo
 @ifnotinfo
-the chapters @uref{http://www.gnus.org/manual/gnus_101.html#SEC101,
+the chapters @uref{https://www.gnus.org/manual/gnus_101.html#SEC101,
 Article Buttons} and
-@uref{http://www.gnus.org/manual/gnus_108.html#SEC108, MIME Commands}
+@uref{https://www.gnus.org/manual/gnus_108.html#SEC108, MIME Commands}
 in the @cite{The Gnus Manual}.
 @end ifnotinfo
 
@@ -2603,7 +2604,7 @@ and @code{mm-html-inhibit-images}
 (@pxref{Display Customization,,,emacs-mime}).
 @end ifinfo
 @ifnotinfo
-(see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
+(see section @uref{https://www.gnus.org/manual/emacs-mime_6.html,
 Display Customization} in the @cite{The Emacs MIME Manual}).
 @end ifnotinfo
 @c -------------------------
@@ -2623,7 +2624,7 @@ the option @code{mm-w3m-safe-url-regexp}
 (@pxref{Display Customization,,,emacs-mime}).
 @end ifinfo
 @ifnotinfo
-(see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
+(see section @uref{https://www.gnus.org/manual/emacs-mime_6.html,
 Display Customization} in the @cite{The Emacs MIME Manual}).
 @end ifnotinfo
 @c -------------------------
@@ -2647,10 +2648,10 @@ For a couple more sources of information about
 the Gnus command @kbd{W h} (@pxref{Article Washing,,,gnus}).
 @end ifinfo
 @ifnotinfo
-see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
+see section @uref{https://www.gnus.org/manual/emacs-mime_6.html,
 Display Customization} in the @cite{The Emacs MIME Manual} and the
 documentation for the Gnus command @kbd{W h} (see section
-@uref{http://www.gnus.org/manual/gnus_48.html#Article-Washing, Article
+@uref{https://www.gnus.org/manual/gnus_48.html#Article-Washing, Article
 Washing} in the
 @cite{The Gnus Manual}).
 @end ifnotinfo
@@ -2729,7 +2730,7 @@ Drafts}).
 You can read encrypted or signed PGP or GPG messages with
 MH-E@footnote{This feature depends on post-5.10 versions of Gnus.
 @cite{MIME Security with OpenPGP} is documented in
-@uref{http://www.rfc-editor.org/rfc/rfc3156.txt, RFC 3156}. However,
+@uref{https://www.rfc-editor.org/rfc/rfc3156.txt, RFC 3156}. However,
 MH-E can also decrypt old-style PGP messages that are not in MIME
 format.}. This section assumes that you already have a good
 understanding of GPG and have set up your keys appropriately.
@@ -5050,7 +5051,7 @@ for the next hook function. The standard prefix
 @vindex mh-yank-behavior
 
 For example, if you use the hook function
-@uref{http://www.emacswiki.org/emacs/TrivialCite,
+@uref{https://www.emacswiki.org/emacs/TrivialCite,
 @code{trivial-cite}} (which is NOT part of Emacs), set
 @code{mh-yank-behavior} to @samp{Body and Header}.
 
@@ -5166,11 +5167,11 @@ contains the value of the @samp{X-Face:} header field.
 The @samp{X-Face:} header field, which is a low-resolution, black and
 white image, can be generated using the
 @uref{ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z,
-@command{compface}} command. The @uref{http://www.dairiki.org/xface/,
+@command{compface}} command. The @uref{https://www.dairiki.org/xface/,
 @cite{Online X-Face Converter}} is a useful resource for quick
 conversion of images into @samp{X-Face:} header fields.
 
-Use the @uref{http://quimby.gnus.org/circus/face/make-face,
+Use the @uref{https://quimby.gnus.org/circus/face/make-face,
 @command{make-face}} script to convert a JPEG image to the higher
 resolution, color, @samp{Face:} header field.
 
@@ -5198,7 +5199,7 @@ defined by this option doesn't exist.
 MH-E has the capability to create multimedia messages. It uses the
 @sc{mime} (Multipurpose Internet Mail Extensions)
 protocol@footnote{@sc{mime} is defined in
-@uref{http://www.rfc-editor.org/rfc/rfc2045.txt, RFC 2045}.} The
+@uref{https://www.rfc-editor.org/rfc/rfc2045.txt, RFC 2045}.} The
 @sc{mime} protocol allows you to incorporate images, sound, video,
 binary files, and even commands that fetch a file with @samp{ftp} when
 your recipient reads the message!
@@ -5231,7 +5232,7 @@ Meta Language) tags@footnote{
 @end ifinfo
 @ifnotinfo
 See the section Composing in
-@uref{http://www.gnus.org/manual/emacs-mime.html, @cite{The Emacs MIME
+@uref{https://www.gnus.org/manual/emacs-mime.html, @cite{The Emacs MIME
 Manual}}.
 @end ifnotinfo
 }. The option @code{mh-compose-insertion} can be used to choose
@@ -5537,7 +5538,7 @@ been formatted by @kbd{C-c C-e}.
 @cindex RFC 3156
 
 MH-E can sign and encrypt messages as defined in
-@uref{http://www.rfc-editor.org/rfc/rfc3156.txt, RFC 3156}. If you
+@uref{https://www.rfc-editor.org/rfc/rfc3156.txt, RFC 3156}. If you
 should choose to sign or encrypt your message, use one of the
 following commands to do so any time before sending your message.
 
@@ -6287,24 +6288,24 @@ Emacs navigational keys (like the arrow keys, or @kbd{C-n}) to move
 the cursor over the desired folder and then use the shortcuts for the
 menu items listed in the table below.
 
-@table @samp
+@table @asis
 @findex mh-speed-view
-@item Visit Folder (@key{RET})
+@item @samp{Visit Folder} (@key{RET})
 Visits the selected folder just as if you had used @kbd{F v}
 (@code{mh-speed-view}).
 @c -------------------------
 @findex mh-speed-expand-folder
-@item Expand Nested Folders (@kbd{+})
+@item @samp{Expand Nested Folders} (@kbd{+})
 Expands the selected folder in the speedbar, exposing the children
 folders inside it (@code{mh-speed-expand-folder}).
 @c -------------------------
 @findex mh-speed-contract-folder
-@item Contract Nested Folders (@kbd{-})
+@item @samp{Contract Nested Folders} (@kbd{-})
 Contracts or collapses the selected folder in the speedbar, hiding the
 children folders inside it (@code{mh-speed-contract-folder}).
 @c -------------------------
 @findex mh-speed-refresh
-@item Refresh Speedbar (@kbd{r})
+@item @samp{Refresh Speedbar} (@kbd{r})
 Regenerates the list of folders in the speedbar. Run this command if
 you've added or deleted a folder, or want to update the unseen message
 count before the next automatic update (@code{mh-speed-refresh}).
@@ -6909,7 +6910,7 @@ IndexDir /home/user/Mail
 IndexFile /home/user/Mail/.swish/index
 IndexName "Mail Index"
 IndexDescription "Mail Index"
-IndexPointer "http://nowhere"
+IndexPointer "https://nowhere"
 IndexAdmin "nobody"
 #MetaNames automatic
 IndexReport 3
@@ -7630,7 +7631,7 @@ Whitelisted message face
 @cindex spam filters, SpamAssassin
 @cindex spam filters, bogofilter
 
-MH-E depends on @uref{http://spamassassin.apache.org/, SpamAssassin},
+MH-E depends on @uref{https://spamassassin.apache.org/, SpamAssassin},
 @uref{http://bogofilter.sourceforge.net/, bogofilter}, or
 @uref{http://spamprobe.sourceforge.net/, SpamProbe} to throw the dreck
 away. This chapter describes briefly how to configure these programs
@@ -7705,7 +7706,7 @@ MH-E can work with.
 
 SpamAssassin is one of the more popular spam filtering programs. Get
 it from your local distribution or from the
-@uref{http://spamassassin.apache.org/, SpamAssassin web site}.
+@uref{https://spamassassin.apache.org/, SpamAssassin web site}.
 
 To use SpamAssassin, add the following recipes to @file{~/.procmailrc}:
 
@@ -8530,11 +8531,13 @@ expressions to ensure that MH-E and highlighting perform well.
 @cindex Unix commands, @command{procmail}
 @cindex mailing lists, reading
 
-This appendix explains how to use @uref{http://www.procmail.org/,
-procmail} to file mail from mailing lists into folders which can then
+This appendix explains how to use procmail, which can
+file mail from mailing lists into folders which can then
 be read easily with MH-E@footnote{The MH equivalent, @command{slocal},
-can be used as well, but procmail is more flexible and more packages
-exist for procmail than for slocal.}. Some mailing lists have such
+can be used as well, but procmail was more flexible and more packages
+exist for procmail than for slocal.}. Unfortunately, procmail is no
+longer recommended due to its security vulnerabilities.
+Some mailing lists have such
 high traffic that Gnus must be used and I discuss how to use Gnus
 side-by-side with MH-E.
 
@@ -8764,7 +8767,7 @@ in all new releases).
 @cindex Debian
 
 If you use Debian, you can install the Debian
-@uref{http://packages.debian.org/unstable/mail/mh-e, mh-e package}
+@uref{https://packages.debian.org/unstable/mail/mh-e, mh-e package}
 instead.
 
 @cindex files, @samp{MH-E-NEWS}
@@ -8813,7 +8816,7 @@ hands several times since then. Jim Larus wanted to do something
 similar for GNU Emacs, and ended up completely rewriting it that same
 year. In 1989, Stephen Gildea picked it up and added many
 improvements. Bill Wohler then took over in 2000 and moved its
-development to @uref{http://sourceforge.net/, SourceForge} where it
+development to @uref{https://sourceforge.net/, SourceForge} where it
 lives today.
 
 @menu
@@ -9040,8 +9043,8 @@ Bill Wohler, August 2008
 @c LocalWords: Tennex texi texinfo Thelen thelenm
 @c LocalWords: UCI undeleted whatnow wohler xmh ypcat
 @c
-@c See http://www.oreilly.com/oreilly/author/stylesheet.html.
-@c See http://en.wikipedia.org/.
+@c See https://oreillymedia.github.io/production-resources/styleguide/.
+@c See https://en.wikipedia.org/.
 @c
 @c Note the lowercase mh which is needed to avoid hits in the
 @c functions and variables. Occasionally, check for accidental

@@ -1,7 +1,3 @@
-(This is a draft.  The method here won't actually work yet, because
-neither git-new-workdir nor merge-changelog are in the Emacs
-distribution yet.)
-
 Setting up and using git for normal, simple bugfixing
 =====================================================
 
@@ -24,10 +20,9 @@ the current master and the emacs-26 branch.
 mkdir ~/emacs
 cd ~/emacs
 git clone <membername>@git.sv.gnu.org:/srv/git/emacs.git master
-(cd master; git config push.default current)
-./master/admin/git-new-workdir master emacs-26
-cd emacs-26
-git checkout emacs-26
+cd master
+git config push.default current
+git worktree add ../emacs-26 emacs-26
 
 You now have both branches conveniently accessible, and you can do
 "git pull" in them once in a while to keep updated.

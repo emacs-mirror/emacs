@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -343,7 +343,7 @@ Return t if file exists."
 	    ;; Have the original buffer current while we eval.
 	    (eval-buffer buffer nil
 			 ;; This is compatible with what `load' does.
-			 (if purify-flag file fullname)
+                         (if dump-mode file fullname)
 			 nil t))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
@@ -481,6 +481,61 @@ Return -1 if charset isn't an ISO 2022 one."
     (or charset
 	(error "Invalid Emacs-mule charset ID: %d" charset-id))
     (make-char charset code1 code2)))
+
+(defun char-displayable-p (char)
+  "Return non-nil if we should be able to display CHAR.
+On a multi-font display, the test is only whether there is an
+appropriate font from the selected frame's fontset to display
+CHAR's charset in general.  Since fonts may be specified on a
+per-character basis, this may not be accurate."
+  (cond ((< char 128)
+	 ;; ASCII characters are always displayable.
+	 t)
+	((not enable-multibyte-characters)
+	 ;; Maybe there's a font for it, but we can't put it in the buffer.
+	 nil)
+	(t
+	 (let ((font-glyph (internal-char-font nil char)))
+	   (if font-glyph
+	       (if (consp font-glyph)
+		   ;; On a window system, a character is displayable
+		   ;; if a font for that character is in the default
+		   ;; face of the currently selected frame.
+		   (car font-glyph)
+		 ;; On a text terminal supporting glyph codes, CHAR is
+		 ;; displayable if its glyph code is nonnegative.
+		 (<= 0 font-glyph))
+	     ;; On a text terminal without glyph codes, CHAR is displayable
+	     ;; if the coding system for the terminal can encode it.
+	     (let ((coding (terminal-coding-system)))
+	       (when coding
+		 (let ((cs-list (coding-system-get coding :charset-list)))
+		   (cond
+		    ((listp cs-list)
+		     (catch 'tag
+		       (mapc #'(lambda (charset)
+				 (if (encode-char char charset)
+				     (throw 'tag charset)))
+			     cs-list)
+		       nil))
+		    ((eq cs-list 'iso-2022)
+		     (catch 'tag2
+		       (mapc #'(lambda (charset)
+				 (if (and (plist-get (charset-plist charset)
+						     :iso-final-char)
+					  (encode-char char charset))
+				     (throw 'tag2 charset)))
+			     charset-list)
+		       nil))
+		    ((eq cs-list 'emacs-mule)
+		     (catch 'tag3
+		       (mapc #'(lambda (charset)
+				 (if (and (plist-get (charset-plist charset)
+						     :emacs-mule-id)
+					  (encode-char char charset))
+				     (throw 'tag3 charset)))
+			     charset-list)
+		       nil)))))))))))
 
 ;; Save the ASCII case table in case we need it later.  Some locales
 ;; (such as Turkish) modify the case behavior of ASCII characters,
@@ -819,10 +874,10 @@ VALUE is a CCL program name defined by `define-ccl-program'.  The
 CCL program reads a character sequence and writes a byte sequence
 as an encoding result.
 
-`:inhibit-null-byte-detection'
+`:inhibit-nul-byte-detection'
 
 VALUE non-nil means Emacs ignore null bytes on code detection.
-See the variable `inhibit-null-byte-detection'.  This attribute
+See the variable `inhibit-nul-byte-detection'.  This attribute
 is meaningful only when `:coding-type' is `undecided'.
 
 `:inhibit-iso-escape-detection'
@@ -867,7 +922,7 @@ non-ASCII files.  This attribute is meaningful only when
 				      :ccl-encoder
 				      :valids))
 				   ((eq coding-type 'undecided)
-				    '(:inhibit-null-byte-detection
+				    '(:inhibit-nul-byte-detection
 				      :inhibit-iso-escape-detection
 				      :prefer-utf-8))))))
 
@@ -920,8 +975,8 @@ non-ASCII files.  This attribute is meaningful only when
 	  (cons :name (cons name (cons :docstring (cons (purecopy docstring)
 							props)))))
     (setcdr (assq :plist common-attrs) props)
-    (apply 'define-coding-system-internal
-	   name (mapcar 'cdr (append common-attrs spec-attrs)))))
+    (apply #'define-coding-system-internal
+	   name (mapcar #'cdr (append common-attrs spec-attrs)))))
 
 (defun coding-system-doc-string (coding-system)
   "Return the documentation string for CODING-SYSTEM."
@@ -1345,8 +1400,11 @@ just set the variable `buffer-file-coding-system' directly."
       (setq coding-system
 	    (merge-coding-systems coding-system buffer-file-coding-system)))
   (when (and (called-interactively-p 'interactive)
-	     (not (memq 'emacs (coding-system-get coding-system
-						  :charset-list))))
+             ;; FIXME: For some reason
+             ;;     (coding-system-get 'iso-2022-7bit :charset-list)
+             ;; returns `iso-2022' rather than returning a list!
+             (let ((css (coding-system-get coding-system :charset-list)))
+               (not (and (listp css) (memq 'emacs css)))))
     ;; Check whether save would succeed, and jump to the offending char(s)
     ;; if not.
     (let ((css (find-coding-systems-region (point-min) (point-max))))
@@ -1852,9 +1910,12 @@ or nil."
 
 Each function in this list should be written to operate on the
 current buffer, but should not modify it in any way.  The buffer
-will contain undecoded text of parts of the file.  Each function
+will contain the text of parts of the file.  Each function
 should take one argument, SIZE, which says how many characters
-\(starting from point) it should look at.
+\(starting from point) it should look at.  The function might be
+called both when the file is visited and Emacs wants to decode
+its contents, and when the file's buffer is about to be saved
+and Emacs wants to determine how to encode its contents.
 
 If one of these functions succeeds in determining a coding
 system, it should return that coding system.  Otherwise, it
@@ -2492,7 +2553,18 @@ This function is intended to be added to `auto-coding-functions'."
       (when end
 	(if (re-search-forward "encoding=[\"']\\(.+?\\)[\"']" end t)
 	    (let* ((match (match-string 1))
-		   (sym (intern (downcase match))))
+                   (sym-name (downcase match))
+                   (sym-name
+                    ;; https://www.w3.org/TR/xml/#charencoding says:
+                    ;; "Entities encoded in UTF-16 MUST [...] begin
+                    ;; with the Byte Order Mark."  The trick below is
+                    ;; based on the fact that utf-16be/le don't
+                    ;; specify BOM, while utf-16-be/le do.
+                    (cond
+                     ((equal sym-name "utf-16le") "utf-16-le")
+                     ((equal sym-name "utf-16be") "utf-16-be")
+                     (t sym-name)))
+		   (sym (intern sym-name)))
 	      (if (coding-system-p sym)
                   ;; If the encoding tag is UTF-8 and the buffer's
                   ;; encoding is one of the variants of UTF-8, use the
@@ -2501,7 +2573,18 @@ This function is intended to be added to `auto-coding-functions'."
                   (let ((sym-type (coding-system-type sym))
                         (bfcs-type
                          (coding-system-type buffer-file-coding-system)))
-                    (if (and (coding-system-equal 'utf-8 sym-type)
+                    ;; If the buffer is unibyte, its encoding is
+                    ;; immaterial (it is just the default value of
+                    ;; buffer-file-coding-system), so we ignore it.
+                    ;; This situation happens when this function is
+                    ;; called as part of visiting a file, as opposed
+                    ;; to when saving a buffer to a file.
+                    (if (and enable-multibyte-characters
+                             ;; 'charset' will signal an error in
+                             ;; coding-system-equal, since it isn't a
+                             ;; coding-system.  So test that up front.
+                             (not (equal sym-type 'charset))
+                             (coding-system-equal 'utf-8 sym-type)
                              (coding-system-equal 'utf-8 bfcs-type))
                         buffer-file-coding-system
 		      sym))
@@ -2541,7 +2624,7 @@ This function is intended to be added to `auto-coding-functions'."
     ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
     ;; useful for Mozilla bookmark files.
     (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
-	       (re-search-forward "<meta\\s-+\\(http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*\\)?charset=[\"']?\\(.+?\\)[\"'\\s-/>]" size t))
+	       (re-search-forward "<meta\\s-+\\(http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*\\)?charset=[\"']?\\(.+?\\)[\"'[:space:]/>]" size t))
       (let* ((match (match-string 2))
 	     (sym (intern (downcase match))))
 	(if (coding-system-p sym)
@@ -2552,7 +2635,8 @@ This function is intended to be added to `auto-coding-functions'."
             (let ((sym-type (coding-system-type sym))
                   (bfcs-type
                    (coding-system-type buffer-file-coding-system)))
-              (if (and (coding-system-equal 'utf-8 sym-type)
+              (if (and enable-multibyte-characters
+                       (coding-system-equal 'utf-8 sym-type)
                        (coding-system-equal 'utf-8 bfcs-type))
                   buffer-file-coding-system
 		sym))
@@ -2569,9 +2653,14 @@ added by processing software."
       (let ((detected
              (with-coding-priority '(utf-8)
                (coding-system-base
-                (detect-coding-region (point-min) (point-max) t)))))
-        ;; Pure ASCII always comes back as undecided.
+                (detect-coding-region (point-min) (point-max) t))))
+            (bom (list (char-after 1) (char-after 2))))
         (cond
+         ((equal bom '(#xFE #xFF))
+          'utf-16be-with-signature)
+         ((equal bom '(#xFF #xFE))
+          'utf-16le-with-signature)
+         ;; Pure ASCII always comes back as undecided.
          ((memq detected '(utf-8 undecided))
           'utf-8)
          ((eq detected 'utf-16le-with-signature) 'utf-16le-with-signature)

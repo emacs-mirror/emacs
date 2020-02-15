@@ -1,6 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -273,69 +273,67 @@ images."
 ;; ======================================================================
 
 (defvar newsticker--plainview-tool-bar-map
-  (if (featurep 'xemacs)
-      nil
-    (if (boundp 'tool-bar-map)
-        (let ((tool-bar-map (make-sparse-keymap)))
-          (tool-bar-add-item "newsticker/prev-feed"
-                             'newsticker-previous-feed
-                             'newsticker-previous-feed
-                             :help "Go to previous feed"
-                             :enable '(newsticker-previous-feed-available-p))
-          (tool-bar-add-item "newsticker/prev-item"
-                             'newsticker-previous-item
-                             'newsticker-previous-item
-                             :help "Go to previous item"
-                             :enable '(newsticker-previous-item-available-p))
-          (tool-bar-add-item "newsticker/next-item"
-                             'newsticker-next-item
-                             'newsticker-next-item
-                             :help "Go to next item"
-                             :enable '(newsticker-next-item-available-p))
-          (tool-bar-add-item "newsticker/next-feed"
-                             'newsticker-next-feed
-                             'newsticker-next-feed
-                             :help "Go to next feed"
-                             :enable '(newsticker-next-feed-available-p))
-          (tool-bar-add-item "newsticker/narrow"
-                             'newsticker-toggle-auto-narrow-to-feed
-                             'newsticker-toggle-auto-narrow-to-feed
-                             :help "Toggle visibility of other feeds")
-          (tool-bar-add-item "newsticker/mark-immortal"
-                             'newsticker-mark-item-at-point-as-immortal
-                             'newsticker-mark-item-at-point-as-immortal
-                             :help "Mark current item as immortal"
-                             :enable '(newsticker-item-not-immortal-p))
-          (tool-bar-add-item "newsticker/mark-read"
-                             'newsticker-mark-item-at-point-as-read
-                             'newsticker-mark-item-at-point-as-read
-                             :help "Mark current item as read"
-                             :enable '(newsticker-item-not-old-p))
-          (tool-bar-add-item "newsticker/get-all-news"
-                             'newsticker-get-all-news
-                             'newsticker-get-all-news
-                             :help "Get news for all feeds")
-          (tool-bar-add-item "newsticker/update"
-                             'newsticker-buffer-force-update
-                             'newsticker-buffer-force-update
-                             :help "Update newsticker buffer"
-                             :enable '(not newsticker--buffer-uptodate-p))
-          (tool-bar-add-item "newsticker/browse-url"
-                             'newsticker-browse-url
-                             'newsticker-browse-url
-                             :help "Browse URL for item at point")
-          ;; standard icons / actions
-          (define-key tool-bar-map [newsticker-sep-1]
-            (list 'menu-item "--double-line"))
-          (tool-bar-add-item "close"
-                             'newsticker-close-buffer
-                             'newsticker-close-buffer
-                             :help "Close newsticker buffer")
-          (tool-bar-add-item "preferences"
-                             'newsticker-customize
-                             'newsticker-customize
-                             :help "Customize newsticker")
-          tool-bar-map))))
+  (when (boundp 'tool-bar-map)
+    (let ((tool-bar-map (make-sparse-keymap)))
+      (tool-bar-add-item "newsticker/prev-feed"
+                         'newsticker-previous-feed
+                         'newsticker-previous-feed
+                         :help "Go to previous feed"
+                         :enable '(newsticker-previous-feed-available-p))
+      (tool-bar-add-item "newsticker/prev-item"
+                         'newsticker-previous-item
+                         'newsticker-previous-item
+                         :help "Go to previous item"
+                         :enable '(newsticker-previous-item-available-p))
+      (tool-bar-add-item "newsticker/next-item"
+                         'newsticker-next-item
+                         'newsticker-next-item
+                         :help "Go to next item"
+                         :enable '(newsticker-next-item-available-p))
+      (tool-bar-add-item "newsticker/next-feed"
+                         'newsticker-next-feed
+                         'newsticker-next-feed
+                         :help "Go to next feed"
+                         :enable '(newsticker-next-feed-available-p))
+      (tool-bar-add-item "newsticker/narrow"
+                         'newsticker-toggle-auto-narrow-to-feed
+                         'newsticker-toggle-auto-narrow-to-feed
+                         :help "Toggle visibility of other feeds")
+      (tool-bar-add-item "newsticker/mark-immortal"
+                         'newsticker-mark-item-at-point-as-immortal
+                         'newsticker-mark-item-at-point-as-immortal
+                         :help "Mark current item as immortal"
+                         :enable '(newsticker-item-not-immortal-p))
+      (tool-bar-add-item "newsticker/mark-read"
+                         'newsticker-mark-item-at-point-as-read
+                         'newsticker-mark-item-at-point-as-read
+                         :help "Mark current item as read"
+                         :enable '(newsticker-item-not-old-p))
+      (tool-bar-add-item "newsticker/get-all-news"
+                         'newsticker-get-all-news
+                         'newsticker-get-all-news
+                         :help "Get news for all feeds")
+      (tool-bar-add-item "newsticker/update"
+                         'newsticker-buffer-force-update
+                         'newsticker-buffer-force-update
+                         :help "Update newsticker buffer"
+                         :enable '(not newsticker--buffer-uptodate-p))
+      (tool-bar-add-item "newsticker/browse-url"
+                         'newsticker-browse-url
+                         'newsticker-browse-url
+                         :help "Browse URL for item at point")
+      ;; standard icons / actions
+      (define-key tool-bar-map [newsticker-sep-1]
+        (list 'menu-item "--double-line"))
+      (tool-bar-add-item "close"
+                         'newsticker-close-buffer
+                         'newsticker-close-buffer
+                         :help "Close newsticker buffer")
+      (tool-bar-add-item "preferences"
+                         'newsticker-customize
+                         'newsticker-customize
+                         :help "Customize newsticker")
+      tool-bar-map)))
 
 ;; ======================================================================
 ;;; Newsticker mode
@@ -1002,7 +1000,7 @@ not get changed."
              ;; toggle
              (add-text-properties pos1 pos2
                                   (list 'invisible org-inv-prop))
-             (remove-text-properties pos1 pos2 '(org-invisible))))))
+             (remove-text-properties pos1 pos2 '(org-invisible nil))))))
   (newsticker--buffer-redraw))
 
 (defun newsticker-show-entry ()
@@ -1028,7 +1026,7 @@ not get changed."
              ;; toggle
              (add-text-properties pos1 pos2
                                   (list 'invisible org-inv-prop))
-             (remove-text-properties pos1 pos2 '(org-invisible))))))
+             (remove-text-properties pos1 pos2 '(org-invisible nil))))))
   (newsticker--buffer-redraw))
 
 (defun newsticker-toggle-auto-narrow-to-feed ()

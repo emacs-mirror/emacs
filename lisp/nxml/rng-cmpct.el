@@ -1,6 +1,6 @@
 ;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -369,7 +369,7 @@ OVERRIDE is either nil, require or t."
     (and pos
 	 (rng-c-error "Nul character found (binary file?)")))
   (let ((offset 0))
-    (while (re-search-forward "\\\\x+{\\([0-9a-fA-F]+\\)}"
+    (while (re-search-forward "\\\\x+{\\([[:xdigit:]]+\\)}"
 			      (point-max)
 			      t)
       (let* ((ch (decode-char 'ucs (string-to-number (match-string 1) 16))))

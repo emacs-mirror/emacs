@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2018 Free Software
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2020 Free Software
 Foundation, Inc.
 
 This file is not considered part of GNU Emacs.

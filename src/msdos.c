@@ -1,6 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2018 Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -419,6 +419,9 @@ static unsigned short outside_cursor;
 
 /* The only display since MS-DOS does not support multiple ones.  */
 struct tty_display_info the_only_display_info;
+
+/* The only tty_output, since MS-DOS supports only 1 display.  */
+struct tty_output the_only_tty_output;
 
 /* Support for DOS/V (allows Japanese characters to be displayed on
    standard, non-Japanese, ATs).  Only supported for DJGPP v2 and later.  */
@@ -1791,7 +1794,7 @@ internal_terminal_init (void)
 	}
 
       Vinitial_window_system = Qpc;
-      Vwindow_system_version = make_fixnum (27); /* RE Emacs version */
+      Vwindow_system_version = make_fixnum (28); /* RE Emacs version */
       tty->terminal->type = output_msdos_raw;
 
       /* If Emacs was dumped on DOS/V machine, forget the stale VRAM
@@ -2652,7 +2655,7 @@ dos_rawgetc (void)
 	      static Lisp_Object last_mouse_window;
 
 	      mouse_window = window_from_coordinates
-		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0);
+		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff

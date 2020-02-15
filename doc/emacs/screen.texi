@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Screen
@@ -167,7 +167,7 @@ what is going on in the current buffer.  When there is only one
 window, the mode line appears right above the echo area; it is the
 next-to-last line in the frame.  On a graphical display, the mode line
 is drawn with a 3D box appearance.  Emacs also usually draws the mode
-line of the selected window with a different color than that of
+line of the selected window with a different color from that of
 unselected windows, in order to make it stand out.
 
   The text displayed in the mode line has the following format:

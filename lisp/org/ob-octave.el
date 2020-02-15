@@ -1,6 +1,6 @@
 ;;; ob-octave.el --- Babel Functions for Octave and Matlab -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
@@ -30,10 +30,10 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 
 (declare-function matlab-shell "ext:matlab-mode")
 (declare-function matlab-shell-run-region "ext:matlab-mode")
-(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-default-header-args:matlab '())
 (defvar org-babel-default-header-args:octave '())
@@ -237,13 +237,11 @@ value of the last statement in BODY, as elisp."
       (`output
        (setq results
 	     (if matlabp
-		 (cdr (reverse (delq "" (mapcar
-					 #'org-babel-strip-quotes
-					 (mapcar #'org-trim raw)))))
+		 (cdr (reverse (delq "" (mapcar #'org-strip-quotes
+						(mapcar #'org-trim raw)))))
 	       (cdr (member org-babel-octave-eoe-output
-			    (reverse (mapcar
-				      #'org-babel-strip-quotes
-				      (mapcar #'org-trim raw)))))))
+			    (reverse (mapcar #'org-strip-quotes
+					     (mapcar #'org-trim raw)))))))
        (mapconcat #'identity (reverse results) "\n")))))
 
 (defun org-babel-octave-import-elisp-from-file (file-name)
@@ -254,9 +252,9 @@ This removes initial blank and comment lines and then calls
     (with-temp-file temp-file
       (insert-file-contents file-name)
       (re-search-forward "^[ \t]*[^# \t]" nil t)
-      (if (< (setq beg (point-min))
-	     (setq end (point-at-bol)))
-	  (delete-region beg end)))
+      (when (< (setq beg (point-min))
+	       (setq end (point-at-bol)))
+	(delete-region beg end)))
     (org-babel-import-elisp-from-file temp-file '(16))))
 
 (provide 'ob-octave)

@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@
   Memory allocation scheme for w32/w64:
 
   - Buffers are mmap'ed using a very simple emulation of mmap/munmap
-  - During the temacs phase:
+  - During the temacs phase, if unexec is to be used:
     * we use a private heap declared to be stored into the `dumped_data'
     * unfortunately, this heap cannot be made growable, so the size of
       blocks it can allocate is limited to (0x80000 - pagesize)
@@ -37,7 +37,7 @@
       We use a very simple first-fit scheme to reuse those blocks.
     * we check that the private heap does not cross the area used
       by the bigger chunks.
-  - During the emacs phase:
+  - During the emacs phase, or always if pdumper is used:
     * we create a private heap for new memory blocks
     * we make sure that we never free a block that has been dumped.
       Freeing a dumped block could work in principle, but may prove
@@ -115,10 +115,16 @@ typedef struct _RTL_HEAP_PARAMETERS {
    than half of the size stated below.  It would be nice to find a way
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
-#if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (23*1024*1024)
+#ifndef HAVE_UNEXEC
+/* We don't use dumped_data[], so define to a small size that won't
+   matter.  */
+# define DUMPED_HEAP_SIZE 10
 #else
-# define DUMPED_HEAP_SIZE (13*1024*1024)
+# if defined _WIN64 || defined WIDE_EMACS_INT
+#  define DUMPED_HEAP_SIZE (23*1024*1024)
+# else
+#  define DUMPED_HEAP_SIZE (13*1024*1024)
+# endif
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
@@ -173,8 +179,8 @@ static DWORD          blocks_number = 0;
 static unsigned char *bc_limit;
 
 /* Handle for the private heap:
-    - inside the dumped_data[] array before dump,
-    - outside of it after dump.
+    - inside the dumped_data[] array before dump with unexec,
+    - outside of it after dump, or always if pdumper is used.
 */
 HANDLE heap = NULL;
 
@@ -188,8 +194,8 @@ free_fn the_free_fn;
      http://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
 
 /* This is the function to commit memory when the heap allocator
-   claims for new memory.  Before dumping, we allocate space
-   from the fixed size dumped_data[] array.
+   claims for new memory.  Before dumping with unexec, we allocate
+   space from the fixed size dumped_data[] array.
 */
 static NTSTATUS NTAPI
 dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
@@ -224,14 +230,13 @@ typedef WINBASEAPI BOOL (WINAPI * HeapSetInformation_Proc)(HANDLE,HEAP_INFORMATI
 #endif
 
 void
-init_heap (void)
+init_heap (bool use_dynamic_heap)
 {
-  if (using_dynamic_heap)
+  /* FIXME: Remove the condition, the 'else' branch below, and all the
+     related definitions and code, including dumped_data[], when unexec
+     support is removed from Emacs.  */
+  if (use_dynamic_heap)
     {
-#ifndef MINGW_W64
-      unsigned long enable_lfh = 2;
-#endif
-
       /* After dumping, use a new private heap.  We explicitly enable
          the low fragmentation heap (LFH) here, for the sake of pre
          Vista versions.  Note: this will harmlessly fail on Vista and
@@ -248,6 +253,7 @@ init_heap (void)
       heap = HeapCreate (0, 0, 0);
 
 #ifndef MINGW_W64
+      unsigned long enable_lfh = 2;
       /* Set the low-fragmentation heap for OS before Vista.  */
       HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
       HeapSetInformation_Proc s_pfn_Heap_Set_Information =
@@ -276,7 +282,7 @@ init_heap (void)
           the_free_fn = free_after_dump;
         }
     }
-  else
+  else	/* Before dumping with unexec: use static heap.  */
     {
       /* Find the RtlCreateHeap function.  Headers for this function
          are provided with the w32 DDK, but the function is available
@@ -355,6 +361,8 @@ malloc_after_dump (size_t size)
   return p;
 }
 
+/* FIXME: The *_before_dump functions should be removed when pdumper
+   becomes the only dumping method.  */
 void *
 malloc_before_dump (size_t size)
 {
@@ -589,7 +597,17 @@ free_after_dump_9x (void *ptr)
     }
 }
 
-#ifdef ENABLE_CHECKING
+void *
+sys_calloc (size_t number, size_t size)
+{
+  size_t nbytes = number * size;
+  void *ptr = (*the_malloc_fn) (nbytes);
+  if (ptr)
+    memset (ptr, 0, nbytes);
+  return ptr;
+}
+
+#if defined HAVE_UNEXEC && defined ENABLE_CHECKING
 void
 report_temacs_memory_usage (void)
 {

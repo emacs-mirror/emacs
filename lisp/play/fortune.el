@@ -1,6 +1,6 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -237,21 +237,23 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 If called with a prefix asks for the FILE to compile, otherwise uses
 the value of `fortune-file'.  This currently cannot handle directories."
   (interactive
-    (list
-     (if current-prefix-arg
-	 (fortune-ask-file)
-       fortune-file)))
+   (list
+    (if current-prefix-arg
+	(fortune-ask-file)
+      fortune-file)))
   (let* ((fortune-file (expand-file-name (substitute-in-file-name file)))
 	 (fortune-dat (expand-file-name
 		       (substitute-in-file-name
-			(concat fortune-file fortune-database-extension)))))
-  (cond ((file-exists-p fortune-file)
-         (cond ((file-newer-than-file-p fortune-file fortune-dat)
-                (message "Compiling new fortune database %s" fortune-dat)
-                (shell-command
-                 (concat fortune-strfile fortune-strfile-options
-                         " " fortune-file fortune-quiet-strfile-options)))))
-	(t (error "Can't compile fortune file %s" fortune-file)))))
+			(concat fortune-file fortune-database-extension))))
+         (strfile (or (executable-find fortune-strfile)
+                      (error "Can't find strfile program %s" fortune-strfile))))
+    (cond ((file-exists-p fortune-file)
+           (cond ((file-newer-than-file-p fortune-file fortune-dat)
+                  (message "Compiling new fortune database %s" fortune-dat)
+                  (shell-command
+                   (concat strfile fortune-strfile-options
+                           " " fortune-file fortune-quiet-strfile-options)))))
+	  (t (error "Can't compile fortune file %s" fortune-file)))))
 
 
 ;;; **************

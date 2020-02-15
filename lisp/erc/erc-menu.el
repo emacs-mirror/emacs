@@ -1,9 +1,9 @@
 ;; erc-menu.el -- Menu-bar definitions for ERC
 
-;; Copyright (C) 2001-2002, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2002, 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm, processes, menu
 
 ;; This file is part of GNU Emacs.
@@ -115,22 +115,10 @@ ERC menu yet.")
      ;; activates it immediately
      (easy-menu-define erc-menu erc-mode-map "ERC menu" erc-menu-definition)
      (setq erc-menu-defined t))
-   (if (featurep 'xemacs)
-       (progn
-	 ;; the menu isn't automatically added to the menu bar in
-	 ;; XEmacs
-	 (add-hook 'erc-mode-hook 'erc-menu-add)
-	 (dolist (buffer (erc-buffer-list))
-	   (with-current-buffer buffer (erc-menu-add))))
-     (erc-menu-add)))
-  ((if (featurep 'xemacs)
-       (progn
-	 (remove-hook 'erc-mode-hook 'erc-menu-add)
-	 (dolist (buffer (erc-buffer-list))
-	   (with-current-buffer buffer (erc-menu-remove))))
-     (erc-menu-remove)
-     ;; `easy-menu-remove' is a no-op in Emacs 22
-     (message "You might have to restart Emacs to remove the ERC menu"))))
+   (erc-menu-add))
+  ((erc-menu-remove)
+   ;; `easy-menu-remove' is a no-op in Emacs 22
+   (message "You might have to restart Emacs to remove the ERC menu")))
 
 ;; silence byte-compiler warning
 (defvar erc-menu)
@@ -149,6 +137,4 @@ ERC menu yet.")
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2018 Free Software Foundation, Inc.
+# Copyright (C) 2007-2020 Free Software Foundation, Inc.
 # See end for copying conditions.
 
 # although it would be nice to use tex rather than pdftex to avoid

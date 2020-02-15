@@ -1,6 +1,6 @@
 ;;; thunk.el --- Lazy form evaluation  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
@@ -54,16 +54,15 @@
   "Delay the evaluation of BODY."
   (declare (debug t))
   (cl-assert lexical-binding)
-  (let ((forced (make-symbol "forced"))
-        (val (make-symbol "val")))
-    `(let (,forced ,val)
-       (lambda (&optional check)
-         (if check
-             ,forced
-           (unless ,forced
-             (setf ,val (progn ,@body))
-             (setf ,forced t))
-           ,val)))))
+  `(let (forced
+         (val (lambda () ,@body)))
+     (lambda (&optional check)
+       (if check
+           forced
+         (unless forced
+           (setf val (funcall val))
+           (setf forced t))
+         val))))
 
 (defun thunk-force (delayed)
   "Force the evaluation of DELAYED.

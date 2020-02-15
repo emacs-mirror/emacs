@@ -1,6 +1,6 @@
 ;;; floatfns-tests.el --- tests for floating point operations
 
-;; Copyright 2017-2018 Free Software Foundation, Inc.
+;; Copyright 2017-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,12 @@
 (ert-deftest bignum-expt ()
   (dolist (n (list most-positive-fixnum (1+ most-positive-fixnum)
                    most-negative-fixnum (1- most-negative-fixnum)
+                   (* 5 most-negative-fixnum)
+                   (* 5 (1+ most-positive-fixnum))
                    -2 -1 0 1 2))
+    (should (or (<= n 0) (= (expt 0 n) 0)))
+    (should (= (expt 1 n) 1))
+    (should (or (< n 0) (= (expt -1 n) (if (zerop (logand n 1)) 1 -1))))
     (should (= (expt n 0) 1))
     (should (= (expt n 1) n))
     (should (= (expt n 2) (* n n)))
@@ -101,22 +106,22 @@
                           (zerop (% (round n d) 2)))))))))))
 
 (ert-deftest special-round ()
-  (let ((ns '(-1e+INF 1e+INF -1 1 -1e+NaN 1e+NaN)))
-    (dolist (n ns)
-      (unless (<= (abs n) 1)
-        (should-error (ceiling n))
-        (should-error (floor n))
-        (should-error (round n))
-        (should-error (truncate n)))
-      (dolist (d ns)
-        (unless (<= (abs (/ n d)) 1)
-          (should-error (ceiling n d))
-          (should-error (floor n d))
-          (should-error (round n d))
-          (should-error (truncate n d)))))))
+  (dolist (f '(ceiling floor round truncate))
+    (let ((ns '(-1e+INF 1e+INF -1 -0.0 0.0 0 1 -1e+NaN 1e+NaN)))
+      (dolist (n ns)
+	(if (not (<= (abs n) 1))
+	    (should-error (funcall f n))
+	  (should (= n (funcall f n)))
+	  (dolist (d '(-1e+INF 1e+INF))
+	    (should (eq 0 (funcall f n d)))))
+	(dolist (d ns)
+	  (when (or (zerop d) (= (abs n) 1e+INF) (not (= n n)) (not (= d d)))
+	    (should-error (funcall f n d))))))))
 
 (ert-deftest big-round ()
   (should (= (floor 54043195528445955 3)
-             (floor 54043195528445955 3.0))))
+             (floor 54043195528445955 3.0)))
+  (should (= (floor 1.7976931348623157e+308 5e-324)
+             (ash (1- (ash 1 53)) 2045))))
 
 (provide 'floatfns-tests)

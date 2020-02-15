@@ -1,0 +1,8 @@
+This directory contains icons for the Tabs user interface.
+
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+Files: close.xpm new.xpm left-arrow.xpm right-arrow.xpm
+Author: Juri Linkov <juri@linkov.net>
+Copyright (C) 2019-2020 Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)

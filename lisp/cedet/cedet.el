@@ -1,9 +1,9 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
-;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
+;; Maintainer: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 2.0
 ;; Keywords: OO, lisp
 

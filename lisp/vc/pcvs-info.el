@@ -1,6 +1,6 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
-;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -263,9 +263,9 @@ to confuse some users sometimes."
 	     (setq check 'type)		(symbolp type)
 	     (setq check 'consistency)
 	     (pcase type
-	       (`DIRCHANGE (and (null subtype) (string= "." file)))
-	       ((or `NEED-UPDATE `ADDED `MISSING `DEAD `MODIFIED `MESSAGE
-                    `UP-TO-DATE `REMOVED `NEED-MERGE `CONFLICT `UNKNOWN)
+	       ('DIRCHANGE (and (null subtype) (string= "." file)))
+	       ((or 'NEED-UPDATE 'ADDED 'MISSING 'DEAD 'MODIFIED 'MESSAGE
+                    'UP-TO-DATE 'REMOVED 'NEED-MERGE 'CONFLICT 'UNKNOWN)
 		t)))
 	fi
       (error "Invalid :%s in cvs-fileinfo %s" check fi))))
@@ -326,11 +326,11 @@ For use by the ewoc package."
 	(subtype (cvs-fileinfo->subtype fileinfo)))
     (insert
      (pcase type
-       (`DIRCHANGE (concat "In directory "
+       ('DIRCHANGE (concat "In directory "
                            (cvs-add-face (cvs-fileinfo->full-name fileinfo)
                                          'cvs-header t 'cvs-goal-column t)
                            ":"))
-       (`MESSAGE
+       ('MESSAGE
 	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
 		      'cvs-msg))
        (_
@@ -344,7 +344,7 @@ For use by the ewoc package."
 	       (type
 		(let ((str (pcase type
 			     ;;(MOD-CONFLICT "Not Removed")
-			     (`DEAD	  "")
+			     ('DEAD	  "")
 			     (_ (capitalize (symbol-name type)))))
 		      (face (let ((sym (intern-soft
 					(concat "cvs-fi-"

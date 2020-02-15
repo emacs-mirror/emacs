@@ -1,6 +1,6 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -109,7 +109,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-request-scan (&optional group server)
   (nnweb-possibly-change-server group server)
   (if nnweb-ephemeral-p
-      (setq nnweb-hashtb (gnus-make-hashtable 4095))
+      (setq nnweb-hashtb (gnus-make-hashtable 4000))
     (unless nnweb-articles
       (nnweb-read-overview group)))
   (funcall (nnweb-definition 'map))
@@ -170,7 +170,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	(nnheader-report 'nnweb "Fetched article %s" article)
 	(cons group (and (numberp article) article))))))
 
-(deffoo nnweb-close-server (&optional server)
+(deffoo nnweb-close-server (&optional server _defs)
   (when (and (nnweb-server-opened server)
 	     (gnus-buffer-live-p nnweb-buffer))
     (with-current-buffer nnweb-buffer
@@ -229,11 +229,11 @@ Valid types include `google', `dejanews', and `gmane'.")
 	(nnheader-insert-nov (cadr (pop articles)))))))
 
 (defun nnweb-set-hashtb (header data)
-  (gnus-sethash (nnweb-identifier (mail-header-xref header))
+  (puthash (nnweb-identifier (mail-header-xref header))
 		data nnweb-hashtb))
 
 (defun nnweb-get-hashtb (url)
-  (gnus-gethash (nnweb-identifier url) nnweb-hashtb))
+  (gethash (nnweb-identifier url) nnweb-hashtb))
 
 (defun nnweb-identifier (ident)
   (funcall (nnweb-definition 'identifier) ident))
@@ -268,7 +268,7 @@ Valid types include `google', `dejanews', and `gmane'.")
   (unless nnweb-group-alist
     (nnweb-read-active))
   (unless nnweb-hashtb
-    (setq nnweb-hashtb (gnus-make-hashtable 4095)))
+    (setq nnweb-hashtb (make-hash-table :size 4000 :test #'equal)))
   (when group
     (setq nnweb-group group)))
 
@@ -461,22 +461,21 @@ Valid types include `google', `dejanews', and `gmane'.")
 		    (subject (mail-header-subject header))
 		    (rfc2047-encoding-type 'mime))
 		(when (string-match " \\([^:]+\\)[:/]\\([0-9]+\\)" xref)
-		  (mail-header-set-xref
-		   header
-		   (format "http://article.gmane.org/%s/%s/raw"
-			   (match-string 1 xref)
-			   (match-string 2 xref))))
+		  (setf (mail-header-xref header)
+		        (format "http://article.gmane.org/%s/%s/raw"
+			        (match-string 1 xref)
+			        (match-string 2 xref))))
 
 		;; Add host part to gmane-encrypted addresses
 		(when (string-match "@$" from)
-		  (mail-header-set-from header
-					(concat from "public.gmane.org")))
+		  (setf (mail-header-from header)
+			(concat from "public.gmane.org")))
 
-		(mail-header-set-subject header
-					 (rfc2047-encode-string subject))
+		(setf (mail-header-subject header)
+		      (rfc2047-encode-string subject))
 
 		(unless (nnweb-get-hashtb (mail-header-xref header))
-		  (mail-header-set-number header (cl-incf (cdr active)))
+		  (setf (mail-header-number header) (cl-incf (cdr active)))
 		  (push (list (mail-header-number header) header) map)
 		  (nnweb-set-hashtb (cadar map) (car map))))))
 	  (forward-line 1)))

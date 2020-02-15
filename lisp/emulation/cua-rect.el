@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -1127,7 +1127,7 @@ The length of STRING need not be the same as the rectangle width."
   (cua--rectangle-operation 'keep nil t 1 nil
      (lambda (_s e _l _r)
         (cond
-         ((re-search-forward "0x\\([0-9a-fA-F]+\\)" e t)
+         ((re-search-forward "0x\\([[:xdigit:]]+\\)" e t)
           (let* ((txt (cua--filter-buffer-noprops (match-beginning 1) (match-end 1)))
                  (n (string-to-number txt 16))
                  (fmt (format "0x%%0%dx" (length txt))))
@@ -1362,6 +1362,7 @@ With prefix arg, indent to that column."
   (let ((M (cond ((eq cua--rectangle-modifier-key 'hyper) " H-")
 		 ((eq cua--rectangle-modifier-key 'super) " s-")
 		 ((eq cua--rectangle-modifier-key 'alt) " A-")
+                 ((eq cua--rectangle-modifier-key 'control) " C-")
 		 (t " M-"))))
     (message
      (concat (if help "C-?:help" "")

@@ -1,6 +1,6 @@
 ;;; ob-sql.el --- Babel Functions for SQL            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -39,6 +39,7 @@
 ;; - dbport
 ;; - dbuser
 ;; - dbpassword
+;; - dbconnection (to reference connections in sql-connection-alist)
 ;; - database
 ;; - colnames (default, nil, means "yes")
 ;; - result-params
@@ -73,6 +74,7 @@
 (declare-function org-table-to-lisp "org-table" (&optional txt))
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c" (file &optional absolute-p))
 
+(defvar sql-connection-alist)
 (defvar org-babel-default-header-args:sql '())
 
 (defconst org-babel-header-args:sql
@@ -111,8 +113,24 @@ Pass nil to omit that arg."
 	       (when database (concat "-d" database))))))
 
 (defun org-babel-sql-dbstring-oracle (host port user password database)
-  "Make Oracle command line args for database connection."
-  (format "%s/%s@%s:%s/%s" user password host port database))
+  "Make Oracle command line arguments for database connection.
+
+If HOST and PORT are nil then don't pass them.  This allows you
+to use names defined in your \"TNSNAMES\" file.  So you can
+connect with
+
+  <user>/<password>@<host>:<port>/<database>
+
+or
+
+  <user>/<password>@<database>
+
+using its alias."
+  (cond ((and user password database host port)
+	 (format "%s/%s@%s:%s/%s" user password host port database))
+	((and user password database)
+	 (format "%s/%s@%s" user password database))
+	(t (user-error "Missing information to connect to database"))))
 
 (defun org-babel-sql-dbstring-mssql (host user password database)
   "Make sqlcmd command line args for database connection.
@@ -158,16 +176,35 @@ Otherwise, use Emacs' standard conversion function."
 	((string= "windows-nt" system-type) file)
 	(t (format "%S" (convert-standard-filename file)))))
 
+(defun org-babel-find-db-connection-param (params name)
+  "Return database connection parameter NAME.
+Given a parameter NAME, if :dbconnection is defined in PARAMS
+then look for the parameter into the corresponding connection
+defined in `sql-connection-alist`, otherwise look into PARAMS.
+Look `sql-connection-alist` (part of SQL mode) for how to define
+database connections."
+  (if (assq :dbconnection params)
+      (let* ((dbconnection (cdr (assq :dbconnection params)))
+             (name-mapping '((:dbhost . sql-server)
+                             (:dbport . sql-port)
+                             (:dbuser . sql-user)
+                             (:dbpassword . sql-password)
+                             (:database . sql-database)))
+             (mapped-name (cdr (assq name name-mapping))))
+        (cadr (assq mapped-name
+                    (cdr (assoc dbconnection sql-connection-alist)))))
+    (cdr (assq name params))))
+
 (defun org-babel-execute:sql (body params)
   "Execute a block of Sql code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (cdr (assq :result-params params)))
          (cmdline (cdr (assq :cmdline params)))
-         (dbhost (cdr (assq :dbhost params)))
-         (dbport (cdr (assq :dbport params)))
-         (dbuser (cdr (assq :dbuser params)))
-         (dbpassword (cdr (assq :dbpassword params)))
-         (database (cdr (assq :database params)))
+         (dbhost (org-babel-find-db-connection-param params :dbhost))
+         (dbport (org-babel-find-db-connection-param params :dbport))
+         (dbuser (org-babel-find-db-connection-param params :dbuser))
+         (dbpassword (org-babel-find-db-connection-param params :dbpassword))
+         (database (org-babel-find-db-connection-param params :database))
          (engine (cdr (assq :engine params)))
          (colnames-p (not (equal "no" (cdr (assq :colnames params)))))
          (in-file (org-babel-temp-file "sql-in-"))
@@ -241,6 +278,7 @@ SET NEWPAGE 0
 SET TAB OFF
 SET SPACE 0
 SET LINESIZE 9999
+SET TRIMOUT ON TRIMSPOOL ON
 SET ECHO OFF
 SET FEEDBACK OFF
 SET VERIFY OFF

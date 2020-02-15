@@ -1,6 +1,6 @@
 ;;; calc-fin.el --- financial functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -35,9 +35,10 @@
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-enter-result 3 "pvl" (cons 'calcFunc-pvl (calc-top-list-n 3)))
-     (if (calc-is-inverse)
-	 (calc-enter-result 3 "pvb" (cons 'calcFunc-pvb (calc-top-list-n 3)))
-       (calc-enter-result 3 "pv" (cons 'calcFunc-pv (calc-top-list-n 3)))))))
+     (let ((n (if (calc-is-option) 4 3)))
+      (if (calc-is-inverse)
+	  (calc-enter-result n "pvb" (cons 'calcFunc-pvb (calc-top-list-n n)))
+        (calc-enter-result n "pv" (cons 'calcFunc-pv (calc-top-list-n n))))))))
 
 (defun calc-fin-npv (arg)
   (interactive "p")
@@ -51,42 +52,48 @@
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-enter-result 3 "fvl" (cons 'calcFunc-fvl (calc-top-list-n 3)))
-     (if (calc-is-inverse)
-	 (calc-enter-result 3 "fvb" (cons 'calcFunc-fvb (calc-top-list-n 3)))
-       (calc-enter-result 3 "fv" (cons 'calcFunc-fv (calc-top-list-n 3)))))))
+     (let ((n (if (calc-is-option) 4 3)))
+       (if (calc-is-inverse)
+	   (calc-enter-result n "fvb" (cons 'calcFunc-fvb (calc-top-list-n n)))
+         (calc-enter-result n "fv" (cons 'calcFunc-fv (calc-top-list-n n))))))))
 
 (defun calc-fin-pmt ()
   (interactive)
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-enter-result 3 "fvl" (cons 'calcFunc-fvl (calc-top-list-n 3)))
-     (if (calc-is-inverse)
-	 (calc-enter-result 3 "pmtb" (cons 'calcFunc-pmtb (calc-top-list-n 3)))
-       (calc-enter-result 3 "pmt" (cons 'calcFunc-pmt (calc-top-list-n 3)))))))
+     (let ((n (if (calc-is-option) 4 3)))
+       (if (calc-is-inverse)
+	        (calc-enter-result n "pmtb" (cons 'calcFunc-pmtb (calc-top-list-n n)))
+        (calc-enter-result n "pmt" (cons 'calcFunc-pmt (calc-top-list-n n))))))))
 
 (defun calc-fin-nper ()
   (interactive)
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-enter-result 3 "nprl" (cons 'calcFunc-nperl (calc-top-list-n 3)))
-     (if (calc-is-inverse)
-	 (calc-enter-result 3 "nprb" (cons 'calcFunc-nperb
-					   (calc-top-list-n 3)))
-       (calc-enter-result 3 "nper" (cons 'calcFunc-nper
-					 (calc-top-list-n 3)))))))
+     (let ((n (if (calc-is-option) 4 3)))
+       (if (calc-is-inverse)
+	   (calc-enter-result n "nprb" (cons 'calcFunc-nperb
+					     (calc-top-list-n n)))
+         (calc-enter-result n "nper" (cons 'calcFunc-nper
+					   (calc-top-list-n n))))))))
 
 (defun calc-fin-rate ()
   (interactive)
   (calc-slow-wrapper
-   (calc-pop-push-record 3
-			 (if (calc-is-hyperbolic) "ratl"
-			   (if (calc-is-inverse) "ratb" "rate"))
-			 (calc-to-percentage
-			  (calc-normalize
-			   (cons (if (calc-is-hyperbolic) 'calcFunc-ratel
-				   (if (calc-is-hyperbolic) 'calcFunc-rateb
-				     'calcFunc-rate))
-				 (calc-top-list-n 3)))))))
+   (let ((n (if (and (not (calc-is-hyperbolic))
+                     (calc-is-option))
+                4 3)))
+     (calc-pop-push-record n
+      (if (calc-is-hyperbolic) "ratl"
+	(if (calc-is-inverse) "ratb" "rate"))
+      (calc-to-percentage
+       (calc-normalize
+	(cons (if (calc-is-hyperbolic) 'calcFunc-ratel
+		(if (calc-is-hyperbolic) 'calcFunc-rateb
+		  'calcFunc-rate))
+	      (calc-top-list-n n))))))))
 
 (defun calc-fin-irr (arg)
   (interactive "P")

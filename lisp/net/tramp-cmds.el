@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -55,18 +55,23 @@ SYNTAX can be one of the symbols `default' (default),
   "Return a list of all Tramp connection buffers."
   (append
    (all-completions
-    "*tramp" (mapcar 'list (mapcar 'buffer-name (buffer-list))))
+    "*tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
    (all-completions
-    "*debug tramp" (mapcar 'list (mapcar 'buffer-name (buffer-list))))))
+    "*debug tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
 (defun tramp-list-remote-buffers ()
-  "Return a list of all buffers with remote default-directory."
+  "Return a list of all buffers with remote `default-directory'."
   (delq
    nil
    (mapcar
     (lambda (x)
       (with-current-buffer x (when (tramp-tramp-file-p default-directory) x)))
     (buffer-list))))
+
+;;;###tramp-autoload
+(defvar tramp-cleanup-connection-hook nil
+  "List of functions to be called after Tramp connection is cleaned up.
+Each function is called with the current vector as argument.")
 
 ;;;###tramp-autoload
 (defun tramp-cleanup-connection (vec &optional keep-debug keep-password)
@@ -80,7 +85,7 @@ When called interactively, a Tramp connection has to be selected."
    ;; Return nil when there is no Tramp connection.
    (list
     (let ((connections
-	   (mapcar 'tramp-make-tramp-file-name (tramp-list-connections)))
+	   (mapcar #'tramp-make-tramp-file-name (tramp-list-connections)))
 	  name)
 
       (when connections
@@ -99,9 +104,8 @@ When called interactively, a Tramp connection has to be selected."
     (unless keep-password (tramp-clear-passwd vec))
 
     ;; Cleanup `tramp-current-connection'.  Otherwise, we would be
-    ;; suppressed in the test suite.  We use `keep-password' as
-    ;; indicator; it is not worth to add a new argument.
-    (when keep-password (setq tramp-current-connection nil))
+    ;; suppressed.
+    (setq tramp-current-connection nil)
 
     ;; Flush file cache.
     (tramp-flush-directory-properties vec "")
@@ -112,13 +116,22 @@ When called interactively, a Tramp connection has to be selected."
       (delete-process (tramp-get-connection-process vec)))
     (tramp-flush-connection-properties vec)
 
+    ;; Cancel timer.
+    (dolist (timer timer-list)
+      (when (and (eq (timer--function timer) 'tramp-timeout-session)
+		 (tramp-file-name-equal-p vec (car (timer--args timer))))
+	(cancel-timer timer)))
+
     ;; Remove buffers.
     (dolist
 	(buf (list (get-buffer (tramp-buffer-name vec))
 		   (unless keep-debug
 		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (tramp-get-connection-property vec "process-buffer" nil)))
-      (when (bufferp buf) (kill-buffer buf)))))
+      (when (bufferp buf) (kill-buffer buf)))
+
+    ;; The end.
+    (run-hook-with-args 'tramp-cleanup-connection-hook vec)))
 
 ;;;###tramp-autoload
 (defun tramp-cleanup-this-connection ()
@@ -127,6 +140,10 @@ When called interactively, a Tramp connection has to be selected."
   (and (tramp-tramp-file-p default-directory)
        (tramp-cleanup-connection
 	(tramp-dissect-file-name default-directory 'noexpand))))
+
+;;;###tramp-autoload
+(defvar tramp-cleanup-all-connections-hook nil
+  "List of functions to be called after all Tramp connections are cleaned up.")
 
 ;;;###tramp-autoload
 (defun tramp-cleanup-all-connections ()
@@ -143,13 +160,28 @@ This includes password cache, file cache, connection cache, buffers."
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
 
-  ;; Cleanup local copies of archives.
-  (when (bound-and-true-p tramp-archive-enabled)
-    (tramp-archive-cleanup-hash))
+  ;; Remove ad-hoc proxies.
+  (let ((proxies tramp-default-proxies-alist))
+    (while proxies
+      (if (ignore-errors
+	    (get-text-property 0 'tramp-ad-hoc (nth 2 (car proxies))))
+	  (setq tramp-default-proxies-alist
+		(delete (car proxies) tramp-default-proxies-alist)
+		proxies tramp-default-proxies-alist)
+	(setq proxies (cdr proxies)))))
+  (when (and tramp-default-proxies-alist tramp-save-ad-hoc-proxies)
+    (customize-save-variable
+     'tramp-default-proxies-alist tramp-default-proxies-alist))
+
+  ;; Cancel timers.
+  (cancel-function-timers 'tramp-timeout-session)
 
   ;; Remove buffers.
   (dolist (name (tramp-list-tramp-buffers))
-    (when (bufferp (get-buffer name)) (kill-buffer name))))
+    (when (bufferp (get-buffer name)) (kill-buffer name)))
+
+  ;; The end.
+  (run-hooks 'tramp-cleanup-all-connections-hook))
 
 ;;;###tramp-autoload
 (defun tramp-cleanup-all-buffers ()
@@ -162,6 +194,268 @@ This includes password cache, file cache, connection cache, buffers."
   ;; Remove all buffers with a remote default-directory.
   (dolist (name (tramp-list-remote-buffers))
     (when (bufferp (get-buffer name)) (kill-buffer name))))
+
+;;;###tramp-autoload
+(defcustom tramp-default-rename-alist nil
+  "Default target for renaming remote buffer file names.
+This is an alist of cons cells (SOURCE . TARGET).  The first
+matching item specifies the target to be applied for renaming
+buffer file names from source via `tramp-rename-files'.  SOURCE
+is a regular expressions, which matches a remote file name.
+TARGET must be a directory name, which could be remote (including
+remote directories Tramp infers by default, such as
+\"/method:user@host:\").
+
+TARGET can contain the patterns %m, %u or %h, which are replaced
+by the method name, user name or host name of SOURCE when calling
+`tramp-rename-files'.
+
+SOURCE could also be a Lisp form, which will be evaluated.  The
+result must be a string or nil, which is interpreted as a regular
+expression which always matches."
+  :group 'tramp
+  :version "27.1"
+  :type '(repeat (cons (choice :tag "Source regexp" regexp sexp)
+		       (choice :tag "Target   name" string (const nil)))))
+
+;;;###tramp-autoload
+(defcustom tramp-confirm-rename-file-names t
+  "Whether renaming a buffer file name must be confirmed."
+  :group 'tramp
+  :version "27.1"
+  :type 'boolean)
+
+(defun tramp-default-rename-file (string)
+  "Determine default file name for renaming according to STRING.
+The user option `tramp-default-rename-alist' is consulted,
+finding the default mapping.  If there is no matching entry, the
+function returns nil"
+  (when (tramp-tramp-file-p string)
+    (let ((tdra tramp-default-rename-alist)
+	  (method (or (file-remote-p string 'method) ""))
+	  (user (or (file-remote-p string 'user) ""))
+	  (host (or (file-remote-p string 'host) ""))
+	  item result)
+      (while (setq item (pop tdra))
+	(when (string-match-p (or (eval (car item)) "") string)
+	  (setq tdra nil
+		result
+		(format-spec
+		 (cdr item) (format-spec-make ?m method ?u user ?h host)))))
+      result)))
+
+(defsubst tramp-rename-read-file-name-dir (string)
+  "Return the DIR entry to be applied in `read-file-name', based on STRING."
+  (when (tramp-tramp-file-p string)
+    (substring (file-remote-p string) 0 -1)))
+
+(defsubst tramp-rename-read-file-name-init (string)
+  "Return the INIT entry to be applied in `read-file-name', based on STRING."
+  (when (tramp-tramp-file-p string)
+    (string-remove-prefix (tramp-rename-read-file-name-dir string) string)))
+
+;;;###tramp-autoload
+(defun tramp-rename-files (source target)
+  "Replace in all buffers the visiting file name from SOURCE to TARGET.
+SOURCE is a remote directory name, which could contain also a
+localname part.  TARGET is the directory name SOURCE is replaced
+with.  Often, TARGET is a remote directory name on another host,
+but it can also be a local directory name.  If TARGET has no
+local part, the local part from SOURCE is used.
+
+If TARGET is nil, it is selected according to the first match in
+`tramp-default-rename-alist'.  If called interactively, this
+match is offered as initial value for selection.
+
+On all buffers, which have a `buffer-file-name' matching SOURCE,
+this name is modified by replacing SOURCE with TARGET.  This is
+applied by calling `set-visited-file-name'.  The new
+`buffer-file-name' is prompted for modification in the
+minibuffer.  The buffers are marked modified, and must be saved
+explicitly.
+
+If user option `tramp-confirm-rename-file-names' is nil, changing
+the file name happens without confirmation.  This requires a
+matching entry in `tramp-default-rename-alist'.
+
+Remote buffers related to the remote connection identified by
+SOURCE, which are not visiting files, or which are visiting files
+not matching SOURCE, are not modified.
+
+Interactively, TARGET is selected from `tramp-default-rename-alist'
+without confirmation if the prefix argument is non-nil.
+
+The remote connection identified by SOURCE is flushed by
+`tramp-cleanup-connection'."
+  (interactive
+   (let ((connections
+	  (mapcar #'tramp-make-tramp-file-name (tramp-list-connections)))
+	 ;; Completion packages do their voodoo in `completing-read'
+	 ;; and `read-file-name', which is often incompatible with
+	 ;; Tramp.  Ignore them.
+	 (completing-read-function #'completing-read-default)
+	 (read-file-name-function #'read-file-name-default)
+	  source target)
+     (if (null connections)
+	 (tramp-user-error nil "There are no remote connections.")
+       (setq source
+	     ;; Likely, the source remote connection is broken. So we
+	     ;; shall avoid any action on it.
+	     (let (non-essential)
+	       (completing-read-default
+		"Enter old Tramp connection: "
+		;; Completion function.
+		(completion-table-dynamic
+		 (lambda (string)
+		   (cond
+		    ;; Initially, show existing remote connections.
+		    ((not (tramp-tramp-file-p string))
+		     (all-completions string connections))
+		    ;; There is a selected remote connection.  Show
+		    ;; its longest common directory path of respective
+		    ;; buffers.
+		    (t (mapcar
+			(lambda (buffer)
+			  (let ((bfn (buffer-file-name buffer)))
+			    (and (buffer-live-p buffer)
+				 (tramp-equal-remote string bfn)
+				 (stringp bfn) (file-name-directory bfn))))
+			(tramp-list-remote-buffers))))))
+		#'tramp-tramp-file-p t
+		;; If the current buffer is a remote one, it is likely
+		;; that this connection is meant.  So we offer it as
+		;; initial value.  Otherwise, use the longest remote
+		;; connection path as initial value.
+		(or (file-remote-p default-directory)
+		    (try-completion "" connections))))
+
+	     target
+	     (when (null current-prefix-arg)
+	       ;; The source remote connection shall not trigger any action.
+	       ;; FIXME: Better error prompt when trying to access source host.
+	       (let* ((default (or (tramp-default-rename-file source) source))
+		      (dir (tramp-rename-read-file-name-dir default))
+		      (init (tramp-rename-read-file-name-init default))
+		      (tramp-ignored-file-name-regexp
+		       (regexp-quote (file-remote-p source))))
+		 (read-file-name-default
+		  "Enter new Tramp connection: "
+		  dir default 'confirm init #'file-directory-p)))))
+
+     (list source target)))
+
+  (unless (tramp-tramp-file-p source)
+    (tramp-user-error nil "Source %s must be remote." source))
+  (when (null target)
+    (or (setq target (tramp-default-rename-file source))
+	(tramp-user-error
+	 nil
+	 (eval-when-compile
+	   (concat "There is no target specified.  "
+		   "Check `tramp-default-rename-alist' for a proper entry.")))))
+  (when (tramp-equal-remote source target)
+    (tramp-user-error nil "Source and target must have different remote."))
+
+  ;; Append local file name if none is specified.
+  (when (string-equal (file-remote-p target) target)
+    (setq target (concat target (tramp-file-local-name source))))
+  ;; Make them directory names.
+  (setq source (directory-file-name source)
+	target (directory-file-name target))
+
+  ;; Rename visited file names of source buffers.
+  (save-window-excursion
+    (save-current-buffer
+      (let ((help-form "\
+Type SPC or `y' to set visited file name,
+DEL or `n' to skip to next,
+`e' to edit the visited file name,
+ESC or `q' to quit without changing further buffers,
+`!' to change all remaining buffers with no more questions.")
+	    (query-choices '(?y ?\s ?n ?\177 ?! ?e ?q ?\e))
+	    (query (unless tramp-confirm-rename-file-names ?!))
+	    changed-buffers)
+	(dolist (buffer (tramp-list-remote-buffers))
+          (switch-to-buffer buffer)
+	  (let* ((bfn (buffer-file-name))
+		 (new-bfn (and (stringp bfn)
+			       (replace-regexp-in-string
+				(regexp-quote source) target bfn)))
+		 (prompt (format-message
+			  "Set visited file name to `%s' [Type yn!eq or %s] "
+			  new-bfn (key-description (vector help-char)))))
+	    (when (and (buffer-live-p buffer) (stringp bfn)
+		       (string-prefix-p source bfn)
+		       ;; Skip, and don't ask again.
+		       (not (memq query '(?q ?\e))))
+	      ;; Read prompt.
+	      (unless (eq query ?!)
+		(setq query (read-char-choice prompt query-choices)))
+	      ;; Edit the new buffer file name.
+	      (when (eq query ?e)
+		(setq new-bfn
+		      (read-file-name
+		       "New visited file name: "
+		       (file-name-directory new-bfn) new-bfn)))
+	      ;; Set buffer file name.  Remember the change.
+	      (when (memq query '(?y ?\s ?! ?e))
+		(setq changed-buffers
+		      (cons (list buffer bfn (buffer-modified-p))
+			    changed-buffers))
+                (set-visited-file-name new-bfn))
+	      ;; Quit.  Revert changes if prompted by user.
+	      (when (and (memq query '(?q ?\e)) changed-buffers
+			 (y-or-n-p "Do you want to revert applied changes?"))
+		(dolist (item changed-buffers)
+		  (with-current-buffer (car item)
+		    (set-visited-file-name (nth 1 item))
+		    (set-buffer-modified-p (nth 2 item)))))
+	      ;; Cleanup echo area.
+	      (message nil)))))))
+
+  ;; Cleanup.
+  (tramp-cleanup-connection (tramp-dissect-file-name source)))
+
+;;;###tramp-autoload
+(defun tramp-rename-these-files (target)
+  "Replace visiting file names to TARGET.
+The current buffer must be related to a remote connection.  In
+all buffers, which are visiting a file with the same directory
+name, the buffer file name is changed.
+
+Interactively, TARGET is selected from `tramp-default-rename-alist'
+without confirmation if the prefix argument is non-nil.
+
+For details, see `tramp-rename-files'."
+  (interactive
+   (let ((source default-directory)
+	 target
+	 ;; Completion packages do their voodoo in `completing-read'
+	 ;; and `read-file-name', which is often incompatible with
+	 ;; Tramp.  Ignore them.
+	 (completing-read-function #'completing-read-default)
+	 (read-file-name-function #'read-file-name-default))
+     (if (not (tramp-tramp-file-p source))
+	 (tramp-user-error
+	  nil
+	  (substitute-command-keys
+	   (concat "Current buffer is not remote.  "
+		   "Consider `\\[tramp-rename-files]' instead.")))
+       (setq target
+	     (when (null current-prefix-arg)
+	       ;; The source remote connection shall not trigger any action.
+	       ;; FIXME: Better error prompt when trying to access source host.
+	       (let* ((default (or (tramp-default-rename-file source) source))
+		      (dir (tramp-rename-read-file-name-dir default))
+		      (init (tramp-rename-read-file-name-init default))
+		      (tramp-ignored-file-name-regexp
+		       (regexp-quote (file-remote-p source))))
+		 (read-file-name-default
+		  (format "Change Tramp connection `%s': " source)
+		  dir default 'confirm init #'file-directory-p)))))
+     (list target)))
+
+  (tramp-rename-files default-directory target))
 
 ;; Tramp version is useful in a number of situations.
 
@@ -180,38 +474,38 @@ This includes password cache, file cache, connection cache, buffers."
 (defun tramp-bug ()
   "Submit a bug report to the Tramp developers."
   (interactive)
-  (catch 'dont-send
-    (let ((reporter-prompt-for-summary-p t)
-	  ;; In rare cases, it could contain the password.  So we make it nil.
-	  tramp-password-save-function)
-      (reporter-submit-bug-report
-       tramp-bug-report-address		; to-address
-       (format "tramp (%s)" tramp-version) ; package name and version
-       (sort
-	(delq nil (mapcar
-	  (lambda (x)
-	    (and x (boundp x) (cons x 'tramp-reporter-dump-variable)))
-	  (append
-	   (mapcar 'intern (all-completions "tramp-" obarray 'boundp))
-	   ;; Non-tramp variables of interest.
-	   '(shell-prompt-pattern
-	     backup-by-copying
-	     backup-by-copying-when-linked
-	     backup-by-copying-when-mismatch
-	     backup-by-copying-when-privileged-mismatch
-	     backup-directory-alist
-	     password-cache
-	     password-cache-expiry
-	     remote-file-name-inhibit-cache
-	     connection-local-profile-alist
-	     connection-local-criteria-alist
-	     file-name-handler-alist))))
-	(lambda (x y) (string< (symbol-name (car x)) (symbol-name (car y)))))
+  (let ((reporter-prompt-for-summary-p t)
+	;; In rare cases, it could contain the password.  So we make it nil.
+	tramp-password-save-function)
+    (reporter-submit-bug-report
+     tramp-bug-report-address	  ; to-address
+     (format "tramp (%s %s/%s)" ; package name and version
+	     tramp-version tramp-repository-branch tramp-repository-version)
+     (sort
+      (delq nil (mapcar
+	(lambda (x)
+	  (and x (boundp x) (cons x 'tramp-reporter-dump-variable)))
+	(append
+	 (mapcar #'intern (all-completions "tramp-" obarray #'boundp))
+	 ;; Non-tramp variables of interest.
+	 '(shell-prompt-pattern
+	   backup-by-copying
+	   backup-by-copying-when-linked
+	   backup-by-copying-when-mismatch
+	   backup-by-copying-when-privileged-mismatch
+	   backup-directory-alist
+	   password-cache
+	   password-cache-expiry
+	   remote-file-name-inhibit-cache
+	   connection-local-profile-alist
+	   connection-local-criteria-alist
+	   file-name-handler-alist))))
+      (lambda (x y) (string< (symbol-name (car x)) (symbol-name (car y)))))
 
-       'tramp-load-report-modules	; pre-hook
-       'tramp-append-tramp-buffers	; post-hook
-       (propertize
-	"\n" 'display "\
+     'tramp-load-report-modules	; pre-hook
+     'tramp-append-tramp-buffers	; post-hook
+     (propertize
+      "\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
 and what the local and remote machines are.
@@ -234,7 +528,7 @@ contents of the *tramp/foo* buffer and the *debug tramp/foo*
 buffer in your bug report.
 
 --bug report follows this line--
-")))))
+"))))
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM."
@@ -247,7 +541,7 @@ buffer in your bug report.
 	(set varsym (read (format "(%s)" (tramp-cache-print val))))
       ;; There are non-7bit characters to be masked.
       (when (and (stringp val)
-		 (string-match
+		 (string-match-p
 		  (concat "[^" (bound-and-true-p mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
 	  (set
@@ -263,10 +557,11 @@ buffer in your bug report.
       ;; Remove string quotation.
       (forward-line -1)
       (when (looking-at
-	     (concat "\\(^.*\\)" "\""                       ;; \1 "
-		     "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
-		     "\\(\".*\\)" "\\\\"                    ;; \3 \
-		     "\\(\")\\)" "\"$"))                    ;; \4 "
+	     (eval-when-compile
+	       (concat "\\(^.*\\)" "\""                       ;; \1 "
+		       "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
+		       "\\(\".*\\)" "\\\\"                    ;; \3 \
+		       "\\(\")\\)" "\"$")))                   ;; \4 "
 	(replace-match "\\1\\2\\3\\4")
 	(beginning-of-line)
 	(insert " ;; Variable encoded due to non-printable characters.\n"))
@@ -291,7 +586,7 @@ buffer in your bug report.
 	   (delq nil
 		 (mapcar
 		  (lambda (b)
-                    (when (string-match "\\*tramp/" (buffer-name b)) b))
+                    (when (string-match-p "\\*tramp/" (buffer-name b)) b))
 		  (buffer-list))))
     (let ((reporter-eval-buffer buffer)
 	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
@@ -305,11 +600,11 @@ buffer in your bug report.
 	     (sort
 	      (append
 	       (mapcar
-		'intern
+		#'intern
 		(all-completions "tramp-" (buffer-local-variables buffer)))
 	       ;; Non-tramp variables of interest.
 	       '(connection-local-variables-alist default-directory))
-	      'string<))
+	      #'string<))
 	    (reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
 	(insert ")\n"))
@@ -319,7 +614,7 @@ buffer in your bug report.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
     (mapc
-     (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+     (lambda (x) (when (string-match-p "tramp" x) (insert x "\n")))
      (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
@@ -364,30 +659,23 @@ the debug buffer(s).")
 	(setq buffer-read-only t)
 	(goto-char (point-min))
 
-	(if (y-or-n-p "Do you want to append the buffer(s)? ")
-	    ;; OK, let's send.  First we delete the buffer list.
-	    (progn
-	      (kill-buffer nil)
-	      (switch-to-buffer curbuf)
-	      (goto-char (point-max))
-	      (insert (propertize "\n" 'display "\n\
+	(when (y-or-n-p "Do you want to append the buffer(s)? ")
+	  ;; OK, let's send.  First we delete the buffer list.
+	  (kill-buffer nil)
+	  (switch-to-buffer curbuf)
+	  (goto-char (point-max))
+	  (insert (propertize "\n" 'display "\n\
 This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
 please ensure that the buffers are attached to your email.\n\n"))
-	      (dolist (buffer buffer-list)
-		(mml-insert-empty-tag
-		 'part 'type "text/plain"
-		 'encoding "base64" 'disposition "attachment" 'buffer buffer
-		 'description buffer))
-	      (set-buffer-modified-p nil))
+	  (dolist (buffer buffer-list)
+	    (mml-insert-empty-tag
+	     'part 'type "text/plain"
+	     'encoding "base64" 'disposition "attachment" 'buffer buffer
+	     'description buffer))
+	  (set-buffer-modified-p nil))))))
 
-	  ;; Don't send.  Delete the message buffer.
-	  (set-buffer curbuf)
-	  (set-buffer-modified-p nil)
-	  (kill-buffer nil)
-	  (throw 'dont-send nil))))))
-
-(defalias 'tramp-submit-bug 'tramp-bug)
+(defalias 'tramp-submit-bug #'tramp-bug)
 
 (add-hook 'tramp-unload-hook
 	  (lambda () (unload-feature 'tramp-cmds 'force)))
@@ -397,11 +685,6 @@ please ensure that the buffers are attached to your email.\n\n"))
 ;;; TODO:
 
 ;; * Clean up unused *tramp/foo* buffers after a while.  (Pete Forman)
-;;
-;; * WIBNI there was an interactive command prompting for Tramp
-;;   method, hostname, username and filename and translates the user
-;;   input into the correct filename syntax (depending on the Emacs
-;;   flavor)  (Reiner Steib)
 ;;
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.

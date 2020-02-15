@@ -1,9 +1,9 @@
 ;;; cal-iso.el --- calendar functions for the ISO calendar
 
-;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: ISO calendar, calendar, diary
 ;; Package: calendar
@@ -129,9 +129,12 @@ Interactively, goes to the first day of the specified week."
                        (calendar-iso-to-absolute date)))
   (or noecho (calendar-iso-print-date)))
 
-(defvar date)
+;; The function below is designed to be used from sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-iso-date ()
   "ISO calendar equivalent of date diary entry."

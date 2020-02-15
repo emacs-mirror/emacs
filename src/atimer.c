@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -28,7 +27,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_TIMERFD
 #include <errno.h>
-# include <sys/timerfd.h>
+#include <sys/timerfd.h>
+# ifdef CYGWIN
+# include <sys/utsname.h>
+# endif
 #endif
 
 #ifdef MSDOS
@@ -557,13 +559,28 @@ Return t if all self-tests are passed, nil otherwise.  */)
 
 #endif /* ENABLE_CHECKING */
 
+/* Cygwin has the timerfd interface starting with release 3.0.0, but
+   it is buggy until release 3.0.2. */
+#ifdef HAVE_TIMERFD
+static bool
+have_buggy_timerfd (void)
+{
+# ifdef CYGWIN
+  struct utsname name;
+  return uname (&name) < 0 || strverscmp (name.release, "3.0.2") < 0;
+# else
+  return false;
+# endif
+}
+#endif
+
 void
 init_atimer (void)
 {
 #ifdef HAVE_ITIMERSPEC
 # ifdef HAVE_TIMERFD
   /* Until this feature is considered stable, you can ask to not use it.  */
-  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") ? -1 :
+  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") || have_buggy_timerfd () ? -1 :
 	     timerfd_create (CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC));
 # endif
   if (timerfd < 0)
@@ -584,6 +601,7 @@ init_atimer (void)
   sigaction (SIGALRM, &action, 0);
 
 #ifdef ENABLE_CHECKING
-  defsubr (&Sdebug_timer_check);
+  if (!initialized)
+    defsubr (&Sdebug_timer_check);
 #endif
 }

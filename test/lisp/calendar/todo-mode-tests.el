@@ -1,6 +1,6 @@
 ;;; todo-mode-tests.el --- tests for todo-mode.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Author: Stephen Berman <stephen.berman@gmx.net>
 ;; Keywords: calendar
@@ -572,7 +572,7 @@ for todo-insert-item for use in automatic testing."
              (lambda (_prompt) item))
             ((symbol-function 'read-number) ; For todo-set-item-priority
              (lambda (_prompt &optional _default) (or priority 1))))
-    (todo-insert-item--basic)))
+    (todo-insert-item--basic nil diary-type date-type time where)))
 
 (ert-deftest todo-test-toggle-item-header07 () ; bug#27609
   "Test display of hidden item header under todo-insert-item."

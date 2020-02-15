@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2015-2018 Free Software Foundation, Inc.
+# Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 # Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -51,17 +51,18 @@ case "$3" in
 	SOURCE="";;
     CZYBORRA)
 	BASE="$BASE.gz";
-	SOURCE="http://czyborra.com/charsets/${BASE}";;
+	SOURCE="https://czyborra.com/charsets/${BASE}";;
     IANA)
-	SOURCE="http://www.iana.org/assignments/charset-reg/${BASE}";;
+	SOURCE="https://www.iana.org/assignments/charset-reg/${BASE}";;
     UNICODE)
-	SOURCE="http://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/${BASE}";;
+	SOURCE="https://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/${BASE}";;
     UNICODE2)
-	SOURCE="http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/${BASE}";;
+	SOURCE="https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/${BASE}";;
     YASUOKA)
 	BASE="$BASE.Z";
 	SOURCE="http://kanji.zinbun.kyoto-u.ac.jp/~yasuoka/ftp/CJKtable/${BASE}";;
     KANJI-DATABASE)
+	# FIXME: This URL no longer works.
 	SOURCE="http://kanji-database.cvs.sourceforge.net/viewvc/*checkout*/kanji-database/kanji-database/data/cns2ucsdkw.txt?revision=1.4";;
     *)
 	printf 'Unknown file type: %s\n' "$3"

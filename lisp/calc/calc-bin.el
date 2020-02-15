@@ -1,6 +1,6 @@
 ;;; calc-bin.el --- binary functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -27,17 +27,6 @@
 
 (require 'calc-ext)
 (require 'calc-macs)
-
-;;; Some useful numbers
-(defconst math-bignum-logb-digit-size
-  (logb math-bignum-digit-size)
-  "The logb of the size of a bignum digit.
-This is the largest value of B such that 2^B is less than
-the size of a Calc bignum digit.")
-
-(defconst math-bignum-digit-power-of-two
-  (expt 2 (logb math-bignum-digit-size))
-  "The largest power of 2 less than the size of a Calc bignum digit.")
 
 ;;; b-prefix binary commands.
 
@@ -268,18 +257,14 @@ the size of a Calc bignum digit.")
 	 (math-reject-arg a 'integerp))
 	((not (Math-num-integerp b))
 	 (math-reject-arg b 'integerp))
-	(t (math-clip (cons 'bigpos
-			    (math-and-bignum (math-binary-arg a w)
-					     (math-binary-arg b w)))
-		      w))))
+	(t (math-clip (logand (math-binary-arg a w) (math-binary-arg b w)) w))))
 
 (defun math-binary-arg (a w)
   (if (not (Math-integerp a))
       (setq a (math-trunc a)))
-  (if (Math-integer-negp a)
-      (math-not-bignum (cdr (math-bignum-test (math-sub -1 a)))
-		       (math-abs (if w (math-trunc w) calc-word-size)))
-    (cdr (Math-bignum-test a))))
+  (if (< a 0)
+      (logand a (1- (ash 1 (if w (math-trunc w) calc-word-size))))
+    a))
 
 (defun math-binary-modulo-args (f a b w)
   (let (mod)
@@ -310,15 +295,6 @@ the size of a Calc bignum digit.")
 		       (funcall f a w))
 		     mod))))
 
-(defun math-and-bignum (a b)   ; [l l l]
-  (and a b
-       (let ((qa (math-div-bignum-digit a math-bignum-digit-power-of-two))
-	     (qb (math-div-bignum-digit b math-bignum-digit-power-of-two)))
-	 (math-mul-bignum-digit (math-and-bignum (math-norm-bignum (car qa))
-						  (math-norm-bignum (car qb)))
-				 math-bignum-digit-power-of-two
-				 (logand (cdr qa) (cdr qb))))))
-
 (defun calcFunc-or (a b &optional w)   ; [I I I] [Public]
   (cond ((Math-messy-integerp w)
 	 (calcFunc-or a b (math-trunc w)))
@@ -332,19 +308,7 @@ the size of a Calc bignum digit.")
 	 (math-reject-arg a 'integerp))
 	((not (Math-num-integerp b))
 	 (math-reject-arg b 'integerp))
-	(t (math-clip (cons 'bigpos
-			    (math-or-bignum (math-binary-arg a w)
-					    (math-binary-arg b w)))
-		      w))))
-
-(defun math-or-bignum (a b)   ; [l l l]
-  (and (or a b)
-       (let ((qa (math-div-bignum-digit a math-bignum-digit-power-of-two))
-	     (qb (math-div-bignum-digit b math-bignum-digit-power-of-two)))
-	 (math-mul-bignum-digit (math-or-bignum (math-norm-bignum (car qa))
-						 (math-norm-bignum (car qb)))
-				 math-bignum-digit-power-of-two
-				 (logior (cdr qa) (cdr qb))))))
+	(t (math-clip (logior (math-binary-arg a w) (math-binary-arg b w)) w))))
 
 (defun calcFunc-xor (a b &optional w)   ; [I I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -359,19 +323,7 @@ the size of a Calc bignum digit.")
 	 (math-reject-arg a 'integerp))
 	((not (Math-num-integerp b))
 	 (math-reject-arg b 'integerp))
-	(t (math-clip (cons 'bigpos
-			    (math-xor-bignum (math-binary-arg a w)
-					     (math-binary-arg b w)))
-		      w))))
-
-(defun math-xor-bignum (a b)   ; [l l l]
-  (and (or a b)
-       (let ((qa (math-div-bignum-digit a math-bignum-digit-power-of-two))
-	     (qb (math-div-bignum-digit b math-bignum-digit-power-of-two)))
-	 (math-mul-bignum-digit (math-xor-bignum (math-norm-bignum (car qa))
-						  (math-norm-bignum (car qb)))
-				 math-bignum-digit-power-of-two
-				 (logxor (cdr qa) (cdr qb))))))
+	(t (math-clip (logxor (math-binary-arg a w) (math-binary-arg b w)) w))))
 
 (defun calcFunc-diff (a b &optional w)   ; [I I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -386,19 +338,9 @@ the size of a Calc bignum digit.")
 	 (math-reject-arg a 'integerp))
 	((not (Math-num-integerp b))
 	 (math-reject-arg b 'integerp))
-	(t (math-clip (cons 'bigpos
-			    (math-diff-bignum (math-binary-arg a w)
-					      (math-binary-arg b w)))
-		      w))))
-
-(defun math-diff-bignum (a b)   ; [l l l]
-  (and a
-       (let ((qa (math-div-bignum-digit a math-bignum-digit-power-of-two))
-	     (qb (math-div-bignum-digit b math-bignum-digit-power-of-two)))
-	 (math-mul-bignum-digit (math-diff-bignum (math-norm-bignum (car qa))
-						   (math-norm-bignum (car qb)))
-				 math-bignum-digit-power-of-two
-				 (logand (cdr qa) (lognot (cdr qb)))))))
+	(t (math-clip (logand (math-binary-arg a w)
+                              (lognot (math-binary-arg b w)))
+                      w))))
 
 (defun calcFunc-not (a &optional w)   ; [I I] [Public]
   (cond ((Math-messy-integerp w)
@@ -411,21 +353,7 @@ the size of a Calc bignum digit.")
 	 (math-reject-arg a 'integerp))
 	((< (or w (setq w calc-word-size)) 0)
 	 (math-clip (calcFunc-not a (- w)) w))
-	(t (math-normalize
-	    (cons 'bigpos
-		  (math-not-bignum (math-binary-arg a w)
-				   w))))))
-
-(defun math-not-bignum (a w)   ; [l l]
-  (let ((q (math-div-bignum-digit a math-bignum-digit-power-of-two)))
-    (if (<= w math-bignum-logb-digit-size)
-	(list (logand (lognot (cdr q))
-		      (1- (ash 1 w))))
-      (math-mul-bignum-digit (math-not-bignum (math-norm-bignum (car q))
-					       (- w math-bignum-logb-digit-size))
-			      math-bignum-digit-power-of-two
-			      (logxor (cdr q)
-                                      (1- math-bignum-digit-power-of-two))))))
+	(t (math-clip (lognot (math-binary-arg a w)) w))))
 
 (defun calcFunc-lsh (a &optional n w)   ; [I I] [Public]
   (setq a (math-trunc a)
@@ -525,28 +453,11 @@ the size of a Calc bignum digit.")
 	     a
 	   (math-sub a (math-power-of-2 (- w)))))
 	((Math-negp a)
-	 (math-normalize (cons 'bigpos (math-binary-arg a w))))
-	((and (integerp a) (< a math-small-integer-size))
-	 (if (> w (logb math-small-integer-size))
-	     a
-	   (logand a (1- (ash 1 w)))))
-	(t
-	 (math-normalize
-	  (cons 'bigpos
-		(math-clip-bignum (cdr (math-bignum-test (math-trunc a)))
-				  w))))))
+	 (math-binary-arg a w))
+	((integerp a)
+	 (logand a (1- (ash 1 w))))))
 
 (defalias 'calcFunc-clip 'math-clip)
-
-(defun math-clip-bignum (a w)   ; [l l]
-  (let ((q (math-div-bignum-digit a math-bignum-digit-power-of-two)))
-    (if (<= w math-bignum-logb-digit-size)
-	(list (logand (cdr q)
-		      (1- (ash 1 w))))
-      (math-mul-bignum-digit (math-clip-bignum (math-norm-bignum (car q))
-						(- w math-bignum-logb-digit-size))
-			      math-bignum-digit-power-of-two
-			      (cdr q)))))
 
 (defvar math-max-digits-cache nil)
 (defun math-compute-max-digits (w r)
@@ -595,60 +506,9 @@ the size of a Calc bignum digit.")
 	      a (/ a calc-number-radix)))
       s)))
 
-(defconst math-binary-digits ["000" "001" "010" "011"
-			      "100" "101" "110" "111"])
 (defun math-format-binary (a)   ; [X S]
-  (if (< a 8)
-      (if (< a 0)
-	  (concat "-" (math-format-binary (- a)))
-	(math-format-radix a))
-    (let ((s ""))
-      (while (> a 7)
-	(setq s (concat (aref math-binary-digits (% a 8)) s)
-	      a (/ a 8)))
-      (concat (math-format-radix a) s))))
-
-(defun math-format-bignum-radix (a)   ; [X L]
-  (cond ((null a) "0")
-	((and (null (cdr a))
-	      (< (car a) calc-number-radix))
-	 (math-format-radix-digit (car a)))
-	(t
-	 (let ((q (math-div-bignum-digit a calc-number-radix)))
-	   (concat (math-format-bignum-radix (math-norm-bignum (car q)))
-		   (math-format-radix-digit (cdr q)))))))
-
-(defun math-format-bignum-binary (a)   ; [X L]
-  (cond ((null a) "0")
-	((null (cdr a))
-	 (math-format-binary (car a)))
-	(t
-	 (let ((q (math-div-bignum-digit a 512)))
-	   (concat (math-format-bignum-binary (math-norm-bignum (car q)))
-		   (aref math-binary-digits (/ (cdr q) 64))
-		   (aref math-binary-digits (% (/ (cdr q) 8) 8))
-		   (aref math-binary-digits (% (cdr q) 8)))))))
-
-(defun math-format-bignum-octal (a)   ; [X L]
-  (cond ((null a) "0")
-	((null (cdr a))
-	 (math-format-radix (car a)))
-	(t
-	 (let ((q (math-div-bignum-digit a 512)))
-	   (concat (math-format-bignum-octal (math-norm-bignum (car q)))
-		   (math-format-radix-digit (/ (cdr q) 64))
-		   (math-format-radix-digit (% (/ (cdr q) 8) 8))
-		   (math-format-radix-digit (% (cdr q) 8)))))))
-
-(defun math-format-bignum-hex (a)   ; [X L]
-  (cond ((null a) "0")
-	((null (cdr a))
-	 (math-format-radix (car a)))
-	(t
-	 (let ((q (math-div-bignum-digit a 256)))
-	   (concat (math-format-bignum-hex (math-norm-bignum (car q)))
-		   (math-format-radix-digit (/ (cdr q) 16))
-		   (math-format-radix-digit (% (cdr q) 16)))))))
+  (let ((calc-number-radix 2))
+    (math-format-radix a)))
 
 ;;; Decompose into integer and fractional parts, without depending
 ;;; on calc-internal-prec.
@@ -665,7 +525,7 @@ the size of a Calc bignum digit.")
 	(list (math-scale-rounding (nth 1 a) (nth 2 a))
 	      '(float 0 0) 0)))))
 
-(defun math-format-radix-float (a prec)
+(defun math-format-radix-float (a _prec)
   (let ((fmt (car calc-float-format))
 	(figs (nth 1 calc-float-format))
 	(point calc-point-char)
@@ -823,20 +683,14 @@ the size of a Calc bignum digit.")
 (defun math-format-twos-complement (a)
   "Format an integer in two's complement mode."
   (let* (;(calc-leading-zeros t)
-         (overflow nil)
-         (negative nil)
          (num
           (cond
            ((or (eq a 0)
-                (and (Math-integer-posp a)))
-            (if (integerp a)
-                (math-format-radix a)
-              (math-format-bignum-radix (cdr a))))
+                (Math-integer-posp a))
+            (math-format-radix a))
            ((Math-integer-negp a)
             (let ((newa (math-add a math-2-word-size)))
-              (if (integerp newa)
-                  (math-format-radix newa)
-                (math-format-bignum-radix (cdr newa))))))))
+              (math-format-radix newa))))))
     (let* ((calc-internal-prec 6)
            (digs (math-compute-max-digits (math-abs calc-word-size)
                                           calc-number-radix))

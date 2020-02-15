@@ -1,8 +1,8 @@
 ;;; srecode/texi.el --- Srecode texinfo support.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -156,7 +156,7 @@ Adds the following:
       (error "No tag to insert for :texitag template argument"))
 
     ;; Extract the tag out of the compound object.
-    (setq tag (oref tag :prime))
+    (setq tag (oref tag prime))
 
     ;; Extract the doc string
     (setq doc (semantic-documentation-for-tag tag))

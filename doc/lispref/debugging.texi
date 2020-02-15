@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1994, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Debugging
@@ -457,6 +457,9 @@ Collapse the top-level Lisp form at point back to a single line.
 @item #
 Toggle @code{print-circle} for the frame at point.
 
+@item :
+Toggle @code{print-gensym} for the frame at point.
+
 @item .
 Expand all the forms abbreviated with ``...'' in the frame at point.
 
@@ -849,9 +852,10 @@ parenthesis or missing open parenthesis, but does not say where the
 missing parenthesis belongs.  How, then, to find what to change?
 
   If the problem is not simply an imbalance of parentheses, a useful
-technique is to try @kbd{C-M-e} at the beginning of each defun, and see
-if it goes to the place where that defun appears to end.  If it does
-not, there is a problem in that defun.
+technique is to try @kbd{C-M-e} (@code{end-of-defun}, @pxref{Moving by
+Defuns,,,emacs, The GNU Emacs Manual}) at the beginning of each defun,
+and see if it goes to the place where that defun appears to end.  If
+it does not, there is a problem in that defun.
 
 @cindex unbalanced parentheses
 @cindex parenthesis mismatch, debugging
@@ -871,29 +875,32 @@ find the mismatch.)
 
   The first step is to find the defun that is unbalanced.  If there is
 an excess open parenthesis, the way to do this is to go to the end of
-the file and type @kbd{C-u C-M-u}.  This will move you to the
-beginning of the first defun that is unbalanced.
+the file and type @kbd{C-u C-M-u} (@code{backward-up-list},
+@pxref{Moving by Parens,,,emacs, The GNU Emacs Manual}).  This will
+move you to the beginning of the first defun that is unbalanced.
 
   The next step is to determine precisely what is wrong.  There is no
 way to be sure of this except by studying the program, but often the
 existing indentation is a clue to where the parentheses should have
 been.  The easiest way to use this clue is to reindent with @kbd{C-M-q}
-and see what moves.  @strong{But don't do this yet!}  Keep reading,
-first.
+(@code{indent-pp-sexp}, @pxref{Multi-line Indent,,,emacs, The GNU
+Emacs Manual}) and see what moves.  @strong{But don't do this yet!}
+Keep reading, first.
 
   Before you do this, make sure the defun has enough close parentheses.
 Otherwise, @kbd{C-M-q} will get an error, or will reindent all the rest
 of the file until the end.  So move to the end of the defun and insert a
-close parenthesis there.  Don't use @kbd{C-M-e} to move there, since
-that too will fail to work until the defun is balanced.
+close parenthesis there.  Don't use @kbd{C-M-e} (@code{end-of-defun}) to
+move there, since that too will fail to work until the defun is balanced.
 
   Now you can go to the beginning of the defun and type @kbd{C-M-q}.
 Usually all the lines from a certain point to the end of the function
 will shift to the right.  There is probably a missing close parenthesis,
 or a superfluous open parenthesis, near that point.  (However, don't
 assume this is true; study the code to make sure.)  Once you have found
-the discrepancy, undo the @kbd{C-M-q} with @kbd{C-_}, since the old
-indentation is probably appropriate to the intended parentheses.
+the discrepancy, undo the @kbd{C-M-q} with @kbd{C-_} (@code{undo}),
+since the old indentation is probably appropriate to the intended
+parentheses.
 
   After you think you have fixed the problem, use @kbd{C-M-q} again.  If
 the old indentation actually fit the intended nesting of parentheses,
@@ -905,21 +912,24 @@ anything.
 @cindex excess close parentheses
 
   To deal with an excess close parenthesis, first go to the beginning
-of the file, then type @kbd{C-u -1 C-M-u} to find the end of the first
-unbalanced defun.
+of the file, then type @kbd{C-u -1 C-M-u} (@code{backward-up-list}
+with an argument of @minus{}1) to find the end of the first unbalanced
+defun.
 
   Then find the actual matching close parenthesis by typing @kbd{C-M-f}
+(@code{forward-sexp}, @pxref{Expressions,,,emacs, The GNU Emacs Manual})
 at the beginning of that defun.  This will leave you somewhere short of
 the place where the defun ought to end.  It is possible that you will
 find a spurious close parenthesis in that vicinity.
 
   If you don't see a problem at that point, the next thing to do is to
-type @kbd{C-M-q} at the beginning of the defun.  A range of lines will
-probably shift left; if so, the missing open parenthesis or spurious
-close parenthesis is probably near the first of those lines.  (However,
-don't assume this is true; study the code to make sure.)  Once you have
-found the discrepancy, undo the @kbd{C-M-q} with @kbd{C-_}, since the
-old indentation is probably appropriate to the intended parentheses.
+type @kbd{C-M-q} (@code{indent-pp-sexp}) at the beginning of the defun.
+A range of lines will probably shift left; if so, the missing open
+parenthesis or spurious close parenthesis is probably near the first of
+those lines.  (However, don't assume this is true; study the code to
+make sure.)  Once you have found the discrepancy, undo the @kbd{C-M-q}
+with @kbd{C-_} (@code{undo}), since the old indentation is probably
+appropriate to the intended parentheses.
 
   After you think you have fixed the problem, use @kbd{C-M-q} again.  If
 the old indentation actually fits the intended nesting of parentheses,
@@ -1031,9 +1041,9 @@ functions written in Lisp, it cannot profile Emacs primitives.
 @cindex benchmarking
 You can measure the time it takes to evaluate individual Emacs Lisp
 forms using the @file{benchmark} library.  See the macros
-@code{benchmark-run} and @code{benchmark-run-compiled} in
-@file{benchmark.el}.  You can also use the @code{benchmark} command
-for timing forms interactively.
+@code{benchmark-run}, @code{benchmark-run-compiled} and
+@code{benchmark-progn} in @file{benchmark.el}.  You can also use the
+@code{benchmark} command for timing forms interactively.
 
 @c Not worth putting in the printed manual.
 @ifnottex

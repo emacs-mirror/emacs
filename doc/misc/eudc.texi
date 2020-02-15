@@ -14,7 +14,7 @@ This file documents EUDC version 1.40.0.
 EUDC is the Emacs Unified Directory Client, a common interface to
 directory servers and contact information.
 
-Copyright @copyright{} 1998, 2000--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1998, 2000--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -131,7 +131,7 @@ complement to the DAP itself.
 LDAP servers usually store (but are not limited to) information about
 people such as their name, phone number, email address, office
 location, etc@enddots{} More information about LDAP can be found at
-@url{http://www.openldap.org/}.
+@url{https://www.openldap.org/}.
 
 EUDC requires external support to access LDAP directory servers
 (@pxref{LDAP Configuration})
@@ -193,7 +193,7 @@ email composition buffers (@pxref{Inline Query Expansion})
 LDAP support is added by means of @file{ldap.el}, which is part of
 Emacs.  @file{ldap.el} needs an external program called
 @command{ldapsearch}, available as part of OpenLDAP
-(@url{http://www.openldap.org/}).  The configurations in this section
+(@url{https://www.openldap.org/}).  The configurations in this section
 were tested with OpenLDAP 2.4.23.
 
 Most servers use LDAP-over-SSL these days; the examples here reflect
@@ -606,7 +606,7 @@ function that will be passed the corresponding attribute values for
 display.
 @end defvar
 
-This variable has protocol-local definitions (see @pxref{Server/Protocol
+This variable has protocol-local definitions (@pxref{Server/Protocol
 Locals}).  For instance, it is defined as follows for LDAP:
 
 @lisp
@@ -714,7 +714,7 @@ name and the remaining words are all considered as surname constituents.
 @var{format}s are in fact not limited to EUDC attribute names, you can
 use server or protocol specific names in them.  It may be safer if you
 do so, to set the variable @code{eudc-inline-query-format} in a protocol
-or server local fashion (see @pxref{Server/Protocol Locals}).
+or server local fashion (@pxref{Server/Protocol Locals}).
 
 For instance you could use the following to match up to three words
 against the @code{cn} attribute of LDAP servers:

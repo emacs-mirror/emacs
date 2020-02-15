@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1993, 1995, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -158,7 +158,10 @@ If the purpose of a function is to tell you whether a certain
 condition is true or false, give the function a name that ends in
 @samp{p} (which stands for ``predicate'').  If the name is one word,
 add just @samp{p}; if the name is multiple words, add @samp{-p}.
-Examples are @code{framep} and @code{frame-live-p}.
+Examples are @code{framep} and @code{frame-live-p}.  We recommend to
+avoid using this @code{-p} suffix in boolean variable names, unless
+the variable is bound to a predicate function; instead, use a
+@code{-flag} suffix or names like @code{is-foo}.
 
 @item
 If the purpose of a variable is to store a single function, give it a
@@ -679,10 +682,15 @@ starting double-quote is not part of the string!
 @cindex curly quotes
 @cindex curved quotes
 When a documentation string refers to a Lisp symbol, write it as it
-would be printed (which usually means in lower case), surrounding
-it with curved single quotes (@t{‘} and @t{’}).  There are
-two exceptions: write @code{t} and @code{nil} without surrounding
-punctuation.  For example: @samp{CODE can be ‘lambda’, nil, or t}.
+would be printed (which usually means in lower case), surrounding it
+with curved single quotes (@t{‘..’}).  There are two exceptions: write
+@code{t} and @code{nil} without surrounding punctuation.  For example:
+
+@example
+ CODE can be ‘lambda’, nil, or t.
+@end example
+
+@noindent
 @xref{Quotation Marks,,, emacs, The GNU Emacs Manual}, for how to
 enter curved single quotes.
 
@@ -795,18 +803,6 @@ starting the sentence with lower-case ``t'', which could be somewhat
 distracting.
 
 @item
-If a line in a documentation string begins with an open-parenthesis,
-write a backslash before the open-parenthesis, like this:
-
-@example
-The argument FOO can be either a number
-\(a buffer position) or a string (a file name).
-@end example
-
-This prevents the open-parenthesis from being treated as the start of a
-defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
-
-@item
 Write documentation strings in the active voice, not the passive, and in
 the present tense, not the future.  For instance, use ``Return a list
 containing A and B.@:'' instead of ``A list containing A and B will be
@@ -841,6 +837,21 @@ The documentation string for a variable that is a yes-or-no flag should
 start with words such as ``Non-nil means'', to make it clear that
 all non-@code{nil} values are equivalent and indicate explicitly what
 @code{nil} and non-@code{nil} mean.
+
+@item
+If a line in a documentation string begins with an open-parenthesis,
+consider writing a backslash before the open-parenthesis, like this:
+
+@example
+The argument FOO can be either a number
+\(a buffer position) or a string (a file name).
+@end example
+
+This avoids a bug in Emacs versions older than 27.1, where the
+@samp{(} was treated as the start of a defun
+(@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
+If you do not anticipate anyone editing your code with older Emacs
+versions, there is no need for this work-around.
 @end itemize
 
 @node Comment Tips
@@ -911,13 +922,16 @@ is discouraged.
 When commenting out entire functions, use two semicolons.
 
 @item ;;;;
-Comments that start with four semicolons, @samp{;;;;}, should be aligned
-to the left margin and are used for headings of major sections of a
-program.  For example:
+Comments that start with four (or more) semicolons, @samp{;;;;},
+should be aligned to the left margin and are used for headings of
+major sections of a program.  For example:
 
 @smallexample
 ;;;; The kill ring
 @end smallexample
+
+If you wish to have sub-headings under these heading, use more
+semicolons to nest these sub-headings.
 @end table
 
 @noindent
@@ -942,7 +956,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2018 Your Name
+;; Copyright (C) 2010-2020 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
@@ -950,7 +964,7 @@ explains these conventions, starting with an example:
 ;; Created: 14 Jul 2010
 @group
 ;; Keywords: languages
-;; Homepage: http://example.com/foo
+;; URL: https://example.com/foo
 
 ;; This file is not part of GNU Emacs.
 
@@ -1008,7 +1022,7 @@ etc.).
 
 If there is no maintainer line, the person(s) in the Author field
 is/are presumed to be the maintainers.  Some files in Emacs use
-@samp{FSF} for the maintainer.  This means that the original author is
+@samp{emacs-devel@@gnu.org} for the maintainer, which means the author is
 no longer responsible for the file, and that it is maintained as part
 of Emacs.
 

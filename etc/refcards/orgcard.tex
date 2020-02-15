@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{9.1.9}
-\def\versionyear{2018}          % latest update
+\def\orgversionnumber{9.3}
+\def\versionyear{2019}          % latest update
 \input emacsver.tex
 
 %**start of header
@@ -17,7 +17,7 @@
 \pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
-% Copyright (C) 1987, 1993, 1996-1997, 2001-2018 Free Software
+% Copyright (C) 1987, 1993, 1996--1997, 2001--2020 Free Software
 % Foundation, Inc.
 
 % This document is free software: you can redistribute it and/or modify
@@ -60,8 +60,7 @@
 % dvips -t landscape refcard.dvi
 %
 % Author:
-%  Stephen Gildea
-%  Internet: gildea@stop.mail-abuse.org
+%  Stephen Gildea <stepheng+emacs@gildea.com>
 %
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
@@ -79,9 +78,6 @@
 
 \centerline{Released under the terms of the GNU General Public License}
 \centerline{version 3 or later.}
-
-\centerline{For more Emacs documentation, and the \TeX{} source for this card, see}
-\centerline{the Emacs distribution, or {\tt https://www.gnu.org/software/emacs}}
 
 \endgroup}
 
@@ -272,8 +268,10 @@
 \def\threecol#1#2#3{\hskip\keyindent\relax#1\hfil&\kbd{#2}\hfil\quad
   &\kbd{#3}\hfil\quad\cr}
 
-\def\noteone{{\small \hfill [1]}}
-\def\notetwo{{\small \hfill [2]}}
+%\def\noteone{{\small \hfill [1]}}
+%\def\notetwo{{\small \hfill [2]}}
+\def\noteone{{\small [1]}}
+\def\notetwo{{\small [2]}}
 
 
 %**end of header
@@ -293,6 +291,7 @@
 \key{restore property-dependent startup visibility}{C-u C-u TAB}
 \metax{show the whole file, including drawers}{C-u C-u C-u TAB}
 \key{reveal context around point}{C-c C-r}
+\metax{toggle indented view}{M-x org-indent-mode}
 
 \section{Motion}
 
@@ -459,7 +458,7 @@ formula, \kbd{:=} a field formula.
 \key{go to the next code block}{C-c C-v n}
 \key{go to the previous code block}{C-c C-v p}
 \key{demarcate a code block}{C-c C-v d}
-\key{execute the next key sequence in the code edit buffer}{C-c C-v x}
+\key{execute next key sequence in code edit buffer}{C-c C-v x}
 \key{execute all code blocks in current buffer}{C-c C-v b}
 \key{execute all code blocks in current subtree}{C-c C-v s}
 \key{tangle code blocks in current file}{C-c C-v t}
@@ -469,13 +468,14 @@ formula, \kbd{:=} a field formula.
 \key{load the current code block into a session}{C-c C-v l}
 \key{view sha1 hash of the current code block}{C-c C-v a}
 
-\section{Completion}
+\section{Completion and Template Insertion}
 
 In-buffer completion completes TODO keywords at headline start, TeX
 macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', TAGS
 after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{complete word at point}{M-TAB}
+\key{structure template (insert or wrap region)}{C-c C-,}
 
 
 \newcolumn
@@ -486,8 +486,8 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \section{TODO Items and Checkboxes}
 
 \key{rotate the state of the current item}{C-c C-t}
-\metax{select next/previous state}{S-LEFT/RIGHT}
-\metax{select next/previous set}{C-S-LEFT/RIGHT}
+\metax{select next/previous state}{\quad\quad S-LEFT/RIGHT}
+\metax{select next/previous set}{\quad\quad\quad C-S-LEFT/RIGHT}
 \key{toggle ORDERED property}{C-c C-x o}
 
 \key{view TODO items in a sparse tree}{C-c / t}
@@ -513,19 +513,19 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{set property/effort}{C-c C-x p/e}
 \key{special commands in property lines}{C-c C-c}
-\key{next/previous allowed value}{S-left/right}
+\key{next/previous allowed value}{S-LEFT/RIGHT}
 \key{turn on column view}{C-c C-x C-c}
 \key{capture columns view in dynamic block}{C-c C-x i}
 
 \key{quit column view}{q}
 \key{show full value}{v}
 \key{edit value}{e}
-\metax{next/previous allowed value}{n/p or S-left/right}
+\metax{next/previous allowed value}{n/p or S-LEFT/RIGHT}
 \key{edit allowed values list}{a}
 \key{make column wider/narrower}{> / <}
-\key{move column left/right}{M-left/right}
-\key{add new column}{M-S-right}
-\key{Delete current column}{M-S-left}
+\key{move column left/right}{M-LEFT/RIGHT}
+\key{add new column}{M-S-RIGHT}
+\key{Delete current column}{M-S-LEFT}
 
 
 \section{Timestamps}
@@ -537,8 +537,8 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{insert SCHEDULED timestamp}{C-c C-s}
 \key{create sparse tree with all deadlines due}{C-c / d}
 \key{the time between 2 dates in a time range}{C-c C-y}
-\metax{change timestamp at cursor $\pm 1$ day}{S-RIGHT/LEFT\notetwo}
-\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN\notetwo}
+\metax{change timestamp at cursor $\pm 1$ day}{\quad\quad\quad\quad S-RIGHT/LEFT \notetwo}
+\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN \notetwo}
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
@@ -666,8 +666,6 @@ some other place.
 
 \key{toggle fixed width for entry or region}{C-c :}
 \key{toggle pretty display of scripts, entities}{C-c C-x {\tt\char`\\}}
-
-{\bf Comments: Text not being exported}
 
 Lines starting with \kbd{\#} and subtrees starting with COMMENT are
 never exported.

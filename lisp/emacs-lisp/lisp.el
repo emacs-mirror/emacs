@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -60,8 +60,8 @@ Should take the same arguments and behave similarly to `forward-sexp'.")
 With ARG, do it that many times.  Negative arg -N means move
 backward across N balanced expressions.  This command assumes
 point is not in a string or comment.  Calls
-`forward-sexp-function' to do the work, if that is non-nil.  If
-unable to move over a sexp, signal `scan-error' with three
+`forward-sexp-function' to do the work, if that is non-nil.
+If unable to move over a sexp, signal `scan-error' with three
 arguments: a message, the start of the obstacle (usually a
 parenthesis or list marker of some kind), and end of the
 obstacle."
@@ -164,7 +164,7 @@ This command will also work on other parentheses-like expressions
 defined by the current language mode.  With ARG, do this that
 many times.  A negative argument means move backward but still to
 a less deep spot.  If ESCAPE-STRINGS is non-nil (as it is
-interactively), move out of enclosing strings as well. If
+interactively), move out of enclosing strings as well.  If
 NO-SYNTAX-CROSSING is non-nil (as it is interactively), prefer to
 break out of any enclosing string instead of moving to the start
 of a list broken across multiple strings.  On error, location of
@@ -370,8 +370,9 @@ is called as a function to find the defun's beginning."
 	  (arg-+ve (> arg 0)))
       (save-restriction
 	(widen)
-	(let ((ppss (let (syntax-begin-function)
-		      (syntax-ppss)))
+	(let ((ppss (with-suppressed-warnings ((obsolete syntax-begin-function))
+                      (let (syntax-begin-function)
+		        (syntax-ppss))))
 	      ;; position of least enclosing paren, or nil.
 	      encl-pos)
 	  ;; Back out of any comment/string, so that encl-pos will always
@@ -645,7 +646,7 @@ Interactively, the behavior depends on `narrow-to-defun-include-comments'."
       (re-search-backward "^\n" (- (point) 1) t)
       (narrow-to-region beg end))))
 
-(defvar insert-pair-alist
+(defcustom insert-pair-alist
   '((?\( ?\)) (?\[ ?\]) (?\{ ?\}) (?\< ?\>) (?\" ?\") (?\' ?\') (?\` ?\'))
   "Alist of paired characters inserted by `insert-pair'.
 Each element looks like (OPEN-CHAR CLOSE-CHAR) or (COMMAND-CHAR
@@ -655,7 +656,16 @@ or without modifiers, are inserted by `insert-pair'.
 
 If COMMAND-CHAR is specified, it is a character that triggers the
 insertion of the open/close pair, and COMMAND-CHAR itself isn't
-inserted.")
+inserted."
+  :type '(repeat (choice (list :tag "Pair"
+                               (character :tag "Open")
+                               (character :tag "Close"))
+                         (list :tag "Triple"
+                               (character :tag "Command")
+                               (character :tag "Open")
+                               (character :tag "Close"))))
+  :group 'lisp
+  :version "27.1")
 
 (defun insert-pair (&optional arg open close)
   "Enclose following ARG sexps in a pair of OPEN and CLOSE characters.

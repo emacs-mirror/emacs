@@ -1,8 +1,8 @@
 ;;; ede/srecode.el --- EDE utilities on top of SRecoder
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -75,7 +75,7 @@ updated in FORMS."
 TEMPLATE should specify a context by using a string format of:
   context:templatename
 Add DICTIONARY-ENTRIES into the dictionary before insertion.
-Note: Just like `srecode-insert', but templates found in 'ede app."
+Note: Just like `srecode-insert', but templates found in `ede' app."
   (require 'srecode/insert)
   (ede-srecode-insert-with-dictionary template
 

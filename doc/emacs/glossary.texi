@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Glossary
@@ -1359,6 +1359,15 @@ your buffers, unsaved edits, undo history, etc.  @xref{Exiting}.
 @item @key{TAB}
 @key{TAB} is the tab character.  In Emacs it is typically used for
 indentation or completion.
+
+@item Tab Bar
+The tab bar is a row of tabs at the top of an Emacs frame.
+Clicking on one of these tabs switches named persistent window
+configurations.  @xref{Tab Bars}.
+
+@item Tab Line
+The tab line is a line of tabs at the top of an Emacs window.
+Clicking on one of these tabs switches window buffers.
 
 @anchor{Glossary---Tags Table}
 @item Tags Table

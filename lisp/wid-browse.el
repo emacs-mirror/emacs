@@ -1,6 +1,6 @@
 ;;; wid-browse.el --- functions for browsing widgets
 ;;
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
@@ -89,7 +89,11 @@ if that value is non-nil."
 (defun widget-browse-at (pos)
   "Browse the widget under point."
   (interactive "d")
-  (let* ((field (get-char-property pos 'field))
+  (let* ((field (or
+                 ;; See comments in `widget-specify-field' to know why we
+                 ;; need this.
+                 (get-char-property pos 'real-field)
+                 (get-char-property pos 'field)))
 	 (button (get-char-property pos 'button))
 	 (doc (get-char-property pos 'widget-doc))
 	 (text (cond (field "This is an editable text area.")

@@ -1,6 +1,6 @@
 ;;; china-util.el --- utilities for Chinese  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -168,7 +168,7 @@ Return the length of resulting text."
 	      ;; ESC ESC -> ESC
 	      (delete-char 1)
 	    (forward-char -1)
-	    (if (looking-at iso2022-gb-designation)
+	    (if (looking-at "\e\\$A")
 		(progn
 		  (delete-region (match-beginning 0) (match-end 0))
 		  (insert hz-gb-designation)

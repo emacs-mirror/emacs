@@ -1,6 +1,6 @@
 ;;; rmc-tests.el --- Test suite for rmc.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
@@ -31,7 +31,7 @@
 
 (ert-deftest test-read-multiple-choice ()
   (dolist (char '(?y ?n))
-    (cl-letf* (((symbol-function #'read-char) (lambda () char))
+    (cl-letf* (((symbol-function #'read-event) (lambda () char))
                (str (if (eq char ?y) "yes" "no")))
       (should (equal (list char str)
                      (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))

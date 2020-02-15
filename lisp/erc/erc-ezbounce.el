@@ -1,9 +1,9 @@
 ;;; erc-ezbounce.el ---  Handle EZBounce bouncer commands
 
-;; Copyright (C) 2002, 2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -28,13 +28,13 @@
 (require 'erc)
 
 (defgroup erc-ezbounce nil
-  "Interface to the EZBounce IRC bouncer (a virtual IRC server)"
+  "Interface to the EZBounce IRC bouncer (a virtual IRC server)."
   :group 'erc)
 
 (defcustom erc-ezb-regexp "^ezbounce!srv$"
   "Regexp used by the EZBouncer to identify itself to the user."
   :group 'erc-ezbounce
-  :type 'string)
+  :type 'regexp)
 
 (defcustom erc-ezb-login-alist '()
   "Alist of logins suitable for the server we're connecting to.
@@ -77,7 +77,7 @@ The alist's format is as follows:
 ;;;###autoload
 (defun erc-ezb-get-login (server port)
   "Return an appropriate EZBounce login for SERVER and PORT.
-Look up entries in `erc-ezb-login-alist'. If the username or password
+Look up entries in `erc-ezb-login-alist'.  If the username or password
 in the alist is nil, prompt for the appropriate values."
   (let ((login (cdr (assoc (cons server port) erc-ezb-login-alist))))
     (when login

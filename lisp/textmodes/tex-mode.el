@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2018 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2020 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -251,7 +251,7 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
   :type 'boolean
   :group 'tex
   :version "23.1")
-(put 'tex-fontify-script 'safe-local-variable 'booleanp)
+(put 'tex-fontify-script 'safe-local-variable #'booleanp)
 
 (defcustom tex-font-script-display '(-0.2 0.2)
   "How much to lower and raise subscript and superscript content.
@@ -546,7 +546,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
         ;; Include args.
         (,(concat slash includes opt arg) 3 font-lock-builtin-face)
         ;; Verbatim-like args.
-        (,(concat slash verbish opt arg) 3 'tex-verbatim)
+        (,(concat slash verbish opt arg) 3 'tex-verbatim t)
         ;; Definitions.  I think.
         ("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face))))
@@ -601,9 +601,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
 	;;
 	;; Text between `` quotes ''.
-	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "«") t)
+	(cons (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
 		      "[^'\">{]+"	;a bit pessimistic
-		      (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
+		      (regexp-opt '("''" "\">" "\"'" ">>" "»") t))
 	      'font-lock-string-face)
 	;;
 	;; Command names, special and general.
@@ -670,7 +670,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defvar tex-verbatim-environments
   '("verbatim" "verbatim*"))
 (put 'tex-verbatim-environments 'safe-local-variable
-     (lambda (x) (null (delq t (mapcar #'stringp x)))))
+     (lambda (x) (not (memq nil (mapcar #'stringp x)))))
 
 (eval-when-compile
   (defconst tex-syntax-propertize-rules
@@ -729,7 +729,7 @@ automatically inserts its partner."
     (condition-case err
         (with-silent-modifications
           ;; Remove properties even if don't find a pair.
-          (remove-text-properties
+          (remove-list-of-text-properties
            (previous-single-property-change (1+ start) 'latex-env-pair)
            (next-single-property-change start 'latex-env-pair)
            '(latex-env-pair))
@@ -1139,6 +1139,7 @@ subshell is initiated, `tex-shell-hook' is run."
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
+  ;; For \pagebreak allow latex optional arg like \pagebreak[2]
   (setq paragraph-start
 	(concat "[ \t]*\\(\\$\\$\\|"
 		"\\\\[][]\\|"
@@ -1152,7 +1153,7 @@ subshell is initiated, `tex-shell-hook' is run."
 		"\\>\\|\\\\[a-z]*" (regexp-opt '("space" "skip" "page") t)
 		"\\>\\)"))
   (setq paragraph-separate
-	(concat "[\f%]\\|[ \t]*\\($\\|"
+	(concat "\\([ \t]*%\\)\\|[\f]\\|[ \t]*\\($\\|"
 		"\\\\[][]\\|"
 		"\\\\" (regexp-opt (append
 				    (mapcar #'car latex-section-alist)
@@ -1162,7 +1163,7 @@ subshell is initiated, `tex-shell-hook' is run."
 					      "noindent" "newpage" "footnote"
 					      "marginpar" "parbox" "caption"))
 		"\\|\\$\\$\\|[a-z]*\\(space\\|skip\\|page[a-z]*\\)"
-		"\\>\\)[ \t]*\\($\\|%\\)\\)"))
+		"\\>\\)[][0-9 \t]*\\($\\|%\\)\\)"))
   (setq-local imenu-create-index-function #'latex-imenu-create-index)
   (setq-local tex-face-alist tex-latex-face-alist)
   (add-hook 'fill-nobreak-predicate #'latex-fill-nobreak-predicate nil t)
@@ -1656,7 +1657,7 @@ Puts point on a blank line between them."
     (let ((pt (point)))
       (skip-chars-backward "^ {}\n\t\\\\")
       (pcase (char-before)
-        ((or `nil ?\s ?\n ?\t ?\}) nil)
+        ((or 'nil ?\s ?\n ?\t ?\}) nil)
         (?\\
          ;; TODO: Complete commands.
          nil)
@@ -2803,9 +2804,19 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defvar tex-indent-basic 2)
 (defvar tex-indent-item tex-indent-basic)
 (defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
-(defvar latex-noindent-environments '("document"))
-(put 'latex-noindent-environments 'safe-local-variable
-     (lambda (x) (null (delq t (mapcar #'stringp x)))))
+(defcustom latex-noindent-environments '("document")
+  "Environments whose content is not indented by `tex-indent-basic'."
+  :type '(repeat string)
+  :safe (lambda (x) (not (memq nil (mapcar #'stringp x))))
+  :group 'tex-file
+  :version "27.1")
+
+(defcustom latex-noindent-commands '("emph" "footnote")
+  "Commands for which `tex-indent-basic' should not be used."
+  :type '(repeat string)
+  :safe (lambda (x) (not (memq nil (mapcar #'stringp x))))
+  :group 'tex-file
+  :version "27.1")
 
 (defvar tex-latex-indent-syntax-table
   (let ((st (make-syntax-table tex-mode-syntax-table)))
@@ -2912,9 +2923,17 @@ There might be text before point."
 	       (current-column)
 	     ;; We're the first element after a hanging brace.
 	     (goto-char up-list-pos)
-	     (+ (if (and (looking-at "\\\\begin *{\\([^\n}]+\\)")
+	     (+ (if (if (eq (char-after) ?\{)
+                        (save-excursion
+                          (skip-chars-backward " \t")
+                          (let ((end (point)))
+                            (skip-chars-backward "a-zA-Z")
+                            (and (eq (char-before) ?\\)
+                                 (member (buffer-substring (point) end)
+                                         latex-noindent-commands))))
+                      (and (looking-at "\\\\begin *{\\([^\n}]+\\)")
 			 (member (match-string 1)
-				 latex-noindent-environments))
+				 latex-noindent-environments)))
 		    0 tex-indent-basic)
 		indent (latex-find-indent 'virtual))))
 	  ;; We're now at the "beginning" of a line.
@@ -2994,7 +3013,7 @@ There might be text before point."
 	      (mapcar
 	       (lambda (x)
 		 (pcase (car-safe x)
-		   (`font-lock-syntactic-face-function
+		   ('font-lock-syntactic-face-function
 		    (cons (car x) #'doctex-font-lock-syntactic-face-function))
 		   (_ x)))
 	       (cdr font-lock-defaults))))

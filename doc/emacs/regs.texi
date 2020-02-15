@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -154,7 +154,7 @@ during the collection process, you can use the following setting.
 @findex insert-register
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
 @var{r}.  Normally it leaves point after the text and sets the mark
-before, without activating it.  With a numeric argument, it instead
+before, without activating it.  With a prefix argument, it instead
 puts point before the text and the mark after.
 
 @node Rectangle Registers
@@ -170,7 +170,7 @@ in the buffer.
 @kindex C-x r r
 @item C-x r r @var{r}
 Copy the region-rectangle into register @var{r}
-(@code{copy-rectangle-to-register}).  With numeric argument, delete it as
+(@code{copy-rectangle-to-register}).  With prefix argument, delete it as
 well.
 @item C-x r i @var{r}
 Insert the rectangle stored in register @var{r} (if it contains a
@@ -358,6 +358,13 @@ saves bookmarks if you explicitly use @kbd{M-x bookmark-save}.
 @vindex bookmark-default-file
   The variable @code{bookmark-default-file} specifies the file in
 which to save bookmarks by default.
+
+@vindex bookmark-use-annotations
+@cindex bookmark annotations
+  If you set the variable @code{bookmark-use-annotations} to @code{t},
+setting a bookmark will query for an annotation.  If a bookmark has an
+annotation, it is automatically shown in a separate window when you
+jump to the bookmark.
 
 @vindex bookmark-search-size
   Bookmark position values are saved with surrounding context, so that

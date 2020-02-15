@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1997, 2000-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -485,7 +485,18 @@ absent, return nil."
   (lm-with-file file
     (let ((start (lm-commentary-start)))
       (when start
-        (buffer-substring-no-properties start (lm-commentary-end))))))
+        (replace-regexp-in-string       ; Get rid of...
+         "[[:blank:]]*$" ""             ; trailing white-space
+         (replace-regexp-in-string
+          (format "%s\\|%s\\|%s"
+                  ;; commentary header
+                  (concat "^;;;[[:blank:]]*\\("
+                          lm-commentary-header
+                          "\\):[[:blank:]\n]*")
+                  "^;;[[:blank:]]*"     ; double semicolon prefix
+                  "[[:blank:]\n]*\\'")  ; trailing new-lines
+          "" (buffer-substring-no-properties
+              start (lm-commentary-end))))))))
 
 (defun lm-homepage (&optional file)
   "Return the homepage in file FILE, or current buffer if FILE is nil."

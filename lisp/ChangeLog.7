@@ -8142,7 +8142,7 @@
 	implementation) so that `locate-library' can find compressed files.
 	(finder-commentary): Use it.
 
-1997-11-15  Hrvoje Niksic  <hniksic@srce.hr>
+1997-11-15  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* cus-edit.el (custom-face-save): Save the face.
 
@@ -9078,11 +9078,11 @@
 
 	* gnus.el: Gnus v5.4.60 is released.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-salt.el: Customized.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-salt.el (gnus-tree-show-summary): New function.
 	(gnus-tree-mode-map): Use it.
@@ -9098,7 +9098,7 @@
 
 	* gnus-sum.el (gnus-adjust-marked-articles): Improper lists.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-sum.el (gnus-summary-search-article): Inhibit updating tree
 	buffer.
@@ -9213,7 +9213,7 @@
 	* gnus-score.el (gnus-score-find-trace): Would bug out for
 	file-less rules.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-xmas.el (gnus-xmas-group-startup-message): Cleanup.
 
@@ -9264,7 +9264,7 @@
 	* gnus-art.el (gnus-header-button-alist): Check for URLs in the
 	Subject.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-xmas.el: Cleanup.
 
@@ -9715,7 +9715,7 @@
 	* gnus-art.el (gnus-read-save-file-name): Expand file name i save
 	dir.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-art.el (gnus-signature-face): New face; use it.
 
@@ -9724,12 +9724,12 @@
 	* gnus-picon.el (gnus-picons-insert-face-if-exists): Add picons to
 	list.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* message.el (message-font-lock-keywords): Be a little bit more
 	case-insensitive.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* message.el (message-insert-to): New argument FORCE.
 
@@ -9748,7 +9748,7 @@
 
 	* gnus-ems.el: appt, not appt.el.
 
-1997-10-21  Hrvoje Niksic  <hniksic@srce.hr>
+1997-10-21  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* gnus-xmas.el (gnus-xmas-summary-set-display-table): Don't nix
 	out in Latin1.
@@ -10150,7 +10150,7 @@
 	* vc-hooks.el (vc-find-cvs-master): Add missing `throw' for
 	the case when TIMESTAMP is arbitrary text.
 
-1997-09-30  Hrvoje Niksic  <hniksic@srce.hr>
+1997-09-30  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* wid-edit.el (widget-plist-member): Move from here to src/fns.c;
 	translated into C for efficiency.
@@ -10386,7 +10386,7 @@
 
 	* international/mule-util.el (truncate-string-to-width): Doc typo fix.
 
-1997-09-14  Hrvoje Niksic  <hniksic@srce.hr>
+1997-09-14  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* arc-mode.el: Customized.
 
@@ -12376,7 +12376,7 @@
 	when turning on Encoded-kbd mode, and recover it when turning off
 	Encoded-kbd mode.  Set encoded-kbd-iso2022-designations correctly.
 	(encoded-kbd-self-insert-iso2022-7bit): Call charset-dimension
-	instead fo charset-bytes.
+	instead of charset-bytes.
 	(encoded-kbd-self-insert-iso2022-8bit): Likewise.
 
 	* language/china-util.el (setup-chinese-gb-environment): Do not
@@ -17073,7 +17073,7 @@
 	* server.el (server-kill-buffer): Prevent infinite recursion.
 	(server-kill-buffer-running): New variable.
 
-1997-05-28  Hrvoje Niksic  <hniksic@srce.hr>
+1997-05-28  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* dired-aux.el: Customize.
 
@@ -17104,8 +17104,8 @@
 	the rewrite of `hs-inside-comment-p'.
 	(hs-inside-comment-p): Rewritten from scratch.  Semantics changed
 	when returning non-nil.  We can be inside a comment, but that
-	comment might not be hidable (the car of the return value should
-	be non-nil to be hidable).
+	comment might not be hideable (the car of the return value should
+	be non-nil to be hideable).
 	(hs-grok-mode-type): Rewrite to be more understandable.
 	`hs-c-end-regexp' does not exist any more.
 	Initialize `hs-c-start-regexp' from the alist if specified there.
@@ -17117,7 +17117,7 @@
 	block, go to their end and look there for the overlays.
 	(java-hs-adjust-block-beginning): New function.
 	(hs-hide-all): Hide a comment block only if `hs-inside-comment-p'
-	says is hidable.
+	says is hideable.
 	(hs-hide-block): Simplify.  Handle properly the result of
 	`hs-inside-comment-p'.
 	(hs-show-block): Likewise.
@@ -17337,7 +17337,7 @@
 
 	* libc.el: New file.
 
-1997-05-22  Hrvoje Niksic  <hniksic@srce.hr>
+1997-05-22  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* terminal.el: Use defgroup and defcustom.
 	* dired.el, dired-x.el: Likewise.
@@ -18220,7 +18220,7 @@
 
 	* vc.el: Doc fixes.
 
-1997-05-05  Hrvoje Niksic  <hniksic@srce.hr>
+1997-05-05  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* time.el, gud.el, metamail.el, simple.el: Customize.
 	* window.el, frame.el, menu-bar.el, lisp.el, fill.el: Customize.
@@ -18316,7 +18316,7 @@
 
 	* ispell.el (ispell-dictionary-alist-2): Specify syntax of ' in Danish.
 
-1997-05-02  Hrvoje Niksic  <hniksic@srce.hr>
+1997-05-02  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* calendar.el: Customize.
 	* appt.el, cal-china.el, cal-tex.el, diary-lib.el, solar.el: Likewise.
@@ -18926,7 +18926,7 @@
 
 	* sh-script.el (sh-while-getopts): Don't add menu-enable property.
 
-1997-04-15  Hrvoje Niksic  <hniksic@srce.hr>
+1997-04-15  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* saveplace.el: Add defgroup; use defcustom for user vars.
 	* pascal.el, supercite.el: Likewise.
@@ -19021,7 +19021,7 @@
 	* dired.el (dired-noselect): Avoid calling file-directory-p
 	when the initial argument was syntactically a directory name.
 
-1997-04-13  Hrvoje Niksic  <hniksic@srce.hr>
+1997-04-13  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* time-stamp.el: Add defgroup; use defcustom for user vars.
 	* eldoc.el: Likewise.
@@ -19214,7 +19214,7 @@
 	* Makefile (finder-inf.el, autoloads): New targets.
 	(cus-load.el): Minor simplification.
 
-1997-04-11  Hrvoje Niksic  <hniksic@srce.hr>
+1997-04-11  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* add-log.el, avoid.el, bookmark.el, cl-indent.el, cmacexp.el:
 	* comint.el, completion.el, dabbrev.el, desktop.el, edebug.el:
@@ -19291,7 +19291,7 @@
 
 	* cal-islam.el (diary-islamic-date): Use `date'.
 
-1997-04-10  Hrvoje Niksic  <hniksic@srce.hr>
+1997-04-10  Hrvoje Nikšić  <hniksic@srce.hr>
 
 	* ispell.el: Use defcustom for user variables.
 
@@ -23110,7 +23110,7 @@ See ChangeLog.6 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1997-1998, 2001-2018 Free Software Foundation,
+	Copyright (C) 1997-1998, 2001-2020 Free Software Foundation,
 	Inc.
 
   This file is part of GNU Emacs.

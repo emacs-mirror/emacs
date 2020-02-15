@@ -1,6 +1,6 @@
 ;;; generator.el --- generators  -*- lexical-binding: t -*-
 
-;;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords: extensions, elisp
@@ -123,7 +123,7 @@ to the current stack of such wrappers.  WRAPPER is a function that
 takes a form and returns a wrapped form.
 
 Whenever we generate an atomic form (i.e., a form that can't
-iter-yield), we first (before actually inserting that form in our
+`iter-yield'), we first (before actually inserting that form in our
 generated code) pass that form through all the transformer
 functions.  We use this facility to wrap forms that can transfer
 control flow non-locally in goo that diverts this control flow to
@@ -155,7 +155,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
 (defun cps--add-state (kind body)
   "Create a new CPS state with body BODY and return the state's name."
   (declare (indent 1))
-  (let* ((state (cps--gensym "cps-state-%s-" kind)))
+  (let ((state (cps--gensym "cps-state-%s-" kind)))
     (push (list state body cps--cleanup-function) cps--states)
     (push state cps--bindings)
     state))
@@ -170,7 +170,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
     (and (fboundp handler) handler)))
 
 (defvar cps-inhibit-atomic-optimization nil
-  "When t, always rewrite forms into cps even when they
+  "When non-nil, always rewrite forms into cps even when they
 don't yield.")
 
 (defvar cps--yield-seen)
@@ -213,8 +213,8 @@ don't yield.")
 
     ;; Process `and'.
 
-    (`(and)                             ; (and) -> t
-      (cps--transform-1 t next-state))
+    ('(and)                             ; (and) -> t
+     (cps--transform-1 t next-state))
     (`(and ,condition)                  ; (and CONDITION) -> CONDITION
       (cps--transform-1 condition next-state))
     (`(and ,condition . ,rest)
@@ -246,8 +246,8 @@ don't yield.")
     ;; Process `cond': transform into `if' or `or' depending on the
     ;; precise kind of the condition we're looking at.
 
-    (`(cond)                            ; (cond) -> nil
-      (cps--transform-1 nil next-state))
+    ('(cond)                            ; (cond) -> nil
+     (cps--transform-1 nil next-state))
     (`(cond (,condition) . ,rest)
       (cps--transform-1 `(or ,condition (cond ,@rest))
                         next-state))
@@ -281,14 +281,14 @@ don't yield.")
     ;; Process `progn' and `inline': they are identical except for the
     ;; name, which has some significance to the byte compiler.
 
-    (`(inline) (cps--transform-1 nil next-state))
+    ('(inline) (cps--transform-1 nil next-state))
     (`(inline ,form) (cps--transform-1 form next-state))
     (`(inline ,form . ,rest)
       (cps--transform-1 form
                         (cps--transform-1 `(inline ,@rest)
                                           next-state)))
 
-    (`(progn) (cps--transform-1 nil next-state))
+    ('(progn) (cps--transform-1 nil next-state))
     (`(progn ,form) (cps--transform-1 form next-state))
     (`(progn ,form . ,rest)
       (cps--transform-1 form
@@ -345,7 +345,7 @@ don't yield.")
 
     ;; Process `or'.
 
-    (`(or) (cps--transform-1 nil next-state))
+    ('(or) (cps--transform-1 nil next-state))
     (`(or ,condition) (cps--transform-1 condition next-state))
     (`(or ,condition . ,rest)
       (cps--transform-1
@@ -373,13 +373,6 @@ don't yield.")
                     (cps--add-state "prog1inner"
                       `(setf ,cps--value-symbol ,temp-var-symbol
                              ,cps--state-symbol ,next-state))))))))
-
-    ;; Process `prog2'.
-
-    (`(prog2 ,form1 ,form2 . ,body)
-      (cps--transform-1
-       `(progn ,form1 (prog1 ,form2 ,@body))
-       next-state))
 
     ;; Process `unwind-protect': If we're inside an unwind-protect, we
     ;; have a block of code UNWINDFORMS which we would like to run
@@ -548,7 +541,7 @@ don't yield.")
 
 (defun cps--replace-variable-references (var new-var form)
   "Replace all non-shadowed references to VAR with NEW-VAR in FORM.
-This routine does not modify FORM. Instead, it returns a
+This routine does not modify FORM.  Instead, it returns a
 modified copy."
   (macroexpand-all
    `(cl-symbol-macrolet ((,var ,new-var)) ,form)
@@ -646,11 +639,11 @@ modified copy."
                          ,(cps--make-close-iterator-form terminal-state)))))
                   (t (error "unknown iterator operation %S" op))))))
          ,(when finalizer-symbol
-                `(funcall iterator
-                          :stash-finalizer
-                          (make-finalizer
-                           (lambda ()
-                             (iter-close iterator)))))
+            '(funcall iterator
+                      :stash-finalizer
+                      (make-finalizer
+                       (lambda ()
+                         (iter-close iterator)))))
          iterator))))
 
 (defun iter-yield (value)
@@ -722,7 +715,7 @@ iterator cannot supply more values."
 
 (defun iter-close (iterator)
   "Terminate an iterator early.
-Run any unwind-protect handlers in scope at the point  ITERATOR
+Run any unwind-protect handlers in scope at the point ITERATOR
 is blocked."
   (funcall iterator :close nil))
 
@@ -767,7 +760,7 @@ Return the value with which ITERATOR finished iteration."
        (cps--advance-for ,cs))))
 
 (defun cps--handle-loop-for (var)
-  "Support `iter-by' in `loop'.  "
+  "Support `iter-by' in `loop'."
   ;; N.B. While the cl-loop-for-handler is a documented interface,
   ;; there's no documented way for cl-loop-for-handler callbacks to do
   ;; anything useful!  Additionally, cl-loop currently lexbinds useful

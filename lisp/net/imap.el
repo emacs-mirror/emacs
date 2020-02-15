@@ -1,6 +1,6 @@
 ;;; imap.el --- imap library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
@@ -454,8 +454,8 @@ sure of changing the value of `foo'."
 
 (defmacro imap-disable-multibyte ()
   "Enable multibyte in the current buffer."
-  (unless (featurep 'xemacs)
-    '(set-buffer-multibyte nil)))
+  (declare (obsolete nil "27.1"))
+  '(set-buffer-multibyte nil))
 
 (defsubst imap-utf7-encode (string)
   (if imap-use-utf7
@@ -495,7 +495,7 @@ sure of changing the value of `foo'."
 (defun imap-log (string-or-buffer)
   (when imap-log
     (with-current-buffer (get-buffer-create imap-log-buffer)
-      (imap-disable-multibyte)
+      (set-buffer-multibyte nil)
       (buffer-disable-undo)
       (goto-char (point-max))
       (if (bufferp string-or-buffer)
@@ -904,10 +904,8 @@ t if it successfully authenticates, nil otherwise."
 (declare-function sasl-step-set-data  "sasl" (step data))
 
 (defun imap-sasl-auth-p (buffer)
-  (and (condition-case ()
-	   (require 'sasl)
-	 (error nil))
-       (sasl-find-mechanism (imap-sasl-make-mechanisms buffer))))
+  (require 'sasl)
+  (sasl-find-mechanism (imap-sasl-make-mechanisms buffer)))
 
 (defun imap-sasl-auth (buffer)
   "Login to server using the SASL method."
@@ -1021,7 +1019,7 @@ necessary.  If nil, the buffer name is generated."
     (if (imap-opened buffer)
 	(imap-close buffer))
     (mapc 'make-local-variable imap-local-variables)
-    (imap-disable-multibyte)
+    (set-buffer-multibyte nil)
     (buffer-disable-undo)
     (setq imap-server (or server imap-server))
     (setq imap-port (or port imap-port))
@@ -1044,7 +1042,7 @@ necessary.  If nil, the buffer name is generated."
 		  (with-current-buffer (get-buffer-create
 					(generate-new-buffer-name " *temp*"))
 		    (mapc 'make-local-variable imap-local-variables)
-		    (imap-disable-multibyte)
+		    (set-buffer-multibyte nil)
 		    (buffer-disable-undo)
 		    (setq imap-server (or server imap-server))
 		    (setq imap-port (or port imap-port))
@@ -1672,8 +1670,9 @@ non-nil, return these properties."
   "Return t if FLAG can be permanently saved on articles.
 MAILBOX specifies a mailbox on the server in BUFFER."
   (with-current-buffer (or buffer (current-buffer))
-    (or (member "\\*" (imap-mailbox-get 'permanentflags mailbox))
-	(member flag (imap-mailbox-get 'permanentflags mailbox)))))
+    (and (or (member "\\*" (imap-mailbox-get 'permanentflags mailbox))
+	     (member flag (imap-mailbox-get 'permanentflags mailbox)))
+         t)))
 
 (defun imap-message-flags-set (articles flags &optional silent buffer)
   (when (and articles flags)
@@ -1918,18 +1917,14 @@ on failure."
 	  (unless (< len 10)
 	    (setq imap-have-messaged t)
 	    (message "imap read: %dk" len))
-	  (accept-process-output imap-process
-				 (truncate imap-read-timeout)
-				 (truncate (* (- imap-read-timeout
-						 (truncate imap-read-timeout))
-					      1000)))))
+	  (accept-process-output imap-process imap-read-timeout)))
       ;; A process can die _before_ we have processed everything it
       ;; has to say.  Moreover, this can happen in between the call to
       ;; accept-process-output and the call to process-status in an
       ;; iteration of the loop above.
       (when (and (null imap-continuation)
 		 (< imap-reached-tag tag))
-	(accept-process-output imap-process 0 0))
+	(accept-process-output imap-process 0))
       (when imap-have-messaged
 	(message ""))
       (and (memq (process-status imap-process) '(open run))
@@ -2076,23 +2071,23 @@ Return nil if no complete line has arrived."
 ;;                      addr-host ")"
 ;;
 ;;   addr-adl        = nstring
-;;                       ; Holds route from [RFC-822] route-addr if
+;;                       ; Holds route from [RFC-822 (or later)] route-addr if
 ;;                       ; non-nil
 ;;
 ;;   addr-host       = nstring
-;;                       ; nil indicates [RFC-822] group syntax.
-;;                       ; Otherwise, holds [RFC-822] domain name
+;;                       ; nil indicates [RFC-822 (or later)] group syntax.
+;;                       ; Otherwise, holds [RFC-822 (or later)] domain name
 ;;
 ;;   addr-mailbox    = nstring
-;;                       ; nil indicates end of [RFC-822] group; if
+;;                       ; nil indicates end of [RFC-822 (or later)] group; if
 ;;                       ; non-nil and addr-host is nil, holds
-;;                       ; [RFC-822] group name.
-;;                       ; Otherwise, holds [RFC-822] local-part
-;;                       ; after removing [RFC-822] quoting
+;;                       ; [RFC-822 (or later)] group name.
+;;                       ; Otherwise, holds [RFC-822 (or later)] local-part
+;;                       ; after removing [RFC-822 (or later)] quoting
 ;;
 ;;   addr-name       = nstring
-;;                       ; If non-nil, holds phrase from [RFC-822]
-;;                       ; mailbox after removing [RFC-822] quoting
+;;                       ; If non-nil, holds phrase from [RFC-822 (or later)]
+;;                       ; mailbox after removing [RFC-822 (or later)] quoting
 ;;
 
 (defsubst imap-parse-address ()

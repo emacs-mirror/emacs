@@ -1,6 +1,6 @@
 ;;; pgg.el --- glue for the various PGP implementations.
 
-;; Copyright (C) 1999-2000, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
@@ -572,7 +572,7 @@ within the region."
   (with-current-buffer (get-buffer-create pgg-output-buffer)
     (buffer-disable-undo)
     (erase-buffer)
-    (let ((proto (if (string-match "^[a-zA-Z\\+\\.\\\\-]+:" keyserver)
+    (let ((proto (if (string-match "^[a-zA-Z\\+.-]+:" keyserver)
 		     (substring keyserver 0 (1- (match-end 0))))))
       (save-excursion
 	(funcall pgg-insert-url-function

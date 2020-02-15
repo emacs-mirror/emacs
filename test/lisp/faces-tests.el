@@ -1,6 +1,6 @@
 ;;; faces-tests.el --- Tests for faces.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Keywords:
@@ -23,6 +23,11 @@
 (require 'ert)
 (require 'faces)
 
+(defvar faces--test-data-dir
+  (expand-file-name "../data/"
+                    (file-name-directory (or load-file-name
+                                             buffer-file-name))))
+
 (defgroup faces--test nil ""
   :group 'faces--test)
 
@@ -33,6 +38,26 @@
 
 (defface faces--test2
   '((t :box 1))
+  ""
+  :group 'faces--test)
+
+(defface faces--test-extend
+  '((t :extend t :background "blue"))
+  ""
+  :group 'faces--test)
+
+(defface faces--test-no-extend
+  '((t :extend nil :background "blue"))
+  ""
+  :group 'faces--test)
+
+(defface faces--test-inherit-extend
+  '((t :inherit (faces--test-extend faces--test2) :background "blue"))
+  ""
+  :group 'faces--test)
+
+(defface faces--test-inherit-no-extend
+  '((t :inherit (faces--test2 faces--test-no-extend) :background "blue"))
   ""
   :group 'faces--test)
 
@@ -59,6 +84,141 @@
     (goto-char 6)
     (should (equal (background-color-at-point) "black"))
     (should (equal (foreground-color-at-point) "black"))))
+
+(ert-deftest faces--test-face-id ()
+  ;; Face ID of 0 is the 'default' face; no face should have the same ID.
+  (should (> (face-id 'faces--test1) 0))
+  ;; 'tooltip' is the last face defined by preloaded packages, so any
+  ;; face we define in Emacs should have a face ID greater than that,
+  ;; since the ID of a face is just its index in the array that maps
+  ;; face IDs to faces.
+  (should (> (face-id 'faces--test1) (face-id 'tooltip))))
+
+(ert-deftest faces--test-extend ()
+  (should (equal (face-attribute 'faces--test-extend :extend) t))
+  (should (equal (face-attribute 'faces--test-no-extend :extend) nil))
+  (should (equal (face-attribute 'faces--test1 :extend) 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend nil t) t))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend nil t)
+                 nil))
+  )
+
+(ert-deftest faces--test-extend-with-themes ()
+  (defface spiff-changed-face
+    '((t :extend t :weight bold))
+    "")
+  (defface spiff-added
+    '((t :background "grey"))
+    "")
+  (defface spiff-file-header-face
+    '((t :extend nil :foreground "cyan"))
+    "")
+  (should (equal (face-attribute 'spiff-changed-face :extend) t))
+  (should (equal (face-attribute 'spiff-added :extend) 'unspecified))
+  (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
+  (add-to-list 'custom-theme-load-path (concat faces--test-data-dir "themes"))
+  (load-theme 'faces-test-dark t t)
+  (load-theme 'faces-test-light t t)
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend nil t) t))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend nil t)
+                 nil))
+  (should (equal (face-attribute 'spiff-changed-face :extend) t))
+  (should (equal (face-attribute 'spiff-added :extend) 'unspecified))
+  (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
+  (enable-theme 'faces-test-dark)
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend nil t) t))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend nil t)
+                 nil))
+  (should (equal (face-attribute 'spiff-changed-face :extend) t))
+  (should (equal (face-attribute 'spiff-added :extend) t))
+  (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
+  (defface faces--test-face3
+    '((t :inherit spiff-added :weight bold))
+    "")
+  (should (equal (face-attribute 'faces--test-face3 :extend nil t) t))
+  (disable-theme 'faces-test-dark)
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend nil t) t))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend nil t)
+                 nil))
+  (should (equal (face-attribute 'spiff-changed-face :extend) t))
+  (should (equal (face-attribute 'spiff-added :extend) 'unspecified))
+  (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
+  (should (equal (face-attribute 'faces--test-face3 :extend nil t) 'unspecified))
+  (defface spiff-indicator-changed
+    '((t (:weight bold :extend t)))
+    "")
+  (enable-theme 'faces-test-light)
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend nil t) t))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend nil t)
+                 nil))
+  (should (equal (face-attribute 'spiff-changed-face :extend) t))
+  (should (equal (face-attribute 'spiff-added :extend) t))
+  (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
+  (should (equal (face-attribute 'spiff-indicator-changed :extend) t))
+  (should (equal (face-attribute 'faces--test-face3 :extend nil t) t))
+  (frame-set-background-mode (selected-frame) 'dark)
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-extend :extend nil t) t))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend)
+                 'unspecified))
+  (should (equal (face-attribute 'faces--test-inherit-no-extend :extend nil t)
+                 nil))
+  (should (equal (face-attribute 'spiff-changed-face :extend) t))
+  (should (equal (face-attribute 'spiff-added :extend) t))
+  (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
+  (should (equal (face-attribute 'spiff-indicator-changed :extend) t))
+  (should (equal (face-attribute 'faces--test-face3 :extend nil t) t))
+  (or noninteractive
+      (let ((fr (make-frame)))
+        (should (equal (face-attribute 'faces--test-inherit-extend :extend fr)
+                       'unspecified))
+        (should (equal (face-attribute 'faces--test-inherit-extend :extend fr t)
+                       t))
+        (should (equal (face-attribute 'faces--test-inherit-no-extend
+                                       :extend fr)
+                       'unspecified))
+        (should (equal (face-attribute 'faces--test-inherit-no-extend
+                                       :extend fr t)
+                       nil))
+        (should (equal (face-attribute 'spiff-changed-face :extend fr) t))
+        (should (equal (face-attribute 'spiff-added :extend fr) t))
+        (should (equal (face-attribute 'spiff-file-header-face :extend fr) nil))
+        (should (equal (face-attribute 'spiff-indicator-changed :extend fr) t))
+        (should (equal (face-attribute 'faces--test-face3 :extend nil t) t))
+        ))
+  (disable-theme 'faces-test-light)
+  (should (equal (face-attribute 'spiff-indicator-changed :extend) t))
+  (should (equal (face-attribute 'faces--test-face3 :extend nil t) 'unspecified))
+  (or noninteractive
+      (let ((fr (make-frame)))
+        (should (equal (face-attribute 'spiff-changed-face :extend fr) t))
+        (should (equal (face-attribute 'spiff-added :extend fr) 'unspecified))
+        (should (equal (face-attribute 'spiff-file-header-face :extend fr) nil))
+        (should (equal (face-attribute 'spiff-indicator-changed :extend fr) t))
+        (should (equal (face-attribute 'faces--test-face3 :extend nil t) 'unspecified))
+        ))
+  )
 
 (provide 'faces-tests)
 ;;; faces-tests.el ends here

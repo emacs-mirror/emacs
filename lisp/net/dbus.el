@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -24,7 +24,7 @@
 
 ;; This package provides language bindings for the D-Bus API.  D-Bus
 ;; is a message bus system, a simple way for applications to talk to
-;; one another.  See <http://dbus.freedesktop.org/> for details.
+;; one another.  See <https://dbus.freedesktop.org/> for details.
 
 ;; Low-level language bindings are implemented in src/dbusbind.c.
 
@@ -72,7 +72,7 @@
 
 (defconst dbus-interface-peer (concat dbus-interface-dbus ".Peer")
   "The interface for peer objects.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-peer'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-peer'.")
 
 ;; <interface name="org.freedesktop.DBus.Peer">
 ;;   <method name="Ping">
@@ -85,7 +85,7 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 (defconst dbus-interface-introspectable
   (concat dbus-interface-dbus ".Introspectable")
   "The interface supported by introspectable objects.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-introspectable'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-introspectable'.")
 
 ;; <interface name="org.freedesktop.DBus.Introspectable">
 ;;   <method name="Introspect">
@@ -95,7 +95,7 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 
 (defconst dbus-interface-properties (concat dbus-interface-dbus ".Properties")
   "The interface for property objects.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties'.")
 
 ;; <interface name="org.freedesktop.DBus.Properties">
 ;;   <method name="Get">
@@ -122,7 +122,7 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 (defconst dbus-interface-objectmanager
   (concat dbus-interface-dbus ".ObjectManager")
   "The object manager interface.
-See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager'.")
+See URL `https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager'.")
 
 ;; <interface name="org.freedesktop.DBus.ObjectManager">
 ;;   <method name="GetManagedObjects">
@@ -493,7 +493,7 @@ This is an internal function, it shall not be used outside dbus.el."
 ;;; Hash table of registered functions.
 
 (defun dbus-list-hash-table ()
-  "Returns all registered member registrations to D-Bus.
+  "Return all registered member registrations to D-Bus.
 The return value is a list, with elements of kind (KEY . VALUE).
 See `dbus-registered-objects-table' for a description of the
 hash table."
@@ -888,7 +888,7 @@ association to the service from D-Bus."
 ;;; D-Bus type conversion.
 
 (defun dbus-string-to-byte-array (string)
-  "Transforms STRING to list (:array :byte c1 :byte c2 ...).
+  "Transform STRING to list (:array :byte c1 :byte c2 ...).
 STRING shall be UTF8 coded."
   (if (zerop (length string))
       '(:array :signature "y")
@@ -897,7 +897,7 @@ STRING shall be UTF8 coded."
 	(setq result (append result (list :byte elt)))))))
 
 (defun dbus-byte-array-to-string (byte-array &optional multibyte)
-  "Transforms BYTE-ARRAY into UTF8 coded string.
+  "Transform BYTE-ARRAY into UTF8 coded string.
 BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte
 array as produced by `dbus-string-to-byte-array'.  The resulting
 string is unibyte encoded, unless MULTIBYTE is non-nil."
@@ -947,7 +947,7 @@ STRING must have been encoded with `dbus-escape-as-identifier'."
 ;;; D-Bus events.
 
 (defun dbus-check-event (event)
-  "Checks whether EVENT is a well formed D-Bus event.
+  "Check whether EVENT is a well formed D-Bus event.
 EVENT is a list which starts with symbol `dbus-event':
 
   (dbus-event BUS TYPE SERIAL SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
@@ -1319,7 +1319,7 @@ SERVICE is a service of D-Bus BUS at object path PATH."
       (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-property (bus service path interface property)
-  "This function returns PROPERTY of INTERFACE as XML object.
+  "Return PROPERTY of INTERFACE as XML object.
 It must be located at SERVICE in D-Bus BUS at object path PATH.
 PROPERTY must be a string, element of the list returned by
 `dbus-introspect-get-property-names'.  The resulting PROPERTY

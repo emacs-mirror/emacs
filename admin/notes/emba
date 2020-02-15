@@ -1,0 +1,64 @@
+-*- mode: outline; coding: utf-8 -*-
+
+Copyright (C) 2019-2020 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+NOTES FOR EMACS CONTINUOUS BUILD ON EMBA
+
+A continuous build for Emacs can be found at
+<https://emba.gnu.org/emacs/emacs>, a Gitlab instance.  It watches the
+Emacs git repository and starts a pipeline (jobset) if there are new
+changes.  This happens for all Emacs branches.
+
+* Mail notifications
+
+In addition to the web interface, emba can send notifications by email
+when a job fails.  It sends notifications about test status to
+<emacs-buildstatus@gnu.org>.
+
+If you want to receive these notifications, please subscribe at
+<https://lists.gnu.org/mailman/listinfo/emacs-buildstatus>.
+
+Alternatively, these notifications can be read via gmane at
+<nntp+news.gmane.org:gmane.emacs.buildstatus>.
+
+The messages contain a URL to the log file of the failed job, like
+<https://emba.gnu.org/emacs/emacs/-/jobs/739/raw>.
+
+* Emacs jobset
+
+The Emacs jobset is defined in the Emacs source tree, file
+'.gitlab-ci.yml'.  It could be adapted for every Emacs branch, see
+<https://emba.gnu.org/help/ci/yaml/README.md>.
+
+Every job runs in a Debian docker container.  It uses the local clone
+of the Emacs git repository to perform a bootstrap and test of Emacs.
+This could happen for several jobs with changed configuration, compile
+and test parameters.
+
+* Emba configuration
+
+The emba configuration files are hosted on
+<https://gitlab.com/emacs-ci/emba-ansible>.
+
+* Identifying emba
+
+Lisp packages, Makefiles, scripts, and other software could determine
+whether they run on emba by checking for the environment variable
+EMACS_EMBA_CI.
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

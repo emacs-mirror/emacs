@@ -1,6 +1,6 @@
 /* Big numbers for Emacs.
 
-Copyright 2018 Free Software Foundation, Inc.
+Copyright 2018-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,9 +31,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    storage is exhausted.  Admittedly this is not ideal.  An mpz value
    in a temporary is made permanent by mpz_swapping it with a bignum's
    value.  Although typically at most two temporaries are needed,
-   time_arith, rounddiv_q and rounding_driver each need four.  */
+   rounddiv_q and rounding_driver both need four and time_arith needs
+   five.  */
 
-mpz_t mpz[4];
+mpz_t mpz[5];
 
 static void *
 xrealloc_for_gmp (void *ptr, size_t ignore, size_t size)
@@ -62,7 +63,7 @@ init_bignum (void)
 double
 bignum_to_double (Lisp_Object n)
 {
-  return mpz_get_d_rounded (XBIGNUM (n)->value);
+  return mpz_get_d_rounded (*xbignum_val (n));
 }
 
 /* Return D, converted to a Lisp integer.  Discard any fraction.
@@ -82,12 +83,15 @@ static Lisp_Object
 make_bignum_bits (size_t bits)
 {
   /* The documentation says integer-width should be nonnegative, so
-     a single comparison suffices even though 'bits' is unsigned.  */
-  if (integer_width < bits)
+     comparing it to BITS works even though BITS is unsigned.  Treat
+     integer-width as if it were at least twice the machine integer width,
+     so that timefns.c can safely use bignums for double-precision
+     timestamps.  */
+  if (integer_width < bits && 2 * max (INTMAX_WIDTH, UINTMAX_WIDTH) < bits)
     overflow_error ();
 
-  struct Lisp_Bignum *b = ALLOCATE_PSEUDOVECTOR (struct Lisp_Bignum, value,
-						 PVEC_BIGNUM);
+  struct Lisp_Bignum *b = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Bignum,
+						       PVEC_BIGNUM);
   mpz_init (b->value);
   mpz_swap (b->value, mpz[0]);
   return make_lisp_ptr (b, Lisp_Vectorlike);
@@ -260,18 +264,96 @@ intmax_t
 bignum_to_intmax (Lisp_Object x)
 {
   intmax_t i;
-  return mpz_to_intmax (XBIGNUM (x)->value, &i) ? i : 0;
+  return mpz_to_intmax (*xbignum_val (x), &i) ? i : 0;
 }
 uintmax_t
 bignum_to_uintmax (Lisp_Object x)
 {
   uintmax_t i;
-  return mpz_to_uintmax (XBIGNUM (x)->value, &i) ? i : 0;
+  return mpz_to_uintmax (*xbignum_val (x), &i) ? i : 0;
 }
+
+
+/* Multiply and exponentiate mpz_t values without aborting due to size
+   limits.  */
+
+/* GMP tests for this value and aborts (!) if it is exceeded.
+   This is as of GMP 6.1.2 (2016); perhaps future versions will differ.  */
+enum { GMP_NLIMBS_MAX = min (INT_MAX, ULONG_MAX / GMP_NUMB_BITS) };
+
+/* An upper bound on limb counts, needed to prevent libgmp and/or
+   Emacs from aborting or otherwise misbehaving.  This bound applies
+   to estimates of mpz_t sizes before the mpz_t objects are created,
+   as opposed to integer-width which operates on mpz_t values after
+   creation and before conversion to Lisp bignums.  */
+enum
+  {
+   NLIMBS_LIMIT = min (min (/* libgmp needs to store limb counts.  */
+			    GMP_NLIMBS_MAX,
+
+			    /* Size calculations need to work.  */
+			    min (PTRDIFF_MAX, SIZE_MAX) / sizeof (mp_limb_t)),
+
+		       /* Emacs puts bit counts into fixnums.  */
+		       MOST_POSITIVE_FIXNUM / GMP_NUMB_BITS)
+  };
+
+/* Like mpz_size, but tell the compiler the result is a nonnegative int.  */
+
+static int
+emacs_mpz_size (mpz_t const op)
+{
+  mp_size_t size = mpz_size (op);
+  eassume (0 <= size && size <= INT_MAX);
+  return size;
+}
+
+/* Wrappers to work around GMP limitations.  As of GMP 6.1.2 (2016),
+   the library code aborts when a number is too large.  These wrappers
+   avoid the problem for functions that can return numbers much larger
+   than their arguments.  For slowly-growing numbers, the integer
+   width checks in bignum.c should suffice.  */
+
+void
+emacs_mpz_mul (mpz_t rop, mpz_t const op1, mpz_t const op2)
+{
+  if (NLIMBS_LIMIT - emacs_mpz_size (op1) < emacs_mpz_size (op2))
+    overflow_error ();
+  mpz_mul (rop, op1, op2);
+}
+
+void
+emacs_mpz_mul_2exp (mpz_t rop, mpz_t const op1, EMACS_INT op2)
+{
+  /* Fudge factor derived from GMP 6.1.2, to avoid an abort in
+     mpz_mul_2exp (look for the '+ 1' in its source code).  */
+  enum { mul_2exp_extra_limbs = 1 };
+  enum { lim = min (NLIMBS_LIMIT, GMP_NLIMBS_MAX - mul_2exp_extra_limbs) };
+
+  EMACS_INT op2limbs = op2 / GMP_NUMB_BITS;
+  if (lim - emacs_mpz_size (op1) < op2limbs)
+    overflow_error ();
+  mpz_mul_2exp (rop, op1, op2);
+}
+
+void
+emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
+{
+  /* This fudge factor is derived from GMP 6.1.2, to avoid an abort in
+     mpz_n_pow_ui (look for the '5' in its source code).  */
+  enum { pow_ui_extra_limbs = 5 };
+  enum { lim = min (NLIMBS_LIMIT, GMP_NLIMBS_MAX - pow_ui_extra_limbs) };
+
+  int nbase = emacs_mpz_size (base), n;
+  if (INT_MULTIPLY_WRAPV (nbase, exp, &n) || lim < n)
+    overflow_error ();
+  mpz_pow_ui (rop, base, exp);
+}
+
 
 /* Yield an upper bound on the buffer size needed to contain a C
    string representing the NUM in base BASE.  This includes any
-   preceding '-' and the terminating null.  */
+   preceding '-' and the terminating NUL.  */
 static ptrdiff_t
 mpz_bufsize (mpz_t const num, int base)
 {
@@ -280,7 +362,7 @@ mpz_bufsize (mpz_t const num, int base)
 ptrdiff_t
 bignum_bufsize (Lisp_Object num, int base)
 {
-  return mpz_bufsize (XBIGNUM (num)->value, base);
+  return mpz_bufsize (*xbignum_val (num), base);
 }
 
 /* Convert NUM to a nearest double, as opposed to mpz_get_d which
@@ -314,7 +396,7 @@ ptrdiff_t
 bignum_to_c_string (char *buf, ptrdiff_t size, Lisp_Object num, int base)
 {
   eassert (bignum_bufsize (num, abs (base)) == size);
-  mpz_get_str (buf, base, XBIGNUM (num)->value);
+  mpz_get_str (buf, base, *xbignum_val (num));
   ptrdiff_t n = size - 2;
   return !buf[n - 1] ? n - 1 : n + !!buf[n];
 }
@@ -336,14 +418,14 @@ bignum_to_string (Lisp_Object num, int base)
 
 /* Create a bignum by scanning NUM, with digits in BASE.
    NUM must consist of an optional '-', a nonempty sequence
-   of base-BASE digits, and a terminating null byte, and
+   of base-BASE digits, and a terminating NUL byte, and
    the represented number must not be in fixnum range.  */
 
 Lisp_Object
 make_bignum_str (char const *num, int base)
 {
-  struct Lisp_Bignum *b = ALLOCATE_PSEUDOVECTOR (struct Lisp_Bignum, value,
-						 PVEC_BIGNUM);
+  struct Lisp_Bignum *b = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Bignum,
+						       PVEC_BIGNUM);
   mpz_init (b->value);
   int check = mpz_set_str (b->value, num, base);
   eassert (check == 0);

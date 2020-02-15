@@ -1,9 +1,9 @@
 ;;; cal-islam.el --- calendar functions for the Islamic calendar
 
-;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Islamic calendar, calendar, diary
 ;; Package: calendar
@@ -45,8 +45,9 @@
 
 (defun calendar-islamic-leap-year-p (year)
   "Return t if YEAR is a leap year on the Islamic calendar."
-  (memq (% year 30)
-        (list 2 5 7 10 13 16 18 21 24 26 29)))
+  (and (memq (% year 30)
+             (list 2 5 7 10 13 16 18 21 24 26 29))
+       t))
 
 (defun calendar-islamic-last-day-of-month (month year)
   "The last day in MONTH during YEAR on the Islamic calendar."
@@ -305,9 +306,13 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
-(defvar date)
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 ;;;###diary-autoload
 (defun diary-islamic-date ()
   "Islamic calendar equivalent of date diary entry."

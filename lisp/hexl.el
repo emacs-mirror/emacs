@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1989, 1994, 1998, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
@@ -701,10 +701,7 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 (defun hexl-end-of-line ()
   "Goto end of line in Hexl mode."
   (interactive)
-  (hexl-goto-address (let ((address (logior (hexl-current-address) 15)))
-		       (if (> address hexl-max-address)
-			   (setq address hexl-max-address))
-		       address)))
+  (hexl-goto-address (min hexl-max-address (logior (hexl-current-address) 15))))
 
 (defun hexl-scroll-down (arg)
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
@@ -749,7 +746,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 1KB boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 1023))))
+   (min hexl-max-address (logior (hexl-current-address) 1023))))
 
 (defun hexl-beginning-of-512b-page ()
   "Go to beginning of 512 byte boundary."
@@ -760,7 +757,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 512 byte boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 511))))
+   (min hexl-max-address (logior (hexl-current-address) 511))))
 
 (defun hexl-quoted-insert (arg)
   "Read next input character and insert it.
@@ -877,17 +874,18 @@ and their encoded form is inserted byte by byte."
 	    "0x%x -- invalid character code; use \\[hexl-insert-hex-string]"
 	    ch))
 	  (t
-	   (let ((encoded (encode-coding-char ch coding))
-		 (internal (string-as-unibyte (char-to-string ch)))
-		 internal-hex)
-	     ;; If encode-coding-char returns nil, it means our character
-	     ;; cannot be safely encoded with buffer-file-coding-system.
-	     ;; In that case, we offer to insert the internal representation
-	     ;; of that character, byte by byte.
-	     (when (null encoded)
-	       (setq internal-hex
-		     (mapconcat (function (lambda (c) (format "%x" c)))
-				internal " "))
+           (let ((encoded (encode-coding-char ch coding))
+	         (internal (char-to-string ch))
+	         internal-hex)
+             ;; If encode-coding-char returns nil, it means our character
+             ;; cannot be safely encoded with buffer-file-coding-system.
+             ;; In that case, we offer to insert the internal representation
+             ;; of that character, byte by byte.
+             (when (null encoded)
+	       (setq internal (encode-coding-string internal 'utf-8-emacs)
+	             internal-hex
+	             (mapconcat (function (lambda (c) (format "%x" c)))
+			        internal " "))
 	       (if (yes-or-no-p
 		    (format-message
 		     "Insert char 0x%x's internal representation \"%s\"? "
@@ -934,7 +932,7 @@ CH must be a unibyte character whose value is between 0 and 255."
 	(goto-char ascii-position)
 	(delete-char 1)
 	(insert (hexl-printable-character ch))
-	(or (eq address hexl-max-address)
+	(or (= address hexl-max-address)
 	    (setq address (1+ address)))
 	(hexl-goto-address address)
 	(if at-ascii-position
@@ -1089,7 +1087,7 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 ;; startup stuff.
 
 (easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
-  `("Hexl"
+  '("Hexl"
     :help "Hexl-specific Features"
 
     ["Backward short" hexl-backward-short

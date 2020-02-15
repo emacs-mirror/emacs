@@ -1,9 +1,9 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989-1992, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
-;; Maintainer: bug-texinfo@gnu.org
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.
@@ -410,23 +410,24 @@ and to the end of the menu region for the level.
 Return t if the node is found, else nil.  Leave point at the beginning
 of the node if one is found; else do not move point."
   (let ((case-fold-search t))
-    (if (and (< (point) region-end)
-	     (re-search-forward
-	      (concat
-	       "\\(^@node\\).*\n"         ; match node line
-	       "\\(\\(\\(^@c\\).*\n\\)"   ; match comment line, if any
-	       "\\|"                      ; or
-	       "\\(^@ifinfo[ ]*\n\\)"     ; ifinfo line, if any
-               "\\|"                      ; or
-               "\\(^@ifnottex[ ]*\n\\)"   ; ifnottex line, if any
-               "\\)?"                     ; end of expression
-	       (eval (cdr (assoc level texinfo-update-menu-lower-regexps))))
-	      ;; the next higher level node marks the end of this
-	      ;; section, and no lower level node will be found beyond
-	      ;; this position even if region-end is farther off
-	      (texinfo-update-menu-region-end level)
-	      t))
-	(goto-char (match-beginning 1)))))
+    (when (and (< (point) region-end)
+	       (re-search-forward
+		(concat
+		 "\\(^@node\\).*\n"	    ; match node line
+		 "\\(\\(\\(^@c\\).*\n\\)"   ; match comment line, if any
+		 "\\|"			    ; or
+		 "\\(^@ifinfo[ ]*\n\\)"	    ; ifinfo line, if any
+		 "\\|"			    ; or
+		 "\\(^@ifnottex[ ]*\n\\)"   ; ifnottex line, if any
+		 "\\)?"			    ; end of expression
+		 (eval (cdr (assoc level texinfo-update-menu-lower-regexps))))
+		;; the next higher level node marks the end of this
+		;; section, and no lower level node will be found beyond
+		;; this position even if region-end is farther off
+		(texinfo-update-menu-region-end level)
+		t))
+      (goto-char (match-beginning 1))
+      t)))
 
 (defun texinfo-find-higher-level-node (level region-end)
   "Search forward from point for node at any higher level than argument LEVEL.
@@ -642,7 +643,7 @@ appears in the texinfo file."
   "Return description field of old menu line as string.
 Point must be located just after the node name.  Point left before description.
 Single argument, END-OF-MENU, is position limiting search."
-  (skip-chars-forward "[:.,\t\n ]+")
+  (skip-chars-forward ":.,\t\n ")
   ;; don't copy a carriage return at line beginning with asterisk!
   ;; don't copy @detailmenu or @end menu or @ignore as descriptions!
   ;; do copy a description that begins with an `@'!

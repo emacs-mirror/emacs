@@ -1,6 +1,6 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 
@@ -82,7 +82,7 @@
 			       " ")
 		shortbuf buf)
 	  (if (and (= (length alg-exp) 1)
-		   (memq (car-safe (car alg-exp)) '(nil bigpos bigneg))
+		   (memq (car-safe (car alg-exp)) '(nil))
 		   (< (length buf) 20)
 		   (= calc-number-radix 10))
 	      (setq buf (concat buf "  ("
@@ -728,7 +728,7 @@ in Calc algebraic input.")
 						 math-exp-str (1- math-exp-pos))
 				   (1- math-exp-pos))))))
 	     (or (and (memq calc-language calc-lang-c-type-hex)
-		      (eq (string-match "0[xX][0-9a-fA-F]+" math-exp-str
+		      (eq (string-match "0[xX][[:xdigit:]]+" math-exp-str
                                         math-exp-pos)
                           math-exp-pos))
 		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-zA-Zα-ωΑ-Ω:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?"

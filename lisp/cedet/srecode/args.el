@@ -1,8 +1,8 @@
 ;;; srecode/args.el --- Provide some simple template arguments
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -174,8 +174,8 @@ do not contain any text from preceding or following text."
 	  (srecode-dictionary-set-value dict "PROJECT_FILENAME" relfname)
 	  (srecode-dictionary-set-value dict "PROJECT_DIRECTORY" reldir)
 	  (srecode-dictionary-set-value dict "PROJECT_NAME" (ede-name (ede-toplevel)))
-	  (srecode-dictionary-set-value dict "PROJECT_VERSION" (oref (ede-toplevel) :version))
-	  )
+	  (srecode-dictionary-set-value dict "PROJECT_VERSION"
+                                        (oref (ede-toplevel) version)))
       ;; If there is no EDE project, then put in some base values.
       (srecode-dictionary-set-value dict "PROJECT_FILENAME" bfn)
       (srecode-dictionary-set-value dict "PROJECT_DIRECTORY" dir)

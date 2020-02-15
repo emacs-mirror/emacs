@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -65,15 +65,17 @@ e.g., `c-tab-always-indent', and do not respect this variable."
   "Indent line in proper way for current major mode.
 Normally, this is done by calling the function specified by the
 variable `indent-line-function'.  However, if the value of that
-variable is `indent-relative' or `indent-relative-maybe', handle
-it specially (since those functions are used for tabbing); in
-that case, indent by aligning to the previous non-blank line."
+variable is `indent-relative' or `indent-relative-first-indent-point',
+handle it specially (since those functions are used for tabbing);
+in that case, indent by aligning to the previous non-blank line."
   (interactive)
   (save-restriction
     (widen)
   (syntax-propertize (line-end-position))
   (if (memq indent-line-function
-	    '(indent-relative indent-relative-maybe))
+            '(indent-relative
+              indent-relative-maybe
+              indent-relative-first-indent-point))
       ;; These functions are used for tabbing, but can't be used for
       ;; indenting.  Replace with something ad-hoc.
       (let ((column (save-excursion
@@ -598,8 +600,9 @@ considered.
 
 If the previous nonblank line has no indent points beyond the
 column point starts at, then `tab-to-tab-stop' is done, if both
-FIRST-ONLY and UNINDENTED-OK are nil, otherwise nothing is done
-in this case.
+FIRST-ONLY and UNINDENTED-OK are nil, otherwise nothing is done.
+If there isn't a previous nonblank line and UNINDENTED-OK is nil,
+call `tab-to-tab-stop'.
 
 See also `indent-relative-first-indent-point'."
   (interactive "P")

@@ -1,6 +1,6 @@
 ;;; shr-color.el --- Simple HTML Renderer color management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: html
@@ -235,7 +235,7 @@ Like rgb() or hsl()."
     (cond
      ;; Hexadecimal color: #abc or #aabbcc
      ((string-match
-       "\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?\\)"
+       "\\(#[[:xdigit:]]\\{3\\}[[:xdigit:]]\\{3\\}?\\)"
        color)
       (match-string 1 color))
      ;; rgb() or rgba() colors

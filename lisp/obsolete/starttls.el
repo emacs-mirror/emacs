@@ -1,6 +1,6 @@
 ;;; starttls.el --- STARTTLS functions
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Author: Simon Josefsson <simon@josefsson.org>
@@ -217,7 +217,7 @@ handshake, or nil on failure."
 						starttls-success nil t))
 				 (setq done-bad (re-search-forward
 						 starttls-failure nil t))))))
-	    (accept-process-output process 1 100)
+	    (accept-process-output process 1.1)
 	    (sit-for 0.1))
 	  (setq info (buffer-substring-no-properties old-max (point-max)))
 	  (delete-region old-max (point-max))
@@ -251,7 +251,7 @@ handshake, or nil on failure."
 		  (goto-char old-max)
 		  (not (setq done (re-search-forward
 				   starttls-connect nil t)))))
-      (accept-process-output process 0 100)
+      (accept-process-output process 0.1)
       (sit-for 0.1))
     (if done
 	(with-current-buffer buffer

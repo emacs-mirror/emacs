@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Miscellaneous Semantic tests.
 
-;;; Copyright (C) 2003-2004, 2007-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -228,13 +228,16 @@ Analyze the area between BEG and END."
 (defun semantic-lex-spp-write-utest ()
   "Unit test using the test spp file to test the slot write fcn."
   (interactive)
-  (let* ((sem (locate-library "semantic-lex-spp.el"))
-	 (dir (file-name-directory sem)))
-    (save-excursion
-      (set-buffer (find-file-noselect
-		   (expand-file-name "tests/testsppreplace.c"
-				     dir)))
-      (semantic-lex-spp-write-test))))
+  (save-excursion
+    (let ((buff (find-file-noselect
+		 (expand-file-name "tests/testsppreplace.c"
+				   cedet-utest-directory))))
+      (set-buffer buff)
+      (semantic-lex-spp-write-test)
+      (kill-buffer buff)
+      (when (not (interactive-p))
+        (kill-buffer "*SPP Write Test*"))
+      )))
 
 ;;; From semantic-tag-write:
 

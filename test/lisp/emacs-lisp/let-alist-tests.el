@@ -1,6 +1,6 @@
 ;;; let-alist.el --- tests for file handling. -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -94,5 +94,10 @@ See Bug#24641."
                  '((.bar . bar) (.qux . qux))))
   (should (equal (let-alist--deep-dot-search '(foo .bar (let-alist .qux .baz)))
                  '((.bar . bar) (.qux . qux)))))  ; no .baz
+
+(ert-deftest let-alist--vectors ()
+  (should (equal (let-alist '((a . 1) (b . 2))
+                   `[,(+ .a) ,(+ .a .b .b)])
+                 [1 5])))
 
 ;;; let-alist.el ends here

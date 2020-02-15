@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -67,8 +67,6 @@
 ;;   (+ 1 2) > a | wc      ; prints to 'a', and pipes to 'wc'
 
 ;;; Code:
-
-(provide 'esh-io)
 
 (require 'esh-arg)
 (require 'esh-util)
@@ -171,7 +169,7 @@ not be added to this variable."
 
 ;;; Functions:
 
-(defun eshell-io-initialize ()
+(defun eshell-io-initialize ()      ;Called from `eshell-mode' via intern-soft!
   "Initialize the I/O subsystem code."
   (add-hook 'eshell-parse-argument-hook
 	    'eshell-parse-redirection nil t)
@@ -511,4 +509,5 @@ Returns what was actually sent, or nil if nothing was sent."
 	(eshell-output-object-to-target object (car target))
 	(setq target (cdr target))))))
 
+(provide 'esh-io)
 ;;; esh-io.el ends here

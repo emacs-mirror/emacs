@@ -1,6 +1,6 @@
 # Build Emacs from a fresh tarball or version-control checkout.
 
-# Copyright (C) 2011-2018 Free Software Foundation, Inc.
+# Copyright (C) 2011-2020 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -27,10 +27,42 @@
 # newly-built Makefile.  If the source tree is already configured,
 # this file defers to the existing Makefile.
 
-# If you are using a non-GNU 'make', or if you want non-default build
-# options, or if you want to build in an out-of-source tree, please
-# run "configure" by hand.  But run autogen.sh first, if the source
-# was checked out directly from the repository.
+# If you want non-default build options, or if you want to build in an
+# out-of-source tree, you should run 'configure' before running 'make'.
+# But run 'autogen.sh' first, if the source was checked out directly
+# from the repository.
+
+# Display help.
+
+ifeq (help,$(filter help,$(MAKECMDGOALS)))
+help:
+	@echo "NOTE:  This is a brief summary of some common make targets."
+	@echo "For more detailed information, please read the files INSTALL,"
+	@echo "INSTALL.REPO, Makefile or visit this URL:"
+	@echo "https://www.gnu.org/prep/standards/html_node/Standard-Targets.html"
+	@echo ""
+	@echo "make all              -- compile and build Emacs"
+	@echo "make install          -- install Emacs"
+	@echo "make TAGS             -- update tags tables"
+	@echo "make clean            -- delete built files but preserve configuration"
+	@echo "make mostlyclean      -- like 'make clean', but leave those files that"
+	@echo "                         usually do not need to be recompiled"
+	@echo "make distclean        -- delete all build and configuration files,"
+	@echo "                         leave only files included in source distribution"
+	@echo "make maintainer-clean -- delete almost everything that can be regenerated"
+	@echo "make bootstrap        -- delete all compiled files to force a new bootstrap"
+	@echo "                         from a clean slate, then build in the normal way"
+	@echo "make uninstall        -- remove files installed by 'make install'"
+	@echo "make check            -- run the Emacs test suite"
+	@echo "make docs             -- generate Emacs documentation in info format"
+	@echo "make html             -- generate documentation in html format"
+	@echo "make ps               -- generate documentation in ps format"
+	@echo "make pdf              -- generate documentation in pdf format "
+	@exit
+
+.PHONY: help
+
+else
 
 # If a Makefile already exists, just use it.
 
@@ -80,5 +112,6 @@ bootstrap: Makefile
 
 .PHONY: bootstrap default $(ORDINARY_GOALS)
 
+endif
 endif
 endif

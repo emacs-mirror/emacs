@@ -1,5 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -230,5 +230,9 @@ extern struct tty_display_info *tty_list;
    : (emacs_abort (), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
+
+struct input_event;
+extern bool tty_handle_tab_bar_click (struct frame *, int, int, bool,
+				      struct input_event *);
 
 #endif /* EMACS_TERMCHAR_H */

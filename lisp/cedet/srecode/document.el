@@ -1,8 +1,8 @@
 ;;; srecode/document.el --- Documentation (comment) generation
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -89,7 +89,7 @@ versions of names.  This is an alist with each element of the form:
 MATCH is a regexp to match in the type field.
 RESULT is a string."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 (defcustom srecode-document-autocomment-function-alist
@@ -145,7 +145,7 @@ see how best to describe what can be returned.
 Doesn't always work correctly, but that is just because English
 doesn't always work correctly."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 (defcustom srecode-document-autocomment-common-nouns-abbrevs
@@ -176,7 +176,7 @@ versions of names.  This is an alist with each element of the form:
 MATCH is a regexp to match in the type field.
 RESULT is a string."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 (defcustom srecode-document-autocomment-return-first-alist
@@ -193,7 +193,7 @@ This is an alist with each element of the form:
 MATCH is a regexp to match in the type field.
 RESULT is a string."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 (defcustom srecode-document-autocomment-return-last-alist
@@ -214,7 +214,7 @@ MATCH is a regexp to match in the type field.
 RESULT is a string, which can contain %s, which is replaced with
 `match-string' 1."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 (defcustom srecode-document-autocomment-param-alist
@@ -234,7 +234,7 @@ RESULT is a string of text to use to describe MATCH.
 When one is encountered, document-insert-parameters will automatically
 place this comment after the parameter name."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 (defcustom srecode-document-autocomment-param-type-alist
@@ -259,7 +259,7 @@ This is an alist with each element of the form:
 MATCH is a regexp to match in the type field.
 RESULT is a string."
   :group 'document
-  :type '(repeat (cons (string :tag "Regexp")
+  :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
 ;;;###autoload
@@ -385,7 +385,7 @@ It is assumed that the comment occurs just in front of FCN-IN."
 
     (when (or (not fcn-in)
 	      (not (semantic-tag-of-class-p fcn-in 'function)))
-      (error "No tag of class 'function to insert comment for"))
+      (error "No tag of class `function' to insert comment for"))
 
     (if (not (eq (current-buffer) (semantic-tag-buffer fcn-in)))
 	(error "Only insert comments for tags in the current buffer"))
@@ -496,7 +496,7 @@ It is assumed that the comment occurs just after VAR-IN."
 
     (when (or (not var-in)
 	      (not (semantic-tag-of-class-p var-in 'variable)))
-      (error "No tag of class 'variable to insert comment for"))
+      (error "No tag of class `variable' to insert comment for"))
 
     (if (not (eq (current-buffer) (semantic-tag-buffer var-in)))
 	(error "Only insert comments for tags in the current buffer"))

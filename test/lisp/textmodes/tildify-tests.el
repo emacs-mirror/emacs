@@ -1,6 +1,6 @@
 ;;; tildify-test.el --- ERT tests for tildify.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author:     Michal Nazarewicz <mina86@mina86.com>
 ;; Version:    4.5

@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994-1995, 1999, 2001-2018 Free Software
+;; Copyright (C) 1987, 1994-1995, 1999, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
@@ -175,8 +175,8 @@ in the default way after this call."
 (defun standard-display-g1 (c sc)
   "Display character C as character SC in the g1 character set.
 This function assumes that your terminal uses the SO/SI characters;
-it is meaningless for an X frame."
-  (if (memq window-system '(x w32 ns))
+it is meaningless for a graphical frame."
+  (if (display-graphic-p)
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
@@ -186,9 +186,9 @@ it is meaningless for an X frame."
 ;;;###autoload
 (defun standard-display-graphic (c gc)
   "Display character C as character GC in graphics character set.
-This function assumes VT100-compatible escapes; it is meaningless for an
-X frame."
-  (if (memq window-system '(x w32 ns))
+This function assumes VT100-compatible escapes; it is meaningless
+for a graphical frame."
+  (if (display-graphic-p)
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
@@ -221,7 +221,7 @@ X frame."
 (defun make-glyph-code (char &optional face)
   "Return a glyph code representing char CHAR with face FACE."
   ;; Due to limitations on Emacs integer values, faces with
-  ;; face id greater that 512 are silently ignored.
+  ;; face id greater than 512 are silently ignored.
   (if (not face)
       char
     (let ((fid (face-id face)))
@@ -276,7 +276,7 @@ in `.emacs'."
       (progn
 	(standard-display-default
 	 (unibyte-char-to-multibyte 160) (unibyte-char-to-multibyte 255))
-	(unless (or (memq window-system '(x w32 ns)))
+	(unless (display-graphic-p)
 	  (and (terminal-coding-system)
 	       (set-terminal-coding-system nil))))
 
@@ -289,7 +289,7 @@ in `.emacs'."
     ;; unless some other has been specified.
     (if (equal current-language-environment "English")
 	(set-language-environment "latin-1"))
-    (unless (or noninteractive (memq window-system '(x w32 ns)))
+    (unless (or noninteractive (display-graphic-p))
       ;; Send those codes literally to a character-based terminal.
       ;; If we are using single-byte characters,
       ;; it doesn't matter which coding system we use.

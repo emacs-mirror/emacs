@@ -1,6 +1,6 @@
 ;;; mairix.el --- Mairix interface for Emacs
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -266,9 +266,7 @@ Currently there are `threads' and `flags'.")
 
 ;;; Gnus
 
-;; For gnus-buffer-exists-p, although it seems that could be replaced by:
-;; (and buffer (get-buffer buffer))
-(eval-when-compile (require 'gnus-util))
+(eval-when-compile (require 'gnus-util)) ; For `gnus-buffer-live-p'.
 (defvar gnus-article-buffer)
 (declare-function gnus-group-read-ephemeral-group "gnus-group"
 		  (group method &optional activate quit-config
@@ -296,7 +294,7 @@ Currently there are `threads' and `flags'.")
   (unless (and (fboundp 'gnus-alive-p)
 	       (gnus-alive-p))
     (error "Gnus is not running"))
-  (unless (gnus-buffer-exists-p gnus-article-buffer)
+  (unless (gnus-buffer-live-p gnus-article-buffer)
     (error "No article buffer available"))
   (with-current-buffer gnus-article-buffer
     ;; gnus-art requires gnus-sum and message.

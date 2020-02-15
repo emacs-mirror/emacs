@@ -1,6 +1,6 @@
 ;;; org-indent.el --- Dynamic indentation for Org    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -150,15 +150,16 @@ useful to make it ever so slightly different."
       ;; Text line prefixes.
       (aset org-indent--text-line-prefixes
 	    n
-	    (concat (org-add-props (make-string (+ n indentation) ?\s)
-			nil 'face 'org-indent)
-		    (and (> n 0)
-			 (char-to-string org-indent-boundary-char)))))))
+	    (org-add-props
+		(concat (make-string (+ n indentation) ?\s)
+			(and (> n 0)
+			     (char-to-string org-indent-boundary-char)))
+		nil 'face 'org-indent)))))
 
 (defsubst org-indent-remove-properties (beg end)
   "Remove indentations between BEG and END."
-  (org-with-silent-modifications
-   (remove-text-properties beg end '(line-prefix nil wrap-prefix nil))))
+  (with-silent-modifications
+    (remove-text-properties beg end '(line-prefix nil wrap-prefix nil))))
 
 ;;;###autoload
 (define-minor-mode org-indent-mode
@@ -298,7 +299,7 @@ LEVEL is the current level of heading.  INDENTATION is the
 expected indentation when wrapping line.
 
 When optional argument HEADING is non-nil, assume line is at
-a heading.  Moreover, if is is `inlinetask', the first star will
+a heading.  Moreover, if it is `inlinetask', the first star will
 have `org-warning' face."
   (let* ((line (aref (pcase heading
 		       (`nil org-indent--text-line-prefixes)
@@ -332,39 +333,39 @@ stopped."
      (let* ((case-fold-search t)
 	    (limited-re (org-get-limited-outline-regexp))
 	    (level (or (org-current-level) 0))
-	    (time-limit (and delay (time-add (current-time) delay))))
+	    (time-limit (and delay (org-time-add nil delay))))
        ;; For each line, set `line-prefix' and `wrap-prefix'
        ;; properties depending on the type of line (headline, inline
        ;; task, item or other).
-       (org-with-silent-modifications
-	(while (and (<= (point) end) (not (eobp)))
-	  (cond
-	   ;; When in asynchronous mode, check if interrupt is
-	   ;; required.
-	   ((and delay (input-pending-p)) (throw 'interrupt (point)))
-	   ;; In asynchronous mode, take a break of
-	   ;; `org-indent-agent-resume-delay' every DELAY to avoid
-	   ;; blocking any other idle timer or process output.
-	   ((and delay (time-less-p time-limit (current-time)))
-	    (setq org-indent-agent-resume-timer
-		  (run-with-idle-timer
-		   (time-add (current-idle-time) org-indent-agent-resume-delay)
-		   nil #'org-indent-initialize-agent))
-	    (throw 'interrupt (point)))
-	   ;; Headline or inline task.
-	   ((looking-at org-outline-regexp)
-	    (let* ((nstars (- (match-end 0) (match-beginning 0) 1))
-		   (type (or (looking-at-p limited-re) 'inlinetask)))
-	      (org-indent-set-line-properties nstars 0 type)
-	      ;; At an headline, define new value for LEVEL.
-	      (unless (eq type 'inlinetask) (setq level nstars))))
-	   ;; List item: `wrap-prefix' is set where body starts.
-	   ((org-at-item-p)
-	    (org-indent-set-line-properties
-	     level (org-list-item-body-column (point))))
-	   ;; Regular line.
-	   (t
-	    (org-indent-set-line-properties level (org-get-indentation))))))))))
+       (with-silent-modifications
+	 (while (and (<= (point) end) (not (eobp)))
+	   (cond
+	    ;; When in asynchronous mode, check if interrupt is
+	    ;; required.
+	    ((and delay (input-pending-p)) (throw 'interrupt (point)))
+	    ;; In asynchronous mode, take a break of
+	    ;; `org-indent-agent-resume-delay' every DELAY to avoid
+	    ;; blocking any other idle timer or process output.
+	    ((and delay (org-time-less-p time-limit nil))
+	     (setq org-indent-agent-resume-timer
+		   (run-with-idle-timer
+		    (time-add (current-idle-time) org-indent-agent-resume-delay)
+		    nil #'org-indent-initialize-agent))
+	     (throw 'interrupt (point)))
+	    ;; Headline or inline task.
+	    ((looking-at org-outline-regexp)
+	     (let* ((nstars (- (match-end 0) (match-beginning 0) 1))
+		    (type (or (looking-at-p limited-re) 'inlinetask)))
+	       (org-indent-set-line-properties nstars 0 type)
+	       ;; At an headline, define new value for LEVEL.
+	       (unless (eq type 'inlinetask) (setq level nstars))))
+	    ;; List item: `wrap-prefix' is set where body starts.
+	    ((org-at-item-p)
+	     (org-indent-set-line-properties
+	      level (org-list-item-body-column (point))))
+	    ;; Regular line.
+	    (t
+	     (org-indent-set-line-properties level (current-indentation))))))))))
 
 (defun org-indent-notify-modified-headline (beg end)
   "Set `org-indent-modified-headline-flag' depending on context.

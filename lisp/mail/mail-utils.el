@@ -1,6 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, news
@@ -29,7 +29,7 @@
 
 ;;;###autoload
 (defcustom mail-use-rfc822 nil
-  "If non-nil, use a full, hairy RFC822 parser on mail addresses.
+  "If non-nil, use a full, hairy RFC 822 (or later) parser on mail addresses.
 Otherwise, (the default) use a smaller, somewhat faster, and
 often correct parser."
   :type 'boolean
@@ -56,7 +56,7 @@ also the To field, unless this would leave an empty To field."
       (looking-at "BABYL OPTIONS:"))))
 
 (defun mail-string-delete (string start end)
-  "Returns a string containing all of STRING except the part
+  "Return a string containing all of STRING except the part
 from START (inclusive) to END (exclusive)."
   (if (null end) (substring string 0 start)
     (concat (substring string 0 start)
@@ -284,11 +284,13 @@ comma-separated list, and return the pruned list."
 
 
 ;;;###autoload
-(defun mail-fetch-field (field-name &optional last all list)
+(defun mail-fetch-field (field-name &optional last all list delete)
   "Return the value of the header field whose type is FIELD-NAME.
 If second arg LAST is non-nil, use the last field of type FIELD-NAME.
 If third arg ALL is non-nil, concatenate all such fields with commas between.
 If 4th arg LIST is non-nil, return a list of all such fields.
+If 5th arg DELETE is non-nil, delete all header lines that are
+included in the result.
 The buffer should be narrowed to just the header, else false
 matches may be returned from the message body."
   (save-excursion
@@ -311,7 +313,9 @@ matches may be returned from the message body."
 		  (setq value (concat value
 				      (if (string= value "") "" ", ")
 				      (buffer-substring-no-properties
-				       opoint (point)))))))
+				       opoint (point)))))
+                (if delete
+                    (delete-region (point-at-bol) (point)))))
 	    (if list
 		value
 	      (and (not (string= value "")) value)))
@@ -324,7 +328,10 @@ matches may be returned from the message body."
 		;; Back up over newline, then trailing spaces or tabs
 		(forward-char -1)
 		(skip-chars-backward " \t" opoint)
-		(buffer-substring-no-properties opoint (point)))))))))
+                (prog1
+                    (buffer-substring-no-properties opoint (point))
+                  (if delete
+                      (delete-region (point-at-bol) (1+ (point))))))))))))
 
 ;; Parse a list of tokens separated by commas.
 ;; It runs from point to the end of the visible part of the buffer.
@@ -384,7 +391,7 @@ The buffer should be narrowed to just the header."
 	 (date (mail-fetch-field "date"))
 	 ;; A From: header can contain multiple addresses, a "From "
 	 ;; line must contain only one.  (Bug#7760)
-	 ;; See eg RFC 5322, 3.6.2. Originator Fields.
+	 ;; See, e.g., RFC 5322, 3.6.2. Originator Fields.
 	 (end (string-match "[ \t]*[,\n]" from)))
     (format "From %s %s\n" (if end
 			       (substring from 0 end)

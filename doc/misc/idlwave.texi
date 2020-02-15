@@ -23,7 +23,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}.
 
-Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1805,8 +1805,8 @@ Structure tag completion is not enabled by default.  To enable it,
 simply add the following to your @file{.emacs}:
 
 @lisp
-   (add-hook 'idlwave-load-hook
-             (lambda () (require 'idlw-complete-structtag)))
+(with-eval-after-load 'idlwave
+  (require 'idlw-complete-structtag))
 @end lisp
 
 Once enabled, you'll also be able to access online help on the structure
@@ -2358,10 +2358,6 @@ is first called.
 
 @defopt idlwave-mode-hook
 Normal hook.  Executed when a buffer is put into @code{idlwave-mode}.
-@end defopt
-
-@defopt idlwave-load-hook
-Normal hook.  Executed when @file{idlwave.el} is loaded.
 @end defopt
 
 @node The IDLWAVE Shell

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Syntax Tables
@@ -556,8 +556,8 @@ the current syntax table in the usual way.
 
 @defvar parse-sexp-lookup-properties
 If this is non-@code{nil}, the syntax scanning functions, like
-@code{forward-sexp}, pay attention to syntax text properties.
-Otherwise they use only the current syntax table.
+@code{forward-sexp}, pay attention to @code{syntax-table} text
+properties.  Otherwise they use only the current syntax table.
 @end defvar
 
 @defvar syntax-propertize-function
@@ -797,12 +797,13 @@ Hooks}).
   A @dfn{parser state} is a list of (currently) eleven elements
 describing the state of the syntactic parser, after it parses the text
 between a specified starting point and a specified end point in the
-buffer.  Parsing functions such as @code{syntax-ppss}
+buffer using @code{parse-partial-sexp} (@pxref{Low-Level Parsing}).
+Parsing functions such as @code{syntax-ppss}
 @ifnottex
 (@pxref{Position Parse})
 @end ifnottex
-return a parser state as the value.  Some parsing functions accept a
-parser state as an argument, for resuming parsing.
+also return a parser state as the value.  @code{parse-partial-sexp}
+can accept a parser state as an argument, for resuming parsing.
 
   Here are the meanings of the elements of the parser state:
 
@@ -866,11 +867,11 @@ escaped/char-quoted character pair), the @var{syntax-code}
 @end enumerate
 
   Elements 1, 2, and 6 are ignored in a state which you pass as an
-argument to continue parsing.  Elements 9 and 10 are mainly used
-internally by the parser code.
+argument to @code{parse-partial-sexp} to continue parsing.  Elements 9
+and 10 are mainly used internally by the parser code.
 
-  One additional piece of useful information is available from a
-parser state using this function:
+  Some additional useful information is available from a parser state
+using these functions:
 
 @defun syntax-ppss-toplevel-pos state
 This function extracts, from parser state @var{state}, the last
@@ -880,6 +881,11 @@ comments, or strings.
 
 The value is @code{nil} if @var{state} represents a parse which has
 arrived at a top level position.
+@end defun
+
+@defun syntax-ppss-context state
+Return @code{string} if the end position of the scan returning
+@var{state} is in a string, and @code{comment} if it's in a comment.
 @end defun
 
 @node Low-Level Parsing
@@ -927,9 +933,9 @@ nicely.
 
 @defvar multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
-non-@acronym{ASCII} characters as symbol constituents regardless
-of what the syntax table says about them.  (However, text properties
-can still override the syntax.)
+non-@acronym{ASCII} characters as symbol constituents regardless of
+what the syntax table says about them.  (However, @code{syntax-table
+}text properties can still override the syntax.)
 @end defvar
 
 @defopt parse-sexp-ignore-comments
@@ -939,7 +945,6 @@ whitespace by the functions in this section and by @code{forward-sexp},
 @code{scan-lists} and @code{scan-sexps}.
 @end defopt
 
-@vindex parse-sexp-lookup-properties
 The behavior of @code{parse-partial-sexp} is also affected by
 @code{parse-sexp-lookup-properties} (@pxref{Syntax Properties}).
 
@@ -1042,8 +1047,8 @@ This function returns the syntax code for the raw syntax descriptor
 @var{syntax-code} component, masks off the high 16 bits which record
 the syntax flags, and returns the resulting integer.
 
-If @var{syntax} is @code{nil}, the return value is returns @code{nil}.
-This is so that the expression
+If @var{syntax} is @code{nil}, the return value is @code{nil}.  This
+is so that the expression
 
 @example
 (syntax-class (syntax-after pos))

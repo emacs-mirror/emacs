@@ -1,6 +1,6 @@
 ;;; eieio-custom.el -- eieio object customization  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2001, 2005, 2007-2018 Free Software Foundation,
+;; Copyright (C) 1999-2001, 2005, 2007-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -36,11 +36,6 @@
 (require 'custom)
 
 ;;; Compatibility
-
-;; (eval-and-compile
-;;   (if (featurep 'xemacs)
-;;       (defalias 'eieio-overlay-lists (lambda () (list (extent-list))))
-;;     (defalias 'eieio-overlay-lists 'overlay-lists)))
 
 ;;; Code:
 (defclass eieio-widget-test-class nil
@@ -317,7 +312,8 @@ Optional argument IGNORE is an extraneous parameter."
                             (car (widget-apply (car chil) :value-inline))))
               (setq chil (cdr chil))))))
     ;; Set any name updates on it.
-    (if name (eieio-object-set-name-string obj name))
+    (when name
+      (setf (slot-value obj 'object-name) name))
     ;; This is the same object we had before.
     obj))
 
@@ -458,7 +454,7 @@ Must return the created widget."
 
 (cl-defmethod eieio-read-customization-group ((obj eieio-default-superclass))
   "Do a completing read on the name of a customization group in OBJ.
-Return the symbol for the group, or nil"
+Return the symbol for the group, or nil."
   (let ((g (eieio--class-option (eieio--object-class obj)
                                 :custom-groups)))
     (if (= (length g) 1)
@@ -466,8 +462,13 @@ Return the symbol for the group, or nil"
       ;; Make the association list
       (setq g (mapcar (lambda (g) (cons (symbol-name g) g)) g))
       (cdr (assoc
-	    (completing-read (concat (oref obj name)  " Custom Group: ")
-			     g nil t nil 'eieio-read-custom-group-history)
+	    (completing-read
+             (concat
+              (if (slot-exists-p obj 'name)
+                  (concat (slot-value obj (intern "name" obarray)) "")
+                "")
+              "Custom Group: ")
+	     g nil t nil 'eieio-read-custom-group-history)
 	    g)))))
 
 (provide 'eieio-custom)

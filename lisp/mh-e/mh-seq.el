@@ -1,9 +1,8 @@
 ;;; mh-seq.el --- MH-E sequences support
 
-;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -32,7 +31,6 @@
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
 (require 'mh-scan)
 
 (require 'font-lock)
@@ -184,9 +182,9 @@ MESSAGE appears."
   (interactive "P")
   (if (not message)
       (setq message (mh-get-msg-num t)))
-  (let* ((dest-folder (loop for seq in mh-refile-list
-                            when (member message (cdr seq)) return (car seq)
-                            finally return nil))
+  (let* ((dest-folder (cl-loop for seq in mh-refile-list
+                               when (member message (cdr seq)) return (car seq)
+                               finally return nil))
          (deleted-flag (unless dest-folder (member message mh-delete-list))))
     (message "Message %d%s is in sequences: %s"
              message
@@ -722,9 +720,9 @@ completion is over."
           ((eq flag t)
            (all-completions last-word candidates predicate))
           ((eq flag 'lambda)
-           (loop for x in candidates
-                 when (equal x last-word) return t
-                 finally return nil)))))
+           (cl-loop for x in candidates
+                    when (equal x last-word) return t
+                    finally return nil)))))
 
 (defun mh-seq-names (seq-list)
   "Return an alist containing the names of the SEQ-LIST."
@@ -743,8 +741,8 @@ completion is over."
     (call-process (expand-file-name "flist" mh-progs) nil t nil "-showzero"
                   "-norecurse" folder "-sequence" (symbol-name mh-unseen-seq))
     (goto-char (point-min))
-    (multiple-value-bind (folder unseen total)
-        (values-list
+    (cl-multiple-value-bind (folder unseen total)
+        (cl-values-list
          (mh-parse-flist-output-line
           (buffer-substring (point) (mh-line-end-position))))
       (list total unseen folder))))
@@ -935,8 +933,8 @@ notated."
       (dolist (msg (mh-seq-msgs seq))
         (push (car seq) (gethash msg msg-hash))))
     (mh-iterate-on-range msg range
-      (loop for seq in (gethash msg msg-hash)
-            do (mh-add-sequence-notation msg (mh-internal-seq seq))))))
+      (cl-loop for seq in (gethash msg msg-hash)
+               do (mh-add-sequence-notation msg (mh-internal-seq seq))))))
 
 (defun mh-add-sequence-notation (msg internal-seq-flag)
   "Add sequence notation to the MSG on the current line.

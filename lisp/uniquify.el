@@ -1,6 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1995-1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1989, 1995-1997, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Dick King <king@reasoning.com>
@@ -40,13 +40,10 @@
 
 ;; For other options, see "User-visible variables", below.
 
-;; A version of uniquify.el that works under Emacs 18, Emacs 19, XEmacs,
-;; and InfoDock is available from the maintainer.
-
 ;;; Change Log:
 
 ;; Originally by Dick King <king@reasoning.com> 15 May 86
-;; Converted for Emacs 18 by Stephen Gildea <gildea@stop.mail-abuse.org>
+;; Converted for Emacs 18 by Stephen Gildea <stepheng+emacs@gildea.com>
 ;; Make uniquify-min-dir-content 0 truly non-invasive.  gildea 23 May 89
 ;; Some cleanup.  uniquify-min-dir-content default 0.  gildea 01 Jun 89
 ;; Don't rename to "".  Michael Ernst <mernst@theory.lcs.mit.edu> 15 Jun 94

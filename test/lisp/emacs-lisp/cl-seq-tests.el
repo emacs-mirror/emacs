@@ -1,6 +1,6 @@
 ;;; cl-seq-tests.el --- Tests for cl-seq.el functionality  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 
@@ -302,6 +302,14 @@ Body are forms defining the test."
     (should (equal '(2 8) (last (cl-replace list list2) 2)))
     (should (equal '(1 1) (last (cl-fill list 1) 2)))))
 
+(ert-deftest cl-seq-bignum-eql ()
+  (let ((x (+ most-positive-fixnum 1))
+        (y (+ most-positive-fixnum 1)))
+    (let ((l (list y)))
+      (should (eq (cl-member x l) l)))
+    (let ((a (list (cons y 1) (cons 2 y))))
+      (should (eq (cl-assoc x a) (car a)))
+      (should (eq (cl-rassoc x a) (cadr a))))))
 
 (provide 'cl-seq-tests)
 ;;; cl-seq-tests.el ends here

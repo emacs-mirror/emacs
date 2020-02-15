@@ -1,6 +1,6 @@
 ;;; cl-macs-tests.el --- tests for emacs-lisp/cl-macs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +30,7 @@
 
 ;;; ANSI 6.1.1.7 Destructuring
 (ert-deftest cl-macs-loop-and-assignment ()
-  ;; Bug#6583
+  "Bug#6583"
   :expected-result :failed
   (should (equal (cl-loop for numlist in '((1 2 4.0) (5 6 8.3) (8 9 10.4))
                           for a = (cl-first numlist)
@@ -61,7 +61,6 @@
 ;;; 6.1.2.1.1 The for-as-arithmetic subclause
 (ert-deftest cl-macs-loop-for-as-arith ()
   "Test various for-as-arithmetic subclauses."
-  :expected-result :failed
   (should (equal (cl-loop for i to 10 by 3 collect i)
                  '(0 3 6 9)))
   (should (equal (cl-loop for i upto 3 collect i)
@@ -74,9 +73,9 @@
                  '(10 8 6)))
   (should (equal (cl-loop for i from 10 downto 1 by 3 collect i)
                  '(10 7 4 1)))
-  (should (equal (cl-loop for i above 0 by 2 downfrom 10 collect i)
+  (should (equal (cl-loop for i downfrom 10 above 0 by 2 collect i)
                  '(10 8 6 4 2)))
-  (should (equal (cl-loop for i downto 10 from 15 collect i)
+  (should (equal (cl-loop for i from 15 downto 10 collect i)
                  '(15 14 13 12 11 10))))
 
 (ert-deftest cl-macs-loop-for-as-arith-order-side-effects ()
@@ -512,5 +511,83 @@ collection clause."
   (should-error
    (macroexpand '(cl-defstruct (hash-table (:predicate hash-table-p))))
    :type 'wrong-type-argument))
+
+(ert-deftest cl-macs-test--symbol-macrolet ()
+  ;; A `setq' shouldn't be converted to a `setf' just because it occurs within
+  ;; a symbol-macrolet!
+  (should-error
+   ;; Use `eval' so the error is signaled when running the test rather than
+   ;; when macroexpanding it.
+   (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0)))))
+  ;; Make sure `gv-synthetic-place' isn't macro-expanded before `setf' gets to
+  ;; see its `gv-expander'.
+  (should (equal (let ((l '(0)))
+                   (let ((cl (car l)))
+                     (cl-symbol-macrolet
+                         ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))
+                       (cl-incf p)))
+                   l)
+                 '(1))))
+
+(ert-deftest cl-macs-loop-conditional-step-clauses ()
+  "These tests failed under the initial fixes in #bug#29799."
+  (should (cl-loop for i from 1 upto 100 and j = 1 then (1+ j)
+                   if (not (= i j))
+                   return nil
+                   end
+                   until (> j 10)
+                   finally return t))
+
+  (should (equal (let* ((size 7)
+                        (arr (make-vector size 0)))
+                   (cl-loop for k below size
+                            for x = (* 2 k) and y = (1+ (elt arr k))
+                            collect (list k x y)))
+                 '((0 0 1) (1 2 1) (2 4 1) (3 6 1) (4 8 1) (5 10 1) (6 12 1))))
+
+  (should (equal (cl-loop for x below 3
+                          for y below 2 and z = 1
+                          collect x)
+                 '(0 1)))
+
+  (should (equal (cl-loop for x below 3
+                          and y below 2
+                          collect x)
+                 '(0 1)))
+
+  ;; this is actually disallowed in clisp, but is semantically consistent
+  (should (equal (cl-loop with result
+                          for x below 3
+                          for y = (progn (push x result) x) and z = 1
+                          append (list x y) into result1
+                          finally return (append result result1))
+                 '(2 1 0 0 0 1 1 2 2)))
+
+  (should (equal (cl-loop with result
+                          for x below 3
+                          for _y = (progn (push x result))
+                          finally return result)
+                 '(2 1 0)))
+
+  ;; this unintuitive result is replicated by clisp
+  (should (equal (cl-loop with result
+                          for x below 3
+                          and y = (progn (push x result))
+                          finally return result)
+                 '(2 1 0 0)))
+
+  ;; this unintuitive result is replicated by clisp
+  (should (equal (cl-loop with result
+                          for x below 3
+                          and y = (progn (push x result)) then (progn (push (1+ x) result))
+                          finally return result)
+                 '(3 2 1 0)))
+
+  (should (cl-loop with result
+                   for x below 3
+                   for y = (progn (push x result) x) then (progn (push (1+ x) result) (1+ x))
+                   and z = 1
+                   collect y into result1
+                   finally return  (equal (nreverse result) result1))))
 
 ;;; cl-macs-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; gitmerge.el --- help merge one Emacs branch into another
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Authors: David Engster <deng@randomsample.de>
 ;;          Stefan Monnier <monnier@iro.umontreal.ca>
@@ -51,8 +51,8 @@
   ;; We used to include "sync" in there, but in my experience it only
   ;; caused false positives.  --Stef
   (let ((skip "back[- ]?port\\|cherry picked from commit\\|\
-\\(do\\( no\\|n['’]\\)t\\|no need to\\) merge\\|\
-bump \\(Emacs \\)?version\\|Auto-commit"))
+\\(do\\( no\\|n['’]\\)t\\|no need to\\) merge\\|not to be merged\\|\
+bump Emacs version\\|Auto-commit"))
     (if noninteractive skip
       ;; "Regenerate" is quite prone to false positives.
       ;; We only want to skip merging things like AUTHORS and ldefs-boot.
@@ -294,7 +294,7 @@ Returns non-nil if conflicts remain."
            ((derived-mode-p 'change-log-mode)
             ;; Fix up dates before resolving the conflicts.
             (goto-char (point-min))
-            (let ((diff-auto-refine-mode nil))
+            (let ((diff-refine nil))
               (while (re-search-forward smerge-begin-re nil t)
                 (smerge-match-conflict)
                 (smerge-ensure-match 3)

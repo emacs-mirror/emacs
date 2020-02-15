@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -33,7 +33,8 @@
 (defvar macroexpand-all-environment nil)
 
 (defun macroexp--cons (car cdr original-cons)
-  "Return (CAR . CDR), using ORIGINAL-CONS if possible."
+  "Return ORIGINAL-CONS if the car/cdr of it is `eq' to CAR and CDR, respectively.
+If not, return (CAR . CDR)."
   (if (and (eq car (car original-cons)) (eq cdr (cdr original-cons)))
       original-cons
     (cons car cdr)))
@@ -94,7 +95,7 @@ each clause."
       clause)))
 
 (defun macroexp--compiler-macro (handler form)
-  (condition-case err
+  (condition-case-unless-debug err
       (apply handler form (cdr form))
     (error
      (message "Compiler-macro error for %S: %S" (car form) err)
@@ -186,7 +187,7 @@ and also to avoid outputting the warning during normal execution."
              (symbolp (car form))
              (get (car form) 'byte-obsolete-info)
              (or (not (fboundp 'byte-compile-warning-enabled-p))
-                 (byte-compile-warning-enabled-p 'obsolete)))
+                 (byte-compile-warning-enabled-p 'obsolete (car form))))
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
           (macroexp--warn-and-return
@@ -222,15 +223,15 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                         (cddr form))
                         (cdr form))
         form))
-      (`(,(or `defvar `defconst) . ,_) (macroexp--all-forms form 2))
+      (`(,(or 'defvar 'defconst) . ,_) (macroexp--all-forms form 2))
       (`(function ,(and f `(lambda . ,_)))
        (macroexp--cons 'function
                        (macroexp--cons (macroexp--all-forms f 2)
                                        nil
                                        (cdr form))
                        form))
-      (`(,(or `function `quote) . ,_) form)
-      (`(,(and fun (or `let `let*)) . ,(or `(,bindings . ,body) dontcare))
+      (`(,(or 'function 'quote) . ,_) form)
+      (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body) dontcare))
        (macroexp--cons fun
                        (macroexp--cons (macroexp--all-clauses bindings 1)
                                        (macroexp--all-forms body)
@@ -249,14 +250,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; here, so that any code that cares about the difference will
       ;; see the same transformation.
       ;; First arg is a function:
-      (`(,(and fun (or `funcall `apply `mapcar `mapatoms `mapconcat `mapc))
+      (`(,(and fun (or 'funcall 'apply 'mapcar 'mapatoms 'mapconcat 'mapc))
          ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,f . ,args))))
       ;; Second arg is a function:
-      (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
+      (`(,(and fun (or 'sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
@@ -318,7 +319,9 @@ definitions to shadow the loaded ones for use in file byte-compilation."
     (cons (nreverse decls) body)))
 
 (defun macroexp-progn (exps)
-  "Return an expression equivalent to \\=`(progn ,@EXPS)."
+  "Return EXPS (a list of expressions) with `progn' prepended.
+If EXPS is a list with a single expression, `progn' is not
+prepended, but that expression is returned instead."
   (if (cdr exps) `(progn ,@exps) (car exps)))
 
 (defun macroexp-unprogn (exp)
@@ -327,7 +330,7 @@ Never returns an empty list."
   (if (eq (car-safe exp) 'progn) (or (cdr exp) '(nil)) (list exp)))
 
 (defun macroexp-let* (bindings exp)
-  "Return an expression equivalent to \\=`(let* ,bindings ,exp)."
+  "Return an expression equivalent to \\=`(let* ,BINDINGS ,EXP)."
   (cond
    ((null bindings) exp)
    ((eq 'let* (car-safe exp)) `(let* (,@bindings ,@(cadr exp)) ,@(cddr exp)))
@@ -403,10 +406,13 @@ cases where EXP is a constant."
                         ,bodysym)))))
 
 (defmacro macroexp-let2* (test bindings &rest body)
-  "Bind each binding in BINDINGS as `macroexp-let2' does."
+  "Multiple binding version of `macroexp-let2'.
+
+BINDINGS is a list of elements of the form (SYM EXP).  Each EXP
+can refer to symbols specified earlier in the binding list."
   (declare (indent 2) (debug (sexp (&rest (sexp form)) body)))
   (pcase-exhaustive bindings
-    (`nil (macroexp-progn body))
+    ('nil (macroexp-progn body))
     (`((,var ,exp) . ,tl)
      `(macroexp-let2 ,test ,var ,exp
         (macroexp-let2* ,test ,tl ,@body)))))

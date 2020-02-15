@@ -1,6 +1,6 @@
 ;;; ob-vala.el --- Babel functions for Vala evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
 ;; Author: Christian Garbs <mitch@cgarbs.de>
 ;; Keywords: literate programming, reproducible research
@@ -39,8 +39,7 @@
 ;;; Code:
 
 (require 'ob)
-
-(declare-function org-trim "org" (s &optional keep-lead))
+(require 'org-macs)
 
 ;; File extension.
 (add-to-list 'org-babel-tangle-lang-exts '("vala" . "vala"))

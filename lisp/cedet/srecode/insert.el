@@ -1,6 +1,6 @@
-;;; srecode/insert.el --- Insert srecode templates to an output stream.
+;;; srecode/insert.el --- Insert srecode templates to an output stream  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -26,9 +26,6 @@
 ;; Manage the insertion process for a template.
 ;;
 
-(eval-when-compile
-  (require 'cl)) ;; for `lexical-let'
-
 (require 'srecode/compile)
 (require 'srecode/find)
 (require 'srecode/dictionary)
@@ -47,9 +44,7 @@ Dictionary value references that ask begin with the ? character.
 Possible values are:
   `ask'   - Prompt in the minibuffer as the value is inserted.
   `field' - Use the dictionary macro name as the inserted value,
-            and place a field there.  Matched fields change together.
-
-NOTE: The field feature does not yet work with XEmacs."
+            and place a field there.  Matched fields change together."
   :group 'srecode
   :type '(choice (const :tag "Ask" ask)
 		 (const :tag "Field" field)))
@@ -186,8 +181,7 @@ Buffer based features related to change hooks is handled one level up."
 	       )
       (let ((reg
 	     ;; Create the field-driven editable area.
-	     (srecode-template-inserted-region
-	      "TEMPLATE" :start start :end (point))))
+	     (srecode-template-inserted-region :start start :end (point))))
 	(srecode-overlaid-activate reg))
       )
     ;; We return with 'point being the end of the template insertion
@@ -379,8 +373,8 @@ Can't be blank, or it might be used by regular variable insertion.")
 	   :initarg :where
 	   :documentation
 	   "This should be `begin' or `end', indicating where to insert a CR.
-When `begin', insert a CR if not at 'bol'.
-When `end', insert a CR if not at 'eol'.")
+When `begin', insert a CR if not at `bol'.
+When `end', insert a CR if not at `eol'.")
     ;; @TODO - Add slot and control for the number of blank
     ;;         lines before and after point.
    )
@@ -467,19 +461,18 @@ If SECONDNAME is nil, return VALUE."
 	  (srecode-insert-report-error
 	   dictionary
 	   "Variable inserter %s: second argument `%s' is not a function"
-	   (object-print sti) secondname)))
+	   (cl-prin1-to-string sti) secondname)))
     value))
 
 (cl-defmethod srecode-insert-method ((sti srecode-template-inserter-variable)
 				  dictionary)
   "Insert the STI inserter."
   ;; Convert the name into a name/fcn pair
-  (let* ((name (oref sti :object-name))
-	 (fcnpart (oref sti :secondname))
+  (let* ((name (oref sti object-name))
+	 (fcnpart (oref sti secondname))
 	 (val (srecode-dictionary-lookup-name
 	       dictionary name))
-	 (do-princ t)
-	 )
+	 (do-princ t))
     ;; Alert if a macro wasn't found.
     (when (not val)
       (message "Warning: macro %S was not found in the dictionary." name)
@@ -548,12 +541,12 @@ Loop over the prompts to see if we have a match."
 	)
     (while prompts
       (when (string= (semantic-tag-name (car prompts))
-		     (oref ins :object-name))
-	(oset ins :prompt
+		     (oref ins object-name))
+	(oset ins prompt
 	      (semantic-tag-get-attribute (car prompts) :text))
-	(oset ins :defaultfcn
+	(oset ins defaultfcn
 	      (semantic-tag-get-attribute (car prompts) :default))
-	(oset ins :read-fcn
+	(oset ins read-fcn
 	      (or (semantic-tag-get-attribute (car prompts) :read)
 		  'read-string))
 	)
@@ -564,7 +557,7 @@ Loop over the prompts to see if we have a match."
 				  dictionary)
   "Insert the STI inserter."
   (let ((val (srecode-dictionary-lookup-name
-	      dictionary (oref sti :object-name))))
+	      dictionary (oref sti object-name))))
     (if val
 	;; Does some extra work.  Oh well.
 	(cl-call-next-method)
@@ -580,7 +573,7 @@ Loop over the prompts to see if we have a match."
       ;; the user can use the same name again later.
       (srecode-dictionary-set-value
        (srecode-root-dictionary dictionary)
-       (oref sti :object-name) val)
+       (oref sti object-name) val)
 
       ;; Now that this value is safely stowed in the dictionary,
       ;; we can do what regular inserters do.
@@ -590,7 +583,7 @@ Loop over the prompts to see if we have a match."
 				       dictionary)
   "Derive the default value for an askable inserter STI.
 DICTIONARY is used to derive some values."
-  (let ((defaultfcn (oref sti :defaultfcn)))
+  (let ((defaultfcn (oref sti defaultfcn)))
     (cond
      ((stringp defaultfcn)
       defaultfcn)
@@ -617,13 +610,13 @@ DICTIONARY is used to derive some values."
 Use DICTIONARY to resolve values."
   (let* ((prompt (oref sti prompt))
 	 (default (srecode-insert-ask-default sti dictionary))
-	 (reader (oref sti :read-fcn))
+	 (reader (oref sti read-fcn))
 	 (val nil)
 	 )
     (cond ((eq reader 'y-or-n-p)
 	   (if (y-or-n-p (or prompt
 			     (format "%s? "
-				     (oref sti :object-name))))
+				     (oref sti object-name))))
 	       (setq val default)
 	     (setq val "")))
 	  ((eq reader 'read-char)
@@ -631,14 +624,14 @@ Use DICTIONARY to resolve values."
 		      "%c"
 		      (read-char (or prompt
 				     (format "Char for %s: "
-					     (oref sti :object-name))))))
+					     (oref sti object-name))))))
 	   )
 	  (t
 	   (save-excursion
 	     (setq val (funcall reader
 				(or prompt
 				    (format "Specify %s: "
-					    (oref sti :object-name)))
+					    (oref sti object-name)))
 				default
 				)))))
     ;; Return our derived value.
@@ -651,7 +644,7 @@ Use DICTIONARY to resolve values."
 Use DICTIONARY to resolve values."
   (let* ((default (srecode-insert-ask-default sti dictionary))
 	 (compound-value
-	  (srecode-field-value (oref sti :object-name)
+	  (srecode-field-value (oref sti object-name)
 			       :firstinserter sti
 			       :defaultvalue default))
 	 )
@@ -819,12 +812,12 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 Loops over the embedded CODE which was saved here during compilation.
 The template to insert is stored in SLOT."
   (let ((dicts (srecode-dictionary-lookup-name
-		dictionary (oref sti :object-name))))
+		dictionary (oref sti object-name))))
     (when (not (listp dicts))
       (srecode-insert-report-error
        dictionary
        "Cannot insert section %S from non-section variable."
-       (oref sti :object-name)))
+       (oref sti object-name)))
     ;; If there is no section dictionary, then don't output anything
     ;; from this section.
     (while dicts
@@ -832,7 +825,7 @@ The template to insert is stored in SLOT."
 	(srecode-insert-report-error
 	 dictionary
 	 "Cannot insert section %S from non-section variable."
-	 (oref sti :object-name)))
+	 (oref sti object-name)))
       (srecode-insert-subtemplate sti (car dicts) slot)
       (setq dicts (cdr dicts)))))
 
@@ -863,7 +856,7 @@ applied to the text between the section start and the
 Shorten input until the END token is found.
 Return the remains of INPUT."
   (let* ((out (srecode-compile-split-code tag input STATE
-					  (oref ins :object-name))))
+					  (oref ins object-name))))
     (oset ins template (srecode-template
 			(eieio-object-name-string ins)
 			:context nil
@@ -896,7 +889,7 @@ are treated specially.")
 (cl-defmethod srecode-match-end ((ins srecode-template-inserter-section-end) name)
 
   "For the template inserter INS, do I end a section called NAME?"
-  (string= name (oref ins :object-name)))
+  (string= name (oref ins object-name)))
 
 (defclass srecode-template-inserter-include (srecode-template-inserter-subtemplate)
   ((key :initform ?>
@@ -927,13 +920,13 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   "For the template inserter STI, lookup the template to include.
 Finds the template with this macro function part and stores it in
 this template instance."
-  (let ((templatenamepart (oref sti :secondname)))
+  (let ((templatenamepart (oref sti secondname)))
     ;; If there was no template name, throw an error.
     (unless templatenamepart
       (srecode-insert-report-error
        dictionary
        "Include macro `%s' needs a template name"
-       (oref sti :object-name)))
+       (oref sti object-name)))
 
     ;; NOTE: We used to cache the template and not look it up a second time,
     ;; but changes in the template tables can change which template is
@@ -971,14 +964,14 @@ this template instance."
 	)
 
       ;; Store the found template into this object for later use.
-      (oset sti :includedtemplate tmpl))
+      (oset sti includedtemplate tmpl))
 
     (unless (oref sti includedtemplate)
       ;; @todo - Call into a debugger to help find the template in question.
       (srecode-insert-report-error
        dictionary
        "No template \"%s\" found for include macro `%s'"
-       templatenamepart (oref sti :object-name)))))
+       templatenamepart (oref sti object-name)))))
 
 (cl-defmethod srecode-insert-method ((sti srecode-template-inserter-include)
 				  dictionary)
@@ -988,7 +981,7 @@ with the dictionaries found in the dictionary."
   (srecode-insert-include-lookup sti dictionary)
   ;; Insert the template.
   ;; Our baseclass has a simple way to do this.
-  (if (srecode-dictionary-lookup-name dictionary (oref sti :object-name))
+  (if (srecode-dictionary-lookup-name dictionary (oref sti object-name))
       ;; If we have a value, then call the next method
       (srecode-insert-method-helper sti dictionary 'includedtemplate)
     ;; If we don't have a special dictionary, then just insert with the
@@ -1049,24 +1042,36 @@ template where a ^ inserter occurs."
   ;; which implements the wrap insertion behavior in FUNCTION. The
   ;; maximum valid nesting depth is just the current depth + 1.
   (let ((srecode-template-inserter-point-override
-	 (lexical-let ((inserter1 sti))
-	   (cons
-	    ;; DEPTH
-	    (+ (length (oref-default 'srecode-template active)) 1)
-	    ;; FUNCTION
-	    (lambda (dict)
-	      (let ((srecode-template-inserter-point-override nil))
-		(if (srecode-dictionary-lookup-name
-		     dict (oref inserter1 :object-name))
-		    ;; Insert our sectional part with looping.
-		    (srecode-insert-method-helper
-		     inserter1 dict 'template)
-		  ;; Insert our sectional part just once.
-		  (srecode-insert-subtemplate
-		   inserter1 dict 'template))))))))
+	 (cons
+	  ;; DEPTH
+	  (+ (length (oref-default 'srecode-template active)) 1)
+	  ;; FUNCTION
+	  (lambda (dict)
+	    (let ((srecode-template-inserter-point-override nil))
+	      (if (srecode-dictionary-lookup-name
+		   dict (oref sti object-name))
+		  ;; Insert our sectional part with looping.
+		  (srecode-insert-method-helper
+		   sti dict 'template)
+		;; Insert our sectional part just once.
+		(srecode-insert-subtemplate
+		 sti dict 'template)))))))
     ;; Do a regular insertion for an include, but with our override in
     ;; place.
     (cl-call-next-method)))
+
+(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter))
+						  escape-start escape-end)
+  "Insert an example using inserter INS.
+Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
+  (princ "   ")
+  (princ escape-start)
+  (when (and (slot-exists-p ins 'key) (oref ins key))
+    (princ (format "%c" (oref ins key))))
+  (princ "VARNAME")
+  (princ escape-end)
+  (terpri)
+  )
 
 (provide 'srecode/insert)
 

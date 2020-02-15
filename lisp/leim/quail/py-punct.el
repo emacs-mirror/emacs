@@ -1,12 +1,12 @@
-;;; py-punct.el --- Quail packages for Chinese (pinyin + extra symbols)  -*-coding: iso-2022-7bit;-*-
+;;; py-punct.el --- Quail packages for Chinese (pinyin + extra symbols)
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Author: Ken'ichi HANDA <handa@etl.go.jp>
+;; Author: Ken'ichi Handa <handa@gnu.org>
 
 ;; Keywords: multilingual, input method, Chinese
 
@@ -35,16 +35,16 @@
 (load "quail/Punct")
 
 (quail-define-package
- "chinese-py-punct" "Chinese-GB" "$AF47{(B"
+ "chinese-py-punct" "Chinese-GB" "拼符"
  t
- "$A::WVJdHk(B $AF4Rt7=08(B and `v' for $A1j5c7{:EJdHk(B
+ "汉字输入 拼音方案 and `v' for 标点符号输入
 
 This is the combination of the input methods `chinese-py' and `chinese-punct'.
 You can enter normal Chinese characters by the same way as `chinese-py'.
 And, you can enter symbols by typing `v' followed by any key sequences
 defined in `chinese-punct'.
 
-For instance, typing `v' and `%' insert `$A#%(B'.
+For instance, typing `v' and `%' insert `％'.
 ")
 
 (setcar (nthcdr 2 quail-current-package)
@@ -55,9 +55,9 @@ For instance, typing `v' and `%' insert `$A#%(B'.
 (load "quail/TONEPY")
 
 (quail-define-package
- "chinese-tonepy-punct" "Chinese-GB" "$AF47{(B"
+ "chinese-tonepy-punct" "Chinese-GB" "拼符"
  t
- "$A::WVJdHk(B $A4x5wF4Rt7=08(B and `v' for $A1j5c7{:EJdHk(B
+ "汉字输入 带调拼音方案 and `v' for 标点符号输入
 
 This is the combination of the input methods `chinese-tonepy' and
 `chinese-punct'.
@@ -66,7 +66,7 @@ You can enter normal Chinese characters by the same way as
 `chinese-tonepy'.  And, you can enter symbols by typing `v' followed
 by any key sequences defined in `chinese-punct'.
 
-For instance, typing `v' and `%' insert `$A#%(B'.
+For instance, typing `v' and `%' insert `％'.
 ")
 
 (setcar (nthcdr 2 quail-current-package)

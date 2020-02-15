@@ -1,6 +1,6 @@
 ;;; reftex-index.el --- index support with RefTeX
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -771,7 +771,7 @@ Label context is only displayed when the labels are there as well."
   (interactive)
   (reftex-index-visit-location 'hide))
 (defun reftex-index-goto-entry ()
-  "Go to document location in other window. *Index* window stays."
+  "Go to document location in other window.  *Index* window stays."
   (interactive)
   (reftex-index-visit-location t))
 (defun reftex-index-mouse-goto-line-and-hide (ev)
@@ -1093,12 +1093,12 @@ When index is restricted, select the previous section as restriction criterion."
     (reftex-index-change-entry new (format "Removed prefix: %s" prefix))))
 
 (defun reftex-index-kill ()
-  "FIXME: Not yet implemented"
+  "FIXME: Not yet implemented."
   (interactive)
   (error "This function is currently not implemented"))
 
 (defun reftex-index-undo ()
-  "FIXME: Not yet implemented"
+  "FIXME: Not yet implemented."
   (interactive)
   (error "This function is currently not implemented"))
 

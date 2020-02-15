@@ -1,6 +1,6 @@
 ;;; wdired-tests.el --- tests for wdired.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -86,7 +86,11 @@ only the name before the link arrow."
     (let ((buf (find-file-noselect test-dir)))
       (unwind-protect
 	  (with-current-buffer buf
-            (make-symbolic-link "./bar/baz" link-name)
+            (skip-unless
+             ;; This check is for wdired, not symbolic links, so skip
+             ;; it when make-symbolic-link fails for any reason (like
+             ;; insufficient privileges).
+             (ignore-errors (make-symbolic-link "./bar/baz" link-name) t))
             (revert-buffer)
             (let* ((file-name (dired-get-filename))
                    (dir-part (file-name-directory file-name))
@@ -123,6 +127,54 @@ wdired-mode."
 	    (set-buffer-modified-p nil)
 	    (kill-buffer buf)))
 	(delete-directory test-dir t)))))
+
+(defvar server-socket-dir)
+
+(ert-deftest wdired-test-bug34915 ()
+  "Test editing when dired-listing-switches includes -F.
+Appended file indicators should not count as part of the file
+name, either before or after editing.  Since
+dired-move-to-end-of-filename handles indicator characters, it
+suffices to compare the return values of dired-get-filename and
+wdired-get-filename before and after editing."
+  ;; FIXME: Add a test for a door (indicator ">") only under Solaris?
+  (let* ((test-dir (make-temp-file "test-dir-" t))
+         (server-socket-dir test-dir)
+         (dired-listing-switches "-Fl")
+         (buf (find-file-noselect test-dir)))
+    (unwind-protect
+        (progn
+	  (with-current-buffer buf
+            (dired-create-empty-file "foo")
+            (set-file-modes "foo" (file-modes-symbolic-to-number "+x"))
+            (make-symbolic-link "foo" "bar")
+            (make-directory "foodir")
+            (require 'dired-x)
+            (dired-smart-shell-command "mkfifo foopipe")
+            (server-force-delete)
+            ;; FIXME?  This seems a heavy-handed way of making a socket.
+            (server-start)              ; Add a socket file.
+            (kill-buffer buf))
+          (dired test-dir)
+          (dired-toggle-read-only)
+          (let (names)
+            ;; Test that the file names are the same in Dired and WDired.
+            (while (not (eobp))
+              (should (equal (dired-get-filename 'no-dir t)
+                             (wdired-get-filename t)))
+              (insert "w")
+              (push (wdired-get-filename t) names)
+              (dired-next-line 1))
+            (wdired-finish-edit)
+            ;; Test that editing the file names ignores the indicator
+            ;; character.
+            (let (dir)
+              (while (and (dired-previous-line 1)
+                          (setq dir (dired-get-filename 'no-dir t)))
+                (should (equal dir (pop names)))))))
+      (kill-buffer (get-buffer test-dir))
+      (server-force-delete)
+      (delete-directory test-dir t))))
 
 
 (provide 'wdired-tests)

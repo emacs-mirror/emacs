@@ -1,6 +1,6 @@
 ;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Dan Nicolaescu <dann@ics.uci.edu>
 

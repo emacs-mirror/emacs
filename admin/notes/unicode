@@ -1,6 +1,6 @@
                                             -*-mode: text; coding: utf-8;-*-
 
-Copyright (C) 2002-2018 Free Software Foundation, Inc.
+Copyright (C) 2002-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Importing a new Unicode Standard version into Emacs
@@ -11,15 +11,20 @@ Emacs uses the following files from the Unicode Character Database
 
   . UnicodeData.txt
   . Blocks.txt
-  . BidiMirroring.txt
   . BidiBrackets.txt
+  . BidiCharacterTest.txt
+  . BidiMirroring.txt
   . IVD_Sequences.txt
   . NormalizationTest.txt
   . SpecialCasing.txt
-  . BidiCharacterTest.txt
 
 First, the first 7 files need to be copied into admin/unidata/, and
-then Emacs should be rebuilt for them to take effect.  Rebuilding
+the file https://www.unicode.org/copyright.html should be copied over
+copyright.html in admin/unidata (that file might need trailing
+whitespace removed before it can be committed to the Emacs
+repository).
+
+Then Emacs should be rebuilt for them to take effect.  Rebuilding
 Emacs updates several derived files elsewhere in the Emacs source
 tree, mainly in lisp/international/.
 
@@ -28,7 +33,10 @@ files, pay attention to any warning or error messages.  In particular,
 admin/unidata/unidata-gen.el will complain if UnicodeData.txt defines
 new bidirectional attributes of characters, because unidata-gen.el,
 bidi.c and dispextern.h need to be updated in that case; failure to do
-so will cause aborts in redisplay.
+so will cause aborts in redisplay.  unidata-gen.el will also complain
+if the format of the Unicode Copyright notice in copyright.html
+changed in significant ways; in that case, update the regular
+expression in unidata-gen-file used to extract the copyright string.
 
 Next, review the changes in UnicodeData.txt vs the previous version
 used by Emacs.  Any changes, be it introduction of new scripts or
@@ -40,7 +48,12 @@ and see if any changes in admin/unidata/blocks.awk are required.
 
 The setting of char-width-table around line 1200 of characters.el
 should be checked against the latest version of the Unicode file
-EastAsianWidth.txt, and any discrepancies fixed.
+EastAsianWidth.txt, and any discrepancies fixed: double-width
+characters are those marked with W or F in that file.  Zero-width
+characters are not taken from EastAsianWidth.txt, they are those whose
+Unicode General Category property is one of Mn, Me, or Cf, and also
+Hangul jungseong and jongseong characters (a.k.a. "Jamo medial vowels"
+and "Jamo final consonants").
 
 Any new scripts added by UnicodeData.txt will also need updates to
 script-representative-chars defined in fontset.el, and also the list
@@ -49,6 +62,9 @@ of OTF script tags in otf-script-alist, whose source is on this page:
   https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags
 
 Other databases in fontset.el might also need to be updated as needed.
+One notable place to check is the function setup-default-fontset,
+where new scripts will generally need some addition, most probably to
+the list of "simple" scripts (search for "Simple").
 
 The function 'ucs-names', defined in lisp/international/mule-cmds.el,
 might need to be updated because it knows about used and unused ranges
@@ -230,30 +246,22 @@ nontrivial changes to the build process.
 
 	admin/charsets/mapfiles/cns2ucsdkw.txt
 
- * iso-2022-7bit
+ * iso-2022-jp
 
-     Each of these files contains just one CJK charset, but Emacs
-     currently has no easy way to specify set-charset-priority on a
-     per-file basis, so converting any of these files to UTF-8 might
-     change the file's appearance when viewed by an Emacs that is
-     operating in some other language environment.
+     This contains just one CJK charset, but Emacs currently has no
+     easy way to specify set-charset-priority on a per-file basis, so
+     converting this file to UTF-8 might change the file's appearance
+     when viewed by an Emacs that is operating in some other language
+     environment.
 
 	etc/tutorials/TUTORIAL.ja
-	lisp/international/ja-dic-cnv.el
-	lisp/international/ja-dic-utl.el
-	lisp/international/kinsoku.el
-	lisp/international/kkc.el
-	lisp/international/titdic-cnv.el
-	lisp/language/japan-util.el
-	lisp/language/japanese.el
-	lisp/leim/quail/cyril-jis.el
-	lisp/leim/quail/hanja-jis.el
-	lisp/leim/quail/japanese.el
-	lisp/leim/quail/py-punct.el
-	lisp/leim/quail/pypunct-b5.el
 
-     This file contains just Chinese characters, and has same problem.
-     Also, it contains characters that cannot be encoded in UTF-8.
+ * iso-2022-7bit
+
+     This file contains multiple Chinese charsets, and converting it
+     to UTF-8 would lose the charset property and would change the
+     code's behavior.  Although this could be worked around by
+     propertizing the strings, that hasn't been done.
 
 	lisp/international/titdic-cnv.el
 

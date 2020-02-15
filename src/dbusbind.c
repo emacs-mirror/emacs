@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#include "pdumper.h"
 #include "process.h"
 
 #ifndef DBUS_NUM_MESSAGE_TYPES
@@ -346,7 +347,6 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
   int subtype;
   Lisp_Object elt;
   char const *subsig;
-  int subsiglen;
   char x[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   elt = object;
@@ -430,10 +430,9 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
 
-      subsiglen = snprintf (signature, DBUS_MAXIMUM_SIGNATURE_LENGTH,
-			    "%c%s", dtype, subsig);
-      if (! (0 <= subsiglen && subsiglen < DBUS_MAXIMUM_SIGNATURE_LENGTH))
-	string_overflow ();
+      signature[0] = dtype;
+      signature[1] = '\0';
+      xd_signature_cat (signature, subsig);
       break;
 
     case DBUS_TYPE_VARIANT:
@@ -663,8 +662,8 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 	    xd_extract_signed (object,
 			       TYPE_MINIMUM (dbus_int64_t),
 			       TYPE_MAXIMUM (dbus_int64_t));
-	  printmax_t pval = val;
-	  XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
+	  intmax_t pval = val;
+	  XD_DEBUG_MESSAGE ("%c %"PRIdMAX, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -675,8 +674,8 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 	  dbus_uint64_t val =
 	    xd_extract_unsigned (object,
 				 TYPE_MAXIMUM (dbus_uint64_t));
-	  uprintmax_t pval = val;
-	  XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
+	  uintmax_t pval = val;
+	  XD_DEBUG_MESSAGE ("%c %"PRIuMAX, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -730,22 +729,27 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 	    strcpy (signature, DBUS_TYPE_STRING_AS_STRING);
 
 	  else
-	    /* If the element type is DBUS_TYPE_SIGNATURE, and this is
-	       the only element, the value of this element is used as
-	       the array's element signature.  */
-	    if ((XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (object))
-		 == DBUS_TYPE_SIGNATURE)
-		&& STRINGP (CAR_SAFE (XD_NEXT_VALUE (object)))
-		&& NILP (CDR_SAFE (XD_NEXT_VALUE (object))))
-	      {
-		lispstpcpy (signature, CAR_SAFE (XD_NEXT_VALUE (object)));
-		object = CDR_SAFE (XD_NEXT_VALUE (object));
-	      }
+	    {
+	      /* If the element type is DBUS_TYPE_SIGNATURE, and this is
+		 the only element, the value of this element is used as
+		 the array's element signature.  */
+	      if (CONSP (object) && (XD_OBJECT_TO_DBUS_TYPE (XCAR (object))
+				     == DBUS_TYPE_SIGNATURE))
+		{
+		  Lisp_Object val = XD_NEXT_VALUE (object);
+		  if (CONSP (val) && STRINGP (XCAR (val)) && NILP (XCDR (val))
+		      && SBYTES (XCAR (val)) < DBUS_MAXIMUM_SIGNATURE_LENGTH)
+		    {
+		      lispstpcpy (signature, XCAR (val));
+		      object = Qnil;
+		    }
+		}
 
-	    else
-	      xd_signature (signature,
-			    XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (object)),
-			    dtype, CAR_SAFE (XD_NEXT_VALUE (object)));
+	      if (!NILP (object))
+		xd_signature (signature,
+			      XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (object)),
+			      dtype, CAR_SAFE (XD_NEXT_VALUE (object)));
+	    }
 
 	  XD_DEBUG_MESSAGE ("%c %s %s", dtype, signature,
 			    XD_OBJECT_TO_STRING (object));
@@ -869,20 +873,18 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
     case DBUS_TYPE_INT64:
       {
 	dbus_int64_t val;
-	printmax_t pval;
 	dbus_message_iter_get_basic (iter, &val);
-	pval = val;
-	XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
+	intmax_t pval = val;
+	XD_DEBUG_MESSAGE ("%c %"PRIdMAX, dtype, pval);
 	return INT_TO_INTEGER (val);
       }
 
     case DBUS_TYPE_UINT64:
       {
 	dbus_uint64_t val;
-	uprintmax_t pval;
 	dbus_message_iter_get_basic (iter, &val);
-	pval = val;
-	XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
+	uintmax_t pval = val;
+	XD_DEBUG_MESSAGE ("%c %"PRIuMAX, dtype, pval);
 	return INT_TO_INTEGER (val);
       }
 
@@ -1423,7 +1425,7 @@ usage: (dbus-message-internal &rest REST)  */)
   for (; count < nargs; ++count)
     {
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[count]);
-      if (XD_DBUS_TYPE_P (args[count]))
+      if (count + 1 < nargs && XD_DBUS_TYPE_P (args[count]))
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count+1]);
@@ -1680,6 +1682,12 @@ init_dbusbind (void)
   xputenv ("DBUS_FATAL_WARNINGS=0");
 }
 
+static void
+syms_of_dbusbind_for_pdumper (void)
+{
+  xd_registered_buses = Qnil;
+}
+
 void
 syms_of_dbusbind (void)
 {
@@ -1828,11 +1836,10 @@ be called when the D-Bus reply message arrives.  */);
 #endif
 
   /* Initialize internal objects.  */
-  xd_registered_buses = Qnil;
+  pdumper_do_now_and_after_load (syms_of_dbusbind_for_pdumper);
   staticpro (&xd_registered_buses);
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
-
 }
 
 #endif /* HAVE_DBUS */

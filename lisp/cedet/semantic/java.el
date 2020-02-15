@@ -1,6 +1,6 @@
 ;;; semantic/java.el --- Semantic functions for Java
 
-;;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -51,7 +51,7 @@
             "\\|"
             "\\<[0-9]+[eE][-+]?[0-9]+[fFdD]?\\>"
             "\\|"
-            "\\<0[xX][0-9a-fA-F]+[lL]?\\>"
+            "\\<0[xX][[:xdigit:]]+[lL]?\\>"
             "\\|"
             "\\<[0-9]+[lLfFdD]?\\>"
             "\\)"
@@ -63,7 +63,7 @@ DECIMAL_LITERAL:
     [1-9][0-9]*
   ;
 HEX_LITERAL:
-    0[xX][0-9a-fA-F]+
+    0[xX][[:xdigit:]]+
   ;
 OCTAL_LITERAL:
     0[0-7]*
@@ -281,7 +281,7 @@ Optional argument COLOR indicates that color should be mixed in."
 Java have documentation set in a comment preceding TAG's definition.
 Attempt to strip out comment syntactic sugar, unless optional argument
 NOSNARF is non-nil.
-If NOSNARF is 'lex, then return the semantic lex token."
+If NOSNARF is `lex', then return the semantic lex token."
   (when (or tag (setq tag (semantic-current-tag)))
     (with-current-buffer (semantic-tag-buffer tag)
       (save-excursion
@@ -391,7 +391,7 @@ That is TAG `symbol-name' without the leading `@'."
 
 (defun semantic-java-doc-keywords-map (fun &optional property)
   "Run function FUN for each javadoc keyword.
-Return the list of FUN results.  If optional PROPERTY is non nil only
+Return the list of FUN results.  If optional PROPERTY is non-nil only
 call FUN for javadoc keywords which have a value for PROPERTY.  FUN
 receives two arguments: the javadoc keyword and its associated
 'javadoc property list.  It can return any value.  All nil values are

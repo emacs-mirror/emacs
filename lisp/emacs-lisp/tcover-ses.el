@@ -1,9 +1,8 @@
 ;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
-;; Author: Jonathan Yavner <jyavner@engineer.com>
-;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
+;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: spreadsheet lisp utility
 ;; Package: testcover
 
@@ -628,7 +627,7 @@ spreadsheet files with invalid formatting."
 	(error nil)))))
 
 (defun ses-exercise-startup ()
-  "Prepare for coverage tests"
+  "Prepare for coverage tests."
   ;;Clean up from any previous runs
   (condition-case nil (kill-buffer "ses-example.ses") (error nil))
   (condition-case nil (kill-buffer "ses-test.ses") (error nil))

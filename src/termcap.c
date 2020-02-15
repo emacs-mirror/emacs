@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2018 Free
+   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2020 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
@@ -20,9 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
+
+#include <stdlib.h>
 #include <sys/file.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <intprops.h>
 
 #include "lisp.h"
 #include "tparam.h"
@@ -158,7 +162,7 @@ tgetst1 (char *ptr, char **area)
   else
     ret = *area;
 
-  /* Copy the string value, stopping at null or colon.
+  /* Copy the string value, stopping at NUL or colon.
      Also process ^ and \ abbreviations.  */
   p = ptr;
   r = ret;
@@ -265,14 +269,7 @@ char PC;
 void
 tputs (register const char *str, int nlines, int (*outfun) (int))
 {
-  register int padcount = 0;
-  register int speed;
-
-  speed = baud_rate;
-  /* For quite high speeds, convert to the smaller
-     units to avoid overflow.  */
-  if (speed > 10000)
-    speed = - speed / 100;
+  int padcount = 0;
 
   if (!str)
     return;
@@ -296,21 +293,13 @@ tputs (register const char *str, int nlines, int (*outfun) (int))
     (*outfun) (*str++);
 
   /* PADCOUNT is now in units of tenths of msec.
-     SPEED is measured in characters per 10 seconds
-     or in characters per .1 seconds (if negative).
-     We use the smaller units for larger speeds to avoid overflow.  */
-  padcount *= speed;
-  padcount += 500;
-  padcount /= 1000;
-  if (speed < 0)
-    padcount = -padcount;
-  else
-    {
-      padcount += 50;
-      padcount /= 100;
-    }
+     BAUD_RATE is measured in characters per 10 seconds.
+     Compute PADFACTOR = 100000 * (how many padding bytes are needed).  */
+  intmax_t padfactor;
+  if (INT_MULTIPLY_WRAPV (padcount, baud_rate, &padfactor))
+    padfactor = baud_rate < 0 ? INTMAX_MIN : INTMAX_MAX;
 
-  while (padcount-- > 0)
+  for (; 50000 <= padfactor; padfactor -= 100000)
     (*outfun) (PC);
 }
 
@@ -426,7 +415,7 @@ tgetent (char *bp, const char *name)
     }
 
   if (!termcap_name || !filep)
-    termcap_name = TERMCAP_FILE;
+    termcap_name = (char *) TERMCAP_FILE;
 
   /* Here we know we must search a file and termcap_name has its name.  */
 
@@ -435,7 +424,7 @@ tgetent (char *bp, const char *name)
     return -1;
 
   buf.size = BUFSIZE;
-  /* Add 1 to size to ensure room for terminating null.  */
+  /* Add 1 to size to ensure room for terminating NUL.  */
   buf.beg = xmalloc (buf.size + 1);
   term = indirect ? indirect : (char *)name;
 
@@ -491,7 +480,7 @@ tgetent (char *bp, const char *name)
       *bp1 = '\0';
 
       /* Does this entry refer to another terminal type's entry?
-	 If something is found, copy it into heap and null-terminate it.  */
+	 If something is found, copy it into heap and NUL-terminate it.  */
       tc_search_point = find_capability (tc_search_point, "tc");
       term = tgetst1 (tc_search_point, 0);
     }
@@ -629,7 +618,7 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 	    {
 	      ptrdiff_t ptr_offset = bufp->ptr - buf;
 	      ptrdiff_t append_end_offset = append_end - buf;
-	      /* Add 1 to size to ensure room for terminating null.  */
+	      /* Add 1 to size to ensure room for terminating NUL.  */
 	      ptrdiff_t size = bufp->size + 1;
 	      bufp->beg = buf = xpalloc (buf, &size, 1, -1, 1);
 	      bufp->size = size - 1;

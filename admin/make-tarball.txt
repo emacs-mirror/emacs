@@ -115,7 +115,7 @@ General steps (for each step, check for possible errors):
     results against the new tar contents.
 
 7.   tar -xf emacs-NEW.tar; cd emacs-NEW
-     ./configure --prefix=/tmp/emacs && make && make install
+     ./configure --prefix=/tmp/emacs && make check && make install
     Use 'script' or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
@@ -194,9 +194,7 @@ General steps (for each step, check for possible errors):
 UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
 As soon as possible after a release, the Emacs web pages should be updated.
-Anyone with write access to the Emacs code repository can do this.
-For instructions, see <https://savannah.gnu.org/cvs/?group=emacs>.
-Changes go live more or less as soon as they are committed.
+(See admin/notes/www for general information.)
 
 The pages to update are:
 

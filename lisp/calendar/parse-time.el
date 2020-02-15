@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -27,7 +27,7 @@
 ;; Emacs.  However, parsing time strings is still largely a matter of
 ;; heuristics and no common interface has been designed.
 
-;; `parse-time-string' parses a time in a string and returns a list of 9
+;; `parse-time-string' parses a time in a string and returns a list of
 ;; values, just like `decode-time', where unspecified elements in the
 ;; string are returned as nil (except unspecfied DST is returned as -1).
 ;; `encode-time' may be applied on these values to obtain an internal
@@ -36,6 +36,8 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'iso8601)
+(eval-when-compile (require 'subr-x))
 
 ;; Byte-compiler warnings
 (defvar parse-time-elt)
@@ -146,122 +148,64 @@ letters, digits, plus or minus signs or colons."
 
 ;;;###autoload
 (defun parse-time-string (string)
-  "Parse the time-string STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-STRING should be on something resembling an RFC2822 string, a la
-\"Fri, 25 Mar 2016 16:24:56 +0100\", but this function is
+  "Parse the time in STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
+STRING should be an ISO 8601 time string, e.g., \"2020-01-15T16:12:21-08:00\",
+or something resembling an RFC 822 (or later) date-time, e.g.,
+\"Wed, 15 Jan 2020 16:12:21 -0800\".  This function is
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
 any unknown values other than DST are returned as nil, and an
 unknown DST value is returned as -1."
-  (let ((time (list nil nil nil nil nil nil nil -1 nil))
-	(temp (parse-time-tokenize (downcase string))))
-    (while temp
-      (let ((parse-time-elt (pop temp))
-	    (rules parse-time-rules)
-	    (exit nil))
-	(while (and rules (not exit))
-	  (let* ((rule (pop rules))
-		 (slots (pop rule))
-		 (predicate (pop rule))
-		 (parse-time-val))
-	    (when (and (not (nth (car slots) time)) ;not already set
-		       (setq parse-time-val
-			     (cond ((and (consp predicate)
-					 (not (eq (car predicate)
-						  'lambda)))
-				    (and (numberp parse-time-elt)
-					 (<= (car predicate) parse-time-elt)
-					 (or (not (cdr predicate))
-					     (<= parse-time-elt
-						 (cadr predicate)))
-					 parse-time-elt))
-				   ((symbolp predicate)
-				    (cdr (assoc parse-time-elt
-						(symbol-value predicate))))
-				   ((funcall predicate)))))
-	      (setq exit t)
-	      (while slots
-		(let ((new-val (if rule
-				   (let ((this (pop rule)))
-				     (if (vectorp this)
-					 (cl-parse-integer
-					  parse-time-elt
-					  :start (aref this 0)
-					  :end (aref this 1))
-				       (funcall this)))
-				 parse-time-val)))
-		  (rplaca (nthcdr (pop slots) time) new-val))))))))
-    time))
-
-(defconst parse-time-iso8601-regexp
-  (let* ((dash "-?")
-	 (colon ":?")
-	 (4digit "\\([0-9][0-9][0-9][0-9]\\)")
-	 (2digit "\\([0-9][0-9]\\)")
-	 (date-fullyear 4digit)
-	 (date-month 2digit)
-	 (date-mday 2digit)
-	 (time-hour 2digit)
-	 (time-minute 2digit)
-	 (time-second 2digit)
-	 (time-secfrac "\\(\\.[0-9]+\\)?")
-	 (time-numoffset (concat "\\([-+]\\)" time-hour ":?" time-minute "?"))
-	 (partial-time (concat time-hour colon time-minute colon time-second
-			       time-secfrac))
-	 (full-date (concat date-fullyear dash date-month dash date-mday)))
-    (list (concat "^" full-date)
-	  (concat "T" partial-time)
-	  (concat "\\(Z\\|" time-numoffset "\\)")))
-  "List of regular expressions matching ISO 8601 dates.
-1st regular expression matches the date.
-2nd regular expression matches the time.
-3rd regular expression matches the (optional) timezone specification.")
+  (condition-case ()
+      (iso8601-parse string)
+    (wrong-type-argument
+     (let ((time (list nil nil nil nil nil nil nil -1 nil))
+	   (temp (parse-time-tokenize (downcase string))))
+       (while temp
+	 (let ((parse-time-elt (pop temp))
+	       (rules parse-time-rules)
+	       (exit nil))
+	   (while (and rules (not exit))
+	     (let* ((rule (pop rules))
+		    (slots (pop rule))
+		    (predicate (pop rule))
+		    (parse-time-val))
+	       (when (and (not (nth (car slots) time)) ;not already set
+			  (setq parse-time-val
+				(cond ((and (consp predicate)
+					    (not (functionp predicate)))
+				       (and (numberp parse-time-elt)
+					    (<= (car predicate) parse-time-elt)
+					    (or (not (cdr predicate))
+						(<= parse-time-elt
+						    (cadr predicate)))
+					    parse-time-elt))
+				      ((symbolp predicate)
+				       (cdr (assoc parse-time-elt
+						   (symbol-value predicate))))
+				      ((funcall predicate)))))
+		 (setq exit t)
+		 (while slots
+		   (let ((new-val (if rule
+				      (let ((this (pop rule)))
+					(if (vectorp this)
+					    (cl-parse-integer
+					     parse-time-elt
+					     :start (aref this 0)
+					     :end (aref this 1))
+					  (funcall this)))
+				    parse-time-val)))
+		     (setf (nth (pop slots) time) new-val))))))))
+       time))))
 
 (defun parse-iso8601-time-string (date-string)
-  "Parse an ISO 8601 time string, such as 2016-12-01T23:35:06-05:00.
-If DATE-STRING cannot be parsed, it falls back to
-`parse-time-string'."
-  (let* ((date-re (nth 0 parse-time-iso8601-regexp))
-	 (time-re (nth 1 parse-time-iso8601-regexp))
-	 (tz-re (nth 2 parse-time-iso8601-regexp))
-         re-start
-         time seconds minute hour
-         day month year day-of-week (dst -1) tz)
-    ;; We need to populate 'time' with
-    ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
-
-    ;; Nobody else handles iso8601 correctly, let's do it ourselves.
-    (when (string-match date-re date-string re-start)
-      (setq year (string-to-number (match-string 1 date-string))
-	    month (string-to-number (match-string 2 date-string))
-	    day (string-to-number (match-string 3 date-string))
-	    re-start (match-end 0))
-      (when (string-match time-re date-string re-start)
-	(setq hour (string-to-number (match-string 1 date-string))
-	      minute (string-to-number (match-string 2 date-string))
-	      seconds (string-to-number (match-string 3 date-string))
-	      re-start (match-end 0))
-	(when (string-match tz-re date-string re-start)
-          (setq dst nil)
-          (if (string= "Z" (match-string 1 date-string))
-              (setq tz 0)  ;; UTC timezone indicated by Z
-            (setq tz (+
-                      (* 3600
-                         (string-to-number (match-string 3 date-string)))
-                      (* 60
-                         (string-to-number
-                          (or (match-string 4 date-string) "0")))))
-            (when (string= "-" (match-string 2 date-string))
-              (setq tz (- tz)))))
-	(setq time (list seconds minute hour day month year day-of-week dst tz))))
-
-    ;; Fall back to having `parse-time-string' do fancy things for us.
-    (when (not time)
-      (setq time (parse-time-string date-string)))
-
-    (and time
-	 (encode-time time))))
+  "Parse an ISO 8601 time string, such as \"2020-01-15T16:12:21-08:00\".
+Fall back on parsing something resembling an RFC 822 (or later) date-time.
+This function is like `parse-time-string' except that it returns
+a Lisp timestamp when successful."
+  (when-let ((time (parse-time-string date-string)))
+    (encode-time time)))
 
 (provide 'parse-time)
 

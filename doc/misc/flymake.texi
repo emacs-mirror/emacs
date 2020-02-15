@@ -14,7 +14,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -86,10 +86,6 @@ Syntax check is done ``on-the-fly''.  It is started whenever
 @item
 the buffer is saved, unless @code{flymake-start-on-save-buffer} is
 nil;
-
-@item
-a newline character is added to the buffer, unless
-@code{flymake-start-syntax-check-on-newline} is nil;
 
 @item
 some changes were made to the buffer more than @code{0.5} seconds ago
@@ -222,10 +218,6 @@ If any changes are made to the buffer, syntax check is automatically
 started after this many seconds, unless the user makes another change,
 which resets the timer.
 
-@item flymake-start-syntax-check-on-newline
-A boolean flag indicating whether to start syntax check immediately
-after a newline character is inserted into the buffer.
-
 @item flymake-start-on-flymake-mode
 A boolean flag indicating whether to start syntax check immediately
 after enabling @code{flymake-mode}.
@@ -343,6 +335,11 @@ diagnostic's severity.  The higher the value, the more serious is the
 error.  If the overlay property @code{priority} is not specified in
 @code{flymake-overlay-control}, @code{flymake-severity} is used to set
 it and help sort overlapping overlays.
+
+@item
+@vindex flymake-type-name
+@code{flymake-type-name} is a string used to succinctly name the error
+type, in case the name of the symbol associated with it is very long.
 
 @item
 @vindex flymake-category
@@ -551,7 +548,9 @@ by calling the function @code{flymake-make-diagnostic}.
 Make a Flymake diagnostic for @var{buffer}'s region from @var{beg} to
 @var{end}.  @var{type} is a diagnostic symbol (@pxref{Flymake error
 types}), and @var{text} is a description of the problem detected in
-this region.
+this region.  Currently, it is unspecified behavior to make
+diagnostics for buffers other than the buffer that the Flymake backend
+is responsible for.
 @end deffn
 
 @cindex access diagnostic object

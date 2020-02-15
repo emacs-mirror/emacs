@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2018 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2020 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -44,6 +44,13 @@ X server resources database.  Depending on the circumstances, the
 following command may do the trick.  See xrdb(1) for more information.
 
   $ xrdb -merge ~/.Xresources
+
+** Emacs compiled with Cairo crashes when restoring session from desktop file.
+
+This can happen if the '.emacs.desktop' file contains setting for
+'font-backend' frame parameter.  A workaround is to delete the
+offending '.emacs.desktop' file, or edit it to remove the setting of
+'font-backend'.
 
 ** Emacs aborts while starting up, only when run without X.
 
@@ -291,7 +298,7 @@ you launched Emacs:
 
 This problem occurs because unfortunately there are two libraries
 called "libotf".  One is the library for handling OpenType fonts,
-http://www.m17n.org/libotf/, which is the one that Emacs expects.
+https://www.nongnu.org/m17n/, which is the one that Emacs expects.
 The other is a library for Open Trace Format, and is used by some
 versions of the MPI message passing interface for parallel
 programming.
@@ -310,6 +317,83 @@ wrapper shell script (or function) "emacs" that removes the offending
 element from LD_LIBRARY_PATH before starting emacs proper.
 Or you could recompile Emacs with an -Wl,-rpath option that
 gives the location of the correct libotf.
+
+* Problems when reading or debugging Emacs C code
+
+Because Emacs does not install a copy of its C source code, users
+normally cannot easily read that code via commands like 'M-x
+describe-function' (C-h f) that display the definition of a function.
+However, some GNU/Linux systems provide separate packages containing
+this source code which can get C-h f to work if you are willing to do
+some tinkering, and some systems also provide packages containing
+debug info, which when combined with the source can be used to debug
+Emacs at the C level.
+
+** Debian-based source and debuginfo
+
+On recent Debian-based systems, you can obtain and use a source
+package of Emacs as follows.
+
+*** Add the appropriate URI to /etc/apt/sources.list.
+
+To do this, become superuser and uncomment or add the appropriate
+'deb-src' line.  Details depend on the distribution.
+
+*** Execute a command like 'apt-get source emacs'.
+
+On older systems, append the top-level version number, e.g., 'apt-get
+source emacs25'.  The target directory for unpacking the source tree
+is the current directory.
+
+*** Set find-function-C-source-directory accordingly.
+
+Once you have installed the source package, for example at
+/home/myself/deb-src/emacs-26.3, add the following line to your
+startup file:
+
+     (setq find-function-C-source-directory
+           "/home/myself/deb-src/emacs-26.3/src/")
+
+The installation directory of the Emacs source package will contain
+the exact package name and version number of Emacs that is installed
+on your system.  If a new Emacs package is installed, the source
+package must be reinstalled as well, and the setting in your startup
+file must be updated.
+
+*** Debian-based debuginfo
+
+You can also install a debug package of Emacs with a command like
+'apt-get install emacs-dbg' (on older systems, 'apt-get install
+emacs25-dbg').  You need to arrange for GDB to find where you
+installed the source code, e.g., by using GDB's 'directory' command.
+
+** Red Hat-based source and debuginfo
+
+On recent Red Hat-based systems, you can install source and debug info
+via superuser commands like the following:
+
+  # Add the *-debuginfo repositories (exact command depends on system).
+  dnf config-manager --set-enabled fedora-debuginfo updates-debuginfo'
+
+  # Install Emacs source and debug info.
+  dnf install emacs-debugsource
+
+To get describe-function and similar commands to work, you can then
+add something like the following to your startup file:
+
+     (setq find-function-C-source-directory
+           "/usr/src/debug/emacs-26.3-1.fc31.x86_64/src/")
+
+However, the exact directory name will depend on the system, and you
+will need to both upgrade source and debug info when your system
+upgrades or patches Emacs, and change your startup file accordingly.
+
+** Source and debuginfo for other systems
+
+If your system follows neither the Debian nor the Red Hat patterns,
+you can obtain the source and debuginfo by obtaining the source code
+of Emacs, building Emacs with the appropriate debug flags enabled, and
+running the just-built Emacs.
 
 * General runtime problems
 
@@ -720,6 +804,18 @@ and ps-mule to print Unicode characters.
 ** Under X, some characters appear improperly aligned in their lines.
 
 You may have bad fonts.
+
+** Under X, some characters are unexpectedly wide.
+
+e.g. recent versions of Inconsolata show this issue for almost all of
+its characters.  Due to what is probably an Xft bug, the determination
+of the width of some characters is incorrect.  One workaround is to
+build emacs with Cairo enabled ("configure --with-cairo" and have the
+appropriate Cairo development packages installed) as this
+configuration does not suffer from this problem.  See
+<https://github.com/googlefonts/Inconsolata/issues/42> and
+<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-01/msg00456.html>
+for more discussion.
 
 ** Under X, an unexpected monospace font is used as the default font.
 
@@ -1175,6 +1271,23 @@ The symptom is that 'kill-line' followed by 'yank' often (but not
 always) doesn't insert the whitespace of the killed and yanked line.
 
 The solution is to set the GPaste "trim items" option to OFF.
+
+*** Gnome: Navigation from Nautilus to remote files.
+
+If you navigate to a file, which belongs to a remote server, in
+Nautilus via "Open With Emacs" you might not be able to save this file
+once you have modified it in Emacs.  The reasons for the failure can
+vary, and for some connection methods saving the file might even succeed.
+
+If the remote connection in Nautilus uses ssh or sftp, you could
+mitigate the problem by the following lines in your .emacs file:
+
+(dir-locals-set-class-variables 'gvfs '((nil . ((create-lockfiles . nil)))))
+(dir-locals-set-directory-class (format "/run/user/%d/gvfs" (user-uid)) 'gvfs)
+
+A better approach might be to avoid navigation from Nautilus to Emacs
+for such files, and instead to open the file in Emacs using Tramp
+remote file name syntax.
 
 *** KDE: When running on KDE, colors or fonts are not as specified for Emacs,
 or messed up.
@@ -1832,6 +1945,12 @@ term/xterm.el) for more details.
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux
+
+*** GNU/Linux: profiler-report outputs nothing.
+
+A few versions of the Linux kernel have timer bugs that break CPU
+profiling; see Bug#34235.  To fix the problem, upgrade to one of the
+kernel versions 4.14.97, 4.19.19, or 4.20.6, or later.
 
 *** GNU/Linux: Process output is corrupted.
 

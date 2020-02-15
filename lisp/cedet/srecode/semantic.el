@@ -1,8 +1,8 @@
 ;;; srecode/semantic.el --- Semantic specific extensions to SRecode.
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -63,10 +63,9 @@ If FUNCTION is non-nil, then FUNCTION is somehow applied to an
 aspect of the compound value."
   (if (not function)
       ;; Just format it in some handy dandy way.
-      (semantic-format-tag-prototype (oref cp :prime))
+      (semantic-format-tag-prototype (oref cp prime))
     ;; Otherwise, apply the function to the tag itself.
-    (funcall function (oref cp :prime))
-    ))
+    (funcall function (oref cp prime))))
 
 
 ;;; Managing the `current' tag
@@ -90,7 +89,7 @@ If this is nil, then `senator-tag-ring' is used.")
 The hook is called with two arguments, the TAG and DICT
 to be augmented.")
 
-(define-overload srecode-semantic-apply-tag-to-dict (tagobj dict)
+(define-overloadable-function srecode-semantic-apply-tag-to-dict (tagobj dict)
   "Insert features of TAGOBJ into the dictionary DICT.
 TAGOBJ is an object of class `srecode-semantic-tag'.  This class
 is a compound inserter value.
@@ -106,7 +105,7 @@ variable default values, and other things."
   (srecode-dictionary-set-value dict "TAG" tagobj)
 
   ;; Pull out the tag for the individual pieces.
-  (let ((tag (oref tagobj :prime)))
+  (let ((tag (oref tagobj prime)))
 
     (srecode-dictionary-set-value dict "NAME" (semantic-tag-name tag))
     (srecode-dictionary-set-value dict "TYPE" (semantic-format-tag-type tag nil))
@@ -202,7 +201,7 @@ variable default values, and other things."
   (let ((tag (or srecode-semantic-selected-tag
 		 (srecode-semantic-tag-from-kill-ring))))
     (when (not tag)
-      "No tag for current template.  Use the semantic kill-ring.")
+      (error "No tag for current template.  Use the semantic kill-ring."))
     (srecode-semantic-apply-tag-to-dict
      (srecode-semantic-tag (semantic-tag-name tag)
 			   :prime tag)
@@ -211,7 +210,7 @@ variable default values, and other things."
 ;;; :tagtype ARGUMENT HANDLING
 ;;
 ;; When a :tagtype argument is required, identify the current tag, of
-;; cf class 'type.  Apply those parameters to the dictionary.
+;; class 'type'.  Apply those parameters to the dictionary.
 
 (defun srecode-semantic-handle-:tagtype (dict)
   "Add macros into the dictionary DICT based on a tag of class type at point.
@@ -219,7 +218,7 @@ Assumes the cursor is in a tag of class type.  If not, throw an error."
   (let ((typetag (or srecode-semantic-selected-tag
 		     (semantic-current-tag-of-class 'type))))
     (when (not typetag)
-      (error "Cursor is not in a TAG of class 'type"))
+      (error "Cursor is not in a TAG of class `type'"))
     (srecode-semantic-apply-tag-to-dict
      typetag
      dict)))
@@ -228,7 +227,7 @@ Assumes the cursor is in a tag of class type.  If not, throw an error."
 ;;; INSERT A TAG API
 ;;
 ;; Routines that take a tag, and insert into a buffer.
-(define-overload srecode-semantic-find-template (class prototype ctxt)
+(define-overloadable-function srecode-semantic-find-template (class prototype ctxt)
   "Find a template for a tag of class CLASS based on context.
 PROTOTYPE is non-nil if we want a prototype template instead."
   )
@@ -286,8 +285,8 @@ CTXT is the pre-calculated context."
   "Insert TAG into a buffer using srecode templates at point.
 
 Optional STYLE-OPTION is a list of minor configuration of styles,
-such as the symbol 'prototype for prototype functions, or
-'system for system includes, and 'doxygen, for a doxygen style
+such as the symbol `prototype' for prototype functions, or
+`system' for system includes, and `doxygen', for a doxygen style
 comment.
 
 Optional third argument POINT-INSERT-FCN is a hook that is run after

@@ -1,6 +1,6 @@
-;;; Test GNU Emacs modules.
+;;; emacs-module-tests --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
 
-;; Copyright 2015-2018 Free Software Foundation, Inc.
+;; Copyright 2015-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -16,6 +16,14 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
+
+;;; Commentary:
+
+;; Unit tests for the dynamic module facility.  See Info node `(elisp)
+;; Writing Dynamic Modules'.  These tests make use of a small test
+;; module in test/data/emacs-module.
+
+;;; Code:
 
 (require 'cl-lib)
 (require 'ert)
@@ -52,8 +60,9 @@
     (should (eq 0
                 (string-match
                  (concat "#<module function "
-                         "\\(at \\(0x\\)?[0-9a-fA-F]+\\( from .*\\)?"
-                         "\\|Fmod_test_sum from .*\\)>")
+                         "\\(at \\(0x\\)?[[:xdigit:]]+ "
+                         "with data 0x1234\\( from .*\\)?"
+                         "\\|Fmod_test_sum with data 0x1234 from .*\\)>")
                  (prin1-to-string (nth 1 descr)))))
     (should (= (nth 2 descr) 3)))
   (should-error (mod-test-sum "1" 2) :type 'wrong-type-argument)
@@ -89,6 +98,7 @@ changes."
              (rx bos "#<module function "
                  (or "Fmod_test_sum"
                      (and "at 0x" (+ hex-digit)))
+                 " with data 0x1234"
                  (? " from " (* nonl) "mod-test" (* nonl) )
                  ">" eos)
              (prin1-to-string func)))))
@@ -137,8 +147,9 @@ changes."
 ;;
 
 (defun multiply-string (s n)
+  "Return N copies of S concatenated together."
   (let ((res ""))
-    (dotimes (i n)
+    (dotimes (_ n)
       (setq res (concat res s)))
     res))
 
@@ -248,7 +259,9 @@ must evaluate to a regular expression string."
 
 (ert-deftest module--test-assertions--load-non-live-object ()
   "Check that -module-assertions verify that non-live objects aren't accessed."
-  (skip-unless (file-executable-p mod-test-emacs))
+  (skip-unless (or (file-executable-p mod-test-emacs)
+                   (and (eq system-type 'windows-nt)
+                        (file-executable-p (concat mod-test-emacs ".exe")))))
   ;; This doesn't yet cause undefined behavior.
   (should (eq (mod-test-invalid-store) 123))
   (module--test-assertion (rx "Emacs value not found in "
@@ -262,10 +275,13 @@ must evaluate to a regular expression string."
 (ert-deftest module--test-assertions--call-emacs-from-gc ()
   "Check that -module-assertions prevents calling Emacs functions
 during garbage collection."
-  (skip-unless (file-executable-p mod-test-emacs))
+  (skip-unless (or (file-executable-p mod-test-emacs)
+                   (and (eq system-type 'windows-nt)
+                        (file-executable-p (concat mod-test-emacs ".exe")))))
   (module--test-assertion
       (rx "Module function called during garbage collection\n")
-    (mod-test-invalid-finalizer)))
+    (mod-test-invalid-finalizer)
+    (garbage-collect)))
 
 (ert-deftest module/describe-function-1 ()
   "Check that Bug#30163 is fixed."
@@ -288,5 +304,124 @@ Return A + B"
     (should (equal (file-name-sans-extension file) mod-test-file))
     (should (member '(provide . mod-test) entries))
     (should (member '(defun . mod-test-sum) entries))))
+
+(ert-deftest mod-test-sleep-until ()
+  "Check that `mod-test-sleep-until' either returns normally or quits.
+Interactively, you can try hitting \\[keyboard-quit] to quit."
+  (dolist (arg '(nil t))
+    ;; Guard against some caller setting `inhibit-quit'.
+    (with-local-quit
+      (condition-case nil
+          (should (eq (with-local-quit
+                        ;; Because `inhibit-quit' is nil here, the next
+                        ;; form either quits or returns `finished'.
+                        (mod-test-sleep-until
+                         ;; Interactively, run for 5 seconds to give the
+                         ;; user time to quit.  In batch mode, run only
+                         ;; briefly since the user can't quit.
+                         (time-add nil (if noninteractive 0.1 5))
+                         ;; should_quit or process_input
+                         arg))
+                      'finished))
+        (quit)))))
+
+(ert-deftest mod-test-add-nanosecond/valid ()
+  (dolist (input (list
+                  ;; Some realistic examples.
+                  (current-time) (time-to-seconds)
+                  (encode-time 12 34 5 6 7 2019 t)
+                  ;; Various legacy timestamp forms.
+                  '(123 456) '(123 456 789) '(123 456 789 6000)
+                  ;; Corner case: this will result in a nanosecond
+                  ;; value of 1000000000 after addition.  The module
+                  ;; code should handle this correctly.
+                  '(123 65535 999999 999000)
+                  ;; Seconds since the epoch.
+                  123 123.45
+                  ;; New (TICKS . HZ) format.
+                  '(123456789 . 1000000000)))
+    (ert-info ((format "input: %s" input))
+      (let ((result (mod-test-add-nanosecond input))
+	    (desired-result
+	     (let ((hz 1000000000))
+	       (time-add (time-convert input hz) (cons 1 hz)))))
+        (should (consp result))
+        (should (integerp (car result)))
+        (should (integerp (cdr result)))
+        (should (cl-plusp (cdr result)))
+        (should (time-equal-p result desired-result))))))
+
+(ert-deftest mod-test-add-nanosecond/nil ()
+  (should (<= (float-time (mod-test-add-nanosecond nil))
+              (+ (float-time) 1e-9))))
+
+(ert-deftest mod-test-add-nanosecond/invalid ()
+  (dolist (input '(1.0e+INF 1.0e-INF 0.0e+NaN (123) (123.45 6 7) "foo" [1 2]))
+    (ert-info ((format "input: %s" input))
+      (should-error (mod-test-add-nanosecond input)))))
+
+(ert-deftest mod-test-nanoseconds ()
+  "Test truncation when converting to `struct timespec'."
+  (dolist (test-case '((0 . 0)
+                       (-1 . -1000000000)
+                       ((1 . 1000000000) . 1)
+                       ((-1 . 1000000000) . -1)
+                       ((1 . 1000000000000) . 0)
+                       ((-1 . 1000000000000) . -1)
+                       ((999 . 1000000000000) . 0)
+                       ((-999 . 1000000000000) . -1)
+                       ((1000 . 1000000000000) . 1)
+                       ((-1000 . 1000000000000) . -1)
+                       ((0 0 0 1) . 0)
+                       ((0 0 0 -1) . -1)))
+    (let ((input (car test-case))
+          (expected (cdr test-case)))
+      (ert-info ((format "input: %S, expected result: %d" input expected))
+        (should (= (mod-test-nanoseconds input) expected))))))
+
+(ert-deftest mod-test-double ()
+  (dolist (input (list 0 1 2 -1 42 12345678901234567890
+                       most-positive-fixnum (1+ most-positive-fixnum)
+                       most-negative-fixnum (1- most-negative-fixnum)))
+    (ert-info ((format "input: %d" input))
+      (should (= (mod-test-double input) (* 2 input))))))
+
+(ert-deftest module-darwin-secondary-suffix ()
+  "Check that on Darwin, both .so and .dylib suffixes work.
+See Bug#36226."
+  (skip-unless (eq system-type 'darwin))
+  (should (member ".dylib" load-suffixes))
+  (should (member ".so" load-suffixes))
+  ;; Preserve the old `load-history'.  This is needed for some of the
+  ;; other unit tests that indirectly rely on `load-history'.
+  (let ((load-history load-history)
+        (dylib (concat mod-test-file ".dylib"))
+        (so (concat mod-test-file ".so")))
+    (should (file-regular-p dylib))
+    (should-not (file-exists-p so))
+    (add-name-to-file dylib so)
+    (unwind-protect
+        (load so nil nil :nosuffix :must-suffix)
+      (delete-file so))))
+
+(ert-deftest module/function-finalizer ()
+  "Test that module function finalizers are properly called."
+  ;; We create and leak a couple of module functions with attached
+  ;; finalizer.  Creating only one function risks spilling it to the
+  ;; stack, where it wouldn't be garbage-collected.  However, with one
+  ;; hundred functions, there should be at least one that's
+  ;; unreachable.
+  (dotimes (_ 100)
+    (mod-test-make-function-with-finalizer))
+  (cl-destructuring-bind (valid-before invalid-before)
+      (mod-test-function-finalizer-calls)
+    (should (zerop invalid-before))
+    (garbage-collect)
+    (cl-destructuring-bind (valid-after invalid-after)
+        (mod-test-function-finalizer-calls)
+      (should (zerop invalid-after))
+      ;; We don't require exactly 100 invocations of the finalizer,
+      ;; but at least one.
+      (should (> valid-after valid-before)))))
 
 ;;; emacs-module-tests.el ends here

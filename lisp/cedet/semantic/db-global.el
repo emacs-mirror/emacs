@@ -1,6 +1,6 @@
 ;;; semantic/db-global.el --- Semantic database extensions for GLOBAL
 
-;; Copyright (C) 2002-2006, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2006, 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -114,10 +114,14 @@ if optional DONT-ERR-IF-NOT-AVAILABLE is non-nil; else throw an error."
    )
   "A table for returning search results from GNU Global.")
 
-(cl-defmethod object-print ((obj semanticdb-table-global) &rest strings)
+(cl-defmethod semanticdb-debug-info ((obj semanticdb-table-global))
+  (list "(proxy)"))
+
+(cl-defmethod cl-print-object ((obj semanticdb-table-global) stream)
   "Pretty printer extension for `semanticdb-table-global'.
 Adds the number of tags in this file to the object print name."
-  (apply #'cl-call-next-method obj (cons " (proxy)" strings)))
+  (princ (eieio-object-name obj (semanticdb-debug-info obj))
+         stream))
 
 (cl-defmethod semanticdb-equivalent-mode ((table semanticdb-table-global) &optional buffer)
   "Return t, pretend that this table's mode is equivalent to BUFFER.

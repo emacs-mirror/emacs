@@ -1,6 +1,6 @@
 ;;; ob-groovy.el --- Babel Functions for Groovy      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Miro Bezjak
 ;; Keywords: literate programming, reproducible research
@@ -45,8 +45,8 @@ parameters may be used, like groovy -v"
   :type 'string)
 
 (defun org-babel-execute:groovy (body params)
-  "Execute a block of Groovy code with org-babel.  This function is
-called by `org-babel-execute-src-block'"
+  "Execute a block of Groovy code with org-babel.
+This function is called by `org-babel-execute-src-block'."
   (message "executing Groovy source code block")
   (let* ((processed-params (org-babel-process-params params))
          (session (org-babel-groovy-initiate-session (nth 0 processed-params)))

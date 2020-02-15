@@ -1,10 +1,10 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 ;;
-;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
+;; Authors: JD Smith <jd.smith@utoledo.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
-;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: idlwave
 
 ;; This file is part of GNU Emacs.
@@ -182,14 +182,14 @@ definition is displayed instead."
 which specifies the `name' section.  Can be used for localization
 support."
   :group 'idlwave-online-help
-  :type 'string)
+  :type 'regexp)
 
 (defcustom idlwave-help-doclib-keyword "KEYWORD"
   "A regexp for the heading word to search for in doclib headers
 which specifies the `keywords' section.  Can be used for localization
 support."
   :group 'idlwave-online-help
-  :type 'string)
+  :type 'regexp)
 
 (defface idlwave-help-link
   '((t :inherit link))

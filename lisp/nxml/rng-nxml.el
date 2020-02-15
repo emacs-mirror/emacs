@@ -1,6 +1,6 @@
 ;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -160,7 +160,7 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
       (and rng-collecting-text (rng-flush-text))
       (let ((target-names (rng-match-possible-start-tag-names)))
         `(,(1+ lt-pos)
-          ,(save-excursion (skip-chars-forward "[[:alnum:]_.-:]") (point))
+          ,(save-excursion (skip-chars-forward "-[:alnum:]_.:") (point))
           ,(apply-partially #'rng-complete-qname-function
                             target-names nil extra-strings)
           :exit-function
@@ -207,7 +207,7 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
 			      (cdar rng-open-elements))
 		    (cdar rng-open-elements))))
              `(,(+ (match-beginning 0) 2)
-               ,(save-excursion (skip-chars-forward "[[:alnum:]_.-:]") (point))
+               ,(save-excursion (skip-chars-forward "-[:alnum:]_.:") (point))
                ,(list start-tag-name)   ;Sole completion candidate.
                :exit-function
                ,(lambda (_completion status)
@@ -247,7 +247,7 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
 			      "xmlns"))
 			  rng-undeclared-prefixes)))
              `(,attribute-start
-               ,(save-excursion (skip-chars-forward "[[:alnum:]_.-:]") (point))
+               ,(save-excursion (skip-chars-forward "-[:alnum:]_.:") (point))
                ,(apply-partially #'rng-complete-qname-function
                                  target-names t extra-strings)
                :exit-function

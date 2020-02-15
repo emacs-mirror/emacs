@@ -1,9 +1,8 @@
-/* testvarnames.cpp
-   Test variable and function names, lists of variables on one line, etc.
+/* testvarnames.cpp --- semantic-ia-utest completion engine unit tests
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-   Author: Eric M. Ludlam <eric@siege-engine.com>
+   Author: Eric M. Ludlam <zappo@gnu.org>
 
    This file is part of GNU Emacs.
 
@@ -19,6 +18,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
 */
 
 struct independent {
@@ -56,6 +56,17 @@ struct inline2struct {
 struct inlinestruct in_var1;
 struct inline2struct in_var2;
 
+/*
+ * Structures (or any types) could have the same name as a variable.
+ * Make sure we complete vars over types.
+ *
+ * See cedet-devel mailing list Dec 23, 2013 for details.
+ */
+struct varorstruct {};
+int varorstruct;
+
+int assigntovarorstruct;
+
 int test_1(int var_arg1) {
 
   var_// -1-
@@ -87,4 +98,7 @@ int test_1(int var_arg1) {
     ; // #10# ( "named_1" "named_2")
   in_var2.// -11-
     ; // #11# ( "named_3" "named_4")
+
+  varorstruct = assign// -12-
+    ; // #12# ( "assigntovarorstruct" )
 }

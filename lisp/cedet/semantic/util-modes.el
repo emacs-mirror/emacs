@@ -1,6 +1,6 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -194,7 +194,7 @@ too an interactive function used to toggle the mode."
   "Function set into `semantic-edits-new-change-hook'.
 Argument OVERLAY is the overlay created to mark the change.
 This function will set the face property on this overlay."
-  (semantic-overlay-put overlay 'face 'semantic-highlight-edits-face))
+  (overlay-put overlay 'face 'semantic-highlight-edits-face))
 
 (defvar semantic-highlight-edits-mode-map
   (let ((km (make-sparse-keymap)))
@@ -220,7 +220,6 @@ non-nil if the minor mode is enabled."
 	    (setq semantic-highlight-edits-mode nil)
 	    (error "Buffer %s was not set up for parsing"
 		   (buffer-name)))
-	(semantic-make-local-hook 'semantic-edits-new-change-functions)
 	(add-hook 'semantic-edits-new-change-functions
 		  'semantic-highlight-edits-new-change-hook-fcn nil t))
     ;; Remove hooks
@@ -260,11 +259,11 @@ The face is used in `semantic-show-unmatched-syntax-mode'."
 
 (defsubst semantic-unmatched-syntax-overlay-p (overlay)
   "Return non-nil if OVERLAY is an unmatched syntax one."
-  (eq (semantic-overlay-get overlay 'semantic) 'unmatched))
+  (eq (overlay-get overlay 'semantic) 'unmatched))
 
 (defun semantic-showing-unmatched-syntax-p ()
   "Return non-nil if an unmatched syntax overlay was found in buffer."
-  (let ((ol (semantic-overlays-in (point-min) (point-max)))
+  (let ((ol (overlays-in (point-min) (point-max)))
         found)
     (while (and ol (not found))
       (setq found (semantic-unmatched-syntax-overlay-p (car ol))
@@ -275,13 +274,13 @@ The face is used in `semantic-show-unmatched-syntax-mode'."
   "Fetch a list of unmatched lexical tokens from the current buffer.
 Uses the overlays which have accurate bounds, and rebuilds what was
 originally passed in."
-  (let ((ol (semantic-overlays-in (point-min) (point-max)))
+  (let ((ol (overlays-in (point-min) (point-max)))
 	(ustc nil))
     (while ol
       (if (semantic-unmatched-syntax-overlay-p (car ol))
 	  (setq ustc (cons (cons 'thing
-				 (cons (semantic-overlay-start (car ol))
-				       (semantic-overlay-end (car ol))))
+				 (cons (overlay-start (car ol))
+				       (overlay-end (car ol))))
 			   ustc)))
       (setq ol (cdr ol)))
     (nreverse ustc))
@@ -289,10 +288,10 @@ originally passed in."
 
 (defun semantic-clean-unmatched-syntax-in-region (beg end)
   "Remove all unmatched syntax overlays between BEG and END."
-  (let ((ol (semantic-overlays-in beg end)))
+  (let ((ol (overlays-in beg end)))
     (while ol
       (if (semantic-unmatched-syntax-overlay-p (car ol))
-	  (semantic-overlay-delete (car ol)))
+	  (delete-overlay (car ol)))
       (setq ol (cdr ol)))))
 
 (defsubst semantic-clean-unmatched-syntax-in-buffer ()
@@ -317,10 +316,10 @@ This will highlight elements in SYNTAX as unmatched syntax."
   (if syntax
       (let (o)
         (while syntax
-          (setq o (semantic-make-overlay (semantic-lex-token-start (car syntax))
-                                         (semantic-lex-token-end (car syntax))))
-          (semantic-overlay-put o 'semantic 'unmatched)
-          (semantic-overlay-put o 'face 'semantic-unmatched-syntax-face)
+          (setq o (make-overlay (semantic-lex-token-start (car syntax))
+                                (semantic-lex-token-end (car syntax))))
+          (overlay-put o 'semantic 'unmatched)
+          (overlay-put o 'face 'semantic-unmatched-syntax-face)
           (setq syntax (cdr syntax))))
     ))
 
@@ -331,10 +330,10 @@ Do not search past BOUND if non-nil."
     (goto-char point)
     (let ((os point) (ol nil))
       (while (and os (< os (or bound (point-max))) (not ol))
-	(setq os (semantic-overlay-next-change os))
+	(setq os (next-overlay-change os))
 	(when os
 	  ;; Get overlays at position
-	  (setq ol (semantic-overlays-at os))
+	  (setq ol (overlays-at os))
 	  ;; find the overlay that belongs to semantic
 	  ;; and starts at the found position.
 	  (while (and ol (listp ol))
@@ -372,10 +371,8 @@ non-nil if the minor mode is enabled.
             (error "Buffer %s was not set up for parsing"
                    (buffer-name)))
         ;; Add hooks
-        (semantic-make-local-hook 'semantic-unmatched-syntax-hook)
         (add-hook 'semantic-unmatched-syntax-hook
                   'semantic-show-unmatched-syntax nil t)
-	(semantic-make-local-hook 'semantic-pre-clean-token-hooks)
 	(add-hook 'semantic-pre-clean-token-hooks
 		  'semantic-clean-token-of-unmatched-syntax nil t)
         ;; Show unmatched syntax elements
@@ -398,7 +395,7 @@ non-nil if the minor mode is enabled.
   (interactive)
   (let ((o (semantic-next-unmatched-syntax (point))))
     (if o
-	(goto-char (semantic-overlay-start o)))))
+	(goto-char (overlay-start o)))))
 
 
 ;;;;
@@ -456,31 +453,23 @@ non-nil if the minor mode is enabled."
 		(append mode-line-modified
 			'(semantic-show-parser-state-string))))
 	;; Add hooks
-        (semantic-make-local-hook 'semantic-edits-new-change-functions)
         (add-hook 'semantic-edits-new-change-functions
                   'semantic-show-parser-state-marker nil t)
-	(semantic-make-local-hook 'semantic-edits-incremental-reparse-failed-hook)
 	(add-hook 'semantic-edits-incremental-reparse-failed-hook
 		  'semantic-show-parser-state-marker nil t)
-	(semantic-make-local-hook 'semantic-after-partial-cache-change-hook)
 	(add-hook 'semantic-after-partial-cache-change-hook
 		  'semantic-show-parser-state-marker nil t)
-	(semantic-make-local-hook 'semantic-after-toplevel-cache-change-hook)
 	(add-hook 'semantic-after-toplevel-cache-change-hook
 		  'semantic-show-parser-state-marker nil t)
 	(semantic-show-parser-state-marker)
 
-	(semantic-make-local-hook 'semantic-before-auto-parse-hooks)
 	(add-hook 'semantic-before-auto-parse-hooks
 		  'semantic-show-parser-state-auto-marker nil t)
-	(semantic-make-local-hook 'semantic-after-auto-parse-hooks)
 	(add-hook 'semantic-after-auto-parse-hooks
 		  'semantic-show-parser-state-marker nil t)
 
-	(semantic-make-local-hook 'semantic-before-idle-scheduler-reparse-hook)
 	(add-hook 'semantic-before-idle-scheduler-reparse-hook
 		  'semantic-show-parser-state-auto-marker nil t)
-	(semantic-make-local-hook 'semantic-after-idle-scheduler-reparse-hook)
 	(add-hook 'semantic-after-idle-scheduler-reparse-hook
 		  'semantic-show-parser-state-marker nil t))
     ;; Remove parts of mode line
@@ -607,7 +596,7 @@ to indicate a parse in progress."
   )
 
 (defcustom semantic-stickyfunc-indent-string
-  (if (and window-system (not (featurep 'xemacs)))
+  (if window-system
       (concat
        (condition-case nil
 	   ;; Test scroll bar location
@@ -677,13 +666,10 @@ when it lands in the sticky line."
   "Value of the header line when entering stickyfunc mode.")
 
 (defconst semantic-stickyfunc-header-line-format
-  (cond ((featurep 'xemacs)
-	 nil)
-	(t
-	 '(:eval (list
-		  ;; Magic bit I found on emacswiki.
-		  (propertize " " 'display '((space :align-to 0)))
-		  (semantic-stickyfunc-fetch-stickyline)))))
+  '(:eval (list
+	   ;; Magic bit I found on emacswiki.
+	   (propertize " " 'display '((space :align-to 0)))
+	   (semantic-stickyfunc-fetch-stickyline)))
   "The header line format used by stickyfunc mode.")
 
 ;;;###autoload
@@ -845,10 +831,8 @@ Argument EVENT describes the event that caused this function to be called."
   :type 'hook)
 
 (defvar semantic-highlight-func-mode-map
-  (let ((km (make-sparse-keymap))
-	(m3  (if (featurep 'xemacs) [ button3 ] [ mouse-3 ]))
-	)
-    (define-key km m3 'semantic-highlight-func-menu)
+  (let ((km (make-sparse-keymap)))
+    (define-key km [mouse-3] 'semantic-highlight-func-menu)
     km)
   "Keymap for highlight-func minor mode.")
 
@@ -897,7 +881,7 @@ Argument EVENT describes the event that caused this function to be called."
       ;(goto-char (window-start win))
       (mouse-set-point event)
       (sit-for 0)
-      (semantic-popup-menu semantic-highlight-func-popup-menu)
+      (popup-menu semantic-highlight-func-popup-menu)
       )
     (select-window startwin)))
 
@@ -951,19 +935,19 @@ If the current tag for this buffer is different from the last time this
 function was called, move the overlay."
   (when (and (not (minibufferp))
 	     (or (not semantic-highlight-func-ct-overlay)
-		 (eq (semantic-overlay-buffer
+		 (eq (overlay-buffer
 		      semantic-highlight-func-ct-overlay)
 		     (current-buffer))))
     (let* ((tag (semantic-stickyfunc-tag-to-stick))
 	   (ol semantic-highlight-func-ct-overlay))
       (when (not ol)
 	;; No overlay in this buffer.  Make one.
-	(setq ol (semantic-make-overlay (point-min) (point-min)
-					(current-buffer) t nil))
-	(semantic-overlay-put ol 'highlight-func t)
-	(semantic-overlay-put ol 'face 'semantic-highlight-func-current-tag-face)
-	(semantic-overlay-put ol 'keymap semantic-highlight-func-mode-map)
-	(semantic-overlay-put ol 'help-echo
+	(setq ol (make-overlay (point-min) (point-min)
+			       (current-buffer) t nil))
+	(overlay-put ol 'highlight-func t)
+	(overlay-put ol 'face 'semantic-highlight-func-current-tag-face)
+	(overlay-put ol 'keymap semantic-highlight-func-mode-map)
+	(overlay-put ol 'help-echo
 			      "Current Function : mouse-3 - Context menu")
 	(setq semantic-highlight-func-ct-overlay ol)
 	)
@@ -972,20 +956,16 @@ function was called, move the overlay."
       (if (or (not tag) disable)
 	  ;; No tag, make the overlay go away.
 	  (progn
-	    (semantic-overlay-put ol 'tag nil)
-	    (semantic-overlay-move ol (point-min) (point-min) (current-buffer))
-	    )
+	    (overlay-put ol 'tag nil)
+	    (move-overlay ol (point-min) (point-min) (current-buffer)))
 
 	;; We have a tag, if it is the same, do nothing.
-	(unless (eq (semantic-overlay-get ol 'tag) tag)
+	(unless (eq (overlay-get ol 'tag) tag)
 	  (save-excursion
 	    (goto-char (semantic-tag-start tag))
 	    (search-forward (semantic-tag-name tag) nil t)
-	    (semantic-overlay-put ol 'tag tag)
-	    (semantic-overlay-move ol (point-at-bol) (point-at-eol))
-	    )
-	  )
-	)))
+	    (overlay-put ol 'tag tag)
+	    (move-overlay ol (point-at-bol) (point-at-eol)))))))
   nil)
 
 (semantic-add-minor-mode 'semantic-highlight-func-mode

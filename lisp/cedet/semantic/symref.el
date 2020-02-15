@@ -1,8 +1,8 @@
 ;;; semantic/symref.el --- Symbol Reference API
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -78,7 +78,7 @@
 ;;; Code:
 (defcustom semantic-symref-tool 'detect
   "The active symbol reference tool name.
-The tool symbol can be 'detect, or a symbol that is the name of
+The tool symbol can be `detect', or a symbol that is the name of
 a tool that can be used for symbol referencing."
   :type 'symbol
   :group 'semantic)
@@ -309,9 +309,9 @@ Can be 'project, 'target, or 'file.")
 	       :type symbol
 	       :documentation
 	       "The kind of search results desired.
-Can be 'line, 'file, or 'tag.
-The type of result can be converted from 'line to 'file, or 'line to 'tag,
-but not from 'file to 'line or 'tag.")
+Can be `line', `file', or `tag'.
+The type of result can be converted from `line' to `file', or `line' to `tag',
+but not from `file' to `line' or `tag'.")
    )
   "Baseclass for all symbol references tools.
 A symbol reference tool supplies functionality to identify the locations of
@@ -319,7 +319,7 @@ where different symbols are used.
 
 Subclasses should be named `semantic-symref-tool-NAME', where
 NAME is the name of the tool used in the configuration variable
-`semantic-symref-tool'"
+`semantic-symref-tool'."
   :abstract t)
 
 (cl-defmethod semantic-symref-get-result ((tool semantic-symref-tool-baseclass))
@@ -388,7 +388,7 @@ Each element is a cons cell of the form (LINE . FILENAME).")
 	     :type list
 	     :documentation
 	     "The list of tags with hits in them.
-Use the  `semantic-symref-hit-tags' method to get this list.")
+Use the `semantic-symref-hit-tags' method to get this list.")
    )
   "The results from a symbol reference search.")
 
@@ -476,7 +476,7 @@ Return the Semantic tag associated with HIT.
 SEARCHTXT is the text that is being searched for.
 Used to narrow the in-buffer search.
 SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
-If there is no database, of if the searchtype is wrong, return nil."
+If there is no database, or if the searchtype is wrong, return nil."
   ;; Allowed search types for this mechanism:
   ;; tagname, tagregexp, tagcompletions
   (if (not (memq searchtype '(tagname tagregexp tagcompletions)))

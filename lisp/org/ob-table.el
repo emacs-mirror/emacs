@@ -1,6 +1,6 @@
 ;;; ob-table.el --- Support for Calling Babel Functions from Tables -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -54,8 +54,7 @@
 
 ;;; Code:
 (require 'ob-core)
-
-(declare-function org-trim "org" (s &optional keep-lead))
+(require 'org-macs)
 
 (defun org-babel-table-truncate-at-newline (string)
   "Replace newline character with ellipses.

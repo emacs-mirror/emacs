@@ -15,7 +15,7 @@
 @end direntry
 
 @copying
-Copyright @copyright{} 2008, 2010--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -53,7 +53,7 @@ ERT is similar to tools for other environments such as JUnit, but has
 unique features that take advantage of the dynamic and interactive
 nature of Emacs.  Despite its name, it works well both for test-driven
 development (see
-@url{http://en.wikipedia.org/wiki/Test-driven_development}) and for
+@url{https://en.wikipedia.org/wiki/Test-driven_development}) and for
 traditional software development methods.
 
 @menu
@@ -337,10 +337,15 @@ emacs -batch -l ert -l my-tests.el \
 
 In quiet mode ERT prints only unexpected results and summary.
 
-If ERT is not part of your Emacs distribution, you may need to use
-@code{-L /path/to/ert/} so that Emacs can find it.  You may need
-additional @code{-L} flags to ensure that @code{my-tests.el} and all the
-files that it requires are on your @code{load-path}.
+You can specify selectors to only run a subset of your tests
+(@pxref{Test Selectors}).  For example, the following would run all
+tests where the name of the test matches the regular expression
+``to-match''.
+
+@example
+emacs -batch -l ert -l my-tests.el \
+      -eval '(ert-run-tests-batch-and-exit "to-match")'
+@end example
 
 
 @node Test Selectors
@@ -899,11 +904,11 @@ For information on mocks, stubs, fixtures, or test suites, see below.
 
 Stubbing out functions or using so-called @emph{mocks} can make it
 easier to write tests.  See
-@url{http://en.wikipedia.org/wiki/Mock_object} for an explanation of
+@url{https://en.wikipedia.org/wiki/Mock_object} for an explanation of
 the corresponding concepts in object-oriented languages.
 
 ERT does not have built-in support for mocks or stubs.  The package
-@code{el-mock} (see @url{http://www.emacswiki.org/emacs/el-mock.el})
+@code{el-mock} (see @url{https://www.emacswiki.org/emacs/el-mock.el})
 offers mocks for Emacs Lisp and can be used in conjunction with ERT.
 
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2010--2020 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -22,6 +22,7 @@ user-level features of the packaging system.
 * Simple Packages::         How to package a single .el file.
 * Multi-file Packages::     How to package multiple files.
 * Package Archives::        Maintaining package archives.
+* Archive Web Server::      Interfacing to an archive web server.
 @end menu
 
 @node Packaging Basics
@@ -116,10 +117,7 @@ init file.
 This function makes the packages available to the current session.
 The user option @code{package-load-list} specifies which packages to
 make available; by default, all installed packages are made available.
-If called during startup, this function also sets
-@code{package-enable-at-startup} to @code{nil}, to avoid accidentally
-evaluating package autoloads more than once.  @xref{Package
-Installation,,, emacs, The GNU Emacs Manual}.
+@xref{Package Installation,,, emacs, The GNU Emacs Manual}.
 
 In most cases, you should not need to call @code{package-activate-all},
 as this is done automatically during startup.  Simply make sure to put
@@ -157,8 +155,8 @@ the various headers, as illustrated by the following example:
 ;; Author: J. R. Hacker <jrh@@example.com>
 ;; Version: 1.3
 ;; Package-Requires: ((flange "1.0"))
-;; Keywords: multimedia, frobnicate
-;; URL: http://example.com/jrhacker/superfrobnicate
+;; Keywords: multimedia, hypermedia
+;; URL: https://example.com/jrhacker/superfrobnicate
 
 @dots{}
 
@@ -249,7 +247,8 @@ dependency's version (a string).
 @end defun
 
   If the content directory contains a file named @file{README}, this
-file is used as the long description.
+file is used as the long description (overriding any @samp{;;;
+Commentary:} section).
 
   If the content directory contains a file named @file{dir}, this is
 assumed to be an Info directory file made with @command{install-info}.
@@ -311,49 +310,14 @@ access.  Such local archives are mainly useful for testing.
 
   A package archive is simply a directory in which the package files,
 and associated files, are stored.  If you want the archive to be
-reachable via HTTP, this directory must be accessible to a web server.
-How to accomplish this is beyond the scope of this manual.
+reachable via HTTP, this directory must be accessible to a web server;
+@xref{Archive Web Server}.
 
   A convenient way to set up and update a package archive is via the
 @code{package-x} library.  This is included with Emacs, but not loaded
 by default; type @kbd{M-x load-library @key{RET} package-x @key{RET}} to
 load it, or add @code{(require 'package-x)} to your init file.
 @xref{Lisp Libraries,, Lisp Libraries, emacs, The GNU Emacs Manual}.
-Once loaded, you can make use of the following:
-
-@defopt package-archive-upload-base
-The value of this variable is the base location of a package archive,
-as a directory name.  The commands in the @code{package-x} library
-will use this base location.
-
-The directory name should be absolute.  You may specify a remote name,
-such as @file{/ssh:foo@@example.com:/var/www/packages/}, if the
-package archive is on a different machine.  @xref{Remote Files,,
-Remote Files, emacs, The GNU Emacs Manual}.
-@end defopt
-
-@deffn Command package-upload-file filename
-This command prompts for @var{filename}, a file name, and uploads that
-file to @code{package-archive-upload-base}.  The file must be either a
-simple package (a @file{.el} file) or a multi-file package (a
-@file{.tar} file); otherwise, an error is raised.  The package
-attributes are automatically extracted, and the archive's contents
-list is updated with this information.
-
-If @code{package-archive-upload-base} does not specify a valid
-directory, the function prompts interactively for one.  If the
-directory does not exist, it is created.  The directory need not have
-any initial contents (i.e., you can use this command to populate an
-initially empty archive).
-@end deffn
-
-@deffn Command package-upload-buffer
-This command is similar to @code{package-upload-file}, but instead of
-prompting for a package file, it uploads the contents of the current
-buffer.  The current buffer must be visiting a simple package (a
-@file{.el} file) or a multi-file package (a @file{.tar} file);
-otherwise, an error is raised.
-@end deffn
 
 @noindent
 After you create an archive, remember that it is not accessible in the
@@ -384,7 +348,7 @@ for a multi-file package, it is the package tar file.
 You can also sign the archive's contents file in the same way.
 Make the @file{.sig} files available in the same location as the packages.
 You should also make your public key available for people to download;
-e.g., by uploading it to a key server such as @url{http://pgp.mit.edu/}.
+e.g., by uploading it to a key server such as @url{https://pgp.mit.edu/}.
 When people install packages from your archive, they can use
 your public key to verify the signatures.
 
@@ -393,3 +357,28 @@ manual.  For more information on cryptographic keys and signing,
 @pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.  Emacs comes
 with an interface to GNU Privacy Guard, @pxref{Top,, EasyPG, epa,
 Emacs EasyPG Assistant Manual}.
+
+@node Archive Web Server
+@section Interfacing to an archive web server
+@cindex archive web server
+
+A web server providing access to a package archive must support the
+following queries:
+
+@table @asis
+@item archive-contents
+Return a lisp form describing the archive contents. The form is a list
+of 'package-desc' structures (see @file{package.el}), except the first
+element of the list is the archive version.
+
+@item <package name>-readme.txt
+Return the long description of the package.
+
+@item <file name>.sig
+Return the signature for the file.
+
+@item <file name>
+Return the file. This will be the tarball for a multi-file
+package, or the single file for a simple package.
+
+@end table

@@ -1,7 +1,5 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@include gnus-overrides.texi
-
 @set VERSION 0.3
 
 @setfilename ../../info/auth.info
@@ -11,7 +9,7 @@
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -94,13 +92,13 @@ backends and you can write your own if you want.
 @chapter Help for users
 
 ``Netrc'' files are a de facto standard.  They look like this:
+
 @example
 machine @var{mymachine} login @var{myloginname} password @var{mypassword} port @var{myport}
 @end example
 
 The @code{machine} is the server (either a DNS name or an IP address).
-It's known as @var{:host} in @code{auth-source-search} queries.  You
-can also use @code{host}.
+It's known as @var{:host} in @code{auth-source-search} queries.
 
 The @code{port} is the connection port or protocol.  It's known as
 @var{:port} in @code{auth-source-search} queries.
@@ -108,6 +106,19 @@ The @code{port} is the connection port or protocol.  It's known as
 The @code{user} is the user name.  It's known as @var{:user} in
 @code{auth-source-search} queries.  You can also use @code{login} and
 @code{account}.
+
+You can also use this file to specify client certificates to use when
+setting up TLS connections.  The format is:
+
+@example
+machine @var{mymachine} port @var{myport} key @var{key} cert @var{cert}
+@end example
+
+@var{key} and @var{cert} are filenames containing the key and
+certificate to use respectively.  In order to make network connections
+use them automatically, either pass @code{:client-certificate t} to
+@code{open-network-stream}, or customize
+@code{network-stream-use-client-certificates} to @code{t}.
 
 You can use spaces inside a password or other token by surrounding the
 token with either single or double quotes.
@@ -273,7 +284,7 @@ machine gmail2 login account2@@gmail.com password "account2 password" port imap
 @chapter Secret Service API
 
 The @dfn{Secret Service API} is a standard from
-@uref{http://www.freedesktop.org/wiki/Specifications/secret-storage-spec,,freedesktop.org}
+@uref{https://www.freedesktop.org/wiki/Specifications/secret-storage-spec/,,freedesktop.org}
 to securely store passwords and other confidential information.  This
 API is implemented by system daemons such as the GNOME Keyring and the
 KDE Wallet (these are GNOME and KDE packages respectively and should
@@ -436,21 +447,62 @@ then fall back to @file{~/.authinfo.gpg}.
 @node The Unix password store
 @chapter The Unix password store
 
-@uref{http://www.passwordstore.org,,The standard unix password
+@uref{https://www.passwordstore.org,,The standard unix password
 manager} (or just @code{pass}) stores your passwords in
-@code{gpg}-protected files following the Unix philosophy.
+@code{gpg}-protected files following the Unix philosophy.  The store
+location (any directory) must be specified in the
+@code{auth-source-pass-filename} variable which defaults to
+@file{~/.password-store}.
 
-Emacs integration of @code{pass} follows the first approach suggested
-by the pass project itself for data organization to find data. This
-means that the filename of the file containing the password for a user
-on a particular host must contain the host name.  The file itself must
-contain the password on the first line, as well as a @code{username}
-field containing the username on a subsequent line. A @code{port}
-field can be used to differentiate the authentication data for several
-services with the same username on the same host.
+Emacs integration of @code{pass} follows the approach suggested by the
+pass project itself for data organization to find data.  In
+particular, to store a password for the user @code{rms} on the host
+@code{gnu.org} and port @code{22}, you should use one of the following
+filenames.
+
+@table @file
+@item gnu.org.gpg
+No username or port in the filename means that any username and port
+will match.
+
+@item gnu.org/rms.gpg
+The username to match can be expressed as filename inside a directory
+whose name matches the host.  This is useful if the store has
+passwords for several users on the same host.
+
+@item rms@@gnu.org.gpg
+The username can also be expressed as a prefix, separated from the
+host with an at-sign (@code{@@}).
+
+@item gnu.org:22.gpg
+The port (aka. service) to match can only be expressed after the host and separated with a colon (@code{:}).  The separator can be changed through the @code{auth-source-pass-port-separator} variable.
+
+@item gnu.org:22/rms.gpg
+
+@item rms@@gnu.org:22.gpg
+
+@item a/b/gnu.org.gpg
+Entries can be stored in arbitrary directories.
+
+@item a/b/gnu.org/rms.gpg
+
+@item a/b/rms@@gnu.org.gpg
+
+@item a/b/gnu.org:22.gpg
+
+@item a/b/gnu.org:22/rms.gpg
+
+@item a/b/rms@@gnu.org:22.gpg
+@end table
+
+If several entries match, the one matching the most items (where an
+``item'' is one of username, port or host) is preferred.  For example,
+while searching for an entry matching the @code{rms} user on host
+@code{gnu.org} and port @code{22}, then the entry
+@file{gnu.org:22/rms.gpg} is preferred over @file{gnu.org.gpg}.
 
 Users of @code{pass} may also be interested in functionality provided
-by other Emacs packages dealing with pass:
+by other Emacs packages:
 
 @itemize
 @item
@@ -460,6 +512,16 @@ by other Emacs packages dealing with pass:
 @item
 @uref{https://github.com/jabranham/helm-pass,,helm-pass}: helm interface for pass.
 @end itemize
+
+@defvar auth-source-pass-filename
+Set this variable to a string locating the password store on the disk.
+Defaults to @file{~/.password-store}.
+@end defvar
+
+@defvar auth-source-pass-port-separator
+Set this variable to a string that should separate an host name from a
+port in an entry.  Defaults to @samp{:}.
+@end defvar
 
 @node Help for developers
 @chapter Help for developers

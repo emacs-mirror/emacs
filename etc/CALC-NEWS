@@ -1,4 +1,4 @@
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Calc is an advanced desk calculator for GNU Emacs.
@@ -10,17 +10,8 @@ Originally written by:
 	San Jose CA 95134
 	daveg@synaptics.com, uunet!synaptx!daveg
 
-Currently maintained by:
+Calc was maintained for many years by:
      Jay Belanger <jay.p.belanger@gmail.com>
-
-I am anxious to hear about your experiences using Calc.  Send mail to
-"jay.p.belanger@gmail.com".  A bug report is most useful if you include the
-exact input and output that occurred, any modes in effect (such as the
-current precision), and so on.  If you find Calc is difficult to operate
-in any way, or if you have other suggestions, don't hesitate to let me
-know.  If you find errors (including simple typos) in the manual, let me
-know.  Even if you find no bugs at all I would love to hear your opinions.
-
 
 Summary of changes to "Calc"
 ------- -- ------- --  ----

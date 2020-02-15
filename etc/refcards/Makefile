@@ -1,6 +1,6 @@
 ### Makefile for Emacs refcards
 
-## Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+## Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 #
@@ -40,7 +40,7 @@ PDF_CZECH = \
 PDF_FRENCH = \
 	fr-dired-ref.pdf \
 	fr-refcard.pdf \
-	fr-survival.pdf \
+	fr-survival.pdf
 
 PDF_GERMAN = de-refcard.pdf
 

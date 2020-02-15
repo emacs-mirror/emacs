@@ -1,10 +1,9 @@
-;;; timezone.el --- time zone package for GNU Emacs
+;;; timezone.el --- time zone package for GNU Emacs  -- lexical-binding: t -*-
 
-;; Copyright (C) 1990-1993, 1996, 1999, 2001-2018 Free Software
+;; Copyright (C) 1990-1993, 1996, 1999, 2001-2020 Free Software
 ;; Foundation, Inc.
 
-;; Author: Masanobu Umeda
-;; Maintainer: umerin@mse.kyutech.ac.jp
+;; Author: Masanobu Umeda <umerin@mse.kyutech.ac.jp>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -73,8 +72,7 @@ if nil, the local time zone is assumed."
     (timezone-make-arpa-date (aref new 0) (aref new 1) (aref new 2)
 			     (timezone-make-time-string
 			      (aref new 3) (aref new 4) (aref new 5))
-			     (aref new 6))
-    ))
+			     (aref new 6))))
 
 (defun timezone-make-date-sortable (date &optional local timezone)
   "Convert DATE to a sortable date string.
@@ -85,8 +83,7 @@ if nil, the local time zone is assumed."
   (let ((new (timezone-fix-time date local timezone)))
     (timezone-make-sortable-date (aref new 0) (aref new 1) (aref new 2)
 				 (timezone-make-time-string
-				  (aref new 3) (aref new 4) (aref new 5)))
-    ))
+				  (aref new 3) (aref new 4) (aref new 5)))))
 
 
 ;;
@@ -287,14 +284,14 @@ or an integer of the form +-HHMM, or a time zone name."
 
 (defun timezone-time-from-absolute (date seconds)
   "Compute the UTC time equivalent to DATE at time SECONDS after midnight.
-Return a list suitable as an argument to `current-time-zone',
+Return a Lisp timestamp suitable as an argument to `current-time-zone',
 or nil if the date cannot be thus represented.
 DATE is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (let* ((current-time-origin 719163)
 	    ;; (timezone-absolute-from-gregorian 1 1 1970)
 	 (days (- date current-time-origin))
-	 (seconds-per-day (float 86400))
+	 (seconds-per-day 86400)
 	 (day-seconds (* days seconds-per-day)))
     (condition-case nil (time-add day-seconds seconds)
       (range-error))))

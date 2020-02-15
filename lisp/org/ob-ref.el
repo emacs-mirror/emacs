@@ -1,6 +1,6 @@
 ;;; ob-ref.el --- Babel Functions for Referencing External Data -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
@@ -37,8 +37,8 @@
 
 ;; - resource-id :: the id or name of the resource
 
-;; So an example of a simple src block referencing table data in the
-;; same file would be
+;; So an example of a simple source block referencing table data in
+;; the same file would be
 
 ;;  #+NAME: sandbox
 ;;  | 1 |         2 | 3 |
@@ -50,6 +50,7 @@
 
 ;;; Code:
 (require 'ob-core)
+(require 'org-macs)
 (require 'cl-lib)
 
 (declare-function org-babel-lob-get-info "ob-lob" (&optional datum))
@@ -63,7 +64,6 @@
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
 (declare-function org-narrow-to-subtree "org" ())
 (declare-function org-show-context "org" (&optional key))
-(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-update-intermediate nil
   "Update the in-buffer results of code blocks executed to resolve references.")

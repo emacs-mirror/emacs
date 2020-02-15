@@ -1,8 +1,8 @@
 ;;; srecode/extract.el --- Extract content from previously inserted macro.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -161,10 +161,9 @@ Return nil as this inserter will extract nothing."
 Return t if something was extracted.
 Return nil if this inserter doesn't need to extract anything."
   (srecode-dictionary-set-value vdict
-				(oref ins :object-name)
+				(oref ins object-name)
 				(buffer-substring-no-properties
-				 start end)
-				)
+				 start end))
   t)
 
 ;;; Section Inserter
@@ -178,10 +177,9 @@ Return nil if this inserter doesn't need to extract anything."
   "Extract text from START/END and store in INDICT.
 Return the starting location of the first plain-text match.
 Return nil if nothing was extracted."
-  (let ((name (oref ins :object-name))
+  (let ((name (oref ins object-name))
 	(subdict (srecode-create-dictionary indict))
-	(allsubdict nil)
-	)
+	(allsubdict nil))
 
     ;; Keep extracting till we can extract no more.
     (while (condition-case nil
@@ -217,10 +215,10 @@ Return nil if nothing was extracted."
   ;; There are two modes for includes.  One is with no dict,
   ;; so it is inserted straight.  If the dict has a name, then
   ;; we need to run once per dictionary occurrence.
-  (if (not (string= (oref ins :object-name) ""))
+  (if (not (string= (oref ins object-name) ""))
       ;; With a name, do the insertion.
       (let ((subdict (srecode-dictionary-add-section-dictionary
-		      dict (oref ins :object-name))))
+		      dict (oref ins object-name))))
 	(error "Need to implement include w/ name extractor")
 	;; Recurse into the new template while no errors.
 	(while (condition-case nil

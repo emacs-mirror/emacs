@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2020 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -55,6 +55,7 @@ This means to treat a terminal of type TYPE as if it were of type ALIAS."
   :group 'terminals
   :version "25.1")
 
+(declare-function display-graphic-p "frame" (&optional display))
 (declare-function xw-defined-colors "term/common-win" (&optional frame))
 
 (defvar help-xref-stack-item)
@@ -341,6 +342,7 @@ is either `foreground-color', `background-color', or a keyword."
     (:box (".attributeBox" . "Face.AttributeBox"))
     (:underline (".attributeUnderline" . "Face.AttributeUnderline"))
     (:inverse-video (".attributeInverse" . "Face.AttributeInverse"))
+    (:extend (".attributeExtend" . "Face.AttributeExtend"))
     (:stipple
      (".attributeStipple" . "Face.AttributeStipple")
      (".attributeBackgroundPixmap" . "Face.AttributeBackgroundPixmap"))
@@ -593,6 +595,13 @@ Use `face-attribute' for finer control."
   (let ((italic (face-attribute face :slant frame inherit)))
     (memq italic '(italic oblique))))
 
+(defun face-extend-p (face &optional frame inherit)
+ "Return non-nil if FACE specifies a non-nil extend.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame.
+Optional argument INHERIT is passed to `face-attribute'."
+ (eq (face-attribute face :extend frame inherit) t))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -759,6 +768,11 @@ For convenience, attributes `:family', `:foundry', `:width',
 `:height', `:weight', and `:slant' may also be set in one step
 from an X font name:
 
+`:extend'
+
+VALUE specifies whether the FACE should be extended after EOL.
+VALUE must be one of t or nil.
+
 `:font'
 
 Set font-related face attributes from VALUE.
@@ -873,7 +887,14 @@ Use `set-face-attribute' for finer control of font weight and slant."
 
 
 (defun set-face-font (face font &optional frame)
-  "Change font-related attributes of FACE to those of FONT (a string).
+  "Change font-related attributes of FACE to those of FONT.
+FONT can be a string, a font spec, a font entity, a font object,
+or a fontset.  However, interactively, only strings are accepted.
+The format of the font string specification varies based on the font
+system in use, but it can commonly be an X Logical Font
+Description (XLFD) string, or a simpler string like \"Courier-10\"
+or \"courier:size=10\".
+
 FRAME nil or not specified means change face on all frames.
 This sets the attributes `:family', `:foundry', `:width',
 `:height', `:weight', and `:slant'.  When called interactively,
@@ -977,6 +998,18 @@ Use `set-face-attribute' or `modify-face' for finer control."
     (make-face-italic face frame)))
 
 (define-obsolete-function-alias 'set-face-italic-p 'set-face-italic "24.4")
+
+(defun set-face-extend (face extend-p &optional frame)
+  "Specify whether face FACE should be extended.
+EXTEND-P nil means FACE explicitly doesn't extend after EOL.
+EXTEND-P t means FACE extends after EOL.
+
+FRAME nil or not specified means change face on all frames.
+Use `set-face-attribute' to \"unspecify\" underlining."
+  (interactive
+   (let ((list (read-face-and-attribute :extend)))
+     (list (car list) (if (cadr list) t))))
+  (set-face-attribute face frame :extend extend-p))
 
 
 (defalias 'set-face-background-pixmap 'set-face-stipple)
@@ -1101,7 +1134,7 @@ an integer value."
 	   (:slant
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-slant-table))
-	   (:inverse-video
+	   ((or :inverse-video :extend)
 	    (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		    (internal-lisp-face-attribute-values attribute)))
            ((or :underline :overline :strike-through :box)
@@ -1146,6 +1179,7 @@ an integer value."
     (:slant . "slant")
     (:underline . "underline")
     (:overline . "overline")
+    (:extend . "extend")
     (:strike-through . "strike-through")
     (:box . "box")
     (:inverse-video . "inverse-video display")
@@ -1239,7 +1273,7 @@ of a global face.  Value is the new attribute value."
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
 	       (when (and (memq attribute '(:foreground :background))
-			  (not (memq (window-system frame) '(x w32 ns)))
+			  (not (display-graphic-p frame))
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
@@ -1415,116 +1449,6 @@ argument, prompt for a regular expression using `read-regexp'."
 	(dolist (face (face-list))
 	  (copy-face face face frame disp-frame)))))
 
-
-(defun describe-face (face &optional frame)
-  "Display the properties of face FACE on FRAME.
-Interactively, FACE defaults to the faces of the character after point
-and FRAME defaults to the selected frame.
-
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face"
-                                     (or (face-at-point t) 'default)
-                                     t)))
-  (let* ((attrs '((:family . "Family")
-		  (:foundry . "Foundry")
-		  (:width . "Width")
-		  (:height . "Height")
-		  (:weight . "Weight")
-		  (:slant . "Slant")
-		  (:foreground . "Foreground")
-		  (:distant-foreground . "DistantForeground")
-		  (:background . "Background")
-		  (:underline . "Underline")
-		  (:overline . "Overline")
-		  (:strike-through . "Strike-through")
-		  (:box . "Box")
-		  (:inverse-video . "Inverse")
-		  (:stipple . "Stipple")
-		  (:font . "Font")
-		  (:fontset . "Fontset")
-		  (:inherit . "Inherit")))
-	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
-					attrs))))
-    (help-setup-xref (list #'describe-face face)
-		     (called-interactively-p 'interactive))
-    (unless face
-      (setq face 'default))
-    (if (not (listp face))
-	(setq face (list face)))
-    (with-help-window (help-buffer)
-      (with-current-buffer standard-output
-	(dolist (f face (buffer-string))
-	  (if (stringp f) (setq f (intern f)))
-	  ;; We may get called for anonymous faces (i.e., faces
-	  ;; expressed using prop-value plists).  Those can't be
-	  ;; usefully customized, so ignore them.
-	  (when (symbolp f)
-	    (insert "Face: " (symbol-name f))
-	    (if (not (facep f))
-		(insert "   undefined face.\n")
-	      (let ((customize-label "customize this face")
-		    file-name)
-		(insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
-		(princ (concat " (" customize-label ")\n"))
-		;; FIXME not sure how much of this belongs here, and
-		;; how much in `face-documentation'.  The latter is
-		;; not used much, but needs to return nil for
-		;; undocumented faces.
-		(let ((alias (get f 'face-alias))
-		      (face f)
-		      obsolete)
-		  (when alias
-		    (setq face alias)
-		    (insert
-		     (format-message
-                      "\n  %s is an alias for the face `%s'.\n%s"
-                      f alias
-                      (if (setq obsolete (get f 'obsolete-face))
-                          (format-message
-                           "  This face is obsolete%s; use `%s' instead.\n"
-                           (if (stringp obsolete)
-                               (format " since %s" obsolete)
-                             "")
-                           alias)
-                        ""))))
-		  (insert "\nDocumentation:\n"
-                          (substitute-command-keys
-                           (or (face-documentation face)
-                               "Not documented as a face."))
-			  "\n\n"))
-		(with-current-buffer standard-output
-		  (save-excursion
-		    (re-search-backward
-		     (concat "\\(" customize-label "\\)") nil t)
-		    (help-xref-button 1 'help-customize-face f)))
-		(setq file-name (find-lisp-object-file-name f 'defface))
-		(when file-name
-		  (princ (substitute-command-keys "Defined in `"))
-		  (princ (file-name-nondirectory file-name))
-		  (princ (substitute-command-keys "'"))
-		  ;; Make a hyperlink to the library.
-		  (save-excursion
-		    (re-search-backward
-                     (substitute-command-keys "`\\([^`']+\\)'") nil t)
-		    (help-xref-button 1 'help-face-def f file-name))
-		  (princ ".")
-		  (terpri)
-		  (terpri))
-		(dolist (a attrs)
-		  (let ((attr (face-attribute f (car a) frame)))
-		    (insert (make-string (- max-width (length (cdr a))) ?\s)
-			    (cdr a) ": " (format "%s" attr))
-		    (if (and (eq (car a) :inherit)
-			     (not (eq attr 'unspecified)))
-			;; Make a hyperlink to the parent face.
-			(save-excursion
-			  (re-search-backward ": \\([^:]+\\)" nil t)
-			  (help-xref-button 1 'help-face attr)))
-		    (insert "\n")))))
-	    (terpri)))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Face specifications (defface).
@@ -1658,7 +1582,8 @@ is given, in which case return its value instead."
 	     ;; (see also realize_default_face in xfaces.c).
 	     (append
 	      '(:underline nil :overline nil :strike-through nil
-		:box nil :inverse-video nil :stipple nil :inherit nil)
+		:box nil :inverse-video nil :stipple nil :inherit nil
+                :extend nil)
 	      ;; `display-graphic-p' is unavailable when running
 	      ;; temacs, prior to loading frame.el.
 	      (when (fboundp 'display-graphic-p)
@@ -1744,7 +1669,7 @@ The following sources are applied in this order:
   ;; `theme-face' records.
   (let ((theme-faces (get face 'theme-face))
 	(no-match-found 0)
-	face-attrs theme-face-applied)
+        default-attrs face-attrs theme-face-applied)
     (if theme-faces
 	(dolist (elt (reverse theme-faces))
 	  (setq face-attrs (face-spec-choose (cadr elt) frame no-match-found))
@@ -1752,13 +1677,20 @@ The following sources are applied in this order:
 	    (face-spec-set-2 face frame face-attrs)
 	    (setq theme-face-applied t))))
     ;; If there was a spec applicable to FRAME, that overrides the
-    ;; defface spec entirely (rather than inheriting from it).  If
-    ;; there was no spec applicable to FRAME, apply the defface spec
-    ;; as well as any applicable X resources.
+    ;; defface spec entirely rather than inheriting from it, with the
+    ;; exception of the :extend attribute (which is inherited).
+    ;;
+    ;; If there was no spec applicable to FRAME, apply the defface
+    ;; spec as well as any applicable X resources.
+    (setq default-attrs (face-spec-choose (face-default-spec face) frame))
     (unless theme-face-applied
-      (setq face-attrs (face-spec-choose (face-default-spec face) frame))
-      (face-spec-set-2 face frame face-attrs)
+      (face-spec-set-2 face frame default-attrs)
       (make-face-x-resource-internal face frame))
+    (when (and theme-face-applied
+               (eq 'unspecified (face-attribute face :extend frame t)))
+      (let ((tail (plist-member default-attrs :extend)))
+        (and tail (face-spec-set-2 face frame
+                                   (list :extend (cadr tail))))))
     (setq face-attrs (face-spec-choose (get face 'face-override-spec) frame))
     (face-spec-set-2 face frame face-attrs)))
 
@@ -1833,7 +1765,7 @@ The argument FRAME specifies which frame to try.
 The value may be different for frames on different display types.
 If FRAME doesn't support colors, the value is nil.
 If FRAME is nil, that stands for the selected frame."
-  (if (memq (framep (or frame (selected-frame))) '(x w32 ns))
+  (if (display-graphic-p frame)
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
@@ -1877,7 +1809,7 @@ or one of the strings \"unspecified-fg\" or \"unspecified-bg\".
 
 If FRAME is omitted or nil, use the selected frame."
   (unless (member color '(unspecified "unspecified-bg" "unspecified-fg"))
-    (if (member (framep (or frame (selected-frame))) '(x w32 ns))
+    (if (display-graphic-p frame)
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
@@ -1903,7 +1835,7 @@ return value is nil."
   (cond
    ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
     nil)
-   ((memq (framep (or frame (selected-frame))) '(x w32 ns))
+   ((display-graphic-p frame)
     (xw-color-values color frame))
    (t
     (tty-color-values color frame))))
@@ -1917,7 +1849,7 @@ return value is nil."
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (if (memq (framep-on-display display) '(x w32 ns))
+  (if (display-graphic-p display)
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
@@ -1928,12 +1860,9 @@ If omitted or nil, that stands for the selected frame's display."
   "Return non-nil if frames on DISPLAY can display shades of gray.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (let ((frame-type (framep-on-display display)))
-    (cond
-     ((memq frame-type '(x w32 ns))
-      (x-display-grayscale-p display))
-     (t
-      (> (tty-color-gray-shades display) 2)))))
+  (if (display-graphic-p display)
+      (x-display-grayscale-p display)
+    (> (tty-color-gray-shades display) 2)))
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
   "Read a color name or RGB triplet.
@@ -1999,7 +1928,7 @@ resulting color name in the echo area."
       (when (and convert-to-RGB
 		 (not (string-equal color "")))
 	(let ((components (x-color-values color)))
-	  (unless (string-match-p "^#\\(?:[a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
+	  (unless (string-match-p "^#\\(?:[[:xdigit:]][[:xdigit:]][[:xdigit:]]\\)+$" color)
 	    (setq color (format "#%04X%04X%04X"
 				(logand 65535 (nth 0 components))
 				(logand 65535 (nth 1 components))
@@ -2426,39 +2355,39 @@ If you set `term-file-prefix' to nil, this function does nothing."
 ;; if background is light.
 (defface region
   '((((class color) (min-colors 88) (background dark))
-     :background "blue3")
+     :background "blue3" :extend t)
     (((class color) (min-colors 88) (background light) (type gtk))
      :distant-foreground "gtk_selection_fg_color"
-     :background "gtk_selection_bg_color")
+     :background "gtk_selection_bg_color" :extend t)
     (((class color) (min-colors 88) (background light) (type ns))
      :distant-foreground "ns_selection_fg_color"
-     :background "ns_selection_bg_color")
+     :background "ns_selection_bg_color" :extend t)
     (((class color) (min-colors 88) (background light))
-     :background "lightgoldenrod2")
+     :background "lightgoldenrod2" :extend t)
     (((class color) (min-colors 16) (background dark))
-     :background "blue3")
+     :background "blue3" :extend t)
     (((class color) (min-colors 16) (background light))
-     :background "lightgoldenrod2")
+     :background "lightgoldenrod2" :extend t)
     (((class color) (min-colors 8))
-     :background "blue" :foreground "white")
+     :background "blue" :foreground "white" :extend t)
     (((type tty) (class mono))
      :inverse-video t)
-    (t :background "gray"))
+    (t :background "gray" :extend t))
   "Basic face for highlighting the region."
   :version "21.1"
   :group 'basic-faces)
 
 (defface secondary-selection
   '((((class color) (min-colors 88) (background light))
-     :background "yellow1")
+     :background "yellow1" :extend t)
     (((class color) (min-colors 88) (background dark))
-     :background "SkyBlue4")
+     :background "SkyBlue4" :extend t)
     (((class color) (min-colors 16) (background light))
-     :background "yellow")
+     :background "yellow" :extend t)
     (((class color) (min-colors 16) (background dark))
-     :background "SkyBlue4")
+     :background "SkyBlue4" :extend t)
     (((class color) (min-colors 8))
-     :background "cyan" :foreground "black")
+     :background "cyan" :foreground "black" :extend t)
     (t :inverse-video t))
   "Basic face for displaying the secondary selection."
   :group 'basic-faces)
@@ -2501,6 +2430,60 @@ unwanted effects."
   :version "26.1"
   :group 'basic-faces
   :group 'display-line-numbers)
+
+(defface line-number-major-tick
+  '((((class color grayscale) (background light))
+     :background "grey85" :bold t)
+    (((class color grayscale) (background dark))
+     :background "grey75" :bold t)
+    (t :inherit line-number))
+  "Face for highlighting \"major ticks\" (as in a ruler).
+When `display-line-numbers-major-tick' is positive, highlight
+the line numbers of lines which are a multiple of its value.
+This face is used when `display-line-numbers' is non-nil.
+
+If you customize the font of this face, make sure it is a
+monospaced font, otherwise line numbers will not line up,
+and text lines might move horizontally as you move through
+the buffer.  Similarly, making this face's font different
+from that of the `line-number' face could produce such
+unwanted effects."
+  :version "27.1"
+  :group 'basic-faces
+  :group 'display-line-numbers)
+
+(defface line-number-minor-tick
+  '((((class color grayscale) (background light))
+     :background "grey95" :bold t)
+    (((class color grayscale) (background dark))
+     :background "grey55" :bold t)
+    (t :inherit line-number))
+  "Face for highlighting \"minor ticks\" (as in a ruler).
+When `display-line-numbers-minor-tick' is positive, highlight
+the line numbers of lines which are a multiple of its value.
+This face is used when `display-line-numbers' is non-nil.
+
+If you customize the font of this face, make sure it is a
+monospaced font, otherwise line numbers will not line up,
+and text lines might move horizontally as you move through
+the buffer.  Similarly, making this face's font different
+from that of the `line-number' face could produce such
+unwanted effects."
+  :version "27.1"
+  :group 'basic-faces
+  :group 'display-line-numbers)
+
+;; Definition stolen from display-line-numbers.
+(defface fill-column-indicator
+  '((t :inherit shadow :weight normal :slant normal
+       :underline nil :overline nil :strike-through nil
+       :box nil :inverse-video nil :stipple nil))
+  "Face for displaying fill column indicator.
+This face is used when `display-fill-column-indicator-mode' is
+non-nil."
+  :version "27.1"
+  :group 'basic-faces
+  :group 'display-fill-column-indicator)
 
 (defface escape-glyph
   '((((background dark)) :foreground "cyan")

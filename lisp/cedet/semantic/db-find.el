@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -304,7 +304,7 @@ so that it can be called from the idle work handler."
 
 (defun semanticdb-find-translate-path-default (path brutish)
   "Translate PATH into a list of semantic tables.
-If BRUTISH is non nil, return all tables associated with PATH.
+If BRUTISH is non-nil, return all tables associated with PATH.
 Default action as described in `semanticdb-find-translate-path'."
   (if (semanticdb-find-results-p path)
       ;; nil means perform the search over these results.
@@ -362,7 +362,7 @@ Default action as described in `semanticdb-find-translate-path'."
   "Are there any incomplete entries in CACHE?"
   (let ((ans nil))
     (dolist (tab cache)
-      (when (and (semanticdb-table-child-p tab)
+      (when (and (cl-typep tab 'semanticdb-table)
 		 (not (number-or-marker-p (oref tab pointmax))))
 	(setq ans t))
       )
@@ -399,10 +399,10 @@ Default action as described in `semanticdb-find-translate-path'."
   (let ((table (cond ((null path)
 		      semanticdb-current-table)
 		     ((bufferp path)
-		      (semantic-buffer-local-value 'semanticdb-current-table path))
+		      (buffer-local-value 'semanticdb-current-table path))
 		     ((and (stringp path) (file-exists-p path))
 		      (semanticdb-file-table-object path t))
-		     ((semanticdb-abstract-table-child-p path)
+		     ((cl-typep path 'semanticdb-abstract-table)
 		      path)
 		     (t nil))))
     (if table
@@ -434,7 +434,7 @@ Default action as described in `semanticdb-find-translate-path'."
   "All include tags scanned, plus action taken on the tag.
 Each entry is an alist:
   (ACTION . TAG)
-where ACTION is one of 'scanned, 'duplicate, 'lost
+where ACTION is one of `scanned', `duplicate', `lost'
 and TAG is a clone of the include tag that was found.")
 (make-variable-buffer-local 'semanticdb-find-scanned-include-tags)
 
@@ -910,7 +910,7 @@ This query only really tests the first entry in the list that is RESULTP,
 but should be good enough for debugging assertions."
   (and (listp resultp)
        (listp (car resultp))
-       (semanticdb-abstract-table-child-p (car (car resultp)))
+       (cl-typep (car (car resultp)) 'semanticdb-abstract-table)
        (or (semantic-tag-p (car (cdr (car resultp))))
 	   (null (car (cdr (car resultp)))))))
 
@@ -938,7 +938,7 @@ but should be good enough for debugging assertions."
   (and (listp resultp)
        (listp (car resultp))
        (let ((tag-to-test (car-safe (cdr (car resultp)))))
-	 (or (and (semanticdb-abstract-table-child-p (car (car resultp)))
+	 (or (and (cl-typep (car (car resultp)) 'semanticdb-abstract-table)
 		  (or (semantic-tag-p tag-to-test)
 		      (null tag-to-test)))
 	     (and (null (car (car resultp)))
@@ -1085,7 +1085,7 @@ Returns result."
   "Log that TABLE has been searched and RESULT was found."
   (when semanticdb-find-log-flag
     (with-current-buffer semanticdb-find-log-buffer-name
-      (insert "Table: " (object-print table)
+      (insert "Table: " (cl-prin1-to-string table)
 	      " Result: " (int-to-string (length result)) " tags"
 	      "\n")
       )

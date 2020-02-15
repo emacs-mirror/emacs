@@ -4647,7 +4647,7 @@
 	* vc.el: All backends: API simplification: Remove 4th
 	'default-state' argument from vc-dir-status files and its backend
 	methods - no backend method ever set it.  It was used only in the
-	fallback method to to set a default of 'up-to-date, though a
+	fallback method to set a default of 'up-to-date, though a
 	convoluted call chain obscured this.
 
 	* vc-hooks.el: Bind vc-delete-file to Ctrl-x v delete.
@@ -26294,7 +26294,7 @@ See ChangeLog.16 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2018 Free Software Foundation, Inc.
+  Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

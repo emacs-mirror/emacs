@@ -1,11 +1,11 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2018 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Mayan calendar, Maya, calendar, diary
 ;; Package: calendar
@@ -314,7 +314,7 @@ Echo Mayan date unless NOECHO is non-nil."
 
 (defun calendar-mayan-long-count-to-absolute (c)
   "Compute the absolute date corresponding to the Mayan Long Count C.
-Long count is a list (baktun katun tun uinal kin)"
+Long count is a list (baktun katun tun uinal kin)."
   (+ (* (nth 0 c) 144000)               ; baktun
      (* (nth 1 c) 7200)                 ; katun
      (* (nth 2 c) 360)                  ; tun
@@ -353,9 +353,13 @@ Echo Mayan date unless NOECHO is non-nil."
     (calendar-mayan-long-count-to-absolute date)))
   (or noecho (calendar-mayan-print-date)))
 
-(defvar date)
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-mayan-date ()
   "Show the Mayan long count, haab, and tzolkin dates as a diary entry."

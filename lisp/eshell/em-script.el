@@ -1,6 +1,6 @@
 ;;; em-script.el --- Eshell script files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -23,8 +23,7 @@
 
 ;;; Code:
 
-(require 'eshell)
-(require 'esh-opt)
+(require 'esh-mode)
 
 ;;;###autoload
 (progn
@@ -57,7 +56,7 @@ This includes when running `eshell-command'."
 
 ;;; Functions:
 
-(defun eshell-script-initialize ()
+(defun eshell-script-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the script parsing code."
   (make-local-variable 'eshell-interpreter-alist)
   (setq eshell-interpreter-alist
@@ -73,13 +72,14 @@ This includes when running `eshell-command'."
   ;; to ruin it for other modules
   (let (eshell-inside-quote-regexp
 	eshell-outside-quote-regexp)
-    (and (not eshell-non-interactive-p)
+    (and (not (bound-and-true-p eshell-non-interactive-p))
 	 eshell-login-script
 	 (file-readable-p eshell-login-script)
 	 (eshell-do-eval
 	  (list 'eshell-commands
 		(catch 'eshell-replace-command
-		  (eshell-source-file eshell-login-script))) t))
+		  (eshell-source-file eshell-login-script)))
+          t))
     (and eshell-rc-script
 	 (file-readable-p eshell-rc-script)
 	 (eshell-do-eval
@@ -90,7 +90,6 @@ This includes when running `eshell-command'."
 (defun eshell-source-file (file &optional args subcommand-p)
   "Execute a series of Eshell commands in FILE, passing ARGS.
 Comments begin with `#'."
-  (interactive "f")
   (let ((orig (point))
 	(here (point-max))
 	(inhibit-point-motion-hooks t))

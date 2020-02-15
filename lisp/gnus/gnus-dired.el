@@ -1,6 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet
 
-;; Copyright (C) 1996-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -209,11 +209,11 @@ If ARG is non-nil, open it in a new buffer."
 (defun gnus-dired-print (&optional file-name print-to)
   "In dired, print FILE-NAME according to the mailcap file.
 
-If there is no print command, print in a PostScript image. If the
-optional argument PRINT-TO is nil, send the image to the printer. If
-PRINT-TO is a string, save the PostScript image in a file with that
-name.  If PRINT-TO is a number, prompt the user for the name of the
-file to save in."
+If there is no print command, print in a PostScript image.  If the
+optional argument PRINT-TO is nil, send the image to the printer.
+If PRINT-TO is a string, save the PostScript image in a file with
+that name.  If PRINT-TO is a number, prompt the user for the name
+of the file to save in."
   (interactive (list
 		(file-name-sans-versions (dired-get-filename) t)
 		(ps-print-preprint current-prefix-arg)))

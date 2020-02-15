@@ -1,6 +1,6 @@
 ;;; rng-xsd.el --- W3C XML Schema datatypes library for RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -46,7 +46,7 @@
 
 ;;;###autoload
 (defun rng-xsd-compile (name params)
-  "Provides W3C XML Schema as a RELAX NG datatypes library.
+  "Provide W3C XML Schema as a RELAX NG datatypes library.
 NAME is a symbol giving the local name of the datatype.  PARAMS is a
 list of pairs (PARAM-NAME . PARAM-VALUE) where PARAM-NAME is a symbol
 giving the name of the parameter and PARAM-VALUE is a string giving
@@ -330,7 +330,7 @@ trailing digits.  For example, -0021.0430 would be represented by [-1
        (match-string 1 string)))
 
 (defun rng-xsd-convert-hex-binary (string)
-  (and (string-match "\\`[ \r\n\t]*\\(\\(?:[0-9A-Fa-f][0-9A-Fa-f]\\)*\\)[ \r\n\t]*\\'"
+  (and (string-match "\\`[ \r\n\t]*\\(\\(?:[[:xdigit:]][[:xdigit:]]\\)*\\)[ \r\n\t]*\\'"
 		     string)
        (downcase (match-string 1 string))))
 
@@ -360,13 +360,13 @@ trailing digits.  For example, -0021.0430 would be represented by [-1
       n)))
 
 (defun rng-xsd-convert-any-uri (string)
-  (and (string-match "\\`\\(?:[^%]\\|%[0-9a-fA-F][0-9a-fA-F]\\)?*\\'" string)
+  (and (string-match "\\`\\(?:[^%]\\|%[[:xdigit:]][[:xdigit:]]\\)*\\'" string)
        (string-match "\\`[^#]*\\(?:#[^#]*\\)?\\'" string)
        (string-match "\\`\\(?:[a-zA-Z][-+.A-Za-z0-9]*:.+\\|[^:]*\\(?:[#/?].*\\)?\\)\\'" string)
        string))
 
 (defun rng-xsd-make-date-time-regexp (template)
-  "Returns a regular expression matching a ISO 8601 date/time.
+  "Return a regular expression matching a ISO 8601 date/time.
 The template is a string with Y standing for years field, M standing
 for months, D standing for day of month, T standing for a literal T, t
 standing for time and - standing for a literal hyphen.  A time zone is
@@ -436,7 +436,7 @@ sign, time zone hours, time zone minutes."
     v))
 
 (defun rng-xsd-convert-date-time (string regexp)
-  "Converts an XML Schema date/time to a list.
+  "Convert an XML Schema date/time to a list.
 Returns nil if invalid.  REGEXP is a regexp for parsing the date time
 as returned by `rng-xsd-make-date-time-regexp'.  The list has 4 members
 \(HAS-TIME-ZONE DAY SECOND SECOND-FRACTION), where HAS-TIME-ZONE is t
@@ -550,7 +550,7 @@ fractional part of the second."
        (< (car numbers1) (car numbers2))))
 
 (defun rng-xsd-date-to-days (year month day)
-  "Return a unique day number where Jan 1 1 AD is day 1"
+  "Return a unique day number where Jan 1 1 AD is day 1."
   (if (> year 0)			; AD
       (+ (rng-xsd-days-in-years (- year 1))
 	 (rng-xsd-day-number-in-year year month day))

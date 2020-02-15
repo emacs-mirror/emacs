@@ -1,8 +1,8 @@
 ;; test.srt --- SRecode templates for testing
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -83,13 +83,13 @@ template gapsomething :blank
 template inlinetext
 "Insert text that has no newlines"
 ----
- *In the middle*
+*In the middle*
 ----
 
 template includable :blank
 ----
 ;; An includable $COMMENT$ we could use.
-;; $^$
+;; $INPUTNAME$$^$
 ;; Text after a point inserter.
 ----
 
@@ -99,6 +99,8 @@ $>WI1:includable$
 ----
 
 template wrapinclude-around
+sectiondictionary "WI1"
+set INPUTNAME "[VAR]"
 ----
 $<WI1:includable$Intermediate Comments$/WI1$
 ----
@@ -143,6 +145,76 @@ set MOOSE "why"
 ----
 OUTSIDE SECTION: $UTESTVAR1$
 INSIDE SECTION: $#A$$UTESTVAR1$$/A$
+----
+
+template custom-arg-w-arg :utestwitharg
+----
+Value of xformed UTWA: $UTESTARGXFORM$
+----
+
+template custom-arg-w-subdict :utestwitharg
+sectiondictionary "UTLOOP"
+set NAME "item1"
+sectiondictionary "UTLOOP"
+set NAME "item2"
+sectiondictionary "UTLOOP"
+set NAME "item3"
+----
+All items here: $FOO_item1$ $FOO_item2$ $FOO_item3$
+----
+
+template nested-dictionary-syntax-flat
+section "TOP"
+  show SUB
+  set NAME "item1"
+end
+----
+$#TOP$$#SUB$sub $/SUB$$NAME$$/TOP$
+----
+
+template nested-dictionary-syntax-nesting
+section "TOP"
+  show SHOW1
+  set NAME "item1"
+  section "SUB"
+    show SHOW11
+    set NAME "item11"
+  end
+  show SHOW2
+  set NAME "item2"
+  section "SUB"
+    show SHOW21
+    set NAME "item21"
+  end
+  show SHOW3
+  set NAME "item3"
+  section "SUB"
+    show SHOW11
+    set NAME "item31"
+    section "SUB"
+      show SHOW311
+      set NAME "item311"
+    end
+    section "SUB"
+      show SHOW321
+      set NAME "item321"
+    end
+  end
+end
+----
+$#TOP$$#SUB$$NAME$$#SUB$-$NAME$$/SUB$  $/SUB$$/TOP$
+----
+
+template nested-dictionary-syntax-mixed
+section "TOP"
+  show SUB
+  set NAME "item1"
+end
+sectiondictionary "SECTION"
+show SUB
+set NAME "item2"
+----
+$#TOP$$NAME$$/TOP$ $#SECTION$$NAME$$/SECTION$
 ----
 
 ;; end

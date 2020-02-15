@@ -1,6 +1,6 @@
 ;;; calculator.el --- a calculator for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -240,7 +240,7 @@ Examples:
 ;;;=====================================================================
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 ;;;---------------------------------------------------------------------
 ;;; Variables
@@ -1054,7 +1054,7 @@ the `left' or `right' when one of the standard modes is used."
      ;; print with radix -- for binary, convert the octal number
      (let* ((fmt (if (eq calculator-output-radix 'hex) "%x" "%o"))
             (str (if calculator-2s-complement num (abs num)))
-            (str (format fmt (calculator-truncate str)))
+	    (str (format fmt (truncate str)))
             (bins '((?0 "000") (?1 "001") (?2 "010") (?3 "011")
                     (?4 "100") (?5 "101") (?6 "110") (?7 "111")))
             (str (if (not (eq calculator-output-radix 'bin)) str
@@ -1184,7 +1184,7 @@ arguments."
           (DX (if (and X calculator-deg) (degrees-to-radians X) X))
           (L  calculator-saved-list)
           (fF `(calculator-funcall ',f x y))
-          (fD `(if calculator-deg (radians-to-degrees x) x)))
+          (fD '(if calculator-deg (radians-to-degrees x) x)))
       (eval `(cl-flet ((F (&optional x y) ,fF) (D (x) ,fD))
                (let ((X ,X) (Y ,Y) (DX ,DX) (TX ,TX) (TY ,TY) (L ',L))
                  ,f))
@@ -1226,7 +1226,7 @@ OP is the operator (if any) that caused this call."
     (when (and (or calculator-display-fragile
                    (not (numberp (car calculator-stack))))
                (<= inp (pcase calculator-input-radix
-                         (`nil ?9) (`bin ?1) (`oct ?7) (_ 999))))
+                         ('nil ?9) ('bin ?1) ('oct ?7) (_ 999))))
       (calculator-clear-fragile)
       (setq calculator-curnum
             (concat (if (equal calculator-curnum "0") ""
@@ -1619,30 +1619,12 @@ To use this, apply a binary operator (evaluate it), then call this."
   "Compute X^Y, dealing with errors appropriately."
   (condition-case nil
       (expt x y)
-    (domain-error 0.0e+NaN)
-    (range-error
-     (cond ((and (< x 1.0) (> x -1.0))
-            ;; For small x, the range error comes from large y.
-            0.0)
-           ((and (> x 0.0) (< y 0.0))
-            ;; For large positive x and negative y, the range error
-            ;; comes from large negative y.
-            0.0)
-           ((and (> x 0.0) (> y 0.0))
-            ;; For large positive x and positive y, the range error
-            ;; comes from large y.
-            1.0e+INF)
-           ;; For the rest, x must be large and negative.
-           ;; The range errors come from large integer y.
-           ((< y 0.0)
-            0.0)
-           ((eq (logand (truncate y) 1) 1)   ; expansion of cl `oddp'
-            ;; If y is odd
-            -1.0e+INF)
-           (t
-            ;;
-            1.0e+INF)))
-    (error 0.0e+NaN)))
+    (overflow-error
+     ;; X and Y must be integers, as expt silently returns floating-point
+     ;; infinity on floating-point overflow.
+     (if (or (natnump x) (zerop (logand x 1)))
+	 1.0e+INF
+       -1.0e+INF))))
 
 (defun calculator-fact (x)
   "Simple factorial of X."

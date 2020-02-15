@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2020 Free Software Foundation, Inc.
    Written by Paul Eggert, Bruno Haible, Derek Price.
    This file is part of gnulib.
 
@@ -17,7 +17,7 @@
 
 /*
  * ISO C 99 <inttypes.h> for platforms that lack it.
- * <http://www.opengroup.org/susv3xbd/inttypes.h.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/inttypes.h.html>
  */
 
 #if __GNUC__ >= 3
@@ -38,6 +38,8 @@
 #  endif
 
 #  @INCLUDE_NEXT@ @NEXT_INTTYPES_H@
+
+#  define _GL_FINISHED_INCLUDING_SYSTEM_INTTYPES_H
 # endif
 #endif
 
@@ -49,15 +51,15 @@
 #ifndef __GLIBC__
 # include <stdint.h>
 #endif
-/* Get CHAR_BIT.  */
+/* Get CHAR_BIT, INT_MAX, LONG_MAX, etc.  */
 #include <limits.h>
 /* On mingw, __USE_MINGW_ANSI_STDIO only works if <stdio.h> is also included */
 #if defined _WIN32 && ! defined __CYGWIN__
 # include <stdio.h>
 #endif
 
-#if !(INT_MIN == INT32_MIN && INT_MAX == INT32_MAX)
-# error "This file assumes that 'int' has exactly 32 bits. Please report your platform and compiler to <bug-gnulib@gnu.org>."
+#if !(INT_MAX == 0x7fffffff && INT_MIN + INT_MAX == -1)
+# error "This file assumes that 'int' is 32-bit two's complement. Please report your platform and compiler to <bug-gnulib@gnu.org>."
 #endif
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
@@ -189,7 +191,7 @@
 #  define _PRI64_PREFIX "l"
 # elif defined _MSC_VER || defined __MINGW32__
 #  define _PRI64_PREFIX "I64"
-# elif @HAVE_LONG_LONG_INT@ && LONG_MAX >> 30 == 1
+# elif LONG_MAX >> 30 == 1
 #  define _PRI64_PREFIX _LONG_LONG_FORMAT_PREFIX
 # endif
 # if !defined PRId64 || @PRI_MACROS_BROKEN@
@@ -206,7 +208,7 @@
 #  define _PRIu64_PREFIX "l"
 # elif defined _MSC_VER || defined __MINGW32__
 #  define _PRIu64_PREFIX "I64"
-# elif @HAVE_UNSIGNED_LONG_LONG_INT@ && ULONG_MAX >> 31 == 1
+# elif ULONG_MAX >> 31 == 1
 #  define _PRIu64_PREFIX _LONG_LONG_FORMAT_PREFIX
 # endif
 # if !defined PRIo64 || @PRI_MACROS_BROKEN@
@@ -682,7 +684,7 @@
 #  define _SCN64_PREFIX "l"
 # elif defined _MSC_VER || defined __MINGW32__
 #  define _SCN64_PREFIX "I64"
-# elif @HAVE_LONG_LONG_INT@ && LONG_MAX >> 30 == 1
+# elif LONG_MAX >> 30 == 1
 #  define _SCN64_PREFIX _LONG_LONG_FORMAT_PREFIX
 # endif
 # if !defined SCNd64 || @PRI_MACROS_BROKEN@
@@ -699,7 +701,7 @@
 #  define _SCNu64_PREFIX "l"
 # elif defined _MSC_VER || defined __MINGW32__
 #  define _SCNu64_PREFIX "I64"
-# elif @HAVE_UNSIGNED_LONG_LONG_INT@ && ULONG_MAX >> 31 == 1
+# elif ULONG_MAX >> 31 == 1
 #  define _SCNu64_PREFIX _LONG_LONG_FORMAT_PREFIX
 # endif
 # if !defined SCNo64 || @PRI_MACROS_BROKEN@

@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2018 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -267,7 +267,7 @@ pop_kbd_macro (Lisp_Object info)
   Lisp_Object tem;
   Vexecuting_kbd_macro = XCAR (info);
   tem = XCDR (info);
-  executing_kbd_macro_index = XFIXNUM (XCAR (tem));
+  integer_to_intmax (XCAR (tem), &executing_kbd_macro_index);
   Vreal_this_command = XCDR (tem);
   run_hook (Qkbd_macro_termination_hook);
 }
@@ -301,7 +301,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
     error ("Keyboard macros must be strings or vectors");
 
   tem = Fcons (Vexecuting_kbd_macro,
-	       Fcons (make_fixnum (executing_kbd_macro_index),
+	       Fcons (make_int (executing_kbd_macro_index),
 		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 

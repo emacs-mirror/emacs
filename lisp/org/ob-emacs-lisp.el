@@ -1,6 +1,6 @@
 ;;; ob-emacs-lisp.el --- Babel Functions for Emacs-lisp Code -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -26,7 +26,13 @@
 ;; Org-Babel support for evaluating emacs-lisp code
 
 ;;; Code:
-(require 'ob)
+
+(require 'ob-core)
+
+(declare-function org-babel--get-vars "ob" (params))
+(declare-function org-babel-result-cond "ob" (result-params scalar-form &rest table-forms))
+(declare-function org-babel-reassemble-table "ob" (table colnames rownames))
+(declare-function org-babel-pick-name "ob" (names selector))
 
 (defconst org-babel-header-args:emacs-lisp '((lexical . :any))
   "Emacs-lisp specific header arguments.")
@@ -34,10 +40,11 @@
 (defvar org-babel-default-header-args:emacs-lisp '((:lexical . "no"))
   "Default arguments for evaluating an emacs-lisp source block.
 
-A value of \"yes\" or t causes src blocks to be eval'd using
+A value of \"yes\" or t causes source blocks to be eval'd using
 lexical scoping.  It can also be an alist mapping symbols to
-their value.  It is used as the optional LEXICAL argument to
-`eval', which see.")
+their value.  It is used both as the optional LEXICAL argument to
+`eval', and as the value for `lexical-binding' in buffers created
+by `org-edit-src-code'.")
 
 (defun org-babel-expand-body:emacs-lisp (body params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -65,9 +72,7 @@ their value.  It is used as the optional LEXICAL argument to
 				       (member "pp" result-params))
 				   (concat "(pp " body ")")
 				 body))
-			 (if (listp lexical)
-			     lexical
-			   (member lexical '("yes" "t"))))))
+			 (org-babel-emacs-lisp-lexical lexical))))
       (org-babel-result-cond result-params
 	(let ((print-level nil)
               (print-length nil))
@@ -81,6 +86,23 @@ their value.  It is used as the optional LEXICAL argument to
                               (cdr (assq :colnames params)))
          (org-babel-pick-name (cdr (assq :rowname-names params))
                               (cdr (assq :rownames params))))))))
+
+(defun org-babel-emacs-lisp-lexical (lexical)
+  "Interpret :lexical source block argument.
+Convert LEXICAL into the form appropriate for `lexical-binding'
+and the LEXICAL argument to `eval'."
+  (if (listp lexical)
+      lexical
+    (not (null (member lexical '("yes" "t"))))))
+
+(defun org-babel-edit-prep:emacs-lisp (info)
+  "Set `lexical-binding' in Org edit buffer.
+Set `lexical-binding' in Org edit buffer according to the
+corresponding :lexical source block argument."
+  (setq lexical-binding
+        (org-babel-emacs-lisp-lexical
+         (org-babel-read
+          (cdr (assq :lexical (nth 2 info)))))))
 
 (org-babel-make-language-alias "elisp" "emacs-lisp")
 

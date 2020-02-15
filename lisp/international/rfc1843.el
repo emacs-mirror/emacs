@@ -1,6 +1,6 @@
 ;;; rfc1843.el --- HZ (rfc1843) decoding  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n
@@ -60,7 +60,7 @@ e-mail transmission, news posting, etc."
 
 (defcustom rfc1843-newsgroups-regexp "chinese\\|hz"
   "Regexp of newsgroups in which might be HZ encoded."
-  :type 'string
+  :type 'regexp
   :group 'mime)
 
 (defun rfc1843-decode-region (from to)

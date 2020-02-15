@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2020 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -82,7 +82,7 @@
 ;;  [hymie]	Hyman Rosen <marks!hymie@jyacc.jyacc.com>
 ;;  [burgett]	Steve Burgett <burgett@bizet.eecs.berkeley.edu>
 ;;  [jules]	Julian Gosnell <jules@x.co.uk>
-;;  [kifer]	Michael Kifer <kifer@sbcs.sunysb.edu>
+;;  [kifer]	Michael Kifer <kifer@cs.stonybrook.edu>
 ;;  [ake]	Ake Stenhoff <extaksf@aom.ericsson.se>
 ;;  [alon]	Alon Albert <al%imercury@uunet.uu.net>
 ;;  [tromey]	Tom Tromey <tromey@busco.lanl.gov>
@@ -238,8 +238,7 @@ See also `dabbrev-ignored-buffer-names'."
   :version "21.1")
 
 (defcustom dabbrev-check-other-buffers t
-  "Should \\[dabbrev-expand] look in other buffers?\
-
+  "Should \\[dabbrev-expand] look in other buffers?
 nil: Don't look in other buffers.
 t: Also look for expansions in the buffers pointed out by
    `dabbrev-select-buffers-function'.
@@ -324,6 +323,9 @@ this list."
 ;; Same as dabbrev-check-other-buffers, but is set for every expand.
 (defvar dabbrev--check-other-buffers dabbrev-check-other-buffers)
 
+;; Same as dabbrev-check-all-buffers, but is set for every expand.
+(defvar dabbrev--check-all-buffers dabbrev-check-all-buffers)
+
 ;; The regexp for recognizing a character in an abbreviation.
 (defvar dabbrev--abbrev-char-regexp nil)
 
@@ -381,10 +383,7 @@ If the prefix argument is 16 (which comes from \\[universal-argument] \\[univers
 then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)
-  (let* ((dabbrev-check-other-buffers (and arg t))
-	 (dabbrev-check-all-buffers
-	  (and arg (= (prefix-numeric-value arg) 16)))
-	 (abbrev (dabbrev--abbrev-at-point))
+  (let* ((abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
 	 (ignore-case-p (dabbrev--ignore-case-p abbrev))
@@ -421,6 +420,9 @@ then it searches *all* buffers."
                            (t
                             (mapcar #'downcase completion-list)))))))
               (complete-with-action a list s p)))))
+    (setq dabbrev--check-other-buffers (and arg t))
+    (setq dabbrev--check-all-buffers
+          (and arg (= (prefix-numeric-value arg) 16)))
     (completion-in-region beg end table)))
 
 ;;;###autoload
@@ -624,7 +626,8 @@ all skip characters."
 	dabbrev--last-buffer-found nil
 	dabbrev--abbrev-char-regexp (or dabbrev-abbrev-char-regexp
 					"\\sw\\|\\s_")
-	dabbrev--check-other-buffers dabbrev-check-other-buffers))
+	dabbrev--check-other-buffers dabbrev-check-other-buffers
+        dabbrev--check-all-buffers dabbrev-check-all-buffers))
 
 (defun dabbrev--select-buffers ()
   "Return a list of other buffers to search for a possible abbrev.
@@ -773,7 +776,7 @@ of the start of the occurrence."
       ;; If dabbrev-check-all-buffers, tack on all the other
       ;; buffers at the end of the list, except those which are
       ;; specifically to be ignored.
-      (if dabbrev-check-all-buffers
+      (if dabbrev--check-all-buffers
 	  (setq list
 		(append list
 			(dabbrev-filter-elements

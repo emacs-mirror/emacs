@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993-1994, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1994, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -130,9 +130,8 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 
 ;;;  "This function binds many inferior-lisp commands to C-c <letter> bindings,
 ;;;where they are more accessible. C-c <letter> bindings are reserved for the
-;;;user, so these bindings are non-standard. If you want them, you should
-;;;have this function called by the inferior-lisp-load-hook:
-;;;  (add-hook 'inferior-lisp-load-hook 'inferior-lisp-install-letter-bindings)
+;;;user, so these bindings are non-standard. If you want them:
+;;;  (with-eval-after-load 'inf-lisp 'inferior-lisp-install-letter-bindings)
 ;;;You can modify this function to install just the bindings you want."
 (defun inferior-lisp-install-letter-bindings ()
   (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
@@ -287,7 +286,7 @@ to continue it."
       (buffer-substring (point) end))))
 
 (defun lisp-input-filter (str)
-  "t if STR does not match `inferior-lisp-filter-regexp'."
+  "Return t if STR does not match `inferior-lisp-filter-regexp'."
   (not (string-match inferior-lisp-filter-regexp str)))
 
 ;;;###autoload
@@ -345,8 +344,11 @@ The actually processing is done by `do-string' and `do-region'
  which determine whether the code is compiled before evaluation.
 DEFVAR forms reset the variables to the init values."
   (save-excursion
-    (end-of-defun)
-    (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
+    ;; Find the end of the defun this way to avoid having the region
+    ;; possibly end with a comment (it there'a a comment after the
+    ;; final parenthesis).
+    (beginning-of-defun)
+    (forward-sexp)
     (let ((end (point)) (case-fold-search t))
       (beginning-of-defun)
       (if (looking-at "(defvar")
@@ -561,7 +563,7 @@ Used by these commands to determine defaults."
 
 ;;; Adapted from function-called-at-point in help.el.
 (defun lisp-fn-called-at-pt ()
-  "Returns the name of the function called in the current call.
+  "Return the name of the function called in the current call.
 The value is nil if it can't find one."
   (condition-case nil
       (save-excursion
@@ -629,6 +631,8 @@ See variable `lisp-describe-sym-command'."
 ;;;===============================
 (defvar inferior-lisp-load-hook nil
   "This hook is run when the library `inf-lisp' is loaded.")
+(make-obsolete-variable 'inferior-lisp-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (run-hooks 'inferior-lisp-load-hook)
 

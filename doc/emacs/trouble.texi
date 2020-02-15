@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -152,6 +152,7 @@ Emacs.
 * Crashing::              What Emacs does when it crashes.
 * After a Crash::         Recovering editing in an Emacs session that crashed.
 * Emergency Escape::      What to do if Emacs stops responding.
+* Long Lines::            Mitigating slowness due to extremely long lines.
 @end menu
 
 @node DEL Does Not Delete
@@ -456,6 +457,41 @@ program.
   On MS-DOS, you must type @kbd{C-@key{Break}} (twice) to cause
 emergency escape---but there are cases where it won't work, when a
 system call hangs or when Emacs is stuck in a tight loop in C code.
+
+@node Long Lines
+@subsection Long Lines
+@cindex long lines
+
+  For a variety of reasons (some of which are fundamental to the Emacs
+redisplay code and the complex range of possibilities it handles;
+others of which are due to modes and features which do not scale well
+in unusual circumstances), Emacs can perform poorly when extremely
+long lines are present (where ``extremely long'' usually means at
+least many thousands of characters).
+
+@cindex @code{so-long} mode
+@findex global-so-long-mode
+@vindex so-long-action
+  A particular problem is that Emacs may ``hang'' for a long time at
+the point of visiting a file with extremely long lines.  This can be
+mitigated by enabling the @file{so-long} library, which detects when a
+visited file contains abnormally long lines, and takes steps to
+disable features which are liable to cause slowness in that situation.
+To enable this library, type @kbd{M-x global-so-long-mode @key{RET}},
+or turn on the @code{global-so-long-mode} in your init file
+(@pxref{Init File}), or customize the @code{global-so-long-mode}
+option.  You can tailor this mode's operation by customizing the
+variable @code{so-long-action}.
+
+  The @file{so-long} library can also significantly improve
+performance when moving and editing in a buffer with long lines.
+Performance is still likely to degrade as you get deeper into the long
+lines, but the improvements from using this library can nevertheless
+be substantial.
+
+@findex so-long-commentary
+  Use @kbd{M-x so-long-commentary} to view the documentation for this
+library and learn more about how to enable and configure it.
 
 @node Bugs
 @section Reporting Bugs
@@ -1263,6 +1299,17 @@ emacs-devel mailing list}.
 @end ifhtml
 You can ask for suggested projects or suggest your own ideas.
 
+If you have a feature request or a suggestion for how to improve
+Emacs, the best place to send it is to
+@ifnothtml
+@email{bug-gnu-emacs@@gnu.org}
+@end ifnothtml
+@ifhtml
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}
+@end ifhtml
+.  Please explain as clearly as possible what change you would like to
+see, and why and how you think it would improve Emacs.
+
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact
 @ifnothtml
@@ -1400,9 +1447,10 @@ to the FSF@.  For the reasons behind this, see
 @url{https://www.gnu.org/licenses/why-assign.html}.
 
 Copyright assignment is a simple process.  Residents of some countries
-can do it entirely electronically.  We can help you get started, and
-answer any questions you may have (or point you to the people with the
-answers), at the @email{emacs-devel@@gnu.org} mailing list.
+can do it entirely electronically.  We can help you get started,
+including sending you the forms you should fill, and answer any
+questions you may have (or point you to the people with the answers),
+at the @email{emacs-devel@@gnu.org} mailing list.
 
 (Please note: general discussion about why some GNU projects ask
 for a copyright assignment is off-topic for emacs-devel.

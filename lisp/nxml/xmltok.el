@@ -1,6 +1,6 @@
 ;;; xmltok.el --- XML tokenization  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -413,7 +413,7 @@ and VALUE-END, otherwise a STRING giving the value."
 		   (xmltok-g decimal-ref-close ";") opt))
 	 (hex-ref
 	  (xmltok+ "x" open
-		   (xmltok-g hex "[0-9a-fA-F]" +)
+		   (xmltok-g hex "[[:xdigit:]]" +)
 		   (xmltok-g hex-ref-close ";") opt
 		   close opt))
 	 (char-ref

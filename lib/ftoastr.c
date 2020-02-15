@@ -1,6 +1,6 @@
 /* floating point to accurate string
 
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,9 +40,7 @@
 # define FLOAT_PREC_BOUND _GL_LDBL_PREC_BOUND
 # define FTOASTR ldtoastr
 # define PROMOTED_FLOAT long double
-# if HAVE_C99_STRTOLD
-#  define STRTOF strtold
-# endif
+# define STRTOF strtold
 #elif LENGTH == 2
 # define FLOAT double
 # define FLOAT_DIG DBL_DIG
@@ -63,7 +61,7 @@
 # endif
 #endif
 
-/* On pre-C99 hosts, approximate strtof and strtold with strtod.  This
+/* On pre-C99 hosts, approximate strtof with strtod.  This
    may generate one or two extra digits, but that's better than not
    working at all.  */
 #ifndef STRTOF
@@ -107,7 +105,7 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
 
      Andrysco M, Jhala R, Lerner S. Printing floating-point numbers:
      a faster, always correct method. ACM SIGPLAN notices - POPL '16.
-     2016;51(1):555-67 <http://dx.doi.org/10.1145/2914770.2837654>; draft at
+     2016;51(1):555-67 <https://doi.org/10.1145/2914770.2837654>; draft at
      <https://cseweb.ucsd.edu/~lerner/papers/fp-printing-popl16.pdf>.  */
 
   PROMOTED_FLOAT promoted_x = x;

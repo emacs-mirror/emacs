@@ -1,6 +1,6 @@
 ;;; rtree.el --- functions for manipulating range trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -44,7 +44,7 @@
 ;;; Code:
 
 (defmacro rtree-make-node ()
-  `(list (list nil) nil))
+  '(list (list nil) nil))
 
 (defmacro rtree-set-left (node left)
   `(setcar (cdr ,node) ,left))

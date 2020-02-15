@@ -1,10 +1,10 @@
-;;; password-cache.el --- Read passwords, possibly using a password cache.
+;;; password-cache.el --- Read passwords, possibly using a password cache.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2000, 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2003-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 2003-12-21
-;; Keywords: password cache passphrase key
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
@@ -81,7 +81,8 @@ regulate cache behavior."
   "Check if KEY is in the cache."
   (and password-cache
        key
-       (gethash key password-data)))
+       (not (eq (gethash key password-data 'password-cache-no-data)
+                'password-cache-no-data))))
 
 (defun password-read (prompt &optional key)
   "Read password, for use with KEY, from user, or from cache if wanted.
@@ -125,7 +126,9 @@ user again."
 (defun password-cache-add (key password)
   "Add password to cache.
 The password is removed by a timer after `password-cache-expiry' seconds."
-  (when (and password-cache-expiry (null (gethash key password-data)))
+  (when (and password-cache-expiry
+             (eq (gethash key password-data 'password-cache-no-data)
+                 'password-cache-no-data))
     (run-at-time password-cache-expiry nil
 		 #'password-cache-remove
 		 key))

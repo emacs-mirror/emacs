@@ -17,15 +17,6 @@
 ;; ability to queue messages for later sending.  This replaces
 ;; the standalone fakemail program that used to be distributed with Emacs.
 
-;; feedmail works with recent versions of Emacs (20.x series) and
-;; XEmacs (tested with 20.4 and later betas).  It probably no longer
-;; works with Emacs v18, though I haven't tried that in a long
-;; time.  Makoto.Nakagawa@jp.compaq.com reports: "I have a report
-;; that with a help of APEL library, feedmail works fine under emacs
-;; 19.28.  You can get APEL from ftp://ftp.m17n.org/pub/mule/apel/.
-;; you need apel-10.2 or later to make feedmail work under emacs
-;; 19.28."
-
 ;; Sorry, no manual yet in this release.  Look for one with the next
 ;; release.  Or the one after that.  Or maybe later.
 
@@ -437,9 +428,7 @@ shuttled robotically onward."
 (defcustom feedmail-confirm-outgoing-timeout nil
   "If non-nil, a timeout in seconds at the send confirmation prompt.
 If a positive number, it's a timeout before sending.  If a negative
-number, it's a timeout before not sending.  This will not work if your
-version of Emacs doesn't include the function `y-or-n-p-with-timeout'
-\(e.g., some versions of XEmacs)."
+number, it's a timeout before not sending."
   :version "24.1"
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
@@ -561,7 +550,7 @@ but common in some proprietary systems."
 ;; maybe some distant mail system needs it.  Really, though, if you
 ;; want a sender line in your mail, just put one in there and don't
 ;; wait for feedmail to do it for you.  (Yes, I know all about
-;; RFC-822 and RFC-1123, but are you *really* one of those cases
+;; RFC-822-or-later and RFC-1123, but are you *really* one of those cases
 ;; they're talking about?  I doubt it.)
 (defcustom feedmail-sender-line nil
   "If non-nil and the email has no Sender: header, use this value.
@@ -787,7 +776,7 @@ cases the name element of the fiddle-plex is ignored and is hardwired
 by feedmail to either \"Date\" or \"Resent-Date\".
 
 If you decide to format your own date field, do us all a favor and know
-what you're doing.  Study the relevant parts of RFC-822 and RFC-1123.
+what you're doing.  Study the relevant parts of RFC-822-or-later and RFC-1123.
 Don't make me come up there!
 
 You should let feedmail generate a Date: for you unless you are sure
@@ -1147,9 +1136,9 @@ they were placed in the queue."
 This variable is used by the default date generating function,
 feedmail-default-date-generator.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
-message Date: header; if there is no queue file, the current time is
-used. If you are using VM, it might be supplying this header for
-you.  To suppress VM's version
+message Date: header; if there is no queue file, the current time
+is used.  If you are using VM, it might be supplying this header
+for you.  To suppress VM's version
 
 	(setq vm-mail-header-insert-date nil)"
   :group 'feedmail-queue
@@ -1214,7 +1203,7 @@ no longer matches to transformed string.  Used by function
 feedmail-tidy-up-slug and indirectly by feedmail-queue-subject-slug-maker."
   :version "24.1"
   :group 'feedmail-queue
-  :type 'string
+  :type 'regexp
 )
 
 
@@ -1393,7 +1382,7 @@ It shows the simple addresses and gets a confirmation.  Use as:
 When this hook runs, the current buffer is already the appropriate
 buffer.  It has already had all the header prepping from the standard
 package.  The next step after running the hook will be to save the
-message via Fcc: processing. The hook might be interested in these:
+message via Fcc: processing.  The hook might be interested in these:
 \(1) `feedmail-prepped-text-buffer' contains the header and body of the
 message, ready to go; (2) `feedmail-address-list' contains a list
 of simplified recipients of addresses which are to be given to the
@@ -1422,7 +1411,7 @@ can undo the encoding."
   "User's last opportunity to modify the message before Fcc action.
 It has already had all the header prepping from the standard package.
 The next step after running the hook will be to save the message via
-Fcc: processing. The hook might be interested in these: (1)
+Fcc: processing.  The hook might be interested in these: (1)
 `feedmail-prepped-text-buffer' contains the header and body of the
 message, ready to go; (2) `feedmail-address-list' contains a list of
 simplified recipients of addressees to whom the message was sent (3)
@@ -1514,7 +1503,7 @@ function, for example, to archive all of your sent messages someplace
 
 
 (defvar feedmail-is-a-resend nil
-  "Non-nil means the message is a Resend (in the RFC-822 sense).
+  "Non-nil means the message is a Resend (in the RFC-822-or-later sense).
 This affects the composition of certain headers.  feedmail sets this
 variable as soon as it starts prepping the message text buffer, so any
 user-supplied functions can rely on it.  Users shouldn't set or change this
@@ -1563,7 +1552,7 @@ in a buffer, try /bin/rmail instead of /bin/mail.  If /bin/rmail
 exists, this can be accomplished by keeping the default nil setting of
 `mail-interactive'.  You might also like to consult local mail experts
 for any other interesting command line possibilities.  Some versions
-of UNIX have an rmail program which behaves differently than
+of UNIX have an rmail program which behaves differently from
 /bin/rmail and complains if feedmail gives it a message on stdin.  If
 you don't know about such things and if there is no local expert to
 consult, stick with /bin/mail or use one of the other buffer eating
@@ -1657,7 +1646,7 @@ local gurus."
 (declare-function smtp-via-smtp "ext:smtp" (sender recipients smtp-text-buffer))
 (defvar smtp-server)
 
-;; FLIM's smtp.el pointed out to me by Kenichi Handa <handa@etl.go.jp>
+;; FLIM's smtp.el pointed out to me by Kenichi Handa <handa@gnu.org>
 (defun feedmail-buffer-to-smtp (prepped errors-to addr-listoid)
   "Function which actually calls smtp-via-smtp to send buffer as e-mail."
   (feedmail-say-debug ">in-> feedmail-buffer-to-smtp %s" addr-listoid)
@@ -2004,9 +1993,7 @@ backup file names and the like)."
 	     ((feedmail-fqm-p blobby)
 	      (setq blobby-buffer (generate-new-buffer (concat "FQM " blobby)))
 	      (setq already-buffer
-		    (if (fboundp 'find-buffer-visiting) ; missing from XEmacs
-			(find-buffer-visiting maybe-file)
-		      (get-file-buffer maybe-file)))
+		    (find-buffer-visiting maybe-file))
 	      (if (and already-buffer (buffer-modified-p already-buffer))
 		  (save-window-excursion
 		    (display-buffer (set-buffer already-buffer))
@@ -2168,9 +2155,7 @@ you can set `feedmail-queue-reminder-alist' to nil."
 	       (let ((inhibit-quit t) (cursor-in-echo-area t) (echo-keystrokes 0))
 		 (read-char-exclusive))))
 	  (if (= user-sez help-char)
-              ;; FIXME: This seems to want to refer to the `helper' argument,
-              ;; but it's quoted so the `helper' arg ends up unused!
-	      (setq answer '(^ . helper))
+	      (setq answer (cons '^ helper))
 	    (if (or (eq user-sez ?\C-m) (eq user-sez ?\C-j) (eq user-sez ?y))
 		(setq user-sez d-char))
 	    ;; these char-to-int things are because of some
@@ -2198,8 +2183,7 @@ you can set `feedmail-queue-reminder-alist' to nil."
   ;; emacs convention is that scroll-up moves text up, window down
   (feedmail-say-debug ">in-> feedmail-scroll-buffer %s" direction)
   (save-selected-window
-    (let ((signal-error-on-buffer-boundary nil) ;FIXME: Unknown var!?
-	  (fqm-window (display-buffer (if buffy buffy (current-buffer)))))
+    (let ((fqm-window (display-buffer (if buffy buffy (current-buffer)))))
       (select-window fqm-window)
       (if (eq direction 'up)
       (if (pos-visible-in-window-p (point-max) fqm-window)
@@ -2369,7 +2353,7 @@ mapped to mostly alphanumerics for safety."
 
 (defun feedmail-rfc822-date (arg-time)
   (feedmail-say-debug ">in-> feedmail-rfc822-date %s" arg-time)
-  (let ((time (if arg-time arg-time (current-time)))
+  (let ((time (or arg-time (current-time)))
 	(system-time-locale "C"))
     (concat
      (format-time-string "%a, %e %b %Y %T " time)
@@ -2377,7 +2361,7 @@ mapped to mostly alphanumerics for safety."
      )))
 
 (defun feedmail-send-it-immediately-wrapper ()
-  "Wrapper to catch skip-me-i"
+  "Wrapper to catch skip-me-i."
   (if (eq 'skip-me-i (catch 'skip-me-i (feedmail-send-it-immediately)))
       (error "FQM: Sending...abandoned!")))
 
@@ -2443,7 +2427,7 @@ mapped to mostly alphanumerics for safety."
 
 	  (let ((case-fold-search t) (addr-regexp))
 	    (goto-char (point-min))
-	    ;; There are some RFC-822 combinations/cases missed here,
+	    ;; There are some RFC-822-or-later combinations/cases missed here,
 	    ;; but probably good enough and what users expect.
 	    ;;
 	    ;; Use resent-* stuff only if there is at least one non-empty one.
@@ -3175,7 +3159,7 @@ been weeded out."
 	 (sit-for feedmail-queue-chatty-sit-for))))
 
 (defun feedmail-find-eoh (&optional noerror)
-  "Internal; finds the end of message header fields, returns mark just before it"
+  "Internal; finds the end of message header fields, returns mark just before it."
   ;; all this funny business with line endings is to account for CRLF
   ;; weirdness that I don't think I'll ever figure out
   (feedmail-say-debug ">in-> feedmail-find-eoh %s" noerror)

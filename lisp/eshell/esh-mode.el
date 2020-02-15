@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -58,13 +58,10 @@
 
 ;;; Code:
 
-(provide 'esh-mode)
-
 (require 'esh-util)
 (require 'esh-module)
 (require 'esh-cmd)
-(require 'esh-io)
-(require 'esh-var)
+(require 'esh-arg)                      ;For eshell-parse-arguments
 
 (defgroup eshell-mode nil
   "This module contains code for handling input from the user."
@@ -202,6 +199,12 @@ This is used by `eshell-watch-for-password-prompt'."
   :type 'boolean
   :group 'eshell-mode)
 
+(defcustom eshell-directory-name
+  (locate-user-emacs-file "eshell/" ".eshell/")
+  "The directory where Eshell control files should be kept."
+  :type 'directory
+  :group 'eshell)
+
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
 
@@ -210,10 +213,7 @@ This is used by `eshell-watch-for-password-prompt'."
 ;; these are only set to nil initially for the sake of the
 ;; byte-compiler, when compiling other files which `require' this one
 (defvar eshell-mode nil)
-(defvar eshell-mode-map nil)
 (defvar eshell-command-running-string "--")
-(defvar eshell-command-map nil)
-(defvar eshell-command-prefix nil)
 (defvar eshell-last-input-start nil)
 (defvar eshell-last-input-end nil)
 (defvar eshell-last-output-start nil)
@@ -267,21 +267,41 @@ This is used by `eshell-watch-for-password-prompt'."
     (modify-syntax-entry ?\] ")[  " st)
     ;; All non-word multibyte characters should be `symbol'.
     (map-char-table
-     (if (featurep 'xemacs)
-         (lambda (key _val)
-           (and (characterp key)
-                (>= (char-int key) 256)
-                (/= (char-syntax key) ?w)
-                (modify-syntax-entry key "_   " st)))
-       (lambda (key _val)
-         (and (if (consp key)
-                  (and (>= (car key) 128)
-                       (/= (char-syntax (car key)) ?w))
-                (and (>= key 256)
-                     (/= (char-syntax key) ?w)))
-              (modify-syntax-entry key "_   " st))))
+     (lambda (key _val)
+       (and (if (consp key)
+                (and (>= (car key) 128)
+                     (/= (char-syntax (car key)) ?w))
+              (and (>= key 256)
+                   (/= (char-syntax key) ?w)))
+            (modify-syntax-entry key "_   " st)))
      (standard-syntax-table))
     st))
+
+(defvar eshell-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c)] 'eshell-command-map)
+    (define-key map "\r" #'eshell-send-input)
+    (define-key map "\M-\r" #'eshell-queue-input)
+    (define-key map [(meta control ?l)] #'eshell-show-output)
+    (define-key map [(control ?a)] #'eshell-bol)
+    map))
+
+(defvar eshell-command-map
+  (let ((map (define-prefix-command 'eshell-command-map)))
+    (define-key map [(meta ?o)] #'eshell-mark-output)
+    (define-key map [(meta ?d)] #'eshell-toggle-direct-send)
+    (define-key map [(control ?a)] #'eshell-bol)
+    (define-key map [(control ?b)] #'eshell-backward-argument)
+    (define-key map [(control ?e)] #'eshell-show-maximum-output)
+    (define-key map [(control ?f)] #'eshell-forward-argument)
+    (define-key map [(control ?m)] #'eshell-copy-old-input)
+    (define-key map [(control ?o)] #'eshell-kill-output)
+    (define-key map [(control ?r)] #'eshell-show-output)
+    (define-key map [(control ?t)] #'eshell-truncate-buffer)
+    (define-key map [(control ?u)] #'eshell-kill-input)
+    (define-key map [(control ?w)] #'backward-kill-word)
+    (define-key map [(control ?y)] #'eshell-repeat-argument)
+    map))
 
 ;;; User Functions:
 
@@ -292,7 +312,7 @@ and the hook `eshell-exit-hook'."
   ;; It's fine to run this unconditionally since it can be customized
   ;; via the `eshell-kill-processes-on-exit' variable.
   (and (fboundp 'eshell-query-kill-processes)
-       (not (memq 'eshell-query-kill-processes eshell-exit-hook))
+       (not (memq #'eshell-query-kill-processes eshell-exit-hook))
        (eshell-query-kill-processes))
   (run-hooks 'eshell-exit-hook))
 
@@ -301,10 +321,6 @@ and the hook `eshell-exit-hook'."
   "Emacs shell interactive mode."
   (setq-local eshell-mode t)
 
-  ;; FIXME: What the hell!?
-  (setq-local eshell-mode-map (make-sparse-keymap))
-  (use-local-map eshell-mode-map)
-
   (when eshell-status-in-mode-line
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
@@ -312,36 +328,6 @@ and the hook `eshell-exit-hook'."
     (let ((mode-line-elt (memq 'mode-line-modified mode-line-format)))
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
-
-  (define-key eshell-mode-map "\r" 'eshell-send-input)
-  (define-key eshell-mode-map "\M-\r" 'eshell-queue-input)
-  (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
-  (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
-
-  (setq-local eshell-command-prefix (make-symbol "eshell-command-prefix"))
-  (fset eshell-command-prefix (make-sparse-keymap))
-  (setq-local eshell-command-map (symbol-function eshell-command-prefix))
-  (define-key eshell-mode-map [(control ?c)] eshell-command-prefix)
-
-  ;; without this, find-tag complains about read-only text being
-  ;; modified
-  (if (eq (key-binding [(meta ?.)]) 'find-tag)
-      (define-key eshell-mode-map [(meta ?.)] 'eshell-find-tag))
-  (define-key eshell-command-map [(meta ?o)] 'eshell-mark-output)
-  (define-key eshell-command-map [(meta ?d)] 'eshell-toggle-direct-send)
-
-  (define-key eshell-command-map [(control ?a)] 'eshell-bol)
-  (define-key eshell-command-map [(control ?b)] 'eshell-backward-argument)
-  (define-key eshell-command-map [(control ?e)] 'eshell-show-maximum-output)
-  (define-key eshell-command-map [(control ?f)] 'eshell-forward-argument)
-  (define-key eshell-command-map [return]       'eshell-copy-old-input)
-  (define-key eshell-command-map [(control ?m)] 'eshell-copy-old-input)
-  (define-key eshell-command-map [(control ?o)] 'eshell-kill-output)
-  (define-key eshell-command-map [(control ?r)] 'eshell-show-output)
-  (define-key eshell-command-map [(control ?t)] 'eshell-truncate-buffer)
-  (define-key eshell-command-map [(control ?u)] 'eshell-kill-input)
-  (define-key eshell-command-map [(control ?w)] 'backward-kill-word)
-  (define-key eshell-command-map [(control ?y)] 'eshell-repeat-argument)
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
@@ -410,23 +396,23 @@ and the hook `eshell-exit-hook'."
       (when (and load-hook (boundp load-hook))
         (if (memq initfunc (symbol-value load-hook)) (setq initfunc nil))
         (run-hooks load-hook))
-      ;; So we don't need the -initialize functions on the hooks (b#5375).
+      ;; So we don't need the -initialize functions on the hooks (bug#5375).
       (and initfunc (fboundp initfunc) (funcall initfunc))))
 
   (if eshell-send-direct-to-subprocesses
-      (add-hook 'pre-command-hook 'eshell-intercept-commands t t))
+      (add-hook 'pre-command-hook #'eshell-intercept-commands t t))
 
   (if eshell-scroll-to-bottom-on-input
-      (add-hook 'pre-command-hook 'eshell-preinput-scroll-to-bottom t t))
+      (add-hook 'pre-command-hook #'eshell-preinput-scroll-to-bottom t t))
 
   (when eshell-scroll-show-maximum-output
     (set (make-local-variable 'scroll-conservatively) 1000))
 
   (when eshell-status-in-mode-line
-    (add-hook 'eshell-pre-command-hook 'eshell-command-started nil t)
-    (add-hook 'eshell-post-command-hook 'eshell-command-finished nil t))
+    (add-hook 'eshell-pre-command-hook #'eshell-command-started nil t)
+    (add-hook 'eshell-post-command-hook #'eshell-command-finished nil t))
 
-  (add-hook 'kill-buffer-hook 'eshell-kill-buffer-function t t)
+  (add-hook 'kill-buffer-hook #'eshell-kill-buffer-function t t)
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))
@@ -451,10 +437,10 @@ and the hook `eshell-exit-hook'."
   (if eshell-send-direct-to-subprocesses
       (progn
 	(setq eshell-send-direct-to-subprocesses nil)
-	(remove-hook 'pre-command-hook 'eshell-intercept-commands t)
+	(remove-hook 'pre-command-hook #'eshell-intercept-commands t)
 	(message "Sending subprocess input on RET"))
     (setq eshell-send-direct-to-subprocesses t)
-    (add-hook 'pre-command-hook 'eshell-intercept-commands t t)
+    (add-hook 'pre-command-hook #'eshell-intercept-commands t t)
     (message "Sending subprocess input directly")))
 
 (defun eshell-self-insert-command ()
@@ -488,13 +474,15 @@ and the hook `eshell-exit-hook'."
 
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
   "A special version of `find-tag' that ignores whether the text is read-only."
+  (declare (obsolete xref-find-definition "27.1"))
   (interactive)
   (require 'etags)
   (let ((inhibit-read-only t)
 	(no-default (eobp))
 	(find-tag-default-function 'ignore))
     (setq tagname (car (find-tag-interactive "Find tag: " no-default)))
-    (find-tag tagname next-p regexp-p)))
+    (with-suppressed-warnings ((obsolete find-tag))
+      (find-tag tagname next-p regexp-p))))
 
 (defun eshell-move-argument (limit func property arg)
   "Move forward ARG arguments."
@@ -543,7 +531,7 @@ and the hook `eshell-exit-hook'."
   "Push a mark at the end of the last input text."
   (push-mark (1- eshell-last-input-end) t))
 
-(custom-add-option 'eshell-pre-command-hook 'eshell-push-command-mark)
+(custom-add-option 'eshell-pre-command-hook #'eshell-push-command-mark)
 
 (defsubst eshell-goto-input-start ()
   "Goto the start of the last command input.
@@ -551,7 +539,7 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
 9term behavior."
   (goto-char eshell-last-input-start))
 
-(custom-add-option 'eshell-pre-command-hook 'eshell-push-command-mark)
+(custom-add-option 'eshell-pre-command-hook #'eshell-goto-input-start)
 
 (defsubst eshell-interactive-print (string)
   "Print STRING to the eshell display buffer."
@@ -1012,13 +1000,19 @@ This function could be in the list `eshell-output-filter-functions'."
 		   'eshell-handle-control-codes)
 
 (autoload 'ansi-color-apply-on-region "ansi-color")
+(defvar ansi-color-apply-face-function)
+(declare-function ansi-color-apply-text-property-face "ansi-color"
+                  (BEG END FACE))
 
 (defun eshell-handle-ansi-color ()
   "Handle ANSI color codes."
-  (ansi-color-apply-on-region eshell-last-output-start
-                              eshell-last-output-end))
+  (require 'ansi-color)
+  (let ((ansi-color-apply-face-function #'ansi-color-apply-text-property-face))
+    (ansi-color-apply-on-region eshell-last-output-start
+                                eshell-last-output-end)))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-ansi-color)
 
+(provide 'esh-mode)
 ;;; esh-mode.el ends here

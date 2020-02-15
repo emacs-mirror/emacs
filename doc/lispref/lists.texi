@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lists
@@ -656,7 +656,7 @@ resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
 
 @defun copy-tree tree &optional vecp
-This function returns a copy of the tree @code{tree}.  If @var{tree} is a
+This function returns a copy of the tree @var{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
 @sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
 same way.
@@ -667,8 +667,20 @@ non-@code{nil}, it copies vectors too (and operates recursively on
 their elements).
 @end defun
 
+@defun flatten-tree tree
+This function returns a ``flattened'' copy of @var{tree}, that is,
+a list containing all the non-@code{nil} terminal nodes, or leaves, of
+the tree of cons cells rooted at @var{tree}.  Leaves in the returned
+list are in the same order as in @var{tree}.
+@end defun
+
+@example
+(flatten-tree '(1 (2 . 3) nil (4 5 (6)) 7))
+    @result{}(1 2 3 4 5 6 7)
+@end example
+
 @defun number-sequence from &optional to separation
-This returns a list of numbers starting with @var{from} and
+This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
 @var{to}.  @var{separation} can be positive or negative and defaults
 to 1.  If @var{to} is @code{nil} or numerically equal to @var{from},
@@ -765,6 +777,9 @@ non-@code{nil}, it is added at the end.
 The argument @var{symbol} is not implicitly quoted; @code{add-to-list}
 is an ordinary function, like @code{set} and unlike @code{setq}.  Quote
 the argument yourself if that is what you want.
+
+Do not use this function when @var{symbol} refers to a lexical
+variable.
 @end defun
 
 Here's a scenario showing how to use @code{add-to-list}:
@@ -787,8 +802,9 @@ foo                       ;; @r{@code{foo} was changed.}
 @var{value})} is this:
 
 @example
-(or (member @var{value} @var{var})
-    (setq @var{var} (cons @var{value} @var{var})))
+(if (member @var{value} @var{var})
+    @var{var}
+  (setq @var{var} (cons @var{value} @var{var})))
 @end example
 
 @defun add-to-ordered-list symbol element &optional order
@@ -816,6 +832,7 @@ and unlike @code{setq}.  Quote the argument yourself if necessary.
 
 The ordering information is stored in a hash table on @var{symbol}'s
 @code{list-order} property.
+@var{symbol} cannot refer to a lexical variable.
 @end defun
 
 Here's a scenario showing how to use @code{add-to-ordered-list}:
@@ -1200,9 +1217,8 @@ functions for sets include @code{memq} and @code{delq}, and their
 @quotation
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
 avoids duplicate elements) and @code{intersection} for set operations.
-Although standard GNU Emacs Lisp does not have them, the @file{cl-lib}
-library provides versions.
-@xref{Lists as Sets,,, cl, Common Lisp Extensions}.
+In Emacs Lisp, variants of these facilities are provided by the
+@file{cl-lib} library.  @xref{Lists as Sets,,,cl,Common Lisp Extensions}.
 @end quotation
 
 @defun memq object list
@@ -1768,6 +1784,41 @@ often modifies the original list structure of @var{alist}.
 compares the @sc{cdr} of each @var{alist} association instead of the
 @sc{car}.
 @end defun
+
+@defmac let-alist alist body
+Creates a binding for each symbol used as keys the association list
+@var{alist}, prefixed with dot.  This can be useful when accessing
+several items in the same association list, and it's best understood
+through a simple example:
+
+@lisp
+(setq colors '((rose . red) (lily . white) (buttercup . yellow)))
+(let-alist colors
+  (if (eq .rose 'red)
+      .lily))
+=> white
+@end lisp
+
+The @var{body} is inspected at compilation time, and only the symbols
+that appear in @var{body} with a @samp{.} as the first character in
+the symbol name will be bound.  Finding the keys is done with
+@code{assq}, and the @code{cdr} of the return value of this
+@code{assq} is assigned as the value for the binding.
+
+Nested association lists is supported:
+
+@lisp
+(setq colors '((rose . red) (lily (belladonna . yellow) (brindisi . pink))))
+(let-alist colors
+  (if (eq .rose 'red)
+      .lily.belladonna))
+=> yellow
+@end lisp
+
+Nesting @code{let-alist} inside each other is allowed, but the code in
+the inner @code{let-alist} can't access the variables bound by the
+outer @code{let-alist}.
+@end defmac
 
 @node Property Lists
 @section Property Lists

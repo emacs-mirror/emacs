@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010-2018 Free Software Foundation, Inc.
+Copyright (C) 2010-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -1116,6 +1116,8 @@ a non-nil `interactive-only' property.
 ** `split-string' now takes an optional argument TRIM.
 The value, if non-nil, is a regexp that specifies what to trim from
 the start and end of each substring.
+
+** New function `delete-consecutive-dups'.
 
 ** Completion
 
@@ -3602,10 +3604,12 @@ advertised at the time.)
 
 ** Debugger changes
 
-*** New macro `condition-case-unless-debug' (this was actually added in
-Emacs 23.1 as condition-case-no-debug, but not advertised)
+*** New macro `condition-case-unless-debug'.
+(This was actually added in Emacs 23.1 as condition-case-no-debug, but
+not advertised)
 
-*** The macro `with-demoted-errors' was added in Emacs 23.1, but not advertised.
+*** The macro `with-demoted-errors'.
+It was also added in Emacs 23.1, but not advertised.
 
 *** Variable `stack-trace-on-error' removed.
 
@@ -3688,6 +3692,8 @@ both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
 
 *** New file predicates: `file-equal-p', `file-in-directory-p'.
+
+*** New function `file-size-human-readable'.
 
 ** Tool-bars can display separators.
 Tool-bar separators are handled like menu separators in menu-bar maps,

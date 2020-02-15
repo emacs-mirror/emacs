@@ -24,7 +24,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2018
+Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2020
 Free Software Foundation, Inc.
 
 @c Since we are both GNU manuals, we do not need to ack each other here.
@@ -135,7 +135,7 @@ technique of F. DeRemer and T. Pennello described in:
 @quotation
 @cite{Efficient Computation of LALR(1) Look-Ahead Sets}@*
 October 1982, ACM TOPLAS Vol 4 No 4, 615--49,
-@uref{http://dx.doi.org/10.1145/69622.357187}.
+@uref{https://doi.org/10.1145/69622.357187}.
 @end quotation
 
 @item

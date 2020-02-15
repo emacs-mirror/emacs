@@ -7,7 +7,7 @@
 # By default, this script uses the local-time calendar year.
 # Set the UPDATE_COPYRIGHT_YEAR environment variable to override the default.
 
-# Copyright 2013-2018 Free Software Foundation, Inc.
+# Copyright 2013-2020 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -50,6 +50,7 @@ repo_files=$(git ls-files) &&
 # Do not update the copyright of files that have one or more of the
 # following problems:
 # . They are license files, maintained by the FSF, with their own dates.
+# . They are GMP files, maintained by the GMP project, with their own dates.
 # . Their format cannot withstand changing the contents of copyright strings.
 
 updatable_files=$(find $repo_files \
@@ -70,6 +71,7 @@ updatable_files=$(find $repo_files \
   ! -name hand.cur \
   ! -name key.pub \
   ! -name key.sec \
+  ! -name 'mini-gmp.[ch]' \
   -print) &&
 
 build-aux/update-copyright $updatable_files

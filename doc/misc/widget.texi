@@ -9,7 +9,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2000--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1444,6 +1444,12 @@ In @var{widget} return the value for @var{property}.
 @defun widget-member widget property
 Non-@code{nil} if @var{widget} has a value (even @code{nil}) for
 property @var{property}.
+@end defun
+
+@defun widget-apply widget property &rest args
+Apply the value of @var{property} to @var{widget}, passing @var{args}
+as additional arguments to the function.  Return the result of that
+function call.
 @end defun
 
 Occasionally it can be useful to know which kind of widget you have,

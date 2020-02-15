@@ -1,8 +1,8 @@
 ;;; makefile-edit.el --- Makefile editing/scanning commands.
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -78,7 +78,8 @@
 If NEXT is non-nil, move to the next occurrence of MACRO."
   (let ((oldpt (point)))
     (when (not next) (goto-char (point-min)))
-    (if (re-search-forward (concat "^\\s-*" macro "\\s-*[+:?]?=") nil t)
+    (if (re-search-forward (concat "^\\s-*" (regexp-quote macro) "\\s-*[+:?]?=")
+			   nil t)
 	t
       (goto-char oldpt)
       nil)))
@@ -105,7 +106,7 @@ STOP-BEFORE is a regular expression matching a file name."
 	(let ((e (save-excursion
 		   (makefile-end-of-command)
 		   (point))))
-	  (while (re-search-forward "\\s-**\\([-a-zA-Z0-9./_@$%(){}]+\\)\\s-*" e t)
+	  (while (re-search-forward "\\s-*\\([-a-zA-Z0-9./_@$%(){}]+\\)\\s-*" e t)
 	    (let ((var nil)(varexp nil)
 		  (match (buffer-substring-no-properties
 			  (match-beginning 1)

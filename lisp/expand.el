@@ -1,6 +1,6 @@
 ;;; expand.el --- make abbreviations more usable
 
-;; Copyright (C) 1995-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -55,10 +55,8 @@
 ;;
 ;;   you can also init some post-process hooks :
 ;;
-;; (add-hook 'expand-load-hook
-;; 	  (lambda ()
-;; 	    (add-hook 'expand-expand-hook 'indent-according-to-mode)
-;; 	    (add-hook 'expand-jump-hook 'indent-according-to-mode)))
+;; (add-hook 'expand-expand-hook 'indent-according-to-mode)
+;; (add-hook 'expand-jump-hook 'indent-according-to-mode)
 ;;
 ;; Remarks:
 ;;
@@ -66,9 +64,6 @@
 ;;                  Jerome Santini <santini@chambord.univ-orleans.fr>,
 ;;                  Jari Aalto <jaalto@tre.tele.nokia.fi>.
 ;;
-;;   Please send me a word to give me your feeling about this feature or
-;; to explain me how you use it (your expansions table for example) using
-;; the function expand-submit-report.
 ;;; Code:
 
 ;;; Constants:
@@ -81,6 +76,8 @@
   "Hooks run when `expand.el' is loaded."
   :type 'hook
   :group 'expand)
+(make-obsolete-variable 'expand-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom expand-expand-hook nil
   "Hooks run when an abbrev made by `expand-add-abbrevs' is expanded."

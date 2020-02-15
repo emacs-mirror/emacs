@@ -1,5 +1,5 @@
 /* Common functions for Microsoft Windows builds of Emacs
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -80,5 +80,9 @@ get_proc_addr (HINSTANCE handle, LPCSTR fname)
 	return false;							\
     }									\
   while (false)
+
+#ifdef HAVE_HARFBUZZ
+extern bool hbfont_init_w32_funcs (HMODULE);
+#endif
 
 #endif /* W32COMMON_H */

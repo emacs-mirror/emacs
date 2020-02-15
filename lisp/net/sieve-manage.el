@@ -1,6 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Albert Krewinkel <tarleb@moltkeplatz.de>
@@ -511,7 +511,8 @@ If NAME is nil, return the full server list of capabilities."
 
 (defun sieve-manage-parse-capability (str)
   "Parse managesieve capability string `STR'.
-Set variable `sieve-manage-capability' to "
+Return alist of capabilities, suitable for assignment
+to local variable `sieve-manage-capability'."
   (let ((capas (delq nil
                      (mapcar #'split-string-and-unquote
                              (split-string str "\n")))))

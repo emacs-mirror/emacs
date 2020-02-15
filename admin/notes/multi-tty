@@ -1,6 +1,6 @@
 -*- coding: utf-8; mode: text; -*-
 
-Copyright (C) 2007-2018 Free Software Foundation, Inc.
+Copyright (C) 2007-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 From README.multi-tty in the multi-tty branch.
@@ -171,7 +171,11 @@ preload-emacs "$name" wait
 name="$1"
 waitp="$2"
 screendir="/var/run/screen/S-$USER"
-serverdir="/tmp/emacs$UID"
+if [ "${XDG_RUNTIME_DIR+set}" ]; then
+  serverdir="$XDG_RUNTIME_DIR/emacs"
+else
+  serverdir="${TMPDIR-/tmp}/emacs$UID"
+fi
 emacs=/usr/bin/emacs-multi-tty # Or wherever you installed your multi-tty Emacs
 
 if [ -z "$name" ]; then

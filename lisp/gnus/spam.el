@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -578,12 +578,12 @@ This must be a list.  For example, `(\"-C\" \"configfile\")'."
 
 (defcustom spam-spamassassin-positive-spam-flag-header "YES"
   "The regex on `spam-spamassassin-spam-flag-header' for positive spam
-identification"
-  :type 'string
+identification."
+  :type 'regexp
   :group 'spam-spamassassin)
 
 (defcustom spam-spamassassin-spam-status-header "X-Spam-Status"
-  "The header inserted by SpamAssassin, giving extended scoring information"
+  "The header inserted by SpamAssassin, giving extended scoring information."
   :type 'string
   :group 'spam-spamassassin)
 
@@ -594,7 +594,7 @@ identification"
   :group 'spam-spamassassin)
 
 (defcustom spam-sa-learn-rebuild t
-  "Whether sa-learn should rebuild the database every time it is called
+  "Whether sa-learn should rebuild the database every time it is called.
 Enable this if you want sa-learn to rebuild the database automatically.  Doing
 this will slightly increase the running time of the spam registration process.
 If you choose not to do this, you will have to run \"sa-learn --rebuild\" in
@@ -708,9 +708,7 @@ finds ham or spam.")
   "Clear the `spam-caches' entry for a check."
   (remhash symbol spam-caches))
 
-(defun spam-xor (a b)
-  "Logical A xor B."
-  (and (or a b) (not (and a b))))
+(define-obsolete-function-alias 'spam-xor 'xor "27.1")
 
 (defun spam-set-difference (list1 list2)
   "Return a set difference of LIST1 and LIST2.
@@ -769,7 +767,7 @@ When either list is nil, the other is returned."
     nil))
 
 (defun spam-classifications ()
-  "Return list of valid classifications"
+  "Return list of valid classifications."
   '(spam ham))
 
 (defun spam-classification-valid-p (classification)
@@ -833,8 +831,8 @@ backend is STATISTICAL."
 
 (defun spam-backend-list (&optional type)
   "Return a list of all the backend symbols, constrained by TYPE.
-When TYPE is 'non-mover, only non-mover backends are returned.
-When TYPE is 'mover, only mover backends are returned."
+When TYPE is `non-mover', only non-mover backends are returned.
+When TYPE is `mover', only mover backends are returned."
   (let (list)
     (dolist (backend spam-backends)
       (when (or
@@ -884,8 +882,8 @@ that the message is definitely a spam."
 
 (defun spam-backend-function (backend classification type)
   "Get the BACKEND function for CLASSIFICATION and TYPE.
-TYPE is 'registration or 'unregistration.
-CLASSIFICATION is 'ham or 'spam."
+TYPE is `registration' or `unregistration'.
+CLASSIFICATION is `ham' or `spam'."
   (if (and
        (spam-classification-valid-p classification)
        (spam-backend-function-type-valid-p type))
@@ -1520,9 +1518,9 @@ In the case of mover backends, checks the setting of
 ;;       nil)))
 
 (defun spam-fetch-field-fast (article field &optional prepared-data-header)
-  "Fetch a FIELD for ARTICLE with the internal `gnus-data-list' function.
+  "Fetch a FIELD for ARTICLE with the internal `gnus-data-find' function.
 When PREPARED-DATA-HEADER is given, don't look in the Gnus data.
-When FIELD is 'number, ARTICLE can be any number (since we want
+When FIELD is `number', ARTICLE can be any number (since we want
 to find it out)."
   (when (numberp article)
     (let* ((data-header (or prepared-data-header
@@ -1586,7 +1584,7 @@ to find it out)."
 (defun spam-fetch-article-header (article)
   (with-current-buffer gnus-summary-buffer
     (gnus-read-header article)
-    (nth 3 (assq article gnus-newsgroup-data))))
+    (gnus-data-header (gnus-data-find article))))
 ;;}}}
 
 ;;{{{ Spam determination.
@@ -2137,7 +2135,7 @@ See `spam-ifile-database'."
           (apply 'call-process-region
                  (point-min) (point-max) spam-ifile-program
                  nil temp-buffer-name nil "-c"
-                 (if db-param `(,db-param "-q") `("-q"))))
+                 (if db-param `(,db-param "-q") '("-q"))))
         ;; check the return now (we're back in the temp buffer)
         (goto-char (point-min))
         (if (not (eobp))
@@ -2166,7 +2164,7 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
              (point-min) (point-max) spam-ifile-program
              nil nil nil
              add-or-delete-option category
-             (if db `(,db "-h") `("-h"))))))
+             (if db `(,db "-h") '("-h"))))))
 
 (defun spam-ifile-register-spam-routine (articles &optional unregister)
   (spam-ifile-register-with-ifile articles spam-ifile-spam-category unregister))
@@ -2187,7 +2185,7 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
 (require 'spam-stat)
 
 (defun spam-check-stat ()
-  "Check the spam-stat backend for the classification of this message"
+  "Check the spam-stat backend for the classification of this message."
   (let ((spam-stat-split-fancy-spam-group spam-split-group) ; override
 	(spam-stat-buffer (buffer-name)) ; stat the current buffer
 	category return)
@@ -2473,7 +2471,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
                      (point-min) (point-max)
                      spam-bogofilter-program
                      nil temp-buffer-name nil
-                     (if db `("-d" ,db "-v") `("-v"))))
+                     (if db `("-d" ,db "-v") '("-v"))))
             (setq return (spam-check-bogofilter-headers score))))
         return)
     (gnus-error 5 "`spam.el' doesn't support obsolete bogofilter versions")))
@@ -2501,7 +2499,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
                      (point-min) (point-max)
                      spam-bogofilter-program
                      nil nil nil switch
-                     (if db `("-d" ,db "-v") `("-v")))))))
+                     (if db `("-d" ,db "-v") '("-v")))))))
     (gnus-error 5 "`spam.el' doesn't support obsolete bogofilter versions")))
 
 (defun spam-bogofilter-register-spam-routine (articles &optional unregister)
@@ -2550,7 +2548,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
         (goto-char (point-min))
         (dolist (article articles)
           (insert (spam-get-article-as-string article)))
-        (let* ((arg (if (spam-xor unregister article-is-spam-p)
+        (let* ((arg (if (xor unregister article-is-spam-p)
                         "-spam"
                       "-good"))
                (status
@@ -2611,7 +2609,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 
 ;; return something sensible if the score can't be determined
 (defun spam-spamassassin-score (&optional recheck)
-  "Get the SpamAssassin score"
+  "Get the SpamAssassin score."
   (interactive "P")
   (save-window-excursion
     (gnus-summary-show-article t)

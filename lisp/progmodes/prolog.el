@@ -1,6 +1,6 @@
 ;;; prolog.el --- major mode for Prolog (and Mercury) -*- lexical-binding:t -*-
 
-;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2018 Free
+;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2020 Free
 ;; Software Foundation, Inc.
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
@@ -381,7 +381,7 @@ terms (if this variable is nil, default)."
 
 (defcustom prolog-paren-indent 4
   "The indentation increase for parenthesis expressions.
-Only used in ( If -> Then ; Else) and ( Disj1 ; Disj2 ) style expressions."
+Only used in ( If -> Then ; Else ) and ( Disj1 ; Disj2 ) style expressions."
   :version "24.1"
   :group 'prolog-indentation
   :type 'integer
@@ -788,15 +788,8 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
 
     (modify-syntax-entry ?% "<" table)
     (modify-syntax-entry ?\n ">" table)
-    (if (featurep 'xemacs)
-        (progn
-          (modify-syntax-entry ?* ". 67" table)
-          (modify-syntax-entry ?/ ". 58" table)
-          )
-      ;; Emacs wants to see this it seems:
-      (modify-syntax-entry ?* ". 23b" table)
-      (modify-syntax-entry ?/ ". 14" table)
-      )
+    (modify-syntax-entry ?* ". 23b" table)
+    (modify-syntax-entry ?/ ". 14" table)
     table))
 
 (defconst prolog-atom-char-regexp
@@ -942,13 +935,13 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
 
 (defun prolog-smie-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) prolog-indent-width)
+    ('(:elem . basic) prolog-indent-width)
     ;; The list of arguments can never be on a separate line!
     (`(:list-intro . ,_) t)
     ;; When we don't know how to indent an empty line, assume the most
     ;; likely token will be ";".
-    (`(:elem . empty-line-token) ";")
-    (`(:after . ".") '(column . 0)) ;; To work around smie-closer-alist.
+    ('(:elem . empty-line-token) ";")
+    ('(:after . ".") '(column . 0)) ;; To work around smie-closer-alist.
     ;; Allow indentation of if-then-else as:
     ;;    (   test
     ;;    ->  thenrule
@@ -977,7 +970,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
                       (smie-indent-backward-token)
                       (smie-rule-bolp))))
        prolog-indent-width))
-    (`(:after . ";")
+    ('(:after . ";")
      ;; Align with same-line comment as in:
      ;;   ;   %% Toto
      ;;       foo
@@ -989,7 +982,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
             ;; Only do it for small offsets, since the comment may actually be
             ;; an "end-of-line" comment at comment-column!
             (if (<= offset prolog-indent-width) offset))))
-    (`(:after . ",")
+    ('(:after . ",")
      ;; Special indent for:
      ;;    foopredicate(x) :- !,
      ;;        toto.
@@ -998,7 +991,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
             (smie-indent-backward-token) ;Skip !
             (equal ":-" (car (smie-indent-backward-token))))
           (smie-rule-parent prolog-indent-width)))
-    (`(:after . ":-")
+    ('(:after . ":-")
      (if (bolp)
          (save-excursion
            (smie-indent-forward-token)
@@ -1007,7 +1000,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
                prolog-indent-width
              (min prolog-indent-width (current-column))))
        prolog-indent-width))
-    (`(:after . "-->") prolog-indent-width)))
+    ('(:after . "-->") prolog-indent-width)))
 
 
 ;;-------------------------------------------------------------------
@@ -1071,7 +1064,7 @@ VERSION is of the format (Major . Minor)"
      ;; Supposedly, ISO-Prolog wants \NNN\ for octal and \xNNN\ for hexadecimal
      ;; escape sequences in atoms, so be careful not to let the terminating \
      ;; escape a subsequent quote.
-     ("\\\\[x0-7][0-9a-fA-F]*\\(\\\\\\)" (1 "_"))
+     ("\\\\[x0-7][[:xdigit:]]*\\(\\\\\\)" (1 "_"))
      )))
 
 (defun prolog-mode-variables ()
@@ -2424,17 +2417,14 @@ In effect it sets the `fill-prefix' when inside comments and then calls
       ;; Single match
       (re-search-backward "[^ /]" nil t))
 
-    ;; (Info-follow-nearest-node (point))
-    (prolog-Info-follow-nearest-node)
+    (Info-follow-nearest-node)
     (re-search-forward (concat "^`" (regexp-quote predicate)) nil t)
     (beginning-of-line)
     (recenter 0)
     (pop-to-buffer buffer)))
 
-(defun prolog-Info-follow-nearest-node ()
-  (if (featurep 'xemacs)
-      (Info-follow-nearest-node (point))
-    (Info-follow-nearest-node)))
+(define-obsolete-function-alias 'prolog-Info-follow-nearest-node
+  #'Info-follow-nearest-node "27.1")
 
 (defun prolog-help-online (predicate)
   (prolog-ensure-process)
@@ -2826,7 +2816,7 @@ STRING should be given if the last search was by `string-match' on STRING."
           (progn
             (if (and (eq prolog-system 'mercury)
                      (looking-at
-                      (format ":-[ \t]*\\(pred\\|mode\\)[ \t]+\\(%s+\\)"
+                      (format ":-[ \t]*\\(pred\\|mode\\)[ \t]+\\(\\(?:%s\\)+\\)"
                               prolog-atom-regexp)))
                 ;; Skip predicate declarations
                 (progn
@@ -2950,7 +2940,7 @@ objects (relevant only if `prolog-system' is set to `sicstus')."
            (predname
             (if (looking-at prolog-atom-char-regexp)
                 (progn
-                  (skip-chars-forward "^ (\\.")
+                  (skip-chars-forward "^ (.")
                   (buffer-substring op (point)))
               ""))
            (arity 0))
@@ -3337,11 +3327,7 @@ PREFIX is the prefix of the search regexp."
   prolog-menu-help (list prolog-mode-map prolog-inferior-mode-map)
   "Help menu for the Prolog mode."
   ;; FIXME: Does it really deserve a whole menu to itself?
-  `(,(if (featurep 'xemacs) "Help"
-       ;; Not sure it's worth the trouble.  --Stef
-       ;; (add-to-list 'menu-bar-final-items
-       ;;         (easy-menu-intern "Prolog-Help"))
-       "Prolog-help")
+  `("Prolog-help"
     ["On predicate" prolog-help-on-predicate prolog-help-function-i]
     ["Apropos" prolog-help-apropos (eq prolog-system 'swi)]
     "---"
@@ -3353,11 +3339,9 @@ PREFIX is the prefix of the search regexp."
   ;; FIXME: Don't use a whole menu for just "Run Mercury".  --Stef
   `("System"
     ;; Runtime menu name.
-    ,@(unless (featurep 'xemacs)
-        '(:label (cond ((eq prolog-system 'eclipse) "ECLiPSe")
-                       ((eq prolog-system 'mercury) "Mercury")
-                       (t "System"))))
-
+    :label (cond ((eq prolog-system 'eclipse) "ECLiPSe")
+                 ((eq prolog-system 'mercury) "Mercury")
+                 (t "System"))
     ;; Consult items, NIL for mercury.
     ["Consult file" prolog-consult-file
      :included (not (eq prolog-system 'mercury))]
@@ -3369,8 +3353,7 @@ PREFIX is the prefix of the search regexp."
      :included (not (eq prolog-system 'mercury))]
 
     ;; Compile items, NIL for everything but SICSTUS.
-    ,(if (featurep 'xemacs) "---"
-       ["---" nil :included (eq prolog-system 'sicstus)])
+    ["---" nil :included (eq prolog-system 'sicstus)]
     ["Compile file" prolog-compile-file
      :included (eq prolog-system 'sicstus)]
     ["Compile buffer" prolog-compile-buffer
@@ -3381,8 +3364,7 @@ PREFIX is the prefix of the search regexp."
      :included (eq prolog-system 'sicstus)]
 
     ;; Debug items, NIL for Mercury.
-    ,(if (featurep 'xemacs) "---"
-       ["---" nil :included (not (eq prolog-system 'mercury))])
+    ["---" nil :included (not (eq prolog-system 'mercury))]
     ;; FIXME: Could we use toggle or radio buttons?  --Stef
     ["Debug" prolog-debug-on :included (not (eq prolog-system 'mercury))]
     ["Debug off" prolog-debug-off
@@ -3465,14 +3447,11 @@ PREFIX is the prefix of the search regexp."
   "Menu for the inferior Prolog buffer."
   `("Prolog"
     ;; Runtime menu name.
-    ,@(unless (featurep 'xemacs)
-        '(:label (cond ((eq prolog-system 'eclipse) "ECLiPSe")
-                       ((eq prolog-system 'mercury) "Mercury")
-                       (t "Prolog"))))
-
+    :label (cond ((eq prolog-system 'eclipse) "ECLiPSe")
+                 ((eq prolog-system 'mercury) "Mercury")
+                 (t "Prolog"))
     ;; Debug items, NIL for Mercury.
-    ,(if (featurep 'xemacs) "---"
-       ["---" nil :included (not (eq prolog-system 'mercury))])
+    ["---" nil :included (not (eq prolog-system 'mercury))]
     ;; FIXME: Could we use toggle or radio buttons?  --Stef
     ["Debug" prolog-debug-on :included (not (eq prolog-system 'mercury))]
     ["Debug off" prolog-debug-off

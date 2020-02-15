@@ -1,6 +1,6 @@
 ;;; ede/base.el --- Baseclasses for EDE.
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -46,7 +46,7 @@
 ;; The TARGET is an entity in a project that knows about files
 ;; and features of those files.
 
-(defclass ede-target (eieio-speedbar-directory-button)
+(defclass ede-target (eieio-speedbar-directory-button eieio-named)
   ((buttonface :initform speedbar-file-face) ;override for superclass
    (name :initarg :name
 	 :type string
@@ -628,15 +628,15 @@ instead of the current project."
 The other slot will be used to calculate values.
 PROJECT-FILE-NAME is a name of project file (short name, like `pom.xml', etc."
   (when (and (or (not (slot-boundp this :file))
-		 (not (oref this :file)))
+		 (not (oref this file)))
 	     (slot-boundp this :directory)
-	     (oref this :directory))
-    (oset this :file (expand-file-name project-file-name (oref this :directory))))
+	     (oref this directory))
+    (oset this file (expand-file-name project-file-name (oref this directory))))
   (when (and (or (not (slot-boundp this :directory))
-		 (not (oref this :directory)))
+		 (not (oref this directory)))
 	     (slot-boundp this :file)
-	     (oref this :file))
-    (oset this :directory (file-name-directory (oref this :file))))
+	     (oref this file))
+    (oset this directory (file-name-directory (oref this file))))
   )
 
 

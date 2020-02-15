@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -20,10 +20,8 @@ terminal and the screen.
 * User Identification:: Finding the name and user id of the user.
 * Time of Day::         Getting the current time.
 * Time Zone Rules::     Rules for time zones and daylight saving time.
-* Time Conversion::     Converting a time from numeric form to
-                          calendrical data and vice versa.
-* Time Parsing::        Converting a time from numeric form to text
-                          and vice versa.
+* Time Conversion::     Converting among timestamp forms.
+* Time Parsing::        Converting timestamps to text and vice versa.
 * Processor Run Time::  Getting the run time used by Emacs.
 * Time Calculations::   Adding, subtracting, comparing times, etc.
 * Timers::              Setting a timer to call a function at a certain time.
@@ -475,8 +473,15 @@ the value refers to the corresponding source file.
 @end defvar
 
 @defvar user-emacs-directory
-This variable holds the name of the @file{.emacs.d} directory.  It is
-@file{~/.emacs.d} on all platforms but MS-DOS.
+This variable holds the name of the Emacs default directory.
+It defaults to @file{$@{XDG_CONFIG_HOME-'~/.config'@}/emacs/}
+if that directory exists and @file{~/.emacs.d/} and @file{~/.emacs} do
+not exist,
+otherwise to @file{~/.emacs.d/} on all platforms but MS-DOS@.
+Here, @file{$@{XDG_CONFIG_HOME-'~/.config'@}}
+stands for the value of the environment variable @env{XDG_CONFIG_HOME}
+if that variable is set, and for @file{~/.config} otherwise.
+@xref{Find Init,,How Emacs Finds Your Init File, emacs, The GNU Emacs Manual}.
 @end defvar
 
 @node Terminal-Specific
@@ -1230,6 +1235,11 @@ groups on the system.  If Emacs cannot retrieve this information, the
 return value is @code{nil}.
 @end defun
 
+@defun group-name gid
+This function returns the group name that corresponds to the numeric
+group ID @var{gid}, or @code{nil} if there is no such group.
+@end defun
+
 
 @node Time of Day
 @section Time of Day
@@ -1248,7 +1258,7 @@ represent absolute time by counting seconds since the @dfn{epoch} of
   Although traditionally Lisp timestamps were integer pairs, their
 form has evolved and programs ordinarily should not depend on the
 current default form.  If your program needs a particular timestamp
-form, you can use the @code{encode-time} function to convert it to the
+form, you can use the @code{time-convert} function to convert it to the
 needed form.  @xref{Time Conversion}.
 
 @cindex epoch
@@ -1273,20 +1283,20 @@ warnings are intended to be removed in a future Emacs version.}
 
 @item
 A list of four integers @code{(@var{high} @var{low} @var{micro}
-@var{pico})}, where 0 @leq{} @var{low} < 65536, 0 @leq{} @var{micro} <
-1000000, and 0 @leq{} @var{pico} < 1000000.
+@var{pico})}, where 0@leq{}@var{low}<65536,
+0@leq{}@var{micro}<1000000, and 0@leq{}@var{pico}<1000000.
 This represents the number of seconds using the formula:
 @ifnottex
 @var{high} * 2**16 + @var{low} + @var{micro} * 10**@minus{}6 +
 @var{pico} * 10**@minus{}12.
 @end ifnottex
 @tex
-$high*2^{16} + low + micro*10^{-6} + pico*10^{-12}$.
+$high \times 2^{16} + low + micro \times 10^{-6} + pico \times 10^{-12}$.
 @end tex
 In some cases, functions may default to returning two- or
-three-element lists, with omitted @var{microsec} and @var{picosec}
+three-element lists, with omitted @var{micro} and @var{pico}
 components defaulting to zero.
-On all current machines @var{picosec} is a multiple of 1000, but this
+On all current machines @var{pico} is a multiple of 1000, but this
 may change as higher-resolution clocks become available.
 @end itemize
 
@@ -1297,9 +1307,18 @@ format, which can be a Lisp timestamp, @code{nil} for the current
 time, a single floating-point number for seconds, or a list
 @code{(@var{high} @var{low} @var{micro})} or @code{(@var{high}
 @var{low})} that is a truncated list timestamp with missing elements
-taken to be zero.  You can convert a time value into
+taken to be zero.
+
+@cindex Specified time is not representable
+Time values can be converted to and from calendrical and other forms.
+Some of these conversions rely on operating system functions that
+limit the range of possible time values, and signal an error such as
+@samp{"Specified time is not representable"} if the
+limits are exceeded.  For instance, a system may not support years
+before 1970, or years before 1901, or years far in the future.
+You can convert a time value into
 a human-readable string using @code{format-time-string}, into a Lisp
-timestamp using @code{encode-time}, and into other forms using
+timestamp using @code{time-convert}, and into other forms using
 @code{decode-time} and @code{float-time}.  These functions are
 described in the following sections.
 
@@ -1308,26 +1327,33 @@ This function returns the current time and date as a human-readable
 string.  The format does not vary for the initial part of the string,
 which contains the day of week, month, day of month, and time of day
 in that order: the number of characters used for these fields is
-always the same, so you can reliably
-use @code{substring} to extract them.  You should count
-characters from the beginning of the string rather than from the end,
+always the same, although (unless you require English weekday or
+month abbreviations regardless of locale) it is typically more
+convenient to use @code{format-time-string} than to extract
+fields from the output of @code{current-time-string},
 as the year might not have exactly four digits, and additional
 information may some day be added at the end.
 
 The argument @var{time}, if given, specifies a time to format,
 instead of the current time.  The optional argument @var{zone}
 defaults to the current time zone rule.  @xref{Time Zone Rules}.
+The operating system limits the range of time and zone values.
 
 @example
 @group
 (current-time-string)
-     @result{} "Wed Oct 14 22:21:05 1987"
+     @result{} "Fri Nov @ 1 15:59:49 2019"
 @end group
 @end example
 @end defun
 
 @defun current-time
 This function returns the current time as a Lisp timestamp.
+Although the timestamp takes the form @code{(@var{high} @var{low}
+@var{micro} @var{pico})} in the current Emacs release, this is
+planned to change in a future Emacs version.  You can use the
+@code{time-convert} function to convert a timestamp to some other
+form.  @xref{Time Conversion}.
 @end defun
 
 @defun float-time &optional time
@@ -1337,6 +1363,8 @@ given, specifies a time to convert instead of the current time.
 
 @emph{Warning}: Since the result is floating point, it may not be
 exact.  Do not use this function if precise time stamps are required.
+For example, on typical systems @code{(float-time '(1 . 10))} displays
+as @samp{0.1} but is slightly greater than 1/10.
 
 @code{time-to-seconds} is an alias for this function.
 @end defun
@@ -1398,6 +1426,7 @@ compute the value, the unknown elements of the list are @code{nil}.
 The argument @var{time}, if given, specifies a time value to
 analyze instead of the current time.  The optional argument @var{zone}
 defaults to the current time zone rule.
+The operating system limits the range of time and zone values.
 @end defun
 
 @node Time Conversion
@@ -1405,8 +1434,8 @@ defaults to the current time zone rule.
 @cindex calendrical information
 @cindex time conversion
 
-  These functions convert time values (@pxref{Time of Day}) into
-calendrical information and vice versa.
+  These functions convert time values (@pxref{Time of Day}) to Lisp
+timestamps, or into calendrical information and vice versa.
 
   Many 32-bit operating systems are limited to system times containing
 32 bits of information in their seconds component; these systems
@@ -1415,16 +1444,75 @@ typically handle only the times from 1901-12-13 20:45:52 through
 systems have larger seconds components, and can represent times far in
 the past or future.
 
-  Time conversion functions always use the Gregorian calendar, even
+  Calendrical conversion functions always use the Gregorian calendar, even
 for dates before the Gregorian calendar was introduced.  Year numbers
-count the number of years since the year 1 B.C., and do not skip zero
+count the number of years since the year 1 BC, and do not skip zero
 as traditional Gregorian years do; for example, the year number
-@minus{}37 represents the Gregorian year 38 B.C@.
+@minus{}37 represents the Gregorian year 38 BC@.
 
-@defun decode-time &optional time zone
+@defun time-convert time &optional form
+This function converts a time value into a Lisp timestamp.
+
+The optional @var{form} argument specifies the timestamp form to be
+returned.  If @var{form} is the symbol @code{integer}, this function
+returns an integer count of seconds.  If @var{form} is a positive
+integer, it specifies a clock frequency and this function returns an
+integer-pair timestamp @code{(@var{ticks}
+. @var{form})}.@footnote{Currently a positive integer @var{form}
+should be at least 65536 if the returned value is intended to be given
+to standard functions expecting Lisp timestamps.}  If @var{form} is
+@code{t}, this function treats it as a positive integer suitable for
+representing the timestamp; for example, it is treated as 1000000000
+if @var{time} is nil and the platform timestamp has nanosecond
+resolution.  If @var{form} is @code{list}, this function returns an
+integer list @code{(@var{high} @var{low} @var{micro} @var{pico})}.
+Although an omitted or @code{nil} @var{form} currently acts like
+@code{list}, this is planned to change in a future Emacs version, so
+callers requiring list timestamps should pass @code{list} explicitly.
+
+If @var{time} is infinite or a NaN, this function signals an error.
+Otherwise, if @var{time} cannot be represented exactly, conversion
+truncates it toward minus infinity.  When @var{form} is @code{t},
+conversion is always exact so no truncation occurs, and the returned
+clock resolution is no less than that of @var{time}.  By way of
+contrast, @code{float-time} can convert any Lisp time value without
+signaling an error, although the result might not be exact.
+@xref{Time of Day}.
+
+For efficiency this function might return a value that is @code{eq} to
+@var{time}, or that otherwise shares structure with @var{time}.
+
+Although @code{(time-convert nil nil)} is equivalent to
+@code{(current-time)}, the latter may be a bit faster.
+
+@example
+@group
+(setq a (time-convert nil t))
+@result{} (1564826753904873156 . 1000000000)
+@end group
+@group
+(time-convert a 100000)
+@result{} (156482675390487 . 100000)
+@end group
+@group
+(time-convert a 'integer)
+@result{} 1564826753
+@end group
+@group
+(time-convert a 'list)
+@result{} (23877 23681 904873 156000)
+@end group
+@end example
+@end defun
+
+@defun decode-time &optional time zone form
 This function converts a time value into calendrical information.  If
 you don't specify @var{time}, it decodes the current time, and similarly
 @var{zone} defaults to the current time zone rule.  @xref{Time Zone Rules}.
+The operating system limits the range of time and zone values.
+
+The @var{form} argument controls the form of the returned
+@var{seconds} element, as described below.
 The return value is a list of nine elements, as follows:
 
 @example
@@ -1435,8 +1523,7 @@ Here is what the elements mean:
 
 @table @var
 @item seconds
-The number of seconds past the minute, as an integer between 0 and 59.
-On some operating systems, this is 60 for leap seconds.
+The number of seconds past the minute, with form described below.
 @item minutes
 The number of minutes past the hour, as an integer between 0 and 59.
 @item hour
@@ -1458,40 +1545,90 @@ An integer indicating the Universal Time offset in seconds, i.e., the number of
 seconds east of Greenwich.
 @end table
 
+The @var{seconds} element is a Lisp timestamp that is nonnegative and
+less than 61; it is less than 60 except during positive leap seconds
+(assuming the operating system supports leap seconds).  If the
+optional @var{form} argument is @code{t}, @var{seconds} uses the same
+precision as @var{time}; if @var{form} is @code{integer},
+@var{seconds} is truncated to an integer.  For example, if @var{time}
+is the timestamp @code{(1566009571321 . 1000)}, which represents
+2019-08-17 02:39:31.321 UTC on typical systems that lack leap seconds,
+then @code{(decode-time @var{time} t t)} returns @code{((31321 . 1000)
+39 2 17 8 2019 6 nil 0)}, whereas @code{(decode-time @var{time} t
+'integer)} returns @code{(31 39 2 17 8 2019 6 nil 0)}.  If @var{form}
+is omitted or @code{nil}, it currently defaults to @code{integer} but
+this default may change in future Emacs releases, so callers requiring
+a particular form should specify @var{form}.
+
 @strong{Common Lisp Note:} Common Lisp has different meanings for
-@var{dow} and @var{utcoff}.
+@var{dow} and @var{utcoff}, and its @var{second} is an integer between
+0 and 59 inclusive.
+
+To access (or alter) the elements in the time value, the
+@code{decoded-time-second}, @code{decoded-time-minute},
+@code{decoded-time-hour}, @code{decoded-time-day},
+@code{decoded-time-month}, @code{decoded-time-year},
+@code{decoded-time-weekday}, @code{decoded-time-dst} and
+@code{decoded-time-zone} accessors can be used.
+
+For instance, to increase the year in a decoded time, you could say:
+
+@lisp
+(setf (decoded-time-year decoded-time)
+      (+ (decoded-time-year decoded-time) 4))
+@end lisp
+
+Also see the following function.
+
 @end defun
 
-@defun encode-time &optional time form &rest obsolescent-arguments
+@defun decoded-time-add time delta
+This function takes a decoded time structure and adds @var{delta}
+(also a decoded time structure) to it.  Elements in @var{delta} that
+are @code{nil} are ignored.
+
+For instance, if you want ``same time next month'', you
+could say:
+
+@lisp
+(let ((time (decode-time nil nil t))
+      (delta (make-decoded-time :month 2)))
+   (encode-time (decoded-time-add time delta)))
+@end lisp
+
+If this date doesn't exist (if you're running this on January 31st,
+for instance), then the date will be shifted back until you get a
+valid date (which will be February 28th or 29th, depending).
+
+Fields are added in a most to least significant order, so if the
+adjustment described above happens, it happens before adding days,
+hours, minutes or seconds.
+
+The values in @var{delta} can be negative to subtract values instead.
+
+The return value is a decoded time structure.
+@end defun
+
+@defun make-decoded-time &key second minute hour day month year dst zone
+Return a decoded time structure with only the given keywords filled
+out, leaving the rest @code{nil}.  For instance, to get a structure
+that represents ``two months'', you could say:
+
+@lisp
+(make-decoded-time :month 2)
+@end lisp
+@end defun
+
+@defun encode-time time &rest obsolescent-arguments
 This function converts @var{time} to a Lisp timestamp.
 It can act as the inverse of @code{decode-time}.
 
-The first argument can be a time value such as a number of seconds, a
-pair @code{(@var{ticks} . @var{hz})}, a list @code{(@var{high}
-@var{low} @var{micro} @var{pico})}, or @code{nil} (the default) for
-the current time (@pxref{Time of Day}).  It can also be a list
+Ordinarily the first argument is a list
 @code{(@var{second} @var{minute} @var{hour} @var{day} @var{month}
 @var{year} @var{ignored} @var{dst} @var{zone})} that specifies a
 decoded time in the style of @code{decode-time}, so that
 @code{(encode-time (decode-time ...))}  works.  For the meanings of
 these list members, see the table under @code{decode-time}.
-
-The optional @var{form} argument specifies the desired timestamp form
-to be returned.  If @var{form} is the symbol @code{integer}, this
-function returns an integer count of seconds.  If @var{form} is a
-positive integer, it specifies a clock frequency and this function
-returns an integer-pair timestamp @code{(@var{ticks}
-. @var{form})}.@footnote{Currently a positive integer @var{form}
-should be at least 65536 if the returned value is intended to be given
-to standard functions expecting Lisp timestamps.}  If @var{form} is
-@code{t}, this function treats it as a positive integer suitable for
-representing the timestamp; for example, it is treated as 1000000000
-if the platform timestamp has nanosecond resolution.  If @var{form} is
-@code{list}, this function returns an integer list @code{(@var{high}
-@var{low} @var{micro} @var{pico})}.  Although an omitted or @code{nil}
-@var{form} currently acts like @code{list}, this is planned to change
-in a future Emacs version, so callers requiring list timestamps should
-pass @code{list} explicitly.
 
 As an obsolescent calling convention, this function can be given six
 or more arguments.  The first six arguments @var{second},
@@ -1499,14 +1636,15 @@ or more arguments.  The first six arguments @var{second},
 specify most of the components of a decoded time.  If there are more
 than six arguments the @emph{last} argument is used as @var{zone} and
 any other extra arguments are ignored, so that @code{(apply
-#\\='encode-time (decode-time ...))} works; otherwise @var{zone} defaults
-to the current time zone rule (@pxref{Time Zone Rules}).  The decoded
-time's @var{dst} component is treated as if it was @minus{}1, and
-@var{form} takes its default value.
+#'encode-time (decode-time ...))} works.  In this obsolescent
+convention, @var{zone} defaults to the current time zone rule
+(@pxref{Time Zone Rules}), and @var{dst} is treated as if it was
+@minus{}1.
 
 Year numbers less than 100 are not treated specially.  If you want them
 to stand for years above 1900, or years above 2000, you must alter them
 yourself before you call @code{encode-time}.
+The operating system limits the range of time and zone values.
 
 The @code{encode-time} function acts as a rough inverse to
 @code{decode-time}.  For example, you can pass the output of
@@ -1519,11 +1657,6 @@ the latter to the former as follows:
 You can perform simple date arithmetic by using out-of-range values for
 @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month};
 for example, day 0 means the day preceding the given month.
-
-The operating system puts limits on the range of possible time values;
-if you try to encode a time that is out of range, an error results.
-For instance, years before 1970 do not work on some systems;
-on others, years as early as 1901 do work.
 @end defun
 
 @node Time Parsing
@@ -1538,7 +1671,43 @@ Time values include @code{nil}, numbers, and Lisp timestamps
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the
-corresponding Lisp timestamp.
+corresponding Lisp timestamp.  The argument @var{string} should represent
+a date-time, and should be in one of the forms recognized by
+@code{parse-time-string} (see below).  This function assumes Universal
+Time if @var{string} lacks explicit time zone information.
+The operating system limits the range of time and zone values.
+@end defun
+
+@defun parse-time-string string
+This function parses the time-string @var{string} into a list of the
+following form:
+
+@example
+(@var{sec} @var{min} @var{hour} @var{day} @var{mon} @var{year} @var{dow} @var{dst} @var{tz})
+@end example
+
+@noindent
+The format of this list is the same as what @code{decode-time} accepts
+(@pxref{Time Conversion}), and is described in more detail there.  Any
+@code{dst} element that cannot be determined from the input is set to
+@minus{}1, and any other unknown element is set to
+@code{nil}.  The argument @var{string} should resemble an RFC 822 (or later) or
+ISO 8601 string, like ``Fri, 25 Mar 2016 16:24:56 +0100'' or
+``1998-09-12T12:21:54-0200'', but this function will attempt to parse
+less well-formed time strings as well.
+@end defun
+
+@vindex ISO 8601 date/time strings
+@defun iso8601-parse string
+For a more strict function (that will error out upon invalid input),
+this function can be used instead.  It can parse all variants of
+the ISO 8601 standard, so in addition to the formats mentioned above,
+it also parses things like ``1998W45-3'' (week number) and
+``1998-245'' (ordinal day number).  To parse durations, there's
+@code{iso8601-parse-duration}, and to parse intervals, there's
+@code{iso8601-parse-interval}.  All these functions return decoded
+time structures, except the final one, which returns three of them
+(the start, the end, and the duration).
 @end defun
 
 @defun format-time-string format-string &optional time zone
@@ -1573,7 +1742,9 @@ This is a synonym for @samp{%m/%d/%y}.
 @item %e
 This stands for the day of month, blank-padded.
 @item %F
-This stands for the ISO 8601 date format, i.e., @samp{"%Y-%m-%d"}.
+This stands for the ISO 8601 date format, which is like
+@samp{%+4Y-%m-%d} except that any flags or field width override the
+@samp{+} and (after subtracting 6) the @samp{4}.
 @item %g
 This stands for the year corresponding to the ISO week within the century.
 @item %G
@@ -1653,7 +1824,9 @@ This stands for a single @samp{%}.
 @end table
 
 One or more flag characters can appear immediately after the @samp{%}.
-@samp{0} pads with zeros, @samp{_} pads with blanks, @samp{-}
+@samp{0} pads with zeros, @samp{+} pads with zeros and also puts
+@samp{+} before nonnegative year numbers with more than four digits,
+@samp{_} pads with blanks, @samp{-}
 suppresses padding, @samp{^} upper-cases letters, and @samp{#}
 reverses the case of letters.
 
@@ -1685,10 +1858,12 @@ behavior, as future versions of Emacs may recognize new
 This function uses the C library function @code{strftime}
 (@pxref{Formatting Calendar Time,,, libc, The GNU C Library Reference
 Manual}) to do most of the work.  In order to communicate with that
-function, it first encodes its argument using the coding system
+function, it first converts @var{time} and @var{zone} to internal form;
+the operating system limits the range of time and zone values.
+This function also encodes @var{format-string} using the coding system
 specified by @code{locale-coding-system} (@pxref{Locales}); after
 @code{strftime} returns the resulting string,
-@code{format-time-string} decodes the string using that same coding
+this function decodes the string using that same coding
 system.
 @end defun
 
@@ -1804,16 +1979,18 @@ The result is @code{nil} if either argument is a NaN.
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, as a time value.  However, the result is a float
-if either argument is a float infinity or NaN@.
+two time values, normally as a Lisp timestamp but as a float
+if either argument is infinite or a NaN@.
+When the result is a timestamp, it is exact and its clock
+resolution is no worse than the worse of its two arguments' resolutions.
 If you need the difference in units
-of elapsed seconds, use @code{float-time} (@pxref{Time of Day,
-float-time}) to convert the result into seconds.
+of elapsed seconds, you can convert it with @code{time-convert} or
+@code{float-time}.  @xref{Time Conversion}.
 @end defun
 
 @defun time-add t1 t2
-This returns the sum of two time values, as a time value.
-However, the result is a float if either argument is a float infinity or NaN@.
+This returns the sum of two time values,
+using the same conversion rules as @code{time-subtract}.
 One argument should represent a time difference rather than a point in time,
 as a time value that is often just a single number of elapsed seconds.
 Here is how to add a number of seconds to a time value:
@@ -1825,15 +2002,28 @@ Here is how to add a number of seconds to a time value:
 
 @defun time-to-days time-value
 This function returns the number of days between the beginning of year
-1 and @var{time-value}.
+1 and @var{time-value}, assuming the default time zone.
+The operating system limits the range of time and zone values.
 @end defun
 
 @defun time-to-day-in-year time-value
-This returns the day number within the year corresponding to @var{time-value}.
+This returns the day number within the year corresponding to @var{time-value},
+assuming the default time zone.
+The operating system limits the range of time and zone values.
 @end defun
 
 @defun date-leap-year-p year
 This function returns @code{t} if @var{year} is a leap year.
+@end defun
+
+@defun date-days-in-month year month
+Return the number of days in @var{month} in @var{year}.  For instance,
+February 2020 has 29 days.
+@end defun
+
+@defun date-ordinal-to-time year ordinal
+Return the date of @var{ordinal} in @var{year} as a decoded time
+structure.  For instance, the 120th day in 2004 is April 29th.
 @end defun
 
 @node Timers
@@ -1933,6 +2123,13 @@ functions like @code{display-time}.
 The function @code{run-at-time} returns a timer value that identifies
 the particular scheduled future action.  You can use this value to call
 @code{cancel-timer} (see below).
+@end deffn
+
+@deffn Command run-with-timer secs repeat function &rest args
+This is exactly the same as @code{run-at-time} (so see that definition
+for an explanation of the parameters; @var{secs} is passed as
+@var{time} to that function), but is meant to be used when the delay
+is specified in seconds.
 @end deffn
 
   A repeating timer nominally ought to run every @var{repeat} seconds,
@@ -2166,13 +2363,18 @@ is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 @subsection Recording Input
 @cindex recording input
 
-@defun recent-keys
+@defun recent-keys &optional include-cmds
 This function returns a vector containing the last 300 input events from
 the keyboard or mouse.  All input events are included, whether or not
 they were used as parts of key sequences.  Thus, you always get the last
 300 input events, not counting events generated by keyboard macros.
 (These are excluded because they are less interesting for debugging; it
 should be enough to see the events that invoked the macros.)
+
+If @var{include-cmds} is non-@code{nil}, complete key sequences in the
+result vector are interleaved with pseudo-events of the form
+@code{(nil . @var{COMMAND})}, where @var{COMMAND} is the binding of
+the key sequence (@pxref{Command Overview}).
 
 A call to @code{clear-this-command-keys} (@pxref{Command Loop Info})
 causes this function to return an empty vector immediately afterward.
@@ -2416,6 +2618,15 @@ if it is non-@code{nil}; this can be overridden by binding
 This variable is non-@code{nil} when Emacs is running in batch mode.
 @end defvar
 
+If Emacs exits due to signalling an error in batch mode, the exit
+status of the Emacs command is non-zero:
+
+@example
+$ emacs -Q --batch --eval '(error "foo")'; echo $?
+foo
+255
+@end example
+
 @node Session Management
 @section Session Management
 @cindex session manager
@@ -2539,7 +2750,7 @@ interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.  See the
-@uref{http://developer.gnome.org/notification-spec/#categories,
+@uref{https://developer.gnome.org/notification-spec/#categories,
 Desktop Notifications Specification} for a list of standard
 categories.
 

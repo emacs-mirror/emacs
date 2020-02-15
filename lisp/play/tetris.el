@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -272,12 +272,45 @@ each one of its four blocks.")
     (define-key map [right]	'tetris-move-right)
     (define-key map [up]	'tetris-rotate-prev)
     (define-key map [down]	'tetris-move-down)
-    map))
+    map)
+  "Keymap for Tetris games.")
 
 (defvar tetris-null-map
   (let ((map (make-sparse-keymap 'tetris-null-map)))
     (define-key map "n"		'tetris-start-game)
-    map))
+    (define-key map "q"         'quit-window)
+    map)
+  "Keymap for finished Tetris games.")
+
+(defconst tetris--menu-def
+  '("Tetris"
+    ["Start new game"    tetris-start-game
+     :help "Start a new Tetris game"]
+    ["End game"          tetris-end-game
+     :active (tetris-active-p)
+     :help "End the current Tetris game"]
+    ;; FIXME: Pause and resume from the menu currently doesn't work
+    ;;        very well and is therefore disabled.  The game continues
+    ;;        running while navigating the menu.  See also
+    ;;        `snake--menu-def' which has the same problem.
+    ;; ["Pause"             tetris-pause-game
+    ;;  :active (and (tetris-active-p) (not tetris-paused))
+    ;;  :help "Pause running Tetris game"]
+    ;; ["Resume"            tetris-pause-game
+    ;;  :active (and (tetris-active-p) tetris-paused)
+    ;;  :help "Resume paused Tetris game"]
+    )
+  "Menu for `tetris'.  Used to initialize menus.")
+
+(easy-menu-define
+  tetris-mode-menu tetris-mode-map
+  "Menu for running Tetris games."
+  tetris--menu-def)
+
+(easy-menu-define
+  tetris-null-menu tetris-null-map
+  "Menu for finished Tetris games."
+  tetris--menu-def)
 
 ;; ;;;;;;;;;;;;;;;; game functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -597,17 +630,6 @@ Drops the shape one square, testing for collision."
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map tetris-null-map)
-
-  (unless (featurep 'emacs)
-    (setq mode-popup-menu
-	  '("Tetris Commands"
-	    ["Start new game"	tetris-start-game]
-	    ["End game"		tetris-end-game
-	     (tetris-active-p)]
-	    ["Pause"		tetris-pause-game
-	     (and (tetris-active-p) (not tetris-paused))]
-	    ["Resume"		tetris-pause-game
-	     (and (tetris-active-p) tetris-paused)])))
 
   (setq show-trailing-whitespace nil)
 

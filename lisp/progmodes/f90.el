@@ -1,9 +1,9 @@
 ;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -539,8 +539,10 @@ type-name parts, respectively."
 read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
    ;; Other functions and declarations.  Named interfaces = F2003.
    ;; F2008: end submodule submodule_name.
-   '("\\_<\\(\\(?:end[ \t]*\\)?\\(program\\|\\(?:sub\\)?module\\|\
-function\\|associate\\|subroutine\\|interface\\)\\|use\\|call\\)\
+   ;; F2008: module function|subroutine NAME.
+   '("\\_<\\(\\(?:end[ \t]*\\)?\\(program\\|\
+\\(?:module[ \t]*\\)?\\(?:function\\|subroutine\\)\\|\
+\\(?:sub\\)?module\\|associate\\|interface\\)\\|use\\|call\\)\
 \\_>[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; F2008: submodule (parent_name) submodule_name.
@@ -648,7 +650,7 @@ forall\\|block\\|critical\\)\\)\\_>"
 \\|enumerator\\|procedure\\|\
 logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
-    '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
+    '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\_<else\\([ \t]*if\\|where\\)?\\_>"
     '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
@@ -1381,14 +1383,19 @@ write\\)[ \t]*([^)\n]*)")
   (cond
    ((looking-at "\\(program\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
-   ((and (not (looking-at "module[ \t]*procedure\\_>"))
+   ((and (not (looking-at "module[ \t]*\\(procedure\\|function\\|subroutine\\)\\_>"))
          (looking-at "\\(module\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"))
     (list (match-string 1) (match-string 2)))
    ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
-   ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-         (looking-at "[^!'\"&\n]*\\(function\\|subroutine\\)[ \t]+\
+   ((and (not (looking-at "end[ \t]*\\(function\\|procedure\\|subroutine\\)"))
+         (looking-at "[^!'\"&\n]*\\(?:module[ \t]*\\)?\
+\\(function\\|subroutine\\)[ \t]+\
 \\(\\(?:\\sw\\|\\s_\\)+\\)"))
+    ;; TODO: In F2008  "module procedure foo" may or may not start a block,
+    ;; It is impossible to tell the difference without parsing state.
+;;;         (looking-at "[^!'\"&\n]*module[ \t]*\\(procedure\\)[ \t]+\
+;;;\\(\\(?:\\sw\\|\\s_\\)+\\)")))
     (list (match-string 1) (match-string 2)))))
 ;; Following will match an un-named main program block; however
 ;; one needs to check if there is an actual PROGRAM statement after

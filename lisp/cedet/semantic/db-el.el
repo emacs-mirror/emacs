@@ -1,6 +1,6 @@
 ;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
 
-;;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -53,10 +53,13 @@ It does not need refreshing."
   "Return nil, we never need a refresh."
   nil)
 
-(cl-defmethod object-print ((obj semanticdb-table-emacs-lisp) &rest strings)
-  "Pretty printer extension for `semanticdb-table-emacs-lisp'.
-Adds the number of tags in this file to the object print name."
-  (apply #'cl-call-next-method obj (cons " (proxy)" strings)))
+(cl-defmethod semanticdb-debug-info ((obj semanticdb-table-emacs-lisp))
+  (list "(proxy)"))
+
+(cl-defmethod cl-print-object ((obj semanticdb-table-emacs-lisp) stream)
+  "Pretty printer extension for `semanticdb-table-emacs-lisp'."
+  (princ (eieio-object-name obj (semanticdb-debug-info obj))
+         stream))
 
 (defclass semanticdb-project-database-emacs-lisp
   (semanticdb-project-database eieio-singleton)
@@ -67,14 +70,19 @@ Adds the number of tags in this file to the object print name."
    )
   "Database representing Emacs core.")
 
-(cl-defmethod object-print ((obj semanticdb-project-database-emacs-lisp) &rest strings)
-  "Pretty printer extension for `semanticdb-table-emacs-lisp'.
-Adds the number of tags in this file to the object print name."
+(cl-defmethod semanticdb-debug-info ((obj
+                                      semanticdb-project-database-emacs-lisp))
   (let ((count 0))
     (mapatoms (lambda (_sym) (setq count (1+ count))))
-    (apply #'cl-call-next-method obj (cons
-                                      (format " (%d known syms)" count)
-                                      strings))))
+    (append (cl-call-next-method obj)
+            (list (format "(%d known syms)" count)))))
+
+(cl-defmethod cl-print-object ((obj semanticdb-project-database-emacs-lisp)
+                               stream)
+  "Pretty printer extension for `semanticdb-table-emacs-lisp'.
+Adds the number of tags in this file to the object print name."
+  (princ (eieio-object-name obj (semanticdb-debug-info obj))
+         stream))
 
 ;; Create the database, and add it to searchable databases for Emacs Lisp mode.
 (defvar-mode-local emacs-lisp-mode semanticdb-project-system-databases

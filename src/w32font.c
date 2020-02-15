@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,6 +32,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32common.h"
 #include "w32.h"
 #endif
+
+#include "pdumper.h"
 
 /* Cleartype available on Windows XP, cleartype_natural from XP SP1.
    The latter does not try to fit cleartype smoothed fonts into the
@@ -88,6 +90,8 @@ struct font_callback_data
   Lisp_Object orig_font_spec;
   /* The frame the font is being loaded on.  */
   Lisp_Object frame;
+  /* Fonts known to support the font spec, or nil if none.  */
+  Lisp_Object known_fonts;
   /* The list to add matches to.  */
   Lisp_Object list;
   /* Whether to match only opentype fonts.  */
@@ -431,7 +435,7 @@ w32font_encode_char (struct font *font, int c)
    CODE (length NGLYPHS).  Apparently metrics can be NULL, in this
    case just return the overall width.  */
 void
-w32font_text_extents (struct font *font, unsigned *code,
+w32font_text_extents (struct font *font, const unsigned *code,
 		      int nglyphs, struct font_metrics *metrics)
 {
   int i;
@@ -676,7 +680,7 @@ w32font_draw (struct glyph_string *s, int from, int to,
 	 characters, because drawing background with font dimensions
 	 in those cases makes the display illegible.  There's only one
 	 more call to the draw method with with_background set to
-	 true, and that's in x_draw_glyph_string_foreground, when
+	 true, and that's in w32_draw_glyph_string_foreground, when
 	 drawing the cursor, where we have no such heuristics
 	 available.  FIXME.  */
       if (s->first_glyph->type == GLYPHLESS_GLYPH
@@ -702,11 +706,23 @@ w32font_draw (struct glyph_string *s, int from, int to,
       int i;
 
       for (i = 0; i < len; i++)
-	ExtTextOutW (s->hdc, x + i, y, options, NULL,
-		     s->char2b + from + i, 1, NULL);
+	{
+	  WCHAR c = s->char2b[from + i] & 0xFFFF;
+	  ExtTextOutW (s->hdc, x + i, y, options, NULL, &c, 1, NULL);
+	}
     }
   else
-    ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, len, NULL);
+    {
+      /* The number of glyphs in a glyph_string cannot be larger than
+	 the maximum value of the 'used' member of a glyph_row, so we
+	 are OK using alloca here.  */
+      eassert (len <= SHRT_MAX);
+      WCHAR *chars = alloca (len * sizeof (WCHAR));
+      int j;
+      for (j = 0; j < len; j++)
+	chars[j] = s->char2b[from + j] & 0xFFFF;
+      ExtTextOutW (s->hdc, x, y, options, NULL, chars, len, NULL);
+    }
 
   /* Restore clip region.  */
   if (s->num_clips > 0)
@@ -827,6 +843,25 @@ w32font_list_internal (struct frame *f, Lisp_Object font_spec,
   match_data.opentype_only = opentype_only;
   if (opentype_only)
     match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
+  match_data.known_fonts = Qnil;
+  Lisp_Object vw32_non_USB_fonts = Fsymbol_value (Qw32_non_USB_fonts), val;
+  if (CONSP (vw32_non_USB_fonts))
+    {
+      Lisp_Object extra;
+      for (extra = AREF (font_spec, FONT_EXTRA_INDEX);
+	   CONSP (extra); extra = XCDR (extra))
+	{
+	  Lisp_Object tem = XCAR (extra);
+	  if (CONSP (tem)
+	      && EQ (XCAR (tem), QCscript)
+	      && SYMBOLP (XCDR (tem))
+	      && !NILP (val = assq_no_quit (XCDR (tem), vw32_non_USB_fonts)))
+	    {
+	      match_data.known_fonts = XCDR (val);
+	      break;
+	    }
+	}
+    }
 
   if (match_data.pattern.lfFaceName[0] == '\0')
     {
@@ -875,6 +910,26 @@ w32font_match_internal (struct frame *f, Lisp_Object font_spec,
   match_data.opentype_only = opentype_only;
   if (opentype_only)
     match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
+
+  match_data.known_fonts = Qnil;
+  Lisp_Object vw32_non_USB_fonts = Fsymbol_value (Qw32_non_USB_fonts), val;
+  if (CONSP (vw32_non_USB_fonts))
+    {
+      Lisp_Object extra;
+      for (extra = AREF (font_spec, FONT_EXTRA_INDEX);
+	   CONSP (extra); extra = XCDR (extra))
+	{
+	  Lisp_Object tem = XCAR (extra);
+	  if (CONSP (tem)
+	      && EQ (XCAR (tem), QCscript)
+	      && SYMBOLP (XCDR (tem))
+	      && !NILP (val = assq_no_quit (XCDR (tem), vw32_non_USB_fonts)))
+	    {
+	      match_data.known_fonts = XCDR (val);
+	      break;
+	    }
+	}
+    }
 
   /* Prevent quitting while EnumFontFamiliesEx runs and conses the
      list it will return.  That's because get_frame_dc acquires the
@@ -1497,9 +1552,13 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 
   /* Ensure a match.  */
   if (!logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
-      || !font_matches_spec (font_type, physical_font,
-			     match_data->orig_font_spec, backend,
-			     &logical_font->elfLogFont)
+      || !(font_matches_spec (font_type, physical_font,
+			      match_data->orig_font_spec, backend,
+			      &logical_font->elfLogFont)
+	   || (!NILP (match_data->known_fonts)
+	       && memq_no_quit
+	            (intern_font_name (logical_font->elfLogFont.lfFaceName),
+		     match_data->known_fonts)))
       || !w32font_coverage_ok (&physical_font->ntmFontSig,
 			       match_data->pattern.lfCharSet))
     return 1;
@@ -1941,11 +2000,14 @@ w32_encode_weight (int n)
 static Lisp_Object
 w32_to_fc_weight (int n)
 {
-  if (n >= FW_EXTRABOLD) return intern ("black");
+  if (n >= FW_HEAVY)     return intern ("black");
+  if (n >= FW_EXTRABOLD) return Qextra_bold;
   if (n >= FW_BOLD)      return Qbold;
   if (n >= FW_SEMIBOLD)  return intern ("demibold");
   if (n >= FW_NORMAL)    return intern ("medium");
-  return Qlight;
+  if (n >= FW_LIGHT)     return Qlight;
+  if (n >= FW_EXTRALIGHT) return Qextra_light;
+  return intern ("thin");
 }
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
@@ -2200,8 +2262,9 @@ font_supported_scripts (FONTSIGNATURE * sig)
       || (subranges[2] & (mask2)) || (subranges[3] & (mask3))) \
     supported = Fcons ((sym), supported)
 
-  SUBRANGE (0, Qlatin);
-  /* 1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B.  */
+  /* 0: ASCII (a.k.a. "Basic Latin"),
+     1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B,
+     29: Latin Extended Additional.  */
   /* Most fonts that support Latin will have good coverage of the
      Extended blocks, so in practice marking them below is not really
      needed, or useful: if a font claims support for, say, Latin
@@ -2210,12 +2273,11 @@ font_supported_scripts (FONTSIGNATURE * sig)
      fontset to display those few characters.  But we mark these
      subranges here anyway, for the marginal use cases where they
      might make a difference.  */
-  SUBRANGE (1, Qlatin);
-  SUBRANGE (2, Qlatin);
-  SUBRANGE (3, Qlatin);
+  MASK_ANY (0x2000000F, 0, 0, 0, Qlatin);
   SUBRANGE (4, Qphonetic);
   /* 5: Spacing and tone modifiers, 6: Combining Diacritical Marks.  */
-  SUBRANGE (7, Qgreek);
+  /* 7: Greek and Coptic, 30: Greek Extended.  */
+  MASK_ANY (0x40000080, 0, 0, 0, Qgreek);
   SUBRANGE (8, Qcoptic);
   SUBRANGE (9, Qcyrillic);
   SUBRANGE (10, Qarmenian);
@@ -2232,7 +2294,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (16, Qbengali);
   SUBRANGE (17, Qgurmukhi);
   SUBRANGE (18, Qgujarati);
-  SUBRANGE (19, Qoriya);
+  SUBRANGE (19, Qoriya);	/* a.k.a. "Odia" */
   SUBRANGE (20, Qtamil);
   SUBRANGE (21, Qtelugu);
   SUBRANGE (22, Qkannada);
@@ -2245,8 +2307,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   /* 29: Latin Extended, 30: Greek Extended -- covered above.  */
   /* 31: Supplemental Punctuation -- most probably be masked by
      Courier New, so fontset customization is needed.  */
-  SUBRANGE (31, Qsymbol);
-  /* 32-47: Symbols (defined below).  */
+  /* 31-47: Symbols (defined below).  */
   SUBRANGE (48, Qcjk_misc);
   /* Match either 49: katakana or 50: hiragana for kana.  */
   MASK_ANY (0, 0x00060000, 0, 0, Qkana);
@@ -2272,7 +2333,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (71, Qsyriac);
   SUBRANGE (72, Qthaana);
   SUBRANGE (73, Qsinhala);
-  SUBRANGE (74, Qmyanmar);
+  SUBRANGE (74, Qburmese);	/* a.k.a. "Myanmar" */
   SUBRANGE (75, Qethiopic);
   SUBRANGE (76, Qcherokee);
   SUBRANGE (77, Qcanadian_aboriginal);
@@ -2315,6 +2376,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (99, Qhan);
   SUBRANGE (100, Qsyloti_nagri);
   SUBRANGE (101, Qlinear_b);
+  SUBRANGE (101, Qaegean_number);
   SUBRANGE (102, Qancient_greek_number);
   SUBRANGE (103, Qugaritic);
   SUBRANGE (104, Qold_persian);
@@ -2324,6 +2386,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (108, Qkharoshthi);
   SUBRANGE (109, Qtai_xuan_jing_symbol);
   SUBRANGE (110, Qcuneiform);
+  SUBRANGE (111, Qcuneiform_numbers_and_punctuation);
   SUBRANGE (111, Qcounting_rod_numeral);
   SUBRANGE (112, Qsundanese);
   SUBRANGE (113, Qlepcha);
@@ -2343,9 +2406,52 @@ font_supported_scripts (FONTSIGNATURE * sig)
 
   /* There isn't really a main symbol range, so include symbol if any
      relevant range is set.  */
-  MASK_ANY (0x8000000, 0x0000FFFF, 0, 0, Qsymbol);
+  MASK_ANY (0x80000000, 0x0000FFFF, 0, 0, Qsymbol);
 
-  /* Missing: Tai Viet (U+AA80-U+AADF).  */
+  /* Missing:
+       Tai Viet
+       Old Permic
+       Palmyrene
+       Nabatean
+       Manichean
+       Hanifi Rohingya
+       Sogdian
+       Elymaic
+       Mahajani
+       Khojki
+       Khudawadi
+       Grantha
+       Newa
+       Tirhuta
+       Siddham
+       Modi
+       Takri
+       Dogra
+       Warang Citi
+       Nandinagari
+       Zanabazar Square
+       Soyombo
+       Pau Cin Hau
+       Bhaiksuki
+       Marchen
+       Masaram Gondi
+       Makasar
+       Egyptian
+       Mro
+       Bassa-Vah
+       Pahawh Hmong
+       Medefaidrin
+       Tangut
+       Tangut Components
+       Nushu
+       Duployan Shorthand
+       Ancient Greek Musical Notation
+       Nyiakeng Puachue Hmong
+       Wancho
+       Mende Kikakui
+       Adlam
+       Indic Siyaq Number
+       Ottoman Siyaq Number.  */
 #undef SUBRANGE
 #undef MASK_ANY
 
@@ -2624,11 +2730,15 @@ struct font_driver w32font_driver =
 
 /* Initialize state that does not change between invocations. This is only
    called when Emacs is dumped.  */
+
+static void syms_of_w32font_for_pdumper (void);
+
 void
 syms_of_w32font (void)
 {
   DEFSYM (Qgdi, "gdi");
   DEFSYM (Quniscribe, "uniscribe");
+  DEFSYM (Qharfbuzz, "harfbuzz");
   DEFSYM (QCformat, ":format");
 
   /* Generic font families.  */
@@ -2680,7 +2790,7 @@ syms_of_w32font (void)
   DEFSYM (Qthai, "thai");
   DEFSYM (Qlao, "lao");
   DEFSYM (Qtibetan, "tibetan");
-  DEFSYM (Qmyanmar, "myanmar");
+  DEFSYM (Qburmese, "burmese");
   DEFSYM (Qgeorgian, "georgian");
   DEFSYM (Qhangul, "hangul");
   DEFSYM (Qethiopic, "ethiopic");
@@ -2719,6 +2829,8 @@ syms_of_w32font (void)
   DEFSYM (Qbuginese, "buginese");
   DEFSYM (Qbuhid, "buhid");
   DEFSYM (Qcuneiform, "cuneiform");
+  DEFSYM (Qcuneiform_numbers_and_punctuation,
+	  "cuneiform-numbers-and-punctuation");
   DEFSYM (Qcypriot, "cypriot");
   DEFSYM (Qdeseret, "deseret");
   DEFSYM (Qglagolitic, "glagolitic");
@@ -2727,6 +2839,7 @@ syms_of_w32font (void)
   DEFSYM (Qkharoshthi, "kharoshthi");
   DEFSYM (Qlimbu, "limbu");
   DEFSYM (Qlinear_b, "linear_b");
+  DEFSYM (Qaegean_number, "aegean-number");
   DEFSYM (Qold_italic, "old_italic");
   DEFSYM (Qold_persian, "old_persian");
   DEFSYM (Qosmanya, "osmanya");
@@ -2800,9 +2913,16 @@ versions of Windows) characters.  */);
   DEFSYM (Qw32_charset_vietnamese, "w32-charset-vietnamese");
   DEFSYM (Qw32_charset_thai, "w32-charset-thai");
   DEFSYM (Qw32_charset_mac, "w32-charset-mac");
+  DEFSYM (Qw32_non_USB_fonts, "w32-non-USB-fonts");
 
   defsubr (&Sx_select_font);
 
+  pdumper_do_now_and_after_load (syms_of_w32font_for_pdumper);
+}
+
+static void
+syms_of_w32font_for_pdumper (void)
+{
   register_font_driver (&w32font_driver, NULL);
 }
 

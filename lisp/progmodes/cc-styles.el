@@ -1,6 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -68,7 +68,9 @@
 			 (arglist-close . c-lineup-arglist)
 			 (inline-open . 0)
 			 (brace-list-open . +)
-			 (brace-list-intro . c-lineup-arglist-intro-after-paren)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (topmost-intro-cont
 			  . (first c-lineup-topmost-intro-cont
 				   c-lineup-gnu-DEFUN-intro-cont))))
@@ -95,6 +97,9 @@
 			 (label . 0)
 			 (statement-cont . +)
 			 (inline-open . 0)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (inexpr-class . 0))))
 
     ("stroustrup"
@@ -104,6 +109,9 @@
 			 (substatement-open . 0)
 			 (substatement-label . 0)
 			 (label . 0)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (statement-cont . +))))
 
     ("whitesmith"
@@ -194,6 +202,9 @@
      (c-offsets-alist  . ((substatement-open . 0)
 			  (inextern-lang . 0)
 			  (arglist-intro . +)
+			  (brace-list-intro . (first
+					       c-lineup-2nd-brace-entry-in-arglist
+					       c-lineup-class-decl-init-+ +))
 			  (knr-argdecl-intro . +)))
      (c-hanging-braces-alist . ((brace-list-open)
 				(brace-list-intro)
@@ -219,6 +230,9 @@
 			 (statement-cont        . +)
 			 (arglist-intro  . c-lineup-arglist-intro-after-paren)
 			 (arglist-close  . c-lineup-arglist)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (access-label   . 0)
 			 (inher-cont     . c-lineup-java-inher)
 			 (func-decl-cont . c-lineup-java-throws))))

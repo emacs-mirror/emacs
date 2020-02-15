@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2018 Free Software Foundation, Inc.
+Copyright (C) 1992-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -187,7 +187,8 @@ enum token
   STATIC_CAST,			/* static_cast */
   TYPEID,			/* typeid */
   USING,			/* using */
-  WCHAR				/* wchar_t */
+  WCHAR,			/* wchar_t */
+  FINAL                         /* final */
 };
 
 /* Storage classes, in a wider sense.  */
@@ -305,19 +306,19 @@ struct sym
 #define P_DEFN	1
 #define P_DECL  2
 
-int info_where;
-struct sym *info_cls = NULL;
-struct member *info_member = NULL;
+static int info_where;
+static struct sym *info_cls = NULL;
+static struct member *info_member = NULL;
 
 /* Experimental.  For option `--position-info', the buffer position we
    are interested in.  When this position is reached, print out
    information about what we know about that point.  */
 
-int info_position = -1;
+static int info_position = -1;
 
 /* Command line options structure for getopt_long.  */
 
-struct option options[] =
+static struct option const options[] =
 {
   {"append", 			no_argument, 	   NULL, 'a'},
   {"files", 			required_argument, NULL, 'f'},
@@ -338,28 +339,28 @@ struct option options[] =
 
 /* Semantic values of tokens.  Set by yylex..  */
 
-unsigned yyival;		/* Set for token CINT.  */
-char *yytext;			/* Set for token IDENT.  */
-char *yytext_end;
+static unsigned yyival;		/* Set for token CINT.  */
+static char *yytext;		/* Set for token IDENT.  */
+static char *yytext_end;
 
 /* Output file.  */
 
-FILE *yyout;
+static FILE *yyout;
 
 /* Current line number.  */
 
-int yyline;
+static int yyline;
 
 /* The name of the current input file.  */
 
-const char *filename;
+static const char *filename;
 
 /* Three character class vectors, and macros to test membership
    of characters.  */
 
-char is_ident[255];
-char is_digit[255];
-char is_white[255];
+static char is_ident[255];
+static char is_digit[255];
+static char is_white[255];
 
 #define IDENTP(C)	is_ident[(unsigned char) (C)]
 #define DIGITP(C)	is_digit[(unsigned char) (C)]
@@ -367,25 +368,25 @@ char is_white[255];
 
 /* Command line flags.  */
 
-int f_append;
-int f_verbose;
-int f_very_verbose;
-int f_structs = 1;
-int f_regexps = 1;
-int f_nested_classes = 1;
+static int f_append;
+static int f_verbose;
+static int f_very_verbose;
+static int f_structs = 1;
+static int f_regexps = 1;
+static int f_nested_classes = 1;
 
 /* Maximum and minimum lengths of regular expressions matching a
    member, class etc., for writing them to the output file.  These are
    overridable from the command line.  */
 
-int min_regexp = 5;
-int max_regexp = 50;
+static int min_regexp = 5;
+static int max_regexp = 50;
 
 /* Input buffer.  */
 
-char *inbuffer;
-char *in;
-size_t inbuffer_size;
+static char *inbuffer;
+static char *in;
+static size_t inbuffer_size;
 
 /* Return the current buffer position in the input file.  */
 
@@ -395,7 +396,7 @@ size_t inbuffer_size;
    first character in the string constant.  Used for recognizing
    extern "C".  */
 
-char *string_start;
+static char *string_start;
 
 /* The size of the hash tables for classes.and members.  Should be
    prime.  */
@@ -404,40 +405,40 @@ char *string_start;
 
 /* The hash table for class symbols.  */
 
-struct sym *class_table[TABLE_SIZE];
+static struct sym *class_table[TABLE_SIZE];
 
 /* Hash table containing all member structures.  This is generally
    faster for member lookup than traversing the member lists of a
    `struct sym'.  */
 
-struct member *member_table[TABLE_SIZE];
+static struct member *member_table[TABLE_SIZE];
 
 /* Hash table for namespace aliases */
 
-struct alias *namespace_alias_table[TABLE_SIZE];
+static struct alias *namespace_alias_table[TABLE_SIZE];
 
 /* The special class symbol used to hold global functions,
    variables etc.  */
 
-struct sym *global_symbols;
+static struct sym *global_symbols;
 
 /* The current namespace.  */
 
-struct sym *current_namespace;
+static struct sym *current_namespace;
 
 /* The list of all known namespaces.  */
 
-struct sym *all_namespaces;
+static struct sym *all_namespaces;
 
 /* Stack of namespaces we're currently nested in, during the parse.  */
 
-struct sym **namespace_stack;
-int namespace_stack_size;
-int namespace_sp;
+static struct sym **namespace_stack;
+static int namespace_stack_size;
+static int namespace_sp;
 
 /* The current lookahead token.  */
 
-int tk = -1;
+static int tk = -1;
 
 /* Structure describing a keyword.  */
 
@@ -451,7 +452,7 @@ struct kw
 /* Keywords are lookup up in a hash table of their own.  */
 
 #define KEYWORD_TABLE_SIZE 1001
-struct kw *keyword_table[KEYWORD_TABLE_SIZE];
+static struct kw *keyword_table[KEYWORD_TABLE_SIZE];
 
 /* Search path.  */
 
@@ -461,8 +462,8 @@ struct search_path
   struct search_path *next;
 };
 
-struct search_path *search_path;
-struct search_path *search_path_tail;
+static struct search_path *search_path;
+static struct search_path *search_path_tail;
 
 /* Function prototypes.  */
 
@@ -471,7 +472,7 @@ static struct sym *add_sym (const char *, struct sym *);
 static void add_global_defn (char *, char *, int, unsigned, int, int, int);
 static void add_global_decl (char *, char *, int, unsigned, int, int, int);
 static struct member *add_member (struct sym *, char *, int, int, unsigned);
-static void class_definition (struct sym *, int, int, int);
+static void class_definition (struct sym *, const char *, int, int, int);
 static char *operator_name (int *);
 static void parse_qualified_param_ident_or_type (char **);
 
@@ -1131,9 +1132,9 @@ putstr (const char *s, FILE *fp)
 
 /* A dynamically allocated buffer for constructing a scope name.  */
 
-char *scope_buffer;
-int scope_buffer_size;
-int scope_buffer_len;
+static char *scope_buffer;
+static int scope_buffer_size;
+static int scope_buffer_len;
 
 
 /* Make sure scope_buffer has enough room to add LEN chars to it.  */
@@ -2035,6 +2036,7 @@ token_string (int t)
     case USING:			return "using";
     case WCHAR:			return "wchar_t";
     case YYEOF:                 return "EOF";
+    case FINAL:                 return "final";
 
     default:
       if (t < 255)
@@ -2140,6 +2142,7 @@ init_scanner (void)
   insert_keyword ("explicit", EXPLICIT);
   insert_keyword ("extern", EXTERN);
   insert_keyword ("false", FALSE);
+  insert_keyword ("final", FINAL);
   insert_keyword ("float", FLOAT);
   insert_keyword ("for", FOR);
   insert_keyword ("friend", FRIEND);
@@ -2501,9 +2504,9 @@ member (struct sym *cls, int vis)
   char *regexp = NULL;
   int pos;
   int is_constructor;
-  int anonymous = 0;
   int flags = 0;
   int class_tag;
+  char *class_name;
   int type_seen = 0;
   int paren_seen = 0;
   unsigned hash = 0;
@@ -2626,7 +2629,7 @@ member (struct sym *cls, int vis)
           class_tag = LA1;
           type_seen = 1;
           MATCH ();
-          anonymous = 1;
+          class_name = NULL;
 
           /* More than one ident here to allow for MS-DOS specialties
              like `_export class' etc.  The last IDENT seen counts
@@ -2634,14 +2637,33 @@ member (struct sym *cls, int vis)
 	  while (!LOOKING_AT4 (YYEOF, ';', ':', '{'))
 	    {
 	      if (LOOKING_AT (IDENT))
-		anonymous = 0;
-	      MATCH ();
+                {
+                  if (class_name)
+                    {
+                      int size = strlen (yytext);
+
+                      if(strlen (class_name) < size)
+                        {
+                          class_name = (char *) xrealloc(class_name, size + 1);
+                        }
+
+                      memcpy(class_name, yytext, size + 1);
+                    }
+                  else
+                    {
+                      class_name = xstrdup(yytext);
+                    }
+                }
+
+              MATCH ();
 	    }
 
           if (LOOKING_AT2 (':', '{'))
-	    class_definition (anonymous ? NULL : cls, class_tag, flags, 1);
+	    class_definition (class_name ? cls : NULL, class_name ? class_name : yytext, class_tag, flags, 1);
           else
             skip_to (';');
+
+          free(class_name);
           break;
 
         case INT:       case CHAR:      case LONG:      case UNSIGNED:
@@ -2997,7 +3019,7 @@ parse_qualified_param_ident_or_type (char **last_id)
    Current lookahead is the class name.  */
 
 static void
-class_definition (struct sym *containing, int tag, int flags, int nested)
+class_definition (struct sym *containing, const char *class_name, int tag, int flags, int nested)
 {
   struct sym *current;
   struct sym *base_class;
@@ -3009,7 +3031,7 @@ class_definition (struct sym *containing, int tag, int flags, int nested)
     current = NULL;
   else
     {
-      current = add_sym (yytext, containing);
+      current = add_sym (class_name, containing);
       current->pos = BUFFER_POS ();
       current->regexp = matching_regexp ();
       current->filename = filename;
@@ -3292,8 +3314,8 @@ declaration (int flags)
 static int
 globals (int start_flags)
 {
-  int anonymous;
   int class_tk;
+  char *class_name;
   int flags = start_flags;
 
   for (;;)
@@ -3362,7 +3384,7 @@ globals (int start_flags)
         case CLASS: case STRUCT: case UNION:
           class_tk = LA1;
           MATCH ();
-          anonymous = 1;
+          class_name = NULL;
 
           /* More than one ident here to allow for MS-DOS and OS/2
              specialties like `far', `_Export' etc.  Some C++ libs
@@ -3371,19 +3393,37 @@ globals (int start_flags)
 	  while (!LOOKING_AT4 (YYEOF, ';', ':', '{'))
 	    {
 	      if (LOOKING_AT (IDENT))
-		anonymous = 0;
+                {
+                  if (class_name)
+                    {
+                      int size = strlen (yytext);
+
+                      if(strlen (class_name) < size)
+                        {
+                          class_name = (char *) xrealloc(class_name, size + 1);
+                        }
+
+                      memcpy(class_name, yytext, size + 1);
+                    }
+                  else
+                    {
+                      class_name = xstrdup(yytext);
+                    }
+                }
+
 	      MATCH ();
 	    }
 
           /* Don't add anonymous unions.  */
-          if (LOOKING_AT2 (':', '{') && !anonymous)
-              class_definition (NULL, class_tk, flags, 0);
+          if (LOOKING_AT2 (':', '{') && class_name)
+            class_definition (NULL, class_name, class_tk, flags, 0);
           else
             {
               if (skip_to (';') == ';')
                 MATCH ();
             }
 
+          free(class_name);
           flags = start_flags;
           break;
 
@@ -3533,21 +3573,15 @@ usage (int error)
 }
 
 
-/* Display version and copyright info.  The VERSION macro is set
-   from config.h and contains the Emacs version.  */
-
-#ifndef VERSION
-# define VERSION "21"
-#endif
+/* Display version and copyright info.  */
 
 static _Noreturn void
 version (void)
 {
-  char emacs_copyright[] = COPYRIGHT;
-
-  printf ("ebrowse %s\n", VERSION);
-  puts (emacs_copyright);
-  puts ("This program is distributed under the same terms as Emacs.");
+  fputs (("ebrowse " PACKAGE_VERSION "\n"
+	  COPYRIGHT "\n"
+	  "This program is distributed under the same terms as Emacs.\n"),
+	 stdout);
   exit (EXIT_SUCCESS);
 }
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990--1993, 1999, 2001--2020 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Errors
@@ -43,13 +43,13 @@ The message is @samp{Quit}.  @xref{Quitting}.
 @item args-out-of-range
 The message is @samp{Args out of range}.  This happens when trying to
 access an element beyond the range of a sequence, buffer, or other
-container-like object.  @xref{Sequences Arrays Vectors}, and
-@xref{Text}.
+container-like object.  @xref{Sequences Arrays Vectors}, and see
+@ref{Text}.
 
 @item arith-error
 The message is @samp{Arithmetic error}.  This occurs when trying to
 perform integer division by zero.  @xref{Numeric Conversions}, and
-@xref{Arithmetic Operations}.
+see @ref{Arithmetic Operations}.
 
 @item beginning-of-buffer
 The message is @samp{Beginning of buffer}.  @xref{Character Motion}.
@@ -140,8 +140,10 @@ emacs, The GNU Emacs Manual}.
 The message is @samp{Invalid function}.  @xref{Function Indirection}.
 
 @item invalid-read-syntax
-The message is @samp{Invalid read syntax}.  @xref{Printed
-Representation}.
+The message is usually @samp{Invalid read syntax}.  @xref{Printed
+Representation}.  This error can also be raised by commands like
+@code{eval-expression} when there's text following an expression.  In
+that case, the message is @samp{Trailing garbage following expression}.
 
 @item invalid-regexp
 The message is @samp{Invalid regexp}.  @xref{Regular Expressions}.
@@ -161,6 +163,10 @@ The message is @samp{Attempt to modify a protected file}.
 
 @item range-error
 The message is @code{Arithmetic range error}.
+
+@item overflow-error
+The message is @samp{Arithmetic overflow error}.  This is a subcategory
+of @code{range-error}.
 This can happen with integers exceeding the @code{integer-width} limit.
 @xref{Integer Basics}.
 
@@ -170,7 +176,7 @@ syntax-parsing functions find invalid syntax or mismatched
 parentheses.  Conventionally raised with three argument: a
 human-readable error message, the start of the obstacle that cannot be
 moved over, and the end of the obstacle.  @xref{List Motion}, and
-@xref{Parsing Expressions}.
+see @ref{Parsing Expressions}.
 
 @item search-failed
 The message is @samp{Search failed}.  @xref{Searching and Matching}.
@@ -196,8 +202,8 @@ The message is the empty string.  @xref{Signaling Errors}.
 
 @item user-search-failed
 This is like @samp{search-failed}, but doesn't trigger the debugger,
-like @samp{user-error}.  @xref{Signaling Errors}, and @xref{Searching
-and Matching}.  This is used for searching in Info files, @xref{Search
+like @samp{user-error}.  @xref{Signaling Errors}, and see @ref{Searching
+and Matching}.  This is used for searching in Info files, see @ref{Search
 Text,,,info,Info}.
 
 @item void-function
@@ -213,6 +219,9 @@ The message is @samp{Wrong number of arguments}.  @xref{Argument List}.
 
 @item wrong-type-argument
 The message is @samp{Wrong type argument}.  @xref{Type Predicates}.
+
+@item unknown-image-type
+The message is @samp{Cannot determine image type}.  @xref{Images}.
 @end table
 
 @ignore    The following seem to be unused now.
@@ -223,10 +232,6 @@ mathematical functions.  @xref{Math Functions}.
 @table @code
 @item domain-error
 The message is @samp{Arithmetic domain error}.
-
-@item overflow-error
-The message is @samp{Arithmetic overflow error}.  This is a subcategory
-of @code{domain-error}.
 
 @item singularity-error
 The message is @samp{Arithmetic singularity error}.  This is a

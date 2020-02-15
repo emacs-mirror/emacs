@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,7 +123,7 @@ dynlib_sym (dynlib_handle_ptr h, const char *sym)
 }
 
 void
-dynlib_addr (void *addr, const char **fname, const char **symname)
+dynlib_addr (void (*funcptr) (void), const char **fname, const char **symname)
 {
   static char dll_filename[MAX_UTF8_PATH];
   static GetModuleHandleExA_Proc s_pfn_Get_Module_HandleExA = NULL;
@@ -132,6 +132,7 @@ dynlib_addr (void *addr, const char **fname, const char **symname)
   HMODULE hm_dll = NULL;
   wchar_t mfn_w[MAX_PATH];
   char mfn_a[MAX_PATH];
+  void *addr = (void *) funcptr;
 
   /* Step 1: Find the handle of the module where ADDR lives.  */
   if (os_subtype == OS_9X
@@ -279,11 +280,12 @@ dynlib_sym (dynlib_handle_ptr h, const char *sym)
 }
 
 void
-dynlib_addr (void *ptr, const char **path, const char **sym)
+dynlib_addr (void (*funcptr) (void), const char **path, const char **sym)
 {
   *path = NULL;
   *sym = NULL;
 #ifdef HAVE_DLADDR
+  void *ptr = (void *) funcptr;
   Dl_info info;
   if (dladdr (ptr, &info) && info.dli_fname && info.dli_sname)
     {

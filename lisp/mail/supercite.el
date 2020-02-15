@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -315,7 +315,7 @@ during the initial citing via `sc-cite-original'."
   :group 'supercite-hooks)
 
 (defcustom sc-mail-warn-if-non-rfc822-p t
-  "Warn if mail headers don't conform to RFC822."
+  "Warn if mail headers don't conform to RFC 822 (or later)."
   :type 'boolean
   :group 'supercite-attr)
 (defcustom sc-mumble ""
@@ -702,7 +702,11 @@ the list should be unique."
   "Regi frame for glomming mail header information.")
 (put 'sc-mail-glom-frame 'risky-local-variable t)
 
-(defvar curline)			; dynamic bondage
+;; This variable is bound dynamically before calling the forms in the
+;; `sc-mail-glom-frame' variable, and is part of the advertised
+;; interface.
+(with-suppressed-warnings ((lexical curline))
+  (defvar curline))
 
 ;; regi functions
 
@@ -738,10 +742,10 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
   nil)
 
 (defun sc-mail-error-in-mail-field ()
-  "Issue warning that mail headers don't conform to RFC 822."
+  "Issue warning that mail headers don't conform to email RFCs."
   (let* ((len (min (length curline) 10))
 	 (ellipsis (if (< len (length curline)) "..." ""))
-	 (msg "Mail header \"%s%s\" doesn't conform to RFC 822. skipping..."))
+	 (msg "Mail header \"%s%s\" doesn't conform to RFC 822 (or later). skipping..."))
     (message msg (substring curline 0 len) ellipsis))
   (beep)
   (sit-for 2)
@@ -1307,7 +1311,7 @@ use it instead of `sc-citation-root-regexp'."
 ;; filling
 (defun sc-fill-if-different (&optional prefix)
   "Fill the region bounded by `sc-fill-begin' and point.
-Only fill if optional PREFIX is different than `sc-fill-line-prefix'.
+Only fill if optional PREFIX is different from `sc-fill-line-prefix'.
 If `sc-auto-fill-region-p' is nil, do not fill region.  If PREFIX is
 not supplied, initialize fill variables.  This is useful for a regi
 `begin' frame-entry."
@@ -1457,7 +1461,7 @@ First runs `sc-pre-recite-hook'."
 ;; building headers
 
 (defun sc-hdr (prefix field &optional sep return-nil-p)
-  "Returns a concatenation of PREFIX and FIELD.
+  "Return a concatenation of PREFIX and FIELD.
 If FIELD is not a string or is the empty string, the empty string will
 be returned.  Optional third argument SEP is concatenated on the end if
 it is a string.  Returns empty string, unless optional RETURN-NIL-P is
@@ -1585,7 +1589,7 @@ Treats these fields in a similar manner to `sc-header-on-said'."
   "Current electric reference style.")
 
 (defun sc-valid-index-p (index)
-  "Returns INDEX if it is a valid index into `sc-rewrite-header-list'.
+  "Return INDEX if it is a valid index into `sc-rewrite-header-list'.
 Otherwise returns nil."
     ;; a number, and greater than or equal to zero
     ;; less than or equal to the last index
@@ -1749,7 +1753,7 @@ entered, regardless of the value of `sc-electric-references-p'.  See
 
 (defun sc-raw-mode-toggle ()
   "Toggle, in one fell swoop, two important SC variables:
-`sc-fixup-whitespace-p' and `sc-auto-fill-region-p'"
+`sc-fixup-whitespace-p' and `sc-auto-fill-region-p'."
   (interactive)
   (setq sc-fixup-whitespace-p (not sc-fixup-whitespace-p)
 	sc-auto-fill-region-p (not sc-auto-fill-region-p))

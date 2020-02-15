@@ -1,6 +1,6 @@
 ;;; semantic/db-javascript.el --- Semantic database extensions for javascript
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Joakim Verona
 

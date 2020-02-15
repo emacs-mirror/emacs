@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
 
 Author: Kevin Gallo
 	Benjamin Riefenstahl
@@ -803,7 +803,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   (void) ignored;
 
   /* Don't pass our own text from the clipboard (which might be
-     troublesome if the killed text includes null characters).  */
+     troublesome if the killed text includes NUL characters).  */
   if (!NILP (current_text))
     return ret;
 

@@ -53,23 +53,23 @@
   "Nested alist for OKURI-NASI entries of SKK dictionary.")
 
 (defconst skkdic-okurigana-table
-  '((?$B$!(B . ?a) (?$B$"(B . ?a) (?$B$#(B . ?i) (?$B$$(B . ?i) (?$B$%(B . ?u)
-    (?$B$&(B . ?u) (?$B$'(B . ?e) (?$B$((B . ?e) (?$B$)(B . ?o) (?$B$*(B . ?o)
-    (?$B$+(B . ?k) (?$B$,(B . ?g) (?$B$-(B . ?k) (?$B$.(B . ?g) (?$B$/(B . ?k)
-    (?$B$0(B . ?g) (?$B$1(B . ?k) (?$B$2(B . ?g) (?$B$3(B . ?k) (?$B$4(B . ?g)
-    (?$B$5(B . ?s) (?$B$6(B . ?z) (?$B$7(B . ?s) (?$B$8(B . ?j) (?$B$9(B . ?s)
-    (?$B$:(B . ?z) (?$B$;(B . ?s) (?$B$<(B . ?z) (?$B$=(B . ?s) (?$B$>(B . ?z)
-    (?$B$?(B . ?t) (?$B$@(B . ?d) (?$B$A(B . ?t) (?$B$B(B . ?d) (?$B$C(B . ?t)
-    (?$B$D(B . ?t) (?$B$E(B . ?d) (?$B$F(B . ?t) (?$B$G(B . ?d) (?$B$H(B . ?t) (?$B$I(B . ?d)
-    (?$B$J(B . ?n) (?$B$K(B . ?n) (?$B$L(B . ?n) (?$B$M(B . ?n) (?$B$N(B . ?n)
-    (?$B$O(B . ?h) (?$B$P(B . ?b) (?$B$Q(B . ?p) (?$B$R(B . ?h) (?$B$S(B . ?b)
-    (?$B$T(B . ?p) (?$B$U(B . ?h) (?$B$V(B . ?b) (?$B$W(B . ?p) (?$B$X(B . ?h)
-    (?$B$Y(B . ?b) (?$B$Z(B . ?p) (?$B$[(B . ?h) (?$B$\(B . ?b) (?$B$](B . ?p)
-    (?$B$^(B . ?m) (?$B$_(B . ?m) (?$B$`(B . ?m) (?$B$a(B . ?m) (?$B$b(B . ?m)
-    (?$B$c(B . ?y) (?$B$d(B . ?y) (?$B$e(B . ?y) (?$B$f(B . ?y) (?$B$g(B . ?y) (?$B$h(B . ?y)
-    (?$B$i(B . ?r) (?$B$j(B . ?r) (?$B$k(B . ?r) (?$B$l(B . ?r) (?$B$m(B . ?r)
-    (?$B$o(B . ?w) (?$B$p(B . ?w) (?$B$q(B . ?w) (?$B$r(B . ?w)
-    (?$B$s(B . ?n)
+  '((?ぁ . ?a) (?あ . ?a) (?ぃ . ?i) (?い . ?i) (?ぅ . ?u)
+    (?う . ?u) (?ぇ . ?e) (?え . ?e) (?ぉ . ?o) (?お . ?o)
+    (?か . ?k) (?が . ?g) (?き . ?k) (?ぎ . ?g) (?く . ?k)
+    (?ぐ . ?g) (?け . ?k) (?げ . ?g) (?こ . ?k) (?ご . ?g)
+    (?さ . ?s) (?ざ . ?z) (?し . ?s) (?じ . ?j) (?す . ?s)
+    (?ず . ?z) (?せ . ?s) (?ぜ . ?z) (?そ . ?s) (?ぞ . ?z)
+    (?た . ?t) (?だ . ?d) (?ち . ?t) (?ぢ . ?d) (?っ . ?t)
+    (?つ . ?t) (?づ . ?d) (?て . ?t) (?で . ?d) (?と . ?t) (?ど . ?d)
+    (?な . ?n) (?に . ?n) (?ぬ . ?n) (?ね . ?n) (?の . ?n)
+    (?は . ?h) (?ば . ?b) (?ぱ . ?p) (?ひ . ?h) (?び . ?b)
+    (?ぴ . ?p) (?ふ . ?h) (?ぶ . ?b) (?ぷ . ?p) (?へ . ?h)
+    (?べ . ?b) (?ぺ . ?p) (?ほ . ?h) (?ぼ . ?b) (?ぽ . ?p)
+    (?ま . ?m) (?み . ?m) (?む . ?m) (?め . ?m) (?も . ?m)
+    (?ゃ . ?y) (?や . ?y) (?ゅ . ?y) (?ゆ . ?y) (?ょ . ?y) (?よ . ?y)
+    (?ら . ?r) (?り . ?r) (?る . ?r) (?れ . ?r) (?ろ . ?r)
+    (?わ . ?w) (?ゐ . ?w) (?ゑ . ?w) (?を . ?w)
+    (?ん . ?n)
     )
   "Alist of Okuriganas vs trailing ASCII letters in OKURI-ARI entry.")
 
@@ -125,14 +125,14 @@ LEIM is available from the same ftp directory as Emacs.")))
     ;; At first, generate vector VEC from SEQ for looking up SKK
     ;; alists.  Nth element in VEC corresponds to Nth element in SEQ.
     ;; The values are decided as follows.
-    ;;   If SEQ[N] is `$B!<(B', VEC[N] is 0,
+    ;;   If SEQ[N] is `ー', VEC[N] is 0,
     ;;   else if SEQ[N] is a Hiragana character, VEC[N] is:
     ;;     ((The 2nd position code of SEQ[N]) - 32),
     ;;   else VEC[N] is 128.
     (while (< i len)
       (let ((ch (aref seq i))
 	    code)
-	(cond ((= ch ?$B!<(B)
+	(cond ((= ch ?ー)
 	       (aset vec i 0))
 	      ((and (>= ch (car skkdic-jisx0208-hiragana-block))
 		    (<= ch (cdr skkdic-jisx0208-hiragana-block)))
@@ -218,9 +218,4 @@ LEIM is available from the same ftp directory as Emacs.")))
 
 ;;
 (provide 'ja-dic-utl)
-
-;; Local Variables:
-;; coding: iso-2022-7bit
-;; End:
-
 ;;; ja-dic-utl.el ends here

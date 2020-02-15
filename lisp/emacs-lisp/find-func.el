@@ -1,9 +1,8 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
-;; Maintainer: petersen@kurims.kyoto-u.ac.jp
 ;; Keywords: emacs-lisp, functions, variables
 ;; Created: 97/07/25
 
@@ -286,10 +285,19 @@ Interactively, prompt for LIBRARY using the one at or near point."
 A library name is the filename of an Emacs Lisp library located
 in a directory under `load-path' (or `find-function-source-path',
 if non-nil)."
-  (let* ((dirs (or find-function-source-path load-path))
-         (suffixes (find-library-suffixes))
-         (table (apply-partially 'locate-file-completion-table
-                                 dirs suffixes))
+  (let* ((suffix-regexp (mapconcat
+                         (lambda (suffix)
+                           (concat (regexp-quote suffix) "\\'"))
+                         (find-library-suffixes)
+                         "\\|"))
+         (table (cl-loop for dir in (or find-function-source-path load-path)
+                         when (file-readable-p dir)
+                         append (mapcar
+                                 (lambda (file)
+                                   (replace-regexp-in-string suffix-regexp
+                                                             "" file))
+                                 (directory-files dir nil
+                                                  suffix-regexp))))
          (def (if (eq (function-called-at-point) 'require)
                   ;; `function-called-at-point' may return 'require
                   ;; with `point' anywhere on this line.  So wrap the

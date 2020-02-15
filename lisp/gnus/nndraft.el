@@ -1,6 +1,6 @@
 ;;; nndraft.el --- draft article access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -147,10 +147,10 @@ are generated if and only if they are also in `message-draft-headers'."
 
 (deffoo nndraft-request-update-info (group info &optional server)
   (nndraft-possibly-change-group group)
-  (gnus-info-set-read
-   info
-   (gnus-update-read-articles (gnus-group-prefixed-name group '(nndraft ""))
-			      (nndraft-articles) t))
+  (setf (gnus-info-read info)
+	(gnus-update-read-articles
+	 (gnus-group-prefixed-name group '(nndraft ""))
+	 (nndraft-articles) t))
   (let ((marks (nth 3 info)))
     (when marks
       ;; Nix out all marks except the `unsend'-able article marks.
@@ -231,7 +231,7 @@ are generated if and only if they are also in `message-draft-headers'."
 (deffoo nndraft-request-move-article (article group server accept-form
 				      &optional last move-is-internal)
   (nndraft-possibly-change-group group)
-  (let ((buf (get-buffer-create " *nndraft move*"))
+  (let ((buf (gnus-get-buffer-create " *nndraft move*"))
 	result)
     (and
      (nndraft-request-article article group server)
@@ -325,7 +325,7 @@ are generated if and only if they are also in `message-draft-headers'."
   (save-excursion
     (prog1
 	(progn
-	  (set-buffer (get-buffer-create " *draft tmp*"))
+	  (set-buffer (gnus-get-buffer-create " *draft tmp*"))
 	  (setq buffer-file-name file)
 	  (make-auto-save-file-name))
       (kill-buffer (current-buffer)))))

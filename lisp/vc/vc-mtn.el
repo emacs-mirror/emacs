@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -190,8 +190,8 @@ switches."
                 (setq branch (replace-match (cdr rule) t nil branch))))
           (format "Mtn%c%s"
                   (pcase (vc-state file)
-                    ((or `up-to-date `needs-update) ?-)
-                    (`added ?@)
+                    ((or 'up-to-date 'needs-update) ?-)
+                    ('added ?@)
                     (_ ?:))
                   branch))
       "")))
@@ -240,7 +240,7 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (define-derived-mode vc-mtn-log-view-mode log-view-mode "Mtn-Log-View"
   ;; Don't match anything.
-  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
+  (set (make-local-variable 'log-view-file-re) regexp-unmatchable)
   (set (make-local-variable 'log-view-per-file-logs) nil)
   ;; TODO: Use a more precise regexp than "[ |/]+" to avoid false positives
   ;; in the ChangeLog text.

@@ -1,5 +1,5 @@
 /* System thread definitions
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,12 +21,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
 
-#ifndef __has_attribute
-# define __has_attribute(a) false
-#endif
-
-#if __has_attribute (__warn_unused_result__)
-# define ATTRIBUTE_WARN_UNUSED_RESULT __attribute__ ((__warn_unused_result__))
+#if __has_attribute (warn_unused_result)
+# define ATTRIBUTE_WARN_UNUSED_RESULT __attribute__ ((warn_unused_result))
 #else
 # define ATTRIBUTE_WARN_UNUSED_RESULT
 #endif
@@ -116,10 +112,11 @@ extern sys_thread_t sys_thread_self (void)
 extern bool sys_thread_equal (sys_thread_t, sys_thread_t)
   ATTRIBUTE_WARN_UNUSED_RESULT;
 
-extern bool sys_thread_create (sys_thread_t *, const char *,
-                               thread_creation_function *, void *)
+extern bool sys_thread_create (sys_thread_t *, thread_creation_function *,
+                               void *)
   ATTRIBUTE_WARN_UNUSED_RESULT;
 
 extern void sys_thread_yield (void);
+extern void sys_thread_set_name (const char *);
 
 #endif /* SYSTHREAD_H */

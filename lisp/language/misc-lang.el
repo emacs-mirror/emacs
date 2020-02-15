@@ -101,8 +101,8 @@ thin (i.e. 1-dot width) space."
 ;; Record error in arabic-change-gstring.
 (defvar arabic-shape-log nil)
 
-(defun arabic-shape-gstring (gstring)
-  (setq gstring (font-shape-gstring gstring))
+(defun arabic-shape-gstring (gstring direction)
+  (setq gstring (font-shape-gstring gstring direction))
   (condition-case err
       (when arabic-shaper-ZWNJ-handling
         (let ((font (lgstring-font gstring))

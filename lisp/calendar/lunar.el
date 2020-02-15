@@ -1,10 +1,10 @@
 ;;; lunar.el --- calendar functions for phases of the moon
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2018 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: moon, lunar phases, calendar, diary
 ;; Package: calendar
@@ -91,6 +91,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                        (* -0.0016528 time time)
                        (* -0.00000239 time time time))
                     360.0))
+	 (eclipse (eclipse-check moon-lat phase))
          (adjustment
           (if (memq phase '(0 2))
               (+ (* (- 0.1734 (* 0.000393 time))
@@ -146,7 +147,26 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (time (* 24 (- date (truncate date))))
          (date (calendar-gregorian-from-absolute (truncate date)))
          (adj (dst-adjust-time date time)))
-    (list (car adj) (apply 'solar-time-string (cdr adj)) phase)))
+    (list (car adj) (apply 'solar-time-string (cdr adj)) phase eclipse)))
+
+;; from "Astronomy with your Personal Computer", Subroutine Eclipse
+;; Line 7000 Peter Duffett-Smith Cambridge University Press 1990
+(defun eclipse-check (moon-lat phase)
+  (let* ((moon-lat (* (/ float-pi 180) moon-lat))
+         (moon-lat (abs (- moon-lat (* (floor (/ moon-lat float-pi))
+                                       float-pi))))
+         (moon-lat (if (> moon-lat 0.37)
+                       (- float-pi moon-lat)
+                     moon-lat))
+         (phase-name (cond ((= phase 0) "Solar")
+                           ((= phase 2) "Lunar")
+                           (t ""))))
+    (cond ((< moon-lat 2.42600766e-1)
+	   (concat "** " phase-name " Eclipse **"))
+	  ((< moon-lat 0.37)
+	   (concat "** " phase-name " Eclipse possible **"))
+	  (t
+	   ""))))
 
 (defconst lunar-cycles-per-year 12.3685 ; 365.25/29.530588853
   "Mean number of lunar cycles per 365.25 day year.")
@@ -222,9 +242,10 @@ use instead of point."
         (insert
          (mapconcat
           (lambda (x)
-            (format "%s: %s %s" (calendar-date-string (car x))
+            (format "%s: %s %s %s" (calendar-date-string (car x))
                     (lunar-phase-name (nth 2 x))
-                    (cadr x)))
+                    (cadr x)
+		    (car (last x))))
           (lunar-phase-list m1 y1) "\n")))
       (message "Computing phases of the moon...done"))))
 
@@ -241,9 +262,12 @@ This function is suitable for execution in an init file."
            (displayed-year (calendar-extract-year date)))
       (calendar-lunar-phases))))
 
-(defvar date)
-
-;; To be called from diary-list-sexp-entries, where DATE is bound.
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
 ;;;###diary-autoload
 (defun diary-lunar-phases (&optional mark)

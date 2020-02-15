@@ -1,6 +1,6 @@
 ;;; custom-tests.el --- tests for custom.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,10 @@
 ;;; Code:
 
 (require 'ert)
+
+(require 'wid-edit)
+(require 'cus-edit)
+(require 'seq) ; For `seq-find'.
 
 (ert-deftest custom-theme--load-path ()
   "Test `custom-theme--load-path' behavior."
@@ -83,5 +87,68 @@
               (should (equal (custom-theme--load-path) (list themedir))))))
       (when (file-directory-p tmpdir)
         (delete-directory tmpdir t)))))
+
+(defcustom custom--test-user-option 'foo
+  "User option for test."
+  :group 'emacs
+  :type 'symbol)
+
+(defvar custom--test-variable 'foo
+  "Variable for test.")
+
+;; This is demonstrating bug#34027.
+(ert-deftest custom--test-theme-variables ()
+  "Test variables setting with enabling / disabling a custom theme."
+  :expected-result :failed
+  ;; We load custom-resources/custom--test-theme.el.
+  (let ((custom-theme-load-path
+         `(,(expand-file-name "custom-resources" (file-name-directory #$)))))
+    (load-theme 'custom--test 'no-confirm 'no-enable)
+    ;; The variables have still their initial values.
+    (should (equal custom--test-user-option 'foo))
+    (should (equal custom--test-variable 'foo))
+
+    (custom-set-variables
+     '(custom--test-user-option 'baz)
+     '(custom--test-variable 'baz))
+    ;; The initial values have been changed.
+    (should (equal custom--test-user-option 'baz))
+    (should (equal custom--test-variable 'baz))
+
+    (enable-theme 'custom--test)
+    ;; The variables have the theme values.
+    (should (equal custom--test-user-option 'bar))
+    (should (equal custom--test-variable 'bar))
+
+    (disable-theme 'custom--test)
+    ;; The variables should have the changed values, by reverting.
+    ;; This doesn't work as expected.  Instead, they have their
+    ;; initial values `foo'.
+    (should (equal custom--test-user-option 'baz))
+    (should (equal custom--test-variable 'baz))))
+
+;; This tests Bug#5358.
+(ert-deftest custom-test-show-comment-preserves-changes ()
+  "Test that adding a comment doesn't discard modifications in progress."
+  (customize-option 'custom--test-user-option)
+  (let* ((field (seq-find (lambda (widget)
+                            (eq custom--test-user-option (widget-value widget)))
+                          widget-field-list))
+         (parent (widget-get field :parent))
+	 (origvalue (widget-value field)))
+    ;; Move to the end of the text of the widget, and modify it.  This
+    ;; modification should be preserved after showing the comment field.
+    (goto-char (widget-field-text-end field))
+    (insert "bar")
+    (custom-comment-show parent)
+    ;; From now on, must use `widget-at' to get the value of the widget.
+    (should-not (eq origvalue (widget-value (widget-at))))
+    (should (eq (widget-get parent :custom-state) 'modified))
+    (should (eq (widget-value (widget-at))
+                (widget-apply field
+                              :value-to-external
+                              (concat
+                               (widget-apply field :value-to-internal origvalue)
+                               "bar"))))))
 
 ;;; custom-tests.el ends here

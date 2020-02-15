@@ -1,8 +1,8 @@
 ;;; ede/shell.el --- A shell controlled by EDE.
 ;;
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 ;;
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 COMMAND is a text string representing the thing to be run."
   (let* ((buff (ede-shell-buffer target))
 	 (cp (ede-target-parent target))
-	 (dd (oref cp :directory)))
+	 (dd (oref cp directory)))
     ;; Show the new buffer.
     (when (not (get-buffer-window buff))
       (switch-to-buffer-other-window buff t))

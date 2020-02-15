@@ -1,6 +1,6 @@
 ;;; esh-module.el --- Eshell modules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2000, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -22,9 +22,6 @@
 
 ;;; Code:
 
-(provide 'esh-module)
-
-(require 'eshell)
 (require 'esh-util)
 
 (defgroup eshell-module nil
@@ -101,4 +98,5 @@ customization group.  Example: `eshell-cmpl' for that module."
 	  (unload-feature module)
 	  (message "Unloading %s...done" (symbol-name module))))))
 
+(provide 'esh-module)
 ;;; esh-module.el ends here

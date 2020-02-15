@@ -1,9 +1,8 @@
 ;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -144,7 +143,7 @@ introduced in Emacs 22."
     `(face-background ,face ,frame ,inherit)))
 
 (defun-mh mh-font-lock-add-keywords font-lock-add-keywords
-  (mode keywords &optional how)
+  (_mode _keywords &optional _how)
   "XEmacs does not have `font-lock-add-keywords'.
 This function returns nil on that system.")
 
@@ -244,7 +243,7 @@ compatibility with versions of Emacs that lack the variable
            (delete image-directory (copy-sequence (or path load-path))))))
 
 (defun-mh mh-image-search-load-path
-  image-search-load-path (file &optional path)
+  image-search-load-path (_file &optional _path)
   "Emacs 21 and XEmacs don't have `image-search-load-path'.
 This function returns nil on those systems."
   nil)
@@ -293,7 +292,7 @@ introduced in Emacs 24."
       `(make-obsolete-variable ,obsolete-name ,current-name ,when ,access-type))))
 
 (defun-mh mh-match-string-no-properties
-  match-string-no-properties (num &optional string)
+  match-string-no-properties (num &optional _string)
   "Return string of text matched by last search, without text properties.
 This function is used by XEmacs that lacks `match-string-no-properties'.
 The function `buffer-substring-no-properties' is used instead.
@@ -302,7 +301,7 @@ The argument STRING is ignored."
    (match-beginning num) (match-end num)))
 
 (defun-mh mh-replace-regexp-in-string replace-regexp-in-string
-  (regexp rep string &optional fixedcase literal subexp start)
+  (regexp rep string &optional _fixedcase literal _subexp _start)
   "Replace REGEXP with REP everywhere in STRING and return result.
 This function is used by XEmacs that lacks `replace-regexp-in-string'.
 The function `replace-in-string' is used instead.
@@ -312,7 +311,7 @@ The arguments FIXEDCASE, SUBEXP, and START, used by
       (replace-in-string string regexp rep literal)))
 
 (defun-mh mh-test-completion
-  test-completion (string collection &optional predicate)
+  test-completion (_string _collection &optional _predicate)
   "Return non-nil if STRING is a valid completion.
 XEmacs does not have `test-completion'. This function returns nil
 on that system." nil)
@@ -353,7 +352,7 @@ The arguments RETURN-TO and EXIT-ACTION are ignored."
   (view-mode 1))
 
 (defun-mh mh-window-full-height-p
-  window-full-height-p (&optional WINDOW)
+  window-full-height-p (&optional _window)
   "Return non-nil if WINDOW is not the result of a vertical split.
 This function is defined in XEmacs as it lacks
 `window-full-height-p'. The values of the functions

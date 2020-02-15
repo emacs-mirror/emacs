@@ -1,6 +1,6 @@
 ;;; mail-source.el --- functions for fetching mail
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -31,7 +31,6 @@
 (autoload 'auth-source-search "auth-source")
 (autoload 'pop3-movemail "pop3")
 (autoload 'pop3-get-message-count "pop3")
-(autoload 'nnheader-cancel-timer "nnheader")
 (require 'mm-util)
 (require 'message) ;; for `message-directory'
 
@@ -287,7 +286,7 @@ number."
   :type 'boolean)
 
 (defcustom mail-source-incoming-file-prefix "Incoming"
-  "Prefix for file name for storing incoming mail"
+  "Prefix for file name for storing incoming mail."
   :group 'mail-source
   :type 'string)
 
@@ -647,9 +646,9 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	  ;; Don't check for old incoming files more than once per day to
 	  ;; save a lot of file accesses.
 	  (when (or (null mail-source-incoming-last-checked-time)
-		    (> (float-time
-			(time-since mail-source-incoming-last-checked-time))
-		       (* 24 60 60)))
+		    (time-less-p
+		     (* 24 60 60)
+		     (time-since mail-source-incoming-last-checked-time)))
 	    (setq mail-source-incoming-last-checked-time (current-time))
 	    (mail-source-delete-old-incoming
 	     mail-source-delete-incoming
@@ -723,8 +722,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 				   (buffer-string) result))
 		    (error "%s" (buffer-string)))
 		  (setq to nil)))))))
-      (when (and errors
-		 (buffer-name errors))
+      (when (buffer-live-p errors)
 	(kill-buffer errors))
       ;; Return whether we moved successfully or not.
       to)))
@@ -742,9 +740,11 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
   (when delay
     (sleep-for delay)))
 
+(declare-function gnus-get-buffer-create "gnus" (name))
 (defun mail-source-call-script (script)
+  (require 'gnus)
   (let ((background nil)
-	(stderr (get-buffer-create " *mail-source-stderr*"))
+	(stderr (gnus-get-buffer-create " *mail-source-stderr*"))
 	result)
     (when (string-match "& *$" script)
       (setq script (substring script 0 (match-beginning 0))
@@ -989,9 +989,9 @@ This only works when `display-time' is enabled."
 	      (> (prefix-numeric-value arg) 0))))
     (setq mail-source-report-new-mail on)
     (and mail-source-report-new-mail-timer
-	 (nnheader-cancel-timer mail-source-report-new-mail-timer))
+	 (cancel-timer mail-source-report-new-mail-timer))
     (and mail-source-report-new-mail-idle-timer
-	 (nnheader-cancel-timer mail-source-report-new-mail-idle-timer))
+	 (cancel-timer mail-source-report-new-mail-idle-timer))
     (setq mail-source-report-new-mail-timer nil)
     (setq mail-source-report-new-mail-idle-timer nil)
     (if on

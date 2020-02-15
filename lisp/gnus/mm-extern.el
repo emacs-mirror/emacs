@@ -1,6 +1,6 @@
 ;;; mm-extern.el --- showing message/external-body  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: message external-body
@@ -144,7 +144,7 @@
   "Show the external-body part of HANDLE.
 This function replaces the buffer of HANDLE with a buffer contains
 the entire message.
-If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
+If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
   (unless (mm-handle-cache handle)
     (mm-extern-cache-contents handle))
   (unless no-display

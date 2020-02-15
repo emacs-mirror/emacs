@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -109,6 +109,10 @@ parentheses, or if the junction follows another newline.
 
 If there is a fill prefix, @kbd{M-^} deletes the fill prefix if it
 appears after the newline that is deleted.  @xref{Fill Prefix}.
+
+With a prefix argument, join the current line to the following line.
+If the region is active, and no prefix argument is given, join all
+lines in the region instead.
 
 @item C-M-\
 @kindex C-M-\

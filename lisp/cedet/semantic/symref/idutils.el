@@ -1,8 +1,8 @@
 ;;; semantic/symref/idutils.el --- Symref implementation for idutils
 
-;;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -40,14 +40,11 @@ See the function `cedet-idutils-search' for more details.")
 
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-idutils))
   "Perform a search with IDUtils."
-  (let ((b (cedet-idutils-search (oref tool :searchfor)
-				 (oref tool :searchtype)
-				 (oref tool :resulttype)
-				 (oref tool :searchscope)
-				 ))
-	)
-    (semantic-symref-parse-tool-output tool b)
-    ))
+  (let ((b (cedet-idutils-search (oref tool searchfor)
+				 (oref tool searchtype)
+				 (oref tool resulttype)
+				 (oref tool searchscope))))
+    (semantic-symref-parse-tool-output tool b)))
 
 (defconst semantic-symref-idutils--line-re
   "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):")
@@ -55,14 +52,14 @@ See the function `cedet-idutils-search' for more details.")
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-idutils))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
-  (cond ((eq (oref tool :resulttype) 'file)
+  (cond ((eq (oref tool resulttype) 'file)
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
-	((eq (oref tool :searchtype) 'tagcompletions)
+	((eq (oref tool searchtype) 'tagcompletions)
 	 (when (re-search-forward "^\\([^ ]+\\) " nil t)
 	   (match-string 1)))
-        ((eq (oref tool :resulttype) 'line-and-text)
+        ((eq (oref tool resulttype) 'line-and-text)
          (when (re-search-forward semantic-symref-idutils--line-re nil t)
 	   (list (string-to-number (match-string 2))
                  (expand-file-name (match-string 1) default-directory)

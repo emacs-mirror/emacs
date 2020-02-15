@@ -1,6 +1,6 @@
 ;;; rng-valid.el --- real-time validation of XML using RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -106,34 +106,29 @@
   :group 'languages)
 
 (defface rng-error '((t (:inherit font-lock-warning-face)))
-  "Face for highlighting XML errors."
-  :group 'relax-ng)
+  "Face for highlighting XML errors.")
 
 (defcustom rng-state-cache-distance 2000
   "Distance in characters between each parsing and validation state cache."
-  :type 'integer
-  :group 'relax-ng)
+  :type 'integer)
 
 (defcustom rng-validate-chunk-size 8000
   "Number of characters in a RELAX NG validation chunk.
 A validation chunk will be the smallest chunk that is at least this
 size and ends with a tag.  After validating a chunk, validation will
 continue only if Emacs is still idle."
-  :type 'integer
-  :group 'relax-ng)
+  :type 'integer)
 
 (defcustom rng-validate-delay 1.5
   "Time in seconds that Emacs must be idle before starting a full validation.
 A full validation continues until either validation is up to date
 or Emacs is no longer idle."
-  :type 'number
-  :group 'relax-ng)
+  :type 'number)
 
 (defcustom rng-validate-quick-delay 0.3
   "Time in seconds that Emacs must be idle before starting a quick validation.
 A quick validation validates at most one chunk."
-  :type 'number
-  :group 'relax-ng)
+  :type 'number)
 
 ;; Global variables
 
@@ -208,14 +203,11 @@ See the variable `rng-conditional-up-to-date-start'.")
   "Non-nil means we are currently parsing just to compute the state.
 Should be dynamically bound.")
 
-(defvar rng-validate-mode nil)
-(make-variable-buffer-local 'rng-validate-mode)
-
 (defvar rng-dtd nil)
 (make-variable-buffer-local 'rng-dtd)
 
 ;;;###autoload
-(defun rng-validate-mode (&optional arg no-change-schema)
+(define-minor-mode rng-validate-mode
   "Minor mode performing continual validation against a RELAX NG schema.
 
 Checks whether the buffer is a well-formed XML 1.0 document,
@@ -237,11 +229,7 @@ be a RELAX NG schema using the compact schema \(such schemas
 conventionally have a suffix of `.rnc').  The variable
 `rng-schema-locating-files' specifies files containing rules
 to use for finding the schema."
-  (interactive "P")
-  (setq rng-validate-mode
-	(if (null arg)
-	    (not rng-validate-mode)
-	  (> (prefix-numeric-value arg) 0)))
+  :global nil
   (save-restriction
     (widen)
     (with-silent-modifications
@@ -252,21 +240,20 @@ to use for finding the schema."
   (rng-clear-conditional-region)
   (setq rng-error-count 0)
   ;; do this here to avoid infinite loop if we set the schema
-  (remove-hook 'rng-schema-change-hook 'rng-validate-clear t)
+  (remove-hook 'rng-schema-change-hook #'rng-validate-clear t)
   (cond (rng-validate-mode
 	 (unwind-protect
 	     (save-excursion
 	       ;; An error can change the current buffer
 	       (when (or (not rng-current-schema)
-			 (and (eq rng-current-schema rng-any-element)
-			      (not no-change-schema)))
+			 (eq rng-current-schema rng-any-element))
 		 (rng-auto-set-schema t)))
 	   (unless rng-current-schema (rng-set-schema-file-1 nil))
-	   (add-hook 'rng-schema-change-hook 'rng-validate-clear nil t)
-	   (add-hook 'after-change-functions 'rng-after-change-function nil t)
-	   (add-hook 'kill-buffer-hook 'rng-kill-timers nil t)
-	   (add-hook 'echo-area-clear-hook 'rng-echo-area-clear-function nil t)
-	   (add-hook 'post-command-hook 'rng-maybe-echo-error-at-point nil t)
+	   (add-hook 'rng-schema-change-hook #'rng-validate-clear nil t)
+	   (add-hook 'after-change-functions #'rng-after-change-function nil t)
+	   (add-hook 'kill-buffer-hook #'rng-kill-timers nil t)
+	   (add-hook 'echo-area-clear-hook #'rng-echo-area-clear-function nil t)
+	   (add-hook 'post-command-hook #'rng-maybe-echo-error-at-point nil t)
 	   (rng-match-init-buffer)
 	   (rng-activate-timers)
 	   ;; Start validating right away if the buffer is visible.
@@ -278,11 +265,10 @@ to use for finding the schema."
 	     (rng-validate-while-idle (current-buffer)))))
 	(t
 	 (rng-cancel-timers)
-	 (force-mode-line-update)
-	 (remove-hook 'kill-buffer-hook 'rng-cancel-timers t)
-	 (remove-hook 'post-command-hook 'rng-maybe-echo-error-at-point t)
-	 (remove-hook 'echo-area-clear-hook 'rng-echo-area-clear-function t)
-	 (remove-hook 'after-change-functions 'rng-after-change-function t))))
+	 (remove-hook 'kill-buffer-hook #'rng-cancel-timers t)
+	 (remove-hook 'post-command-hook #'rng-maybe-echo-error-at-point t)
+	 (remove-hook 'echo-area-clear-hook #'rng-echo-area-clear-function t)
+	 (remove-hook 'after-change-functions #'rng-after-change-function t))))
 
 (defun rng-set-schema-file-and-validate (filename)
   "Sets the schema and turns on `rng-validate-mode' if not already on.
@@ -389,16 +375,20 @@ The schema is set like `rng-auto-set-schema'."
       (setq rng-validate-timer
 	    (run-with-idle-timer rng-validate-delay
 				 t
-				 'rng-validate-while-idle
+				 #'rng-validate-while-idle
 				 (current-buffer)))
       (setq rng-validate-quick-timer
 	    (run-with-idle-timer rng-validate-quick-delay
 				 t
-				 'rng-validate-quick-while-idle
+				 #'rng-validate-quick-while-idle
 				 (current-buffer))))))
 
 (defun rng-validate-clear ()
-  (rng-validate-mode 1 t))
+  (if (eq rng-current-schema rng-any-element)
+      ;; Prevent rng-validate-mode from trying to find another schema.
+      (let ((rng-current-schema (copy-sequence rng-current-schema)))
+        (rng-validate-mode))
+    (rng-validate-mode)))
 
 ;; These two variables are dynamically bound and used
 ;; to pass information between rng-validate-while-idle
@@ -432,7 +422,7 @@ The schema is set like `rng-auto-set-schema'."
       (if rng-validate-mode
           (if (let ((rng-validate-display-point (point))
                     (rng-validate-display-modified-p (buffer-modified-p)))
-                (rng-do-some-validation 'rng-validate-while-idle-continue-p))
+                (rng-do-some-validation #'rng-validate-while-idle-continue-p))
               (force-mode-line-update)
             (rng-validate-done))
         ;; Must have done kill-all-local-variables.
@@ -1109,7 +1099,7 @@ as empty-element."
 
 (defun rng-mark-start-tag-close (&rest args)
   (when (not (eq xmltok-type 'partial-start-tag))
-    (rng-mark-invalid (apply 'format args)
+    (rng-mark-invalid (apply #'format args)
 		      (- (point)
 			 (if (eq xmltok-type 'empty-element)
 			     2
@@ -1285,19 +1275,19 @@ as empty-element."
 	  ((memq nil contents) nil)
 	  ((not (cdr contents))
 	   (rng-segment-string (car contents)))
-	  (t (apply 'concat
-		    (nreverse (mapcar 'rng-segment-string
+	  (t (apply #'concat
+		    (nreverse (mapcar #'rng-segment-string
 				      contents)))))))
 
 (defun rng-segment-string (segment)
   (or (car segment)
-      (apply 'buffer-substring-no-properties
+      (apply #'buffer-substring-no-properties
 	     (cdr segment))))
 
 (defun rng-segment-blank-p (segment)
   (if (car segment)
       (rng-blank-p (car segment))
-    (apply 'rng-region-blank-p
+    (apply #'rng-region-blank-p
 	   (cdr segment))))
 
 (defun rng-contents-region ()

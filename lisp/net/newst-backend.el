@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -37,6 +37,7 @@
 (require 'derived)
 (require 'xml)
 (require 'url-parse)
+(require 'iso8601)
 
 ;; Silence warnings
 (defvar w3-mode-map)
@@ -166,11 +167,11 @@ value effective."
     nil
     3600))
   "A customizable list of news feeds to select from.
-These were mostly extracted from the Radio Community Server at
-http://subhonker6.userland.com/rcsPublic/rssHotlist.
+These were mostly extracted from the Radio Community Server
+<http://rcs.userland.com/>.
 
 You may add other entries in `newsticker-url-list'."
-  :type `(set ,@(mapcar `newsticker--splicer
+  :type `(set ,@(mapcar #'newsticker--splicer
                         newsticker--raw-url-list-defaults))
   :set 'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
@@ -362,7 +363,7 @@ description are marked as immortal."
                                (const :tag "Title" title)
                                (const :tag "Description" description)
                                (const :tag "All" all))
-                              (string :tag "Regexp")))))
+                              (regexp :tag "Regexp")))))
   :group 'newsticker-headline-processing)
 
 ;; ======================================================================
@@ -433,40 +434,6 @@ If set to t newsticker.el will print lots of debugging messages, and the
 buffers *newsticker-wget-<feed>* will not be closed."
   :type 'boolean
   :group 'newsticker-miscellaneous)
-
-;; ======================================================================
-;;; Compatibility section, XEmacs, Emacs
-;; ======================================================================
-
-;; FIXME It is bad practice to define compat functions with such generic names.
-
-(unless (fboundp 'match-string-no-properties)
-  (defalias 'match-string-no-properties 'match-string))
-
-(when (featurep 'xemacs)
-  (unless (fboundp 'replace-regexp-in-string)
-    (defun replace-regexp-in-string (re rp st)
-      (save-match-data ;; apparently XEmacs needs save-match-data
-	(replace-in-string st re rp)))))
-
-;; copied from subr.el
-(unless (fboundp 'add-to-invisibility-spec)
-  (defun add-to-invisibility-spec (arg)
-    "Add elements to `buffer-invisibility-spec'.
-See documentation for `buffer-invisibility-spec' for the kind of elements
-that can be added."
-    (if (eq buffer-invisibility-spec t)
-        (setq buffer-invisibility-spec (list t)))
-    (setq buffer-invisibility-spec
-          (cons arg buffer-invisibility-spec))))
-
-;; copied from subr.el
-(unless (fboundp 'remove-from-invisibility-spec)
-  (defun remove-from-invisibility-spec (arg)
-    "Remove elements from `buffer-invisibility-spec'."
-    (if (consp buffer-invisibility-spec)
-        (setq buffer-invisibility-spec
-              (delete arg buffer-invisibility-spec)))))
 
 ;; ======================================================================
 ;;; Internal variables
@@ -591,11 +558,6 @@ name/timer pair to `newsticker--retrieval-timer-list'."
       ;; do not repeat retrieval if interval not positive
       (if (<= interval 0)
           (setq interval nil))
-      ;; Suddenly XEmacs doesn't like start-time 0
-      (if (or (not start-time)
-              (and (numberp start-time) (= start-time 0)))
-          (setq start-time 1))
-      ;; (message "start-time %s" start-time)
       (setq timer (run-at-time start-time interval
                                'newsticker-get-news feed-name))
       (if interval
@@ -1633,66 +1595,21 @@ This function calls `message' with arguments STRING and ARGS, if
        ;;(not (current-message))
        (apply 'message string args)))
 
-(defun newsticker--decode-iso8601-date (iso8601-string)
-  "Return ISO8601-STRING in format like `decode-time'.
-Converts from ISO-8601 to Emacs representation.
-Examples:
-2004-09-17T05:09:49.001+00:00
-2004-09-17T05:09:49+00:00
-2004-09-17T05:09+00:00
-2004-09-17T05:09:49
-2004-09-17T05:09
-2004-09-17
-2004-09
-2004"
-  (if iso8601-string
-      (when (string-match
-             (concat
-              "^ *\\([0-9]\\{4\\}\\)"   ;year
-              "\\(-\\([0-9]\\{2\\}\\)"  ;month
-              "\\(-\\([0-9]\\{2\\}\\)"  ;day
-              "\\(T"
-              "\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)" ;hour:minute
-              "\\(:\\([0-9]\\{2\\}\\)\\(\\.[0-9]+\\)?\\)?" ;second
-              ;timezone
-              "\\(\\([-+Z]\\)\\(\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\)?\\)?"
-              "\\)?\\)?\\)? *$")
-             iso8601-string)
-        (let ((year (read (match-string 1 iso8601-string)))
-              (month (read (or (match-string 3 iso8601-string)
-                               "1")))
-              (day (read (or (match-string 5 iso8601-string)
-                             "1")))
-              (hour (read (or (match-string 7 iso8601-string)
-                              "0")))
-              (minute (read (or (match-string 8 iso8601-string)
-                                "0")))
-              (second (read (or (match-string 10 iso8601-string)
-                                "0")))
-              (sign (match-string 13 iso8601-string))
-              (offset-hour (read (or (match-string 15 iso8601-string)
-                                     "0")))
-              (offset-minute (read (or (match-string 16 iso8601-string)
-                                       "0"))))
-          (cond ((string= sign "+")
-                 (setq hour (- hour offset-hour))
-                 (setq minute (- minute offset-minute)))
-                ((string= sign "-")
-                 (setq hour (+ hour offset-hour))
-                 (setq minute (+ minute offset-minute))))
-          ;; if UTC subtract current-time-zone offset
-          ;;(setq second (+ (car (current-time-zone)) second)))
-
-          (condition-case nil
-              (encode-time second minute hour day month year t)
-            (error
-             (message "Cannot decode \"%s\"" iso8601-string)
-             nil))))
+(defun newsticker--decode-iso8601-date (string)
+  "Return ISO8601-STRING in format like `encode-time'.
+Converts from ISO-8601 to Emacs representation.  If no time zone
+is present, this function defaults to universal time."
+  (if string
+      (condition-case nil
+          (encode-time (decoded-time-set-defaults (iso8601-parse string) 0))
+        (wrong-type-argument
+         (message "Cannot decode \"%s\"" string)
+         nil))
     nil))
 
 (defun newsticker--decode-rfc822-date (rfc822-string)
-  "Return RFC822-STRING in format like `decode-time'.
-Converts from RFC822 to Emacs representation.
+  "Convert RFC822-STRING to a Lisp timestamp.
+RFC822-STRING should use RFC 822 (or later) format.
 Examples:
 Sat, 07 September 2002 00:00:01 +0100
 Sat, 07 September 2002 00:00:01 MET
@@ -1802,7 +1719,7 @@ download it from URL first."
              (time-less-p nil
                           (time-add (file-attribute-modification-time
 				     (file-attributes image-name))
-                                    (seconds-to-time 86400))))
+				    86400)))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
                                (format-time-string "%A, %H:%M")
                                feed-name)
@@ -1995,8 +1912,7 @@ older than TIME."
          (mapc
           (lambda (item)
             (when (eq (newsticker--age item) old-age)
-              (let ((exp-time (time-add (newsticker--time item)
-                                        (seconds-to-time time))))
+	      (let ((exp-time (time-add (newsticker--time item) time)))
                 (when (time-less-p exp-time nil)
                   (newsticker--debug-msg
                    "Item `%s' from %s has expired on %s"
@@ -2171,22 +2087,8 @@ well."
                  (throw 'result nil))
                 ((eq age2 'obsolete)
                  (throw 'result t)))))
-    (let* ((time1 (newsticker--time item1))
-           (time2 (newsticker--time item2)))
-      (cond ((< (nth 0 time1) (nth 0 time2))
-             nil)
-            ((> (nth 0 time1) (nth 0 time2))
-             t)
-            ((< (nth 1 time1) (nth 1 time2))
-             nil)
-            ((> (nth 1 time1) (nth 1 time2))
-             t)
-            ((< (or (nth 2 time1) 0) (or (nth 2 time2) 0))
-             nil)
-            ((> (or (nth 2 time1) 0) (or (nth 2 time2) 0))
-             t)
-            (t
-             nil)))))
+    (time-less-p (newsticker--time item2)
+		 (newsticker--time item1))))
 
 (defun newsticker--cache-item-compare-by-title (item1 item2)
   "Compare ITEM1 and ITEM2 by comparing their titles."

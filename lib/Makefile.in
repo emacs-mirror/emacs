@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright 2017-2018 Free Software Foundation, Inc.
+# Copyright 2017-2020 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -84,7 +84,7 @@ Makefile: ../config.status $(srcdir)/Makefile.in
 # and building it would just waste time.
 not_emacs_OBJECTS = regex.o
 
-libgnu_a_OBJECTS = $(gl_LIBOBJS) \
+libgnu_a_OBJECTS = fingerprint.o $(gl_LIBOBJS) \
   $(patsubst %.c,%.o,$(filter %.c,$(libgnu_a_SOURCES)))
 for_emacs_OBJECTS = $(filter-out $(not_emacs_OBJECTS),$(libgnu_a_OBJECTS))
 libegnu_a_OBJECTS = $(patsubst %.o,e-%.o,$(for_emacs_OBJECTS))
@@ -126,6 +126,9 @@ distclean bootstrap-clean: mostlyclean
 	rm -fr $(DEPDIR)
 maintainer-clean: distclean
 	rm -f TAGS gnulib.mk
+extraclean: distclean
+	-rmdir sys 2>/dev/null
+
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

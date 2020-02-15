@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers
@@ -12,6 +12,10 @@ the file's text.  Each time you invoke Dired, a buffer is used to hold
 the directory listing.  If you send a message with @kbd{C-x m}, a
 buffer is used to hold the text of the message.  When you ask for a
 command's documentation, that appears in a buffer named @file{*Help*}.
+
+  Buffers exist as long as they are in use, and are deleted
+(``killed'') when no longer needed, either by you (@pxref{Kill
+Buffer}) or by Emacs (e.g., when you exit Emacs, @pxref{Exiting}).
 
   Each buffer has a unique name, which can be of any length.  When a
 buffer is displayed in a window, its name is shown in the mode line
@@ -127,7 +131,8 @@ Modes}).
 (@code{previous-buffer}) selects the previous buffer (following the
 order of most recent selection in the current frame), while @kbd{C-x
 @key{RIGHT}} (@code{next-buffer}) moves through buffers in the reverse
-direction.
+direction.  Both commands support a numeric prefix argument that
+serves as a repeat count.
 
 @kindex C-x 4 b
 @findex switch-to-buffer-other-window
@@ -307,6 +312,8 @@ Offer to kill all buffers matching a regular expression.
 
 @findex kill-buffer
 @kindex C-x k
+@cindex killing unsaved buffers
+@cindex unsaved buffers, killing
   @kbd{C-x k} (@code{kill-buffer}) kills one buffer, whose name you
 specify in the minibuffer.  The default, used if you type just
 @key{RET} in the minibuffer, is to kill the current buffer.  If you
@@ -550,6 +557,18 @@ Sort the Buffer Menu entries according to their values in the column
 at point.  With a numeric prefix argument @var{n}, sort according to
 the @var{n}-th column (@code{tabulated-list-sort}).
 
+@item @}
+@kindex @} @r{(Buffer Menu)}
+@findex tabulated-list-widen-current-column
+Widen the current column width by @var{n} (the prefix numeric
+argument) characters.
+
+@item @{
+@kindex @{ @r{(Buffer Menu)}
+@findex tabulated-list-narrow-current-column
+Narrow the current column width by @var{n} (the prefix numeric
+argument) characters.
+
 @item T
 @findex Buffer-menu-toggle-files-only
 @kindex T @r{(Buffer Menu)}
@@ -568,10 +587,10 @@ mode in this buffer, as long as it is not marked modified.  Global
 Auto Revert mode applies to the @file{*Buffer List*} buffer only if
 @code{global-auto-revert-non-file-buffers} is non-@code{nil}.
 @iftex
-@inforef{Autorevert,, emacs-xtra}, for details.
+@inforef{Auto Reverting the Buffer Menu,, emacs-xtra}, for details.
 @end iftex
 @ifnottex
-@xref{Autorevert, global-auto-revert-non-file-buffers}, for details.
+@xref{Auto Reverting the Buffer Menu, global-auto-revert-non-file-buffers}, for details.
 @end ifnottex
 
 @node Indirect Buffers
@@ -710,6 +729,22 @@ of directories.
 
   To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
 the variable @code{icomplete-mode} to @code{t} (@pxref{Easy
+Customization}).
+
+@findex fido-mode
+@cindex fido mode
+
+  An alternative to Icomplete mode is Fido mode.  This is very similar
+to Icomplete mode, but retains some functionality from a popular
+extension called Ido mode (in fact the name is derived from ``Fake
+Ido'').  Among other things, in Fido mode, @kbd{C-s} and @kbd{C-r} are
+also used to rotate the completions list, @kbd{C-k} can be used to
+delete files and kill buffers in-list.  Another noteworthy aspect is
+that @code{flex} is used as the default completion style
+(@pxref{Completion Styles}).
+
+  To enable Fido mode, type @kbd{M-x fido-mode}, or customize
+the variable @code{fido-mode} to @code{t} (@pxref{Easy
 Customization}).
 
 @node Buffer Menus

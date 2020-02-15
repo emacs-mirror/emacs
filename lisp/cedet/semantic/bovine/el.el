@@ -1,6 +1,6 @@
 ;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
 
-;; Copyright (C) 1999-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -241,13 +241,16 @@ Return a bovination list to use."
        (semantic-elisp-desymbolify-args (nth 2 form))
        :user-visible-flag (eq (car-safe (nth 4 form)) 'interactive)
        :documentation (semantic-elisp-do-doc (nth 3 form))
-       :overloadable (or (eq (car form) 'define-overload)
-			 (eq (car form) 'define-overloadable-function))
+       :overloadable (memq (car form) '(define-overload
+                                        define-overloadable-function))
        ))
   defun
   defun*
   defsubst
   defmacro
+  cl-defun
+  cl-defsubst
+  cl-defmacro
   define-overload ;; @todo - remove after cleaning up semantic.
   define-overloadable-function
   )
@@ -392,6 +395,7 @@ Return a bovination list to use."
          (cons nil nil)
          )))
   defstruct
+  cl-defstruct
   )
 
 (semantic-elisp-setup-form-parser
@@ -492,7 +496,8 @@ used to perform the override."
   (if (and (eq (semantic-tag-class tag) 'function)
 	   (semantic-tag-get-attribute tag :overloadable))
       ;; Calc the doc to use for the overloadable symbols.
-      (overload-docstring-extension (intern (semantic-tag-name tag)))
+      (mode-local--overload-docstring-extension
+       (intern (semantic-tag-name tag)))
     ""))
 
 (defun semantic-emacs-lisp-obsoleted-doc (tag)
@@ -610,7 +615,7 @@ Returns non-nil it is not possible to go up a context."
   (let ((last-up (semantic-up-context-default)))
   (while
       (and (not (looking-at
-		 "(\\(let\\*?\\|def\\(un\\|method\\|generic\\|\
+		 "(\\(let\\*?\\|\\(?:cl-\\)?def\\(un\\|method\\|generic\\|\
 define-mode-overload\\)\
 \\|with-slots\\)"))
 	   (not last-up))
@@ -940,8 +945,10 @@ See `semantic-format-tag-prototype' for Emacs Lisp for more details."
   "Add variables.
 ELisp variables can be pretty long, so track this one too.")
 
-(define-child-mode lisp-mode emacs-lisp-mode
-  "Make `lisp-mode' inherit mode local behavior from `emacs-lisp-mode'.")
+(with-suppressed-warnings ((obsolete define-child-mode))
+  ;; FIXME: We should handle this some other way!
+  (define-child-mode lisp-mode emacs-lisp-mode
+    "Make `lisp-mode' inherit mode local behavior from `emacs-lisp-mode'."))
 
 ;;;###autoload
 (defun semantic-default-elisp-setup ()

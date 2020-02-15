@@ -1,7 +1,7 @@
 /* Defines some widget utility functions.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -137,3 +137,148 @@ XtWidgetBeingDestroyedP (Widget widget)
 {
   return widget->core.being_destroyed;
 }
+
+#ifdef USE_CAIRO
+/* Xft emulation on cairo.  */
+#include <math.h>
+#include <cairo-ft.h>
+#include <cairo-xlib.h>
+
+XftFont *
+crxft_font_open_name (Display *dpy, int screen, const char *name)
+{
+  XftFont *pub = NULL;
+  FcPattern *pattern = FcNameParse ((FcChar8 *) name);
+  if (pattern)
+    {
+      FcConfigSubstitute (NULL, pattern, FcMatchPattern);
+      double dpi;
+      if (FcPatternGetDouble (pattern, FC_DPI, 0, &dpi) == FcResultNoMatch)
+	{
+	  char *v = XGetDefault (dpy, "Xft", FC_DPI);
+	  if (v == NULL || sscanf (v, "%lf", &dpi) != 1)
+	    dpi = ((DisplayHeight (dpy, screen) * 25.4)
+		   / DisplayHeightMM (dpy, screen));
+	  FcPatternAddDouble (pattern, FC_DPI, dpi);
+	}
+      FcDefaultSubstitute (pattern);
+      cairo_font_face_t *font_face
+	= cairo_ft_font_face_create_for_pattern (pattern);
+      if (font_face)
+	{
+	  double pixel_size;
+	  if ((FcPatternGetDouble (pattern, FC_PIXEL_SIZE, 0, &pixel_size)
+	       != FcResultMatch)
+	      || pixel_size < 1)
+	    pixel_size = 10;
+
+	  pub = xmalloc (sizeof (*pub));
+	  cairo_matrix_t font_matrix, ctm;
+	  cairo_matrix_init_scale (&font_matrix, pixel_size, pixel_size);
+	  cairo_matrix_init_identity (&ctm);
+	  cairo_font_options_t *options = cairo_font_options_create ();
+	  cairo_ft_font_options_substitute (options, pattern);
+	  pub->scaled_font = cairo_scaled_font_create (font_face, &font_matrix,
+						       &ctm, options);
+	  cairo_font_face_destroy (font_face);
+	  cairo_font_options_destroy (options);
+
+	  cairo_font_extents_t extents;
+	  cairo_scaled_font_extents (pub->scaled_font, &extents);
+	  pub->ascent = lround (extents.ascent);
+	  pub->descent = lround (extents.descent);
+	  pub->height = lround (extents.height);
+	  pub->max_advance_width = lround (extents.max_x_advance);
+	}
+      FcPatternDestroy (pattern);
+    }
+  if (pub && pub->height <= 0)
+    {
+      crxft_font_close (pub);
+      pub = NULL;
+    }
+  return pub;
+}
+
+void
+crxft_font_close (XftFont *pub)
+{
+  cairo_scaled_font_destroy (pub->scaled_font);
+  xfree (pub);
+}
+
+cairo_t *
+crxft_draw_create (Display *dpy, Drawable drawable, Visual *visual)
+{
+  cairo_t *cr = NULL;
+  Window root;
+  int x, y;
+  unsigned int width, height, border_width, depth;
+
+  if (!XGetGeometry (dpy, drawable, &root, &x, &y, &width, &height,
+		     &border_width, &depth))
+    return NULL;
+
+  cairo_surface_t *surface = cairo_xlib_surface_create (dpy, drawable, visual,
+							width, height);
+  if (surface)
+    {
+      cr = cairo_create (surface);
+      cairo_surface_destroy (surface);
+    }
+
+  return cr;
+}
+
+static void
+crxft_set_source_color (cairo_t *cr, const XftColor *color)
+{
+  cairo_set_source_rgba (cr, color->color.red / 65535.0,
+			 color->color.green / 65535.0,
+			 color->color.blue / 65535.0,
+			 color->color.alpha / 65535.0);
+}
+
+void
+crxft_draw_rect (cairo_t *cr, const XftColor *color, int x, int y,
+		 unsigned int width, unsigned int height)
+{
+  crxft_set_source_color (cr, color);
+  cairo_rectangle (cr, x, y, width, height);
+  cairo_fill (cr);
+}
+
+void
+crxft_draw_string (cairo_t *cr, const XftColor *color, XftFont *pub,
+		   int x, int y, const FcChar8 *string, int len)
+{
+  char *buf = xmalloc (len + 1);
+  memcpy (buf, string, len);
+  buf[len] = '\0';
+  crxft_set_source_color (cr, color);
+  cairo_set_scaled_font (cr, pub->scaled_font);
+  cairo_move_to (cr, x, y);
+  cairo_show_text (cr, buf);
+  xfree (buf);
+}
+
+void
+crxft_text_extents (XftFont *pub, const FcChar8 *string, int len,
+		    XGlyphInfo *extents)
+{
+  char *buf = xmalloc (len + 1);
+  memcpy (buf, string, len);
+  buf[len] = '\0';
+  cairo_text_extents_t text_extents;
+  cairo_scaled_font_text_extents (pub->scaled_font, buf, &text_extents);
+  xfree (buf);
+  extents->x = ceil (- text_extents.x_bearing);
+  extents->y = ceil (- text_extents.y_bearing);
+  extents->width = (ceil (text_extents.x_bearing + text_extents.width)
+		    + extents->x);
+  extents->height = (ceil (text_extents.y_bearing + text_extents.height)
+		     + extents->y);
+  extents->xOff = lround (text_extents.x_advance);
+  extents->yOff = lround (text_extents.y_advance);
+}
+#endif	/* USE_CAIRO */

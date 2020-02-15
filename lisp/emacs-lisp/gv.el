@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; This is a re-implementation of the setf machinery using a different
-;; underlying approach than the one used earlier in CL, which was based on
+;; underlying approach from the one used earlier in CL, which was based on
 ;; define-setf-expander.
 ;; `define-setf-expander' makes every "place-expander" return a 5-tuple
 ;;   (VARS VALUES STORES GETTER SETTER)
@@ -214,7 +214,7 @@ The first arg in ARGLIST (the one that receives VAL) receives an expression
 which can do arbitrary things, whereas the other arguments are all guaranteed
 to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) \\=`(aset ,a ,i ,v))"
-  (declare (indent 2) (debug (&define name sexp body)))
+  (declare (indent 2) (debug (&define name sexp def-body)))
   `(gv-define-expander ,name
      (lambda (do &rest args)
        (declare-function
@@ -392,18 +392,20 @@ The return value is the last VAL in the list.
                                  ,(funcall setter
                                            `(cons (setq ,p (cons ,k ,v))
                                                   ,getter)))))
-                         (cond
-                          ((null remove) set-exp)
-                          ((or (eql v default)
-                               (and (eq (car-safe v) 'quote)
-                                    (eq (car-safe default) 'quote)
-                                    (eql (cadr v) (cadr default))))
-                           `(if ,p ,(funcall setter `(delq ,p ,getter))))
-                          (t
-                           `(cond
-                             ((not (eql ,default ,v)) ,set-exp)
-                             (,p ,(funcall setter
-                                           `(delq ,p ,getter)))))))))))))))
+                         `(progn
+                            ,(cond
+                             ((null remove) set-exp)
+                             ((or (eql v default)
+                                  (and (eq (car-safe v) 'quote)
+                                       (eq (car-safe default) 'quote)
+                                       (eql (cadr v) (cadr default))))
+                              `(if ,p ,(funcall setter `(delq ,p ,getter))))
+                             (t
+                              `(cond
+                                ((not (eql ,default ,v)) ,set-exp)
+                                (,p ,(funcall setter
+                                              `(delq ,p ,getter))))))
+                            ,v))))))))))
 
 
 ;;; Some occasionally handy extensions.
@@ -566,7 +568,7 @@ REF must have been previously obtained with `gv-ref'."
 (gv-define-setter gv-deref (v ref) `(funcall (cdr ,ref) ,v))
 
 ;; (defmacro gv-letref (vars place &rest body)
-;;   (declare (indent 2) (debug (sexp form &rest body)))
+;;   (declare (indent 2) (debug (sexp form body)))
 ;;   (require 'cl-lib) ;Can't require cl-lib at top-level for bootstrap reasons!
 ;;   (gv-letplace (getter setter) place
 ;;     `(cl-macrolet ((,(nth 0 vars) () ',getter)

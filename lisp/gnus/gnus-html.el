@@ -1,6 +1,6 @@
 ;;; gnus-html.el --- Render HTML in a buffer.
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html, web
@@ -84,7 +84,7 @@ fit these criteria."
     (define-key map "i" 'gnus-html-browse-image)
     (define-key map "\r" 'gnus-html-browse-url)
     (define-key map "u" 'gnus-article-copy-string)
-    (define-key map [tab] 'widget-forward)
+    (define-key map [tab] 'button-forward)
     map))
 
 (defun gnus-html-encode-url (url)
@@ -180,12 +180,10 @@ fit these criteria."
 	       'image-displayer `(lambda (url start end)
 				   (gnus-html-display-image url start end
 							    ,alt-text))
+	       'help-echo alt-text
+	       'button t
+	       'keymap gnus-html-image-map
 	       'gnus-image (list url start end alt-text)))
-	(widget-convert-button
-	 'url-link start (point)
-	 :help-echo alt-text
-	 :keymap gnus-html-image-map
-	 url)
 	(if (string-match "\\`cid:" url)
 	    ;; URLs with cid: have their content stashed in other
 	    ;; parts of the MIME structure, so just insert them
@@ -207,21 +205,15 @@ fit these criteria."
 				      (delete-region start end))
 				    "*")
 		    'cid))
-		(widget-convert-button
-		 'link start end
-		 :action 'gnus-html-insert-image
-		 :help-echo url
-		 :keymap gnus-html-image-map
-		 :button-keymap gnus-html-image-map)))
+		(make-text-button start end
+				  'help-echo url
+				  'keymap gnus-html-image-map)))
 	  ;; Normal, external URL.
 	  (if (or inhibit-images
 		  (gnus-html-image-url-blocked-p url blocked-images))
-	      (widget-convert-button
-	       'link start end
-	       :action 'gnus-html-insert-image
-	       :help-echo url
-	       :keymap gnus-html-image-map
-	       :button-keymap gnus-html-image-map)
+	      (make-text-button start end
+				'help-echo url
+				'keymap gnus-html-image-map)
 	    ;; Non-blocked url
 	    (let ((width
 		   (when (string-match "width=\"?\\([0-9]+\\)" parameters)
@@ -444,11 +436,9 @@ Return a string with image data."
                   (let ((image (gnus-rescale-image image (gnus-html-maximum-image-size))))
                     (delete-region start end)
                     (gnus-put-image image alt-text 'external)
-		    (widget-convert-button
-		     'url-link start (point)
-		     :help-echo alt-text
-		     :keymap gnus-html-displayed-image-map
-		     url)
+		    (make-text-button start (point)
+				      'help-echo alt-text
+				      'keymap gnus-html-displayed-image-map)
                     (put-text-property start (point) 'gnus-alt-text alt-text)
                     (when url
 		      (add-text-properties

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1987, 1993--1995, 1997, 2001--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources
@@ -223,12 +223,12 @@ Width of the internal frame border, in pixels.
 @end ifnottex
 
 @item @code{lineSpacing} (class @code{LineSpacing})
-@cindex line spacing
+@cindex line spacing (X resource)
 Additional space between lines, in pixels.
 
 @ifnottex
 @item @code{menuBackground} (class @code{Background})
-@cindex background for menus
+@cindex background for menus (X resource)
 The background color of the menus in non-toolkit versions of Emacs.
 (For toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
 Resources}, and see @ref{GTK resources}.)
@@ -245,13 +245,13 @@ If @samp{none}, Emacs will not make a minibuffer in this frame; it
 will use a separate minibuffer frame instead.
 
 @item @code{paneFont} (class @code{Font})
-@cindex font for menus
+@cindex font for menus (X resource)
 Font name for menu pane titles, in non-toolkit versions of Emacs.
 (For toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
 Resources}, and see @ref{GTK resources}.)
 
 @item @code{paneForeground} (class @code{Foreground})
-@cindex foreground for menus
+@cindex foreground for menus (X resource)
 Foreground color for menu pane titles, in non-toolkit versions of
 Emacs.  (For toolkit versions, see @ref{Lucid Resources}, also see
 @ref{Motif Resources}, and see @ref{GTK resources}.)
@@ -272,17 +272,17 @@ Switch foreground and background default colors if @samp{on}, use colors as
 specified if @samp{off}.
 
 @item @code{screenGamma} (class @code{ScreenGamma})
-@cindex gamma correction
+@cindex gamma correction (X resource)
 Gamma correction for colors, equivalent to the frame parameter
 @code{screen-gamma}.
 
 @item @code{scrollBar} (class @code{ScrollBar})
-@cindex scroll bar
+@cindex scroll bar (X resource)
 If the value of this resource is @samp{off} or @samp{false} or
 @samp{0}, Emacs disables Scroll Bar mode at startup (@pxref{Scroll Bars}).
 
 @item @code{scrollBarWidth} (class @code{ScrollBarWidth})
-@cindex scrollbar width
+@cindex scrollbar width (X resource)
 The scroll bar width in pixels, equivalent to the frame parameter
 @code{scroll-bar-width}.  Do not set this resource if Emacs is
 compiled with GTK+ support.
@@ -315,13 +315,18 @@ useful for debugging X problems.
 Name to display in the title bar of the initial Emacs frame.
 
 @item @code{toolBar} (class @code{ToolBar})
-@cindex tool bar
+@cindex tool bar (X resource)
 If the value of this resource is @samp{off} or @samp{false} or
 @samp{0}, Emacs disables Tool Bar mode at startup (@pxref{Tool Bars}).
 
+@item @code{tabBar} (class @code{TabBar})
+@cindex tab bar (X resource)
+If the value of this resource is @samp{on} or @samp{yes} or
+@samp{1}, Emacs enables Tab Bar mode at startup (@pxref{Tab Bars}).
+
 @item @code{useXIM} (class @code{UseXIM})
-@cindex XIM
-@cindex X input methods
+@cindex XIM (X resource)
+@cindex X input methods (X resource)
 @cindex input methods, X
 Disable use of X input methods (XIM) if @samp{false} or @samp{off}.
 This is only relevant if your Emacs is built with XIM support.  It

@@ -1,6 +1,6 @@
 ;;; bibtex-style.el --- Major mode for BibTeX Style files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tex

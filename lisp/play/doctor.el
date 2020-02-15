@@ -1,6 +1,6 @@
 ;;; doctor.el --- psychological help for frustrated users
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2018 Free Software
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2020 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -1023,7 +1023,7 @@ the subject noun, and return the portion of the sentence following it."
 	   nil))))
 
 (defun doctor-nounp (x)
-  "Return t if the symbol argument is a noun."
+  "Return non-nil if the symbol argument is a noun."
 	(or (doctor-pronounp x)
 	    (not (or (doctor-verbp x)
 		     (equal x 'not)
@@ -1031,7 +1031,7 @@ the subject noun, and return the portion of the sentence following it."
 		     (doctor-modifierp x) )) ))
 
 (defun doctor-pronounp (x)
-  "Return t if the symbol argument is a pronoun."
+  "Return non-nil if the symbol argument is a pronoun."
   (memq x '(
 	i me mine myself
 	we us ours ourselves ourself

@@ -1,9 +1,10 @@
 ;;; erc-truncate.el --- Functions for truncating ERC buffers
 
-;; Copyright (C) 2003-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <mab@gnu.org>
+;; URL: https://www.emacswiki.org/emacs/ErcTruncation
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; This file is part of GNU Emacs.
@@ -113,6 +114,4 @@ Meant to be used in hooks, like `erc-insert-post-hook'."
 ;;
 ;; Local Variables:
 ;; generated-autoload-file: "erc-loaddefs.el"
-;; indent-tabs-mode: t
-;; tab-width: 8
 ;; End:

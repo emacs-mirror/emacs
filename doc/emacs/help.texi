@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
@@ -600,6 +600,11 @@ provide their own bindings for that key.  One of these prefix keys
 is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
 which marks a defun.  However, @w{@kbd{@key{ESC} @key{F1}}} and
 @w{@kbd{@key{ESC} ?}} work fine.)
+
+@findex describe-keymap
+Finally, @kbd{M-x describe-keymap} prompts for the name of a keymap,
+with completion, and displays a listing of all key bindings in that
+keymap.
 
 @node Help Files
 @section Help Files

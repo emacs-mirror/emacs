@@ -1,5 +1,5 @@
 @c This is part of the Semantic manual.
-@c Copyright (C) 1999-2005, 2007, 2009-2018 Free Software Foundation,
+@c Copyright (C) 1999--2005, 2007, 2009--2020 Free Software Foundation,
 @c Inc.
 @c See file semantic.texi for copying conditions.
 
@@ -670,7 +670,7 @@ Tag Completions} menu item in the @samp{Development} menu.
 If the tag at point has at least one completion, Semantic Idle
 Completions mode displays that completion inline---i.e., as part of
 the buffer text (you can change the display method by customizing
-@code{semantic-complete-inline-analyzer-idle-displayor-class}, as
+@code{semantic-complete-inline-analyzer-idle-displayer-class}, as
 described below).  The completed part is highlighted, to indicate that
 it is not yet properly inserted into the buffer.  The echo area shows
 the completion, and whether there are other possible completions, like
@@ -717,20 +717,20 @@ also call it yourself.  It returns immediately, leaving the buffer in
 a state for inline completion.
 @end deffn
 
-@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
+@deffn Option semantic-complete-inline-analyzer-idle-displayer-class
 The value of this variable determines how
 @code{semantic-complete-analyze-inline-idle} shows its completions.
 Possible values include:
 
 @table @code
-@item semantic-displayor-ghost
+@item semantic-displayer-ghost
 Display completions ``inline'' with the buffer text, as described
 above.  This is the default value.
 
-@item semantic-displayor-tooltip
+@item semantic-displayer-tooltip
 Display completions in a tooltip.
 
-@item semantic-displayor-traditional
+@item semantic-displayer-traditional
 Display completions in a separate window.
 @end table
 @end deffn
@@ -798,21 +798,21 @@ explicitly, whereas Semantic Idle Completions mode completes during
 idle time (@pxref{Idle Completions Mode}).
 @end deffn
 
-@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
+@deffn Option semantic-complete-inline-analyzer-idle-displayer-class
 The value of this variable determines how
 @code{semantic-complete-analyze-inline} shows its completions.
 Possible values include:
 
 @table @code
-@item semantic-displayor-traditional
+@item semantic-displayer-traditional
 Display completions in a separate window.  This is the default value.
 
-@item semantic-displayor-ghost
+@item semantic-displayer-ghost
 Display completions ``inline'' with the buffer text, similar to the
 default behavior of Semantic Idle Completions mode (@pxref{Idle
 Completions Mode}).
 
-@item semantic-displayor-tooltip
+@item semantic-displayer-tooltip
 Display completions in a tooltip.
 @end table
 @end deffn
@@ -1068,7 +1068,7 @@ You can integrate @semantic{} with the Speedbar.
 line to your init file:
 
 @example
-(add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
+(with-eval-after-load 'speedbar (require 'semantic/sb))
 @end example
 
 @noindent

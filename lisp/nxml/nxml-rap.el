@@ -1,6 +1,6 @@
 ;;; nxml-rap.el --- low-level support for random access parsing for nXML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -35,35 +35,25 @@
 ;;
 ;; Our strategy is to keep track of just the problematic things.
 ;; Specifically, we keep track of all comments, CDATA sections and
-;; processing instructions in the instance.  We do this by marking all
-;; except the first character of these with a non-nil nxml-inside text
-;; property. The value of the nxml-inside property is comment,
-;; cdata-section or processing-instruction.  The first character does
-;; not have the nxml-inside property so we can find the beginning of
-;; the construct by looking for a change in a text property value
-;; (Emacs provides primitives for this).  We use text properties
-;; rather than overlays, since the implementation of overlays doesn't
-;; look like it scales to large numbers of overlays in a buffer.
-;;
-;; We don't in fact track all these constructs, but only track them in
-;; some initial part of the instance.
+;; processing instructions in the instance.  We do this by marking
+;; the first character of these with the generic string syntax by setting
+;; a 'syntax-table' text property in `sgml-syntax-propertize'.
 ;;
 ;; Thus to parse some random point in the file we first ensure that we
-;; have scanned up to that point.  Then we search backwards for a
-;; <. Then we check whether the < has an nxml-inside property. If it
-;; does we go backwards to first character that does not have an
-;; nxml-inside property (this character must be a <).  Then we start
-;; parsing forward from the < we have found.
+;; have scanned up to that point.  Then we search backwards for a <.
+;; Then we check whether the < has the generic string syntax.  If it
+;; does we go backwards to first character of the generic string (this
+;; character must be a <).  Then we start parsing forward from the <
+;; we have found.
 ;;
 ;; The prolog has to be parsed specially, so we also keep track of the
 ;; end of the prolog in `nxml-prolog-end'. The prolog is reparsed on
 ;; every change to the prolog.  This won't work well if people try to
 ;; edit huge internal subsets. Hopefully that will be rare.
 ;;
-;; We keep track of the changes by adding to the buffer's
-;; after-change-functions hook.  Scanning is also done as a
-;; prerequisite to fontification by adding to fontification-functions
-;; (in the same way as jit-lock).  This means that scanning for these
+;; We rely on the `syntax-propertize-function' machinery to keep track
+;; of the changes in the buffer.  Fontification also relies on correct
+;; `syntax-table' properties.  This means that scanning for these
 ;; constructs had better be quick.  Fortunately it is. Firstly, the
 ;; typical proportion of comments, CDATA sections and processing
 ;; instructions is small relative to other things.  Secondly, to scan
@@ -79,7 +69,15 @@
   "Integer giving position following end of the prolog.")
 
 (defsubst nxml-get-inside (pos)
-  (save-excursion (nth 8 (syntax-ppss pos))))
+  "Return non-nil if inside comment, CDATA, or PI."
+  (let ((ppss (save-excursion (syntax-ppss pos))))
+    (or
+     ;; Inside comment.
+     (nth 4 ppss)
+     ;; Inside "generic" string which is used for CDATA, and PI.
+     ;; "Normal" double and single quoted strings are used for
+     ;; attribute values.
+     (eq t (nth 3 ppss)))))
 
 (defun nxml-inside-end (pos)
   "Return the end of the inside region containing POS.
@@ -109,7 +107,6 @@ Return nil if the character at POS is not inside."
 	xmltok-errors)
     (setq nxml-prolog-regions (xmltok-forward-prolog))
     (setq nxml-prolog-end (point))))
-
 
 ;;; Random access parsing
 

@@ -1,6 +1,6 @@
 ;;; ob-fortran.el --- Babel Functions for Fortran    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
 ;; Authors: Sergey Litvinov
 ;;       Eric Schulte
@@ -28,13 +28,12 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 (require 'cc-mode)
 (require 'cl-lib)
 
 (declare-function org-entry-get "org"
 		  (pom property &optional inherit literal-nil))
-(declare-function org-remove-indentation "org" (code &optional n))
-(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("fortran" . "F90"))
@@ -46,7 +45,7 @@
   executable.")
 
 (defun org-babel-execute:fortran (body params)
-  "This function should only be called by `org-babel-execute:fortran'"
+  "This function should only be called by `org-babel-execute:fortran'."
   (let* ((tmp-src-file (org-babel-temp-file "fortran-src-" ".F90"))
          (tmp-bin-file (org-babel-temp-file "fortran-bin-" org-babel-exeext))
          (cmdline (cdr (assq :cmdline params)))
@@ -109,18 +108,18 @@ its header arguments."
   "Wrap body in a \"program ... end program\" block if none exists."
   (if (string-match "^[ \t]*program[ \t]*.*" (capitalize body))
       (let ((vars (org-babel--get-vars params)))
-	(if vars (error "Cannot use :vars if `program' statement is present"))
+	(when vars (error "Cannot use :vars if `program' statement is present"))
 	body)
     (format "program main\n%s\nend program main\n" body)))
 
 (defun org-babel-prep-session:fortran (_session _params)
   "This function does nothing as fortran is a compiled language with no
-support for sessions"
+support for sessions."
   (error "Fortran is a compiled languages -- no support for sessions"))
 
 (defun org-babel-load-session:fortran (_session _body _params)
   "This function does nothing as fortran is a compiled language with no
-support for sessions"
+support for sessions."
   (error "Fortran is a compiled languages -- no support for sessions"))
 
 ;; helper functions

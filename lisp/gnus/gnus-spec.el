@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -150,7 +150,7 @@ Return a list of updated types."
 	(let ((buffer (intern (format "gnus-%s-buffer" type))))
 	  (when (and (boundp buffer)
 		     (setq val (symbol-value buffer))
-		     (gnus-buffer-exists-p val))
+                     (gnus-buffer-live-p val))
 	    (set-buffer val))
 	  (setq new-format (symbol-value
 			    (intern (format "gnus-%s-line-format" type)))))
@@ -344,8 +344,8 @@ Return a list of updated types."
 
 (defun gnus-pad-form (el pad-width)
   "Return a form that pads EL to PAD-WIDTH accounting for multi-column
-characters correctly. This is because `format' may pad to columns or to
-characters when given a pad value."
+characters correctly.  This is because `format' may pad to columns
+or to characters when given a pad value."
   (let ((pad (abs pad-width))
 	(side (< 0 pad-width)))
     (if (symbolp el)

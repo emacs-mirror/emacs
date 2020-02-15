@@ -1,6 +1,6 @@
 ;;; ob-lua.el --- Org Babel functions for Lua evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014, 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2020 Free Software Foundation, Inc.
 
 ;; Authors: Dieter Schoen
 ;; Keywords: literate programming, reproducible research
@@ -34,10 +34,9 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 (require 'cl-lib)
 
-(declare-function org-remove-indentation "org" (code &optional n))
-(declare-function org-trim "org" (s &optional keep-lead))
 (declare-function lua-shell "ext:lua-mode" (&optional argprompt))
 (declare-function lua-toggle-shells "ext:lua-mode" (arg))
 (declare-function run-lua "ext:lua" (cmd &optional dedicated show))
@@ -56,7 +55,7 @@
 
 (defcustom org-babel-lua-mode 'lua-mode
   "Preferred lua mode for use in running lua interactively.
-This will typically be 'lua-mode."
+This will typically be `lua-mode'."
   :group 'org-babel
   :version "26.1"
   :package-version '(Org . "8.3")
@@ -70,7 +69,7 @@ This will typically be 'lua-mode."
   :type 'string)
 
 (defcustom org-babel-lua-None-to 'hline
-  "Replace 'None' in lua tables with this before returning."
+  "Replace `None' in lua tables with this before returning."
   :group 'org-babel
   :version "26.1"
   :package-version '(Org . "8.3")
@@ -101,7 +100,7 @@ This function is called by `org-babel-execute-src-block'."
 
 (defun org-babel-prep-session:lua (session params)
   "Prepare SESSION according to the header arguments in PARAMS.
-VARS contains resolved variable references"
+VARS contains resolved variable references."
   (let* ((session (org-babel-lua-initiate-session session))
 	 (var-lines
 	  (org-babel-variable-assignments:lua params)))
@@ -149,7 +148,7 @@ specifying a variable of the same value."
     (if (eq var 'hline)
         org-babel-lua-hline-to
       (format
-       (if (and (stringp var) (string-match "[\n\r]" var)) "\"\"%S\"\"" "%S")
+       (if (and (stringp var) (string-match "[\n\r]" var)) "[=[%s]=]" "%S")
        (if (stringp var) (substring-no-properties var) var)))))
 
 (defun org-babel-lua-table-or-string (results)
@@ -285,19 +284,19 @@ fd:close()")
 (defun org-babel-lua-evaluate-external-process
     (body &optional result-type result-params preamble)
   "Evaluate BODY in external lua process.
-If RESULT-TYPE equals 'output then return standard output as a
-string.  If RESULT-TYPE equals 'value then return the value of the
+If RESULT-TYPE equals `output' then return standard output as a
+string.  If RESULT-TYPE equals `value' then return the value of the
 last statement in BODY, as elisp."
   (let ((raw
          (pcase result-type
            (`output (org-babel-eval org-babel-lua-command
-				    (concat (if preamble (concat preamble "\n"))
+				    (concat preamble (and preamble "\n")
 					    body)))
            (`value (let ((tmp-file (org-babel-temp-file "lua-")))
 		     (org-babel-eval
 		      org-babel-lua-command
 		      (concat
-		       (if preamble (concat preamble "\n") "")
+		       preamble (and preamble "\n")
 		       (format
 			(if (member "pp" result-params)
 			    org-babel-lua-pp-wrapper-method
@@ -317,8 +316,8 @@ last statement in BODY, as elisp."
 (defun org-babel-lua-evaluate-session
     (session body &optional result-type result-params)
   "Pass BODY to the Lua process in SESSION.
-If RESULT-TYPE equals 'output then return standard output as a
-string.  If RESULT-TYPE equals 'value then return the value of the
+If RESULT-TYPE equals `output' then return standard output as a
+string.  If RESULT-TYPE equals `value' then return the value of the
 last statement in BODY, as elisp."
   (let* ((send-wait (lambda () (comint-send-input nil t) (sleep-for 0 5)))
 	 (dump-last-value

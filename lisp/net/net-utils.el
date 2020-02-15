@@ -1,8 +1,8 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 
-;; Author:  Peter Breton <pbreton@cs.umb.edu>
+;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network comm
 
@@ -43,6 +43,10 @@
 ;; still use them for queries).  Actually the trend these
 ;; days is for /sbin to be a symlink to /usr/sbin, but we still need to
 ;; search both for older systems.
+
+(require 'subr-x)
+(require 'cl-lib)
+
 (defun net-utils--executable-find-sbin (command)
   "Return absolute name of COMMAND if found in an sbin directory."
   (let ((exec-path '("/sbin" "/usr/sbin" "/usr/local/sbin")))
@@ -514,7 +518,11 @@ Optional argument NAME-SERVER says which server to use for
 DNS resolution.
 Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 
-This command uses `nslookup-program' for looking up the DNS information."
+This command uses `nslookup-program' for looking up the DNS information.
+
+See also: `nslookup-host-ipv4', `nslookup-host-ipv6' for
+non-interactive versions of this function more suitable for use
+in Lisp code."
   (interactive
    (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
@@ -529,6 +537,72 @@ This command uses `nslookup-program' for looking up the DNS information."
 		" ** "))
      nslookup-program
      options)))
+
+;;;###autoload
+(defun nslookup-host-ipv4 (host &optional name-server format)
+  "Return the IPv4 address for HOST (name or IP address).
+Optional argument NAME-SERVER says which server to use for DNS
+resolution.
+
+If FORMAT is `string', returns the IP address as a
+string (default).  If FORMAT is `vector', returns a 4-integer
+vector of octets.
+
+This command uses `nslookup-program' to look up DNS records."
+  (let* ((args `(,nslookup-program "-type=A" ,host ,name-server))
+         (output (shell-command-to-string
+                  (string-join (cl-remove nil args) " ")))
+         (ip (or (and (string-match
+                       "Name:.*\nAddress: *\\(\\([0-9]\\{1,3\\}\\.?\\)\\{4\\}\\)"
+                       output)
+                      (match-string 1 output))
+                 host)))
+    (cond ((memq format '(string nil))
+           ip)
+          ((eq format 'vector)
+           (apply #'vector (mapcar #'string-to-number (split-string ip "\\."))))
+          (t (error "Invalid format: %s" format)))))
+
+(defun nslookup--ipv6-expand (ipv6-vector)
+  (let ((len (length ipv6-vector)))
+    (if (< len 8)
+        (let* ((pivot (cl-position 0 ipv6-vector))
+               (head (cl-subseq ipv6-vector 0 pivot))
+               (tail (cl-subseq ipv6-vector (1+ pivot) len)))
+          (vconcat head (make-vector (- 8 (1- len)) 0) tail))
+      ipv6-vector)))
+
+;;;###autoload
+(defun nslookup-host-ipv6 (host &optional name-server format)
+  "Return the IPv6 address for HOST (name or IP address).
+Optional argument NAME-SERVER says which server to use for DNS
+resolution.
+
+If FORMAT is `string', returns the IP address as a
+string (default).  If FORMAT is `vector', returns a 8-integer
+vector of hextets.
+
+This command uses `nslookup-program' to look up DNS records."
+  (let* ((args `(,nslookup-program "-type=AAAA" ,host ,name-server))
+         (output (shell-command-to-string
+                  (string-join (cl-remove nil args) " ")))
+         (hextet "[0-9a-fA-F]\\{1,4\\}")
+         (ip-regex (concat "\\(\\(" hextet "[:]\\)\\{1,6\\}\\([:]?\\(" hextet "\\)\\{1,6\\}\\)\\)"))
+         (ip (or (and (string-match
+                       (if (eq system-type 'windows-nt)
+                           (concat "Name:.*\nAddress: *" ip-regex)
+                         (concat "has AAAA address " ip-regex))
+                       output)
+                      (match-string 1 output))
+                 host)))
+    (cond ((memq format '(string nil))
+           ip)
+          ((eq format 'vector)
+           (nslookup--ipv6-expand
+            (apply #'vector
+                   (cl-loop for hextet in (split-string ip "[:]")
+                            collect (string-to-number hextet 16)))))
+          (t (error "Invalid format: %s" format)))))
 
 ;;;###autoload
 (defun nslookup ()

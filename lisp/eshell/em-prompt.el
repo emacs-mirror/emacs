@@ -1,6 +1,6 @@
 ;;; em-prompt.el --- command prompts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -97,9 +97,21 @@ arriving, or after."
   :options '(eshell-show-maximum-output)
   :group 'eshell-prompt)
 
+(defvar eshell-prompt-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-n") #'eshell-next-prompt)
+    (define-key map (kbd "C-c C-p") #'eshell-previous-prompt)
+    map))
+
 ;;; Functions:
 
-(defun eshell-prompt-initialize ()
+(define-minor-mode eshell-prompt-mode
+  "Minor mode for eshell-prompt module.
+
+\\{eshell-prompt-mode-map}"
+  :keymap eshell-prompt-mode-map)
+
+(defun eshell-prompt-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the prompting code."
   (unless eshell-non-interactive-p
     (add-hook 'eshell-post-command-hook 'eshell-emit-prompt nil t)
@@ -110,9 +122,7 @@ arriving, or after."
 
     (set (make-local-variable 'eshell-skip-prompt-function)
 	 'eshell-skip-prompt)
-
-    (define-key eshell-command-map [(control ?n)] 'eshell-next-prompt)
-    (define-key eshell-command-map [(control ?p)] 'eshell-previous-prompt)))
+    (eshell-prompt-mode)))
 
 (defun eshell-emit-prompt ()
   "Emit a prompt if eshell is being used interactively."

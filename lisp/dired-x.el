@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1997, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; This is based on Sebastian Kremer's excellent dired-x.el (Dired Extra),
-;; version 1.191, adapted for GNU Emacs.  See the `dired-x' info pages.
+;; version 1.191, adapted for GNU Emacs.  See the `dired-x' Info manual.
 
 ;; At load time dired-x.el will install itself and bind some dired keys.
 ;; Some dired.el and dired-aux.el functions have extra features if
@@ -35,7 +35,7 @@
 
 ;; User customization: M-x customize-group RET dired-x RET.
 
-;; *Please* see the `dired-x' info pages for more details.
+;; *Please* see the `dired-x' Info manual for more details.
 
 
 ;;; Code:
@@ -159,7 +159,7 @@ See Info node `(dired-x) Omitting Variables' for more information."
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
 
-(defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
+(defcustom dired-omit-files "\\`[.]?#\\|\\`[.][.]?\\'"
   "Filenames matching this regexp will not be displayed.
 This only has effect when `dired-omit-mode' is t.  See interactive function
 `dired-omit-mode' (\\[dired-omit-mode]) and variable
@@ -230,24 +230,27 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :group 'dired-x)
 
 ;;; KEY BINDINGS.
+(when (keymapp (lookup-key dired-mode-map "*"))
+  (define-key dired-mode-map "*(" 'dired-mark-sexp)
+  (define-key dired-mode-map "*O" 'dired-mark-omitted)
+  (define-key dired-mode-map "*." 'dired-mark-extension))
+
+(when (keymapp (lookup-key dired-mode-map "%"))
+  (define-key dired-mode-map "%Y" 'dired-do-relsymlink-regexp))
 
 (define-key dired-mode-map "\C-x\M-o" 'dired-omit-mode)
-(define-key dired-mode-map "*O" 'dired-mark-omitted)
 (define-key dired-mode-map "\M-(" 'dired-mark-sexp)
-(define-key dired-mode-map "*(" 'dired-mark-sexp)
-(define-key dired-mode-map "*." 'dired-mark-extension)
 (define-key dired-mode-map "\M-!" 'dired-smart-shell-command)
 (define-key dired-mode-map "\M-G" 'dired-goto-subdir)
 (define-key dired-mode-map "F" 'dired-do-find-marked-files)
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)
-(define-key dired-mode-map "%Y" 'dired-do-relsymlink-regexp)
 (define-key dired-mode-map "V" 'dired-do-run-mail)
 
 ;;; MENU BINDINGS
 
 (require 'easymenu)
 
-(let ((menu (lookup-key dired-mode-map [menu-bar])))
+(when-let ((menu (lookup-key dired-mode-map [menu-bar])))
   (easy-menu-add-item menu '("Operate")
                       ["Find Files" dired-do-find-marked-files
                        :help "Find current or marked files"]
@@ -463,9 +466,11 @@ Interactively with prefix argument, read FILE-NAME."
    (list nil (and current-prefix-arg
                   (read-file-name "Jump to Dired file: "))))
   (cond
-   ((bound-and-true-p archive-subfile-mode)
+   ((and (bound-and-true-p archive-subfile-mode)
+         (buffer-live-p archive-superior-buffer))
     (switch-to-buffer archive-superior-buffer))
-   ((bound-and-true-p tar-subfile-mode)
+   ((and (bound-and-true-p tar-subfile-mode)
+         (buffer-live-p tar-superior-buffer))
     (switch-to-buffer tar-superior-buffer))
    (t
     ;; Expand file-name before `dired-goto-file' call:
@@ -627,9 +632,12 @@ Optional fifth argument CASE-FOLD-P specifies the value of
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if
      (and
-      ;; not already marked
-      (= (following-char) ?\s)
-      ;; uninteresting
+      (if unflag-p
+          ;; Already marked.
+          (not (= (following-char) ?\s))
+        ;; Not already marked.
+        (= (following-char) ?\s))
+      ;; Interesting.
       (let ((fn (dired-get-filename localp t))
             ;; Match patterns case-insensitively on case-insensitive
             ;; systems
@@ -656,7 +664,7 @@ visit that file and turn on Virtual Dired mode.  But don't try to save
 this file, as dired-virtual indents the listing and thus changes the
 buffer.
 
-If you have save a Dired buffer in a file you can use \\[dired-virtual] to
+If you have saved a Dired buffer in a file you can use \\[dired-virtual] to
 resume it in a later session.
 
 Type \\<dired-mode-map>\\[revert-buffer] \
@@ -822,6 +830,7 @@ Also useful for `auto-mode-alist' like this:
 ;; install GNU zip's version of zcat.
 
 (autoload 'Man-support-local-filenames "man")
+(autoload 'vc-responsible-backend "vc")
 
 (defvar dired-guess-shell-alist-default
   (list
@@ -904,7 +913,10 @@ Also useful for `auto-mode-alist' like this:
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))
 
-   '("\\.patch\\'" "cat * | patch")
+   (list "\\.patch\\'"
+         '(if (eq (ignore-errors (vc-responsible-backend default-directory)) 'Git)
+              "cat * | git apply"
+            "cat * | patch"))
    (list "\\.patch\\.g?z\\'" "gunzip -qc * | patch"
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
@@ -1596,7 +1608,6 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 (provide 'dired-x)
 
 ;; Local Variables:
-;; byte-compile-dynamic: t
 ;; generated-autoload-file: "dired-loaddefs.el"
 ;; End:
 

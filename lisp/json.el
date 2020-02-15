@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Theresa O'Connor <ted@oconnor.cx>
 ;; Version: 1.4
@@ -49,10 +49,13 @@
 ;; 2008-02-21 - Installed in GNU Emacs.
 ;; 2011-10-17 - Patch `json-alist-p' and `json-plist-p' to avoid recursion -tzz
 ;; 2012-10-25 - Added pretty-printed reformatting -Ryan Crum (ryan@ryancrum.org)
+;; 2019-02-02 - Pretty-printing now uses replace-region-contents and support for
+;;              minimization -tsdh
 
 ;;; Code:
 
 (require 'map)
+(require 'subr-x)
 
 ;; Parameters
 
@@ -224,6 +227,7 @@ Unlike `reverse', this keeps the property-value pairs intact."
 (define-error 'json-string-format "Bad string format" 'json-error)
 (define-error 'json-key-format "Bad JSON object key" 'json-error)
 (define-error 'json-object-format "Bad JSON object" 'json-error)
+(define-error 'json-array-format "Bad JSON array" 'json-error)
 (define-error 'json-end-of-file "End of file while parsing JSON"
   '(end-of-file json-error))
 
@@ -523,8 +527,8 @@ Please see the documentation of `json-object-type' and `json-key-type'."
     ;; Skip over the "}"
     (json-advance)
     (pcase json-object-type
-      (`alist (nreverse elements))
-      (`plist (json--plist-reverse elements))
+      ('alist (nreverse elements))
+      ('plist (json--plist-reverse elements))
       (_ elements))))
 
 ;; Hash table encoding
@@ -637,12 +641,12 @@ become JSON objects."
       (when (/= (json-peek) ?\])
         (if (= (json-peek) ?,)
             (json-advance)
-          (signal 'json-error (list 'bleah)))))
+          (signal 'json-array-format (list ?, (json-peek))))))
     ;; Skip over the "]"
     (json-advance)
     (pcase json-array-type
-      (`vector (nreverse (vconcat elements)))
-      (`list (nreverse elements)))))
+      ('vector (nreverse (vconcat elements)))
+      ('list (nreverse elements)))))
 
 ;; Array encoding
 
@@ -688,7 +692,19 @@ become JSON objects."
 
 (defun json-read ()
   "Parse and return the JSON object following point.
-Advances point just past JSON object."
+Advances point just past JSON object.
+
+If called with the following JSON after point
+
+  {\"a\": [1, 2, {\"c\": false}],
+   \"b\": \"foo\"}
+
+you will get the following structure returned:
+
+  ((a .
+      [1 2
+         ((c . :json-false))])
+   (b . \"foo\"))"
   (json-skip-whitespace)
   (let ((char (json-peek)))
     (if (zerop char)
@@ -716,7 +732,11 @@ Advances point just past JSON object."
 ;;; JSON encoder
 
 (defun json-encode (object)
-  "Return a JSON representation of OBJECT as a string."
+  "Return a JSON representation of OBJECT as a string.
+
+OBJECT should have a structure like one returned by `json-read'.
+If an error is detected during encoding, an error based on
+`json-error' is signalled."
   (cond ((memq object (list t json-null json-false))
          (json-encode-keyword object))
         ((stringp object)      (json-encode-string object))
@@ -730,36 +750,97 @@ Advances point just past JSON object."
         ((hash-table-p object) (json-encode-hash-table object))
         (t                     (signal 'json-error (list object)))))
 
-;; Pretty printing
+;; Pretty printing & minimizing
 
-(defun json-pretty-print-buffer ()
-  "Pretty-print current buffer."
-  (interactive)
-  (json-pretty-print (point-min) (point-max)))
+(defun json-pretty-print-buffer (&optional minimize)
+  "Pretty-print current buffer.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "P")
+  (json-pretty-print (point-min) (point-max) minimize))
 
-(defun json-pretty-print (begin end)
-  "Pretty-print selected region."
-  (interactive "r")
-  (atomic-change-group
-    (let ((json-encoding-pretty-print t)
-          ;; Distinguish an empty objects from 'null'
-          (json-null :json-null)
-          ;; Ensure that ordering is maintained
-          (json-object-type 'alist)
-          (txt (delete-and-extract-region begin end)))
-      (insert (json-encode (json-read-from-string txt))))))
+(defvar json-pretty-print-max-secs 2.0
+  "Maximum time for `json-pretty-print's comparison.
+The function `json-pretty-print' uses `replace-region-contents'
+(which see) passing the value of this variable as argument
+MAX-SECS.")
 
-(defun json-pretty-print-buffer-ordered ()
-  "Pretty-print current buffer with object keys ordered."
-  (interactive)
+(defun json-pretty-print (begin end &optional minimize)
+  "Pretty-print selected region.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "r\nP")
+  (let ((json-encoding-pretty-print (null minimize))
+        ;; Distinguish an empty objects from 'null'
+        (json-null :json-null)
+        ;; Ensure that ordering is maintained
+        (json-object-type 'alist)
+        (orig-buf (current-buffer))
+        error)
+    ;; Strategy: Repeatedly `json-read' from the original buffer and
+    ;; write the pretty-printed snippet to a temporary buffer.  As
+    ;; soon as we get an error from `json-read', simply append the
+    ;; remainder which we couldn't pretty-print to the temporary
+    ;; buffer as well (probably the region ends _inside_ a JSON
+    ;; object).
+    ;;
+    ;; Finally, use `replace-region-contents' to swap the original
+    ;; region with the contents of the temporary buffer so that point,
+    ;; marks, etc. are kept.
+    (with-temp-buffer
+      (let ((tmp-buf (current-buffer)))
+        (set-buffer orig-buf)
+        (replace-region-contents
+         begin end
+         (lambda ()
+           (let ((pos (point))
+                 (keep-going t))
+             (while keep-going
+               (condition-case err
+                   ;; We want to format only the JSON snippets in the
+                   ;; region without modifying the whitespace between
+                   ;; them.
+                   (let ((space (buffer-substring
+                                 (point)
+                                 (+ (point)
+                                    (skip-chars-forward
+                                     " \t\n" (point-max)))))
+                         (json (json-read)))
+                     (setq pos (point)) ; End of last good json-read.
+                     (set-buffer tmp-buf)
+                     (insert space (json-encode json))
+                     (set-buffer orig-buf))
+                 (t
+                  (setq keep-going nil)
+                  (set-buffer orig-buf)
+                  ;; Rescue the remainder we couldn't pretty-print.
+                  (append-to-buffer tmp-buf pos (point-max))
+                  ;; EOF is expected because we json-read until we hit
+                  ;; the end of the narrow region.
+                  (unless (eq (car err) 'json-end-of-file)
+                    (setq error err)))))
+             tmp-buf))
+         json-pretty-print-max-secs
+         ;; FIXME: What's a good value here?  Can we use something better,
+         ;; e.g., by deriving a value from the size of the region?
+         64)))
+    ;; If we got an error during JSON processing (possibly the region
+    ;; starts or ends inside a JSON object), signal it to the user.
+    ;; We did our best.
+    (when error
+      (signal (car error) (cdr error)))))
+
+(defun json-pretty-print-buffer-ordered (&optional minimize)
+  "Pretty-print current buffer with object keys ordered.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "P")
   (let ((json-encoding-object-sort-predicate 'string<))
-    (json-pretty-print-buffer)))
+    (json-pretty-print-buffer minimize)))
 
-(defun json-pretty-print-ordered (begin end)
-  "Pretty-print the region with object keys ordered."
-  (interactive "r")
+(defun json-pretty-print-ordered (begin end &optional minimize)
+  "Pretty-print the region with object keys ordered.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "r\nP")
   (let ((json-encoding-object-sort-predicate 'string<))
-    (json-pretty-print begin end)))
+    (json-pretty-print begin end minimize)))
 
 (provide 'json)
 

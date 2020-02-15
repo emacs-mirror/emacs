@@ -1,11 +1,10 @@
 ;;; python.wy -- LALR grammar for Python
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 ;; Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
 ;; 2009, 2010 Python Software Foundation; All Rights Reserved
 
 ;; Author: Richard Kim <ryk@dspwiz.com>
-;; Maintainer: Richard Kim <ryk@dspwiz.com>
 ;; Created: June 2002
 ;; Keywords: syntax
 ;;
@@ -89,6 +88,7 @@
 
 %package wisent-python-wy
 %provide semantic/wisent/python-wy
+%expectedconflicts 4
 
 %{
 (declare-function wisent-python-reconstitute-function-tag
@@ -1148,16 +1148,17 @@ fpdef
  ;;    (identity $2)
   ;
 
-;; fplist: fpdef (',' fpdef)* [',']
-fplist
-  : fpdef_list comma_opt
-  ;
+;; These rules are now useless because the above rule doesn't refer to them.
+;; ;; fplist: fpdef (',' fpdef)* [',']
+;; fplist
+;;   : fpdef_list comma_opt
+;;   ;
 
-;; fpdef (',' fpdef)*
-fpdef_list
-  : fpdef
-  | fpdef_list COMMA fpdef
-  ;
+;; ;; fpdef (',' fpdef)*
+;; fpdef_list
+;;   : fpdef
+;;   | fpdef_list COMMA fpdef
+;;   ;
 
 ;; ['=' test]
 eq_test_opt

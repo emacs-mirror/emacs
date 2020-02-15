@@ -1,7 +1,7 @@
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-		Emacs version 27.0.50 for MS-Windows
+		Emacs version 28.0.50 for MS-Windows
 
   This README file describes how to set up and run a precompiled
   distribution of the latest version of GNU Emacs for MS-Windows.  You
@@ -24,7 +24,7 @@ See the end of the file for license conditions.
 * Preliminaries
 
   There are two binary distributions named
-  emacs-VER-x86_64-w64-mingw32.zip and emacs-VER-i686-w64-mingw32.zip,
+  emacs-VER-x86_64.zip and emacs-VER-i686.zip,
   where VER is the Emacs version.  These are 64-bit and 32-bit builds,
   respectively.  If you are running a 32-bit version of MS-Windows,
   you need to install the 32-bit build; users of 64-bit Windows can
@@ -45,28 +45,13 @@ See the end of the file for license conditions.
   action, by default this will be in a top-level directory with the
   same name as the zip file.
 
-  We also provide a set of optional dependencies, in
-  emacs-MVER-x86_64-deps.zip or emacs-MVER-i686-deps.zip respectively,
-  where MVER is the major Emacs version that should use these
-  libraries.  These provide Emacs with a number of additional optional
-  capabilities, described in detail below.  To use these, unpack them
-  directly over the emacs directory structure.  Note that, if
-  extracting with the Windows Explorer, you will have to override the
-  directory where it wants to put the file with the same directory
-  where you extracted the Emacs binary package.
-
-  Finally, and also optionally, you can run the program addpm.exe in
-  the bin subdirectory which will place an icon for Emacs on the start
-  page.  (This is no longer needed in latest versions of Emacs, so we
-  recommend you not do that, as running addpm.exe will insert entries
-  into the Registry which might get in the way if you upgrade to later
-  versions without updating those entries, or would like to uninstall
-  Emacs.)
-
   Emacs is completely portable.  You can create your own shortcut to
   runemacs.exe and place this wherever you find it convenient (the
   desktop and/or the Taskbar), or run it from a USB or network drive
   without copying or installing anything on the machine itself.
+
+  It is also possible, although not recommended to use the program
+  bin/addpm.exe which will place an icon for Emacs on the start page.
 
 * Prerequisites for Windows 9X
 
@@ -151,48 +136,41 @@ See the end of the file for license conditions.
   + update-game-score.exe - A utility for updating the score files of
     Emacs games.
 
-* Optional dependency libraries
+* Emacs without optional dependencies
 
-  Emacs has built in support for XBM and PPM/PGM/PBM images, and the
-  libXpm library is bundled, providing XPM support (required for color
-  toolbar icons and splash screen).  Source for libXpm should be
-  available from the same place from which you got this binary
-  distribution.
+  The files emacs-VER-x86_64.zip and emacs-VER-i686.zip contain a
+  large number of optional dependencies for Emacs.
 
-  Emacs has a number of optional features which need additional
-  libraries.  These are provided in a separate bundle of dependencies,
-  as described above, and enable support for the following:
+  Emacs has a number of optional features which use these additional
+  dependencies.  They enable support for the following:
 
   - displaying inline images of many types (PNG, JPEG, GIF, TIFF, SVG)
   - SSL/TLS secure network communications (HTTPS, IMAPS, etc.)
   - HTML and XML parsing (necessary for the built-in EWW browser)
   - built-in decompression of compressed text
 
-  The optional dependency libraries are in emacs-MVER-x86_64-deps.zip
-  (64-bit) and emacs-MVER-i686-deps.zip (32-bit), and their sources
-  are in emacs-MVER-deps-mingw-w64-src.zip, where MVER is the major
-  version of Emacs that should use these dependencies.  Note that a
-  64-bit Emacs will only work with the 64-bit dependencies, and the
-  32-bit Emacs only with the 32-bit dependencies.
+  If you do not want these files (if you have them already for
+  instance, or you want the smallest possible Emacs), then you may use
+  the files emacs-VER-x86_64-no-deps.zip or
+  emacs-VER-i686-no-deps.zip. The dependency files are also available
+  as emacs-MVER-x86_64-deps.zip and emacs-MVER-i686-deps.zip. Source
+  code for these dependencies is available as
+  emacs-26-deps-mingw-w64-src.zip.
 
-  Newer/updated builds for these optional libraries are available at
-  http://msys2.github.io/ and
-  http://sourceforge.net/projects/ezwinports/files/ (but you shouldn't
-  need these except in emergencies).
-
-  If you install the libraries in a directory different from where you
-  have the Emacs executable programs, we recommend to add the
-  directory with DLLs to your Path, so that Emacs will be able to find
-  those DLLs when needed.
+  All distributions of Emacs have built in support for XBM and
+  PPM/PGM/PBM images, and the libXpm library is bundled, providing XPM
+  support (required for color toolbar icons and splash screen).
+  Source for libXpm should be available from the same place from which
+  you got this binary distribution.
 
 * Installing Emacs with an existing MSYS2 installation
 
-  You may also use Emacs with an existing MSYS2 installation by simply
-  unpacking the Emacs distribution over MSYS2.  You can then use the
-  'pacman' utility to install dependencies.  You should not use the
-  optional dependencies bundle from this site, as this will overwrite
-  MSYS2 files (the dependency bundle derives from MSYS2, but may be a
-  different version).
+  You may also use Emacs with an existing MSYS2 installation by
+  unpacking the emacs-VER-x86_64-no-deps.zip over the MSYS2
+  distribution. You should not use the emacs-VER-x86_64.zip from this
+  site, as this will overwrite MSYS2 files (the dependency bundle
+  derives from MSYS2, but will be from a different version). You can
+  then use the 'pacman' utility to install dependencies.
 
   Some of the optional libraries need to be of certain versions to
   work with your Emacs binary.  Make sure you install those versions
@@ -218,6 +196,7 @@ See the end of the file for license conditions.
     mingw-w64-x86_64-libtiff
     mingw-w64-x86_64-libxml2
     mingw-w64-x86_64-xpm-nox
+    mingw-w64-x86_64-lcms2
 
   You can type any subset of this list.  When asked whether to proceed
   with installation, answer Y.

@@ -1,6 +1,6 @@
 ;;; em-smart.el --- smart display of output  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -166,7 +166,7 @@ The options are `begin', `after' or `end'."
 
 ;;; Functions:
 
-(defun eshell-smart-initialize ()
+(defun eshell-smart-initialize ()   ;Called from `eshell-mode' via intern-soft!
   "Setup Eshell smart display."
   (unless eshell-non-interactive-p
     ;; override a few variables, since they would interfere with the

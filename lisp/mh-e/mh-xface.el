@@ -1,9 +1,8 @@
 ;;; mh-xface.el --- MH-E X-Face and Face header field display
 
-;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -29,7 +28,6 @@
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
 
 (autoload 'message-fetch-field "message")
 
@@ -75,8 +73,8 @@ in this order is used."
             (x-face (setq raw (mh-uncompface x-face)
                           type 'pbm))
             (url (setq type 'url))
-            (t (multiple-value-setq (type raw)
-                 (values-list (mh-picon-get-image)))))
+            (t (cl-multiple-value-setq (type raw)
+                 (cl-values-list (mh-picon-get-image)))))
       (when type
         (goto-char (point-min))
         (when (re-search-forward "^from:" (point-max) t)
@@ -178,93 +176,97 @@ The directories are searched for in the order they appear in the list.")
 (defvar mh-picon-cache (make-hash-table :test #'equal))
 
 (defvar mh-picon-image-types
-  (loop for type in '(xpm xbm gif)
-        when (or (mh-do-in-gnu-emacs
-                   (ignore-errors
-                     (mh-funcall-if-exists image-type-available-p type)))
-                 (mh-do-in-xemacs (featurep type)))
-        collect type))
+  (cl-loop for type in '(xpm xbm gif)
+           when (or (mh-do-in-gnu-emacs
+                     (ignore-errors
+                       (mh-funcall-if-exists image-type-available-p type)))
+                    (mh-do-in-xemacs (featurep type)))
+           collect type))
 
 (autoload 'message-tokenize-header "sendmail")
 
-(defun* mh-picon-get-image ()
+(defun mh-picon-get-image ()
   "Find the best possible match and return contents."
   (mh-picon-set-directory-list)
   (save-restriction
     (let* ((from-field (ignore-errors (car (message-tokenize-header
                                             (mh-get-header-field "from:")))))
            (from (car (ignore-errors
-                        (mh-funcall-if-exists ietf-drums-parse-address
-                                              from-field))))
+                        ;; Don't use mh-funcall-if-exists because
+                        ;; ietf-drums-parse-address might exist at run-time but
+                        ;; not at compile-time.
+                        (when (fboundp 'ietf-drums-parse-address)
+                          (ietf-drums-parse-address from-field)))))
            (host (and from
-                      (string-match "\\([^+]*\\)\\(+.*\\)?@\\(.*\\)" from)
+                      (string-match "\\([^+]*\\)\\(\\+.*\\)?@\\(.*\\)" from)
                       (downcase (match-string 3 from))))
            (user (and host (downcase (match-string 1 from))))
            (canonical-address (format "%s@%s" user host))
            (cached-value (gethash canonical-address mh-picon-cache))
-           (host-list (and host (delete "" (split-string host "\\."))))
-           (match nil))
-      (cond (cached-value (return-from mh-picon-get-image cached-value))
-            ((not host-list) (return-from mh-picon-get-image nil)))
-      (setq match
-            (block loop
-              ;; u@h search
-              (loop for dir in mh-picon-existing-directory-list
-                    do (loop for type in mh-picon-image-types
-                             ;; [path]user@host
-                             for file1 = (format "%s/%s.%s"
-                                                 dir canonical-address type)
-                             when (file-exists-p file1)
-                             do (return-from loop file1)
-                             ;; [path]user
-                             for file2 = (format "%s/%s.%s" dir user type)
-                             when (file-exists-p file2)
-                             do (return-from loop file2)
-                             ;; [path]host
-                             for file3 = (format "%s/%s.%s" dir host type)
-                             when (file-exists-p file3)
-                             do (return-from loop file3)))
-              ;; facedb search
-              ;; Search order for user@foo.net:
-              ;;   [path]net/foo/user
-              ;;   [path]net/foo/user/face
-              ;;   [path]net/user
-              ;;   [path]net/user/face
-              ;;   [path]net/foo/unknown
-              ;;   [path]net/foo/unknown/face
-              ;;   [path]net/unknown
-              ;;   [path]net/unknown/face
-              (loop for u in (list user "unknown")
-                    do (loop for dir in mh-picon-existing-directory-list
-                             do (loop for x on host-list by #'cdr
-                                      for y = (mh-picon-generate-path x u dir)
-                                      do (loop for type in mh-picon-image-types
-                                               for z1 = (format "%s.%s" y type)
-                                               when (file-exists-p z1)
-                                               do (return-from loop z1)
-                                               for z2 = (format "%s/face.%s"
-                                                                y type)
-                                               when (file-exists-p z2)
-                                               do (return-from loop z2)))))))
-      (setf (gethash canonical-address mh-picon-cache)
-            (mh-picon-file-contents match)))))
+           (host-list (and host (delete "" (split-string host "\\.")))))
+      (cond
+       (cached-value cached-value)
+       ((not host-list) nil)
+       (t
+        (let ((match
+               (cl-block loop
+                 ;; u@h search
+                 (dolist (dir mh-picon-existing-directory-list)
+                   (cl-loop for type in mh-picon-image-types
+                            ;; [path]user@host
+                            for file1 = (format "%s/%s.%s"
+                                                dir canonical-address type)
+                            when (file-exists-p file1)
+                            do (cl-return-from loop file1)
+                            ;; [path]user
+                            for file2 = (format "%s/%s.%s" dir user type)
+                            when (file-exists-p file2)
+                            do (cl-return-from loop file2)
+                            ;; [path]host
+                            for file3 = (format "%s/%s.%s" dir host type)
+                            when (file-exists-p file3)
+                            do (cl-return-from loop file3)))
+                 ;; facedb search
+                 ;; Search order for user@foo.net:
+                 ;;   [path]net/foo/user
+                 ;;   [path]net/foo/user/face
+                 ;;   [path]net/user
+                 ;;   [path]net/user/face
+                 ;;   [path]net/foo/unknown
+                 ;;   [path]net/foo/unknown/face
+                 ;;   [path]net/unknown
+                 ;;   [path]net/unknown/face
+                 (dolist (u (list user "unknown"))
+                   (dolist (dir mh-picon-existing-directory-list)
+                     (cl-loop for x on host-list by #'cdr
+                              for y = (mh-picon-generate-path x u dir)
+                              do (cl-loop for type in mh-picon-image-types
+                                          for z1 = (format "%s.%s" y type)
+                                          when (file-exists-p z1)
+                                          do (cl-return-from loop z1)
+                                          for z2 = (format "%s/face.%s"
+                                                           y type)
+                                          when (file-exists-p z2)
+                                          do (cl-return-from loop z2))))))))
+          (setf (gethash canonical-address mh-picon-cache)
+                (mh-picon-file-contents match))))))))
 
 (defun mh-picon-set-directory-list ()
   "Update `mh-picon-existing-directory-list' if needed."
   (when (eq mh-picon-existing-directory-list 'unset)
     (setq mh-picon-existing-directory-list
-          (loop for x in mh-picon-directory-list
-                when (file-directory-p x) collect x))))
+          (cl-loop for x in mh-picon-directory-list
+                   when (file-directory-p x) collect x))))
 
 (defun mh-picon-generate-path (host-list user directory)
   "Generate the image file path.
 HOST-LIST is the parsed host address of the email address, USER
 the username and DIRECTORY is the directory relative to which the
 path is generated."
-  (loop with acc = ""
-        for elem in host-list
-        do (setq acc (format "%s/%s" elem acc))
-        finally return (format "%s/%s%s" directory acc user)))
+  (cl-loop with acc = ""
+           for elem in host-list
+           do (setq acc (format "%s/%s" elem acc))
+           finally return (format "%s/%s%s" directory acc user)))
 
 (defun mh-picon-file-contents (file)
   "Return details about FILE.
@@ -438,7 +440,7 @@ actual display is carried out by the SENTINEL function."
     ;; Temporary failure
     (mh-x-image-set-download-state cache-file 'try-again)))
 
-(defun mh-x-image-scale-and-display (process change)
+(defun mh-x-image-scale-and-display (process _change)
   "When the wget PROCESS terminates scale and display image.
 The argument CHANGE is ignored."
   (when (eq (process-status process) 'exit)

@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2020 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -147,11 +147,12 @@ Otherwise display all abbrevs."
 (defun edit-abbrevs ()
   "Alter abbrev definitions by editing a list of them.
 Selects a buffer containing a list of abbrev definitions with
-point located in the abbrev table of current buffer.
+point located in the abbrev table for the current buffer, and
+turns on `edit-abbrevs-mode' in that buffer.
 You can edit them and type \\<edit-abbrevs-map>\\[edit-abbrevs-redefine] to redefine abbrevs
 according to your editing.
-Buffer contains a header line for each abbrev table,
- which is the abbrev table name in parentheses.
+The abbrevs editing buffer contains a header line for each
+abbrev table, which is the abbrev table name in parentheses.
 This is followed by one line per abbrev in that table:
 NAME   USECOUNT   EXPANSION   HOOK
 where NAME and EXPANSION are strings with quotes,
@@ -351,6 +352,7 @@ Expands the abbreviation after defining it."
   (let (name exp start end)
     (save-excursion
       (forward-word (1+ (- arg)))
+      (skip-syntax-backward "^w")
       (setq end (point))
       (backward-word 1)
       (setq start (point)
@@ -368,13 +370,16 @@ Expands the abbreviation after defining it."
 
 (defun abbrev-prefix-mark (&optional arg)
   "Mark current point as the beginning of an abbrev.
-Abbrev to be expanded starts here rather than at beginning of word.
-This way, you can expand an abbrev with a prefix: insert the prefix,
-use this command, then insert the abbrev.  This command inserts a
-temporary hyphen after the prefix (until the intended abbrev
-expansion occurs).
-If the prefix is itself an abbrev, this command expands it, unless
-ARG is non-nil.  Interactively, ARG is the prefix argument."
+The abbrev to be expanded starts here rather than at beginning of
+word.  This way, you can expand an abbrev with a prefix: insert
+the prefix, use this command, then insert the abbrev.
+
+This command inserts a hyphen after the prefix, and if the abbrev
+is subsequently expanded, this hyphen will be removed.
+
+If the prefix is itself an abbrev, this command expands it,
+unless ARG is non-nil.  Interactively, ARG is the prefix
+argument."
   (interactive "P")
   (or arg (expand-abbrev))
   (setq abbrev-start-location (point-marker)
@@ -939,8 +944,7 @@ If READABLE is nil, an expression is inserted.  The expression is
 a call to `define-abbrev-table' that when evaluated will define
 the abbrev table NAME exactly as it is currently defined.
 Abbrevs marked as \"system abbrevs\" are ignored."
-  (let ((table (symbol-value name))
-        (symbols (abbrev--table-symbols name readable)))
+  (let ((symbols (abbrev--table-symbols name readable)))
     (setq symbols (sort symbols 'string-lessp))
     (let ((standard-output (current-buffer)))
       (if readable
@@ -1036,7 +1040,9 @@ SORTFUN is passed to `sort' to change the default ordering."
 ;; Keep it after define-abbrev-table, since define-derived-mode uses
 ;; define-abbrev-table.
 (define-derived-mode edit-abbrevs-mode fundamental-mode "Edit-Abbrevs"
-  "Major mode for editing the list of abbrev definitions.")
+  "Major mode for editing the list of abbrev definitions.
+This mode is for editing abbrevs in a buffer prepared by `edit-abbrevs',
+which see.")
 
 (provide 'abbrev)
 

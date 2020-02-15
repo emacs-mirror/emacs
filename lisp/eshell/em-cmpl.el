@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -241,10 +241,30 @@ to writing a completion function."
 (defun eshell-complete-lisp-symbol ()
   "Try to complete the text around point as a Lisp symbol."
   (interactive)
-  (let ((completion-at-point-functions '(lisp-completion-at-point)))
+  (let ((completion-at-point-functions '(elisp-completion-at-point)))
     (completion-at-point)))
 
-(defun eshell-cmpl-initialize ()
+(defvar eshell-cmpl-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?i)] #'completion-at-point)
+    ;; jww (1999-10-19): Will this work on anything but X?
+    (define-key map [backtab] #'pcomplete-reverse)
+    (define-key map [(meta ??)] #'completion-help-at-point)
+    (define-key map [(meta control ?i)] #'eshell-complete-lisp-symbol)
+    ;; C-c prefix:
+    (define-key map (kbd "C-c M-h") #'eshell-completion-help)
+    (define-key map (kbd "C-c TAB") #'pcomplete-expand-and-complete)
+    (define-key map (kbd "C-c C-i") #'pcomplete-expand-and-complete)
+    (define-key map (kbd "C-c SPC") #'pcomplete-expand)
+    map))
+
+(define-minor-mode eshell-cmpl-mode
+  "Minor mode that provides a keymap when `eshell-cmpl' active.
+
+\\{eshell-cmpl-mode-map}"
+  :keymap eshell-cmpl-mode-map)
+
+(defun eshell-cmpl-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the completions module."
   (set (make-local-variable 'pcomplete-command-completion-function)
        eshell-command-completion-function)
@@ -288,25 +308,12 @@ to writing a completion function."
 	    (function
 	     (lambda ()
 	       (set (make-local-variable 'comint-file-name-quote-list)
-		    eshell-special-chars-outside-quoting))) nil t)
-  (add-hook 'pcomplete-quote-arg-hook 'eshell-quote-backslash nil t)
-  (define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol)
-  (define-key eshell-mode-map [(meta control ?i)] 'eshell-complete-lisp-symbol)
-  (define-key eshell-command-map [(meta ?h)] 'eshell-completion-help)
-  (define-key eshell-command-map [tab] 'pcomplete-expand-and-complete)
-  (define-key eshell-command-map [(control ?i)]
-    'pcomplete-expand-and-complete)
-  (define-key eshell-command-map [space] 'pcomplete-expand)
-  (define-key eshell-command-map [? ] 'pcomplete-expand)
-  (define-key eshell-mode-map [tab] 'eshell-pcomplete)
-  (define-key eshell-mode-map [(control ?i)] 'eshell-pcomplete)
+		    eshell-special-chars-outside-quoting)))
+            nil t)
+  (add-hook 'pcomplete-quote-arg-hook #'eshell-quote-backslash nil t)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil t)
-  ;; jww (1999-10-19): Will this work on anything but X?
-  (if (featurep 'xemacs)
-      (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
-    (define-key eshell-mode-map [backtab] 'pcomplete-reverse))
-  (define-key eshell-mode-map [(meta ??)] 'pcomplete-list))
+  (eshell-cmpl-mode))
 
 (defun eshell-completion-command-name ()
   "Return the command name, possibly sans globbing."
@@ -402,20 +409,18 @@ to writing a completion function."
   (let ((filename (pcomplete-arg)) glob-name)
     (if (file-name-directory filename)
         (if eshell-force-execution
-            (pcomplete-dirs-or-entries nil 'file-readable-p)
+            (pcomplete-dirs-or-entries nil #'file-readable-p)
           (pcomplete-executables))
       (if (and (> (length filename) 0)
 	       (eq (aref filename 0) eshell-explicit-command-char))
 	  (setq filename (substring filename 1)
 		pcomplete-stub filename
 		glob-name t))
-      (let* ((paths (eshell-parse-colon-path eshell-path-env))
+      (let* ((paths (eshell-get-path))
 	     (cwd (file-name-as-directory
 		   (expand-file-name default-directory)))
 	     (path "") (comps-in-path ())
 	     (file "") (filepath "") (completions ()))
-        (if (eshell-under-windows-p)
-            (push "." paths))
 	;; Go thru each path in the search path, finding completions.
 	(while paths
 	  (setq path (file-name-as-directory
@@ -442,34 +447,24 @@ to writing a completion function."
 	 (if glob-name
 	     completions
 	   (setq completions
-		 (append (and (eshell-using-module 'eshell-alias)
-			      (funcall (symbol-function 'eshell-alias-completions)
-				       filename))
+		 (append (if (fboundp 'eshell-alias-completions)
+			      (eshell-alias-completions filename))
 			 (eshell-winnow-list
 			  (mapcar
 			   (function
 			    (lambda (name)
 			      (substring name 7)))
 			   (all-completions (concat "eshell/" filename)
-					    obarray 'functionp))
+					    obarray #'functionp))
 			  nil '(eshell-find-alias-function))
 			 completions))
 	   (append (and (or eshell-show-lisp-completions
 			    (and eshell-show-lisp-alternatives
 				 (null completions)))
-			(all-completions filename obarray 'functionp))
+			(all-completions filename obarray #'functionp))
 		   completions)))))))
 
-(defun eshell-pcomplete (&optional interactively)
-  "Eshell wrapper for `pcomplete'."
-  (interactive "p")
-  ;; Pretend to be pcomplete so that cycling works (bug#13293).
-  (setq this-command 'pcomplete)
-  (condition-case nil
-      (if interactively
-	  (call-interactively 'pcomplete)
-	(pcomplete))
-    (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
+(define-obsolete-function-alias 'eshell-pcomplete #'completion-at-point "27.1")
 
 (provide 'em-cmpl)
 

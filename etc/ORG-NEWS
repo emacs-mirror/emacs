@@ -1,13 +1,906 @@
 ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 
+#+STARTUP: overview
+
 #+LINK: doc https://orgmode.org/worg/doc.html#%s
 #+LINK: git https://code.orgmode.org/bzg/org-mode/commit/%s
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to mailto:emacs-orgmode@gnu.org.
 
+* Version 9.3
+
+** Incompatible changes
+*** Change bracket link escaping syntax
+
+Org used to percent-encode sensitive characters in the URI part of the
+bracket links.
+
+Now, escaping mechanism uses the usual backslash character, according
+to the following rules, applied in order:
+
+1. All consecutive =\= characters at the end of the link must be
+   escaped;
+2. Any =]= character at the very end of the link must be escaped;
+3. All consecutive =\= characters preceding =][= or =]]= patterns must
+   be escaped;
+4. Any =]= character followed by either =[= or =]= must be escaped;
+5. Others =]= and =\= characters need not be escaped.
+
+When in doubt, use the function ~org-link-escape~ in order to turn
+a link string into its properly escaped form.
+
+The following function will help switching your links to the new
+syntax:
+
+#+begin_src emacs-lisp
+(defun org-update-link-syntax (&optional no-query)
+  "Update syntax for links in current buffer.
+Query before replacing a link, unless optional argument NO-QUERY
+is non-nil."
+  (interactive "P")
+  (org-with-point-at 1
+    (let ((case-fold-search t))
+      (while (re-search-forward "\\[\\[[^]]*?%\\(?:2[05]\\|5[BD]\\)" nil t)
+        (let ((object (save-match-data (org-element-context))))
+          (when (and (eq 'link (org-element-type object))
+                     (= (match-beginning 0)
+                        (org-element-property :begin object)))
+            (goto-char (org-element-property :end object))
+            (let* ((uri-start (+ 2 (match-beginning 0)))
+                   (uri-end (save-excursion
+                              (goto-char uri-start)
+                              (re-search-forward "\\][][]" nil t)
+                              (match-beginning 0)))
+                   (uri (buffer-substring-no-properties uri-start uri-end)))
+              (when (or no-query
+                        (y-or-n-p
+                         (format "Possibly obsolete URI syntax: %S.  Fix? "
+                                 uri)))
+                (setf (buffer-substring uri-start uri-end)
+                      (org-link-escape (org-link-decode uri)))))))))))
+#+end_src
+
+The old ~org-link-escape~ and ~org-link-unescape~ functions have been
+renamed into ~org-link-encode~ and ~org-link-decode~.
+
+*** Change match group number in ~org-link-bracket-re~
+
+Link description, if any, is located in match group 2 instead of match
+group 3.
+
+*** ob-clojure does not auto prepend ~(ns ..)~ statement anymore
+
+When tangling, user usually just wants to tangle literally code instead
+of prepend inserting a ~(ns ..)~ statement before source block
+code.  Now, when you have no ~:ns~ header argument specified, this
+behavior will not happen automatically.
+
+*** Change in behavior on exit from an Org edit buffer
+
+Org will no longer attempt to restore the window configuration in the
+frame to which the user returns after editing a source block with
+~org-edit-src-code~.  Instead, the window configuration will remain as
+it is.
+
+*** Change default value for ~org-email-link-description-format~
+
+When linking from a mail buffer, Org used to truncate the subject of
+the message to 30 characters in order to build the description of the
+link.  This behavior was considered as too surprising.  As
+a consequence, Org no longer truncates subjects.
+
+You can get the old behavior back with the following:
+
+: (setq org-email-link-description-format "Email %c: %.30s")
+
+*** ~:file~ header argument no longer assume "file" ~:results~
+
+The "file" ~:results~ value is now mandatory for a code block
+returning a link to a file.  The ~:file~ or ~:file-ext~ header
+arguments no longer imply a "file" result is expected.
+
+*** Plain numbers are hours in Column View mode
+
+See [[git:3367ac9457]] for details.
+
+*** All LaTeX preview backends use now xcolor
+
+The dvipng backend was previously relying on fg and bg parameters to
+be passed to the CLI. This didn't work when xcolor was directly or
+indirectly used in the document (e.g. tkiz is a user of xcolor). Since
+every other backend was already using xcolor to set fg and bg, the CLI
+alternative was removed and there is no more a :use-xcolor options
+since now it's implicitly always true.
+
+*** Org-Attach Git commit
+
+[[*Org-Attach has been refactored and extended][Refactoring of Org-Attach]] affected the Git commit functionality.  Not
+much, but the following changes are required if you still need to
+auto-commit attachments to git:
+
+- Customization of ~org-attach-annex-auto-get~ needs to be renamed to
+  ~org-attach-git-annex-auto-get~.
+
+- Customization of ~org-attach-commit~ is no longer needed.  Instead
+  one need to require the =org-attach-git= module in the startup.
+
+** New features
+*** New option to wrap source code lines in HTML export
+
+When new option ~html-wrap-src-lines~ (with variable
+~org-html-wrap-src-lines~) is non-nil, HTML export wraps source code
+lines in HTML ~code~ elements.
+
+*** New option to handle schedules and deadlines in iCalendar export
+
+Export ignore done tasks with a deadline when
+~org-icalendar-use-deadline~ contains ~event-if-todo-not-done~.
+Likewise, scheduled done tasks are also ignored when
+~org-icalendar-use-scheduled~ contains the same symbol.
+
+*** Add split-window-right option for src block edit window placement
+
+Given the increasing popularity of wide screen monitors, splitting
+horizontally may make more sense than splitting vertically.  An
+option, ~split-window-right~, to request horizontal splitting has been
+added to ~org-src-window-setup~.
+
+*** Org-Attach has been refactored and extended
+
+Org attach has been refactored and the functionality extended.  It
+should now be easier to understand how it works.  A few improvements
+and extra options have been added as well.
+
+From the initial comment in org-attach source-code:
+
+- Attachments are managed either by using a custom property DIR or by
+  using property ID from org-id.  When DIR is defined, a location in
+  the filesystem is directly attached to the outline node.  When
+  org-id is used, attachments are stored in a folder named after the
+  ID, in a location defined by ~org-attach-id-dir~.  DIR has
+  precedence over ID when both parameters are defined for the current
+  outline node (also when inherited parameters are taken into
+  account).
+
+From now on inheritance requires no extra property and will adhere to
+~org-attach-use-inheritance~ by default.  Inheritance can be
+customized to always be activated or never be activated in
+~org-attach-use-inheritance~.
+
+The ATTACH_DIR property is deprecated in favor of the shorter
+property DIR.  Links to folders inside the DIR property can now be
+declared as relative links.  This is not enabled by default, but can
+be set in ~org-attach-dir-relative~.
+
+When adding new attachment to the outline node the preferred way of
+doing so can be customized.  Take a look at
+~org-attach-preferred-new-method~.  It defaults to using ID since that
+was the behavior before this change.
+
+If both DIR and ID properties are set on the same node, DIR has
+precedence and will be used.
+
+One can now also choose to build attachment-directory-paths in a
+customized way.  This is an advanced topic, but in some case it makes
+sense to parse an ID in a different way than the default one.  Create
+your own function and add it to the beginning of
+~org-attach-id-to-path-function~list~ if you want to customize the ID
+based folder structure.
+
+If you've used ATTACH_DIR properties to manage attachments, use the
+following code to rename that property to DIR which supports the same
+functionality.  ATTACH_DIR_INHERIT is no longer supported and is
+removed.
+
+#+begin_src emacs-lisp
+  (defun org-update-attach-properties ()
+      "Change properties for Org-Attach."
+      (interactive)
+      (org-with-point-at 1
+	(while (outline-next-heading)
+	  (let ((DIR (org--property-local-values "ATTACH_DIR" nil)))
+	    (when DIR
+	      (org-set-property "DIR" (car DIR))
+	      (org-delete-property "ATTACH_DIR"))))
+	(org-delete-property-globally "ATTACH_DIR_INHERIT")))
+#+end_src
+
+For those who hate breaking changes, even though the changes are made
+to clean things up; fear not.  ATTACH_DIR will still continue to work.
+It's just not documented any longer.  When you get the chance, run the
+code above to clean things up anyways!
+
+**** New hooks
+Two hooks are added to org-attach:
+- org-attach-after-change-hook
+- org-attach-open-hook
+
+They are added mostly for internal restructuring purposes, but can
+ofc. be used for other things as well.
+
+*** New link-type: Attachment
+
+Attachment-links are now first-class citizens.  They mimic file-links
+in everything they do but use the existing attachment-folder as a base
+when expanding the links. Both =DIR= and =ID= properties are used to
+try to resolve the links, in exactly the same way as Org-Attach uses
+those properties.
+
+*** Handle overlay specification for notes in Beamer export
+
+This aligns Beamer notes with slide overlays.
+
+*** Add support for lettered lists in Texinfo
+
+Using =:enum A= or =:enum a= Texinfo attribute switches an otherwise
+numbered list to a lettered list.
+
+*** Add a dispatcher command to insert dynamic blocks
+
+You can add new dynamic blocks with function
+~org-dynamic-block-define~.  All such dynamic blocks can be used by
+~org-dynamic-block-insert-dblock~ command.
+
+*** Babel
+
+**** ob-emacs-lisp sets ~lexical-binding~ in Org edit buffers
+
+When editing an Elisp src block, the editing buffer's
+~lexical-binding~ is set according to the src block's =:lexical=
+parameter.
+
+**** Add LaTeX output support in PlantUML
+
+*** New minor mode to display headline numbering
+
+Use =<M-x org-num-mode>= to get a visual indication of the numbering
+in the outline.  The numbering is also automatically updated upon
+changes in the buffer.
+
+*** New property =HTML_HEADLINE_CLASS= in HTML export
+
+The new property =HTML_HEADLINE_CLASS= assigns a class attribute to
+a headline.
+
+*** Allow LaTeX attributes and captions for "table.el" tables
+
+Supported LaTeX attributes are ~:float~, ~:center~, ~:font~ and
+~:caption~.
+
+*** Attach buffer contents to headline
+
+With =<b>= key from attachment dispatcher (=<C-c C-a>=), it is now
+possible to write the contents of a buffer to a file in the headline
+attachment directory.
+
+*** iCalendar export respects a =CLASS= property
+
+Set the =CLASS= property on an entry to specify a visibility class for
+that entry only during iCalendar export. The property can be set to
+anything the calendar server supports. The iCalendar standard defines
+the values =PUBLIC=, =CONFIDENTIAL=, =PRIVATE=, which can be
+interpreted as publicly visible, accessible to a specific group, and
+private respectively.
+
+This property can be inherited during iCalendar export, depending on
+the value of ~org-use-property-inheritance~.
+
+*** New parameter for =INCLUDE= keyword
+
+Add =:coding CODING-SYSTEM= to include files using a different coding
+system than the main Org document.  For example:
+
+#+begin_example
+,#+INCLUDE: "myfile.cmd" src cmd :coding cp850-dos
+#+end_example
+
+*** New values in clock tables' step: =month= and =year=
+*** ODT export handles numbers cookies in lists
+*** New cell movement functions in tables
+
+~S-<UP>~, ~S-<DOWN>~, ~S-<RIGHT>~, and ~S-<LEFT>~ now move cells in
+the corresponding direction by swapping with the adjacent cell.
+
+*** New option to natively fontify LaTeX snippets and environments
+
+A 'native option was added to org-highlight-latex-and-related. It
+matches the same structures than 'latex but it calls
+org-src-font-lock-fontify-block instead, thus bringing about full
+LaTeX font locking.
+
+*** ~org-clone-subtree-with-time-shift~ learned to shift backward in time
+
+=<C-c C-x c>= (~org-clone-subtree-with-time-shift~) now takes a
+negative value as a valid repeater to shift time stamps in backward
+in cloned subtrees.  You can give, for example, ‘-3d’ to shift three
+days in the past.
+
+*** Toggle display of all vs. undone scheduled habits conveniently
+
+=<C-u K>= (~org-habit-toggle-display-in-agenda~) in an agenda toggles
+the display of all habits to those which are undone and scheduled.
+This is a function for convenience.
+
+*** New parameter for SQL Babel blocks: ~:dbconnection~
+
+The new parameter ~:dbconnection~ allows to specify a connection name
+in a SQL block header: this name is used to look up connection
+parameters in ~sql-connection-alist~.
+
+*** New =:scale= attribute supported by LaTeX exporters
+
+The builtin "latex" exporters now accept and use a =:scale= attribute,
+which scales an image by a given factor.
+
+This attribute is wrapped around the =scale= parameter of LaTeX's
+=\includegraphics= (bitmap images) or a TiKZ's =\scalebox=.
+Therefore, its value should be some string palatable to LaTeX as
+a positive float Its default value is an empty string (i.e. disabled).
+
+This attribute overrides the =:width= and =:height= attributes.
+
+#+begin_example
+,#+name: Beastie
+,#+caption: I think I saw this curious horse already, but where ?
+,#+LATEX_ATTR: :scale 2
+[[https://orgmode.org/img/org-mode-unicorn-logo.png]]
+#+end_example
+
+*** Allow specifying the target for a table of contents
+
+The =+TOC= keyword now accepts a =:target:= attribute that specifies
+the headline to use for making the table of contents.
+
+#+begin_example
+,* Target
+  :PROPERTIES:
+  :CUSTOM_ID: TargetSection
+  :END:
+,** Heading A
+,** Heading B
+,* Another section
+,#+TOC: headlines 1 :target "#TargetSection"
+#+end_example
+
+** New functions
+*** ~org-dynamic-block-insert-dblock~
+
+Use default keybinding =<C-c C-x x>= to run command
+~org-dynamic-block-insert-dblock~.  It will prompt user to select
+dynamic block in ~org-dynamic-block-alist~.
+
+*** ~org-table-cell-up~
+*** ~org-table-cell-down~
+*** ~org-table-cell-left~
+*** ~org-table-cell-right~
+*** ~org-habit-toggle-display-in-agenda~
+** Removed functions and variables
+*** Removed Org Drill
+
+You can install it back from MELPA.
+
+*** ~org-babel-set-current-result-hash~
+*** ~org-capture-insert-template-here~
+*** ~org-attach-directory~
+
+It has been deprecated in favor of ~org-attach-id-dir~ which is less
+ambiguous given the restructured org-attach.
+
+*** ~org-enable-fixed-width-editor~
+
+This variable was not used through the code base.
+
+** Miscellaneous
+*** Change signature for ~org-list-to-subtree~
+
+The function now accepts the level of the subtree as an optional
+argument.  It no longer deduces it from the current level.
+
+*** LaTeX preview is simplified
+
+Function ~org-latex-preview~, formerly known as
+~org-toggle-latex-fragment~, has a hopefully simpler and more
+predictable behavior.  See its docstring for details.
+
+*** ~org-table-copy-down~ supports patterns
+
+When ~org-table-copy-increment~ is non-nil, it is now possible to
+increment fields like =A1=, or =0A=, i.e., any string prefixed or
+suffixed with a whole number.
+
+*** No more special indentation for description items
+
+Descriptions items are indented like regular ones, i.e., text starts
+after the bullet.  Special indentation used to introduce bugs when
+inserting sub-items in a description list.
+
+*** New hook: ~org-todo-repeat-hook~
+
+This hook was actually introduced in Org 9.2.1, but wasn't advertised.
+
+*** Org Table reads numbers starting with 0 as strings
+*** Disable fast tag selection interface via prefix arg
+
+A call of ~org-set-tags-command~ with prefix argument C-u C-u avoids
+the fast tag selection interface and instead offers the plain
+interface.
+
+*** ~:mkdirp~ now supports create directory for ~:dir~ path
+
+The ~:mkdirp~ header argument used to only work for ~:tangle~ tangle
+files. Now ~:mkdirp~ works for ~:dir~ too. This is more convenient for
+specify default directory and with ~:file~ header argument.
+
+*** New variable: ~org-agenda-breadcrumbs-separator~
+
+If breadcrumbs are showed in org-agenda with the help of "%b" format
+in ~org-agenda-prefix-format~, user can customize breadcrumbs's
+separator using ~org-agenda-breadcrumbs-separator~.
+
+*** New variable ~org-attach-commands~
+
+This variable makes it possible to customize the list of commands for
+the attachment dispatcher.
+
+*** New ID method based on timestamp
+
+If one chooses, it is now possible to create ID's based on timestamp
+(ISO8601) instead of UUID by changing org-id-method to ts.
+
+For an improved folder structure when using timestamp as ID, make sure
+to promote ~org-attach-id-ts-folder-format~ to the first element of
+~org-attach-id-to-path-function-list~ in your configuration at the
+same time.
+
+*** New customization: ~org-id-locations-relative~
+
+New customization to make the persisting of org-id-locations between
+sessions to store links to files as relative instead of absolute.  The
+links will be stored as relative to the path of org-id-locations-file.
+
+*** ~org-ctrl-c-tab~ is functional before the first headline
+
+I.e. treat the whole file as if it was a subtree.
+
+Also fold everything below the chosen level.  Former behavior was to
+leave unfolded subtrees unfolded.
+
+*** ~org-kill-note-or-show-branches~ is functional before the first headline
+
+I.e. treat the whole file as if it was a subtree.
+
+*** Respect narrowing when agenda command is restricted to buffer
+
+* Version 9.2
+** Incompatible changes
+*** Removal of OrgStruct mode mode and radio lists
+
+OrgStruct minor mode and radio lists mechanism (~org-list-send-list~
+and ~org-list-radio-lists-templates~) are removed from the code base.
+
+Note that only radio /lists/ have been removed, not radio tables.
+
+If you want to manipulate lists like in Org in other modes, we suggest
+to use orgalist.el, which you can install from GNU ELPA.
+
+If you want to use Org folding outside of Org buffers, you can have a
+look at the outshine package in the MELPA repository.
+
+*** Change in the structure template expansion
+
+Org 9.2 comes with a new template expansion mechanism, combining
+~org-insert-structure-template~ bound to ~C-c C-,~.
+
+If you customized the ~org-structure-template-alist~ option manually,
+you probably need to update it, see the docstring for accepted values.
+
+If you prefer using previous patterns, e.g. =<s=, you can activate
+them again by requiring Org Tempo library:
+
+: (require 'org-tempo)
+
+or add it to ~org-modules~.
+
+If you need complex templates, look at the ~tempo-define-template~
+function or at solutions like Yasnippet.
+
+*** Change to Noweb expansion
+
+Expansion check =:noweb-ref= only if no matching named block is found
+in the buffer.  As a consequence, any =:noweb-ref= value matching the
+name of a source block in the buffer is ignored. A simple fix is to
+give every concerned source-block, including the named one, a new,
+unique, Noweb reference.
+
+#+BEGIN_SRC org
+  ,#+NAME: foo
+  ,#+BEGIN_SRC emacs-lisp
+    1
+  ,#+END_SRC
+
+  ,#+BEGIN_SRC emacs-lisp :noweb-ref foo
+    2
+  ,#+END_SRC
+
+  ,#+BEGIN_SRC emacs-lisp :noweb yes
+    <<foo>>
+  ,#+END_SRC
+#+END_SRC
+
+should become
+
+#+BEGIN_SRC org
+  ,#+NAME: foo
+  ,#+BEGIN_SRC emacs-lisp :noweb-ref bar
+    1
+  ,#+END_SRC
+
+  ,#+BEGIN_SRC emacs-lisp :noweb-ref bar
+    2
+  ,#+END_SRC
+
+  ,#+BEGIN_SRC emacs-lisp :noweb yes
+    <<bar>>
+  ,#+END_SRC
+#+END_SRC
+
+*** Default/accepted values of ~org-calendar-to-agenda-key~
+
+The default value and accepted value of  ~org-calendar-to-agenda-key~
+changed.  This is an excerpt of the new docstring:
+
+: When set to ‘default’, bind the function to ‘c’, but only if it is
+: available in the Calendar keymap.  This is the default choice because
+: ‘c’ can then be used to switch back and forth between agenda and calendar.
+:
+: When nil, ‘org-calendar-goto-agenda’ is not bound to any key.
+
+Check the full docstring for more.
+
+*** Change the signature of the ~org-set-effort~ function
+
+Here is the new docstring:
+
+: (org-set-effort &optional INCREMENT VALUE)
+:
+: Set the effort property of the current entry.
+: If INCREMENT is non-nil, set the property to the next allowed
+: value.  Otherwise, if optional argument VALUE is provided, use
+: it.  Eventually, prompt for the new value if none of the previous
+: variables is set.
+
+*** Placeholders in =(eval ...)= macros are always strings
+
+Within =(eval ...)= macros, =$1=-like placeholders are always replaced
+with a string.  As a consequence, they must not be enclosed within
+quotes. As an illustration, consider the following, now valid,
+examples:
+
+#+begin_example
+  ,#+macro: join (eval (concat $1 $2))
+  ,#+macro: sum (eval (+ (string-to-number $1) (string-to-number $2)))
+
+  {{{join(a,b)}}} => ab
+  {{{sum(1,2)}}}  => 3
+#+end_example
+
+However, there is no change in non-eval macros:
+
+#+begin_example
+  ,#+macro: disp argument: $1
+
+  {{{disp(text)}}} => argument: text
+#+end_example
+
+*** =align= STARTUP value no longer narrow table columns
+
+Columns narrowing (or shrinking) is now dynamic. See [[*Dynamically
+narrow table columns]] for details. In particular, it is decoupled from
+aligning.
+
+If you need to automatically shrink columns upon opening an Org
+document, use =shrink= value instead, or in addition to align:
+
+#+BEGIN_EXAMPLE
+,#+STARTUP: align shrink
+#+END_EXAMPLE
+
+*** ~org-get-tags~ meaning change
+
+Function ~org-get-tags~ used to return local tags to the current
+headline.  It now returns all the inherited tags in addition to the
+local tags.  In order to get the old behavior back, you can use:
+
+: (org-get-tags nil t)
+
+*** Alphabetic sorting in tables and lists
+
+When sorting alphabetically, ~org-table-sort-lines~ and ~org-sort-list~
+now sort according to the locale’s collation rules instead of by
+code-point.
+
+*** Change the name of the :tags clocktable option to :match
+
+The =:match= (renamed from =:tags=) option allows to limit clock entries
+to those matching a todo-tags matcher.
+
+The old =:tags= option can be set to =t= to display a headline's tags in a
+dedicated column.
+
+This is consistent with the naming of =org-dblock-write:columnview=
+options, where =:match= is also used as a headlines filter.
+
+** New features
+*** Add ~:session~ support of ob-clojure for CIDER
+You can initialize source block session with Babel default keybinding
+=[C-c C-v C-z]= to use =sesman= session manager to link current
+project, directory or buffer with specific Clojure session, or
+=cider-jack-in= a new CIDER REPL if no CIDER REPLs available. In older
+CIDER version which has not =sesman= integrated, only has
+=cider-jack-in= without Clojure project is supported.
+#+begin_src clojure :session
+(dissoc Clojure 'JVM)
+(conj clojurists "stardiviner")
+#+end_src
+*** Add ~:results link~ support for Babel
+
+With this output format, create a link to the file specified in
+~:file~ header argument, without actually writing any result to it:
+
+#+begin_example
+,#+begin_src shell :dir "data/tmp" :results link :file "crackzor_1.0.c.gz"
+wget -c "http://ben.akrin.com/crackzor/crackzor_1.0.c.gz"
+,#+end_src
+
+,#+results:
+[[file:data/tmp/crackzor_1.0.c.gz]]
+#+end_example
+
+*** Add ~:session~ support of ob-js for js-comint
+#+begin_src js :session "*Javascript REPL*"
+console.log("stardiviner")
+#+end_src
+*** Add ~:session~ support of ob-js for Indium
+#+begin_src js :session "*JS REPL*"
+console.log("stardiviner")
+#+end_src
+*** Add ~:session~ support of ob-js for skewer-mode
+#+begin_src js :session "*skewer-repl*"
+console.log("stardiviner")
+#+end_src
+*** Add support for links to LaTeX equations in HTML export
+Use MathJax links when enabled (by ~org-html-with-latex~), otherwise
+add a label to the rendered equation.
+*** Org Tempo may used for snippet expansion of structure template.
+See manual and the commentary section in ~org-tempo.el~ for details.
+*** Exclude unnumbered headlines from table of contents
+Set their =UNNUMBERED= property to the special =notoc= value.  See
+manual for details.
+*** ~org-archive~ functions update status cookies
+
+Archiving headers through ~org-archive-subtree~ and
+~org-archive-to-archive-sibling~ such as the ones listed below:
+
+#+BEGIN_SRC org
+  ,* Top [1/2]
+  ,** DONE Completed
+  ,** TODO Working
+#+END_SRC
+
+Will update the status cookie in the top level header.
+
+*** Disable =org-agenda-overriding-header= by setting to empty string
+
+The ~org-agenda-overriding-header~ inserted into agenda views can now
+be disabled by setting it to an empty string.
+
+*** Dynamically narrow table columns
+
+With ~C-c TAB~, it is now possible to narrow a column to the width
+specified by a width cookie in the column, or to 1 character if there
+is no such cookie.  The same keybinding expands a narrowed column to
+its previous state.
+
+Editing the column automatically expands the whole column to its full
+size.
+
+*** =org-columns-summary-types= entries can take an optional COLLECT function
+
+You can use this to make collection of a property from an entry
+conditional on another entry. E.g. given this configuration:
+
+#+BEGIN_SRC emacs-lisp
+  (defun custom/org-collect-confirmed (property)
+    "Return `PROPERTY' for `CONFIRMED' entries"
+    (let ((prop (org-entry-get nil property))
+	  (confirmed (org-entry-get nil "CONFIRMED")))
+      (if (and prop (string= "[X]" confirmed))
+	  prop
+	"0")))
+
+  (setq org-columns-summary-types
+	'(("X+" org-columns--summary-sum
+	   custom/org-collect-confirmed)))
+#+END_SRC
+
+You can have a file =bananas.org= containing:
+
+#+BEGIN_SRC org
+  ,#+columns: %ITEM %CONFIRMED %Bananas{+} %Bananas(Confirmed Bananas){X+}
+
+  ,* All shipments
+  ,** Shipment 1
+     :PROPERTIES:
+     :CONFIRMED: [X]
+     :Bananas:  4
+     :END:
+
+  ,** Shipment 2
+     :PROPERTIES:
+     :CONFIRMED: [ ]
+     :BANANAS:  7
+     :END:
+#+END_SRC
+
+... and when going to the top of that file and entering column view
+you should expect to see something like:
+
+| ITEM          | CONFIRMED | Bananas | Confirmed Bananas |
+|---------------+-----------+---------+-------------------|
+| All shipments |           |      11 |                 4 |
+| Shipment 1    | [X]       |       4 |                 4 |
+| Shipment 2    | [ ]       |       7 |                 7 |
+
+#+BEGIN_EXAMPLE
+  ,#+STARTUP: shrink
+#+END_EXAMPLE
+*** Allow to filter by tags/property when capturing colview
+
+You can now use =:match= to filter entries using a todo/tags/properties
+matcher.
+
+*** Add support for Oracle's database alias in Babel blocks
+=ob-sql= library already support running SQL blocks against an Oracle
+database using ~sqlplus~.  Now it's possible to use alias names
+defined in =TNSNAMES= file instead of specifying full connection
+parameters.  See example below.
+
+#+BEGIN_SRC org
+  you can use the previous full connection parameters
+  ,#+BEGIN_SRC sql :engine oracle :dbuser me :dbpassword my_insecure_password :database my_db_name :dbhost my_db_host :dbport 1521
+  select sysdate from dual;
+  ,#+END_SRC
+
+  or the alias defined in your TNSNAMES file
+  ,#+BEGIN_SRC sql :engine oracle :dbuser me :dbpassword my_insecure_password :database my_tns_alias
+  select sysdate from dual;
+  ,#+END_SRC
+#+END_SRC
+
+*** ~org-agenda-set-restriction-lock~ toggle agenda restriction at point
+
+You can set an agenda restriction lock with =C-x C-x <= or with =<= at the
+beginning of a headline when using Org speed commands.  Now, if there
+is already a restriction at point, hitting =<= again (or =C-x C-x <=) will
+remove it.
+
+*** Headlines can now link to themselves in HTML export
+
+When enabling ~org-html-self-link-headlines~ the headlines exported to
+HTML contain a hyperlink to themselves.
+
+** New commands and functions
+
+*** ~org-insert-structure-template~
+
+This function can be used to wrap existing text of Org elements in
+a #+BEGIN_FOO/#+END_FOO block.  Bound to C-c C-x w by default.
+
+*** ~org-export-excluded-from-toc-p~
+
+See docstring for details.
+
+*** ~org-timestamp-to-time~
+*** ~org-timestamp-from-string~
+*** ~org-timestamp-from-time~
+*** ~org-attach-dired-to-subtree~
+
+See docstring for details.
+
+*** ~org-toggle-narrow-to-subtree~
+
+Toggle the narrowing state of the buffer: when in a narrowed state,
+widen, otherwise call ~org-narrow-to-subtree~ to narrow.
+
+This is attached to the "s" speed command, so that hitting "s" twice
+will go back to the widen state.
+
+*** ~org-browse-news~
+
+Browse https://orgmode.org/Changes.html to let users read information
+about the last major release.
+
+There is a new menu entry for this in the "Documentation" menu item.
+
+*** ~org-info-find-node~
+
+From an Org file or an agenda switch to a suitable info page depending
+on the context.
+
+The function is bound to =C-c C-x I=.
+
+** Removed commands and functions
+*** ~org-outline-overlay-data~
+Use ~org-save-outline-visibility~ instead.
+*** ~org-set-outline-overlay-data~
+Use ~org-save-outline-visibility~ instead.
+*** ~org-get-string-indentation~
+It was not used throughout the code base.
+*** ~org-fix-indentation~
+It was not used throughout code base.
+*** ~org-context-p~
+Use ~org-element-at-point~ instead.
+*** ~org-preserve-lc~
+It is no longer used in the code base.
+*** ~org-try-structure-completion~
+Org Tempo may be used as a replacement.  See details above.
+** Removed options
+
+*** org-babel-use-quick-and-dirty-noweb-expansion
+
+See [[*Change to Noweb expansion][Change to Noweb expansion]] for explanations.
+
+** Miscellaneous
+
+*** New default value for ~org-texinfo-table-scientific-notation~
+
+It is now nil, which means numbers in scientific notation are not
+handled specially by default.
+
+*** New default value for ~org-latex-table-scientific-notation~
+
+It is now nil, which means numbers in scientific notation are not
+handled specially by default.
+
+*** New face: ~org-upcoming-distant-deadline~
+
+It is meant to be used as the face for distant deadlines, see
+~org-agenda-deadline-faces~
+
+*** ~org-paste-subtree~ no longer breaks sections
+
+Unless point is at the beginning of a headline, ~org-paste-subtree~
+now pastes the tree before the next visible headline.  If you need to
+break the section, use ~org-yank~ instead.
+
+*** ~org-table-insert-column~ inserts a column to the right
+
+It used to insert it on the left.  With this change,
+~org-table-insert-column~ and ~org-table-delete-column~ are
+reciprocal.
+
+*** ~org-publish-resolve-external-link~ accepts a new optional argument.
+*** ~org-irc.el~ now supports exporting =irc:= links properly
+
+Previously, irc links were exported by ~ox-md~ and ~ox-html~ as normal
+file links, which lead to them being broken in web browsers. Now both
+of these exporters will properly export to =irc:= links, which will
+open properly in irc clients from web browsers.
+
+*** ~org-comment-dwim~ (bound to =M-;=) now comments headings, if point is on a heading
+*** Add support for open source block in window below
+
+Set option ~org-src-window-setup~ to ~split-window-below~.
+
+*** Alphabetic sorting in headings and tags now uses the locale’s sorting rules
+
+When sorting alphabetically, ~org-sort-entries~ and
+~org-tags-sort-function~ now sort according to the locale’s collation
+rules instead of by code-point.
+*** New speed command "k" to kill (cut) the subtree at point
 * Version 9.1
 
 ** Incompatible changes
@@ -137,7 +1030,6 @@ See docstring for details.
 =org-agenda-tags-column= can now be set to =auto=, which will
 automatically align tags to the right edge of the window.  This is now
 the default setting.
-
 *** New value for ~org-publish-sitemap-sort-folders~
 
 The new ~ignore~ value effectively allows toggling inclusion of
@@ -204,7 +1096,7 @@ value of the code will be displayed in the results section.
 
 **** Maxima: new headers ~:prologue~ and ~:epilogue~
 Babel options ~:prologue~ and ~:epilogue~ have been implemented for
-Maxima src blocks which prepend and append, respectively, the given
+Maxima source blocks which prepend and append, respectively, the given
 code strings.  This can be useful for specifying formatting settings
 which would add clutter to exported code.  For instance, you can use
 this ~:prologue "fpprintprec: 2; linel: 50;"~ for presenting Maxima
@@ -486,7 +1378,7 @@ is now obsolete.
 Now ~=...=~ markup uses ~@samp{}~ instead of ~@verb{}~.  You can use
 ~@verb{}~ again by customizing the variable.
 *** Texinfo exports example blocks as ~@example~
-*** Texinfo exports inline src blocks as ~@code{}~
+*** Texinfo exports inline source blocks as ~@code{}~
 *** Texinfo default table markup is ~@asis~
 It used to be ~@samp~ but ~@asis~ is neutral and, therefore, more
 suitable as a default value.
@@ -1303,9 +2195,9 @@ docstring for more information.
 
 ** New features
 
-*** Default lexical evaluation of emacs-lisp src blocks
+*** Default lexical evaluation of emacs-lisp source blocks
 
-Emacs-lisp src blocks in babel are now evaluated using lexical
+Emacs-lisp source blocks in Babel are now evaluated using lexical
 scoping.  There is a new header to control this behavior.
 
 The default results in an eval with lexical scoping.
@@ -1746,7 +2638,7 @@ everywhere in the buffer, possibly corrupting URLs.
 
 This undocumented option defaulted to the value of =shell-file-name= at
 the time of loading =ob-shell=.  The new behavior is to use the value
-of =shell-file-name= directly when the shell langage is =shell=.  To chose
+of =shell-file-name= directly when the shell language is =shell=.  To chose
 a different shell, either customize =shell-file-name= or bind this
 variable locally.
 
@@ -2918,7 +3810,7 @@ See https://orgmode.org/elpa/
    | =C-c C-x E=     | =E=    | [[doc::org-inc-effort][org-inc-effort]]              |
    |                 | =#=    | [[doc::org-toggle-comment][org-toggle-comment]]          |
    |                 | =:=    | [[doc::org-columns][org-columns]]                 |
-   |                 | =W=    | Set =APPT_WARNTIME=          |
+   |                 | =W=    | Set =APPT_WARNTIME=         |
    | =k=             |        | [[doc::org-agenda-capture][org-agenda-capture]]          |
    | C-c ,           | ,      | [[doc::org-priority][org-priority]]                |
 
@@ -3824,7 +4716,7 @@ that Calc formulas can operate on them.
 
      : Percent escaping is used in Org mode to escape certain characters
      : in links that would either break the parser (e.g. square brackets
-     : in link target oder description) or are not allowed to appear in
+     : in link target or description) or are not allowed to appear in
      : a particular link type (e.g. non-ascii characters in a http:
      : link).
      :

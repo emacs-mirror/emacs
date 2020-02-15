@@ -1,5 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1997-2020 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
 
 #include <byteswap.h>
 
@@ -30,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 /* Fringe bitmaps are represented in three different ways:
 
@@ -634,7 +634,8 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
   /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
      the fringe.  */
   p.bx = -1;
-  header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+  header_line_height = WINDOW_TAB_LINE_HEIGHT (w)
+		       + WINDOW_HEADER_LINE_HEIGHT (w);
   p.by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, row->y));
   p.ny = row->visible_height;
   if (left_p)
@@ -719,7 +720,7 @@ static int
 get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, int partial_p)
 {
   Lisp_Object cmap, bm1 = Qnil, bm2 = Qnil, bm;
-  EMACS_INT ln1 = 0, ln2 = 0;
+  ptrdiff_t ln1 = 0, ln2 = 0;
   int ix1 = right_p;
   int ix2 = ix1 + (partial_p ? 2 : 0);
 
@@ -743,7 +744,7 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
 	    return NO_FRINGE_BITMAP;
 	  if (CONSP (bm1))
 	    {
-	      ln1 = XFIXNUM (Flength (bm1));
+	      ln1 = list_length (bm1);
 	      if (partial_p)
 		{
 		  if (ln1 > ix2)
@@ -778,7 +779,7 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
 	    {
 	      if (CONSP (bm2))
 		{
-		  ln2 = XFIXNUM (Flength (bm2));
+		  ln2 = list_length (bm2);
 		  if (partial_p)
 		    {
 		      if (ln2 > ix2)
@@ -1091,7 +1092,8 @@ update_window_fringes (struct window *w, bool keep_current_p)
 	      struct glyph_row *row1;
 	      int top_ind_max_y;
 
-	      top_ind_min_y = WINDOW_HEADER_LINE_HEIGHT (w);
+	      top_ind_min_y = WINDOW_TAB_LINE_HEIGHT (w)
+			      + WINDOW_HEADER_LINE_HEIGHT (w);
 	      top_ind_max_y = top_ind_min_y + fb->height;
 	      if (top_ind_max_y > yb)
 		top_ind_max_y = yb;
@@ -1148,8 +1150,10 @@ update_window_fringes (struct window *w, bool keep_current_p)
 
 	      bot_ind_max_y = row->y + row->visible_height;
 	      bot_ind_min_y = bot_ind_max_y - fb->height;
-	      if (bot_ind_min_y < WINDOW_HEADER_LINE_HEIGHT (w))
-		bot_ind_min_y = WINDOW_HEADER_LINE_HEIGHT (w);
+	      if (bot_ind_min_y < WINDOW_TAB_LINE_HEIGHT (w)
+				  + WINDOW_HEADER_LINE_HEIGHT (w))
+		bot_ind_min_y = WINDOW_TAB_LINE_HEIGHT (w)
+				+ WINDOW_HEADER_LINE_HEIGHT (w);
 
 	      for (y = row->y, rn = bot_ind_rn - 1;
 		   y >= bot_ind_min_y && rn >= 0;
@@ -1603,7 +1607,6 @@ If BITMAP already exists, the existing definition is replaced.  */)
   fb.bits = b = ((unsigned short *)
 		 ptr_bounds_clip (xfb + 1, fb.height * BYTES_PER_BITMAP_ROW));
   xfb = ptr_bounds_clip (xfb, sizeof *xfb);
-  memset (b, 0, fb.height);
 
   j = 0;
   while (j < fb.height)
@@ -1713,8 +1716,8 @@ syms_of_fringe (void)
 
   DEFVAR_LISP ("overflow-newline-into-fringe", Voverflow_newline_into_fringe,
     doc: /* Non-nil means that newline may flow into the right fringe.
-This means that display lines which are exactly as wide as the window
-\(not counting the final newline) will only occupy one screen line, by
+This means that display lines that are exactly as wide as the window
+\(not counting the final newline) will occupy only one screen line, by
 showing (or hiding) the final newline in the right fringe; when point
 is at the final newline, the cursor is shown in the right fringe.
 If nil, also continue lines which are exactly as wide as the window.  */);
@@ -1739,12 +1742,18 @@ mark_fringe_data (void)
 
 /* Initialize this module when Emacs starts.  */
 
+static void init_fringe_once_for_pdumper (void);
+
 void
 init_fringe_once (void)
 {
-  int bt;
+  pdumper_do_now_and_after_load (init_fringe_once_for_pdumper);
+}
 
-  for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
+static void
+init_fringe_once_for_pdumper (void)
+{
+  for (int bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
     init_fringe_bitmap (bt, &standard_bitmaps[bt], 1);
 }
 
@@ -1759,27 +1768,32 @@ init_fringe (void)
   fringe_faces = xzalloc (max_fringe_bitmaps * sizeof *fringe_faces);
 }
 
-#if defined (HAVE_NTGUI) || defined (USE_CAIRO)
-
 void
-#ifdef HAVE_NTGUI
-w32_init_fringe (struct redisplay_interface *rif)
-#else
-x_cr_init_fringe (struct redisplay_interface *rif)
-#endif
+gui_init_fringe (struct redisplay_interface *rif)
 {
   int bt;
 
-  if (!rif)
+  if (!rif || !rif->define_fringe_bitmap)
     return;
 
+  /* Set up the standard fringe bitmaps.  */
   for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
     {
       struct fringe_bitmap *fb = &standard_bitmaps[bt];
       rif->define_fringe_bitmap (bt, fb->bits, fb->height, fb->width);
     }
+
+  /* Set up user-defined fringe bitmaps that might have been defined
+     before the frame of this kind was initialized.  This can happen
+     if Emacs is started as a daemon and the init files define fringe
+     bitmaps.  */
+  for ( ; bt < max_used_fringe_bitmap; bt++)
+    {
+      struct fringe_bitmap *fb = fringe_bitmaps[bt];
+      if (fb)
+	rif->define_fringe_bitmap (bt, fb->bits, fb->height, fb->width);
+    }
 }
-#endif
 
 #ifdef HAVE_NTGUI
 void
@@ -1789,7 +1803,7 @@ w32_reset_fringes (void)
   int bt;
   struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
 
-  if (!rif)
+  if (!rif || !rif->destroy_fringe_bitmap)
     return;
 
   for (bt = NO_FRINGE_BITMAP + 1; bt < max_used_fringe_bitmap; bt++)

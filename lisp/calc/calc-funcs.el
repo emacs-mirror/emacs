@@ -1,6 +1,6 @@
 ;;; calc-funcs.el --- well-known functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -27,6 +27,7 @@
 
 (require 'calc-ext)
 (require 'calc-macs)
+(require 'cl-lib)
 
 (defun calc-inc-gamma (arg)
   (interactive "P")
@@ -177,7 +178,7 @@
 		       '(float 0 0)
 		       2)))))))
 
-(defun math-gamma-series (sum x xinvsqr oterm n)
+(defun math-gamma-series (sum x xinvsqr _oterm n)
   (math-working "gamma" sum)
   (let* ((bn (math-bernoulli-number n))
 	 (term (math-mul (math-div-float (math-float (nth 1 bn))
@@ -525,7 +526,7 @@
 	       bj))
 	    (t
 	     (if (Math-lessp 100 v) (math-reject-arg v 'range))
-	     (let* ((j (logior (+ v (math-isqrt-small (* 40 v))) 1))
+	     (let* ((j (logior (+ v (cl-isqrt (* 40 v))) 1))
 		    (two-over-x (math-div 2 x))
 		    (jsum nil)
 		    (bjp '(float 0 0))

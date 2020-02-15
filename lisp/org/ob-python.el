@@ -1,6 +1,6 @@
 ;;; ob-python.el --- Babel Functions for Python      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
@@ -28,9 +28,8 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 
-(declare-function org-remove-indentation "org" )
-(declare-function org-trim "org" (s &optional keep-lead))
 (declare-function py-shell "ext:python-mode" (&optional argprompt))
 (declare-function py-toggle-shells "ext:python-mode" (arg))
 (declare-function run-python "ext:python" (&optional cmd dedicated show))
@@ -98,7 +97,7 @@ This function is called by `org-babel-execute-src-block'."
 
 (defun org-babel-prep-session:python (session params)
   "Prepare SESSION according to the header arguments in PARAMS.
-VARS contains resolved variable references"
+VARS contains resolved variable references."
   (let* ((session (org-babel-python-initiate-session session))
 	 (var-lines
 	  (org-babel-variable-assignments:python params)))
@@ -266,13 +265,13 @@ last statement in BODY, as elisp."
   (let ((raw
          (pcase result-type
            (`output (org-babel-eval org-babel-python-command
-				    (concat (if preamble (concat preamble "\n"))
+				    (concat preamble (and preamble "\n")
 					    body)))
            (`value (let ((tmp-file (org-babel-temp-file "python-")))
 		     (org-babel-eval
 		      org-babel-python-command
 		      (concat
-		       (if preamble (concat preamble "\n") "")
+		       preamble (and preamble "\n")
 		       (format
 			(if (member "pp" result-params)
 			    org-babel-python-pp-wrapper-method
@@ -308,9 +307,21 @@ last statement in BODY, as elisp."
 	       (list (format "open('%s', 'w').write(str(_))"
 			     (org-babel-process-file-name tmp-file
                                                           'noquote)))))))
+	 (last-indent 0)
 	 (input-body (lambda (body)
-		       (mapc (lambda (line) (insert line) (funcall send-wait))
-			     (split-string body "[\r\n]"))
+		       (dolist (line (split-string body "[\r\n]"))
+			 ;; Insert a blank line to end an indent
+			 ;; block.
+			 (let ((curr-indent (string-match "\\S-" line)))
+			   (if curr-indent
+			       (progn
+				 (when (< curr-indent last-indent)
+				   (insert "")
+				   (funcall send-wait))
+				 (setq last-indent curr-indent))
+			     (setq last-indent 0)))
+			 (insert line)
+			 (funcall send-wait))
 		       (funcall send-wait)))
          (results
           (pcase result-type

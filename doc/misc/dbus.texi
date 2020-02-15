@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -47,7 +47,7 @@ modify this GNU manual.''
 This manual documents an API for usage of D-Bus in Emacs.  D-Bus is a
 message bus system, a simple way for applications to talk to one
 another.  An overview of D-Bus can be found at
-@uref{http://dbus.freedesktop.org/}.
+@uref{https://dbus.freedesktop.org/}.
 
 @ifnottex
 @insertcopying
@@ -328,7 +328,7 @@ and @code{direction}.  The @code{name} attribute is optional.  The
 in D-Bus.  For a discussion of D-Bus types and their Lisp
 representation see @ref{Type Conversion}.@footnote{D-Bus signatures
 are explained in the D-Bus specification
-@uref{http://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-signatures}.}
+@uref{https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-signatures}.}
 The @code{direction} attribute of an @code{arg} element can be only
 @samp{in} or @samp{out}; in case it is omitted, it defaults to
 @samp{in}.
@@ -415,7 +415,7 @@ string and 2 boolean values.@footnote{ The interfaces of the service
 @samp{org.freedesktop.Hal} are described in
 @c Previous link is gone.  Since HAL is now obsolete, this URL
 @c (unchanged in ~ 4 years) feels like it might go too...
-@uref{http://people.freedesktop.org/~dkukawka/hal-spec-git/hal-spec.html#interfaces,
+@uref{https://people.freedesktop.org/~dkukawka/hal-spec-git/hal-spec.html#interfaces,
 the HAL specification}.}
 @end defun
 
@@ -663,13 +663,13 @@ returned by @code{dbus-introspect-get-signal-names}.  Example:
 
 Interfaces can have properties.  These can be exposed via the
 @samp{org.freedesktop.DBus.Properties} interface@footnote{See
-@uref{http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties}}.
+@uref{https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties}}.
 That is, properties can be retrieved and changed during lifetime of an
 element.
 
 A generalized interface is
 @samp{org.freedesktop.DBus.Objectmanager}@footnote{See
-@uref{http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager}},
+@uref{https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-objectmanager}},
 which returns objects, their interfaces and properties for a given
 service in just one call.
 
@@ -839,7 +839,7 @@ belong to.  Example:
 @end lisp
 
 Default annotation names@footnote{See
-@uref{http://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format}}
+@uref{https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format}}
 are
 
 @table @samp
@@ -1015,7 +1015,7 @@ but different to
 
 The value for a byte D-Bus type can be any integer in the range 0
 through 255.  If a character is used as argument, modifiers
-represented outside this range are stripped of.  For example,
+represented outside this range are stripped off.  For example,
 @code{:byte ?x} is equal to @code{:byte ?\M-x}, but it is not equal to
 @code{:byte ?\C-x} or @code{:byte ?\M-\C-x}.
 
@@ -1928,7 +1928,7 @@ This executes @var{forms} exactly like a @code{progn}, except that
 errors can be made visible when @code{dbus-debug} is set to @code{t}.
 @end defspec
 
-Incoming D-Bus messages are handled as Emacs events, see @pxref{Misc
+Incoming D-Bus messages are handled as Emacs events, @pxref{Misc
 Events, , , elisp}.  They are retrieved only, when Emacs runs in
 interactive mode.  The generated event has this form:
 
@@ -1952,7 +1952,7 @@ of the D-Bus object emitting the message.  @var{interface} and
 @var{member} denote the message which has been sent.
 
 @var{handler} is the callback function which has been registered for
-this message (see @pxref{Signals}).  When a @code{dbus-event} event
+this message (@pxref{Signals}).  When a @code{dbus-event} event
 arrives, @var{handler} is called with @var{args} as arguments.
 
 In order to inspect the @code{dbus-event} data, you could extend the

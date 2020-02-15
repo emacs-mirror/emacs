@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -1066,6 +1066,15 @@
   :mime-charset 'ebcdic-uk
   :map "EBCDICUK")
 
+(define-charset 'ibm038
+  "International version of EBCDIC"
+  :short-name "IBM038"
+  :code-space [0 255]
+  :mime-charset 'ibm038
+  :map "IBM038")
+(define-charset-alias 'ebcdic-int 'ibm038)
+(define-charset-alias 'cp038 'ibm038)
+
 (define-charset 'ibm1047
   ;; Says groff:
   "IBM1047, `EBCDIC Latin 1/Open Systems' used by OS/390 Unix."
@@ -1576,7 +1585,7 @@ for decoding and encoding files, process I/O, etc."
 (aset latin-extra-code-table ?\226 t)
 
 (defcustom password-word-equivalents
-  '("password" "passcode" "passphrase" "pass phrase"
+  '("password" "passcode" "passphrase" "pass phrase" "pin"
     ; These are sorted according to the GNU en_US locale.
     "암호"		; ko
     "パスワード"	; ja
@@ -1627,7 +1636,7 @@ password prompts, including prompts in languages other than
 English.  Different case choices should not be assumed to be
 included; callers should bind `case-fold-search' to t."
   :type '(repeat string)
-  :version "24.4"
+  :version "27.1"
   :group 'processes)
 
 ;; The old code-pages library is obsoleted by coding systems based on

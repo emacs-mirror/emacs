@@ -1,6 +1,6 @@
 ;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode
 
-;; Copyright (C) 1994-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -161,7 +161,7 @@
 ;; - XEmacs: Add `font-lock-value-in-major-mode' if necessary
 ;; - Removed `fast-lock-submit-bug-report' and bade farewell
 ;; 3.11--3.12:
-;; - Added Custom support (Hrvoje Niksic help)
+;; - Added Custom support (Hrvoje Nikšić help)
 ;; - Made `save-buffer-state' wrap `inhibit-point-motion-hooks'
 ;; - Made `fast-lock-cache-data' simplify calls of `font-lock-compile-keywords'
 ;; 3.12--3.13:
@@ -213,23 +213,6 @@
            (while (unless (memq (car faces) fast-lock-save-faces)
                     (setq faces (cdr faces))))
            faces)))))
-
-;;(defun fast-lock-submit-bug-report ()
-;;  "Submit via mail a bug report on fast-lock.el."
-;;  (interactive)
-;;  (let ((reporter-prompt-for-summary-p t))
-;;    (reporter-submit-bug-report "simon@gnu.org" "fast-lock 3.14"
-;;     '(fast-lock-cache-directories fast-lock-minimum-size
-;;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
-;;       fast-lock-verbose)
-;;     nil nil
-;;     (concat "Hi Si.,
-;;
-;;I want to report a bug.  I've read the `Bugs' section of `Info' on Emacs, so I
-;;know how to make a clear and unambiguous report.  To reproduce the bug:
-;;
-;;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
-;;In the `*scratch*' buffer, evaluate:"))))
 
 (defgroup fast-lock nil
   "Font Lock support mode to cache fontification."

@@ -1,7 +1,7 @@
 /* simulate `sbrk' with an array in .bss, for `unexec' support for Cygwin;
    complete rewrite of xemacs Cygwin `unexec' code
 
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,7 +31,6 @@ static int debug_sheap;
 
 char bss_sbrk_buffer[STATIC_HEAP_SIZE];
 char *max_bss_sbrk_ptr;
-bool bss_sbrk_did_unexec;
 
 void *
 bss_sbrk (ptrdiff_t request_size)

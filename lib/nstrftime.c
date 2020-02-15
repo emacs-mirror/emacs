@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -68,6 +68,8 @@ extern char *tzname[];
 #include <string.h>
 #include <stdbool.h>
 
+#include <intprops.h>
+
 #ifndef FALLTHROUGH
 # if __GNUC__ < 7
 #  define FALLTHROUGH ((void) 0)
@@ -111,14 +113,7 @@ extern char *tzname[];
 #define SHR(a, b)       \
   (-1 >> 1 == -1        \
    ? (a) >> (b)         \
-   : (a) / (1 << (b)) - ((a) % (1 << (b)) < 0))
-
-/* Bound on length of the string representing an integer type or expression T.
-   Subtract 1 for the sign bit if t is signed; log10 (2.0) < 146/485;
-   add 1 for integer division truncation; add 1 more for a minus sign
-   if needed.  */
-#define INT_STRLEN_BOUND(t) \
-  ((sizeof (t) * CHAR_BIT - 1) * 146 / 485 + 2)
+   : ((a) + ((a) < 0)) / (1 << (b)) - ((a) < 0))
 
 #define TM_YEAR_BASE 1900
 
@@ -167,20 +162,21 @@ extern char *tzname[];
 # define advance(P, N) ((P) += (N))
 #endif
 
-#define add(n, f)                                                             \
+#define add(n, f) width_add (width, n, f)
+#define width_add(width, n, f)                                                \
   do                                                                          \
     {                                                                         \
       size_t _n = (n);                                                        \
-      size_t _w = (width < 0 ? 0 : width);                                    \
+      size_t _w = pad == L_('-') || width < 0 ? 0 : width;                    \
       size_t _incr = _n < _w ? _w : _n;                                       \
       if (_incr >= maxsize - i)                                               \
         return 0;                                                             \
       if (p)                                                                  \
         {                                                                     \
-          if (digits == 0 && _n < _w)                                         \
+          if (_n < _w)                                                        \
             {                                                                 \
-              size_t _delta = width - _n;                                     \
-              if (pad == L_('0'))                                             \
+              size_t _delta = _w - _n;                                        \
+              if (pad == L_('0') || pad == L_('+'))                           \
                 memset_zero (p, _delta);                                      \
               else                                                            \
                 memset_space (p, _delta);                                     \
@@ -191,15 +187,17 @@ extern char *tzname[];
       i += _incr;                                                             \
     } while (0)
 
+#define add1(c) width_add1 (width, c)
 #if FPRINTFTIME
-# define add1(C) add (1, fputc (C, p))
+# define width_add1(width, c) width_add (width, 1, fputc (c, p))
 #else
-# define add1(C) add (1, *p = C)
+# define width_add1(width, c) width_add (width, 1, *p = c)
 #endif
 
+#define cpy(n, s) width_cpy (width, n, s)
 #if FPRINTFTIME
-# define cpy(n, s) \
-    add ((n),                                                                 \
+# define width_cpy(width, n, s)                                               \
+    width_add (width, n,                                                      \
      do                                                                       \
        {                                                                      \
          if (to_lowcase)                                                      \
@@ -219,8 +217,8 @@ extern char *tzname[];
      while (0)                                                                \
     )
 #else
-# define cpy(n, s)                                                            \
-    add ((n),                                                                 \
+# define width_cpy(width, n, s)                                               \
+    width_add (width, n,                                                      \
          if (to_lowcase)                                                      \
            memcpy_lowcase (p, (s), _n LOCALE_ARG);                            \
          else if (to_uppcase)                                                 \
@@ -350,8 +348,8 @@ tm_diff (const struct tm *a, const struct tm *b)
      but it's OK to assume that A and B are close to each other.  */
   int a4 = SHR (a->tm_year, 2) + SHR (TM_YEAR_BASE, 2) - ! (a->tm_year & 3);
   int b4 = SHR (b->tm_year, 2) + SHR (TM_YEAR_BASE, 2) - ! (b->tm_year & 3);
-  int a100 = a4 / 25 - (a4 % 25 < 0);
-  int b100 = b4 / 25 - (b4 % 25 < 0);
+  int a100 = (a4 + (a4 < 0)) / 25 - (a4 < 0);
+  int b100 = (b4 + (b4 < 0)) / 25 - (b4 < 0);
   int a400 = SHR (a100, 2);
   int b400 = SHR (b100, 2);
   int intervening_leap_days = (a4 - b4) - (a100 - b100) + (a400 - b400);
@@ -418,7 +416,7 @@ iso_week_days (int yday, int wday)
 
 static size_t __strftime_internal (STREAM_OR_CHAR_T *, STRFTIME_ARG (size_t)
                                    const CHAR_T *, const struct tm *,
-                                   bool, bool *
+                                   bool, int, int, bool *
                                    extra_args_spec LOCALE_PARAM);
 
 /* Write information from TP into S according to the format
@@ -433,20 +431,22 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              const struct tm *tp extra_args_spec LOCALE_PARAM)
 {
   bool tzset_called = false;
-  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp,
-                              false, &tzset_called extra_args LOCALE_ARG);
+  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
+                              0, -1, &tzset_called extra_args LOCALE_ARG);
 }
 #if defined _LIBC && ! FPRINTFTIME
 libc_hidden_def (my_strftime)
 #endif
 
-/* Just like my_strftime, above, but with two more parameters.
-   UPCASE indicate that the result should be converted to upper case,
-   and *TZSET_CALLED indicates whether tzset has been called here.  */
+/* Just like my_strftime, above, but with more parameters.
+   UPCASE indicates that the result should be converted to upper case.
+   YR_SPEC and WIDTH specify the padding and width for the year.
+   *TZSET_CALLED indicates whether tzset has been called here.  */
 static size_t
 __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      const CHAR_T *format,
-                     const struct tm *tp, bool upcase, bool *tzset_called
+                     const struct tm *tp, bool upcase,
+                     int yr_spec, int width, bool *tzset_called
                      extra_args_spec LOCALE_PARAM)
 {
 #if defined _LIBC && defined USE_IN_EXTENDED_LOCALE_MODEL
@@ -558,9 +558,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     if (hour12 == 0)
       hour12 = 12;
 
-  for (f = format; *f != '\0'; ++f)
+  for (f = format; *f != '\0'; width = -1, f++)
     {
-      int pad = 0;              /* Padding for number ('-', '_', or 0).  */
+      int pad = 0;  /* Padding for number ('_', '-', '+', '0', or 0).  */
       int modifier;             /* Field modifier ('E', 'O', or 0).  */
       int digits = 0;           /* Max digits for numeric format.  */
       int number_value;         /* Numeric value to be printed.  */
@@ -569,19 +569,18 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
       bool always_output_a_sign; /* +/- should always be output.  */
       int tz_colon_mask;        /* Bitmask of where ':' should appear.  */
       const CHAR_T *subfmt;
-      CHAR_T sign_char;
       CHAR_T *bufp;
       CHAR_T buf[1
                  + 2 /* for the two colons in a %::z or %:::z time zone */
                  + (sizeof (int) < sizeof (time_t)
                     ? INT_STRLEN_BOUND (time_t)
                     : INT_STRLEN_BOUND (int))];
-      int width = -1;
       bool to_lowcase = false;
       bool to_uppcase = upcase;
       size_t colons;
       bool change_case = false;
       int format_char;
+      int subwidth;
 
 #if DO_MULTIBYTE && !defined COMPILE_WIDE
       switch (*f)
@@ -679,6 +678,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               /* This influences the number formats.  */
             case L_('_'):
             case L_('-'):
+            case L_('+'):
             case L_('0'):
               pad = *f;
               continue;
@@ -697,21 +697,14 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           break;
         }
 
-      /* As a GNU extension we allow the field width to be specified.  */
       if (ISDIGIT (*f))
         {
           width = 0;
           do
             {
-              if (width > INT_MAX / 10
-                  || (width == INT_MAX / 10 && *f - L_('0') > INT_MAX % 10))
-                /* Avoid overflow.  */
+              if (INT_MULTIPLY_WRAPV (width, 10, &width)
+                  || INT_ADD_WRAPV (width, *f - L_('0'), &width))
                 width = INT_MAX;
-              else
-                {
-                  width *= 10;
-                  width += *f - L_('0');
-                }
               ++f;
             }
           while (ISDIGIT (*f));
@@ -743,12 +736,16 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             }                                                                 \
           while (0)
 #define DO_SIGNED_NUMBER(d, negative, v) \
+          DO_MAYBE_SIGNED_NUMBER (d, negative, v, do_signed_number)
+#define DO_YEARISH(d, negative, v) \
+          DO_MAYBE_SIGNED_NUMBER (d, negative, v, do_yearish)
+#define DO_MAYBE_SIGNED_NUMBER(d, negative, v, label) \
           do                                                                  \
             {                                                                 \
               digits = d;                                                     \
               negative_number = negative;                                     \
               u_number_value = v;                                             \
-              goto do_signed_number;                                          \
+              goto label;                                                     \
             }                                                                 \
           while (0)
 
@@ -850,7 +847,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('O'))
             goto bad_format;
 #ifdef _NL_CURRENT
-          if (! (modifier == 'E'
+          if (! (modifier == L_('E')
                  && (*(subfmt =
                        (const CHAR_T *) _NL_CURRENT (LC_TIME,
                                                      NLW(ERA_D_T_FMT)))
@@ -861,15 +858,17 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #endif
 
         subformat:
+          subwidth = -1;
+        subformat_width:
           {
             size_t len = __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
-                                              subfmt,
-                                              tp, to_uppcase, tzset_called
+                                              subfmt, tp, to_uppcase,
+                                              pad, subwidth, tzset_called
                                               extra_args LOCALE_ARG);
             add (len, __strftime_internal (p,
                                            STRFTIME_ARG (maxsize - i)
-                                           subfmt,
-                                           tp, to_uppcase, tzset_called
+                                           subfmt, tp, to_uppcase,
+                                           pad, subwidth, tzset_called
                                            extra_args LOCALE_ARG));
           }
           break;
@@ -928,9 +927,11 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             }
 
           {
-            int century = tp->tm_year / 100 + TM_YEAR_BASE / 100;
-            century -= tp->tm_year % 100 < 0 && 0 < century;
-            DO_SIGNED_NUMBER (2, tp->tm_year < - TM_YEAR_BASE, century);
+            bool negative_year = tp->tm_year < - TM_YEAR_BASE;
+            bool zero_thru_1899 = !negative_year & (tp->tm_year < 0);
+            int century = ((tp->tm_year - 99 * zero_thru_1899) / 100
+                           + TM_YEAR_BASE / 100);
+            DO_YEARISH (2, negative_year, century);
           }
 
         case L_('x'):
@@ -939,7 +940,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #ifdef _NL_CURRENT
           if (! (modifier == L_('E')
                  && (*(subfmt =
-                       (const CHAR_T *)_NL_CURRENT (LC_TIME, NLW(ERA_D_FMT)))
+                       (const CHAR_T *) _NL_CURRENT (LC_TIME, NLW(ERA_D_FMT)))
                      != L_('\0'))))
             subfmt = (const CHAR_T *) _NL_CURRENT (LC_TIME, NLW(D_FMT));
           goto subformat;
@@ -971,9 +972,17 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           always_output_a_sign = true;
           goto do_number_body;
 
+        do_yearish:
+          if (pad == 0)
+            pad = yr_spec;
+          always_output_a_sign
+            = (pad == L_('+')
+               && ((digits == 2 ? 99 : 9999) < u_number_value
+                   || digits < width));
+          goto do_maybe_signed_number;
+
         do_number_spacepad:
-          /* Force '_' flag unless overridden by '0' or '-' flag.  */
-          if (pad != L_('0') && pad != L_('-'))
+          if (pad == 0)
             pad = L_('_');
 
         do_number:
@@ -983,6 +992,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
         do_signed_number:
           always_output_a_sign = false;
+
+        do_maybe_signed_number:
           tz_colon_mask = 0;
 
         do_number_body:
@@ -1029,66 +1040,52 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           while (u_number_value != 0 || tz_colon_mask != 0);
 
         do_number_sign_and_padding:
-          if (digits < width)
-            digits = width;
+          if (pad == 0)
+            pad = L_('0');
+          if (width < 0)
+            width = digits;
 
-          sign_char = (negative_number ? L_('-')
-                       : always_output_a_sign ? L_('+')
-                       : 0);
+          {
+            CHAR_T sign_char = (negative_number ? L_('-')
+                                : always_output_a_sign ? L_('+')
+                                : 0);
+            int numlen = buf + sizeof buf / sizeof buf[0] - bufp;
+            int shortage = width - !!sign_char - numlen;
+            int padding = pad == L_('-') || shortage <= 0 ? 0 : shortage;
 
-          if (pad == L_('-'))
-            {
-              if (sign_char)
-                add1 (sign_char);
-            }
-          else
-            {
-              int padding = digits - (buf + (sizeof (buf) / sizeof (buf[0]))
-                                      - bufp) - !!sign_char;
+            if (sign_char)
+              {
+                if (pad == L_('_'))
+                  {
+                    if (p)
+                      memset_space (p, padding);
+                    i += padding;
+                    width -= padding;
+                  }
+                width_add1 (0, sign_char);
+                width--;
+              }
 
-              if (padding > 0)
-                {
-                  if (pad == L_('_'))
-                    {
-                      if ((size_t) padding >= maxsize - i)
-                        return 0;
-
-                      if (p)
-                        memset_space (p, padding);
-                      i += padding;
-                      width = width > padding ? width - padding : 0;
-                      if (sign_char)
-                        add1 (sign_char);
-                    }
-                  else
-                    {
-                      if ((size_t) digits >= maxsize - i)
-                        return 0;
-
-                      if (sign_char)
-                        add1 (sign_char);
-
-                      if (p)
-                        memset_zero (p, padding);
-                      i += padding;
-                      width = 0;
-                    }
-                }
-              else
-                {
-                  if (sign_char)
-                    add1 (sign_char);
-                }
-            }
-
-          cpy (buf + sizeof (buf) / sizeof (buf[0]) - bufp, bufp);
+            cpy (numlen, bufp);
+          }
           break;
 
         case L_('F'):
           if (modifier != 0)
             goto bad_format;
+          if (pad == 0 && width < 0)
+            {
+              pad = L_('+');
+              subwidth = 4;
+            }
+          else
+            {
+              subwidth = width - 6;
+              if (subwidth < 0)
+                subwidth = 0;
+            }
           subfmt = L_("%Y-%m-%d");
-          goto subformat;
+          goto subformat_width;
 
         case L_('H'):
           if (modifier == L_('E'))
@@ -1136,19 +1133,21 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
         case L_('N'):           /* GNU extension.  */
           if (modifier == L_('E'))
             goto bad_format;
-
-          number_value = ns;
-          if (width == -1)
-            width = 9;
-          else
-            {
-              /* Take an explicit width less than 9 as a precision.  */
-              int j;
-              for (j = width; j < 9; j++)
-                number_value /= 10;
-            }
-
-          DO_NUMBER (width, number_value);
+          {
+            int n = ns, ns_digits = 9;
+            if (width <= 0)
+              width = ns_digits;
+            int ndigs = ns_digits;
+            while (width < ndigs || (1 < ndigs && n % 10 == 0))
+              ndigs--, n /= 10;
+            for (int j = ndigs; 0 < j; j--)
+              buf[j - 1] = n % 10 + L_('0'), n /= 10;
+            if (!pad)
+              pad = L_('0');
+            width_cpy (0, ndigs, buf);
+            width_add (width - ndigs, 0, (void) 0);
+          }
+          break;
 #endif
 
         case L_('n'):
@@ -1297,17 +1296,18 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               case L_('g'):
                 {
                   int yy = (tp->tm_year % 100 + year_adjust) % 100;
-                  DO_NUMBER (2, (0 <= yy
-                                 ? yy
-                                 : tp->tm_year < -TM_YEAR_BASE - year_adjust
-                                 ? -yy
-                                 : yy + 100));
+                  DO_YEARISH (2, false,
+                              (0 <= yy
+                               ? yy
+                               : tp->tm_year < -TM_YEAR_BASE - year_adjust
+                               ? -yy
+                               : yy + 100));
                 }
 
               case L_('G'):
-                DO_SIGNED_NUMBER (4, tp->tm_year < -TM_YEAR_BASE - year_adjust,
-                                  (tp->tm_year + (unsigned int) TM_YEAR_BASE
-                                   + year_adjust));
+                DO_YEARISH (4, tp->tm_year < -TM_YEAR_BASE - year_adjust,
+                            (tp->tm_year + (unsigned int) TM_YEAR_BASE
+                             + year_adjust));
 
               default:
                 DO_NUMBER (2, days / 7 + 1);
@@ -1327,7 +1327,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           DO_NUMBER (1, tp->tm_wday);
 
         case L_('Y'):
-          if (modifier == 'E')
+          if (modifier == L_('E'))
             {
 #if HAVE_STRUCT_ERA_ENTRY
               struct era_entry *era = _nl_get_era_entry (tp HELPER_LOCALE_ARG);
@@ -1338,6 +1338,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # else
                   subfmt = era->era_format;
 # endif
+                  if (pad == 0)
+                    pad = yr_spec;
                   goto subformat;
                 }
 #else
@@ -1347,8 +1349,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('O'))
             goto bad_format;
 
-          DO_SIGNED_NUMBER (4, tp->tm_year < -TM_YEAR_BASE,
-                            tp->tm_year + (unsigned int) TM_YEAR_BASE);
+          DO_YEARISH (4, tp->tm_year < -TM_YEAR_BASE,
+                      tp->tm_year + (unsigned int) TM_YEAR_BASE);
 
         case L_('y'):
           if (modifier == L_('E'))
@@ -1358,7 +1360,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               if (era)
                 {
                   int delta = tp->tm_year - era->start_date[0];
-                  DO_NUMBER (1, (era->offset
+                  if (pad == 0)
+                    pad = yr_spec;
+                  DO_NUMBER (2, (era->offset
                                  + delta * era->absolute_direction));
                 }
 #else
@@ -1370,7 +1374,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             int yy = tp->tm_year % 100;
             if (yy < 0)
               yy = tp->tm_year < - TM_YEAR_BASE ? -yy : yy + 100;
-            DO_NUMBER (2, yy);
+            DO_YEARISH (2, false, yy);
           }
 
         case L_('Z'):
@@ -1438,28 +1442,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # endif
 
                 ltm = *tp;
+                ltm.tm_wday = -1;
                 lt = mktime_z (tz, &ltm);
-
-                if (lt == (time_t) -1)
-                  {
-                    /* mktime returns -1 for errors, but -1 is also a
-                       valid time_t value.  Check whether an error really
-                       occurred.  */
-                    struct tm tm;
-
-                    if (! localtime_rz (tz, &lt, &tm)
-                        || ((ltm.tm_sec ^ tm.tm_sec)
-                            | (ltm.tm_min ^ tm.tm_min)
-                            | (ltm.tm_hour ^ tm.tm_hour)
-                            | (ltm.tm_mday ^ tm.tm_mday)
-                            | (ltm.tm_mon ^ tm.tm_mon)
-                            | (ltm.tm_year ^ tm.tm_year)))
-                      break;
-                  }
-
-                if (! localtime_rz (0, &lt, &gtm))
+                if (ltm.tm_wday < 0 || ! localtime_rz (0, &lt, &gtm))
                   break;
-
                 diff = tm_diff (&ltm, &gtm);
               }
 #endif

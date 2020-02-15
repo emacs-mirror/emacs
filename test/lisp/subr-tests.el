@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -61,6 +61,9 @@
                      (quote
                       (0 font-lock-keyword-face))))))))
 
+(defalias 'subr-tests--parent-mode
+  (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+
 (ert-deftest provided-mode-derived-p ()
   ;; base case: `derived-mode' directly derives `prog-mode'
   (should (progn
@@ -68,9 +71,7 @@
             (provided-mode-derived-p 'derived-mode 'prog-mode)))
   ;; edge case: `derived-mode' derives an alias of `prog-mode'
   (should (progn
-            (defalias 'parent-mode
-              (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
-            (define-derived-mode derived-mode parent-mode "test")
+            (define-derived-mode derived-mode subr-tests--parent-mode "test")
             (provided-mode-derived-p 'derived-mode 'prog-mode))))
 
 (ert-deftest number-sequence-test ()
@@ -123,6 +124,13 @@
     (should (= x 2)))
   (should (equal (macroexpand-all '(when a b c d))
                  '(if a (progn b c d)))))
+
+(ert-deftest subr-test-xor ()
+  "Test `xor'."
+  (should-not (xor nil nil))
+  (should (eq (xor nil 'true) 'true))
+  (should (eq (xor 'true nil) 'true))
+  (should-not (xor t t)))
 
 (ert-deftest subr-test-version-parsing ()
   (should (equal (version-to-list ".5") '(0 5)))
@@ -236,6 +244,27 @@
               (error-message-string (should-error (version-to-list "beta22_8alpha3")))
               "Invalid version syntax: `beta22_8alpha3' (must start with a number)"))))
 
+(ert-deftest subr-test-version-list-< ()
+  (should (version-list-< '(0) '(1)))
+  (should (version-list-< '(0 9) '(1 0)))
+  (should (version-list-< '(1 -1) '(1 0)))
+  (should (version-list-< '(1 -2) '(1 -1)))
+  (should (not (version-list-< '(1) '(0))))
+  (should (not (version-list-< '(1 1) '(1 0))))
+  (should (not (version-list-< '(1) '(1 0))))
+  (should (not (version-list-< '(1 0) '(1 0 0)))))
+
+(ert-deftest subr-test-version-list-= ()
+  (should (version-list-= '(1) '(1)))
+  (should (version-list-= '(1 0) '(1)))
+  (should (not (version-list-= '(0) '(1)))))
+
+(ert-deftest subr-test-version-list-<= ()
+  (should (version-list-<= '(0) '(1)))
+  (should (version-list-<= '(1) '(1)))
+  (should (version-list-<= '(1 0) '(1)))
+  (should (not (version-list-<= '(1) '(0)))))
+
 (defun subr-test--backtrace-frames-with-backtrace-frame (base)
   "Reference implementation of `backtrace-frames'."
   (let ((idx 0)
@@ -318,24 +347,6 @@ cf. Bug#25477."
   (should (eq (string-to-char (symbol-name (gensym))) ?g))
   (should (eq (string-to-char (symbol-name (gensym "X"))) ?X)))
 
-(ert-deftest subr-tests--proper-list-p ()
-  "Test `proper-list-p' behavior."
-  (dotimes (length 4)
-    ;; Proper and dotted lists.
-    (let ((list (make-list length 0)))
-      (should (= (proper-list-p list) length))
-      (should (not (proper-list-p (nconc list 0)))))
-    ;; Circular lists.
-    (dotimes (n (1+ length))
-      (let ((circle (make-list (1+ length) 0)))
-        (should (not (proper-list-p (nconc circle (nthcdr n circle))))))))
-  ;; Atoms.
-  (should (not (proper-list-p 0)))
-  (should (not (proper-list-p "")))
-  (should (not (proper-list-p [])))
-  (should (not (proper-list-p (make-bool-vector 0 nil))))
-  (should (not (proper-list-p (make-symbol "a")))))
-
 (ert-deftest subr-tests--assq-delete-all ()
   "Test `assq-delete-all' behavior."
   (cl-flet ((new-list-fn
@@ -371,6 +382,61 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                             "%ca%"
                             (shell-quote-argument "%ca%")))
                    "without-caret %ca%"))))
+
+(ert-deftest subr-tests-flatten-tree ()
+  "Test `flatten-tree' behavior."
+  (should (equal (flatten-tree '(1 (2 . 3) nil (4 5 (6)) 7))
+                 '(1 2 3 4 5 6 7)))
+  (should (equal (flatten-tree '((1 . 2)))
+                 '(1 2)))
+  (should (equal (flatten-tree '(1 nil 2))
+                 '(1 2)))
+  (should (equal (flatten-tree 42)
+                 '(42)))
+  (should (equal (flatten-tree t)
+                 '(t)))
+  (should (equal (flatten-tree nil)
+                 nil))
+  (should (equal (flatten-tree '((nil) ((((nil)))) nil))
+                 nil))
+  (should (equal (flatten-tree '(1 ("foo" "bar") 2))
+                 '(1 "foo" "bar" 2))))
+
+(defvar subr-tests--hook nil)
+
+(ert-deftest subr-tests-add-hook-depth ()
+  "Test the `depth' arg of `add-hook'."
+  (setq-default subr-tests--hook nil)
+  (add-hook 'subr-tests--hook 'f1)
+  (add-hook 'subr-tests--hook 'f2)
+  (should (equal subr-tests--hook '(f2 f1)))
+  (add-hook 'subr-tests--hook 'f3 t)
+  (should (equal subr-tests--hook '(f2 f1 f3)))
+  (add-hook 'subr-tests--hook 'f4 50)
+  (should (equal subr-tests--hook '(f2 f1 f4 f3)))
+  (add-hook 'subr-tests--hook 'f5 -50)
+  (should (equal subr-tests--hook '(f5 f2 f1 f4 f3)))
+  (add-hook 'subr-tests--hook 'f6)
+  (should (equal subr-tests--hook '(f5 f6 f2 f1 f4 f3)))
+  ;; Make sure `t' is equivalent to 90.
+  (add-hook 'subr-tests--hook 'f7 90)
+  (add-hook 'subr-tests--hook 'f8 t)
+  (should (equal subr-tests--hook '(f5 f6 f2 f1 f4 f3 f7 f8)))
+  ;; Make sue `nil' is equivalent to 0.
+  (add-hook 'subr-tests--hook 'f9 0)
+  (add-hook 'subr-tests--hook 'f10)
+  (should (equal subr-tests--hook '(f5 f10 f9 f6 f2 f1 f4 f3 f7 f8)))
+  )
+
+(ert-deftest ignore-error-tests ()
+  (should (equal (ignore-error (end-of-file)
+                   (read ""))
+                 nil))
+  (should (equal (ignore-error end-of-file
+                   (read ""))
+                 nil))
+  (should-error (ignore-error foo
+                  (read ""))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; dom.el --- XML/HTML (etc.) DOM manipulation and searching functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: xml, html
@@ -81,17 +81,15 @@ A typical attribute is `href'."
   (if (eq (dom-tag node) 'script)
       ""
     (mapconcat
-     'identity
-     (mapcar
-      (lambda (elem)
-        (cond
-         ((stringp elem)
-	  elem)
-         ((eq (dom-tag elem) 'script)
-          "")
-         (t
-	  (dom-texts elem separator))))
-      (dom-children node))
+     (lambda (elem)
+       (cond
+        ((stringp elem)
+         elem)
+        ((eq (dom-tag elem) 'script)
+         "")
+        (t
+         (dom-texts elem separator))))
+     (dom-children node)
      (or separator " "))))
 
 (defun dom-child-by-tag (dom tag)
@@ -107,6 +105,18 @@ A name is a symbol like `td'."
 			  when matches
 			  append matches)))
     (if (equal (dom-tag dom) tag)
+	(cons dom matches)
+      matches)))
+
+(defun dom-search (dom predicate)
+  "Return elements in DOM where PREDICATE is non-nil.
+PREDICATE is called with the node as its only parameter."
+  (let ((matches (cl-loop for child in (dom-children dom)
+			  for matches = (and (not (stringp child))
+					     (dom-search child predicate))
+			  when matches
+			  append matches)))
+    (if (funcall predicate dom)
 	(cons dom matches)
       matches)))
 

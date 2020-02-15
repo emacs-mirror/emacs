@@ -10,7 +10,7 @@
 @copying
 This manual is for ERC as distributed with Emacs @value{EMACSVER}.
 
-Copyright @copyright{} 2005--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2005--2020 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -36,7 +36,7 @@ and modified without restriction.
 @titlepage
 @title ERC manual
 @subtitle a full-featured IRC client
-@subtitle for Emacs and XEmacs
+@subtitle for Emacs
 
 @c The following two commands
 @c start the copyright page.
@@ -699,7 +699,7 @@ stuff, to the current ERC buffer."
 
 ;; This causes ERC to connect to the IRC server on your own machine (if
 ;; you have one) upon hitting C-c e b.  Replace MYNICK with your IRC
-;; nick.  Often, people like to run bitlbee (http://bitlbee.org/) as an
+;; nick.  Often, people like to run bitlbee (https://bitlbee.org/) as an
 ;; AIM/Jabber/MSN to IRC gateway, so that they can use ERC to chat with
 ;; people on those networks.
 (global-set-key "\C-ceb" (lambda () (interactive)
@@ -801,7 +801,7 @@ or if you have bugs to report, there are several places you can go.
 @itemize @bullet
 
 @item
-@uref{http://www.emacswiki.org/cgi-bin/wiki/ERC} is the
+@uref{https://www.emacswiki.org/emacs/ERC} is the
 emacswiki.org page for ERC@.  Anyone may add tips, hints, etc.@: to it.
 
 @item
@@ -838,7 +838,7 @@ general.
 @c mlang@@delysid.org, alex@@gnu.org
 In June 2001, Mario Lang and Alex Schroeder
 took over development and created a ERC Project at
-@uref{http://sourceforge.net/projects/erc}.
+@uref{https://sourceforge.net/projects/erc}.
 
 In reaction to a mail about the new ERC development effort, Sergey
 Berezin said, ``First of all, I'm glad that my version of ERC is being

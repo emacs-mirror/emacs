@@ -1,6 +1,6 @@
 ;;; em-xtra.el --- extra alias functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -51,7 +51,7 @@ naturally accessible within Emacs."
   "Implementation of expr, using the calc package."
   (if (not (fboundp 'calc-eval))
       (throw 'eshell-replace-command
-	     (eshell-parse-command "*expr" (eshell-flatten-list args)))
+	     (eshell-parse-command "*expr" (flatten-tree args)))
     ;; to fool the byte-compiler...
     (let ((func 'calc-eval))
       (funcall func (eshell-flatten-and-stringify args)))))

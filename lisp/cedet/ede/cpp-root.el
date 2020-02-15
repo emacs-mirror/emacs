@@ -1,8 +1,8 @@
 ;;; ede/cpp-root.el --- A simple way to wrap a C++ project with a single root
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -150,12 +150,10 @@
 ;;   up the differences (the "include summary" reported the same include paths).
 
 (require 'ede)
+(require 'semantic/db)
 
 (defvar semantic-lex-spp-project-macro-symbol-obarray)
 (declare-function semantic-lex-make-spp-table "semantic/lex-spp")
-(declare-function semanticdb-file-table-object "semantic/db")
-(declare-function semanticdb-needs-refresh-p "semantic/db")
-(declare-function semanticdb-refresh-table "semantic/db")
 
 ;;; Code:
 
@@ -281,7 +279,7 @@ Each directory needs a project file to control it.")
   "Make sure the :file is fully expanded."
   ;; Add ourselves to the master list
   (cl-call-next-method)
-  (let ((f (expand-file-name (oref this :file))))
+  (let ((f (expand-file-name (oref this file))))
     ;; Remove any previous entries from the main list.
     (let ((old (eieio-instance-tracker-find (file-name-directory f)
 					    :directory 'ede-cpp-root-project-list)))
@@ -294,8 +292,8 @@ Each directory needs a project file to control it.")
 	      (file-directory-p f))
       (delete-instance this)
       (error ":file for ede-cpp-root-project must be a file"))
-    (oset this :file f)
-    (oset this :directory (file-name-directory f))
+    (oset this file f)
+    (oset this directory (file-name-directory f))
     (ede-project-directory-remove-hash (file-name-directory f))
     ;; NOTE: We must add to global list here because these classes are not
     ;;       created via the typical loader, but instead via calls from a .emacs
@@ -303,7 +301,7 @@ Each directory needs a project file to control it.")
     (ede-add-project-to-global-list this)
 
     (unless (slot-boundp this 'targets)
-      (oset this :targets nil))
+      (oset this targets nil))
     ))
 
 ;;; SUBPROJ Management.
@@ -391,7 +389,7 @@ This knows details about or source tree."
 ;; include lists, and Preprocessor symbol tables.
 
 (cl-defmethod ede-cpp-root-header-file-p ((proj ede-cpp-root-project) name)
-  "Non nil if in PROJ the filename NAME is a header."
+  "Non-nil if in PROJ the filename NAME is a header."
   (save-match-data
     (string-match (oref proj header-match-regexp) name)))
 
@@ -457,8 +455,8 @@ This is for project include paths and spp source files."
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   ;; we need to be in the proj root dir for this to work
-  (let* ((cmd (oref proj :compile-command))
-	 (ov (oref proj :local-variables))
+  (let* ((cmd (oref proj compile-command))
+	 (ov (oref proj local-variables))
 	 (lcmd (when ov (cdr (assoc 'compile-command ov))))
 	 (cmd-str (cond
 		   ((stringp cmd) cmd)
@@ -472,28 +470,13 @@ Argument COMMAND is the command to use when compiling."
 (cl-defmethod project-compile-target ((obj ede-cpp-root-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
-  (when (oref obj :project)
-    (project-compile-project (oref obj :project) command)))
+  (when (oref obj project)
+    (project-compile-project (oref obj project) command)))
 
 
 (cl-defmethod project-rescan ((this ede-cpp-root-project))
   "Don't rescan this project from the sources."
   (message "cpp-root has nothing to rescan."))
-
-;;; Quick Hack
-(defun ede-create-lots-of-projects-under-dir (dir projfile &rest attributes)
-  "Create a bunch of projects under directory DIR.
-PROJFILE is a file name sans directory that indicates a subdirectory
-is a project directory.
-Generic ATTRIBUTES, such as :include-path can be added.
-Note: This needs some work."
-  (let ((files (directory-files dir t)))
-    (dolist (F files)
-      (if (file-exists-p (expand-file-name projfile F))
-	  `(ede-cpp-root-project (file-name-nondirectory F)
-				 :name (file-name-nondirectory F)
-				 :file (expand-file-name projfile F)
-				 attributes)))))
 
 (provide 'ede/cpp-root)
 

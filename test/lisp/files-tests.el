@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -137,7 +137,7 @@ form.")
       (hack-local-variables)
       (eval (nth 2 test-settings)))))
 
-(ert-deftest files-test-local-variables ()
+(ert-deftest files-tests-local-variables ()
   "Test the file-local variables implementation."
   (cl-letf (((symbol-function 'hack-local-variables-confirm)
              (lambda (&rest _)
@@ -154,7 +154,7 @@ form.")
   (expand-file-name "data/files-bug18141.el.gz" (getenv "EMACS_TEST_DIRECTORY"))
   "Test file for bug#18141.")
 
-(ert-deftest files-test-bug-18141 ()
+(ert-deftest files-tests-bug-18141 ()
   "Test for https://debbugs.gnu.org/18141 ."
   (skip-unless (executable-find "gzip"))
   ;; If called interactively, environment variable
@@ -170,7 +170,7 @@ form.")
 	    (should (eq buffer-file-coding-system 'iso-2022-7bit-unix))))
       (delete-file tempfile))))
 
-(ert-deftest files-test-make-temp-file-empty-prefix ()
+(ert-deftest files-tests-make-temp-file-empty-prefix ()
   "Test make-temp-file with an empty prefix."
   (let ((tempfile (make-temp-file ""))
         (tempdir (make-temp-file "" t))
@@ -188,7 +188,7 @@ form.")
 ;; Stop the above "Local Var..." confusing Emacs.
 
 
-(ert-deftest files-test-bug-21454 ()
+(ert-deftest files-tests-bug-21454 ()
   "Test for https://debbugs.gnu.org/21454 ."
   :expected-result :failed
   (let ((input-result
@@ -216,7 +216,7 @@ form.")
       (setenv "FOO" foo-env)
       (setenv "BAR" bar-env))))
 
-(ert-deftest files-test--save-buffers-kill-emacs--confirm-kill-processes ()
+(ert-deftest files-tests-save-buffers-kill-emacs--confirm-kill-processes ()
   "Test that `save-buffers-kill-emacs' honors
 `confirm-kill-processes'."
   (cl-letf* ((yes-or-no-p-prompts nil)
@@ -239,9 +239,9 @@ form.")
     (should-not yes-or-no-p-prompts)
     (should (equal kill-emacs-args '(nil)))))
 
-(ert-deftest files-test-read-file-in-~ ()
-  "Test file prompting in directory named '~'.
-If we are in a directory named '~', the default value should not
+(ert-deftest files-tests-read-file-in-~ ()
+  "Test file prompting in directory named `~'.
+If we are in a directory named `~', the default value should not
 be $HOME."
   (cl-letf (((symbol-function 'completing-read)
              (lambda (_prompt _coll &optional _pred _req init _hist def _)
@@ -278,7 +278,7 @@ be $HOME."
                    (file-name-unquote
                     (file-name-unquote temporary-file-directory))))))
 
-(ert-deftest files-tests--file-name-non-special--subprocess ()
+(ert-deftest files-tests-file-name-non-special--subprocess ()
   "Check that Bug#25949 is fixed."
   (skip-unless (executable-find "true"))
   (let ((default-directory (file-name-quote temporary-file-directory)))
@@ -306,7 +306,7 @@ be $HOME."
          (progn ,@body)
        (delete-file ,name))))
 
-(ert-deftest files-tests--file-name-non-special--buffers ()
+(ert-deftest files-tests-file-name-non-special--buffers ()
   "Check that Bug#25951 is fixed.
 We call `verify-visited-file-modtime' on a buffer visiting a file
 with a quoted name.  We use two different variants: first with
@@ -1052,7 +1052,13 @@ unquoted file names."
           (should (search-forward emacs-version nil t))
           ;; Don't stop the test run with a query, as the subprocess
           ;; may or may not be dead by the time we reach here.
-          (set-process-query-on-exit-flag proc nil)))))
+          (set-process-query-on-exit-flag proc nil)
+          ;; On MS-Windows, wait for the process to die, since the OS
+          ;; will not let us delete a directory that is the cwd of a
+          ;; running process.
+          (when (eq system-type 'windows-nt)
+            (while (process-live-p proc)
+              (sleep-for 0.1)))))))
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
     (with-temp-buffer
@@ -1109,7 +1115,17 @@ unquoted file names."
     (with-temp-buffer
       (write-region nil nil nospecial nil :visit))))
 
-(ert-deftest files-tests--insert-directory-wildcard-in-dir-p ()
+(ert-deftest files-tests-file-name-non-special-make-process ()
+  "Check that the ‘:file-handler’ argument of ‘make-process’
+works as expected if the default directory is quoted."
+  (let ((default-directory (file-name-quote invocation-directory))
+        (program (file-name-quote
+                  (expand-file-name invocation-name invocation-directory))))
+    (should (processp (make-process :name "name"
+                                    :command (list program "--version")
+                                    :file-handler t)))))
+
+(ert-deftest files-tests-insert-directory-wildcard-in-dir-p ()
   (let ((alist (list (cons "/home/user/*/.txt" (cons "/home/user/" "*/.txt"))
                      (cons "/home/user/.txt" nil)
                      (cons "/home/*/.txt" (cons "/home/" "*/.txt"))
@@ -1126,7 +1142,7 @@ unquoted file names."
         (cdr path-res)
         (insert-directory-wildcard-in-dir-p (car path-res)))))))
 
-(ert-deftest files-tests--make-directory ()
+(ert-deftest files-tests-make-directory ()
   (let* ((dir (make-temp-file "files-mkdir-test" t))
 	 (dirname (file-name-as-directory dir))
 	 (file (concat dirname "file"))
@@ -1148,7 +1164,7 @@ unquoted file names."
     (should-not (make-directory a/b t))
     (delete-directory dir 'recursive)))
 
-(ert-deftest files-test-no-file-write-contents ()
+(ert-deftest files-tests-no-file-write-contents ()
   "Test that `write-contents-functions' permits saving a file.
 Usually `basic-save-buffer' will prompt for a file name if the
 current buffer has none.  It should first call the functions in
@@ -1177,7 +1193,7 @@ name (Bug#28412)."
         (should (null (save-buffer)))
         (should (eq (buffer-size) 1))))))
 
-(ert-deftest files-tests--copy-directory ()
+(ert-deftest files-tests-copy-directory ()
   (let* ((dir (make-temp-file "files-mkdir-test" t))
 	 (dirname (file-name-as-directory dir))
 	 (source (concat dirname "source"))
@@ -1194,7 +1210,7 @@ name (Bug#28412)."
     (should (file-directory-p (concat (file-name-as-directory dest2) "a")))
     (delete-directory dir 'recursive)))
 
-(ert-deftest files-test-abbreviated-home-dir ()
+(ert-deftest files-tests-abbreviated-home-dir ()
   "Test that changing HOME does not confuse `abbreviate-file-name'.
 See <https://debbugs.gnu.org/19657#20>."
   (let* ((homedir temporary-file-directory)
@@ -1207,6 +1223,108 @@ See <https://debbugs.gnu.org/19657#20>."
                                             (expand-file-name "bar" homedir))
                                     process-environment)))
     (should (equal old (file-truename (abbreviate-file-name testfile))))))
+
+(ert-deftest files-tests-executable-find ()
+  "Test that `executable-find' works also with a relative or remote PATH.
+See <https://debbugs.gnu.org/35241>."
+  (let ((tmpfile (make-temp-file "files-test" nil (car exec-suffixes))))
+    (unwind-protect
+        (progn
+          (set-file-modes tmpfile #o777)
+          (let ((exec-path `(,temporary-file-directory)))
+            (should
+             (equal tmpfile
+                    (executable-find (file-name-nondirectory tmpfile)))))
+          ;; An empty element of `exec-path' means `default-directory'.
+          (let ((default-directory temporary-file-directory)
+                (exec-path nil))
+            (should
+             (equal tmpfile
+                    (executable-find (file-name-nondirectory tmpfile)))))
+          ;; The remote file name shall be quoted, and handled like a
+          ;; non-existing directory.
+          (let ((default-directory "/ssh::")
+                (exec-path (append exec-path `("." ,temporary-file-directory))))
+            (should
+             (equal tmpfile
+                    (executable-find (file-name-nondirectory tmpfile))))))
+      (delete-file tmpfile))))
+
+(ert-deftest files-tests-dont-rewrite-precious-files ()
+  "Test that `file-precious-flag' forces files to be saved by
+renaming only, rather than modified in-place."
+  (let* ((temp-file-name (make-temp-file "files-tests"))
+         (advice (lambda (_start _end filename &rest _r)
+                   (should-not (string= filename temp-file-name)))))
+    (unwind-protect
+        (with-current-buffer (find-file-noselect temp-file-name)
+          (advice-add #'write-region :before advice)
+          (setq-local file-precious-flag t)
+          (insert "foobar")
+          (should (null (save-buffer))))
+      (ignore-errors (advice-remove #'write-region advice))
+      (ignore-errors (delete-file temp-file-name)))))
+
+(ert-deftest files-test-file-size-human-readable ()
+  (should (equal (file-size-human-readable 13) "13"))
+  (should (equal (file-size-human-readable 13 'si) "13"))
+  (should (equal (file-size-human-readable 13 'iec) "13B"))
+  (should (equal (file-size-human-readable 10000) "9.8k"))
+  (should (equal (file-size-human-readable 10000 'si) "10k"))
+  (should (equal (file-size-human-readable 10000 'iec) "9.8KiB"))
+  (should (equal (file-size-human-readable 4294967296 nil) "4G"))
+  (should (equal (file-size-human-readable 4294967296 'si) "4.3G"))
+  (should (equal (file-size-human-readable 4294967296 'iec) "4GiB"))
+  (should (equal (file-size-human-readable 13 nil " ") "13"))
+  (should (equal (file-size-human-readable 13 'si " ") "13"))
+  (should (equal (file-size-human-readable 13 'iec " ") "13 B"))
+  (should (equal (file-size-human-readable 10000 nil " ") "9.8 k"))
+  (should (equal (file-size-human-readable 10000 'si " ") "10 k"))
+  (should (equal (file-size-human-readable 10000 'iec " ") "9.8 KiB"))
+  (should (equal (file-size-human-readable 4294967296 nil " ") "4 G"))
+  (should (equal (file-size-human-readable 4294967296 'si " ") "4.3 G"))
+  (should (equal (file-size-human-readable 4294967296 'iec " ") "4 GiB"))
+  (should (equal (file-size-human-readable 10000 nil " " "bit") "9.8 kbit"))
+  (should (equal (file-size-human-readable 10000 'si " " "bit") "10 kbit"))
+  (should (equal (file-size-human-readable 10000 'iec " " "bit") "9.8 Kibit"))
+
+  (should (equal (file-size-human-readable 2048) "2k"))
+  (should (equal (file-size-human-readable 2046) "2k"))
+  (should (equal (file-size-human-readable 2050) "2k"))
+  (should (equal (file-size-human-readable 1950) "1.9k"))
+  (should (equal (file-size-human-readable 2100) "2.1k"))
+
+  (should (equal (file-size-human-readable-iec 0) "0 B"))
+  (should (equal (file-size-human-readable-iec 1) "1 B"))
+  (should (equal (file-size-human-readable-iec 9621) "9.4 KiB"))
+  (should (equal (file-size-human-readable-iec 72528034765) "67.5 GiB")))
+
+(ert-deftest files-test-magic-mode-alist-re-baseline ()
+  "Test magic-mode-alist with RE, expected behavior for match."
+  (let ((magic-mode-alist '(("my-tag" . text-mode))))
+    (with-temp-buffer
+      (insert "my-tag")
+      (normal-mode)
+      (should (eq major-mode 'text-mode)))))
+
+(ert-deftest files-test-magic-mode-alist-re-no-match ()
+  "Test magic-mode-alist with RE, expected behavior for no match."
+  (let ((magic-mode-alist '(("my-tag" . text-mode))))
+    (with-temp-buffer
+      (insert "not-my-tag")
+      (normal-mode)
+      (should (not (eq major-mode 'text-mode))))))
+
+(ert-deftest files-test-magic-mode-alist-re-case-diff ()
+  "Test that regexps in magic-mode-alist are case-sensitive.
+See <https://debbugs.gnu.org/36401>."
+  (let ((case-fold-search t)
+        (magic-mode-alist '(("my-tag" . text-mode))))
+    (with-temp-buffer
+      (goto-char (point-min))
+      (insert "My-Tag")
+      (normal-mode)
+      (should (not (eq major-mode 'text-mode))))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

@@ -1,6 +1,6 @@
 /* Get permissions of a file.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ get_permissions (const char *name, int desc, mode_t mode,
      When fetching the source ACL, we simply fetch both ACL types.
      When setting the destination ACL, we try either ACL types, assuming
      that the kernel will translate the ACL from one form to the other.
-     (See in <http://docs.sun.com/app/docs/doc/819-2241/6n4huc7ia?l=en&a=view>
+     (See in <https://docs.oracle.com/cd/E86824_01/html/E54765/acl-2.html>
      the description of ENOTSUP.)  */
   for (;;)
     {

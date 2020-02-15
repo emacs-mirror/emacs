@@ -1,6 +1,6 @@
 ;;; char-fold-tests.el --- Tests for char-fold.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
@@ -26,6 +26,34 @@
   (mapconcat (lambda (_) (string (+ 9 (random 117))))
              (make-list n nil) ""))
 
+(defun char-fold--ascii-upcase (string)
+  "Like `upcase' but acts on ASCII characters only."
+  (replace-regexp-in-string "[a-z]+" 'upcase string))
+
+(defun char-fold--ascii-downcase (string)
+  "Like `downcase' but acts on ASCII characters only."
+  (replace-regexp-in-string "[a-z]+" 'downcase string))
+
+(defun char-fold--test-match-exactly (string &rest strings-to-match)
+  (let ((re (concat "\\`" (char-fold-to-regexp string) "\\'")))
+    (dolist (it strings-to-match)
+      (should (string-match re it)))
+    ;; Case folding
+    (let ((case-fold-search t))
+      (dolist (it strings-to-match)
+        (should (string-match (char-fold--ascii-upcase re) (downcase it)))
+        (should (string-match (char-fold--ascii-downcase re) (upcase it)))))))
+
+(defun char-fold--test-no-match-exactly (string &rest strings-to-match)
+  (let ((re (concat "\\`" (char-fold-to-regexp string) "\\'")))
+    (dolist (it strings-to-match)
+      (should-not (string-match re it)))
+    ;; Case folding
+    (let ((case-fold-search t))
+      (dolist (it strings-to-match)
+        (should-not (string-match (char-fold--ascii-upcase re) (downcase it)))
+        (should-not (string-match (char-fold--ascii-downcase re) (upcase it)))))))
+
 (defun char-fold--test-search-with-contents (contents string)
   (with-temp-buffer
     (insert contents)
@@ -34,6 +62,11 @@
     (goto-char (point-min))
     (should (char-fold-search-forward string nil 'noerror))
     (should (char-fold-search-backward string nil 'noerror))))
+
+(defun char-fold--permutation (strings)
+  (mapcar (lambda (string)
+            (cons string (remove string strings)))
+          strings))
 
 
 (ert-deftest char-fold--test-consistency ()
@@ -54,25 +87,7 @@
        (concat w1 "\s\n\s\t\f\t\n\r\t" w2)
        (concat w1 (make-string 10 ?\s) w2)))))
 
-(defun char-fold--ascii-upcase (string)
-  "Like `upcase' but acts on ASCII characters only."
-  (replace-regexp-in-string "[a-z]+" 'upcase string))
-
-(defun char-fold--ascii-downcase (string)
-  "Like `downcase' but acts on ASCII characters only."
-  (replace-regexp-in-string "[a-z]+" 'downcase string))
-
-(defun char-fold--test-match-exactly (string &rest strings-to-match)
-  (let ((re (concat "\\`" (char-fold-to-regexp string) "\\'")))
-    (dolist (it strings-to-match)
-      (should (string-match re it)))
-    ;; Case folding
-    (let ((case-fold-search t))
-      (dolist (it strings-to-match)
-        (should (string-match (char-fold--ascii-upcase re) (downcase it)))
-        (should (string-match (char-fold--ascii-downcase re) (upcase it)))))))
-
-(ert-deftest char-fold--test-some-defaults ()
+(ert-deftest char-fold--test-multi-defaults ()
   (dolist (it '(("ffl" . "ﬄ") ("ffi" . "ﬃ")
                 ("fi" . "ﬁ") ("ff" . "ﬀ")
                 ("ä" . "ä")))
@@ -81,6 +96,14 @@
           (char-fold-table (make-char-table 'char-fold-table)))
       (set-char-table-extra-slot char-fold-table 0 multi)
       (char-fold--test-match-exactly (car it) (cdr it)))))
+
+(ert-deftest char-fold--test-multi-lax ()
+ (dolist (it '(("f" . "ﬁ") ("f" . "ﬀ")))
+   (with-temp-buffer
+     (insert (cdr it))
+     (goto-char (point-min))
+     (should (search-forward-regexp
+              (char-fold-to-regexp (car it) 'lax) nil 'noerror)))))
 
 (ert-deftest char-fold--test-fold-to-regexp ()
   (let ((char-fold-table (make-char-table 'char-fold-table))
@@ -109,9 +132,7 @@
 (ert-deftest char-fold--speed-test ()
   (dolist (string (append '("tty-set-up-initial-frame-face"
                             "tty-set-up-initial-frame-face-frame-faceframe-faceframe-faceframe-face")
-                          (mapcar #'char-fold--random-word '(10 50 100
-                                                                     50 100))))
-    (message "Testing %s" string)
+                          (mapcar #'char-fold--random-word '(10 50 100 50 100))))
     ;; Make sure we didn't just fallback on the trivial search.
     (should-not (string= (regexp-quote string)
                          (char-fold-to-regexp string)))
@@ -125,6 +146,78 @@
         (should-not (char-fold-search-forward (concat string "c") nil 'noerror))
         ;; Ensure it took less than a second.
         (should (< (- (time-to-seconds) time) 1))))))
+
+(ert-deftest char-fold--test-without-customization ()
+  (let* ((matches
+          '(
+            ("'" "’")
+            ("e" "ℯ" "ḗ" "ë" "ë")
+            ("ι"
+             "ί" ;; 1 level decomposition
+             "ί" ;; 2 level decomposition
+             "ΐ" ;; 3 level decomposition
+             )
+            ("ß" "ss")
+            ))
+         (no-matches
+          '(
+            ("и" "й")
+            )))
+    (dolist (strings matches)
+      (apply 'char-fold--test-match-exactly strings))
+    (dolist (strings no-matches)
+      (apply 'char-fold--test-no-match-exactly strings))))
+
+(ert-deftest char-fold--test-with-customization ()
+  :tags '(:expensive-test)
+  ;; FIXME: move some language-specific settings to defaults
+  (let ((char-fold-include
+         (append char-fold-include
+                 '(
+                   (?o "ø")  ;; da no nb nn
+                   (?l "ł")  ;; pl
+                   (?æ "ae")
+                   (?→ "->")
+                   (?⇒ "=>")
+                   )))
+        (char-fold-exclude
+         (append char-fold-exclude
+                 '(
+                   (?a "å")  ;; da no nb nn sv
+                   (?a "ä")  ;; et fi sv
+                   (?o "ö")  ;; et fi sv
+                   (?n "ñ")  ;; es
+                   )))
+        (char-fold-symmetric t)
+        (matches
+         '(
+           ("e" "ℯ" "ḗ" "ë" "ë")
+           ("е" "ё" "ё")
+           ("ι" "ί" "ί" "ΐ")
+           ("ß" "ss")
+           ("o" "ø")
+           ("l" "ł")
+           ("æ" "ae")
+           ("→" "->")
+           ("⇒" "=>")
+           ))
+        (no-matches
+         '(
+           ("a" "å")
+           ("a" "ä")
+           ("o" "ö")
+           ("n" "ñ")
+           ("и" "й")
+           ))
+        ;; Don't override global value by char-fold-update-table below
+        char-fold-table)
+    (char-fold-update-table)
+    (dolist (strings matches)
+      (dolist (permutation (char-fold--permutation strings))
+        (apply 'char-fold--test-match-exactly permutation)))
+    (dolist (strings no-matches)
+      (dolist (permutation (char-fold--permutation strings))
+        (apply 'char-fold--test-no-match-exactly permutation)))))
 
 (provide 'char-fold-tests)
 ;;; char-fold-tests.el ends here
