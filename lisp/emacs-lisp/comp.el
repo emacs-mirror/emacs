@@ -106,6 +106,7 @@ Can be used by code that wants to expand differently in this case.")
                         comp-call-optim
                         comp-propagate-2
                         comp-dead-code
+                        comp-tco
                         comp-final)
   "Passes to be executed in order.")
 
@@ -1887,6 +1888,48 @@ These are substituted with a normal 'set' op."
                    (comp-remove-type-hints-func)
                    (comp-log-func comp-func 3))))
              (comp-ctxt-funcs-h comp-ctxt))))
+
+
+;;; Tail Call Optimization pass specific code.
+
+(defun comp-form-tco-call-seq (args)
+  "Generate a tco sequence for ARGS."
+  `(,@(cl-loop for arg in args
+               for i from 0
+               collect `(set ,(make-comp-mvar :slot i) ,arg))
+    (jump bb_0)))
+
+(defun comp-tco-func ()
+  "Try to pattern match and perform TCO within the current function."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       named in-the-basic-block
+       for insns-seq on (comp-block-insns b)
+       do (pcase insns-seq
+            (`((set ,l-val (direct-call ,func . ,args))
+               (comment ,_comment)
+               (return ,ret-val))
+             (when (and (eq func (comp-func-name comp-func))
+                        (eq l-val ret-val))
+               (let ((tco-seq (comp-form-tco-call-seq args)))
+                 (setf (car insns-seq) (car tco-seq)
+                       (cdr insns-seq) (cdr tco-seq))
+                 (cl-return-from in-the-basic-block))))))))
+
+(defun comp-tco (_)
+  "Simple peephole pass performing self TCO."
+  (when (>= comp-speed 3)
+    (maphash (lambda (_ f)
+               (let ((comp-func f))
+                 (unless (comp-func-has-non-local comp-func)
+                   (comp-tco-func)
+                   (comp-log-func comp-func 3))))
+             (comp-ctxt-funcs-h comp-ctxt))))
+
+;; NOTE: After TCO runs edges, phis etc are not updated.  In case some
+;; other pass that make use of them after here is added `comp-ssa'
+;; should be re-run.
 
 
 ;;; Final pass specific code.
