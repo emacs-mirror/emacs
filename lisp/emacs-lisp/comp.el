@@ -2,7 +2,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.com>
 
-;; Copyright (C) 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
 ;; Keywords: lisp
 ;; Package: emacs
@@ -1587,8 +1587,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                ;; Note: this last is just a property of the code generated
                ;; by the byte-compiler.
                (cl-assert (= (comp-mvar-array-idx arg) 0))
-               (setf (comp-mvar-slot arg) i)
-               (setf (comp-mvar-array-idx arg) arr-idx))))
+               (setf (comp-mvar-slot arg) i
+                     (comp-mvar-array-idx arg) arr-idx))))
 
 (defun comp-propagate-prologue (backward)
   "Prologue for the propagate pass.
@@ -1682,8 +1682,8 @@ Here goes everything that can be done not iteratively (read once).
          (cl-loop with slot = (comp-mvar-slot lval)
                   for arg in rest
                   do
-                  (setf (comp-mvar-array-idx arg) arr-idx)
-                  (setf (comp-mvar-slot arg) slot)))))))
+                  (setf (comp-mvar-array-idx arg) arr-idx
+                        (comp-mvar-slot arg) slot)))))))
 
 (defun comp-propagate* ()
   "Propagate for set* and phi operands.

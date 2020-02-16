@@ -1,5 +1,5 @@
 /* Compile elisp into native code.
-   Copyright (C) 2019 Free Software Foundation, Inc.
+   Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
 Author: Andrea Corallo <akrl@sdf.org>
 
