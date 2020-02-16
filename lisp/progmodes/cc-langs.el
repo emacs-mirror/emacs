@@ -1706,32 +1706,16 @@ ender."
 (c-lang-defvar c-last-c-comment-end-on-line-re
 	       (c-lang-const c-last-c-comment-end-on-line-re))
 
-(c-lang-defconst c-last-open-c-comment-start-on-line-re
-  "Do NOT use this constant any more.  Instead use
-`c-open-c-comment-on-logical-line-re' (2020-02-10).
-
-Regexp which matches the last block comment start on the
-current ine, if any, or nil in those languages without block
-comments.  When a match is found, submatch 1 contains the comment
-starter."
-  t "\\(/\\*\\)\\([^*]\\|\\*+\\([^*/]\\|$\\)\\)*$"
-  awk nil)
-(c-lang-defvar c-last-open-c-comment-start-on-line-re
-	       (c-lang-const c-last-open-c-comment-start-on-line-re))
-(make-obsolete-variable 'c-last-open-c-comment-start-on-line-re
-			'c-open-c-comment-on-logical-line-re
-			"5.35")
-
-(c-lang-defconst c-open-c-comment-on-logical-line-re
-  "Regexp which matches an open block comment on the current logical line.
-It is intended for searching backwards from the end of a line.
-Such a search will stop at the first encountered non-escaped
-newline or open block comment.  If the comment is found, submatch
-1 contains the comment starter."
-t "[^\\\n][\r\n]\\|\\(/\\*\\)\\([^*]\\|\\*+\\([^*/]\\|$\\)\\)*$"
-awk nil)
-(c-lang-defvar c-open-c-comment-on-logical-line-re
-	       (c-lang-const c-open-c-comment-on-logical-line-re))
+;; The following is no longer used (2020-02-16).
+;; (c-lang-defconst c-last-open-c-comment-start-on-line-re
+;;   "Regexp which matches the last block comment start on the
+;; current ine, if any, or nil in those languages without block
+;; comments.  When a match is found, submatch 1 contains the comment
+;; starter."
+;;   t "\\(/\\*\\)\\([^*]\\|\\*+\\([^*/]\\|$\\)\\)*$"
+;;   awk nil)
+;; (c-lang-defvar c-last-open-c-comment-start-on-line-re
+;;   (c-lang-const c-last-open-c-comment-start-on-line-re))
 
 (c-lang-defconst c-literal-start-regexp
   ;; Regexp to match the start of comments and string literals.

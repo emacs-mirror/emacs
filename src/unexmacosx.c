@@ -503,22 +503,34 @@ unexec_regions_sort_compare (const void *a, const void *b)
 static void
 unexec_regions_merge (void)
 {
-  int i, n;
-  unexec_region_info r;
-  vm_size_t padsize;
-
   qsort (unexec_regions, num_unexec_regions, sizeof (unexec_regions[0]),
 	 &unexec_regions_sort_compare);
-  n = 0;
-  r = unexec_regions[0];
-  padsize = r.range.address & (pagesize - 1);
-  if (padsize)
+
+  /* Align each region start address to a page boundary.  */
+  for (unexec_region_info *cur = unexec_regions;
+       cur < unexec_regions + num_unexec_regions; cur++)
     {
-      r.range.address -= padsize;
-      r.range.size += padsize;
-      r.filesize += padsize;
+      vm_size_t padsize = cur->range.address & (pagesize - 1);
+      if (padsize)
+	{
+	  cur->range.address -= padsize;
+	  cur->range.size += padsize;
+	  cur->filesize += padsize;
+
+	  unexec_region_info *prev = cur == unexec_regions ? NULL : cur - 1;
+	  if (prev
+	      && prev->range.address + prev->range.size > cur->range.address)
+	    {
+	      prev->range.size = cur->range.address - prev->range.address;
+	      if (prev->filesize > prev->range.size)
+		prev->filesize = prev->range.size;
+	    }
+	}
     }
-  for (i = 1; i < num_unexec_regions; i++)
+
+  int n = 0;
+  unexec_region_info r = unexec_regions[0];
+  for (int i = 1; i < num_unexec_regions; i++)
     {
       if (r.range.address + r.range.size == unexec_regions[i].range.address
 	  && r.range.size - r.filesize < 2 * pagesize)
@@ -530,17 +542,6 @@ unexec_regions_merge (void)
 	{
 	  unexec_regions[n++] = r;
 	  r = unexec_regions[i];
-	  padsize = r.range.address & (pagesize - 1);
-	  if (padsize)
-	    {
-	      if ((unexec_regions[n-1].range.address
-		   + unexec_regions[n-1].range.size) == r.range.address)
-		unexec_regions[n-1].range.size -= padsize;
-
-	      r.range.address -= padsize;
-	      r.range.size += padsize;
-	      r.filesize += padsize;
-	    }
 	}
     }
   unexec_regions[n++] = r;
