@@ -35,7 +35,7 @@
 		    when (and b (> a b))
 		      do (setcar x b)
 		         (setcar (cdr x) a)
-		    finally (return list))))
+		    finally return list)))
 
 (defun elb-bubble-no-cons-entry ()
   (cl-loop repeat 200
