@@ -83,6 +83,9 @@ performed at `comp-speed' > 0."
   :type 'list
   :group 'comp)
 
+(defvar comp-dry-run nil
+  "When non nil run everything but the C back-end.")
+
 (defconst comp-log-buffer-name "*Native-compile-Log*"
   "Name of the native-compiler log buffer.")
 
@@ -1893,7 +1896,8 @@ These are substituted with a normal 'set' op."
 Prepare every function for final compilation and drive the C back-end."
   (comp-data-container-check (comp-ctxt-d-base comp-ctxt))
   (comp-data-container-check (comp-ctxt-d-impure comp-ctxt))
-  (comp--compile-ctxt-to-file name))
+  (unless comp-dry-run
+    (comp--compile-ctxt-to-file name)))
 
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
