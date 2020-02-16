@@ -271,17 +271,10 @@ structure.")
                  :documentation "Generates block numbers.")
   (edge-cnt-gen (funcall #'comp-gen-counter) :type function
                 :documentation "Generates edges numbers.")
-  (ssa-cnt-gen (funcall #'comp-gen-counter) :type function
-               :documentation "Counter to create ssa limple vars.")
   (has-non-local nil :type boolean
                  :documentation "t if non local jumps are present.")
   (array-h (make-hash-table) :type hash-table
            :documentation "array idx -> array length."))
-
-(defun comp-func-reset-generators (func)
-  "Reset unique id generators for FUNC."
-  (setf (comp-func-edge-cnt-gen func) (comp-gen-counter)
-        (comp-func-ssa-cnt-gen func) (comp-gen-counter)))
 
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
@@ -1254,9 +1247,12 @@ Top-level forms for the current context are rendered too."
 ;; This pass should be run every time basic blocks or m-var are shuffled.
 
 (cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
-  (make--comp-mvar :id (funcall (comp-func-ssa-cnt-gen comp-func))
-                   :slot slot :const-vld const-vld :constant constant
-                   :type type))
+  (let ((mvar (make--comp-mvar :slot slot
+                               :const-vld const-vld
+                               :constant constant
+                               :type type)))
+    (setf (comp-mvar-id mvar) (sxhash-eq mvar))
+    mvar))
 
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
@@ -1518,7 +1514,6 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
              (let ((comp-func f))
                ;; TODO: if this is run more than once we should clean all CFG
                ;; data including phis here.
-               (comp-func-reset-generators comp-func)
                (comp-compute-edges)
                (comp-compute-dominator-tree)
                (comp-compute-dominator-frontiers)
@@ -1570,7 +1565,6 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
     (if (comp-mvar-p insn)
         (copy-comp-mvar insn)
       insn)))
-
 
 (defun comp-ref-args-to-array (args)
   "Given ARGS assign them to a dedicated array."
