@@ -2317,7 +2317,7 @@ after first page."
 This function will also detect evil bindings made using
 `evil-define-key' in this map. These bindings will depend on the
 current evil state. "
-  (interactive)
+  (interactive "P")
   (let ((map-sym (intern (format "%s-map" major-mode))))
     (if (and (boundp map-sym) (keymapp (symbol-value map-sym)))
         (which-key--show-keymap
