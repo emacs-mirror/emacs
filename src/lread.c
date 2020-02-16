@@ -2982,10 +2982,13 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		 as 0.  This placeholder 0 would lead to accidental sharing in
 		 purecopy's hash-consing, so replace it with a (hopefully)
 		 unique integer placeholder, which is negative so that it is
-		 not confused with a DOC file offset.  Eventually
-		 Snarf-documentation should replace the placeholder with the
-		 actual docstring.  */
-	      EMACS_UINT hash = XHASH (tmp) | (INTMASK - INTMASK / 2);
+		 not confused with a DOC file offset (the USE_LSB_TAG shift
+		 relies on the fact that VALMASK is one bit narrower than
+		 INTMASK).  Eventually Snarf-documentation should replace the
+		 placeholder with the actual docstring.  */
+	      verify (INTMASK & ~VALMASK);
+	      EMACS_UINT hash = ((XHASH (tmp) >> USE_LSB_TAG)
+				 | (INTMASK - INTMASK / 2));
 	      ASET (tmp, COMPILED_DOC_STRING, make_ufixnum (hash));
 	    }
 
