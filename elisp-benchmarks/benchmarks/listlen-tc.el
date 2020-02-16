@@ -1,6 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,7 +23,7 @@
 
 (require 'cl-lib)
 
-(defvar elb-listlen-tc-len 300)
+(defvar elb-listlen-tc-len 10000)
 (defvar elb-listlen-tc-list
   (mapcar #'random (make-list elb-listlen-tc-len 100)))
 
@@ -34,8 +34,10 @@
     (elb-listlen-tc (cdr l) n)))
 
 (defun elb-listlen-tc-entry ()
-  (let ((l (copy-sequence elb-listlen-tc-list)))
-    (cl-loop repeat 350000
-	     do (elb-listlen-tc l 0))))
+  (let* ((n (+ 1000 elb-listlen-tc-len))
+	 (max-lisp-eval-depth n)
+	 (max-specpdl-size n))
+    (cl-loop repeat 10000
+	     do (elb-listlen-tc elb-listlen-tc-list 0))))
 
 (provide 'listlen-tc)
