@@ -2976,7 +2976,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    invalid_syntax ("Empty byte-code object");
 
 	  if (COMPILED_DOC_STRING < vec->header.size
-	      && AREF (tmp, COMPILED_DOC_STRING) == make_fixnum (0))
+	      && EQ (AREF (tmp, COMPILED_DOC_STRING), make_fixnum (0)))
 	    {
 	      /* read_list found a docstring like '(#$ . 5521)' and treated it
 		 as 0.  This placeholder 0 would lead to accidental sharing in
