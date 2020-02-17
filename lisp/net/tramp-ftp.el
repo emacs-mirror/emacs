@@ -130,7 +130,7 @@ pass to the OPERATION."
 	  (ange-ftp-ftp-name-arg "")
 	  (ange-ftp-ftp-name-res nil)
 	  (v (tramp-dissect-file-name
-	      (apply 'tramp-file-name-for-operation operation args) t)))
+	      (apply #'tramp-file-name-for-operation operation args) t)))
       (setf (tramp-file-name-method v) tramp-ftp-method)
       ;; Set "process-name" for thread support.
       (tramp-set-connection-property
@@ -147,10 +147,9 @@ pass to the OPERATION."
        ;; completion.  We don't use `with-parsed-tramp-file-name',
        ;; because this returns another user but the one declared in
        ;; "~/.netrc".
+       ((memq operation '(file-directory-p file-exists-p))
 	(if (apply #'ange-ftp-hook-function operation args)
-	    (let ((v (tramp-dissect-file-name (car args) t)))
-	      (setf (tramp-file-name-method v) tramp-ftp-method)
-	      (tramp-set-connection-property v "started" t))
+	    (tramp-set-connection-property v "started" t)
 	  nil))
 
        ;; If the second argument of `copy-file' or `rename-file' is a

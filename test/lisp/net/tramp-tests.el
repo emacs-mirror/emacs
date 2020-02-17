@@ -4358,7 +4358,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (while (accept-process-output proc 0 nil t)))
 	    ;; We cannot use `string-equal', because tramp-adb.el
 	    ;; echoes also the sent string.  And a remote macOS sends
-	    ;; a slightly modified string. On MS-Windows,
+	    ;; a slightly modified string.  On MS Windows,
 	    ;; `delete-process' sends an unknown signal.
 	    (should
 	     (string-match
@@ -6114,107 +6114,116 @@ process sentinels.  They shall not disturb each other."
         (ignore-errors (cancel-timer timer))
         (ignore-errors (delete-directory tmp-name 'recursive))))))
 
-(ert-deftest tramp-test43-threads ()
+(ert-deftest tramp-test44-threads ()
   "Check that Tramp cooperates with threads."
   (skip-unless (tramp--test-enabled))
   (skip-unless (featurep 'threads))
-  (skip-unless (= (length (all-threads)) 1))
-  (skip-unless (not (thread-last-error)))
+  (skip-unless (= (length (with-no-warnings (all-threads))) 1))
+  (skip-unless (not (with-no-warnings (thread-last-error))))
+  ;; We need the thread features introduced in Emacs 27.
+  (skip-unless (bound-and-true-p main-thread))
+  ;; For the time being it works only in the feature branch.
+  (skip-unless
+   (string-equal
+    (bound-and-true-p emacs-repository-branch) "feature/tramp-thread-safe"))
 
-  ;; We cannot bind the variables dynamically; they are used in the threads.
-  (defvar tmp-name1 (tramp--test-make-temp-name))
-  (defvar tmp-name2 (tramp--test-make-temp-name))
-  (defvar tmp-mutex (make-mutex "mutex"))
-  (defvar tmp-condvar1 (make-condition-variable tmp-mutex "condvar1"))
-  (defvar tmp-condvar2 (make-condition-variable tmp-mutex "condvar2"))
+  (tramp--test-instrument-test-case 0
+  (with-no-warnings
+    (with-timeout (60 (tramp--test-timeout-handler))
+      ;; We cannot bind the variables dynamically; they are used in the threads.
+      (defvar tmp-name1 (tramp--test-make-temp-name))
+      (defvar tmp-name2 (tramp--test-make-temp-name))
+      (defvar tmp-mutex (make-mutex "mutex"))
+      (defvar tmp-condvar1 (make-condition-variable tmp-mutex "condvar1"))
+      (defvar tmp-condvar2 (make-condition-variable tmp-mutex "condvar2"))
 
-  ;; Rename simple file.
-  (unwind-protect
-      (let (tmp-thread1 tmp-thread2)
-	(write-region "foo" nil tmp-name1)
-	(should (file-exists-p tmp-name1))
-	(should-not (file-exists-p tmp-name2))
+      ;; Rename simple file.
+      (unwind-protect
+	  (let (tmp-thread1 tmp-thread2)
+	    (write-region "foo" nil tmp-name1)
+	    (should (file-exists-p tmp-name1))
+	    (should-not (file-exists-p tmp-name2))
 
-	(should (mutexp tmp-mutex))
-	(should (condition-variable-p tmp-condvar1))
-	(should (condition-variable-p tmp-condvar2))
+	    (should (mutexp tmp-mutex))
+	    (should (condition-variable-p tmp-condvar1))
+	    (should (condition-variable-p tmp-condvar2))
 
-	;; This thread renames `tmp-name1' to `tmp-name2' twice.
-	(setq
-	 tmp-thread1
-	 (make-thread
-	  (lambda ()
-	    ;; Rename first time.
-	    (rename-file tmp-name1 tmp-name2)
+	    ;; This thread renames `tmp-name1' to `tmp-name2' twice.
+	    (setq
+	     tmp-thread1
+	     (make-thread
+	      (lambda ()
+		;; Rename first time.
+		(rename-file tmp-name1 tmp-name2)
+		;; Notify thread2.
+		(with-mutex (condition-mutex tmp-condvar2)
+		  (condition-notify tmp-condvar2 t))
+		;; Rename second time, once we've got notification from thread2.
+		(with-mutex (condition-mutex tmp-condvar1)
+		  (condition-wait tmp-condvar1))
+		(rename-file tmp-name1 tmp-name2))
+	      "thread1"))
+
+	    (should (threadp tmp-thread1))
+	    (should (thread-live-p tmp-thread1))
+
+	    ;; This thread renames `tmp-name2' to `tmp-name1' twice.
+	    (setq
+	     tmp-thread2
+	     (make-thread
+	      (lambda ()
+		;; Rename first time, once we've got notification from thread1.
+		(with-mutex (condition-mutex tmp-condvar2)
+		  (condition-wait tmp-condvar2))
+		(rename-file tmp-name2 tmp-name1)
+		;; Notify thread1.
+		(with-mutex (condition-mutex tmp-condvar1)
+		  (condition-notify tmp-condvar1 t))
+		;; Rename second time, once we've got notification from
+		;; the main thread.
+		(with-mutex (condition-mutex tmp-condvar2)
+		  (condition-wait tmp-condvar2))
+		(rename-file tmp-name2 tmp-name1))
+	      "thread2"))
+
+	    (should (threadp tmp-thread2))
+	    (should (thread-live-p tmp-thread2))
+	    (should (= (length (all-threads)) 3))
+
+	    ;; Wait for thread1.
+	    (thread-join tmp-thread1)
+	    ;; Checks.
+	    (should-not (thread-live-p tmp-thread1))
+	    (should (= (length (all-threads)) 2))
+	    (should-not (thread-last-error))
+	    (should (file-exists-p tmp-name2))
+	    (should-not (file-exists-p tmp-name1))
+
 	    ;; Notify thread2.
 	    (with-mutex (condition-mutex tmp-condvar2)
 	      (condition-notify tmp-condvar2 t))
-	    ;; Rename second time, once we've got notification from thread2.
-	    (with-mutex (condition-mutex tmp-condvar1)
-	      (condition-wait tmp-condvar1))
-	    (rename-file tmp-name1 tmp-name2))
-	  "thread1"))
 
-	(should (threadp tmp-thread1))
-	(should (thread-live-p tmp-thread1))
+	    ;; Wait for thread2.
+	    (thread-join tmp-thread2)
+	    ;; Checks.
+	    (should-not (thread-live-p tmp-thread2))
+	    (should (= (length (all-threads)) 1))
+	    (should-not (thread-last-error))
+	    (should (file-exists-p tmp-name1))
+	    (should-not (file-exists-p tmp-name2)))
 
-	;; This thread renames `tmp-name2' to `tmp-name1' twice.
-	(setq
-	 tmp-thread2
-	 (make-thread
-	  (lambda ()
-	    ;; Rename first time, once we've got notification from thread1.
-	    (with-mutex (condition-mutex tmp-condvar2)
-	      (condition-wait tmp-condvar2))
-	    (rename-file tmp-name2 tmp-name1)
-	    ;; Notify thread1.
-	    (with-mutex (condition-mutex tmp-condvar1)
-	      (condition-notify tmp-condvar1 t))
-	    ;; Rename second time, once we've got notification from
-	    ;; the main thread.
-	    (with-mutex (condition-mutex tmp-condvar2)
-	      (condition-wait tmp-condvar2))
-	    (rename-file tmp-name2 tmp-name1))
-	  "thread2"))
-
-	(should (threadp tmp-thread2))
-	(should (thread-live-p tmp-thread2))
-	(should (= (length (all-threads)) 3))
-
-	;; Wait for thread1.
-	(thread-join tmp-thread1)
-	;; Checks.
-	(should-not (thread-live-p tmp-thread1))
-	(should (= (length (all-threads)) 2))
-	(should-not (thread-last-error))
-	(should (file-exists-p tmp-name2))
-	(should-not (file-exists-p tmp-name1))
-
-	;; Notify thread2.
-	(with-mutex (condition-mutex tmp-condvar2)
-	  (condition-notify tmp-condvar2 t))
-
-	;; Wait for thread2.
-	(thread-join tmp-thread2)
-	;; Checks.
-	(should-not (thread-live-p tmp-thread2))
-	(should (= (length (all-threads)) 1))
-	(should-not (thread-last-error))
-	(should (file-exists-p tmp-name1))
-	(should-not (file-exists-p tmp-name2)))
-
-    ;; Cleanup.
-    (ignore-errors (delete-file tmp-name1))
-    (ignore-errors (delete-file tmp-name2))
-    ;; We could have spurious threads still running; wait for them to die.
-    (while (cdr (all-threads))
-      (thread-signal (cadr (all-threads)) 'error nil)
-      (thread-yield))
-    ;; Cleanup errors.
-    (thread-last-error 'cleanup)))
+	;; Cleanup.
+	(ignore-errors (delete-file tmp-name1))
+	(ignore-errors (delete-file tmp-name2))
+	;; We could have spurious threads still running; wait for them to die.
+	(while (cdr (all-threads))
+	  (thread-signal (cadr (all-threads)) 'error nil)
+	  (thread-yield))
+	;; Cleanup errors.
+	(ignore-errors (thread-last-error 'cleanup)))))))
 
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test44-auto-load ()
+(ert-deftest tramp-test45-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -6239,7 +6248,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test44-delay-load ()
+(ert-deftest tramp-test45-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; The autoloaded Tramp objects are different since Emacs 26.1.  We
   ;; cannot test older Emacsen, therefore.
@@ -6272,7 +6281,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test44-recursive-load ()
+(ert-deftest tramp-test45-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -6296,7 +6305,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test44-remote-load-path ()
+(ert-deftest tramp-test45-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; The autoloaded Tramp objects are different since Emacs 26.1.  We
   ;; cannot test older Emacsen, therefore.
@@ -6325,7 +6334,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test45-unload ()
+(ert-deftest tramp-test46-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)
@@ -6409,6 +6418,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Implement `tramp-test31-interrupt-process' for `adb'.
 ;; * Fix Bug#16928 in `tramp-test43-asynchronous-requests'.  A remote
 ;;   file name operation cannot run in the timer.  Remove `:unstable' tag?
+;; * Fix `tramp-test44-threads'.
 
 (provide 'tramp-tests)
 
