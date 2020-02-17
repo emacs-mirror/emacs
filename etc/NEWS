@@ -131,6 +131,14 @@ supplied error message.
 *** New connection method "media", which allows accessing media devices
 like cell phones, tablets or cameras.
 
+** Tempo
+
+---
+*** 'tempo-define-template' can now re-assign templates to tags.
+Previously, assigning a new template to an already defined tag had no
+effect.
+
+
 ** map.el
 
 *** Pcase 'map' pattern added keyword symbols abbreviation.

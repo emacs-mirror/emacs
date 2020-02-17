@@ -216,6 +216,45 @@
     (tempo-complete-tag)
     (should (equal (buffer-string) "Hello, World!"))))
 
+(ert-deftest tempo-define-tag-globally-test ()
+  "Testing usage of a template tag defined from another buffer."
+  (tempo-define-template "test" '("Hello, World!") "hello")
+
+  (with-temp-buffer
+    ;; Use a tag in buffer 1
+    (insert "hello")
+    (tempo-complete-tag)
+    (should (equal (buffer-string) "Hello, World!"))
+    (erase-buffer)
+
+    ;; Collection should not be dirty
+    (should-not tempo-dirty-collection)
+
+    ;; Define a tag on buffer 2
+    (with-temp-buffer
+      (tempo-define-template "test2" '("Now expanded.") "mytag"))
+
+    ;; I should be able to use this template back in buffer 1
+    (insert "mytag")
+    (tempo-complete-tag)
+    (should (equal (buffer-string) "Now expanded."))))
+
+(ert-deftest tempo-overwrite-tag-test ()
+  "Testing ability to reassign templates to tags."
+  (with-temp-buffer
+    ;; Define a tag and use it
+    (tempo-define-template "test-tag-1" '("abc") "footag")
+    (insert "footag")
+    (tempo-complete-tag)
+    (should (equal (buffer-string) "abc"))
+    (erase-buffer)
+
+    ;; Define a new template with the same tag
+    (tempo-define-template "test-tag-2" '("xyz") "footag")
+    (insert "footag")
+    (tempo-complete-tag)
+    (should (equal (buffer-string) "xyz"))))
+
 (ert-deftest tempo-expand-partial-tag-test ()
   "Testing expansion of a template with a tag, with a partial match."
   (with-temp-buffer
