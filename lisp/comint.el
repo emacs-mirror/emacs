@@ -3124,7 +3124,7 @@ See `comint-word'."
               "\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
               "\\|{\\(?1:[^{}]+\\)}\\)"
               (when (memq system-type '(ms-dos windows-nt))
-                "\\|%\\(?1:[^\\\\/]*\\)%")
+                "\\|%\\(?1:[^\\/]*\\)%")
               (when comint-file-name-quote-list
                 "\\|\\\\\\(.\\)")))
          (qupos nil)

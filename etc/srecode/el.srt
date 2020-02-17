@@ -102,7 +102,7 @@ $<MODEFCN:declaration:function$
 	comment-start ";;"
 	comment-end "")
   (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (set-syntax-table $MODESYM$-mode-syntax-table)
   (use-local-map $MODESYM$-mode-map)
   (set (make-local-variable 'font-lock-defaults)

@@ -252,7 +252,7 @@ This mirrors the optional behavior of tcsh."
 (defcustom shell-chdrive-regexp
   (if (memq system-type '(ms-dos windows-nt))
       ; NetWare allows the five chars between upper and lower alphabetics.
-      "[]a-zA-Z^_`\\[\\\\]:"
+      "[]a-zA-Z^_`[\\]:"
     nil)
   "If non-nil, is regexp used to track drive changes."
   :type '(choice regexp
@@ -377,7 +377,7 @@ Thus, this does not include the shell's current directory.")
               "\\|\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
               "\\|{\\(?1:[^{}]+\\)}\\)"
               (when (memq system-type '(ms-dos windows-nt))
-                "\\|%\\(?1:[^\\\\/]*\\)%")
+                "\\|%\\(?1:[^\\/]*\\)%")
               (when comint-file-name-quote-list
                 "\\|\\\\\\(.\\)")))
          (qupos nil)

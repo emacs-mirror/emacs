@@ -1688,7 +1688,7 @@ comment block.  If not in a // comment, just does a normal newline."
    ;; as comment starters.  Fix it here by removing the "2" from the syntax
    ;; of the second char of such sequences.
    ("/\\(\\*\\)" (1 ". 3b"))
-   ("(\\(\\/\\)" (1 (prog1 ". 1c" (forward-char -1) nil)))
+   ("(\\(/\\)" (1 (prog1 ". 1c" (forward-char -1) nil)))
    ;; Pascal uses '' and "" rather than \' and \" to escape quotes.
    ("''\\|\"\"" (0 (if (save-excursion
                          (nth 3 (syntax-ppss (match-beginning 0))))

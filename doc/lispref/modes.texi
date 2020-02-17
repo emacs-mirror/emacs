@@ -1428,7 +1428,7 @@ or to switch back to an existing one."
   (lisp-mode-variables nil t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
-              "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+              "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 @end group
 @end smallexample

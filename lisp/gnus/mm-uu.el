@@ -192,7 +192,7 @@ This can be either \"inline\" or \"attachment\".")
      ,(lambda () (mm-uu-verbatim-marks-extract 0 0))
      nil)
     (LaTeX
-     "^\\([\\\\%][^\n]+\n\\)*\\\\documentclass.*[[{%]"
+     "^\\([\\%][^\n]+\n\\)*\\\\documentclass.*[[{%]"
      "^\\\\end{document}"
      ,#'mm-uu-latex-extract
      nil
