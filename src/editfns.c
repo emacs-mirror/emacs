@@ -863,7 +863,7 @@ instead.
 This does not take narrowing into account; to count the number of
 characters in the accessible portion of the current buffer, use
 `(- (point-max) (point-min))', and to count the number of characters
-in some other BUFFER, use
+in the accessible portion of some other BUFFER, use
 `(with-current-buffer BUFFER (- (point-max) (point-min)))'.  */)
   (Lisp_Object buffer)
 {

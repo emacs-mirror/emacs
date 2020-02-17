@@ -811,7 +811,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 		   && ! CODING_MAY_REQUIRE_DECODING (&process_coding))
             {
               insert_1_both (buf, nread, nread, 0, 0, 0);
-              signal_after_change (PT, 0, nread);
+              signal_after_change (PT - nread, 0, nread);
             }
 	  else
 	    {			/* We have to decode the input.  */
@@ -854,7 +854,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 	      TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
 				PT_BYTE + process_coding.produced);
-              signal_after_change (PT, 0, process_coding.produced_char);
+              signal_after_change (PT - process_coding.produced_char,
+                                   0, process_coding.produced_char);
 	      carryover = process_coding.carryover_bytes;
 	      if (carryover > 0)
 		memcpy (buf, process_coding.carryover,

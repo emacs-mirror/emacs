@@ -1229,6 +1229,10 @@ This function returns non-@code{nil} if @var{symbol} is a special
 variable (i.e., it has a @code{defvar}, @code{defcustom}, or
 @code{defconst} variable definition).  Otherwise, the return value is
 @code{nil}.
+
+Note that since this is a function, it can only return
+non-@code{nil} for variables which are permanently special, but not
+for those that are only special in the current lexical scope.
 @end defun
 
   The use of a special variable as a formal argument in a function is
