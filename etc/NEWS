@@ -96,6 +96,11 @@ shows equivalent key bindings for all commands that have them.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Dired
+
+*** State changing VC operations are supported in dired-mode on files
+(but still not on directories).
+
 ** Help
 
 +++

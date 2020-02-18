@@ -1032,9 +1032,7 @@ BEWARE: this function may change the current buffer."
      ((derived-mode-p 'vc-dir-mode)
       (vc-dir-deduce-fileset state-model-only-files))
      ((derived-mode-p 'dired-mode)
-      (if observer
-	  (vc-dired-deduce-fileset)
-	(error "State changing VC operations not supported in `dired-mode'")))
+      (vc-dired-deduce-fileset state-model-only-files observer))
      ((setq backend (vc-backend buffer-file-name))
       (if state-model-only-files
 	(list backend (list buffer-file-name)
@@ -1046,7 +1044,8 @@ BEWARE: this function may change the current buffer."
            ;; FIXME: Why this test?  --Stef
            (or (buffer-file-name vc-parent-buffer)
 				(with-current-buffer vc-parent-buffer
-				  (derived-mode-p 'vc-dir-mode))))
+				  (or (derived-mode-p 'vc-dir-mode)
+				      (derived-mode-p 'dired-mode)))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
 	(vc-deduce-fileset observer allow-unregistered state-model-only-files)))
@@ -1066,9 +1065,31 @@ BEWARE: this function may change the current buffer."
 	      (list buffer-file-name))))
      (t (error "File is not under version control")))))
 
-(defun vc-dired-deduce-fileset ()
-  (list (vc-responsible-backend default-directory)
-        (dired-map-over-marks (dired-get-filename nil t) nil)))
+(declare-function dired-get-marked-files "dired"
+                  (&optional localp arg filter distinguish-one-marked error))
+
+(defun vc-dired-deduce-fileset (&optional state-model-only-files observer)
+  (let ((backend (vc-responsible-backend default-directory))
+        (files (dired-get-marked-files nil nil nil nil t))
+	only-files-list
+	state
+	model)
+    (when (and (not observer) (cl-some #'file-directory-p files))
+      (error "State changing VC operations on directories not supported in `dired-mode'"))
+
+    (when state-model-only-files
+      (setq only-files-list (mapcar (lambda (file) (cons file (vc-state file))) files))
+      (setq state (cdar only-files-list))
+      ;; Check that all files are in a consistent state, since we use that
+      ;; state to decide which operation to perform.
+      (dolist (crt (cdr only-files-list))
+	(unless (vc-compatible-state (cdr crt) state)
+	  (error "When applying VC operations to multiple files, the files are required\nto  be in similar VC states.\n%s in state %s clashes with %s in state %s"
+		 (car crt) (cdr crt) (caar only-files-list) state)))
+      (setq only-files-list (mapcar 'car only-files-list))
+      (when (and state (not (eq state 'unregistered)))
+	(setq model (vc-checkout-model backend only-files-list))))
+    (list backend files only-files-list state model)))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
