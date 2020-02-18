@@ -40,9 +40,9 @@ Note that this option has no effect if you use GnuPG 2.0."
 (defcustom epa-file-select-keys nil
   "Control whether or not to pop up the key selection dialog.
 
-If t, always asks user to select recipients.
+If t, always ask user to select recipients.
 If nil, query user only when `epa-file-encrypt-to' is not set.
-If neither t nor nil, doesn't ask user.  In this case, symmetric
+If neither t nor nil, don't ask user.  In this case, symmetric
 encryption is used."
   :type '(choice (const :tag "Ask always" t)
 		 (const :tag "Ask when recipients are not set" nil)

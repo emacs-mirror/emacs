@@ -335,8 +335,7 @@ If ARG is non-nil, mark the key."
   (epa-mark-key (not arg)))
 
 (defun epa-exit-buffer ()
-  "Exit the current buffer.
-`epa-exit-buffer-function' is called if it is set."
+  "Exit the current buffer using `epa-exit-buffer-function'."
   (interactive)
   (funcall epa-exit-buffer-function))
 
