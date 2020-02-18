@@ -117,13 +117,15 @@ The command `epa-mail-encrypt' uses this."
   '((default :weight bold)
     (((class color) (background dark)) :foreground "PaleTurquoise"))
   "Face for the name of the attribute field."
-  :group 'epa)
+  :version "28.1"
+  :group 'epa-faces)
 
 (defface epa-field-body
   '((default :slant italic)
     (((class color) (background dark)) :foreground "turquoise"))
   "Face for the body of the attribute field."
-  :group 'epa)
+  :version "28.1"
+  :group 'epa-faces)
 
 (defcustom epa-validity-face-alist
   '((unknown . epa-validity-disabled)
@@ -138,8 +140,9 @@ The command `epa-mail-encrypt' uses this."
     (full . epa-validity-high)
     (ultimate . epa-validity-high))
   "An alist mapping validity values to faces."
+  :version "28.1"
   :type '(repeat (cons symbol face))
-  :group 'epa)
+  :group 'epa-faces)
 
 (defvar epa-font-lock-keywords
   '(("^\\*"
