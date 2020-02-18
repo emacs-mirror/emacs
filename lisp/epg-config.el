@@ -202,13 +202,13 @@ version requirement is met."
 	(cond
 	 ((eq type 'group)
 	  (if (string-match "\\`\\([^:]+\\):" args)
-		  (setq groups
-			(cons (cons (downcase (match-string 1 args))
-				    (delete "" (split-string
-						(substring args
-							   (match-end 0))
-						";")))
-			      groups))
+	      (setq groups
+		    (cons (cons (downcase (match-string 1 args))
+				(delete "" (split-string
+					    (substring args
+						       (match-end 0))
+					    ";")))
+			  groups))
 	    (if epg-debug
 		(message "Invalid group configuration: %S" args))))
 	 ((memq type '(pubkey cipher digest compress))
