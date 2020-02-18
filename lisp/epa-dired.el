@@ -1,4 +1,5 @@
 ;;; epa-dired.el --- the EasyPG Assistant, dired extension -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>

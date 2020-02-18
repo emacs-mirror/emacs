@@ -1,4 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,12 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Dependencies
 
 (require 'epa)
 (require 'epa-hook)
+
+;;; Options
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
   "If non-nil, cache passphrase for symmetric encryption.
@@ -49,6 +53,8 @@ encryption is used."
 		 (const :tag "Don't ask" silent))
   :group 'epa-file)
 
+;;; Other
+
 (defvar epa-file-passphrase-alist nil)
 
 (defun epa-file-passphrase-callback-function (context key-id file)
@@ -71,6 +77,8 @@ encryption is used."
 		(setcdr entry (copy-sequence passphrase))
 		passphrase))))
     (epa-passphrase-callback-function context key-id file)))
+
+;;; File Handler
 
 (defvar epa-inhibit nil
   "Non-nil means don't try to decrypt .gpg files when operating on them.")
@@ -310,6 +318,8 @@ If no one is selected, symmetric encryption will be performed.  "
 	    (stringp visit))
 	(message "Wrote %s" buffer-file-name))))
 (put 'write-region 'epa-file 'epa-file-write-region)
+
+;;; Commands
 
 (defun epa-file-select-keys ()
   "Select recipients for encryption."

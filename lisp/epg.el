@@ -1,4 +1,5 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
+
 ;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,9 +22,14 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+;;; Prelude
 
 (require 'epg-config)
 (eval-when-compile (require 'cl-lib))
+
+(define-error 'epg-error "GPG error")
+
+;;; Variables
 
 (defvar epg-user-id nil
   "GnuPG ID of your default identity.")
@@ -40,6 +46,8 @@
 (defvar epg-debug-buffer nil)
 (defvar epg-agent-file nil)
 (defvar epg-agent-mtime nil)
+
+;;; Enums
 
 ;; from gnupg/common/openpgpdefs.h
 (defconst epg-cipher-algorithm-alist
@@ -169,7 +177,8 @@
 
 (defvar epg-prompt-alist nil)
 
-(define-error 'epg-error "GPG error")
+;;; Structs
+;;;; Data Struct
 
 (cl-defstruct (epg-data
                (:constructor nil)
@@ -179,6 +188,8 @@
                (:predicate nil))
   (file nil :read-only t)
   (string nil :read-only t))
+
+;;;; Context Struct
 
 (cl-defstruct (epg-context
                (:constructor nil)
@@ -217,6 +228,8 @@
   (pinentry-mode epg-pinentry-mode)
   (error-output "")
   error-buffer)
+
+;;;; Context Methods
 
 ;; This is not an alias, just so we can mark it as autoloaded.
 ;;;###autoload
@@ -280,6 +293,8 @@ callback data (if any)."
   "Set the list of key-id for signing."
   (declare (obsolete setf "25.1"))
   (setf (epg-context-signers context) signers))
+
+;;;; Other Structs
 
 (cl-defstruct (epg-signature
                (:constructor nil)
@@ -384,6 +399,8 @@ callback data (if any)."
   secret-read secret-imported
   secret-unchanged not-imported
   imports)
+
+;;; Functions
 
 (defun epg-context-result-for (context name)
   "Return the result of CONTEXT associated with NAME."
@@ -850,6 +867,8 @@ callback data (if any)."
 		  (format "Untrusted key %s %s.  Use anyway? " key-id user-id))
 	      "Use untrusted key anyway? ")))
 
+;;; Status Functions
+
 (defun epg--status-GET_BOOL (context string)
   (let (inhibit-quit)
     (condition-case nil
@@ -1225,6 +1244,8 @@ callback data (if any)."
 			     (epg-context-result-for context 'import-status)))
     (epg-context-set-result-for context 'import-status nil)))
 
+;;; Functions
+
 (defun epg-passphrase-callback-function (context key-id _handback)
   (declare (obsolete epa-passphrase-callback-function "23.1"))
   (if (eq key-id 'SYM)
@@ -1293,6 +1314,8 @@ callback data (if any)."
    (epg--time-from-seconds (aref line 5))
    (if (aref line 6)
        (epg--time-from-seconds (aref line 6)))))
+
+;;; Public Functions
 
 (defun epg-list-keys (context &optional name mode)
   "Return a list of epg-key objects matched with NAME.
@@ -2022,6 +2045,8 @@ If you are unsure, use synchronous version of this function
 		      (list "Edit key failed"
 			    (epg-errors-to-string errors))))))
     (epg-reset context)))
+
+;;; Decode Functions
 
 (defun epg--decode-percent-escape (string)
   (setq string (encode-coding-string string 'raw-text))
