@@ -51,16 +51,6 @@ encryption is used."
 
 (defvar epa-file-passphrase-alist nil)
 
-(eval-and-compile
-  (if (fboundp 'encode-coding-string)
-      (defalias 'epa-file--encode-coding-string 'encode-coding-string)
-    (defalias 'epa-file--encode-coding-string 'identity)))
-
-(eval-and-compile
-  (if (fboundp 'decode-coding-string)
-      (defalias 'epa-file--decode-coding-string 'decode-coding-string)
-    (defalias 'epa-file--decode-coding-string 'identity)))
-
 (defun epa-file-passphrase-callback-function (context key-id file)
   (if (and epa-file-cache-passphrase-for-symmetric-encryption
 	   (eq key-id 'SYM))
@@ -236,11 +226,7 @@ encryption is used."
   (setq file (expand-file-name file))
   (let* ((coding-system (or coding-system-for-write
 			    (if (fboundp 'select-safe-coding-system)
-				;; This is needed since Emacs 22 has
-				;; no-conversion setting for *.gpg in
-				;; `auto-coding-alist'.
-			        (let ((buffer-file-name
-				       (file-name-sans-extension file)))
+			        (let ((buffer-file-name file))
 				  (select-safe-coding-system
 				   (point-min) (point-max)))
 			      buffer-file-coding-system)))
@@ -266,7 +252,7 @@ encryption is used."
 	      (epg-encrypt-string
 	       context
 	       (if (stringp start)
-		   (epa-file--encode-coding-string start coding-system)
+		   (encode-coding-string start coding-system)
 		 (unless start
 		   (setq start (point-min)
 			 end (point-max)))
@@ -280,8 +266,8 @@ encryption is used."
 		   ;; decrypted contents.
 		   (format-encode-buffer (with-current-buffer buffer
 					   buffer-file-format))
-		   (epa-file--encode-coding-string (buffer-string)
-						   coding-system)))
+		   (encode-coding-string (buffer-string)
+					 coding-system)))
 	       (if (or (eq epa-file-select-keys t)
 		       (and (null epa-file-select-keys)
 			    (not (local-variable-p 'epa-file-encrypt-to
