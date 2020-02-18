@@ -3160,7 +3160,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 }
 
 
-
+#ifdef PGTK_DEBUG
 #include <stdarg.h>
 #include <time.h>
 void pgtk_log(const char *file, int lineno, const char *fmt, ...)
@@ -3181,7 +3181,7 @@ void pgtk_log(const char *file, int lineno, const char *fmt, ...)
   va_end(ap);
   fputc('\n', stderr);
 }
-#ifdef PGTK_DEBUG
+
 void pgtk_backtrace(const char *file, int lineno)
 {
   Lisp_Object bt = make_uninit_vector(10);

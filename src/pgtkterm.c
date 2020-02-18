@@ -828,8 +828,8 @@ pgtk_initialize_display_info (struct pgtk_display_info *dpyinfo)
       Initialize global info and storage for display.
    -------------------------------------------------------------------------- */
 {
-    dpyinfo->resx = 72.27; /* used 75.0, but this makes pt == pixel, expected */
-    dpyinfo->resy = 72.27;
+    dpyinfo->resx = 96;
+    dpyinfo->resy = 96;
     dpyinfo->color_p = 1;
     dpyinfo->n_planes = 32;
     dpyinfo->root_window = 42; /* a placeholder.. */
@@ -5401,7 +5401,7 @@ static gboolean window_state_event(GtkWidget *widget, GdkEvent *event, gpointer 
 
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue(&inev);
-  return TRUE;
+  return FALSE;
 }
 
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
@@ -6297,7 +6297,13 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   {
     GdkScreen *gscr = gdk_display_get_default_screen(dpyinfo->gdpy);
-    gdouble dpi = gdk_screen_get_resolution(gscr);
+
+    GSettings *set = g_settings_new("org.gnome.desktop.interface");
+    gdouble x = g_settings_get_double(set,"text-scaling-factor");
+    gdouble dpi = 0;
+
+    dpi =  96.0 * x;
+    gdk_screen_set_resolution(gscr, dpi);
     dpyinfo->resx = dpi;
     dpyinfo->resy = dpi;
   }
