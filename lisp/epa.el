@@ -56,11 +56,6 @@ If neither t nor nil, ask user for confirmation."
   :type 'integer
   :group 'epa)
 
-(defgroup epa-faces nil
-  "Faces for epa-mode."
-  :version "23.1"
-  :group 'epa)
-
 (defcustom epa-mail-aliases nil
   "Alist of aliases of email addresses that stand for encryption keys.
 Each element is a list of email addresses (ALIAS EXPANSIONS...).
@@ -75,6 +70,11 @@ The command `epa-mail-encrypt' uses this."
   :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
   :group 'epa
   :version "24.4")
+
+(defgroup epa-faces nil
+  "Faces for epa-mode."
+  :version "23.1"
+  :group 'epa)
 
 (defface epa-validity-high
   '((default :weight bold)
