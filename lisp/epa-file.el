@@ -61,8 +61,8 @@ encryption is used."
 	  (or (copy-sequence (cdr entry))
 	      (progn
 		(unless entry
-		  (setq entry (list file)
-			epa-file-passphrase-alist
+		  (setq entry (list file))
+		  (setq epa-file-passphrase-alist
 			(cons entry
 			      epa-file-passphrase-alist)))
 		(setq passphrase (epa-passphrase-callback-function context

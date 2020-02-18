@@ -29,48 +29,40 @@
 (defun epa-dired-do-decrypt ()
   "Decrypt marked files."
   (interactive)
-  (let ((file-list (dired-get-marked-files)))
-    (while file-list
-      (epa-decrypt-file (expand-file-name (car file-list)))
-      (setq file-list (cdr file-list)))
-    (revert-buffer)))
+  (dolist (file (dired-get-marked-files))
+    (epa-decrypt-file (expand-file-name file)))
+  (revert-buffer))
 
 ;;;###autoload
 (defun epa-dired-do-verify ()
   "Verify marked files."
   (interactive)
-  (let ((file-list (dired-get-marked-files)))
-    (while file-list
-      (epa-verify-file (expand-file-name (car file-list)))
-      (setq file-list (cdr file-list)))))
+  (dolist (file (dired-get-marked-files))
+    (epa-verify-file (expand-file-name file))))
 
 ;;;###autoload
 (defun epa-dired-do-sign ()
   "Sign marked files."
   (interactive)
-  (let ((file-list (dired-get-marked-files)))
-    (while file-list
-      (epa-sign-file
-       (expand-file-name (car file-list))
-       (epa-select-keys (epg-make-context) "Select keys for signing.
+  (dolist (file (dired-get-marked-files))
+    (epa-sign-file
+     (expand-file-name file)
+     (epa-select-keys (epg-make-context) "Select keys for signing.
 If no one is selected, default secret key is used.  "
-			nil t)
-       (y-or-n-p "Make a detached signature? "))
-      (setq file-list (cdr file-list)))
-    (revert-buffer)))
+		      nil t)
+     (y-or-n-p "Make a detached signature? ")))
+  (revert-buffer))
 
 ;;;###autoload
 (defun epa-dired-do-encrypt ()
   "Encrypt marked files."
   (interactive)
-  (let ((file-list (dired-get-marked-files)))
-    (while file-list
-      (epa-encrypt-file
-       (expand-file-name (car file-list))
-       (epa-select-keys (epg-make-context) "Select recipients for encryption.
-If no one is selected, symmetric encryption will be performed.  "))
-      (setq file-list (cdr file-list)))
-    (revert-buffer)))
+  (dolist (file (dired-get-marked-files))
+    (epa-encrypt-file
+     (expand-file-name file)
+     (epa-select-keys (epg-make-context) "Select recipients for encryption.
+If no one is selected, symmetric encryption will be performed.  ")))
+  (revert-buffer))
 
 (provide 'epa-dired)
 
