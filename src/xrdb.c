@@ -353,7 +353,7 @@ get_environ_db (void)
 	  p = filename = xmalloc (strlen (home) + 1 + sizeof xdefaults
 				  + 1 + SBYTES (system_name));
 	  char *e = splice_dir_file (p, home, xdefaults);
-	  *e++ = '/';
+	  *e++ = '-';
 	  lispstpcpy (e, system_name);
 	}
     }
