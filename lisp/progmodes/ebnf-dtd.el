@@ -1108,9 +1108,8 @@
     (aset ebnf-dtd-token-table ?\] 'end-subset)))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-dtd-name-chars
-  (ebnf-range-regexp "-._:0-9A-Za-z" ?\240 ?\377))
+  "-._:0-9A-Za-z\u00a0-\u00ff")
 
 
 (defconst ebnf-dtd-decl-alist
@@ -1263,11 +1262,10 @@ See documentation for variable `ebnf-dtd-lex'."
     (format "%s%s;" start char)))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-dtd-double-string-chars
-  (ebnf-range-regexp "\t -!#-~" ?\240 ?\377))
+  "\t -!#-~\u00a0-\u00ff")
 (defconst ebnf-dtd-single-string-chars
-  (ebnf-range-regexp "\t -&(-~" ?\240 ?\377))
+  "\t -&(-~\u00a0-\u00ff")
 
 
 (defun ebnf-dtd-string (delim)
@@ -1287,11 +1285,10 @@ See documentation for variable `ebnf-dtd-lex'."
        (forward-char)))))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-dtd-comment-chars
-  (ebnf-range-regexp "^-\000-\010\013\014\016-\037" ?\177 ?\237))
+  "^-\000-\010\013\014\016-\037\177\u0080-\u009f")
 (defconst ebnf-dtd-filename-chars
-  (ebnf-range-regexp "^-\000-\037" ?\177 ?\237))
+  "^-\000-\037\177\u0080-\u009f")
 
 
 (defun ebnf-dtd-skip-comment ()
