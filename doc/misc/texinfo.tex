@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2019-09-24.13}
+\def\texinfoversion{2020-02-11.09}
 %
 % Copyright 1985, 1986, 1988, 1990-2019 Free Software Foundation, Inc.
 %
@@ -373,12 +373,12 @@
   % Common context changes for both heading and footing.
   % Do this outside of the \shipout so @code etc. will be expanded in
   % the headline as they should be, not taken literally (outputting ''code).
-  \def\commmonheadfootline{\let\hsize=\txipagewidth \texinfochars}
+  \def\commonheadfootline{\let\hsize=\txipagewidth \texinfochars}
   %
-  \global\setbox\headlinebox = \vbox{\commmonheadfootline \makeheadline}%
+  \global\setbox\headlinebox = \vbox{\commonheadfootline \makeheadline}%
   %
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
-  \global\setbox\footlinebox = \vbox{\commmonheadfootline \makefootline}%
+  \global\setbox\footlinebox = \vbox{\commonheadfootline \makefootline}%
   %
   {%
     % Set context for writing to auxiliary files like index files.
@@ -3107,9 +3107,9 @@ end
 % preferrable one choice is over the other.
 \def\urefallowbreak{%
   \allowbreak
-  \hskip 0pt plus 4 em\relax
-  \penalty100
-  \hskip 0pt plus -4 em\relax
+  \hskip 0pt plus 2 em\relax
+  \penalty300
+  \hskip 0pt plus -2 em\relax
 }
 
 \urefbreakstyle after
@@ -8955,17 +8955,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \else
       % Reference within this manual.
       %
-      % _ (for example) has to be the character _ for the purposes of the
-      % control sequence corresponding to the node, but it has to expand
-      % into the usual \leavevmode...\vrule stuff for purposes of
-      % printing. So we \turnoffactive for the \refx-snt, back on for the
-      % printing, back off for the \refx-pg.
-      {\turnoffactive
-       % Only output a following space if the -snt ref is nonempty; for
-       % @unnumbered and @anchor, it won't be.
-       \setbox2 = \hbox{\ignorespaces \refx{#1-snt}{}}%
-       \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
-      }%
+      % Only output a following space if the -snt ref is nonempty; for
+      % @unnumbered and @anchor, it won't be.
+      \setbox2 = \hbox{\ignorespaces \refx{#1-snt}{}}%
+      \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
+      %
       % output the `[mynode]' via the macro below so it can be overridden.
       \xrefprintnodename\printedrefname
       %
@@ -9055,7 +9049,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \requireauxfile
   {%
     \indexnofonts
-    \otherbackslash
+    \turnoffactive
     \def\value##1{##1}%
     \expandafter\global\expandafter\let\expandafter\thisrefX
       \csname XR#1\endcsname
