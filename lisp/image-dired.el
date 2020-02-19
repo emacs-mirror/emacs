@@ -771,8 +771,8 @@ Increase at own risk.")
          process)
     (when (not (file-exists-p thumbnail-dir))
       (message "Creating thumbnail directory")
-      (make-directory thumbnail-dir t)
-      (set-file-modes thumbnail-dir #o700))
+      (with-file-modes #o700
+	(make-directory thumbnail-dir t)))
 
     ;; Thumbnail file creation processes begin here and are marshaled
     ;; in a queue by `image-dired-create-thumb'.

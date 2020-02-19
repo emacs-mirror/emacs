@@ -602,11 +602,10 @@ files left at the next time."
 	(push temp fails)))
     (if fails
 	;; Schedule the deletion of the files left at the next time.
-	(progn
+	(with-file-modes #o600
 	  (write-region (concat (mapconcat 'identity (nreverse fails) "\n")
 				"\n")
-			nil cache-file nil 'silent)
-	  (set-file-modes cache-file #o600))
+			nil cache-file nil 'silent))
       (when (file-exists-p cache-file)
 	(ignore-errors (delete-file cache-file))))
     (setq mm-temp-files-to-be-deleted nil)))
@@ -911,8 +910,10 @@ external if displayed external."
 	;; The function is a string to be executed.
 	(mm-insert-part handle)
 	(mm-add-meta-html-tag handle)
-	(let* ((dir (make-temp-file
-		     (expand-file-name "emm." mm-tmp-directory) 'dir))
+	;; We create a private sub-directory where we store our files.
+	(let* ((dir (with-file-modes #o700
+		      (make-temp-file
+		       (expand-file-name "emm." mm-tmp-directory) 'dir)))
 	       (filename (or
 			  (mail-content-type-get
 			   (mm-handle-disposition handle) 'filename)
@@ -924,8 +925,6 @@ external if displayed external."
 			      (assoc "needsterminal" mime-info)))
 	       (copiousoutput (assoc "copiousoutput" mime-info))
 	       file buffer)
-	  ;; We create a private sub-directory where we store our files.
-	  (set-file-modes dir #o700)
 	  (if filename
 	      (setq file (expand-file-name
 			  (gnus-map-function mm-file-name-rewrite-functions
@@ -941,8 +940,9 @@ external if displayed external."
 		;; `mailcap-mime-extensions'.
 		(setq suffix (car (rassoc (mm-handle-media-type handle)
 					  mailcap-mime-extensions))))
-	      (setq file (make-temp-file (expand-file-name "mm." dir)
-					 nil suffix))))
+	      (setq file (with-file-modes #o600
+			   (make-temp-file (expand-file-name "mm." dir)
+					   nil suffix)))))
 	  (let ((coding-system-for-write mm-binary-coding-system))
 	    (write-region (point-min) (point-max) file nil 'nomesg))
 	  ;; The file is deleted after the viewer exists.  If the users edits

@@ -2812,7 +2812,7 @@ values from `gnus-newsrc-hashtb', and write a new value of
                               (file-exists-p working-file)))
 
 		(unwind-protect
-                    (progn
+		    (with-file-modes (file-modes startup-file)
                       (gnus-with-output-to-file working-file
 			(gnus-gnus-to-quick-newsrc-format)
 			(gnus-run-hooks 'gnus-save-quick-newsrc-hook))
@@ -2822,14 +2822,12 @@ values from `gnus-newsrc-hashtb', and write a new value of
                       ;; file.
                       (let ((buffer-backed-up nil)
                             (buffer-file-name startup-file)
-                            (file-precious-flag t)
-                            (setmodes (file-modes startup-file)))
+			    (file-precious-flag t))
 			;; Backup the current version of the startup file.
 			(backup-buffer)
 
 			;; Replace the existing startup file with the temp file.
 			(rename-file working-file startup-file t)
-			(gnus-set-file-modes startup-file setmodes)
 			(setq gnus-save-newsrc-file-last-timestamp
 			      (file-attribute-modification-time
 			       (file-attributes startup-file)))))
@@ -3004,14 +3002,14 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 
 (defun gnus-slave-save-newsrc ()
   (with-current-buffer gnus-dribble-buffer
-    (let ((slave-name
-	   (make-temp-file (concat gnus-current-startup-file "-slave-")))
-	  (modes (ignore-errors
-		   (file-modes (concat gnus-current-startup-file ".eld")))))
-      (let ((coding-system-for-write gnus-ding-file-coding-system))
-	(gnus-write-buffer slave-name))
-      (when modes
-	(gnus-set-file-modes slave-name modes)))))
+    (with-file-modes (or (ignore-errors
+			   (file-modes
+			    (concat gnus-current-startup-file ".eld")))
+			 (default-file-modes))
+      (let ((slave-name
+	     (make-temp-file (concat gnus-current-startup-file "-slave-"))))
+	(let ((coding-system-for-write gnus-ding-file-coding-system))
+	  (gnus-write-buffer slave-name))))))
 
 (defun gnus-master-read-slave-newsrc ()
   (let ((slave-files
