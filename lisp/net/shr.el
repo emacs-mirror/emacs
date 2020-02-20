@@ -838,7 +838,7 @@ size, and full-buffer size."
   ;; Always chop off anchors.
   (when (string-match "#.*" url)
     (setq url (substring url 0 (match-beginning 0))))
-  ;; NB: <base href="" > URI may itself be relative to the document s URI
+  ;; NB: <base href=""> URI may itself be relative to the document's URI.
   (setq url (shr-expand-url url))
   (let* ((parsed (url-generic-parse-url url))
 	 (local (url-filename parsed)))
