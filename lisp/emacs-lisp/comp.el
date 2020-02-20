@@ -282,18 +282,20 @@ structure.")
 
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
-  (slot nil :type (or fixnum symbol)
-        :documentation "Slot number if a number or 'scratch' for scratch slot.")
-  (array-idx 0 :type fixnum
-             :documentation "Array index.")
   (id nil :type (or null number)
-     :documentation "SSA number when in SSA form.")
+      :documentation "Unique id when in SSA form.")
+  ;; The following two are allocation info.
+  (array-idx 0 :type fixnum
+             :documentation "The array where the m-var gets allocated.")
+  (slot nil :type (or fixnum symbol)
+        :documentation "Slot number in the array if a number or
+        'scratch' for scratch slot.")
   (const-vld nil :type boolean
              :documentation "Valid signal for the following slot.")
   (constant nil
             :documentation "When const-vld non nil this is used for holding
  a value known at compile time.")
-  (type nil
+  (type nil :type symbol
         :documentation "When non nil indicates the type when known at compile
  time.")
   (impure nil :type boolean
