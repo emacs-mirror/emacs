@@ -337,7 +337,7 @@ Check that every node pointer points to an existing node."
 						     (point))))
 			 (Info-extract-menu-node-name))))
 		  (goto-char (point-min))
-		  (while (re-search-forward "\\*note[ \n]*[^:\t]*:" nil t)
+		  (while (re-search-forward "\\*note\\>[^:\t]*:" nil t)
 		    (goto-char (+ (match-beginning 0) 5))
 		    (skip-chars-forward " \n")
 		    (Info-validate-node-name

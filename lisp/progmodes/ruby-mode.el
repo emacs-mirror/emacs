@@ -801,7 +801,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
       (let ((coding-system (ruby--detect-encoding)))
         (when coding-system
           (if (looking-at "^#!") (beginning-of-line 2))
-          (cond ((looking-at "\\s *#\\s *.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
+          (cond ((looking-at "\\s *#.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
                  ;; update existing encoding comment if necessary
                  (unless (string= (match-string 2) coding-system)
                    (goto-char (match-beginning 2))

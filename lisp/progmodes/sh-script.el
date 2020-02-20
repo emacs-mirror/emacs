@@ -1096,7 +1096,7 @@ subshells can nest."
     (")" (0 (sh-font-lock-paren (match-beginning 0))))
     ;; Highlight (possibly nested) subshells inside "" quoted
     ;; regions correctly.
-    ("\"\\(?:\\(?:[^\\\"]\\|\\\\.\\)*?\\)??\\(\\$(\\|`\\)"
+    ("\"\\(?:[^\\\"]\\|\\\\.\\)*?\\(\\$(\\|`\\)"
      (1 (ignore
          (if (nth 8 (save-excursion (syntax-ppss (match-beginning 0))))
              (goto-char (1+ (match-beginning 0)))

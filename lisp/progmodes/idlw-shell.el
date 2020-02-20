@@ -1598,7 +1598,7 @@ number.")
   "A regular expression to match any IDL error.")
 
 (defvar idlwave-shell-halting-error
-  "^% .*\n\\([^%].*\n\\)*% Execution halted at:\\(\\s-*\\S-+\\s-*[0-9]+\\s-*.*\\)\n"
+  "^% .*\n\\([^%].*\n\\)*% Execution halted at:\\(\\s-*\\S-+\\s-*[0-9]+.*\\)\n"
   "A regular expression to match errors which halt execution.")
 
 (defvar idlwave-shell-cant-continue-error

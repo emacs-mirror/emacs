@@ -2796,12 +2796,12 @@ See `term-prompt-regexp'."
    "\\(?:[\r\n\000\007\t\b\016\017]\\|"
    ;; some Emacs specific control sequences, implemented by
    ;; `term-command-hook',
-   "\032[^\n]+\r?\n\\|"
+   "\032[^\n]+\n\\|"
    ;; a C1 escape coded character (see [ECMA-48] section 5.3 "Elements
    ;; of the C1 set"),
    "\e\\(?:[DM78c]\\|"
    ;; another Emacs specific control sequence,
-   "AnSiT[^\n]+\r?\n\\|"
+   "AnSiT[^\n]+\n\\|"
    ;; or an escape sequence (section 5.4 "Control Sequences"),
    "\\[\\([\x30-\x3F]*\\)[\x20-\x2F]*[\x40-\x7E]\\)\\)")
   "Regexp matching control sequences handled by term.el.")

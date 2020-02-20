@@ -2437,7 +2437,7 @@ INFO may provide the values of these header arguments (in the
     (when location
       (save-excursion
         (goto-char location)
-	(when (looking-at (concat org-babel-result-regexp ".*$"))
+	(when (looking-at org-babel-result-regexp)
 	  (delete-region
 	   (if keep-keyword (line-beginning-position 2)
 	     (save-excursion
