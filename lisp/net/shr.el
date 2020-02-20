@@ -1440,7 +1440,7 @@ ones, in case fg and bg are nil."
   (shr-fontize-dom dom 'underline))
 
 (defun shr-tag-code (dom)
-  (let ((shr-current-font 'default))
+  (let ((shr-current-font 'fixed-pitch))
     (shr-generic dom)))
 
 (defun shr-tag-tt (dom)
