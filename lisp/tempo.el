@@ -589,11 +589,11 @@ replace its template with TEMPLATE."
       (setq tag-list 'tempo-tags))
   (let ((entry (assoc tag (symbol-value tag-list))))
     (if entry
-        ;; Tag is already in the list, assign a new template to it
+        ;; Tag is already in the list, assign a new template to it.
         (setcdr entry template)
-      ;; Tag is not present in the list, add it with its template
+      ;; Tag is not present in the list, add it with its template.
       (set tag-list (cons (cons tag template) (symbol-value tag-list)))))
-  ;; Invalidate globally if we're modifying `tempo-tags'
+  ;; Invalidate globally if we're modifying 'tempo-tags'.
   (tempo-invalidate-collection (eq tag-list 'tempo-tags)))
 
 ;;;
