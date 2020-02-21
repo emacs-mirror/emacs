@@ -3487,7 +3487,7 @@ the opcode to be used.  If function is a list, the first element
 is the function and the second element is the bytecode-symbol.
 The second element may be nil, meaning there is no opcode.
 COMPILE-HANDLER is the function to use to compile this byte-op, or
-may be the abbreviations 0, 1, 2, 3, 0-1, or 1-2.
+may be the abbreviations 0, 1, 2, 2-and, 3, 0-1, 1-2, 1-3, or 2-3.
 If it is nil, then the handler is \"byte-compile-SYMBOL.\""
   (let (opcode)
     (if (symbolp function)
@@ -3506,6 +3506,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 					(0-1 . byte-compile-zero-or-one-arg)
 					(1-2 . byte-compile-one-or-two-args)
 					(2-3 . byte-compile-two-or-three-args)
+					(1-3 . byte-compile-one-to-three-args)
 					)))
 			   compile-handler
 			   (intern (concat "byte-compile-"
@@ -3689,6 +3690,13 @@ These implicitly `and' together a bunch of two-arg bytecodes."
     (cond ((= len 3) (byte-compile-three-args (append form '(nil))))
 	  ((= len 4) (byte-compile-three-args form))
 	  (t (byte-compile-subr-wrong-args form "2-3")))))
+
+(defun byte-compile-one-to-three-args (form)
+  (let ((len (length form)))
+    (cond ((= len 2) (byte-compile-three-args (append form '(nil nil))))
+          ((= len 3) (byte-compile-three-args (append form '(nil))))
+          ((= len 4) (byte-compile-three-args form))
+          (t (byte-compile-subr-wrong-args form "1-3")))))
 
 (defun byte-compile-noop (_form)
   (byte-compile-constant nil))
