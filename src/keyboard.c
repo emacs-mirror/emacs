@@ -6008,14 +6008,11 @@ make_lispy_event (struct input_event *event)
       return event->arg;
 
     case TOOL_BAR_EVENT:
-      if (EQ (event->arg, event->frame_or_window))
-	/* This is the prefix key.  We translate this to
-	   `(tool_bar)' because the code in keyboard.c for tool bar
-	   events, which we use, relies on this.  */
-	return list1 (Qtool_bar);
-      else if (SYMBOLP (event->arg))
-	return apply_modifiers (event->modifiers, event->arg);
-      return event->arg;
+      {
+	Lisp_Object res = event->arg;
+	if (SYMBOLP (res)) res = apply_modifiers (event->modifiers, res);
+	return list2 (res, list2 (event->frame_or_window, Qtool_bar));
+      }
 
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
