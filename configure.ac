@@ -3738,6 +3738,9 @@ If you are sure you want Emacs compiled without elisp native compiler, pass
 to configure.])
   fi
 fi
+if test "${HAVE_NATIVE_COMP}" = yes && test "${HAVE_PDUMPER}" = no; then
+   AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
 AC_SUBST(HAVE_NATIVE_COMP)
