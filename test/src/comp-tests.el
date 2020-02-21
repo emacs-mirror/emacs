@@ -441,8 +441,7 @@ Check that the resulting binaries do not differ."
 (ert-deftest comp-eq ()
   (should (comp-test-eq 'a 'a))
   (should (comp-test-eq 5 5))
-  (should-not (comp-test-eq 'a 'b))
-  (should-not (comp-test-eq "x" "x")))
+  (should-not (comp-test-eq 'a 'b)))
 
 (ert-deftest comp-if ()
   (should (eq (comp-test-if 'a 'b) 'a))
