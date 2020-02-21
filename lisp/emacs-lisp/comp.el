@@ -99,6 +99,8 @@ Can be used by code that wants to expand differently in this case.")
 (defvar comp-pass nil
   "Every pass has the right to bind what it likes here.")
 
+(defvar comp-emitting-impure nil "Non nil to emit only impure objects.")
+
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
                         comp-ssa
@@ -336,14 +338,13 @@ The corresponding index is returned."
       (push obj (comp-data-container-l cont))
       (puthash obj (hash-table-count h) h))))
 
-(defun comp-add-const-to-relocs (obj &optional impure)
+(defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
-When IMPURE is non nil OBJ cannot be copied into pure space.
 The corresponding index is returned."
   (comp-add-const-to-relocs-to-cont obj
-                                    (if impure
+                                    (if comp-emitting-impure
                                         (comp-ctxt-d-impure comp-ctxt)
-                                        (comp-ctxt-d-base comp-ctxt))))
+                                      (comp-ctxt-d-base comp-ctxt))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -526,7 +527,7 @@ Points to the next slot to be filled.")
   (label-to-addr nil :type hash-table
                  :documentation "LAP hash table -> address.")
   (pending-blocks () :type list
-              :documentation "List of blocks waiting for limplification."))
+                  :documentation "List of blocks waiting for limplification."))
 
 (defconst comp-lap-eob-ops
   '(byte-goto byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
@@ -613,12 +614,11 @@ STACK-OFF is the index of the first slot frame involved."
                              for sp from stack-off
                              collect (comp-slot-n sp))))
 
-(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type
-                               impure)
+(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
   (when const-vld
-    (comp-add-const-to-relocs constant impure))
+    (comp-add-const-to-relocs constant))
   (make--comp-mvar :slot slot :const-vld const-vld :constant constant
-                   :type type :impure impure))
+                   :type type :impure comp-emitting-impure))
 
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
@@ -1129,7 +1129,8 @@ the annotation emission."
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
   (let ((form (byte-to-native-top-level-form form)))
     (comp-emit (comp-call 'eval
-                          (make-comp-mvar :constant form :impure t)
+                          (let ((comp-emitting-impure t))
+                            (make-comp-mvar :constant form))
                           (make-comp-mvar :constant t)))))
 
 (defun comp-limplify-top-level ()
@@ -1140,7 +1141,11 @@ Synthesize a function called 'top_level_run' that gets one single
 parameter (the compilation unit it-self).  To define native
 functions 'top_level_run' will call back `comp--register-subr'
 into the C code forwarding the compilation unit."
-  (let* ((func (make-comp-func :name 'top-level-run
+  ;; Once an .eln is loaded and Emacs is dumped 'top_level_run' has no
+  ;; reasons to be execute ever again.  Therefore all objects can be
+  ;; just impure.
+  (let* ((comp-emitting-impure t)
+         (func (make-comp-func :name 'top-level-run
                                :c-name "top_level_run"
                                :args (make-comp-args :min 1 :max 1)
                                :frame-size 1))
