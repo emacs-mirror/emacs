@@ -2916,7 +2916,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, absname);
 
-  return file_directory_p (absname) ? Qt : Qnil;
+  return file_directory_p (ENCODE_FILE (absname)) ? Qt : Qnil;
 }
 
 /* Return true if FILE is a directory or a symlink to a directory.

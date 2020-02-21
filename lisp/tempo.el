@@ -220,7 +220,9 @@ list of elements in the template, TAG is the tag used for completion,
 DOCUMENTATION is the documentation string for the insertion command
 created, and TAGLIST (a symbol) is the tag list that TAG (if provided)
 should be added to.  If TAGLIST is nil and TAG is non-nil, TAG is
-added to `tempo-tags'.
+added to `tempo-tags'.  If TAG already corresponds to a template in
+the tag list, modify the list so that TAG now corresponds to the newly
+defined template.
 
 The elements in ELEMENTS can be of several types:
 
@@ -579,14 +581,20 @@ and insert the results."
 (defun tempo-add-tag (tag template &optional tag-list)
   "Add a template tag.
 Add the TAG, that should complete to TEMPLATE to the list in TAG-LIST,
-or to `tempo-tags' if TAG-LIST is nil."
+or to `tempo-tags' if TAG-LIST is nil.  If TAG was already in the list,
+replace its template with TEMPLATE."
 
   (interactive "sTag: \nCTemplate: ")
   (if (null tag-list)
       (setq tag-list 'tempo-tags))
-  (if (not (assoc tag (symbol-value tag-list)))
-      (set tag-list (cons (cons tag template) (symbol-value tag-list))))
-  (tempo-invalidate-collection))
+  (let ((entry (assoc tag (symbol-value tag-list))))
+    (if entry
+        ;; Tag is already in the list, assign a new template to it.
+        (setcdr entry template)
+      ;; Tag is not present in the list, add it with its template.
+      (set tag-list (cons (cons tag template) (symbol-value tag-list)))))
+  ;; Invalidate globally if we're modifying 'tempo-tags'.
+  (tempo-invalidate-collection (eq tag-list 'tempo-tags)))
 
 ;;;
 ;;; tempo-use-tag-list
@@ -609,10 +617,17 @@ COMPLETION-FUNCTION just sets `tempo-match-finder' locally."
 ;;;
 ;;; tempo-invalidate-collection
 
-(defun tempo-invalidate-collection ()
+(defun tempo-invalidate-collection (&optional global)
   "Marks the tag collection as obsolete.
-Whenever it is needed again it will be rebuilt."
-  (setq tempo-dirty-collection t))
+Whenever it is needed again it will be rebuilt.  If GLOBAL is non-nil,
+mark the tag collection of all buffers as obsolete, not just the
+current one."
+  (if global
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (assq 'tempo-dirty-collection (buffer-local-variables))
+            (setq tempo-dirty-collection t))))
+    (setq tempo-dirty-collection t)))
 
 ;;;
 ;;; tempo-build-collection

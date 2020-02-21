@@ -460,7 +460,7 @@ Matched keyword is in group 1.")
 		 org-clock-string)
 	   t)
 	  "\\)?"
-	  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^]\r\n>]*?[]>]"
+	  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*[]>]"
 	  "\\|"
 	  "<%%([^\r\n>]*>\\)")
   "Matches a timestamp, possibly preceded by a keyword.")
@@ -564,14 +564,14 @@ Effort estimates given in this property need to have the format H:MM.")
 
 ;;;; Timestamp
 
-(defconst org-ts-regexp "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\r\n>]*?\\)>"
+(defconst org-ts-regexp "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^\r\n>]*\\)>"
   "Regular expression for fast time stamp matching.")
 
 (defconst org-ts-regexp-inactive
-  "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\r\n>]*?\\)\\]"
+  "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^\r\n>]*\\)\\]"
   "Regular expression for fast inactive time stamp matching.")
 
-(defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^]\r\n>]*?\\)[]>]"
+(defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*\\)[]>]"
   "Regular expression for fast time stamp matching.")
 
 (defconst org-ts-regexp0

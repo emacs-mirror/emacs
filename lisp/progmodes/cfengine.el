@@ -1322,7 +1322,7 @@ Use it by enabling `eldoc-mode'."
   (set (make-local-variable 'parens-require-spaces) nil)
   (set (make-local-variable 'comment-start)  "# ")
   (set (make-local-variable 'comment-start-skip)
-       "\\(\\(?:^\\|[^\\\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")
+       "\\(\\(?:^\\|[^\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")
   ;; Like Lisp mode.  Without this, we lose with, say,
   ;; `backward-up-list' when there's an unbalanced quote in a
   ;; preceding comment.

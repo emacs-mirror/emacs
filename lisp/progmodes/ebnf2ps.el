@@ -4962,18 +4962,6 @@ killed after process termination."
       (kill-buffer (current-buffer))))
 
 
-;; function `ebnf-range-regexp' is used to avoid a bug of `skip-chars-forward'
-;; on version 20.4.1, that is, it doesn't accept ranges like "\240-\377" (or
-;; "\177-\237"), but it accepts the character sequence from \240 to \377 (or
-;; from \177 to \237).  It seems that version 20.7 has the same problem.
-(defun ebnf-range-regexp (prefix from to)
-  (let (str)
-    (while (<= from to)
-      (setq str  (concat str (char-to-string from))
-	    from (1+ from)))
-    (concat prefix str)))
-
-
 (defvar ebnf-map-name
   (let ((map (make-vector 256 ?\_)))
     (mapc #'(lambda (char)
@@ -5970,8 +5958,7 @@ killed after process termination."
      (point))))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
-(defconst ebnf-8-bit-chars (ebnf-range-regexp "" ?\240 ?\377))
+(defconst ebnf-8-bit-chars "\u00a0-\u00ff")
 
 
 (defun ebnf-string (chars eos-char kind)

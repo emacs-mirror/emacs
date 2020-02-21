@@ -1021,7 +1021,7 @@ Store them in the capture property list."
 			 (apply #'encode-time 0 0
 				org-extend-today-until
 				(cl-cdddr (decode-time prompt-time))))
-			((string-match "\\([^ ]+\\)--?[^ ]+[ ]+\\(.*\\)"
+			((string-match "\\([^ ]+\\)-[^ ]+[ ]+\\(.*\\)"
 				       org-read-date-final-answer)
 			 ;; Replace any time range by its start.
 			 (apply #'encode-time

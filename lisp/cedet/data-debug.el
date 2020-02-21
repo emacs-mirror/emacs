@@ -880,7 +880,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
 	comment-end ""
 	buffer-read-only t)
   (setq-local comment-start-skip
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (buffer-disable-undo)
   (set (make-local-variable 'font-lock-global-modes) nil)
   (font-lock-mode -1)

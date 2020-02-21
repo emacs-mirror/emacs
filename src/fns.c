@@ -2843,7 +2843,7 @@ advisable.  */)
   while (loads-- > 0)
     {
       Lisp_Object load = (NILP (use_floats)
-			  ? make_fixnum (100.0 * load_ave[loads])
+			  ? double_to_integer (100.0 * load_ave[loads])
 			  : make_float (load_ave[loads]));
       ret = Fcons (load, ret);
     }

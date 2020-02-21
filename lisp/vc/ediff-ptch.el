@@ -119,7 +119,7 @@ patch.  So, don't change these variables, unless the default doesn't work."
 (defcustom ediff-context-diff-label-regexp
   (let ((stuff "\\([^ \t\n]+\\)"))
     (concat "\\(" 	; context diff 2-liner
-            "^\\*\\*\\* +" stuff "[^*]+[\t ]*\n--- +" stuff
+            "^\\*\\*\\* +" stuff "[^*]+\n--- +" stuff
             "\\|" 	; unified format diff 2-liner
             "^--- +" stuff ".*\n\\+\\+\\+ +" stuff
             "\\)"))

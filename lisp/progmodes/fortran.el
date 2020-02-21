@@ -429,7 +429,7 @@ The only difference is, it returns t in a case when the default returns nil."
    fortran-font-lock-keywords-1
    ;; All type specifiers plus their declared items.
    (list
-    (list (concat fortran-type-types "[ \t(/]*\\(*\\)?")
+    (list (concat fortran-type-types "[ \t(/]*\\(\\*\\)?")
           ;; Type specifier.
           '(1 font-lock-type-face)
           ;; Declaration item (or just /.../ block name).

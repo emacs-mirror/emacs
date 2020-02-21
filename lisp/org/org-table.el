@@ -3099,7 +3099,7 @@ function assumes the table is already analyzed (i.e., using
       (let ((lhs (car e))
 	    (rhs (cdr e)))
 	(cond
-	 ((string-match-p "\\`@-?[-+0-9]+\\$-?[0-9]+\\'" lhs)
+	 ((string-match-p "\\`@[-+0-9]+\\$-?[0-9]+\\'" lhs)
 	  ;; This just refers to one fixed field.
 	  (push e res))
 	 ((string-match-p "\\`[a-zA-Z][_a-zA-Z0-9]*\\'" lhs)

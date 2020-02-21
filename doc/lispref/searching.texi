@@ -1745,7 +1745,7 @@ any special characters.
 @end defun
 
 @cindex optimize regexp
-@defun regexp-opt strings &optional paren keep-order
+@defun regexp-opt strings &optional paren
 This function returns an efficient regular expression that will match
 any of the strings in the list @var{strings}.  This is useful when you
 need to make matching or searching as fast as possible---for example,
@@ -1783,11 +1783,8 @@ if it is necessary to ensure that a postfix operator appended to
 it will apply to the whole expression.
 @end table
 
-The optional argument @var{keep-order}, if non-@code{nil}, forces the
-match to be performed in the order given, as if the strings were made
-into a regexp by joining them with the @samp{\|} operator.  If nil or
-omitted, the returned regexp will always match the longest string
-possible.
+The returned regexp is ordered in such a way that it will always match
+the longest string possible.
 
 Up to reordering, the resulting regexp of @code{regexp-opt} is
 equivalent to but usually more efficient than that of a simplified

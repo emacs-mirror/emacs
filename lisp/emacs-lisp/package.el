@@ -2701,9 +2701,8 @@ either a full name or nil, and EMAIL is a valid email address."
     ["Help" package-menu-quick-help :help "Show short key binding help for package-menu-mode"]
     "--"
     ["Refresh Package List" revert-buffer
-     :help "Redownload the ELPA archive"
+     :help "Redownload the package archive(s)"
      :active (not package--downloads-in-progress)]
-    ["Redisplay buffer" revert-buffer :help "Update the buffer with current list of packages"]
     ["Execute Marked Actions" package-menu-execute :help "Perform all the marked actions"]
 
     "--"
@@ -3197,7 +3196,8 @@ The default regexp will hide only the package whose name is at point."
   (declare (interactive-only "change `package-hidden-regexps' instead."))
   (let* ((name (when (derived-mode-p 'package-menu-mode)
                  (concat "\\`" (regexp-quote (symbol-name (package-desc-name
-                                                           (tabulated-list-get-id)))))))
+                                                           (tabulated-list-get-id))))
+                         "\\'")))
          (re (read-string "Hide packages matching regexp: " name)))
     ;; Test if it is valid.
     (string-match re "")

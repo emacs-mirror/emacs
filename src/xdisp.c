@@ -14324,11 +14324,6 @@ handle_tool_bar_click (struct frame *f, int x, int y, bool down_p,
       XSETFRAME (frame, f);
       event.kind = TOOL_BAR_EVENT;
       event.frame_or_window = frame;
-      event.arg = frame;
-      kbd_buffer_store_event (&event);
-
-      event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = frame;
       event.arg = key;
       event.modifiers = modifiers;
       kbd_buffer_store_event (&event);
@@ -29230,7 +29225,7 @@ produce_stretch_glyph (struct it *it)
 
   /* Compute the width of the stretch.  */
   if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
-      && calc_pixel_width_or_height (&tem, it, prop, font, true, 0))
+      && calc_pixel_width_or_height (&tem, it, prop, font, true, NULL))
     {
       /* Absolute width `:width WIDTH' specified and valid.  */
       zero_width_ok_p = true;
@@ -29286,7 +29281,7 @@ produce_stretch_glyph (struct it *it)
       int default_height = normal_char_height (font, ' ');
 
       if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
-	  && calc_pixel_width_or_height (&tem, it, prop, font, false, 0))
+	  && calc_pixel_width_or_height (&tem, it, prop, font, false, NULL))
 	{
 	  height = (int)tem;
 	  zero_height_ok_p = true;

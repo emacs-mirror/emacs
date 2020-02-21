@@ -544,23 +544,30 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 ;;;###autoload
 (defun reverse-region (beg end)
   "Reverse the order of lines in a region.
-From a program takes two point or marker arguments, BEG and END."
+When called from Lisp, takes two point or marker arguments, BEG and END.
+If BEG is not at the beginning of a line, the first line of those
+to be reversed is the line starting after BEG.
+If END is not at the end of a line, the last line to be reversed
+is the one that ends before END."
   (interactive "r")
   (if (> beg end)
       (let (mid) (setq mid end end beg beg mid)))
   (save-excursion
-    ;; put beg at the start of a line and end and the end of one --
-    ;; the largest possible region which fits this criteria
+    (when (or (< (line-beginning-position) beg)
+              (< end (line-end-position)))
+      (user-error "There are no full lines in the region"))
+    ;; Put beg at the start of a line and end and the end of one --
+    ;; the largest possible region which fits this criteria.
     (goto-char beg)
     (or (bolp) (forward-line 1))
     (setq beg (point))
     (goto-char end)
-    ;; the test for bolp is for those times when end is on an empty line;
+    ;; The test for bolp is for those times when end is on an empty line;
     ;; it is probably not the case that the line should be included in the
     ;; reversal; it isn't difficult to add it afterward.
     (or (and (eolp) (not (bolp))) (progn (forward-line -1) (end-of-line)))
     (setq end (point-marker))
-    ;; the real work.  this thing cranks through memory on large regions.
+    ;; The real work.  This thing cranks through memory on large regions.
     (let (ll (do t))
       (while do
 	(goto-char beg)

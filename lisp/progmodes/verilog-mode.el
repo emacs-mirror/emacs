@@ -958,8 +958,8 @@ See `compilation-error-regexp-alist-alist' for the formatting.  For XEmacs.")
     ("syntax error:.*\n\\([^ \t]+\\) *\\([0-9]+\\):" 1 bold t)
     ("syntax error:.*\n\\([^ \t]+\\) *\\([0-9]+\\):" 2 bold t)
     ;; verilog-verilator
-    (".*%?\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 3 bold t)
-    (".*%?\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 4 bold t)
+    (".*\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 3 bold t)
+    (".*\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 4 bold t)
     ;; verilog-leda
     ("^In file \\([^ \t]+\\)[ \t]+line[ \t]+\\([0-9]+\\):\n[^\n]*\n[^\n]*\n\\(Warning\\|Error\\|Failure\\)[^\n]*" 1 bold t)
     ("^In file \\([^ \t]+\\)[ \t]+line[ \t]+\\([0-9]+\\):\n[^\n]*\n[^\n]*\n\\(Warning\\|Error\\|Failure\\)[^\n]*" 2 bold t)
@@ -5345,7 +5345,7 @@ becomes:
   (interactive)
   (save-excursion
     (beginning-of-line)
-    (when (looking-at "\\(.*\\)([WE]\\([0-9A-Z]+\\)).*,\\s +line\\s +[0-9]+:\\s +\\([^:\n]+\\):?.*$")
+    (when (looking-at "\\(.*\\)([WE]\\([0-9A-Z]+\\)).*,\\s +line\\s +[0-9]+:\\s +\\([^:\n]+\\).*$")
       (replace-match (format
 		      ;; %3s makes numbers 1-999 line up nicely
 		      "\\1//Verilint %3s off // WARNING: \\3"
@@ -6788,7 +6788,7 @@ Do not count named blocks or case-statements."
      ((looking-at verilog-named-block-re)
       (current-column))
      ((and (not (looking-at verilog-extended-case-re))
-	   (looking-at "^[^:;]+[ \t]*:"))
+	   (looking-at "^[^:;]+:"))
       (verilog-re-search-forward ":" nil t)
       (skip-chars-forward " \t")
       (current-column))
@@ -7782,7 +7782,7 @@ If search fails, other files are checked based on
   "Return point if within translate-off region, else nil."
   (and (save-excursion
 	 (re-search-backward
-	  (concat "//\\s-*.*\\s-*" verilog-directive-regexp "\\(on\\|off\\)\\>")
+	  (concat "//.*" verilog-directive-regexp "\\(on\\|off\\)\\>")
 	  nil t))
        (equal "off" (match-string 2))
        (point)))
@@ -7790,14 +7790,14 @@ If search fails, other files are checked based on
 (defun verilog-start-translate-off (limit)
   "Return point before translate-off directive if before LIMIT, else nil."
   (when (re-search-forward
-         (concat "//\\s-*.*\\s-*" verilog-directive-regexp "off\\>")
+         (concat "//.*" verilog-directive-regexp "off\\>")
          limit t)
     (match-beginning 0)))
 
 (defun verilog-back-to-start-translate-off (limit)
   "Return point before translate-off directive if before LIMIT, else nil."
   (when (re-search-backward
-         (concat "//\\s-*.*\\s-*" verilog-directive-regexp "off\\>")
+         (concat "//.*" verilog-directive-regexp "off\\>")
          limit t)
     (match-beginning 0)))
 
@@ -7805,7 +7805,7 @@ If search fails, other files are checked based on
   "Return point after translate-on directive if before LIMIT, else nil."
 
   (re-search-forward (concat
-		      "//\\s-*.*\\s-*" verilog-directive-regexp "on\\>") limit t))
+		      "//.*" verilog-directive-regexp "on\\>") limit t))
 
 (defun verilog-match-translate-off (limit)
   "Match a translate-off block, setting `match-data' and returning t, else nil.
@@ -9982,7 +9982,7 @@ Or, just the existing dirnames themselves if there are no wildcards."
       (while dirnames
         (setq dirname (car dirnames)
               dirnames (cdr dirnames))
-        (cond ((string-match (concat "^\\(\\|[/\\]*[^*?]*[/\\]\\)"  ; root
+        (cond ((string-match (concat "^\\(\\|[^*?]*[/\\]\\)"  ; root
                                      "\\([^/\\]*[*?][^/\\]*\\)"     ; filename with *?
                                      "\\(.*\\)")                    ; rest
                              dirname)

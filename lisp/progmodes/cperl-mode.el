@@ -1306,7 +1306,7 @@ the last)."
 		     cperl-maybe-white-and-comment-rex ; whitespace-comments
 		     "\\(\\sw\\|_\\)+"	; attr-name
 		     ;; attr-arg (1 level of internal parens allowed!)
-		     "\\((\\(\\\\.\\|[^\\\\()]\\|([^\\\\()]*)\\)*)\\)?"
+		     "\\((\\(\\\\.\\|[^\\()]\\|([^\\()]*)\\)*)\\)?"
 		     "\\("		; optional : (XXX allows trailing???)
 		        cperl-maybe-white-and-comment-rex ; whitespace-comments
 		     ":\\)?"
@@ -5659,16 +5659,16 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	    '("^[ \t]*format[ \t]+\\([a-zA-Z_][a-zA-Z_0-9:]*\\)[ \t]*=[ \t]*$"
 	      1 font-lock-function-name-face)
 	    (cond ((featurep 'font-lock-extra)
-		   '("\\([]}\\\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
+		   '("\\([]}\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
 		     (2 font-lock-string-face t)
 		     (0 '(restart 2 t)))) ; To highlight $a{bc}{ef}
 		  (font-lock-anchored
-		   '("\\([]}\\\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
+		   '("\\([]}\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
 		     (2 font-lock-string-face t)
 		     ("\\=[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
 		      nil nil
 		      (1 font-lock-string-face t))))
-		  (t '("\\([]}\\\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
+		  (t '("\\([]}\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
 		       2 font-lock-string-face t)))
 	    '("[[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
 	      font-lock-string-face t)

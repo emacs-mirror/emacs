@@ -925,7 +925,7 @@ DOWNCASE    t:   Downcase words before using them."
         "\\<label[[:space:]]*=[[:space:]]*"
         ;; Match the label value; braces around the value are
         ;; optional.
-        "{?\\(?1:[^] ,}\r\n\t%]+\\)}?"
+        "{?\\(?1:[^] ,}\r\n\t%]+\\)"
         ;; We are done.  Just search until the next closing bracket
         "[^]]*\\]"))
     "List of regexps matching \\label definitions.

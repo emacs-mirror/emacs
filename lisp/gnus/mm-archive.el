@@ -42,8 +42,9 @@
 	 dir)
     (unless decoder
       (error "No decoder found for %s" type))
-    (setq dir (make-temp-file (expand-file-name "emm." mm-tmp-directory) 'dir))
-    (set-file-modes dir #o700)
+    (with-file-modes #o700
+      (setq dir (make-temp-file (expand-file-name "emm." mm-tmp-directory)
+				'dir)))
     (unwind-protect
 	(progn
 	  (mm-with-unibyte-buffer

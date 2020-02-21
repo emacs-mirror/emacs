@@ -405,11 +405,10 @@
     (aset ebnf-ebx-token-table ?/  'comment)))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-non-terminal-chars
-  (ebnf-range-regexp "-_A-Za-z" ?\240 ?\377))
+  "-_A-Za-z\u00a0-\u00ff")
 (defconst ebnf-ebx-non-terminal-letter-chars
-  (ebnf-range-regexp "A-Za-z" ?\240 ?\377))
+  "A-Za-z\u00a0-\u00ff")
 
 
 (defun ebnf-ebx-lex ()
@@ -488,9 +487,8 @@ See documentation for variable `ebnf-ebx-lex'."
        ))))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-constraint-chars
-  (ebnf-range-regexp "^\000-\010\016-\037]" ?\177 ?\237))
+  "^\000-\010\016-\037]\177\u0080-\u009f")
 
 
 (defun ebnf-ebx-skip-constraint ()
@@ -517,11 +515,10 @@ See documentation for variable `ebnf-ebx-lex'."
     (not eor-p)))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-comment-chars
-  (ebnf-range-regexp "^\000-\010\016-\037\\*" ?\177 ?\237))
+  "^\000-\010\016-\037*\177\u0080-\u009f")
 (defconst ebnf-ebx-filename-chars
-  (ebnf-range-regexp "^\000-\037\\*" ?\177 ?\237))
+  "^\000-\037*\177\u0080-\u009f")
 
 
 (defun ebnf-ebx-skip-comment ()
@@ -581,11 +578,10 @@ See documentation for variable `ebnf-ebx-lex'."
       (concat fname (make-string nchar ?*)))))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-double-string-chars
-  (ebnf-range-regexp "\t -!#-~" ?\240 ?\377))
+  "\t -!#-~\u00a0-\u00ff")
 (defconst ebnf-ebx-single-string-chars
-  (ebnf-range-regexp "\t -&(-~" ?\240 ?\377))
+  "\t -&(-~\u00a0-\u00ff")
 
 
 (defun ebnf-ebx-string (delim)

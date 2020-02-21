@@ -34,39 +34,6 @@ numbers have a fixed amount of precision.
 @node Integer Basics
 @section Integer Basics
 
-  Integers in Emacs Lisp are not limited to the machine word size.
-
-  Under the hood, though, there are two kinds of integers: smaller
-ones, called @dfn{fixnums}, and larger ones, called @dfn{bignums}.
-Some functions in Emacs accept only fixnums.  Also, while fixnums can
-be compared for numeric equality with @code{eq}, bignums require
-more-heavyweight equality predicates like @code{eql} and @code{=}.
-
-  The range of values for bignums is limited by the amount of main
-memory, by machine characteristics such as the size of the word used
-to represent a bignum's exponent, and by the @code{integer-width}
-variable.  These limits are typically much more generous than the
-limits for fixnums.  A bignum is never numerically equal to a fixnum;
-if Emacs computes an integer in fixnum range, it represents the
-integer as a fixnum, not a bignum.
-
-  The range of values for a fixnum depends on the machine.  The
-minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
-@ifnottex
-@minus{}2**29
-@end ifnottex
-@tex
-@math{-2^{29}}
-@end tex
-to
-@ifnottex
-2**29 @minus{} 1),
-@end ifnottex
-@tex
-@math{2^{29}-1}),
-@end tex
-but many machines provide a wider range.
-
   The Lisp reader reads an integer as a nonempty sequence
 of decimal digits with optional initial sign and optional
 final period.
@@ -145,6 +112,46 @@ arguments to such functions may be either numbers or markers, we often
 give these arguments the name @var{number-or-marker}.  When the argument
 value is a marker, its position value is used and its buffer is ignored.
 
+  In Emacs Lisp, text characters are represented by integers.  Any
+integer between zero and the value of @code{(max-char)}, inclusive, is
+considered to be valid as a character.  @xref{Character Codes}.
+
+  Integers in Emacs Lisp are not limited to the machine word size.
+Under the hood, though, there are two kinds of integers: smaller ones,
+called @dfn{fixnums}, and larger ones, called @dfn{bignums}.  Although
+Emacs Lisp code ordinarily should not depend on whether an integer is
+a fixnum or a bignum, older Emacs versions support only fixnums, some
+functions in Emacs still accept only fixnums, and older Emacs Lisp
+code may have trouble when given bignums.  For example, while older
+Emacs Lisp code could safely compare integers for numeric equality
+with @code{eq}, the presence of bignums means that equality predicates
+like @code{eql} and @code{=} should now be used to compare integers.
+
+  The range of values for bignums is limited by the amount of main
+memory, by machine characteristics such as the size of the word used
+to represent a bignum's exponent, and by the @code{integer-width}
+variable.  These limits are typically much more generous than the
+limits for fixnums.  A bignum is never numerically equal to a fixnum;
+Emacs always represents an integer in fixnum range as a fixnum, not a
+bignum.
+
+  The range of values for a fixnum depends on the machine.  The
+minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
+@ifnottex
+@minus{}2**29
+@end ifnottex
+@tex
+@math{-2^{29}}
+@end tex
+to
+@ifnottex
+2**29 @minus{} 1),
+@end ifnottex
+@tex
+@math{2^{29}-1}),
+@end tex
+but many machines provide a wider range.
+
 @cindex largest fixnum
 @cindex maximum fixnum
 @defvar most-positive-fixnum
@@ -206,10 +213,6 @@ although there might be no signal if a larger integer can be created cheaply.
 Setting this variable to a large number can be costly if a computation
 creates huge integers.
 @end defvar
-
-  In Emacs Lisp, text characters are represented by integers.  Any
-integer between zero and the value of @code{(max-char)}, inclusive, is
-considered to be valid as a character.  @xref{Character Codes}.
 
 @node Float Basics
 @section Floating-Point Basics

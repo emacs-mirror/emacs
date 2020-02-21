@@ -84,7 +84,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun regexp-opt (strings &optional paren keep-order)
+(defun regexp-opt (strings &optional paren)
   "Return a regexp to match a string in the list STRINGS.
 Each member of STRINGS is treated as a fixed string, not as a regexp.
 Optional PAREN specifies how the returned regexp is surrounded by
@@ -114,11 +114,8 @@ nil
     necessary to ensure that a postfix operator appended to it will
     apply to the whole expression.
 
-The optional argument KEEP-ORDER, if non-nil, forces the match to
-be performed in the order given, as if the strings were made into
-a regexp by joining them with the `\\|' operator.  If nil or
-omitted, the returned regexp is will always match the longest
-string possible.
+The returned regexp is ordered in such a way that it will always
+match the longest string possible.
 
 Up to reordering, the resulting regexp is equivalent to but
 usually more efficient than that of a simplified version:
@@ -140,34 +137,12 @@ usually more efficient than that of a simplified version:
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
-	   (re
-            (cond
-             ;; No strings: return an unmatchable regexp.
-             ((null strings)
-              (concat (or open "\\(?:") regexp-unmatchable "\\)"))
-
-             ;; The algorithm will generate a pattern that matches
-             ;; longer strings in the list before shorter.  If the
-             ;; list order matters, then no string must come after a
-             ;; proper prefix of that string.  To check this, verify
-             ;; that a straight or-pattern matches each string
-             ;; entirely.
-             ((and keep-order
-                   (let* ((case-fold-search nil)
-                          (alts (mapconcat #'regexp-quote strings "\\|")))
-                     (and (let ((s strings))
-                            (while (and s
-                                        (string-match alts (car s))
-                                        (= (match-end 0) (length (car s))))
-                              (setq s (cdr s)))
-                            ;; If we exited early, we found evidence that
-                            ;; regexp-opt-group cannot be used.
-                            s)
-                          (concat (or open "\\(?:") alts "\\)")))))
-             (t
-              (regexp-opt-group
-               (delete-dups (sort (copy-sequence strings) 'string-lessp))
-               (or open t) (not open))))))
+	   (re (if strings
+                   (regexp-opt-group
+                    (delete-dups (sort (copy-sequence strings) 'string-lessp))
+                    (or open t) (not open))
+                 ;; No strings: return an unmatchable regexp.
+                 (concat (or open "\\(?:") regexp-unmatchable "\\)"))))
       (cond ((eq paren 'words)
 	     (concat "\\<" re "\\>"))
 	    ((eq paren 'symbols)

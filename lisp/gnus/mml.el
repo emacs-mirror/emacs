@@ -487,11 +487,8 @@ type detected."
 		 (= (length cont) 1)
 		 content-type)
 	(setcdr (assq 'type (cdr (car cont))) content-type))
-      (when (and (consp (car cont))
-		 (= (length cont) 1)
-		 (fboundp 'libxml-parse-html-region)
-		 (equal (cdr (assq 'type (car cont))) "text/html"))
-	(setq cont (mml-expand-html-into-multipart-related (car cont))))
+      (when (fboundp 'libxml-parse-html-region)
+	(setq cont (mapcar 'mml-expand-all-html-into-multipart-related cont)))
       (prog1
 	  (with-temp-buffer
 	    (set-buffer-multibyte nil)
@@ -509,6 +506,18 @@ type detected."
 	    (setq options message-options)
 	    (buffer-string))
 	(setq message-options options)))))
+
+(defun mml-expand-all-html-into-multipart-related (cont)
+  (cond ((and (eq (car cont) 'part)
+	      (equal (cdr (assq 'type cont)) "text/html"))
+	 (mml-expand-html-into-multipart-related cont))
+	((eq (car cont) 'multipart)
+	 (let ((cur (cdr cont)))
+	   (while (consp cur)
+	     (setcar cur (mml-expand-all-html-into-multipart-related (car cur)))
+	     (setf cur (cdr cur))))
+	 cont)
+	(t cont)))
 
 (defun mml-expand-html-into-multipart-related (cont)
   (let ((new-parts nil)

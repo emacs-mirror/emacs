@@ -2421,7 +2421,7 @@ keywords when no KEYWORD is given."
 	 (concat
 	  "\\(?:"
 	  ;; Match paired parentheses, e.g. in Wikipedia URLs:
-	  "[" chars punct "]+" "(" "[" chars punct "]+" "[" chars "]*)" "[" chars "]"
+	  "[" chars punct "]+" "(" "[" chars punct "]+" ")" "[" chars "]"
 	  "\\|"
 	  "[" chars punct     "]+" "[" chars "]"
 	  "\\)"))

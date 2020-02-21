@@ -322,7 +322,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss].*[])]+\\)"
   "Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if
@@ -337,7 +337,7 @@ It is okay to create some false positives here, as the user is asked."
   :type 'regexp)
 
 (defcustom message-subject-trailing-was-regexp
-  "[ \t]*\\((*[Ww][Aa][Ss]:[ \t]*.*)\\)"
+  "[ \t]*\\((*[Ww][Aa][Ss]:.*)\\)"
   "Regexp matching \"(was: <old subject>)\" in the subject line.
 
 If `message-subject-trailing-was-query' is set to t, the subject is

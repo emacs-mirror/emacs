@@ -327,6 +327,8 @@ comment at the start of cc-engine.el for more info."
 	  (when (or (null lim)
 		    (>= here lim))
 	    (save-match-data
+	      ;; Note the similarity of the code here to some in
+	      ;; `c-backward-sws'.
 	      (while
 		  (progn
 		    (while (eq (char-before (1- (point))) ?\\)
@@ -358,7 +360,8 @@ comment at the start of cc-engine.el for more info."
   "Go to the end of a preprocessor directive.
 More accurately, move the point to the end of the closest following
 line that doesn't end with a line continuation backslash - no check is
-done that the point is inside a cpp directive to begin with.
+done that the point is inside a cpp directive to begin with, although
+it is assumed that point isn't inside a comment or string.
 
 If LIM is provided, it is a limit position at which point is left
 if the end of the macro doesn't occur earlier.
@@ -379,35 +382,32 @@ comment at the start of cc-engine.el for more info."
 	      c-macro-cache-syntactic nil
 	      c-macro-cache-no-comment nil))
       (save-match-data
-	(while
-	    (progn
-	      (while (progn
-		       (end-of-line)
-		       (when (and (eq (char-before) ?\\)
-				  (not (eobp)))
-			 (forward-char)
-			 t)))
-	      (let ((cand-EOM (point)))
-		(if (and c-open-c-comment-on-logical-line-re
-			 (re-search-backward
-			  c-open-c-comment-on-logical-line-re
-			  nil t)
-			 (match-beginning 1)
-			 (progn
-			   (goto-char (match-beginning 1))
-			   (and (c-forward-single-comment)
-				(> (point) cand-EOM))))
-		    t
-		  (goto-char cand-EOM)
-		  nil)))))
+	(let ((safe-pos (point)))	; a point ouside any literal.
+	  ;; Move over stuff followed by a multiline block comment lacking
+	  ;; escaped newlines each time around this loop.
+	  (while
+	      (progn
+		(while (progn
+			 (end-of-line)
+			 (when (and (eq (char-before) ?\\)
+				    (not (eobp)))
+			   (forward-char)
+			   t)))
+		(let ((s (parse-partial-sexp safe-pos (point))))
+		  (when ;; Are we in a block comment?
+		      (and (nth 4 s) (not (nth 7 s)))
+		    (progn
+		      ;; Move to after the block comment.
+		      (parse-partial-sexp
+		       (point) (point-max) nil nil s 'syntax-table)
+		      (setq safe-pos (point)))))))
 
-      (when (and (car c-macro-cache)
-		 (> (point) (car c-macro-cache)) ; in case we have a
-						 ; zero-sized region.
-		 (bolp)
-		 (not (eq (char-before (1- (point))) ?\\)))
-	(setcdr c-macro-cache (point))
-	(setq c-macro-cache-syntactic nil)))))
+	  (when (and (car c-macro-cache)
+		     (> (point) (car c-macro-cache)) ; in case we have a
+					; zero-sized region.
+		     (not (eq (char-before (1- (point))) ?\\)))
+	    (setcdr c-macro-cache (point))
+	    (setq c-macro-cache-syntactic nil)))))))
 
 (defun c-syntactic-end-of-macro ()
   ;; Go to the end of a CPP directive, or a "safe" pos just before.
@@ -2463,17 +2463,34 @@ comment at the start of cc-engine.el for more info."
 		   (/= cmt-skip-pos simple-ws-beg)
 		   (c-beginning-of-macro))
 	      ;; Inside a cpp directive.  See if it should be skipped over.
-	      (let ((cpp-beg (point)))
+	      (let ((cpp-beg (point))
+		    pause pos)
 
-		;; Move back over all line continuations in the region skipped
-		;; over by `c-backward-comments'.  If we go past it then we
-		;; started inside the cpp directive.
+		;; Move back over all line continuations and block comments in
+		;; the region skipped over by `c-backward-comments'.  If we go
+		;; past it then we started inside the cpp directive.
 		(goto-char simple-ws-beg)
 		(beginning-of-line)
-		(while (and (> (point) cmt-skip-pos)
-			    (progn (backward-char)
-				   (eq (char-before) ?\\)))
-		  (beginning-of-line))
+		;; Note the similarity of the code here to some in
+		;; `c-beginning-of-macro'.
+		(setq pause (point))
+		(while
+		    (progn
+		      (while (and (> (point) cmt-skip-pos)
+				  (progn (backward-char)
+					 (eq (char-before) ?\\)))
+			(beginning-of-line))
+		      (setq pos (point))
+		      (when (and c-last-c-comment-end-on-line-re
+				 (re-search-forward
+				  c-last-c-comment-end-on-line-re pause t))
+			(goto-char (match-end 1))
+			(if (c-backward-single-comment)
+			    (progn
+			      (beginning-of-line)
+			      (setq pause (point)))
+			  (goto-char pos)
+			  nil))))
 
 		(if (< (point) cmt-skip-pos)
 		    ;; Don't move past the cpp directive if we began inside
