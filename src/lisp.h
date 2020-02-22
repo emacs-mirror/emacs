@@ -481,6 +481,7 @@ enum Lisp_Type
     Lisp_Symbol = 0,
 
     /* Type 1 is currently unused.  */
+    Lisp_Type_Unused0 = 1,
 
     /* Fixnum.  XFIXNUM (obj) is the integer value.  */
     Lisp_Int0 = 2,
