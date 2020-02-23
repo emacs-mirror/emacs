@@ -1,4 +1,4 @@
-# sys_stat_h.m4 serial 32   -*- Autoconf -*-
+# sys_stat_h.m4 serial 33   -*- Autoconf -*-
 dnl Copyright (C) 2006-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -48,7 +48,9 @@ AC_DEFUN([gl_HEADER_SYS_STAT_H],
   gl_WARN_ON_USE_PREPARE([[#include <sys/stat.h>
     ]], [fchmodat fstat fstatat futimens lchmod lstat mkdirat mkfifo mkfifoat
     mknod mknodat stat utimensat])
-]) # gl_HEADER_SYS_STAT_H
+
+  AC_REQUIRE([AC_C_RESTRICT])
+])
 
 AC_DEFUN([gl_SYS_STAT_MODULE_INDICATOR],
 [
@@ -92,7 +94,6 @@ AC_DEFUN([gl_SYS_STAT_H_DEFAULTS],
   REPLACE_FSTAT=0;      AC_SUBST([REPLACE_FSTAT])
   REPLACE_FSTATAT=0;    AC_SUBST([REPLACE_FSTATAT])
   REPLACE_FUTIMENS=0;   AC_SUBST([REPLACE_FUTIMENS])
-  REPLACE_LCHMOD=0;     AC_SUBST([REPLACE_LCHMOD])
   REPLACE_LSTAT=0;      AC_SUBST([REPLACE_LSTAT])
   REPLACE_MKDIR=0;      AC_SUBST([REPLACE_MKDIR])
   REPLACE_MKFIFO=0;     AC_SUBST([REPLACE_MKFIFO])

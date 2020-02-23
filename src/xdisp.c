@@ -13358,11 +13358,6 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
       XSETFRAME (frame, f);
       event.kind = TAB_BAR_EVENT;
       event.frame_or_window = frame;
-      event.arg = frame;
-      kbd_buffer_store_event (&event);
-
-      event.kind = TAB_BAR_EVENT;
-      event.frame_or_window = frame;
       event.arg = key;
       event.modifiers = close_p ? ctrl_modifier | modifiers : modifiers;
       kbd_buffer_store_event (&event);
@@ -13536,11 +13531,6 @@ tty_handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 
       event->code = 0;
       XSETFRAME (frame, f);
-      event->kind = TAB_BAR_EVENT;
-      event->frame_or_window = frame;
-      event->arg = frame;
-      kbd_buffer_store_event (event);
-
       event->kind = TAB_BAR_EVENT;
       event->frame_or_window = frame;
       event->arg = key;

@@ -30,7 +30,7 @@
   (if (cdr l)
       (mapcan (lambda (x)
                 (mapcar (lambda (p) (cons x p))
-                        (perm (remove x l))))
+                        (regexp-opt-test--permutations (remove x l))))
               l)
     (list l)))
 

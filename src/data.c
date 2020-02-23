@@ -143,15 +143,9 @@ wrong_length_argument (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 }
 
 AVOID
-wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
+wrong_type_argument (Lisp_Object predicate, Lisp_Object value)
 {
-  /* If VALUE is not even a valid Lisp object, we'd want to abort here
-     where we can get a backtrace showing where it came from.  We used
-     to try and do that by checking the tagbits, but nowadays all
-     tagbits are potentially valid.  */
-  /* if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
-   *   emacs_abort (); */
-
+  eassert (!TAGGEDP (value, Lisp_Type_Unused0));
   xsignal2 (Qwrong_type_argument, predicate, value);
 }
 

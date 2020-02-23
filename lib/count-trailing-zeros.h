@@ -30,6 +30,10 @@ _GL_INLINE_HEADER_BEGIN
 # define COUNT_TRAILING_ZEROS_INLINE _GL_INLINE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Assuming the GCC builtin is BUILTIN and the MSC builtin is MSC_BUILTIN,
    expand to code that computes the number of trailing zeros of the local
    variable 'x' of type TYPE (an unsigned integer type) and return it
@@ -99,6 +103,10 @@ count_trailing_zeros_ll (unsigned long long int x)
   COUNT_TRAILING_ZEROS (__builtin_ctzll, _BitScanForward64,
                         unsigned long long int);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 _GL_INLINE_HEADER_END
 
