@@ -411,11 +411,14 @@ _GL_WARN_ON_USE (strdup, "strdup is unportable - "
 #   undef strncat
 #   define strncat rpl_strncat
 #  endif
-_GL_FUNCDECL_RPL (strncat, char *, (char *dest, const char *src, size_t n)
-                                   _GL_ARG_NONNULL ((1, 2)));
-_GL_CXXALIAS_RPL (strncat, char *, (char *dest, const char *src, size_t n));
+_GL_FUNCDECL_RPL (strncat, char *,
+                  (char *restrict dest, const char *restrict src, size_t n)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (strncat, char *,
+                  (char *restrict dest, const char *restrict src, size_t n));
 # else
-_GL_CXXALIAS_SYS (strncat, char *, (char *dest, const char *src, size_t n));
+_GL_CXXALIAS_SYS (strncat, char *,
+                  (char *restrict dest, const char *restrict src, size_t n));
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (strncat);
