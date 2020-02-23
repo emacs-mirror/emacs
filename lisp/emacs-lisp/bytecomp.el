@@ -571,13 +571,19 @@ Each element is (INDEX . VALUE)")
               form)
 (defvar byte-native-compiling nil
   "Non nil while native compiling.")
-(defvar byte-native-always-write-elc nil
-  "Always write the elc file also while native compiling.")
+(defvar byte-native-for-bootstrap nil
+  "Non nil while compiling for bootstrap."
+  ;; During boostrap we produce both the .eln and the .elc together.
+  ;; Because the make target is the later this has to be produced as
+  ;; last to be resilient against build interruptions.
+)
 (defvar byte-to-native-lap nil
   "A-list to accumulate LAP.
 Each pair is (NAME . LAP)")
 (defvar byte-to-native-top-level-forms nil
   "List of top level forms.")
+(defvar byte-to-native-output-file nil
+  "Temporary file containing the byte-compilation output.")
 
 
 ;;; The byte codes; this information is duplicated in bytecomp.c
@@ -2035,10 +2041,13 @@ The value is non-nil if there were no errors, nil if errors."
 		  ;; emacs-lisp files in the build tree are
 		  ;; recompiled).  Previously this was accomplished by
 		  ;; deleting target-file before writing it.
-                  (if (and byte-native-compiling
-                           (null byte-native-always-write-elc))
-                      (delete-file tempfile)
-		    (rename-file tempfile target-file t)))
+                  (if byte-native-compiling
+                      (if byte-native-for-bootstrap
+                          ;; Defer elc final renaming.
+                          (setf byte-to-native-output-file
+                                (cons tempfile target-file))
+                        (delete-file tempfile))
+                    (rename-file tempfile target-file t)))
 		(or noninteractive
                     byte-native-compiling
                     (message "Wrote %s" target-file)))

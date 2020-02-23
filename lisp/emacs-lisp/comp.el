@@ -2071,12 +2071,16 @@ Return the compilation unit file name."
 (defun batch-byte-native-compile-for-bootstrap ()
   "As `batch-byte-compile' but used for booststrap.
 Always generate elc files too and handle native compiler expected errors."
-  ;; FIXME remove when dynamic scope support is implemented.
-  (let ((byte-native-always-write-elc t))
-    (condition-case _
-        (batch-native-compile)
-      (native-compiler-error-dyn-func)
-      (native-compiler-error-empty-byte))))
+  (let ((byte-native-for-bootstrap t)
+        (byte-to-native-output-file nil))
+    (unwind-protect
+        (condition-case _
+            (batch-native-compile)
+          (native-compiler-error-dyn-func)
+          (native-compiler-error-empty-byte))
+      (pcase byte-to-native-output-file
+        (`(,tempfile . ,target-file)
+         (rename-file tempfile target-file t))))))
 
 ;;;###autoload
 (defun native-compile-async (input &optional jobs recursively)
