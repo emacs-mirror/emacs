@@ -146,9 +146,10 @@ By convention, this is a list of symbols where each symbol stands for the
            ;; It's often desirable to make the cursor-sensor-functions property
            ;; non-sticky on both ends, but that means get-pos-property might
            ;; never see it.
-           (new (or (get-char-property point 'cursor-sensor-functions)
-                    (unless (<= (point-min) point)
-                      (get-char-property (1- point) 'cursor-sensor-functions))))
+           (new (and (eq (current-buffer) (window-buffer))
+                     (or (get-char-property point 'cursor-sensor-functions)
+                         (unless (<= (point-min) point)
+                           (get-char-property (1- point) 'cursor-sensor-functions)))))
            (old (window-parameter window 'cursor-sensor--last-state))
            (oldposmark (car old))
            (oldpos (or (if oldposmark (marker-position oldposmark))

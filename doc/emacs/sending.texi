@@ -338,14 +338,14 @@ Send the message, and leave the mail buffer selected (@code{message-send}).
 @kindex C-c C-s @r{(Message mode)}
 @kindex C-c C-c @r{(Message mode)}
 @findex message-send
+@findex message-send-and-exit
 @vindex message-kill-buffer-on-exit
   The usual command to send a message is @kbd{C-c C-c}
-(@code{mail-send-and-exit}).  This sends the message and then
+(@code{message-send-and-exit}).  This sends the message and then
 buries the mail buffer, putting it at the lowest priority for
 reselection.  If you want it to kill the mail buffer instead, change
 the variable @code{message-kill-buffer-on-exit} to @code{t}.
 
-@findex message-send-and-exit
   The command @kbd{C-c C-s} (@code{message-send}) sends the message
 and leaves the buffer selected.  Use this command if you want to
 modify the message (perhaps with new recipients) and send it again.
@@ -361,9 +361,12 @@ twice).
 @cindex Feedmail
 @cindex Sendmail
 @cindex Mailclient
+@vindex message-send-mail-function
 @vindex send-mail-function
-  The variable @code{send-mail-function} controls how the message is
-delivered.  Its value should be one of the following functions:
+  The variable @code{message-send-mail-function} controls how the
+message is delivered (@code{send-mail-function} is used for Mail mode).
+The value of @code{send-mail-function} should be one of the following
+functions:
 
 @table @code
 @item sendmail-query-once

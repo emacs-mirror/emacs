@@ -106,7 +106,6 @@
 ;; 	right now, it's killed without further ado.
 ;; - make `cvs-mode-ignore' allow manually entering a pattern.
 ;; 	to which dir should it apply ?
-;; - cvs-mode-ignore should try to remove duplicate entries.
 ;; - maybe poll/check CVS/Entries files to react to external `cvs' commands ?
 ;; - some kind of `cvs annotate' support ?
 ;; 	but vc-annotate can be used instead.
@@ -1972,7 +1971,8 @@ This command ignores files that are not flagged as `Unknown'."
   (interactive)
   (dolist (fi (cvs-mode-marked 'ignore))
     (vc-cvs-append-to-ignore (cvs-fileinfo->dir fi) (cvs-fileinfo->file fi)
-			  (eq (cvs-fileinfo->subtype fi) 'NEW-DIR))
+			  (eq (cvs-fileinfo->subtype fi) 'NEW-DIR)
+                          cvs-sort-ignore-file)
     (setf (cvs-fileinfo->type fi) 'DEAD))
   (cvs-cleanup-collection cvs-cookies nil nil nil))
 
