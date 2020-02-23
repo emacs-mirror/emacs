@@ -83,6 +83,20 @@ performed at `comp-speed' > 0."
   :type 'list
   :group 'comp)
 
+(defcustom comp-async-cu-done-hook nil
+  "This hook is run whenever an asyncronous native compilation
+finish compiling a single compilation unit.
+The argument FILE passed to the function is the filename used as
+compilation input."
+  :type 'hook
+  :group 'comp)
+
+(defcustom comp-async-all-done-hook nil
+  "This hook is run whenever the asyncronous native compilation
+finished compiling all input files."
+  :type 'hook
+  :group 'comp)
+
 (defvar comp-dry-run nil
   "When non nil run everything but the C back-end.")
 
@@ -2016,6 +2030,9 @@ Prepare every function for final compilation and drive the C back-end."
                                              "--eval"
                                              (prin1-to-string code))
                               :sentinel (lambda (prc _event)
+                                          (run-hook-with-args
+                                           'comp-async-cu-done-hook
+                                           f)
                                           (accept-process-output prc)
                                           (comp-start-async-worker)))
                 comp-prc-pool)
@@ -2023,6 +2040,7 @@ Prepare every function for final compilation and drive the C back-end."
     (when (cl-notany #'process-live-p comp-prc-pool)
       (let ((msg "Compilation finished."))
         (setf comp-prc-pool ())
+        (run-hooks 'comp-async-all-done-hook)
         (with-current-buffer (get-buffer-create comp-async-buffer-name)
           (save-excursion
             (goto-char (point-max))
