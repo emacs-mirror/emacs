@@ -85,7 +85,7 @@ performed at `comp-speed' > 0."
 
 (defcustom comp-async-cu-done-hook nil
   "This hook is run whenever an asyncronous native compilation
-finish compiling a single compilation unit.
+finishes compiling a single compilation unit.
 The argument FILE passed to the function is the filename used as
 compilation input."
   :type 'hook
@@ -93,7 +93,7 @@ compilation input."
 
 (defcustom comp-async-all-done-hook nil
   "This hook is run whenever the asyncronous native compilation
-finished compiling all input files."
+finishes compiling all input files."
   :type 'hook
   :group 'comp)
 
