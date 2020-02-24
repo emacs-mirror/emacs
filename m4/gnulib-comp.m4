@@ -211,6 +211,7 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([canonicalize-lgpl])
   gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
   gl_STDLIB_MODULE_INDICATOR([realpath])
+  AC_REQUIRE([AC_C_RESTRICT])
   AC_CHECK_FUNCS_ONCE([readlinkat])
   gl_CLOCK_TIME
   gl_MODULE_INDICATOR([close-stream])
@@ -219,9 +220,13 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([copy-file-range])
   fi
   gl_UNISTD_MODULE_INDICATOR([copy-file-range])
+  AC_REQUIRE([AC_C_RESTRICT])
   gl_MD5
+  AC_REQUIRE([AC_C_RESTRICT])
   gl_SHA1
+  AC_REQUIRE([AC_C_RESTRICT])
   gl_SHA256
+  AC_REQUIRE([AC_C_RESTRICT])
   gl_SHA512
   gl_CHECK_TYPE_STRUCT_DIRENT_D_TYPE
   gl_DIRENT_H

@@ -25,7 +25,7 @@ extern "C" {
    POSIX requires that strftime use the local timezone information.
    Use the timezone __TZ instead.  Use __NS as the number of
    nanoseconds in the %N directive.  */
-size_t nstrftime (char *, size_t, char const *, struct tm const *,
+size_t nstrftime (char *restrict, size_t, char const *, struct tm const *,
                   timezone_t __tz, int __ns);
 
 #ifdef __cplusplus
