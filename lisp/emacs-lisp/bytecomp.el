@@ -2008,7 +2008,7 @@ The value is non-nil if there were no errors, nil if errors."
 					   (delete-file tempfile)))
 			      kill-emacs-hook)))
 		  (unless (= temp-modes desired-modes)
-		    (set-file-modes tempfile desired-modes))
+		    (set-file-modes tempfile desired-modes 'nofollow))
 		  (write-region (point-min) (point-max) tempfile nil 1)
 		  ;; This has the intentional side effect that any
 		  ;; hard-links to target-file continue to

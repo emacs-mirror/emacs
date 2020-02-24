@@ -1958,7 +1958,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
   (let ((coding-system-for-write nnmail-file-coding-system)
 	(file-name-coding-system nnmail-pathname-coding-system))
     (write-region start end filename append visit lockname)
-    (set-file-modes filename nnmail-default-file-modes)))
+    (set-file-modes filename nnmail-default-file-modes 'nofollow)))
 
 ;;;
 ;;; Status functions

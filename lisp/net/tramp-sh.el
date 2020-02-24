@@ -1478,10 +1478,11 @@ of."
 	     ;; only if that agrees with the buffer's record.
 	     (t (tramp-compat-time-equal-p mt tramp-time-doesnt-exist)))))))))
 
-(defun tramp-sh-handle-set-file-modes (filename mode)
+(defun tramp-sh-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
+    flag ;; FIXME: Support 'nofollow'.
     ;; FIXME: extract the proper text from chmod's stderr.
     (tramp-barf-unless-okay
      v
@@ -2279,7 +2280,7 @@ the uid and gid from FILENAME."
 		      ;; We must change the ownership as local user.
 		      ;; Since this does not work reliable, we also
 		      ;; give read permissions.
-		      (set-file-modes tmpfile #o0777)
+		      (set-file-modes tmpfile #o0777 'nofollow)
 		      (tramp-set-file-uid-gid
 		       tmpfile
 		       (tramp-get-remote-uid v 'integer)
@@ -3221,7 +3222,8 @@ STDERR can also be a file name."
 		    (delete-file tmpfile2)))))
 
 	    ;; Set proper permissions.
-	    (set-file-modes tmpfile (tramp-default-file-modes filename))
+	    (set-file-modes tmpfile (tramp-default-file-modes filename)
+			    'nofollow)
 	    ;; Set local user ownership.
 	    (tramp-set-file-uid-gid tmpfile))
 
@@ -3320,7 +3322,7 @@ STDERR can also be a file name."
 	  ;; handles permissions.
 	  ;; Ensure that it is still readable.
 	  (when modes
-	    (set-file-modes tmpfile (logior (or modes 0) #o0400)))
+	    (set-file-modes tmpfile (logior (or modes 0) #o0400) 'nofollow))
 
 	  ;; This is a bit lengthy due to the different methods
 	  ;; possible for file transfer.  First, we check whether the

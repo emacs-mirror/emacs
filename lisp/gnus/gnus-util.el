@@ -1601,10 +1601,10 @@ empty directories from OLD-PATH."
 			 (file-truename
 			  (concat old-dir "..")))))))))
 
-(defun gnus-set-file-modes (filename mode)
+(defun gnus-set-file-modes (filename mode &optional flag)
   "Wrapper for set-file-modes."
   (ignore-errors
-    (set-file-modes filename mode)))
+    (set-file-modes filename mode flag)))
 
 (defun gnus-rescale-image (image size)
   "Rescale IMAGE to SIZE if possible.

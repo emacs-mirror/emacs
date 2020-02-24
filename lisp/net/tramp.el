@@ -3179,10 +3179,13 @@ User is always nil."
       (copy-file filename tmpfile 'ok-if-already-exists 'keep-time)
       tmpfile)))
 
-(defun tramp-handle-file-modes (filename)
+(defun tramp-handle-file-modes (filename &optional flag)
   "Like `file-modes' for Tramp files."
-  (when-let ((attrs (file-attributes (or (file-truename filename) filename))))
-    (tramp-mode-string-to-int (tramp-compat-file-attribute-modes attrs))))
+  (when-let ((attrs (file-attributes filename)))
+    (let ((mode-string (tramp-compat-file-attribute-modes attrs)))
+      (if (and (not flag) (eq ?l (aref mode-string 0)))
+	  (tramp-handle-file-modes (file-chase-links filename) 'nofollow)
+	(tramp-mode-string-to-int mode-string)))))
 
 ;; Localname manipulation functions that grok Tramp localnames...
 (defun tramp-handle-file-name-as-directory (file)
@@ -3884,7 +3887,7 @@ of."
       ;; renamed to the backup file.  This case `save-buffer'
       ;; handles permissions.
       ;; Ensure that it is still readable.
-      (set-file-modes tmpfile (logior (or modes 0) #o0400))
+      (set-file-modes tmpfile (logior (or modes 0) #o0400) 'nofollow)
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
@@ -4664,7 +4667,7 @@ Return the local name of the temporary file."
 	  (setq result nil)
 	;; This creates the file by side effect.
 	(set-file-times result)
-	(set-file-modes result #o0700)))
+	(set-file-modes result #o0700 'nofollow)))
 
     ;; Return the local part.
     (tramp-file-local-name result)))

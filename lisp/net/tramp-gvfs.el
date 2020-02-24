@@ -1562,12 +1562,12 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-run-real-handler
      #'rename-file (list filename newname ok-if-already-exists))))
 
-(defun tramp-gvfs-handle-set-file-modes (filename mode)
+(defun tramp-gvfs-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
     (tramp-gvfs-send-command
-     v "gvfs-set-attribute" "-t" "uint32"
+     v "gvfs-set-attribute" (if flag "-nt" "-t") "uint32"
      (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
      "unix::mode" (number-to-string mode))))
 

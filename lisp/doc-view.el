@@ -683,8 +683,6 @@ at the top edge of the page moves to the previous page."
       ;; time-window of loose permissions otherwise.
       (with-file-modes #o0700 (make-directory dir))
     (file-already-exists
-     (when (file-symlink-p dir)
-       (error "Danger: %s points to a symbolic link" dir))
      ;; In case it was created earlier with looser rights.
      ;; We could check the mode info returned by file-attributes, but it's
      ;; a pain to parse and it may not tell you what we want under
@@ -694,7 +692,7 @@ at the top edge of the page moves to the previous page."
      ;; sure we have write-access to the directory and that we own it, thus
      ;; closing a bunch of security holes.
      (condition-case error
-	 (set-file-modes dir #o0700)
+	 (set-file-modes dir #o0700 'nofollow)
        (file-error
 	(error
 	 (format "Unable to use temporary directory %s: %s"

@@ -4740,7 +4740,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
   0)
 
-(defun ange-ftp-set-file-modes (filename mode)
+(defun ange-ftp-set-file-modes (filename mode &optional flag)
+  flag ;; FIXME: Support 'nofollow'.
   (ange-ftp-call-chmod (list (format "%o" mode) filename)))
 
 (defun ange-ftp-make-symbolic-link (&rest _arguments)

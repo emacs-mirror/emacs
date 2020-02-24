@@ -82,6 +82,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module extensions:
   # Code from module extern-inline:
   # Code from module faccessat:
+  # Code from module fchmodat:
   # Code from module fcntl:
   # Code from module fcntl-h:
   # Code from module fdopendir:
@@ -111,6 +112,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module inttypes-incomplete:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
+  # Code from module lchmod:
   # Code from module libc-config:
   # Code from module limits-h:
   # Code from module localtime-buffer:
@@ -255,6 +257,12 @@ AC_DEFUN([gl_INIT],
   fi
   gl_MODULE_INDICATOR([faccessat])
   gl_UNISTD_MODULE_INDICATOR([faccessat])
+  gl_FUNC_FCHMODAT
+  if test $HAVE_FCHMODAT = 0 || test $REPLACE_FCHMODAT = 1; then
+    AC_LIBOBJ([fchmodat])
+    gl_PREREQ_FCHMODAT
+  fi
+  gl_SYS_STAT_MODULE_INDICATOR([fchmodat])
   gl_FUNC_FCNTL
   if test $HAVE_FCNTL = 0 || test $REPLACE_FCNTL = 1; then
     AC_LIBOBJ([fcntl])
@@ -468,6 +476,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
+  gl_gnulib_enabled_lchmod=false
   gl_gnulib_enabled_21ee726a3540c09237a8e70c0baf7467=false
   gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9=false
   gl_gnulib_enabled_malloca=false
@@ -569,6 +578,18 @@ AC_DEFUN([gl_INIT],
       fi
     fi
   }
+  func_gl_gnulib_m4code_lchmod ()
+  {
+    if ! $gl_gnulib_enabled_lchmod; then
+      gl_FUNC_LCHMOD
+      if test $HAVE_LCHMOD = 0; then
+        AC_LIBOBJ([lchmod])
+        gl_PREREQ_LCHMOD
+      fi
+      gl_SYS_STAT_MODULE_INDICATOR([lchmod])
+      gl_gnulib_enabled_lchmod=true
+    fi
+  }
   func_gl_gnulib_m4code_21ee726a3540c09237a8e70c0baf7467 ()
   {
     if ! $gl_gnulib_enabled_21ee726a3540c09237a8e70c0baf7467; then
@@ -660,6 +681,15 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FACCESSAT = 0 || test $REPLACE_FACCESSAT = 1; then
     func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
   fi
+  if test $HAVE_FCHMODAT = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FCHMODAT = 0; then
+    func_gl_gnulib_m4code_lchmod
+  fi
+  if test $HAVE_FCHMODAT = 0; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
+  fi
   if test $HAVE_FCNTL = 0 || test $REPLACE_FCNTL = 1; then
     func_gl_gnulib_m4code_getdtablesize
   fi
@@ -708,6 +738,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getgroups], [$gl_gnulib_enabled_getgroups])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_lchmod], [$gl_gnulib_enabled_lchmod])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467], [$gl_gnulib_enabled_21ee726a3540c09237a8e70c0baf7467])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9], [$gl_gnulib_enabled_2049e887c7e5308faad27b3f894bb8c9])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_malloca], [$gl_gnulib_enabled_malloca])
@@ -908,6 +939,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/execinfo.in.h
   lib/explicit_bzero.c
   lib/faccessat.c
+  lib/fchmodat.c
   lib/fcntl.c
   lib/fcntl.in.h
   lib/fdopendir.c
@@ -946,6 +978,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/ignore-value.h
   lib/intprops.h
   lib/inttypes.in.h
+  lib/lchmod.c
   lib/libc-config.h
   lib/limits.in.h
   lib/localtime-buffer.c
@@ -1058,6 +1091,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/extensions.m4
   m4/extern-inline.m4
   m4/faccessat.m4
+  m4/fchmodat.m4
   m4/fcntl-o.m4
   m4/fcntl.m4
   m4/fcntl_h.m4
@@ -1083,6 +1117,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/include_next.m4
   m4/inttypes.m4
   m4/largefile.m4
+  m4/lchmod.m4
   m4/limits-h.m4
   m4/localtime-buffer.m4
   m4/lstat.m4

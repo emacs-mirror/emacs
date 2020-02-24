@@ -563,7 +563,7 @@ See variable `server-auth-dir' for details."
                      (format "it is not owned by you (owner = %s (%d))"
                              (user-full-name uid) uid))
                     (w32 nil)           ; on NTFS?
-                    ((let ((modes (file-modes dir)))
+                    ((let ((modes (file-modes dir 'nofollow)))
                        (unless (zerop (logand (or modes 0) #o077))
                          (format "it is accessible by others (%03o)" modes))))
                     (t nil))))

@@ -463,8 +463,9 @@ the result will be a local, non-Tramp, file name."
       (tramp-sudoedit-send-command
        v "test" "-r" (tramp-compat-file-name-unquote localname)))))
 
-(defun tramp-sudoedit-handle-set-file-modes (filename mode)
+(defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
+  flag ;; FIXME: Support 'nofollow'.
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
     (unless (tramp-sudoedit-send-command
@@ -735,7 +736,8 @@ ID-FORMAT valid values are `string' and `integer'."
 			 (file-attributes filename 'integer))
 			gid))
           (tramp-set-file-uid-gid filename uid gid))
-	(set-file-modes filename modes)))))
+	(set-file-modes filename modes
+			(when (eq mustbenew 'excl) 'nofollow))))))
 
 
 ;; Internal functions.

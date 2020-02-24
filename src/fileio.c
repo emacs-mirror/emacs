@@ -3332,50 +3332,60 @@ support.  */)
   return Qnil;
 }
 
-DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
+static int
+symlink_nofollow_flag (Lisp_Object flag)
+{
+  /* For now, treat all non-nil FLAGs like 'nofollow'.  */
+  return !NILP (flag) ? AT_SYMLINK_NOFOLLOW : 0;
+}
+
+DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 2, 0,
        doc: /* Return mode bits of file named FILENAME, as an integer.
-Return nil if FILENAME does not exist.  */)
-  (Lisp_Object filename)
+Return nil if FILENAME does not exist.  If optional FLAG is `nofollow',
+do not follow FILENAME if it is a symbolic link.  */)
+  (Lisp_Object filename, Lisp_Object flag)
 {
   struct stat st;
+  int nofollow = symlink_nofollow_flag (flag);
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_modes);
   if (!NILP (handler))
-    return call2 (handler, Qfile_modes, absname);
+    return call3 (handler, Qfile_modes, absname, flag);
 
-  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname)), &st, 0) != 0)
+  char *fname = SSDATA (ENCODE_FILE (absname));
+  if (emacs_fstatat (AT_FDCWD, fname, &st, nofollow) != 0)
     return file_attribute_errno (absname, errno);
   return make_fixnum (st.st_mode & 07777);
 }
 
-DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
+DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 3,
        "(let ((file (read-file-name \"File: \")))			\
 	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
-Only the 12 low bits of MODE are used.
+Only the 12 low bits of MODE are used.  If optional FLAG is `nofollow',
+do not follow FILENAME if it is a symbolic link.
 
 Interactively, mode bits are read by `read-file-modes', which accepts
 symbolic notation, like the `chmod' command from GNU Coreutils.  */)
-  (Lisp_Object filename, Lisp_Object mode)
+  (Lisp_Object filename, Lisp_Object mode, Lisp_Object flag)
 {
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
   CHECK_FIXNUM (mode);
+  int nofollow = symlink_nofollow_flag (flag);
+  Lisp_Object absname = Fexpand_file_name (filename,
+					   BVAR (current_buffer, directory));
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_modes);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qset_file_modes);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_modes, absname, mode);
+    return call4 (handler, Qset_file_modes, absname, mode, flag);
 
-  encoded_absname = ENCODE_FILE (absname);
-
-  if (chmod (SSDATA (encoded_absname), XFIXNUM (mode) & 07777) < 0)
+  char *fname = SSDATA (ENCODE_FILE (absname));
+  mode_t imode = XFIXNUM (mode) & 07777;
+  if (fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
     report_file_error ("Doing chmod", absname);
 
   return Qnil;
@@ -5740,7 +5750,7 @@ auto_save_1 (void)
 	  == 0)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
-      else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
+      else if (modes = Ffile_modes (BVAR (current_buffer, filename), Qnil),
 	       FIXNUMP (modes))
 	/* Remote files don't cooperate with fstatat.  */
 	auto_save_mode_bits = (XFIXNUM (modes) | 0600) & 0777;

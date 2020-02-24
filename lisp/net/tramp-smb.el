@@ -1464,8 +1464,9 @@ component is used as the target of the symlink."
 	    (tramp-flush-connection-property v "process-name")
 	    (tramp-flush-connection-property v "process-buffer")))))))
 
-(defun tramp-smb-handle-set-file-modes (filename mode)
+(defun tramp-smb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
+  flag ;; FIXME: Support 'nofollow'.
   (with-parsed-tramp-file-name filename nil
     (when (tramp-smb-get-cifs-capabilities v)
       (tramp-flush-file-properties v localname)
