@@ -4320,10 +4320,9 @@ sys_chdir (const char * path)
     }
 }
 
-int
-sys_chmod (const char * path, int mode)
+static int
+chmod_worker (const char * path, int mode)
 {
-  path = chase_symlinks (map_w32_filename (path, NULL));
   if (w32_unicode_filenames)
     {
       wchar_t path_w[MAX_PATH];
@@ -4338,6 +4337,20 @@ sys_chmod (const char * path, int mode)
       filename_to_ansi (path, path_a);
       return _chmod (path_a, mode);
     }
+}
+
+int
+sys_chmod (const char * path, int mode)
+{
+  path = chase_symlinks (map_w32_filename (path, NULL));
+  return chmod_worker (path, mode);
+}
+
+int
+lchmod (const char * path, mode_t mode)
+{
+  path = map_w32_filename (path, NULL);
+  return chmod_worker (path, mode);
 }
 
 int
@@ -4616,6 +4629,28 @@ int
 fchmod (int fd, mode_t mode)
 {
   return 0;
+}
+
+int
+fchmodat (int fd, char const *path, mode_t mode, int flags)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for fchmodat.  */
+  char fullname[MAX_UTF8_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, path)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      path = fullname;
+    }
+
+  return
+    flags == AT_SYMLINK_NOFOLLOW ? lchmod (path, mode) : sys_chmod (path, mode);
 }
 
 int
