@@ -163,6 +163,12 @@ key             binding
 * New Modes and Packages in Emacs 28.1
 
 
+* Incompatible Editing Changes in Emacs 28.1
+
+** In nroff mode, 'center-line' is rebound from 'M-s' to 'M-o M-s',
+so now the search prefix map 'M-s' is available in this mode.
+
+
 * Incompatible Lisp Changes in Emacs 28.1
 
 ** 'equal' no longer examines some contents of window configurations.

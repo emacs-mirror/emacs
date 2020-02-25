@@ -197,16 +197,11 @@ and change key bindings where necessary.  The current list of modes:
 2. Minibuffer binds 'M-s' to 'next-matching-history-element'
    (not useful any more since C-s can now search in the history).
 
-3. 'center-line' in Text mode was already moved to the text formatting
-   keymap as 'M-o M-s' (thus this binding is not necessary any more
-   in 'nroff-mode-map' too and can be removed now from the nroff mode
-   because it can now use the global key binding 'M-o M-s' 'center-line').
-
-4. PCL-CVS binds 'M-s' to 'cvs-status', and log-edit-mode binds it to
+3. PCL-CVS binds 'M-s' to 'cvs-status', and log-edit-mode binds it to
    'log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding 'M-s' are useless in these modes.
 
-5. Rmail binds '\es' to 'rmail-search'/'rmail-summary-search'.
+4. Rmail binds '\es' to 'rmail-search'/'rmail-summary-search'.
 
 
 * DOCUMENTATION
