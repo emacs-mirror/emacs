@@ -1973,6 +1973,9 @@ Prepare every function for final compilation and drive the C back-end."
   (comp-data-container-check (comp-ctxt-d-default comp-ctxt))
   (comp-data-container-check (comp-ctxt-d-impure comp-ctxt))
   (comp-data-container-check (comp-ctxt-d-ephemeral comp-ctxt))
+  ;; TODO: here we could optimize cleaning up objects present in the
+  ;; impure and or in the ephemeral container that are also in the
+  ;; default one.
   (unless comp-dry-run
     (comp--compile-ctxt-to-file name)))
 
