@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 #define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
+#define TEXT_OPTIM_QLY "text_optim_qly"
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
 #define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
@@ -1915,6 +1916,14 @@ declare_runtime_imported_funcs (void)
 static void
 emit_ctxt_code (void)
 {
+  /* Emit optimize qualities.  */
+  Lisp_Object opt_qly[] =
+    { Fcons (Qcomp_speed,
+	     Fsymbol_value (Qcomp_speed)),
+      Fcons (Qcomp_debug,
+	     Fsymbol_value (Qcomp_debug)) };
+  emit_static_object (TEXT_OPTIM_QLY, Flist (2, opt_qly));
+
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
@@ -3414,6 +3423,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
       /* Imported data.  */
       if (!loading_dump)
 	{
+	  comp_u->optimize_qualities = load_static_obj (comp_u, TEXT_OPTIM_QLY);
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	  comp_u->data_impure_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);

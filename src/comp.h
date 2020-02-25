@@ -36,6 +36,7 @@ struct Lisp_Native_Comp_Unit
   union vectorlike_header header;
   /* Original eln file loaded. */
   Lisp_Object file;
+  Lisp_Object optimize_qualities;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
   /* Same but for data that cannot be moved to pure space.

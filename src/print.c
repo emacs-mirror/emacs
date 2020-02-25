@@ -1840,8 +1840,11 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 #ifdef HAVE_NATIVE_COMP
     case PVEC_NATIVE_COMP_UNIT:
       {
-	print_c_string ("#<native compilation unit ", printcharfun);
-	print_string (XNATIVE_COMP_UNIT (obj)->file, printcharfun);
+	struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (obj);
+	print_c_string ("#<native compilation unit: ", printcharfun);
+	print_string (cu->file, printcharfun);
+	printchar (' ', printcharfun);
+	print_object (cu->optimize_qualities, printcharfun, escapeflag);
 	printchar ('>', printcharfun);
       }
       break;
