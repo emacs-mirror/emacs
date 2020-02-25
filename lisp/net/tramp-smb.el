@@ -1466,8 +1466,9 @@ component is used as the target of the symlink."
 
 (defun tramp-smb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
-  flag ;; FIXME: Support 'nofollow'.
   (with-parsed-tramp-file-name filename nil
+    (when (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-error v 'file-error "Cannot chmod %s with %s flag" filename flag))
     (when (tramp-smb-get-cifs-capabilities v)
       (tramp-flush-file-properties v localname)
       (unless (tramp-smb-send-command

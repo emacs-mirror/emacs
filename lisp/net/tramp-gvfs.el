@@ -1567,7 +1567,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
     (tramp-gvfs-send-command
-     v "gvfs-set-attribute" (if flag "-nt" "-t") "uint32"
+     v "gvfs-set-attribute" (if (eq flag 'nofollow) "-nt" "-t") "uint32"
      (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
      "unix::mode" (number-to-string mode))))
 

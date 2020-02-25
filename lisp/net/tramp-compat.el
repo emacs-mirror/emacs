@@ -165,7 +165,7 @@ This is a string of ten letters or dashes as in ls -l."
   "The error symbol for the `file-missing' error.")
 
 ;; `file-local-name', `file-name-quoted-p', `file-name-quote' and
-;; `file-name-unquote' are introduced in Emacs 26.
+;; `file-name-unquote' are introduced in Emacs 26.1.
 (defalias 'tramp-compat-file-local-name
   (if (fboundp 'file-local-name)
       #'file-local-name
@@ -175,7 +175,8 @@ It returns a file name which can be used directly as argument of
 `process-file', `start-file-process', or `shell-command'."
       (or (file-remote-p name 'localname) name))))
 
-;; `file-name-quoted-p' got a second argument in Emacs 27.1.
+;; `file-name-quoted-p', `file-name-quote' and `file-name-unquote' got
+;; a second argument in Emacs 27.1.
 (defalias 'tramp-compat-file-name-quoted-p
   (if (and
        (fboundp 'file-name-quoted-p)
@@ -217,7 +218,7 @@ NAME is unquoted."
 	   localname (if (= (length localname) 2) "/" (substring localname 2))))
 	(concat (file-remote-p name) localname)))))
 
-;; `tramp-syntax' has changed its meaning in Emacs 26.  We still
+;; `tramp-syntax' has changed its meaning in Emacs 26.1.  We still
 ;; support old settings.
 (defsubst tramp-compat-tramp-syntax ()
   "Return proper value of `tramp-syntax'."
@@ -275,6 +276,19 @@ A nil value for either argument stands for the current time."
     (lambda (reporter &optional value _suffix)
       (progress-reporter-update reporter value))))
 
+;; `file-modes' and `set-file-modes' got argument FLAG in Emacs 28.1.
+(defalias 'tramp-compat-file-modes
+  (if (equal (tramp-compat-funcall 'func-arity #'file-modes) '(1 . 2))
+      #'file-modes
+    (lambda (filename &optional _flag)
+      (file-modes filename))))
+
+(defalias 'tramp-compat-set-file-modes
+  (if (equal (tramp-compat-funcall 'func-arity #'set-file-modes) '(2 . 3))
+      #'set-file-modes
+    (lambda (filename mode &optional _flag)
+      (set-file-modes filename mode))))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-loaddefs 'force)
@@ -283,6 +297,8 @@ A nil value for either argument stands for the current time."
 (provide 'tramp-compat)
 
 ;;; TODO:
+;;
+;; * `func-arity' exists since Emacs 26.1.
 ;;
 ;; * Starting with Emacs 27.1, there's no need to escape open
 ;;   parentheses with a backslash in docstrings anymore.

@@ -465,8 +465,9 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
-  flag ;; FIXME: Support 'nofollow'.
   (with-parsed-tramp-file-name filename nil
+    (when (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-error v 'file-error "Cannot chmod %s with %s flag" filename flag))
     (tramp-flush-file-properties v localname)
     (unless (tramp-sudoedit-send-command
 	     v "chmod" (format "%o" mode)
@@ -716,13 +717,14 @@ ID-FORMAT valid values are `string' and `integer'."
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (let ((uid (or (tramp-compat-file-attribute-user-id
-		    (file-attributes filename 'integer))
-		   (tramp-sudoedit-get-remote-uid v 'integer)))
-	  (gid (or (tramp-compat-file-attribute-group-id
-		    (file-attributes filename 'integer))
-		   (tramp-sudoedit-get-remote-gid v 'integer)))
-	  (modes (tramp-default-file-modes filename)))
+    (let* ((uid (or (tramp-compat-file-attribute-user-id
+		     (file-attributes filename 'integer))
+		    (tramp-sudoedit-get-remote-uid v 'integer)))
+	   (gid (or (tramp-compat-file-attribute-group-id
+		     (file-attributes filename 'integer))
+		    (tramp-sudoedit-get-remote-gid v 'integer)))
+	   (flag (and (eq mustbenew 'excl) 'nofollow))
+	   (modes (tramp-default-file-modes filename flag)))
       (prog1
 	  (tramp-handle-write-region
 	   start end filename append visit lockname mustbenew)
@@ -736,8 +738,7 @@ ID-FORMAT valid values are `string' and `integer'."
 			 (file-attributes filename 'integer))
 			gid))
           (tramp-set-file-uid-gid filename uid gid))
-	(set-file-modes filename modes
-			(when (eq mustbenew 'excl) 'nofollow))))))
+	(tramp-compat-set-file-modes filename modes flag)))))
 
 
 ;; Internal functions.

@@ -2135,11 +2135,13 @@ For definition of that list see `tramp-set-completion-function'."
 (defvar tramp-devices 0
   "Keeps virtual device numbers.")
 
-(defun tramp-default-file-modes (filename)
+(defun tramp-default-file-modes (filename &optional flag)
   "Return file modes of FILENAME as integer.
-If the file modes of FILENAME cannot be determined, return the
-value of `default-file-modes', without execute permissions."
-  (or (file-modes filename)
+If optional FLAG is ‘nofollow’, do not follow FILENAME if it is a
+symbolic link.  If the file modes of FILENAME cannot be
+determined, return the value of `default-file-modes', without
+execute permissions."
+  (or (tramp-compat-file-modes filename flag)
       (logand (default-file-modes) #o0666)))
 
 (defun tramp-replace-environment-variables (filename)
@@ -3181,11 +3183,11 @@ User is always nil."
 
 (defun tramp-handle-file-modes (filename &optional flag)
   "Like `file-modes' for Tramp files."
-  (when-let ((attrs (file-attributes filename)))
-    (let ((mode-string (tramp-compat-file-attribute-modes attrs)))
-      (if (and (not flag) (eq ?l (aref mode-string 0)))
-	  (tramp-handle-file-modes (file-chase-links filename) 'nofollow)
-	(tramp-mode-string-to-int mode-string)))))
+  (when-let ((attrs (file-attributes filename))
+	     (mode-string (tramp-compat-file-attribute-modes attrs)))
+    (if (and (not (eq flag 'nofollow)) (eq ?l (aref mode-string 0)))
+	(file-modes (file-truename filename))
+      (tramp-mode-string-to-int mode-string))))
 
 ;; Localname manipulation functions that grok Tramp localnames...
 (defun tramp-handle-file-name-as-directory (file)
@@ -3879,7 +3881,8 @@ of."
       (tramp-error v 'file-already-exists filename))
 
     (let ((tmpfile (tramp-compat-make-temp-file filename))
-	  (modes (save-excursion (tramp-default-file-modes filename))))
+	  (modes (tramp-default-file-modes
+		  filename (and (eq mustbenew 'excl) 'nofollow))))
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -3887,7 +3890,7 @@ of."
       ;; renamed to the backup file.  This case `save-buffer'
       ;; handles permissions.
       ;; Ensure that it is still readable.
-      (set-file-modes tmpfile (logior (or modes 0) #o0400) 'nofollow)
+      (set-file-modes tmpfile (logior (or modes 0) #o0400))
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
@@ -4667,7 +4670,7 @@ Return the local name of the temporary file."
 	  (setq result nil)
 	;; This creates the file by side effect.
 	(set-file-times result)
-	(set-file-modes result #o0700 'nofollow)))
+	(set-file-modes result #o0700)))
 
     ;; Return the local part.
     (tramp-file-local-name result)))

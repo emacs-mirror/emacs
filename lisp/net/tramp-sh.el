@@ -1481,13 +1481,17 @@ of."
 (defun tramp-sh-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
-    flag ;; FIXME: Support 'nofollow'.
-    ;; FIXME: extract the proper text from chmod's stderr.
-    (tramp-barf-unless-okay
-     v
-     (format "chmod %o %s" mode (tramp-shell-quote-argument localname))
-     "Error while changing file's mode %s" filename)))
+    (let ((chmod "chmod"))
+      (when (and (eq flag 'nofollow) (file-symlink-p filename))
+	(or (setq chmod (tramp-get-remote-chmod-h v))
+	    (tramp-error
+	     v 'file-error "Cannot chmod %s with %s flag" filename flag)))
+      (tramp-flush-file-properties v localname)
+      ;; FIXME: extract the proper text from chmod's stderr.
+      (tramp-barf-unless-okay
+       v
+       (format "%s %o %s" chmod mode (tramp-shell-quote-argument localname))
+       "Error while changing file's mode %s" filename))))
 
 (defun tramp-sh-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."
@@ -2280,7 +2284,7 @@ the uid and gid from FILENAME."
 		      ;; We must change the ownership as local user.
 		      ;; Since this does not work reliable, we also
 		      ;; give read permissions.
-		      (set-file-modes tmpfile #o0777 'nofollow)
+		      (set-file-modes tmpfile #o0777)
 		      (tramp-set-file-uid-gid
 		       tmpfile
 		       (tramp-get-remote-uid v 'integer)
@@ -3222,8 +3226,7 @@ STDERR can also be a file name."
 		    (delete-file tmpfile2)))))
 
 	    ;; Set proper permissions.
-	    (set-file-modes tmpfile (tramp-default-file-modes filename)
-			    'nofollow)
+	    (set-file-modes tmpfile (tramp-default-file-modes filename))
 	    ;; Set local user ownership.
 	    (tramp-set-file-uid-gid tmpfile))
 
@@ -3272,7 +3275,8 @@ STDERR can also be a file name."
 	   #'write-region
 	   (list start end localname append 'no-message lockname))
 
-	(let* ((modes (save-excursion (tramp-default-file-modes filename)))
+	(let* ((modes (tramp-default-file-modes
+		       filename (and (eq mustbenew 'excl) 'nofollow)))
 	       ;; We use this to save the value of
 	       ;; `last-coding-system-used' after writing the tmp
 	       ;; file.  At the end of the function, we set
@@ -3322,7 +3326,7 @@ STDERR can also be a file name."
 	  ;; handles permissions.
 	  ;; Ensure that it is still readable.
 	  (when modes
-	    (set-file-modes tmpfile (logior (or modes 0) #o0400) 'nofollow))
+	    (set-file-modes tmpfile (logior (or modes 0) #o0400)))
 
 	  ;; This is a bit lengthy due to the different methods
 	  ;; possible for file transfer.  First, we check whether the
@@ -5896,6 +5900,22 @@ ID-FORMAT valid values are `string' and `integer'."
 	       (tramp-send-command-and-check
 		vec (concat command " -A n </dev/null"))
 	       command)))))
+
+(defun tramp-get-remote-chmod-h (vec)
+  "Determine remote `chmod' command which supports nofollow argument."
+  (with-tramp-connection-property vec "chmod-h"
+    (tramp-message vec 5 "Finding a suitable `chmod' command with nofollow")
+    (let ((tmpfile
+	   (make-temp-name
+	    (expand-file-name
+	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+      (when (tramp-send-command-and-check
+	     vec
+	     (format
+	      "ln -s foo %s && chmod -h %s 0777"
+	      (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
+	(delete-file tmpfile)
+	"chmod -h"))))
 
 (defun tramp-get-env-with-u-option (vec)
   "Check, whether the remote `env' command supports the -u option."
