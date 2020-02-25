@@ -165,8 +165,9 @@ key             binding
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** In nroff mode, 'center-line' is rebound from 'M-s' to 'M-o M-s',
-so now the search prefix map 'M-s' is available in this mode.
+** In nroff mode, 'center-line' is now bound to 'M-o M-s'.
+The original key binding was 'M-s', which interfered with I-search,
+since the latter uses 'M-s' as a prefix key of the search prefix map.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
