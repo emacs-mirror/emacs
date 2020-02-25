@@ -3641,7 +3641,7 @@ and does not normally need to be invoked by the end user or programmer."
     (setq-local comint-redirect-previous-input-string "")
 
     (setq mode-line-process
-	  (if mode-line-process
+	  (if (and mode-line-process (stringp (elt mode-line-process 0)))
 	      (list (concat (elt mode-line-process 0) " Redirection"))
 	    (list ":%s Redirection")))))
 
