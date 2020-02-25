@@ -114,9 +114,9 @@ Can be used by code that wants to expand differently in this case.")
 (defvar comp-pass nil
   "Every pass has the right to bind what it likes here.")
 
-(defvar comp-curr-allocation-class 'd-base
+(defvar comp-curr-allocation-class 'd-default
   "Current allocation class.
-Can be one of: 'd-base', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
+Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
@@ -196,7 +196,7 @@ Can be one of: 'd-base', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
   (funcs-h (make-hash-table) :type hash-table
            :documentation "lisp-func-name -> comp-func.
 This is to build the prev field.")
-  (d-base (make-comp-data-container) :type comp-data-container
+  (d-default (make-comp-data-container) :type comp-data-container
           :documentation "Standard data relocated in use by functions.")
   (d-impure (make-comp-data-container) :type comp-data-container
           :documentation "Relocated data that cannot be moved into pure space.
@@ -320,7 +320,7 @@ structure.")
         :documentation "When non nil indicates the type when known at compile
  time.")
   (alloc-class nil :type symbol
-               :documentation "Can be one of: 'd-base' 'd-impure'
+               :documentation "Can be one of: 'd-default' 'd-impure'
                or 'd-ephemeral'."))
 
 ;; Special vars used by some passes
@@ -360,8 +360,8 @@ The corresponding index is returned."
 
 (defsubst comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS return the data container for the current context.
-Assume allocaiton class 'd-base as default."
-  (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-base) comp-ctxt))
+Assume allocaiton class 'd-default as default."
+  (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-default) comp-ctxt))
 
 (defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
@@ -1970,7 +1970,7 @@ These are substituted with a normal 'set' op."
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
 Prepare every function for final compilation and drive the C back-end."
-  (comp-data-container-check (comp-ctxt-d-base comp-ctxt))
+  (comp-data-container-check (comp-ctxt-d-default comp-ctxt))
   (comp-data-container-check (comp-ctxt-d-impure comp-ctxt))
   (comp-data-container-check (comp-ctxt-d-ephemeral comp-ctxt))
   (unless comp-dry-run

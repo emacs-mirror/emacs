@@ -389,7 +389,7 @@ register_emitter (Lisp_Object key, void *func)
 static gcc_jit_rvalue *
 alloc_class_to_reloc (Lisp_Object alloc_class)
 {
-  if (alloc_class == Qd_base)
+  if (alloc_class == Qd_default)
     return comp.data_relocs;
   else if (alloc_class == Qd_impure)
     return comp.data_relocs_impure;
@@ -942,7 +942,7 @@ static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
-  return emit_EQ (x, emit_const_lisp_obj (Qnil, Qd_base));
+  return emit_EQ (x, emit_const_lisp_obj (Qnil, Qd_default));
 }
 
 static gcc_jit_rvalue *
@@ -1045,7 +1045,7 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
-      emit_const_lisp_obj (Qconsp, Qd_base),
+      emit_const_lisp_obj (Qconsp, Qd_default),
       x };
 
   gcc_jit_block_add_eval (
@@ -1192,7 +1192,7 @@ emit_set_internal (Lisp_Object args)
   gcc_jit_rvalue *gcc_args[4];
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
-  gcc_args[2] = emit_const_lisp_obj (Qnil, Qd_base);
+  gcc_args[2] = emit_const_lisp_obj (Qnil, Qd_default);
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
 						     SET_INTERNAL_SET);
@@ -1837,7 +1837,7 @@ declare_imported_data (void)
 
   /* Imported objects.  */
   comp.data_relocs =
-    declare_imported_data_relocs (CALL1I (comp-ctxt-d-base, Vcomp_ctxt),
+    declare_imported_data_relocs (CALL1I (comp-ctxt-d-default, Vcomp_ctxt),
 				  DATA_RELOC_SYM,
 				  TEXT_DATA_RELOC_SYM);
   comp.data_relocs_impure =
@@ -2440,11 +2440,11 @@ define_CAR_CDR (void)
       comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil, Qd_base));
+				     emit_const_lisp_obj (Qnil, Qd_default));
 
       comp.block = not_nil_b;
       gcc_jit_rvalue *wrong_type_args[] =
-	{ emit_const_lisp_obj (Qlistp, Qd_base), c };
+	{ emit_const_lisp_obj (Qlistp, Qd_default), c };
 
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
@@ -2453,7 +2453,7 @@ define_CAR_CDR (void)
 					 false));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil, Qd_base));
+				     emit_const_lisp_obj (Qnil, Qd_default));
     }
   comp.car = func[0];
   comp.cdr = func[1];
@@ -2833,12 +2833,12 @@ define_bool_to_lisp_obj (void)
   comp.block = ret_t_block;
   gcc_jit_block_end_with_return (ret_t_block,
 				 NULL,
-				 emit_const_lisp_obj (Qt, Qd_base));
+				 emit_const_lisp_obj (Qt, Qd_default));
 
   comp.block = ret_nil_block;
   gcc_jit_block_end_with_return (ret_nil_block,
 				 NULL,
-				 emit_const_lisp_obj (Qnil, Qd_base));
+				 emit_const_lisp_obj (Qnil, Qd_default));
 }
 
 /* Declare a function being compiled and add it to comp.exported_funcs_h.  */
@@ -3554,7 +3554,7 @@ syms_of_comp (void)
   DEFSYM (Qintegerp, "integerp");
 
   /* Allocation classes. */
-  DEFSYM (Qd_base, "d-base");
+  DEFSYM (Qd_default, "d-default");
   DEFSYM (Qd_impure, "d-impure");
   DEFSYM (Qd_ephemeral, "d-ephemeral");
 
