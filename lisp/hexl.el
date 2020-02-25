@@ -367,8 +367,8 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (add-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'hexl-print-current-point-info)
+    (add-hook 'eldoc-documentation-functions
+              #'hexl-print-current-point-info nil t)
     (eldoc-add-command-completions "hexl-")
     (eldoc-remove-command "hexl-save-buffer"
 			  "hexl-current-address")
@@ -455,6 +455,8 @@ and edit the file in `hexl-mode'."
     ;; 2. reset change-major-mode-hook in case that `hexl-mode'
     ;; previously added hexl-maybe-dehexlify-buffer to it.
     (remove-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer t)
+    (remove-hook 'eldoc-documentation-functions
+                 #'hexl-print-current-point-info t)
     (setq major-mode 'fundamental-mode)
     (hexl-mode)))
 

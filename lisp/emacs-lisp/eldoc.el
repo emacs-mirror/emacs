@@ -40,9 +40,9 @@
 ;;      (add-hook 'ielm-mode-hook 'eldoc-mode)
 ;;      (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
 
-;; Major modes for other languages may use ElDoc by defining an
-;; appropriate function as the buffer-local value of
-;; `eldoc-documentation-function'.
+;; Major modes for other languages may use ElDoc by adding an
+;; appropriate function to the buffer-local value of
+;; `eldoc-documentation-functions'.
 
 ;;; Code:
 
@@ -222,8 +222,8 @@ expression point is on."
 (defun eldoc--eval-expression-setup ()
   ;; Setup `eldoc', similar to `emacs-lisp-mode'.  FIXME: Call
   ;; `emacs-lisp-mode' itself?
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'elisp-eldoc-documentation-function)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-documentation-function nil t)
   (eldoc-mode +1))
 
 ;;;###autoload
@@ -235,7 +235,11 @@ See `eldoc-documentation-function' for more detail."
 
 (defun eldoc--supported-p ()
   "Non-nil if an ElDoc function is set for this buffer."
-  (not (memq eldoc-documentation-function '(nil ignore))))
+  (let ((hook 'eldoc-documentation-functions))
+    (and (not (memq eldoc-documentation-function '(nil ignore)))
+         (or (and (local-variable-p hook)
+                  (buffer-local-value hook (current-buffer)))
+             (default-value hook)))))
 
 
 (defun eldoc-schedule-timer ()
@@ -347,8 +351,46 @@ Also store it in `eldoc-last-message' and return that value."
   (not (or executing-kbd-macro (bound-and-true-p edebug-active))))
 
 
-;;;###autoload
-(defvar eldoc-documentation-function #'ignore
+(defvar eldoc-documentation-functions nil
+  "Hook for functions to call to return doc string.
+Each function should accept no arguments and return a one-line
+string for displaying doc about a function etc. appropriate to
+the context around point.  It should return nil if there's no doc
+appropriate for the context.  Typically doc is returned if point
+is on a function-like name or in its arg list.
+
+Major modes should modify this hook locally, for example:
+  (add-hook \\='eldoc-documentation-functions #\\='foo-mode-eldoc nil t)
+so that the global value (i.e. the default value of the hook) is
+taken into account if the major mode specific function does not
+return any documentation.")
+
+(defun eldoc-documentation-default ()
+  "Show first doc string for item at point.
+Default value for `eldoc-documentation-function'."
+  (let ((res (run-hook-with-args-until-success 'eldoc-documentation-functions)))
+    (when res
+      (if eldoc-echo-area-use-multiline-p res
+        (truncate-string-to-width
+         res (1- (window-width (minibuffer-window))))))))
+
+(defun eldoc-documentation-compose ()
+  "Show multiple doc string results at once.
+Meant as a value for `eldoc-documentation-function'."
+  (let (res)
+    (run-hook-wrapped
+     'eldoc-documentation-functions
+     (lambda (f)
+       (let ((str (funcall f)))
+         (when str (push str res))
+         nil)))
+    (when res
+      (setq res (mapconcat #'identity (nreverse res) ", "))
+      (if eldoc-echo-area-use-multiline-p res
+        (truncate-string-to-width
+         res (1- (window-width (minibuffer-window))))))))
+
+(defcustom eldoc-documentation-function #'eldoc-documentation-default
   "Function to call to return doc string.
 The function of no args should return a one-line string for displaying
 doc about a function etc. appropriate to the context around point.
@@ -359,14 +401,14 @@ arg list.
 The result is used as is, so the function must explicitly handle
 the variables `eldoc-argument-case' and `eldoc-echo-area-use-multiline-p',
 and the face `eldoc-highlight-function-argument', if they are to have any
-effect.
-
-Major modes should modify this variable using `add-function', for example:
-  (add-function :before-until (local \\='eldoc-documentation-function)
-                #\\='foo-mode-eldoc-function)
-so that the global documentation function (i.e. the default value of the
-variable) is taken into account if the major mode specific function does not
-return any documentation.")
+effect."
+  :link '(info-link "(emacs) Lisp Doc")
+  :type '(radio (function-item eldoc-documentation-default)
+                (function-item eldoc-documentation-compose)
+                (function :tag "Other function")
+                (const :tag "None" nil))
+  :version "28.1"
+  :group 'eldoc)
 
 (defun eldoc-print-current-symbol-info ()
   "Print the text produced by `eldoc-documentation-function'."
@@ -381,7 +423,8 @@ return any documentation.")
         ;; Only keep looking for the info as long as the user hasn't
         ;; requested our attention.  This also locally disables inhibit-quit.
         (while-no-input
-          (eldoc-message (funcall eldoc-documentation-function)))))))
+          (let ((fun eldoc-documentation-function))
+            (when fun (eldoc-message (funcall fun)))))))))
 
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the

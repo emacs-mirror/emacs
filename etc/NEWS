@@ -125,6 +125,18 @@ To revert to the previous behaviour,
 unconditionally aborts the current edebug instrumentation with the
 supplied error message.
 
++++
+** ElDoc
+
+*** New hook 'eldoc-documentation-functions' to be used for registering
+doc string functions.  This makes the results of all doc string
+functions accessible to the user through the existing single function hook
+'eldoc-documentation-function'.
+
+*** 'eldoc-documentation-function' is now a custom variable.
+Modes should use the new hook instead of this variable to register
+their backends.
+
 ** Tramp
 
 +++
