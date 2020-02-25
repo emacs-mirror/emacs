@@ -40,11 +40,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
 #define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
+#define DATA_RELOC_EPHEMERAL_SYM "d_reloc_eph"
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define COMP_UNIT_SYM "comp_unit"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
+#define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
 #define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
@@ -178,6 +180,8 @@ typedef struct {
   gcc_jit_rvalue *data_relocs;
   /* Same as before but can't go in pure space. */
   gcc_jit_rvalue *data_relocs_impure;
+  /* Same as before but content does not survive load phase. */
+  gcc_jit_rvalue *data_relocs_ephemeral;
   /* Synthesized struct holding func relocs.  */
   gcc_jit_lvalue *func_relocs;
 } comp_t;
@@ -380,6 +384,20 @@ register_emitter (Lisp_Object key, void *func)
 {
   Lisp_Object value = make_mint_ptr (func);
   Fputhash (key, value, comp.emitter_dispatcher);
+}
+
+static gcc_jit_rvalue *
+alloc_class_to_reloc (Lisp_Object alloc_class)
+{
+  if (alloc_class == Qd_base)
+    return comp.data_relocs;
+  else if (alloc_class == Qd_impure)
+    return comp.data_relocs_impure;
+  else if (alloc_class == Qd_ephemeral)
+    return comp.data_relocs_ephemeral;
+  xsignal (Qnative_ice,
+	   build_string ("inconsistent allocation class"));
+  assume (false);
 }
 
 static void
@@ -893,7 +911,7 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_const_lisp_obj (Lisp_Object obj, Lisp_Object impure)
+emit_const_lisp_obj (Lisp_Object obj, Lisp_Object alloc_class)
 {
   emit_comment (format_string ("const lisp obj: %s",
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
@@ -904,8 +922,7 @@ emit_const_lisp_obj (Lisp_Object obj, Lisp_Object impure)
 							   comp.void_ptr_type,
 							   NULL));
 
-  Lisp_Object container = impure ? CALL1I (comp-ctxt-d-impure, Vcomp_ctxt)
-                                 : CALL1I (comp-ctxt-d-base, Vcomp_ctxt);
+  Lisp_Object container = CALL1I (comp-alloc-class-to-container, alloc_class);
   Lisp_Object reloc_idx =
     Fgethash (obj, CALL1I (comp-data-container-idx, container), Qnil);
   eassert (!NILP (reloc_idx));
@@ -917,8 +934,7 @@ emit_const_lisp_obj (Lisp_Object obj, Lisp_Object impure)
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_array_access (comp.ctxt,
 					NULL,
-					impure ? comp.data_relocs_impure
-					       : comp.data_relocs,
+					alloc_class_to_reloc (alloc_class),
 					reloc_n));
 }
 
@@ -926,7 +942,7 @@ static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
-  return emit_EQ (x, emit_const_lisp_obj (Qnil, Qnil));
+  return emit_EQ (x, emit_const_lisp_obj (Qnil, Qd_base));
 }
 
 static gcc_jit_rvalue *
@@ -1029,7 +1045,7 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
-      emit_const_lisp_obj (Qconsp, Qnil),
+      emit_const_lisp_obj (Qconsp, Qd_base),
       x };
 
   gcc_jit_block_add_eval (
@@ -1140,7 +1156,8 @@ emit_mvar_val (Lisp_Object mvar)
 	  return emit_cast (comp.lisp_obj_type, word);
 	}
       /* Other const objects are fetched from the reloc array.  */
-      return emit_const_lisp_obj (constant, CALL1I (comp-mvar-impure, mvar));
+      return emit_const_lisp_obj (constant,
+				  CALL1I (comp-mvar-alloc-class, mvar));
     }
 
   return gcc_jit_lvalue_as_rvalue (emit_mvar_access (mvar));
@@ -1175,7 +1192,7 @@ emit_set_internal (Lisp_Object args)
   gcc_jit_rvalue *gcc_args[4];
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
-  gcc_args[2] = emit_const_lisp_obj (Qnil, Qnil);
+  gcc_args[2] = emit_const_lisp_obj (Qnil, Qd_base);
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
 						     SET_INTERNAL_SET);
@@ -1563,7 +1580,9 @@ emit_limple_insn (Lisp_Object insn)
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_context_new_array_access (comp.ctxt,
 					    NULL,
-					    comp.data_relocs,
+					    alloc_class_to_reloc (
+					      CALL1I (comp-mvar-alloc-class,
+						      arg[0])),
 					    reloc_n)));
     }
   else if (EQ (op, Qcomment))
@@ -1825,6 +1844,10 @@ declare_imported_data (void)
     declare_imported_data_relocs (CALL1I (comp-ctxt-d-impure, Vcomp_ctxt),
 				  DATA_RELOC_IMPURE_SYM,
 				  TEXT_DATA_RELOC_IMPURE_SYM);
+  comp.data_relocs_ephemeral =
+    declare_imported_data_relocs (CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt),
+				  DATA_RELOC_EPHEMERAL_SYM,
+				  TEXT_DATA_RELOC_EPHEMERAL_SYM);
 }
 
 /*
@@ -2417,11 +2440,11 @@ define_CAR_CDR (void)
       comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil, Qnil));
+				     emit_const_lisp_obj (Qnil, Qd_base));
 
       comp.block = not_nil_b;
       gcc_jit_rvalue *wrong_type_args[] =
-	{ emit_const_lisp_obj (Qlistp, Qnil), c };
+	{ emit_const_lisp_obj (Qlistp, Qd_base), c };
 
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
@@ -2430,7 +2453,7 @@ define_CAR_CDR (void)
 					 false));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil, Qnil));
+				     emit_const_lisp_obj (Qnil, Qd_base));
     }
   comp.car = func[0];
   comp.cdr = func[1];
@@ -2810,13 +2833,12 @@ define_bool_to_lisp_obj (void)
   comp.block = ret_t_block;
   gcc_jit_block_end_with_return (ret_t_block,
 				 NULL,
-				 emit_const_lisp_obj (Qt, Qnil));
+				 emit_const_lisp_obj (Qt, Qd_base));
 
   comp.block = ret_nil_block;
   gcc_jit_block_end_with_return (ret_nil_block,
 				 NULL,
-				 emit_const_lisp_obj (Qnil, Qnil));
-
+				 emit_const_lisp_obj (Qnil, Qd_base));
 }
 
 /* Declare a function being compiled and add it to comp.exported_funcs_h.  */
@@ -3358,12 +3380,25 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
       EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
       Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
       Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+      Lisp_Object *data_eph_relocs =
+	dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
+      Lisp_Object volatile data_ephemeral_vec;
+
+      /* Note: data_ephemeral_vec is not GC protected except than by
+	 this function frame.  After this functions will be
+	 deactivated GC will be free to collect it, but it MUST
+	 survive till 'top_level_run' has finished his job.  We store
+	 into the ephemeral allocation class only objects that we know
+	 are necessary exclusively during the first load.  Once these
+	 are collected we don't have to maintain them in the heap
+	 forever.  */
 
       if (!(current_thread_reloc
 	    && pure_reloc
 	    && data_relocs
 	    && data_imp_relocs
+	    && data_eph_relocs
 	    && freloc_link_table
 	    && top_level_run)
 	  || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
@@ -3382,6 +3417,12 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	  comp_u->data_impure_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
+	  data_ephemeral_vec =
+	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
+
+	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
+	  for (EMACS_INT i = 0; i < d_vec_len; i++)
+	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
 
 	  if (!NILP (Vpurify_flag))
 	    /* Non impure can be copied into pure space.  */
@@ -3511,6 +3552,11 @@ syms_of_comp (void)
   DEFSYM (Qnegate, "negate");
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
+
+  /* Allocation classes. */
+  DEFSYM (Qd_base, "d-base");
+  DEFSYM (Qd_impure, "d-impure");
+  DEFSYM (Qd_ephemeral, "d-ephemeral");
 
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");

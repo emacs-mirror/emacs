@@ -32,6 +32,7 @@
 (require 'gv)
 (require 'cl-lib)
 (require 'cl-extra)
+(require 'cl-macs)
 (require 'subr-x)
 
 (defgroup comp nil
@@ -113,7 +114,9 @@ Can be used by code that wants to expand differently in this case.")
 (defvar comp-pass nil
   "Every pass has the right to bind what it likes here.")
 
-(defvar comp-emitting-impure nil "Non nil to emit only impure objects.")
+(defvar comp-curr-allocation-class 'd-base
+  "Current allocation class.
+Can be one of: 'd-base', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
@@ -196,8 +199,10 @@ This is to build the prev field.")
   (d-base (make-comp-data-container) :type comp-data-container
           :documentation "Standard data relocated in use by functions.")
   (d-impure (make-comp-data-container) :type comp-data-container
-          :documentation "Data relocated that cannot be moved into pure space.
-This is tipically for top-level forms other than defun."))
+          :documentation "Relocated data that cannot be moved into pure space.
+This is tipically for top-level forms other than defun.")
+  (d-ephemeral (make-comp-data-container) :type comp-data-container
+               :documentation "Relocated data not necessary after load."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -314,8 +319,9 @@ structure.")
   (type nil :type symbol
         :documentation "When non nil indicates the type when known at compile
  time.")
-  (impure nil :type boolean
-          :documentation "When non nil can't be copied into pure space."))
+  (alloc-class nil :type symbol
+               :documentation "Can be one of: 'd-base' 'd-impure'
+               or 'd-ephemeral'."))
 
 ;; Special vars used by some passes
 (defvar comp-func)
@@ -352,13 +358,17 @@ The corresponding index is returned."
       (push obj (comp-data-container-l cont))
       (puthash obj (hash-table-count h) h))))
 
+(defsubst comp-alloc-class-to-container (alloc-class)
+  "Given ALLOC-CLASS return the data container for the current context.
+Assume allocaiton class 'd-base as default."
+  (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-base) comp-ctxt))
+
 (defun comp-add-const-to-relocs (obj)
   "Keep track of OBJ into the ctxt relocations.
 The corresponding index is returned."
   (comp-add-const-to-relocs-to-cont obj
-                                    (if comp-emitting-impure
-                                        (comp-ctxt-d-impure comp-ctxt)
-                                      (comp-ctxt-d-base comp-ctxt))))
+                                    (comp-alloc-class-to-container
+                                     comp-curr-allocation-class)))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -632,7 +642,7 @@ STACK-OFF is the index of the first slot frame involved."
   (when const-vld
     (comp-add-const-to-relocs constant))
   (make--comp-mvar :slot slot :const-vld const-vld :constant constant
-                   :type type :impure comp-emitting-impure))
+                   :type type :alloc-class comp-curr-allocation-class))
 
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
@@ -1143,7 +1153,7 @@ the annotation emission."
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
   (let ((form (byte-to-native-top-level-form form)))
     (comp-emit (comp-call 'eval
-                          (let ((comp-emitting-impure t))
+                          (let ((comp-curr-allocation-class 'd-impure))
                             (make-comp-mvar :constant form))
                           (make-comp-mvar :constant t)))))
 
@@ -1158,7 +1168,7 @@ into the C code forwarding the compilation unit."
   ;; Once an .eln is loaded and Emacs is dumped 'top_level_run' has no
   ;; reasons to be execute ever again.  Therefore all objects can be
   ;; just impure.
-  (let* ((comp-emitting-impure t)
+  (let* ((comp-curr-allocation-class 'd-impure)
          (func (make-comp-func :name 'top-level-run
                                :c-name "top_level_run"
                                :args (make-comp-args :min 1 :max 1)
@@ -1271,11 +1281,13 @@ Top-level forms for the current context are rendered too."
 ;; this form is called 'minimal SSA form'.
 ;; This pass should be run every time basic blocks or m-var are shuffled.
 
-(cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
+(cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type
+                                   (alloc-class comp-curr-allocation-class))
   (let ((mvar (make--comp-mvar :slot slot
                                :const-vld const-vld
                                :constant constant
-                               :type type)))
+                               :type type
+                               :alloc-class alloc-class)))
     (setf (comp-mvar-id mvar) (sxhash-eq mvar))
     mvar))
 
@@ -1960,6 +1972,7 @@ These are substituted with a normal 'set' op."
 Prepare every function for final compilation and drive the C back-end."
   (comp-data-container-check (comp-ctxt-d-base comp-ctxt))
   (comp-data-container-check (comp-ctxt-d-impure comp-ctxt))
+  (comp-data-container-check (comp-ctxt-d-ephemeral comp-ctxt))
   (unless comp-dry-run
     (comp--compile-ctxt-to-file name)))
 
