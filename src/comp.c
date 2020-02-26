@@ -3275,7 +3275,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
-  /* Remove the old eln instead of copying the new one into ti to get
+  /* Remove the old eln instead of copying the new one into it to get
      a new inode and prevent crashes in case the old one is currently
      loaded.  */
   if (!NILP (Ffile_exists_p (out_file)))
