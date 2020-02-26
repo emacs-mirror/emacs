@@ -818,7 +818,8 @@ typedef enum
   REG_ESIZE,		/* Compiled pattern bigger than 2^16 bytes.  */
   REG_ERPAREN,		/* Unmatched ) or \); not returned from regcomp.  */
   REG_ERANGEX,		/* Range striding over charsets.  */
-  REG_ESIZEBR           /* n or m too big in \{n,m\} */
+  REG_ESIZEBR,          /* n or m too big in \{n,m\} */
+  REG_ECLASSBR,         /* Missing [] around [:class:].  */
 } reg_errcode_t;
 
 static const char *re_error_msgid[] =
@@ -842,6 +843,7 @@ static const char *re_error_msgid[] =
    [REG_ERPAREN] = "Unmatched ) or \\)",
    [REG_ERANGEX ] = "Range striding over charsets",
    [REG_ESIZEBR ] = "Invalid content of \\{\\}",
+   [REG_ECLASSBR] = "Class syntax is [[:digit:]]; missing brackets",
   };
 
 /* For 'regs_allocated'.  */
@@ -1999,6 +2001,23 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 	    GET_BUFFER_SPACE (34);
 
 	    laststart = b;
+
+            /* Check for the mistake of forgetting the extra square brackets,
+               as in "[:alpha:]".  */
+            if (*p == ':')
+              {
+                re_char *q = p + 1;
+                while (q != pend && *q != ']')
+                  {
+                    if (*q == ':')
+                      {
+                        if (q + 1 != pend && q[1] == ']' && q > p + 1)
+                          FREE_STACK_RETURN (REG_ECLASSBR);
+                        break;
+                      }
+                    q++;
+                  }
+              }
 
 	    /* Test '*p == '^' twice, instead of using an if
 	       statement, so we need only one BUF_PUSH.  */
