@@ -250,8 +250,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
     (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
   (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil)
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'elisp-eldoc-documentation-function)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-documentation-function nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions

@@ -409,7 +409,8 @@ has no effect on MS-Windows."
       (set-file-modes
        file
        (if num-modes num-modes
-	 (file-modes-symbolic-to-number modes (file-modes file)))))
+	 (file-modes-symbolic-to-number modes (file-modes file 'nofollow)))
+       'nofollow))
     (dired-do-redisplay arg)))
 
 ;;;###autoload

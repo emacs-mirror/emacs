@@ -347,7 +347,12 @@
                                 ((eq x 't) 99)
                                 (t 999))))
             '((a c) (b c) (7 c) (-3 c) (nil nil) (t c) (q c) (r c) (s c)
-              (t c) (x "a") (x "c") (x c) (x d) (x e))))
+              (t c) (x "a") (x "c") (x c) (x d) (x e)))
+
+    ;; `substring' bytecode generation (bug#39709).
+    (substring "abcdef")
+    (substring "abcdef" 2)
+    (substring "abcdef" 3 2))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")

@@ -222,6 +222,8 @@ extern void register_child (pid_t, int);
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);
 extern int openat (int, const char *, int, int);
+extern int fchmodat (int, char const *, mode_t, int);
+extern int lchmod (char const *, mode_t);
 
 /* Return total and free memory info.  */
 extern int w32_memory_info (unsigned long long *, unsigned long long *,

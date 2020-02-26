@@ -928,7 +928,7 @@ also checks that the file's group would be unchanged.
 This function does not follow symbolic links.
 @end defun
 
-@defun file-modes filename
+@defun file-modes filename &optional flag
 @cindex mode bits
 @cindex file permissions
 @cindex permissions, file
@@ -946,12 +946,19 @@ The highest possible value is 4095 (7777 octal), meaning that everyone
 has read, write, and execute permission, the @acronym{SUID} bit is set
 for both others and group, and the sticky bit is set.
 
+By default this function follows symbolic links.  However, if the
+optional argument @var{flag} is the symbol @code{nofollow}, this
+function does not follow @var{filename} if it is a symbolic link;
+this can help prevent inadvertently obtaining the mode bits of a file
+somewhere else, and is more consistent with @code{file-attributes}
+(@pxref{File Attributes}).
+
 @xref{Changing Files}, for the @code{set-file-modes} function, which
 can be used to set these permissions.
 
 @example
 @group
-(file-modes "~/junk/diffs")
+(file-modes "~/junk/diffs" 'nofollow)
      @result{} 492               ; @r{Decimal integer.}
 @end group
 @group
@@ -960,7 +967,7 @@ can be used to set these permissions.
 @end group
 
 @group
-(set-file-modes "~/junk/diffs" #o666)
+(set-file-modes "~/junk/diffs" #o666 'nofollow)
      @result{} nil
 @end group
 
@@ -1801,9 +1808,17 @@ See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @cindex file permissions, setting
 @cindex permissions, file
 @cindex file modes, setting
-@deffn Command set-file-modes filename mode
+@deffn Command set-file-modes filename mode &optional flag
 This function sets the @dfn{file mode} (or @dfn{permissions}) of
-@var{filename} to @var{mode}.  This function follows symbolic links.
+@var{filename} to @var{mode}.
+
+By default this function follows symbolic links.  However, if the
+optional argument @var{flag} is the symbol @code{nofollow}, this
+function does not follow @var{filename} if it is a symbolic link;
+this can help prevent inadvertently changing the mode bits of a file
+somewhere else.  On platforms that do not support changing mode bits
+on a symbolic link, this function signals an error when @var{filename}
+is a symbolic link and @var{flag} is @code{nofollow}.
 
 If called non-interactively, @var{mode} must be an integer.  Only the
 lowest 12 bits of the integer are used; on most systems, only the
@@ -1811,7 +1826,7 @@ lowest 9 bits are meaningful.  You can use the Lisp construct for
 octal numbers to enter @var{mode}.  For example,
 
 @example
-(set-file-modes #o644)
+(set-file-modes "myfile" #o644 'nofollow)
 @end example
 
 @noindent

@@ -895,7 +895,7 @@ FILE's modification time."
           (cons (lambda () (ignore-errors (delete-file tempfile)))
                 kill-emacs-hook)))
     (unless (= temp-modes desired-modes)
-      (set-file-modes tempfile desired-modes))
+      (set-file-modes tempfile desired-modes 'nofollow))
     (write-region (point-min) (point-max) tempfile nil 1)
     (backup-buffer)
     (rename-file tempfile buffer-file-name t))

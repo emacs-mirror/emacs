@@ -969,7 +969,8 @@ _GL_EXTERN_C char * mbssep (char **stringp, const char *delim)
    Caveat: The identity of the delimiting character is lost.
 
    See also mbssep().  */
-_GL_EXTERN_C char * mbstok_r (char *string, const char *delim, char **save_ptr)
+_GL_EXTERN_C char * mbstok_r (char *restrict string, const char *delim,
+                              char **save_ptr)
      _GL_ARG_NONNULL ((2, 3));
 #endif
 

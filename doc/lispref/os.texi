@@ -3127,7 +3127,7 @@ being reported.  For example:
 @end group
 
 @group
-(set-file-modes "/tmp/foo" (default-file-modes))
+(set-file-modes "/tmp/foo" (default-file-modes) 'nofollow)
      @result{} Event (35025468 attribute-changed "/tmp/foo")
 @end group
 @end example

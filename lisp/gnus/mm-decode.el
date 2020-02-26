@@ -948,7 +948,7 @@ external if displayed external."
 	  ;; The file is deleted after the viewer exists.  If the users edits
 	  ;; the file, changes will be lost.  Set file to read-only to make it
 	  ;; clear.
-	  (set-file-modes file #o400)
+	  (set-file-modes file #o400 'nofollow)
 	  (message "Viewing with %s" method)
 	  (cond
 	   (needsterm

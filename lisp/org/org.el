@@ -568,7 +568,7 @@ Effort estimates given in this property need to have the format H:MM.")
   "Regular expression for fast time stamp matching.")
 
 (defconst org-ts-regexp-inactive
-  "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^\r\n>]*\\)\\]"
+  "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*\\)\\]"
   "Regular expression for fast inactive time stamp matching.")
 
 (defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*\\)[]>]"

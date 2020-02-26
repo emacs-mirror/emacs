@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2019.12.17.268053413
+;; Version: 2020.02.23.232634261
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2019-12-17-ffa2ba5-vpo-GNU"
+(defconst verilog-mode-version "2020-02-23-dddb795-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1281,6 +1281,18 @@ won't merge conflict."
   :type '(choice (const nil) (const t) (const lhs)))
 (put 'verilog-auto-inst-template-numbers 'safe-local-variable
      '(lambda (x) (memq x '(nil t lhs))))
+
+(defcustom verilog-auto-inst-template-required nil
+  "If non-nil, when creating a port with AUTOINST, require a template.
+Any port which does not have a template will be ommitted from the
+instantiation.
+
+If nil, if a port is not templated it will be inserted to connect
+to a net with the same name as the port."
+  :version "28.0"
+  :group 'verilog-mode-auto
+  :type 'boolean)
+(put 'verilog-auto-inst-template-required 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-inst-column 40
   "Indent-to column number for net name part of AUTOINST created pin."
@@ -3117,7 +3129,7 @@ See also `verilog-font-lock-extra-types'.")
      (:foreground "DimGray" :italic t))
     (((class grayscale) (background dark))
      (:foreground "LightGray" :italic t))
-    (t (:italis t)))
+    (t (:italic t)))
   "Font lock mode face used to background highlight translate-off regions."
   :group 'font-lock-highlighting-faces)
 
@@ -4571,9 +4583,11 @@ More specifically, point @ in the line foo : @ begin"
       nil)))
 
 (defun verilog-backward-up-list (arg)
-  "Call `backward-up-list' ARG, ignoring comments."
+  "Call `backward-up-list' ARG, ignoring comments and errors."
   (let ((parse-sexp-ignore-comments t))
-    (backward-up-list arg)))
+    (condition-case nil
+        (backward-up-list arg)  ;; May throw Unbalanced parenthesis
+      (error nil))))
 
 (defun verilog-forward-sexp-cmt (arg)
   "Call `forward-sexp' ARG, inside comments."
@@ -11370,9 +11384,10 @@ See the example in `verilog-auto-inout-modport'."
 (defvar vl-bits  nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-mbits nil "See `verilog-auto-inst'.") ; Prevent compile warning
 
-(defun verilog-auto-inst-port (port-st indent-pt moddecls tpl-list tpl-num for-star par-values)
+(defun verilog-auto-inst-port (section port-st indent-pt moddecls tpl-list tpl-num
+                                       for-star par-values)
   "Print out an instantiation connection for this PORT-ST.
-Insert to INDENT-PT, use template TPL-LIST.
+Inside SECTION, insert to INDENT-PT, use template TPL-LIST.
 @ are instantiation numbers, replaced with TPL-NUM.
 @\"(expression @)\" are evaluated, with @ as a variable.
 If FOR-STAR add comment it is a .* expansion.
@@ -11474,60 +11489,74 @@ If PAR-VALUES replace final strings with these parameter values."
       (setq tpl-net (verilog-string-replace-matches "\\[\\]\\[\\]" dflt-bits nil nil tpl-net))
       (setq tpl-net (verilog-string-replace-matches "\\[\\]" vl-bits nil nil tpl-net)))
     ;; Insert it
-    (indent-to indent-pt)
-    (insert "." port)
-    (unless (and verilog-auto-inst-dot-name
-		 (equal port tpl-net))
-      (indent-to verilog-auto-inst-column)
-      (insert "(" tpl-net ")"))
-    (insert ",")
-    (cond (tpl-ass
-	   (verilog-read-auto-template-hit tpl-ass)
-	   (indent-to (+ (if (< verilog-auto-inst-column 48) 24 16)
-			 verilog-auto-inst-column))
-	   ;; verilog-insert requires the complete comment in one call - including the newline
-	   (cond ((equal verilog-auto-inst-template-numbers 'lhs)
-		  (verilog-insert " // Templated"
-				  " LHS: " (nth 0 tpl-ass)
-				  "\n"))
-		 (verilog-auto-inst-template-numbers
-		  (verilog-insert " // Templated"
-				  " T" (int-to-string (nth 2 tpl-ass))
-				  " L" (int-to-string (nth 3 tpl-ass))
-				  "\n"))
-		 (t
-		  (verilog-insert " // Templated\n"))))
-	  (for-star
-	   (indent-to (+ (if (< verilog-auto-inst-column 48) 24 16)
-			 verilog-auto-inst-column))
-	   (verilog-insert " // Implicit .*\n"))
-	  (t
-	   (insert "\n")))))
-;;(verilog-auto-inst-port (list "foo" "[5:0]") 10 (list (list "foo" "a@\"(% (+ @ 1) 4)\"a")) "3")
+    (when (or tpl-ass (not verilog-auto-inst-template-required))
+      (verilog-auto-inst-first section)
+      (indent-to indent-pt)
+      (insert "." port)
+      (unless (and verilog-auto-inst-dot-name
+                   (equal port tpl-net))
+        (indent-to verilog-auto-inst-column)
+        (insert "(" tpl-net ")"))
+      (insert ",")
+      (cond (tpl-ass
+             (verilog-read-auto-template-hit tpl-ass)
+             (indent-to (+ (if (< verilog-auto-inst-column 48) 24 16)
+                           verilog-auto-inst-column))
+             ;; verilog-insert requires the complete comment in one call - including the newline
+             (cond ((equal verilog-auto-inst-template-numbers 'lhs)
+                    (verilog-insert " // Templated"
+                                    " LHS: " (nth 0 tpl-ass)
+                                    "\n"))
+                   (verilog-auto-inst-template-numbers
+                    (verilog-insert " // Templated"
+                                    " T" (int-to-string (nth 2 tpl-ass))
+                                    " L" (int-to-string (nth 3 tpl-ass))
+                                    "\n"))
+                   (t
+                    (verilog-insert " // Templated\n"))))
+            (for-star
+             (indent-to (+ (if (< verilog-auto-inst-column 48) 24 16)
+                           verilog-auto-inst-column))
+             (verilog-insert " // Implicit .*\n"))
+            (t
+             (insert "\n"))))))
+;;(verilog-auto-inst-port "" (list "foo" "[5:0]") 10 (list (list "foo" "a@\"(% (+ @ 1) 4)\"a")) "3")
 ;;(x "incom[@\"(+ (* 8 @) 7)\":@\"(* 8 @)\"]")
 ;;(x ".out (outgo[@\"(concat (+ (* 8 @) 7) \\\":\\\" ( * 8 @))\"]));")
 
-(defun verilog-auto-inst-port-list (sig-list indent-pt moddecls tpl-list tpl-num for-star par-values)
-  "For `verilog-auto-inst' print a list of ports using `verilog-auto-inst-port'."
-  (when verilog-auto-inst-sort
-    (setq sig-list (sort (copy-alist sig-list) #'verilog-signals-sort-compare)))
-  (mapc (lambda (port)
-	  (verilog-auto-inst-port port indent-pt moddecls
-				  tpl-list tpl-num for-star par-values))
-	sig-list))
+(defvar verilog-auto-inst-first-section nil
+  "Local first-in-section for `verilog-auto-inst-first'.")
+(defvar verilog-auto-inst-first-any nil
+  "Local first-in-any-section for `verilog-auto-inst-first'.")
 
-(defun verilog-auto-inst-first ()
-  "Insert , etc before first ever port in this instant, as part of \\[verilog-auto-inst]."
+(defun verilog-auto-inst-first (section)
+  "Insert , and SECTION before port, as part of \\[verilog-auto-inst]."
   ;; Do we need a trailing comma?
   ;; There maybe an ifdef or something similar before us.  What a mess.  Thus
   ;; to avoid trouble we only insert on preceding ) or *.
   ;; Insert first port on new line
-  (insert "\n")  ; Must insert before search, so point will move forward if insert comma
-  (save-excursion
-    (verilog-re-search-backward-quick "[^ \t\n\f]" nil nil)
-    (when (looking-at ")\\|\\*")  ; Generally don't insert, unless we are fairly sure
-      (forward-char 1)
-      (insert ","))))
+  (when verilog-auto-inst-first-any
+    (setq verilog-auto-inst-first-any nil)
+    (insert "\n")  ; Must insert before search, so point will move forward if insert comma
+    (save-excursion
+      (verilog-re-search-backward-quick "[^ \t\n\f]" nil nil)
+      (when (looking-at ")\\|\\*")  ; Generally don't insert, unless we are fairly sure
+        (forward-char 1)
+        (insert ","))))
+  (when verilog-auto-inst-first-section
+    (setq verilog-auto-inst-first-section nil)
+    (verilog-insert-indent section)))
+
+(defun verilog-auto-inst-port-list (section sig-list indent-pt moddecls
+                                            tpl-list tpl-num for-star par-values)
+  "For `verilog-auto-inst' print a list of ports using `verilog-auto-inst-port'."
+  (when verilog-auto-inst-sort
+    (setq sig-list (sort (copy-alist sig-list) #'verilog-signals-sort-compare)))
+  (let ((verilog-auto-inst-first-section t))
+    (mapc (lambda (port)
+            (verilog-auto-inst-port section port indent-pt moddecls
+                                    tpl-list tpl-num for-star par-values))
+          sig-list)))
 
 (defun verilog-auto-star ()
   "Expand SystemVerilog .* pins, as part of \\[verilog-auto].
@@ -11696,6 +11725,10 @@ Templates:
   to see which regexps are matching.  Don't leave that mode set after
   debugging is completed though, it will result in lots of extra differences
   and merge conflicts.
+
+  If a connection name does not match any template, it is
+  connected to a net by the same name as the port (unless
+  `verilog-auto-inst-template-required' is true).
 
   Setting `verilog-auto-template-warn-unused' will report errors
   if any template lines are unused.
@@ -11874,10 +11907,11 @@ For more information see the \\[verilog-faq] and forums at URL
 				      (1+ (current-column))))
 	   (verilog-auto-inst-column (max verilog-auto-inst-column
 					  (+ 16 (* 8 (/ (+ indent-pt 7) 8)))))
+           (verilog-auto-inst-first-any t)
 	   (modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
 	   submod submodi submoddecls
-	   inst skip-pins tpl-list tpl-num did-first par-values)
+           inst skip-pins tpl-list tpl-num par-values)
 
       ;; Find module name that is instantiated
       (setq submod  (verilog-read-inst-module)
@@ -11914,51 +11948,46 @@ For more information see the \\[verilog-faq] and forums at URL
 	      (vl-dir "interfaced"))
 	  (when (and sig-list
 		     verilog-auto-inst-interfaced-ports)
-	    (when (not did-first) (verilog-auto-inst-first) (setq did-first t))
             ;; Note these are searched for in verilog-read-sub-decls.
-	    (verilog-insert-indent "// Interfaced\n")
-	    (verilog-auto-inst-port-list sig-list indent-pt moddecls
+            (verilog-auto-inst-port-list "// Interfaced\n"
+                                         sig-list indent-pt moddecls
 					 tpl-list tpl-num for-star par-values)))
 	(let ((sig-list (verilog-signals-not-in
 			 (verilog-decls-get-interfaces submoddecls)
 			 skip-pins))
 	      (vl-dir "interface"))
 	  (when sig-list
-	    (when (not did-first) (verilog-auto-inst-first) (setq did-first t))
             ;; Note these are searched for in verilog-read-sub-decls.
-	    (verilog-insert-indent "// Interfaces\n")
-	    (verilog-auto-inst-port-list sig-list indent-pt moddecls
-					 tpl-list tpl-num for-star par-values)))
+            (verilog-auto-inst-port-list "// Interfaces\n"
+                                         sig-list indent-pt moddecls
+                                         tpl-list tpl-num for-star par-values)))
 	(let ((sig-list (verilog-signals-not-in
 			 (verilog-decls-get-outputs submoddecls)
 			 skip-pins))
 	      (vl-dir "output"))
 	  (when sig-list
-	    (when (not did-first) (verilog-auto-inst-first) (setq did-first t))
-	    (verilog-insert-indent "// Outputs\n")
-	    (verilog-auto-inst-port-list sig-list indent-pt moddecls
+            (verilog-auto-inst-port-list "// Outputs\n"
+                                         sig-list indent-pt moddecls
 					 tpl-list tpl-num for-star par-values)))
 	(let ((sig-list (verilog-signals-not-in
 			 (verilog-decls-get-inouts submoddecls)
 			 skip-pins))
 	      (vl-dir "inout"))
 	  (when sig-list
-	    (when (not did-first) (verilog-auto-inst-first) (setq did-first t))
-	    (verilog-insert-indent "// Inouts\n")
-	    (verilog-auto-inst-port-list sig-list indent-pt moddecls
+            (verilog-auto-inst-port-list "// Inouts\n"
+                                         sig-list indent-pt moddecls
 					 tpl-list tpl-num for-star par-values)))
 	(let ((sig-list (verilog-signals-not-in
 			 (verilog-decls-get-inputs submoddecls)
 			 skip-pins))
 	      (vl-dir "input"))
 	  (when sig-list
-	    (when (not did-first) (verilog-auto-inst-first) (setq did-first t))
-	    (verilog-insert-indent "// Inputs\n")
-	    (verilog-auto-inst-port-list sig-list indent-pt moddecls
+            (verilog-auto-inst-port-list "// Inputs\n"
+                                         sig-list indent-pt moddecls
 					 tpl-list tpl-num for-star par-values)))
 	;; Kill extra semi
 	(save-excursion
-	  (cond (did-first
+          (cond ((not verilog-auto-inst-first-any)
 		 (re-search-backward "," pt t)
 		 (delete-char 1)
 		 (insert ");")
@@ -12020,10 +12049,11 @@ Templates:
 				      (1+ (current-column))))
 	   (verilog-auto-inst-column (max verilog-auto-inst-column
 					  (+ 16 (* 8 (/ (+ indent-pt 7) 8)))))
+           (verilog-auto-inst-first-any t)
 	   (modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
 	   submod submodi submoddecls
-	   inst skip-pins tpl-list tpl-num did-first)
+           inst skip-pins tpl-list tpl-num)
       ;; Find module name that is instantiated
       (setq submod (save-excursion
 		     ;; Get to the point where AUTOINST normally is to read the module
@@ -12060,14 +12090,13 @@ Templates:
           (when regexp
             (setq sig-list (verilog-signals-matching-regexp sig-list regexp)))
 	  (when sig-list
-	    (when (not did-first) (verilog-auto-inst-first) (setq did-first t))
             ;; Note these are searched for in verilog-read-sub-decls.
-	    (verilog-insert-indent "// Parameters\n")
-	    (verilog-auto-inst-port-list sig-list indent-pt moddecls
+            (verilog-auto-inst-port-list "// Parameters\n"
+                                         sig-list indent-pt moddecls
 					 tpl-list tpl-num nil nil)))
 	;; Kill extra semi
 	(save-excursion
-	  (cond (did-first
+          (cond ((not verilog-auto-inst-first-any)
 		 (re-search-backward "," pt t)
 		 (delete-char 1)
 		 (insert ")")

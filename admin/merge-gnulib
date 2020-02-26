@@ -33,7 +33,7 @@ GNULIB_MODULES='
   crypto/md5-buffer crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
   d-type diffseq dosname double-slash-root dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
-  fcntl fcntl-h fdopendir
+  fchmodat fcntl fcntl-h fdopendir
   filemode filevercmp flexmember fpieee fstatat fsusage fsync
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile lstat

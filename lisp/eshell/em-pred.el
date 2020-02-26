@@ -478,7 +478,7 @@ that `ls -l' will show in the first column of its display."
 (defsubst eshell-pred-file-mode (mode)
   "Return a test which tests that MODE pertains to the file."
   `(lambda (file)
-     (let ((modes (file-modes file)))
+     (let ((modes (file-modes file 'nofollow)))
        (if modes
 	   (logand ,mode modes)))))
 

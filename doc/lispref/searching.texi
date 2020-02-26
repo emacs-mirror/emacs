@@ -582,8 +582,13 @@ an unquoted @samp{[} is special again and a @samp{]} not.
 @cindex alpha character class, regexp
 @cindex xdigit character class, regexp
 
-  Here is a table of the classes you can use in a character alternative,
-and what they mean:
+  Below is a table of the classes you can use in a character
+alternative, and what they mean.  Note that the @samp{[} and @samp{]}
+characters that enclose the class name are part of the name, so a
+regular expression using these classes needs one more pair of
+brackets.  For example, a regular expression matching a sequence of
+one or more letters and digits would be @samp{[[:alnum:]]+}, not
+@samp{[:alnum:]+}.
 
 @table @samp
 @item [:ascii:]

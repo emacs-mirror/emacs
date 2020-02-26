@@ -879,7 +879,9 @@ If a prefix argument is given, ignore all marked files."
 	   (vc-ignore (vc-dir-fileinfo->name filearg))
 	   t))
        vc-ewoc)
-    (vc-ignore (vc-dir-current-file))))
+    (vc-ignore
+     (file-relative-name (vc-dir-current-file))
+     default-directory)))
 
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))

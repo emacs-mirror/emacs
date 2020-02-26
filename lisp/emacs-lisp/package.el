@@ -2081,7 +2081,8 @@ to install it but still mark it as selected."
                  (package-compute-transaction () (list (list pkg))))))
         (progn
           (package-download-transaction transaction)
-          (package--quickstart-maybe-refresh))
+          (package--quickstart-maybe-refresh)
+          (message  "Package `%s' installed." name))
       (message "`%s' is already installed" name))))
 
 (defun package-strip-rcs-id (str)

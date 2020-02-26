@@ -3352,6 +3352,14 @@ backslash, although there is no harm in doing so to make the code
 easier to edit with an older Emacs version.
 
 ---
+** New symbolic accessor functions for a parse state list.
+The new accessor functions 'ppss-depth', 'ppss-list-start',
+'ppss-last-sexp-start', 'ppss-string-terminator', 'comment-depth',
+'quoted-p', 'comment-style', 'comment-or-string-start', 'open-parens',
+and 'two-character-syntax' can be used on the list value returned by
+'parse-partial-sexp' and 'syntax-ppss'.
+
+---
 ** The 'server-name' and 'server-socket-dir' variables are set when a
 socket has been passed to Emacs.
 

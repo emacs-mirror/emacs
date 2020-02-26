@@ -1515,7 +1515,7 @@
      byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate
      byte-plus byte-max byte-min byte-mult byte-char-after byte-char-syntax
      byte-buffer-substring byte-string= byte-string< byte-nthcdr byte-elt
-     byte-member byte-assq byte-quo byte-rem)
+     byte-member byte-assq byte-quo byte-rem byte-substring)
    byte-compile-side-effect-and-error-free-ops))
 
 ;; This crock is because of the way DEFVAR_BOOL variables work.
