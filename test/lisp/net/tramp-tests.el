@@ -50,6 +50,7 @@
 (require 'vc-hg)
 
 (declare-function tramp-find-executable "tramp-sh")
+(declare-function tramp-get-remote-chmod-h "tramp-sh")
 (declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
@@ -3082,18 +3083,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 ;; Method "smb" supports `make-symbolic-link' only if the remote host
 ;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el and
 ;; tramp-rclone.el do not support symbolic links at all.
-;; We check also `set-file-modes' with nofollow flag.
 (defmacro tramp--test-ignore-make-symbolic-link-error (&rest body)
   "Run BODY, ignoring \"make-symbolic-link not supported\" file error."
   (declare (indent defun) (debug (body)))
   `(condition-case err
        (progn ,@body)
      (file-error
-      (unless (string-match-p
-	       (concat
-		"^\\(make-symbolic-link not supported"
-		"\\|Cannot chmod .* with nofollow flag\\)$")
-	       (error-message-string err))
+      (unless (string-equal (error-message-string err)
+			    "make-symbolic-link not supported")
 	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test18-file-attributes ()
@@ -3385,15 +3382,26 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	    ;; A file is always writable for user "root".
 	    (unless (zerop (tramp-compat-file-attribute-user-id
 			    (file-attributes tmp-name1)))
-	      (should-not (file-writable-p tmp-name1))))
+	      (should-not (file-writable-p tmp-name1)))
+	    ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  For
+	    ;; regular files, there shouldn't be a difference.
+	    (when (tramp--test-emacs28-p)
+	      (with-no-warnings
+		(set-file-modes tmp-name1 #o222 'nofollow)
+		(should (= (file-modes tmp-name1 'nofollow) #o222)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name1)))
 
-      ;; Check the NOFOLLOW arg.  It exists since Emacs 28.
-      (when (tramp--test-emacs28-p)
+      ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  It is
+      ;; implemented for tramp-gvfs.el and tramp-sh.el.  However,
+      ;; tramp-gvfs,el does not support creating symbolic links.  And
+      ;; in tramp-sh.el, we must ensure that the remote chmod command
+      ;; supports the "-h" argument.
+      (when (and (tramp--test-emacs28-p) (tramp--test-sh-p)
+		 (tramp-get-remote-chmod-h (tramp-dissect-file-name tmp-name1)))
 	(unwind-protect
-	    (tramp--test-ignore-make-symbolic-link-error
+	    (with-no-warnings
 	      (write-region "foo" nil tmp-name1)
 	      (should (file-exists-p tmp-name1))
 	      (make-symbolic-link tmp-name1 tmp-name2)

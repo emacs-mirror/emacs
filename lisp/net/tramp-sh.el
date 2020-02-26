@@ -1481,16 +1481,18 @@ of."
 (defun tramp-sh-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (let ((chmod "chmod"))
-      (when (and (eq flag 'nofollow) (file-symlink-p filename))
-	(or (setq chmod (tramp-get-remote-chmod-h v))
-	    (tramp-error
-	     v 'file-error "Cannot chmod %s with %s flag" filename flag)))
+    ;; We need "chmod -h" when the flag is set.
+    (when (or (not (eq flag 'nofollow))
+	      (not (file-symlink-p filename))
+	      (tramp-get-remote-chmod-h v))
       (tramp-flush-file-properties v localname)
       ;; FIXME: extract the proper text from chmod's stderr.
       (tramp-barf-unless-okay
        v
-       (format "%s %o %s" chmod mode (tramp-shell-quote-argument localname))
+       (format
+	"chmod %s %o %s"
+	(if (and (eq flag 'nofollow) (tramp-get-remote-chmod-h v)) "-h" "")
+	mode (tramp-shell-quote-argument localname))
        "Error while changing file's mode %s" filename))))
 
 (defun tramp-sh-handle-set-file-times (filename &optional time)
@@ -5902,20 +5904,20 @@ ID-FORMAT valid values are `string' and `integer'."
 	       command)))))
 
 (defun tramp-get-remote-chmod-h (vec)
-  "Determine remote `chmod' command which supports nofollow argument."
+  "Check whether remote `chmod' supports nofollow argument."
   (with-tramp-connection-property vec "chmod-h"
     (tramp-message vec 5 "Finding a suitable `chmod' command with nofollow")
     (let ((tmpfile
 	   (make-temp-name
 	    (expand-file-name
 	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
-      (when (tramp-send-command-and-check
-	     vec
-	     (format
-	      "ln -s foo %s && chmod -h %s 0777"
-	      (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
-	(delete-file tmpfile)
-	"chmod -h"))))
+      (prog1
+	  (tramp-send-command-and-check
+	   vec
+	   (format
+	    "ln -s foo %s && chmod -h %s 0777"
+	    (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
+	(delete-file tmpfile)))))
 
 (defun tramp-get-env-with-u-option (vec)
   "Check, whether the remote `env' command supports the -u option."

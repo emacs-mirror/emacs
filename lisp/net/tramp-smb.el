@@ -1467,14 +1467,14 @@ component is used as the target of the symlink."
 (defun tramp-smb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (and (eq flag 'nofollow) (file-symlink-p filename))
-      (tramp-error v 'file-error "Cannot chmod %s with %s flag" filename flag))
-    (when (tramp-smb-get-cifs-capabilities v)
-      (tramp-flush-file-properties v localname)
-      (unless (tramp-smb-send-command
-	       v (format "chmod \"%s\" %o" (tramp-smb-get-localname v) mode))
-	(tramp-error
-	 v 'file-error "Error while changing file's mode %s" filename)))))
+    ;; smbclient chmod does not support nofollow.
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (when (tramp-smb-get-cifs-capabilities v)
+	(tramp-flush-file-properties v localname)
+	(unless (tramp-smb-send-command
+		 v (format "chmod \"%s\" %o" (tramp-smb-get-localname v) mode))
+	  (tramp-error
+	   v 'file-error "Error while changing file's mode %s" filename))))))
 
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once

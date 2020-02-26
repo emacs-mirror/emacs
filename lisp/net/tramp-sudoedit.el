@@ -466,14 +466,14 @@ the result will be a local, non-Tramp, file name."
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (and (eq flag 'nofollow) (file-symlink-p filename))
-      (tramp-error v 'file-error "Cannot chmod %s with %s flag" filename flag))
-    (tramp-flush-file-properties v localname)
-    (unless (tramp-sudoedit-send-command
-	     v "chmod" (format "%o" mode)
-	     (tramp-compat-file-name-unquote localname))
-      (tramp-error
-       v 'file-error "Error while changing file's mode %s" filename))))
+    ;; It is unlikely that "chmod -h" works.
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-flush-file-properties v localname)
+      (unless (tramp-sudoedit-send-command
+	       v "chmod" (format "%o" mode)
+	       (tramp-compat-file-name-unquote localname))
+	(tramp-error
+	 v 'file-error "Error while changing file's mode %s" filename)))))
 
 (defun tramp-sudoedit-remote-selinux-p (vec)
   "Check, whether SELINUX is enabled on the remote host."
