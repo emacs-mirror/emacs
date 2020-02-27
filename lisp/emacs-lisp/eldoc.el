@@ -233,14 +233,6 @@ See `eldoc-documentation-function' for more detail."
   (when (eldoc--supported-p)
     (eldoc-mode 1)))
 
-(defun eldoc--supported-p ()
-  "Non-nil if an ElDoc function is set for this buffer."
-  (let ((hook 'eldoc-documentation-functions))
-    (and (not (memq eldoc-documentation-function '(nil ignore)))
-         (or (and (local-variable-p hook)
-                  (buffer-local-value hook (current-buffer)))
-             (default-value hook)))))
-
 
 (defun eldoc-schedule-timer ()
   "Ensure `eldoc-timer' is running.
@@ -405,10 +397,14 @@ effect."
   :link '(info-link "(emacs) Lisp Doc")
   :type '(radio (function-item eldoc-documentation-default)
                 (function-item eldoc-documentation-compose)
-                (function :tag "Other function")
-                (const :tag "None" nil))
+                (function :tag "Other function"))
   :version "28.1"
   :group 'eldoc)
+
+(defun eldoc--supported-p ()
+  "Non-nil if an ElDoc function is set for this buffer."
+  (and (not (memq eldoc-documentation-function '(nil ignore)))
+       eldoc-documentation-functions))
 
 (defun eldoc-print-current-symbol-info ()
   "Print the text produced by `eldoc-documentation-function'."
@@ -423,8 +419,7 @@ effect."
         ;; Only keep looking for the info as long as the user hasn't
         ;; requested our attention.  This also locally disables inhibit-quit.
         (while-no-input
-          (let ((fun eldoc-documentation-function))
-            (when fun (eldoc-message (funcall fun)))))))))
+          (eldoc-message (funcall eldoc-documentation-function)))))))
 
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the
