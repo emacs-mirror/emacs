@@ -202,11 +202,6 @@ Emacs now supports bignums so this old glitch is no longer needed.
 'previous-system-time-locale' have been removed, as they were created
 by mistake and were not useful to Lisp code.
 
-** The regexp mistake '[:digit:]' is now an error.
-The correct syntax is '[[:digit:]]'.  Previously, forgetting the extra
-brackets silently resulted in a regexp that did not at all work as
-intended.
-
 
 * Lisp Changes in Emacs 28.1
 

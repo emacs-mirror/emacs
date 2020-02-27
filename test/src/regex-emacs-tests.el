@@ -803,9 +803,4 @@ This evaluates the TESTS test cases from glibc."
   (should-not (string-match "å" "\xe5"))
   (should-not (string-match "[å]" "\xe5")))
 
-(ert-deftest regexp-invalid ()
-  ;; relint suppression: Duplicated
-  (should-error (string-match "[:space:]" "")
-                :type 'invalid-regexp))
-
 ;;; regex-emacs-tests.el ends here
