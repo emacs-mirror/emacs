@@ -806,7 +806,6 @@ This evaluates the TESTS test cases from glibc."
 (ert-deftest regexp-invalid ()
   ;; relint suppression: Duplicated
   (should-error (string-match "[:space:]" "")
-                :type 'invalid-regexp)
-  (should (equal (string-match "[:-:]" "a-:") 2)))
+                :type 'invalid-regexp))
 
 ;;; regex-emacs-tests.el ends here

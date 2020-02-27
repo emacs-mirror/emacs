@@ -2007,7 +2007,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
             if (*p == ':')
               {
                 re_char *q = p + 1;
-                while (q != pend && *q != ']' && *q != '-')
+                while (q != pend && *q != ']')
                   {
                     if (*q == ':')
                       {
