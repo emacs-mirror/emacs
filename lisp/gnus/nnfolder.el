@@ -735,7 +735,7 @@ deleted.  Point is left where the deleted region was."
 		       (or nnfolder-file-coding-system-for-write
 			   nnfolder-file-coding-system-for-write)))
 		  (nnmail-write-region (point-min) (point-min)
-				       file t 'nomesg)))
+				       file t 'nomesg nil 'excl)))
 	      (when (setq nnfolder-current-buffer (nnfolder-read-folder group))
 		(set-buffer nnfolder-current-buffer)
 		(push (list group nnfolder-current-buffer)

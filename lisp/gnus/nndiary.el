@@ -1115,7 +1115,7 @@ all.  This may very well take some time.")
 	  (widen))
 	(setq files (cdr files)))
       (with-current-buffer nov-buffer
-	(nnmail-write-region 1 (point-max) nov nil 'nomesg)
+	(nnmail-write-region 1 (point-max) nov nil 'nomesg nil 'excl)
 	(kill-buffer (current-buffer))))))
 
 (defun nndiary-nov-delete-article (group article)

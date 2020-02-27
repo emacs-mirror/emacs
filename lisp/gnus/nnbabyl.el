@@ -544,7 +544,7 @@
       (setq buffer-file-name nnbabyl-mbox-file)
       (insert "BABYL OPTIONS:\n\n\^_")
       (nnmail-write-region
-       (point-min) (point-max) nnbabyl-mbox-file t 'nomesg))))
+       (point-min) (point-max) nnbabyl-mbox-file t 'nomesg nil 'excl))))
 
 (defun nnbabyl-read-mbox ()
   (nnmail-activate 'nnbabyl)
