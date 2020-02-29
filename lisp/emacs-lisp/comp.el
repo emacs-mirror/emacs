@@ -679,7 +679,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   "Emit annotation STR."
   (comp-emit `(comment ,str)))
 
-(defun comp-emit-set-const (val)
+(defun comp-emit-setimm (val)
   "Set constant VAL to current slot."
   (let ((rel-idx (comp-add-const-to-relocs val)))
     (cl-assert (numberp rel-idx))
@@ -1086,7 +1086,7 @@ the annotation emission."
                          (cl-second (comp-block-insns
                                      (comp-limplify-curr-block comp-pass)))))
       (byte-constant
-       (comp-emit-set-const arg))
+       (comp-emit-setimm arg))
       (byte-discardN-preserve-tos
        (cl-incf (comp-sp) (- arg))
        (comp-copy-slot (+ arg (comp-sp)))))))
@@ -1112,7 +1112,7 @@ the annotation emission."
                              (intern (format "entry_fallback_%s" (1+ i))))
              do (comp-with-sp i
                   (comp-make-curr-block bb (comp-sp))
-                  (comp-emit-set-const nil)
+                  (comp-emit-setimm nil)
                   (comp-emit `(jump ,next-bb)))))
   (comp-make-curr-block 'entry_rest_args (comp-sp))
   (comp-emit `(set-rest-args-to-local ,(comp-slot-n nonrest)))
@@ -1675,7 +1675,7 @@ Here goes everything that can be done not iteratively (read once).
       ;; is now left to gcc, to be implemented only if we want a
       ;; reliable diagnostic here.
       (let ((values (apply f (mapcar #'comp-mvar-constant args))))
-        ;; See `comp-emit-set-const'.
+        ;; See `comp-emit-setimm'.
         (setf (car insn) 'setimm
               (cddr insn) (list (comp-add-const-to-relocs values) values))))))
 
