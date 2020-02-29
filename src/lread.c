@@ -1055,6 +1055,26 @@ This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
   return Fnreverse (lst);
 }
 
+static Lisp_Object
+effective_load_path (void)
+{
+  if (!NATIVE_COMP_FLAG)
+    return Vload_path;
+
+  Lisp_Object lp = Vload_path;
+  Lisp_Object new_lp = Qnil;
+  FOR_EACH_TAIL (lp)
+    {
+      Lisp_Object el = XCAR (lp);
+      new_lp =
+	Fcons (concat2 (Ffile_name_as_directory (el),
+			Vsystem_configuration),
+	       new_lp);
+      new_lp = Fcons (el, new_lp);
+    }
+  return Fnreverse (new_lp);
+}
+
 /* Return true if STRING ends with SUFFIX.  */
 static bool
 suffix_p (Lisp_Object string, const char *suffix)
@@ -1199,7 +1219,9 @@ Return t if the file exists and loads successfully.  */)
 	    suffixes = CALLN (Fappend, suffixes, Vload_file_rep_suffixes);
 	}
 
-      fd = openp (Vload_path, file, suffixes, &found, Qnil, load_prefer_newer);
+      fd =
+	openp (effective_load_path (), file, suffixes, &found, Qnil,
+	       load_prefer_newer);
     }
 
   if (fd == -1)
