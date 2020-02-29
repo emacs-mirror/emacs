@@ -237,6 +237,7 @@ into it.")
   (closed nil :type boolean
           :documentation "t if closed.")
   ;; All the followings are for SSA and CGF analysis.
+  ;; Keep in sync with `comp-clean-ssa'!!
   (in-edges () :type list
             :documentation "List of incoming edges.")
   (out-edges () :type list
@@ -283,6 +284,10 @@ Is in use to help the SSA rename pass."))
             :documentation "Interactive form.")
   (lap () :type list
        :documentation "LAP assembly representation.")
+  (ssa-status nil :type symbol
+       :documentation "SSA status either: 'nil', 'dirty' or 't'.
+Once in SSA form this *must* be set to 'dirty' every time the topology of the
+CFG is mutated by a pass.")
   (args nil :type comp-args-base)
   (frame-size nil :type number)
   (blocks (make-hash-table) :type hash-table
@@ -1271,6 +1276,22 @@ Top-level forms for the current context are rendered too."
     (setf (comp-mvar-id mvar) (sxhash-eq mvar))
     mvar))
 
+(defun comp-clean-ssa (f)
+  "Clean-up SSA for funtion F."
+  (setf (comp-func-edges f) ())
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks f)
+   do (setf (comp-block-in-edges b) ()
+            (comp-block-out-edges b) ()
+            (comp-block-dom b) nil
+            (comp-block-df b) (make-hash-table)
+            (comp-block-post-num b) nil
+            (comp-block-final-frame b) nil
+            ;; Prune all phis.
+            (comp-block-insns b) (cl-loop for insn in (comp-block-insns b)
+                                          unless (eq 'phi (car insn))
+                                            collect insn))))
+
 (defun comp-compute-edges ()
   "Compute the basic block edges for the current function."
   (cl-flet ((edge-add (&rest args)
@@ -1523,22 +1544,25 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
              do (cl-loop for (op . args) in (comp-block-insns b)
                          when (eq op 'phi)
-                         do (finalize-phi args b)))))
+                           do (finalize-phi args b)))))
 
 (defun comp-ssa (_)
   "Port all functions into mininal SSA form."
   (maphash (lambda (_ f)
-             (let ((comp-func f))
-               ;; TODO: if this is run more than once we should clean all CFG
-               ;; data including phis here.
-               (comp-compute-edges)
-               (comp-compute-dominator-tree)
-               (comp-compute-dominator-frontiers)
-               (comp-log-block-info)
-               (comp-place-phis)
-               (comp-ssa-rename)
-               (comp-finalize-phis)
-               (comp-log-func comp-func 3)))
+             (let* ((comp-func f)
+                    (ssa-status (comp-func-ssa-status f)))
+               (unless (eq ssa-status t)
+                 (when (eq ssa-status 'dirty)
+                   (comp-clean-ssa f))
+                 (comp-compute-edges)
+                 (comp-compute-dominator-tree)
+                 (comp-compute-dominator-frontiers)
+                 (comp-log-block-info)
+                 (comp-place-phis)
+                 (comp-ssa-rename)
+                 (comp-finalize-phis)
+                 (comp-log-func comp-func 3)
+                 (setf (comp-func-ssa-status f) t))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
 
@@ -1928,7 +1952,8 @@ These are substituted with a normal 'set' op."
                         (eq l-val ret-val))
                (let ((tco-seq (comp-form-tco-call-seq args)))
                  (setf (car insns-seq) (car tco-seq)
-                       (cdr insns-seq) (cdr tco-seq))
+                       (cdr insns-seq) (cdr tco-seq)
+                       (comp-func-ssa-status comp-func) 'dirty)
                  (cl-return-from in-the-basic-block))))))))
 
 (defun comp-tco (_)
