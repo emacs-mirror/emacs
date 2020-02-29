@@ -6683,7 +6683,9 @@ mark_object (Lisp_Object arg)
 	      {
 		set_vector_marked (ptr);
 		struct Lisp_Subr *subr = XSUBR (obj);
-		mark_object (subr->native_comp_u[0]);
+		obj = subr->native_comp_u[0];
+		eassert (obj);
+		goto loop;
 	      }
 	    break;
 
