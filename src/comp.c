@@ -185,6 +185,9 @@ typedef struct {
   gcc_jit_rvalue *data_relocs_ephemeral;
   /* Synthesized struct holding func relocs.  */
   gcc_jit_lvalue *func_relocs;
+  Lisp_Object d_default_idx;
+  Lisp_Object d_impure_idx;
+  Lisp_Object d_ephemeral_idx;
 } comp_t;
 
 static comp_t comp;
@@ -196,6 +199,11 @@ typedef struct {
   ptrdiff_t len;
   const char data[];
 } static_obj_t;
+
+typedef struct {
+  gcc_jit_rvalue *array;
+  gcc_jit_rvalue *idx;
+} imm_reloc_t;
 
 
 /*
@@ -387,18 +395,43 @@ register_emitter (Lisp_Object key, void *func)
   Fputhash (key, value, comp.emitter_dispatcher);
 }
 
-static gcc_jit_rvalue *
-alloc_class_to_reloc (Lisp_Object alloc_class)
+static imm_reloc_t
+obj_to_reloc (Lisp_Object obj)
 {
-  if (alloc_class == Qd_default)
-    return comp.data_relocs;
-  else if (alloc_class == Qd_impure)
-    return comp.data_relocs_impure;
-  else if (alloc_class == Qd_ephemeral)
-    return comp.data_relocs_ephemeral;
-  xsignal (Qnative_ice,
-	   build_string ("inconsistent allocation class"));
+  imm_reloc_t reloc;
+  Lisp_Object idx;
+
+  idx = Fgethash (obj, comp.d_default_idx, Qnil);
+  if (!NILP (idx)) {
+      reloc.array = comp.data_relocs;
+      goto found;
+  }
+
+  idx = Fgethash (obj, comp.d_impure_idx, Qnil);
+  if (!NILP (idx))
+    {
+      reloc.array = comp.data_relocs_impure;
+      goto found;
+    }
+
+  idx = Fgethash (obj, comp.d_ephemeral_idx, Qnil);
+  if (!NILP (idx))
+    {
+      reloc.array = comp.data_relocs_ephemeral;
+      goto found;
+    }
+
+  xsignal1 (Qnative_ice,
+	    build_string ("cant't find data in relocation containers"));
   assume (false);
+ found:
+  if (!FIXNUMP (idx))
+    xsignal1 (Qnative_ice,
+	      build_string ("inconsistent data relocation container"));
+  reloc.idx = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						   comp.ptrdiff_type,
+						   XFIXNUM (idx));
+  return reloc;
 }
 
 static void
@@ -912,7 +945,7 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_const_lisp_obj (Lisp_Object obj, Lisp_Object alloc_class)
+emit_const_lisp_obj (Lisp_Object obj)
 {
   emit_comment (format_string ("const lisp obj: %s",
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
@@ -922,28 +955,20 @@ emit_const_lisp_obj (Lisp_Object obj, Lisp_Object alloc_class)
 		      gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 							   comp.void_ptr_type,
 							   NULL));
-
-  Lisp_Object container = CALL1I (comp-alloc-class-to-container, alloc_class);
-  Lisp_Object reloc_idx =
-    Fgethash (obj, CALL1I (comp-data-container-idx, container), Qnil);
-  eassert (!NILP (reloc_idx));
-  gcc_jit_rvalue *reloc_n =
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.ptrdiff_type,
-					 XFIXNUM (reloc_idx));
+  imm_reloc_t reloc = obj_to_reloc (obj);
   return
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_array_access (comp.ctxt,
 					NULL,
-					alloc_class_to_reloc (alloc_class),
-					reloc_n));
+					reloc.array,
+					reloc.idx));
 }
 
 static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
-  return emit_EQ (x, emit_const_lisp_obj (Qnil, Qd_default));
+  return emit_EQ (x, emit_const_lisp_obj (Qnil));
 }
 
 static gcc_jit_rvalue *
@@ -1046,7 +1071,7 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
-      emit_const_lisp_obj (Qconsp, Qd_default),
+      emit_const_lisp_obj (Qconsp),
       x };
 
   gcc_jit_block_add_eval (
@@ -1157,8 +1182,7 @@ emit_mvar_val (Lisp_Object mvar)
 	  return emit_cast (comp.lisp_obj_type, word);
 	}
       /* Other const objects are fetched from the reloc array.  */
-      return emit_const_lisp_obj (constant,
-				  CALL1I (comp-mvar-alloc-class, mvar));
+      return emit_const_lisp_obj (constant);
     }
 
   return gcc_jit_lvalue_as_rvalue (emit_mvar_access (mvar));
@@ -1193,7 +1217,7 @@ emit_set_internal (Lisp_Object args)
   gcc_jit_rvalue *gcc_args[4];
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_val (XCAR (args));
-  gcc_args[2] = emit_const_lisp_obj (Qnil, Qd_default);
+  gcc_args[2] = emit_const_lisp_obj (Qnil);
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
 						     SET_INTERNAL_SET);
@@ -1571,20 +1595,15 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qsetimm))
     {
       /* Ex: (setimm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
-      gcc_jit_rvalue *reloc_n =
-	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.int_type,
-					     XFIXNUM (arg[1]));
       emit_comment (SSDATA (Fprin1_to_string (arg[2], Qnil)));
+      imm_reloc_t reloc = obj_to_reloc (arg[2]);
       emit_frame_assignment (
 	arg[0],
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_context_new_array_access (comp.ctxt,
 					    NULL,
-					    alloc_class_to_reloc (
-					      CALL1I (comp-mvar-alloc-class,
-						      arg[0])),
-					    reloc_n)));
+					    reloc.array,
+					    reloc.idx)));
     }
   else if (EQ (op, Qcomment))
     {
@@ -1807,7 +1826,7 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
   EMACS_INT d_reloc_len =
     XFIXNUM (CALL1I (hash-table-count,
 		     CALL1I (comp-data-container-idx, container)));
-  Lisp_Object d_reloc = Fnreverse (CALL1I (comp-data-container-l, container));
+  Lisp_Object d_reloc = CALL1I (comp-data-container-l, container);
   d_reloc = Fvconcat (1, &d_reloc);
 
   gcc_jit_rvalue *reloc_struct =
@@ -1830,12 +1849,6 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
 static void
 declare_imported_data (void)
 {
-  /* Imported symbols by inliner functions.  */
-  CALL1I (comp-add-const-to-relocs, Qnil);
-  CALL1I (comp-add-const-to-relocs, Qt);
-  CALL1I (comp-add-const-to-relocs, Qconsp);
-  CALL1I (comp-add-const-to-relocs, Qlistp);
-
   /* Imported objects.  */
   comp.data_relocs =
     declare_imported_data_relocs (CALL1I (comp-ctxt-d-default, Vcomp_ctxt),
@@ -2449,11 +2462,11 @@ define_CAR_CDR (void)
       comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil, Qd_default));
+				     emit_const_lisp_obj (Qnil));
 
       comp.block = not_nil_b;
       gcc_jit_rvalue *wrong_type_args[] =
-	{ emit_const_lisp_obj (Qlistp, Qd_default), c };
+	{ emit_const_lisp_obj (Qlistp), c };
 
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
@@ -2462,7 +2475,7 @@ define_CAR_CDR (void)
 					 false));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil, Qd_default));
+				     emit_const_lisp_obj (Qnil));
     }
   comp.car = func[0];
   comp.cdr = func[1];
@@ -2842,12 +2855,12 @@ define_bool_to_lisp_obj (void)
   comp.block = ret_t_block;
   gcc_jit_block_end_with_return (ret_t_block,
 				 NULL,
-				 emit_const_lisp_obj (Qt, Qd_default));
+				 emit_const_lisp_obj (Qt));
 
   comp.block = ret_nil_block;
   gcc_jit_block_end_with_return (ret_nil_block,
 				 NULL,
-				 emit_const_lisp_obj (Qnil, Qd_default));
+				 emit_const_lisp_obj (Qnil));
 }
 
 /* Declare a function being compiled and add it to comp.exported_funcs_h.  */
@@ -3206,8 +3219,14 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  SPEED);
-  sigset_t oldset;
+  comp.d_default_idx =
+    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
+  comp.d_impure_idx =
+    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-impure, Vcomp_ctxt));
+  comp.d_ephemeral_idx =
+    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
+  sigset_t oldset;
   if (!noninteractive)
     {
       sigset_t blocked;
@@ -3231,8 +3250,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   define_add1_sub1 ();
   define_negate ();
 
-  struct Lisp_Hash_Table *func_h
-    = XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
+  struct Lisp_Hash_Table *func_h =
+    XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
   for (ptrdiff_t i = 0; i < func_h->count; i++)
     declare_function (HASH_VALUE (func_h, i));
   /* Compile all functions. Can't be done before because the

@@ -318,10 +318,7 @@ structure.")
  a value known at compile time.")
   (type nil :type symbol
         :documentation "When non nil indicates the type when known at compile
- time.")
-  (alloc-class nil :type symbol
-               :documentation "Can be one of: 'd-default' 'd-impure'
-               or 'd-ephemeral'."))
+ time."))
 
 ;; Special vars used by some passes
 (defvar comp-func)
@@ -344,31 +341,15 @@ structure.")
   "Type hint predicate for function name FUNC."
   (when (memq func comp-type-hints) t))
 
-(defun comp-data-container-check (cont)
-  "Sanity check CONT coherency."
-  (cl-assert (= (length (comp-data-container-l cont))
-                (hash-table-count (comp-data-container-idx cont)))))
-
-(defun comp-add-const-to-relocs-to-cont (obj cont)
-  "Keep track of OBJ into the CONT relocation container.
-The corresponding index is returned."
-  (let ((h (comp-data-container-idx cont)))
-    (if-let ((idx (gethash obj h)))
-        idx
-      (push obj (comp-data-container-l cont))
-      (puthash obj (hash-table-count h) h))))
-
 (defsubst comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS return the data container for the current context.
 Assume allocaiton class 'd-default as default."
   (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-default) comp-ctxt))
 
-(defun comp-add-const-to-relocs (obj)
-  "Keep track of OBJ into the ctxt relocations.
-The corresponding index is returned."
-  (comp-add-const-to-relocs-to-cont obj
-                                    (comp-alloc-class-to-container
-                                     comp-curr-allocation-class)))
+(defsubst comp-add-const-to-relocs (obj)
+  "Keep track of OBJ into the ctxt relocations."
+  (puthash obj t (comp-data-container-idx (comp-alloc-class-to-container
+                                           comp-curr-allocation-class))))
 
 (defmacro comp-within-log-buff (&rest body)
   "Execute BODY while at the end the log-buffer.
@@ -642,7 +623,7 @@ STACK-OFF is the index of the first slot frame involved."
   (when const-vld
     (comp-add-const-to-relocs constant))
   (make--comp-mvar :slot slot :const-vld const-vld :constant constant
-                   :type type :alloc-class comp-curr-allocation-class))
+                   :type type))
 
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
@@ -679,11 +660,12 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   "Emit annotation STR."
   (comp-emit `(comment ,str)))
 
-(defun comp-emit-setimm (val)
+(defsubst comp-emit-setimm (val)
   "Set constant VAL to current slot."
-  (let ((rel-idx (comp-add-const-to-relocs val)))
-    (cl-assert (numberp rel-idx))
-    (comp-emit `(setimm ,(comp-slot) ,rel-idx ,val))))
+  (comp-add-const-to-relocs val)
+  ;; Leave relocation index nil on purpose, will be fixed-up in final
+  ;; by `comp-finalize-relocs'.
+  (comp-emit `(setimm ,(comp-slot) nil ,val)))
 
 (defun comp-make-curr-block (block-name entry-sp &optional addr)
   "Create a basic block with BLOCK-NAME and set it as current block.
@@ -1281,13 +1263,11 @@ Top-level forms for the current context are rendered too."
 ;; this form is called 'minimal SSA form'.
 ;; This pass should be run every time basic blocks or m-var are shuffled.
 
-(cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type
-                                   (alloc-class comp-curr-allocation-class))
+(cl-defun make-comp-ssa-mvar (&key slot (constant nil const-vld) type)
   (let ((mvar (make--comp-mvar :slot slot
                                :const-vld const-vld
                                :constant constant
-                               :type type
-                               :alloc-class alloc-class)))
+                               :type type)))
     (setf (comp-mvar-id mvar) (sxhash-eq mvar))
     mvar))
 
@@ -1674,10 +1654,11 @@ Here goes everything that can be done not iteratively (read once).
       ;; pruning in order to be sure that this is not dead-code.  This
       ;; is now left to gcc, to be implemented only if we want a
       ;; reliable diagnostic here.
-      (let ((values (apply f (mapcar #'comp-mvar-constant args))))
+      (let ((value (apply f (mapcar #'comp-mvar-constant args))))
         ;; See `comp-emit-setimm'.
+        (comp-add-const-to-relocs value)
         (setf (car insn) 'setimm
-              (cddr insn) (list (comp-add-const-to-relocs values) values))))))
+              (cddr insn) `(nil ,value))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
@@ -1967,15 +1948,47 @@ These are substituted with a normal 'set' op."
 
 ;;; Final pass specific code.
 
+(defun comp-finalize-container (cont)
+  "Finalize data container CONT."
+  (setf (comp-data-container-l cont)
+        (cl-loop with h = (comp-data-container-idx cont)
+                 for obj each hash-keys of h
+                 for i from 0
+                 do (puthash obj i h)
+                 collect obj)))
+
+(defun comp-finalize-relocs ()
+  "Finalize data containers for each relocation class.
+Remove immediate duplicates within relocation classes.
+Update all insn accordingly."
+  ;; Symbols imported by C inlined functions.  We do this here because
+  ;; is better to add all objs to the relocation containers before we
+  ;; compacting them.
+  (mapc #'comp-add-const-to-relocs '(nil t consp listp))
+
+  (let* ((d-default (comp-ctxt-d-default comp-ctxt))
+         (d-default-idx (comp-data-container-idx d-default))
+         (d-impure (comp-ctxt-d-impure comp-ctxt))
+         (d-impure-idx (comp-data-container-idx d-impure))
+         (d-ephemeral (comp-ctxt-d-ephemeral comp-ctxt))
+         (d-ephemeral-idx (comp-data-container-idx d-ephemeral)))
+    ;; Remove things in d-impure that are already in d-default.
+    (cl-loop for obj being each hash-keys of d-impure-idx
+             when (gethash obj d-default-idx)
+               do (remhash obj d-impure-idx))
+    ;; Remove things in d-ephemeral that are already in d-default or
+    ;; d-impure.
+    (cl-loop for obj being each hash-keys of d-ephemeral-idx
+             when (or (gethash obj d-default-idx) (gethash obj d-impure-idx))
+               do (remhash obj d-ephemeral-idx))
+    ;; Fix-up indexes in each relocation class and fill corresponding
+    ;; reloc lists.
+    (mapc #'comp-finalize-container (list d-default d-impure d-ephemeral))))
+
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
 Prepare every function for final compilation and drive the C back-end."
-  (comp-data-container-check (comp-ctxt-d-default comp-ctxt))
-  (comp-data-container-check (comp-ctxt-d-impure comp-ctxt))
-  (comp-data-container-check (comp-ctxt-d-ephemeral comp-ctxt))
-  ;; TODO: here we could optimize cleaning up objects present in the
-  ;; impure and or in the ephemeral container that are also in the
-  ;; default one.
+  (comp-finalize-relocs)
   (unless comp-dry-run
     (comp--compile-ctxt-to-file name)))
 
