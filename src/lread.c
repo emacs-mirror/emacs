@@ -4405,7 +4405,7 @@ defsubr (union Aligned_Lisp_Subr *aname)
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
 #ifdef HAVE_NATIVE_COMP
-  Vcomp_subr_list = Fcons (tem, Vcomp_subr_list);
+  Vcomp_subr_list = Fpurecopy (Fcons (tem, Vcomp_subr_list));
 #endif
 }
 
