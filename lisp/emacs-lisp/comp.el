@@ -120,12 +120,12 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
-                        comp-ssa
-                        comp-propagate-1
+                        comp-propagate
                         comp-call-optim
-                        comp-propagate-2
+                        comp-propagate
                         comp-dead-code
                         comp-tco
+                        comp-propagate-alloc
                         comp-final)
   "Passes to be executed in order.")
 
@@ -1546,7 +1546,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non nil."
                          when (eq op 'phi)
                            do (finalize-phi args b)))))
 
-(defun comp-ssa (_)
+(defun comp-ssa ()
   "Port all functions into mininal SSA form."
   (maphash (lambda (_ f)
              (let* ((comp-func f)
@@ -1736,7 +1736,8 @@ Return t if something was changed."
                          do (setf modified t))
            finally return modified))
 
-(defun comp-propagate-iterate (backward)
+(defun comp-propagate1 (backward)
+  (comp-ssa)
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
                ;; FIXME remove the following condition when tested.
@@ -1750,14 +1751,14 @@ Return t if something was changed."
                    (comp-log-func comp-func 3))))
              (comp-ctxt-funcs-h comp-ctxt))))
 
-(defun comp-propagate-1 (_)
+(defun comp-propagate (_)
   "Forward propagate types and consts within the lattice."
-  (comp-propagate-iterate nil))
+  (comp-propagate1 nil))
 
-(defun comp-propagate-2 (_)
+(defun comp-propagate-alloc (_)
   "Forward propagate types and consts within the lattice.
 Backward propagate array placement properties."
-  (comp-propagate-iterate t))
+  (comp-propagate1 t))
 
 
 ;;; Call optimizer pass specific code.
