@@ -901,7 +901,7 @@ Unless no-active is non-nil, update the active file too."
 		(nnheader-insert-nov headers)))
 	    (widen))))
       (with-current-buffer nov-buffer
-	(nnmail-write-region (point-min) (point-max) nov nil 'nomesg)
+	(nnmail-write-region (point-min) (point-max) nov nil 'nomesg nil 'excl)
 	(kill-buffer (current-buffer))))))
 
 (defun nnml-nov-delete-article (group article)

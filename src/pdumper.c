@@ -3138,7 +3138,7 @@ dump_vectorlike (struct dump_context *ctx,
 static dump_off
 dump_object (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Type_E2AD97D3F7)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Type_45F0582FD7)
 # error "Lisp_Type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (!EQ (object, dead_object ()));

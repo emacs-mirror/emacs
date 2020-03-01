@@ -8185,12 +8185,7 @@ not_in_argv (NSString *arg)
   if (!emacs_event)
     return self;
 
-  /* Send first event (for some reason two needed).  */
   theEvent = [[self window] currentEvent];
-  emacs_event->kind = TOOL_BAR_EVENT;
-  XSETFRAME (emacs_event->arg, emacsframe);
-  EV_TRAILER (theEvent);
-
   emacs_event->kind = TOOL_BAR_EVENT;
   /* XSETINT (emacs_event->code, 0); */
   emacs_event->arg = AREF (emacsframe->tool_bar_items,

@@ -15720,6 +15720,13 @@ BUFFER should be a buffer or a buffer name.
 
 \(fn &optional BUFFER)" t nil)
 
+(autoload 'describe-keymap "help-fns" "\
+Describe key bindings in KEYMAP.
+When called interactively, prompt for a variable that has a
+keymap value.
+
+\(fn KEYMAP)" t nil)
+
 (autoload 'doc-file-to-man "help-fns" "\
 Produce an nroff buffer containing the doc-strings from the DOC file.
 
@@ -20409,7 +20416,7 @@ Default bookmark handler for Man buffers.
 
 ;;;### (autoloads nil "map" "emacs-lisp/map.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/map.el
-(push (purecopy '(map 2 0)) package--builtin-versions)
+(push (purecopy '(map 2 1)) package--builtin-versions)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "map" '("map-")))
 
@@ -27422,11 +27429,8 @@ nil
     necessary to ensure that a postfix operator appended to it will
     apply to the whole expression.
 
-The optional argument KEEP-ORDER, if non-nil, forces the match to
-be performed in the order given, as if the strings were made into
-a regexp by joining them with the `\\|' operator.  If nil or
-omitted, the returned regexp is will always match the longest
-string possible.
+The returned regexp is ordered in such a way that it will always
+match the longest string possible.
 
 Up to reordering, the resulting regexp is equivalent to but
 usually more efficient than that of a simplified version:
@@ -27442,7 +27446,7 @@ usually more efficient than that of a simplified version:
              (mapconcat \\='regexp-quote strings \"\\\\|\")
              (cdr parens))))
 
-\(fn STRINGS &optional PAREN KEEP-ORDER)" nil nil)
+\(fn STRINGS &optional PAREN)" nil nil)
 
 (autoload 'regexp-opt-depth "regexp-opt" "\
 Return the depth of REGEXP.
@@ -30122,11 +30126,9 @@ following commands are available, based on the current shell's syntax:
 \\[sh-while]	 while loop
 
 For sh and rc shells indentation commands are:
-\\[sh-show-indent]	Show the variable controlling this line's indentation.
-\\[sh-set-indent]	Set then variable controlling this line's indentation.
-\\[sh-learn-line-indent]	Change the indentation variable so this line
-would indent to the way it currently is.
-\\[sh-learn-buffer-indent]  Set the indentation variables so the
+\\[smie-config-show-indent]	Show the rules controlling this line's indentation.
+\\[smie-config-set-indent]	Change the rules controlling this line's indentation.
+\\[smie-config-guess]  Try to tweak the indentation rules so the
 buffer indents as it currently is indented.
 
 
@@ -31063,7 +31065,11 @@ Use \\[untabify] to convert tabs to spaces before sorting.
 
 (autoload 'reverse-region "sort" "\
 Reverse the order of lines in a region.
-From a program takes two point or marker arguments, BEG and END.
+When called from Lisp, takes two point or marker arguments, BEG and END.
+If BEG is not at the beginning of a line, the first line of those
+to be reversed is the line starting after BEG.
+If END is not at the end of a line, the last line to be reversed
+is the one that ends before END.
 
 \(fn BEG END)" t nil)
 
@@ -36547,7 +36553,7 @@ Key bindings:
 ;;;### (autoloads nil "verilog-mode" "progmodes/verilog-mode.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from progmodes/verilog-mode.el
-(push (purecopy '(verilog-mode 2019 12 17 268053413)) package--builtin-versions)
+(push (purecopy '(verilog-mode 2020 2 23 232634261)) package--builtin-versions)
 
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.

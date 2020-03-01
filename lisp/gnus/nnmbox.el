@@ -613,7 +613,7 @@
 	  (dir (file-name-directory nnmbox-mbox-file)))
       (and dir (gnus-make-directory dir))
       (nnmail-write-region (point-min) (point-min)
-			   nnmbox-mbox-file t 'nomesg))))
+			   nnmbox-mbox-file t 'nomesg nil 'excl))))
 
 (defun nnmbox-read-mbox ()
   (nnmail-activate 'nnmbox)

@@ -591,9 +591,7 @@ Emacs dired can't find files."
 	  (ignore-errors (delete-file tmpfile))
 	  (tramp-error
 	   v 'file-error "Cannot make local copy of file `%s'" filename))
-	(set-file-modes
-	 tmpfile
-	 (logior (or (tramp-compat-file-modes filename 'nofollow) 0) #o0400)))
+	(set-file-modes tmpfile (logior (or (file-modes filename) 0) #o0400)))
       tmpfile)))
 
 (defun tramp-adb-handle-file-writable-p (filename)
@@ -670,10 +668,11 @@ But handle the case, if the \"test\" command is not available."
 (defun tramp-adb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (and (eq flag 'nofollow) (file-symlink-p filename))
-      (tramp-error v 'file-error "Cannot chmod %s with %s flag" filename flag))
-    (tramp-flush-file-properties v localname)
-    (tramp-adb-send-command-and-check v (format "chmod %o %s" mode localname))))
+    ;; ADB shell does not support "chmod -h".
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-flush-file-properties v localname)
+      (tramp-adb-send-command-and-check
+       v (format "chmod %o %s" mode localname)))))
 
 (defun tramp-adb-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."

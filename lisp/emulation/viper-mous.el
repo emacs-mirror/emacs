@@ -66,19 +66,12 @@ or a triple-click."
 ;; time interval in millisecond within which successive clicks are
 ;; considered related
 (defcustom viper-multiclick-timeout (if (viper-window-display-p)
-				      (if (featurep 'xemacs)
-					  mouse-track-multi-click-time
-					double-click-time)
+                                        double-click-time
 				    500)
   "Time interval in millisecond within which successive mouse clicks are
 considered related."
   :type 'integer
   :group 'viper-mouse)
-
-;; current event click count; XEmacs only
-(defvar viper-current-click-count 0)
-;; time stamp of the last click event; XEmacs only
-(defvar viper-last-click-event-timestamp 0)
 
 ;; Local variable used to toggle wraparound search on click.
 (viper-deflocalvar  viper-mouse-click-search-noerror t)
@@ -279,11 +272,9 @@ See `viper-surrounding-word' for the definition of a word in this case."
 	       (setq interrupting-event (read-event))
 	       (viper-mouse-event-p last-input-event)))
 	    (progn ; interrupted wait
-	      (setq viper-global-prefix-argument arg)
-	      ;; count this click for XEmacs
-	      (viper-event-click-count click))
+              (setq viper-global-prefix-argument arg))
 	  ;; uninterrupted wait or the interrupting event wasn't a mouse event
-	  (setq click-count (viper-event-click-count click))
+          (setq click-count (event-click-count click))
 	  (if (> click-count 1)
 	      (setq arg viper-global-prefix-argument
 		    viper-global-prefix-argument nil))
@@ -300,33 +291,8 @@ See `viper-surrounding-word' for the definition of a word in this case."
       (string-match "\\(mouse-\\|frame\\|screen\\|track\\)"
 		    (prin1-to-string (viper-event-key event)))))
 
-;; XEmacs has no double-click events.  So, we must simulate.
-;; So, we have to simulate event-click-count.
-(defun viper-event-click-count (click)
-  (if (featurep 'xemacs) (viper-event-click-count-xemacs click)
-    (event-click-count click)))
-
-(when (featurep 'xemacs)
-
-  ;; kind of semaphore for updating viper-current-click-count
-  (defvar viper-counting-clicks-p nil)
-
-  (defun viper-event-click-count-xemacs (click)
-    (let ((time-delta (- (event-timestamp click)
-			 viper-last-click-event-timestamp))
-	  inhibit-quit)
-      (while viper-counting-clicks-p
-	(ignore))
-      (setq viper-counting-clicks-p t)
-      (if (> time-delta viper-multiclick-timeout)
-	  (setq viper-current-click-count 0))
-      (discard-input)
-      (setq viper-current-click-count (1+ viper-current-click-count)
-	    viper-last-click-event-timestamp (event-timestamp click))
-      (setq viper-counting-clicks-p nil)
-      (if (viper-sit-for-short viper-multiclick-timeout t)
-	  viper-current-click-count
-	0))))
+(define-obsolete-function-alias 'viper-event-click-count
+  'event-click-count "28.1")
 
 (declare-function viper-forward-word "viper-cmd" (arg))
 (declare-function viper-adjust-window "viper-cmd" ())
@@ -364,11 +330,9 @@ this command.
 	    (setq viper-global-prefix-argument (or viper-global-prefix-argument
 						   arg)
 		  ;; remember command that was before the multiclick
-		  this-command last-command)
-	    ;; make sure we counted this event---needed for XEmacs only
-	    (viper-event-click-count click))
+                  this-command last-command))
 	;; uninterrupted wait
-	(setq click-count (viper-event-click-count click))
+        (setq click-count (event-click-count click))
 	(setq click-word (viper-mouse-click-get-word click nil click-count))
 
 	(if (> click-count 1)
