@@ -665,7 +665,7 @@ If DST-N is specified use it otherwise assume it to be the current slot."
   (comp-add-const-to-relocs val)
   ;; Leave relocation index nil on purpose, will be fixed-up in final
   ;; by `comp-finalize-relocs'.
-  (comp-emit `(setimm ,(comp-slot) nil ,val)))
+  (comp-emit `(setimm ,(comp-slot) ,val)))
 
 (defun comp-make-curr-block (block-name entry-sp &optional addr)
   "Create a basic block with BLOCK-NAME and set it as current block.
@@ -762,7 +762,7 @@ Return value is the fall through block name."
   ;; FIXME this not efficient for big jump tables. We should have a second
   ;; strategy for this case.
   (pcase last-insn
-    (`(setimm ,_ ,_ ,jmp-table)
+    (`(setimm ,_ ,jmp-table)
      (cl-loop
       for test being each hash-keys of jmp-table
       using (hash-value target-label)
@@ -1619,7 +1619,7 @@ Here goes everything that can be done not iteratively (read once).
             (`(,(or 'callref 'direct-callref) ,_f . ,args)
              (when backward
                (comp-ref-args-to-array args)))
-            (`(setimm ,lval ,_ ,v)
+            (`(setimm ,lval ,v)
              (setf (comp-mvar-const-vld lval) t
                    (comp-mvar-constant lval) v
                    (comp-mvar-type lval) (comp-strict-type-of v)))))))
@@ -1658,7 +1658,7 @@ Here goes everything that can be done not iteratively (read once).
         ;; See `comp-emit-setimm'.
         (comp-add-const-to-relocs value)
         (setf (car insn) 'setimm
-              (cddr insn) `(nil ,value))))))
+              (cddr insn) `(,value))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."

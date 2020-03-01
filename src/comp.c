@@ -1594,9 +1594,9 @@ emit_limple_insn (Lisp_Object insn)
     }
   else if (EQ (op, Qsetimm))
     {
-      /* Ex: (setimm #s(comp-mvar 9 1 t 3 nil) 3 a).  */
-      emit_comment (SSDATA (Fprin1_to_string (arg[2], Qnil)));
-      imm_reloc_t reloc = obj_to_reloc (arg[2]);
+      /* Ex: (setimm #s(comp-mvar 9 1 t 3 nil) a).  */
+      emit_comment (SSDATA (Fprin1_to_string (arg[1], Qnil)));
+      imm_reloc_t reloc = obj_to_reloc (arg[1]);
       emit_frame_assignment (
 	arg[0],
 	gcc_jit_lvalue_as_rvalue (
