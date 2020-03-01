@@ -205,6 +205,7 @@ Otherwise return the normal value."
 ;; incorrect.  However, this gives correct result in our cases, since we are
 ;; testing for sufficiently high Emacs versions.
 (defun viper-check-version (op major minor &optional type-of-emacs)
+  (declare (obsolete nil "28.1"))
   (if (and (boundp 'emacs-major-version) (boundp 'emacs-minor-version))
       (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
 		 ((eq type-of-emacs 'emacs) (featurep 'emacs))
