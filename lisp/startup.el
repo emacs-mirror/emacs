@@ -352,11 +352,11 @@ Setting `init-file-user' does not prevent Emacs from loading
 
 (defcustom site-run-file (purecopy "site-start")
   "File containing site-wide run-time initializations.
-This file is loaded at run-time before `~/.emacs'.  It contains inits
-that need to be in place for the entire site, but which, due to their
-higher incidence of change, don't make sense to put into Emacs's
+This file is loaded at run-time before `user-init-file'.  It contains
+inits that need to be in place for the entire site, but which, due to
+their higher incidence of change, don't make sense to put into Emacs's
 dump file.  Thus, the run-time load order is: 1. file described in
-this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.
+this variable, if non-nil; 2. `user-init-file'; 3. `default.el'.
 
 Don't use the `site-start.el' file for things some users may not like.
 Put them in `default.el' instead, so that users can more easily

@@ -163,8 +163,8 @@ perform completion, no matter what ACTION is.
 
 If ACTION is `metadata' or a list where the first element is
 `boundaries', return nil.  If ACTION is nil, this function works
-like `try-completion'; if it's t, this function works like
-`all-completion'; and any other values makes it work like
+like `try-completion'; if it is t, this function works like
+`all-completion'; and any other value makes it work like
 `test-completion'."
   (cond
    ((functionp collection) (funcall collection string predicate action))

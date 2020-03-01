@@ -6929,7 +6929,7 @@ end of the buffer continues from the other end.  If
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
 buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
-instead of signalling the error.
+instead of signaling the error.
 @end deffn
 
 @deffn Command backward-button n &optional wrap display-message
@@ -6941,7 +6941,7 @@ end of the buffer continues from the other end.  If
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
 buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
-instead of signalling the error.
+instead of signaling the error.
 @end deffn
 
 @defun next-button pos &optional count-current

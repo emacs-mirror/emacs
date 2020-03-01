@@ -81,7 +81,7 @@ the ones that are not reproducible on the current release.
 * New bug triage process
 
 The goal of the new bug triage process is similar to the backlog triage process,
-except that the focus is on prioritizing the bug, and making sure it is has
+except that the focus is on prioritizing the bug, and making sure it has
 necessary information for others to act on.
 
 For each new bug, ask the following questions:
