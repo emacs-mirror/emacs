@@ -1528,13 +1528,6 @@ Automatic loading also occurs when completing names for
 prefix being completed.  To disable this feature, change the variable
 @code{help-enable-completion-autoload} to @code{nil}.
 
-@vindex load-dangerous-libraries
-@cindex Lisp files byte-compiled by XEmacs
-  By default, Emacs refuses to load compiled Lisp files which were
-compiled with XEmacs, a modified version of Emacs---they can cause
-Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
-@code{t} if you want to try loading them.
-
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions
 @cindex Emacs Lisp mode

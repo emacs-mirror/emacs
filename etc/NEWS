@@ -202,6 +202,11 @@ Emacs now supports bignums so this old glitch is no longer needed.
 'previous-system-time-locale' have been removed, as they were created
 by mistake and were not useful to Lisp code.
 
+** The 'load-dangerous-libraries' variable is now obsolete.
+It was used to allow loading Lisp libraries compiled by XEmacs, a
+modified version of Emacs which is no longer actively maintained.
+This is no longer supported, and setting this variable has no effect.
+
 
 * Lisp Changes in Emacs 28.1
 
