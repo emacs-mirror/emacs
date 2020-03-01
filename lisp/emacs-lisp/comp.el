@@ -1967,10 +1967,6 @@ These are substituted with a normal 'set' op."
                    (comp-log-func comp-func 3))))
              (comp-ctxt-funcs-h comp-ctxt))))
 
-;; NOTE: After TCO runs edges, phis etc are not updated.  In case some
-;; other pass that make use of them after here is added `comp-ssa'
-;; should be re-run.
-
 
 ;;; Final pass specific code.
 
