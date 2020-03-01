@@ -1406,7 +1406,7 @@ the last)."
 (defvar cperl-font-locking nil)
 
 ;; NB as it stands the code in cperl-mode assumes this only has one
-;; element. If XEmacs 19 support were dropped, this could all be simplified.
+;; element. Since XEmacs 19 support has been dropped, this could all be simplified.
 (defvar cperl-compilation-error-regexp-alist
   ;; This look like a paranoiac regexp: could anybody find a better one? (which WORKS).
   '(("^[^\n]* \\(file\\|at\\) \\([^ \t\n]+\\) [^\n]*line \\([0-9]+\\)[\\., \n]"
