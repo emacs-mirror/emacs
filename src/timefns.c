@@ -739,9 +739,10 @@ decode_time_components (enum timeform form,
   /* Normalize out-of-range lower-order components by carrying
      each overflow into the next higher-order component.  */
   us += ps / 1000000 - (ps % 1000000 < 0);
-  mpz_set_intmax (mpz[0], us / 1000000 - (us % 1000000 < 0));
-  mpz_add (mpz[0], mpz[0], *bignum_integer (&mpz[1], low));
-  mpz_addmul_ui (mpz[0], *bignum_integer (&mpz[1], high), 1 << LO_TIME_BITS);
+  mpz_t *s = &mpz[1];
+  mpz_set_intmax (*s, us / 1000000 - (us % 1000000 < 0));
+  mpz_add (*s, *s, *bignum_integer (&mpz[0], low));
+  mpz_addmul_ui (*s, *bignum_integer (&mpz[0], high), 1 << LO_TIME_BITS);
   ps = ps % 1000000 + 1000000 * (ps % 1000000 < 0);
   us = us % 1000000 + 1000000 * (us % 1000000 < 0);
 
@@ -751,21 +752,29 @@ decode_time_components (enum timeform form,
 	{
 	case TIMEFORM_HI_LO:
 	  /* Floats and nil were handled above, so it was an integer.  */
+	  mpz_swap (mpz[0], *s);
 	  result->hz = make_fixnum (1);
 	  break;
 
 	case TIMEFORM_HI_LO_US:
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], us);
+	  mpz_set_ui (mpz[0], us);
+	  mpz_addmul_ui (mpz[0], *s, 1000000);
 	  result->hz = make_fixnum (1000000);
 	  break;
 
 	case TIMEFORM_HI_LO_US_PS:
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], us);
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], ps);
-	  result->hz = trillion;
+	  {
+	    #if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
+	      unsigned long i = us;
+	      mpz_set_ui (mpz[0], i * 1000000 + ps);
+	      mpz_addmul_ui (mpz[0], *s, TRILLION);
+	    #else
+	      intmax_t i = us;
+	      mpz_set_intmax (mpz[0], i * 1000000 + ps);
+	      mpz_addmul (mpz[0], *s, ztrillion);
+	    #endif
+	    result->hz = trillion;
+	  }
 	  break;
 
 	default:
@@ -774,7 +783,7 @@ decode_time_components (enum timeform form,
       result->ticks = make_integer_mpz ();
     }
   else
-    *dresult = mpz_get_d (mpz[0]) + (us * 1e6L + ps) / 1e12L;
+    *dresult = mpz_get_d (*s) + (us * 1e6L + ps) / 1e12L;
 
   return 0;
 }
