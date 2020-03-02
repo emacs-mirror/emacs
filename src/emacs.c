@@ -1243,6 +1243,7 @@ main (int argc, char **argv)
   if (! (lc_all && strcmp (lc_all, "C") == 0))
     {
       #ifdef HAVE_NS
+        ns_pool = ns_alloc_autorelease_pool ();
         ns_init_locale ();
       #endif
       setlocale (LC_ALL, "");
@@ -1612,8 +1613,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
 #ifdef HAVE_NS
-  ns_pool = ns_alloc_autorelease_pool ();
-
   if (!noninteractive)
     {
 #ifdef NS_IMPL_COCOA

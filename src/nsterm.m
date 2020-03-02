@@ -1238,20 +1238,6 @@ ns_unfocus (struct frame *f)
 }
 
 
-static void
-ns_clip_to_row (struct window *w, struct glyph_row *row,
-		enum glyph_row_area area, BOOL gc)
-/* --------------------------------------------------------------------------
-     Internal (but parallels other terms): Focus drawing on given row
-   -------------------------------------------------------------------------- */
-{
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-  NSRect clip_rect = ns_row_rect (w, row, area);
-
-  ns_focus (f, &clip_rect, 1);
-}
-
-
 /* ==========================================================================
 
     Visible bell and beep.
@@ -2089,7 +2075,7 @@ ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  NSWindow *window = [view window];
+  EmacsWindow *window = (EmacsWindow *)[view window];
 
   NSTRACE ("ns_set_appearance");
 
@@ -2553,7 +2539,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   id view;
   NSPoint view_position;
   Lisp_Object frame, tail;
-  struct frame *f;
+  struct frame *f = NULL;
   struct ns_display_info *dpyinfo;
 
   NSTRACE ("ns_mouse_position");
@@ -4005,7 +3991,7 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 {
   NSRect r[2];
   NSRect glyphRect;
-  int n, i;
+  int n;
   struct face *face;
   NSColor *fgCol, *bgCol;
 
@@ -5389,7 +5375,7 @@ ns_term_init (Lisp_Object display_name)
           }
 
         /* FIXME: Report any errors writing the color file below.  */
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
         if ([cl respondsToSelector:@selector(writeToURL:error:)])
 #endif
@@ -7395,7 +7381,7 @@ not_in_argv (NSString *arg)
 {
   NSRect r, wr;
   Lisp_Object tem;
-  NSWindow *win;
+  EmacsWindow *win;
   NSColor *col;
   NSString *name;
 
@@ -8816,7 +8802,7 @@ not_in_argv (NSString *arg)
 
 - (void)setAppearance
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
   struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSAppearance *appearance = nil;
 
