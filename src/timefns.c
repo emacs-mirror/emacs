@@ -569,15 +569,21 @@ timespec_to_lisp (struct timespec t)
 static double
 frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
 {
-  intmax_t intmax_numerator;
-  if (FASTER_TIMEFNS && EQ (denominator, make_fixnum (1))
-      && integer_to_intmax (numerator, &intmax_numerator))
-    return intmax_numerator;
+  intmax_t intmax_numerator, intmax_denominator;
+  if (FASTER_TIMEFNS
+      && integer_to_intmax (numerator, &intmax_numerator)
+      && integer_to_intmax (denominator, &intmax_denominator)
+      && ! INT_DIVIDE_OVERFLOW (intmax_numerator, intmax_denominator)
+      && intmax_numerator % intmax_denominator == 0)
+    return intmax_numerator / intmax_denominator;
 
   mpz_t const *n = bignum_integer (&mpz[0], numerator);
   mpz_t const *d = bignum_integer (&mpz[1], denominator);
   ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
   ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
+
+  if (FASTER_TIMEFNS && ndig <= DBL_MANT_DIG && ddig <= DBL_MANT_DIG)
+    return mpz_get_d (*n) / mpz_get_d (*d);
 
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
