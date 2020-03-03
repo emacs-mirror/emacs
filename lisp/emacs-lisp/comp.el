@@ -2013,7 +2013,9 @@ Prepare every function for final compilation and drive the C back-end."
   (let ((dir (file-name-directory name)))
     (comp-finalize-relocs)
     (unless (file-exists-p dir)
-      (make-directory dir))
+      ;; In case it's created in the meanwhile.
+      (ignore-error 'file-already-exists
+        (make-directory dir)))
     (unless comp-dry-run
       (comp--compile-ctxt-to-file name))))
 
