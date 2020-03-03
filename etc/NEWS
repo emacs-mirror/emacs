@@ -96,6 +96,9 @@ shows equivalent key bindings for all commands that have them.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Emacs-Lisp mode
+*** The mode-line now indicates whether we're using lexical or dynamic scoping.
+
 ** Dired
 
 *** State changing VC operations are supported in dired-mode on files
