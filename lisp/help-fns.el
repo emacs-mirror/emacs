@@ -325,12 +325,19 @@ found via `load-path'.  The return value can also be `C-source', which
 means that OBJECT is a function or variable defined in C.  If no
 suitable file is found, return nil."
   (let* ((autoloaded (autoloadp type))
-	 (file-name (or (and autoloaded (nth 1 type))
+	 (true-name (or (and autoloaded (nth 1 type))
 			(symbol-file
                          ;; FIXME: Why do we have this weird "If TYPE is the
                          ;; value returned by `symbol-function' for a function
                          ;; symbol" exception?
-			 object (or (if (symbolp type) type) 'defun)))))
+			 object (or (if (symbolp type) type) 'defun))))
+         (file-name (if (and true-name
+                             (string-match "[.]eln\\'" true-name))
+                        (expand-file-name (concat (file-name-base true-name)
+                                                  ".el")
+		                          (concat (file-name-directory true-name)
+                                                  ".."))
+	              true-name)))
     (cond
      (autoloaded
       ;; An autoloaded function: Locate the file since `symbol-function'
@@ -377,7 +384,7 @@ suitable file is found, return nil."
      ;; This applies to config files like ~/.emacs,
      ;; which people sometimes compile.
      ((let (fn)
-	(and (string-match "\\`\\..*\\.el[cn]\\'"
+	(and (string-match "\\`\\..*\\.elc\\'"
 			   (file-name-nondirectory file-name))
 	     (string-equal (file-name-directory file-name)
 			   (file-name-as-directory (expand-file-name "~")))
@@ -386,9 +393,9 @@ suitable file is found, return nil."
      ;; When the Elisp source file can be found in the install
      ;; directory, return the name of that file.
      ((let ((lib-name
-	     (if (string-match "[.]el[cn]\\'" file-name)
+	     (if (string-match "[.]elc\\'" file-name)
 		 (substring-no-properties file-name 0 -1)
-	       file-name)))
+               file-name)))
 	(or (and (file-readable-p lib-name) lib-name)
 	    ;; The library might be compressed.
 	    (and (file-readable-p (concat lib-name ".gz")) lib-name))))
@@ -399,7 +406,7 @@ suitable file is found, return nil."
 	      ;; name, convert that back to a file name and see if we
 	      ;; get the original one.  If so, they are equivalent.
 	      (if (equal file-name (locate-file lib-name load-path '("")))
-		  (if (string-match "[.]el[cn]\\'" lib-name)
+		  (if (string-match "[.]elc\\'" lib-name)
 		      (substring-no-properties lib-name 0 -1)
 		    lib-name)
 		file-name))
