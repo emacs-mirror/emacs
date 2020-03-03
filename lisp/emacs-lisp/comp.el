@@ -2125,7 +2125,7 @@ Return the compilation unit file name."
                          (file-name-as-directory
                           (concat
                            (file-name-directory exp-file)
-                           system-configuration))
+                           comp-native-path-postfix))
                          (file-name-sans-extension
                           (file-name-nondirectory exp-file))))))))
     (comp-log "\n\n" 1)

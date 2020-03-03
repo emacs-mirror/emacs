@@ -1068,7 +1068,7 @@ effective_load_path (void)
       Lisp_Object el = XCAR (lp);
       new_lp =
 	Fcons (concat2 (Ffile_name_as_directory (el),
-			Vsystem_configuration),
+			Vcomp_native_path_postfix),
 	       new_lp);
       new_lp = Fcons (el, new_lp);
     }
@@ -4427,6 +4427,7 @@ defsubr (union Aligned_Lisp_Subr *aname)
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
 #ifdef HAVE_NATIVE_COMP
+  eassert (NILP (Vcomp_abi_hash));
   Vcomp_subr_list = Fpurecopy (Fcons (tem, Vcomp_subr_list));
 #endif
 }

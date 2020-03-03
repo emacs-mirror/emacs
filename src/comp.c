@@ -250,8 +250,8 @@ format_string (const char *format, ...)
 
 /* Produce a key hashing Vcomp_subr_list.  */
 
-static Lisp_Object
-hash_subr_list (void)
+void
+hash_native_abi (void)
 {
   Lisp_Object string = Fmapconcat (intern_c_string ("subr-name"),
 				   Vcomp_subr_list, build_string (" "));
@@ -260,7 +260,17 @@ hash_subr_list (void)
   sha512_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
   hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
 
-  return digest;
+  /* Check runs once.  */
+  eassert (Vcomp_abi_hash);
+  Vcomp_abi_hash = digest;
+  /* If 10 characters are usually sufficient for git I guess 16 are
+     fine for us here.  */
+  Vcomp_native_path_postfix =
+    concat3 (Vsystem_configuration,
+	     make_string ("-", 1),
+	     Fsubstring_no_properties (Vcomp_abi_hash,
+				       make_fixnum (0),
+				       make_fixnum (16)));
 }
 
 static void
@@ -1976,8 +1986,9 @@ emit_ctxt_code (void)
       fields[n_frelocs++] = xmint_pointer (XCDR (el));
     }
 
-  /* Compute and store function link table hash.  */
-  emit_static_object (LINK_TABLE_HASH_SYM, hash_subr_list ());
+  /* Sign the .eln for the exposed ABI it expects at load.  */
+  eassert (!NILP (Vcomp_abi_hash));
+  emit_static_object (LINK_TABLE_HASH_SYM, Vcomp_abi_hash);
 
   Lisp_Object subr_l = Vcomp_subr_list;
   FOR_EACH_TAIL (subr_l)
@@ -3430,7 +3441,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 	    && freloc_link_table
 	    && top_level_run)
 	  || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
-				  hash_subr_list ())))
+				  Vcomp_abi_hash)))
 	xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
       *current_thread_reloc = &current_thread;
@@ -3657,6 +3668,12 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-function -> function-c-name.  For
 		       internal use during  */);
   Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table);
+  DEFVAR_LISP ("comp-abi-hash", Vcomp_abi_hash,
+	       doc: /* String signing the ABI exposed to .eln files.  */);
+  Vcomp_abi_hash = Qnil;
+  DEFVAR_LISP ("comp-native-path-postfix", Vcomp_native_path_postfix,
+	       doc: /* Postifix to be added to the .eln compilation path.  */);
+  Vcomp_native_path_postfix = Qnil;
 }
 
 #endif /* HAVE_NATIVE_COMP */

@@ -1949,6 +1949,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       keys_of_keyboard ();
       keys_of_keymap ();
       keys_of_window ();
+
+#ifdef HAVE_NATIVE_COMP
+      /* Must be after the last defsubr has run.  */
+      hash_native_abi ();
+#endif
     }
   else
     {

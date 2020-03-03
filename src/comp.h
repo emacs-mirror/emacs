@@ -61,8 +61,12 @@ XNATIVE_COMP_UNIT (Lisp_Object a)
 }
 
 /* Defined in comp.c.  */
+
+extern void hash_native_abi (void);
+
 extern void load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u,
 			    bool loading_dump);
 extern void syms_of_comp (void);
+
 #endif
 #endif
