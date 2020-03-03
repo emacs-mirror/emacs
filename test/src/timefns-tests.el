@@ -220,6 +220,9 @@ a fixed place on the right and are padded on the left."
              '(23752 27217))))
 
 (ert-deftest float-time-precision ()
+  (should (= (float-time '(0 1 0 4025)) 1.000000004025))
+  (should (= (float-time '(1000000004025 . 1000000000000)) 1.000000004025))
+
   (should (< 0 (float-time '(1 . 10000000000))))
   (should (< (float-time '(-1 . 10000000000)) 0))
 
