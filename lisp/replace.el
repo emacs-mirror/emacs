@@ -1576,7 +1576,8 @@ See also `multi-occur'."
                                          (and (overlayp boo)
                                               (overlay-buffer boo)))
                                  boo))
-			   bufs))))
+                           bufs)))
+        (source-buffer-default-directory default-directory))
     ;; Handle the case where one of the buffers we're searching is the
     ;; output buffer.  Just rename it.
     (when (member buf-name
@@ -1593,6 +1594,9 @@ See also `multi-occur'."
     (setq occur-buf (get-buffer-create buf-name))
 
     (with-current-buffer occur-buf
+      ;; Make the default-directory of the *Occur* buffer match that of
+      ;; the buffer where the occurences come from
+      (setq default-directory source-buffer-default-directory)
       (if (stringp nlines)
 	  (fundamental-mode) ;; This is for collect operation.
 	(occur-mode))
