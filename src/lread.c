@@ -1058,9 +1058,9 @@ This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
 static Lisp_Object
 effective_load_path (void)
 {
-  if (!NATIVE_COMP_FLAG)
-    return Vload_path;
-
+#ifndef HAVE_NATIVE_COMP
+  return Vload_path;
+#else
   Lisp_Object lp = Vload_path;
   Lisp_Object new_lp = Qnil;
   FOR_EACH_TAIL (lp)
@@ -1073,6 +1073,7 @@ effective_load_path (void)
       new_lp = Fcons (el, new_lp);
     }
   return Fnreverse (new_lp);
+#endif
 }
 
 /* Return true if STRING ends with SUFFIX.  */
