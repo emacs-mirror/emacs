@@ -4790,6 +4790,16 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 
     case FocusIn:
     case FocusOut:
+      /* Ignore transient focus events from hotkeys, window manager
+         gadgets, and other odd sources.  Some buggy window managers
+         (e.g., Muffin 4.2.4) send FocusIn events of this type without
+         corresponding FocusOut events even when some other window
+         really has focus, and these kinds of focus event don't
+         correspond to real user input changes.  GTK+ uses the same
+         filtering. */
+      if (event->xfocus.mode == NotifyGrab ||
+          event->xfocus.mode == NotifyUngrab)
+        return;
       x_focus_changed (event->type,
 		       (event->xfocus.detail == NotifyPointer ?
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
