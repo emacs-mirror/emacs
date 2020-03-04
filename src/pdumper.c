@@ -3604,14 +3604,12 @@ dump_unwind_cleanup (void *data)
   Vprocess_environment = ctx->old_process_environment;
 }
 
-/* Return DUMP_OFFSET, making sure it is within the heap.  */
-static dump_off
+/* Check that DUMP_OFFSET is within the heap.  */
+static void
 dump_check_dump_off (struct dump_context *ctx, dump_off dump_offset)
 {
   eassert (dump_offset > 0);
-  if (ctx)
-    eassert (dump_offset < ctx->end_heap);
-  return dump_offset;
+  eassert (!ctx || dump_offset < ctx->end_heap);
 }
 
 static void
@@ -3734,6 +3732,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
           }
         else
           {
+	    eassume (ctx); /* Pacify GCC 9.2.1 -O3 -Wnull-dereference.  */
             eassert (!dump_object_emacs_ptr (target_value));
             reloc.u.dump_offset = dump_recall_object (ctx, target_value);
             if (reloc.u.dump_offset <= 0)

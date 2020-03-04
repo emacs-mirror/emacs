@@ -124,6 +124,7 @@ University of California, as described above. */
 #include <binary-io.h>
 #include <intprops.h>
 #include <unlocked-io.h>
+#include <verify.h>
 #include <c-ctype.h>
 #include <c-strcase.h>
 
@@ -7310,6 +7311,8 @@ static void *
 xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
   ptrdiff_t nbytes;
+  assume (0 <= nitems);
+  assume (0 < item_size);
   if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes))
     memory_full ();
   return xmalloc (nbytes);
@@ -7319,6 +7322,8 @@ static void *
 xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   ptrdiff_t nbytes;
+  assume (0 <= nitems);
+  assume (0 < item_size);
   if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
     memory_full ();
   void *result = realloc (pa, nbytes);

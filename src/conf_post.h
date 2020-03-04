@@ -78,6 +78,7 @@ typedef bool bool_bf;
 # define __has_attribute_no_address_safety_analysis false
 # define __has_attribute_no_sanitize_address GNUC_PREREQ (4, 8, 0)
 # define __has_attribute_no_sanitize_undefined GNUC_PREREQ (4, 9, 0)
+# define __has_attribute_returns_nonnull GNUC_PREREQ (4, 9, 0)
 # define __has_attribute_warn_unused_result GNUC_PREREQ (3, 4, 0)
 #endif
 
@@ -320,6 +321,12 @@ extern int emacs_setenv_TZ (char const *);
 #endif
 
 #define ATTRIBUTE_MALLOC_SIZE(args) ATTRIBUTE_MALLOC ATTRIBUTE_ALLOC_SIZE (args)
+
+#if __has_attribute (returns_nonnull)
+# define ATTRIBUTE_RETURNS_NONNULL __attribute__ ((returns_nonnull))
+#else
+# define ATTRIBUTE_RETURNS_NONNULL
+#endif
 
 /* Work around GCC bug 59600: when a function is inlined, the inlined
    code may have its addresses sanitized even if the function has the
