@@ -1865,18 +1865,25 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; it/them from the cache.  Don't worry about being inside a string
   ;; or a comment - "wrongly" removing a symbol from `c-found-types'
   ;; isn't critical.
-  (unless (or (c-called-from-text-property-change-p)
-	      c-just-done-before-change) ; guard against a spurious second
-					; invocation of before-change-functions.
-    (setq c-just-done-before-change t)
-    ;; (c-new-BEG c-new-END) will be the region to fontify.
-    (setq c-new-BEG beg  c-new-END end)
-    (setq c-maybe-stale-found-type nil)
-    ;; A workaround for syntax-ppss's failure to notice syntax-table text
-    ;; property changes.
-    (when (fboundp 'syntax-ppss)
-      (setq c-syntax-table-hwm most-positive-fixnum))
+  (unless (c-called-from-text-property-change-p)
     (save-restriction
+      (widen)
+      (if c-just-done-before-change
+	  ;; We have two consecutive calls to `before-change-functions' without
+	  ;; an intervening `after-change-functions'.  An example of this is bug
+	  ;; #38691.  To protect CC Mode, assume that the entire buffer has
+	  ;; changed.
+	  (setq beg (point-min)
+		end (point-max)
+		c-just-done-before-change 'whole-buffer)
+	(setq c-just-done-before-change t))
+      ;; (c-new-BEG c-new-END) will be the region to fontify.
+      (setq c-new-BEG beg  c-new-END end)
+      (setq c-maybe-stale-found-type nil)
+      ;; A workaround for syntax-ppss's failure to notice syntax-table text
+      ;; property changes.
+      (when (fboundp 'syntax-ppss)
+	(setq c-syntax-table-hwm most-positive-fixnum))
       (save-match-data
 	(widen)
 	(unwind-protect
@@ -1982,14 +1989,20 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; without an intervening call to `before-change-functions' when reverting
   ;; the buffer (see bug #24094).  Whatever the cause, assume that the entire
   ;; buffer has changed.
-  (when (and (not c-just-done-before-change)
-	     (not (c-called-from-text-property-change-p)))
+
+  ;; Note: c-just-done-before-change is nil, t, or 'whole-buffer.
+  (unless (c-called-from-text-property-change-p)
     (save-restriction
       (widen)
-      (c-before-change (point-min) (point-max))
-      (setq beg (point-min)
-	    end (point-max)
-	    old-len (- end beg))))
+      (unless c-just-done-before-change
+	(c-before-change (point-min) (point-max)))
+      (unless (eq c-just-done-before-change t)
+	(setq beg (point-min)
+	      end (point-max)
+	      old-len (- end beg)
+	      c-new-BEG (point-min)
+	      c-new-END (point-max)))
+      (setq c-just-done-before-change nil)))
 
   ;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
   ;; larger than (beg end).

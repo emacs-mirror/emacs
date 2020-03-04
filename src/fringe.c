@@ -1500,7 +1500,8 @@ DEFUN ("define-fringe-bitmap", Fdefine_fringe_bitmap, Sdefine_fringe_bitmap,
 BITMAP is a symbol identifying the new fringe bitmap.
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
-WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
+WIDTH must be an integer from 1 to 16, or nil which defaults to 8.  An
+error is signaled if WIDTH is outside this range.
 Optional fifth arg ALIGN may be one of `top', `center', or `bottom',
 indicating the positioning of the bitmap relative to the rows where it
 is used; the default is to center the bitmap.  Fifth arg may also be a
@@ -1535,7 +1536,9 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else
     {
       CHECK_FIXNUM (width);
-      fb.width = max (0, min (XFIXNUM (width), 255));
+      fb.width = max (1, min (XFIXNUM (width), 16));
+      if (fb.width != XFIXNUM (width))
+        args_out_of_range (width, build_string ("Width must be from 1 to 16"));
     }
 
   fb.period = 0;
