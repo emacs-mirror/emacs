@@ -11,6 +11,7 @@
   "This version of speedbar is incompatible with this version.
 Due to massive API changes (removing the use of the word PATH)
 this version is not backward compatible to 0.14 or earlier.")
+(make-obsolete-variable 'speedbar-incompatible-version nil "28.1")
 
 ;; This file is part of GNU Emacs.
 
