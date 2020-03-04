@@ -1992,17 +1992,16 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 
   ;; Note: c-just-done-before-change is nil, t, or 'whole-buffer.
   (unless (c-called-from-text-property-change-p)
-    (save-restriction
-      (widen)
-      (unless c-just-done-before-change
-	(c-before-change (point-min) (point-max)))
-      (unless (eq c-just-done-before-change t)
+    (unless (eq c-just-done-before-change t)
+      (save-restriction
+	(widen)
+	(when (null c-just-done-before-change)
+	  (c-before-change (point-min) (point-max)))
 	(setq beg (point-min)
 	      end (point-max)
 	      old-len (- end beg)
 	      c-new-BEG (point-min)
-	      c-new-END (point-max)))
-      (setq c-just-done-before-change nil)))
+	      c-new-END (point-max)))))
 
   ;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
   ;; larger than (beg end).

@@ -3967,19 +3967,18 @@ the function `undo--wrap-and-run-primitive-undo'."
       (let ((undo--combining-change-calls t))
 	(if (not inhibit-modification-hooks)
 	    (run-hook-with-args 'before-change-functions beg end))
-	(if (eq buffer-undo-list t)
-	    (setq result (funcall body))
-	  (let (;; (inhibit-modification-hooks t)
-                (before-change-functions
-                 ;; Ugly Hack: if the body uses syntax-ppss/syntax-propertize
-                 ;; (e.g. via a regexp-search or sexp-movement trigerring
-                 ;; on-the-fly syntax-propertize), make sure that this gets
-                 ;; properly refreshed after subsequent changes.
-                 (if (memq #'syntax-ppss-flush-cache before-change-functions)
-                     '(syntax-ppss-flush-cache)))
-                after-change-functions)
-	    (setq result (funcall body)))
-	  (let ((ap-elt
+	(let (;; (inhibit-modification-hooks t)
+              (before-change-functions
+               ;; Ugly Hack: if the body uses syntax-ppss/syntax-propertize
+               ;; (e.g. via a regexp-search or sexp-movement trigerring
+               ;; on-the-fly syntax-propertize), make sure that this gets
+               ;; properly refreshed after subsequent changes.
+               (if (memq #'syntax-ppss-flush-cache before-change-functions)
+                   '(syntax-ppss-flush-cache)))
+              after-change-functions)
+	  (setq result (funcall body)))
+        (when (not (eq buffer-undo-list t))
+          (let ((ap-elt
 		 (list 'apply
 		       (- end end-marker)
 		       beg

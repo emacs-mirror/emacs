@@ -168,7 +168,7 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.6.1"
+(defvar checkdoc-version "0.6.2"
   "Release version of checkdoc you are currently running.")
 
 (require 'cl-lib)
