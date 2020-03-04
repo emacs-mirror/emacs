@@ -1076,7 +1076,7 @@ package is only activated if all its dependencies have been).
 Its format is a list of lists on a single line.  The @code{car} of
 each sub-list is the name of a package, as a symbol.  The @code{cadr}
 of each sub-list is the minimum acceptable version number, as a string
-that can be parse by @code{version-to-list}.  An entry that lacks a
+that can be parsed by @code{version-to-list}.  An entry that lacks a
 version (i.e., an entry which is just a symbol, or a sub-list of one
 element) is equivalent to entry with version "0".  For instance:
 

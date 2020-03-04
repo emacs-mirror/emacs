@@ -2323,7 +2323,16 @@ With 'or' and 'not', it can be used to compose character-matching
 expressions from simpler parts.
 
 +++
-*** 'not' argument can now be a character or single-char string.
+*** 'not' now accepts more argument types.
+The argument can now also be a character, a single-character string,
+an 'intersection' form, or an 'or' form whose arguments each match a
+single character.
+
++++
+*** Nested 'or' forms of strings guarantee a longest match.
+For example, '(or (or "IN" "OUT") (or "INPUT" "OUTPUT"))' now matches
+the whole string "INPUT" if present, not just "IN".  Previously, this
+was only guaranteed inside a single 'or' form of string literals.
 
 ** Frames
 

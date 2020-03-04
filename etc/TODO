@@ -244,6 +244,23 @@ populate composition-function-table with those rules.  See
 composite.el for examples of this, and also grep lisp/language/*.el
 for references to composition-function-table.
 
+One problem with character compositions that will need to be solved is
+that composition-function-table, the char-table which holds the
+composition rules, is a global variable, whereas use of ligatures is
+inherently specific to buffer-local stuff like the major mode and the
+script or language in use.  So there should be a buffer-local variable
+to augment/customize/override the global composition rules.
+
+Another problem is that ligatures are frequently composed of ASCII
+characters, and some of those ASCII characters are present in the mode
+line, for example "--".  Since displaying a ligature instead of 2
+separate '-' characters on a mode line is not right, there should be a
+way of preventing the ligation from happening.  One possibility is to
+have a ZWNJ character separate these ASCII characters; another
+possibility is to introduce a special text property that prevents
+character composition, and place that property on the relevant parts
+of the mode line.
+
 The prettify-symbols-mode should be deprecated once ligature support
 is in place.
 
@@ -266,6 +283,60 @@ instead of calling the 'encode_char' method of the font driver, we
 should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
+
+** Better support for displaying Emoji
+
+Emacs is capable of displaying Emoji and some of the Emoji sequences,
+provided that its fontsets are configured with a suitable font.  To
+make this easier out of the box, the following should be done:
+
+*** Populate composition-function-table with Emoji rules
+
+The Unicode Character Database (UCD) includes several data files that
+define the valid Emoji sequences.  These files should be imported into
+the Emacs tree, and should be converted by some script at Emacs build
+time to Lisp code that populates composition-function-table with the
+corresponding composition rules.
+
+*** Augment the default fontsets with Emoji-capable fonts
+
+The default fontsets set up by fontest.el should include known free
+fonts that provide good support for displaying Emoji sequences.  In
+addition, the rule that the default face's font is used for symbol and
+punctuation characters, disregarding the fontsets, should be modified
+to exempt Emoji from this rule (since Emoji characters belong to the
+'symbol' script in Emacs), so that use-default-font-for-symbols would
+not have to be tweaked to have Emoji display by default with a capable
+font.
+
+*** Consider changing the default display of Variation Selectors
+
+Emacs by default displays the Variation Selector (VS) codepoints not
+composed with base characters as hex codes in a box.  The Unicode FAQ
+says that if variation sequences cannot be supported, the VS
+characters should not be shown, leaving just the base character of the
+sequence visible.  This could be handled via glyphless-char-display,
+by changing the entries for VS codepoints to 'zero-width'.  Or we
+could display them as a thin 1-pixel space, as we do with format
+control characters, by using 'thin-space' there.
+
+*** Special face for displaying text presentation of Emoji
+
+Emoji-capable fonts support Emoji sequences with the U+FE0F VARIATION
+SELECTOR-16 (VS16) for emoji-style display, but usually don't support
+the U+FE0F VARIATION SELECTOR-15 (VS15) for text-style display.  There
+are other fonts which support the text-style sequences, but not
+emoji-style.  Since Emacs selects a font based on a single character,
+it cannot choose 2 different fonts for displaying both styles of the
+same base character.  To display both styles in the same buffer, one
+could use a special face, placing a 'face' text property on portions
+of the text.  This special face could specify a specific font known to
+support text-style Emoji sequences.  Emacs could have such a face
+built-in.
+
+See the discussion of bug#39799 for more details about this task.
+Another relevant resource is the Unicode Technical Standard #51
+"Unicode Emoji" (http://www.unicode.org/reports/tr51/).
 
 ** Extend text-properties and overlays
 *** Several text-property planes

@@ -174,7 +174,7 @@ no effect when spam-stat is invoked through spam.el."
 
 (defcustom spam-stat-score-buffer-user-functions nil
   "List of additional scoring functions.
-Called  one by one on the buffer.
+Called one by one on the buffer.
 
 If all of these functions return non-nil answers, these numerical
 answers are added to the computed spam stat score on the buffer.  If

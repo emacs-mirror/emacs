@@ -4701,6 +4701,10 @@ static short temp_buffer[100];
 /* Temporarily store lead byte of DBCS input sequences.  */
 static char dbcs_lead = 0;
 
+/* Temporarily store pending UTF-16 high surrogate unit and the modifiers.  */
+static unsigned short utf16_high;
+static DWORD utf16_high_modifiers;
+
 /**
   mouse_or_wdesc_frame: When not dropping and the mouse was grabbed
   for DPYINFO, return the frame where the mouse was seen last.  If
@@ -4912,9 +4916,45 @@ w32_read_socket (struct terminal *terminal,
 	      XSETFRAME (inev.frame_or_window, f);
 	      inev.timestamp = msg.msg.time;
 
+	      if (utf16_high
+		  && (msg.msg.message != WM_UNICHAR
+		      || UTF_16_HIGH_SURROGATE_P (msg.msg.wParam)))
+		{
+		  /* Flush the pending high surrogate if the low one
+		     isn't coming.  (This should never happen, but I
+		     have paranoia about this stuff.)  */
+		  struct input_event inev1;
+		  inev1.modifiers = utf16_high_modifiers;
+		  inev1.code = utf16_high;
+		  inev1.timestamp = inev.timestamp;
+		  inev1.arg = Qnil;
+		  kbd_buffer_store_event_hold (&inev1, hold_quit);
+		  utf16_high = 0;
+		  utf16_high_modifiers = 0;
+		}
+
               if (msg.msg.message == WM_UNICHAR)
                 {
-                  inev.code = msg.msg.wParam;
+		  /* Handle UTF-16 encoded codepoint above the BMP.
+		     This is needed to support Emoji input from input
+		     panel popped up by "Win+." shortcut.  */
+		  if (UTF_16_HIGH_SURROGATE_P (msg.msg.wParam))
+		    {
+		      utf16_high = msg.msg.wParam;
+		      utf16_high_modifiers = inev.modifiers;
+		      inev.kind = NO_EVENT;
+		      break;
+		    }
+		  else if (UTF_16_LOW_SURROGATE_P (msg.msg.wParam)
+			   && utf16_high)
+		    {
+		      inev.code = surrogates_to_codepoint (msg.msg.wParam,
+							   utf16_high);
+		      utf16_high = 0;
+		      utf16_high_modifiers = 0;
+		    }
+		  else
+		    inev.code = msg.msg.wParam;
                 }
               else if (msg.msg.wParam < 256)
                 {

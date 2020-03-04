@@ -446,16 +446,18 @@ variable `tab-line-tabs-function'."
            (setq hscroll nil)
            (set-window-parameter nil 'tab-line-hscroll hscroll))
        (list separator
-             (when (and (integerp hscroll) (not (zerop hscroll)))
+             (when (and (numberp hscroll) (not (zerop hscroll)))
                tab-line-left-button)
-             (when (if (integerp hscroll)
-                       (< (abs hscroll) (1- (length strings)))
+             (when (if (numberp hscroll)
+                       (< (truncate hscroll) (1- (length strings)))
                      (> (length strings) 1))
                tab-line-right-button)))
-     (if hscroll (nthcdr (abs hscroll) strings) strings)
+     (if hscroll (nthcdr (truncate hscroll) strings) strings)
      (when (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
        (list (concat separator (when tab-line-new-tab-choice
                                  tab-line-new-button)))))))
+
+(defvar tab-line-auto-hscroll)
 
 (defun tab-line-format ()
   "Template for displaying tab line for selected window."
@@ -464,6 +466,13 @@ variable `tab-line-tabs-function'."
                           (window-buffer)
                           (window-parameter nil 'tab-line-hscroll)))
          (cache (window-parameter nil 'tab-line-cache)))
+    ;; Enable auto-hscroll again after it was disabled on manual scrolling.
+    ;; The moment to enable it is when the window-buffer was updated.
+    (when (and tab-line-auto-hscroll        ; if auto-hscroll was enabled
+               (integerp (nth 2 cache-key)) ; integer on manual scroll
+               cache                        ; window-buffer was updated
+               (not (equal (nth 1 (car cache)) (nth 1 cache-key))))
+      (set-window-parameter nil 'tab-line-hscroll (float (nth 2 cache-key))))
     (or (and cache (equal (car cache) cache-key) (cdr cache))
         (cdr (set-window-parameter
               nil 'tab-line-cache
@@ -478,24 +487,27 @@ the selected tab visible."
   :group 'tab-line
   :version "27.1")
 
+(defvar tab-line-auto-hscroll-buffer (generate-new-buffer " *tab-line-hscroll*"))
+
 (defun tab-line-auto-hscroll (strings hscroll)
-  (with-temp-buffer
+  (with-current-buffer tab-line-auto-hscroll-buffer
     (let ((truncate-partial-width-windows nil)
           (inhibit-modification-hooks t)
           show-arrows)
       (setq truncate-lines nil)
+      (erase-buffer)
       (apply 'insert strings)
       (goto-char (point-min))
       (add-face-text-property (point-min) (point-max) 'tab-line)
       ;; Continuation means tab-line doesn't fit completely,
       ;; thus scroll arrows are needed for scrolling.
       (setq show-arrows (> (vertical-motion 1) 0))
-      ;; Try to auto-scroll only when scrolling is needed,
+      ;; Try to auto-hscroll only when scrolling is needed,
       ;; but no manual scrolling was performed before.
       (when (and tab-line-auto-hscroll
                  show-arrows
                  ;; Do nothing when scrolled manually
-                 (not (and (integerp hscroll) (>= hscroll 0))))
+                 (not (integerp hscroll)))
         (let ((selected (seq-position strings 'selected
                                       (lambda (str prop)
                                         (get-pos-property 1 prop str)))))
@@ -503,7 +515,7 @@ the selected tab visible."
            ((null selected)
             ;; Do nothing if no tab is selected
             )
-           ((or (not (integerp hscroll)) (< selected (abs hscroll)))
+           ((or (not (numberp hscroll)) (< selected (truncate hscroll)))
             ;; Selected is scrolled to the left, or no scrolling yet
             (erase-buffer)
             (apply 'insert (reverse (seq-subseq strings 0 (1+ selected))))
@@ -520,14 +532,14 @@ the selected tab visible."
                                                     (lambda (str tab)
                                                       (eq (get-pos-property 1 'tab str) tab))))))
                   (when new-hscroll
-                    (setq hscroll (- new-hscroll))
+                    (setq hscroll (float new-hscroll))
                     (set-window-parameter nil 'tab-line-hscroll hscroll)))
               (setq hscroll nil)
               (set-window-parameter nil 'tab-line-hscroll hscroll)))
            (t
             ;; Check if the selected tab is already visible
             (erase-buffer)
-            (apply 'insert (seq-subseq strings (abs hscroll) (1+ selected)))
+            (apply 'insert (seq-subseq strings (truncate hscroll) (1+ selected)))
             (goto-char (point-min))
             (add-face-text-property (point-min) (point-max) 'tab-line)
             (when (> (vertical-motion 1) 0)
@@ -547,7 +559,7 @@ the selected tab visible."
                                                     (lambda (str tab)
                                                       (eq (get-pos-property 1 'tab str) tab))))))
                   (when new-hscroll
-                    (setq hscroll (- new-hscroll))
+                    (setq hscroll (float new-hscroll))
                     (set-window-parameter nil 'tab-line-hscroll hscroll)))))))))
       (list show-arrows hscroll))))
 
@@ -559,7 +571,7 @@ the selected tab visible."
                  (funcall tab-line-tabs-function))))
     (set-window-parameter
      window 'tab-line-hscroll
-     (max 0 (min (+ (if (integerp hscroll) (abs hscroll) 0) (or arg 1))
+     (max 0 (min (+ (if (numberp hscroll) (truncate hscroll) 0) (or arg 1))
                  (1- (length tabs)))))
     (when window
       (force-mode-line-update t))))

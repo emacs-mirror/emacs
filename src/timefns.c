@@ -1039,9 +1039,7 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 }
 
 /* Given Lisp operands A and B, add their values, and return the
-   result as a Lisp timestamp that is in (TICKS . HZ) form if either A
-   or B are in that form or are floats, (HI LO US PS) form otherwise.
-   Subtract instead of adding if SUBTRACT.  */
+   result as a Lisp timestamp.  Subtract instead of adding if SUBTRACT.  */
 static Lisp_Object
 time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 {

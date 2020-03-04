@@ -858,7 +858,7 @@ is a buffer if the buffer-local value of the variable is being
 changed, @code{nil} otherwise.
 @end defun
 
-@defun remove-variable-watch symbol watch-function
+@defun remove-variable-watcher symbol watch-function
 This function removes @var{watch-function} from @var{symbol}'s list of
 watchers.
 @end defun

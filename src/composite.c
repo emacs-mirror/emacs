@@ -818,6 +818,11 @@ fill_gstring_body (Lisp_Object gstring)
   Lisp_Object header = AREF (gstring, 0);
   ptrdiff_t len = LGSTRING_CHAR_LEN (gstring);
   ptrdiff_t i;
+  struct font *font = NULL;
+  unsigned int code;
+
+  if (FONT_OBJECT_P (font_object))
+    font = XFONT_OBJECT (font_object);
 
   for (i = 0; i < len; i++)
     {
@@ -832,10 +837,15 @@ fill_gstring_body (Lisp_Object gstring)
       LGLYPH_SET_FROM (g, i);
       LGLYPH_SET_TO (g, i);
       LGLYPH_SET_CHAR (g, c);
-      if (FONT_OBJECT_P (font_object))
-	{
-	  font_fill_lglyph_metrics (g, font_object);
-	}
+
+      if (font != NULL)
+        code = font->driver->encode_char (font, LGLYPH_CHAR (g));
+      else
+        code = FONT_INVALID_CODE;
+      if (code != FONT_INVALID_CODE)
+        {
+	  font_fill_lglyph_metrics (g, font, code);
+        }
       else
 	{
 	  int width = XFIXNAT (CHAR_TABLE_REF (Vchar_width_table, c));

@@ -4416,10 +4416,8 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 
 
 void
-font_fill_lglyph_metrics (Lisp_Object glyph, Lisp_Object font_object)
+font_fill_lglyph_metrics (Lisp_Object glyph, struct font *font, unsigned int code)
 {
-  struct font *font = XFONT_OBJECT (font_object);
-  unsigned code = font->driver->encode_char (font, LGLYPH_CHAR (glyph));
   struct font_metrics metrics;
 
   LGLYPH_SET_CODE (glyph, code);

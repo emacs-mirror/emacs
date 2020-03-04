@@ -8806,8 +8806,7 @@ parameters of FRAME."
            (parent (frame-parent frame))
            (monitor-attributes
             (unless parent
-              (car (display-monitor-attributes-list
-                    (frame-parameter frame 'display)))))
+              (frame-monitor-attributes frame)))
            ;; FRAME'S parent or display sizes.  Used in connection
            ;; with margins.
            (geometry
@@ -8816,11 +8815,11 @@ parameters of FRAME."
            (parent-or-display-width
             (if parent
                 (frame-native-width parent)
-              (- (nth 2 geometry) (nth 0 geometry))))
+              (nth 2 geometry)))
            (parent-or-display-height
             (if parent
                 (frame-native-height parent)
-              (- (nth 3 geometry) (nth 1 geometry))))
+              (nth 3 geometry)))
            ;; FRAME's parent or workarea sizes.  Used when no margins
            ;; are specified.
            (parent-or-workarea
@@ -8882,13 +8881,15 @@ parameters of FRAME."
                                 (window--sanitize-margin
                                  (nth 2 margins) left-margin
                                  parent-or-display-width))
-                           (nth 2 parent-or-workarea)))
+                           (+ (nth 0 parent-or-workarea)
+                              (nth 2 parent-or-workarea))))
            (bottom-margin (if (nth 3 margins)
                               (- parent-or-display-height
                                  (window--sanitize-margin
                                   (nth 3 margins) top-margin
                                   parent-or-display-height))
-                            (nth 3 parent-or-workarea)))
+                            (+ (nth 1 parent-or-workarea)
+                               (nth 3 parent-or-workarea))))
            ;; Minimum and maximum sizes specified for FRAME.
            (sizes (or (frame-parameter frame 'fit-frame-to-buffer-sizes)
                       fit-frame-to-buffer-sizes))
