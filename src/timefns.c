@@ -569,25 +569,27 @@ timespec_to_lisp (struct timespec t)
 static double
 frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
 {
-  intmax_t intmax_numerator;
-  if (FASTER_TIMEFNS && EQ (denominator, make_fixnum (1))
-      && integer_to_intmax (numerator, &intmax_numerator))
-    return intmax_numerator;
+  intmax_t intmax_numerator, intmax_denominator;
+  if (FASTER_TIMEFNS
+      && integer_to_intmax (numerator, &intmax_numerator)
+      && integer_to_intmax (denominator, &intmax_denominator)
+      && ! INT_DIVIDE_OVERFLOW (intmax_numerator, intmax_denominator)
+      && intmax_numerator % intmax_denominator == 0)
+    return intmax_numerator / intmax_denominator;
 
   mpz_t const *n = bignum_integer (&mpz[0], numerator);
   mpz_t const *d = bignum_integer (&mpz[1], denominator);
-  ptrdiff_t nbits = mpz_sizeinbase (*n, 2);
-  ptrdiff_t dbits = mpz_sizeinbase (*d, 2);
-  eassume (0 < nbits);
-  eassume (0 < dbits);
-  ptrdiff_t ndig = (nbits + LOG2_FLT_RADIX - 1) / LOG2_FLT_RADIX;
-  ptrdiff_t ddig = (dbits + LOG2_FLT_RADIX - 1) / LOG2_FLT_RADIX;
+  ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
+  ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
+
+  if (FASTER_TIMEFNS && ndig <= DBL_MANT_DIG && ddig <= DBL_MANT_DIG)
+    return mpz_get_d (*n) / mpz_get_d (*d);
 
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
      FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
      then divide the double by FLT_RADIX**SCALE.  */
-  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG + 1;
+  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG;
   if (scale < 0)
     {
       mpz_mul_2exp (mpz[1], *d, - (scale * LOG2_FLT_RADIX));
@@ -615,7 +617,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
      round to the nearest integer; otherwise, it is less than
      FLT_RADIX ** (DBL_MANT_DIG + 1) and round it to the nearest
      multiple of FLT_RADIX.  Break ties to even.  */
-  if (mpz_sizeinbase (*q, 2) < DBL_MANT_DIG * LOG2_FLT_RADIX)
+  if (mpz_sizeinbase (*q, FLT_RADIX) <= DBL_MANT_DIG)
     {
       /* Converting to double will use the whole quotient so add 1 to
 	 its absolute value as per round-to-even; i.e., if the doubled
@@ -739,44 +741,48 @@ decode_time_components (enum timeform form,
   /* Normalize out-of-range lower-order components by carrying
      each overflow into the next higher-order component.  */
   us += ps / 1000000 - (ps % 1000000 < 0);
-  mpz_set_intmax (mpz[0], us / 1000000 - (us % 1000000 < 0));
-  mpz_add (mpz[0], mpz[0], *bignum_integer (&mpz[1], low));
-  mpz_addmul_ui (mpz[0], *bignum_integer (&mpz[1], high), 1 << LO_TIME_BITS);
+  mpz_t *s = &mpz[1];
+  mpz_set_intmax (*s, us / 1000000 - (us % 1000000 < 0));
+  mpz_add (*s, *s, *bignum_integer (&mpz[0], low));
+  mpz_addmul_ui (*s, *bignum_integer (&mpz[0], high), 1 << LO_TIME_BITS);
   ps = ps % 1000000 + 1000000 * (ps % 1000000 < 0);
   us = us % 1000000 + 1000000 * (us % 1000000 < 0);
 
-  if (result)
+  Lisp_Object hz;
+  switch (form)
     {
-      switch (form)
-	{
-	case TIMEFORM_HI_LO:
-	  /* Floats and nil were handled above, so it was an integer.  */
-	  result->hz = make_fixnum (1);
-	  break;
+    case TIMEFORM_HI_LO:
+      /* Floats and nil were handled above, so it was an integer.  */
+      mpz_swap (mpz[0], *s);
+      hz = make_fixnum (1);
+      break;
 
-	case TIMEFORM_HI_LO_US:
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], us);
-	  result->hz = make_fixnum (1000000);
-	  break;
+    case TIMEFORM_HI_LO_US:
+      mpz_set_ui (mpz[0], us);
+      mpz_addmul_ui (mpz[0], *s, 1000000);
+      hz = make_fixnum (1000000);
+      break;
 
-	case TIMEFORM_HI_LO_US_PS:
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], us);
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], ps);
-	  result->hz = trillion;
-	  break;
+    case TIMEFORM_HI_LO_US_PS:
+      {
+	#if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
+	  unsigned long i = us;
+	  mpz_set_ui (mpz[0], i * 1000000 + ps);
+	  mpz_addmul_ui (mpz[0], *s, TRILLION);
+	#else
+	  intmax_t i = us;
+	  mpz_set_intmax (mpz[0], i * 1000000 + ps);
+	  mpz_addmul (mpz[0], *s, ztrillion);
+	#endif
+	hz = trillion;
+      }
+      break;
 
-	default:
-	  eassume (false);
-	}
-      result->ticks = make_integer_mpz ();
+    default:
+      eassume (false);
     }
-  else
-    *dresult = mpz_get_d (mpz[0]) + (us * 1e6L + ps) / 1e12L;
 
-  return 0;
+  return decode_ticks_hz (make_integer_mpz (), hz, result, dresult);
 }
 
 enum { DECODE_SECS_ONLY = WARN_OBSOLETE_TIMESTAMPS + 1 };

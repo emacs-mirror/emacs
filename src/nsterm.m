@@ -1117,7 +1117,7 @@ ns_update_begin (struct frame *f)
 #endif
 
   ns_updating_frame = f;
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
   [view focusOnDrawingBuffer];
 #else
   [view lockFocus];
@@ -1139,7 +1139,7 @@ ns_update_end (struct frame *f)
 /*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
   [NSGraphicsContext setCurrentContext:nil];
 #else
   block_input ();
@@ -1172,7 +1172,7 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 
   if (f != ns_updating_frame)
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
     [view focusOnDrawingBuffer];
 #else
     {
@@ -1235,20 +1235,6 @@ ns_unfocus (struct frame *f)
         }
     }
 #endif
-}
-
-
-static void
-ns_clip_to_row (struct window *w, struct glyph_row *row,
-		enum glyph_row_area area, BOOL gc)
-/* --------------------------------------------------------------------------
-     Internal (but parallels other terms): Focus drawing on given row
-   -------------------------------------------------------------------------- */
-{
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-  NSRect clip_rect = ns_row_rect (w, row, area);
-
-  ns_focus (f, &clip_rect, 1);
 }
 
 
@@ -2089,7 +2075,7 @@ ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  NSWindow *window = [view window];
+  EmacsWindow *window = (EmacsWindow *)[view window];
 
   NSTRACE ("ns_set_appearance");
 
@@ -2553,7 +2539,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   id view;
   NSPoint view_position;
   Lisp_Object frame, tail;
-  struct frame *f;
+  struct frame *f = NULL;
   struct ns_display_info *dpyinfo;
 
   NSTRACE ("ns_mouse_position");
@@ -4005,7 +3991,7 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 {
   NSRect r[2];
   NSRect glyphRect;
-  int n, i;
+  int n;
   struct face *face;
   NSColor *fgCol, *bgCol;
 
@@ -5389,7 +5375,7 @@ ns_term_init (Lisp_Object display_name)
           }
 
         /* FIXME: Report any errors writing the color file below.  */
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
         if ([cl respondsToSelector:@selector(writeToURL:error:)])
 #endif
@@ -7091,8 +7077,10 @@ not_in_argv (NSString *arg)
          from non-native fullscreen, in other circumstances it appears
          to be a noop.  (bug#28872) */
       wr = NSMakeRect (0, 0, neww, newh);
-      [self createDrawingBuffer];
       [view setFrame: wr];
+#ifdef NS_DRAW_TO_BUFFER
+      [self createDrawingBuffer];
+#endif
 
       // To do: consider using [NSNotificationCenter postNotificationName:].
       [self windowDidMove: // Update top/left.
@@ -7393,7 +7381,7 @@ not_in_argv (NSString *arg)
 {
   NSRect r, wr;
   Lisp_Object tem;
-  NSWindow *win;
+  EmacsWindow *win;
   NSColor *col;
   NSString *name;
 
@@ -7430,7 +7418,9 @@ not_in_argv (NSString *arg)
   maximizing_resize = NO;
 #endif
 
+#ifdef NS_DRAW_TO_BUFFER
   [self createDrawingBuffer];
+#endif
 
   win = [[EmacsWindow alloc]
             initWithContentRect: r
@@ -8210,7 +8200,7 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
 - (void)createDrawingBuffer
   /* Create and store a new CGGraphicsContext for Emacs to draw into.
 
@@ -8268,7 +8258,7 @@ not_in_argv (NSString *arg)
       expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
     }
 }
-#endif /* NS_IMPL_COCOA */
+#endif /* NS_DRAW_TO_BUFFER */
 
 
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect
@@ -8277,7 +8267,7 @@ not_in_argv (NSString *arg)
   NSTRACE_RECT ("Source", srcRect);
   NSTRACE_RECT ("Destination", dstRect);
 
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
   CGImageRef copy;
   NSRect frame = [self frame];
   NSAffineTransform *setOrigin = [NSAffineTransform transform];
@@ -8317,7 +8307,7 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
 - (BOOL)wantsUpdateLayer
 {
     return YES;
@@ -8812,7 +8802,7 @@ not_in_argv (NSString *arg)
 
 - (void)setAppearance
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
   struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSAppearance *appearance = nil;
 
