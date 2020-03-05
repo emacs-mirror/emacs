@@ -2692,6 +2692,7 @@ either a full name or nil, and EMAIL is a valid email address."
     (define-key map (kbd "/ n") 'package-menu-filter-by-name)
     (define-key map (kbd "/ s") 'package-menu-filter-by-status)
     (define-key map (kbd "/ v") 'package-menu-filter-by-version)
+    (define-key map (kbd "/ m") 'package-menu-filter-marked)
     map)
   "Local keymap for `package-menu-mode' buffers.")
 
@@ -2722,6 +2723,7 @@ either a full name or nil, and EMAIL is a valid email address."
      ["Filter by Name" package-menu-filter-by-name :help "Filter packages by name"]
      ["Filter by Status" package-menu-filter-by-status :help "Filter packages by status"]
      ["Filter by Version" package-menu-filter-by-version :help "Filter packages by version"]
+     ["Filter Marked" package-menu-filter-marked :help "Filter packages marked for upgrade"]
      ["Clear Filter" package-menu-clear-filter :help "Clear package list filter"])
 
     ["Hide by Regexp" package-menu-hide-package :help "Hide all packages matching a regexp"]
@@ -3854,6 +3856,35 @@ If VERSION is nil or the empty string, show all packages."
          (lambda (pkg-desc)
            (funcall fun (package-desc-version pkg-desc) ver)))
        (format "versions:%s%s" predicate version)))))
+
+(defun package-menu-filter-marked ()
+  "Filter \"*Packages*\" buffer by non-empty upgrade mark.
+Unlike other filters, this leaves the marks intact."
+  (interactive)
+  (package--ensure-package-menu-mode)
+  (widen)
+  (let (found-entries mark pkg-id entry marks)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (setq mark (char-after))
+        (unless (eq mark ?\s)
+	  (setq pkg-id (tabulated-list-get-id))
+          (setq entry (package-menu--print-info-simple pkg-id))
+	  (push entry found-entries)
+	  ;; remember the mark
+	  (push (cons pkg-id mark) marks))
+        (forward-line))
+      (if found-entries
+          (progn
+            (setq tabulated-list-entries found-entries)
+            (package-menu--display t nil)
+	    ;; redo the marks, but we must remember the marks!!
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (setq mark (cdr (assq (tabulated-list-get-id) marks)))
+	      (tabulated-list-put-tag (char-to-string mark) t)))
+	(user-error "No packages found")))))
 
 (defun package-menu-clear-filter ()
   "Clear any filter currently applied to the \"*Packages*\" buffer."
