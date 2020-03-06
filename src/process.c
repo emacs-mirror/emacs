@@ -8277,19 +8277,6 @@ init_process_emacs (int sockfd)
   memset (datagram_address, 0, sizeof datagram_address);
 #endif
 
-#if defined (DARWIN_OS)
-  /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
-     processes.  As such, we only change the default value.  */
- if (initialized)
-  {
-    char const *release = (STRINGP (Voperating_system_release)
-			   ? SSDATA (Voperating_system_release)
-			   : 0);
-    if (!release || !release[0] || (release[0] < '7' && release[1] == '.')) {
-      Vprocess_connection_type = Qnil;
-    }
-  }
-#endif
 #endif	/* subprocesses */
   kbd_is_on_hold = 0;
 }
