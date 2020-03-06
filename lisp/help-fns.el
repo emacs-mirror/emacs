@@ -944,7 +944,7 @@ it is displayed along with the global value."
     (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
     (unless (frame-live-p frame) (setq frame (selected-frame)))
     (if (not (symbolp variable))
-	(message "You did not specify a variable")
+	(user-error "You didn't specify a variable")
       (save-excursion
 	(let ((valvoid (not (with-current-buffer buffer (boundp variable))))
 	      val val-start-pos locus)
@@ -1435,7 +1435,7 @@ current buffer and the selected frame, respectively."
 				t nil nil
 				(if found (symbol-name v-or-f)))))
      (list (if (equal val "")
-	       v-or-f (intern val)))))
+	       (or v-or-f "") (intern val)))))
   (if (not (symbolp symbol))
       (user-error "You didn't specify a function or variable"))
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
