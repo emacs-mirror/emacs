@@ -7891,15 +7891,15 @@ Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
 ALIST has to contain a `direction' entry whose value should be
-one of `left', `above' (or `up'), `right' and `below' (or
-'down').  Other values are usually interpreted as `below'.
+one of `left', `above' (or `up'), `right' and `below' (or `down').
+Other values are usually interpreted as `below'.
 
 If ALIST also contains a `window' entry, its value specifies a
 reference window.  That value can be a special symbol like
-'main' (which stands for the selected frame's main window) or
-'root' (standings for the selected frame's root window) or an
+`main' (which stands for the selected frame's main window) or
+`root' (standings for the selected frame's root window) or an
 arbitrary valid window.  Any other value (or omitting the
-'window' entry) means to use the selected window as reference
+`window' entry) means to use the selected window as reference
 window.
 
 This function tries to reuse or split a window such that the
