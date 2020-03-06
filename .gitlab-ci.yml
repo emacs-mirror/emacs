@@ -65,3 +65,14 @@ test-filenotify-gio:
     - ./configure --without-makeinfo --with-file-notification=gfile
     - make bootstrap
     - make -C test autorevert-tests filenotify-tests
+
+test-native-bootstrap:
+  # Test native bootstrap
+  stage: test
+  only:
+    - schedules
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
+    - ./autogen.sh autoconf
+    - ./configure --without-makeinfo --with-nativecomp
+    - make bootstrap
