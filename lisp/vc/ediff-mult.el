@@ -113,7 +113,6 @@
 (require 'ediff-wind)
 (require 'ediff-util)
 
-
 ;; meta-buffer
 (ediff-defvar-local ediff-meta-buffer nil "")
 (ediff-defvar-local ediff-parent-meta-buffer nil "")
@@ -1172,7 +1171,7 @@ behavior."
 	  ;; abbreviate the file name, if file exists
 	  (if (and (not (stringp fname)) (< file-size -1))
 	      "-------"		; file doesn't exist
-	    (ediff-truncate-string-left
+	    (string-truncate-left
 	     (ediff-abbreviate-file-name fname)
 	     max-filename-width)))))))
 
@@ -1266,7 +1265,7 @@ Useful commands:
 	(if (= (mod membership-code ediff-membership-code1) 0) ; dir1
 	    (let ((beg (point)))
 	      (insert (format "%-27s"
-			      (ediff-truncate-string-left
+			      (string-truncate-left
 			       (ediff-abbreviate-file-name
 				(if (file-directory-p (concat dir1 file))
 				    (file-name-as-directory file)
@@ -1281,7 +1280,7 @@ Useful commands:
 	(if (= (mod membership-code ediff-membership-code2) 0) ; dir2
 	    (let ((beg (point)))
 	      (insert (format "%-26s"
-			      (ediff-truncate-string-left
+			      (string-truncate-left
 			       (ediff-abbreviate-file-name
 				(if (file-directory-p (concat dir2 file))
 				    (file-name-as-directory file)
@@ -1295,7 +1294,7 @@ Useful commands:
 	    (if (= (mod membership-code ediff-membership-code3) 0) ; dir3
 		(let ((beg (point)))
 		  (insert (format " %-25s"
-				  (ediff-truncate-string-left
+				  (string-truncate-left
 				   (ediff-abbreviate-file-name
 				    (if (file-directory-p (concat dir3 file))
 					(file-name-as-directory file)
