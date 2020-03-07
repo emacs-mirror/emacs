@@ -523,10 +523,11 @@ the result will be a local, non-Tramp, file name."
 		     (string-to-number (match-string 2)))
 		  (string-to-number (match-string 3)))))))))
 
-(defun tramp-sudoedit-handle-set-file-times (filename &optional time)
+(defun tramp-sudoedit-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
+    flag ;; FIXME: Support 'nofollow'.
     (let ((time
 	   (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)

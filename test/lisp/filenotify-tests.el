@@ -771,9 +771,9 @@ delivered."
 	  (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  ;; The next two events shall not be visible.
 	  (file-notify--test-read-event)
-	  (set-file-modes file-notify--test-tmpfile 000)
+	  (set-file-modes file-notify--test-tmpfile 000 'nofollow)
 	  (file-notify--test-read-event)
-	  (set-file-times file-notify--test-tmpfile '(0 0))
+	  (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow)
 	  (file-notify--test-read-event)
           (delete-directory file-notify--test-tmpdir 'recursive))
         (file-notify-rm-watch file-notify--test-desc)
@@ -864,9 +864,9 @@ delivered."
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (file-notify--test-read-event)
-	  (set-file-modes file-notify--test-tmpfile 000)
+	  (set-file-modes file-notify--test-tmpfile 000 'nofollow)
 	  (file-notify--test-read-event)
-	  (set-file-times file-notify--test-tmpfile '(0 0))
+	  (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow)
 	  (file-notify--test-read-event)
 	  (delete-file file-notify--test-tmpfile))
         (file-notify-rm-watch file-notify--test-desc)

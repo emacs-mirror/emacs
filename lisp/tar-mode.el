@@ -1056,7 +1056,7 @@ extracted file."
 	(write-region start end to-file nil nil nil t))
       (when (and tar-copy-preserve-time
                  date)
-        (set-file-times to-file date)))
+	(set-file-times to-file date 'nofollow)))
     (message "Copied tar entry %s to %s" name to-file)))
 
 (defun tar-new-entry (filename &optional index)

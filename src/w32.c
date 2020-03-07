@@ -3189,6 +3189,21 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
     }
 }
 
+/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+   ATIME and MTIME, respectively.
+   FD must be either negative -- in which case it is ignored --
+   or a file descriptor that is open on FILE.
+   If FD is nonnegative, then FILE can be NULL.  */
+static int
+set_file_times (int fd, const char *filename,
+		struct timespec atime, struct timespec mtime)
+{
+  struct timespec timespec[2];
+  timespec[0] = atime;
+  timespec[1] = mtime;
+  return fdutimens (fd, filename, timespec);
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* IO support and wrapper functions for the Windows API. */

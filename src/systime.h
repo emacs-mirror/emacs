@@ -67,9 +67,6 @@ timespec_valid_p (struct timespec t)
   return t.tv_nsec >= 0;
 }
 
-/* defined in sysdep.c */
-extern int set_file_times (int, const char *, struct timespec, struct timespec);
-
 /* defined in keyboard.c */
 extern void set_waiting_for_input (struct timespec *);
 
