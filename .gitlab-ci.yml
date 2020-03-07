@@ -75,4 +75,5 @@ test-native-bootstrap:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
-    - make bootstrap
+    - make bootstrap -j2
+  timeout: 10 hours
