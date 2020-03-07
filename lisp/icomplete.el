@@ -284,6 +284,17 @@ require user confirmation."
           (t
            (icomplete-force-complete-and-exit)))))
 
+(defun icomplete-fido-exit (force)
+  "Attempt to exit minibuffer immediately with current input.
+Unless FORCE is non-nil (interactively with a prefix argument),
+honour a non-nil REQUIRE-MATCH argument to `completing-read' by
+trying to complete as much as possible and disallowing the exit
+if that doesn't produce a completion match."
+  (interactive "P")
+  (if (and (not force) minibuffer--require-match)
+      (minibuffer-complete-and-exit)
+    (exit-minibuffer)))
+
 (defun icomplete-fido-backward-updir ()
   "Delete char before or go up directory, like `ido-mode'."
   (interactive)
@@ -299,7 +310,7 @@ require user confirmation."
     (define-key map (kbd "RET") 'icomplete-fido-ret)
     (define-key map (kbd "C-m") 'icomplete-fido-ret)
     (define-key map (kbd "DEL") 'icomplete-fido-backward-updir)
-    (define-key map (kbd "M-j") 'exit-minibuffer)
+    (define-key map (kbd "M-j") 'icomplete-fido-exit)
     (define-key map (kbd "C-s") 'icomplete-forward-completions)
     (define-key map (kbd "C-r") 'icomplete-backward-completions)
     (define-key map (kbd "<right>") 'icomplete-forward-completions)
@@ -541,7 +552,7 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                           (icomplete--completion-table)
                           (icomplete--completion-predicate)
                           (if (window-minibuffer-p)
-                              (not minibuffer-completion-confirm)))))
+                              (eq minibuffer--require-match t)))))
                  (buffer-undo-list t)
                  deactivate-mark)
             ;; Do nothing if while-no-input was aborted.

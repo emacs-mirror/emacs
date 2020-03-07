@@ -134,7 +134,7 @@ Each entry is:
                 (if (cdr def)
                     (error "Not an `rx' symbol definition: %s" form)
                   (car def)))))
-        ((consp form)
+        ((and (consp form) (symbolp (car form)))
          (let* ((op (car form))
                 (def (rx--lookup-def op)))
            (and def
@@ -360,7 +360,7 @@ character X becomes (?X . ?X).  Return the intervals in a list."
                       (push (cons start end) intervals))
                      (t
                       (error "Invalid rx `any' range: %s"
-                             (substring str i 3))))
+                             (substring str i (+ i 3)))))
                (setq i (+ i 3))))
             (t
              ;; Single character.

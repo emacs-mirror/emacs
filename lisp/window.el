@@ -9125,8 +9125,8 @@ accessible position."
 	       ;; wider than its frame's pixel width, its height
 	       ;; remains unaltered.
 	       (width (+ (car (window-text-pixel-size
-			       window (window-start) (point-max)
-			       (frame-pixel-width)
+			       window (window-start window) nil
+			       (frame-pixel-width (window-frame window))
 			       ;; Add one line-height to assure that
 			       ;; we're on the safe side.  This
 			       ;; overshoots when the first line below

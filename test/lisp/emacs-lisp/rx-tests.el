@@ -316,7 +316,9 @@
   (should (equal (rx (not (or (in "abc") (char "bcd"))))
                  "[^a-d]"))
   (should (equal (rx (or (not (in "abc")) (not (char "bcd"))))
-                 "[^bc]")))
+                 "[^bc]"))
+  (should (equal (rx (or "x" (? "yz")))
+                 "x\\|\\(?:yz\\)?")))
 
 (ert-deftest rx-def-in-charset-or ()
   (rx-let ((a (any "badc"))

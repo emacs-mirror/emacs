@@ -1006,32 +1006,36 @@ See `bibtex-generate-autokey' for details."
   :type 'boolean)
 
 (defvar bibtex-autokey-transcriptions
-  '(;; language specific characters
-    ("\\\\aa" . "a")                      ; \aa           -> a
-    ("\\\\AA" . "A")                      ; \AA           -> A
-    ("\\\"a\\|\\\\\\\"a\\|\\\\ae" . "ae") ; "a,\"a,\ae    -> ae
-    ("\\\"A\\|\\\\\\\"A\\|\\\\AE" . "Ae") ; "A,\"A,\AE    -> Ae
-    ("\\\\i" . "i")                       ; \i            -> i
-    ("\\\\j" . "j")                       ; \j            -> j
-    ("\\\\l" . "l")                       ; \l            -> l
-    ("\\\\L" . "L")                       ; \L            -> L
-    ("\\\"o\\|\\\\\\\"o\\|\\\\o\\|\\\\oe" . "oe") ; "o,\"o,\o,\oe -> oe
-    ("\\\"O\\|\\\\\\\"O\\|\\\\O\\|\\\\OE" . "Oe") ; "O,\"O,\O,\OE -> Oe
-    ("\\\"s\\|\\\\\\\"s\\|\\\\3" . "ss")  ; "s,\"s,\3     -> ss
-    ("\\\"u\\|\\\\\\\"u" . "ue")          ; "u,\"u        -> ue
-    ("\\\"U\\|\\\\\\\"U" . "Ue")          ; "U,\"U        -> Ue
-    ;; accents
-    ("\\\\`\\|\\\\'\\|\\\\\\^\\|\\\\~\\|\\\\=\\|\\\\\\.\\|\\\\u\\|\\\\v\\|\\\\H\\|\\\\t\\|\\\\c\\|\\\\d\\|\\\\b" . "")
-    ;; braces, quotes, concatenation.
-    ("[`'\"{}#]" . "")
-    ("\\\\-" . "")                        ; \-            ->
-    ;; spaces
-    ("\\\\?[ \t\n]+\\|~" . " "))
+  (nconc
+   (mapcar (lambda (a) (cons (regexp-opt (car a)) (cdr a)))
+           '(;; language specific characters
+             (("\\aa") . "a")                      ; \aa           -> a
+             (("\\AA") . "A")                      ; \AA           -> A
+             (("\"a" "\\\"a" "\\ae") . "ae")       ; "a,\"a,\ae    -> ae
+             (("\"A" "\\\"A" "\\AE") . "Ae")       ; "A,\"A,\AE    -> Ae
+             (("\\i") . "i")                       ; \i            -> i
+             (("\\j") . "j")                       ; \j            -> j
+             (("\\l") . "l")                       ; \l            -> l
+             (("\\L") . "L")                       ; \L            -> L
+             (("\"o" "\\\"o" "\\o" "\\oe") . "oe") ; "o,\"o,\o,\oe -> oe
+             (("\"O" "\\\"O" "\\O" "\\OE") . "Oe") ; "O,\"O,\O,\OE -> Oe
+             (("\"s" "\\\"s" "\\3") . "ss")        ; "s,\"s,\3     -> ss
+             (("\"u" "\\\"u") . "ue")              ; "u,\"u        -> ue
+             (("\"U" "\\\"U") . "Ue")              ; "U,\"U        -> Ue
+             ;; hyphen, accents
+             (("\\-" "\\`" "\\'" "\\^" "\\~" "\\=" "\\." "\\u" "\\v"
+               "\\H" "\\t" "\\c" "\\d" "\\b") . "")
+             ;; space
+             (("~") . " ")))
+   ;; more spaces
+   '(("[\s\t\n]*\\(?:\\\\\\)?[\s\t\n]+" . " ")
+     ;; braces, quotes, concatenation.
+     ("[`'\"{}#]" . "")))
   "Alist of (OLD-REGEXP . NEW-STRING) pairs.
-Used by the default values of `bibtex-autokey-name-change-strings' and
+Used as default values of `bibtex-autokey-name-change-strings' and
 `bibtex-autokey-titleword-change-strings'.  Defaults to translating some
 language specific characters to their ASCII transcriptions, and
-removing any character accents.")
+removing any accent characters.")
 
 (defcustom bibtex-autokey-name-change-strings
   bibtex-autokey-transcriptions
