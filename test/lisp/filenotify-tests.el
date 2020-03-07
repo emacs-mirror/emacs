@@ -219,7 +219,8 @@ remote case we return always t."
   (or file-notify--library
       (file-remote-p temporary-file-directory)))
 
-(defvar file-notify--test-remote-enabled-checked nil
+(defvar file-notify--test-remote-enabled-checked
+  (if (getenv "EMACS_HYDRA_CI") '(t . nil))
   "Cached result of `file-notify--test-remote-enabled'.
 If the function did run, the value is a cons cell, the `cdr'
 being the result.")
