@@ -647,14 +647,8 @@ gid format.  Valid values are `string' and `integer', defaulting to
 	(let ((base (file-name-nondirectory file))
 	      (dir (file-name-directory file)))
 	  (if (string-equal "" base) (setq base "."))
-	  (if (boundp 'ange-cache)
-	      (setq entry (cdr (assoc base (cdr (assoc dir ange-cache))))))
 	  (unless entry
 	    (setq entry (eshell-parse-ange-ls dir))
-	    (if (boundp 'ange-cache)
-		(setq ange-cache
-		      (cons (cons dir entry)
-			    ange-cache)))
 	    (if entry
 		(let ((fentry (assoc base (cdr entry))))
 		  (if fentry
