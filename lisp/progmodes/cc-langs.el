@@ -3030,7 +3030,14 @@ Note that Java specific rules are currently applied to tell this from
 	 ;; can start a declaration.)
 	 "entity" "process" "service" "session" "storage"))
 
-
+(c-lang-defconst c-std-abbrev-keywords
+  "List of keywords which may need to cause electric indentation."
+  t '("else" "while")
+  c++ (append (c-lang-const c-std-abbrev-keywords) '("catch"))
+  java (append (c-lang-const c-std-abbrev-keywords) '("catch" "finally"))
+  idl nil)
+(c-lang-defvar c-std-abbrev-keywords (c-lang-const c-std-abbrev-keywords))
+
 ;;; Constants built from keywords.
 
 ;; Note: No `*-kwds' language constants may be defined below this point.

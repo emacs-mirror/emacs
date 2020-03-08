@@ -278,6 +278,29 @@ control).  See \"cc-mode.el\" for more info."
       (setq defs (cdr defs)))))
 (put 'c-define-abbrev-table 'lisp-indent-function 1)
 
+(defun c-populate-abbrev-table ()
+  ;; Insert the standard keywords which may need electric indentation into the
+  ;; current mode's abbreviation table.
+  (let ((table (intern (concat (symbol-name major-mode) "-abbrev-table")))
+	(defs c-std-abbrev-keywords)
+	)
+    (unless (and (boundp table)
+		 (abbrev-table-p (symbol-value table)))
+      (define-abbrev-table table nil))
+    (setq local-abbrev-table (symbol-value table))
+    (while defs
+      (unless (intern-soft (car defs) local-abbrev-table) ; Don't overwrite the
+					; abbrev's use count.
+	(condition-case nil
+	    (define-abbrev (symbol-value table)
+	      (car defs) (car defs)
+	      'c-electric-continued-statement 0 t)
+	  (wrong-number-of-arguments
+	   (define-abbrev (symbol-value table)
+	     (car defs) (car defs)
+	     'c-electric-continued-statement 0))))
+      (setq defs (cdr defs)))))
+
 (defun c-bind-special-erase-keys ()
   ;; Only used in Emacs to bind C-c C-<delete> and C-c C-<backspace>
   ;; to the proper keys depending on `normal-erase-is-backspace'.
@@ -549,6 +572,8 @@ This function cannot do that since `c-init-language-vars' is a macro
 that requires a literal mode spec at compile time."
 
   (setq c-buffer-is-cc-mode mode)
+
+  (c-populate-abbrev-table)
 
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
@@ -2444,11 +2469,6 @@ opening \" and the next unescaped end of line."
   (funcall (c-lang-const c-make-mode-syntax-table c))
   "Syntax table used in c-mode buffers.")
 
-(c-define-abbrev-table 'c-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0))
-  "Abbreviation table used in c-mode buffers.")
-
 (defvar c-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
@@ -2560,12 +2580,6 @@ the code is C or C++ and based on that chooses whether to enable
   (funcall (c-lang-const c-make-mode-syntax-table c++))
   "Syntax table used in c++-mode buffers.")
 
-(c-define-abbrev-table 'c++-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)
-    ("catch" "catch" c-electric-continued-statement 0))
-  "Abbreviation table used in c++-mode buffers.")
-
 (defvar c++-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
@@ -2614,11 +2628,6 @@ Key bindings:
   (funcall (c-lang-const c-make-mode-syntax-table objc))
   "Syntax table used in objc-mode buffers.")
 
-(c-define-abbrev-table 'objc-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0))
-  "Abbreviation table used in objc-mode buffers.")
-
 (defvar objc-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
@@ -2664,13 +2673,6 @@ Key bindings:
 (defvar java-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table java))
   "Syntax table used in java-mode buffers.")
-
-(c-define-abbrev-table 'java-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)
-    ("catch" "catch" c-electric-continued-statement 0)
-    ("finally" "finally" c-electric-continued-statement 0))
-  "Abbreviation table used in java-mode buffers.")
 
 (defvar java-mode-map
   (let ((map (c-make-inherited-keymap)))
@@ -2722,9 +2724,6 @@ Key bindings:
   (funcall (c-lang-const c-make-mode-syntax-table idl))
   "Syntax table used in idl-mode buffers.")
 
-(c-define-abbrev-table 'idl-mode-abbrev-table nil
-  "Abbreviation table used in idl-mode buffers.")
-
 (defvar idl-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
@@ -2766,11 +2765,6 @@ Key bindings:
 (defvar pike-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table pike))
   "Syntax table used in pike-mode buffers.")
-
-(c-define-abbrev-table 'pike-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0))
-  "Abbreviation table used in pike-mode buffers.")
 
 (defvar pike-mode-map
   (let ((map (c-make-inherited-keymap)))
@@ -2818,11 +2812,6 @@ Key bindings:
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("mawk" . awk-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("nawk" . awk-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("gawk" . awk-mode))
-
-(c-define-abbrev-table 'awk-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0))
-  "Abbreviation table used in awk-mode buffers.")
 
 (defvar awk-mode-map
   (let ((map (c-make-inherited-keymap)))
