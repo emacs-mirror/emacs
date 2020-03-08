@@ -616,7 +616,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
      FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
      then divide the double by FLT_RADIX**SCALE.  First scale N
-     N (or scale D, if SCALE is negative) ...  */
+     (or scale D, if SCALE is negative) ...  */
   ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG + 1;
   if (scale < 0)
     {
