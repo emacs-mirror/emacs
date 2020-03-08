@@ -5320,7 +5320,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  error ("missing label name");
 	void *func = dynlib_sym (comp_u->handle, SSDATA (c_name));
 	if (!func)
-	  error ("can't function in compilation unit");
+	  error ("can't find function in compilation unit");
 	subr->function.a0 = func;
 	break;
       }
