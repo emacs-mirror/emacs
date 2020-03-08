@@ -184,8 +184,15 @@ See the functions `find-function' and `find-variable'."
 LIBRARY should be a string (the name of the library)."
   ;; If the library is byte-compiled, try to find a source library by
   ;; the same name.
-  (when (string-match "\\.el\\([cn]\\(\\..*\\)?\\)\\'" library)
+  (cond
+   ((string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
     (setq library (replace-match "" t t library)))
+   ((string-match "\\.eln$" library)
+    ;; From help-fns.el.
+    (setq library (expand-file-name (concat (file-name-base library)
+                                            ".el")
+		                    (concat (file-name-directory library)
+                                            "..")))))
   (or
    (locate-file library
                 (or find-function-source-path load-path)
@@ -439,7 +446,7 @@ message about the whole chain of aliases."
     (cons function
           (cond
            ((autoloadp def) (nth 1 def))
-           ((subrp def)
+           ((and (subrp def) (not (subr-native-elisp-p def)))
             (if lisp-only
                 (error "%s is a built-in function" function))
             (help-C-file-name def 'subr))
