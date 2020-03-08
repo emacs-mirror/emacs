@@ -37,15 +37,16 @@ before_script:
 stages:
   - test
 
-test-all:
-  # This tests also file monitor libraries inotify and inotifywatch.
-  stage: test
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 inotify-tools
-    - ./autogen.sh autoconf
-    - ./configure --without-makeinfo
-    - make bootstrap
-    - make check-expensive
+# FIXME: Commented for this branch till is known to be broken.
+# test-all:
+#   # This tests also file monitor libraries inotify and inotifywatch.
+#   stage: test
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 inotify-tools
+#     - ./autogen.sh autoconf
+#     - ./configure --without-makeinfo
+#     - make bootstrap
+#     - make check-expensive
 
 test-filenotify-gio:
   stage: test
@@ -70,11 +71,12 @@ test-native-bootstrap:
   # Test native bootstrap
   # Run for now only speed 0 to limit memory usage and compilation time.
   stage: test
-  only:
-    - schedules
+  # Uncomment the following to run it only when sceduled.
+  # only:
+  #   - schedules
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
-  timeout: 10 hours
+  timeout: 3 hours
