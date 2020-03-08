@@ -491,11 +491,14 @@ timespec_mpz (struct timespec t)
 static Lisp_Object
 timespec_ticks (struct timespec t)
 {
+  /* For speed, use intmax_t arithmetic if it will do.  */
   intmax_t accum;
   if (FASTER_TIMEFNS
       && !INT_MULTIPLY_WRAPV (t.tv_sec, TIMESPEC_HZ, &accum)
       && !INT_ADD_WRAPV (t.tv_nsec, accum, &accum))
     return make_int (accum);
+
+  /* Fall back on bignum arithmetic.  */
   timespec_mpz (t);
   return make_integer_mpz ();
 }
@@ -505,12 +508,17 @@ timespec_ticks (struct timespec t)
 static Lisp_Object
 lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
 {
+  /* For speed, just return TICKS if T is (TICKS . HZ).  */
   if (FASTER_TIMEFNS && EQ (t.hz, hz))
     return t.ticks;
+
+  /* Check HZ for validity.  */
   if (FIXNUMP (hz))
     {
       if (XFIXNUM (hz) <= 0)
 	invalid_hz (hz);
+
+      /* For speed, use intmax_t arithmetic if it will do.  */
       intmax_t ticks;
       if (FASTER_TIMEFNS && FIXNUMP (t.ticks) && FIXNUMP (t.hz)
 	  && !INT_MULTIPLY_WRAPV (XFIXNUM (t.ticks), XFIXNUM (hz), &ticks))
@@ -520,6 +528,7 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
   else if (! (BIGNUMP (hz) && 0 < mpz_sgn (*xbignum_val (hz))))
     invalid_hz (hz);
 
+  /* Fall back on bignum arithmetic.  */
   mpz_mul (mpz[0],
 	   *bignum_integer (&mpz[0], t.ticks),
 	   *bignum_integer (&mpz[1], hz));
@@ -533,9 +542,13 @@ lisp_time_seconds (struct lisp_time t)
 {
   if (!FASTER_TIMEFNS)
     return lisp_time_hz_ticks (t, make_fixnum (1));
+
+  /* For speed, use EMACS_INT arithmetic if it will do.  */
   if (FIXNUMP (t.ticks) && FIXNUMP (t.hz))
     return make_fixnum (XFIXNUM (t.ticks) / XFIXNUM (t.hz)
 			- (XFIXNUM (t.ticks) % XFIXNUM (t.hz) < 0));
+
+  /* For speed, inline what lisp_time_hz_ticks would do.  */
   mpz_fdiv_q (mpz[0],
 	      *bignum_integer (&mpz[0], t.ticks),
 	      *bignum_integer (&mpz[1], t.hz));
@@ -1122,21 +1135,22 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
       (subtract ? mpz_submul : mpz_addmul) (*iticks, *fa, *nb);
 
       /* Normalize iticks/ihz by dividing both numerator and
-	 denominator by ig = gcd (iticks, ihz).  However, if that
-	 would cause the denominator to become less than hzmin,
-	 rescale the denominator upwards from its ordinary value by
-	 multiplying numerator and denominator so that the denominator
-	 becomes at least hzmin.  This rescaling avoids returning a
-	 timestamp that is less precise than both a and b, or a
-	 timestamp that looks obsolete when that might be a problem.  */
+	 denominator by ig = gcd (iticks, ihz).  For speed, though,
+	 skip this division if ihz = 1.  */
       mpz_t *ig = &mpz[3];
       mpz_gcd (*ig, *iticks, *ihz);
-
       if (!FASTER_TIMEFNS || mpz_cmp_ui (*ig, 1) > 0)
 	{
 	  mpz_divexact (*iticks, *iticks, *ig);
 	  mpz_divexact (*ihz, *ihz, *ig);
 
+	  /* However, if dividing the denominator by ig would cause the
+	     denominator to become less than hzmin, rescale the denominator
+	     upwards by multiplying the normalized numerator and denominator
+	     so that the resulting denominator becomes at least hzmin.
+	     This rescaling avoids returning a timestamp that is less precise
+	     than both a and b, or a timestamp that looks obsolete when that
+	     might be a problem.  */
 	  if (!FASTER_TIMEFNS || mpz_cmp (*ihz, *hzmin) < 0)
 	    {
 	      /* Rescale straightforwardly.  Although this might not
@@ -1150,6 +1164,8 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 	      mpz_mul (*ihz, *ihz, *rescale);
 	    }
 	}
+
+      /* mpz[0] and iticks now correspond to the (HZ . TICKS) pair.  */
       hz = make_integer_mpz ();
       mpz_swap (mpz[0], *iticks);
       ticks = make_integer_mpz ();

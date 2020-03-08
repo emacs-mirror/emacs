@@ -378,7 +378,7 @@ This function returns a timer object which you can use in
                                  (decoded-time-year now)
                                  (decoded-time-zone now)))))))
 
-  (or (consp time)
+  (or (time-equal-p time time)
       (error "Invalid time format"))
 
   (let ((timer (timer-create)))
