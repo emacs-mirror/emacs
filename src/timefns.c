@@ -421,6 +421,9 @@ decode_float_time (double t, struct lisp_time *result)
       else if (flt_radix_power_size <= scale)
 	return isnan (t) ? EDOM : EOVERFLOW;
 
+      /* Compute TICKS, HZ such that TICKS / HZ exactly equals T, where HZ is
+	 T's frequency or 1, whichever is greater.  Here, “frequency” means
+	 1/precision.  Cache HZ values in flt_radix_power.  */
       double scaled = scalbn (t, scale);
       eassert (trunc (scaled) == scaled);
       ticks = double_to_integer (scaled);
@@ -442,6 +445,7 @@ decode_float_time (double t, struct lisp_time *result)
 static Lisp_Object
 ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
 {
+  /* mpz[0] = floor ((ticks * trillion) / hz).  */
   mpz_t const *zticks = bignum_integer (&mpz[0], ticks);
 #if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
   mpz_mul_ui (mpz[0], *zticks, TRILLION);
@@ -449,6 +453,9 @@ ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
   mpz_mul (mpz[0], *zticks, ztrillion);
 #endif
   mpz_fdiv_q (mpz[0], mpz[0], *bignum_integer (&mpz[1], hz));
+
+  /* mpz[0] = floor (mpz[0] / trillion), with US = the high six digits of the
+     12-digit remainder, and PS = the low six digits.  */
 #if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
   unsigned long int fullps = mpz_fdiv_q_ui (mpz[0], mpz[0], TRILLION);
   int us = fullps / 1000000;
@@ -458,11 +465,14 @@ ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
   int ps = mpz_fdiv_q_ui (mpz[1], mpz[1], 1000000);
   int us = mpz_get_ui (mpz[1]);
 #endif
+
+  /* mpz[0] = floor (mpz[0] / 1 << LO_TIME_BITS), with lo = remainder.  */
   unsigned long ulo = mpz_get_ui (mpz[0]);
   if (mpz_sgn (mpz[0]) < 0)
     ulo = -ulo;
   int lo = ulo & ((1 << LO_TIME_BITS) - 1);
   mpz_fdiv_q_2exp (mpz[0], mpz[0], LO_TIME_BITS);
+
   return list4 (make_integer_mpz (), make_fixnum (lo),
 		make_fixnum (us), make_fixnum (ps));
 }
@@ -482,6 +492,7 @@ mpz_set_time (mpz_t rop, time_t t)
 static void
 timespec_mpz (struct timespec t)
 {
+  /* mpz[0] = sec * TIMESPEC_HZ + nsec.  */
   mpz_set_ui (mpz[0], t.tv_nsec);
   mpz_set_time (mpz[1], t.tv_sec);
   mpz_addmul_ui (mpz[0], mpz[1], TIMESPEC_HZ);
@@ -508,7 +519,9 @@ timespec_ticks (struct timespec t)
 static Lisp_Object
 lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
 {
-  /* For speed, just return TICKS if T is (TICKS . HZ).  */
+  /* The idea is to return the floor of ((T.ticks * HZ) / T.hz).  */
+
+  /* For speed, just return T.ticks if T.hz == HZ.  */
   if (FASTER_TIMEFNS && EQ (t.hz, hz))
     return t.ticks;
 
@@ -540,6 +553,8 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
 static Lisp_Object
 lisp_time_seconds (struct lisp_time t)
 {
+  /* The idea is to return the floor of T.ticks / T.hz.  */
+
   if (!FASTER_TIMEFNS)
     return lisp_time_hz_ticks (t, make_fixnum (1));
 
@@ -590,6 +605,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
       && intmax_numerator % intmax_denominator == 0)
     return intmax_numerator / intmax_denominator;
 
+  /* Compute number of base-FLT_RADIX digits in numerator and denominator.  */
   mpz_t const *n = bignum_integer (&mpz[0], numerator);
   mpz_t const *d = bignum_integer (&mpz[1], denominator);
   ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
@@ -601,7 +617,8 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
      FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
-     then divide the double by FLT_RADIX**SCALE.  */
+     then divide the double by FLT_RADIX**SCALE.  First scale N
+     (or scale D, if SCALE is negative) ...  */
   ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG;
   if (scale < 0)
     {
@@ -616,12 +633,12 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
       mpz_mul_2exp (mpz[0], *n, scale * LOG2_FLT_RADIX);
       n = &mpz[0];
     }
-
+  /* ... and then divide, with quotient Q and remainder R.  */
   mpz_t *q = &mpz[2];
   mpz_t *r = &mpz[3];
   mpz_tdiv_qr (*q, *r, *n, *d);
 
-  /* The amount to add to the absolute value of *Q so that truncating
+  /* The amount to add to the absolute value of Q so that truncating
      it to double will round correctly.  */
   int incr;
 
@@ -660,6 +677,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   if (!FASTER_TIMEFNS || incr != 0)
     (mpz_sgn (*n) < 0 ? mpz_sub_ui : mpz_add_ui) (*q, *q, incr);
 
+  /* Rescale the integer Q back to double.  This step does not round.  */
   return scalbn (mpz_get_d (*q), -scale);
 }
 
@@ -908,6 +926,10 @@ lisp_to_timespec (struct lisp_time t)
   mpz_t *q = &mpz[0];
   mpz_t const *qt = q;
 
+  /* Floor-divide (T.ticks * TIMESPEC_HZ) by T.hz,
+     yielding quotient Q (tv_sec) and remainder NS (tv_nsec).
+     Return an invalid timespec if Q does not fit in time_t.
+     For speed, prefer fixnum arithmetic if it works.  */
   if (FASTER_TIMEFNS && EQ (t.hz, timespec_hz))
     {
       if (FIXNUMP (t.ticks))
@@ -951,8 +973,8 @@ lisp_to_timespec (struct lisp_time t)
       ns = mpz_fdiv_q_ui (*q, *q, TIMESPEC_HZ);
     }
 
-  /* With some versions of MinGW, tv_sec is a 64-bit type, whereas
-     time_t is a 32-bit type.  */
+  /* Check that Q fits in time_t, not merely in T.tv_sec.  With some versions
+     of MinGW, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
   time_t sec;
   if (mpz_time (*qt, &sec))
     {
@@ -1032,10 +1054,14 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
     {
       if (EQ (b, make_fixnum (0)))
 	return a;
+
+      /* For speed, use EMACS_INT arithmetic if it will do.  */
       if (FIXNUMP (a))
 	return make_int (subtract
 			 ? XFIXNUM (a) - XFIXNUM (b)
 			 : XFIXNUM (a) + XFIXNUM (b));
+
+      /* For speed, use mpz_add_ui/mpz_sub_ui if it will do.  */
       if (eabs (XFIXNUM (b)) <= ULONG_MAX)
 	{
 	  ((XFIXNUM (b) < 0) == subtract ? mpz_add_ui : mpz_sub_ui)
@@ -1044,6 +1070,7 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 	}
     }
 
+  /* Fall back on bignum arithmetic if necessary.  */
   if (!mpz_done)
     (subtract ? mpz_sub : mpz_add) (mpz[0],
 				    *bignum_integer (&mpz[0], a),
@@ -1227,6 +1254,8 @@ time_cmp (Lisp_Object a, Lisp_Object b)
   if (EQ (a, b))
     return 0;
 
+  /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
+     ATICKS * BHZ to BTICKS * AHZ.  */
   struct lisp_time tb = lisp_time_struct (b, 0);
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
@@ -1504,6 +1533,7 @@ SEC is always an integer between 0 and 59.)
 usage: (decode-time &optional TIME ZONE FORM)  */)
   (Lisp_Object specified_time, Lisp_Object zone, Lisp_Object form)
 {
+  /* Compute broken-down local time LOCAL_TM from SPECIFIED_TIME and ZONE.  */
   struct lisp_time lt = lisp_time_struct (specified_time, 0);
   struct timespec ts = lisp_to_timespec (lt);
   if (! timespec_valid_p (ts))
@@ -1518,6 +1548,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   if (!tm)
     time_error (localtime_errno);
 
+  /* Let YEAR = LOCAL_TM.tm_year + TM_YEAR_BASE.  */
   Lisp_Object year;
   if (FASTER_TIMEFNS
       && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= local_tm.tm_year
@@ -1534,12 +1565,15 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
       year = make_integer_mpz ();
     }
 
+  /* Compute SEC from LOCAL_TM.tm_sec and HZ.  */
   Lisp_Object hz = lt.hz, sec;
   if (EQ (hz, make_fixnum (1)) || !EQ (form, Qt))
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
-      Lisp_Object ticks; /* hz * tm_sec + mod (lt.ticks, hz) */
+      /* Let TICKS = HZ * LOCAL_TM.tm_sec + mod (LT.ticks, HZ)
+	 and SEC = (TICKS . HZ).  */
+      Lisp_Object ticks;
       intmax_t n;
       if (FASTER_TIMEFNS && FIXNUMP (lt.ticks) && FIXNUMP (hz)
 	  && !INT_MULTIPLY_WRAPV (XFIXNUM (hz), local_tm.tm_sec, &n)
@@ -1669,6 +1703,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
       yeararg = args[5];
     }
 
+  /* Let SEC = floor (LT.ticks / HZ), with SUBSECTICKS the remainder.  */
   struct lisp_time lt;
   decode_lisp_time (secarg, 0, &lt, 0);
   Lisp_Object hz = lt.hz, sec, subsecticks;
