@@ -68,6 +68,7 @@ test-filenotify-gio:
 
 test-native-bootstrap:
   # Test native bootstrap
+  # Run for now only speed 0 to limit memory usage and compilation time.
   stage: test
   only:
     - schedules
@@ -75,5 +76,5 @@ test-native-bootstrap:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
-    - make bootstrap -j2
+    - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
   timeout: 10 hours
