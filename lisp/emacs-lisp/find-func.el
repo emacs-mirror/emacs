@@ -187,7 +187,7 @@ LIBRARY should be a string (the name of the library)."
   (cond
    ((string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
     (setq library (replace-match "" t t library)))
-   ((string-match "\\.eln$" library)
+   ((string-match "\\.eln\\'" library)
     ;; From help-fns.el.
     (setq library (expand-file-name (concat (file-name-base library)
                                             ".el")
