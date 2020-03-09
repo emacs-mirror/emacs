@@ -184,6 +184,9 @@ key             binding
 The original key binding was 'M-s', which interfered with I-search,
 since the latter uses 'M-s' as a prefix key of the search prefix map.
 
+** vc-print-branch-log shows the change log for BRANCH from its root
+directory instead of the default directory.
+
 
 * Incompatible Lisp Changes in Emacs 28.1
 
