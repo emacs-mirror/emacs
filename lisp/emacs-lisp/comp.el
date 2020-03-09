@@ -1154,8 +1154,8 @@ functions 'top_level_run' will call back `comp--register-subr'
 into the C code forwarding the compilation unit."
   ;; Once an .eln is loaded and Emacs is dumped 'top_level_run' has no
   ;; reasons to be execute ever again.  Therefore all objects can be
-  ;; just impure.
-  (let* ((comp-curr-allocation-class 'd-impure)
+  ;; just ephemeral.
+  (let* ((comp-curr-allocation-class 'd-ephemeral)
          (func (make-comp-func :name 'top-level-run
                                :c-name "top_level_run"
                                :args (make-comp-args :min 1 :max 1)
