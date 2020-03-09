@@ -510,12 +510,8 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	    XSETCAR (tem, make_fixnum (offset));
 	}
     }
-  else if (SUBR_NATIVE_COMPILEDP (fun))
-    {
-      XSUBR (fun)->native_doc = Qnil;
-    }
   /* Lisp_Subrs have a slot for it.  */
-  else if (SUBRP (fun))
+  else if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
     {
       XSUBR (fun)->doc = offset;
     }
