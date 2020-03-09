@@ -276,7 +276,8 @@ A nil value for either argument stands for the current time."
     (lambda (reporter &optional value _suffix)
       (progress-reporter-update reporter value))))
 
-;; `file-modes' and `set-file-modes' got argument FLAG in Emacs 28.1.
+;; `file-modes', `set-file-modes' and `set-file-times' got argument
+;; FLAG in Emacs 28.1.
 (defalias 'tramp-compat-file-modes
   (if (equal (tramp-compat-funcall 'func-arity #'file-modes) '(1 . 2))
       #'file-modes
@@ -288,6 +289,12 @@ A nil value for either argument stands for the current time."
       #'set-file-modes
     (lambda (filename mode &optional _flag)
       (set-file-modes filename mode))))
+
+(defalias 'tramp-compat-set-file-times
+  (if (equal (tramp-compat-funcall 'func-arity #'set-file-times) '(1 . 3))
+      #'set-file-times
+    (lambda (filename &optional timestamp _flag)
+      (set-file-times filename timestamp))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
