@@ -100,4 +100,14 @@
     (should (equal (funcall f 'b1) '(4 5 nil nil)))
     (should (equal (funcall f 'b2) '(nil nil 8 9)))))
 
+(ert-deftest pcase-tests-cl-type ()
+  (should (equal (pcase 1
+                   ((cl-type integer) 'integer))
+                 'integer))
+  (should (equal (pcase 1
+                   ((cl-type (integer 0 2)) 'integer-0<=n<=2))
+                 'integer-0<=n<=2))
+  (should-error (pcase 1
+                  ((cl-type notatype) 'integer))))
+
 ;;; pcase-tests.el ends here.

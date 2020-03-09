@@ -545,6 +545,11 @@ in better code.
 ---
 *** New function 'pcase-compile-patterns' to write other macros.
 
+*** Added 'cl-type' pattern.
+The new 'cl-type' pattern compares types using 'cl-typep', which allows
+comparing simple types like '(cl-type integer)', as well as forms like
+'(cl-type (integer 0 10))'.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
