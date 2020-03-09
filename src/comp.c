@@ -3388,6 +3388,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
   bool reloading_cu = *saved_cu ? true : false;
+  Lisp_Object *data_eph_relocs =
+    dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
   /* While resurrecting from an image dump loading more than once the
      same compilation unit does not make any sense.  */
@@ -3419,19 +3421,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
       EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
       Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
       Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
-      Lisp_Object *data_eph_relocs =
-	dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
-      Lisp_Object volatile data_ephemeral_vec;
-
-      /* Note: data_ephemeral_vec is not GC protected except than by
-	 this function frame.  After this functions will be
-	 deactivated GC will be free to collect it, but it MUST
-	 survive till 'top_level_run' has finished his job.  We store
-	 into the ephemeral allocation class only objects that we know
-	 are necessary exclusively during the first load.  Once these
-	 are collected we don't have to maintain them in the heap
-	 forever.  */
 
       if (!(current_thread_reloc
 	    && pure_reloc
@@ -3457,12 +3447,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	  comp_u->data_impure_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
-	  data_ephemeral_vec =
-	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
-
-	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
-	  for (EMACS_INT i = 0; i < d_vec_len; i++)
-	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
 
 	  if (!NILP (Vpurify_flag))
 	    /* Non impure can be copied into pure space.  */
@@ -3479,9 +3463,30 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
     }
 
   if (!loading_dump)
-    /* Executing this will perform all the expected environment
-       modifications.  */
-    top_level_run (comp_u_lisp_obj);
+    {
+      /* Note: data_ephemeral_vec is not GC protected except than by
+	 this function frame.  After this functions will be
+	 deactivated GC will be free to collect it, but it MUST
+	 survive till 'top_level_run' has finished his job.  We store
+	 into the ephemeral allocation class only objects that we know
+	 are necessary exclusively during the first load.  Once these
+	 are collected we don't have to maintain them in the heap
+	 forever.  */
+
+      Lisp_Object volatile data_ephemeral_vec  =
+	load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
+
+      EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
+      for (EMACS_INT i = 0; i < d_vec_len; i++)
+	data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
+
+      /* Executing this will perform all the expected environment
+	 modifications.  */
+      top_level_run (comp_u_lisp_obj);
+      /* Make sure data_ephemeral_vec still exists after top_level_run has run.
+	 Guard against sibling call optimization (or any other).  */
+      data_ephemeral_vec = data_ephemeral_vec;
+    }
 
   return;
 }
