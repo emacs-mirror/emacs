@@ -225,8 +225,8 @@ called when the function object is garbage-collected.  Use
 'set_function_finalizer' to set the finalizer and
 'get_function_finalizer' to retrieve it.
 
-** 'file-modes' and 'set-file-modes' now have an optional argument
-specifying whether to follow symbolic links.
+** 'file-modes', 'set-file-modes', and 'set-file-times' now have an
+optional argument specifying whether to follow symbolic links.
 
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".

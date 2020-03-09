@@ -302,7 +302,7 @@ function is called, it reads the full definition from the file, to
 replace the place-holder.
 
   The advantage of dynamic function loading is that loading the file
-becomes much faster.  This is a good thing for a file which contains
+should become faster.  This is a good thing for a file which contains
 many separate user-callable functions, if using one of them does not
 imply you will probably also use the rest.  A specialized mode which
 provides many keyboard commands often has that usage pattern: a user may
@@ -325,6 +325,10 @@ nonsense results.
 installed Emacs files.  But they are quite likely to happen with Lisp
 files that you are changing.  The easiest way to prevent these problems
 is to reload the new compiled file immediately after each recompilation.
+
+  @emph{Experience shows that using dynamic function loading provides
+benefits that are hardly measurable, so this feature is deprecated
+since Emacs 27.1.}
 
   The byte compiler uses the dynamic function loading feature if the
 variable @code{byte-compile-dynamic} is non-@code{nil} at compilation

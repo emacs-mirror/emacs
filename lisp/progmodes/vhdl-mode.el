@@ -13334,7 +13334,7 @@ File statistics: \"%s\"\n\
 (defvar vhdl-font-lock-keywords nil
   "Regular expressions to highlight in VHDL Mode.")
 
-(defvar vhdl-font-lock-keywords-0
+(defvar vhdl-font-lock-keywords-0 nil
   ;; set in `vhdl-font-lock-init' because dependent on user options
   "For consideration as a value of `vhdl-font-lock-keywords'.
 This does highlighting of template prompts and directives (pragmas).")

@@ -350,11 +350,12 @@ Line-Up Functions
 * Misc Line-Up::
 
 
-Customizing Macros
+Custom Macros
 
 * Macro Backslashes::
 * Macros with ;::
 * Noise Macros::
+* Indenting Directives::
 
 @end detailmenu
 @end menu
@@ -6949,6 +6950,10 @@ is @code{nil}, all lines inside macro definitions are analyzed as
 @code{cpp-macro-cont}.
 @end defopt
 
+Sometimes you may want to indent particular directives
+(e.g. @code{#pragma}) as though they were statements.  To do this, see
+@ref{Indenting Directives}.
+
 Because a macro can expand into anything at all, near where one is
 invoked @ccmode{} can only indent and fontify code heuristically.
 Sometimes it gets it wrong.  Usually you should try to design your
@@ -6965,6 +6970,7 @@ Macros}.
 * Macro Backslashes::
 * Macros with ;::
 * Noise Macros::
+* Indenting Directives::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -7074,7 +7080,7 @@ initialization code, after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Noise Macros,  , Macros with ;, Custom Macros
+@node    Noise Macros, Indenting Directives, Macros with ;, Custom Macros
 @comment node-name, next, previous, up
 @section Noise Macros
 @cindex noise macros
@@ -7129,6 +7135,48 @@ on changing the value of @code{c-noise-macro-names} or
 has run.  This function is called by @ccmode{}'s initialization code,
 after the mode hooks have run.
 @end defun
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Indenting Directives, , Noise Macros, Custom Macros
+@comment node-name, next, previous, up
+@section Indenting Directives
+@cindex Indenting Directives
+@cindex Indenting #pragma
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Sometimes you may want to indent particular preprocessor directives
+(e.g. @code{#pragma}) as though they were statements.  To do this,
+first set up @code{c-cpp-indent-to-body-directives} to include the
+directive name(s), then enable the ``indent to body'' feature with
+@code{c-toggle-cpp-indent-to-body}.
+
+@defopt c-cpp-indent-to-body-directives
+@vindex cpp-indent-to-body-directives (c-)
+This variable is a list of names of CPP directives (not including the
+introducing @samp{#}) which will be indented as though statements.
+Each element is a string, and must be a valid identifier.  The default
+value is @code{("pragma")}.
+
+If you add more directives to this variable, or remove directives from
+it, whilst ``indent to body'' is active, you need to re-enable the
+feature by calling @code{c-toggle-cpp-indent-to-body} for these
+changes to take effect@footnote{Note that the removal of directives
+doesn't work satisfactorally on XEmacs or on very old versions of
+Emacs}.
+@end defopt
+
+@defun c-toggle-cpp-indent-to-body
+@findex toggle-cpp-indent-to-body (c-)
+With @kbd{M-x c-toggle-cpp-indent-to-body}, you enable or disable the
+``indent to body'' feature.  When called programmatically, it takes an
+optional numerical argument.  A positive value will enable the
+feature, a zero or negative value will disable it.
+
+You should set up @code{c-cpp-indent-to-body-directives} before
+calling this function, since the function sets internal state which
+depends on that variable.
+@end defun
+
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Odds and Ends, Sample Init File, Custom Macros, Top

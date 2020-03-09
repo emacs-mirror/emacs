@@ -1873,15 +1873,19 @@ You can use a vector for the simple cases too:
   Language and coding systems may cause problems with key bindings for
 non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
+@findex define-key
   As described in @ref{Local Keymaps}, major modes and minor modes can
 define local keymaps.  These keymaps are constructed when the mode is
-used for the first time in a session.  If you wish to change one of
-these keymaps, you must use the @dfn{mode hook} (@pxref{Hooks}).
+loaded for the first time in a session.  The function @code{define-key}
+can be used to make changes in a specific keymap.  This function can
+also unset keys, when passed @code{nil} as the binding.
 
-@findex define-key
-  For example, Texinfo mode runs the hook @code{texinfo-mode-hook}.
-Here's how you can use the hook to add local bindings for @kbd{C-c n}
-and @kbd{C-c p} in Texinfo mode:
+  Since a mode's keymaps are not constructed until it has been loaded,
+you must delay running code which modifies them, e.g., by putting it
+on a @dfn{mode hook} (@pxref{(Hooks)}).  For example, Texinfo mode
+runs the hook @code{texinfo-mode-hook}.  Here's how you can use the
+hook to add local bindings for @kbd{C-c n} and @kbd{C-c p}, and remove
+the one for @kbd{C-c C-x x} in Texinfo mode:
 
 @example
 (add-hook 'texinfo-mode-hook
@@ -1890,6 +1894,7 @@ and @kbd{C-c p} in Texinfo mode:
                         'backward-paragraph)
             (define-key texinfo-mode-map "\C-cn"
                         'forward-paragraph)))
+            (define-key texinfo-mode-map "\C-c\C-xx" nil)
 @end example
 
 @node Modifier Keys

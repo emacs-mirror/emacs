@@ -5944,9 +5944,10 @@ into NEWNAME instead."
       ;; Set directory attributes.
       (let ((modes (file-modes directory))
 	    (times (and keep-time (file-attribute-modification-time
-				   (file-attributes directory)))))
-	(if modes (set-file-modes newname modes (unless follow 'nofollow)))
-	(if times (set-file-times newname times))))))
+				   (file-attributes directory))))
+	    (follow-flag (unless follow 'nofollow)))
+	(if modes (set-file-modes newname modes follow-flag))
+	(if times (set-file-times newname times follow-flag))))))
 
 
 ;; At time of writing, only info uses this.

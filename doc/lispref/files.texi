@@ -1909,11 +1909,19 @@ omitted or @code{nil}, it defaults to 0, i.e., no access rights at
 all.
 @end defun
 
-@defun set-file-times filename &optional time
+@defun set-file-times filename &optional time flag
 This function sets the access and modification times of @var{filename}
 to @var{time}.  The return value is @code{t} if the times are successfully
 set, otherwise it is @code{nil}.  @var{time} defaults to the current
 time and must be a time value (@pxref{Time of Day}).
+
+By default this function follows symbolic links.  However, if the
+optional argument @var{flag} is the symbol @code{nofollow}, this
+function does not follow @var{filename} if it is a symbolic link;
+this can help prevent inadvertently changing the times of a file
+somewhere else.  On platforms that do not support changing times
+on a symbolic link, this function signals an error when @var{filename}
+is a symbolic link and @var{flag} is @code{nofollow}.
 @end defun
 
 @defun set-file-extended-attributes filename attribute-alist

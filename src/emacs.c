@@ -1974,7 +1974,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* This calls putenv and so must precede init_process_emacs.  */
   init_timefns ();
 
-  /* This sets Voperating_system_release, which init_process_emacs uses.  */
   init_editfns ();
 
   /* These two call putenv.  */

@@ -1495,11 +1495,12 @@ of."
 	mode (tramp-shell-quote-argument localname))
        "Error while changing file's mode %s" filename))))
 
-(defun tramp-sh-handle-set-file-times (filename &optional time)
+(defun tramp-sh-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (when (tramp-get-remote-touch v)
       (tramp-flush-file-properties v localname)
+      flag ;; FIXME: Support 'nofollow'.
       (let ((time
 	     (if (or (null time)
 		     (tramp-compat-time-equal-p time tramp-time-doesnt-exist)

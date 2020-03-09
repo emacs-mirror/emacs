@@ -31441,6 +31441,10 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
   struct window *w = XWINDOW (hlinfo->mouse_face_window);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
+  /* Don't bother doing anything if we are on a wrong frame.  */
+  if (f != hlinfo->mouse_face_mouse_frame)
+    return;
+
   if (/* If window is in the process of being destroyed, don't bother
 	 to do anything.  */
       w->current_matrix != NULL

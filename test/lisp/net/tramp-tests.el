@@ -3743,7 +3743,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			    (file-attributes tmp-name1))))
 	    ;; Skip the test, if the remote handler is not able to set
 	    ;; the correct time.
-	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)))
+	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)
+					 'nofollow))
 	    ;; Dumb remote shells without perl(1) or stat(1) are not
 	    ;; able to return the date correctly.  They say "don't know".
 	    (unless (tramp-compat-time-equal-p

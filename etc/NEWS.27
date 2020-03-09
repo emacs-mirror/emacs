@@ -347,14 +347,18 @@ The default value is 30000, as the previously hard-coded threshold.
 +++
 ** The function 'read-passwd' uses "*" as default character to hide passwords.
 
++++
 ** The function 'read-answer' now accepts not only single character
 answers, but also function keys like 'F1', character events such as
 'C-M-h', and control characters like 'C-h'.
 
-** Lexical binding is now used when evaluating interactive Elisp forms.
-More specifically, 'lexical-binding' is now used for 'M-:', '--eval',
-as well as in 'lisp-interaction-mode' and 'ielm-mode', used in the
-"*scratch*" and "*ielm*" buffers.
++++
+** Lexical binding is now used by default when evaluating interactive Elisp.
+More specifically, 'lexical-binding' is now used by default for 'M-:'
+and '--eval' (including in evaluations invoked from 'emacsclient' via
+its '--eval' command-line option), as well as in
+'lisp-interaction-mode' and 'ielm-mode', used in the "*scratch*" and
+"*ielm*" buffers.
 
 ---
 ** The new user option 'tooltip-resize-echo-area' avoids truncating
@@ -489,6 +493,7 @@ matches strings where the pattern appears as a subsequence.  Put
 simply, makes "foo" complete to both "barfoo" and "frodo".  Add 'flex'
 to 'completion-styles' or 'completion-category-overrides' to use it.
 
+---
 ** The 'completion-common-part' face is now visible by default.
 
 +++
@@ -555,6 +560,7 @@ mode, they are described in the manual "(emacs) Display".
 ** New user option 'xref-file-name-display' controls the display of
 file names in xref buffers.
 
+---
 ** New user option 'byte-count-to-string-function'.
 It is used for displaying file sizes and disk space in some cases.
 
@@ -586,6 +592,7 @@ The HIST argument of 'read-from-minibuffer' now works correctly with
 buffer-local variables.  This means that different buffers can have
 their own separated input history list if desired.
 
++++
 ** 'backup-by-copying-when-privileged-mismatch' applies to file gid, too.
 In addition to checking the file owner uid, Emacs also checks that the
 group gid is not greater than 'backup-by-copying-when-privileged-mismatch';
@@ -739,9 +746,11 @@ non-nil.
 what they're named, and the 'battery-linux-sysfs-regexp' variable has
 been removed.
 
+---
 ** The 'list-processes' command now includes port numbers in the
 network connection information (in addition to the host name).
 
+---
 ** The 'cl' package is now officially deprecated in favor of 'cl-lib'.
 
 ---
@@ -750,51 +759,55 @@ network connection information (in addition to the host name).
 *** When called interactively with a prefix arg 'C-u', 'desktop-read'
 now prompts the user for the directory containing the desktop file.
 
-+++
 ** display-line-numbers-mode
 
++++
 *** New faces 'line-number-major-tick' and 'line-number-minor-tick',
 and user options 'display-line-numbers-major-tick' and
 'display-line-numbers-minor-tick' can be used to highlight the line
 numbers of lines multiple of certain numbers.
 
++++
 *** New variable 'display-line-numbers-offset', when non-zero, adds
 an offset to absolute line numbers.
 
-+++
 ** winner
 
++++
 *** A new user option, 'winner-boring-buffers-regexp', has been added.
 
 ** table
 
-*** 'table-generate-source' and friends now support outputting wiki and
-mediawiki format tables.
++++
+*** 'table-generate-source' now supports wiki and mediawiki
+This command can now output wiki and mediawiki format tables.
 
----
 ** telnet-mode
 
+---
 *** Reverting a buffer in 'telnet-mode' will restart a closed connection.
 
 ** goto-addr
 
+---
 *** A way to more conveniently specify what URI address schemes should
 be ignored has been added via the 'goto-address-uri-schemes-ignored'
 variable.
 
-+++
 ** tex-mode
 
++++
 *** 'latex-noindent-commands' controls indentation of certain commands.
 You can use this new user option to control indentation of arguments of
 \emph, \footnote, and similar commands.
 
 ** byte compiler
 
++++
 *** 'byte-compile-dynamic' is now obsolete.
 This is because on the one hand it suffers from misbehavior in corner
-cases that have plagued it for years, and on the other experiments indicated
-that it doesn't bring any measurable benefit.
+cases that have plagued it for years, and on the other hand experience
+indicates that it doesn't bring any measurable benefit.
 
 ---
 *** The 'g' keystroke in "*Compile-Log*" buffers has been bound to a
@@ -832,15 +845,19 @@ its functions.
 
 ** doc-view.el
 
+---
 *** New commands 'doc-view-presentation' and 'doc-view-fit-window-to-page'.
 
+---
 *** Added support for password-protected PDF files.
 
+---
 *** A new user option 'doc-view-pdftotext-program-args' has been added
 to allow controlling how the conversion to text is done.
 
 ** Ido
 
+---
 *** New user option 'ido-big-directories' to mark directories whose
 names match certain regular expressions as big.  Ido won't attempt to
 list the contents of such directories when completing file names.
@@ -871,6 +888,7 @@ at the end of the active minibuffer.
 *** Some commands that previously used 'read-char-choice' now read
 a character using the minibuffer by 'read-char-from-minibuffer'.
 
+---
 ** map.el
 
 *** Now also understands plists.
@@ -882,6 +900,7 @@ a character using the minibuffer by 'read-char-from-minibuffer'.
 +++
 *** The 'type' arg can be a list '(hash-table :key1 VAL1 :key2 VAL2 ...)'.
 
+---
 ** seq.el
 New convenience functions 'seq-first' and 'seq-rest' give easy access
 to respectively the first and all but the first elements of sequences.
@@ -941,6 +960,7 @@ functions 'windmove-coord-add', 'windmove-constrain-to-range',
 'windmove-constrain-loc-for-movement', 'windmove-wrap-loc-for-movement',
 'windmove-reference-loc' and 'windmove-other-window-loc'.
 
+---
 ** Octave mode
 The mode is automatically enabled in files that start with the
 'function' keyword.
@@ -1103,9 +1123,11 @@ for a revision.
 *** 'C-u C-x v D' ('vc-root-version-diff') prompts for two revisions
 and compares their entire trees.
 
+---
 *** New user option 'vc-hg-revert-switches'.
 It specifies switches to pass to Hg's 'revert' command.
 
+---
 *** 'C-x v M D' ('vc-diff-mergebase') and 'C-x v M L' ('vc-log-mergebase')
 print diffs and logs between the merge base (common ancestor) of two
 given revisions.
@@ -1475,9 +1497,9 @@ strings and report all the spelling mistakes.
 +++
 *** New minor mode Fido mode.
 This mode is based on Icomplete, and its name stands for "Fake Ido".
-The point of this mode is to be an 'ido-mode' workalike, but provide
-most of the functionality present in Icomplete that is not in
-'ido-mode', while being much more compatible with all of Emacs's
+The point of this mode is to be an 'ido-mode' workalike, providing
+most of the functionality present in 'ido-mode' that is not in
+Icomplete, which is much more compatible with all of Emacs's
 completion facilities.
 
 ** Ecomplete
@@ -1809,7 +1831,6 @@ keyboard macros.
 'isearch-yank-symbol-or-char'.  'isearch-del-char' is now bound to
 'C-M-d'.
 
-+++
 'M-s h l' invokes 'highlight-lines-matching-regexp' using the search
 string to highlight lines matching the search string.  This is similar
 to the existing binding 'M-s h r' ('highlight-regexp') that highlights
@@ -1964,6 +1985,7 @@ This is useful for games where lower scores are better, like time-based games.
 *** Completing file names in the minibuffer via 'C-TAB' now uses the
 styles as configured by the user option 'completion-styles'.
 
++++
 ** New macros 'thunk-let' and 'thunk-let*'.
 These macros are analogue to 'let' and 'let*', but create bindings that
 are evaluated lazily.
@@ -2187,8 +2209,9 @@ are formatted as MIME digests.
 *** 'message-forward-included-headers' has changed its default to
 exclude most headers when forwarding.
 
+---
 *** 'mml-secure-openpgp-sign-with-sender' sets also "gpg --sender".
-When 'mml-secure-openpgp-sign-with-sender' is non-nil message sender's
+When 'mml-secure-openpgp-sign-with-sender' is non-nil, message sender's
 email address (in addition to its old behavior) will also be used to
 set gpg's "--sender email@domain" option.
 
@@ -2323,7 +2346,16 @@ With 'or' and 'not', it can be used to compose character-matching
 expressions from simpler parts.
 
 +++
-*** 'not' argument can now be a character or single-char string.
+*** 'not' now accepts more argument types.
+The argument can now also be a character, a single-character string,
+an 'intersection' form, or an 'or' form whose arguments each match a
+single character.
+
++++
+*** Nested 'or' forms of strings guarantee a longest match.
+For example, '(or (or "IN" "OUT") (or "INPUT" "OUTPUT"))' now matches
+the whole string "INPUT" if present, not just "IN".  Previously, this
+was only guaranteed inside a single 'or' form of string literals.
 
 ** Frames
 
@@ -2631,6 +2663,7 @@ overrides all system and Emacs-provided defaults.  To get the old
 method back, set 'mailcap-prefer-mailcap-viewers' to nil.
 
 ** MH-E
+
 +++
 *** The hook 'mh-show-mode-hook' is now called before the message is inserted.
 Functions that want to affect the message text (for example, to change
@@ -3075,6 +3108,7 @@ with POSIX.1-2017.
 'decoded-time-weekday', 'decoded-time-dst' and 'decoded-time-zone'
 accessors can be used.
 
++++
 *** The new functions 'date-days-in-month' (which will say how many
 days there are in a month in a specific year), 'date-ordinal-to-time'
 (that computes the date of an ordinal day), 'decoded-time-add' (for
@@ -3134,6 +3168,7 @@ throughput of reading from sub-processes that produces vast
 ** The new user option 'quit-window-hook' is now run first when
 executing the 'quit-window' command.
 
++++
 ** The user options 'help-enable-completion-auto-load',
 'help-enable-auto-load' and 'vhdl-project-auto-load', as well as the
 function 'vhdl-auto-load-project' have been renamed to have "autoload"
@@ -3614,15 +3649,18 @@ signal 'user-error' if there is no buffer to switch to.
 ** Battery status is now supported in all Cygwin builds.
 Previously it was supported only in the Cygwin-w32 build.
 
+---
 ** Emacs now handles key combinations involving the macOS "command"
 and "option" modifier keys more correctly.
 
++++
 ** MacOS modifier key behavior is now more adjustable.
 The behavior of the macOS "Option", "Command", "Control" and
 "Function" keys can now be specified separately for use with
 ordinary keys, function keys and mouse clicks.  This allows using them
 in their standard macOS way for composing characters.
 
++++
 ** The special handling of 'frame-title-format' on NS where setting it
 to t would enable the macOS proxy icon has been replaced with a
 separate variable, 'ns-use-proxy-icon'.  'frame-title-format' will now
@@ -3673,6 +3711,7 @@ modifier keys in line with Apples guidelines.  This makes the drag and
 drop behavior more consistent, as previously the sending application
 was able to 'set' modifiers without the knowledge of the user.
 
+---
 ** On NS multicolor font display is enabled again since it is also
 implemented in Emacs on free operating systems via Cairo drawing.
 

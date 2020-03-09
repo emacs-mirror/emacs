@@ -1003,9 +1003,9 @@ unquoted file names."
 
 (ert-deftest files-tests-file-name-non-special-set-file-times ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (set-file-times nospecial))
+    (set-file-times nospecial nil 'nofollow))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
-    (should-error (set-file-times nospecial))))
+    (should-error (set-file-times nospecial nil 'nofollow))))
 
 (ert-deftest files-tests-file-name-non-special-set-visited-file-modtime ()
   (files-tests--with-temp-non-special (tmpfile nospecial)

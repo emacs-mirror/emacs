@@ -7774,11 +7774,11 @@ also be Lisp expression evaluating to a string),
 BUTTON: is the number of the regexp grouping actually matching the button,
 FORM: is a Lisp expression which must eval to true for the button to
 be added,
-CALLBACK: is the function to call when the user push this button, and each
+CALLBACK: is the function to call when the user pushes this button, and each
 PAR: is a number of a regexp grouping whose text will be passed to CALLBACK.
 
-CALLBACK can also be a variable, in that case the value of that
-variable it the real callback function."
+CALLBACK can also be a variable, in which case the value of that
+variable is the real callback function."
   :group 'gnus-article-buttons
   :type '(repeat (list (choice regexp variable sexp)
 		       (integer :tag "Button")

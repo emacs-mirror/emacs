@@ -1141,6 +1141,7 @@ ns_update_end (struct frame *f)
 
 #ifdef NS_DRAW_TO_BUFFER
   [NSGraphicsContext setCurrentContext:nil];
+  [view setNeedsDisplay:YES];
 #else
   block_input ();
 
@@ -1194,12 +1195,6 @@ ns_focus (struct frame *f, NSRect *r, int n)
   /* clipping */
   if (r)
     {
-#ifdef NS_IMPL_COCOA
-      int i;
-      for (i = 0 ; i < n ; i++)
-        [view setNeedsDisplayInRect:r[i]];
-#endif
-
       [[NSGraphicsContext currentContext] saveGraphicsState];
       if (n == 2)
         NSRectClipList (r, 2);
@@ -1224,7 +1219,9 @@ ns_unfocus (struct frame *f)
       gsaved = NO;
     }
 
-#ifdef NS_IMPL_GNUSTEP
+#ifdef NS_DRAW_TO_BUFFER
+  [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
+#else
   if (f != ns_updating_frame)
     {
       if (focus_view != NULL)

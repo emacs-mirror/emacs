@@ -7891,15 +7891,15 @@ Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
 ALIST has to contain a `direction' entry whose value should be
-one of `left', `above' (or `up'), `right' and `below' (or
-'down').  Other values are usually interpreted as `below'.
+one of `left', `above' (or `up'), `right' and `below' (or `down').
+Other values are usually interpreted as `below'.
 
 If ALIST also contains a `window' entry, its value specifies a
 reference window.  That value can be a special symbol like
-'main' (which stands for the selected frame's main window) or
-'root' (standings for the selected frame's root window) or an
+`main' (which stands for the selected frame's main window) or
+`root' (standings for the selected frame's root window) or an
 arbitrary valid window.  Any other value (or omitting the
-'window' entry) means to use the selected window as reference
+`window' entry) means to use the selected window as reference
 window.
 
 This function tries to reuse or split a window such that the
@@ -8806,8 +8806,7 @@ parameters of FRAME."
            (parent (frame-parent frame))
            (monitor-attributes
             (unless parent
-              (car (display-monitor-attributes-list
-                    (frame-parameter frame 'display)))))
+              (frame-monitor-attributes frame)))
            ;; FRAME'S parent or display sizes.  Used in connection
            ;; with margins.
            (geometry
@@ -8816,11 +8815,11 @@ parameters of FRAME."
            (parent-or-display-width
             (if parent
                 (frame-native-width parent)
-              (- (nth 2 geometry) (nth 0 geometry))))
+              (nth 2 geometry)))
            (parent-or-display-height
             (if parent
                 (frame-native-height parent)
-              (- (nth 3 geometry) (nth 1 geometry))))
+              (nth 3 geometry)))
            ;; FRAME's parent or workarea sizes.  Used when no margins
            ;; are specified.
            (parent-or-workarea
@@ -8882,13 +8881,15 @@ parameters of FRAME."
                                 (window--sanitize-margin
                                  (nth 2 margins) left-margin
                                  parent-or-display-width))
-                           (nth 2 parent-or-workarea)))
+                           (+ (nth 0 parent-or-workarea)
+                              (nth 2 parent-or-workarea))))
            (bottom-margin (if (nth 3 margins)
                               (- parent-or-display-height
                                  (window--sanitize-margin
                                   (nth 3 margins) top-margin
                                   parent-or-display-height))
-                            (nth 3 parent-or-workarea)))
+                            (+ (nth 1 parent-or-workarea)
+                               (nth 3 parent-or-workarea))))
            ;; Minimum and maximum sizes specified for FRAME.
            (sizes (or (frame-parameter frame 'fit-frame-to-buffer-sizes)
                       fit-frame-to-buffer-sizes))
@@ -9124,8 +9125,8 @@ accessible position."
 	       ;; wider than its frame's pixel width, its height
 	       ;; remains unaltered.
 	       (width (+ (car (window-text-pixel-size
-			       window (window-start) (point-max)
-			       (frame-pixel-width)
+			       window (window-start window) nil
+			       (frame-pixel-width (window-frame window))
 			       ;; Add one line-height to assure that
 			       ;; we're on the safe side.  This
 			       ;; overshoots when the first line below

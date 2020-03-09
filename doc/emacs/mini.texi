@@ -813,35 +813,23 @@ varieties.
 
 @cindex y or n prompt
   For the first type of yes-or-no query, the prompt ends with
-@samp{(y or n)}.  Such a query does not actually use the minibuffer;
-the prompt appears in the echo area, and you answer by typing either
-@samp{y} or @samp{n}, which immediately delivers the response.  For
-example, if you type @kbd{C-x C-w} (@kbd{write-file}) to save a
-buffer, and enter the name of an existing file, Emacs issues a prompt
-like this:
+@w{@samp{(y or n)}}.  You answer the query by typing a single key,
+either @samp{y} or @samp{n}, which immediately exits the minibuffer
+and delivers the response.  For example, if you type @kbd{C-x C-w}
+(@kbd{write-file}) to save a buffer, and enter the name of an existing
+file, Emacs issues a prompt like this:
 
 @smallexample
 File ‘foo.el’ exists; overwrite? (y or n)
 @end smallexample
 
-@noindent
-Because this query does not actually use the minibuffer, the usual
-minibuffer editing commands cannot be used.  However, you can perform
-some window scrolling operations while the query is active: @kbd{C-l}
-recenters the selected window; @kbd{C-v} (or @key{PageDown}, or
-@key{next}) scrolls forward; @kbd{M-v} (or @key{PageUp}, or
-@key{prior}) scrolls backward; @kbd{C-M-v} scrolls forward in the next
-window; and @kbd{C-M-S-v} scrolls backward in the next window.  Typing
-@kbd{C-g} dismisses the query, and quits the command that issued it
-(@pxref{Quitting}).
-
 @cindex yes or no prompt
-  The second type of yes-or-no query is typically employed if
-giving the wrong answer would have serious consequences; it uses the
-minibuffer, and features a prompt ending with @samp{(yes or no)}.  For
-example, if you invoke @kbd{C-x k} (@code{kill-buffer}) on a
-file-visiting buffer with unsaved changes, Emacs activates the
-minibuffer with a prompt like this:
+  The second type of yes-or-no query is typically employed if giving
+the wrong answer would have serious consequences; it thus features a
+longer prompt ending with @samp{(yes or no)}.  For example, if you
+invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer with
+unsaved changes, Emacs activates the minibuffer with a prompt like
+this:
 
 @smallexample
 Buffer foo.el modified; kill anyway? (yes or no)
@@ -849,7 +837,12 @@ Buffer foo.el modified; kill anyway? (yes or no)
 
 @noindent
 To answer, you must type @samp{yes} or @samp{no} into the minibuffer,
-followed by @key{RET}.  The minibuffer behaves as described in the
-previous sections; you can switch to another window with @kbd{C-x o},
-use the history commands @kbd{M-p} and @kbd{M-n}, etc.  Type @kbd{C-g}
-to quit the minibuffer and the querying command.
+followed by @key{RET}.
+
+With both types of yes-or-no query the minibuffer behaves as described
+in the previous sections; you can recenter the selected window with
+@kbd{C-l}, scroll that window (@kbd{C-v} or @kbd{PageDown} scrolls
+forward, @kbd{M-v} or @kbd{PageUp} scrolls backward), switch to
+another window with @kbd{C-x o}, use the history commands @kbd{M-p}
+and @kbd{M-n}, etc.  Type @kbd{C-g} to dismiss the query, and quit the
+minibuffer and the querying command (@pxref{Quitting}).

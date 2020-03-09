@@ -294,7 +294,10 @@ If REALNAME is nil, ignore that author.")
     "preferences\\.\\(nib\\|gorm\\)"
     ;; Generated files that have since been removed.
     "\\(refcard\\(-de\\|-pl\\)?\\|calccard\\|dired-ref\\|orgcard\\|\
-gnus-booklet\\|fr-drdref\\)\\.p\\(df\\|s\\)\\'")
+gnus-booklet\\|fr-drdref\\)\\.p\\(df\\|s\\)\\'"
+    ;; Removed as obsolete
+    "README-ftp-server"
+    )
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not listed.")
 
@@ -459,6 +462,12 @@ Changes to files matching one of the regexps in this list are not listed.")
     ;; ada-mode has been deleted, now in GNU ELPA
     "ada-mode.texi"
     "GNUS-NEWS"
+    "doc/misc/gnus-news.el"
+    "src/fingerprint-dummy.c"
+    "src/fingerprint.h"
+    ;; Replaced by lisp/thread.el
+    "lisp/emacs-lisp/thread-list.el"
+    "etc/images/slash.bmp"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -1103,6 +1112,8 @@ in the repository.")
     ("lisp/net/starttls.el" . "lisp/obsolete/starttls.el")
     ("url-ns.el" . "lisp/obsolete/url-ns.el")
     ("gnus-news.texi" . "doc/misc/gnus.texi")
+    ("lisp/multifile.el". "lisp/fileloop.el")
+    ("lisp/emacs-lisp/thread.el". "lisp/thread.el")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")

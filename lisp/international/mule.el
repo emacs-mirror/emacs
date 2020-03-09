@@ -2601,7 +2601,7 @@ This function is intended to be added to `auto-coding-functions'."
                     (detect-coding-region (point-min) size t)))))
             ;; Pure ASCII always comes back as undecided.
             (if (memq detected
-                      '(utf-8 'utf-8-with-signature 'utf-8-hfs undecided))
+                      '(utf-8 utf-8-with-signature utf-8-hfs undecided))
                 'utf-8
               (warn "File contents detected as %s.
   Consider adding an encoding attribute to the xml declaration,

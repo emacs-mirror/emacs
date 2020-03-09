@@ -168,7 +168,7 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.6.1"
+(defvar checkdoc-version "0.6.2"
   "Release version of checkdoc you are currently running.")
 
 (require 'cl-lib)
@@ -2073,7 +2073,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                                     ;; piece of an abbreviation
                                     ;; FIXME etc
                                     (looking-at
-                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\|[cC]f\\)\\."))
                                 (error t))))
                   (if (checkdoc-autofix-ask-replace
                        b e

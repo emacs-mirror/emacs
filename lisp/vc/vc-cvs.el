@@ -1222,23 +1222,24 @@ is non-nil."
 
 (defun vc-cvs-ignore (file &optional directory _remove)
   "Ignore FILE under CVS.
-FILE is either absolute or relative to DIRECTORY.  The basename
-of FILE is written unmodified into the ignore file and is
+FILE is either absolute or relative to DIRECTORY.  The non-directory
+part of FILE is written unmodified into the ignore file and is
 therefore evaluated by CVS as an ignore pattern which follows
 glob(7) syntax.  If the pattern should match any of the special
-characters ‘?*[\\\’ literally, they must be escaped with a
+characters `?*[\\' literally, they must be escaped with a
 backslash.
 
 CVS processes one ignore file for each subdirectory.  Patterns
 are separated by whitespace and only match files in the same
 directory.  Since FILE can be a relative filename with leading
-diretories, FILE is expanded against DIRECTORY to determine the
-correct absolute filename.  The directory name of this path is
-then used to determine the location of the ignore file.  The base
-name of this path is used as pattern for the ignore file.
+directories, FILE is expanded against DIRECTORY to determine the
+correct absolute filename.  The directory part of the resulting name
+is then used to determine the location of the ignore file.  The
+non-directory part of the name is used as pattern for the ignore file.
 
-Since patterns are whitespace sparated, it is usually better to
-replace spaces in filenames with question marks ‘?’."
+Since patterns are whitespace-separated, filenames containing spaces
+cannot be represented directly.  A work-around is to replace such
+spaces with question marks."
   (setq file (directory-file-name (expand-file-name file directory)))
   (vc-cvs-append-to-ignore (file-name-directory file) (file-name-nondirectory file)))
 

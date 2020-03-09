@@ -1571,7 +1571,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
      (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
      "unix::mode" (number-to-string mode))))
 
-(defun tramp-gvfs-handle-set-file-times (filename &optional time)
+(defun tramp-gvfs-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -1582,7 +1582,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	       (current-time)
 	     time)))
       (tramp-gvfs-send-command
-       v "gvfs-set-attribute" "-t" "uint64"
+       v "gvfs-set-attribute" (if flag "-nt" "-t") "uint64"
        (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
        "time::modified" (format-time-string "%s" time)))))
 

@@ -1262,14 +1262,17 @@ name, or nil if there is no such user.  */)
   if (q)
     {
       Lisp_Object login = Fuser_login_name (INT_TO_INTEGER (pw->pw_uid));
-      USE_SAFE_ALLOCA;
-      char *r = SAFE_ALLOCA (strlen (p) + SBYTES (login) + 1);
-      memcpy (r, p, q - p);
-      char *s = lispstpcpy (&r[q - p], login);
-      r[q - p] = upcase ((unsigned char) r[q - p]);
-      strcpy (s, q + 1);
-      full = build_string (r);
-      SAFE_FREE ();
+      if (!NILP (login))
+	{
+	  USE_SAFE_ALLOCA;
+	  char *r = SAFE_ALLOCA (strlen (p) + SBYTES (login) + 1);
+	  memcpy (r, p, q - p);
+	  char *s = lispstpcpy (&r[q - p], login);
+	  r[q - p] = upcase ((unsigned char) r[q - p]);
+	  strcpy (s, q + 1);
+	  full = build_string (r);
+	  SAFE_FREE ();
+	}
     }
 #endif /* AMPERSAND_FULL_NAME */
 

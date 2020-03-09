@@ -2077,7 +2077,7 @@ permissions.  */)
       report_file_error ("Copying permissions from", file);
     case -3:
       xsignal2 (Qfile_date_error,
-		build_string ("Resetting file times"), newname);
+		build_string ("Cannot set file date"), newname);
     case -4:
       report_file_error ("Copying permissions to", newname);
     }
@@ -2253,9 +2253,8 @@ permissions.  */)
 
   if (!NILP (keep_time))
     {
-      struct timespec atime = get_stat_atime (&st);
-      struct timespec mtime = get_stat_mtime (&st);
-      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime) != 0)
+      struct timespec ts[] = { get_stat_atime (&st), get_stat_mtime (&st) };
+      if (futimens (ofd, ts) != 0)
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
     }
@@ -3430,39 +3429,41 @@ The value is an integer.  */)
 }
 
 
-DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
+DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 3, 0,
        doc: /* Set times of file FILENAME to TIMESTAMP.
-Set both access and modification times.
-Return t on success, else nil.
-Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
-`current-time'. */)
-  (Lisp_Object filename, Lisp_Object timestamp)
+If optional FLAG is `nofollow', do not follow FILENAME if it is a
+symbolic link.  Set both access and modification times.  Return t on
+success, else nil.  Use the current time if TIMESTAMP is nil.
+TIMESTAMP is in the format of `current-time'. */)
+  (Lisp_Object filename, Lisp_Object timestamp, Lisp_Object flag)
 {
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-  struct timespec t = lisp_time_argument (timestamp);
+  int nofollow = symlink_nofollow_flag (flag);
 
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
+  struct timespec ts[2];
+  if (!NILP (timestamp))
+    ts[0] = ts[1] = lisp_time_argument (timestamp);
+  else
+    ts[0].tv_nsec = ts[1].tv_nsec = UTIME_NOW;
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_times);
+  Lisp_Object
+    absname = Fexpand_file_name (filename, BVAR (current_buffer, directory)),
+    handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_times, absname, timestamp);
+    return call4 (handler, Qset_file_times, absname, timestamp, flag);
 
-  encoded_absname = ENCODE_FILE (absname);
+  Lisp_Object encoded_absname = ENCODE_FILE (absname);
 
-  {
-    if (set_file_times (-1, SSDATA (encoded_absname), t, t) != 0)
-      {
+  if (utimensat (AT_FDCWD, SSDATA (encoded_absname), ts, nofollow) != 0)
+    {
 #ifdef MSDOS
-        /* Setting times on a directory always fails.  */
-        if (file_directory_p (encoded_absname))
-          return Qnil;
+      /* Setting times on a directory always fails.  */
+      if (file_directory_p (encoded_absname))
+	return Qnil;
 #endif
-        report_file_error ("Setting file times", absname);
-      }
-  }
+      report_file_error ("Setting file times", absname);
+    }
 
   return Qt;
 }

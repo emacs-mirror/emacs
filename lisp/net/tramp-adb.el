@@ -674,8 +674,9 @@ But handle the case, if the \"test\" command is not available."
       (tramp-adb-send-command-and-check
        v (format "chmod %o %s" mode localname)))))
 
-(defun tramp-adb-handle-set-file-times (filename &optional time)
+(defun tramp-adb-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
+  flag ;; FIXME: Support 'nofollow'.
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
     (let ((time (if (or (null time)
@@ -777,7 +778,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (set-file-times
        newname
        (tramp-compat-file-attribute-modification-time
-	(file-attributes filename))))))
+	(file-attributes filename))
+       (unless ok-if-already-exists 'nofollow)))))
 
 (defun tramp-adb-handle-rename-file
   (filename newname &optional ok-if-already-exists)

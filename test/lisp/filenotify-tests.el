@@ -219,7 +219,8 @@ remote case we return always t."
   (or file-notify--library
       (file-remote-p temporary-file-directory)))
 
-(defvar file-notify--test-remote-enabled-checked nil
+(defvar file-notify--test-remote-enabled-checked
+  (if (getenv "EMACS_HYDRA_CI") '(t . nil))
   "Cached result of `file-notify--test-remote-enabled'.
 If the function did run, the value is a cons cell, the `cdr'
 being the result.")
@@ -771,9 +772,9 @@ delivered."
 	  (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  ;; The next two events shall not be visible.
 	  (file-notify--test-read-event)
-	  (set-file-modes file-notify--test-tmpfile 000)
+	  (set-file-modes file-notify--test-tmpfile 000 'nofollow)
 	  (file-notify--test-read-event)
-	  (set-file-times file-notify--test-tmpfile '(0 0))
+	  (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow)
 	  (file-notify--test-read-event)
           (delete-directory file-notify--test-tmpdir 'recursive))
         (file-notify-rm-watch file-notify--test-desc)
@@ -864,9 +865,9 @@ delivered."
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (file-notify--test-read-event)
-	  (set-file-modes file-notify--test-tmpfile 000)
+	  (set-file-modes file-notify--test-tmpfile 000 'nofollow)
 	  (file-notify--test-read-event)
-	  (set-file-times file-notify--test-tmpfile '(0 0))
+	  (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow)
 	  (file-notify--test-read-event)
 	  (delete-file file-notify--test-tmpfile))
         (file-notify-rm-watch file-notify--test-desc)

@@ -285,8 +285,8 @@ Use old data if FORCE-OLDER is not nil."
     (insert new-contents)
     (when (file-exists-p file-name)
       (rename-file file-name (car (find-backup-file-name file-name))))
-    (write-region (point-min) (point-max) file-name)
-    (set-file-times file-name (parse-iso8601-time-string date))))
+    (write-region (point-min) (point-max) file-name nil nil nil 'excl)
+    (set-file-times file-name (parse-iso8601-time-string date) 'nofollow)))
 
 (defun gnus-cloud-file-covered-p (file-name)
   (let ((matched nil))

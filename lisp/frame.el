@@ -713,6 +713,18 @@ The optional argument PARAMETERS specifies additional frame parameters."
                       (x-display-list))))
   (make-frame (cons (cons 'display display) parameters)))
 
+(defun make-frame-on-current-monitor (&optional parameters)
+  "Make a frame on the currently selected monitor.
+Like `make-frame-on-monitor' and with the same PARAMETERS as in `make-frame'."
+  (interactive)
+  (let* ((monitor-workarea
+          (cdr (assq 'workarea (frame-monitor-attributes))))
+         (geometry-parameters
+          (when monitor-workarea
+            `((top . ,(nth 1 monitor-workarea))
+              (left . ,(nth 0 monitor-workarea))))))
+    (make-frame (append geometry-parameters parameters))))
+
 (defun make-frame-on-monitor (monitor &optional display parameters)
   "Make a frame on monitor MONITOR.
 The optional argument DISPLAY can be a display name, and the optional
