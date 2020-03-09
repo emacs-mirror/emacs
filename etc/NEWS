@@ -779,7 +779,7 @@ an offset to absolute line numbers.
 ** table
 
 +++
-*** 'table-generate-source' now supports wiki and mediawiki
+*** 'table-generate-source' now supports wiki and mediawiki.
 This command can now output wiki and mediawiki format tables.
 
 ** telnet-mode
