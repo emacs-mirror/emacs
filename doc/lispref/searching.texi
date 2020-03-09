@@ -1021,8 +1021,8 @@ or, using shorter synonyms and written more compactly,
 @example
 @group
 (rx "/*"
-    (* (| (not (any "*"))
-          (: "*" (not (any "/")))))
+    (* (| (not "*")
+          (: "*" (not "/"))))
     (+ "*") "/")
 @end group
 @end example
