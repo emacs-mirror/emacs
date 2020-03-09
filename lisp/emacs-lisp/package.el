@@ -2046,7 +2046,7 @@ Mark the installed package as selected by adding it to
 
 When called from Lisp and optional argument DONT-SELECT is
 non-nil, install the package but do not add it to
-`package-select-packages'.
+`package-selected-packages'.
 
 If PKG is a `package-desc' and it is already installed, don't try
 to install it but still mark it as selected."
