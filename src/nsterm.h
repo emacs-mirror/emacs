@@ -433,6 +433,7 @@ typedef id instancetype;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
    BOOL fs_is_native;
+   BOOL in_fullscreen_transition;
 #ifdef NS_DRAW_TO_BUFFER
    CGContextRef drawingBuffer;
 #endif
@@ -467,6 +468,8 @@ typedef id instancetype;
 - (void) toggleFullScreen: (id) sender;
 - (BOOL) fsIsNative;
 - (BOOL) isFullscreen;
+- (BOOL) inFullScreenTransition;
+- (void) waitFullScreenTransition;
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 - (void) updateCollectionBehavior;
 #endif
@@ -1286,6 +1289,7 @@ extern char gnustep_base_version[];  /* version tracking */
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_7)
 #define NSFullScreenWindowMask                      (1 << 14)
 #define NSWindowCollectionBehaviorFullScreenPrimary (1 << 7)
+#define NSWindowCollectionBehaviorFullScreenAuxiliary (1 << 8)
 #define NSApplicationPresentationFullScreen         (1 << 10)
 #define NSApplicationPresentationAutoHideToolbar    (1 << 11)
 #define NSAppKitVersionNumber10_7                   1138

@@ -1571,9 +1571,12 @@ ns_make_frame_visible (struct frame *f)
 
       /* Making a new frame from a fullscreen frame will make the new frame
          fullscreen also.  So skip handleFS as this will print an error.  */
-      if ([view fsIsNative] && f->want_fullscreen == FULLSCREEN_BOTH
-          && [view isFullscreen])
-        return;
+      if ([view fsIsNative] && [view isFullscreen])
+        {
+          // maybe it is not necessary to wait
+          [view waitFullScreenTransition];
+          return;
+        }
 
       if (f->want_fullscreen != FULLSCREEN_NONE)
         {
@@ -1959,8 +1962,16 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
       block_input ();
       child = [FRAME_NS_VIEW (f) window];
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+#endif
+
       if ([child parentWindow] != nil)
         {
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+          parent = [child parentWindow];
+#endif
+
           [[child parentWindow] removeChildWindow:child];
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
@@ -1968,10 +1979,38 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
 #endif
               [child setAccessibilitySubrole:NSAccessibilityStandardWindowSubrole];
 #endif
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+          if (NILP (new_value))
+            {
+              NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary");
+              [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+              // if current parent in fullscreen and no new parent make child fullscreen
+              while (parent) {
+                if (([parent styleMask] & NSWindowStyleMaskFullScreen) != 0)
+                  {
+                    [view toggleFullScreen:child];
+                    break;
+                  }
+                // check all parents
+                parent = [parent parentWindow];
+              }
+            }
+#endif
         }
 
       if (!NILP (new_value))
         {
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+          // child frame must not be in fullscreen
+          if ([view fsIsNative] && [view isFullscreen])
+            {
+              // in case child is going fullscreen
+              [view waitFullScreenTransition];
+              [view toggleFullScreen:child];
+            }
+          NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary");
+          [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
           parent = [FRAME_NS_VIEW (p) window];
 
           [parent addChildWindow: child
@@ -7398,6 +7437,7 @@ not_in_argv (NSString *arg)
 #endif
     fs_is_native = ns_use_native_fullscreen;
 #endif
+  in_fullscreen_transition = NO;
 
   maximized_width = maximized_height = -1;
   nonfs_window = nil;
@@ -7431,7 +7471,10 @@ not_in_argv (NSString *arg)
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
   if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
 #endif
-    [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    if (FRAME_PARENT_FRAME (f))
+      [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
+    else
+      [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 #endif
 
   wr = [win frame];
@@ -7554,11 +7597,12 @@ not_in_argv (NSString *arg)
       emacsframe->top_pos =
         NS_PARENT_WINDOW_TOP_POS (emacsframe) - (r.origin.y + r.size.height);
 
-      if (emacs_event)
-        {
-          emacs_event->kind = MOVE_FRAME_EVENT;
-          EV_TRAILER ((id)nil);
-        }
+      // FIXME: after event part below didExitFullScreen is not received
+      // if (emacs_event)
+      //   {
+      //     emacs_event->kind = MOVE_FRAME_EVENT;
+      //     EV_TRAILER ((id)nil);
+      //   }
     }
 }
 
@@ -7758,6 +7802,7 @@ not_in_argv (NSString *arg)
 - (void)windowWillEnterFullScreen:(NSNotification *)notification
 {
   NSTRACE ("[EmacsView windowWillEnterFullScreen:]");
+  in_fullscreen_transition = YES;
   [self windowWillEnterFullScreen];
 }
 - (void)windowWillEnterFullScreen /* provided for direct calls */
@@ -7770,6 +7815,7 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView windowDidEnterFullScreen:]");
   [self windowDidEnterFullScreen];
+  in_fullscreen_transition = NO;
 }
 
 - (void)windowDidEnterFullScreen /* provided for direct calls */
@@ -7808,6 +7854,7 @@ not_in_argv (NSString *arg)
 - (void)windowWillExitFullScreen:(NSNotification *)notification
 {
   NSTRACE ("[EmacsView windowWillExitFullScreen:]");
+  in_fullscreen_transition = YES;
   [self windowWillExitFullScreen];
 }
 
@@ -7827,6 +7874,7 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView windowDidExitFullScreen:]");
   [self windowDidExitFullScreen];
+  in_fullscreen_transition = NO;
 }
 
 - (void)windowDidExitFullScreen /* provided for direct calls */
@@ -7854,6 +7902,22 @@ not_in_argv (NSString *arg)
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
+}
+
+- (BOOL)inFullScreenTransition
+{
+  return in_fullscreen_transition;
+}
+
+- (void)waitFullScreenTransition
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+  while ([self inFullScreenTransition])
+    {
+      NSTRACE ("wait for fullscreen");
+      wait_reading_process_output (0, 300000000, 0, 1, Qnil, NULL, 0);
+    }
+#endif
 }
 
 - (BOOL)fsIsNative
@@ -7894,9 +7958,22 @@ not_in_argv (NSString *arg)
       NSWindow *win = [self window];
       NSWindowCollectionBehavior b = [win collectionBehavior];
       if (ns_use_native_fullscreen)
-        b |= NSWindowCollectionBehaviorFullScreenPrimary;
+        {
+          if ([win parentWindow])
+            {
+              b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
+              b |= NSWindowCollectionBehaviorFullScreenAuxiliary;
+            }
+          else
+            {
+              b |= NSWindowCollectionBehaviorFullScreenPrimary;
+              b &= ~NSWindowCollectionBehaviorFullScreenAuxiliary;
+            }
+        }
       else
-        b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
+        {
+          b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
+        }
 
       [win setCollectionBehavior: b];
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
@@ -7922,8 +7999,14 @@ not_in_argv (NSString *arg)
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
       if ([[self window] respondsToSelector: @selector(toggleFullScreen:)])
+        {
 #endif
-        [[self window] toggleFullScreen:sender];
+          [[self window] toggleFullScreen:sender];
+          // wait for fullscreen animation complete (bug#28496)
+          [self waitFullScreenTransition];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+        }
+#endif
 #endif
       return;
     }

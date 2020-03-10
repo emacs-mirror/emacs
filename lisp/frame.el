@@ -2688,11 +2688,7 @@ See also `toggle-frame-maximized'."
 	      (set-frame-parameter frame 'fullscreen fullscreen-restore)
 	    (set-frame-parameter frame 'fullscreen nil)))
       (modify-frame-parameters
-       frame `((fullscreen . fullboth) (fullscreen-restore . ,fullscreen))))
-    ;; Manipulating a frame without waiting for the fullscreen
-    ;; animation to complete can cause a crash, or other unexpected
-    ;; behavior, on macOS (bug#28496).
-    (when (featurep 'cocoa) (sleep-for 0.5))))
+       frame `((fullscreen . fullboth) (fullscreen-restore . ,fullscreen))))))
 
 
 ;;;; Key bindings
