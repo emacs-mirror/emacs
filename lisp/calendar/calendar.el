@@ -136,14 +136,13 @@
 ;; - whatever is passed to diary-remind
 
 (defmacro calendar-dlet* (binders &rest body)
-  "Like `let*' but using dynamic scoping."
+  "Like `dlet' but without warnings about non-prefixed var names."
   (declare (indent 1) (debug let))
-  `(progn
-     (with-no-warnings                  ;Silence "lacks a prefix" warnings!
-       ,@(mapcar (lambda (binder)
-                   `(defvar ,(if (consp binder) (car binder) binder)))
-                 binders))
-     (let* ,binders ,@body)))
+  (let ((vars (mapcar (lambda (binder)
+                        (if (consp binder) (car binder) binder))
+                      binders)))
+    `(with-suppressed-warnings ((lexical ,@vars))
+       (dlet ,binders ,@body))))
 
 ;; Avoid recursive load of calendar when loading cal-menu.  Yuck.
 (provide 'calendar)
