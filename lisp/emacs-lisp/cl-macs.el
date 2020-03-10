@@ -328,8 +328,7 @@ FORM is of the form (ARGS . BODY)."
                 (setq cl--bind-lets (nreverse cl--bind-lets))
                 ;; (cl-assert (eq :dummy (nth 1 (car cl--bind-lets))))
                 (list '&rest (car (pop cl--bind-lets))))))))
-      `(nil
-        (,@(nreverse simple-args) ,@rest-args)
+      `((,@(nreverse simple-args) ,@rest-args)
         ,@header
         ,(macroexp-let* cl--bind-lets
                         (macroexp-progn
@@ -366,9 +365,7 @@ more details.
                      def-body))
            (doc-string 3)
            (indent 2))
-  (let* ((res (cl--transform-lambda (cons args body) name))
-	 (form `(defun ,name ,@(cdr res))))
-    (if (car res) `(progn ,(car res) ,form) form)))
+  `(defun ,name ,@(cl--transform-lambda (cons args body) name)))
 
 ;;;###autoload
 (defmacro cl-iter-defun (name args &rest body)
@@ -387,9 +384,7 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
            (doc-string 3)
            (indent 2))
   (require 'generator)
-  (let* ((res (cl--transform-lambda (cons args body) name))
-         (form `(iter-defun ,name ,@(cdr res))))
-    (if (car res) `(progn ,(car res) ,form) form)))
+  `(iter-defun ,name ,@(cl--transform-lambda (cons args body) name)))
 
 ;; The lambda list for macros is different from that of normal lambdas.
 ;; Note that &environment is only allowed as first or last items in the
@@ -455,9 +450,7 @@ more details.
             (&define name cl-macro-list cl-declarations-or-string def-body))
            (doc-string 3)
            (indent 2))
-  (let* ((res (cl--transform-lambda (cons args body) name))
-	 (form `(defmacro ,name ,@(cdr res))))
-    (if (car res) `(progn ,(car res) ,form) form)))
+  `(defmacro ,name ,@(cl--transform-lambda (cons args body) name)))
 
 (def-edebug-spec cl-lambda-expr
   (&define ("lambda" cl-lambda-list
@@ -480,9 +473,7 @@ Like normal `function', except that if argument is a lambda form,
 its argument list allows full Common Lisp conventions."
   (declare (debug (&or symbolp cl-lambda-expr)))
   (if (eq (car-safe func) 'lambda)
-      (let* ((res (cl--transform-lambda (cdr func) 'cl-none))
-	     (form `(function (lambda . ,(cdr res)))))
-	(if (car res) `(progn ,(car res) ,form) form))
+      `(function (lambda . ,(cl--transform-lambda (cdr func) 'cl-none)))
     `(function ,func)))
 
 (defun cl--make-usage-var (x)
@@ -2111,10 +2102,9 @@ This is like `cl-flet', but for macros instead of functions.
     (if (null bindings) (macroexp-progn body)
       (let* ((name (caar bindings))
 	     (res (cl--transform-lambda (cdar bindings) name)))
-	(eval (car res))
 	(macroexpand-all (macroexp-progn body)
 			 (cons (cons name
-                                     (eval `(cl-function (lambda ,@(cdr res))) t))
+                                     (eval `(function (lambda ,@res)) t))
 			       macroexpand-all-environment))))))
 
 (defun cl--sm-macroexpand (orig-fun exp &optional env)
