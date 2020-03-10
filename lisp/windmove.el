@@ -475,10 +475,14 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
                                       (setq type 'tab)
                                       (selected-window))
                                      ((eq dir 'new-frame)
-                                      (window--maybe-raise-frame
-                                       (make-frame-on-current-monitor pop-up-frame-alist))
-                                      (setq type 'frame)
-                                      (selected-window))
+                                      (let* ((params (cdr (assq 'pop-up-frame-parameters alist)))
+                                             (pop-up-frame-alist (append params pop-up-frame-alist))
+                                             (frame (make-frame-on-current-monitor
+                                                     pop-up-frame-alist)))
+                                        (unless (cdr (assq 'inhibit-switch-frame alist))
+	                                  (window--maybe-raise-frame frame))
+                                        (setq type 'frame)
+                                        (frame-selected-window frame)))
                                      ((eq dir 'same-window)
                                       (selected-window))
                                      (t (window-in-direction

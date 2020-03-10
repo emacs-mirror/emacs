@@ -3743,8 +3743,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			    (file-attributes tmp-name1))))
 	    ;; Skip the test, if the remote handler is not able to set
 	    ;; the correct time.
-	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)
-					 'nofollow))
+	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)))
 	    ;; Dumb remote shells without perl(1) or stat(1) are not
 	    ;; able to return the date correctly.  They say "don't know".
 	    (unless (tramp-compat-time-equal-p
@@ -3761,7 +3760,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should (file-newer-than-file-p tmp-name2 tmp-name1))
 	      ;; `tmp-name3' does not exist.
 	      (should (file-newer-than-file-p tmp-name2 tmp-name3))
-	      (should-not (file-newer-than-file-p tmp-name3 tmp-name1))))
+	      (should-not (file-newer-than-file-p tmp-name3 tmp-name1))
+	      ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  For
+	      ;; regular files, there shouldn't be a difference.
+	      (when (tramp--test-emacs28-p)
+		(with-no-warnings
+		  (set-file-times tmp-name1 (seconds-to-time 1) 'nofollow)
+		  (should
+		   (tramp-compat-time-equal-p
+                    (tramp-compat-file-attribute-modification-time
+		     (file-attributes tmp-name1))
+		    (seconds-to-time 1)))))))
 
 	;; Cleanup.
 	(ignore-errors

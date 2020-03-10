@@ -676,7 +676,6 @@ But handle the case, if the \"test\" command is not available."
 
 (defun tramp-adb-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
-  flag ;; FIXME: Support 'nofollow'.
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
     (let ((time (if (or (null time)
@@ -684,21 +683,22 @@ But handle the case, if the \"test\" command is not available."
 			(tramp-compat-time-equal-p time tramp-time-dont-know))
 		    (current-time)
 		  time))
+	  (nofollow (if (eq flag 'nofollow) "-h" ""))
 	  (quoted-name (tramp-shell-quote-argument localname)))
       ;; Older versions of toybox 'touch' mishandle nanoseconds and/or
       ;; trailing "Z", so fall back on plain seconds if nanoseconds+Z
       ;; fails.  Also, fall back on old POSIX 'touch -t' if 'touch -d'
       ;; (introduced in POSIX.1-2008) fails.
       (tramp-adb-send-command-and-check
-       v (format (concat "touch -d %s %s 2>/dev/null || "
-			 "touch -d %s %s 2>/dev/null || "
-			 "touch -t %s %s")
+       v (format (concat "touch -d %s %s %s 2>/dev/null || "
+			 "touch -d %s %s %s 2>/dev/null || "
+			 "touch -t %s %s %s")
 		 (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
-		 quoted-name
+		 nofollow quoted-name
 		 (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
-		 quoted-name
+		 nofollow quoted-name
 		 (format-time-string "%Y%m%d%H%M.%S" time t)
-		 quoted-name)))))
+		 nofollow quoted-name)))))
 
 (defun tramp-adb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -775,7 +775,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
     ;; KEEP-DATE handling.
     (when keep-date
-      (set-file-times
+      (tramp-compat-set-file-times
        newname
        (tramp-compat-file-attribute-modification-time
 	(file-attributes filename))
