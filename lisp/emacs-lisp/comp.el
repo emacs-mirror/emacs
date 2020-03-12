@@ -2118,6 +2118,9 @@ Return the compilation unit file name."
           (list "not a symbol function or file" input)))
   (let ((data input)
         (comp-native-compiling t)
+        ;; Have the byte compiler signal an error when compilation
+        ;; fails.
+        (byte-compile-debug t)
         (comp-ctxt (make-comp-ctxt
                     :output
                     (if (symbolp input)
