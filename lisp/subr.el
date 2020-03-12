@@ -2987,14 +2987,13 @@ This finishes the change group by reverting all of its changes."
 	;; the body of `atomic-change-group' all changes can be undone.
 	(widen)
 	(let ((old-car (car-safe elt))
-	      (old-cdr (cdr-safe elt))
-	      (start-pul pending-undo-list))
+	      (old-cdr (cdr-safe elt)))
           (unwind-protect
               (progn
                 ;; Temporarily truncate the undo log at ELT.
                 (when (consp elt)
                   (setcar elt nil) (setcdr elt nil))
-                (setq pending-undo-list buffer-undo-list)
+                (unless (eq last-command 'undo) (undo-start))
                 ;; Make sure there's no confusion.
                 (when (and (consp elt) (not (eq elt (last pending-undo-list))))
                   (error "Undoing to some unrelated state"))
@@ -3007,13 +3006,7 @@ This finishes the change group by reverting all of its changes."
             ;; Reset the modified cons cell ELT to its original content.
             (when (consp elt)
               (setcar elt old-car)
-              (setcdr elt old-cdr)))
-          ;; Let's not break a sequence of undos just because we
-          ;; tried to make a change and then undid it: preserve
-          ;; the original `pending-undo-list' if it's still valid.
-          (if (eq (undo--last-change-was-undo-p buffer-undo-list)
-                  start-pul)
-              (setq pending-undo-list start-pul)))))))
+              (setcdr elt old-cdr))))))))
 
 ;;;; Display-related functions.
 
