@@ -4194,45 +4194,47 @@ file exists and nonzero exit status otherwise."
 
 (defun tramp-find-shell (vec)
   "Open a shell on the remote host which groks tilde expansion."
-  (with-current-buffer (tramp-get-buffer vec)
-    (let ((default-shell (tramp-get-method-parameter vec 'tramp-remote-shell))
-	  shell)
-      (setq shell
-	    (with-tramp-connection-property vec "remote-shell"
-	      ;; CCC: "root" does not exist always, see my QNAP TS-459.
-	      ;; Which check could we apply instead?
-	      (tramp-send-command vec "echo ~root" t)
-	      (if (or (string-match-p "^~root$" (buffer-string))
-		      ;; The default shell (ksh93) of OpenSolaris and
-		      ;; Solaris is buggy.  We've got reports for
-		      ;; "SunOS 5.10" and "SunOS 5.11" so far.
-		      (string-match-p
-		       (eval-when-compile
-			 (regexp-opt '("SunOS 5.10" "SunOS 5.11")))
-		       (tramp-get-connection-property vec "uname" "")))
-
-		  (or (tramp-find-executable
-		       vec "bash" (tramp-get-remote-path vec) t t)
-		      (tramp-find-executable
-		       vec "ksh" (tramp-get-remote-path vec) t t)
-		      ;; Maybe it works at least for some other commands.
-		      (prog1
-			  default-shell
-			(tramp-message
-			 vec 2
+  ;; If we are in `make-process', we don't need another shell.
+  (unless (tramp-get-connection-property vec "process-name" nil)
+    (with-current-buffer (tramp-get-buffer vec)
+      (let ((default-shell (tramp-get-method-parameter vec 'tramp-remote-shell))
+	    shell)
+	(setq shell
+	      (with-tramp-connection-property vec "remote-shell"
+		;; CCC: "root" does not exist always, see my QNAP
+		;; TS-459.  Which check could we apply instead?
+		(tramp-send-command vec "echo ~root" t)
+		(if (or (string-match-p "^~root$" (buffer-string))
+			;; The default shell (ksh93) of OpenSolaris
+			;; and Solaris is buggy.  We've got reports
+			;; for "SunOS 5.10" and "SunOS 5.11" so far.
+			(string-match-p
 			 (eval-when-compile
-			   (concat
-			    "Couldn't find a remote shell which groks tilde "
-			    "expansion, using `%s'"))
-			 default-shell)))
+			   (regexp-opt '("SunOS 5.10" "SunOS 5.11")))
+			 (tramp-get-connection-property vec "uname" "")))
 
-		default-shell)))
+		    (or (tramp-find-executable
+			 vec "bash" (tramp-get-remote-path vec) t t)
+			(tramp-find-executable
+			 vec "ksh" (tramp-get-remote-path vec) t t)
+			;; Maybe it works at least for some other commands.
+			(prog1
+			    default-shell
+			  (tramp-message
+			   vec 2
+			   (eval-when-compile
+			     (concat
+			      "Couldn't find a remote shell which groks tilde "
+			      "expansion, using `%s'"))
+			   default-shell)))
 
-      ;; Open a new shell if needed.
-      (unless (string-equal shell default-shell)
-	(tramp-message
-	 vec 5 "Starting remote shell `%s' for tilde expansion" shell)
-	(tramp-open-shell vec shell)))))
+		  default-shell)))
+
+	;; Open a new shell if needed.
+	(unless (string-equal shell default-shell)
+	  (tramp-message
+	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
+	  (tramp-open-shell vec shell))))))
 
 ;; Utility functions.
 
