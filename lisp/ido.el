@@ -243,7 +243,7 @@
 ;; current frame are put at the end of the list.  A hook exists to
 ;; allow other functions to order the list.  For example, if you add:
 ;;
-;; (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
+;; (add-hook 'ido-make-buffer-list-hook #'ido-summary-buffers-to-end)
 ;;
 ;; then all files matching "Summary" are moved to the end of the
 ;; list.  (I find this handy for keeping the INBOX Summary and so on
@@ -356,7 +356,7 @@ Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
   :set #'(lambda (_symbol value)
 	   (ido-mode value))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
   :set-after '(ido-save-directory-list-file
@@ -366,13 +366,11 @@ use either \\[customize] or the function `ido-mode'."
   :type '(choice (const :tag "Turn on only buffer" buffer)
                  (const :tag "Turn on only file" file)
                  (const :tag "Turn on both buffer and file" both)
-                 (const :tag "Switch off all" nil))
-  :group 'ido)
+                 (const :tag "Switch off all" nil)))
 
 (defcustom ido-case-fold case-fold-search
   "Non-nil if searching of buffer and file names should ignore case."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-ignore-buffers
   '("\\` ")
@@ -380,8 +378,7 @@ use either \\[customize] or the function `ido-mode'."
 For example, traditional behavior is not to list buffers whose names begin
 with a space, for which the regexp is `\\\\=` '.  See the source file for
 example functions that filter buffer names."
-  :type '(repeat (choice regexp function))
-  :group 'ido)
+  :type '(repeat (choice regexp function)))
 
 (defcustom ido-ignore-files
   '("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./")
@@ -389,19 +386,16 @@ example functions that filter buffer names."
 For example, traditional behavior is not to list files whose names begin
 with a #, for which the regexp is `\\\\=`#'.  See the source file for
 example functions that filter filenames."
-  :type '(repeat (choice regexp function))
-  :group 'ido)
+  :type '(repeat (choice regexp function)))
 
 (defcustom ido-ignore-extensions t
   "Non-nil means ignore files in `completion-ignored-extensions' list."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-show-dot-for-dired nil
   "Non-nil means to always put . as the first item in file name lists.
 This allows the current directory to be opened immediately with `dired'."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-file-extensions-order nil
   "List of file extensions specifying preferred order of file selections.
@@ -409,21 +403,18 @@ Each element is either a string with `.' as the first char, an empty
 string matching files without extension, or t which is the default order
 for files with an unlisted file extension."
   :type '(repeat (choice string
-			 (const :tag "Default order" t)))
-  :group 'ido)
+			 (const :tag "Default order" t))))
 
 (defcustom ido-ignore-directories
   '("\\`CVS/" "\\`\\.\\./" "\\`\\./")
   "List of regexps or functions matching sub-directory names to ignore."
-  :type '(repeat (choice regexp function))
-  :group 'ido)
+  :type '(repeat (choice regexp function)))
 
 (defcustom ido-ignore-directories-merge nil
   "List of regexps or functions matching directory names to ignore during merge.
 Directory names matched by one of the regexps in this list are not inserted
 in merged file and directory lists."
-  :type '(repeat (choice regexp function))
-  :group 'ido)
+  :type '(repeat (choice regexp function)))
 
 ;; Examples for setting the value of ido-ignore-buffers
 ;;(defun ido-ignore-c-mode (name)
@@ -453,8 +444,7 @@ Possible values:
 		   (const :tag "Display (no select) in other window" display)
 		   (const :tag "Visit in other frame" other-frame)
 		   (const :tag "Ask to visit in other frame" maybe-frame)
-		   (const :tag "Raise frame if already visited" raise-frame))
-    :group 'ido)
+		   (const :tag "Raise frame if already visited" raise-frame)))
 
 (defcustom ido-default-buffer-method  'raise-frame
   "How to switch to new buffer when using `ido-switch-buffer'.
@@ -464,38 +454,33 @@ See `ido-default-file-method' for details."
 		   (const :tag "Display (no select) in other window" display)
 		   (const :tag "Show in other frame" other-frame)
 		   (const :tag "Ask to show in other frame" maybe-frame)
-		   (const :tag "Raise frame if already shown" raise-frame))
-    :group 'ido)
+		   (const :tag "Raise frame if already shown" raise-frame)))
 
 (defcustom ido-enable-flex-matching nil
   "Non-nil means that Ido will do flexible string matching.
 Flexible matching means that if the entered string does not
 match any item, any item containing the entered characters
 in the given sequence will match."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 
 (defcustom ido-enable-regexp nil
   "Non-nil means that Ido will do regexp matching.
 Value can be toggled within Ido using `ido-toggle-regexp'."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-enable-prefix nil
   "Non-nil means only match if the entered text is a prefix of file name.
 This behavior is like the standard Emacs completion.
 If nil, match if the entered text is an arbitrary substring.
 Value can be toggled within Ido using `ido-toggle-prefix'."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-enable-dot-prefix nil
   "Non-nil means to match leading dot as prefix.
 I.e. hidden files and buffers will match only if you type a dot
 as first char even if `ido-enable-prefix' is nil."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 ;; See https://debbugs.gnu.org/2042 for more info.
 (defcustom ido-buffer-disable-smart-matches t
@@ -506,30 +491,26 @@ By default, Ido arranges matches in the following order:
 
 which can get in the way for buffer switching."
   :version "24.3"
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-confirm-unique-completion nil
   "Non-nil means that even a unique completion must be confirmed.
 This means that \\[ido-complete] must always be followed by \\[ido-exit-minibuffer]
 even when there is only one unique completion."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-cannot-complete-command 'ido-completion-help
   "Command run when `ido-complete' can't complete any more.
 The most useful values are `ido-completion-help', which pops up a
 window with completion alternatives, or `ido-next-match' or
 `ido-prev-match', which cycle the buffer list."
-  :type 'function
-  :group 'ido)
+  :type 'function)
 
 
 (defcustom ido-record-commands t
   "Non-nil means that Ido will record commands in command history.
 Note that the non-Ido equivalent command is recorded."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-max-prospects 12
   "Upper limit of the prospect list if non-zero.
@@ -537,8 +518,7 @@ Zero means no limit for the prospect list.
 For a long list of prospects, building the full list for the
 minibuffer can take a non-negligible amount of time; setting this
 variable reduces that time."
-  :type 'integer
-  :group 'ido)
+  :type 'integer)
 
 (defcustom ido-max-file-prompt-width 0.35
   "Upper limit of the prompt string.
@@ -550,8 +530,7 @@ the frame width."
 	  (integer :tag "Characters" :value 20)
 	  (restricted-sexp :tag "Fraction of frame width"
 			   :value 0.35
-			   :match-alternatives (ido-fractionp)))
-  :group 'ido)
+			   :match-alternatives (ido-fractionp))))
 
 (defcustom ido-max-window-height nil
   "Non-nil specifies a value to override `max-mini-window-height'."
@@ -561,28 +540,24 @@ the frame width."
 	  (restricted-sexp
 	   :tag "Fraction of window height"
 	   :value 0.25
-	   :match-alternatives (ido-fractionp)))
-  :group 'ido)
+	   :match-alternatives (ido-fractionp))))
 
 (defcustom ido-enable-last-directory-history t
   "Non-nil means that Ido will remember latest selected directory names.
 See `ido-last-directory-list' and `ido-save-directory-list-file'."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-max-work-directory-list 50
   "Maximum number of working directories to record.
 This is the list of directories where files have most recently been opened.
 See `ido-work-directory-list' and `ido-save-directory-list-file'."
-  :type 'integer
-  :group 'ido)
+  :type 'integer)
 
 (defcustom ido-work-directory-list-ignore-regexps nil
   "List of regexps matching directories which should not be recorded.
 Directory names matched by one of the regexps in this list are not inserted in
 the `ido-work-directory-list' list."
-  :type '(repeat regexp)
-  :group 'ido)
+  :type '(repeat regexp))
 
 
 (defcustom ido-use-filename-at-point nil
@@ -592,52 +567,44 @@ If found, use that as the starting point for filename selection."
   :type '(choice
 	  (const :tag "Disabled" nil)
 	  (const :tag "Guess filename" guess)
-	  (other :tag "Use literal filename" t))
-  :group 'ido)
+	  (other :tag "Use literal filename" t)))
 
 
 (defcustom ido-use-url-at-point nil
   "Non-nil means that ido shall look for a URL at point.
 If found, call `find-file-at-point' to visit it."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 
 (defcustom ido-enable-tramp-completion t
   "Non-nil means that Ido shall perform tramp method and server name completion.
 A tramp file name uses the following syntax: /method:user@host:filename."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-record-ftp-work-directories t
   "Non-nil means record FTP file names in the work directory list."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-merge-ftp-work-directories nil
   "If nil, merging ignores FTP file names in the work directory list."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-cache-ftp-work-directory-time 1.0
   "Maximum time to cache contents of an FTP directory (in hours).
 \\<ido-file-completion-map>
 Use \\[ido-reread-directory] in prompt to refresh list.
 If zero, FTP directories are not cached."
-  :type 'number
-  :group 'ido)
+  :type 'number)
 
 (defcustom ido-slow-ftp-hosts nil
   "List of slow FTP hosts where Ido prompting should not be used.
 If an FTP host is on this list, Ido automatically switches to the non-Ido
 equivalent function, e.g. `find-file' rather than `ido-find-file'."
-  :type '(repeat string)
-  :group 'ido)
+  :type '(repeat string))
 
 (defcustom ido-slow-ftp-host-regexps nil
   "List of regexps matching slow FTP hosts (see `ido-slow-ftp-hosts')."
-  :type '(repeat regexp)
-  :group 'ido)
+  :type '(repeat regexp))
 
 (defvar ido-unc-hosts-cache t
   "Cached value from the function `ido-unc-hosts'.")
@@ -652,66 +619,56 @@ hosts on first use of UNC path."
 		 (function :tag "Your own function"))
   :set #'(lambda (symbol value)
 	   (set symbol value)
-	   (setq ido-unc-hosts-cache t))
-  :group 'ido)
+	   (setq ido-unc-hosts-cache t)))
 
 (defcustom ido-downcase-unc-hosts t
   "Non-nil if UNC host names should be downcased."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-ignore-unc-host-regexps nil
   "List of regexps matching UNC hosts to ignore.
 Case is ignored if `ido-downcase-unc-hosts' is set."
-  :type '(repeat regexp)
-  :group 'ido)
+  :type '(repeat regexp))
 
 (defcustom ido-cache-unc-host-shares-time 8.0
   "Maximum time to cache shares of an UNC host (in hours).
 \\<ido-file-completion-map>
 Use \\[ido-reread-directory] in prompt to refresh list.
 If zero, UNC host shares are not cached."
-  :type 'number
-  :group 'ido)
+  :type 'number)
 
 (defcustom ido-max-work-file-list 10
   "Maximum number of names of recently opened files to record.
 This is the list of the file names (sans directory) which have most recently
 been opened.  See `ido-work-file-list' and `ido-save-directory-list-file'."
-  :type 'integer
-  :group 'ido)
+  :type 'integer)
 
 (defcustom ido-work-directory-match-only t
   "Non-nil means to skip non-matching directories in the directory history.
 When some text is already entered at the `ido-find-file' prompt, using
 \\[ido-prev-work-directory] or \\[ido-next-work-directory] will skip directories
 without any matching entries."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-auto-merge-work-directories-length 0
   "Automatically switch to merged work directories during file name input.
 The value is number of characters to type before switching to merged mode.
 If zero, the switch happens when no matches are found in the current directory.
 Automatic merging is disabled if the value is negative."
-  :type 'integer
-  :group 'ido)
+  :type 'integer)
 
 (defcustom ido-auto-merge-delay-time 0.70
   "Delay in seconds to wait for more input before doing auto merge."
-  :type 'number
-  :group 'ido)
+  :type 'number)
 
 (defcustom ido-auto-merge-inhibit-characters-regexp "[][*?~]"
   "Regexp matching characters which should inhibit automatic merging.
 When a (partial) file name matches this regexp, merging is inhibited."
-  :type 'regexp
-  :group 'ido)
+  :type 'regexp)
 
 (defcustom ido-merged-indicator "^"
   "The string appended to first choice if it has multiple directory choices."
-  :type 'string
-  :group 'ido)
+  :type 'string)
 
 (defcustom ido-max-dir-file-cache 100
   "Maximum number of working directories to be cached.
@@ -723,8 +680,7 @@ modification times, so you may choose to disable caching on such
 systems, or explicitly refresh the cache contents using the command
 `ido-reread-directory' command (\\[ido-reread-directory]) in the minibuffer.
 See also `ido-dir-file-cache' and `ido-save-directory-list-file'."
-  :type 'integer
-  :group 'ido)
+  :type 'integer)
 
 (defcustom ido-max-directory-size nil
   "Maximum size (in bytes) for directories to use Ido completion.
@@ -732,21 +688,18 @@ See also `ido-dir-file-cache' and `ido-save-directory-list-file'."
 If you enter a directory with a size larger than this size, Ido will
 not provide the normal completion.  To show the completions, use \\[ido-toggle-ignore]."
   :type '(choice (const :tag "No limit" nil)
-		 (integer :tag "Size in bytes" 30000))
-  :group 'ido)
+		 (integer :tag "Size in bytes" 30000)))
 
 (defcustom ido-big-directories nil
   "List of directory pattern strings that should be considered big.
 Ido won't attempt to list the contents of directories matching
 any of these regular expressions when completing file names."
   :type '(repeat regexp)
-  :group 'ido
   :version "27.1")
 
 (defcustom ido-rotate-file-list-default nil
   "Non-nil means that Ido will always rotate file list to get default in front."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-enter-matching-directory 'only
   "Additional methods to enter sub-directory of first/only matching item.
@@ -758,8 +711,7 @@ matching item, even without typing a slash."
   :type '(choice (const :tag "Never" nil)
 		 (const :tag "Slash enters first directory" first)
 		 (const :tag "Slash enters first and only directory" only)
-		 (other :tag "Always enter unique directory" t))
-  :group 'ido)
+		 (other :tag "Always enter unique directory" t)))
 
 (defcustom ido-create-new-buffer 'prompt
   "Specify whether a new buffer is created if no buffer matches substring.
@@ -767,21 +719,18 @@ Choices are `always' to create new buffers unconditionally, `prompt' to
 ask user whether to create buffer, or `never' to never create new buffer."
   :type '(choice (const always)
 		 (const prompt)
-		 (const never))
-  :group 'ido)
+		 (const never)))
 
 (defcustom ido-setup-hook  nil
   "Hook run after the Ido variables and keymap have been setup.
 The dynamic variable `ido-cur-item' contains the current type of item that
 is read by Ido; possible values are file, dir, buffer, and list.
 Additional keys can be defined in `ido-completion-map'."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 (defcustom ido-separator nil
   "String used by Ido to separate the alternatives in the minibuffer."
-  :type '(choice string (const nil))
-  :group 'ido)
+  :type '(choice string (const nil)))
 (make-obsolete-variable 'ido-separator
 			"set 3rd element of `ido-decorations' instead." nil)
 
@@ -802,8 +751,7 @@ can be completed using TAB,
 11th element is displayed to confirm creating new file or buffer.
 12th and 13th elements (if present) are used as brackets around the sole
 remaining completion.  If absent, elements 5 and 6 are used instead."
-  :type '(repeat string)
-  :group 'ido)
+  :type '(repeat string))
 
 (defcustom ido-use-virtual-buffers nil
   "If non-nil, refer to past (\"virtual\") buffers as well as existing ones.
@@ -827,71 +775,60 @@ enabled if this variable is configured to a non-nil value."
   :version "24.1"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Automatic" auto)
-		 (const :tag "Never" nil))
-  :group 'ido)
+		 (const :tag "Never" nil)))
 
 (defcustom ido-use-faces t
   "Non-nil means use Ido faces to highlighting first match, only match and
 subdirs in the alternatives."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defface ido-first-match  '((t :weight bold))
-  "Face used by Ido for highlighting first match."
-  :group 'ido)
+  "Face used by Ido for highlighting first match.")
 
 (defface ido-only-match  '((((class color))
 			    :foreground "ForestGreen")
 			   (t :slant italic))
-  "Face used by Ido for highlighting only match."
-  :group 'ido)
+  "Face used by Ido for highlighting only match.")
 
 (defface ido-subdir  '((((min-colors 88) (class color))
 			:foreground "red1")
 		       (((class color))
 			:foreground "red")
 		       (t :underline t))
-  "Face used by Ido for highlighting subdirs in the alternatives."
-  :group 'ido)
+  "Face used by Ido for highlighting subdirs in the alternatives.")
 
 (defface ido-virtual '((t :inherit font-lock-builtin-face))
   "Face used by Ido for matching virtual buffer names."
-  :version "24.1"
-  :group 'ido)
+  :version "24.1")
 
 (defface ido-indicator '((((min-colors 88) (class color))
 			  :foreground "yellow1" :background "red1" :width condensed)
 			 (((class color))
 			  :foreground "yellow" :background "red" :width condensed)
 			 (t :inverse-video t))
-  "Face used by Ido for highlighting its indicators."
-  :group 'ido)
+  "Face used by Ido for highlighting its indicators.")
 
 (defface ido-incomplete-regexp
   '((t :inherit font-lock-warning-face))
-  "Ido face for indicating incomplete regexps."
-  :group 'ido)
+  "Ido face for indicating incomplete regexps.")
 
 (defcustom ido-make-file-list-hook  nil
   "List of functions to run when the list of matching files is created.
 Each function on the list may modify the dynamically bound variable
 `ido-temp-list' which contains the current list of matching files."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 (defcustom ido-make-dir-list-hook  nil
   "List of functions to run when the list of matching directories is created.
 Each function on the list may modify the dynamically bound variable
 `ido-temp-list' which contains the current list of matching directories."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 (defcustom ido-make-buffer-list-hook  nil
   "List of functions to run when the list of matching buffers is created.
 Each function on the list may modify the dynamically bound variable
 `ido-temp-list' which contains the current list of matching buffer names."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 (defcustom ido-rewrite-file-prompt-functions nil
   "List of functions to run when the find-file prompt is created.
@@ -908,8 +845,7 @@ variables:
 The following variables are available, but should not be changed:
   `ido-current-directory' - the unabbreviated directory name
   item - equals `file' or `dir' depending on the current mode."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 (defvar ido-rewrite-file-prompt-rules nil
   "Alist of rewriting rules for directory names in Ido prompts.
@@ -924,14 +860,12 @@ also modify the dynamic variables described for the variable
 (defcustom ido-completion-buffer "*Ido Completions*"
   "Name of completion buffer used by Ido.
 Set to nil to disable completion buffers popping up."
-  :type 'string
-  :group 'ido)
+  :type 'string)
 
 (defcustom ido-completion-buffer-all-completions nil
   "Non-nil means to show all completions in completion buffer.
 Otherwise, only the current list of matches is shown."
-  :type 'boolean
-  :group 'ido)
+  :type 'boolean)
 
 (defcustom ido-all-frames 'visible
   "Argument to pass to `walk-windows' when Ido is finding buffers.
@@ -939,8 +873,7 @@ See documentation of `walk-windows' for useful values."
   :type '(choice (const :tag "Selected frame only" nil)
 		 (const :tag "All existing frames" t)
 		 (const :tag "All visible frames" visible)
-		 (const :tag "All frames on this terminal" 0))
-  :group 'ido)
+		 (const :tag "All frames on this terminal" 0)))
 
 (defcustom ido-minibuffer-setup-hook nil
   "Ido-specific customization of minibuffer setup.
@@ -954,8 +887,7 @@ with other packages.  For instance:
 
 will constrain Emacs to a maximum minibuffer height of 3 lines when
 Ido is running.  Copied from `icomplete-minibuffer-setup-hook'."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 (defcustom ido-save-directory-list-file
   (locate-user-emacs-file "ido.last" ".ido.last")
@@ -964,28 +896,24 @@ Variables stored are: `ido-last-directory-list', `ido-work-directory-list',
 `ido-work-file-list', and `ido-dir-file-cache'.
 Must be set before enabling Ido mode."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'string
-  :group 'ido)
+  :type 'string)
 
 (defcustom ido-read-file-name-as-directory-commands '()
   "List of commands which use `read-file-name' to read a directory name.
 When `ido-everywhere' is non-nil, the commands in this list will read
 the directory using `ido-read-directory-name'."
-  :type '(repeat symbol)
-  :group 'ido)
+  :type '(repeat symbol))
 
 (defcustom ido-read-file-name-non-ido '()
   "List of commands which shall not read file names the Ido way.
 When `ido-everywhere' is non-nil, the commands in this list will read
 the file name using normal `read-file-name' style."
-  :type '(repeat symbol)
-  :group 'ido)
+  :type '(repeat symbol))
 
 (defcustom ido-before-fallback-functions '()
   "List of functions to call before calling a fallback command.
 The fallback command is passed as an argument to the functions."
-  :type 'hook
-  :group 'ido)
+  :type 'hook)
 
 ;;;; Keymaps
 
@@ -1071,10 +999,10 @@ The fallback command is passed as an argument to the functions."
 
 ;;;; Persistent variables
 
-(defvar  ido-file-history nil
+(defvar ido-file-history nil
   "History of files selected using `ido-find-file'.")
 
-(defvar  ido-buffer-history nil
+(defvar ido-buffer-history nil
   "History of buffers selected using `ido-switch-buffer'.")
 
 (defvar ido-last-directory-list nil
@@ -1583,13 +1511,12 @@ Removes badly formatted data and ignored directories."
   (ido-save-history))
 
 (defun ido-common-initialization ()
-  (add-hook 'minibuffer-setup-hook 'ido-minibuffer-setup)
-  (add-hook 'choose-completion-string-functions 'ido-choose-completion-string))
+  (add-hook 'minibuffer-setup-hook #'ido-minibuffer-setup)
+  (add-hook 'choose-completion-string-functions #'ido-choose-completion-string))
 
 (define-minor-mode ido-everywhere
   "Toggle use of Ido for all buffer/file reading."
   :global t
-  :group 'ido
   (remove-function read-file-name-function #'ido-read-file-name)
   (remove-function read-buffer-function #'ido-read-buffer)
   (when ido-everywhere
@@ -1625,7 +1552,7 @@ This function also adds a hook to the minibuffer."
     (ido-common-initialization)
     (ido-load-history)
 
-    (add-hook 'kill-emacs-hook 'ido-kill-emacs-hook)
+    (add-hook 'kill-emacs-hook #'ido-kill-emacs-hook)
 
     (let ((map (make-sparse-keymap)))
       (when (memq ido-mode '(file both))
@@ -2445,9 +2372,9 @@ If cursor is not at the end of the user input, move to end of input."
                              nil ido-text 'ido-enter-insert-file))
 
        ((eq ido-exit 'dired)
-        (funcall (cond ((eq method 'other-window) 'dired-other-window)
-                       ((eq method 'other-frame) 'dired-other-frame)
-                       (t 'dired))
+        (funcall (cond ((eq method 'other-window) #'dired-other-window)
+                       ((eq method 'other-frame) #'dired-other-frame)
+                       (t #'dired))
                  (concat ido-current-directory (or ido-text ""))))
 
        ((eq ido-exit 'ffap)
@@ -3598,7 +3525,7 @@ it is put to the start of the list."
 		 ;; tramp-ftp-file-name-p is available only when tramp
 		 ;; has been loaded.
 		 (fboundp 'tramp-ftp-file-name-p)
-		 (funcall 'tramp-ftp-file-name-p dir)
+		 (tramp-ftp-file-name-p dir)
 		 (string-match ":\\'" dir)
 		 (file-name-all-completions "" (concat dir "./"))))))
       (if (and compl
@@ -3698,7 +3625,8 @@ in this list."
 					     (not (ido-local-file-exists-p x)))
 					(and (not (ido-final-slash x))
 					     (let (file-name-handler-alist)
-					       (get-file-buffer x)))) x))
+					       (get-file-buffer x))))
+			       x))
 		    ido-temp-list)))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
@@ -3731,7 +3659,8 @@ If MERGED is non-nil, each subdir is cons'ed with DIR."
        (delq nil
 	     (mapcar
 	      (lambda (name)
-		(and (ido-final-slash name) (not (ido-ignore-item-p name ido-ignore-directories))
+		(and (ido-final-slash name)
+		     (not (ido-ignore-item-p name ido-ignore-directories))
 		     (if merged (cons name dir) name)))
 	      (ido-file-name-all-completions dir)))))
 
@@ -4041,7 +3970,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
 				   (t
 				    (copy-sequence (or ido-matches ido-cur-list))))
 				  #'ido-file-lessp)))
-	    ;;(add-hook 'completion-setup-hook 'completion-setup-function)
+	    ;;(add-hook 'completion-setup-hook #'completion-setup-function)
 	    (display-completion-list completion-list))))))
 
 ;;; KILL CURRENT BUFFER
@@ -4707,7 +4636,9 @@ For details of keybindings, see `ido-find-file'."
 		       (not (input-pending-p)))
 	      (ido-trace "\n*start timer*")
 	      (setq ido-auto-merge-timer
-		    (run-with-timer ido-auto-merge-delay-time nil 'ido-initiate-auto-merge (current-buffer))))))
+		    (run-with-timer ido-auto-merge-delay-time nil
+		                    #'ido-initiate-auto-merge
+		                    (current-buffer))))))
 
 	(setq ido-rescan t)
 
@@ -4830,8 +4761,8 @@ Modified from `icomplete-completions'."
   "Minibuffer setup hook for Ido."
   ;; Copied from `icomplete-minibuffer-setup-hook'.
   (when (ido-active)
-    (add-hook 'pre-command-hook 'ido-tidy nil t)
-    (add-hook 'post-command-hook 'ido-exhibit nil t)
+    (add-hook 'pre-command-hook #'ido-tidy nil t)
+    (add-hook 'post-command-hook #'ido-exhibit nil t)
     (run-hooks 'ido-minibuffer-setup-hook)
     (when ido-initial-position
       (goto-char (+ (minibuffer-prompt-end) ido-initial-position))

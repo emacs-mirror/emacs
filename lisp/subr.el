@@ -1777,6 +1777,21 @@ all symbols are bound before any of the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
      ,@body))
 
+(defmacro dlet (binders &rest body)
+  "Like `let*' but using dynamic scoping."
+  (declare (indent 1) (debug let))
+  ;; (defvar FOO) only affects the current scope, but in order for
+  ;; this not to affect code after the `let*' we need to create a new scope,
+  ;; which is what the surrounding `let' is for.
+  ;; FIXME: (let () ...) currently doesn't actually create a new scope,
+  ;; which is why we use (let (_) ...).
+  `(let (_)
+     ,@(mapcar (lambda (binder)
+                 `(defvar ,(if (consp binder) (car binder) binder)))
+               binders)
+     (let* ,binders ,@body)))
+
+
 (defmacro with-wrapper-hook (hook args &rest body)
   "Run BODY, using wrapper functions from HOOK with additional ARGS.
 HOOK is an abnormal hook.  Each hook function in HOOK \"wraps\"
@@ -3970,7 +3985,7 @@ the function `undo--wrap-and-run-primitive-undo'."
 	(let (;; (inhibit-modification-hooks t)
               (before-change-functions
                ;; Ugly Hack: if the body uses syntax-ppss/syntax-propertize
-               ;; (e.g. via a regexp-search or sexp-movement trigerring
+               ;; (e.g. via a regexp-search or sexp-movement triggering
                ;; on-the-fly syntax-propertize), make sure that this gets
                ;; properly refreshed after subsequent changes.
                (if (memq #'syntax-ppss-flush-cache before-change-functions)

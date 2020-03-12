@@ -469,8 +469,6 @@ Remove the DIRECTORY(ies), if they are empty.")
 	   (eshell-parse-command
 	    (format "tar %s %s" tar-args archive) args))))
 
-(defvar ange-cache)			; XEmacs?  See esh-util
-
 ;; this is to avoid duplicating code...
 (defmacro eshell-mvcpln-template (command action func query-var
 					  force-var &optional preserve)
@@ -488,8 +486,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 		       (or (not no-dereference)
 			   (not (file-symlink-p (car args)))))))
 	 (eshell-shorthand-tar-command ,command args)
-       (let ((target (car (last args)))
-	     ange-cache)
+       (let ((target (car (last args))))
 	 (setcdr (last args 2) nil)
 	 (eshell-shuffle-files
 	  ,command ,action args target ,func nil
@@ -924,7 +921,7 @@ Summarize disk usage of each FILE, recursively for directories.")
        ;; filesystem support means nothing under Windows
        (if (eshell-under-windows-p)
 	   (setq only-one-filesystem nil))
-       (let ((size 0.0) ange-cache)
+       (let ((size 0.0))
 	 (while args
 	   (if only-one-filesystem
 	       (setq only-one-filesystem

@@ -3911,7 +3911,7 @@ TOP RIGHT BOTTOM) as returned by `window-edges'."
   (setq frame (window-normalize-frame frame))
   (window--subtree (frame-root-window frame) t))
 
-(defun other-window (count &optional all-frames)
+(defun other-window (count &optional all-frames interactive)
   "Select another window in cyclic ordering of windows.
 COUNT specifies the number of windows to skip, starting with the
 selected window, before making the selection.  If COUNT is
@@ -3931,7 +3931,7 @@ This function uses `next-window' for finding the window to
 select.  The argument ALL-FRAMES has the same meaning as in
 `next-window', but the MINIBUF argument of `next-window' is
 always effectively nil."
-  (interactive "p")
+  (interactive "p\ni\np")
   (let* ((window (selected-window))
          (original-window window)
 	 (function (and (not ignore-window-parameters)
@@ -3977,7 +3977,8 @@ always effectively nil."
 	    (setq count (1+ count)))))
 
         (when (and (eq window original-window)
-                   (called-interactively-p 'interactive))
+                   interactive
+                   (not (or executing-kbd-macro noninteractive)))
           (message "No other window to select"))
 
 	(select-window window)
@@ -4192,7 +4193,7 @@ that is its frame's root window."
 	;; Always return nil.
 	nil))))
 
-(defun delete-other-windows (&optional window)
+(defun delete-other-windows (&optional window interactive)
   "Make WINDOW fill its frame.
 WINDOW must be a valid window and defaults to the selected one.
 Return nil.
@@ -4209,7 +4210,7 @@ with the root of the atomic window as its argument.  Signal an
 error if that root window is the root window of WINDOW's frame.
 Also signal an error if WINDOW is a side window.  Do not delete
 any window whose `no-delete-other-windows' parameter is non-nil."
-  (interactive)
+  (interactive "i\np")
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
 	 (function (window-parameter window 'delete-other-windows))
@@ -4275,7 +4276,8 @@ any window whose `no-delete-other-windows' parameter is non-nil."
       (if (eq window main)
           ;; Give a message to the user if this has been called as a
           ;; command.
-          (when (called-interactively-p 'interactive)
+          (when (and interactive
+                     (not (or executing-kbd-macro noninteractive)))
             (message "No other windows to delete"))
 	(delete-other-windows-internal window main)
 	(window--check frame))
@@ -4838,11 +4840,11 @@ displayed there."
   (interactive)
   (switch-to-buffer (last-buffer)))
 
-(defun next-buffer (&optional arg)
+(defun next-buffer (&optional arg interactive)
   "In selected window switch to ARGth next buffer.
 Call `switch-to-next-buffer' unless the selected window is the
 minibuffer window or is dedicated to its buffer."
-  (interactive "p")
+  (interactive "p\np")
   (cond
    ((window-minibuffer-p)
     (user-error "Cannot switch buffers in minibuffer window"))
@@ -4851,14 +4853,15 @@ minibuffer window or is dedicated to its buffer."
    (t
     (dotimes (_ (or arg 1))
       (when (and (not (switch-to-next-buffer))
-                 (called-interactively-p 'interactive))
+                 interactive
+                 (not (or executing-kbd-macro noninteractive)))
         (user-error "No next buffer"))))))
 
-(defun previous-buffer (&optional arg)
+(defun previous-buffer (&optional arg interactive)
   "In selected window switch to ARGth previous buffer.
 Call `switch-to-prev-buffer' unless the selected window is the
 minibuffer window or is dedicated to its buffer."
-  (interactive "p")
+  (interactive "p\np")
   (cond
    ((window-minibuffer-p)
     (user-error "Cannot switch buffers in minibuffer window"))
@@ -4867,7 +4870,8 @@ minibuffer window or is dedicated to its buffer."
    (t
     (dotimes (_ (or arg 1))
       (when (and (not (switch-to-prev-buffer))
-                 (called-interactively-p 'interactive))
+                 interactive
+                 (not (or executing-kbd-macro noninteractive)))
         (user-error "No previous buffer"))))))
 
 (defun delete-windows-on (&optional buffer-or-name frame)

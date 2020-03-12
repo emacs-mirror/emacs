@@ -130,7 +130,6 @@ Semantic, and Ansi-Color faces are included -- and much more...")
    `(font-lock-comment-face ((,class (:slant italic :foreground "#8D8D84")))) ; #696969
    `(font-lock-constant-face ((,class (:foreground "#D0372D"))))
    `(font-lock-doc-face ((,class (:foreground "#036A07"))))
-   ;; `(font-lock-doc-string-face ((,class (:foreground "#008000")))) ; XEmacs only, but is used for HTML exports from org2html (and not interactively)
    `(font-lock-function-name-face ((,class (:weight normal :foreground "#006699"))))
    `(font-lock-keyword-face ((,class (:bold nil :foreground "#0000FF")))) ; #3654DC
    `(font-lock-preprocessor-face ((,class (:foreground "#808080"))))
