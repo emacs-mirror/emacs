@@ -404,7 +404,16 @@ effect."
 (defun eldoc--supported-p ()
   "Non-nil if an ElDoc function is set for this buffer."
   (and (not (memq eldoc-documentation-function '(nil ignore)))
-       eldoc-documentation-functions))
+       (or eldoc-documentation-functions
+           ;; The old API had major modes set `eldoc-documentation-function'
+           ;; to provide eldoc support.  It's impossible now to determine
+           ;; reliably whether the `eldoc-documentation-function' provides
+           ;; eldoc support (as in the old API) or whether it just provides
+           ;; a way to combine the results of the
+           ;; `eldoc-documentation-functions' (as in the new API).
+           ;; But at least if it's set buffer-locally it's a good hint that
+           ;; there's some eldoc support in the current buffer.
+           (local-variable-p 'eldoc-documentation-function))))
 
 (defun eldoc-print-current-symbol-info ()
   "Print the text produced by `eldoc-documentation-function'."
