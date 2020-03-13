@@ -2126,6 +2126,7 @@ Return the compilation unit file name."
                     (if (symbolp input)
                         (make-temp-file (concat (symbol-name input) "-"))
                       (let ((exp-file (expand-file-name input)))
+                        (cl-assert comp-native-path-postfix)
                         (concat
                          (file-name-as-directory
                           (concat

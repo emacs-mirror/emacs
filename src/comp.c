@@ -266,11 +266,12 @@ hash_native_abi (void)
   /* If 10 characters are usually sufficient for git I guess 16 are
      fine for us here.  */
   Vcomp_native_path_postfix =
-    concat3 (Vsystem_configuration,
-	     make_string ("-", 1),
-	     Fsubstring_no_properties (Vcomp_abi_hash,
-				       make_fixnum (0),
-				       make_fixnum (16)));
+    concat3 (make_string ("eln-", 4),
+	     Vsystem_configuration,
+	     concat2 (make_string ("-", 1),
+		      Fsubstring_no_properties (Vcomp_abi_hash,
+						make_fixnum (0),
+						make_fixnum (16))));
 }
 
 static void
