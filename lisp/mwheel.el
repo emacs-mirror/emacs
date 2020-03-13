@@ -145,7 +145,7 @@ face height."
 ;;; For tilt-scroll
 ;;;
 (defcustom mouse-wheel-tilt-scroll nil
-  "Enable horizontal scrolling via mouse or touchpad.
+  "Enable horizontal scrolling by tilting mouse wheel or via touchpad.
 Also see `mouse-wheel-flip-direction'."
   :group 'mouse
   :type 'boolean
@@ -153,8 +153,11 @@ Also see `mouse-wheel-flip-direction'."
 
 (defcustom mouse-wheel-flip-direction nil
   "Swap direction of `wheel-right' and `wheel-left'.
-This inverts the direction of horizontal scrolling.  Also see
-`mouse-wheel-tilt-scroll'."
+By default, `wheel-right' scrolls the text to the right,
+and `wheel-left' scrolls in the other direction.
+If this variable is non-nil, it inverts the direction of
+horizontal scrolling by tilting the mouse wheel.
+Also see `mouse-wheel-tilt-scroll'."
   :group 'mouse
   :type 'boolean
   :version "26.1")
