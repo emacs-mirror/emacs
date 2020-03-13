@@ -266,7 +266,8 @@ before calling the command that adds a new tab."
   :version "27.1")
 
 (defcustom tab-bar-new-button-show t
-  "Defines whether to show the new tab button."
+  "If non-nil, show the \"New tab\" button in the tab bar.
+When this is nil, you can create new tabs with \\[tab-new]."
   :type 'boolean
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
