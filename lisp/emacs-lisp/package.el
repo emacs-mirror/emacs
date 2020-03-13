@@ -3042,6 +3042,7 @@ column in the header line."
 
 (defun package-menu--generate (remember-pos &optional packages keywords)
   "Populate and display the Package Menu.
+If REMEMBER-POS is non-nil, keep point on the same entry.
 PACKAGES should be t, which means to display all known packages,
 or a list of package names (symbols) to display.
 
