@@ -1046,7 +1046,10 @@ no input, and GDB is waiting for input."
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 
-(defconst gdb--string-regexp "\"\\(?:[^\\\"]\\|\\\\.\\)*\"")
+(defconst gdb--string-regexp (rx "\""
+                                 (* (or (seq "\\" nonl)
+                                        (not (any "\"\\"))))
+                                 "\""))
 
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
