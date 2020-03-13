@@ -4195,18 +4195,21 @@ performed successfully.  Any other value means an error."
 (defun tramp-accept-process-output (proc &optional timeout)
   "Like `accept-process-output' for Tramp processes.
 This is needed in order to hide `last-coding-system-used', which is set
-for process communication also."
+for process communication also.
+If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
   (with-current-buffer (process-buffer proc)
     (let ((inhibit-read-only t)
 	  last-coding-system-used
 	  result)
-      ;; JUST-THIS-ONE is set due to Bug#12145.
-      (tramp-message
-       proc 10 "%s %s %s %s\n%s"
-       proc timeout (process-status proc)
-       (with-local-quit
-	 (setq result (accept-process-output proc timeout nil t)))
-       (buffer-string))
+      ;; JUST-THIS-ONE is set due to Bug#12145.  `with-local-quit'
+      ;; returns t in order to report success.
+      (if (with-local-quit
+	    (setq result (accept-process-output proc timeout nil t)) t)
+	  (tramp-message
+	   proc 10 "%s %s %s %s\n%s"
+	   proc timeout (process-status proc) result (buffer-string))
+	;; Propagate quit.
+	(keyboard-quit))
       result)))
 
 (defun tramp-search-regexp (regexp)
