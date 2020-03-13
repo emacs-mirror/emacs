@@ -241,6 +241,12 @@ case-insensitive matching of messages when the old behaviour is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
+** Texinfo
+
+---
+*** New customizable option 'texinfo-texi2dvi-options'.
+This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
+
 
 * New Modes and Packages in Emacs 28.1
 
