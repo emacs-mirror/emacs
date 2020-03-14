@@ -44,28 +44,23 @@
   "Align assignments to this column by default with \\[conf-align-assignments].
 If this number is negative, the `=' comes before the whitespace.  Use 0 to
 not align (only setting space according to `conf-assignment-space')."
-  :type 'integer
-  :group 'conf)
+  :type 'integer)
 
 (defcustom conf-javaprop-assignment-column 32
   "Value for `conf-assignment-column' in Java properties buffers."
-  :type 'integer
-  :group 'conf)
+  :type 'integer)
 
 (defcustom conf-colon-assignment-column (- (abs conf-assignment-column))
   "Value for `conf-assignment-column' in Java properties buffers."
-  :type 'integer
-  :group 'conf)
+  :type 'integer)
 
 (defcustom conf-assignment-space t
   "Put at least one space around assignments when aligning."
-  :type 'boolean
-  :group 'conf)
+  :type 'boolean)
 
 (defcustom conf-colon-assignment-space nil
   "Value for `conf-assignment-space' in colon style Conf mode buffers."
-  :type 'boolean
-  :group 'conf)
+  :type 'boolean)
 
 (defvar conf-mode-map
   (let ((map (make-sparse-keymap))
@@ -349,9 +344,37 @@ unbalanced, but hey...)"
       (scan-error depth))))
 
 
+(defun conf--guess-mode ()
+  "Try to guess sub-mode of `conf-mode' based on buffer content."
+  (let ((unix 0) (win 0) (equal 0) (colon 0) (space 0) (jp 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(skip-chars-forward " \t\f")
+	(cond ((eq (char-after) ?\#) (setq unix (1+ unix)))
+	      ((eq (char-after) ?\;) (setq win (1+ win)))
+	      ((eq (char-after) ?\[))    ; nop
+	      ((eolp))                   ; nop
+	      ((eq (char-after) ?}))     ; nop
+	      ;; recognize at most double spaces within names
+	      ((looking-at "[^ \t\n=:]+\\(?:  ?[^ \t\n=:]+\\)*[ \t]*[=:]")
+	       (if (eq (char-before (match-end 0)) ?=)
+		   (setq equal (1+ equal))
+		 (setq colon (1+ colon))))
+	      ((looking-at "/[/*]") (setq jp (1+ jp)))
+	      ((looking-at ".*{"))      ; nop
+	      ((setq space (1+ space))))
+	(forward-line)))
+    (cond
+     ((> jp (max unix win 3)) #'conf-javaprop-mode)
+     ((> colon (max equal space)) #'conf-colon-mode)
+     ((> space (max equal colon)) #'conf-space-mode)
+     ((or (> win unix) (and (= win unix) (eq system-type 'windows-nt)))
+      #'conf-windows-mode)
+     (t #'conf-unix-mode))))
 
 ;;;###autoload
-(defun conf-mode ()
+(define-derived-mode conf-mode nil "Conf[?]"
   "Mode for Unix and Windows Conf files and Java properties.
 Most conf files know only three kinds of constructs: parameter
 assignments optionally grouped into sections and comments.  Yet
@@ -382,75 +405,37 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 
 \\{conf-mode-map}"
 
-  (interactive)
   ;; `conf-mode' plays two roles: it's the parent of several sub-modes
   ;; but it's also the function that chooses between those submodes.
   ;; To tell the difference between those two cases where the function
   ;; might be called, we check `delay-mode-hooks'.
   ;; (adopted from tex-mode.el)
   (if (not delay-mode-hooks)
-      ;; try to guess sub-mode of conf-mode based on buffer content
-      (let ((unix 0) (win 0) (equal 0) (colon 0) (space 0) (jp 0))
-	(save-excursion
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (skip-chars-forward " \t\f")
-	    (cond ((eq (char-after) ?\#) (setq unix (1+ unix)))
-		  ((eq (char-after) ?\;) (setq win (1+ win)))
-		  ((eq (char-after) ?\[))	; nop
-		  ((eolp))			; nop
-		  ((eq (char-after) ?}))	; nop
-		  ;; recognize at most double spaces within names
-		  ((looking-at "[^ \t\n=:]+\\(?:  ?[^ \t\n=:]+\\)*[ \t]*[=:]")
-		   (if (eq (char-before (match-end 0)) ?=)
-		       (setq equal (1+ equal))
-		     (setq colon (1+ colon))))
-		  ((looking-at "/[/*]") (setq jp (1+ jp)))
-		  ((looking-at ".*{"))		; nop
-		  ((setq space (1+ space))))
-	    (forward-line)))
-	(cond
-         ((> jp (max unix win 3)) (conf-javaprop-mode))
-         ((> colon (max equal space)) (conf-colon-mode))
-         ((> space (max equal colon)) (conf-space-mode))
-         ((or (> win unix) (and (= win unix) (eq system-type 'windows-nt)))
-          (conf-windows-mode))
-         (t (conf-unix-mode))))
+      (funcall (conf--guess-mode))
 
-    (kill-all-local-variables)
-    (use-local-map conf-mode-map)
-    (setq major-mode 'conf-mode
-	  mode-name "Conf[?]")
-    (set (make-local-variable 'font-lock-defaults)
-         '(conf-font-lock-keywords nil t nil nil))
+    (setq-local font-lock-defaults '(conf-font-lock-keywords nil t nil nil))
     ;; Let newcomment.el decide this for itself.
-    ;; (set (make-local-variable 'comment-use-syntax) t)
-    (set (make-local-variable 'parse-sexp-ignore-comments) t)
-    (set (make-local-variable 'outline-regexp)
-	 "[ \t]*\\(?:\\[\\|.+[ \t\n]*{\\)")
-    (set (make-local-variable 'outline-heading-end-regexp)
-	 "[\n}]")
-    (set (make-local-variable 'outline-level)
-	 'conf-outline-level)
-    (set-syntax-table conf-mode-syntax-table)
-    (setq imenu-generic-expression
-	  '(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*=" 1)
-	    ;; [section]
-	    (nil "^[ \t]*\\[[ \t]*\\(.+\\)[ \t]*\\]" 1)
-	    ;; section { ... }
-	    (nil "^[ \t]*\\([^=:{} \t\n][^=:{}\n]+\\)[ \t\n]*{" 1)))
-    (run-mode-hooks 'conf-mode-hook)))
+    ;; (setq-local comment-use-syntax t)
+    (setq-local parse-sexp-ignore-comments t)
+    (setq-local outline-regexp "[ \t]*\\(?:\\[\\|.+[ \t\n]*{\\)")
+    (setq-local outline-heading-end-regexp "[\n}]")
+    (setq-local outline-level #'conf-outline-level)
+    (setq-local imenu-generic-expression
+	        '(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*=" 1)
+	          ;; [section]
+	          (nil "^[ \t]*\\[[ \t]*\\(.+\\)[ \t]*\\]" 1)
+	          ;; section { ... }
+	          (nil "^[ \t]*\\([^=:{} \t\n][^=:{}\n]+\\)[ \t\n]*{" 1)))))
 
 (defun conf-mode-initialize (comment &optional font-lock)
   "Initializations for sub-modes of `conf-mode'.
 COMMENT initializes `comment-start' and `comment-start-skip'.
 The optional arg FONT-LOCK is the value for FONT-LOCK-KEYWORDS."
-  (set (make-local-variable 'comment-start) comment)
-  (set (make-local-variable 'comment-start-skip)
-       (concat (regexp-quote comment-start) "+\\s *"))
+  (setq-local comment-start comment)
+  (setq-local comment-start-skip
+              (concat (regexp-quote comment-start) "+\\s *"))
   (if font-lock
-      (set (make-local-variable 'font-lock-defaults)
-           `(,font-lock nil t nil nil))))
+      (setq-local font-lock-defaults `(,font-lock nil t nil nil))))
 
 ;;;###autoload
 (define-derived-mode conf-unix-mode conf-mode "Conf[Unix]"
@@ -497,13 +482,11 @@ x.1 =
 x.2.y.1.z.1 =
 x.2.y.1.z.2.zz ="
   (conf-mode-initialize "#" 'conf-javaprop-font-lock-keywords)
-  (set (make-local-variable 'conf-assignment-column)
-       conf-javaprop-assignment-column)
-  (set (make-local-variable 'conf-assignment-regexp)
-       ".+?\\([ \t]*[=: \t][ \t]*\\|$\\)")
-  (setq comment-start-skip "\\(?:#+\\|/[/*]+\\)\\s *")
-  (setq imenu-generic-expression
-	'(("Parameters" "^[ \t]*\\(.+?\\)[=: \t]" 1))))
+  (setq-local conf-assignment-column conf-javaprop-assignment-column)
+  (setq-local conf-assignment-regexp ".+?\\([ \t]*[=: \t][ \t]*\\|$\\)")
+  (setq-local comment-start-skip "\\(?:#+\\|/[/*]+\\)\\s *")
+  (setq-local imenu-generic-expression
+	      '(("Parameters" "^[ \t]*\\(.+?\\)[=: \t]" 1))))
 
 ;;;###autoload
 (define-derived-mode conf-space-mode conf-unix-mode "Conf[Space]"
@@ -529,20 +512,18 @@ class desktop
 add /dev/audio		desktop
 add /dev/mixer		desktop"
   (conf-mode-initialize "#" 'conf-space-font-lock-keywords)
-  (make-local-variable 'conf-assignment-sign)
-  (setq conf-assignment-sign nil)
-  (make-local-variable 'conf-space-keywords)
+  (setq-local conf-assignment-sign nil)
   (cond (buffer-file-name
 	 ;; We set conf-space-keywords directly, but a value which is
 	 ;; in the local variables list or interactively specified
 	 ;; (see the function conf-space-keywords) takes precedence.
-         (setq conf-space-keywords
-	       (assoc-default buffer-file-name conf-space-keywords-alist
-			      'string-match))))
+         (setq-local conf-space-keywords
+		     (assoc-default buffer-file-name conf-space-keywords-alist
+			            #'string-match))))
   (conf-space-mode-internal)
   ;; In case the local variables list specifies conf-space-keywords,
   ;; recompute other things from that afterward.
-  (add-hook 'hack-local-variables-hook 'conf-space-mode-internal nil t))
+  (add-hook 'hack-local-variables-hook #'conf-space-mode-internal nil t))
 
 ;;;###autoload
 (defun conf-space-keywords (keywords)
@@ -553,16 +534,16 @@ See `conf-space-mode'."
     (conf-space-mode))
   (if (string-equal keywords "")
       (setq keywords nil))
-  (setq conf-space-keywords keywords)
+  (setq-local conf-space-keywords keywords)
   (conf-space-mode-internal)
   (run-mode-hooks))
 
 (defun conf-space-mode-internal ()
-  (make-local-variable 'conf-assignment-regexp)
-  (setq conf-assignment-regexp
-	(if conf-space-keywords
-	    (concat "\\(?:" conf-space-keywords "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
-	  ".+?\\([ \t]+\\|$\\)"))
+  (setq-local conf-assignment-regexp
+	      (if conf-space-keywords
+	          (concat "\\(?:" conf-space-keywords
+	                  "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
+	        ".+?\\([ \t]+\\|$\\)"))
   ;; If Font Lock is already enabled, reenable it with new
   ;; conf-assignment-regexp.
   (when (and font-lock-mode
@@ -596,17 +577,13 @@ For details see `conf-mode'.  Example:
 <Multi_key> <exclam> <exclam>		: \"\\241\"	exclamdown
 <Multi_key> <c> <slash>			: \"\\242\"	cent"
   (conf-mode-initialize "#" 'conf-colon-font-lock-keywords)
-  (set (make-local-variable 'conf-assignment-space)
-       conf-colon-assignment-space)
-  (set (make-local-variable 'conf-assignment-column)
-       conf-colon-assignment-column)
-  (set (make-local-variable 'conf-assignment-sign)
-       ?:)
-  (set (make-local-variable 'conf-assignment-regexp)
-       ".+?\\([ \t]*:[ \t]*\\)")
-  (setq imenu-generic-expression
-	`(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*:" 1)
-	  ,@(cdr imenu-generic-expression))))
+  (setq-local conf-assignment-space conf-colon-assignment-space)
+  (setq-local conf-assignment-column conf-colon-assignment-column)
+  (setq-local conf-assignment-sign ?:)
+  (setq-local conf-assignment-regexp ".+?\\([ \t]*:[ \t]*\\)")
+  (setq-local imenu-generic-expression
+	      `(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*:" 1)
+	        ,@(cdr imenu-generic-expression))))
 
 ;;;###autoload
 (define-derived-mode conf-ppd-mode conf-colon-mode "Conf[PPD]"
