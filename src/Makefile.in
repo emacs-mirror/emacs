@@ -327,7 +327,7 @@ GMP_LIB = @GMP_LIB@
 GMP_OBJ = @GMP_OBJ@
 
 LIBGCCJIT = @LIBGCCJIT_LIB@
-## dynlib.o comp.o if native compiler is enabled, else empty
+## dynlib.o comp.o if native compiler is enabled, otherwise empty.
 COMP_OBJ = @COMP_OBJ@
 
 RUN_TEMACS = ./temacs

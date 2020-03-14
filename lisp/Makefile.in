@@ -356,6 +356,13 @@ compile-main: gen-lisp compile-clean
 	  $(MAKE) compile-targets TARGETS="$$chunk"; \
 	done
 
+.PHONY: native-compile-clean
+native-compile-clean:
+# Erase all eln output compilation folders.
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	find $(lisp) -regex ".*/eln-.*-[0-9a-z]+\\'" -type d | xargs rm -rf
+endif
+
 .PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
@@ -365,10 +372,6 @@ compile-clean:
 	  if test -f "$$el" || test ! -f "$${el}c"; then :; else \
 	    echo rm "$${el}c"; \
 	    rm "$${el}c"; \
-	  fi; \
-	  if test -f "$$el" || test ! -f "$${el}n"; then :; else \
-	    echo rm "$${el}n"; \
-	    rm "$${el}n"; \
 	  fi; \
 	done
 
@@ -396,7 +399,7 @@ compile: $(LOADDEFS) autoloads compile-first
 # Compile all Lisp files.  This is like 'compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
-compile-always:
+compile-always: native-compile-clean
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
 	$(MAKE) compile
 
@@ -486,8 +489,8 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
 
 .PHONY: bootstrap-clean distclean maintainer-clean extraclean
 
-bootstrap-clean:
-	find $(lisp) -regex '.*\.elc\|.*\.eln' $(FIND_DELETE)
+bootstrap-clean: native-compile-clean
+	find $(lisp) -name '*.elc' $(FIND_DELETE)
 	rm -f $(AUTOGENEL)
 
 distclean:
