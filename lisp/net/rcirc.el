@@ -2626,12 +2626,16 @@ the only argument."
                (and ;; nickserv
                 (string= sender "NickServ")
                 (string= target rcirc-nick)
-                (member message
-                        (list
-                         (format "You are now identified for \C-b%s\C-b." rcirc-nick)
-			 (format "You are successfully identified as \C-b%s\C-b." rcirc-nick)
-                         "Password accepted - you are now recognized."
-                         )))
+                (cl-member
+                 message
+                 (list
+                  (format "You are now identified for \C-b%s\C-b." rcirc-nick)
+                  (format "You are successfully identified as \C-b%s\C-b."
+                          rcirc-nick)
+                  "Password accepted - you are now recognized.")
+                 ;; The nick may have a different case, so match
+                 ;; case-insensitively (Bug#39345).
+                 :test #'cl-equalp))
                (and ;; quakenet
                 (string= sender "Q")
                 (string= target rcirc-nick)

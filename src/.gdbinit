@@ -72,7 +72,7 @@ end
 
 define xgetsym
   xgetptr $arg0
-  set $ptr = ((struct Lisp_Symbol *) ((char *)lispsym + $ptr))
+  set $ptr = ((struct Lisp_Symbol *) ((char *) &lispsym + $ptr))
 end
 
 # Access the name of a symbol

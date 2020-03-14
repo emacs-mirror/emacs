@@ -547,8 +547,7 @@ type detected."
 			new-parts))
 		(setq cid (1+ cid)))))))
       ;; We have local images that we want to include.
-      (if (not new-parts)
-	  (list cont)
+      (when new-parts
 	(setcdr (assq 'contents cont) (buffer-string))
 	(setq cont
 	      (nconc (list 'multipart (cons 'type "related"))
@@ -561,8 +560,8 @@ type detected."
 				       (nth 1 new-part)
 				       (nth 2 new-part))
 				    (id . ,(concat "<" (nth 0 new-part)
-						   ">")))))))
-	cont))))
+						   ">"))))))))
+      cont)))
 
 (autoload 'image-property "image")
 

@@ -123,7 +123,8 @@ Possible modifiers are `control', `meta', `shift', `hyper', `super' and
                     (assq-delete-all 'tab-bar-lines
                                      default-frame-alist)))))
 
-  (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-new-button)))
+  (when (and tab-bar-mode tab-bar-new-button
+             (not (get-text-property 0 'display tab-bar-new-button)))
     ;; This file is pre-loaded so only here we can use the right data-directory:
     (add-text-properties 0 (length tab-bar-new-button)
                          `(display (image :type xpm
@@ -132,7 +133,8 @@ Possible modifiers are `control', `meta', `shift', `hyper', `super' and
                                           :ascent center))
                          tab-bar-new-button))
 
-  (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-close-button)))
+  (when (and tab-bar-mode tab-bar-close-button
+             (not (get-text-property 0 'display tab-bar-close-button)))
     ;; This file is pre-loaded so only here we can use the right data-directory:
     (add-text-properties 0 (length tab-bar-close-button)
                          `(display (image :type xpm
@@ -263,6 +265,17 @@ before calling the command that adds a new tab."
   :group 'tab-bar
   :version "27.1")
 
+(defcustom tab-bar-new-button-show t
+  "If non-nil, show the \"New tab\" button in the tab bar.
+When this is nil, you can create new tabs with \\[tab-new]."
+  :type 'boolean
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "27.1")
+
 (defvar tab-bar-new-button " + "
   "Button for creating a new tab.")
 
@@ -306,7 +319,8 @@ This helps to select the tab by its number using `tab-bar-select-tab'."
   :group 'tab-bar
   :version "27.1")
 
-(defvar tab-bar-separator nil)
+(defvar tab-bar-separator nil
+  "String that delimits tabs.")
 
 
 (defcustom tab-bar-tab-name-function #'tab-bar-tab-name-current
@@ -464,9 +478,9 @@ Return its existing value or a new value."
                  (interactive)
                  (tab-bar-close-tab ,i)))))))
       tabs)
-     (when tab-bar-new-button
-       `((sep-add-tab menu-item ,separator ignore)
-         (add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
+     `((sep-add-tab menu-item ,separator ignore))
+     (when (and tab-bar-new-button-show tab-bar-new-button)
+       `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
                   :help "New tab"))))))
 
 

@@ -72,8 +72,7 @@ strings case-insensitively."
   (cond ((eq x y) t)
 	((stringp x)
 	 (and (stringp y) (= (length x) (length y))
-	      (or (string-equal x y)
-		  (string-equal (downcase x) (downcase y))))) ;Lazy but simple!
+              (eq (compare-strings x nil nil y nil nil t) t)))
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)

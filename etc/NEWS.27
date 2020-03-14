@@ -360,6 +360,14 @@ its '--eval' command-line option), as well as in
 'lisp-interaction-mode' and 'ielm-mode', used in the "*scratch*" and
 "*ielm*" buffers.
 
+We envision that most Lisp code is already either written with
+lexical-binding in mind, or will work unchanged under
+lexical-binding.  If, for some reason, your code used in 'M-:' or
+'--eval' doesn't work as result of this change, either modify the code
+to work with lexical binding, or wrap it in an extra level of 'eval'.
+For example, --eval FORM becomes --eval "(eval 'FORM)" (note the extra
+quote in 'FORM).
+
 ---
 ** The new user option 'tooltip-resize-echo-area' avoids truncating
 tooltip text on GUI frames when tooltips are displayed in the echo
@@ -779,7 +787,7 @@ an offset to absolute line numbers.
 ** table
 
 +++
-*** 'table-generate-source' now supports wiki and mediawiki
+*** 'table-generate-source' now supports wiki and mediawiki.
 This command can now output wiki and mediawiki format tables.
 
 ** telnet-mode

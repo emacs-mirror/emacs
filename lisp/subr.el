@@ -2987,13 +2987,18 @@ This finishes the change group by reverting all of its changes."
 	;; the body of `atomic-change-group' all changes can be undone.
 	(widen)
 	(let ((old-car (car-safe elt))
-	      (old-cdr (cdr-safe elt)))
+	      (old-cdr (cdr-safe elt))
+	      ;; Use `pending-undo-list' temporarily since `undo-more' needs
+	      ;; it, but restore it afterwards so as not to mess with an
+	      ;; ongoing sequence of `undo's.
+	      (pending-undo-list
+	       ;; Use `buffer-undo-list' unconditionally (bug#39680).
+	       buffer-undo-list))
           (unwind-protect
               (progn
                 ;; Temporarily truncate the undo log at ELT.
                 (when (consp elt)
                   (setcar elt nil) (setcdr elt nil))
-                (unless (eq last-command 'undo) (undo-start))
                 ;; Make sure there's no confusion.
                 (when (and (consp elt) (not (eq elt (last pending-undo-list))))
                   (error "Undoing to some unrelated state"))
