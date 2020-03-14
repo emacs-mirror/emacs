@@ -55,6 +55,7 @@ BEGIN {
     alias["box drawing"] = "symbol"
     alias["block elements"] = "symbol"
     alias["miscellaneous symbols"] = "symbol"
+    alias["symbols for legacy computing"] = "symbol"
     alias["cjk strokes"] = "cjk-misc"
     alias["cjk symbols and punctuation"] = "cjk-misc"
     alias["halfwidth and fullwidth forms"] = "cjk-misc"

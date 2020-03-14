@@ -220,9 +220,11 @@
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
         (hanifi-rohingya #x10D00)
+        (yezidi #x10E80)
         (old-sogdian #x10F00)
         (sogdian #x10F30)
-        (elymaic #x10fe0)
+        (chorasmian #x10FB0)
+        (elymaic #x10FE0)
 	(mahajani #x11150)
 	(sinhala-archaic-number #x111E1)
 	(khojki #x11200)
@@ -235,6 +237,7 @@
 	(takri #x11680)
         (dogra #x11800)
 	(warang-citi #x118A1)
+        (dives-akuru #x11900)
         (nandinagari #x119a0)
         (zanabazar-square #x11A00)
         (soyombo #x11A50)
@@ -253,6 +256,7 @@
         (medefaidrin #x16E40)
         (tangut #x17000)
         (tangut-components #x18800)
+        (khitan-small-script #x18B00)
         (nushu #x1B170)
 	(duployan-shorthand #x1BC20)
 	(byzantine-musical-symbol #x1D000)
@@ -736,10 +740,13 @@
 		    cypriot-syllabary
 		    phoenician
 		    lydian
+                    yezidi
 		    kharoshthi
 		    manichaean
+                    chorasmian
 		    elymaic
 		    makasar
+                    dives-akuru
 		    cuneiform-numbers-and-punctuation
 		    cuneiform
 		    egyptian

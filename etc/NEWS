@@ -229,6 +229,9 @@ the new version of the file again.)
 
 * Changes in Emacs 27.1
 
+---
+** Emacs now supports Unicode Standard version 13.0.
+
 +++
 ** Emacs now supports resizing and rotating images without ImageMagick.
 All modern systems support this feature.  (On GNU and Unix systems,
