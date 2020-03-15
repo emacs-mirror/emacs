@@ -85,8 +85,9 @@ performed at `comp-speed' > 0."
   :type 'list
   :group 'comp)
 
-(defcustom comp-async-jobs-number 2
-  "Default number of processes used for async compilation."
+(defcustom comp-async-jobs-number 0
+  "Default number of processes used for async compilation.
+When zero use half of the CPUs or at least one."
   :type 'fixnum
   :group 'comp)
 
@@ -2082,13 +2083,25 @@ processes from `comp-async-processes'"
         (cl-delete-if-not #'process-live-p comp-async-processes))
   (length comp-async-processes))
 
+(let (num-cpus)
+  (defun comp-effective-async-max-jobs ()
+    "Compute the effective number of async jobs."
+    (if (zerop comp-async-jobs-number)
+        (or num-cpus
+            (setf num-cpus
+                  ;; Half of the CPUs or at least one.
+                  ;; FIXME portable?
+                  (max 1 (/ (string-to-number (shell-command-to-string "nproc"))
+                            2))))
+      comp-async-jobs-number)))
+
 (defun comp-run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
 When compilation is finished, run `comp-async-all-done-hook' and
 display a message."
   (if (or comp-files-queue
           (> (comp-async-runnings) 0))
-      (unless (>= (comp-async-runnings) comp-async-jobs-number)
+      (unless (>= (comp-async-runnings) (comp-effective-async-max-jobs))
         (cl-loop
          for source-file = (pop comp-files-queue)
          while source-file
@@ -2119,7 +2132,7 @@ display a message."
                                          (accept-process-output process)
                                          (comp-run-async-workers)))))
               (push process comp-async-processes))
-         when (>= (comp-async-runnings) comp-async-jobs-number)
+         when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
     ;; No files left to compile and all processes finished.
     (let ((msg "Compilation finished."))
