@@ -1,10 +1,10 @@
-;;; elisp-benchmarks.el --- elisp benchamrks collection -*- lexical-binding:t -*-
+;;; elisp-benchmarks.el --- elisp benchmarks collection -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019  Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
-;; Version: 1.3
+;; Version: 1.4
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
 ;; Created: 2019-01-12
