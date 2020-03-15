@@ -798,7 +798,7 @@ correspond to previously loaded files (those returned by
         ;; FIXME: not the friendliest, but simple.
         (require 'info)
         (info-initialize)
-        (push pkg-dir Info-directory-list))
+        (add-to-list 'Info-directory-list pkg-dir))
       (push name package-activated-list)
       ;; Don't return nil.
       t)))
