@@ -356,34 +356,44 @@ Assume allocaiton class 'd-default as default."
   (puthash obj t (comp-data-container-idx (comp-alloc-class-to-container
                                            comp-curr-allocation-class))))
 
-(defmacro comp-within-log-buff (&rest body)
-  "Execute BODY while at the end the log-buffer.
-BODY is evaluate only if `comp-verbose' is > 0."
-  (declare (debug (form body))
-           (indent defun))
-  `(when (> comp-verbose 0)
-     (with-current-buffer (get-buffer-create comp-log-buffer-name)
-       (setf buffer-read-only t)
-       (let ((inhibit-read-only t))
-         (goto-char (point-max))
-         ,@body))))
-
-(defun comp-log (data verbosity)
-  "Log DATA given VERBOSITY."
-  (when (>= comp-verbose verbosity)
+(cl-defun comp-log (data &optional (level 1))
+  "Log DATA at LEVEL.
+LEVEL is a number from 1-3; if it is less than `comp-verbose', do
+nothing.  If `noninteractive', log with `message'.  Otherwise,
+log with `comp-log-to-buffer'."
+  (when (>= comp-verbose level)
     (if noninteractive
-        (if (atom data)
-            (message "%s" data)
-	  (mapc (lambda (x)
-                  (message "%s"(prin1-to-string x)))
-                data))
-      (comp-within-log-buff
-        (if (and data (atom data))
-            (insert data)
-          (mapc (lambda (x)
-                  (insert (prin1-to-string x) "\n"))
-                data)
-          (insert "\n"))))))
+        (cl-typecase data
+          (atom (message "%s" data))
+          (t (dolist (elem data)
+               (message "%s" elem))))
+      (comp-log-to-buffer data))))
+
+(cl-defun comp-log-to-buffer (data)
+  "Log DATA to `comp-log-buffer-name'."
+  (let* ((log-buffer
+          (or (get-buffer comp-log-buffer-name)
+              (with-current-buffer (get-buffer-create comp-log-buffer-name)
+                (setf buffer-read-only t)
+                (current-buffer))))
+         (log-window (get-buffer-window log-buffer))
+         (inhibit-read-only t)
+         at-end-p)
+    (with-current-buffer log-buffer
+      (when (= (point) (point-max))
+        (setf at-end-p t))
+      (save-excursion
+        (goto-char (point-max))
+        (cl-typecase data
+          (atom (princ data log-buffer))
+          (t (dolist (elem data)
+               (princ elem log-buffer)
+               (insert "\n"))))
+        (insert "\n"))
+      (when (and at-end-p log-window)
+        ;; When log window's point is at the end, follow the tail.
+        (with-selected-window log-window
+          (goto-char (point-max)))))))
 
 (defun comp-log-func (func verbosity)
   "Log function FUNC.
@@ -2052,105 +2062,108 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Some entry point support code.
 
-(defvar comp-src-pool ()
-  "List containing the files to be compiled.")
+(defvar comp-files-queue ()
+  "List of Elisp files to be compiled.")
 
-(defvar comp-prc-pool ()
-  "List containing all async compilation processes.")
+(defvar comp-async-processes ()
+  "List of running async compilation processes.")
 
-(defun comp-to-file-p (file)
-  "Return t if FILE has to be compiled."
-  (let ((compiled-f (concat file "n")))
-    (or comp-always-compile
-        (not (and (file-exists-p compiled-f)
-                  (file-newer-than-file-p compiled-f file))))))
-
-(cl-defun comp-start-async-worker ()
-  "Run an async compile worker."
-  (let (f)
-    (while (setf f (pop comp-src-pool))
-      (when (comp-to-file-p f)
-        (let* ((code `(progn
-                        (require 'comp)
-                        (setf comp-speed ,comp-speed
-                              comp-debug ,comp-debug
-                              comp-verbose ,comp-verbose
-                              load-path ',load-path)
-                        (message "Compiling %s started." ,f)
-                        (native-compile ,f))))
-          (push (make-process :name (concat "Compiling: " f)
-                              :buffer (get-buffer-create comp-async-buffer-name)
-                              :command (list (concat invocation-directory
-                                                     invocation-name)
-                                             "--batch"
-                                             "--eval"
-                                             (prin1-to-string code))
-                              :sentinel (lambda (prc _event)
-                                          (run-hook-with-args
-                                           'comp-async-cu-done-hook
-                                           f)
-                                          (accept-process-output prc)
-                                          (comp-start-async-worker)))
-                comp-prc-pool)
-          (cl-return-from comp-start-async-worker))))
-    (when (cl-notany #'process-live-p comp-prc-pool)
+(defun comp-start-async-worker ()
+  "Start compiling files from `comp-files-queue' asynchronously.
+When compilation is finished, run `comp-async-all-done-hook' and
+display a message."
+  (if comp-files-queue
+      (cl-loop
+       for source-file = (pop comp-files-queue)
+       while source-file
+       do (cl-assert (string-match-p (rx ".el" eos) source-file) nil
+                     "`comp-files-queue' should be \".el\" files: %s"
+                     source-file)
+       when (or comp-always-compile
+                (file-newer-than-file-p source-file (concat source-file "n")))
+       do (let* ((expr `(progn
+                          (require 'comp)
+                          (setf comp-speed ,comp-speed
+                                comp-debug ,comp-debug
+                                comp-verbose ,comp-verbose
+                                load-path ',load-path)
+                          (message "Compiling %s..." ,source-file)
+                          (native-compile ,source-file)))
+                 (process (make-process
+                           :name (concat "Compiling: " source-file)
+                           :buffer (get-buffer-create comp-async-buffer-name)
+                           :command (list
+                                     (expand-file-name invocation-name
+                                                       invocation-directory)
+                                     "--batch" "--eval" (prin1-to-string expr))
+                           :sentinel (lambda (process _event)
+                                       (run-hook-with-args
+                                        'comp-async-cu-done-hook
+                                        source-file)
+                                       (accept-process-output process)
+                                       (comp-start-async-worker)))))
+            (push process comp-async-processes)))
+    ;; No files left to compile.
+    (when (cl-notany #'process-live-p comp-async-processes)
       (let ((msg "Compilation finished."))
-        (setf comp-prc-pool ())
+        (setf comp-async-processes ())
         (run-hooks 'comp-async-all-done-hook)
         (with-current-buffer (get-buffer-create comp-async-buffer-name)
           (save-excursion
             (goto-char (point-max))
             (insert msg "\n")))
         (message msg)))))
+
 
 ;;; Compiler entry points.
 
 ;;;###autoload
-(defun native-compile (input)
-  "Compile INPUT into native code.
+(defun native-compile (function-or-file)
+  "Compile FUNCTION-OR-FILE into native code.
 This is the entry-point for the Emacs Lisp native compiler.
-If INPUT is a symbol, native compile its function definition.
-If INPUT is a string, use it as the file path to be native compiled.
+FUNCTION-OR-FILE is a function symbol or a path to an Elisp file.
 Return the compilation unit file name."
-  (unless (or (symbolp input)
-              (stringp input))
+  (unless (or (functionp function-or-file)
+              (stringp function-or-file))
     (signal 'native-compiler-error
-          (list "not a symbol function or file" input)))
-  (let ((data input)
-        (comp-native-compiling t)
-        ;; Have the byte compiler signal an error when compilation
-        ;; fails.
-        (byte-compile-debug t)
-        (comp-ctxt (make-comp-ctxt
-                    :output
-                    (if (symbolp input)
-                        (make-temp-file (concat (symbol-name input) "-"))
-                      (let ((exp-file (expand-file-name input)))
-                        (cl-assert comp-native-path-postfix)
-                        (concat
-                         (file-name-as-directory
-                          (concat
-                           (file-name-directory exp-file)
-                           comp-native-path-postfix))
-                         (file-name-sans-extension
-                          (file-name-nondirectory exp-file))))))))
+            (list "Not a function symbol or file" function-or-file)))
+  (let* ((data function-or-file)
+         (comp-native-compiling t)
+         ;; Have byte compiler signal an error when compilation fails.
+         (byte-compile-debug t)
+         (comp-ctxt
+          (make-comp-ctxt
+           :output
+           (if (symbolp function-or-file)
+               (make-temp-file (concat (symbol-name function-or-file) "-"))
+             (let* ((expanded-filename (expand-file-name function-or-file))
+                    (output-dir (file-name-as-directory
+                                 (concat (file-name-directory expanded-filename)
+                                         comp-native-path-postfix)))
+                    (output-filename
+                     (file-name-sans-extension
+                      (file-name-nondirectory expanded-filename))))
+               (expand-file-name output-filename output-dir))))))
     (comp-log "\n\n" 1)
     (condition-case err
         (mapc (lambda (pass)
-                (comp-log (format "Running pass %s:\n" pass) 2)
+                (comp-log (format "(%s) Running pass %s:\n"
+                                  function-or-file pass)
+                          2)
                 (setf data (funcall pass data)))
               comp-passes)
       (native-compiler-error
        ;; Add source input.
        (let ((err-val (cdr err)))
-         (signal (car err) (if (consp err-val)
-                               (cons input err-val)
-                             (list input err-val))))))
+	 (signal (car err) (if (consp err-val)
+			       (cons function-or-file err-val)
+			     (list function-or-file err-val))))))
     data))
 
 ;;;###autoload
 (defun batch-native-compile ()
-  "Ultra cheap impersonation of `batch-byte-compile'."
+  "Run `native-compile' on remaining command-line arguments.
+Ultra cheap impersonation of `batch-byte-compile'."
   (mapc #'native-compile command-line-args-left))
 
 ;;;###autoload
@@ -2169,23 +2182,25 @@ Always generate elc files too and handle native compiler expected errors."
          (rename-file tempfile target-file t))))))
 
 ;;;###autoload
-(defun native-compile-async (input &optional jobs recursively)
-  "Compile INPUT asynchronously.
-INPUT can be either a list of files a folder or a file.
-JOBS specifies the number of jobs (commands) to run simultaneously (1 default).
-Follow folders RECURSIVELY if non nil."
-  (let ((jobs (or jobs 1))
-        (files (if (listp input)
-                   input
-                 (if (file-directory-p input)
-                     (if recursively
-                         (directory-files-recursively input "\\.el$")
-                       (directory-files input t "\\.el$"))
-                   (if (file-exists-p input)
-                       (list input)
-                     (signal 'native-compiler-error
-                             "input not a file nor directory"))))))
-    (setf comp-src-pool (nconc files comp-src-pool))
+(cl-defun native-compile-async (paths &optional (jobs 1) recursively)
+  "Compile PATHS asynchronously.
+PATHS is one path or a list of paths to files or directories.
+JOBS specifies the number of jobs (commands) to run
+simultaneously (1 default).  If RECURSIVELY, recurse into
+subdirectories of given directories."
+  (unless (listp paths)
+    (setf paths (list paths)))
+  (let (files)
+    (dolist (path paths)
+      (cond ((file-directory-p path)
+             (dolist (file (if recursively
+                               (directory-files-recursively path (rx ".el" eos))
+                             (directory-files path t (rx ".el" eos))))
+               (push file files)))
+            ((file-exists-p path) (push path files))
+            (t (signal 'native-compiler-error
+                       (list "Path not a file nor directory" path)))))
+    (setf comp-files-queue (nconc files comp-files-queue))
     (cl-loop repeat jobs
              do (comp-start-async-worker))
     (message "Compilation started.")))
