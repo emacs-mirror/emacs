@@ -29,10 +29,11 @@
 ;;; Code:
 
 (require 'bytecomp)
-(require 'gv)
-(require 'cl-lib)
 (require 'cl-extra)
+(require 'cl-lib)
 (require 'cl-macs)
+(require 'gv)
+(require 'rx)
 (require 'subr-x)
 
 (defgroup comp nil
