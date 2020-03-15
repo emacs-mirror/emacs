@@ -85,6 +85,11 @@ performed at `comp-speed' > 0."
   :type 'list
   :group 'comp)
 
+(defcustom comp-async-jobs-number 2
+  "Default number of processes used for async compilation."
+  :type 'fixnum
+  :group 'comp)
+
 (defcustom comp-async-cu-done-hook nil
   "This hook is run whenever an asyncronous native compilation
 finishes compiling a single compilation unit.
@@ -2069,51 +2074,61 @@ Prepare every function for final compilation and drive the C back-end."
 (defvar comp-async-processes ()
   "List of running async compilation processes.")
 
-(defun comp-start-async-worker ()
+(defun comp-async-runnings ()
+  "Return the number of async compilations currently running.
+This function has the side effect of cleaning-up finished
+processes from `comp-async-processes'"
+  (setf comp-async-processes
+        (cl-delete-if-not #'process-live-p comp-async-processes))
+  (length comp-async-processes))
+
+(defun comp-run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
 When compilation is finished, run `comp-async-all-done-hook' and
 display a message."
-  (if comp-files-queue
-      (cl-loop
-       for source-file = (pop comp-files-queue)
-       while source-file
-       do (cl-assert (string-match-p (rx ".el" eos) source-file) nil
-                     "`comp-files-queue' should be \".el\" files: %s"
-                     source-file)
-       when (or comp-always-compile
-                (file-newer-than-file-p source-file (concat source-file "n")))
-       do (let* ((expr `(progn
-                          (require 'comp)
-                          (setf comp-speed ,comp-speed
-                                comp-debug ,comp-debug
-                                comp-verbose ,comp-verbose
-                                load-path ',load-path)
-                          (message "Compiling %s..." ,source-file)
-                          (native-compile ,source-file)))
-                 (process (make-process
-                           :name (concat "Compiling: " source-file)
-                           :buffer (get-buffer-create comp-async-buffer-name)
-                           :command (list
-                                     (expand-file-name invocation-name
-                                                       invocation-directory)
-                                     "--batch" "--eval" (prin1-to-string expr))
-                           :sentinel (lambda (process _event)
-                                       (run-hook-with-args
-                                        'comp-async-cu-done-hook
-                                        source-file)
-                                       (accept-process-output process)
-                                       (comp-start-async-worker)))))
-            (push process comp-async-processes)))
-    ;; No files left to compile.
-    (when (cl-notany #'process-live-p comp-async-processes)
-      (let ((msg "Compilation finished."))
-        (setf comp-async-processes ())
-        (run-hooks 'comp-async-all-done-hook)
-        (with-current-buffer (get-buffer-create comp-async-buffer-name)
-          (save-excursion
-            (goto-char (point-max))
-            (insert msg "\n")))
-        (message msg)))))
+  (if (or comp-files-queue
+          (> (comp-async-runnings) 0))
+      (unless (>= (comp-async-runnings) comp-async-jobs-number)
+        (cl-loop
+         for source-file = (pop comp-files-queue)
+         while source-file
+         do (cl-assert (string-match-p (rx ".el" eos) source-file) nil
+                       "`comp-files-queue' should be \".el\" files: %s"
+                       source-file)
+         when (or comp-always-compile
+                  (file-newer-than-file-p source-file (concat source-file "n")))
+         do (let* ((expr `(progn
+                            (require 'comp)
+                            (setf comp-speed ,comp-speed
+                                  comp-debug ,comp-debug
+                                  comp-verbose ,comp-verbose
+                                  load-path ',load-path)
+                            (message "Compiling %s..." ,source-file)
+                            (native-compile ,source-file)))
+                   (process (make-process
+                             :name (concat "Compiling: " source-file)
+                             :buffer (get-buffer-create comp-async-buffer-name)
+                             :command (list
+                                       (expand-file-name invocation-name
+                                                         invocation-directory)
+                                       "--batch" "--eval" (prin1-to-string expr))
+                             :sentinel (lambda (process _event)
+                                         (run-hook-with-args
+                                          'comp-async-cu-done-hook
+                                          source-file)
+                                         (accept-process-output process)
+                                         (comp-run-async-workers)))))
+              (push process comp-async-processes))
+         when (>= (comp-async-runnings) comp-async-jobs-number)
+           do (cl-return)))
+    ;; No files left to compile and all processes finished.
+    (let ((msg "Compilation finished."))
+      (run-hooks 'comp-async-all-done-hook)
+      (with-current-buffer (get-buffer-create comp-async-buffer-name)
+        (save-excursion
+          (goto-char (point-max))
+          (insert msg "\n")))
+      (message msg))))
 
 
 ;;; Compiler entry points.
@@ -2183,12 +2198,12 @@ Always generate elc files too and handle native compiler expected errors."
          (rename-file tempfile target-file t))))))
 
 ;;;###autoload
-(cl-defun native-compile-async (paths &optional (jobs 1) recursively)
+(defun native-compile-async (paths recursively)
   "Compile PATHS asynchronously.
 PATHS is one path or a list of paths to files or directories.
-JOBS specifies the number of jobs (commands) to run
-simultaneously (1 default).  If RECURSIVELY, recurse into
-subdirectories of given directories."
+`comp-async-jobs-number' specifies the number of (commands) to
+run simultaneously.  If RECURSIVELY, recurse into subdirectories
+of given directories."
   (unless (listp paths)
     (setf paths (list paths)))
   (let (files)
@@ -2202,8 +2217,8 @@ subdirectories of given directories."
             (t (signal 'native-compiler-error
                        (list "Path not a file nor directory" path)))))
     (setf comp-files-queue (nconc files comp-files-queue))
-    (cl-loop repeat jobs
-             do (comp-start-async-worker))
+    (when (zerop (comp-async-runnings))
+      (comp-run-async-workers))
     (message "Compilation started.")))
 
 (provide 'comp)
