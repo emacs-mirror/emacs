@@ -2229,7 +2229,8 @@ of given directories."
             ((file-exists-p path) (push path files))
             (t (signal 'native-compiler-error
                        (list "Path not a file nor directory" path)))))
-    (setf comp-files-queue (nconc files comp-files-queue))
+    (dolist (file files)
+      (add-to-list 'comp-files-queue file t))
     (when (zerop (comp-async-runnings))
       (comp-run-async-workers))
     (message "Compilation started.")))
