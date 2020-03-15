@@ -278,6 +278,24 @@ displays the buffer specified by BUFFER-OR-NAME before running BODY."
 	     (funcall ,vquit-function ,window ,value)
 	   ,value)))))
 
+(defmacro with-window-non-dedicated (window &rest body)
+  "Evaluate BODY with WINDOW temporarily made non-dedicated.
+If WINDOW is nil, use the selected window.  Return the value of
+the last form in BODY."
+  (declare (indent 1) (debug t))
+  (let ((window-dedicated-sym (gensym))
+        (window-sym (gensym)))
+    `(let* ((,window-sym (window-normalize-window ,window t))
+            (,window-dedicated-sym (window-dedicated-p ,window-sym)))
+       (set-window-dedicated-p ,window-sym nil)
+       (unwind-protect
+           (progn ,@body)
+         ;; `window-dedicated-p' returns the value set by
+         ;; `set-window-dedicated-p', which differentiates non-nil and
+         ;; t, so we cannot simply use t here. That's why we use
+         ;; `window-dedicated-sym'.
+         (set-window-dedicated-p ,window-sym ,window-dedicated-sym)))))
+
 ;; The following two functions are like `window-next-sibling' and
 ;; `window-prev-sibling' but the WINDOW argument is _not_ optional (so
 ;; they don't substitute the selected window for nil), and they return
