@@ -492,7 +492,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 
   /* String containing the function ptr name.  */
   Lisp_Object f_ptr_name =
-    CALLN (Ffuncall, intern_c_string (STR (comp-c-func-name)),
+    CALLN (Ffuncall, intern_c_string ("comp-c-func-name"),
 	   subr_sym, make_string ("R", 1));
 
   gcc_jit_type *f_ptr_type =
@@ -3360,6 +3360,40 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 }
 
 
+/***********************************/
+/* Deferred compilation mechanism. */
+/***********************************/
+
+void
+maybe_defer_native_compilation (Lisp_Object function_name,
+				Lisp_Object definition)
+{
+  Lisp_Object src = Qnil;
+  Lisp_Object load_list = Vcurrent_load_list;
+
+  FOR_EACH_TAIL (load_list)
+    {
+      src = XCAR (load_list);
+      if (!CONSP (src))
+	break;
+    }
+
+  if (!comp_deferred_compilation
+      || noninteractive
+      || !NILP (Vpurify_flag)
+      || !COMPILEDP (definition)
+      || !FIXNUMP (AREF (definition, COMPILED_ARGLIST))
+      || !STRINGP (src)
+      || !suffix_p (src, ".elc"))
+    return;
+
+  src = concat2 (CALL1I (file-name-sans-extension, src),
+		 build_pure_c_string (".el"));
+  if (!NILP (Ffile_exists_p (src)))
+    CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil);
+}
+
+
 /**************************************/
 /* Functions used to load eln files.  */
 /**************************************/
@@ -3552,6 +3586,8 @@ void
 syms_of_comp (void)
 {
   /* Compiler control customizes.  */
+  DEFVAR_BOOL ("comp-deferred-compilation", comp_deferred_compilation,
+	       doc: /* If t compile asyncronously every .elc file loaded.  */);
   DEFSYM (Qcomp_speed, "comp-speed");
   DEFSYM (Qcomp_debug, "comp-debug");
 

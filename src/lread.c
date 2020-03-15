@@ -1077,7 +1077,7 @@ effective_load_path (void)
 }
 
 /* Return true if STRING ends with SUFFIX.  */
-static bool
+bool
 suffix_p (Lisp_Object string, const char *suffix)
 {
   ptrdiff_t suffix_len = strlen (suffix);

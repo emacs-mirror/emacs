@@ -4102,6 +4102,7 @@ LOADHIST_ATTACH (Lisp_Object x)
   if (initialized)
     Vcurrent_load_list = Fcons (x, Vcurrent_load_list);
 }
+extern bool suffix_p (Lisp_Object, const char *);
 extern Lisp_Object save_match_data_load (Lisp_Object, Lisp_Object, Lisp_Object,
 					 Lisp_Object, Lisp_Object);
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,

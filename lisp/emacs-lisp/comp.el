@@ -40,6 +40,11 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
+(defcustom comp-deferred-compilation nil
+  "If t compile asyncronously all lexically bound .elc files being loaded."
+  :type 'boolean
+  :group 'comp)
+
 (defcustom comp-speed 2
   "Compiler optimization level.  From 0 to 3.
 - 0 no optimizations are performed, compile time is favored.

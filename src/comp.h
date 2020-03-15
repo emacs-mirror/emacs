@@ -68,5 +68,15 @@ extern void load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u,
 			    bool loading_dump);
 extern void syms_of_comp (void);
 
+extern void maybe_defer_native_compilation (Lisp_Object function_name,
+					    Lisp_Object definition);
+#else
+
+static inline void
+maybe_defer_native_compilation (Lisp_Object function_name,
+				Lisp_Object definition)
+{}
+
 #endif
+
 #endif
