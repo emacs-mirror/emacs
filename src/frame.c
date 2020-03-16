@@ -4565,7 +4565,11 @@ gui_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_va
     return;
 
   if (FRAME_FONT (f))
-    free_all_realized_faces (Qnil);
+    {
+      Lisp_Object frame;
+      XSETFRAME (frame, f);
+      free_all_realized_faces (frame);
+    }
 
   new_value = font_update_drivers (f, NILP (new_value) ? Qt : new_value);
   if (NILP (new_value))
@@ -4579,10 +4583,8 @@ gui_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_va
 
   if (FRAME_FONT (f))
     {
-      Lisp_Object frame;
-
-      XSETFRAME (frame, f);
-      gui_set_font (f, Fframe_parameter (frame, Qfont), Qnil);
+      /* Reconsider default font after backend(s) change (Bug#23386).  */
+      FRAME_RIF(f)->default_font_parameter (f, Qnil);
       face_change = true;
       windows_or_buffers_changed = 18;
     }

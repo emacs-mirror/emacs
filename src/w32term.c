@@ -7249,7 +7249,8 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_draw_window_divider,
   w32_shift_glyphs_for_insert,
   w32_show_hourglass,
-  w32_hide_hourglass
+  w32_hide_hourglass,
+  w32_default_font_parameter
 };
 
 static void w32_delete_terminal (struct terminal *term);
