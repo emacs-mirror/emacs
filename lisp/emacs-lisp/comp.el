@@ -214,7 +214,9 @@ This is to build the prev field.")
           :documentation "Relocated data that cannot be moved into pure space.
 This is tipically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
-               :documentation "Relocated data not necessary after load."))
+               :documentation "Relocated data not necessary after load.")
+  (with-late-load nil :type boolean
+                  :documentation "When non nil support late load."))
 
 (cl-defstruct comp-args-base
   (min nil :type number
@@ -1289,7 +1291,8 @@ into the C code forwarding the compilation unit."
 Top-level forms for the current context are rendered too."
   (mapc #'comp-add-func-to-ctxt (mapcar #'comp-limplify-function lap-funcs))
   (comp-add-func-to-ctxt (comp-limplify-top-level nil))
-  (comp-add-func-to-ctxt (comp-limplify-top-level t)))
+  (when (comp-ctxt-with-late-load comp-ctxt)
+    (comp-add-func-to-ctxt (comp-limplify-top-level t))))
 
 
 ;;; SSA pass specific code.
@@ -2163,7 +2166,7 @@ display a message."
 ;;; Compiler entry points.
 
 ;;;###autoload
-(defun native-compile (function-or-file)
+(defun native-compile (function-or-file &optional with-late-load)
   "Compile FUNCTION-OR-FILE into native code.
 This is the entry-point for the Emacs Lisp native compiler.
 FUNCTION-OR-FILE is a function symbol or a path to an Elisp file.
@@ -2188,7 +2191,8 @@ Return the compilation unit file name."
                     (output-filename
                      (file-name-sans-extension
                       (file-name-nondirectory expanded-filename))))
-               (expand-file-name output-filename output-dir))))))
+               (expand-file-name output-filename output-dir)))
+           :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
         (mapc (lambda (pass)
