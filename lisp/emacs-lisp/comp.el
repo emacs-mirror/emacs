@@ -1137,10 +1137,10 @@ the annotation emission."
   (comp-log-func func 2)
   func)
 
-(cl-defgeneric comp-emit-for-top-level (form)
+(cl-defgeneric comp-emit-for-top-level (form for-late-load)
   "Emit the limple code for top level FORM.")
 
-(cl-defmethod comp-emit-for-top-level ((form byte-to-native-function))
+(cl-defmethod comp-emit-for-top-level ((form byte-to-native-function) _)
   (let* ((name (byte-to-native-function-name form))
          (f (gethash name (comp-ctxt-funcs-h comp-ctxt)))
          (args (comp-func-args f)))
@@ -1159,16 +1159,19 @@ the annotation emission."
                           ;; parameter.
                           (make-comp-mvar :slot 0)))))
 
-(cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level))
-  (let ((form (byte-to-native-top-level-form form)))
-    (comp-emit (comp-call 'eval
-                          (let ((comp-curr-allocation-class 'd-impure))
-                            (make-comp-mvar :constant form))
-                          (make-comp-mvar :constant t)))))
+(cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level)
+                                       for-late-load)
+  (unless for-late-load
+    (let ((form (byte-to-native-top-level-form form)))
+      (comp-emit (comp-call 'eval
+                            (let ((comp-curr-allocation-class 'd-impure))
+                              (make-comp-mvar :constant form))
+                            (make-comp-mvar :constant t))))))
 
-(defun comp-limplify-top-level ()
-  "Create a limple function doing the business for top level forms.
-This will be called at load-time.
+(defun comp-limplify-top-level (for-late-load)
+  "Create a limple function to modify the global environment at load.
+When FOR-LATE-LOAD is non nil the emitted function modifies only
+function definition.
 
 Synthesize a function called 'top_level_run' that gets one single
 parameter (the compilation unit it-self).  To define native
@@ -1178,8 +1181,12 @@ into the C code forwarding the compilation unit."
   ;; reasons to be execute ever again.  Therefore all objects can be
   ;; just ephemeral.
   (let* ((comp-curr-allocation-class 'd-ephemeral)
-         (func (make-comp-func :name 'top-level-run
-                               :c-name "top_level_run"
+         (func (make-comp-func :name (if for-late-load
+                                         'late-top-level-run
+                                       'top-level-run)
+                               :c-name (if for-late-load
+                                           "late_top_level_run"
+                                         "top_level_run")
                                :args (make-comp-args :min 1 :max 1)
                                :frame-size 1))
          (comp-func func)
@@ -1187,10 +1194,13 @@ into the C code forwarding the compilation unit."
                      :curr-block (make--comp-block -1 0 'top-level)
                      :frame (comp-new-frame 1))))
     (comp-make-curr-block 'entry (comp-sp))
-    (comp-emit-annotation "Top level")
+    (comp-emit-annotation (if for-late-load
+                              "Late top level"
+                            "Top level"))
     ;; Assign the compilation unit incoming as parameter to the slot frame 0.
     (comp-emit `(set-par-to-local ,(comp-slot-n 0) 0))
-    (mapc #'comp-emit-for-top-level (comp-ctxt-top-level-forms comp-ctxt))
+    (mapc (lambda (x) (comp-emit-for-top-level x for-late-load))
+          (comp-ctxt-top-level-forms comp-ctxt))
     (comp-emit `(return ,(make-comp-mvar :constant t)))
     (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
     (comp-limplify-finalize-function func)))
@@ -1278,7 +1288,8 @@ into the C code forwarding the compilation unit."
   "Compute the LIMPLE ir for LAP-FUNCS.
 Top-level forms for the current context are rendered too."
   (mapc #'comp-add-func-to-ctxt (mapcar #'comp-limplify-function lap-funcs))
-  (comp-add-func-to-ctxt (comp-limplify-top-level)))
+  (comp-add-func-to-ctxt (comp-limplify-top-level nil))
+  (comp-add-func-to-ctxt (comp-limplify-top-level t)))
 
 
 ;;; SSA pass specific code.
