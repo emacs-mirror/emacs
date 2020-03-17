@@ -186,6 +186,12 @@ key             binding
 / v             package-menu-filter-by-version
 / /             package-menu-filter-clear
 
+** Gravatar
+
+===
+*** New user option 'gravatar-service' for host to query for gravatars.
+Defaults to Libravatar, with Unicornify and Gravatar as options.
+
 
 * New Modes and Packages in Emacs 28.1
 
