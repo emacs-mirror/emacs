@@ -2163,16 +2163,18 @@ display a message."
                                        (expand-file-name invocation-name
                                                          invocation-directory)
                                        "--batch" "--eval" (prin1-to-string expr))
-                             :sentinel (lambda (process _event)
-                                         (run-hook-with-args
-                                          'comp-async-cu-done-hook
-                                          source-file)
-                                         (accept-process-output process)
-                                         (when load1
-                                           (native-elisp-load
-                                            (comp-output-filename source-file1)
-                                            load1))
-                                         (comp-run-async-workers)))))
+                             :sentinel
+                             (lambda (process _event)
+                               (run-hook-with-args
+                                'comp-async-cu-done-hook
+                                source-file)
+                               (accept-process-output process)
+                               (when (and load1
+                                          (zerop (process-exit-status process)))
+                                 (native-elisp-load
+                                  (comp-output-filename source-file1)
+                                  load1))
+                               (comp-run-async-workers)))))
               (push process comp-async-processes))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
