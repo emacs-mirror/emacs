@@ -3566,7 +3566,9 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   (Lisp_Object file, Lisp_Object late_load)
 {
   CHECK_STRING (file);
-
+  if (NILP (Ffile_exists_p (file)))
+    xsignal2 (Qnative_lisp_load_failed, build_string ("file does not exists"),
+	      file);
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit();
   comp_u->handle = dynlib_open (SSDATA (file));
   if (!comp_u->handle)
