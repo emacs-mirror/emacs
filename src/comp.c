@@ -3368,27 +3368,18 @@ void
 maybe_defer_native_compilation (Lisp_Object function_name,
 				Lisp_Object definition)
 {
-  Lisp_Object src = Qnil;
-  Lisp_Object load_list = Vcurrent_load_list;
-
-  FOR_EACH_TAIL (load_list)
-    {
-      src = XCAR (load_list);
-      if (!CONSP (src))
-	break;
-    }
-
   if (!comp_deferred_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
       || !FIXNUMP (AREF (definition, COMPILED_ARGLIST))
-      || !STRINGP (src)
-      || !suffix_p (src, ".elc"))
+      || !STRINGP (Vload_file_name)
+      || !suffix_p (Vload_file_name, ".elc"))
     return;
 
-  src = concat2 (CALL1I (file-name-sans-extension, src),
-		 build_pure_c_string (".el"));
+  Lisp_Object src =
+    concat2 (CALL1I (file-name-sans-extension, Vload_file_name),
+	     build_pure_c_string (".el"));
   if (!NILP (Ffile_exists_p (src)))
     CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil);
 }
@@ -3413,7 +3404,8 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 }
 
 void
-load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
+load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
+		bool late_load)
 {
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object comp_u_lisp_obj;
@@ -3447,7 +3439,9 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump)
 
   freloc_check_fill ();
 
-  void (*top_level_run)(Lisp_Object) = dynlib_sym (handle, "top_level_run");
+  void (*top_level_run)(Lisp_Object)
+    = dynlib_sym (handle,
+		  late_load ? "late_top_level_run" : "top_level_run");
 
   if (!reloading_cu)
     {
@@ -3564,9 +3558,11 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
 }
 
 /* Load related routines.  */
-DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
-       doc: /* Load native elisp code FILE.  */)
-  (Lisp_Object file)
+DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
+       doc: /* Load native elisp code FILE.
+	     LATE_LOAD has to be non nil when loading for deferred
+	     compilation.  */)
+  (Lisp_Object file, Lisp_Object late_load)
 {
   CHECK_STRING (file);
 
@@ -3576,7 +3572,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 1, 0,
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
   comp_u->file = file;
   comp_u->data_vec = Qnil;
-  load_comp_unit (comp_u, false);
+  load_comp_unit (comp_u, false, !NILP (late_load));
 
   return Qt;
 }

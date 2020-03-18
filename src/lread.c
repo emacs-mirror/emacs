@@ -1483,7 +1483,7 @@ Return t if the file exists and loads successfully.  */)
 	{
 	  specbind (Qcurrent_load_list, Qnil);
 	  LOADHIST_ATTACH (found);
-	  Fnative_elisp_load (found);
+	  Fnative_elisp_load (found, Qnil);
 	  build_load_history (found, true);
 	}
       else
