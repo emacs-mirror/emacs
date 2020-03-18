@@ -357,8 +357,13 @@ that was fetched."
 	(let ((nntp-server-buffer (current-buffer))
 	      (nnheader-callback-function
 	       (lambda (_arg)
-		  (setq gnus-async-header-prefetched
-			(cons group unread)))))
+		 (setq gnus-async-header-prefetched
+		       (cons group unread)))))
+	  ;; FIXME: If header prefetch is ever put into use, we'll
+	  ;; have to handle the possibility that
+	  ;; `gnus-retrieve-headers' might return a list of header
+	  ;; vectors directly, rather than writing them into the
+	  ;; current buffer.
 	  (gnus-retrieve-headers unread group gnus-fetch-old-headers))))))
 
 (defun gnus-async-retrieve-fetched-headers (articles group)
