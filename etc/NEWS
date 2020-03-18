@@ -196,6 +196,12 @@ key             binding
 *** New user option 'gravatar-service' for host to query for gravatars.
 Defaults to Libravatar, with Unicornify and Gravatar as options.
 
+** Compilation mode
+
+*** Regexp matching of messages is now case-sensitive by default.
+The user option 'compilation-error-case-fold-search' can be set
+for case-insensitive matching of messages.
+
 
 * New Modes and Packages in Emacs 28.1
 
