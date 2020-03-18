@@ -433,6 +433,21 @@ VERBOSITY is a number between 0 and 3."
                       2))
           edges)))
 
+(defun comp-output-base-filename (src)
+  "Output filename sans extention for SRC file being native compiled."
+  (let* ((expanded-filename (expand-file-name src))
+         (output-dir (file-name-as-directory
+                      (concat (file-name-directory expanded-filename)
+                              comp-native-path-postfix)))
+         (output-filename
+          (file-name-sans-extension
+           (file-name-nondirectory expanded-filename))))
+    (expand-file-name output-filename output-dir)))
+
+(defun comp-output-filename (src)
+  "Output filename for SRC file being native compiled."
+  (concat (comp-output-base-filename src) ".eln"))
+
 
 ;;; spill-lap pass specific code.
 
@@ -2122,7 +2137,7 @@ display a message."
           (> (comp-async-runnings) 0))
       (unless (>= (comp-async-runnings) (comp-effective-async-max-jobs))
         (cl-loop
-         for source-file = (pop comp-files-queue)
+         for (source-file . load) = (pop comp-files-queue)
          while source-file
          do (cl-assert (string-match-p (rx ".el" eos) source-file) nil
                        "`comp-files-queue' should be \".el\" files: %s"
@@ -2136,7 +2151,9 @@ display a message."
                                   comp-verbose ,comp-verbose
                                   load-path ',load-path)
                             (message "Compiling %s..." ,source-file)
-                            (native-compile ,source-file)))
+                            (native-compile ,source-file ,(and load t))))
+                   (source-file1 source-file) ;; Make the closure works :/
+                   (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
                              :buffer (get-buffer-create comp-async-buffer-name)
@@ -2149,6 +2166,10 @@ display a message."
                                           'comp-async-cu-done-hook
                                           source-file)
                                          (accept-process-output process)
+                                         (when load1
+                                           (native-elisp-load
+                                            (comp-output-filename source-file1)
+                                            load1))
                                          (comp-run-async-workers)))))
               (push process comp-async-processes))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
@@ -2181,17 +2202,7 @@ Return the compilation unit file name."
          (byte-compile-debug t)
          (comp-ctxt
           (make-comp-ctxt
-           :output
-           (if (symbolp function-or-file)
-               (make-temp-file (concat (symbol-name function-or-file) "-"))
-             (let* ((expanded-filename (expand-file-name function-or-file))
-                    (output-dir (file-name-as-directory
-                                 (concat (file-name-directory expanded-filename)
-                                         comp-native-path-postfix)))
-                    (output-filename
-                     (file-name-sans-extension
-                      (file-name-nondirectory expanded-filename))))
-               (expand-file-name output-filename output-dir)))
+           :output (comp-output-base-filename function-or-file)
            :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
@@ -2231,12 +2242,15 @@ Always generate elc files too and handle native compiler expected errors."
          (rename-file tempfile target-file t))))))
 
 ;;;###autoload
-(defun native-compile-async (paths recursively)
+(defun native-compile-async (paths &optional recursively load)
   "Compile PATHS asynchronously.
 PATHS is one path or a list of paths to files or directories.
 `comp-async-jobs-number' specifies the number of (commands) to
 run simultaneously.  If RECURSIVELY, recurse into subdirectories
-of given directories."
+of given directories.
+LOAD can be nil t or 'late."
+  (unless (member load '(nil t late))
+    (error "LOAD must be nil t or 'late"))
   (unless (listp paths)
     (setf paths (list paths)))
   (let (files)
@@ -2250,7 +2264,11 @@ of given directories."
             (t (signal 'native-compiler-error
                        (list "Path not a file nor directory" path)))))
     (dolist (file files)
-      (add-to-list 'comp-files-queue file t))
+      (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
+          (cl-assert (eq load (cdr entry))
+                     nil "Incoherent load kind  in compilation queue for %s"
+                     file)
+        (setf comp-files-queue (append comp-files-queue `((,file . ,load))))))
     (when (zerop (comp-async-runnings))
       (comp-run-async-workers))
     (message "Compilation started.")))
