@@ -365,7 +365,8 @@ which is an error according to some typographical conventions."
 (defcustom fill-nobreak-predicate nil
   "List of predicates for recognizing places not to break a line.
 The predicates are called with no arguments, with point at the place to
-be tested.  If it returns t, fill commands do not break the line there."
+be tested.  If it returns a non-nil value, fill commands do not break
+the line there."
   :group 'fill
   :type 'hook
   :options '(fill-french-nobreak-p fill-single-word-nobreak-p
