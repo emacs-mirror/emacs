@@ -149,8 +149,9 @@ data is returned as a string."
       (when (re-search-forward "^-" nil t)
         (forward-line 1)
         ;; Lines look like
-        ;; "      WPG* r--   Word Perfect Graphics".
-        (while (re-search-forward "^ *\\([A-Z0-9]+\\)\\*? +r" nil t)
+        ;; "      WPG* r--   Word Perfect Graphics" or
+        ;; "      WPG* WPG       r--   Word Perfect Graphics".
+        (while (re-search-forward "^ *\\([A-Z0-9]+\\)\\*?\\(?: +[A-Z0-9]+\\)? +r" nil t)
           (push (downcase (match-string 1)) formats)))
       (nreverse formats))))
 

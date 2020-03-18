@@ -2235,13 +2235,18 @@ there are any reduce/reduce conflicts."
 (defun wisent-total-conflicts ()
   "Report the total number of conflicts."
   (let* ((src (wisent-source))
-         (symbol (intern (format "wisent-%s--expected-conflicts"
-                                 (replace-regexp-in-string "\\.el$" "" src))
-                         obarray)))
+         (symbol
+          ;; Source files may specify how many expected conflicts
+          ;; there are.  If the number is the expected number, don't
+          ;; output warnings.
+          (and src
+               (intern (format "wisent-%s--expected-conflicts"
+                               (replace-regexp-in-string "\\.el$" "" src))))))
     (when (or (not (zerop rrc-total))
               (and (not (zerop src-total))
                    (not (= src-total (or wisent-expected-conflicts 0)))
-                   (or (not (boundp symbol))
+                   (or (null symbol)
+                       (not (boundp symbol))
                        (not (equal (symbol-value symbol) src-total)))))
       (let* ((src (if src (concat " in " src) ""))
              (msg (format "Grammar%s contains" src)))

@@ -267,6 +267,10 @@ extern void w32con_show_cursor (void);
 extern const char *w32_get_string_resource (void *v_rdb,
                                             const char *name,
                                             const char *class);
+
+/* w32fns.c */
+extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
+
 
 #define PIX_TYPE COLORREF
 

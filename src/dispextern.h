@@ -3003,6 +3003,9 @@ struct redisplay_interface
   /* Cancel hourglass cursor on frame F.  */
   void (*hide_hourglass) (struct frame *f);
 
+  /* Called to (re)calculate the default face when changing the font
+     backend.  */
+  void (*default_font_parameter) (struct frame *f, Lisp_Object parms);
 #endif /* HAVE_WINDOW_SYSTEM */
 };
 
