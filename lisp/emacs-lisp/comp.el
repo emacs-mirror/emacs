@@ -41,7 +41,9 @@
   :group 'lisp)
 
 (defcustom comp-deferred-compilation nil
-  "If t compile asyncronously all lexically bound .elc files being loaded."
+  "If t compile asyncronously all lexically bound .elc files being loaded.
+Once compilation happened each function definition is updated to
+the native compiled one."
   :type 'boolean
   :group 'comp)
 

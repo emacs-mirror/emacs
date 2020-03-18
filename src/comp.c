@@ -3381,7 +3381,8 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     concat2 (CALL1I (file-name-sans-extension, Vload_file_name),
 	     build_pure_c_string (".el"));
   if (!NILP (Ffile_exists_p (src)))
-    CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil);
+    CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
+	   Qlate);
 }
 
 
@@ -3639,6 +3640,7 @@ syms_of_comp (void)
   /* Others.  */
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
+  DEFSYM (Qlate, "late");
 
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");
