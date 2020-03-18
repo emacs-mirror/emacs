@@ -611,9 +611,6 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
   ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
 
-  if (FASTER_TIMEFNS && ndig <= DBL_MANT_DIG && ddig <= DBL_MANT_DIG)
-    return mpz_get_d (*n) / mpz_get_d (*d);
-
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
      FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
