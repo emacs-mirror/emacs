@@ -95,7 +95,7 @@ performed at `comp-speed' > 0."
 (defcustom comp-async-jobs-number 0
   "Default number of processes used for async compilation.
 When zero use half of the CPUs or at least one."
-  :type 'fixnum
+  :type 'number
   :group 'comp)
 
 (defcustom comp-async-cu-done-hook nil
