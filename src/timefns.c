@@ -593,7 +593,7 @@ timespec_to_lisp (struct timespec t)
 }
 
 /* Return NUMERATOR / DENOMINATOR, rounded to the nearest double.
-   Arguments must be Lisp integers, and DENOMINATOR must be nonzero.  */
+   Arguments must be Lisp integers, and DENOMINATOR must be positive.  */
 static double
 frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
 {
@@ -601,7 +601,6 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   if (FASTER_TIMEFNS
       && integer_to_intmax (numerator, &intmax_numerator)
       && integer_to_intmax (denominator, &intmax_denominator)
-      && ! INT_DIVIDE_OVERFLOW (intmax_numerator, intmax_denominator)
       && intmax_numerator % intmax_denominator == 0)
     return intmax_numerator / intmax_denominator;
 
