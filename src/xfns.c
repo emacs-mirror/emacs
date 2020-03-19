@@ -3555,7 +3555,7 @@ do_unwind_create_frame (Lisp_Object frame)
   unwind_create_frame (frame);
 }
 
-static void
+void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);

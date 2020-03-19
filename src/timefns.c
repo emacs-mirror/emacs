@@ -593,7 +593,7 @@ timespec_to_lisp (struct timespec t)
 }
 
 /* Return NUMERATOR / DENOMINATOR, rounded to the nearest double.
-   Arguments must be Lisp integers, and DENOMINATOR must be nonzero.  */
+   Arguments must be Lisp integers, and DENOMINATOR must be positive.  */
 static double
 frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
 {
@@ -601,7 +601,6 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   if (FASTER_TIMEFNS
       && integer_to_intmax (numerator, &intmax_numerator)
       && integer_to_intmax (denominator, &intmax_denominator)
-      && ! INT_DIVIDE_OVERFLOW (intmax_numerator, intmax_denominator)
       && intmax_numerator % intmax_denominator == 0)
     return intmax_numerator / intmax_denominator;
 
@@ -610,9 +609,6 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   mpz_t const *d = bignum_integer (&mpz[1], denominator);
   ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
   ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
-
-  if (FASTER_TIMEFNS && ndig <= DBL_MANT_DIG && ddig <= DBL_MANT_DIG)
-    return mpz_get_d (*n) / mpz_get_d (*d);
 
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *

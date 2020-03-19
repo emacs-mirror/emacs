@@ -906,7 +906,7 @@ baz\"\""
     (electric-pair-local-mode 1)
     (insert-before-markers "int main () {}")
     (backward-char 1)
-    (let ((last-command-event ?))
+    (let ((last-command-event ?\r))
       (call-interactively (key-binding `[,last-command-event])))
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 
@@ -927,7 +927,7 @@ baz\"\""
                        '(after-stay))))))
     (insert "int main () {}")
     (backward-char 1)
-    (let ((last-command-event ?))
+    (let ((last-command-event ?\r))
       (call-interactively (key-binding `[,last-command-event])))
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 
@@ -948,7 +948,7 @@ baz\"\""
                        '(after-stay)))))
     (insert "int main () {}")
     (backward-char 1)
-    (let ((last-command-event ?))
+    (let ((last-command-event ?\r))
       (call-interactively (key-binding `[,last-command-event])))
     (should (equal (buffer-string) "int main () {\n  \n}"))))
 

@@ -5155,6 +5155,13 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     reset_mouse_highlight (&dpyinfo->mouse_highlight);
 }
 
+/* This currently does nothing, since it's only really needed when
+   changing the font-backend, but macOS currently only has one
+   possible backend.  This may change if we add HarfBuzz support.  */
+static void
+ns_default_font_parameter (struct frame *f, Lisp_Object parms)
+{
+}
 
 /* This and next define (many of the) public functions in this file.  */
 /* gui_* are generic versions in xdisp.c that we, and other terms, get away
@@ -5190,7 +5197,8 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_draw_window_divider,
   ns_shift_glyphs_for_insert,
   ns_show_hourglass,
-  ns_hide_hourglass
+  ns_hide_hourglass,
+  ns_default_font_parameter
 };
 
 

@@ -229,6 +229,9 @@ the new version of the file again.)
 
 * Changes in Emacs 27.1
 
+---
+** Emacs now supports Unicode Standard version 13.0.
+
 +++
 ** Emacs now supports resizing and rotating images without ImageMagick.
 All modern systems support this feature.  (On GNU and Unix systems,
@@ -365,7 +368,7 @@ lexical-binding in mind, or will work unchanged under
 lexical-binding.  If, for some reason, your code used in 'M-:' or
 '--eval' doesn't work as result of this change, either modify the code
 to work with lexical binding, or wrap it in an extra level of 'eval'.
-For example, --eval FORM becomes --eval "(eval 'FORM)" (note the extra
+For example, --eval "FORM" becomes --eval "(eval 'FORM)" (note the extra
 quote in 'FORM).
 
 ---

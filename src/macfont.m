@@ -664,7 +664,7 @@ static struct
     { "iso8859-15", { 0x00A0, 0x00A1, 0x00D0, 0x0152 }},
     { "iso8859-16", { 0x00A0, 0x0218}},
     { "gb2312.1980-0", { 0x4E13 }, CFSTR ("zh-Hans")},
-    { "big5-0", { /* 0xF6B1 in ftfont.c */ 0x4EDC }, CFSTR ("zh-Hant") },
+    { "big5-0", { /* 0x9C21 in ftfont.c */ 0x4EDC }, CFSTR ("zh-Hant") },
     { "jisx0208.1983-0", { 0x4E55 }, CFSTR ("ja")},
     { "ksc5601.1987-0", { 0xAC00 }, CFSTR ("ko")},
     { "cns11643.1992-1", { 0xFE32 }, CFSTR ("zh-Hant")},

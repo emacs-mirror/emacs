@@ -2113,17 +2113,20 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 			if (CHAR_BYTE8_P (c1))
 			  c = BYTE8_TO_CHAR (128);
 		      }
-		    if (CHAR_BYTE8_P (c))
-		      {
-			c = CHAR_TO_BYTE8 (c);
-			c1 = CHAR_TO_BYTE8 (c1);
-			for (; c <= c1; c++)
-			  SET_LIST_BIT (c);
-		      }
-		    else if (multibyte)
-		      SETUP_MULTIBYTE_RANGE (range_table_work, c, c1);
-		    else
-		      SETUP_UNIBYTE_RANGE (range_table_work, c, c1);
+                    if (c <= c1)
+                      {
+                        if (CHAR_BYTE8_P (c))
+                          {
+                            c = CHAR_TO_BYTE8 (c);
+                            c1 = CHAR_TO_BYTE8 (c1);
+                            for (; c <= c1; c++)
+                              SET_LIST_BIT (c);
+                          }
+                        else if (multibyte)
+                          SETUP_MULTIBYTE_RANGE (range_table_work, c, c1);
+                        else
+                          SETUP_UNIBYTE_RANGE (range_table_work, c, c1);
+                      }
 		  }
 	      }
 

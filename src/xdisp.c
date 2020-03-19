@@ -1020,6 +1020,7 @@ static Lisp_Object calc_line_height_property (struct it *, Lisp_Object,
 static void produce_special_glyphs (struct it *, enum display_element_type);
 static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
 static bool coords_in_mouse_face_p (struct window *, int, int);
+static void reset_box_start_end_flags (struct it *);
 
 
 
@@ -1433,6 +1434,29 @@ window_hscroll_limited (struct window *w, struct frame *f)
     window_hscroll = (INT_MAX - window_text_width) / colwidth - 1;
 
   return window_hscroll;
+}
+
+/* Reset the box-face start and end flags in the iterator.  This is
+   called after producing glyphs, such that we reset these flags only
+   after producing a glyph with the flag set.  */
+
+static void
+reset_box_start_end_flags (struct it *it)
+{
+  /* Don't reset if we've drawn the glyph in the display margins --
+     those don't count as "produced glyphs".  */
+  if (it->area == TEXT_AREA
+      /* Don't reset if we displayed a fringe bitmap.  */
+      && !(it->what == IT_IMAGE && it->image_id < 0))
+    {
+      /* Don't reset if the face is not a box face: that might mean we
+	 are iterating some overlay or display string, and the first
+	 character to have the box face is yet to be seen, when we pop
+	 the iterator stack. */
+      if (it->face_box_p)
+	it->start_of_box_run_p = false;
+      it->end_of_box_run_p = false;
+    }
 }
 
 /* Return true if position CHARPOS is visible in window W.
@@ -4315,8 +4339,11 @@ handle_face_prop (struct it *it)
 	 this is the start of a run of characters with box face,
 	 i.e. this character has a shadow on the left side.  */
       it->face_id = new_face_id;
-      it->start_of_box_run_p = (new_face->box != FACE_NO_BOX
-                                && (old_face == NULL || !old_face->box));
+      /* Don't reset the start_of_box_run_p flag, only set it if
+	 needed.  */
+      if (!(it->start_of_box_run_p && old_face && old_face->box))
+	it->start_of_box_run_p = (new_face->box != FACE_NO_BOX
+				  && (old_face == NULL || !old_face->box));
       it->face_box_p = new_face->box != FACE_NO_BOX;
     }
 
@@ -6457,7 +6484,16 @@ pop_it (struct it *it)
       it->object = p->u.stretch.object;
       break;
     case GET_FROM_BUFFER:
-      it->object = it->w->contents;
+      {
+	struct face *face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
+
+	/* Restore the face_box_p flag, since it could have been
+	   overwritten by the face of the object that we just finished
+	   displaying.  */
+	if (face)
+	  it->face_box_p = face->box != FACE_NO_BOX;
+	it->object = it->w->contents;
+      }
       break;
     case GET_FROM_STRING:
       {
@@ -7586,9 +7622,8 @@ get_next_display_element (struct it *it)
 		  /* If the box comes from face properties in a
 		     display string, check faces in that string.  */
 		  int string_face_id = face_after_it_pos (it);
-		  it->end_of_box_run_p
-		    = (FACE_FROM_ID (it->f, string_face_id)->box
-		       == FACE_NO_BOX);
+		  if (FACE_FROM_ID (it->f, string_face_id)->box == FACE_NO_BOX)
+		    it->end_of_box_run_p = true;
 		}
 	      /* Otherwise, the box comes from the underlying face.
 		 If this is the last string character displayed, check
@@ -7657,9 +7692,9 @@ get_next_display_element (struct it *it)
 						       CHARPOS (pos), 0,
 						       &ignore, face_id,
 			                               false, 0);
-			  it->end_of_box_run_p
-			    = (FACE_FROM_ID (it->f, next_face_id)->box
-			       == FACE_NO_BOX);
+			  if (FACE_FROM_ID (it->f, next_face_id)->box
+			      == FACE_NO_BOX)
+			    it->end_of_box_run_p = true;
 			}
 		    }
 		  else if (CHARPOS (pos) >= ZV)
@@ -7672,9 +7707,9 @@ get_next_display_element (struct it *it)
 						 CHARPOS (pos)
 						 + TEXT_PROP_DISTANCE_LIMIT,
 			                         false, -1, 0);
-		      it->end_of_box_run_p
-			= (FACE_FROM_ID (it->f, next_face_id)->box
-			   == FACE_NO_BOX);
+		      if (FACE_FROM_ID (it->f, next_face_id)->box
+			  == FACE_NO_BOX)
+			it->end_of_box_run_p = true;
 		    }
 		}
 	    }
@@ -7684,9 +7719,9 @@ get_next_display_element (struct it *it)
       else if (it->method != GET_FROM_DISPLAY_VECTOR)
 	{
 	  int face_id = face_after_it_pos (it);
-	  it->end_of_box_run_p
-	    = (face_id != it->face_id
-	       && FACE_FROM_ID (it->f, face_id)->box == FACE_NO_BOX);
+	  if (face_id != it->face_id
+	      && FACE_FROM_ID (it->f, face_id)->box == FACE_NO_BOX)
+	    it->end_of_box_run_p = true;
 	}
     }
   /* If we reached the end of the object we've been iterating (e.g., a
@@ -7723,10 +7758,6 @@ get_next_display_element (struct it *it)
 void
 set_iterator_to_next (struct it *it, bool reseat_p)
 {
-  /* Reset flags indicating start and end of a sequence of characters
-     with box.  Reset them at the start of this function because
-     moving the iterator to a new position might set them.  */
-  it->start_of_box_run_p = it->end_of_box_run_p = false;
 
   switch (it->method)
     {
@@ -8138,9 +8169,9 @@ next_element_from_display_vector (struct it *it)
 	    }
 	}
       next_face = FACE_FROM_ID_OR_NULL (it->f, next_face_id);
-      it->end_of_box_run_p = (this_face && this_face->box != FACE_NO_BOX
-			      && (!next_face
-				  || next_face->box == FACE_NO_BOX));
+      if (this_face && this_face->box != FACE_NO_BOX
+	  && (!next_face || next_face->box == FACE_NO_BOX))
+	it->end_of_box_run_p = true;
       it->face_box_p = this_face && this_face->box != FACE_NO_BOX;
     }
   else
@@ -21485,6 +21516,8 @@ append_space_for_newline (struct it *it, bool default_face_p)
 
       const int indicator_column =
 	fill_column_indicator_column (it, char_width);
+      int saved_end_of_box_run = it->end_of_box_run_p;
+      bool should_keep_end_of_box_run = false;
 
       if (it->current_x == indicator_column)
 	{
@@ -21507,14 +21540,18 @@ append_space_for_newline (struct it *it, bool default_face_p)
 	     have the end_of_box_run_p flag set for it, so there's no
 	     need for the appended newline glyph to have that flag
 	     set.  */
-	  if (it->glyph_row->reversed_p
-	      /* But if the appended newline glyph goes all the way to
-		 the end of the row, there will be no stretch glyph,
-		 so leave the box flag set.  */
-	      && saved_x + FRAME_COLUMN_WIDTH (it->f) < it->last_visible_x)
-	    it->end_of_box_run_p = false;
+	  if (!(it->glyph_row->reversed_p
+		/* But if the appended newline glyph goes all the way to
+		   the end of the row, there will be no stretch glyph,
+		   so leave the box flag set.  */
+		&& saved_x + FRAME_COLUMN_WIDTH (it->f) < it->last_visible_x))
+	    should_keep_end_of_box_run = true;
 	}
       PRODUCE_GLYPHS (it);
+      /* Restore the end_of_box_run_p flag which was reset by
+	 PRODUCE_GLYPHS.  */
+      if (should_keep_end_of_box_run)
+	it->end_of_box_run_p = saved_end_of_box_run;
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (it->f))
 	{
