@@ -10,7 +10,7 @@
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: IRC, chat, client, Internet
 
 ;; Version: 5.3
