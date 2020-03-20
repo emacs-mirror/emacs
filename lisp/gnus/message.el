@@ -215,9 +215,9 @@ Also see `message-required-news-headers' and
   :link '(custom-manual "(message)Message Headers")
   :type '(repeat sexp))
 
-(defcustom message-draft-headers '(References From Date)
+(defcustom message-draft-headers '(References From)
   "Headers to be generated when saving a draft message."
-  :version "22.1"
+  :version "28.1"
   :group 'message-news
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
