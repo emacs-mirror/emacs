@@ -2296,7 +2296,7 @@ potentially rename EGLOT's help buffer."
          :success-fn (eglot--lambda ((Hover) contents range)
                        (unless sig-showing
                          (when-buffer-window
-                          (when-let (info (and contents
+                          (when-let (info (and (not (seq-empty-p contents))
                                                (eglot--hover-info contents
                                                                   range)))
                             (eglot--update-doc info thing-at-point)))))
