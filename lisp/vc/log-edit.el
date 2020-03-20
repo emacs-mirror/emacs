@@ -788,18 +788,20 @@ This command will generate a ChangeLog entries listing the
 functions.  You can then add a description where needed, and use
 \\[fill-paragraph] to join consecutive function names."
   (interactive)
-  (let* ((diff-buf nil)
-         ;; Unfortunately, `log-edit-show-diff' doesn't have a NO-SHOW
-         ;; option, so we try to work around it via display-buffer
-         ;; machinery.
-         (display-buffer-overriding-action
-          `(,(lambda (buf alist)
-               (setq diff-buf buf)
-               (display-buffer-no-window buf alist))
-            . ((allow-no-window . t)))))
-    (change-log-insert-entries
-     (with-current-buffer (progn (log-edit-show-diff) diff-buf)
-       (diff-add-log-current-defuns)))))
+  (change-log-insert-entries
+   (with-current-buffer
+       (let* ((diff-buf nil)
+              ;; Unfortunately, `log-edit-show-diff' doesn't have a
+              ;; NO-SHOW option, so we try to work around it via
+              ;; display-buffer machinery.
+              (display-buffer-overriding-action
+               `(,(lambda (buf alist)
+                    (setq diff-buf buf)
+                    (display-buffer-no-window buf alist))
+                 . ((allow-no-window . t)))))
+         (log-edit-show-diff)
+         diff-buf)
+     (diff-add-log-current-defuns))))
 
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.
