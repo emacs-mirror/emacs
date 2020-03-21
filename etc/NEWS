@@ -104,6 +104,12 @@ shows equivalent key bindings for all commands that have them.
 *** State changing VC operations are supported in dired-mode on files
 (but still not on directories).
 
+** Gnus
+
+---
+*** Change to default value of 'message-draft-headers' option.
+No longer includes the Date header.
+
 ** Help
 
 +++
