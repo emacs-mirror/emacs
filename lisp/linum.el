@@ -5,7 +5,7 @@
 ;; Author: Markus Triska <markus.triska@gmx.at>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
-;; Version: 0.9x
+;; Old-Version: 0.9x
 
 ;; This file is part of GNU Emacs.
 

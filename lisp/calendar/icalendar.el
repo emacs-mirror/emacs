@@ -6,7 +6,7 @@
 ;; Created:        August 2002
 ;; Keywords:       calendar
 ;; Human-Keywords: calendar, diary, iCalendar, vCalendar
-;; Version:        0.19
+;; Old-Version:    0.19
 
 ;; This file is part of GNU Emacs.
 

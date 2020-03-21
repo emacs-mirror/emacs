@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.6.2
+;; Old-Version: 0.6.2
 ;; Keywords: docs, maint, lisp
 
 ;; This file is part of GNU Emacs.

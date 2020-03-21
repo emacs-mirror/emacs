@@ -4,7 +4,7 @@
 
 ;; Author: Anders Lindgren
 ;; Keywords: c, languages, faces
-;; Version: 1.3.1
+;; Old-Version: 1.3.1
 
 ;; This file is part of GNU Emacs.
 

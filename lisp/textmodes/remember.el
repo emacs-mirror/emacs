@@ -5,7 +5,7 @@
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 29 Mar 1999
-;; Version: 2.0
+;; Old-Version: 2.0
 ;; Keywords: data memory todo pim
 ;; URL: http://gna.org/projects/remember-el/
 

@@ -4,7 +4,7 @@
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
-;; Version: 2.0
+;; Old-Version: 2.0
 ;; Keywords: dired, environment, files, renaming
 
 ;; This file is part of GNU Emacs.

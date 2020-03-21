@@ -6,7 +6,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, unix
 ;; Adapted-By: Eli Zaretskii <eliz@gnu.org>
-;; Version: 0.551
+;; Old-Version: 0.551
 ;; URL: http://centaur.maths.qmul.ac.uk/Emacs/WoMan/
 
 ;; This file is part of GNU Emacs.
