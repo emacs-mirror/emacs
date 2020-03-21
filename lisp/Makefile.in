@@ -351,9 +351,11 @@ compile-main: gen-lisp compile-clean
 	      GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-byte-compile: *t' $$el > /dev/null && \
 	      continue; 			     \
 	  echo "$${el}c";                            \
-	done | xargs $(XARGS_LIMIT) echo) | 	     \
-	while read chunk; do 			     \
-	  $(MAKE) compile-targets TARGETS="$$chunk"; \
+	done | xargs $(XARGS_LIMIT) echo) |	     \
+	while read chunk; do			     \
+	  $(MAKE) compile-targets		     \
+		  NATIVE_DISABLE=$(NATIVE_FAST_BOOT) \
+		  TARGETS="$$chunk";		     \
 	done
 
 .PHONY: native-compile-clean
