@@ -69,8 +69,8 @@ test-filenotify-gio:
     - make bootstrap
     - make -C test autorevert-tests filenotify-tests
 
-test-native-bootstrap:
-  # Test native bootstrap
+test-native-bootstrap-speed0:
+  # Test a full native bootstrap
   # Run for now only speed 0 to limit memory usage and compilation time.
   stage: test
   # Uncomment the following to run it only when sceduled.
@@ -82,3 +82,21 @@ test-native-bootstrap:
     - ./configure --without-makeinfo --with-nativecomp
     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
   timeout: 3 hours
+
+test-native-bootstrap-speed1:
+  stage: test
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
+    - ./autogen.sh autoconf
+    - ./configure --without-makeinfo --with-nativecomp
+    - make bootstrap NATIVE_FAST_BOOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
+  timeout: 6 hours
+
+test-native-bootstrap-speed2:
+  stage: test
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
+    - ./autogen.sh autoconf
+    - ./configure --without-makeinfo --with-nativecomp
+    - make bootstrap NATIVE_FAST_BOOT=1
+  timeout: 6 hours
