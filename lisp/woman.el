@@ -401,6 +401,7 @@
 ;;; Code:
 
 (defvar woman-version "0.551 (beta)" "WoMan version information.")
+(make-obsolete-variable 'woman-version nil "28.1")
 
 (require 'man)
 (require 'button)
@@ -1830,7 +1831,6 @@ Argument EVENT is the invoking mouse event."
    ["Mini Help" woman-mini-help t]
    ,@(if (fboundp 'customize-group)
 	 '(["Customize..." (customize-group 'woman) t]))
-   ["Show Version" (message "WoMan %s" woman-version) t]
    "--"
    ("Advanced"
     ["View Source" (view-file woman-last-file-name) woman-last-file-name]
@@ -1878,7 +1878,6 @@ Argument EVENT is the invoking mouse event."
 WoMan is an ELisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
-WoMan version: see `woman-version'.
 See `Man-mode' for additional details.
 \\{woman-mode-map}"
   (let ((Man-build-page-list (symbol-function 'Man-build-page-list))

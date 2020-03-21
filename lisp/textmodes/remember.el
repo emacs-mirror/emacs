@@ -181,6 +181,7 @@
 
 (defconst remember-version "2.0"
   "This version of remember.")
+(make-obsolete-variable 'remember-version nil "28.1")
 
 (defgroup remember nil
   "A mode to remember information."

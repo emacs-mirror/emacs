@@ -51,7 +51,7 @@
 	  "  <title>Supported Protocols</title>\n"
 	  " </head>\n"
 	  " <body>\n"
-	  "  <h1>Supported Protocols - URL v" url-version "</h1>\n"
+          "  <h1>Supported Protocols - URL package in Emacs " emacs-version "</h1>\n"
 	  "  <table width='100%' border='1'>\n"
 	  "   <tr>\n"
 	  "    <td>Protocol\n"

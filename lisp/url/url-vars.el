@@ -24,6 +24,7 @@
 
 (defconst url-version "Emacs"
   "Version number of URL package.")
+(make-obsolete-variable 'url-version nil "28.1")
 
 (defgroup url nil
   "Uniform Resource Locator tool."

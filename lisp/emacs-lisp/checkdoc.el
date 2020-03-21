@@ -170,6 +170,7 @@
 ;;; Code:
 (defvar checkdoc-version "0.6.2"
   "Release version of checkdoc you are currently running.")
+(make-obsolete-variable 'checkdoc-version nil "28.1")
 
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
@@ -2642,7 +2643,7 @@ function called to create the messages."
       (goto-char (point-max))
       (let ((inhibit-read-only t))
         (insert "\n\n\C-l\n*** " label ": "
-                check-type " V " checkdoc-version)))))
+                check-type)))))
 
 (defun checkdoc-error (point msg)
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."

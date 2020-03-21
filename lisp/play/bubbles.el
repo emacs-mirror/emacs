@@ -80,6 +80,7 @@
 ;;; Code:
 
 (defconst bubbles-version "0.5" "Version number of bubbles.el.")
+(make-obsolete-variable 'bubbles-version nil "28.1")
 
 (require 'gamegrid)
 

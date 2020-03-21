@@ -107,6 +107,7 @@
 
 (defconst icalendar-version "0.19"
   "Version number of icalendar.el.")
+(make-obsolete-variable 'icalendar-version nil "28.1")
 
 ;; ======================================================================
 ;; Customizables

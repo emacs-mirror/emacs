@@ -32,6 +32,7 @@
 ;;; Code:
 
 (defconst linum-version "0.9x")
+(make-obsolete-variable 'linum-version nil "28.1")
 
 (defvar linum-overlays nil "Overlays used in this buffer.")
 (defvar linum-available nil "Overlays available for reuse.")
