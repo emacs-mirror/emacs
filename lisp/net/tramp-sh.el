@@ -3306,7 +3306,8 @@ STDERR can also be a file name."
 
 	  ;; If `append' is non-nil, we copy the file locally, and let
 	  ;; the native `write-region' implementation do the job.
-	  (when append (copy-file filename tmpfile 'ok))
+	  (when (and append (file-exists-p filename))
+	    (copy-file filename tmpfile 'ok))
 
 	  ;; We say `no-message' here because we don't want the
 	  ;; visited file modtime data to be clobbered from the temp
