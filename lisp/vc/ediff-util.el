@@ -131,7 +131,6 @@ to invocation.")
   (define-key ediff-mode-map [delete] 'ediff-previous-difference)
   (define-key ediff-mode-map "\C-h" (if ediff-no-emacs-help-in-control-buffer
 					'ediff-previous-difference nil))
-  ;; must come after C-h, or else C-h wipes out backspace's binding in XEmacs
   (define-key ediff-mode-map [backspace] 'ediff-previous-difference)
   (define-key ediff-mode-map [?\S-\ ] 'ediff-previous-difference)
   (define-key ediff-mode-map "n" 'ediff-next-difference)
@@ -3144,8 +3143,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	     (> (length p) 2))
 	(setq short-p (substring p 0 2)))
 
-    (setq f (concat ediff-temp-file-prefix p)
-	  short-f (concat ediff-temp-file-prefix short-p)
+    (setq f (concat temporary-file-directory p)
+          short-f (concat temporary-file-directory short-p)
   	  f (cond (given-file)
 		  ((find-file-name-handler f 'insert-file-contents)
 		   ;; to thwart file name handlers in write-region,
@@ -3449,7 +3448,6 @@ Without an argument, it saves customized diff argument, if available
 (declare-function ediff-regions-internal "ediff"
 		  (buffer-a beg-a end-a buffer-b beg-b end-b
 			    startup-hooks job-name word-mode setup-parameters))
-(defvar zmacs-regions) ;;XEmacs'ism.
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.
@@ -3461,7 +3459,6 @@ Ediff Control Panel to restore highlighting."
   (interactive)
   (let ((answer "")
 	(possibilities (list ?A ?B ?C))
-	(zmacs-regions t)
 	use-current-diff-p
 	begA begB endA endB bufA bufB)
 
