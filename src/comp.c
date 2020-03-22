@@ -3368,6 +3368,27 @@ void
 maybe_defer_native_compilation (Lisp_Object function_name,
 				Lisp_Object definition)
 {
+#if 0
+#include <sys/types.h>
+#include <unistd.h>
+  if (!NILP (function_name) &&
+      STRINGP (Vload_file_name))
+    {
+      static FILE *f;
+      if (!f)
+	{
+	  char str[128];
+	  sprintf (str, "log_%d", getpid());
+	  f = fopen (str, "w");
+	}
+      if (!f)
+	exit (1);
+      fprintf (f, "function %s file %s\n",
+	       SSDATA (Fsymbol_name (function_name)),
+	       SSDATA (Vload_file_name));
+      fflush (f);
+    }
+#endif
   if (!comp_deferred_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
