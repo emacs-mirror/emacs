@@ -3179,15 +3179,12 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
 (defun package-menu--refresh-contents (&optional _arg _noconfirm)
   "In Package Menu, download the Emacs Lisp package archive.
 Fetch the contents of each archive specified in
-`package-archives', and then refresh the package menu.  Signal a
-user-error if there is already a refresh running asynchronously.
+`package-archives', and then refresh the package menu.
 
 `package-menu-mode' sets `revert-buffer-function' to this
 function.  The args ARG and NOCONFIRM, passed from
 `revert-buffer', are ignored."
   (package--ensure-package-menu-mode)
-  (when (and package-menu-async package--downloads-in-progress)
-    (user-error "Package refresh is already in progress, please wait..."))
   (setq package-menu--old-archive-contents package-archive-contents)
   (setq package-menu--new-package-list nil)
   (package-refresh-contents package-menu-async))

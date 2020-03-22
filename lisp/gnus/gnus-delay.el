@@ -75,7 +75,11 @@ DELAY is a string, giving the length of the time.  Possible values are:
   variable `gnus-delay-default-hour', minute and second are zero.
 
 * hh:mm for a specific time.  Use 24h format.  If it is later than this
-  time, then the deadline is tomorrow, else today."
+  time, then the deadline is tomorrow, else today.
+
+The value of `message-draft-headers' determines which headers are
+generated when the article is delayed.  Remaining headers are
+generated when the article is sent."
   (interactive
    (list (read-string
 	  "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "

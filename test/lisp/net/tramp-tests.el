@@ -2356,7 +2356,14 @@ This checks also `file-name-as-directory', `file-name-directory',
 		(write-region nil nil tmp-name 3))
 	      (with-temp-buffer
 		(insert-file-contents tmp-name)
-		(should (string-equal (buffer-string) "foobaz"))))
+		(should (string-equal (buffer-string) "foobaz")))
+	      (delete-file tmp-name)
+	      (with-temp-buffer
+		(insert "foo")
+		(write-region nil nil tmp-name 'append))
+	      (with-temp-buffer
+		(insert-file-contents tmp-name)
+		(should (string-equal (buffer-string) "foo"))))
 
 	    ;; Write string.
 	    (write-region "foo" nil tmp-name)
