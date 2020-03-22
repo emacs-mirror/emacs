@@ -3402,8 +3402,13 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     concat2 (CALL1I (file-name-sans-extension, Vload_file_name),
 	     build_pure_c_string (".el"));
   if (!NILP (Ffile_exists_p (src)))
-    CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
-	   Qlate);
+    {
+      comp_deferred_compilation = false;
+      Frequire (intern_c_string ("comp"), Qnil, Qnil);
+      comp_deferred_compilation = true;
+      CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
+	     Qlate);
+    }
 }
 
 
