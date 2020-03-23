@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, convenience
 ;; URL: https://www.emacswiki.org/emacs/ErcCompletion
 

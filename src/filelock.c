@@ -680,6 +680,9 @@ lock_file (Lisp_Object fn)
   dostounix_filename (SSDATA (fn));
 #endif
   encoded_fn = ENCODE_FILE (fn);
+  if (create_lockfiles)
+    /* Create the name of the lock-file for file fn */
+    MAKE_LOCK_NAME (lfname, encoded_fn);
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
@@ -690,7 +693,8 @@ lock_file (Lisp_Object fn)
 
     if (!NILP (subject_buf)
 	&& NILP (Fverify_visited_file_modtime (subject_buf))
-	&& !NILP (Ffile_exists_p (fn)))
+        && !NILP (Ffile_exists_p (fn))
+        && (!create_lockfiles || current_lock_owner (NULL, lfname) != -2))
       call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
   }
@@ -698,10 +702,6 @@ lock_file (Lisp_Object fn)
   /* Don't do locking if the user has opted out.  */
   if (create_lockfiles)
     {
-
-      /* Create the name of the lock-file for file fn */
-      MAKE_LOCK_NAME (lfname, encoded_fn);
-
       /* Try to lock the lock.  FIXME: This ignores errors when
 	 lock_if_free returns a positive errno value.  */
       if (lock_if_free (&lock_info, lfname) < 0)

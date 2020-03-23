@@ -595,6 +595,7 @@ extern void char_table_set (Lisp_Object, int, Lisp_Object);
 
 /* Defined in data.c.  */
 extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
+extern Lisp_Object default_value (Lisp_Object symbol);
 
 
 /* Defined in emacs.c.  */

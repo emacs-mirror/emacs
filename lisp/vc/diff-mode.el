@@ -2247,29 +2247,32 @@ The elements of the alist are of the form (FILE . (DEFUN...)),
 where DEFUN... is a list of function names found in FILE."
   (save-excursion
     (goto-char (point-min))
-    (let ((defuns nil)
-          (hunk-end nil)
-          (hunk-mismatch-files nil)
-          (make-defun-context-follower
-           (lambda (goline)
-             (let ((eodefun nil)
-                   (defname nil))
-               (list
-                (lambda () ;; Check for end of current defun.
-                  (when (and eodefun
-                             (funcall goline)
-                             (>= (point) eodefun))
-                    (setq defname nil)
-                    (setq eodefun nil)))
-                (lambda (&optional get-current) ;; Check for new defun.
-                  (if get-current
-                      defname
-                    (when-let* ((def (and (not eodefun)
-                                          (funcall goline)
-                                          (add-log-current-defun)))
-                                (eof (save-excursion (end-of-defun) (point))))
-                      (setq eodefun eof)
-                      (setq defname def)))))))))
+    (let* ((defuns nil)
+           (hunk-end nil)
+           (hunk-mismatch-files nil)
+           (make-defun-context-follower
+            (lambda (goline)
+              (let ((eodefun nil)
+                    (defname nil))
+                (list
+                 (lambda () ;; Check for end of current defun.
+                   (when (and eodefun
+                              (funcall goline)
+                              (>= (point) eodefun))
+                     (setq defname nil)
+                     (setq eodefun nil)))
+                 (lambda (&optional get-current) ;; Check for new defun.
+                   (if get-current
+                       defname
+                     (when-let* ((def (and (not eodefun)
+                                           (funcall goline)
+                                           (add-log-current-defun)))
+                                 (eof (save-excursion
+                                        (condition-case ()
+                                            (progn (end-of-defun) (point))
+                                          (scan-error hunk-end)))))
+                       (setq eodefun eof)
+                       (setq defname def)))))))))
       (while
           ;; Might need to skip over file headers between diff
           ;; hunks (e.g., "diff --git ..." etc).

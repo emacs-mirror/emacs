@@ -555,7 +555,7 @@ too large if positive or too small if negative)."
 (defun cl-concatenate (type &rest sequences)
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
 \n(fn TYPE SEQUENCE...)"
-  (seq-concatenate type sequences))
+  (apply #'seq-concatenate type sequences))
 
 ;;; List functions.
 
