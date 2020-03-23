@@ -3401,14 +3401,16 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   Lisp_Object src =
     concat2 (CALL1I (file-name-sans-extension, Vload_file_name),
 	     build_pure_c_string (".el"));
-  if (!NILP (Ffile_exists_p (src)))
-    {
-      comp_deferred_compilation = false;
-      Frequire (intern_c_string ("comp"), Qnil, Qnil);
-      comp_deferred_compilation = true;
-      CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
-	     Qlate);
-    }
+  if (NILP (Ffile_exists_p (src)))
+    return;
+
+  /* Really happening.  */
+  Fputhash (function_name, definition, Vcomp_deferred_pending_h);
+  comp_deferred_compilation = false;
+  Frequire (intern_c_string ("comp"), Qnil, Qnil);
+  comp_deferred_compilation = true;
+  CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
+	 Qlate);
 }
 
 
@@ -3584,6 +3586,21 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   return Qnil;
 }
 
+DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
+       Scomp__late_register_subr, 7, 7, 0,
+       doc: /* This gets called by late_top_level_run during load
+	       phase to register each exported subr.  */)
+     (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
+      Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
+      Lisp_Object comp_u)
+{
+  if (!NILP (Fequal (Fsymbol_function (name),
+		     Fgethash (name, Vcomp_deferred_pending_h, Qnil))))
+    Fcomp__register_subr (name, minarg, maxarg, c_name, doc, intspec, comp_u);
+  Fremhash (name, Vcomp_deferred_pending_h);
+  return Qnil;
+}
+
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILE.
@@ -3714,6 +3731,7 @@ syms_of_comp (void)
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
   defsubr (&Scomp__register_subr);
+  defsubr (&Scomp__late_register_subr);
   defsubr (&Snative_elisp_load);
 
   staticpro (&comp.exported_funcs_h);
@@ -3742,6 +3760,11 @@ syms_of_comp (void)
   DEFVAR_LISP ("comp-native-path-postfix", Vcomp_native_path_postfix,
 	       doc: /* Postifix to be added to the .eln compilation path.  */);
   Vcomp_native_path_postfix = Qnil;
+
+  DEFVAR_LISP ("comp-deferred-pending-h", Vcomp_deferred_pending_h,
+	       doc: /* Hash table symbol-name -> function-value.  For
+		       internal use during  */);
+  Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 }
 
 #endif /* HAVE_NATIVE_COMP */

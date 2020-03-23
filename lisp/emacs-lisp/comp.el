@@ -1160,12 +1160,15 @@ the annotation emission."
 (cl-defgeneric comp-emit-for-top-level (form for-late-load)
   "Emit the limple code for top level FORM.")
 
-(cl-defmethod comp-emit-for-top-level ((form byte-to-native-function) _)
+(cl-defmethod comp-emit-for-top-level ((form byte-to-native-function)
+                                       for-late-load)
   (let* ((name (byte-to-native-function-name form))
          (f (gethash name (comp-ctxt-funcs-h comp-ctxt)))
          (args (comp-func-args f)))
     (cl-assert (and name f))
-    (comp-emit (comp-call 'comp--register-subr
+    (comp-emit (comp-call (if for-late-load
+                              'comp--late-register-subr
+                            'comp--register-subr)
                           (make-comp-mvar :constant name)
                           (make-comp-mvar :constant (comp-args-base-min args))
                           (make-comp-mvar :constant (if (comp-args-p args)
@@ -2186,6 +2189,9 @@ display a message."
         (save-excursion
           (goto-char (point-max))
           (insert msg "\n")))
+      ;; `comp-deferred-pending-h' should be empty at this stage.
+      ;; Reset it anyway.
+      (setf comp-deferred-pending-h (make-hash-table :equal #'eq))
       (message msg))))
 
 
