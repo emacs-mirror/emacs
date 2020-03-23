@@ -63,3 +63,4 @@ OMIT_GNULIB_MODULE_sys_time = true
 OMIT_GNULIB_MODULE_sys_types = true
 OMIT_GNULIB_MODULE_unistd = true
 OMIT_GNULIB_MODULE_canonicalize-lgpl = true
+OMIT_GNULIB_MODULE_utimens = true
