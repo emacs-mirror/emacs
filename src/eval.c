@@ -3816,7 +3816,7 @@ backtrace_eval_unrewind (int distance)
 	  {
 	    Lisp_Object sym = specpdl_symbol (tmp);
 	    Lisp_Object old_value = specpdl_old_value (tmp);
-	    set_specpdl_old_value (tmp, Fdefault_value (sym));
+	    set_specpdl_old_value (tmp, default_value (sym));
 	    Fset_default (sym, old_value);
 	  }
 	  break;
@@ -3832,7 +3832,7 @@ backtrace_eval_unrewind (int distance)
 	    if (!NILP (Flocal_variable_p (symbol, where)))
 	      {
 		set_specpdl_old_value
-		  (tmp, Fbuffer_local_value (symbol, where));
+		  (tmp, buffer_local_value (symbol, where));
                 set_internal (symbol, old_value, where, SET_INTERNAL_UNBIND);
 	      }
 	  }

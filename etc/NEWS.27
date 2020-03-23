@@ -978,7 +978,10 @@ The mode is automatically enabled in files that start with the
 
 ** project.el
 
++++
 *** New commands 'project-search' and 'project-query-replace-regexp'.
+
+---
 *** New user option 'project-read-file-name-function'.
 
 ** Etags

@@ -14,6 +14,9 @@ Unified interface to Support for Version Control Systems
 (@acronym{VCS}) that record the history of changes to source files.
 
 @item
+Commands for handling programming projects.
+
+@item
 A specialized mode for maintaining @file{ChangeLog} files that provide
 a chronological log of program changes.
 
@@ -38,6 +41,7 @@ Lisp Regression Testing}).
 
 @menu
 * Version Control::     Using version control systems.
+* Projects::            Commands for handling source files in a project.
 * Change Log::          Maintaining a change history for your program.
 * Xref::                Find definitions and references of any function,
                           method, struct, macro, @dots{} in your program.
@@ -1629,6 +1633,77 @@ different revision with @kbd{C-u C-x v v}.
 @ifnottex
 @include vc1-xtra.texi
 @end ifnottex
+
+@node Projects
+@section Working with Projects
+@cindex projects
+
+@cindex project root
+  A @dfn{project} is a collection of files used for producing one or
+more programs.  Files that belong to a project are typically stored in
+a hierarchy of directories; the top-level directory of the hierarchy
+is known as the @dfn{project root}.
+
+@cindex project back-end
+  Whether a given directory is a root of some project is determined by
+the project-specific infrastructure, known as @dfn{project back-end}.
+Emacs currently supports two such back-ends: VC (@pxref{Version
+Control}), whereby a VCS repository is considered a project; and EDE
+(@pxref{EDE}).  This is expected to be extended in the future to
+support additional types of projects.
+
+  Which files do or don't belong to a project is also determined by
+the project back-end.  For example, the VC back-end doesn't consider
+``ignored'' files (@pxref{VC Ignore}) to be part of the project.
+
+  Emacs provides commands for handling project files conveniently.
+This section describes these commands.
+
+@cindex current project
+  All of the commands described here share the notion of the
+@dfn{current project}.  The current project is determined by the
+@code{default-directory} (@pxref{File Names}) of the buffer that is
+the current buffer when the command is invoked.  If that directory
+doesn't seem to belong to a recognizable project, these commands
+prompt you for the project directory.
+
+@findex project-find-file
+  The command @code{project-find-file} is a convenient way of visiting
+files (@pxref{Visiting}) that belong to the current project.  Unlike
+@kbd{C-x C-f}, this command doesn't require to type the full file name
+of the file to visit, you can type only the file's base name (i.e.,
+omit the leading directories).  In addition, the completion candidates
+considered by the command include only the files belonging to the
+current project, and nothing else.  If there's a file name at point,
+this command offers that file as the default to visit.
+
+@findex project-find-regexp
+  The command @code{project-find-regexp} is similar to @code{rgrep}
+(@pxref{Grep Searching}), but it searches only the files that belong
+to the current project.  The command prompts for the regular
+expression to search, and pops up an Xref mode buffer with the search
+results, where you can select a match using the Xref mode commands
+(@pxref{Xref Commands}).  When invoked with a prefix argument, this
+command additionally prompts for the base directory from which to
+start the search; this allows, for example, to limit the search only
+to project files under a certain subdirectory of the project root.
+
+@findex project-search
+  @kbd{M-x project-search} is an interactive variant of
+@code{project-find-regexp}.  It prompts for a regular expression to
+search in the current project's files, but instead of finding all the
+matches and displaying them, it stops when it finds a match and visits
+the matched file at the locus of the match, allowing you to edit the
+matched file.  To find the rest of the matches, type @w{@kbd{M-x
+fileloop-continue @key{RET}}}.
+
+@findex project-query-replace-regexp
+  @kbd{M-x project-query-replace-regexp} is similar to
+@code{project-search}, but it prompts you for whether to replace each
+match it finds, like @code{query-replace} does (@pxref{Query
+Replace}), and continues to the next match after you respond.  If your
+response causes Emacs to exit the query-replace loop, you can later
+continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
 
 @node Change Log
 @section Change Logs

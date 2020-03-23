@@ -1567,7 +1567,7 @@ notify_variable_watchers (Lisp_Object symbol,
 /* Return the default value of SYMBOL, but don't check for voidness.
    Return Qunbound if it is void.  */
 
-static Lisp_Object
+Lisp_Object
 default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;

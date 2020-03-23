@@ -99,4 +99,12 @@
     ;; Test for Bug#33731.
     (should-not (eq s (cl-make-random-state s)))))
 
+(ert-deftest cl-concatenate ()
+  (should (equal (cl-concatenate 'list '(1 2 3) '(4 5 6))
+                 '(1 2 3 4 5 6)))
+  (should (equal (cl-concatenate 'vector [1 2 3] [4 5 6])
+                 [1 2 3 4 5 6]))
+  (should (equal (cl-concatenate 'string "123" "456")
+                 "123456")))
+
 ;;; cl-extra-tests.el ends here
