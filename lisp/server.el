@@ -881,12 +881,17 @@ This handles splitting the command if it would be bigger than
       )
 
     (cond (w
-           (server--create-frame
-            nowait proc
-            `((display . ,display)
-              ,@(if parent-id
-                    `((parent-id . ,(string-to-number parent-id))))
-              ,@parameters)))
+           (condition-case nil
+               (server--create-frame
+                nowait proc
+                `((display . ,display)
+                  ,@(if parent-id
+                        `((parent-id . ,(string-to-number parent-id))))
+                  ,@parameters))
+             (error
+              (server-log "Window system unsupported" proc)
+              (server-send-string proc "-window-system-unsupported \n")
+              nil)))
 
           (t
            (server-log "Window system unsupported" proc)
