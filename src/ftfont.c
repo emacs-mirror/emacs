@@ -119,7 +119,7 @@ static struct
     { "jisx0213.2004-1", { 0x20B9F }},
     { "viscii1.1-1", { 0x1EA0, 0x1EAE, 0x1ED2 }, "vi"},
     { "tis620.2529-1", { 0x0E01 }, "th"},
-    { "windows-1251", { 0x0401, 0x0490 }, "ru"},
+    { "microsoft-cp1251", { 0x0401, 0x0490 }, "ru"},
     { "koi8-r", { 0x0401, 0x2219 }, "ru"},
     { "mulelao-1", { 0x0E81 }, "lo"},
     { "unicode-sip", { 0x20000 }},

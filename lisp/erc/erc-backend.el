@@ -4,7 +4,7 @@
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Created: 2004-05-7
 ;; Keywords: IRC chat client internet
 

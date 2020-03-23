@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; URL: https://www.emacswiki.org/emacs/ERC
 
 ;; This file is part of GNU Emacs.
