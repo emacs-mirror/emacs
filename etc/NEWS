@@ -114,7 +114,11 @@ the details of marking the last file at the end of the region.
 
 ---
 *** Change to default value of 'message-draft-headers' option.
-No longer includes the Date header.
+The Date header has been removed from the default value, meaning that
+draft or delayed messages will get a Date reflecting when the message
+was sent. To restore the original behavior of dating a message
+from when it is first saved or delayed, add the symbol 'Date back to
+this option.
 
 ** Help
 
