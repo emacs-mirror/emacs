@@ -2283,8 +2283,8 @@ LOAD can be nil t or 'late."
                      file)
         (setf comp-files-queue (append comp-files-queue `((,file . ,load))))))
     (when (zerop (comp-async-runnings))
-      (comp-run-async-workers))
-    (message "Compilation started.")))
+      (comp-run-async-workers)
+      (message "Compilation started."))))
 
 (provide 'comp)
 
