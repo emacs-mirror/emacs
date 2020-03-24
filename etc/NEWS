@@ -192,7 +192,7 @@ key             binding
 
 ** Gravatar
 
-===
+---
 *** New user option 'gravatar-service' for host to query for gravatars.
 Defaults to Libravatar, with Unicornify and Gravatar as options.
 
