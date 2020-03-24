@@ -552,10 +552,9 @@ too large if positive or too small if negative)."
   (seq-subseq seq start end))
 
 ;;;###autoload
-(defun cl-concatenate (type &rest sequences)
+(defalias 'cl-concatenate #'seq-concatenate
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
-\n(fn TYPE SEQUENCE...)"
-  (apply #'seq-concatenate type sequences))
+\n(fn TYPE SEQUENCE...)")
 
 ;;; List functions.
 
