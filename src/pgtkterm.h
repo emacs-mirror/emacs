@@ -615,6 +615,8 @@ extern void x_change_tab_bar_height (struct frame *, int);
 
 extern struct pgtk_display_info *check_pgtk_display_info (Lisp_Object object);
 
+extern void pgtk_default_font_parameter (struct frame *f, Lisp_Object parms);
+
 extern void pgtk_enqueue_string(struct frame *f, gchar *str);
 extern void pgtk_enqueue_preedit(struct frame *f, Lisp_Object image_data);
 extern void pgtk_im_focus_in(struct frame *f);

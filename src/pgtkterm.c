@@ -3328,7 +3328,8 @@ static struct redisplay_interface pgtk_redisplay_interface =
   pgtk_draw_window_divider,
   NULL, // pgtk_shift_glyphs_for_insert,
   pgtk_show_hourglass,
-  pgtk_hide_hourglass
+  pgtk_hide_hourglass,
+  pgtk_default_font_parameter,
 };
 
 static void

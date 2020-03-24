@@ -991,8 +991,8 @@ x_decode_color (struct frame *f, Lisp_Object color_name, int mono_color)
   signal_error ("Undefined color", color_name);
 }
 
-static void
-x_default_font_parameter (struct frame *f, Lisp_Object parms)
+void
+pgtk_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Lisp_Object font_param = gui_display_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
@@ -1262,7 +1262,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-  x_default_font_parameter (f, parms);
+  pgtk_default_font_parameter (f, parms);
   if (!FRAME_FONT (f))
     {
       delete_frame (frame, Qnoelisp);
