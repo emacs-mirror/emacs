@@ -200,18 +200,22 @@ the default setting of `case-fold-search'.
 DELIMITED if non-nil means replace only word-delimited matches."
   ;; FIXME: Not sure how the delimited-flag interacts with the regexp-flag in
   ;; `perform-replace', so I just try to mimic the old code.
-  (fileloop-initialize
-   files
-   (lambda ()
-     (let ((case-fold-search
-            (if (memql case-fold '(nil t)) case-fold case-fold-search)))
-       (if (re-search-forward from nil t)
-	   ;; When we find a match, move back
-	   ;; to the beginning of it so perform-replace
-	   ;; will see it.
-	   (goto-char (match-beginning 0)))))
-   (lambda ()
-     (perform-replace from to t t delimited nil multi-query-replace-map))))
+  (let ((mstart (make-hash-table :test 'eq)))
+    (fileloop-initialize
+     files
+     (lambda ()
+       (let ((case-fold-search
+              (if (memql case-fold '(nil t)) case-fold case-fold-search)))
+         (when (re-search-forward from nil t)
+           ;; When we find a match, save its beginning for
+           ;; `perform-replace' (we used to just set point, but this
+           ;; is unreliable in the face of
+           ;; `switch-to-buffer-preserve-window-point').
+           (puthash (current-buffer) (match-beginning 0) mstart))))
+     (lambda ()
+       (perform-replace from to t t delimited nil multi-query-replace-map
+                        (gethash (current-buffer) mstart (point-min))
+                        (point-max))))))
 
 (provide 'fileloop)
 ;;; fileloop.el ends here
