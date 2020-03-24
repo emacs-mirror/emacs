@@ -104,8 +104,8 @@ shows equivalent key bindings for all commands that have them.
 *** New option 'dired-mark-region' affects all Dired commands that mark files.
 When non-nil and the region is active in Transient Mark mode,
 then Dired commands operate only on files in the active region.
-The values 'exclusive' and 'inclusive' of this option define
-the details of marking the last file at the end of the region.
+The values 'file' and 'line' of this option define the details of
+marking the file at the end of the region.
 
 *** State changing VC operations are supported in dired-mode on files
 (but still not on directories).
