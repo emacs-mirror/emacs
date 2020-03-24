@@ -81,7 +81,7 @@ test-native-bootstrap-speed0:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
-  timeout: 3 hours
+  timeout: 8 hours
 
 test-native-bootstrap-speed1:
   stage: test
@@ -90,7 +90,7 @@ test-native-bootstrap-speed1:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
     - make bootstrap NATIVE_FAST_BOOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
-  timeout: 6 hours
+  timeout: 8 hours
 
 test-native-bootstrap-speed2:
   stage: test
@@ -99,4 +99,4 @@ test-native-bootstrap-speed2:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo --with-nativecomp
     - make bootstrap NATIVE_FAST_BOOT=1
-  timeout: 6 hours
+  timeout: 8 hours
