@@ -388,7 +388,7 @@ emit_mvar_access (Lisp_Object mvar)
 
   EMACS_INT arr_idx = XFIXNUM (CALL1I (comp-mvar-array-idx, mvar));
   EMACS_INT slot_n = XFIXNUM (mvar_slot);
-  if (comp.func_has_non_local || !SPEED)
+  if (comp.func_has_non_local || (SPEED < 2))
     return comp.arrays[arr_idx][slot_n];
   else
     {
