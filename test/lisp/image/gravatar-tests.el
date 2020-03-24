@@ -67,6 +67,6 @@
         (gravatar-force-default nil)
         (gravatar-size nil))
     (should (equal (gravatar-build-url "foo") "\
-https://www.gravatar.com/avatar/acbd18db4cc2f85cedef654fccc4a4d8?r=g"))))
+https://seccdn.libravatar.org/avatar/acbd18db4cc2f85cedef654fccc4a4d8?r=g"))))
 
 ;;; gravatar-tests.el ends here

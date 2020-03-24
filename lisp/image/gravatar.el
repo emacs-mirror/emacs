@@ -142,19 +142,19 @@ Note that certain services might ignore other options, such as
   "Find domain that hosts avatars for email address ADDR."
   ;; implements https://wiki.libravatar.org/api/
   (save-match-data
-    (unless (string-match ".+@\\(.+\\)" addr)
-      (error "%s is not an email address" addr))
-    (let ((domain (match-string 1 addr)))
-      (catch 'found
-        (dolist (record '(("_avatars-sec" . "https")
-                          ("_avatars" . "http")))
-          (let* ((query (concat (car record) "._tcp." domain))
-                 (result (dns-query query 'SRV)))
-            (when result
-              (throw 'found (format "%s://%s/avatar"
-                                    (cdr record)
-                                    result)))))
-        "https://seccdn.libravatar.org/avatar"))))
+    (if (not (string-match ".+@\\(.+\\)" addr))
+        "https://seccdn.libravatar.org/avatar"
+      (let ((domain (match-string 1 addr)))
+        (catch 'found
+          (dolist (record '(("_avatars-sec" . "https")
+                            ("_avatars" . "http")))
+            (let* ((query (concat (car record) "._tcp." domain))
+                   (result (dns-query query 'SRV)))
+              (when result
+                (throw 'found (format "%s://%s/avatar"
+                                      (cdr record)
+                                      result)))))
+          "https://seccdn.libravatar.org/avatar")))))
 
 (defun gravatar-hash (mail-address)
   "Return the Gravatar hash for MAIL-ADDRESS."
