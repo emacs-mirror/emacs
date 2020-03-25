@@ -3753,6 +3753,14 @@ It is even possible to access file archives in file archives, as
 @end group
 @end lisp
 
+@vindex tramp-archive-enabled
+In order to disable file archives, you could add the following form to
+your init file:
+
+@lisp
+(customize-set-variable 'tramp-archive-enabled nil)
+@end lisp
+
 
 @node Bug Reports
 @chapter Reporting Bugs and Problems
