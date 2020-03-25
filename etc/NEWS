@@ -104,8 +104,8 @@ shows equivalent key bindings for all commands that have them.
 *** New option 'dired-mark-region' affects all Dired commands that mark files.
 When non-nil and the region is active in Transient Mark mode,
 then Dired commands operate only on files in the active region.
-The values 'exclusive' and 'inclusive' of this option define
-the details of marking the last file at the end of the region.
+The values 'file' and 'line' of this option define the details of
+marking the file at the end of the region.
 
 *** State changing VC operations are supported in dired-mode on files
 (but still not on directories).
@@ -114,7 +114,11 @@ the details of marking the last file at the end of the region.
 
 ---
 *** Change to default value of 'message-draft-headers' option.
-No longer includes the Date header.
+The Date header has been removed from the default value, meaning that
+draft or delayed messages will get a Date reflecting when the message
+was sent. To restore the original behavior of dating a message
+from when it is first saved or delayed, add the symbol 'Date back to
+this option.
 
 ** Help
 
@@ -185,6 +189,12 @@ key             binding
 / s             package-menu-filter-by-status
 / v             package-menu-filter-by-version
 / /             package-menu-filter-clear
+
+** Gravatar
+
+---
+*** New user option 'gravatar-service' for host to query for gravatars.
+Defaults to Libravatar, with Unicornify and Gravatar as options.
 
 
 * New Modes and Packages in Emacs 28.1

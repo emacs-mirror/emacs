@@ -26,6 +26,7 @@
 
 (require 'url)
 (require 'url-cache)
+(require 'dns)
 (eval-when-compile
   (require 'subr-x))
 
@@ -118,9 +119,42 @@ a gravatar for a given email address."
   :version "27.1"
   :group 'gravatar)
 
-(defconst gravatar-base-url
-  "https://www.gravatar.com/avatar"
-  "Base URL for getting gravatars.")
+(defconst gravatar-service-alist
+  `((gravatar . ,(lambda (_addr) "https://www.gravatar.com/avatar"))
+    (unicornify . ,(lambda (_addr) "https://unicornify.pictures/avatar/"))
+    (libravatar . ,#'gravatar--service-libravatar))
+  "Alist of supported gravatar services.")
+
+(defcustom gravatar-service 'libravatar
+  "Symbol denoting gravatar-like service to use.
+Note that certain services might ignore other options, such as
+`gravatar-default-image' or certain values as with
+`gravatar-rating'."
+  :type `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
+                           gravatar-service-alist))
+  :version "28.1"
+  :link '(url-link "https://www.libravatar.org/")
+  :link '(url-link "https://unicornify.pictures/")
+  :link '(url-link "https://gravatar.com/")
+  :group 'gravatar)
+
+(defun gravatar--service-libravatar (addr)
+  "Find domain that hosts avatars for email address ADDR."
+  ;; implements https://wiki.libravatar.org/api/
+  (save-match-data
+    (if (not (string-match ".+@\\(.+\\)" addr))
+        "https://seccdn.libravatar.org/avatar"
+      (let ((domain (match-string 1 addr)))
+        (catch 'found
+          (dolist (record '(("_avatars-sec" . "https")
+                            ("_avatars" . "http")))
+            (let* ((query (concat (car record) "._tcp." domain))
+                   (result (dns-query query 'SRV)))
+              (when result
+                (throw 'found (format "%s://%s/avatar"
+                                      (cdr record)
+                                      result)))))
+          "https://seccdn.libravatar.org/avatar")))))
 
 (defun gravatar-hash (mail-address)
   "Return the Gravatar hash for MAIL-ADDRESS."
@@ -142,7 +176,8 @@ a gravatar for a given email address."
   "Return the URL of a gravatar for MAIL-ADDRESS."
   ;; https://gravatar.com/site/implement/images/
   (format "%s/%s?%s"
-          gravatar-base-url
+          (funcall (alist-get gravatar-service gravatar-service-alist)
+                   mail-address)
           (gravatar-hash mail-address)
           (gravatar--query-string)))
 
