@@ -52,7 +52,7 @@
                       (let ((repeat (aref timer 4)))
                         (cond
                          ((numberp repeat)
-                          (format "%.2f" (/ repeat 60)))
+                          (format "%.1f" repeat))
                          ((null repeat)
                           "-")
                          (t
@@ -91,7 +91,18 @@
   (setq header-line-format
         (concat (propertize " " 'display '(space :align-to 0))
                 (format "%4s %10s %8s %s"
-                "Idle" "Next" "Repeat" "Function"))))
+                        (propertize "Idle"
+                                    'mouse-face 'highlight
+                                    'help-echo "* marks idle timers")
+                        (propertize "Next"
+                                    'mouse-face 'highlight
+                                    'help-echo "Time in sec till next invocation")
+                        (propertize "Repeat"
+                                    'mouse-face 'highlight
+                                    'help-echo "Symbol: repeat; number: repeat interval in sec")
+                        (propertize "Function"
+                                    'mouse-face 'highlight
+                                    'help-echo "Function called by timer")))))
 
 (defun timer-list-cancel ()
   "Cancel the timer on the line under point."
