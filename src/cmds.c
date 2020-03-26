@@ -451,7 +451,10 @@ internal_self_insert (int c, EMACS_INT n)
 	  string = concat2 (string, tem);
 	}
 
-      replace_range (PT, PT + chars_to_delete, string, 1, 1, 1, 0);
+      ptrdiff_t to;
+      if (INT_ADD_WRAPV (PT, chars_to_delete, &to))
+	to = PTRDIFF_MAX;
+      replace_range (PT, to, string, 1, 1, 1, 0);
       Fforward_char (make_fixnum (n));
     }
   else if (n > 1)
