@@ -725,18 +725,23 @@ boundaries, bind `inhibit-field-text-motion' to t.
 This function does not move point.  */)
   (Lisp_Object n)
 {
-  ptrdiff_t charpos, bytepos;
+  ptrdiff_t charpos, bytepos, count;
 
   if (NILP (n))
-    XSETFASTINT (n, 1);
+    count = 0;
+  else if (FIXNUMP (n))
+    count = clip_to_bounds (-BUF_BYTES_MAX, XFIXNUM (n) - 1, BUF_BYTES_MAX);
   else
-    CHECK_FIXNUM (n);
+    {
+      CHECK_INTEGER (n);
+      count = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
+    }
 
-  scan_newline_from_point (XFIXNUM (n) - 1, &charpos, &bytepos);
+  scan_newline_from_point (count, &charpos, &bytepos);
 
   /* Return END constrained to the current input field.  */
   return Fconstrain_to_field (make_fixnum (charpos), make_fixnum (PT),
-			      XFIXNUM (n) != 1 ? Qt : Qnil,
+			      count != 0 ? Qt : Qnil,
 			      Qt, Qnil);
 }
 
@@ -763,11 +768,14 @@ This function does not move point.  */)
   ptrdiff_t orig = PT;
 
   if (NILP (n))
-    XSETFASTINT (n, 1);
+    clipped_n = 1;
+  else if (FIXNUMP (n))
+    clipped_n = clip_to_bounds (-BUF_BYTES_MAX, XFIXNUM (n), BUF_BYTES_MAX);
   else
-    CHECK_FIXNUM (n);
-
-  clipped_n = clip_to_bounds (PTRDIFF_MIN + 1, XFIXNUM (n), PTRDIFF_MAX);
+    {
+      CHECK_INTEGER (n);
+      clipped_n = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
+    }
   end_pos = find_before_next_newline (orig, 0, clipped_n - (clipped_n <= 0),
 				      NULL);
 
