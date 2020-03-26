@@ -424,4 +424,18 @@ See Bug#36226."
       ;; but at least one.
       (should (> valid-after valid-before)))))
 
+(ert-deftest module/async-pipe ()
+  "Check that writing data from another thread works."
+  (with-temp-buffer
+    (let ((process (make-pipe-process :name "module/async-pipe"
+                                      :buffer (current-buffer)
+                                      :coding 'utf-8-unix
+                                      :noquery t)))
+      (unwind-protect
+          (progn
+            (mod-test-async-pipe process)
+            (should (accept-process-output process 1))
+            (should (equal (buffer-string) "data from thread")))
+        (delete-process process)))))
+
 ;;; emacs-module-tests.el ends here

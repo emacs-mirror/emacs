@@ -743,6 +743,7 @@ Some file name handlers may not support @code{make-process}.  In such
 cases, this function does nothing and returns @code{nil}.
 @end defun
 
+@anchor{Pipe Processes}
 @defun make-pipe-process &rest args
 This function creates a bidirectional pipe which can be attached to a
 child process.  This is useful with the @code{:stderr} keyword of

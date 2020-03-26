@@ -258,6 +258,10 @@ called when the function object is garbage-collected.  Use
 'set_function_finalizer' to set the finalizer and
 'get_function_finalizer' to retrieve it.
 
+** Modules can now open a channel to an existing pipe process using
+the new module function 'open_channel'.  Modules can use this
+functionality to asynchronously send data back to Emacs.
+
 ** 'file-modes', 'set-file-modes', and 'set-file-times' now have an
 optional argument specifying whether to follow symbolic links.
 

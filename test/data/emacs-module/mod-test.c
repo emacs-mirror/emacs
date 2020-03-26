@@ -30,6 +30,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <time.h>
 
+#include <pthread.h>
+#include <unistd.h>
+
 #ifdef HAVE_GMP
 #include <gmp.h>
 #else
@@ -320,15 +323,21 @@ Fmod_test_invalid_finalizer (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 }
 
 static void
-signal_errno (emacs_env *env, const char *function)
+signal_system_error (emacs_env *env, int error, const char *function)
 {
-  const char *message = strerror (errno);
+  const char *message = strerror (error);
   emacs_value message_value = env->make_string (env, message, strlen (message));
   emacs_value symbol = env->intern (env, "file-error");
   emacs_value elements[2]
     = {env->make_string (env, function, strlen (function)), message_value};
   emacs_value data = env->funcall (env, env->intern (env, "list"), 2, elements);
   env->non_local_exit_signal (env, symbol, data);
+}
+
+static void
+signal_errno (emacs_env *env, const char *function)
+{
+  signal_system_error (env, errno, function);
 }
 
 /* A long-running operation that occasionally calls `should_quit' or
@@ -533,6 +542,49 @@ Fmod_test_function_finalizer_calls (emacs_env *env, ptrdiff_t nargs,
   return env->funcall (env, Flist, 2, list_args);
 }
 
+static void *
+write_to_pipe (void *arg)
+{
+  /* We sleep a bit to test that writing to a pipe is indeed possible
+     if no environment is active. */
+  const struct timespec sleep = {0, 500000000};
+  if (nanosleep (&sleep, NULL) != 0)
+    perror ("nanosleep");
+  FILE *stream = arg;
+  if (fputs ("data from thread", stream) < 0)
+    perror ("fputs");
+  if (fclose (stream) != 0)
+    perror ("close");
+  return NULL;
+}
+
+static emacs_value
+Fmod_test_async_pipe (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                      void *data)
+{
+  assert (nargs == 1);
+  int fd = env->open_channel (env, args[0]);
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+    return NULL;
+  FILE *stream = fdopen (fd, "w");
+  if (stream == NULL)
+    {
+      signal_errno (env, "fdopen");
+      return NULL;
+    }
+  pthread_t thread;
+  int error
+    = pthread_create (&thread, NULL, write_to_pipe, stream);
+  if (error != 0)
+    {
+      signal_system_error (env, error, "pthread_create");
+      if (fclose (stream) != 0)
+        perror ("fclose");
+      return NULL;
+    }
+  return env->intern (env, "nil");
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -614,6 +666,7 @@ emacs_module_init (struct emacs_runtime *ert)
          Fmod_test_make_function_with_finalizer, 0, 0, NULL, NULL);
   DEFUN ("mod-test-function-finalizer-calls",
          Fmod_test_function_finalizer_calls, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-async-pipe", Fmod_test_async_pipe, 1, 1, NULL, NULL);
 
 #undef DEFUN
 
