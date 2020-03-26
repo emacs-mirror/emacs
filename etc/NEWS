@@ -218,8 +218,10 @@ Defaults to 'libravatar', with 'unicornify' and 'gravatar' as options.
 ** Compilation mode
 
 *** Regexp matching of messages is now case-sensitive by default.
-The user option 'compilation-error-case-fold-search' can be set
-for case-insensitive matching of messages.
+The variable 'compilation-error-case-fold-search' can be set for
+case-insensitive matching of messages when the old behaviour is
+required, but the recommended solution is to use a correctly matching
+regexp instead.
 
 
 * New Modes and Packages in Emacs 28.1

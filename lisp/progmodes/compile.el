@@ -646,13 +646,15 @@ matched file names, and weeding out false positives."
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory)))
 
-(defcustom compilation-error-case-fold-search nil
+(defvar compilation-error-case-fold-search nil
   "If non-nil, use case-insensitive matching of compilation errors
 by the regexps of `compilation-error-regexp-alist' and
 `compilation-error-regexp-alist-alist'.
-If nil, matching is case-sensitive."
-  :type 'boolean
-  :version "28.1")
+If nil, matching is case-sensitive.
+
+This variable should only be set for backward compatibility as a temporary
+measure.  The proper solution is to use a regexp that matches the
+messages without case-folding.")
 
 ;;;###autoload(put 'compilation-directory 'safe-local-variable 'stringp)
 (defvar compilation-directory nil
