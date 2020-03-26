@@ -3356,6 +3356,10 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /* Deferred compilation mechanism. */
 /***********************************/
 
+/* List of sources we'll compile and load after having conventionally
+   loaded the compiler and its dependencies.  */
+static Lisp_Object delayed_sources;
+
 void
 maybe_defer_native_compilation (Lisp_Object function_name,
 				Lisp_Object definition)
@@ -3396,13 +3400,32 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (NILP (Ffile_exists_p (src)))
     return;
 
-  /* Really happening.  */
-  Fputhash (function_name, definition, Vcomp_deferred_pending_h);
-  comp_deferred_compilation = false;
-  Frequire (intern_c_string ("comp"), Qnil, Qnil);
-  comp_deferred_compilation = true;
-  CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
-	 Qlate);
+  /* This is to have deferred compilaiton able to compile comp
+     dependecies breaking circularity.  */
+  if (!NILP (Ffeaturep (Qcomp, Qnil)))
+    {
+      /* Comp already loaded.  */
+      if (!NILP (delayed_sources))
+	{
+	  CALLN (Ffuncall, intern_c_string ("native-compile-async"),
+		 delayed_sources, Qnil, Qlate);
+	  delayed_sources = Qnil;
+	}
+      Fputhash (function_name, definition, Vcomp_deferred_pending_h);
+      CALLN (Ffuncall, intern_c_string ("native-compile-async"), src, Qnil,
+	     Qlate);
+    }
+  else
+    {
+      delayed_sources = Fcons (src, delayed_sources);
+      /* Require comp only once.  */
+      static bool comp_required = false;
+      if (!comp_required)
+	{
+	  comp_required = true;
+	  Frequire (Qcomp, Qnil, Qnil);
+	}
+    }
 }
 
 
@@ -3675,6 +3698,7 @@ syms_of_comp (void)
   DEFSYM (Qd_ephemeral, "d-ephemeral");
 
   /* Others.  */
+  DEFSYM (Qcomp, "comp");
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
@@ -3733,6 +3757,8 @@ syms_of_comp (void)
   staticpro (&comp.func_blocks_h);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
+  staticpro (&delayed_sources);
+  delayed_sources = Qnil;
 
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /* The compiler context.  */);
