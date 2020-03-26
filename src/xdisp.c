@@ -815,11 +815,6 @@ static struct props it_props[] =
   {0,				0,			NULL}
 };
 
-/* Value is the position described by X.  If X is a marker, value is
-   the marker_position of X.  Otherwise, value is X.  */
-
-#define COERCE_MARKER(X) (MARKERP ((X)) ? Fmarker_position (X) : (X))
-
 /* Enumeration returned by some move_it_.* functions internally.  */
 
 enum move_it_result
@@ -14944,7 +14939,7 @@ overlay_arrows_changed_p (bool set_redisplay)
       val = find_symbol_value (var);
       if (!MARKERP (val))
 	continue;
-      if (! EQ (COERCE_MARKER (val),
+      if (! EQ (Fmarker_position (val),
                 /* FIXME: Don't we have a problem, using such a global
                  * "last-position" if the variable is buffer-local?  */
 		Fget (var, Qlast_arrow_position))
@@ -14987,8 +14982,7 @@ update_overlay_arrows (int up_to_date)
 	  Lisp_Object val = find_symbol_value (var);
           if (!MARKERP (val))
 	    continue;
-	  Fput (var, Qlast_arrow_position,
-		COERCE_MARKER (val));
+	  Fput (var, Qlast_arrow_position, Fmarker_position (val));
 	  Fput (var, Qlast_arrow_string,
 		overlay_arrow_string_or_property (var));
 	}
