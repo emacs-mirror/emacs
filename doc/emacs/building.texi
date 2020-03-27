@@ -975,9 +975,27 @@ displays the following frame layout:
 @end group
 @end smallexample
 
+@findex gdb-save-window-configuration
+@findex gdb-load-window-configuration
+@vindex gdb-default-window-configuration-file
+@vindex gdb-window-configuration-directory
+  You can customize the window layout based on the one above and save
+that layout to a file using @code{gdb-save-window-configuration}.
+Then you can later load this layout back using
+@code{gdb-load-window-configuration}.  (Internally, Emacs uses the
+term window configuration instead of window layout.)  You can set your
+custom layout as the default one used by @code{gdb-many-windows} by
+customizing @code{gdb-default-window-configuration-file}.  If it is
+not an absolute file name, GDB looks under
+@code{gdb-window-configuration-directory} for the file.
+@code{gdb-window-configuration-directory} defaults to
+@code{user-emacs-directory} (@pxref{Find Init}).
+
+
 @findex gdb-restore-windows
 @findex gdb-many-windows
-  If you ever change the window layout, you can restore the many-windows
+@vindex gdb-restore-window-configuration-after-quit
+  If you ever change the window layout, you can restore the default
 layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
 between the many windows layout and a simple layout with just the GUD
 interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
@@ -988,7 +1006,13 @@ interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 of windows on your original frame will not be affected.  A separate
 frame for GDB sessions can come in especially handy if you work on a
 text-mode terminal, where the screen estate for windows could be at a
-premium.
+premium.  If you choose to start GDB in the same frame, consider
+setting @code{gdb-restore-window-configuration-after-quit} to a
+non-@code{nil} value.  Your original layout will then be restored
+after GDB quits.  Use @code{t} to always restore; use
+@code{if-gdb-many-windows} to restore only when
+@code{gdb-many-windows} is non-@code{nil}; use @code{if-gdb-show-main}
+to restore only when @code{gdb-show-main} is non-@code{nil}.
 
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you

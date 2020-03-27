@@ -190,6 +190,23 @@ key             binding
 / v             package-menu-filter-by-version
 / /             package-menu-filter-clear
 
+** gdb-mi
+
++++
+*** gdb-mi can now store and restore window configurations.
+Use 'gdb-save-window-configuration' to save window configuration to a
+file and 'gdb-load-window-configuration' to load from a file.  These
+commands can also be accessed through the menu bar under Gud --
+GDB-Windows.  'gdb-default-window-configuration-file', when non-nil,
+is loaded when GDB starts up.
+
++++
+*** gdb-mi can now restore window configuration after quit.
+Set 'gdb-restore-window-configuration-after-quit' to non-nil and Emacs
+will remember the window configuration before GDB started and restore
+it after GDB quits.  A toggle button is also provided under Gud --
+GDB-Windows.
+
 ** Gravatar
 
 ---
