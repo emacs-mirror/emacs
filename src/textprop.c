@@ -131,6 +131,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin,
 {
   INTERVAL i;
   ptrdiff_t searchpos;
+  Lisp_Object begin0 = *begin, end0 = *end;
 
   CHECK_STRING_OR_BUFFER (object);
   CHECK_FIXNUM_COERCE_MARKER (*begin);
@@ -155,7 +156,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin,
 
       if (!(BUF_BEGV (b) <= XFIXNUM (*begin) && XFIXNUM (*begin) <= XFIXNUM (*end)
 	    && XFIXNUM (*end) <= BUF_ZV (b)))
-	args_out_of_range (*begin, *end);
+	args_out_of_range (begin0, end0);
       i = buffer_intervals (b);
 
       /* If there's no text, there are no properties.  */
@@ -170,7 +171,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin,
 
       if (! (0 <= XFIXNUM (*begin) && XFIXNUM (*begin) <= XFIXNUM (*end)
 	     && XFIXNUM (*end) <= len))
-	args_out_of_range (*begin, *end);
+	args_out_of_range (begin0, end0);
       i = string_intervals (object);
 
       if (len == 0)
@@ -611,7 +612,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
 {
   struct window *w = 0;
 
-  CHECK_FIXNUM_COERCE_MARKER (position);
+  EMACS_INT pos = fix_position (position);
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -628,14 +629,14 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
       Lisp_Object *overlay_vec;
       struct buffer *obuf = current_buffer;
 
-      if (XFIXNUM (position) < BUF_BEGV (XBUFFER (object))
-	  || XFIXNUM (position) > BUF_ZV (XBUFFER (object)))
+      if (! (BUF_BEGV (XBUFFER (object)) <= pos
+	     && pos <= BUF_ZV (XBUFFER (object))))
 	xsignal1 (Qargs_out_of_range, position);
 
       set_buffer_temp (XBUFFER (object));
 
       USE_SAFE_ALLOCA;
-      GET_OVERLAYS_AT (XFIXNUM (position), overlay_vec, noverlays, NULL, false);
+      GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, false);
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
       set_buffer_temp (obuf);
@@ -662,7 +663,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
 
   /* Not a buffer, or no appropriate overlay, so fall through to the
      simpler case.  */
-  return Fget_text_property (position, prop, object);
+  return Fget_text_property (make_fixnum (pos), prop, object);
 }
 
 DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,

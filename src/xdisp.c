@@ -10413,10 +10413,7 @@ include the height of both, if present, in the return value.  */)
 	start = pos;
     }
   else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (from);
-      start = min (max (XFIXNUM (from), BEGV), ZV);
-    }
+    start = clip_to_bounds (BEGV, fix_position (from), ZV);
 
   if (NILP (to))
     end = ZV;
@@ -10430,10 +10427,7 @@ include the height of both, if present, in the return value.  */)
 	end = pos;
     }
   else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (to);
-      end = max (start, min (XFIXNUM (to), ZV));
-    }
+    end = clip_to_bounds (start, fix_position (to), ZV);
 
   if (!NILP (x_limit) && RANGED_FIXNUMP (0, x_limit, INT_MAX))
     max_x = XFIXNUM (x_limit);

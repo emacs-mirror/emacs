@@ -1675,10 +1675,10 @@ Return nil if POS is not visible in WINDOW.  */)
 
   if (!NILP (pos))
     {
-      CHECK_FIXNUM_COERCE_MARKER (pos);
-      if (! (BEGV <= XFIXNUM (pos) && XFIXNUM (pos) <= ZV))
+      EMACS_INT p = fix_position (pos);
+      if (! (BEGV <= p && p <= ZV))
 	args_out_of_range (window, pos);
-      textpos = XFIXNUM (pos);
+      textpos = p;
     }
   else if (w == XWINDOW (selected_window))
     textpos = PT;

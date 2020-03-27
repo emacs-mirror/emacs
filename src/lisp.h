@@ -3012,14 +3012,6 @@ CHECK_FIXNAT (Lisp_Object x)
       CHECK_RANGED_INTEGER (x, 0, TYPE_MAXIMUM (type));			\
   } while (false)
 
-#define CHECK_FIXNUM_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP ((x)))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (FIXNUMP (x), Qinteger_or_marker_p, x);		\
-  } while (false)
-
 INLINE double
 XFLOATINT (Lisp_Object n)
 {

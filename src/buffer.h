@@ -1150,6 +1150,8 @@ extern Lisp_Object interval_insert_behind_hooks;
 extern Lisp_Object interval_insert_in_front_hooks;
 
 
+extern EMACS_INT fix_position (Lisp_Object);
+#define CHECK_FIXNUM_COERCE_MARKER(x) ((x) = make_fixnum (fix_position (x)))
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
