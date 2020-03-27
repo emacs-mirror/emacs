@@ -30,8 +30,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <time.h>
 
-#include <pthread.h>
-#include <unistd.h>
+#ifdef WINDOWSNT
+/* Cannot include <process.h> because of the local header by the same
+   name, sigh.  */
+uintptr_t _beginthread (void (__cdecl *)(void *), unsigned, void *);
+# if !defined __x86_64__
+#  define ALIGN_STACK __attribute__((force_align_arg_pointer))
+# endif
+# include <windows.h>	/* for Sleep */
+#else  /* !WINDOWSNT */
+# include <pthread.h>
+# include <unistd.h>
+#endif
 
 #ifdef HAVE_GMP
 #include <gmp.h>
@@ -302,7 +312,7 @@ Fmod_test_invalid_load (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 }
 
 /* An invalid finalizer: Finalizers are run during garbage collection,
-   where Lisp code can’t be executed.  -module-assertions tests for
+   where Lisp code can't be executed.  -module-assertions tests for
    this case.  */
 
 static emacs_env *current_env;
@@ -542,20 +552,39 @@ Fmod_test_function_finalizer_calls (emacs_env *env, ptrdiff_t nargs,
   return env->funcall (env, Flist, 2, list_args);
 }
 
+static void
+sleep_for_half_second (void)
+{
+  /* mingw.org's MinGW has nanosleep, but MinGW64 doesn't.  */
+#ifdef WINDOWSNT
+  Sleep (500);
+#else
+  const struct timespec sleep = {0, 500000000};
+  if (nanosleep (&sleep, NULL) != 0)
+    perror ("nanosleep");
+#endif
+}
+
+#ifdef WINDOWSNT
+static void ALIGN_STACK
+#else
 static void *
+#endif
 write_to_pipe (void *arg)
 {
   /* We sleep a bit to test that writing to a pipe is indeed possible
      if no environment is active. */
-  const struct timespec sleep = {0, 500000000};
-  if (nanosleep (&sleep, NULL) != 0)
-    perror ("nanosleep");
+  sleep_for_half_second ();
   FILE *stream = arg;
+  /* The string below should be identical to the one we compare with
+     in emacs-module-tests.el:module/async-pipe.  */
   if (fputs ("data from thread", stream) < 0)
     perror ("fputs");
   if (fclose (stream) != 0)
     perror ("close");
+#ifndef WINDOWSNT
   return NULL;
+#endif
 }
 
 static emacs_value
@@ -572,12 +601,17 @@ Fmod_test_async_pipe (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
       signal_errno (env, "fdopen");
       return NULL;
     }
+#ifdef WINDOWSNT
+  uintptr_t thd = _beginthread (write_to_pipe, 0, stream);
+  int error = (thd == (uintptr_t)-1L) ? errno : 0;
+#else  /* !WINDOWSNT */
   pthread_t thread;
   int error
     = pthread_create (&thread, NULL, write_to_pipe, stream);
+#endif
   if (error != 0)
     {
-      signal_system_error (env, error, "pthread_create");
+      signal_system_error (env, error, "thread create");
       if (fclose (stream) != 0)
         perror ("fclose");
       return NULL;

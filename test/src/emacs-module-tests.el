@@ -426,6 +426,7 @@ See Bug#36226."
 
 (ert-deftest module/async-pipe ()
   "Check that writing data from another thread works."
+  (skip-unless (not (eq system-type 'windows-nt))) ; FIXME!
   (with-temp-buffer
     (let ((process (make-pipe-process :name "module/async-pipe"
                                       :buffer (current-buffer)
@@ -435,6 +436,8 @@ See Bug#36226."
           (progn
             (mod-test-async-pipe process)
             (should (accept-process-output process 1))
+            ;; The string below must be identical to what
+            ;; mod-test.c:write_to_pipe produces.
             (should (equal (buffer-string) "data from thread")))
         (delete-process process)))))
 
