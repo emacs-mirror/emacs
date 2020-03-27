@@ -214,6 +214,7 @@ Select a buffer to be used by next invocation of @code{next-error} and
 @kindex C-x `
 @findex next-error
 @vindex next-error-highlight
+@vindex next-error-highlight-no-select
   To visit errors sequentially, type @w{@kbd{C-x `}}
 (@code{next-error}), or equivalently @kbd{M-g M-n} or @kbd{M-g n}.
 This command can be invoked from any buffer, not just a Compilation
@@ -258,7 +259,9 @@ to skip any messages.
 
   When Emacs visits the locus of an error message, it momentarily
 highlights the relevant source line.  The duration of this highlight
-is determined by the variable @code{next-error-highlight}.
+is determined by the variable @code{next-error-highlight} for the locus
+in the selected buffer, and @code{next-error-highlight-no-select} for
+the locus in non-selected buffers.
 
 @vindex compilation-context-lines
   If the @file{*compilation*} buffer is shown in a window with a left
@@ -972,9 +975,27 @@ displays the following frame layout:
 @end group
 @end smallexample
 
+@findex gdb-save-window-configuration
+@findex gdb-load-window-configuration
+@vindex gdb-default-window-configuration-file
+@vindex gdb-window-configuration-directory
+  You can customize the window layout based on the one above and save
+that layout to a file using @code{gdb-save-window-configuration}.
+Then you can later load this layout back using
+@code{gdb-load-window-configuration}.  (Internally, Emacs uses the
+term window configuration instead of window layout.)  You can set your
+custom layout as the default one used by @code{gdb-many-windows} by
+customizing @code{gdb-default-window-configuration-file}.  If it is
+not an absolute file name, GDB looks under
+@code{gdb-window-configuration-directory} for the file.
+@code{gdb-window-configuration-directory} defaults to
+@code{user-emacs-directory} (@pxref{Find Init}).
+
+
 @findex gdb-restore-windows
 @findex gdb-many-windows
-  If you ever change the window layout, you can restore the many-windows
+@vindex gdb-restore-window-configuration-after-quit
+  If you ever change the window layout, you can restore the default
 layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
 between the many windows layout and a simple layout with just the GUD
 interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
@@ -985,7 +1006,13 @@ interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 of windows on your original frame will not be affected.  A separate
 frame for GDB sessions can come in especially handy if you work on a
 text-mode terminal, where the screen estate for windows could be at a
-premium.
+premium.  If you choose to start GDB in the same frame, consider
+setting @code{gdb-restore-window-configuration-after-quit} to a
+non-@code{nil} value.  Your original layout will then be restored
+after GDB quits.  Use @code{t} to always restore; use
+@code{if-gdb-many-windows} to restore only when
+@code{gdb-many-windows} is non-@code{nil}; use @code{if-gdb-show-main}
+to restore only when @code{gdb-show-main} is non-@code{nil}.
 
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
@@ -1527,13 +1554,6 @@ Automatic loading also occurs when completing names for
 @code{describe-variable} and @code{describe-function}, based on the
 prefix being completed.  To disable this feature, change the variable
 @code{help-enable-completion-autoload} to @code{nil}.
-
-@vindex load-dangerous-libraries
-@cindex Lisp files byte-compiled by XEmacs
-  By default, Emacs refuses to load compiled Lisp files which were
-compiled with XEmacs, a modified version of Emacs---they can cause
-Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
-@code{t} if you want to try loading them.
 
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions

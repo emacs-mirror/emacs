@@ -1003,7 +1003,7 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
 ;; Matches an unterminated string/regexp, NOT including the eol at the end.
 
 (defconst c-awk-harmless-pattern-characters*
-  (concat "\\([^{;#/\"\\\\\n\r]\\|" c-awk-esc-pair-re "\\)*"))
+  (concat "\\([^{;#/\"\\\n\r]\\|" c-awk-esc-pair-re "\\)*"))
 ;; Matches any "harmless" character in a pattern or an escaped character pair.
 
 (defun c-awk-at-statement-end-p ()

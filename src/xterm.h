@@ -1056,6 +1056,7 @@ extern void x_real_pos_and_offsets (struct frame *f,
                                     int *xptr,
                                     int *yptr,
                                     int *outer_border);
+extern void x_default_font_parameter (struct frame* f, Lisp_Object parms);
 
 /* From xrdb.c.  */
 

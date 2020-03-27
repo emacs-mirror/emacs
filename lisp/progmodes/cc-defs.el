@@ -87,7 +87,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.34"
+(defconst c-version "5.34.2"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -1278,7 +1278,7 @@ point is then left undefined."
 		    place ,property nil ,(or limit '(point-min)))))
      (when (> place ,(or limit '(point-min)))
        (goto-char place)
-       (search-backward-regexp "\\(n\\|.\\)")	; to set the match-data.
+       (search-backward-regexp "\\(\n\\|.\\)")	; to set the match-data.
        (point))))
 
 (defun c-clear-char-property-with-value-function (from to property value)

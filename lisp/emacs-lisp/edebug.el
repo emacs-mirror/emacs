@@ -2845,7 +2845,6 @@ See `edebug-behavior-alist' for implementations.")
               (if (not (eq edebug-buffer edebug-outside-buffer))
                   (goto-char edebug-outside-point))
               (if (marker-buffer (edebug-mark-marker))
-                  ;; Does zmacs-regions need to be nil while doing set-marker?
                   (set-marker (edebug-mark-marker) edebug-outside-mark))
               ))     ; unwind-protect
 	  ;; None of the following is done if quit or signal occurs.

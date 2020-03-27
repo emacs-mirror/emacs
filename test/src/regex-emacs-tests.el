@@ -505,7 +505,7 @@ differences in behavior.")
      (cond
 
       ;; pattern
-      ((save-excursion (re-search-forward "^/\\(.*\\)/\\(.*i?\\)$" nil t))
+      ((save-excursion (re-search-forward "^/\\(.*\\)/\\(.*\\)$" nil t))
        (setq icase (string= "i" (match-string 2))
              pattern (regex-tests-unextend (match-string 1))))
 

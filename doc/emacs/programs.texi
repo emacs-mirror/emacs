@@ -1269,9 +1269,27 @@ information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To
 toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  There's also a Global
-Eldoc mode, which is turned on by default, and affects buffers, such
-as @samp{*scratch*}, whose major mode is Emacs Lisp or Lisp
-Interaction (@w{@kbd{M-x global-eldoc-mode}} to turn it off globally).
+Eldoc mode, which is turned on by default, and affects buffers whose
+major mode sets the variables described below.  Use @w{@kbd{M-x
+global-eldoc-mode}} to turn it off globally.
+
+@vindex eldoc-documentation-function
+@vindex eldoc-documentation-functions
+  These variables can be used to configure ElDoc mode:
+
+@table @code
+@item eldoc-documentation-function
+This variable holds the function which is used to retrieve
+documentation for the item at point from the functions in the hook
+@code{eldoc-documentation-functions}.  By default,
+@code{eldoc-documentation-function} returns the first documentation
+string produced by the @code{eldoc-documentation-functions} hook.
+
+@item eldoc-documentation-functions
+This abnormal hook holds documentation functions.  It acts as a
+collection of backends for ElDoc.  This is what modes should use to
+register their documentation functions with ElDoc.
+@end table
 
 @node Hideshow
 @section Hideshow minor mode

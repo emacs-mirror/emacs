@@ -3181,7 +3181,7 @@ For example:
          (broken-reply-to . t))))
 @end lisp
 
-All clauses that matches the group name will be used, but the last
+All clauses that match the group name will be used, but the last
 setting ``wins''.  So if you have two clauses that both match the
 group name, and both set, say @code{display}, the last setting will
 override the first.
@@ -17874,7 +17874,7 @@ presence of 7 special headers.  These headers are of the form
 @code{X-Diary-<something>}, @code{<something>} being one of
 @code{Minute}, @code{Hour}, @code{Dom}, @code{Month}, @code{Year},
 @code{Time-Zone} and @code{Dow}.  @code{Dom} means ``Day of Month'', and
-@code{dow} means ``Day of Week''.  These headers actually behave like
+@code{Dow} means ``Day of Week''.  These headers actually behave like
 crontab specifications and define the event date(s):
 
 @itemize @bullet
@@ -30916,7 +30916,7 @@ description   = <string>
 
 Believe it or not, but some people who use Gnus haven't really used
 Emacs much before they embarked on their journey on the Gnus Love Boat.
-If you are one of those unfortunates whom ``@kbd{C-M-a}'', ``kill the
+If you are one of those unfortunates to whom ``@kbd{C-M-a}'', ``kill the
 region'', and ``set @code{gnus-flargblossen} to an alist where the key
 is a regexp that is used for matching on the group name'' are magical
 phrases with little or no meaning, then this appendix is for you.  If

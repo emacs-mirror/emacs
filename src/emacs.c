@@ -1243,6 +1243,7 @@ main (int argc, char **argv)
   if (! (lc_all && strcmp (lc_all, "C") == 0))
     {
       #ifdef HAVE_NS
+        ns_pool = ns_alloc_autorelease_pool ();
         ns_init_locale ();
       #endif
       setlocale (LC_ALL, "");
@@ -1612,8 +1613,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
 #ifdef HAVE_NS
-  ns_pool = ns_alloc_autorelease_pool ();
-
   if (!noninteractive)
     {
 #ifdef NS_IMPL_COCOA
@@ -1965,7 +1964,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* This calls putenv and so must precede init_process_emacs.  */
   init_timefns ();
 
-  /* This sets Voperating_system_release, which init_process_emacs uses.  */
   init_editfns ();
 
   /* These two call putenv.  */

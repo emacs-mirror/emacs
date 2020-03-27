@@ -4416,10 +4416,8 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 
 
 void
-font_fill_lglyph_metrics (Lisp_Object glyph, Lisp_Object font_object)
+font_fill_lglyph_metrics (Lisp_Object glyph, struct font *font, unsigned int code)
 {
-  struct font *font = XFONT_OBJECT (font_object);
-  unsigned code = font->driver->encode_char (font, LGLYPH_CHAR (glyph));
   struct font_metrics metrics;
 
   LGLYPH_SET_CODE (glyph, code);
@@ -4608,10 +4606,10 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       Lisp_Object window;
       struct window *w;
 
-      CHECK_FIXNUM_COERCE_MARKER (position);
-      if (! (BEGV <= XFIXNUM (position) && XFIXNUM (position) < ZV))
+      EMACS_INT fixed_pos = fix_position (position);
+      if (! (BEGV <= fixed_pos && fixed_pos < ZV))
 	args_out_of_range_3 (position, make_fixnum (BEGV), make_fixnum (ZV));
-      pos = XFIXNUM (position);
+      pos = fixed_pos;
       pos_byte = CHAR_TO_BYTE (pos);
       if (NILP (ch))
 	c = FETCH_CHAR (pos_byte);
@@ -5015,24 +5013,26 @@ character at index specified by POSITION.  */)
   (Lisp_Object position, Lisp_Object window, Lisp_Object string)
 {
   struct window *w = decode_live_window (window);
+  EMACS_INT pos;
 
   if (NILP (string))
     {
       if (XBUFFER (w->contents) != current_buffer)
 	error ("Specified window is not displaying the current buffer");
-      CHECK_FIXNUM_COERCE_MARKER (position);
-      if (! (BEGV <= XFIXNUM (position) && XFIXNUM (position) < ZV))
+      pos = fix_position (position);
+      if (! (BEGV <= pos && pos < ZV))
 	args_out_of_range_3 (position, make_fixnum (BEGV), make_fixnum (ZV));
     }
   else
     {
       CHECK_FIXNUM (position);
       CHECK_STRING (string);
-      if (! (0 <= XFIXNUM (position) && XFIXNUM (position) < SCHARS (string)))
+      pos = XFIXNUM (position);
+      if (! (0 <= pos && pos < SCHARS (string)))
 	args_out_of_range (string, position);
     }
 
-  return font_at (-1, XFIXNUM (position), NULL, w, string);
+  return font_at (-1, pos, NULL, w, string);
 }
 
 #if 0

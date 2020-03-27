@@ -9,3 +9,6 @@
   void (*set_function_finalizer) (emacs_env *env, emacs_value arg,
                                   void (*fin) (void *) EMACS_NOEXCEPT)
     EMACS_ATTRIBUTE_NONNULL (1);
+
+  int (*open_channel) (emacs_env *env, emacs_value pipe_process)
+    EMACS_ATTRIBUTE_NONNULL (1);

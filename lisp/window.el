@@ -278,6 +278,24 @@ displays the buffer specified by BUFFER-OR-NAME before running BODY."
 	     (funcall ,vquit-function ,window ,value)
 	   ,value)))))
 
+(defmacro with-window-non-dedicated (window &rest body)
+  "Evaluate BODY with WINDOW temporarily made non-dedicated.
+If WINDOW is nil, use the selected window.  Return the value of
+the last form in BODY."
+  (declare (indent 1) (debug t))
+  (let ((window-dedicated-sym (gensym))
+        (window-sym (gensym)))
+    `(let* ((,window-sym (window-normalize-window ,window t))
+            (,window-dedicated-sym (window-dedicated-p ,window-sym)))
+       (set-window-dedicated-p ,window-sym nil)
+       (unwind-protect
+           (progn ,@body)
+         ;; `window-dedicated-p' returns the value set by
+         ;; `set-window-dedicated-p', which differentiates non-nil and
+         ;; t, so we cannot simply use t here. That's why we use
+         ;; `window-dedicated-sym'.
+         (set-window-dedicated-p ,window-sym ,window-dedicated-sym)))))
+
 ;; The following two functions are like `window-next-sibling' and
 ;; `window-prev-sibling' but the WINDOW argument is _not_ optional (so
 ;; they don't substitute the selected window for nil), and they return
@@ -3911,7 +3929,7 @@ TOP RIGHT BOTTOM) as returned by `window-edges'."
   (setq frame (window-normalize-frame frame))
   (window--subtree (frame-root-window frame) t))
 
-(defun other-window (count &optional all-frames)
+(defun other-window (count &optional all-frames interactive)
   "Select another window in cyclic ordering of windows.
 COUNT specifies the number of windows to skip, starting with the
 selected window, before making the selection.  If COUNT is
@@ -3931,7 +3949,7 @@ This function uses `next-window' for finding the window to
 select.  The argument ALL-FRAMES has the same meaning as in
 `next-window', but the MINIBUF argument of `next-window' is
 always effectively nil."
-  (interactive "p")
+  (interactive "p\ni\np")
   (let* ((window (selected-window))
          (original-window window)
 	 (function (and (not ignore-window-parameters)
@@ -3977,7 +3995,8 @@ always effectively nil."
 	    (setq count (1+ count)))))
 
         (when (and (eq window original-window)
-                   (called-interactively-p 'interactive))
+                   interactive
+                   (not (or executing-kbd-macro noninteractive)))
           (message "No other window to select"))
 
 	(select-window window)
@@ -4192,7 +4211,7 @@ that is its frame's root window."
 	;; Always return nil.
 	nil))))
 
-(defun delete-other-windows (&optional window)
+(defun delete-other-windows (&optional window interactive)
   "Make WINDOW fill its frame.
 WINDOW must be a valid window and defaults to the selected one.
 Return nil.
@@ -4209,7 +4228,7 @@ with the root of the atomic window as its argument.  Signal an
 error if that root window is the root window of WINDOW's frame.
 Also signal an error if WINDOW is a side window.  Do not delete
 any window whose `no-delete-other-windows' parameter is non-nil."
-  (interactive)
+  (interactive "i\np")
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
 	 (function (window-parameter window 'delete-other-windows))
@@ -4275,7 +4294,8 @@ any window whose `no-delete-other-windows' parameter is non-nil."
       (if (eq window main)
           ;; Give a message to the user if this has been called as a
           ;; command.
-          (when (called-interactively-p 'interactive)
+          (when (and interactive
+                     (not (or executing-kbd-macro noninteractive)))
             (message "No other windows to delete"))
 	(delete-other-windows-internal window main)
 	(window--check frame))
@@ -4838,11 +4858,11 @@ displayed there."
   (interactive)
   (switch-to-buffer (last-buffer)))
 
-(defun next-buffer (&optional arg)
+(defun next-buffer (&optional arg interactive)
   "In selected window switch to ARGth next buffer.
 Call `switch-to-next-buffer' unless the selected window is the
 minibuffer window or is dedicated to its buffer."
-  (interactive "p")
+  (interactive "p\np")
   (cond
    ((window-minibuffer-p)
     (user-error "Cannot switch buffers in minibuffer window"))
@@ -4851,14 +4871,15 @@ minibuffer window or is dedicated to its buffer."
    (t
     (dotimes (_ (or arg 1))
       (when (and (not (switch-to-next-buffer))
-                 (called-interactively-p 'interactive))
+                 interactive
+                 (not (or executing-kbd-macro noninteractive)))
         (user-error "No next buffer"))))))
 
-(defun previous-buffer (&optional arg)
+(defun previous-buffer (&optional arg interactive)
   "In selected window switch to ARGth previous buffer.
 Call `switch-to-prev-buffer' unless the selected window is the
 minibuffer window or is dedicated to its buffer."
-  (interactive "p")
+  (interactive "p\np")
   (cond
    ((window-minibuffer-p)
     (user-error "Cannot switch buffers in minibuffer window"))
@@ -4867,7 +4888,8 @@ minibuffer window or is dedicated to its buffer."
    (t
     (dotimes (_ (or arg 1))
       (when (and (not (switch-to-prev-buffer))
-                 (called-interactively-p 'interactive))
+                 interactive
+                 (not (or executing-kbd-macro noninteractive)))
         (user-error "No previous buffer"))))))
 
 (defun delete-windows-on (&optional buffer-or-name frame)
@@ -7891,15 +7913,15 @@ Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
 ALIST has to contain a `direction' entry whose value should be
-one of `left', `above' (or `up'), `right' and `below' (or
-'down').  Other values are usually interpreted as `below'.
+one of `left', `above' (or `up'), `right' and `below' (or `down').
+Other values are usually interpreted as `below'.
 
 If ALIST also contains a `window' entry, its value specifies a
 reference window.  That value can be a special symbol like
-'main' (which stands for the selected frame's main window) or
-'root' (standings for the selected frame's root window) or an
+`main' (which stands for the selected frame's main window) or
+`root' (standings for the selected frame's root window) or an
 arbitrary valid window.  Any other value (or omitting the
-'window' entry) means to use the selected window as reference
+`window' entry) means to use the selected window as reference
 window.
 
 This function tries to reuse or split a window such that the
@@ -8806,8 +8828,7 @@ parameters of FRAME."
            (parent (frame-parent frame))
            (monitor-attributes
             (unless parent
-              (car (display-monitor-attributes-list
-                    (frame-parameter frame 'display)))))
+              (frame-monitor-attributes frame)))
            ;; FRAME'S parent or display sizes.  Used in connection
            ;; with margins.
            (geometry
@@ -8816,11 +8837,11 @@ parameters of FRAME."
            (parent-or-display-width
             (if parent
                 (frame-native-width parent)
-              (- (nth 2 geometry) (nth 0 geometry))))
+              (nth 2 geometry)))
            (parent-or-display-height
             (if parent
                 (frame-native-height parent)
-              (- (nth 3 geometry) (nth 1 geometry))))
+              (nth 3 geometry)))
            ;; FRAME's parent or workarea sizes.  Used when no margins
            ;; are specified.
            (parent-or-workarea
@@ -8882,13 +8903,15 @@ parameters of FRAME."
                                 (window--sanitize-margin
                                  (nth 2 margins) left-margin
                                  parent-or-display-width))
-                           (nth 2 parent-or-workarea)))
+                           (+ (nth 0 parent-or-workarea)
+                              (nth 2 parent-or-workarea))))
            (bottom-margin (if (nth 3 margins)
                               (- parent-or-display-height
                                  (window--sanitize-margin
                                   (nth 3 margins) top-margin
                                   parent-or-display-height))
-                            (nth 3 parent-or-workarea)))
+                            (+ (nth 1 parent-or-workarea)
+                               (nth 3 parent-or-workarea))))
            ;; Minimum and maximum sizes specified for FRAME.
            (sizes (or (frame-parameter frame 'fit-frame-to-buffer-sizes)
                       fit-frame-to-buffer-sizes))
@@ -9124,8 +9147,8 @@ accessible position."
 	       ;; wider than its frame's pixel width, its height
 	       ;; remains unaltered.
 	       (width (+ (car (window-text-pixel-size
-			       window (window-start) (point-max)
-			       (frame-pixel-width)
+			       window (window-start window) nil
+			       (frame-pixel-width (window-frame window))
 			       ;; Add one line-height to assure that
 			       ;; we're on the safe side.  This
 			       ;; overshoots when the first line below

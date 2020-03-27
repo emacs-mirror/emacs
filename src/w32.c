@@ -3178,17 +3178,8 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       return _futime (fd, &_ut);
     }
   else
-    {
-      struct utimbuf ut;
-
-      ut.actime = timespec[0].tv_sec;
-      ut.modtime = timespec[1].tv_sec;
-      /* Call 'utime', which is implemented below, not the MS library
-	 function, which fails on directories.  */
-      return utime (file, &ut);
-    }
+    return utimensat (fd, file, timespec, 0);
 }
-
 
 /* ------------------------------------------------------------------------- */
 /* IO support and wrapper functions for the Windows API. */
@@ -4320,10 +4311,9 @@ sys_chdir (const char * path)
     }
 }
 
-int
-sys_chmod (const char * path, int mode)
+static int
+chmod_worker (const char * path, int mode)
 {
-  path = chase_symlinks (map_w32_filename (path, NULL));
   if (w32_unicode_filenames)
     {
       wchar_t path_w[MAX_PATH];
@@ -4338,6 +4328,20 @@ sys_chmod (const char * path, int mode)
       filename_to_ansi (path, path_a);
       return _chmod (path_a, mode);
     }
+}
+
+int
+sys_chmod (const char * path, int mode)
+{
+  path = chase_symlinks (map_w32_filename (path, NULL));
+  return chmod_worker (path, mode);
+}
+
+int
+lchmod (const char * path, mode_t mode)
+{
+  path = map_w32_filename (path, NULL);
+  return chmod_worker (path, mode);
 }
 
 int
@@ -4616,6 +4620,28 @@ int
 fchmod (int fd, mode_t mode)
 {
   return 0;
+}
+
+int
+fchmodat (int fd, char const *path, mode_t mode, int flags)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for fchmodat.  */
+  char fullname[MAX_UTF8_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, path)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      path = fullname;
+    }
+
+  return
+    flags == AT_SYMLINK_NOFOLLOW ? lchmod (path, mode) : sys_chmod (path, mode);
 }
 
 int
@@ -4935,7 +4961,7 @@ convert_time (FILETIME ft)
 }
 
 static void
-convert_from_time_t (time_t time, FILETIME * pft)
+convert_from_timespec (struct timespec time, FILETIME * pft)
 {
   ULARGE_INTEGER tmp;
 
@@ -4946,7 +4972,8 @@ convert_from_time_t (time_t time, FILETIME * pft)
     }
 
   /* time in 100ns units since 1-Jan-1601 */
-  tmp.QuadPart = (ULONGLONG) time * 10000000L + utc_base;
+  tmp.QuadPart =
+    (ULONGLONG) time.tv_sec * 10000000L + time.tv_nsec / 100 + utc_base;
   pft->dwHighDateTime = tmp.HighPart;
   pft->dwLowDateTime = tmp.LowPart;
 }
@@ -5613,8 +5640,8 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
   return stat_worker (name, st, ! (flags & AT_SYMLINK_NOFOLLOW));
 }
 
-/* Provide fstat and utime as well as stat for consistent handling of
-   file timestamps. */
+/* Provide fstat and utimensat as well as stat for consistent handling
+   of file timestamps. */
 int
 fstat (int desc, struct stat * buf)
 {
@@ -5725,23 +5752,65 @@ fstat (int desc, struct stat * buf)
   return 0;
 }
 
-/* A version of 'utime' which handles directories as well as
-   files.  */
+/* Emulate utimensat.  */
 
 int
-utime (const char *name, struct utimbuf *times)
+utimensat (int fd, const char *name, const struct timespec times[2], int flag)
 {
-  struct utimbuf deftime;
+  struct timespec ltimes[2];
   HANDLE fh;
   FILETIME mtime;
   FILETIME atime;
+  DWORD flags_and_attrs = FILE_FLAG_BACKUP_SEMANTICS;
+
+  /* Rely on a hack: an open directory is modeled as file descriptor 0.
+     This is good enough for the current usage in Emacs, but is fragile.
+
+     FIXME: Add proper support for utimensat.
+     Gnulib does this and can serve as a model.  */
+  char fullname[MAX_UTF8_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      char lastc = dir_pathname[strlen (dir_pathname) - 1];
+
+      if (_snprintf (fullname, sizeof fullname, "%s%s%s",
+		     dir_pathname, IS_DIRECTORY_SEP (lastc) ? "" : "/", name)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      name = fullname;
+    }
 
   if (times == NULL)
     {
-      deftime.modtime = deftime.actime = time (NULL);
-      times = &deftime;
+      memset (ltimes, 0, sizeof (ltimes));
+      ltimes[0] = ltimes[1] = current_timespec ();
+    }
+  else
+    {
+      if (times[0].tv_nsec == UTIME_OMIT && times[1].tv_nsec == UTIME_OMIT)
+	return 0;		/* nothing to do */
+      if ((times[0].tv_nsec != UTIME_NOW && times[0].tv_nsec != UTIME_OMIT
+	   && !(0 <= times[0].tv_nsec && times[0].tv_nsec < 1000000000))
+	  || (times[1].tv_nsec != UTIME_NOW && times[1].tv_nsec != UTIME_OMIT
+	      && !(0 <= times[1].tv_nsec && times[1].tv_nsec < 1000000000)))
+	{
+	  errno = EINVAL;	/* reject invalid timespec values */
+	  return -1;
+	}
+
+      memcpy (ltimes, times, sizeof (ltimes));
+      if (ltimes[0].tv_nsec == UTIME_NOW)
+	ltimes[0] = current_timespec ();
+      if (ltimes[1].tv_nsec == UTIME_NOW)
+	ltimes[1] = current_timespec ();
     }
 
+  if (flag == AT_SYMLINK_NOFOLLOW)
+    flags_and_attrs |= FILE_FLAG_OPEN_REPARSE_POINT;
   if (w32_unicode_filenames)
     {
       wchar_t name_utf16[MAX_PATH];
@@ -5755,7 +5824,7 @@ utime (const char *name, struct utimbuf *times)
 			   allows other processes to delete files inside it,
 			   while we have the directory open.  */
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			0, OPEN_EXISTING, flags_and_attrs, NULL);
     }
   else
     {
@@ -5766,13 +5835,26 @@ utime (const char *name, struct utimbuf *times)
 
       fh = CreateFileA (name_ansi, FILE_WRITE_ATTRIBUTES,
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			0, OPEN_EXISTING, flags_and_attrs, NULL);
     }
   if (fh != INVALID_HANDLE_VALUE)
     {
-      convert_from_time_t (times->actime, &atime);
-      convert_from_time_t (times->modtime, &mtime);
-      if (!SetFileTime (fh, NULL, &atime, &mtime))
+      FILETIME *patime, *pmtime;
+      if (ltimes[0].tv_nsec == UTIME_OMIT)
+	patime = NULL;
+      else
+	{
+	  convert_from_timespec (ltimes[0], &atime);
+	  patime = &atime;
+	}
+      if (ltimes[1].tv_nsec == UTIME_OMIT)
+	pmtime = NULL;
+      else
+	{
+	  convert_from_timespec (ltimes[1], &mtime);
+	  pmtime = &mtime;
+	}
+      if (!SetFileTime (fh, NULL, patime, pmtime))
 	{
 	  CloseHandle (fh);
 	  errno = EACCES;
@@ -6691,16 +6773,16 @@ w32_copy_file (const char *from, const char *to,
      FIXME?  */
   else if (!keep_time)
     {
-      struct timespec now;
+      struct timespec tnow[2];
       DWORD attributes;
 
+      tnow[0] = tnow[1] = current_timespec ();
       if (w32_unicode_filenames)
 	{
 	  /* Ensure file is writable while its times are set.  */
 	  attributes = GetFileAttributesW (to_w);
 	  SetFileAttributesW (to_w, attributes & ~FILE_ATTRIBUTE_READONLY);
-	  now = current_timespec ();
-	  if (set_file_times (-1, to, now, now))
+	  if (utimensat (AT_FDCWD, to, tnow, 0))
 	    {
 	      /* Restore original attributes.  */
 	      SetFileAttributesW (to_w, attributes);
@@ -6715,8 +6797,7 @@ w32_copy_file (const char *from, const char *to,
 	{
 	  attributes = GetFileAttributesA (to_a);
 	  SetFileAttributesA (to_a, attributes & ~FILE_ATTRIBUTE_READONLY);
-	  now = current_timespec ();
-	  if (set_file_times (-1, to, now, now))
+	  if (utimensat (AT_FDCWD, to, tnow, 0))
 	    {
 	      SetFileAttributesA (to_a, attributes);
 	      if (acl)

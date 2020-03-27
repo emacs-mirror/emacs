@@ -1220,14 +1220,34 @@ is non-nil."
   "Return the administrative directory of FILE."
   (vc-find-root file "CVS"))
 
-(defun vc-cvs-ignore (file &optional _directory _remove)
-  "Ignore FILE under CVS."
-  (vc-cvs-append-to-ignore (file-name-directory file) file))
+(defun vc-cvs-ignore (file &optional directory _remove)
+  "Ignore FILE under CVS.
+FILE is either absolute or relative to DIRECTORY.  The non-directory
+part of FILE is written unmodified into the ignore file and is
+therefore evaluated by CVS as an ignore pattern which follows
+glob(7) syntax.  If the pattern should match any of the special
+characters `?*[\\' literally, they must be escaped with a
+backslash.
 
-(defun vc-cvs-append-to-ignore (dir str &optional old-dir)
+CVS processes one ignore file for each subdirectory.  Patterns
+are separated by whitespace and only match files in the same
+directory.  Since FILE can be a relative filename with leading
+directories, FILE is expanded against DIRECTORY to determine the
+correct absolute filename.  The directory part of the resulting name
+is then used to determine the location of the ignore file.  The
+non-directory part of the name is used as pattern for the ignore file.
+
+Since patterns are whitespace-separated, filenames containing spaces
+cannot be represented directly.  A work-around is to replace such
+spaces with question marks."
+  (setq file (directory-file-name (expand-file-name file directory)))
+  (vc-cvs-append-to-ignore (file-name-directory file) (file-name-nondirectory file)))
+
+(defun vc-cvs-append-to-ignore (dir str &optional old-dir sort)
   "In DIR, add STR to the .cvsignore file.
 If OLD-DIR is non-nil, then this is a directory that we don't want
-to hear about anymore."
+to hear about anymore.  If SORT is non-nil, sort the lines of the
+ignore file."
   (with-current-buffer
       (find-file-noselect (expand-file-name ".cvsignore" dir))
     (when (ignore-errors
@@ -1236,13 +1256,13 @@ to hear about anymore."
 		 (not (vc-editable-p buffer-file-name))))
       ;; CVSREAD=on special case
       (vc-checkout buffer-file-name t))
-    (goto-char (point-max))
-    (unless (bolp) (insert "\n"))
-    (insert str (if old-dir "/\n" "\n"))
-    ;; FIXME this is a pcvs variable.
-    (if (bound-and-true-p cvs-sort-ignore-file)
-        (sort-lines nil (point-min) (point-max)))
-    (save-buffer)))
+    (goto-char (point-min))
+    (save-match-data
+      (unless (re-search-forward (concat "^" (regexp-quote str) "$") nil 'move)
+        (unless (bolp) (insert "\n"))
+        (insert str (if old-dir "/\n" "\n"))
+        (if sort (sort-lines nil (point-min) (point-max)))
+        (save-buffer)))))
 
 (provide 'vc-cvs)
 

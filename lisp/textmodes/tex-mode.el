@@ -465,7 +465,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 ;    ("{\\\\bf\\([^}]+\\)}" 1 'bold keep)
 ;    ("{\\\\\\(em\\|it\\|sl\\)\\([^}]+\\)}" 2 'italic keep)
 ;    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
-;    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
+;    ("^[ \t\n]*\\\\def[\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
 ;  ;; Rewritten and extended for LaTeX2e by Ulrik Dickow <dickow@nbi.dk>.
 ;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
 ;     2 font-lock-function-name-face)
@@ -1252,10 +1252,10 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
                  ("\\\\[a-zA-Z]+\\( +\\|{}\\)[a-zA-Z]*" . "")
                  ("%" . "$"))))
   ;; A line containing just $$ is treated as a paragraph separator.
-  (setq-local paragraph-start "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$")
+  (setq-local paragraph-start "[ \t]*$\\|[\f\\%]\\|[ \t]*\\$\\$")
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
-  (setq-local paragraph-separate "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$[ \t]*$")
+  (setq-local paragraph-separate "[ \t]*$\\|[\f\\%]\\|[ \t]*\\$\\$[ \t]*$")
   (setq-local add-log-current-defun-function #'tex-current-defun-name)
   (setq-local comment-start "%")
   (setq-local comment-add 1)

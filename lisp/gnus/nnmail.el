@@ -1953,12 +1953,14 @@ If TIME is nil, then return the cutoff time for oldness instead."
       (unless (re-search-forward "^Message-ID[ \t]*:" nil t)
 	(insert "Message-ID: " (nnmail-message-id) "\n")))))
 
-(defun nnmail-write-region (start end filename &optional append visit lockname)
+(defun nnmail-write-region (start end filename
+				  &optional append visit lockname mustbenew)
   "Do a `write-region', and then set the file modes."
   (let ((coding-system-for-write nnmail-file-coding-system)
 	(file-name-coding-system nnmail-pathname-coding-system))
-    (write-region start end filename append visit lockname)
-    (set-file-modes filename nnmail-default-file-modes)))
+    (write-region start end filename append visit lockname mustbenew)
+    (set-file-modes filename nnmail-default-file-modes
+		    (when (eq mustbenew 'excl) 'nofollow))))
 
 ;;;
 ;;; Status functions

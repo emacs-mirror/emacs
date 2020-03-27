@@ -1285,9 +1285,9 @@ This class is defined in the package @file{eieio-base}.
 Sometimes it is useful to keep a master list of all instances of a given
 class.  The class @code{eieio-instance-tracker} performs this task.
 
-@deftp {Class} eieio-instance-tracker tracker-symbol
+@deftp {Class} eieio-instance-tracker tracking-symbol
 Enable instance tracking for this class.
-The slot @var{tracker-symbol} should be initialized in inheritors of
+The slot @var{tracking-symbol} should be initialized in inheritors of
 this class to a symbol created with @code{defvar}.  This symbol will
 serve as the variable used as a master list of all objects of the given
 class.

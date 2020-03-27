@@ -7,10 +7,12 @@
 
 (defvar speedbar-version "1.0"
   "The current version of speedbar.")
+(make-obsolete-variable 'speedbar-version nil "28.1")
 (defvar speedbar-incompatible-version "0.14beta4"
   "This version of speedbar is incompatible with this version.
 Due to massive API changes (removing the use of the word PATH)
 this version is not backward compatible to 0.14 or earlier.")
+(make-obsolete-variable 'speedbar-incompatible-version nil "28.1")
 
 ;; This file is part of GNU Emacs.
 
@@ -1077,7 +1079,7 @@ in the selected file.
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
     (make-local-variable 'frame-title-format)
-    (setq frame-title-format (concat "Speedbar " speedbar-version)
+    (setq frame-title-format "Speedbar"
 	  case-fold-search nil
 	  buffer-read-only t)
     (speedbar-set-mode-line-format)

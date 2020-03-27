@@ -10,7 +10,7 @@
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: IRC, chat, client, Internet
 
 ;; Version: 5.3
@@ -75,7 +75,7 @@
 (eval-when-compile (require 'subr-x))
 
 (defvar erc-official-location
-  "https://www.emacswiki.org/emacs/ERC (mailing list: erc-discuss@gnu.org)"
+  "https://www.emacswiki.org/emacs/ERC (mailing list: emacs-erc@gnu.org)"
   "Location of the ERC client on the Internet.")
 
 (defgroup erc nil

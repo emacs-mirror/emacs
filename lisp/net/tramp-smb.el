@@ -538,10 +538,11 @@ pass to the OPERATION."
 
 	    ;; Handle KEEP-DATE argument.
 	    (when keep-date
-	      (set-file-times
+	      (tramp-compat-set-file-times
 	       newname
 	       (tramp-compat-file-attribute-modification-time
-		(file-attributes dirname))))
+		(file-attributes dirname))
+	       (unless ok-if-already-exists 'nofollow)))
 
 	    ;; Set the mode.
 	    (unless keep-date
@@ -616,10 +617,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
     ;; KEEP-DATE handling.
     (when keep-date
-      (set-file-times
+      (tramp-compat-set-file-times
        newname
        (tramp-compat-file-attribute-modification-time
-	(file-attributes filename))))))
+	(file-attributes filename))
+       (unless ok-if-already-exists 'nofollow)))))
 
 (defun tramp-smb-handle-delete-directory (directory &optional recursive _trash)
   "Like `delete-directory' for Tramp files."
@@ -1464,15 +1466,17 @@ component is used as the target of the symlink."
 	    (tramp-flush-connection-property v "process-name")
 	    (tramp-flush-connection-property v "process-buffer")))))))
 
-(defun tramp-smb-handle-set-file-modes (filename mode)
+(defun tramp-smb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-smb-get-cifs-capabilities v)
-      (tramp-flush-file-properties v localname)
-      (unless (tramp-smb-send-command
-	       v (format "chmod \"%s\" %o" (tramp-smb-get-localname v) mode))
-	(tramp-error
-	 v 'file-error "Error while changing file's mode %s" filename)))))
+    ;; smbclient chmod does not support nofollow.
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (when (tramp-smb-get-cifs-capabilities v)
+	(tramp-flush-file-properties v localname)
+	(unless (tramp-smb-send-command
+		 v (format "chmod \"%s\" %o" (tramp-smb-get-localname v) mode))
+	  (tramp-error
+	   v 'file-error "Error while changing file's mode %s" filename))))))
 
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once

@@ -661,7 +661,7 @@ void
 lock_file (Lisp_Object fn)
 {
   Lisp_Object orig_fn, encoded_fn;
-  char *lfname;
+  char *lfname = NULL;
   lock_info_type lock_info;
   USE_SAFE_ALLOCA;
 
@@ -680,28 +680,22 @@ lock_file (Lisp_Object fn)
   dostounix_filename (SSDATA (fn));
 #endif
   encoded_fn = ENCODE_FILE (fn);
+  if (create_lockfiles)
+    /* Create the name of the lock-file for file fn */
+    MAKE_LOCK_NAME (lfname, encoded_fn);
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
-  {
-    register Lisp_Object subject_buf;
-
-    subject_buf = get_truename_buffer (orig_fn);
-
-    if (!NILP (subject_buf)
-	&& NILP (Fverify_visited_file_modtime (subject_buf))
-	&& !NILP (Ffile_exists_p (fn)))
-      call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
-
-  }
+  Lisp_Object subject_buf = get_truename_buffer (orig_fn);
+  if (!NILP (subject_buf)
+      && NILP (Fverify_visited_file_modtime (subject_buf))
+      && !NILP (Ffile_exists_p (fn))
+      && !(lfname && current_lock_owner (NULL, lfname) == -2))
+    call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
   /* Don't do locking if the user has opted out.  */
-  if (create_lockfiles)
+  if (lfname)
     {
-
-      /* Create the name of the lock-file for file fn */
-      MAKE_LOCK_NAME (lfname, encoded_fn);
-
       /* Try to lock the lock.  FIXME: This ignores errors when
 	 lock_if_free returns a positive errno value.  */
       if (lock_if_free (&lock_info, lfname) < 0)
@@ -860,7 +854,7 @@ syms_of_filelock (void)
 The name of the (per-buffer) lockfile is constructed by prepending a
 '.#' to the name of the file being locked.  See also `lock-buffer' and
 Info node `(emacs)Interlocking'.  */);
-  create_lockfiles = 1;
+  create_lockfiles = true;
 
   defsubr (&Sunlock_buffer);
   defsubr (&Slock_buffer);

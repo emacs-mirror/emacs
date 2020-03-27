@@ -33,8 +33,8 @@ GNULIB_MODULES='
   crypto/md5-buffer crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
   d-type diffseq dosname double-slash-root dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
-  fcntl fcntl-h fdopendir
-  filemode filevercmp flexmember fpieee fstatat fsusage fsync
+  fchmodat fcntl fcntl-h fdopendir
+  filemode filevercmp flexmember fpieee fstatat fsusage fsync futimens
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile lstat
   manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime nstrftime
@@ -43,7 +43,7 @@ GNULIB_MODULES='
   sig2str socklen stat-time std-gnu11 stdalign stddef stdio
   stpcpy strnlen strtoimax symlink sys_stat sys_time
   tempname time time_r time_rz timegm timer-time timespec-add timespec-sub
-  update-copyright unlocked-io utimens
+  update-copyright unlocked-io utimensat
   vla warnings
 '
 

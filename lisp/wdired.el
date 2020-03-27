@@ -4,7 +4,7 @@
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
-;; Version: 2.0
+;; Old-Version: 2.0
 ;; Keywords: dired, environment, files, renaming
 
 ;; This file is part of GNU Emacs.
@@ -640,6 +640,7 @@ Optional arguments are ignored."
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "^p")
+  (setq this-command 'next-line)       ;Let `line-move' preserve the column.
   (with-no-warnings (next-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
@@ -653,6 +654,7 @@ says how many lines to move; default is one line."
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "^p")
+  (setq this-command 'previous-line)       ;Let `line-move' preserve the column.
   (with-no-warnings (previous-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement

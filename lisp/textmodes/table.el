@@ -2914,16 +2914,17 @@ WHERE is provided the cell and table at that location is reported."
 (defun table-generate-source (language &optional dest-buffer caption)
   "Generate source of the current table in the specified language.
 LANGUAGE is a symbol that specifies the language to describe the
-structure of the table.  It must be either `html', `latex' or `cals'.
-The resulted source text is inserted into DEST-BUFFER and the buffer
-object is returned.  When DEST-BUFFER is omitted or nil the default
-buffer specified in `table-dest-buffer-name' is used.  In this case
-the content of the default buffer is erased prior to the generation.
-When DEST-BUFFER is non-nil it is expected to be either a destination
-buffer or a name of the destination buffer.  In this case the
-generated result is inserted at the current point in the destination
-buffer and the previously existing contents in the buffer are
-untouched.
+structure of the table.  It must be either `html', `latex', `cals',
+`wiki', or `mediawiki'.
+The function inserts the resulting source text into DEST-BUFFER, and
+returns the buffer object.  When DEST-BUFFER is omitted or nil, the
+function uses the default buffer specified in `table-dest-buffer-name'.
+In this case, the function erases the default buffer prior to the
+source generation.
+When DEST-BUFFER is non-nil, it should be either a destination
+buffer or a name of the destination buffer.  In that case, the
+function inserts the generated result at point in the destination
+buffer, and leaves the previous contents of the buffer untouched.
 
 References used for this implementation:
 

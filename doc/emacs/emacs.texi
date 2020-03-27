@@ -785,6 +785,7 @@ GDB Graphical Interface
 Maintaining Large Programs
 
 * Version Control::     Using version control systems.
+* Projects::            Commands for handling source files in a project.
 * Change Log::          Maintaining a change history for your program.
 * Xref::                Find definitions and references of any function,
                           method, struct, macro, @dots{} in your program.

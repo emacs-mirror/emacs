@@ -1649,6 +1649,15 @@ white space either before or after the operator, but not both."
   :type 'boolean
   :group 'c)
 
+(defcustom c-cpp-indent-to-body-directives '("pragma")
+  "Preprocessor directives which will be indented as statements.
+
+A list of Preprocessor directives which when reindented, or newly
+typed in, will cause the \"#\" introducing the directive to be
+indented as a statement."
+  :type '(repeat string)
+  :group 'c)
+
 ;; Initialize the next two to a regexp which never matches.
 (defvar c-noise-macro-with-parens-name-re regexp-unmatchable)
 (make-variable-buffer-local 'c-noise-macro-with-parens-name-re)

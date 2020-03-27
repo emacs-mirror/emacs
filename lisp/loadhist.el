@@ -173,7 +173,7 @@ documentation of `unload-feature' for details.")
 ;; we undefine it.
 ;; So we use this auxiliary variable to keep track of the last (t . SYMBOL)
 ;; that occurred.
-(defvar loadhist--restore-autoload
+(defvar loadhist--restore-autoload nil
   "If non-nil, this is a symbol for which we should
 restore a previous autoload if possible.")
 

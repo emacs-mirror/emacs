@@ -3264,7 +3264,7 @@ that deletion fails for whatever reason, the child frame is made a
 top-level frame.
 
   Whether a child frame can have a menu or tool bar is window-system or
-window manager dependent.  Most window-systems explicitly disallow menus
+window manager dependent.  Most window-systems explicitly disallow menu
 bars for child frames.  It seems advisable to disable both, menu and
 tool bars, via the frame's initial parameters settings.
 

@@ -70,7 +70,9 @@ any further elements added."
 	      (height . ,height)
 	      (version . "1.1")
 	      (xmlns . "http://www.w3.org/2000/svg")
-	      ,@(svg--arguments nil args))))
+              ,@(unless (plist-get args :xmlns:xlink)
+                  '((xmlns:xlink . "http://www.w3.org/1999/xlink")))
+              ,@(svg--arguments nil args))))
 
 (defun svg-gradient (svg id type stops)
   "Add a gradient with ID to SVG.

@@ -2236,16 +2236,16 @@ the end of @var{question}.  The possible responses are provided in
 @noindent
 where @var{long-answer} is the complete text of the user response, a
 string; @var{short-answer} is a short form of the same response, a
-single character; and @var{help-message} is the text that describes
-the meaning of the answer.  If the variable @code{read-answer-short}
-is non-@code{nil}, the prompt will show the short variants of the
-possible answers and the user is expected to type the single
-characters shown in the prompt; otherwise the prompt will show the
-long variants of the answers, and the user is expected to type the
-full text of one of the answers and end by pressing @key{RET}.  If
-@code{use-dialog-box} is non-@code{nil}, and this function was invoked
-by mouse events, the question and the answers will be displayed in a
-GUI dialog box.
+single character or a function key; and @var{help-message} is the text
+that describes the meaning of the answer.  If the variable
+@code{read-answer-short} is non-@code{nil}, the prompt will show the
+short variants of the possible answers and the user is expected to
+type the single characters/keys shown in the prompt; otherwise the
+prompt will show the long variants of the answers, and the user is
+expected to type the full text of one of the answers and end by
+pressing @key{RET}.  If @code{use-dialog-box} is non-@code{nil}, and
+this function was invoked by mouse events, the question and the
+answers will be displayed in a GUI dialog box.
 
 The function returns the text of the @var{long-answer} selected by the
 user, regardless of whether long or short answers were shown in the

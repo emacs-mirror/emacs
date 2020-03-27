@@ -95,6 +95,7 @@
 #  execinfo \
 #  explicit_bzero \
 #  faccessat \
+#  fchmodat \
 #  fcntl \
 #  fcntl-h \
 #  fdopendir \
@@ -105,6 +106,7 @@
 #  fstatat \
 #  fsusage \
 #  fsync \
+#  futimens \
 #  getloadavg \
 #  getopt-gnu \
 #  gettime \
@@ -154,7 +156,7 @@
 #  timespec-sub \
 #  unlocked-io \
 #  update-copyright \
-#  utimens \
+#  utimensat \
 #  vla \
 #  warnings
 
@@ -886,7 +888,6 @@ REPLACE_GETTIMEOFDAY = @REPLACE_GETTIMEOFDAY@
 REPLACE_GMTIME = @REPLACE_GMTIME@
 REPLACE_INITSTATE = @REPLACE_INITSTATE@
 REPLACE_ISATTY = @REPLACE_ISATTY@
-REPLACE_LCHMOD = @REPLACE_LCHMOD@
 REPLACE_LCHOWN = @REPLACE_LCHOWN@
 REPLACE_LINK = @REPLACE_LINK@
 REPLACE_LINKAT = @REPLACE_LINKAT@
@@ -1083,9 +1084,11 @@ gl_GNULIB_ENABLED_dirfd = @gl_GNULIB_ENABLED_dirfd@
 gl_GNULIB_ENABLED_euidaccess = @gl_GNULIB_ENABLED_euidaccess@
 gl_GNULIB_ENABLED_getdtablesize = @gl_GNULIB_ENABLED_getdtablesize@
 gl_GNULIB_ENABLED_getgroups = @gl_GNULIB_ENABLED_getgroups@
+gl_GNULIB_ENABLED_lchmod = @gl_GNULIB_ENABLED_lchmod@
 gl_GNULIB_ENABLED_malloca = @gl_GNULIB_ENABLED_malloca@
 gl_GNULIB_ENABLED_open = @gl_GNULIB_ENABLED_open@
 gl_GNULIB_ENABLED_strtoll = @gl_GNULIB_ENABLED_strtoll@
+gl_GNULIB_ENABLED_utimens = @gl_GNULIB_ENABLED_utimens@
 gl_LIBOBJS = @gl_LIBOBJS@
 gl_LTLIBOBJS = @gl_LTLIBOBJS@
 gltests_LIBOBJS = @gltests_LIBOBJS@
@@ -1587,6 +1590,17 @@ EXTRA_libgnu_a_SOURCES += at-func.c faccessat.c
 endif
 ## end   gnulib module faccessat
 
+## begin gnulib module fchmodat
+ifeq (,$(OMIT_GNULIB_MODULE_fchmodat))
+
+
+EXTRA_DIST += at-func.c fchmodat.c
+
+EXTRA_libgnu_a_SOURCES += at-func.c fchmodat.c
+
+endif
+## end   gnulib module fchmodat
+
 ## begin gnulib module fcntl
 ifeq (,$(OMIT_GNULIB_MODULE_fcntl))
 
@@ -1720,6 +1734,17 @@ EXTRA_libgnu_a_SOURCES += fsync.c
 
 endif
 ## end   gnulib module fsync
+
+## begin gnulib module futimens
+ifeq (,$(OMIT_GNULIB_MODULE_futimens))
+
+
+EXTRA_DIST += futimens.c
+
+EXTRA_libgnu_a_SOURCES += futimens.c
+
+endif
+## end   gnulib module futimens
 
 ## begin gnulib module getdtablesize
 ifeq (,$(OMIT_GNULIB_MODULE_getdtablesize))
@@ -1936,6 +1961,19 @@ EXTRA_DIST += inttypes.in.h
 
 endif
 ## end   gnulib module inttypes-incomplete
+
+## begin gnulib module lchmod
+ifeq (,$(OMIT_GNULIB_MODULE_lchmod))
+
+ifneq (,$(gl_GNULIB_ENABLED_lchmod))
+
+endif
+EXTRA_DIST += lchmod.c
+
+EXTRA_libgnu_a_SOURCES += lchmod.c
+
+endif
+## end   gnulib module lchmod
 
 ## begin gnulib module libc-config
 ifeq (,$(OMIT_GNULIB_MODULE_libc-config))
@@ -2941,7 +2979,6 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''REPLACE_FSTAT''@|$(REPLACE_FSTAT)|g' \
 	      -e 's|@''REPLACE_FSTATAT''@|$(REPLACE_FSTATAT)|g' \
 	      -e 's|@''REPLACE_FUTIMENS''@|$(REPLACE_FUTIMENS)|g' \
-	      -e 's|@''REPLACE_LCHMOD''@|$(REPLACE_LCHMOD)|g' \
 	      -e 's|@''REPLACE_LSTAT''@|$(REPLACE_LSTAT)|g' \
 	      -e 's|@''REPLACE_MKDIR''@|$(REPLACE_MKDIR)|g' \
 	      -e 's|@''REPLACE_MKFIFO''@|$(REPLACE_MKFIFO)|g' \
@@ -3351,12 +3388,25 @@ endif
 ## begin gnulib module utimens
 ifeq (,$(OMIT_GNULIB_MODULE_utimens))
 
+ifneq (,$(gl_GNULIB_ENABLED_utimens))
 libgnu_a_SOURCES += utimens.c
 
+endif
 EXTRA_DIST += utimens.h
 
 endif
 ## end   gnulib module utimens
+
+## begin gnulib module utimensat
+ifeq (,$(OMIT_GNULIB_MODULE_utimensat))
+
+
+EXTRA_DIST += at-func.c utimensat.c
+
+EXTRA_libgnu_a_SOURCES += at-func.c utimensat.c
+
+endif
+## end   gnulib module utimensat
 
 ## begin gnulib module verify
 ifeq (,$(OMIT_GNULIB_MODULE_verify))

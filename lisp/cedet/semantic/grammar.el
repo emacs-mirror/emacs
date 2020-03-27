@@ -1306,7 +1306,7 @@ the change bounds to encompass the whole nonterminal tag."
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
   (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (set (make-local-variable 'indent-line-function)
        'semantic-grammar-indent)
   (set (make-local-variable 'fill-paragraph-function)

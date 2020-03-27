@@ -944,7 +944,7 @@ it is displayed along with the global value."
     (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
     (unless (frame-live-p frame) (setq frame (selected-frame)))
     (if (not (symbolp variable))
-	(message "You did not specify a variable")
+	(user-error "You didn't specify a variable")
       (save-excursion
 	(let ((valvoid (not (with-current-buffer buffer (boundp variable))))
 	      val val-start-pos locus)
@@ -968,7 +968,7 @@ it is displayed along with the global value."
                                    " is a variable defined in `%s'.\n"
                                    (if (eq file-name 'C-source)
                                        "C source code"
-                                     (file-name-nondirectory file-name))))
+                                     (help-fns-short-filename file-name))))
 		           (with-current-buffer standard-output
 		             (save-excursion
 			       (re-search-backward (substitute-command-keys
@@ -1000,6 +1000,8 @@ it is displayed along with the global value."
 		    (terpri)
                     (let ((buf (current-buffer)))
                       (with-temp-buffer
+                        (lisp-mode-variables nil)
+                        (set-syntax-table emacs-lisp-mode-syntax-table)
                         (insert print-rep)
                         (pp-buffer)
                         (let ((pp-buffer (current-buffer)))
@@ -1350,7 +1352,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (setq file-name (find-lisp-object-file-name f 'defface))
 	      (when file-name
 		(princ (substitute-command-keys "Defined in `"))
-		(princ (file-name-nondirectory file-name))
+		(princ (help-fns-short-filename file-name))
 		(princ (substitute-command-keys "'"))
 		;; Make a hyperlink to the library.
 		(save-excursion
@@ -1433,7 +1435,7 @@ current buffer and the selected frame, respectively."
 				t nil nil
 				(if found (symbol-name v-or-f)))))
      (list (if (equal val "")
-	       v-or-f (intern val)))))
+	       (or v-or-f "") (intern val)))))
   (if (not (symbolp symbol))
       (user-error "You didn't specify a function or variable"))
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
@@ -1642,7 +1644,7 @@ keymap value."
                       " defined in `%s'.\n\n"
                       (if (eq file-name 'C-source)
                           "C source code"
-                        (file-name-nondirectory file-name))))
+                        (help-fns-short-filename file-name))))
               (save-excursion
                 (re-search-backward (substitute-command-keys
                                      "`\\([^`']+\\)'")
@@ -1658,7 +1660,115 @@ keymap value."
     ;; Cleanup.
     (when used-gentemp
       (makunbound keymap))))
+
+;;;###autoload
+(defun describe-mode (&optional buffer)
+  "Display documentation of current major mode and minor modes.
+A brief summary of the minor modes comes first, followed by the
+major mode description.  This is followed by detailed
+descriptions of the minor modes, each on a separate page.
 
+For this to work correctly for a minor mode, the mode's indicator
+variable \(listed in `minor-mode-alist') must also be a function
+whose documentation describes the minor mode.
+
+If called from Lisp with a non-nil BUFFER argument, display
+documentation for the major and minor modes of that buffer."
+  (interactive "@")
+  (unless buffer (setq buffer (current-buffer)))
+  (help-setup-xref (list #'describe-mode buffer)
+		   (called-interactively-p 'interactive))
+  ;; For the sake of help-do-xref and help-xref-go-back,
+  ;; don't switch buffers before calling `help-buffer'.
+  (with-help-window (help-buffer)
+    (with-current-buffer buffer
+      (let (minor-modes)
+	;; Older packages do not register in minor-mode-list but only in
+	;; minor-mode-alist.
+	(dolist (x minor-mode-alist)
+	  (setq x (car x))
+	  (unless (memq x minor-mode-list)
+	    (push x minor-mode-list)))
+	;; Find enabled minor mode we will want to mention.
+	(dolist (mode minor-mode-list)
+	  ;; Document a minor mode if it is listed in minor-mode-alist,
+	  ;; non-nil, and has a function definition.
+	  (let ((fmode (or (get mode :minor-mode-function) mode)))
+	    (and (boundp mode) (symbol-value mode)
+		 (fboundp fmode)
+		 (let ((pretty-minor-mode
+			(if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
+					  (symbol-name fmode))
+			    (capitalize
+			     (substring (symbol-name fmode)
+					0 (match-beginning 0)))
+			  fmode)))
+		   (push (list fmode pretty-minor-mode
+			       (format-mode-line (assq mode minor-mode-alist)))
+			 minor-modes)))))
+	;; Narrowing is not a minor mode, but its indicator is part of
+	;; mode-line-modes.
+	(when (buffer-narrowed-p)
+	  (push '(narrow-to-region "Narrow" " Narrow") minor-modes))
+	(setq minor-modes
+	      (sort minor-modes
+		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
+	(when minor-modes
+	  (princ "Enabled minor modes:\n")
+	  (make-local-variable 'help-button-cache)
+	  (with-current-buffer standard-output
+	    (dolist (mode minor-modes)
+	      (let ((mode-function (nth 0 mode))
+		    (pretty-minor-mode (nth 1 mode))
+		    (indicator (nth 2 mode)))
+		(save-excursion
+		  (goto-char (point-max))
+		  (princ "\n\f\n")
+		  (push (point-marker) help-button-cache)
+		  ;; Document the minor modes fully.
+                  (insert-text-button
+                   pretty-minor-mode 'type 'help-function
+                   'help-args (list mode-function)
+                   'button '(t))
+		  (princ (format " minor mode (%s):\n"
+				 (if (zerop (length indicator))
+				     "no indicator"
+				   (format "indicator%s"
+					   indicator))))
+		  (princ (help-split-fundoc (documentation mode-function)
+                                            nil 'doc)))
+		(insert-button pretty-minor-mode
+			       'action (car help-button-cache)
+			       'follow-link t
+			       'help-echo "mouse-2, RET: show full information")
+		(newline)))
+	    (forward-line -1)
+	    (fill-paragraph nil)
+	    (forward-line 1))
+
+	  (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
+	;; Document the major mode.
+	(let ((mode mode-name))
+	  (with-current-buffer standard-output
+            (let ((start (point)))
+              (insert (format-mode-line mode nil nil buffer))
+              (add-text-properties start (point) '(face bold)))))
+	(princ " mode")
+	(let* ((mode major-mode)
+	       (file-name (find-lisp-object-file-name mode nil)))
+	  (when file-name
+	    (princ (format-message " defined in `%s'"
+                                   (help-fns-short-filename file-name)))
+	    ;; Make a hyperlink to the library.
+	    (with-current-buffer standard-output
+	      (save-excursion
+		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
+                                    nil t)
+		(help-xref-button 1 'help-function-def mode file-name)))))
+	(princ ":\n")
+	(princ (help-split-fundoc (documentation major-mode) nil 'doc)))))
+  ;; For the sake of IELM and maybe others
+  nil)
 
 ;;; Replacements for old lib-src/ programs.  Don't seem especially useful.
 

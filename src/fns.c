@@ -2843,7 +2843,7 @@ advisable.  */)
   while (loads-- > 0)
     {
       Lisp_Object load = (NILP (use_floats)
-			  ? make_fixnum (100.0 * load_ave[loads])
+			  ? double_to_integer (100.0 * load_ave[loads])
 			  : make_float (load_ave[loads]));
       ret = Fcons (load, ret);
     }
@@ -5187,22 +5187,8 @@ extract_data_from_object (Lisp_Object spec,
       struct buffer *bp = XBUFFER (object);
       set_buffer_internal (bp);
 
-      if (NILP (start))
-	b = BEGV;
-      else
-	{
-	  CHECK_FIXNUM_COERCE_MARKER (start);
-	  b = XFIXNUM (start);
-	}
-
-      if (NILP (end))
-	e = ZV;
-      else
-	{
-	  CHECK_FIXNUM_COERCE_MARKER (end);
-	  e = XFIXNUM (end);
-	}
-
+      b = !NILP (start) ? fix_position (start) : BEGV;
+      e = !NILP (end) ? fix_position (end) : ZV;
       if (b > e)
 	{
 	  EMACS_INT temp = b;

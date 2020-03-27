@@ -48,7 +48,6 @@
    `(font-lock-comment-face ((,class (:foreground "gray50"))))
    `(font-lock-constant-face ((,class (:foreground "DarkOliveGreen4"))))
    `(font-lock-doc-face ((,class (:foreground "peru"))))
-   `(font-lock-doc-string-face ((,class (:foreground "peru"))))
    `(font-lock-function-name-face ((,class (:foreground "goldenrod3"))))
    `(font-lock-keyword-face ((,class (:foreground "DodgerBlue2"))))
    `(font-lock-preprocessor-face ((,class (:foreground "gold3"))))

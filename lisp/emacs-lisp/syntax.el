@@ -89,33 +89,33 @@ Put first the functions more likely to cause a change and cheaper to compute.")
                (:constructor make-ppss)
                (:copier nil)
                (:type list))
-  (depth nil :documentation "depth in parens")
+  (depth nil :documentation "Depth in parens.")
   (innermost-start
    nil :documentation
-   "character address of start of innermost containing list; nil if none.")
+   "Character address of start of innermost containing list; nil if none.")
   (last-complete-sexp-start
    nil :documentation
-   "character address of start of last complete sexp terminated.")
+   "Character address of start of last complete sexp terminated.")
   (string-terminator nil :documentation "\
-non-nil if inside a string.
-(it is the character that will terminate the string, or t if the
+Non-nil if inside a string.
+\(it is the character that will terminate the string, or t if the
 string should be terminated by a generic string delimiter.)")
-  (comment-nesting nil :documentation "\
+  (comment-depth nil :documentation "\
 nil if outside a comment, t if inside a non-nestable comment,
 else an integer (the current comment nesting).")
-  (after-quote-p nil :documentation "t if following a quote character.")
-  (minimum-paren-depth
-   nil :documentation "the minimum paren-depth encountered during this scan.")
-  (comment-style nil :documentation "style of comment, if any.")
+  (quoted-p nil :documentation "t if following a quote character.")
+  (min-depth
+   nil :documentation "The minimum depth in parens encountered during this scan.")
+  (comment-style nil :documentation "Style of comment, if any.")
   (comment-or-string-start
    nil :documentation
-   "character address of start of comment or string; nil if not in one.")
-  (open-paren-positions
+   "Character address of start of comment or string; nil if not in one.")
+  (open-parens
    nil :documentation
    "List of positions of currently open parens, outermost first.")
   (two-character-syntax nil :documentation "\
 When the last position scanned holds the first character of a
-(potential) two character construct, the syntax of that position,
+\(potential) two character construct, the syntax of that position,
 otherwise nil.  That construct can be a two character comment
 delimiter or an Escaped or Char-quoted character."))
 

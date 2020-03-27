@@ -858,7 +858,7 @@ is a buffer if the buffer-local value of the variable is being
 changed, @code{nil} otherwise.
 @end defun
 
-@defun remove-variable-watch symbol watch-function
+@defun remove-variable-watcher symbol watch-function
 This function removes @var{watch-function} from @var{symbol}'s list of
 watchers.
 @end defun
@@ -1187,8 +1187,14 @@ When evaluating Emacs Lisp code directly using an @code{eval} call,
 lexical binding is enabled if the @var{lexical} argument to
 @code{eval} is non-@code{nil}.  @xref{Eval}.
 
-Lexical binding is also enabled in Lisp Interaction and IELM
-mode, used in the @file{*scratch*} and @file{*ielm*} buffers.
+@findex eval-expression@r{, and }lexical-binding
+Lexical binding is also enabled in Lisp Interaction and IELM mode,
+used in the @file{*scratch*} and @file{*ielm*} buffers, and also when
+evaluating expressions via @kbd{M-:} (@code{eval-expression}) and when
+processing the @option{--eval} command-line options of Emacs
+(@pxref{Action Arguments,,, emacs, The GNU Emacs Manual}) and
+@command{emacsclient} (@pxref{emacsclient Options,,, emacs, The GNU
+Emacs Manual}).
 
 @cindex special variables
   Even when lexical binding is enabled, certain variables will

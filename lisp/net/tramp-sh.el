@@ -1478,17 +1478,24 @@ of."
 	     ;; only if that agrees with the buffer's record.
 	     (t (tramp-compat-time-equal-p mt tramp-time-doesnt-exist)))))))))
 
-(defun tramp-sh-handle-set-file-modes (filename mode)
+(defun tramp-sh-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
-    ;; FIXME: extract the proper text from chmod's stderr.
-    (tramp-barf-unless-okay
-     v
-     (format "chmod %o %s" mode (tramp-shell-quote-argument localname))
-     "Error while changing file's mode %s" filename)))
+    ;; We need "chmod -h" when the flag is set.
+    (when (or (not (eq flag 'nofollow))
+	      (not (file-symlink-p filename))
+	      (tramp-get-remote-chmod-h v))
+      (tramp-flush-file-properties v localname)
+      ;; FIXME: extract the proper text from chmod's stderr.
+      (tramp-barf-unless-okay
+       v
+       (format
+	"chmod %s %o %s"
+	(if (and (eq flag 'nofollow) (tramp-get-remote-chmod-h v)) "-h" "")
+	mode (tramp-shell-quote-argument localname))
+       "Error while changing file's mode %s" filename))))
 
-(defun tramp-sh-handle-set-file-times (filename &optional time)
+(defun tramp-sh-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (when (tramp-get-remote-touch v)
@@ -1501,11 +1508,12 @@ of."
 	       time)))
 	(tramp-send-command-and-check
 	 v (format
-	    "env TZ=UTC %s %s %s"
+	    "env TZ=UTC %s %s %s %s"
 	    (tramp-get-remote-touch v)
 	    (if (tramp-get-connection-property v "touch-t" nil)
 		(format "-t %s" (format-time-string "%Y%m%d%H%M.%S" time t))
 	      "")
+	    (if (eq flag 'nofollow) "-h" "")
 	    (tramp-shell-quote-argument localname)))))))
 
 (defun tramp-sh-handle-set-file-uid-gid (filename &optional uid gid)
@@ -1971,7 +1979,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	    (unless (file-directory-p (file-name-directory newname))
 		(make-directory (file-name-directory newname) parents))
 	    (tramp-do-copy-or-rename-file-out-of-band
-	     'copy dirname newname keep-date))
+	     'copy dirname newname 'ok-if-already-exists keep-date))
 
 	;; We must do it file-wise.
 	(tramp-run-real-handler
@@ -2067,7 +2075,7 @@ file names."
 		   (tramp-method-out-of-band-p v1 length)
 		   (tramp-method-out-of-band-p v2 length))
 		  (tramp-do-copy-or-rename-file-out-of-band
-		   op filename newname keep-date))
+		   op filename newname ok-if-already-exists keep-date))
 
 		 ;; No shortcut was possible.  So we copy the file
 		 ;; first.  If the operation was `rename', we go back
@@ -2080,7 +2088,7 @@ file names."
 		 ;; source and target file.
 		 (t
 		  (tramp-do-copy-or-rename-file-via-buffer
-		   op filename newname keep-date))))))
+		   op filename newname ok-if-already-exists keep-date))))))
 
 	   ;; One file is a Tramp file, the other one is local.
 	   ((or t1 t2)
@@ -2095,11 +2103,11 @@ file names."
 	     ;; corresponding copy-program can be invoked.
 	     ((tramp-method-out-of-band-p v length)
 	      (tramp-do-copy-or-rename-file-out-of-band
-	       op filename newname keep-date))
+	       op filename newname ok-if-already-exists keep-date))
 
 	     ;; Use the inline method via a Tramp buffer.
 	     (t (tramp-do-copy-or-rename-file-via-buffer
-		 op filename newname keep-date))))
+		 op filename newname ok-if-already-exists keep-date))))
 
 	   (t
 	    ;; One of them must be a Tramp file.
@@ -2121,7 +2129,8 @@ file names."
 	    (with-parsed-tramp-file-name newname v2
 	      (tramp-flush-file-properties v2 v2-localname))))))))
 
-(defun tramp-do-copy-or-rename-file-via-buffer (op filename newname keep-date)
+(defun tramp-do-copy-or-rename-file-via-buffer
+    (op filename newname ok-if-already-exists keep-date)
   "Use an Emacs buffer to copy or rename a file.
 First arg OP is either `copy' or `rename' and indicates the operation.
 FILENAME is the source file, NEWNAME the target file.
@@ -2149,10 +2158,11 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
       (insert-file-contents-literally filename)))
   ;; KEEP-DATE handling.
   (when keep-date
-    (set-file-times
+    (tramp-compat-set-file-times
      newname
      (tramp-compat-file-attribute-modification-time
-      (file-attributes filename))))
+      (file-attributes filename))
+     (unless ok-if-already-exists 'nofollow)))
   ;; Set the mode.
   (set-file-modes newname (tramp-default-file-modes filename))
   ;; If the operation was `rename', delete the original file.
@@ -2306,10 +2316,12 @@ the uid and gid from FILENAME."
       ;; Set the time and mode. Mask possible errors.
       (ignore-errors
 	  (when keep-date
-	    (set-file-times newname file-times)
+	    (tramp-compat-set-file-times
+	     newname file-times (unless ok-if-already-exists 'nofollow))
 	    (set-file-modes newname file-modes))))))
 
-(defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
+(defun tramp-do-copy-or-rename-file-out-of-band
+    (op filename newname ok-if-already-exists keep-date)
   "Invoke `scp' program to copy.
 The method used must be an out-of-band method."
   (let* ((t1 (tramp-tramp-file-p filename))
@@ -2332,9 +2344,9 @@ The method used must be an out-of-band method."
 	    (unwind-protect
 		(progn
 		  (tramp-do-copy-or-rename-file-out-of-band
-		   op filename tmpfile keep-date)
+		   op filename tmpfile ok-if-already-exists keep-date)
 		  (tramp-do-copy-or-rename-file-out-of-band
-		   'rename tmpfile newname keep-date))
+		   'rename tmpfile newname ok-if-already-exists keep-date))
 	      ;; Save exit.
 	      (ignore-errors
 		(if dir-flag
@@ -2508,10 +2520,11 @@ The method used must be an out-of-band method."
 
 	;; Handle KEEP-DATE argument.
 	(when (and keep-date (not copy-keep-date))
-	  (set-file-times
+	  (tramp-compat-set-file-times
 	   newname
 	   (tramp-compat-file-attribute-modification-time
-	    (file-attributes filename))))
+	    (file-attributes filename))
+	   (unless ok-if-already-exists 'nofollow)))
 
 	;; Set the mode.
 	(unless (and keep-date copy-keep-date)
@@ -3270,7 +3283,8 @@ STDERR can also be a file name."
 	   #'write-region
 	   (list start end localname append 'no-message lockname))
 
-	(let* ((modes (save-excursion (tramp-default-file-modes filename)))
+	(let* ((modes (tramp-default-file-modes
+		       filename (and (eq mustbenew 'excl) 'nofollow)))
 	       ;; We use this to save the value of
 	       ;; `last-coding-system-used' after writing the tmp
 	       ;; file.  At the end of the function, we set
@@ -3292,7 +3306,8 @@ STDERR can also be a file name."
 
 	  ;; If `append' is non-nil, we copy the file locally, and let
 	  ;; the native `write-region' implementation do the job.
-	  (when append (copy-file filename tmpfile 'ok))
+	  (when (and append (file-exists-p filename))
+	    (copy-file filename tmpfile 'ok))
 
 	  ;; We say `no-message' here because we don't want the
 	  ;; visited file modtime data to be clobbered from the temp
@@ -4180,45 +4195,47 @@ file exists and nonzero exit status otherwise."
 
 (defun tramp-find-shell (vec)
   "Open a shell on the remote host which groks tilde expansion."
-  (with-current-buffer (tramp-get-buffer vec)
-    (let ((default-shell (tramp-get-method-parameter vec 'tramp-remote-shell))
-	  shell)
-      (setq shell
-	    (with-tramp-connection-property vec "remote-shell"
-	      ;; CCC: "root" does not exist always, see my QNAP TS-459.
-	      ;; Which check could we apply instead?
-	      (tramp-send-command vec "echo ~root" t)
-	      (if (or (string-match-p "^~root$" (buffer-string))
-		      ;; The default shell (ksh93) of OpenSolaris and
-		      ;; Solaris is buggy.  We've got reports for
-		      ;; "SunOS 5.10" and "SunOS 5.11" so far.
-		      (string-match-p
-		       (eval-when-compile
-			 (regexp-opt '("SunOS 5.10" "SunOS 5.11")))
-		       (tramp-get-connection-property vec "uname" "")))
-
-		  (or (tramp-find-executable
-		       vec "bash" (tramp-get-remote-path vec) t t)
-		      (tramp-find-executable
-		       vec "ksh" (tramp-get-remote-path vec) t t)
-		      ;; Maybe it works at least for some other commands.
-		      (prog1
-			  default-shell
-			(tramp-message
-			 vec 2
+  ;; If we are in `make-process', we don't need another shell.
+  (unless (tramp-get-connection-property vec "process-name" nil)
+    (with-current-buffer (tramp-get-buffer vec)
+      (let ((default-shell (tramp-get-method-parameter vec 'tramp-remote-shell))
+	    shell)
+	(setq shell
+	      (with-tramp-connection-property vec "remote-shell"
+		;; CCC: "root" does not exist always, see my QNAP
+		;; TS-459.  Which check could we apply instead?
+		(tramp-send-command vec "echo ~root" t)
+		(if (or (string-match-p "^~root$" (buffer-string))
+			;; The default shell (ksh93) of OpenSolaris
+			;; and Solaris is buggy.  We've got reports
+			;; for "SunOS 5.10" and "SunOS 5.11" so far.
+			(string-match-p
 			 (eval-when-compile
-			   (concat
-			    "Couldn't find a remote shell which groks tilde "
-			    "expansion, using `%s'"))
-			 default-shell)))
+			   (regexp-opt '("SunOS 5.10" "SunOS 5.11")))
+			 (tramp-get-connection-property vec "uname" "")))
 
-		default-shell)))
+		    (or (tramp-find-executable
+			 vec "bash" (tramp-get-remote-path vec) t t)
+			(tramp-find-executable
+			 vec "ksh" (tramp-get-remote-path vec) t t)
+			;; Maybe it works at least for some other commands.
+			(prog1
+			    default-shell
+			  (tramp-message
+			   vec 2
+			   (eval-when-compile
+			     (concat
+			      "Couldn't find a remote shell which groks tilde "
+			      "expansion, using `%s'"))
+			   default-shell)))
 
-      ;; Open a new shell if needed.
-      (unless (string-equal shell default-shell)
-	(tramp-message
-	 vec 5 "Starting remote shell `%s' for tilde expansion" shell)
-	(tramp-open-shell vec shell)))))
+		  default-shell)))
+
+	;; Open a new shell if needed.
+	(unless (string-equal shell default-shell)
+	  (tramp-message
+	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
+	  (tramp-open-shell vec shell))))))
 
 ;; Utility functions.
 
@@ -5894,6 +5911,22 @@ ID-FORMAT valid values are `string' and `integer'."
 	       (tramp-send-command-and-check
 		vec (concat command " -A n </dev/null"))
 	       command)))))
+
+(defun tramp-get-remote-chmod-h (vec)
+  "Check whether remote `chmod' supports nofollow argument."
+  (with-tramp-connection-property vec "chmod-h"
+    (tramp-message vec 5 "Finding a suitable `chmod' command with nofollow")
+    (let ((tmpfile
+	   (make-temp-name
+	    (expand-file-name
+	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+      (prog1
+	  (tramp-send-command-and-check
+	   vec
+	   (format
+	    "ln -s foo %s && chmod -h %s 0777"
+	    (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
+	(delete-file tmpfile)))))
 
 (defun tramp-get-env-with-u-option (vec)
   "Check, whether the remote `env' command supports the -u option."

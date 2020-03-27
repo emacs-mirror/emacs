@@ -746,7 +746,8 @@ the buffer contents as a comment."
 
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
-  (derived-mode-p 'vc-dir-mode))
+  (or (derived-mode-p 'vc-dir-mode)
+      (derived-mode-p 'dired-mode)))
 
 ;; These are unused.
 ;; (defun vc-dispatcher-in-fileset-p (fileset)

@@ -30,6 +30,10 @@ _GL_INLINE_HEADER_BEGIN
 # define COUNT_ONE_BITS_INLINE _GL_INLINE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Expand to code that computes the number of 1-bits of the local
    variable 'x' of type TYPE (an unsigned integer type) and return it
    from the current function.  */
@@ -128,6 +132,10 @@ count_one_bits_ll (unsigned long long int x)
 {
   COUNT_ONE_BITS (__builtin_popcountll, __popcnt64, unsigned long long int);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 _GL_INLINE_HEADER_END
 

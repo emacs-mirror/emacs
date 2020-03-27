@@ -327,6 +327,8 @@ comment at the start of cc-engine.el for more info."
 	  (when (or (null lim)
 		    (>= here lim))
 	    (save-match-data
+	      ;; Note the similarity of the code here to some in
+	      ;; `c-backward-sws'.
 	      (while
 		  (progn
 		    (while (eq (char-before (1- (point))) ?\\)
@@ -2461,17 +2463,34 @@ comment at the start of cc-engine.el for more info."
 		   (/= cmt-skip-pos simple-ws-beg)
 		   (c-beginning-of-macro))
 	      ;; Inside a cpp directive.  See if it should be skipped over.
-	      (let ((cpp-beg (point)))
+	      (let ((cpp-beg (point))
+		    pause pos)
 
-		;; Move back over all line continuations in the region skipped
-		;; over by `c-backward-comments'.  If we go past it then we
-		;; started inside the cpp directive.
+		;; Move back over all line continuations and block comments in
+		;; the region skipped over by `c-backward-comments'.  If we go
+		;; past it then we started inside the cpp directive.
 		(goto-char simple-ws-beg)
 		(beginning-of-line)
-		(while (and (> (point) cmt-skip-pos)
-			    (progn (backward-char)
-				   (eq (char-before) ?\\)))
-		  (beginning-of-line))
+		;; Note the similarity of the code here to some in
+		;; `c-beginning-of-macro'.
+		(setq pause (point))
+		(while
+		    (progn
+		      (while (and (> (point) cmt-skip-pos)
+				  (progn (backward-char)
+					 (eq (char-before) ?\\)))
+			(beginning-of-line))
+		      (setq pos (point))
+		      (when (and c-last-c-comment-end-on-line-re
+				 (re-search-forward
+				  c-last-c-comment-end-on-line-re pause t))
+			(goto-char (match-end 1))
+			(if (c-backward-single-comment)
+			    (progn
+			      (beginning-of-line)
+			      (setq pause (point)))
+			  (goto-char pos)
+			  nil))))
 
 		(if (< (point) cmt-skip-pos)
 		    ;; Don't move past the cpp directive if we began inside
@@ -9015,7 +9034,7 @@ point unchanged and return nil."
 			   (if (looking-at c-:-op-cont-regexp)
 			       (progn (goto-char (match-end 0)) t)
 			     (not
-			      (and (c-major-mode-is 'c++-mode)
+			      (and (c-major-mode-is '(c++-mode java-mode))
 				   (save-excursion
 				     (and
 				      (c-go-up-list-backward)
@@ -9256,9 +9275,10 @@ This function might do hidden buffer changes."
   ;;
   ;;   The third element of the return value is non-nil when the declaration
   ;;   parsed might be an expression.  The fourth element is the position of
-  ;;   the start of the type identifier.  The fifth element is t if either
-  ;;   CONTEXT was 'top, or the declaration is detected to be treated as top
-  ;;   level (e.g. with the keyword "extern").
+  ;;   the start of the type identifier, or the same as the first element when
+  ;;   there is no type identifier.  The fifth element is t if either CONTEXT
+  ;;   was 'top, or the declaration is detected to be treated as top level
+  ;;   (e.g. with the keyword "extern").
   ;;
   ;; If a cast is parsed:
   ;;
@@ -9661,7 +9681,26 @@ This function might do hidden buffer changes."
 	       (setq got-identifier (c-forward-name))
 	       (setq name-start pos))
 	  (when (looking-at "[0-9]")
-	    (setq got-number t))) ; We've probably got an arithmetic expression.
+	    (setq got-number t)) ; We probably have an arithmetic expression.
+	  (and maybe-typeless
+	       (or (eq at-type 'maybe)
+		   (when (eq at-type 'found)
+		     ;; Remove the ostensible type from the found types list.
+		     (when type-start
+		       (c-unfind-type
+			(buffer-substring-no-properties
+			 type-start
+			 (save-excursion
+			   (goto-char type-start)
+			   (c-end-of-token)
+			   (point)))))
+		     t))
+	       ;; The token which we assumed to be a type is actually the
+	       ;; identifier, and we have no explicit type.
+	       (setq at-type nil
+		     name-start type-start
+		     id-start type-start
+		     got-identifier t)))
 
       ;; Skip over type decl suffix operators and trailing noise macros.
       (while

@@ -1322,7 +1322,7 @@ Use it by enabling `eldoc-mode'."
   (set (make-local-variable 'parens-require-spaces) nil)
   (set (make-local-variable 'comment-start)  "# ")
   (set (make-local-variable 'comment-start-skip)
-       "\\(\\(?:^\\|[^\\\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")
+       "\\(\\(?:^\\|[^\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")
   ;; Like Lisp mode.  Without this, we lose with, say,
   ;; `backward-up-list' when there's an unbalanced quote in a
   ;; preceding comment.
@@ -1390,12 +1390,15 @@ to the action header."
                  (when buffer-file-name
                    (shell-quote-argument buffer-file-name)))))
 
-  ;; For emacs < 25.1 where `eldoc-documentation-function' defaults to
-  ;; nil.
-  (or eldoc-documentation-function
-      (setq-local eldoc-documentation-function #'ignore))
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'cfengine3-documentation-function)
+  (if (boundp 'eldoc-documentation-functions)
+      (add-hook 'eldoc-documentation-functions
+                #'cfengine3-documentation-function nil t)
+    ;; For emacs < 25.1 where `eldoc-documentation-function' defaults
+    ;; to nil.
+    (or eldoc-documentation-function
+        (setq-local eldoc-documentation-function #'ignore))
+    (add-function :before-until (local 'eldoc-documentation-function)
+                  #'cfengine3-documentation-function))
 
   (add-hook 'completion-at-point-functions
             #'cfengine3-completion-function nil t)

@@ -25,27 +25,14 @@
 
 (require 'regexp-opt)
 
-(defun regexp-opt-test--permutation (n list)
-  "The Nth permutation of LIST, 0 ≤ N < (length LIST)!."
-  (let ((len (length list))
-        (perm-list nil))
-    (dotimes (i len)
-      (let* ((d (- len i))
-             (k (mod n d)))
-        (push (nth k list) perm-list)
-        (setq list (append (butlast list (- (length list) k))
-                           (nthcdr (1+ k) list)))
-        (setq n (/ n d))))
-    (nreverse perm-list)))
-
-(defun regexp-opt-test--factorial (n)
-  "N!"
-  (apply #'* (number-sequence 1 n)))
-
-(defun regexp-opt-test--permutations (list)
-  "All permutations of LIST."
-  (mapcar (lambda (i) (regexp-opt-test--permutation i list))
-          (number-sequence 0 (1- (regexp-opt-test--factorial (length list))))))
+(defun regexp-opt-test--permutations (l)
+  "All permutations of L, assuming no duplicates."
+  (if (cdr l)
+      (mapcan (lambda (x)
+                (mapcar (lambda (p) (cons x p))
+                        (regexp-opt-test--permutations (remove x l))))
+              l)
+    (list l)))
 
 (ert-deftest regexp-opt-longest-match ()
   "Check that the regexp always matches as much as possible."

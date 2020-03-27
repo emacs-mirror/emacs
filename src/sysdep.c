@@ -2752,21 +2752,6 @@ emacs_perror (char const *message)
   errno = err;
 }
 
-/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
-   ATIME and MTIME, respectively.
-   FD must be either negative -- in which case it is ignored --
-   or a file descriptor that is open on FILE.
-   If FD is nonnegative, then FILE can be NULL.  */
-int
-set_file_times (int fd, const char *filename,
-		struct timespec atime, struct timespec mtime)
-{
-  struct timespec timespec[2];
-  timespec[0] = atime;
-  timespec[1] = mtime;
-  return fdutimens (fd, filename, timespec);
-}
-
 /* Rename directory SRCFD's entry SRC to directory DSTFD's entry DST.
    This is like renameat except that it fails if DST already exists,
    or if this operation is not supported atomically.  Return 0 if

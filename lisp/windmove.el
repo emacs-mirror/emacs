@@ -474,6 +474,15 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
                                         (tab-bar-new-tab))
                                       (setq type 'tab)
                                       (selected-window))
+                                     ((eq dir 'new-frame)
+                                      (let* ((params (cdr (assq 'pop-up-frame-parameters alist)))
+                                             (pop-up-frame-alist (append params pop-up-frame-alist))
+                                             (frame (make-frame-on-current-monitor
+                                                     pop-up-frame-alist)))
+                                        (unless (cdr (assq 'inhibit-switch-frame alist))
+	                                  (window--maybe-raise-frame frame))
+                                        (setq type 'frame)
+                                        (frame-selected-window frame)))
                                      ((eq dir 'same-window)
                                       (selected-window))
                                      (t (window-in-direction
@@ -542,6 +551,12 @@ See the logic of the prefix ARG in `windmove-display-in-direction'."
   (windmove-display-in-direction 'same-window arg))
 
 ;;;###autoload
+(defun windmove-display-new-frame (&optional arg)
+  "Display the next buffer in a new frame."
+  (interactive "P")
+  (windmove-display-in-direction 'new-frame arg))
+
+;;;###autoload
 (defun windmove-display-new-tab (&optional arg)
   "Display the next buffer in a new tab."
   (interactive "P")
@@ -562,6 +577,7 @@ Default value of MODIFIERS is `shift-meta'."
   (global-set-key (vector (append modifiers '(up)))    'windmove-display-up)
   (global-set-key (vector (append modifiers '(down)))  'windmove-display-down)
   (global-set-key (vector (append modifiers '(?0)))    'windmove-display-same-window)
+  (global-set-key (vector (append modifiers '(?f)))    'windmove-display-new-frame)
   (global-set-key (vector (append modifiers '(?t)))    'windmove-display-new-tab))
 
 

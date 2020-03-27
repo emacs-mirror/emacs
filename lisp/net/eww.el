@@ -1107,11 +1107,13 @@ just re-display the HTML already fetched."
 (defun eww-form-submit (dom)
   (let ((start (point))
 	(value (dom-attr dom 'value)))
-    (setq value
-	  (if (zerop (length value))
-	      "Submit"
-	    value))
-    (insert value)
+    (if (null value)
+        (shr-generic dom)
+      (insert value))
+    ;; If the contents of the <button>...</button> turns out to be
+    ;; empty, or the value was blank, default to this:
+    (when (= (point) start)
+      (insert "Submit"))
     (add-face-text-property start (point) 'eww-form-submit)
     (put-text-property start (point) 'eww-form
 		       (list :eww-form eww-form

@@ -143,6 +143,64 @@ The variables for right-hand keys, like @code{ns-right-alternate-modifier},
 may also be set to @code{left}, which means to use the same behavior as
 the corresponding left-hand key.
 
+@subsection Frame Variables
+
+@table @code
+@vindex ns-use-proxy-icon
+@item ns-use-proxy-icon
+This variable specifies whether to display the proxy icon in the
+titlebar.
+
+@vindex ns-confirm-quit
+@item ns-confirm-quit
+This variable specifies whether to display a graphical confirmation
+dialogue on quitting.
+
+@vindex ns-auto-hide-menu-bar
+@item ns-auto-hide-menu-bar
+This variable specifies whether the macOS menu bar is hidden when an
+Emacs frame is selected.  If non-nil the menu bar is not shown unless
+the mouse pointer is moved near to the top of the screen.
+
+@vindex ns-use-native-fullscreen
+@item ns-use-native-fullscreen
+This variable controls whether to use native, or non-native
+fullscreen.  Native fullscreen is only available on macOS 10.7 and
+above.
+@end table
+
+@subsection macOS Trackpad/Mousewheel Variables
+
+These variables only apply to macOS 10.7 (Lion) and above.
+
+@table @code
+@vindex ns-use-mwheel-acceleration
+@item ns-use-mwheel-acceleration
+This variable controls whether Emacs ignores the system mousewheel
+acceleration.  When nil each `click' of the mousewheel will correspond
+exactly with one mousewheel event.  When non-nil, the default, each
+`click' may correspond with more than one mousewheel event, depending
+on the user's input.
+
+@vindex ns-use-mwheel-momentum
+@item ns-use-mwheel-momentum
+This variable controls whether Emacs ignores the system `momentum'
+when scrolling using a trackpad.  When non-nil, the default, scrolling
+rapidly may result in the buffer continuing to scroll for a short
+while after the user has lifted their fingers off the trackpad.
+
+@vindex ns-mwheel-line-height
+@item ns-mwheel-line-height
+This variable controls the sensitivity of scrolling with the trackpad.
+Apple trackpads scroll by pixels, not lines, so Emacs converts the
+system's pixel values into lines.  When set to a number, this variable
+sets the number of pixels Emacs will consider as one line.  When nil
+or a non-number the default line height is used.
+
+Setting a lower number makes the trackpad more sensitive, and a higher
+number makes the trackpad less sensitive.
+@end table
+
 @subsection Font Panel
 
 @findex ns-popup-font-panel
@@ -152,17 +210,6 @@ recently used or clicked on.
 
 @c  To make the setting permanent, use @samp{Save Options} in the
 @c Options menu, or run @code{menu-bar-options-save}.
-
-@cindex Core Text, on macOS
-@cindex font backend, on macOS
-In macOS, Emacs uses a Core Text based font backend
-by default.  If you prefer the older font style, enter the following
-at the command-line before starting Emacs:
-
-@example
-% defaults write org.gnu.Emacs FontBackend ns
-@end example
-
 
 @node Mac / GNUstep Events
 @section Windowing System Events under macOS / GNUstep

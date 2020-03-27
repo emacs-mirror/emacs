@@ -221,7 +221,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; considered before EDG.
      ;; The message may be a "warning", "error", or "fatal error" with
      ;; an error code, or "see declaration of" without an error code.
-     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) ?\
+     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^ :(\t\n][^:(\t\n]*\\)(\\([0-9]+\\)) ?\
 : \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
      2 3 nil (4))
 
@@ -268,12 +268,24 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (jikes-file
      "^\\(?:Found\\|Issued\\) .* compiling \"\\(.+\\)\":$" 1 nil nil 0)
 
-
-    ;; This used to be pathologically slow on long lines (Bug#3441),
-    ;; due to matching filenames via \\(.*?\\).  This might be faster.
     (maven
      ;; Maven is a popular free software build tool for Java.
-     "\\(\\[WARNING\\] *\\)?\\([^ \n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 2 3 4 (1))
+     ,(rx bol
+          ;; It is unclear whether the initial [type] tag is always present.
+          (? "["
+             (or "ERROR" (group-n 1 "WARNING") (group-n 2 "INFO"))
+             "] ")
+          (group-n 3                    ; File
+                   (not (any "\n ["))
+                   (* (or (not (any "\n :"))
+                          (: " " (not (any "\n/-")))
+                          (: ":" (not (any "\n ["))))))
+          ":["
+          (group-n 4 (+ digit))         ; Line
+          ","
+          (group-n 5 (+ digit))         ; Column
+          "] ")
+     3 4 5 (1 . 2))
 
     (jikes-line
      "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
@@ -294,7 +306,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      1 2 3 (4 . 5))
 
     (ruby-Test::Unit
-     "^[\t ]*\\[\\([^(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
+     "^    [[ ]?\\([^ (].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
     (gmake
      ;; Set GNU make error messages as INFO level.
@@ -394,7 +406,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (omake
      ;; "omake -P" reports "file foo changed"
      ;; (useful if you do "cvs up" and want to see what has changed)
-     "omake: file \\(.*\\) changed" 1 nil nil nil nil
+     "^\\*\\*\\* omake: file \\(.*\\) changed" 1 nil nil nil nil
      ;; FIXME-omake: This tries to prevent reusing pre-existing markers
      ;; for subsequent messages, since those messages's line numbers
      ;; are about another version of the file.
@@ -443,7 +455,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., (-]" 1 2 3)
 
     (watcom
-     "^[ \t]*\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)): ?\
+     "^[ \t]*\\(\\(?:[a-zA-Z]:\\)?[^ :(\t\n][^:(\t\n]*\\)(\\([0-9]+\\)): ?\
 \\(?:\\(Error! E[0-9]+\\)\\|\\(Warning! W[0-9]+\\)\\):"
      1 2 nil (4))
 
@@ -633,6 +645,14 @@ matched file names, and weeding out false positives."
 			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory)))
+
+(defcustom compilation-error-case-fold-search nil
+  "If non-nil, use case-insensitive matching of compilation errors
+by the regexps of `compilation-error-regexp-alist' and
+`compilation-error-regexp-alist-alist'.
+If nil, matching is case-sensitive."
+  :type 'boolean
+  :version "28.1")
 
 ;;;###autoload(put 'compilation-directory 'safe-local-variable 'stringp)
 (defvar compilation-directory nil
@@ -1423,7 +1443,8 @@ to `compilation-error-regexp-alist' if RULES is nil."
     (if (symbolp item)
         (setq item (cdr (assq item
                               compilation-error-regexp-alist-alist))))
-    (let ((file (nth 1 item))
+    (let ((case-fold-search compilation-error-case-fold-search)
+          (file (nth 1 item))
           (line (nth 2 item))
           (col (nth 3 item))
           (type (nth 4 item))
@@ -1441,7 +1462,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
        ((not (memq 'omake compilation-error-regexp-alist)) nil)
        ((string-match "\\`\\([^^]\\|\\^\\( \\*\\|\\[\\)\\)" pat)
         nil) ;; Not anchored or anchored but already allows empty spaces.
-       (t (setq pat (concat "^ *" (substring pat 1)))))
+       (t (setq pat (concat "^\\(?:      \\)?" (substring pat 1)))))
 
       (if (consp file)	(setq fmt (cdr file)	  file (car file)))
       (if (consp line)	(setq end-line (cdr line) line (car line)))

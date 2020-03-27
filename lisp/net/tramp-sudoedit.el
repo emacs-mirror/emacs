@@ -281,7 +281,8 @@ absolute file names."
 	;; Set the time and mode. Mask possible errors.
 	(when keep-date
 	  (ignore-errors
-	    (set-file-times newname file-times)
+	    (tramp-compat-set-file-times
+	     newname file-times (unless ok-if-already-exists 'nofollow))
 	    (set-file-modes newname file-modes)))
 
 	;; Handle `preserve-extended-attributes'.  We ignore possible
@@ -463,15 +464,17 @@ the result will be a local, non-Tramp, file name."
       (tramp-sudoedit-send-command
        v "test" "-r" (tramp-compat-file-name-unquote localname)))))
 
-(defun tramp-sudoedit-handle-set-file-modes (filename mode)
+(defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
-    (unless (tramp-sudoedit-send-command
-	     v "chmod" (format "%o" mode)
-	     (tramp-compat-file-name-unquote localname))
-      (tramp-error
-       v 'file-error "Error while changing file's mode %s" filename))))
+    ;; It is unlikely that "chmod -h" works.
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-flush-file-properties v localname)
+      (unless (tramp-sudoedit-send-command
+	       v "chmod" (format "%o" mode)
+	       (tramp-compat-file-name-unquote localname))
+	(tramp-error
+	 v 'file-error "Error while changing file's mode %s" filename)))))
 
 (defun tramp-sudoedit-remote-selinux-p (vec)
   "Check, whether SELINUX is enabled on the remote host."
@@ -521,7 +524,7 @@ the result will be a local, non-Tramp, file name."
 		     (string-to-number (match-string 2)))
 		  (string-to-number (match-string 3)))))))))
 
-(defun tramp-sudoedit-handle-set-file-times (filename &optional time)
+(defun tramp-sudoedit-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
@@ -534,6 +537,7 @@ the result will be a local, non-Tramp, file name."
       (tramp-sudoedit-send-command
        v "env" "TZ=UTC" "touch" "-t"
        (format-time-string "%Y%m%d%H%M.%S" time t)
+       (if (eq flag 'nofollow) "-h" "")
        (tramp-compat-file-name-unquote localname)))))
 
 (defun tramp-sudoedit-handle-file-truename (filename)
@@ -715,13 +719,14 @@ ID-FORMAT valid values are `string' and `integer'."
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (let ((uid (or (tramp-compat-file-attribute-user-id
-		    (file-attributes filename 'integer))
-		   (tramp-sudoedit-get-remote-uid v 'integer)))
-	  (gid (or (tramp-compat-file-attribute-group-id
-		    (file-attributes filename 'integer))
-		   (tramp-sudoedit-get-remote-gid v 'integer)))
-	  (modes (tramp-default-file-modes filename)))
+    (let* ((uid (or (tramp-compat-file-attribute-user-id
+		     (file-attributes filename 'integer))
+		    (tramp-sudoedit-get-remote-uid v 'integer)))
+	   (gid (or (tramp-compat-file-attribute-group-id
+		     (file-attributes filename 'integer))
+		    (tramp-sudoedit-get-remote-gid v 'integer)))
+	   (flag (and (eq mustbenew 'excl) 'nofollow))
+	   (modes (tramp-default-file-modes filename flag)))
       (prog1
 	  (tramp-handle-write-region
 	   start end filename append visit lockname mustbenew)
@@ -735,7 +740,7 @@ ID-FORMAT valid values are `string' and `integer'."
 			 (file-attributes filename 'integer))
 			gid))
           (tramp-set-file-uid-gid filename uid gid))
-	(set-file-modes filename modes)))))
+	(tramp-compat-set-file-modes filename modes flag)))))
 
 
 ;; Internal functions.

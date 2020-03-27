@@ -205,7 +205,10 @@ Examples of PREDICATE:
     (not (and (= (file-attribute-user-id fa1) - mark files with different UID
                  (file-attribute-user-id fa2))
               (= (file-attribute-group-id fa1) - and GID.
-                 (file-attribute-group-id fa2))))"
+                 (file-attribute-group-id fa2))))
+
+If the region is active in Transient Mark mode, mark files
+only in the active region if `dired-mark-region' is non-nil."
   (interactive
    (list
     (let* ((target-dir (dired-dwim-target-directory))
@@ -409,7 +412,8 @@ has no effect on MS-Windows."
       (set-file-modes
        file
        (if num-modes num-modes
-	 (file-modes-symbolic-to-number modes (file-modes file)))))
+	 (file-modes-symbolic-to-number modes (file-modes file 'nofollow)))
+       'nofollow))
     (dired-do-redisplay arg)))
 
 ;;;###autoload

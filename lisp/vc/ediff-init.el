@@ -1257,22 +1257,8 @@ Instead, C-h would jump to previous difference."
   :type 'boolean
   :group 'ediff)
 
-;; This is the same as temporary-file-directory from Emacs 20.3.
-;; Copied over here because XEmacs doesn't have this variable.
-(defcustom ediff-temp-file-prefix
-  (file-name-as-directory
-   (cond ((boundp 'temporary-file-directory) temporary-file-directory)
-	 ((fboundp 'temp-directory) (temp-directory))
-	 (t "/tmp/")))
-;;;  (file-name-as-directory
-;;;   (cond ((memq system-type '(ms-dos windows-nt))
-;;;	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-;;;	 (t
-;;;	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "Prefix to put on Ediff temporary file names.
-Do not start with `~/' or `~USERNAME/'."
-  :type 'string
-  :group 'ediff)
+(define-obsolete-variable-alias 'ediff-temp-file-prefix
+  'temporary-file-directory "28.1")
 
 (defcustom ediff-temp-file-mode 384	; u=rw only
   "Mode for Ediff temporary files."
@@ -1287,8 +1273,8 @@ This default should work without changes."
   :type 'regexp
   :group 'ediff)
 
-;; needed to simulate frame-char-width in XEmacs.
-(defvar ediff-H-glyph (if (featurep 'xemacs) (make-glyph "H")))
+(defvar ediff-H-glyph nil)
+(make-obsolete-variable 'ediff-H-glyph nil "28.1")
 
 
 ;; Temporary file used for refining difference regions in buffer A.

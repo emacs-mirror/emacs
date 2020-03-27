@@ -296,6 +296,36 @@ new Dired buffers."
   :version "26.1"
   :group 'dired)
 
+(defcustom dired-mark-region 'file
+  "Defines what commands that mark files do with the active region.
+
+When nil, marking commands don't operate on all files in the
+active region.  They process their prefix arguments as usual.
+
+When the value of this option is non-nil, then all Dired commands
+that mark or unmark files will operate on all files in the region
+if the region is active in Transient Mark mode.
+
+When `file', the region marking is based on the file name.
+This means don't mark the file if the end of the region is
+before the file name displayed on the Dired line, so the file name
+is visually outside the region.  This behavior is consistent with
+marking files without the region using the key `m' that advances
+point to the next line after marking the file.  Thus the number
+of keys used to mark files is the same as the number of keys
+used to select the region, e.g. `M-2 m' marks 2 files, and
+`C-SPC M-2 n m' marks 2 files, and `M-2 S-down m' marks 2 files.
+
+When `line', the region marking is based on Dired lines,
+so include the file into marking if the end of the region
+is anywhere on its Dired line, except the beginning of the line."
+  :type '(choice
+          (const :tag "Don't mark files in active region" nil)
+          (const :tag "Exclude file name outside of region" file)
+          (const :tag "Include the file at region end line" line))
+  :group 'dired
+  :version "28.1")
+
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -612,12 +642,34 @@ Subexpression 2 must end right before the \\n.")
 PREDICATE is evaluated on each line, with point at beginning of line.
 MSG is a noun phrase for the type of files being marked.
 It should end with a noun that can be pluralized by adding `s'.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region if `dired-mark-region' is non-nil.  Otherwise, operate
+on the whole buffer.
+
 Return value is the number of files marked, or nil if none were marked."
-  `(let ((inhibit-read-only t) count)
+  `(let* ((inhibit-read-only t) count
+         (use-region-p (and dired-mark-region
+                            (region-active-p)
+                            (> (region-end) (region-beginning))))
+         (beg (if use-region-p
+                  (save-excursion
+                    (goto-char (region-beginning))
+                    (line-beginning-position))
+                (point-min)))
+         (end (if use-region-p
+                  (save-excursion
+                    (goto-char (region-end))
+                    (if (if (eq dired-mark-region 'line)
+                            (not (bolp))
+                          (get-text-property (1- (point)) 'dired-filename))
+                        (line-end-position)
+                      (line-beginning-position)))
+                (point-max))))
     (save-excursion
       (setq count 0)
       (when ,msg
-	(message "%s %ss%s..."
+	(message "%s %ss%s%s..."
 		 (cond ((eq dired-marker-char ?\s) "Unmarking")
 		       ((eq dired-del-marker dired-marker-char)
 			"Flagging")
@@ -625,22 +677,28 @@ Return value is the number of files marked, or nil if none were marked."
 		 ,msg
 		 (if (eq dired-del-marker dired-marker-char)
 		     " for deletion"
-		   "")))
-      (goto-char (point-min))
-      (while (not (eobp))
+		   "")
+                 (if use-region-p
+                     " in region"
+                   "")))
+      (goto-char beg)
+      (while (< (point) end)
         (when ,predicate
           (unless (= (following-char) dired-marker-char)
             (delete-char 1)
             (insert dired-marker-char)
             (setq count (1+ count))))
         (forward-line 1))
-      (when ,msg (message "%s %s%s %s%s"
+      (when ,msg (message "%s %s%s %s%s%s"
                         count
                         ,msg
                         (dired-plural-s count)
                         (if (eq dired-marker-char ?\s) "un" "")
                         (if (eq dired-marker-char dired-del-marker)
-                            "flagged" "marked"))))
+                            "flagged" "marked")
+                        (if use-region-p
+                            " in region"
+                          ""))))
     (and (> count 0) count)))
 
 (defmacro dired-map-over-marks (body arg &optional show-progress
@@ -3580,7 +3638,8 @@ no ARGth marked file is found before this line."
 
 (defun dired-mark (arg &optional interactive)
   "Mark the file at point in the Dired buffer.
-If the region is active, mark all files in the region.
+If the region is active in Transient Mark mode, mark all files
+in the region if `dired-mark-region' is non-nil.
 Otherwise, with a prefix arg, mark files on the next ARG lines.
 
 If on a subdir headerline, mark all its files except `.' and `..'.
@@ -3591,13 +3650,20 @@ this subdir."
   (interactive (list current-prefix-arg t))
   (cond
    ;; Mark files in the active region.
-   ((and interactive (use-region-p))
+   ((and interactive dired-mark-region
+         (region-active-p)
+         (> (region-end) (region-beginning)))
     (save-excursion
       (let ((beg (region-beginning))
 	    (end (region-end)))
 	(dired-mark-files-in-region
 	 (progn (goto-char beg) (line-beginning-position))
-	 (progn (goto-char end) (line-beginning-position))))))
+	 (progn (goto-char end)
+                (if (if (eq dired-mark-region 'line)
+                        (not (bolp))
+                      (get-text-property (1- (point)) 'dired-filename))
+                    (line-end-position)
+                  (line-beginning-position)))))))
    ;; Mark subdir files from the subdir headerline.
    ((dired-get-subdir)
     (save-excursion (dired-mark-subdir-files)))
@@ -3678,6 +3744,9 @@ As always, hidden subdirs are not affected."
 A prefix argument means to unmark them instead.
 `.' and `..' are never marked.
 
+If the region is active in Transient Mark mode, mark files
+only in the active region if `dired-mark-region' is non-nil.
+
 REGEXP is an Emacs regexp, not a shell wildcard.  Thus, use `\\.o$' for
 object files--just `.o' will mark more than you might think."
   (interactive
@@ -3729,6 +3798,9 @@ object files--just `.o' will mark more than you might think."
 A prefix argument means to unmark them instead.
 `.' and `..' are never marked.
 
+If the region is active in Transient Mark mode, mark files
+only in the active region if `dired-mark-region' is non-nil.
+
 Note that if a file is visited in an Emacs buffer, and
 `dired-always-read-filesystem' is nil, this command will
 look in the buffer without revisiting the file, so the results might
@@ -3773,14 +3845,18 @@ The match is against the non-directory part of the filename.  Use `^'
 
 (defun dired-mark-symlinks (unflag-p)
   "Mark all symbolic links.
-With prefix argument, unmark or unflag all those files."
+With prefix argument, unmark or unflag all those files.
+If the region is active in Transient Mark mode, mark files
+only in the active region if `dired-mark-region' is non-nil."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if (looking-at-p dired-re-sym) "symbolic link")))
 
 (defun dired-mark-directories (unflag-p)
   "Mark all directory file lines except `.' and `..'.
-With prefix argument, unmark or unflag all those files."
+With prefix argument, unmark or unflag all those files.
+If the region is active in Transient Mark mode, mark files
+only in the active region if `dired-mark-region' is non-nil."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if (and (looking-at-p dired-re-dir)
@@ -3789,7 +3865,9 @@ With prefix argument, unmark or unflag all those files."
 
 (defun dired-mark-executables (unflag-p)
   "Mark all executable files.
-With prefix argument, unmark or unflag all those files."
+With prefix argument, unmark or unflag all those files.
+If the region is active in Transient Mark mode, mark files
+only in the active region if `dired-mark-region' is non-nil."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if (looking-at-p dired-re-exe) "executable file")))
@@ -3799,7 +3877,9 @@ With prefix argument, unmark or unflag all those files."
 
 (defun dired-flag-auto-save-files (&optional unflag-p)
   "Flag for deletion files whose names suggest they are auto save files.
-A prefix argument says to unmark or unflag those files instead."
+A prefix argument says to unmark or unflag those files instead.
+If the region is active in Transient Mark mode, flag files
+only in the active region if `dired-mark-region' is non-nil."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\s dired-del-marker)))
     (dired-mark-if
@@ -3839,7 +3919,9 @@ A prefix argument says to unmark or unflag those files instead."
 
 (defun dired-flag-backup-files (&optional unflag-p)
   "Flag all backup files (names ending with `~') for deletion.
-With prefix argument, unmark or unflag these files."
+With prefix argument, unmark or unflag these files.
+If the region is active in Transient Mark mode, flag files
+only in the active region if `dired-mark-region' is non-nil."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\s dired-del-marker)))
     (dired-mark-if

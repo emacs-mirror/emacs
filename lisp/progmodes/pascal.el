@@ -187,7 +187,7 @@
    ;; as comment starters.  Fix it here by removing the "2" from the syntax
    ;; of the second char of such sequences.
    ("/\\(\\*\\)" (1 ". 3b"))
-   ("(\\(\\/\\)" (1 (prog1 ". 1c" (forward-char -1) nil)))
+   ("(\\(/\\)" (1 (prog1 ". 1c" (forward-char -1) nil)))
    ;; Pascal uses '' and "" rather than \' and \" to escape quotes.
    ("''\\|\"\"" (0 (if (save-excursion
                          (nth 3 (syntax-ppss (match-beginning 0))))
@@ -1392,7 +1392,7 @@ The default is a name found in the buffer around point."
 (defvar pascal-outline-map
   (let ((map (make-sparse-keymap)))
     (if (fboundp 'set-keymap-name)
-        (set-keymap-name pascal-outline-map 'pascal-outline-map))
+        (set-keymap-name map 'pascal-outline-map))
     (define-key map "\M-\C-a"  'pascal-outline-prev-defun)
     (define-key map "\M-\C-e"  'pascal-outline-next-defun)
     (define-key map "\C-c\C-d" 'pascal-outline-goto-defun)

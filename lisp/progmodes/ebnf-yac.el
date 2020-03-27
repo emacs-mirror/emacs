@@ -397,9 +397,8 @@ See documentation for variable `ebnf-yac-lex'."
   (< (point) ebnf-limit))
 
 
-;; replace the range "\177-\377" (see `ebnf-range-regexp').
 (defconst ebnf-yac-skip-chars
-  (ebnf-range-regexp "^{}/'\"\000-\010\013\016-\037" ?\177 ?\377))
+  "^{}/'\"\000-\010\013\016-\037\177\u0080-\u009f")
 
 
 (defun ebnf-yac-skip-code ()
@@ -442,9 +441,8 @@ See documentation for variable `ebnf-yac-lex'."
    ))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-yac-comment-chars
-  (ebnf-range-regexp "^*\000-\010\013\016-\037" ?\177 ?\237))
+  "^*\000-\010\013\016-\037\177\u0080-\u009f")
 
 
 (defun ebnf-yac-skip-comment ()

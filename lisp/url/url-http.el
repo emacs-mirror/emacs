@@ -225,7 +225,7 @@ request.")
         (os-info (unless (and (listp url-privacy-level)
                               (memq 'os url-privacy-level))
                    (format "(%s; %s)" url-system-type url-os-type)))
-        (url-info (format "URL/%s" url-version)))
+        (url-info (format "URL/Emacs")))
     (string-join (delq nil (list package-info url-info
                                  emacs-info os-info))
                  " ")))

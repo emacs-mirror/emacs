@@ -979,9 +979,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 
 /* Value is a version number of byte compiled code if the file
    associated with file descriptor FD is a compiled Lisp file that's
-   safe to load.  Only files compiled with Emacs are safe to load.
-   Files compiled with XEmacs can lead to a crash in Fbyte_code
-   because of an incompatible change in the byte compiler.  */
+   safe to load.  Only files compiled with Emacs can be loaded.  */
 
 static int
 safe_to_load_version (int fd)
@@ -1135,7 +1133,6 @@ Return t if the file exists and loads successfully.  */)
   /* True means we are loading a compiled file.  */
   bool compiled = 0;
   Lisp_Object handler;
-  bool safe_p = 1;
   const char *fmode = "r" FOPEN_TEXT;
   int version;
 
@@ -1318,11 +1315,7 @@ Return t if the file exists and loads successfully.  */)
 	  if (version < 0
 	      && ! (version = safe_to_load_version (fd)))
 	    {
-	      safe_p = 0;
-	      if (!load_dangerous_libraries)
-		error ("File `%s' was not compiled in Emacs", SDATA (found));
-	      else if (!NILP (nomessage) && !force_load_messages)
-		message_with_string ("File `%s' not compiled in Emacs", found, 1);
+	      error ("File `%s' was not compiled in Emacs", SDATA (found));
 	    }
 
 	  compiled = 1;
@@ -1429,10 +1422,7 @@ Return t if the file exists and loads successfully.  */)
 
   if (NILP (nomessage) || force_load_messages)
     {
-      if (!safe_p)
-	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...",
-		 file, 1);
-      else if (is_module)
+      if (is_module)
         message_with_string ("Loading %s (module)...", file, 1);
       else if (!compiled)
 	message_with_string ("Loading %s (source)...", file, 1);
@@ -1492,10 +1482,7 @@ Return t if the file exists and loads successfully.  */)
 
   if (!noninteractive && (NILP (nomessage) || force_load_messages))
     {
-      if (!safe_p)
-	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...done",
-		 file, 1);
-      else if (is_module)
+      if (is_module)
         message_with_string ("Loading %s (module)...done", file, 1);
       else if (!compiled)
 	message_with_string ("Loading %s (source)...done", file, 1);
@@ -4975,7 +4962,7 @@ This overrides the value of the NOMESSAGE argument to `load'.  */);
 When Emacs loads a compiled Lisp file, it reads the first 512 bytes
 from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
-to load.  See also `load-dangerous-libraries'.  */);
+to load.  */);
   Vbytecomp_version_regexp
     = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 

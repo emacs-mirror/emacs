@@ -231,8 +231,35 @@ Comments in the form will be lost."
           (setq-local electric-pair-text-pairs elisp-pairs)))))
   (remove-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
 
+(defun elisp-enable-lexical-binding (&optional interactive)
+  "Make the current buffer use `lexical-binding'."
+  (interactive "p")
+  (if lexical-binding
+      (when interactive
+        (message "lexical-binding already enabled!")
+        (ding))
+    (when (or (not interactive)
+              (y-or-n-p (format "Enable lexical-binding in this %s? "
+                                (if buffer-file-name "file" "buffer"))))
+      (setq-local lexical-binding t)
+      (add-file-local-variable-prop-line 'lexical-binding t interactive))))
+
+(defvar elisp--dynlex-modeline-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1] 'elisp-enable-lexical-binding)
+    map))
+
 ;;;###autoload
-(define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
+(define-derived-mode emacs-lisp-mode prog-mode
+  `("ELisp"
+    (lexical-binding (:propertize "/l"
+                      help-echo "Using lexical-binding mode")
+                     (:propertize "/d"
+                      help-echo "Using old dynamic scoping mode\n\
+mouse-1: Enable lexical-binding mode"
+		      face warning
+		      mouse-face mode-line-highlight
+                      local-map ,elisp--dynlex-modeline-map)))
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -245,13 +272,13 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (if (boundp 'electric-pair-text-pairs)
       (setq-local electric-pair-text-pairs
-                  (append '((?\` . ?\') (?‘ . ?’))
+                  (append '((?\` . ?\') (?\‘ . ?\’))
                           electric-pair-text-pairs))
     (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
   (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil)
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'elisp-eldoc-documentation-function)
+  (add-hook 'eldoc-documentation-functions
+            #'elisp-eldoc-documentation-function nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions

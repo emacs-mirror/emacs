@@ -232,8 +232,6 @@ resulting regular expression."
 	    (regexp-quote (substring pattern matched-in-pattern))
 	    "\\'")))
 
-(defvar ange-cache)			; XEmacs?  See esh-util
-
 (defun eshell-extended-glob (glob)
   "Return a list of files generated from GLOB, perhaps looking for DIRS-ONLY.
 This function almost fully supports zsh style filename generation
@@ -252,7 +250,7 @@ the form:
 
    (INCLUDE-REGEXP EXCLUDE-REGEXP (PRED-FUNC-LIST) (MOD-FUNC-LIST))"
   (let ((paths (eshell-split-path glob))
-	eshell-glob-matches message-shown ange-cache)
+        eshell-glob-matches message-shown)
     (unwind-protect
 	(if (and (cdr paths)
 		 (file-name-absolute-p (car paths)))

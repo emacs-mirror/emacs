@@ -102,6 +102,13 @@ ac_cv_func_lstat=yes
 gl_cv_func_lstat_dereferences_slashed_symlink=yes
 ac_cv_func_fstatat=yes
 gl_cv_func_fstatat_zero_flag=yes
+ac_cv_func_fchmodat=yes
+gl_cv_func_fchmodat_works="not-needed-so-yes"
+ac_cv_func_lchmod=yes
+ac_cv_func_futimens=not-needed
+gl_cv_func_futimens_works="not-needed-so-yes"
+ac_cv_func_utimensat=yes
+gl_cv_func_utimensat_works=yes
 # Aliased to _commit in ms-w32.h
 ac_cv_func_fsync=yes
 ac_cv_func_fdatasync=yes

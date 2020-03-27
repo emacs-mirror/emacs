@@ -3,7 +3,7 @@
 ;; Copyright (C) 2003, 2006-2020 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, processes
 
 ;; This file is part of GNU Emacs.

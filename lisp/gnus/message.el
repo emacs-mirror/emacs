@@ -215,9 +215,9 @@ Also see `message-required-news-headers' and
   :link '(custom-manual "(message)Message Headers")
   :type '(repeat sexp))
 
-(defcustom message-draft-headers '(References From Date)
+(defcustom message-draft-headers '(References From)
   "Headers to be generated when saving a draft message."
-  :version "22.1"
+  :version "28.1"
   :group 'message-news
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
@@ -322,7 +322,7 @@ used."
   :group 'message-various)
 
 (defcustom message-subject-trailing-was-ask-regexp
-  "[ \t]*\\([[(]+[Ww][Aa][Ss]:?[ \t]*.*[])]+\\)"
+  "[ \t]*\\([[(]+[Ww][Aa][Ss].*[])]+\\)"
   "Regexp matching \"(was: <old subject>)\" in the subject line.
 
 The function `message-strip-subject-trailing-was' uses this regexp if
@@ -337,7 +337,7 @@ It is okay to create some false positives here, as the user is asked."
   :type 'regexp)
 
 (defcustom message-subject-trailing-was-regexp
-  "[ \t]*\\((*[Ww][Aa][Ss]:[ \t]*.*)\\)"
+  "[ \t]*\\((*[Ww][Aa][Ss]:.*)\\)"
   "Regexp matching \"(was: <old subject>)\" in the subject line.
 
 If `message-subject-trailing-was-query' is set to t, the subject is

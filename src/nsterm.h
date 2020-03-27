@@ -339,6 +339,22 @@ typedef id instancetype;
 #endif
 
 
+/* macOS 10.14 and above cannot draw directly "to the glass" and
+   therefore we draw to an offscreen buffer and swap it in when the
+   toolkit wants to draw the frame. GNUstep and macOS 10.7 and below
+   do not support this method, so we revert to drawing directly to the
+   glass.
+
+   FIXME: Should we make this macOS 10.8+, or macOS 10.14+?  I'm
+   inclined to go with 10.14+ as there have been some reports of funny
+   behaviour on 10.13 and below.  It may be worth adding a variable to
+   allow people in the overlapping region to switch between drawing
+   paths.  */
+#if defined (NS_IMPL_COCOA) && defined (MAC_OS_X_VERSION_10_14)
+#define NS_DRAW_TO_BUFFER 1
+#endif
+
+
 /* ==========================================================================
 
    NSColor, EmacsColor category.
@@ -417,7 +433,8 @@ typedef id instancetype;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
    BOOL fs_is_native;
-#ifdef NS_IMPL_COCOA
+   BOOL in_fullscreen_transition;
+#ifdef NS_DRAW_TO_BUFFER
    CGContextRef drawingBuffer;
 #endif
 @public
@@ -451,6 +468,8 @@ typedef id instancetype;
 - (void) toggleFullScreen: (id) sender;
 - (BOOL) fsIsNative;
 - (BOOL) isFullscreen;
+- (BOOL) inFullScreenTransition;
+- (void) waitFullScreenTransition;
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 - (void) updateCollectionBehavior;
 #endif
@@ -460,11 +479,11 @@ typedef id instancetype;
 #endif
 - (int)fullscreenState;
 
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
 - (void)focusOnDrawingBuffer;
+- (void)createDrawingBuffer;
 #endif
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
-- (void)createDrawingBuffer;
 
 /* Non-notification versions of NSView methods. Used for direct calls.  */
 - (void)windowWillEnterFullScreen;
@@ -1270,6 +1289,7 @@ extern char gnustep_base_version[];  /* version tracking */
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_7)
 #define NSFullScreenWindowMask                      (1 << 14)
 #define NSWindowCollectionBehaviorFullScreenPrimary (1 << 7)
+#define NSWindowCollectionBehaviorFullScreenAuxiliary (1 << 8)
 #define NSApplicationPresentationFullScreen         (1 << 10)
 #define NSApplicationPresentationAutoHideToolbar    (1 << 11)
 #define NSAppKitVersionNumber10_7                   1138

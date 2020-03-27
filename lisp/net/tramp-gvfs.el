@@ -1562,29 +1562,27 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-run-real-handler
      #'rename-file (list filename newname ok-if-already-exists))))
 
-(defun tramp-gvfs-handle-set-file-modes (filename mode)
+(defun tramp-gvfs-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
     (tramp-gvfs-send-command
-     v "gvfs-set-attribute" "-t" "uint32"
-     (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
-     "unix::mode" (number-to-string mode))))
+     v "gvfs-set-attribute" (if (eq flag 'nofollow) "-nt" "-t") "uint32"
+     (tramp-gvfs-url-file-name filename) "unix::mode" (number-to-string mode))))
 
-(defun tramp-gvfs-handle-set-file-times (filename &optional time)
+(defun tramp-gvfs-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v localname)
-    (let ((time
-	   (if (or (null time)
+    (tramp-gvfs-send-command
+     v "gvfs-set-attribute" (if (eq flag 'nofollow) "-nt" "-t") "uint64"
+     (tramp-gvfs-url-file-name filename) "time::modified"
+     (format-time-string
+      "%s" (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		   (tramp-compat-time-equal-p time tramp-time-dont-know))
 	       (current-time)
-	     time)))
-      (tramp-gvfs-send-command
-       v "gvfs-set-attribute" "-t" "uint64"
-       (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
-       "time::modified" (format-time-string "%s" time)))))
+	     time)))))
 
 (defun tramp-gvfs-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -1593,12 +1591,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (when (natnump uid)
       (tramp-gvfs-send-command
        v "gvfs-set-attribute" "-t" "uint32"
-       (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
-       "unix::uid" (number-to-string uid)))
+       (tramp-gvfs-url-file-name filename) "unix::uid" (number-to-string uid)))
     (when (natnump gid)
       (tramp-gvfs-send-command
        v "gvfs-set-attribute" "-t" "uint32"
-       (tramp-gvfs-url-file-name (tramp-make-tramp-file-name v))
+       (tramp-gvfs-url-file-name filename)
        "unix::gid" (number-to-string gid)))))
 
 

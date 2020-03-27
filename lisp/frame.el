@@ -713,6 +713,18 @@ The optional argument PARAMETERS specifies additional frame parameters."
                       (x-display-list))))
   (make-frame (cons (cons 'display display) parameters)))
 
+(defun make-frame-on-current-monitor (&optional parameters)
+  "Make a frame on the currently selected monitor.
+Like `make-frame-on-monitor' and with the same PARAMETERS as in `make-frame'."
+  (interactive)
+  (let* ((monitor-workarea
+          (cdr (assq 'workarea (frame-monitor-attributes))))
+         (geometry-parameters
+          (when monitor-workarea
+            `((top . ,(nth 1 monitor-workarea))
+              (left . ,(nth 0 monitor-workarea))))))
+    (make-frame (append geometry-parameters parameters))))
+
 (defun make-frame-on-monitor (monitor &optional display parameters)
   "Make a frame on monitor MONITOR.
 The optional argument DISPLAY can be a display name, and the optional
@@ -2676,11 +2688,7 @@ See also `toggle-frame-maximized'."
 	      (set-frame-parameter frame 'fullscreen fullscreen-restore)
 	    (set-frame-parameter frame 'fullscreen nil)))
       (modify-frame-parameters
-       frame `((fullscreen . fullboth) (fullscreen-restore . ,fullscreen))))
-    ;; Manipulating a frame without waiting for the fullscreen
-    ;; animation to complete can cause a crash, or other unexpected
-    ;; behavior, on macOS (bug#28496).
-    (when (featurep 'cocoa) (sleep-for 0.5))))
+       frame `((fullscreen . fullboth) (fullscreen-restore . ,fullscreen))))))
 
 
 ;;;; Key bindings

@@ -456,7 +456,7 @@ This will generate compile-time constants from BINDINGS."
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<\\&" lisp-mode-symbol-regexp "\\_>")
+         (,(concat "\\_<&" lisp-mode-symbol-regexp "\\_>")
           . font-lock-type-face)
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
@@ -511,7 +511,7 @@ This will generate compile-time constants from BINDINGS."
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<\\&" lisp-mode-symbol-regexp "\\_>")
+         (,(concat "\\_<&" lisp-mode-symbol-regexp "\\_>")
           . font-lock-type-face)
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
@@ -750,7 +750,7 @@ or to switch back to an existing one."
   (setq-local lisp-indent-function 'common-lisp-indent-function)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
-	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()

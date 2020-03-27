@@ -4596,21 +4596,23 @@ live_vector_p (struct mem_node *m, void *p)
   return !NILP (live_vector_holding (m, p));
 }
 
-/* If P is a pointer into a live buffer, return the buffer.
-   Otherwise, return nil.  M is a pointer to the mem_block for P.  */
+/* If P is a pointer into a valid buffer object, return the buffer.
+   Otherwise, return nil.  M is a pointer to the mem_block for P.
+   If IGNORE_KILLED is non-zero, treat killed buffers as invalid.  */
 
 static Lisp_Object
-live_buffer_holding (struct mem_node *m, void *p)
+live_buffer_holding (struct mem_node *m, void *p, bool ignore_killed)
 {
-  /* P must point into the block, and the buffer
-     must not have been killed.  */
+  /* P must point into the block, and the buffer must not
+     have been killed unless ALL-BUFFERS is true.  */
   if (m->type == MEM_TYPE_BUFFER)
     {
       struct buffer *b = m->start;
       char *cb = m->start;
       char *cp = p;
       ptrdiff_t offset = cp - cb;
-      if (0 <= offset && offset < sizeof *b && !NILP (b->name_))
+      if (0 <= offset && offset < sizeof *b
+	  && !(ignore_killed && NILP (b->name_)))
 	{
 	  Lisp_Object obj;
 	  XSETBUFFER (obj, b);
@@ -4620,10 +4622,12 @@ live_buffer_holding (struct mem_node *m, void *p)
   return Qnil;
 }
 
+/* If P is a pointer into a live (valid and not killed) buffer object,
+   return non-zero.  */
 static bool
 live_buffer_p (struct mem_node *m, void *p)
 {
-  return !NILP (live_buffer_holding (m, p));
+  return !NILP (live_buffer_holding (m, p, true));
 }
 
 /* Mark OBJ if we can prove it's a Lisp_Object.  */
@@ -4681,7 +4685,7 @@ mark_maybe_object (Lisp_Object obj)
 
 	case Lisp_Vectorlike:
 	  mark_p = (EQ (obj, live_vector_holding (m, po))
-		    || EQ (obj, live_buffer_holding (m, po)));
+		    || EQ (obj, live_buffer_holding (m, po, false)));
 	  break;
 
 	default:
@@ -4751,7 +4755,7 @@ mark_maybe_pointer (void *p)
 	  break;
 
 	case MEM_TYPE_BUFFER:
-	  obj = live_buffer_holding (m, p);
+	  obj = live_buffer_holding (m, p, false);
 	  break;
 
 	case MEM_TYPE_CONS:

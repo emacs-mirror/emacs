@@ -695,7 +695,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 			 mail-source-movemail-program
 			 nil errors nil from to)))))
 	      (when (file-exists-p to)
-		(set-file-modes to mail-source-default-file-modes))
+		(set-file-modes to mail-source-default-file-modes 'nofollow))
 	      (if (and (or (not (buffer-modified-p errors))
 			   (zerop (buffer-size errors)))
 		       (and (numberp result)

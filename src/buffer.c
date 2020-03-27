@@ -131,6 +131,23 @@ CHECK_OVERLAY (Lisp_Object x)
   CHECK_TYPE (OVERLAYP (x), Qoverlayp, x);
 }
 
+/* Convert the position POS to an EMACS_INT that fits in a fixnum.
+   Yield POS's value if POS is already a fixnum, POS's marker position
+   if POS is a marker, and MOST_NEGATIVE_FIXNUM or
+   MOST_POSITIVE_FIXNUM if POS is a negative or positive bignum.
+   Signal an error if POS is not of the proper form.  */
+
+EMACS_INT
+fix_position (Lisp_Object pos)
+{
+  if (FIXNUMP (pos))
+    return XFIXNUM (pos);
+  if (MARKERP (pos))
+    return marker_position (pos);
+  CHECK_TYPE (BIGNUMP (pos), Qinteger_or_marker_p, pos);
+  return !NILP (Fnatnump (pos)) ? MOST_POSITIVE_FIXNUM : MOST_NEGATIVE_FIXNUM;
+}
+
 /* These setters are used only in this file, so they can be private.
    The public setters are inline functions defined in buffer.h.  */
 static void
@@ -2257,19 +2274,20 @@ so the buffer is truly empty after this.  */)
 }
 
 void
-validate_region (register Lisp_Object *b, register Lisp_Object *e)
+validate_region (Lisp_Object *b, Lisp_Object *e)
 {
-  CHECK_FIXNUM_COERCE_MARKER (*b);
-  CHECK_FIXNUM_COERCE_MARKER (*e);
+  EMACS_INT beg = fix_position (*b), end = fix_position (*e);
 
-  if (XFIXNUM (*b) > XFIXNUM (*e))
+  if (end < beg)
     {
-      Lisp_Object tem;
-      tem = *b;  *b = *e;  *e = tem;
+      EMACS_INT tem = beg;  beg = end;  end = tem;
     }
 
-  if (! (BEGV <= XFIXNUM (*b) && XFIXNUM (*e) <= ZV))
+  if (! (BEGV <= beg && end <= ZV))
     args_out_of_range_3 (Fcurrent_buffer (), *b, *e);
+
+  *b = make_fixnum (beg);
+  *e = make_fixnum (end);
 }
 
 /* Advance BYTE_POS up to a character boundary

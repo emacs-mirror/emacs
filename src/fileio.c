@@ -2077,7 +2077,7 @@ permissions.  */)
       report_file_error ("Copying permissions from", file);
     case -3:
       xsignal2 (Qfile_date_error,
-		build_string ("Resetting file times"), newname);
+		build_string ("Cannot set file date"), newname);
     case -4:
       report_file_error ("Copying permissions to", newname);
     }
@@ -2253,9 +2253,8 @@ permissions.  */)
 
   if (!NILP (keep_time))
     {
-      struct timespec atime = get_stat_atime (&st);
-      struct timespec mtime = get_stat_mtime (&st);
-      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime) != 0)
+      struct timespec ts[] = { get_stat_atime (&st), get_stat_mtime (&st) };
+      if (futimens (ofd, ts) != 0)
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
     }
@@ -2916,7 +2915,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, absname);
 
-  return file_directory_p (absname) ? Qt : Qnil;
+  return file_directory_p (ENCODE_FILE (absname)) ? Qt : Qnil;
 }
 
 /* Return true if FILE is a directory or a symlink to a directory.
@@ -3332,50 +3331,60 @@ support.  */)
   return Qnil;
 }
 
-DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
+static int
+symlink_nofollow_flag (Lisp_Object flag)
+{
+  /* For now, treat all non-nil FLAGs like 'nofollow'.  */
+  return !NILP (flag) ? AT_SYMLINK_NOFOLLOW : 0;
+}
+
+DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 2, 0,
        doc: /* Return mode bits of file named FILENAME, as an integer.
-Return nil if FILENAME does not exist.  */)
-  (Lisp_Object filename)
+Return nil if FILENAME does not exist.  If optional FLAG is `nofollow',
+do not follow FILENAME if it is a symbolic link.  */)
+  (Lisp_Object filename, Lisp_Object flag)
 {
   struct stat st;
+  int nofollow = symlink_nofollow_flag (flag);
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_modes);
   if (!NILP (handler))
-    return call2 (handler, Qfile_modes, absname);
+    return call3 (handler, Qfile_modes, absname, flag);
 
-  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname)), &st, 0) != 0)
+  char *fname = SSDATA (ENCODE_FILE (absname));
+  if (emacs_fstatat (AT_FDCWD, fname, &st, nofollow) != 0)
     return file_attribute_errno (absname, errno);
   return make_fixnum (st.st_mode & 07777);
 }
 
-DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
+DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 3,
        "(let ((file (read-file-name \"File: \")))			\
 	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
-Only the 12 low bits of MODE are used.
+Only the 12 low bits of MODE are used.  If optional FLAG is `nofollow',
+do not follow FILENAME if it is a symbolic link.
 
 Interactively, mode bits are read by `read-file-modes', which accepts
 symbolic notation, like the `chmod' command from GNU Coreutils.  */)
-  (Lisp_Object filename, Lisp_Object mode)
+  (Lisp_Object filename, Lisp_Object mode, Lisp_Object flag)
 {
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
   CHECK_FIXNUM (mode);
+  int nofollow = symlink_nofollow_flag (flag);
+  Lisp_Object absname = Fexpand_file_name (filename,
+					   BVAR (current_buffer, directory));
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_modes);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qset_file_modes);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_modes, absname, mode);
+    return call4 (handler, Qset_file_modes, absname, mode, flag);
 
-  encoded_absname = ENCODE_FILE (absname);
-
-  if (chmod (SSDATA (encoded_absname), XFIXNUM (mode) & 07777) < 0)
+  char *fname = SSDATA (ENCODE_FILE (absname));
+  mode_t imode = XFIXNUM (mode) & 07777;
+  if (fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
     report_file_error ("Doing chmod", absname);
 
   return Qnil;
@@ -3420,39 +3429,41 @@ The value is an integer.  */)
 }
 
 
-DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
+DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 3, 0,
        doc: /* Set times of file FILENAME to TIMESTAMP.
-Set both access and modification times.
-Return t on success, else nil.
-Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
-`current-time'. */)
-  (Lisp_Object filename, Lisp_Object timestamp)
+If optional FLAG is `nofollow', do not follow FILENAME if it is a
+symbolic link.  Set both access and modification times.  Return t on
+success, else nil.  Use the current time if TIMESTAMP is nil.
+TIMESTAMP is in the format of `current-time'. */)
+  (Lisp_Object filename, Lisp_Object timestamp, Lisp_Object flag)
 {
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-  struct timespec t = lisp_time_argument (timestamp);
+  int nofollow = symlink_nofollow_flag (flag);
 
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
+  struct timespec ts[2];
+  if (!NILP (timestamp))
+    ts[0] = ts[1] = lisp_time_argument (timestamp);
+  else
+    ts[0].tv_nsec = ts[1].tv_nsec = UTIME_NOW;
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_times);
+  Lisp_Object
+    absname = Fexpand_file_name (filename, BVAR (current_buffer, directory)),
+    handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_times, absname, timestamp);
+    return call4 (handler, Qset_file_times, absname, timestamp, flag);
 
-  encoded_absname = ENCODE_FILE (absname);
+  Lisp_Object encoded_absname = ENCODE_FILE (absname);
 
-  {
-    if (set_file_times (-1, SSDATA (encoded_absname), t, t) != 0)
-      {
+  if (utimensat (AT_FDCWD, SSDATA (encoded_absname), ts, nofollow) != 0)
+    {
 #ifdef MSDOS
-        /* Setting times on a directory always fails.  */
-        if (file_directory_p (encoded_absname))
-          return Qnil;
+      /* Setting times on a directory always fails.  */
+      if (file_directory_p (encoded_absname))
+	return Qnil;
 #endif
-        report_file_error ("Setting file times", absname);
-      }
-  }
+      report_file_error ("Setting file times", absname);
+    }
 
   return Qt;
 }
@@ -5740,7 +5751,7 @@ auto_save_1 (void)
 	  == 0)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
-      else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
+      else if (modes = Ffile_modes (BVAR (current_buffer, filename), Qnil),
 	       FIXNUMP (modes))
 	/* Remote files don't cooperate with fstatat.  */
 	auto_save_mode_bits = (XFIXNUM (modes) | 0600) & 0777;

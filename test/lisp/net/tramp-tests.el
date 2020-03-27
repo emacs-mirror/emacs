@@ -50,6 +50,7 @@
 (require 'vc-hg)
 
 (declare-function tramp-find-executable "tramp-sh")
+(declare-function tramp-get-remote-chmod-h "tramp-sh")
 (declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
@@ -2355,7 +2356,14 @@ This checks also `file-name-as-directory', `file-name-directory',
 		(write-region nil nil tmp-name 3))
 	      (with-temp-buffer
 		(insert-file-contents tmp-name)
-		(should (string-equal (buffer-string) "foobaz"))))
+		(should (string-equal (buffer-string) "foobaz")))
+	      (delete-file tmp-name)
+	      (with-temp-buffer
+		(insert "foo")
+		(write-region nil nil tmp-name 'append))
+	      (with-temp-buffer
+		(insert-file-contents tmp-name)
+		(should (string-equal (buffer-string) "foo"))))
 
 	    ;; Write string.
 	    (write-region "foo" nil tmp-name)
@@ -3364,25 +3372,80 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	 "ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
-    (let ((tmp-name (tramp--test-make-temp-name nil quoted)))
+    (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
+	  (tmp-name2 (tramp--test-make-temp-name nil quoted)))
+
       (unwind-protect
 	  (progn
-	    (write-region "foo" nil tmp-name)
-	    (should (file-exists-p tmp-name))
-	    (set-file-modes tmp-name #o777)
-	    (should (= (file-modes tmp-name) #o777))
-	    (should (file-executable-p tmp-name))
-	    (should (file-writable-p tmp-name))
-	    (set-file-modes tmp-name #o444)
-	    (should (= (file-modes tmp-name) #o444))
-	    (should-not (file-executable-p tmp-name))
+	    (write-region "foo" nil tmp-name1)
+	    (should (file-exists-p tmp-name1))
+	    (set-file-modes tmp-name1 #o777)
+	    (should (= (file-modes tmp-name1) #o777))
+	    (should (file-executable-p tmp-name1))
+	    (should (file-writable-p tmp-name1))
+	    (set-file-modes tmp-name1 #o444)
+	    (should (= (file-modes tmp-name1) #o444))
+	    (should-not (file-executable-p tmp-name1))
 	    ;; A file is always writable for user "root".
 	    (unless (zerop (tramp-compat-file-attribute-user-id
-			    (file-attributes tmp-name)))
-	      (should-not (file-writable-p tmp-name))))
+			    (file-attributes tmp-name1)))
+	      (should-not (file-writable-p tmp-name1)))
+	    ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  For
+	    ;; regular files, there shouldn't be a difference.
+	    (when (tramp--test-emacs28-p)
+	      (with-no-warnings
+		(set-file-modes tmp-name1 #o222 'nofollow)
+		(should (= (file-modes tmp-name1 'nofollow) #o222)))))
 
 	;; Cleanup.
-	(ignore-errors (delete-file tmp-name))))))
+	(ignore-errors (delete-file tmp-name1)))
+
+      ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  It is
+      ;; implemented for tramp-gvfs.el and tramp-sh.el.  However,
+      ;; tramp-gvfs,el does not support creating symbolic links.  And
+      ;; in tramp-sh.el, we must ensure that the remote chmod command
+      ;; supports the "-h" argument.
+      (when (and (tramp--test-emacs28-p) (tramp--test-sh-p)
+		 (tramp-get-remote-chmod-h (tramp-dissect-file-name tmp-name1)))
+	(unwind-protect
+	    (with-no-warnings
+	      (write-region "foo" nil tmp-name1)
+	      (should (file-exists-p tmp-name1))
+	      (make-symbolic-link tmp-name1 tmp-name2)
+	      (should
+	       (string-equal
+		(funcall
+		 (if quoted #'tramp-compat-file-name-unquote #'identity)
+		 (file-remote-p tmp-name1 'localname))
+		(file-symlink-p tmp-name2)))
+	      ;; Both report the modes of `tmp-name1'.
+	      (should
+	       (= (file-modes tmp-name1) (file-modes tmp-name2)))
+	      ;; `tmp-name1' is a regular file.  NOFOLLOW doesn't matter.
+	      (should
+	       (= (file-modes tmp-name1) (file-modes tmp-name1 'nofollow)))
+	      ;; `tmp-name2' is a symbolic link.  It has different permissions.
+	      (should-not
+	       (= (file-modes tmp-name2) (file-modes tmp-name2 'nofollow)))
+	      (should-not
+	       (= (file-modes tmp-name1 'nofollow)
+		  (file-modes tmp-name2 'nofollow)))
+	      ;; Change permissions.
+	      (set-file-modes tmp-name1 #o200)
+	      (set-file-modes tmp-name2 #o200)
+	      (should
+	       (= (file-modes tmp-name1) (file-modes tmp-name2) #o200))
+	      ;; Change permissions with NOFOLLOW.
+	      (set-file-modes tmp-name1 #o300 'nofollow)
+	      (set-file-modes tmp-name2 #o300 'nofollow)
+	      (should
+	       (= (file-modes tmp-name1 'nofollow)
+		  (file-modes tmp-name2 'nofollow)))
+	      (should-not (= (file-modes tmp-name1) (file-modes tmp-name2))))
+
+	  ;; Cleanup.
+	  (ignore-errors (delete-file tmp-name1))
+	  (ignore-errors (delete-file tmp-name2)))))))
 
 ;; Method "smb" could run into "NT_STATUS_REVISION_MISMATCH" error.
 (defmacro tramp--test-ignore-add-name-to-file-error (&rest body)
@@ -3704,7 +3767,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should (file-newer-than-file-p tmp-name2 tmp-name1))
 	      ;; `tmp-name3' does not exist.
 	      (should (file-newer-than-file-p tmp-name2 tmp-name3))
-	      (should-not (file-newer-than-file-p tmp-name3 tmp-name1))))
+	      (should-not (file-newer-than-file-p tmp-name3 tmp-name1))
+	      ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  For
+	      ;; regular files, there shouldn't be a difference.
+	      (when (tramp--test-emacs28-p)
+		(with-no-warnings
+		  (set-file-times tmp-name1 (seconds-to-time 1) 'nofollow)
+		  (should
+		   (tramp-compat-time-equal-p
+                    (tramp-compat-file-attribute-modification-time
+		     (file-attributes tmp-name1))
+		    (seconds-to-time 1)))))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -5343,6 +5416,12 @@ variables, so we check the Emacs version directly."
 Some semantics has been changed for there, w/o new functions or
 variables, so we check the Emacs version directly."
   (>= emacs-major-version 27))
+
+(defun tramp--test-emacs28-p ()
+  "Check for Emacs version >= 28.1.
+Some semantics has been changed for there, w/o new functions or
+variables, so we check the Emacs version directly."
+  (>= emacs-major-version 28))
 
 (defun tramp--test-adb-p ()
   "Check, whether the remote host runs Android.

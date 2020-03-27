@@ -4776,6 +4776,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
   ;; Create temp files with strict access rights.  It's easy to
   ;; loosen them later, whereas it's impossible to close the
   ;; time-window of loose permissions otherwise.
+ (let (nofollow-flag)
   (with-file-modes ?\700
     (when (condition-case nil
 	      ;; Try to overwrite old backup first.
@@ -4786,6 +4787,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		   (when (file-exists-p to-name)
 		     (delete-file to-name))
 		   (copy-file from-name to-name nil t t)
+		   (setq nofollow-flag 'nofollow)
 		   nil)
 	       (file-already-exists t))
 	;; The file was somehow created by someone else between
@@ -4798,7 +4800,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	       (with-demoted-errors
 		 (set-file-extended-attributes to-name extended-attributes)))
     (and modes
-	 (set-file-modes to-name (logand modes #o1777)))))
+	 (set-file-modes to-name (logand modes #o1777) nofollow-flag)))))
 
 (defvar file-name-version-regexp
   "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
@@ -6004,7 +6006,8 @@ into NEWNAME instead."
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
-		     (find-file-name-handler newname 'copy-directory))))
+		     (find-file-name-handler newname 'copy-directory)))
+	(follow parents))
     (if handler
 	(funcall handler 'copy-directory directory
                  newname keep-time parents copy-contents)
@@ -6024,7 +6027,8 @@ into NEWNAME instead."
 		 (or parents (not (file-directory-p newname)))
 	       (setq newname (concat newname
 				     (file-name-nondirectory directory))))
-	     (make-directory (directory-file-name newname) parents)))
+	     (make-directory (directory-file-name newname) parents))
+	    (t (setq follow t)))
 
       ;; Copy recursively.
       (dolist (file
@@ -6044,9 +6048,10 @@ into NEWNAME instead."
       ;; Set directory attributes.
       (let ((modes (file-modes directory))
 	    (times (and keep-time (file-attribute-modification-time
-				   (file-attributes directory)))))
-	(if modes (set-file-modes newname modes))
-	(if times (set-file-times newname times))))))
+				   (file-attributes directory))))
+	    (follow-flag (unless follow 'nofollow)))
+	(if modes (set-file-modes newname modes follow-flag))
+	(if times (set-file-times newname times follow-flag))))))
 
 
 ;; At time of writing, only info uses this.

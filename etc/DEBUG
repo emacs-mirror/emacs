@@ -739,9 +739,9 @@ stepping, you will see where the loop starts and ends.  Also, examine
 the data being used in the loop and try to determine why the loop does
 not exit when it should.
 
-On GNU and Unix systems, you can also trying sending Emacs SIGUSR2,
+On GNU and Unix systems, you can also try sending Emacs SIGUSR2,
 which, if 'debug-on-event' has its default value, will cause Emacs to
-attempt to break it out of its current loop and into the Lisp
+attempt to break out of its current loop and enter the Lisp
 debugger.  (See the node "Debugging" in the ELisp manual for the
 details about the Lisp debugger.)  This feature is useful when a
 C-level debugger is not conveniently available.

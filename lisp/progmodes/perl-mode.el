@@ -235,7 +235,7 @@
                                                       (match-beginning 0))))))
                             (string-to-syntax ". p"))))
       ;; Handle funny names like $DB'stop.
-      ("\\$ ?{?^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
+      ("\\$ ?{?\\^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
       ("^[ \t]*format.*=[ \t]*\\(\n\\)"
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))

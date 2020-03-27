@@ -30,12 +30,13 @@
 
 ;;; Code:
 
-;; FIXME?  Are these still relevant?  Nothing uses them AFAICS.
 (defconst mule-version "6.0 (HANACHIRUSATO)" "\
 Version number and name of this version of MULE (multilingual environment).")
+(make-obsolete-variable 'mule-version nil "28.1")
 
 (defconst mule-version-date "2003.9.1" "\
 Distribution date of this version of MULE (multilingual environment).")
+(make-obsolete-variable 'mule-version-date nil "28.1")
 
 
 ;;; CHARSET
@@ -2601,7 +2602,7 @@ This function is intended to be added to `auto-coding-functions'."
                     (detect-coding-region (point-min) size t)))))
             ;; Pure ASCII always comes back as undecided.
             (if (memq detected
-                      '(utf-8 'utf-8-with-signature 'utf-8-hfs undecided))
+                      '(utf-8 utf-8-with-signature utf-8-hfs undecided))
                 'utf-8
               (warn "File contents detected as %s.
   Consider adding an encoding attribute to the xml declaration,

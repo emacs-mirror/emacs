@@ -2834,16 +2834,21 @@ Any GnuTLS extension with ID up to 100
 void
 syms_of_gnutls (void)
 {
-  DEFSYM (Qlibgnutls_version, "libgnutls-version");
-  Fset (Qlibgnutls_version,
+  DEFVAR_LISP ("libgnutls-version", Vlibgnutls_version,
+               doc: /* The version of libgnutls that Emacs was compiled with.
+The version number is encoded as an integer with the major version in
+the ten thousands place, minor version in the hundreds, and patch
+level in the ones.  For builds without libgnutls, the value is -1.  */);
+  Vlibgnutls_version = make_fixnum
 #ifdef HAVE_GNUTLS
-	make_fixnum (GNUTLS_VERSION_MAJOR * 10000
-		     + GNUTLS_VERSION_MINOR * 100
-		     + GNUTLS_VERSION_PATCH)
+    (GNUTLS_VERSION_MAJOR * 10000
+     + GNUTLS_VERSION_MINOR * 100
+     + GNUTLS_VERSION_PATCH)
 #else
-	make_fixnum (-1)
+    (-1)
 #endif
-        );
+    ;
+
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
   PDUMPER_IGNORE (gnutls_global_initialized);

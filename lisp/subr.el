@@ -1558,7 +1558,6 @@ be a list of the form returned by `event-start' and `event-end'."
 
 ;;;; Obsolescent names for functions.
 
-(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
 (make-obsolete 'buffer-has-markers-at nil "24.3")
 
 (make-obsolete 'invocation-directory "use the variable of the same name."
@@ -1579,6 +1578,11 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete 'string-make-unibyte   "use `encode-coding-string'." "26.1")
 (make-obsolete 'string-as-multibyte "use `decode-coding-string'." "26.1")
 (make-obsolete 'string-make-multibyte "use `decode-coding-string'." "26.1")
+
+(defun forward-point (n)
+  "Return buffer position N characters after (before if N negative) point."
+  (declare (obsolete "use (+ (point) N) instead." "23.1"))
+  (+ (point) n))
 
 (defun log10 (x)
   "Return (log X 10), the log base 10 of X."
@@ -1621,6 +1625,9 @@ be a list of the form returned by `event-start' and `event-end'."
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 (define-obsolete-variable-alias 'inhibit-null-byte-detection
   'inhibit-nul-byte-detection "27.1")
+(make-obsolete-variable 'load-dangerous-libraries
+                        "no longer used." "27.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -1773,6 +1780,21 @@ all symbols are bound before any of the VALUEFORMs are evalled."
   `(let ,(mapcar #'car binders)
      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
      ,@body))
+
+(defmacro dlet (binders &rest body)
+  "Like `let*' but using dynamic scoping."
+  (declare (indent 1) (debug let))
+  ;; (defvar FOO) only affects the current scope, but in order for
+  ;; this not to affect code after the `let*' we need to create a new scope,
+  ;; which is what the surrounding `let' is for.
+  ;; FIXME: (let () ...) currently doesn't actually create a new scope,
+  ;; which is why we use (let (_) ...).
+  `(let (_)
+     ,@(mapcar (lambda (binder)
+                 `(defvar ,(if (consp binder) (car binder) binder)))
+               binders)
+     (let* ,binders ,@body)))
+
 
 (defmacro with-wrapper-hook (hook args &rest body)
   "Run BODY, using wrapper functions from HOOK with additional ARGS.
@@ -2969,13 +2991,18 @@ This finishes the change group by reverting all of its changes."
 	;; the body of `atomic-change-group' all changes can be undone.
 	(widen)
 	(let ((old-car (car-safe elt))
-	      (old-cdr (cdr-safe elt)))
+	      (old-cdr (cdr-safe elt))
+	      ;; Use `pending-undo-list' temporarily since `undo-more' needs
+	      ;; it, but restore it afterwards so as not to mess with an
+	      ;; ongoing sequence of `undo's.
+	      (pending-undo-list
+	       ;; Use `buffer-undo-list' unconditionally (bug#39680).
+	       buffer-undo-list))
           (unwind-protect
               (progn
                 ;; Temporarily truncate the undo log at ELT.
                 (when (consp elt)
                   (setcar elt nil) (setcdr elt nil))
-                (unless (eq last-command 'undo) (undo-start))
                 ;; Make sure there's no confusion.
                 (when (and (consp elt) (not (eq elt (last pending-undo-list))))
                   (error "Undoing to some unrelated state"))
@@ -3964,19 +3991,18 @@ the function `undo--wrap-and-run-primitive-undo'."
       (let ((undo--combining-change-calls t))
 	(if (not inhibit-modification-hooks)
 	    (run-hook-with-args 'before-change-functions beg end))
-	(if (eq buffer-undo-list t)
-	    (setq result (funcall body))
-	  (let (;; (inhibit-modification-hooks t)
-                (before-change-functions
-                 ;; Ugly Hack: if the body uses syntax-ppss/syntax-propertize
-                 ;; (e.g. via a regexp-search or sexp-movement trigerring
-                 ;; on-the-fly syntax-propertize), make sure that this gets
-                 ;; properly refreshed after subsequent changes.
-                 (if (memq #'syntax-ppss-flush-cache before-change-functions)
-                     '(syntax-ppss-flush-cache)))
-                after-change-functions)
-	    (setq result (funcall body)))
-	  (let ((ap-elt
+	(let (;; (inhibit-modification-hooks t)
+              (before-change-functions
+               ;; Ugly Hack: if the body uses syntax-ppss/syntax-propertize
+               ;; (e.g. via a regexp-search or sexp-movement triggering
+               ;; on-the-fly syntax-propertize), make sure that this gets
+               ;; properly refreshed after subsequent changes.
+               (if (memq #'syntax-ppss-flush-cache before-change-functions)
+                   '(syntax-ppss-flush-cache)))
+              after-change-functions)
+	  (setq result (funcall body)))
+        (when (not (eq buffer-undo-list t))
+          (let ((ap-elt
 		 (list 'apply
 		       (- end end-marker)
 		       beg

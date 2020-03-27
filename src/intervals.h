@@ -96,24 +96,27 @@ struct interval
 /* True if this interval has both left and right children.  */
 #define BOTH_KIDS_P(i) ((i)->left != NULL && (i)->right != NULL)
 
-/* The total size of all text represented by this interval and all its
-   children in the tree.   This is zero if the interval is null.  */
-#define TOTAL_LENGTH(i) ((i) == NULL ? 0 : (i)->total_length)
+/* The total size of all text represented by the nonnull interval I
+   and all its children in the tree.  */
+#define TOTAL_LENGTH(i) ((i)->total_length)
+
+/* Likewise, but also defined to be zero if I is null.  */
+#define TOTAL_LENGTH0(i) ((i) ? TOTAL_LENGTH (i) : 0)
 
 /* The size of text represented by this interval alone.  */
-#define LENGTH(i) ((i)->total_length			\
-		   - TOTAL_LENGTH ((i)->right)		\
-		   - TOTAL_LENGTH ((i)->left))
+#define LENGTH(i) (TOTAL_LENGTH (i)		\
+		   - RIGHT_TOTAL_LENGTH (i)	\
+		   - LEFT_TOTAL_LENGTH (i))
 
 /* The position of the character just past the end of I.  Note that
    the position cache i->position must be valid for this to work.  */
 #define INTERVAL_LAST_POS(i) ((i)->position + LENGTH (i))
 
 /* The total size of the left subtree of this interval.  */
-#define LEFT_TOTAL_LENGTH(i) ((i)->left ? (i)->left->total_length : 0)
+#define LEFT_TOTAL_LENGTH(i) TOTAL_LENGTH0 ((i)->left)
 
 /* The total size of the right subtree of this interval.  */
-#define RIGHT_TOTAL_LENGTH(i) ((i)->right ? (i)->right->total_length : 0)
+#define RIGHT_TOTAL_LENGTH(i) TOTAL_LENGTH0 ((i)->right)
 
 /* These macros are for dealing with the interval properties.  */
 
@@ -234,7 +237,7 @@ set_interval_plist (INTERVAL i, Lisp_Object plist)
 
 /* Declared in alloc.c.  */
 
-extern INTERVAL make_interval (void);
+extern INTERVAL make_interval (void) ATTRIBUTE_RETURNS_NONNULL;
 
 /* Declared in intervals.c.  */
 
@@ -246,7 +249,8 @@ extern void traverse_intervals (INTERVAL, ptrdiff_t,
                                 Lisp_Object);
 extern void traverse_intervals_noorder (INTERVAL,
 					void (*) (INTERVAL, void *), void *);
-extern INTERVAL split_interval_right (INTERVAL, ptrdiff_t);
+extern INTERVAL split_interval_right (INTERVAL, ptrdiff_t)
+  ATTRIBUTE_RETURNS_NONNULL;
 extern INTERVAL split_interval_left (INTERVAL, ptrdiff_t);
 extern INTERVAL find_interval (INTERVAL, ptrdiff_t);
 extern INTERVAL next_interval (INTERVAL);

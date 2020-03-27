@@ -582,8 +582,13 @@ an unquoted @samp{[} is special again and a @samp{]} not.
 @cindex alpha character class, regexp
 @cindex xdigit character class, regexp
 
-  Here is a table of the classes you can use in a character alternative,
-and what they mean:
+  Below is a table of the classes you can use in a character
+alternative, and what they mean.  Note that the @samp{[} and @samp{]}
+characters that enclose the class name are part of the name, so a
+regular expression using these classes needs one more pair of
+brackets.  For example, a regular expression matching a sequence of
+one or more letters and digits would be @samp{[[:alnum:]]+}, not
+@samp{[:alnum:]+}.
 
 @table @samp
 @item [:ascii:]
@@ -1016,8 +1021,8 @@ or, using shorter synonyms and written more compactly,
 @example
 @group
 (rx "/*"
-    (* (| (not (any "*"))
-          (: "*" (not (any "/")))))
+    (* (| (not "*")
+          (: "*" (not "/"))))
     (+ "*") "/")
 @end group
 @end example
@@ -1081,8 +1086,9 @@ Corresponding string regexp: @samp{@var{A}@var{B}@dots{}}
 @itemx @code{(| @var{rx}@dots{})}
 @cindex @code{|} in rx
 Match exactly one of the @var{rx}s.
-If all arguments are string literals, the longest possible match
-will always be used.  Otherwise, either the longest match or the
+If all arguments are strings, characters, or @code{or} forms
+so constrained, the longest possible match will always be used.
+Otherwise, either the longest match or the
 first (in left-to-right order) will be used.
 Without arguments, the expression will not match anything at all.@*
 Corresponding string regexp: @samp{@var{A}\|@var{B}\|@dots{}}.

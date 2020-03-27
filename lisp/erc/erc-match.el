@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: comm, faces
 ;; URL: https://www.emacswiki.org/emacs/ErcMatch
 

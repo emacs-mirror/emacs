@@ -134,7 +134,7 @@ Each entry is:
                 (if (cdr def)
                     (error "Not an `rx' symbol definition: %s" form)
                   (car def)))))
-        ((consp form)
+        ((and (consp form) (symbolp (car form)))
          (let* ((op (car form))
                 (def (rx--lookup-def op)))
            (and def
@@ -254,22 +254,39 @@ Left-fold the list L, starting with X, by the binary function F."
     (setq l (cdr l)))
   x)
 
+(defun rx--normalise-or-arg (form)
+  "Normalise the `or' argument FORM.
+Characters become strings, user-definitions and `eval' forms are expanded,
+and `or' forms are normalised recursively."
+  (cond ((characterp form)
+         (char-to-string form))
+        ((and (consp form) (memq (car form) '(or |)))
+         (cons (car form) (mapcar #'rx--normalise-or-arg (cdr form))))
+        ((and (consp form) (eq (car form) 'eval))
+         (rx--normalise-or-arg (rx--expand-eval (cdr form))))
+        (t
+         (let ((expanded (rx--expand-def form)))
+           (if expanded
+               (rx--normalise-or-arg expanded)
+             form)))))
+
+(defun rx--all-string-or-args (body)
+  "If BODY only consists of strings or such `or' forms, return all the strings.
+Otherwise throw `rx--nonstring'."
+  (mapcan (lambda (form)
+            (cond ((stringp form) (list form))
+                  ((and (consp form) (memq (car form) '(or |)))
+                   (rx--all-string-or-args (cdr form)))
+                  (t (throw 'rx--nonstring nil))))
+          body))
+
 (defun rx--translate-or (body)
   "Translate an or-pattern of zero or more rx items.
 Return (REGEXP . PRECEDENCE)."
   ;; FIXME: Possible improvements:
   ;;
-  ;; - Turn single characters to strings: (or ?a ?b) -> (or "a" "b"),
-  ;;   so that they can be candidates for regexp-opt.
-  ;;
-  ;; - Translate compile-time strings (`eval' forms), again for regexp-opt.
-  ;;
   ;; - Flatten sub-patterns first: (or (or A B) (or C D)) -> (or A B C D)
-  ;;   in order to improve effectiveness of regexp-opt.
-  ;;   This would also help composability.
-  ;;
-  ;; - Use associativity to run regexp-opt on contiguous subsets of arguments
-  ;;   if not all of them are strings.  Example:
+  ;;   Then call regexp-opt on runs of string arguments. Example:
   ;;   (or (+ digit) "CHARLIE" "CHAN" (+ blank))
   ;;   -> (or (+ digit) (or "CHARLIE" "CHAN") (+ blank))
   ;;
@@ -279,33 +296,32 @@ Return (REGEXP . PRECEDENCE)."
   ;;   so that (or "@" "%" digit (any "A-Z" space) (syntax word))
   ;;        -> (any "@" "%" digit "A-Z" space word)
   ;;        -> "[A-Z@%[:digit:][:space:][:word:]]"
-  ;;
-  ;; Problem: If a subpattern is carefully written to be
-  ;; optimizable by regexp-opt, how do we prevent the transforms
-  ;; above from destroying that property?
-  ;; Example: (or "a" (or "abc" "abd" "abe"))
   (cond
    ((null body)                    ; No items: a never-matching regexp.
     (rx--empty))
    ((null (cdr body))              ; Single item.
     (rx--translate (car body)))
-   ((rx--every #'stringp body)     ; All strings.
-    (cons (list (regexp-opt body nil))
-          t))
-   ((rx--every #'rx--charset-p body)  ; All charsets.
-    (rx--translate-union nil body))
    (t
-    (cons (append (car (rx--translate (car body)))
-                  (mapcan (lambda (item)
-                            (cons "\\|" (car (rx--translate item))))
-                          (cdr body)))
-          nil))))
+    (let* ((args (mapcar #'rx--normalise-or-arg body))
+           (all-strings (catch 'rx--nonstring (rx--all-string-or-args args))))
+      (cond
+       (all-strings                       ; Only strings.
+        (cons (list (regexp-opt all-strings nil))
+              t))
+       ((rx--every #'rx--charset-p args)  ; All charsets.
+        (rx--translate-union nil args))
+       (t
+        (cons (append (car (rx--translate (car args)))
+                      (mapcan (lambda (item)
+                                (cons "\\|" (car (rx--translate item))))
+                              (cdr args)))
+              nil)))))))
 
 (defun rx--charset-p (form)
   "Whether FORM looks like a charset, only consisting of character intervals
 and set operations."
   (or (and (consp form)
-           (or (and (memq (car form) '(any 'in 'char))
+           (or (and (memq (car form) '(any in char))
                     (rx--every (lambda (x) (not (symbolp x))) (cdr form)))
                (and (memq (car form) '(not or | intersection))
                     (rx--every #'rx--charset-p (cdr form)))))
@@ -344,7 +360,7 @@ character X becomes (?X . ?X).  Return the intervals in a list."
                       (push (cons start end) intervals))
                      (t
                       (error "Invalid rx `any' range: %s"
-                             (substring str i 3))))
+                             (substring str i (+ i 3)))))
                (setq i (+ i 3))))
             (t
              ;; Single character.
@@ -450,6 +466,10 @@ classes."
            (not negated))
       (cons (list (regexp-quote (char-to-string (caar items))))
             t))
+     ;; Negated newline.
+     ((and (equal items '((?\n . ?\n)))
+           negated)
+      (rx--translate-symbol 'nonl))
      ;; At least one character or class, possibly negated.
      (t
       (cons
@@ -836,11 +856,15 @@ Return (REGEXP . PRECEDENCE)."
            (cons (list (list 'regexp-quote arg)) 'seq))
           (t (error "rx `literal' form with non-string argument")))))
 
-(defun rx--translate-eval (body)
-  "Translate the `eval' form.  Return (REGEXP . PRECEDENCE)."
+(defun rx--expand-eval (body)
+  "Expand `eval' arguments.  Return a new rx form."
   (unless (and body (null (cdr body)))
     (error "rx `eval' form takes exactly one argument"))
-  (rx--translate (eval (car body))))
+  (eval (car body)))
+
+(defun rx--translate-eval (body)
+  "Translate the `eval' form.  Return (REGEXP . PRECEDENCE)."
+  (rx--translate (rx--expand-eval body)))
 
 (defvar rx--regexp-atomic-regexp nil)
 

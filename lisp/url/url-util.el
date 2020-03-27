@@ -615,9 +615,7 @@ Creates FILE and its parent directories if they do not exist."
         (with-temp-buffer
           (write-region (point-min) (point-max) file nil 'silent nil 'excl)))
     (file-already-exists
-     (if (file-symlink-p file)
-         (error "Danger: `%s' is a symbolic link" file))
-     (set-file-modes file #o0600))))
+     (set-file-modes file #o0600 'nofollow))))
 
 (autoload 'puny-encode-domain "puny")
 (autoload 'url-domsuf-cookie-allowed-p "url-domsuf")

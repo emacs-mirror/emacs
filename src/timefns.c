@@ -421,6 +421,9 @@ decode_float_time (double t, struct lisp_time *result)
       else if (flt_radix_power_size <= scale)
 	return isnan (t) ? EDOM : EOVERFLOW;
 
+      /* Compute TICKS, HZ such that TICKS / HZ exactly equals T, where HZ is
+	 T's frequency or 1, whichever is greater.  Here, “frequency” means
+	 1/precision.  Cache HZ values in flt_radix_power.  */
       double scaled = scalbn (t, scale);
       eassert (trunc (scaled) == scaled);
       ticks = double_to_integer (scaled);
@@ -442,6 +445,7 @@ decode_float_time (double t, struct lisp_time *result)
 static Lisp_Object
 ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
 {
+  /* mpz[0] = floor ((ticks * trillion) / hz).  */
   mpz_t const *zticks = bignum_integer (&mpz[0], ticks);
 #if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
   mpz_mul_ui (mpz[0], *zticks, TRILLION);
@@ -449,6 +453,9 @@ ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
   mpz_mul (mpz[0], *zticks, ztrillion);
 #endif
   mpz_fdiv_q (mpz[0], mpz[0], *bignum_integer (&mpz[1], hz));
+
+  /* mpz[0] = floor (mpz[0] / trillion), with US = the high six digits of the
+     12-digit remainder, and PS = the low six digits.  */
 #if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
   unsigned long int fullps = mpz_fdiv_q_ui (mpz[0], mpz[0], TRILLION);
   int us = fullps / 1000000;
@@ -458,11 +465,14 @@ ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
   int ps = mpz_fdiv_q_ui (mpz[1], mpz[1], 1000000);
   int us = mpz_get_ui (mpz[1]);
 #endif
+
+  /* mpz[0] = floor (mpz[0] / 1 << LO_TIME_BITS), with lo = remainder.  */
   unsigned long ulo = mpz_get_ui (mpz[0]);
   if (mpz_sgn (mpz[0]) < 0)
     ulo = -ulo;
   int lo = ulo & ((1 << LO_TIME_BITS) - 1);
   mpz_fdiv_q_2exp (mpz[0], mpz[0], LO_TIME_BITS);
+
   return list4 (make_integer_mpz (), make_fixnum (lo),
 		make_fixnum (us), make_fixnum (ps));
 }
@@ -482,6 +492,7 @@ mpz_set_time (mpz_t rop, time_t t)
 static void
 timespec_mpz (struct timespec t)
 {
+  /* mpz[0] = sec * TIMESPEC_HZ + nsec.  */
   mpz_set_ui (mpz[0], t.tv_nsec);
   mpz_set_time (mpz[1], t.tv_sec);
   mpz_addmul_ui (mpz[0], mpz[1], TIMESPEC_HZ);
@@ -491,11 +502,14 @@ timespec_mpz (struct timespec t)
 static Lisp_Object
 timespec_ticks (struct timespec t)
 {
+  /* For speed, use intmax_t arithmetic if it will do.  */
   intmax_t accum;
   if (FASTER_TIMEFNS
       && !INT_MULTIPLY_WRAPV (t.tv_sec, TIMESPEC_HZ, &accum)
       && !INT_ADD_WRAPV (t.tv_nsec, accum, &accum))
     return make_int (accum);
+
+  /* Fall back on bignum arithmetic.  */
   timespec_mpz (t);
   return make_integer_mpz ();
 }
@@ -505,12 +519,19 @@ timespec_ticks (struct timespec t)
 static Lisp_Object
 lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
 {
+  /* The idea is to return the floor of ((T.ticks * HZ) / T.hz).  */
+
+  /* For speed, just return T.ticks if T.hz == HZ.  */
   if (FASTER_TIMEFNS && EQ (t.hz, hz))
     return t.ticks;
+
+  /* Check HZ for validity.  */
   if (FIXNUMP (hz))
     {
       if (XFIXNUM (hz) <= 0)
 	invalid_hz (hz);
+
+      /* For speed, use intmax_t arithmetic if it will do.  */
       intmax_t ticks;
       if (FASTER_TIMEFNS && FIXNUMP (t.ticks) && FIXNUMP (t.hz)
 	  && !INT_MULTIPLY_WRAPV (XFIXNUM (t.ticks), XFIXNUM (hz), &ticks))
@@ -520,6 +541,7 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
   else if (! (BIGNUMP (hz) && 0 < mpz_sgn (*xbignum_val (hz))))
     invalid_hz (hz);
 
+  /* Fall back on bignum arithmetic.  */
   mpz_mul (mpz[0],
 	   *bignum_integer (&mpz[0], t.ticks),
 	   *bignum_integer (&mpz[1], hz));
@@ -531,11 +553,17 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
 static Lisp_Object
 lisp_time_seconds (struct lisp_time t)
 {
+  /* The idea is to return the floor of T.ticks / T.hz.  */
+
   if (!FASTER_TIMEFNS)
     return lisp_time_hz_ticks (t, make_fixnum (1));
+
+  /* For speed, use EMACS_INT arithmetic if it will do.  */
   if (FIXNUMP (t.ticks) && FIXNUMP (t.hz))
     return make_fixnum (XFIXNUM (t.ticks) / XFIXNUM (t.hz)
 			- (XFIXNUM (t.ticks) % XFIXNUM (t.hz) < 0));
+
+  /* For speed, inline what lisp_time_hz_ticks would do.  */
   mpz_fdiv_q (mpz[0],
 	      *bignum_integer (&mpz[0], t.ticks),
 	      *bignum_integer (&mpz[1], t.hz));
@@ -565,29 +593,29 @@ timespec_to_lisp (struct timespec t)
 }
 
 /* Return NUMERATOR / DENOMINATOR, rounded to the nearest double.
-   Arguments must be Lisp integers, and DENOMINATOR must be nonzero.  */
+   Arguments must be Lisp integers, and DENOMINATOR must be positive.  */
 static double
 frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
 {
-  intmax_t intmax_numerator;
-  if (FASTER_TIMEFNS && EQ (denominator, make_fixnum (1))
-      && integer_to_intmax (numerator, &intmax_numerator))
-    return intmax_numerator;
+  intmax_t intmax_numerator, intmax_denominator;
+  if (FASTER_TIMEFNS
+      && integer_to_intmax (numerator, &intmax_numerator)
+      && integer_to_intmax (denominator, &intmax_denominator)
+      && intmax_numerator % intmax_denominator == 0)
+    return intmax_numerator / intmax_denominator;
 
+  /* Compute number of base-FLT_RADIX digits in numerator and denominator.  */
   mpz_t const *n = bignum_integer (&mpz[0], numerator);
   mpz_t const *d = bignum_integer (&mpz[1], denominator);
-  ptrdiff_t nbits = mpz_sizeinbase (*n, 2);
-  ptrdiff_t dbits = mpz_sizeinbase (*d, 2);
-  eassume (0 < nbits);
-  eassume (0 < dbits);
-  ptrdiff_t ndig = (nbits + LOG2_FLT_RADIX - 1) / LOG2_FLT_RADIX;
-  ptrdiff_t ddig = (dbits + LOG2_FLT_RADIX - 1) / LOG2_FLT_RADIX;
+  ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
+  ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
 
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
      FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
-     then divide the double by FLT_RADIX**SCALE.  */
-  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG + 1;
+     then divide the double by FLT_RADIX**SCALE.  First scale N
+     (or scale D, if SCALE is negative) ...  */
+  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG;
   if (scale < 0)
     {
       mpz_mul_2exp (mpz[1], *d, - (scale * LOG2_FLT_RADIX));
@@ -601,12 +629,12 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
       mpz_mul_2exp (mpz[0], *n, scale * LOG2_FLT_RADIX);
       n = &mpz[0];
     }
-
+  /* ... and then divide, with quotient Q and remainder R.  */
   mpz_t *q = &mpz[2];
   mpz_t *r = &mpz[3];
   mpz_tdiv_qr (*q, *r, *n, *d);
 
-  /* The amount to add to the absolute value of *Q so that truncating
+  /* The amount to add to the absolute value of Q so that truncating
      it to double will round correctly.  */
   int incr;
 
@@ -615,7 +643,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
      round to the nearest integer; otherwise, it is less than
      FLT_RADIX ** (DBL_MANT_DIG + 1) and round it to the nearest
      multiple of FLT_RADIX.  Break ties to even.  */
-  if (mpz_sizeinbase (*q, 2) < DBL_MANT_DIG * LOG2_FLT_RADIX)
+  if (mpz_sizeinbase (*q, FLT_RADIX) <= DBL_MANT_DIG)
     {
       /* Converting to double will use the whole quotient so add 1 to
 	 its absolute value as per round-to-even; i.e., if the doubled
@@ -645,6 +673,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   if (!FASTER_TIMEFNS || incr != 0)
     (mpz_sgn (*n) < 0 ? mpz_sub_ui : mpz_add_ui) (*q, *q, incr);
 
+  /* Rescale the integer Q back to double.  This step does not round.  */
   return scalbn (mpz_get_d (*q), -scale);
 }
 
@@ -739,44 +768,48 @@ decode_time_components (enum timeform form,
   /* Normalize out-of-range lower-order components by carrying
      each overflow into the next higher-order component.  */
   us += ps / 1000000 - (ps % 1000000 < 0);
-  mpz_set_intmax (mpz[0], us / 1000000 - (us % 1000000 < 0));
-  mpz_add (mpz[0], mpz[0], *bignum_integer (&mpz[1], low));
-  mpz_addmul_ui (mpz[0], *bignum_integer (&mpz[1], high), 1 << LO_TIME_BITS);
+  mpz_t *s = &mpz[1];
+  mpz_set_intmax (*s, us / 1000000 - (us % 1000000 < 0));
+  mpz_add (*s, *s, *bignum_integer (&mpz[0], low));
+  mpz_addmul_ui (*s, *bignum_integer (&mpz[0], high), 1 << LO_TIME_BITS);
   ps = ps % 1000000 + 1000000 * (ps % 1000000 < 0);
   us = us % 1000000 + 1000000 * (us % 1000000 < 0);
 
-  if (result)
+  Lisp_Object hz;
+  switch (form)
     {
-      switch (form)
-	{
-	case TIMEFORM_HI_LO:
-	  /* Floats and nil were handled above, so it was an integer.  */
-	  result->hz = make_fixnum (1);
-	  break;
+    case TIMEFORM_HI_LO:
+      /* Floats and nil were handled above, so it was an integer.  */
+      mpz_swap (mpz[0], *s);
+      hz = make_fixnum (1);
+      break;
 
-	case TIMEFORM_HI_LO_US:
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], us);
-	  result->hz = make_fixnum (1000000);
-	  break;
+    case TIMEFORM_HI_LO_US:
+      mpz_set_ui (mpz[0], us);
+      mpz_addmul_ui (mpz[0], *s, 1000000);
+      hz = make_fixnum (1000000);
+      break;
 
-	case TIMEFORM_HI_LO_US_PS:
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], us);
-	  mpz_mul_ui (mpz[0], mpz[0], 1000000);
-	  mpz_add_ui (mpz[0], mpz[0], ps);
-	  result->hz = trillion;
-	  break;
+    case TIMEFORM_HI_LO_US_PS:
+      {
+	#if FASTER_TIMEFNS && TRILLION <= ULONG_MAX
+	  unsigned long i = us;
+	  mpz_set_ui (mpz[0], i * 1000000 + ps);
+	  mpz_addmul_ui (mpz[0], *s, TRILLION);
+	#else
+	  intmax_t i = us;
+	  mpz_set_intmax (mpz[0], i * 1000000 + ps);
+	  mpz_addmul (mpz[0], *s, ztrillion);
+	#endif
+	hz = trillion;
+      }
+      break;
 
-	default:
-	  eassume (false);
-	}
-      result->ticks = make_integer_mpz ();
+    default:
+      eassume (false);
     }
-  else
-    *dresult = mpz_get_d (mpz[0]) + (us * 1e6L + ps) / 1e12L;
 
-  return 0;
+  return decode_ticks_hz (make_integer_mpz (), hz, result, dresult);
 }
 
 enum { DECODE_SECS_ONLY = WARN_OBSOLETE_TIMESTAMPS + 1 };
@@ -889,6 +922,10 @@ lisp_to_timespec (struct lisp_time t)
   mpz_t *q = &mpz[0];
   mpz_t const *qt = q;
 
+  /* Floor-divide (T.ticks * TIMESPEC_HZ) by T.hz,
+     yielding quotient Q (tv_sec) and remainder NS (tv_nsec).
+     Return an invalid timespec if Q does not fit in time_t.
+     For speed, prefer fixnum arithmetic if it works.  */
   if (FASTER_TIMEFNS && EQ (t.hz, timespec_hz))
     {
       if (FIXNUMP (t.ticks))
@@ -932,8 +969,8 @@ lisp_to_timespec (struct lisp_time t)
       ns = mpz_fdiv_q_ui (*q, *q, TIMESPEC_HZ);
     }
 
-  /* With some versions of MinGW, tv_sec is a 64-bit type, whereas
-     time_t is a 32-bit type.  */
+  /* Check that Q fits in time_t, not merely in T.tv_sec.  With some versions
+     of MinGW, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
   time_t sec;
   if (mpz_time (*qt, &sec))
     {
@@ -1013,10 +1050,14 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
     {
       if (EQ (b, make_fixnum (0)))
 	return a;
+
+      /* For speed, use EMACS_INT arithmetic if it will do.  */
       if (FIXNUMP (a))
 	return make_int (subtract
 			 ? XFIXNUM (a) - XFIXNUM (b)
 			 : XFIXNUM (a) + XFIXNUM (b));
+
+      /* For speed, use mpz_add_ui/mpz_sub_ui if it will do.  */
       if (eabs (XFIXNUM (b)) <= ULONG_MAX)
 	{
 	  ((XFIXNUM (b) < 0) == subtract ? mpz_add_ui : mpz_sub_ui)
@@ -1025,6 +1066,7 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 	}
     }
 
+  /* Fall back on bignum arithmetic if necessary.  */
   if (!mpz_done)
     (subtract ? mpz_sub : mpz_add) (mpz[0],
 				    *bignum_integer (&mpz[0], a),
@@ -1033,9 +1075,7 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 }
 
 /* Given Lisp operands A and B, add their values, and return the
-   result as a Lisp timestamp that is in (TICKS . HZ) form if either A
-   or B are in that form or are floats, (HI LO US PS) form otherwise.
-   Subtract instead of adding if SUBTRACT.  */
+   result as a Lisp timestamp.  Subtract instead of adding if SUBTRACT.  */
 static Lisp_Object
 time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 {
@@ -1118,21 +1158,22 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
       (subtract ? mpz_submul : mpz_addmul) (*iticks, *fa, *nb);
 
       /* Normalize iticks/ihz by dividing both numerator and
-	 denominator by ig = gcd (iticks, ihz).  However, if that
-	 would cause the denominator to become less than hzmin,
-	 rescale the denominator upwards from its ordinary value by
-	 multiplying numerator and denominator so that the denominator
-	 becomes at least hzmin.  This rescaling avoids returning a
-	 timestamp that is less precise than both a and b, or a
-	 timestamp that looks obsolete when that might be a problem.  */
+	 denominator by ig = gcd (iticks, ihz).  For speed, though,
+	 skip this division if ihz = 1.  */
       mpz_t *ig = &mpz[3];
       mpz_gcd (*ig, *iticks, *ihz);
-
       if (!FASTER_TIMEFNS || mpz_cmp_ui (*ig, 1) > 0)
 	{
 	  mpz_divexact (*iticks, *iticks, *ig);
 	  mpz_divexact (*ihz, *ihz, *ig);
 
+	  /* However, if dividing the denominator by ig would cause the
+	     denominator to become less than hzmin, rescale the denominator
+	     upwards by multiplying the normalized numerator and denominator
+	     so that the resulting denominator becomes at least hzmin.
+	     This rescaling avoids returning a timestamp that is less precise
+	     than both a and b, or a timestamp that looks obsolete when that
+	     might be a problem.  */
 	  if (!FASTER_TIMEFNS || mpz_cmp (*ihz, *hzmin) < 0)
 	    {
 	      /* Rescale straightforwardly.  Although this might not
@@ -1146,6 +1187,8 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 	      mpz_mul (*ihz, *ihz, *rescale);
 	    }
 	}
+
+      /* mpz[0] and iticks now correspond to the (HZ . TICKS) pair.  */
       hz = make_integer_mpz ();
       mpz_swap (mpz[0], *iticks);
       ticks = make_integer_mpz ();
@@ -1207,6 +1250,8 @@ time_cmp (Lisp_Object a, Lisp_Object b)
   if (EQ (a, b))
     return 0;
 
+  /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
+     ATICKS * BHZ to BTICKS * AHZ.  */
   struct lisp_time tb = lisp_time_struct (b, 0);
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
@@ -1484,6 +1529,7 @@ SEC is always an integer between 0 and 59.)
 usage: (decode-time &optional TIME ZONE FORM)  */)
   (Lisp_Object specified_time, Lisp_Object zone, Lisp_Object form)
 {
+  /* Compute broken-down local time LOCAL_TM from SPECIFIED_TIME and ZONE.  */
   struct lisp_time lt = lisp_time_struct (specified_time, 0);
   struct timespec ts = lisp_to_timespec (lt);
   if (! timespec_valid_p (ts))
@@ -1498,6 +1544,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   if (!tm)
     time_error (localtime_errno);
 
+  /* Let YEAR = LOCAL_TM.tm_year + TM_YEAR_BASE.  */
   Lisp_Object year;
   if (FASTER_TIMEFNS
       && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= local_tm.tm_year
@@ -1514,12 +1561,15 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
       year = make_integer_mpz ();
     }
 
+  /* Compute SEC from LOCAL_TM.tm_sec and HZ.  */
   Lisp_Object hz = lt.hz, sec;
   if (EQ (hz, make_fixnum (1)) || !EQ (form, Qt))
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
-      Lisp_Object ticks; /* hz * tm_sec + mod (lt.ticks, hz) */
+      /* Let TICKS = HZ * LOCAL_TM.tm_sec + mod (LT.ticks, HZ)
+	 and SEC = (TICKS . HZ).  */
+      Lisp_Object ticks;
       intmax_t n;
       if (FASTER_TIMEFNS && FIXNUMP (lt.ticks) && FIXNUMP (hz)
 	  && !INT_MULTIPLY_WRAPV (XFIXNUM (hz), local_tm.tm_sec, &n)
@@ -1649,6 +1699,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
       yeararg = args[5];
     }
 
+  /* Let SEC = floor (LT.ticks / HZ), with SUBSECTICKS the remainder.  */
   struct lisp_time lt;
   decode_lisp_time (secarg, 0, &lt, 0);
   Lisp_Object hz = lt.hz, sec, subsecticks;

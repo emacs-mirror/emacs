@@ -1979,10 +1979,9 @@ The result is @code{nil} if either argument is a NaN.
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, normally as a Lisp timestamp but as a float
-if either argument is infinite or a NaN@.
-When the result is a timestamp, it is exact and its clock
+two time values, as a Lisp time value.  The result is exact and its clock
 resolution is no worse than the worse of its two arguments' resolutions.
+The result is floating-point only if it is infinite or a NaN.
 If you need the difference in units
 of elapsed seconds, you can convert it with @code{time-convert} or
 @code{float-time}.  @xref{Time Conversion}.
@@ -3127,7 +3126,7 @@ being reported.  For example:
 @end group
 
 @group
-(set-file-modes "/tmp/foo" (default-file-modes))
+(set-file-modes "/tmp/foo" (default-file-modes) 'nofollow)
      @result{} Event (35025468 attribute-changed "/tmp/foo")
 @end group
 @end example

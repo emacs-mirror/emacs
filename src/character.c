@@ -931,10 +931,10 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
 	}
       else
 	{
-	  CHECK_FIXNUM_COERCE_MARKER (position);
-	  if (XFIXNUM (position) < BEGV || XFIXNUM (position) >= ZV)
+	  EMACS_INT fixed_pos = fix_position (position);
+	  if (! (BEGV <= fixed_pos && fixed_pos < ZV))
 	    args_out_of_range_3 (position, make_fixnum (BEGV), make_fixnum (ZV));
-	  pos = XFIXNAT (position);
+	  pos = fixed_pos;
 	  p = CHAR_POS_ADDR (pos);
 	}
       if (NILP (BVAR (current_buffer, enable_multibyte_characters)))

@@ -481,6 +481,7 @@ enum Lisp_Type
     Lisp_Symbol = 0,
 
     /* Type 1 is currently unused.  */
+    Lisp_Type_Unused0 = 1,
 
     /* Fixnum.  XFIXNUM (obj) is the integer value.  */
     Lisp_Int0 = 2,
@@ -594,6 +595,7 @@ extern void char_table_set (Lisp_Object, int, Lisp_Object);
 
 /* Defined in data.c.  */
 extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
+extern Lisp_Object default_value (Lisp_Object symbol);
 
 
 /* Defined in emacs.c.  */
@@ -3010,14 +3012,6 @@ CHECK_FIXNAT (Lisp_Object x)
       CHECK_RANGED_INTEGER (x, 0, TYPE_MAXIMUM (type));			\
   } while (false)
 
-#define CHECK_FIXNUM_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP ((x)))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (FIXNUMP (x), Qinteger_or_marker_p, x);		\
-  } while (false)
-
 INLINE double
 XFLOATINT (Lisp_Object n)
 {
@@ -3037,22 +3031,6 @@ CHECK_INTEGER (Lisp_Object x)
 {
   CHECK_TYPE (INTEGERP (x), Qnumberp, x);
 }
-
-#define CHECK_NUMBER_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP (x))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
-  } while (false)
-
-#define CHECK_INTEGER_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP (x))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (INTEGERP (x), Qnumber_or_marker_p, x);		\
-  } while (false)
 
 
 /* If we're not dumping using the legacy dumper and we might be using

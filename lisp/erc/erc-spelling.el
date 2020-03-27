@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: Amin Bandali <mab@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: irc
 ;; URL: https://www.emacswiki.org/emacs/ErcSpelling
 

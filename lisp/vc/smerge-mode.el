@@ -1429,15 +1429,16 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
     (smerge-remove-props (point-min) (point-max))))
 
 ;;;###autoload
-(defun smerge-start-session ()
+(defun smerge-start-session (&optional interactively)
   "Turn on `smerge-mode' and move point to first conflict marker.
 If no conflict maker is found, turn off `smerge-mode'."
-  (interactive)
-  (smerge-mode 1)
-  (condition-case nil
-      (unless (looking-at smerge-begin-re)
-        (smerge-next))
-    (error (smerge-auto-leave))))
+  (interactive "p")
+  (when (or (null smerge-mode) interactively)
+    (smerge-mode 1)
+    (condition-case nil
+        (unless (looking-at smerge-begin-re)
+          (smerge-next))
+      (error (smerge-auto-leave)))))
 
 (defcustom smerge-change-buffer-confirm t
   "If non-nil, request confirmation before moving to another buffer."

@@ -72,8 +72,7 @@ strings case-insensitively."
   (cond ((eq x y) t)
 	((stringp x)
 	 (and (stringp y) (= (length x) (length y))
-	      (or (string-equal x y)
-		  (string-equal (downcase x) (downcase y))))) ;Lazy but simple!
+              (eq (compare-strings x nil nil y nil nil t) t)))
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)
@@ -553,14 +552,9 @@ too large if positive or too small if negative)."
   (seq-subseq seq start end))
 
 ;;;###autoload
-(defun cl-concatenate (type &rest sequences)
+(defalias 'cl-concatenate #'seq-concatenate
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
-\n(fn TYPE SEQUENCE...)"
-  (pcase type
-    ('vector (apply #'vconcat sequences))
-    ('string (apply #'concat sequences))
-    ('list (apply #'append (append sequences '(nil))))
-    (_ (error "Not a sequence type name: %S" type))))
+\n(fn TYPE SEQUENCE...)")
 
 ;;; List functions.
 
