@@ -2868,7 +2868,9 @@ Supported keywords for slots are:
                     (append pred-form '(t))
                   `(and ,pred-form t)))
             forms)
-      (push `(put ',name 'cl-deftype-satisfies ',predicate) forms))
+      (push `(eval-and-compile
+               (put ',name 'cl-deftype-satisfies ',predicate))
+            forms))
     (let ((pos 0) (descp descs))
       (while descp
 	(let* ((desc (pop descp))
@@ -3138,6 +3140,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  ;; "Obvious" mappings.
                  (string	. stringp)
                  (list		. listp)
+                 (cons		. consp)
                  (symbol	. symbolp)
                  (function	. functionp)
                  (integer	. integerp)
