@@ -38,7 +38,7 @@ when using Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz
 text shaping support, and 'ftcr' otherwise.  You can determine this by
 checking 'system-configuration-features'.  The 'ftcr' backend will
 still be available when HarfBuzz is supported, but will not be used by
-default.  We strongly recommend building with HarBuzz support. 'x' is
+default.  We strongly recommend building with HarBuzz support.  'x' is
 still a valid backend.
 
 ---
@@ -64,9 +64,9 @@ It was declared obsolete in Emacs 27.1.
 
 * Changes in Emacs 28.1
 
-** Support for '(box . SIZE)' cursor-type.
+** Support for '(box . SIZE)' 'cursor-type'.
 By default, 'box' cursor always has a filled box shape.  But if you
-specify cursor-type to be '(box . SIZE)', the cursor becomes a hollow
+specify 'cursor-type' to be '(box . SIZE)', the cursor becomes a hollow
 box if the point is on an image larger than 'SIZE' pixels in any
 dimension.
 
@@ -97,28 +97,29 @@ shows equivalent key bindings for all commands that have them.
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
 ** Emacs-Lisp mode
+
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
 
 ** Dired
 
-*** New option 'dired-mark-region' affects all Dired commands that mark files.
-When non-nil and the region is active in Transient Mark mode,
-then Dired commands operate only on files in the active region.
-The values 'file' and 'line' of this option define the details of
-marking the file at the end of the region.
+*** New user option 'dired-mark-region' affects all Dired commands
+that mark files.  When non-nil and the region is active in Transient
+Mark mode, then Dired commands operate only on files in the active
+region.  The values 'file' and 'line' of this user option define the
+details of marking the file at the end of the region.
 
-*** State changing VC operations are supported in dired-mode on files
+*** State changing VC operations are supported in 'dired-mode' on files
 (but still not on directories).
 
 ** Gnus
 
 ---
-*** Change to default value of 'message-draft-headers' option.
-The Date header has been removed from the default value, meaning that
-draft or delayed messages will get a Date reflecting when the message
-was sent. To restore the original behavior of dating a message
-from when it is first saved or delayed, add the symbol 'Date back to
-this option.
+*** Change to default value of 'message-draft-headers' user option.
+The 'Date' symbol has been removed from the default value, meaning that
+draft or delayed messages will get a date reflecting when the message
+was sent.  To restore the original behavior of dating a message
+from when it is first saved or delayed, add the symbol 'Date' back to
+this user option.
 
 ** Help
 
@@ -152,8 +153,8 @@ doc string functions.  This makes the results of all doc string
 functions accessible to the user through the existing single function hook
 'eldoc-documentation-function'.
 
-*** 'eldoc-documentation-function' is now a custom variable.
-Modes should use the new hook instead of this variable to register
+*** 'eldoc-documentation-function' is now a user option.
+Modes should use the new hook instead of this user option to register
 their backends.
 
 ** Tramp
@@ -175,6 +176,7 @@ effect.
 *** Pcase 'map' pattern added keyword symbols abbreviation.
 A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
 equivalent to '(map (:sym sym))'.
+
 ** Package
 
 +++
@@ -196,22 +198,22 @@ key             binding
 *** gdb-mi can now store and restore window configurations.
 Use 'gdb-save-window-configuration' to save window configuration to a
 file and 'gdb-load-window-configuration' to load from a file.  These
-commands can also be accessed through the menu bar under Gud --
-GDB-Windows.  'gdb-default-window-configuration-file', when non-nil,
+commands can also be accessed through the menu bar under 'Gud --
+GDB-Windows'.  'gdb-default-window-configuration-file', when non-nil,
 is loaded when GDB starts up.
 
 +++
 *** gdb-mi can now restore window configuration after quit.
 Set 'gdb-restore-window-configuration-after-quit' to non-nil and Emacs
 will remember the window configuration before GDB started and restore
-it after GDB quits.  A toggle button is also provided under Gud --
-GDB-Windows.
+it after GDB quits.  A toggle button is also provided under 'Gud --
+GDB-Windows'.
 
 ** Gravatar
 
 ---
 *** New user option 'gravatar-service' for host to query for gravatars.
-Defaults to Libravatar, with Unicornify and Gravatar as options.
+Defaults to 'libravatar', with 'unicornify' and 'gravatar' as options.
 
 ** Compilation mode
 
@@ -225,11 +227,11 @@ for case-insensitive matching of messages.
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** In nroff mode, 'center-line' is now bound to 'M-o M-s'.
+** In 'nroff-mode', 'center-line' is now bound to 'M-o M-s'.
 The original key binding was 'M-s', which interfered with I-search,
 since the latter uses 'M-s' as a prefix key of the search prefix map.
 
-** vc-print-branch-log shows the change log for BRANCH from its root
+** 'vc-print-branch-log' shows the change log for BRANCH from its root
 directory instead of the default directory.
 
 
@@ -261,7 +263,7 @@ This is no longer supported, and setting this variable has no effect.
 
 * Lisp Changes in Emacs 28.1
 
-** New macro 'dlet' to dynamically bind variables
+** New macro 'dlet' to dynamically bind variables.
 
 ** The variable 'force-new-style-backquotes' has been removed.
 This removes the final remaining trace of old-style backquotes.
