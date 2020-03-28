@@ -208,13 +208,15 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
           :documentation "Target output file-name for the compilation.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
-  (funcs-h (make-hash-table) :type hash-table
-           :documentation "lisp-func-name -> comp-func.
-This is to build the prev field.")
+  (funcs-h (make-hash-table :test #'equal) :type hash-table
+           :documentation "c-name -> comp-func.")
+  (sym-to-c-name-h (make-hash-table :test #'eq) :type hash-table
+                   :documentation "symbol-function -> c-name.
+This is only for optimizing intra CU calls at speed 3.")
   (d-default (make-comp-data-container) :type comp-data-container
-          :documentation "Standard data relocated in use by functions.")
+             :documentation "Standard data relocated in use by functions.")
   (d-impure (make-comp-data-container) :type comp-data-container
-          :documentation "Relocated data that cannot be moved into pure space.
+            :documentation "Relocated data that cannot be moved into pure space.
 This is tipically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
@@ -471,7 +473,14 @@ Put PREFIX in front of it."
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
-    (concat prefix crypted "_" human-readable)))
+    ;; Prevent C namespace conflicts.
+    (cl-loop
+     with h = (comp-ctxt-funcs-h comp-ctxt)
+     for i from 0
+     for c-sym = (concat prefix crypted "_" human-readable "_"
+                        (number-to-string i))
+     unless (gethash c-sym h)
+       return c-sym)))
 
 (defun comp-decrypt-arg-list (x function-name)
   "Decript argument list X for FUNCTION-NAME."
@@ -492,14 +501,22 @@ Put PREFIX in front of it."
   "Given BYTE-COMPILED-FUNC return the frame size to be allocated."
   (aref byte-compiled-func 3))
 
+(defun comp-add-func-to-ctxt (func)
+  "Add FUNC to the current compiler contex."
+  (let ((name (comp-func-name func))
+        (c-name (comp-func-c-name func)))
+    (puthash name c-name (comp-ctxt-sym-to-c-name-h comp-ctxt))
+    (puthash c-name func (comp-ctxt-funcs-h comp-ctxt))))
+
 (cl-defgeneric comp-spill-lap-function (input)
   "Byte compile INPUT and spill lap for further stages.")
 
 (cl-defgeneric comp-spill-lap-function ((function-name symbol))
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
+         (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func :name function-name
-                               :c-name (comp-c-func-name function-name "F")
+                               :c-name c-name
                                :doc (documentation f)
                                :int-spec (interactive-form f))))
       (when (byte-code-function-p f)
@@ -519,9 +536,10 @@ Put PREFIX in front of it."
                 (comp-byte-frame-size (comp-func-byte-func func))))
         (setf (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-function :name function-name)))
+        (setf (byte-to-native-function-c-name func) c-name)
         ;; Create the default array.
         (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
-        (list func))))
+        (comp-add-func-to-ctxt func))))
 
 (cl-defgeneric comp-spill-lap-function ((filename string))
   "Byte compile FILENAME spilling data from the byte compiler."
@@ -530,28 +548,39 @@ Put PREFIX in front of it."
     (signal 'native-compiler-error-empty-byte filename))
   (setf (comp-ctxt-top-level-forms comp-ctxt)
         (reverse byte-to-native-top-level-forms))
+  (comp-log byte-to-native-lap 3)
   (cl-loop
-   for f in (cl-loop for x in byte-to-native-top-level-forms ; All non anonymous.
+   with lap-forms = (reverse byte-to-native-lap)
+   ;; All non anonymous functions.
+   for f in (cl-loop for x in (comp-ctxt-top-level-forms comp-ctxt)
                      when (and (byte-to-native-function-p x)
                                (byte-to-native-function-name x))
                        collect x)
    for name = (byte-to-native-function-name f)
+   for c-name = (comp-c-func-name name "F")
+   for lap-entry = (assoc name lap-forms)
+   for lap = (cdr lap-entry)
    for data = (byte-to-native-function-data f)
-   for lap = (alist-get name byte-to-native-lap)
    for func = (make-comp-func :name name
                               :byte-func data
                               :doc (documentation data)
                               :int-spec (interactive-form data)
-                              :c-name (comp-c-func-name name "F")
+                              :c-name c-name
                               :args (comp-decrypt-arg-list (aref data 0) name)
-                              :lap (alist-get name byte-to-native-lap)
+                              :lap lap
                               :frame-size (comp-byte-frame-size data))
    do
-      ;; Create the default array.
-      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
-      (comp-log (format "Function %s:\n" name) 1)
-      (comp-log lap 1)
-   collect func))
+   ;; Remove it form the original lap list to avoid multiple function
+   ;; definition with the same name shadowing each other.
+   (setf lap-forms (delete lap-entry lap-forms))
+   ;; Store the c-name to have it retrivable from
+   ;; comp-ctxt-top-level-forms.
+   (setf (byte-to-native-function-c-name f) c-name)
+   ;; Create the default array.
+   (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
+   (comp-add-func-to-ctxt func)
+   (comp-log (format "Function %s:\n" name) 1)
+   (comp-log lap 1)))
 
 (defun comp-spill-lap (input)
   "Byte compile and spill the LAP representation for INPUT.
@@ -1163,7 +1192,8 @@ the annotation emission."
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-function)
                                        for-late-load)
   (let* ((name (byte-to-native-function-name form))
-         (f (gethash name (comp-ctxt-funcs-h comp-ctxt)))
+         (c-name (byte-to-native-function-c-name form))
+         (f (gethash c-name (comp-ctxt-funcs-h comp-ctxt)))
          (args (comp-func-args f)))
     (cl-assert (and name f))
     (comp-emit (comp-call (if for-late-load
@@ -1174,7 +1204,7 @@ the annotation emission."
                           (make-comp-mvar :constant (if (comp-args-p args)
                                                         (comp-args-max args)
                                                       'many))
-                          (make-comp-mvar :constant (comp-func-c-name f))
+                          (make-comp-mvar :constant c-name)
                           (make-comp-mvar :constant (comp-func-doc f))
                           (make-comp-mvar :constant
                                           (comp-func-int-spec f))
@@ -1301,16 +1331,10 @@ into the C code forwarding the compilation unit."
                   (puthash addr t addr-h))
     (comp-limplify-finalize-function func)))
 
-(defun comp-add-func-to-ctxt (func)
-  "Add FUNC to the current compiler contex."
-  (puthash (comp-func-name func)
-           func
-           (comp-ctxt-funcs-h comp-ctxt)))
-
-(defun comp-limplify (lap-funcs)
-  "Compute the LIMPLE ir for LAP-FUNCS.
-Top-level forms for the current context are rendered too."
-  (mapc #'comp-add-func-to-ctxt (mapcar #'comp-limplify-function lap-funcs))
+(defun comp-limplify (_)
+  "Compute LIMPLE IR for forms in `comp-ctxt'."
+  (maphash (lambda (_ f) (comp-limplify-function f))
+           (comp-ctxt-funcs-h comp-ctxt))
   (comp-add-func-to-ctxt (comp-limplify-top-level nil))
   (when (comp-ctxt-with-late-load comp-ctxt)
     (comp-add-func-to-ctxt (comp-limplify-top-level t))))
@@ -1843,7 +1867,8 @@ Backward propagate array placement properties."
                (not (memq callee comp-never-optimize-functions)))
       (let* ((f (symbol-function callee))
              (subrp (subrp f))
-             (callee-in-unit (gethash callee
+             (callee-in-unit (gethash (gethash callee
+                                               (comp-ctxt-sym-to-c-name-h comp-ctxt))
                                       (comp-ctxt-funcs-h comp-ctxt))))
         (cond
          ((and subrp (not (subr-native-elisp-p f)))

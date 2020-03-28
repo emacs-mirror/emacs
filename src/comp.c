@@ -174,7 +174,7 @@ typedef struct {
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
   Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
-  Lisp_Object exported_funcs_h; /* subr_name -> gcc_jit_function *.  */
+  Lisp_Object exported_funcs_h; /* c-func-name -> gcc_jit_function *.  */
   Lisp_Object imported_funcs_h; /* subr_name -> gcc_jit_field *reloc_field.  */
   Lisp_Object emitter_dispatcher;
   /* Synthesized struct holding data relocs.  */
@@ -518,9 +518,18 @@ static gcc_jit_rvalue *
 emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
 	   gcc_jit_rvalue **args, bool direct)
 {
-  Lisp_Object func =
-    Fgethash (subr_sym, direct ? comp.exported_funcs_h: comp.imported_funcs_h,
-	      Qnil);
+  Lisp_Object func;
+  if (direct)
+    {
+      Lisp_Object c_name =
+	Fgethash (subr_sym,
+		  CALL1I (comp-ctxt-sym-to-c-name-h, Vcomp_ctxt),
+		  Qnil);
+      func = Fgethash (c_name, comp.exported_funcs_h, Qnil);
+    }
+  else
+    func = Fgethash (subr_sym, comp.imported_funcs_h, Qnil);
+
   if (NILP (func))
       xsignal2 (Qnative_ice,
 		build_string ("missing function declaration"),
@@ -2926,7 +2935,7 @@ declare_function (Lisp_Object func)
 				      c_name, 2, param, 0);
     }
 
-  Fputhash (CALL1I (comp-func-name, func),
+  Fputhash (CALL1I (comp-func-c-name, func),
 	    make_mint_ptr (gcc_func),
 	    comp.exported_funcs_h);
 
@@ -2939,7 +2948,7 @@ compile_function (Lisp_Object func)
   USE_SAFE_ALLOCA;
   EMACS_INT frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
 
-  comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-name, func),
+  comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-c-name, func),
 				       comp.exported_funcs_h, Qnil));
 
   comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
@@ -3179,7 +3188,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						    sizeof (void *),
 						    false);
 
-  comp.exported_funcs_h = CALLN (Fmake_hash_table);
+  comp.exported_funcs_h = CALLN (Fmake_hash_table, QCtest, Qequal);
   /*
     Always reinitialize this cause old function definitions are garbage
     collected by libgccjit when the ctxt is released.
