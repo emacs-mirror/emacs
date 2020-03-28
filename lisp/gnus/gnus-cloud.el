@@ -223,13 +223,10 @@ easy interactive way to set this from the Server buffer."
        (t
         (gnus-message 1 "Unknown type %s; ignoring" type))))))
 
-(defun gnus-cloud-update-newsrc-data (group elem &optional force-older)
-  "Update the newsrc data for GROUP from ELEM.
-Use old data if FORCE-OLDER is not nil."
+(defun gnus-cloud-update-newsrc-data (group elem)
+  "Update the newsrc data for GROUP from ELEM."
   (let* ((contents (plist-get elem :contents))
          (date (or (plist-get elem :timestamp) "0"))
-         (now (gnus-cloud-timestamp nil))
-         (newer (string-lessp date now))
          (group-info (gnus-get-info group)))
     (if (and contents
              (stringp (nth 0 contents))
@@ -238,15 +235,13 @@ Use old data if FORCE-OLDER is not nil."
             (if (equal (format "%S" group-info)
                        (format "%S" contents))
                 (gnus-message 3 "Skipping cloud update of group %s, the info is the same" group)
-              (if (and newer (not force-older))
-                (gnus-message 3 "Skipping outdated cloud info for group %s, the info is from %s (now is %s)" group date now)
-                (when (or (not gnus-cloud-interactive)
-                          (gnus-y-or-n-p
-                           (format "%s has older different info in the cloud as of %s, update it here? "
-				   group date)))
-		  (gnus-message 2 "Installing cloud update of group %s" group)
-		  (gnus-set-info group contents)
-		  (gnus-group-update-group group))))
+              (when (or (not gnus-cloud-interactive)
+			(gnus-y-or-n-p
+			 (format "%s has different info in the cloud from %s, update it here? "
+				 group date)))
+		(gnus-message 2 "Installing cloud update of group %s" group)
+		(gnus-set-info group contents)
+		(gnus-group-update-group group)))
           (gnus-error 1 "Sorry, group %s is not subscribed" group))
       (gnus-error 1 "Sorry, could not update newsrc for group %s (invalid data %S)"
                   group elem))))
@@ -380,8 +375,9 @@ When FULL is t, upload everything, not just a difference from the last full."
                   (gnus-cloud-files-to-upload full)
                   (gnus-cloud-collect-full-newsrc)))
           (group (gnus-group-full-name gnus-cloud-group-name gnus-cloud-method)))
+      (setq gnus-cloud-sequence (1+ (or gnus-cloud-sequence 0)))
       (insert (format "Subject: (sequence: %s type: %s storage-method: %s)\n"
-                      (or gnus-cloud-sequence "UNKNOWN")
+                      gnus-cloud-sequence
                       (if full :full :partial)
                       gnus-cloud-storage-method))
       (insert "From: nobody@gnus.cloud.invalid\n")
@@ -390,7 +386,6 @@ When FULL is t, upload everything, not just a difference from the last full."
       (if (gnus-request-accept-article gnus-cloud-group-name gnus-cloud-method
                                        t t)
           (progn
-            (setq gnus-cloud-sequence (1+ (or gnus-cloud-sequence 0)))
             (gnus-cloud-add-timestamps elems)
             (gnus-message 3 "Uploaded Gnus Cloud data successfully to %s" group)
             (gnus-group-refresh-group group))
@@ -459,18 +454,21 @@ instead of `gnus-cloud-sequence'.
 When UPDATE is t, returns the result of calling `gnus-cloud-update-all'.
 Otherwise, returns the Gnus Cloud data chunks."
   (let ((articles nil)
+	(highest-sequence-seen gnus-cloud-sequence)
         chunks)
     (dolist (header (gnus-cloud-available-chunks))
-      (when (> (gnus-cloud-chunk-sequence (mail-header-subject header))
-               (or sequence-override gnus-cloud-sequence -1))
+      (let ((this-sequence (gnus-cloud-chunk-sequence (mail-header-subject header))))
+	(when (> this-sequence (or sequence-override gnus-cloud-sequence -1))
 
-        (if (string-match (format "storage-method: %s" gnus-cloud-storage-method)
-                          (mail-header-subject header))
-            (push (mail-header-number header) articles)
-          (gnus-message 1 "Skipping article %s because it didn't match the Gnus Cloud method %s: %s"
-                        (mail-header-number header)
-                        gnus-cloud-storage-method
-                        (mail-header-subject header)))))
+	  (if (string-match (format "storage-method: %s" gnus-cloud-storage-method)
+			    (mail-header-subject header))
+	      (progn
+		(push (mail-header-number header) articles)
+		(setq highest-sequence-seen (max highest-sequence-seen this-sequence)))
+	    (gnus-message 1 "Skipping article %s because it didn't match the Gnus Cloud method %s: %s"
+			  (mail-header-number header)
+			  gnus-cloud-storage-method
+			  (mail-header-subject header))))))
     (when articles
       (nnimap-request-articles (nreverse articles) gnus-cloud-group-name)
       (with-current-buffer nntp-server-buffer
@@ -480,7 +478,9 @@ Otherwise, returns the Gnus Cloud data chunks."
           (push (gnus-cloud-parse-chunk) chunks)
           (forward-line 1))))
     (if update
-        (mapcar #'gnus-cloud-update-all chunks)
+        (progn
+	  (mapcar #'gnus-cloud-update-all chunks)
+	  (setq gnus-cloud-sequence highest-sequence-seen))
       chunks)))
 
 (defun gnus-cloud-server-p (server)
