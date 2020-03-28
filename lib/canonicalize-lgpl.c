@@ -51,7 +51,7 @@
 # define __realpath realpath
 # include "pathmax.h"
 # include "malloca.h"
-# include "dosname.h"
+# include "filename.h"
 # if HAVE_GETCWD
 #  if IN_RELOCWRAPPER
     /* When building the relocatable program wrapper, use the system's getcwd

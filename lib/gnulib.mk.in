@@ -1672,6 +1672,15 @@ EXTRA_DIST += filemode.h
 endif
 ## end   gnulib module filemode
 
+## begin gnulib module filename
+ifeq (,$(OMIT_GNULIB_MODULE_filename))
+
+
+EXTRA_DIST += filename.h
+
+endif
+## end   gnulib module filename
+
 ## begin gnulib module filevercmp
 ifeq (,$(OMIT_GNULIB_MODULE_filevercmp))
 

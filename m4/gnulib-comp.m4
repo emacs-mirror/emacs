@@ -87,6 +87,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module fcntl-h:
   # Code from module fdopendir:
   # Code from module filemode:
+  # Code from module filename:
   # Code from module filevercmp:
   # Code from module flexmember:
   # Code from module fpending:
@@ -977,6 +978,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fdopendir.c
   lib/filemode.c
   lib/filemode.h
+  lib/filename.h
   lib/filevercmp.c
   lib/filevercmp.h
   lib/flexmember.h

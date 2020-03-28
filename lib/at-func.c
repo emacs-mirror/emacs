@@ -16,7 +16,7 @@
 
 /* written by Jim Meyering */
 
-#include "dosname.h" /* solely for definition of IS_ABSOLUTE_FILE_NAME */
+#include "filename.h" /* solely for definition of IS_ABSOLUTE_FILE_NAME */
 
 #ifdef GNULIB_SUPPORT_ONLY_AT_FDCWD
 # include <errno.h>
