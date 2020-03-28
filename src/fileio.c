@@ -96,7 +96,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <acl.h>
 #include <allocator.h>
 #include <careadlinkat.h>
-#include <dosname.h>
+#include <filename.h>
 #include <fsusage.h>
 #include <stat-time.h>
 #include <tempname.h>

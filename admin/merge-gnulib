@@ -31,10 +31,10 @@ GNULIB_MODULES='
   careadlinkat close-stream copy-file-range
   count-leading-zeros count-one-bits count-trailing-zeros
   crypto/md5-buffer crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
-  d-type diffseq dosname double-slash-root dtoastr dtotimespec dup2
+  d-type diffseq double-slash-root dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
   fchmodat fcntl fcntl-h fdopendir
-  filemode filevercmp flexmember fpieee fstatat fsusage fsync futimens
+  filemode filename filevercmp flexmember fpieee fstatat fsusage fsync futimens
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile lstat
   manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime nstrftime
