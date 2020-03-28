@@ -3543,9 +3543,9 @@ completion."
 
 ;;; Tags query replace & search
 
-(defvar ebrowse-tags-loop-form ()
-  "Form for `ebrowse-loop-continue'.
-Evaluated for each file in the tree.  If it returns nil, proceed
+(defvar ebrowse-tags-loop-call '(ignore)
+  "Function call for `ebrowse-loop-continue'.
+Passed to `apply' for each file in the tree.  If it returns nil, proceed
 with the next file.")
 
 (defvar ebrowse-tags-next-file-list ()
@@ -3612,7 +3612,7 @@ TREE-BUFFER if indirectly specifies which files to loop over."
   (when first-time
     (ebrowse-tags-next-file first-time tree-buffer)
     (goto-char (point-min)))
-  (while (not (eval ebrowse-tags-loop-form))
+  (while (not (apply ebrowse-tags-loop-call))
     (ebrowse-tags-next-file)
     (message "Scanning file `%s'..." buffer-file-name)
     (goto-char (point-min))))
@@ -3625,9 +3625,9 @@ If marked classes exist, process marked classes, only.
 If regular expression is nil, repeat last search."
   (interactive "sTree search (regexp): ")
   (if (and (string= regexp "")
-	   (eq (car ebrowse-tags-loop-form) 're-search-forward))
+	   (eq (car ebrowse-tags-loop-call) #'re-search-forward))
       (ebrowse-tags-loop-continue)
-    (setq ebrowse-tags-loop-form (list 're-search-forward regexp nil t))
+    (setq ebrowse-tags-loop-call `(re-search-forward ,regexp nil t))
     (ebrowse-tags-loop-continue 'first-time)))
 
 
@@ -3637,10 +3637,11 @@ If regular expression is nil, repeat last search."
 With prefix arg, process files of marked classes only."
   (interactive
    "sTree query replace (regexp): \nsTree query replace %s by: ")
-  (setq ebrowse-tags-loop-form
-	(list 'and (list 'save-excursion
-			 (list 're-search-forward from nil t))
-	      (list 'not (list 'perform-replace from to t t nil))))
+  (setq ebrowse-tags-loop-call
+	(list (lambda ()
+		(and (save-excursion
+		       (re-search-forward from nil t))
+		     (not (perform-replace from to t t nil))))))
   (ebrowse-tags-loop-continue 'first-time))
 
 
@@ -3665,7 +3666,7 @@ looks like a function call to the member."
 	  (cl-values-list (ebrowse-tags-read-name header "Find calls of: "))))
       ;; Set tags loop form to search for member and begin loop.
       (setq regexp (concat "\\<" name "[ \t]*(")
-	    ebrowse-tags-loop-form (list 're-search-forward regexp nil t))
+	    ebrowse-tags-loop-call `(re-search-forward ,regexp nil t))
       (ebrowse-tags-loop-continue 'first-time tree-buffer))))
 
 
@@ -3767,18 +3768,10 @@ Prefix arg ARG says how much."
 
 ;;; Electric position list
 
-(defvar ebrowse-electric-position-mode-map ()
-  "Keymap used in electric position stack window.")
-
-
-(defvar ebrowse-electric-position-mode-hook nil
-  "If non-nil, its value is called by `ebrowse-electric-position-mode'.")
-
-
-(unless ebrowse-electric-position-mode-map
+(defvar ebrowse-electric-position-mode-map
   (let ((map (make-keymap))
 	(submap (make-keymap)))
-    (setq ebrowse-electric-position-mode-map map)
+    ;; FIXME: Yuck!
     (fillarray (car (cdr map)) 'ebrowse-electric-position-undefined)
     (fillarray (car (cdr submap)) 'ebrowse-electric-position-undefined)
     (define-key map "\e" submap)
@@ -3801,14 +3794,19 @@ Prefix arg ARG says how much."
     (define-key map "\e\C-v" 'scroll-other-window)
     (define-key map "\e>" 'end-of-buffer)
     (define-key map "\e<" 'beginning-of-buffer)
-    (define-key map "\e>" 'end-of-buffer)))
+    (define-key map "\e>" 'end-of-buffer)
+    map)
+  "Keymap used in electric position stack window.")
 
-(put 'ebrowse-electric-position-mode 'mode-class 'special)
+
+(defvar ebrowse-electric-position-mode-hook nil
+  "If non-nil, its value is called by `ebrowse-electric-position-mode'.")
+
 (put 'ebrowse-electric-position-undefined 'suppress-keymap t)
 
 
 (define-derived-mode ebrowse-electric-position-mode
-  fundamental-mode "Electric Position Menu"
+  special-mode "Electric Position Menu"
   "Mode for electric position buffers.
 Runs the hook `ebrowse-electric-position-mode-hook'."
   (setq mode-line-buffer-identification "Electric Position Menu")
