@@ -48,8 +48,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
   "Jit-lock fontifies chunks of at most this many characters at a time.
 
 This variable controls both display-time and stealth fontification."
-  :type 'integer
-  :group 'jit-lock)
+  :type 'integer)
 
 
 (defcustom jit-lock-stealth-time nil
@@ -59,8 +58,7 @@ If nil, stealth fontification is never performed.
 
 The value of this variable is used when JIT Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds" :value 16))
-  :group 'jit-lock)
+		 (number :tag "seconds" :value 16)))
 
 
 (defcustom jit-lock-stealth-nice 0.5
@@ -72,8 +70,7 @@ To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.
 See also `jit-lock-stealth-load'."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))
-  :group 'jit-lock)
+		 (number :tag "seconds")))
 
 
 (defcustom jit-lock-stealth-load
@@ -89,14 +86,12 @@ See also `jit-lock-stealth-nice'."
   :type (if (condition-case nil (load-average) (error))
 	    '(choice (const :tag "never" nil)
 		     (integer :tag "load"))
-	  '(const :format "%t: unsupported\n" nil))
-  :group 'jit-lock)
+	  '(const :format "%t: unsupported\n" nil)))
 
 
 (defcustom jit-lock-stealth-verbose nil
   "If non-nil, means stealth fontification should show status messages."
-  :type 'boolean
-  :group 'jit-lock)
+  :type 'boolean)
 
 
 (defvaralias 'jit-lock-defer-contextually 'jit-lock-contextually)
@@ -115,13 +110,11 @@ buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 The value of this variable is used when JIT Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (other :tag "syntax-driven" syntax-driven))
-  :group 'jit-lock)
+		 (other :tag "syntax-driven" syntax-driven)))
 
 (defcustom jit-lock-context-time 0.5
   "Idle time after which text is contextually refontified, if applicable."
-  :type '(number :tag "seconds")
-  :group 'jit-lock)
+  :type '(number :tag "seconds"))
 
 (defcustom jit-lock-antiblink-grace 2
   "Delay after which to refontify unterminated strings and comments.
@@ -134,14 +127,12 @@ and comments, the delay helps avoid unpleasant \"blinking\", between
 string/comment and non-string/non-comment fontification."
   :type '(choice (const :tag "never" nil)
 	         (number :tag "seconds"))
-  :group 'jit-lock
   :version "27.1")
 
 (defcustom jit-lock-defer-time nil ;; 0.25
   "Idle time after which deferred fontification should take place.
 If nil, fontification is not deferred.
 If 0, then fontification is only deferred while there is input pending."
-  :group 'jit-lock
   :type '(choice (const :tag "never" nil)
 	         (number :tag "seconds")))
 
@@ -262,7 +253,7 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
 
     ;; Setup our hooks.
     (add-hook 'after-change-functions 'jit-lock-after-change nil t)
-    (add-hook 'fontification-functions 'jit-lock-function))
+    (add-hook 'fontification-functions 'jit-lock-function nil t))
 
    ;; Turn Just-in-time Lock mode off.
    (t
@@ -294,7 +285,7 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
 When this minor mode is enabled, jit-lock runs as little code as possible
 during redisplay and moves the rest to a timer, where things
 like `debug-on-error' and Edebug can be used."
-  :global t :group 'jit-lock
+  :global t
   (when jit-lock-defer-timer
     (cancel-timer jit-lock-defer-timer)
     (setq jit-lock-defer-timer nil))
@@ -438,8 +429,8 @@ Defaults to the whole buffer.  END can be out of bounds."
                      (quit (put-text-property start next 'fontified nil)
                            (signal (car err) (cdr err))))))
 
-               ;; In case we fontified more than requested, take advantage of the
-               ;; good news.
+               ;; In case we fontified more than requested, take
+               ;; advantage of the good news.
                (when (or (< tight-beg start) (> tight-end next))
                  (put-text-property tight-beg tight-end 'fontified t))
 
