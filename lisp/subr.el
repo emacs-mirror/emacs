@@ -2301,12 +2301,7 @@ is used instead of `load-path'.
 When called from a program, the file name is normally returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
-  (interactive (list (completing-read "Locate library: "
-				      (apply-partially
-                                       'locate-file-completion-table
-                                       load-path (get-load-suffixes)))
-		     nil nil
-		     t))
+  (interactive (list (read-library-name) nil nil t))
   (let ((file (locate-file library
 			   (or path load-path)
 			   (append (unless nosuffix (get-load-suffixes))

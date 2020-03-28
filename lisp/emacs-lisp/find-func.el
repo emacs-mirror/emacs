@@ -279,6 +279,7 @@ Interactively, prompt for LIBRARY using the one at or near point."
       (switch-to-buffer (find-file-noselect (find-library-name library)))
     (run-hooks 'find-function-after-hook)))
 
+;;;###autoload
 (defun read-library-name ()
   "Read and return a library name, defaulting to the one near point.
 
