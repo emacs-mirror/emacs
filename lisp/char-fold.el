@@ -370,11 +370,7 @@ from which to start."
       (setq i (1+ i)))
     (when (> spaces 0)
       (push (char-fold--make-space-string spaces) out))
-    (let ((regexp (apply #'concat (nreverse out))))
-      ;; Limited by `MAX_BUF_SIZE' in `regex-emacs.c'.
-      (if (> (length regexp) 5000)
-          (regexp-quote string)
-        regexp))))
+    (apply #'concat (nreverse out))))
 
 
 ;;; Commands provided for completeness.
