@@ -343,7 +343,7 @@ An existing calc stack is reused, otherwise a new one is created."
   (should (Math-num-integerp -7))
   (should (Math-num-integerp (ash 1 65)))
   (should (Math-num-integerp '(float 1 0)))
-  (should-not (Math-integerp nil)))
+  (should-not (Math-num-integerp nil)))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
