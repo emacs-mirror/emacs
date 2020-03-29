@@ -5187,22 +5187,8 @@ extract_data_from_object (Lisp_Object spec,
       struct buffer *bp = XBUFFER (object);
       set_buffer_internal (bp);
 
-      if (NILP (start))
-	b = BEGV;
-      else
-	{
-	  CHECK_FIXNUM_COERCE_MARKER (start);
-	  b = XFIXNUM (start);
-	}
-
-      if (NILP (end))
-	e = ZV;
-      else
-	{
-	  CHECK_FIXNUM_COERCE_MARKER (end);
-	  e = XFIXNUM (end);
-	}
-
+      b = !NILP (start) ? fix_position (start) : BEGV;
+      e = !NILP (end) ? fix_position (end) : ZV;
       if (b > e)
 	{
 	  EMACS_INT temp = b;

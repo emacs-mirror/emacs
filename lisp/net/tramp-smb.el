@@ -1557,9 +1557,6 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    ;; We must also flush the cache of the directory, because
-    ;; `file-attributes' reads the values from there.
-    (tramp-flush-file-properties v localname)
     (let ((curbuf (current-buffer))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
       (when (and append (file-exists-p filename))
@@ -1578,6 +1575,10 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 			       tmpfile (tramp-smb-get-localname v)))
 	      (tramp-error v 'file-error "Cannot write `%s'" filename))
 	  (delete-file tmpfile)))
+
+      ;; We must also flush the cache of the directory, because
+      ;; `file-attributes' reads the values from there.
+      (tramp-flush-file-properties v localname)
 
       (unless (equal curbuf (current-buffer))
 	(tramp-error
@@ -1844,7 +1845,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
   (if (and (process-live-p (tramp-get-connection-process vec))
 	   (tramp-get-connection-property vec "posix" t))
       (with-tramp-connection-property
-	  (tramp-get-connection-process vec) "cifs-capabilities"
+	  (tramp-get-process vec) "cifs-capabilities"
 	(save-match-data
 	  (when (tramp-smb-send-command vec "posix")
 	    (with-current-buffer (tramp-get-connection-buffer vec)
@@ -1861,8 +1862,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (and (tramp-smb-get-share vec)
 	   (process-live-p (tramp-get-connection-process vec)))
-      (with-tramp-connection-property
-	  (tramp-get-connection-process vec) "stat-capability"
+      (with-tramp-connection-property (tramp-get-process vec) "stat-capability"
 	(tramp-smb-send-command vec "stat \"/\""))))
 
 

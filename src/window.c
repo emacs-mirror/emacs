@@ -1895,10 +1895,7 @@ POS, ROWH is the visible height of that row, and VPOS is the row number
   if (EQ (pos, Qt))
     posint = -1;
   else if (!NILP (pos))
-    {
-      CHECK_FIXNUM_COERCE_MARKER (pos);
-      posint = XFIXNUM (pos);
-    }
+    posint = fix_position (pos);
   else if (w == XWINDOW (selected_window))
     posint = PT;
   else

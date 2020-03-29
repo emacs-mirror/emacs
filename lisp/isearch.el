@@ -2011,15 +2011,16 @@ Turning on character-folding turns off regexp mode.")
 (defvar isearch-message-properties minibuffer-prompt-properties
   "Text properties that are added to the isearch prompt.")
 
-(defun isearch--momentary-message (string)
-  "Print STRING at the end of the isearch prompt for 1 second."
+(defun isearch--momentary-message (string &optional seconds)
+  "Print STRING at the end of the isearch prompt for 1 second.
+The optional argument SECONDS overrides the number of seconds."
   (let ((message-log-max nil))
     (message "%s%s%s"
              (isearch-message-prefix nil isearch-nonincremental)
              isearch-message
              (apply #'propertize (format " [%s]" string)
                     isearch-message-properties)))
-  (sit-for 1))
+  (sit-for (or seconds 1)))
 
 (isearch-define-mode-toggle lax-whitespace " " nil
   "In ordinary search, toggles the value of the variable
@@ -3443,7 +3444,10 @@ Optional third argument, if t, means if fail just return nil (no error).
 	    (string-match "\\`Regular expression too big" isearch-error))
        (cond
 	(isearch-regexp-function
-	 (setq isearch-error "Too many words"))
+         (setq isearch-error nil)
+         (setq isearch-regexp-function nil)
+         (isearch-search-and-update)
+         (isearch--momentary-message "Too many words; switched to literal mode" 2))
 	((and isearch-lax-whitespace search-whitespace-regexp)
 	 (setq isearch-error "Too many spaces for whitespace matching"))))))
 

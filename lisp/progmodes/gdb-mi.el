@@ -1729,25 +1729,25 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
   "Interrupt the program being debugged."
   (interactive)
   (interrupt-process
-   (get-buffer-process gud-comint-buffer) comint-ptyp))
+   (get-buffer-process (gdb-get-buffer-create 'gdb-inferior-io)) comint-ptyp))
 
 (defun gdb-io-quit ()
   "Send quit signal to the program being debugged."
   (interactive)
   (quit-process
-   (get-buffer-process gud-comint-buffer) comint-ptyp))
+   (get-buffer-process (gdb-get-buffer-create 'gdb-inferior-io)) comint-ptyp))
 
 (defun gdb-io-stop ()
   "Stop the program being debugged."
   (interactive)
   (stop-process
-   (get-buffer-process gud-comint-buffer) comint-ptyp))
+   (get-buffer-process (gdb-get-buffer-create 'gdb-inferior-io)) comint-ptyp))
 
 (defun gdb-io-eof ()
   "Send end-of-file to the program being debugged."
   (interactive)
   (process-send-eof
-   (get-buffer-process gud-comint-buffer)))
+   (get-buffer-process (gdb-get-buffer-create 'gdb-inferior-io))))
 
 (defun gdb-clear-inferior-io ()
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)

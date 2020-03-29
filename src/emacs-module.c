@@ -88,6 +88,7 @@ To add a new module function, proceed as follows:
 #include "dynlib.h"
 #include "coding.h"
 #include "keyboard.h"
+#include "process.h"
 #include "syssignal.h"
 #include "sysstdio.h"
 #include "thread.h"
@@ -977,6 +978,13 @@ module_make_big_integer (emacs_env *env, int sign,
   return lisp_to_value (env, make_integer_mpz ());
 }
 
+static int
+module_open_channel (emacs_env *env, emacs_value pipe_process)
+{
+  MODULE_FUNCTION_BEGIN (-1);
+  return open_channel_for_module (value_to_lisp (pipe_process));
+}
+
 
 /* Subroutines.  */
 
@@ -1391,6 +1399,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_big_integer = module_make_big_integer;
   env->get_function_finalizer = module_get_function_finalizer;
   env->set_function_finalizer = module_set_function_finalizer;
+  env->open_channel = module_open_channel;
   Vmodule_environments = Fcons (make_mint_ptr (env), Vmodule_environments);
   return env;
 }

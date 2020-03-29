@@ -1558,7 +1558,6 @@ be a list of the form returned by `event-start' and `event-end'."
 
 ;;;; Obsolescent names for functions.
 
-(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
 (make-obsolete 'buffer-has-markers-at nil "24.3")
 
 (make-obsolete 'invocation-directory "use the variable of the same name."
@@ -1579,6 +1578,11 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete 'string-make-unibyte   "use `encode-coding-string'." "26.1")
 (make-obsolete 'string-as-multibyte "use `decode-coding-string'." "26.1")
 (make-obsolete 'string-make-multibyte "use `decode-coding-string'." "26.1")
+
+(defun forward-point (n)
+  "Return buffer position N characters after (before if N negative) point."
+  (declare (obsolete "use (+ (point) N) instead." "23.1"))
+  (+ (point) n))
 
 (defun log10 (x)
   "Return (log X 10), the log base 10 of X."

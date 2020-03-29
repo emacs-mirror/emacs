@@ -2022,6 +2022,20 @@ variable values and buffer content may have been modified in arbitrary
 ways.
 @end deftypefn
 
+@anchor{open_channel}
+@deftypefun int open_channel (emacs_env *@var{env}, emacs_value @var{pipe_process})
+This function, which is available since Emacs 28, opens a channel to
+an existing pipe process.  @var{pipe_process} must refer to an
+existing pipe process created by @code{make-pipe-process}.  @ref{Pipe
+Processes}.  If successful, the return value will be a new file
+descriptor that you can use to write to the pipe.  Unlike all other
+module functions, you can use the returned file descriptor from
+arbitrary threads, even if no module environment is active.  You can
+use the @code{write} function to write to the file descriptor.  Once
+done, close the file descriptor using @code{close}.  @ref{Low-Level
+I/O,,,libc}.
+@end deftypefun
+
 @node Module Nonlocal
 @subsection Nonlocal Exits in Modules
 @cindex nonlocal exits, in modules

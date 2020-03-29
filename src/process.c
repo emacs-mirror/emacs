@@ -8200,6 +8200,17 @@ restore_nofile_limit (void)
 #endif
 }
 
+int
+open_channel_for_module (Lisp_Object process)
+{
+  CHECK_PROCESS (process);
+  CHECK_TYPE (PIPECONN_P (process), Qpipe_process_p, process);
+  int fd = dup (XPROCESS (process)->open_fd[SUBPROCESS_STDOUT]);
+  if (fd == -1)
+    report_file_error ("Cannot duplicate file descriptor", Qnil);
+  return fd;
+}
+
 
 /* This is not called "init_process" because that is the name of a
    Mach system call, so it would cause problems on Darwin systems.  */
@@ -8446,6 +8457,7 @@ amounts of data in one go.  */);
   DEFSYM (Qinterrupt_process_functions, "interrupt-process-functions");
 
   DEFSYM (Qnull, "null");
+  DEFSYM (Qpipe_process_p, "pipe-process-p");
 
   defsubr (&Sprocessp);
   defsubr (&Sget_process);

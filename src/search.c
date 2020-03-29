@@ -1028,8 +1028,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (bound);
-      lim = XFIXNUM (bound);
+      lim = fix_position (bound);
       if (n > 0 ? lim < PT : lim > PT)
 	error ("Invalid search bound (wrong side of point)");
       if (lim > ZV)

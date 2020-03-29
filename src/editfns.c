@@ -725,18 +725,23 @@ boundaries, bind `inhibit-field-text-motion' to t.
 This function does not move point.  */)
   (Lisp_Object n)
 {
-  ptrdiff_t charpos, bytepos;
+  ptrdiff_t charpos, bytepos, count;
 
   if (NILP (n))
-    XSETFASTINT (n, 1);
+    count = 0;
+  else if (FIXNUMP (n))
+    count = clip_to_bounds (-BUF_BYTES_MAX, XFIXNUM (n) - 1, BUF_BYTES_MAX);
   else
-    CHECK_FIXNUM (n);
+    {
+      CHECK_INTEGER (n);
+      count = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
+    }
 
-  scan_newline_from_point (XFIXNUM (n) - 1, &charpos, &bytepos);
+  scan_newline_from_point (count, &charpos, &bytepos);
 
   /* Return END constrained to the current input field.  */
   return Fconstrain_to_field (make_fixnum (charpos), make_fixnum (PT),
-			      XFIXNUM (n) != 1 ? Qt : Qnil,
+			      count != 0 ? Qt : Qnil,
 			      Qt, Qnil);
 }
 
@@ -763,11 +768,14 @@ This function does not move point.  */)
   ptrdiff_t orig = PT;
 
   if (NILP (n))
-    XSETFASTINT (n, 1);
+    clipped_n = 1;
+  else if (FIXNUMP (n))
+    clipped_n = clip_to_bounds (-BUF_BYTES_MAX, XFIXNUM (n), BUF_BYTES_MAX);
   else
-    CHECK_FIXNUM (n);
-
-  clipped_n = clip_to_bounds (PTRDIFF_MIN + 1, XFIXNUM (n), PTRDIFF_MAX);
+    {
+      CHECK_INTEGER (n);
+      clipped_n = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
+    }
   end_pos = find_before_next_newline (orig, 0, clipped_n - (clipped_n <= 0),
 				      NULL);
 
@@ -940,10 +948,10 @@ DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
 If POSITION is out of range, the value is nil.  */)
   (Lisp_Object position)
 {
-  CHECK_FIXNUM_COERCE_MARKER (position);
-  if (XFIXNUM (position) < BEG || XFIXNUM (position) > Z)
+  EMACS_INT pos = fix_position (position);
+  if (! (BEG <= pos && pos <= Z))
     return Qnil;
-  return make_fixnum (CHAR_TO_BYTE (XFIXNUM (position)));
+  return make_fixnum (CHAR_TO_BYTE (pos));
 }
 
 DEFUN ("byte-to-position", Fbyte_to_position, Sbyte_to_position, 1, 1, 0,
@@ -1060,11 +1068,11 @@ If POS is out of range, the value is nil.  */)
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (pos);
-      if (XFIXNUM (pos) < BEGV || XFIXNUM (pos) >= ZV)
+      EMACS_INT p = fix_position (pos);
+      if (! (BEGV <= p && p < ZV))
 	return Qnil;
 
-      pos_byte = CHAR_TO_BYTE (XFIXNUM (pos));
+      pos_byte = CHAR_TO_BYTE (p);
     }
 
   return make_fixnum (FETCH_CHAR (pos_byte));
@@ -1094,12 +1102,12 @@ If POS is out of range, the value is nil.  */)
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (pos);
+      EMACS_INT p = fix_position (pos);
 
-      if (XFIXNUM (pos) <= BEGV || XFIXNUM (pos) > ZV)
+      if (! (BEGV < p && p <= ZV))
 	return Qnil;
 
-      pos_byte = CHAR_TO_BYTE (XFIXNUM (pos));
+      pos_byte = CHAR_TO_BYTE (p);
     }
 
   if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
@@ -1718,21 +1726,8 @@ using `string-make-multibyte' or `string-make-unibyte', which see.  */)
   if (!BUFFER_LIVE_P (bp))
     error ("Selecting deleted buffer");
 
-  if (NILP (start))
-    b = BUF_BEGV (bp);
-  else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (start);
-      b = XFIXNUM (start);
-    }
-  if (NILP (end))
-    e = BUF_ZV (bp);
-  else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (end);
-      e = XFIXNUM (end);
-    }
-
+  b = !NILP (start) ? fix_position (start) : BUF_BEGV (bp);
+  e = !NILP (end) ? fix_position (end) : BUF_ZV (bp);
   if (b > e)
     temp = b, b = e, e = temp;
 
@@ -1786,21 +1781,8 @@ determines whether case is significant or ignored.  */)
 	error ("Selecting deleted buffer");
     }
 
-  if (NILP (start1))
-    begp1 = BUF_BEGV (bp1);
-  else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (start1);
-      begp1 = XFIXNUM (start1);
-    }
-  if (NILP (end1))
-    endp1 = BUF_ZV (bp1);
-  else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (end1);
-      endp1 = XFIXNUM (end1);
-    }
-
+  begp1 = !NILP (start1) ? fix_position (start1) : BUF_BEGV (bp1);
+  endp1 = !NILP (end1) ? fix_position (end1) : BUF_ZV (bp1);
   if (begp1 > endp1)
     temp = begp1, begp1 = endp1, endp1 = temp;
 
@@ -1824,21 +1806,8 @@ determines whether case is significant or ignored.  */)
 	error ("Selecting deleted buffer");
     }
 
-  if (NILP (start2))
-    begp2 = BUF_BEGV (bp2);
-  else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (start2);
-      begp2 = XFIXNUM (start2);
-    }
-  if (NILP (end2))
-    endp2 = BUF_ZV (bp2);
-  else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (end2);
-      endp2 = XFIXNUM (end2);
-    }
-
+  begp2 = !NILP (start2) ? fix_position (start2) : BUF_BEGV (bp2);
+  endp2 = !NILP (end2) ? fix_position (end2) : BUF_ZV (bp2);
   if (begp2 > endp2)
     temp = begp2, begp2 = endp2, endp2 = temp;
 
@@ -2692,29 +2661,27 @@ See also `save-restriction'.
 When calling from Lisp, pass two arguments START and END:
 positions (integers or markers) bounding the text that should
 remain visible.  */)
-  (register Lisp_Object start, Lisp_Object end)
+  (Lisp_Object start, Lisp_Object end)
 {
-  CHECK_FIXNUM_COERCE_MARKER (start);
-  CHECK_FIXNUM_COERCE_MARKER (end);
+  EMACS_INT s = fix_position (start), e = fix_position (end);
 
-  if (XFIXNUM (start) > XFIXNUM (end))
+  if (e < s)
     {
-      Lisp_Object tem;
-      tem = start; start = end; end = tem;
+      EMACS_INT tem = s; s = e; e = tem;
     }
 
-  if (!(BEG <= XFIXNUM (start) && XFIXNUM (start) <= XFIXNUM (end) && XFIXNUM (end) <= Z))
+  if (!(BEG <= s && s <= e && e <= Z))
     args_out_of_range (start, end);
 
-  if (BEGV != XFIXNAT (start) || ZV != XFIXNAT (end))
+  if (BEGV != s || ZV != e)
     current_buffer->clip_changed = 1;
 
-  SET_BUF_BEGV (current_buffer, XFIXNAT (start));
-  SET_BUF_ZV (current_buffer, XFIXNAT (end));
-  if (PT < XFIXNAT (start))
-    SET_PT (XFIXNAT (start));
-  if (PT > XFIXNAT (end))
-    SET_PT (XFIXNAT (end));
+  SET_BUF_BEGV (current_buffer, s);
+  SET_BUF_ZV (current_buffer, e);
+  if (PT < s)
+    SET_PT (s);
+  if (e < PT)
+    SET_PT (e);
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;

@@ -815,11 +815,6 @@ static struct props it_props[] =
   {0,				0,			NULL}
 };
 
-/* Value is the position described by X.  If X is a marker, value is
-   the marker_position of X.  Otherwise, value is X.  */
-
-#define COERCE_MARKER(X) (MARKERP ((X)) ? Fmarker_position (X) : (X))
-
 /* Enumeration returned by some move_it_.* functions internally.  */
 
 enum move_it_result
@@ -10418,10 +10413,7 @@ include the height of both, if present, in the return value.  */)
 	start = pos;
     }
   else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (from);
-      start = min (max (XFIXNUM (from), BEGV), ZV);
-    }
+    start = clip_to_bounds (BEGV, fix_position (from), ZV);
 
   if (NILP (to))
     end = ZV;
@@ -10435,10 +10427,7 @@ include the height of both, if present, in the return value.  */)
 	end = pos;
     }
   else
-    {
-      CHECK_FIXNUM_COERCE_MARKER (to);
-      end = max (start, min (XFIXNUM (to), ZV));
-    }
+    end = clip_to_bounds (start, fix_position (to), ZV);
 
   if (!NILP (x_limit) && RANGED_FIXNUMP (0, x_limit, INT_MAX))
     max_x = XFIXNUM (x_limit);
@@ -14944,7 +14933,7 @@ overlay_arrows_changed_p (bool set_redisplay)
       val = find_symbol_value (var);
       if (!MARKERP (val))
 	continue;
-      if (! EQ (COERCE_MARKER (val),
+      if (! EQ (Fmarker_position (val),
                 /* FIXME: Don't we have a problem, using such a global
                  * "last-position" if the variable is buffer-local?  */
 		Fget (var, Qlast_arrow_position))
@@ -14987,8 +14976,7 @@ update_overlay_arrows (int up_to_date)
 	  Lisp_Object val = find_symbol_value (var);
           if (!MARKERP (val))
 	    continue;
-	  Fput (var, Qlast_arrow_position,
-		COERCE_MARKER (val));
+	  Fput (var, Qlast_arrow_position, Fmarker_position (val));
 	  Fput (var, Qlast_arrow_string,
 		overlay_arrow_string_or_property (var));
 	}

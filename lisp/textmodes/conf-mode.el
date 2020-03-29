@@ -405,27 +405,31 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 
 \\{conf-mode-map}"
 
-  ;; `conf-mode' plays two roles: it's the parent of several sub-modes
-  ;; but it's also the function that chooses between those submodes.
-  ;; To tell the difference between those two cases where the function
-  ;; might be called, we check `delay-mode-hooks'.
-  ;; (adopted from tex-mode.el)
-  (if (not delay-mode-hooks)
-      (funcall (conf--guess-mode))
+  (setq-local font-lock-defaults '(conf-font-lock-keywords nil t nil nil))
+  ;; Let newcomment.el decide this for itself.
+  ;; (setq-local comment-use-syntax t)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local outline-regexp "[ \t]*\\(?:\\[\\|.+[ \t\n]*{\\)")
+  (setq-local outline-heading-end-regexp "[\n}]")
+  (setq-local outline-level #'conf-outline-level)
+  (setq-local imenu-generic-expression
+	      '(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*=" 1)
+	        ;; [section]
+	        (nil "^[ \t]*\\[[ \t]*\\(.+\\)[ \t]*\\]" 1)
+	        ;; section { ... }
+	        (nil "^[ \t]*\\([^=:{} \t\n][^=:{}\n]+\\)[ \t\n]*{" 1))))
 
-    (setq-local font-lock-defaults '(conf-font-lock-keywords nil t nil nil))
-    ;; Let newcomment.el decide this for itself.
-    ;; (setq-local comment-use-syntax t)
-    (setq-local parse-sexp-ignore-comments t)
-    (setq-local outline-regexp "[ \t]*\\(?:\\[\\|.+[ \t\n]*{\\)")
-    (setq-local outline-heading-end-regexp "[\n}]")
-    (setq-local outline-level #'conf-outline-level)
-    (setq-local imenu-generic-expression
-	        '(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*=" 1)
-	          ;; [section]
-	          (nil "^[ \t]*\\[[ \t]*\\(.+\\)[ \t]*\\]" 1)
-	          ;; section { ... }
-	          (nil "^[ \t]*\\([^=:{} \t\n][^=:{}\n]+\\)[ \t\n]*{" 1)))))
+;; `conf-mode' plays two roles: it's the parent of several sub-modes
+;; but it's also the function that chooses between those submodes.
+;; To tell the difference between those two cases where the function
+;; might be called, we check `delay-mode-hooks'.
+;; (inspired from tex-mode.el)
+(advice-add 'conf-mode :around
+            (lambda (orig-fun)
+              "Redirect to one of the submodes when called directly."
+              (funcall (if delay-mode-hooks orig-fun (conf--guess-mode)))))
+
+
 
 (defun conf-mode-initialize (comment &optional font-lock)
   "Initializations for sub-modes of `conf-mode'.

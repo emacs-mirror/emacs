@@ -585,7 +585,7 @@ INLINE void set_sub_char_table_contents (Lisp_Object, ptrdiff_t,
 					      Lisp_Object);
 
 /* Defined in bignum.c.  */
-extern double bignum_to_double (Lisp_Object);
+extern double bignum_to_double (Lisp_Object) ATTRIBUTE_CONST;
 extern Lisp_Object make_bigint (intmax_t);
 extern Lisp_Object make_biguint (uintmax_t);
 
@@ -3023,14 +3023,6 @@ CHECK_FIXNAT (Lisp_Object x)
       CHECK_RANGED_INTEGER (x, 0, TYPE_MAXIMUM (type));			\
   } while (false)
 
-#define CHECK_FIXNUM_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP ((x)))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (FIXNUMP (x), Qinteger_or_marker_p, x);		\
-  } while (false)
-
 INLINE double
 XFLOATINT (Lisp_Object n)
 {
@@ -3050,22 +3042,6 @@ CHECK_INTEGER (Lisp_Object x)
 {
   CHECK_TYPE (INTEGERP (x), Qnumberp, x);
 }
-
-#define CHECK_NUMBER_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP (x))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
-  } while (false)
-
-#define CHECK_INTEGER_COERCE_MARKER(x)					\
-  do {									\
-    if (MARKERP (x))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (INTEGERP (x), Qnumber_or_marker_p, x);		\
-  } while (false)
 
 
 /* If we're not dumping using the legacy dumper and we might be using
@@ -3519,9 +3495,9 @@ set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 
 /* Defined in bignum.c.  This part of bignum.c's API does not require
    the caller to access bignum internals; see bignum.h for that.  */
-extern intmax_t bignum_to_intmax (Lisp_Object);
-extern uintmax_t bignum_to_uintmax (Lisp_Object);
-extern ptrdiff_t bignum_bufsize (Lisp_Object, int);
+extern intmax_t bignum_to_intmax (Lisp_Object) ATTRIBUTE_CONST;
+extern uintmax_t bignum_to_uintmax (Lisp_Object) ATTRIBUTE_CONST;
+extern ptrdiff_t bignum_bufsize (Lisp_Object, int) ATTRIBUTE_CONST;
 extern ptrdiff_t bignum_to_c_string (char *, ptrdiff_t, Lisp_Object, int);
 extern Lisp_Object bignum_to_string (Lisp_Object, int);
 extern Lisp_Object make_bignum_str (char const *, int);

@@ -1839,27 +1839,24 @@ See `find-composition' for more details.  */)
   ptrdiff_t start, end, from, to;
   int id;
 
-  CHECK_FIXNUM_COERCE_MARKER (pos);
+  EMACS_INT fixed_pos = fix_position (pos);
   if (!NILP (limit))
-    {
-      CHECK_FIXNUM_COERCE_MARKER (limit);
-      to = min (XFIXNUM (limit), ZV);
-    }
+    to = clip_to_bounds (PTRDIFF_MIN, fix_position (limit), ZV);
   else
     to = -1;
 
   if (!NILP (string))
     {
       CHECK_STRING (string);
-      if (XFIXNUM (pos) < 0 || XFIXNUM (pos) > SCHARS (string))
+      if (! (0 <= fixed_pos && fixed_pos <= SCHARS (string)))
 	args_out_of_range (string, pos);
     }
   else
     {
-      if (XFIXNUM (pos) < BEGV || XFIXNUM (pos) > ZV)
+      if (! (BEGV <= fixed_pos && fixed_pos <= ZV))
 	args_out_of_range (Fcurrent_buffer (), pos);
     }
-  from = XFIXNUM (pos);
+  from = fixed_pos;
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
@@ -1870,12 +1867,12 @@ See `find-composition' for more details.  */)
 	return list3 (make_fixnum (start), make_fixnum (end), gstring);
       return Qnil;
     }
-  if ((end <= XFIXNUM (pos) || start > XFIXNUM (pos)))
+  if (! (start <= fixed_pos && fixed_pos < end))
     {
       ptrdiff_t s, e;
 
       if (find_automatic_composition (from, to, &s, &e, &gstring, string)
-	  && (e <= XFIXNUM (pos) ? e > end : s < start))
+	  && (e <= fixed_pos ? e > end : s < start))
 	return list3 (make_fixnum (s), make_fixnum (e), gstring);
     }
   if (!composition_valid_p (start, end, prop))

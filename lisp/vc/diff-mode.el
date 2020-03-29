@@ -2720,7 +2720,9 @@ hunk text is not found in the source file."
     ;; When initialization is requested, we should be in a brand new
     ;; temp buffer.
     (cl-assert (null buffer-file-name))
-    (let ((enable-local-variables :safe) ;; to find `mode:'
+    ;; Use `:safe' to find `mode:'.  In case of hunk-only, use nil because
+    ;; Local Variables list might be incomplete when context is truncated.
+    (let ((enable-local-variables (unless hunk-only :safe))
           (buffer-file-name file))
       ;; Don't run hooks that might assume buffer-file-name
       ;; really associates buffer with a file (bug#39190).

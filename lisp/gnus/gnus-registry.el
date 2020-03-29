@@ -1,4 +1,4 @@
-;;; gnus-registry.el --- article registry for Gnus
+;;; gnus-registry.el --- article registry for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -62,10 +62,10 @@
 
 ;; show the marks as single characters (see the :char property in
 ;; `gnus-registry-marks'):
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
+;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-chars)
 
 ;; show the marks by name (see `gnus-registry-marks'):
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
+;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-names)
 
 ;; TODO:
 
@@ -588,7 +588,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                 subject
                 (< gnus-registry-minimum-subject-length (length subject)))
        (let ((groups (apply
-                      'append
+                      #'append
                       (mapcar
                        (lambda (reference)
                          (gnus-registry-get-id-key reference 'group))
@@ -615,7 +615,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                       sender
                       gnus-registry-unfollowed-addresses)))
        (let ((groups (apply
-                      'append
+                      #'append
                       (mapcar
                        (lambda (reference)
                          (gnus-registry-get-id-key reference 'group))
@@ -644,7 +644,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                     (not (gnus-grep-in-list
                           recp
                           gnus-registry-unfollowed-addresses)))
-           (let ((groups (apply 'append
+           (let ((groups (apply #'append
                                 (mapcar
                                  (lambda (reference)
                                    (gnus-registry-get-id-key reference 'group))
@@ -663,7 +663,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
        ;; filter the found groups and return them
        ;; the found groups are NOT the full groups
        (setq found (gnus-registry-post-process-groups
-                    "recipients" (mapconcat 'identity recipients ", ") found)))
+                    "recipients" (mapconcat #'identity recipients ", ") found)))
 
      ;; after the (cond) we extract the actual value safely
      (car-safe found)))
@@ -791,7 +791,8 @@ Consults `gnus-registry-ignored-groups' and
                                  ((stringp g) g)
                                  ((and (listp g) (nth 1 g))
                                   (nth 0 g))
-                                 (t nil))) gnus-registry-ignored-groups)))
+                                 (t nil)))
+                              gnus-registry-ignored-groups)))
            ;; only use `gnus-parameter-registry-ignore' if
            ;; `gnus-registry-ignored-groups' is a list of lists
            ;; (it can be a list of regexes)
@@ -871,7 +872,7 @@ Addresses without a name will say \"noname\"."
 
 (defun gnus-registry-sort-addresses (&rest addresses)
   "Return a normalized and sorted list of ADDRESSES."
-  (sort (mapcan 'gnus-registry-extract-addresses addresses) 'string-lessp))
+  (sort (mapcan #'gnus-registry-extract-addresses addresses) 'string-lessp))
 
 (defun gnus-registry-simplify-subject (subject)
   (if (stringp subject)
@@ -961,16 +962,15 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                    (intern (format function-format variant-name)))
                   (shortcut (format "%c" (if remove (upcase data) data))))
              (defalias function-name
-               ;; If it weren't for the function's docstring, we could
-               ;; use a closure, with lexical-let :-(
-               `(lambda (&rest articles)
-                  ,(format
-                    "%s the %s mark over process-marked ARTICLES."
-                    (upcase-initials variant-name)
-                    mark)
-                  (interactive
-                   (gnus-summary-work-articles current-prefix-arg))
-                  (gnus-registry--set/remove-mark ',mark ',remove articles)))
+               (lambda (&rest articles)
+                 (:documentation
+                  (format
+                   "%s the %s mark over process-marked ARTICLES."
+                   (upcase-initials variant-name)
+                   mark))
+                 (interactive
+                  (gnus-summary-work-articles current-prefix-arg))
+                 (gnus-registry--set/remove-mark mark remove articles)))
              (push function-name keys-plist)
              (push shortcut keys-plist)
              (push (vector (format "%s %s"
@@ -990,14 +990,11 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                  nil
                  (cons "Registry Marks" gnus-registry-misc-menus))))))
 
-(make-obsolete 'gnus-registry-user-format-function-M
-               'gnus-registry-article-marks-to-chars "24.1") ?
-
-(defalias 'gnus-registry-user-format-function-M
-  'gnus-registry-article-marks-to-chars)
+(define-obsolete-function-alias 'gnus-registry-user-format-function-M
+  #'gnus-registry-article-marks-to-chars "24.1")
 
 ;; use like this:
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
+;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)
   "Show the marks for an article by the :char property."
   (if gnus-registry-enabled
@@ -1013,20 +1010,20 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
     ""))
 
 ;; use like this:
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
+;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-names)
 (defun gnus-registry-article-marks-to-names (headers)
   "Show the marks for an article by name."
   (if gnus-registry-enabled
       (let* ((id (mail-header-message-id headers))
              (marks (when id (gnus-registry-get-id-key id 'mark))))
-	(mapconcat (lambda (mark) (symbol-name mark)) marks ","))
+	(mapconcat #'symbol-name marks ","))
     ""))
 
 (defun gnus-registry-read-mark ()
   "Read a mark name from the user with completion."
   (let ((mark (gnus-completing-read
                "Label"
-               (mapcar 'symbol-name (mapcar 'car gnus-registry-marks))
+               (mapcar #'symbol-name (mapcar #'car gnus-registry-marks))
                nil nil nil
                (symbol-name gnus-registry-default-mark))))
     (when (stringp mark)
@@ -1050,7 +1047,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                                                 show-message)
   "Apply or remove MARK across a list of ARTICLES."
   (let ((article-id-list
-         (mapcar 'gnus-registry-fetch-message-id-fast articles)))
+         (mapcar #'gnus-registry-fetch-message-id-fast articles)))
     (dolist (id article-id-list)
       (let* ((marks (delq mark (gnus-registry-get-id-key id 'mark)))
              (marks (if remove marks (cons mark marks))))
@@ -1173,34 +1170,34 @@ only the last one's marks are returned."
   (gnus-registry-install-shortcuts)
   (if (gnus-alive-p)
       (gnus-registry-load)
-    (add-hook 'gnus-read-newsrc-el-hook 'gnus-registry-load)))
+    (add-hook 'gnus-read-newsrc-el-hook #'gnus-registry-load)))
 
 (defun gnus-registry-install-hooks ()
   "Install the registry hooks."
   (setq gnus-registry-enabled t)
-  (add-hook 'gnus-summary-article-move-hook 'gnus-registry-action)
-  (add-hook 'gnus-summary-article-delete-hook 'gnus-registry-action)
-  (add-hook 'gnus-summary-article-expire-hook 'gnus-registry-action)
-  (add-hook 'nnmail-spool-hook 'gnus-registry-spool-action)
+  (add-hook 'gnus-summary-article-move-hook #'gnus-registry-action)
+  (add-hook 'gnus-summary-article-delete-hook #'gnus-registry-action)
+  (add-hook 'gnus-summary-article-expire-hook #'gnus-registry-action)
+  (add-hook 'nnmail-spool-hook #'gnus-registry-spool-action)
 
-  (add-hook 'gnus-save-newsrc-hook 'gnus-registry-save)
+  (add-hook 'gnus-save-newsrc-hook #'gnus-registry-save)
 
-  (add-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids))
+  (add-hook 'gnus-summary-prepare-hook #'gnus-registry-register-message-ids))
 
 (defun gnus-registry-unload-hook ()
   "Uninstall the registry hooks."
-  (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action)
-  (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action)
-  (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action)
-  (remove-hook 'nnmail-spool-hook 'gnus-registry-spool-action)
+  (remove-hook 'gnus-summary-article-move-hook #'gnus-registry-action)
+  (remove-hook 'gnus-summary-article-delete-hook #'gnus-registry-action)
+  (remove-hook 'gnus-summary-article-expire-hook #'gnus-registry-action)
+  (remove-hook 'nnmail-spool-hook #'gnus-registry-spool-action)
 
-  (remove-hook 'gnus-save-newsrc-hook 'gnus-registry-save)
-  (remove-hook 'gnus-read-newsrc-el-hook 'gnus-registry-load)
+  (remove-hook 'gnus-save-newsrc-hook #'gnus-registry-save)
+  (remove-hook 'gnus-read-newsrc-el-hook #'gnus-registry-load)
 
-  (remove-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids)
+  (remove-hook 'gnus-summary-prepare-hook #'gnus-registry-register-message-ids)
   (setq gnus-registry-enabled nil))
 
-(add-hook 'gnus-registry-unload-hook 'gnus-registry-unload-hook)
+(add-hook 'gnus-registry-unload-hook #'gnus-registry-unload-hook)
 
 (defun gnus-registry-install-p ()
   "Return non-nil if the registry is enabled (and maybe enable it first).
@@ -1234,7 +1231,7 @@ data stored in the registry."
            (seen-groups (list (gnus-group-group-name))))
 
       (catch 'found
-        (dolist (group (mapcar 'gnus-simplify-group-name groups))
+        (dolist (group (mapcar #'gnus-simplify-group-name groups))
 
           ;; skip over any groups we really don't want to warp to.
           (unless (or (member group seen-groups)
@@ -1270,7 +1267,7 @@ EXTRA is a list of symbols.  Valid symbols are those contained in
 the docs of `gnus-registry-track-extra'.  This command is useful
 when you stop tracking some extra data and now want to purge it
 from your existing entries."
-  (interactive (list (mapcar 'intern
+  (interactive (list (mapcar #'intern
 			     (completing-read-multiple
 			      "Extra data: "
 			      '("subject" "sender" "recipient")))))

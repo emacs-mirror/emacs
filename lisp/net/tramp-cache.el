@@ -31,13 +31,13 @@
 ;; a process, has a unique cache.  We distinguish 4 kind of caches,
 ;; depending on the key:
 ;;
-;; - localname is NIL.  This are reusable properties.  Examples:
+;; - localname is nil.  These are reusable properties.  Examples:
 ;;   "remote-shell" identifies the POSIX shell to be called on the
 ;;   remote host, or "perl" is the command to be called on the remote
 ;;   host when starting a Perl script.  These properties are saved in
 ;;   the file `tramp-persistency-file-name'.
 ;;
-;; - localname is a string.  This are temporary properties, which are
+;; - localname is a string.  These are temporary properties, which are
 ;;   related to the file localname is referring to.  Examples:
 ;;   "file-exists-p" is t or nil, depending on the file existence, or
 ;;   "file-attributes" caches the result of the function
@@ -45,21 +45,32 @@
 ;;   expire after `remote-file-name-inhibit-cache' seconds if this
 ;;   variable is set.
 ;;
-;; - The key is a process.  This are temporary properties related to
+;; - The key is a process.  These are temporary properties related to
 ;;   an open connection.  Examples: "scripts" keeps shell script
 ;;   definitions already sent to the remote shell, "last-cmd-time" is
 ;;   the time stamp a command has been sent to the remote process.
 ;;
-;; - The key is nil.  This are temporary properties related to the
+;; - The key is nil.  These are temporary properties related to the
 ;;   local machine.  Examples: "parse-passwd" and "parse-group" keep
 ;;   the results of parsing "/etc/passwd" and "/etc/group",
 ;;   "{uid,gid}-{integer,string}" are the local uid and gid, and
 ;;   "locale" is the used shell locale.
+;;
+;; - The key is `tramp-cache-undefined'.  All functions return the
+;;   expected values, but nothing is cached.
 
 ;; Some properties are handled special:
 ;;
 ;; - "process-name", "process-buffer" and "first-password-request" are
-;;   not saved in the file `tramp-persistency-file-name'.
+;;   not saved in the file `tramp-persistency-file-name', although
+;;   being connection properties related to a `tramp-file-name'
+;;   structure.
+;;
+;; - Reusable properties, which should not be saved, are kept in the
+;;   process key retrieved by `tramp-get-process' (the main connection
+;;   process).  Other processes could reuse these properties, avoiding
+;;   recomputation when a new asynchronous process is created by
+;;   `make-process'.  Examples are "remote-path" or "device" (tramp-adb.el).
 
 ;;; Code:
 
@@ -96,25 +107,31 @@ details see the info pages."
 (defvar tramp-cache-data-changed nil
   "Whether persistent cache data have been changed.")
 
+;;;###tramp-autoload
+(defconst tramp-cache-undefined 'undef
+  "The symbol marking undefined hash keys and values.")
+
 (defun tramp-get-hash-table (key)
   "Return the hash table for KEY.
 If it doesn't exist yet, it is created and initialized with
-matching entries of `tramp-connection-properties'."
-  (or (gethash key tramp-cache-data)
-      (let ((hash
-	     (puthash key (make-hash-table :test #'equal) tramp-cache-data)))
-	(when (tramp-file-name-p key)
-	  (dolist (elt tramp-connection-properties)
-	    (when (string-match-p
-		   (or (nth 0 elt) "")
-		   (tramp-make-tramp-file-name key 'noloc 'nohop))
-	      (tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
-	hash)))
+matching entries of `tramp-connection-properties'.
+If KEY is `tramp-cache-undefined', don't create anything, and return nil."
+  (unless (eq key tramp-cache-undefined)
+    (or (gethash key tramp-cache-data)
+	(let ((hash
+	       (puthash key (make-hash-table :test #'equal) tramp-cache-data)))
+	  (when (tramp-file-name-p key)
+	    (dolist (elt tramp-connection-properties)
+	      (when (string-match-p
+		     (or (nth 0 elt) "")
+		     (tramp-make-tramp-file-name key 'noloc 'nohop))
+		(tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
+	  hash))))
 
 ;;;###tramp-autoload
 (defun tramp-get-file-property (key file property default)
   "Get the PROPERTY of FILE from the cache context of KEY.
-Returns DEFAULT if not set."
+Return DEFAULT if not set."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq file (tramp-compat-file-name-unquote file)
 	key (copy-tramp-file-name key))
@@ -152,7 +169,7 @@ Returns DEFAULT if not set."
 ;;;###tramp-autoload
 (defun tramp-set-file-property (key file property value)
   "Set the PROPERTY of FILE to VALUE, in the cache context of KEY.
-Returns VALUE."
+Return VALUE."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq file (tramp-compat-file-name-unquote file)
 	key (copy-tramp-file-name key))
@@ -283,8 +300,9 @@ This is suppressed for temporary buffers."
   "Get the named PROPERTY for the connection.
 KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
-used to cache connection properties of the local machine.  If the
-value is not set for the connection, returns DEFAULT."
+used to cache connection properties of the local machine.
+If KEY is `tramp-cache-undefined', or if the value is not set for
+the connection, return DEFAULT."
   ;; Unify key by removing localname and hop from `tramp-file-name'
   ;; structure.  Work with a copy in order to avoid side effects.
   (when (tramp-file-name-p key)
@@ -308,19 +326,22 @@ value is not set for the connection, returns DEFAULT."
   "Set the named PROPERTY of a connection to VALUE.
 KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
-used to cache connection properties of the local machine.
-PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
+used to cache connection properties of the local machine.  If KEY
+is `tramp-cache-undefined', nothing is set.
+PROPERTY is set persistent when KEY is a `tramp-file-name' structure.
+Return VALUE."
   ;; Unify key by removing localname and hop from `tramp-file-name'
   ;; structure.  Work with a copy in order to avoid side effects.
   (when (tramp-file-name-p key)
     (setq key (copy-tramp-file-name key))
     (setf (tramp-file-name-localname key) nil
 	  (tramp-file-name-hop key) nil))
-  (let ((hash (tramp-get-hash-table key)))
-    (puthash property value hash)
-    (setq tramp-cache-data-changed t)
-    (tramp-message key 7 "%s %s" property value)
-    value))
+  (when-let ((hash (tramp-get-hash-table key)))
+    (puthash property value hash))
+  (setq tramp-cache-data-changed
+	(or tramp-cache-data-changed (tramp-tramp-file-p key)))
+  (tramp-message key 7 "%s %s" property value)
+  value)
 
 ;;;###tramp-autoload
 (defun tramp-connection-property-p (key property)
@@ -328,7 +349,8 @@ PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
 KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
 used to cache connection properties of the local machine."
-  (not (eq (tramp-get-connection-property key property 'undef) 'undef)))
+  (not (eq (tramp-get-connection-property key property tramp-cache-undefined)
+	   tramp-cache-undefined)))
 
 ;;;###tramp-autoload
 (defun tramp-flush-connection-property (key property)
@@ -343,8 +365,10 @@ PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
     (setq key (copy-tramp-file-name key))
     (setf (tramp-file-name-localname key) nil
 	  (tramp-file-name-hop key) nil))
-  (remhash property (tramp-get-hash-table key))
-  (setq tramp-cache-data-changed t)
+  (when-let ((hash (tramp-get-hash-table key)))
+    (remhash property hash))
+  (setq tramp-cache-data-changed
+	(or tramp-cache-data-changed (tramp-tramp-file-p key)))
   (tramp-message key 7 "%s" property))
 
 ;;;###tramp-autoload
@@ -361,9 +385,10 @@ used to cache connection properties of the local machine."
 	  (tramp-file-name-hop key) nil))
   (tramp-message
    key 7 "%s %s" key
-   (let ((hash (gethash key tramp-cache-data)))
-     (when (hash-table-p hash) (hash-table-keys hash))))
-  (setq tramp-cache-data-changed t)
+   (when-let ((hash (gethash key tramp-cache-data)))
+     (hash-table-keys hash)))
+  (setq tramp-cache-data-changed
+	(or tramp-cache-data-changed (tramp-tramp-file-p key)))
   (remhash key tramp-cache-data))
 
 ;;;###tramp-autoload
@@ -414,7 +439,8 @@ used to cache connection properties of the local machine."
 	       (hash-table-keys tramp-cache-data)))))
 
 (defun tramp-dump-connection-properties ()
-  "Write persistent connection properties into file `tramp-persistency-file-name'."
+  "Write persistent connection properties into file \
+`tramp-persistency-file-name'."
   ;; We shouldn't fail, otherwise Emacs might not be able to be closed.
   (ignore-errors
     (when (and (hash-table-p tramp-cache-data)

@@ -646,6 +646,16 @@ matched file names, and weeding out false positives."
   :link `(file-link :tag "example file"
 		    ,(expand-file-name "compilation.txt" data-directory)))
 
+(defvar compilation-error-case-fold-search nil
+  "If non-nil, use case-insensitive matching of compilation errors
+by the regexps of `compilation-error-regexp-alist' and
+`compilation-error-regexp-alist-alist'.
+If nil, matching is case-sensitive.
+
+This variable should only be set for backward compatibility as a temporary
+measure.  The proper solution is to use a regexp that matches the
+messages without case-folding.")
+
 ;;;###autoload(put 'compilation-directory 'safe-local-variable 'stringp)
 (defvar compilation-directory nil
   "Directory to restore to when doing `recompile'.")
@@ -1435,7 +1445,8 @@ to `compilation-error-regexp-alist' if RULES is nil."
     (if (symbolp item)
         (setq item (cdr (assq item
                               compilation-error-regexp-alist-alist))))
-    (let ((file (nth 1 item))
+    (let ((case-fold-search compilation-error-case-fold-search)
+          (file (nth 1 item))
           (line (nth 2 item))
           (col (nth 3 item))
           (type (nth 4 item))

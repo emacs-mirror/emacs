@@ -629,9 +629,6 @@ But handle the case, if the \"test\" command is not available."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    ;; We must also flush the cache of the directory, because
-    ;; `file-attributes' reads the values from there.
-    (tramp-flush-file-properties v localname)
     (let* ((curbuf (current-buffer))
 	   (tmpfile (tramp-compat-make-temp-file filename)))
       (when (and append (file-exists-p filename))
@@ -647,6 +644,10 @@ But handle the case, if the \"test\" command is not available."
 		   v "push" tmpfile (tramp-compat-file-name-unquote localname))
 	      (tramp-error v 'file-error "Cannot write: `%s'" filename))
 	  (delete-file tmpfile)))
+
+      ;; We must also flush the cache of the directory, because
+      ;; `file-attributes' reads the values from there.
+      (tramp-flush-file-properties v localname)
 
       (unless (equal curbuf (current-buffer))
 	(tramp-error
@@ -1096,7 +1097,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Like `exec-path' for Tramp files."
   (append
    (with-parsed-tramp-file-name default-directory nil
-     (with-tramp-connection-property v "remote-path"
+     (with-tramp-connection-property (tramp-get-process v) "remote-path"
        (tramp-adb-send-command v "echo \\\"$PATH\\\"")
        (split-string
 	(with-current-buffer (tramp-get-connection-buffer v)
@@ -1111,11 +1112,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Return full host name from VEC to be used in shell execution.
 E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
      a host name \"R38273882DE\" returns \"R38273882DE\"."
-  ;; Sometimes this is called before there is a connection process
-  ;; yet.  In order to work with the connection cache, we flush all
-  ;; unwanted entries first.
-  (tramp-flush-connection-properties nil)
-  (with-tramp-connection-property (tramp-get-connection-process vec) "device"
+  (with-tramp-connection-property (tramp-get-process vec) "device"
     (let* ((host (tramp-file-name-host vec))
 	   (port (tramp-file-name-port-or-default vec))
 	   (devices (mapcar #'cadr (tramp-adb-parse-device-names nil))))

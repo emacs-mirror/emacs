@@ -224,7 +224,7 @@ Should show the queue(s) that \\[tex-print] puts jobs on."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-default-mode 'latex-mode
+(defcustom tex-default-mode #'latex-mode
   "Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
@@ -668,7 +668,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
   "Default expressions to highlight in TeX modes.")
 
 (defvar tex-verbatim-environments
-  '("verbatim" "verbatim*"))
+  '("verbatim" "verbatim*"
+    "Verbatim" ;; From "fancyvrb"
+    ))
 (put 'tex-verbatim-environments 'safe-local-variable
      (lambda (x) (not (memq nil (mapcar #'stringp x)))))
 
@@ -966,7 +968,7 @@ Inherits `shell-mode-map' with a few additions.")
 
 ;; This would be a lot simpler if we just used a regexp search,
 ;; but then it would be too slow.
-(defun tex-guess-mode ()
+(defun tex--guess-mode ()
   (let ((mode tex-default-mode) slash comment)
     (save-excursion
       (goto-char (point-min))
@@ -983,52 +985,40 @@ Inherits `shell-mode-map' with a few additions.")
 		      (regexp-opt '("documentstyle" "documentclass"
 				    "begin" "subsection" "section"
 				    "part" "chapter" "newcommand"
-				    "renewcommand" "RequirePackage") 'words)
+				    "renewcommand" "RequirePackage")
+				  'words)
 		      "\\|NeedsTeXFormat{LaTeX")))
 		  (if (and (looking-at
 			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
 			   ;; SliTeX is almost never used any more nowadays.
 			   (tex-executable-exists-p slitex-run-command))
-		      'slitex-mode
-		    'latex-mode)
-		'plain-tex-mode))))
-    (funcall mode)))
+		      #'slitex-mode
+		    #'latex-mode)
+		#'plain-tex-mode))))
+    mode))
 
 ;; `tex-mode' plays two roles: it's the parent of several sub-modes
 ;; but it's also the function that chooses between those submodes.
 ;; To tell the difference between those two cases where the function
 ;; might be called, we check `delay-mode-hooks'.
-(define-derived-mode tex-mode text-mode "generic-TeX"
-  (tex-common-initialization))
-;; We now move the function and define it again.  This gives a warning
-;; in the byte-compiler :-( but it's difficult to avoid because
-;; `define-derived-mode' will necessarily define the function once
-;; and we need to define it a second time for `autoload' to get the
-;; proper docstring.
-(defalias 'tex-mode-internal (symbol-function 'tex-mode))
-
-;; Suppress the byte-compiler warning about multiple definitions.
-;; This is a) ugly, and b) cheating, but this was the last
-;; remaining warning from byte-compiling all of Emacs...
-(eval-when-compile
-  (if (boundp 'byte-compile-function-environment)
-      (setq byte-compile-function-environment
-            (delq (assq 'tex-mode byte-compile-function-environment)
-                  byte-compile-function-environment))))
-
 ;;;###autoload
-(defun tex-mode ()
+(define-derived-mode tex-mode text-mode "generic-TeX"
   "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
+This is the shared parent mode of several submodes.
 Tries to determine (by looking at the beginning of the file) whether
 this file is for plain TeX, LaTeX, or SliTeX and calls `plain-tex-mode',
-`latex-mode', or `slitex-mode', respectively.  If it cannot be determined,
+`latex-mode', or `slitex-mode', accordingly.  If it cannot be determined,
 such as if there are no commands in the file, the value of `tex-default-mode'
 says which mode to use."
-  (interactive)
-  (if delay-mode-hooks
-      ;; We're called from one of the children already.
-      (tex-mode-internal)
-    (tex-guess-mode)))
+  (tex-common-initialization))
+
+(advice-add 'tex-mode :around #'tex--redirect-to-submode)
+(defun tex--redirect-to-submode (orig-fun)
+  "Redirect to one of the submodes when called directly."
+  (funcall (if delay-mode-hooks
+               ;; We're called from one of the children already.
+               orig-fun
+             (tex--guess-mode))))
 
 ;; The following three autoloaded aliases appear to conflict with
 ;; AUCTeX.  However, even though AUCTeX uses the mixed case variants
@@ -1037,6 +1027,10 @@ says which mode to use."
 ;; AUCTeX to provide a fully functional user-level replacement.  So
 ;; these aliases should remain as they are, in particular since AUCTeX
 ;; users are likely to use them.
+;; Note from Stef: I don't understand the above explanation, the only
+;; justification I can find to keep those confusing aliases is for those
+;; users who may have files annotated with -*- LaTeX -*- (e.g. because they
+;; received them from someone using AUCTeX).
 
 ;;;###autoload
 (defalias 'TeX-mode 'tex-mode)

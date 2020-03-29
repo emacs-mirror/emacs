@@ -9023,23 +9023,23 @@ DEFUN ("find-coding-systems-region-internal",
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (start);
-      CHECK_FIXNUM_COERCE_MARKER (end);
-      if (XFIXNUM (start) < BEG || XFIXNUM (end) > Z || XFIXNUM (start) > XFIXNUM (end))
+      EMACS_INT s = fix_position (start);
+      EMACS_INT e = fix_position (end);
+      if (! (BEG <= s && s <= e && e <= Z))
 	args_out_of_range (start, end);
       if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return Qt;
-      start_byte = CHAR_TO_BYTE (XFIXNUM (start));
-      end_byte = CHAR_TO_BYTE (XFIXNUM (end));
-      if (XFIXNUM (end) - XFIXNUM (start) == end_byte - start_byte)
+      start_byte = CHAR_TO_BYTE (s);
+      end_byte = CHAR_TO_BYTE (e);
+      if (e - s == end_byte - start_byte)
 	return Qt;
 
-      if (XFIXNUM (start) < GPT && XFIXNUM (end) > GPT)
+      if (s < GPT && GPT < e)
 	{
-	  if ((GPT - XFIXNUM (start)) < (XFIXNUM (end) - GPT))
-	    move_gap_both (XFIXNUM (start), start_byte);
+	  if (GPT - s < e - GPT)
+	    move_gap_both (s, start_byte);
 	  else
-	    move_gap_both (XFIXNUM (end), end_byte);
+	    move_gap_both (e, end_byte);
 	}
     }
 
@@ -9277,25 +9277,25 @@ is nil.  */)
     }
   else
     {
-      CHECK_FIXNUM_COERCE_MARKER (start);
-      CHECK_FIXNUM_COERCE_MARKER (end);
-      if (XFIXNUM (start) < BEG || XFIXNUM (end) > Z || XFIXNUM (start) > XFIXNUM (end))
+      EMACS_INT s = fix_position (start);
+      EMACS_INT e = fix_position (end);
+      if (! (BEG <= s && s <= e && e <= Z))
 	args_out_of_range (start, end);
       if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return Qnil;
-      start_byte = CHAR_TO_BYTE (XFIXNUM (start));
-      end_byte = CHAR_TO_BYTE (XFIXNUM (end));
-      if (XFIXNUM (end) - XFIXNUM (start) == end_byte - start_byte)
+      start_byte = CHAR_TO_BYTE (s);
+      end_byte = CHAR_TO_BYTE (e);
+      if (e - s == end_byte - start_byte)
 	return Qnil;
 
-      if (XFIXNUM (start) < GPT && XFIXNUM (end) > GPT)
+      if (s < GPT && GPT < e)
 	{
-	  if ((GPT - XFIXNUM (start)) < (XFIXNUM (end) - GPT))
-	    move_gap_both (XFIXNUM (start), start_byte);
+	  if (GPT - s < e - GPT)
+	    move_gap_both (s, start_byte);
 	  else
-	    move_gap_both (XFIXNUM (end), end_byte);
+	    move_gap_both (e, end_byte);
 	}
-      pos = XFIXNUM (start);
+      pos = s;
     }
 
   list = Qnil;

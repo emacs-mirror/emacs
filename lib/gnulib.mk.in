@@ -86,7 +86,6 @@
 #  crypto/sha512-buffer \
 #  d-type \
 #  diffseq \
-#  dosname \
 #  double-slash-root \
 #  dtoastr \
 #  dtotimespec \
@@ -100,6 +99,7 @@
 #  fcntl-h \
 #  fdopendir \
 #  filemode \
+#  filename \
 #  filevercmp \
 #  flexmember \
 #  fpieee \
@@ -1452,15 +1452,6 @@ EXTRA_libgnu_a_SOURCES += dirfd.c
 endif
 ## end   gnulib module dirfd
 
-## begin gnulib module dosname
-ifeq (,$(OMIT_GNULIB_MODULE_dosname))
-
-
-EXTRA_DIST += dosname.h
-
-endif
-## end   gnulib module dosname
-
 ## begin gnulib module dtoastr
 ifeq (,$(OMIT_GNULIB_MODULE_dtoastr))
 
@@ -1671,6 +1662,15 @@ EXTRA_DIST += filemode.h
 
 endif
 ## end   gnulib module filemode
+
+## begin gnulib module filename
+ifeq (,$(OMIT_GNULIB_MODULE_filename))
+
+
+EXTRA_DIST += filename.h
+
+endif
+## end   gnulib module filename
 
 ## begin gnulib module filevercmp
 ifeq (,$(OMIT_GNULIB_MODULE_filevercmp))

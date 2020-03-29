@@ -1731,8 +1731,7 @@ a downcased host name only."
 		  (list
 		   t ;; handled.
 		   nil ;; no abort of D-Bus.
-		   (with-tramp-connection-property
-		       (tramp-get-connection-process v) message
+		   (with-tramp-connection-property (tramp-get-process v) message
 		     ;; In theory, there can be several choices.
 		     ;; Until now, there is only the question whether
 		     ;; to accept an unknown host signature or certificate.
@@ -1946,8 +1945,7 @@ a downcased host name only."
      (tramp-gvfs-url-file-name (tramp-make-tramp-file-name vec))))
   (while (tramp-gvfs-connection-mounted-p vec)
     (read-event nil nil 0.1))
-  (tramp-flush-connection-properties vec)
-  (tramp-flush-connection-properties (tramp-get-connection-process vec)))
+  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
 
 (defun tramp-gvfs-mount-spec-entry (key value)
   "Construct a mount-spec entry to be used in a mount_spec.

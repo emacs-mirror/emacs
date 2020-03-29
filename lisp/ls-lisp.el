@@ -435,9 +435,9 @@ not contain `d', so that a full listing is expected."
 	;; text.  But if the listing is empty, as e.g. in empty
 	;; directories with -a removed from switches, point will be
 	;; before the inserted text, and dired-insert-directory will
-	;; not indent the listing correctly.  Going to the end of the
-	;; buffer fixes that.
-	(unless files (goto-char (point-max)))
+	;; not indent the listing correctly.  Getting past the
+	;; inserted text solves this.
+	(unless (cdr total-line) (forward-line 2))
 	(if (memq ?R switches)
 	    ;; List the contents of all directories recursively.
 	    ;; cadr of each element of `file-alist' is t for

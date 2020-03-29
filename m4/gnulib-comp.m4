@@ -69,7 +69,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module diffseq:
   # Code from module dirent:
   # Code from module dirfd:
-  # Code from module dosname:
   # Code from module double-slash-root:
   # Code from module dtoastr:
   # Code from module dtotimespec:
@@ -87,6 +86,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module fcntl-h:
   # Code from module fdopendir:
   # Code from module filemode:
+  # Code from module filename:
   # Code from module filevercmp:
   # Code from module flexmember:
   # Code from module fpending:
@@ -961,7 +961,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/diffseq.h
   lib/dirent.in.h
   lib/dirfd.c
-  lib/dosname.h
   lib/dtoastr.c
   lib/dtotimespec.c
   lib/dup2.c
@@ -977,6 +976,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fdopendir.c
   lib/filemode.c
   lib/filemode.h
+  lib/filename.h
   lib/filevercmp.c
   lib/filevercmp.h
   lib/flexmember.h
