@@ -7253,10 +7253,15 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
                   (setq active t))
              (setq processes (cdr processes)))
            (or (not active)
-               (with-displayed-buffer-window
+               (with-current-buffer-window
                 (get-buffer-create "*Process List*")
-                '(display-buffer--maybe-at-bottom
-                  (dedicated . t))
+                `(display-buffer--maybe-at-bottom
+                  (dedicated . t)
+                  (window-height . fit-window-to-buffer)
+                  (preserve-size . (nil . t))
+                  (body-function
+                   . ,#'(lambda (_window)
+                          (list-processes t))))
                 #'(lambda (window _value)
                     (with-selected-window window
                       (unwind-protect
@@ -7264,8 +7269,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
                             (setq confirm nil)
                             (yes-or-no-p "Active processes exist; kill them and exit anyway? "))
                         (when (window-live-p window)
-                          (quit-restore-window window 'kill)))))
-                (list-processes t)))))
+                          (quit-restore-window window 'kill)))))))))
      ;; Query the user for other things, perhaps.
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)

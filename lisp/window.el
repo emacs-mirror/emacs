@@ -226,7 +226,9 @@ BODY."
   "Show a buffer BUFFER-OR-NAME and evaluate BODY in that buffer.
 This construct is like `with-current-buffer-window' but unlike that,
 displays the buffer specified by BUFFER-OR-NAME before running BODY."
-  (declare (debug t) (indent 3))
+  (declare (debug t) (indent 3)
+           (obsolete "use `with-current-buffer-window' with action alist entry `body-function'."
+                     "28.1"))
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))
 	(value (make-symbol "value")))
@@ -7070,6 +7072,12 @@ Return WINDOW if BUFFER and WINDOW are live."
         (set-window-dedicated-p window display-buffer-mark-dedicated))))
     (when (memq type '(window frame tab))
       (set-window-prev-buffers window nil))
+
+    (when (functionp (cdr (assq 'body-function alist)))
+      (let ((inhibit-read-only t)
+            (inhibit-modification-hooks t))
+        (funcall (cdr (assq 'body-function alist)) window)))
+
     (let ((quit-restore (window-parameter window 'quit-restore))
 	  (height (cdr (assq 'window-height alist)))
 	  (width (cdr (assq 'window-width alist)))

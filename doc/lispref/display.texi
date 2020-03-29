@@ -1318,12 +1318,6 @@ the buffer specified by @var{buffer-or-name} current for running
 @var{body}.
 @end defmac
 
-@defmac with-displayed-buffer-window buffer-or-name action quit-function &rest body
-This macro is like @code{with-current-buffer-window} but unlike that
-displays the buffer specified by @var{buffer-or-name} @emph{before}
-running @var{body}.
-@end defmac
-
 A window showing a temporary buffer can be fitted to the size of that
 buffer using the following mode:
 

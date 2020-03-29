@@ -266,6 +266,10 @@ It was used to allow loading Lisp libraries compiled by XEmacs, a
 modified version of Emacs which is no longer actively maintained.
 This is no longer supported, and setting this variable has no effect.
 
++++
+** The macro 'with-displayed-buffer-window' is now obsolete.
+Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
+
 
 * Lisp Changes in Emacs 28.1
 
