@@ -403,6 +403,41 @@
       (?< 1)
       (?> 2))))
 
+(defun comp-test-big-interactive (filename &optional force arg load)
+  ;; Check non trivial interactive form using `byte-recompile-file'.
+  (interactive
+   (let ((file buffer-file-name)
+	 (file-name nil)
+	 (file-dir nil))
+     (and file
+	  (derived-mode-p 'emacs-lisp-mode)
+	  (setq file-name (file-name-nondirectory file)
+		file-dir (file-name-directory file)))
+     (list (read-file-name (if current-prefix-arg
+			       "Byte compile file: "
+			     "Byte recompile file: ")
+			   file-dir file-name nil)
+	   current-prefix-arg)))
+  (let ((dest (byte-compile-dest-file filename))
+        ;; Expand now so we get the current buffer's defaults
+        (filename (expand-file-name filename)))
+    (if (if (file-exists-p dest)
+            ;; File was already compiled
+            ;; Compile if forced to, or filename newer
+            (or force
+                (file-newer-than-file-p filename dest))
+          (and arg
+               (or (eq 0 arg)
+                   (y-or-n-p (concat "Compile "
+                                     filename "? ")))))
+        (progn
+          (if (and noninteractive (not byte-compile-verbose))
+              (message "Compiling %s..." filename))
+          (byte-compile-file filename load))
+      (when load
+	(load (if (file-exists-p dest) dest filename)))
+      'no-byte-compile)))
+
 (provide 'comp-test-funcs)
 
 ;;; comp-test-funcs.el ends here
