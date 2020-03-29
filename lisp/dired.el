@@ -1870,6 +1870,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
     (define-key map [remap advertised-undo] 'dired-undo)
+    (define-key map [remap vc-next-action] 'dired-vc-next-action)
     ;; thumbnail manipulation (image-dired)
     (define-key map "\C-td" 'image-dired-display-thumbs)
     (define-key map "\C-tt" 'image-dired-tag-files)

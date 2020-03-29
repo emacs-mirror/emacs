@@ -1006,11 +1006,17 @@ Within directories, only files already under version control are noticed."
 
 (declare-function vc-dir-current-file "vc-dir" ())
 (declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
+(declare-function dired-vc-deduce-fileset "dired-aux" (&optional state-model-only-files not-state-changing))
 
-(defun vc-deduce-fileset (&optional observer allow-unregistered
+(defun vc-deduce-fileset (&optional not-state-changing
+				    allow-unregistered
 				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
 Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
+
+NOT-STATE-CHANGING if non-nil, means that the operation
+requesting the fileset doesn't intend to change VC state,
+such as printing the log or showing the diff.
 
 If we're in VC-dir mode, FILESET is the list of marked files,
 or the directory if no files are marked.
@@ -1025,14 +1031,12 @@ the FILESET-ONLY-FILES STATE and MODEL info.  Otherwise, that
 part may be skipped.
 
 BEWARE: this function may change the current buffer."
-  ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
-  ;; documented.  It's set to t when called from diff and print-log.
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
       (vc-dir-deduce-fileset state-model-only-files))
      ((derived-mode-p 'dired-mode)
-      (vc-dired-deduce-fileset state-model-only-files observer))
+      (dired-vc-deduce-fileset state-model-only-files not-state-changing))
      ((setq backend (vc-backend buffer-file-name))
       (if state-model-only-files
 	(list backend (list buffer-file-name)
@@ -1048,7 +1052,7 @@ BEWARE: this function may change the current buffer."
 				      (derived-mode-p 'dired-mode)))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset observer allow-unregistered state-model-only-files)))
+	(vc-deduce-fileset not-state-changing allow-unregistered state-model-only-files)))
      ((and (derived-mode-p 'log-view-mode)
 	   (setq backend (vc-responsible-backend default-directory)))
       (list backend nil))
@@ -1064,32 +1068,6 @@ BEWARE: this function may change the current buffer."
 	(list (vc-backend-for-registration (buffer-file-name))
 	      (list buffer-file-name))))
      (t (error "File is not under version control")))))
-
-(declare-function dired-get-marked-files "dired"
-                  (&optional localp arg filter distinguish-one-marked error))
-
-(defun vc-dired-deduce-fileset (&optional state-model-only-files observer)
-  (let ((backend (vc-responsible-backend default-directory))
-        (files (dired-get-marked-files nil nil nil nil t))
-	only-files-list
-	state
-	model)
-    (when (and (not observer) (cl-some #'file-directory-p files))
-      (error "State changing VC operations on directories not supported in `dired-mode'"))
-
-    (when state-model-only-files
-      (setq only-files-list (mapcar (lambda (file) (cons file (vc-state file))) files))
-      (setq state (cdar only-files-list))
-      ;; Check that all files are in a consistent state, since we use that
-      ;; state to decide which operation to perform.
-      (dolist (crt (cdr only-files-list))
-	(unless (vc-compatible-state (cdr crt) state)
-	  (error "When applying VC operations to multiple files, the files are required\nto  be in similar VC states.\n%s in state %s clashes with %s in state %s"
-		 (car crt) (cdr crt) (caar only-files-list) state)))
-      (setq only-files-list (mapcar 'car only-files-list))
-      (when (and state (not (eq state 'unregistered)))
-	(setq model (vc-checkout-model backend only-files-list))))
-    (list backend files only-files-list state model)))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."

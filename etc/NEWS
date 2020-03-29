@@ -108,8 +108,8 @@ Mark mode, then Dired commands operate only on files in the active
 region.  The values 'file' and 'line' of this user option define the
 details of marking the file at the end of the region.
 
-*** State changing VC operations are supported in 'dired-mode' on files
-(but still not on directories).
+*** State changing VC operations are supported in Dired on files and
+directories with the help of new command 'dired-vc-next-action'.
 
 ** Change Logs and VC
 

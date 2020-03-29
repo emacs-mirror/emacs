@@ -696,6 +696,17 @@ share the same state."
 		(vc-dir-mark-file crt)))
 	    (setq crt (ewoc-next vc-ewoc crt))))))))
 
+(defun vc-dir-mark-files (mark-files)
+  "Mark files specified by file names in the argument MARK-FILES.
+MARK-FILES should be a list of absolute filenames."
+  (ewoc-map
+   (lambda (filearg)
+     (when (member (expand-file-name (vc-dir-fileinfo->name filearg))
+                   mark-files)
+       (setf (vc-dir-fileinfo->marked filearg) t)
+       t))
+   vc-ewoc))
+
 (defun vc-dir-unmark-file ()
   ;; Unmark the current file and move to the next line.
   (let* ((crt (ewoc-locate vc-ewoc))
@@ -1193,7 +1204,8 @@ Throw an error if another update process is in progress."
                    (if remaining
                        (vc-dir-refresh-files
                         (mapcar 'vc-dir-fileinfo->name remaining))
-                     (setq mode-line-process nil))))))))))))
+                     (setq mode-line-process nil)
+                     (run-hooks 'vc-dir-refresh-hook))))))))))))
 
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current *VC-dir* listing.
