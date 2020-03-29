@@ -308,8 +308,7 @@ Check that the resulting binaries do not differ."
 (ert-deftest comp-tests-doc ()
   (should (string= (documentation #'comp-tests-doc-f)
                    "A nice docstring"))
-  (should (string= (symbol-file #'comp-tests-doc-f)
-                   (concat comp-test-src "n"))))
+  (should (string-match "\\.*.eln\\'" (symbol-file #'comp-tests-doc-f))))
 
 (ert-deftest comp-test-interactive-form ()
   (should (equal (interactive-form #'comp-test-interactive-form0-f)
