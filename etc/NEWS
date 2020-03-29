@@ -111,6 +111,10 @@ details of marking the file at the end of the region.
 *** State changing VC operations are supported in 'dired-mode' on files
 (but still not on directories).
 
+** Change Logs and VC
+
+*** New command 'vc-dir-root' uses the root directory without asking.
+
 ** Gnus
 
 ---
