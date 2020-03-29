@@ -440,7 +440,8 @@ VERBOSITY is a number between 0 and 3."
 
 (defun comp-output-base-filename (src)
   "Output filename sans extention for SRC file being native compiled."
-  (let* ((expanded-filename (expand-file-name src))
+  (let* ((src (if (symbolp src) (symbol-name src) src))
+         (expanded-filename (expand-file-name src))
          (output-dir (file-name-as-directory
                       (concat (file-name-directory expanded-filename)
                               comp-native-path-postfix)))
