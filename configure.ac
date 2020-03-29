@@ -1246,18 +1246,12 @@ emacs_cv_ln_s_fileonly='cp -p'
 dnl On MinGW, ensure we will call the MSYS /bin/ln.exe, not some
 dnl random program in the current directory.
 if (echo >conf$$.file) 2>/dev/null; then
-  if ln -s conf$$.file conf$$ 2>/dev/null; then
-    if test "$opsys" = "mingw32"; then
-      emacs_cv_ln_s_fileonly='/bin/ln -s'
-    else
-      emacs_cv_ln_s_fileonly='ln -s'
-    fi
+  if test "$opsys" = "mingw32"; then
+    emacs_cv_ln_s_fileonly=/bin/ln
+  elif ln -s conf$$.file conf$$ 2>/dev/null; then
+    emacs_cv_ln_s_fileonly='ln -s'
   elif ln conf$$.file conf$$ 2>/dev/null; then
-    if test "$opsys" = "mingw32"; then
-      emacs_cv_ln_s_fileonly=/bin/ln
-    else
-      emacs_cv_ln_s_fileonly=ln
-    fi
+    emacs_cv_ln_s_fileonly=ln
   fi
 fi
 
