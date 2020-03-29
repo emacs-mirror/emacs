@@ -514,7 +514,8 @@ Put PREFIX in front of it."
 
 (cl-defgeneric comp-spill-lap-function ((function-name symbol))
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
-  (let* ((f (symbol-function function-name))
+  (let* ((byte-native-compiling 'free-func)
+         (f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func :name function-name
                                :c-name c-name
@@ -536,8 +537,8 @@ Put PREFIX in front of it."
                 (comp-func-frame-size func)
                 (comp-byte-frame-size (comp-func-byte-func func))))
         (setf (comp-ctxt-top-level-forms comp-ctxt)
-              (list (make-byte-to-native-function :name function-name)))
-        (setf (byte-to-native-function-c-name func) c-name)
+              (list (make-byte-to-native-function :name function-name
+                                                  :c-name c-name)))
         ;; Create the default array.
         (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
         (comp-add-func-to-ctxt func))))
