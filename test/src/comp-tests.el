@@ -339,6 +339,12 @@ Check that the resulting binaries do not differ."
   (should (equal (interactive-form #'comp-tests-free-fun-f)
                  '(interactive))))
 
+(ert-deftest comp-test-40187 ()
+  "Check function name shadowing.
+https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
+  (should (eq (comp-test-40187-1-f) 'foo))
+  (should (eq (comp-test-40187-2-f) 'bar)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

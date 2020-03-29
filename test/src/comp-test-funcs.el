@@ -272,6 +272,14 @@
 (defun comp-test-interactive-form2-f ()
   (interactive))
 
+(defun comp-test-40187-2-f ()
+  'foo)
+
+(defalias 'comp-test-40187-1-f (symbol-function 'comp-test-40187-2-f))
+
+(defun comp-test-40187-2-f ()
+  'bar)
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
