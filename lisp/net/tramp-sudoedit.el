@@ -373,7 +373,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-remote-acl-p (vec)
   "Check, whether ACL is enabled on the remote host."
-  (with-tramp-connection-property (tramp-get-connection-process vec) "acl-p"
+  (with-tramp-connection-property (tramp-get-process vec) "acl-p"
     (zerop (tramp-call-process vec "getfacl" nil nil nil "/"))))
 
 (defun tramp-sudoedit-handle-file-acl (filename)
@@ -478,7 +478,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-remote-selinux-p (vec)
   "Check, whether SELINUX is enabled on the remote host."
-  (with-tramp-connection-property (tramp-get-connection-process vec) "selinux-p"
+  (with-tramp-connection-property (tramp-get-process vec) "selinux-p"
     (zerop (tramp-call-process vec "selinuxenabled"))))
 
 (defun tramp-sudoedit-handle-file-selinux-context (filename)

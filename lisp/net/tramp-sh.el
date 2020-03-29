@@ -1539,7 +1539,7 @@ of."
 
 (defun tramp-remote-selinux-p (vec)
   "Check, whether SELINUX is enabled on the remote host."
-  (with-tramp-connection-property (tramp-get-connection-process vec) "selinux-p"
+  (with-tramp-connection-property (tramp-get-process vec) "selinux-p"
     (tramp-send-command-and-check vec "selinuxenabled")))
 
 (defun tramp-sh-handle-file-selinux-context (filename)
@@ -1588,7 +1588,7 @@ of."
 
 (defun tramp-remote-acl-p (vec)
   "Check, whether ACL is enabled on the remote host."
-  (with-tramp-connection-property (tramp-get-connection-process vec) "acl-p"
+  (with-tramp-connection-property (tramp-get-process vec) "acl-p"
     (tramp-send-command-and-check vec "getfacl /")))
 
 (defun tramp-sh-handle-file-acl (filename)
@@ -3580,23 +3580,29 @@ STDERR can also be a file name."
 	          remote-file-name-inhibit-cache process-file-side-effects)
 	      ;; Reduce `vc-handled-backends' in order to minimize
 	      ;; process calls.
-	      (when (and (memq 'Bzr vc-handled-backends)
-			 (boundp 'vc-bzr-program)
-			 (not (with-tramp-connection-property v vc-bzr-program
-				(tramp-find-executable
-				 v vc-bzr-program (tramp-get-remote-path v)))))
+	      (when (and
+		     (memq 'Bzr vc-handled-backends)
+		     (not (and
+			   (bound-and-true-p vc-bzr-program)
+			   (with-tramp-connection-property v vc-bzr-program
+			     (tramp-find-executable
+			      v vc-bzr-program (tramp-get-remote-path v))))))
 		(setq vc-handled-backends (remq 'Bzr vc-handled-backends)))
-	      (when (and (memq 'Git vc-handled-backends)
-			 (boundp 'vc-git-program)
-			 (not (with-tramp-connection-property v vc-git-program
-				(tramp-find-executable
-				 v vc-git-program (tramp-get-remote-path v)))))
+	      (when (and
+		     (memq 'Git vc-handled-backends)
+		     (not (and
+			   (bound-and-true-p vc-git-program)
+			   (with-tramp-connection-property v vc-git-program
+			     (tramp-find-executable
+			      v vc-git-program (tramp-get-remote-path v))))))
 		(setq vc-handled-backends (remq 'Git vc-handled-backends)))
-	      (when (and (memq 'Hg vc-handled-backends)
-			 (boundp 'vc-hg-program)
-			 (not (with-tramp-connection-property v vc-hg-program
-				(tramp-find-executable
-				 v vc-hg-program (tramp-get-remote-path v)))))
+	      (when (and
+		     (memq 'Hg vc-handled-backends)
+		     (not (and
+			   (bound-and-true-p vc-hg-program)
+			   (with-tramp-connection-property v vc-hg-program
+			     (tramp-find-executable
+			      v vc-hg-program (tramp-get-remote-path v))))))
 		(setq vc-handled-backends (remq 'Hg vc-handled-backends)))
 	      ;; Run.
 	      (tramp-with-demoted-errors
@@ -4290,11 +4296,15 @@ process to set up.  VEC specifies the connection."
   ;; connection properties.  We start again with
   ;; `tramp-maybe-open-connection', it will be caught there.
   (tramp-message vec 5 "Checking system information")
-  (let ((old-uname (tramp-get-connection-property vec "uname" nil))
-	(uname
-	 (tramp-set-connection-property
-	  vec "uname"
-	  (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
+  (let* ((old-uname (tramp-get-connection-property vec "uname" nil))
+	 (uname
+	  ;; If we are in `make-process', we don't need to recompute.
+	  (if (and old-uname
+		   (tramp-get-connection-property vec "process-name" nil))
+	      old-uname
+	    (tramp-set-connection-property
+	     vec "uname"
+	     (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\"")))))
     (when (and (stringp old-uname) (not (string-equal old-uname uname)))
       (tramp-message
        vec 3
@@ -5053,7 +5063,7 @@ connection if a previous connection has died for some reason."
 			 ;; we cannot use `tramp-get-connection-process'.
 			 (tmpfile
 			  (with-tramp-connection-property
-			      (get-process (tramp-buffer-name vec)) "temp-file"
+			      (tramp-get-process vec) "temp-file"
 			    (make-temp-name
 			     (expand-file-name
 			      tramp-temp-name-prefix
@@ -5426,7 +5436,7 @@ Nonexistent directories are removed from spec."
 	;; cache the result for the session only.  Otherwise, the
 	;; result is cached persistently.
 	(if (memq 'tramp-own-remote-path tramp-remote-path)
-	    (tramp-get-connection-process vec)
+	    (tramp-get-process vec)
 	  vec)
 	"remote-path"
       (let* ((remote-path (copy-tree tramp-remote-path))
@@ -5945,10 +5955,9 @@ the length of the file to be compressed.
 If no corresponding command is found, nil is returned."
   (when (and (integerp tramp-inline-compress-start-size)
 	     (> size tramp-inline-compress-start-size))
-    (with-tramp-connection-property (tramp-get-connection-process vec) prop
+    (with-tramp-connection-property (tramp-get-process vec) prop
       (tramp-find-inline-compress vec)
-      (tramp-get-connection-property
-       (tramp-get-connection-process vec) prop nil))))
+      (tramp-get-connection-property (tramp-get-process vec) prop nil))))
 
 (defun tramp-get-inline-coding (vec prop size)
   "Return the coding command related to PROP.
@@ -5966,11 +5975,9 @@ function cell is returned to be applied on a buffer."
   ;; no inline coding is found.
   (ignore-errors
     (let ((coding
-	   (with-tramp-connection-property
-	       (tramp-get-connection-process vec) prop
+	   (with-tramp-connection-property (tramp-get-process vec) prop
 	     (tramp-find-inline-encoding vec)
-	     (tramp-get-connection-property
-	      (tramp-get-connection-process vec) prop nil)))
+	     (tramp-get-connection-property (tramp-get-process vec) prop nil)))
 	  (prop1 (if (string-match-p "encoding" prop)
 		     "inline-compress" "inline-decompress"))
 	  compress)

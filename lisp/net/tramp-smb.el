@@ -1845,7 +1845,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
   (if (and (process-live-p (tramp-get-connection-process vec))
 	   (tramp-get-connection-property vec "posix" t))
       (with-tramp-connection-property
-	  (tramp-get-connection-process vec) "cifs-capabilities"
+	  (tramp-get-process vec) "cifs-capabilities"
 	(save-match-data
 	  (when (tramp-smb-send-command vec "posix")
 	    (with-current-buffer (tramp-get-connection-buffer vec)
@@ -1862,8 +1862,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (and (tramp-smb-get-share vec)
 	   (process-live-p (tramp-get-connection-process vec)))
-      (with-tramp-connection-property
-	  (tramp-get-connection-process vec) "stat-capability"
+      (with-tramp-connection-property (tramp-get-process vec) "stat-capability"
 	(tramp-smb-send-command vec "stat \"/\""))))
 
 

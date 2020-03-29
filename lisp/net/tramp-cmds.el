@@ -107,20 +107,18 @@ When called interactively, a Tramp connection has to be selected."
     ;; suppressed.
     (setq tramp-current-connection nil)
 
-    ;; Flush file cache.
-    (tramp-flush-directory-properties vec "")
-
-    ;; Flush connection cache.
-    (when (processp (tramp-get-connection-process vec))
-      (tramp-flush-connection-properties (tramp-get-connection-process vec))
-      (delete-process (tramp-get-connection-process vec)))
-    (tramp-flush-connection-properties vec)
-
     ;; Cancel timer.
     (dolist (timer timer-list)
       (when (and (eq (timer--function timer) 'tramp-timeout-session)
 		 (tramp-file-name-equal-p vec (car (timer--args timer))))
 	(cancel-timer timer)))
+
+    ;; Delete processes.
+    (dolist (key (hash-table-keys tramp-cache-data))
+      (when (and (processp key)
+		 (tramp-file-name-equal-p (process-get key 'vector) vec))
+	(tramp-flush-connection-properties key)
+	(delete-process key)))
 
     ;; Remove buffers.
     (dolist
@@ -129,6 +127,12 @@ When called interactively, a Tramp connection has to be selected."
 		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (tramp-get-connection-property vec "process-buffer" nil)))
       (when (bufferp buf) (kill-buffer buf)))
+
+    ;; Flush file cache.
+    (tramp-flush-directory-properties vec "")
+
+    ;; Flush connection cache.
+    (tramp-flush-connection-properties vec)
 
     ;; The end.
     (run-hook-with-args 'tramp-cleanup-connection-hook vec)))
