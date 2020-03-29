@@ -87,7 +87,7 @@ unwind_decompress (void *ddata)
                    0);
       update_compositions (data->start, data->start, CHECK_HEAD);
       /* "Balance" the before-change-functions call, which would
-         otherwise be left "hanging". */
+         otherwise be left "hanging".  */
       signal_after_change (data->orig, data->start - data->orig,
                            data->start - data->orig);
     }
@@ -159,7 +159,7 @@ This function can be called only in unibyte buffers.  */)
   istart = XFIXNUM (start);
   iend = XFIXNUM (end);
 
-  /* Do the following before manipulating the gap. */
+  /* Do the following before manipulating the gap.  */
   modify_text (istart, iend);
 
   move_gap_both (iend, iend);
@@ -224,7 +224,7 @@ This function can be called only in unibyte buffers.  */)
   unwind_data.start = 0;
 
   /* Delete the compressed data.  */
-  del_range_2 (istart, istart, /* byte and char offsets are the same. */
+  del_range_2 (istart, istart, /* byte and char offsets are the same */
                iend, iend, 0);
 
   signal_after_change (istart, iend - istart, unwind_data.nbytes);
