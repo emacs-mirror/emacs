@@ -2024,7 +2024,7 @@ ways.
 
 @anchor{open_channel}
 @deftypefun int open_channel (emacs_env *@var{env}, emacs_value @var{pipe_process})
-This function, which is available since Emacs 27, opens a channel to
+This function, which is available since Emacs 28, opens a channel to
 an existing pipe process.  @var{pipe_process} must refer to an
 existing pipe process created by @code{make-pipe-process}.  @ref{Pipe
 Processes}.  If successful, the return value will be a new file
