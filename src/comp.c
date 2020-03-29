@@ -3123,7 +3123,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   comp.unsigned_long_long_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_UNSIGNED_LONG_LONG);
   comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
-
 #if EMACS_INT_MAX <= LONG_MAX
   /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
   comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
@@ -3137,16 +3136,13 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						    comp.long_long_type,
 						    "obj");
 #endif
-
   comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
 						      sizeof (EMACS_INT),
 						      true);
-
   comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
 						    NULL,
 						    comp.emacs_int_type,
 						    "num");
-
   gcc_jit_field *lisp_obj_fields[] = { comp.lisp_obj_as_ptr,
 				       comp.lisp_obj_as_num };
   comp.lisp_obj_type =
@@ -3156,7 +3152,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 				    ARRAYELTS (lisp_obj_fields),
 				    lisp_obj_fields);
   comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
-
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					  comp.emacs_int_type,
@@ -3173,16 +3168,13 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					 comp.emacs_int_type,
 					 INTTYPEBITS);
-
   comp.lisp_int0 =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					 comp.emacs_int_type,
 					 Lisp_Int0);
-
   comp.ptrdiff_type = gcc_jit_context_get_int_type (comp.ctxt,
 						    sizeof (void *),
 						    true);
-
   comp.uintptr_type = gcc_jit_context_get_int_type (comp.ctxt,
 						    sizeof (void *),
 						    false);
