@@ -1968,6 +1968,7 @@ variables.")
                        (plist-get completion-extra-properties
                                   :annotation-function)
                        completion-annotate-function))
+             (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
              ;; minibuffer-hide-completions will know whether to
@@ -1987,67 +1988,68 @@ variables.")
              ,(if (eq (selected-window) (minibuffer-window))
                   'display-buffer-at-bottom
                 'display-buffer-below-selected))
-	    ,(if temp-buffer-resize-mode
-		 '(window-height . resize-temp-buffer-window)
-	       '(window-height . fit-window-to-buffer))
-	    ,(when temp-buffer-resize-mode
-	       '(preserve-size . (nil . t)))
+            ,(if temp-buffer-resize-mode
+                 '(window-height . resize-temp-buffer-window)
+               '(window-height . fit-window-to-buffer))
+            ,(when temp-buffer-resize-mode
+               '(preserve-size . (nil . t)))
             (body-function
              . ,#'(lambda (_window)
-                    ;; Remove the base-size tail because `sort' requires a properly
-                    ;; nil-terminated list.
-                    (when last (setcdr last nil))
-                    (setq completions
-                          ;; FIXME: This function is for the output of all-completions,
-                          ;; not completion-all-completions.  Often it's the same, but
-                          ;; not always.
-                          (let ((sort-fun (completion-metadata-get
-                                           all-md 'display-sort-function)))
-                            (if sort-fun
-                                (funcall sort-fun completions)
-                              (sort completions 'string-lessp))))
-                    (when afun
+                    (with-current-buffer mainbuf
+                      ;; Remove the base-size tail because `sort' requires a properly
+                      ;; nil-terminated list.
+                      (when last (setcdr last nil))
                       (setq completions
-                            (mapcar (lambda (s)
-                                      (let ((ann (funcall afun s)))
-                                        (if ann (list s ann) s)))
-                                    completions)))
+                            ;; FIXME: This function is for the output of all-completions,
+                            ;; not completion-all-completions.  Often it's the same, but
+                            ;; not always.
+                            (let ((sort-fun (completion-metadata-get
+                                             all-md 'display-sort-function)))
+                              (if sort-fun
+                                  (funcall sort-fun completions)
+                                (sort completions 'string-lessp))))
+                      (when afun
+                        (setq completions
+                              (mapcar (lambda (s)
+                                        (let ((ann (funcall afun s)))
+                                          (if ann (list s ann) s)))
+                                      completions)))
 
-                    (with-current-buffer standard-output
-                      (set (make-local-variable 'completion-base-position)
-                           (list (+ start base-size)
-                                 ;; FIXME: We should pay attention to completion
-                                 ;; boundaries here, but currently
-                                 ;; completion-all-completions does not give us the
-                                 ;; necessary information.
-                                 end))
-                      (set (make-local-variable 'completion-list-insert-choice-function)
-                           (let ((ctable minibuffer-completion-table)
-                                 (cpred minibuffer-completion-predicate)
-                                 (cprops completion-extra-properties))
-                             (lambda (start end choice)
-                               (unless (or (zerop (length prefix))
-                                           (equal prefix
-                                                  (buffer-substring-no-properties
-                                                   (max (point-min)
-                                                        (- start (length prefix)))
-                                                   start)))
-                                 (message "*Completions* out of date"))
-                               ;; FIXME: Use `md' to do quoting&terminator here.
-                               (completion--replace start end choice)
-                               (let* ((minibuffer-completion-table ctable)
-                                      (minibuffer-completion-predicate cpred)
-                                      (completion-extra-properties cprops)
-                                      (result (concat prefix choice))
-                                      (bounds (completion-boundaries
-                                               result ctable cpred "")))
-                                 ;; If the completion introduces a new field, then
-                                 ;; completion is not finished.
-                                 (completion--done result
-                                                   (if (eq (car bounds) (length result))
-                                                       'exact 'finished)))))))
+                      (with-current-buffer standard-output
+                        (set (make-local-variable 'completion-base-position)
+                             (list (+ start base-size)
+                                   ;; FIXME: We should pay attention to completion
+                                   ;; boundaries here, but currently
+                                   ;; completion-all-completions does not give us the
+                                   ;; necessary information.
+                                   end))
+                        (set (make-local-variable 'completion-list-insert-choice-function)
+                             (let ((ctable minibuffer-completion-table)
+                                   (cpred minibuffer-completion-predicate)
+                                   (cprops completion-extra-properties))
+                               (lambda (start end choice)
+                                 (unless (or (zerop (length prefix))
+                                             (equal prefix
+                                                    (buffer-substring-no-properties
+                                                     (max (point-min)
+                                                          (- start (length prefix)))
+                                                     start)))
+                                   (message "*Completions* out of date"))
+                                 ;; FIXME: Use `md' to do quoting&terminator here.
+                                 (completion--replace start end choice)
+                                 (let* ((minibuffer-completion-table ctable)
+                                        (minibuffer-completion-predicate cpred)
+                                        (completion-extra-properties cprops)
+                                        (result (concat prefix choice))
+                                        (bounds (completion-boundaries
+                                                 result ctable cpred "")))
+                                   ;; If the completion introduces a new field, then
+                                   ;; completion is not finished.
+                                   (completion--done result
+                                                     (if (eq (car bounds) (length result))
+                                                         'exact 'finished)))))))
 
-                    (display-completion-list completions))))
+                      (display-completion-list completions)))))
           nil)))
     nil))
 
