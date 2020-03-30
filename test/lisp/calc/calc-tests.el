@@ -334,6 +334,17 @@ An existing calc stack is reused, otherwise a new one is created."
         (should (equal tos '(- (* 2 (var x var-x)) 4)))
         (should (equal trail "pdiv 2 * x - 4\nprem 8 * x + 1\n"))))))
 
+(ert-deftest calc-Math-integerp ()
+  (should (Math-integerp -7))
+  (should (Math-integerp (ash 1 65)))
+  (should-not (Math-integerp '(float 1 0)))
+  (should-not (Math-integerp nil))
+
+  (should (Math-num-integerp -7))
+  (should (Math-num-integerp (ash 1 65)))
+  (should (Math-num-integerp '(float 1 0)))
+  (should-not (Math-num-integerp nil)))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 

@@ -319,7 +319,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 	(pop untrusted)))
     (and trusted untrusted
 	 ;; Choose the more specific match.
-	 (set (if (> trusted untrusted) 'untrusted 'trusted) nil))
+	 (if (> trusted untrusted) (setq untrusted nil) (setq trusted nil)))
     (cond
      (untrusted
       ;; The site was explicitly marked as untrusted by the user.

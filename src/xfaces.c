@@ -6953,10 +6953,13 @@ could define a face `my-mode-default', and then in the mode setup
 function, do:
 
    (set (make-local-variable \\='face-remapping-alist)
-	\\='((default my-mode-default)))).
+        (copy-tree \\='((default my-mode-default)))).
 
 You probably want to use the face-remap package included in Emacs
-instead of manipulating face-remapping-alist directly.
+instead of manipulating face-remapping-alist directly.  Note that many
+of the functions in that package modify the list destructively, so make
+sure you set it to a fresh value (for instance, use `copy-tree' as in
+the example above) before modifying.
 
 Because Emacs normally only redraws screen areas when the underlying
 buffer contents change, you may need to call `redraw-display' after
