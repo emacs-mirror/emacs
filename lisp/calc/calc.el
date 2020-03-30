@@ -2927,6 +2927,7 @@ the United States."
 
 
 
+(defvar math-comp-selected)
 (defvar calc-selection-cache-entry)
 ;;; Format the number A as a string.  [X N; X Z] [Public]
 (defun math-format-stack-value (entry)
