@@ -164,6 +164,12 @@ functions accessible to the user through the existing single function hook
 Modes should use the new hook instead of this user option to register
 their backends.
 
+** Eshell
+
+---
+*** Environment variable INSIDE_EMACS is now copied to subprocesses.
+Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
+
 ** Tramp
 
 +++

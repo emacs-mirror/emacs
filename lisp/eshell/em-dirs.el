@@ -168,6 +168,9 @@ Thus, this does not include the current directory.")
 (defvar eshell-last-dir-ring nil
   "The last directory that Eshell was in.")
 
+(defconst eshell-inside-emacs (format "%s,eshell" emacs-version)
+  "Value for the `INSIDE_EMACS' environment variable.")
+
 ;;; Functions:
 
 (defun eshell-dirs-initialize ()    ;Called from `eshell-mode' via intern-soft!
@@ -191,6 +194,8 @@ Thus, this does not include the current directory.")
 		        (unless (ring-empty-p eshell-last-dir-ring)
 			  (expand-file-name
 			   (ring-ref eshell-last-dir-ring 0))))
+            t)
+           ("INSIDE_EMACS" eshell-inside-emacs
             t))))
 
   (when eshell-cd-on-directory

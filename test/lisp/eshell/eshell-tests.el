@@ -169,6 +169,13 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-command-result-p "+ 1 2; + $_ 4"
                              "3\n6\n")))
 
+(ert-deftest eshell-test/inside-emacs-var ()
+  "Test presence of \"INSIDE_EMACS\" in subprocesses"
+  (with-temp-eshell
+   (eshell-command-result-p "env"
+                            (format "INSIDE_EMACS=%s,eshell"
+                                    emacs-version))))
+
 (ert-deftest eshell-test/escape-nonspecial ()
   "Test that \"\\c\" and \"c\" are equivalent when \"c\" is not a
 special character."
