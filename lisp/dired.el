@@ -1208,15 +1208,11 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 
   ;; default-directory and dired-actual-switches must be buffer-local
   ;; and initialized by now.
-  (let (dirname
-	;; This makes read-in much faster.
-	;; In particular, it prevents the font lock hook from running
-	;; until the directory is all read in.
-	(inhibit-modification-hooks t))
-    (if (consp dired-directory)
-	(setq dirname (car dired-directory))
-      (setq dirname dired-directory))
-    (setq dirname (expand-file-name dirname))
+  (let ((dirname
+	 (expand-file-name
+	  (if (consp dired-directory)
+	      (car dired-directory)
+	    dired-directory))))
     (save-excursion
       ;; This hook which may want to modify dired-actual-switches
       ;; based on dired-directory, e.g. with ange-ftp to a SysV host
@@ -1226,17 +1222,25 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	  (setq buffer-undo-list nil))
       (setq-local file-name-coding-system
                   (or coding-system-for-read file-name-coding-system))
-      (let ((inhibit-read-only t)
-	    ;; Don't make undo entries for readin.
-	    (buffer-undo-list t))
-	(widen)
-	(erase-buffer)
-	(dired-readin-insert))
-      (goto-char (point-min))
-      ;; Must first make alist buffer local and set it to nil because
-      ;; dired-build-subdir-alist will call dired-clear-alist first
-      (setq-local dired-subdir-alist nil)
-      (dired-build-subdir-alist)
+      (widen)
+      ;; We used to bind `inhibit-modification-hooks' to try and speed up
+      ;; execution, in particular, to prevent the font-lock hook from running
+      ;; until the directory is all read in.
+      ;; I strongly suspect that this was only useful in Emacs<21, because
+      ;; jit-lock made it a non-issue.
+      ;; Nevertheless, I used `combine-change-calls' which provides the
+      ;; same performance advantages, just in case.
+      (combine-change-calls (point-min) (point-max)
+	(let ((inhibit-read-only t)
+	      ;; Don't make undo entries for readin.
+	      (buffer-undo-list t))
+	  (erase-buffer)
+	  (dired-readin-insert))
+	(goto-char (point-min))
+	;; Must first make alist buffer local and set it to nil because
+	;; dired-build-subdir-alist will call dired-clear-alist first
+	(setq-local dired-subdir-alist nil)
+	(dired-build-subdir-alist))
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
 	    (set-visited-file-modtime (file-attribute-modification-time
