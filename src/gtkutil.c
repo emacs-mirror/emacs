@@ -26,7 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#if defined(USE_GTK)
+#ifdef USE_GTK
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +53,6 @@ typedef struct pgtk_output xp_output;
 #include "coding.h"
 #ifndef PGTK_TRACE
 #define PGTK_TRACE(fmt, ...) ((void) 0)
-#define PGTK_BACKTRACE() ((void) 0)
 #endif
 
 #include <gdk/gdkkeysyms.h>
@@ -319,18 +318,16 @@ xg_create_default_cursor (GdkDisplay *gdpy)
 
 static GdkPixbuf *
 xg_get_pixbuf_from_pix_and_mask (struct frame *f,
-                                 Emacs_Pixmap pix,
-                                 Emacs_Pixmap mask)
+                                 Pixmap pix,
+                                 Pixmap mask)
 {
   GdkPixbuf *icon_buf = 0;
   int iunused;
   Window wunused;
   unsigned int width, height, depth, uunused;
 
-#ifndef HAVE_PGTK
   if (FRAME_DISPLAY_INFO (f)->red_bits != 8)
     return 0;
-
   XGetGeometry (FRAME_X_DISPLAY (f), pix, &wunused, &iunused, &iunused,
                 &width, &height, &uunused, &depth);
   if (depth != 24)
@@ -362,20 +359,9 @@ xg_get_pixbuf_from_pix_and_mask (struct frame *f,
 	XDestroyImage (xmm);
       XDestroyImage (xim);
     }
-#else
-  width = pix->width;
-  height = pix->height;
-  depth = pix->bits_per_pixel;
-
-  icon_buf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
-
-
-#endif
 
   return icon_buf;
 }
-
-
 
 #if defined USE_CAIRO && !defined HAVE_GTK3
 static GdkPixbuf *
@@ -907,7 +893,6 @@ xg_show_tooltip (struct frame *f, int root_x, int root_y)
 bool
 xg_hide_tooltip (struct frame *f)
 {
-  bool ret = 0;
   if (f->output_data.xp->ttip_window)
     {
       GtkWindow *win = f->output_data.xp->ttip_window;
@@ -1185,12 +1170,13 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     }
   else
     adjust_frame_size (f, width, height, 5, 0, Qxg_frame_set_char_size);
+
 }
 
-#ifndef HAVE_PGTK
 /* Handle height/width changes (i.e. add/remove/move menu/toolbar).
    The policy is to keep the number of editable lines.  */
 
+#if 0
 static void
 xg_height_or_width_changed (struct frame *f)
 {
@@ -1368,7 +1354,7 @@ xg_create_frame_widgets (struct frame *f)
   else
     wtop = gtk_window_new (type);
 #else
-  if (!NILP(f->parent_frame)){
+  if (!NILP(f->parent_frame)) {
     type = GTK_WINDOW_POPUP;
   }
   wtop = gtk_window_new (type);
@@ -1493,17 +1479,11 @@ xg_create_frame_widgets (struct frame *f)
 #endif
                          | GDK_VISIBILITY_NOTIFY_MASK);
 
+#ifndef HAVE_PGTK
   /* Must realize the windows so the X window gets created.  It is used
      by callers of this function.  */
-#ifndef HAVE_PGTK
   gtk_widget_realize (wfixed);
-#else
-  //  gtk_widget_show_all(wtop);
-#endif
-#ifndef HAVE_PGTK
   FRAME_X_WINDOW (f) = GTK_WIDGET_TO_X_WIN (wfixed);
-#endif
-#ifndef HAVE_PGTK
   initial_set_up_x_back_buffer (f);
 #endif
 
@@ -1522,7 +1502,9 @@ xg_create_frame_widgets (struct frame *f)
   gtk_widget_modify_style (wfixed, style);
 #else
   gtk_widget_set_can_focus (wfixed, TRUE);
+#ifdef HAVE_PGTK
   gtk_widget_grab_focus(wfixed);
+#endif
   gtk_window_set_resizable (GTK_WINDOW (wtop), TRUE);
 #endif
 
@@ -1717,7 +1699,7 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
     {
       block_input ();
       gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-				     NULL, &size_hints, hint_flags);
+                                     NULL, &size_hints, hint_flags);
       f->output_data.xp->size_hints = size_hints;
       f->output_data.xp->hint_flags = hint_flags;
       unblock_input ();
@@ -3763,9 +3745,9 @@ free_frame_menubar (struct frame *f)
 
 #ifndef HAVE_PGTK
 bool
-xg_event_is_for_menubar (struct frame *f, const EVENT *event)
+xg_event_is_for_menubar (struct frame *f, const XEvent *event)
 {
-  xp_output *x = f->output_data.xp;
+  struct x_output *x = f->output_data.x;
   GList *iter;
   GdkRectangle rec;
   GList *list;
@@ -4768,7 +4750,6 @@ xg_tool_bar_help_callback (GtkWidget *w,
 }
 
 
-#ifndef HAVE_GTK3
 /* This callback is called when a tool bar item shall be redrawn.
    It modifies the expose event so that the GtkImage widget redraws the
    whole image.  This to overcome a bug that makes GtkImage draw the image
@@ -4779,6 +4760,7 @@ xg_tool_bar_help_callback (GtkWidget *w,
 
    Returns FALSE to tell GTK to keep processing this event.  */
 
+#ifndef HAVE_GTK3
 static gboolean
 xg_tool_bar_item_expose_callback (GtkWidget *w,
                                   GdkEventExpose *event,
@@ -5189,11 +5171,7 @@ void
 update_frame_tool_bar (struct frame *f)
 {
   int i, j;
-#ifndef HAVE_PGTK
-  struct x_output *x = f->output_data.xp;
-#else
-  struct pgtk_output *x = f->output_data.pgtk;
-#endif
+  xp_output *x = f->output_data.xp;
   int hmargin = 0, vmargin = 0;
   GtkToolbar *wtoolbar;
   GtkToolItem *ti;

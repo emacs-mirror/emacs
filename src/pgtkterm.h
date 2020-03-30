@@ -41,11 +41,6 @@ extern void pgtk_backtrace(const char *file, int lineno);
 #define PGTK_BACKTRACE() ((void) 0)
 #endif
 
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_CHECK_VERSION (2, 14, 0)
-#define USE_GTK_TOOLTIP
-#endif
-
 /* could use list to store these, but rest of emacs has a big infrastructure
    for managing a table of bitmap "records" */
 struct pgtk_bitmap_record
@@ -343,11 +338,9 @@ struct pgtk_output
   bool_bf toolbar_in_hbox : 1;
   bool_bf toolbar_is_packed : 1;
 
-#ifdef USE_GTK_TOOLTIP
   GtkTooltip *ttip_widget;
   GtkWidget *ttip_lbl;
   GtkWindow *ttip_window;
-#endif /* USE_GTK_TOOLTIP */
 
   /* Height of menu bar widget, in pixels.  This value
      is not meaningful if the menubar is turned off.  */
