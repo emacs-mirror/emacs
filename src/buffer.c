@@ -5387,17 +5387,6 @@ init_buffer (void)
 	  enlarge_buffer_text (b, 0);
 	}
     }
-  else
-    {
-      struct buffer *b;
-
-      /* Only buffers with allocated buffer text should be present at
-	 this point in temacs.  */
-      FOR_EACH_BUFFER (b)
-        {
-	  eassert (b->text->beg != NULL);
-	}
-    }
 #endif /* USE_MMAP_FOR_BUFFERS */
 
   AUTO_STRING (scratch, "*scratch*");
