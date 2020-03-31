@@ -4252,6 +4252,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test29-start-file-process ()
   "Check `start-file-process'."
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
@@ -4325,6 +4326,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test30-make-process ()
   "Check `make-process'."
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
@@ -4741,6 +4743,7 @@ INPUT, if non-nil, is a string sent to the process."
 ;; This test is inspired by Bug#23952.
 (ert-deftest tramp-test33-environment-variables ()
   "Check that remote processes set / unset environment variables properly."
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
