@@ -2845,8 +2845,6 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
      ctx->obj_offset + dump_offsetof (struct buffer, text),
      base_offset + dump_offsetof (struct buffer, own_text));
 
-  dump_field_lv_rawptr (ctx, out, buffer, &buffer->next,
-                        Lisp_Vectorlike, WEIGHT_NORMAL);
   DUMP_FIELD_COPY (out, buffer, pt);
   DUMP_FIELD_COPY (out, buffer, pt_byte);
   DUMP_FIELD_COPY (out, buffer, begv);

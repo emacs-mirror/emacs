@@ -570,9 +570,6 @@ struct buffer
      In an indirect buffer, this is the own_text field of another buffer.  */
   struct buffer_text *text;
 
-  /* Next buffer, in chain of all buffers, including killed ones.  */
-  struct buffer *next;
-
   /* Char position of point in buffer.  */
   ptrdiff_t pt;
 
@@ -1103,15 +1100,6 @@ BUFFER_CHECK_INDIRECTION (struct buffer *b)
 	eassert (b->indirections >= 0);
     }
 }
-
-/* Chain of all buffers, including killed ones.  */
-
-extern struct buffer *all_buffers;
-
-/* Used to iterate over the chain above.  */
-
-#define FOR_EACH_BUFFER(b) \
-  for ((b) = all_buffers; (b); (b) = (b)->next)
 
 /* This structure holds the default values of the buffer-local variables
    that have special slots in each buffer.

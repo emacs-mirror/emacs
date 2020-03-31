@@ -432,7 +432,6 @@ inline static void set_interval_marked (INTERVAL i);
 enum mem_type
 {
   MEM_TYPE_NON_LISP,
-  MEM_TYPE_BUFFER,
   MEM_TYPE_CONS,
   MEM_TYPE_STRING,
   MEM_TYPE_SYMBOL,
@@ -3331,12 +3330,10 @@ allocate_pseudovector (int memlen, int lisplen,
 struct buffer *
 allocate_buffer (void)
 {
-  struct buffer *b = lisp_malloc (sizeof *b, false, MEM_TYPE_BUFFER);
-
+  struct buffer *b
+    = ALLOCATE_PSEUDOVECTOR (struct buffer, cursor_in_non_selected_windows_,
+			     PVEC_BUFFER);
   BUFFER_PVEC_INIT (b);
-  /* Put B on the chain of all buffers including killed ones.  */
-  b->next = all_buffers;
-  all_buffers = b;
   /* Note that the rest fields of B are not initialized.  */
   return b;
 }
@@ -4596,40 +4593,6 @@ live_vector_p (struct mem_node *m, void *p)
   return !NILP (live_vector_holding (m, p));
 }
 
-/* If P is a pointer into a valid buffer object, return the buffer.
-   Otherwise, return nil.  M is a pointer to the mem_block for P.
-   If IGNORE_KILLED is non-zero, treat killed buffers as invalid.  */
-
-static Lisp_Object
-live_buffer_holding (struct mem_node *m, void *p, bool ignore_killed)
-{
-  /* P must point into the block, and the buffer must not
-     have been killed unless ALL-BUFFERS is true.  */
-  if (m->type == MEM_TYPE_BUFFER)
-    {
-      struct buffer *b = m->start;
-      char *cb = m->start;
-      char *cp = p;
-      ptrdiff_t offset = cp - cb;
-      if (0 <= offset && offset < sizeof *b
-	  && !(ignore_killed && NILP (b->name_)))
-	{
-	  Lisp_Object obj;
-	  XSETBUFFER (obj, b);
-	  return obj;
-	}
-    }
-  return Qnil;
-}
-
-/* If P is a pointer into a live (valid and not killed) buffer object,
-   return non-zero.  */
-static bool
-live_buffer_p (struct mem_node *m, void *p)
-{
-  return !NILP (live_buffer_holding (m, p, true));
-}
-
 /* Mark OBJ if we can prove it's a Lisp_Object.  */
 
 static void
@@ -4684,8 +4647,7 @@ mark_maybe_object (Lisp_Object obj)
 	  break;
 
 	case Lisp_Vectorlike:
-	  mark_p = (EQ (obj, live_vector_holding (m, po))
-		    || EQ (obj, live_buffer_holding (m, po, false)));
+	  mark_p = (EQ (obj, live_vector_holding (m, po)));
 	  break;
 
 	default:
@@ -4752,10 +4714,6 @@ mark_maybe_pointer (void *p)
 	case MEM_TYPE_NON_LISP:
 	case MEM_TYPE_SPARE:
 	  /* Nothing to do; not a pointer to Lisp memory.  */
-	  break;
-
-	case MEM_TYPE_BUFFER:
-	  obj = live_buffer_holding (m, p, false);
 	  break;
 
 	case MEM_TYPE_CONS:
@@ -5156,9 +5114,6 @@ valid_lisp_object_p (Lisp_Object obj)
     case MEM_TYPE_NON_LISP:
     case MEM_TYPE_SPARE:
       return 0;
-
-    case MEM_TYPE_BUFFER:
-      return live_buffer_p (m, p) ? 1 : 2;
 
     case MEM_TYPE_CONS:
       return live_cons_p (m, p);
@@ -5976,7 +5931,7 @@ maybe_garbage_collect (void)
 void
 garbage_collect (void)
 {
-  struct buffer *nextb;
+  Lisp_Object tail, buffer;
   char stack_top_variable;
   bool message_p;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -5992,8 +5947,8 @@ garbage_collect (void)
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
-  FOR_EACH_BUFFER (nextb)
-    compact_buffer (nextb);
+  FOR_EACH_LIVE_BUFFER (tail, buffer)
+    compact_buffer (XBUFFER (buffer));
 
   byte_ct tot_before = (profiler_memory_running
 			? total_bytes_of_live_objects ()
@@ -6083,8 +6038,9 @@ garbage_collect (void)
 
   compact_font_caches ();
 
-  FOR_EACH_BUFFER (nextb)
+  FOR_EACH_LIVE_BUFFER (tail, buffer)
     {
+      struct buffer *nextb = XBUFFER (buffer);
       if (!EQ (BVAR (nextb, undo_list), Qt))
 	bset_undo_list (nextb, compact_undo_list (BVAR (nextb, undo_list)));
       /* Now that we have stripped the elements that need not be
@@ -6349,7 +6305,12 @@ mark_buffer (struct buffer *buffer)
 
   /* For now, we just don't mark the undo_list.  It's done later in
      a special way just before the sweep phase, and after stripping
-     some of its elements that are not needed any more.  */
+     some of its elements that are not needed any more.
+     Note: this later processing is only done for live buffers, so
+     for dead buffers, the undo_list should be nil (set by Fkill_buffer),
+     but just to be on the safe side, we mark it here.  */
+  if (!BUFFER_LIVE_P (buffer))
+      mark_object (BVAR (buffer, undo_list));
 
   mark_overlay (buffer->overlays_before);
   mark_overlay (buffer->overlays_after);
@@ -6613,23 +6574,12 @@ mark_object (Lisp_Object arg)
           = PSEUDOVECTOR_TYPE (ptr);
 
         if (pvectype != PVEC_SUBR &&
-            pvectype != PVEC_BUFFER &&
             !main_thread_p (po))
           CHECK_LIVE (live_vector_p);
 
 	switch (pvectype)
 	  {
 	  case PVEC_BUFFER:
-#if GC_CHECK_MARKED_OBJECTS
-	    {
-	      struct buffer *b;
-	      FOR_EACH_BUFFER (b)
-		if (b == po)
-		  break;
-	      if (b == NULL)
-		emacs_abort ();
-	    }
-#endif /* GC_CHECK_MARKED_OBJECTS */
 	    mark_buffer ((struct buffer *) ptr);
             break;
 
@@ -7108,25 +7058,17 @@ NO_INLINE /* For better stack traces */
 static void
 sweep_buffers (void)
 {
-  struct buffer *buffer, **bprev = &all_buffers;
+  Lisp_Object tail, buf;
 
   gcstat.total_buffers = 0;
-  for (buffer = all_buffers; buffer; buffer = *bprev)
-    if (!vectorlike_marked_p (&buffer->header))
-      {
-        *bprev = buffer->next;
-        lisp_free (buffer);
-      }
-    else
-      {
-        if (!pdumper_object_p (buffer))
-          XUNMARK_VECTOR (buffer);
-        /* Do not use buffer_(set|get)_intervals here.  */
-        buffer->text->intervals = balance_intervals (buffer->text->intervals);
-        unchain_dead_markers (buffer);
-	gcstat.total_buffers++;
-        bprev = &buffer->next;
-      }
+  FOR_EACH_LIVE_BUFFER (tail, buf)
+    {
+      struct buffer *buffer = XBUFFER (buf);
+      /* Do not use buffer_(set|get)_intervals here.  */
+      buffer->text->intervals = balance_intervals (buffer->text->intervals);
+      unchain_dead_markers (buffer);
+      gcstat.total_buffers++;
+    }
 }
 
 /* Sweep: find all structures not marked, and free them.  */
