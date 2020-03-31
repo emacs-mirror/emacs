@@ -1226,10 +1226,10 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       ;; We used to bind `inhibit-modification-hooks' to try and speed up
       ;; execution, in particular, to prevent the font-lock hook from running
       ;; until the directory is all read in.
-      ;; I strongly suspect that this was only useful in Emacs<21, because
-      ;; jit-lock made it a non-issue.
-      ;; Nevertheless, I used `combine-change-calls' which provides the
-      ;; same performance advantages, just in case.
+      ;; It's not clear why font-lock would be a significant issue
+      ;; here, but I used `combine-change-calls' which should provide the
+      ;; same performance advantages without the problem of breaking
+      ;; users of after/before-change-functions.
       (combine-change-calls (point-min) (point-max)
 	(let ((inhibit-read-only t)
 	      ;; Don't make undo entries for readin.
