@@ -98,6 +98,9 @@ shows equivalent key bindings for all commands that have them.
 'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
 horizontal movements now stop at the edge of the board.
 
+** Autosaving via 'auto-save-visited-mode' can now be inhibited by
+setting the variable 'auto-save-visited-mode' buffer-locally to nil.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 

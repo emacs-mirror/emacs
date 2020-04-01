@@ -430,7 +430,13 @@ idle for `auto-save-visited-interval' seconds."
 
 Unlike `auto-save-mode', this mode will auto-save buffer contents
 to the visited files directly and will also run all save-related
-hooks.  See Info node `Saving' for details of the save process."
+hooks.  See Info node `Saving' for details of the save process.
+
+You can also set the buffer-local value of the variable
+`auto-save-visted-mode' to nil.  A buffer where the buffer-local
+value of this variable is nil is ignored for the purpose of
+`auto-save-visited-mode', even if `auto-save-visited-mode' is
+enabled."
   :group 'auto-save
   :global t
   (when auto-save--timer (cancel-timer auto-save--timer))
@@ -441,6 +447,7 @@ hooks.  See Info node `Saving' for details of the save process."
            #'save-some-buffers :no-prompt
            (lambda ()
              (and buffer-file-name
+                  auto-save-visited-mode
                   (not (and buffer-auto-save-file-name
                             auto-save-visited-file-name))))))))
 
