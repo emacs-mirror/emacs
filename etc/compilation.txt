@@ -237,6 +237,20 @@ Register 6 contains wrong type
 ==1332==    by 0x8008621: main (vtest.c:180)
 
 
+* javac Java compiler
+
+symbol: javac
+
+Should also work when compiling Java with Gradle.  We use the position
+of "^" in the third line as column number because no explicit value is
+present.
+
+Test.java:5: error: ';' expected
+        foo foo
+               ^
+1 error
+
+
 * IBM jikes
 
 symbols: jikes-file jikes-line
