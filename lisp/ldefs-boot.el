@@ -4480,7 +4480,6 @@ Returns non-nil if any false statements are found.
 ;;;### (autoloads nil "checkdoc" "emacs-lisp/checkdoc.el" (0 0 0
 ;;;;;;  0))
 ;;; Generated autoloads from emacs-lisp/checkdoc.el
-(push (purecopy '(checkdoc 0 6 2)) package--builtin-versions)
 (put 'checkdoc-force-docstrings-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-force-history-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-permit-comma-termination-flag 'safe-local-variable #'booleanp)
@@ -5492,7 +5491,9 @@ doesn't have enough contents to decide, this is identical to
 See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 `conf-ppd-mode' and `conf-xdefaults-mode'.
 
-\\{conf-mode-map}" t nil)
+\\{conf-mode-map}
+
+\(fn)" t nil)
 
 (autoload 'conf-unix-mode "conf-mode" "\
 Conf Mode starter for Unix style Conf files.
@@ -6469,7 +6470,6 @@ Mode used for cvs status output.
 
 ;;;### (autoloads nil "cwarn" "progmodes/cwarn.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/cwarn.el
-(push (purecopy '(cwarn 1 3 1)) package--builtin-versions)
 
 (autoload 'cwarn-mode "cwarn" "\
 Minor mode that highlights suspicious C and C++ constructions.
@@ -14250,6 +14250,10 @@ DELAY is a string, giving the length of the time.  Possible values are:
 * hh:mm for a specific time.  Use 24h format.  If it is later than this
   time, then the deadline is tomorrow, else today.
 
+The value of `message-draft-headers' determines which headers are
+generated when the article is delayed.  Remaining headers are
+generated when the article is sent.
+
 \(fn DELAY)" t nil)
 
 (autoload 'gnus-delay-send-queue "gnus-delay" "\
@@ -15727,6 +15731,21 @@ keymap value.
 
 \(fn KEYMAP)" t nil)
 
+(autoload 'describe-mode "help-fns" "\
+Display documentation of current major mode and minor modes.
+A brief summary of the minor modes comes first, followed by the
+major mode description.  This is followed by detailed
+descriptions of the minor modes, each on a separate page.
+
+For this to work correctly for a minor mode, the mode's indicator
+variable (listed in `minor-mode-alist') must also be a function
+whose documentation describes the minor mode.
+
+If called from Lisp with a non-nil BUFFER argument, display
+documentation for the major and minor modes of that buffer.
+
+\(fn &optional BUFFER)" t nil)
+
 (autoload 'doc-file-to-man "help-fns" "\
 Produce an nroff buffer containing the doc-strings from the DOC file.
 
@@ -16403,7 +16422,6 @@ See `highlight-changes-mode' for more information on Highlight-Changes mode.
 
 ;;;### (autoloads nil "hippie-exp" "hippie-exp.el" (0 0 0 0))
 ;;; Generated autoloads from hippie-exp.el
-(push (purecopy '(hippie-exp 1 6)) package--builtin-versions)
 
 (defvar hippie-expand-try-functions-list '(try-complete-file-name-partially try-complete-file-name try-expand-all-abbrevs try-expand-list try-expand-line try-expand-dabbrev try-expand-dabbrev-all-buffers try-expand-dabbrev-from-kill try-complete-lisp-symbol-partially try-complete-lisp-symbol) "\
 The list of expansion functions tried in order by `hippie-expand'.
@@ -16825,7 +16843,6 @@ If optional arg OTHER-WINDOW is non-nil, then use another window.
 ;;;### (autoloads nil "icalendar" "calendar/icalendar.el" (0 0 0
 ;;;;;;  0))
 ;;; Generated autoloads from calendar/icalendar.el
-(push (purecopy '(icalendar 0 19)) package--builtin-versions)
 
 (autoload 'icalendar-export-file "icalendar" "\
 Export diary file to iCalendar format.
@@ -19518,7 +19535,6 @@ generations (this defaults to 1).
 
 ;;;### (autoloads nil "linum" "linum.el" (0 0 0 0))
 ;;; Generated autoloads from linum.el
-(push (purecopy '(linum 0 9 24)) package--builtin-versions)
 
 (autoload 'linum-mode "linum" "\
 Toggle display of line numbers in the left margin (Linum mode).
@@ -20424,7 +20440,6 @@ Default bookmark handler for Man buffers.
 
 ;;;### (autoloads nil "master" "master.el" (0 0 0 0))
 ;;; Generated autoloads from master.el
-(push (purecopy '(master 1 0 2)) package--builtin-versions)
 
 (autoload 'master-mode "master" "\
 Toggle Master mode.
@@ -24582,7 +24597,7 @@ Mark the installed package as selected by adding it to
 
 When called from Lisp and optional argument DONT-SELECT is
 non-nil, install the package but do not add it to
-`package-select-packages'.
+`package-selected-packages'.
 
 If PKG is a `package-desc' and it is already installed, don't try
 to install it but still mark it as selected.
@@ -26151,14 +26166,16 @@ recognized." t nil)
 (autoload 'project-search "project" "\
 Search for REGEXP in all the files of the project.
 Stops when a match is found.
-To continue searching for next match, use command \\[fileloop-continue].
+To continue searching for the next match, use the
+command \\[fileloop-continue].
 
 \(fn REGEXP)" t nil)
 
 (autoload 'project-query-replace-regexp "project" "\
-Search for REGEXP in all the files of the project.
-Stops when a match is found.
-To continue searching for next match, use command \\[fileloop-continue].
+Query-replace REGEXP in all the files of the project.
+Stops when a match is found and prompts for whether to replace it.
+If you exit the query-replace, you can later continue the query-replace
+loop using the command \\[fileloop-continue].
 
 \(fn FROM TO)" t nil)
 
@@ -27476,7 +27493,6 @@ This means the number of non-shy regexp grouping constructs
 
 ;;;### (autoloads nil "remember" "textmodes/remember.el" (0 0 0 0))
 ;;; Generated autoloads from textmodes/remember.el
-(push (purecopy '(remember 2 0)) package--builtin-versions)
 
 (autoload 'remember "remember" "\
 Remember an arbitrary piece of data.
@@ -27528,7 +27544,6 @@ to turn the *scratch* buffer into your notes buffer.
 
 ;;;### (autoloads nil "repeat" "repeat.el" (0 0 0 0))
 ;;; Generated autoloads from repeat.el
-(push (purecopy '(repeat 0 51)) package--builtin-versions)
 
 (autoload 'repeat "repeat" "\
 Repeat most recently executed command.
@@ -28403,7 +28418,6 @@ Major mode for editing Ruby code.
 
 ;;;### (autoloads nil "ruler-mode" "ruler-mode.el" (0 0 0 0))
 ;;; Generated autoloads from ruler-mode.el
-(push (purecopy '(ruler-mode 1 6)) package--builtin-versions)
 
 (defvar ruler-mode nil "\
 Non-nil if Ruler mode is enabled.
@@ -30585,7 +30599,9 @@ enable the mode if ARG is omitted or nil, and toggle it if ARG is
 
 (autoload 'smerge-start-session "smerge-mode" "\
 Turn on `smerge-mode' and move point to first conflict marker.
-If no conflict maker is found, turn off `smerge-mode'." t nil)
+If no conflict maker is found, turn off `smerge-mode'.
+
+\(fn &optional INTERACTIVELY)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smerge-mode" '("smerge-")))
 
@@ -32669,16 +32685,17 @@ WHERE is provided the cell and table at that location is reported.
 (autoload 'table-generate-source "table" "\
 Generate source of the current table in the specified language.
 LANGUAGE is a symbol that specifies the language to describe the
-structure of the table.  It must be either `html', `latex' or `cals'.
-The resulted source text is inserted into DEST-BUFFER and the buffer
-object is returned.  When DEST-BUFFER is omitted or nil the default
-buffer specified in `table-dest-buffer-name' is used.  In this case
-the content of the default buffer is erased prior to the generation.
-When DEST-BUFFER is non-nil it is expected to be either a destination
-buffer or a name of the destination buffer.  In this case the
-generated result is inserted at the current point in the destination
-buffer and the previously existing contents in the buffer are
-untouched.
+structure of the table.  It must be either `html', `latex', `cals',
+`wiki', or `mediawiki'.
+The function inserts the resulting source text into DEST-BUFFER, and
+returns the buffer object.  When DEST-BUFFER is omitted or nil, the
+function uses the default buffer specified in `table-dest-buffer-name'.
+In this case, the function erases the default buffer prior to the
+source generation.
+When DEST-BUFFER is non-nil, it should be either a destination
+buffer or a name of the destination buffer.  In that case, the
+function inserts the generated result at point in the destination
+buffer, and leaves the previous contents of the buffer untouched.
 
 References used for this implementation:
 
@@ -33239,7 +33256,7 @@ Should show the queue(s) that \\[tex-print] puts jobs on.")
 
 (custom-autoload 'tex-show-queue-command "tex-mode" t)
 
-(defvar tex-default-mode 'latex-mode "\
+(defvar tex-default-mode #'latex-mode "\
 Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
@@ -33259,11 +33276,14 @@ String inserted by typing \\[tex-insert-quote] to close a quotation.")
 
 (autoload 'tex-mode "tex-mode" "\
 Major mode for editing files of input for TeX, LaTeX, or SliTeX.
+This is the shared parent mode of several submodes.
 Tries to determine (by looking at the beginning of the file) whether
 this file is for plain TeX, LaTeX, or SliTeX and calls `plain-tex-mode',
-`latex-mode', or `slitex-mode', respectively.  If it cannot be determined,
+`latex-mode', or `slitex-mode', accordingly.  If it cannot be determined,
 such as if there are no commands in the file, the value of `tex-default-mode'
-says which mode to use." t nil)
+says which mode to use.
+
+\(fn)" t nil)
 
 (defalias 'TeX-mode 'tex-mode)
 
@@ -36093,7 +36113,7 @@ with its diffs (if the underlying VCS supports that).
 \(fn &optional LIMIT REVISION)" t nil)
 
 (autoload 'vc-print-branch-log "vc" "\
-Show the change log for BRANCH in a window.
+Show the change log for BRANCH root in a window.
 
 \(fn BRANCH)" t nil)
 
@@ -36316,6 +36336,11 @@ Name of the format file in a .bzr directory.")
 
 ;;;### (autoloads nil "vc-dir" "vc/vc-dir.el" (0 0 0 0))
 ;;; Generated autoloads from vc/vc-dir.el
+
+(autoload 'vc-dir-root "vc-dir" "\
+Run `vc-dir' in the repository root directory without prompt.
+If the default directory of the current buffer is
+not under version control, prompt for a directory." t nil)
 
 (autoload 'vc-dir "vc-dir" "\
 Show the VC status for \"interesting\" files in and below DIR.
@@ -37745,7 +37770,6 @@ this is equivalent to `display-warning', using
 
 ;;;### (autoloads nil "wdired" "wdired.el" (0 0 0 0))
 ;;; Generated autoloads from wdired.el
-(push (purecopy '(wdired 2 0)) package--builtin-versions)
 
 (autoload 'wdired-change-to-wdired-mode "wdired" "\
 Put a Dired buffer in Writable Dired (WDired) mode.
@@ -38344,6 +38368,11 @@ Display the next buffer in the same window.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'windmove-display-new-frame "windmove" "\
+Display the next buffer in a new frame.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'windmove-display-new-tab "windmove" "\
 Display the next buffer in a new tab.
 
@@ -38456,7 +38485,6 @@ you can press `C-c <right>' (calling `winner-redo').
 
 ;;;### (autoloads nil "woman" "woman.el" (0 0 0 0))
 ;;; Generated autoloads from woman.el
-(push (purecopy '(woman 0 551)) package--builtin-versions)
 
 (defvar woman-locale nil "\
 String specifying a manual page locale, or nil.
