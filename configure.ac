@@ -3729,7 +3729,7 @@ if test "${with_nativecomp}" != "no"; then
     AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes))
   if test "${HAVE_NATIVE_COMP}" = "yes"; then
     LIBGCCJIT_LIB="-lgccjit -ldl"
-    COMP_OBJ+=comp.o
+    COMP_OBJ="comp.o"
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
   else
     AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
