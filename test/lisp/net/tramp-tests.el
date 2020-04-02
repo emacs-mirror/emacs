@@ -4333,6 +4333,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   ;; `make-process' supports file name handlers since Emacs 27.
   (skip-unless (tramp--test-emacs27-p))
 
+  (tramp--test-instrument-test-case 10
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
 	  (tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -4493,7 +4494,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
-	  (ignore-errors (delete-file tmpfile)))))))
+	  (ignore-errors (delete-file tmpfile))))))))
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
