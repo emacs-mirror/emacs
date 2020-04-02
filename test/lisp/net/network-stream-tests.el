@@ -724,4 +724,56 @@
     44777
     (vector :nowait t))))
 
+(ert-deftest check-network-process-coding-system-bind ()
+  "Check that binding coding-system-for-{read,write} works."
+  (let* ((coding-system-for-read 'binary)
+         (coding-system-for-write 'utf-8-unix)
+         (server
+         (make-network-process
+          :name "server"
+          :server t
+          :noquery t
+          :family 'ipv4
+          :service t
+          :host 'local))
+         (coding (process-coding-system server)))
+    (should (eq (car coding) 'binary))
+    (should (eq (cdr coding) 'utf-8-unix))
+    (delete-process server)))
+
+(ert-deftest check-network-process-coding-system-no-override ()
+  "Check that coding-system-for-{read,write} is not overridden by :coding nil."
+  (let* ((coding-system-for-read 'binary)
+         (coding-system-for-write 'utf-8-unix)
+         (server
+         (make-network-process
+          :name "server"
+          :server t
+          :noquery t
+          :family 'ipv4
+          :service t
+          :coding nil
+          :host 'local))
+         (coding (process-coding-system server)))
+    (should (eq (car coding) 'binary))
+    (should (eq (cdr coding) 'utf-8-unix))
+    (delete-process server)))
+
+(ert-deftest check-network-process-coding-system-override ()
+  "Check that :coding non-nil overrides coding-system-for-{read,write}."
+  (let* ((coding-system-for-read 'binary)
+         (coding-system-for-write 'utf-8-unix)
+         (server
+         (make-network-process
+          :name "server"
+          :server t
+          :noquery t
+          :family 'ipv4
+          :service t
+          :coding 'georgian-academy
+          :host 'local))
+         (coding (process-coding-system server)))
+    (should (eq (car coding) 'georgian-academy))
+    (should (eq (cdr coding) 'georgian-academy))
+    (delete-process server)))
 ;;; network-stream-tests.el ends here
