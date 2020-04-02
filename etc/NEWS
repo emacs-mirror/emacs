@@ -339,6 +339,15 @@ Emacs depended on the previous behavior; if you really want the
 process' coding-system to be nil, use 'set-process-coding-system'
 after the process has been created, or pass in ":coding '(nil nil)".
 
++++
+** 'open-network-stream' now accepts a :coding argument.
+This allows specifying the coding systems used by a network process
+for encoding and decoding without having to bind
+coding-system-for-{read,write} or call 'set-process-coding-system'.
+
++++
+** 'open-gnutls-stream' now also accepts a :coding argument.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 

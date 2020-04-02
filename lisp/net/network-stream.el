@@ -113,6 +113,10 @@ values:
   `ssl'      -- Equivalent to `tls'.
   `shell'    -- A shell connection.
 
+:coding is a symbol or a cons used to specify the coding systems
+used to decode and encode the data which the process reads and
+writes.  See `make-network-process' for details.
+
 :return-list specifies this function's return value.
   If omitted or nil, return a process object.  A non-nil means to
   return (PROC . PROPS), where PROC is a process object and PROPS
@@ -189,7 +193,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 			      :host (puny-encode-domain host) :service service
 			      :nowait (plist-get parameters :nowait)
                               :tls-parameters
-                              (plist-get parameters :tls-parameters))
+                              (plist-get parameters :tls-parameters)
+                              :coding (plist-get parameters :coding))
       (let ((work-buffer (or buffer
 			     (generate-new-buffer " *stream buffer*")))
 	    (fun (cond ((and (eq type 'plain)
@@ -249,7 +254,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	(stream (make-network-process :name name :buffer buffer
 				      :host (puny-encode-domain host)
                                       :service service
-				      :nowait (plist-get parameters :nowait))))
+				      :nowait (plist-get parameters :nowait)
+                                      :coding (plist-get parameters :coding))))
     (when (plist-get parameters :warn-unless-encrypted)
       (setq stream (nsm-verify-connection stream host service nil t)))
     (list stream
@@ -270,7 +276,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	 ;; Return (STREAM GREETING CAPABILITIES RESULTING-TYPE)
 	 (stream (make-network-process :name name :buffer buffer
 				       :host (puny-encode-domain host)
-                                       :service service))
+                                       :service service
+                                       :coding (plist-get parameters :coding)))
 	 (greeting (and (not (plist-get parameters :nogreeting))
 			(network-stream-get-response stream start eoc)))
 	 (capabilities (network-stream-command stream capability-command
@@ -350,7 +357,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	    (setq stream
 		  (make-network-process :name name :buffer buffer
 					:host (puny-encode-domain host)
-                                        :service service))
+                                        :service service
+                                        :coding (plist-get parameters :coding)))
 	    (network-stream-get-response stream start eoc)))
         (unless (process-live-p stream)
           (error "Unable to negotiate a TLS connection with %s/%s"
@@ -453,6 +461,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
   (let* ((capability-command (plist-get parameters :capability-command))
 	 (eoc 		     (plist-get parameters :end-of-command))
 	 (start (with-current-buffer buffer (point)))
+         (coding (plist-get parameters :coding))
 	 (stream (let ((process-connection-type nil))
 		   (start-process name buffer shell-file-name
 				  shell-command-switch
@@ -461,6 +470,13 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 				   (format-spec-make
 				    ?s host
 				    ?p service))))))
+    (when coding (if (consp coding)
+                       (set-process-coding-system stream
+                                                  (car coding)
+                                                  (cdr coding))
+                     (set-process-coding-system stream
+                                                coding
+                                                coding)))
     (list stream
 	  (network-stream-get-response stream start eoc)
 	  (network-stream-command stream capability-command

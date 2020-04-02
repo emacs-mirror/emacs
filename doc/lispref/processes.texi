@@ -2463,6 +2463,12 @@ that are mainly relevant to encrypted connections:
 @item :nowait @var{boolean}
 If non-@code{nil}, try to make an asynchronous connection.
 
+@item :coding @var{coding}
+Use this to set the coding systems used by the network process, in
+preference to binding @code{coding-system-for-read} or
+@code{coding-system-for-write}.  @xref{Network Processes} for
+details.
+
 @item :type @var{type}
 The type of connection.  Options are:
 

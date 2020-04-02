@@ -190,7 +190,7 @@ the connection process.
 
 The optional @var{parameters} argument is a list of keywords and
 values.  The only keywords which currently have any effect are
-@code{:client-certificate} and @code{:nowait}.
+@code{:client-certificate}, @code{:nowait}, and @code{:coding}.
 
 Passing @w{@code{:client certificate t}} triggers looking up of client
 certificates matching @var{host} and @var{service} using the
