@@ -147,6 +147,12 @@ See `run-hooks'."
       '(menu-item "Unmark Previous " vc-dir-unmark-file-up
 		  :help "Move to the previous line and unmark the file"))
 
+    (define-key map [mark-unregistered]
+      '(menu-item "Mark Unregistered" vc-dir-mark-unregistered-files
+                  :help "Mark all files in the unregistered state"))
+    (define-key map [mark-registered]
+      '(menu-item "Mark Registered" vc-dir-mark-registered-files
+                  :help "Mark all files in the state edited, added or removed"))
     (define-key map [mark-all]
       '(menu-item "Mark All" vc-dir-mark-all-files
 		  :help "Mark all files that are in the same state as the current file\
@@ -309,6 +315,10 @@ See `run-hooks'."
       (define-key branch-map "c" 'vc-create-tag)
       (define-key branch-map "l" 'vc-print-branch-log)
       (define-key branch-map "s" 'vc-retrieve-tag))
+
+    (let ((mark-map (make-sparse-keymap)))
+      (define-key map "*" mark-map)
+      (define-key mark-map "r" 'vc-dir-mark-registered-files))
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -706,6 +716,27 @@ MARK-FILES should be a list of absolute filenames."
        (setf (vc-dir-fileinfo->marked filearg) t)
        t))
    vc-ewoc))
+
+(defun vc-dir-mark-state-files (states)
+  "Mark files that are in the state specified by the list in STATES."
+  (unless (listp states)
+    (setq states (list states)))
+  (ewoc-map
+   (lambda (filearg)
+     (when (memq (vc-dir-fileinfo->state filearg) states)
+       (setf (vc-dir-fileinfo->marked filearg) t)
+       t))
+   vc-ewoc))
+
+(defun vc-dir-mark-registered-files ()
+  "Mark files that are in one of registered state: edited, added or removed."
+  (interactive)
+  (vc-dir-mark-state-files '(edited added removed)))
+
+(defun vc-dir-mark-unregistered-files ()
+  "Mark files that are in unregistered state."
+  (interactive)
+  (vc-dir-mark-state-files 'unregistered))
 
 (defun vc-dir-unmark-file ()
   ;; Unmark the current file and move to the next line.

@@ -115,6 +115,9 @@ directories with the help of new command 'dired-vc-next-action'.
 
 *** New command 'vc-dir-root' uses the root directory without asking.
 
+*** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
+'vc-dir-mark-unregistered-files'.
+
 ** Gnus
 
 ---
