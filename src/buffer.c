@@ -51,11 +51,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32heap.h"		/* for mmap_* */
 #endif
 
-/* First buffer in chain of all buffers (in reverse order of creation).
-   Threaded through ->header.next.buffer.  */
-
-struct buffer *all_buffers;
-
 /* This structure holds the default values of the buffer-local variables
    defined with DEFVAR_PER_BUFFER, that have special slots in each buffer.
    The default value occupies the same slot in this structure
@@ -1786,15 +1781,11 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      ask questions or their hooks get errors.  */
   if (!b->base_buffer && b->indirections > 0)
     {
-      struct buffer *other;
+      Lisp_Object tail, other;
 
-      FOR_EACH_BUFFER (other)
-	if (other->base_buffer == b)
-	  {
-	    Lisp_Object buf;
-	    XSETBUFFER (buf, other);
-	    Fkill_buffer (buf);
-	  }
+      FOR_EACH_LIVE_BUFFER (tail, other)
+	if (XBUFFER (other)->base_buffer == b)
+	  Fkill_buffer (other);
 
       /* Exit if we now have killed the base buffer (Bug#11665).  */
       if (!BUFFER_LIVE_P (b))
@@ -1849,6 +1840,9 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
+  /* Once the buffer is removed from Vbuffer_alist, its undo_list field is
+     not traced by the GC in the same way.  So set it to nil early.  */
+  bset_undo_list (b, Qnil);
   /* Remove the buffer from the list of all buffers.  */
   Vbuffer_alist = Fdelq (Frassq (buffer, Vbuffer_alist), Vbuffer_alist);
   /* If replace_buffer_in_windows didn't do its job fix that now.  */
@@ -1963,7 +1957,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     }
   bset_width_table (b, Qnil);
   unblock_input ();
-  bset_undo_list (b, Qnil);
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks) && !b->inhibit_buffer_hooks)
@@ -2351,10 +2344,10 @@ results, see Info node `(elisp)Swapping Text'.  */)
     error ("Cannot swap indirect buffers's text");
 
   { /* This is probably harder to make work.  */
-    struct buffer *other;
-    FOR_EACH_BUFFER (other)
-      if (other->base_buffer == other_buffer
-	  || other->base_buffer == current_buffer)
+    Lisp_Object tail, other;
+    FOR_EACH_LIVE_BUFFER (tail, other)
+      if (XBUFFER (other)->base_buffer == other_buffer
+	  || XBUFFER (other)->base_buffer == current_buffer)
 	error ("One of the buffers to swap has indirect buffers");
   }
 
@@ -2502,7 +2495,7 @@ current buffer is cleared.  */)
   (Lisp_Object flag)
 {
   struct Lisp_Marker *tail, *markers;
-  struct buffer *other;
+  Lisp_Object btail, other;
   ptrdiff_t begv, zv;
   bool narrowed = (BEG != BEGV || Z != ZV);
   bool modified_p = !NILP (Fbuffer_modified_p (Qnil));
@@ -2755,13 +2748,16 @@ current buffer is cleared.  */)
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
-  FOR_EACH_BUFFER (other)
-    if (other->base_buffer == current_buffer && BUFFER_LIVE_P (other))
-      {
-	BVAR (other, enable_multibyte_characters)
-	  = BVAR (current_buffer, enable_multibyte_characters);
-	other->prevent_redisplay_optimizations_p = 1;
-      }
+  FOR_EACH_LIVE_BUFFER (btail, other)
+    {
+      struct buffer *o = XBUFFER (other);
+      if (o->base_buffer == current_buffer && BUFFER_LIVE_P (o))
+	{
+	  BVAR (o, enable_multibyte_characters)
+	    = BVAR (current_buffer, enable_multibyte_characters);
+	  o->prevent_redisplay_optimizations_p = true;
+	}
+    }
 
   /* Restore the modifiedness of the buffer.  */
   if (!modified_p && !NILP (Fbuffer_modified_p (Qnil)))
@@ -5327,8 +5323,6 @@ init_buffer_once (void)
   Vbuffer_alist = Qnil;
   current_buffer = 0;
   pdumper_remember_lv_ptr_raw (&current_buffer, Lisp_Vectorlike);
-  all_buffers = 0;
-  pdumper_remember_lv_ptr_raw (&all_buffers, Lisp_Vectorlike);
 
   QSFundamental = build_pure_c_string ("Fundamental");
 
@@ -5359,7 +5353,7 @@ init_buffer (void)
 #ifdef USE_MMAP_FOR_BUFFERS
   if (dumped_with_unexec_p ())
     {
-      struct buffer *b;
+      Lisp_Object tail, buffer;
 
 #ifndef WINDOWSNT
       /* These must be reset in the dumped Emacs, to avoid stale
@@ -5381,21 +5375,11 @@ init_buffer (void)
 	 " *code-conversion-work*".  They are created by
 	 init_buffer_once and init_window_once (which are not called
 	 in the dumped Emacs), and by the first call to coding.c routines.  */
-      FOR_EACH_BUFFER (b)
+      FOR_EACH_LIVE_BUFFER (tail, buffer)
         {
+	  struct buffer *b = XBUFFER (buffer);
 	  b->text->beg = NULL;
 	  enlarge_buffer_text (b, 0);
-	}
-    }
-  else
-    {
-      struct buffer *b;
-
-      /* Only buffers with allocated buffer text should be present at
-	 this point in temacs.  */
-      FOR_EACH_BUFFER (b)
-        {
-	  eassert (b->text->beg != NULL);
 	}
     }
 #endif /* USE_MMAP_FOR_BUFFERS */

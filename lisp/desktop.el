@@ -534,7 +534,7 @@ can guess how to load the mode's definition.")
   '((defining-kbd-macro nil)
     (isearch-mode nil)
     (vc-mode nil)
-    (vc-dired-mode nil)
+    (vc-dir-mode nil)
     (erc-track-minor-mode nil)
     (savehist-mode nil))
   "Table mapping minor mode variables to minor mode functions.

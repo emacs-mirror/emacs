@@ -3048,6 +3048,16 @@ since there is no guarantee that an arbitrary caller of
 @code{display-buffer} will be able to handle the case that no window
 will display the buffer.  @code{display-buffer-no-window} is the only
 action function that cares about this entry.
+
+@vindex body-function@r{, a buffer display action alist entry}
+@item body-function
+The value must be a function taking one argument (a displayed window).
+This function can be used to fill the displayed window's body with
+some contents that might depend on dimensions of the displayed window.
+It is called @emph{after} the buffer is displayed, and @emph{before}
+the entries @code{window-height}, @code{window-width} and
+@code{preserve-size} are applied that could resize the window to fit
+it to the inserted contents.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}

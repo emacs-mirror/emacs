@@ -179,10 +179,9 @@ if they are quoted with a backslash."
 	      (eshell-apply-indices eshell-command-arguments
 				    indices)))))
   "This list provides aliasing for variable references.
-It is very similar in concept to what `eshell-user-aliases-list' does
-for commands.  Each member of this defines the name of a command,
-and the Lisp value to return for that variable if it is accessed
-via the syntax `$NAME'.
+Each member defines the name of a variable, and a Lisp value used to
+compute the string value that will be returned when the variable is
+accessed via the syntax `$NAME'.
 
 If the value is a function, that function will be called with two
 arguments: the list of the indices that was used in the reference, and
@@ -190,7 +189,21 @@ whether the user is requesting the length of the ultimate element.
 For example, a reference of `$NAME[10][20]' would result in the
 function for alias `NAME' being called (assuming it were aliased to a
 function), and the arguments passed to this function would be the list
-'(10 20)', and nil."
+'(10 20)', and nil.
+
+If the value is a string, the value for the variable with that name in
+the current environment will be returned.  If no variable with that
+name exists in the environment, but if a symbol with that same name
+exists and has a value bound to it, then that value will be used.  You
+can prioritize symbol values over environment values by setting
+`eshell-prefer-lisp-variables' to t.
+
+If the value is a symbol, the value bound to that symbol will be used.
+
+If the value has any other type, `error' will be signaled.
+
+Additionally, each member may specify if it should be copied to the
+environment of created subprocesses."
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
 			       (const :tag "Use only in Eshell" nil)))))

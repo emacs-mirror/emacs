@@ -1208,15 +1208,11 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 
   ;; default-directory and dired-actual-switches must be buffer-local
   ;; and initialized by now.
-  (let (dirname
-	;; This makes read-in much faster.
-	;; In particular, it prevents the font lock hook from running
-	;; until the directory is all read in.
-	(inhibit-modification-hooks t))
-    (if (consp dired-directory)
-	(setq dirname (car dired-directory))
-      (setq dirname dired-directory))
-    (setq dirname (expand-file-name dirname))
+  (let ((dirname
+	 (expand-file-name
+	  (if (consp dired-directory)
+	      (car dired-directory)
+	    dired-directory))))
     (save-excursion
       ;; This hook which may want to modify dired-actual-switches
       ;; based on dired-directory, e.g. with ange-ftp to a SysV host
@@ -1226,17 +1222,25 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	  (setq buffer-undo-list nil))
       (setq-local file-name-coding-system
                   (or coding-system-for-read file-name-coding-system))
-      (let ((inhibit-read-only t)
-	    ;; Don't make undo entries for readin.
-	    (buffer-undo-list t))
-	(widen)
-	(erase-buffer)
-	(dired-readin-insert))
-      (goto-char (point-min))
-      ;; Must first make alist buffer local and set it to nil because
-      ;; dired-build-subdir-alist will call dired-clear-alist first
-      (setq-local dired-subdir-alist nil)
-      (dired-build-subdir-alist)
+      (widen)
+      ;; We used to bind `inhibit-modification-hooks' to try and speed up
+      ;; execution, in particular, to prevent the font-lock hook from running
+      ;; until the directory is all read in.
+      ;; It's not clear why font-lock would be a significant issue
+      ;; here, but I used `combine-change-calls' which should provide the
+      ;; same performance advantages without the problem of breaking
+      ;; users of after/before-change-functions.
+      (combine-change-calls (point-min) (point-max)
+	(let ((inhibit-read-only t)
+	      ;; Don't make undo entries for readin.
+	      (buffer-undo-list t))
+	  (erase-buffer)
+	  (dired-readin-insert))
+	(goto-char (point-min))
+	;; Must first make alist buffer local and set it to nil because
+	;; dired-build-subdir-alist will call dired-clear-alist first
+	(setq-local dired-subdir-alist nil)
+	(dired-build-subdir-alist))
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
 	    (set-visited-file-modtime (file-attribute-modification-time
@@ -1870,6 +1874,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
     (define-key map [remap advertised-undo] 'dired-undo)
+    (define-key map [remap vc-next-action] 'dired-vc-next-action)
     ;; thumbnail manipulation (image-dired)
     (define-key map "\C-td" 'image-dired-display-thumbs)
     (define-key map "\C-tt" 'image-dired-tag-files)
@@ -3520,26 +3525,27 @@ argument or confirmation)."
 	  ;; Mark *Marked Files* window as softly-dedicated, to prevent
 	  ;; other buffers e.g. *Completions* from reusing it (bug#17554).
 	  (display-buffer-mark-dedicated 'soft))
-      (with-displayed-buffer-window
+      (with-current-buffer-window
        buffer
-       (cons 'display-buffer-below-selected
-	     '((window-height . fit-window-to-buffer)
-	       (preserve-size . (nil . t))))
+       `(display-buffer-below-selected
+         (window-height . fit-window-to-buffer)
+         (preserve-size . (nil . t))
+         (body-function
+          . ,#'(lambda (_window)
+                 ;; Handle (t FILE) just like (FILE), here.  That value is
+                 ;; used (only in some cases), to mean just one file that was
+                 ;; marked, rather than the current line file.
+                 (dired-format-columns-of-files
+                  (if (eq (car files) t) (cdr files) files))
+                 (remove-text-properties (point-min) (point-max)
+                                         '(mouse-face nil help-echo nil))
+                 (setq tab-line-exclude nil))))
        #'(lambda (window _value)
 	   (with-selected-window window
 	     (unwind-protect
 		 (apply function args)
 	       (when (window-live-p window)
-		 (quit-restore-window window 'kill)))))
-       ;; Handle (t FILE) just like (FILE), here.  That value is
-       ;; used (only in some cases), to mean just one file that was
-       ;; marked, rather than the current line file.
-       (with-current-buffer buffer
-	 (dired-format-columns-of-files
-	  (if (eq (car files) t) (cdr files) files))
-	 (remove-text-properties (point-min) (point-max)
-				 '(mouse-face nil help-echo nil))
-	 (setq tab-line-exclude nil))))))
+		 (quit-restore-window window 'kill)))))))))
 
 (defun dired-format-columns-of-files (files)
   (let ((beg (point)))

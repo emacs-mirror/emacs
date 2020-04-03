@@ -265,6 +265,20 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (java
      "^\\(?:[ \t]+at \\|==[0-9]+== +\\(?:at\\|b\\(y\\)\\)\\).+(\\([^()\n]+\\):\\([0-9]+\\))$" 2 3 nil (1))
 
+    (javac
+     ,(concat
+       ;; line1
+       "^\\(\\(?:[A-Za-z]:\\)?[^:\n]+\\):" ;file
+       "\\([0-9]+\\): "                    ;line
+       "\\(warning: \\)?.*\n"              ;type (optional) and message
+       ;; line2: source line containing error
+       ".*\n"
+       ;; line3: single "^" under error position in line2
+       " *\\^$")
+     1 2
+     ,(lambda () (1- (current-column)))
+     (3))
+
     (jikes-file
      "^\\(?:Found\\|Issued\\) .* compiling \"\\(.+\\)\":$" 1 nil nil 0)
 
@@ -1466,9 +1480,15 @@ to `compilation-error-regexp-alist' if RULES is nil."
         nil) ;; Not anchored or anchored but already allows empty spaces.
        (t (setq pat (concat "^\\(?:      \\)?" (substring pat 1)))))
 
-      (if (consp file)	(setq fmt (cdr file)	  file (car file)))
-      (if (consp line)	(setq end-line (cdr line) line (car line)))
-      (if (consp col)	(setq end-col (cdr col)	  col (car col)))
+      (if (and (consp file) (not (functionp file)))
+	  (setq fmt (cdr file)
+                file (car file)))
+      (if (and (consp line) (not (functionp line)))
+          (setq end-line (cdr line)
+                line (car line)))
+      (if (and (consp col) (not (functionp col)))
+          (setq end-col (cdr col)
+                col (car col)))
 
       (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
         (error "HYPERLINK should be an integer: %s" (nth 5 item)))

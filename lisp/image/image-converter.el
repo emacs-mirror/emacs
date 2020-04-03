@@ -57,6 +57,10 @@ is a string, it should be a MIME format string like
   ;; Find an installed image converter.
   (unless image-converter
     (image-converter--find-converter))
+  ;; When image-converter was customized
+  (if (and image-converter (not image-converter-regexp))
+      (when-let ((formats (image-converter--probe image-converter)))
+        (setq image-converter-regexp (concat "\\." (regexp-opt formats) "\\'"))))
   (and image-converter
        (or (and (not data-p)
                 (string-match image-converter-regexp source))

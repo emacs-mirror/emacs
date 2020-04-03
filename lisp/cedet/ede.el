@@ -470,7 +470,7 @@ To be used in hook functions."
 	  ;; Emacs 21 has no buffer file name for directory edits.
 	  ;; so we need to add these hacks in.
 	  (eq major-mode 'dired-mode)
-	  (eq major-mode 'vc-dired-mode))
+	  (eq major-mode 'vc-dir-mode))
       (ede-minor-mode 1)))
 
 (define-minor-mode ede-minor-mode
@@ -481,7 +481,7 @@ controlled project, then this mode is activated automatically
 provided `global-ede-mode' is enabled."
   :group 'ede
   (cond ((or (eq major-mode 'dired-mode)
-	     (eq major-mode 'vc-dired-mode))
+	     (eq major-mode 'vc-dir-mode))
 	 (ede-dired-minor-mode (if ede-minor-mode 1 -1)))
 	(ede-minor-mode
 	 (if (not ede-constructing)

@@ -4252,6 +4252,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test29-start-file-process ()
   "Check `start-file-process'."
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
@@ -4325,12 +4326,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test30-make-process ()
   "Check `make-process'."
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
   ;; `make-process' supports file name handlers since Emacs 27.
   (skip-unless (tramp--test-emacs27-p))
 
+  (tramp--test-instrument-test-case 10
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
 	  (tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -4491,7 +4494,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
-	  (ignore-errors (delete-file tmpfile)))))))
+	  (ignore-errors (delete-file tmpfile))))))))
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
@@ -4741,6 +4744,7 @@ INPUT, if non-nil, is a string sent to the process."
 ;; This test is inspired by Bug#23952.
 (ert-deftest tramp-test33-environment-variables ()
   "Check that remote processes set / unset environment variables properly."
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))

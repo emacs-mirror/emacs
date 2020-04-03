@@ -108,12 +108,15 @@ Mark mode, then Dired commands operate only on files in the active
 region.  The values 'file' and 'line' of this user option define the
 details of marking the file at the end of the region.
 
-*** State changing VC operations are supported in 'dired-mode' on files
-(but still not on directories).
+*** State changing VC operations are supported in Dired on files and
+directories with the help of new command 'dired-vc-next-action'.
 
 ** Change Logs and VC
 
 *** New command 'vc-dir-root' uses the root directory without asking.
+
+*** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
+'vc-dir-mark-unregistered-files'.
 
 ** Gnus
 
@@ -160,6 +163,12 @@ functions accessible to the user through the existing single function hook
 *** 'eldoc-documentation-function' is now a user option.
 Modes should use the new hook instead of this user option to register
 their backends.
+
+** Eshell
+
+---
+*** Environment variable INSIDE_EMACS is now copied to subprocesses.
+Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
 
 ** Tramp
 
@@ -265,6 +274,10 @@ by mistake and were not useful to Lisp code.
 It was used to allow loading Lisp libraries compiled by XEmacs, a
 modified version of Emacs which is no longer actively maintained.
 This is no longer supported, and setting this variable has no effect.
+
++++
+** The macro 'with-displayed-buffer-window' is now obsolete.
+Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 
 
 * Lisp Changes in Emacs 28.1

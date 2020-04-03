@@ -3128,6 +3128,8 @@ FRAME 0 means change the face on all frames, and change the default
 	valid_p = XFIXNUM (value) != 0;
       else if (STRINGP (value))
 	valid_p = SCHARS (value) > 0;
+      else if (CONSP (value) && FIXNUMP (XCAR (value)) && FIXNUMP (XCDR (value)))
+	valid_p = true;
       else if (CONSP (value))
 	{
 	  Lisp_Object tem;
@@ -3146,7 +3148,9 @@ FRAME 0 means change the face on all frames, and change the default
 
 	      if (EQ (k, QCline_width))
 		{
-		  if (!FIXNUMP (v) || XFIXNUM (v) == 0)
+		  if ((!CONSP(v) || !FIXNUMP (XCAR (v)) || XFIXNUM (XCAR (v)) == 0
+		                 || !FIXNUMP (XCDR (v)) || XFIXNUM (XCDR (v)) == 0)
+		      && (!FIXNUMP (v) || XFIXNUM (v) == 0))
 		    break;
 		}
 	      else if (EQ (k, QCcolor))
@@ -5815,7 +5819,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->box_color = load_color (f, face, attrs[LFACE_BOX_INDEX],
 				    LFACE_BOX_INDEX);
       face->box = FACE_SIMPLE_BOX;
-      face->box_line_width = 1;
+      face->box_vertical_line_width = face->box_horizontal_line_width = 1;
     }
   else if (FIXNUMP (box))
     {
@@ -5823,9 +5827,19 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	 face.  */
       eassert (XFIXNUM (box) != 0);
       face->box = FACE_SIMPLE_BOX;
-      face->box_line_width = XFIXNUM (box);
+      face->box_vertical_line_width = eabs(XFIXNUM (box));
+      face->box_horizontal_line_width = XFIXNUM (box);
       face->box_color = face->foreground;
       face->box_color_defaulted_p = true;
+    }
+  else if (CONSP (box) && FIXNUMP (XCAR (box)) && FIXNUMP (XCDR (box)))
+    {
+	/* `(VWIDTH . HWIDTH)'.  */
+      face->box = FACE_SIMPLE_BOX;
+      face->box_color = face->foreground;
+      face->box_color_defaulted_p = true;
+      face->box_vertical_line_width = XFIXNUM (XCAR (box));
+      face->box_horizontal_line_width = XFIXNUM (XCDR (box));
     }
   else if (CONSP (box))
     {
@@ -5834,7 +5848,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->box = FACE_SIMPLE_BOX;
       face->box_color = face->foreground;
       face->box_color_defaulted_p = true;
-      face->box_line_width = 1;
+      face->box_vertical_line_width = face->box_horizontal_line_width = 1;
 
       while (CONSP (box))
 	{
@@ -5850,8 +5864,14 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 
 	  if (EQ (keyword, QCline_width))
 	    {
-	      if (FIXNUMP (value) && XFIXNUM (value) != 0)
-		face->box_line_width = XFIXNUM (value);
+	      if (CONSP (value) && FIXNUMP (XCAR (value)) && FIXNUMP (XCDR (value))) {
+		  face->box_vertical_line_width = XFIXNUM (XCAR (value));
+		  face->box_horizontal_line_width = XFIXNUM (XCDR (value));
+	      }
+	      else if (FIXNUMP (value) && XFIXNUM (value) != 0) {
+		face->box_vertical_line_width = eabs (XFIXNUM (value));
+		face->box_horizontal_line_width = XFIXNUM (value);
+	      }
 	    }
 	  else if (EQ (keyword, QCcolor))
 	    {
@@ -6953,10 +6973,13 @@ could define a face `my-mode-default', and then in the mode setup
 function, do:
 
    (set (make-local-variable \\='face-remapping-alist)
-	\\='((default my-mode-default)))).
+        (copy-tree \\='((default my-mode-default)))).
 
 You probably want to use the face-remap package included in Emacs
-instead of manipulating face-remapping-alist directly.
+instead of manipulating face-remapping-alist directly.  Note that many
+of the functions in that package modify the list destructively, so make
+sure you set it to a fresh value (for instance, use `copy-tree' as in
+the example above) before modifying.
 
 Because Emacs normally only redraws screen areas when the underlying
 buffer contents change, you may need to call `redraw-display' after

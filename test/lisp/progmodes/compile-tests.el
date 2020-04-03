@@ -176,6 +176,9 @@
      13 nil 217 "../src/Lib/System.cpp")
     ("==1332==    by 0x8008621: main (vtest.c:180)"
      13 nil 180 "vtest.c")
+    ;; javac
+    ("/src/Test.java:5: ';' expected\n        foo foo\n               ^\n" 1 15 5 "/src/Test.java" 2)
+    ("e:\\src\\Test.java:7: warning: ';' expected\n   foo foo\n          ^\n" 1 10 7 "e:\\src\\Test.java" 1)
     ;; jikes-file jikes-line
     ("Found 2 semantic errors compiling \"../javax/swing/BorderFactory.java\":"
      1 nil nil "../javax/swing/BorderFactory.java")
@@ -431,8 +434,8 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 93))
-      (should (eq compilation-num-warnings-found 36))
+      (should (eq compilation-num-errors-found 94))
+      (should (eq compilation-num-warnings-found 37))
       (should (eq compilation-num-infos-found 26)))))
 
 (ert-deftest compile-test-grep-regexps ()

@@ -1318,12 +1318,6 @@ the buffer specified by @var{buffer-or-name} current for running
 @var{body}.
 @end defmac
 
-@defmac with-displayed-buffer-window buffer-or-name action quit-function &rest body
-This macro is like @code{with-current-buffer-window} but unlike that
-displays the buffer specified by @var{buffer-or-name} @emph{before}
-running @var{body}.
-@end defmac
-
 A window showing a temporary buffer can be fitted to the size of that
 buffer using the following mode:
 
@@ -2450,12 +2444,15 @@ Draw a box with lines of width 1, in the foreground color.
 @item @var{color}
 Draw a box with lines of width 1, in color @var{color}.
 
-@item @code{(:line-width @var{width} :color @var{color} :style @var{style})}
-This way you can explicitly specify all aspects of the box.  The value
-@var{width} specifies the width of the lines to draw; it defaults to
-1.  A negative width @minus{}@var{n} means to draw a line of width @var{n}
-whose top and bottom parts occupy the space of the underlying text,
-thus avoiding any increase in the character height.
+@item @code{(:line-width (@var{vwidth} . @var{hwidth}) :color @var{color} :style @var{style})}
+This way you can explicitly specify all aspects of the box.  The values
+@var{vwidth} and @var{hwidth} specifies respectively the width of the
+vertical and horizontal lines to draw; they default to (1 . 1).
+A negative horizontal or vertical width @minus{}@var{n} means to draw a line
+of width @var{n} that occupies the space of the underlying text, thus
+avoiding any increase in the character height or width. For simplification
+the width could be specified with only a single number @var{n} instead
+of a list, such case is equivalent to @code{((abs @var{n}) . @var{n})}.
 
 The value @var{color} specifies the color to draw with.  The default is
 the foreground color of the face for simple boxes, and the background

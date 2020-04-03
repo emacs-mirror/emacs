@@ -2786,7 +2786,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_375A10F5E5
+#if CHECK_STRUCTS && !defined HASH_buffer_5DC36DBD42
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -2862,8 +2862,6 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
      ctx->obj_offset + dump_offsetof (struct buffer, text),
      base_offset + dump_offsetof (struct buffer, own_text));
 
-  dump_field_lv_rawptr (ctx, out, buffer, &buffer->next,
-                        Lisp_Vectorlike, WEIGHT_NORMAL);
   DUMP_FIELD_COPY (out, buffer, pt);
   DUMP_FIELD_COPY (out, buffer, pt_byte);
   DUMP_FIELD_COPY (out, buffer, begv);

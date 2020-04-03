@@ -819,23 +819,25 @@ The path separator is colon in GNU and GNU-like systems."
 (defun directory-files-recursively (dir regexp
                                         &optional include-directories predicate
                                         follow-symlinks)
-  "Return list of all files under DIR that have file names matching REGEXP.
+  "Return list of all files under directory DIR whose names match REGEXP.
 This function works recursively.  Files are returned in \"depth
 first\" order, and files from each directory are sorted in
 alphabetical order.  Each file name appears in the returned list
 in its absolute form.
 
-Optional argument INCLUDE-DIRECTORIES non-nil means also include
-in the output directories whose names match REGEXP.
+By default, the returned list excludes directories, but if
+optional argument INCLUDE-DIRECTORIES is non-nil, they are
+included.
 
 PREDICATE can be either nil (which means that all subdirectories
-are descended into), t (which means that subdirectories that
+of DIR are descended into), t (which means that subdirectories that
 can't be read are ignored), or a function (which is called with
-the name of the subdirectory and should return non-nil if the
+the name of each subdirectory, and should return non-nil if the
 subdirectory is to be descended into).
 
-If FOLLOW-SYMLINKS, symbolic links that point to directories are
-followed.  Note that this can lead to infinite recursion."
+If FOLLOW-SYMLINKS is non-nil, symbolic links that point to
+directories are followed.  Note that this can lead to infinite
+recursion."
   (let* ((result nil)
 	 (files nil)
          (dir (directory-file-name dir))
@@ -7253,10 +7255,15 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
                   (setq active t))
              (setq processes (cdr processes)))
            (or (not active)
-               (with-displayed-buffer-window
+               (with-current-buffer-window
                 (get-buffer-create "*Process List*")
-                '(display-buffer--maybe-at-bottom
-                  (dedicated . t))
+                `(display-buffer--maybe-at-bottom
+                  (dedicated . t)
+                  (window-height . fit-window-to-buffer)
+                  (preserve-size . (nil . t))
+                  (body-function
+                   . ,#'(lambda (_window)
+                          (list-processes t))))
                 #'(lambda (window _value)
                     (with-selected-window window
                       (unwind-protect
@@ -7264,8 +7271,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
                             (setq confirm nil)
                             (yes-or-no-p "Active processes exist; kill them and exit anyway? "))
                         (when (window-live-p window)
-                          (quit-restore-window window 'kill)))))
-                (list-processes t)))))
+                          (quit-restore-window window 'kill)))))))))
      ;; Query the user for other things, perhaps.
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)
