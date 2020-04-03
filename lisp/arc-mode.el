@@ -56,7 +56,7 @@
 ;;			--------------------------------------------------
 ;; View listing		Intern	Intern	Intern	Intern	Y	Y	Y
 ;; Extract member	Y	Y	Y	Y	Y	Y	Y
-;; Save changed member	Y	Y	Y	Y	N	Y	N
+;; Save changed member	Y	Y	Y	Y	N	Y	Y
 ;; Add new member	N	N	N	N	N	N	N
 ;; Delete member	Y	Y	Y	Y	N	Y	N
 ;; Rename member	Y	Y	N	N	N	N	N
@@ -100,6 +100,8 @@
 ;; archive-extract-hook
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Configuration.
@@ -2145,6 +2147,17 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defconst archive-ar-file-header-re
   "\\(.\\{16\\}\\)\\([ 0-9]\\{12\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-7]\\{8\\}\\)\\([ 0-9]\\{10\\}\\)`\n")
 
+(defun archive-ar--name (name)
+  "Return the external name represented by the entry NAME.
+NAME is expected to be the 16-bytes part of an ar record."
+  (cond ((equal name "//              ")
+         (propertize ".<ExtNamesTable>." 'face 'italic))
+        ((equal name "/               ")
+         (propertize ".<LookupTable>." 'face 'italic))
+        ((string-match "/? *\\'" name)
+         ;; FIXME: Decode?  Add support for longer names?
+         (substring name 0 (match-beginning 0)))))
+
 (defun archive-ar-summarize ()
   ;; File is used internally for `archive-rar-exe-summarize'.
   (let* ((maxname 10)
@@ -2167,13 +2180,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         ;; Move to the beginning of the data.
         (goto-char (match-end 0))
         (setq time (format-time-string "%Y-%m-%d %H:%M" time))
-        (setq extname
-              (cond ((equal name "//              ")
-                     (propertize ".<ExtNamesTable>." 'face 'italic))
-                    ((equal name "/               ")
-                     (propertize ".<LookupTable>." 'face 'italic))
-                    ((string-match "/? *\\'" name)
-                     (substring name 0 (match-beginning 0)))))
+        (setq extname (archive-ar--name name))
         (setq user (substring user 0 (string-match " +\\'" user)))
         (setq group (substring group 0 (string-match " +\\'" group)))
         (setq mode (tar-grind-file-mode mode))
@@ -2186,7 +2193,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         (if (> (length group) maxgroup) (setq maxgroup (length group)))
         (if (> (length mode) maxmode) (setq maxmode (length mode)))
         (if (> (length size) maxsize) (setq maxsize (length size)))
-        (push (vector name extname nil mode
+        (push (vector extname extname nil mode
                       time user group size)
               files)))
     (setq files (nreverse files))
@@ -2234,7 +2241,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
             (let ((this (match-string 1)))
               (setq size (string-to-number (match-string 6)))
               (goto-char (match-end 0))
-              (if (equal name this)
+              (if (equal name (archive-ar--name this))
                   (setq from (point))
                 ;; Move to the end of the data.
                 (forward-char size) (if (eq ?\n (char-after)) (forward-char 1)))))
@@ -2246,6 +2253,16 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
             (set-buffer-multibyte 'to)
             ;; Inform the caller that the call succeeded.
             t))))))
+
+(defun archive-ar-write-file-member (archive descr)
+  (archive-*-write-file-member
+   archive
+   (let ((d (copy-sequence descr)))
+     ;; FIXME: Crude conversion from string modes to a number.
+     (cl-callf (lambda (s) (if (string-match "x" s) ?\555 ?\444)) (aref d 3))
+     d)
+   '("ar" "r")))
+
 
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.
