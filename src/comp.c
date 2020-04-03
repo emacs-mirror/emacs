@@ -107,7 +107,6 @@ typedef struct {
   gcc_jit_type *uintptr_type;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_type *lisp_obj_ptr_type;
-  gcc_jit_field *lisp_obj_as_num;
   /* struct Lisp_Cons */
   gcc_jit_struct *lisp_cons_s;
   gcc_jit_field *lisp_cons_u;
@@ -3128,10 +3127,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
 						      sizeof (EMACS_INT),
 						      true);
-  comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.emacs_int_type,
-						    "num");
   /* No XLP is emitted for now so lets define this always as integer
      disregarding LISP_WORDS_ARE_POINTERS value.  */
   comp.lisp_obj_type = comp.emacs_int_type;
