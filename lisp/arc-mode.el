@@ -108,22 +108,6 @@
   "Simple editing of archives."
   :group 'data)
 
-(defgroup archive-arc nil
-  "ARC-specific options to archive."
-  :group 'archive)
-
-(defgroup archive-lzh nil
-  "LZH-specific options to archive."
-  :group 'archive)
-
-(defgroup archive-zip nil
-  "ZIP-specific options to archive."
-  :group 'archive)
-
-(defgroup archive-zoo nil
-  "ZOO-specific options to archive."
-  :group 'archive)
-
 (defcustom archive-tmpdir
   ;; make-temp-name is safe here because we use this name
   ;; to create a directory.
@@ -131,35 +115,35 @@
    (expand-file-name (if (eq system-type 'ms-dos) "ar" "archive.tmp")
 		     temporary-file-directory))
   "Directory for temporary files made by `arc-mode.el'."
-  :type 'directory
-  :group 'archive)
+  :type 'directory)
 
 (defcustom archive-remote-regexp "^/[^/:]*[^/:.]:"
   "Regexp recognizing archive files names that are not local.
 A non-local file is one whose file name is not proper outside Emacs.
 A local copy of the archive will be used when updating."
-  :type 'regexp
-  :group 'archive)
+  :type 'regexp)
 
 (define-obsolete-variable-alias 'archive-extract-hooks
   'archive-extract-hook "24.3")
 (defcustom archive-extract-hook nil
   "Hook run when an archive member has been extracted."
-  :type 'hook
-  :group 'archive)
+  :type 'hook)
 
 (defcustom archive-visit-single-files nil
   "If non-nil, opening an archive with a single file visits that file.
 If nil, visiting such an archive displays the archive summary."
   :version "25.1"
   :type '(choice (const :tag "Visit the single file" t)
-                 (const :tag "Show the archive summary" nil))
-  :group 'archive)
+                 (const :tag "Show the archive summary" nil)))
 ;; ------------------------------
 ;; Arc archive configuration
 
 ;; We always go via a local file since there seems to be no reliable way
 ;; to extract to stdout without junk getting added.
+(defgroup archive-arc nil
+  "ARC-specific options to archive."
+  :group 'archive)
+
 (defcustom archive-arc-extract
   '("arc" "x")
   "Program and its options to run in order to extract an arc file member.
@@ -168,8 +152,7 @@ name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-arc)
+			(string :format "%v"))))
 
 (defcustom archive-arc-expunge
   '("arc" "d")
@@ -178,8 +161,7 @@ Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-arc)
+			(string :format "%v"))))
 
 (defcustom archive-arc-write-file-member
   '("arc" "u")
@@ -188,10 +170,13 @@ Archive and member name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-arc)
+			(string :format "%v"))))
 ;; ------------------------------
 ;; Lzh archive configuration
+
+(defgroup archive-lzh nil
+  "LZH-specific options to archive."
+  :group 'archive)
 
 (defcustom archive-lzh-extract
   '("lha" "pq")
@@ -201,8 +186,7 @@ be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-lzh)
+			(string :format "%v"))))
 
 (defcustom archive-lzh-expunge
   '("lha" "d")
@@ -211,8 +195,7 @@ Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-lzh)
+			(string :format "%v"))))
 
 (defcustom archive-lzh-write-file-member
   '("lha" "a")
@@ -221,8 +204,7 @@ Archive and member name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-lzh)
+			(string :format "%v"))))
 ;; ------------------------------
 ;; Zip archive configuration
 
@@ -230,6 +212,10 @@ Archive and member name will be added."
                                          (executable-find "7za"))))
                              (when 7z
                                (file-name-nondirectory 7z))))
+
+(defgroup archive-zip nil
+  "ZIP-specific options to archive."
+  :group 'archive)
 
 (defcustom archive-zip-extract
   (cond ((executable-find "unzip")   '("unzip" "-qq" "-c"))
@@ -242,8 +228,7 @@ be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-zip)
+		       (string :format "%v"))))
 
 ;; For several reasons the latter behavior is not desirable in general.
 ;; (1) It uses more disk space.  (2) Error checking is worse or non-
@@ -260,8 +245,7 @@ Archive and member names will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-zip)
+		       (string :format "%v"))))
 
 (defcustom archive-zip-update
   (cond ((executable-find "zip")     '("zip" "-q"))
@@ -274,8 +258,7 @@ file.  Archive and member name will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-zip)
+		       (string :format "%v"))))
 
 (defcustom archive-zip-update-case
   (cond ((executable-find "zip")     '("zip" "-q" "-k"))
@@ -288,8 +271,7 @@ Archive and member name will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-zip)
+		       (string :format "%v"))))
 
 (declare-function msdos-long-file-names "msdos.c")
 (defcustom archive-zip-case-fiddle (and (eq system-type 'ms-dos)
@@ -300,10 +282,13 @@ that uses caseless file names.
 In addition, this flag forces members added/updated in the zip archive
 to be truncated to DOS 8+3 file-name restrictions."
   :type 'boolean
-  :version "27.1"
-  :group 'archive-zip)
+  :version "27.1")
 ;; ------------------------------
 ;; Zoo archive configuration
+
+(defgroup archive-zoo nil
+  "ZOO-specific options to archive."
+  :group 'archive)
 
 (defcustom archive-zoo-extract
   '("zoo" "xpq")
@@ -313,8 +298,7 @@ be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-zoo)
+			(string :format "%v"))))
 
 (defcustom archive-zoo-expunge
   '("zoo" "DqPP")
@@ -323,8 +307,7 @@ Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-zoo)
+			(string :format "%v"))))
 
 (defcustom archive-zoo-write-file-member
   '("zoo" "a")
@@ -333,10 +316,13 @@ Archive and member name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
-			(string :format "%v")))
-  :group 'archive-zoo)
+			(string :format "%v"))))
 ;; ------------------------------
 ;; 7z archive configuration
+
+(defgroup archive-7z nil
+  "7Z-specific options to archive."
+  :group 'archive)
 
 (defcustom archive-7z-extract
   `(,(or archive-7z-program "7z") "x" "-so")
@@ -347,8 +333,7 @@ be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-7z)
+		       (string :format "%v"))))
 
 (defcustom archive-7z-expunge
   `(,(or archive-7z-program "7z") "d")
@@ -358,8 +343,7 @@ Archive and member names will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-7z)
+		       (string :format "%v"))))
 
 (defcustom archive-7z-update
   `(,(or archive-7z-program "7z") "u")
@@ -370,8 +354,7 @@ file.  Archive and member name will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
-		       (string :format "%v")))
-  :group 'archive-7z)
+		       (string :format "%v"))))
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Variables
