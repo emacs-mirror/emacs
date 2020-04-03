@@ -1,4 +1,4 @@
-;;; arc-mode.el --- simple editing of archives
+;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997-1998, 2001-2020 Free Software Foundation,
 ;; Inc.
@@ -52,17 +52,17 @@
 ;; ARCHIVE TYPES: Currently only the archives below are handled, but the
 ;; structure for handling just about anything is in place.
 ;;
-;;			Arc	Lzh	Zip	Zoo	Rar	7z
-;;			--------------------------------------------
-;; View listing		Intern	Intern	Intern	Intern	Y	Y
-;; Extract member	Y	Y	Y	Y	Y	Y
-;; Save changed member	Y	Y	Y	Y	N	Y
-;; Add new member	N	N	N	N	N	N
-;; Delete member	Y	Y	Y	Y	N	Y
-;; Rename member	Y	Y	N	N	N	N
-;; Chmod		-	Y	Y	-	N	N
-;; Chown		-	Y	-	-	N	N
-;; Chgrp		-	Y	-	-	N	N
+;;			Arc	Lzh	Zip	Zoo	Rar	7z	Ar
+;;			--------------------------------------------------
+;; View listing		Intern	Intern	Intern	Intern	Y	Y	Y
+;; Extract member	Y	Y	Y	Y	Y	Y	Y
+;; Save changed member	Y	Y	Y	Y	N	Y	N
+;; Add new member	N	N	N	N	N	N	N
+;; Delete member	Y	Y	Y	Y	N	Y	N
+;; Rename member	Y	Y	N	N	N	N	N
+;; Chmod		-	Y	Y	-	N	N	N
+;; Chown		-	Y	-	-	N	N	N
+;; Chgrp		-	Y	-	-	N	N	N
 ;;
 ;; Special thanks to Bill Brodie <wbrodie@panix.com> for very useful tips
 ;; on the first released version of this package.
@@ -520,9 +520,9 @@ Each descriptor is a vector of the form
 (defun arc-insert-unibyte (&rest args)
   "Like insert but don't make unibyte string and eight-bit char multibyte."
   (dolist (elt args)
-    (if (integerp elt)
-	(insert (if (< elt 128) elt (decode-char 'eight-bit elt)))
-      (insert elt))))
+    (insert (if (and (integerp elt) (>= elt 128))
+                (decode-char 'eight-bit elt)
+              elt))))
 
 (defsubst archive-name (suffix)
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
@@ -622,7 +622,8 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
       (format "%2d-%s-%d"
               day
               (aref ["Jan" "Feb" "Mar" "Apr" "May" "Jun"
-                     "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] (1- month))
+                     "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"]
+                    (1- month))
               year))))
 
 (defun archive-dostime (time)
@@ -684,38 +685,33 @@ archive.
   ;; mode on and off.  You can corrupt things that way.
   (if (zerop (buffer-size))
       ;; At present we cannot create archives from scratch
-      (funcall (or (default-value 'major-mode) 'fundamental-mode))
+      (funcall (or (default-value 'major-mode) #'fundamental-mode))
     (if (and (not force) archive-files) nil
       (kill-all-local-variables)
       (let* ((type (archive-find-type))
 	     (typename (capitalize (symbol-name type))))
-	(make-local-variable 'archive-subtype)
-	(setq archive-subtype type)
+	(setq-local archive-subtype type)
 
 	;; Buffer contains treated image of file before the file contents
-	(make-local-variable 'revert-buffer-function)
-	(setq revert-buffer-function 'archive-mode-revert)
-	(auto-save-mode 0)
+	(add-function :around (local 'revert-buffer-function)
+	              #'archive--mode-revert)
 
-	(add-hook 'write-contents-functions 'archive-write-file nil t)
+	(add-hook 'write-contents-functions #'archive-write-file nil t)
 
-	(make-local-variable 'require-final-newline)
-	(setq require-final-newline nil)
-	(make-local-variable 'local-enable-local-variables)
-	(setq local-enable-local-variables nil)
+        (setq-local truncate-lines t)
+	(setq-local require-final-newline nil)
+	(setq-local local-enable-local-variables nil)
 
 	;; Prevent loss of data when saving the file.
-	(make-local-variable 'file-precious-flag)
-	(setq file-precious-flag t)
+	(setq-local file-precious-flag t)
 
-	(make-local-variable 'archive-read-only)
 	;; Archives which are inside other archives and whose
 	;; names are invalid for this OS, can't be written.
-	(setq archive-read-only
-	      (or (not (file-writable-p (buffer-file-name)))
-		  (and archive-subfile-mode
-		       (string-match file-name-invalid-regexp
-				     (aref archive-subfile-mode 0)))))
+	(setq-local archive-read-only
+		    (or (not (file-writable-p (buffer-file-name)))
+		        (and archive-subfile-mode
+		             (string-match file-name-invalid-regexp
+				           (aref archive-subfile-mode 0)))))
 
 	;; Should we use a local copy when accessing from outside Emacs?
 	(make-local-variable 'archive-local-name)
@@ -728,7 +724,7 @@ archive.
 		      (string-match file-name-invalid-regexp
 				    (buffer-file-name)))))
 
-	(setq major-mode 'archive-mode)
+	(setq major-mode #'archive-mode)
 	(setq mode-name (concat typename "-Archive"))
 	;; Run archive-foo-mode-hook and archive-mode-hook
 	(run-mode-hooks (archive-name "mode-hook") 'archive-mode-hook)
@@ -803,7 +799,7 @@ when parsing the archive."
   (let ((create-lockfiles nil) ; avoid changing dir mtime by lock_file
 	(inhibit-read-only t))
     (setq archive-proper-file-start (copy-marker (point-min) t))
-    (set (make-local-variable 'change-major-mode-hook) 'archive-desummarize)
+    (add-hook 'change-major-mode-hook #'archive-desummarize nil t)
     (or shut-up
 	(message "Parsing archive file..."))
     (buffer-disable-undo (current-buffer))
@@ -968,7 +964,7 @@ using `make-temp-file', and the generated name is returned."
         (delete-file tmpfile)))))
 
 (defun archive-file-name-handler (op &rest args)
-  (or (eq op 'file-exists-p)
+  (or (eq op #'file-exists-p)
       (let ((file-name-handler-alist nil))
 	(apply op args))))
 
@@ -1461,12 +1457,11 @@ as a relative change like \"g+rw\" as for chmod(2)."
       (error "Renaming is not supported for this archive type"))))
 
 ;; Revert the buffer and recompute the dired-like listing.
-(defun archive-mode-revert (&optional _no-auto-save _no-confirm)
+(defun archive--mode-revert (orig-fun &rest args)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
-    (let ((revert-buffer-function nil)
-	  (coding-system-for-read 'no-conversion))
-      (revert-buffer t t))
+    (let ((coding-system-for-read 'no-conversion))
+      (apply orig-fun t t (cddr args)))
     (archive-mode)
     (goto-char archive-file-list-start)
     (archive-next-line no)))
