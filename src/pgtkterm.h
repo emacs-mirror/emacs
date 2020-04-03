@@ -222,7 +222,8 @@ struct pgtk_display_info
   /* Modifier masks in gdk */
   int meta_mod_mask, alt_mod_mask;
 
-  /* whether to use Gtk's IM context. */
+  /* The last click event. */
+  GdkEvent *last_click_event;
 
   /* input method */
   struct {
@@ -572,7 +573,7 @@ extern void pgtk_cr_destroy_frame_context(struct frame *f);
 
 /* Defined in pgtkmenu.c */
 extern Lisp_Object pgtk_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents);
-extern Lisp_Object pgtk_dialog_show (struct frame *f, Lisp_Object title, Lisp_Object header, char **error);
+extern Lisp_Object pgtk_dialog_show (struct frame *f, Lisp_Object title, Lisp_Object header, const char **error_name);
 extern void initialize_frame_menubar (struct frame *);
 
 

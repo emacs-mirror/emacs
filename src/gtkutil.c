@@ -2968,9 +2968,15 @@ create_menus (widget_value *data,
       if (name)
         gtk_widget_set_name (wmenu, name);
 
+#ifndef HAVE_PGTK
       if (deactivate_cb)
         g_signal_connect (G_OBJECT (wmenu),
                           "selection-done", deactivate_cb, 0);
+#else
+      if (deactivate_cb)
+        g_signal_connect (G_OBJECT (wmenu),
+                          "deactivate", deactivate_cb, 0);
+#endif
     }
 
   for (item = data; item; item = item->next)
