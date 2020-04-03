@@ -2229,6 +2229,8 @@ display a message."
   "Compile FUNCTION-OR-FILE into native code.
 This is the entry-point for the Emacs Lisp native compiler.
 FUNCTION-OR-FILE is a function symbol or a path to an Elisp file.
+When WITH-LATE-LOAD non Nil mark the compilation unit for late load
+once finished compiling (internal use only).
 Return the compilation unit file name."
   (unless (or (functionp function-or-file)
               (stringp function-or-file))
