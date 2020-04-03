@@ -3188,14 +3188,12 @@ usage:  (make-serial-process &rest ARGS)  */)
 		       BUF_ZV_BYTE (XBUFFER (buffer)));
     }
 
-  tem = Fplist_member (contact, QCcoding);
-  if (!NILP (tem) && (!CONSP (tem) || !CONSP (XCDR (tem))))
-    tem = Qnil;
+  tem = Fplist_get (contact, QCcoding);
 
   val = Qnil;
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCAR (val);
     }
@@ -3209,7 +3207,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   val = Qnil;
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCDR (val);
     }
@@ -3244,16 +3242,14 @@ set_network_socket_coding_system (Lisp_Object proc, Lisp_Object host,
   Lisp_Object coding_systems = Qt;
   Lisp_Object val;
 
-  tem = Fplist_member (contact, QCcoding);
-  if (!NILP (tem) && (!CONSP (tem) || !CONSP (XCDR (tem))))
-    tem = Qnil;  /* No error message (too late!).  */
+  tem = Fplist_get (contact, QCcoding);
 
   /* Setup coding systems for communicating with the network stream.  */
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
 
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCAR (val);
     }
@@ -3287,7 +3283,7 @@ set_network_socket_coding_system (Lisp_Object proc, Lisp_Object host,
 
   if (!NILP (tem))
     {
-      val = XCAR (XCDR (tem));
+      val = tem;
       if (CONSP (val))
 	val = XCDR (val);
     }

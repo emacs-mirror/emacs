@@ -93,6 +93,11 @@ line numbers that were previously jumped to.
 ** When 'suggest-key-bindings' is non-nil, the completion list of 'M-x'
 shows equivalent key bindings for all commands that have them.
 
+---
+** Movement commands in 'gomoku-mode' are fixed.
+'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
+horizontal movements now stop at the edge of the board.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
@@ -236,6 +241,12 @@ case-insensitive matching of messages when the old behaviour is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
+** Texinfo
+
+---
+*** New customizable option 'texinfo-texi2dvi-options'.
+This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -305,6 +316,16 @@ optional argument specifying whether to follow symbolic links.
 
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".
+
+---
+** 'make-network-process', 'make-serial-process' :coding behavior change.
+Previously, passing ":coding nil" to either of these functions would
+override any non-nil binding for 'coding-system-for-read' and
+'coding-system-for-write'.  For consistency with 'make-process' and
+'make-pipe-process', passing ":coding nil" is now ignored.  No code in
+Emacs depended on the previous behavior; if you really want the
+process' coding-system to be nil, use 'set-process-coding-system'
+after the process has been created, or pass in ":coding '(nil nil)".
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

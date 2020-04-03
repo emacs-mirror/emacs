@@ -31,7 +31,9 @@
 (ert-deftest test-days-in-month ()
   (should (= (date-days-in-month 2004 2) 29))
   (should (= (date-days-in-month 2004 3) 31))
-  (should-not (= (date-days-in-month 1900 3) 28)))
+  (should-not (= (date-days-in-month 1900 3) 28))
+  (should-error (date-days-in-month 2020 15))
+  (should-error (date-days-in-month 2020 'foo)))
 
 (ert-deftest test-ordinal ()
   (should (equal (date-ordinal-to-time 2008 271)

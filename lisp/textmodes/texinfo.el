@@ -958,6 +958,12 @@ to jump to the corresponding spot in the Texinfo source file."
   :type 'string
   :group 'texinfo)
 
+(defcustom texinfo-texi2dvi-options ""
+  "Command line options for `texinfo-texi2dvi-command'."
+  :type 'string
+  :group 'texinfo
+  :version "28.1")
+
 (defcustom texinfo-tex-command "tex"
   "Command used by `texinfo-tex-region' to run TeX on a region."
   :type 'string
@@ -1002,9 +1008,10 @@ The value of `texinfo-tex-trailer' is appended to the temporary file after the r
   (interactive)
   (require 'tex-mode)
   (let ((tex-command texinfo-texi2dvi-command)
-	;; Disable tex-start-options-string.  texi2dvi would not
-	;; understand anything specified here.
-	(tex-start-options-string ""))
+	(tex-start-options texinfo-texi2dvi-options)
+	;; Disable tex-start-commands.  texi2dvi would not understand
+	;; anything specified here.
+        (tex-start-commands ""))
     (tex-buffer)))
 
 (defun texinfo-texindex ()
