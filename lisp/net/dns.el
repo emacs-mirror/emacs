@@ -315,8 +315,8 @@ If TCP-P, the first two bytes of the package with be the length field."
 (defun dns-set-servers ()
   "Set `dns-servers' to a list of DNS servers or nil if none are found.
 Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
+  (setq dns-servers nil)
   (or (when (file-exists-p "/etc/resolv.conf")
-	(setq dns-servers nil)
 	(with-temp-buffer
 	  (insert-file-contents "/etc/resolv.conf")
 	  (goto-char (point-min))
@@ -327,9 +327,9 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	(with-temp-buffer
 	  (call-process "nslookup" nil t nil "localhost")
 	  (goto-char (point-min))
-	  (re-search-forward
-	   "^Address:[ \t]*\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
-	  (setq dns-servers (list (match-string 1))))))
+          (when (re-search-forward
+	   "^Address:[ \t]*\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\|[[:xdigit:]:]*\\)" nil t)
+	      (setq dns-servers (list (match-string 1)))))))
   (when (fboundp 'network-interface-list)
     (setq dns-servers-valid-for-interfaces (network-interface-list))))
 
@@ -357,7 +357,9 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
   `(let ((server ,server)
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary))
-     (if (fboundp 'make-network-process)
+     (if (and
+          (fboundp 'make-network-process)
+          (featurep 'make-network-process '(:type datagram)))
 	 (make-network-process
 	  :name "dns"
 	  :coding 'binary
@@ -365,9 +367,9 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	  :host server
 	  :service "domain"
 	  :type 'datagram)
-       ;; Older versions of Emacs doesn't have
-       ;; `make-network-process', so we fall back on opening a TCP
-       ;; connection to the DNS server.
+       ;; Older versions of Emacs do not have `make-network-process',
+       ;; and on MS-Windows datagram sockets are not supported, so we
+       ;; fall back on opening a TCP connection to the DNS server.
        (open-network-stream "dns" (current-buffer) server "domain"))))
 
 (defvar dns-cache (make-vector 4096 0))
@@ -400,7 +402,9 @@ If REVERSEP, look up an IP address."
 	  type 'PTR))
 
   (if (not dns-servers)
-      (message "No DNS server configuration found")
+      (progn
+        (message "No DNS server configuration found")
+        nil)
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (let ((process (condition-case ()
