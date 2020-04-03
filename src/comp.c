@@ -107,7 +107,6 @@ typedef struct {
   gcc_jit_type *uintptr_type;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_type *lisp_obj_ptr_type;
-  gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
   /* struct Lisp_Cons */
   gcc_jit_struct *lisp_cons_s;
@@ -671,20 +670,14 @@ static gcc_jit_rvalue *
 emit_XLI (gcc_jit_rvalue *obj)
 {
   emit_comment ("XLI");
-
-  return gcc_jit_rvalue_access_field (obj,
-				      NULL,
-				      comp.lisp_obj_as_num);
+  return obj;
 }
 
 static gcc_jit_lvalue *
 emit_lval_XLI (gcc_jit_lvalue *obj)
 {
   emit_comment ("lval_XLI");
-
-  return gcc_jit_lvalue_access_field (obj,
-				      NULL,
-				      comp.lisp_obj_as_num);
+  return obj;
 }
 
 /*
@@ -3132,19 +3125,6 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   comp.unsigned_long_long_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_UNSIGNED_LONG_LONG);
   comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
-#if EMACS_INT_MAX <= LONG_MAX
-  /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
-  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.void_ptr_type,
-						    "obj");
-#else
-  /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.	 */
-  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.long_long_type,
-						    "obj");
-#endif
   comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
 						      sizeof (EMACS_INT),
 						      true);
@@ -3152,14 +3132,9 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						    NULL,
 						    comp.emacs_int_type,
 						    "num");
-  gcc_jit_field *lisp_obj_fields[] = { comp.lisp_obj_as_ptr,
-				       comp.lisp_obj_as_num };
-  comp.lisp_obj_type =
-    gcc_jit_context_new_union_type (comp.ctxt,
-				    NULL,
-				    "comp_Lisp_Object",
-				    ARRAYELTS (lisp_obj_fields),
-				    lisp_obj_fields);
+  /* No XLP is emitted for now so lets define this always as integer
+     disregarding LISP_WORDS_ARE_POINTERS value.  */
+  comp.lisp_obj_type = comp.emacs_int_type;
   comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
