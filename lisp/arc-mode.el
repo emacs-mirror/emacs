@@ -497,8 +497,23 @@ Its value is an `archive--file-desc'.")
 (cl-defstruct (archive--file-desc
                (:constructor nil)
                (:constructor archive--file-desc
-                (ext-file-name int-file-name case-fiddled mode)))
-  ext-file-name int-file-name case-fiddled mode)
+                ;; ext-file-name and int-file-name are usually `eq'
+                ;; except when int-file-name is the downcased
+                ;; ext-file-name.
+                (ext-file-name int-file-name mode)))
+  ext-file-name int-file-name mode)
+
+;; Features in formats:
+;;
+;; ARC: size, date, time (date and time strings internally generated)
+;; LZH: size, date, time, mode, uid, gid (mode, date, time generated, ugid:int)
+;; ZIP: size, date, time, mode (mode, date, time generated)
+;; ZOO: size, date, time (date and time strings internally generated)
+;; AR : size, date, time, mode, user, group (internally generated)
+;; RAR: size, date, time, ratio (all as strings, using `lsar')
+;; 7Z : size, date, time (all as strings, using `7z' or `7za')
+;;
+;; LZH has alternate display (with UID/GID i.s.o MODE/DATE/TIME
 
 (defvar archive-files nil
   "Vector of `archive--file-desc' objects.")
@@ -537,23 +552,25 @@ in which case a second argument, length LEN, should be supplied."
 (defun archive-int-to-mode (mode)
   "Turn an integer like 0700 (i.e., 448) into a mode string like -rwx------."
   ;; FIXME: merge with tar-grind-file-mode.
-  (string
-    (if (zerop (logand  8192 mode))
-	(if (zerop (logand 16384 mode)) ?- ?d)
-      ?c) ; completeness
-    (if (zerop (logand   256 mode)) ?- ?r)
-    (if (zerop (logand   128 mode)) ?- ?w)
-    (if (zerop (logand    64 mode))
-	(if (zerop (logand  2048 mode)) ?- ?S)
-      (if (zerop (logand  2048 mode)) ?x ?s))
-    (if (zerop (logand    32 mode)) ?- ?r)
-    (if (zerop (logand    16 mode)) ?- ?w)
-    (if (zerop (logand     8 mode))
-	(if (zerop (logand  1024 mode)) ?- ?S)
-      (if (zerop (logand  1024 mode)) ?x ?s))
-    (if (zerop (logand     4 mode)) ?- ?r)
-    (if (zerop (logand     2 mode)) ?- ?w)
-    (if (zerop (logand     1 mode)) ?- ?x)))
+  (if (null mode)
+      "??????????"
+    (string
+     (if (zerop (logand  8192 mode))
+	 (if (zerop (logand 16384 mode)) ?- ?d)
+       ?c)                              ; completeness
+     (if (zerop (logand   256 mode)) ?- ?r)
+     (if (zerop (logand   128 mode)) ?- ?w)
+     (if (zerop (logand    64 mode))
+	 (if (zerop (logand  2048 mode)) ?- ?S)
+       (if (zerop (logand  2048 mode)) ?x ?s))
+     (if (zerop (logand    32 mode)) ?- ?r)
+     (if (zerop (logand    16 mode)) ?- ?w)
+     (if (zerop (logand     8 mode))
+	 (if (zerop (logand  1024 mode)) ?- ?S)
+       (if (zerop (logand  1024 mode)) ?x ?s))
+     (if (zerop (logand     4 mode)) ?- ?r)
+     (if (zerop (logand     2 mode)) ?- ?w)
+     (if (zerop (logand     1 mode)) ?- ?x))))
 
 (defun archive-calc-mode (oldmode newmode)
   "From the integer OLDMODE and the string NEWMODE calculate a new file mode.
@@ -1443,8 +1460,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                (:include archive--file-desc)
                (:constructor nil)
                (:constructor archive-arc--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               pos)))
+                (ext-file-name int-file-name mode pos)))
   pos)
 
 (defun archive-arc-summarize ()
@@ -1479,7 +1495,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			    (length text))
 			   visual)
 	      files (cons (archive-arc--file-desc
-                           efnname ifnname fiddle nil (1- p))
+                           efnname ifnname nil (1- p))
                           files)
               p (+ p 29 csize))))
     (goto-char (point-min))
@@ -1502,8 +1518,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
       (error "File names in arc files are limited to 12 characters"))
-  (let ((name (concat newname (substring "\0\0\0\0\0\0\0\0\0\0\0\0\0"
-					 (length newname))))
+  (let ((name (concat newname (make-string (- 13 (length newname)) ?\0)))
 	(inhibit-read-only t))
     (save-restriction
       (save-excursion
@@ -1519,8 +1534,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                (:include archive--file-desc)
                (:constructor nil)
                (:constructor archive-lzh--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               pos)))
+                (ext-file-name int-file-name mode pos)))
   pos)
 
 (defun archive-lzh-summarize (&optional start)
@@ -1616,7 +1630,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(setq ifnname (if fiddle (downcase efnname) efnname))
 	(setq prname (if dir (concat dir ifnname) ifnname))
 	(setq width (if prname (string-width prname) 0))
-	(setq modestr (if mode (archive-int-to-mode mode) "??????????"))
+	(setq modestr (archive-int-to-mode mode))
 	(setq moddate (if (= hdrlvl 2)
 			  (archive-unixdate time1 time2) ;level 2 header in UNIX format
 			(archive-dosdate time2))) ;level 0 and 1 header in DOS format
@@ -1643,7 +1657,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			    (length text))
 			   visual)
 	      files (cons (archive-lzh--file-desc
-                           prname ifnname fiddle mode (1- p))
+                           prname ifnname mode (1- p))
                           files))
 	(cond ((= hdrlvl 1)
 	       (setq p (+ p hsize 2 csize)))
@@ -1774,9 +1788,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                (:include archive--file-desc)
                (:constructor nil)
                (:constructor archive-zip--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               pos+len)))
-  pos+len)
+                (ext-file-name int-file-name mode pos)))
+  pos)
 
 (defun archive-zip-summarize ()
   (goto-char (- (point-max) (- 22 18)))
@@ -1811,7 +1824,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (fnlen   (archive-l-e (+ p 28) 2))
              (exlen   (archive-l-e (+ p 30) 2))
              (fclen   (archive-l-e (+ p 32) 2))
-             (lheader (archive-l-e (+ p 42) 4))
+             ;; (lheader (archive-l-e (+ p 42) 4))
              (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
 			(decode-coding-string
 			 str archive-file-name-coding-system)))
@@ -1826,9 +1839,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 					  (logand 1 (get-byte (+ p 38))))
 					 ?\222 0)))
 			    (t nil)))
-	     (modestr (if mode (archive-int-to-mode mode) "??????????"))
+	     (modestr (archive-int-to-mode mode))
 	     (fiddle  (and archive-zip-case-fiddle
-			   (not (not (memq creator '(0 2 4 5 9))))
+			   (memq creator '(0 2 4 5 9))
 			   (string= (upcase efnname) efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (width (string-width ifnname))
@@ -1847,8 +1860,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   visual)
 	      files (cons (if isdir
 			      nil
-			    (archive-zip--file-desc efnname ifnname fiddle mode
-				                    (list (1- p) lheader)))
+			    (archive-zip--file-desc efnname ifnname mode
+				                    (1- p)))
                           files)
               p (+ p 46 fnlen exlen fclen))))
     (goto-char (point-min))
@@ -1889,6 +1902,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
        name)
      archive-zip-extract))))
 
+(defun archive--file-desc-case-fiddled (fd)
+  (not (eq (archive--file-desc-int-file-name fd)
+           (archive--file-desc-ext-file-name fd))))
+
 (defun archive-zip-write-file-member (archive descr)
   (archive-*-write-file-member
    archive
@@ -1902,7 +1919,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (widen)
       (dolist (fil files)
 	(let* ((p (+ archive-proper-file-start
-	             (car (archive-zip--file-desc-pos+len fil))))
+	             (archive-zip--file-desc-pos fil)))
 	       (creator (get-byte (+ p 5)))
 	       (oldmode (archive--file-desc-mode fil))
 	       (newval  (archive-calc-mode oldmode newmode))
@@ -1921,14 +1938,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         ))))
 ;; -------------------------------------------------------------------------
 ;;; Section: Zoo Archives
-
-(cl-defstruct (archive-zoo--file-desc
-               (:include archive--file-desc)
-               (:constructor nil)
-               (:constructor archive-zoo--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               pos)))
-  pos)
 
 (defun archive-zoo-summarize ()
   (let ((p (1+ (archive-l-e 25 4)))
@@ -1977,9 +1986,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			    (length text))
 			   visual)
 	      ;; FIXME: Keep size/date(/mode?) in the desc!
-	      files (cons (archive-zoo--file-desc
-                           ;; FIXME: The `pos' field seems unused!
-                           efnname ifnname fiddle nil (1- p))
+	      files (cons (archive--file-desc efnname ifnname nil)
                           files)
               p next)))
     (goto-char (point-min))
@@ -2007,8 +2014,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                (:include archive--file-desc)
                (:constructor nil)
                (:constructor archive-rar--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               size ratio date time)))
+                (ext-file-name int-file-name mode size ratio date time)))
   size ratio date time)
 
 (defun archive-rar-summarize (&optional file)
@@ -2036,7 +2042,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
               (size (match-string 1)))
           (if (> (length name) maxname) (setq maxname (length name)))
           (if (> (length size) maxsize) (setq maxsize (length size)))
-          (push (archive-rar--file-desc name name nil nil
+          (push (archive-rar--file-desc name name nil
                                         ;; Size, Ratio.
                                         size (match-string 2)
                                         ;; Date, Time.
@@ -2115,9 +2121,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                (:include archive--file-desc)
                (:constructor nil)
                (:constructor archive-7z--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               time user group size)))
-  time user group size)
+                (ext-file-name int-file-name mode time size)))
+  time size)
 
 (defun archive-7z-summarize ()
   (let ((maxname 10)
@@ -2141,7 +2146,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   (match-string 1)))))
           (if (> (length name) maxname) (setq maxname (length name)))
           (if (> (length size) maxsize) (setq maxsize (length size)))
-          (push (archive-7z--file-desc name name nil nil time nil nil size)
+          (push (archive-7z--file-desc name name nil time size)
                 files))))
     (setq files (nreverse files))
     (goto-char (point-min))
@@ -2187,8 +2192,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                (:include archive--file-desc)
                (:constructor nil)
                (:constructor archive-ar--file-desc
-                (ext-file-name int-file-name case-fiddled mode
-                               time user group size)))
+                (ext-file-name int-file-name mode time user group size)))
   time user group size)
 
 (autoload 'tar-grind-file-mode "tar-mode")
@@ -2232,7 +2236,7 @@ NAME is expected to be the 16-bytes part of an ar record."
         (setq extname (archive-ar--name name))
         (setq user (substring user 0 (string-match " +\\'" user)))
         (setq group (substring group 0 (string-match " +\\'" group)))
-        (setq mode (tar-grind-file-mode mode))
+        (setq mode (archive-int-to-mode mode))
         ;; Move to the end of the data.
         (forward-char size) (if (eq ?\n (char-after)) (forward-char 1))
         (setq size (number-to-string size))
@@ -2242,7 +2246,7 @@ NAME is expected to be the 16-bytes part of an ar record."
         (if (> (length group) maxgroup) (setq maxgroup (length group)))
         (if (> (length mode) maxmode) (setq maxmode (length mode)))
         (if (> (length size) maxsize) (setq maxsize (length size)))
-        (push (archive-ar--file-desc extname extname nil mode
+        (push (archive-ar--file-desc extname extname mode
                                      time user group size)
               files)))
     (setq files (nreverse files))
