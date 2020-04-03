@@ -9471,6 +9471,17 @@ not fully specified.)  */)
   return code_convert_region (start, end, coding_system, destination, 1, 0);
 }
 
+/* Whether a string only contains chars in the 0..127 range.  */
+static bool
+string_ascii_p (Lisp_Object str)
+{
+  ptrdiff_t nbytes = SBYTES (str);
+  for (ptrdiff_t i = 0; i < nbytes; i++)
+    if (SREF (str, i) > 127)
+      return false;
+  return true;
+}
+
 Lisp_Object
 code_convert_string (Lisp_Object string, Lisp_Object coding_system,
 		     Lisp_Object dst_object, bool encodep, bool nocopy,
@@ -9502,7 +9513,21 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
   chars = SCHARS (string);
   bytes = SBYTES (string);
 
-  if (BUFFERP (dst_object))
+  if (EQ (dst_object, Qt))
+    {
+      /* Fast path for ASCII-only input and an ASCII-compatible coding:
+         act as identity.  */
+      Lisp_Object attrs = CODING_ID_ATTRS (coding.id);
+      if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
+          && (STRING_MULTIBYTE (string)
+              ? (chars == bytes) : string_ascii_p (string)))
+	return (nocopy
+                ? string
+                : (encodep
+                   ? make_unibyte_string (SDATA (string), bytes)
+                   : make_multibyte_string (SDATA (string), bytes, bytes)));
+    }
+  else if (BUFFERP (dst_object))
     {
       struct buffer *buf = XBUFFER (dst_object);
       ptrdiff_t buf_pt = BUF_PT (buf);

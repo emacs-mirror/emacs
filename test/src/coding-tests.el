@@ -383,6 +383,17 @@
     (should-not (eq (encode-coding-string s nil nil) s))
     (should (eq (encode-coding-string s nil t) s))))
 
+(ert-deftest coding-nocopy-ascii ()
+  "Check that the NOCOPY parameter works for ASCII-only strings."
+  (let* ((uni (apply #'string (number-sequence 0 127)))
+         (multi (string-to-multibyte uni)))
+    (dolist (s (list uni multi))
+      (dolist (coding '(us-ascii iso-latin-1 utf-8))
+        (should-not (eq (decode-coding-string s coding nil) s))
+        (should-not (eq (encode-coding-string s coding nil) s))
+        (should (eq (decode-coding-string s coding t) s))
+        (should (eq (encode-coding-string s coding t) s))))))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not obsolete)
 ;; End:
