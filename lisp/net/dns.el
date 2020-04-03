@@ -138,7 +138,7 @@ updated.  Set this variable to t to disable the check.")
 
 (defun dns-write (spec &optional tcp-p)
   "Write a DNS packet according to SPEC.
-If TCP-P, the first two bytes of the package with be the length field."
+If TCP-P, the first two bytes of the packet will be the length field."
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (dns-write-bytes (dns-get 'id spec) 2)
@@ -189,13 +189,15 @@ If TCP-P, the first two bytes of the package with be the length field."
       (dns-write-bytes (buffer-size) 2))
     (buffer-string)))
 
-(defun dns-read (packet)
+(defun dns-read (packet &optional tcp-p)
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (let ((spec nil)
           queries answers authorities additionals)
       (insert packet)
-      (goto-char (point-min))
+      ;; When using TCP we have a 2 byte length field to ignore.
+      (goto-char (+ (point-min)
+                    (if tcp-p 2 0)))
       (push (list 'id (dns-read-bytes 2)) spec)
       (let ((byte (dns-read-bytes 1)))
         (push (list 'response-p (if (zerop (logand byte (ash 1 7))) nil t))
@@ -407,23 +409,25 @@ If REVERSEP, look up an IP address."
         nil)
     (with-temp-buffer
       (set-buffer-multibyte nil)
-      (let ((process (condition-case ()
-                         (dns-make-network-process (car dns-servers))
-                       (error
-                        (message
-                         "dns: Got an error while trying to talk to %s"
-                         (car dns-servers))
-                        nil)))
+      (let* ((process (condition-case ()
+                          (dns-make-network-process (car dns-servers))
+                        (error
+                         (message
+                          "dns: Got an error while trying to talk to %s"
+                          (car dns-servers))
+                         nil)))
             (step 100)
             (times (* dns-timeout 1000))
-            (id (random 65000)))
+            (id (random 65000))
+            (tcp-p (and process (not (process-contact process :type)))))
         (when process
           (process-send-string
            process
            (dns-write `((id ,id)
                         (opcode query)
                         (queries ((,name (type ,type))))
-                        (recursion-desired-p t))))
+                        (recursion-desired-p t))
+                      tcp-p))
           (while (and (zerop (buffer-size))
                       (> times 0))
 	    (let ((step-sec (/ step 1000.0)))
@@ -436,7 +440,7 @@ If REVERSEP, look up an IP address."
           (when (and (>= (buffer-size) 2)
                      ;; We had a time-out.
                      (> times 0))
-            (let ((result (dns-read (buffer-string))))
+            (let ((result (dns-read (buffer-string) tcp-p)))
               (if fullp
                   result
                 (let ((answer (car (dns-get 'answers result))))
