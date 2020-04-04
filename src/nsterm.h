@@ -439,7 +439,6 @@ typedef id instancetype;
 #endif
 @public
    struct frame *emacsframe;
-   int rows, cols;
    int scrollbarsNeedingUpdate;
    EmacsToolbar *toolbar;
    NSRect ns_userRect;
@@ -458,11 +457,9 @@ typedef id instancetype;
 /* Emacs-side interface */
 - (instancetype) initFrameFromEmacs: (struct frame *) f;
 - (void) createToolbar: (struct frame *)f;
-- (void) setRows: (int) r andColumns: (int) c;
 - (void) setWindowClosing: (BOOL)closing;
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
-- (void) updateFrameSize: (BOOL) delay;
 - (void) handleFS;
 - (void) setFSValue: (int)value;
 - (void) toggleFullScreen: (id) sender;
@@ -1083,18 +1080,6 @@ struct x_output
   (WINDOW_HAS_HORIZONTAL_SCROLL_BARS (w) ?		\
    (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)	\
     - NS_SCROLL_BAR_HEIGHT (f)) : 0)
-
-/* Calculate system coordinates of the left and top of the parent
-   window or, if there is no parent window, the screen.  */
-#define NS_PARENT_WINDOW_LEFT_POS(f)                                    \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.origin.x : 0)
-#define NS_PARENT_WINDOW_TOP_POS(f)                                     \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? ([FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.origin.y    \
-      + [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.size.height \
-      - FRAME_NS_TITLEBAR_HEIGHT (FRAME_PARENT_FRAME (f)))              \
-   : [[[NSScreen screens] objectAtIndex: 0] frame].size.height)
 
 #define FRAME_NS_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
 

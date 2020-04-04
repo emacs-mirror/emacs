@@ -1141,8 +1141,6 @@ update_frame_tool_bar (struct frame *f)
     }
 #endif
 
-  if (oldh != FRAME_TOOLBAR_HEIGHT (f))
-    [view updateFrameSize:YES];
   if (view->wait_for_tool_bar && FRAME_TOOLBAR_HEIGHT (f) > 0)
     {
       view->wait_for_tool_bar = NO;
