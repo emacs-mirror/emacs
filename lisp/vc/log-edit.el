@@ -529,7 +529,7 @@ according to `fill-column'."
          (and (< beg end)
               (re-search-forward
                (concat "\\(?1:" change-log-unindented-file-names-re
-                       "\\)\\|^\\(?1:\\)(")
+                       "\\)\\|^\\(?1:\\)[[:blank:]]*(")
                end t)
               (copy-marker (match-end 1)))
          ;; Fill prose between log entries.
