@@ -101,6 +101,7 @@ typedef struct {
   gcc_jit_type *long_long_type;
   gcc_jit_type *unsigned_long_long_type;
   gcc_jit_type *emacs_int_type;
+  gcc_jit_type *emacs_uint_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *char_ptr_type;
   gcc_jit_type *ptrdiff_type;
@@ -155,8 +156,6 @@ typedef struct {
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
   gcc_jit_lvalue ***arrays;  /* Array index -> gcc_jit_lvalue **. */
-  gcc_jit_rvalue *most_positive_fixnum;
-  gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
   gcc_jit_rvalue *inttypebits;
   gcc_jit_rvalue *lisp_int0;
@@ -631,6 +630,85 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 				       dest_field);
 }
 
+
+/* Should come with libgccjit.  */
+
+static gcc_jit_rvalue *
+emit_rvalue_from_long_long (long long n)
+{
+#ifndef WIDE_EMACS_INT
+  xsignal1 (Qnative_ice,
+	    build_string ("emit_rvalue_from_long_long called in non wide int"
+			  " configuration"));
+#endif
+
+  emit_comment (format_string ("emit long long: %lld", n));
+
+  gcc_jit_rvalue *high =
+    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					  comp.unsigned_long_long_type,
+					  (unsigned long long)n >> 32);
+  gcc_jit_rvalue *low =
+    emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
+		    comp.unsigned_long_long_type,
+		    emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
+				    comp.unsigned_long_long_type,
+				    gcc_jit_context_new_rvalue_from_long (
+				      comp.ctxt,
+				      comp.unsigned_long_long_type,
+				      n),
+				    gcc_jit_context_new_rvalue_from_int (
+				      comp.ctxt,
+				      comp.unsigned_long_long_type,
+				      32)),
+		    gcc_jit_context_new_rvalue_from_int (
+		      comp.ctxt,
+		      comp.unsigned_long_long_type,
+		      32));
+
+  return
+    emit_cast (comp.long_long_type,
+      gcc_jit_context_new_binary_op (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_BITWISE_OR,
+	comp.unsigned_long_long_type,
+	gcc_jit_context_new_binary_op (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_LSHIFT,
+	comp.unsigned_long_long_type,
+	high,
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.unsigned_long_long_type,
+					     32)),
+	low));
+}
+
+static gcc_jit_rvalue *
+emit_most_positive_fixnum (void)
+{
+#if EMACS_INT_MAX > LONG_MAX
+  return emit_rvalue_from_long_long (MOST_POSITIVE_FIXNUM);
+#else
+  return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					       comp.emacs_int_type,
+					       MOST_POSITIVE_FIXNUM);
+#endif
+}
+
+static gcc_jit_rvalue *
+emit_most_negative_fixnum (void)
+{
+#if EMACS_INT_MAX > LONG_MAX
+  return emit_rvalue_from_long_long (MOST_NEGATIVE_FIXNUM);
+#else
+  return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					       comp.emacs_int_type,
+					       MOST_NEGATIVE_FIXNUM);
+#endif
+}
+
 /*
    Emit the equivalent of:
    (typeof_ptr) ((uintptr) ptr + size_of_ptr_ref * i)
@@ -700,22 +778,38 @@ emit_lval_XLP (gcc_jit_lvalue *obj)
 				      comp.lisp_obj_as_ptr);
 } */
 static gcc_jit_rvalue *
-emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, ptrdiff_t lisp_word_tag)
+emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, long long lisp_word_tag)
 {
   /* #define XUNTAG(a, type, ctype) ((ctype *)
      ((char *) XLP (a) - LISP_WORD_TAG (type))) */
   emit_comment ("XUNTAG");
 
-  return emit_cast (gcc_jit_type_get_pointer (type),
+#ifndef WIDE_EMACS_INT
+  return emit_cast (
+	   gcc_jit_type_get_pointer (type),
 	   gcc_jit_context_new_binary_op (
 	     comp.ctxt,
 	     NULL,
 	     GCC_JIT_BINARY_OP_MINUS,
 	     comp.emacs_int_type,
 	     emit_XLI (a),
-	     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						  comp.emacs_int_type,
-						  lisp_word_tag)));
+	     gcc_jit_context_new_rvalue_from_int (
+	       comp.ctxt,
+	       comp.emacs_int_type,
+	       lisp_word_tag)));
+#else
+  return emit_cast (
+	   gcc_jit_type_get_pointer (type),
+	     gcc_jit_context_new_binary_op (
+	       comp.ctxt,
+	       NULL,
+	       GCC_JIT_BINARY_OP_MINUS,
+	       comp.unsigned_long_long_type,
+	       /* FIXME Should be XLP.  */
+	       emit_cast (comp.unsigned_long_long_type, emit_XLI (a)),
+	       emit_cast (comp.unsigned_long_long_type,
+			  emit_rvalue_from_long_long (lisp_word_tag))));
+#endif
 }
 
 static gcc_jit_rvalue *
@@ -886,13 +980,31 @@ static gcc_jit_rvalue *
 emit_XFIXNUM (gcc_jit_rvalue *obj)
 {
   emit_comment ("XFIXNUM");
+  gcc_jit_rvalue *i = emit_cast (comp.emacs_uint_type, emit_XLI (obj));
 
-  return gcc_jit_context_new_binary_op (comp.ctxt,
-					NULL,
-					GCC_JIT_BINARY_OP_RSHIFT,
-					comp.emacs_int_type,
-					emit_XLI (obj),
-					comp.inttypebits);
+  if (!USE_LSB_TAG)
+    {
+      i = gcc_jit_context_new_binary_op (comp.ctxt,
+					 NULL,
+					 GCC_JIT_BINARY_OP_LSHIFT,
+					 comp.emacs_uint_type,
+					 emit_cast (comp.emacs_uint_type, i),
+					 comp.inttypebits);
+
+      return gcc_jit_context_new_binary_op (comp.ctxt,
+					    NULL,
+					    GCC_JIT_BINARY_OP_RSHIFT,
+					    comp.emacs_int_type,
+					    i,
+					    comp.inttypebits);
+    }
+  else
+    return gcc_jit_context_new_binary_op (comp.ctxt,
+					  NULL,
+					  GCC_JIT_BINARY_OP_LSHIFT,
+					  comp.emacs_int_type,
+					  i,
+					  comp.inttypebits);
 }
 
 static gcc_jit_rvalue *
@@ -924,16 +1036,20 @@ emit_NUMBERP (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_make_fixnum (gcc_jit_rvalue *obj)
+emit_make_fixnum_LSB_TAG (gcc_jit_rvalue *n)
 {
-  emit_comment ("make_fixnum");
+  /*
+    EMACS_UINT u = n;
+    n = u << INTTYPEBITS;
+    n += int0;
+  */
 
   gcc_jit_rvalue *tmp =
     gcc_jit_context_new_binary_op (comp.ctxt,
 				   NULL,
 				   GCC_JIT_BINARY_OP_LSHIFT,
 				   comp.emacs_int_type,
-				   obj,
+				   emit_cast (comp.emacs_uint_type, n),
 				   comp.inttypebits);
 
   tmp = gcc_jit_context_new_binary_op (comp.ctxt,
@@ -954,6 +1070,55 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
 				tmp);
 
   return gcc_jit_lvalue_as_rvalue (res);
+}
+
+static gcc_jit_rvalue *
+emit_make_fixnum_MSB_TAG (gcc_jit_rvalue *n)
+{
+  /*
+    n &= INTMASK;
+    n += (int0 << VALBITS);
+    return XIL (n);
+  */
+
+  gcc_jit_rvalue *intmask =
+    emit_cast (comp.emacs_uint_type,
+	       emit_rvalue_from_long_long ((EMACS_INT_MAX
+					    >> (INTTYPEBITS - 1))));
+  n = gcc_jit_context_new_binary_op (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_BITWISE_AND,
+	comp.emacs_uint_type,
+	intmask,
+	emit_cast (comp.emacs_uint_type, n));
+
+  n = gcc_jit_context_new_binary_op (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_PLUS,
+	comp.emacs_uint_type,
+	gcc_jit_context_new_binary_op (
+	  comp.ctxt,
+	  NULL,
+	  GCC_JIT_BINARY_OP_LSHIFT,
+	  comp.emacs_uint_type,
+	  emit_cast (comp.emacs_uint_type, comp.lisp_int0),
+	  gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					       comp.emacs_uint_type,
+					       VALBITS)),
+	n);
+  return emit_XLI (emit_cast (comp.emacs_int_type, n));
+}
+
+
+static gcc_jit_rvalue *
+emit_make_fixnum (gcc_jit_rvalue *obj)
+{
+  emit_comment ("make_fixnum");
+  return USE_LSB_TAG
+    ? emit_make_fixnum_LSB_TAG (obj)
+    : emit_make_fixnum_MSB_TAG (obj);
 }
 
 static gcc_jit_rvalue *
@@ -1188,9 +1353,11 @@ emit_mvar_val (Lisp_Object mvar)
 	     word (read fixnums).  */
 	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
 	  gcc_jit_rvalue *word =
-	    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
-						 comp.void_ptr_type,
-						 constant);
+	    (sizeof (MOST_POSITIVE_FIXNUM) > sizeof (void *))
+	    ? emit_rvalue_from_long_long (constant)
+	    : gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+						    comp.void_ptr_type,
+						    constant);
 	  return emit_cast (comp.lisp_obj_type, word);
 	}
       /* Other const objects are fetched from the reloc array.  */
@@ -2574,8 +2741,6 @@ define_add1_sub1 (void)
   gcc_jit_function *func[2];
   char const *f_name[] = { "add1", "sub1" };
   char const *fall_back_func[] = { "1+", "1-" };
-  gcc_jit_rvalue *compare[] =
-    { comp.most_positive_fixnum, comp.most_negative_fixnum };
   enum gcc_jit_binary_op op[] =
     { GCC_JIT_BINARY_OP_PLUS, GCC_JIT_BINARY_OP_MINUS };
   for (ptrdiff_t i = 0; i < 2; i++)
@@ -2630,7 +2795,9 @@ define_add1_sub1 (void)
 					  NULL,
 					  GCC_JIT_COMPARISON_NE,
 					  n_fixnum,
-					  compare[i])),
+					  i == 0
+					  ? emit_most_positive_fixnum ()
+					  : emit_most_negative_fixnum ())),
 	inline_block,
 	fcall_block);
 
@@ -2712,7 +2879,7 @@ define_negate (void)
 				      NULL,
 				      GCC_JIT_COMPARISON_NE,
 				      n_fixnum,
-				      comp.most_negative_fixnum)),
+				      emit_most_negative_fixnum ())),
     inline_block,
     fcall_block);
 
@@ -3127,25 +3294,20 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
 						      sizeof (EMACS_INT),
 						      true);
+  comp.emacs_uint_type = gcc_jit_context_get_int_type (comp.ctxt,
+						       sizeof (EMACS_UINT),
+						       false);
   /* No XLP is emitted for now so lets define this always as integer
      disregarding LISP_WORDS_ARE_POINTERS value.  */
   comp.lisp_obj_type = comp.emacs_int_type;
   comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
-  comp.most_positive_fixnum =
-    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.emacs_int_type,
-					  MOST_POSITIVE_FIXNUM);
-  comp.most_negative_fixnum =
-    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.emacs_int_type,
-					  MOST_NEGATIVE_FIXNUM);
   comp.one =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					 comp.emacs_int_type,
 					 1);
   comp.inttypebits =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.emacs_int_type,
+					 comp.emacs_uint_type,
 					 INTTYPEBITS);
   comp.lisp_int0 =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
