@@ -411,15 +411,19 @@ typedef EMACS_INT Lisp_Word;
 # define lisp_h_XTYPE(a) ((enum Lisp_Type) (XLI (a) & ~VALMASK))
 #endif
 
-/* When compiling via gcc -O0, define the key operations as macros, as
-   Emacs is too slow otherwise.  To disable this optimization, compile
-   with -DINLINING=false.  */
-#if (defined __NO_INLINE__ \
-     && ! defined __OPTIMIZE__ && ! defined __OPTIMIZE_SIZE__ \
-     && ! (defined INLINING && ! INLINING))
-# define DEFINE_KEY_OPS_AS_MACROS true
-#else
-# define DEFINE_KEY_OPS_AS_MACROS false
+/* When DEFINE_KEY_OPS_AS_MACROS, define key operations as macros to
+   cajole the compiler into inlining them; otherwise define them as
+   inline functions as this is cleaner and can be more efficient.
+   The default is true if the compiler is GCC-like and if function
+   inlining is disabled because the compiler is not optimizing or is
+   optimizing for size.  Otherwise the default is false.  */
+#ifndef DEFINE_KEY_OPS_AS_MACROS
+# if (defined __NO_INLINE__ \
+      && ! defined __OPTIMIZE__ && ! defined __OPTIMIZE_SIZE__)
+#  define DEFINE_KEY_OPS_AS_MACROS true
+# else
+#  define DEFINE_KEY_OPS_AS_MACROS false
+# endif
 #endif
 
 #if DEFINE_KEY_OPS_AS_MACROS

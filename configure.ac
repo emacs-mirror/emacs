@@ -938,6 +938,13 @@ if test "$ac_test_CFLAGS" != set; then
   esac
 fi
 
+case "$GCC, $CFLAGS " in
+  yes,*' -Og '*)
+    AC_DEFINE([DEFINE_KEY_OPS_AS_MACROS], 1,
+      [Define to 1 if key low-level operations should be C macros
+       instead of inline functions.])
+esac
+
 # gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
 # ---------------------------------------------------------------------------
 # If $CPP is gcc-MAJOR.MINOR or newer, then run RUN-IF-FOUND.
