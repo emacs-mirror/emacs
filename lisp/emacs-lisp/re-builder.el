@@ -767,22 +767,21 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
      (reb-mark-non-matching-parenthesis))
     nil)))
 
-(defsubst reb-while (limit counter where)
-  (let ((count (symbol-value counter)))
-    (if (= count limit)
-        (progn
-          (message "Reached (while limit=%s, where=%s)" limit where)
-          nil)
-      (set counter (1+ count)))))
+(defsubst reb-while (limit current where)
+  (if (< current limit)
+      (1+ current)
+    (message "Reached (while limit=%s, where=%s)" limit where)
+    nil))
 
 (defun reb-mark-non-matching-parenthesis (bound)
   ;; We have a small string, check the whole of it, but wait until
   ;; everything else is fontified.
   (when (>= bound (point-max))
-    (let (left-pars
+    (let ((n-reb 0)
+          left-pars
           faces-here)
       (goto-char (point-min))
-      (while (and (reb-while 100 'n-reb "mark-par")
+      (while (and (setq n-reb (reb-while 100 n-reb "mark-par"))
                   (not (eobp)))
         (skip-chars-forward "^()")
         (unless (eobp)
