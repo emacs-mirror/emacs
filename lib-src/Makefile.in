@@ -231,8 +231,6 @@ BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
-## Unused.
-LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
 # Configuration files for .o files to depend on.

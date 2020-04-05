@@ -1850,7 +1850,8 @@ static char *magick[] = {
    "\\|def\\(i\\(ne?\\)?\\)?\\|doc\\(u\\(m\\(e\\(nt?\\)?\\)?\\)?\\)?\\|"
    gdb-python-guile-commands-regexp
    "\\|while-stepping\\|stepp\\(i\\(ng?\\)?\\)?\\|ws\\|actions"
-   "\\)\\([[:blank:]]+\\([^[:blank:]]*\\)\\)?$")
+   "\\|expl\\(o\\(r\\e?\\)?\\)?"
+   "\\)\\([[:blank:]]+\\([^[:blank:]]*\\)\\)*$")
   "Regexp matching GDB commands that enter a recursive reading loop.
 As long as GDB is in the recursive reading loop, it does not expect
 commands to be prefixed by \"-interpreter-exec console\".")
@@ -2508,7 +2509,13 @@ file names include non-ASCII characters."
 
   gdb-filter-output)
 
-(defun gdb-gdb (_output-field))
+(defun gdb-gdb (_output-field)
+  ;; This is needed because the "explore" command is not ended by the
+  ;; likes of "end" or "quit", but instead by a RET at the approriate
+  ;; place, and we know we have exited "explore" when we get the
+  ;; "(gdb)" prompt.
+  (and (> gdb-control-level 0)
+       (setq gdb-control-level (1- gdb-control-level))))
 
 (defun gdb-shell (output-field)
   (setq gdb-filter-output

@@ -1560,7 +1560,7 @@ is given, in which case return its value instead."
     ;; return it to the caller. Since there will most definitely be something to
     ;; return in this case, there's no need to know/check if a match was found.
     (if defaults
-	(append result defaults)
+	(append defaults result)
       (if match-found
 	  result
 	no-match-retval))))

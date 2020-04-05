@@ -11685,7 +11685,16 @@ comment at the start of cc-engine.el for more info."
 				     (not (c-in-literal))
 				     ))))
 			   nil)
-			  (t t))))))
+			  (t t)))))
+		((and
+		  (c-major-mode-is 'c++-mode)
+		  (eq (char-after) ?\[)
+		 ;; Be careful of "operator []"
+		  (not (save-excursion
+			 (c-backward-token-2 1 nil lim)
+			 (looking-at c-opt-op-identifier-prefix))))
+		 (setq braceassignp t)
+		 nil))
 	  (when (eq braceassignp 'dontknow)
 	    (cond ((and
 		    (not (eq (char-after) ?,))
@@ -12057,7 +12066,7 @@ comment at the start of cc-engine.el for more info."
 			 (c-backward-token-2 1 nil lim)
 			 (and
 			  (not (and (c-on-identifier)
-				    (looking-at c-symbol-chars)))
+				    (looking-at c-symbol-char-key)))
 			  (not (looking-at c-opt-op-identifier-prefix)))))))
 	    (cons 'inlambda bracket-pos))
 	   ((and c-recognize-paren-inexpr-blocks
