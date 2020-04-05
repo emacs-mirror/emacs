@@ -362,9 +362,9 @@ file.  Archive and member name will be added."
 ;;; Section: Variables
 
 (defvar archive-subtype nil "Symbol describing archive type.")
-(defvar archive-file-list-start nil "Position of first contents line.")
-(defvar archive-file-list-end nil "Position just after last contents line.")
-(defvar archive-proper-file-start nil "Position of real archive's start.")
+(defvar-local archive-file-list-start nil "Position of first contents line.")
+(defvar-local archive-file-list-end nil "Position just after last contents line.")
+(defvar-local archive-proper-file-start nil "Position of real archive's start.")
 (defvar archive-read-only nil "Non-nil if the archive is read-only on disk.")
 (defvar-local archive-local-name nil "Name of local copy of remote archive.")
 (defvar archive-mode-map
@@ -468,18 +468,15 @@ file.  Archive and member name will be added."
                   :help "Delete all flagged files from archive"))
     map)
   "Local keymap for archive mode listings.")
-(defvar archive-file-name-indent nil "Column where file names start.")
+(defvar-local archive-file-name-indent nil "Column where file names start.")
 
-(defvar archive-remote nil "Non-nil if the archive is outside file system.")
-(make-variable-buffer-local 'archive-remote)
+(defvar-local archive-remote nil "Non-nil if the archive is outside file system.")
 (put 'archive-remote 'permanent-local t)
 
-(defvar archive-member-coding-system nil "Coding-system of archive member.")
-(make-variable-buffer-local 'archive-member-coding-system)
+(defvar-local archive-member-coding-system nil "Coding-system of archive member.")
 
-(defvar archive-alternate-display nil
+(defvar-local archive-alternate-display nil
   "Non-nil when alternate information is shown.")
-(make-variable-buffer-local 'archive-alternate-display)
 (put 'archive-alternate-display 'permanent-local t)
 
 (defvar archive-superior-buffer nil "In archive members, points to archive.")
@@ -490,8 +487,7 @@ file.  Archive and member name will be added."
 Its value is an `archive--file-desc'.")
 (put 'archive-subfile-mode 'permanent-local t)
 
-(defvar archive-file-name-coding-system nil)
-(make-variable-buffer-local 'archive-file-name-coding-system)
+(defvar-local archive-file-name-coding-system nil)
 (put 'archive-file-name-coding-system 'permanent-local t)
 
 (cl-defstruct (archive--file-desc
@@ -522,9 +518,8 @@ Its value is an `archive--file-desc'.")
 ;;
 ;; LZH has alternate display (with UID/GID i.s.o MODE/DATE/TIME
 
-(defvar archive-files nil
+(defvar-local archive-files nil
   "Vector of `archive--file-desc' objects.")
-(make-variable-buffer-local 'archive-files)
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Support functions.
@@ -642,7 +637,7 @@ Does not signal an error if optional argument NOERROR is non-nil."
 	             (zerop (logand 16384 mode))))
 	      item
 	    (if (not noerror)
-		(error "Entry is not a regular member of the archive"))))
+		(user-error "Entry is not a regular member of the archive"))))
       (if (not noerror)
           (error "Line does not describe a member of the archive")))))
 ;; -------------------------------------------------------------------------
@@ -708,10 +703,6 @@ archive.
 	(run-mode-hooks (archive-name "mode-hook") 'archive-mode-hook)
 	(use-local-map archive-mode-map))
 
-      (make-local-variable 'archive-proper-file-start)
-      (make-local-variable 'archive-file-list-start)
-      (make-local-variable 'archive-file-list-end)
-      (make-local-variable 'archive-file-name-indent)
       (setq archive-file-name-coding-system
 	    (or file-name-coding-system
 		default-file-name-coding-system
@@ -901,6 +892,7 @@ using `make-temp-file', and the generated name is returned."
 	    (lno (archive-get-lineno))
 	    (inhibit-read-only t))
 	(if unchanged nil
+	  ;; FIXME: Use archive-resummarize?
 	  (setq archive-files nil)
 	  (erase-buffer)
 	  (insert-file-contents name)
@@ -1021,8 +1013,7 @@ using `make-temp-file', and the generated name is returned."
                 (abbreviate-file-name buffer-file-name))
           ;; Set the default-directory to the dir of the superior buffer.
           (setq default-directory arcdir)
-          (make-local-variable 'archive-superior-buffer)
-          (setq archive-superior-buffer archive-buffer)
+          (setq-local archive-superior-buffer archive-buffer)
           (add-hook 'write-file-functions #'archive-write-file-member nil t)
           (setq archive-subfile-mode descr)
 	  (setq archive-file-name-coding-system file-name-coding)
