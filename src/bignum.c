@@ -465,5 +465,5 @@ int
 check_int_nonnegative (Lisp_Object x)
 {
   CHECK_INTEGER (x);
-  return Fnatnump (x) ? check_integer_range (x, 0, INT_MAX) : 0;
+  return NILP (Fnatnump (x)) ? 0 : check_integer_range (x, 0, INT_MAX);
 }
