@@ -635,6 +635,18 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 				       dest_field);
 }
 
+static gcc_jit_rvalue *
+emit_binary_op (enum gcc_jit_binary_op op,
+		gcc_jit_type *result_type,
+		gcc_jit_rvalue *a, gcc_jit_rvalue *b)
+{
+  /* FIXME Check here for possible UB.  */
+  return gcc_jit_context_new_binary_op (comp.ctxt, NULL,
+					op,
+					result_type,
+					emit_coerce (result_type, a),
+					emit_coerce (result_type, b));
+}
 
 /* Should come with libgccjit.  */
 
@@ -673,20 +685,16 @@ emit_rvalue_from_long_long (long long n)
 
   return
     emit_coerce (comp.long_long_type,
-      gcc_jit_context_new_binary_op (
-	comp.ctxt,
-	NULL,
+      emit_binary_op (
 	GCC_JIT_BINARY_OP_BITWISE_OR,
 	comp.unsigned_long_long_type,
-	gcc_jit_context_new_binary_op (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_BINARY_OP_LSHIFT,
-	comp.unsigned_long_long_type,
-	high,
-	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.unsigned_long_long_type,
-					     32)),
+	emit_binary_op (
+	  GCC_JIT_BINARY_OP_LSHIFT,
+	  comp.unsigned_long_long_type,
+	  high,
+	  gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					       comp.unsigned_long_long_type,
+					       32)),
 	low));
 }
 
@@ -726,25 +734,21 @@ emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type,
   emit_comment ("ptr_arithmetic");
 
   gcc_jit_rvalue *offset =
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
+    emit_binary_op (
       GCC_JIT_BINARY_OP_MULT,
       comp.uintptr_type,
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.uintptr_type,
 					   size_of_ptr_ref),
-      emit_coerce (comp.uintptr_type, i));
+       i);
 
   return
     emit_coerce (
       ptr_type,
-      gcc_jit_context_new_binary_op (
-        comp.ctxt,
-	NULL,
+      emit_binary_op (
 	GCC_JIT_BINARY_OP_PLUS,
 	comp.uintptr_type,
-	emit_coerce (comp.uintptr_type, ptr),
+	ptr,
 	offset));
 }
 
@@ -792,9 +796,7 @@ emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, long long lisp_word_tag)
 #ifndef WIDE_EMACS_INT
   return emit_coerce (
 	   gcc_jit_type_get_pointer (type),
-	   gcc_jit_context_new_binary_op (
-	     comp.ctxt,
-	     NULL,
+	   emit_binary_op (
 	     GCC_JIT_BINARY_OP_MINUS,
 	     comp.emacs_int_type,
 	     emit_XLI (a),
@@ -805,15 +807,12 @@ emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, long long lisp_word_tag)
 #else
   return emit_coerce (
 	   gcc_jit_type_get_pointer (type),
-	     gcc_jit_context_new_binary_op (
-	       comp.ctxt,
-	       NULL,
-	       GCC_JIT_BINARY_OP_MINUS,
-	       comp.unsigned_long_long_type,
-	       /* FIXME Should be XLP.  */
-	       emit_coerce (comp.unsigned_long_long_type, emit_XLI (a)),
-	       emit_coerce (comp.unsigned_long_long_type,
-			    emit_rvalue_from_long_long (lisp_word_tag))));
+	   emit_binary_op (
+	     GCC_JIT_BINARY_OP_MINUS,
+	     comp.unsigned_long_long_type,
+	     /* FIXME Should be XLP.  */
+	     emit_XLI (a),
+	     emit_rvalue_from_long_long (lisp_word_tag)));
 #endif
 }
 
@@ -849,9 +848,7 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, ptrdiff_t tag)
   emit_comment ("TAGGEDP");
 
   gcc_jit_rvalue *sh_res =
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
+    emit_binary_op (
       GCC_JIT_BINARY_OP_RSHIFT,
       comp.emacs_int_type,
       emit_XLI (obj),
@@ -860,15 +857,14 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, ptrdiff_t tag)
 					   (USE_LSB_TAG ? 0 : VALBITS)));
 
   gcc_jit_rvalue *minus_res =
-    gcc_jit_context_new_binary_op (comp.ctxt,
-				   NULL,
-				   GCC_JIT_BINARY_OP_MINUS,
-				   comp.unsigned_type,
-				   emit_coerce (comp.unsigned_type, sh_res),
-				   gcc_jit_context_new_rvalue_from_int (
-				     comp.ctxt,
-				     comp.unsigned_type,
-				     tag));
+    emit_binary_op (
+      GCC_JIT_BINARY_OP_MINUS,
+	   comp.unsigned_type,
+	   sh_res,
+	   gcc_jit_context_new_rvalue_from_int (
+	     comp.ctxt,
+	     comp.unsigned_type,
+	     tag));
 
   gcc_jit_rvalue *res =
    gcc_jit_context_new_unary_op (
@@ -876,15 +872,14 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, ptrdiff_t tag)
      NULL,
      GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
      comp.int_type,
-     gcc_jit_context_new_binary_op (comp.ctxt,
-				    NULL,
-				    GCC_JIT_BINARY_OP_BITWISE_AND,
-				    comp.unsigned_type,
-				    minus_res,
-				    gcc_jit_context_new_rvalue_from_int (
-				      comp.ctxt,
-				      comp.unsigned_type,
-				      ((1 << GCTYPEBITS) - 1))));
+     emit_binary_op (
+       GCC_JIT_BINARY_OP_BITWISE_AND,
+       comp.unsigned_type,
+       minus_res,
+       gcc_jit_context_new_rvalue_from_int (
+	 comp.ctxt,
+	 comp.unsigned_type,
+	 ((1 << GCTYPEBITS) - 1))));
 
   return res;
 }
@@ -941,9 +936,7 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
   emit_comment ("FIXNUMP");
 
   gcc_jit_rvalue *sh_res =
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
+    emit_binary_op (
       GCC_JIT_BINARY_OP_RSHIFT,
       comp.emacs_int_type,
       emit_XLI (obj),
@@ -952,15 +945,14 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
 					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
 
   gcc_jit_rvalue *minus_res =
-    gcc_jit_context_new_binary_op (comp.ctxt,
-				   NULL,
-				   GCC_JIT_BINARY_OP_MINUS,
-				   comp.unsigned_type,
-				   emit_coerce (comp.unsigned_type, sh_res),
-				   gcc_jit_context_new_rvalue_from_int (
-				     comp.ctxt,
-				     comp.unsigned_type,
-				     (Lisp_Int0 >> !USE_LSB_TAG)));
+    emit_binary_op (
+      GCC_JIT_BINARY_OP_MINUS,
+	   comp.unsigned_type,
+	   sh_res,
+	   gcc_jit_context_new_rvalue_from_int (
+	     comp.ctxt,
+	     comp.unsigned_type,
+	     (Lisp_Int0 >> !USE_LSB_TAG)));
 
   gcc_jit_rvalue *res =
    gcc_jit_context_new_unary_op (
@@ -968,15 +960,14 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
      NULL,
      GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
      comp.int_type,
-     gcc_jit_context_new_binary_op (comp.ctxt,
-				    NULL,
-				    GCC_JIT_BINARY_OP_BITWISE_AND,
-				    comp.unsigned_type,
-				    minus_res,
-				    gcc_jit_context_new_rvalue_from_int (
-				      comp.ctxt,
-				      comp.unsigned_type,
-				      ((1 << INTTYPEBITS) - 1))));
+     emit_binary_op (
+       GCC_JIT_BINARY_OP_BITWISE_AND,
+       comp.unsigned_type,
+       minus_res,
+       gcc_jit_context_new_rvalue_from_int (
+	 comp.ctxt,
+	 comp.unsigned_type,
+	 ((1 << INTTYPEBITS) - 1))));
 
   return res;
 }
@@ -989,27 +980,21 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
 
   if (!USE_LSB_TAG)
     {
-      i = gcc_jit_context_new_binary_op (comp.ctxt,
-					 NULL,
-					 GCC_JIT_BINARY_OP_LSHIFT,
-					 comp.emacs_uint_type,
-					 emit_coerce (comp.emacs_uint_type, i),
-					 comp.inttypebits);
+      i = emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
+			  comp.emacs_uint_type,
+			  i,
+			  comp.inttypebits);
 
-      return gcc_jit_context_new_binary_op (comp.ctxt,
-					    NULL,
-					    GCC_JIT_BINARY_OP_RSHIFT,
-					    comp.emacs_int_type,
-					    i,
-					    comp.inttypebits);
+      return emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
+			     comp.emacs_int_type,
+			     i,
+			     comp.inttypebits);
     }
   else
-    return gcc_jit_context_new_binary_op (comp.ctxt,
-					  NULL,
-					  GCC_JIT_BINARY_OP_LSHIFT,
-					  comp.emacs_int_type,
-					  i,
-					  comp.inttypebits);
+    return emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
+			   comp.emacs_int_type,
+			   i,
+			   comp.inttypebits);
 }
 
 static gcc_jit_rvalue *
@@ -1017,13 +1002,10 @@ emit_INTEGERP (gcc_jit_rvalue *obj)
 {
   emit_comment ("INTEGERP");
 
-  return gcc_jit_context_new_binary_op (comp.ctxt,
-					NULL,
-					GCC_JIT_BINARY_OP_LOGICAL_OR,
-					comp.bool_type,
-					emit_coerce (comp.bool_type,
-						     emit_FIXNUMP (obj)),
-					emit_BIGNUMP (obj));
+  return emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_OR,
+			 comp.bool_type,
+			 emit_FIXNUMP (obj),
+			 emit_BIGNUMP (obj));
 }
 
 static gcc_jit_rvalue *
@@ -1031,13 +1013,10 @@ emit_NUMBERP (gcc_jit_rvalue *obj)
 {
   emit_comment ("NUMBERP");
 
-  return gcc_jit_context_new_binary_op (comp.ctxt,
-					NULL,
-					GCC_JIT_BINARY_OP_LOGICAL_OR,
-					comp.bool_type,
-					emit_INTEGERP (obj),
-					emit_coerce (comp.bool_type,
-						     emit_FLOATP (obj)));
+  return emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_OR,
+			 comp.bool_type,
+			 emit_INTEGERP (obj),
+			 emit_FLOATP (obj));
 }
 
 static gcc_jit_rvalue *
@@ -1050,19 +1029,13 @@ emit_make_fixnum_LSB_TAG (gcc_jit_rvalue *n)
   */
 
   gcc_jit_rvalue *tmp =
-    gcc_jit_context_new_binary_op (comp.ctxt,
-				   NULL,
-				   GCC_JIT_BINARY_OP_LSHIFT,
-				   comp.emacs_int_type,
-				   emit_coerce (comp.emacs_uint_type, n),
-				   comp.inttypebits);
+    emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
+		    comp.emacs_int_type,
+		    n, comp.inttypebits);
 
-  tmp = gcc_jit_context_new_binary_op (comp.ctxt,
-				       NULL,
-				       GCC_JIT_BINARY_OP_PLUS,
-				       comp.emacs_int_type,
-				       tmp,
-				       comp.lisp_int0);
+  tmp = emit_binary_op (GCC_JIT_BINARY_OP_PLUS,
+			comp.emacs_int_type,
+			tmp, comp.lisp_int0);
 
   gcc_jit_lvalue *res = gcc_jit_function_new_local (comp.func,
 						    NULL,
@@ -1090,29 +1063,21 @@ emit_make_fixnum_MSB_TAG (gcc_jit_rvalue *n)
     emit_coerce (comp.emacs_uint_type,
 		 emit_rvalue_from_long_long ((EMACS_INT_MAX
 					      >> (INTTYPEBITS - 1))));
-  n = gcc_jit_context_new_binary_op (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_BINARY_OP_BITWISE_AND,
-	comp.emacs_uint_type,
-	intmask,
-	emit_coerce (comp.emacs_uint_type, n));
+  n = emit_binary_op (GCC_JIT_BINARY_OP_BITWISE_AND,
+		      comp.emacs_uint_type,
+		      intmask, n);
 
-  n = gcc_jit_context_new_binary_op (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_BINARY_OP_PLUS,
-	comp.emacs_uint_type,
-	gcc_jit_context_new_binary_op (
-	  comp.ctxt,
-	  NULL,
-	  GCC_JIT_BINARY_OP_LSHIFT,
-	  comp.emacs_uint_type,
-	  emit_coerce (comp.emacs_uint_type, comp.lisp_int0),
-	  gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					       comp.emacs_uint_type,
-					       VALBITS)),
-	n);
+  n =
+    emit_binary_op (GCC_JIT_BINARY_OP_PLUS,
+		    comp.emacs_uint_type,
+		    emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
+				    comp.emacs_uint_type,
+				    comp.lisp_int0,
+				    gcc_jit_context_new_rvalue_from_int (
+				      comp.ctxt,
+				      comp.emacs_uint_type,
+				      VALBITS)),
+		    n);
   return emit_XLI (emit_coerce (comp.emacs_int_type, n));
 }
 
@@ -1321,15 +1286,12 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
       comp.ctxt,
       NULL,
       GCC_JIT_COMPARISON_LE,
-      gcc_jit_context_new_binary_op (
-	comp.ctxt,
-	NULL,
+      emit_binary_op (
 	GCC_JIT_BINARY_OP_MINUS,
 	comp.uintptr_type,
-	emit_coerce (comp.uintptr_type, ptr),
-	emit_coerce (comp.uintptr_type,
-		     gcc_jit_lvalue_as_rvalue (
-		       gcc_jit_rvalue_dereference (comp.pure_ref, NULL)))),
+	ptr,
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference (comp.pure_ref, NULL))),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.uintptr_type,
 					   PURESIZE));
@@ -1611,7 +1573,7 @@ emit_limple_insn (Lisp_Object insn)
       */
       gcc_jit_lvalue *m_handlerlist =
 	gcc_jit_rvalue_dereference_field (
-          gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_lvalue_as_rvalue (
 	    gcc_jit_rvalue_dereference (comp.current_thread_ref, NULL)),
 	  NULL,
 	  comp.m_handlerlist);
@@ -1630,7 +1592,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qfetch_handler))
     {
       gcc_jit_lvalue *m_handlerlist =
-        gcc_jit_rvalue_dereference_field (
+	gcc_jit_rvalue_dereference_field (
 	  gcc_jit_lvalue_as_rvalue (
 	    gcc_jit_rvalue_dereference (comp.current_thread_ref, NULL)),
 	  NULL,
@@ -1641,18 +1603,18 @@ emit_limple_insn (Lisp_Object insn)
 				    gcc_jit_lvalue_as_rvalue (m_handlerlist));
 
       gcc_jit_block_add_assignment (
-        comp.block,
-        NULL,
-        m_handlerlist,
-        gcc_jit_lvalue_as_rvalue (
-          gcc_jit_rvalue_dereference_field (
+	comp.block,
+	NULL,
+	m_handlerlist,
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference_field (
 	    gcc_jit_lvalue_as_rvalue (comp.loc_handler),
 	    NULL,
 	    comp.handler_next_field)));
       emit_frame_assignment (
-        arg[0],
-        gcc_jit_lvalue_as_rvalue (
-          gcc_jit_rvalue_dereference_field (
+	arg[0],
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference_field (
 	    gcc_jit_lvalue_as_rvalue (comp.loc_handler),
 	    NULL,
 	    comp.handler_val_field)));
@@ -1745,12 +1707,10 @@ emit_limple_insn (Lisp_Object insn)
 	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1));
 
       gcc_jit_rvalue *list_args[] =
-	{ gcc_jit_context_new_binary_op (comp.ctxt,
-					 NULL,
-					 GCC_JIT_BINARY_OP_MINUS,
-					 comp.ptrdiff_type,
-					 gcc_jit_lvalue_as_rvalue (nargs),
-					 n),
+	{ emit_binary_op (GCC_JIT_BINARY_OP_MINUS,
+			  comp.ptrdiff_type,
+			  gcc_jit_lvalue_as_rvalue (nargs),
+			  n),
 	  gcc_jit_lvalue_as_rvalue (args) };
 
       res = emit_call (Qlist, comp.lisp_obj_type, 2,
@@ -2124,31 +2084,31 @@ emit_ctxt_code (void)
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
-        comp.ctxt,
-        NULL,
-        GCC_JIT_GLOBAL_EXPORTED,
-        gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
-        CURRENT_THREAD_RELOC_SYM));
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
+	CURRENT_THREAD_RELOC_SYM));
 
   comp.pure_ref =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
-        comp.ctxt,
-        NULL,
-        GCC_JIT_GLOBAL_EXPORTED,
-        gcc_jit_type_get_pointer (comp.void_ptr_type),
-        PURE_RELOC_SYM));
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_type_get_pointer (comp.void_ptr_type),
+	PURE_RELOC_SYM));
 
   gcc_jit_context_new_global (
-        comp.ctxt,
-        NULL,
-        GCC_JIT_GLOBAL_EXPORTED,
-        gcc_jit_type_get_pointer (comp.lisp_obj_ptr_type),
-        COMP_UNIT_SYM);
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_type_get_pointer (comp.lisp_obj_ptr_type),
+	COMP_UNIT_SYM);
 
   declare_imported_data ();
 
-  /* Functions imported from Lisp code.  */
+  /* Functions imported from Lisp code.	 */
   freloc_check_fill ();
   gcc_jit_field **fields = xmalloc (freloc.size * sizeof (*fields));
   ptrdiff_t n_frelocs = 0;
@@ -2621,16 +2581,12 @@ define_CAR_CDR (void)
       DECL_BLOCK (not_a_cons_b, func[i]);
       comp.block = entry_block;
       comp.func = func[i];
-      emit_cond_jump (
-	gcc_jit_context_new_binary_op (comp.ctxt,
-				       NULL,
-				       GCC_JIT_BINARY_OP_LOGICAL_OR,
-				       comp.bool_type,
-				       gcc_jit_param_as_rvalue (param[1]),
-				       emit_coerce (comp.bool_type,
-						    emit_CONSP (c))),
-	is_cons_b,
-	not_a_cons_b);
+      emit_cond_jump (emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_OR,
+				      comp.bool_type,
+				      gcc_jit_param_as_rvalue (param[1]),
+				      emit_CONSP (c)),
+		      is_cons_b,
+		      not_a_cons_b);
       comp.block = is_cons_b;
       if (i == 0)
 	gcc_jit_block_end_with_return (comp.block, NULL, emit_XCAR (c));
@@ -2780,19 +2736,12 @@ define_add1_sub1 (void)
       gcc_jit_rvalue *n = gcc_jit_param_as_rvalue (param[0]);
       gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (n);
       gcc_jit_rvalue *sure_fixnum =
-	gcc_jit_context_new_binary_op (
-	  comp.ctxt,
-	  NULL,
-	  GCC_JIT_BINARY_OP_LOGICAL_OR,
-	  comp.bool_type,
-	  gcc_jit_param_as_rvalue (param[1]),
-	  emit_coerce (comp.bool_type,
-		       emit_FIXNUMP (n)));
-
+	emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_OR,
+			comp.bool_type,
+			gcc_jit_param_as_rvalue (param[1]),
+			emit_FIXNUMP (n));
       emit_cond_jump (
-	gcc_jit_context_new_binary_op (
-	  comp.ctxt,
-	  NULL,
+	emit_binary_op (
 	  GCC_JIT_BINARY_OP_LOGICAL_AND,
 	  comp.bool_type,
 	  sure_fixnum,
@@ -2808,12 +2757,7 @@ define_add1_sub1 (void)
 
       comp.block = inline_block;
       gcc_jit_rvalue *inline_res =
-	gcc_jit_context_new_binary_op (comp.ctxt,
-				       NULL,
-				       op[i],
-				       comp.emacs_int_type,
-				       n_fixnum,
-				       comp.one);
+	emit_binary_op (op[i], comp.emacs_int_type, n_fixnum, comp.one);
 
       gcc_jit_block_end_with_return (inline_block,
 				     NULL,
@@ -2864,29 +2808,22 @@ define_negate (void)
   gcc_jit_lvalue *n = gcc_jit_param_as_lvalue (param[0]);
   gcc_jit_rvalue *n_fixnum = emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (n));
   gcc_jit_rvalue *sure_fixnum =
-	gcc_jit_context_new_binary_op (
-	  comp.ctxt,
-	  NULL,
-	  GCC_JIT_BINARY_OP_LOGICAL_OR,
-	  comp.bool_type,
-	  gcc_jit_param_as_rvalue (param[1]),
-	  emit_coerce (comp.bool_type,
-		       emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (n))));
+    emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_OR,
+		    comp.bool_type,
+		    gcc_jit_param_as_rvalue (param[1]),
+		    emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (n)));
 
-  emit_cond_jump (
-    gcc_jit_context_new_binary_op (
-      comp.ctxt,
-      NULL,
-      GCC_JIT_BINARY_OP_LOGICAL_AND,
-      comp.bool_type,
-      sure_fixnum,
-      gcc_jit_context_new_comparison (comp.ctxt,
-				      NULL,
-				      GCC_JIT_COMPARISON_NE,
-				      n_fixnum,
-				      emit_most_negative_fixnum ())),
-    inline_block,
-    fcall_block);
+  emit_cond_jump (emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_AND,
+				  comp.bool_type,
+				  sure_fixnum,
+				  gcc_jit_context_new_comparison (
+				    comp.ctxt,
+				    NULL,
+				    GCC_JIT_COMPARISON_NE,
+				    n_fixnum,
+				    emit_most_negative_fixnum ())),
+		  inline_block,
+		  fcall_block);
 
   comp.block = inline_block;
   gcc_jit_rvalue *inline_res =
