@@ -9524,8 +9524,8 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
 	return (nocopy
                 ? string
                 : (encodep
-                   ? make_unibyte_string (SDATA (string), bytes)
-                   : make_multibyte_string (SDATA (string), bytes, bytes)));
+                   ? make_unibyte_string (SSDATA (string), bytes)
+                   : make_multibyte_string (SSDATA (string), bytes, bytes)));
     }
   else if (BUFFERP (dst_object))
     {
