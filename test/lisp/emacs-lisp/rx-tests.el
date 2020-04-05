@@ -63,6 +63,7 @@
 (ert-deftest rx-char-any ()
   "Test character alternatives with `]' and `-' (Bug#25123)."
   (should (equal
+           ;; relint suppression: Range .<-]. overlaps previous .]-{
            (rx string-start (1+ (char (?\] . ?\{) (?< . ?\]) (?- . ?:)))
                string-end)
            "\\`[.-:<-{-]+\\'")))
@@ -127,6 +128,10 @@
                  "[[:lower:][:upper:]-][^[:lower:][:upper:]-]"))
   (should (equal (rx (any "]" lower upper) (not (any "]" lower upper)))
                  "[][:lower:][:upper:]][^][:lower:][:upper:]]"))
+  ;; relint suppression: Duplicated character .-.
+  ;; relint suppression: Single-character range .f-f
+  ;; relint suppression: Range .--/. overlaps previous .-
+  ;; relint suppression: Range .\*--. overlaps previous .--/
   (should (equal (rx (any "-a" "c-" "f-f" "--/*--"))
                  "[*-/acf]"))
   (should (equal (rx (any "]-a" ?-) (not (any "]-a" ?-)))
@@ -140,6 +145,7 @@
                  "\\`a\\`[^z-a]"))
   (should (equal (rx (any "") (not (any "")))
                  "\\`a\\`[^z-a]"))
+  ;; relint suppression: Duplicated class .space.
   (should (equal (rx (any space ?a digit space))
                  "[a[:space:][:digit:]]"))
   (should (equal (rx (not "\n") (not ?\n) (not (any "\n")) (not-char ?\n)
