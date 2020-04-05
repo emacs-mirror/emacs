@@ -849,24 +849,22 @@ Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
   (ptrdiff_t n, Lisp_Object *args)
 {
-  ptrdiff_t i;
-  int c;
-  unsigned char *buf, *p;
-  Lisp_Object str;
-  USE_SAFE_ALLOCA;
-
-  SAFE_NALLOCA (buf, MAX_MULTIBYTE_LENGTH, n);
-  p = buf;
-
-  for (i = 0; i < n; i++)
+  ptrdiff_t nbytes = 0;
+  for (ptrdiff_t i = 0; i < n; i++)
     {
       CHECK_CHARACTER (args[i]);
-      c = XFIXNUM (args[i]);
+      nbytes += CHAR_BYTES (XFIXNUM (args[i]));
+    }
+  if (nbytes == n)
+    return Funibyte_string (n, args);
+  Lisp_Object str = make_uninit_multibyte_string (n, nbytes);
+  unsigned char *p = SDATA (str);
+  for (ptrdiff_t i = 0; i < n; i++)
+    {
+      eassume (CHARACTERP (args[i]));
+      int c = XFIXNUM (args[i]);
       p += CHAR_STRING (c, p);
     }
-
-  str = make_string_from_bytes ((char *) buf, n, p - buf);
-  SAFE_FREE ();
   return str;
 }
 
@@ -875,20 +873,13 @@ DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
 usage: (unibyte-string &rest BYTES)  */)
   (ptrdiff_t n, Lisp_Object *args)
 {
-  ptrdiff_t i;
-  Lisp_Object str;
-  USE_SAFE_ALLOCA;
-  unsigned char *buf = SAFE_ALLOCA (n);
-  unsigned char *p = buf;
-
-  for (i = 0; i < n; i++)
+  Lisp_Object str = make_uninit_string (n);
+  unsigned char *p = SDATA (str);
+  for (ptrdiff_t i = 0; i < n; i++)
     {
       CHECK_RANGED_INTEGER (args[i], 0, 255);
       *p++ = XFIXNUM (args[i]);
     }
-
-  str = make_string_from_bytes ((char *) buf, n, p - buf);
-  SAFE_FREE ();
   return str;
 }
 
