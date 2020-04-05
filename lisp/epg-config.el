@@ -183,10 +183,18 @@ version requirement is met."
 (defun epg-config--make-gpg-configuration (program)
   (let (config groups type args)
     (with-temp-buffer
-      (apply #'call-process program nil (list t nil) nil
-	     (append (if epg-gpg-home-directory
-			 (list "--homedir" epg-gpg-home-directory))
-		     '("--with-colons" "--list-config")))
+      ;; The caller might have bound coding-system-for-* to something
+      ;; like 'no-conversion, but the below needs to call PROGRAM
+      ;; expecting human-readable text in both directions (since we
+      ;; are going to parse the output as text), so let Emacs guess
+      ;; the encoding of that text by its usual encoding-detection
+      ;; machinery.
+      (let ((coding-system-for-read 'undecided)
+            (coding-system-for-write 'undecided))
+        (apply #'call-process program nil (list t nil) nil
+	       (append (if epg-gpg-home-directory
+			   (list "--homedir" epg-gpg-home-directory))
+		       '("--with-colons" "--list-config"))))
       (goto-char (point-min))
       (while (re-search-forward "^cfg:\\([^:]+\\):\\(.*\\)" nil t)
 	(setq type (intern (match-string 1))

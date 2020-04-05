@@ -683,7 +683,7 @@ module_copy_string_contents (emacs_env *env, emacs_value value, char *buf,
 
   /* Since we set HANDLE-8-BIT and HANDLE-OVER-UNI to nil, the return
      value can be nil, and we have to check for that. */
-  CHECK_TYPE (!NILP (lisp_str_utf8), Qunicode_string_p, lisp_str_utf8);
+  CHECK_TYPE (!NILP (lisp_str_utf8), Qunicode_string_p, lisp_str);
 
   ptrdiff_t raw_size = SBYTES (lisp_str_utf8);
   ptrdiff_t required_buf_size = raw_size + 1;

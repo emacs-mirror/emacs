@@ -1291,11 +1291,7 @@ x_clear_under_internal_border (struct frame *f)
       int border = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
-#ifdef USE_GTK
-      int margin = 0;
-#else
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
-#endif
       int face_id =
 	!NILP (Vface_remapping_alist)
 	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
