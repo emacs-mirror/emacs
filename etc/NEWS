@@ -101,6 +101,12 @@ horizontal movements now stop at the edge of the board.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** archive-mode
+*** Can now modify members of 'ar' archives.
+*** Display of summaries unified between backends
+*** New var 'archive-hidden-columns' and cmd 'archive-hideshow-column'
+These let you control which columns are displayed and which are kept hidden
+
 ** Emacs-Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.

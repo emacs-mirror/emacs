@@ -137,11 +137,24 @@ If nil, visiting such an archive displays the archive summary."
   :version "25.1"
   :type '(choice (const :tag "Visit the single file" t)
                  (const :tag "Show the archive summary" nil)))
+
+(defcustom archive-hidden-columns '(Ids)
+  "Columns hidden from display."
+  :version "28.1"
+  :type '(set (const Mode)
+              (const Ids)
+              (const Date&Time)
+              (const Ratio)))
+
+(defconst archive-alternate-hidden-columns '(Mode Date&Time)
+  "Columns hidden when `archive-alternate-display' is used.")
+
 ;; ------------------------------
 ;; Arc archive configuration
 
 ;; We always go via a local file since there seems to be no reliable way
 ;; to extract to stdout without junk getting added.
+
 (defgroup archive-arc nil
   "ARC-specific options to archive."
   :group 'archive)
@@ -413,7 +426,6 @@ file.  Archive and member name will be added."
       (cons "Immediate" (make-sparse-keymap "Immediate")))
     (define-key map [menu-bar immediate alternate]
       '(menu-item "Alternate Display" archive-alternate-display
-                  :enable (boundp (archive-name "alternate-display"))
                   :help "Toggle alternate file info display"))
     (define-key map [menu-bar immediate view]
       '(menu-item "View This File" archive-view
@@ -827,7 +839,27 @@ To avoid very long lines archive mode does not show all information.
 This function changes the set of information shown for each files."
   (interactive)
   (setq archive-alternate-display (not archive-alternate-display))
+  (setq-local archive-hidden-columns
+              (if archive-alternate-display
+                  archive-alternate-hidden-columns
+                (eval (car (or (get 'archive-hidden-columns 'customized-value)
+                               (get 'archive-hidden-columns 'standard-value)))
+                      t)))
   (archive-resummarize))
+
+(defun archive-hideshow-column (column)
+  "Toggle visibility of COLUMN."
+  (interactive
+   (list (intern
+          (completing-read "Toggle visibility of: "
+                           '(Mode Ids Ratio Date&Time)
+                           nil t))))
+  (setq-local archive-hidden-columns
+              (if (memq column archive-hidden-columns)
+                  (remove column archive-hidden-columns)
+                (cons column archive-hidden-columns)))
+  (archive-resummarize))
+
 ;; -------------------------------------------------------------------------
 ;;; Section: Local archive copy handling
 
@@ -1454,15 +1486,134 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (let ((inhibit-read-only t))
     (undo)))
 
+(defun archive--fit (str len)
+  (let* ((spaces (- len (string-width str)))
+         (pre (/ spaces 2)))
+    (if (< spaces 1)
+        (substring str 0 len)
+      (concat (make-string pre ?\s) str (make-string (- spaces pre) ?\s)))))
+
+(defun archive--fit2 (str1 str2 len)
+  (let* ((spaces (- len (string-width str1) (string-width str2))))
+    (if (< spaces 1)
+        (substring (concat str1 str2) 0 len)
+      (concat str1 (make-string spaces ?\s) str2))))
+
+(defun archive--enabled-p (column)
+  (not (memq column archive-hidden-columns)))
+
+(defun archive--summarize-descs (descs)
+  (goto-char (point-min))
+  (if (null descs)
+      (progn (insert "M  ...   Filename\n")
+             (insert "- ----- ---------------\n")
+             (archive-summarize-files nil)
+             (insert "- ----- ---------------\n"))
+    (let* ((sample (car descs))
+           (maxsize 0)
+           (maxidlen 0)
+           (totalsize 0)
+           (times (archive--enabled-p 'Date&Time))
+           (ids (and (archive--enabled-p 'Ids)
+                     (or (archive--file-desc-uid sample)
+                         (archive--file-desc-gid sample))))
+           ;; For ratio, date/time, and mode, we presume that
+           ;; they're either present on all entries or on nonel, and that they
+           ;; take the same space on each of them.
+           (ratios (and (archive--enabled-p 'Ratio)
+                        (archive--file-desc-ratio sample)))
+           (ratiolen (if ratios (string-width ratios)))
+           (timelen (length (archive--file-desc-time sample)))
+           (samplemode (and (archive--enabled-p 'Mode)
+                            (archive--file-desc-mode sample)))
+           (modelen (length (if samplemode (archive-int-to-mode samplemode)))))
+      (dolist (desc descs)
+        (when ids
+          (let* ((uid (archive--file-desc-uid desc))
+                 (gid (archive--file-desc-uid desc))
+                 (len (cond
+                       ((not uid) (string-width gid))
+                       ((not gid) (string-width uid))
+                       (t (+ (string-width uid) (string-width gid) 1)))))
+            (if (> len maxidlen) (setq maxidlen len))))
+        (let ((size (archive--file-desc-size desc)))
+          (cl-incf totalsize size)
+          (if (> size maxsize) (setq maxsize size))))
+      (let* ((sizelen (length (number-to-string maxsize)))
+             (dash
+              (concat
+               "- "
+               (if (> modelen 0) (concat (make-string modelen ?-) "  "))
+               (if ids (concat (make-string maxidlen ?-) "  "))
+               (make-string sizelen ?-) " "
+               (if ratios (concat (make-string (1+ ratiolen) ?-) " "))
+               " "
+               (if times (concat (make-string timelen ?-) "  "))
+               "----------------\n"))
+             (startcol (+ 2
+                          (if (> modelen 0) (+ 2 modelen) 0)
+                          (if ids (+ maxidlen 2) 0)
+                          sizelen 2
+                          (if ratios (+ 2 ratiolen) 0)
+                          (if times (+ timelen 2) 0))))
+        (insert
+         (concat "M "
+                 (if (> modelen 0) (concat (archive--fit "Mode" modelen) "  "))
+                 (if ids (concat (archive--fit2 "Uid" "Gid" maxidlen) "  "))
+                 (archive--fit "Size" sizelen) " "
+                 (if ratios (concat (archive--fit "Cmp" (1+ ratiolen)) " "))
+                 " "
+                 (if times (concat (archive--fit "Date&time" timelen) "  "))
+                 " Filename\n"))
+        (insert dash)
+        (archive-summarize-files
+         (mapcar (lambda (desc)
+                   (let* ((size (number-to-string
+                                 (archive--file-desc-size desc)))
+                          (text
+                           (concat "  "
+                                   (when (> modelen 0)
+                                     (concat (archive-int-to-mode
+                                              (archive--file-desc-mode desc))
+                                             "  "))
+                                   (when ids
+                                     (concat (archive--fit2
+                                              (archive--file-desc-uid desc)
+                                              (archive--file-desc-gid desc)
+                                              maxidlen) "  "))
+                                   (make-string (- sizelen (length size)) ?\s)
+                                   size
+                                   " "
+                                   (when ratios
+                                     (concat (archive--file-desc-ratio desc)
+                                             "% "))
+                                   " "
+                                   (when times
+                                     (concat (archive--file-desc-time desc)
+                                             "  "))
+                                   (archive--file-desc-int-file-name desc))))
+                     (archive--file-summary
+                      text startcol (length text))))
+                 descs))
+        (insert dash)
+        (insert (format (format "%%%dd %%s %%d files\n"
+                                (+ 2
+                                   (if (> modelen 0) (+ 2 modelen) 0)
+                                   (if ids (+ maxidlen 2) 0)
+                                   sizelen))
+                        totalsize
+                        (make-string (+ (if times (+ 2 timelen) 0)
+                                        (if ratios (+ 2 ratiolen) 0) 1)
+                                     ?\s)
+                        (length descs))))))
+  (apply #'vector descs))
+
 ;; -------------------------------------------------------------------------
 ;;; Section: Arc Archives
 
 (defun archive-arc-summarize ()
   (let ((p 1)
-	(totalsize 0)
-	(maxlen 8)
-        files
-	visual)
+        files)
     (while (and (< (+ p 29) (point-max))
 		(= (get-byte p) ?\C-z)
 		(> (get-byte (1+ p)) 0))
@@ -1475,40 +1626,15 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (modtime (archive-l-e (+ p 21) 2))
              (ucsize  (archive-l-e (+ p 25) 4))
 	     (fiddle  (string= efnname (upcase efnname)))
-             (ifnname (if fiddle (downcase efnname) efnname))
-             (text    (format "  %8d  %-11s  %-8s  %s"
-                              ucsize
-                              (archive-dosdate moddate)
-                              (archive-dostime modtime)
-                              ifnname)))
-        (setq maxlen (max maxlen fnlen)
-	      totalsize (+ totalsize ucsize)
-	      visual (cons (archive--file-summary
-			    text
-			    (- (length text) (length ifnname))
-			    (length text))
-			   visual)
-	      files (cons (archive--file-desc
+             (ifnname (if fiddle (downcase efnname) efnname)))
+        (setq files (cons (archive--file-desc
                            efnname ifnname nil ucsize
                            (concat (archive-dosdate moddate)
                                    " " (archive-dostime modtime))
                            :pos (1- p))
                           files)
               p (+ p 29 csize))))
-    (goto-char (point-min))
-    (let ((dash (concat "- --------  -----------  --------  "
-			(make-string maxlen ?-)
-			"\n")))
-      (insert "M   Length  Date         Time      File\n"
-	      dash)
-      (archive-summarize-files (nreverse visual))
-      (insert dash
-	      (format "  %8d                         %d file%s"
-		      totalsize
-		      (length files)
-		      (if (= 1 (length files)) "" "s"))
-	      "\n"))
-    (apply #'vector (nreverse files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defun archive-arc-rename-entry (newname descr)
   (if (string-match "[:\\/]" newname)
@@ -1529,10 +1655,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (defun archive-lzh-summarize (&optional start)
   (let ((p (or start 1)) ;; 1 for .lzh, something further on for .exe
-	(totalsize 0)
-	(maxlen 8)
-        files
-	visual)
+        files)
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
       (let* ((hsize   (get-byte p))	;size of the base header (level 0 and 1)
@@ -1543,9 +1666,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (get-byte (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
-	     fnlen efnname osid fiddle ifnname width p2
+	     fnlen efnname osid fiddle ifnname p2
 	     neh	;beginning of next extension header (level 1 and 2)
-	     mode modestr uid gid text dir prname
+	     mode uid gid dir prname
 	     gname uname modtime moddate)
 	(if (= hdrlvl 3) (error "can't handle lzh level 3 header type"))
 	(when (or (= hdrlvl 0) (= hdrlvl 1))
@@ -1558,26 +1681,26 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
             (setq neh (+ p2 3))         ;specific to level 1 header
 	  (if (= hdrlvl 2)
               (setq neh (+ p 24))))     ;specific to level 2 header
-	(if neh		;if level 1 or 2 we expect extension headers to follow
+	(if neh ;if level 1 or 2 we expect extension headers to follow
 	    (let* ((ehsize (archive-l-e neh 2))	;size of the extension header
 		   (etype (get-byte (+ neh 2)))) ;extension type
 	      (while (not (= ehsize 0))
-		  (cond
-		 ((= etype 1)	;file name
+		(cond
+		 ((= etype 1)           ;file name
 		  (let ((i (+ neh 3)))
 		    (while (< i (+ neh ehsize))
 		      (setq efnname (concat efnname (char-to-string (get-byte i))))
 		      (setq i (1+ i)))))
-		 ((= etype 2)	;directory name
+		 ((= etype 2)           ;directory name
 		  (let ((i (+ neh 3)))
 		    (while (< i (+ neh ehsize))
-				    (setq dir (concat dir
-						       (if (= (get-byte i)
-							      255)
-							   "/"
-							 (char-to-string
-							  (char-after i)))))
-				    (setq i (1+ i)))))
+		      (setq dir (concat dir
+					(if (= (get-byte i)
+					       255)
+					    "/"
+					  (char-to-string
+					   (char-after i)))))
+		      (setq i (1+ i)))))
 		 ((= etype 80)		;Unix file permission
 		  (setq mode (archive-l-e (+ neh 3) 2)))
 		 ((= etype 81)		;UNIX file group/user ID
@@ -1593,7 +1716,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		    (while (< i (+ neh ehsize))
 		      (setq uname (concat uname (char-to-string (char-after i))))
 		      (setq i (1+ i)))))
-		   )
+		 )
 		(setq neh (+ neh ehsize))
 		(setq ehsize (archive-l-e neh 2))
 		(setq etype (get-byte (+ neh 2))))
@@ -1619,66 +1742,25 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                            ((= 0 osid)  (string= efnname (upcase efnname)))))
 	(setq ifnname (if fiddle (downcase efnname) efnname))
 	(setq prname (if dir (concat dir ifnname) ifnname))
-	(setq width (if prname (string-width prname) 0))
-	(setq modestr (archive-int-to-mode mode))
 	(setq moddate (if (= hdrlvl 2)
 			  (archive-unixdate time1 time2) ;level 2 header in UNIX format
 			(archive-dosdate time2))) ;level 0 and 1 header in DOS format
 	(setq modtime (if (= hdrlvl 2)
 			  (archive-unixtime time1 time2)
 			(archive-dostime time1)))
-	(setq text    (if archive-alternate-display
-			  (format "  %8d  %5S  %5S  %s"
-				  ucsize
-				  (or uid "?")
-				  (or gid "?")
-				  ifnname)
-			(format "  %10s  %8d  %-11s  %-8s  %s"
-				modestr
-				ucsize
-				moddate
-				modtime
-				prname)))
-        (setq maxlen (max maxlen width)
-	      totalsize (+ totalsize ucsize)
-	      visual (cons (archive--file-summary
-			    text
-			    (- (length text) (length prname))
-			    (length text))
-			   visual)
-	      files (cons (archive--file-desc
-                           prname ifnname mode ucsize
-                           (concat moddate " " modtime)
-                           :pos (1- p)
-                           :uid (or uname (if uid (number-to-string uid)))
-                           :gid (or gname (if gid (number-to-string gid))))
-                          files))
+        (push (archive--file-desc
+               prname ifnname mode ucsize
+               (concat moddate " " modtime)
+               :pos (1- p)
+               :uid (or uname (if uid (number-to-string uid)))
+               :gid (or gname (if gid (number-to-string gid))))
+              files)
 	(cond ((= hdrlvl 1)
 	       (setq p (+ p hsize 2 csize)))
 	      ((or (= hdrlvl 2) (= hdrlvl 0))
 	       (setq p (+ p thsize 2 csize))))
 	))
-    (goto-char (point-min))
-    (let ((dash (concat (if archive-alternate-display
-			    "- --------  -----  -----  "
-			  "- ----------  --------  -----------  --------  ")
-			(make-string maxlen ?-)
-			"\n"))
-	  (header (if archive-alternate-display
-		       "M   Length    Uid    Gid  File\n"
-		    "M   Filemode    Length  Date         Time      File\n"))
-	  (sumline (if archive-alternate-display
-		       "  %8.0f                %d file%s"
-		     "              %8.0f                         %d file%s")))
-      (insert header dash)
-      (archive-summarize-files (nreverse visual))
-      (insert dash
-	      (format sumline
-		      totalsize
-		      (length files)
-		      (if (= 1 (length files)) "" "s"))
-	      "\n"))
-    (apply #'vector (nreverse files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defconst archive-lzh-alternate-display t)
 
@@ -1782,10 +1864,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (goto-char (- (point-max) (- 22 18)))
   (search-backward-regexp "[P]K\005\006")
   (let ((p (archive-l-e (+ (point) 16) 4))
-        (maxlen 8)
-	(totalsize 0)
-        files
-	visual)
+        files)
     (when (= p -1)
       ;; If the offset of end-of-central-directory is -1, this is a
       ;; Zip64 extended ZIP file format, and we need to glean the info
@@ -1826,48 +1905,18 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 					  (logand 1 (get-byte (+ p 38))))
 					 ?\222 0)))
 			    (t nil)))
-	     (modestr (archive-int-to-mode mode))
 	     (fiddle  (and archive-zip-case-fiddle
 			   (memq creator '(0 2 4 5 9))
 			   (string= (upcase efnname) efnname)))
-             (ifnname (if fiddle (downcase efnname) efnname))
-	     (width (string-width ifnname))
-             (text    (format "  %10s  %8d  %-11s  %-8s  %s"
-			      modestr
-                              ucsize
-                              (archive-dosdate moddate)
-                              (archive-dostime modtime)
-                              ifnname)))
-        (setq maxlen (max maxlen width)
-	      totalsize (+ totalsize ucsize)
-	      visual (cons (archive--file-summary
-			    text
-			    (- (length text) (length ifnname))
-			    (length text))
-			   visual)
-	      files (cons (if isdir
-			      nil
-			    (archive--file-desc
-			     efnname ifnname mode ucsize
-			     (concat (archive-dosdate moddate)
-				     " " (archive-dostime modtime))
-			     :pos (1- p)))
-                          files)
+             (ifnname (if fiddle (downcase efnname) efnname)))
+        (setq files (cons (archive--file-desc
+			   efnname ifnname mode ucsize
+			   (concat (archive-dosdate moddate)
+				   " " (archive-dostime modtime))
+			   :pos (1- p))
+			  files)
               p (+ p 46 fnlen exlen fclen))))
-    (goto-char (point-min))
-    (let ((dash (concat "- ----------  --------  -----------  --------  "
-			(make-string maxlen ?-)
-			"\n")))
-      (insert "M Filemode      Length  Date         Time      File\n"
-	      dash)
-      (archive-summarize-files (nreverse visual))
-      (insert dash
-	      (format "              %8d                         %d file%s"
-		      totalsize
-		      (length files)
-		      (if (= 1 (length files)) "" "s"))
-	      "\n"))
-    (apply #'vector (nreverse files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defun archive-zip-extract (archive name)
   (cond
@@ -1931,10 +1980,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (defun archive-zoo-summarize ()
   (let ((p (1+ (archive-l-e 25 4)))
-        (maxlen 8)
-	(totalsize 0)
-        files
-	visual)
+        files)
     (while (and (string= "\334\247\304\375" (buffer-substring p (+ p 4)))
 		(> (archive-l-e (+ p 6) 4) 0))
       (let* ((next    (1+ (archive-l-e (+ p 6) 4)))
@@ -1961,40 +2007,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			(decode-coding-string
 			 str archive-file-name-coding-system)))
 	     (fiddle  (and (= lfnlen 0) (string= efnname (upcase efnname))))
-             (ifnname (if fiddle (downcase efnname) efnname))
-	     (width (string-width ifnname))
-             (text    (format "  %8d  %-11s  %-8s  %s"
-                              ucsize
-                              (archive-dosdate moddate)
-                              (archive-dostime modtime)
-                              ifnname)))
-        (setq maxlen (max maxlen width)
-	      totalsize (+ totalsize ucsize)
-	      visual (cons (archive--file-summary
-			    text
-			    (- (length text) (length ifnname))
-			    (length text))
-			   visual)
-	      files (cons (archive--file-desc
+             (ifnname (if fiddle (downcase efnname) efnname)))
+        (setq files (cons (archive--file-desc
                            efnname ifnname nil ucsize
                            (concat (archive-dosdate moddate)
                                    " " (archive-dostime modtime)))
                           files)
               p next)))
-    (goto-char (point-min))
-    (let ((dash (concat "- --------  -----------  --------  "
-			(make-string maxlen ?-)
-			"\n")))
-      (insert "M   Length  Date         Time      File\n"
-	      dash)
-      (archive-summarize-files (nreverse visual))
-      (insert dash
-	      (format "  %8d                         %d file%s"
-		      totalsize
-		      (length files)
-		      (if (= 1 (length files)) "" "s"))
-	      "\n"))
-    (apply #'vector (nreverse files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defun archive-zoo-extract (archive name)
   (archive-extract-by-stdout archive name archive-zoo-extract))
@@ -2006,17 +2026,16 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   ;; File is used internally for `archive-rar-exe-summarize'.
   (unless file (setq file buffer-file-name))
   (let* ((copy (file-local-copy file))
-         (maxname 10)
-         (maxsize 5)
          (files ()))
     (with-temp-buffer
-      (call-process "lsar" nil t nil "-l" (or file copy))
-      (if copy (delete-file copy))
+      (unwind-protect
+          (call-process "lsar" nil t nil "-l" (or file copy))
+        (if copy (delete-file copy)))
       (goto-char (point-min))
       (re-search-forward "^\\(\s+=+\s*\\)+\n")
       (while (looking-at (concat "^\s+[0-9.]+\s+D?-+\s+"   ; Flags
                                  "\\([0-9-]+\\)\s+"        ; Size
-                                 "\\([-0-9.%]+\\)\s+"      ; Ratio
+                                 "\\([-0-9.]+\\)%?\s+"      ; Ratio
                                  "\\([0-9a-zA-Z]+\\)\s+"   ; Mode
                                  "\\([0-9-]+\\)\s+"        ; Date
                                  "\\([0-9:]+\\)\s+"        ; Time
@@ -2025,8 +2044,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         (goto-char (match-end 0))
         (let ((name (match-string 6))
               (size (match-string 1)))
-          (if (> (length name) maxname) (setq maxname (length name)))
-          (if (> (length size) maxsize) (setq maxsize (length size)))
           (push (archive--file-desc name name nil
                                     ;; Size
                                     (string-to-number size)
@@ -2034,29 +2051,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                                     (concat (match-string 4) " " (match-string 5))
                                     :ratio (match-string 2))
                 files))))
-    (setq files (nreverse files))
-    (goto-char (point-min))
-    (let* ((format (format " %%s  %%%ds %%5s  %%s" maxsize))
-           (sep (format format "---------- -----" (make-string maxsize ?-)
-                        "-----" ""))
-           (column (length sep)))
-      (insert (format format "   Date    Time " "Size" "Ratio" "Filename") "\n")
-      (insert sep (make-string maxname ?-) "\n")
-      (archive-summarize-files
-       (mapcar (lambda (desc)
-                 (let ((text
-                        (format format
-                                (archive--file-desc-time desc)
-                                (archive--file-desc-size desc)
-                                (archive--file-desc-ratio desc)
-                                (archive--file-desc-int-file-name desc))))
-                   (archive--file-summary
-                    text
-                    column
-                    (length text))))
-               files))
-      (insert sep (make-string maxname ?-) "\n")
-      (apply #'vector files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defun archive-rar-extract (archive name)
   ;; unrar-free seems to have no way to extract to stdout or even to a file.
@@ -2103,9 +2098,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;;; Section: 7z Archives
 
 (defun archive-7z-summarize ()
-  (let ((maxname 10)
-	(maxsize 5)
-	(file buffer-file-name)
+  (let ((file buffer-file-name)
 	(files ()))
     (with-temp-buffer
       (call-process archive-7z-program nil t nil "l" "-slt" file)
@@ -2122,29 +2115,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      (time (save-excursion
 		      (and (re-search-forward "^Modified = \\(.*\\)\n")
 			   (match-string 1)))))
-          (if (> (length name) maxname) (setq maxname (length name)))
-          (if (> (length size) maxsize) (setq maxsize (length size)))
           (push (archive--file-desc name name nil (string-to-number size) time)
                 files))))
-    (setq files (nreverse files))
-    (goto-char (point-min))
-    (let* ((format (format " %%%ds %%s %%s" maxsize))
-           (sep (format format (make-string maxsize ?-) "-------------------" ""))
-           (column (length sep)))
-      (insert (format format "Size " "Date       Time    " " Filename") "\n")
-      (insert sep (make-string maxname ?-) "\n")
-      (archive-summarize-files
-       (mapcar (lambda (desc)
-                 (let ((text
-                        (format format
-				(archive--file-desc-size desc)
-				(archive--file-desc-time desc)
-				(archive--file-desc-int-file-name desc))))
-                   (archive--file-summary
-                    text column (length text))))
-               files))
-      (insert sep (make-string maxname ?-) "\n")
-      (apply #'vector files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defun archive-7z-extract (archive name)
   ;; 7z doesn't provide a `quiet' option to suppress non-essential
@@ -2184,13 +2157,7 @@ NAME is expected to be the 16-bytes part of an ar record."
 
 (defun archive-ar-summarize ()
   ;; File is used internally for `archive-rar-exe-summarize'.
-  (let* ((maxname 10)
-         (maxtime 16)
-         (maxuser 5)
-         (maxgroup 5)
-         (maxmode 10)
-         (maxsize 5)
-         (files ()))
+  (let* ((files ()))
     (goto-char (point-min))
     (search-forward "!<arch>\n")
     (while (looking-at archive-ar-file-header-re)
@@ -2210,43 +2177,10 @@ NAME is expected to be the 16-bytes part of an ar record."
         (setq group (substring group 0 (string-match " +\\'" group)))
         ;; Move to the end of the data.
         (forward-char size) (if (eq ?\n (char-after)) (forward-char 1))
-        (if (> (length name) maxname) (setq maxname (length name)))
-        (if (> (length time) maxtime) (setq maxtime (length time)))
-        (if (> (length user) maxuser) (setq maxuser (length user)))
-        (if (> (length group) maxgroup) (setq maxgroup (length group)))
-        (if (> (length sizestr) maxsize) (setq maxsize (length sizestr)))
         (push (archive--file-desc extname extname mode size time
                                   :uid user :gid group)
               files)))
-    (setq files (nreverse files))
-    (goto-char (point-min))
-    (let* ((format (format "%%%ds %%%ds/%%-%ds  %%%ds %%%ds %%s"
-                           maxmode maxuser maxgroup maxsize maxtime))
-           (sep (format format (make-string maxmode ?-)
-                        (make-string maxuser ?-)
-                        (make-string maxgroup ?-)
-                        (make-string maxsize ?-)
-                        (make-string maxtime ?-) ""))
-           (column (length sep)))
-      (insert (format format "  Mode  " "User" "Group" " Size "
-                      "      Date      " "Filename")
-              "\n")
-      (insert sep (make-string maxname ?-) "\n")
-      (archive-summarize-files
-       (mapcar (lambda (desc)
-                 (let ((text
-                        (format format
-                                (archive-int-to-mode
-                                 (archive--file-desc-mode desc))
-                                (archive--file-desc-uid desc)
-                                (archive--file-desc-gid desc)
-                                (archive--file-desc-size desc)
-                                (archive--file-desc-time desc)
-                                (archive--file-desc-int-file-name desc))))
-                   (archive--file-summary text column (length text))))
-               files))
-      (insert sep (make-string maxname ?-) "\n")
-      (apply #'vector files))))
+    (archive--summarize-descs (nreverse files))))
 
 (defun archive-ar-extract (archive name)
   (let ((destbuf (current-buffer))
@@ -2266,7 +2200,8 @@ NAME is expected to be the 16-bytes part of an ar record."
               (if (equal name (archive-ar--name this))
                   (setq from (point))
                 ;; Move to the end of the data.
-                (forward-char size) (if (eq ?\n (char-after)) (forward-char 1)))))
+                (forward-char size)
+                (if (eq ?\n (char-after)) (forward-char 1)))))
           (when from
             (set-buffer-multibyte nil)
             (with-current-buffer destbuf
