@@ -1098,10 +1098,19 @@ emit_const_lisp_obj (Lisp_Object obj)
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
 
   if (NIL_IS_ZERO && EQ (obj, Qnil))
-    return emit_coerce (comp.lisp_obj_type,
-			gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
-							     comp.void_ptr_type,
-							     NULL));
+    {
+      gcc_jit_rvalue *n;
+#ifdef WIDE_EMACS_INT
+      eassert (NIL_IS_ZERO);
+      n = emit_rvalue_from_long_long (0);
+#else
+      n = gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+					       comp.void_ptr_type,
+					       NULL);
+#endif
+      return emit_coerce (comp.lisp_obj_type, n);
+    }
+
   imm_reloc_t reloc = obj_to_reloc (obj);
   return
     gcc_jit_lvalue_as_rvalue (
@@ -1319,12 +1328,15 @@ emit_mvar_val (Lisp_Object mvar)
 	  /* We can still emit directly objects that are self-contained in a
 	     word (read fixnums).  */
 	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
-	  gcc_jit_rvalue *word =
-	    (sizeof (MOST_POSITIVE_FIXNUM) > sizeof (void *))
-	    ? emit_rvalue_from_long_long (constant)
-	    : gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-						    comp.void_ptr_type,
-						    constant);
+	  gcc_jit_rvalue *word;
+#ifdef WIDE_EMACS_INT
+	  word = emit_rvalue_from_long_long (constant);
+#else
+	  word =
+	    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+						 comp.void_ptr_type,
+						 constant);
+#endif
 	  return emit_coerce (comp.lisp_obj_type, word);
 	}
       /* Other const objects are fetched from the reloc array.  */
