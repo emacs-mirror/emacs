@@ -2916,6 +2916,12 @@ visible.  */)
   return Qnil;
 }
 
+static void
+clean_up_dialog (void)
+{
+  pgtk_menu_set_in_use (false);
+}
+
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
@@ -2940,14 +2946,17 @@ value of DIR as in previous invocations; this is standard MS Windows behavior.  
 
   check_window_system (f);
 
+  if (popup_activated ())
+    error ("Trying to use a menu from within a menu-entry");
+  else
+    pgtk_menu_set_in_use (true);
+
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);
-#if 0
   record_unwind_protect_void (clean_up_dialog);
-#endif
 
   block_input ();
 

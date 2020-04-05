@@ -69,7 +69,7 @@ pgtk_menu_set_in_use (bool in_use)
 
 /* Wait for an X event to arrive or for a timer to expire.  */
 
-void
+static void
 pgtk_menu_wait_for_event (void *data)
 {
   struct timespec next_time = timer_check (), *ntp;
