@@ -480,6 +480,8 @@ pattern to search for."
      nil)))
 
 (defun project--find-regexp-in-files (regexp files)
+  (unless files
+    (user-error "Empty file list"))
   (let ((xrefs (xref-matches-in-files regexp files)))
     (unless xrefs
       (user-error "No matches for: %s" regexp))

@@ -1232,6 +1232,7 @@ IGNORES is a list of glob patterns for files to ignore."
   "Find all matches for REGEXP in FILES.
 Return a list of xref values.
 FILES must be a list of absolute file names."
+  (cl-assert (consp files))
   (pcase-let*
       ((output (get-buffer-create " *project grep output*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
