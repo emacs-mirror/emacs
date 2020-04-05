@@ -375,6 +375,14 @@
 			 (with-temp-buffer (insert-file-contents (car file))))))
 	  (insert (format "%s: %s\n" (car file) result)))))))
 
+(ert-deftest coding-nocopy-trivial ()
+  "Check that the NOCOPY parameter works for the trivial coding system."
+  (let ((s "abc"))
+    (should-not (eq (decode-coding-string s nil nil) s))
+    (should (eq (decode-coding-string s nil t) s))
+    (should-not (eq (encode-coding-string s nil nil) s))
+    (should (eq (encode-coding-string s nil t) s))))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not obsolete)
 ;; End:

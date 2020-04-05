@@ -9485,7 +9485,7 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
       if (! norecord)
 	Vlast_coding_system_used = Qno_conversion;
       if (NILP (dst_object))
-	return (nocopy ? Fcopy_sequence (string) : string);
+	return nocopy ? string : Fcopy_sequence (string);
     }
 
   if (NILP (coding_system))
