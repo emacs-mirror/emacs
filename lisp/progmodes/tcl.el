@@ -176,7 +176,7 @@ taken to mean `smart'.  The default is nil."
   :type 'boolean
   :group 'tcl)
 
-(defcustom tcl-application "wish"
+(defcustom tcl-application "tclsh"
   "Name of Tcl program to run in inferior Tcl mode."
   :type 'string
   :group 'tcl)
