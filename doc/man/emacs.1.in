@@ -171,7 +171,7 @@ The editor will send messages to stderr.
 You must use \-l and \-f options to specify files to execute
 and functions to call.
 .TP
-.BI \-\-script= "file"
+.BI \-\-script " file"
 Run
 .I file
 as an Emacs Lisp script.
