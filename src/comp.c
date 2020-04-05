@@ -258,7 +258,7 @@ hash_native_abi (void)
   hexbuf_digest (SSDATA (digest), SDATA (digest), SHA512_DIGEST_SIZE);
 
   /* Check runs once.  */
-  eassert (Vcomp_abi_hash);
+  eassert (NILP (Vcomp_abi_hash));
   Vcomp_abi_hash = digest;
   /* If 10 characters are usually sufficient for git I guess 16 are
      fine for us here.  */
