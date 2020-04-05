@@ -331,8 +331,8 @@ typedef EMACS_INT Lisp_Word;
    used elsewhere.
 
    FIXME: Remove the lisp_h_OP macros, and define just the inline OP
-   functions, once "gcc -Og" (new to GCC 4.8) works well enough for
-   Emacs developers.  Maybe in the year 2020.  See Bug#11935.
+   functions, once "gcc -Og" (new to GCC 4.8) or equivalent works well
+   enough for Emacs developers.  Maybe in the year 2025.  See Bug#11935.
 
    For the macros that have corresponding functions (defined later),
    see these functions for commentary.  */
