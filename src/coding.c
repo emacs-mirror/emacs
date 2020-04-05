@@ -11061,10 +11061,8 @@ usage: (define-coding-system-internal ...)  */)
 	  else
 	    {
 	      CHECK_CONS (val);
-	      CHECK_RANGED_INTEGER (XCAR (val), 0, 255);
-	      from = XFIXNUM (XCAR (val));
-	      CHECK_RANGED_INTEGER (XCDR (val), from, 255);
-	      to = XFIXNUM (XCDR (val));
+	      from = check_integer_range (XCAR (val), 0, 255);
+	      to = check_integer_range (XCDR (val), from, 255);
 	    }
 	  for (int i = from; i <= to; i++)
 	    SSET (valids, i, 1);
@@ -11149,7 +11147,7 @@ usage: (define-coding-system-internal ...)  */)
 	  val = XCAR (tail);
 	  CHECK_CONS (val);
 	  CHECK_CHARSET_GET_ID (XCAR (val), id);
-	  CHECK_RANGED_INTEGER (XCDR (val), 0, 3);
+	  check_integer_range (XCDR (val), 0, 3);
 	  XSETCAR (val, make_fixnum (id));
 	}
 

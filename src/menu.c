@@ -1253,18 +1253,16 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	 but I don't want to make one now.  */
       CHECK_WINDOW (window);
 
-    CHECK_RANGED_INTEGER (x,
-			  (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
-			   ? (EMACS_INT) INT_MIN - xpos
-			   : MOST_NEGATIVE_FIXNUM),
-			  INT_MAX - xpos);
-    CHECK_RANGED_INTEGER (y,
-			  (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
-			   ? (EMACS_INT) INT_MIN - ypos
-			   : MOST_NEGATIVE_FIXNUM),
-			  INT_MAX - ypos);
-    xpos += XFIXNUM (x);
-    ypos += XFIXNUM (y);
+    xpos += check_integer_range (x,
+				 (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
+				  ? (EMACS_INT) INT_MIN - xpos
+				  : MOST_NEGATIVE_FIXNUM),
+				 INT_MAX - xpos);
+    ypos += check_integer_range (y,
+				 (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
+				  ? (EMACS_INT) INT_MIN - ypos
+				  : MOST_NEGATIVE_FIXNUM),
+				 INT_MAX - ypos);
 
     XSETFRAME (Vmenu_updating_frame, f);
   }

@@ -750,11 +750,9 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
   (Lisp_Object xwidget, Lisp_Object new_width, Lisp_Object new_height)
 {
   CHECK_XWIDGET (xwidget);
-  CHECK_RANGED_INTEGER (new_width, 0, INT_MAX);
-  CHECK_RANGED_INTEGER (new_height, 0, INT_MAX);
+  int w = check_integer_range (new_width, 0, INT_MAX);
+  int h = check_integer_range (new_height, 0, INT_MAX);
   struct xwidget *xw = XXWIDGET (xwidget);
-  int w = XFIXNAT (new_width);
-  int h = XFIXNAT (new_height);
 
   xw->width = w;
   xw->height = h;

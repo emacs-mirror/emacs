@@ -2392,14 +2392,7 @@ since only regular expressions have distinguished subexpressions.  */)
   if (num_regs <= 0)
     error ("`replace-match' called before any match found");
 
-  if (NILP (subexp))
-    sub = 0;
-  else
-    {
-      CHECK_RANGED_INTEGER (subexp, 0, num_regs - 1);
-      sub = XFIXNUM (subexp);
-    }
-
+  sub = !NILP (subexp) ? check_integer_range (subexp, 0, num_regs - 1) : 0;
   ptrdiff_t sub_start = search_regs.start[sub];
   ptrdiff_t sub_end = search_regs.end[sub];
   eassert (sub_start <= sub_end);

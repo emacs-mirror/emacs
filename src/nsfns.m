@@ -706,14 +706,11 @@ static void
 ns_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int old_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int new_width = check_int_nonnegative (arg);
 
-  CHECK_TYPE_RANGED_INTEGER (int, arg);
-  f->internal_border_width = XFIXNUM (arg);
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) < 0)
-    f->internal_border_width = 0;
-
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) == old_width)
+  if (new_width == old_width)
     return;
+  f->internal_border_width = new_width;
 
   if (FRAME_NATIVE_WINDOW (f) != 0)
     adjust_frame_size (f, -1, -1, 3, 0, Qinternal_border_width);
@@ -2956,16 +2953,16 @@ The coordinates X and Y are interpreted in pixels relative to a position
   if (FRAME_INITIAL_P (f) || !FRAME_NS_P (f))
     return Qnil;
 
-  CHECK_TYPE_RANGED_INTEGER (int, x);
-  CHECK_TYPE_RANGED_INTEGER (int, y);
+  int xval = check_integer_range (x, INT_MIN, INT_MAX);
+  int yval = check_integer_range (y, INT_MIN, INT_MAX);
 
-  mouse_x = screen_frame.origin.x + XFIXNUM (x);
+  mouse_x = screen_frame.origin.x + xval;
 
   if (screen == primary_screen)
-    mouse_y = screen_frame.origin.y + XFIXNUM (y);
+    mouse_y = screen_frame.origin.y + yval;
   else
     mouse_y = (primary_screen_height - screen_frame.size.height
-               - screen_frame.origin.y) + XFIXNUM (y);
+               - screen_frame.origin.y) + yval;
 
   CGPoint mouse_pos = CGPointMake(mouse_x, mouse_y);
   CGWarpMouseCursorPosition (mouse_pos);

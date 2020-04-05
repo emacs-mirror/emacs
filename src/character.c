@@ -876,10 +876,7 @@ usage: (unibyte-string &rest BYTES)  */)
   Lisp_Object str = make_uninit_string (n);
   unsigned char *p = SDATA (str);
   for (ptrdiff_t i = 0; i < n; i++)
-    {
-      CHECK_RANGED_INTEGER (args[i], 0, 255);
-      *p++ = XFIXNUM (args[i]);
-    }
+    *p++ = check_integer_range (args[i], 0, 255);
   return str;
 }
 

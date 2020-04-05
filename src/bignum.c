@@ -431,3 +431,39 @@ make_bignum_str (char const *num, int base)
   eassert (check == 0);
   return make_lisp_ptr (b, Lisp_Vectorlike);
 }
+
+/* Check that X is a Lisp integer in the range LO..HI.
+   Return X's value as an intmax_t.  */
+
+intmax_t
+check_integer_range (Lisp_Object x, intmax_t lo, intmax_t hi)
+{
+  CHECK_INTEGER (x);
+  intmax_t i;
+  if (! (integer_to_intmax (x, &i) && lo <= i && i <= hi))
+    args_out_of_range_3 (x, make_int (lo), make_int (hi));
+  return i;
+}
+
+/* Check that X is a Lisp integer in the range 0..HI.
+   Return X's value as an uintmax_t.  */
+
+uintmax_t
+check_uinteger_max (Lisp_Object x, uintmax_t hi)
+{
+  CHECK_INTEGER (x);
+  uintmax_t i;
+  if (! (integer_to_uintmax (x, &i) && i <= hi))
+    args_out_of_range_3 (x, make_fixnum (0), make_uint (hi));
+  return i;
+}
+
+/* Check that X is a Lisp integer no greater than INT_MAX,
+   and return its value or zero, whichever is greater.  */
+
+int
+check_int_nonnegative (Lisp_Object x)
+{
+  CHECK_INTEGER (x);
+  return Fnatnump (x) ? check_integer_range (x, 0, INT_MAX) : 0;
+}
