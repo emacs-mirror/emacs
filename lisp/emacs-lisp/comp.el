@@ -474,14 +474,18 @@ Put PREFIX in front of it."
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
-    ;; Prevent C namespace conflicts.
-    (cl-loop
-     with h = (comp-ctxt-funcs-h comp-ctxt)
-     for i from 0
-     for c-sym = (concat prefix crypted "_" human-readable "_"
-                        (number-to-string i))
-     unless (gethash c-sym h)
-       return c-sym)))
+    (if comp-ctxt
+        ;; Prevent C namespace conflicts.
+        (cl-loop
+         with h = (comp-ctxt-funcs-h comp-ctxt)
+         for i from 0
+         for c-sym = (concat prefix crypted "_" human-readable "_"
+                             (number-to-string i))
+         unless (gethash c-sym h)
+         return c-sym)
+      ;; When called out of a compilation context (ex disassembling)
+      ;; pick the first one.
+      (concat prefix crypted "_" human-readable "_0"))))
 
 (defun comp-decrypt-arg-list (x function-name)
   "Decript argument list X for FUNCTION-NAME."
