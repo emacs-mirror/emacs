@@ -883,11 +883,12 @@ DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
 DEFUN ("native-comp-unit-file", Fnative_comp_unit_file,
        Snative_comp_unit_file, 1, 1, 0,
        doc: /* Return the file of the native compilation unit.  */)
-  (Lisp_Object object)
+  (Lisp_Object comp_unit)
 {
-  CHECK_TYPE (NATIVE_COMP_UNITP (object), Qnative_comp_unit, object);
-  return XNATIVE_COMP_UNIT (object)->file;
+  CHECK_TYPE (NATIVE_COMP_UNITP (comp_unit), Qnative_comp_unit, comp_unit);
+  XNATIVE_COMP_UNIT (comp_unit)->file = new_file;
 }
+
 #endif
 
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
