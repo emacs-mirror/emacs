@@ -3231,7 +3231,7 @@ such programs cannot be invoked by Emacs anyway.  */)
   char *progname, progname_a[MAX_PATH];
 
   program = Fexpand_file_name (program, Qnil);
-  encoded_progname = ENCODE_FILE (program);
+  encoded_progname = Fcopy_sequence (ENCODE_FILE (program));
   progname = SSDATA (encoded_progname);
   unixtodos_filename (progname);
   filename_to_ansi (progname, progname_a);
