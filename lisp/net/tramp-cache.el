@@ -339,7 +339,7 @@ Return VALUE."
   (when-let ((hash (tramp-get-hash-table key)))
     (puthash property value hash))
   (setq tramp-cache-data-changed
-	(or tramp-cache-data-changed (tramp-tramp-file-p key)))
+	(or tramp-cache-data-changed (tramp-file-name-p key)))
   (tramp-message key 7 "%s %s" property value)
   value)
 
@@ -368,7 +368,7 @@ PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
   (when-let ((hash (tramp-get-hash-table key)))
     (remhash property hash))
   (setq tramp-cache-data-changed
-	(or tramp-cache-data-changed (tramp-tramp-file-p key)))
+	(or tramp-cache-data-changed (tramp-file-name-p key)))
   (tramp-message key 7 "%s" property))
 
 ;;;###tramp-autoload
@@ -388,7 +388,7 @@ used to cache connection properties of the local machine."
    (when-let ((hash (gethash key tramp-cache-data)))
      (hash-table-keys hash)))
   (setq tramp-cache-data-changed
-	(or tramp-cache-data-changed (tramp-tramp-file-p key)))
+	(or tramp-cache-data-changed (tramp-file-name-p key)))
   (remhash key tramp-cache-data))
 
 ;;;###tramp-autoload

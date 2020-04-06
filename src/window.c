@@ -2108,30 +2108,20 @@ though when run from an idle timer with a delay of zero seconds.  */)
       || window_outdated (w))
     return Qnil;
 
-  if (NILP (first))
-    row = (NILP (body)
-	   ? MATRIX_ROW (w->current_matrix, 0)
-	   : MATRIX_FIRST_TEXT_ROW (w->current_matrix));
-  else if (FIXNUMP (first))
-    {
-      CHECK_RANGED_INTEGER (first, 0, w->current_matrix->nrows);
-      row = MATRIX_ROW (w->current_matrix, XFIXNUM (first));
-    }
-  else
-    error ("Invalid specification of first line");
-
-  if (NILP (last))
-
-    end_row = (NILP (body)
-	       ? MATRIX_ROW (w->current_matrix, w->current_matrix->nrows)
-	       : MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w));
-  else if (FIXNUMP (last))
-    {
-      CHECK_RANGED_INTEGER (last, 0, w->current_matrix->nrows);
-      end_row = MATRIX_ROW (w->current_matrix, XFIXNUM (last));
-    }
-  else
-    error ("Invalid specification of last line");
+  row = (!NILP (first)
+	 ? MATRIX_ROW (w->current_matrix,
+		       check_integer_range (first, 0,
+					    w->current_matrix->nrows))
+	 : NILP (body)
+	 ? MATRIX_ROW (w->current_matrix, 0)
+	 : MATRIX_FIRST_TEXT_ROW (w->current_matrix));
+  end_row = (!NILP (last)
+	     ? MATRIX_ROW (w->current_matrix,
+			   check_integer_range (last, 0,
+						w->current_matrix->nrows))
+	     : NILP (body)
+	     ? MATRIX_ROW (w->current_matrix, w->current_matrix->nrows)
+	     : MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w));
 
   while (row <= end_row && row->enabled_p
 	 && row->y + row->height < max_y)
@@ -4325,11 +4315,11 @@ Note: This function does not operate on any child windows of WINDOW.  */)
   EMACS_INT size_min = NILP (add) ? 0 : - XFIXNUM (w->new_pixel);
   EMACS_INT size_max = size_min + min (INT_MAX, MOST_POSITIVE_FIXNUM);
 
-  CHECK_RANGED_INTEGER (size, size_min, size_max);
+  int checked_size = check_integer_range (size, size_min, size_max);
   if (NILP (add))
     wset_new_pixel (w, size);
   else
-    wset_new_pixel (w, make_fixnum (XFIXNUM (w->new_pixel) + XFIXNUM (size)));
+    wset_new_pixel (w, make_fixnum (XFIXNUM (w->new_pixel) + checked_size));
 
   return w->new_pixel;
 }
@@ -7506,8 +7496,7 @@ extract_dimension (Lisp_Object dimension)
 {
   if (NILP (dimension))
     return -1;
-  CHECK_RANGED_INTEGER (dimension, 0, INT_MAX);
-  return XFIXNUM (dimension);
+  return check_integer_range (dimension, 0, INT_MAX);
 }
 
 static struct window *

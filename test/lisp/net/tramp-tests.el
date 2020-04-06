@@ -109,6 +109,10 @@
       (format "/mock::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
+(defconst tramp-test-vec
+  (tramp-dissect-file-name tramp-test-temporary-file-directory)
+  "The used `tramp-file-name' structure.")
+
 (setq auth-source-save-behavior nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
@@ -141,9 +145,7 @@ being the result.")
   (when (cdr tramp--test-enabled-checked)
     ;; Cleanup connection.
     (ignore-errors
-      (tramp-cleanup-connection
-       (tramp-dissect-file-name tramp-test-temporary-file-directory)
-       nil 'keep-password)))
+      (tramp-cleanup-connection tramp-test-vec nil 'keep-password)))
 
   ;; Return result.
   (cdr tramp--test-enabled-checked))
@@ -195,16 +197,12 @@ properly.  BODY shall not contain a timeout."
 (defsubst tramp--test-message (fmt-string &rest arguments)
   "Emit a message into ERT *Messages*."
   (tramp--test-instrument-test-case 0
-    (apply
-     #'tramp-message
-     (tramp-dissect-file-name tramp-test-temporary-file-directory) 0
-     fmt-string arguments)))
+    (apply #'tramp-message tramp-test-vec 0 fmt-string arguments)))
 
 (defsubst tramp--test-backtrace ()
   "Dump a backtrace into ERT *Messages*."
   (tramp--test-instrument-test-case 10
-    (tramp-backtrace
-     (tramp-dissect-file-name tramp-test-temporary-file-directory))))
+    (tramp-backtrace tramp-test-vec)))
 
 (defmacro tramp--test-print-duration (message &rest body)
   "Run BODY and print a message with duration, prompted by MESSAGE."
@@ -1966,9 +1964,9 @@ properly.  BODY shall not contain a timeout."
   ;; Host names must match rules in case the command template of a
   ;; method doesn't use them.
   (dolist (m '("su" "sg" "sudo" "doas" "ksu"))
-    (let ((vec (tramp-dissect-file-name tramp-test-temporary-file-directory))
-	  tramp-connection-properties tramp-default-proxies-alist)
-      (ignore-errors (tramp-cleanup-connection vec nil 'keep-password))
+    (let (tramp-connection-properties tramp-default-proxies-alist)
+      (ignore-errors
+	(tramp-cleanup-connection tramp-test-vec nil 'keep-password))
       ;; Single hop.  The host name must match `tramp-local-host-regexp'.
       (should-error
        (find-file (format "/%s:foo:" m))
@@ -3136,8 +3134,7 @@ This tests also `access-file', `file-readable-p',
 	      (setq test-file-ownership-preserved-p
 		    (= (tramp-compat-file-attribute-group-id
 			(file-attributes tmp-name1))
-		       (tramp-get-remote-gid
-			(tramp-dissect-file-name tmp-name1) 'integer)))
+		       (tramp-get-remote-gid tramp-test-vec 'integer)))
 	      (delete-file tmp-name1))
 
 	    (should-error
@@ -3406,7 +3403,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
       ;; in tramp-sh.el, we must ensure that the remote chmod command
       ;; supports the "-h" argument.
       (when (and (tramp--test-emacs28-p) (tramp--test-sh-p)
-		 (tramp-get-remote-chmod-h (tramp-dissect-file-name tmp-name1)))
+		 (tramp-get-remote-chmod-h tramp-test-vec))
 	(unwind-protect
 	    (with-no-warnings
 	      (write-region "foo" nil tmp-name1)
@@ -4038,7 +4035,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (when (not (memq system-type '(cygwin windows-nt)))
     (let ((method (file-remote-p tramp-test-temporary-file-directory 'method))
 	  (host (file-remote-p tramp-test-temporary-file-directory 'host))
-	  (vec (tramp-dissect-file-name tramp-test-temporary-file-directory))
           (orig-syntax tramp-syntax))
       (when (and (stringp host) (string-match tramp-host-with-port-regexp host))
 	(setq host (match-string 1 host)))
@@ -4051,7 +4047,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
             (tramp-change-syntax syntax)
 	    ;; This has cleaned up all connection data, which are used
 	    ;; for completion.  We must refill the cache.
-	    (tramp-set-connection-property vec "property" nil)
+	    (tramp-set-connection-property tramp-test-vec "property" nil)
 
             (let ;; This is needed for the `simplified' syntax.
                 ((method-marker
@@ -4252,7 +4248,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test29-start-file-process ()
   "Check `start-file-process'."
-  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
@@ -4326,14 +4321,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test30-make-process ()
   "Check `make-process'."
-  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p)))
   ;; `make-process' supports file name handlers since Emacs 27.
   (skip-unless (tramp--test-emacs27-p))
 
-  (tramp--test-instrument-test-case 10
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
 	  (tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -4494,7 +4487,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
-	  (ignore-errors (delete-file tmpfile))))))))
+	  (ignore-errors (delete-file tmpfile)))))))
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
@@ -4744,7 +4737,6 @@ INPUT, if non-nil, is a string sent to the process."
 ;; This test is inspired by Bug#23952.
 (ert-deftest tramp-test33-environment-variables ()
   "Check that remote processes set / unset environment variables properly."
-  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed)
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
@@ -4790,9 +4782,7 @@ INPUT, if non-nil, is a string sent to the process."
 	      (funcall this-shell-command-to-string "set")))))
 
       ;; We force a reconnect, in order to have a clean environment.
-      (tramp-cleanup-connection
-       (tramp-dissect-file-name tramp-test-temporary-file-directory)
-       'keep-debug 'keep-password)
+      (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
       (unwind-protect
 	  ;; Unset the variable.
 	  (let ((tramp-remote-process-environment
@@ -5039,23 +5029,20 @@ INPUT, if non-nil, is a string sent to the process."
 	 (default-directory tramp-test-temporary-file-directory)
          (orig-exec-path (with-no-warnings (exec-path)))
          (tramp-remote-path tramp-remote-path)
-	 (orig-tramp-remote-path tramp-remote-path))
+	 (orig-tramp-remote-path tramp-remote-path)
+	 path)
     (unwind-protect
 	(progn
           ;; Non existing directories are removed.
           (setq tramp-remote-path
                 (cons (file-remote-p tmp-name 'localname) tramp-remote-path))
-          (tramp-cleanup-connection
-           (tramp-dissect-file-name tramp-test-temporary-file-directory)
-           'keep-debug 'keep-password)
+          (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
           (should (equal (with-no-warnings (exec-path)) orig-exec-path))
           (setq tramp-remote-path orig-tramp-remote-path)
 
           ;; Double entries are removed.
           (setq tramp-remote-path (append '("/" "/") tramp-remote-path))
-          (tramp-cleanup-connection
-           (tramp-dissect-file-name tramp-test-temporary-file-directory)
-           'keep-debug 'keep-password)
+          (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
           (should
 	   (equal (with-no-warnings (exec-path)) (cons "/" orig-exec-path)))
           (setq tramp-remote-path orig-tramp-remote-path)
@@ -5067,26 +5054,30 @@ INPUT, if non-nil, is a string sent to the process."
             (let ((dir (make-temp-file (file-name-as-directory tmp-name) 'dir)))
               (should (file-directory-p dir))
               (setq tramp-remote-path
-                    (cons (file-remote-p dir 'localname) tramp-remote-path)
+                    (append
+		     tramp-remote-path `(,(file-remote-p dir 'localname)))
                     orig-exec-path
-                    (cons (file-remote-p dir 'localname) orig-exec-path))))
-          (tramp-cleanup-connection
-           (tramp-dissect-file-name tramp-test-temporary-file-directory)
-           'keep-debug 'keep-password)
+                    (append
+		     (butlast orig-exec-path)
+		     `(,(file-remote-p dir 'localname))
+		     (last orig-exec-path)))))
+          (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
           (should (equal (with-no-warnings (exec-path)) orig-exec-path))
-          (should
-	   (string-equal
-	    ;; Ignore trailing newline.
-	    (substring (shell-command-to-string "echo $PATH") nil -1)
+          ;; Ignore trailing newline.
+	  (setq path (substring (shell-command-to-string "echo $PATH") nil -1))
+	  ;; The shell doesn't handle such long strings.
+	  (unless (<= (length path)
+		      (tramp-get-connection-property
+		       tramp-test-vec "pipe-buf" 4096))
 	    ;; The last element of `exec-path' is `exec-directory'.
-	    (mapconcat #'identity (butlast orig-exec-path) ":")))
+            (should
+	     (string-equal
+	      path (mapconcat #'identity (butlast orig-exec-path) ":"))))
 	  ;; The shell "sh" shall always exist.
 	  (should (apply #'executable-find '("sh" remote))))
 
       ;; Cleanup.
-      (tramp-cleanup-connection
-       (tramp-dissect-file-name tramp-test-temporary-file-directory)
-       'keep-debug 'keep-password)
+      (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
       (setq tramp-remote-path orig-tramp-remote-path)
       (ignore-errors (delete-directory tmp-name 'recursive)))))
 
@@ -5123,8 +5114,7 @@ INPUT, if non-nil, is a string sent to the process."
 			    tramp-remote-process-environment))
 		;; We must force a reconnect, in order to activate $BZR_HOME.
 		(tramp-cleanup-connection
-		 (tramp-dissect-file-name tramp-test-temporary-file-directory)
-		 'keep-debug 'keep-password)
+		 tramp-test-vec 'keep-debug 'keep-password)
 		'(Bzr))
 	       (t nil))))
 	   ;; Suppress nasty messages.
@@ -6072,10 +6062,7 @@ process sentinels.  They shall not disturb each other."
               0 timer-repeat
               (lambda ()
                 (tramp--test-with-proper-process-name-and-buffer
-                    (get-buffer-process
-                     (tramp-get-buffer
-                      (tramp-dissect-file-name
-                       tramp-test-temporary-file-directory)))
+                    (get-buffer-process (tramp-get-buffer tramp-test-vec))
                   (when (> (- (time-to-seconds) (time-to-seconds timer-start))
                            tramp--test-asynchronous-requests-timeout)
                     (tramp--test-timeout-handler))

@@ -1392,14 +1392,12 @@ nil otherwise.  */)
   CHECK_PROCESS (process);
 
   /* All known platforms store window sizes as 'unsigned short'.  */
-  CHECK_RANGED_INTEGER (height, 0, USHRT_MAX);
-  CHECK_RANGED_INTEGER (width, 0, USHRT_MAX);
+  unsigned short h = check_uinteger_max (height, USHRT_MAX);
+  unsigned short w = check_uinteger_max (width, USHRT_MAX);
 
   if (NETCONN_P (process)
       || XPROCESS (process)->infd < 0
-      || (set_window_size (XPROCESS (process)->infd,
-			   XFIXNUM (height), XFIXNUM (width))
-	  < 0))
+      || set_window_size (XPROCESS (process)->infd, h, w) < 0)
     return Qnil;
   else
     return Qt;
@@ -7075,10 +7073,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
     }
 
   if (FIXNUMP (sigcode))
-    {
-      CHECK_TYPE_RANGED_INTEGER (int, sigcode);
-      signo = XFIXNUM (sigcode);
-    }
+    signo = check_integer_range (sigcode, INT_MIN, INT_MAX);
   else
     {
       char *name;

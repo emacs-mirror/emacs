@@ -2970,14 +2970,26 @@ Supported keywords for slots are:
     (pcase-dolist (`(,cname ,args ,doc) constrs)
       (let* ((anames (cl--arglist-args args))
 	     (make (cl-mapcar (function (lambda (s d) (if (memq s anames) s d)))
-			    slots defaults)))
-	(push `(,cldefsym ,cname
+			      slots defaults))
+	     ;; `cl-defsubst' is fundamentally broken: it substitutes
+             ;; its arguments into the body's `sexp' much too naively
+             ;; when inlinling, which results in various problems.
+             ;; For example it generates broken code if your
+             ;; argument's name happens to be the same as some
+             ;; function used within the body.
+             ;; E.g. (cl-defsubst sm-foo (list) (list list))
+             ;; will expand `(sm-foo 1)' to `(1 1)' rather than to `(list t)'!
+             ;; Try to catch this known case!
+	     (con-fun (or type #'record))
+	     (unsafe-cl-defsubst
+	      (or (memq con-fun args) (assq con-fun args))))
+	(push `(,(if unsafe-cl-defsubst 'cl-defun cldefsym) ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
                     (format "Constructor for objects of type `%s'." name))
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))
-                 (,(or type #'record) ,@make))
+                 (,con-fun ,@make))
               forms)))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     ;; Don't bother adding to cl-custom-print-functions since it's not used

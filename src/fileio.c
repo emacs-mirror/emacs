@@ -5682,8 +5682,8 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
       struct timespec mtime;
       if (FIXNUMP (time_flag))
 	{
-	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
-	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XFIXNUM (time_flag));
+	  int flag = check_integer_range (time_flag, -1, 0);
+	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - flag);
 	}
       else
 	mtime = lisp_time_argument (time_flag);

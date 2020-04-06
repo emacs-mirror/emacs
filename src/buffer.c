@@ -6236,10 +6236,10 @@ Lisp programs may give this variable certain special values:
 
   DEFVAR_LISP ("inhibit-read-only", Vinhibit_read_only,
 	       doc: /* Non-nil means disregard read-only status of buffers or characters.
-If the value is t, disregard `buffer-read-only' and all `read-only'
-text properties.  If the value is a list, disregard `buffer-read-only'
-and disregard a `read-only' text property if the property value
-is a member of the list.  */);
+A non-nil value that is a list means disregard `buffer-read-only' status,
+and disregard a `read-only' text property if the property value is a
+member of the list.  Any other non-nil value means disregard `buffer-read-only'
+and all `read-only' text properties.  */);
   Vinhibit_read_only = Qnil;
 
   DEFVAR_PER_BUFFER ("cursor-type", &BVAR (current_buffer, cursor_type), Qnil,

@@ -1022,6 +1022,14 @@ is the relevant buffer type, such as @samp{breakpoints}.  You can do
 the same with the menu bar, with the @samp{GDB-Windows} and
 @samp{GDB-Frames} sub-menus of the @samp{GUD} menu.
 
+@vindex gdb-max-source-window-count
+@vindex gdb-display-source-buffer-action
+By default, GDB uses at most one window to display the source file.
+You can make it use more windows by customizing
+@code{gdb-max-source-window-count}.  You can also customize
+@code{gdb-display-source-buffer-action} to control how GDB displays
+source files.
+
   When you finish debugging, kill the GUD interaction buffer with
 @kbd{C-x k}, which will also kill all the buffers associated with the
 session.  However you need not do this if, after editing and

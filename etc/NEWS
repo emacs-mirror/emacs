@@ -233,6 +233,12 @@ will remember the window configuration before GDB started and restore
 it after GDB quits.  A toggle button is also provided under 'Gud --
 GDB-Windows'.
 
++++
+*** gdb-mi now has a better logic for displaying source buffers
+Now GDB only uses one source window to display source file by default.
+Customize 'gdb-max-source-window-count' to use more than one window.
+Control source file display by 'gdb-display-source-buffer-action'.
+
 ** Gravatar
 
 ---
