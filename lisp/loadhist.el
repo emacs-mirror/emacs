@@ -234,11 +234,10 @@ If the feature is required by any other loaded code, and prefix arg FORCE
 is nil, raise an error.
 
 Standard unloading activities include restoring old autoloads for
-functions defined by the library, undoing any additions that the
-library has made to hook variables or to `auto-mode-alist', undoing
-ELP profiling of functions in that library, unproviding any features
-provided by the library, and canceling timers held in variables
-defined by the library.
+functions defined by the library, removing such functions from
+hooks and `auto-mode-alist', undoing their ELP profiling,
+unproviding any features provided by the library, and canceling
+timers held in variables defined by the library.
 
 If a function `FEATURE-unload-function' is defined, this function
 calls it with no arguments, before doing anything else.  That function
