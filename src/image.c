@@ -4572,8 +4572,9 @@ xpm_scan (const char **s, const char *end, const char **beg, ptrdiff_t *len)
   while (*s < end)
     {
       /* Skip white-space.  */
-      while (*s < end && (c = *(*s)++, c_isspace (c)))
-	;
+      do
+	c = *(*s)++;
+      while (c_isspace (c) && *s < end);
 
       /* gnus-pointer.xpm uses '-' in its identifier.
 	 sb-dir-plus.xpm uses '+' in its identifier.  */
