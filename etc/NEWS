@@ -1748,6 +1748,9 @@ to lexical binding, where dynamic (special) variables bound in one
 file can affect code in another.  For details, see the manual section
 '(Elisp) Converting to Lexical Binding'.
 
+---
+** 'unload-feature' now also tries to undo additions to buffer-local hooks.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 

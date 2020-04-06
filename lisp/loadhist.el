@@ -300,6 +300,15 @@ something strange, such as redefining an Emacs function."
 			    (memq x unload-feature-special-hooks)))
 	       (dolist (func removables)
 	         (remove-hook x func)))))
+          (save-current-buffer
+            (dolist (buffer (buffer-list))
+              (pcase-dolist (`(,sym . ,val) (buffer-local-variables buffer))
+                (when (or (and (consp val)
+                               (string-match "-hooks?\\'" (symbol-name sym)))
+                          (memq sym unload-feature-special-hooks))
+                  (set-buffer buffer)
+                  (dolist (func removables)
+                    (remove-hook sym func t))))))
           ;; Remove any feature-symbols from auto-mode-alist as well.
           (dolist (func removables)
             (setq auto-mode-alist
