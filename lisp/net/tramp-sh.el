@@ -481,6 +481,7 @@ The string is used in `tramp-methods'.")
 ;; Darwin: /usr/bin:/bin:/usr/sbin:/sbin
 ;; IRIX64: /usr/bin
 ;; QNAP QTS: ---
+;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
 ;;;###tramp-autoload
 (defcustom tramp-remote-path
   '(tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin"
@@ -4045,11 +4046,14 @@ variable PATH."
     (if (< (length command) pipe-buf)
 	(tramp-send-command vec command)
       ;; Use a temporary file.
-      (setq tmpfile
-	    (tramp-make-tramp-file-name vec (tramp-make-tramp-temp-file vec)))
-      (write-region command nil tmpfile)
-      (tramp-send-command vec (format ". %s" (tramp-file-local-name tmpfile)))
-      (delete-file tmpfile))))
+      (setq tmpfile (tramp-make-tramp-temp-file vec))
+      (tramp-send-command vec (format
+			       "cat >%s <<'%s'\n%s\n%s"
+			       (tramp-shell-quote-argument tmpfile)
+			       tramp-end-of-heredoc
+			       command tramp-end-of-heredoc))
+      (tramp-send-command vec (format ". %s" tmpfile))
+      (tramp-send-command vec (format "rm -f %s" tmpfile)))))
 
 ;; ------------------------------------------------------------
 ;; -- Communication with external shell --
