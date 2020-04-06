@@ -936,13 +936,14 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
   emit_comment ("FIXNUMP");
 
   gcc_jit_rvalue *sh_res =
-    emit_binary_op (
-      GCC_JIT_BINARY_OP_RSHIFT,
-      comp.emacs_int_type,
-      emit_XLI (obj),
-      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.emacs_int_type,
-					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
+    USE_LSB_TAG ? obj
+    : emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
+		      comp.emacs_int_type,
+		      emit_XLI (obj),
+		      gcc_jit_context_new_rvalue_from_int (
+			comp.ctxt,
+			comp.emacs_int_type,
+			FIXNUM_BITS));
 
   gcc_jit_rvalue *minus_res =
     emit_binary_op (
