@@ -2826,9 +2826,13 @@ Obeying it means displaying in another window the specified file and line."
 	 (buffer
 	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
-	 (window (and buffer
-		      (or (get-buffer-window buffer)
-			  (display-buffer buffer '(nil (inhibit-same-window . t))))))
+	 (window
+          (when buffer
+            (if (eq gud-minor-mode 'gdbmi)
+                (gdb-display-source-buffer buffer)
+              ;; Gud still has the old behavior.
+              (or (get-buffer-window buffer)
+                  (display-buffer buffer '(nil (inhibit-same-window . t)))))))
 	 (pos))
     (when buffer
       (with-current-buffer buffer
@@ -2858,9 +2862,7 @@ Obeying it means displaying in another window the specified file and line."
 	       (widen)
 	       (goto-char pos))))
       (when window
-	(set-window-point window gud-overlay-arrow-position)
-	(if (eq gud-minor-mode 'gdbmi)
-	    (setq gdb-source-window window))))))
+	(set-window-point window gud-overlay-arrow-position)))))
 
 ;; The gud-call function must do the right thing whether its invoking
 ;; keystroke is from the GUD buffer itself (via major-mode binding)
