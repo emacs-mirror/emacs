@@ -287,22 +287,23 @@ something strange, such as redefining an Emacs function."
 	;; functions which the package might just have installed, and
 	;; there might be other important state, but this tactic
 	;; normally works.
-	(mapatoms
-	 (lambda (x)
-	   (when (and (boundp x)
-		      (or (and (consp (symbol-value x)) ; Random hooks.
-			       (string-match "-hooks?\\'" (symbol-name x)))
-			  (memq x unload-feature-special-hooks)))	; Known abnormal hooks etc.
-	     (dolist (y unload-function-defs-list)
-	       (when (and (eq (car-safe y) 'defun)
-			  (not (get (cdr y) 'autoload)))
-		 (remove-hook x (cdr y)))))))
-	;; Remove any feature-symbols from auto-mode-alist as well.
-	(dolist (y unload-function-defs-list)
-	  (when (and (eq (car-safe y) 'defun)
-		     (not (get (cdr y) 'autoload)))
-	    (setq auto-mode-alist
-		  (rassq-delete-all (cdr y) auto-mode-alist)))))
+        (let ((removables (cl-loop for def in unload-function-defs-list
+                                   when (and (eq (car-safe def) 'defun)
+                                             (not (get (cdr def) 'autoload)))
+                                   collect (cdr def))))
+          (mapatoms
+	   (lambda (x)
+	     (when (and (boundp x)
+		        (or (and (consp (symbol-value x)) ; Random hooks.
+			         (string-match "-hooks?\\'" (symbol-name x)))
+                            ;; Known abnormal hooks etc.
+			    (memq x unload-feature-special-hooks)))
+	       (dolist (func removables)
+	         (remove-hook x func)))))
+          ;; Remove any feature-symbols from auto-mode-alist as well.
+          (dolist (func removables)
+            (setq auto-mode-alist
+                  (rassq-delete-all func auto-mode-alist)))))
 
       ;; Change major mode in all buffers using one defined in the feature being unloaded.
       (unload--set-major-mode)
