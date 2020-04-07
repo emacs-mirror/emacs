@@ -9559,10 +9559,7 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
 
 
 /* Encode or decode STRING according to CODING_SYSTEM.
-   Do not set Vlast_coding_system_used.
-
-   This function is called only from macros DECODE_FILE and
-   ENCODE_FILE, thus we ignore character composition.  */
+   Do not set Vlast_coding_system_used.  */
 
 Lisp_Object
 code_convert_string_norecord (Lisp_Object string, Lisp_Object coding_system,
@@ -10332,6 +10329,16 @@ DEFUN ("internal-decode-string-utf-8", Finternal_decode_string_utf_8,
 
 #endif	/* ENABLE_UTF_8_CONVERTER_TEST */
 
+/* Encode or decode STRING using CODING_SYSTEM, with the possibility of
+   returning STRING itself if it equals the result.
+   Do not set Vlast_coding_system_used.  */
+static Lisp_Object
+convert_string_nocopy (Lisp_Object string, Lisp_Object coding_system,
+                       bool encodep)
+{
+  return code_convert_string (string, coding_system, Qt, encodep, 1, 1);
+}
+
 /* Encode or decode a file name, to or from a unibyte string suitable
    for passing to C library functions.  */
 Lisp_Object
@@ -10342,14 +10349,13 @@ decode_file_name (Lisp_Object fname)
      converts the file names either to UTF-16LE or to the system ANSI
      codepage internally, depending on the underlying OS; see w32.c.  */
   if (! NILP (Fcoding_system_p (Qutf_8)))
-    return code_convert_string_norecord (fname, Qutf_8, 0);
+    return convert_string_nocopy (fname, Qutf_8, 0);
   return fname;
 #else  /* !WINDOWSNT */
   if (! NILP (Vfile_name_coding_system))
-    return code_convert_string_norecord (fname, Vfile_name_coding_system, 0);
+    return convert_string_nocopy (fname, Vfile_name_coding_system, 0);
   else if (! NILP (Vdefault_file_name_coding_system))
-    return code_convert_string_norecord (fname,
-					 Vdefault_file_name_coding_system, 0);
+    return convert_string_nocopy (fname, Vdefault_file_name_coding_system, 0);
   else
     return fname;
 #endif
@@ -10369,14 +10375,13 @@ encode_file_name (Lisp_Object fname)
      converts the file names either to UTF-16LE or to the system ANSI
      codepage internally, depending on the underlying OS; see w32.c.  */
   if (! NILP (Fcoding_system_p (Qutf_8)))
-    return code_convert_string_norecord (fname, Qutf_8, 1);
+    return convert_string_nocopy (fname, Qutf_8, 1);
   return fname;
 #else  /* !WINDOWSNT */
   if (! NILP (Vfile_name_coding_system))
-    return code_convert_string_norecord (fname, Vfile_name_coding_system, 1);
+    return convert_string_nocopy (fname, Vfile_name_coding_system, 1);
   else if (! NILP (Vdefault_file_name_coding_system))
-    return code_convert_string_norecord (fname,
-					 Vdefault_file_name_coding_system, 1);
+    return convert_string_nocopy (fname, Vdefault_file_name_coding_system, 1);
   else
     return fname;
 #endif

@@ -642,11 +642,11 @@ struct coding_system
   } while (false)
 
 /* Encode the file name NAME using the specified coding system
-   for file names, if any.  */
+   for file names, if any.  May return NAME itself.  */
 #define ENCODE_FILE(NAME)  encode_file_name (NAME)
 
 /* Decode the file name NAME using the specified coding system
-   for file names, if any.  */
+   for file names, if any.  May return NAME itself.  */
 #define DECODE_FILE(NAME)  decode_file_name (NAME)
 
 /* Encode the string STR using the specified coding system
