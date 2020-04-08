@@ -411,6 +411,14 @@
         (should (eq (decode-coding-string s coding t) s))
         (should (eq (encode-coding-string s coding t) s))))))
 
+(ert-deftest coding-check-coding-systems-region ()
+  (should (equal (check-coding-systems-region "aå" nil '(utf-8))
+                 nil))
+  (should (equal (check-coding-systems-region "aåbγc" nil
+                                              '(utf-8 iso-latin-1 us-ascii))
+                 '((iso-latin-1 3) (us-ascii 1 3))))
+  (should-error (check-coding-systems-region "å" nil '(bad-coding-system))))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not obsolete)
 ;; End:

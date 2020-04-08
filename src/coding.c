@@ -9302,7 +9302,10 @@ is nil.  */)
   for (tail = coding_system_list; CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      attrs = AREF (CODING_SYSTEM_SPEC (elt), 0);
+      Lisp_Object spec = CODING_SYSTEM_SPEC (elt);
+      if (!VECTORP (spec))
+        xsignal1 (Qcoding_system_error, elt);
+      attrs = AREF (spec, 0);
       ASET (attrs, coding_attr_trans_tbl,
 	    get_translation_table (attrs, 1, NULL));
       list = Fcons (list2 (elt, attrs), list);
