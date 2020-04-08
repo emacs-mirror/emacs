@@ -381,6 +381,15 @@ take the actual screenshot, and defaults to "ImageMagick import".
 The menu-bar Help menu now has a "Show Recent Inputs" item under the
 "Describe" sub-menu.
 
+** Ispell
+
+---
+*** 'ispell-comments-and-strings' now accepts START and END arguments,
+defaulting to active region when used interactively.
+
+---
+*** New command 'ispell-comment-or-string-at-point' is provided.
+
 ---
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 
