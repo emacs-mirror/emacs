@@ -377,14 +377,11 @@ endif
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
 NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd
 
-# Cajole GCC into inlining key ops even if it wouldn't normally.
-KEY_OPS_CFLAGS = $(if $(filter -Og,$(CFLAGS)),-DDEFINE_KEY_OPS_AS_MACROS)
-
 # -Demacs makes some files produce the correct version for use in Emacs.
 # MYCPPFLAGS is for by-hand Emacs-specific overrides, e.g.,
 # "make MYCPPFLAGS='-DDBUS_DEBUG'".
-EMACS_CFLAGS = -Demacs $(KEY_OPS_CFLAGS) $(MYCPPFLAGS) \
-  -I. -I$(srcdir) -I$(lib) -I$(top_srcdir)/lib \
+EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
+  -I$(lib) -I$(top_srcdir)/lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
