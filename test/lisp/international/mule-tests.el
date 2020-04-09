@@ -65,6 +65,9 @@
   (should (equal (encode-coding-string "あ" 'utf-7-imap) "&MEI-"))
   (should (equal (decode-coding-string "&MEI-" 'utf-7-imap) "あ")))
 
+(ert-deftest mule-hz ()
+  ;; The chinese-hz encoding is not ASCII compatible.
+  (should-not (coding-system-get 'chinese-hz :ascii-compatible-p)))
 
 ;; Stop "Local Variables" above causing confusion when visiting this file.
 
