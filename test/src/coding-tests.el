@@ -393,7 +393,8 @@
         (should-not (eq (decode-coding-string s coding nil) s))
         (should-not (eq (encode-coding-string s coding nil) s))
         (should (eq (decode-coding-string s coding t) s))
-        (should (eq (encode-coding-string s coding t) s)))
+        (should (eq (encode-coding-string s coding t) s))
+        (should (eq last-coding-system-used coding)))
 
       ;; With EOL conversion inhibited.
       (let ((inhibit-eol-conversion t))

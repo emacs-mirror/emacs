@@ -9527,11 +9527,15 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
           && (EQ (CODING_ID_EOL_TYPE (coding.id), Qunix)
               || inhibit_eol_conversion
               || ! memchr (SDATA (string), encodep ? '\n' : '\r', bytes)))
-        return (nocopy
-                ? string
-                : (encodep
-                   ? make_unibyte_string (SSDATA (string), bytes)
-                   : make_multibyte_string (SSDATA (string), bytes, bytes)));
+        {
+          if (! norecord)
+            Vlast_coding_system_used = coding_system;
+          return (nocopy
+                  ? string
+                  : (encodep
+                     ? make_unibyte_string (SSDATA (string), bytes)
+                     : make_multibyte_string (SSDATA (string), bytes, bytes)));
+        }
     }
   else if (BUFFERP (dst_object))
     {
