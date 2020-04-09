@@ -9471,15 +9471,22 @@ not fully specified.)  */)
   return code_convert_region (start, end, coding_system, destination, 1, 0);
 }
 
-/* Whether a string only contains chars in the 0..127 range.  */
-static bool
+/* Non-zero if STR contains only characterss in the 0..127 range.
+   Positive if STR includes characters that don't need EOL conversion
+   on decoding, negative otherwise.  */
+static int
 string_ascii_p (Lisp_Object str)
 {
   ptrdiff_t nbytes = SBYTES (str);
+  bool CR_Seen = false;
   for (ptrdiff_t i = 0; i < nbytes; i++)
-    if (SREF (str, i) > 127)
-      return false;
-  return true;
+    {
+      if (SREF (str, i) > 127)
+	return 0;
+      if (SREF (str, i) == '\r')
+	CR_Seen = true;
+    }
+  return CR_Seen ? -1 : 1;
 }
 
 Lisp_Object
@@ -9517,15 +9524,23 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
     {
       /* Fast path for ASCII-only input and an ASCII-compatible coding:
          act as identity.  */
+      int ascii_p;
       Lisp_Object attrs = CODING_ID_ATTRS (coding.id);
       if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
           && (STRING_MULTIBYTE (string)
-              ? (chars == bytes) : string_ascii_p (string)))
-	return (nocopy
-                ? string
-                : (encodep
-                   ? make_unibyte_string (SSDATA (string), bytes)
-                   : make_multibyte_string (SSDATA (string), bytes, bytes)));
+              ? (chars == bytes) : ((ascii_p = string_ascii_p (string)) != 0)))
+	{
+	  if (ascii_p > 0
+	      || (ascii_p < 0
+		  && (EQ (CODING_ID_EOL_TYPE (coding.id), Qunix)
+		      || inhibit_eol_conversion)))
+	    return (nocopy
+		    ? string
+		    : (encodep
+		       ? make_unibyte_string (SSDATA (string), bytes)
+		       : make_multibyte_string (SSDATA (string),
+						bytes, bytes)));
+	}
     }
   else if (BUFFERP (dst_object))
     {
