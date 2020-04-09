@@ -9471,7 +9471,7 @@ not fully specified.)  */)
   return code_convert_region (start, end, coding_system, destination, 1, 0);
 }
 
-/* Non-zero if STR contains only characterss in the 0..127 range.
+/* Non-zero if STR contains only characters in the 0..127 range.
    Positive if STR includes characters that don't need EOL conversion
    on decoding, negative otherwise.  */
 static int
@@ -9523,7 +9523,7 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
   if (EQ (dst_object, Qt))
     {
       /* Fast path for ASCII-only input and an ASCII-compatible coding:
-         act as identity.  */
+         act as identity if no EOL conversion is neede.  */
       int ascii_p;
       Lisp_Object attrs = CODING_ID_ATTRS (coding.id);
       if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
