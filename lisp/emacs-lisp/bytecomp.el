@@ -4752,6 +4752,14 @@ binding slots have been popped."
 (defun byte-compile-form-make-variable-buffer-local (form)
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
+;; Make `make-local-variable' declare the variable locally
+;; dynamic - this suppresses some unnecessary warnings
+(byte-defop-compiler-1 make-local-variable
+                       byte-compile-make-local-variable)
+(defun byte-compile-make-local-variable (form)
+  (pcase form (`(,_ ',var) (byte-compile--declare-var var)))
+  (byte-compile-normal-call form))
+
 (put 'function-put 'byte-hunk-handler 'byte-compile-define-symbol-prop)
 (put 'define-symbol-prop 'byte-hunk-handler 'byte-compile-define-symbol-prop)
 (defun byte-compile-define-symbol-prop (form)
