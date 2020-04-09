@@ -277,6 +277,10 @@ Check and correct spelling in the region.
 @item M-x ispell-message
 Check and correct spelling in a draft mail message, excluding cited
 material.
+@item M-x ispell-comments-and-strings
+Check and correct spelling of comments and strings in the buffer or region.
+@item M-x ispell-comment-or-string-at-point
+Check the comment or string at point.
 @item M-x ispell-change-dictionary @key{RET} @var{dict} @key{RET}
 Restart the spell-checker process, using @var{dict} as the dictionary.
 @item M-x ispell-kill-ispell
@@ -304,6 +308,8 @@ region; @pxref{Disabled Transient Mark}.)
 @findex ispell
 @findex ispell-buffer
 @findex ispell-region
+@findex ispell-comments-and-strings
+@findex ispell-comment-or-string-at-point
 @cindex spell-checking the active region
   Similarly, the command @kbd{M-x ispell} performs spell-checking in
 the region if one is active, or in the entire buffer otherwise.  The
@@ -312,7 +318,10 @@ explicitly perform spell-checking on the entire buffer or the region
 respectively.  To check spelling in an email message you are writing,
 use @w{@kbd{M-x ispell-message}}; that command checks the whole buffer,
 except for material that is indented or appears to be cited from other
-messages.  @xref{Sending Mail}.
+messages.  @xref{Sending Mail}.  When dealing with source code, you
+can use @kbd{M-x ispell-comments-and-strings} or @w{@kbd{M-x
+ispell-comment-or-string-at-point}} to check only comments or string
+literals.
 
   When one of these commands encounters what appears to be an
 incorrect word, it asks you what to do.  It usually displays a list of

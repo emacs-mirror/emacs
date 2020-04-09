@@ -383,11 +383,11 @@ The menu-bar Help menu now has a "Show Recent Inputs" item under the
 
 ** Ispell
 
----
++++
 *** 'ispell-comments-and-strings' now accepts START and END arguments,
 defaulting to active region when used interactively.
 
----
++++
 *** New command 'ispell-comment-or-string-at-point' is provided.
 
 ---
