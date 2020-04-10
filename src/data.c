@@ -886,7 +886,17 @@ DEFUN ("native-comp-unit-file", Fnative_comp_unit_file,
   (Lisp_Object comp_unit)
 {
   CHECK_TYPE (NATIVE_COMP_UNITP (comp_unit), Qnative_comp_unit, comp_unit);
+  return XNATIVE_COMP_UNIT (comp_unit)->file;
+}
+
+DEFUN ("native-comp-unit-set-file", Fnative_comp_unit_set_file,
+       Snative_comp_unit_set_file, 2, 2, 0,
+       doc: /* Return the file of the native compilation unit.  */)
+  (Lisp_Object comp_unit, Lisp_Object new_file)
+{
+  CHECK_TYPE (NATIVE_COMP_UNITP (comp_unit), Qnative_comp_unit, comp_unit);
   XNATIVE_COMP_UNIT (comp_unit)->file = new_file;
+  return comp_unit;
 }
 
 #endif
@@ -4007,6 +4017,7 @@ syms_of_data (void)
   defsubr (&Ssubr_native_elisp_p);
   defsubr (&Ssubr_native_comp_unit);
   defsubr (&Snative_comp_unit_file);
+  defsubr (&Snative_comp_unit_set_file);
 #endif
 #ifdef HAVE_MODULES
   defsubr (&Suser_ptrp);
