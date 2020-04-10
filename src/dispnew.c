@@ -3683,6 +3683,10 @@ update_window (struct window *w, bool force_p)
          W->output_cursor doesn't contain the cursor location.  */
       gui_update_window_end (w, !paused_p, mouse_face_overwritten_p);
 #endif
+      /* If the update wasn't interrupted, this window has been
+	 completely updated.  */
+      if (!paused_p)
+	w->must_be_updated_p = false;
     }
   else
     paused_p = 1;
