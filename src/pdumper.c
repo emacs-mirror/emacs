@@ -5298,7 +5298,8 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       {
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
-	comp_u->handle = dynlib_open (SSDATA (comp_u->file));
+	comp_u->handle =
+	  dynlib_open (SSDATA (concat2 (Vinvocation_directory, comp_u->file)));
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());
 	load_comp_unit (comp_u, true, false);

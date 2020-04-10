@@ -449,6 +449,21 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(when (boundp 'comp-ctxt) ; FIXME better native-comp build discriminant?
+  ;; Set the filename for every compilation unit as realtive
+  ;; to obtain a position independent dump.
+  (let ((h (make-hash-table :test #'eq)))
+    (mapatoms (lambda (s)
+                (let ((f (symbol-function s)))
+                  (when (subr-native-elisp-p f)
+                    (puthash (subr-native-comp-unit f) nil h)))))
+    (maphash (lambda (cu _)
+	       (native-comp-unit-set-file
+                cu
+	        (file-relative-name (native-comp-unit-file cu)
+				    invocation-directory)))
+	     h)))
+
 (when (hash-table-p purify-flag)
   (let ((strings 0)
         (vectors 0)
