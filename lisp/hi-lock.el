@@ -102,7 +102,7 @@ of functions `hi-lock-mode' and `hi-lock-find-patterns'."
   :type 'integer
   :group 'hi-lock)
 
-(defcustom hi-lock-highlight-range 200000
+(defcustom hi-lock-highlight-range 2000000
   "Size of area highlighted by hi-lock when font-lock not active.
 Font-lock is not active in buffers that do their own highlighting,
 such as the buffer created by `list-colors-display'.  In those buffers
