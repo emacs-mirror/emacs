@@ -647,20 +647,18 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 static void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int old_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int border = check_int_nonnegative (arg);
 
-  CHECK_TYPE_RANGED_INTEGER (int, arg);
-  f->internal_border_width = XFIXNUM (arg);
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) < 0)
-    f->internal_border_width = 0;
+  if (border != FRAME_INTERNAL_BORDER_WIDTH (f))
+    {
+      f->internal_border_width = border;
 
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) == old_width)
-    return;
-
-  if (FRAME_X_WINDOW (f) != 0)
-    adjust_frame_size (f, -1, -1, 3, 0, Qinternal_border_width);
-
-  SET_FRAME_GARBAGED (f);
+      if (FRAME_X_WINDOW (f))
+	{
+	  adjust_frame_size (f, -1, -1, 3, false, Qinternal_border_width);
+	  pgtk_clear_under_internal_border (f);
+	}
+    }
 }
 
 
