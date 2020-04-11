@@ -1187,7 +1187,7 @@ delete_interval (register INTERVAL i)
   register INTERVAL parent;
   ptrdiff_t amt = LENGTH (i);
 
-  eassert (amt == 0);		/* Only used on zero-length intervals now.  */
+  eassert (amt <= 0);	/* Only used on zero total-length intervals now.  */
 
   if (ROOT_INTERVAL_P (i))
     {

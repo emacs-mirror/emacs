@@ -5930,6 +5930,7 @@ syms_of_frame (void)
   DEFSYM (Qxg_frame_set_char_size_1, "xg-frame-set-char-size-1");
   DEFSYM (Qxg_frame_set_char_size_2, "xg-frame-set-char-size-2");
   DEFSYM (Qxg_frame_set_char_size_3, "xg-frame-set-char-size-3");
+  DEFSYM (Qxg_frame_set_char_size_4, "xg-frame-set-char-size-4");
   DEFSYM (Qx_set_window_size_1, "x-set-window-size-1");
   DEFSYM (Qx_set_window_size_2, "x-set-window-size-2");
   DEFSYM (Qx_set_window_size_3, "x-set-window-size-3");

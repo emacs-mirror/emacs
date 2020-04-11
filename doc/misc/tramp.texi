@@ -3842,7 +3842,8 @@ the verbosity level to 6 (@pxref{Traces and Profiles, Traces}) in the
 contents of the @file{*tramp/foo*} and @file{*debug tramp/foo*}
 buffers with the bug report.  Both buffers could contain
 non-@acronym{ASCII} characters which are relevant for analysis, append
-the buffers as attachments to the bug report.
+the buffers as attachments to the bug report.  This is also needed in
+order to avoid line breaks during mail transfer.
 
 @strong{Note} that a verbosity level greater than 6 is not necessary
 at this stage.  Also note that a verbosity level of 6 or greater, the

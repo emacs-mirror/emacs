@@ -861,6 +861,12 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	(FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 	 p ? FRAME_X_WINDOW (p) : DefaultRootWindow (FRAME_X_DISPLAY (f)),
 	 f->left_pos, f->top_pos);
+#ifdef USE_GTK
+      if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	gtk_container_set_resize_mode
+	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
+	   p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+#endif
       unblock_input ();
 
       fset_parent_frame (f, new_value);
@@ -4078,6 +4084,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
       block_input ();
       XReparentWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       FRAME_X_WINDOW (p), f->left_pos, f->top_pos);
+#ifdef USE_GTK
+      if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	gtk_container_set_resize_mode
+	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)), GTK_RESIZE_IMMEDIATE);
+#endif
       unblock_input ();
     }
 
@@ -7734,6 +7745,22 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
 #endif	/* USE_GTK */
 #endif	/* USE_CAIRO */
 
+#ifdef USE_GTK
+#ifdef HAVE_GTK3
+DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
+       doc: /* Toggle interactive GTK debugging.   */)
+  (Lisp_Object enable)
+{
+  gboolean enable_debug = !NILP (enable);
+
+  block_input ();
+  gtk_window_set_interactive_debugging (enable_debug);
+  unblock_input ();
+
+  return NILP (enable) ? Qnil : Qt;
+}
+#endif /* HAVE_GTK3 */
+#endif	/* USE_GTK */
 
 /***********************************************************************
 			    Initialization
@@ -7802,6 +7829,8 @@ syms_of_xfns (void)
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qmono, "mono");
   DEFSYM (Qassq_delete_all, "assq-delete-all");
+  DEFSYM (Qhide, "hide");
+  DEFSYM (Qresize_mode, "resize-mode");
 
 #ifdef USE_CAIRO
   DEFSYM (Qpdf, "pdf");
@@ -7978,6 +8007,28 @@ Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = true;
 
+  DEFVAR_LISP ("x-gtk-resize-child-frames", x_gtk_resize_child_frames,
+    doc: /* If non-nil, resize child frames specially with GTK builds.
+If this is nil, resize child frames like any other frames.  This is the
+default and usually works with most desktops.  Some desktop environments
+(GNOME shell in particular when using the mutter window manager),
+however, may refuse to resize a child frame when Emacs is built with
+GTK3.  For those environments, the two settings below are provided.
+
+If this equals the symbol 'hide', Emacs temporarily hides the child
+frame during resizing.  This approach seems to work reliably, may
+however induce some flicker when the frame is made visible again.
+
+If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
+always trigger an immediate resize of the child frame.  This method is
+deprecated by GTK and may not work in future versions of that toolkit.
+It also may freeze Emacs when used with other desktop environments.  It
+avoids, however, the unpleasent flicker induced by the hiding approach.
+
+This variable is considered a temporary workaround and will be hopefully
+eliminated in future versions of Emacs.  */);
+  x_gtk_resize_child_frames = Qnil;
+
   /* Tell Emacs about this window system.  */
   Fprovide (Qx, Qnil);
 
@@ -8091,6 +8142,11 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_page_setup_dialog);
   defsubr (&Sx_get_page_setup);
   defsubr (&Sx_print_frames_dialog);
+#endif
+#endif
+#ifdef USE_GTK
+#ifdef HAVE_GTK3
+  defsubr (&Sx_gtk_debug);
 #endif
 #endif
 }

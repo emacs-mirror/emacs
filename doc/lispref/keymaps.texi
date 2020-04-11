@@ -2227,22 +2227,14 @@ set the variable so that the button you clicked on becomes selected.
 
 @item :key-sequence @var{key-sequence}
 This property specifies which key sequence is likely to be bound to the
-same command invoked by this menu item.  If you specify the right key
-sequence, that makes preparing the menu for display run much faster.
+same command invoked by this menu item.  If you specify a correct key
+sequence, that sequence will be preferred over others.
 
-If you specify the wrong key sequence, it has no effect; before Emacs
+If you specify an incorrect key sequence, it has no effect; before Emacs
 displays @var{key-sequence} in the menu, it verifies that
-@var{key-sequence} is really equivalent to this menu item.
-
-@item :key-sequence nil
-This property indicates that there is normally no key binding which is
-equivalent to this menu item.  Using this property saves time in
-preparing the menu for display, because Emacs does not need to search
-the keymaps for a keyboard equivalent for this menu item.
-
-However, if the user has rebound this item's definition to a key
-sequence, Emacs ignores the @code{:keys} property and finds the keyboard
-equivalent anyway.
+@var{key-sequence} is really equivalent to this menu item.  Specifying
+@code{nil} for @var{key-sequence} is equivalent to the
+@code{:key-sequence} attribute being absent.
 
 @item :keys @var{string}
 This property specifies that @var{string} is the string to display

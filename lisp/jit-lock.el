@@ -96,16 +96,22 @@ See also `jit-lock-stealth-nice'."
 
 (defvaralias 'jit-lock-defer-contextually 'jit-lock-contextually)
 (defcustom jit-lock-contextually 'syntax-driven
-  "If non-nil, means fontification should be syntactically true.
-If nil, means fontification occurs only on those lines modified.  This
+  "If non-nil, fontification should be syntactically true.
+If nil, refontification occurs only on lines that were modified.  This
 means where modification on a line causes syntactic change on subsequent lines,
 those subsequent lines are not refontified to reflect their new context.
-If t, means fontification occurs on those lines modified and all
-subsequent lines.  This means those subsequent lines are refontified to reflect
-their new syntactic context, after `jit-lock-context-time' seconds.
-If any other value, e.g., `syntax-driven', means syntactically true
-fontification occurs only if syntactic fontification is performed using the
-buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
+If t, fontification occurs on those lines modified and all subsequent lines.
+This means those subsequent lines are refontified to reflect their new
+syntactic context, after `jit-lock-context-time' seconds.
+If any other value, e.g., `syntax-driven', it means refontification of
+subsequent lines to reflect their new syntactic context may or may not
+occur after `jit-lock-context-time', depending on the the font-lock
+definitions of the buffer.  Specifically, if `font-lock-keywords-only'
+is nil in a buffer, which generally means the syntactic fontification
+is done using the buffer mode's syntax table, the syntactic
+refontification will be triggered (because in that case font-lock
+calls `jit-lock-register' to set up for syntactic refontification,
+and sets the buffer-local value of `jit-lock-contextually' to t).
 
 The value of this variable is used when JIT Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
