@@ -2585,8 +2585,11 @@ implemented this way:
       (macroexp-let2* nil ((start from) (end to))
         (funcall do `(substring ,getter ,start ,end)
                  (lambda (v)
-                   (funcall setter `(cl--set-substring
-                                     ,getter ,start ,end ,v))))))))
+                   (macroexp-let2 nil v v
+                     `(progn
+                        ,(funcall setter `(cl--set-substring
+                                           ,getter ,start ,end ,v))
+                        ,v))))))))
 @end example
 @end defmac
 
