@@ -4649,6 +4649,11 @@ gui_set_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #endif
 
   f->border_width = border_width;
+
+#ifdef HAVE_PGTK
+  if (FRAME_TERMINAL (f)->frame_rehighlight_hook)
+    (*FRAME_TERMINAL (f)->frame_rehighlight_hook) (f);
+#endif
 }
 
 void
