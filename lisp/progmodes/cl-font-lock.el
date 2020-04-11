@@ -1,52 +1,59 @@
 ;;; cl-font-lock.el --- Pretty Common Lisp font locking -*- lexical-binding: t; -*-
-;; Copyright (C) 2019 Yue Daian
-;; Author: Yue Daian
+;; Copyright (C) 2019-2020  Free Software Foundation, Inc.
+
+;; Author: Yue Daian <sheepduke@gmail.com>
 ;; Maintainer: Spenser Truex <web@spensertruex.com>
 ;; Created: 2019-06-16
-;; Version: 0.3.0
+;; Old-Version: 0.3.0
 ;; Package-Requires: ((emacs "24.5"))
 ;; Keywords: lisp wp files convenience
 ;; URL: https://github.com/cl-font-lock/cl-font-lock
 ;; Homepage: https://github.com/cl-font-lock/cl-font-lock
-;; This file is not part of GNU Emacs, but you want to use  GNU Emacs to run it.
-;; This file is very free software.
 
-;; This is free and unencumbered software released into the public domain.
+;; This file is part of GNU Emacs
 
-;; Anyone is free to copy, modify, publish, use, compile, sell, or
-;; distribute this software, either in source code form or as a compiled
-;; binary, for any purpose, commercial or non-commercial, and by any
-;; means.
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; In jurisdictions that recognize copyright laws, the author or authors
-;; of this software dedicate any and all copyright interest in the
-;; software to the public domain. We make this dedication for the benefit
-;; of the public at large and to the detriment of our heirs and
-;; successors. We intend this dedication to be an overt act of
-;; relinquishment in perpetuity of all present and future rights to this
-;; software under copyright law.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-;; EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-;; MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-;; IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-;; OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-;; ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-;; OTHER DEALINGS IN THE SOFTWARE.
-
-;; For more information, please refer to <http://unlicense.org/>.
-
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; Highlight all the symbols in the Common Lisp ANSI Standard, and prettify
-;; lambda to display the greek letter.
-;;
+;; Highlight all the symbols in the Common Lisp ANSI Standard.
 ;; Adds font-lock regexes to lisp-mode.
+
+;;;; Todo:
+
+;; - Integrate better into `lisp-mode' (e.g. enable it by default).
+;; - Distinguish functions from macros like `pushnew'.
 
 ;;; Code:
 
-(require 'cl-lib)
+;; The list of built-in functions and variables was actually not
+;; extracted from the standard, but from SBCL with the following
+;; (Common Lisp) code:
+
+;; (defvar *functions* nil)
+;; (defvar *symbols* nil)
+;; (defvar *types* nil)
+
+;; (let ((pack (find-package :common-lisp)))
+;;   (do-all-symbols (sym)
+;;     (cond
+;;       ((not (eql pack (symbol-package sym))) nil)
+;;       ((fboundp sym) (pushnew sym *functions*))
+;;       ((find-class sym nil) (pushnew sym *types*))
+;;       (t (pushnew sym *symbols*)))))
+
+
 (defvar cl-font-lock-built-in--functions
   '("+" "-" "/" "/=" "<" "<=" "=" ">" ">=" "*" "1-" "1+" "abs" "acons" "acos"
     "acosh" "add-method" "adjoin" "adjustable-array-p" "adjust-array"
@@ -256,28 +263,26 @@
 (defvar cl-font-lock--character-names
   '("newline" "space" "rubout" "page" "tab" "backspace" "return" "linefeed"))
 
-(defmacro cl-font-lock-add-regexes (fn mode &rest symbol-face)
-  "Expand to more than one call to font-lock.
-Argument FN is the function used to send off the regex. Commonly
-`font-lock-add-keywords' or `font-lock-remove-keywords'. Argument
-MODE is the mode where the regexes are sent.
-Optional argument SYMBOL-FACE dotted-pair of (regex-var . font-face)."
-  `(progn
-     ,@(cl-loop for s in symbol-face
-                collect
-                `(,fn
-                  ',mode
-                  `((,(regexp-opt ,(car s) 'symbols)
-                     . ,(cdr ',s)))))))
+(defvar cl-font-lock-built-in-keywords
+  (mapcar (lambda (s)
+            `(,(regexp-opt (symbol-value (car s)) 'symbols)
+              . ,(cdr s)))
+          '((cl-font-lock-built-in--functions . font-lock-function-name-face)
+            (cl-font-lock-built-in--variables . font-lock-variable-name-face)
+            (cl-font-lock-built-in--types . font-lock-type-face)
+            (cl-font-lock-built-in--symbols . font-lock-builtin-face)
+            (cl-font-lock--character-names . font-lock-variable-name-face))))
 
-(cl-font-lock-add-regexes
- font-lock-add-keywords
- lisp-mode
- (cl-font-lock-built-in--functions . font-lock-function-name-face)
- (cl-font-lock-built-in--variables . font-lock-variable-name-face)
- (cl-font-lock-built-in--types . font-lock-type-face)
- (cl-font-lock-built-in--symbols . font-lock-builtin-face)
- (cl-font-lock--character-names . font-lock-variable-name-face))
+;;;###autoload
+(define-minor-mode cl-font-lock-built-in-mode
+  "Highlight built-in functions, variables, and types in `lisp-mode'."
+  :global t
+  (funcall
+   (if cl-font-lock-built-in-mode
+       #'font-lock-add-keywords
+     #'font-lock-remove-keywords)
+   'lisp-mode
+   cl-font-lock-built-in-keywords))
 
 (provide 'cl-font-lock)
 
