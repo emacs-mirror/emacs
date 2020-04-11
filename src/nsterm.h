@@ -343,14 +343,8 @@ typedef id instancetype;
    therefore we draw to an offscreen buffer and swap it in when the
    toolkit wants to draw the frame. GNUstep and macOS 10.7 and below
    do not support this method, so we revert to drawing directly to the
-   glass.
-
-   FIXME: Should we make this macOS 10.8+, or macOS 10.14+?  I'm
-   inclined to go with 10.14+ as there have been some reports of funny
-   behaviour on 10.13 and below.  It may be worth adding a variable to
-   allow people in the overlapping region to switch between drawing
-   paths.  */
-#if defined (NS_IMPL_COCOA) && defined (MAC_OS_X_VERSION_10_14)
+   glass.  */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101400
 #define NS_DRAW_TO_BUFFER 1
 #endif
 

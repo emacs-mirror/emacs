@@ -1144,10 +1144,25 @@ ns_update_begin (struct frame *f)
 
   ns_updating_frame = f;
 #ifdef NS_DRAW_TO_BUFFER
-  [view focusOnDrawingBuffer];
-#else
-  [view lockFocus];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
+    {
 #endif
+      [view focusOnDrawingBuffer];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      [view lockFocus];
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+#endif
+
 }
 
 
@@ -1166,15 +1181,29 @@ ns_update_end (struct frame *f)
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
 #ifdef NS_DRAW_TO_BUFFER
-  [NSGraphicsContext setCurrentContext:nil];
-  [view setNeedsDisplay:YES];
-#else
-  block_input ();
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
+    {
+#endif
+      [NSGraphicsContext setCurrentContext:nil];
+      [view setNeedsDisplay:YES];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
 
-  [view unlockFocus];
-  [[view window] flushWindow];
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      block_input ();
 
-  unblock_input ();
+      [view unlockFocus];
+      [[view window] flushWindow];
+
+      unblock_input ();
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
 #endif
   ns_updating_frame = NULL;
 }
@@ -1199,24 +1228,39 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 
   if (f != ns_updating_frame)
-#ifdef NS_DRAW_TO_BUFFER
-    [view focusOnDrawingBuffer];
-#else
     {
-      if (view != focus_view)
+#ifdef NS_DRAW_TO_BUFFER
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
         {
-          if (focus_view != NULL)
-            {
-              [focus_view unlockFocus];
-              [[focus_view window] flushWindow];
-            }
-
-          if (view)
-            [view lockFocus];
-          focus_view = view;
-        }
-    }
 #endif
+          [view focusOnDrawingBuffer];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+        }
+      else
+        {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+          if (view != focus_view)
+            {
+              if (focus_view != NULL)
+                {
+                  [focus_view unlockFocus];
+                  [[focus_view window] flushWindow];
+                }
+
+              if (view)
+                [view lockFocus];
+              focus_view = view;
+            }
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+        }
+#endif
+    }
+
 
   /* clipping */
   if (r)
@@ -1246,16 +1290,30 @@ ns_unfocus (struct frame *f)
     }
 
 #ifdef NS_DRAW_TO_BUFFER
-  [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
-#else
-  if (f != ns_updating_frame)
+  #if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
     {
-      if (focus_view != NULL)
+#endif
+      [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      if (f != ns_updating_frame)
         {
-          [focus_view unlockFocus];
-          [[focus_view window] flushWindow];
-          focus_view = NULL;
+          if (focus_view != NULL)
+            {
+              [focus_view unlockFocus];
+              [[focus_view window] flushWindow];
+              focus_view = NULL;
+            }
         }
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
     }
 #endif
 }
@@ -6254,7 +6312,9 @@ not_in_argv (NSString *arg)
               name:NSViewFrameDidChangeNotification
             object:nil];
 
+#ifdef NS_DRAW_TO_BUFFER
   CGContextRelease (drawingBuffer);
+#endif
 
   [toolbar release];
   if (fs_state == FULLSCREEN_BOTH)
@@ -7268,13 +7328,27 @@ not_in_argv (NSString *arg)
     return;
 
 #ifdef NS_DRAW_TO_BUFFER
-  CGFloat scale = [[self window] backingScaleFactor];
-  oldw = (CGFloat)CGBitmapContextGetWidth (drawingBuffer) / scale;
-  oldh = (CGFloat)CGBitmapContextGetHeight (drawingBuffer) / scale;
-#else
-  oldw = FRAME_PIXEL_WIDTH (emacsframe);
-  oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([self wantsUpdateLayer])
+    {
 #endif
+      CGFloat scale = [[self window] backingScaleFactor];
+      oldw = (CGFloat)CGBitmapContextGetWidth (drawingBuffer) / scale;
+      oldh = (CGFloat)CGBitmapContextGetHeight (drawingBuffer) / scale;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      oldw = FRAME_PIXEL_WIDTH (emacsframe);
+      oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+#endif
+
   neww = (int)NSWidth (frame);
   newh = (int)NSHeight (frame);
 
@@ -8304,6 +8378,9 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView createDrawingBuffer]");
 
+  if (! [self wantsUpdateLayer])
+    return;
+
   NSGraphicsContext *screen;
   CGColorSpaceRef colorSpace = [[[self window] colorSpace] CGColorSpace];
   CGFloat scale = [[self window] backingScaleFactor];
@@ -8339,6 +8416,9 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
+  if (! [self wantsUpdateLayer])
+    return;
+
   CGFloat old = [[[notification userInfo]
                     objectForKey:@"NSBackingPropertyOldScaleFactorKey"]
                   doubleValue];
@@ -8362,41 +8442,56 @@ not_in_argv (NSString *arg)
   NSTRACE_RECT ("Destination", dstRect);
 
 #ifdef NS_DRAW_TO_BUFFER
-  CGImageRef copy;
-  NSRect frame = [self frame];
-  NSAffineTransform *setOrigin = [NSAffineTransform transform];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([self wantsUpdateLayer])
+    {
+#endif
+      CGImageRef copy;
+      NSRect frame = [self frame];
+      NSAffineTransform *setOrigin = [NSAffineTransform transform];
 
-  [[NSGraphicsContext currentContext] saveGraphicsState];
+      [[NSGraphicsContext currentContext] saveGraphicsState];
 
-  /* Set the clipping before messing with the buffer's
-     orientation.  */
-  NSRectClip (dstRect);
+      /* Set the clipping before messing with the buffer's
+         orientation.  */
+      NSRectClip (dstRect);
 
-  /* Unflip the buffer as the copied image will be unflipped, and
-     offset the top left so when we draw back into the buffer the
-     correct part of the image is drawn.  */
-  CGContextScaleCTM(drawingBuffer, 1, -1);
-  CGContextTranslateCTM(drawingBuffer,
-                        NSMinX (dstRect) - NSMinX (srcRect),
-                        -NSHeight (frame) - (NSMinY (dstRect) - NSMinY (srcRect)));
+      /* Unflip the buffer as the copied image will be unflipped, and
+         offset the top left so when we draw back into the buffer the
+         correct part of the image is drawn.  */
+      CGContextScaleCTM(drawingBuffer, 1, -1);
+      CGContextTranslateCTM(drawingBuffer,
+                            NSMinX (dstRect) - NSMinX (srcRect),
+                            -NSHeight (frame) - (NSMinY (dstRect) - NSMinY (srcRect)));
 
-  /* Take a copy of the buffer and then draw it back to the buffer,
-     limited by the clipping rectangle.  */
-  copy = CGBitmapContextCreateImage (drawingBuffer);
-  CGContextDrawImage (drawingBuffer, frame, copy);
+      /* Take a copy of the buffer and then draw it back to the buffer,
+         limited by the clipping rectangle.  */
+      copy = CGBitmapContextCreateImage (drawingBuffer);
+      CGContextDrawImage (drawingBuffer, frame, copy);
 
-  CGImageRelease (copy);
+      CGImageRelease (copy);
 
-  [[NSGraphicsContext currentContext] restoreGraphicsState];
-  [self setNeedsDisplayInRect:dstRect];
-#else
-  hide_bell();              // Ensure the bell image isn't scrolled.
+      [[NSGraphicsContext currentContext] restoreGraphicsState];
+      [self setNeedsDisplayInRect:dstRect];
 
-  ns_focus (emacsframe, &dstRect, 1);
-  [self scrollRect: srcRect
-                by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
-                                dstRect.origin.y - srcRect.origin.y)];
-  ns_unfocus (emacsframe);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      hide_bell();              // Ensure the bell image isn't scrolled.
+
+      ns_focus (emacsframe, &dstRect, 1);
+      [self scrollRect: srcRect
+                    by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
+                                    dstRect.origin.y - srcRect.origin.y)];
+      ns_unfocus (emacsframe);
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
 #endif
 }
 
@@ -8404,7 +8499,13 @@ not_in_argv (NSString *arg)
 #ifdef NS_DRAW_TO_BUFFER
 - (BOOL)wantsUpdateLayer
 {
-    return YES;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if (NSAppKitVersionNumber < 1671)
+    return NO;
+#endif
+
+  /* Running on macOS 10.14 or above.  */
+  return YES;
 }
 
 
