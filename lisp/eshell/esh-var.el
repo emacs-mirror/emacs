@@ -200,7 +200,7 @@ symbol values over environment values by setting
 
 If the value is a symbol, return the value bound to it.
 
-If the value has any other type, signal `error'.
+If the value has any other type, signal an error.
 
 Additionally, each member may specify if it should be copied to the
 environment of created subprocesses."
