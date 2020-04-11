@@ -257,6 +257,13 @@ case-insensitive matching of messages when the old behaviour is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
+** Hi-Lock
+
+*** Matching in 'hi-lock-mode' is case-sensitive when regexp contains
+upper case characters and `search-upper-case' is non-nil.
+'highlight-phrase' also uses 'search-whitespace-regexp'
+to substitute spaces in regexp search.
+
 ** Texinfo
 
 ---

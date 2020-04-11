@@ -2382,22 +2382,17 @@ respectively)."
                        (funcall isearch-regexp-function isearch-string))
 		      (isearch-regexp-function (word-search-regexp isearch-string))
 		      (isearch-regexp isearch-string)
-		      ((if (and (eq isearch-case-fold-search t)
-				search-upper-case)
-			   (isearch-no-upper-case-p
-			    isearch-string isearch-regexp)
-			 isearch-case-fold-search)
-		       ;; Turn isearch-string into a case-insensitive
-		       ;; regexp.
-		       (mapconcat
-			(lambda (c)
-			  (let ((s (string c)))
-			    (if (string-match "[[:alpha:]]" s)
-				(format "[%s%s]" (upcase s) (downcase s))
-			      (regexp-quote s))))
-			isearch-string ""))
 		      (t (regexp-quote isearch-string)))))
-    (funcall hi-lock-func regexp (hi-lock-read-face-name)))
+    (let ((case-fold-search isearch-case-fold-search)
+          ;; Set `search-upper-case' to nil to not call
+          ;; `isearch-no-upper-case-p' in `hi-lock'.
+          (search-upper-case nil)
+          (search-spaces-regexp
+           (if (if isearch-regexp
+                   isearch-regexp-lax-whitespace
+                 isearch-lax-whitespace)
+               search-whitespace-regexp)))
+      (funcall hi-lock-func regexp (hi-lock-read-face-name) isearch-string)))
   (and isearch-recursive-edit (exit-recursive-edit)))
 
 (defun isearch-highlight-regexp ()
@@ -2405,14 +2400,18 @@ respectively)."
 The arguments passed to `highlight-regexp' are the regexp from
 the last search and the face from `hi-lock-read-face-name'."
   (interactive)
-  (isearch--highlight-regexp-or-lines 'highlight-regexp))
+  (isearch--highlight-regexp-or-lines
+   #'(lambda (regexp face lighter)
+       (highlight-regexp regexp face nil lighter))))
 
 (defun isearch-highlight-lines-matching-regexp ()
   "Exit Isearch mode and call `highlight-lines-matching-regexp'.
 The arguments passed to `highlight-lines-matching-regexp' are the
 regexp from the last search and the face from `hi-lock-read-face-name'."
   (interactive)
-  (isearch--highlight-regexp-or-lines 'highlight-lines-matching-regexp))
+  (isearch--highlight-regexp-or-lines
+   #'(lambda (regexp face _lighter)
+       (highlight-lines-matching-regexp regexp face))))
 
 
 (defun isearch-delete-char ()
