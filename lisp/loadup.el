@@ -449,19 +449,32 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
-(when (boundp 'comp-ctxt) ; FIXME better native-comp build discriminant?
-  ;; Set the filename for every compilation unit as realtive
-  ;; to obtain a position independent dump.
-  (let ((h (make-hash-table :test #'eq)))
+(when (boundp 'comp-ctxt) ; FIXME better native-comp feature discriminant?
+  ;; Fix the compilation unit filename to have it working when
+  ;; when installed or if the source directory got moved.  This is set to be
+  ;; a pair in the form: (rel-path-from-install-bin . rel-path-from-local-bin).
+  (let ((h (make-hash-table :test #'eq))
+        (lisp-src-dir (expand-file-name (concat default-directory "../lisp")))
+        (bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
+        (lisp-dest-dir (cadr (member "--lisp-dest" command-line-args))))
     (mapatoms (lambda (s)
                 (let ((f (symbol-function s)))
                   (when (subr-native-elisp-p f)
                     (puthash (subr-native-comp-unit f) nil h)))))
     (maphash (lambda (cu _)
-	       (native-comp-unit-set-file
+               (native-comp-unit-set-file
                 cu
-	        (file-relative-name (native-comp-unit-file cu)
-				    invocation-directory)))
+	        (cons
+                 ;; Relative path from the installed binary.
+                 (file-relative-name
+                  (concat lisp-dest-dir
+			  (replace-regexp-in-string
+                           (regexp-quote lisp-src-dir) ""
+                           (native-comp-unit-file cu)))
+		  bin-dest-dir)
+                 ;; Relative path from the built uninstalled binary.
+                 (file-relative-name (native-comp-unit-file cu)
+                                     invocation-directory))))
 	     h)))
 
 (when (hash-table-p purify-flag)

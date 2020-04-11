@@ -421,7 +421,8 @@ lib lib-src lisp nt: Makefile
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 src: Makefile
-	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' all
+	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' BIN_DESTDIR='$(DESTDIR)${bindir}/' \
+		 LISP_DESTDIR='$(DESTDIR)${lispdir}/' all
 
 blessmail: Makefile src
 	$(MAKE) -C lib-src maybe-blessmail

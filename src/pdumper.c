@@ -5298,6 +5298,11 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       {
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
+	if (!CONSP (comp_u->file))
+	  error ("Trying to load incoherent dumped .eln");
+	comp_u->file =
+	  NILP (Ffile_exists_p (XCAR (comp_u->file)))
+	  ? XCDR (comp_u->file) : XCAR (comp_u->file);
 	comp_u->handle =
 	  dynlib_open (SSDATA (concat2 (Vinvocation_directory, comp_u->file)));
 	if (!comp_u->handle)
