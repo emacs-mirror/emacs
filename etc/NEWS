@@ -101,6 +101,10 @@ horizontal movements now stop at the edge of the board.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'
+The mode provides refined highlighting of built-in functions, types,
+and variables.
+
 ** archive-mode
 *** Can now modify members of 'ar' archives.
 *** Display of summaries unified between backends
