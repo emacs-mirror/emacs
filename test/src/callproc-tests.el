@@ -66,4 +66,14 @@
                   (error :got-error))))
     (should have-called-debugger)))
 
+(ert-deftest call-process-region-entire-buffer-with-delete ()
+  "Check that Bug#40576 is fixed."
+  (let ((emacs (expand-file-name invocation-name invocation-directory)))
+    (skip-unless (file-executable-p emacs))
+    (with-temp-buffer
+      (insert "Buffer contents\n")
+      (should
+       (eq (call-process-region nil nil emacs :delete nil nil "--version") 0))
+      (should (eq (buffer-size) 0)))))
+
 ;;; callproc-tests.el ends here
