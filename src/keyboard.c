@@ -2927,13 +2927,11 @@ read_char (int commandflag, Lisp_Object map,
 	goto exit;
 
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
-	   && UNSIGNED_CMP (XFIXNAT (c), <,
-			    SCHARS (KVAR (current_kboard,
-					  Vkeyboard_translate_table))))
+	   && XFIXNAT (c) < SCHARS (KVAR (current_kboard,
+					  Vkeyboard_translate_table)))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && UNSIGNED_CMP (XFIXNAT (c), <,
-			       ASIZE (KVAR (current_kboard,
-					    Vkeyboard_translate_table))))
+	      && XFIXNAT (c) < ASIZE (KVAR (current_kboard,
+					    Vkeyboard_translate_table)))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{

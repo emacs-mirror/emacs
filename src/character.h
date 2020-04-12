@@ -80,6 +80,8 @@ enum
   OBJECT_REPLACEMENT_CHARACTER = 0xFFFC,
 };
 
+extern int char_string (unsigned, unsigned char *);
+
 /* UTF-8 encodings.  Use \x escapes, so they are portable to pre-C11
    compilers and can be concatenated with ordinary string literals.  */
 #define uLSQM "\xE2\x80\x98" /* U+2018 LEFT SINGLE QUOTATION MARK */
@@ -126,7 +128,11 @@ enum
 #define CHARACTERP(x) (FIXNATP (x) && XFIXNAT (x) <= MAX_CHAR)
 
 /* Nonzero iff C is valid as a character code.  */
-#define CHAR_VALID_P(c) UNSIGNED_CMP (c, <=, MAX_CHAR)
+INLINE bool
+CHAR_VALID_P (intmax_t c)
+{
+  return 0 <= c && c <= MAX_CHAR;
+}
 
 /* Check if Lisp object X is a character or not.  */
 #define CHECK_CHARACTER(x) \
@@ -145,7 +151,11 @@ enum
   } while (false)
 
 /* Nonzero iff C is a character of code less than 0x100.  */
-#define SINGLE_BYTE_CHAR_P(c) UNSIGNED_CMP (c, <, 0x100)
+INLINE bool
+SINGLE_BYTE_CHAR_P (intmax_t c)
+{
+  return 0 <= c && c < 0x100;
+}
 
 /* Nonzero if character C has a printable glyph.  */
 #define CHAR_PRINTABLE_P(c)	\
@@ -176,20 +186,32 @@ enum
    allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
    Returns the length of the multibyte form.  */
 
-#define CHAR_STRING(c, p)			\
-  (UNSIGNED_CMP (c, <=, MAX_1_BYTE_CHAR)	\
-   ? ((p)[0] = (c),				\
-      1)					\
-   : UNSIGNED_CMP (c, <=, MAX_2_BYTE_CHAR)	\
-   ? ((p)[0] = (0xC0 | ((c) >> 6)),		\
-      (p)[1] = (0x80 | ((c) & 0x3F)),		\
-      2)					\
-   : UNSIGNED_CMP (c, <=, MAX_3_BYTE_CHAR)	\
-   ? ((p)[0] = (0xE0 | ((c) >> 12)),		\
-      (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
-      (p)[2] = (0x80 | ((c) & 0x3F)),		\
-      3)					\
-   : verify_expr (sizeof (c) <= sizeof (unsigned), char_string (c, p)))
+INLINE int
+CHAR_STRING (int c, unsigned char *p)
+{
+  eassume (0 <= c);
+  if (c <= MAX_1_BYTE_CHAR)
+    {
+      p[0] = c;
+      return 1;
+    }
+  if (c <= MAX_2_BYTE_CHAR)
+    {
+      p[0] = 0xC0 | (c >> 6);
+      p[1] = 0x80 | (c & 0x3F);
+      return 2;
+    }
+  if (c <= MAX_3_BYTE_CHAR)
+    {
+      p[0] = 0xE0 | (c >> 12);
+      p[1] = 0x80 | ((c >> 6) & 0x3F);
+      p[2] = 0x80 | (c & 0x3F);
+      return 3;
+    }
+  int len = char_string (c, p);
+  eassume (0 < len && len <= MAX_MULTIBYTE_LENGTH);
+  return len;
+}
 
 /* Store multibyte form of byte B in P.  The caller should allocate at
    least MAX_MULTIBYTE_LENGTH bytes area at P in advance.  Returns the
@@ -657,7 +679,6 @@ typedef enum {
 } unicode_category_t;
 
 extern EMACS_INT char_resolve_modifier_mask (EMACS_INT) ATTRIBUTE_CONST;
-extern int char_string (unsigned, unsigned char *);
 extern int string_char (const unsigned char *,
                         const unsigned char **, int *);
 
