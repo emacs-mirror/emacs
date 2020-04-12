@@ -5428,7 +5428,7 @@ enum dump_section
    N.B. We run very early in initialization, so we can't use lisp,
    unwinding, xmalloc, and so on.  */
 int
-pdumper_load (const char *dump_filename)
+pdumper_load (const char *dump_filename, char *argv0, char const *original_pwd)
 {
   intptr_t dump_size;
   struct stat stat;
@@ -5574,6 +5574,9 @@ pdumper_load (const char *dump_filename)
   for (int i = 0; i < nr_dump_hooks; ++i)
     dump_hooks[i] ();
 
+  /* Once we can allocate and before loading .eln files we must set
+     Vinvocation_directory (.eln paths are relative to it). */
+  set_invocation_vars (argv0, original_pwd);
   dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
   initialized = true;

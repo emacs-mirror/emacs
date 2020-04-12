@@ -127,7 +127,8 @@ enum pdumper_load_result
     PDUMPER_LOAD_ERROR /* Must be last, as errno may be added.  */
   };
 
-int pdumper_load (const char *dump_filename);
+int pdumper_load (const char *dump_filename, char *argv0,
+		  char const *original_pwd);
 
 struct pdumper_loaded_dump
 {
