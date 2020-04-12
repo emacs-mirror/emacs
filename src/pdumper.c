@@ -5296,15 +5296,25 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 #ifdef HAVE_NATIVE_COMP
     case RELOC_NATIVE_COMP_UNIT:
       {
+	static enum { UNKNOWN, LOCAL_BUILD, INSTALLED } installation_state;
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
+
 	if (!CONSP (comp_u->file))
 	  error ("Trying to load incoherent dumped .eln");
+
+	if (installation_state == UNKNOWN)
+	  /* Check just once if is a local build or Emacs got installed. */
+	  installation_state =
+	    NILP (Ffile_exists_p (concat2 (Vinvocation_directory,
+					   XCAR (comp_u->file))))
+	    ? LOCAL_BUILD : INSTALLED;
+
 	comp_u->file =
-	  NILP (Ffile_exists_p (XCAR (comp_u->file)))
-	  ? XCDR (comp_u->file) : XCAR (comp_u->file);
-	comp_u->handle =
-	  dynlib_open (SSDATA (concat2 (Vinvocation_directory, comp_u->file)));
+	  concat2 (Vinvocation_directory,
+		   installation_state == LOCAL_BUILD
+		   ? XCDR (comp_u->file) : XCAR (comp_u->file));
+	comp_u->handle = dynlib_open (SSDATA (comp_u->file));
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());
 	load_comp_unit (comp_u, true, false);
