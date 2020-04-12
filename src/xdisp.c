@@ -3218,7 +3218,10 @@ init_iterator (struct it *it, struct window *w,
 	 with a left box line.  */
       face = FACE_FROM_ID_OR_NULL (it->f, remapped_base_face_id);
       if (face && face->box != FACE_NO_BOX)
-	it->start_of_box_run_p = true;
+	{
+	  it->face_box_p = true;
+	  it->start_of_box_run_p = true;
+	}
     }
 
   /* If a buffer position was specified, set the iterator there,

@@ -941,9 +941,8 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
     }
 }
 
-/* Resize the outer window of frame F after changing the height.
-   COLUMNS/ROWS is the size the edit area shall have after the resize.  */
-
+/** Resize the outer window of frame F.  WIDTH and HEIGHT are the new
+    pixel sizes of F's text area.  */
 void
 xg_frame_set_char_size (struct frame *f, int width, int height)
 {
@@ -954,6 +953,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   int totalheight
     = pixelheight + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
   int totalwidth = pixelwidth + FRAME_TOOLBAR_WIDTH (f);
+  bool was_visible = false;
+  bool hide_child_frame;
 
   if (FRAME_PIXEL_HEIGHT (f) == 0)
     return;
@@ -996,12 +997,42 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, gheight);
     }
+  else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
+    {
+      was_visible = true;
+      hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
+
+      if (totalwidth != gwidth || totalheight != gheight)
+	{
+	  frame_size_history_add
+	    (f, Qxg_frame_set_char_size_4, width, height,
+	     list2i (totalwidth, totalheight));
+
+          if (hide_child_frame)
+            {
+              block_input ();
+              gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
+              unblock_input ();
+            }
+
+	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     totalwidth, totalheight);
+
+          if (hide_child_frame)
+            {
+              block_input ();
+              gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+              unblock_input ();
+            }
+
+	  fullscreen = Qnil;
+	}
+    }
   else
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
 	 list2i (totalwidth, totalheight));
-
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, totalheight);
       fullscreen = Qnil;
@@ -1017,7 +1048,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      size as fast as possible.
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
-  if (FRAME_VISIBLE_P (f))
+  if (FRAME_VISIBLE_P (f) && !was_visible)
     {
       /* Must call this to flush out events */
       (void)gtk_events_pending ();

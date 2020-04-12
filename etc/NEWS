@@ -101,6 +101,10 @@ horizontal movements now stop at the edge of the board.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'
+The mode provides refined highlighting of built-in functions, types,
+and variables.
+
 ** archive-mode
 *** Can now modify members of 'ar' archives.
 *** Display of summaries unified between backends
@@ -253,6 +257,18 @@ case-insensitive matching of messages when the old behaviour is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
+** Hi-Lock
+
+---
+*** Matching in 'hi-lock-mode' is case-sensitive when regexp contains
+upper case characters and `search-upper-case' is non-nil.
+'highlight-phrase' also uses 'search-whitespace-regexp'
+to substitute spaces in regexp search.
+
+---
+*** The default value of 'hi-lock-highlight-range' was enlarged.
+The new default value is 2000000 (2 million).
+
 ** Texinfo
 
 ---
@@ -338,6 +354,15 @@ override any non-nil binding for 'coding-system-for-read' and
 Emacs depended on the previous behavior; if you really want the
 process' coding-system to be nil, use 'set-process-coding-system'
 after the process has been created, or pass in ":coding '(nil nil)".
+
++++
+** 'open-network-stream' now accepts a :coding argument.
+This allows specifying the coding systems used by a network process
+for encoding and decoding without having to bind
+coding-system-for-{read,write} or call 'set-process-coding-system'.
+
++++
+** 'open-gnutls-stream' now also accepts a :coding argument.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

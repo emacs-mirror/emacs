@@ -183,24 +183,24 @@ Each member defines the name of a variable, and a Lisp value used to
 compute the string value that will be returned when the variable is
 accessed via the syntax `$NAME'.
 
-If the value is a function, that function will be called with two
-arguments: the list of the indices that was used in the reference, and
-whether the user is requesting the length of the ultimate element.
-For example, a reference of `$NAME[10][20]' would result in the
-function for alias `NAME' being called (assuming it were aliased to a
-function), and the arguments passed to this function would be the list
-'(10 20)', and nil.
+If the value is a function, call that function with two arguments: the
+list of the indices that was used in the reference, and whether the
+user is requesting the length of the ultimate element.  For example, a
+reference of `$NAME[10][20]' would result in the function for alias
+`NAME' being called (assuming it were aliased to a function), and the
+arguments passed to this function would be the list '(10 20)', and
+nil.
 
-If the value is a string, the value for the variable with that name in
-the current environment will be returned.  If no variable with that
-name exists in the environment, but if a symbol with that same name
-exists and has a value bound to it, then that value will be used.  You
-can prioritize symbol values over environment values by setting
+If the value is a string, return the value for the variable with that
+name in the current environment.  If no variable with that name exists
+in the environment, but if a symbol with that same name exists and has
+a value bound to it, return its value instead.  You can prioritize
+symbol values over environment values by setting
 `eshell-prefer-lisp-variables' to t.
 
-If the value is a symbol, the value bound to that symbol will be used.
+If the value is a symbol, return the value bound to it.
 
-If the value has any other type, `error' will be signaled.
+If the value has any other type, signal an error.
 
 Additionally, each member may specify if it should be copied to the
 environment of created subprocesses."

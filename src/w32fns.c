@@ -8258,7 +8258,6 @@ a ShowWindow flag:
   /* Encode filename, current directory and parameters.  */
   current_dir = GUI_ENCODE_FILE (current_dir);
   document = GUI_ENCODE_FILE (document);
-  doc_w = GUI_SDATA (document);
   if (STRINGP (parameters))
     {
       parameters = GUI_ENCODE_SYSTEM (parameters);
@@ -8269,6 +8268,7 @@ a ShowWindow flag:
       operation = GUI_ENCODE_SYSTEM (operation);
       ops_w = GUI_SDATA (operation);
     }
+  doc_w = GUI_SDATA (document);
   result = (intptr_t) ShellExecuteW (NULL, ops_w, doc_w, params_w,
 				     GUI_SDATA (current_dir),
 				     (FIXNUMP (show_flag)
@@ -8353,7 +8353,7 @@ a ShowWindow flag:
   handler = Ffind_file_name_handler (absdoc, Qfile_exists_p);
   if (NILP (handler))
     {
-      Lisp_Object absdoc_encoded = ENCODE_FILE (absdoc);
+      Lisp_Object absdoc_encoded = Fcopy_sequence (ENCODE_FILE (absdoc));
 
       if (faccessat (AT_FDCWD, SSDATA (absdoc_encoded), F_OK, AT_EACCESS) == 0)
 	{

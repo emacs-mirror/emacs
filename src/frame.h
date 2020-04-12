@@ -1450,6 +1450,49 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 {
   return frame_dimension (f->bottom_divider_width);
 }
+
+/* Return a non-null pointer to the cached face with ID on frame F.  */
+
+INLINE struct face *
+FACE_FROM_ID (struct frame *f, int id)
+{
+  eassert (0 <= id && id < FRAME_FACE_CACHE (f)->used);
+  return FRAME_FACE_CACHE (f)->faces_by_id[id];
+}
+
+/* Return a pointer to the face with ID on frame F, or null if such a
+   face doesn't exist.  */
+
+INLINE struct face *
+FACE_FROM_ID_OR_NULL (struct frame *f, int id)
+{
+  int used = FRAME_FACE_CACHE (f)->used;
+  eassume (0 <= used);
+  return 0 <= id && id < used ? FRAME_FACE_CACHE (f)->faces_by_id[id] : NULL;
+}
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* A non-null pointer to the image with id ID on frame F.  */
+
+INLINE struct image *
+IMAGE_FROM_ID (struct frame *f, int id)
+{
+  eassert (0 <= id && id < FRAME_IMAGE_CACHE (f)->used);
+  return FRAME_IMAGE_CACHE (f)->images[id];
+}
+
+/* Value is a pointer to the image with id ID on frame F, or null if
+   no image with that id exists.  */
+
+INLINE struct image *
+IMAGE_OPT_FROM_ID (struct frame *f, int id)
+{
+  int used = FRAME_IMAGE_CACHE (f)->used;
+  eassume (0 <= used);
+  return 0 <= id && id < used ? FRAME_IMAGE_CACHE (f)->images[id] : NULL;
+}
+#endif
 
 /***********************************************************************
 	    Conversion between canonical units and pixels

@@ -169,8 +169,9 @@ Third arg HOST is the name of the host to connect to, or its IP address.
 Fourth arg SERVICE is the name of the service desired, or an integer
 specifying a port number to connect to.
 Fifth arg PARAMETERS is an optional list of keyword/value pairs.
-Only :client-certificate and :nowait keywords are recognized, and
-have the same meaning as for `open-network-stream'.
+Only :client-certificate, :nowait, and :coding keywords are
+recognized, and have the same meaning as for
+`open-network-stream'.
 For historical reasons PARAMETERS can also be a symbol, which is
 interpreted the same as passing a list containing :nowait and the
 value of that symbol.
@@ -208,7 +209,8 @@ trust and key files, and priority string."
                               (gnutls-boot-parameters
                                :type 'gnutls-x509pki
                                :keylist keylist
-                               :hostname (puny-encode-domain host)))))))
+                               :hostname (puny-encode-domain host))))
+                   :coding (plist-get parameters :coding))))
     (if nowait
         process
       (gnutls-negotiate :process process

@@ -4074,6 +4074,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 (defun tramp-action-process-alive (proc _vec)
   "Check, whether a process has finished."
   (unless (process-live-p proc)
+    ;; There might be pending output.
+    (while (tramp-accept-process-output proc 0))
     (throw 'tramp-action 'process-died)))
 
 (defun tramp-action-out-of-band (proc vec)

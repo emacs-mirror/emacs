@@ -161,6 +161,9 @@ Return t if there is more drift to do, nil if completed."
 			   (face-background face nil t)
 			 (face-background 'pulse-highlight-start-face)
 			 ))
+  (and face
+       (set-face-extend 'pulse-highlight-face
+                        (face-extend-p face nil t)))
   (put 'pulse-highlight-face :startface (or face
 					    'pulse-highlight-start-face))
   (put 'pulse-highlight-face :iteration 0))

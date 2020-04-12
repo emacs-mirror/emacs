@@ -432,15 +432,13 @@ extern int emacs_setenv_TZ (char const *);
 
 #else
 
-/* Use 'static' instead of 'extern inline' because 'static' typically
-   has better performance for Emacs.  Do not use the 'inline' keyword,
-   as modern compilers inline automatically.  ATTRIBUTE_UNUSED
-   pacifies gcc -Wunused-function.  */
+/* Use 'static inline' instead of 'extern inline' because 'static inline'
+   has much better performance for Emacs when compiled with 'gcc -Og'.  */
 
 # ifndef INLINE
 #  define INLINE EXTERN_INLINE
 # endif
-# define EXTERN_INLINE static ATTRIBUTE_UNUSED
+# define EXTERN_INLINE static inline
 # define INLINE_HEADER_BEGIN
 # define INLINE_HEADER_END
 

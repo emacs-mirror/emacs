@@ -10613,26 +10613,29 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
 	       modified_left, modified_top);
 #endif
 
-  x_sync_with_move (f, f->left_pos, f->top_pos,
-                    FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN);
+  /* 'x_sync_with_move' is too costly for dragging child frames.  */
+  if (!FRAME_PARENT_FRAME (f))
+    {
+      x_sync_with_move (f, f->left_pos, f->top_pos,
+			FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN);
 
-  /* change_gravity is non-zero when this function is called from Lisp to
-     programmatically move a frame.  In that case, we call
-     x_check_expected_move to discover if we have a "Type A" or "Type B"
-     window manager, and, for a "Type A" window manager, adjust the position
-     of the frame.
+      /* change_gravity is non-zero when this function is called from Lisp to
+	 programmatically move a frame.  In that case, we call
+	 x_check_expected_move to discover if we have a "Type A" or "Type B"
+	 window manager, and, for a "Type A" window manager, adjust the position
+	 of the frame.
 
-     We call x_check_expected_move if a programmatic move occurred, and
-     either the window manager type (A/B) is unknown or it is Type A but we
-     need to compute the top/left offset adjustment for this frame.  */
+	 We call x_check_expected_move if a programmatic move occurred, and
+	 either the window manager type (A/B) is unknown or it is Type A but we
+	 need to compute the top/left offset adjustment for this frame.  */
 
-  if (change_gravity != 0
-      && !FRAME_PARENT_FRAME (f)
-      && (FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN
-	  || (FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A
-	      && (FRAME_X_OUTPUT (f)->move_offset_left == 0
-		  && FRAME_X_OUTPUT (f)->move_offset_top == 0))))
-    x_check_expected_move (f, modified_left, modified_top);
+      if (change_gravity != 0
+	  && (FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN
+	      || (FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A
+		  && (FRAME_X_OUTPUT (f)->move_offset_left == 0
+		      && FRAME_X_OUTPUT (f)->move_offset_top == 0))))
+	x_check_expected_move (f, modified_left, modified_top);
+    }
 
   unblock_input ();
 }

@@ -3215,6 +3215,11 @@ The optional argument @var{contextual}, if non-@code{nil}, forces Font
 Lock mode to always refontify a syntactically relevant part of the
 buffer, and not just the modified lines.  This argument can usually be
 omitted.
+
+When Font Lock is activated in a buffer, it calls this function with a
+non-@code{nil} value of @var{contextual} if the value of
+@code{font-lock-keywords-only} (@pxref{Syntactic Font Lock}) is
+@code{nil}.
 @end defun
 
 @defun jit-lock-unregister function
@@ -3381,7 +3386,11 @@ table in special cases.  @xref{Syntax Properties}.
 If the value of this variable is non-@code{nil}, Font Lock does not do
 syntactic fontification, only search-based fontification based on
 @code{font-lock-keywords}.  It is normally set by Font Lock mode based
-on the @var{keywords-only} element in @code{font-lock-defaults}.
+on the @var{keywords-only} element in @code{font-lock-defaults}.  If
+the value is @code{nil}, Font Lock will call @code{jit-lock-register}
+(@pxref{Other Font Lock Variables}) to set up for automatic
+refontification of buffer text following a modified line to reflect
+the new syntactic context due to the change.
 @end defvar
 
 @defvar font-lock-syntax-table

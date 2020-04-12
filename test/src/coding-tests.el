@@ -388,11 +388,46 @@
   (let* ((uni (apply #'string (number-sequence 0 127)))
          (multi (string-to-multibyte uni)))
     (dolist (s (list uni multi))
-      (dolist (coding '(us-ascii iso-latin-1 utf-8))
+      ;; Encodings without EOL conversion.
+      (dolist (coding '(us-ascii-unix iso-latin-1-unix utf-8-unix))
         (should-not (eq (decode-coding-string s coding nil) s))
         (should-not (eq (encode-coding-string s coding nil) s))
         (should (eq (decode-coding-string s coding t) s))
+        (should (eq (encode-coding-string s coding t) s))
+        (should (eq last-coding-system-used coding)))
+
+      ;; With EOL conversion inhibited.
+      (let ((inhibit-eol-conversion t))
+        (dolist (coding '(us-ascii iso-latin-1 utf-8))
+          (should-not (eq (decode-coding-string s coding nil) s))
+          (should-not (eq (encode-coding-string s coding nil) s))
+          (should (eq (decode-coding-string s coding t) s))
+          (should (eq (encode-coding-string s coding t) s))))))
+
+  ;; Check identity decoding with EOL conversion for ASCII except CR.
+  (let* ((uni (apply #'string (delq ?\r (number-sequence 0 127))))
+         (multi (string-to-multibyte uni)))
+    (dolist (s (list uni multi))
+      (dolist (coding '(us-ascii-dos iso-latin-1-dos utf-8-dos mac-roman-mac))
+        (should-not (eq (decode-coding-string s coding nil) s))
+        (should (eq (decode-coding-string s coding t) s)))))
+
+  ;; Check identity encoding with EOL conversion for ASCII except LF.
+  (let* ((uni (apply #'string (delq ?\n (number-sequence 0 127))))
+         (multi (string-to-multibyte uni)))
+    (dolist (s (list uni multi))
+      (dolist (coding '(us-ascii-dos iso-latin-1-dos utf-8-dos mac-roman-mac))
+        (should-not (eq (encode-coding-string s coding nil) s))
         (should (eq (encode-coding-string s coding t) s))))))
+
+
+(ert-deftest coding-check-coding-systems-region ()
+  (should (equal (check-coding-systems-region "aå" nil '(utf-8))
+                 nil))
+  (should (equal (check-coding-systems-region "aåbγc" nil
+                                              '(utf-8 iso-latin-1 us-ascii))
+                 '((iso-latin-1 3) (us-ascii 1 3))))
+  (should-error (check-coding-systems-region "å" nil '(bad-coding-system))))
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not obsolete)

@@ -166,15 +166,25 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
         ;; (`(expand ,expander) `(gv-define-expand ,name ,expander))
         (_ (message "Unknown %s declaration %S" symbol handler) nil))))
 
+;; Additions for `declare'.  We specify the values as named aliases so
+;; that `describe-variable' prints something useful; cf. Bug#40491.
+
+;;;###autoload
+(defsubst gv--expander-defun-declaration (&rest args)
+  (apply #'gv--defun-declaration 'gv-expander args))
+
+;;;###autoload
+(defsubst gv--setter-defun-declaration (&rest args)
+  (apply #'gv--defun-declaration 'gv-setter args))
+
 ;;;###autoload
 (or (assq 'gv-expander defun-declarations-alist)
-    (let ((x `(gv-expander
-               ,(apply-partially #'gv--defun-declaration 'gv-expander))))
+    (let ((x (list 'gv-expander #'gv--expander-defun-declaration)))
       (push x macro-declarations-alist)
       (push x defun-declarations-alist)))
 ;;;###autoload
 (or (assq 'gv-setter defun-declarations-alist)
-    (push `(gv-setter ,(apply-partially #'gv--defun-declaration 'gv-setter))
+    (push (list 'gv-setter #'gv--setter-defun-declaration)
 	  defun-declarations-alist))
 
 ;; (defmacro gv-define-expand (name expander)

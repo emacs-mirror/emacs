@@ -1517,6 +1517,10 @@ for decoding and encoding files, process I/O, etc."
   :charset-list '(unicode)
   :pre-write-conversion 'utf-7-pre-write-conversion
   :post-read-conversion 'utf-7-post-read-conversion)
+;; FIXME: 'define-coding-system' automatically sets :ascii-compatible-p,
+;; to any encoding whose :coding-type is 'utf-8', but UTF-7 is not ASCII
+;; compatible, so we override that here (bug#40407).
+(coding-system-put 'utf-7 :ascii-compatible-p nil)
 
 (define-coding-system 'utf-7-imap
   "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
@@ -1525,6 +1529,8 @@ for decoding and encoding files, process I/O, etc."
   :charset-list '(unicode)
   :pre-write-conversion 'utf-7-imap-pre-write-conversion
   :post-read-conversion 'utf-7-imap-post-read-conversion)
+;; See comment for utf-7 above.
+(coding-system-put 'utf-7-imap :ascii-compatible-p nil)
 
 ;; Use us-ascii for terminal output if some other coding system is not
 ;; specified explicitly.

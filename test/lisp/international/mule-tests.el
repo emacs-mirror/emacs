@@ -48,6 +48,27 @@
                         (append (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET") nil)))
                    (read-string "prompt:")))))
 
+(ert-deftest mule-utf-7 ()
+  ;; utf-7 and utf-7-imap are not ASCII-compatible.
+  (should-not (coding-system-get 'utf-7 :ascii-compatible-p))
+  (should-not (coding-system-get 'utf-7-imap :ascii-compatible-p))
+  ;; Invariant ASCII subset.
+  (let ((s (apply #'string (append (number-sequence #x20 #x25)
+                                   (number-sequence #x27 #x7e)))))
+    (should (equal (encode-coding-string s 'utf-7-imap) s))
+    (should (equal (decode-coding-string s 'utf-7-imap) s)))
+  ;; Escaped ampersand.
+  (should (equal (encode-coding-string "a&bcd" 'utf-7-imap) "a&-bcd"))
+  (should (equal (decode-coding-string "a&-bcd" 'utf-7-imap) "a&bcd"))
+  ;; Ability to encode Unicode.
+  (should (equal (check-coding-systems-region "あ" nil '(utf-7-imap)) nil))
+  (should (equal (encode-coding-string "あ" 'utf-7-imap) "&MEI-"))
+  (should (equal (decode-coding-string "&MEI-" 'utf-7-imap) "あ")))
+
+(ert-deftest mule-hz ()
+  ;; The chinese-hz encoding is not ASCII compatible.
+  (should-not (coding-system-get 'chinese-hz :ascii-compatible-p)))
+
 ;; Stop "Local Variables" above causing confusion when visiting this file.
 
 
