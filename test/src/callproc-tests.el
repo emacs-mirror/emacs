@@ -17,6 +17,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+
+;;; Commentary:
+;;
+;; Unit tests for src/callproc.c.
+
 ;;; Code:
 
 (require 'ert)
@@ -60,3 +65,5 @@
                     (call-process "c:/nul.exe")
                   (error :got-error))))
     (should have-called-debugger)))
+
+;;; callproc-tests.el ends here
