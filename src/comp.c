@@ -3467,7 +3467,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 #include <sys/types.h>
 #include <unistd.h>
   if (!NILP (function_name) &&
-      STRINGP (Vload_file_name))
+      STRINGP (Vload_true_file_name))
     {
       static FILE *f;
       if (!f)
@@ -3480,7 +3480,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 	exit (1);
       fprintf (f, "function %s file %s\n",
 	       SSDATA (Fsymbol_name (function_name)),
-	       SSDATA (Vload_file_name));
+	       SSDATA (Vload_true_file_name));
       fflush (f);
     }
 #endif
@@ -3489,12 +3489,12 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
       || !FIXNUMP (AREF (definition, COMPILED_ARGLIST))
-      || !STRINGP (Vload_file_name)
-      || !suffix_p (Vload_file_name, ".elc"))
+      || !STRINGP (Vload_true_file_name)
+      || !suffix_p (Vload_true_file_name, ".elc"))
     return;
 
   Lisp_Object src =
-    concat2 (CALL1I (file-name-sans-extension, Vload_file_name),
+    concat2 (CALL1I (file-name-sans-extension, Vload_true_file_name),
 	     build_pure_c_string (".el"));
   if (NILP (Ffile_exists_p (src)))
     return;

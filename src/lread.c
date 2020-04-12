@@ -1467,7 +1467,20 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  specbind (Qload_file_name, found);
+  if (is_native_elisp)
+    {
+      Lisp_Object dir = Ffile_name_directory (found);
+      Lisp_Object parent_dir =
+	Ffile_name_directory (Fsubstring (dir,
+					  make_fixnum (0),
+					  Fsub1 (Flength (dir))));
+      specbind (Qload_file_name,
+		concat2 (parent_dir,
+			 Ffile_name_nondirectory (found)));
+    }
+  else
+    specbind (Qload_file_name, found);
+  specbind (Qload_true_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
 
@@ -1928,8 +1941,8 @@ readevalloop_1 (int old)
 static AVOID
 end_of_file_error (void)
 {
-  if (STRINGP (Vload_file_name))
-    xsignal1 (Qend_of_file, Vload_file_name);
+  if (STRINGP (Vload_true_file_name))
+    xsignal1 (Qend_of_file, Vload_true_file_name);
 
   xsignal0 (Qend_of_file);
 }
@@ -3161,7 +3174,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  goto retry;
 	}
       if (c == '$')
-	return Vload_file_name;
+	return Vload_true_file_name;
       if (c == '\'')
 	return list2 (Qfunction, read0 (readcharfun));
       /* #:foo is the uninterned symbol named foo.  */
@@ -3960,7 +3973,7 @@ read_list (bool flag, Lisp_Object readcharfun)
       first_in_list = 0;
 
       /* While building, if the list starts with #$, treat it specially.  */
-      if (EQ (elt, Vload_file_name)
+      if (EQ (elt, Vload_true_file_name)
 	  && ! NILP (elt)
 	  && !NILP (Vpurify_flag))
 	{
@@ -3981,7 +3994,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	      elt = concat2 (dot_dot_lisp, Ffile_name_nondirectory (elt));
 	    }
 	}
-      else if (EQ (elt, Vload_file_name)
+      else if (EQ (elt, Vload_true_file_name)
 	       && ! NILP (elt)
 	       && load_force_doc_strings)
 	doc_reference = 2;
@@ -4737,6 +4750,7 @@ init_lread (void)
 
   load_in_progress = 0;
   Vload_file_name = Qnil;
+  Vload_true_file_name = Qnil;
   Vstandard_input = Qt;
   Vloads_in_progress = Qnil;
 }
@@ -4938,8 +4952,14 @@ directory.  These file names are converted to absolute at startup.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", Vload_file_name,
-	       doc: /* Full name of file being loaded by `load'.  */);
+	       doc: /* Full name of file being loaded by `load'.
+In case a .eln file is being loaded this is unreliable and `load-true-file-name'
+should be used instead.  */);
   Vload_file_name = Qnil;
+
+  DEFVAR_LISP ("load-true-file-name", Vload_true_file_name,
+	       doc: /* Full name of file being loaded by `load'.  */);
+  Vload_true_file_name = Qnil;
 
   DEFVAR_LISP ("user-init-file", Vuser_init_file,
 	       doc: /* File name, including directory, of user's initialization file.
@@ -5082,6 +5102,7 @@ that are loaded before your customizations are read!  */);
   DEFSYM (Qfunction, "function");
   DEFSYM (Qload, "load");
   DEFSYM (Qload_file_name, "load-file-name");
+  DEFSYM (Qload_true_file_name, "load-true-file-name");
   DEFSYM (Qeval_buffer_list, "eval-buffer-list");
   DEFSYM (Qdir_ok, "dir-ok");
   DEFSYM (Qdo_after_load_evaluation, "do-after-load-evaluation");
