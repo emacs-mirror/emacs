@@ -259,10 +259,15 @@ regexp instead.
 
 ** Hi-Lock
 
+---
 *** Matching in 'hi-lock-mode' is case-sensitive when regexp contains
 upper case characters and `search-upper-case' is non-nil.
 'highlight-phrase' also uses 'search-whitespace-regexp'
 to substitute spaces in regexp search.
+
+---
+*** The default value of 'hi-lock-highlight-range' was enlarged.
+The new default value is 2000000 (2 million).
 
 ** Texinfo
 
