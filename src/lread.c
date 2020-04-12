@@ -1030,7 +1030,13 @@ load_error_handler (Lisp_Object data)
 static void
 load_warn_unescaped_character_literals (Lisp_Object file)
 {
-  Lisp_Object warning = call0 (Qbyte_run_unescaped_character_literals_warning);
+  Lisp_Object function
+    = Fsymbol_function (Qbyte_run_unescaped_character_literals_warning);
+  /* If byte-run.el is being loaded,
+     `byte-run--unescaped-character-literals-warning' isn't yet
+     defined.  Since it'll be byte-compiled later, ignore potential
+     unescaped character literals. */
+  Lisp_Object warning = NILP (function) ? Qnil : call0 (function);
   if (!NILP (warning))
     {
       AUTO_STRING (format, "Loading `%s': %s");
