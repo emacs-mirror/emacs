@@ -78,10 +78,8 @@
 
 (or (eq this-command 'eval-buffer)
     (condition-case nil
-	(load (expand-file-name "org-loaddefs.el"
-         (if (string-match "[.]eln$" load-file-name)
-            (concat (file-name-directory load-file-name) "..")
-	  (file-name-directory load-file-name)))
+	(load (concat (file-name-directory load-file-name)
+		      "org-loaddefs.el")
 	      nil t t t)
       (error
        (message "WARNING: No org-loaddefs.el file could be found from where org.el is loaded.")
