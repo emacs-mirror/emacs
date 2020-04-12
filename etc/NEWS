@@ -267,7 +267,7 @@ to substitute spaces in regexp search.
 
 ---
 *** The default value of 'hi-lock-highlight-range' was enlarged.
-The new default value is 2000000 (2 million).
+The new default value is 2000000 (2 megabytes).
 
 ** Texinfo
 

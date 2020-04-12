@@ -564,13 +564,15 @@ in which case the highlighting will not update as you type."
     (let ((regexp (get-char-property (point) 'hi-lock-overlay-regexp)))
       (when regexp (push regexp regexps)))
     ;; With font-locking on, check if the cursor is on a highlighted text.
-    (let ((face-after (get-text-property (point) 'face))
-          (face-before
-           (unless (bobp) (get-text-property (1- (point)) 'face)))
-          (faces (mapcar #'hi-lock-keyword->face
-                         hi-lock-interactive-patterns)))
-      (unless (memq face-before faces) (setq face-before nil))
-      (unless (memq face-after faces) (setq face-after nil))
+    (let* ((faces-after (get-text-property (point) 'face))
+           (faces-before
+            (unless (bobp) (get-text-property (1- (point)) 'face)))
+           (faces-after (if (consp faces-after) faces-after (list faces-after)))
+           (faces-before (if (consp faces-before) faces-before (list faces-before)))
+           (faces (mapcar #'hi-lock-keyword->face
+                          hi-lock-interactive-patterns))
+           (face-after (seq-some (lambda (face) (car (memq face faces))) faces-after))
+           (face-before (seq-some (lambda (face) (car (memq face faces))) faces-before)))
       (when (and face-before face-after (not (eq face-before face-after)))
         (setq face-before nil))
       (when (or face-after face-before)
@@ -588,7 +590,8 @@ in which case the highlighting will not update as you type."
           ;; highlighted text at point.  Use this later in
           ;; during completing-read.
           (dolist (hi-lock-pattern hi-lock-interactive-patterns)
-            (let ((regexp (car hi-lock-pattern)))
+            (let ((regexp (or (car (rassq hi-lock-pattern hi-lock-interactive-lighters))
+                              (car hi-lock-pattern))))
               (if (string-match regexp hi-text)
                   (push regexp regexps)))))))
     regexps))
@@ -642,15 +645,10 @@ then remove all hi-lock highlighting."
        (user-error "No highlighting to remove"))
      ;; Infer the regexp to un-highlight based on cursor position.
      (let* ((defaults (or (hi-lock--regexps-at-point)
-                          (mapcar #'car hi-lock-interactive-patterns))))
-       (setq defaults
-             (mapcar (lambda (default)
-                       (or (car (rassq default
-                                       (mapcar (lambda (a)
-                                                 (cons (car a) (cadr a)))
-                                               hi-lock-interactive-lighters)))
-                           default))
-                     defaults))
+                          (mapcar (lambda (pattern)
+                                    (or (car (rassq pattern hi-lock-interactive-lighters))
+                                        (car pattern)))
+                                  hi-lock-interactive-patterns))))
        (list
         (completing-read (if (null defaults)
                              "Regexp to unhighlight: "
@@ -767,7 +765,8 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
                        (list subexp (list 'quote face) 'prepend)))
         (no-matches t))
     ;; Refuse to highlight a text that is already highlighted.
-    (if (assoc regexp hi-lock-interactive-patterns)
+    (if (or (assoc regexp hi-lock-interactive-patterns)
+            (assoc (or lighter regexp) hi-lock-interactive-lighters))
         (add-to-list 'hi-lock--unused-faces (face-name face))
       (push pattern hi-lock-interactive-patterns)
       (push (cons (or lighter regexp) pattern) hi-lock-interactive-lighters)
@@ -792,7 +791,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
               (let ((overlay (make-overlay (match-beginning subexp)
                                            (match-end subexp))))
                 (overlay-put overlay 'hi-lock-overlay t)
-                (overlay-put overlay 'hi-lock-overlay-regexp regexp)
+                (overlay-put overlay 'hi-lock-overlay-regexp (or lighter regexp))
                 (overlay-put overlay 'face face))
               (goto-char (match-end 0)))
             (when no-matches

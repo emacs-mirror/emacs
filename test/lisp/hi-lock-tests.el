@@ -33,7 +33,9 @@
                      (car defaults))))
         (dotimes (_ 2)
           (let ((face (hi-lock-read-face-name)))
-            (hi-lock-set-pattern "a" face))))
+            ;; This test should use regexp "b" different from "a"
+            ;; used in another test because hi-lock--hashcons is global.
+            (hi-lock-set-pattern "b" face))))
       (should (equal hi-lock--unused-faces (cdr faces))))))
 
 (ert-deftest hi-lock-test-set-pattern ()
@@ -47,6 +49,104 @@
         (hi-lock-set-pattern "foo" (hi-lock-read-face-name)))
       ;; Only one match, then we have used just 1 face
       (should (equal hi-lock--unused-faces (cdr faces))))))
+
+(ert-deftest hi-lock-case-fold ()
+  "Test for case-sensitivity."
+  (let ((hi-lock-auto-select-face t))
+    (with-temp-buffer
+      (insert "a A b B\n")
+
+      (dotimes (_ 2) (highlight-regexp "[a]"))
+      (should (= (length (overlays-in (point-min) (point-max))) 2))
+      (unhighlight-regexp "[a]")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-regexp "[a]" nil nil "a"))
+      (should (= (length (overlays-in (point-min) (point-max))) 2))
+      (unhighlight-regexp "a")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" ))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "[A]")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" nil nil "A"))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "A")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (let ((case-fold-search nil)) (dotimes (_ 2) (highlight-regexp "[a]")))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "[a]")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (dotimes (_ 2) (highlight-phrase "a   a"))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (unhighlight-regexp "a   a")
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (let ((search-spaces-regexp search-whitespace-regexp)) (highlight-regexp "a   a"))
+      (should (= (length (overlays-in (point-min) (point-max))) 1))
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
+                   (car defaults))))
+        (call-interactively 'unhighlight-regexp))
+      (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+      (emacs-lisp-mode)
+      (setq font-lock-mode t)
+
+      (dotimes (_ 2) (highlight-regexp "[a]"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "[a]"))
+      (should (null (get-text-property 3 'face)))
+
+      (dotimes (_ 2) (highlight-regexp "[a]" nil nil "a"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "a"))
+      (should (null (get-text-property 3 'face)))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" ))
+      (font-lock-ensure)
+      (should (null (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "[A]"))
+      (should (null (get-text-property 3 'face)))
+
+      (dotimes (_ 2) (highlight-regexp "[A]" nil nil "A"))
+      (font-lock-ensure)
+      (should (null (get-text-property 1 'face)))
+      (should (memq 'hi-yellow (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "A"))
+      (should (null (get-text-property 3 'face)))
+
+      (let ((case-fold-search nil)) (dotimes (_ 2) (highlight-regexp "[a]")))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (should (null (get-text-property 3 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "[a]"))
+      (should (null (get-text-property 1 'face)))
+
+      (dotimes (_ 2) (highlight-phrase "a   a"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (let ((font-lock-fontified t)) (unhighlight-regexp "a   a"))
+      (should (null (get-text-property 1 'face)))
+
+      (let ((search-spaces-regexp search-whitespace-regexp)) (highlight-regexp "a   a"))
+      (font-lock-ensure)
+      (should (memq 'hi-yellow (get-text-property 1 'face)))
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
+                   (car defaults)))
+                (font-lock-fontified t))
+        (call-interactively 'unhighlight-regexp))
+      (should (null (get-text-property 1 'face))))))
 
 (provide 'hi-lock-tests)
 ;;; hi-lock-tests.el ends here
