@@ -765,7 +765,7 @@ as the ewoc pretty-printer."
   ;; column of the first entry happens to begin with a R2L letter.
   (setq bidi-paragraph-direction 'left-to-right)
   ;; This is for if/when they turn on display-line-numbers
-  (add-hook 'display-line-numbers-mode-hook #'tabulated-list-revert nil t)
+  (add-hook 'display-line-numbers-mode-hook #'tabulated-list-init-header nil t)
   ;; This is for if/when they customize the line-number face or when
   ;; the line-number width needs to change due to scrolling.
   (setq-local tabulated-list--current-lnum-width 0)
