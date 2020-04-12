@@ -32,14 +32,14 @@ In the mail buffer, send the message and bury the buffer
 
   The mail buffer is an ordinary Emacs buffer, so you can switch to
 other buffers while composing the mail.  If you want to send another
-mail before sending the current one, type @kbd{C-x m} again, and Emacs
-will switch back to the last mail buffer and ask if you want to erase
-the message in that buffer; answer yes to discard the unsent message
-and start composing a new one.  If you know that you'd like to
-continue composing an unsent message, invoke this command with a
-prefix argument, @w{@kbd{C-u C-x m}}, and Emacs will switch to the
-last mail buffer and let you pick up editing the message where you
-left off.
+message before finishing the current one, type @kbd{C-x m} again to
+open a new mail buffer whose name has a different numeric suffix
+(@pxref{Misc Buffer}).  (This only works if you use the default
+Message mode to compose email; see @ref{Mail Commands}.)  If you know
+that you'd like to continue composing the unsent message you were
+editing, invoke this command with a prefix argument, @w{@kbd{C-u C-x
+m}}, and Emacs will switch to the last mail buffer you used and let
+you pick up editing the message where you left off.
 
 @kindex C-x 4 m
 @findex compose-mail-other-window
