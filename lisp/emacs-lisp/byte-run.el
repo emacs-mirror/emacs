@@ -82,65 +82,84 @@ The return value of this function is not used."
 
 ;; We define macro-declaration-alist here because it is needed to
 ;; handle declarations in macro definitions and this is the first file
-;; loaded by loadup.el that uses declarations in macros.
+;; loaded by loadup.el that uses declarations in macros.  We specify
+;; the values as named aliases so that `describe-variable' prints
+;; something useful; cf. Bug#40491.  We can only use backquotes inside
+;; the lambdas and not for those properties that are used by functions
+;; loaded before backquote.el.
+
+(defalias 'byte-run--set-advertised-calling-convention
+  #'(lambda (f _args arglist when)
+      (list 'set-advertised-calling-convention
+            (list 'quote f) (list 'quote arglist) (list 'quote when))))
+
+(defalias 'byte-run--set-obsolete
+  #'(lambda (f _args new-name when)
+      (list 'make-obsolete
+            (list 'quote f) (list 'quote new-name) (list 'quote when))))
+
+(defalias 'byte-run--set-interactive-only
+  #'(lambda (f _args instead)
+      (list 'function-put (list 'quote f)
+            ''interactive-only (list 'quote instead))))
+
+(defalias 'byte-run--set-pure
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''pure (list 'quote val))))
+
+(defalias 'byte-run--set-side-effect-free
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''side-effect-free (list 'quote val))))
+
+(defalias 'byte-run--set-compiler-macro
+  #'(lambda (f args compiler-function)
+      (if (not (eq (car-safe compiler-function) 'lambda))
+          `(eval-and-compile
+             (function-put ',f 'compiler-macro #',compiler-function))
+        (let ((cfname (intern (concat (symbol-name f) "--anon-cmacro")))
+              ;; Avoid cadr/cddr so we can use `compiler-macro' before
+              ;; defining cadr/cddr.
+              (data (cdr compiler-function)))
+          `(progn
+             (eval-and-compile
+               (function-put ',f 'compiler-macro #',cfname))
+             ;; Don't autoload the compiler-macro itself, since the
+             ;; macroexpander will find this file via `f's autoload,
+             ;; if needed.
+             :autoload-end
+             (eval-and-compile
+               (defun ,cfname (,@(car data) ,@args)
+                 ,@(cdr data))))))))
+
+(defalias 'byte-run--set-doc-string
+  #'(lambda (f _args pos)
+      (list 'function-put (list 'quote f)
+            ''doc-string-elt (list 'quote pos))))
+
+(defalias 'byte-run--set-indent
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''lisp-indent-function (list 'quote val))))
 
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
-   ;; We can only use backquotes inside the lambdas and not for those
-   ;; properties that are used by functions loaded before backquote.el.
    (list 'advertised-calling-convention
-         #'(lambda (f _args arglist when)
-             (list 'set-advertised-calling-convention
-                   (list 'quote f) (list 'quote arglist) (list 'quote when))))
-   (list 'obsolete
-         #'(lambda (f _args new-name when)
-             (list 'make-obsolete
-                   (list 'quote f) (list 'quote new-name) (list 'quote when))))
-   (list 'interactive-only
-         #'(lambda (f _args instead)
-             (list 'function-put (list 'quote f)
-                   ''interactive-only (list 'quote instead))))
+         #'byte-run--set-advertised-calling-convention)
+   (list 'obsolete #'byte-run--set-obsolete)
+   (list 'interactive-only #'byte-run--set-interactive-only)
    ;; FIXME: Merge `pure' and `side-effect-free'.
-   (list 'pure
-         #'(lambda (f _args val)
-             (list 'function-put (list 'quote f)
-                   ''pure (list 'quote val)))
+   (list 'pure #'byte-run--set-pure
          "If non-nil, the compiler can replace calls with their return value.
 This may shift errors from run-time to compile-time.")
-   (list 'side-effect-free
-         #'(lambda (f _args val)
-             (list 'function-put (list 'quote f)
-                   ''side-effect-free (list 'quote val)))
+   (list 'side-effect-free #'byte-run--set-side-effect-free
          "If non-nil, calls can be ignored if their value is unused.
 If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
-   (list 'compiler-macro
-         #'(lambda (f args compiler-function)
-             (if (not (eq (car-safe compiler-function) 'lambda))
-                 `(eval-and-compile
-                    (function-put ',f 'compiler-macro #',compiler-function))
-               (let ((cfname (intern (concat (symbol-name f) "--anon-cmacro")))
-                     ;; Avoid cadr/cddr so we can use `compiler-macro' before
-                     ;; defining cadr/cddr.
-                     (data (cdr compiler-function)))
-                 `(progn
-                    (eval-and-compile
-                      (function-put ',f 'compiler-macro #',cfname))
-                    ;; Don't autoload the compiler-macro itself, since the
-                    ;; macroexpander will find this file via `f's autoload,
-                    ;; if needed.
-                    :autoload-end
-                    (eval-and-compile
-                      (defun ,cfname (,@(car data) ,@args)
-                        ,@(cdr data))))))))
-   (list 'doc-string
-         #'(lambda (f _args pos)
-             (list 'function-put (list 'quote f)
-                   ''doc-string-elt (list 'quote pos))))
-   (list 'indent
-         #'(lambda (f _args val)
-             (list 'function-put (list 'quote f)
-                   ''lisp-indent-function (list 'quote val)))))
+   (list 'compiler-macro #'byte-run--set-compiler-macro)
+   (list 'doc-string #'byte-run--set-doc-string)
+   (list 'indent #'byte-run--set-indent))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
@@ -150,18 +169,22 @@ to set this property.
 
 This is used by `declare'.")
 
+(defalias 'byte-run--set-debug
+  #'(lambda (name _args spec)
+      (list 'progn :autoload-end
+	    (list 'put (list 'quote name)
+		  ''edebug-form-spec (list 'quote spec)))))
+
+(defalias 'byte-run--set-no-font-lock-keyword
+  #'(lambda (name _args val)
+      (list 'function-put (list 'quote name)
+	    ''no-font-lock-keyword (list 'quote val))))
+
 (defvar macro-declarations-alist
   (cons
-   (list 'debug
-	 #'(lambda (name _args spec)
-	     (list 'progn :autoload-end
-		   (list 'put (list 'quote name)
-			 ''edebug-form-spec (list 'quote spec)))))
+   (list 'debug #'byte-run--set-debug)
    (cons
-    (list 'no-font-lock-keyword
-	  #'(lambda (name _args val)
-	      (list 'function-put (list 'quote name)
-		    ''no-font-lock-keyword (list 'quote val))))
+    (list 'no-font-lock-keyword #'byte-run--set-no-font-lock-keyword)
     defun-declarations-alist))
   "List associating properties of macros to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is a function.
