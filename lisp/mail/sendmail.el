@@ -73,7 +73,7 @@ Otherwise, most addresses look like `angles', but they look like
   :version "27.1")
 (make-obsolete-variable
  'mail-from-style
- "only the `angles' value is valid according to RFC2822." "27.1" 'set)
+ "only the `angles' value is valid according to RFC5322." "27.1" 'set)
 
 ;;;###autoload
 (defcustom mail-specify-envelope-from nil
