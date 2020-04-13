@@ -3459,10 +3459,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 		if (!context)
 		  break;
 
-		BOOL new_status = (msg.wParam != 0);
-		BOOL ime_status = get_ime_open_status_fn (context);
-		if (new_status != ime_status)
-		  set_ime_open_status_fn (context, new_status);
+		set_ime_open_status_fn (context, msg.wParam != 0);
 		release_ime_context_fn (focus_window, context);
 		break;
 	      }
@@ -10261,7 +10258,7 @@ This function returns non-nil if the IME is active, otherwise nil.  */)
     {
       HWND current_window = FRAME_W32_WINDOW (sf);
       HIMC context = get_ime_context_fn (current_window);
-      if (!context)
+      if (context)
 	{
 	  BOOL retval = get_ime_open_status_fn (context);
 	  release_ime_context_fn (current_window, context);
