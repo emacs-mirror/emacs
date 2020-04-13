@@ -1506,22 +1506,16 @@ Return t if the file exists and loads successfully.  */)
     }
   else if (is_native_elisp)
     {
-      if (NATIVE_COMP_FLAG)
+      specbind (Qcurrent_load_list, Qnil);
+      if (!NILP (Vpurify_flag))
 	{
-	  specbind (Qcurrent_load_list, Qnil);
-	  if (!NILP (Vpurify_flag))
-	    {
-	      Lisp_Object base = parent_directory (Ffile_name_directory (found));
-	      Lisp_Object offset = Flength (base);
-	      hist_file_name = Fsubstring (found, offset, Qnil);
-	    }
-	  LOADHIST_ATTACH (hist_file_name);
-	  Fnative_elisp_load (found, Qnil);
-	  build_load_history (hist_file_name, true);
+	  Lisp_Object base = parent_directory (Ffile_name_directory (found));
+	  Lisp_Object offset = Flength (base);
+	  hist_file_name = Fsubstring (found, offset, Qnil);
 	}
-      else
-	/* This cannot happen.  */
-	emacs_abort ();
+      LOADHIST_ATTACH (hist_file_name);
+      Fnative_elisp_load (found, Qnil);
+      build_load_history (hist_file_name, true);
     }
   else
     {
