@@ -681,8 +681,8 @@ then remove all hi-lock highlighting."
             (delq keyword hi-lock-interactive-patterns))
       (remove-overlays
        nil nil 'hi-lock-overlay-regexp
-       (hi-lock--hashcons (or (car (rassq keyword hi-lock-interactive-lighters))
-                              (car keyword))))
+       (or (car (rassq keyword hi-lock-interactive-lighters))
+           (hi-lock--hashcons (car keyword))))
       (setq hi-lock-interactive-lighters
             (rassq-delete-all keyword hi-lock-interactive-lighters))
       (font-lock-flush))))

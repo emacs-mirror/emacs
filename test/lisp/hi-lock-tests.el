@@ -33,9 +33,7 @@
                      (car defaults))))
         (dotimes (_ 2)
           (let ((face (hi-lock-read-face-name)))
-            ;; This test should use regexp "b" different from "a"
-            ;; used in another test because hi-lock--hashcons is global.
-            (hi-lock-set-pattern "b" face))))
+            (hi-lock-set-pattern "a" face))))
       (should (equal hi-lock--unused-faces (cdr faces))))))
 
 (ert-deftest hi-lock-test-set-pattern ()
@@ -147,6 +145,64 @@
                 (font-lock-fontified t))
         (call-interactively 'unhighlight-regexp))
       (should (null (get-text-property 1 'face))))))
+
+(ert-deftest hi-lock-unhighlight ()
+  "Test for unhighlighting and `hi-lock--regexps-at-point'."
+  (let ((hi-lock-auto-select-face t))
+    (with-temp-buffer
+      (insert "aAbB\n")
+
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
+                   (car defaults))))
+
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (should (= (length (overlays-in (point-min) (point-max))) 4))
+        ;; `hi-lock--regexps-at-point' should take regexp "a" at point 1,
+        ;; not the last regexp "b"
+        (goto-char 1)
+        (call-interactively 'unhighlight-regexp)
+        (should (= (length (overlays-in 1 3)) 0))
+        (should (= (length (overlays-in 3 5)) 2))
+        ;; Next call should unhighlight remaining regepxs
+        (call-interactively 'unhighlight-regexp)
+        (should (= (length (overlays-in 3 5)) 0))
+
+        ;; Test unhighlight all
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (should (= (length (overlays-in (point-min) (point-max))) 4))
+        (unhighlight-regexp t)
+        (should (= (length (overlays-in (point-min) (point-max))) 0))
+
+        (emacs-lisp-mode)
+        (setq font-lock-mode t)
+
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (font-lock-ensure)
+        (should (memq 'hi-yellow (get-text-property 1 'face)))
+        (should (memq 'hi-yellow (get-text-property 3 'face)))
+        ;; `hi-lock--regexps-at-point' should take regexp "a" at point 1,
+        ;; not the last regexp "b"
+        (goto-char 1)
+        (let ((font-lock-fontified t)) (call-interactively 'unhighlight-regexp))
+        (should (null (get-text-property 1 'face)))
+        (should (memq 'hi-yellow (get-text-property 3 'face)))
+        ;; Next call should unhighlight remaining regepxs
+        (let ((font-lock-fontified t)) (call-interactively 'unhighlight-regexp))
+        (should (null (get-text-property 3 'face)))
+
+        ;; Test unhighlight all
+        (highlight-regexp "a")
+        (highlight-regexp "b")
+        (font-lock-ensure)
+        (should (memq 'hi-yellow (get-text-property 1 'face)))
+        (should (memq 'hi-yellow (get-text-property 3 'face)))
+        (let ((font-lock-fontified t)) (unhighlight-regexp t))
+        (should (null (get-text-property 1 'face)))
+        (should (null (get-text-property 3 'face)))))))
 
 (provide 'hi-lock-tests)
 ;;; hi-lock-tests.el ends here
