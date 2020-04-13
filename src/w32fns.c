@@ -3459,8 +3459,10 @@ w32_msg_pump (deferred_msg * msg_buf)
 		if (!context)
 		  break;
 
-		BOOL wParam = (BOOL) msg.wParam;
-		set_ime_open_status_fn (context, wParam);
+		BOOL new_status = (msg.wParam != 0);
+		BOOL ime_status = get_ime_open_status_fn (context);
+		if (new_status != ime_status)
+		  set_ime_open_status_fn (context, new_status);
 		release_ime_context_fn (focus_window, context);
 		break;
 	      }
