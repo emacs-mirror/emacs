@@ -379,6 +379,13 @@ coding-system-for-{read,write} or call 'set-process-coding-system'.
 'module-file-suffix' now has the value ".dylib" on macOS, but the
 ".so" suffix is supported as well.
 
++++
+** On MS-Windows, Emacs can now toggle the IME.
+A new function 'w32-set-ime-open-status' can now be used to disable
+and enable the MS-Windows native Input Method Editor (IME) at run
+time.  A companion function 'w32-get-ime-open-status' returns the
+current IME activation status.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
