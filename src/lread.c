@@ -1102,6 +1102,14 @@ close_infile_unwind (void *arg)
   infile = prev_infile;
 }
 
+static Lisp_Object
+parent_directory (Lisp_Object directory)
+{
+  return Ffile_name_directory (Fsubstring (directory,
+					   make_fixnum (0),
+					   Fsub1 (Flength (directory))));
+}
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el', then try
@@ -1474,13 +1482,8 @@ Return t if the file exists and loads successfully.  */)
 	 same folder of their respective sources therfore not to break
 	 packages we fake `load-file-name' here.  The non faked
 	 version of it is `load-true-file-name'. */
-      Lisp_Object dir = Ffile_name_directory (found);
-      Lisp_Object parent_dir =
-	Ffile_name_directory (Fsubstring (dir,
-					  make_fixnum (0),
-					  Fsub1 (Flength (dir))));
       specbind (Qload_file_name,
-		concat2 (parent_dir,
+		concat2 (parent_directory (Ffile_name_directory (found)),
 			 Ffile_name_nondirectory (found)));
     }
   else
@@ -1506,9 +1509,15 @@ Return t if the file exists and loads successfully.  */)
       if (NATIVE_COMP_FLAG)
 	{
 	  specbind (Qcurrent_load_list, Qnil);
-	  LOADHIST_ATTACH (found);
+	  if (!NILP (Vpurify_flag))
+	    {
+	      Lisp_Object base = parent_directory (Ffile_name_directory (found));
+	      Lisp_Object offset = Flength (base);
+	      hist_file_name = Fsubstring (found, offset, Qnil);
+	    }
+	  LOADHIST_ATTACH (hist_file_name);
 	  Fnative_elisp_load (found, Qnil);
-	  build_load_history (found, true);
+	  build_load_history (hist_file_name, true);
 	}
       else
 	/* This cannot happen.  */
