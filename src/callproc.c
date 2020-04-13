@@ -1099,7 +1099,17 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     }
 
   if (nargs > 3 && !NILP (args[3]))
-    Fdelete_region (start, end);
+    {
+      if (NILP (start))
+        {
+          /* No need to save restrictions since we delete everything
+             anyway.  */
+          Fwiden ();
+          del_range (BEG, Z);
+        }
+      else
+        Fdelete_region (start, end);
+    }
 
   if (nargs > 3)
     {

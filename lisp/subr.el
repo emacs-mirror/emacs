@@ -2285,6 +2285,8 @@ Otherwise TYPE is assumed to be a symbol property."
 		           (not (eq 'require (car match)))))))
           (throw 'found file))))))
 
+(declare-function read-library-name "find-func" nil)
+
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
 LIBRARY should be a relative file name of the library, a string.

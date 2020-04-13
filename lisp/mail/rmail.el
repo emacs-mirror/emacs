@@ -578,11 +578,21 @@ Examples:
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
 
+;; Note: this is matched with case-fold-search bound to t.
+(defcustom rmail-re-abbrevs
+  "\\(RE\\|رد\\|回复\\|回覆\\|SV\\|Antw\\|VS\\|REF\\|AW\\|ΑΠ\\|ΣΧΕΤ\\|השב\\|Vá\\|R\\|RIF\\|BLS\\|RES\\|Odp\\|YNT\\|ATB\\)"
+  "Regexp with localized 'Re:' abbreviations in various languages."
+  :version "28.1"
+  :type 'regexp)
+
 ;; Some mailers use "Re(2):" or "Re^2:" or "Re: Re:" or "Re[2]:".
 ;; This pattern should catch all the common variants.
 ;; rms: I deleted the change to delete tags in square brackets
 ;; because they mess up RT tags.
-(defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?: *\\)*"
+(defvar rmail-reply-regexp
+  (concat "\\`\\("
+          rmail-re-abbrevs
+          "\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?[:：] *\\)*")
   "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
 (defcustom rmail-display-summary nil
@@ -3398,7 +3408,7 @@ whitespace, replacing whitespace runs with a single space and
 removing prefixes such as Re:, Fwd: and so on and mailing list
 tags such as [tag]."
   (let ((subject (or (rmail-get-header "Subject" msgnum) ""))
-	(regexp "\\`[ \t\n]*\\(\\(\\w\\{1,3\\}:\\|\\[[^]]+]\\)[ \t\n]+\\)*"))
+	(regexp "\\`[ \t\n]*\\(\\(\\w\\{1,4\\}[:：]\\|\\[[^]]+]\\)[ \t\n]+\\)*"))
     (setq subject (rfc2047-decode-string subject))
     (setq subject (replace-regexp-in-string regexp "" subject))
     (replace-regexp-in-string "[ \t\n]+" " " subject)))

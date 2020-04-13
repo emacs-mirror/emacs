@@ -1094,6 +1094,8 @@ REMOTE is non-nil, search on the remote host indicated by
     (let ((default-directory (file-name-quote default-directory 'top)))
       (locate-file command exec-path exec-suffixes 1))))
 
+(declare-function read-library-name "find-func" nil)
+
 (defun load-library (library)
   "Load the Emacs Lisp library named LIBRARY.
 LIBRARY should be a string.

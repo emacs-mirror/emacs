@@ -267,13 +267,20 @@ to substitute spaces in regexp search.
 
 ---
 *** The default value of 'hi-lock-highlight-range' was enlarged.
-The new default value is 2000000 (2 million).
+The new default value is 2000000 (2 megabytes).
 
 ** Texinfo
 
 ---
 *** New customizable option 'texinfo-texi2dvi-options'.
 This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
+
+** Rmail
+
+---
+*** New customizable option 'rmail-re-abbrevs'.
+Its default value matches localized abbreviations of the "reply"
+prefix on the Subject line in various languages.
 
 
 * New Modes and Packages in Emacs 28.1
