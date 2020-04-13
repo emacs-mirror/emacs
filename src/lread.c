@@ -1469,6 +1469,11 @@ Return t if the file exists and loads successfully.  */)
 
   if (is_native_elisp)
     {
+      /* Many packages use `load-file-name' as a way to obtain the
+	 package location (see bug#40099).  .eln files are not in the
+	 same folder of their respective sources therfore not to break
+	 packages we fake `load-file-name' here.  The non faked
+	 version of it is `load-true-file-name'. */
       Lisp_Object dir = Ffile_name_directory (found);
       Lisp_Object parent_dir =
 	Ffile_name_directory (Fsubstring (dir,
