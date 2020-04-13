@@ -32,13 +32,14 @@ In the mail buffer, send the message and bury the buffer
 
   The mail buffer is an ordinary Emacs buffer, so you can switch to
 other buffers while composing the mail.  If you want to send another
-mail before finishing the current one, type @kbd{C-x m} again to open
-a new mail buffer whose name has a different numeric suffix
-(@pxref{Misc Buffer}).  If you invoke the command with a prefix
-argument, @w{@kbd{C-u C-x m}}, Emacs switches back to the last mail
-buffer, and asks if you want to erase the message in that buffer; if
-you answer no, this lets you pick up editing the message where you
-left off.
+message before finishing the current one, type @kbd{C-x m} again to
+open a new mail buffer whose name has a different numeric suffix
+(@pxref{Misc Buffer}).  (This only works if you use the default
+Message mode to compose email; see @ref{Mail Commands}.)  If you know
+that you'd like to continue composing the unsent message you were
+editing, invoke this command with a prefix argument, @w{@kbd{C-u C-x
+m}}, and Emacs will switch to the last mail buffer you used and let
+you pick up editing the message where you left off.
 
 @kindex C-x 4 m
 @findex compose-mail-other-window
@@ -121,26 +122,6 @@ some operating systems, Emacs initializes these two variables using
 environment variables (@pxref{General Variables}).  If this
 information is unavailable or wrong, you should customize the
 variables yourself (@pxref{Easy Customization}).
-
-@vindex mail-from-style
-  The value of the variable @code{mail-from-style} specifies how to
-format the contents of the @samp{From} field:
-
-@table @asis
-@item @code{nil}
-Use just the address, as in @samp{king@@grassland.com}.
-@item @code{parens}
-Use both address and full name, as in:@*
-@samp{king@@grassland.com (Elvis Parsley)}.
-@item @code{angles}
-Use both address and full name, as in:@*
-@samp{Elvis Parsley <king@@grassland.com>}.
-@item any other value
-Use @code{angles} normally.  But if the address must be quoted to
-remain syntactically valid under the @code{angles} format but not
-under the @code{parens} format, use @code{parens} instead.  This is
-the default.
-@end table
 
   Apart from @samp{From}, here is a table of commonly-used fields:
 

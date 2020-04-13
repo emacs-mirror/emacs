@@ -3118,7 +3118,7 @@ slots skipped by :initial-offset may appear in the list."
               descs)))
     (nreverse descs)))
 
-(define-error 'cl-struct-unknown-slot "struct %S has no slot %S")
+(define-error 'cl-struct-unknown-slot "struct has no slot")
 
 (defun cl-struct-slot-offset (struct-type slot-name)
   "Return the offset of slot SLOT-NAME in STRUCT-TYPE.

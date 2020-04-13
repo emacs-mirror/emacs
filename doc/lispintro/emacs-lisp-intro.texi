@@ -3667,7 +3667,8 @@ automatically undone when the @code{let} is finished.  The setting
 only affects expressions that are inside the bounds of the @code{let}
 expression.  In computer science jargon, we would say the binding of
 a symbol is visible only in functions called in the @code{let} form;
-in Emacs Lisp, scoping is dynamic, not lexical.
+in Emacs Lisp, the default scoping is dynamic, not lexical.  (The
+non-default lexical binding is not discussed in this manual.)
 
 @code{let} can create more than one variable at once.  Also,
 @code{let} gives each variable it creates an initial value, either a

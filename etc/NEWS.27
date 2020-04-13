@@ -2239,6 +2239,10 @@ The option is useful for two reasons when verifying the signature:
     2.2.17 to fully benefit from this feature.  See gpg(1) man page for
     "--auto-key-retrieve".
 
++++
+*** The 'mail-from-style' variable is now obsolete.
+According to RFC 5322, only the 'angles' value is valid.
+
 ---
 ** EasyPG
 
