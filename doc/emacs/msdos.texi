@@ -721,7 +721,7 @@ applications to communicate with the Input Method Editor
 (@acronym{IME}), the native Windows input method service.  Emacs uses
 the @acronym{IME} when available to allow users to input East Asian
 non-@acronym{ASCII} characters, similarly to Emacs's built-in input
-methods (@pxref{Input methods}).  However, in some situations the
+methods (@pxref{Input Methods}).  However, in some situations the
 @acronym{IME} can get in the way if it interprets simple
 @acronym{ASCII} keys you input as part of a key sequence that
 designates a non-@acronym{ASCII} character.  The @acronym{IME} can be
