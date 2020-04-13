@@ -433,6 +433,7 @@ OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
 OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
+OPTION_DEFAULT_OFF([native-image-api], [use native API's (GDI+ on Windows) for JPEG/TIFF/GIFF/PNG])
 OPTION_DEFAULT_ON([json], [don't compile with native JSON support])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
@@ -2126,6 +2127,7 @@ LIB_WSOCK32=
 NTLIB=
 CM_OBJ="cm.o"
 XARGS_LIMIT=
+HAVE_NATIVE_IMAGE_API=no
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   if test "$with_toolkit_scroll_bars" = "no"; then
@@ -2154,7 +2156,12 @@ if test "${HAVE_W32}" = "yes"; then
     # the rc file), not a linker script.
     W32_RES_LINK="-Wl,emacs.res"
   else
-    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
+    if test "${with_native_image_api}" = yes; then
+      AC_DEFINE(HAVE_NATIVE_IMAGE_API, 1, [Define to use MS Windows GDI+ for images.])
+      HAVE_NATIVE_IMAGE_API=yes
+      W32_NATIVE_IMAGE_API="w32image.o"
+    fi
+    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o $W32_NATIVE_IMAGE_API"
     W32_LIBS="$W32_LIBS -lwinmm -lusp10 -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32"
     W32_RES_LINK="\$(EMACSRES)"
@@ -5703,6 +5710,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use cairo?                                   ${HAVE_CAIRO}
   Does Emacs use -llcms2?                                 ${HAVE_LCMS2}
   Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}
+  Does Emacs use native API for images?                   ${HAVE_NATIVE_IMAGE_API}
   Does Emacs support sound?                               ${HAVE_SOUND}
   Does Emacs use -lgpm?                                   ${HAVE_GPM}
   Does Emacs use -ldbus?                                  ${HAVE_DBUS}

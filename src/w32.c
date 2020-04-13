@@ -10225,6 +10225,10 @@ term_ntproc (int ignored)
   term_winsock ();
 
   term_w32select ();
+
+#ifdef HAVE_GDIPLUS
+  w32_gdiplus_shutdown ();
+#endif
 }
 
 void

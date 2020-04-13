@@ -1529,7 +1529,7 @@ w32_query_colors (struct frame *f, Emacs_Color *colors, int ncolors)
 
 /* Store F's background color into *BGCOLOR.  */
 
-static void
+void
 w32_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
 {
   bgcolor->pixel = FRAME_BACKGROUND_PIXEL (f);
