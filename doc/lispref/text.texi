@@ -5776,4 +5776,11 @@ code that is itself run from a modification hook, then rebind locally
 may cause recursive calls to the modification hooks, so be sure to
 prepare for that (for example, by binding some variable which tells
 your hook to do nothing).
+
+We recommend that you only bind this variable for modifications that
+do not result in lasting changes to buffer text contents (for example
+face changes or temporary modifications).  If you need to delay change
+hooks during a series of changes (typically for performance reasons),
+use @code{combine-change-calls} or @code{combine-after-change-calls}
+instead.
 @end defvar

@@ -166,6 +166,10 @@ typedef HIMC (WINAPI * ImmGetContext_Proc) (IN HWND window);
 typedef BOOL (WINAPI * ImmReleaseContext_Proc) (IN HWND wnd, IN HIMC context);
 typedef BOOL (WINAPI * ImmSetCompositionWindow_Proc) (IN HIMC context,
 						      IN COMPOSITIONFORM *form);
+/* For toggling IME status.  */
+typedef BOOL (WINAPI * ImmGetOpenStatus_Proc) (IN HIMC);
+typedef BOOL (WINAPI * ImmSetOpenStatus_Proc) (IN HIMC, IN BOOL);
+
 typedef HMONITOR (WINAPI * MonitorFromPoint_Proc) (IN POINT pt, IN DWORD flags);
 typedef BOOL (WINAPI * GetMonitorInfo_Proc)
   (IN HMONITOR monitor, OUT struct MONITOR_INFO* info);
@@ -185,6 +189,8 @@ typedef HRESULT (WINAPI *SetThreadDescription_Proc)
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
+ImmGetOpenStatus_Proc get_ime_open_status_fn = NULL;
+ImmSetOpenStatus_Proc set_ime_open_status_fn = NULL;
 ImmReleaseContext_Proc release_ime_context_fn = NULL;
 ImmSetCompositionWindow_Proc set_ime_composition_window_fn = NULL;
 MonitorFromPoint_Proc monitor_from_point_fn = NULL;
@@ -3305,6 +3311,7 @@ w32_name_of_message (UINT msg)
       M (WM_EMACS_SETCURSOR),
       M (WM_EMACS_SHOWCURSOR),
       M (WM_EMACS_PAINT),
+      M (WM_EMACS_IME_STATUS),
       M (WM_CHAR),
 #undef M
       { 0, 0 }
@@ -3442,6 +3449,21 @@ w32_msg_pump (deferred_msg * msg_buf)
 		  emacs_abort ();
 	      }
 	      break;
+            case WM_EMACS_IME_STATUS:
+	      {
+		focus_window = GetFocus ();
+		if (!set_ime_open_status_fn || !focus_window)
+		  break;
+
+		HIMC context = get_ime_context_fn (focus_window);
+		if (!context)
+		  break;
+
+		set_ime_open_status_fn (context, msg.wParam != 0);
+		release_ime_context_fn (focus_window, context);
+		break;
+	      }
+
 #ifdef MSG_DEBUG
 	      /* Broadcast messages make it here, so you need to be looking
 		 for something in particular for this to be useful.  */
@@ -10218,6 +10240,51 @@ DEFUN ("w32-notification-close",
 
 #endif	/* WINDOWSNT && !HAVE_DBUS */
 
+DEFUN ("w32-get-ime-open-status",
+       Fw32_get_ime_open_status, Sw32_get_ime_open_status,
+       0, 0, 0,
+       doc: /* Return non-nil if IME is active, otherwise return nil.
+
+IME, the MS-Windows Input Method Editor, can be active or inactive.
+This function returns non-nil if the IME is active, otherwise nil.  */)
+  (void)
+{
+  struct frame *sf =
+    FRAMEP (selected_frame) && FRAME_LIVE_P (XFRAME (selected_frame))
+    ? XFRAME  (selected_frame)
+    : NULL;
+
+  if (sf)
+    {
+      HWND current_window = FRAME_W32_WINDOW (sf);
+      HIMC context = get_ime_context_fn (current_window);
+      if (context)
+	{
+	  BOOL retval = get_ime_open_status_fn (context);
+	  release_ime_context_fn (current_window, context);
+
+	  return retval ? Qt : Qnil;
+	}
+    }
+
+  return Qnil;
+}
+
+DEFUN ("w32-set-ime-open-status",
+       Fw32_set_ime_open_status, Sw32_set_ime_open_status,
+       1, 1, 0,
+       doc: /* Open or close the IME according to STATUS.
+
+This function activates the IME, the MS-Windows Input Method Editor,
+if STATUS is non-nil, otherwise it deactivates the IME.  */)
+  (Lisp_Object status)
+{
+  unsigned ime_status = NILP (status) ? 0 : 1;
+
+  PostThreadMessage (dwWindowsThreadId, WM_EMACS_IME_STATUS, ime_status, 0);
+  return Qnil;
+}
+
 
 #ifdef WINDOWSNT
 /***********************************************************************
@@ -10744,6 +10811,8 @@ tip frame.  */);
   defsubr (&Sw32_notification_notify);
   defsubr (&Sw32_notification_close);
 #endif
+  defsubr (&Sw32_get_ime_open_status);
+  defsubr (&Sw32_set_ime_open_status);
 
 #ifdef WINDOWSNT
   defsubr (&Sw32_read_registry);
@@ -11032,6 +11101,11 @@ globals_of_w32fns (void)
       get_proc_addr (imm32_lib, "ImmReleaseContext");
     set_ime_composition_window_fn = (ImmSetCompositionWindow_Proc)
       get_proc_addr (imm32_lib, "ImmSetCompositionWindow");
+
+    get_ime_open_status_fn = (ImmGetOpenStatus_Proc)
+      get_proc_addr (imm32_lib, "ImmGetOpenStatus");
+    set_ime_open_status_fn = (ImmSetOpenStatus_Proc)
+      get_proc_addr (imm32_lib, "ImmSetOpenStatus");
   }
 
   HMODULE hm_kernel32 = GetModuleHandle ("kernel32.dll");

@@ -8057,8 +8057,12 @@ OTHER-HEADERS is an alist specifying additional
 header fields.  Elements look like (HEADER . VALUE) where both
 HEADER and VALUE are strings.
 
-CONTINUE, if non-nil, says to continue editing a message already
-being composed.  Interactively, CONTINUE is the prefix argument.
+By default, if an unsent message is already being composed, this
+command will ask whether to erase the unsent message, and will not
+start a new message if the user doesn't allow erasing.  However, if
+CONTINUE is non-nil, it means to continue editing a message already
+being composed without asking.  Interactively, CONTINUE is the prefix
+argument.
 
 SWITCH-FUNCTION, if non-nil, is a function to use to
 switch to and display the buffer used for mail composition.

@@ -7747,6 +7747,7 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
 
 #ifdef USE_GTK
 #ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 14, 0)
 DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
        doc: /* Toggle interactive GTK debugging.   */)
   (Lisp_Object enable)
@@ -7759,6 +7760,7 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 
   return NILP (enable) ? Qnil : Qt;
 }
+#endif /* GTK_CHECK_VERSION (3, 14, 0) */
 #endif /* HAVE_GTK3 */
 #endif	/* USE_GTK */
 
@@ -8146,7 +8148,9 @@ eliminated in future versions of Emacs.  */);
 #endif
 #ifdef USE_GTK
 #ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 14, 0)
   defsubr (&Sx_gtk_debug);
+#endif
 #endif
 #endif
 }

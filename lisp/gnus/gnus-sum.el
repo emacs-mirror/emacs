@@ -9494,15 +9494,15 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
     (delete-dups urls)))
 
 (defun gnus-shorten-url (url max)
-  "Return an excerpt from URL."
+  "Return an excerpt from URL not exceeding MAX characters."
   (if (<= (length url) max)
       url
-    (let ((parsed (url-generic-parse-url url)))
-      (concat (url-host parsed)
-	      "..."
-	      (substring (url-filename parsed)
-			 (- (length (url-filename parsed))
-			    (max (- max (length (url-host parsed))) 0)))))))
+    (let* ((parsed (url-generic-parse-url url))
+           (host (url-host parsed))
+           (rest (concat (url-filename parsed)
+                         (when-let ((target (url-target parsed)))
+                           (concat "#" target)))))
+      (concat host (string-truncate-left rest (- max (length host)))))))
 
 (defun gnus-summary-browse-url (&optional external)
   "Scan the current article body for links, and offer to browse them.

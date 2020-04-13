@@ -291,9 +291,9 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (unless
       (let* ((bfname (buffer-file-name))
              (fname (and (stringp bfname) (file-name-nondirectory bfname))))
-        (or (not (stringp fname))
-            (string-match "\\`\\.#" fname)
-            (string-equal dir-locals-file fname)))
+        (and (stringp fname)
+             (or (string-match "\\`\\.#" fname)
+                 (string-equal dir-locals-file fname))))
     (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
     (add-hook 'flymake-diagnostic-functions
               #'elisp-flymake-byte-compile nil t)))

@@ -141,6 +141,15 @@ default face.  This can cause Emacs to scroll to somewhat wrong buffer
 positions when the faces in use are not all the same size, even with
 single (i.e., without auto-repeat) scrolling operations.
 
+@vindex jit-lock-defer-time
+As an alternative to setting @code{fast-but-imprecise-scrolling} you
+might prefer to enable jit-lock deferred fontification (@pxref{Font
+Lock}).  To do this, customize @code{jit-lock-defer-time} to a small
+positive number such as 0.25, or even 0.1 if you type quickly.  This
+gives you less jerky scrolling when you hold down @kbd{C-v}, but the
+window contents after any action which scrolls into a fresh portion of
+the buffer will be momentarily unfontified.
+
 @vindex scroll-up
 @vindex scroll-down
 @findex scroll-up-line

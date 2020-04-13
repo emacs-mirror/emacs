@@ -1510,16 +1510,6 @@ This default should work without changes."
 	(setq dir (substring dir 0 pos)))
     (ediff-abbreviate-file-name (file-name-directory dir))))
 
-(defun ediff-truncate-string-left (str newlen)
-  ;; leave space for ... on the left
-  (let ((len (length str))
-	substr)
-    (if (<= len newlen)
-	str
-      (setq newlen (max 0 (- newlen 3)))
-      (setq substr (substring str (max 0 (- len 1 newlen))))
-      (concat "..." substr))))
-
 (defsubst ediff-nonempty-string-p (string)
   (and (stringp string) (not (string= string ""))))
 
