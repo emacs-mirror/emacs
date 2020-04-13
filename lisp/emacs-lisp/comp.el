@@ -2082,11 +2082,11 @@ Update all insn accordingly."
          (d-impure-idx (comp-data-container-idx d-impure))
          (d-ephemeral (comp-ctxt-d-ephemeral comp-ctxt))
          (d-ephemeral-idx (comp-data-container-idx d-ephemeral)))
-    ;; Remove things in d-impure that are already in d-default.
+    ;; Remove entries in d-impure already present in d-default.
     (cl-loop for obj being each hash-keys of d-impure-idx
              when (gethash obj d-default-idx)
                do (remhash obj d-impure-idx))
-    ;; Remove things in d-ephemeral that are already in d-default or
+    ;; Remove entries in d-ephemeral already present in d-default or
     ;; d-impure.
     (cl-loop for obj being each hash-keys of d-ephemeral-idx
              when (or (gethash obj d-default-idx) (gethash obj d-impure-idx))
