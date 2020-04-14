@@ -167,7 +167,9 @@ expression, in which case we want to handle forms differently."
                        define-inline cl-defun cl-defmacro cl-defgeneric
                        cl-defstruct pcase-defmacro))
            (macrop car)
-	   (setq expand (let ((load-file-name file)) (macroexpand form)))
+	   (setq expand (let ((load-true-file-name file)
+                              (load-file-name file))
+                          (macroexpand form)))
 	   (memq (car expand) '(progn prog1 defalias)))
       (make-autoload expand file 'expansion)) ;Recurse on the expansion.
 

@@ -566,6 +566,7 @@ lost after dumping")))
 ;; Don't keep `load-file-name' set during the top-level session!
 ;; Otherwise, it breaks a lot of code which does things like
 ;; (or load-file-name byte-compile-current-file).
+(setq load-true-file-name nil)
 (setq load-file-name nil)
 (eval top-level)
 
