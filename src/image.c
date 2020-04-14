@@ -10224,10 +10224,8 @@ initialize_image_type (struct image_type const *type)
 #ifdef WINDOWSNT
   Lisp_Object typesym = builtin_lisp_symbol (type->type);
 
-#ifdef HAVE_NATIVE_IMAGE_API
   if (image_can_use_native_api (typesym))
     return true;
-#endif
 
   Lisp_Object tested = Fassq (typesym, Vlibrary_cache);
   /* If we failed to load the library before, don't try again.  */
@@ -10285,7 +10283,7 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qpbm), pbm_image_p, pbm_load, image_clear_image },
 };
 
-#ifdef HAVE_NATIVE_IMAGE_API
+#if HAVE_NATIVE_IMAGE_API
 struct image_type native_image_type =
   { SYMBOL_INDEX (Qnative_image), native_image_p, native_image_load,
     image_clear_image };
@@ -10297,7 +10295,7 @@ struct image_type native_image_type =
 static struct image_type const *
 lookup_image_type (Lisp_Object type)
 {
-#ifdef HAVE_NATIVE_IMAGE_API
+#if HAVE_NATIVE_IMAGE_API
   if (image_can_use_native_api (type))
     return &native_image_type;
 #endif
