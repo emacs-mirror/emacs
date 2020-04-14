@@ -1189,6 +1189,7 @@ extern void syms_of_nsselect (void);
 
 /* From nsimage.m, needed in image.c */
 struct image;
+extern bool ns_can_use_native_image_api (Lisp_Object type);
 extern void *ns_image_from_XBM (char *bits, int width, int height,
                                 unsigned long fg, unsigned long bg);
 extern void *ns_image_for_XPM (int width, int height, int depth);

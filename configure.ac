@@ -1910,6 +1910,8 @@ else
   bitmapdir=${bmd_acc#:}
 fi
 
+NATIVE_IMAGE_API=no
+
 test "${with_ns}" = maybe && test "${opsys}" != darwin && with_ns=no
 HAVE_NS=no
 NS_GNUSTEP_CONFIG=no
@@ -2021,6 +2023,11 @@ Either fix this, or re-configure with the option '--without-ns'.])])
        AC_MSG_ERROR([Mac OS X 10.6 or newer is required]);
     fi
   fi
+
+  if test "${with_native_image_api}" = yes; then
+     AC_DEFINE(HAVE_NATIVE_IMAGE_API, 1, [Define to use native OS APIs for images.])
+     NATIVE_IMAGE_API="yes (ns)"
+  fi
 fi
 
 AC_SUBST(LIBS_GNUSTEP)
@@ -2127,7 +2134,6 @@ LIB_WSOCK32=
 NTLIB=
 CM_OBJ="cm.o"
 XARGS_LIMIT=
-NATIVE_IMAGE_API=no
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   if test "$with_toolkit_scroll_bars" = "no"; then
@@ -3575,9 +3581,8 @@ AC_SUBST(LIBXPM)
 ### Use -ljpeg if available, unless '--with-jpeg=no'.
 HAVE_JPEG=no
 LIBJPEG=
-if test "${NS_IMPL_COCOA}" = yes; then
-  : # Cocoa provides its own jpeg support, so do nothing.
-elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
+   || test "${HAVE_NS}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     AC_CACHE_CHECK([for jpeglib 6b or later],
       [emacs_cv_jpeglib],
@@ -3726,13 +3731,12 @@ AC_SUBST(emacs_major_version)
 HAVE_PNG=no
 LIBPNG=
 PNG_CFLAGS=
-if test "${NS_IMPL_COCOA}" = yes; then
-  : # Cocoa provides its own png support, so do nothing.
-elif test "${with_png}" != no; then
+if test "${with_png}" != no; then
   # mingw32 loads the library dynamically.
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
-  elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+  elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
+       || test "${HAVE_NS}" = "yes"; then
     EMACS_CHECK_MODULES([PNG], [libpng >= 1.0.0])
     if test $HAVE_PNG = yes; then
       LIBPNG=$PNG_LIBS
@@ -3806,7 +3810,8 @@ if test "${opsys}" = "mingw32"; then
   if test "${HAVE_TIFF}" = "yes"; then
     AC_DEFINE(HAVE_TIFF, 1, [Define to 1 if you have the tiff library (-ltiff).])
   fi
-elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
+     || test "${HAVE_NS}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     AC_CHECK_HEADER(tiffio.h,
       [tifflibs="-lz -lm"
@@ -3835,7 +3840,7 @@ if test "${opsys}" = "mingw32"; then
     AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif (or ungif) library.])
   fi
 elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
-        || test "${HAVE_W32}" = "yes"; then
+        || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs, but version 5.0 removes EGifPutExtensionLast.
