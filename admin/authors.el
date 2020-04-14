@@ -207,6 +207,10 @@ files.")
     ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
     ("Yutaka NIIBE" "NIIBE Yutaka")
     (nil "stardiviner")
+    (nil "lin.sun")
+    ("Nitish Chinta" "nitishch")
+    ("Carlos Pita" "memeplex")
+    ("Vinicius Jose Latorre" "viniciusjl")
     )
   "Alist of author aliases.
 
