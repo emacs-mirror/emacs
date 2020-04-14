@@ -1652,6 +1652,11 @@ which better handles surrounding pair of parentheses.
 which is like 'erc-switch-to-buffer', but opens the buffer in another
 window.
 
+---
+*** New function 'erc-track-switch-buffer-other-window'
+which is like 'erc-track-switch-buffer', but opens the buffer in
+another window.
+
 ** EUDC
 
 ---
