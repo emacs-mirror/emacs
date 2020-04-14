@@ -361,7 +361,7 @@ With argument, display info only for the selected version."
 		     (setq res (cons (match-string-no-properties 1) res)))))
 	       (cons "NEWS"
 		     (directory-files data-directory nil
-				      "^NEWS\\.[0-9][-0-9]*$" nil)))
+				      "\\`NEWS\\.[0-9][-0-9]*\\'" nil)))
 	      (sort (delete-dups res) #'string>)))
 	   (current (car all-versions)))
       (setq version (completing-read

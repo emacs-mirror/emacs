@@ -553,7 +553,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	(if (file-directory-p filename)
 	    (progn
 	      (message "Converting all tit files in the directory %s" filename)
-	      (setq files (directory-files filename t "\\.tit$")))
+	      (setq files (directory-files filename t "\\.tit\\'")))
 	  (setq files (list filename)))
 	(while files
 	  (setq file (expand-file-name (car files)))

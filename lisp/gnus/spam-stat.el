@@ -557,7 +557,7 @@ check the variable `spam-stat-score-data'."
 
 (defun spam-stat-process-directory (dir func)
   "Process all the regular files in directory DIR using function FUNC."
-  (let* ((files (directory-files dir t "^[^.]"))
+  (let* ((files (directory-files dir t "\\`[^.]"))
 	 (max (/ (length files) 100.0))
 	 (count 0))
     (with-temp-buffer
@@ -601,7 +601,7 @@ If VERBOSE is non-nil display names of files detected as spam or
 non-spam in a temporary buffer.  If it is the symbol `ham',
 display non-spam files; otherwise display spam files."
   (interactive "DDirectory: ")
-  (let* ((files (directory-files dir t "^[^.]"))
+  (let* ((files (directory-files dir t "\\`[^.]"))
 	 display-files
 	 buffer-score
 	 (total (length files))

@@ -377,7 +377,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                    dir files)
                (while (setq dir (car dirs))
                  (setq files
-                       (append (directory-files dir t "\\.bib$")
+                       (append (directory-files dir t "\\.bib\\'")
                                files))
                  (setq dirs (cdr dirs)))
                files))

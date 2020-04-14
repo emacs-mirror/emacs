@@ -278,7 +278,7 @@ If REALNAME is nil, ignore that author.")
 
 
 (defvar authors-obsolete-files-regexps
-  '(".*loaddefs.el$"			; not obsolete, but auto-generated
+  '(".*loaddefs\\.el$"			; not obsolete, but auto-generated
     "\\.\\(bzr\\|cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
     "ChangeLog\\(\\.[0-9]+\\)?\\'"
@@ -288,9 +288,9 @@ If REALNAME is nil, ignore that author.")
     "\\`\\(indent\\|automated\\)\\'" "indent/" "mod-test/"
     "-resources/"
     "unidata/.*\\.txt\\'"
-    "BidiCharacterTest.txt"
+    "BidiCharacterTest\\.txt"
     ;; TODO lib/? Matches other things?
-    "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"
+    "build-aux/" "m4/" "Emacs\\.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
     ;; Generated files that have since been removed.
     "\\(refcard\\(-de\\|-pl\\)?\\|calccard\\|dired-ref\\|orgcard\\|\
@@ -1183,7 +1183,7 @@ ediff\\|emerge\\|log-edit\\|log-view\\|pcvs\\|smerge-mode\\|vc\\)\\.el\\'"
     ("\\`org-\\(ascii\\|beamer\\|html\\|icalendar\\|jsinfo\\|latex\
 \\|odt\\|publish\\)\\.el\\'" "ox-\\1.el")
     ;; From test/ to test/automated/.
-    ("comint-testsuite.el" "automated/\\&")
+    ("comint-testsuite\\.el" "automated/\\&")
     ("\\`\\(bytecomp\\|font-parse\\|icalendar\\|occur\\|newsticker\\)\
 -testsuite\\.el" "\\1-tests.el")
     ("automated/flymake/warnpred/\\(Makefile\\|test\\.\\(?:c\\|pl\\)\\)\\'"

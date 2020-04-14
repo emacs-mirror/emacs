@@ -188,7 +188,7 @@ from; the default is `load-path'."
   ;; Allow compressed files also.
   (setq package--builtins nil)
   (setq finder-keywords-hash (make-hash-table :test 'eq))
-  (let* ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
+  (let* ((el-file-regexp "\\`\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?\\'")
          (file-count 0)
          (files (cl-loop for d in (or dirs load-path)
                          when (file-exists-p (directory-file-name d))

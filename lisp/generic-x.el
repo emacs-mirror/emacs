@@ -1430,7 +1430,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "nowait"
     "internal")
   '(("^\\([-A-Za-z0-9_]+\\)" 1 font-lock-type-face))
-  '("/etc/inetd.conf\\'")
+  '("/etc/inetd\\.conf\\'")
   (list
    (function
     (lambda ()
@@ -1630,7 +1630,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face)
      (3 font-lock-constant-face)))
   ;; List of additional automode-alist expressions
-  '("/etc/named.boot\\'")
+  '("/etc/named\\.boot\\'")
   ;; List of set up functions to call
   nil))
 
@@ -1667,7 +1667,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; List of additional font-lock-expressions
   nil
   ;; List of additional auto-mode-alist expressions
-  '("/etc/resolv[e]?.conf\\'")
+  '("/etc/resolve?\\.conf\\'")
   ;; List of set up functions to call
   nil))
 
@@ -1803,7 +1803,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; List of additional font-lock-expressions
   nil
   ;; List of additional automode-alist expressions
-  '("/etc/modules.conf" "/etc/conf.modules")
+  '("/etc/modules\\.conf" "/etc/conf\\.modules")
   ;; List of set up functions to call
   nil))
 

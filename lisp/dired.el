@@ -3171,7 +3171,7 @@ Any other value means to ask for each directory."
   :group 'dired)
 
 ;; Match anything but `.' and `..'.
-(defvar dired-re-no-dot "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
+(defvar dired-re-no-dot (rx (or (not ".") "...")))
 
 ;; Delete file, possibly delete a directory and all its files.
 ;; This function is useful outside of dired.  One could change its name

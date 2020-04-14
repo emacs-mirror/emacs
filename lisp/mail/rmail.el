@@ -474,7 +474,7 @@ the frame where you have the RMAIL buffer displayed."
   :type 'directory
   :group 'rmail-files)
 ;;;###autoload
-(defcustom rmail-secondary-file-regexp (purecopy "\\.xmail$")
+(defcustom rmail-secondary-file-regexp (purecopy "\\.xmail\\'")
   "Regexp for which files are secondary Rmail files."
   :type 'regexp
   :group 'rmail-files)
@@ -4354,7 +4354,8 @@ This has an effect only if a summary buffer exists."
 	    (font-lock-fontify-region (point-min) (point-max)))))))
 
 ;;; Speedbar support for RMAIL files.
-(defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
+(defcustom rmail-speedbar-match-folder-regexp
+  "\\`[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?\\'"
   "Regexp matching Rmail folder names to be displayed in Speedbar.
 Enabling this permits Speedbar to display your folders for easy
 browsing, and moving of messages."
