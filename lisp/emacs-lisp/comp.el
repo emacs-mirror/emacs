@@ -2311,13 +2311,14 @@ LOAD can be nil t or 'late."
                        (list "Path not a file nor directory" path)))))
     (dolist (file files)
       (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
-          (when load
-            ;; When no load is specified (plain async compilation) we
-            ;; consider valid the one previously queued, otherwise we
-            ;; check for coherence (bug#40602).
-            (cl-assert (eq load (cdr entry))
-                       nil "Incoherent load kind in compilation queue for %s"
-                       file))
+          ;; When no load is specified (plain async compilation) we
+          ;; consider valid the one previously queued, otherwise we
+          ;; check for coherence (bug#40602).
+          (cl-assert (or (null load)
+                         (eq load (cdr entry)))
+                     nil "Trying to queue %s with LOAD %s but this is already \
+queued with LOAD %"
+                     file load (cdr entry))
         (setf comp-files-queue (append comp-files-queue `((,file . ,load))))))
     (when (zerop (comp-async-runnings))
       (comp-run-async-workers)
