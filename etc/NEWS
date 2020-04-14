@@ -393,6 +393,11 @@ images in JPEG, PNG, GIF and TIFF formats.  This support is enabled
 with --with-native-image-api, which automatically disables the use of
 optional third party libraries for those formats.
 
+This feature is experimental, and needs to be turned on to be used.
+To turn this on, set the variable 'w32-use-native-image-API' to a
+non-nil value.  Please report any bugs you find while using the native
+image API via "M-x report-emacs-bug".
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

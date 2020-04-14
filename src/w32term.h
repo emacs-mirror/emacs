@@ -75,10 +75,6 @@ struct w32_palette_entry {
 extern void w32_regenerate_palette (struct frame *f);
 extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
                                  RECT *rect);
-extern int w32_load_image (struct frame *f, struct image *img,
-                           Lisp_Object spec_file, Lisp_Object spec_data);
-extern bool w32_gdiplus_startup (void);
-extern void w32_gdiplus_shutdown (void);
 
 /* For each display (currently only one on w32), we have a structure that
    records information about it.  */

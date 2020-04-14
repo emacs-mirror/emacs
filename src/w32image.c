@@ -23,7 +23,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "dispextern.h"
 #define COBJMACROS
+#ifdef MINGW_W64
+/* FIXME: Do we need to include objidl.h?  */
 #include <objidl.h>
+#endif
 #include <wtypes.h>
 #include <gdiplus.h>
 #include <shlwapi.h>
@@ -32,53 +35,39 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "coding.h"
 
-/*#define LINK_GDIPLUS_STATICALLY 1*/
+#ifdef WINDOWSNT
 
-#ifndef LINK_GDIPLUS_STATICALLY
-DEF_DLL_FN (GpStatus, GdiplusStartup, (ULONG_PTR *, GdiplusStartupInput *, GdiplusStartupOutput *));
+DEF_DLL_FN (GpStatus, GdiplusStartup,
+	    (ULONG_PTR *, GdiplusStartupInput *, GdiplusStartupOutput *));
 DEF_DLL_FN (VOID, GdiplusShutdown, (ULONG_PTR));
-DEF_DLL_FN (GpStatus, GdipGetPropertyItemSize, (GpImage *, PROPID, UINT *));
-DEF_DLL_FN (GpStatus, GdipGetPropertyItem, (GpImage *, PROPID, UINT, PropertyItem *));
+DEF_DLL_FN (GpStatus, GdipGetPropertyItemSize,
+	    (GpImage *, PROPID, UINT *));
+DEF_DLL_FN (GpStatus, GdipGetPropertyItem,
+	    (GpImage *, PROPID, UINT, PropertyItem *));
 DEF_DLL_FN (GpStatus, GdipImageGetFrameDimensionsCount, (GpImage *, UINT *));
-DEF_DLL_FN (GpStatus, GdipImageGetFrameDimensionsList, (GpImage *, GUID *, UINT));
-DEF_DLL_FN (GpStatus, GdipImageGetFrameCount, (GpImage *, GDIPCONST GUID *, UINT *));
-DEF_DLL_FN (GpStatus, GdipImageSelectActiveFrame, (GpImage*, GDIPCONST GUID *, UINT));
+DEF_DLL_FN (GpStatus, GdipImageGetFrameDimensionsList,
+	    (GpImage *, GUID *, UINT));
+DEF_DLL_FN (GpStatus, GdipImageGetFrameCount,
+	    (GpImage *, GDIPCONST GUID *, UINT *));
+DEF_DLL_FN (GpStatus, GdipImageSelectActiveFrame,
+	    (GpImage*, GDIPCONST GUID *, UINT));
 DEF_DLL_FN (GpStatus, GdipCreateBitmapFromFile, (WCHAR *, GpBitmap **));
 DEF_DLL_FN (GpStatus, GdipCreateBitmapFromStream, (IStream *, GpBitmap **));
 DEF_DLL_FN (IStream *, SHCreateMemStream, (const BYTE *pInit, UINT cbInit));
-DEF_DLL_FN (GpStatus, GdipCreateHBITMAPFromBitmap, (GpBitmap *, HBITMAP *, ARGB));
+DEF_DLL_FN (GpStatus, GdipCreateHBITMAPFromBitmap,
+	    (GpBitmap *, HBITMAP *, ARGB));
 DEF_DLL_FN (GpStatus, GdipDisposeImage, (GpImage *));
 DEF_DLL_FN (GpStatus, GdipGetImageHeight, (GpImage *, UINT *));
 DEF_DLL_FN (GpStatus, GdipGetImageWidth, (GpImage *, UINT *));
-#endif
 
-static int gdip_initialized = 0;
-static ULONG_PTR token;
-static GdiplusStartupInput input;
-static GdiplusStartupOutput output;
-
-bool
-w32_gdiplus_startup (void)
+static bool
+gdiplus_init (void)
 {
   HANDLE gdiplus_lib, shlwapi_lib;
-  GpStatus status;
 
-  if (gdip_initialized < 0)
-      return 0;
-  else if (gdip_initialized)
-      return 1;
-
-#ifndef LINK_GDIPLUS_STATICALLY
-  DEFSYM (Qgdiplus, "gdiplus");
-  DEFSYM (Qshlwapi, "shlwapi");
-  if (!(gdiplus_lib = w32_delayed_load (Qgdiplus))) {
-    gdip_initialized = -1;
-    return 0;
-  }
-  if (!(shlwapi_lib = w32_delayed_load (Qshlwapi))) {
-    gdip_initialized = -1;
-    return 0;
-  }
+  if (!((gdiplus_lib = w32_delayed_load (Qgdiplus))
+	&& (shlwapi_lib = w32_delayed_load (Qshlwapi))))
+    return false;
 
   LOAD_DLL_FN (gdiplus_lib, GdiplusStartup);
   LOAD_DLL_FN (gdiplus_lib, GdiplusShutdown);
@@ -94,7 +83,41 @@ w32_gdiplus_startup (void)
   LOAD_DLL_FN (gdiplus_lib, GdipDisposeImage);
   LOAD_DLL_FN (gdiplus_lib, GdipGetImageHeight);
   LOAD_DLL_FN (gdiplus_lib, GdipGetImageWidth);
-  LOAD_DLL_FN (shlwapi_lib, SHCreateMemStream);
+  /* LOAD_DLL_FN (shlwapi_lib, SHCreateMemStream); */
+
+  /* The following terrible kludge is required to use native image API
+     on Windows before Vista, because SHCreateMemStream was not
+     exported by name in those versions, only by ordinal number.  */
+  fn_SHCreateMemStream =
+    (W32_PFN_SHCreateMemStream) get_proc_addr (shlwapi_lib,
+					       "SHCreateMemStream");
+  if (!fn_SHCreateMemStream)
+    {
+      fn_SHCreateMemStream =
+	(W32_PFN_SHCreateMemStream) get_proc_addr (shlwapi_lib,
+						   MAKEINTRESOURCEA (12));
+      if (!fn_SHCreateMemStream)
+	return false;
+    }
+
+  return true;
+}
+
+# undef GdiplusStartup
+# undef GdiplusShutdown
+# undef GdipGetPropertyItemSize
+# undef GdipGetPropertyItem
+# undef GdipImageGetFrameDimensionsCount
+# undef GdipImageGetFrameDimensionsList
+# undef GdipImageGetFrameCount
+# undef GdipImageSelectActiveFrame
+# undef GdipCreateBitmapFromFile
+# undef GdipCreateBitmapFromStream
+# undef SHCreateMemStream
+# undef GdipCreateHBITMAPFromBitmap
+# undef GdipDisposeImage
+# undef GdipGetImageHeight
+# undef GdipGetImageWidth
 
 # define GdiplusStartup fn_GdiplusStartup
 # define GdiplusShutdown fn_GdiplusShutdown
@@ -111,32 +134,71 @@ w32_gdiplus_startup (void)
 # define GdipDisposeImage fn_GdipDisposeImage
 # define GdipGetImageHeight fn_GdipGetImageHeight
 # define GdipGetImageWidth fn_GdipGetImageWidth
+
+#endif	/* WINDOWSNT */
+
+static int gdip_initialized;
+static bool gdiplus_started;
+static ULONG_PTR token;
+static GdiplusStartupInput input;
+static GdiplusStartupOutput output;
+
+
+/* Initialize GDI+, return true if successful.  */
+static bool
+gdiplus_startup (void)
+{
+  GpStatus status;
+
+  if (gdiplus_started)
+    return true;
+#ifdef WINDOWSNT
+  if (!gdip_initialized)
+    gdip_initialized = gdiplus_init () ? 1 : -1;
+#else
+  gdip_initialized = 1;
 #endif
-
-  input.GdiplusVersion = 1;
-  input.DebugEventCallback = NULL;
-  input.SuppressBackgroundThread = FALSE;
-  input.SuppressExternalCodecs = FALSE;
-
-  status = GdiplusStartup (&token, &input, &output);
-  if (status == Ok)
+  if (gdip_initialized > 0)
     {
-      gdip_initialized = 1;
-      return 1;
+      input.GdiplusVersion = 1;
+      input.DebugEventCallback = NULL;
+      input.SuppressBackgroundThread = FALSE;
+      input.SuppressExternalCodecs = FALSE;
+
+      status = GdiplusStartup (&token, &input, &output);
+      if (status == Ok)
+	gdiplus_started = true;
+      return (status == Ok);
     }
-  else
-    {
-      gdip_initialized = -1;
-      return 0;
-    }
+  return false;
 }
 
+/* This is called from term_ntproc.  */
 void
 w32_gdiplus_shutdown (void)
 {
-  GdiplusShutdown (token);
+  if (gdiplus_started)
+    GdiplusShutdown (token);
+  gdiplus_started = false;
 }
 
+bool
+w32_can_use_native_image_api (Lisp_Object type)
+{
+  if (!w32_use_native_image_api)
+    return false;
+  if (!(EQ (type, Qjpeg)
+	|| EQ (type, Qpng)
+	|| EQ (type, Qgif)
+	|| EQ (type, Qtiff)
+	|| EQ (type, Qnative_image)))
+    {
+      /* GDI+ can also display BMP, Exif, ICON, WMF, and EMF images.
+	 But we don't yet support these in image.c.  */
+      return false;
+    }
+  return gdiplus_startup ();
+}
 
 static double
 w32_frame_delay (GpBitmap *pBitmap, int frame)
@@ -150,25 +212,26 @@ w32_frame_delay (GpBitmap *pBitmap, int frame)
   GdipGetPropertyItemSize (pBitmap, PropertyTagFrameDelay, &size);
 
   /* Allocate a buffer to receive the property item.  */
-  propertyItem = (PropertyItem*)malloc (size);
+  propertyItem = malloc (size);
   if (propertyItem != NULL)
     {
       /* Get the property item.  */
       GdipGetPropertyItem (pBitmap, PropertyTagFrameDelay, size, propertyItem);
-      delay = ((double)propertyItem[frame].length) / 100;
+      delay = propertyItem[frame].length / 100.0;
       if (delay == 0)
         {
           /* In GIF files, unfortunately, delay is only specified for the first
              frame.  */
-          delay = ((double)propertyItem[0].length) / 100;
+          delay = propertyItem[0].length / 100.0;
         }
       free (propertyItem);
     }
   return delay;
 }
 
-static UINT
-w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes, double *delay)
+static GpStatus
+w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes,
+			 double *delay)
 {
   UINT count, frameCount;
   GUID pDimensionIDs[1];
@@ -181,15 +244,14 @@ w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes, double *del
     {
       status = GdipImageGetFrameDimensionsList (pBitmap, pDimensionIDs, 1);
       status = GdipImageGetFrameCount (pBitmap, &pDimensionIDs[0], &frameCount);
-      if ((status == Ok) && (frameCount > 1))
+      if (status == Ok && frameCount > 1)
         {
           if (frame < 0 || frame >= frameCount)
-            {
-              status = GenericError;
-            }
+	    status = GenericError;
           else
             {
-              status = GdipImageSelectActiveFrame (pBitmap, &pDimensionIDs[0], frame);
+              status = GdipImageSelectActiveFrame (pBitmap, &pDimensionIDs[0],
+						   frame);
               *delay = w32_frame_delay (pBitmap, frame);
               *nframes = frameCount;
             }
@@ -201,9 +263,7 @@ w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes, double *del
 static ARGB
 w32_image_bg_color (struct frame *f, struct image *img)
 {
-  /* png_color_16 *image_bg; */
-  Lisp_Object specified_bg
-    = Fplist_get (XCDR (img->spec), QCbackground);
+  Lisp_Object specified_bg = Fplist_get (XCDR (img->spec), QCbackground);
   Emacs_Color color;
 
   /* If the user specified a color, try to use it; if not, use the
@@ -212,38 +272,34 @@ w32_image_bg_color (struct frame *f, struct image *img)
   if (STRINGP (specified_bg)
       ? w32_defined_color (f, SSDATA (specified_bg), &color, false, false)
       : (w32_query_frame_background_color (f, &color), true))
-    /* The user specified `:background', use that.  */
+    /* The user specified ':background', use that.  */
     {
       DWORD red = (((DWORD) color.red) & 0xff00) << 8;
       DWORD green = ((DWORD) color.green) & 0xff00;
       DWORD blue = ((DWORD) color.blue) >> 8;
-      return red | green | blue;
+      return (ARGB) (red | green | blue);
     }
-  return ((DWORD) 0xff000000);
+  return (ARGB) 0xff000000;
 }
 
 int
 w32_load_image (struct frame *f, struct image *img,
                 Lisp_Object spec_file, Lisp_Object spec_data)
 {
-  Emacs_Pixmap pixmap;
   GpStatus status = GenericError;
   GpBitmap *pBitmap;
-  wchar_t filename[MAX_PATH];
-  ARGB bg_color;
-  Lisp_Object lisp_index, metadata;
-  unsigned int index, nframes;
-  double delay;
+  Lisp_Object metadata;
 
   eassert (valid_image_p (img->spec));
 
-  /* This function only gets called if init_w32_gdiplus () was invoked. We have
-     a valid token and GDI+ is active.  */
+  /* This function only gets called if w32_gdiplus_startup was invoked
+     and succeeded.  We have a valid token and GDI+ is active.  */
   if (STRINGP (spec_file))
     {
       if (w32_unicode_filenames)
         {
-          filename_to_utf16 (SSDATA (spec_file) , filename);
+	  wchar_t filename[MAX_PATH];
+          filename_to_utf16 (SSDATA (spec_file), filename);
           status = GdipCreateBitmapFromFile (filename, &pBitmap);
         }
       else
@@ -254,7 +310,7 @@ w32_load_image (struct frame *f, struct image *img,
     }
   else if (STRINGP (spec_data))
     {
-      IStream *pStream = SHCreateMemStream ((BYTE *) SSDATA (spec_data),
+      IStream *pStream = SHCreateMemStream ((BYTE *) SDATA (spec_data),
                                             SBYTES (spec_data));
       if (pStream != NULL)
         {
@@ -266,22 +322,28 @@ w32_load_image (struct frame *f, struct image *img,
   metadata = Qnil;
   if (status == Ok)
     {
-      /* In multiframe pictures, select the first one */
-      lisp_index = Fplist_get (XCDR (img->spec), QCindex);
-      index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
+      /* In multiframe pictures, select the first frame.  */
+      Lisp_Object lisp_index = Fplist_get (XCDR (img->spec), QCindex);
+      int index = FIXNATP (lisp_index) ? XFIXNAT (lisp_index) : 0;
+      int nframes;
+      double delay;
       status = w32_select_active_frame (pBitmap, index, &nframes, &delay);
-      if ((status == Ok))
+      if (status == Ok)
         {
           if (nframes > 1)
             metadata = Fcons (Qcount, Fcons (make_fixnum (nframes), metadata));
           if (delay)
             metadata = Fcons (Qdelay, Fcons (make_float (delay), metadata));
         }
+      else if (status == Win32Error) /* FIXME! */
+	status = Ok;
     }
 
   if (status == Ok)
     {
-      bg_color = w32_image_bg_color (f, img);
+      ARGB bg_color = w32_image_bg_color (f, img);
+      Emacs_Pixmap pixmap;
+
       status = GdipCreateHBITMAPFromBitmap (pBitmap, &pixmap, bg_color);
       if (status == Ok)
         {

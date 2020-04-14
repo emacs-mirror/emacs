@@ -10226,7 +10226,7 @@ term_ntproc (int ignored)
 
   term_w32select ();
 
-#ifdef HAVE_GDIPLUS
+#if HAVE_NATIVE_IMAGE_API
   w32_gdiplus_shutdown ();
 #endif
 }

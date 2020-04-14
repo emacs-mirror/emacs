@@ -751,7 +751,7 @@ struct image_type
 
   /* Check that SPEC is a valid image specification for the given
      image type.  Value is true if SPEC is valid.  */
-  bool (*valid_p) (Lisp_Object spec, Lisp_Object type);
+  bool (*valid_p) (Lisp_Object spec);
 
   /* Load IMG which is used on frame F from information contained in
      IMG->spec.  Value is true if successful.  */
@@ -807,7 +807,7 @@ valid_image_p (Lisp_Object object)
 	      {
 		struct image_type const *type = lookup_image_type (XCAR (tail));
 		if (type)
-		  return type->valid_p (object, builtin_lisp_symbol (type->type));
+		  return type->valid_p (object);
 	      }
 	    break;
 	  }
@@ -815,7 +815,6 @@ valid_image_p (Lisp_Object object)
 
   return false;
 }
-
 
 /* Log error message with format string FORMAT and trailing arguments.
    Signaling an error, e.g. when an image cannot be loaded, is not a
@@ -1004,7 +1003,8 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 	}
 
-      if (EQ (key, QCtype) && !EQ (type, value))
+      if (EQ (key, QCtype)
+	  && !(EQ (type, value) || EQ (type, Qnative_image)))
 	return false;
     }
 
@@ -3144,12 +3144,12 @@ enum xbm_token
    displayed is used.  */
 
 static bool
-xbm_image_p (Lisp_Object object, Lisp_Object type)
+xbm_image_p (Lisp_Object object)
 {
   struct image_keyword kw[XBM_LAST];
 
   memcpy (kw, xbm_format, sizeof kw);
-  if (!parse_image_spec (object, kw, XBM_LAST, type))
+  if (!parse_image_spec (object, kw, XBM_LAST, Qxbm))
     return 0;
 
   eassert (EQ (kw[XBM_TYPE].value, Qxbm));
@@ -3697,7 +3697,7 @@ xbm_load (struct frame *f, struct image *img)
   bool success_p = 0;
   Lisp_Object file_name;
 
-  eassert (xbm_image_p (img->spec, Qxbm));
+  eassert (xbm_image_p (img->spec));
 
   /* If IMG->spec specifies a file name, create a non-file spec from it.  */
   file_name = image_spec_value (img->spec, QCfile, NULL);
@@ -4155,11 +4155,11 @@ xpm_valid_color_symbols_p (Lisp_Object color_symbols)
 /* Value is true if OBJECT is a valid XPM image specification.  */
 
 static bool
-xpm_image_p (Lisp_Object object, Lisp_Object type)
+xpm_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[XPM_LAST];
   memcpy (fmt, xpm_format, sizeof fmt);
-  return (parse_image_spec (object, fmt, XPM_LAST, type)
+  return (parse_image_spec (object, fmt, XPM_LAST, Qxpm)
 	  /* Either `:file' or `:data' must be present.  */
 	  && fmt[XPM_FILE].count + fmt[XPM_DATA].count == 1
 	  /* Either no `:color-symbols' or it's a list of conses
@@ -5883,13 +5883,13 @@ static const struct image_keyword pbm_format[PBM_LAST] =
 /* Return true if OBJECT is a valid PBM image specification.  */
 
 static bool
-pbm_image_p (Lisp_Object object, Lisp_Object type)
+pbm_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[PBM_LAST];
 
   memcpy (fmt, pbm_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, PBM_LAST, type))
+  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm))
     return 0;
 
   /* Must specify either :data or :file.  */
@@ -6235,21 +6235,30 @@ pbm_load (struct frame *f, struct image *img)
 /***********************************************************************
 			    NATIVE IMAGE HANDLING
  ***********************************************************************/
-#if defined(HAVE_NATIVE_IMAGE_API) && defined(HAVE_NTGUI)
+
+static bool
+image_can_use_native_api (Lisp_Object type)
+{
+#if HAVE_NATIVE_IMAGE_API
+# ifdef HAVE_NTGUI
+  return w32_can_use_native_image_api (type);
+# else
+  return false;
+# endif
+#else
+  return false;
+#endif
+}
+
+#if HAVE_NATIVE_IMAGE_API
+
 /*
  * These functions are actually defined in the OS-native implementation
  * file.  Currently, for Windows GDI+ interface, w32image.c, but other
  * operating systems can follow suit.
  */
 
-static bool
-init_native_image_functions (void)
-{
-  return w32_gdiplus_startup ();
-}
-
 /* Indices of image specification fields in native format, below.  */
-
 enum native_image_keyword_index
 {
   NATIVE_IMAGE_TYPE,
@@ -6268,7 +6277,6 @@ enum native_image_keyword_index
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
-
 static const struct image_keyword native_image_format[] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
@@ -6287,12 +6295,12 @@ static const struct image_keyword native_image_format[] =
 /* Return true if OBJECT is a valid native API image specification.  */
 
 static bool
-native_image_p (Lisp_Object object, Lisp_Object type)
+native_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[NATIVE_IMAGE_LAST];
   memcpy (fmt, native_image_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, 10, type))
+  if (!parse_image_spec (object, fmt, 10, Qnative_image))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -6302,11 +6310,17 @@ native_image_p (Lisp_Object object, Lisp_Object type)
 static bool
 native_image_load (struct frame *f, struct image *img)
 {
+
+# ifdef HAVE_NTGUI
   return w32_load_image (f, img,
                          image_spec_value (img->spec, QCfile, NULL),
                          image_spec_value (img->spec, QCdata, NULL));
+# else
+  return 0;
+# endif
 }
-#endif
+
+#endif	/* HAVE_NATIVE_IMAGE_API */
 
 
 /***********************************************************************
@@ -6352,12 +6366,12 @@ static const struct image_keyword png_format[PNG_LAST] =
 /* Return true if OBJECT is a valid PNG image specification.  */
 
 static bool
-png_image_p (Lisp_Object object, Lisp_Object type)
+png_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[PNG_LAST];
   memcpy (fmt, png_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, PNG_LAST, type))
+  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -7014,13 +7028,13 @@ static const struct image_keyword jpeg_format[JPEG_LAST] =
 /* Return true if OBJECT is a valid JPEG image specification.  */
 
 static bool
-jpeg_image_p (Lisp_Object object, Lisp_Object type)
+jpeg_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[JPEG_LAST];
 
   memcpy (fmt, jpeg_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, JPEG_LAST, type))
+  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -7590,12 +7604,12 @@ static const struct image_keyword tiff_format[TIFF_LAST] =
 /* Return true if OBJECT is a valid TIFF image specification.  */
 
 static bool
-tiff_image_p (Lisp_Object object, Lisp_Object type)
+tiff_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[TIFF_LAST];
   memcpy (fmt, tiff_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, TIFF_LAST, type))
+  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -8038,12 +8052,12 @@ gif_clear_image (struct frame *f, struct image *img)
 /* Return true if OBJECT is a valid GIF image specification.  */
 
 static bool
-gif_image_p (Lisp_Object object, Lisp_Object type)
+gif_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[GIF_LAST];
   memcpy (fmt, gif_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, GIF_LAST, type))
+  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -8650,12 +8664,12 @@ imagemagick_clear_image (struct frame *f,
    identify the IMAGEMAGICK format.   */
 
 static bool
-imagemagick_image_p (Lisp_Object object, Lisp_Object type)
+imagemagick_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[IMAGEMAGICK_LAST];
   memcpy (fmt, imagemagick_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, IMAGEMAGICK_LAST, type))
+  if (!parse_image_spec (object, fmt, IMAGEMAGICK_LAST, Qimagemagick))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -9445,12 +9459,12 @@ static const struct image_keyword svg_format[SVG_LAST] =
    identify the SVG format.   */
 
 static bool
-svg_image_p (Lisp_Object object, Lisp_Object type)
+svg_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[SVG_LAST];
   memcpy (fmt, svg_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, SVG_LAST, type))
+  if (!parse_image_spec (object, fmt, SVG_LAST, Qsvg))
     return 0;
 
   /* Must specify either the :data or :file keyword.  */
@@ -9913,7 +9927,7 @@ static const struct image_keyword gs_format[GS_LAST] =
    specification.  */
 
 static bool
-gs_image_p (Lisp_Object object, Lisp_Object type)
+gs_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[GS_LAST];
   Lisp_Object tem;
@@ -9921,7 +9935,7 @@ gs_image_p (Lisp_Object object, Lisp_Object type)
 
   memcpy (fmt, gs_format, sizeof fmt);
 
-  if (!parse_image_spec (object, fmt, GS_LAST, type))
+  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript))
     return 0;
 
   /* Bounding box must be a list or vector containing 4 integers.  */
@@ -10208,20 +10222,19 @@ static bool
 initialize_image_type (struct image_type const *type)
 {
 #ifdef WINDOWSNT
-  Lisp_Object typesym, tested;
-  bool (*init) (void) = type->init;
+  Lisp_Object typesym = builtin_lisp_symbol (type->type);
 
 #ifdef HAVE_NATIVE_IMAGE_API
-  if (init == init_native_image_functions)
-    return init();
+  if (image_can_use_native_api (typesym))
+    return true;
 #endif
 
-  typesym = builtin_lisp_symbol (type->type);
-  tested = Fassq (typesym, Vlibrary_cache);
+  Lisp_Object tested = Fassq (typesym, Vlibrary_cache);
   /* If we failed to load the library before, don't try again.  */
   if (CONSP (tested))
     return !NILP (XCDR (tested)) ? true : false;
 
+  bool (*init) (void) = type->init;
   if (init)
     {
       bool type_valid = init ();
@@ -10248,16 +10261,6 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qsvg), svg_image_p, svg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_svg_functions) },
 #endif
-#if defined HAVE_NATIVE_IMAGE_API
- { SYMBOL_INDEX (Qjpeg), native_image_p, native_image_load, image_clear_image,
-   IMAGE_TYPE_INIT (init_native_image_functions) },
- { SYMBOL_INDEX (Qpng), native_image_p, native_image_load, image_clear_image,
-   IMAGE_TYPE_INIT (init_native_image_functions) },
- { SYMBOL_INDEX (Qgif), native_image_p, native_image_load, image_clear_image,
-   IMAGE_TYPE_INIT (init_native_image_functions) },
- { SYMBOL_INDEX (Qtiff), native_image_p, native_image_load, image_clear_image,
-   IMAGE_TYPE_INIT (init_native_image_functions) },
-#endif
 #if defined HAVE_PNG || defined HAVE_NS
  { SYMBOL_INDEX (Qpng), png_image_p, png_load, image_clear_image,
    IMAGE_TYPE_INIT (init_png_functions) },
@@ -10282,23 +10285,28 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qpbm), pbm_image_p, pbm_load, image_clear_image },
 };
 
+#ifdef HAVE_NATIVE_IMAGE_API
+struct image_type native_image_type =
+  { SYMBOL_INDEX (Qnative_image), native_image_p, native_image_load,
+    image_clear_image };
+#endif
+
 /* Look up image type TYPE, and return a pointer to its image_type
    structure.  Return 0 if TYPE is not a known image type.  */
 
 static struct image_type const *
 lookup_image_type (Lisp_Object type)
 {
+#ifdef HAVE_NATIVE_IMAGE_API
+  if (image_can_use_native_api (type))
+    return &native_image_type;
+#endif
+
   for (int i = 0; i < ARRAYELTS (image_types); i++)
     {
       struct image_type const *r = &image_types[i];
       if (EQ (type, builtin_lisp_symbol (r->type)))
-#ifdef HAVE_NATIVE_IMAGE_API
-        /* We can have more than one backend for one image type.  */
-        if (initialize_image_type (r))
-          return r;
-#else
 	return initialize_image_type (r) ? r : NULL;
-#endif
     }
   return NULL;
 }
@@ -10453,6 +10461,14 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qgobject, "gobject");
 #endif /* HAVE_NTGUI  */
 #endif /* HAVE_RSVG  */
+
+#if HAVE_NATIVE_IMAGE_API
+  DEFSYM (Qnative_image, "native-image");
+# ifdef HAVE_NTGUI
+  DEFSYM (Qgdiplus, "gdiplus");
+  DEFSYM (Qshlwapi, "shlwapi");
+# endif
+#endif
 
   defsubr (&Sinit_image_library);
 #ifdef HAVE_IMAGEMAGICK
