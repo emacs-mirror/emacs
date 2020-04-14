@@ -75,7 +75,6 @@ struct w32_palette_entry {
 extern void w32_regenerate_palette (struct frame *f);
 extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
                                  RECT *rect);
-
 
 /* For each display (currently only one on w32), we have a structure that
    records information about it.  */
@@ -248,6 +247,8 @@ extern int w32_display_pixel_height (struct w32_display_info *);
 extern int w32_display_pixel_width (struct w32_display_info *);
 extern void initialize_frame_menubar (struct frame *);
 extern void w32_dialog_in_progress (Lisp_Object in_progress);
+extern void w32_query_frame_background_color (struct frame *f,
+                                              Emacs_Color *bgcolor);
 
 extern void w32_make_frame_visible (struct frame *f);
 extern void w32_make_frame_invisible (struct frame *f);

@@ -1012,23 +1012,33 @@ Within directories, only files already under version control are noticed."
 				    allow-unregistered
 				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
-Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
+Return a list of the form:
 
-NOT-STATE-CHANGING if non-nil, means that the operation
-requesting the fileset doesn't intend to change VC state,
-such as printing the log or showing the diff.
+  (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL)
 
-If we're in VC-dir mode, FILESET is the list of marked files,
-or the directory if no files are marked.
-Otherwise, if in a buffer visiting a version-controlled file,
-FILESET is a single-file fileset containing that file.
+where the last 3 members are optional, and must be present only if
+STATE-MODEL-ONLY-FILES is non-nil.
+
+NOT-STATE-CHANGING, if non-nil, means that the operation
+requesting the fileset doesn't intend to change the VC state,
+such as when printing the log or showing the diffs.
+
+If the current buffer is in `vc-dir' or Dired mode, FILESET is the
+list of marked files, or the current directory if no files are
+marked.
+Otherwise, if the current buffer is visiting a version-controlled
+file, FILESET is a single-file list containing that file's name.
 Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file
-is unregistered, FILESET is a single-file fileset containing it.
+is unregistered, FILESET is a single-file list containing the
+name of the visited file.
 Otherwise, throw an error.
 
-STATE-MODEL-ONLY-FILES if non-nil, means that the caller needs
-the FILESET-ONLY-FILES STATE and MODEL info.  Otherwise, that
-part may be skipped.
+STATE-MODEL-ONLY-FILES, if non-nil, means that the caller needs
+the FILESET-ONLY-FILES, STATE, and CHECKOUT-MODEL info, where
+FILESET-ONLY-FILES means only files in similar VC states,
+possible values of STATE are explained in `vc-state', and MODEL in
+`vc-checkout-model'.  Otherwise, these 3 members may be omitted from
+the returned list.
 
 BEWARE: this function may change the current buffer."
   (let (backend)

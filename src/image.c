@@ -816,7 +816,6 @@ valid_image_p (Lisp_Object object)
   return false;
 }
 
-
 /* Log error message with format string FORMAT and trailing arguments.
    Signaling an error, e.g. when an image cannot be loaded, is not a
    good idea because this would interrupt redisplay, and the error
@@ -1004,7 +1003,8 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 	}
 
-      if (EQ (key, QCtype) && !EQ (type, value))
+      if (EQ (key, QCtype)
+	  && !(EQ (type, value) || EQ (type, Qnative_image)))
 	return false;
     }
 
@@ -6233,6 +6233,97 @@ pbm_load (struct frame *f, struct image *img)
 
 
 /***********************************************************************
+			    NATIVE IMAGE HANDLING
+ ***********************************************************************/
+
+static bool
+image_can_use_native_api (Lisp_Object type)
+{
+#if HAVE_NATIVE_IMAGE_API
+# ifdef HAVE_NTGUI
+  return w32_can_use_native_image_api (type);
+# else
+  return false;
+# endif
+#else
+  return false;
+#endif
+}
+
+#if HAVE_NATIVE_IMAGE_API
+
+/*
+ * These functions are actually defined in the OS-native implementation
+ * file.  Currently, for Windows GDI+ interface, w32image.c, but other
+ * operating systems can follow suit.
+ */
+
+/* Indices of image specification fields in native format, below.  */
+enum native_image_keyword_index
+{
+  NATIVE_IMAGE_TYPE,
+  NATIVE_IMAGE_DATA,
+  NATIVE_IMAGE_FILE,
+  NATIVE_IMAGE_ASCENT,
+  NATIVE_IMAGE_MARGIN,
+  NATIVE_IMAGE_RELIEF,
+  NATIVE_IMAGE_ALGORITHM,
+  NATIVE_IMAGE_HEURISTIC_MASK,
+  NATIVE_IMAGE_MASK,
+  NATIVE_IMAGE_BACKGROUND,
+  NATIVE_IMAGE_INDEX,
+  NATIVE_IMAGE_LAST
+};
+
+/* Vector of image_keyword structures describing the format
+   of valid user-defined image specifications.  */
+static const struct image_keyword native_image_format[] =
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
+};
+
+/* Return true if OBJECT is a valid native API image specification.  */
+
+static bool
+native_image_p (Lisp_Object object)
+{
+  struct image_keyword fmt[NATIVE_IMAGE_LAST];
+  memcpy (fmt, native_image_format, sizeof fmt);
+
+  if (!parse_image_spec (object, fmt, 10, Qnative_image))
+    return 0;
+
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[NATIVE_IMAGE_FILE].count + fmt[NATIVE_IMAGE_DATA].count == 1;
+}
+
+static bool
+native_image_load (struct frame *f, struct image *img)
+{
+
+# ifdef HAVE_NTGUI
+  return w32_load_image (f, img,
+                         image_spec_value (img->spec, QCfile, NULL),
+                         image_spec_value (img->spec, QCdata, NULL));
+# else
+  return 0;
+# endif
+}
+
+#endif	/* HAVE_NATIVE_IMAGE_API */
+
+
+/***********************************************************************
 				 PNG
  ***********************************************************************/
 
@@ -6889,7 +6980,6 @@ png_load (struct frame *f, struct image *img)
                         image_spec_value (img->spec, QCfile, NULL),
                         image_spec_value (img->spec, QCdata, NULL));
 }
-
 
 #endif /* HAVE_NS */
 
@@ -7974,7 +8064,7 @@ gif_image_p (Lisp_Object object)
   return fmt[GIF_FILE].count + fmt[GIF_DATA].count == 1;
 }
 
-#endif /* HAVE_GIF */
+#endif /* HAVE_GIF || HAVE_NS */
 
 #ifdef HAVE_GIF
 
@@ -10133,6 +10223,10 @@ initialize_image_type (struct image_type const *type)
 {
 #ifdef WINDOWSNT
   Lisp_Object typesym = builtin_lisp_symbol (type->type);
+
+  if (image_can_use_native_api (typesym))
+    return true;
+
   Lisp_Object tested = Fassq (typesym, Vlibrary_cache);
   /* If we failed to load the library before, don't try again.  */
   if (CONSP (tested))
@@ -10189,12 +10283,23 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qpbm), pbm_image_p, pbm_load, image_clear_image },
 };
 
+#if HAVE_NATIVE_IMAGE_API
+struct image_type native_image_type =
+  { SYMBOL_INDEX (Qnative_image), native_image_p, native_image_load,
+    image_clear_image };
+#endif
+
 /* Look up image type TYPE, and return a pointer to its image_type
    structure.  Return 0 if TYPE is not a known image type.  */
 
 static struct image_type const *
 lookup_image_type (Lisp_Object type)
 {
+#if HAVE_NATIVE_IMAGE_API
+  if (image_can_use_native_api (type))
+    return &native_image_type;
+#endif
+
   for (int i = 0; i < ARRAYELTS (image_types); i++)
     {
       struct image_type const *r = &image_types[i];
@@ -10316,22 +10421,22 @@ non-numeric, there is no explicit limit on the size of images.  */);
   add_image_type (Qxpm);
 #endif
 
-#if defined (HAVE_JPEG) || defined (HAVE_NS)
+#if defined (HAVE_JPEG) || defined (HAVE_NS) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qjpeg, "jpeg");
   add_image_type (Qjpeg);
 #endif
 
-#if defined (HAVE_TIFF) || defined (HAVE_NS)
+#if defined (HAVE_TIFF) || defined (HAVE_NS) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qtiff, "tiff");
   add_image_type (Qtiff);
 #endif
 
-#if defined (HAVE_GIF) || defined (HAVE_NS)
+#if defined (HAVE_GIF) || defined (HAVE_NS) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qgif, "gif");
   add_image_type (Qgif);
 #endif
 
-#if defined (HAVE_PNG) || defined (HAVE_NS)
+#if defined (HAVE_PNG) || defined (HAVE_NS) || defined(HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qpng, "png");
   add_image_type (Qpng);
 #endif
@@ -10354,6 +10459,14 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qgobject, "gobject");
 #endif /* HAVE_NTGUI  */
 #endif /* HAVE_RSVG  */
+
+#if HAVE_NATIVE_IMAGE_API
+  DEFSYM (Qnative_image, "native-image");
+# ifdef HAVE_NTGUI
+  DEFSYM (Qgdiplus, "gdiplus");
+  DEFSYM (Qshlwapi, "shlwapi");
+# endif
+#endif
 
   defsubr (&Sinit_image_library);
 #ifdef HAVE_IMAGEMAGICK

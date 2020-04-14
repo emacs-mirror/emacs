@@ -231,6 +231,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
+       '(gdiplus "gdiplus.dll")
+       '(shlwapi "shlwapi.dll")
        '(xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
        ;; Versions of libpng 1.4.x and later are incompatible with
        ;; earlier versions.  Set up the list of libraries according to

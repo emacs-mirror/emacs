@@ -1529,7 +1529,7 @@ w32_query_colors (struct frame *f, Emacs_Color *colors, int ncolors)
 
 /* Store F's background color into *BGCOLOR.  */
 
-static void
+void
 w32_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
 {
   bgcolor->pixel = FRAME_BACKGROUND_PIXEL (f);
@@ -7658,6 +7658,25 @@ Windows 8.  It is set to nil on Windows 9X.  */);
   else
     w32_unicode_filenames = 1;
 
+  DEFVAR_BOOL ("w32-use-native-image-API",
+	       w32_use_native_image_api,
+     doc: /* Non-nil means use the native MS-Windows image API to display images.
+
+A value of nil means displaying images other than PBM and XBM requires
+optional supporting libraries to be installed.
+The native image API library used is GDI+ via GDIPLUS.DLL.  This
+library is available only since W2K, therefore this variable is
+unconditionally set to nil on older systems.  */);
+
+  /* For now, disabled by default, since this is an experimental feature.  */
+#if 0 && HAVE_NATIVE_IMAGE_API
+  if (os_subtype == OS_9X)
+    w32_use_native_image_api = 0;
+  else
+    w32_use_native_image_api = 1;
+#else
+  w32_use_native_image_api = 0;
+#endif
 
   /* FIXME: The following variable will be (hopefully) removed
      before Emacs 25.1 gets released.  */

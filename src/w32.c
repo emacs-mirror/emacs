@@ -10225,6 +10225,10 @@ term_ntproc (int ignored)
   term_winsock ();
 
   term_w32select ();
+
+#if HAVE_NATIVE_IMAGE_API
+  w32_gdiplus_shutdown ();
+#endif
 }
 
 void
