@@ -942,10 +942,13 @@ To find the XFLD name for a font, you can execute the following in the
 (x-select-font nil t)
 @end example
 
-To see a complete list of fonts, execute the following in the
-@file{*scratch*} buffer by pressing C-x C-e at the end of the line:
+To see a complete list of fonts, execute the following Lisp snippet by
+typing it into the @file{*scratch*} buffer and pressing @w{@kbd{C-x
+C-e}} at the end of the second line:
+
 @example
-(insert (prin1-to-string (x-list-fonts "*")))
+(dolist (font (x-list-fonts "*"))
+  (insert (format "%s\n" font)))
 @end example
 
 The command line options and frame-parameters for changing the default font
