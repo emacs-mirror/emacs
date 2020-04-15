@@ -1047,7 +1047,7 @@ write its autoloads into the specified file instead."
                        ;; what is the suffix for the underlying OS.
 		       (unless (string-match "\\.\\(elc\\|so\\|dll\\)" suf)
                          (push suf tmp)))
-                     (concat "^[^=.].*" (regexp-opt tmp t) "\\'")))
+                     (concat "\\`[^=.].*" (regexp-opt tmp t) "\\'")))
 	 (files (apply #'nconc
 		       (mapcar (lambda (dir)
 				 (directory-files (expand-file-name dir)

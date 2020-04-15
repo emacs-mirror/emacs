@@ -921,11 +921,7 @@ is relative to `erc-track-switch-direction'."
 	   (setq offset 0)))
     (car (nth offset erc-modified-channels-alist))))
 
-(defun erc-track-switch-buffer (arg)
-  "Switch to the next active ERC buffer, or if there are no active buffers,
-switch back to the last non-ERC buffer visited.  Next is defined by
-`erc-track-switch-direction', a negative argument will reverse this."
-  (interactive "p")
+(defun erc-track--switch-buffer (fun arg)
   (if (not erc-track-mode)
       (message (concat "Enable the ERC track module if you want to use the"
 		       " tracking minor mode"))
@@ -934,12 +930,30 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 	   (unless (eq major-mode 'erc-mode)
 	     (setq erc-track-last-non-erc-buffer (current-buffer)))
 	   ;; and jump to the next active channel
-	   (switch-to-buffer (erc-track-get-active-buffer arg)))
+	   (funcall fun (erc-track-get-active-buffer arg)))
 	  ;; if no active channels, switch back to what we were doing before
 	  ((and erc-track-last-non-erc-buffer
-		erc-track-switch-from-erc
-		(buffer-live-p erc-track-last-non-erc-buffer))
-	   (switch-to-buffer erc-track-last-non-erc-buffer)))))
+	        erc-track-switch-from-erc
+	        (buffer-live-p erc-track-last-non-erc-buffer))
+	   (funcall fun erc-track-last-non-erc-buffer)))))
+
+(defun erc-track-switch-buffer (arg)
+  "Switch to the next active ERC buffer.
+If there are no active ERC buffers, switch back to the last
+non-ERC buffer visited.  The order of buffers is defined by
+`erc-track-switch-direction', and a negative argument will
+reverse it."
+  (interactive "p")
+  (erc-track--switch-buffer 'switch-to-buffer arg))
+
+(defun erc-track-switch-buffer-other-window (arg)
+  "Switch to the next active ERC buffer in another window.
+If there are no active ERC buffers, switch back to the last
+non-ERC buffer visited.  The order of buffers is defined by
+`erc-track-switch-direction', and a negative argument will
+reverse it."
+  (interactive "p")
+  (erc-track--switch-buffer 'switch-to-buffer-other-window arg))
 
 (provide 'erc-track)
 

@@ -1373,10 +1373,10 @@ please check its value")
         ((not (eq system-type 'windows-nt))
          (concat "~" init-file-user "/.emacs"))
         ;; Else deal with the Windows situation.
-        ((directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
+        ((directory-files "~" nil "\\`\\.emacs\\(\\.elc?\\)?\\'")
          ;; Prefer .emacs on Windows.
          "~/.emacs")
-        ((directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
+        ((directory-files "~" nil "\\`_emacs\\(\\.elc?\\)?\\'")
          ;; Also support _emacs for compatibility, but warn about it.
          (push `(initialization
                  ,(format-message

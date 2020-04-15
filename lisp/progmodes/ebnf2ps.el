@@ -1883,7 +1883,7 @@ It's only used when `ebnf-syntax' is `iso-ebnf'."
   :group 'ebnf-syntactic)
 
 
-(defcustom ebnf-file-suffix-regexp "\\.[Bb][Nn][Ff]$"
+(defcustom ebnf-file-suffix-regexp "\\.[Bb][Nn][Ff]\\'"
   "Specify file name suffix that contains EBNF.
 
 See `ebnf-eps-directory' command."
@@ -2715,7 +2715,7 @@ Used in functions `ebnf-reset-style', `ebnf-push-style' and
       (ebnf-syntax                      . 'ebnf)
       (ebnf-iso-alternative-p           . nil)
       (ebnf-iso-normalize-p             . nil)
-      (ebnf-file-suffix-regexp          . "\\.[Bb][Nn][Ff]$")
+      (ebnf-file-suffix-regexp          . "\\.[Bb][Nn][Ff]\\'")
       (ebnf-eps-prefix                  . "ebnf--")
       (ebnf-eps-header-font             . '(11 Helvetica "Black" "White" bold))
       (ebnf-eps-header                  . nil)

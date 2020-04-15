@@ -2074,7 +2074,7 @@ doesn't exist, to valid the overview buffer."
 		  (file-attributes (directory-files-and-attributes
 				    (gnus-agent-article-name
 				     "" gnus-agent-read-agentview)
-				    nil "^[0-9]+$" t)))
+				    nil "\\`[0-9]+\\'" t)))
 	     (while file-attributes
 	       (let ((fa (pop file-attributes)))
 		 (unless (file-attribute-type (cdr fa))
@@ -3850,7 +3850,8 @@ If REREAD is not nil, downloaded articles are marked as unread."
 			   (sort (delq nil (mapcar (lambda (name)
 						     (and (not (file-directory-p (nnheader-concat dir name)))
 							  (string-to-number name)))
-						   (directory-files dir nil "^[0-9]+$" t)))
+						   (directory-files
+                                                    dir nil "\\`[0-9]+\\'" t)))
 				 '>)
 			 (progn (gnus-make-directory dir) nil)))
            nov-arts
@@ -4110,7 +4111,7 @@ agent has fetched."
 		 (setq delta sum))
 	     (let ((sum (- (nth 2 entry)))
 		   (info (directory-files-and-attributes
-			  path nil "^-?[0-9]+$" t))
+			  path nil "\\`-?[0-9]+\\'" t))
 		   file)
 	       (while (setq file (pop info))
 		 (cl-incf sum (float (or (file-attribute-size (cdr file)) 0))))

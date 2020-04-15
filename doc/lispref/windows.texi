@@ -5871,25 +5871,26 @@ which window parameters (if any) are saved by this function.
 
 @defun set-window-configuration configuration
 This function restores the configuration of windows and buffers as
-specified by @var{configuration}, for the frame that @var{configuration}
-was created for.
+specified by @var{configuration}, for the frame that
+@var{configuration} was created for, regardless of whether that frame
+is selected or not.  The argument @var{configuration} must be a value
+that was previously returned by @code{current-window-configuration}
+for that frame.
 
-The argument @var{configuration} must be a value that was previously
-returned by @code{current-window-configuration}.  The configuration is
-restored in the frame from which @var{configuration} was made, whether
-that frame is selected or not.  In some rare cases this may trigger
-execution of the @code{window-size-change-functions} (@pxref{Window
-Hooks}) even if the size of windows did not change at all.  The
-@code{window-configuration-change-hook} functions will be called if and
-only if at least one window was added to or deleted from the frame.
+If the frame from which @var{configuration} was saved is dead, all
+this function does is to restore the value of the variable
+@code{minibuffer-scroll-window} and to adjust the value returned by
+@code{minibuffer-selected-window}.  In this case, the function returns
+@code{nil}.  Otherwise, it returns @code{t}.
 
-If the frame from which @var{configuration} was saved is dead, all this
-function does is restore the three variables @code{window-min-height},
-@code{window-min-width} and @code{minibuffer-scroll-window}.  In this
-case, the function returns @code{nil}.  Otherwise, it returns @code{t}.
+If the buffer of a window of @var{configuration} has been killed since
+@var{configuration} was made, that window is, as a rule, removed from
+the restored configuration.  However, if that window is the last
+window remaining in the restored configuration, another live buffer is
+shown in it.
 
-Here is a way of using this function to get the same effect
-as @code{save-window-excursion}:
+Here is a way of using this function to get the same effect as
+@code{save-window-excursion}:
 
 @example
 @group

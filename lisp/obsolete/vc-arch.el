@@ -597,18 +597,20 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
     (unless (file-writable-p rl-dir)
       (error "No writable revlib directory found"))
     (message "Revlib at %s" rl-dir)
-    (let* ((archives (directory-files rl-dir 'full "[^.]\\|..."))
+    (let* ((archives (directory-files rl-dir 'full (rx (or (not ".") "..."))))
            (categories
             (apply 'append
                    (mapcar (lambda (dir)
                              (when (file-directory-p dir)
-                               (directory-files dir 'full "[^.]\\|...")))
+                               (directory-files dir 'full
+                                                (rx (or (not ".") "...")))))
                            archives)))
            (branches
             (apply 'append
                    (mapcar (lambda (dir)
                              (when (file-directory-p dir)
-                               (directory-files dir 'full "[^.]\\|...")))
+                               (directory-files dir 'full
+                                                (rx (or (not ".") "...")))))
                            categories)))
            (versions
             (apply 'append

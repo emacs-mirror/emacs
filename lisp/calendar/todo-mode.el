@@ -707,7 +707,7 @@ and done items are always shown on visiting a category."
 				    shortf todo-show-first)))
 		     (when (eq todo-show-first 'regexp)
 		       (let ((rxfiles (directory-files todo-directory t
-						       ".*\\.todr$" t)))
+						       "\\.todr\\'" t)))
 			 (when (and rxfiles (> (length rxfiles) 1))
 			   (let ((rxf (mapcar #'todo-short-file-name rxfiles)))
 			     (setq fi-file (todo-absolute-file-name
@@ -4054,7 +4054,7 @@ regexp items."
 (defun todo-find-filtered-items-file ()
   "Choose a filtered items file and visit it."
   (interactive)
-  (let ((files (directory-files todo-directory t "\\.tod[rty]$" t))
+  (let ((files (directory-files todo-directory t "\\.tod[rty]\\'" t))
 	falist file)
     (dolist (f files)
       (let ((sf-name (todo-short-file-name f))
@@ -4187,7 +4187,7 @@ multifile commands for further details."
 				(regexp ".todr")))))
 	 (multi (> (length flist) 1))
 	 (rxfiles (when regexp
-		    (directory-files todo-directory t ".*\\.todr$" t)))
+		    (directory-files todo-directory t "\\.todr\\'" t)))
 	 (file-exists (or (file-exists-p fname) rxfiles))
 	 bufname)
     (cond ((and top new (natnump new))
@@ -6154,7 +6154,7 @@ the empty string (i.e., no time string)."
   "The :set function for user option `todo-nondiary-marker'."
   (let* ((oldvalue (symbol-value symbol))
 	 (files (append todo-files todo-archives
-			(directory-files todo-directory t "\\.tod[rty]$" t))))
+			(directory-files todo-directory t "\\.tod[rty]\\'" t))))
     (custom-set-default symbol value)
     ;; Need to reset these to get font-locking right.
     (setq todo-nondiary-start (nth 0 todo-nondiary-marker)
@@ -6207,7 +6207,7 @@ the empty string (i.e., no time string)."
   "The :set function for user option `todo-done-string'."
   (let ((oldvalue (symbol-value symbol))
 	(files (append todo-files todo-archives
-		       (directory-files todo-directory t "\\.todr$" t))))
+		       (directory-files todo-directory t "\\.todr\\'" t))))
     (custom-set-default symbol value)
     ;; Need to reset this to get font-locking right.
     (setq todo-done-string-start
@@ -6236,7 +6236,7 @@ the empty string (i.e., no time string)."
   "The :set function for user option `todo-comment-string'."
   (let ((oldvalue (symbol-value symbol))
   	(files (append todo-files todo-archives
-		       (directory-files todo-directory t "\\.todr$" t))))
+		       (directory-files todo-directory t "\\.todr\\'" t))))
     (custom-set-default symbol value)
     (when (not (equal value oldvalue))
       (dolist (f files)
@@ -6262,7 +6262,7 @@ the empty string (i.e., no time string)."
   "The :set function for user option `todo-highlight-item'."
   (let ((oldvalue (symbol-value symbol))
 	(files (append todo-files todo-archives
-		       (directory-files todo-directory t "\\.tod[rty]$" t))))
+		       (directory-files todo-directory t "\\.tod[rty]\\'" t))))
     (custom-set-default symbol value)
     (when (not (equal value oldvalue))
       (dolist (f files)

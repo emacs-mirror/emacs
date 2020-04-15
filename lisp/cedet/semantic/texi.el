@@ -495,7 +495,7 @@ that start with that symbol."
 	       (setq tabs (cdr tabs)))
 	     r))
 	  (t
-	   (directory-files default-directory nil "\\.texi$"))
+	   (directory-files default-directory nil "\\.texi\\'"))
 	  )))
 
 ;; Turns out this might not be useful.

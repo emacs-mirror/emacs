@@ -3350,7 +3350,7 @@ They might differ only in time attributes or directory size."
 	       (tramp--test-file-attributes-equal-p
 		(file-attributes (car elt)) (cdr elt))))
 
-	    (setq attr (directory-files-and-attributes tmp-name2 nil "^b"))
+	    (setq attr (directory-files-and-attributes tmp-name2 nil "\\`b"))
 	    (should (equal (mapcar #'car attr) '("bar" "boz"))))
 
 	;; Cleanup.

@@ -37,7 +37,7 @@
 			  (mapc (lambda (f)
 				  (if (string-match "url-\\(.*\\).el$" f)
 				      (push (match-string 1 f) schemes)))
-				(directory-files d nil "^url-.*\\.el$")))
+				(directory-files d nil "\\`url-.*\\.el\\'")))
 			load-path)
 		  (put 'url-extension-protocols 'schemes schemes)
 		  schemes)))))
