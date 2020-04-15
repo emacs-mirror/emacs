@@ -200,6 +200,43 @@ w32_can_use_native_image_api (Lisp_Object type)
   return gdiplus_startup ();
 }
 
+enum PropertyItem_type {
+  PI_BYTE = 1,
+  PI_ASCIIZ = 2,
+  PI_USHORT = 3,
+  PI_ULONG = 4,
+  PI_ULONG_PAIR = 5,
+  PI_BYTE_ANY = 6,
+  PI_LONG = 7,
+  PI_LONG_PAIR = 10
+};
+
+static unsigned long
+decode_delay (PropertyItem *propertyItem, int frame)
+{
+  enum PropertyItem_type type = propertyItem[0].type;
+  unsigned long delay;
+
+  switch (type)
+    {
+    case PI_BYTE:
+    case PI_BYTE_ANY:
+      delay = ((unsigned char *)propertyItem[0].value)[frame];
+      break;
+    case PI_USHORT:
+      delay = ((unsigned short *)propertyItem[0].value)[frame];
+      break;
+    case PI_ULONG:
+    case PI_LONG:	/* delay should always be positive */
+      delay = ((unsigned long *)propertyItem[0].value)[frame];
+      break;
+    default:
+      emacs_abort ();
+    }
+
+  return delay;
+}
+
 static double
 w32_frame_delay (GpBitmap *pBitmap, int frame)
 {
@@ -217,13 +254,14 @@ w32_frame_delay (GpBitmap *pBitmap, int frame)
     {
       /* Get the property item.  */
       GdipGetPropertyItem (pBitmap, PropertyTagFrameDelay, size, propertyItem);
-      delay = propertyItem[frame].length / 100.0;
-      if (delay == 0)
+      delay = decode_delay (propertyItem, frame);
+      if (delay <= 0)
         {
           /* In GIF files, unfortunately, delay is only specified for the first
              frame.  */
-          delay = propertyItem[0].length / 100.0;
+          delay = decode_delay (propertyItem, 0);
         }
+      delay /= 100.0;
       free (propertyItem);
     }
   return delay;
