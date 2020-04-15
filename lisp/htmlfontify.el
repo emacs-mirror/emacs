@@ -1837,7 +1837,8 @@ fontified.  This is a simple convenience wrapper around
       (when font-lock-defaults
         ; Silence "interactive use only" warning on Emacs >= 25.1.
         (with-no-warnings (font-lock-fontify-buffer)))))
-   ((fboundp #'jit-lock-fontify-now)
+   ((and (fboundp #'jit-lock-fontify-now)
+         (bound-and-true-p jit-lock-mode))
     (message "hfy jit-lock mode (%S %S)" window-system major-mode)
     (jit-lock-fontify-now))
    (t
