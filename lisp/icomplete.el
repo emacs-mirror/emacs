@@ -329,6 +329,7 @@ if that doesn't produce a completion match."
                 icomplete-show-matches-on-no-input t
                 icomplete-hide-common-prefix nil
                 completion-styles '(flex)
+                completion-flex-nospace nil
                 completion-category-defaults nil)))
 
 ;;;###autoload
