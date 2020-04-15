@@ -211,6 +211,7 @@ files.")
     ("Nitish Chinta" "nitishch")
     ("Carlos Pita" "memeplex")
     ("Vinicius Jose Latorre" "viniciusjl")
+    ("Gaby Launay" "galaunay")
     )
   "Alist of author aliases.
 
