@@ -312,7 +312,7 @@ whether to remove it."
       (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
 	   ;; check whether RCS dir is empty, i.e. it does not
 	   ;; contain any files except "." and ".."
-	   (not (directory-files dir nil (rx (or (not ".") "..."))))
+	   (not (directory-files dir nil directory-files-no-dot-files-regexp))
 	   (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
 	   (delete-directory dir)))))
 

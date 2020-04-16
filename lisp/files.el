@@ -5754,7 +5754,10 @@ If called interactively, then PARENTS is non-nil."
 
 (defconst directory-files-no-dot-files-regexp
   "[^.]\\|\\.\\.\\."
-  "Regexp matching any file name except \".\" and \"..\".")
+  "Regexp matching any file name except \".\" and \"..\".
+More precisely, it matches parts of any nonempty string except those two.
+It is useful as the PATTERN argument to `directory-files' and
+`directory-files-and-attributes'.")
 
 (defun files--force (no-such fn &rest args)
   "Use NO-SUCH to affect behavior of function FN applied to list ARGS.
