@@ -85,8 +85,11 @@ This intended for debugging the compiler itself.
   :group 'comp)
 
 (defcustom comp-never-optimize-functions
-  '(macroexpand scroll-down scroll-up narrow-to-region widen rename-buffer
-                make-indirect-buffer delete-file top-level abort-recursive-edit)
+  '(;; Mandatory for Emacs to be working correctly
+    macroexpand scroll-down scroll-up narrow-to-region widen rename-buffer
+    make-indirect-buffer delete-file top-level abort-recursive-edit
+    ;; For user convenience
+    yes-or-no-p)
   "Primitive functions for which we do not perform trampoline optimization.
 This is especially usefull for primitives known to be advised if bootstrap is
 performed at `comp-speed' > 0."
