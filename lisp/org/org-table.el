@@ -2005,7 +2005,7 @@ the table and kill the editing buffer."
 	text)
     (goto-char (point-min))
     (while (re-search-forward "^#.*\n?" nil t) (replace-match ""))
-    (while (re-search-forward "\\([ \t]*\n[ \t]*\\)+" nil t)
+    (while (re-search-forward "[ \t]*\\(?:\n[ \t]*\\)+" nil t)
       (replace-match " "))
     (setq text (org-trim (buffer-string)))
     (set-window-configuration cw)

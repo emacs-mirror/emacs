@@ -484,7 +484,7 @@ and the face `diff-added' for added lines.")
   ;; Prefer second name as first is most likely to be a backup or
   ;; version-control name.  The [\t\n] at the end of the unidiff pattern
   ;; catches Debian source diff files (which lack the trailing date).
-  '((nil "\\+\\+\\+\\ \\([^\t\n]+\\)[\t\n]" 1) ; unidiffs
+  '((nil "\\+\\+\\+ \\([^\t\n]+\\)[\t\n]" 1) ; unidiffs
     (nil "^--- \\([^\t\n]+\\)\t.*\n\\*" 1))) ; context diffs
 
 ;;;;

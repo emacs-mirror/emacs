@@ -1867,7 +1867,7 @@ static char *magick[] = {
    "\\|def\\(i\\(ne?\\)?\\)?\\|doc\\(u\\(m\\(e\\(nt?\\)?\\)?\\)?\\)?\\|"
    gdb-python-guile-commands-regexp
    "\\|while-stepping\\|stepp\\(i\\(ng?\\)?\\)?\\|ws\\|actions"
-   "\\|expl\\(o\\(r\\e?\\)?\\)?"
+   "\\|expl\\(o\\(re?\\)?\\)?"
    "\\)\\([[:blank:]]+\\([^[:blank:]]*\\)\\)*$")
   "Regexp matching GDB commands that enter a recursive reading loop.
 As long as GDB is in the recursive reading loop, it does not expect
