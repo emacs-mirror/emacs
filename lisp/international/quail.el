@@ -3059,7 +3059,7 @@ of each directory."
     (while quail-dirs
       (setq dirname (car quail-dirs))
       (when dirname
-	(setq pkg-list (directory-files dirname 'full "\\.el$"))
+	(setq pkg-list (directory-files dirname 'full "\\.el\\'"))
 	(while pkg-list
 	  (with-temp-buffer
 	    (insert-file-contents (car pkg-list))

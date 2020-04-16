@@ -2464,7 +2464,7 @@ remote file names."
 	   (regexp-opt
 	    (mapcar
 	     #'file-name-sans-extension
-	     (directory-files dir nil "^tramp.+\\.elc?$"))
+	     (directory-files dir nil "\\`tramp.+\\.elc?\\'"))
 	    'paren))))
     (mapatoms
      (lambda (atom)

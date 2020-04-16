@@ -2091,15 +2091,15 @@ whether or not it is currently displayed in some window.  */)
   struct it it;
   struct text_pos pt;
   struct window *w;
-  Lisp_Object lcols;
+  Lisp_Object lcols = Qnil;
   void *itdata = NULL;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
-  bool lcols_given = CONSP (lines);
-  if (lcols_given)
+  if (CONSP (lines))
     {
       lcols = XCAR (lines);
+      CHECK_NUMBER (lcols);
       lines = XCDR (lines);
     }
 
@@ -2279,9 +2279,9 @@ whether or not it is currently displayed in some window.  */)
 
 	  overshoot_handled = 1;
 	}
-      if (lcols_given)
+      if (!NILP (lcols))
 	to_x =
-	  window_column_x (w, window, extract_float (lcols), lcols)
+	  window_column_x (w, window, XFLOATINT (lcols), lcols)
 	  + lnum_pixel_width;
       if (nlines <= 0)
 	{
@@ -2332,7 +2332,7 @@ whether or not it is currently displayed in some window.  */)
       /* Move to the goal column, if one was specified.  If the window
 	 was originally hscrolled, the goal column is interpreted as
 	 an addition to the hscroll amount.  */
-      if (lcols_given)
+      if (!NILP (lcols))
 	{
 	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 	  /* If we find ourselves in the middle of an overlay string

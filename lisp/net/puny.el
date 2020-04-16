@@ -35,7 +35,7 @@
 For instance, \"fśf.org\" => \"xn--ff-2sa.org\"."
   ;; The vast majority of domain names are not IDNA domain names, so
   ;; add a check first to avoid doing unnecessary work.
-  (if (string-match "\\'[[:ascii:]]+\\'" domain)
+  (if (string-match "\\`[[:ascii:]]+\\'" domain)
       domain
     (mapconcat 'puny-encode-string (split-string domain "[.]") ".")))
 

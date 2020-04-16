@@ -768,7 +768,7 @@ nil.  See also `gnus-bind-print-variables'."
 If there's no subdirectory, delete DIRECTORY as well."
   (when (file-directory-p directory)
     (let ((files (directory-files
-		  directory t "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+		  directory t directory-files-no-dot-files-regexp))
 	  file dir)
       (while files
 	(setq file (pop files))

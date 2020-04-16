@@ -1762,29 +1762,38 @@ nil."
        res)))
 
 (define-obsolete-function-alias 'erc-iswitchb 'erc-switch-to-buffer "25.1")
+(defun erc--switch-to-buffer (&optional arg)
+  (read-buffer "Switch to ERC buffer: "
+	       (when (boundp 'erc-modified-channels-alist)
+		 (buffer-name (caar (last erc-modified-channels-alist))))
+	       t
+	       ;; Only allow ERC buffers in the same session.
+	       (let ((proc (unless arg erc-server-process)))
+		 (lambda (bufname)
+		   (let ((buf (if (consp bufname)
+				  (cdr bufname) (get-buffer bufname))))
+		     (when buf
+		       (erc--buffer-p buf (lambda () t) proc)
+		       (with-current-buffer buf
+			 (and (derived-mode-p 'erc-mode)
+			      (or (null proc)
+				  (eq proc erc-server-process))))))))))
 (defun erc-switch-to-buffer (&optional arg)
-  "Prompt for a ERC buffer to switch to.
-When invoked with prefix argument, use all erc buffers.  Without prefix
-ARG, allow only buffers related to same session server.
+  "Prompt for an ERC buffer to switch to.
+When invoked with prefix argument, use all ERC buffers.  Without
+prefix ARG, allow only buffers related to same session server.
 If `erc-track-mode' is in enabled, put the last element of
 `erc-modified-channels-alist' in front of the buffer list."
   (interactive "P")
-  (switch-to-buffer
-   (read-buffer "Switch to ERC buffer: "
-		(when (boundp 'erc-modified-channels-alist)
-		  (buffer-name (caar (last erc-modified-channels-alist))))
-		t
-		;; Only allow ERC buffers in the same session.
-		(let ((proc (unless arg erc-server-process)))
-		  (lambda (bufname)
-		    (let ((buf (if (consp bufname)
-				   (cdr bufname) (get-buffer bufname))))
-		      (when buf
-			(erc--buffer-p buf (lambda () t) proc)
-			(with-current-buffer buf
-			  (and (derived-mode-p 'erc-mode)
-			       (or (null proc)
-				   (eq proc erc-server-process)))))))))))
+  (switch-to-buffer (erc--switch-to-buffer arg)))
+(defun erc-switch-to-buffer-other-window (&optional arg)
+  "Prompt for an ERC buffer to switch to in another window.
+When invoked with prefix argument, use all ERC buffers.  Without
+prefix ARG, allow only buffers related to same session server.
+If `erc-track-mode' is in enabled, put the last element of
+`erc-modified-channels-alist' in front of the buffer list."
+  (interactive "P")
+  (switch-to-buffer-other-window (erc--switch-to-buffer arg)))
 
 (defun erc-channel-list (proc)
   "Return a list of channel buffers.

@@ -247,7 +247,7 @@ to the RCS command."
 		 (setq subdir (expand-file-name "RCS"
 						(file-name-directory file)))))
 	   (not (directory-files (file-name-directory file)
-				 nil ".*,v$" t))
+				 nil ",v\\'" t))
 	   (yes-or-no-p "Create RCS subdirectory? ")
 	   (make-directory subdir))
       (apply #'vc-do-command "*vc*" 0 "ci" file
@@ -312,8 +312,7 @@ whether to remove it."
       (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
 	   ;; check whether RCS dir is empty, i.e. it does not
 	   ;; contain any files except "." and ".."
-	   (not (directory-files dir nil
-				 "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
+	   (not (directory-files dir nil directory-files-no-dot-files-regexp))
 	   (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
 	   (delete-directory dir)))))
 

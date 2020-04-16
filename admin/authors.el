@@ -207,6 +207,11 @@ files.")
     ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
     ("Yutaka NIIBE" "NIIBE Yutaka")
     (nil "stardiviner")
+    (nil "lin.sun")
+    ("Nitish Chinta" "nitishch")
+    ("Carlos Pita" "memeplex")
+    ("Vinicius Jose Latorre" "viniciusjl")
+    ("Gaby Launay" "galaunay")
     )
   "Alist of author aliases.
 
@@ -278,9 +283,9 @@ If REALNAME is nil, ignore that author.")
 
 
 (defvar authors-obsolete-files-regexps
-  '(".*loaddefs.el$"			; not obsolete, but auto-generated
-    "\\.\\(bzr\\|cvs\\|git\\)ignore$"		; obsolete or uninteresting
-    "\\.arch-inventory$"
+  '(".*loaddefs\\.el\\'"		; not obsolete, but auto-generated
+    "\\.\\(bzr\\|cvs\\|git\\)ignore\\'"		; obsolete or uninteresting
+    "\\.arch-inventory\\'"
     "ChangeLog\\(\\.[0-9]+\\)?\\'"
     "\\(automated\\|test\\)/data/"	; not interesting
     "cedet/tests/"
@@ -288,9 +293,9 @@ If REALNAME is nil, ignore that author.")
     "\\`\\(indent\\|automated\\)\\'" "indent/" "mod-test/"
     "-resources/"
     "unidata/.*\\.txt\\'"
-    "BidiCharacterTest.txt"
+    "BidiCharacterTest\\.txt"
     ;; TODO lib/? Matches other things?
-    "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"
+    "build-aux/" "m4/" "Emacs\\.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
     ;; Generated files that have since been removed.
     "\\(refcard\\(-de\\|-pl\\)?\\|calccard\\|dired-ref\\|orgcard\\|\
@@ -1135,7 +1140,7 @@ Elements are (OLDNAME . NEWNAME).")
 \\(\\(cs\\|fr\\|sk\\)-\\)?survival\\)\\.tex\\'" "refcards/\\&")
     ("\\`refcard-\\(de\\|pl\\)\\.tex\\'" "refcards/\\1-refcard.tex")
     ("\\`\\(refcards/\\)?fr-drdref\\.tex\\'" "refcards/fr-dired-ref.tex")
-    ("^\\(TUTORIAL[^/]*\\)" "tutorials/\\1")
+    ("\\`\\(TUTORIAL[^/]*\\)" "tutorials/\\1")
     ("\\`themes/dev-\\(tsdh-\\(?:light\\|dark\\)-theme\\.el\\)\\'"
      "themes/\\1")
     ;; Moved from lisp/toolbar to etc/images.
@@ -1160,9 +1165,9 @@ remove\\|run\\|until\\|up\\|watch\\)\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
     ("\\`\\(toolbar/gud-\\|images/gud/\\)s\\(i\\)?\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
      "images/gud/step\\2\\3")
     ("\\`toolbar/lc-\\([-a-z]+\\.xpm\\)\\'" "images/low-color/\\1")
-    ("^\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.\\(png\\|xpm\\)\\)$"
+    ("\\`\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.\\(png\\|xpm\\)\\)\\'"
      "images/\\1")
-    ("^\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)"
+    ("\\`\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)"
      "\\1\\2\\3_mac\\4")
     ("\\(images/icons/\\)emacs_\\([0-9][0-9]\\)\\.png"
      "\\1hicolor/\\2x\\2/apps/emacs.png")
@@ -1183,7 +1188,7 @@ ediff\\|emerge\\|log-edit\\|log-view\\|pcvs\\|smerge-mode\\|vc\\)\\.el\\'"
     ("\\`org-\\(ascii\\|beamer\\|html\\|icalendar\\|jsinfo\\|latex\
 \\|odt\\|publish\\)\\.el\\'" "ox-\\1.el")
     ;; From test/ to test/automated/.
-    ("comint-testsuite.el" "automated/\\&")
+    ("comint-testsuite\\.el" "automated/\\&")
     ("\\`\\(bytecomp\\|font-parse\\|icalendar\\|occur\\|newsticker\\)\
 -testsuite\\.el" "\\1-tests.el")
     ("automated/flymake/warnpred/\\(Makefile\\|test\\.\\(?:c\\|pl\\)\\)\\'"
@@ -1193,10 +1198,10 @@ ediff\\|emerge\\|log-edit\\|log-view\\|pcvs\\|smerge-mode\\|vc\\)\\.el\\'"
     ;; Maybe not the exact new name, but disambiguates from lisp/.
     ("automated/\\([^/]*\\)\\.el\\'" "\\1-tests.el")
     ;; NB lax rules should come last.
-    ("^m/m-\\(.*\\.h\\)$" "m/\\1" t)
-    ("^m-\\(.*\\.h\\)$" "\\1" t)
-    ("^s/s-\\(.*\\.h\\)$" "s/\\1" t)
-    ("^s-\\(.*\\.h\\)$" "\\1" t)
+    ("\\`m/m-\\(.*\\.h\\)\\'" "m/\\1" t)
+    ("\\`m-\\(.*\\.h\\)\\'" "\\1" t)
+    ("\\`s/s-\\(.*\\.h\\)\\'" "s/\\1" t)
+    ("\\`s-\\(.*\\.h\\)\\'" "\\1" t)
     ("\\.\\(el\\|[ch]\\|x[pb]m\\|pbm\\)\\'" t t)
     )
   "List of regexps and rewriting rules for renamed files.

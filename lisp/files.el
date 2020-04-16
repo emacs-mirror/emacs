@@ -2668,7 +2668,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.pas\\'" . pascal-mode)
      ("\\.\\(dpr\\|DPR\\)\\'" . delphi-mode)
      ("\\.ad[abs]\\'" . ada-mode)
-     ("\\.ad[bs].dg\\'" . ada-mode)
+     ("\\.ad[bs]\\.dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
      ("Imakefile\\'" . makefile-imake-mode)
      ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
@@ -2819,7 +2819,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\)\\'" . archive-mo
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
      ("\\.toml\\'" . conf-toml-mode)
      ("\\.desktop\\'" . conf-desktop-mode)
-     ("/\\.redshift.conf\\'" . conf-windows-mode)
+     ("/\\.redshift\\.conf\\'" . conf-windows-mode)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
      ;; ChangeLog.old etc.  Other change-log-mode entries are above;
@@ -5753,8 +5753,11 @@ If called interactively, then PARENTS is non-nil."
   (write-region "" nil filename nil 0))
 
 (defconst directory-files-no-dot-files-regexp
-  "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"
-  "Regexp matching any file name except \".\" and \"..\".")
+  "[^.]\\|\\.\\.\\."
+  "Regexp matching any file name except \".\" and \"..\".
+More precisely, it matches parts of any nonempty string except those two.
+It is useful as the regexp argument to `directory-files' and
+`directory-files-and-attributes'.")
 
 (defun files--force (no-such fn &rest args)
   "Use NO-SUCH to affect behavior of function FN applied to list ARGS.

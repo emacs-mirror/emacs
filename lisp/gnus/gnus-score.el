@@ -2981,7 +2981,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       (if (file-directory-p (car files))
 	  (setq out (nconc (directory-files
 			    (car files) t
-			    (concat (gnus-score-file-regexp) "$"))))
+			    (concat (gnus-score-file-regexp) "\\'"))))
 	(push (car files) out))
       (setq files (cdr files)))
     (setq gnus-internal-global-score-files out)))

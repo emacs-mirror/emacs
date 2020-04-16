@@ -172,7 +172,7 @@ as unread by Gnus.")
 	(setq dir
 	      (sort
 	       (mapcar 'string-to-number
-		       (directory-files pathname nil "^[0-9]+$" t))
+		       (directory-files pathname nil "\\`[0-9]+\\'" t))
 	       '<))
 	(cond
 	 (dir
@@ -360,7 +360,7 @@ as unread by Gnus.")
       (nnmh-possibly-change-directory group server)
       (let ((articles (mapcar 'string-to-number
 			      (directory-files
-			       nnmh-current-directory nil "^[0-9]+$"))))
+			       nnmh-current-directory nil "\\`[0-9]+\\'"))))
 	(when articles
 	  (setcar active (apply 'min articles))
 	  (setcdr active (apply 'max articles))))))
@@ -371,7 +371,7 @@ as unread by Gnus.")
   ;; Delete all articles in GROUP.
   (if (not force)
       ()				; Don't delete the articles.
-    (let ((articles (directory-files nnmh-current-directory t "^[0-9]+$")))
+    (let ((articles (directory-files nnmh-current-directory t "\\`[0-9]+\\'")))
       (while articles
 	(when (file-writable-p (car articles))
 	  (nnheader-message 5 "Deleting article %s in %s..."
@@ -485,7 +485,7 @@ as unread by Gnus.")
       ;; Find the highest number in the group.
       (let ((files (sort
 		    (mapcar 'string-to-number
-			    (directory-files dir nil "^[0-9]+$"))
+			    (directory-files dir nil "\\`[0-9]+\\'"))
 		    '>)))
 	(when files
 	  (setcdr active (car files)))))
@@ -509,7 +509,7 @@ as unread by Gnus.")
   (let* ((dir nnmh-current-directory)
 	 (files (sort (mapcar 'string-to-number
 			      (directory-files nnmh-current-directory
-					       nil "^[0-9]+$" t))
+					       nil "\\`[0-9]+\\'" t))
 		      '<))
 	 (nnmh-file (concat dir ".nnmh-articles"))
 	 new articles)

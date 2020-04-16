@@ -3053,9 +3053,8 @@ of `org-babel-temporary-directory'."
 		  (if (eq t (car (file-attributes file)))
 		      (delete-directory file)
 		    (delete-file file)))
-		;; We do not want to delete "." and "..".
 		(directory-files org-babel-temporary-directory 'full
-				 "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+                                 directory-files-no-dot-files-regexp))
 	  (delete-directory org-babel-temporary-directory))
       (error
        (message "Failed to remove temporary Org-babel directory %s"

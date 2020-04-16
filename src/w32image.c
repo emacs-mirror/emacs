@@ -32,6 +32,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <shlwapi.h>
 #include "w32common.h"
 #include "w32term.h"
+#ifdef WINDOWSNT
+#include "w32.h"	/* for map_w32_filename, filename_to_utf16 */
+#endif
 #include "frame.h"
 #include "coding.h"
 
@@ -200,6 +203,43 @@ w32_can_use_native_image_api (Lisp_Object type)
   return gdiplus_startup ();
 }
 
+enum PropertyItem_type {
+  PI_BYTE = 1,
+  PI_ASCIIZ = 2,
+  PI_USHORT = 3,
+  PI_ULONG = 4,
+  PI_ULONG_PAIR = 5,
+  PI_BYTE_ANY = 6,
+  PI_LONG = 7,
+  PI_LONG_PAIR = 10
+};
+
+static unsigned long
+decode_delay (PropertyItem *propertyItem, int frame)
+{
+  enum PropertyItem_type type = propertyItem[0].type;
+  unsigned long delay;
+
+  switch (type)
+    {
+    case PI_BYTE:
+    case PI_BYTE_ANY:
+      delay = ((unsigned char *)propertyItem[0].value)[frame];
+      break;
+    case PI_USHORT:
+      delay = ((unsigned short *)propertyItem[0].value)[frame];
+      break;
+    case PI_ULONG:
+    case PI_LONG:	/* delay should always be positive */
+      delay = ((unsigned long *)propertyItem[0].value)[frame];
+      break;
+    default:
+      emacs_abort ();
+    }
+
+  return delay;
+}
+
 static double
 w32_frame_delay (GpBitmap *pBitmap, int frame)
 {
@@ -217,13 +257,14 @@ w32_frame_delay (GpBitmap *pBitmap, int frame)
     {
       /* Get the property item.  */
       GdipGetPropertyItem (pBitmap, PropertyTagFrameDelay, size, propertyItem);
-      delay = propertyItem[frame].length / 100.0;
-      if (delay == 0)
+      delay = decode_delay (propertyItem, frame);
+      if (delay <= 0)
         {
           /* In GIF files, unfortunately, delay is only specified for the first
              frame.  */
-          delay = propertyItem[0].length / 100.0;
+          delay = decode_delay (propertyItem, 0);
         }
+      delay /= 100.0;
       free (propertyItem);
     }
   return delay;
@@ -242,6 +283,11 @@ w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes,
   *delay = 0.0;
   if (count)
     {
+      /* The following call will fill pDimensionIDs[0] with the
+	 FrameDimensionTime GUID for GIF images, and
+	 FrameDimensionPage GUID for other image types.  Multi-page
+	 GIF and TIFF images expect these values in the
+	 GdipImageSelectActiveFrame call below.  */
       status = GdipImageGetFrameDimensionsList (pBitmap, pDimensionIDs, 1);
       status = GdipImageGetFrameCount (pBitmap, &pDimensionIDs[0], &frameCount);
       if (status == Ok && frameCount > 1)
@@ -296,17 +342,11 @@ w32_load_image (struct frame *f, struct image *img,
      and succeeded.  We have a valid token and GDI+ is active.  */
   if (STRINGP (spec_file))
     {
-      if (w32_unicode_filenames)
-        {
-	  wchar_t filename[MAX_PATH];
-          filename_to_utf16 (SSDATA (spec_file), filename);
-          status = GdipCreateBitmapFromFile (filename, &pBitmap);
-        }
-      else
-        {
-          add_to_log ("GDI+ requires w32-unicode-filenames to be T");
-          status = GenericError;
-        }
+      spec_file = ENCODE_FILE (spec_file);
+      const char *fn = map_w32_filename (SSDATA (spec_file), NULL);
+      wchar_t filename_w[MAX_PATH];
+      filename_to_utf16 (fn, filename_w);
+      status = GdipCreateBitmapFromFile (filename_w, &pBitmap);
     }
   else if (STRINGP (spec_data))
     {

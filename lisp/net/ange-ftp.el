@@ -4169,9 +4169,7 @@ directory, so that Emacs will know its current contents."
 	       (if (file-directory-p file)
 		   (ange-ftp-delete-directory file recursive trash)
 		 (delete-file file trash)))
-	     ;; We do not want to delete "." and "..".
-	     (directory-files
-	      dir 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+	     (directory-files dir 'full directory-files-no-dot-files-regexp)))
 	(if parsed
 	    (let* ((host (nth 0 parsed))
 		   (user (nth 1 parsed))

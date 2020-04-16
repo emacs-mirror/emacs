@@ -5146,10 +5146,11 @@ property, in the way that `yank' does."
 
 (defun yank (&optional arg)
   "Reinsert (\"paste\") the last stretch of killed text.
-More precisely, reinsert the most recent kill, which is the
-stretch of killed text most recently killed OR yanked.  Put point
-at the end, and set mark at the beginning without activating it.
-With just \\[universal-argument] as argument, put point at beginning, and mark at end.
+More precisely, reinsert the most recent kill, which is the stretch of
+text most recently killed OR yanked, as returned by `current-kill' (which
+see).  Put point at the end, and set mark at the beginning without
+activating it. With just \\[universal-argument] as argument, put point
+at beginning, and mark at end.
 With argument N, reinsert the Nth most recent kill.
 
 This command honors the `yank-handled-properties' and

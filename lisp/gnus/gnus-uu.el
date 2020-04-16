@@ -1674,7 +1674,7 @@ Gnus might fail to display all of it.")
     did-unpack))
 
 (defun gnus-uu-dir-files (dir)
-  (let ((dirs (directory-files dir t "[^/][^\\.][^\\.]?$"))
+  (let ((dirs (directory-files dir t directory-files-no-dot-files-regexp))
 	files file)
     (while dirs
       (if (file-directory-p (setq file (car dirs)))

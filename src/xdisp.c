@@ -9662,9 +9662,13 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
   int line_height, line_start_x = 0, reached = 0;
   int max_current_x = 0;
   void *backup_data = NULL;
+  ptrdiff_t orig_charpos = -1;
+  enum it_method orig_method = NUM_IT_METHODS;
 
   for (;;)
     {
+      orig_charpos = IT_CHARPOS (*it);
+      orig_method = it->method;
       if (op & MOVE_TO_VPOS)
 	{
 	  /* If no TO_CHARPOS and no TO_X specified, stop at the
@@ -9898,7 +9902,17 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		}
 	    }
 	  else
-	    it->continuation_lines_width += it->current_x;
+	    {
+	      /* Make sure we do advance, otherwise we might infloop.
+		 This could happen when the first display element is
+		 wider than the window, or if we have a wrap-prefix
+		 that doesn't leave enough space after it to display
+		 even a single character.  */
+	      if (IT_CHARPOS (*it) == orig_charpos
+		  && it->method == orig_method)
+		set_iterator_to_next (it, false);
+	      it->continuation_lines_width += it->current_x;
+	    }
 	  break;
 
 	default:

@@ -286,7 +286,10 @@ separated by a space."
 (defconst sgml-namespace-re "[_[:alpha:]][-_.[:alnum:]]*")
 (defconst sgml-name-re "[_:[:alpha:]][-_.:[:alnum:]]*")
 (defconst sgml-tag-name-re (concat "<\\([!/?]?" sgml-name-re "\\)"))
-(defconst sgml-attrs-re "\\(?:[^\"'/><]\\|\"[^\"]*\"\\|'[^']*'\\)*")
+(defconst sgml-attrs-re
+  ;; This pattern cannot begin with a character matched by the end of
+  ;; `sgml-name-re' above.
+  "\\(?:[^_.:\"'/><[:alnum:]-]\\(?:[^\"'/><]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?")
 (defconst sgml-start-tag-regex (concat "<" sgml-name-re sgml-attrs-re)
   "Regular expression that matches a non-empty start tag.
 Any terminating `>' or `/' is not matched.")

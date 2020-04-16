@@ -6236,21 +6236,16 @@ pbm_load (struct frame *f, struct image *img)
 			    NATIVE IMAGE HANDLING
  ***********************************************************************/
 
+#if HAVE_NATIVE_IMAGE_API
 static bool
 image_can_use_native_api (Lisp_Object type)
 {
-#if HAVE_NATIVE_IMAGE_API
 # ifdef HAVE_NTGUI
   return w32_can_use_native_image_api (type);
 # else
   return false;
 # endif
-#else
-  return false;
-#endif
 }
-
-#if HAVE_NATIVE_IMAGE_API
 
 /*
  * These functions are actually defined in the OS-native implementation
@@ -10224,8 +10219,10 @@ initialize_image_type (struct image_type const *type)
 #ifdef WINDOWSNT
   Lisp_Object typesym = builtin_lisp_symbol (type->type);
 
+# if HAVE_NATIVE_IMAGE_API
   if (image_can_use_native_api (typesym))
     return true;
+# endif
 
   Lisp_Object tested = Fassq (typesym, Vlibrary_cache);
   /* If we failed to load the library before, don't try again.  */

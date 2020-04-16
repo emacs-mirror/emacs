@@ -3235,8 +3235,8 @@ Any other value means to ask for each directory."
 		 (const :tag "Confirm for each top directory only" top))
   :group 'dired)
 
-;; Match anything but `.' and `..'.
-(defvar dired-re-no-dot "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
+(define-obsolete-variable-alias 'dired-re-no-dot
+  'directory-files-no-dot-files-regexp "28.1")
 
 ;; Delete file, possibly delete a directory and all its files.
 ;; This function is useful outside of dired.  One could change its name
@@ -3258,7 +3258,9 @@ TRASH non-nil means to trash the file instead of deleting, provided
        ;; but more efficient
        (if (not (eq t (car (file-attributes file))))
            (delete-file file trash)
-         (let* ((empty-dir-p (null (directory-files file t dired-re-no-dot))))
+         (let* ((empty-dir-p (null (directory-files
+                                    file t
+                                    directory-files-no-dot-files-regexp))))
            (if (and recursive (not empty-dir-p))
                (unless (eq recursive 'always)
                  (let ((prompt
