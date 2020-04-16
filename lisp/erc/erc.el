@@ -33,17 +33,8 @@
 ;;; Commentary:
 
 ;; ERC is a powerful, modular, and extensible IRC client for Emacs.
-
-;; For more information, see the following URLs:
-;; * https://sv.gnu.org/projects/erc/
-;; * https://www.emacswiki.org/emacs/ERC
-
-
-
-;; As of 2006-06-13, ERC development is now hosted on Savannah
-;; (https://sv.gnu.org/projects/erc).  I invite everyone who wants to
-;; hack on it to contact me <mwolson@gnu.org> in order to get write
-;; access to the shared Arch archive.
+;; For more information, visit the ERC page at
+;; <https://www.gnu.org/software/emacs/erc.html>.
 
 ;; Configuration:
 
@@ -75,12 +66,12 @@
 (eval-when-compile (require 'subr-x))
 
 (defvar erc-official-location
-  "https://www.emacswiki.org/emacs/ERC (mailing list: emacs-erc@gnu.org)"
+  "https://www.gnu.org/software/emacs/erc.html (mailing list: emacs-erc@gnu.org)"
   "Location of the ERC client on the Internet.")
 
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
-  :link '(url-link "https://www.emacswiki.org/emacs/ERC")
+  :link '(url-link "https://www.gnu.org/software/emacs/erc.html")
   :link '(custom-manual "(erc) Top")
   :prefix "erc-"
   :group 'applications)
