@@ -283,6 +283,11 @@ w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes,
   *delay = 0.0;
   if (count)
     {
+      /* The following call will fill pDimensionIDs[0] with the
+	 FrameDimensionTime GUID for GIF images, and
+	 FrameDimensionPage GUID for other image types.  Multi-page
+	 GIF and TIFF images expect these values in the
+	 GdipImageSelectActiveFrame call below.  */
       status = GdipImageGetFrameDimensionsList (pBitmap, pDimensionIDs, 1);
       status = GdipImageGetFrameCount (pBitmap, &pDimensionIDs[0], &frameCount);
       if (status == Ok && frameCount > 1)
