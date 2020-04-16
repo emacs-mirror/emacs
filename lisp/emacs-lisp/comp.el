@@ -91,8 +91,8 @@ This intended for debugging the compiler itself.
     ;; For user convenience
     yes-or-no-p)
   "Primitive functions for which we do not perform trampoline optimization.
-This is especially usefull for primitives known to be advised if bootstrap is
-performed at `comp-speed' > 0."
+This is especially useful for primitives known to be advised or
+redefined when compilation is performed at `comp-speed' > 0."
   :type 'list
   :group 'comp)
 
