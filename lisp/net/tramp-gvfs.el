@@ -912,7 +912,9 @@ or `dbus-call-method-asynchronously'."
 		   #'dbus-call-method #'dbus-call-method-asynchronously))
 	 (args (append (list ,bus ,service ,path ,interface ,method)
 		       (if ,synchronous (list ,@args) (list 'ignore ,@args)))))
-     (tramp-dbus-function ,vec func args)))
+     ;; We use `dbus-ignore-errors', because this macro is also called
+     ;; when loading.
+     (dbus-ignore-errors (tramp-dbus-function ,vec func args))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-dbus-call-method\\>"))
 
