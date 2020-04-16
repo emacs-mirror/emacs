@@ -5756,7 +5756,7 @@ If called interactively, then PARENTS is non-nil."
   "[^.]\\|\\.\\.\\."
   "Regexp matching any file name except \".\" and \"..\".
 More precisely, it matches parts of any nonempty string except those two.
-It is useful as the PATTERN argument to `directory-files' and
+It is useful as the regexp argument to `directory-files' and
 `directory-files-and-attributes'.")
 
 (defun files--force (no-such fn &rest args)
