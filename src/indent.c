@@ -2103,7 +2103,7 @@ whether or not it is currently displayed in some window.  */)
       lines = XCDR (lines);
     }
   else
-    lcols = 0;	/* shut up stupid GCC warning */
+    lcols = make_fixnum (0);	/* shut up stupid GCC warning */
 
   CHECK_FIXNUM (lines);
   w = decode_live_window (window);
