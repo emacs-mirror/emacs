@@ -2572,8 +2572,9 @@ between them, return t; otherwise return nil.  */)
 	    }
 	  else if (code == Sendcomment)
 	    {
-	      found = back_comment (from, from_byte, stop, comnested, comstyle,
-				    &out_charpos, &out_bytepos);
+              found = (!quoted || !Vcomment_end_can_be_escaped)
+                && back_comment (from, from_byte, stop, comnested, comstyle,
+                                 &out_charpos, &out_bytepos);
 	      if (!found)
 		{
 		  if (c == '\n')
