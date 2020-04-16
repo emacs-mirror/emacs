@@ -300,7 +300,7 @@ if that doesn't produce a completion match."
   (interactive)
   (if (and (eq (char-before) ?/)
            (eq (icomplete--category) 'file))
-      (backward-kill-sexp 1)
+      (zap-up-to-char -1 ?/)
     (call-interactively 'backward-delete-char)))
 
 (defvar icomplete-fido-mode-map
