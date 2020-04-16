@@ -2102,6 +2102,8 @@ whether or not it is currently displayed in some window.  */)
       lcols = XCAR (lines);
       lines = XCDR (lines);
     }
+  else
+    lcols = 0;	/* shut up stupid GCC warning */
 
   CHECK_FIXNUM (lines);
   w = decode_live_window (window);
