@@ -32,6 +32,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <shlwapi.h>
 #include "w32common.h"
 #include "w32term.h"
+#ifdef WINDOWSNT
+#include "w32.h"	/* for map_w32_filename, filename_to_utf16 */
+#endif
 #include "frame.h"
 #include "coding.h"
 
@@ -334,17 +337,11 @@ w32_load_image (struct frame *f, struct image *img,
      and succeeded.  We have a valid token and GDI+ is active.  */
   if (STRINGP (spec_file))
     {
-      if (w32_unicode_filenames)
-        {
-	  wchar_t filename[MAX_PATH];
-          filename_to_utf16 (SSDATA (spec_file), filename);
-          status = GdipCreateBitmapFromFile (filename, &pBitmap);
-        }
-      else
-        {
-          add_to_log ("GDI+ requires w32-unicode-filenames to be T");
-          status = GenericError;
-        }
+      spec_file = ENCODE_FILE (spec_file);
+      const char *fn = map_w32_filename (SSDATA (spec_file), NULL);
+      wchar_t filename_w[MAX_PATH];
+      filename_to_utf16 (fn, filename_w);
+      status = GdipCreateBitmapFromFile (filename_w, &pBitmap);
     }
   else if (STRINGP (spec_data))
     {

@@ -80,7 +80,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
-extern const char *map_w32_filename (const char *, const char **);
 
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)

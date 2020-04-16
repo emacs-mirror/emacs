@@ -194,6 +194,7 @@ extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
 extern void dostounix_filename (register char *);
 extern void unixtodos_filename (register char *);
+extern const char *map_w32_filename (const char *, const char **);
 extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
