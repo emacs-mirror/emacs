@@ -2505,7 +2505,7 @@ It returns the number of characters changed.  */)
       if (oc < translatable_chars)
 	{
 	  int nc; /* New character.  */
-	  int str_len;
+	  int str_len UNINIT;
 	  Lisp_Object val;
 
 	  if (STRINGP (table))
