@@ -654,7 +654,8 @@ Used by the Gnus package.
 @item SHELL
 @vindex SHELL@r{, environment variable}
 The name of an interpreter used to parse and execute programs run from
-inside Emacs.
+inside Emacs.  This is used to initialize the variable
+@code{shell-file-name} (@pxref{Single Shell}).
 @item SMTPSERVER
 @vindex SMTPSERVER@r{, environment variable}
 The name of the outgoing mail server.  This is used to initialize the
