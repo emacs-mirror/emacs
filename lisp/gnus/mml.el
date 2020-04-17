@@ -281,7 +281,7 @@ part.  This is for the internal use, you should never modify the value.")
 	    (setq tag (mml-read-tag)
 		  no-markup-p nil
 		  warn nil)
-	  (setq tag (list 'part '(type . "text/plain"))
+	  (setq tag (list 'part (cons 'type "text/plain"))
 		no-markup-p t
 		warn t))
 	(setq raw (cdr (assq 'raw tag))
