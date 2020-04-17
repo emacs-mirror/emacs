@@ -290,6 +290,7 @@ extern int emacs_setenv_TZ (char const *);
 
 #define ARG_NONNULL _GL_ARG_NONNULL
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+#define ATTRIBUTE_PURE _GL_ATTRIBUTE_PURE
 #define ATTRIBUTE_UNUSED _GL_UNUSED
 
 #if GNUC_PREREQ (3, 3, 0) && !defined __ICC

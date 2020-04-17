@@ -3700,7 +3700,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value >> 16 & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -3742,7 +3742,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value >> 8 & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -3772,7 +3772,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;

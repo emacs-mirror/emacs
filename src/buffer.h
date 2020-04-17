@@ -1523,6 +1523,45 @@ lowercasep (int c)
   return !uppercasep (c) && upcase (c) != c;
 }
 
+/* Return a non-outlandish value for the tab width.  */
+
+INLINE int
+sanitize_tab_width (Lisp_Object width)
+{
+  return (FIXNUMP (width) && 0 < XFIXNUM (width) && XFIXNUM (width) <= 1000
+	  ? XFIXNUM (width) : 8);
+}
+
+INLINE int
+SANE_TAB_WIDTH (struct buffer *buf)
+{
+  return sanitize_tab_width (BVAR (buf, tab_width));
+}
+
+/* Return a non-outlandish value for a character width.  */
+
+INLINE int
+sanitize_char_width (EMACS_INT width)
+{
+  return 0 <= width && width <= 1000 ? width : 1000;
+}
+
+/* Return the width of character C.  The width is measured by how many
+   columns C will occupy on the screen when displayed in the current
+   buffer.  The name CHARACTER_WIDTH avoids a collision with <limits.h>
+   CHAR_WIDTH.  */
+
+INLINE int
+CHARACTER_WIDTH (int c)
+{
+  return (0x20 <= c && c < 0x7f ? 1
+	  : 0x7f < c ? (sanitize_char_width
+			(XFIXNUM (CHAR_TABLE_REF (Vchar_width_table, c))))
+	  : c == '\t' ? SANE_TAB_WIDTH (current_buffer)
+	  : c == '\n' ? 0
+	  : !NILP (BVAR (current_buffer, ctl_arrow)) ? 2 : 4);
+}
+
 INLINE_HEADER_END
 
 #endif /* EMACS_BUFFER_H */
