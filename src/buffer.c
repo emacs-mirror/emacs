@@ -2308,7 +2308,7 @@ advance_to_char_boundary (ptrdiff_t byte_pos)
 	  c = FETCH_BYTE (byte_pos);
 	}
       while (! CHAR_HEAD_P (c) && byte_pos > BEG);
-      INC_POS (byte_pos);
+      byte_pos += next_char_len (byte_pos);
       if (byte_pos < orig_byte_pos)
 	byte_pos = orig_byte_pos;
       /* If C is a constituent of a multibyte sequence, BYTE_POS was
@@ -2552,8 +2552,6 @@ current buffer is cleared.  */)
       p = BEG_ADDR;
       while (1)
 	{
-	  int c, bytes;
-
 	  if (pos == stop)
 	    {
 	      if (pos == Z)
@@ -2565,7 +2563,7 @@ current buffer is cleared.  */)
 	    p++, pos++;
 	  else if (CHAR_BYTE8_HEAD_P (*p))
 	    {
-	      c = STRING_CHAR_AND_LENGTH (p, bytes);
+	      int bytes, c = string_char_and_length (p, &bytes);
 	      /* Delete all bytes for this 8-bit character but the
 		 last one, and change the last one to the character
 		 code.  */
@@ -2582,7 +2580,7 @@ current buffer is cleared.  */)
 	    }
 	  else
 	    {
-	      bytes = BYTES_BY_CHAR_HEAD (*p);
+	      int bytes = BYTES_BY_CHAR_HEAD (*p);
 	      p += bytes, pos += bytes;
 	    }
 	}

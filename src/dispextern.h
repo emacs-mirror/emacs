@@ -234,7 +234,7 @@ struct text_pos
        {					\
 	 ++(POS).charpos;			\
          if (MULTIBYTE_P)			\
-	   INC_POS ((POS).bytepos);		\
+	   (POS).bytepos += next_char_len ((POS).bytepos); \
 	 else					\
 	   ++(POS).bytepos;			\
        }					\
@@ -247,7 +247,7 @@ struct text_pos
        {					\
 	 --(POS).charpos;			\
          if (MULTIBYTE_P)			\
-	   DEC_POS ((POS).bytepos);		\
+	   (POS).bytepos -= prev_char_len ((POS).bytepos); \
 	 else					\
 	   --(POS).bytepos;			\
        }					\

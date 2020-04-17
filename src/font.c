@@ -3856,13 +3856,10 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 
   while (pos < *limit)
     {
-      Lisp_Object category;
-
-      if (NILP (string))
-	FETCH_CHAR_ADVANCE_NO_CHECK (c, pos, pos_byte);
-      else
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, pos, pos_byte);
-      category = CHAR_TABLE_REF (Vunicode_category_table, c);
+      c = (NILP (string)
+	   ? fetch_char_advance_no_check (&pos, &pos_byte)
+	   : fetch_string_char_advance_no_check (string, &pos, &pos_byte));
+      Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
       if (FIXNUMP (category)
 	  && (XFIXNUM (category) == UNICODE_CATEGORY_Cf
 	      || CHAR_VARIATION_SELECTOR_P (c)))
@@ -4891,7 +4888,7 @@ the corresponding element is nil.  */)
    Lisp_Object object)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (font_object);
-  ptrdiff_t i, len;
+  ptrdiff_t len;
   Lisp_Object *chars, vec;
   USE_SAFE_ALLOCA;
 
@@ -4906,10 +4903,9 @@ the corresponding element is nil.  */)
       SAFE_ALLOCA_LISP (chars, len);
       charpos = XFIXNAT (from);
       bytepos = CHAR_TO_BYTE (charpos);
-      for (i = 0; charpos < XFIXNAT (to); i++)
+      for (ptrdiff_t i = 0; charpos < XFIXNAT (to); i++)
 	{
-	  int c;
-	  FETCH_CHAR_ADVANCE (c, charpos, bytepos);
+	  int c = fetch_char_advance (&charpos, &bytepos);
 	  chars[i] = make_fixnum (c);
 	}
     }
@@ -4929,18 +4925,18 @@ the corresponding element is nil.  */)
 	  int c;
 
 	  /* Skip IFROM characters from the beginning.  */
-	  for (i = 0; i < ifrom; i++)
-	    c = STRING_CHAR_ADVANCE (p);
+	  for (ptrdiff_t i = 0; i < ifrom; i++)
+	    p += BYTES_BY_CHAR_HEAD (*p);
 
 	  /* Now fetch an interesting characters.  */
-	  for (i = 0; i < len; i++)
-	  {
-	    c = STRING_CHAR_ADVANCE (p);
-	    chars[i] = make_fixnum (c);
-	  }
+	  for (ptrdiff_t i = 0; i < len; i++)
+	    {
+	      c = string_char_advance (&p);
+	      chars[i] = make_fixnum (c);
+	    }
 	}
       else
-	for (i = 0; i < len; i++)
+	for (ptrdiff_t i = 0; i < len; i++)
 	  chars[i] = make_fixnum (p[ifrom + i]);
     }
   else if (VECTORP (object))
@@ -4951,7 +4947,7 @@ the corresponding element is nil.  */)
       if (ifrom == ito)
 	return Qnil;
       len = ito - ifrom;
-      for (i = 0; i < len; i++)
+      for (ptrdiff_t i = 0; i < len; i++)
 	{
 	  Lisp_Object elt = AREF (object, ifrom + i);
 	  CHECK_CHARACTER (elt);
@@ -4962,7 +4958,7 @@ the corresponding element is nil.  */)
     wrong_type_argument (Qarrayp, object);
 
   vec = make_uninit_vector (len);
-  for (i = 0; i < len; i++)
+  for (ptrdiff_t i = 0; i < len; i++)
     {
       Lisp_Object g;
       int c = XFIXNAT (chars[i]);

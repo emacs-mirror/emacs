@@ -4133,14 +4133,20 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
   len = SCHARS (s1); i = i_byte = 0;
   SAFE_NALLOCA (p1, 1, len + 1);
   while (i < len)
-    FETCH_STRING_CHAR_ADVANCE (*(p1+i-1), s1, i, i_byte);
-  *(p1+len) = 0;
+    {
+      wchar_t *p = &p1[i];
+      *p = fetch_string_char_advance (s1, &i, &i_byte);
+    }
+  p1[len] = 0;
 
   len = SCHARS (s2); i = i_byte = 0;
   SAFE_NALLOCA (p2, 1, len + 1);
   while (i < len)
-    FETCH_STRING_CHAR_ADVANCE (*(p2+i-1), s2, i, i_byte);
-  *(p2+len) = 0;
+    {
+      wchar_t *p = &p2[i];
+      *p = fetch_string_char_advance (s2, &i, &i_byte);
+    }
+  p2[len] = 0;
 
   if (STRINGP (locale))
     {

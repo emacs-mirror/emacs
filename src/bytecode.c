@@ -1172,7 +1172,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    CHECK_CHARACTER (TOP);
 	    int c = XFIXNAT (TOP);
 	    if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	      MAKE_CHAR_MULTIBYTE (c);
+	      c = make_char_multibyte (c);
 	    XSETFASTINT (TOP, syntax_code_spec[SYNTAX (c)]);
 	  }
 	  NEXT;

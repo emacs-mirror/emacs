@@ -368,8 +368,8 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	  int len;
 	  for (ptrdiff_t i = 0; i < size_byte; i += len)
 	    {
-	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
-					       len);
+	      int ch = string_char_and_length ((const unsigned char *) ptr + i,
+					       &len);
 	      printchar_to_stream (ch, stdout);
 	    }
 	}
@@ -400,8 +400,8 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	  int len;
 	  for (i = 0; i < size_byte; i += len)
 	    {
-	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
-					       len);
+	      int ch = string_char_and_length ((const unsigned char *) ptr + i,
+					       &len);
 	      insert_char (ch);
 	    }
 	}
@@ -426,9 +426,8 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to
 		 PRINTCHAR.  */
-	      int len;
-	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
-					       len);
+	      int len, ch = (string_char_and_length
+			     ((const unsigned char *) ptr + i, &len));
 	      printchar (ch, printcharfun);
 	      i += len;
 	    }
@@ -510,8 +509,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
-	    int len;
-	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i, len);
+	    int len, ch = string_char_and_length (SDATA (string) + i, &len);
 	    printchar (ch, printcharfun);
 	    i += len;
 	  }
@@ -1307,15 +1305,13 @@ print_check_string_charset_prop (INTERVAL interval, Lisp_Object string)
     }
   if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
-      int i, c;
       ptrdiff_t charpos = interval->position;
       ptrdiff_t bytepos = string_char_to_byte (string, charpos);
-      Lisp_Object charset;
+      Lisp_Object charset = XCAR (XCDR (val));
 
-      charset = XCAR (XCDR (val));
-      for (i = 0; i < LENGTH (interval); i++)
+      for (ptrdiff_t i = 0; i < LENGTH (interval); i++)
 	{
-	  FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
+	  int c = fetch_string_char_advance (string, &charpos, &bytepos);
 	  if (! ASCII_CHAR_P (c)
 	      && ! EQ (CHARSET_NAME (CHAR_CHARSET (c)), charset))
 	    {
@@ -1943,9 +1939,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    {
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to printchar.  */
-	      int c;
-
-	      FETCH_STRING_CHAR_ADVANCE (c, obj, i, i_byte);
+	      int c = fetch_string_char_advance (obj, &i, &i_byte);
 
 	      maybe_quit ();
 
@@ -2036,8 +2030,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
-	    int c;
-	    FETCH_STRING_CHAR_ADVANCE (c, name, i, i_byte);
+	    int c = fetch_string_char_advance (name, &i, &i_byte);
 	    maybe_quit ();
 
 	    if (escapeflag)

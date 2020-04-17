@@ -220,6 +220,13 @@ case_character (struct casing_str_buf *buf, struct casing_context *ctx,
   return changed;
 }
 
+/* If C is not ASCII, make it unibyte. */
+static int
+make_char_unibyte (int c)
+{
+  return ASCII_CHAR_P (c) ? c : CHAR_TO_BYTE8 (c);
+}
+
 static Lisp_Object
 do_casify_natnum (struct casing_context *ctx, Lisp_Object obj)
 {
@@ -243,13 +250,13 @@ do_casify_natnum (struct casing_context *ctx, Lisp_Object obj)
 		    || !NILP (BVAR (current_buffer,
 				    enable_multibyte_characters)));
   if (! multibyte)
-    MAKE_CHAR_MULTIBYTE (ch);
+    ch = make_char_multibyte (ch);
   int cased = case_single_character (ctx, ch);
   if (cased == ch)
     return obj;
 
   if (! multibyte)
-    MAKE_CHAR_UNIBYTE (cased);
+    cased = make_char_unibyte (cased);
   return make_fixed_natnum (cased | flags);
 }
 
@@ -278,7 +285,7 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
     {
       if (dst_end - o < sizeof (struct casing_str_buf))
 	string_overflow ();
-      int ch = STRING_CHAR_ADVANCE (src);
+      int ch = string_char_advance (&src);
       case_character ((struct casing_str_buf *) o, ctx, ch,
 		      size > 1 ? src : NULL);
       n += ((struct casing_str_buf *) o)->len_chars;
@@ -299,15 +306,14 @@ do_casify_unibyte_string (struct casing_context *ctx, Lisp_Object obj)
   obj = Fcopy_sequence (obj);
   for (i = 0; i < size; i++)
     {
-      ch = SREF (obj, i);
-      MAKE_CHAR_MULTIBYTE (ch);
+      ch = make_char_multibyte (SREF (obj, i));
       cased = case_single_character (ctx, ch);
       if (ch == cased)
 	continue;
-      MAKE_CHAR_UNIBYTE (cased);
+      cased = make_char_unibyte (cased);
       /* If the char can't be converted to a valid byte, just don't
 	 change it.  */
-      if (cased >= 0 && cased < 256)
+      if (SINGLE_BYTE_CHAR_P (cased))
 	SSET (obj, i, cased);
     }
   return obj;
@@ -397,9 +403,7 @@ do_casify_unibyte_region (struct casing_context *ctx,
 
   for (ptrdiff_t pos = *startp; pos < end; ++pos)
     {
-      int ch = FETCH_BYTE (pos);
-      MAKE_CHAR_MULTIBYTE (ch);
-
+      int ch = make_char_multibyte (FETCH_BYTE (pos));
       int cased = case_single_character (ctx, ch);
       if (cased == ch)
 	continue;
@@ -408,8 +412,7 @@ do_casify_unibyte_region (struct casing_context *ctx,
       if (first < 0)
 	first = pos;
 
-      MAKE_CHAR_UNIBYTE (cased);
-      FETCH_BYTE (pos) = cased;
+      FETCH_BYTE (pos) = make_char_unibyte (cased);
     }
 
   *startp = first;
@@ -433,8 +436,7 @@ do_casify_multibyte_region (struct casing_context *ctx,
 
   for (; size; --size)
     {
-      int len;
-      int ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (pos_byte), len);
+      int len, ch = string_char_and_length (BYTE_POS_ADDR (pos_byte), &len);
       struct casing_str_buf buf;
       if (!case_character (&buf, ctx, ch,
 			   size > 1 ? BYTE_POS_ADDR (pos_byte + len) : NULL))

@@ -1949,8 +1949,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	      for (ptrdiff_t i = 0; i < SCHARS (prefix); )
 		{
 		  ptrdiff_t i_before = i;
-		  int c;
-		  FETCH_STRING_CHAR_ADVANCE (c, prefix, i, i_byte);
+		  int c = fetch_string_char_advance (prefix, &i, &i_byte);
 		  if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
 		    c ^= 0200 | meta_modifier;
 		  ASET (copy, i_before, make_fixnum (c));
@@ -2065,8 +2064,7 @@ For an approximate inverse of this, see `kbd'.  */)
     {
       if (STRINGP (list))
 	{
-	  int c;
-	  FETCH_STRING_CHAR_ADVANCE (c, list, i, i_byte);
+	  int c = fetch_string_char_advance (list, &i, &i_byte);
 	  if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
 	    c ^= 0200 | meta_modifier;
 	  XSETFASTINT (key, c);

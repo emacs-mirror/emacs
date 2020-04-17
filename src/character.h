@@ -81,13 +81,19 @@ enum
 };
 
 extern int char_string (unsigned, unsigned char *);
-extern int string_char (const unsigned char *,
-                        const unsigned char **, int *);
+extern int string_char (const unsigned char *, int *);
 
 /* UTF-8 encodings.  Use \x escapes, so they are portable to pre-C11
    compilers and can be concatenated with ordinary string literals.  */
 #define uLSQM "\xE2\x80\x98" /* U+2018 LEFT SINGLE QUOTATION MARK */
 #define uRSQM "\xE2\x80\x99" /* U+2019 RIGHT SINGLE QUOTATION MARK */
+
+/* True iff C is a character of code less than 0x100.  */
+INLINE bool
+SINGLE_BYTE_CHAR_P (intmax_t c)
+{
+  return 0 <= c && c < 0x100;
+}
 
 /* True iff C is a character that corresponds to a raw 8-bit
    byte.  */
@@ -133,17 +139,13 @@ CHAR_BYTE8_HEAD_P (int byte)
   return byte == 0xC0 || byte == 0xC1;
 }
 
-/* If C is not ASCII, make it unibyte. */
-#define MAKE_CHAR_UNIBYTE(c)	\
-  do {				\
-    if (! ASCII_CHAR_P (c))	\
-      c = CHAR_TO_BYTE8 (c);	\
-  } while (false)
-
-
 /* If C is not ASCII, make it multibyte.  Assumes C < 256.  */
-#define MAKE_CHAR_MULTIBYTE(c) \
-  (eassert ((c) >= 0 && (c) < 256), (c) = UNIBYTE_TO_CHAR (c))
+INLINE int
+make_char_multibyte (int c)
+{
+  eassert (SINGLE_BYTE_CHAR_P (c));
+  return UNIBYTE_TO_CHAR (c);
+}
 
 /* This is the maximum byte length of multibyte form.  */
 enum { MAX_MULTIBYTE_LENGTH = 5 };
@@ -179,13 +181,6 @@ INLINE void
 CHECK_CHARACTER_CDR (Lisp_Object x)
 {
   CHECK_CHARACTER (XCDR (x));
-}
-
-/* True iff C is a character of code less than 0x100.  */
-INLINE bool
-SINGLE_BYTE_CHAR_P (intmax_t c)
-{
-  return 0 <= c && c < 0x100;
 }
 
 /* True if character C has a printable glyph.  */
@@ -262,29 +257,6 @@ BYTE8_STRING (int b, unsigned char *p)
   p[1] = 0x80 | (b & 0x3F);
   return 2;
 }
-
-
-/* Store multibyte form of the character C in P and advance P to the
-   end of the multibyte form.  The caller should allocate at least
-   MAX_MULTIBYTE_LENGTH bytes area at P in advance.  */
-
-#define CHAR_STRING_ADVANCE(c, p)		\
-  do {						\
-    if ((c) <= MAX_1_BYTE_CHAR)			\
-      *(p)++ = (c);				\
-    else if ((c) <= MAX_2_BYTE_CHAR)		\
-      *(p)++ = (0xC0 | ((c) >> 6)),		\
-	*(p)++ = (0x80 | ((c) & 0x3F));		\
-    else if ((c) <= MAX_3_BYTE_CHAR)		\
-      *(p)++ = (0xE0 | ((c) >> 12)),		\
-	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
-	*(p)++ = (0x80 | ((c) & 0x3F));		\
-    else					\
-      {						\
-	verify (sizeof (c) <= sizeof (unsigned));	\
-	(p) += char_string (c, p);		\
-      }						\
-  } while (false)
 
 
 /* True iff BYTE starts a non-ASCII character in a multibyte form.  */
@@ -365,281 +337,144 @@ MULTIBYTE_LENGTH_NO_CHECK (unsigned char const *p)
 	  : 0);
 }
 
-/* If P is before LIMIT, advance P to the next character boundary.
+
+/* Return number of bytes in the multibyte character just before P.
    Assumes that P is already at a character boundary of the same
-   multibyte form whose end address is LIMIT.  */
+   multibyte form, and is not at the start of that form.  */
 
-#define NEXT_CHAR_BOUNDARY(p, limit)	\
-  do {					\
-    if ((p) < (limit))			\
-      (p) += BYTES_BY_CHAR_HEAD (*(p));	\
-  } while (false)
+INLINE int
+raw_prev_char_len (unsigned char const *p)
+{
+  for (int len = 1; ; len++)
+    if (CHAR_HEAD_P (p[-len]))
+      return len;
+}
 
 
-/* If P is after LIMIT, advance P to the previous character boundary.
-   Assumes that P is already at a character boundary of the same
-   multibyte form whose beginning address is LIMIT.  */
+/* Return the character code of character whose multibyte form is at P,
+   and set *LENGTH to its length.  */
 
-#define PREV_CHAR_BOUNDARY(p, limit)					\
-  do {									\
-    if ((p) > (limit))							\
-      {									\
-	const unsigned char *chp = (p);					\
-	do {								\
-	  chp--;							\
-	} while (chp >= limit && ! CHAR_HEAD_P (*chp));			\
-	(p) = (BYTES_BY_CHAR_HEAD (*chp) == (p) - chp) ? chp : (p) - 1;	\
-      }									\
-  } while (false)
+INLINE int
+string_char_and_length (unsigned char const *p, int *length)
+{
+  int c, len;
+
+  if (! (p[0] & 0x80))
+    {
+      len = 1;
+      c = p[0];
+    }
+  else if (! (p[0] & 0x20))
+    {
+      len = 2;
+      c = ((((p[0] & 0x1F) << 6)
+	    | (p[1] & 0x3F))
+	   + (p[0] < 0xC2 ? 0x3FFF80 : 0));
+    }
+  else if (! (p[0] & 0x10))
+    {
+      len = 3;
+      c = (((p[0] & 0x0F) << 12)
+	   | ((p[1] & 0x3F) << 6)
+	   | (p[2] & 0x3F));
+    }
+  else
+    c = string_char (p, &len);
+
+  eassume (0 < len && len <= MAX_MULTIBYTE_LENGTH);
+  *length = len;
+  return c;
+}
 
 /* Return the character code of character whose multibyte form is at P.  */
 
 INLINE int
 STRING_CHAR (unsigned char const *p)
 {
-  return (!(p[0] & 0x80)
-	  ? p[0]
-	  : ! (p[0] & 0x20)
-	  ? ((((p[0] & 0x1F) << 6)
-	      | (p[1] & 0x3F))
-	     + (p[0] < 0xC2 ? 0x3FFF80 : 0))
-	  : ! (p[0] & 0x10)
-	  ? (((p[0] & 0x0F) << 12)
-	     | ((p[1] & 0x3F) << 6)
-	     | (p[2] & 0x3F))
-	  : string_char (p, NULL, NULL));
+  int len;
+  return string_char_and_length (p, &len);
 }
 
 
-/* Like STRING_CHAR, but set ACTUAL_LEN to the length of multibyte
-   form.  */
+/* Like STRING_CHAR (*PP), but advance *PP to the end of multibyte form.  */
 
-#define STRING_CHAR_AND_LENGTH(p, actual_len)			\
-  (!((p)[0] & 0x80)						\
-   ? ((actual_len) = 1, (p)[0])					\
-   : ! ((p)[0] & 0x20)						\
-   ? ((actual_len) = 2,						\
-      (((((p)[0] & 0x1F) << 6)					\
-	| ((p)[1] & 0x3F))					\
-       + (((unsigned char) (p)[0]) < 0xC2 ? 0x3FFF80 : 0)))	\
-   : ! ((p)[0] & 0x10)						\
-   ? ((actual_len) = 3,						\
-      ((((p)[0] & 0x0F) << 12)					\
-       | (((p)[1] & 0x3F) << 6)					\
-       | ((p)[2] & 0x3F)))					\
-   : string_char ((p), NULL, &actual_len))
+INLINE int
+string_char_advance (unsigned char const **pp)
+{
+  unsigned char const *p = *pp;
+  int len, c = string_char_and_length (p, &len);
+  *pp = p + len;
+  return c;
+}
 
 
-/* Like STRING_CHAR, but advance P to the end of multibyte form.  */
+/* Return the next character from Lisp string STRING at byte position
+   *BYTEIDX, character position *CHARIDX.  Update *BYTEIDX and
+   *CHARIDX past the character fetched.  */
 
-#define STRING_CHAR_ADVANCE(p)					\
-  (!((p)[0] & 0x80)						\
-   ? *(p)++							\
-   : ! ((p)[0] & 0x20)						\
-   ? ((p) += 2,							\
-      ((((p)[-2] & 0x1F) << 6)					\
-       | ((p)[-1] & 0x3F)					\
-       | ((unsigned char) ((p)[-2]) < 0xC2 ? 0x3FFF80 : 0)))	\
-   : ! ((p)[0] & 0x10)						\
-   ? ((p) += 3,							\
-      ((((p)[-3] & 0x0F) << 12)					\
-       | (((p)[-2] & 0x3F) << 6)				\
-       | ((p)[-1] & 0x3F)))					\
-   : string_char ((p), &(p), NULL))
+INLINE int
+fetch_string_char_advance (Lisp_Object string,
+			   ptrdiff_t *charidx, ptrdiff_t *byteidx)
+{
+  int output;
+  ptrdiff_t b = *byteidx;
+  unsigned char *chp = SDATA (string) + b;
+  if (STRING_MULTIBYTE (string))
+    {
+      int chlen;
+      output = string_char_and_length (chp, &chlen);
+      b += chlen;
+    }
+  else
+    {
+      output = *chp;
+      b++;
+    }
+  (*charidx)++;
+  *byteidx = b;
+  return output;
+}
 
-
-/* Fetch the "next" character from Lisp string STRING at byte position
-   BYTEIDX, character position CHARIDX.  Store it into OUTPUT.
-
-   All the args must be side-effect-free.
-   BYTEIDX and CHARIDX must be lvalues;
-   we increment them past the character fetched.  */
-
-#define FETCH_STRING_CHAR_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX)	\
-  do                                                                    \
-    {									\
-      CHARIDX++;							\
-      if (STRING_MULTIBYTE (STRING))					\
-	{								\
-	  unsigned char *chp = &SDATA (STRING)[BYTEIDX];		\
-	  int chlen;							\
-									\
-	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);			\
-	  BYTEIDX += chlen;						\
-	}								\
-      else								\
-	{								\
-	  OUTPUT = SREF (STRING, BYTEIDX);				\
-	  BYTEIDX++;							\
-	}								\
-    }									\
-  while (false)
-
-/* Like FETCH_STRING_CHAR_ADVANCE, but return a multibyte character
+/* Like fetch_string_char_advance, but return a multibyte character
    even if STRING is unibyte.  */
 
-#define FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX) \
-  do                                                                          \
-    {									      \
-      CHARIDX++;							      \
-      if (STRING_MULTIBYTE (STRING))					      \
-	{								      \
-	  unsigned char *chp = &SDATA (STRING)[BYTEIDX];		      \
-	  int chlen;							      \
-									      \
-	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);			      \
-	  BYTEIDX += chlen;						      \
-	}								      \
-      else								      \
-	{								      \
-	  OUTPUT = SREF (STRING, BYTEIDX);				      \
-	  BYTEIDX++;							      \
-	  MAKE_CHAR_MULTIBYTE (OUTPUT);					      \
-	}								      \
-    }									      \
-  while (false)
+INLINE int
+fetch_string_char_as_multibyte_advance (Lisp_Object string,
+					ptrdiff_t *charidx, ptrdiff_t *byteidx)
+{
+  int output;
+  ptrdiff_t b = *byteidx;
+  unsigned char *chp = SDATA (string) + b;
+  if (STRING_MULTIBYTE (string))
+    {
+      int chlen;
+      output = string_char_and_length (chp, &chlen);
+      b += chlen;
+    }
+  else
+    {
+      output = make_char_multibyte (*chp);
+      b++;
+    }
+  (*charidx)++;
+  *byteidx = b;
+  return output;
+}
 
 
-/* Like FETCH_STRING_CHAR_ADVANCE, but assumes STRING is multibyte.  */
+/* Like fetch_string_char_advance, but assumes STRING is multibyte.  */
 
-#define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
-  do    								     \
-    {									     \
-      unsigned char *fetch_ptr = &SDATA (STRING)[BYTEIDX];		     \
-      int fetch_len;							     \
-									     \
-      OUTPUT = STRING_CHAR_AND_LENGTH (fetch_ptr, fetch_len);		     \
-      BYTEIDX += fetch_len;						     \
-      CHARIDX++;							     \
-    }									     \
-  while (false)
-
-
-/* Like FETCH_STRING_CHAR_ADVANCE, but fetch character from the current
-   buffer.  */
-
-#define FETCH_CHAR_ADVANCE(OUTPUT, CHARIDX, BYTEIDX)		\
-  do    							\
-    {								\
-      CHARIDX++;						\
-      if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
-	{							\
-	  unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
-	  int chlen;						\
-								\
-	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);		\
-	  BYTEIDX += chlen;					\
-	}							\
-      else							\
-	{							\
-	  OUTPUT = *(BYTE_POS_ADDR (BYTEIDX));			\
-	  BYTEIDX++;						\
-	}							\
-    }								\
-  while (false)
-
-
-/* Like FETCH_CHAR_ADVANCE, but assumes the current buffer is multibyte.  */
-
-#define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
-  do    							\
-    {								\
-      unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
-      int chlen;							\
-								\
-      OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);		\
-      BYTEIDX += chlen;						\
-      CHARIDX++;						\
-    }								\
-  while (false)
-
-
-/* Increment the buffer byte position POS_BYTE of the current buffer to
-   the next character boundary.  No range checking of POS.  */
-
-#define INC_POS(pos_byte)				\
-  do {							\
-    unsigned char *chp = BYTE_POS_ADDR (pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*chp);		\
-  } while (false)
-
-
-/* Decrement the buffer byte position POS_BYTE of the current buffer to
-   the previous character boundary.  No range checking of POS.  */
-
-#define DEC_POS(pos_byte)			\
-  do {						\
-    unsigned char *chp;				\
-    						\
-    pos_byte--;					\
-    if (pos_byte < GPT_BYTE)			\
-      chp = BEG_ADDR + pos_byte - BEG_BYTE;	\
-    else					\
-      chp = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE; \
-    while (!CHAR_HEAD_P (*chp))			\
-      {						\
-	chp--;					\
-	pos_byte--;				\
-      }						\
-  } while (false)
-
-/* Increment both CHARPOS and BYTEPOS, each in the appropriate way.  */
-
-#define INC_BOTH(charpos, bytepos)				\
-  do								\
-    {								\
-      (charpos)++;						\
-      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
-	(bytepos)++;						\
-      else							\
-	INC_POS ((bytepos));					\
-    }								\
-  while (false)
-
-
-/* Decrement both CHARPOS and BYTEPOS, each in the appropriate way.  */
-
-#define DEC_BOTH(charpos, bytepos)				\
-  do								\
-    {								\
-      (charpos)--;						\
-      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
-	(bytepos)--;						\
-      else							\
-	DEC_POS ((bytepos));					\
-    }								\
-  while (false)
-
-
-/* Increment the buffer byte position POS_BYTE of the current buffer to
-   the next character boundary.  This macro relies on the fact that
-   *GPT_ADDR and *Z_ADDR are always accessible and the values are
-   '\0'.  No range checking of POS_BYTE.  */
-
-#define BUF_INC_POS(buf, pos_byte)				\
-  do {								\
-    unsigned char *chp = BUF_BYTE_ADDRESS (buf, pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*chp);			\
-  } while (false)
-
-
-/* Decrement the buffer byte position POS_BYTE of the current buffer to
-   the previous character boundary.  No range checking of POS_BYTE.  */
-
-#define BUF_DEC_POS(buf, pos_byte)					\
-  do {									\
-    unsigned char *chp;							\
-    pos_byte--;								\
-    if (pos_byte < BUF_GPT_BYTE (buf))					\
-      chp = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
-    else								\
-      chp = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
-    while (!CHAR_HEAD_P (*chp))						\
-      {									\
-	chp--;								\
-	pos_byte--;							\
-      }									\
-  } while (false)
+INLINE int
+fetch_string_char_advance_no_check (Lisp_Object string,
+				    ptrdiff_t *charidx, ptrdiff_t *byteidx)
+{
+  ptrdiff_t b = *byteidx;
+  unsigned char *chp = SDATA (string) + b;
+  int chlen, output = string_char_and_length (chp, &chlen);
+  (*charidx)++;
+  *byteidx = b + chlen;
+  return output;
+}
 
 
 /* If C is a variation selector, return the index of the
@@ -727,10 +562,6 @@ extern bool alphanumericp (int);
 extern bool graphicp (int);
 extern bool printablep (int);
 extern bool blankp (int);
-
-/* Return a translation table of id number ID.  */
-#define GET_TRANSLATION_TABLE(id) \
-  (XCDR (XVECTOR (Vtranslation_table_vector)->contents[(id)]))
 
 /* Look up the element in char table OBJ at index CH, and return it as
    an integer.  If the element is not a character, return CH itself.  */

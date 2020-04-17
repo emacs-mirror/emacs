@@ -285,9 +285,7 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
 
 #define MULTIBYTE_BYTES_WIDTH(p, dp, bytes, width)			\
   do {									\
-    int ch;								\
-    									\
-    ch = STRING_CHAR_AND_LENGTH (p, bytes);				\
+    int ch = string_char_and_length (p, &(bytes));			\
     if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
       width = bytes * 4;						\
     else								\
@@ -942,7 +940,7 @@ position_indentation (ptrdiff_t pos_byte)
 	    if (CHAR_HAS_CATEGORY (c, ' '))
 	      {
 		column++;
-		INC_POS (pos_byte);
+		pos_byte += next_char_len (pos_byte);
 		p = BYTE_POS_ADDR (pos_byte);
 	      }
 	    else
@@ -961,7 +959,7 @@ indented_beyond_p (ptrdiff_t pos, ptrdiff_t pos_byte, EMACS_INT column)
 {
   while (pos > BEGV && FETCH_BYTE (pos_byte) == '\n')
     {
-      DEC_BOTH (pos, pos_byte);
+      dec_both (&pos, &pos_byte);
       pos = find_newline (pos, pos_byte, BEGV, BEGV_BYTE,
 			  -1, NULL, &pos_byte, 0);
     }
@@ -1010,7 +1008,7 @@ The return value is the current column.  */)
       int c;
       ptrdiff_t pos_byte = PT_BYTE;
 
-      DEC_POS (pos_byte);
+      pos_byte -= prev_char_len (pos_byte);
       c = FETCH_CHAR (pos_byte);
       if (c == '\t' && prev_col < goal)
 	{
@@ -1605,7 +1603,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 			    {
 			      pos = find_before_next_newline (pos, to, 1, &pos_byte);
 			      if (pos < to)
-				INC_BOTH (pos, pos_byte);
+				inc_both (&pos, &pos_byte);
 			      rarely_quit (++quit_count);
 			    }
 			  while (pos < to
@@ -1618,7 +1616,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 			      if (hpos >= width)
 				hpos = width;
 			    }
-			  DEC_BOTH (pos, pos_byte);
+			  dec_both (&pos, &pos_byte);
 			  /* We have skipped the invis text, but not the
 			     newline after.  */
 			}
@@ -1820,8 +1818,8 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 static struct position val_vmotion;
 
 struct position *
-vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
-	 register EMACS_INT vtarget, struct window *w)
+vmotion (ptrdiff_t from, ptrdiff_t from_byte,
+	 EMACS_INT vtarget, struct window *w)
 {
   ptrdiff_t hscroll = w->hscroll;
   struct position pos;
@@ -1862,7 +1860,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 	  Lisp_Object propval;
 
 	  prevline = from;
-	  DEC_BOTH (prevline, bytepos);
+	  dec_both (&prevline, &bytepos);
 	  prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
 
 	  while (prevline > BEGV
@@ -1875,7 +1873,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
 	    {
-	      DEC_BOTH (prevline, bytepos);
+	      dec_both (&prevline, &bytepos);
 	      prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
 	    }
 	  pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
@@ -1925,7 +1923,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
 	{
-	  DEC_BOTH (prevline, bytepos);
+	  dec_both (&prevline, &bytepos);
 	  prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
 	}
       pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,

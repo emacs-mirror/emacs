@@ -170,7 +170,6 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
   ptrdiff_t hash_index;
   enum composition_method method;
   struct composition *cmp;
-  ptrdiff_t i;
   int ch;
 
   /* Maximum length of a string of glyphs.  XftGlyphExtents limits
@@ -224,15 +223,15 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     {
       key = make_uninit_vector (nchars);
       if (STRINGP (string))
-	for (i = 0; i < nchars; i++)
+	for (ptrdiff_t i = 0; i < nchars; i++)
 	  {
-	    FETCH_STRING_CHAR_ADVANCE (ch, string, charpos, bytepos);
+	    ch = fetch_string_char_advance (string, &charpos, &bytepos);
 	    ASET (key, i, make_fixnum (ch));
 	  }
       else
-	for (i = 0; i < nchars; i++)
+	for (ptrdiff_t i = 0; i < nchars; i++)
 	  {
-	    FETCH_CHAR_ADVANCE (ch, charpos, bytepos);
+	    ch = fetch_char_advance (&charpos, &bytepos);
 	    ASET (key, i, make_fixnum (ch));
 	  }
     }
@@ -273,7 +272,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
       /* COMPONENTS is a glyph-string.  */
       ptrdiff_t len = ASIZE (key);
 
-      for (i = 1; i < len; i++)
+      for (ptrdiff_t i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
 	  goto invalid_composition;
     }
@@ -286,7 +285,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	goto invalid_composition;
       /* All elements should be integers (character or encoded
          composition rule).  */
-      for (i = 0; i < len; i++)
+      for (ptrdiff_t i = 0; i < len; i++)
 	{
 	  if (!FIXNUMP (key_contents[i]))
 	    goto invalid_composition;
@@ -328,7 +327,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     {
       /* Relative composition.  */
       cmp->width = 0;
-      for (i = 0; i < glyph_len; i++)
+      for (ptrdiff_t i = 0; i < glyph_len; i++)
 	{
 	  int this_width;
 	  ch = XFIXNUM (key_contents[i]);
@@ -347,7 +346,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
       ch = XFIXNUM (key_contents[0]);
       rightmost = ch != '\t' ? CHARACTER_WIDTH (ch) : 1;
 
-      for (i = 1; i < glyph_len; i += 2)
+      for (ptrdiff_t i = 1; i < glyph_len; i += 2)
 	{
 	  int rule, gref, nref;
 	  int this_width;
@@ -800,12 +799,10 @@ fill_gstring_header (ptrdiff_t from, ptrdiff_t from_byte,
   ASET (header, 0, font_object);
   for (ptrdiff_t i = 0; i < len; i++)
     {
-      int c;
-
-      if (NILP (string))
-	FETCH_CHAR_ADVANCE_NO_CHECK (c, from, from_byte);
-      else
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, from, from_byte);
+      int c
+	= (NILP (string)
+	   ? fetch_char_advance_no_check (&from, &from_byte)
+	   : fetch_string_char_advance_no_check (string, &from, &from_byte));
       ASET (header, i + 1, make_fixnum (c));
     }
   return header;
@@ -1012,10 +1009,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       /* Forward search.  */
       while (charpos < endpos)
 	{
-	  if (STRINGP (string))
-	    FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
-	  else
-	    FETCH_CHAR_ADVANCE (c, charpos, bytepos);
+	  c = (STRINGP (string)
+	       ? fetch_string_char_advance (string, &charpos, &bytepos)
+	       : fetch_char_advance (&charpos, &bytepos));
 	  if (c == '\n')
 	    {
 	      cmp_it->ch = -2;
@@ -1070,7 +1066,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	p = BYTE_POS_ADDR (bytepos);
       else
 	p = SDATA (string) + bytepos;
-      c = STRING_CHAR_AND_LENGTH (p, len);
+      c = string_char_and_length (p, &len);
       limit = bytepos + len;
       while (char_composable_p (c))
 	{
@@ -1132,7 +1128,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	    }
 	  else
 	    {
-	      DEC_BOTH (charpos, bytepos);
+	      dec_both (&charpos, &bytepos);
 	      p = BYTE_POS_ADDR (bytepos);
 	    }
 	  c = STRING_CHAR (p);
@@ -1145,7 +1141,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	{
 	  while (charpos - 1 > endpos && ! char_composable_p (c))
 	    {
-	      DEC_BOTH (charpos, bytepos);
+	      dec_both (&charpos, &bytepos);
 	      c = FETCH_MULTIBYTE_CHAR (bytepos);
 	    }
 	}
@@ -1290,7 +1286,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
     {
       charpos++;
       if (NILP (string))
-	INC_POS (bytepos);
+	bytepos += next_char_len (bytepos);
       else
 	bytepos += BYTES_BY_CHAR_HEAD (*(SDATA (string) + bytepos));
     }

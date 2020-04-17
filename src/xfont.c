@@ -166,7 +166,7 @@ xfont_encode_coding_xlfd (char *xlfd)
 
   while (*p0)
     {
-      int c = STRING_CHAR_ADVANCE (p0);
+      int c = string_char_advance (&p0);
 
       if (c >= 0x100)
 	return -1;

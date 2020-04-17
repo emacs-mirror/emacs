@@ -389,7 +389,7 @@ internal_self_insert (int c, EMACS_INT n)
 		  /* We will delete too many columns.  Let's fill columns
 		     by spaces so that the remaining text won't move.  */
 		  ptrdiff_t actual = PT_BYTE;
-		  DEC_POS (actual);
+		  actual -= prev_char_len (actual);
 		  if (FETCH_CHAR (actual) == '\t')
 		    /* Rather than add spaces, let's just keep the tab. */
 		    chars_to_delete--;

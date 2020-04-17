@@ -58,7 +58,7 @@
 #define RE_STRING_CHAR(p, multibyte) \
   (multibyte ? STRING_CHAR (p) : *(p))
 #define RE_STRING_CHAR_AND_LENGTH(p, len, multibyte) \
-  (multibyte ? STRING_CHAR_AND_LENGTH (p, len) : ((len) = 1, *(p)))
+  (multibyte ? string_char_and_length (p, &(len)) : ((len) = 1, *(p)))
 
 #define RE_CHAR_TO_MULTIBYTE(c) UNIBYTE_TO_CHAR (c)
 
@@ -89,7 +89,7 @@
 #define GET_CHAR_AFTER(c, p, len)		\
   do {						\
     if (target_multibyte)			\
-      (c) = STRING_CHAR_AND_LENGTH (p, len);	\
+      (c) = string_char_and_length (p, &(len));	\
     else					\
       {						\
 	(c) = *p;				\
@@ -3167,10 +3167,6 @@ re_search (struct re_pattern_buffer *bufp, const char *string, ptrdiff_t size,
 		      regs, size);
 }
 
-/* Head address of virtual concatenation of string.  */
-#define HEAD_ADDR_VSTRING(P)		\
-  (((P) >= size1 ? string2 : string1))
-
 /* Address of POS in the concatenation of virtual string. */
 #define POS_ADDR_VSTRING(POS)					\
   (((POS) >= size1 ? string2 - size1 : string1) + (POS))
@@ -3300,7 +3296,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, ptrdiff_t size1,
 		      {
 			int buf_charlen;
 
-			buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
+			buf_ch = string_char_and_length (d, &buf_charlen);
 			buf_ch = RE_TRANSLATE (translate, buf_ch);
 			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
 			  break;
@@ -3330,7 +3326,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, ptrdiff_t size1,
 		      {
 			int buf_charlen;
 
-			buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
+			buf_ch = string_char_and_length (d, &buf_charlen);
 			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
 			  break;
 			range -= buf_charlen;
@@ -3413,16 +3409,12 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, ptrdiff_t size1,
 	  if (multibyte)
 	    {
 	      re_char *p = POS_ADDR_VSTRING (startpos) + 1;
-	      re_char *p0 = p;
-	      re_char *phead = HEAD_ADDR_VSTRING (startpos);
+	      int len = raw_prev_char_len (p);
 
-	      /* Find the head of multibyte form.  */
-	      PREV_CHAR_BOUNDARY (p, phead);
-	      range += p0 - 1 - p;
+	      range += len - 1;
 	      if (range > 0)
 		break;
-
-	      startpos -= p0 - 1 - p;
+	      startpos -= len - 1;
 	    }
 	}
     }
@@ -4218,13 +4210,13 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 		PREFETCH ();
 		if (multibyte)
-		  pat_ch = STRING_CHAR_AND_LENGTH (p, pat_charlen);
+		  pat_ch = string_char_and_length (p, &pat_charlen);
 		else
 		  {
 		    pat_ch = RE_CHAR_TO_MULTIBYTE (*p);
 		    pat_charlen = 1;
 		  }
-		buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
+		buf_ch = string_char_and_length (d, &buf_charlen);
 
 		if (TRANSLATE (buf_ch) != pat_ch)
 		  {
@@ -4246,7 +4238,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		PREFETCH ();
 		if (multibyte)
 		  {
-		    pat_ch = STRING_CHAR_AND_LENGTH (p, pat_charlen);
+		    pat_ch = string_char_and_length (p, &pat_charlen);
 		    pat_ch = RE_CHAR_TO_UNIBYTE (pat_ch);
 		  }
 		else

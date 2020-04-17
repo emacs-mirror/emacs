@@ -225,8 +225,9 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
-	  BUF_INC_POS (inbuffer, pt_byte);
-	  c = STRING_CHAR (p);
+	  int clen;
+	  c = string_char_and_length (p, &clen);
+	  pt_byte += clen;
 	  if (multibyte)
 	    *multibyte = 1;
 	}
@@ -254,8 +255,9 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
-	  BUF_INC_POS (inbuffer, bytepos);
-	  c = STRING_CHAR (p);
+	  int clen;
+	  c = string_char_and_length (p, &clen);
+	  bytepos += clen;
 	  if (multibyte)
 	    *multibyte = 1;
 	}
@@ -294,9 +296,10 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 	{
 	  if (multibyte)
 	    *multibyte = 1;
-	  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, readcharfun,
-					      read_from_string_index,
-					      read_from_string_index_byte);
+	  c = (fetch_string_char_advance_no_check
+	       (readcharfun,
+		&read_from_string_index,
+		&read_from_string_index_byte));
 	}
       else
 	{
@@ -427,7 +430,7 @@ unreadchar (Lisp_Object readcharfun, int c)
       ptrdiff_t bytepos = BUF_PT_BYTE (b);
 
       if (! NILP (BVAR (b, enable_multibyte_characters)))
-	BUF_DEC_POS (b, bytepos);
+	bytepos -= buf_prev_char_len (b, bytepos);
       else
 	bytepos--;
 
@@ -440,7 +443,7 @@ unreadchar (Lisp_Object readcharfun, int c)
 
       XMARKER (readcharfun)->charpos--;
       if (! NILP (BVAR (b, enable_multibyte_characters)))
-	BUF_DEC_POS (b, bytepos);
+	bytepos -= buf_prev_char_len (b, bytepos);
       else
 	bytepos--;
 
@@ -526,13 +529,11 @@ readbyte_from_string (int c, Lisp_Object readcharfun)
 	= string_char_to_byte (string, read_from_string_index);
     }
 
-  if (read_from_string_index >= read_from_string_limit)
-    c = -1;
-  else
-    FETCH_STRING_CHAR_ADVANCE (c, string,
-			       read_from_string_index,
-			       read_from_string_index_byte);
-  return c;
+  return (read_from_string_index < read_from_string_limit
+	  ? fetch_string_char_advance (string,
+				       &read_from_string_index,
+				       &read_from_string_index_byte)
+	  : -1);
 }
 
 

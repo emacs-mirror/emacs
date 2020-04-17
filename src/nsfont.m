@@ -1090,7 +1090,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         twidth += cwidth;
 #ifdef NS_IMPL_GNUSTEP
         *adv++ = cwidth;
-        CHAR_STRING_ADVANCE (*t, c); /* This converts the char to UTF-8.  */
+        c += CHAR_STRING (*t, c); /* This converts the char to UTF-8.  */
 #else
         (*adv++).width = cwidth;
 #endif

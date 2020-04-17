@@ -328,14 +328,13 @@ ftcrfont_encode_char (struct font *font, int c)
   struct font_info *ftcrfont_info = (struct font_info *) font;
   unsigned code = FONT_INVALID_CODE;
   unsigned char utf8[MAX_MULTIBYTE_LENGTH];
-  unsigned char *p = utf8;
+  int utf8len = CHAR_STRING (c, utf8);
   cairo_glyph_t stack_glyph;
   cairo_glyph_t *glyphs = &stack_glyph;
   int num_glyphs = 1;
 
-  CHAR_STRING_ADVANCE (c, p);
   if (cairo_scaled_font_text_to_glyphs (ftcrfont_info->cr_scaled_font, 0, 0,
-					(char *) utf8, p - utf8,
+					(char *) utf8, utf8len,
 					&glyphs, &num_glyphs,
 					NULL, NULL, NULL)
       == CAIRO_STATUS_SUCCESS)

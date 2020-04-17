@@ -382,10 +382,10 @@ count_bytes (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t endpos)
 
   if (pos <= endpos)
     for ( ; pos < endpos; pos++)
-      INC_POS (bytepos);
+      bytepos += next_char_len (bytepos);
   else
     for ( ; pos > endpos; pos--)
-      DEC_POS (bytepos);
+      bytepos -= prev_char_len (bytepos);
 
   return bytepos;
 }
@@ -626,8 +626,7 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
 
       while (bytes_left > 0)
 	{
-	  int thislen, c;
-	  c = STRING_CHAR_AND_LENGTH (from_addr, thislen);
+	  int thislen, c = string_char_and_length (from_addr, &thislen);
 	  if (! ASCII_CHAR_P (c))
 	    c &= 0xFF;
 	  *to_addr++ = c;
