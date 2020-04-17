@@ -160,6 +160,10 @@ If value is `verbose', the computed score is shown for each match."
     ;; definition of RET, so that users can use it anywhere in an
     ;; apropos item, not just on top of a button.
     (define-key map "\C-m" 'apropos-follow)
+
+    ;; Movement keys
+    (define-key map "n" 'apropos-next-symbol)
+    (define-key map "p" 'apropos-previous-symbol)
     map)
   "Keymap used in Apropos mode.")
 
@@ -1270,6 +1274,21 @@ as a heading."
    (or (apropos-next-label-button (line-beginning-position))
        (error "There is nothing to follow here"))))
 
+(defun apropos-next-symbol ()
+  "Move cursor down to the next symbol in an apropos-mode buffer."
+  (interactive)
+  (forward-line)
+  (while (and (not (eq (face-at-point) 'apropos-symbol))
+              (< (point) (point-max)))
+    (forward-line)))
+
+(defun apropos-previous-symbol ()
+  "Move cursor back to the last symbol in an apropos-mode buffer."
+  (interactive)
+  (forward-line -1)
+  (while (and (not (eq (face-at-point) 'apropos-symbol))
+              (> (point) (point-min)))
+    (forward-line -1)))
 
 (defun apropos-describe-plist (symbol)
   "Display a pretty listing of SYMBOL's plist."
