@@ -1441,7 +1441,7 @@ scan_words (ptrdiff_t from, EMACS_INT count)
   int ch0, ch1;
   Lisp_Object func, pos;
 
-  SETUP_SYNTAX_TABLE (from, count);
+  SETUP_SYNTAX_TABLE (from, clip_to_bounds (PTRDIFF_MIN, count, PTRDIFF_MAX));
 
   while (count > 0)
     {
@@ -2434,7 +2434,7 @@ between them, return t; otherwise return nil.  */)
   from = PT;
   from_byte = PT_BYTE;
 
-  SETUP_SYNTAX_TABLE (from, count1);
+  SETUP_SYNTAX_TABLE (from, clip_to_bounds (PTRDIFF_MIN, count1, PTRDIFF_MAX));
   while (count1 > 0)
     {
       do
@@ -2624,7 +2624,7 @@ syntax_multibyte (int c, bool multibyte_symbol_p)
 }
 
 static Lisp_Object
-scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
+scan_lists (EMACS_INT from0, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 {
   Lisp_Object val;
   ptrdiff_t stop = count > 0 ? ZV : BEGV;
@@ -2637,7 +2637,7 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
   int comstyle = 0;		/* Style of comment encountered.  */
   bool comnested = 0;		/* Whether the comment is nestable or not.  */
   ptrdiff_t temp_pos;
-  EMACS_INT last_good = from;
+  EMACS_INT last_good = from0;
   bool found;
   ptrdiff_t from_byte;
   ptrdiff_t out_bytepos, out_charpos;
@@ -2648,14 +2648,13 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 
   if (depth > 0) min_depth = 0;
 
-  if (from > ZV) from = ZV;
-  if (from < BEGV) from = BEGV;
+  ptrdiff_t from = clip_to_bounds (BEGV, from0, ZV);
 
   from_byte = CHAR_TO_BYTE (from);
 
   maybe_quit ();
 
-  SETUP_SYNTAX_TABLE (from, count);
+  SETUP_SYNTAX_TABLE (from, clip_to_bounds (PTRDIFF_MIN, count, PTRDIFF_MAX));
   while (count > 0)
     {
       while (from < stop)

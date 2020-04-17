@@ -2600,49 +2600,45 @@ usage: (nconc &rest LISTS)  */)
 static EMACS_INT
 mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 {
-  Lisp_Object tail, dummy;
-  EMACS_INT i;
-
   if (VECTORP (seq) || COMPILEDP (seq))
     {
-      for (i = 0; i < leni; i++)
+      for (ptrdiff_t i = 0; i < leni; i++)
 	{
-	  dummy = call1 (fn, AREF (seq, i));
+	  Lisp_Object dummy = call1 (fn, AREF (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
     }
   else if (BOOL_VECTOR_P (seq))
     {
-      for (i = 0; i < leni; i++)
+      for (EMACS_INT i = 0; i < leni; i++)
 	{
-	  dummy = call1 (fn, bool_vector_ref (seq, i));
+	  Lisp_Object dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
     }
   else if (STRINGP (seq))
     {
-      ptrdiff_t i_byte;
+      ptrdiff_t i_byte = 0;
 
-      for (i = 0, i_byte = 0; i < leni;)
+      for (ptrdiff_t i = 0; i < leni;)
 	{
 	  ptrdiff_t i_before = i;
 	  int c = fetch_string_char_advance (seq, &i, &i_byte);
-	  XSETFASTINT (dummy, c);
-	  dummy = call1 (fn, dummy);
+	  Lisp_Object dummy = call1 (fn, make_fixnum (c));
 	  if (vals)
 	    vals[i_before] = dummy;
 	}
     }
   else   /* Must be a list, since Flength did not get an error */
     {
-      tail = seq;
-      for (i = 0; i < leni; i++)
+      Lisp_Object tail = seq;
+      for (ptrdiff_t i = 0; i < leni; i++)
 	{
 	  if (! CONSP (tail))
 	    return i;
-	  dummy = call1 (fn, XCAR (tail));
+	  Lisp_Object dummy = call1 (fn, XCAR (tail));
 	  if (vals)
 	    vals[i] = dummy;
 	  tail = XCDR (tail);
