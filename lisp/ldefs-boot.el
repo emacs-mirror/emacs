@@ -27873,7 +27873,7 @@ Directory for additional secondary Rmail files.")
 
 (custom-autoload 'rmail-secondary-file-directory "rmail" t)
 
-(defvar rmail-secondary-file-regexp (purecopy "\\.xmail$") "\
+(defvar rmail-secondary-file-regexp (purecopy "\\.xmail\\'") "\
 Regexp for which files are secondary Rmail files.")
 
 (custom-autoload 'rmail-secondary-file-regexp "rmail" t)

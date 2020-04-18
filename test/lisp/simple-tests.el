@@ -766,7 +766,7 @@ See Bug#21722."
             (,output-buf (if ,output-buffer-is-current ,caller-buf
                            (generate-new-buffer "output-buf")))
             (emacs (expand-file-name invocation-name invocation-directory))
-            (,command (format "%s -Q --batch --eval '(princ \"%s\")'"
+            (,command (format "%s -Q --batch --eval \"(princ \\\"%s\\\")\""
                               emacs ,str))
             (inhibit-message t))
        (unwind-protect
@@ -803,7 +803,7 @@ See Bug#21722."
          (expected-point `((beg-last-out . ,(1+ (length str)))
                            (end-last-out . ,(1+ (* 2 (length str))))
                            (save-point . 1))))
-    (dolist (output-buffer-is-current '(t ni))
+    (dolist (output-buffer-is-current '(nil))
       (with-shell-command-dont-erase-buffer str output-buffer-is-current
         (when (memq shell-command-dont-erase-buffer '(beg-last-out end-last-out save-point))
           (should (= (point) (alist-get shell-command-dont-erase-buffer expected-point))))))))
