@@ -2659,7 +2659,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.org\\'" . org-mode)
      ;; .dir-locals.el is not really elisp.  Can't use the
      ;; `dir-locals-file' constant since that is defined below.
-     (".dir-locals.el" . lisp-data-mode)
+     (".dir-locals\\(-2\\)?.el" . lisp-data-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("Project\\.ede\\'" . emacs-lisp-mode)
      ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
