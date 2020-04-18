@@ -3611,7 +3611,7 @@ that is non-nil."
 ;;; "flex" completion, also known as flx/fuzzy/scatter completion
 ;; Completes "foo" to "frodo" and "farfromsober"
 
-(defcustom completion-flex-nospace t
+(defcustom completion-flex-nospace nil
   "Non-nil if `flex' completion rejects spaces in search pattern."
   :version "27.1"
   :type 'boolean)
