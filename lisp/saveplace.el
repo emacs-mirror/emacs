@@ -248,7 +248,7 @@ may have changed) back to `save-place-alist'."
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
 	(save-place-forget-unreadable-files))
-      (insert (format ";;; -*- coding: %s -*-\n"
+      (insert (format ";;; -*- coding: %s mode: lisp-data -*-\n"
                       (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))

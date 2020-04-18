@@ -472,7 +472,7 @@ used to cache connection properties of the local machine."
 	;; Dump it.
 	(with-temp-file tramp-persistency-file-name
 	  (insert
-	   ";; -*- emacs-lisp -*-"
+	   ";; -*- lisp-data -*-"
 	   ;; `time-stamp-string' might not exist in all Emacs flavors.
 	   (condition-case nil
 	       (progn
