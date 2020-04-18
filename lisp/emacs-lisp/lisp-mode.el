@@ -611,8 +611,9 @@ Value for `adaptive-fill-function'."
   ;; a single docstring.  Let's fix it here.
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
-(defun lisp-mode-variables ()
-  "Common initialization routine for lisp modes."
+(defun lisp-mode-variables (&rest ignored)
+  "Common initialization routine for lisp modes.
+Any number of parameters is accepted and ignored."
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   (setq-local adaptive-fill-function #'lisp-adaptive-fill)

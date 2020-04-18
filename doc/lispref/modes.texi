@@ -1356,9 +1356,9 @@ each calls the following function to set various variables:
 
 @smallexample
 @group
-(defun lisp-mode-variables (&optional syntax keywords-case-insensitive elisp)
-  (when syntax
-    (set-syntax-table lisp-mode-syntax-table))
+(defun lisp-mode-variables ()
+  "Common initialization routine for lisp modes."
+  (setq-local paragraph-ignore-fill-prefix t)
   @dots{}
 @end group
 @end smallexample
@@ -1414,7 +1414,7 @@ Finally, here is the major mode command for Lisp mode:
 
 @smallexample
 @group
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -1425,7 +1425,7 @@ Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
 @end group
 @group
-  (lisp-mode-variables nil t)
+  (lisp-mode-variables)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
               "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
