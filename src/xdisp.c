@@ -9898,9 +9898,13 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		 This could happen when the first display element is
 		 wider than the window, or if we have a wrap-prefix
 		 that doesn't leave enough space after it to display
-		 even a single character.  */
+		 even a single character.  We only do this for moving
+		 through buffer text, as with display/overlay strings
+		 we'd need to also compare it->object's, and this is
+		 unlikely to happen in that case anyway.  */
 	      if (IT_CHARPOS (*it) == orig_charpos
-		  && it->method == orig_method)
+		  && it->method == orig_method
+		  && orig_method == GET_FROM_BUFFER)
 		set_iterator_to_next (it, false);
 	      it->continuation_lines_width += it->current_x;
 	    }
