@@ -1441,10 +1441,10 @@ Here is an example showing a keymap before and after substitution:
 
 @smallexample
 @group
-(setq map '(keymap
-            (?1 . olddef-1)
-            (?2 . olddef-2)
-            (?3 . olddef-1)))
+(setq map (list 'keymap
+                (cons ?1 olddef-1)
+                (cons ?2 olddef-2)
+                (cons ?3 olddef-1)))
 @result{} (keymap (49 . olddef-1) (50 . olddef-2) (51 . olddef-1))
 @end group
 

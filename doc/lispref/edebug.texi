@@ -858,7 +858,7 @@ to a non-@code{nil} value.
   Here is an example of code that creates a circular structure:
 
 @example
-(setq a '(x y))
+(setq a (list 'x 'y))
 (setcar a a)
 @end example
 
