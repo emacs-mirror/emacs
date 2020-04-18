@@ -12429,7 +12429,6 @@ prepare_menu_bars (void)
 	    continue;
 
 	  if (!FRAME_TOOLTIP_P (f)
-	      && !FRAME_PARENT_FRAME (f)
 	      && (FRAME_ICONIFIED_P (f)
 		  || FRAME_VISIBLE_P (f) == 1
 		  /* Exclude TTY frames that are obscured because they
@@ -12475,10 +12474,9 @@ prepare_menu_bars (void)
 	      && !XBUFFER (w->contents)->text->redisplay)
 	    continue;
 
-	  if (FRAME_PARENT_FRAME (f))
-	    continue;
+	  if (!FRAME_PARENT_FRAME (f))
+	    menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
 
-	  menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
 	  update_tab_bar (f, false);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, false);
@@ -12490,7 +12488,10 @@ prepare_menu_bars (void)
   else
     {
       struct frame *sf = SELECTED_FRAME ();
-      update_menu_bar (sf, true, false);
+
+      if (!FRAME_PARENT_FRAME (sf))
+	update_menu_bar (sf, true, false);
+
       update_tab_bar (sf, true);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, true);
