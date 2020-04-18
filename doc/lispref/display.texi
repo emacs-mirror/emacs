@@ -4361,7 +4361,7 @@ height.
 @end defun
 
 @defun destroy-fringe-bitmap bitmap
-This function destroy the fringe bitmap identified by @var{bitmap}.
+This function destroys the fringe bitmap identified by @var{bitmap}.
 If @var{bitmap} identifies a standard fringe bitmap, it actually
 restores the standard definition of that bitmap, instead of
 eliminating it entirely.
