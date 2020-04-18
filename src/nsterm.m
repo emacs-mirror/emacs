@@ -1875,7 +1875,7 @@ ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
          FIXME: Surely there's a better way than just hardcoding 100
          in here?  */
-      boundsRect.origin.x = 100;
+      topLeft.x = 100;
 #endif
     }
 
