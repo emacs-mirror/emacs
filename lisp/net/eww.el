@@ -1733,7 +1733,7 @@ If CHARSET is nil then use UTF-8."
 
 (defun eww-write-bookmarks ()
   (with-temp-file (expand-file-name "eww-bookmarks" eww-bookmarks-directory)
-    (insert ";; Auto-generated file; don't edit\n")
+    (insert ";; Auto-generated file; don't edit -*- mode: lisp-data -*-\n")
     (pp eww-bookmarks (current-buffer))))
 
 (defun eww-read-bookmarks ()

@@ -1352,19 +1352,11 @@ illustrate how these modes are written.
 @end smallexample
 
   The three modes for Lisp share much of their code.  For instance,
-each calls the following function to set various variables:
-
-@smallexample
-@group
-(defun lisp-mode-variables (&optional syntax keywords-case-insensitive elisp)
-  (when syntax
-    (set-syntax-table lisp-mode-syntax-table))
-  @dots{}
-@end group
-@end smallexample
+Lisp mode and Emacs Lisp mode inherit from Lisp Data mode and Lisp
+Interaction Mode inherits from Emacs Lisp mode.
 
 @noindent
-Amongst other things, this function sets up the @code{comment-start}
+Amongst other things, Lisp Data mode sets up the @code{comment-start}
 variable to handle Lisp comments:
 
 @smallexample
@@ -1414,7 +1406,7 @@ Finally, here is the major mode command for Lisp mode:
 
 @smallexample
 @group
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -1425,7 +1417,6 @@ Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
 @end group
 @group
-  (lisp-mode-variables nil t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
               "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")

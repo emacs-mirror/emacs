@@ -250,7 +250,7 @@ Comments in the form will be lost."
     map))
 
 ;;;###autoload
-(define-derived-mode emacs-lisp-mode prog-mode
+(define-derived-mode emacs-lisp-mode lisp-data-mode
   `("ELisp"
     (lexical-binding (:propertize "/l"
                       help-echo "Using lexical-binding mode")
@@ -268,35 +268,26 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{emacs-lisp-mode-map}"
   :group 'lisp
   (defvar project-vc-external-roots-function)
-  (lisp-mode-variables nil nil 'elisp)
+  (setcar font-lock-defaults
+          '(lisp-el-font-lock-keywords
+            lisp-el-font-lock-keywords-1
+            lisp-el-font-lock-keywords-2))
+  (setf (nth 2 font-lock-defaults) nil)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (if (boundp 'electric-pair-text-pairs)
       (setq-local electric-pair-text-pairs
                   (append '((?\` . ?\') (?\‘ . ?\’))
                           electric-pair-text-pairs))
     (add-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
-  (setq-local electric-quote-string t)
-  (setq imenu-case-fold-search nil)
   (add-hook 'eldoc-documentation-functions
             #'elisp-eldoc-documentation-function nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
-  ;; .dir-locals.el and lock files will cause the byte-compiler and
-  ;; checkdoc emit spurious warnings, because they don't follow the
-  ;; conventions of Emacs Lisp sources.  Until we have a better fix,
-  ;; like teaching elisp-mode about files that only hold data
-  ;; structures, we disable the ELisp Flymake backend for these files.
-  (unless
-      (let* ((bfname (buffer-file-name))
-             (fname (and (stringp bfname) (file-name-nondirectory bfname))))
-        (and (stringp fname)
-             (or (string-match "\\`\\.#" fname)
-                 (string-equal dir-locals-file fname))))
-    (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
-    (add-hook 'flymake-diagnostic-functions
-              #'elisp-flymake-byte-compile nil t)))
+  (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
+  (add-hook 'flymake-diagnostic-functions
+              #'elisp-flymake-byte-compile nil t))
 
 ;; Font-locking support.
 

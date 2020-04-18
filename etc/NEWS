@@ -291,6 +291,12 @@ These new navigation commands are bound to 'n' and 'p' in
 
 * New Modes and Packages in Emacs 28.1
 
+*** Lisp Data mode
+The new command 'lisp-data-mode' enables a major mode for buffers
+composed of Lisp symbolic expressions that do not form a computer
+program.  The '.dir-locals.el' file is automatically set to use this
+mode, as are other data files produced by Emacs.
+
 
 * Incompatible Editing Changes in Emacs 28.1
 
