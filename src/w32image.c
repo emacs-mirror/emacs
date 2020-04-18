@@ -245,27 +245,33 @@ w32_frame_delay (GpBitmap *pBitmap, int frame)
 {
   UINT size;
   PropertyItem *propertyItem;
-  double delay = 0.0;
+  double delay = -1.0;
 
   /* Assume that the image has a property item of type PropertyItemEquipMake.
-     Get the size of that property item.  */
-  GdipGetPropertyItemSize (pBitmap, PropertyTagFrameDelay, &size);
+     Get the size of that property item.  This can fail for multi-frame TIFF
+     images.  */
+  GpStatus status = GdipGetPropertyItemSize (pBitmap, PropertyTagFrameDelay,
+					     &size);
 
-  /* Allocate a buffer to receive the property item.  */
-  propertyItem = malloc (size);
-  if (propertyItem != NULL)
+  if (status == Ok)
     {
-      /* Get the property item.  */
-      GdipGetPropertyItem (pBitmap, PropertyTagFrameDelay, size, propertyItem);
-      delay = decode_delay (propertyItem, frame);
-      if (delay <= 0)
-        {
-          /* In GIF files, unfortunately, delay is only specified for the first
-             frame.  */
-          delay = decode_delay (propertyItem, 0);
-        }
-      delay /= 100.0;
-      free (propertyItem);
+      /* Allocate a buffer to receive the property item.  */
+      propertyItem = malloc (size);
+      if (propertyItem != NULL)
+	{
+	  /* Get the property item.  */
+	  GdipGetPropertyItem (pBitmap, PropertyTagFrameDelay, size,
+			       propertyItem);
+	  delay = decode_delay (propertyItem, frame);
+	  if (delay <= 0)
+	    {
+	      /* In GIF files, unfortunately, delay is only specified
+		 for the first frame.  */
+	      delay = decode_delay (propertyItem, 0);
+	    }
+	  delay /= 100.0;
+	  free (propertyItem);
+	}
     }
   return delay;
 }
@@ -372,7 +378,7 @@ w32_load_image (struct frame *f, struct image *img,
         {
           if (nframes > 1)
             metadata = Fcons (Qcount, Fcons (make_fixnum (nframes), metadata));
-          if (delay)
+          if (delay >= 0)
             metadata = Fcons (Qdelay, Fcons (make_float (delay), metadata));
         }
       else if (status == Win32Error) /* FIXME! */
