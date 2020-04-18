@@ -740,10 +740,11 @@ creates the file @file{foo} and produces no terminal output.
 
   A numeric argument to @code{shell-command}, e.g., @kbd{M-1 M-!},
 causes it to insert terminal output into the current buffer instead of
-a separate buffer.  It puts point before the output, and sets the mark
-after the output.  For instance, @kbd{M-1 M-! gunzip < foo.gz
-@key{RET}} would insert the uncompressed form of the file
-@file{foo.gz} into the current buffer.
+a separate buffer.  By default, it puts point before the output, and
+sets the mark after the output (but a non-default value of
+@code{shell-command-dont-erase-buffer} can change that, see below).
+For instance, @kbd{M-1 M-! gunzip < foo.gz @key{RET}} would insert the
+uncompressed form of the file @file{foo.gz} into the current buffer.
 
   Provided the specified shell command does not end with @samp{&}, it
 runs @dfn{synchronously}, and you must wait for it to exit before
@@ -829,11 +830,21 @@ inserted into a buffer of that name.
   By default, the output buffer is erased between shell commands, except
 when the output goes to the current buffer.  If you change the value
 of the option @code{shell-command-dont-erase-buffer} to @code{erase},
-then the output buffer is always erased.  Any other non-@code{nil}
-value prevents to erase the output buffer.
+then the output buffer is always erased.  Other non-@code{nil} values
+prevent erasing of the output buffer, and---if the output buffer is
+not the current buffer---also control where to put point after
+inserting the output of the shell command:
 
-This option also controls where to set the point in the output buffer
-after the command completes; see the documentation of the option for details.
+@table @code
+@item beg-last-out
+Puts point at the beginning of the last shell-command output.
+@item end-last-out
+Puts point at the end of the last shell-command output, i.e.@: at the
+end of the output buffer.
+@item save-point
+Restores the position of point as it was before inserting the
+shell-command output.
+@end table
 
 @node Interactive Shell
 @subsection Interactive Subshell
