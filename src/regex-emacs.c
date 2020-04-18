@@ -3853,6 +3853,12 @@ re_match_2 (struct re_pattern_buffer *bufp,
   return result;
 }
 
+static void
+unwind_re_match (void *ptr)
+{
+  struct buffer *b = (struct buffer *) ptr;
+  b->text->inhibit_shrinking = 0;
+}
 
 /* This is a separate function so that we can force an alloca cleanup
    afterwards.  */
@@ -3949,6 +3955,19 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   INIT_FAIL_STACK ();
 
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* Prevent shrinking and relocation of buffer text if GC happens
+     while we are inside this function.  The calls to
+     UPDATE_SYNTAX_TABLE_* macros can trigger GC if they call Lisp,
+     and we have C pointers to buffer text that must not become
+     invalid as result of GC.  */
+  if (!current_buffer->text->inhibit_shrinking)
+    {
+      record_unwind_protect_ptr (unwind_re_match, current_buffer);
+      current_buffer->text->inhibit_shrinking = 1;
+    }
+
   /* Do not bother to initialize all the register variables if there are
      no groups in the pattern, as it takes a fair amount of time.  If
      there are groups, we include space for register 0 (the whole
@@ -3965,6 +3984,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   /* The starting position is bogus.  */
   if (pos < 0 || pos > size1 + size2)
     {
+      unbind_to (count, Qnil);
       SAFE_FREE ();
       return -1;
     }
@@ -4179,6 +4199,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	  DEBUG_PRINT ("Returning %td from re_match_2.\n", dcnt);
 
+	  unbind_to (count, Qnil);
 	  SAFE_FREE ();
 	  return dcnt;
 	}
@@ -5025,6 +5046,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   if (best_regs_set)
     goto restore_best_regs;
 
+  unbind_to (count, Qnil);
   SAFE_FREE ();
 
   return -1;				/* Failure to match.  */
