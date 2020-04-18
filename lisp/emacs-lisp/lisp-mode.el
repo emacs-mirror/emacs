@@ -611,15 +611,8 @@ Value for `adaptive-fill-function'."
   ;; a single docstring.  Let's fix it here.
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
-(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
-                                      elisp)
-  "Common initialization routine for lisp modes.
-The LISP-SYNTAX argument is used by code in inf-lisp.el and is
-\(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
-score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
-font-lock keywords will not be case sensitive."
-  (when lisp-syntax
-    (set-syntax-table lisp-mode-syntax-table))
+(defun lisp-mode-variables ()
+  "Common initialization routine for lisp modes."
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   (setq-local adaptive-fill-function #'lisp-adaptive-fill)
@@ -643,20 +636,23 @@ font-lock keywords will not be case sensitive."
   (setq-local multibyte-syntax-as-symbol t)
   ;; (setq-local syntax-begin-function 'beginning-of-defun)  ;;Bug#16247.
   (setq font-lock-defaults
-	`(,(if elisp '(lisp-el-font-lock-keywords
-                       lisp-el-font-lock-keywords-1
-                       lisp-el-font-lock-keywords-2)
-             '(lisp-cl-font-lock-keywords
-               lisp-cl-font-lock-keywords-1
-               lisp-cl-font-lock-keywords-2))
-	  nil ,keywords-case-insensitive nil nil
-	  (font-lock-mark-block-function . mark-defun)
-          (font-lock-extra-managed-props help-echo)
-	  (font-lock-syntactic-face-function
-	   . lisp-font-lock-syntactic-face-function)))
+	(list nil nil nil nil nil
+              '(font-lock-mark-block-function . mark-defun)
+              '(font-lock-extra-managed-props help-echo)
+              '(font-lock-syntactic-face-function
+                . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)
   (setq-local electric-pair-skip-whitespace 'chomp)
   (setq-local electric-pair-open-newline-between-pairs nil))
+
+;;;###autoload
+(define-derived-mode lisp-data-mode prog-mode "Lisp-Data"
+  "Major mode for buffers holding data written in Lisp syntax."
+  :group 'lisp
+  (lisp-mode-variables)
+  (set-syntax-table lisp-mode-syntax-table)
+  (setq-local electric-quote-string t)
+  (setq imenu-case-fold-search nil))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -737,7 +733,7 @@ font-lock keywords will not be case sensitive."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -746,7 +742,11 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
-  (lisp-mode-variables nil t)
+  (setf
+   (nth 0 font-lock-defaults) '(lisp-cl-font-lock-keywords
+                                lisp-cl-font-lock-keywords-1
+                                lisp-cl-font-lock-keywords-2)
+   (nth 2 font-lock-defaults) t)
   (setq-local lisp-indent-function 'common-lisp-indent-function)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip

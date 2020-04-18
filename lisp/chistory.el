@@ -139,7 +139,7 @@ The buffer is left in Command History mode."
 
 Keybindings:
 \\{command-history-mode-map}"
-  (lisp-mode-variables nil)
+  (lisp-mode-variables)
   (set (make-local-variable 'revert-buffer-function) 'command-history-revert)
   (set-syntax-table emacs-lisp-mode-syntax-table))
 
