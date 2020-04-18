@@ -614,6 +614,7 @@ Value for `adaptive-fill-function'."
 (defun lisp-mode-variables (&rest ignored)
   "Common initialization routine for lisp modes.
 Any number of parameters is accepted and ignored."
+  (set-syntax-table lisp-mode-syntax-table)
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   (setq-local adaptive-fill-function #'lisp-adaptive-fill)
@@ -651,7 +652,6 @@ Any number of parameters is accepted and ignored."
   "Major mode for buffers holding data written in Lisp syntax."
   :group 'lisp
   (lisp-mode-variables)
-  (set-syntax-table lisp-mode-syntax-table)
   (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil))
 
