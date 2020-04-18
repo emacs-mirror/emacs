@@ -3515,6 +3515,10 @@ functions.
 *** 'image-mode' now uses this library to automatically rotate images
 according to the orientation in the Exif data, if any.
 
+*** In 'image-mode' the image is resized automatically to fit in window.
+The image will resize upon first display and whenever the window's
+dimensions change.
+
 ---
 *** New library image-converter.
 If you need to view exotic image formats for which Emacs doesn't have
