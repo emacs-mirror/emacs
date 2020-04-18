@@ -214,30 +214,37 @@ enum PropertyItem_type {
   PI_LONG_PAIR = 10
 };
 
-static unsigned long
+static double
 decode_delay (PropertyItem *propertyItem, int frame)
 {
   enum PropertyItem_type type = propertyItem[0].type;
-  unsigned long delay;
+  unsigned long udelay;
+  double retval;
 
   switch (type)
     {
     case PI_BYTE:
     case PI_BYTE_ANY:
-      delay = ((unsigned char *)propertyItem[0].value)[frame];
+      udelay = ((unsigned char *)propertyItem[0].value)[frame];
+      retval = udelay;
       break;
     case PI_USHORT:
-      delay = ((unsigned short *)propertyItem[0].value)[frame];
+      udelay = ((unsigned short *)propertyItem[0].value)[frame];
+      retval = udelay;
       break;
     case PI_ULONG:
     case PI_LONG:	/* delay should always be positive */
-      delay = ((unsigned long *)propertyItem[0].value)[frame];
+      udelay = ((unsigned long *)propertyItem[0].value)[frame];
+      retval = udelay;
       break;
     default:
-      emacs_abort ();
+      /* This negative value will cause the caller to disregard the
+	 delay if we cannot determine it reliably.  */
+      add_to_log ("Invalid or unknown propertyItem type in w32image.c");
+      retval = -1.0;
     }
 
-  return delay;
+  return retval;
 }
 
 static double
