@@ -3556,6 +3556,8 @@ name to the kill ring.
 With a prefix argument, 'image-rotate' now rotates the image at point
 90 degrees counter-clockwise, instead of the default clockwise.
 
+*** 'image-mode' has a new key prefix 's' for transformation commands.
+
 ** Modules
 
 ---
