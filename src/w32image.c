@@ -40,28 +40,47 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 
-DEF_DLL_FN (GpStatus, GdiplusStartup,
-	    (ULONG_PTR *, GdiplusStartupInput *, GdiplusStartupOutput *));
-DEF_DLL_FN (VOID, GdiplusShutdown, (ULONG_PTR));
-DEF_DLL_FN (GpStatus, GdipGetPropertyItemSize,
-	    (GpImage *, PROPID, UINT *));
-DEF_DLL_FN (GpStatus, GdipGetPropertyItem,
-	    (GpImage *, PROPID, UINT, PropertyItem *));
-DEF_DLL_FN (GpStatus, GdipImageGetFrameDimensionsCount, (GpImage *, UINT *));
-DEF_DLL_FN (GpStatus, GdipImageGetFrameDimensionsList,
-	    (GpImage *, GUID *, UINT));
-DEF_DLL_FN (GpStatus, GdipImageGetFrameCount,
-	    (GpImage *, GDIPCONST GUID *, UINT *));
-DEF_DLL_FN (GpStatus, GdipImageSelectActiveFrame,
-	    (GpImage*, GDIPCONST GUID *, UINT));
-DEF_DLL_FN (GpStatus, GdipCreateBitmapFromFile, (WCHAR *, GpBitmap **));
-DEF_DLL_FN (GpStatus, GdipCreateBitmapFromStream, (IStream *, GpBitmap **));
-DEF_DLL_FN (IStream *, SHCreateMemStream, (const BYTE *pInit, UINT cbInit));
-DEF_DLL_FN (GpStatus, GdipCreateHBITMAPFromBitmap,
-	    (GpBitmap *, HBITMAP *, ARGB));
-DEF_DLL_FN (GpStatus, GdipDisposeImage, (GpImage *));
-DEF_DLL_FN (GpStatus, GdipGetImageHeight, (GpImage *, UINT *));
-DEF_DLL_FN (GpStatus, GdipGetImageWidth, (GpImage *, UINT *));
+typedef GpStatus (WINGDIPAPI *GdiplusStartup_Proc)
+  (ULONG_PTR *, GdiplusStartupInput *, GdiplusStartupOutput *);
+typedef VOID (WINGDIPAPI *GdiplusShutdown_Proc) (ULONG_PTR);
+typedef GpStatus (WINGDIPAPI *GdipGetPropertyItemSize_Proc)
+  (GpImage *, PROPID, UINT *);
+typedef GpStatus (WINGDIPAPI *GdipGetPropertyItem_Proc)
+  (GpImage *, PROPID, UINT, PropertyItem *);
+typedef GpStatus (WINGDIPAPI *GdipImageGetFrameDimensionsCount_Proc)
+  (GpImage *, UINT *);
+typedef GpStatus (WINGDIPAPI *GdipImageGetFrameDimensionsList_Proc)
+  (GpImage *, GUID *, UINT);
+typedef GpStatus (WINGDIPAPI *GdipImageGetFrameCount_Proc)
+  (GpImage *, GDIPCONST GUID *, UINT *);
+typedef GpStatus (WINGDIPAPI *GdipImageSelectActiveFrame_Proc)
+  (GpImage*, GDIPCONST GUID *, UINT);
+typedef GpStatus (WINGDIPAPI *GdipCreateBitmapFromFile_Proc)
+  (WCHAR *, GpBitmap **);
+typedef GpStatus (WINGDIPAPI *GdipCreateBitmapFromStream_Proc)
+  (IStream *, GpBitmap **);
+typedef IStream * (WINAPI *SHCreateMemStream_Proc) (const BYTE *, UINT);
+typedef GpStatus (WINGDIPAPI *GdipCreateHBITMAPFromBitmap_Proc)
+  (GpBitmap *, HBITMAP *, ARGB);
+typedef GpStatus (WINGDIPAPI *GdipDisposeImage_Proc) (GpImage *);
+typedef GpStatus (WINGDIPAPI *GdipGetImageHeight_Proc) (GpImage *, UINT *);
+typedef GpStatus (WINGDIPAPI *GdipGetImageWidth_Proc) (GpImage *, UINT *);
+
+GdiplusStartup_Proc fn_GdiplusStartup;
+GdiplusShutdown_Proc fn_GdiplusShutdown;
+GdipGetPropertyItemSize_Proc fn_GdipGetPropertyItemSize;
+GdipGetPropertyItem_Proc fn_GdipGetPropertyItem;
+GdipImageGetFrameDimensionsCount_Proc fn_GdipImageGetFrameDimensionsCount;
+GdipImageGetFrameDimensionsList_Proc fn_GdipImageGetFrameDimensionsList;
+GdipImageGetFrameCount_Proc fn_GdipImageGetFrameCount;
+GdipImageSelectActiveFrame_Proc fn_GdipImageSelectActiveFrame;
+GdipCreateBitmapFromFile_Proc fn_GdipCreateBitmapFromFile;
+GdipCreateBitmapFromStream_Proc fn_GdipCreateBitmapFromStream;
+SHCreateMemStream_Proc fn_SHCreateMemStream;
+GdipCreateHBITMAPFromBitmap_Proc fn_GdipCreateHBITMAPFromBitmap;
+GdipDisposeImage_Proc fn_GdipDisposeImage;
+GdipGetImageHeight_Proc fn_GdipGetImageHeight;
+GdipGetImageWidth_Proc fn_GdipGetImageWidth;
 
 static bool
 gdiplus_init (void)
@@ -72,33 +91,73 @@ gdiplus_init (void)
 	&& (shlwapi_lib = w32_delayed_load (Qshlwapi))))
     return false;
 
-  LOAD_DLL_FN (gdiplus_lib, GdiplusStartup);
-  LOAD_DLL_FN (gdiplus_lib, GdiplusShutdown);
-  LOAD_DLL_FN (gdiplus_lib, GdipGetPropertyItemSize);
-  LOAD_DLL_FN (gdiplus_lib, GdipGetPropertyItem);
-  LOAD_DLL_FN (gdiplus_lib, GdipImageGetFrameDimensionsCount);
-  LOAD_DLL_FN (gdiplus_lib, GdipImageGetFrameDimensionsList);
-  LOAD_DLL_FN (gdiplus_lib, GdipImageGetFrameCount);
-  LOAD_DLL_FN (gdiplus_lib, GdipImageSelectActiveFrame);
-  LOAD_DLL_FN (gdiplus_lib, GdipCreateBitmapFromFile);
-  LOAD_DLL_FN (gdiplus_lib, GdipCreateBitmapFromStream);
-  LOAD_DLL_FN (gdiplus_lib, GdipCreateHBITMAPFromBitmap);
-  LOAD_DLL_FN (gdiplus_lib, GdipDisposeImage);
-  LOAD_DLL_FN (gdiplus_lib, GdipGetImageHeight);
-  LOAD_DLL_FN (gdiplus_lib, GdipGetImageWidth);
+  fn_GdiplusStartup = (GdiplusStartup_Proc)
+    get_proc_addr (gdiplus_lib, "GdiplusStartup");
+  if (!fn_GdiplusStartup)
+    return false;
+  fn_GdiplusShutdown = (GdiplusShutdown_Proc)
+    get_proc_addr (gdiplus_lib, "GdiplusShutdown");
+  if (!fn_GdiplusShutdown)
+    return false;
+  fn_GdipGetPropertyItemSize = (GdipGetPropertyItemSize_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetPropertyItemSize");
+  if (!fn_GdipGetPropertyItemSize)
+    return false;
+  fn_GdipGetPropertyItem = (GdipGetPropertyItem_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetPropertyItem");
+  if (!fn_GdipGetPropertyItem)
+    return false;
+  fn_GdipImageGetFrameDimensionsCount = (GdipImageGetFrameDimensionsCount_Proc)
+    get_proc_addr (gdiplus_lib, "GdipImageGetFrameDimensionsCount");
+  if (!fn_GdipImageGetFrameDimensionsCount)
+    return false;
+  fn_GdipImageGetFrameDimensionsList = (GdipImageGetFrameDimensionsList_Proc)
+    get_proc_addr (gdiplus_lib, "GdipImageGetFrameDimensionsList");
+  if (!fn_GdipImageGetFrameDimensionsList)
+    return false;
+  fn_GdipImageGetFrameCount = (GdipImageGetFrameCount_Proc)
+    get_proc_addr (gdiplus_lib, "GdipImageGetFrameCount");
+  if (!fn_GdipImageGetFrameCount)
+    return false;
+  fn_GdipImageSelectActiveFrame = (GdipImageSelectActiveFrame_Proc)
+    get_proc_addr (gdiplus_lib, "GdipImageSelectActiveFrame");
+  if (!fn_GdipImageSelectActiveFrame)
+    return false;
+  fn_GdipCreateBitmapFromFile = (GdipCreateBitmapFromFile_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateBitmapFromFile");
+  if (!fn_GdipCreateBitmapFromFile)
+    return false;
+  fn_GdipCreateBitmapFromStream = (GdipCreateBitmapFromStream_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateBitmapFromStream");
+  if (!fn_GdipCreateBitmapFromStream)
+    return false;
+  fn_GdipCreateHBITMAPFromBitmap = (GdipCreateHBITMAPFromBitmap_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateHBITMAPFromBitmap");
+  if (!fn_GdipCreateHBITMAPFromBitmap)
+    return false;
+  fn_GdipDisposeImage = (GdipDisposeImage_Proc)
+    get_proc_addr (gdiplus_lib, "GdipDisposeImage");
+  if (!fn_GdipDisposeImage)
+    return false;
+  fn_GdipGetImageHeight = (GdipGetImageHeight_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetImageHeight");
+  if (!fn_GdipGetImageHeight)
+    return false;
+  fn_GdipGetImageWidth = (GdipGetImageWidth_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetImageWidth");
+  if (!fn_GdipGetImageWidth)
+    return false;
   /* LOAD_DLL_FN (shlwapi_lib, SHCreateMemStream); */
 
   /* The following terrible kludge is required to use native image API
      on Windows before Vista, because SHCreateMemStream was not
      exported by name in those versions, only by ordinal number.  */
-  fn_SHCreateMemStream =
-    (W32_PFN_SHCreateMemStream) get_proc_addr (shlwapi_lib,
-					       "SHCreateMemStream");
+  fn_SHCreateMemStream = (SHCreateMemStream_Proc)
+    get_proc_addr (shlwapi_lib, "SHCreateMemStream");
   if (!fn_SHCreateMemStream)
     {
-      fn_SHCreateMemStream =
-	(W32_PFN_SHCreateMemStream) get_proc_addr (shlwapi_lib,
-						   MAKEINTRESOURCEA (12));
+      fn_SHCreateMemStream = (SHCreateMemStream_Proc)
+	get_proc_addr (shlwapi_lib, MAKEINTRESOURCEA (12));
       if (!fn_SHCreateMemStream)
 	return false;
     }
@@ -293,7 +352,7 @@ w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes,
 
   status = GdipImageGetFrameDimensionsCount (pBitmap, &count);
   frameCount = *nframes = 0;
-  *delay = 0.0;
+  *delay = -1.0;
   if (count)
     {
       /* The following call will fill pDimensionIDs[0] with the
