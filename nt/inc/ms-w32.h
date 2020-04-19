@@ -440,6 +440,7 @@ extern int alarm (int);
 
 extern int sys_kill (pid_t, int);
 
+extern void explicit_bzero (void *, size_t);
 
 /* For integration with MSDOS support.  */
 #define getdisk()               (_getdrive () - 1)
