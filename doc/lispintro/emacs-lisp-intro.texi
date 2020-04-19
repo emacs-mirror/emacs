@@ -9557,7 +9557,7 @@ part of which is the address of the next pair.  The very last box
 points to the symbol @code{nil}, which marks the end of the list.
 
 @need 1200
-When a variable is set to a list via @code{setq},
+When a variable is set to a list with an operation such as @code{setq},
 it stores the address of the first box in the variable.  Thus,
 evaluation of the expression
 
@@ -17140,7 +17140,7 @@ The following turns off Indent Tabs mode:
 @end smallexample
 
 Note that this line uses @code{setq-default} rather than the
-@code{setq} that we have seen before.  The @code{setq-default}
+@code{setq} that we have seen before; @code{setq-default}
 sets values only in buffers that do not have their own local
 values for the variable.
 

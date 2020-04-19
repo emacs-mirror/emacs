@@ -866,16 +866,15 @@ foo                       ;; @r{@code{foo} was changed.}
 @node Modifying Lists
 @section Modifying Existing List Structure
 @cindex destructive list operations
-@cindex constant lists
 @cindex mutable lists
 
   You can modify the @sc{car} and @sc{cdr} contents of a cons cell with the
 primitives @code{setcar} and @code{setcdr}.  These are destructive
 operations because they change existing list structure.
-Destructive operations should be applied only to @dfn{mutable} lists,
+Destructive operations should be applied only to mutable lists,
 that is, lists constructed via @code{cons}, @code{list} or similar
 operations.  Lists created by quoting are constants and should not be
-changed by destructive operations.
+changed by destructive operations.  @xref{Constants and Mutability}.
 
 @cindex CL note---@code{rplaca} vs @code{setcar}
 @quotation
@@ -1169,9 +1168,9 @@ x
 @end group
 @end example
 
-However, the other arguments (all but the last) must be mutable lists.
+However, the other arguments (all but the last) should be mutable lists.
 
-A common pitfall is to use a quoted constant list as a non-last
+A common pitfall is to use a constant list as a non-last
 argument to @code{nconc}.  If you do this, the resulting behavior
 is undefined.  It is possible that your program will change
 each time you run it!  Here is what might happen (though this
@@ -1359,12 +1358,12 @@ Compare this with @code{memq}:
 
 @example
 @group
-(memql 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} are @code{eql}.}
+(memql 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} must be @code{eql}.}
      @result{} (1.2 1.3)
 @end group
 @group
-(memq (list 2) '((1) (2)))  ; @r{@code{(list 2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} need not be @code{eq}.}
+     @result{} nil         ; @r{... or it might be @code{(1.2 1.3)}.}
 @end group
 @end example
 @end defun
@@ -1628,6 +1627,7 @@ keys may not be symbols:
       '(("simple leaves" . oak)
         ("compound leaves" . horsechestnut)))
 
+;; @r{The @code{copy-sequence} means the keys are not @code{eq}.}
 (assq (copy-sequence "simple leaves") leaves)
      @result{} nil
 (assoc (copy-sequence "simple leaves") leaves)

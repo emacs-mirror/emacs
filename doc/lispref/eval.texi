@@ -158,6 +158,12 @@ contents unchanged.
 @end group
 @end example
 
+  A self-evaluating form yields a constant, and you should not attempt
+to modify the constant's contents via @code{setcar}, @code{aset} or
+similar primitives.  The Lisp interpreter might unify the constants
+yielded by your program's self-evaluating forms, so that these
+constants might share structure.  @xref{Constants and Mutability}.
+
   It is common to write numbers, characters, strings, and even vectors
 in Lisp code, taking advantage of the fact that they self-evaluate.
 However, it is quite unusual to do this for types that lack a read
@@ -559,6 +565,7 @@ and vectors.)
 @defspec quote object
 This special form returns @var{object}, without evaluating it.
 The returned value is a constant, and should not be modified.
+@xref{Constants and Mutability}.
 @end defspec
 
 @cindex @samp{'} for quoting

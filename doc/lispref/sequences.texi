@@ -1249,7 +1249,7 @@ x
 
 The @var{array} should be mutable; that is, it should not be a constant,
 such as the constants created via quoting or via self-evaluating forms.
-@xref{Self-Evaluating Forms}.
+@xref{Constants and Mutability}.
 
 If @var{array} is a string and @var{object} is not a character, a
 @code{wrong-type-argument} error results.  The function converts a
@@ -1306,10 +1306,10 @@ same way in Lisp input.
 
   A vector, like a string or a number, is considered a constant for
 evaluation: the result of evaluating it is the same vector.  This does
-not evaluate or even examine the elements of the vector.  Vectors
-written with square brackets are constants and should not be modified
-via @code{aset} or other destructive operations.
-@xref{Self-Evaluating Forms}.
+not evaluate or even examine the elements of the vector.
+@xref{Self-Evaluating Forms}.  Vectors written with square brackets
+are constants and should not be modified via @code{aset} or other
+destructive operations.  @xref{Constants and Mutability}.
 
   Here are examples illustrating these principles:
 

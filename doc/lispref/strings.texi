@@ -384,6 +384,7 @@ usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
   You can alter the contents of a mutable string via operations
 described in this section.  However, you should not try to use these
 operations to alter the contents of a constant string.
+@xref{Constants and Mutability}.
 
   The most basic way to alter the contents of an existing string is with
 @code{aset} (@pxref{Array Functions}).  @code{(aset @var{string}
