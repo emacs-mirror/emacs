@@ -2395,17 +2395,19 @@ somewhere else.
 
   Although numbers are always constants and markers are always
 mutable, some types contain both constant and mutable members.  These
-types include conses, vectors, and strings.  For example, the string
+types include conses, vectors, strings, and symbols.  For example, the string
 literal @code{"aaa"} yields a constant string, whereas the function
 call @code{(make-string 3 ?a)} yields a mutable string that can be
 changed via later calls to @code{aset}.
 
-  A program should not attempt to modify a constant because the
+  Modifying a constant symbol signals an error (@pxref{Constant Variables}).
+A program should not attempt to modify other types of constants because the
 resulting behavior is undefined: the Lisp interpreter might or might
 not detect the error, and if it does not detect the error the
 interpreter can behave unpredictably thereafter.  Another way to put
-this is that mutable objects are safe to change, whereas constants are
-not safely mutable: if you try to change a constant your program might
+this is that although mutable objects are safe to change and constant
+symbols reliably reject attempts to change them, other constants are
+not safely mutable: if you try to change one your program might
 behave as you expect but it might crash or worse.  This problem occurs
 with types that have both constant and mutable members, and that have
 mutators like @code{setcar} and @code{aset} that are valid on mutable

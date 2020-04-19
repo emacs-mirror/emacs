@@ -158,8 +158,8 @@ contents unchanged.
 @end group
 @end example
 
-  A self-evaluating form yields a constant, and you should not attempt
-to modify the constant's contents via @code{setcar}, @code{aset} or
+  A self-evaluating form yields constant conses, vectors and strings, and you
+should not attempt to modify their contents via @code{setcar}, @code{aset} or
 similar primitives.  The Lisp interpreter might unify the constants
 yielded by your program's self-evaluating forms, so that these
 constants might share structure.  @xref{Constants and Mutability}.
@@ -704,8 +704,8 @@ Here are some examples:
 @end example
 
 If a subexpression of a backquote construct has no substitutions or
-splices, it acts like @code{quote} in that it yields a constant that
-should not be modified.
+splices, it acts like @code{quote} in that it yields constant conses,
+vectors and strings that should not be modified.
 
 @node Eval
 @section Eval
