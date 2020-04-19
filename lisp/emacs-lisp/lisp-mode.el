@@ -611,10 +611,17 @@ Value for `adaptive-fill-function'."
   ;; a single docstring.  Let's fix it here.
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
-(defun lisp-mode-variables (&rest ignored)
+;; Maybe this should be discouraged/obsoleted and users should be
+;; encouraged to use `lisp-data-mode` instead.
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
+                                      elisp)
   "Common initialization routine for lisp modes.
-Any number of parameters is accepted and ignored."
-  (set-syntax-table lisp-mode-syntax-table)
+The LISP-SYNTAX argument is used by code in inf-lisp.el and is
+\(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
+score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
+font-lock keywords will not be case sensitive."
+  (when lisp-syntax
+    (set-syntax-table lisp-mode-syntax-table))
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   (setq-local adaptive-fill-function #'lisp-adaptive-fill)
@@ -638,11 +645,17 @@ Any number of parameters is accepted and ignored."
   (setq-local multibyte-syntax-as-symbol t)
   ;; (setq-local syntax-begin-function 'beginning-of-defun)  ;;Bug#16247.
   (setq font-lock-defaults
-	(list nil nil nil nil nil
-              '(font-lock-mark-block-function . mark-defun)
-              '(font-lock-extra-managed-props help-echo)
-              '(font-lock-syntactic-face-function
-                . lisp-font-lock-syntactic-face-function)))
+	`(,(if elisp '(lisp-el-font-lock-keywords
+                       lisp-el-font-lock-keywords-1
+                       lisp-el-font-lock-keywords-2)
+             '(lisp-cl-font-lock-keywords
+               lisp-cl-font-lock-keywords-1
+               lisp-cl-font-lock-keywords-2))
+	  nil ,keywords-case-insensitive nil nil
+	  (font-lock-mark-block-function . mark-defun)
+          (font-lock-extra-managed-props help-echo)
+	  (font-lock-syntactic-face-function
+	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)
   (setq-local electric-pair-skip-whitespace 'chomp)
   (setq-local electric-pair-open-newline-between-pairs nil))
@@ -651,7 +664,7 @@ Any number of parameters is accepted and ignored."
 (define-derived-mode lisp-data-mode prog-mode "Lisp-Data"
   "Major mode for buffers holding data written in Lisp syntax."
   :group 'lisp
-  (lisp-mode-variables)
+  (lisp-mode-variables t t nil)
   (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil))
 
@@ -743,11 +756,6 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
-  (setf
-   (nth 0 font-lock-defaults) '(lisp-cl-font-lock-keywords
-                                lisp-cl-font-lock-keywords-1
-                                lisp-cl-font-lock-keywords-2)
-   (nth 2 font-lock-defaults) t)
   (setq-local lisp-indent-function 'common-lisp-indent-function)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip

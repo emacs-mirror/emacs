@@ -274,7 +274,7 @@ If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
   (setq comint-prompt-regexp inferior-lisp-prompt)
   (setq mode-line-process '(":%s"))
-  (lisp-mode-variables)
+  (lisp-mode-variables t)
   (setq comint-get-old-input (function lisp-get-old-input))
   (setq comint-input-filter (function lisp-input-filter)))
 

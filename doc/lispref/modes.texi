@@ -1352,20 +1352,12 @@ illustrate how these modes are written.
 @end smallexample
 
   The three modes for Lisp share much of their code.  For instance,
-each calls the following function to set various variables:
-
-@smallexample
-@group
-(defun lisp-mode-variables ()
-  "Common initialization routine for lisp modes."
-  (setq-local paragraph-ignore-fill-prefix t)
-  @dots{}
-@end group
-@end smallexample
+Lisp mode and Emacs Lisp mode inherit from Lisp Data mode and Lisp
+Interaction Mode inherits from Emacs Lisp mode.
 
 @noindent
-Amongst other things, this function sets up the @code{comment-start}
-variable to handle Lisp comments:
+Amongst other things, Lisp Data mode calls a function to setds up the
+@code{comment-start} variable to handle Lisp comments:
 
 @smallexample
 @group
@@ -1425,7 +1417,6 @@ Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
 @end group
 @group
-  (lisp-mode-variables)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
               "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")

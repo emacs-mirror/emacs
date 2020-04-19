@@ -272,7 +272,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
           '(lisp-el-font-lock-keywords
             lisp-el-font-lock-keywords-1
             lisp-el-font-lock-keywords-2))
-  (set-syntax-table emacs-lisp-mode-syntax-table)
+  (setf (nth 2 font-lock-defaults) nil)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (if (boundp 'electric-pair-text-pairs)
       (setq-local electric-pair-text-pairs

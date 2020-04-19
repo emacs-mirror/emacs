@@ -42,7 +42,7 @@
 OBJECT can be any Lisp object.  Quoting characters are used as needed
 to make output that `read' can handle, whenever this is possible."
   (with-temp-buffer
-    (lisp-mode-variables)
+    (lisp-mode-variables nil)
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (let ((print-escape-newlines pp-escape-newlines)
           (print-quoted t))
