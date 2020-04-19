@@ -1,4 +1,4 @@
-;;; autoarg.el --- make digit keys supply prefix args
+;;; autoarg.el --- make digit keys supply prefix args -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
 
