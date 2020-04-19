@@ -160,7 +160,7 @@ contents unchanged.
 
   A self-evaluating form yields constant conses, vectors and strings, and you
 should not attempt to modify their contents via @code{setcar}, @code{aset} or
-similar primitives.  The Lisp interpreter might unify the constants
+similar operations.  The Lisp interpreter might unify the constants
 yielded by your program's self-evaluating forms, so that these
 constants might share structure.  @xref{Constants and Mutability}.
 
