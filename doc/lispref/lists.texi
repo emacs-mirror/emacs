@@ -911,7 +911,7 @@ value @var{object}.  For example:
 
 @example
 @group
-(setq x (list 1 2))
+(setq x (list 1 2))  ; @r{Create a mutable list.}
      @result{} (1 2)
 @end group
 @group
@@ -931,7 +931,7 @@ these lists.  Here is an example:
 
 @example
 @group
-;; @r{Create two lists that are partly shared.}
+;; @r{Create two mutable lists that are partly shared.}
 (setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setq x2 (cons 'z (cdr x1)))
@@ -1022,11 +1022,11 @@ reached via the @sc{cdr}.
 
 @example
 @group
-(setq x (list 1 2 3))
+(setq x (list 1 2 3))  ; @r{Create a mutable list.}
      @result{} (1 2 3)
 @end group
 @group
-(setcdr x '(4))
+(setcdr x '(4))  ; @r{Modify the list's tail to be a constant list.}
      @result{} (4)
 @end group
 @group
@@ -1135,11 +1135,11 @@ Unlike @code{append} (@pxref{Building Lists}), the @var{lists} are
 
 @example
 @group
-(setq x (list 1 2 3))
+(setq x (list 1 2 3))  ; @r{Create a mutable list.}
      @result{} (1 2 3)
 @end group
 @group
-(nconc x '(4 5))
+(nconc x '(4 5))  ; @r{Modify the list's tail to be a constant list.}
      @result{} (1 2 3 4 5)
 @end group
 @group
@@ -1267,9 +1267,7 @@ after those elements.  For example:
 
 @example
 @group
-(equal
- (delq 'a (list 'a 'b 'c))
- (cdr (list 'a 'b 'c)))
+(delq 'a '(a b c)) @equiv{} (cdr '(a b c))
 @end group
 @end example
 

@@ -183,11 +183,11 @@ for other ways to copy sequences.
 
 @example
 @group
-(setq bar (list 1 2))
+(setq bar (list 1 2))  ; @r{Create a mutable list.}
      @result{} (1 2)
 @end group
 @group
-(setq x (vector 'foo bar))
+(setq x (vector 'foo bar))  ; @r{Create a mutable vector.}
      @result{} [foo (1 2)]
 @end group
 @group
@@ -278,7 +278,7 @@ Unlike @code{reverse} the original @var{sequence} may be modified.
 
 @example
 @group
-(setq x (list 'a 'b 'c))
+(setq x (list 'a 'b 'c))  ; @r{Create a mutable list.}
      @result{} (a b c)
 @end group
 @group
@@ -320,7 +320,7 @@ presented graphically:
   For the vector, it is even simpler because you don't need setq:
 
 @example
-(setq x (copy-sequence [1 2 3 4]))
+(setq x (copy-sequence [1 2 3 4]))  ; @r{Create a mutable vector.}
      @result{} [1 2 3 4]
 (nreverse x)
      @result{} [4 3 2 1]
@@ -374,7 +374,7 @@ appears in a different position in the list due to the change of
 
 @example
 @group
-(setq nums (list 1 3 2 6 5 4 0))
+(setq nums (list 1 3 2 6 5 4 0))  ; @r{Create a mutable list.}
      @result{} (1 3 2 6 5 4 0)
 @end group
 @group
@@ -1228,7 +1228,7 @@ This function sets the @var{index}th element of @var{array} to be
 
 @example
 @group
-(setq w (vector 'foo 'bar 'baz))
+(setq w (vector 'foo 'bar 'baz))  ; @r{Create a mutable vector.}
      @result{} [foo bar baz]
 (aset w 0 'fu)
      @result{} fu
@@ -1262,6 +1262,7 @@ each element of @var{array} is @var{object}.  It returns @var{array}.
 
 @example
 @group
+;; @r{Create a mutable vector and then fill it with zeros.}
 (setq a (copy-sequence [a b c d e f g]))
      @result{} [a b c d e f g]
 (fillarray a 0)
@@ -1270,6 +1271,7 @@ a
      @result{} [0 0 0 0 0 0 0]
 @end group
 @group
+;; @r{Create a mutable string and then fill it with "-".}
 (setq s (copy-sequence "When in the course"))
      @result{} "When in the course"
 (fillarray s ?-)
