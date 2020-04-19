@@ -2073,11 +2073,10 @@ its @code{sort-subr} call looks like this:
 @example
 @group
 (sort-subr reverse
-           (function
-            (lambda ()
-              (while (and (not (eobp))
-                          (looking-at paragraph-separate))
-                (forward-line 1))))
+           (lambda ()
+             (while (and (not (eobp))
+                         (looking-at paragraph-separate))
+               (forward-line 1)))
            'forward-paragraph)
 @end group
 @end example

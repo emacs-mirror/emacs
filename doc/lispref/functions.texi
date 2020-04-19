@@ -970,7 +970,7 @@ string.
 @end group
 
 @group
-(mapconcat (function (lambda (x) (format "%c" (1+ x))))
+(mapconcat (lambda (x) (format "%c" (1+ x)))
            "HAL-8000"
            "")
      @result{} "IBM.9111"

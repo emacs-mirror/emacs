@@ -1572,14 +1572,14 @@ For example, here is how to examine the elements of the syntax table:
 @example
 (let (accumulator)
    (map-char-table
-    #'(lambda (key value)
-        (setq accumulator
-              (cons (list
-                     (if (consp key)
-                         (list (car key) (cdr key))
-                       key)
-                     value)
-                    accumulator)))
+    (lambda (key value)
+      (setq accumulator
+            (cons (list
+                   (if (consp key)
+                       (list (car key) (cdr key))
+                     key)
+                   value)
+                  accumulator)))
     (syntax-table))
    accumulator)
 @result{}
