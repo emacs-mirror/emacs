@@ -188,6 +188,7 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-key-list-mode-map
   (let ((keymap (make-sparse-keymap))
 	(menu-map (make-sparse-keymap)))
+    (set-keymap-parent keymap widget-keymap)
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -399,8 +400,7 @@ DOC is documentation text to insert at the start."
       (goto-char point))
 
     (epa--insert-keys (epg-list-keys context name secret))
-    (widget-setup)
-    (set-keymap-parent (current-local-map) widget-keymap))
+    (widget-setup))
   (make-local-variable 'epa-list-keys-arguments)
   (setq epa-list-keys-arguments (list name secret))
   (goto-char (point-min))
