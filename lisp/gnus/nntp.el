@@ -1247,8 +1247,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 	  (and nntp-connection-timeout
 	       (run-at-time
 		nntp-connection-timeout nil
-		`(lambda ()
-		   (nntp-kill-buffer ,pbuffer)))))
+		(lambda ()
+		  (nntp-kill-buffer pbuffer)))))
 	 (process
 	  (condition-case err
 	      (let ((coding-system-for-read 'binary)
