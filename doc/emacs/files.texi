@@ -2122,12 +2122,18 @@ to toggle between displaying the file as an image in the Emacs buffer,
 and displaying its underlying text (or raw byte) representation.
 Additionally you can type @kbd{C-c C-x} (@code{image-toggle-hex-display})
 to toggle between displaying the file as an image in the Emacs buffer,
-and displaying it in hex representation.
-Displaying the file as an image works only if Emacs is compiled with
-support for displaying such images.  If the displayed image is wider
-or taller than the frame, the usual point motion keys (@kbd{C-f},
-@kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+and displaying it in hex representation.  Displaying the file as an
+image works only if Emacs is compiled with support for displaying
+such images.
+
+If the displayed image is wider or taller than the frame, the usual
+point motion keys (@kbd{C-f}, @kbd{C-p}, and so forth) cause different
+parts of the image to be displayed.  But by default the image is
+resized automatically to fit to the window.  You can configure this by
+using two options @code{image-auto-resize} and
+@code{image-auto-resize-on-window-resize}.
+
+You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
 (@code{image-previous-file}) to visit the next image file and the
 previous image file in the same directory, respectively.
 

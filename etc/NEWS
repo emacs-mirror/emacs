@@ -3523,9 +3523,12 @@ functions.
 *** 'image-mode' now uses this library to automatically rotate images
 according to the orientation in the Exif data, if any.
 
++++
 *** In 'image-mode' the image is resized automatically to fit in window.
 The image will resize upon first display and whenever the window's
-dimensions change.
+dimensions change.  Two user options 'image-auto-resize' and
+'image-auto-resize-on-window-resize' can define resizing parameters or
+disable auto-resizing.
 
 ---
 *** New library image-converter.
