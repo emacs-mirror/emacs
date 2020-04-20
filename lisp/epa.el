@@ -25,7 +25,9 @@
 (require 'epg)
 (require 'font-lock)
 (require 'widget)
-(eval-when-compile (require 'wid-edit))
+(eval-when-compile
+  (require 'subr-x)
+  (require 'wid-edit))
 (require 'derived)
 
 (defgroup epa nil
@@ -189,6 +191,7 @@ You should bind this variable with `let', but do not set it globally.")
   (let ((keymap (make-sparse-keymap))
 	(menu-map (make-sparse-keymap)))
     (set-keymap-parent keymap widget-keymap)
+    (define-key keymap "\C-m" 'epa-show-key)
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -501,6 +504,14 @@ the keys are listed.
 If SECRET is non-nil, list secret keys instead of public keys."
   (let ((keys (epg-list-keys context names secret)))
     (epa--select-keys prompt keys)))
+
+(defun epa-show-key ()
+  "Show a key on the current line."
+  (interactive)
+  (if-let ((key (get-text-property (point) 'epa-key)))
+      (save-selected-window
+        (epa--show-key key))
+    (error "No key on this line")))
 
 (defun epa--show-key (key)
   (let* ((primary-sub-key (car (epg-key-sub-key-list key)))
