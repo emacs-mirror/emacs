@@ -447,8 +447,6 @@ w32_load_image (struct frame *f, struct image *img,
           if (delay >= 0)
             metadata = Fcons (Qdelay, Fcons (make_float (delay), metadata));
         }
-      else if (status == Win32Error) /* FIXME! */
-	status = Ok;
     }
 
   if (status == Ok)
