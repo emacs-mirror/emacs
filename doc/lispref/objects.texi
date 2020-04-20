@@ -2400,7 +2400,8 @@ literal @code{"aaa"} yields a constant string, whereas the function
 call @code{(make-string 3 ?a)} yields a mutable string that can be
 changed via later calls to @code{aset}.
 
-  Modifying a constant symbol signals an error (@pxref{Constant Variables}).
+  Trying to modify a constant variable signals an error
+(@pxref{Constant Variables}).
 A program should not attempt to modify other types of constants because the
 resulting behavior is undefined: the Lisp interpreter might or might
 not detect the error, and if it does not detect the error the
