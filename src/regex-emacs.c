@@ -3954,9 +3954,11 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   /* Prevent shrinking and relocation of buffer text if GC happens
      while we are inside this function.  The calls to
-     UPDATE_SYNTAX_TABLE_* macros can trigger GC if they call Lisp,
-     and we have C pointers to buffer text that must not become
-     invalid as result of GC.  */
+     UPDATE_SYNTAX_TABLE_* macros can call Lisp (via
+     `internal--syntax-propertize`); these calls are careful to defend against
+     buffer modifications, but even with no modifications, the buffer text may
+     be relocated during GC by `compact_buffer` which would invalidate
+     our C pointers to buffer text.  */
   if (!current_buffer->text->inhibit_shrinking)
     {
       record_unwind_protect_ptr (unwind_re_match, current_buffer);

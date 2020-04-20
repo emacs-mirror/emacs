@@ -2883,7 +2883,7 @@ if there is an active region (@pxref{Mark}), the default URL comes
 from the region instead, after removing any whitespace from it.  The
 command then creates a new buffer with the embedded browser showing
 the specified URL.  The buffer is put in the Xwidget-WebKit mode
-(similar to Image mode, @pxref{File Conveniences}), which provides
+(similar to Image mode, @pxref{Image Mode}), which provides
 one-key commands for scrolling the widget, changing its size, and
 reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
 bindings.

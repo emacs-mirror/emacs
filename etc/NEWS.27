@@ -934,7 +934,7 @@ back, customize 'follow-hide-ghost-cursors' to nil.
 *** 'windmove-create-window' when non-nil makes a new window.
 This happens upon moving off the edge of the frame.
 
----
++++
 *** Windmove supports directional window display and selection.
 The new command 'windmove-display-default-keybindings' binds default
 keys with provided modifiers (by default, Shift-Meta) to the commands
@@ -948,7 +948,7 @@ display the buffer in the same window, for example, 'S-M-0 C-h e'
 displays the "*Messages*" buffer in the same window.  'S-M-t C-h C-n'
 displays NEWS in a new tab.
 
----
++++
 *** Windmove also supports directional window deletion.
 The new command 'windmove-delete-default-keybindings' binds default
 keys with provided prefix (by default, 'C-x') and modifiers (by default,
@@ -958,7 +958,7 @@ With a prefix arg 'C-u', also kills the buffer in that window.
 With 'M-0', deletes the selected window and selects the window
 that was in the specified direction.
 
----
++++
 *** New command 'windmove-swap-states-in-direction' binds default keys
 to the commands that swap the states of the selected window with the
 window in the specified direction.
@@ -1011,10 +1011,6 @@ remapped to these, respectively.
 
 ** Dired
 
----
-*** On systems that support suid/guid files, Dired now fontifies the
-permissions of such files with a special face 'dired-set-id'.
-
 +++
 *** New command 'dired-create-empty-file'.
 
@@ -1025,10 +1021,6 @@ It is by default bound to '* N'.
 ---
 *** The marking commands now report how many files were marked by the
 command itself, not how many files are marked in total.
-
----
-*** A new face, 'dired-special', is used to highlight sockets, named
-pipes, block devices and character devices.
 
 +++
 *** The new user option 'dired-create-destination-dirs' controls whether
@@ -1046,6 +1038,14 @@ Dired performs file renaming using underlying version control system.
 ---
 *** Zstandard compression is now supported for 'dired-do-compress' and
 'dired-do-compress-to'.
+
+---
+*** On systems that support suid/guid files, Dired now fontifies the
+permissions of such files with a special face 'dired-set-id'.
+
+---
+*** A new face, 'dired-special', is used to highlight sockets, named
+pipes, block devices and character devices.
 
 ** Find-Dired
 
@@ -1068,12 +1068,6 @@ script.  The default is nil.
 *** New command 'log-edit-generate-changelog-from-diff', bound to 'C-c C-w'.
 This generates ChangeLog entries from the VC fileset diff.
 
----
-*** 'vc-dir' now shows a button allowing you to hide the stash list.
-Controlled by user option 'vc-git-show-stash'.  Default t means show
-the entire list as before.  An integer value limits the list length
-(but still allows you to show the entire list via the button).
-
 +++
 *** Recording ChangeLog entries doesn't require an actual file.
 If a ChangeLog file doesn't exist, and if the new user option
@@ -1084,9 +1078,11 @@ still be used if it exists.)  Set the user option to nil to get the
 previous behavior of always creating a buffer that visits a ChangeLog
 file.
 
----
-*** New user option 'vc-find-revision-no-save'.
-With non-nil, 'vc-find-revision' doesn't write the created buffer to file.
++++
+*** The new 'd' command ('vc-dir-clean-files') in 'vc-dir-mode'
+buffers will delete the marked files (or if no files are marked, the
+file under point).  This command does not notify the VC backend, and
+is mostly useful for unregistered files.
 
 ---
 *** 'vc-dir-ignore' now takes a prefix argument to ignore all marked files.
@@ -1100,6 +1096,12 @@ This new user option allows customizing the default arguments passed to
 *** Command 'vc-git-stash' now respects marks in the "*vc-dir*" buffer.
 When some files are marked, only those are stashed.
 When no files are marked, all modified files are stashed, as before.
+
+---
+*** 'vc-dir' now shows a button allowing you to hide the stash list.
+Controlled by user option 'vc-git-show-stash'.  Default t means show
+the entire list as before.  An integer value limits the list length
+(but still allows you to show the entire list via the button).
 
 ---
 *** 'vc-git-stash' is now bound to 'C' in the stash headers.
@@ -1133,24 +1135,18 @@ you invoke 'C-x v m' ('vc-merge').
 instead of revision numbers as completion candidates when it prompts
 for a revision.
 
+---
+*** New user option 'vc-hg-revert-switches'.
+It specifies switches to pass to Hg's 'revert' command.
+
 +++
 *** 'C-u C-x v D' ('vc-root-version-diff') prompts for two revisions
 and compares their entire trees.
 
 ---
-*** New user option 'vc-hg-revert-switches'.
-It specifies switches to pass to Hg's 'revert' command.
-
----
 *** 'C-x v M D' ('vc-diff-mergebase') and 'C-x v M L' ('vc-log-mergebase')
 print diffs and logs between the merge base (common ancestor) of two
 given revisions.
-
-+++
-*** The new 'd' command ('vc-dir-clean-files') in 'vc-dir-mode'
-buffers will delete the marked files (or if no files are marked, the
-file under point).  This command does not notify the VC backend, and
-is mostly useful for unregistered files.
 
 +++
 *** New command 'vc-log-search' asks for a pattern, searches it
@@ -1168,6 +1164,10 @@ of 1, as in 'C-1 C-x v L' or 'C-u 1 C-x v L', it asks for a revision
 ID, and shows its log entry together with the diffs introduced by the
 revision's commit.  (For some less capable VCSes, only the log entry
 is shown.)
+
+---
+*** New user option 'vc-find-revision-no-save'.
+With non-nil, 'vc-find-revision' doesn't write the created buffer to file.
 
 ---
 *** 'C-x v =' can now mimic Magit's diff format.
@@ -3515,6 +3515,10 @@ functions.
 *** 'image-mode' now uses this library to automatically rotate images
 according to the orientation in the Exif data, if any.
 
+*** In 'image-mode' the image is resized automatically to fit in window.
+The image will resize upon first display and whenever the window's
+dimensions change.
+
 ---
 *** New library image-converter.
 If you need to view exotic image formats for which Emacs doesn't have
@@ -3551,6 +3555,8 @@ name to the kill ring.
 *** The command 'image-rotate' now accepts a prefix argument.
 With a prefix argument, 'image-rotate' now rotates the image at point
 90 degrees counter-clockwise, instead of the default clockwise.
+
+*** 'image-mode' has a new key prefix 's' for transformation commands.
 
 ** Modules
 

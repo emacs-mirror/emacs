@@ -807,7 +807,7 @@ If you just want to automatically auto-revert every
 
 @example
 (setq-local buffer-stale-function
-     #'(lambda (&optional noconfirm) 'fast))
+     (lambda (&optional noconfirm) 'fast))
 @end example
 
 @noindent

@@ -46,6 +46,10 @@ you store in it, type and all.  (Actually, a small number of Emacs
 Lisp variables can only take on values of a certain type.
 @xref{Variables with Restricted Values}.)
 
+  Some Lisp objects are @dfn{constant}: their values never change.
+Others are @dfn{mutable}: their values can be changed via destructive
+operations that involve side effects.
+
   This chapter describes the purpose, printed representation, and read
 syntax of each of the standard types in GNU Emacs Lisp.  Details on how
 to use these types can be found in later chapters.
@@ -59,6 +63,7 @@ to use these types can be found in later chapters.
 * Circular Objects::            Read syntax for circular structure.
 * Type Predicates::             Tests related to types.
 * Equality Predicates::         Tests of equality between any two objects.
+* Constants and Mutability::    Whether an object's value can change.
 @end menu
 
 @node Printed Representation
@@ -2377,3 +2382,46 @@ that for two strings to be equal, they have the same text properties.
 @end group
 @end example
 @end defun
+
+@node Constants and Mutability
+@section Constants and Mutability
+@cindex constants
+@cindex mutable objects
+
+  Some Lisp objects are constant: their values never change.
+For example, you can create a new integer by calculating one, but you
+cannot modify the value of an existing integer.
+
+  Other Lisp objects are mutable: their values can be changed
+via destructive operations involving side effects.  For example, an
+existing marker can be changed by moving the marker to point to
+somewhere else.
+
+  Although numbers are always constants and markers are always
+mutable, some types contain both constant and mutable members.  These
+types include conses, vectors, strings, and symbols.  For example, the string
+literal @code{"aaa"} yields a constant string, whereas the function
+call @code{(make-string 3 ?a)} yields a mutable string that can be
+changed via later calls to @code{aset}.
+
+  Trying to modify a constant variable signals an error
+(@pxref{Constant Variables}).
+A program should not attempt to modify other types of constants because the
+resulting behavior is undefined: the Lisp interpreter might or might
+not detect the error, and if it does not detect the error the
+interpreter can behave unpredictably thereafter.  Another way to put
+this is that although mutable objects are safe to change and constant
+symbols reliably reject attempts to change them, other constants are
+not safely mutable: if you try to change one your program might
+behave as you expect but it might crash or worse.  This problem occurs
+with types that have both constant and mutable members, and that have
+mutators like @code{setcar} and @code{aset} that are valid on mutable
+objects but hazardous on constants.
+
+  When the same constant occurs multiple times in a program, the Lisp
+interpreter might save time or space by reusing existing constants or
+constant components.  For example, @code{(eq "abc" "abc")} returns
+@code{t} if the interpreter creates only one instance of the string
+constant @code{"abc"}, and returns @code{nil} if it creates two
+instances.  Lisp programs should be written so that they work
+regardless of whether this optimization is in use.

@@ -1416,7 +1416,8 @@ C-c}.
 
   Image-Dired is a facility for browsing image files.  It provides viewing
 the images either as thumbnails or in full size, either inside Emacs
-or through an external viewer.
+or through an external viewer.  This is different from Image mode
+(@pxref{Image Mode}) for visiting an image file in the Emacs buffer.
 
 @kindex C-t d @r{(Image-Dired)}
 @findex image-dired-display-thumbs

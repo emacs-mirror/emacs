@@ -297,6 +297,7 @@ Lisp Data Types
 * Circular Objects::        Read syntax for circular structure.
 * Type Predicates::         Tests related to types.
 * Equality Predicates::     Tests of equality between any two objects.
+* Constants and Mutability::  Whether an object's value can change.
 
 Programming Types
 

@@ -4881,7 +4881,7 @@ features required.  Each entry has the form `(provide . FEATURE)',
 `(defface . SYMBOL)', `(define-type . SYMBOL)',
 `(cl-defmethod METHOD SPECIALIZERS)', or `(t . SYMBOL)'.
 Entries like `(t . SYMBOL)' may precede a `(defun . FUNCTION)' entry,
-and means that SYMBOL was an autoload before this file redefined it
+and mean that SYMBOL was an autoload before this file redefined it
 as a function.  In addition, entries may also be single symbols,
 which means that symbol was defined by `defvar' or `defconst'.
 

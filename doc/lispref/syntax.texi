@@ -1118,9 +1118,9 @@ bidi-class}).
     ;; 'bidi-class' Unicode property is R, AL, or RLO --
     ;; these have a right-to-left directionality.
     (map-char-table
-     #'(lambda (key val)
-         (if (memq val '(R AL RLO))
-             (modify-category-entry key ?R category-table)))
+     (lambda (key val)
+       (if (memq val '(R AL RLO))
+           (modify-category-entry key ?R category-table)))
      uniprop-table)
     category-table))
 @end example

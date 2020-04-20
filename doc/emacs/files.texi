@@ -38,7 +38,8 @@ on file directories.
 * Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
-* File Conveniences::   Convenience Features for Finding Files.
+* File Conveniences::   Convenience features for finding files.
+* Image Mode::          Viewing image files.
 * Filesets::            Handling sets of files.
 @end menu
 
@@ -2088,8 +2089,7 @@ of the cache with the @code{file-cache-display} command.
 @section Convenience Features for Finding Files
 
   In this section, we introduce some convenient facilities for finding
-recently-opened files, reading file names from a buffer, and viewing
-image files.
+recently-opened files, reading file names from a buffer.
 
 @findex recentf-mode
 @vindex recentf-mode
@@ -2107,6 +2107,9 @@ powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
+
+@node Image Mode
+@section Viewing Image Files
 
 @findex image-mode
 @findex image-toggle-display

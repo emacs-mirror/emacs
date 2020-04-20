@@ -677,7 +677,7 @@ Each element is (INDEX . VALUE)")
 (byte-defop 112  1 byte-current-buffer)
 (byte-defop 113  0 byte-set-buffer)
 (byte-defop 114  0 byte-save-current-buffer
-  "To make a binding to record the current buffer")
+  "to make a binding to record the current buffer")
 (byte-defop 115  0 byte-set-mark-OBSOLETE)
 (byte-defop 116  1 byte-interactive-p-OBSOLETE)
 

@@ -198,7 +198,8 @@ as start and end positions), and with `string<' otherwise."
 
 ;;;###autoload
 (defun sort-lines (reverse beg end)
-  "Sort lines in region alphabetically; argument means descending order.
+  "Sort lines in region alphabetically; REVERSE non-nil means descending order.
+Interactively, REVERSE is the prefix argument, and BEG and END are the region.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort).
 The variable `sort-fold-case' determines whether alphabetic case affects

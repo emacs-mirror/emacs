@@ -385,7 +385,7 @@ entry to the debugger, even when `debug-on-error' is non-nil.
 This can be overridden by `debug-ignored-errors'.
 
 To signal with MESSAGE without interpreting format characters
-like `%', `\\=`' and `\\='', use (error \"%s\" MESSAGE).
+like `%', `\\=`' and `\\='', use (user-error \"%s\" MESSAGE).
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
 for the sake of consistency."
@@ -3314,7 +3314,7 @@ alternatives."
 
 (defun function-get (f prop &optional autoload)
   "Return the value of property PROP of function F.
-If AUTOLOAD is non-nil and F is autoloaded, try to autoload it
+If AUTOLOAD is non-nil and F is autoloaded, try to load it
 in the hope that it will set PROP.  If AUTOLOAD is `macro', do it only
 if it's an autoloaded macro."
   (let ((val nil))
@@ -5021,7 +5021,7 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 (defun backtrace-frames (&optional base)
   "Collect all frames of current backtrace into a list.
 If non-nil, BASE should be a function, and frames before its
-nearest activation frames are discarded."
+nearest activation frame are discarded."
   (let ((frames nil))
     (mapbacktrace (lambda (&rest frame) (push frame frames))
                   (or base 'backtrace-frames))

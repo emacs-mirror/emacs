@@ -480,10 +480,10 @@ parse_sexp_propertize (ptrdiff_t charpos)
       safe_call1 (Qinternal__syntax_propertize,
 		  make_fixnum (min (zv, 1 + charpos)));
       if (modiffs != CHARS_MODIFF)
-	error ("parse-sexp-propertize-function modified the buffer!");
+	error ("internal--syntax-propertize modified the buffer!");
       if (syntax_propertize__done <= charpos
 	  && syntax_propertize__done < zv)
-	error ("parse-sexp-propertize-function did not move"
+	error ("internal--syntax-propertize did not move"
 	       " syntax-propertize--done");
       SETUP_SYNTAX_TABLE (charpos, 1);
     }

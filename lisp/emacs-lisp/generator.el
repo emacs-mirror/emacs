@@ -59,7 +59,7 @@
 ;; This raw form of iteration is general, but a bit awkward to use, so
 ;; this library also provides some convenience functions:
 ;;
-;; `iter-do' is like `cl-do', except that instead of walking a list,
+;; `iter-do' is like `dolist', except that instead of walking a list,
 ;; it walks an iterator.  `cl-loop' is also extended with a new
 ;; keyword, `iter-by', that iterates over an iterator.
 ;;
@@ -67,7 +67,7 @@
 ;;; Implementation:
 
 ;;
-;; The internal cps transformation code uses the cps- namespace.
+;; The internal CPS transformation code uses the cps- namespace.
 ;; Iteration functions use the `iter-' namespace.  Generator functions
 ;; are somewhat less efficient than conventional elisp routines,
 ;; although we try to avoid CPS transformation on forms that do not
@@ -89,13 +89,13 @@
   `(gensym (format ,fmt ,@args)))
 
 (defvar cps--dynamic-wrappers '(identity)
-  "List of transformer functions to apply to atomic forms we
-evaluate in CPS context.")
+  "List of functions to apply to atomic forms.
+These are transformer functions applied to atomic forms evaluated
+in CPS context.")
 
 (defconst cps-standard-special-forms
   '(setq setq-default throw interactive)
-  "List of special forms that we treat just like ordinary
-  function applications." )
+  "List of special forms treated just like ordinary function applications." )
 
 (defun cps--trace-funcall (func &rest args)
   (message "%S: args=%S" func args)
@@ -118,17 +118,15 @@ evaluate in CPS context.")
        (error "%s not supported in generators" ,function)))
 
 (defmacro cps--with-value-wrapper (wrapper &rest body)
-  "Continue generating CPS code with an atomic-form wrapper
-to the current stack of such wrappers.  WRAPPER is a function that
-takes a form and returns a wrapped form.
+  "Evaluate BODY with WRAPPER added to the stack of atomic-form wrappers.
+WRAPPER is a function that takes an atomic form and returns a wrapped form.
 
 Whenever we generate an atomic form (i.e., a form that can't
 `iter-yield'), we first (before actually inserting that form in our
 generated code) pass that form through all the transformer
 functions.  We use this facility to wrap forms that can transfer
 control flow non-locally in goo that diverts this control flow to
-the CPS state machinery.
-"
+the CPS state machinery."
   (declare (indent 1))
   `(let ((cps--dynamic-wrappers
           (cons
@@ -153,7 +151,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
      ,@body))
 
 (defun cps--add-state (kind body)
-  "Create a new CPS state with body BODY and return the state's name."
+  "Create a new CPS state of KIND with BODY and return the state's name."
   (declare (indent 1))
   (let ((state (cps--gensym "cps-state-%s-" kind)))
     (push (list state body cps--cleanup-function) cps--states)
@@ -170,14 +168,12 @@ DYNAMIC-VAR bound to STATIC-VAR."
     (and (fboundp handler) handler)))
 
 (defvar cps-inhibit-atomic-optimization nil
-  "When non-nil, always rewrite forms into cps even when they
-don't yield.")
+  "When non-nil, always rewrite forms into CPS even when they don't yield.")
 
 (defvar cps--yield-seen)
 
 (defun cps--atomic-p (form)
-  "Return whether the given form never yields."
-
+  "Return nil if FORM can yield, non-nil otherwise."
   (and (not cps-inhibit-atomic-optimization)
        (let* ((cps--yield-seen))
          (ignore (macroexpand-all
@@ -649,8 +645,8 @@ modified copy."
 (defun iter-yield (value)
   "When used inside a generator, yield control to caller.
 The caller of `iter-next' receives VALUE, and the next call to
-`iter-next' resumes execution at the previous
-`iter-yield' point."
+`iter-next' resumes execution with the form immediately following this
+`iter-yield' call."
   (identity value)
   (error "`iter-yield' used outside a generator"))
 

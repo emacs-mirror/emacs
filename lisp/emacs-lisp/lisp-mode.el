@@ -535,7 +535,7 @@ This will generate compile-time constants from BINDINGS."
 
 ;; Support backtrace mode.
 (defconst lisp-el-font-lock-keywords-for-backtraces lisp-el-font-lock-keywords
-  "Default highlighting from Emacs Lisp mod used in Backtrace mode.")
+  "Default highlighting from Emacs Lisp mode used in Backtrace mode.")
 (defconst lisp-el-font-lock-keywords-for-backtraces-1 lisp-el-font-lock-keywords-1
   "Subdued highlighting from Emacs Lisp mode used in Backtrace mode.")
 (defconst lisp-el-font-lock-keywords-for-backtraces-2

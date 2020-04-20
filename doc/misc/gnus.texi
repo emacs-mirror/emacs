@@ -25668,6 +25668,13 @@ Create non-spam statistics for every file in this directory.  Every
 file is treated as one non-spam mail.
 @end defun
 
+@defvar spam-stat-process-directory-age
+Maximum age of files to be processed, in days.  Without this filter,
+re-training spam-stat with several thousand messages could take a long
+time.  The default is 90, but you might want to set this to a bigger
+value during the initial training.
+@end defvar
+
 Usually you would call @code{spam-stat-process-spam-directory} on a
 directory such as @file{~/Mail/mail/spam} (this usually corresponds to
 the group @samp{nnml:mail.spam}), and you would call

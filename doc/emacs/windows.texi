@@ -586,13 +586,25 @@ buffer.  @xref{Follow Mode}.
 @cindex directional window selection
 @findex windmove-right
 @findex windmove-default-keybindings
+@findex windmove-display-default-keybindings
+@findex windmove-delete-default-keybindings
+@findex windmove-swap-states-in-direction
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
-one, and similarly for the left, up, and down
-counterparts.  @w{@kbd{M-x windmove-default-keybindings}} binds these
-commands to @kbd{S-right} etc.; doing so disables shift selection for
-those keys (@pxref{Shift Selection}).
+one, and similarly for the left, up, and down counterparts.
+@w{@kbd{M-x windmove-default-keybindings}} binds these commands to
+@kbd{S-right} etc.; doing so disables shift selection for those keys
+(@pxref{Shift Selection}).  In the same way as keybindings can be
+defined for commands that select windows directionally, you can use
+@w{@kbd{M-x windmove-display-default-keybindings}} to define
+keybindings for commands that specify in what direction to display the
+window for the buffer that the next command is going to display.
+Also there is @w{@kbd{M-x windmove-delete-default-keybindings}} to
+define keybindings for commands that delete windows directionally, and
+@w{@kbd{M-x windmove-swap-states-in-direction}} that define
+keybindings for commands that swap the window contents of the selected
+window with the window in the specified direction.
 
   The command @kbd{M-x compare-windows} lets you compare the text
 shown in different windows.  @xref{Comparing Files}.

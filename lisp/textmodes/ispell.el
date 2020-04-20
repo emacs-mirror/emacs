@@ -800,8 +800,8 @@ Otherwise returns the library directory name, if that is defined."
 
 (defun ispell-create-debug-buffer (&optional append)
   "Create an ispell debug buffer for debugging output.
-If APPEND is non-nil, append the info to previous buffer if exists,
-otherwise is reset.  Returns name of ispell debug buffer.
+If APPEND is non-nil, add output to the old buffer if it exists,
+otherwise the buffer is erased first.  Returns the debug buffer.
 See `ispell-buffer-with-debug' for an example of use."
   (let ((ispell-debug-buffer (get-buffer-create "*ispell-debug*")))
     (with-current-buffer ispell-debug-buffer
@@ -812,7 +812,7 @@ See `ispell-buffer-with-debug' for an example of use."
     ispell-debug-buffer))
 
 (defsubst ispell-print-if-debug (format &rest args)
-  "Print message using FORMAT and ARGS to `ispell-debug-buffer' buffer if enabled."
+  "Print message using FORMAT and ARGS to `ispell-debug-buffer' if enabled."
   (if (boundp 'ispell-debug-buffer)
       (with-current-buffer ispell-debug-buffer
 	(goto-char (point-max))
@@ -3618,8 +3618,8 @@ Returns the sum SHIFT due to changes in word replacements."
 
 ;;;###autoload
 (defun ispell-buffer-with-debug (&optional append)
-  "`ispell-buffer' with some output sent to `ispell-debug-buffer' buffer.
-If APPEND is non-n il, append the info to previous buffer if exists."
+  "`ispell-buffer' with some output sent to `ispell-debug-buffer'.
+If APPEND is non-nil, don't erase previous debugging output."
   (interactive)
   (let ((ispell-debug-buffer (ispell-create-debug-buffer append)))
     (ispell-buffer)))

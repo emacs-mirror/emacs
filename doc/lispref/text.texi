@@ -2073,11 +2073,10 @@ its @code{sort-subr} call looks like this:
 @example
 @group
 (sort-subr reverse
-           (function
-            (lambda ()
-              (while (and (not (eobp))
-                          (looking-at paragraph-separate))
-                (forward-line 1))))
+           (lambda ()
+             (while (and (not (eobp))
+                         (looking-at paragraph-separate))
+               (forward-line 1)))
            'forward-paragraph)
 @end group
 @end example
@@ -4679,7 +4678,7 @@ expanded when the header line is computed.  To do this, the
 above.  @var{specification} is an alist that has elements where the
 @code{car} is a character and the @code{cdr} is the substitution.
 
-If @code{ONLY-PRESENT} is @code{nil}, errors will be signalled if a
+If @code{ONLY-PRESENT} is @code{nil}, errors will be signaled if a
 format character has been used that's not present in
 @var{specification}.  If it's non-@code{nil}, that format
 specification is left verbatim in the result.
@@ -5725,7 +5724,7 @@ made within the @code{combine-after-change-calls} body.
 @code{after-change-functions} within
 the body of a @code{combine-after-change-calls} form.
 
-@strong{Warning:} if the changes you combine occur in widely scattered
+@strong{Warning:} If the changes you combine occur in widely scattered
 parts of the buffer, this will still work, but it is not advisable,
 because it may lead to inefficient behavior for some change hook
 functions.

@@ -509,7 +509,7 @@ This method shows how to handle `setf's to places of the form
 ARGLIST, as if NAME were going to be expanded as a macro, then
 the BODY forms are executed and must return a list of five elements:
 a temporary-variables list, a value-forms list, a store-variables list
-\(of length one), a store-form, and an access- form.
+\(of length one), a store-form, and an access-form.
 
 See `gv-define-expander', and `gv-define-setter' for better and
 simpler ways to define setf-methods."

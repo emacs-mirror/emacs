@@ -51,10 +51,8 @@ by a distinguished character code.
 operate on them with the general array and sequence functions documented
 in @ref{Sequences Arrays Vectors}.  For example, you can access or
 change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).  However, note that
-@code{length} should @emph{not} be used for computing the width of a
-string on display; use @code{string-width} (@pxref{Size of Displayed
-Text}) instead.
+and @code{aset} (@pxref{Array Functions}).  However, you should not
+try to change the contents of constant strings (@pxref{Modifying Strings}).
 
   There are two text representations for non-@acronym{ASCII}
 characters in Emacs strings (and in buffers): unibyte and multibyte.
@@ -89,6 +87,9 @@ copy them into buffers.  @xref{Character Type}, and @ref{String Type},
 for information about the syntax of characters and strings.
 @xref{Non-ASCII Characters}, for functions to convert between text
 representations and to encode and decode character codes.
+Also, note that @code{length} should @emph{not} be used for computing
+the width of a string on display; use @code{string-width} (@pxref{Size
+of Displayed Text}) instead.
 
 @node Predicates for Strings
 @section Predicates for Strings
@@ -380,6 +381,11 @@ usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @cindex modifying strings
 @cindex string modification
 
+  You can alter the contents of a mutable string via operations
+described in this section.  However, you should not try to use these
+operations to alter the contents of a constant string.
+@xref{Constants and Mutability}.
+
   The most basic way to alter the contents of an existing string is with
 @code{aset} (@pxref{Array Functions}).  @code{(aset @var{string}
 @var{idx} @var{char})} stores @var{char} into @var{string} at index
@@ -591,7 +597,7 @@ for sorting (@pxref{Sequence Functions}):
 
 @example
 @group
-(sort '("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+(sort (list "11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
      @result{} ("11" "1 1" "1.1" "12" "1 2" "1.2")
 @end group
 @end example
@@ -608,7 +614,7 @@ systems.  The @var{locale} value of @code{"POSIX"} or @code{"C"} lets
 
 @example
 @group
-(sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+(sort (list "11" "12" "1 1" "1 2" "1.1" "1.2")
       (lambda (s1 s2) (string-collate-lessp s1 s2 "POSIX")))
      @result{} ("1 1" "1 2" "1.1" "1.2" "11" "12")
 @end group
