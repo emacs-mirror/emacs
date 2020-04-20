@@ -735,6 +735,7 @@ in a way that does not interact well with @code{highlight}.
 @cindex @code{tab-line} face
 Similar to @code{mode-line} for a window's tab line, which appears
 at the top of a window with tabs representing window buffers.
+@xref{Tab Line}.
 @item vertical-border
 @cindex @code{vertical-border} face
 This face is used for the vertical divider between windows on text

@@ -791,7 +791,7 @@ the same number of columns as provided by the shell.
 @vindex shell-command-prompt-show-cwd
   To make the above commands show the current directory in their
 prompts, customize the variable @code{shell-command-prompt-show-cwd}
-to a non-nil value.
+to a non-@code{nil} value.
 
 @kindex M-|
 @findex shell-command-on-region

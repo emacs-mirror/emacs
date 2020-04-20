@@ -2720,8 +2720,8 @@ left to higher-level functions.
 +++
 *** Tab Bar mode
 The new command 'tab-bar-mode' enables the tab bar at the top of each
-frame, where you can use tabs to switch between named persistent
-window configurations.
+frame (including TTY frames), where you can use tabs to switch between
+named persistent window configurations.
 
 The 'C-x t' sequence is the new prefix key for tab-related commands:
 'C-x t 2' creates a new tab; 'C-x t 0' deletes the current tab;
@@ -2738,6 +2738,11 @@ when its value is "on", "yes" or "1".
 
 The user option 'tab-bar-position' specifies where to show the tab bar.
 
+Tab-related commands can be used even without the tab bar when
+'tab-bar-mode' is disabled by a nil value of the user option
+'tab-bar-show'.  Without the tab bar you can switch between tabs
+using completion on tab names, or using 'tab-switcher'.
+
 Read the new Info node "(emacs) Tab Bars" for full description
 of all related features.
 
@@ -2751,6 +2756,9 @@ the previous window-local tab is the same as typing 'C-x <LEFT>'
 a repeat count.  Clicking on the plus icon adds a new buffer to the
 window-local tab line of buffers.  Using the mouse wheel on the tab
 line scrolls tabs.
+
+Read the new Info node "(emacs) Tab Line" for full description
+of all related features.
 
 +++
 ** fileloop.el lets one setup multifile operations like search&replace.

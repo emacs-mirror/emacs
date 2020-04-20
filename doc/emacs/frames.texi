@@ -1262,6 +1262,12 @@ sessions (@pxref{Saving Emacs Sessions}), the tabs from the Tab Bar are
 recorded in the desktop file, together with their associated window
 configurations, and will be available after restoring the session.
 
+Note that the Tab Bar is different from the Tab Line (@pxref{Tab Line}).
+Whereas tabs on the Tab Line at the top of each window are used to
+switch between buffers, tabs on the Tab Bar at the top of each frame
+are used to switch between window configurations containing several
+windows.
+
 @findex tab-bar-mode
   To toggle the use of tab bars, type @kbd{M-x tab-bar-mode}.  This
 command applies to all frames, including frames yet to be created.  To
@@ -1275,9 +1281,11 @@ is turned on automatically.  If the value is @code{t}, then
 tabs.  The value @code{1} hides the tab bar when it has only one tab,
 and shows it again when more tabs are created.  The value @code{nil}
 always keeps the tab bar hidden; in this case it's still possible to
-use persistent named window configurations without using the tab bar
-by typing the related commands: @kbd{M-x tab-new}, @kbd{M-x tab-next},
-@kbd{M-x tab-close}, @kbd{M-x tab-switcher}, etc.
+switch between named window configurations without the tab bar by
+using @kbd{M-x tab-next}, @kbd{M-x tab-switcher}, and other commands
+that provide completion on tab names.  Also it's possible to create
+and close tabs without the tab bar by using commands @kbd{M-x
+tab-new}, @kbd{M-x tab-close}, etc.
 
 @kindex C-x t
   The prefix key @kbd{C-x t} is analogous to @kbd{C-x 5}.
@@ -1286,7 +1294,8 @@ Whereas each @kbd{C-x 5} command pops up a buffer in a different frame
 tab with a different window configuration in the selected frame.
 
   The various @kbd{C-x t} commands differ in how they find or create the
-buffer to select:
+buffer to select.  The following commands can be used to select a buffer
+in a new tab:
 
 @table @kbd
 @item C-x t 2
@@ -1295,19 +1304,18 @@ buffer to select:
 Add a new tab (@code{tab-new}).  You can control the choice of the
 buffer displayed in a new tab by customizing the variable
 @code{tab-bar-new-tab-choice}.
+
 @item C-x t b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another tab.  This runs
 @code{switch-to-buffer-other-tab}.
+
 @item C-x t f @var{filename} @key{RET}
 Visit file @var{filename} and select its buffer in another tab.  This
 runs @code{find-file-other-tab}.  @xref{Visiting}.
+
 @item C-x t d @var{directory} @key{RET}
 Select a Dired buffer for directory @var{directory} in another tab.
 This runs @code{dired-other-tab}.  @xref{Dired}.
-@item C-x t r @var{tabname} @key{RET}
-Renames the current tab to @var{tabname}.  You can control the
-programmatic name given to a tab by default by customizing the
-variable @code{tab-bar-tab-name-function}.
 @end table
 
 @vindex tab-bar-new-tab-choice
@@ -1316,7 +1324,7 @@ current before calling the command that adds a new tab.
 To start a new tab with other buffers, customize the variable
 @code{tab-bar-new-tab-choice}.
 
-  The following commands are used to delete and operate on tabs:
+  The following commands can be used to delete tabs:
 
 @table @kbd
 @item C-x t 0
@@ -1325,19 +1333,45 @@ To start a new tab with other buffers, customize the variable
 Close the selected tab (@code{tab-close}).  It has no effect if there
 is only one tab.
 
-@item C-x t o
-@kindex C-x t o
-@kindex C-TAB
-@findex tab-next
-Switch to another tab.  If you repeat this command, it cycles through
-all the tabs on the selected frame.  With a positive numeric argument
-N, it switches to the next Nth tab; with a negative argument −N, it
-switches back to the previous Nth tab.
-
 @item C-x t 1
 @kindex C-x t 1
 @findex tab-close-other
 Close all tabs on the selected frame, except the selected one.
+@end table
+
+  The following commands can be used to switch between tabs:
+
+@table @kbd
+@item C-x t o
+@itemx C-@key{TAB}
+@kindex C-x t o
+@kindex C-TAB
+@findex tab-next
+Switch to the next tab.  If you repeat this command, it cycles through
+all the tabs on the selected frame.  With a positive numeric argument
+N, it switches to the next Nth tab; with a negative argument −N, it
+switches back to the previous Nth tab.
+
+@item S-C-@key{TAB}
+@kindex S-C-TAB
+@findex tab-previous
+Switch to the previous tab.  With a positive numeric argument N, it
+switches to the previous Nth tab; with a negative argument −N, it
+switches back to the next Nth tab.
+@end table
+
+  The following commands can be used to operate on tabs:
+
+@table @kbd
+@item C-x t r @var{tabname} @key{RET}
+Rename the current tab to @var{tabname}.  You can control the
+programmatic name given to a tab by default by customizing the
+variable @code{tab-bar-tab-name-function}.
+
+@item C-x t m
+Move the current tab N positions to the right with a positive numeric
+argument N.  With a negative argument −N, it moves the current tab
+N positions to the left.
 @end table
 
 @node Dialog Boxes

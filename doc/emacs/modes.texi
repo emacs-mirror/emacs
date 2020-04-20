@@ -299,7 +299,7 @@ Bars}.
 Tab Bar mode gives each frame a tab bar.  @xref{Tab Bars}.
 
 @item
-Tab Line mode gives each window a tab line.
+Tab Line mode gives each window a tab line.  @xref{Tab Line}.
 
 @item
 Transient Mark mode highlights the region, and makes many Emacs
