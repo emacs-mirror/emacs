@@ -31,15 +31,19 @@ INLINE_HEADER_BEGIN
 /* character code	1st byte   byte sequence
    --------------	--------   -------------
         0-7F		00..7F	   0xxxxxxx
-       80-7FF		C2..DF	   110xxxxx 10xxxxxx
-      800-FFFF		E0..EF	   1110xxxx 10xxxxxx 10xxxxxx
-    10000-1FFFFF	F0..F7	   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-   200000-3FFF7F	F8	   11111000 1000xxxx 10xxxxxx 10xxxxxx 10xxxxxx
+       80-7FF		C2..DF	   110yyyyx 10xxxxxx
+      800-FFFF		E0..EF	   1110yyyy 10yxxxxx 10xxxxxx
+    10000-1FFFFF	F0..F7	   11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
+   200000-3FFF7F	F8	   11111000 1000yxxx 10xxxxxx 10xxxxxx 10xxxxxx
    3FFF80-3FFFFF	C0..C1	   1100000x 10xxxxxx (for eight-bit-char)
    400000-...		invalid
 
    invalid 1st byte	80..BF	   10xxxxxx
-			F9..FF	   11111xxx (xxx != 000)
+			F9..FF	   11111yyy
+
+   In each bit pattern, 'x' and 'y' each represent a single bit of the
+   character code payload, and least one 'y' must be a 1 bit.
+   In the 5-byte sequence, the 22-bit payload cannot exceed 3FFF7F.
 */
 
 /* Maximum character code ((1 << CHARACTERBITS) - 1).  */
@@ -284,7 +288,7 @@ CHAR_HEAD_P (int byte)
 }
 
 /* How many bytes a character that starts with BYTE occupies in a
-   multibyte form.  Unlike MULTIBYTE_LENGTH below, this function does not
+   multibyte form.  Unlike multibyte_length, this function does not
    validate the multibyte form, but looks only at its first byte.  */
 INLINE int
 BYTES_BY_CHAR_HEAD (int byte)
@@ -297,44 +301,54 @@ BYTES_BY_CHAR_HEAD (int byte)
 }
 
 
-/* The byte length of multibyte form at unibyte string P ending at
-   PEND.  If the string doesn't point to a valid multibyte form,
-   return 0.  Unlike BYTES_BY_CHAR_HEAD, this macro validates the
-   multibyte form.  */
+/* The byte length of the multibyte form at the unibyte string P,
+   ending at PEND if CHECK, and without a length check if !CHECK.
+   If ALLOW_8BIT, allow multibyte forms of eight-bit characters.
+   If the string doesn't point to a valid multibyte form, return 0.
+   Unlike BYTES_BY_CHAR_HEAD, this function validates the multibyte form.  */
 
 INLINE int
-MULTIBYTE_LENGTH (unsigned char const *p, unsigned char const *pend)
+multibyte_length (unsigned char const *p, unsigned char const *pend,
+		  bool check, bool allow_8bit)
 {
-  return (! (p < pend) ? 0
-	  : ! (p[0] & 0x80) ? 1
-	  : ! (p + 1 < pend && (p[1] & 0xC0) == 0x80) ? 0
-	  : (p[0] & 0xE0) == 0xC0 ? 2
-	  : ! (p + 2 < pend && (p[2] & 0xC0) == 0x80) ? 0
-	  : (p[0] & 0xF0) == 0xE0 ? 3
-	  : ! (p + 3 < pend && (p[3] & 0xC0) == 0x80) ? 0
-	  : (p[0] & 0xF8) == 0xF0 ? 4
-	  : ! (p + 4 < pend && (p[4] & 0xC0) == 0x80) ? 0
-	  : p[0] == 0xF8 && (p[1] & 0xF0) == 0x80 ? 5
-	  : 0);
-}
+  if (!check || p < pend)
+    {
+      unsigned char c = p[0];
+      if (c < 0x80)
+	return 1;
+      if (!check || p + 1 < pend)
+	{
+	  /* The 'unsigned int' avoids int overflow in the 5-byte case.  */
+	  unsigned int d = p[1];
 
+	  if (TRAILING_CODE_P (d))
+	    {
+	      if (allow_8bit ? (c & 0xE0) == 0xC0 : 0xC2 <= c && c <= 0xDF)
+		return 2;
+	      if ((!check || p + 2 < pend)
+		  && TRAILING_CODE_P (p[2]))
+		{
+		  if ((c & 0xF0) == 0xE0 && ((c & 0x0F) | (d & 0x20)))
+		    return 3;
+		  if ((!check || p + 3 < pend) && TRAILING_CODE_P (p[3]))
+		    {
+		      if ((c & 0xF8) == 0xF0 && ((c & 0x07) | (d & 0x30)))
+			return 4;
+		      if (c == 0xF8 && (!check || p + 4 < pend)
+			  && TRAILING_CODE_P (p[4]))
+			{
+			  unsigned int w = ((d << 24) + (p[2] << 16)
+					    + (p[3] << 8) + p[4]);
+			  if (0x88808080 <= w && w <= 0x8FBFBDBF)
+			    return 5;
+			}
+		    }
+		}
+	    }
+	}
+    }
 
-/* Like MULTIBYTE_LENGTH, but don't check the ending address.  The
-   multibyte form is still validated, unlike BYTES_BY_CHAR_HEAD.  */
-
-INLINE int
-MULTIBYTE_LENGTH_NO_CHECK (unsigned char const *p)
-{
-  return (!(p[0] & 0x80) ? 1
-	  : (p[1] & 0xC0) != 0x80 ? 0
-	  : (p[0] & 0xE0) == 0xC0 ? 2
-	  : (p[2] & 0xC0) != 0x80 ? 0
-	  : (p[0] & 0xF0) == 0xE0 ? 3
-	  : (p[3] & 0xC0) != 0x80 ? 0
-	  : (p[0] & 0xF8) == 0xF0 ? 4
-	  : (p[4] & 0xC0) != 0x80 ? 0
-	  : p[0] == 0xF8 && (p[1] & 0xF0) == 0x80 ? 5
-	  : 0);
+  return 0;
 }
 
 

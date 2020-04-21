@@ -2634,8 +2634,7 @@ current buffer is cleared.  */)
 	  if (ASCII_CHAR_P (*p))
 	    p++, pos++;
 	  else if (EQ (flag, Qt)
-		   && ! CHAR_BYTE8_HEAD_P (*p)
-		   && (bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
+		   && 0 < (bytes = multibyte_length (p, pend, true, false)))
 	    p += bytes, pos += bytes;
 	  else
 	    {
