@@ -1684,7 +1684,7 @@ to the 'project-root' of the current project, when available.
 *** The TAB key binding in *xref* buffers is obsolete.
 Use 'C-u RET' instead.  The TAB binding in *xref* buffers is still
 supported, but we plan on removing it in a future version; at that
-time, the command 'xref-quit-and-got-xref' will no longer have a key
+time, the command 'xref-quit-and-goto-xref' will no longer have a key
 binding in 'xref--xref-buffer-mode-map'.
 
 ** json.el

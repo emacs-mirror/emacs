@@ -486,7 +486,7 @@ variable with the same name as one of the macro arguments.  Inside the
 macro body, the macro argument binding is the most local binding of this
 variable, so any references inside the form being evaluated do refer to
 it.  Here is an example:
-
+@c FIXME with lexical-binding t this example no longer applies
 @example
 @group
 (defmacro foo (a)

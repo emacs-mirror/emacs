@@ -8089,7 +8089,7 @@ Return nil if there are no unseen articles."
 
 (defun gnus-summary-first-unseen-or-unread-subject ()
   "Place the point on the subject line of the first unseen and unread article.
-If all article have been seen, on the subject line of the first unread
+If all articles have been seen, on the subject line of the first unread
 article."
   (interactive nil gnus-summary-mode)
   (prog1

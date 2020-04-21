@@ -42,7 +42,7 @@ INLINE_HEADER_BEGIN
 			F9..FF	   11111yyy
 
    In each bit pattern, 'x' and 'y' each represent a single bit of the
-   character code payload, and least one 'y' must be a 1 bit.
+   character code payload, and at least one 'y' must be a 1 bit.
    In the 5-byte sequence, the 22-bit payload cannot exceed 3FFF7F.
 */
 
