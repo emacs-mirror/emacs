@@ -3525,10 +3525,10 @@ according to the orientation in the Exif data, if any.
 
 +++
 *** In 'image-mode' the image is resized automatically to fit in window.
-The image will resize upon first display and whenever the window's
-dimensions change.  Two user options 'image-auto-resize' and
-'image-auto-resize-on-window-resize' can define resizing parameters or
-disable auto-resizing.
+By default, the image will resize upon first display and whenever the
+window's dimensions change.  Two user options 'image-auto-resize' and
+'image-auto-resize-on-window-resize' control the resizing behavior
+(including the possibility to disable auto-resizing).
 
 ---
 *** New library image-converter.

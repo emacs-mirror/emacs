@@ -2126,11 +2126,14 @@ and displaying it in hex representation.  Displaying the file as an
 image works only if Emacs is compiled with support for displaying
 such images.
 
-If the displayed image is wider or taller than the frame, the usual
-point motion keys (@kbd{C-f}, @kbd{C-p}, and so forth) cause different
-parts of the image to be displayed.  But by default the image is
-resized automatically to fit to the window.  You can configure this by
-using two options @code{image-auto-resize} and
+@vindex image-auto-resize
+@vindex image-auto-resize-on-window-resize
+If the displayed image is wider or taller than the window in which it
+is displayed, the usual point motion keys (@kbd{C-f}, @kbd{C-p}, and
+so forth) cause different parts of the image to be displayed.
+However, by default images are resized automatically to fit the
+window, so this is only necessary if you customize the default
+behavior by using the options @code{image-auto-resize} and
 @code{image-auto-resize-on-window-resize}.
 
 You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
