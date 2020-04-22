@@ -4342,7 +4342,8 @@ The argument @var{bits} specifies the image to use.  It should be
 either a string or a vector of integers, where each element (an
 integer) corresponds to one row of the bitmap.  Each bit of an integer
 corresponds to one pixel of the bitmap, where the low bit corresponds
-to the rightmost pixel of the bitmap.
+to the rightmost pixel of the bitmap.  (Note that this order of bits
+is opposite of the order in XBM images; @pxref{XBM Images}.)
 
 The height is normally the length of @var{bits}.  However, you
 can specify a different height with non-@code{nil} @var{height}.  The width
