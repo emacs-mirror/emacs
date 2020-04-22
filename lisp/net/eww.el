@@ -518,6 +518,10 @@ Currently this means either text/html or application/xhtml+xml."
       (plist-put eww-data :dom document)
       (let ((inhibit-read-only t)
 	    (inhibit-modification-hooks t)
+            ;; Possibly set by the caller, e.g., `eww-render' which
+            ;; preserves the old URL #target before chasing redirects.
+            (shr-target-id (or shr-target-id
+                               (url-target (url-generic-parse-url url))))
 	    (shr-external-rendering-functions
              (append
               shr-external-rendering-functions
