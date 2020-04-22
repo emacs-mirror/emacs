@@ -452,12 +452,12 @@ call."
 
     ;; Transformation keys
     (define-key map "sf" 'image-mode-fit-frame)
-    (define-key map "sb" 'image-transform-fit-both)
     (define-key map "sh" 'image-transform-fit-to-height)
     (define-key map "sw" 'image-transform-fit-to-width)
+    (define-key map "sb" 'image-transform-fit-both)
+    (define-key map "ss" 'image-transform-set-scale)
     (define-key map "sr" 'image-transform-set-rotation)
     (define-key map "s0" 'image-transform-reset)
-    (define-key map "ss" 'image-transform-set-scale)
 
     ;; Multi-frame keys
     (define-key map (kbd "RET") 'image-toggle-animation)
@@ -512,6 +512,8 @@ call."
 	 :help "Resize image to match the window width"]
 	["Fit to Window Height and Width" image-transform-fit-both
 	 :help "Resize image to match the window height and width"]
+	["Set Scale..." image-transform-set-scale
+	 :help "Resize image by specified scale factor"]
 	["Rotate Image..." image-transform-set-rotation
 	 :help "Rotate the image"]
 	["Reset Transformations" image-transform-reset

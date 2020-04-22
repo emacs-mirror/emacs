@@ -866,6 +866,11 @@ its functions.
 *** A new user option 'doc-view-pdftotext-program-args' has been added
 to allow controlling how the conversion to text is done.
 
++++
+*** The prefix key 's' was changed to 'c' for slicing commands
+to avoid conflicts with image-mode key 's'.  The new key 'c' still
+has good mnemonics of "cut", "clip", "crop".
+
 ** Ido
 
 ---
@@ -3524,11 +3529,31 @@ functions.
 according to the orientation in the Exif data, if any.
 
 +++
+*** The command 'image-rotate' now accepts a prefix argument.
+With a prefix argument, 'image-rotate' now rotates the image at point
+90 degrees counter-clockwise, instead of the default clockwise.
+
++++
 *** In 'image-mode' the image is resized automatically to fit in window.
 By default, the image will resize upon first display and whenever the
 window's dimensions change.  Two user options 'image-auto-resize' and
 'image-auto-resize-on-window-resize' control the resizing behavior
-(including the possibility to disable auto-resizing).
+(including the possibility to disable auto-resizing).  A new key
+prefix 's' contains the commands that can be used to fit the image to
+the window manually.
+
+---
+*** Some 'image-mode' variables are now buffer-local.
+The image parameters 'image-transform-rotation',
+'image-transform-scale' and 'image-transform-resize' are now declared
+buffer-local, so each buffer could have its own values for these
+parameters.
+
++++
+*** Three new 'image-mode' commands have been added: 'm', which marks
+the file in the dired buffer(s) for the directory the file is in; 'u',
+which unmarks the file; and 'w', which pushes the current buffer's file
+name to the kill ring.
 
 ---
 *** New library image-converter.
@@ -3548,26 +3573,6 @@ These now default to using 'image-mode'.
 'image-mode' started using ImageMagick by default for all images
 some years back.  It now respects 'imagemagick-types-inhibit' as a way
 to disable that.
-
----
-*** Some 'image-mode' variables are now buffer-local.
-The image parameters 'image-transform-rotation',
-'image-transform-scale' and 'image-transform-resize' are now declared
-buffer-local, so each buffer could have its own values for these
-parameters.
-
-+++
-*** Three new 'image-mode' commands have been added: 'm', which marks
-the file in the dired buffer(s) for the directory the file is in; 'u',
-which unmarks the file; and 'w', which pushes the current buffer's file
-name to the kill ring.
-
-+++
-*** The command 'image-rotate' now accepts a prefix argument.
-With a prefix argument, 'image-rotate' now rotates the image at point
-90 degrees counter-clockwise, instead of the default clockwise.
-
-*** 'image-mode' has a new key prefix 's' for transformation commands.
 
 ** Modules
 
