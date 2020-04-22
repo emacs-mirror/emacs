@@ -155,9 +155,21 @@
 (defcustom doc-view-ghostscript-program
   (cond
    ((memq system-type '(windows-nt ms-dos))
-    "gswin32c")
-   (t
-    "gs"))
+    (or
+     ;; Windows Ghostscript
+     (executable-find "gswin64c")
+     (executable-find "gswin32c")
+     ;; The GS wrapper coming with TeX Live
+     (executable-find "rungs")
+     ;; The MikTeX builtin GS Check if mgs is functional for external
+     ;; non-MikTeX apps.  Was available under:
+     ;; http://blog.miktex.org/post/2005/04/07/Starting-mgsexe-at-the-DOS-Prompt.aspx
+     (when-let ((mgs (executable-find "mgs")))
+       (when (= 0 (shell-command
+                   (concat (shell-quote-argument mgs)
+                           " -q -dNODISPLAY -c quit")))
+         mgs))))
+   (t "gs"))
   "Program to convert PS and PDF files to PNG."
   :type 'file
   :version "27.1")
