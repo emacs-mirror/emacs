@@ -4144,6 +4144,23 @@ your proxy host.
 
 
 @item
+@value{tramp} does not connect to Samba or MS Windows hosts running
+SMB1 connection protocol.
+
+@vindex tramp-smb-options
+Recent versions of @command{smbclient} do not support old connection
+protocols by default.  In order to connect to such a host, add a
+respective option:
+
+@lisp
+(add-to-list 'tramp-smb-options "client min protocol=NT1")
+@end lisp
+
+@strong{Note} that using a deprecated connection protocol raises
+security problems, you should do it only if absolutely necessary.
+
+
+@item
 File name completion does not work with @value{tramp}
 
 @acronym{ANSI} escape sequences from the remote shell may cause errors
