@@ -606,6 +606,12 @@ Here are some examples of expressions that use @code{quote}:
 @end group
 @end example
 
+  Although the expressions @code{(list '+ 1 2)} and @code{'(+ 1 2)}
+both yield lists equal to @code{(+ 1 2)}, the former yields a
+freshly-minted mutable list whereas the latter yields a constant list
+built from conses that may be shared with other constants.
+@xref{Constants and Mutability}.
+
   Other quoting constructs include @code{function} (@pxref{Anonymous
 Functions}), which causes an anonymous lambda expression written in Lisp
 to be compiled, and @samp{`} (@pxref{Backquote}), which is used to quote
