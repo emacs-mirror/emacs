@@ -1109,6 +1109,7 @@ Doubles as an indicator of snippet support."
                  (list (plist-get markup :value)
                        (pcase (plist-get markup :kind)
                          ("markdown" 'gfm-view-mode)
+                         ("plaintext" 'text-mode)
                          (_ major-mode))))))
     (with-temp-buffer
       (insert string)
