@@ -512,7 +512,7 @@ parse_str_as_multibyte (const unsigned char *str, ptrdiff_t len,
 
   if (len >= MAX_MULTIBYTE_LENGTH)
     {
-      const unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
+      const unsigned char *adjusted_endp = endp - (MAX_MULTIBYTE_LENGTH - 1);
       while (str < adjusted_endp)
 	{
 	  int n = multibyte_length (str, NULL, false, false);
@@ -556,7 +556,7 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
     {
-      unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
+      unsigned char *adjusted_endp = endp - (MAX_MULTIBYTE_LENGTH - 1);
       while (p < adjusted_endp)
 	{
 	  int n = multibyte_length (p, NULL, false, false);
@@ -585,7 +585,7 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
     {
-      unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
+      unsigned char *adjusted_endp = endp - (MAX_MULTIBYTE_LENGTH - 1);
       while (p < adjusted_endp)
 	{
 	  int n = multibyte_length (p, NULL, false, false);
