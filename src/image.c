@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Include this before including <setjmp.h> to work around bugs with
    older libpng; see Bug#17429.  */
-#if defined HAVE_PNG && !defined HAVE_NS
+#if defined HAVE_PNG
 # include <png.h>
 #endif
 
@@ -125,6 +125,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define NO_PIXMAP 0
 
 #define PIX_MASK_RETAIN	0
+#define PIX_MASK_DRAW	1
 
 #endif /* HAVE_NS */
 
@@ -6242,6 +6243,8 @@ image_can_use_native_api (Lisp_Object type)
 {
 # ifdef HAVE_NTGUI
   return w32_can_use_native_image_api (type);
+# elif defined HAVE_NS
+  return ns_can_use_native_image_api (type);
 # else
   return false;
 # endif
@@ -6310,6 +6313,10 @@ native_image_load (struct frame *f, struct image *img)
   return w32_load_image (f, img,
                          image_spec_value (img->spec, QCfile, NULL),
                          image_spec_value (img->spec, QCdata, NULL));
+# elif defined HAVE_NS
+  return ns_load_image (f, img,
+                        image_spec_value (img->spec, QCfile, NULL),
+                        image_spec_value (img->spec, QCdata, NULL));
 # else
   return 0;
 # endif
@@ -6322,7 +6329,7 @@ native_image_load (struct frame *f, struct image *img)
 				 PNG
  ***********************************************************************/
 
-#if defined (HAVE_PNG) || defined (HAVE_NS)
+#if defined (HAVE_PNG)
 
 /* Indices of image specification fields in png_format, below.  */
 
@@ -6373,10 +6380,10 @@ png_image_p (Lisp_Object object)
   return fmt[PNG_FILE].count + fmt[PNG_DATA].count == 1;
 }
 
-#endif /* HAVE_PNG || HAVE_NS */
+#endif /* HAVE_PNG */
 
 
-#if defined HAVE_PNG && !defined HAVE_NS
+#ifdef HAVE_PNG
 
 # ifdef WINDOWSNT
 /* PNG library details.  */
@@ -6966,17 +6973,7 @@ png_load (struct frame *f, struct image *img)
   return png_load_body (f, img, &c);
 }
 
-#elif defined HAVE_NS
-
-static bool
-png_load (struct frame *f, struct image *img)
-{
-  return ns_load_image (f, img,
-                        image_spec_value (img->spec, QCfile, NULL),
-                        image_spec_value (img->spec, QCdata, NULL));
-}
-
-#endif /* HAVE_NS */
+#endif /* HAVE_PNG */
 
 
 
@@ -6984,7 +6981,7 @@ png_load (struct frame *f, struct image *img)
 				 JPEG
  ***********************************************************************/
 
-#if defined (HAVE_JPEG) || defined (HAVE_NS)
+#if defined (HAVE_JPEG)
 
 /* Indices of image specification fields in gs_format, below.  */
 
@@ -7036,7 +7033,7 @@ jpeg_image_p (Lisp_Object object)
   return fmt[JPEG_FILE].count + fmt[JPEG_DATA].count == 1;
 }
 
-#endif /* HAVE_JPEG || HAVE_NS */
+#endif /* HAVE_JPEG */
 
 #ifdef HAVE_JPEG
 
@@ -7538,18 +7535,6 @@ jpeg_load (struct frame *f, struct image *img)
   return jpeg_load_body (f, img, &mgr);
 }
 
-#else /* HAVE_JPEG */
-
-#ifdef HAVE_NS
-static bool
-jpeg_load (struct frame *f, struct image *img)
-{
-  return ns_load_image (f, img,
-			image_spec_value (img->spec, QCfile, NULL),
-			image_spec_value (img->spec, QCdata, NULL));
-}
-#endif  /* HAVE_NS */
-
 #endif /* !HAVE_JPEG */
 
 
@@ -7558,7 +7543,7 @@ jpeg_load (struct frame *f, struct image *img)
 				 TIFF
  ***********************************************************************/
 
-#if defined (HAVE_TIFF) || defined (HAVE_NS)
+#if defined (HAVE_TIFF)
 
 /* Indices of image specification fields in tiff_format, below.  */
 
@@ -7611,7 +7596,7 @@ tiff_image_p (Lisp_Object object)
   return fmt[TIFF_FILE].count + fmt[TIFF_DATA].count == 1;
 }
 
-#endif /* HAVE_TIFF || HAVE_NS */
+#endif /* HAVE_TIFF */
 
 #ifdef HAVE_TIFF
 
@@ -7979,16 +7964,6 @@ tiff_load (struct frame *f, struct image *img)
   return 1;
 }
 
-#elif defined HAVE_NS
-
-static bool
-tiff_load (struct frame *f, struct image *img)
-{
-  return ns_load_image (f, img,
-                        image_spec_value (img->spec, QCfile, NULL),
-                        image_spec_value (img->spec, QCdata, NULL));
-}
-
 #endif
 
 
@@ -7997,7 +7972,7 @@ tiff_load (struct frame *f, struct image *img)
 				 GIF
  ***********************************************************************/
 
-#if defined (HAVE_GIF) || defined (HAVE_NS)
+#if defined (HAVE_GIF)
 
 /* Indices of image specification fields in gif_format, below.  */
 
@@ -8059,7 +8034,7 @@ gif_image_p (Lisp_Object object)
   return fmt[GIF_FILE].count + fmt[GIF_DATA].count == 1;
 }
 
-#endif /* HAVE_GIF || HAVE_NS */
+#endif /* HAVE_GIF */
 
 #ifdef HAVE_GIF
 
@@ -8575,18 +8550,6 @@ gif_load (struct frame *f, struct image *img)
 
   return 1;
 }
-
-#else  /* !HAVE_GIF */
-
-#ifdef HAVE_NS
-static bool
-gif_load (struct frame *f, struct image *img)
-{
-  return ns_load_image (f, img,
-                        image_spec_value (img->spec, QCfile, NULL),
-			image_spec_value (img->spec, QCdata, NULL));
-}
-#endif /* HAVE_NS */
 
 #endif /* HAVE_GIF */
 
@@ -10256,19 +10219,19 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qsvg), svg_image_p, svg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_svg_functions) },
 #endif
-#if defined HAVE_PNG || defined HAVE_NS
+#if defined HAVE_PNG
  { SYMBOL_INDEX (Qpng), png_image_p, png_load, image_clear_image,
    IMAGE_TYPE_INIT (init_png_functions) },
 #endif
-#if defined HAVE_GIF || defined HAVE_NS
+#if defined HAVE_GIF
  { SYMBOL_INDEX (Qgif), gif_image_p, gif_load, gif_clear_image,
    IMAGE_TYPE_INIT (init_gif_functions) },
 #endif
-#if defined HAVE_TIFF || defined HAVE_NS
+#if defined HAVE_TIFF
  { SYMBOL_INDEX (Qtiff), tiff_image_p, tiff_load, image_clear_image,
    IMAGE_TYPE_INIT (init_tiff_functions) },
 #endif
-#if defined HAVE_JPEG || defined HAVE_NS
+#if defined HAVE_JPEG
  { SYMBOL_INDEX (Qjpeg), jpeg_image_p, jpeg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_jpeg_functions) },
 #endif
@@ -10418,22 +10381,22 @@ non-numeric, there is no explicit limit on the size of images.  */);
   add_image_type (Qxpm);
 #endif
 
-#if defined (HAVE_JPEG) || defined (HAVE_NS) || defined (HAVE_NATIVE_IMAGE_API)
+#if defined (HAVE_JPEG) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qjpeg, "jpeg");
   add_image_type (Qjpeg);
 #endif
 
-#if defined (HAVE_TIFF) || defined (HAVE_NS) || defined (HAVE_NATIVE_IMAGE_API)
+#if defined (HAVE_TIFF) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qtiff, "tiff");
   add_image_type (Qtiff);
 #endif
 
-#if defined (HAVE_GIF) || defined (HAVE_NS) || defined (HAVE_NATIVE_IMAGE_API)
+#if defined (HAVE_GIF) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qgif, "gif");
   add_image_type (Qgif);
 #endif
 
-#if defined (HAVE_PNG) || defined (HAVE_NS) || defined(HAVE_NATIVE_IMAGE_API)
+#if defined (HAVE_PNG) || defined (HAVE_NATIVE_IMAGE_API)
   DEFSYM (Qpng, "png");
   add_image_type (Qpng);
 #endif

@@ -3577,33 +3577,30 @@ STDERR can also be a file name."
 	    ;; calls shall be answered from the file cache.  We unset
 	    ;; `process-file-side-effects' and `remote-file-name-inhibit-cache'
 	    ;; in order to keep the cache.
-	    (let ((vc-handled-backends vc-handled-backends)
+	    (let ((vc-handled-backends (copy-sequence vc-handled-backends))
 	          remote-file-name-inhibit-cache process-file-side-effects)
 	      ;; Reduce `vc-handled-backends' in order to minimize
 	      ;; process calls.
 	      (when (and
 		     (memq 'Bzr vc-handled-backends)
-		     (not (and
-			   (bound-and-true-p vc-bzr-program)
-			   (with-tramp-connection-property v vc-bzr-program
-			     (tramp-find-executable
-			      v vc-bzr-program (tramp-get-remote-path v))))))
+		     (or (not (require 'vc-bzr nil 'noerror))
+			 (not (with-tramp-connection-property v vc-bzr-program
+				(tramp-find-executable
+				 v vc-bzr-program (tramp-get-remote-path v))))))
 		(setq vc-handled-backends (remq 'Bzr vc-handled-backends)))
 	      (when (and
 		     (memq 'Git vc-handled-backends)
-		     (not (and
-			   (bound-and-true-p vc-git-program)
-			   (with-tramp-connection-property v vc-git-program
-			     (tramp-find-executable
-			      v vc-git-program (tramp-get-remote-path v))))))
+		     (or (not (require 'vc-git nil 'noerror))
+			 (not (with-tramp-connection-property v vc-git-program
+				(tramp-find-executable
+				 v vc-git-program (tramp-get-remote-path v))))))
 		(setq vc-handled-backends (remq 'Git vc-handled-backends)))
 	      (when (and
 		     (memq 'Hg vc-handled-backends)
-		     (not (and
-			   (bound-and-true-p vc-hg-program)
-			   (with-tramp-connection-property v vc-hg-program
-			     (tramp-find-executable
-			      v vc-hg-program (tramp-get-remote-path v))))))
+		     (or (not (require 'vc-hg nil 'noerror))
+			 (not (with-tramp-connection-property v vc-hg-program
+				(tramp-find-executable
+				 v vc-hg-program (tramp-get-remote-path v))))))
 		(setq vc-handled-backends (remq 'Hg vc-handled-backends)))
 	      ;; Run.
 	      (tramp-with-demoted-errors

@@ -38,7 +38,7 @@
 ;;
 ;; Instead, we use here a higher-order approach: instead
 ;; of a 5-tuple, a place-expander returns a function.
-;; If you think about types, the old approach return things of type
+;; If you think about types, the old approach returns things of type
 ;;    {vars: List Var, values: List Exp,
 ;;     stores: List Var, getter: Exp, setter: Exp}
 ;; whereas the new approach returns a function of type

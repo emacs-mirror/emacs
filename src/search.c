@@ -994,7 +994,7 @@ find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
   if (counted == cnt)
     {
       if (bytepos)
-	DEC_BOTH (pos, *bytepos);
+	dec_both (&pos, &*bytepos);
       else
 	pos--;
     }
@@ -1353,8 +1353,8 @@ search_buffer_non_re (Lisp_Object string, ptrdiff_t pos,
       while (--len >= 0)
         {
           unsigned char str_base[MAX_MULTIBYTE_LENGTH], *str;
-          int c, translated, inverse;
-          int in_charlen, charlen;
+          int translated, inverse;
+          int charlen;
 
           /* If we got here and the RE flag is set, it's because we're
              dealing with a regexp known to be trivial, so the backslash
@@ -1367,7 +1367,7 @@ search_buffer_non_re (Lisp_Object string, ptrdiff_t pos,
               base_pat++;
             }
 
-          c = STRING_CHAR_AND_LENGTH (base_pat, in_charlen);
+          int in_charlen, c = string_char_and_length (base_pat, &in_charlen);
 
           if (NILP (trt))
             {
@@ -1550,12 +1550,10 @@ simple_search (EMACS_INT n, unsigned char *pat,
 
 	    while (this_len > 0)
 	      {
-		int charlen, buf_charlen;
-		int pat_ch, buf_ch;
-
-		pat_ch = STRING_CHAR_AND_LENGTH (p, charlen);
-		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 buf_charlen);
+		int charlen, pat_ch = string_char_and_length (p, &charlen);
+		int buf_charlen, buf_ch
+		  = string_char_and_length (BYTE_POS_ADDR (this_pos_byte),
+					    &buf_charlen);
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
@@ -1576,7 +1574,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
 		break;
 	      }
 
-	    INC_BOTH (pos, pos_byte);
+	    inc_both (&pos, &pos_byte);
 	  }
 
 	n--;
@@ -1638,8 +1636,8 @@ simple_search (EMACS_INT n, unsigned char *pat,
 	      {
 		int pat_ch, buf_ch;
 
-		DEC_BOTH (this_pos, this_pos_byte);
-		PREV_CHAR_BOUNDARY (p, pat);
+		dec_both (&this_pos, &this_pos_byte);
+		p -= raw_prev_char_len (p);
 		pat_ch = STRING_CHAR (p);
 		buf_ch = STRING_CHAR (BYTE_POS_ADDR (this_pos_byte));
 		TRANSLATE (buf_ch, trt, buf_ch);
@@ -1658,7 +1656,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
 		break;
 	      }
 
-	    DEC_BOTH (pos, pos_byte);
+	    dec_both (&pos, &pos_byte);
 	  }
 
 	n++;
@@ -2437,10 +2435,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	  if (NILP (string))
 	    {
 	      c = FETCH_CHAR_AS_MULTIBYTE (pos_byte);
-	      INC_BOTH (pos, pos_byte);
+	      inc_both (&pos, &pos_byte);
 	    }
 	  else
-	    FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, pos, pos_byte);
+	    c = fetch_string_char_as_multibyte_advance (string,
+							&pos, &pos_byte);
 
 	  if (lowercasep (c))
 	    {
@@ -2513,11 +2512,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	      ptrdiff_t subend = 0;
 	      bool delbackslash = 0;
 
-	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+	      c = fetch_string_char_advance (newtext, &pos, &pos_byte);
 
 	      if (c == '\\')
 		{
-		  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+		  c = fetch_string_char_advance (newtext, &pos, &pos_byte);
 
 		  if (c == '&')
 		    {
@@ -2625,7 +2624,8 @@ since only regular expressions have distinguished subexpressions.  */)
 
 	  if (str_multibyte)
 	    {
-	      FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext, pos, pos_byte);
+	      c = fetch_string_char_advance_no_check (newtext,
+						      &pos, &pos_byte);
 	      if (!buf_multibyte)
 		c = CHAR_TO_BYTE8 (c);
 	    }
@@ -2634,7 +2634,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      /* Note that we don't have to increment POS.  */
 	      c = SREF (newtext, pos_byte++);
 	      if (buf_multibyte)
-		MAKE_CHAR_MULTIBYTE (c);
+		c = make_char_multibyte (c);
 	    }
 
 	  /* Either set ADD_STUFF and ADD_LEN to the text to put in SUBSTED,
@@ -2647,8 +2647,8 @@ since only regular expressions have distinguished subexpressions.  */)
 
 	      if (str_multibyte)
 		{
-		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
-						      pos, pos_byte);
+		  c = fetch_string_char_advance_no_check (newtext,
+							  &pos, &pos_byte);
 		  if (!buf_multibyte && !ASCII_CHAR_P (c))
 		    c = CHAR_TO_BYTE8 (c);
 		}
@@ -2656,7 +2656,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		{
 		  c = SREF (newtext, pos_byte++);
 		  if (buf_multibyte)
-		    MAKE_CHAR_MULTIBYTE (c);
+		    c = make_char_multibyte (c);
 		}
 
 	      if (c == '&')

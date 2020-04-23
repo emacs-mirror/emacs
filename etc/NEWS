@@ -282,6 +282,12 @@ This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
 Its default value matches localized abbreviations of the "reply"
 prefix on the Subject line in various languages.
 
+** Apropos
+
+*** New commands 'apropos-next-symbol' and 'apropos-previous-symbol'.
+These new navigation commands are bound to 'n' and 'p' in
+'apropos-mode'.
+
 
 * New Modes and Packages in Emacs 28.1
 

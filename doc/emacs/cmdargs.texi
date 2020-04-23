@@ -340,7 +340,7 @@ initialization file (@pxref{Resources}).
 @opindex --quick
 Start Emacs with minimum customizations.  This is similar to using
 @samp{-q}, @samp{--no-site-file}, @samp{--no-site-lisp},
-@samp{--no-x-resources}, and @samp{--no-splash} together..
+@samp{--no-x-resources}, and @samp{--no-splash} together.
 
 @item -daemon
 @opindex -daemon

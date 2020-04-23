@@ -767,7 +767,7 @@ The result of the body appears to the compiler as a quoted constant."
   "Eval EXPR and choose among clauses on that value.
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and
 compared against each key in each KEYLIST; the corresponding BODY
-is evaluated.  If no clause succeeds, cl-case returns nil.  A
+is evaluated.  If no clause succeeds, this macro returns nil.  A
 single non-nil atom may be used in place of a KEYLIST of one
 atom.  A KEYLIST of t or `otherwise' is allowed only in the final
 clause, and matches if no other keys match.  Key values are
@@ -806,10 +806,10 @@ compared by `eql'.
 
 ;;;###autoload
 (defmacro cl-typecase (expr &rest clauses)
-  "Evals EXPR, chooses among clauses on that value.
+  "Eval EXPR and choose among clauses on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
 satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
-cl-typecase returns nil.  A TYPE of t or `otherwise' is allowed only in the
+this macro returns nil.  A TYPE of t or `otherwise' is allowed only in the
 final clause, and matches if no other keys match.
 \n(fn EXPR (TYPE BODY...)...)"
   (declare (indent 1)
@@ -2701,7 +2701,7 @@ pairs for that slot.
 Supported keywords for slots are:
 - `:read-only':  If this has a non-nil value, that slot cannot be set via `setf'.
 - `:documentation': this is a docstring describing the slot.
-- `:type': the type of the field; currently unused.
+- `:type': the type of the field; currently only used for documentation.
 
 \(fn NAME &optional DOCSTRING &rest SLOTS)"
   (declare (doc-string 2) (indent 1)

@@ -2329,7 +2329,7 @@ area.
 
 @cindex @samp{bind} defined
 There are several ways by which a variable can be given a value.  One of
-the ways is to use either the function @code{set} or the function
+the ways is to use either the function @code{set} or the special form
 @code{setq}.  Another way is to use @code{let} (@pxref{let}).  (The
 jargon for this process is to @dfn{bind} a variable to a value.)
 
@@ -4517,7 +4517,7 @@ number; it will be printed as the character with that @sc{ascii} code.
 
 @item setq
 @itemx set
-The @code{setq} function sets the value of its first argument to the
+The @code{setq} special form sets the value of its first argument to the
 value of the second argument.  The first argument is automatically
 quoted by @code{setq}.  It does the same for succeeding pairs of
 arguments.  Another function, @code{set}, takes only two arguments and
@@ -7317,11 +7317,21 @@ which leave the original list as it was.  One way to find out how this
 works is to experiment.  We will start with the @code{setcar} function.
 
 @need 1200
+@cindex constant lists
+@cindex mutable lists
 First, we can make a list and then set the value of a variable to the
-list, using the @code{setq} function.  Here is a list of animals:
+list, using the @code{setq} special form.  Because we intend to use
+@code{setcar} to change the list, this @code{setq} should not use the
+quoted form @code{'(antelope giraffe lion tiger)}, as that would yield
+a list that is part of the program and bad things could happen if we
+tried to change part of the program while running it.  Generally
+speaking an Emacs Lisp program's components should be constant (or
+unchanged) while the program is running.  So we instead construct an
+animal list that is @dfn{mutable} (or changeable) by using the
+@code{list} function, as follows:
 
 @smallexample
-(setq animals '(antelope giraffe lion tiger))
+(setq animals (list 'antelope 'giraffe 'lion 'tiger))
 @end smallexample
 
 @noindent
@@ -7398,7 +7408,7 @@ To see how this works, set the value of the variable to a list of
 domesticated animals by evaluating the following expression:
 
 @smallexample
-(setq domesticated-animals '(horse cow sheep goat))
+(setq domesticated-animals (list 'horse 'cow 'sheep 'goat))
 @end smallexample
 
 @need 1200
@@ -8846,7 +8856,7 @@ and then find the value of @code{trees}:
 
 @smallexample
 @group
-(setq trees '(maple oak pine birch))
+(setq trees (list 'maple 'oak 'pine 'birch))
      @result{} (maple oak pine birch)
 @end group
 
@@ -9366,7 +9376,7 @@ For example:
 
 @smallexample
 @group
-(setq triple '(1 2 3))
+(setq triple (list 1 2 3))
 
 (setcar triple '37)
 
@@ -9547,7 +9557,7 @@ part of which is the address of the next pair.  The very last box
 points to the symbol @code{nil}, which marks the end of the list.
 
 @need 1200
-When a variable is set to a list with a function such as @code{setq},
+When a variable is set to a list with an operation such as @code{setq},
 it stores the address of the first box in the variable.  Thus,
 evaluation of the expression
 
@@ -17092,7 +17102,7 @@ reminders.
 
 @cindex Mail aliases
 @noindent
-This @code{setq} command sets the value of the variable
+This @code{setq} sets the value of the variable
 @code{mail-aliases} to @code{t}.  Since @code{t} means true, the line
 says, in effect, ``Yes, use mail aliases.''
 
@@ -17130,8 +17140,8 @@ The following turns off Indent Tabs mode:
 @end smallexample
 
 Note that this line uses @code{setq-default} rather than the
-@code{setq} command that we have seen before.  The @code{setq-default}
-command sets values only in buffers that do not have their own local
+@code{setq} that we have seen before; @code{setq-default}
+sets values only in buffers that do not have their own local
 values for the variable.
 
 @ifinfo

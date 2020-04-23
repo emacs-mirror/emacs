@@ -2370,6 +2370,26 @@ srandom (int seed)
   iz = rand () % RAND_MAX_Z;
 }
 
+/* Emulate explicit_bzero.  This is to avoid using the Gnulib version,
+   because it calls SecureZeroMemory at will, disregarding systems
+   older than Windows XP, which didn't have that function.  We want to
+   avoid having that function as dependency in builds that need to
+   support systems older than Windows XP, otherwise Emacs will refuse
+   to start on those systems.  */
+void
+explicit_bzero (void *buf, size_t len)
+{
+#if _WIN32_WINNT >= 0x0501
+  /* We are compiling for XP or newer, most probably with MinGW64.
+     We can use SecureZeroMemory.  */
+  SecureZeroMemory (buf, len);
+#else
+  memset (buf, 0, len);
+  /* Compiler barrier.  */
+  asm volatile ("" ::: "memory");
+#endif
+}
+
 /* Return the maximum length in bytes of a multibyte character
    sequence encoded in the current ANSI codepage.  This is required to
    correctly walk the encoded file names one character at a time.  */

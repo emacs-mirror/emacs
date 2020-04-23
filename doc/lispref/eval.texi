@@ -158,6 +158,12 @@ contents unchanged.
 @end group
 @end example
 
+  A self-evaluating form yields constant conses, vectors and strings, and you
+should not attempt to modify their contents via @code{setcar}, @code{aset} or
+similar operations.  The Lisp interpreter might unify the constants
+yielded by your program's self-evaluating forms, so that these
+constants might share structure.  @xref{Constants and Mutability}.
+
   It is common to write numbers, characters, strings, and even vectors
 in Lisp code, taking advantage of the fact that they self-evaluate.
 However, it is quite unusual to do this for types that lack a read
@@ -558,6 +564,8 @@ and vectors.)
 
 @defspec quote object
 This special form returns @var{object}, without evaluating it.
+The returned value is a constant, and should not be modified.
+@xref{Constants and Mutability}.
 @end defspec
 
 @cindex @samp{'} for quoting
@@ -612,10 +620,12 @@ only part of a list, while computing and substituting other parts.
 
   @dfn{Backquote constructs} allow you to quote a list, but
 selectively evaluate elements of that list.  In the simplest case, it
-is identical to the special form @code{quote}
+is identical to the special form
 @iftex
+@code{quote}.
 @end iftex
 @ifnottex
+@code{quote}
 (described in the previous section; @pxref{Quoting}).
 @end ifnottex
 For example, these two forms yield identical results:
@@ -693,6 +703,9 @@ Here are some examples:
 @end group
 @end example
 
+If a subexpression of a backquote construct has no substitutions or
+splices, it acts like @code{quote} in that it yields constant conses,
+vectors and strings that should not be modified.
 
 @node Eval
 @section Eval

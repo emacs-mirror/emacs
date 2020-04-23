@@ -109,6 +109,7 @@ ac_cv_func_futimens=not-needed
 gl_cv_func_futimens_works="not-needed-so-yes"
 ac_cv_func_utimensat=yes
 gl_cv_func_utimensat_works=yes
+ac_cv_func_explicit_bzero=yes
 # Aliased to _commit in ms-w32.h
 ac_cv_func_fsync=yes
 ac_cv_func_fdatasync=yes

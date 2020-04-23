@@ -1901,16 +1901,14 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 
 
 /* Return the next character from STR.  Return in *LEN the length of
-   the character.  This is like STRING_CHAR_AND_LENGTH but never
+   the character.  This is like string_char_and_length but never
    returns an invalid character.  If we find one, we return a `?', but
    with the length of the invalid character.  */
 
 static int
-string_char_and_length (const unsigned char *str, int *len)
+check_char_and_length (const unsigned char *str, int *len)
 {
-  int c;
-
-  c = STRING_CHAR_AND_LENGTH (str, *len);
+  int c = string_char_and_length (str, len);
   if (!CHAR_VALID_P (c))
     /* We may not change the length here because other places in Emacs
        don't use this function, i.e. they silently accept invalid
@@ -1933,11 +1931,10 @@ string_pos_nchars_ahead (struct text_pos pos, Lisp_Object string, ptrdiff_t ncha
   if (STRING_MULTIBYTE (string))
     {
       const unsigned char *p = SDATA (string) + BYTEPOS (pos);
-      int len;
 
       while (nchars--)
 	{
-	  string_char_and_length (p, &len);
+	  int len = BYTES_BY_CHAR_HEAD (*p);
 	  p += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
@@ -1978,12 +1975,10 @@ c_string_pos (ptrdiff_t charpos, const char *s, bool multibyte_p)
 
   if (multibyte_p)
     {
-      int len;
-
       SET_TEXT_POS (pos, 0, 0);
       while (charpos--)
 	{
-	  string_char_and_length ((const unsigned char *) s, &len);
+	  int len = BYTES_BY_CHAR_HEAD (*s);
 	  s += len;
 	  CHARPOS (pos) += 1;
 	  BYTEPOS (pos) += len;
@@ -2007,12 +2002,11 @@ number_of_chars (const char *s, bool multibyte_p)
   if (multibyte_p)
     {
       ptrdiff_t rest = strlen (s);
-      int len;
       const unsigned char *p = (const unsigned char *) s;
 
       for (nchars = 0; rest > 0; ++nchars)
 	{
-	  string_char_and_length (p, &len);
+	  int len = BYTES_BY_CHAR_HEAD (*p);
 	  rest -= len, p += len;
 	}
     }
@@ -3819,8 +3813,7 @@ compute_stop_pos (struct it *it)
 	  ptrdiff_t bpos = CHAR_TO_BYTE (pos);
 	  while (pos < endpos)
 	    {
-	      int ch;
-	      FETCH_CHAR_ADVANCE_NO_CHECK (ch, pos, bpos);
+	      int ch = fetch_char_advance_no_check (&pos, &bpos);
 	      if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\f')
 		{
 		  found = true;
@@ -4479,10 +4472,8 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
 	{
 	  struct text_pos pos1 = string_pos (charpos, it->string);
 	  const unsigned char *p = SDATA (it->string) + BYTEPOS (pos1);
-	  int c, len;
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
-
-	  c = string_char_and_length (p, &len);
+	  int len, c = check_char_and_length (p, &len);
 	  face_id = FACE_FOR_CHAR (it->f, face, c, charpos, it->string);
 	}
     }
@@ -6577,7 +6568,7 @@ back_to_previous_line_start (struct it *it)
 {
   ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
-  DEC_BOTH (cp, bp);
+  dec_both (&cp, &bp);
   IT_CHARPOS (*it) = find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it));
 }
 
@@ -8391,7 +8382,7 @@ next_element_from_string (struct it *it)
 	{
 	  const unsigned char *s = (SDATA (it->string)
 				    + IT_STRING_BYTEPOS (*it));
-	  it->c = string_char_and_length (s, &it->len);
+	  it->c = check_char_and_length (s, &it->len);
 	}
       else
 	{
@@ -8429,7 +8420,7 @@ next_element_from_string (struct it *it)
 	{
 	  const unsigned char *s = (SDATA (it->string)
 				    + IT_STRING_BYTEPOS (*it));
-	  it->c = string_char_and_length (s, &it->len);
+	  it->c = check_char_and_length (s, &it->len);
 	}
       else
 	{
@@ -8487,7 +8478,7 @@ next_element_from_c_string (struct it *it)
       BYTEPOS (it->position) = CHARPOS (it->position) = -1;
     }
   else if (it->multibyte_p)
-    it->c = string_char_and_length (it->s + IT_BYTEPOS (*it), &it->len);
+    it->c = check_char_and_length (it->s + IT_BYTEPOS (*it), &it->len);
   else
     it->c = it->s[IT_BYTEPOS (*it)], it->len = 1;
 
@@ -8784,7 +8775,7 @@ next_element_from_buffer (struct it *it)
       /* Get the next character, maybe multibyte.  */
       p = BYTE_POS_ADDR (IT_BYTEPOS (*it));
       if (it->multibyte_p && !ASCII_CHAR_P (*p))
-	it->c = STRING_CHAR_AND_LENGTH (p, it->len);
+	it->c = string_char_and_length (p, &it->len);
       else
 	it->c = *p, it->len = 1;
 
@@ -9907,9 +9898,13 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		 This could happen when the first display element is
 		 wider than the window, or if we have a wrap-prefix
 		 that doesn't leave enough space after it to display
-		 even a single character.  */
+		 even a single character.  We only do this for moving
+		 through buffer text, as with display/overlay strings
+		 we'd need to also compare it->object's, and this is
+		 unlikely to happen in that case anyway.  */
 	      if (IT_CHARPOS (*it) == orig_charpos
-		  && it->method == orig_method)
+		  && it->method == orig_method
+		  && orig_method == GET_FROM_BUFFER)
 		set_iterator_to_next (it, false);
 	      it->continuation_lines_width += it->current_x;
 	    }
@@ -10073,7 +10068,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	{
 	  ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
-	  DEC_BOTH (cp, bp);
+	  dec_both (&cp, &bp);
 	  cp = find_newline_no_quit (cp, bp, -1, NULL);
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
@@ -10667,32 +10662,26 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       if (multibyte
 	  && NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
-	  ptrdiff_t i;
-	  int c, char_bytes;
-	  char work[1];
-
 	  /* Convert a multibyte string to single-byte
 	     for the *Message* buffer.  */
-	  for (i = 0; i < nbytes; i += char_bytes)
+	  for (ptrdiff_t i = 0; i < nbytes; )
 	    {
-	      c = string_char_and_length (msg + i, &char_bytes);
-	      work[0] = CHAR_TO_BYTE8 (c);
-	      insert_1_both (work, 1, 1, true, false, false);
+	      int char_bytes, c = check_char_and_length (msg + i, &char_bytes);
+	      char work = CHAR_TO_BYTE8 (c);
+	      insert_1_both (&work, 1, 1, true, false, false);
+	      i += char_bytes;
 	    }
 	}
       else if (! multibyte
 	       && ! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
-	  ptrdiff_t i;
-	  int c, char_bytes;
-	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
-	  for (i = 0; i < nbytes; i++)
+	  for (ptrdiff_t i = 0; i < nbytes; i++)
 	    {
-	      c = msg[i];
-	      MAKE_CHAR_MULTIBYTE (c);
-	      char_bytes = CHAR_STRING (c, str);
+	      int c = make_char_multibyte (msg[i]);
+	      unsigned char str[MAX_MULTIBYTE_LENGTH];
+	      int char_bytes = CHAR_STRING (c, str);
 	      insert_1_both ((char *) str, 1, char_bytes, true, false, false);
 	    }
 	}
@@ -12444,7 +12433,6 @@ prepare_menu_bars (void)
 	    continue;
 
 	  if (!FRAME_TOOLTIP_P (f)
-	      && !FRAME_PARENT_FRAME (f)
 	      && (FRAME_ICONIFIED_P (f)
 		  || FRAME_VISIBLE_P (f) == 1
 		  /* Exclude TTY frames that are obscured because they
@@ -12490,10 +12478,9 @@ prepare_menu_bars (void)
 	      && !XBUFFER (w->contents)->text->redisplay)
 	    continue;
 
-	  if (FRAME_PARENT_FRAME (f))
-	    continue;
+	  if (!FRAME_PARENT_FRAME (f))
+	    menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
 
-	  menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
 	  update_tab_bar (f, false);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, false);
@@ -12505,7 +12492,10 @@ prepare_menu_bars (void)
   else
     {
       struct frame *sf = SELECTED_FRAME ();
-      update_menu_bar (sf, true, false);
+
+      if (!FRAME_PARENT_FRAME (sf))
+	update_menu_bar (sf, true, false);
+
       update_tab_bar (sf, true);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, true);
@@ -21151,7 +21141,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
 
       /* Get the next character.  */
       if (multibyte_p)
-	it.c = it.char_to_display = string_char_and_length (p, &it.len);
+	it.c = it.char_to_display = check_char_and_length (p, &it.len);
       else
 	{
 	  it.c = it.char_to_display = *p, it.len = 1;
@@ -22504,7 +22494,7 @@ find_row_edges (struct it *it, struct glyph_row *row,
 	     required when scanning back, because max_pos will already
 	     have a much larger value.  */
 	  if (CHARPOS (row->end.pos) > max_pos)
-	    INC_BOTH (max_pos, max_bpos);
+	    inc_both (&max_pos, &max_bpos);
 	  SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
 	}
       else if (CHARPOS (it->eol_pos) > 0)
@@ -22522,7 +22512,7 @@ find_row_edges (struct it *it, struct glyph_row *row,
 	    SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
 	  else
 	    {
-	      INC_BOTH (max_pos, max_bpos);
+	      inc_both (&max_pos, &max_bpos);
 	      SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
 	    }
 	}
@@ -23932,7 +23922,7 @@ See also `bidi-paragraph-direction'.  */)
 	 to make sure we are within that paragraph.  To that end, find
 	 the previous non-empty line.  */
       if (pos >= ZV && pos > BEGV)
-	DEC_BOTH (pos, bytepos);
+	dec_both (&pos, &bytepos);
       AUTO_STRING (trailing_white_space, "[\f\t ]*\n");
       if (fast_looking_at (trailing_white_space,
 			   pos, bytepos, ZV, ZV_BYTE, Qnil) > 0)
@@ -29279,7 +29269,7 @@ produce_stretch_glyph (struct it *it)
 
       it2 = *it;
       if (it->multibyte_p)
-	it2.c = it2.char_to_display = STRING_CHAR_AND_LENGTH (p, it2.len);
+	it2.c = it2.char_to_display = string_char_and_length (p, &it2.len);
       else
 	{
 	  it2.c = it2.char_to_display = *p, it2.len = 1;

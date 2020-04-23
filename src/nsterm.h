@@ -343,14 +343,8 @@ typedef id instancetype;
    therefore we draw to an offscreen buffer and swap it in when the
    toolkit wants to draw the frame. GNUstep and macOS 10.7 and below
    do not support this method, so we revert to drawing directly to the
-   glass.
-
-   FIXME: Should we make this macOS 10.8+, or macOS 10.14+?  I'm
-   inclined to go with 10.14+ as there have been some reports of funny
-   behaviour on 10.13 and below.  It may be worth adding a variable to
-   allow people in the overlapping region to switch between drawing
-   paths.  */
-#if defined (NS_IMPL_COCOA) && defined (MAC_OS_X_VERSION_10_14)
+   glass.  */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101400
 #define NS_DRAW_TO_BUFFER 1
 #endif
 
@@ -439,7 +433,6 @@ typedef id instancetype;
 #endif
 @public
    struct frame *emacsframe;
-   int rows, cols;
    int scrollbarsNeedingUpdate;
    EmacsToolbar *toolbar;
    NSRect ns_userRect;
@@ -458,11 +451,9 @@ typedef id instancetype;
 /* Emacs-side interface */
 - (instancetype) initFrameFromEmacs: (struct frame *) f;
 - (void) createToolbar: (struct frame *)f;
-- (void) setRows: (int) r andColumns: (int) c;
 - (void) setWindowClosing: (BOOL)closing;
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
-- (void) updateFrameSize: (BOOL) delay;
 - (void) handleFS;
 - (void) setFSValue: (int)value;
 - (void) toggleFullScreen: (id) sender;
@@ -1084,18 +1075,6 @@ struct x_output
    (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)	\
     - NS_SCROLL_BAR_HEIGHT (f)) : 0)
 
-/* Calculate system coordinates of the left and top of the parent
-   window or, if there is no parent window, the screen.  */
-#define NS_PARENT_WINDOW_LEFT_POS(f)                                    \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.origin.x : 0)
-#define NS_PARENT_WINDOW_TOP_POS(f)                                     \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? ([FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.origin.y    \
-      + [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.size.height \
-      - FRAME_NS_TITLEBAR_HEIGHT (FRAME_PARENT_FRAME (f)))              \
-   : [[[NSScreen screens] objectAtIndex: 0] frame].size.height)
-
 #define FRAME_NS_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
 
 #define FRAME_FONTSET(f) ((f)->output_data.ns->fontset)
@@ -1210,6 +1189,7 @@ extern void syms_of_nsselect (void);
 
 /* From nsimage.m, needed in image.c */
 struct image;
+extern bool ns_can_use_native_image_api (Lisp_Object type);
 extern void *ns_image_from_XBM (char *bits, int width, int height,
                                 unsigned long fg, unsigned long bg);
 extern void *ns_image_for_XPM (int width, int height, int depth);

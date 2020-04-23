@@ -45,6 +45,55 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
    ========================================================================== */
 
+bool
+ns_can_use_native_image_api (Lisp_Object type)
+{
+  NSString *imageType = @"unknown";
+  NSArray *types;
+
+  NSTRACE ("ns_can_use_native_image_api");
+
+  if (EQ (type, Qnative_image))
+    return YES;
+
+#ifdef NS_IMPL_COCOA
+  /* Work out the UTI of the image type.  */
+  if (EQ (type, Qjpeg))
+    imageType = @"public.jpeg";
+  else if (EQ (type, Qpng))
+    imageType = @"public.png";
+  else if (EQ (type, Qgif))
+    imageType = @"com.compuserve.gif";
+  else if (EQ (type, Qtiff))
+    imageType = @"public.tiff";
+  else if (EQ (type, Qsvg))
+    imageType = @"public.svg-image";
+
+  /* NSImage also supports a host of other types such as PDF and BMP,
+     but we don't yet support these in image.c.  */
+
+  types = [NSImage imageTypes];
+#else
+  /* Work out the image type.  */
+  if (EQ (type, Qjpeg))
+    imageType = @"jpeg";
+  else if (EQ (type, Qpng))
+    imageType = @"png";
+  else if (EQ (type, Qgif))
+    imageType = @"gif";
+  else if (EQ (type, Qtiff))
+    imageType = @"tiff";
+
+  types = [NSImage imageFileTypes];
+#endif
+
+  /* Check if the type is supported on this system.  */
+  if ([types indexOfObject:imageType] != NSNotFound)
+    return YES;
+  else
+    return NO;
+}
+
 void *
 ns_image_from_XBM (char *bits, int width, int height,
                    unsigned long fg, unsigned long bg)

@@ -843,6 +843,32 @@ ns_menu_bar_height (NSScreen *screen)
 }
 
 
+/* Get the frame rect, in system coordinates, of the parent window or,
+   if there is no parent window, the main screen.  */
+static inline NSRect
+ns_parent_window_rect (struct frame *f)
+{
+  NSRect parentRect;
+
+  if (FRAME_PARENT_FRAME (f) != NULL)
+    {
+      EmacsView *parentView = FRAME_NS_VIEW (FRAME_PARENT_FRAME (f));
+      parentRect = [parentView convertRect:[parentView frame]
+                                    toView:nil];
+      parentRect = [[parentView window] convertRectToScreen:parentRect];
+    }
+  else
+    parentRect = [[[NSScreen screens] objectAtIndex:0] frame];
+
+  return parentRect;
+}
+
+/* Calculate system coordinates of the left and top of the parent
+   window or, if there is no parent window, the main screen.  */
+#define NS_PARENT_WINDOW_LEFT_POS(f) NSMinX (ns_parent_window_rect (f))
+#define NS_PARENT_WINDOW_TOP_POS(f) NSMaxY (ns_parent_window_rect (f))
+
+
 static NSRect
 ns_row_rect (struct window *w, struct glyph_row *row,
                enum glyph_row_area area)
@@ -1118,10 +1144,25 @@ ns_update_begin (struct frame *f)
 
   ns_updating_frame = f;
 #ifdef NS_DRAW_TO_BUFFER
-  [view focusOnDrawingBuffer];
-#else
-  [view lockFocus];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
+    {
 #endif
+      [view focusOnDrawingBuffer];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      [view lockFocus];
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+#endif
+
 }
 
 
@@ -1140,15 +1181,29 @@ ns_update_end (struct frame *f)
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
 #ifdef NS_DRAW_TO_BUFFER
-  [NSGraphicsContext setCurrentContext:nil];
-  [view setNeedsDisplay:YES];
-#else
-  block_input ();
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
+    {
+#endif
+      [NSGraphicsContext setCurrentContext:nil];
+      [view setNeedsDisplay:YES];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
 
-  [view unlockFocus];
-  [[view window] flushWindow];
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      block_input ();
 
-  unblock_input ();
+      [view unlockFocus];
+      [[view window] flushWindow];
+
+      unblock_input ();
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
 #endif
   ns_updating_frame = NULL;
 }
@@ -1173,24 +1228,39 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 
   if (f != ns_updating_frame)
-#ifdef NS_DRAW_TO_BUFFER
-    [view focusOnDrawingBuffer];
-#else
     {
-      if (view != focus_view)
+#ifdef NS_DRAW_TO_BUFFER
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
         {
-          if (focus_view != NULL)
-            {
-              [focus_view unlockFocus];
-              [[focus_view window] flushWindow];
-            }
-
-          if (view)
-            [view lockFocus];
-          focus_view = view;
-        }
-    }
 #endif
+          [view focusOnDrawingBuffer];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+        }
+      else
+        {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+          if (view != focus_view)
+            {
+              if (focus_view != NULL)
+                {
+                  [focus_view unlockFocus];
+                  [[focus_view window] flushWindow];
+                }
+
+              if (view)
+                [view lockFocus];
+              focus_view = view;
+            }
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+        }
+#endif
+    }
+
 
   /* clipping */
   if (r)
@@ -1220,16 +1290,30 @@ ns_unfocus (struct frame *f)
     }
 
 #ifdef NS_DRAW_TO_BUFFER
-  [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
-#else
-  if (f != ns_updating_frame)
+  #if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
     {
-      if (focus_view != NULL)
+#endif
+      [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      if (f != ns_updating_frame)
         {
-          [focus_view unlockFocus];
-          [[focus_view window] flushWindow];
-          focus_view = NULL;
+          if (focus_view != NULL)
+            {
+              [focus_view unlockFocus];
+              [[focus_view window] flushWindow];
+              focus_view = NULL;
+            }
         }
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
     }
 #endif
 }
@@ -1741,60 +1825,63 @@ ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
-  NSScreen *screen = [[view window] screen];
+  NSRect windowFrame = [[view window] frame];
+  NSPoint topLeft;
 
   NSTRACE ("ns_set_offset");
 
   block_input ();
 
-  f->left_pos = xoff;
-  f->top_pos = yoff;
-
-  if (view != nil)
+  if (FRAME_PARENT_FRAME (f))
     {
-      if (FRAME_PARENT_FRAME (f) == NULL && screen)
-        {
-          f->left_pos = f->size_hint_flags & XNegative
-            ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
-            : f->left_pos;
-          /* We use visibleFrame here to take menu bar into account.
-             Ideally we should also adjust left/top with visibleFrame.origin.  */
+      /* Convert the parent frame's view rectangle into screen
+         coords.  */
+      EmacsView *parentView = FRAME_NS_VIEW (FRAME_PARENT_FRAME (f));
+      NSRect parentRect = [parentView convertRect:[parentView frame]
+                                           toView:nil];
+      parentRect = [[parentView window] convertRectToScreen:parentRect];
 
-          f->top_pos = f->size_hint_flags & YNegative
-            ? ([screen visibleFrame].size.height + f->top_pos
-               - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
-               - FRAME_TOOLBAR_HEIGHT (f))
-            : f->top_pos;
-#ifdef NS_IMPL_GNUSTEP
-	  if (f->left_pos < 100)
-	    f->left_pos = 100;  /* don't overlap menu */
-#endif
-        }
-      else if (FRAME_PARENT_FRAME (f) != NULL)
-        {
-          struct frame *parent = FRAME_PARENT_FRAME (f);
+      if (f->size_hint_flags & XNegative)
+        topLeft.x = NSMaxX (parentRect) - NSWidth (windowFrame) + xoff;
+      else
+        topLeft.x = NSMinX (parentRect) + xoff;
 
-          /* On X negative values for child frames always result in
-             positioning relative to the bottom right corner of the
-             parent frame.  */
-          if (f->left_pos < 0)
-            f->left_pos = FRAME_PIXEL_WIDTH (parent) - FRAME_PIXEL_WIDTH (f) + f->left_pos;
-
-          if (f->top_pos < 0)
-            f->top_pos = FRAME_PIXEL_HEIGHT (parent) + FRAME_TOOLBAR_HEIGHT (parent)
-              - FRAME_PIXEL_HEIGHT (f) + f->top_pos;
-        }
-
-      /* Constrain the setFrameTopLeftPoint so we don't move behind the
-         menu bar.  */
-      NSPoint pt = NSMakePoint (SCREENMAXBOUND (f->left_pos
-                                                + NS_PARENT_WINDOW_LEFT_POS (f)),
-                                SCREENMAXBOUND (NS_PARENT_WINDOW_TOP_POS (f)
-                                                - f->top_pos));
-      NSTRACE_POINT ("setFrameTopLeftPoint", pt);
-      [[view window] setFrameTopLeftPoint: pt];
-      f->size_hint_flags &= ~(XNegative|YNegative);
+      if (f->size_hint_flags & YNegative)
+        topLeft.y = NSMinY (parentRect) + NSHeight (windowFrame) - yoff;
+      else
+        topLeft.y = NSMaxY (parentRect) - yoff;
     }
+  else
+    {
+      /* If there is no parent frame then just convert to screen
+         coordinates, UNLESS we have negative values, in which case I
+         think it's best to position from the bottom and right of the
+         current screen rather than the main screen or whole
+         display.  */
+      NSRect screenFrame = [[[view window] screen] frame];
+
+      if (f->size_hint_flags & XNegative)
+        topLeft.x = NSMaxX (screenFrame) - NSWidth (windowFrame) + xoff;
+      else
+        topLeft.x = xoff;
+
+      if (f->size_hint_flags & YNegative)
+        topLeft.y = NSMinY (screenFrame) + NSHeight (windowFrame) - yoff;
+      else
+        topLeft.y = NSMaxY ([[[NSScreen screens] objectAtIndex:0] frame]) - yoff;
+
+#ifdef NS_IMPL_GNUSTEP
+      /* Don't overlap the menu.
+
+         FIXME: Surely there's a better way than just hardcoding 100
+         in here?  */
+      topLeft.x = 100;
+#endif
+    }
+
+  NSTRACE_POINT ("setFrameTopLeftPoint", topLeft);
+  [[view window] setFrameTopLeftPoint:topLeft];
+  f->size_hint_flags &= ~(XNegative|YNegative);
 
   unblock_input ();
 }
@@ -1862,9 +1949,16 @@ ns_set_window_size (struct frame *f,
 	   make_fixnum (FRAME_NS_TITLEBAR_HEIGHT (f)),
 	   make_fixnum (FRAME_TOOLBAR_HEIGHT (f))));
 
-  [window setFrame: wr display: YES];
+ /* Usually it seems safe to delay changing the frame size, but when a
+    series of actions are taken with no redisplay between them then we
+    can end up using old values so don't delay here.  */
+ change_frame_size (f,
+                    FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth),
+                    FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight),
+                    0, NO, 0, 1);
 
-  [view updateFrameSize: NO];
+  [window setFrame:wr display:NO];
+
   unblock_input ();
 }
 
@@ -1913,7 +2007,6 @@ ns_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
          so some key presses (TAB) are swallowed by the system.  */
       [window makeFirstResponder: view];
 
-      [view updateFrameSize: NO];
       unblock_input ();
     }
 }
@@ -5026,9 +5119,6 @@ ns_judge_scroll_bars (struct frame *f)
       if ([view judge])
         removed = YES;
     }
-
-  if (removed)
-    [eview updateFrameSize: NO];
 }
 
 /* ==========================================================================
@@ -6215,6 +6305,17 @@ not_in_argv (NSString *arg)
 - (void)dealloc
 {
   NSTRACE ("[EmacsView dealloc]");
+
+  /* Clear the view resize notification.  */
+  [[NSNotificationCenter defaultCenter]
+    removeObserver:self
+              name:NSViewFrameDidChangeNotification
+            object:nil];
+
+#ifdef NS_DRAW_TO_BUFFER
+  CGContextRelease (drawingBuffer);
+#endif
+
   [toolbar release];
   if (fs_state == FULLSCREEN_BOTH)
     [nonfs_window release];
@@ -7056,108 +7157,12 @@ not_in_argv (NSString *arg)
   return NO;
 }
 
-- (void) updateFrameSize: (BOOL) delay
-{
-  NSWindow *window = [self window];
-  NSRect wr = [window frame];
-  int extra = 0;
-  int oldc = cols, oldr = rows;
-  int oldw = FRAME_PIXEL_WIDTH (emacsframe);
-  int oldh = FRAME_PIXEL_HEIGHT (emacsframe);
-  int neww, newh;
-
-  NSTRACE ("[EmacsView updateFrameSize:]");
-  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
-  NSTRACE_RECT ("Original frame", wr);
-  NSTRACE_MSG  ("Original columns: %d", cols);
-  NSTRACE_MSG  ("Original rows: %d", rows);
-
-  if (! [self isFullscreen])
-    {
-      int toolbar_height;
-#ifdef NS_IMPL_GNUSTEP
-      // GNUstep does not always update the tool bar height.  Force it.
-      if (toolbar && [toolbar isVisible])
-          update_frame_tool_bar (emacsframe);
-#endif
-
-      toolbar_height = FRAME_TOOLBAR_HEIGHT (emacsframe);
-      if (toolbar_height < 0)
-        toolbar_height = 35;
-
-      extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        + toolbar_height;
-    }
-
-  if (wait_for_tool_bar)
-    {
-      /* The toolbar height is always 0 in fullscreen and undecorated
-         frames, so don't wait for it to become available.  */
-      if (FRAME_TOOLBAR_HEIGHT (emacsframe) == 0
-          && FRAME_UNDECORATED (emacsframe) == false
-          && ! [self isFullscreen])
-        {
-          NSTRACE_MSG ("Waiting for toolbar");
-          return;
-        }
-      wait_for_tool_bar = NO;
-    }
-
-  neww = (int)wr.size.width - emacsframe->border_width;
-  newh = (int)wr.size.height - extra;
-
-  NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
-  NSTRACE_MSG ("FRAME_TOOLBAR_HEIGHT: %d", FRAME_TOOLBAR_HEIGHT (emacsframe));
-  NSTRACE_MSG ("FRAME_NS_TITLEBAR_HEIGHT: %d", FRAME_NS_TITLEBAR_HEIGHT (emacsframe));
-
-  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, neww);
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, newh);
-
-  if (cols < MINWIDTH)
-    cols = MINWIDTH;
-
-  if (rows < MINHEIGHT)
-    rows = MINHEIGHT;
-
-  NSTRACE_MSG ("New columns: %d", cols);
-  NSTRACE_MSG ("New rows: %d", rows);
-
-  if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
-    {
-      NSView *view = FRAME_NS_VIEW (emacsframe);
-
-      change_frame_size (emacsframe,
-                         FRAME_PIXEL_TO_TEXT_WIDTH (emacsframe, neww),
-                         FRAME_PIXEL_TO_TEXT_HEIGHT (emacsframe, newh),
-                         0, delay, 0, 1);
-      SET_FRAME_GARBAGED (emacsframe);
-      cancel_mouse_face (emacsframe);
-
-      /* The next two lines set the frame to the same size as we've
-         already set above.  We need to do this when we switch back
-         from non-native fullscreen, in other circumstances it appears
-         to be a noop.  (bug#28872) */
-      wr = NSMakeRect (0, 0, neww, newh);
-      [view setFrame: wr];
-#ifdef NS_DRAW_TO_BUFFER
-      [self createDrawingBuffer];
-#endif
-
-      // To do: consider using [NSNotificationCenter postNotificationName:].
-      [self windowDidMove: // Update top/left.
-	      [NSNotification notificationWithName:NSWindowDidMoveNotification
-					    object:[view window]]];
-    }
-  else
-    {
-      NSTRACE_MSG ("No change");
-    }
-}
 
 - (NSSize)windowWillResize: (NSWindow *)sender toSize: (NSSize)frameSize
 /* Normalize frame to gridded text size.  */
 {
   int extra = 0;
+  int cols, rows;
 
   NSTRACE ("[EmacsView windowWillResize:toSize: " NSTRACE_FMT_SIZE "]",
            NSTRACE_ARG_SIZE (frameSize));
@@ -7294,11 +7299,6 @@ not_in_argv (NSString *arg)
   sz = [self windowWillResize: theWindow toSize: sz];
 #endif /* NS_IMPL_GNUSTEP */
 
-  if (cols > 0 && rows > 0)
-    {
-      [self updateFrameSize: YES];
-    }
-
   ns_send_appdefined (-1);
 }
 
@@ -7317,6 +7317,64 @@ not_in_argv (NSString *arg)
   maximizing_resize = NO;
 }
 #endif /* NS_IMPL_COCOA */
+
+
+- (void)viewDidResize:(NSNotification *)notification
+{
+  NSRect frame = [self frame];
+  int oldw, oldh, neww, newh;
+
+  if (! FRAME_LIVE_P (emacsframe))
+    return;
+
+#ifdef NS_DRAW_TO_BUFFER
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([self wantsUpdateLayer])
+    {
+#endif
+      CGFloat scale = [[self window] backingScaleFactor];
+      oldw = (CGFloat)CGBitmapContextGetWidth (drawingBuffer) / scale;
+      oldh = (CGFloat)CGBitmapContextGetHeight (drawingBuffer) / scale;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      oldw = FRAME_PIXEL_WIDTH (emacsframe);
+      oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+#endif
+
+  neww = (int)NSWidth (frame);
+  newh = (int)NSHeight (frame);
+
+  NSTRACE ("[EmacsView viewDidResize]");
+
+  /* Don't want to do anything when the view size hasn't changed. */
+  if ((oldh == newh && oldw == neww))
+    {
+      NSTRACE_MSG ("No change");
+      return;
+    }
+
+  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
+  NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
+
+  change_frame_size (emacsframe,
+                     FRAME_PIXEL_TO_TEXT_WIDTH (emacsframe, neww),
+                     FRAME_PIXEL_TO_TEXT_HEIGHT (emacsframe, newh),
+                     0, YES, 0, 1);
+
+#ifdef NS_DRAW_TO_BUFFER
+  [self createDrawingBuffer];
+#endif
+  SET_FRAME_GARBAGED (emacsframe);
+  cancel_mouse_face (emacsframe);
+}
 
 
 - (void)windowDidBecomeKey: (NSNotification *)notification
@@ -7480,10 +7538,6 @@ not_in_argv (NSString *arg)
   maximizing_resize = NO;
 #endif
 
-#ifdef NS_DRAW_TO_BUFFER
-  [self createDrawingBuffer];
-#endif
-
   win = [[EmacsWindow alloc]
             initWithContentRect: r
                       styleMask: (FRAME_UNDECORATED (f)
@@ -7589,6 +7643,17 @@ not_in_argv (NSString *arg)
   [NSApp registerServicesMenuSendTypes: ns_send_types
                            returnTypes: [NSArray array]];
 
+#ifdef NS_DRAW_TO_BUFFER
+  [self createDrawingBuffer];
+#endif
+
+  /* Set up view resize notifications.  */
+  [self setPostsFrameChangedNotifications:YES];
+  [[NSNotificationCenter defaultCenter]
+      addObserver:self
+         selector:@selector (viewDidResize:)
+             name:NSViewFrameDidChangeNotification object:nil];
+
   /* macOS Sierra automatically enables tabbed windows.  We can't
      allow this to be enabled until it's available on a Free system.
      Currently it only happens by accident and is buggy anyway.  */
@@ -7618,9 +7683,8 @@ not_in_argv (NSString *arg)
     return;
   if (screen != nil)
     {
-      emacsframe->left_pos = r.origin.x - NS_PARENT_WINDOW_LEFT_POS (emacsframe);
-      emacsframe->top_pos =
-        NS_PARENT_WINDOW_TOP_POS (emacsframe) - (r.origin.y + r.size.height);
+      emacsframe->left_pos = NSMinX (r) - NS_PARENT_WINDOW_LEFT_POS (emacsframe);
+      emacsframe->top_pos = NS_PARENT_WINDOW_TOP_POS (emacsframe) - NSMaxY (r);
 
       // FIXME: after event part below didExitFullScreen is not received
       // if (emacs_event)
@@ -7919,7 +7983,6 @@ not_in_argv (NSString *arg)
     {
       [toolbar setVisible:YES];
       update_frame_tool_bar (emacsframe);
-      [self updateFrameSize:YES];
       [[self window] display];
     }
   else
@@ -8132,11 +8195,11 @@ not_in_argv (NSString *arg)
       // send notifications.
 
       [self windowWillExitFullScreen];
-      [fw setFrame: [w frame] display:YES animate:ns_use_fullscreen_animation];
+      [fw setFrame:[[w contentView] frame]
+                    display:YES animate:ns_use_fullscreen_animation];
       [fw close];
       [w makeKeyAndOrderFront:NSApp];
       [self windowDidExitFullScreen];
-      [self updateFrameSize:YES];
     }
 }
 
@@ -8315,6 +8378,9 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView createDrawingBuffer]");
 
+  if (! [self wantsUpdateLayer])
+    return;
+
   NSGraphicsContext *screen;
   CGColorSpaceRef colorSpace = [[[self window] colorSpace] CGColorSpace];
   CGFloat scale = [[self window] backingScaleFactor];
@@ -8350,6 +8416,9 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
+  if (! [self wantsUpdateLayer])
+    return;
+
   CGFloat old = [[[notification userInfo]
                     objectForKey:@"NSBackingPropertyOldScaleFactorKey"]
                   doubleValue];
@@ -8373,41 +8442,56 @@ not_in_argv (NSString *arg)
   NSTRACE_RECT ("Destination", dstRect);
 
 #ifdef NS_DRAW_TO_BUFFER
-  CGImageRef copy;
-  NSRect frame = [self frame];
-  NSAffineTransform *setOrigin = [NSAffineTransform transform];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if ([self wantsUpdateLayer])
+    {
+#endif
+      CGImageRef copy;
+      NSRect frame = [self frame];
+      NSAffineTransform *setOrigin = [NSAffineTransform transform];
 
-  [[NSGraphicsContext currentContext] saveGraphicsState];
+      [[NSGraphicsContext currentContext] saveGraphicsState];
 
-  /* Set the clipping before messing with the buffer's
-     orientation.  */
-  NSRectClip (dstRect);
+      /* Set the clipping before messing with the buffer's
+         orientation.  */
+      NSRectClip (dstRect);
 
-  /* Unflip the buffer as the copied image will be unflipped, and
-     offset the top left so when we draw back into the buffer the
-     correct part of the image is drawn.  */
-  CGContextScaleCTM(drawingBuffer, 1, -1);
-  CGContextTranslateCTM(drawingBuffer,
-                        NSMinX (dstRect) - NSMinX (srcRect),
-                        -NSHeight (frame) - (NSMinY (dstRect) - NSMinY (srcRect)));
+      /* Unflip the buffer as the copied image will be unflipped, and
+         offset the top left so when we draw back into the buffer the
+         correct part of the image is drawn.  */
+      CGContextScaleCTM(drawingBuffer, 1, -1);
+      CGContextTranslateCTM(drawingBuffer,
+                            NSMinX (dstRect) - NSMinX (srcRect),
+                            -NSHeight (frame) - (NSMinY (dstRect) - NSMinY (srcRect)));
 
-  /* Take a copy of the buffer and then draw it back to the buffer,
-     limited by the clipping rectangle.  */
-  copy = CGBitmapContextCreateImage (drawingBuffer);
-  CGContextDrawImage (drawingBuffer, frame, copy);
+      /* Take a copy of the buffer and then draw it back to the buffer,
+         limited by the clipping rectangle.  */
+      copy = CGBitmapContextCreateImage (drawingBuffer);
+      CGContextDrawImage (drawingBuffer, frame, copy);
 
-  CGImageRelease (copy);
+      CGImageRelease (copy);
 
-  [[NSGraphicsContext currentContext] restoreGraphicsState];
-  [self setNeedsDisplayInRect:dstRect];
-#else
-  hide_bell();              // Ensure the bell image isn't scrolled.
+      [[NSGraphicsContext currentContext] restoreGraphicsState];
+      [self setNeedsDisplayInRect:dstRect];
 
-  ns_focus (emacsframe, &dstRect, 1);
-  [self scrollRect: srcRect
-                by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
-                                dstRect.origin.y - srcRect.origin.y)];
-  ns_unfocus (emacsframe);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
+  else
+    {
+#endif
+#endif /* NS_DRAW_TO_BUFFER */
+
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      hide_bell();              // Ensure the bell image isn't scrolled.
+
+      ns_focus (emacsframe, &dstRect, 1);
+      [self scrollRect: srcRect
+                    by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
+                                    dstRect.origin.y - srcRect.origin.y)];
+      ns_unfocus (emacsframe);
+#endif
+#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+    }
 #endif
 }
 
@@ -8415,7 +8499,13 @@ not_in_argv (NSString *arg)
 #ifdef NS_DRAW_TO_BUFFER
 - (BOOL)wantsUpdateLayer
 {
-    return YES;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if (NSAppKitVersionNumber < 1671)
+    return NO;
+#endif
+
+  /* Running on macOS 10.14 or above.  */
+  return YES;
 }
 
 
@@ -8644,13 +8734,6 @@ not_in_argv (NSString *arg)
   return self;
 }
 
-
-- (void) setRows: (int) r andColumns: (int) c
-{
-  NSTRACE ("[EmacsView setRows:%d andColumns:%d]", r, c);
-  rows = r;
-  cols = c;
-}
 
 - (int) fullscreenState
 {

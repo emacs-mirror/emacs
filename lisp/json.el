@@ -736,7 +736,7 @@ you will get the following structure returned:
 
 OBJECT should have a structure like one returned by `json-read'.
 If an error is detected during encoding, an error based on
-`json-error' is signalled."
+`json-error' is signaled."
   (cond ((memq object (list t json-null json-false))
          (json-encode-keyword object))
         ((stringp object)      (json-encode-string object))

@@ -204,8 +204,8 @@ sentences and paragraphs, respectively.  These commands work like
   A numeric argument to a transpose command serves as a repeat count: it
 tells the transpose command to move the character (or word or
 expression or line) before or containing point across several other
-characters (or words or expressions or lines).  For example, @kbd{C-u
-3 C-t} moves the character before point forward across three other
+characters (or words or expressions or lines).  For example, @w{@kbd{C-u
+3 C-t}} moves the character before point forward across three other
 characters.  It would change @samp{f@point{}oobar} into
 @samp{oobf@point{}ar}.  This is equivalent to repeating @kbd{C-t}
 three times.  @kbd{C-u - 4 M-t} moves the word before point backward
@@ -307,10 +307,10 @@ region; @pxref{Disabled Transient Mark}.)
 @cindex spell-checking the active region
   Similarly, the command @kbd{M-x ispell} performs spell-checking in
 the region if one is active, or in the entire buffer otherwise.  The
-commands @kbd{M-x ispell-buffer} and @kbd{M-x ispell-region}
+commands @w{@kbd{M-x ispell-buffer}} and @w{@kbd{M-x ispell-region}}
 explicitly perform spell-checking on the entire buffer or the region
 respectively.  To check spelling in an email message you are writing,
-use @kbd{M-x ispell-message}; that command checks the whole buffer,
+use @w{@kbd{M-x ispell-message}}; that command checks the whole buffer,
 except for material that is indented or appears to be cited from other
 messages.  @xref{Sending Mail}.
 
@@ -368,8 +368,8 @@ wildcard.
 @item C-g
 @itemx X
 Quit interactive spell-checking, leaving point at the word that was
-being checked.  You can restart checking again afterward with @kbd{C-u
-M-$}.
+being checked.  You can restart checking again afterward with @w{@kbd{C-u
+M-$}}.
 
 @item x
 Quit interactive spell-checking and move point back to where it was
@@ -387,8 +387,8 @@ Show the list of options.
 (@code{ispell-complete-word}) performs in-buffer completion based on
 spelling correction.  Insert the beginning of a word, and then type
 @kbd{M-@key{TAB}}; this shows a list of completions.  (If your
-window manager intercepts @kbd{M-@key{TAB}}, type @kbd{@key{ESC}
-@key{TAB}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
+window manager intercepts @kbd{M-@key{TAB}}, type @w{@kbd{@key{ESC}
+@key{TAB}}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
 character; type that digit or character to choose it.
 
 @cindex @code{ispell} program
@@ -396,7 +396,7 @@ character; type that digit or character to choose it.
   Once started, the spell-checker subprocess continues
 to run, waiting for something to do, so that subsequent spell-checking
 commands complete more quickly.  If you want to get rid of the
-process, use @kbd{M-x ispell-kill-ispell}.  This is not usually
+process, use @w{@kbd{M-x ispell-kill-ispell}}.  This is not usually
 necessary, since the process uses no processor time except when you do
 spelling correction.
 
@@ -409,7 +409,7 @@ the standard dictionary and your personal dictionary.  The standard
 dictionary is specified by the variable @code{ispell-local-dictionary}
 or, if that is @code{nil}, by the variable @code{ispell-dictionary}.
 If both are @code{nil}, the spelling program's default dictionary is
-used.  The command @kbd{M-x ispell-change-dictionary} sets the
+used.  The command @w{@kbd{M-x ispell-change-dictionary}} sets the
 standard dictionary for the buffer and then restarts the subprocess,
 so that it will use a different standard dictionary.  Your personal
 dictionary is specified by the variable
@@ -431,8 +431,8 @@ dictionary.
 @findex flyspell-mode
   Flyspell mode is a minor mode that performs automatic spell-checking
 of the text you type as you type it.  When it finds a word that it
-does not recognize, it highlights that word.  Type @kbd{M-x
-flyspell-mode} to toggle Flyspell mode in the current buffer.  To
+does not recognize, it highlights that word.  Type @w{@kbd{M-x
+flyspell-mode}} to toggle Flyspell mode in the current buffer.  To
 enable Flyspell mode in all text mode buffers, add
 @code{flyspell-mode} to @code{text-mode-hook}.  @xref{Hooks}.  Note
 that, as Flyspell mode needs to check each word across which you move,
@@ -448,14 +448,14 @@ it with @kbd{mouse-2} (@code{flyspell-correct-word}) to display a menu
 of possible corrections and actions.  In addition, @kbd{C-.} or
 @kbd{@key{ESC}-@key{TAB}} (@code{flyspell-auto-correct-word}) will
 propose various successive corrections for the word at point, and
-@kbd{C-c $} (@code{flyspell-correct-word-before-point}) will pop up a
+@w{@kbd{C-c $}} (@code{flyspell-correct-word-before-point}) will pop up a
 menu of possible corrections.  Of course, you can always correct the
 misspelled word by editing it manually in any way you like.
 
 @findex flyspell-prog-mode
   Flyspell Prog mode works just like ordinary Flyspell mode, except
 that it only checks words in comments and string constants.  This
-feature is useful for editing programs.  Type @kbd{M-x
-flyspell-prog-mode} to enable or disable this mode in the current
+feature is useful for editing programs.  Type @w{@kbd{M-x
+flyspell-prog-mode}} to enable or disable this mode in the current
 buffer.  To enable this mode in all programming mode buffers, add
 @code{flyspell-prog-mode} to @code{prog-mode-hook} (@pxref{Hooks}).

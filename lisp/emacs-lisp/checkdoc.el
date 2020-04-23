@@ -2134,7 +2134,7 @@ buffer, otherwise stop after the first error."
     (checkdoc-ispell-init)
     (unless checkdoc-spellcheck-documentation-flag
       ;; this happens when (checkdoc-ispell-init) can't start `ispell-program-name'
-      (user-error "No spellchecker installed: check the variable `ispell-program-name'."))
+      (user-error "No spellchecker installed: check the variable `ispell-program-name'"))
     (save-excursion
       (skip-chars-forward "^a-zA-Z")
       (let (word sym case-fold-search err word-beginning word-end)

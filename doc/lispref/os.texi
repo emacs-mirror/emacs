@@ -2617,7 +2617,7 @@ if it is non-@code{nil}; this can be overridden by binding
 This variable is non-@code{nil} when Emacs is running in batch mode.
 @end defvar
 
-If Emacs exits due to signalling an error in batch mode, the exit
+If Emacs exits due to signaling an error in batch mode, the exit
 status of the Emacs command is non-zero:
 
 @example

@@ -67,7 +67,7 @@ union ieee754_float
 #endif				/* Little endian.  */
       } ieee;
 
-    /* This format makes it easier to see if a NaN is a signalling NaN.  */
+    /* This format makes it easier to see if a NaN is a signaling NaN.  */
     struct
       {
 #if	__BYTE_ORDER == __BIG_ENDIAN
@@ -118,7 +118,7 @@ union ieee754_double
 #endif				/* Little endian.  */
       } ieee;
 
-    /* This format makes it easier to see if a NaN is a signalling NaN.  */
+    /* This format makes it easier to see if a NaN is a signaling NaN.  */
     struct
       {
 #if	__BYTE_ORDER == __BIG_ENDIAN

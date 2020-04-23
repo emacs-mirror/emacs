@@ -1441,10 +1441,10 @@ Here is an example showing a keymap before and after substitution:
 
 @smallexample
 @group
-(setq map '(keymap
-            (?1 . olddef-1)
-            (?2 . olddef-2)
-            (?3 . olddef-1)))
+(setq map (list 'keymap
+                (cons ?1 olddef-1)
+                (cons ?2 olddef-2)
+                (cons ?3 olddef-1)))
 @result{} (keymap (49 . olddef-1) (50 . olddef-2) (51 . olddef-1))
 @end group
 
@@ -2226,14 +2226,11 @@ right value for selecting that button.  Clicking on the button should
 set the variable so that the button you clicked on becomes selected.
 
 @item :key-sequence @var{key-sequence}
-This property specifies which key sequence is likely to be bound to the
-same command invoked by this menu item.  If you specify a correct key
-sequence, that sequence will be preferred over others.
-
-If you specify an incorrect key sequence, it has no effect; before Emacs
-displays @var{key-sequence} in the menu, it verifies that
-@var{key-sequence} is really equivalent to this menu item.  Specifying
-@code{nil} for @var{key-sequence} is equivalent to the
+This property specifies which key sequence to display as keyboard equivalent.
+Before Emacs displays @var{key-sequence} in the menu, it verifies that
+@var{key-sequence} is really equivalent to this menu item, so it only
+has an effect if you specify a correct key sequence.
+Specifying @code{nil} for @var{key-sequence} is equivalent to the
 @code{:key-sequence} attribute being absent.
 
 @item :keys @var{string}
@@ -2916,17 +2913,17 @@ the following:
 
 @table @code
 @item :keys @var{keys}
-@var{keys} is a keyboard equivalent to the menu item (a string).  This
-is normally not needed, as keyboard equivalents are computed
+@var{keys} is a string to display as keyboard equivalent to the menu item.
+This is normally not needed, as keyboard equivalents are computed
 automatically.  @var{keys} is expanded with
 @code{substitute-command-keys} before it is displayed (@pxref{Keys in
 Documentation}).
 
 @item :key-sequence @var{keys}
-@var{keys} is a hint for speeding up Emacs's first display of the
-menu.  It should be @code{nil} if you know that the menu item has no keyboard
-equivalent; otherwise it should be a string or vector specifying a
-keyboard equivalent for the menu item.
+@var{keys} is a hint indicating which key sequence to display as
+keyboard equivalent, in case the command is bound to several key sequences.
+It has no effect if @var{keys} is not bound to same command as this
+menu item.
 
 @item :active @var{enable}
 @var{enable} is an expression; if it evaluates to @code{nil}, the item

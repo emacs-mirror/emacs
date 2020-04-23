@@ -141,15 +141,11 @@ char_string (unsigned int c, unsigned char *p)
 }
 
 
-/* Return a character whose multibyte form is at P.  If LEN is not
-   NULL, it must be a pointer to integer.  In that case, set *LEN to
-   the byte length of the multibyte form.  If ADVANCED is not NULL, it
-   must be a pointer to unsigned char.  In that case, set *ADVANCED to
-   the ending address (i.e., the starting address of the next
-   character) of the multibyte form.  */
+/* Return a character whose multibyte form is at P.  Set *LEN to the
+   byte length of the multibyte form.  */
 
 int
-string_char (const unsigned char *p, const unsigned char **advanced, int *len)
+string_char (const unsigned char *p, int *len)
 {
   int c;
   const unsigned char *saved_p = p;
@@ -157,7 +153,7 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
   if (*p < 0x80 || ! (*p & 0x20) || ! (*p & 0x10))
     {
       /* 1-, 2-, and 3-byte sequences can be handled by the macro.  */
-      c = STRING_CHAR_ADVANCE (p);
+      c = string_char_advance (&p);
     }
   else if (! (*p & 0x08))
     {
@@ -185,10 +181,7 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
       p += 5;
     }
 
-  if (len)
-    *len = p - saved_p;
-  if (advanced)
-    *advanced = p;
+  *len = p - saved_p;
   return c;
 }
 
@@ -248,8 +241,7 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
   c = XFIXNAT (ch);
   if (c >= 0x100)
     error ("Not a unibyte character: %d", c);
-  MAKE_CHAR_MULTIBYTE (c);
-  return make_fixnum (c);
+  return make_fixnum (make_char_multibyte (c));
 }
 
 DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
@@ -340,8 +332,7 @@ c_string_width (const unsigned char *str, ptrdiff_t len, int precision,
 
   while (i_byte < len)
     {
-      int bytes;
-      int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
+      int bytes, c = string_char_and_length (str + i_byte, &bytes);
       ptrdiff_t thiswidth = char_width (c, dp);
 
       if (0 < precision && precision - width < thiswidth)
@@ -418,7 +409,7 @@ lisp_string_width (Lisp_Object string, ptrdiff_t precision,
 	  if (multibyte)
 	    {
 	      int cbytes;
-	      c = STRING_CHAR_AND_LENGTH (str + i_byte, cbytes);
+	      c = string_char_and_length (str + i_byte, &cbytes);
 	      bytes = cbytes;
 	    }
 	  else
@@ -495,7 +486,7 @@ multibyte_chars_in_text (const unsigned char *ptr, ptrdiff_t nbytes)
 
   while (ptr < endp)
     {
-      int len = MULTIBYTE_LENGTH (ptr, endp);
+      int len = multibyte_length (ptr, endp, true, true);
 
       if (len == 0)
 	emacs_abort ();
@@ -517,16 +508,15 @@ parse_str_as_multibyte (const unsigned char *str, ptrdiff_t len,
 			ptrdiff_t *nchars, ptrdiff_t *nbytes)
 {
   const unsigned char *endp = str + len;
-  int n;
   ptrdiff_t chars = 0, bytes = 0;
 
   if (len >= MAX_MULTIBYTE_LENGTH)
     {
-      const unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
+      const unsigned char *adjusted_endp = endp - (MAX_MULTIBYTE_LENGTH - 1);
       while (str < adjusted_endp)
 	{
-	  if (! CHAR_BYTE8_HEAD_P (*str)
-	      && (n = MULTIBYTE_LENGTH_NO_CHECK (str)) > 0)
+	  int n = multibyte_length (str, NULL, false, false);
+	  if (0 < n)
 	    str += n, bytes += n;
 	  else
 	    str++, bytes += 2;
@@ -535,8 +525,8 @@ parse_str_as_multibyte (const unsigned char *str, ptrdiff_t len,
     }
   while (str < endp)
     {
-      if (! CHAR_BYTE8_HEAD_P (*str)
-	  && (n = MULTIBYTE_LENGTH (str, endp)) > 0)
+      int n = multibyte_length (str, endp, true, false);
+      if (0 < n)
 	str += n, bytes += n;
       else
 	str++, bytes += 2;
@@ -563,20 +553,25 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
   unsigned char *p = str, *endp = str + nbytes;
   unsigned char *to;
   ptrdiff_t chars = 0;
-  int n;
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
     {
-      unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
-      while (p < adjusted_endp
-	     && ! CHAR_BYTE8_HEAD_P (*p)
-	     && (n = MULTIBYTE_LENGTH_NO_CHECK (p)) > 0)
-	p += n, chars++;
+      unsigned char *adjusted_endp = endp - (MAX_MULTIBYTE_LENGTH - 1);
+      while (p < adjusted_endp)
+	{
+	  int n = multibyte_length (p, NULL, false, false);
+	  if (n <= 0)
+	    break;
+	  p += n, chars++;
+	}
     }
-  while (p < endp
-	 && ! CHAR_BYTE8_HEAD_P (*p)
-	 && (n = MULTIBYTE_LENGTH (p, endp)) > 0)
-    p += n, chars++;
+  while (true)
+    {
+      int n = multibyte_length (p, endp, true, false);
+      if (n <= 0)
+	break;
+      p += n, chars++;
+    }
   if (nchars)
     *nchars = chars;
   if (p == endp)
@@ -590,11 +585,11 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
     {
-      unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
+      unsigned char *adjusted_endp = endp - (MAX_MULTIBYTE_LENGTH - 1);
       while (p < adjusted_endp)
 	{
-	  if (! CHAR_BYTE8_HEAD_P (*p)
-	      && (n = MULTIBYTE_LENGTH_NO_CHECK (p)) > 0)
+	  int n = multibyte_length (p, NULL, false, false);
+	  if (0 < n)
 	    {
 	      while (n--)
 		*to++ = *p++;
@@ -610,8 +605,8 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
     }
   while (p < endp)
     {
-      if (! CHAR_BYTE8_HEAD_P (*p)
-	  && (n = MULTIBYTE_LENGTH (p, endp)) > 0)
+      int n = multibyte_length (p, endp, true, false);
+      if (0 < n)
 	{
 	  while (n--)
 	    *to++ = *p++;
@@ -706,7 +701,7 @@ str_as_unibyte (unsigned char *str, ptrdiff_t bytes)
       len = BYTES_BY_CHAR_HEAD (c);
       if (CHAR_BYTE8_HEAD_P (c))
 	{
-	  c = STRING_CHAR_ADVANCE (p);
+	  c = string_char_advance (&p);
 	  *to++ = CHAR_TO_BYTE8 (c);
 	}
       else
@@ -730,7 +725,7 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars)
 
   for (i = 0; i < chars; i++)
     {
-      int c = STRING_CHAR_ADVANCE (src);
+      int c = string_char_advance (&src);
 
       if (CHAR_BYTE8_P (c))
 	c = CHAR_TO_BYTE8 (c);
@@ -823,7 +818,7 @@ string_escape_byte8 (Lisp_Object string)
 
 	if (CHAR_BYTE8_HEAD_P (c))
 	  {
-	    c = STRING_CHAR_ADVANCE (src);
+	    c = string_char_advance (&src);
 	    c = CHAR_TO_BYTE8 (c);
 	    dst += sprintf ((char *) dst, "\\%03o", c + 0u);
 	  }

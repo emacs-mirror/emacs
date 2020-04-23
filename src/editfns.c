@@ -999,7 +999,7 @@ At the beginning of the buffer or accessible region, return 0.  */)
   else if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
       ptrdiff_t pos = PT_BYTE;
-      DEC_POS (pos);
+      pos -= prev_char_len (pos);
       XSETFASTINT (temp, FETCH_CHAR (pos));
     }
   else
@@ -1112,7 +1112,7 @@ If POS is out of range, the value is nil.  */)
 
   if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
-      DEC_POS (pos_byte);
+      pos_byte -= prev_char_len (pos_byte);
       XSETFASTINT (val, FETCH_CHAR (pos_byte));
     }
   else
@@ -1549,7 +1549,7 @@ from adjoining text, if those properties are sticky.  */)
    make_uninit_string, which can cause the buffer arena to be
    compacted.  make_string has no way of knowing that the data has
    been moved, and thus copies the wrong data into the string.  This
-   doesn't effect most of the other users of make_string, so it should
+   doesn't affect most of the other users of make_string, so it should
    be left as is.  But we should use this function when conjuring
    buffer substrings.  */
 
@@ -1830,26 +1830,24 @@ determines whether case is significant or ignored.  */)
       if (! NILP (BVAR (bp1, enable_multibyte_characters)))
 	{
 	  c1 = BUF_FETCH_MULTIBYTE_CHAR (bp1, i1_byte);
-	  BUF_INC_POS (bp1, i1_byte);
+	  i1_byte += buf_next_char_len (bp1, i1_byte);
 	  i1++;
 	}
       else
 	{
-	  c1 = BUF_FETCH_BYTE (bp1, i1);
-	  MAKE_CHAR_MULTIBYTE (c1);
+	  c1 = make_char_multibyte (BUF_FETCH_BYTE (bp1, i1));
 	  i1++;
 	}
 
       if (! NILP (BVAR (bp2, enable_multibyte_characters)))
 	{
 	  c2 = BUF_FETCH_MULTIBYTE_CHAR (bp2, i2_byte);
-	  BUF_INC_POS (bp2, i2_byte);
+	  i2_byte += buf_next_char_len (bp2, i2_byte);
 	  i2++;
 	}
       else
 	{
-	  c2 = BUF_FETCH_BYTE (bp2, i2);
-	  MAKE_CHAR_MULTIBYTE (c2);
+	  c2 = make_char_multibyte (BUF_FETCH_BYTE (bp2, i2));
 	  i2++;
 	}
 
@@ -2304,7 +2302,7 @@ Both characters must have the same length of multi-byte form.  */)
 	}
       p = BYTE_POS_ADDR (pos_byte);
       if (multibyte_p)
-	INC_POS (pos_byte_next);
+	pos_byte_next += next_char_len (pos_byte_next);
       else
 	++pos_byte_next;
       if (pos_byte_next - pos_byte == len
@@ -2365,7 +2363,7 @@ Both characters must have the same length of multi-byte form.  */)
 		   decrease it now.  */
 		pos--;
 	      else
-		INC_POS (pos_byte_next);
+		pos_byte_next += next_char_len (pos_byte_next);
 
 	      if (! NILP (noundo))
 		bset_undo_list (current_buffer, tem);
@@ -2442,7 +2440,7 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 			memcpy (bufalloc, buf, sizeof initial_buf);
 		      buf = bufalloc;
 		    }
-		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len1);
+		  buf[buf_used++] = string_char_and_length (p, &len1);
 		  pos_byte += len1;
 		}
 	      if (XFIXNUM (AREF (elt, i)) != buf[i])
@@ -2501,13 +2499,13 @@ It returns the number of characters changed.  */)
       int len, oc;
 
       if (multibyte)
-	oc = STRING_CHAR_AND_LENGTH (p, len);
+	oc = string_char_and_length (p, &len);
       else
 	oc = *p, len = 1;
       if (oc < translatable_chars)
 	{
 	  int nc; /* New character.  */
-	  int str_len;
+	  int str_len UNINIT;
 	  Lisp_Object val;
 
 	  if (STRINGP (table))
@@ -2518,7 +2516,7 @@ It returns the number of characters changed.  */)
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, str_len);
+		  nc = string_char_and_length (str, &str_len);
 		}
 	      else
 		{

@@ -970,7 +970,7 @@ string.
 @end group
 
 @group
-(mapconcat (function (lambda (x) (format "%c" (1+ x))))
+(mapconcat (lambda (x) (format "%c" (1+ x)))
            "HAL-8000"
            "")
      @result{} "IBM.9111"
@@ -2287,7 +2287,7 @@ function) as a generalized variable.  @var{setter} can be a symbol in which
 case it will be passed to @code{gv-define-simple-setter}, or it can be of the
 form @code{(lambda (@var{arg}) @var{body})} in which case that function will
 additionally have access to the macro (or function)'s arguments and it will
-passed to @code{gv-define-setter}.
+be passed to @code{gv-define-setter}.
 
 @end table
 

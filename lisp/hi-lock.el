@@ -567,8 +567,9 @@ in which case the highlighting will not update as you type."
     (let* ((faces-after (get-text-property (point) 'face))
            (faces-before
             (unless (bobp) (get-text-property (1- (point)) 'face)))
-           (faces-after (if (consp faces-after) faces-after (list faces-after)))
-           (faces-before (if (consp faces-before) faces-before (list faces-before)))
+           ;; Use proper-list-p to handle faces like (foreground-color . "red3")
+           (faces-after (if (proper-list-p faces-after) faces-after (list faces-after)))
+           (faces-before (if (proper-list-p faces-before) faces-before (list faces-before)))
            (faces (mapcar #'hi-lock-keyword->face
                           hi-lock-interactive-patterns))
            (face-after (seq-some (lambda (face) (car (memq face faces))) faces-after))

@@ -226,12 +226,12 @@ Letter-case is significant, but text properties are ignored. */)
       for (x = 1; x <= len2; x++)
         {
           column[0] = x;
-          FETCH_STRING_CHAR_ADVANCE (c2, string2, i2, i2_byte);
+          c2 = fetch_string_char_advance (string2, &i2, &i2_byte);
           i1 = i1_byte = 0;
           for (y = 1, lastdiag = x - 1; y <= len1; y++)
             {
               olddiag = column[y];
-              FETCH_STRING_CHAR_ADVANCE (c1, string1, i1, i1_byte);
+              c1 = fetch_string_char_advance (string1, &i1, &i1_byte);
               column[y] = min (min (column[y] + 1, column[y-1] + 1),
 			       lastdiag + (c1 == c2 ? 0 : 1));
               lastdiag = olddiag;
@@ -312,10 +312,8 @@ If string STR1 is greater, the value is a positive number N;
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */
-      int c1, c2;
-
-      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c1, str1, i1, i1_byte);
-      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c2, str2, i2, i2_byte);
+      int c1 = fetch_string_char_as_multibyte_advance (str1, &i1, &i1_byte);
+      int c2 = fetch_string_char_as_multibyte_advance (str2, &i2, &i2_byte);
 
       if (c1 == c2)
 	continue;
@@ -350,11 +348,8 @@ DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant.
 Symbols are also allowed; their print names are used instead.  */)
-  (register Lisp_Object string1, Lisp_Object string2)
+  (Lisp_Object string1, Lisp_Object string2)
 {
-  register ptrdiff_t end;
-  register ptrdiff_t i1, i1_byte, i2, i2_byte;
-
   if (SYMBOLP (string1))
     string1 = SYMBOL_NAME (string1);
   if (SYMBOLP (string2))
@@ -362,21 +357,15 @@ Symbols are also allowed; their print names are used instead.  */)
   CHECK_STRING (string1);
   CHECK_STRING (string2);
 
-  i1 = i1_byte = i2 = i2_byte = 0;
-
-  end = SCHARS (string1);
-  if (end > SCHARS (string2))
-    end = SCHARS (string2);
+  ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0, i2_byte = 0;
+  ptrdiff_t end = min (SCHARS (string1), SCHARS (string2));
 
   while (i1 < end)
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */
-      int c1, c2;
-
-      FETCH_STRING_CHAR_ADVANCE (c1, string1, i1, i1_byte);
-      FETCH_STRING_CHAR_ADVANCE (c2, string2, i2, i2_byte);
-
+      int c1 = fetch_string_char_advance (string1, &i1, &i1_byte);
+      int c2 = fetch_string_char_advance (string2, &i2, &i2_byte);
       if (c1 != c2)
 	return c1 < c2 ? Qt : Qnil;
     }
@@ -767,8 +756,8 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
     {
       Lisp_Object thislen;
       ptrdiff_t thisleni = 0;
-      register ptrdiff_t thisindex = 0;
-      register ptrdiff_t thisindex_byte = 0;
+      ptrdiff_t thisindex = 0;
+      ptrdiff_t thisindex_byte = 0;
 
       this = args[argnum];
       if (!CONSP (this))
@@ -821,9 +810,8 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	      {
 		int c;
 		if (STRING_MULTIBYTE (this))
-		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, this,
-						      thisindex,
-						      thisindex_byte);
+		  c = fetch_string_char_advance_no_check (this, &thisindex,
+							  &thisindex_byte);
 		else
 		  {
 		    c = SREF (this, thisindex); thisindex++;
@@ -1961,9 +1949,7 @@ See also the function `nreverse', which is used more often.  */)
 	  p = SDATA (seq), q = SDATA (new) + bytes;
 	  while (q > SDATA (new))
 	    {
-	      int ch, len;
-
-	      ch = STRING_CHAR_AND_LENGTH (p, len);
+	      int len, ch = string_char_and_length (p, &len);
 	      p += len, q -= len;
 	      CHAR_STRING (ch, q);
 	    }
@@ -2614,51 +2600,45 @@ usage: (nconc &rest LISTS)  */)
 static EMACS_INT
 mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 {
-  Lisp_Object tail, dummy;
-  EMACS_INT i;
-
   if (VECTORP (seq) || COMPILEDP (seq))
     {
-      for (i = 0; i < leni; i++)
+      for (ptrdiff_t i = 0; i < leni; i++)
 	{
-	  dummy = call1 (fn, AREF (seq, i));
+	  Lisp_Object dummy = call1 (fn, AREF (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
     }
   else if (BOOL_VECTOR_P (seq))
     {
-      for (i = 0; i < leni; i++)
+      for (EMACS_INT i = 0; i < leni; i++)
 	{
-	  dummy = call1 (fn, bool_vector_ref (seq, i));
+	  Lisp_Object dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
     }
   else if (STRINGP (seq))
     {
-      ptrdiff_t i_byte;
+      ptrdiff_t i_byte = 0;
 
-      for (i = 0, i_byte = 0; i < leni;)
+      for (ptrdiff_t i = 0; i < leni;)
 	{
-	  int c;
 	  ptrdiff_t i_before = i;
-
-	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte);
-	  XSETFASTINT (dummy, c);
-	  dummy = call1 (fn, dummy);
+	  int c = fetch_string_char_advance (seq, &i, &i_byte);
+	  Lisp_Object dummy = call1 (fn, make_fixnum (c));
 	  if (vals)
 	    vals[i_before] = dummy;
 	}
     }
   else   /* Must be a list, since Flength did not get an error */
     {
-      tail = seq;
-      for (i = 0; i < leni; i++)
+      Lisp_Object tail = seq;
+      for (ptrdiff_t i = 0; i < leni; i++)
 	{
 	  if (! CONSP (tail))
 	    return i;
-	  dummy = call1 (fn, XCAR (tail));
+	  Lisp_Object dummy = call1 (fn, XCAR (tail));
 	  if (vals)
 	    vals[i] = dummy;
 	  tail = XCDR (tail);
@@ -3451,7 +3431,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
     {
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
+	  c = string_char_and_length ((unsigned char *) from + i, &bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3494,7 +3474,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
+	  c = string_char_and_length ((unsigned char *) from + i, &bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3519,7 +3499,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH ((unsigned char *) from + i, bytes);
+	  c = string_char_and_length ((unsigned char *) from + i, &bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3700,7 +3680,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value >> 16 & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -3742,7 +3722,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value >> 8 & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;
@@ -3772,7 +3752,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 
       c = value & 0xff;
       if (c & multibyte_bit)
-	e += BYTE8_STRING (c, e);
+	e += BYTE8_STRING (c, (unsigned char *) e);
       else
 	*e++ = c;
       nchars++;

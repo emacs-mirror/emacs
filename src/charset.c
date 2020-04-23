@@ -1460,7 +1460,7 @@ string_xstring_p (Lisp_Object string)
 
   while (p < endp)
     {
-      int c = STRING_CHAR_ADVANCE (p);
+      int c = string_char_advance (&p);
 
       if (c >= 0x100)
 	return 2;
@@ -1504,7 +1504,7 @@ find_charsets_in_text (const unsigned char *ptr, ptrdiff_t nchars,
     {
       while (ptr < pend)
 	{
-	  int c = STRING_CHAR_ADVANCE (ptr);
+	  int c = string_char_advance (&ptr);
 	  struct charset *charset;
 
 	  if (!NILP (table))

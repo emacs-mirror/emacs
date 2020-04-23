@@ -175,49 +175,47 @@ All symbols that have PATTERN in their name are described
 in the *Help* buffer."
   (interactive "sDescribe symbols matching: ")
   (let ((describe-func
-         (function
-          (lambda (s)
+         (lambda (s)
 @end group
 @group
-            ;; @r{Print description of symbol.}
-            (if (fboundp s)             ; @r{It is a function.}
-                (princ
-                 (format "%s\t%s\n%s\n\n" s
-                   (if (commandp s)
-                       (let ((keys (where-is-internal s)))
-                         (if keys
-                             (concat
-                              "Keys: "
-                              (mapconcat 'key-description
-                                         keys " "))
-                           "Keys: none"))
-                     "Function")
+           ;; @r{Print description of symbol.}
+           (if (fboundp s)             ; @r{It is a function.}
+               (princ
+                (format "%s\t%s\n%s\n\n" s
+                  (if (commandp s)
+                      (let ((keys (where-is-internal s)))
+                        (if keys
+                            (concat
+                             "Keys: "
+                             (mapconcat 'key-description
+                                        keys " "))
+                          "Keys: none"))
+                    "Function")
 @end group
 @group
-                   (or (documentation s)
-                       "not documented"))))
+                  (or (documentation s)
+                      "not documented"))))
 
-            (if (boundp s)              ; @r{It is a variable.}
+           (if (boundp s)              ; @r{It is a variable.}
 @end group
 @group
-                (princ
-                 (format "%s\t%s\n%s\n\n" s
-                   (if (custom-variable-p s)
-                       "Option " "Variable")
+               (princ
+                (format "%s\t%s\n%s\n\n" s
+                  (if (custom-variable-p s)
+                      "Option " "Variable")
 @end group
 @group
-                   (or (documentation-property
-                         s 'variable-documentation)
-                       "not documented")))))))
+                  (or (documentation-property
+                        s 'variable-documentation)
+                      "not documented"))))))
         sym-list)
 @end group
 
 @group
     ;; @r{Build a list of symbols that match pattern.}
-    (mapatoms (function
-               (lambda (sym)
-                 (if (string-match pattern (symbol-name sym))
-                     (setq sym-list (cons sym sym-list))))))
+    (mapatoms (lambda (sym)
+                (if (string-match pattern (symbol-name sym))
+                    (setq sym-list (cons sym sym-list)))))
 @end group
 
 @group
