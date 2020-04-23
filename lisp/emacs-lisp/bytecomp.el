@@ -5148,7 +5148,8 @@ Use with caution."
         (message "Can't find %s to refresh preloaded Lisp files" argv0)
       (dolist (f (reverse load-history))
         (setq f (car f))
-        (if (string-match "elc\\'" f) (setq f (substring f 0 -1)))
+        (when (string-match "el[cn]\\'" f)
+          (setq f (substring f 0 -1)))
         (when (and (file-readable-p f)
                    (file-newer-than-file-p f emacs-file)
                    ;; Don't reload the source version of the files below
@@ -5157,7 +5158,7 @@ Use with caution."
                    ;; so it can cause recompilation to fail.
                    (not (member (file-name-nondirectory f)
                                 '("pcase.el" "bytecomp.el" "macroexp.el"
-                                  "cconv.el" "byte-opt.el"))))
+                                  "cconv.el" "byte-opt.el" "comp.el"))))
           (message "Reloading stale %s" (file-name-nondirectory f))
           (condition-case nil
               (load f 'noerror nil 'nosuffix)
