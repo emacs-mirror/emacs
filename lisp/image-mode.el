@@ -79,7 +79,6 @@ resizing according to the value specified in `image-auto-resize'."
   :version "27.1"
   :group 'image)
 
-;; FIXME this doesn't seem mature yet. Document in manual when it is.
 (defvar-local image-transform-resize nil
   "The image resize operation.
 Its value should be one of the following:
