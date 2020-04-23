@@ -1101,19 +1101,28 @@ w32_set_glyph_string_clipping_exactly (struct glyph_string *src,
 static void
 w32_compute_glyph_string_overhangs (struct glyph_string *s)
 {
-  if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH
-      && !s->font_not_found_p)
+  if (s->cmp == NULL)
     {
-      struct font *font = s->font;
       struct font_metrics metrics;
+      if (s->first_glyph->type == CHAR_GLYPH && !s->font_not_found_p)
+	{
+	  struct font *font = s->font;
+	  font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
+	  s->right_overhang = (metrics.rbearing > metrics.width
+			       ? metrics.rbearing - metrics.width : 0);
+	  s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	}
+      else if (s->first_glyph->type == COMPOSITE_GLYPH)
+	{
+	  Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
 
-      font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
-      s->right_overhang = (metrics.rbearing > metrics.width
-			   ? metrics.rbearing - metrics.width : 0);
-      s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	  composition_gstring_width (gstring, s->cmp_from, s->cmp_to, &metrics);
+	  s->right_overhang = (metrics.rbearing > metrics.width
+			       ? metrics.rbearing - metrics.width : 0);
+	  s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	}
     }
-  else if (s->cmp)
+  else
     {
       s->right_overhang = s->cmp->rbearing - s->cmp->pixel_width;
       s->left_overhang = -s->cmp->lbearing;
@@ -1725,10 +1734,26 @@ w32_draw_glyph_string_box (struct glyph_string *s)
 	    ? WINDOW_RIGHT_EDGE_X (s->w)
 	    : window_box_right (s->w, s->area));
 
-  /* The glyph that may have a right box line.  */
-  last_glyph = (s->cmp || s->img
-		? s->first_glyph
-		: s->first_glyph + s->nchars - 1);
+  /* The glyph that may have a right box line.  For static
+     compositions and images, the right-box flag is on the first glyph
+     of the glyph string; for other types it's on the last glyph.  */
+  if (s->cmp || s->img)
+    last_glyph = s->first_glyph;
+  else if (s->first_glyph->type == COMPOSITE_GLYPH
+	   && s->first_glyph->u.cmp.automatic)
+    {
+      /* For automatic compositions, we need to look up the last glyph
+	 in the composition.  */
+        struct glyph *end = s->row->glyphs[s->area] + s->row->used[s->area];
+	struct glyph *g = s->first_glyph;
+	for (last_glyph = g++;
+	     g < end && g->u.cmp.automatic && g->u.cmp.id == s->cmp_id
+	       && g->slice.cmp.to < s->cmp_to;
+	     last_glyph = g++)
+	  ;
+    }
+  else
+    last_glyph = s->first_glyph + s->nchars - 1;
 
   vwidth = eabs (s->face->box_vertical_line_width);
   hwidth = eabs (s->face->box_horizontal_line_width);
