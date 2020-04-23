@@ -2268,12 +2268,6 @@ See `text-char-description' for describing character codes.  */)
 static char *
 push_text_char_description (register unsigned int c, register char *p)
 {
-  if (c >= 0200)
-    {
-      *p++ = 'M';
-      *p++ = '-';
-      c -= 0200;
-    }
   if (c < 040)
     {
       *p++ = '^';
@@ -2302,23 +2296,22 @@ characters into "C-char", and uses the 2**27 bit for Meta.
 See Info node `(elisp)Describing Characters' for examples.  */)
   (Lisp_Object character)
 {
-  /* Currently MAX_MULTIBYTE_LENGTH is 4 (< 6).  */
-  char str[6];
-  int c;
-
   CHECK_CHARACTER (character);
 
-  c = XFIXNUM (character);
+  int c = XFIXNUM (character);
   if (!ASCII_CHAR_P (c))
     {
+      char str[MAX_MULTIBYTE_LENGTH];
       int len = CHAR_STRING (c, (unsigned char *) str);
 
       return make_multibyte_string (str, 1, len);
     }
-
-  *push_text_char_description (c & 0377, str) = 0;
-
-  return build_string (str);
+  else
+    {
+      char desc[4];
+      int len = push_text_char_description (c, desc) - desc;
+      return make_string (desc, len);
+    }
 }
 
 static int where_is_preferred_modifier;
