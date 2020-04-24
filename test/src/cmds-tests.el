@@ -1,4 +1,4 @@
-;;; cmds-tests.el --- Testing some Emacs commands
+;;; cmds-tests.el --- Testing some Emacs commands -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 

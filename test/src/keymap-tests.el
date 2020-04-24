@@ -1,4 +1,4 @@
-;;; keymap-tests.el --- Test suite for src/keymap.c
+;;; keymap-tests.el --- Test suite for src/keymap.c -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

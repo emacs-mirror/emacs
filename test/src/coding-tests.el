@@ -1,4 +1,4 @@
-;;; coding-tests.el --- tests for text encoding and decoding
+;;; coding-tests.el --- tests for text encoding and decoding -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
@@ -296,7 +296,7 @@
 ;;; decoder, not for regression testing.
 
 (defun generate-ascii-file ()
-  (dotimes (i 100000)
+  (dotimes (_i 100000)
     (insert-char ?a 80)
     (insert "\n")))
 
@@ -309,13 +309,13 @@
     (insert "\n")))
 
 (defun generate-mostly-nonascii-file ()
-  (dotimes (i 30000)
+  (dotimes (_i 30000)
     (insert-char ?a 80)
     (insert "\n"))
-  (dotimes (i 20000)
+  (dotimes (_i 20000)
     (insert-char ?À 80)
     (insert "\n"))
-  (dotimes (i 10000)
+  (dotimes (_i 10000)
     (insert-char ?あ 80)
     (insert "\n")))
 

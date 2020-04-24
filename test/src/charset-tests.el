@@ -1,4 +1,4 @@
-;;; charset-tests.el --- Tests for charset.c
+;;; charset-tests.el --- Tests for charset.c -*- lexical-binding: t -*-
 
 ;; Copyright 2017-2020 Free Software Foundation, Inc.
 

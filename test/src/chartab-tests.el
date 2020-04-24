@@ -1,4 +1,4 @@
-;;; chartab-tests.el --- Tests for char-tab.c
+;;; chartab-tests.el --- Tests for char-tab.c -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
