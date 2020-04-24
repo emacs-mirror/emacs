@@ -1,4 +1,4 @@
-;;; url-auth-tests.el --- Test suite for url-auth.
+;;; url-auth-tests.el --- Test suite for url-auth.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 
