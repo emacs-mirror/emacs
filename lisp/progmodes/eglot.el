@@ -2231,7 +2231,7 @@ Respects `max-mini-window-height' (which see)."
   #'eglot-doc-too-large-for-echo-area
   "If non-nil, put \"hover\" documentation in separate `*eglot-help*' buffer.
 If nil, use whatever `eldoc-message-function' decides (usually
-the echo area).  If t, use `*eglot-help; unconditionally.  If a
+the echo area).  If t, use `*eglot-help*' unconditionally.  If a
 function, it is called with the docstring to display and should a
 boolean producing one of the two previous values."
   :type '(choice (const :tag "Never use `*eglot-help*'" nil)
