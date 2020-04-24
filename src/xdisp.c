@@ -30,8 +30,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Updating the display is triggered by the Lisp interpreter when it
    decides it's time to do it.  This is done either automatically for
    you as part of the interpreter's command loop or as the result of
-   calling Lisp functions like `sit-for'.  The C function `redisplay'
-   in xdisp.c is the only entry into the inner redisplay code.
+   calling Lisp functions like `sit-for'.  The C function
+   `redisplay_internal' in xdisp.c is the only entry into the inner
+   redisplay code.
 
    The following diagram shows how redisplay code is invoked.  As you
    can see, Lisp calls redisplay and vice versa.
@@ -89,7 +90,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    second glyph matrix is constructed, the so called `desired glyph
    matrix' or short `desired matrix'.  Current and desired matrix are
    then compared to find a cheap way to update the display, e.g. by
-   reusing part of the display by scrolling lines.
+   reusing part of the display by scrolling lines.  The actual update
+   of the display of each window by comparing the desired and the
+   current matrix is done by `update_window', which calls functions
+   which draw to the glass (those functions are specific to the type
+   of the window's frame: X, w32, NS, etc.).
+
+   Once the display of a window on the glass has been updated, its
+   desired matrix is used to update the corresponding rows of the
+   current matrix, and then the desired matrix is discarded.
 
    You will find a lot of redisplay optimizations when you start
    looking at the innards of redisplay.  The overall goal of all these
@@ -119,13 +128,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
     . try_window
 
-      This function performs the full redisplay of a single window
-      assuming that its fonts were not changed and that the cursor
-      will not end up in the scroll margins.  (Loading fonts requires
-      re-adjustment of dimensions of glyph matrices, which makes this
-      method impossible to use.)
+      This function performs the full, unoptimized, redisplay of a
+      single window assuming that its fonts were not changed and that
+      the cursor will not end up in the scroll margins.  (Loading
+      fonts requires re-adjustment of dimensions of glyph matrices,
+      which makes this method impossible to use.)
 
-   These optimizations are tried in sequence (some can be skipped if
+   The optimizations are tried in sequence (some can be skipped if
    it is known that they are not applicable).  If none of the
    optimizations were successful, redisplay calls redisplay_windows,
    which performs a full redisplay of all windows.
@@ -145,12 +154,36 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Desired matrices.
 
-   Desired matrices are always built per Emacs window.  The function
-   `display_line' is the central function to look at if you are
-   interested.  It constructs one row in a desired matrix given an
+   Desired matrices are always built per Emacs window.  It is
+   important to know that a desired matrix is in general "sparse": it
+   only has some of the glyph rows "enabled".  This is because
+   redisplay tries to optimize its work, and thus only generates
+   glyphs for rows that need to be updated on the screen.  Rows that
+   don't need to be updated are left "disabled", and their contents
+   should be ignored.
+
+   The function `display_line' is the central function to look at if
+   you are interested in how the rows of the desired matrix are
+   produced.  It constructs one row in a desired matrix given an
    iterator structure containing both a buffer position and a
    description of the environment in which the text is to be
    displayed.  But this is too early, read on.
+
+   Glyph rows.
+
+   A glyph row is an array of `struct glyph', where each glyph element
+   describes a "display element" to be shown on the screen.  More
+   accurately, a glyph row can have up to 3 different arrays of
+   glyphs: one each for every display margins, and one for the "text
+   area", where buffer text is displayed.  The text-area glyph array
+   is always present, whereas the arrays for the marginal areas are
+   present (non-empty) only if the corresponding display margin is
+   shown in the window.  If the glyph array for a marginal area is not
+   present its beginning and end coincide, i.e. such arrays are
+   actually empty (they contain no glyphs).  Frame glyph matrics, used
+   on text-mode terminals (see below) never have marginal areas, they
+   treat the entire frame-wide row of glyphs as a single large "text
+   area".
 
    Iteration over buffer and strings.
 
@@ -158,25 +191,25 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    on various settings of buffers and windows, on overlays and text
    properties, on display tables, on selective display.  The good news
    is that all this hairy stuff is hidden behind a small set of
-   interface functions taking an iterator structure (struct it)
+   interface functions taking an iterator structure (`struct it')
    argument.
 
    Iteration over things to be displayed is then simple.  It is
-   started by initializing an iterator with a call to init_iterator,
+   started by initializing an iterator with a call to `init_iterator',
    passing it the buffer position where to start iteration.  For
-   iteration over strings, pass -1 as the position to init_iterator,
-   and call reseat_to_string when the string is ready, to initialize
+   iteration over strings, pass -1 as the position to `init_iterator',
+   and call `reseat_to_string' when the string is ready, to initialize
    the iterator for that string.  Thereafter, calls to
-   get_next_display_element fill the iterator structure with relevant
-   information about the next thing to display.  Calls to
-   set_iterator_to_next move the iterator to the next thing.
+   `get_next_display_element' fill the iterator structure with
+   relevant information about the next thing to display.  Calls to
+   `set_iterator_to_next' move the iterator to the next thing.
 
    Besides this, an iterator also contains information about the
    display environment in which glyphs for display elements are to be
    produced.  It has fields for the width and height of the display,
    the information whether long lines are truncated or continued, a
-   current X and Y position, and lots of other stuff you can better
-   see in dispextern.h.
+   current X and Y position, the face currently in effect, and lots of
+   other stuff you can better see in dispextern.h.
 
    The "stop position".
 
@@ -184,57 +217,62 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    infrequently.  These include the face of the characters, whether
    text is invisible, the object (buffer or display or overlay string)
    being iterated, character composition info, etc.  For any given
-   buffer or string position, the sources of information that
-   affects the display can be determined by calling the appropriate
-   primitives, such as Fnext_single_property_change, but both these
+   buffer or string position, the sources of information that affects
+   the display can be determined by calling the appropriate
+   primitives, such as `Fnext_single_property_change', but both these
    calls and the processing of their return values is relatively
    expensive.  To optimize redisplay, the display engine checks these
-   sources of display information only when needed.  To that end, it
-   always maintains the position of the next place where it must stop
-   and re-examine all those potential sources.  This is called "stop
-   position" and is stored in the stop_charpos field of the iterator.
-   The stop position is updated by compute_stop_pos, which is called
-   whenever the iteration reaches the current stop position and
-   processes it.  Processing a stop position is done by handle_stop,
-   which invokes a series of handlers, one each for every potential
-   source of display-related information; see the it_props array for
-   those handlers.  For example, one handler is handle_face_prop,
-   which detects changes in face properties, and supplies the face ID
-   that the iterator will use for all the glyphs it generates up to
-   the next stop position; this face ID is the result of realizing the
-   face specified by the relevant text properties at this position.
-   Each handler called by handle_stop processes the sources of display
+   sources of display information only when needed, not for every
+   character.  To that end, it always maintains the position of the
+   next place where it must stop and re-examine all those potential
+   sources.  This is called "the stop position" and is stored in the
+   `stop_charpos' field of the iterator.  The stop position is updated
+   by `compute_stop_pos', which is called whenever the iteration
+   reaches the current stop position and processes it.  Processing a
+   stop position is done by `handle_stop', which invokes a series of
+   handlers, one each for every potential source of display-related
+   information; see the `it_props' array for those handlers.  For
+   example, one handler is `handle_face_prop', which detects changes
+   in face properties, and supplies the face ID that the iterator will
+   use for all the glyphs it generates up to the next stop position;
+   this face ID is the result of "realizing" the face specified by the
+   relevant text properties at this position (see xfaces.c).  Each
+   handler called by `handle_stop' processes the sources of display
    information for which it is "responsible", and returns a value
-   which tells handle_stop what to do next.
+   which tells `handle_stop' what to do next.
 
-   Once handle_stop returns, the information it stores in the iterator
-   fields will not be refreshed until the iteration reaches the next
-   stop position, which is computed by compute_stop_pos called at the
-   end of handle_stop.  compute_stop_pos examines the buffer's or
-   string's interval tree to determine where the text properties
-   change, finds the next position where overlays and character
-   composition can change, and stores in stop_charpos the closest
-   position where any of these factors should be reconsidered.
+   Once `handle_stop' returns, the information it stores in the
+   iterator fields will not be refreshed until the iteration reaches
+   the next stop position, which is computed by `compute_stop_pos'
+   called at the end of `handle_stop'.  `compute_stop_pos' examines
+   the buffer's or string's interval tree to determine where the text
+   properties change, finds the next position where overlays and
+   character composition can change, and stores in `stop_charpos' the
+   closest position where any of these factors should be reconsidered.
+
+   Handling of the stop position is done as part of the code in
+   `get_next_display_element'.
 
    Producing glyphs.
 
    Glyphs in a desired matrix are normally constructed in a loop
-   calling get_next_display_element and then PRODUCE_GLYPHS.  The call
-   to PRODUCE_GLYPHS will fill the iterator structure with pixel
-   information about the element being displayed and at the same time
-   produce glyphs for it.  If the display element fits on the line
-   being displayed, set_iterator_to_next is called next, otherwise the
-   glyphs produced are discarded.  The function display_line is the
-   workhorse of filling glyph rows in the desired matrix with glyphs.
-   In addition to producing glyphs, it also handles line truncation
-   and continuation, word wrap, and cursor positioning (for the
-   latter, see also set_cursor_from_row).
+   calling `get_next_display_element' and then `PRODUCE_GLYPHS'.  The
+   call to `PRODUCE_GLYPHS' will fill the iterator structure with
+   pixel information about the element being displayed and at the same
+   time will produce glyphs for it.  If the display element fits on
+   the line being displayed, `set_iterator_to_next' is called next,
+   otherwise the glyphs produced are discarded, and `display_line'
+   marks this glyph row as a "continued line".  The function
+   `display_line' is the workhorse of filling glyph rows in the
+   desired matrix with glyphs.  In addition to producing glyphs, it
+   also handles line truncation and continuation, word wrap, and
+   cursor positioning (for the latter, see `set_cursor_from_row').
 
    Frame matrices.
 
    That just couldn't be all, could it?  What about terminal types not
    supporting operations on sub-windows of the screen (a.k.a. "TTY" or
-   "text-mode terminal")?  To update the display on such a terminal,
+   "text-mode terminals")?  To update the display on such a terminal,
    window-based glyph matrices are not well suited.  To be able to
    reuse part of the display (scrolling lines up and down), we must
    instead have a view of the whole screen.  This is what `frame
@@ -252,19 +290,62 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    using the frame matrices, which allows frame-global optimization of
    what is actually written to the glass.
 
-   To be honest, there is a little bit more done, but not much more.
-   If you plan to extend that code, take a look at dispnew.c.  The
-   function build_frame_matrix is a good starting point.
+   Frame matrices don't have marginal areas, only a text area.  That
+   is, the entire row of glyphs that spans the width of a text-mode
+   frame is treated as a single large "text area" for the purposes of
+   manipulating and updating a frame glyph matrix.
+
+   To be honest, there is a little bit more done for frame matrices,
+   but not much more.  If you plan to extend that code, take a look at
+   dispnew.c.  The function build_frame_matrix is a good starting
+   point.
+
+   Simulating display.
+
+   Some of Emacs commands and functions need to take display layout
+   into consideration.  For example, C-n moves to the next screen
+   line, but to implement that, Emacs needs to find the buffer
+   position which is directly below the cursor position on display.
+   This is not trivial when buffer display includes variable-size
+   elements such as different fonts, tall images, etc.
+
+   To solve this problem, the display engine implements several
+   functions that can move through buffer text in the same manner as
+   `display_line' and `display_string' do, but without producing any
+   glyphs for the glyph matrices.  The workhorse of this is
+   `move_it_in_display_line_to'.  Its code and logic are very similar
+   to `display_line', but it differs in two important aspects: it
+   doesn't produce glyphs for any glyph matrix, and it returns a
+   status telling the caller how it ended the iteration: whether it
+   reached the required position, hit the end of line, arrived at the
+   window edge without exhausting the buffer's line, etc.  Since the
+   glyphs are not produced, the layout information available to the
+   callers of this function is what is recorded in `struct it' by the
+   iteration process.
+
+   Several higher-level functions call `move_it_in_display_line_to' to
+   perform more complex tasks: `move_it_by_lines' can move N lines up
+   or down from a given buffer position and `move_it_to' can move to a
+   given buffer position or to a given X or Y pixel coordinate.
+
+   These functions are called by the display engine itself as well,
+   when it needs to make layout decisions before producing the glyphs.
+   For example, one of the first things to decide when redisplaying a
+   window is where to put the `window-start' position; if the window
+   is to be recentered (the default), Emacs makes that decision by
+   starting from the position of point, then moving up the number of
+   lines corresponding to half the window height using
+   `move_it_by_lines'.
 
    Bidirectional display.
 
    Bidirectional display adds quite some hair to this already complex
    design.  The good news are that a large portion of that hairy stuff
    is hidden in bidi.c behind only 3 interfaces.  bidi.c implements a
-   reordering engine which is called by set_iterator_to_next and
+   reordering engine which is called by `set_iterator_to_next' and
    returns the next character to display in the visual order.  See
    commentary on bidi.c for more details.  As far as redisplay is
-   concerned, the effect of calling bidi_move_to_visually_next, the
+   concerned, the effect of calling `bidi_move_to_visually_next', the
    main interface of the reordering engine, is that the iterator gets
    magically placed on the buffer or string position that is to be
    displayed next in the visual order.  In other words, a linear
@@ -279,27 +360,27 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    monotonously changing with vertical positions.  Also, accounting
    for face changes, overlays, etc. becomes more complex because
    non-linear iteration could potentially skip many positions with
-   changes, and then cross them again on the way back (see
-   handle_stop_backwards)...
+   such changes, and then cross them again on the way back (see
+   `handle_stop_backwards')...
 
    One other prominent effect of bidirectional display is that some
    paragraphs of text need to be displayed starting at the right
    margin of the window---the so-called right-to-left, or R2L
    paragraphs.  R2L paragraphs are displayed with R2L glyph rows,
-   which have their reversed_p flag set.  The bidi reordering engine
+   which have their `reversed_p' flag set.  The bidi reordering engine
    produces characters in such rows starting from the character which
-   should be the rightmost on display.  PRODUCE_GLYPHS then reverses
-   the order, when it fills up the glyph row whose reversed_p flag is
-   set, by prepending each new glyph to what is already there, instead
-   of appending it.  When the glyph row is complete, the function
-   extend_face_to_end_of_line fills the empty space to the left of the
-   leftmost character with special glyphs, which will display as,
-   well, empty.  On text terminals, these special glyphs are simply
-   blank characters.  On graphics terminals, there's a single stretch
-   glyph of a suitably computed width.  Both the blanks and the
-   stretch glyph are given the face of the background of the line.
-   This way, the terminal-specific back-end can still draw the glyphs
-   left to right, even for R2L lines.
+   should be the rightmost on display.  `PRODUCE_GLYPHS' then reverses
+   the order, when it fills up the glyph row whose `reversed_p' flag
+   is set, by prepending each new glyph to what is already there,
+   instead of appending it.  When the glyph row is complete, the
+   function `extend_face_to_end_of_line' fills the empty space to the
+   left of the leftmost character with special glyphs, which will
+   display as, well, empty.  On text terminals, these special glyphs
+   are simply blank characters.  On graphics terminals, there's a
+   single stretch glyph of a suitably computed width.  Both the blanks
+   and the stretch glyph are given the face of the background of the
+   line.  This way, the terminal-specific back-end can still draw the
+   glyphs left to right, even for R2L lines.
 
    Bidirectional display and character compositions.
 
@@ -310,23 +391,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Emacs display supports this by providing "character compositions",
    most of which is implemented in composite.c.  During the buffer
-   scan that delivers characters to PRODUCE_GLYPHS, if the next
+   scan that delivers characters to `PRODUCE_GLYPHS', if the next
    character to be delivered is a composed character, the iteration
-   calls composition_reseat_it and next_element_from_composition.  If
-   they succeed to compose the character with one or more of the
+   calls `composition_reseat_it' and `next_element_from_composition'.
+   If they succeed to compose the character with one or more of the
    following characters, the whole sequence of characters that were
    composed is recorded in the `struct composition_it' object that is
    part of the buffer iterator.  The composed sequence could produce
    one or more font glyphs (called "grapheme clusters") on the screen.
-   Each of these grapheme clusters is then delivered to PRODUCE_GLYPHS
-   in the direction corresponding to the current bidi scan direction
-   (recorded in the scan_dir member of the `struct bidi_it' object
-   that is part of the iterator).  In particular, if the bidi iterator
-   currently scans the buffer backwards, the grapheme clusters are
-   delivered back to front.  This reorders the grapheme clusters as
-   appropriate for the current bidi context.  Note that this means
-   that the grapheme clusters are always stored in the LGSTRING object
-   (see composite.c) in the logical order.
+   Each of these grapheme clusters is then delivered to
+   `PRODUCE_GLYPHS' in the direction corresponding to the current bidi
+   scan direction (recorded in the `scan_dir' member of the `struct
+   bidi_it' object that is part of the iterator).  In particular, if
+   the bidi iterator currently scans the buffer backwards, the
+   grapheme clusters are delivered back to front.  This reorders the
+   grapheme clusters as appropriate for the current bidi context.
+   Note that this means that the grapheme clusters are always stored
+   in the `LGSTRING' object (see composite.c) in the logical order.
 
    Moving an iterator in bidirectional text
    without producing glyphs.
@@ -337,18 +418,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    As far as the iterator is concerned, the geometry of such rows is
    still left to right, i.e. the iterator "thinks" the first character
    is at the leftmost pixel position.  The iterator does not know that
-   PRODUCE_GLYPHS reverses the order of the glyphs that the iterator
-   delivers.  This is important when functions from the move_it_*
+   `PRODUCE_GLYPHS' reverses the order of the glyphs that the iterator
+   delivers.  This is important when functions from the `move_it_*'
    family are used to get to certain screen position or to match
    screen coordinates with buffer coordinates: these functions use the
    iterator geometry, which is left to right even in R2L paragraphs.
-   This works well with most callers of move_it_*, because they need
+   This works well with most callers of `move_it_*', because they need
    to get to a specific column, and columns are still numbered in the
    reading order, i.e. the rightmost character in a R2L paragraph is
    still column zero.  But some callers do not get well with this; a
    notable example is mouse clicks that need to find the character
    that corresponds to certain pixel coordinates.  See
-   buffer_posn_from_coords in dispnew.c for how this is handled.  */
+   `buffer_posn_from_coords' in dispnew.c for how this is handled.  */
 
 #include <config.h>
 #include <stdlib.h>
