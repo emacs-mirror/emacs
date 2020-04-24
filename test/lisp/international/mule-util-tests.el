@@ -1,4 +1,4 @@
-;;; mule-util --- tests for international/mule-util.el
+;;; mule-util --- tests for international/mule-util.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 

@@ -1,3 +1,5 @@
+;;; ccl-tests.el --- unit tests for ccl.el  -*- lexical-binding:t -*-
+
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
