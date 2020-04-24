@@ -1452,11 +1452,6 @@ Redefine the corresponding command."
     (error "%s" "Unbalanced Z' in keyboard macro")))
 
 
-;; (defun calc-kbd-report (msg)
-;;   (interactive "sMessage: ")
-;;   (calc-wrapper
-;;    (math-working msg (calc-top-n 1))))
-
 (defun calc-kbd-query ()
   (interactive)
   (let ((defining-kbd-macro nil)
