@@ -1,4 +1,4 @@
-;;; puny-tests.el --- tests for net/puny.el  -*- coding: utf-8; -*-
+;;; puny-tests.el --- tests for net/puny.el  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; gnutls-tests.el --- Test suite for gnutls.el
+;;; gnutls-tests.el --- Test suite for gnutls.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
