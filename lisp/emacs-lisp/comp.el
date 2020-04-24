@@ -2211,7 +2211,7 @@ display a message."
                                           (zerop (process-exit-status process)))
                                  (native-elisp-load
                                   (comp-output-filename source-file1)
-                                  load1))
+                                  (eq load1 'late)))
                                (comp-run-async-workers)))))
               (push process comp-async-processes))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
