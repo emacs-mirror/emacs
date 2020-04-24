@@ -2252,11 +2252,13 @@ potentially rename EGLOT's help buffer."
           (and eglot-put-doc-in-help-buffer
                (funcall eglot-put-doc-in-help-buffer string)))
       (with-current-buffer (eglot--help-buffer)
-        (rename-buffer (format "*eglot-help for %s*" hint))
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (insert string)
-          (goto-char (point-min))
+        (let ((inhibit-read-only t)
+              (name (format "*eglot-help for %s*" hint)))
+          (unless (string= name (buffer-name))
+            (rename-buffer (format "*eglot-help for %s*" hint))
+            (erase-buffer)
+            (insert string)
+            (goto-char (point-min)))
           (if eglot-auto-display-help-buffer
               (display-buffer (current-buffer))
             (unless (get-buffer-window (current-buffer))
