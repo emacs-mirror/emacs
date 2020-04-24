@@ -500,6 +500,9 @@ define pgx
   # IMAGE_GLYPH
   if ($g.type == 3)
     printf "IMAGE[%d]", $g.u.img_id
+    if ($g.slice.img.x || $g.slice.img.y || $g.slice.img.width || $g.slice.img.height)
+      printf " slice=%d,%d,%d,%d" ,$g.slice.img.x, $g.slice.img.y, $g.slice.img.width, $g.slice.img.height
+    end
   end
   # STRETCH_GLYPH
   if ($g.type == 4)
@@ -550,9 +553,6 @@ define pgx
   end
   if ($g.right_box_line_p)
     printf " ]"
-  end
-  if ($g.slice.img.x || $g.slice.img.y || $g.slice.img.width || $g.slice.img.height)
-    printf " slice=%d,%d,%d,%d" ,$g.slice.img.x, $g.slice.img.y, $g.slice.img.width, $g.slice.img.height
   end
   printf "\n"
 end

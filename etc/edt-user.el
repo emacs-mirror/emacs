@@ -1,4 +1,4 @@
-;;; edt-user.el --- Sample user customizations for Emacs EDT emulation
+;;; edt-user.el --- Sample user customizations for Emacs EDT emulation -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1986, 1992-1993, 2000-2020 Free Software Foundation,
 ;; Inc.

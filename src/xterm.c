@@ -2986,10 +2986,26 @@ x_draw_glyph_string_box (struct glyph_string *s)
 	    ? WINDOW_RIGHT_EDGE_X (s->w)
 	    : window_box_right (s->w, s->area));
 
-  /* The glyph that may have a right box line.  */
-  last_glyph = (s->cmp || s->img
-		? s->first_glyph
-		: s->first_glyph + s->nchars - 1);
+  /* The glyph that may have a right box line.  For static
+     compositions and images, the right-box flag is on the first glyph
+     of the glyph string; for other types it's on the last glyph.  */
+  if (s->cmp || s->img)
+    last_glyph = s->first_glyph;
+  else if (s->first_glyph->type == COMPOSITE_GLYPH
+	   && s->first_glyph->u.cmp.automatic)
+    {
+      /* For automatic compositions, we need to look up the last glyph
+	 in the composition.  */
+        struct glyph *end = s->row->glyphs[s->area] + s->row->used[s->area];
+	struct glyph *g = s->first_glyph;
+	for (last_glyph = g++;
+	     g < end && g->u.cmp.automatic && g->u.cmp.id == s->cmp_id
+	       && g->slice.cmp.to < s->cmp_to;
+	     last_glyph = g++)
+	  ;
+    }
+  else
+    last_glyph = s->first_glyph + s->nchars - 1;
 
   vwidth = eabs (s->face->box_vertical_line_width);
   hwidth = eabs (s->face->box_horizontal_line_width);
