@@ -92,10 +92,37 @@
   (buffer-disable-undo)
   (setq-local revert-buffer-function #'list-timers)
   (setq tabulated-list-format
-        '[("Idle" 4)
-          ("     Next" 10)
-          ("  Repeat" 8)
-          ("Function" 0)]))
+        '[("Idle" 6 timer-list--idle-predicate)
+          ("      Next" 12 timer-list--next-predicate)
+          ("  Repeat" 11 timer-list--repeat-predicate)
+          ("Function" 10 timer-list--function-predicate)]))
+
+(defun timer-list--idle-predicate (A B)
+  "Predicate to sort Timer-List by the Idle column."
+  (let ((iA (aref (cadr A) 0))
+        (iB (aref (cadr B) 0)))
+    (cond ((string= iA iB)
+           (timer-list--next-predicate A B))
+          ((string= iA "   *") nil)
+          (t t))))
+
+(defun timer-list--next-predicate (A B)
+  "Predicate to sort Timer-List by the Next column."
+  (let ((nA (string-to-number (aref (cadr A) 1)))
+        (nB (string-to-number (aref (cadr B) 1))))
+    (< nA nB)))
+
+(defun timer-list--repeat-predicate (A B)
+  "Predicate to sort Timer-List by the Repeat column."
+  (let ((rA (aref (cadr A) 2))
+        (rB (aref (cadr B) 2)))
+    (string< rA rB)))
+
+(defun timer-list--function-predicate (A B)
+  "Predicate to sort Timer-List by the Next column."
+  (let ((fA (aref (cadr A) 3))
+        (fB (aref (cadr B) 3)))
+    (string< fA fB)))
 
 (defun timer-list-cancel ()
   "Cancel the timer on the line under point."
