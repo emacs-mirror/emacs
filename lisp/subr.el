@@ -233,6 +233,11 @@ value of last one, or nil if there are none.
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
+(defsubst subr-primitive-p (object)
+  "Return t if OBJECT is a built-in primitive function."
+  (and (subrp object)
+       (not (subr-native-elisp-p object))))
+
 (defsubst xor (cond1 cond2)
   "Return the boolean exclusive-or of COND1 and COND2.
 If only one of the arguments is non-nil, return it; otherwise
