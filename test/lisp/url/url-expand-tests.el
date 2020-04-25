@@ -1,4 +1,4 @@
-;;; url-expand-tests.el --- Test suite for relative URI/URL resolution.
+;;; url-expand-tests.el --- Test suite for relative URI/URL resolution.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 

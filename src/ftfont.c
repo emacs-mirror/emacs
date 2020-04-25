@@ -346,18 +346,15 @@ struct ftfont_cache_data
 static Lisp_Object
 ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
 {
-  Lisp_Object cache, val, entity;
+  Lisp_Object cache, val;
   struct ftfont_cache_data *cache_data;
 
   if (FONT_ENTITY_P (key))
     {
-      entity = key;
-      val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+      val = assq_no_quit (QCfont_entity, AREF (key, FONT_EXTRA_INDEX));
       eassert (CONSP (val));
       key = XCDR (val);
     }
-  else
-    entity = Qnil;
 
   if (NILP (ft_face_cache))
     cache = Qnil;

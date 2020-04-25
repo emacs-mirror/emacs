@@ -1,4 +1,4 @@
-;;; newsticker-testsuite.el --- Test suite for newsticker.
+;;; newsticker-tests.el --- Test suite for newsticker.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; mule-util --- tests for international/mule-util.el
+;;; mule-util-tests.el --- tests for international/mule-util.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
 
@@ -81,4 +81,4 @@
 (dotimes (i (length mule-util-test-truncate-data))
   (mule-util-test-truncate-create i))
 
-;;; mule-util.el ends here
+;;; mule-util-tests.el ends here

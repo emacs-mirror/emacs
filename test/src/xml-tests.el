@@ -1,4 +1,4 @@
-;;; libxml-parse-tests.el --- Test suite for libxml parsing.
+;;; xml-tests.el --- Test suite for libxml parsing. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 

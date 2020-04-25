@@ -1,4 +1,4 @@
-;;; undo-tests.el --- Tests of primitive-undo
+;;; undo-tests.el --- Tests of primitive-undo -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 

@@ -1833,9 +1833,6 @@ contains a circular object."
   ;; This means nothing matched, so it is OK.
   nil) ;; So, return nothing
 
-
-(def-edebug-spec &key edebug-match-&key)
-
 (defun edebug-match-&key (cursor specs)
   ;; Following specs must look like (<name> <spec>) ...
   ;; where <name> is the name of a keyword, and spec is its spec.
@@ -2115,10 +2112,10 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 
 (def-edebug-spec edebug-spec
   (&or
+   edebug-spec-list
    (vector &rest edebug-spec)		; matches a vector
    ("vector" &rest edebug-spec)		; matches a vector spec
    ("quote" symbolp)
-   edebug-spec-list
    stringp
    [edebug-lambda-list-keywordp &rest edebug-spec]
    [keywordp gate edebug-spec]

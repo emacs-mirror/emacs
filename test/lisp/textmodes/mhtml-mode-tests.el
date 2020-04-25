@@ -1,4 +1,4 @@
-;;; mhtml-mode-tests.el --- Tests for mhtml-mode
+;;; mhtml-mode-tests.el --- Tests for mhtml-mode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 

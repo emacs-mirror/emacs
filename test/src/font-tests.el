@@ -1,4 +1,4 @@
-;;; font-tests.el --- Test suite for font-related functions.
+;;; font-tests.el --- Test suite for font-related functions. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; doc-tests.el --- Tests for doc.c
+;;; doc-tests.el --- Tests for doc.c -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

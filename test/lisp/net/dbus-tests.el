@@ -1,4 +1,4 @@
-;;; dbus-tests.el --- Tests of D-Bus integration into Emacs
+;;; dbus-tests.el --- Tests of D-Bus integration into Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
