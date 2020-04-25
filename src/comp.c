@@ -49,7 +49,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 #define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
 
-#define TEXT_OPTIM_QLY "text_optim_qly"
+#define TEXT_OPTIM_QLY_SYM "text_optim_qly"
 #define TEXT_FDOC_SYM "text_data_fdoc"
 
 
@@ -2099,7 +2099,7 @@ emit_ctxt_code (void)
 	     Fsymbol_value (Qcomp_speed)),
       Fcons (Qcomp_debug,
 	     Fsymbol_value (Qcomp_debug)) };
-  emit_static_object (TEXT_OPTIM_QLY, Flist (2, opt_qly));
+  emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (2, opt_qly));
 
   emit_static_object (TEXT_FDOC_SYM,
 		      CALL1I (comp-ctxt-doc-index-h, Vcomp_ctxt));
@@ -3622,7 +3622,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* Imported data.  */
       if (!loading_dump)
 	{
-	  comp_u->optimize_qualities = load_static_obj (comp_u, TEXT_OPTIM_QLY);
+	  comp_u->optimize_qualities =
+	    load_static_obj (comp_u, TEXT_OPTIM_QLY_SYM);
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	  comp_u->data_impure_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
