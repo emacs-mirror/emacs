@@ -3016,7 +3016,7 @@ declare_function (Lisp_Object func)
   gcc_jit_function *gcc_func;
   char *c_name = SSDATA (CALL1I (comp-func-c-name, func));
   Lisp_Object args = CALL1I (comp-func-args, func);
-  bool nargs = (CALL1I (comp-nargs-p, args));
+  bool nargs = !NILP (CALL1I (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
 
   if (!nargs)
