@@ -6308,14 +6308,16 @@ native_image_p (Lisp_Object object)
 static bool
 native_image_load (struct frame *f, struct image *img)
 {
+  Lisp_Object image_file = image_spec_value (img->spec, QCfile, NULL);
+
+  if (STRINGP (image_file))
+    image_file = image_find_image_file (image_file);
 
 # ifdef HAVE_NTGUI
-  return w32_load_image (f, img,
-                         image_spec_value (img->spec, QCfile, NULL),
+  return w32_load_image (f, img, image_file,
                          image_spec_value (img->spec, QCdata, NULL));
 # elif defined HAVE_NS
-  return ns_load_image (f, img,
-                        image_spec_value (img->spec, QCfile, NULL),
+  return ns_load_image (f, img, image_file,
                         image_spec_value (img->spec, QCdata, NULL));
 # else
   return 0;

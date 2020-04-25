@@ -414,7 +414,6 @@ w32_load_image (struct frame *f, struct image *img,
      and succeeded.  We have a valid token and GDI+ is active.  */
   if (STRINGP (spec_file))
     {
-      spec_file = ENCODE_FILE (spec_file);
       const char *fn = map_w32_filename (SSDATA (spec_file), NULL);
       wchar_t filename_w[MAX_PATH];
       filename_to_utf16 (fn, filename_w);
