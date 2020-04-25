@@ -674,7 +674,6 @@
   (define-key calc-mode-map "Z/" 'calc-kbd-break)
   (define-key calc-mode-map "Z`" 'calc-kbd-push)
   (define-key calc-mode-map "Z'" 'calc-kbd-pop)
-  (define-key calc-mode-map "Z=" 'calc-kbd-report)
   (define-key calc-mode-map "Z#" 'calc-kbd-query)
 
   (calc-init-prefixes)
@@ -845,8 +844,8 @@ math-bernoulli-number math-gammap1-raw)
  ("calc-incom" calc-digit-dots)
 
  ("calc-keypd" calc-do-keypad
-calc-keypad-x-left-click calc-keypad-x-middle-click
-calc-keypad-x-right-click)
+calc-keypad-left-click calc-keypad-middle-click
+calc-keypad-right-click)
 
  ("calc-lang" calc-set-language
 math-read-big-balance math-read-big-rec)
@@ -1003,7 +1002,7 @@ calc-find-root calc-poly-interp)
 calc-floor calc-idiv calc-increment calc-mant-part calc-max calc-min
 calc-round calc-scale-float calc-sign calc-trunc calc-xpon-part)
 
- ("calc-bin" calc-and calc-binary-radix calc-clip calc-twos-complement-mode
+ ("calc-bin" calc-and calc-binary-radix calc-clip
 calc-decimal-radix calc-diff calc-hex-radix calc-leading-zeros
 calc-lshift-arith calc-lshift-binary calc-not calc-octal-radix calc-or calc-radix
 calc-rotate-binary calc-rshift-arith calc-rshift-binary calc-word-size
@@ -1116,7 +1115,7 @@ calc-equal-to calc-get-user-defn calc-greater-equal calc-greater-than
 calc-in-set calc-kbd-break calc-kbd-else calc-kbd-else-if
 calc-kbd-end-for calc-kbd-end-if calc-kbd-end-loop calc-kbd-end-repeat
 calc-kbd-for calc-kbd-if calc-kbd-loop calc-kbd-pop calc-kbd-push
-calc-kbd-query calc-kbd-repeat calc-kbd-report calc-less-equal
+calc-kbd-query calc-kbd-repeat calc-less-equal
 calc-less-than calc-logical-and calc-logical-if calc-logical-not
 calc-logical-or calc-not-equal-to calc-pass-errors calc-remove-equal
 calc-timing calc-user-define calc-user-define-composition

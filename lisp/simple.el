@@ -4846,7 +4846,7 @@ In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
 
-If you want to append the killed line to the last killed text,
+If you want to append the killed region to the last killed text,
 use \\[append-next-kill] before \\[kill-ring-save].
 
 The copied text is filtered by `filter-buffer-substring' before it is

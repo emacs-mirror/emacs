@@ -46,7 +46,7 @@ you store in it, type and all.  (Actually, a small number of Emacs
 Lisp variables can only take on values of a certain type.
 @xref{Variables with Restricted Values}.)
 
-  Some Lisp objects are @dfn{constant}: their values never change.
+  Some Lisp objects are @dfn{constant}: their values should never change.
 Others are @dfn{mutable}: their values can be changed via destructive
 operations that involve side effects.
 
@@ -2388,21 +2388,27 @@ that for two strings to be equal, they have the same text properties.
 @cindex constants
 @cindex mutable objects
 
-  Some Lisp objects are constant: their values never change.
+  Some Lisp objects are constant: their values should never change
+during a single execution of Emacs running well-behaved Lisp code.
 For example, you can create a new integer by calculating one, but you
 cannot modify the value of an existing integer.
 
-  Other Lisp objects are mutable: their values can be changed
+  Other Lisp objects are mutable: it is safe to change their values
 via destructive operations involving side effects.  For example, an
 existing marker can be changed by moving the marker to point to
 somewhere else.
 
-  Although numbers are always constants and markers are always
+  Although all numbers are constants and all markers are
 mutable, some types contain both constant and mutable members.  These
 types include conses, vectors, strings, and symbols.  For example, the string
 literal @code{"aaa"} yields a constant string, whereas the function
 call @code{(make-string 3 ?a)} yields a mutable string that can be
 changed via later calls to @code{aset}.
+
+  A mutable object can become constant if it is part of an expression
+that is evaluated, because a program should not modify an object
+that is being evaluated.  The reverse does not occur: constant objects
+should stay constant.
 
   Trying to modify a constant variable signals an error
 (@pxref{Constant Variables}).
@@ -2411,9 +2417,10 @@ resulting behavior is undefined: the Lisp interpreter might or might
 not detect the error, and if it does not detect the error the
 interpreter can behave unpredictably thereafter.  Another way to put
 this is that although mutable objects are safe to change and constant
-symbols reliably reject attempts to change them, other constants are
-not safely mutable: if you try to change one your program might
-behave as you expect but it might crash or worse.  This problem occurs
+variables reliably prevent attempts to change them, other constants
+are not safely mutable: if a misbehaving program tries to change such a
+constant then the constant's value might actually change, or the
+program might crash or worse.  This problem occurs
 with types that have both constant and mutable members, and that have
 mutators like @code{setcar} and @code{aset} that are valid on mutable
 objects but hazardous on constants.

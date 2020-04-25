@@ -59,16 +59,16 @@
 ;; will be remembered and applied to all pages of the current
 ;; document.  This enables you to cut away the margins of a document
 ;; to save some space.  To select a slice you can use
-;; `doc-view-set-slice' (bound to `s s') which will query you for the
+;; `doc-view-set-slice' (bound to `c s') which will query you for the
 ;; coordinates of the slice's top-left corner and its width and
 ;; height.  A much more convenient way to do the same is offered by
-;; the command `doc-view-set-slice-using-mouse' (bound to `s m').
+;; the command `doc-view-set-slice-using-mouse' (bound to `c m').
 ;; After invocation you only have to press mouse-1 at the top-left
 ;; corner and drag it to the bottom-right corner of the desired slice.
 ;; Even more accurate and convenient is to use
-;; `doc-view-set-slice-from-bounding-box' (bound to `s b') which uses
+;; `doc-view-set-slice-from-bounding-box' (bound to `c b') which uses
 ;; the BoundingBox information of the current page to set an optimal
-;; slice.  To reset the slice use `doc-view-reset-slice' (bound to `s
+;; slice.  To reset the slice use `doc-view-reset-slice' (bound to `c
 ;; r').
 ;;
 ;; You can also search within the document.  The command `doc-view-search'
@@ -155,9 +155,19 @@
 (defcustom doc-view-ghostscript-program
   (cond
    ((memq system-type '(windows-nt ms-dos))
-    "gswin32c")
-   (t
-    "gs"))
+    (cond
+     ;; Windows Ghostscript
+     ((executable-find "gswin64c") "gswin64c")
+     ((executable-find "gswin32c") "gswin32c")
+     ;; The GS wrapper coming with TeX Live
+     ((executable-find "rungs") "rungs")
+     ;; The MikTeX builtin GS Check if mgs is functional for external
+     ;; non-MikTeX apps.  Was available under:
+     ;; http://blog.miktex.org/post/2005/04/07/Starting-mgsexe-at-the-DOS-Prompt.aspx
+     ((and (executable-find "mgs")
+           (= 0 (shell-command "mgs -q -dNODISPLAY -c quit")))
+      "mgs")))
+   (t "gs"))
   "Program to convert PS and PDF files to PNG."
   :type 'file
   :version "27.1")
@@ -421,10 +431,10 @@ Typically \"page-%s.png\".")
     ;; Killing the buffer (and the process)
     (define-key map (kbd "K")         'doc-view-kill-proc)
     ;; Slicing the image
-    (define-key map (kbd "s s")       'doc-view-set-slice)
-    (define-key map (kbd "s m")       'doc-view-set-slice-using-mouse)
-    (define-key map (kbd "s b")       'doc-view-set-slice-from-bounding-box)
-    (define-key map (kbd "s r")       'doc-view-reset-slice)
+    (define-key map (kbd "c s")       'doc-view-set-slice)
+    (define-key map (kbd "c m")       'doc-view-set-slice-using-mouse)
+    (define-key map (kbd "c b")       'doc-view-set-slice-from-bounding-box)
+    (define-key map (kbd "c r")       'doc-view-reset-slice)
     ;; Searching
     (define-key map (kbd "C-s")       'doc-view-search)
     (define-key map (kbd "<find>")    'doc-view-search)

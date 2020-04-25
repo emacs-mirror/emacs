@@ -866,6 +866,11 @@ its functions.
 *** A new user option 'doc-view-pdftotext-program-args' has been added
 to allow controlling how the conversion to text is done.
 
++++
+*** The prefix key 's' was changed to 'c' for slicing commands
+to avoid conflicts with image-mode key 's'.  The new key 'c' still
+has good mnemonics of "cut", "clip", "crop".
+
 ** Ido
 
 ---
@@ -2720,8 +2725,8 @@ left to higher-level functions.
 +++
 *** Tab Bar mode
 The new command 'tab-bar-mode' enables the tab bar at the top of each
-frame, where you can use tabs to switch between named persistent
-window configurations.
+frame (including TTY frames), where you can use tabs to switch between
+named persistent window configurations.
 
 The 'C-x t' sequence is the new prefix key for tab-related commands:
 'C-x t 2' creates a new tab; 'C-x t 0' deletes the current tab;
@@ -2738,6 +2743,11 @@ when its value is "on", "yes" or "1".
 
 The user option 'tab-bar-position' specifies where to show the tab bar.
 
+Tab-related commands can be used even without the tab bar when
+'tab-bar-mode' is disabled by a nil value of the user option
+'tab-bar-show'.  Without the tab bar you can switch between tabs
+using completion on tab names, or using 'tab-switcher'.
+
 Read the new Info node "(emacs) Tab Bars" for full description
 of all related features.
 
@@ -2751,6 +2761,9 @@ the previous window-local tab is the same as typing 'C-x <LEFT>'
 a repeat count.  Clicking on the plus icon adds a new buffer to the
 window-local tab line of buffers.  Using the mouse wheel on the tab
 line scrolls tabs.
+
+Read the new Info node "(emacs) Tab Line" for full description
+of all related features.
 
 +++
 ** fileloop.el lets one setup multifile operations like search&replace.
@@ -3515,9 +3528,32 @@ functions.
 *** 'image-mode' now uses this library to automatically rotate images
 according to the orientation in the Exif data, if any.
 
++++
+*** The command 'image-rotate' now accepts a prefix argument.
+With a prefix argument, 'image-rotate' now rotates the image at point
+90 degrees counter-clockwise, instead of the default clockwise.
+
++++
 *** In 'image-mode' the image is resized automatically to fit in window.
-The image will resize upon first display and whenever the window's
-dimensions change.
+By default, the image will resize upon first display and whenever the
+window's dimensions change.  Two user options 'image-auto-resize' and
+'image-auto-resize-on-window-resize' control the resizing behavior
+(including the possibility to disable auto-resizing).  A new key
+prefix 's' contains the commands that can be used to fit the image to
+the window manually.
+
+---
+*** Some 'image-mode' variables are now buffer-local.
+The image parameters 'image-transform-rotation',
+'image-transform-scale' and 'image-transform-resize' are now declared
+buffer-local, so each buffer could have its own values for these
+parameters.
+
++++
+*** Three new 'image-mode' commands have been added: 'm', which marks
+the file in the dired buffer(s) for the directory the file is in; 'u',
+which unmarks the file; and 'w', which pushes the current buffer's file
+name to the kill ring.
 
 ---
 *** New library image-converter.
@@ -3537,26 +3573,6 @@ These now default to using 'image-mode'.
 'image-mode' started using ImageMagick by default for all images
 some years back.  It now respects 'imagemagick-types-inhibit' as a way
 to disable that.
-
----
-*** Some 'image-mode' variables are now buffer-local.
-The image parameters 'image-transform-rotation',
-'image-transform-scale' and 'image-transform-resize' are now declared
-buffer-local, so each buffer could have its own values for these
-parameters.
-
-+++
-*** Three new 'image-mode' commands have been added: 'm', which marks
-the file in the dired buffer(s) for the directory the file is in; 'u',
-which unmarks the file; and 'w', which pushes the current buffer's file
-name to the kill ring.
-
-+++
-*** The command 'image-rotate' now accepts a prefix argument.
-With a prefix argument, 'image-rotate' now rotates the image at point
-90 degrees counter-clockwise, instead of the default clockwise.
-
-*** 'image-mode' has a new key prefix 's' for transformation commands.
 
 ** Modules
 

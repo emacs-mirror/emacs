@@ -292,7 +292,9 @@ If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
 (defun trace-function-foreground (function &optional buffer context)
   "Trace calls to function FUNCTION.
 With a prefix argument, also prompt for the trace buffer (default
-`trace-buffer'), and a Lisp expression CONTEXT.
+`trace-buffer'), and a Lisp expression CONTEXT.  When called from
+Lisp, CONTEXT should be a function of no arguments which returns
+a value to insert into BUFFER during the trace.
 
 Tracing a function causes every call to that function to insert
 into BUFFER Lisp-style trace messages that display the function's

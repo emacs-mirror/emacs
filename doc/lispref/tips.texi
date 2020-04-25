@@ -8,6 +8,7 @@
 @cindex tips for writing Lisp
 @cindex standards of coding style
 @cindex coding standards
+@cindex best practices
 
   This chapter describes no additional features of Emacs Lisp.  Instead
 it gives advice on making effective use of the features described in the
