@@ -337,7 +337,10 @@ string is passed through `substitute-command-keys'.  */)
     fun = XCDR (fun);
 #ifdef HAVE_NATIVE_COMP
   if (!NILP (Fsubr_native_elisp_p (fun)))
-    doc = XSUBR (fun)->native_doc;
+    doc =
+      Fgethash (make_fixnum (XSUBR (fun)->doc),
+		XNATIVE_COMP_UNIT (Fsubr_native_comp_unit (fun))->data_fdoc_h,
+		Qnil);
   else
 #endif
   if (SUBRP (fun))

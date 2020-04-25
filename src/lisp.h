@@ -2098,10 +2098,7 @@ struct Lisp_Subr
       const char *intspec;
       Lisp_Object native_intspec;
     };
-    union {
-      EMACS_INT doc;
-      Lisp_Object native_doc;
-    };
+    EMACS_INT doc;
     Lisp_Object native_comp_u[NATIVE_COMP_FLAG];
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
@@ -3077,7 +3074,7 @@ CHECK_INTEGER (Lisp_Object x)
   static union Aligned_Lisp_Subr sname =                                \
      {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
        { .a ## maxargs = fnname },					\
-       minargs, maxargs, lname, {intspec}, {0}}};			\
+       minargs, maxargs, lname, {intspec}, 0}};				\
    Lisp_Object fnname
 
 /* defsubr (Sname);

@@ -216,6 +216,8 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
   (sym-to-c-name-h (make-hash-table :test #'eq) :type hash-table
                    :documentation "symbol-function -> c-name.
 This is only for optimizing intra CU calls at speed 3.")
+  (doc-index-h (make-hash-table :test #'eql) :type hash-table
+               :documentation "Documentation index -> documentation")
   (d-default (make-comp-data-container) :type comp-data-container
              :documentation "Standard data relocated in use by functions.")
   (d-impure (make-comp-data-container) :type comp-data-container
@@ -1214,7 +1216,12 @@ the annotation emission."
                                                         (comp-args-max args)
                                                       'many))
                           (make-comp-mvar :constant c-name)
-                          (make-comp-mvar :constant (comp-func-doc f))
+                          (make-comp-mvar
+                           :constant
+                           (let* ((h (comp-ctxt-doc-index-h comp-ctxt))
+                                  (i (hash-table-count h)))
+                             (puthash i (comp-func-doc f) h)
+                             i))
                           (make-comp-mvar :constant
                                           (comp-func-int-spec f))
                           ;; This is the compilation unit it-self passed as

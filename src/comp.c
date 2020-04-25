@@ -41,13 +41,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define DATA_RELOC_SYM "d_reloc"
 #define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
 #define DATA_RELOC_EPHEMERAL_SYM "d_reloc_eph"
+
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define COMP_UNIT_SYM "comp_unit"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 #define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
+
 #define TEXT_OPTIM_QLY "text_optim_qly"
+#define TEXT_FDOC_SYM "text_data_fdoc"
+
 
 #define SPEED XFIXNUM (Fsymbol_value (Qcomp_speed))
 #define COMP_DEBUG XFIXNUM (Fsymbol_value (Qcomp_debug))
@@ -2097,6 +2101,9 @@ emit_ctxt_code (void)
 	     Fsymbol_value (Qcomp_debug)) };
   emit_static_object (TEXT_OPTIM_QLY, Flist (2, opt_qly));
 
+  emit_static_object (TEXT_FDOC_SYM,
+		      CALL1I (comp-ctxt-doc-index-h, Vcomp_ctxt));
+
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
@@ -3619,6 +3626,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	  comp_u->data_impure_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
+	  comp_u->data_fdoc_h = load_static_obj (comp_u, TEXT_FDOC_SYM);
 
 	  if (!NILP (Vpurify_flag))
 	    /* Non impure can be copied into pure space.  */
@@ -3668,7 +3676,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
        doc: /* This gets called by top_level_run during load phase to register
 	       each exported subr.  */)
      (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-      Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
+      Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
       Lisp_Object comp_u)
 {
   dynlib_handle_ptr handle = XNATIVE_COMP_UNIT (comp_u)->handle;
@@ -3688,7 +3696,7 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = xstrdup (SSDATA (Fsymbol_name (name)));
   x->s.native_intspec = intspec;
-  x->s.native_doc = doc;
+  x->s.doc = XFIXNUM (doc_idx);
   x->s.native_comp_u[0] = comp_u;
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);

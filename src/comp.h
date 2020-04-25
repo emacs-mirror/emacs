@@ -37,6 +37,8 @@ struct Lisp_Native_Comp_Unit
   /* Original eln file loaded. */
   Lisp_Object file;
   Lisp_Object optimize_qualities;
+  /* Hash doc-idx -> function documentaiton. */
+  Lisp_Object data_fdoc_h;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
   /* Same but for data that cannot be moved to pure space.

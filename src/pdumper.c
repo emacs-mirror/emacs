@@ -2938,7 +2938,7 @@ static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
 #if CHECK_STRUCTS && ((defined (HAVE_NATIVE_COMP)			\
-		       && !defined (HASH_Lisp_Subr_D4F15794AF))		\
+		       && !defined (HASH_Lisp_Subr_99B6674034))		\
 		      || (!defined (HAVE_NATIVE_COMP)			\
 			  && !defined (HASH_Lisp_Subr_594AB72B54)))
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
@@ -2959,14 +2959,13 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
                              COLD_OP_NATIVE_SUBR,
 			     make_lisp_ptr ((void *) subr, Lisp_Vectorlike));
       dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
-      dump_field_lv (ctx, &out, subr, &subr->native_doc, WEIGHT_NORMAL);
     }
   else
     {
       dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
-      DUMP_FIELD_COPY (&out, subr, doc);
     }
+  DUMP_FIELD_COPY (&out, subr, doc);
   if (NATIVE_COMP_FLAG)
     dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
 
@@ -3023,7 +3022,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_A4A6E9984D
+#if CHECK_STRUCTS && !defined HASH_pvec_type_F5BA506141
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
