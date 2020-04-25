@@ -4158,8 +4158,8 @@ topmost and bottommost buffer text line; and @code{top-bottom}
 indicates where there is just one line of text in the buffer.
 
 @item @code{empty-line}
-Used to indicate empty lines when @code{indicate-empty-lines} is
-non-@code{nil}.
+Used to indicate empty lines after the buffer end when
+@code{indicate-empty-lines} is non-@code{nil}.
 
 @item @code{overlay-arrow}
 Used for overlay arrows (@pxref{Overlay Arrow}).
@@ -4301,6 +4301,7 @@ The former is used by overlay arrows.  The latter is unused.
 @itemx @code{bottom-left-angle}, @code{bottom-right-angle}
 @itemx @code{top-left-angle}, @code{top-right-angle}
 @itemx @code{left-bracket}, @code{right-bracket}
+@itemx @code{empty-line}
 Used to indicate buffer boundaries.
 
 @item @code{filled-rectangle}, @code{hollow-rectangle}
@@ -4308,7 +4309,7 @@ Used to indicate buffer boundaries.
 @itemx @code{vertical-bar}, @code{horizontal-bar}
 Used for different types of fringe cursors.
 
-@item @code{empty-line}, @code{exclamation-mark}, @code{question-mark}
+@item @code{exclamation-mark}, @code{question-mark}
 Not used by core Emacs features.
 @end table
 
