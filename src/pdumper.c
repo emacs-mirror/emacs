@@ -2937,10 +2937,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && ((defined (HAVE_NATIVE_COMP)			\
-		       && !defined (HASH_Lisp_Subr_99B6674034))		\
-		      || (!defined (HAVE_NATIVE_COMP)			\
-			  && !defined (HASH_Lisp_Subr_594AB72B54)))
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_99B6674034)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
