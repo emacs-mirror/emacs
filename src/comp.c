@@ -3627,7 +3627,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	  comp_u->data_impure_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
-	  comp_u->data_fdoc_h = load_static_obj (comp_u, TEXT_FDOC_SYM);
 
 	  if (!NILP (Vpurify_flag))
 	    /* Non impure can be copied into pure space.  */
@@ -3670,6 +3669,22 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     }
 
   return;
+}
+
+Lisp_Object
+native_function_doc (Lisp_Object function)
+{
+  struct Lisp_Native_Comp_Unit *cu =
+    XNATIVE_COMP_UNIT (Fsubr_native_comp_unit (function));
+
+  if (NILP (cu->data_fdoc_h))
+    cu->data_fdoc_h = load_static_obj (cu, TEXT_FDOC_SYM);
+
+  eassert (!NILP (cu->data_fdoc_h));
+
+  return Fgethash (make_fixnum (XSUBR (function)->doc),
+		   cu->data_fdoc_h,
+		   Qnil);
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,

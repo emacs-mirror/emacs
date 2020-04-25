@@ -2982,8 +2982,10 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 #ifdef HAVE_NATIVE_COMP
 static dump_off
 dump_native_comp_unit (struct dump_context *ctx,
-		       const struct Lisp_Native_Comp_Unit *comp_u)
+		       struct Lisp_Native_Comp_Unit *comp_u)
 {
+  /* Have function documentation always lazy loaded to optimize load-time.  */
+  comp_u->data_fdoc_h = Qnil;
   START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &comp_u->header);
   out->handle = NULL;
