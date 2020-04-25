@@ -2230,7 +2230,7 @@ display a message."
           (insert msg "\n")))
       ;; `comp-deferred-pending-h' should be empty at this stage.
       ;; Reset it anyway.
-      (setf comp-deferred-pending-h (make-hash-table :test #'eq))
+      (clrhash comp-deferred-pending-h)
       (message msg))))
 
 
