@@ -4013,8 +4013,8 @@ syms_of_data (void)
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
-#ifdef HAVE_NATIVE_COMP
   defsubr (&Ssubr_native_elisp_p);
+#ifdef HAVE_NATIVE_COMP
   defsubr (&Ssubr_native_comp_unit);
   defsubr (&Snative_comp_unit_file);
   defsubr (&Snative_comp_unit_set_file);
