@@ -2146,16 +2146,21 @@ Prepare every function for final compilation and drive the C back-end."
 (defvar comp-files-queue ()
   "List of Elisp files to be compiled.")
 
-(defvar comp-async-processes ()
-  "List of running async compilation processes.")
+(defvar comp-async-compilations (make-hash-table :test #'equal)
+  "Hash table file-name -> async compilation process.")
 
 (defun comp-async-runnings ()
   "Return the number of async compilations currently running.
 This function has the side effect of cleaning-up finished
-processes from `comp-async-processes'"
-  (setf comp-async-processes
-        (cl-delete-if-not #'process-live-p comp-async-processes))
-  (length comp-async-processes))
+processes from `comp-async-compilations'"
+  (cl-loop
+   for file-name in (cl-loop
+                     for file-name being each hash-key of comp-async-compilations
+                     for prc = (gethash file-name comp-async-compilations)
+                     unless (process-live-p prc)
+                       collect file-name)
+   do (remhash file-name comp-async-compilations))
+  (hash-table-count comp-async-compilations))
 
 (let (num-cpus)
   (defun comp-effective-async-max-jobs ()
@@ -2213,7 +2218,7 @@ display a message."
                                   (comp-output-filename source-file1)
                                   (eq load1 'late)))
                                (comp-run-async-workers)))))
-              (push process comp-async-processes))
+              (puthash source-file process comp-async-compilations))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
     ;; No files left to compile and all processes finished.
