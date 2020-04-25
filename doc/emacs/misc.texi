@@ -617,12 +617,12 @@ of pages to display.  A slice is a rectangle within the page area;
 once you specify a slice in DocView, it applies to whichever page you
 look at.
 
-  To specify the slice numerically, type @kbd{s s}
+  To specify the slice numerically, type @kbd{c s}
 (@code{doc-view-set-slice}); then enter the top left pixel position
 and the slice's width and height.
 @c ??? how does this work?
 
-  A more convenient graphical way to specify the slice is with @kbd{s
+  A more convenient graphical way to specify the slice is with @kbd{c
 m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
 select the slice.  Simply press and hold the left mouse button at the
 upper-left corner of the region you want to have in the slice, then
@@ -631,10 +631,10 @@ button.
 
   The most convenient way is to set the optimal slice by using
 BoundingBox information automatically determined from the document by
-typing @kbd{s b} (@code{doc-view-set-slice-from-bounding-box}).
+typing @kbd{c b} (@code{doc-view-set-slice-from-bounding-box}).
 
 @findex doc-view-reset-slice
-  To cancel the selected slice, type @kbd{s r}
+  To cancel the selected slice, type @kbd{c r}
 (@code{doc-view-reset-slice}).  Then DocView shows the entire page
 including its entire margins.
 
@@ -791,7 +791,7 @@ the same number of columns as provided by the shell.
 @vindex shell-command-prompt-show-cwd
   To make the above commands show the current directory in their
 prompts, customize the variable @code{shell-command-prompt-show-cwd}
-to a non-nil value.
+to a non-@code{nil} value.
 
 @kindex M-|
 @findex shell-command-on-region

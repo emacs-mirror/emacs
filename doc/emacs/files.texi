@@ -2113,8 +2113,6 @@ point.  Partial Completion mode offers other features extending
 
 @findex image-mode
 @findex image-toggle-display
-@findex image-next-file
-@findex image-previous-file
 @cindex images, viewing
   Visiting image files automatically selects Image mode.  In this
 major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
@@ -2122,12 +2120,34 @@ to toggle between displaying the file as an image in the Emacs buffer,
 and displaying its underlying text (or raw byte) representation.
 Additionally you can type @kbd{C-c C-x} (@code{image-toggle-hex-display})
 to toggle between displaying the file as an image in the Emacs buffer,
-and displaying it in hex representation.
-Displaying the file as an image works only if Emacs is compiled with
-support for displaying such images.  If the displayed image is wider
-or taller than the frame, the usual point motion keys (@kbd{C-f},
-@kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+and displaying it in hex representation.  Displaying the file as an
+image works only if Emacs is compiled with support for displaying
+such images.
+
+@vindex image-auto-resize
+@vindex image-auto-resize-on-window-resize
+If the displayed image is wider or taller than the window in which it
+is displayed, the usual point motion keys (@kbd{C-f}, @kbd{C-p}, and
+so forth) cause different parts of the image to be displayed.
+However, by default images are resized automatically to fit the
+window, so this is only necessary if you customize the default
+behavior by using the options @code{image-auto-resize} and
+@code{image-auto-resize-on-window-resize}.
+
+@findex image-transform-fit-both
+@findex image-transform-set-scale
+@findex image-transform-reset
+To resize the image manually you can use the command
+@code{image-transform-fit-both} bound to @kbd{s b}
+that fits the image to both the window height and width.
+To scale the image specifying a scale factor, use the command
+@code{image-transform-set-scale} bound to @kbd{s s}.
+To reset all transformations to the initial state, use
+@code{image-transform-reset} bound to @kbd{s 0}.
+
+@findex image-next-file
+@findex image-previous-file
+You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
 (@code{image-previous-file}) to visit the next image file and the
 previous image file in the same directory, respectively.
 
@@ -2194,7 +2214,6 @@ Emacs will try to determine whether there are external utilities that
 can be used to transform the image in question to @acronym{PNG} before
 displaying.  GraphicsMagick, ImageMagick and @command{ffmpeg} are
 currently supported for image conversions.
-
 
 @findex thumbs-mode
 @cindex mode, Thumbs

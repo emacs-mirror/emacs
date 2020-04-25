@@ -517,6 +517,7 @@ Multiple Windows
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Temporary Displays::  Displaying non-editable buffers.
 * Window Convenience::  Convenience functions for window handling.
+* Tab Line::            Window tab line.
 
 Displaying a Buffer in a Window
 

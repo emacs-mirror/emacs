@@ -53,11 +53,37 @@ See `image-mode-winprops'.")
   "Special hook run when image data is requested in a new window.
 It is called with one argument, the initial WINPROPS.")
 
-;; FIXME this doesn't seem mature yet. Document in manual when it is.
+(defcustom image-auto-resize t
+  "Non-nil to resize the image upon first display.
+Its value should be one of the following:
+ - nil, meaning no resizing.
+ - t, meaning to fit the image to the window height and width.
+ - `fit-height', meaning to fit the image to the window height.
+ - `fit-width', meaning to fit the image to the window width.
+ - A number, which is a scale factor (the default size is 1)."
+  :type '(choice (const :tag "No resizing" nil)
+                 (other :tag "Fit height and width" t)
+                 (const :tag "Fit height" fit-height)
+                 (const :tag "Fit width" fit-width)
+                 (number :tag "Scale factor" 1))
+  :version "27.1"
+  :group 'image)
+
+(defcustom image-auto-resize-on-window-resize 1
+  "Non-nil to resize the image whenever the window's dimensions change.
+This will always keep the image fit to the window.
+When non-nil, the value should be a number of seconds to wait before
+resizing according to the value specified in `image-auto-resize'."
+  :type '(choice (const :tag "No auto-resize on window size change" nil)
+                 (integer :tag "Wait for number of seconds before resize" 1))
+  :version "27.1"
+  :group 'image)
+
 (defvar-local image-transform-resize nil
   "The image resize operation.
 Its value should be one of the following:
  - nil, meaning no resizing.
+ - t, meaning to fit the image to the window height and width.
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
  - A number, which is a scale factor (the default size is 1).")
@@ -427,9 +453,10 @@ call."
     (define-key map "sf" 'image-mode-fit-frame)
     (define-key map "sh" 'image-transform-fit-to-height)
     (define-key map "sw" 'image-transform-fit-to-width)
+    (define-key map "sb" 'image-transform-fit-both)
+    (define-key map "ss" 'image-transform-set-scale)
     (define-key map "sr" 'image-transform-set-rotation)
     (define-key map "s0" 'image-transform-reset)
-    (define-key map "ss" 'image-transform-set-scale)
 
     ;; Multi-frame keys
     (define-key map (kbd "RET") 'image-toggle-animation)
@@ -482,6 +509,10 @@ call."
 	 :help "Resize image to match the window height"]
 	["Fit to Window Width" image-transform-fit-to-width
 	 :help "Resize image to match the window width"]
+	["Fit to Window Height and Width" image-transform-fit-both
+	 :help "Resize image to match the window height and width"]
+	["Set Scale..." image-transform-set-scale
+	 :help "Resize image by specified scale factor"]
 	["Rotate Image..." image-transform-set-rotation
 	 :help "Rotate the image"]
 	["Reset Transformations" image-transform-reset
@@ -569,6 +600,7 @@ Key bindings:
 
   (major-mode-suspend)
   (setq major-mode 'image-mode)
+  (setq image-transform-resize image-auto-resize)
 
   (if (not (image-get-display-property))
       (progn
@@ -611,7 +643,8 @@ Key bindings:
 
   (add-hook 'change-major-mode-hook #'image-toggle-display-text nil t)
   (add-hook 'after-revert-hook #'image-after-revert-hook nil t)
-  (add-hook 'window-state-change-functions #'image--window-state-change nil t)
+  (when image-auto-resize-on-window-resize
+    (add-hook 'window-state-change-functions #'image--window-state-change nil t))
 
   (run-mode-hooks 'image-mode-hook)
   (let ((image (image-get-display-property))
@@ -768,7 +801,7 @@ was inserted."
 	    filename))
 	 ;; If we have a `fit-width' or a `fit-height', don't limit
 	 ;; the size of the image to the window size.
-	 (edges (and (null image-transform-resize)
+	 (edges (and (eq image-transform-resize t)
 		     (window-inside-pixel-edges (get-buffer-window))))
 	 (type (if (image--imagemagick-wanted-p filename)
 		   'imagemagick
@@ -878,7 +911,9 @@ Otherwise, display the image by calling `image-mode'."
   ;; image resizing happens later during redisplay.  So if those
   ;; consecutive calls happen without any redisplay between them,
   ;; the costly operation of image resizing should happen only once.
-  (run-with-idle-timer 1 nil #'image-fit-to-window window))
+  (when (numberp image-auto-resize-on-window-resize)
+    (run-with-idle-timer image-auto-resize-on-window-resize nil
+                         #'image-fit-to-window window)))
 
 (defun image-fit-to-window (window)
   "Adjust size of image to display it exactly in WINDOW boundaries."
@@ -1282,7 +1317,7 @@ These properties are determined by the Image mode variables
 `image-transform-resize' and `image-transform-rotation'.  The
 return value is suitable for appending to an image spec."
   (setq image-transform-scale 1.0)
-  (when (or image-transform-resize
+  (when (or (not (memq image-transform-resize '(nil t)))
 	    (/= image-transform-rotation 0.0))
     ;; Note: `image-size' looks up and thus caches the untransformed
     ;; image.  There's no easy way to prevent that.
@@ -1328,6 +1363,12 @@ return value is suitable for appending to an image spec."
   (setq image-transform-resize 'fit-width)
   (image-toggle-display-image))
 
+(defun image-transform-fit-both ()
+  "Fit the current image both to the height and width of the current window."
+  (interactive)
+  (setq image-transform-resize t)
+  (image-toggle-display-image))
+
 (defun image-transform-set-rotation (rotation)
   "Prompt for an angle ROTATION, and rotate the image by that amount.
 ROTATION should be in degrees."
@@ -1338,7 +1379,7 @@ ROTATION should be in degrees."
 (defun image-transform-reset ()
   "Display the current image with the default size and rotation."
   (interactive)
-  (setq image-transform-resize nil
+  (setq image-transform-resize image-auto-resize
 	image-transform-rotation 0.0
 	image-transform-scale 1)
   (image-toggle-display-image))

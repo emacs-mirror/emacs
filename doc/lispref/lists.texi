@@ -1625,10 +1625,9 @@ keys may not be symbols:
       '(("simple leaves" . oak)
         ("compound leaves" . horsechestnut)))
 
-;; @r{The @code{copy-sequence} means the keys are not @code{eq}.}
-(assq (copy-sequence "simple leaves") leaves)
-     @result{} nil
-(assoc (copy-sequence "simple leaves") leaves)
+(assq "simple leaves" leaves)
+     @result{} @r{Unspecified; might be @code{nil} or non-@code{nil}.}
+(assoc "simple leaves" leaves)
      @result{} ("simple leaves" . oak)
 @end smallexample
 @end defun
