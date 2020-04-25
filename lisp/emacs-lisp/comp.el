@@ -2327,7 +2327,9 @@ LOAD can be nil t or 'late."
                      nil "Trying to queue %s with LOAD %s but this is already \
 queued with LOAD %"
                      file load (cdr entry))
-        (setf comp-files-queue (append comp-files-queue `((,file . ,load))))))
+        ;; Make sure we are not already compiling `file' (bug#40838).
+        (unless (gethash file comp-async-compilations)
+          (setf comp-files-queue (append comp-files-queue `((,file . ,load)))))))
     (when (zerop (comp-async-runnings))
       (comp-run-async-workers)
       (message "Compilation started."))))
