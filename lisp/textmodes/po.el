@@ -1,4 +1,4 @@
-;;; po.el --- basic support of PO translation files
+;;; po.el --- basic support of PO translation files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1995-1998, 2000-2020 Free Software Foundation, Inc.
 
