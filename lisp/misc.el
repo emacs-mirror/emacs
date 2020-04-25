@@ -1,4 +1,4 @@
-;;; misc.el --- some nonstandard editing and utility commands for Emacs
+;;; misc.el --- some nonstandard editing and utility commands for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1989, 2001-2020 Free Software Foundation, Inc.
 
