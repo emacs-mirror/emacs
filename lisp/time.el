@@ -509,9 +509,14 @@ runs the normal hook `display-time-hook' after each update."
 		 'display-time-event-handler)))
 
 
+(defface display-time-world-label
+  '((t :inherit font-lock-variable-name-face))
+  "Face for time zone label.")
+
 (define-derived-mode display-time-world-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `display-time-world'."
+  (setq revert-buffer-function #'display-time-world-timer)
   (setq show-trailing-whitespace nil))
 
 (defun display-time-world-display (alist)
@@ -533,7 +538,10 @@ See `display-time-world'."
 	  (setq max-width width))))
     (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
     (dolist (timedata (nreverse result))
-      (insert (format fmt (car timedata) (cdr timedata))))
+      (insert (format fmt
+                      (propertize (car timedata)
+                                  'face 'display-time-world-label)
+                      (cdr timedata))))
     (delete-char -1))
   (goto-char (point-min)))
 
@@ -541,18 +549,17 @@ See `display-time-world'."
 (defun display-time-world ()
   "Enable updating display of times in various time zones.
 `display-time-world-list' specifies the zones.
-To turn off the world time display, go to that window and type `q'."
+To turn off the world time display, go to that window and type `\\[quit-window]'."
   (interactive)
   (when (and display-time-world-timer-enable
              (not (get-buffer display-time-world-buffer-name)))
     (run-at-time t display-time-world-timer-second 'display-time-world-timer))
-  (with-current-buffer (get-buffer-create display-time-world-buffer-name)
-    (display-time-world-display (time--display-world-list))
-    (display-buffer display-time-world-buffer-name
-		    (cons nil '((window-height . fit-window-to-buffer))))
-    (display-time-world-mode)))
+  (pop-to-buffer display-time-world-buffer-name)
+  (display-time-world-display (time--display-world-list))
+  (display-time-world-mode)
+  (fit-window-to-buffer))
 
-(defun display-time-world-timer ()
+(defun display-time-world-timer (&optional _arg _noconfirm)
   (if (get-buffer display-time-world-buffer-name)
       (with-current-buffer (get-buffer display-time-world-buffer-name)
         (display-time-world-display (time--display-world-list)))
