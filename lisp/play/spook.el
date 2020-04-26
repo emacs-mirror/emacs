@@ -1,4 +1,4 @@
-;;; spook.el --- spook phrase utility for overloading the NSA line eater
+;;; spook.el --- spook phrase utility for overloading the NSA line eater  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1988, 1993, 2001-2020 Free Software Foundation, Inc.
 
@@ -45,13 +45,11 @@
 
 (defcustom spook-phrases-file (expand-file-name "spook.lines" data-directory)
   "Keep your favorite phrases here."
-  :type 'file
-  :group 'spook)
+  :type 'file)
 
 (defcustom spook-phrase-default-count 15
   "Default number of phrases to insert."
-  :type 'integer
-  :group 'spook)
+  :type 'integer)
 
 ;;;###autoload
 (defun spook ()
