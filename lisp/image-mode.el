@@ -505,16 +505,22 @@ call."
 	"--"
 	["Fit Frame to Image" image-mode-fit-frame :active t
 	 :help "Resize frame to match image"]
+	["Fit Image to Window (Best Fit)" image-transform-fit-both
+	 :help "Resize image to match the window height and width"]
 	["Fit to Window Height" image-transform-fit-to-height
 	 :help "Resize image to match the window height"]
 	["Fit to Window Width" image-transform-fit-to-width
 	 :help "Resize image to match the window width"]
-	["Fit to Window Height and Width" image-transform-fit-both
-	 :help "Resize image to match the window height and width"]
+	["Zoom In" image-increase-size
+	 :help "Enlarge the image"]
+	["Zoom Out" image-decrease-size
+	 :help "Shrink the image"]
 	["Set Scale..." image-transform-set-scale
 	 :help "Resize image by specified scale factor"]
-	["Rotate Image..." image-transform-set-rotation
+	["Rotate Clockwise" image-rotate
 	 :help "Rotate the image"]
+	["Set Rotation..." image-transform-set-rotation
+	 :help "Set rotation angle of the image"]
 	["Reset Transformations" image-transform-reset
 	 :help "Reset all image transformations"]
 	"--"
@@ -524,10 +530,10 @@ call."
 	   (image-dired default-directory))
 	 :active default-directory
 	 :help "Show thumbnails for all images in this directory"]
-	["Next Image" image-next-file :active buffer-file-name
-         :help "Move to next image in this directory"]
 	["Previous Image" image-previous-file :active buffer-file-name
          :help "Move to previous image in this directory"]
+	["Next Image" image-next-file :active buffer-file-name
+         :help "Move to next image in this directory"]
 	["Copy File Name" image-mode-copy-file-name-as-kill
          :active buffer-file-name
          :help "Copy the current file name to the kill ring"]
@@ -565,10 +571,10 @@ call."
 	["Reset Animation Speed" image-reset-speed
 	 :active image-multi-frame
 	 :help "Reset the speed of this image's animation"]
-	["Next Frame" image-next-frame :active image-multi-frame
-	 :help "Show the next frame of this image"]
 	["Previous Frame" image-previous-frame :active image-multi-frame
 	 :help "Show the previous frame of this image"]
+	["Next Frame" image-next-frame :active image-multi-frame
+	 :help "Show the next frame of this image"]
 	["Goto Frame..." image-goto-frame :active image-multi-frame
 	 :help "Show a specific frame of this image"]
 	))
