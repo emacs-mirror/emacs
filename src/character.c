@@ -141,51 +141,6 @@ char_string (unsigned int c, unsigned char *p)
 }
 
 
-/* Return a character whose multibyte form is at P.  Set *LEN to the
-   byte length of the multibyte form.  */
-
-int
-string_char (const unsigned char *p, int *len)
-{
-  int c;
-  const unsigned char *saved_p = p;
-
-  if (*p < 0x80 || ! (*p & 0x20) || ! (*p & 0x10))
-    {
-      /* 1-, 2-, and 3-byte sequences can be handled by the macro.  */
-      c = string_char_advance (&p);
-    }
-  else if (! (*p & 0x08))
-    {
-      /* A 4-byte sequence of this form:
-	 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx  */
-      c = ((((p)[0] & 0x7) << 18)
-	   | (((p)[1] & 0x3F) << 12)
-	   | (((p)[2] & 0x3F) << 6)
-	   | ((p)[3] & 0x3F));
-      p += 4;
-    }
-  else
-    {
-      /* A 5-byte sequence of this form:
-
-	 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-	 Note that the top 4 `x's are always 0, so shifting p[1] can
-	 never exceed the maximum valid character codepoint. */
-      c = (/* (((p)[0] & 0x3) << 24) ... always 0, so no need to shift. */
-	   (((p)[1] & 0x3F) << 18)
-	   | (((p)[2] & 0x3F) << 12)
-	   | (((p)[3] & 0x3F) << 6)
-	   | ((p)[4] & 0x3F));
-      p += 5;
-    }
-
-  *len = p - saved_p;
-  return c;
-}
-
-
 /* Translate character C by translation table TABLE.  If no translation is
    found in TABLE, return the untranslated character.  If TABLE is a list,
    elements are char tables.  In that case, recursively translate C by all the

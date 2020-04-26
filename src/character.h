@@ -85,7 +85,6 @@ enum
 };
 
 extern int char_string (unsigned, unsigned char *);
-extern int string_char (const unsigned char *, int *);
 
 /* UTF-8 encodings.  Use \x escapes, so they are portable to pre-C11
    compilers and can be concatenated with ordinary string literals.  */
@@ -371,33 +370,41 @@ raw_prev_char_len (unsigned char const *p)
 INLINE int
 string_char_and_length (unsigned char const *p, int *length)
 {
-  int c, len;
+  int c = p[0];
+  if (! (c & 0x80))
+    {
+      *length = 1;
+      return c;
+    }
+  eassume (0xC0 <= c);
 
-  if (! (p[0] & 0x80))
+  int d = (c << 6) + p[1] - ((0xC0 << 6) + 0x80);
+  if (! (c & 0x20))
     {
-      len = 1;
-      c = p[0];
+      *length = 2;
+      return d + (c < 0xC2 ? 0x3FFF80 : 0);
     }
-  else if (! (p[0] & 0x20))
-    {
-      len = 2;
-      c = ((((p[0] & 0x1F) << 6)
-	    | (p[1] & 0x3F))
-	   + (p[0] < 0xC2 ? 0x3FFF80 : 0));
-    }
-  else if (! (p[0] & 0x10))
-    {
-      len = 3;
-      c = (((p[0] & 0x0F) << 12)
-	   | ((p[1] & 0x3F) << 6)
-	   | (p[2] & 0x3F));
-    }
-  else
-    c = string_char (p, &len);
 
-  eassume (0 < len && len <= MAX_MULTIBYTE_LENGTH);
-  *length = len;
-  return c;
+  d = (d << 6) + p[2] - ((0x20 << 12) + 0x80);
+  if (! (c & 0x10))
+    {
+      *length = 3;
+      eassume (MAX_2_BYTE_CHAR < d && d <= MAX_3_BYTE_CHAR);
+      return d;
+    }
+
+  d = (d << 6) + p[3] - ((0x10 << 18) + 0x80);
+  if (! (c & 0x08))
+    {
+      *length = 4;
+      eassume (MAX_3_BYTE_CHAR < d && d <= MAX_4_BYTE_CHAR);
+      return d;
+    }
+
+  d = (d << 6) + p[4] - ((0x08 << 24) + 0x80);
+  *length = 5;
+  eassume (MAX_4_BYTE_CHAR < d && d <= MAX_5_BYTE_CHAR);
+  return d;
 }
 
 /* Return the character code of character whose multibyte form is at P.  */
