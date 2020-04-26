@@ -2102,7 +2102,7 @@ emit_ctxt_code (void)
   emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (2, opt_qly));
 
   emit_static_object (TEXT_FDOC_SYM,
-		      CALL1I (comp-ctxt-doc-index-h, Vcomp_ctxt));
+		      CALL1I (comp-ctxt-function-docs, Vcomp_ctxt));
 
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
@@ -3677,14 +3677,12 @@ native_function_doc (Lisp_Object function)
   struct Lisp_Native_Comp_Unit *cu =
     XNATIVE_COMP_UNIT (Fsubr_native_comp_unit (function));
 
-  if (NILP (cu->data_fdoc_h))
-    cu->data_fdoc_h = load_static_obj (cu, TEXT_FDOC_SYM);
-
-  eassert (!NILP (cu->data_fdoc_h));
-
-  return Fgethash (make_fixnum (XSUBR (function)->doc),
-		   cu->data_fdoc_h,
-		   Qnil);
+  if (NILP (cu->data_fdoc_v))
+    cu->data_fdoc_v = load_static_obj (cu, TEXT_FDOC_SYM);
+  if (!VECTORP (cu->data_fdoc_v))
+    xsignal2 (Qnative_lisp_file_inconsistent, cu->file,
+	      build_string ("missing documentation vector"));
+  return AREF (cu->data_fdoc_v, XSUBR (function)->doc);
 }
 
 DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,

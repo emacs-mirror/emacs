@@ -2982,7 +2982,7 @@ dump_native_comp_unit (struct dump_context *ctx,
 		       struct Lisp_Native_Comp_Unit *comp_u)
 {
   /* Have function documentation always lazy loaded to optimize load-time.  */
-  comp_u->data_fdoc_h = Qnil;
+  comp_u->data_fdoc_v = Qnil;
   START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &comp_u->header);
   out->handle = NULL;

@@ -216,7 +216,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
   (sym-to-c-name-h (make-hash-table :test #'eq) :type hash-table
                    :documentation "symbol-function -> c-name.
 This is only for optimizing intra CU calls at speed 3.")
-  (doc-index-h (make-hash-table :test #'eql) :type hash-table
+  (function-docs (make-hash-table :test #'eql) :type (or hash-table vector)
                :documentation "Documentation index -> documentation")
   (d-default (make-comp-data-container) :type comp-data-container
              :documentation "Standard data relocated in use by functions.")
@@ -1218,7 +1218,7 @@ the annotation emission."
                           (make-comp-mvar :constant c-name)
                           (make-comp-mvar
                            :constant
-                           (let* ((h (comp-ctxt-doc-index-h comp-ctxt))
+                           (let* ((h (comp-ctxt-function-docs comp-ctxt))
                                   (i (hash-table-count h)))
                              (puthash i (comp-func-doc f) h)
                              i))
@@ -2103,7 +2103,15 @@ Update all insn accordingly."
                do (remhash obj d-ephemeral-idx))
     ;; Fix-up indexes in each relocation class and fill corresponding
     ;; reloc lists.
-    (mapc #'comp-finalize-container (list d-default d-impure d-ephemeral))))
+    (mapc #'comp-finalize-container (list d-default d-impure d-ephemeral))
+    ;; Make a vector from the function documentation hash table.
+    (cl-loop with h = (comp-ctxt-function-docs comp-ctxt)
+             with v = (make-vector (hash-table-count h) nil)
+             for idx being each hash-keys of h
+             for doc = (gethash idx h)
+             do (setf (aref v idx) doc)
+             finally
+             do (setf (comp-ctxt-function-docs comp-ctxt) v))))
 
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
