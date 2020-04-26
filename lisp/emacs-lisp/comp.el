@@ -523,8 +523,7 @@ Put PREFIX in front of it."
 
 (cl-defgeneric comp-spill-lap-function ((function-name symbol))
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
-  (let* ((byte-native-compiling 'free-func)
-         (f (symbol-function function-name))
+  (let* ((f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
          (func (make-comp-func :name function-name
                                :c-name c-name
@@ -535,7 +534,8 @@ Put PREFIX in front of it."
                 "can't native compile an already bytecompiled function"))
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-name func)))
-      (let ((lap (alist-get nil byte-to-native-lap)))
+      (let ((lap (gethash (aref (comp-func-byte-func func) 1)
+                          byte-to-native-lap-h)))
         (cl-assert lap)
         (comp-log lap 2)
         (let ((arg-list (aref (comp-func-byte-func func) 0)))
@@ -559,9 +559,7 @@ Put PREFIX in front of it."
     (signal 'native-compiler-error-empty-byte filename))
   (setf (comp-ctxt-top-level-forms comp-ctxt)
         (reverse byte-to-native-top-level-forms))
-  (comp-log byte-to-native-lap 3)
   (cl-loop
-   with lap-forms = (reverse byte-to-native-lap)
    ;; All non anonymous functions.
    for f in (cl-loop for x in (comp-ctxt-top-level-forms comp-ctxt)
                      when (and (byte-to-native-function-p x)
@@ -569,8 +567,6 @@ Put PREFIX in front of it."
                        collect x)
    for name = (byte-to-native-function-name f)
    for c-name = (comp-c-func-name name "F")
-   for lap-entry = (assoc name lap-forms)
-   for lap = (cdr lap-entry)
    for data = (byte-to-native-function-data f)
    for func = (make-comp-func :name name
                               :byte-func data
@@ -578,12 +574,9 @@ Put PREFIX in front of it."
                               :int-spec (interactive-form data)
                               :c-name c-name
                               :args (comp-decrypt-arg-list (aref data 0) name)
-                              :lap lap
+                              :lap (byte-to-native-function-lap f)
                               :frame-size (comp-byte-frame-size data))
    do
-   ;; Remove it form the original lap list to avoid multiple function
-   ;; definition with the same name shadowing each other.
-   (setf lap-forms (delete lap-entry lap-forms))
    ;; Store the c-name to have it retrivable from
    ;; comp-ctxt-top-level-forms.
    (setf (byte-to-native-function-c-name f) c-name)
@@ -591,14 +584,14 @@ Put PREFIX in front of it."
    (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
    (comp-add-func-to-ctxt func)
    (comp-log (format "Function %s:\n" name) 1)
-   (comp-log lap 1)))
+   (comp-log (byte-to-native-function-lap f) 1)))
 
 (defun comp-spill-lap (input)
   "Byte compile and spill the LAP representation for INPUT.
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
-        (byte-to-native-lap ())
+        (byte-to-native-lap-h (make-hash-table :test #'eq))
         (byte-to-native-top-level-forms ()))
     (comp-spill-lap-function input)))
 
