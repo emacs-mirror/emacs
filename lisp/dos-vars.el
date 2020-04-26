@@ -1,4 +1,4 @@
-;;; dos-vars.el --- MS-Dos specific user options
+;;; dos-vars.el --- MS-Dos specific user options  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2001-2020 Free Software Foundation, Inc.
 
@@ -31,15 +31,13 @@
 
 (defcustom msdos-shells '("command.com" "4dos.com" "ndos.com")
   "List of shells that use `/c' instead of `-c' and a backslashed command."
-  :type '(repeat string)
-  :group 'dos-fns)
+  :type '(repeat string))
 
 (defcustom dos-codepage-setup-hook nil
   "List of functions to be called after the DOS terminal and coding
 systems are set up.  This is the place, e.g., to set specific entries
 in `standard-display-table' as appropriate for your codepage, if
 `IT-display-table-setup' doesn't do a perfect job."
-  :group 'dos-fns
   :type '(hook)
   :version "20.3.3")
 
