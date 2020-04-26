@@ -1,4 +1,4 @@
-;;; misc.el --- some nonstandard editing and utility commands for Emacs
+;;; misc.el --- some nonstandard editing and utility commands for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1989, 2001-2020 Free Software Foundation, Inc.
 
@@ -162,7 +162,7 @@ Internal use only."
   "Recompute the list of dynamic libraries.
 Internal use only."
   (setq tabulated-list-format  ; recomputed because column widths can change
-        (let ((max-id-len 0) (max-name-len 0))
+        (let ((max-id-len 7) (max-name-len 11))
           (dolist (lib dynamic-library-alist)
             (let ((id-len (length (symbol-name (car lib))))
                   (name-len (apply 'max (mapcar 'length (cdr lib)))))
@@ -181,7 +181,9 @@ Internal use only."
         (push (list id (vector (symbol-name id)
                                (list-dynamic-libraries--loaded from)
                                (mapconcat 'identity (cdr lib) ", ")))
-              tabulated-list-entries)))))
+              tabulated-list-entries))))
+  (when (not dynamic-library-alist)
+    (message "No dynamic libraries found")))
 
 ;;;###autoload
 (defun list-dynamic-libraries (&optional loaded-only-p buffer)

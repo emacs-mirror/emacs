@@ -221,7 +221,7 @@ case_character (struct casing_str_buf *buf, struct casing_context *ctx,
 }
 
 /* If C is not ASCII, make it unibyte. */
-static int
+static inline int
 make_char_unibyte (int c)
 {
   return ASCII_CHAR_P (c) ? c : CHAR_TO_BYTE8 (c);
