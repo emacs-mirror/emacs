@@ -1,4 +1,4 @@
-;; icalendar-tests.el --- Test suite for icalendar.el
+;; icalendar-tests.el --- Test suite for icalendar.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2005, 2008-2020 Free Software Foundation, Inc.
 
@@ -419,11 +419,11 @@ END:VEVENT
 ")))
     (should (string= "SUM sum DES des LOC loc ORG org"
 		     (icalendar--format-ical-event event)))
-    (setq icalendar-import-format (lambda (&rest ignore)
+    (setq icalendar-import-format (lambda (&rest _ignore)
                                     "helloworld"))
     (should (string= "helloworld"  (icalendar--format-ical-event event)))
     (setq icalendar-import-format
-          (lambda (e)
+          (lambda (event)
             (format "-%s-%s-%s-%s-%s-%s-%s-"
                     (icalendar--get-event-property event 'SUMMARY)
                     (icalendar--get-event-property event 'DESCRIPTION)
@@ -465,8 +465,7 @@ END:VEVENT
 
 (ert-deftest icalendar--decode-isodatetime ()
   "Test `icalendar--decode-isodatetime'."
-  (let ((tz (getenv "TZ"))
-	result)
+  (let ((tz (getenv "TZ")))
     (unwind-protect
 	(progn
 	  ;; Use Eastern European Time (UTC+2, UTC+3 daylight saving)
@@ -886,7 +885,7 @@ During import test the timezone is set to Central European Time."
 		(icalendar-tests--do-test-import input expected-american)))))
       (setenv "TZ" timezone))))
 
-(defun icalendar-tests--do-test-import (input expected-output)
+(defun icalendar-tests--do-test-import (_input expected-output)
   "Actually perform import test.
 Argument INPUT input icalendar string.
 Argument EXPECTED-OUTPUT expected diary string."
@@ -2347,7 +2346,7 @@ END:VCALENDAR
   (let ((time (icalendar--decode-isodatetime string day zone)))
     (format-time-string "%FT%T%z" (encode-time time) 0)))
 
-(defun icalendar-tests--decode-isodatetime (ical-string)
+(defun icalendar-tests--decode-isodatetime (_ical-string)
   (should (equal (icalendar-test--format "20040917T050910-0200")
                  "2004-09-17T03:09:10+0000"))
   (should (equal (icalendar-test--format "20040917T050910")
