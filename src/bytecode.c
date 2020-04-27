@@ -286,12 +286,13 @@ enum byte_code_op
 
 /* Fetch the next byte from the bytecode stream.  */
 
-#define FETCH (*pc++)
+#define FETCH (last_pc = pc, *pc++)
+#define FETCH_NORECORD (*pc++)
 
 /* Fetch two bytes from the bytecode stream and make a 16-bit number
    out of them.  */
 
-#define FETCH2 (op = FETCH, op + (FETCH << 8))
+#define FETCH2 (op = FETCH, op + (FETCH_NORECORD << 8))
 
 /* Push X onto the execution stack.  The expression X should not
    contain TOP, to avoid competing side effects.  */
@@ -375,6 +376,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   bytestr_data = ptr_bounds_clip (bytestr_data + item_bytes, bytestr_length);
   memcpy (bytestr_data, SDATA (bytestr), bytestr_length);
   unsigned char const *pc = bytestr_data;
+  unsigned char const *last_pc = pc;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   if (!NILP (args_template))
@@ -535,7 +537,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    if (CONSP (TOP))
 	      TOP = XCDR (TOP);
 	    else if (!NILP (TOP))
-	      wrong_type_argument (Qlistp, TOP);
+	      wrong_type_argument_new (Qlistp, TOP, last_pc - bytestr_data);
 	    NEXT;
 	  }
 

@@ -1714,6 +1714,12 @@ xsignal2 (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2)
 }
 
 void
+xsignal2_new (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2, int bytecode_offset)
+{
+  xsignal (error_symbol, list3 (arg1, arg2, make_fixnum(bytecode_offset)));
+}
+
+void
 xsignal3 (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
   xsignal (error_symbol, list3 (arg1, arg2, arg3));
