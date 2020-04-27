@@ -70,6 +70,11 @@ specify 'cursor-type' to be '(box . SIZE)', the cursor becomes a hollow
 box if the point is on an image larger than 'SIZE' pixels in any
 dimension.
 
+---
+*** Improved language transliteration in Malayalam input methods.
+Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
+deprecated.  Errors in the Inscript method were corrected.
+
 
 * Editing Changes in Emacs 28.1
 
