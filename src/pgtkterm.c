@@ -160,14 +160,6 @@ mark_pgtkterm(void)
     mark_object (ev->ie.frame_or_window);
     mark_object (ev->ie.arg);
   }
-
-  struct pgtk_display_info *dpyinfo;
-  for (dpyinfo = x_display_list; dpyinfo != NULL; dpyinfo = dpyinfo->next) {
-#if false  /* marked in alloc.c:compact_font_caches() */
-    mark_object (dpyinfo->name_list_element);
-#endif
-    mark_object (dpyinfo->rdb);
-  }
 }
 
 char *
