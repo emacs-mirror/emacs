@@ -162,20 +162,14 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
        doc: /* Return the first character in STRING.  */)
-  (register Lisp_Object string)
+  (Lisp_Object string)
 {
-  register Lisp_Object val;
   CHECK_STRING (string);
-  if (SCHARS (string))
-    {
-      if (STRING_MULTIBYTE (string))
-	XSETFASTINT (val, STRING_CHAR (SDATA (string)));
-      else
-	XSETFASTINT (val, SREF (string, 0));
-    }
-  else
-    XSETFASTINT (val, 0);
-  return val;
+
+  /* This returns zero if STRING is empty.  */
+  return make_fixnum (STRING_MULTIBYTE (string)
+		      ? STRING_CHAR (SDATA (string))
+		      : SREF (string, 0));
 }
 
 DEFUN ("point", Fpoint, Spoint, 0, 0, 0,
