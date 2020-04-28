@@ -563,8 +563,8 @@ encode_terminal_code (struct glyph *src, int src_len,
 	    {
 	      cmp = composition_table[src->u.cmp.id];
 	      required = cmp->glyph_len;
-	      required *= MAX_MULTIBYTE_LENGTH;
 	    }
+	  required *= MAX_MULTIBYTE_LENGTH;
 
 	  if (encode_terminal_src_size - nbytes < required)
 	    {
