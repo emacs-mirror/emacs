@@ -1,4 +1,4 @@
-;;; f90-tests.el --- tests for progmodes/f90.el
+;;; f90-tests.el --- tests for progmodes/f90.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
