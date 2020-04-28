@@ -466,7 +466,8 @@ If this is set to nil, never try to reconnect."
 The length is specified in `erc-split-line-length'.
 
 Currently this is called by `erc-send-input'."
-  (let ((charset (car (erc-coding-system-for-target nil))))
+  (let* ((coding (erc-coding-system-for-target nil))
+         (charset (if (consp coding) (car coding) coding)))
     (with-temp-buffer
       (insert longline)
       ;; The line lengths are in octets, not characters (because these
