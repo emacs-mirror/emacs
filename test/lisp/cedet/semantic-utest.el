@@ -577,7 +577,7 @@ INSERTME is the text to be inserted after the deletion."
       )))
 
 (ert-deftest semantic-utest-Python()
-  (skip-unless (featurep 'python-mode))
+  (skip-unless (fboundp 'python-mode))
   (let ((python-indent-guess-indent-offset nil))
     (semantic-utest-generic "Python" (semantic-utest-fname "pytest.py") semantic-utest-Python-buffer-contents  semantic-utest-Python-name-contents   '("fun2") "#1" "#deleted line")
     ))
