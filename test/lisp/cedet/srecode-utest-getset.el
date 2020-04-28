@@ -1,4 +1,4 @@
-;;; srecode/test-getset.el --- Test the getset inserter.
+;;; srecode/test-getset.el --- Test the getset inserter. -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008, 2009, 2011, 2019-2020 Free Software Foundation, Inc
 
@@ -52,6 +52,7 @@ private:
    temporary-file-directory)
   "File used to do testing.")
 
+(defvar srecode-insert-getset-fully-automatic-flag) ; Silence byte-compiler.
 (ert-deftest srecode-utest-getset-output ()
   "Test various template insertion options."
   (save-excursion
