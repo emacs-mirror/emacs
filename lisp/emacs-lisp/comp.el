@@ -2196,7 +2196,8 @@ display a message."
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
          when (or comp-always-compile
-                  (file-newer-than-file-p source-file (concat source-file "n")))
+                  (file-newer-than-file-p source-file
+                                          (comp-output-filename source-file)))
          do (let* ((expr `(progn
                             (require 'comp)
                             (setf comp-speed ,comp-speed
