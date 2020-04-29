@@ -1,4 +1,4 @@
-;;; subr-x-tests.el --- Testing the extended lisp routines
+;;; subr-x-tests.el --- Testing the extended lisp routines  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 

@@ -147,9 +147,10 @@ If 0, then fontification is only deferred while there is input pending."
 (defvar-local jit-lock-mode nil
   "Non-nil means Just-in-time Lock mode is active.")
 
-(defvar-local jit-lock-functions nil
-  "Functions to do the actual fontification.
-They are called with two arguments: the START and END of the region to fontify.")
+(defvar jit-lock-functions nil
+  "Special hook run to do the actual fontification.
+The functions are called with two arguments:
+the START and END of the region to fontify.")
 
 (defvar-local jit-lock-context-unfontify-pos nil
   "Consider text after this position as contextually unfontified.
@@ -341,7 +342,8 @@ If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
   "Unregister FUN as a fontification function.
 Only applies to the current buffer."
   (remove-hook 'jit-lock-functions fun t)
-  (unless jit-lock-functions (jit-lock-mode nil)))
+  (when (member jit-lock-functions '(nil '(t)))
+    (jit-lock-mode nil)))
 
 (defun jit-lock-refontify (&optional beg end)
   "Force refontification of the region BEG..END (default whole buffer)."

@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'rfc2045)
 
 (ert-deftest rfc2045-test-encode-string ()
   (should (equal (rfc2045-encode-string "foo" "bar") "foo=bar"))

@@ -38,4 +38,25 @@
   "Test puny decoding."
   (should (string= (puny-decode-string "xn--9dbdkw") "חנוך")))
 
+(ert-deftest puny-test-encode-domain ()
+  (should (string= (puny-encode-domain "åäö.se") "xn--4cab6c.se")))
+
+(ert-deftest puny-test-decode-domain ()
+  (should (string= (puny-decode-domain "xn--4cab6c.se") "åäö.se")))
+
+(ert-deftest puny-highly-restrictive-domain-p ()
+  (should (puny-highly-restrictive-domain-p "foo.bar.org"))
+  (should (puny-highly-restrictive-domain-p "foo.abcåäö.org"))
+  (should (puny-highly-restrictive-domain-p "foo.ர.org"))
+  ;; Disallow unicode character 2044, visually similar to "/".
+  (should-not (puny-highly-restrictive-domain-p "www.yourbank.com⁄login⁄checkUser.jsp?inxs.ch"))
+  ;; Disallow mixing scripts.
+  (should-not (puny-highly-restrictive-domain-p "åர.org"))
+  ;; Only allowed in moderately restrictive.
+  (should-not (puny-highly-restrictive-domain-p "Teχ.org"))
+  (should-not (puny-highly-restrictive-domain-p "HλLF-LIFE.org"))
+  (should-not (puny-highly-restrictive-domain-p "Ωmega.org"))
+  ;; Only allowed in unrestricted.
+  (should-not (puny-highly-restrictive-domain-p "I♥NY.org")))
+
 ;;; puny-tests.el ends here

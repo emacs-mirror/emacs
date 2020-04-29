@@ -1,4 +1,4 @@
-;;; version.el --- record version number of Emacs
+;;; version.el --- record version number of Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985, 1992, 1994-1995, 1999-2020 Free Software
 ;; Foundation, Inc.

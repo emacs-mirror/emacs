@@ -1,10 +1,10 @@
-;;; leuven-theme.el --- Awesome Emacs color theme on white background
+;;; leuven-theme.el --- Awesome Emacs color theme on white background  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
 
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
 ;; URL: https://github.com/fniessen/emacs-leuven-theme
-;; Version: 20170912.2328
+;; Version: 20200425.0837
 ;; Keywords: color theme
 
 ;; This file is part of GNU Emacs.

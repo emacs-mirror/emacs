@@ -1,4 +1,4 @@
-;;; bytecomp-tests.el
+;;; bytecomp-tests.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 

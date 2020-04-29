@@ -85,7 +85,6 @@ enum
 };
 
 extern int char_string (unsigned, unsigned char *);
-extern int string_char (const unsigned char *, int *);
 
 /* UTF-8 encodings.  Use \x escapes, so they are portable to pre-C11
    compilers and can be concatenated with ordinary string literals.  */
@@ -318,30 +317,30 @@ multibyte_length (unsigned char const *p, unsigned char const *pend,
 	return 1;
       if (!check || p + 1 < pend)
 	{
-	  /* The 'unsigned int' avoids int overflow in the 5-byte case.  */
-	  unsigned int d = p[1];
-
-	  if (TRAILING_CODE_P (d))
+	  unsigned char d = p[1];
+	  int w = ((d & 0xC0) << 2) + c;
+	  if ((allow_8bit ? 0x2C0 : 0x2C2) <= w && w <= 0x2DF)
+	    return 2;
+	  if (!check || p + 2 < pend)
 	    {
-	      if (allow_8bit ? (c & 0xE0) == 0xC0 : 0xC2 <= c && c <= 0xDF)
-		return 2;
-	      if ((!check || p + 2 < pend)
-		  && TRAILING_CODE_P (p[2]))
+	      unsigned char e = p[2];
+	      w += (e & 0xC0) << 4;
+	      int w1 = w | ((d & 0x20) >> 2);
+	      if (0xAE1 <= w1 && w1 <= 0xAEF)
+		return 3;
+	      if (!check || p + 3 < pend)
 		{
-		  if ((c & 0xF0) == 0xE0 && ((c & 0x0F) | (d & 0x20)))
-		    return 3;
-		  if ((!check || p + 3 < pend) && TRAILING_CODE_P (p[3]))
+		  unsigned char f = p[3];
+		  w += (f & 0xC0) << 6;
+		  int w2 = w | ((d & 0x30) >> 3);
+		  if (0x2AF1 <= w2 && w2 <= 0x2AF7)
+		    return 4;
+		  if (!check || p + 4 < pend)
 		    {
-		      if ((c & 0xF8) == 0xF0 && ((c & 0x07) | (d & 0x30)))
-			return 4;
-		      if (c == 0xF8 && (!check || p + 4 < pend)
-			  && TRAILING_CODE_P (p[4]))
-			{
-			  unsigned int w = ((d << 24) + (p[2] << 16)
-					    + (p[3] << 8) + p[4]);
-			  if (0x88808080 <= w && w <= 0x8FBFBDBF)
-			    return 5;
-			}
+		      int_fast64_t lw = w + ((p[4] & 0xC0) << 8),
+			w3 = (lw << 24) + (d << 16) + (e << 8) + f;
+		      if (0xAAF8888080 <= w3 && w3 <= 0xAAF88FBFBD)
+			return 5;
 		    }
 		}
 	    }
@@ -371,33 +370,41 @@ raw_prev_char_len (unsigned char const *p)
 INLINE int
 string_char_and_length (unsigned char const *p, int *length)
 {
-  int c, len;
+  int c = p[0];
+  if (! (c & 0x80))
+    {
+      *length = 1;
+      return c;
+    }
+  eassume (0xC0 <= c);
 
-  if (! (p[0] & 0x80))
+  int d = (c << 6) + p[1] - ((0xC0 << 6) + 0x80);
+  if (! (c & 0x20))
     {
-      len = 1;
-      c = p[0];
+      *length = 2;
+      return d + (c < 0xC2 ? 0x3FFF80 : 0);
     }
-  else if (! (p[0] & 0x20))
-    {
-      len = 2;
-      c = ((((p[0] & 0x1F) << 6)
-	    | (p[1] & 0x3F))
-	   + (p[0] < 0xC2 ? 0x3FFF80 : 0));
-    }
-  else if (! (p[0] & 0x10))
-    {
-      len = 3;
-      c = (((p[0] & 0x0F) << 12)
-	   | ((p[1] & 0x3F) << 6)
-	   | (p[2] & 0x3F));
-    }
-  else
-    c = string_char (p, &len);
 
-  eassume (0 < len && len <= MAX_MULTIBYTE_LENGTH);
-  *length = len;
-  return c;
+  d = (d << 6) + p[2] - ((0x20 << 12) + 0x80);
+  if (! (c & 0x10))
+    {
+      *length = 3;
+      eassume (MAX_2_BYTE_CHAR < d && d <= MAX_3_BYTE_CHAR);
+      return d;
+    }
+
+  d = (d << 6) + p[3] - ((0x10 << 18) + 0x80);
+  if (! (c & 0x08))
+    {
+      *length = 4;
+      eassume (MAX_3_BYTE_CHAR < d && d <= MAX_4_BYTE_CHAR);
+      return d;
+    }
+
+  d = (d << 6) + p[4] - ((0x08 << 24) + 0x80);
+  *length = 5;
+  eassume (MAX_4_BYTE_CHAR < d && d <= MAX_5_BYTE_CHAR);
+  return d;
 }
 
 /* Return the character code of character whose multibyte form is at P.  */

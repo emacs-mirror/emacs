@@ -1,4 +1,4 @@
-;;; wheatgrass-theme.el --- custom theme for faces
+;;; wheatgrass-theme.el --- custom theme for faces  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 

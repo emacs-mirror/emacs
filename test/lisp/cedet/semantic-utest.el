@@ -1,4 +1,4 @@
-;;; semantic-utest.el --- Tests for semantic's parsing system.
+;;; semantic-utest.el --- Tests for semantic's parsing system. -*- lexical-binding:t -*-
 
 ;;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
 
@@ -537,10 +537,9 @@ Pre-fill the buffer with CONTENTS."
 
 
 
-(defun semantic-utest-generic (testname filename contents name-contents names-removed killme insertme)
+(defun semantic-utest-generic (filename contents name-contents names-removed killme insertme)
   "Generic unit test according to template.
 Should work for languages without .h files, python javascript java.
-TESTNAME is the name of the test.
 FILENAME is the name of the file to create.
 CONTENTS is the contents of the file to test.
 NAME-CONTENTS is the list of names that should be in the contents.
@@ -564,10 +563,8 @@ INSERTME is the text to be inserted after the deletion."
       (sit-for 0)
 
       ;; Run the tests.
-      ;;(message "First parsing test %s." testname)
       (should (semantic-utest-verify-names name-contents))
 
-      ;;(message "Invalid tag test %s." testname)
       (semantic-utest-last-invalid name-contents names-removed killme insertme)
       (should (semantic-utest-verify-names name-contents))
 
@@ -576,16 +573,17 @@ INSERTME is the text to be inserted after the deletion."
       (kill-buffer buff)
       )))
 
+(defvar python-indent-guess-indent-offset) ; Silence byte-compiler.
 (ert-deftest semantic-utest-Python()
-  (skip-unless (featurep 'python-mode))
+  (skip-unless (fboundp 'python-mode))
   (let ((python-indent-guess-indent-offset nil))
-    (semantic-utest-generic "Python" (semantic-utest-fname "pytest.py") semantic-utest-Python-buffer-contents  semantic-utest-Python-name-contents   '("fun2") "#1" "#deleted line")
+    (semantic-utest-generic (semantic-utest-fname "pytest.py") semantic-utest-Python-buffer-contents  semantic-utest-Python-name-contents   '("fun2") "#1" "#deleted line")
     ))
 
 
 (ert-deftest semantic-utest-Javascript()
   (if (fboundp 'javascript-mode)
-      (semantic-utest-generic "Javascript" (semantic-utest-fname "javascripttest.js") semantic-utest-Javascript-buffer-contents  semantic-utest-Javascript-name-contents   '("fun2") "//1" "//deleted line")
+      (semantic-utest-generic (semantic-utest-fname "javascripttest.js") semantic-utest-Javascript-buffer-contents  semantic-utest-Javascript-name-contents   '("fun2") "//1" "//deleted line")
     (message "Skipping JavaScript test: NO major mode."))
   )
 
@@ -593,34 +591,34 @@ INSERTME is the text to be inserted after the deletion."
   ;; If JDE is installed, it might mess things up depending on the version
   ;; that was installed.
   (let ((auto-mode-alist  '(("\\.java\\'" . java-mode))))
-    (semantic-utest-generic "Java" (semantic-utest-fname "JavaTest.java") semantic-utest-Java-buffer-contents  semantic-utest-Java-name-contents   '("fun2") "//1" "//deleted line")
+    (semantic-utest-generic (semantic-utest-fname "JavaTest.java") semantic-utest-Java-buffer-contents  semantic-utest-Java-name-contents   '("fun2") "//1" "//deleted line")
     ))
 
 (ert-deftest semantic-utest-Makefile()
-  (semantic-utest-generic "Makefile" (semantic-utest-fname "Makefile") semantic-utest-Makefile-buffer-contents  semantic-utest-Makefile-name-contents   '("fun2") "#1" "#deleted line")
+  (semantic-utest-generic (semantic-utest-fname "Makefile") semantic-utest-Makefile-buffer-contents  semantic-utest-Makefile-name-contents   '("fun2") "#1" "#deleted line")
   )
 
 (ert-deftest semantic-utest-Scheme()
   (skip-unless nil) ;; There is a bug w/ scheme parser.  Skip this for now.
-  (semantic-utest-generic "Scheme" (semantic-utest-fname "tst.scm") semantic-utest-Scheme-buffer-contents  semantic-utest-Scheme-name-contents   '("fun2") ";1" ";deleted line")
+  (semantic-utest-generic (semantic-utest-fname "tst.scm") semantic-utest-Scheme-buffer-contents  semantic-utest-Scheme-name-contents   '("fun2") ";1" ";deleted line")
   )
 
-
+(defvar html-helper-build-new-buffer) ; Silence byte-compiler.
 (ert-deftest semantic-utest-Html()
   ;; Disable html-helper auto-fill-in mode.
-  (let ((html-helper-build-new-buffer nil))
-    (semantic-utest-generic "HTML" (semantic-utest-fname "tst.html") semantic-utest-Html-buffer-contents  semantic-utest-Html-name-contents   '("fun2") "<!--1-->" "<!--deleted line-->")
+  (let ((html-helper-build-new-buffer nil)) ; FIXME: Why is this bound?
+    (semantic-utest-generic (semantic-utest-fname "tst.html") semantic-utest-Html-buffer-contents  semantic-utest-Html-name-contents   '("fun2") "<!--1-->" "<!--deleted line-->")
     ))
 
 (ert-deftest semantic-utest-PHP()
   (skip-unless (featurep 'php-mode))
-  (semantic-utest-generic "PHP" (semantic-utest-fname "phptest.php") semantic-utest-PHP-buffer-contents semantic-utest-PHP-name-contents '("fun1") "fun2" "%^@")
+  (semantic-utest-generic (semantic-utest-fname "phptest.php") semantic-utest-PHP-buffer-contents semantic-utest-PHP-name-contents '("fun1") "fun2" "%^@")
   )
 
 ;look at http://mfgames.com/linux/csharp-mode
 (ert-deftest semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
   (skip-unless (featurep 'csharp-mode))
-  (semantic-utest-generic "C#" (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
+  (semantic-utest-generic (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -758,7 +756,7 @@ JAVE this thing would need to be recursive to handle java and csharp"
   (sit-for 0)
   )
 
-(defun semantic-utest-last-invalid (name-contents names-removed killme insertme)
+(defun semantic-utest-last-invalid (_name-contents _names-removed killme insertme)
   "Make the last fcn invalid."
   (semantic-utest-kill-indicator killme insertme)
 ;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesn't handle skipnames yet

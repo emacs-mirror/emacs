@@ -1,8 +1,6 @@
-;;; smerge-mode-tests.el --- Tests for smerge-mode.el  -*- lexical-binding:t -*-
+;;; float-sup-tests.el --- Tests for float-sup.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
-
-;; Maintainer: emacs-devel@gnu.org
+;; Copyright (C) 2020 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,18 +17,17 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
-(require 'smerge-mode)
+(require 'ert)
 
-(ert-deftest smerge-mode-test-empty-hunk ()
-  "Regression test for bug #25555"
-  (with-temp-buffer
-    (insert "<<<<<<< one\n")
-    (save-excursion
-      (insert "=======\nLLL\n>>>>>>> end\n"))
-    (smerge-mode)
-    (smerge-keep-current)
-    (should (equal (buffer-substring (point-min) (point-max)) ""))))
+(ert-deftest float-sup-degrees-and-radians ()
+  (should (equal (degrees-to-radians 180.0) float-pi))
+  (should (equal (radians-to-degrees float-pi) 180.0))
+  (should (equal (radians-to-degrees (degrees-to-radians 360.0)) 360.0))
+  (should (equal (degrees-to-radians (radians-to-degrees float-pi)) float-pi)))
 
-(provide 'smerge-mode-tests)
+(provide 'float-sup-tests)
+;;; float-sup-tests.el ends here

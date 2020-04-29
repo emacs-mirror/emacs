@@ -1,4 +1,4 @@
-;;; puny.el --- translate non-ASCII domain names to ASCII
+;;; puny.el --- translate non-ASCII domain names to ASCII  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

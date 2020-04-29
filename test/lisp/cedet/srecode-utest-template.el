@@ -1,4 +1,4 @@
-;;; srecode/test.el --- SRecode Core Template tests.
+;;; srecode/test.el --- SRecode Core Template tests. -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 

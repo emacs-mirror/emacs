@@ -1,4 +1,4 @@
-;;; ps-mode-tests.el --- Test suite for ps-mode
+;;; ps-mode-tests.el --- Test suite for ps-mode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
 

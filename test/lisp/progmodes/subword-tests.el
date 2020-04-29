@@ -1,4 +1,4 @@
-;;; subword-tests.el --- Testing the subword rules
+;;; subword-tests.el --- Testing the subword rules  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
 

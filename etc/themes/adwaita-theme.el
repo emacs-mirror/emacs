@@ -1,4 +1,4 @@
-;;; adwaita-theme.el --- Tango-based custom theme for faces
+;;; adwaita-theme.el --- Tango-based custom theme for faces  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 

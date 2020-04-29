@@ -319,7 +319,7 @@ this variable is set to the symbol `all-windows'."
   "Show match numbers in the search prompt.
 When both this option and `isearch-lazy-highlight' are non-nil,
 show the current match number and the total number of matches
-in the buffer (or its restriction)."
+in the buffer (or its restriction), including all hidden matches."
   :type 'boolean
   :group 'lazy-count
   :group 'isearch
@@ -3869,7 +3869,10 @@ Attempt to do the search exactly the way the pending Isearch would."
 	    (isearch-regexp-lax-whitespace
 	     isearch-lazy-highlight-regexp-lax-whitespace)
 	    (isearch-forward isearch-lazy-highlight-forward)
-	    (search-invisible nil)	; don't match invisible text
+	    ;; Don't match invisible text unless it can be opened
+	    ;; or when counting matches and user can visit hidden matches
+	    (search-invisible (or (eq search-invisible 'open)
+				  (and isearch-lazy-count search-invisible)))
 	    (retry t)
 	    (success nil))
 	;; Use a loop like in `isearch-search'.
