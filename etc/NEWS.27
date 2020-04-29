@@ -28,7 +28,7 @@ applies, and please also update docstrings as needed.
 ** Emacs now uses GMP, the GNU Multiple Precision library.
 By default, if 'configure' does not find a suitable libgmp, it
 arranges for the included mini-gmp library to be built and used.
-The new 'configure' option '--without-libgmp' uses mini-gmp even if a
+The new configure option '--without-libgmp' uses mini-gmp even if a
 suitable libgmp is available.
 
 ---
@@ -132,7 +132,7 @@ can enable it when configuring, e.g., './configure CFLAGS="-g3 -O2
 ** Emacs now normally uses a C pointer type instead of a C integer
 type to implement Lisp_Object, which is the fundamental machine word
 type internal to the Emacs Lisp interpreter.  This change aims to
-catch typos and supports '-fcheck-pointer-bounds'.  The 'configure'
+catch typos and supports '-fcheck-pointer-bounds'.  The configure
 option '--enable-check-lisp-object-type' is therefore no longer as
 useful and so is no longer enabled by default in developer builds,
 to reduce differences between developer and production builds.
@@ -868,7 +868,7 @@ to allow controlling how the conversion to text is done.
 
 +++
 *** The prefix key 's' was changed to 'c' for slicing commands
-to avoid conflicts with image-mode key 's'.  The new key 'c' still
+to avoid conflicts with 'image-mode' key 's'.  The new key 'c' still
 has good mnemonics of "cut", "clip", "crop".
 
 ** Ido
@@ -2090,11 +2090,11 @@ variable for remote shells.  It still defaults to "/bin/sh".
 
 +++
 *** New values of 'shell-command-dont-erase-buffer'.
-This option can now have the value 'erase' to force to erase the
+This user option can now have the value 'erase' to force to erase the
 output buffer before execution of the command, even if the output goes
 to the current buffer.  Additional values 'beg-last-out',
 'end-last-out', and 'save-point' control where to put point in the
-output buffer after inserting the shell-command output.
+output buffer after inserting the 'shell-command' output.
 
 ---
 *** The new functions 'shell-command-save-pos-or-erase' and
@@ -3538,9 +3538,9 @@ With a prefix argument, 'image-rotate' now rotates the image at point
 By default, the image will resize upon first display and whenever the
 window's dimensions change.  Two user options 'image-auto-resize' and
 'image-auto-resize-on-window-resize' control the resizing behavior
-(including the possibility to disable auto-resizing).  A new key
-prefix 's' contains the commands that can be used to fit the image to
-the window manually.
+(including the possibility to disable auto-resizing).  A new prefix
+key 's' contains the commands that can be used to fit the image to the
+window manually.
 
 ---
 *** Some 'image-mode' variables are now buffer-local.

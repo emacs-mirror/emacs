@@ -474,8 +474,12 @@ variable `tab-line-tabs-function'."
   "Template for displaying tab line for selected window."
   (let* ((tabs (funcall tab-line-tabs-function))
          (cache-key (list tabs
+                          ;; handle buffer renames
                           (buffer-name (window-buffer))
-                          (window-parameter nil 'tab-line-hscroll)))
+                          ;; handle tab-line scrolling
+                          (window-parameter nil 'tab-line-hscroll)
+                          ;; for setting face 'tab-line-tab-current'
+                          (eq (selected-window) (old-selected-window))))
          (cache (window-parameter nil 'tab-line-cache)))
     ;; Enable auto-hscroll again after it was disabled on manual scrolling.
     ;; The moment to enable it is when the window-buffer was updated.

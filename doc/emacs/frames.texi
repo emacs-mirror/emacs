@@ -1266,7 +1266,7 @@ Note that the Tab Bar is different from the Tab Line (@pxref{Tab Line}).
 Whereas tabs on the Tab Line at the top of each window are used to
 switch between buffers, tabs on the Tab Bar at the top of each frame
 are used to switch between window configurations containing several
-windows.
+windows with buffers.
 
 @findex tab-bar-mode
   To toggle the use of tab bars, type @kbd{M-x tab-bar-mode}.  This
@@ -1324,6 +1324,10 @@ current before calling the command that adds a new tab.
 To start a new tab with other buffers, customize the variable
 @code{tab-bar-new-tab-choice}.
 
+@vindex tab-bar-new-tab-to
+  The variable @code{tab-bar-new-tab-to} defines where to place a new tab.
+By default, a new tab is added on the right side of the current tab.
+
   The following commands can be used to delete tabs:
 
 @table @kbd
@@ -1331,13 +1335,22 @@ To start a new tab with other buffers, customize the variable
 @kindex C-x t 0
 @findex tab-close
 Close the selected tab (@code{tab-close}).  It has no effect if there
-is only one tab.
+is only one tab, unless the variable @code{tab-bar-close-last-tab-choice}
+is customized to a non-default value.
 
 @item C-x t 1
 @kindex C-x t 1
 @findex tab-close-other
 Close all tabs on the selected frame, except the selected one.
 @end table
+
+@vindex tab-bar-close-tab-select
+  The variable @code{tab-bar-close-tab-select} defines what tab to
+select after closing the current tab.  By default, it selects
+a recently used tab.
+
+@findex tab-undo
+  The command @code{tab-undo} restores the last closed tab.
 
   The following commands can be used to switch between tabs:
 
@@ -1358,20 +1371,58 @@ switches back to the previous Nth tab.
 Switch to the previous tab.  With a positive numeric argument N, it
 switches to the previous Nth tab; with a negative argument −N, it
 switches back to the next Nth tab.
+
+@item C-x t @key{RET} @var{tabname} @key{RET}
+Switch to the tab by its name, with completion on all tab names.
+Default values are tab names sorted by recency, so you can use
+@kbd{M-n} (@code{next-history-element}) to get the name of the last
+visited tab, the second last, and so on.
+
+@item @var{modifier}-@var{tabnumber}
+@findex tab-select
+Switch to the tab by its number.  After customizing the variable
+@code{tab-bar-select-tab-modifiers} to specify a @var{modifier} key, you
+can select a tab by its ordinal number using the specified modifier in
+combination with the tab number to select.  To display the tab number
+alongside the tab name, you can customize another variable
+@code{tab-bar-tab-hints}.  This will help you to decide what key to press
+to select the tab by its number.
+
+@item @var{modifier}-@kbd{0}
+@findex tab-recent
+Switch to the recent tab.  The key combination is the modifier key
+defined by @code{tab-bar-select-tab-modifiers} and the key @kbd{0}.
+With a numeric argument N, switch to the Nth recent tab.
 @end table
 
   The following commands can be used to operate on tabs:
 
 @table @kbd
 @item C-x t r @var{tabname} @key{RET}
+@findex tab-rename
 Rename the current tab to @var{tabname}.  You can control the
 programmatic name given to a tab by default by customizing the
 variable @code{tab-bar-tab-name-function}.
 
 @item C-x t m
+@findex tab-move
 Move the current tab N positions to the right with a positive numeric
-argument N.  With a negative argument −N, it moves the current tab
+argument N.  With a negative argument −N, move the current tab
 N positions to the left.
+@end table
+
+@findex tab-bar-history-mode
+  You can enable @code{tab-bar-history-mode} to remember window
+configurations used in every tab, and restore them.
+
+@table @kbd
+@item tab-bar-history-back
+Restore a previous window configuration used in the current tab.
+This navigates back in the history of window configurations.
+
+@item tab-bar-history-forward
+Cancel restoration of the previous window configuration.
+This navigates forward in the history of window configurations.
 @end table
 
 @node Dialog Boxes

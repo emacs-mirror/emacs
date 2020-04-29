@@ -757,7 +757,7 @@ See Bug#21722."
 ;;; Tests for shell-command-dont-erase-buffer
 
 (defmacro with-shell-command-dont-erase-buffer (str output-buffer-is-current &rest body)
-  (declare (debug (form &body)) (indent 2))
+  (declare (debug (sexp form body)) (indent 2))
   (let ((expected (make-symbol "expected"))
         (command (make-symbol "command"))
         (caller-buf (make-symbol "caller-buf"))
@@ -766,8 +766,9 @@ See Bug#21722."
             (,output-buf (if ,output-buffer-is-current ,caller-buf
                            (generate-new-buffer "output-buf")))
             (emacs (expand-file-name invocation-name invocation-directory))
-            (,command (format "%s -Q --batch --eval \"(princ \\\"%s\\\")\""
-                              emacs ,str))
+            (,command
+             (format "%s -Q --batch --eval %s"
+                     emacs (shell-quote-argument (format "(princ %S)" ,str))))
             (inhibit-message t))
        (unwind-protect
            ;; Feature must work the same regardless how we specify the 2nd arg of `shell-command', ie,
@@ -787,7 +788,7 @@ See Bug#21722."
 
 (ert-deftest simple-tests-shell-command-39067 ()
   "The output buffer is erased or not according to `shell-command-dont-erase-buffer'."
-  (let ((str "foo\n"))
+  (let ((str "foo\\n"))
     (dolist (output-current '(t nil))
       (with-shell-command-dont-erase-buffer str output-current
         (let ((expected (cond ((eq shell-command-dont-erase-buffer 'erase) str)
@@ -799,7 +800,7 @@ See Bug#21722."
 
 (ert-deftest simple-tests-shell-command-dont-erase-buffer ()
   "The point is set at the expected position after execution of the command."
-  (let* ((str "foo\n")
+  (let* ((str "foo\\n")
          (expected-point `((beg-last-out . ,(1+ (length str)))
                            (end-last-out . ,(1+ (* 2 (length str))))
                            (save-point . 1))))

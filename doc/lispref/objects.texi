@@ -2406,8 +2406,7 @@ call @code{(make-string 3 ?a)} yields a mutable string that can be
 changed via later calls to @code{aset}.
 
   A mutable object can become constant if it is part of an expression
-that is evaluated, because a program should not modify an object
-that is being evaluated.  The reverse does not occur: constant objects
+that is evaluated.  The reverse does not occur: constant objects
 should stay constant.
 
   Trying to modify a constant variable signals an error

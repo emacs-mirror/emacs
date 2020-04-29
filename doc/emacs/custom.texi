@@ -755,7 +755,7 @@ non-@code{nil} value).  If you set a variable using the customization
 buffer, you need not worry about giving it an invalid type: the
 customization buffer usually only allows you to enter meaningful
 values.  When in doubt, use @kbd{C-h v} (@code{describe-variable}) to
-check the variable's documentation string to see kind of value it
+check the variable's documentation string to see what kind of value it
 expects (@pxref{Examining}).
 
 @menu
