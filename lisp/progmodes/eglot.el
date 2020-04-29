@@ -1139,15 +1139,14 @@ Doubles as an indicator of snippet support."
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
   (pcase-let ((`(,string ,mode)
-               (if (stringp markup) (list (string-trim markup)
-                                          (intern "gfm-view-mode"))
+               (if (stringp markup) (list markup 'gfm-view-mode)
                  (list (plist-get markup :value)
                        (pcase (plist-get markup :kind)
                          ("markdown" 'gfm-view-mode)
                          ("plaintext" 'text-mode)
                          (_ major-mode))))))
     (with-temp-buffer
-      (insert string)
+      (insert (string-trim string))
       (ignore-errors (delay-mode-hooks (funcall mode)))
       (font-lock-ensure)
       (buffer-string))))
