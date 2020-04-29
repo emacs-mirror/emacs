@@ -56,6 +56,8 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
+int backtrace_byte_offset = -1;
+
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
@@ -335,7 +337,10 @@ call_debugger (Lisp_Object arg)
 	 redisplay, which necessarily leads to display problems.  */
   specbind (Qinhibit_eval_during_redisplay, Qt);
 #endif
-
+  if (backtrace_byte_offset >= 0) {
+    arg = CALLN(Fappend, arg, list1(make_fixnum(backtrace_byte_offset)));
+    backtrace_byte_offset = -1;
+  }
   val = apply1 (Vdebugger, arg);
 
   /* Interrupting redisplay and resuming it later is not safe under
@@ -1694,6 +1699,13 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 }
 
 /* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
+
+void
+xsignal_with_offset (Lisp_Object error_symbol, Lisp_Object data, int bytecode_offset)
+{
+  backtrace_byte_offset = bytecode_offset;
+  xsignal(error_symbol, data);
+}
 
 void
 xsignal0 (Lisp_Object error_symbol)

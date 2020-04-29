@@ -335,8 +335,10 @@ That buffer should be current already and in debugger-mode."
           nil))
 
   (setq backtrace-view (plist-put backtrace-view :show-flags t)
-        backtrace-insert-header-function (lambda ()
-                                           (debugger--insert-header args))
+        backtrace-insert-header-function
+        (lambda ()
+          (insert (format "Byte-code offset of error: %d\n" (car (last args))))
+          (debugger--insert-header args))
         backtrace-print-function debugger-print-function)
   (backtrace-print)
   ;; Place point on "stack frame 0" (bug#15101).
