@@ -185,23 +185,27 @@ to find the list of ignores for each directory."
   (require 'find-dired)
   (require 'xref)
   (defvar find-name-arg)
-  (let ((default-directory dir)
-        (command (format "%s %s %s -type f %s -print0"
-                         find-program
-                         (file-local-name dir)
-                         (xref--find-ignores-arguments
-                          ignores
-                          (expand-file-name dir))
-                         (if files
-                             (concat (shell-quote-argument "(")
-                                     " " find-name-arg " "
-                                     (mapconcat
-                                      #'shell-quote-argument
-                                      (split-string files)
-                                      (concat " -o " find-name-arg " "))
-                                     " "
-                                     (shell-quote-argument ")"))"")
-                         )))
+  (let* ((default-directory dir)
+         (dirname (file-remote-p dir 'localname))
+         (dirname (or dirname
+                      ;; Make sure ~/ etc. in local directory name is
+                      ;; expanded and not left for the shell command
+                      ;; to interpret.
+                      (expand-file-name dir)))
+         (command (format "%s %s %s -type f %s -print0"
+                          find-program
+                          dirname
+                          (xref--find-ignores-arguments ignores dirname)
+                          (if files
+                              (concat (shell-quote-argument "(")
+                                      " " find-name-arg " "
+                                      (mapconcat
+                                       #'shell-quote-argument
+                                       (split-string files)
+                                       (concat " -o " find-name-arg " "))
+                                      " "
+                                      (shell-quote-argument ")"))"")
+                          )))
     (project--remote-file-names
      (sort (split-string (shell-command-to-string command) "\0" t)
            #'string<))))
