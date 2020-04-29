@@ -186,16 +186,14 @@ to find the list of ignores for each directory."
   (require 'xref)
   (defvar find-name-arg)
   (let* ((default-directory dir)
-         (dirname (file-remote-p dir 'localname))
-         (dirname (or dirname
-                      ;; Make sure ~/ etc. in local directory name is
-                      ;; expanded and not left for the shell command
-                      ;; to interpret.
-                      (expand-file-name dir)))
+         ;; Make sure ~/ etc. in local directory name is
+         ;; expanded and not left for the shell command
+         ;; to interpret.
+         (localdir (file-local-name (expand-file-name dir)))
          (command (format "%s %s %s -type f %s -print0"
                           find-program
-                          dirname
-                          (xref--find-ignores-arguments ignores dirname)
+                          localdir
+                          (xref--find-ignores-arguments ignores localdir)
                           (if files
                               (concat (shell-quote-argument "(")
                                       " " find-name-arg " "
