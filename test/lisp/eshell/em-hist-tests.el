@@ -1,4 +1,4 @@
-;;; tests/em-hist-tests.el --- em-hist test suite
+;;; tests/em-hist-tests.el --- em-hist test suite  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
