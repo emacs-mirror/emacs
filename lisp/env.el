@@ -68,7 +68,7 @@ with a character not a letter, digit or underscore; otherwise, enclose
 the entire variable name in braces.  For instance, in `ab$cd-x',
 `$cd' is treated as an environment variable.
 
-If WHEN-DEFINED is nil, references to undefined environment variables
+If WHEN-UNDEFINED is nil, references to undefined environment variables
 are replaced by the empty string; if it is a function, the function is called
 with the variable name as argument and should return the text with which
 to replace it or nil to leave it unchanged.
