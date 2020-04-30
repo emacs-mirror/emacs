@@ -85,7 +85,7 @@
     (should (equal (dom-attr dom attr) value))))
 
 (ert-deftest dom-tests-remove-attribute ()
-  (let ((dom `(body ((foo . "bar") (zot . "foobar")))))
+  (let ((dom (copy-tree '(body ((foo . "bar") (zot . "foobar"))))))
     (should (equal (dom-attr dom 'foo) "bar"))
     (dom-remove-attribute dom 'foo)
     (should (equal (dom-attr dom 'foo) nil))
