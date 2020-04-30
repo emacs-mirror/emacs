@@ -864,7 +864,7 @@ The result should not exceed the screen width."
                  "\\.\\([^0-9].*\\)?$" ".0\\1" str))
            (str (replace-regexp-in-string
                  "[eE][+-]?\\([^0-9].*\\)?$" "e0\\1" str)))
-      (string-to-number str))))
+      (float (string-to-number str)))))
 
 (defun calculator-push-curnum ()
   "Push the numeric value of the displayed number to the stack."
