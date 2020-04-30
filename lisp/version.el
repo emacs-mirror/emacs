@@ -123,7 +123,7 @@ or if we could not determine the revision.")
 		  (looking-at "[[:xdigit:]]\\{40\\}"))
 	   (match-string 0)))))
 
-(defun emacs-repository-get-version (&optional dir external)
+(defun emacs-repository-get-version (&optional dir _external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
 Value is nil if the sources do not seem to be under version
