@@ -1,4 +1,4 @@
-;;; simple-single.el --- A single-file package with no dependencies
+;;; simple-single.el --- A single-file package with no dependencies  -*- lexical-binding:t -*-
 
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.4

@@ -1,4 +1,4 @@
-;;; package-test.el --- Tests for the Emacs package system
+;;; package-test.el --- Tests for the Emacs package system  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
@@ -143,8 +143,8 @@
            ,(if basedir `(cd ,basedir))
            (unless (file-directory-p package-user-dir)
              (mkdir package-user-dir))
-           (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest r) t))
-                     ((symbol-function 'y-or-n-p)    (lambda (&rest r) t)))
+           (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest _) t))
+                     ((symbol-function 'y-or-n-p)    (lambda (&rest _) t)))
              ,@(when install
                  `((package-initialize)
                    (package-refresh-contents)
@@ -449,7 +449,7 @@ Must called from within a `tar-mode' buffer."
 (ert-deftest package-test-update-archives ()
   "Test updating package archives."
   (with-package-test ()
-    (let ((buf (package-list-packages)))
+    (let ((_buf (package-list-packages)))
       (revert-buffer)
       (search-forward-regexp "^ +simple-single")
       (package-menu-mark-install)
@@ -593,6 +593,7 @@ Must called from within a `tar-mode' buffer."
      (should (search-forward "This is a bare-bones readme file for the multi-file"
                              nil t)))))
 
+(defvar epg-config--program-alist) ; Silence byte-compiler.
 (ert-deftest package-test-signed ()
   "Test verifying package signature."
   (skip-unless (let ((homedir (make-temp-file "package-test" t)))
@@ -631,7 +632,7 @@ Must called from within a `tar-mode' buffer."
         (should (progn (package-install 'signed-good) 'noerror))
         (should (progn (package-install 'signed-bad) 'noerror)))
       ;; Check if the installed package status is updated.
-      (let ((buf (package-list-packages)))
+      (let ((_buf (package-list-packages)))
 	(revert-buffer)
 	(should (re-search-forward
 		 "^\\s-+signed-good\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\s-"

@@ -1,4 +1,4 @@
-;;; faceup-test-mode.el --- Dummy major mode for testing `faceup'.
+;;; faceup-test-mode.el --- Dummy major mode for testing `faceup'.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
