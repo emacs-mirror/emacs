@@ -43,6 +43,9 @@
   "Bug#40727"
   (should (equal (cl-loop for y = (- (or x 0)) and x across [1 2]
                           collect (cons x y))
+                 '((1 . 0) (2 . -1))))
+  (should (equal (cl-loop for x across [1 2] and y = (- (or x 0))
+                          collect (cons x y))
                  '((1 . 0) (2 . -1)))))
 
 (ert-deftest cl-macs-loop-destructure ()

@@ -1320,8 +1320,9 @@ For more details, see Info node `(cl)Loop Facility'.
 		      (temp-idx (make-symbol "--cl-idx--")))
 		  (push (list temp-vec (pop cl--loop-args)) loop-for-bindings)
 		  (push (list temp-idx -1) loop-for-bindings)
+                  (push `(setq ,temp-idx (1+ ,temp-idx)) cl--loop-body)
 		  (cl--push-clause-loop-body
-                   `(< (setq ,temp-idx (1+ ,temp-idx)) (length ,temp-vec)))
+                   `(< ,temp-idx (length ,temp-vec)))
 		  (if (eq word 'across-ref)
 		      (push (list var `(aref ,temp-vec ,temp-idx))
 			    cl--loop-symbol-macs)
