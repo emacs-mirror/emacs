@@ -1322,13 +1322,11 @@ For more details, see Info node `(cl)Loop Facility'.
 
 	       ((memq word '(across across-ref))
 		(let ((temp-vec (make-symbol "--cl-vec--"))
-                      (temp-len (make-symbol "--cl-len--"))
 		      (temp-idx (make-symbol "--cl-idx--")))
 		  (push (list temp-vec (pop cl--loop-args)) loop-for-bindings)
-		  (push (list temp-len `(length ,temp-vec)) loop-for-bindings)
 		  (push (list temp-idx -1) loop-for-bindings)
 		  (push `(< (setq ,temp-idx (1+ ,temp-idx))
-                            ,temp-len)
+                            (length ,temp-vec))
                         cl--loop-body)
 		  (if (eq word 'across-ref)
 		      (push (list var `(aref ,temp-vec ,temp-idx))
@@ -1343,7 +1341,6 @@ For more details, see Info node `(cl)Loop Facility'.
 				    (error "Expected `of'"))))
 		      (seq (cl--pop2 cl--loop-args))
 		      (temp-seq (make-symbol "--cl-seq--"))
-	              (temp-len (make-symbol "--cl-len--"))
 		      (temp-idx
                        (if (eq (car cl--loop-args) 'using)
                            (if (and (= (length (cadr cl--loop-args)) 2)
@@ -1354,19 +1351,16 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (push (list temp-seq seq) loop-for-bindings)
 		  (push (list temp-idx 0) loop-for-bindings)
 		  (if ref
-                      (progn
+		      (let ((temp-len (make-symbol "--cl-len--")))
 			(push (list temp-len `(length ,temp-seq))
 			      loop-for-bindings)
 			(push (list var `(elt ,temp-seq ,temp-idx))
 			      cl--loop-symbol-macs)
 			(push `(< ,temp-idx ,temp-len) cl--loop-body))
-                    ;; Evaluate seq length just if needed, that is, when seq is not a cons.
-                    (push (list temp-len (or (consp seq) `(length ,temp-seq)))
-			  loop-for-bindings)
 		    (push (list var nil) loop-for-bindings)
 		    (push `(and ,temp-seq
 				(or (consp ,temp-seq)
-                                    (< ,temp-idx ,temp-len)))
+                                    (< ,temp-idx (length ,temp-seq))))
 			  cl--loop-body)
 		    (push (list var `(if (consp ,temp-seq)
                                          (pop ,temp-seq)
