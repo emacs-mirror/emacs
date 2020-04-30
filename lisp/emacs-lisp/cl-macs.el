@@ -889,7 +889,7 @@ This is compatible with Common Lisp, but note that `defun' and
 ;;; The "cl-loop" macro.
 
 (defvar cl--loop-args) (defvar cl--loop-accum-var) (defvar cl--loop-accum-vars)
-(defvar cl--loop-bindings) (defvar cl--loop-body) (defvar cl--loop-conditions)
+(defvar cl--loop-bindings) (defvar cl--loop-body)
 (defvar cl--loop-finally)
 (defvar cl--loop-finish-flag)           ;Symbol set to nil to exit the loop?
 (defvar cl--loop-first-flag)
@@ -897,7 +897,7 @@ This is compatible with Common Lisp, but note that `defun' and
 (defvar cl--loop-name)
 (defvar cl--loop-result) (defvar cl--loop-result-explicit)
 (defvar cl--loop-result-var) (defvar cl--loop-steps)
-(defvar cl--loop-symbol-macs)
+(defvar cl--loop-symbol-macs) (defvar cl--loop-guard-cond)
 
 (defun cl--loop-set-iterator-function (kind iterator)
   (if cl--loop-iterator-function
@@ -966,8 +966,7 @@ For more details, see Info node `(cl)Loop Facility'.
 	  (cl--loop-accum-var nil)	(cl--loop-accum-vars nil)
 	  (cl--loop-initially nil)	(cl--loop-finally nil)
 	  (cl--loop-iterator-function nil) (cl--loop-first-flag nil)
-          (cl--loop-symbol-macs nil)
-          (cl--loop-conditions nil))
+          (cl--loop-symbol-macs nil) (cl--loop-guard-cond nil))
       ;; Here is more or less how those dynbind vars are used after looping
       ;; over cl--parse-loop-clause:
       ;;
@@ -1002,7 +1001,24 @@ For more details, see Info node `(cl)Loop Facility'.
 			      (list (or cl--loop-result-explicit
                                         cl--loop-result))))
 	     (ands (cl--loop-build-ands (nreverse cl--loop-body)))
-	     (while-body (nconc (cadr ands) (nreverse cl--loop-steps)))
+	     (while-body
+              (nconc
+               (cadr ands)
+               (if (or (not cl--loop-guard-cond) (not cl--loop-first-flag))
+                   (nreverse cl--loop-steps)
+                 ;; Right after update the loop variable ensure that the loop
+                 ;; condition, i.e. (car ands), is still satisfied; otherwise,
+                 ;; set `cl--loop-first-flag' nil and skip the remaining
+                 ;; body forms (#Bug#29799).
+                 ;;
+                 ;; (last cl--loop-steps) updates the loop var
+                 ;; (car (butlast cl--loop-steps)) sets `cl--loop-first-flag' nil
+                 ;; (nreverse (cdr (butlast cl--loop-steps))) are the
+                 ;; remaining body forms.
+                 (append (last cl--loop-steps)
+                         `((and ,(car ands)
+                                ,@(nreverse (cdr (butlast cl--loop-steps)))))
+                         `(,(car (butlast cl--loop-steps)))))))
 	     (body (append
 		    (nreverse cl--loop-initially)
 		    (list (if cl--loop-iterator-function
@@ -1034,12 +1050,6 @@ For more details, see Info node `(cl)Loop Facility'.
 	    (setq body
                   (list `(cl-symbol-macrolet ,cl--loop-symbol-macs ,@body))))
 	`(cl-block ,cl--loop-name ,@body)))))
-
-(defmacro cl--push-clause-loop-body (clause)
-  "Apply CLAUSE to both `cl--loop-conditions' and `cl--loop-body'."
-  `(progn
-     (push ,clause cl--loop-conditions)
-     (push ,clause cl--loop-body)))
 
 ;; Below is a complete spec for cl-loop, in several parts that correspond
 ;; to the syntax given in CLtL2.  The specs do more than specify where
@@ -1191,6 +1201,8 @@ For more details, see Info node `(cl)Loop Facility'.
 ;; (def-edebug-spec loop-d-type-spec
 ;;   (&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
 
+
+
 (defun cl--parse-loop-clause ()		; uses loop-*
   (let ((word (pop cl--loop-args))
 	(hash-types '(hash-key hash-keys hash-value hash-values))
@@ -1269,11 +1281,11 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (if end-var (push (list end-var end) loop-for-bindings))
 		  (if step-var (push (list step-var step)
 				     loop-for-bindings))
-		  (when end
-                    (cl--push-clause-loop-body
-                     (list
-                      (if down (if excl '> '>=) (if excl '< '<=))
-                      var (or end-var end))))
+		  (if end
+		      (push (list
+			     (if down (if excl '> '>=) (if excl '< '<=))
+			     var (or end-var end))
+                            cl--loop-body))
 		  (push (list var (list (if down '- '+) var
 					(or step-var step 1)))
 			loop-for-steps)))
@@ -1283,7 +1295,7 @@ For more details, see Info node `(cl)Loop Facility'.
 		       (temp (if (and on (symbolp var))
 				 var (make-symbol "--cl-var--"))))
 		  (push (list temp (pop cl--loop-args)) loop-for-bindings)
-                  (cl--push-clause-loop-body `(consp ,temp))
+		  (push `(consp ,temp) cl--loop-body)
 		  (if (eq word 'in-ref)
 		      (push (list var `(car ,temp)) cl--loop-symbol-macs)
 		    (or (eq temp var)
@@ -1306,19 +1318,24 @@ For more details, see Info node `(cl)Loop Facility'.
 	       ((eq word '=)
 		(let* ((start (pop cl--loop-args))
 		       (then (if (eq (car cl--loop-args) 'then)
-                                 (cl--pop2 cl--loop-args) start))
-                       (first-assign (or cl--loop-first-flag
-					 (setq cl--loop-first-flag
-					       (make-symbol "--cl-var--")))))
+                                 (cl--pop2 cl--loop-args) start)))
 		  (push (list var nil) loop-for-bindings)
 		  (if (or ands (eq (car cl--loop-args) 'and))
 		      (progn
-			(push `(,var (if ,first-assign ,start ,var)) loop-for-sets)
-			(push `(,var (if ,(car (cl--loop-build-ands
-                                                (nreverse cl--loop-conditions)))
-                                         ,then ,var))
-                              loop-for-steps))
-		    (push `(,var (if ,first-assign ,start ,then)) loop-for-sets))))
+			(push `(,var
+				(if ,(or cl--loop-first-flag
+					 (setq cl--loop-first-flag
+					       (make-symbol "--cl-var--")))
+				    ,start ,var))
+			      loop-for-sets)
+			(push (list var then) loop-for-steps))
+		    (push (list var
+				(if (eq start then) start
+				  `(if ,(or cl--loop-first-flag
+					    (setq cl--loop-first-flag
+						  (make-symbol "--cl-var--")))
+				       ,start ,then)))
+			  loop-for-sets))))
 
 	       ((memq word '(across across-ref))
 		(let ((temp-vec (make-symbol "--cl-vec--"))
@@ -1327,8 +1344,9 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (push (list temp-vec (pop cl--loop-args)) loop-for-bindings)
 		  (push (list temp-len `(length ,temp-vec)) loop-for-bindings)
 		  (push (list temp-idx -1) loop-for-bindings)
-		  (cl--push-clause-loop-body
-                   `(< (setq ,temp-idx (1+ ,temp-idx)) ,temp-len))
+		  (push `(< (setq ,temp-idx (1+ ,temp-idx))
+                            ,temp-len)
+                        cl--loop-body)
 		  (if (eq word 'across-ref)
 		      (push (list var `(aref ,temp-vec ,temp-idx))
 			    cl--loop-symbol-macs)
@@ -1358,14 +1376,15 @@ For more details, see Info node `(cl)Loop Facility'.
 			      loop-for-bindings)
 			(push (list var `(elt ,temp-seq ,temp-idx))
 			      cl--loop-symbol-macs)
-			(cl--push-clause-loop-body `(< ,temp-idx ,temp-len)))
+			(push `(< ,temp-idx ,temp-len) cl--loop-body))
                     ;; Evaluate seq length just if needed, that is, when seq is not a cons.
                     (push (list temp-len (or (consp seq) `(length ,temp-seq)))
 			  loop-for-bindings)
 		    (push (list var nil) loop-for-bindings)
-		    (cl--push-clause-loop-body `(and ,temp-seq
-                                                     (or (consp ,temp-seq)
-                                                         (< ,temp-idx ,temp-len))))
+		    (push `(and ,temp-seq
+				(or (consp ,temp-seq)
+                                    (< ,temp-idx ,temp-len)))
+			  cl--loop-body)
 		    (push (list var `(if (consp ,temp-seq)
                                          (pop ,temp-seq)
                                        (aref ,temp-seq ,temp-idx)))
@@ -1461,8 +1480,9 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (push (list var  '(selected-frame))
 			loop-for-bindings)
 		  (push (list temp nil) loop-for-bindings)
-		  (cl--push-clause-loop-body `(prog1 (not (eq ,var ,temp))
-                                                (or ,temp (setq ,temp ,var))))
+		  (push `(prog1 (not (eq ,var ,temp))
+                           (or ,temp (setq ,temp ,var)))
+			cl--loop-body)
 		  (push (list var `(next-frame ,var))
 			loop-for-steps)))
 
@@ -1483,8 +1503,9 @@ For more details, see Info node `(cl)Loop Facility'.
 		  (push (list minip `(minibufferp (window-buffer ,var)))
 			loop-for-bindings)
 		  (push (list temp nil) loop-for-bindings)
-		  (cl--push-clause-loop-body `(prog1 (not (eq ,var ,temp))
-                                                (or ,temp (setq ,temp ,var))))
+		  (push `(prog1 (not (eq ,var ,temp))
+                           (or ,temp (setq ,temp ,var)))
+			cl--loop-body)
 		  (push (list var `(next-window ,var ,minip))
 			loop-for-steps)))
 
@@ -1508,6 +1529,7 @@ For more details, see Info node `(cl)Loop Facility'.
                      t)
                   cl--loop-body))
 	(when loop-for-steps
+          (setq cl--loop-guard-cond t)
 	  (push (cons (if ands 'cl-psetq 'setq)
 		      (apply 'append (nreverse loop-for-steps)))
 		cl--loop-steps))))
