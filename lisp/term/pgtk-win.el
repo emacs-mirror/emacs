@@ -4,7 +4,7 @@
 (eval-when-compile (require 'cl-lib))
 (or (featurep 'pgtk)
     (error "%s: Loading pgtk-win.el but not compiled for pure Gtk+-3."
-           (invocation-name)))
+           invocation-name))
 
 ;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'term/common-win)
@@ -108,8 +108,9 @@ the last file dropped is selected."
 (defvar pgtk-right-control-modifier)
 
 ;; You say tomAYto, I say tomAHto..
-(defvaralias 'pgtk-option-modifier 'pgtk-alternate-modifier)
-(defvaralias 'pgtk-right-option-modifier 'pgtk-right-alternate-modifier)
+(with-no-warnings
+  (defvaralias 'pgtk-option-modifier 'pgtk-alternate-modifier)
+  (defvaralias 'pgtk-right-option-modifier 'pgtk-right-alternate-modifier))
 
 (defun pgtk-do-hide-emacs ()
   (interactive)
@@ -306,7 +307,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; Make sure we have a valid resource name.
   (or (stringp x-resource-name)
       (let (i)
-	(setq x-resource-name (invocation-name))
+	(setq x-resource-name invocation-name)
 
 	;; Change any . or * characters in x-resource-name to hyphens,
 	;; so as not to choke when we use it in X resource queries.
