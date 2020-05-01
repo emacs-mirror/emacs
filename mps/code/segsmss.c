@@ -579,7 +579,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
  * been split and the segment above meets the constraints (i.e. empty,
  * not already attached to a buffer and similar colour)
  *
- * .bsplit: Whether or not a merge happpened, a split is performed if
+ * .bsplit: Whether or not a merge happened, a split is performed if
  * the limit of the buffered region is also the limit of an arena
  * grain, and yet does not correspond to the segment limit, provided
  * that the part of the segment above the buffer is all free.

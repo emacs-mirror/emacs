@@ -463,7 +463,7 @@ Memory Management Glossary: F
         function, as distinct from a :term:`object pointer`. The C
         programming language does not guarantee that function and
         object pointers are the same size, or that a pointer of one
-        type can be cast to a pointer of the the other type without
+        type can be cast to a pointer of the other type without
         losing information (but on every mainstream C implementation,
         including all those supported by the MPS, they are in fact the
         same).

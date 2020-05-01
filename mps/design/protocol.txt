@@ -255,7 +255,7 @@ make the class being defined a direct subclass of ``parentClassName``
 by ensuring that all the fields of the embedded parent class (pointed
 to by the ``this`` argument) are initialized as the parent class, and
 setting the superclass field of ``this`` to be the canonical parent
-class object. The parameter ``this`` must be the the same kind as
+class object. The parameter ``this`` must be the same kind as
 ``parentClassName``.
 
 
@@ -265,7 +265,7 @@ Specialization
 _`.if.specialize`: Fields in the class structure must be assigned
 explicitly in the class initialization code (see
 `.if.define-class`_). This must happen *after* inheritance details
-are given (see `.if.inheritance`_), so that overrrides work.
+are given (see `.if.inheritance`_), so that overrides work.
 
 
 Extension
