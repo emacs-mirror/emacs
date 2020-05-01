@@ -603,7 +603,6 @@ extern void char_table_set (Lisp_Object, int, Lisp_Object);
 /* Defined in data.c.  */
 extern AVOID args_out_of_range_3 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
-extern AVOID wrong_type_argument_new (Lisp_Object, Lisp_Object, int bytecode_offset);
 extern Lisp_Object default_value (Lisp_Object symbol);
 
 
@@ -3235,6 +3234,7 @@ union specbinding
       Lisp_Object function;
       Lisp_Object *args;
       ptrdiff_t nargs;
+      int bytecode_offset;
     } bt;
   };
 
@@ -4112,7 +4112,6 @@ xsignal (Lisp_Object error_symbol, Lisp_Object data)
 extern AVOID xsignal0 (Lisp_Object);
 extern AVOID xsignal1 (Lisp_Object, Lisp_Object);
 extern AVOID xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object);
-extern AVOID xsignal2_new (Lisp_Object, Lisp_Object, Lisp_Object, int bytecode_offset);
 extern AVOID xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern AVOID signal_error (const char *, Lisp_Object);
 extern AVOID overflow_error (void);

@@ -139,6 +139,13 @@ backtrace_args (union specbinding *pdl)
   return pdl->bt.args;
 }
 
+static int
+backtrace_bytecode_offset (union specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->bt.bytecode_offset;
+}
+
 static bool
 backtrace_debug_on_exit (union specbinding *pdl)
 {
@@ -337,12 +344,7 @@ call_debugger (Lisp_Object arg)
 	 redisplay, which necessarily leads to display problems.  */
   specbind (Qinhibit_eval_during_redisplay, Qt);
 #endif
-  if (backtrace_byte_offset >= 0) {
-    arg = CALLN(Fappend, arg, list1(make_fixnum(backtrace_byte_offset)));
-    backtrace_byte_offset = -1;
-  }
   val = apply1 (Vdebugger, arg);
-
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */
@@ -1701,13 +1703,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 /* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
 
 void
-xsignal_with_offset (Lisp_Object error_symbol, Lisp_Object data, int bytecode_offset)
-{
-  backtrace_byte_offset = bytecode_offset;
-  xsignal(error_symbol, data);
-}
-
-void
 xsignal0 (Lisp_Object error_symbol)
 {
   xsignal (error_symbol, Qnil);
@@ -1723,12 +1718,6 @@ void
 xsignal2 (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2)
 {
   xsignal (error_symbol, list2 (arg1, arg2));
-}
-
-void
-xsignal2_new (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2, int bytecode_offset)
-{
-  xsignal (error_symbol, list3 (arg1, arg2, make_fixnum(bytecode_offset)));
 }
 
 void
@@ -2167,6 +2156,10 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.function = function;
   current_thread->stack_top = specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
+  union specbinding *nxt = specpdl_ptr;
+  nxt = backtrace_next(nxt);
+  if (nxt->kind == SPECPDL_BACKTRACE)
+    nxt->bt.bytecode_offset = backtrace_byte_offset;
   grow_specpdl ();
 
   return count;
@@ -3666,6 +3659,10 @@ backtrace_frame_apply (Lisp_Object function, union specbinding *pdl)
   if (backtrace_debug_on_exit (pdl))
     flags = list2 (QCdebug_on_exit, Qt);
 
+  int off = backtrace_bytecode_offset (pdl);
+  if (off > 0)
+    flags = Fcons (QCbytecode_offset, Fcons (make_fixnum (off), flags));
+
   if (backtrace_nargs (pdl) == UNEVALLED)
     return call4 (function, Qnil, backtrace_function (pdl), *backtrace_args (pdl), flags);
   else
@@ -4253,6 +4250,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sfetch_bytecode);
   defsubr (&Sbacktrace_debug);
   DEFSYM (QCdebug_on_exit, ":debug-on-exit");
+  DEFSYM (QCbytecode_offset, ":bytecode-offset");
   defsubr (&Smapbacktrace);
   defsubr (&Sbacktrace_frame_internal);
   defsubr (&Sbacktrace_frames_from_thread);

@@ -149,14 +149,6 @@ wrong_type_argument (Lisp_Object predicate, Lisp_Object value)
   xsignal2 (Qwrong_type_argument, predicate, value);
 }
 
-AVOID
-wrong_type_argument_new (Lisp_Object predicate, Lisp_Object value,
-			 int bytecode_offset)
-{
-  eassert (!TAGGEDP (value, Lisp_Type_Unused0));
-  xsignal2_new (Qwrong_type_argument, predicate, value, bytecode_offset);
-}
-
 void
 pure_write_error (Lisp_Object obj)
 {
