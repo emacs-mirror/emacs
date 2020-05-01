@@ -407,7 +407,7 @@ connection object, called when the process dies .")
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
       (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
-    (process-put proc 'jsonrpc-connection conn)))
+    (process-put proc 'jsonrpc-connection conn))))
 
 (cl-defmethod jsonrpc-connection-send ((connection jsonrpc-process-connection)
                                        &rest args
