@@ -77,7 +77,7 @@ typedef struct mps_pool_class_s {
  * .pool: A generic structure is created when a pool is created and
  * holds the generic part of the pool's state.  Each pool class defines
  * a "subclass" of the pool structure (the "outer structure") which
- * contains PoolStruct as a a field.  The outer structure holds the
+ * contains PoolStruct as a field.  The outer structure holds the
  * class-specific part of the pool's state.  See <code/pool.c>,
  * <design/pool>.
  */
@@ -800,7 +800,7 @@ typedef struct mps_arena_s {
   TraceSet busyTraces;          /* set of running traces */
   TraceSet flippedTraces;       /* set of running and flipped traces */
   TraceStruct trace[TraceLIMIT]; /* trace structures.  See
-                                   <design/trace#.intance.limit> */
+                                   <design/trace#.instance.limit> */
 
   /* trace ancillary fields <code/traceanc.c> */
   TraceStartMessage tsMessage[TraceLIMIT];  /* <design/message-gc> */

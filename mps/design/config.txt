@@ -306,7 +306,7 @@ Build parameters            Source file    Configuration parameters
 
 _`.impl.dep`: No source code, other than the directives in config.h_
 and mpstd.h_, should depend on any build parameters.  That is,
-identifers beginning "CONFIG\_" should only appear in impl.h.config.
+identifiers beginning "CONFIG\_" should only appear in impl.h.config.
 Code may depend on configuration parameters in certain, limited ways, as
 defined below (`.conf`_).
 
@@ -348,7 +348,7 @@ For example::
 
 _`.pf.codes`: The declarations of the platform, operating system,
 architecture, and builder codes define preprocessor macros corresponding
-the the target detected (`.pf.detect`_).  For example::
+to the target detected (`.pf.detect`_).  For example::
 
     #define MPS_PF_W3I3MV
     #define MPS_OS_W3
@@ -421,7 +421,7 @@ preprocessor definition, and maintaining flexibility about which
 features are enabled in each variety.
 
 _`.var.symbols`: The directives should define whatever symbols are
-necessary to control featrues. These symbols parameterize other parts
+necessary to control features. These symbols parameterize other parts
 of the code, such as the declaration of assertions, etc. The symbols
 should all begin with the prefix ``CONFIG_``.
 

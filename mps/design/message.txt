@@ -254,7 +254,7 @@ _`.class.methods.specific.gc`: Specific to ``MessageTypeGC``:
 * ``gcCondemnedSize`` -- returns the number of bytes condemned by the
   trace.
 
-* ``gcNotCondemnedSize`` -- returns the the number of bytes (of
+* ``gcNotCondemnedSize`` -- returns the number of bytes (of
   objects) that are collectable but were not condemned by the trace.
 
 _`.class.methods.specific.gcstart`: Specific to ``MessageTypeGCSTART``:
