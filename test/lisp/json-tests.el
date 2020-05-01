@@ -1,4 +1,4 @@
-;;; json-tests.el --- Test suite for json.el
+;;; json-tests.el --- Test suite for json.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

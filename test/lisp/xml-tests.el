@@ -1,4 +1,4 @@
-;;; xml-parse-tests.el --- Test suite for XML parsing.
+;;; xml-parse-tests.el --- Test suite for XML parsing.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 

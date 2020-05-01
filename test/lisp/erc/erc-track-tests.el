@@ -1,4 +1,4 @@
-;;; erc-track-tests.el --- Tests for erc-track.
+;;; erc-track-tests.el --- Tests for erc-track.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
