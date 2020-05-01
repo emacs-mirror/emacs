@@ -5,7 +5,7 @@
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
 ;; Package-Requires: ((emacs "25.2"))
-;; Version: 1.0.10
+;; Version: 1.0.11
 
 ;; This is an Elpa :core package.  Don't use functionality that is not
 ;; compatible with Emacs 25.2.
@@ -398,7 +398,7 @@ connection object, called when the process dies .")
         (ignore-errors (kill-buffer hidden-name))
         (rename-buffer hidden-name)
         (process-put proc 'jsonrpc-stderr (current-buffer))
-        (read-only-mode t))
+        (read-only-mode t)))
     (setf (jsonrpc--process conn) proc)
     (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
@@ -407,7 +407,7 @@ connection object, called when the process dies .")
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
       (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
-    (process-put proc 'jsonrpc-connection conn))))
+    (process-put proc 'jsonrpc-connection conn)))
 
 (cl-defmethod jsonrpc-connection-send ((connection jsonrpc-process-connection)
                                        &rest args
