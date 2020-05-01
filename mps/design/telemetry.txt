@@ -97,7 +97,7 @@ there is a central registration of event types and properties. Events
 are written to a buffer via a specialist structure, and are optionally
 written to the plinth. Events can take any number of parameters of a
 range of types, indicated as a format both in the annotation and the
-the registry.
+registry.
 
 
 Analysis
@@ -231,7 +231,7 @@ _`.annot`: An event annotation is of the form::
     EVENT3(FooCreate, pointer, address, word)
 
 _`.annot.string`: If there is a string in the format, it must be the
-last parameter (and hence there can be only one). There is currrently
+last parameter (and hence there can be only one). There is currently
 a maximum string length, defined by ``EventMaxStringLength`` in
 impl.h.eventcom.
 

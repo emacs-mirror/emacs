@@ -136,7 +136,7 @@ which the structure is::
 
 _`.awlseg.bt`: The ``mark``, ``alloc``, and ``scanned`` fields are
 bit-tables (see design.mps.bt_). Each bit in the table corresponds to
-a a single alignment grain in the pool.
+a single alignment grain in the pool.
 
 .. _design.mps.bt: bt
 
@@ -217,7 +217,7 @@ implement free.
 
 ``Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Pool pool, Buffer buffer, Size size)``
 
-_`.fun.fill`: This zips round all the the segments applying
+_`.fun.fill`: This zips round all the segments applying
 ``SegBufferFill()`` to each segment. ``awlSegBufferFill()`` attempts
 to find a large-enough free range; if it finds one then it may be
 bigger than the actual request, in which case the remainder can be

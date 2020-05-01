@@ -149,7 +149,7 @@ MVFF interface
        They use a worst-fit policy in order to maximise the number of
        in-line allocations.
 
-    The defaults yield a a simple first-fit allocator. Specify
+    The defaults yield a simple first-fit allocator. Specify
     :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` and
     :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` true, and
     :c:macro:`MPS_KEY_MVFF_FIRST_FIT` false to get a first-fit

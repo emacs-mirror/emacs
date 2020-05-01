@@ -432,7 +432,7 @@ Arena properties
     operating system.
 
     The function :c:func:`mps_arena_committed` may be called whatever
-    state the the arena is in. If it is called when the arena is in
+    state the arena is in. If it is called when the arena is in
     the :term:`unclamped state` then the value may change after this
     function returns. A possible use might be to call it just after
     :c:func:`mps_arena_collect` to estimate the size of the heap.
@@ -1018,7 +1018,7 @@ Arena introspection and debugging
 
     In general, not all addresses are managed by any arena. This is
     what allows the MPS to cooperate with other memory managers,
-    shared object loaders, memory mapped file input/ouput, and so on:
+    shared object loaders, memory mapped file input/output, and so on:
     it does not steal the whole address space.
 
     .. note::

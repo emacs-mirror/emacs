@@ -88,7 +88,7 @@ to exactly the size requested by the current buffer reserve operation;
 that is: it does not round up to the whole segment size. This prevents
 subsequent small objects being placed in the same segment as a single
 very large object. If the buffer fill size is less than the segment
-size, ``AMCBufferFill()`` fills any remainder with an large segment
+size, ``AMCBufferFill()`` fills any remainder with a large segment
 pad.
 
 _`.pad.reason.nmr`: Non-mobile reclaim (NMR) pads are made by
@@ -670,7 +670,7 @@ start to collect the ramp generation (condemn it), regardless of
 entering or leaving any ramps. This ensures that the ramp generation
 will be collected to the after-ramp generation at least once.
 
-_`.ramp.finish.leave`: When we next condemn the ramp genearation, we
+_`.ramp.finish.leave`: When we next condemn the ramp generation, we
 move to the COLLECTING state. At this point the forwarding generations
 are switched back so that the ramp generation promotes into the
 after-ramp generation on this collection.

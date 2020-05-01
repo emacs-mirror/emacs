@@ -233,7 +233,7 @@ should be deleted from the land.
 _`.function.iterate.and.delete.justify`: The reason for having both
 ``LandIterate()`` and ``LandIterateAndDelete()`` is that it may be
 possible to use a more efficient algorithm, or to preserve more
-properties of the data structure, when it is known that the land willl
+properties of the data structure, when it is known that the land will
 not be modified during the iteration. For example, in the CBS
 implementation, ``LandIterate()`` uses ``TreeTraverse()`` which
 preserves the tree structure, whereas ``LandIterateAndDelete()`` uses

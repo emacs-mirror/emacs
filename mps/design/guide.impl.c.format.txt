@@ -275,7 +275,7 @@ comments, and column comments.
 
 _`.comment.banner`: Banner comments come at the start of sections. A banner
 comment consists of a heading usually composed of a symbol, an em-dash
-(--) and an short explanation, followed by English text which is
+(--) and a short explanation, followed by English text which is
 formatted using conventional text documentation guidelines (see
 guide.text). The open and close comment tokens (``/*`` and ``*/``) are
 placed at the top and bottom of a column of asterisks. The text is

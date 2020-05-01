@@ -219,7 +219,7 @@ div.body li>p:first-child {
 div.body li>p:last-child {
     margin-bottom: 0.5ex;
 }
-/* Don't space out the the table of contents. */
+/* Don't space out the table of contents. */
 li.toctree-l1, li.toctree-l2, li.toctree-l3 {
     padding-top: 0 !important;
 }

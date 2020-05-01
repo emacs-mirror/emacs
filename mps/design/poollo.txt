@@ -79,7 +79,7 @@ _`.overview.alloc`: Objects are allocated in the pool using the
 reserve/commit protocol on allocation points.
 
 _`.overview.format`: The pool is formatted. The format of the objects
-in the pool is specified at instantiation time, using an format object
+in the pool is specified at instantiation time, using a format object
 derived from a variant A format (using variant A is overkill, see
 `.if.init`_ below) (see design.mps.format for excuse about calling the
 variant 'A').
