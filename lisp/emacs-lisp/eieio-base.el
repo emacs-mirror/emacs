@@ -473,7 +473,8 @@ instance."
     (let* ((cfn (or file (oref this file)))
            (default-directory (file-name-directory cfn)))
       (cl-letf ((standard-output (current-buffer))
-                ((oref this file)       ;FIXME: Why change it?
+                (inhibit-modification-hooks t)
+                ((oref this file) ;FIXME: Why change it?
                  (if file
                      ;; FIXME: Makes a name relative to (oref this file),
                      ;; whereas I think it should be relative to cfn.
