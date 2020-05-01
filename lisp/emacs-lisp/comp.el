@@ -230,6 +230,9 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
   (sym-to-c-name-h (make-hash-table :test #'eq) :type hash-table
                    :documentation "symbol-function -> c-name.
 This is only for optimizing intra CU calls at speed 3.")
+  (byte-func-to-func-h (make-hash-table :test #'eq) :type hash-table
+                     :documentation "byte-function -> comp-func.
+Needed to replace immediate byte-compiled lambdas with the compiled reference.")
   (function-docs (make-hash-table :test #'eql) :type (or hash-table vector)
                :documentation "Documentation index -> documentation")
   (d-default (make-comp-data-container) :type comp-data-container
@@ -311,7 +314,7 @@ Is in use to help the SSA rename pass."))
 (cl-defstruct (comp-func (:copier nil))
   "LIMPLE representation of a function."
   (name nil :type symbol
-        :documentation "Function symbol name.")
+        :documentation "Function symbol name. Nil indicates anonymous.")
   (c-name nil :type string
           :documentation "The function name in the native world.")
   (byte-func nil
@@ -554,8 +557,9 @@ Put PREFIX in front of it."
                 "can't native compile an already bytecompiled function"))
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-name func)))
-      (let ((lap (gethash (aref (comp-func-byte-func func) 1)
-                          byte-to-native-lap-h)))
+      (let ((lap (byte-to-native-lambda-lap
+                  (gethash (aref (comp-func-byte-func func) 1)
+                           byte-to-native-lambdas-h))))
         (cl-assert lap)
         (comp-log lap 2)
         (let ((arg-list (aref (comp-func-byte-func func) 0)))
@@ -566,7 +570,7 @@ Put PREFIX in front of it."
                 (comp-func-frame-size func)
                 (comp-byte-frame-size (comp-func-byte-func func))))
         (setf (comp-ctxt-top-level-forms comp-ctxt)
-              (list (make-byte-to-native-function :name function-name
+              (list (make-byte-to-native-func-def :name function-name
                                                   :c-name c-name)))
         ;; Create the default array.
         (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
@@ -580,38 +584,47 @@ Put PREFIX in front of it."
   (setf (comp-ctxt-top-level-forms comp-ctxt)
         (reverse byte-to-native-top-level-forms))
   (cl-loop
-   ;; All non anonymous functions.
-   for f in (cl-loop for x in (comp-ctxt-top-level-forms comp-ctxt)
-                     when (and (byte-to-native-function-p x)
-                               (byte-to-native-function-name x))
-                       collect x)
-   for name = (byte-to-native-function-name f)
-   for c-name = (comp-c-func-name name "F")
-   for data = (byte-to-native-function-data f)
+   for x being each hash-value of byte-to-native-lambdas-h
+   for byte-func = (byte-to-native-lambda-byte-func x)
+   for lap = (byte-to-native-lambda-lap x)
+   for top-l-form = (cl-loop
+                     for form in (comp-ctxt-top-level-forms comp-ctxt)
+                     when (and (byte-to-native-func-def-p form)
+                               (eq (byte-to-native-func-def-byte-func form)
+                                   byte-func))
+                       return form)
+   for name = (when top-l-form
+                (byte-to-native-func-def-name top-l-form))
+   for c-name = (comp-c-func-name (or name "anonymous-lambda")
+                                  "F")
    for func = (make-comp-func :name name
-                              :byte-func data
-                              :doc (documentation data)
-                              :int-spec (interactive-form data)
+                              :byte-func byte-func
+                              :doc (documentation byte-func)
+                              :int-spec (interactive-form byte-func)
                               :c-name c-name
-                              :args (comp-decrypt-arg-list (aref data 0) name)
-                              :lap (byte-to-native-function-lap f)
-                              :frame-size (comp-byte-frame-size data))
-   do
+                              :args (comp-decrypt-arg-list (aref byte-func 0)
+                                                           name)
+                              :lap lap
+                              :frame-size (comp-byte-frame-size byte-func))
    ;; Store the c-name to have it retrivable from
    ;; comp-ctxt-top-level-forms.
-   (setf (byte-to-native-function-c-name f) c-name)
+   when top-l-form
+     do (setf (byte-to-native-func-def-c-name top-l-form) c-name)
+   unless name
+     do (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt))
+   do
    ;; Create the default array.
    (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
    (comp-add-func-to-ctxt func)
    (comp-log (format "Function %s:\n" name) 1)
-   (comp-log (byte-to-native-function-lap f) 1)))
+   (comp-log lap 1)))
 
 (defun comp-spill-lap (input)
   "Byte compile and spill the LAP representation for INPUT.
 If INPUT is a symbol this is the function-name to be compiled.
 If INPUT is a string this is the file path to be compiled."
   (let ((byte-native-compiling t)
-        (byte-to-native-lap-h (make-hash-table :test #'eq))
+        (byte-to-native-lambdas-h (make-hash-table :test #'eq))
         (byte-to-native-top-level-forms ()))
     (comp-spill-lap-function input)))
 
@@ -1225,10 +1238,10 @@ the annotation emission."
 (cl-defgeneric comp-emit-for-top-level (form for-late-load)
   "Emit the limple code for top level FORM.")
 
-(cl-defmethod comp-emit-for-top-level ((form byte-to-native-function)
+(cl-defmethod comp-emit-for-top-level ((form byte-to-native-func-def)
                                        for-late-load)
-  (let* ((name (byte-to-native-function-name form))
-         (c-name (byte-to-native-function-c-name form))
+  (let* ((name (byte-to-native-func-def-name form))
+         (c-name (byte-to-native-func-def-c-name form))
          (f (gethash c-name (comp-ctxt-funcs-h comp-ctxt)))
          (args (comp-func-args f)))
     (cl-assert (and name f))
@@ -1293,6 +1306,9 @@ into the C code forwarding the compilation unit."
                             "Top level"))
     ;; Assign the compilation unit incoming as parameter to the slot frame 0.
     (comp-emit `(set-par-to-local ,(comp-slot-n 0) 0))
+    (maphash (lambda (_ func)
+               (comp-emit-lambda-for-top-level func))
+             (comp-ctxt-byte-func-to-func-h comp-ctxt))
     (mapc (lambda (x) (comp-emit-for-top-level x for-late-load))
           (comp-ctxt-top-level-forms comp-ctxt))
     (comp-emit `(return ,(make-comp-mvar :constant t)))
@@ -2142,6 +2158,7 @@ Update all insn accordingly."
   "Compile as native code the current context naming it NAME.
 Prepare every function for final compilation and drive the C back-end."
   (let ((dir (file-name-directory name)))
+    ;; FIXME: Strip bytecompiled functions here.
     (comp-finalize-relocs)
     (unless (file-exists-p dir)
       ;; In case it's created in the meanwhile.
