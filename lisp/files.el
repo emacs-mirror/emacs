@@ -2657,9 +2657,9 @@ since only a single case-insensitive search through the alist is made."
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.org\\'" . org-mode)
-     ;; .dir-locals.el is not really elisp.  Could use the
+     ;; .dir-locals.el is not really Elisp.  Could use the
      ;; `dir-locals-file' constant if it weren't defined below.
-     ("\\.dir-locals\\(-2\\)?\\.el\\'" . lisp-data-mode)
+     ("\\.dir-locals\\(?:-2\\)?\\.el\\'" . lisp-data-mode)
      ("eww-bookmarks\\'" . lisp-data-mode)
      ("tramp\\'" . lisp-data-mode)
      ("places\\'" . lisp-data-mode)
