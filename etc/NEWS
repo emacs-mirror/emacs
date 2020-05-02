@@ -894,6 +894,31 @@ easily bind this menu to down-mouse-3 (usually the right mouse button)
 instead of mouse-2 (the default) by customizing the new option
 'flyspell-use-mouse-3-for-menu'.
 
+** Time
+
+---
+*** 'display-time-world' has been renamed to 'world-clock'.
+'world-clock' creates a buffer with an updating time display using
+several time zones.  It is hoped that the new names are more
+discoverable.
+
+The following functions have been renamed:
+
+  'display-time-world'         to 'world-clock'
+  'display-time-world-mode'    to 'world-clock-mode'
+  'display-time-world-display' to 'world-clock-display'
+  'display-time-world-timer'   to 'world-clock-update'
+
+The following options have been renamed:
+
+  'display-time-world-list'         to 'world-clock-list'
+  'display-time-world-time-format'  to 'world-clock-time-format'
+  'display-time-world-buffer-name'  to 'world-clock-buffer-name'
+  'display-time-world-timer-enable' to 'world-clock-timer-enable'
+  'display-time-world-timer-second' to 'world-clock-timer-second'
+
+The old names are now obsolete.
+
 
 * New Modes and Packages in Emacs 28.1
 

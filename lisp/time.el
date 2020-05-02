@@ -25,8 +25,7 @@
 ;; Facilities to display current time/date and a new-mail indicator
 ;; in the Emacs mode line.  The entry point is `display-time'.
 
-;; Display time world in a buffer, the entry point is
-;; `display-time-world'.
+;; Use `world-clock' to display world clock in a buffer.
 
 ;;; Code:
 
@@ -123,6 +122,10 @@ It should not be set directly, but is instead updated by the
    "Time when mail file's file system was recorded to be down.
 If that file system seems to be up, the value is nil.")
 
+(defgroup world-clock nil
+  "Display a world clock."
+  :group 'display-time)
+
 (defcustom zoneinfo-style-world-list
   '(("America/Los_Angeles" "Seattle")
     ("America/New_York" "New York")
@@ -130,13 +133,13 @@ If that file system seems to be up, the value is nil.")
     ("Europe/Paris" "Paris")
     ("Asia/Calcutta" "Bangalore")
     ("Asia/Tokyo" "Tokyo"))
-  "Alist of zoneinfo-style time zones and places for `display-time-world'.
+  "Alist of zoneinfo-style time zones and places for `world-clock'.
 Each element has the form (TIMEZONE LABEL).
 TIMEZONE should be a string of the form AREA/LOCATION, where AREA is
 the name of a region -- a continent or ocean, and LOCATION is the name
 of a specific location, e.g., a city, within that region.
 LABEL is a string to display as the label of that TIMEZONE's time."
-  :group 'display-time
+  :group 'world-clock
   :type '(repeat (list string string))
   :version "23.1")
 
@@ -147,7 +150,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
     ("CET-1CDT" "Paris")
     ("IST-5:30" "Bangalore")
     ("JST-9" "Tokyo"))
-  "Alist of traditional-style time zones and places for `display-time-world'.
+  "Alist of traditional-style time zones and places for `world-clock'.
 Each element has the form (TIMEZONE LABEL).
 TIMEZONE should be a string of the form:
 
@@ -156,12 +159,12 @@ TIMEZONE should be a string of the form:
 See the documentation of the TZ environment variable on your system,
 for more details about the format of TIMEZONE.
 LABEL is a string to display as the label of that TIMEZONE's time."
-  :group 'display-time
+  :group 'world-clock
   :type '(repeat (list string string))
   :version "23.1")
 
-(defcustom display-time-world-list t
-  "Alist of time zones and places for `display-time-world' to display.
+(defcustom world-clock-list t
+  "Alist of time zones and places for `world-clock' to display.
 Each element has the form (TIMEZONE LABEL).
 TIMEZONE should be in a format supported by your system.  See the
 documentation of `zoneinfo-style-world-list' and
@@ -171,16 +174,15 @@ a string to display as the label of that TIMEZONE's time.
 If the value is t instead of an alist, use the value of
 `zoneinfo-style-world-list' if it works on this platform, and of
 `legacy-style-world-list' otherwise."
-
-  :group 'display-time
+  :group 'world-clock
   :type '(choice (const :tag "Default" t)
                  (repeat :tag "List of zones and labels"
                          (list (string :tag "Zone") (string :tag "Label"))))
-  :version "23.1")
+  :version "28.1")
 
 (defun time--display-world-list ()
-  (if (listp display-time-world-list)
-      display-time-world-list
+  (if (listp world-clock-list)
+      world-clock-list
     ;; Determine if zoneinfo style timezones are supported by testing that
     ;; America/New York and Europe/London return different timezones.
     (let ((nyt (format-time-string "%z" nil "America/New_York"))
@@ -189,29 +191,29 @@ If the value is t instead of an alist, use the value of
 	  legacy-style-world-list
 	zoneinfo-style-world-list))))
 
-(defcustom display-time-world-time-format "%A %d %B %R %Z"
-  "Format of the time displayed, see `format-time-string'."
-  :group 'display-time
+(defcustom world-clock-time-format "%A %d %B %R %Z"
+  "Time format for `world-clock', see `format-time-string'."
+  :group 'world-clock
   :type 'string
-  :version "23.1")
+  :version "28.1")
 
-(defcustom display-time-world-buffer-name "*wclock*"
-  "Name of the world clock buffer."
-  :group 'display-time
+(defcustom world-clock-buffer-name "*wclock*"
+  "Name of the `world-clock' buffer."
+  :group 'world-clock
   :type 'string
-  :version "23.1")
+  :version "28.1")
 
-(defcustom display-time-world-timer-enable t
-  "If non-nil, a timer will update the world clock."
-  :group 'display-time
+(defcustom world-clock-timer-enable t
+  "If non-nil, a timer will update the `world-clock' buffer."
+  :group 'world-clock
   :type 'boolean
-  :version "23.1")
+  :version "28.1")
 
-(defcustom display-time-world-timer-second 60
-  "Interval in seconds for updating the world clock."
-  :group 'display-time
+(defcustom world-clock-timer-second 60
+  "Interval in seconds for updating the `world-clock' buffer."
+  :group 'world-clock
   :type 'integer
-  :version "23.1")
+  :version "28.1")
 
 ;;;###autoload
 (defun display-time ()
@@ -508,18 +510,43 @@ runs the normal hook `display-time-hook' after each update."
     (remove-hook 'rmail-after-get-new-mail-hook
 		 'display-time-event-handler)))
 
+
+;;; Obsolete names
 
-(defface display-time-world-label
+(define-obsolete-variable-alias 'display-time-world-list
+  'world-clock-list "28.1")
+(define-obsolete-variable-alias 'display-time-world-time-format
+  'world-clock-time-format "28.1")
+(define-obsolete-variable-alias 'display-time-world-buffer-name
+  'world-clock-buffer-name "28.1")
+(define-obsolete-variable-alias 'display-time-world-timer-enable
+  'world-clock-timer-enable "28.1")
+(define-obsolete-variable-alias 'display-time-world-timer-second
+  'world-clock-timer-second "28.1")
+
+(define-obsolete-function-alias 'display-time-world-mode
+  #'world-clock-mode "28.1")
+(define-obsolete-function-alias 'display-time-world-display
+  #'world-clock-display "28.1")
+(define-obsolete-function-alias 'display-time-world
+  #'world-clock "28.1")
+(define-obsolete-function-alias 'display-time-world-timer
+  #'world-clock-update "28.1")
+
+
+;;; World clock
+
+(defface world-clock-label
   '((t :inherit font-lock-variable-name-face))
-  "Face for time zone label.")
+  "Face for time zone label in `world-clock' buffer.")
 
-(define-derived-mode display-time-world-mode special-mode "World clock"
+(define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
-See `display-time-world'."
-  (setq revert-buffer-function #'display-time-world-timer)
+See `world-clock'."
+  (setq revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
 
-(defun display-time-world-display (alist)
+(defun world-clock-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
   (let ((inhibit-read-only t)
 	(buffer-undo-list t)
@@ -531,7 +558,7 @@ See `display-time-world'."
       (let* ((label (cadr zone))
 	     (width (string-width label)))
 	(push (cons label
-		    (format-time-string display-time-world-time-format
+		    (format-time-string world-clock-time-format
 					now (car zone)))
 	      result)
 	(when (> width max-width)
@@ -540,35 +567,36 @@ See `display-time-world'."
     (dolist (timedata (nreverse result))
       (insert (format fmt
                       (propertize (car timedata)
-                                  'face 'display-time-world-label)
+                                  'face 'world-clock-label)
                       (cdr timedata))))
     (delete-char -1))
   (goto-char (point-min)))
 
 ;;;###autoload
-(defun display-time-world ()
-  "Enable updating display of times in various time zones.
-`display-time-world-list' specifies the zones.
-To turn off the world time display, go to that window and type `\\[quit-window]'."
+(defun world-clock ()
+  "Display a world clock buffer with times in various time zones.
+The variable `world-clock-list' specifies which time zones to use.
+To turn off the world time display, go to the window and type `\\[quit-window]'."
   (interactive)
-  (when (and display-time-world-timer-enable
-             (not (get-buffer display-time-world-buffer-name)))
-    (run-at-time t display-time-world-timer-second 'display-time-world-timer))
-  (pop-to-buffer display-time-world-buffer-name)
-  (display-time-world-display (time--display-world-list))
-  (display-time-world-mode)
+  (when (and world-clock-timer-enable
+             (not (get-buffer world-clock-buffer-name)))
+    (run-at-time t world-clock-timer-second #'world-clock-update))
+  (pop-to-buffer world-clock-buffer-name)
+  (world-clock-display (time--display-world-list))
+  (world-clock-mode)
   (fit-window-to-buffer))
 
-(defun display-time-world-timer (&optional _arg _noconfirm)
-  (if (get-buffer display-time-world-buffer-name)
-      (with-current-buffer (get-buffer display-time-world-buffer-name)
-        (display-time-world-display (time--display-world-list)))
+(defun world-clock-update (&optional _arg _noconfirm)
+  "Update the `world-clock' buffer."
+  (if (get-buffer world-clock-buffer-name)
+      (with-current-buffer (get-buffer world-clock-buffer-name)
+        (world-clock-display (time--display-world-list)))
     ;; cancel timer
     (let ((list timer-list))
       (while list
         (let ((elt (pop list)))
           (when (equal (symbol-name (timer--function elt))
-		       "display-time-world-timer")
+		       "world-clock-update")
             (cancel-timer elt)))))))
 
 ;;;###autoload
