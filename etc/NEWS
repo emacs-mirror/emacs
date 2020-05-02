@@ -529,6 +529,9 @@ prefix on the Subject line in various languages.
 These new navigation commands are bound to 'n' and 'p' in
 'apropos-mode'.
 
+*** New command 'apropos-function'.
+This works like 'C-u M-x apropos-command' but is more discoverable.
+
 ** CC Mode
 
 *** Added support for Doxygen documentation style.
