@@ -1324,7 +1324,7 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
    from frame.  */
 
 static gcc_jit_rvalue *
-emit_mvar_val (Lisp_Object mvar)
+emit_mvar_rval (Lisp_Object mvar)
 {
   Lisp_Object const_vld = CALL1I (comp-mvar-const-vld, mvar);
   Lisp_Object constant = CALL1I (comp-mvar-constant, mvar);
@@ -1382,7 +1382,7 @@ emit_set_internal (Lisp_Object args)
   int i = 0;
   gcc_jit_rvalue *gcc_args[4];
   FOR_EACH_TAIL (args)
-    gcc_args[i++] = emit_mvar_val (XCAR (args));
+    gcc_args[i++] = emit_mvar_rval (XCAR (args));
   gcc_args[2] = emit_const_lisp_obj (Qnil);
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
@@ -1403,7 +1403,7 @@ emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type, bool direct)
   ptrdiff_t nargs = list_length (args);
   gcc_jit_rvalue **gcc_args = SAFE_ALLOCA (nargs * sizeof (*gcc_args));
   FOR_EACH_TAIL (args)
-    gcc_args[i++] = emit_mvar_val (XCAR (args));
+    gcc_args[i++] = emit_mvar_rval (XCAR (args));
 
   SAFE_FREE ();
   return emit_call (callee, ret_type, nargs, gcc_args, direct);
@@ -1531,8 +1531,8 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qcond_jump))
     {
       /* Conditional branch.  */
-      gcc_jit_rvalue *a = emit_mvar_val (arg[0]);
-      gcc_jit_rvalue *b =  emit_mvar_val (arg[1]);
+      gcc_jit_rvalue *a = emit_mvar_rval (arg[0]);
+      gcc_jit_rvalue *b = emit_mvar_rval (arg[1]);
       gcc_jit_block *target1 = retrive_block (arg[2]);
       gcc_jit_block *target2 = retrive_block (arg[3]);
 
@@ -1569,7 +1569,7 @@ emit_limple_insn (Lisp_Object insn)
       /* (push-handler condition-case #s(comp-mvar 0 3 t (arith-error) cons nil) 1 bb_2 bb_1) */
       int h_num UNINIT;
       Lisp_Object handler_spec = arg[0];
-      gcc_jit_rvalue *handler = emit_mvar_val (arg[1]);
+      gcc_jit_rvalue *handler = emit_mvar_rval (arg[1]);
       if (EQ (handler_spec, Qcatcher))
 	h_num = CATCHER;
       else if (EQ (handler_spec, Qcondition_case))
@@ -1665,7 +1665,7 @@ emit_limple_insn (Lisp_Object insn)
       Lisp_Object arg1 = arg[1];
 
       if (EQ (Ftype_of (arg1), Qcomp_mvar))
-	res = emit_mvar_val (arg1);
+	res = emit_mvar_rval (arg1);
       else if (EQ (FIRST (arg1), Qcall))
 	res = emit_limple_call (XCDR (arg1));
       else if (EQ (FIRST (arg1), Qcallref))
@@ -1778,7 +1778,7 @@ emit_limple_insn (Lisp_Object insn)
     {
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_mvar_val (arg[0]));
+				     emit_mvar_rval (arg[0]));
     }
   else
     {
@@ -1799,7 +1799,7 @@ emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 {
   bool type_hint = EQ (CALL1I (comp-mvar-type, SECOND (insn)), type);
   gcc_jit_rvalue *args[] =
-    { emit_mvar_val (SECOND (insn)),
+    { emit_mvar_rval (SECOND (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.bool_type,
 					   type_hint) };
@@ -1814,8 +1814,8 @@ emit_call2_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 {
   bool type_hint = EQ (CALL1I (comp-mvar-type, SECOND (insn)), type);
   gcc_jit_rvalue *args[] =
-    { emit_mvar_val (SECOND (insn)),
-      emit_mvar_val (THIRD (insn)),
+    { emit_mvar_rval (SECOND (insn)),
+      emit_mvar_rval (THIRD (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.bool_type,
 					   type_hint) };
@@ -1845,7 +1845,7 @@ emit_negate (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_consp (Lisp_Object insn)
 {
-  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  gcc_jit_rvalue *x = emit_mvar_rval (SECOND (insn));
   gcc_jit_rvalue *res = emit_coerce (comp.bool_type,
 				   emit_CONSP (x));
   return gcc_jit_context_new_call (comp.ctxt,
@@ -1881,7 +1881,7 @@ emit_setcdr (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_numperp (Lisp_Object insn)
 {
-  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  gcc_jit_rvalue *x = emit_mvar_rval (SECOND (insn));
   gcc_jit_rvalue *res = emit_NUMBERP (x);
   return gcc_jit_context_new_call (comp.ctxt, NULL, comp.bool_to_lisp_obj, 1,
 				   &res);
@@ -1890,7 +1890,7 @@ emit_numperp (Lisp_Object insn)
 static gcc_jit_rvalue *
 emit_integerp (Lisp_Object insn)
 {
-  gcc_jit_rvalue *x = emit_mvar_val (SECOND (insn));
+  gcc_jit_rvalue *x = emit_mvar_rval (SECOND (insn));
   gcc_jit_rvalue *res = emit_INTEGERP (x);
   return gcc_jit_context_new_call (comp.ctxt, NULL, comp.bool_to_lisp_obj, 1,
 				   &res);
