@@ -231,7 +231,7 @@ let the buffer grow forever."
     `(
       (CodeAction (:title) (:kind :diagnostics :edit :command))
       (ConfigurationItem () (:scopeUri :section))
-      (Command (:title :command) (:arguments))
+      (Command ((:title . string) (:command . string)) (:arguments))
       (CompletionItem (:label)
                       (:kind :detail :documentation :deprecated :preselect
                              :sortText :filterText :insertText :insertTextFormat
@@ -265,13 +265,15 @@ let the buffer grow forever."
 
 INTERFACE-NAME is a symbol designated by the spec as
 \"interface\".  INTERFACE is a list (REQUIRED OPTIONAL) where
-REQUIRED and OPTIONAL are lists of keyword symbols designating
-field names that must be, or may be, respectively, present in a
-message adhering to that interface.
+REQUIRED and OPTIONAL are lists of KEYWORD designating field
+names that must be, or may be, respectively, present in a message
+adhering to that interface.  KEY can be a keyword or a cons (SYM
+TYPE), where type is used by `cl-typep' to check types at
+runtime.
 
 Here's what an element of this alist might look like:
 
-    (CreateFile . ((:kind :uri) (:options)))"))
+    (Command ((:title . string) (:command . string)) (:arguments))"))
 
 (eval-and-compile
   (defvar eglot-strict-mode (if load-file-name '()
@@ -308,46 +310,69 @@ on unknown notifications and errors on unknown requests.
 (defun eglot--plist-keys (plist)
   (cl-loop for (k _v) on plist by #'cddr collect k))
 
-(defun eglot--call-with-interface (interface object fn)
-  "Call FN, checking that OBJECT conforms to INTERFACE."
-  (when-let ((missing (and (memq 'enforce-required-keys eglot-strict-mode)
-                           (cl-set-difference (car (cdr interface))
-                                              (eglot--plist-keys object)))))
-    (eglot--error "A `%s' must have %s" (car interface) missing))
-  (when-let ((excess (and (memq 'disallow-non-standard-keys eglot-strict-mode)
-                          (cl-set-difference
-                           (eglot--plist-keys object)
-                           (append (car (cdr interface)) (cadr (cdr interface)))))))
-    (eglot--error "A `%s' mustn't have %s" (car interface) excess))
-  (funcall fn))
+(cl-defun eglot--check-object (interface-name
+                               object
+                               &optional
+                               (enforce-required t)
+                               (disallow-non-standard t)
+                               (check-types t))
+  "Check that OBJECT conforms to INTERFACE.  Error otherwise."
+  (cl-destructuring-bind
+      (&key types required-keys optional-keys &allow-other-keys)
+      (eglot--interface interface-name)
+    (when-let ((missing (and enforce-required
+                             (cl-set-difference required-keys
+                                                (eglot--plist-keys object)))))
+      (eglot--error "A `%s' must have %s" interface-name missing))
+    (when-let ((excess (and disallow-non-standard
+                            (cl-set-difference
+                             (eglot--plist-keys object)
+                             (append required-keys optional-keys)))))
+      (eglot--error "A `%s' mustn't have %s" interface-name excess))
+    (when check-types
+      (cl-loop
+       for (k v) on object by #'cddr
+       for type = (or (cdr (assoc k types)) t) ;; FIXME: enforce nil type?
+       unless (cl-typep v type)
+       do (eglot--error "A `%s' must have a %s as %s, but has %s"
+                        interface-name )))
+    t))
 
 (eval-and-compile
   (defun eglot--keywordize-vars (vars)
     (mapcar (lambda (var) (intern (format ":%s" var))) vars))
 
-  (defun eglot--check-interface (interface-name vars)
-    (let ((interface
-           (assoc interface-name eglot--lsp-interface-alist)))
-      (cond (interface
+  (defun eglot--ensure-type (k) (if (consp k) k (cons k t)))
+
+  (defun eglot--interface (interface-name)
+    (let* ((interface (assoc interface-name eglot--lsp-interface-alist))
+           (required (mapcar #'eglot--ensure-type (car (cdr interface))))
+           (optional (mapcar #'eglot--ensure-type (cadr (cdr interface)))))
+      (list :types (append required optional)
+            :required-keys (mapcar #'car required)
+            :optional-keys (mapcar #'car optional))))
+
+  (defun eglot--check-dspec (interface-name dspec)
+    "Check if variables in DSPEC "
+    (cl-destructuring-bind (&key required-keys optional-keys &allow-other-keys)
+        (eglot--interface interface-name)
+      (cond ((or required-keys optional-keys)
              (let ((too-many
                     (and
                      (memq 'disallow-non-standard-keys eglot-strict-mode)
                      (cl-set-difference
-                      (eglot--keywordize-vars vars)
-                      (append (car (cdr interface))
-                              (cadr (cdr interface))))))
+                      (eglot--keywordize-vars dspec)
+                      (append required-keys optional-keys))))
                    (ignored-required
                     (and
                      (memq 'enforce-required-keys eglot-strict-mode)
                      (cl-set-difference
-                      (car (cdr interface))
-                      (eglot--keywordize-vars vars))))
+                      required-keys (eglot--keywordize-vars dspec))))
                    (missing-out
                     (and
                      (memq 'enforce-optional-keys eglot-strict-mode)
                      (cl-set-difference
-                      (cadr (cdr interface))
-                      (eglot--keywordize-vars vars)))))
+                      optional-keys (eglot--keywordize-vars dspec)))))
                (when too-many (byte-compile-warn
                                "Destructuring for %s has extraneous %s"
                                interface-name too-many))
@@ -361,7 +386,7 @@ on unknown notifications and errors on unknown requests.
              (byte-compile-warn "Unknown LSP interface %s" interface-name))))))
 
 (cl-defmacro eglot--dbind (vars object &body body)
-  "Destructure OBJECT of binding VARS in BODY.
+  "Destructure OBJECT, binding VARS in BODY.
 VARS is ([(INTERFACE)] SYMS...)
 Honour `eglot-strict-mode'."
   (declare (indent 2) (debug (sexp sexp &rest form)))
@@ -370,13 +395,14 @@ Honour `eglot-strict-mode'."
         (object-once (make-symbol "object-once"))
         (fn-once (make-symbol "fn-once")))
     (cond (interface-name
-           (eglot--check-interface interface-name vars)
+           (eglot--check-dspec interface-name vars)
            `(let ((,object-once ,object))
               (cl-destructuring-bind (&key ,@vars &allow-other-keys) ,object-once
-                (eglot--call-with-interface (assoc ',interface-name
-                                                   eglot--lsp-interface-alist)
-                                            ,object-once (lambda ()
-                                                           ,@body)))))
+                (eglot--check-object ',interface-name ,object-once
+                                     (memq 'enforce-required-keys eglot-strict-mode)
+                                     (memq 'disallow-non-standard-keys eglot-strict-mode)
+                                     (memq 'check-types eglot-strict-mode))
+                ,@body)))
           (t
            `(let ((,object-once ,object)
                   (,fn-once (lambda (,@vars) ,@body)))
@@ -409,20 +435,12 @@ treated as in `eglot-dbind'."
                                     (car (pop vars)))
            for condition =
            (cond (interface-name
-                  (eglot--check-interface interface-name vars)
+                  (eglot--check-dspec interface-name vars)
                   ;; In this mode, in runtime, we assume
                   ;; `eglot-strict-mode' is fully on, otherwise we
                   ;; can't disambiguate between certain types.
-                  `(let* ((interface
-                           (or (assoc ',interface-name eglot--lsp-interface-alist)
-                               (eglot--error "Unknown LSP interface %s"
-                                             ',interface-name)))
-                          (object-keys (eglot--plist-keys ,obj-once))
-                          (required-keys (car (cdr interface))))
-                     (and (null (cl-set-difference required-keys object-keys))
-                          (null (cl-set-difference
-                                 (cl-set-difference object-keys required-keys)
-                                 (cadr (cdr interface)))))))
+                  `(ignore-errors
+                     (eglot--check-object ',interface-name ,obj-once)))
                  (t
                   ;; In this interface-less mode we don't check
                   ;; `eglot-strict-mode' at all: just check that the object
@@ -435,7 +453,7 @@ treated as in `eglot-dbind'."
                          ,obj-once
                        ,@body)))
         (t
-         (eglot--error "%s didn't match any of %s"
+         (eglot--error "%S didn't match any of %S"
                        ,obj-once
                        ',(mapcar #'car clauses)))))))
 
@@ -2499,12 +2517,12 @@ echo area cleared of any previous documentation."
          (action (if (listp last-nonmenu-event)
                      (x-popup-menu last-nonmenu-event menu)
                    (cdr (assoc (completing-read "[eglot] Pick an action: " 
-						menu-items nil t
-						nil nil (car menu-items))
+                                                menu-items nil t
+                                                nil nil (car menu-items))
                                menu-items)))))
     (eglot--dcase action
-        (((Command) command arguments)
-         (eglot-execute-command server (intern command) arguments))
+      (((Command) command arguments)
+       (eglot-execute-command server (intern command) arguments))
       (((CodeAction) edit command)
        (when edit (eglot--apply-workspace-edit edit))
        (when command
