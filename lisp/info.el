@@ -4079,22 +4079,28 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     :help "Go to top node of file"]
    ["Final Node" Info-final-node
     :help "Go to final node in this file"]
+   "---"
    ("Menu Item" ["You should never see this" report-emacs-bug t])
    ("Reference" ["You should never see this" report-emacs-bug t])
    ["Search..." Info-search
     :help "Search for regular expression in this Info file"]
    ["Search Next" Info-search-next
     :help "Search for another occurrence of regular expression"]
-   ["Go to Node..." Info-goto-node
+   "---"
+   ("History"
+    ["Back in history" Info-history-back :active Info-history
+     :help "Go back in history to the last node you were at"]
+    ["Forward in history" Info-history-forward :active Info-history-forward
+     :help "Go forward in history"]
+    ["Show History" Info-history :active Info-history-list
+     :help "Go to menu of visited nodes"])
+   ("Go to"
+    ["Go to Node..." Info-goto-node
     :help "Go to a named node"]
-   ["Back in history" Info-history-back :active Info-history
-    :help "Go back in history to the last node you were at"]
-   ["Forward in history" Info-history-forward :active Info-history-forward
-    :help "Go forward in history"]
-   ["History" Info-history :active Info-history-list
-    :help "Go to menu of visited nodes"]
-   ["Table of Contents" Info-toc
-    :help "Go to table of contents"]
+    ["Table of Contents" Info-toc
+     :help "Go to table of contents"]
+    ["Go to Directory" Info-directory
+     :help "Go to the Info directory node."])
    ("Index"
     ["Lookup a String..." Info-index
      :help "Look for a string in the index items"]
@@ -4108,6 +4114,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     :help "Copy the name of the current node into the kill ring"]
    ["Clone Info buffer" clone-buffer
     :help "Create a twin copy of the current Info buffer."]
+   "---"
    ["Exit" quit-window :help "Stop reading Info"]))
 
 
@@ -4358,6 +4365,7 @@ Moving within a node:
 	  already visible, try to go to the previous menu entry, or up
 	  if there is none.
 \\[beginning-of-buffer]	Go to beginning of node.
+\\[end-of-buffer]	Go to end of node.
 
 Advanced commands:
 \\[Info-search]	Search through this Info file for specified regexp,
