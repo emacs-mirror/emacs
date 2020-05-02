@@ -472,15 +472,10 @@ used to cache connection properties of the local machine."
 	;; Dump it.
 	(with-temp-file tramp-persistency-file-name
 	  (insert
-	   ";; -*- lisp-data -*-"
-	   ;; `time-stamp-string' might not exist in all Emacs flavors.
-	   (condition-case nil
-	       (progn
-		 (format
-		  " <%s %s>\n"
-		  (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
-		  tramp-persistency-file-name))
-	     (error "\n"))
+	   ;; Starting with Emacs 28, we could use `lisp-data'.
+	   (format ";; -*- emacs-lisp -*- <%s %s>\n"
+		   (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
+		   tramp-persistency-file-name)
 	   ";; Tramp connection history.  Don't change this file.\n"
 	   ";; Run `M-x tramp-cleanup-all-connections' instead.\n\n"
 	   (with-output-to-string
