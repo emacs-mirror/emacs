@@ -2288,29 +2288,36 @@ Buffer is displayed with `display-buffer', which obeys
 Honours `eglot-put-doc-in-help-buffer'.  HINT is used to
 potentially rename EGLOT's help buffer.  If STRING is nil, the
 echo area cleared of any previous documentation."
-  (if (and string
-           (or (eq t eglot-put-doc-in-help-buffer)
-               (and eglot-put-doc-in-help-buffer
-                    (funcall eglot-put-doc-in-help-buffer string))))
-      (with-current-buffer (eglot--help-buffer)
-        (let ((inhibit-read-only t)
-              (name (format "*eglot-help for %s*" hint)))
-          (unless (string= name (buffer-name))
-            (rename-buffer (format "*eglot-help for %s*" hint))
-            (erase-buffer)
-            (insert string)
-            (goto-char (point-min)))
-          (if eglot-auto-display-help-buffer
-              (display-buffer (current-buffer))
-            (unless (get-buffer-window (current-buffer))
-              (eglot--message
-               "%s\n(...truncated. Full help is in `%s')"
-               (truncate-string-to-width
-                (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
-                (frame-width) nil nil "...")
-               (buffer-name eglot--help-buffer))))
-          (help-mode)))
-    (eldoc-message string)))
+  (cond ((and string
+              (or (eq t eglot-put-doc-in-help-buffer)
+                  (and eglot-put-doc-in-help-buffer
+                       (funcall eglot-put-doc-in-help-buffer string))))
+         (with-current-buffer (eglot--help-buffer)
+           (let ((inhibit-read-only t)
+                 (name (format "*eglot-help for %s*" hint)))
+             (unless (string= name (buffer-name))
+               (rename-buffer (format "*eglot-help for %s*" hint))
+               (erase-buffer)
+               (insert string)
+               (goto-char (point-min)))
+             (if eglot-auto-display-help-buffer
+                 (display-buffer (current-buffer))
+               (unless (get-buffer-window (current-buffer))
+                 (eglot--message
+                  "%s\n(...truncated. Full help is in `%s')"
+                  (truncate-string-to-width
+                   (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
+                   (frame-width) nil nil "...")
+                  (buffer-name eglot--help-buffer))))
+             (help-mode))))
+        (eldoc-echo-area-use-multiline-p
+         (eldoc-message string))
+        (t
+         (eldoc-message
+          (and string
+               (if (string-match "\n" string)
+                   (substring string (match-end 0))
+                 string))))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function."
