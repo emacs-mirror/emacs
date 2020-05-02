@@ -1099,8 +1099,21 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
     : emit_make_fixnum_MSB_TAG (obj);
 }
 
+static gcc_jit_lvalue *
+emit_lisp_obj_reloc_lval (Lisp_Object obj)
+{
+  emit_comment (format_string ("l-value for lisp obj: %s",
+			       SSDATA (Fprin1_to_string (obj, Qnil))));
+
+  imm_reloc_t reloc = obj_to_reloc (obj);
+  return gcc_jit_context_new_array_access (comp.ctxt,
+					   NULL,
+					   reloc.array,
+					   reloc.idx);
+}
+
 static gcc_jit_rvalue *
-emit_const_lisp_obj (Lisp_Object obj)
+emit_lisp_obj_rval (Lisp_Object obj)
 {
   emit_comment (format_string ("const lisp obj: %s",
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
@@ -1119,20 +1132,14 @@ emit_const_lisp_obj (Lisp_Object obj)
       return emit_coerce (comp.lisp_obj_type, n);
     }
 
-  imm_reloc_t reloc = obj_to_reloc (obj);
-  return
-    gcc_jit_lvalue_as_rvalue (
-      gcc_jit_context_new_array_access (comp.ctxt,
-					NULL,
-					reloc.array,
-					reloc.idx));
+  return gcc_jit_lvalue_as_rvalue (emit_lisp_obj_reloc_lval (obj));
 }
 
 static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
-  return emit_EQ (x, emit_const_lisp_obj (Qnil));
+  return emit_EQ (x, emit_lisp_obj_rval (Qnil));
 }
 
 static gcc_jit_rvalue *
@@ -1235,7 +1242,7 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
-      emit_const_lisp_obj (Qconsp),
+      emit_lisp_obj_rval (Qconsp),
       x };
 
   gcc_jit_block_add_eval (
@@ -1348,7 +1355,7 @@ emit_mvar_rval (Lisp_Object mvar)
 	  return emit_coerce (comp.lisp_obj_type, word);
 	}
       /* Other const objects are fetched from the reloc array.  */
-      return emit_const_lisp_obj (constant);
+      return emit_lisp_obj_rval (constant);
     }
 
   return gcc_jit_lvalue_as_rvalue (emit_mvar_lval (mvar));
@@ -1383,7 +1390,7 @@ emit_set_internal (Lisp_Object args)
   gcc_jit_rvalue *gcc_args[4];
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_rval (XCAR (args));
-  gcc_args[2] = emit_const_lisp_obj (Qnil);
+  gcc_args[2] = emit_lisp_obj_rval (Qnil);
   gcc_args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						     comp.int_type,
 						     SET_INTERNAL_SET);
@@ -2626,11 +2633,11 @@ define_CAR_CDR (void)
       comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil));
+				     emit_lisp_obj_rval (Qnil));
 
       comp.block = not_nil_b;
       gcc_jit_rvalue *wrong_type_args[] =
-	{ emit_const_lisp_obj (Qlistp), c };
+	{ emit_lisp_obj_rval (Qlistp), c };
 
       gcc_jit_block_add_eval (comp.block,
 			      NULL,
@@ -2639,7 +2646,7 @@ define_CAR_CDR (void)
 					 false));
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
-				     emit_const_lisp_obj (Qnil));
+				     emit_lisp_obj_rval (Qnil));
     }
   comp.car = func[0];
   comp.cdr = func[1];
@@ -3000,12 +3007,12 @@ define_bool_to_lisp_obj (void)
   comp.block = ret_t_block;
   gcc_jit_block_end_with_return (ret_t_block,
 				 NULL,
-				 emit_const_lisp_obj (Qt));
+				 emit_lisp_obj_rval (Qt));
 
   comp.block = ret_nil_block;
   gcc_jit_block_end_with_return (ret_nil_block,
 				 NULL,
-				 emit_const_lisp_obj (Qnil));
+				 emit_lisp_obj_rval (Qnil));
 }
 
 /* Declare a function being compiled and add it to comp.exported_funcs_h.  */
