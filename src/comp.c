@@ -373,7 +373,7 @@ declare_block (Lisp_Object block_name)
 }
 
 static gcc_jit_lvalue *
-emit_mvar_access (Lisp_Object mvar)
+emit_mvar_lval (Lisp_Object mvar)
 {
   Lisp_Object mvar_slot = CALL1I (comp-mvar-slot, mvar);
 
@@ -1351,7 +1351,7 @@ emit_mvar_rval (Lisp_Object mvar)
       return emit_const_lisp_obj (constant);
     }
 
-  return gcc_jit_lvalue_as_rvalue (emit_mvar_access (mvar));
+  return gcc_jit_lvalue_as_rvalue (emit_mvar_lval (mvar));
 }
 
 static void
@@ -1361,7 +1361,7 @@ emit_frame_assignment (Lisp_Object dst_mvar, gcc_jit_rvalue *val)
   gcc_jit_block_add_assignment (
     comp.block,
     NULL,
-    emit_mvar_access (dst_mvar),
+    emit_mvar_lval (dst_mvar),
     val);
 }
 
