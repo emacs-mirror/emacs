@@ -3583,15 +3583,15 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   Lisp_Object *saved_cu = dynlib_sym (handle, COMP_UNIT_SYM);
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
-  bool reloading_cu = !NILP (*saved_cu);
+  comp_u->loaded_once = !NILP (*saved_cu);
   Lisp_Object *data_eph_relocs =
     dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
   /* While resurrecting from an image dump loading more than once the
      same compilation unit does not make any sense.  */
-  eassert (!(loading_dump && reloading_cu));
+  eassert (!(loading_dump && comp_u->loaded_once));
 
-  if (reloading_cu)
+  if (comp_u->loaded_once)
     /* 'dlopen' returns the same handle when trying to load two times
        the same shared.  In this case touching 'd_reloc' etc leads to
        fails in case a frame with a reference to it in a live reg is
@@ -3612,13 +3612,17 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     = dynlib_sym (handle,
 		  late_load ? "late_top_level_run" : "top_level_run");
 
-  if (!reloading_cu)
+  /* Always set data_imp_relocs pointer in the compilation unit (in can be
+     used in 'dump_do_dump_relocation').  */
+  comp_u->data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+
+  if (!comp_u->loaded_once)
     {
       struct thread_state ***current_thread_reloc =
 	dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
       EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
       Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-      Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+      Lisp_Object *data_imp_relocs = comp_u->data_imp_relocs;
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
 
       if (!(current_thread_reloc
@@ -3704,15 +3708,13 @@ native_function_doc (Lisp_Object function)
   return AREF (cu->data_fdoc_v, XSUBR (function)->doc);
 }
 
-DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
-       7, 7, 0,
-       doc: /* This gets called by top_level_run during load phase to register
-	       each exported subr.  */)
-  (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
-   Lisp_Object comp_u)
+static Lisp_Object
+make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
+	   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
+	   Lisp_Object comp_u)
 {
-  dynlib_handle_ptr handle = XNATIVE_COMP_UNIT (comp_u)->handle;
+  struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (comp_u);
+  dynlib_handle_ptr handle = cu->handle;
   if (!handle)
     xsignal0 (Qwrong_register_subr_call);
 
@@ -3727,18 +3729,63 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
   x->s.function.a0 = func;
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
-  x->s.symbol_name = xstrdup (SSDATA (Fsymbol_name (name)));
+  x->s.symbol_name = xstrdup (SSDATA (symbol_name));
   x->s.native_intspec = intspec;
   x->s.doc = XFIXNUM (doc_idx);
   x->s.native_comp_u[0] = comp_u;
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
+
+  return tem;
+}
+
+DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
+       7, 7, 0,
+       doc: /* This gets called by top_level_run during load phase to register
+	       anonymous lambdas.  */)
+  (Lisp_Object reloc_idx, Lisp_Object minarg, Lisp_Object maxarg,
+   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
+   Lisp_Object comp_u)
+{
+  struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (comp_u);
+  if (cu->loaded_once)
+    return Qnil;
+
+  Lisp_Object tem =
+    make_subr (c_name, minarg, maxarg, c_name, doc_idx, intspec, comp_u);
+
+  /* We must protect it against GC because the function is not
+     reachable through symbols.  */
+  Fputhash (tem, Qt, cu->lambda_gc_guard);
+  /* This is for fixing up the value in d_reloc while resurrecting
+     from dump.  See 'dump_do_dump_relocation'.  */
+  Fputhash (c_name, reloc_idx, cu->lambda_c_name_idx_h);
+  /* The key is not really important as long is the same as
+     symbol_name so use c_name.  */
+  Fputhash (Fintern (c_name, Qnil), c_name, Vcomp_sym_subr_c_name_h);
+  /* Do the real relocation fixup.  */
+  cu->data_imp_relocs[XFIXNUM (reloc_idx)] = tem;
+
+  return tem;
+}
+
+DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
+       7, 7, 0,
+       doc: /* This gets called by top_level_run during load phase to register
+	       each exported subr.  */)
+  (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
+   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
+   Lisp_Object comp_u)
+{
+  Lisp_Object tem =
+    make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, doc_idx, intspec,
+	       comp_u);
+
   set_symbol_function (name, tem);
-
-  Fputhash (name, c_name, Vcomp_sym_subr_c_name_h);
   LOADHIST_ATTACH (Fcons (Qdefun, name));
+  Fputhash (name, c_name, Vcomp_sym_subr_c_name_h);
 
-  return Qnil;
+  return tem;
 }
 
 DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
@@ -3759,8 +3806,8 @@ DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILE.
-	     LATE_LOAD has to be non nil when loading for deferred
-	     compilation.  */)
+	       LATE_LOAD has to be non nil when loading for deferred
+	       compilation.  */)
   (Lisp_Object file, Lisp_Object late_load)
 {
   CHECK_STRING (file);
@@ -3773,6 +3820,8 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
   comp_u->file = file;
   comp_u->data_vec = Qnil;
+  comp_u->lambda_gc_guard = CALLN (Fmake_hash_table, QCtest, Qeq);
+  comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
   load_comp_unit (comp_u, false, !NILP (late_load));
 
   return Qt;
@@ -3886,6 +3935,7 @@ syms_of_comp (void)
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
+  defsubr (&Scomp__register_lambda);
   defsubr (&Scomp__register_subr);
   defsubr (&Scomp__late_register_subr);
   defsubr (&Snative_elisp_load);

@@ -37,13 +37,21 @@ struct Lisp_Native_Comp_Unit
   /* Original eln file loaded. */
   Lisp_Object file;
   Lisp_Object optimize_qualities;
-  /* Hash doc-idx -> function documentaiton. */
+  /* Guard anonymous lambdas against Garbage Collection and make them
+     dumpable.  */
+  Lisp_Object lambda_gc_guard;
+  /* Hash c_name -> d_reloc_imp index.  */
+  Lisp_Object lambda_c_name_idx_h;
+  /* Hash doc-idx -> function documentaiton.  */
   Lisp_Object data_fdoc_v;
   /* Analogous to the constant vector but per compilation unit.  */
   Lisp_Object data_vec;
-  /* Same but for data that cannot be moved to pure space.
-     Must be the last lisp object here.   */
+  /* 'data_impure_vec' must be last (see allocate_native_comp_unit).
+     Same as data_vec but for data that cannot be moved to pure space.  */
   Lisp_Object data_impure_vec;
+  /* STUFFS WE DO NOT DUMP!!  */
+  Lisp_Object *data_imp_relocs;
+  bool loaded_once;
   dynlib_handle_ptr handle;
 };
 

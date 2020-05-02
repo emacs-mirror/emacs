@@ -5297,7 +5297,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	static enum { UNKNOWN, LOCAL_BUILD, INSTALLED } installation_state;
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
-
+	comp_u->lambda_gc_guard = CALLN (Fmake_hash_table, QCtest, Qeq);
 	if (!CONSP (comp_u->file))
 	  error ("Trying to load incoherent dumped .eln");
 
@@ -5320,6 +5320,10 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       }
     case RELOC_NATIVE_SUBR:
       {
+	/* When resurrecting from a dump given non all the original
+	   native compiled subrs may be still around we can't rely on
+	   a 'top_level_run' mechanism, we revive them one-by-one
+	   here.  */
 	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);
 	Lisp_Object name = intern (subr->symbol_name);
 	struct Lisp_Native_Comp_Unit *comp_u =
@@ -5333,6 +5337,18 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!func)
 	  error ("can't find function in compilation unit");
 	subr->function.a0 = func;
+	Lisp_Object lambda_data_idx =
+	  Fgethash (c_name, comp_u->lambda_c_name_idx_h, Qnil);
+	if (!NILP (lambda_data_idx))
+	  {
+	    /* This is an anonymous lambda.
+	       We must fixup data_vec so the lambda can be referenced
+	       by code.  */
+	    Lisp_Object tem;
+	    XSETSUBR (tem, subr);
+	    comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)] = tem;
+	    Fputhash (tem, Qnil, comp_u->lambda_gc_guard);
+	  }
 	break;
       }
 #endif

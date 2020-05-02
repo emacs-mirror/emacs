@@ -230,9 +230,11 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
   (sym-to-c-name-h (make-hash-table :test #'eq) :type hash-table
                    :documentation "symbol-function -> c-name.
 This is only for optimizing intra CU calls at speed 3.")
-  (byte-func-to-func-h (make-hash-table :test #'eq) :type hash-table
+  (byte-func-to-func-h (make-hash-table :test #'equal) :type hash-table
                      :documentation "byte-function -> comp-func.
 Needed to replace immediate byte-compiled lambdas with the compiled reference.")
+  (lambda-fixups-h (make-hash-table :test #'equal) :type hash-table
+                   :documentation  "Hash table byte-func -> mvar to fixup.")
   (function-docs (make-hash-table :test #'eql) :type (or hash-table vector)
                :documentation "Documentation index -> documentation")
   (d-default (make-comp-data-container) :type comp-data-container
@@ -1276,6 +1278,36 @@ the annotation emission."
                               (make-comp-mvar :constant form))
                             (make-comp-mvar :constant t))))))
 
+(defun comp-emit-lambda-for-top-level (func)
+  "Emit the creation of subrs for lambda FUNC.
+These are stored in the reloc data array."
+  (let ((args (comp-func-args func)))
+    (let ((comp-curr-allocation-class 'd-impure))
+      (comp-add-const-to-relocs (comp-func-byte-func func)))
+    (comp-emit
+     (comp-call 'comp--register-lambda
+                ;; mvar to be fixed-up when containers are
+                ;; finalized.
+                (or (gethash (comp-func-byte-func func)
+                             (comp-ctxt-lambda-fixups-h comp-ctxt))
+                    (puthash (comp-func-byte-func func)
+                             (make-comp-mvar :constant nil)
+                             (comp-ctxt-lambda-fixups-h comp-ctxt)))
+                (make-comp-mvar :constant (comp-args-base-min args))
+                (make-comp-mvar :constant (if (comp-args-p args)
+                                              (comp-args-max args)
+                                            'many))
+                (make-comp-mvar :constant (comp-func-c-name func))
+                (make-comp-mvar
+                 :constant (let* ((h (comp-ctxt-function-docs comp-ctxt))
+                                  (i (hash-table-count h)))
+                             (puthash i (comp-func-doc func) h)
+                             i))
+                (make-comp-mvar :constant (comp-func-int-spec func))
+                ;; This is the compilation unit it-self passed as
+                ;; parameter.
+                (make-comp-mvar :slot 0)))))
+
 (defun comp-limplify-top-level (for-late-load)
   "Create a limple function to modify the global environment at load.
 When FOR-LATE-LOAD is non nil the emitted function modifies only
@@ -2143,6 +2175,12 @@ Update all insn accordingly."
          (d-impure-idx (comp-data-container-idx d-impure))
          (d-ephemeral (comp-ctxt-d-ephemeral comp-ctxt))
          (d-ephemeral-idx (comp-data-container-idx d-ephemeral)))
+    ;; We never want compiled lambdas ending up in pure space.  A copy must
+    ;; be already present in impure (see `comp-emit-lambda-for-top-level').
+    (cl-loop for obj being each hash-keys of d-default-idx
+             when (gethash obj (comp-ctxt-lambda-fixups-h comp-ctxt))
+               do (cl-assert (gethash obj d-impure-idx))
+                  (remhash obj d-default-idx))
     ;; Remove entries in d-impure already present in d-default.
     (cl-loop for obj being each hash-keys of d-impure-idx
              when (gethash obj d-default-idx)
@@ -2162,7 +2200,20 @@ Update all insn accordingly."
              for doc = (gethash idx h)
              do (setf (aref v idx) doc)
              finally
-             do (setf (comp-ctxt-function-docs comp-ctxt) v))))
+             do (setf (comp-ctxt-function-docs comp-ctxt) v))
+    ;; And now we conclude with the following: We need to pass to
+    ;; `comp--register-lambda' the index in the impure relocation
+    ;; array to store revived lambdas, but given we know it only now
+    ;; we fix it up as last.
+    (cl-loop for f being each hash-keys of (comp-ctxt-lambda-fixups-h comp-ctxt)
+             using (hash-value mvar)
+             with reverse-h = (make-hash-table) ;; Make sure idx is unique.
+             for idx = (gethash f d-impure-idx)
+             do
+             (cl-assert (null (gethash idx reverse-h)))
+             (cl-assert (fixnump idx))
+             (setf (comp-mvar-constant mvar) idx)
+             (puthash idx t reverse-h))))
 
 (defun comp-compile-ctxt-to-file (name)
   "Compile as native code the current context naming it NAME.
