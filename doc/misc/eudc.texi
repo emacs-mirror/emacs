@@ -83,6 +83,8 @@ Currently supported back-ends are:
 LDAP, Lightweight Directory Access Protocol
 @item
 BBDB, Big Brother's Insidious Database
+@item
+macOS Contacts
 @end itemize
 
 The main features of the EUDC interface are:
@@ -107,6 +109,7 @@ Interface to BBDB to let you insert server records into your own BBDB database
 @menu
 * LDAP::                        What is LDAP ?
 * BBDB::                        What is BBDB ?
+* macOS Contacts::              What is macOS Contacts ?
 @end menu
 
 
@@ -159,6 +162,21 @@ queries on multiple servers.
 EUDC also offers a means to insert results from directory queries into
 your own local BBDB (@pxref{Creating BBDB Records})
 
+
+@node macOS Contacts
+@section macOS Contacts
+
+macOS Contacts is the rolodex-like application that ships with the
+macOS operating system@footnote{Apple have changed the names of their
+operating system and some applications over time.  macOS used to be
+called Mac OS X in the past, and the Contacts application was
+previously called Address Book.}.
+
+EUDC considers macOS Contacts as a directory server back end just like
+LDAP, though the macOS Contacts application always resides locally on
+your machine.
+
+
 @node Installation
 @chapter Installation
 
@@ -185,6 +203,7 @@ email composition buffers (@pxref{Inline Query Expansion})
 
 @menu
 * LDAP Configuration::           EUDC needs external support for LDAP
+* macOS Contacts Configuration:: Enable the macOS Contacts backend
 @end menu
 
 @node LDAP Configuration
@@ -378,6 +397,39 @@ ldap-search-internal: Failed ldapsearch invocation:
 The @command{ldapsearch} command is formatted such that it can be
 copied and pasted into a terminal.  Set the @command{ldapsearch} debug
 level to 5 by appending @code{-d 5} to the command line.
+
+
+@node macOS Contacts Configuration
+@section macOS Contacts Configuration
+
+macOS Contacts support is added by means of @file{eudcb-mab.el}, or
+@file{eudcb-macos-contacts.el} which are part of Emacs.
+
+To enable a macOS Contacts backend, first `require' the respective
+library to load it, and then set the `eudc-server' to localhost in
+your init file:
+@lisp
+(require 'eudcb-macos-contacts)
+(eudc-macos-contacts-set-server "localhost")
+@end lisp
+
+@file{eudcb-macos-contacts.el} uses the public scripting interfaces
+offered by the Contacts app via the macOS Open Scripting Architecture
+(OSA).  To accomplish this, @file{eudcb-macos-contacts.el} uses an
+external command line utility named osascript, which is included with
+all macOS versions since 10.0 (which was released 2001).
+@file{eudcb-macos-contacts.el} is hence recommended for all new
+configurations.
+
+@file{eudcb-mab.el} reverse engineers the format of the database file
+used by the macOS Contacts app, and accesses its contents directly.
+While this may promise some performance advantages, it comes at the
+cost of using an undocumented interface.  Hence, users of
+@file{eudcb-mab.el} are recommended to double check the compatibility
+of @file{eudcb-mab.el} before upgrading to a new version of macOS.
+@file{eudcb-mab.el} is retained for backwards compatibility with
+existing configurations, and may be removed in a future release.
+
 
 @node Usage
 @chapter Usage
