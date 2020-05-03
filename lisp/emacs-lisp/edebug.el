@@ -2755,7 +2755,6 @@ See `edebug-behavior-alist' for implementations.")
 	      (edebug-stop))
 
 	    (edebug-overlay-arrow)
-            (edebug--overlay-breakpoints edebug-function)
 
             (unwind-protect
                 (if (or edebug-stop
@@ -3230,45 +3229,7 @@ the breakpoint."
 
 	  (setcar (cdr edebug-data) edebug-breakpoints)
 	  (goto-char position)
-          (edebug--overlay-breakpoints edebug-def-name)))))
-
-(define-fringe-bitmap 'edebug-breakpoint
-  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
-
-(defun edebug--overlay-breakpoints (function)
-  (let* ((data (get function 'edebug))
-         (start (nth 0 data))
-         (breakpoints (nth 1 data))
-         (offsets (nth 2 data)))
-    ;; First remove all old breakpoint overlays.
-    (edebug--overlay-breakpoints-remove
-     start (+ start (aref offsets (1- (length offsets)))))
-    ;; Then make overlays for the breakpoints (but only when we are in
-    ;; edebug mode).
-    (when edebug-active
-      (dolist (breakpoint breakpoints)
-        (let* ((pos (+ start (aref offsets (car breakpoint))))
-               (overlay (make-overlay pos (1+ pos)))
-               (face (if (nth 4 breakpoint)
-                         (progn
-                           (overlay-put overlay
-                                        'help-echo "Disabled breakpoint")
-                           (overlay-put overlay
-                                        'face 'edebug-disabled-breakpoint))
-                       (overlay-put overlay 'help-echo "Breakpoint")
-                       (overlay-put overlay 'face 'edebug-enabled-breakpoint))))
-          (overlay-put overlay 'edebug t)
-          (let ((fringe (make-overlay pos pos)))
-            (overlay-put fringe 'edebug t)
-            (overlay-put fringe 'before-string
-                         (propertize
-                          "x" 'display
-                          `(left-fringe edebug-breakpoint ,face)))))))))
-
-(defun edebug--overlay-breakpoints-remove (start end)
-  (dolist (overlay (overlays-in start end))
-    (when (overlay-get overlay 'edebug)
-      (delete-overlay overlay))))
+	  ))))
 
 (defun edebug-set-breakpoint (arg)
   "Set the breakpoint of nearest sexp.
