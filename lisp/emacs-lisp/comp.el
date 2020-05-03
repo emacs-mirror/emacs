@@ -576,6 +576,41 @@ Put PREFIX in front of it."
         (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
         (comp-add-func-to-ctxt func))))
 
+(defun comp-intern-func-in-ctxt (_ obj)
+  "Given OBJ of type `byte-to-native-lambda' create a function in `comp-ctxt'."
+  (when-let ((byte-func (byte-to-native-lambda-byte-func obj)))
+    (let* ((byte-func (byte-to-native-lambda-byte-func obj))
+           (lap (byte-to-native-lambda-lap obj))
+           (top-l-form (cl-loop
+                        for form in (comp-ctxt-top-level-forms comp-ctxt)
+                        when (and (byte-to-native-func-def-p form)
+                                  (eq (byte-to-native-func-def-byte-func form)
+                                      byte-func))
+                        return form))
+           (name (when top-l-form
+                   (byte-to-native-func-def-name top-l-form)))
+           (c-name (comp-c-func-name (or name "anonymous-lambda") "F"))
+           (func (make-comp-func :name name
+                                 :byte-func byte-func
+                                 :doc (documentation byte-func)
+                                 :int-spec (interactive-form byte-func)
+                                 :c-name c-name
+                                 :args (comp-decrypt-arg-list (aref byte-func 0)
+                                                              name)
+                                 :lap lap
+                                 :frame-size (comp-byte-frame-size byte-func))))
+      ;; Store the c-name to have it retrivable from
+      ;; `comp-ctxt-top-level-forms'.
+      (when top-l-form
+        (setf (byte-to-native-func-def-c-name top-l-form) c-name))
+      (unless name
+        (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt)))
+      ;; Create the default array.
+      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
+      (comp-add-func-to-ctxt func)
+      (comp-log (format "Function %s:\n" name) 1)
+      (comp-log lap 1))))
+
 (cl-defgeneric comp-spill-lap-function ((filename string))
   "Byte compile FILENAME spilling data from the byte compiler."
   (byte-compile-file filename)
@@ -583,41 +618,7 @@ Put PREFIX in front of it."
     (signal 'native-compiler-error-empty-byte filename))
   (setf (comp-ctxt-top-level-forms comp-ctxt)
         (reverse byte-to-native-top-level-forms))
-  (cl-loop
-   for x being each hash-value of byte-to-native-lambdas-h
-   for byte-func = (byte-to-native-lambda-byte-func x)
-   for lap = (byte-to-native-lambda-lap x)
-   for top-l-form = (cl-loop
-                     for form in (comp-ctxt-top-level-forms comp-ctxt)
-                     when (and (byte-to-native-func-def-p form)
-                               (eq (byte-to-native-func-def-byte-func form)
-                                   byte-func))
-                       return form)
-   for name = (when top-l-form
-                (byte-to-native-func-def-name top-l-form))
-   for c-name = (comp-c-func-name (or name "anonymous-lambda")
-                                  "F")
-   for func = (make-comp-func :name name
-                              :byte-func byte-func
-                              :doc (documentation byte-func)
-                              :int-spec (interactive-form byte-func)
-                              :c-name c-name
-                              :args (comp-decrypt-arg-list (aref byte-func 0)
-                                                           name)
-                              :lap lap
-                              :frame-size (comp-byte-frame-size byte-func))
-   ;; Store the c-name to have it retrivable from
-   ;; comp-ctxt-top-level-forms.
-   when top-l-form
-     do (setf (byte-to-native-func-def-c-name top-l-form) c-name)
-   unless name
-     do (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt))
-   do
-   ;; Create the default array.
-   (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
-   (comp-add-func-to-ctxt func)
-   (comp-log (format "Function %s:\n" name) 1)
-   (comp-log lap 1)))
+  (maphash #'comp-intern-func-in-ctxt byte-to-native-lambdas-h))
 
 (defun comp-spill-lap (input)
   "Byte compile and spill the LAP representation for INPUT.
