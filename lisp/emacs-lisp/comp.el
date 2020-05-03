@@ -2344,7 +2344,16 @@ queued with LOAD %"
                      file load (cdr entry))
         ;; Make sure we are not already compiling `file' (bug#40838).
         (unless (gethash file comp-async-compilations)
-          (setf comp-files-queue (append comp-files-queue `((,file . ,load)))))))
+          (let ((out-dir (comp-output-directory file))
+                (out-filename (comp-output-filename file)))
+            (if (or (file-writable-p out-filename)
+                    (and (not (file-exists-p out-dir))
+                         (file-writable-p (substring out-dir 0 -1))))
+                (setf comp-files-queue
+                      (append comp-files-queue `((,file . ,load))))
+              (display-warning 'comp
+                               (format "No write access for %s skipping."
+                                       out-filename)))))))
     (when (zerop (comp-async-runnings))
       (comp-run-async-workers)
       (message "Compilation started."))))
