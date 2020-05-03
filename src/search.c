@@ -353,8 +353,8 @@ data if you want to preserve them.  */)
 }
 
 DEFUN ("posix-looking-at", Fposix_looking_at, Sposix_looking_at, 1, 1, 0,
-       doc: /* Return t if text after point matches regular expression REGEXP.
-Find the longest match, in accord with Posix regular expression rules.
+       doc: /* Return t if text after point matches REGEXP according to Posix rules.
+Find the longest match, in accordance with Posix regular expression rules.
 This function modifies the match data that `match-beginning',
 `match-end' and `match-data' access; save and restore the match
 data if you want to preserve them.  */)
@@ -449,7 +449,7 @@ matched by the parenthesis constructions in REGEXP. */)
 }
 
 DEFUN ("posix-string-match", Fposix_string_match, Sposix_string_match, 2, 3, 0,
-       doc: /* Return index of start of first match for REGEXP in STRING, or nil.
+       doc: /* Return index of start of first match for Posix REGEXP in STRING, or nil.
 Find the longest match, in accord with Posix regular expression rules.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 If third arg START is non-nil, start search at that index in STRING.
@@ -2276,7 +2276,7 @@ and `replace-match'.  */)
 
 DEFUN ("posix-search-backward", Fposix_search_backward, Sposix_search_backward, 1, 4,
        "sPosix search backward: ",
-       doc: /* Search backward from point for match for regular expression REGEXP.
+       doc: /* Search backward from point for match for REGEXP according to Posix rules.
 Find the longest match in accord with Posix regular expression rules.
 Set point to the beginning of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
@@ -2304,7 +2304,7 @@ and `replace-match'.  */)
 
 DEFUN ("posix-search-forward", Fposix_search_forward, Sposix_search_forward, 1, 4,
        "sPosix search: ",
-       doc: /* Search forward from point for regular expression REGEXP.
+       doc: /* Search forward from point for REGEXP according to Posix rules.
 Find the longest match in accord with Posix regular expression rules.
 Set point to the end of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
