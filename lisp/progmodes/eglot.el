@@ -1238,7 +1238,10 @@ and just return it.  PROMPT shouldn't end with a question mark."
 
 ;;; Minor modes
 ;;;
-(defvar eglot-mode-map (make-sparse-keymap))
+(defvar eglot-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap display-local-help] 'eglot-help-at-point)
+    map))
 
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
@@ -2247,19 +2250,20 @@ is not active."
       (setq eglot--help-buffer (generate-new-buffer "*eglot-help*"))))
 
 (defun eglot-help-at-point ()
-  "Request \"hover\" information for the thing at point."
+  "Request documentation for the thing at point."
   (interactive)
   (eglot--dbind ((Hover) contents range)
       (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
                        (eglot--TextDocumentPositionParams))
-    (when (seq-empty-p contents) (eglot--error "No hover info here"))
-    (let ((blurb (eglot--hover-info contents range))
-          (sym (thing-at-point 'symbol)))
-      (with-current-buffer (eglot--help-buffer)
-        (with-help-window (current-buffer)
-          (rename-buffer (format "*eglot-help for %s*" sym))
-          (with-current-buffer standard-output (insert blurb))
-          (setq-local nobreak-char-display nil))))))
+    (if (seq-empty-p contents)
+        (display-local-help)
+      (let ((blurb (eglot--hover-info contents range))
+            (sym (thing-at-point 'symbol)))
+        (with-current-buffer (eglot--help-buffer)
+          (with-help-window (current-buffer)
+            (rename-buffer (format "*eglot-help for %s*" sym))
+            (with-current-buffer standard-output (insert blurb))
+            (setq-local nobreak-char-display nil)))))))
 
 (defun eglot-doc-too-large-for-echo-area (string)
   "Return non-nil if STRING won't fit in echo area.
