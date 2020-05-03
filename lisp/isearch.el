@@ -3866,10 +3866,9 @@ Attempt to do the search exactly the way the pending Isearch would."
 	    (isearch-regexp-lax-whitespace
 	     isearch-lazy-highlight-regexp-lax-whitespace)
 	    (isearch-forward isearch-lazy-highlight-forward)
-	    ;; Don't match invisible text unless it can be opened
-	    ;; or when counting matches and user can visit hidden matches
-	    (search-invisible (or (eq search-invisible 'open)
-				  (and isearch-lazy-count search-invisible)))
+	    ;; Match invisible text only when counting matches
+	    ;; and user can visit invisible matches
+	    (search-invisible (and isearch-lazy-count search-invisible t))
 	    (retry t)
 	    (success nil))
 	;; Use a loop like in `isearch-search'.
