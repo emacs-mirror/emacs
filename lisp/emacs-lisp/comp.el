@@ -443,13 +443,19 @@ VERBOSITY is a number between 0 and 3."
                       2))
           edges)))
 
+(defun comp-output-directory (src)
+  "Return the compilation direcotry for source SRC."
+  (let* ((src (if (symbolp src) (symbol-name src) src))
+         (expanded-filename (expand-file-name src)))
+    (file-name-as-directory
+     (concat (file-name-directory expanded-filename)
+             comp-native-path-postfix))))
+
 (defun comp-output-base-filename (src)
   "Output filename sans extention for SRC file being native compiled."
   (let* ((src (if (symbolp src) (symbol-name src) src))
          (expanded-filename (expand-file-name src))
-         (output-dir (file-name-as-directory
-                      (concat (file-name-directory expanded-filename)
-                              comp-native-path-postfix)))
+         (output-dir (comp-output-directory src))
          (output-filename
           (file-name-sans-extension
            (file-name-nondirectory expanded-filename))))
