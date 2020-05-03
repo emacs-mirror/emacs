@@ -2274,10 +2274,11 @@ Respects `max-mini-window-height' (which see)."
 (defcustom eglot-put-doc-in-help-buffer
   #'eglot-doc-too-large-for-echo-area
   "If non-nil, put \"hover\" documentation in separate `*eglot-help*' buffer.
-If nil, use whatever `eldoc-message-function' decides (usually
-the echo area).  If t, use `*eglot-help*' unconditionally.  If a
-function, it is called with the docstring to display and should a
-boolean producing one of the two previous values."
+If nil, use whatever `eldoc-message-function' decides, honouring
+`eldoc-echo-area-use-multiline-p'.  If t, use `*eglot-help*'
+unconditionally.  If a function, it is called with the docstring
+to display and should a boolean producing one of the two previous
+values."
   :type '(choice (const :tag "Never use `*eglot-help*'" nil)
                  (const :tag "Always use `*eglot-help*'" t)
                  (function :tag "Ask a function")))
@@ -2288,15 +2289,22 @@ Buffer is displayed with `display-buffer', which obeys
 `display-buffer-alist' & friends."
   :type 'boolean)
 
+(defun eglot--first-line-of-doc (string)
+  (truncate-string-to-width
+   (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
+   (frame-width) nil nil "..."))
+
 (defun eglot--update-doc (string hint)
   "Put updated documentation STRING where it belongs.
-Honours `eglot-put-doc-in-help-buffer'.  HINT is used to
-potentially rename EGLOT's help buffer.  If STRING is nil, the
-echo area cleared of any previous documentation."
-  (cond ((and string
-              (or (eq t eglot-put-doc-in-help-buffer)
-                  (and eglot-put-doc-in-help-buffer
-                       (funcall eglot-put-doc-in-help-buffer string))))
+HINT is used to potentially rename EGLOT's help buffer.  If
+STRING is nil, the echo area cleared of any previous
+documentation.  Honour `eglot-put-doc-in-help-buffer',
+`eglot-auto-display-help-buffer' and
+`eldoc-echo-area-use-multiline-p'."
+  (cond ((null string) (eldoc-message nil))
+        ((or (eq t eglot-put-doc-in-help-buffer)
+             (and eglot-put-doc-in-help-buffer
+                  (funcall eglot-put-doc-in-help-buffer string)))
          (with-current-buffer (eglot--help-buffer)
            (let ((inhibit-read-only t)
                  (name (format "*eglot-help for %s*" hint)))
@@ -2310,19 +2318,14 @@ echo area cleared of any previous documentation."
                (unless (get-buffer-window (current-buffer))
                  (eglot--message
                   "%s\n(...truncated. Full help is in `%s')"
-                  (truncate-string-to-width
-                   (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
-                   (frame-width) nil nil "...")
+                  (eglot--first-line-of-doc string)
                   (buffer-name eglot--help-buffer))))
              (help-mode))))
         (eldoc-echo-area-use-multiline-p
+         ;; Can't really honour non-t non-nil values if this var
          (eldoc-message string))
         (t
-         (eldoc-message
-          (and string
-               (if (string-match "\n" string)
-                   (substring string (match-end 0))
-                 string))))))
+         (eldoc-message (eglot--first-line-of-doc string)))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function."
