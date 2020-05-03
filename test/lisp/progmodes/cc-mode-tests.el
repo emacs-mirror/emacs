@@ -78,4 +78,25 @@
       (insert macro-string)
       (c-mode))))
 
+(ert-deftest c-lineup-ternary-bodies ()
+  "Test for c-lineup-ternary-bodies function"
+  (with-temp-buffer
+    (c-mode)
+    (let* ((common-prefix "int value = condition ")
+           (expected-column (length common-prefix)))
+      (dolist (test '(("? a : \n b" . nil)
+                      ("? a \n ::b" . nil)
+                      ("a \n : b" . nil)
+                      ("? a \n : b" . t)
+                      ("? ::a \n : b" . t)
+                      ("? (p ? q : r) \n : b" . t)
+                      ("? p ?: q \n : b" . t)
+                      ("? p ? : q \n : b" . t)
+                      ("? p ? q : r \n : b" . t)))
+        (delete-region (point-min) (point-max))
+        (insert common-prefix (car test))
+        (should (equal
+                 (and (cdr test) (vector expected-column))
+                 (c-lineup-ternary-bodies '(statement-cont . 1))))))))
+
 ;;; cc-mode-tests.el ends here

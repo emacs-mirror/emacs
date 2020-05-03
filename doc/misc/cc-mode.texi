@@ -6395,6 +6395,26 @@ function is the same as specifying a list @code{(c-lineup-assignments
 
 @comment ------------------------------------------------------------
 
+@defun c-lineup-ternary-bodies
+@findex lineup-ternary-bodies @r{(c-)}
+Line up true and false branches of a ternary operator
+(i.e. @code{?:}).  More precisely, if the line starts with a colon
+which is a part of a said operator it with corresponding question
+mark.  For example:
+
+@example
+@group
+return arg % 2 == 0 ? arg / 2
+                    : (3 * arg + 1);    @hereFn{c-lineup-ternary-bodies}
+@end group
+@end example
+
+@workswith @code{arglist-cont}, @code{arglist-cont-nonempty} and
+@code{statement-cont}.
+@end defun
+
+@comment ------------------------------------------------------------
+
 @defun c-lineup-cascaded-calls
 @findex lineup-cascaded-calls @r{(c-)}
 Line up ``cascaded calls'' under each other.  If the line begins with

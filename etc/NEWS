@@ -305,6 +305,23 @@ use ‘doxygen’ by default one might evaluate:
 
 or use it in a custom ‘c-style’.
 
+*** Added support to line up ‘?’ and ‘:’ of a ternary operator.
+The new ‘c-lineup-ternary-bodies’ function can be used as a lineup
+function to align question mark and colon which are part of a ternary
+operator (‘?:’).  For example:
+
+    return arg % 2 == 0 ? arg / 2
+                        : (3 * arg + 1);
+
+To enable, add it to appropriate entries in ‘c-offsets-alist’, e.g.:
+
+    (c-set-offset 'arglist-cont '(c-lineup-ternary-bodies
+                                  c-lineup-gcc-asm-reg))
+    (c-set-offset 'arglist-cont-nonempty '(c-lineup-ternary-bodies
+                                           c-lineup-gcc-asm-reg
+                                           c-lineup-arglist))
+    (c-set-offset 'statement-cont '(c-lineup-ternary-bodies +))
+
 ** browse-url
 
 *** Added support for custom URL handlers
