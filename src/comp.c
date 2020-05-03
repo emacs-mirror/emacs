@@ -1338,11 +1338,23 @@ emit_mvar_rval (Lisp_Object mvar)
 
   if (!NILP (const_vld))
     {
+      if (COMP_DEBUG > 1)
+	{
+	  Lisp_Object func =
+	    Fgethash (constant,
+		      CALL1I (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
+		      Qnil);
+
+	  emit_comment (
+	    SSDATA (
+	      Fprin1_to_string (
+		NILP (func) ? constant : CALL1I (comp-func-c-name, func),
+		Qnil)));
+	}
       if (FIXNUMP (constant))
 	{
 	  /* We can still emit directly objects that are self-contained in a
 	     word (read fixnums).  */
-	  emit_comment (SSDATA (Fprin1_to_string (constant, Qnil)));
 	  gcc_jit_rvalue *word;
 #ifdef WIDE_EMACS_INT
 	  word = emit_rvalue_from_long_long (constant);
