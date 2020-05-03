@@ -139,23 +139,29 @@ Return DEFAULT if not set."
 	(tramp-run-real-handler #'directory-file-name (list file))
 	(tramp-file-name-hop key) nil)
   (let* ((hash (tramp-get-hash-table key))
-	 (value (when (hash-table-p hash) (gethash property hash))))
-    (if ;; We take the value only if there is any, and
-	;; `remote-file-name-inhibit-cache' indicates that it is still
-	;; valid.  Otherwise, DEFAULT is set.
-	(and (consp value)
+	 (cached (and (hash-table-p hash) (gethash property hash)))
+	 (cached-at (and (consp cached) (format-time-string "%T" (car cached))))
+	 (value default)
+	 use-cache)
+
+    (when ;; We take the value only if there is any, and
+	  ;; `remote-file-name-inhibit-cache' indicates that it is
+	  ;; still valid.  Otherwise, DEFAULT is set.
+	(and (consp cached)
 	     (or (null remote-file-name-inhibit-cache)
 		 (and (integerp remote-file-name-inhibit-cache)
 		      (time-less-p
 		       nil
-		       (time-add (car value) remote-file-name-inhibit-cache)))
+		       (time-add (car cached) remote-file-name-inhibit-cache)))
 		 (and (consp remote-file-name-inhibit-cache)
 		      (time-less-p
-		       remote-file-name-inhibit-cache (car value)))))
-	(setq value (cdr value))
-      (setq value default))
+		       remote-file-name-inhibit-cache (car cached)))))
+      (setq value (cdr cached)
+	    use-cache t))
 
-    (tramp-message key 8 "%s %s %s" file property value)
+    (tramp-message key 8 "%s %s %s; inhibit: %s; cache used: %s; cached at: %s"
+                   file property value
+		   remote-file-name-inhibit-cache use-cache cached-at)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
 	     (val (or (numberp (bound-and-true-p var))
@@ -310,15 +316,19 @@ the connection, return DEFAULT."
     (setf (tramp-file-name-localname key) nil
 	  (tramp-file-name-hop key) nil))
   (let* ((hash (tramp-get-hash-table key))
-	 (value
-	  ;; If the key is an auxiliary process object, check whether
-	  ;; the process is still alive.
-	  (if (and (processp key) (not (process-live-p key)))
-	      default
-	    (if (hash-table-p hash)
-		(gethash property hash default)
-	      default))))
-    (tramp-message key 7 "%s %s" property value)
+	 (cached (if (hash-table-p hash)
+		     (gethash property hash tramp-cache-undefined)
+		   tramp-cache-undefined))
+	 (value default)
+	 use-cache)
+
+    (when (and (not (eq cached tramp-cache-undefined))
+	       ;; If the key is an auxiliary process object, check
+	       ;; whether the process is still alive.
+	       (not (and (processp key) (not (process-live-p key)))))
+      (setq value cached
+	    use-cache t))
+    (tramp-message key 7 "%s %s; cache used: %s" property value use-cache)
     value))
 
 ;;;###tramp-autoload
