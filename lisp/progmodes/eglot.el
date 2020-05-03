@@ -2255,15 +2255,16 @@ is not active."
   (eglot--dbind ((Hover) contents range)
       (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
                        (eglot--TextDocumentPositionParams))
-    (if (seq-empty-p contents)
-        (display-local-help)
-      (let ((blurb (eglot--hover-info contents range))
-            (sym (thing-at-point 'symbol)))
-        (with-current-buffer (eglot--help-buffer)
-          (with-help-window (current-buffer)
-            (rename-buffer (format "*eglot-help for %s*" sym))
-            (with-current-buffer standard-output (insert blurb))
-            (setq-local nobreak-char-display nil)))))))
+    (let ((blurb (and (not (seq-empty-p contents))
+                      (eglot--hover-info contents range))))
+      (if blurb
+          (with-current-buffer (eglot--help-buffer)
+            (with-help-window (current-buffer)
+              (rename-buffer (format "*eglot-help for %s*"
+                                     (thing-at-point 'symbol)))
+              (with-current-buffer standard-output (insert blurb))
+              (setq-local nobreak-char-display nil)))
+        (display-local-help)))))
 
 (defun eglot-doc-too-large-for-echo-area (string)
   "Return non-nil if STRING won't fit in echo area.
