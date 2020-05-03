@@ -808,9 +808,15 @@ INTERACTIVE is t if called interactively."
         (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
 
 (defun eglot-events-buffer (server)
-  "Display events buffer for SERVER."
-  (interactive (list (eglot--current-server-or-lose)))
-  (display-buffer (jsonrpc-events-buffer server)))
+  "Display events buffer for SERVER.
+Use current server's or first available Eglot events buffer."
+  (interactive (list eglot--cached-server))
+  (let ((buffer (if server (jsonrpc-events-buffer server)
+                  (cl-find "\\*EGLOT.*events\\*"
+                           (buffer-list)
+                           :key #'buffer-name :test #'string-match))))
+    (if buffer (display-buffer buffer)
+      (eglot--error "Can't find an Eglot events buffer!"))))
 
 (defun eglot-stderr-buffer (server)
   "Display stderr buffer for SERVER."
