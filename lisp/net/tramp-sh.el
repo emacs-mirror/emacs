@@ -4915,7 +4915,7 @@ If there is just some editing, retry it after 5 seconds."
 	(run-at-time 5 nil 'tramp-timeout-session vec))
     (tramp-message
      vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
-    (tramp-cleanup-connection vec 'keep-debug)))
+    (tramp-cleanup-connection vec 'keep-debug nil 'keep-processes)))
 
 (defun tramp-maybe-open-connection (vec)
   "Maybe open a connection VEC.
