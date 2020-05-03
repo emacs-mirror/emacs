@@ -103,16 +103,14 @@ If non-nil, alignment is done with the first keyword
                       &key key1 key2)
   #|...|#)"
   :version "24.1"
-  :type 'boolean
-  :group 'lisp-indent)
+  :type 'boolean)
 
 (defcustom lisp-lambda-list-keyword-parameter-indentation 2
   "Indentation of lambda list keyword parameters.
 See `lisp-lambda-list-keyword-parameter-alignment'
 for more information."
   :version "24.1"
-  :type 'integer
-  :group 'lisp-indent)
+  :type 'integer)
 
 (defcustom lisp-lambda-list-keyword-parameter-alignment nil
   "Whether to vertically align lambda-list keyword parameters together.
@@ -131,8 +129,7 @@ If non-nil, alignment is done with the first parameter
                             key3 key4)
   #|...|#)"
   :version "24.1"
-  :type 'boolean
-  :group 'lisp-indent)
+  :type 'boolean)
 
 (defcustom lisp-indent-backquote-substitution-mode t
   "How to indent substitutions in backquotes.
@@ -144,8 +141,7 @@ In any case, do not backtrack beyond a backquote substitution.
 
 Until Emacs 25.1, the nil behavior was hard-wired."
   :version "25.1"
-  :type '(choice (const corrected) (const nil) (const t))
-  :group 'lisp-indent)
+  :type '(choice (const corrected) (const nil) (const t)))
 
 
 (defvar lisp-indent-defun-method '(4 &lambda &body)
