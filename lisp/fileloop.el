@@ -181,8 +181,7 @@ operating on the next file and nil otherwise."
     (fileloop-initialize
      files
      (lambda ()
-       (let ((case-fold-search
-              (if (memq case-fold '(t nil)) case-fold case-fold-search)))
+       (let ((case-fold-search (fileloop--case-fold regexp case-fold)))
          (re-search-forward regexp nil t)))
      (lambda ()
        (unless (eq last-buffer (current-buffer))
@@ -190,28 +189,42 @@ operating on the next file and nil otherwise."
          (message "Scanning file %s...found" buffer-file-name))
        nil))))
 
+(defun fileloop--case-fold (regexp case-fold)
+  (let ((value
+         (if (memql case-fold '(nil t))
+             case-fold
+           case-fold-search)))
+    (if (and value search-upper-case)
+        (isearch-no-upper-case-p regexp t)
+      value)))
+
 ;;;###autoload
 (defun fileloop-initialize-replace (from to files case-fold &optional delimited)
   "Initialize a new round of query&replace on several files.
-FROM is a regexp and TO is the replacement to use.
-FILES describes the file, as in `fileloop-initialize'.
-CASE-FOLD can be t, nil, or `default', the latter one meaning to obey
-the default setting of `case-fold-search'.
-DELIMITED if non-nil means replace only word-delimited matches."
+  FROM is a regexp and TO is the replacement to use.
+  FILES describes the files, as in `fileloop-initialize'.
+  CASE-FOLD can be t, nil, or `default':
+    if it is nil, matching of FROM is case-sensitive.
+    if it is t, matching of FROM is case-insensitive, except
+       when `search-upper-case' is non-nil and FROM includes
+       upper-case letters.
+    if it is `default', the function uses the value of
+       `case-fold-search' instead.
+  DELIMITED if non-nil means replace only word-delimited matches."
   ;; FIXME: Not sure how the delimited-flag interacts with the regexp-flag in
   ;; `perform-replace', so I just try to mimic the old code.
   (fileloop-initialize
    files
    (lambda ()
-     (let ((case-fold-search
-            (if (memql case-fold '(nil t)) case-fold case-fold-search)))
+     (let ((case-fold-search (fileloop--case-fold from case-fold)))
        (if (re-search-forward from nil t)
 	   ;; When we find a match, move back
 	   ;; to the beginning of it so perform-replace
 	   ;; will see it.
 	   (goto-char (match-beginning 0)))))
    (lambda ()
-     (perform-replace from to t t delimited nil multi-query-replace-map))))
+     (let ((case-fold-search (fileloop--case-fold from case-fold)))
+       (perform-replace from to t t delimited nil multi-query-replace-map)))))
 
 (provide 'fileloop)
 ;;; fileloop.el ends here
