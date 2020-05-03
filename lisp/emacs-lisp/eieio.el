@@ -517,7 +517,8 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
   "Set the value in OBJ for slot SLOT to VALUE.
 SLOT is the slot name as specified in `defclass' or the tag created
 with in the :initarg slot.  VALUE can be any Lisp object."
-  (declare (debug (form symbolp form)))
+  (declare (obsolete "use (setf (oref ..) ..) instead" "28.1")
+           (debug (form symbolp form)))
   `(eieio-oset ,obj (quote ,slot) ,value))
 
 (defmacro oset-default (class slot value)
@@ -525,7 +526,8 @@ with in the :initarg slot.  VALUE can be any Lisp object."
 The default value is usually set with the :initform tag during class
 creation.  This allows users to change the default behavior of classes
 after they are created."
-  (declare (debug (form symbolp form)))
+  (declare (obsolete "use (setf (oref-default ..) ..) instead" "28.1")
+           (debug (form symbolp form)))
   `(eieio-oset-default ,class (quote ,slot) ,value))
 
 ;;; CLOS queries into classes and slots
