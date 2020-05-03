@@ -3233,7 +3233,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
 				       1);
     }
-  if (COMP_DEBUG > 1)
+  if (COMP_DEBUG > 2)
     {
       logfile = fopen ("libgccjit.log", "w");
       gcc_jit_context_set_logfile (comp.ctxt,
