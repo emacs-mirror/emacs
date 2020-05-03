@@ -1242,8 +1242,8 @@ compare @var{object} against the elements of the list.  For example:
      @result{} (b c b a)
 @end group
 @group
-(memq '(2) '((1) (2)))    ; @r{@code{(2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq '(2) '((1) (2)))    ; @r{The two @code{(2)}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{((2))}.}
 @end group
 @end example
 @end defun
@@ -1356,12 +1356,12 @@ Compare this with @code{memq}:
 
 @example
 @group
-(memql 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} must be @code{eql}.}
+(memql 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} are @code{eql}.}
      @result{} (1.2 1.3)
 @end group
 @group
-(memq 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} need not be @code{eq}.}
-     @result{} nil         ; @r{... or it might be @code{(1.2 1.3)}.}
+(memq 1.2 '(1.1 1.2 1.3))  ; @r{The two @code{1.2}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{(1.2 1.3)}.}
 @end group
 @end example
 @end defun
@@ -1380,12 +1380,12 @@ Compare this with @code{memq}:
 
 @example
 @group
-(member (list 2) '((1) (2)))  ; @r{@code{(list 2)} and @code{(2)} are @code{equal}.}
+(member '(2) '((1) (2)))  ; @r{@code{(2)} and @code{(2)} are @code{equal}.}
      @result{} ((2))
 @end group
 @group
-(memq (list 2) '((1) (2)))    ; @r{@code{(list 2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq '(2) '((1) (2)))    ; @r{The two @code{(2)}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{(2)}.}
 @end group
 @group
 ;; @r{Two strings with the same contents are @code{equal}.}
@@ -1626,7 +1626,7 @@ keys may not be symbols:
         ("compound leaves" . horsechestnut)))
 
 (assq "simple leaves" leaves)
-     @result{} @r{Unspecified; might be @code{nil} or non-@code{nil}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{("simple leaves" . oak)}.}
 (assoc "simple leaves" leaves)
      @result{} ("simple leaves" . oak)
 @end smallexample
