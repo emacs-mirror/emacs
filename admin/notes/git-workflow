@@ -75,6 +75,17 @@ and add "Backport:" to the commit string.  Then
 git push
 
 
+Reverting on release branch
+===========================
+
+If a commit is made to the release branch, and then it is later
+decided that this change should only be on the master branch, the
+simplest way to handle this is to revert the commit on the release
+branch, and include in the associated log entry "do not merge to master".
+(Otherwise, the reversion may get merged to master, and inadvertently
+clobber the change on master if it has been manually made there.)
+
+
 Merging release branch to the master
 ====================================
 
