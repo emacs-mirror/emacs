@@ -2117,7 +2117,16 @@ These are substituted with a normal 'set' op."
                  for obj each hash-keys of h
                  for i from 0
                  do (puthash obj i h)
-                 collect obj)))
+                 ;; Prune byte-code objects coming from lambdas.
+                 ;; These are not anymore necessary as they will be
+                 ;; replaced at load time by native-elisp-subrs.
+                 ;; Note: we leave the objects in the idx hash table
+                 ;; to still be able to retrieve the correct index
+                 ;; from the corresponding m-var.
+                 collect (if (gethash obj
+                                      (comp-ctxt-byte-func-to-func-h comp-ctxt))
+                             nil
+                           obj))))
 
 (defun comp-finalize-relocs ()
   "Finalize data containers for each relocation class.
@@ -2159,7 +2168,6 @@ Update all insn accordingly."
   "Compile as native code the current context naming it NAME.
 Prepare every function for final compilation and drive the C back-end."
   (let ((dir (file-name-directory name)))
-    ;; FIXME: Strip bytecompiled functions here.
     (comp-finalize-relocs)
     (unless (file-exists-p dir)
       ;; In case it's created in the meanwhile.
