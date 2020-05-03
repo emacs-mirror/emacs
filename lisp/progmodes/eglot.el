@@ -72,7 +72,9 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
-(defvar company-backends) ; forward-declare, but don't require company
+;; forward-declare, but don't require (Emacs 28 doesn't seem to care)
+(defvar markdown-fontify-code-blocks-natively)
+(defvar company-backends) 
 (defvar company-tooltip-align-annotations)
 
 
@@ -1149,6 +1151,7 @@ Doubles as an indicator of snippet support."
                          ("plaintext" 'text-mode)
                          (_ major-mode))))))
     (with-temp-buffer
+      (setq-local markdown-fontify-code-blocks-natively t)
       (insert (string-trim string))
       (ignore-errors (delay-mode-hooks (funcall mode)))
       (font-lock-ensure)
