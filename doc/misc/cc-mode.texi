@@ -2132,6 +2132,11 @@ For Pike autodoc markup, the standard in Pike.
 @item gtkdoc
 @cindex GtkDoc markup
 For GtkDoc markup, widely used in the Gnome community.
+
+@item doxygen
+@cindex Doxygen markup
+For Doxygen markup, which can be used with C, C++, Java and variety of
+other languages.
 @end table
 
 The above is by no means complete.  If you'd like to see support for
