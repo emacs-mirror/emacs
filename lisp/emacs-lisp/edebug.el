@@ -2844,7 +2844,6 @@ See `edebug-behavior-alist' for implementations.")
 	    (goto-char edebug-buffer-outside-point))
 	  ;; ... nothing more.
 	  )
-      (edebug--overlay-breakpoints-remove (point-min) (point-max))
       ;; Could be an option to keep eval display up.
       (if edebug-eval-buffer (kill-buffer edebug-eval-buffer))
       (with-timeout-unsuspend edebug-with-timeout-suspend)
@@ -3274,8 +3273,7 @@ With prefix argument, make it a temporary breakpoint."
       (unless breakpoint
         (user-error "No breakpoint near point"))
       (setf (nth 4 breakpoint)
-            (not (nth 4 breakpoint)))
-      (edebug--overlay-breakpoints name))))
+            (not (nth 4 breakpoint))))))
 
 (defun edebug-set-global-break-condition (expression)
   "Set `edebug-global-break-condition' to EXPRESSION."
