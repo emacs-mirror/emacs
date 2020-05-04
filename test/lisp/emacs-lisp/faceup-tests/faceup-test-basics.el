@@ -1,4 +1,4 @@
-;;; faceup-test-basics.el --- Tests for the `faceup' package.
+;;; faceup-test-basics.el --- Tests for the `faceup' package.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 

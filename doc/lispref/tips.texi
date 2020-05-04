@@ -821,6 +821,14 @@ most cases, the meaning is clear with just ``if''.  Otherwise, try to
 find an alternate phrasing that conveys the meaning.
 
 @item
+Try to avoid using abbreviations such as ``e.g.'' (for ``for
+example''), ``i.e.'' (for ``that is''), ``no.'' (for ``number''),
+``c.f.'' (for ``in contrast to'') and ``w.r.t.'' (for ``with respect
+to'') as much as possible.  It is almost always clearer and easier to
+read the expanded version.@footnote{We do use these occasionally, but
+try not to overdo it.}
+
+@item
 When a command is meaningful only in a certain mode or situation,
 do mention that in the documentation string.  For example,
 the documentation of @code{dired-find-file} is:

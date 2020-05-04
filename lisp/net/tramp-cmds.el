@@ -74,11 +74,13 @@ SYNTAX can be one of the symbols `default' (default),
 Each function is called with the current vector as argument.")
 
 ;;;###tramp-autoload
-(defun tramp-cleanup-connection (vec &optional keep-debug keep-password)
+(defun tramp-cleanup-connection
+    (vec &optional keep-debug keep-password keep-processes)
   "Flush all connection related objects.
 This includes password cache, file cache, connection cache,
-buffers.  KEEP-DEBUG non-nil preserves the debug buffer.
-KEEP-PASSWORD non-nil preserves the password cache.
+buffers, processes.  KEEP-DEBUG non-nil preserves the debug
+buffer.  KEEP-PASSWORD non-nil preserves the password cache.
+KEEP-PROCESSES non-nil preserves the asynchronous processes.
 When called interactively, a Tramp connection has to be selected."
   (interactive
    ;; When interactive, select the Tramp remote identification.
@@ -116,7 +118,9 @@ When called interactively, a Tramp connection has to be selected."
     ;; Delete processes.
     (dolist (key (hash-table-keys tramp-cache-data))
       (when (and (processp key)
-		 (tramp-file-name-equal-p (process-get key 'vector) vec))
+		 (tramp-file-name-equal-p (process-get key 'vector) vec)
+		 (or (not keep-processes)
+		     (eq key (tramp-get-process vec))))
 	(tramp-flush-connection-properties key)
 	(delete-process key)))
 

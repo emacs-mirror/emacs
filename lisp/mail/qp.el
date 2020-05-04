@@ -1,4 +1,4 @@
-;;; qp.el --- Quoted-Printable functions
+;;; qp.el --- Quoted-Printable functions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
 

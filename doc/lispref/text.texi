@@ -5161,6 +5161,9 @@ The following are functions for altering the @acronym{DOM}.
 @item dom-set-attribute @var{node} @var{attribute} @var{value}
 Set the @var{attribute} of the node to @var{value}.
 
+@item dom-remove-attribute @var{node} @var{attribute}
+Remove @var{attribute} from @var{node}.
+
 @item dom-append-child @var{node} @var{child}
 Append @var{child} as the last child of @var{node}.
 

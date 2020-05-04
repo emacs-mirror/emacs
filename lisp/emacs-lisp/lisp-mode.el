@@ -611,6 +611,8 @@ Value for `adaptive-fill-function'."
   ;; a single docstring.  Let's fix it here.
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
+;; Maybe this should be discouraged/obsoleted and users should be
+;; encouraged to use `lisp-data-mode` instead.
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
                                       elisp)
   "Common initialization routine for lisp modes.
@@ -657,6 +659,14 @@ font-lock keywords will not be case sensitive."
   (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)
   (setq-local electric-pair-skip-whitespace 'chomp)
   (setq-local electric-pair-open-newline-between-pairs nil))
+
+;;;###autoload
+(define-derived-mode lisp-data-mode prog-mode "Lisp-Data"
+  "Major mode for buffers holding data written in Lisp syntax."
+  :group 'lisp
+  (lisp-mode-variables t t nil)
+  (setq-local electric-quote-string t)
+  (setq imenu-case-fold-search nil))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -737,7 +747,7 @@ font-lock keywords will not be case sensitive."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -746,7 +756,6 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
-  (lisp-mode-variables nil t)
   (setq-local lisp-indent-function 'common-lisp-indent-function)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip

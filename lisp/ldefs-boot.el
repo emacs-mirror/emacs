@@ -1076,7 +1076,7 @@ search for matches for any two (or more) of those words.
 With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil,
 consider all symbols (if they match PATTERN).
 
-Returns list of symbols and documentation found.
+Return list of symbols and documentation found.
 
 \(fn PATTERN &optional DO-ALL)" t nil)
 
@@ -4742,6 +4742,34 @@ and runs the normal hook `command-history-hook'." t nil)
 ;;; Generated autoloads from emacs-lisp/cl-extra.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cl-extra" '("cl-")))
+
+;;;***
+
+;;;### (autoloads nil "cl-font-lock" "progmodes/cl-font-lock.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from progmodes/cl-font-lock.el
+
+(defvar cl-font-lock-built-in-mode nil "\
+Non-nil if Cl-Font-Lock-Built-In mode is enabled.
+See the `cl-font-lock-built-in-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `cl-font-lock-built-in-mode'.")
+
+(custom-autoload 'cl-font-lock-built-in-mode "cl-font-lock" nil)
+
+(autoload 'cl-font-lock-built-in-mode "cl-font-lock" "\
+Highlight built-in functions, variables, and types in `lisp-mode'.
+
+If called interactively, enable Cl-Font-Lock-Built-In mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called from
+Lisp, also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
+\(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cl-font-lock" '("cl-font-lock-")))
 
 ;;;***
 
@@ -12751,6 +12779,13 @@ Interactively, prompt for LIBRARY using the one at or near point.
 
 \(fn LIBRARY)" t nil)
 
+(autoload 'read-library-name "find-func" "\
+Read and return a library name, defaulting to the one near point.
+
+A library name is the filename of an Emacs Lisp library located
+in a directory under `load-path' (or `find-function-source-path',
+if non-nil)." nil nil)
+
 (autoload 'find-library-other-window "find-func" "\
 Find the Emacs Lisp source of LIBRARY in another window.
 
@@ -12918,7 +12953,7 @@ Find directly the variable at point in the other window." t nil)
 (autoload 'find-function-setup-keys "find-func" "\
 Define some key bindings for the find-function family of functions." nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-func" '("find-" "read-library-name")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-func" '("find-")))
 
 ;;;***
 
@@ -15360,9 +15395,13 @@ arguments as NAME.  DO is a function as defined in `gv-get'.
 
 \(fn SYMBOL NAME ARGS HANDLER &optional FIX)" nil nil)
 
-(or (assq 'gv-expander defun-declarations-alist) (let ((x `(gv-expander ,(apply-partially #'gv--defun-declaration 'gv-expander)))) (push x macro-declarations-alist) (push x defun-declarations-alist)))
+(defsubst gv--expander-defun-declaration (&rest args) (apply #'gv--defun-declaration 'gv-expander args))
 
-(or (assq 'gv-setter defun-declarations-alist) (push `(gv-setter ,(apply-partially #'gv--defun-declaration 'gv-setter)) defun-declarations-alist))
+(defsubst gv--setter-defun-declaration (&rest args) (apply #'gv--defun-declaration 'gv-setter args))
+
+(or (assq 'gv-expander defun-declarations-alist) (let ((x (list 'gv-expander #'gv--expander-defun-declaration))) (push x macro-declarations-alist) (push x defun-declarations-alist)))
+
+(or (assq 'gv-setter defun-declarations-alist) (push (list 'gv-setter #'gv--setter-defun-declaration) defun-declarations-alist))
 
 (autoload 'gv-define-setter "gv" "\
 Define a setter method for generalized variable NAME.
@@ -16100,6 +16139,9 @@ of text in those lines.
 Interactively, prompt for REGEXP using `read-regexp', then FACE.
 Use the global history list for FACE.
 
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
+
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
 highlighting will not update as you type.
@@ -16115,11 +16157,18 @@ Use the global history list for FACE.  Limit face setting to the
 corresponding SUBEXP (interactively, the prefix argument) of REGEXP.
 If SUBEXP is omitted or nil, the entire REGEXP is highlighted.
 
+LIGHTER is a human-readable string that can be used to select
+a regexp to unhighlight by its name instead of selecting a possibly
+complex regexp or closure.
+
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
+
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
 highlighting will not update as you type.
 
-\(fn REGEXP &optional FACE SUBEXP)" t nil)
+\(fn REGEXP &optional FACE SUBEXP LIGHTER)" t nil)
 
 (defalias 'highlight-phrase 'hi-lock-face-phrase-buffer)
 
@@ -16128,9 +16177,9 @@ Set face of each match of phrase REGEXP to FACE.
 Interactively, prompt for REGEXP using `read-regexp', then FACE.
 Use the global history list for FACE.
 
-When called interactively, replace whitespace in user-provided
-regexp with arbitrary whitespace, and make initial lower-case
-letters case-insensitive, before highlighting with `hi-lock-set-pattern'.
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
+Also set `search-spaces-regexp' to the value of `search-whitespace-regexp'.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -16145,6 +16194,9 @@ Highlight each instance of the symbol at point.
 Uses the next face from `hi-lock-face-defaults' without prompting,
 unless you use a prefix argument.
 Uses `find-tag-default-as-symbol-regexp' to retrieve the symbol at point.
+
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 This uses Font lock mode if it is enabled; otherwise it uses overlays,
 in which case the highlighting will not update as you type." t nil)
@@ -18821,8 +18873,8 @@ Check comments and strings in the current buffer for spelling errors." t nil)
 Check the current buffer for spelling errors interactively." t nil)
 
 (autoload 'ispell-buffer-with-debug "ispell" "\
-`ispell-buffer' with some output sent to `ispell-debug-buffer' buffer.
-If APPEND is non-n il, append the info to previous buffer if exists.
+`ispell-buffer' with some output sent to `ispell-debug-buffer'.
+If APPEND is non-nil, don't erase previous debugging output.
 
 \(fn &optional APPEND)" t nil)
 
@@ -21853,7 +21905,7 @@ unless the display width of STR is equal to or less than the display
 width of ELLIPSIS.  If it is non-nil and not a string, then ELLIPSIS
 defaults to `truncate-string-ellipsis'.
 
-If ELLIPSIS-TEXT-PROPERTY in non-nil, a too-long string will not
+If ELLIPSIS-TEXT-PROPERTY is non-nil, a too-long string will not
 be truncated, but instead the elided parts will be covered by a
 `display' text property showing the ellipsis.
 
@@ -22161,6 +22213,10 @@ values:
   `tls'      -- A TLS connection.
   `ssl'      -- Equivalent to `tls'.
   `shell'    -- A shell connection.
+
+:coding is a symbol or a cons used to specify the coding systems
+used to decode and encode the data which the process reads and
+writes.  See `make-network-process' for details.
 
 :return-list specifies this function's return value.
   If omitted or nil, return a process object.  A non-nil means to
@@ -30984,7 +31040,8 @@ as start and end positions), and with `string<' otherwise.
 \(fn REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN PREDICATE)" nil nil)
 
 (autoload 'sort-lines "sort" "\
-Sort lines in region alphabetically; argument means descending order.
+Sort lines in region alphabetically; REVERSE non-nil means descending order.
+Interactively, REVERSE is the prefix argument, and BEG and END are the region.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort).
 The variable `sort-fold-case' determines whether alphabetic case affects
@@ -32063,6 +32120,11 @@ The variable list SPEC is the same as in `if-let'.
 \(fn SPEC &rest BODY)" nil t)
 
 (function-put 'when-let 'lisp-indent-function '1)
+
+(autoload 'string-truncate-left "subr-x" "\
+Truncate STRING to LENGTH, replacing initial surplus with \"...\".
+
+\(fn STRING LENGTH)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let" "internal--" "replace-region-contents" "string-" "thread-" "when-let*")))
 
@@ -34460,7 +34522,9 @@ You can call this function to add internal values in the trace buffer.
 (autoload 'trace-function-foreground "trace" "\
 Trace calls to function FUNCTION.
 With a prefix argument, also prompt for the trace buffer (default
-`trace-buffer'), and a Lisp expression CONTEXT.
+`trace-buffer'), and a Lisp expression CONTEXT.  When called from
+Lisp, CONTEXT should be a function of no arguments which returns
+a value to insert into BUFFER during the trace.
 
 Tracing a function causes every call to that function to insert
 into BUFFER Lisp-style trace messages that display the function's

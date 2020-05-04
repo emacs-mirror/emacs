@@ -1,4 +1,4 @@
-;;; shadowfile-tests.el --- Tests of shadowfile
+;;; shadowfile-tests.el --- Tests of shadowfile  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
@@ -138,9 +138,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -255,9 +255,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -608,9 +608,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -669,9 +669,9 @@ guaranteed by the originator of a cluster definition."
 	;; We must mock `read-from-minibuffer' and `read-string', in
 	;; order to avoid interactive arguments.
 	(cl-letf* (((symbol-function #'read-from-minibuffer)
-		    (lambda (&rest args) (pop mocked-input)))
+		    (lambda (&rest _args) (pop mocked-input)))
 		   ((symbol-function #'read-string)
-		    (lambda (&rest args) (pop mocked-input))))
+		    (lambda (&rest _args) (pop mocked-input))))
 
           ;; Cleanup & initialize.
           (shadow--tests-cleanup)
@@ -923,7 +923,7 @@ guaranteed by the originator of a cluster definition."
 	  ;; action.
           (add-function
            :before (symbol-function #'write-region)
-	   (lambda (&rest args)
+           (lambda (&rest _args)
              (when (and (buffer-file-name) mocked-input)
                (should (equal (buffer-file-name) (pop mocked-input)))))
            '((name . "write-region-mock")))

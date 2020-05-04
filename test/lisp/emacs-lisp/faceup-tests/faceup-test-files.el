@@ -1,4 +1,4 @@
-;;; faceup-test-files.el --- Self test of `faceup' using dummy major mode.
+;;; faceup-test-files.el --- Self test of `faceup' using dummy major mode.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 

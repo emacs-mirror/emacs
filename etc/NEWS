@@ -101,6 +101,8 @@ horizontal movements now stop at the edge of the board.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** EIEIO: 'oset' and 'oset-default' are declared obsolete
+
 ** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'
 The mode provides refined highlighting of built-in functions, types,
 and variables.
@@ -198,7 +200,6 @@ like cell phones, tablets or cameras.
 Previously, assigning a new template to an already defined tag had no
 effect.
 
-
 ** map.el
 
 *** Pcase 'map' pattern added keyword symbols abbreviation.
@@ -288,8 +289,29 @@ prefix on the Subject line in various languages.
 These new navigation commands are bound to 'n' and 'p' in
 'apropos-mode'.
 
+** cc-mode
+
+*** Added support for Doxygen documentation style.
+‘doxygen’ is now valid ‘c-doc-comment-style’ which recognises all
+comment styles supported by Doxygen (namely ‘///’, ‘//!’, ‘/** … */’
+and ‘/*! … */’.  ‘gtkdoc’ remains the default for C and C++ modes; to
+use ‘doxygen’ by default one might evaluate:
+
+    (setq-default c-doc-comment-style
+                  '((java-mode . javadoc)
+                    (pike-mode . autodoc)
+                    (c-mode    . doxygen)
+                    (c++-mode  . doxygen)))
+
+or use it in a custom ‘c-style’.
 
 * New Modes and Packages in Emacs 28.1
+
+*** Lisp Data mode
+The new command 'lisp-data-mode' enables a major mode for buffers
+composed of Lisp symbolic expressions that do not form a computer
+program.  The '.dir-locals.el' file is automatically set to use this
+mode, as are other data files produced by Emacs.
 
 
 * Incompatible Editing Changes in Emacs 28.1
@@ -357,6 +379,9 @@ optional argument specifying whether to follow symbolic links.
 
 ** 'parse-time-string' can now parse ISO 8601 format strings,
 such as "2020-01-15T16:12:21-08:00".
+
++++
+** The new function 'dom-remove-attribute' has been added.
 
 ---
 ** 'make-network-process', 'make-serial-process' :coding behavior change.

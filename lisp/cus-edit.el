@@ -3824,7 +3824,17 @@ Optional EVENT is the location for the menu."
 
 (defun custom-face-save (widget)
   "Save the face edited by WIDGET."
-  (custom-face-mark-to-save widget)
+  (let ((form (widget-get widget :custom-form)))
+    (if (memq form '(all lisp))
+        (custom-face-mark-to-save widget)
+      ;; The user is working on only a selected terminal type;
+      ;; make sure we save the entire spec to `custom-file'. (Bug #40866)
+      (custom-face-edit-all widget)
+      (custom-face-mark-to-save widget)
+      (if (eq form 'selected)
+          (custom-face-edit-selected widget)
+        ;; `form' is edit or mismatch; can't happen.
+        (widget-put widget :custom-form form))))
   (custom-save-all)
   (custom-face-state-set-and-redraw widget))
 

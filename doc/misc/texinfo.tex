@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2020-02-11.09}
+\def\texinfoversion{2020-05-02.00}
 %
 % Copyright 1985, 1986, 1988, 1990-2019 Free Software Foundation, Inc.
 %
@@ -349,34 +349,19 @@
   \ifodd\pageno  \advance\hoffset by \bindingoffset
   \else \advance\hoffset by -\bindingoffset\fi
   %
+  \checkchapterpage
+  %
   % Retrieve the information for the headings from the marks in the page,
   % and call Plain TeX's \makeheadline and \makefootline, which use the
   % values in \headline and \footline.
-  %
-  % This is used to check if we are on the first page of a chapter.
-  \ifcase1\the\savedtopmark\fi
-  \let\prevchaptername\thischaptername
-  \ifcase0\firstmark\fi
-  \let\curchaptername\thischaptername
-  %
-  \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
-  %
-  \ifx\curchaptername\prevchaptername
-    \let\thischapterheading\thischapter
-  \else
-    % \thischapterheading is the same as \thischapter except it is blank
-    % for the first page of a chapter.  This is to prevent the chapter name
-    % being shown twice.
-    \def\thischapterheading{}%
-  \fi
   %
   % Common context changes for both heading and footing.
   % Do this outside of the \shipout so @code etc. will be expanded in
   % the headline as they should be, not taken literally (outputting ''code).
   \def\commonheadfootline{\let\hsize=\txipagewidth \texinfochars}
   %
+  \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
   \global\setbox\headlinebox = \vbox{\commonheadfootline \makeheadline}%
-  %
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
   \global\setbox\footlinebox = \vbox{\commonheadfootline \makefootline}%
   %
@@ -423,6 +408,24 @@
 \ifr@ggedbottom \kern-\dimen@ \vfil \fi}
 }
 
+% Check if we are on the first page of a chapter.
+\def\checkchapterpage{%
+  % Get the chapter that was current at the end of the last page
+  \ifcase1\the\savedtopmark\fi
+  \let\prevchaptername\thischaptername
+  %
+  \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
+  \let\curchaptername\thischaptername
+  %
+  \ifx\curchaptername\prevchaptername
+    \let\thischapterheading\thischapter
+  \else
+    % \thischapterheading is the same as \thischapter except it is blank
+    % for the first page of a chapter.  This is to prevent the chapter name
+    % being shown twice.
+    \def\thischapterheading{}%
+  \fi
+}
 
 % Argument parsing
 
@@ -3101,10 +3104,10 @@ end
 
 % Allow a ragged right output to aid breaking long URL's.  There can
 % be a break at the \allowbreak with no extra glue (if the existing stretch in
-% the line is sufficent), a break at the \penalty100 with extra glue added
+% the line is sufficient), a break at the \penalty100 with extra glue added
 % at the end of the line, or no break at all here.
 %   Changing the value of the penalty and/or the amount of stretch affects how
-% preferrable one choice is over the other.
+% preferable one choice is over the other.
 \def\urefallowbreak{%
   \allowbreak
   \hskip 0pt plus 2 em\relax

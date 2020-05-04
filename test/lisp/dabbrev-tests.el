@@ -1,4 +1,4 @@
-;;; dabbrev-tests.el --- Test suite for dabbrev.
+;;; dabbrev-tests.el --- Test suite for dabbrev.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
 

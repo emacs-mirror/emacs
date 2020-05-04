@@ -1017,13 +1017,16 @@ Frames with a non-nil `desktop-dont-save' parameter are not saved."
 
 ;;;###autoload
 (defun desktop-save (dirname &optional release only-if-changed version)
-  "Save the desktop in a desktop file.
-Parameter DIRNAME specifies where to save the desktop file.
-Optional parameter RELEASE says whether we're done with this
-desktop.  If ONLY-IF-CHANGED is non-nil, compare the current
-desktop information to that in the desktop file, and if the
-desktop information has not changed since it was last saved then
-do not rewrite the file.
+  "Save the state of Emacs in a desktop file in directory DIRNAME.
+Optional argument RELEASE non-nil says we're done with this
+desktop, in which case this function releases the lock of the
+desktop file in DIRNAME.
+If ONLY-IF-CHANGED is non-nil, compare the current desktop
+information to that in the desktop file, and if the desktop
+information has not changed since it was last saved, then do
+not rewrite the file.
+
+To restore the desktop, use `desktop-read'.
 
 This function can save the desktop in either format version
 208 (which only Emacs 25.1 and later can read) or version
@@ -1033,14 +1036,20 @@ it was last saved, or version 208 when writing a fresh desktop
 file.
 
 To upgrade a version 206 file to version 208, call this command
-explicitly with a bare prefix argument: C-u M-x desktop-save.
-You are recommended to do this once you have firmly upgraded to
-Emacs 25.1 (or later).  To downgrade a version 208 file to version
-206, use a double command prefix: C-u C-u M-x desktop-save.
-Confirmation will be requested in either case.  In a non-interactive
-call, VERSION can be given as an integer, either 206 or 208, which
-will be accepted as the format version in which to save the file
-without further confirmation."
+explicitly with a prefix argument: \\[universal-argument] \\[desktop-save].
+If you are upgrading from Emacs 24 or older, we recommed to do
+this once you decide you no longer need compatibility with versions
+of Emacs before 25.1.
+
+To downgrade a version 208 file to version 206, use a double prefix
+argument: \\[universal-argument] \\[universal-argument] \\[desktop-save].
+
+Emacs will ask for confirmation when you upgrade or downgrade your
+desktop file.
+
+In a non-interactive call, VERSION can be given as an integer, either
+206 or 208, to specify the format version in which to save the file,
+no questions asked."
   (interactive (list
                 ;; Or should we just use (car desktop-path)?
                 (let ((default (if (member "." desktop-path)

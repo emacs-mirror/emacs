@@ -31,11 +31,11 @@
 # are valid code in both sh and perl.  When executed by sh, they re-execute
 # the script through the perl program found in $PATH.  The '-x' option
 # is essential as well; without it, perl would re-execute the script
-# through /bin/sh.  When executed by  perl, the next two lines are a no-op.
+# through /bin/sh.  When executed by perl, the next two lines are a no-op.
 eval 'exec perl -wSx "$0" "$@"'
      if 0;
 
-my $VERSION = '2018-03-07 03:47'; # UTC
+my $VERSION = '2020-04-04 15:07'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook

@@ -47,6 +47,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module at-internal:
+  # Code from module attribute:
   # Code from module binary-io:
   # Code from module builtin-expect:
   # Code from module byteswap:
@@ -934,6 +935,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/allocator.h
   lib/arg-nonnull.h
   lib/at-func.c
+  lib/attribute.h
   lib/binary-io.c
   lib/binary-io.h
   lib/byteswap.in.h

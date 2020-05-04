@@ -1,3 +1,4 @@
+;;; bobcat.el  -*- lexical-binding:t -*-
 
 (defun terminal-init-bobcat ()
   "Terminal initialization function for bobcat."

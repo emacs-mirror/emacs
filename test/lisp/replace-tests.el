@@ -1,4 +1,4 @@
-;;; replace-tests.el --- tests for replace.el.
+;;; replace-tests.el --- tests for replace.el.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 

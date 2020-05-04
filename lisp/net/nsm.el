@@ -964,6 +964,7 @@ protocol."
 
 (defun nsm-write-settings ()
   (with-temp-file nsm-settings-file
+    (insert ";;;; -*- mode: lisp-data -*-\n")
     (insert "(\n")
     (dolist (setting nsm-permanent-host-settings)
       (insert " ")

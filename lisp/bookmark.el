@@ -734,8 +734,10 @@ CODING is the symbol of the coding-system in which the file is encoded."
   (if (memq (coding-system-base coding) '(undecided prefer-utf-8))
       (setq coding 'utf-8-emacs))
   (insert
-   (format ";;;; Emacs Bookmark Format Version %d ;;;; -*- coding: %S -*-\n"
-           bookmark-file-format-version (coding-system-base coding)))
+   (format
+    ";;;; Emacs Bookmark Format Version %d\
+;;;; -*- coding: %S; mode: lisp-data -*-\n"
+    bookmark-file-format-version (coding-system-base coding)))
   (insert ";;; This format is meant to be slightly human-readable;\n"
           ";;; nevertheless, you probably don't want to edit it.\n"
           ";;; "

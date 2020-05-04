@@ -1,4 +1,4 @@
-;;; imenu-tests.el --- Test suite for imenu.
+;;; imenu-tests.el --- Test suite for imenu.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 

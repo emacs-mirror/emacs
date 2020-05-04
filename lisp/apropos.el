@@ -373,9 +373,11 @@ kind of objects to search."
 	    (user-error "No word list given"))
       pattern)))
 
-(defun apropos-parse-pattern (pattern)
+(defun apropos-parse-pattern (pattern &optional multiline-p)
   "Rewrite a list of words to a regexp matching all permutations.
 If PATTERN is a string, that means it is already a regexp.
+MULTILINE-P, if non-nil, means produce a regexp that will match
+the words even if separated by newlines.
 This updates variables `apropos-pattern', `apropos-pattern-quoted',
 `apropos-regexp', `apropos-words', and `apropos-all-words-regexp'."
   (setq apropos-words nil
@@ -386,6 +388,9 @@ This updates variables `apropos-pattern', `apropos-pattern-quoted',
       ;; any combination of two or more words like this:
       ;; (a|b|c).*(a|b|c) which may give some false matches,
       ;; but as long as it also gives the right ones, that's ok.
+      ;; (Actually, when MULTILINE-P is non-nil, instead of '.' we
+      ;; use a trick that would find a match even if the words are
+      ;; on different lines.
       (let ((words pattern))
 	(setq apropos-pattern (mapconcat 'identity pattern " ")
 	      apropos-pattern-quoted (regexp-quote apropos-pattern))
@@ -402,9 +407,13 @@ This updates variables `apropos-pattern', `apropos-pattern-quoted',
 	    (setq apropos-words (cons s apropos-words)
 		  apropos-all-words (cons a apropos-all-words))))
 	(setq apropos-all-words-regexp
-	      (apropos-words-to-regexp apropos-all-words ".+"))
+	      (apropos-words-to-regexp apropos-all-words
+                                       ;; The [^b-a] trick matches any
+                                       ;; character including a newline.
+                                       (if multiline-p "[^b-a]+?" ".+")))
 	(setq apropos-regexp
-	      (apropos-words-to-regexp apropos-words ".*?")))
+	      (apropos-words-to-regexp apropos-words
+                                       (if multiline-p "[^b-a]*?" ".*?"))))
     (setq apropos-pattern-quoted (regexp-quote pattern)
 	  apropos-all-words-regexp pattern
 	  apropos-pattern pattern
@@ -787,7 +796,7 @@ Returns list of symbols and values found."
   (interactive (list (apropos-read-pattern "value")
 		     current-prefix-arg))
   (setq apropos--current (list #'apropos-value pattern do-all))
-  (apropos-parse-pattern pattern)
+  (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator ())
    (let (f v p)
@@ -827,7 +836,7 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
   (interactive (list (apropos-read-pattern "value of buffer-local variable")))
   (unless buffer (setq buffer  (current-buffer)))
   (setq apropos--current (list #'apropos-local-value pattern buffer))
-  (apropos-parse-pattern pattern)
+  (apropos-parse-pattern pattern t)
   (setq apropos-accumulator  ())
   (let ((var             nil))
     (mapatoms
@@ -869,7 +878,7 @@ Returns list of symbols and documentation found."
   (interactive (list (apropos-read-pattern "documentation")
 		     current-prefix-arg))
   (setq apropos--current (list #'apropos-documentation pattern do-all))
-  (apropos-parse-pattern pattern)
+  (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
   (let ((standard-input (get-buffer-create " apropos-temp"))

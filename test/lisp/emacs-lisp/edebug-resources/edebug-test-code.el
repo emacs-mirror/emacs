@@ -1,4 +1,4 @@
-;;; edebug-test-code.el --- Sample code for the Edebug test suite
+;;; edebug-test-code.el --- Sample code for the Edebug test suite  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
 
