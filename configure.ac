@@ -3729,22 +3729,70 @@ emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST(emacs_major_version)
 
 ### Emacs Lisp native compiler support
+
+AC_DEFUN([libgccjit_smoke_test], [
+  AC_LANG_SOURCE(
+    [[#include <libgccjit.h>
+      #include <stdlib.h>
+      #include <stdio.h>
+      int
+      main (int argc, char **argv)
+      {
+        gcc_jit_context *ctxt;
+        gcc_jit_result *result;
+        ctxt = gcc_jit_context_acquire ();
+        if (!ctxt)
+          exit (1);
+        gcc_jit_type *int_type =
+          gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_INT);
+        gcc_jit_function *func =
+          gcc_jit_context_new_function (ctxt, NULL,
+                                        GCC_JIT_FUNCTION_EXPORTED,
+                                        int_type, "foo", 0, NULL, 0);
+        gcc_jit_block *block = gcc_jit_function_new_block (func, "foo");
+        gcc_jit_block_end_with_return (
+          block,
+          NULL,
+          gcc_jit_context_new_rvalue_from_int (ctxt, int_type, 1));
+        result = gcc_jit_context_compile (ctxt);
+        if (!result)
+          exit (1);
+        typedef int (*fn_type) (void);
+        fn_type foo =
+          (fn_type)gcc_jit_result_get_code (result, "foo");
+        if (!foo)
+          exit (1);
+        if (foo () != 1)
+          exit (1);
+        gcc_jit_context_release (ctxt);
+        gcc_jit_result_release (result);
+        return 0;
+      }]])])
+
+AC_DEFUN([libgccjit_not_found], [
+  AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
+If you are sure you want Emacs compiled without elisp native compiler, pass
+  --without-nativecomp
+to configure.])])
+
+AC_DEFUN([libgccjit_broken], [
+  AC_MSG_ERROR([Installed libgccjit has failed passing the smoke test.
+Please report the issue to your distribution.
+Here instructions on how to compile from source: https://gcc.gnu.org/wiki/JIT.])])
+
 HAVE_NATIVE_COMP=no
 LIBGCCJIT_LIB=
 COMP_OBJ=
 if test "${with_nativecomp}" != "no"; then
-  AC_CHECK_HEADER(libgccjit.h,
-    AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_NATIVE_COMP=yes))
-  if test "${HAVE_NATIVE_COMP}" = "yes"; then
+    emacs_save_LDFLAGS=$LDFLAGS
+    LDFLAGS="-lgccjit -ldl"
+    AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken],
+      [AC_LINK_IFELSE([libgccjit_smoke_test], [], [libgccjit_not_found])])
+    LDFLAGS=$emacs_save_LDFLAGS
+    HAVE_NATIVE_COMP=yes
     LIBGCCJIT_LIB="-lgccjit -ldl"
     COMP_OBJ="comp.o"
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
-  else
-    AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
-If you are sure you want Emacs compiled without elisp native compiler, pass
-  --without-nativecomp
-to configure.])
-  fi
 fi
 if test "${HAVE_NATIVE_COMP}" = yes && test "${HAVE_PDUMPER}" = no; then
    AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
