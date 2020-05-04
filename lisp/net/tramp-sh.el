@@ -2912,6 +2912,11 @@ STDERR can also be a file name."
                               (setq uenv (cons elt uenv)))))))
 	       (command
 		(when (stringp program)
+		  (setenv-internal
+		   env "INSIDE_EMACS"
+		   (concat (or (getenv "INSIDE_EMACS") emacs-version)
+			   ",tramp:" tramp-version)
+		   'keep)
 		  (format "cd %s && %s exec %s %s env %s %s"
 			  (tramp-shell-quote-argument localname)
 			  (if uenv
@@ -3061,6 +3066,11 @@ STDERR can also be a file name."
               (if (tramp-get-env-with-u-option v)
                   (setq env (append `("-u" ,elt) env))
                 (setq uenv (cons elt uenv))))))
+      (setenv-internal
+       env "INSIDE_EMACS"
+       (concat (or (getenv "INSIDE_EMACS") emacs-version)
+	       ",tramp:" tramp-version)
+       'keep)
       (when env
 	(setq command
 	      (format
@@ -4169,7 +4179,7 @@ file exists and nonzero exit status otherwise."
 	       "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
 	       "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s"))
             tramp-terminal-type
-            emacs-version tramp-version  ; INSIDE_EMACS
+            (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
             (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	    (if (stringp tramp-histfile-override)
 		(format "HISTFILE=%s"
