@@ -3057,7 +3057,7 @@ printed representation.  The padding, if any, normally goes on the
 left, but it goes on the right if the - flag is present.  The padding
 character is normally a space, but it is 0 if the 0 flag is present.
 The 0 flag is ignored if the - flag is present, or the format sequence
-is something other than %d, %e, %f, and %g.
+is something other than %d, %o, %x, %e, %f, and %g.
 
 For %e and %f sequences, the number after the "." in the precision
 specifier says how many decimal places to show; if zero, the decimal
