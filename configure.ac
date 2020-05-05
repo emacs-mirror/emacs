@@ -3780,18 +3780,18 @@ AC_DEFUN([libgccjit_broken], [
 You can verify it yourself compiling:
 <https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
 Please report the issue to your distribution.
-Here instructions on how to compile from source:
+Here instructions on how to compile and install libgccjit from source:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
 HAVE_NATIVE_COMP=no
 LIBGCCJIT_LIB=
 COMP_OBJ=
 if test "${with_nativecomp}" != "no"; then
-    emacs_save_LDFLAGS=$LDFLAGS
-    LDFLAGS="-lgccjit"
+    emacs_save_LIBS=$LIBS
+    LIBS="-lgccjit"
     AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken],
       [AC_LINK_IFELSE([libgccjit_smoke_test], [], [libgccjit_not_found])])
-    LDFLAGS=$emacs_save_LDFLAGS
+    LIBS=$emacs_save_LIBS
     HAVE_NATIVE_COMP=yes
     LIBGCCJIT_LIB="-lgccjit -ldl"
     COMP_OBJ="comp.o"
