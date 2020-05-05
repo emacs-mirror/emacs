@@ -893,7 +893,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 	(output nil))
     (if custom-version
 	(setq output
-	      (format "This %s was introduced, or its default value was changed, in\nversion %s of Emacs.\n"
+	      (format "  This %s was introduced, or its default value was changed, in\n  version %s of Emacs.\n"
                       type custom-version))
       (when cpv
 	(let* ((package (car-safe cpv))
@@ -904,7 +904,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 	       (emacsv (cdr (assoc version pkg-versions))))
 	  (if (and package version)
 	      (setq output
-		    (format (concat "This %s was introduced, or its default value was changed, in\nversion %s of the %s package"
+		    (format (concat "  This %s was introduced, or its default value was changed, in\n  version %s of the %s package"
 				    (if emacsv
 					(format " that is part of Emacs %s" emacsv))
 				    ".\n")
@@ -1125,8 +1125,8 @@ it is displayed along with the global value."
     ;; Note variable's version or package version.
     (let ((output (describe-variable-custom-version-info variable)))
       (when output
-	(terpri)
-	(terpri)
+	;; (terpri)
+	;; (terpri)
 	(princ output)))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-safe-local)
