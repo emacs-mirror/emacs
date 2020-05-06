@@ -3875,13 +3875,15 @@ detailed knowledge of what types other applications use for drag and
 drop.
 
 @vindex dnd-protocol-alist
+@vindex browse-url-handlers
+@vindex browse-url-default-handlers
   When an URL is dropped on Emacs it may be a file, but it may also be
 another URL type (https, etc.).  Emacs first checks
 @code{dnd-protocol-alist} to determine what to do with the URL@.  If
-there is no match there and if @code{browse-url-browser-function} is
-an alist, Emacs looks for a match there.  If no match is found the
-text for the URL is inserted.  If you want to alter Emacs behavior,
-you can customize these variables.
+there is no match there, Emacs looks for a match in
+@code{browse-url-handlers} and @code{browse-url-default-handlers}.  If
+still no match has been found, the text for the URL is inserted.  If
+you want to alter Emacs behavior, you can customize these variables.
 
 @node Color Names
 @section Color Names
