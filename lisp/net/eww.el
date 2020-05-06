@@ -307,10 +307,10 @@ the default EWW buffer."
     (insert (format "Loading %s..." url))
     (goto-char (point-min)))
   (let ((url-mime-accept-string eww-accept-content-types))
-    (url-retrieve url 'eww-render
+    (url-retrieve url #'eww-render
                   (list url nil (current-buffer)))))
 
-(put 'eww 'browse-url-browser-kind 'internal)
+(function-put 'eww 'browse-url-browser-kind 'internal)
 
 (defun eww--dwim-expand-url (url)
   (setq url (string-trim url))
@@ -375,8 +375,8 @@ engine used."
       (let ((region-string (buffer-substring (region-beginning) (region-end))))
         (if (not (string-match-p "\\`[ \n\t\r\v\f]*\\'" region-string))
             (eww region-string)
-          (call-interactively 'eww)))
-    (call-interactively 'eww)))
+          (call-interactively #'eww)))
+    (call-interactively #'eww)))
 
 (defun eww-open-in-new-buffer ()
   "Fetch link at point in a new EWW buffer."
@@ -1013,7 +1013,7 @@ just re-display the HTML already fetched."
 	  (eww-display-html 'utf-8 url (plist-get eww-data :dom)
 			    (point) (current-buffer)))
       (let ((url-mime-accept-string eww-accept-content-types))
-        (url-retrieve url 'eww-render
+        (url-retrieve url #'eww-render
 		      (list url (point) (current-buffer) encode))))))
 
 ;; Form support.
@@ -1576,8 +1576,10 @@ If EXTERNAL is double prefix, browse in new buffer."
     (cond
      ((not url)
       (message "No link under point"))
-     ((string-match "^mailto:" url)
-      (browse-url-mail url))
+     ((string-match-p "\\`mailto:" url)
+      ;; This respects the user options `browse-url-handlers'
+      ;; and `browse-url-mailto-function'.
+      (browse-url url))
      ((and (consp external) (<= (car external) 4))
       (funcall browse-url-secondary-browser-function url)
       (shr--blink-link))
@@ -1615,7 +1617,7 @@ Use link at point if there is one, else the current page's URL."
                  (eww-current-url))))
     (if (not url)
         (message "No URL under point")
-      (url-retrieve url 'eww-download-callback (list url)))))
+      (url-retrieve url #'eww-download-callback (list url)))))
 
 (defun eww-download-callback (status url)
   (unless (plist-get status :error)
@@ -2128,12 +2130,12 @@ entries (if any) will be removed from the list.
 Only the properties listed in `eww-desktop-data-save' are included.
 Generally, the list should not include the (usually overly large)
 :dom, :source and :text properties."
-  (let ((history  (mapcar 'eww-desktop-data-1
-			  (cons eww-data eww-history))))
-    (list :history  (if eww-desktop-remove-duplicates
-			(cl-remove-duplicates
-			 history :test 'eww-desktop-history-duplicate)
-		      history))))
+  (let ((history (mapcar #'eww-desktop-data-1
+                         (cons eww-data eww-history))))
+    (list :history (if eww-desktop-remove-duplicates
+                       (cl-remove-duplicates
+                        history :test #'eww-desktop-history-duplicate)
+                     history))))
 
 (defun eww-restore-desktop (file-name buffer-name misc-data)
   "Restore an eww buffer from its desktop file record.

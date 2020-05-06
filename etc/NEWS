@@ -356,6 +356,24 @@ symbol property to the browsing functions.  With a new command
 'browse-url-with-browser-kind', an URL can explicitly be browsed with
 either an internal or external browser.
 
+** SHR
+
+---
+*** The command 'shr-browse-url' now supports custom mailto handlers.
+Clicking on or otherwise following a 'mailto:' link in a HTML buffer
+rendered by SHR previously invoked the command 'browse-url-mailto'.
+This is still the case by default, but if you customize
+'browse-url-mailto-function' or 'browse-url-handlers' to call some
+other function, it will now be called instead of the default.
+
+** EWW
+
+---
+*** The command 'eww-follow-link' now supports custom mailto handlers.
+The function that is invoked when clicking on or otherwise following a
+'mailto:' link in an EWW buffer can now be customized.  For more
+information, see the related entry about 'shr-browse-url' above.
+
 ** Project
 
 *** New user option 'project-vc-merge-submodules'.
