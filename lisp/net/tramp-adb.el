@@ -896,14 +896,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; it.  Call it in a subshell, in order to preserve working
       ;; directory.
       (condition-case nil
-	  (progn
-	    (setq ret
-		  (if (tramp-adb-send-command-and-check
-		       v
-		       (format "(cd %s; %s)"
-			       (tramp-shell-quote-argument localname) command))
-		      ;; Set return status accordingly.
-		      0 1))
+	  (unwind-protect
+	      (setq ret (tramp-adb-send-command-and-check
+			 v (format
+			    "(cd %s; %s)"
+			    (tramp-shell-quote-argument localname) command)
+			 t))
+	    (unless (natnump ret) (setq ret 1))
 	    ;; We should add the output anyway.
 	    (when outbuf
 	      (with-current-buffer outbuf
@@ -1186,11 +1185,14 @@ This happens for Android >= 4.0."
 	(while (re-search-forward "\r+$" nil t)
 	  (replace-match "" nil nil))))))
 
-(defun tramp-adb-send-command-and-check (vec command)
+(defun tramp-adb-send-command-and-check (vec command &optional exit-status)
   "Run COMMAND and check its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit
 status.  If COMMAND is nil, just sends `echo $?'.  Returns nil if
-the exit status is not equal 0, and t otherwise."
+the exit status is not equal 0, and t otherwise.
+
+Optional argument EXIT-STATUS, if non-nil, triggers the return of
+the exit status."
   (tramp-adb-send-command
    vec (if command
 	   (format "%s; echo tramp_exit_status $?" command)
@@ -1201,7 +1203,9 @@ the exit status is not equal 0, and t otherwise."
        vec 'file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")
     (prog1
-	(zerop (read (current-buffer)))
+	(if exit-status
+	    (read (current-buffer))
+	  (zerop (read (current-buffer))))
       (let ((inhibit-read-only t))
 	(delete-region (match-beginning 0) (point-max))))))
 
