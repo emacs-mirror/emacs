@@ -2282,24 +2282,47 @@ is not active."
               (setq-local nobreak-char-display nil)))
         (display-local-help)))))
 
-(defun eglot-doc-too-large-for-echo-area (string)
-  "Return non-nil if STRING won't fit in echo area.
-Respects `max-mini-window-height' (which see)."
-  (let ((max-height
-         (cond ((floatp max-mini-window-height) (* (frame-height)
-                                                   max-mini-window-height))
-               ((integerp max-mini-window-height) max-mini-window-height)
-               (t 1))))
-    (> (cl-count ?\n string) max-height)))
+(cl-defun eglot-doc-too-large-for-echo-area
+    (string &optional (height max-mini-window-height))
+  "Return non-nil if STRING won't fit in echo area of height HEIGHT.
+HEIGHT defaults to `max-mini-window-height' (which see) and is
+interpreted like that variable.  If non-nil, the return value is
+the number of lines available."
+  (let ((available-lines (cl-typecase height
+                           (float (truncate (* (frame-height) height)))
+                           (integer height)
+                           (t 1))))
+    (when (> (1+ (cl-count ?\n string)) available-lines)
+      available-lines)))
+
+(cl-defun eglot--truncate-string (string height &optional (width (frame-width)))
+  "Return as much from STRING as fits in HEIGHT and WIDTH.
+WIDTH, if non-nil, truncates last line to those columns."
+  (cl-flet ((maybe-trunc
+             (str) (if width (truncate-string-to-width str width
+                                                       nil nil "...")
+                     str)))
+    (cl-loop
+     repeat height
+     for i from 1
+     for break-pos = (cl-position ?\n string)
+     for (line . rest) = (and break-pos
+                              (cons (substring string 0 break-pos)
+                                    (substring string (1+ break-pos))))
+     concat (cond (line (if (= i height) (maybe-trunc line) (concat line "\n")))
+                  (t (maybe-trunc string)))
+     while rest do (setq string rest))))
 
 (defcustom eglot-put-doc-in-help-buffer
+  ;; JT@2020-05-21: TODO: this variable should be renamed and the
+  ;; decision somehow be in eldoc.el itself.
   #'eglot-doc-too-large-for-echo-area
   "If non-nil, put \"hover\" documentation in separate `*eglot-help*' buffer.
 If nil, use whatever `eldoc-message-function' decides, honouring
 `eldoc-echo-area-use-multiline-p'.  If t, use `*eglot-help*'
-unconditionally.  If a function, it is called with the docstring
-to display and should a boolean producing one of the two previous
-values."
+unconditionally.  If a function, it is called with the
+documentation string to display and returns a generalized boolean
+interpreted as one of the two preceding values."
   :type '(choice (const :tag "Never use `*eglot-help*'" nil)
                  (const :tag "Always use `*eglot-help*'" t)
                  (function :tag "Ask a function")))
@@ -2309,11 +2332,6 @@ values."
 Buffer is displayed with `display-buffer', which obeys
 `display-buffer-alist' & friends."
   :type 'boolean)
-
-(defun eglot--first-line-of-doc (string)
-  (truncate-string-to-width
-   (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
-   (frame-width) nil nil "..."))
 
 (defun eglot--update-doc (string hint)
   "Put updated documentation STRING where it belongs.
@@ -2337,16 +2355,22 @@ documentation.  Honour `eglot-put-doc-in-help-buffer',
              (if eglot-auto-display-help-buffer
                  (display-buffer (current-buffer))
                (unless (get-buffer-window (current-buffer))
+                 ;; This prints two lines.  Should it print 1?  Or
+                 ;; honour max-mini-window-height?
                  (eglot--message
                   "%s\n(...truncated. Full help is in `%s')"
-                  (eglot--first-line-of-doc string)
+                  (eglot--truncate-string string 1 (- (frame-width) 8))
                   (buffer-name eglot--help-buffer))))
              (help-mode))))
-        (eldoc-echo-area-use-multiline-p
-         ;; Can't really honour non-t non-nil values if this var
-         (eldoc-message string))
+        ((eq eldoc-echo-area-use-multiline-p t)
+         (if-let ((available (eglot-doc-too-large-for-echo-area string)))
+             (eldoc-message (eglot--truncate-string string available))
+           (eldoc-message string)))
+        ((eq eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit)
+         (eldoc-message (eglot--truncate-string string 1 nil)))
         (t
-         (eldoc-message (eglot--first-line-of-doc string)))))
+         ;; Can't (yet?) honour non-t non-nil values of this var
+         (eldoc-message (eglot--truncate-string string 1)))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function."
