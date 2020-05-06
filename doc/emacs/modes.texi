@@ -116,7 +116,7 @@ is enabled in a buffer.  @xref{Hooks}, for more information about
 hooks.  Each mode hook is named after its major mode, e.g., Fortran
 mode has @code{fortran-mode-hook}.  Furthermore, all text-based major
 modes run @code{text-mode-hook}, and many programming language modes
-@footnote{More specifically, the modes which are ''derived'' from
+@footnote{More specifically, the modes which are ``derived'' from
 @code{prog-mode} (@pxref{Derived Modes,,, elisp, The Emacs Lisp
 Reference Manual}).} (including all those distributed with Emacs) run
 @code{prog-mode-hook}, prior to running their own mode hooks.  Hook
