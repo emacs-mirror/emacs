@@ -84,6 +84,13 @@ This intended for debugging the compiler itself.
   :type 'boolean
   :group 'comp)
 
+(defcustom comp-bootstrap-black-list
+  '("^leim/")
+  "List of regexps to exclude files from native compilation during bootstrap.
+Skip if any is matching."
+  :type 'list
+  :group 'comp)
+
 (defcustom comp-never-optimize-functions
   '(;; Mandatory for Emacs to be working correctly
     macroexpand scroll-down scroll-up narrow-to-region widen rename-buffer
@@ -2291,7 +2298,13 @@ Return the compilation unit file name."
 (defun batch-native-compile ()
   "Run `native-compile' on remaining command-line arguments.
 Ultra cheap impersonation of `batch-byte-compile'."
-  (mapc #'native-compile command-line-args-left))
+  (cl-loop for file in command-line-args-left
+           if (or (null byte-native-for-bootstrap)
+                  (cl-notany (lambda (re) (string-match re file))
+                             comp-bootstrap-black-list))
+           do (native-compile file)
+           else
+           do (byte-compile-file file)))
 
 ;;;###autoload
 (defun batch-byte-native-compile-for-bootstrap ()
@@ -2299,6 +2312,7 @@ Ultra cheap impersonation of `batch-byte-compile'."
 Always generate elc files too and handle native compiler expected errors."
   (if (equal (getenv "NATIVE_DISABLE") "1")
       (batch-byte-compile)
+    (cl-assert (= 1 (length command-line-args-left)))
     (let ((byte-native-for-bootstrap t)
           (byte-to-native-output-file nil))
       (unwind-protect
