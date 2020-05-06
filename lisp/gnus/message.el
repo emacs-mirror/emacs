@@ -874,7 +874,7 @@ If this is nil, use `user-mail-address'.  If it is the symbol
 
 (defcustom message-sendmail-extra-arguments nil
   "Additional arguments to `sendmail-program'.
-A list of strings, e.g. '("-a" "account") for msmtp."
+A list of strings, e.g. (\"-a\" \"account\") for msmtp."
   :version "23.1" ;; No Gnus
   :type '(repeat string)
   ;; :link '(custom-manual "(message)Mail Variables")
