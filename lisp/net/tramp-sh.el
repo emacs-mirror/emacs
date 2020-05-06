@@ -3136,13 +3136,12 @@ STDERR can also be a file name."
       ;; directory.
       (condition-case nil
 	  (unwind-protect
-              (setq ret
-		    (if (tramp-send-command-and-check
-			 v (format "cd %s && %s"
-				   (tramp-shell-quote-argument localname)
-				   command)
-			 t t)
-			0 1))
+              (setq ret (tramp-send-command-and-check
+			 v (format
+			    "cd %s && %s"
+			    (tramp-shell-quote-argument localname) command)
+			 t t t))
+	    (unless (natnump ret) (setq ret 1))
 	    ;; We should add the output anyway.
 	    (when outbuf
 	      (with-current-buffer outbuf
@@ -5239,7 +5238,7 @@ function waits for output unless NOOUTPUT is set."
       found)))
 
 (defun tramp-send-command-and-check
-  (vec command &optional subshell dont-suppress-err)
+  (vec command &optional subshell dont-suppress-err exit-status)
   "Run COMMAND and check its exit status.
 Send `echo $?' along with the COMMAND for checking the exit status.
 If COMMAND is nil, just send `echo $?'.  Return t if the exit
@@ -5247,7 +5246,9 @@ status is 0, and nil otherwise.
 
 If the optional argument SUBSHELL is non-nil, the command is
 executed in a subshell, ie surrounded by parentheses.  If
-DONT-SUPPRESS-ERR is non-nil, stderr won't be sent to /dev/null."
+DONT-SUPPRESS-ERR is non-nil, stderr won't be sent to /dev/null.
+Optional argument EXIT-STATUS, if non-nil, triggers the return of
+the exit status."
   (tramp-send-command
    vec
    (concat (if subshell "( " "")
@@ -5261,7 +5262,9 @@ DONT-SUPPRESS-ERR is non-nil, stderr won't be sent to /dev/null."
        vec 'file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")
     (prog1
-	(zerop (read (current-buffer)))
+	(if exit-status
+	    (read (current-buffer))
+	  (zerop (read (current-buffer))))
       (let ((inhibit-read-only t))
 	(delete-region (match-beginning 0) (point-max))))))
 

@@ -248,7 +248,7 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
    of `internal_condition_case' etc., and to avoid worrying about
    passing information to the handler functions.  */
 
-#if !__has_attribute (cleanup)
+#if !HAS_ATTRIBUTE (cleanup)
  #error "__attribute__ ((cleanup)) not supported by this compiler; try GCC"
 #endif
 

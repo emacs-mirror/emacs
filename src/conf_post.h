@@ -77,6 +77,7 @@ typedef bool bool_bf;
 # define HAS_ATTRIBUTE(a) HAS_ATTR_##a
 # define HAS_ATTR_cleanup GNUC_PREREQ (3, 4, 0)
 # define HAS_ATTR_no_address_safety_analysis false
+# define HAS_ATTR_no_sanitize false
 # define HAS_ATTR_no_sanitize_address GNUC_PREREQ (4, 8, 0)
 # define HAS_ATTR_no_sanitize_undefined GNUC_PREREQ (4, 9, 0)
 #endif
@@ -294,10 +295,10 @@ extern int emacs_setenv_TZ (char const *);
 /* Attribute of functions whose code should not have addresses
    sanitized.  */
 
-#if __has_attribute (no_sanitize_address)
+#if HAS_ATTRIBUTE (no_sanitize_address)
 # define ATTRIBUTE_NO_SANITIZE_ADDRESS \
     __attribute__ ((no_sanitize_address)) ADDRESS_SANITIZER_WORKAROUND
-#elif __has_attribute (no_address_safety_analysis)
+#elif HAS_ATTRIBUTE (no_address_safety_analysis)
 # define ATTRIBUTE_NO_SANITIZE_ADDRESS \
     __attribute__ ((no_address_safety_analysis)) ADDRESS_SANITIZER_WORKAROUND
 #else
@@ -306,9 +307,9 @@ extern int emacs_setenv_TZ (char const *);
 
 /* Attribute of functions whose undefined behavior should not be sanitized.  */
 
-#if __has_attribute (no_sanitize_undefined)
+#if HAS_ATTRIBUTE (no_sanitize_undefined)
 # define ATTRIBUTE_NO_SANITIZE_UNDEFINED __attribute__ ((no_sanitize_undefined))
-#elif __has_attribute (no_sanitize)
+#elif HAS_ATTRIBUTE (no_sanitize)
 # define ATTRIBUTE_NO_SANITIZE_UNDEFINED \
     __attribute__ ((no_sanitize ("undefined")))
 #else

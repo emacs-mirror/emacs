@@ -87,12 +87,11 @@ and is the default except for MS-Windows."
 (defun dnd-handle-one-url (window action url)
   "Handle one dropped url by calling the appropriate handler.
 The handler is first located by looking at `dnd-protocol-alist'.
-If no match is found here, and the value of `browse-url-browser-function'
-is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
-If no match is found, just call `dnd-insert-text'.
-WINDOW is where the drop happened, ACTION is the action for the drop,
-URL is what has been dropped.
-Returns ACTION."
+If no match is found here, `browse-url-handlers' and
+`browse-url-default-handlers' are searched for a match.
+If no match is found, just call `dnd-insert-text'.  WINDOW is
+where the drop happened, ACTION is the action for the drop, URL
+is what has been dropped.  Returns ACTION."
   (require 'browse-url)
   (let (ret)
     (or
@@ -102,14 +101,21 @@ Returns ACTION."
 	   (setq ret (funcall (cdr bf) url action))
 	   (throw 'done t)))
        nil)
-     (when (not (functionp browse-url-browser-function))
-       (catch 'done
-	 (dolist (bf browse-url-browser-function)
-	   (when (string-match (car bf) url)
-	     (setq ret 'private)
-	     (funcall (cdr bf) url action)
-	     (throw 'done t)))
-	 nil))
+     (catch 'done
+       (require 'browse-url) ;; browse-url-handlers is not autoloaded.
+       (dolist (bf (append
+                    ;; The alist choice of browse-url-browser-function
+                    ;; is deprecated since 28.1, so the (unless ...)
+                    ;; can be removed at some point in time.
+                    (unless (functionp browse-url-browser-function)
+                      browse-url-browser-function)
+                    browse-url-handlers
+                    browse-url-default-handlers))
+	 (when (string-match (car bf) url)
+	   (setq ret 'private)
+	   (funcall (cdr bf) url action)
+	   (throw 'done t)))
+       nil)
      (progn
        (dnd-insert-text window action url)
        (setq ret 'private)))

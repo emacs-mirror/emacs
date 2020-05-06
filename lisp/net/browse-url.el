@@ -114,9 +114,10 @@
 ;; To always save modified buffers before displaying the file in a browser:
 ;;	(setq browse-url-save-file t)
 
-;; To invoke different browsers for different URLs:
-;;      (setq browse-url-browser-function '(("^mailto:" . browse-url-mail)
-;;      				    ("." . browse-url-firefox)))
+;; To invoke different browsers/tools for different URLs, customize
+;; `browse-url-handlers'.  In earlier versions of Emacs, the same
+;; could be done by setting `browse-url-browser-function' to an alist
+;; but this usage is deprecated now.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Code:
@@ -157,7 +158,9 @@
 		   :value browse-url-default-browser)
     (function :tag "Your own function")
     (alist :tag "Regexp/function association list"
-	   :key-type regexp :value-type function)))
+	   :key-type regexp :value-type function
+           :format "%{%t%}\n%d%v\n"
+           :doc "Deprecated.  Use `browse-url-handlers' instead.")))
 
 ;;;###autoload
 (defcustom browse-url-browser-function 'browse-url-default-browser
@@ -165,13 +168,8 @@
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
 
-If the value is not a function it should be a list of pairs
-\(REGEXP . FUNCTION).  In this case the function called will be the one
-associated with the first REGEXP which matches the current URL.  The
-function is passed the URL and any other args of `browse-url'.  The last
-regexp should probably be \".\" to specify a default browser.
-
-Also see `browse-url-secondary-browser-function'."
+Also see `browse-url-secondary-browser-function' and
+`browse-url-handlers'."
   :type browse-url--browser-defcustom-type
   :version "24.1")
 
@@ -595,6 +593,41 @@ down (this *won't* always work)."
   "Wrapper command prepended to the Elinks command-line."
   :type '(repeat (string :tag "Wrapper")))
 
+(defun browse-url--mailto (url &rest args)
+  "Calls `browse-url-mailto-function' with URL and ARGS."
+  (funcall browse-url-mailto-function url args))
+
+(defun browse-url--man (url &rest args)
+  "Calls `browse-url-man-function' with URL and ARGS."
+  (funcall browse-url-man-function url args))
+
+;;;###autoload
+(defvar browse-url-default-handlers
+  '(("\\`mailto:" . browse-url--mailto)
+    ("\\`man:" . browse-url--man)
+    ("\\`file://" . browse-url-emacs))
+  "Like `browse-url-handlers' but populated by Emacs and packages.
+
+Emacs and external packages capable of browsing certain URLs
+should place their entries in this alist rather than
+`browse-url-handlers' which is reserved for the user.")
+
+(defcustom browse-url-handlers nil
+  "An alist with elements of the form (REGEXP HANDLER).
+Each REGEXP is matched against the URL to be opened in turn and
+the first match's HANDLER is invoked with the URL.
+
+A HANDLER must be a function with the same arguments as
+`browse-url'.
+
+If no REGEXP matches, the same procedure is performed with the
+value of `browse-url-default-handlers'.  If there is also no
+match, the URL is opened using the value of
+`browse-url-browser-function'."
+  :type '(alist :key-type (regexp :tag "Regexp")
+                :value-type (function :tag "Handler"))
+  :version "28.1")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL encoding
 
@@ -768,16 +801,18 @@ narrowed."
   "Ask a WWW browser to load URL.
 Prompt for a URL, defaulting to the URL at or before point.
 Invokes a suitable browser function which does the actual job.
-The variable `browse-url-browser-function' says which browser function to
-use.  If the URL is a mailto: URL, consult `browse-url-mailto-function'
-first, if that exists.
 
-The additional ARGS are passed to the browser function.  See the doc
-strings of the actual functions, starting with `browse-url-browser-function',
-for information about the significance of ARGS (most of the functions
-ignore it).
-If ARGS are omitted, the default is to pass `browse-url-new-window-flag'
-as ARGS."
+The variables `browse-url-browser-function',
+`browse-url-handlers', and `browse-url-default-handlers'
+determine which browser function to use.
+
+The additional ARGS are passed to the browser function.  See the
+doc strings of the actual functions, starting with
+`browse-url-browser-function', for information about the
+significance of ARGS (most of the functions ignore it).
+
+If ARGS are omitted, the default is to pass
+`browse-url-new-window-flag' as ARGS."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
@@ -786,12 +821,15 @@ as ARGS."
              (not (string-match "\\`[a-z]+:" url)))
     (setq url (expand-file-name url)))
   (let ((process-environment (copy-sequence process-environment))
-	(function (or (and (string-match "\\`mailto:" url)
-			   browse-url-mailto-function)
-                      (and (string-match "\\`man:" url)
-                           browse-url-man-function)
-		      browse-url-browser-function))
-	;; Ensure that `default-directory' exists and is readable (b#6077).
+	(function
+         (catch 'custom-url-handler
+           (dolist (regex-handler (append browse-url-handlers
+                                          browse-url-default-handlers))
+             (when (string-match-p (car regex-handler) url)
+               (throw 'custom-url-handler (cdr regex-handler))))
+           ;; No special handler found.
+           browse-url-browser-function))
+	;; Ensure that `default-directory' exists and is readable (bug#6077).
 	(default-directory (or (unhandled-file-name-directory default-directory)
 			       (expand-file-name "~/"))))
     ;; When connected to various displays, be careful to use the display of
@@ -801,15 +839,19 @@ as ARGS."
         (setenv "DISPLAY" (frame-parameter nil 'display)))
     (if (and (consp function)
 	     (not (functionp function)))
-	;; The `function' can be an alist; look down it for first match
-	;; and apply the function (which might be a lambda).
-	(catch 'done
-	  (dolist (bf function)
-	    (when (string-match (car bf) url)
-	      (apply (cdr bf) url args)
-	      (throw 'done t)))
-	  (error "No browse-url-browser-function matching URL %s"
-		 url))
+	;; The `function' can be an alist; look down it for first
+	;; match and apply the function (which might be a lambda).
+	;; However, this usage is deprecated as of Emacs 28.1.
+        (progn
+          (warn "Having `browse-url-browser-function' set to an
+alist is deprecated.  Use `browse-url-handlers' instead.")
+          (catch 'done
+	    (dolist (bf function)
+	      (when (string-match (car bf) url)
+	        (apply (cdr bf) url args)
+	        (throw 'done t)))
+	    (error "No browse-url-browser-function matching URL %s"
+	           url)))
       ;; Unbound symbols go down this leg, since void-function from
       ;; apply is clearer than wrong-type-argument from dolist.
       (apply function url args))))

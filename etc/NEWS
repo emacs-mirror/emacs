@@ -304,6 +304,22 @@ use ‘doxygen’ by default one might evaluate:
                     (c++-mode  . doxygen)))
 
 or use it in a custom ‘c-style’.
+
+** browse-url
+
+*** Added support for custom URL handlers
+
+There is a new defvar 'browse-url-default-handlers' and a defcustom
+'browse-url-handlers' being alists with (REGEXP . FUNCTION) entries
+allowing to define different browsing FUNCTIONs depending on the URL
+to be browsed.  The defvar is for default handlers provided by Emacs
+itself or external packages, the defcustom is for the user (and allows
+for overriding the default handlers).
+
+Formerly, one could do the same by setting
+'browse-url-browser-function' to such an alist.  This usage is still
+supported but deprecated.
+
 
 * New Modes and Packages in Emacs 28.1
 
