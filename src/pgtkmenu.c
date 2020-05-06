@@ -277,6 +277,10 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
   if (! menubar_widget)
     deep_p = true;
 
+  /* Since button_event handler in pgtk emacs doesn't handle mouse
+   * events in menubars, the menu needs to be built now.  */
+  deep_p = true;
+
   if (deep_p)
     {
       struct buffer *prev = current_buffer;
