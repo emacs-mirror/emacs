@@ -1852,8 +1852,8 @@ This takes effect when first loading the library.")
   "Keymap for commands for use in HTML mode.")
 
 (defvar html-face-tag-alist
-  '((bold . "b")
-    (italic . "i")
+  '((bold . "strong")
+    (italic . "em")
     (underline . "u")
     (mode-line . "rev"))
   "Value of `sgml-face-tag-alist' for HTML mode.")
@@ -2363,7 +2363,7 @@ have <h1>Very Major Headlines</h1> through <h6>Very Minor Headlines</h6>
 
 <p>Paragraphs only need an opening tag.  Line breaks and multiple spaces are
 ignored unless the text is <pre>preformatted.</pre>  Text can be marked as
-<b>bold</b>, <i>italic</i> or <u>underlined</u> using the normal M-o or
+<strong>bold</strong>, <em>italic</em> or <u>underlined</u> using the normal M-o or
 Edit/Text Properties/Face commands.
 
 Pages can have <a name=\"SOMENAME\">named points</a> and can link other points
