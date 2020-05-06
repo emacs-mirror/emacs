@@ -695,8 +695,14 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's value be void.
-Return SYMBOL.  */)
+       doc: /* Empty out the value cell of SYMBOL, making it void as a variable.
+Return SYMBOL.
+
+If a variable is void, trying to evaluate the variable signals a
+`void-variable' error, instead of returning a value.  For more
+details, see Info node `(elisp) Void Variables'.
+
+See also `fmakunbound'.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
@@ -707,8 +713,14 @@ Return SYMBOL.  */)
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be nil.
-Return SYMBOL.  */)
+       doc: /* Make SYMBOL's function definition be void.
+Return SYMBOL.
+
+If a function definition is void, trying to call a function by that
+name will cause a `void-function' error.  For more details, see Info
+node `(elisp) Function Cells'.
+
+See also `makunbound'.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
