@@ -601,10 +601,17 @@ down (this *won't* always work)."
   "Calls `browse-url-man-function' with URL and ARGS."
   (funcall browse-url-man-function url args))
 
+(defun browse-url--browser (url &rest args)
+  "Calls `browse-url-browser-function' with URL and ARGS."
+  (funcall browse-url-browser-function url args))
+
 ;;;###autoload
 (defvar browse-url-default-handlers
   '(("\\`mailto:" . browse-url--mailto)
     ("\\`man:" . browse-url--man)
+    ;; Render file:// URLs if they are HTML pages, otherwise just find
+    ;; the file.
+    ("\\`file://.*\\.html?\\b" . browse-url--browser)
     ("\\`file://" . browse-url-emacs))
   "Like `browse-url-handlers' but populated by Emacs and packages.
 
