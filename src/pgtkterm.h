@@ -621,4 +621,9 @@ extern bool pgtk_im_filter_keypress(struct frame *f, GdkEventKey *ev);
 extern void pgtk_im_init(struct pgtk_display_info *dpyinfo);
 extern void pgtk_im_finish(struct pgtk_display_info *dpyinfo);
 
+extern bool xg_set_icon (struct frame *, Lisp_Object);
+extern bool xg_set_icon_from_xpm_data (struct frame *f, const char **data);
+
+extern bool pgtk_text_icon (struct frame *f, const char *icon_name);
+
 #endif	/* HAVE_PGTK */

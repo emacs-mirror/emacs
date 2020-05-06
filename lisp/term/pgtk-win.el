@@ -281,10 +281,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
       (error "Cannot suspend Emacs while a PGTK GUI frame exists")))
 
 
-;; Set some options to be as Nextstep-like as possible.
-(setq frame-title-format t
-      icon-title-format t)
-
 
 (defvar pgtk-initialized nil
   "Non-nil if pure-GTK windowing has been initialized.")

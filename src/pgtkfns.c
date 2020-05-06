@@ -50,7 +50,6 @@ static ptrdiff_t image_cache_refcount;
 
 static int x_decode_color (struct frame *f, Lisp_Object color_name, int mono_color);
 static struct pgtk_display_info *pgtk_display_info_for_name (Lisp_Object);
-static void pgtk_set_name_as_filename (struct frame *);
 
 static const char *pgtk_app_name = "Emacs";
 
@@ -253,58 +252,24 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   update_face_from_frame_parameter (f, Qcursor_color, arg);
 }
 
-
-static void
-x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
-{
-  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET(f);
-  PGTK_TRACE ("x_set_icon_name");
-
-  /* see if it's changed */
-  if (STRINGP (arg))
-    {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
-        return;
-    }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
-    return;
-
-  fset_icon_name (f, arg);
-
-  if (NILP (arg))
-    {
-      if (!NILP (f->title))
-        arg = f->title;
-      else
-        /* Explicit name and no icon-name -> explicit_name.  */
-        if (f->explicit_name)
-          arg = f->name;
-        else
-          {
-            /* No explicit name and no icon-name ->
-               name has to be rebuild from icon_title_format.  */
-            windows_or_buffers_changed = 67;
-            return;
-          }
-    }
-
-  gtk_window_set_icon_name(GTK_WINDOW(widget), SSDATA(arg));
-}
-
 static void
 pgtk_set_name_internal (struct frame *f, Lisp_Object name)
 {
-  Lisp_Object encoded_name, encoded_icon_name;
-  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+  if (FRAME_GTK_WIDGET (f))
+    {
+      block_input ();
+      {
+	Lisp_Object encoded_name;
 
-  encoded_name = ENCODE_UTF_8 (name);
-  gtk_window_set_title(GTK_WINDOW(widget), SSDATA (encoded_name));
+	/* As ENCODE_UTF_8 may cause GC and relocation of string data,
+	   we use it before x_encode_text that may return string data.  */
+	encoded_name = ENCODE_UTF_8 (name);
 
-  if (!STRINGP (f->icon_name))
-    encoded_icon_name = encoded_name;
-  else
-    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
-  gtk_window_set_icon_name(GTK_WINDOW(widget), SSDATA (encoded_icon_name));
+        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                              SSDATA (encoded_name));
+      }
+      unblock_input ();
+    }
 }
 
 static void
@@ -352,7 +317,7 @@ static void
 x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   PGTK_TRACE ("x_explicitly_set_name");
-  pgtk_set_name (f, arg, 1);
+  pgtk_set_name (f, arg, true);
 }
 
 
@@ -363,17 +328,7 @@ void
 pgtk_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   PGTK_TRACE ("x_implicitly_set_name");
-
-  Lisp_Object frame_title = buffer_local_value
-    (Qframe_title_format, XWINDOW (f->selected_window)->contents);
-  Lisp_Object icon_title = buffer_local_value
-    (Qicon_title_format, XWINDOW (f->selected_window)->contents);
-
-  if (FRAME_PGTK_P (f) && ((FRAME_ICONIFIED_P (f) && EQ (icon_title, Qt))
-                         || EQ (frame_title, Qt)))
-    pgtk_set_name_as_filename (f);
-  else
-    pgtk_set_name (f, arg, 0);
+  pgtk_set_name (f, arg, false);
 }
 
 
@@ -398,72 +353,6 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
     CHECK_STRING (name);
 
   pgtk_set_name_internal (f, name);
-}
-
-
-static void
-pgtk_set_name_as_filename (struct frame *f)
-{
-  GtkWidget *widget;
-  Lisp_Object name, filename;
-  Lisp_Object buf = XWINDOW (f->selected_window)->contents;
-  const char *title;
-  Lisp_Object encoded_name, encoded_filename;
-  const char *str;
-  PGTK_TRACE ("pgtk_set_name_as_filename");
-
-  if (f->explicit_name || ! NILP (f->title))
-    return;
-
-  block_input ();
-  filename = BVAR (XBUFFER (buf), filename);
-  name = BVAR (XBUFFER (buf), name);
-
-  if (NILP (name))
-    {
-      if (! NILP (filename))
-        name = Ffile_name_nondirectory (filename);
-      else
-        name = build_string (pgtk_app_name);
-    }
-
-  encoded_name = ENCODE_UTF_8 (name);
-
-  widget = FRAME_GTK_OUTER_WIDGET (f);
-
-  title = FRAME_ICONIFIED_P (f) ? gtk_window_get_icon_name(GTK_WINDOW(widget))
-				: gtk_window_get_title(GTK_WINDOW(widget));
-
-  if (title && (! strcmp (title, SSDATA (encoded_name))))
-    {
-      unblock_input ();
-      return;
-    }
-
-  str = SSDATA (encoded_name);
-  if (str == NULL) str = "Bad coding";
-
-  if (FRAME_ICONIFIED_P (f))
-    gtk_window_set_icon_name(GTK_WINDOW(widget), str);
-  else
-    {
-      const char *fstr;
-
-      if (! NILP (filename))
-        {
-          encoded_filename = ENCODE_UTF_8 (filename);
-
-          fstr = SSDATA (encoded_filename);
-          if (fstr == NULL) fstr = "";
-        }
-      else
-        fstr = "";
-
-      gtk_window_set_title(GTK_WINDOW(widget), str);
-      fset_name (f, name);
-    }
-
-  unblock_input ();
 }
 
 
@@ -665,26 +554,66 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 static void
 x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  /* This does not work if on Wayland, or if icon is defined in emacs.desktop
-   * even if on X11.
-   */
-  GdkPixbuf *pixbuf;
-  if (NILP (arg) || EQ (arg, Qt))
-    pixbuf = NULL;
-  else {
-    GError *err = NULL;
-    CHECK_STRING (arg);
-    pixbuf = gdk_pixbuf_new_from_file (SSDATA (arg), &err);
-    if (pixbuf == NULL) {
-      Lisp_Object msg = build_string (err->message);
-      g_error_free (err);
-      error ("%s", SSDATA (msg));
-    }
-  }
+  bool result;
 
-  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), pixbuf);
-  if (pixbuf != NULL)
-    g_object_unref (pixbuf);
+  if (STRINGP (arg))
+    {
+      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+	return;
+    }
+  else if (!STRINGP (oldval) && NILP (oldval) == NILP (arg))
+    return;
+
+  block_input ();
+  if (NILP (arg))
+    result = pgtk_text_icon (f,
+			  SSDATA ((!NILP (f->icon_name)
+				   ? f->icon_name
+				   : f->name)));
+  else
+    result = FRAME_TERMINAL (f)->set_bitmap_icon_hook (f, arg);
+
+  if (result)
+    {
+      unblock_input ();
+      error ("No icon window available");
+    }
+
+  unblock_input ();
+}
+
+
+static void
+x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  bool result;
+
+  if (STRINGP (arg))
+    {
+      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+	return;
+    }
+  else if (!NILP (arg) || NILP (oldval))
+    return;
+
+  fset_icon_name (f, arg);
+
+  block_input ();
+
+  result = pgtk_text_icon (f,
+			   SSDATA ((!NILP (f->icon_name)
+				    ? f->icon_name
+				    : !NILP (f->title)
+				    ? f->title
+				    : f->name)));
+
+  if (result)
+    {
+      unblock_input ();
+      error ("No icon window available");
+    }
+
+  unblock_input ();
 }
 
 /* This is the same as the xfns.c definition.  */
@@ -798,6 +727,56 @@ x_set_override_redirect (struct frame *f, Lisp_Object new_value, Lisp_Object old
       pgtk_make_frame_visible (f);
       FRAME_OVERRIDE_REDIRECT (f) = !NILP (new_value);
     }
+}
+
+/* Set icon from FILE for frame F.  By using GTK functions the icon
+   may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
+
+bool
+xg_set_icon (struct frame *f, Lisp_Object file)
+{
+  bool result = false;
+  Lisp_Object found;
+
+  found = image_find_image_file (file);
+
+  if (! NILP (found))
+    {
+      GdkPixbuf *pixbuf;
+      GError *err = NULL;
+      char *filename = SSDATA (ENCODE_FILE (found));
+      block_input ();
+
+      pixbuf = gdk_pixbuf_new_from_file (filename, &err);
+
+      if (pixbuf)
+	{
+	  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			       pixbuf);
+	  g_object_unref (pixbuf);
+
+	  result = true;
+	}
+      else
+	g_error_free (err);
+
+      unblock_input ();
+    }
+
+  return result;
+}
+
+bool
+xg_set_icon_from_xpm_data (struct frame *f, const char **data)
+{
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
+
+  if (!pixbuf)
+    return false;
+
+  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), pixbuf);
+  g_object_unref (pixbuf);
+  return true;
 }
 
 static void

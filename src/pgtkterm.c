@@ -2827,6 +2827,47 @@ pgtk_scroll_run (struct window *w, struct run *run)
   unblock_input ();
 }
 
+/* Icons.  */
+
+/* Make the x-window of frame F use the gnu icon bitmap.  */
+
+static bool
+pgtk_bitmap_icon (struct frame *f, Lisp_Object file)
+{
+  if (FRAME_GTK_WIDGET (f) == 0)
+    return true;
+
+  if (STRINGP (file))
+    {
+      /* Use gtk_window_set_icon_from_file () if available,
+	 It's not restricted to bitmaps */
+      if (xg_set_icon (f, file))
+	return false;
+
+      return true;
+    }
+
+  if (xg_set_icon (f, xg_default_icon_file))
+    {
+      return false;
+    }
+
+  return true;
+}
+
+
+/* Make the x-window of frame F use a rectangle with text.
+   Use ICON_NAME as the text.  */
+
+bool
+pgtk_text_icon (struct frame *f, const char *icon_name)
+{
+  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), NULL);
+  gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), icon_name);
+
+  return false;
+}
+
 /***********************************************************************
 		    Starting and ending an update
  ***********************************************************************/
@@ -4620,6 +4661,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->query_frame_background_color = pgtk_query_frame_background_color;
   terminal->defined_color_hook = pgtk_defined_color;
   terminal->set_new_font_hook = pgtk_new_font;
+  terminal->set_bitmap_icon_hook = pgtk_bitmap_icon;
   terminal->implicit_set_name_hook = pgtk_implicitly_set_name;
   terminal->iconify_frame_hook = pgtk_iconify_frame;
   terminal->set_scroll_bar_default_width_hook = pgtk_set_scroll_bar_default_width;
