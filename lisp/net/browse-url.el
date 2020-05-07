@@ -653,7 +653,8 @@ Emacs 28.1 and will be removed in a future release."
               ;; can be removed at some point in time.
               (when (and (consp browse-url-browser-function)
 	                 (not (functionp browse-url-browser-function)))
-                (warn "Having `browse-url-browser-function' set to an
+                (lwarn 'browse-url :warning
+                       "Having `browse-url-browser-function' set to an
 alist is deprecated.  Use `browse-url-handlers' instead.")
                 browse-url-browser-function)
               browse-url-handlers
