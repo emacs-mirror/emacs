@@ -2171,7 +2171,7 @@ typedef jmp_buf sys_jmp_buf;
 
 extern EMACS_INT curr_lexspace;
 
-INLINE Lisp_Object make_binding (void);
+INLINE Lisp_Object make_binding (Lisp_Object);
 
 struct Lisp_Binding
 {
@@ -2219,7 +2219,9 @@ SYMBOL_VAL (struct Lisp_Symbol *sym)
 INLINE Lisp_Object
 SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
 {
-  return sym->u.s._function;
+  if (!NILP (sym->u.s._function))
+    return XBINDING (sym->u.s._function)->b[curr_lexspace];
+  return Qnil;
 }
 
 INLINE struct Lisp_Symbol *
@@ -2247,7 +2249,7 @@ SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
 {
   eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
   if (EQ (sym->u.s.val.value, Qunbound))
-    sym->u.s.val.value = make_binding ();
+    sym->u.s.val.value = make_binding (Qunbound);
   struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
   binding->b[curr_lexspace] = v;
 }
@@ -3429,8 +3431,10 @@ set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 INLINE void
 set_symbol_function (Lisp_Object sym, Lisp_Object function)
 {
-  /* FIXME */
-  XSYMBOL (sym)->u.s._function = function;
+  struct Lisp_Symbol *s = XSYMBOL (sym);
+  if (NILP (s->u.s._function))
+    s->u.s._function = make_binding (Qnil);
+  XBINDING (s->u.s._function)->b[curr_lexspace] = function;
 }
 
 INLINE void
@@ -5086,13 +5090,13 @@ maybe_gc (void)
 }
 
 INLINE Lisp_Object
-make_binding (void)
+make_binding (Lisp_Object init_val)
 {
   struct Lisp_Binding *binding =
     ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Binding,
 				  b[MAX_LEXSPACES - 1], PVEC_BINDING);
   for (EMACS_INT i = 0; i < MAX_LEXSPACES; i++)
-    binding->b[i] = Qunbound;
+    binding->b[i] = init_val;
   return make_lisp_ptr (binding, Lisp_Vectorlike);
 }
 

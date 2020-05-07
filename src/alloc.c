@@ -3524,7 +3524,7 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   set_symbol_plist (val, Qnil);
   p->u.s.redirect = SYMBOL_PLAINVAL;
   p->u.s.val.value = Qunbound;
-  set_symbol_function (val, Qnil);
+  p->u.s._function = Qnil;
   set_symbol_next (val, NULL);
   p->u.s.gcmarkbit = false;
   p->u.s.interned = SYMBOL_UNINTERNED;
@@ -4510,7 +4510,7 @@ live_symbol_holding (struct mem_node *m, void *p)
 	{
 	  cp = ptr_bounds_copy (cp, b);
 	  struct Lisp_Symbol *s = p = cp -= offset % sizeof b->symbols[0];
-	  if (!deadp (SYMBOL_FUNCTION (s)))
+	  if (!deadp (s->u.s._function))
 	    return make_lisp_symbol (s);
 	}
     }
@@ -6647,8 +6647,8 @@ mark_object (Lisp_Object arg)
         CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
         set_symbol_marked(ptr);
 	/* Attempt to catch bogus objects.  */
-	eassert (valid_lisp_object_p (SYMBOL_FUNCTION (ptr)));
-	mark_object (SYMBOL_FUNCTION (ptr));
+	eassert (valid_lisp_object_p (ptr->u.s._function));
+	mark_object (ptr->u.s._function);
 	mark_object (ptr->u.s.plist);
 	switch (ptr->u.s.redirect)
 	  {
@@ -7005,7 +7005,9 @@ sweep_symbols (void)
               sym->u.s.next = symbol_free_list;
               symbol_free_list = sym;
 	      /* FIXME */
-              symbol_free_list->u.s._function = dead_object ();
+	      if (!NILP (sym->u.s._function))
+		XBINDING (symbol_free_list->u.s._function)->b[curr_lexspace] =
+		  dead_object ();
               ++this_free;
             }
           else
@@ -7013,7 +7015,7 @@ sweep_symbols (void)
               ++num_used;
               sym->u.s.gcmarkbit = 0;
               /* Attempt to catch bogus objects.  */
-              eassert (valid_lisp_object_p (SYMBOL_FUNCTION (sym)));
+              eassert (valid_lisp_object_p (sym->u.s._function));
             }
         }
 
@@ -7167,10 +7169,10 @@ symbol_uses_obj (Lisp_Object symbol, Lisp_Object obj)
   struct Lisp_Symbol *sym = XSYMBOL (symbol);
   Lisp_Object val = find_symbol_value (symbol);
   return (EQ (val, obj)
-	  || EQ (SYMBOL_FUNCTION (sym), obj)
-	  || (!NILP (SYMBOL_FUNCTION (sym))
-	      && COMPILEDP (SYMBOL_FUNCTION (sym))
-	      && EQ (AREF (SYMBOL_FUNCTION (sym), COMPILED_BYTECODE), obj))
+	  || EQ (sym->u.s._function, obj)
+	  || (!NILP (sym->u.s._function)
+	      && COMPILEDP (sym->u.s._function)
+	      && EQ (AREF (sym->u.s._function, COMPILED_BYTECODE), obj))
 	  || (!NILP (val)
 	      && COMPILEDP (val)
 	      && EQ (AREF (val, COMPILED_BYTECODE), obj)));
