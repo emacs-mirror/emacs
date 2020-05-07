@@ -601,10 +601,17 @@ down (this *won't* always work)."
   "Calls `browse-url-man-function' with URL and ARGS."
   (funcall browse-url-man-function url args))
 
+(defun browse-url--browser (url &rest args)
+  "Calls `browse-url-browser-function' with URL and ARGS."
+  (funcall browse-url-browser-function url args))
+
 ;;;###autoload
 (defvar browse-url-default-handlers
   '(("\\`mailto:" . browse-url--mailto)
     ("\\`man:" . browse-url--man)
+    ;; Render file:// URLs if they are HTML pages, otherwise just find
+    ;; the file.
+    ("\\`file://.*\\.html?\\b" . browse-url--browser)
     ("\\`file://" . browse-url-emacs))
   "Like `browse-url-handlers' but populated by Emacs and packages.
 
@@ -627,6 +634,32 @@ match, the URL is opened using the value of
   :type '(alist :key-type (regexp :tag "Regexp")
                 :value-type (function :tag "Handler"))
   :version "28.1")
+
+;;;###autoload
+(defun browse-url-select-handler (url)
+  "Return a handler suitable for browsing URL.
+This searches `browse-url-handlers', and
+`browse-url-default-handlers' for a matching handler.  Return nil
+if no handler is found.
+
+Currently, it also consults `browse-url-browser-function' first
+if it is set to an alist, although this usage is deprecated since
+Emacs 28.1 and will be removed in a future release."
+  (catch 'custom-url-handler
+    (dolist (regex-handler
+             (append
+              ;; The alist choice of browse-url-browser-function
+              ;; is deprecated since 28.1, so the (unless ...)
+              ;; can be removed at some point in time.
+              (when (and (consp browse-url-browser-function)
+	                 (not (functionp browse-url-browser-function)))
+                (warn "Having `browse-url-browser-function' set to an
+alist is deprecated.  Use `browse-url-handlers' instead.")
+                browse-url-browser-function)
+              browse-url-handlers
+              browse-url-default-handlers))
+      (when (string-match-p (car regex-handler) url)
+        (throw 'custom-url-handler (cdr regex-handler))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL encoding
@@ -821,14 +854,8 @@ If ARGS are omitted, the default is to pass
              (not (string-match "\\`[a-z]+:" url)))
     (setq url (expand-file-name url)))
   (let ((process-environment (copy-sequence process-environment))
-	(function
-         (catch 'custom-url-handler
-           (dolist (regex-handler (append browse-url-handlers
-                                          browse-url-default-handlers))
-             (when (string-match-p (car regex-handler) url)
-               (throw 'custom-url-handler (cdr regex-handler))))
-           ;; No special handler found.
-           browse-url-browser-function))
+	(function (or (browse-url-select-handler url)
+                      browse-url-browser-function))
 	;; Ensure that `default-directory' exists and is readable (bug#6077).
 	(default-directory (or (unhandled-file-name-directory default-directory)
 			       (expand-file-name "~/"))))
@@ -837,24 +864,9 @@ If ARGS are omitted, the default is to pass
     ;; which may not even exist any more.
     (if (stringp (frame-parameter nil 'display))
         (setenv "DISPLAY" (frame-parameter nil 'display)))
-    (if (and (consp function)
-	     (not (functionp function)))
-	;; The `function' can be an alist; look down it for first
-	;; match and apply the function (which might be a lambda).
-	;; However, this usage is deprecated as of Emacs 28.1.
-        (progn
-          (warn "Having `browse-url-browser-function' set to an
-alist is deprecated.  Use `browse-url-handlers' instead.")
-          (catch 'done
-	    (dolist (bf function)
-	      (when (string-match (car bf) url)
-	        (apply (cdr bf) url args)
-	        (throw 'done t)))
-	    (error "No browse-url-browser-function matching URL %s"
-	           url)))
-      ;; Unbound symbols go down this leg, since void-function from
-      ;; apply is clearer than wrong-type-argument from dolist.
-      (apply function url args))))
+    (if (functionp nil)
+        (apply function url args)
+      (error "No suitable browser for URL %s" url))))
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
