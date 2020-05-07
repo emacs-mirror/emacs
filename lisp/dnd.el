@@ -102,7 +102,7 @@ is what has been dropped.  Returns ACTION."
 	   (throw 'done t)))
        nil)
      (catch 'done
-       (require 'browse-url) ;; browse-url-handlers is not autoloaded.
+       (defvar browse-url-handlers) ;; Not autoloaded.
        (dolist (bf (append
                     ;; The alist choice of browse-url-browser-function
                     ;; is deprecated since 28.1, so the (unless ...)
