@@ -4395,7 +4395,7 @@ defalias (struct Lisp_Subr *sname, char *string)
 {
   Lisp_Object sym;
   sym = intern (string);
-  XSETSUBR (XSYMBOL (sym)->u.s.function, sname);
+  XSETSUBR (SYMBOL_FUNCTION (XSYMBOL (sym)), sname);
 }
 #endif /* NOTDEF */
 

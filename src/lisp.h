@@ -852,7 +852,7 @@ struct Lisp_Symbol
       } val;
 
       /* Function value of the symbol or Qnil if not fboundp.  */
-      Lisp_Object function;
+      Lisp_Object _function;
 
       /* The symbol's property list.  */
       Lisp_Object plist;
@@ -2216,6 +2216,12 @@ SYMBOL_VAL (struct Lisp_Symbol *sym)
   return XBINDING (sym->u.s.val.value)->b[curr_lexspace];
 }
 
+INLINE Lisp_Object
+SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
+{
+  return sym->u.s._function;
+}
+
 INLINE struct Lisp_Symbol *
 SYMBOL_ALIAS (struct Lisp_Symbol *sym)
 {
@@ -3423,7 +3429,8 @@ set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 INLINE void
 set_symbol_function (Lisp_Object sym, Lisp_Object function)
 {
-  XSYMBOL (sym)->u.s.function = function;
+  /* FIXME */
+  XSYMBOL (sym)->u.s._function = function;
 }
 
 INLINE void

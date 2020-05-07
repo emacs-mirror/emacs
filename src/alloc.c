@@ -4510,7 +4510,7 @@ live_symbol_holding (struct mem_node *m, void *p)
 	{
 	  cp = ptr_bounds_copy (cp, b);
 	  struct Lisp_Symbol *s = p = cp -= offset % sizeof b->symbols[0];
-	  if (!deadp (s->u.s.function))
+	  if (!deadp (SYMBOL_FUNCTION (s)))
 	    return make_lisp_symbol (s);
 	}
     }
@@ -6647,8 +6647,8 @@ mark_object (Lisp_Object arg)
         CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
         set_symbol_marked(ptr);
 	/* Attempt to catch bogus objects.  */
-	eassert (valid_lisp_object_p (ptr->u.s.function));
-	mark_object (ptr->u.s.function);
+	eassert (valid_lisp_object_p (SYMBOL_FUNCTION (ptr)));
+	mark_object (SYMBOL_FUNCTION (ptr));
 	mark_object (ptr->u.s.plist);
 	switch (ptr->u.s.redirect)
 	  {
@@ -7004,7 +7004,8 @@ sweep_symbols (void)
                 }
               sym->u.s.next = symbol_free_list;
               symbol_free_list = sym;
-              symbol_free_list->u.s.function = dead_object ();
+	      /* FIXME */
+              symbol_free_list->u.s._function = dead_object ();
               ++this_free;
             }
           else
@@ -7012,7 +7013,7 @@ sweep_symbols (void)
               ++num_used;
               sym->u.s.gcmarkbit = 0;
               /* Attempt to catch bogus objects.  */
-              eassert (valid_lisp_object_p (sym->u.s.function));
+              eassert (valid_lisp_object_p (SYMBOL_FUNCTION (sym)));
             }
         }
 
@@ -7166,10 +7167,10 @@ symbol_uses_obj (Lisp_Object symbol, Lisp_Object obj)
   struct Lisp_Symbol *sym = XSYMBOL (symbol);
   Lisp_Object val = find_symbol_value (symbol);
   return (EQ (val, obj)
-	  || EQ (sym->u.s.function, obj)
-	  || (!NILP (sym->u.s.function)
-	      && COMPILEDP (sym->u.s.function)
-	      && EQ (AREF (sym->u.s.function, COMPILED_BYTECODE), obj))
+	  || EQ (SYMBOL_FUNCTION (sym), obj)
+	  || (!NILP (SYMBOL_FUNCTION (sym))
+	      && COMPILEDP (SYMBOL_FUNCTION (sym))
+	      && EQ (AREF (SYMBOL_FUNCTION (sym), COMPILED_BYTECODE), obj))
 	  || (!NILP (val)
 	      && COMPILEDP (val)
 	      && EQ (AREF (val, COMPILED_BYTECODE), obj)));

@@ -483,7 +483,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 {
   /* Don't use indirect_function here, or defaliases will apply their
      docstrings to the base functions (Bug#2603).  */
-  Lisp_Object fun = SYMBOLP (obj) ? XSYMBOL (obj)->u.s.function : obj;
+  Lisp_Object fun = SYMBOLP (obj) ? SYMBOL_FUNCTION (XSYMBOL (obj)) : obj;
 
   /* The type determines where the docstring is stored.  */
 

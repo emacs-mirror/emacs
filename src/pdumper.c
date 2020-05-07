@@ -2427,7 +2427,7 @@ dump_symbol (struct dump_context *ctx,
              Lisp_Object object,
              dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_999DC26DEC
+#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_B160ED845C
 # error "Lisp_Symbol changed. See CHECK_STRUCTS comment in config.h."
 #endif
 #if CHECK_STRUCTS && !defined (HASH_symbol_redirect_ADB4F5B113)
@@ -2486,7 +2486,7 @@ dump_symbol (struct dump_context *ctx,
     default:
       emacs_abort ();
     }
-  dump_field_lv (ctx, &out, symbol, &symbol->u.s.function, WEIGHT_NORMAL);
+  dump_field_lv (ctx, &out, symbol, &symbol->u.s._function, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.plist, WEIGHT_NORMAL);
   dump_field_lv_rawptr (ctx, &out, symbol, &symbol->u.s.next, Lisp_Symbol,
                         WEIGHT_STRONG);
