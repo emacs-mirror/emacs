@@ -810,7 +810,7 @@ INTERACTIVE is t if called interactively."
 (defun eglot-events-buffer (server)
   "Display events buffer for SERVER.
 Use current server's or first available Eglot events buffer."
-  (interactive (list eglot--cached-server))
+  (interactive (list (eglot-current-server)))
   (let ((buffer (if server (jsonrpc-events-buffer server)
                   (cl-find "\\*EGLOT.*events\\*"
                            (buffer-list)
