@@ -864,7 +864,7 @@ If ARGS are omitted, the default is to pass
     ;; which may not even exist any more.
     (if (stringp (frame-parameter nil 'display))
         (setenv "DISPLAY" (frame-parameter nil 'display)))
-    (if (functionp nil)
+    (if (functionp function)
         (apply function url args)
       (error "No suitable browser for URL %s" url))))
 
