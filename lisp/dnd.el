@@ -103,7 +103,7 @@ is what has been dropped.  Returns ACTION."
      (catch 'done
        ;; Autoloaded but the byte-compiler still complains.
        (declare-function browse-url-select-handler "browse-url" (url))
-       (let ((browser (browse-url-select-handler url)))
+       (let ((browser (browse-url-select-handler url 'internal)))
          (when browser
            (setq ret 'private)
            (funcall browser url action)
