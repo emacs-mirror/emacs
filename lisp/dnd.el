@@ -92,7 +92,6 @@ If no match is found here, `browse-url-handlers' and
 If no match is found, just call `dnd-insert-text'.  WINDOW is
 where the drop happened, ACTION is the action for the drop, URL
 is what has been dropped.  Returns ACTION."
-  (require 'browse-url)
   (let (ret)
     (or
      (catch 'done
@@ -102,19 +101,11 @@ is what has been dropped.  Returns ACTION."
 	   (throw 'done t)))
        nil)
      (catch 'done
-       (defvar browse-url-handlers) ;; Not autoloaded.
-       (dolist (bf (append
-                    ;; The alist choice of browse-url-browser-function
-                    ;; is deprecated since 28.1, so the (unless ...)
-                    ;; can be removed at some point in time.
-                    (unless (functionp browse-url-browser-function)
-                      browse-url-browser-function)
-                    browse-url-handlers
-                    browse-url-default-handlers))
-	 (when (string-match (car bf) url)
-	   (setq ret 'private)
-	   (funcall (cdr bf) url action)
-	   (throw 'done t)))
+       (let ((browser (browse-url-select-handler url)))
+         (when browser
+           (setq ret 'private)
+           (funcall browser url action)
+           (throw 'done t)))
        nil)
      (progn
        (dnd-insert-text window action url)
