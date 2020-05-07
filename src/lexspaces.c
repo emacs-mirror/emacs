@@ -31,6 +31,8 @@ DEFUN ("in-lexspace", Fin_lexspace, Sin_lexspace, 1, 1, 0,
 void
 syms_of_lexspaces (void)
 {
+  DEFSYM (Qbinding, "binding");
+
   DEFSYM (Qel, "el");
   DEFVAR_LISP ("current-lexspace-name", Vcurrent_lexspace_name,
 	       doc: /* Internal use.  */);

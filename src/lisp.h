@@ -786,6 +786,7 @@ INLINE void
    Lisp_Intfwd, etc.).  The pointer is packaged inside a struct to
    help static checking.  */
 typedef struct { void const *fwdptr; } lispfwd;
+
 
 /* Interned state of a symbol.  */
 
@@ -1103,6 +1104,7 @@ enum pvec_type
   PVEC_MUTEX,
   PVEC_CONDVAR,
   PVEC_MODULE_FUNCTION,
+  PVEC_BINDING,
 
   /* These should be last, for internal_equal and sxhash_obj.  */
   PVEC_COMPILED,
@@ -2934,6 +2936,12 @@ INLINE bool
 RECORDP (Lisp_Object a)
 {
   return PSEUDOVECTORP (a, PVEC_RECORD);
+}
+
+INLINE bool
+BINDINGP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_BINDING);
 }
 
 INLINE void
@@ -5033,6 +5041,41 @@ maybe_gc (void)
 {
   if (consing_until_gc < 0)
     maybe_garbage_collect ();
+}
+
+
+/* Lexspaces and binding. */
+
+#define MAX_LEXSPACES 256
+
+struct Lisp_Binding
+{
+  union vectorlike_header header;
+  Lisp_Object b[MAX_LEXSPACES];
+};
+
+INLINE void
+CHECK_BINDING (Lisp_Object b)
+{
+  CHECK_TYPE (BINDINGP (b), Qbinding, b);
+}
+
+INLINE struct Lisp_Binding *
+XBINDING (Lisp_Object b)
+{
+  eassert (BINDINGP (b));
+  return XUNTAG (b, Lisp_Vectorlike, struct Lisp_Binding);
+}
+
+INLINE Lisp_Object
+make_binding (void)
+{
+  struct Lisp_Binding *binding =
+    ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Binding,
+				  b[MAX_LEXSPACES], PVEC_BINDING);
+  for (EMACS_INT i = 0; i < MAX_LEXSPACES; i++)
+    binding->b[i] = Qunbound;
+  return make_lisp_ptr (binding, Lisp_Vectorlike);
 }
 
 INLINE_HEADER_END
