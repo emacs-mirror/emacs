@@ -1812,6 +1812,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_indent ();
       syms_of_insdel ();
       /* syms_of_keymap (); */
+      syms_of_lexspaces ();
       syms_of_macros ();
       syms_of_marker ();
       syms_of_minibuf ();

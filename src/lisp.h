@@ -4513,6 +4513,9 @@ extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 extern Lisp_Object get_byte_code_arity (Lisp_Object);
 
+/* Defined in lexspaces.c.  */
+extern void syms_of_lexspaces (void);
+
 /* Defined in macros.c.  */
 extern void init_macros (void);
 extern void syms_of_macros (void);
