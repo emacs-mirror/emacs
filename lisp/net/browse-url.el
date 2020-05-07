@@ -929,6 +929,34 @@ Optional prefix argument ARG non-nil inverts the value of the option
       (error "No URL found"))))
 
 ;;;###autoload
+(defun browse-url-with-browser-kind (kind url &optional arg)
+  "Browse URL with a browser of the given browser KIND.
+KIND is either `internal' or `external'.
+
+When called interactively, the default browser kind is the
+opposite of the browser kind of `browse-url-browser-function'."
+  (interactive
+   (let* ((url-arg (browse-url-interactive-arg "URL: "))
+          ;; Default to the inverse kind of the default browser.
+          (default (if (eq (browse-url--browser-kind
+                            browse-url-browser-function (car url-arg))
+                           'internal)
+                       'external
+                     'internal))
+          (k (completing-read
+              (format "Browser kind (default %s): " default)
+              '(internal external)
+              nil t nil nil
+              default)))
+     (cons k url-arg)))
+  (let ((function (browse-url-select-handler url kind)))
+    (unless function
+      (setq function (if (eq kind 'external)
+                         #'browse-url-default-browser
+                       #'eww)))
+    (funcall function url arg)))
+
+;;;###autoload
 (defun browse-url-at-mouse (event)
   "Ask a WWW browser to load a URL clicked with the mouse.
 The URL is the one around or before the position of the mouse click
