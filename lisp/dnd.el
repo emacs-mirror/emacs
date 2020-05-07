@@ -101,6 +101,8 @@ is what has been dropped.  Returns ACTION."
 	   (throw 'done t)))
        nil)
      (catch 'done
+       ;; Autoloaded but the byte-compiler still complains.
+       (declare-function browse-url-select-handler "browse-url" (url))
        (let ((browser (browse-url-select-handler url)))
          (when browser
            (setq ret 'private)
