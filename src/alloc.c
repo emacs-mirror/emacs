@@ -3523,7 +3523,7 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   set_symbol_name (val, name);
   set_symbol_plist (val, Qnil);
   p->u.s.redirect = SYMBOL_PLAINVAL;
-  SET_SYMBOL_VAL (p, Qunbound);
+  p->u.s.val.value = Qunbound;
   set_symbol_function (val, Qnil);
   set_symbol_next (val, NULL);
   p->u.s.gcmarkbit = false;
@@ -6652,7 +6652,7 @@ mark_object (Lisp_Object arg)
 	mark_object (ptr->u.s.plist);
 	switch (ptr->u.s.redirect)
 	  {
-	  case SYMBOL_PLAINVAL: mark_object (SYMBOL_VAL (ptr)); break;
+	  case SYMBOL_PLAINVAL: mark_object (ptr->u.s.val.value); break;
 	  case SYMBOL_VARALIAS:
 	    {
 	      Lisp_Object tem;

@@ -377,14 +377,10 @@ typedef EMACS_INT Lisp_Word;
        & ((1 << INTTYPEBITS) - 1)))
 #define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
 #define lisp_h_NILP(x) EQ (x, Qnil)
-#define lisp_h_SET_SYMBOL_VAL(sym, v) \
-   (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
-    (sym)->u.s.val.value = (v))
+
 #define lisp_h_SYMBOL_CONSTANT_P(sym) \
    (XSYMBOL (sym)->u.s.trapped_write == SYMBOL_NOWRITE)
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
-#define lisp_h_SYMBOL_VAL(sym) \
-   (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
 #define lisp_h_SYMBOLP(x) TAGGEDP (x, Lisp_Symbol)
 #define lisp_h_TAGGEDP(a, tag) \
    (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
@@ -2168,16 +2164,56 @@ typedef jmp_buf sys_jmp_buf;
 
 #include "thread.h"
 
+
+/* Lexspaces and binding. */
+
+#define MAX_LEXSPACES 256
+
+extern EMACS_INT curr_lexspace;
+
+INLINE Lisp_Object make_binding (void);
+
+struct Lisp_Binding
+{
+  union vectorlike_header header;
+  Lisp_Object b[MAX_LEXSPACES];
+};
+
+INLINE bool
+BINDINGP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_BINDING);
+}
+
+INLINE void
+CHECK_BINDING (Lisp_Object b)
+{
+  CHECK_TYPE (BINDINGP (b), Qbinding, b);
+}
+
+INLINE struct Lisp_Binding *
+XBINDING (Lisp_Object b)
+{
+  eassert (BINDINGP (b));
+  return XUNTAG (b, Lisp_Vectorlike, struct Lisp_Binding);
+}
+
 /***********************************************************************
 			       Symbols
  ***********************************************************************/
 
 /* Value is name of symbol.  */
 
+/* FIXME move back to macro.  */
 INLINE Lisp_Object
-(SYMBOL_VAL) (struct Lisp_Symbol *sym)
+SYMBOL_VAL (struct Lisp_Symbol *sym)
 {
-  return lisp_h_SYMBOL_VAL (sym);
+  eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
+  if (EQ (sym->u.s.val.value, Qunbound))
+    return Qunbound;
+  eassert (BINDINGP (sym->u.s.val.value));
+ /* FIXME: add loop to follow indirection.  */
+  return XBINDING (sym->u.s.val.value)->b[curr_lexspace];
 }
 
 INLINE struct Lisp_Symbol *
@@ -2199,10 +2235,15 @@ SYMBOL_FWD (struct Lisp_Symbol *sym)
   return sym->u.s.val.fwd;
 }
 
+/* FIXME move it back to macro. */
 INLINE void
-(SET_SYMBOL_VAL) (struct Lisp_Symbol *sym, Lisp_Object v)
+SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
 {
-  lisp_h_SET_SYMBOL_VAL (sym, v);
+  eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
+  if (EQ (sym->u.s.val.value, Qunbound))
+    sym->u.s.val.value = make_binding ();
+  struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
+  binding->b[curr_lexspace] = v;
 }
 
 INLINE void
@@ -2936,12 +2977,6 @@ INLINE bool
 RECORDP (Lisp_Object a)
 {
   return PSEUDOVECTORP (a, PVEC_RECORD);
-}
-
-INLINE bool
-BINDINGP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_BINDING);
 }
 
 INLINE void
@@ -5043,36 +5078,12 @@ maybe_gc (void)
     maybe_garbage_collect ();
 }
 
-
-/* Lexspaces and binding. */
-
-#define MAX_LEXSPACES 256
-
-struct Lisp_Binding
-{
-  union vectorlike_header header;
-  Lisp_Object b[MAX_LEXSPACES];
-};
-
-INLINE void
-CHECK_BINDING (Lisp_Object b)
-{
-  CHECK_TYPE (BINDINGP (b), Qbinding, b);
-}
-
-INLINE struct Lisp_Binding *
-XBINDING (Lisp_Object b)
-{
-  eassert (BINDINGP (b));
-  return XUNTAG (b, Lisp_Vectorlike, struct Lisp_Binding);
-}
-
 INLINE Lisp_Object
 make_binding (void)
 {
   struct Lisp_Binding *binding =
     ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Binding,
-				  b[MAX_LEXSPACES], PVEC_BINDING);
+				  b[MAX_LEXSPACES - 1], PVEC_BINDING);
   for (EMACS_INT i = 0; i < MAX_LEXSPACES; i++)
     binding->b[i] = Qunbound;
   return make_lisp_ptr (binding, Lisp_Vectorlike);

@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "lisp.h"
 
+EMACS_INT curr_lexspace;
+
 DEFUN ("in-lexspace", Fin_lexspace, Sin_lexspace, 1, 1, 0,
        doc: /* Set NAME as current lexspace.  Create it in case.   */)
   (Lisp_Object name)

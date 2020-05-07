@@ -259,6 +259,8 @@ for example, (type-of 1) returns `integer'.  */)
           }
         case PVEC_MODULE_FUNCTION:
           return Qmodule_function;
+	case PVEC_BINDING:
+	  return Qbinding;
         case PVEC_XWIDGET:
           return Qxwidget;
         case PVEC_XWIDGET_VIEW:
