@@ -2223,7 +2223,7 @@ SYMBOL_VAL (struct Lisp_Symbol *sym)
 }
 
 INLINE Lisp_Object
-SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
+symbol_function_1 (struct Lisp_Symbol *sym)
 {
   if (NILP (sym->u.s._function))
     return Qnil;
@@ -2233,6 +2233,23 @@ SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
   while (binding->r[lexspace])
     lexspace = XFIXNUM (binding->b[lexspace]);
   return binding->b[lexspace];
+}
+
+INLINE Lisp_Object
+SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
+{
+  Lisp_Object tmp = symbol_function_1 (sym);
+
+  if (CONSP (tmp)
+      && CONSP (XCDR (tmp))
+      && EQ (XCAR (XCDR (tmp)), Qclosure))
+    {
+      /* Remove the lexspace number in case (n closure () ...) is
+	 found.  */
+      eassert (FIXNUMP (XCAR (tmp)));
+      return XCDR (tmp);
+    }
+  return tmp;
 }
 
 INLINE struct Lisp_Symbol *
@@ -3446,6 +3463,9 @@ set_symbol_function (Lisp_Object sym, Lisp_Object function)
   struct Lisp_Symbol *s = XSYMBOL (sym);
   if (NILP (s->u.s._function))
     s->u.s._function = make_binding (Qnil);
+  /* Functions must execute in the original lexspace so lets store it.  */
+  if (CONSP (function) && EQ (XCAR (function), Qclosure))
+    function = Fcons (make_fixnum (curr_lexspace), function);
   XBINDING (s->u.s._function)->b[curr_lexspace] = function;
 }
 
