@@ -58,7 +58,7 @@ lexspace_copy (EMACS_INT dst, EMACS_INT src)
 /* Entry points exposed to Lisp.  */
 /**********************************/
 
-DEFUN ("lexspace-make-from", Flexspace_make_from, Slexspace_make_from, 2, 2, 0,
+DEFUN ("lexspace-make", Flexspace_make, Slexspace_make, 2, 2, 0,
        doc: /* Make lexspace NAME from SRC.   */)
   (Lisp_Object name, Lisp_Object src)
 {
@@ -134,5 +134,5 @@ syms_of_lexspaces (void)
 	      doc: /* Internal use.  */);
   defsubr (&Sin_lexspace);
   defsubr (&Slexspace_import_symbol);
-  defsubr (&Slexspace_make_from);
+  defsubr (&Slexspace_make);
 }
