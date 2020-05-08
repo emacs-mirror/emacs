@@ -142,7 +142,7 @@ typedef struct {
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread_ref;
   /* Other globals.  */
-  gcc_jit_rvalue *pure_ref;
+  gcc_jit_rvalue *pure_ptr;
   /* libgccjit has really limited support for casting therefore this union will
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
@@ -1320,8 +1320,7 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 	GCC_JIT_BINARY_OP_MINUS,
 	comp.uintptr_type,
 	ptr,
-	gcc_jit_lvalue_as_rvalue (
-	  gcc_jit_rvalue_dereference (comp.pure_ref, NULL))),
+        comp.pure_ptr),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.uintptr_type,
 					   PURESIZE));
@@ -2170,13 +2169,13 @@ emit_ctxt_code (void)
 	gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
 	CURRENT_THREAD_RELOC_SYM));
 
-  comp.pure_ref =
+  comp.pure_ptr =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
 	comp.ctxt,
 	NULL,
 	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_type_get_pointer (comp.void_ptr_type),
+        comp.void_ptr_type,
 	PURE_RELOC_SYM));
 
   gcc_jit_context_new_global (
@@ -3691,7 +3690,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     {
       struct thread_state ***current_thread_reloc =
 	dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
-      EMACS_INT ***pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
+      void **pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
       Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
       Lisp_Object *data_imp_relocs = comp_u->data_imp_relocs;
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
@@ -3708,7 +3707,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
       *current_thread_reloc = &current_thread;
-      *pure_reloc = (EMACS_INT **)&pure;
+      *pure_reloc = pure;
 
       /* Imported functions.  */
       *freloc_link_table = freloc.link_table;
