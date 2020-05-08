@@ -2294,9 +2294,12 @@ SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
   eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
   if (EQ (sym->u.s.val.value, Qunbound))
     sym->u.s.val.value = make_binding (Qunbound);
+  EMACS_INT lexspace = CURRENT_LEXSPACE;
   struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
-  binding->r[CURRENT_LEXSPACE] = false;
-  binding->b[CURRENT_LEXSPACE] = v;
+  while (binding->r[lexspace])
+    lexspace = XFIXNUM (binding->b[lexspace]);
+  binding->r[lexspace] = false;
+  binding->b[lexspace] = v;
 }
 
 INLINE void
@@ -3482,7 +3485,12 @@ set_symbol_function (Lisp_Object sym, Lisp_Object function)
   /* Functions must execute in the original lexspace so lets store it.  */
   if (CONSP (function) && EQ (XCAR (function), Qclosure))
     function = Fcons (Vcurrent_lexspace_idx, function);
-  XBINDING (s->u.s._function)->b[CURRENT_LEXSPACE] = function;
+  EMACS_INT lexspace = CURRENT_LEXSPACE;
+  struct Lisp_Binding *binding = XBINDING (s->u.s._function);
+  /* Follow redirections.  */
+  while (binding->r[lexspace])
+    lexspace = XFIXNUM (binding->b[lexspace]);
+  binding->b[lexspace] = function;
 }
 
 INLINE void
