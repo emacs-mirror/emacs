@@ -3364,7 +3364,9 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       sigemptyset (&blocked);
       sigaddset (&blocked, SIGALRM);
       sigaddset (&blocked, SIGINT);
+#ifdef USABLE_SIGIO
       sigaddset (&blocked, SIGIO);
+#endif
       pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
     }
   emit_ctxt_code ();
