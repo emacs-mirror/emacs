@@ -104,7 +104,7 @@ DEFUN ("lexspace-import-symbol", Flexspace_import_symbol,
   return symbol;
 }
 
-DEFUN ("in-lexspace", Fin_lexspace, Sin_lexspace, 1, 1, 0,
+DEFUN ("lexspace-in", Flexspace_in, Slexspace_in, 1, 1, 0,
        doc: /* Set NAME as current lexspace.  */)
   (Lisp_Object name)
 {
@@ -132,7 +132,7 @@ syms_of_lexspaces (void)
 
   DEFVAR_LISP ("current-lexspace-idx", Vcurrent_lexspace_idx,
 	      doc: /* Internal use.  */);
-  defsubr (&Sin_lexspace);
+  defsubr (&Slexspace_in);
   defsubr (&Slexspace_import_symbol);
   defsubr (&Slexspace_make);
 }
