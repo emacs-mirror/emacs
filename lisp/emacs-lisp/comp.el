@@ -2337,6 +2337,10 @@ display a message."
                    (_ (progn
                         (comp-log "\n")
                         (comp-log (prin1-to-string expr))))
+                   (temp-file (make-temp-file
+                               (concat "emacs-async-comp-"
+                                       (file-name-base source-file) "-")
+                               nil ".el" (prin1-to-string expr)))
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
@@ -2344,13 +2348,14 @@ display a message."
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
-                                       "--batch" "--eval" (prin1-to-string expr))
+                                       "--batch" "-l" temp-file)
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args
                                 'comp-async-cu-done-hook
                                 source-file)
                                (accept-process-output process)
+                               (ignore-errors (delete-file temp-file))
                                (when (and load1
                                           (zerop (process-exit-status process)))
                                  (native-elisp-load
