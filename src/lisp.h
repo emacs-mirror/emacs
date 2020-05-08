@@ -2252,6 +2252,23 @@ SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
   return tmp;
 }
 
+INLINE Lisp_Object
+SYMBOL_FUNC_LEXSPACE (struct Lisp_Symbol *sym)
+{
+  Lisp_Object tmp = symbol_function_1 (sym);
+
+  if (CONSP (tmp)
+      && CONSP (XCDR (tmp))
+      && EQ (XCAR (XCDR (tmp)), Qclosure))
+    {
+      /* Remove the lexspace number in case (n closure () ...) is
+	 found.  */
+      eassert (FIXNUMP (XCAR (tmp)));
+      return XCAR (tmp);
+    }
+  return Qnil;
+}
+
 INLINE struct Lisp_Symbol *
 SYMBOL_ALIAS (struct Lisp_Symbol *sym)
 {
