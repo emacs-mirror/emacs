@@ -723,7 +723,13 @@ with renamed files so that they refer to the new names.
 @vindex dired-vc-rename-file
 If the value of the variable @code{dired-vc-rename-file} is non-@code{nil},
 files are renamed using the commands of the underlying VCS, via
+@ifnottex
 @code{vc-rename-file} (@pxref{VC Delete/Rename}).
+@end ifnottex
+@iftex
+@code{vc-rename-file} (@pxref{VC Delete/Rename,, Deleting and Renaming
+Version-Controlled Files, emacs-xtra, Specialized Emacs Features}).
+@end iftex
 
 @findex dired-do-hardlink
 @kindex H @r{(Dired)}
