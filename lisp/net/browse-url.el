@@ -642,15 +642,16 @@ process), or nil (we don't know)."
 (put 'browse-url--browser 'browse-url-browser-kind
      #'browse-url--browser-kind-browser)
 
+(defun browse-url--non-html-file-url-p (url)
+  "Return non-nil if URL is a file:// URL of a non-HTML file."
+  (and (string-match-p "\\`file://" url)
+       (not (string-match-p "\\`file://.*\\.html?\\b" url))))
 
 ;;;###autoload
 (defvar browse-url-default-handlers
   '(("\\`mailto:" . browse-url--mailto)
     ("\\`man:" . browse-url--man)
-    ;; Render file:// URLs if they are HTML pages, otherwise just find
-    ;; the file.
-    ("\\`file://.*\\.html?\\b" . browse-url--browser)
-    ("\\`file://" . browse-url-emacs))
+    (browse-url--non-html-file-url-p . browse-url-emacs))
   "Like `browse-url-handlers' but populated by Emacs and packages.
 
 Emacs and external packages capable of browsing certain URLs
@@ -658,18 +659,20 @@ should place their entries in this alist rather than
 `browse-url-handlers' which is reserved for the user.")
 
 (defcustom browse-url-handlers nil
-  "An alist with elements of the form (REGEXP HANDLER).
-Each REGEXP is matched against the URL to be opened in turn and
-the first match's HANDLER is invoked with the URL.
+  "An alist with elements of the form (REGEXP-OR-PREDICATE . HANDLER).
+Each REGEXP-OR-PREDICATE is matched against the URL to be opened
+in turn and the first match's HANDLER is invoked with the URL.
 
 A HANDLER must be a function with the same arguments as
 `browse-url'.
 
-If no REGEXP matches, the same procedure is performed with the
-value of `browse-url-default-handlers'.  If there is also no
-match, the URL is opened using the value of
+If no REGEXP-OR-PREDICATE matches, the same procedure is
+performed with the value of `browse-url-default-handlers'.  If
+there is also no match, the URL is opened using the value of
 `browse-url-browser-function'."
-  :type '(alist :key-type (regexp :tag "Regexp")
+  :type '(alist :key-type (choice
+                           (regexp :tag "Regexp")
+                           (function :tag "Predicate"))
                 :value-type (function :tag "Handler"))
   :version "28.1")
 
@@ -688,7 +691,7 @@ Currently, it also consults `browse-url-browser-function' first
 if it is set to an alist, although this usage is deprecated since
 Emacs 28.1 and will be removed in a future release."
   (catch 'custom-url-handler
-    (dolist (regex-handler
+    (dolist (rxpred-handler
              (append
               ;; The alist choice of browse-url-browser-function
               ;; is deprecated since 28.1, so the (unless ...)
@@ -701,11 +704,15 @@ alist is deprecated.  Use `browse-url-handlers' instead.")
                 browse-url-browser-function)
               browse-url-handlers
               browse-url-default-handlers))
-      (when (and (or (null kind)
-                     (eq kind (browse-url--browser-kind
-                               (cdr regex-handler) url)))
-                 (string-match-p (car regex-handler) url))
-        (throw 'custom-url-handler (cdr regex-handler))))))
+      (let ((rx-or-pred (car rxpred-handler))
+            (handler (cdr rxpred-handler)))
+        (when (and (or (null kind)
+                       (eq kind (browse-url--browser-kind
+                                 handler url)))
+                   (if (functionp rx-or-pred)
+                       (funcall rx-or-pred url)
+                     (string-match-p rx-or-pred url)))
+          (throw 'custom-url-handler handler))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL encoding
