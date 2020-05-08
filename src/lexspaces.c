@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "lisp.h"
 
-EMACS_INT curr_lexspace;
-
 /* Store lexnumber in closure + set lexspace calling subrs.  */
 
 static void
@@ -69,12 +67,12 @@ DEFUN ("lexspace-make-from", Flexspace_make_from, Slexspace_make_from, 2, 2, 0,
   EMACS_INT lexspace_num = XFIXNUM (Fhash_table_count (Vlexspaces));
   if (lexspace_num == MAX_LEXSPACES)
     error ("Max number of lexspaces reached");
-  Lisp_Object src_lex_n = Fgethash (src, Vlexspaces, Qnil);
-  if (NILP (src_lex_n))
+  Lisp_Object src_idx = Fgethash (src, Vlexspaces, Qnil);
+  if (NILP (src_idx))
     error ("lexspace %s does not exists", SSDATA (SYMBOL_NAME (src)));
 
   Fputhash (name, make_fixnum (lexspace_num), Vlexspaces);
-  lexspace_copy (lexspace_num, XFIXNUM (src_lex_n));
+  lexspace_copy (lexspace_num, XFIXNUM (src_idx));
 
   return name;
 }
@@ -84,10 +82,10 @@ DEFUN ("in-lexspace", Fin_lexspace, Sin_lexspace, 1, 1, 0,
   (Lisp_Object name)
 {
   CHECK_SYMBOL (name);
-  Lisp_Object src_lex_n = Fgethash (name, Vlexspaces, Qnil);
-  if (NILP (src_lex_n))
+  Lisp_Object src_idx = Fgethash (name, Vlexspaces, Qnil);
+  if (NILP (src_idx))
     error ("lexspace %s does not exists", SSDATA (SYMBOL_NAME (name)));
-  curr_lexspace = XFIXNUM (src_lex_n);
+  Vcurrent_lexspace_idx = src_idx;
 
   return name;
 }
@@ -97,6 +95,7 @@ syms_of_lexspaces (void)
 {
   DEFSYM (Qbinding, "binding");
   DEFSYM (Qel, "el");
+  DEFSYM (Qcurrent_lexspace_idx, "current-lexspace-idx");
 
   /* Internal use!  */
   DEFVAR_LISP ("lexspaces", Vlexspaces,
@@ -104,6 +103,8 @@ syms_of_lexspaces (void)
   Vlexspaces = CALLN (Fmake_hash_table, QCtest, Qeq);
   Fputhash (Qel, make_fixnum (0), Vlexspaces);
 
+  DEFVAR_LISP ("current-lexspace-idx", Vcurrent_lexspace_idx,
+	      doc: /* Internal use.  */);
   defsubr (&Sin_lexspace);
   defsubr (&Slexspace_make_from);
 }

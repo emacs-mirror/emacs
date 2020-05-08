@@ -957,7 +957,7 @@ main (int argc, char **argv)
 #ifdef HAVE_PDUMPER
   bool attempt_load_pdump = false;
 #endif
-
+  Vcurrent_lexspace_idx = make_fixnum (0);
   /* Look for this argument first, before any heap allocation, so we
      can set heap flags properly if we're going to unexec.  */
   if (!initialized && temacs)

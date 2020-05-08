@@ -7006,8 +7006,8 @@ sweep_symbols (void)
               symbol_free_list = sym;
 	      /* FIXME */
 	      if (!NILP (sym->u.s._function))
-		XBINDING (symbol_free_list->u.s._function)->b[curr_lexspace] =
-		  dead_object ();
+		XBINDING (symbol_free_list->u.s._function)->b[CURRENT_LEXSPACE]
+		  = dead_object ();
               ++this_free;
             }
           else

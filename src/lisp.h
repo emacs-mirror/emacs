@@ -2169,7 +2169,7 @@ typedef jmp_buf sys_jmp_buf;
 
 #define MAX_LEXSPACES 256
 
-extern EMACS_INT curr_lexspace;
+#define CURRENT_LEXSPACE XFIXNUM (Vcurrent_lexspace_idx)
 
 INLINE Lisp_Object make_binding (Lisp_Object);
 
@@ -2214,7 +2214,7 @@ SYMBOL_VAL (struct Lisp_Symbol *sym)
   if (EQ (sym->u.s.val.value, Qunbound))
     return Qunbound;
   eassert (BINDINGP (sym->u.s.val.value));
-  EMACS_INT lexspace = curr_lexspace;
+  EMACS_INT lexspace = CURRENT_LEXSPACE;
   struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
   /* Follow redirections.  */
   while (binding->r[lexspace])
@@ -2227,7 +2227,7 @@ symbol_function_1 (struct Lisp_Symbol *sym)
 {
   if (NILP (sym->u.s._function))
     return Qnil;
-  EMACS_INT lexspace = curr_lexspace;
+  EMACS_INT lexspace = CURRENT_LEXSPACE;
   struct Lisp_Binding *binding = XBINDING (sym->u.s._function);
   /* Follow redirections.  */
   while (binding->r[lexspace])
@@ -2242,11 +2242,11 @@ SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
 
   if (CONSP (tmp)
       && CONSP (XCDR (tmp))
-      && EQ (XCAR (XCDR (tmp)), Qclosure))
+      && EQ (XCAR (XCDR (tmp)), Qclosure)
+      && FIXNUMP (XCAR (tmp)))
     {
       /* Remove the lexspace number in case (n closure () ...) is
 	 found.  */
-      eassert (FIXNUMP (XCAR (tmp)));
       return XCDR (tmp);
     }
   return tmp;
@@ -2259,11 +2259,11 @@ SYMBOL_FUNC_LEXSPACE (struct Lisp_Symbol *sym)
 
   if (CONSP (tmp)
       && CONSP (XCDR (tmp))
-      && EQ (XCAR (XCDR (tmp)), Qclosure))
+      && EQ (XCAR (XCDR (tmp)), Qclosure)
+      && FIXNUMP (XCAR (tmp)))
     {
       /* Remove the lexspace number in case (n closure () ...) is
 	 found.  */
-      eassert (FIXNUMP (XCAR (tmp)));
       return XCAR (tmp);
     }
   return Qnil;
@@ -2296,8 +2296,8 @@ SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
   if (EQ (sym->u.s.val.value, Qunbound))
     sym->u.s.val.value = make_binding (Qunbound);
   struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
-  binding->r[curr_lexspace] = false;
-  binding->b[curr_lexspace] = v;
+  binding->r[CURRENT_LEXSPACE] = false;
+  binding->b[CURRENT_LEXSPACE] = v;
 }
 
 INLINE void
@@ -3482,8 +3482,8 @@ set_symbol_function (Lisp_Object sym, Lisp_Object function)
     s->u.s._function = make_binding (Qnil);
   /* Functions must execute in the original lexspace so lets store it.  */
   if (CONSP (function) && EQ (XCAR (function), Qclosure))
-    function = Fcons (make_fixnum (curr_lexspace), function);
-  XBINDING (s->u.s._function)->b[curr_lexspace] = function;
+    function = Fcons (Vcurrent_lexspace_idx, function);
+  XBINDING (s->u.s._function)->b[CURRENT_LEXSPACE] = function;
 }
 
 INLINE void

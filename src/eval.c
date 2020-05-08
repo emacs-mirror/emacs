@@ -64,6 +64,7 @@ union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
+static Lisp_Object apply_lambda0 (Lisp_Object, Lisp_Object, ptrdiff_t);
 static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, ptrdiff_t);
 static Lisp_Object lambda_arity (Lisp_Object);
 
@@ -2159,6 +2160,7 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 Lisp_Object
 eval_sub (Lisp_Object form)
 {
+  Lisp_Object lexspace = Qnil;
   if (SYMBOLP (form))
     {
       /* Look up its binding in the lexical environment.
@@ -2208,7 +2210,10 @@ eval_sub (Lisp_Object form)
   fun = original_fun;
   if (!SYMBOLP (fun))
     fun = Ffunction (list1 (fun));
-  else if (!NILP (fun) && (fun = SYMBOL_FUNCTION (XSYMBOL (fun)), SYMBOLP (fun)))
+  else if (!NILP (fun)
+	   && (lexspace = SYMBOL_FUNC_LEXSPACE (XSYMBOL (fun)),
+	       SYMBOL_FUNCTION (XSYMBOL (fun)),
+	       SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
@@ -2345,7 +2350,19 @@ eval_sub (Lisp_Object form)
 	}
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qclosure))
-	return apply_lambda (fun, original_args, count);
+	{
+	  if (!NILP (lexspace)
+	      && !EQ (lexspace, Vcurrent_lexspace_idx))
+	    {
+	      ptrdiff_t count1 = SPECPDL_INDEX ();
+	      specbind (Qcurrent_lexspace_idx, lexspace);
+	      return unbind_to (count1,
+				apply_lambda0 (fun, original_args,
+					       SPECPDL_INDEX ()));
+	    }
+	  return apply_lambda (fun, original_args, count);
+	}
+
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
@@ -2902,6 +2919,28 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
           emacs_abort ();
         }
     }
+}
+
+static Lisp_Object
+apply_lambda0 (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
+{
+  Lisp_Object *arg_vector;
+  Lisp_Object tem;
+  USE_SAFE_ALLOCA;
+
+  ptrdiff_t numargs = list_length (args);
+  SAFE_ALLOCA_LISP (arg_vector, numargs);
+  Lisp_Object args_left = args;
+
+  for (ptrdiff_t i = 0; i < numargs; i++)
+    {
+      tem = Fcar (args_left), args_left = Fcdr (args_left);
+      tem = eval_sub (tem);
+      arg_vector[i] = tem;
+    }
+  tem = funcall_lambda (fun, numargs, arg_vector);
+  SAFE_FREE ();
+  return tem;
 }
 
 static Lisp_Object
