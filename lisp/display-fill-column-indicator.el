@@ -31,7 +31,7 @@
 
 ;; NOTE: Customization variables for
 ;; `display-fill-column-indicator-column' and
-;; `display-fill-column-indicator-char' itself are defined in
+;; `display-fill-column-indicator-character' itself are defined in
 ;; cus-start.el.
 
 ;;; Code:
