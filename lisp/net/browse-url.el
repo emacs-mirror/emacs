@@ -950,11 +950,11 @@ opposite of the browser kind of `browse-url-browser-function'."
                            'internal)
                        'external
                      'internal))
-          (k (completing-read
-              (format "Browser kind (default %s): " default)
-              '(internal external)
-              nil t nil nil
-              default)))
+          (k (intern (completing-read
+                      (format "Browser kind (default %s): " default)
+                      '(internal external)
+                      nil t nil nil
+                      default))))
      (cons k url-arg)))
   (let ((function (browse-url-select-handler url kind)))
     (unless function
