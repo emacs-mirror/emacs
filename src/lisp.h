@@ -2177,6 +2177,8 @@ struct Lisp_Binding
 {
   union vectorlike_header header;
   Lisp_Object b[MAX_LEXSPACES];
+  /* true if redirect.  */
+  bool r[MAX_LEXSPACES];
 };
 
 INLINE bool
@@ -2212,16 +2214,25 @@ SYMBOL_VAL (struct Lisp_Symbol *sym)
   if (EQ (sym->u.s.val.value, Qunbound))
     return Qunbound;
   eassert (BINDINGP (sym->u.s.val.value));
- /* FIXME: add loop to follow indirection.  */
-  return XBINDING (sym->u.s.val.value)->b[curr_lexspace];
+  EMACS_INT lexspace = curr_lexspace;
+  struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
+  /* Follow redirections.  */
+  while (binding->r[lexspace])
+    lexspace = XFIXNUM (binding->b[lexspace]);
+  return binding->b[lexspace];
 }
 
 INLINE Lisp_Object
 SYMBOL_FUNCTION (struct Lisp_Symbol *sym)
 {
-  if (!NILP (sym->u.s._function))
-    return XBINDING (sym->u.s._function)->b[curr_lexspace];
-  return Qnil;
+  if (NILP (sym->u.s._function))
+    return Qnil;
+  EMACS_INT lexspace = curr_lexspace;
+  struct Lisp_Binding *binding = XBINDING (sym->u.s._function);
+  /* Follow redirections.  */
+  while (binding->r[lexspace])
+    lexspace = XFIXNUM (binding->b[lexspace]);
+  return binding->b[lexspace];
 }
 
 INLINE struct Lisp_Symbol *
@@ -2251,6 +2262,7 @@ SET_SYMBOL_VAL (struct Lisp_Symbol *sym, Lisp_Object v)
   if (EQ (sym->u.s.val.value, Qunbound))
     sym->u.s.val.value = make_binding (Qunbound);
   struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
+  binding->r[curr_lexspace] = false;
   binding->b[curr_lexspace] = v;
 }
 

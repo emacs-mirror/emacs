@@ -39,12 +39,14 @@ lexspace_copy (EMACS_INT dst, EMACS_INT src)
 		&& !EQ (sym->u.s.val.value, Qunbound))
 	      {
 		struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
-		binding->b[dst] = binding->b[src];
+		binding->r[dst] = true;
+		binding->b[dst] = make_fixnum (src);
 	      }
 	    if (!NILP (sym->u.s._function))
 	      {
 		struct Lisp_Binding *binding = XBINDING (sym->u.s._function);
-		binding->b[dst] = binding->b[src];
+		binding->r[dst] = true;
+		binding->b[dst] = make_fixnum (src);
 	      }
 	    if (sym->u.s.next == 0)
 	      break;

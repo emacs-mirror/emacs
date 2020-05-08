@@ -1758,7 +1758,7 @@ dump_roots (struct dump_context *ctx)
   visit_static_gc_roots (visitor);
 }
 
-enum { PDUMPER_MAX_OBJECT_SIZE = 2048 };
+enum { PDUMPER_MAX_OBJECT_SIZE = 4096 };
 
 static dump_off
 field_relpos (const void *in_start, const void *in_field)
@@ -2935,6 +2935,19 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   return dump_object_finish (ctx, &out, sizeof (out));
 }
 
+static dump_off
+dump_binding (struct dump_context *ctx, const struct Lisp_Binding *binding)
+{
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Binding_A2586197DB)
+# error "Lisp_Binding changed. See CHECK_STRUCTS comment in config.h."
+#endif
+  START_DUMP_PVEC (ctx, &binding->header, struct Lisp_Binding, out);
+  dump_pseudovector_lisp_fields (ctx, &out->header, &binding->header);
+  for (ptrdiff_t i = 0; i < MAX_LEXSPACES; ++i)
+      DUMP_FIELD_COPY (out, binding, r[i]);
+  return finish_dump_pvec (ctx, &out->header);
+}
+
 static void
 fill_pseudovec (union vectorlike_header *header, Lisp_Object item)
 {
@@ -2980,7 +2993,6 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
-    case PVEC_BINDING:
       offset = dump_vectorlike_generic (ctx, &v->header);
       break;
     case PVEC_BOOL_VECTOR:
@@ -2994,6 +3006,9 @@ dump_vectorlike (struct dump_context *ctx,
       break;
     case PVEC_SUBR:
       offset = dump_subr (ctx, XSUBR (lv));
+      break;
+    case PVEC_BINDING:
+      offset = dump_binding (ctx, XBINDING (lv));
       break;
     case PVEC_FRAME:
     case PVEC_WINDOW:
