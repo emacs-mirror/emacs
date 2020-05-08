@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NATIVE_COMP
 
+#include <setjmp.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
@@ -74,10 +75,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR (name))
 
-#ifdef HAVE__SETJMP
-#define SETJMP _setjmp
+#ifndef WINDOWSNT
+# ifdef HAVE__SETJMP
+#  define SETJMP _setjmp
+# else
+#  define SETJMP setjmp
+# endif
 #else
-#define SETJMP setjmp
+/* snippet from MINGW-64 setjmp.h */
+# define SETJMP _setjmp
 #endif
 #define SETJMP_NAME SETJMP
 
@@ -1493,6 +1499,30 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 			direct);
 }
 
+static gcc_jit_rvalue *
+emit_setjmp (gcc_jit_rvalue *buf)
+{
+#ifndef WINDOWSNT
+  gcc_jit_rvalue *args[] = {buf};
+  return emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 1, args,
+                   false);
+#else
+  /* _setjmp (buf, __builtin_frame_address (0)) */
+  gcc_jit_rvalue *args[2];
+
+  args[0] = gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.unsigned_type, 0);
+
+  args[1] = gcc_jit_context_new_call (comp.ctxt,
+                                      NULL,
+                                      gcc_jit_context_get_builtin_function (comp.ctxt,
+                                        "__builtin_frame_address"),
+                                      1, args);
+  args[0] = buf;
+  return emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 2, args,
+                    false);
+#endif
+}
+
 /* Register an handler for a non local exit.  */
 
 static void
@@ -1519,8 +1549,7 @@ emit_limple_push_handler (gcc_jit_rvalue *handler, gcc_jit_rvalue *handler_type,
 	NULL);
 
   gcc_jit_rvalue *res;
-  res =
-    emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 1, args, false);
+  res = emit_setjmp (args[0]);
   emit_cond_jump (res, handler_bb, guarded_bb);
 }
 
@@ -2079,8 +2108,14 @@ declare_runtime_imported_funcs (void)
   args[1] = comp.int_type;
   ADD_IMPORTED (push_handler, comp.handler_ptr_type, 2, args);
 
+#ifndef WINDOWSNT
   args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
   ADD_IMPORTED (SETJMP_NAME, comp.int_type, 1, args);
+#else
+  args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
+  args[1] = comp.void_ptr_type;
+  ADD_IMPORTED (SETJMP_NAME, comp.int_type, 2, args);
+#endif
 
   ADD_IMPORTED (record_unwind_protect_excursion, comp.void_type, 0, NULL);
 
@@ -2320,7 +2355,7 @@ define_jmp_buf (void)
       gcc_jit_context_new_array_type (comp.ctxt,
 				      NULL,
 				      comp.char_type,
-				      sizeof (jmp_buf)),
+				      sizeof (sys_jmp_buf)),
       "stuff");
   comp.jmp_buf_s =
     gcc_jit_context_new_struct_type (comp.ctxt,
