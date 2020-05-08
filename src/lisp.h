@@ -2213,7 +2213,6 @@ SYMBOL_VAL (struct Lisp_Symbol *sym)
   eassert (sym->u.s.redirect == SYMBOL_PLAINVAL);
   if (EQ (sym->u.s.val.value, Qunbound))
     return Qunbound;
-  eassert (BINDINGP (sym->u.s.val.value));
   EMACS_INT lexspace = CURRENT_LEXSPACE;
   struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
   /* Follow redirections.  */
