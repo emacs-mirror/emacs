@@ -400,6 +400,10 @@ Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 
 * Lisp Changes in Emacs 28.1
 
++++
+** New function 'file-modes-number-to-symbolic' to convert a numeric
+file mode specification into symbolic form.
+
 ** New macro 'dlet' to dynamically bind variables.
 
 ** The variable 'force-new-style-backquotes' has been removed.

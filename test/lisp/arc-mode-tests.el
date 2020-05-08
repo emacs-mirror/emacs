@@ -28,7 +28,7 @@
   (let ((alist (list (cons 448 "-rwx------")
                      (cons 420 "-rw-r--r--")
                      (cons 292 "-r--r--r--")
-                     (cons 512 "----------")
+                     (cons 512 "---------T")
                      (cons 1024 "------S---") ; Bug#28092
                      (cons 2048 "---S------"))))
     (dolist (x alist)
