@@ -359,16 +359,13 @@ contents of field NAME is matched against PAT, or they can be of
     ;; FIXME: `pcase' does not do a good job here of sharing tests&code among
     ;; various branches.
     `(and (pred eieio-object-p)
-          (app eieio-pcase-slot-index-table ,is)
-          ,@(mapcar (lambda (field)
-                      (let* ((name (if (consp field) (car field) field))
-                             (pat (if (consp field) (cadr field) field))
-                             (i (make-symbol "index")))
-                        `(and (let (and ,i (pred natnump))
-                                (eieio-pcase-slot-index-from-index-table
-                                 ,is ',name))
-                              (app (pcase--flip aref ,i) ,pat))))
-                    fields))))
+        ,@(mapcar (lambda (field)
+                    (pcase-exhaustive field
+                      (`(,name ,pat)
+                        `(app (pcase--flip eieio-oref ',name) ,pat))
+                      ((pred symbolp)
+                       `(app (pcase--flip eieio-oref ',field) ,field))))
+                  fields))))
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.
