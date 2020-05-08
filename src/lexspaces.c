@@ -82,6 +82,11 @@ DEFUN ("in-lexspace", Fin_lexspace, Sin_lexspace, 1, 1, 0,
   (Lisp_Object name)
 {
   CHECK_SYMBOL (name);
+  Lisp_Object src_lex_n = Fgethash (name, Vlexspaces, Qnil);
+  if (NILP (src_lex_n))
+    error ("lexspace %s does not exists", SSDATA (SYMBOL_NAME (name)));
+  curr_lexspace = XFIXNUM (src_lex_n);
+
   return name;
 }
 
@@ -92,9 +97,6 @@ syms_of_lexspaces (void)
   DEFSYM (Qel, "el");
 
   /* Internal use!  */
-  DEFVAR_LISP ("current-lexspace-name", Vcurrent_lexspace_name,
-	       doc: /* Internal use.  */);
-  Vcurrent_lexspace_name = Qel;
   DEFVAR_LISP ("lexspaces", Vlexspaces,
 	       doc: /* Internal use.  */);
   Vlexspaces = CALLN (Fmake_hash_table, QCtest, Qeq);
