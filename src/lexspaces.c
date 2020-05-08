@@ -77,8 +77,35 @@ DEFUN ("lexspace-make-from", Flexspace_make_from, Slexspace_make_from, 2, 2, 0,
   return name;
 }
 
+DEFUN ("lexspace-import-symbol", Flexspace_import_symbol,
+       Slexspace_import_symbol, 2, 2, 0,
+       doc: /* Import SYMBOL binding from lexspace SRC.  */)
+  (Lisp_Object symbol, Lisp_Object src)
+{
+  CHECK_SYMBOL (symbol);
+  CHECK_SYMBOL (src);
+  Lisp_Object src_idx = Fgethash (src, Vlexspaces, Qnil);
+  if (NILP (src_idx))
+    error ("lexspace %s does not exists", SSDATA (SYMBOL_NAME (src)));
+
+  struct Lisp_Symbol *sym = XSYMBOL (symbol);
+  if (!EQ (sym->u.s.val.value, Qunbound))
+    {
+      struct Lisp_Binding *binding = XBINDING (sym->u.s.val.value);
+      binding->r[CURRENT_LEXSPACE] = true;
+      binding->b[CURRENT_LEXSPACE] = src_idx;
+    }
+  if (!NILP (sym->u.s._function))
+    {
+      struct Lisp_Binding *binding = XBINDING (sym->u.s._function);
+      binding->r[CURRENT_LEXSPACE] = true;
+      binding->b[CURRENT_LEXSPACE] = src_idx;
+    }
+  return symbol;
+}
+
 DEFUN ("in-lexspace", Fin_lexspace, Sin_lexspace, 1, 1, 0,
-       doc: /* Set NAME as current lexspace.  Create it in case.   */)
+       doc: /* Set NAME as current lexspace.  */)
   (Lisp_Object name)
 {
   CHECK_SYMBOL (name);
@@ -106,5 +133,6 @@ syms_of_lexspaces (void)
   DEFVAR_LISP ("current-lexspace-idx", Vcurrent_lexspace_idx,
 	      doc: /* Internal use.  */);
   defsubr (&Sin_lexspace);
+  defsubr (&Slexspace_import_symbol);
   defsubr (&Slexspace_make_from);
 }
