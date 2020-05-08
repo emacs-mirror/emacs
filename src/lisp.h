@@ -299,12 +299,12 @@ error !;
 
 /* Lisp_Word is a scalar word suitable for holding a tagged pointer or
    integer.  Usually it is a pointer to a deliberately-incomplete type
-   'union Lisp_X'.  However, it is EMACS_INT when Lisp_Objects and
+   'struct Lisp_X'.  However, it is EMACS_INT when Lisp_Objects and
    pointers differ in width.  */
 
 #define LISP_WORDS_ARE_POINTERS (EMACS_INT_MAX == INTPTR_MAX)
 #if LISP_WORDS_ARE_POINTERS
-typedef union Lisp_X *Lisp_Word;
+typedef struct Lisp_X *Lisp_Word;
 #else
 typedef EMACS_INT Lisp_Word;
 #endif
@@ -573,6 +573,7 @@ enum Lisp_Fwd_Type
 
 #ifdef CHECK_LISP_OBJECT_TYPE
 typedef struct Lisp_Object { Lisp_Word i; } Lisp_Object;
+# define LISP_OBJECT_IS_STRUCT
 # define LISP_INITIALLY(w) {w}
 # undef CHECK_LISP_OBJECT_TYPE
 enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = true };
