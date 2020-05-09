@@ -84,6 +84,13 @@ This intended for debugging the compiler itself.
   :type 'boolean
   :group 'comp)
 
+(defcustom comp-deferred-compilation-black-list
+  '()
+  "List of regexps to exclude files from deferred native compilation.
+Skip if any is matching."
+  :type 'list
+  :group 'comp)
+
 (defcustom comp-bootstrap-black-list
   '("^leim/")
   "List of regexps to exclude files from native compilation during bootstrap.
@@ -2369,7 +2376,12 @@ LOAD can be nil t or 'late."
 queued with LOAD %"
                      file load (cdr entry))
         ;; Make sure we are not already compiling `file' (bug#40838).
-        (unless (gethash file comp-async-compilations)
+        (unless (and (gethash file comp-async-compilations)
+                     ;; Exclude some file from deferred compilation if
+                     ;; `comp-deferred-compilation-black-list' says so.
+                     (or (not (eq load 'late))
+                         (cl-notany (lambda (re) (string-match re file))
+                                    comp-deferred-compilation-black-list)))
           (let ((out-dir (comp-output-directory file))
                 (out-filename (comp-output-filename file)))
             (if (or (file-writable-p out-filename)
