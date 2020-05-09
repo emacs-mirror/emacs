@@ -156,7 +156,8 @@ See also `use-package-defaults', which uses this value."
   :group 'use-package)
 
 (defcustom use-package-defaults
-  '((:config nil t)
+  '(;; this '(t) has special meaning; see `use-package-handler/:config'
+    (:config '(t) t)
     (:init nil t)
     (:catch t (lambda (name args)
                 (not use-package-expand-minimally)))
@@ -1467,7 +1468,7 @@ no keyword implies `:all'."
     (use-package-concat
      (when use-package-compute-statistics
        `((use-package-statistics-gather :config ',name nil)))
-     (if (and (null arg) (not use-package-inject-hooks))
+     (if (and (or (null arg) (equal arg '(t))) (not use-package-inject-hooks))
          body
        (use-package-with-elapsed-timer
            (format "Configuring package %s" name-symbol)

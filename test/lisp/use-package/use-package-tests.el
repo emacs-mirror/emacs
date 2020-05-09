@@ -1501,6 +1501,7 @@
         (require 'foo nil nil)
         (when
             (run-hook-with-args-until-failure 'use-package--foo--pre-config-hook)
+          t
           (run-hooks 'use-package--foo--post-config-hook))
         t))))
 
