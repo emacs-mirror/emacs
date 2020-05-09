@@ -780,7 +780,7 @@ since it could result in memory overflow and make Emacs crash."
                       :value nil)
                character)
               "27.1"
-              :safe (lambda (value) (or (characterp value) (booleanp value))))
+              :safe (lambda (value) (or (characterp value) (null value))))
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
