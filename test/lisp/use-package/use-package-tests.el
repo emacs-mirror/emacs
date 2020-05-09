@@ -1474,6 +1474,36 @@
              (config)
              t))))))
 
+(ert-deftest use-package-test/pre-post-hooks-with-:config ()
+  (let ((use-package-inject-hooks t))
+    (match-expansion
+     (use-package foo :config (config))
+     `(progn
+       (when
+           (run-hook-with-args-until-failure 'use-package--foo--pre-init-hook)
+         (run-hooks 'use-package--foo--post-init-hook))
+       (require 'foo nil nil)
+       (when
+           (run-hook-with-args-until-failure 'use-package--foo--pre-config-hook)
+         (config)
+         (run-hooks 'use-package--foo--post-config-hook))
+       t))))
+
+(ert-deftest use-package-test/pre-post-hooks-without-:config ()
+  ;; https://github.com/jwiegley/use-package/issues/785
+  (let ((use-package-inject-hooks t))
+    (match-expansion
+     (use-package foo)
+     `(progn
+        (when
+            (run-hook-with-args-until-failure 'use-package--foo--pre-init-hook)
+          (run-hooks 'use-package--foo--post-init-hook))
+        (require 'foo nil nil)
+        (when
+            (run-hook-with-args-until-failure 'use-package--foo--pre-config-hook)
+          (run-hooks 'use-package--foo--post-config-hook))
+        t))))
+
 (ert-deftest use-package-test-normalize/:diminish ()
   (should (equal (use-package-normalize-diminish 'foopkg :diminish nil)
                  '(foopkg-mode)))
