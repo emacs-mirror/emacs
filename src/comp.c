@@ -1343,7 +1343,7 @@ emit_mvar_val (Lisp_Object mvar)
 	  word =
 	    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 						 comp.void_ptr_type,
-						 constant);
+						 XLP (constant));
 #endif
 	  return emit_coerce (comp.lisp_obj_type, word);
 	}
@@ -3564,7 +3564,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   Lisp_Object *saved_cu = dynlib_sym (handle, COMP_UNIT_SYM);
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
-  bool reloading_cu = *saved_cu ? true : false;
+  bool reloading_cu = !NILP (*saved_cu) ? true : false;
   Lisp_Object *data_eph_relocs =
     dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
