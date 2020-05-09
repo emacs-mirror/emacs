@@ -881,21 +881,27 @@ list the contents of such directories when completing file names.
 ** Minibuffer
 
 +++
-*** A new user option, 'minibuffer-beginning-of-buffer-movement', has
-been introduced to allow controlling how the 'M-<' command works in
+*** New user option 'minibuffer-beginning-of-buffer-movement'.
+This option allows control of how the 'M-<' command works in
 the minibuffer.  If non-nil, point will move to the end of the prompt
-(if point is after the end of the prompt).
+(if point is after the end of the prompt).  The default is nil, which
+preserves the original behavior of 'M-<' moving to the beginning of
+the prompt.
 
 +++
 *** When the minibuffer is active, echo-area messages are displayed at
 the end of the minibuffer instead of hiding the minibuffer by the echo
 area display.  The new user option 'minibuffer-message-clear-timeout'
 controls how messages displayed in this situation are removed from the
-minibuffer.
+minibuffer.  To revert to previous behavior, where echo-area messages
+temporarily overwrote the minibuffer contents until the user typed
+something, set 'set-message-function' and 'clear-message-function' to
+nil.
 
 ---
 *** Minibuffer now uses 'minibuffer-message' to display error messages
-at the end of the active minibuffer.
+at the end of the active minibuffer.  To disable this, remove
+'minibuffer-error-initialize' from 'minibuffer-setup-hook'.
 
 +++
 *** 'y-or-n-p' now uses the minibuffer to read 'y' or 'n' answer.
