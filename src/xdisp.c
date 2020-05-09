@@ -10486,7 +10486,7 @@ include the height of both, if present, in the return value.  */)
   struct buffer *b;
   struct it it;
   struct buffer *old_b = NULL;
-  ptrdiff_t start, end, pos;
+  ptrdiff_t start, end, bpos;
   struct text_pos startp;
   void *itdata = NULL;
   int c, max_x = 0, max_y = 0, x = 0, y = 0;
@@ -10501,29 +10501,55 @@ include the height of both, if present, in the return value.  */)
     }
 
   if (NILP (from))
-    start = BEGV;
+    {
+      start = BEGV;
+      bpos = BEGV_BYTE;
+    }
   else if (EQ (from, Qt))
     {
-      start = pos = BEGV;
-      while ((pos++ < ZV) && (c = FETCH_CHAR (pos))
-	     && (c == ' ' || c == '\t' || c == '\n' || c == '\r'))
-	start = pos;
-      while ((pos-- > BEGV) && (c = FETCH_CHAR (pos)) && (c == ' ' || c == '\t'))
-	start = pos;
+      start = BEGV;
+      bpos = BEGV_BYTE;
+      while (bpos < ZV_BYTE)
+	{
+	  c = fetch_char_advance (&start, &bpos);
+	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
+	    break;
+	}
+      while (bpos > BEGV_BYTE)
+	{
+	  dec_both (&start, &bpos);
+	  c = FETCH_CHAR (bpos);
+	  if (!(c == ' ' || c == '\t'))
+	    break;
+	}
     }
   else
-    start = clip_to_bounds (BEGV, fix_position (from), ZV);
+    {
+      start = clip_to_bounds (BEGV, fix_position (from), ZV);
+      bpos = CHAR_TO_BYTE (start);
+    }
+
+  SET_TEXT_POS (startp, start, bpos);
 
   if (NILP (to))
     end = ZV;
   else if (EQ (to, Qt))
     {
-      end = pos = ZV;
-      while ((pos-- > BEGV) && (c = FETCH_CHAR (pos))
-	     && (c == ' ' || c == '\t' || c == '\n' || c == '\r'))
-	end = pos;
-      while ((pos++ < ZV) && (c = FETCH_CHAR (pos)) && (c == ' ' || c == '\t'))
-	end = pos;
+      end = ZV;
+      bpos = ZV_BYTE;
+      while (bpos > BEGV_BYTE)
+	{
+	  dec_both (&end, &bpos);
+	  c = FETCH_CHAR (bpos);
+	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
+	    break;
+	}
+      while (bpos < ZV_BYTE)
+	{
+	  c = fetch_char_advance (&end, &bpos);
+	  if (!(c == ' ' || c == '\t'))
+	    break;
+	}
     }
   else
     end = clip_to_bounds (start, fix_position (to), ZV);
@@ -10537,7 +10563,6 @@ include the height of both, if present, in the return value.  */)
     max_y = XFIXNUM (y_limit);
 
   itdata = bidi_shelve_cache ();
-  SET_TEXT_POS (startp, start, CHAR_TO_BYTE (start));
   start_display (&it, w, startp);
   /* It makes no sense to measure dimensions of region of text that
      crosses the point where bidi reordering changes scan direction.
@@ -34965,7 +34990,8 @@ It has no effect when set to 0, or when line numbers are not absolute.  */);
   Fmake_variable_buffer_local (Qdisplay_line_numbers_offset);
 
   DEFVAR_BOOL ("display-fill-column-indicator", Vdisplay_fill_column_indicator,
-    doc: /* Non-nil means display the fill column indicator.  */);
+    doc: /* Non-nil means display the fill column indicator.
+See Info node `Displaying Boundaries' for details.  */);
   Vdisplay_fill_column_indicator = false;
   DEFSYM (Qdisplay_fill_column_indicator, "display-fill-column-indicator");
   Fmake_variable_buffer_local (Qdisplay_fill_column_indicator);
@@ -34974,7 +35000,8 @@ It has no effect when set to 0, or when line numbers are not absolute.  */);
     doc: /* Column for indicator when `display-fill-column-indicator' is non-nil.
 The default value is t which means that the indicator
 will use the `fill-column' variable.  If it is set to an integer the
-indicator will be drawn in that column.  */);
+indicator will be drawn in that column.
+See Info node `Displaying Boundaries' for details.  */);
   Vdisplay_fill_column_indicator_column = Qt;
   DEFSYM (Qdisplay_fill_column_indicator_column, "display-fill-column-indicator-column");
   Fmake_variable_buffer_local (Qdisplay_fill_column_indicator_column);
@@ -34982,7 +35009,8 @@ indicator will be drawn in that column.  */);
   DEFVAR_LISP ("display-fill-column-indicator-character", Vdisplay_fill_column_indicator_character,
     doc: /* Character to draw the indicator when `display-fill-column-indicator' is non-nil.
 The default is U+2502 but a good alternative is (ascii 124)
-if the font in fill-column-indicator face does not support Unicode characters.  */);
+if the font in fill-column-indicator face does not support Unicode characters.
+See Info node `Displaying Boundaries' for details.  */);
   Vdisplay_fill_column_indicator_character = Qnil;
   DEFSYM (Qdisplay_fill_column_indicator_character, "display-fill-column-indicator-character");
   Fmake_variable_buffer_local (Qdisplay_fill_column_indicator_character);

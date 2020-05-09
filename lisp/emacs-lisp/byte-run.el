@@ -536,11 +536,12 @@ wrong number of parameters, say
   (zot 1 2))
 
 The warnings that can be suppressed are a subset of the warnings
-in `byte-compile-warning-types'; see this variable for a fuller
-explanation of the warning types.  The types that can be
-suppressed with this macro are `free-vars', `callargs',
-`redefine', `obsolete', `interactive-only', `lexical', `mapcar',
-`constants' and `suspicious'.
+in `byte-compile-warning-types'; see the variable
+`byte-compile-warnings' for a fuller explanation of the warning
+types.  The types that can be suppressed with this macro are
+`free-vars', `callargs', `redefine', `obsolete',
+`interactive-only', `lexical', `mapcar', `constants' and
+`suspicious'.
 
 For the `mapcar' case, only the `mapcar' function can be used in
 the symbol list.  For `suspicious', only `set-buffer' can be used."

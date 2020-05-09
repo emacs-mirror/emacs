@@ -219,6 +219,7 @@ key             binding
 / n             package-menu-filter-by-name
 / s             package-menu-filter-by-status
 / v             package-menu-filter-by-version
+/ m             package-menu-filter-marked
 / /             package-menu-filter-clear
 
 ** gdb-mi

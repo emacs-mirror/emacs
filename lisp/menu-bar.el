@@ -1085,10 +1085,10 @@ The selected font will be the default on both the existing and future frames."
                     :visible (display-graphic-p)
                     :button
                     (:radio . (and tool-bar-mode
-                                   (frame-parameter
+                                   (eq (frame-parameter
                                         (menu-bar-frame-for-menubar)
                                         'tool-bar-position)
-                                       'left))))
+                                       'left)))))
 
       (bindings--define-key menu [showhide-tool-bar-right]
         '(menu-item "On the Right"

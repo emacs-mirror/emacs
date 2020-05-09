@@ -31,7 +31,7 @@
 
 ;; NOTE: Customization variables for
 ;; `display-fill-column-indicator-column' and
-;; `display-fill-column-indicator-char' itself are defined in
+;; `display-fill-column-indicator-character' itself are defined in
 ;; cus-start.el.
 
 ;;; Code:
@@ -39,7 +39,8 @@
 (defgroup display-fill-column-indicator nil
   "Display a fill column indicator in the buffer."
   :group 'convenience
-  :group 'display)
+  :group 'display
+  :link '(info-link "(emacs)Displaying Boundaries"))
 
 
 ;;;###autoload
@@ -49,7 +50,8 @@ This uses `display-fill-column-indicator' internally.
 
 To change the position of the column displayed by default
 customize `display-fill-column-indicator-column'.  You can change the
-character for the indicator setting `display-fill-column-indicator-character'."
+character for the indicator setting `display-fill-column-indicator-character'.
+See Info node `Displaying Boundaries' for details."
   :lighter nil
   (if display-fill-column-indicator-mode
       (progn

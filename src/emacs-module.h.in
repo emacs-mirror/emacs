@@ -48,10 +48,14 @@ information how to write modules and use this header file.
 # define EMACS_NOEXCEPT_TYPEDEF
 #endif
 
-#ifdef __has_attribute
-#if __has_attribute(__nonnull__)
-# define EMACS_ATTRIBUTE_NONNULL(...) __attribute__((__nonnull__(__VA_ARGS__)))
-#endif
+#if 3 < __GNUC__ + (3 <= __GNUC_MINOR__)
+# define EMACS_ATTRIBUTE_NONNULL(...) \
+   __attribute__ ((__nonnull__ (__VA_ARGS__)))
+#elif defined __has_attribute
+# if __has_attribute (__nonnull__)
+#  define EMACS_ATTRIBUTE_NONNULL(...) \
+    __attribute__ ((__nonnull__ (__VA_ARGS__)))
+# endif
 #endif
 #ifndef EMACS_ATTRIBUTE_NONNULL
 # define EMACS_ATTRIBUTE_NONNULL(...)
@@ -81,7 +85,7 @@ struct emacs_runtime
 
   /* Return an environment pointer.  */
   emacs_env *(*get_environment) (struct emacs_runtime *runtime)
-    EMACS_ATTRIBUTE_NONNULL(1);
+    EMACS_ATTRIBUTE_NONNULL (1);
 };
 
 /* Type aliases for function pointer types used in the module API.
@@ -166,7 +170,7 @@ struct emacs_env_28
 /* Every module should define a function as follows.  */
 extern int emacs_module_init (struct emacs_runtime *runtime)
   EMACS_NOEXCEPT
-  EMACS_ATTRIBUTE_NONNULL(1);
+  EMACS_ATTRIBUTE_NONNULL (1);
 
 #ifdef __cplusplus
 }

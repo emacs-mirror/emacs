@@ -413,6 +413,21 @@ Must called from within a `tar-mode' buffer."
     ;; No installed packages in default environment.
     (should-error (package-menu-filter-by-status "installed"))))
 
+(ert-deftest package-test-list-filter-marked ()
+  "Ensure package list is filtered correctly by non-empty mark."
+  (with-package-test ()
+    (let ((buf (package-list-packages)))
+      (revert-buffer)
+      (search-forward-regexp "^ +simple-single")
+      (package-menu-mark-install)
+      (package-menu-filter-marked)
+      (goto-char (point-min))
+      (should (re-search-forward "^I +simple-single" nil t))
+      (should (= (count-lines (point-min) (point-max)) 1))
+      (package-menu-mark-unmark)
+      ;; No marked packages in default environment.
+      (should-error (package-menu-filter-marked)))))
+
 (ert-deftest package-test-list-filter-by-version ()
   (with-package-menu-test
     (should-error (package-menu-filter-by-version "1.1" 'unknown-symbol)))  )
