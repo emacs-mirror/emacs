@@ -10511,13 +10511,13 @@ include the height of both, if present, in the return value.  */)
       bpos = BEGV_BYTE;
       while (bpos < ZV_BYTE)
 	{
-	  FETCH_CHAR_ADVANCE (c, start, bpos);
+	  c = fetch_char_advance (&start, &bpos);
 	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
 	    break;
 	}
       while (bpos > BEGV_BYTE)
 	{
-	  DEC_BOTH (start, bpos);
+	  dec_both (&start, &bpos);
 	  c = FETCH_CHAR (bpos);
 	  if (!(c == ' ' || c == '\t'))
 	    break;
@@ -10539,14 +10539,14 @@ include the height of both, if present, in the return value.  */)
       bpos = ZV_BYTE;
       while (bpos > BEGV_BYTE)
 	{
-	  DEC_BOTH (end, bpos);
+	  dec_both (&end, &bpos);
 	  c = FETCH_CHAR (bpos);
 	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
 	    break;
 	}
       while (bpos < ZV_BYTE)
 	{
-	  FETCH_CHAR_ADVANCE (c, end, bpos);
+	  c = fetch_char_advance (&end, &bpos);
 	  if (!(c == ' ' || c == '\t'))
 	    break;
 	}
