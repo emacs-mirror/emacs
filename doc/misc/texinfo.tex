@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2020-05-02.00}
+\def\texinfoversion{2020-05-07.17}
 %
-% Copyright 1985, 1986, 1988, 1990-2019 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2020 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -1430,7 +1430,13 @@ output) for that.)}
       % subentries, which we calculated on our first read of the .toc above.
       %
       % We use the node names as the destinations.
+      %
+      % Currently we prefix the section name with the section number
+      % for chapter and appendix headings only in order to avoid too much
+      % horizontal space being required in the PDF viewer.
       \def\numchapentry##1##2##3##4{%
+        \dopdfoutline{##2 ##1}{count-\expnumber{chap##2}}{##3}{##4}}%
+      \def\unnchapentry##1##2##3##4{%
         \dopdfoutline{##1}{count-\expnumber{chap##2}}{##3}{##4}}%
       \def\numsecentry##1##2##3##4{%
         \dopdfoutline{##1}{count-\expnumber{sec##2}}{##3}{##4}}%
@@ -1672,9 +1678,13 @@ output) for that.)}
       % Therefore, we read toc only once.
       %
       % We use node names as destinations.
+      %
+      % Currently we prefix the section name with the section number
+      % for chapter and appendix headings only in order to avoid too much
+      % horizontal space being required in the PDF viewer.
       \def\partentry##1##2##3##4{}% ignore parts in the outlines
       \def\numchapentry##1##2##3##4{%
-        \dopdfoutline{##1}{1}{##3}{##4}}%
+        \dopdfoutline{##2 ##1}{1}{##3}{##4}}%
       \def\numsecentry##1##2##3##4{%
         \dopdfoutline{##1}{2}{##3}{##4}}%
       \def\numsubsecentry##1##2##3##4{%
@@ -1686,7 +1696,8 @@ output) for that.)}
       \let\appsecentry\numsecentry%
       \let\appsubsecentry\numsubsecentry%
       \let\appsubsubsecentry\numsubsubsecentry%
-      \let\unnchapentry\numchapentry%
+      \def\unnchapentry##1##2##3##4{%
+        \dopdfoutline{##1}{1}{##3}{##4}}%
       \let\unnsecentry\numsecentry%
       \let\unnsubsecentry\numsubsecentry%
       \let\unnsubsubsecentry\numsubsubsecentry%
@@ -2499,7 +2510,7 @@ end
 \def\it{\fam=\itfam \setfontstyle{it}}
 \def\sl{\fam=\slfam \setfontstyle{sl}}
 \def\bf{\fam=\bffam \setfontstyle{bf}}\def\bfstylename{bf}
-\def\tt{\fam=\ttfam \setfontstyle{tt}}
+\def\tt{\fam=\ttfam \setfontstyle{tt}}\def\ttstylename{tt}
 
 % Texinfo sort of supports the sans serif font style, which plain TeX does not.
 % So we set up a \sf.
@@ -3512,7 +3523,7 @@ end
 
 % @pounds{} is a sterling sign, which Knuth put in the CM italic font.
 %
-\def\pounds{{\it\$}}
+\def\pounds{\ifmonospace{\ecfont\char"BF}\else{\it\$}\fi}
 
 % @euro{} comes from a separate font, depending on the current style.
 % We use the free feym* fonts from the eurosym package by Henrik
@@ -3661,10 +3672,18 @@ end
 \fi
 
 % Quotes.
-\chardef\quotedblleft="5C
-\chardef\quotedblright=`\"
 \chardef\quoteleft=`\`
 \chardef\quoteright=`\'
+
+% only change font for tt for correct kerning and to avoid using
+% \ecfont unless necessary.
+\def\quotedblleft{%
+  \ifmonospace{\ecfont\char"10}\else{\char"5C}\fi
+}
+
+\def\quotedblright{%
+  \ifmonospace{\ecfont\char"11}\else{\char`\"}\fi
+}
 
 
 \message{page headings,}
@@ -7447,13 +7466,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \newdimen\tabw \setbox0=\hbox{\tt\space} \tabw=8\wd0 % tab amount
 %
 % We typeset each line of the verbatim in an \hbox, so we can handle
-% tabs.  The \global is in case the verbatim line starts with an accent,
-% or some other command that starts with a begin-group.  Otherwise, the
-% entire \verbbox would disappear at the corresponding end-group, before
-% it is typeset.  Meanwhile, we can't have nested verbatim commands
-% (can we?), so the \global won't be overwriting itself.
+% tabs.
 \newbox\verbbox
-\def\starttabbox{\global\setbox\verbbox=\hbox\bgroup}
+\def\starttabbox{\setbox\verbbox=\hbox\bgroup}
 %
 \begingroup
   \catcode`\^^I=\active
@@ -7464,7 +7479,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \divide\dimen\verbbox by\tabw
       \multiply\dimen\verbbox by\tabw % compute previous multiple of \tabw
       \advance\dimen\verbbox by\tabw  % advance to next multiple of \tabw
-      \wd\verbbox=\dimen\verbbox \box\verbbox \starttabbox
+      \wd\verbbox=\dimen\verbbox
+      \leavevmode\box\verbbox \starttabbox
     }%
   }
 \endgroup
@@ -7474,9 +7490,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \let\nonarrowing = t%
   \nonfillstart
   \tt % easiest (and conventionally used) font for verbatim
-  % The \leavevmode here is for blank lines.  Otherwise, we would
-  % never \starttabbox and the \egroup would end verbatim mode.
-  \def\par{\leavevmode\egroup\box\verbbox\endgraf}%
+  \def\par{\egroup\box\verbbox\endgraf\starttabbox}%
   \tabexpand
   \setupmarkupstyle{verbatim}%
   % Respect line breaks,
@@ -7484,7 +7498,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % make each space count.
   % Must do in this order:
   \obeylines \uncatcodespecials \sepspaces
-  \everypar{\starttabbox}%
 }
 
 % Do the @verb magic: verbatim text is quoted by unique
@@ -7519,9 +7532,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % ignore everything up to the first ^^M, that's the newline at the end
   % of the @verbatim input line itself.  Otherwise we get an extra blank
   % line in the output.
-  \xdef\doverbatim#1^^M#2@end verbatim{#2\noexpand\end\gobble verbatim}%
+  \xdef\doverbatim#1^^M#2@end verbatim{%
+    \starttabbox#2\egroup\noexpand\end\gobble verbatim}%
   % We really want {...\end verbatim} in the body of the macro, but
   % without the active space; thus we have to use \xdef and \gobble.
+  % The \egroup ends the \verbbox started at the end of the last line in
+  % the block.
 \endgroup
 %
 \envdef\verbatim{%
