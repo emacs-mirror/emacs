@@ -1882,7 +1882,7 @@ also unset keys, when passed @code{nil} as the binding.
 
   Since a mode's keymaps are not constructed until it has been loaded,
 you must delay running code which modifies them, e.g., by putting it
-on a @dfn{mode hook} (@pxref{(Hooks)}).  For example, Texinfo mode
+on a @dfn{mode hook} (@pxref{Hooks}).  For example, Texinfo mode
 runs the hook @code{texinfo-mode-hook}.  Here's how you can use the
 hook to add local bindings for @kbd{C-c n} and @kbd{C-c p}, and remove
 the one for @kbd{C-c C-x x} in Texinfo mode:

@@ -771,9 +771,16 @@ since it could result in memory overflow and make Emacs crash."
               :safe (lambda (value) (or (booleanp value) (integerp value))))
              (display-fill-column-indicator-character
               display-fill-column-indicator
-              character
+              (choice
+               (character :tag "Use U+2502 to indicate fill column"
+                      :value ?│)
+               (character :tag "Use | to indicate fill column"
+                      :value ?|)
+               (const :tag "If possible, use U+2502 to indicate fill column, otherwise use |"
+                      :value nil)
+               character)
               "27.1"
-              :safe characterp)
+              :safe (lambda (value) (or (characterp value) (null value))))
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
