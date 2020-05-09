@@ -310,6 +310,8 @@ the default EWW buffer."
     (url-retrieve url 'eww-render
                   (list url nil (current-buffer)))))
 
+(put 'eww 'browse-url-browser-kind 'internal)
+
 (defun eww--dwim-expand-url (url)
   (setq url (string-trim url))
   (cond ((string-match-p "\\`file:/" url))

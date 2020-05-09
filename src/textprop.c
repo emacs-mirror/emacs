@@ -766,14 +766,13 @@ the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
 
 In a string, scan runs to the end of the string, unless LIMIT is non-nil.
-In a buffer, if LIMIT is nil or omitted, it runs to (point-max), and the
-value cannot exceed that.
+In a buffer, scan runs to end of buffer, unless LIMIT is non-nil.
 If the optional fourth argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.
+However, if OBJECT is a buffer and LIMIT is beyond the end of the
+buffer, this function returns `point-max', not LIMIT.
 
-The property values are compared with `eq'.
-If the property is constant all the way to the end of OBJECT, return the
-last valid position in OBJECT.  */)
+The property values are compared with `eq'.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   if (STRINGP (object))
@@ -831,6 +830,9 @@ last valid position in OBJECT.  */)
 
 	    value = Fget_char_property (position, prop, object);
 	    if (!EQ (value, initial_value))
+	      break;
+
+	    if (XFIXNAT (position) >= ZV)
 	      break;
 	  }
 

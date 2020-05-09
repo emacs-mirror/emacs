@@ -469,10 +469,12 @@ return t."
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
 	(with-current-buffer (window-buffer (posn-window posn))
-	  (if (posn-string posn)
-	      ;; mode-line, header-line, or display string event.
-	      (button-activate (posn-string posn) t)
-	    (push-button (posn-point posn) t))))
+          (let* ((str (posn-string posn))
+                 (str-button (and str (get-text-property (cdr str) 'button (car str)))))
+	    (if str-button
+	        ;; mode-line, header-line, or display string event.
+	        (button-activate str t)
+	      (push-button (posn-point posn) t)))))
     ;; POS is just normal position
     (let ((button (button-at (or pos (point)))))
       (when button

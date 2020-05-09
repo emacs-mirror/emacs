@@ -39,6 +39,15 @@
                           collect (list c b a))
                  '((4.0 2 1) (8.3 6 5) (10.4 9 8)))))
 
+(ert-deftest cl-macs-loop-and-arrays ()
+  "Bug#40727"
+  (should (equal (cl-loop for y = (- (or x 0)) and x across [1 2]
+                          collect (cons x y))
+                 '((1 . 0) (2 . -1))))
+  (should (equal (cl-loop for x across [1 2] and y = (- (or x 0))
+                          collect (cons x y))
+                 '((1 . 0) (2 . -1)))))
+
 (ert-deftest cl-macs-loop-destructure ()
   (should (equal (cl-loop for (a b c) in '((1 2 4.0) (5 6 8.3) (8 9 10.4))
                           collect (list c b a))
