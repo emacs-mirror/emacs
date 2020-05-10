@@ -3960,8 +3960,8 @@ syms_of_comp (void)
 	       doc: /* List of all defined subrs.  */);
   DEFVAR_LISP ("comp-sym-subr-c-name-h", Vcomp_sym_subr_c_name_h,
 	       doc: /* Hash table symbol-function -> function-c-name.  For
-		       internal use during  */);
-  Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table);
+		       internal use during dump reload */);
+  Vcomp_sym_subr_c_name_h = CALLN (Fmake_hash_table, QCtest, Qeq);
   DEFVAR_LISP ("comp-abi-hash", Vcomp_abi_hash,
 	       doc: /* String signing the ABI exposed to .eln files.  */);
   Vcomp_abi_hash = Qnil;
