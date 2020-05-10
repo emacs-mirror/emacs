@@ -2376,12 +2376,13 @@ LOAD can be nil t or 'late."
 queued with LOAD %"
                      file load (cdr entry))
         ;; Make sure we are not already compiling `file' (bug#40838).
-        (unless (and (gethash file comp-async-compilations)
-                     ;; Exclude some file from deferred compilation if
-                     ;; `comp-deferred-compilation-black-list' says so.
-                     (or (not (eq load 'late))
-                         (cl-notany (lambda (re) (string-match re file))
-                                    comp-deferred-compilation-black-list)))
+        (unless (or (gethash file comp-async-compilations)
+                    ;; Also exclude files from deferred compilation if
+                    ;; any of the regexps in
+                    ;; `comp-deferred-compilation-black-list' matches.
+                    (and (eq load 'late)
+                         (cl-some (lambda (re) (string-match re file))
+                                  comp-deferred-compilation-black-list)))
           (let ((out-dir (comp-output-directory file))
                 (out-filename (comp-output-filename file)))
             (if (or (file-writable-p out-filename)
