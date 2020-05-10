@@ -364,7 +364,7 @@ contents of field NAME is matched against PAT, or they can be of
                        `(app (pcase--flip eieio-oref ',name) ,pat))
                       ((pred symbolp)
                        `(app (pcase--flip eieio-oref ',field) ,field))))
-                  field-s)))
+                  fields)))
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.
