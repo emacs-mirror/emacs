@@ -3564,7 +3564,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   Lisp_Object *saved_cu = dynlib_sym (handle, COMP_UNIT_SYM);
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
-  bool reloading_cu = !NILP (*saved_cu) ? true : false;
+  bool reloading_cu = !NILP (*saved_cu);
   Lisp_Object *data_eph_relocs =
     dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
