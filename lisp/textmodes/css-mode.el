@@ -276,6 +276,10 @@
     ("color" color)
     ("opacity" alphavalue)
 
+    ;; CSS Containment Module Level 1
+    ;; (https://www.w3.org/TR/css-contain-1/#property-index)
+    ("contain" "none" "strict" "content" "size" "layout" "paint")
+
     ;; CSS Grid Layout Module Level 1
     ;; (https://www.w3.org/TR/css-grid-1/#property-index)
     ("grid" grid-template grid-template-rows "auto-flow" "dense"
