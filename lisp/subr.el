@@ -257,10 +257,9 @@ Then evaluate RESULT to get return value, default nil.
   ;; use dolist.
   ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dolist-tail--))
-    ;; This is not a reliable test, but it does not matter because both
-    ;; semantics are acceptable, tho one is slightly faster with dynamic
-    ;; scoping and the other is slightly faster (and has cleaner semantics)
-    ;; with lexical scoping.
+    ;; This test does not matter much because both semantics are acceptable,
+    ;; but one is slightly faster with dynamic scoping and the other is
+    ;; slightly faster (and has cleaner semantics) with lexical scoping.
     (if lexical-binding
         `(let ((,temp ,(nth 1 spec)))
            (while ,temp
@@ -292,9 +291,9 @@ the return value (nil if RESULT is omitted).  Its use is deprecated.
   (let ((temp '--dotimes-limit--)
 	(start 0)
 	(end (nth 1 spec)))
-    ;; This is not a reliable test, but it does not matter because both
-    ;; semantics are acceptable, tho one is slightly faster with dynamic
-    ;; scoping and the other has cleaner semantics.
+    ;; This test does not matter much because both semantics are acceptable,
+    ;; but one is slightly faster with dynamic scoping and the other has
+    ;; cleaner semantics.
     (if lexical-binding
         (let ((counter '--dotimes-counter--))
           `(let ((,temp ,end)
@@ -4033,7 +4032,7 @@ the function `undo--wrap-and-run-primitive-undo'."
 (defmacro combine-change-calls (beg end &rest body)
   "Evaluate BODY, running the change hooks just once.
 
-BODY is a sequence of lisp forms to evaluate.  BEG and END bound
+BODY is a sequence of Lisp forms to evaluate.  BEG and END bound
 the region the change hooks will be run for.
 
 Firstly, `before-change-functions' is invoked for the region
@@ -4051,7 +4050,8 @@ change `before-change-functions' or `after-change-functions'.
 
 Additionally, the buffer modifications of BODY are recorded on
 the buffer's undo list as a single \(apply ...) entry containing
-the function `undo--wrap-and-run-primitive-undo'. "
+the function `undo--wrap-and-run-primitive-undo'."
+  (declare (debug t) (indent 2))
   `(combine-change-calls-1 ,beg ,end (lambda () ,@body)))
 
 (defun undo--wrap-and-run-primitive-undo (beg end list)
