@@ -698,10 +698,15 @@ MATCH is the pattern that needs to be matched, of the form:
       (dolist (binding (pcase--fgrep bindings (pop sexp)))
         (push binding res)
         (setq bindings (remove binding bindings))))
-    (let ((tmp (assq sexp bindings)))
-      (if tmp
-          (cons tmp res)
-        res))))
+    (if (vectorp sexp)
+        ;; With backquote, code can appear within vectors as well.
+        ;; This wouldn't be needed if we `macroexpand-all' before
+        ;; calling pcase--fgrep, OTOH.
+        (pcase--fgrep bindings (mapcar #'identity sexp))
+      (let ((tmp (assq sexp bindings)))
+        (if tmp
+            (cons tmp res)
+          res)))))
 
 (defun pcase--self-quoting-p (upat)
   (or (keywordp upat) (integerp upat) (stringp upat)))
