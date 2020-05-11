@@ -1994,6 +1994,7 @@ Backward propagate array placement properties."
   (cl-loop
    with self = (comp-func-name comp-func)
    for b being each hash-value of (comp-func-blocks comp-func)
+   when self ;; FIXME add proper anonymous lambda support.
    do (cl-loop
        for insn-cell on (comp-block-insns b)
        for insn = (car insn-cell)
