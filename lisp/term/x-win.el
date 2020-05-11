@@ -1434,7 +1434,7 @@ This returns an error if any Emacs frames are X frames."
     ("etc/images/sort-row-ascending" . "gtk-sort-row-ascending")
     ("etc/images/spell" . ("tools-check-spelling" "gtk-spell-check"))
     ("images/gnus/toggle-subscription" . "gtk-task-recurring")
-    ("images/mail/compose" . "gtk-mail-compose")
+    ("images/mail/compose" . ("mail-message-new" "gtk-mail-compose"))
     ("images/mail/copy" . "gtk-mail-copy")
     ("images/mail/forward" . "gtk-mail-forward")
     ("images/mail/inbox" . "gtk-inbox")
