@@ -277,7 +277,9 @@ Check that the resulting binaries do not differ."
   (should (string= (comp-tests-buff0-f) "foo")))
 
 (ert-deftest comp-tests-lambda-return ()
-  (should (= (funcall (comp-tests-lambda-return-f) 3) 4)))
+  (let ((f (comp-tests-lambda-return-f)))
+    (should (subr-native-elisp-p f))
+    (should (= (funcall f 3) 4))))
 
 (ert-deftest comp-tests-recursive ()
   (should (= (comp-tests-fib-f 10) 55)))
