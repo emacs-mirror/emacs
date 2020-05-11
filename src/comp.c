@@ -3182,7 +3182,7 @@ compile_function (Lisp_Object func)
 DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        0, 0, 0,
        doc: /* Initialize the native compiler context. Return t on success.  */)
-     (void)
+  (void)
 {
   if (comp.ctxt)
     {
@@ -3306,7 +3306,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
        0, 0, 0,
        doc: /* Release the native compiler context.  */)
-     (void)
+  (void)
 {
   if (comp.ctxt)
     gcc_jit_context_release (comp.ctxt);
@@ -3322,7 +3322,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
        doc: /* Compile as native code the current context to file.  */)
-     (Lisp_Object base_name)
+  (Lisp_Object base_name)
 {
   CHECK_STRING (base_name);
 
@@ -3689,9 +3689,9 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
        7, 7, 0,
        doc: /* This gets called by top_level_run during load phase to register
 	       each exported subr.  */)
-     (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-      Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
-      Lisp_Object comp_u)
+  (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
+   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
+   Lisp_Object comp_u)
 {
   dynlib_handle_ptr handle = XNATIVE_COMP_UNIT (comp_u)->handle;
   if (!handle)
@@ -3726,9 +3726,9 @@ DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
        Scomp__late_register_subr, 7, 7, 0,
        doc: /* This gets called by late_top_level_run during load
 	       phase to register each exported subr.  */)
-     (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-      Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
-      Lisp_Object comp_u)
+  (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
+   Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
+   Lisp_Object comp_u)
 {
   if (!NILP (Fequal (Fsymbol_function (name),
 		     Fgethash (name, Vcomp_deferred_pending_h, Qnil))))
