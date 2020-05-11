@@ -345,23 +345,27 @@ END) suitable for `syntax-propertize-function'."
                    (end (max pos
                              (min (point-max)
                                   (+ start syntax-propertize-chunk-size))))
-                   (funs syntax-propertize-extend-region-functions))
-              (while funs
-                (let ((new (funcall (pop funs) start end))
-                      ;; Avoid recursion!
-                      (syntax-propertize--done most-positive-fixnum))
-                  (if (or (null new)
-                          (and (>= (car new) start) (<= (cdr new) end)))
-                      nil
-                    (setq start (car new))
-                    (setq end (cdr new))
-                    ;; If there's been a change, we should go through the
-                    ;; list again since this new position may
-                    ;; warrant a different answer from one of the funs we've
-                    ;; already seen.
-                    (unless (eq funs
-                                (cdr syntax-propertize-extend-region-functions))
-                      (setq funs syntax-propertize-extend-region-functions)))))
+                   (first t)
+                   (repeat t))
+              (while repeat
+                (setq repeat nil)
+                (run-hook-wrapped
+                 'syntax-propertize-extend-region-functions
+                 (lambda (f)
+                   (let ((new (funcall f start end))
+                         ;; Avoid recursion!
+                         (syntax-propertize--done most-positive-fixnum))
+                     (if (or (null new)
+                             (and (>= (car new) start) (<= (cdr new) end)))
+                         nil
+                       (setq start (car new))
+                       (setq end (cdr new))
+                       ;; If there's been a change, we should go through the
+                       ;; list again since this new position may
+                       ;; warrant a different answer from one of the funs we've
+                       ;; already seen.
+                       (unless first (setq repeat t))))
+                   (setq first nil))))
               ;; Flush ppss cache between the original value of `start' and that
               ;; set above by syntax-propertize-extend-region-functions.
               (syntax-ppss-flush-cache start)
