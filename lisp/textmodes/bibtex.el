@@ -1193,6 +1193,7 @@ See `bibtex-generate-autokey' for details."
 The function must take one argument (the automatically generated key),
 and must return a string (the key to use)."
   :group 'bibtex-autokey
+  :version "28.1"
   :type 'function)
 
 (defcustom bibtex-entry-offset 0
