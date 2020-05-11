@@ -3666,6 +3666,7 @@ AC_SUBST(LIBZ)
 LIBMODULES=
 HAVE_MODULES=no
 MODULES_OBJ=
+NEED_DYNLIB=no
 case $opsys in
   cygwin|mingw32) MODULES_SUFFIX=".dll" ;;
   darwin) MODULES_SUFFIX=".dylib" ;;
@@ -3701,7 +3702,8 @@ if test "${with_modules}" != "no"; then
 fi
 
 if test "${HAVE_MODULES}" = yes; then
-   MODULES_OBJ="dynlib.o emacs-module.o"
+   MODULES_OBJ="emacs-module.o"
+   NEED_DYNLIB=yes
    AC_DEFINE(HAVE_MODULES, 1, [Define to 1 if dynamic modules are enabled])
    AC_DEFINE_UNQUOTED(MODULES_SUFFIX, "$MODULES_SUFFIX",
      [System extension for dynamic libraries])
@@ -3785,7 +3787,6 @@ Here instructions on how to compile and install libgccjit from source:
 
 HAVE_NATIVE_COMP=no
 LIBGCCJIT_LIB=
-COMP_OBJ=
 if test "${with_nativecomp}" != "no"; then
     emacs_save_LIBS=$LIBS
     LIBS="-lgccjit"
@@ -3793,8 +3794,11 @@ if test "${with_nativecomp}" != "no"; then
       [AC_LINK_IFELSE([libgccjit_smoke_test], [], [libgccjit_not_found])])
     LIBS=$emacs_save_LIBS
     HAVE_NATIVE_COMP=yes
-    LIBGCCJIT_LIB="-lgccjit -ldl"
-    COMP_OBJ="comp.o"
+    # mingw32 loads the library dynamically.
+    if test "${opsys}" != "mingw32"; then
+      LIBGCCJIT_LIB="-lgccjit -ldl"
+    fi
+    NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
 fi
 if test "${HAVE_NATIVE_COMP}" = yes && test "${HAVE_PDUMPER}" = no; then
@@ -3804,7 +3808,12 @@ AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
 AC_SUBST(HAVE_NATIVE_COMP)
 AC_SUBST(LIBGCCJIT_LIB)
-AC_SUBST(COMP_OBJ)
+
+DYNLIB_OBJ=
+if test "${NEED_DYNLIB}" = yes; then
+  DYNLIB_OBJ="dynlib.o"
+fi
+AC_SUBST(DYNLIB_OBJ)
 
 ### Use -lpng if available, unless '--with-png=no'.
 HAVE_PNG=no

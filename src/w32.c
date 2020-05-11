@@ -10586,6 +10586,10 @@ globals_of_w32 (void)
 #endif
 
   w32_crypto_hprov = (HCRYPTPROV)0;
+
+  /* We need to forget about libraries that were loaded during the
+     dumping process (e.g. libgccjit) */
+  Vlibrary_cache = Qnil;
 }
 
 /* For make-serial-process  */

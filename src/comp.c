@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include "lisp.h"
+
 #ifdef HAVE_NATIVE_COMP
 
 #include <setjmp.h>
@@ -28,7 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <libgccjit.h>
 
-#include "lisp.h"
 #include "puresize.h"
 #include "window.h"
 #include "dynlib.h"
@@ -36,6 +37,347 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "sha512.h"
 
+
+/********************************/
+/* Dynamic loading of libgccjit */
+/********************************/
+
+#ifdef WINDOWSNT
+# include "w32common.h"
+
+#undef gcc_jit_block_add_assignment
+#undef gcc_jit_block_add_comment
+#undef gcc_jit_block_add_eval
+#undef gcc_jit_block_end_with_conditional
+#undef gcc_jit_block_end_with_jump
+#undef gcc_jit_block_end_with_return
+#undef gcc_jit_block_end_with_void_return
+#undef gcc_jit_context_acquire
+#undef gcc_jit_context_compile_to_file
+#undef gcc_jit_context_dump_reproducer_to_file
+#undef gcc_jit_context_dump_to_file
+#undef gcc_jit_context_get_builtin_function
+#undef gcc_jit_context_get_first_error
+#undef gcc_jit_context_get_int_type
+#undef gcc_jit_context_get_type
+#undef gcc_jit_context_new_array_access
+#undef gcc_jit_context_new_array_type
+#undef gcc_jit_context_new_binary_op
+#undef gcc_jit_context_new_call
+#undef gcc_jit_context_new_call_through_ptr
+#undef gcc_jit_context_new_comparison
+#undef gcc_jit_context_new_field
+#undef gcc_jit_context_new_function
+#undef gcc_jit_context_new_function_ptr_type
+#undef gcc_jit_context_new_global
+#undef gcc_jit_context_new_opaque_struct
+#undef gcc_jit_context_new_param
+#undef gcc_jit_context_new_rvalue_from_int
+#undef gcc_jit_context_new_rvalue_from_long
+#undef gcc_jit_context_new_rvalue_from_ptr
+#undef gcc_jit_context_new_struct_type
+#undef gcc_jit_context_new_unary_op
+#undef gcc_jit_context_new_union_type
+#undef gcc_jit_context_release
+#undef gcc_jit_context_set_bool_option
+#undef gcc_jit_context_set_int_option
+#undef gcc_jit_context_set_logfile
+#undef gcc_jit_function_get_param
+#undef gcc_jit_function_new_block
+#undef gcc_jit_function_new_local
+#undef gcc_jit_lvalue_access_field
+#undef gcc_jit_lvalue_as_rvalue
+#undef gcc_jit_lvalue_get_address
+#undef gcc_jit_param_as_lvalue
+#undef gcc_jit_param_as_rvalue
+#undef gcc_jit_rvalue_access_field
+#undef gcc_jit_rvalue_dereference
+#undef gcc_jit_rvalue_dereference_field
+#undef gcc_jit_rvalue_get_type
+#undef gcc_jit_struct_as_type
+#undef gcc_jit_struct_set_fields
+#undef gcc_jit_type_get_pointer
+
+/* In alphabetical order */
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_int,
+            (gcc_jit_context *ctxt, gcc_jit_type *numeric_type, int value));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_lvalue_as_rvalue,
+            (gcc_jit_lvalue *lvalue));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_rvalue_access_field,
+            (gcc_jit_rvalue *struct_or_union, gcc_jit_location *loc,
+             gcc_jit_field *field));
+DEF_DLL_FN (void, gcc_jit_block_add_comment,
+            (gcc_jit_block *block, gcc_jit_location *loc, const char *text));
+DEF_DLL_FN (void, gcc_jit_context_release, (gcc_jit_context *ctxt));
+DEF_DLL_FN (const char *, gcc_jit_context_get_first_error,
+            (gcc_jit_context *ctxt));
+DEF_DLL_FN (gcc_jit_block *, gcc_jit_function_new_block,
+            (gcc_jit_function *func, const char *name));
+DEF_DLL_FN (gcc_jit_context *, gcc_jit_context_acquire, (void));
+DEF_DLL_FN (gcc_jit_field *, gcc_jit_context_new_field,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc, gcc_jit_type *type,
+             const char *name));
+DEF_DLL_FN (gcc_jit_function *, gcc_jit_context_get_builtin_function,
+            (gcc_jit_context *ctxt, const char *name));
+DEF_DLL_FN (gcc_jit_function *, gcc_jit_context_new_function,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             enum gcc_jit_function_kind kind, gcc_jit_type *return_type,
+             const char *name, int num_params, gcc_jit_param **params,
+             int is_variadic));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_context_new_array_access,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc, gcc_jit_rvalue *ptr,
+             gcc_jit_rvalue *index));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_context_new_global,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             enum gcc_jit_global_kind kind, gcc_jit_type *type,
+             const char *name));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_function_new_local,
+            (gcc_jit_function *func, gcc_jit_location *loc, gcc_jit_type *type,
+             const char *name));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_lvalue_access_field,
+            (gcc_jit_lvalue *struct_or_union, gcc_jit_location *loc,
+             gcc_jit_field *field));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_param_as_lvalue, (gcc_jit_param *param));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_rvalue_dereference,
+            (gcc_jit_rvalue *rvalue, gcc_jit_location *loc));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_rvalue_dereference_field,
+            (gcc_jit_rvalue *ptr, gcc_jit_location *loc, gcc_jit_field *field));
+DEF_DLL_FN (gcc_jit_param *, gcc_jit_context_new_param,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc, gcc_jit_type *type,
+             const char *name));
+DEF_DLL_FN (gcc_jit_param *, gcc_jit_function_get_param,
+            (gcc_jit_function *func, int index));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_binary_op,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             enum gcc_jit_binary_op op, gcc_jit_type *result_type,
+             gcc_jit_rvalue *a, gcc_jit_rvalue *b));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_call,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             gcc_jit_function *func, int numargs , gcc_jit_rvalue **args));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_call_through_ptr,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             gcc_jit_rvalue *fn_ptr, int numargs, gcc_jit_rvalue **args));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_comparison,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             enum gcc_jit_comparison op, gcc_jit_rvalue *a, gcc_jit_rvalue *b));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_long,
+            (gcc_jit_context *ctxt, gcc_jit_type *numeric_type, long value));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_ptr,
+            (gcc_jit_context *ctxt, gcc_jit_type *pointer_type, void *value));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_unary_op,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             enum gcc_jit_unary_op op, gcc_jit_type *result_type,
+             gcc_jit_rvalue *rvalue));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_lvalue_get_address,
+            (gcc_jit_lvalue *lvalue, gcc_jit_location *loc));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_param_as_rvalue, (gcc_jit_param *param));
+DEF_DLL_FN (gcc_jit_struct *, gcc_jit_context_new_opaque_struct,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc, const char *name));
+DEF_DLL_FN (gcc_jit_struct *, gcc_jit_context_new_struct_type,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc, const char *name,
+             int num_fields, gcc_jit_field **fields));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_get_int_type,
+            (gcc_jit_context *ctxt, int num_bytes, int is_signed));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_get_type,
+            (gcc_jit_context *ctxt, enum gcc_jit_types type_));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_new_array_type,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             gcc_jit_type *element_type, int num_elements));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_new_function_ptr_type,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             gcc_jit_type *return_type, int num_params,
+             gcc_jit_type **param_types, int is_variadic));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_context_new_union_type,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc, const char *name,
+             int num_fields, gcc_jit_field **fields));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_rvalue_get_type, (gcc_jit_rvalue *rvalue));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
+            (gcc_jit_struct *struct_type));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
+DEF_DLL_FN (void, gcc_jit_block_add_assignment,
+            (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
+             gcc_jit_rvalue *rvalue));
+DEF_DLL_FN (void, gcc_jit_block_add_eval,
+            (gcc_jit_block *block, gcc_jit_location *loc,
+             gcc_jit_rvalue *rvalue));
+DEF_DLL_FN (void, gcc_jit_block_end_with_conditional,
+            (gcc_jit_block *block, gcc_jit_location *loc,
+             gcc_jit_rvalue *boolval, gcc_jit_block *on_true,
+             gcc_jit_block *on_false));
+DEF_DLL_FN (void, gcc_jit_block_end_with_jump,
+            (gcc_jit_block *block, gcc_jit_location *loc,
+             gcc_jit_block *target));
+DEF_DLL_FN (void, gcc_jit_block_end_with_return,
+            (gcc_jit_block *block, gcc_jit_location *loc,
+             gcc_jit_rvalue *rvalue));
+DEF_DLL_FN (void, gcc_jit_block_end_with_void_return,
+            (gcc_jit_block *block, gcc_jit_location *loc));
+DEF_DLL_FN (void, gcc_jit_context_compile_to_file,
+            (gcc_jit_context *ctxt, enum gcc_jit_output_kind output_kind,
+             const char *output_path));
+DEF_DLL_FN (void, gcc_jit_context_dump_reproducer_to_file,
+            (gcc_jit_context *ctxt, const char *path));
+DEF_DLL_FN (void, gcc_jit_context_dump_to_file,
+            (gcc_jit_context *ctxt, const char *path, int update_locations));
+DEF_DLL_FN (void, gcc_jit_context_set_bool_option,
+            (gcc_jit_context *ctxt, enum gcc_jit_bool_option opt, int value));
+DEF_DLL_FN (void, gcc_jit_context_set_int_option,
+            (gcc_jit_context *ctxt, enum gcc_jit_int_option opt, int value));
+DEF_DLL_FN (void, gcc_jit_context_set_logfile,
+            (gcc_jit_context *ctxt, FILE *logfile, int flags, int verbosity));
+DEF_DLL_FN (void, gcc_jit_struct_set_fields,
+            (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
+             gcc_jit_field **fields));
+
+static bool
+init_gccjit_functions (void)
+{
+  HMODULE library;
+
+  if (!(library = w32_delayed_load (Qgccjit)))
+    {
+      return false;
+    }
+
+  /* In alphabetical order */
+  LOAD_DLL_FN(library, gcc_jit_block_add_assignment);
+  LOAD_DLL_FN(library, gcc_jit_block_add_comment);
+  LOAD_DLL_FN(library, gcc_jit_block_add_eval);
+  LOAD_DLL_FN(library, gcc_jit_block_end_with_conditional);
+  LOAD_DLL_FN(library, gcc_jit_block_end_with_jump);
+  LOAD_DLL_FN(library, gcc_jit_block_end_with_return);
+  LOAD_DLL_FN(library, gcc_jit_block_end_with_void_return);
+  LOAD_DLL_FN(library, gcc_jit_context_acquire);
+  LOAD_DLL_FN(library, gcc_jit_context_compile_to_file);
+  LOAD_DLL_FN(library, gcc_jit_context_dump_reproducer_to_file);
+  LOAD_DLL_FN(library, gcc_jit_context_dump_to_file);
+  LOAD_DLL_FN(library, gcc_jit_context_get_builtin_function);
+  LOAD_DLL_FN(library, gcc_jit_context_get_first_error);
+  LOAD_DLL_FN(library, gcc_jit_context_get_int_type);
+  LOAD_DLL_FN(library, gcc_jit_context_get_type);
+  LOAD_DLL_FN(library, gcc_jit_context_new_array_access);
+  LOAD_DLL_FN(library, gcc_jit_context_new_array_type);
+  LOAD_DLL_FN(library, gcc_jit_context_new_binary_op);
+  LOAD_DLL_FN(library, gcc_jit_context_new_call);
+  LOAD_DLL_FN(library, gcc_jit_context_new_call_through_ptr);
+  LOAD_DLL_FN(library, gcc_jit_context_new_comparison);
+  LOAD_DLL_FN(library, gcc_jit_context_new_field);
+  LOAD_DLL_FN(library, gcc_jit_context_new_function);
+  LOAD_DLL_FN(library, gcc_jit_context_new_function_ptr_type);
+  LOAD_DLL_FN(library, gcc_jit_context_new_global);
+  LOAD_DLL_FN(library, gcc_jit_context_new_opaque_struct);
+  LOAD_DLL_FN(library, gcc_jit_context_new_param);
+  LOAD_DLL_FN(library, gcc_jit_context_new_rvalue_from_int);
+  LOAD_DLL_FN(library, gcc_jit_context_new_rvalue_from_long);
+  LOAD_DLL_FN(library, gcc_jit_context_new_rvalue_from_ptr);
+  LOAD_DLL_FN(library, gcc_jit_context_new_struct_type);
+  LOAD_DLL_FN(library, gcc_jit_context_new_unary_op);
+  LOAD_DLL_FN(library, gcc_jit_context_new_union_type);
+  LOAD_DLL_FN(library, gcc_jit_context_release);
+  LOAD_DLL_FN(library, gcc_jit_context_set_bool_option);
+  LOAD_DLL_FN(library, gcc_jit_context_set_int_option);
+  LOAD_DLL_FN(library, gcc_jit_context_set_logfile);
+  LOAD_DLL_FN(library, gcc_jit_function_get_param);
+  LOAD_DLL_FN(library, gcc_jit_function_new_block);
+  LOAD_DLL_FN(library, gcc_jit_function_new_local);
+  LOAD_DLL_FN(library, gcc_jit_lvalue_access_field);
+  LOAD_DLL_FN(library, gcc_jit_lvalue_as_rvalue);
+  LOAD_DLL_FN(library, gcc_jit_lvalue_get_address);
+  LOAD_DLL_FN(library, gcc_jit_param_as_lvalue);
+  LOAD_DLL_FN(library, gcc_jit_param_as_rvalue);
+  LOAD_DLL_FN(library, gcc_jit_rvalue_access_field);
+  LOAD_DLL_FN(library, gcc_jit_rvalue_dereference);
+  LOAD_DLL_FN(library, gcc_jit_rvalue_dereference_field);
+  LOAD_DLL_FN(library, gcc_jit_rvalue_get_type);
+  LOAD_DLL_FN(library, gcc_jit_struct_as_type);
+  LOAD_DLL_FN(library, gcc_jit_struct_set_fields);
+  LOAD_DLL_FN(library, gcc_jit_type_get_pointer);
+
+  return true;
+}
+
+/* In alphabetical order */
+#define gcc_jit_block_add_assignment fn_gcc_jit_block_add_assignment
+#define gcc_jit_block_add_comment fn_gcc_jit_block_add_comment
+#define gcc_jit_block_add_eval fn_gcc_jit_block_add_eval
+#define gcc_jit_block_end_with_conditional fn_gcc_jit_block_end_with_conditional
+#define gcc_jit_block_end_with_jump fn_gcc_jit_block_end_with_jump
+#define gcc_jit_block_end_with_return fn_gcc_jit_block_end_with_return
+#define gcc_jit_block_end_with_void_return fn_gcc_jit_block_end_with_void_return
+#define gcc_jit_context_acquire fn_gcc_jit_context_acquire
+#define gcc_jit_context_compile_to_file fn_gcc_jit_context_compile_to_file
+#define gcc_jit_context_dump_reproducer_to_file fn_gcc_jit_context_dump_reproducer_to_file
+#define gcc_jit_context_dump_to_file fn_gcc_jit_context_dump_to_file
+#define gcc_jit_context_get_builtin_function fn_gcc_jit_context_get_builtin_function
+#define gcc_jit_context_get_first_error fn_gcc_jit_context_get_first_error
+#define gcc_jit_context_get_int_type fn_gcc_jit_context_get_int_type
+#define gcc_jit_context_get_type fn_gcc_jit_context_get_type
+#define gcc_jit_context_new_array_access fn_gcc_jit_context_new_array_access
+#define gcc_jit_context_new_array_type fn_gcc_jit_context_new_array_type
+#define gcc_jit_context_new_binary_op fn_gcc_jit_context_new_binary_op
+#define gcc_jit_context_new_call fn_gcc_jit_context_new_call
+#define gcc_jit_context_new_call_through_ptr fn_gcc_jit_context_new_call_through_ptr
+#define gcc_jit_context_new_comparison fn_gcc_jit_context_new_comparison
+#define gcc_jit_context_new_field fn_gcc_jit_context_new_field
+#define gcc_jit_context_new_function fn_gcc_jit_context_new_function
+#define gcc_jit_context_new_function_ptr_type fn_gcc_jit_context_new_function_ptr_type
+#define gcc_jit_context_new_global fn_gcc_jit_context_new_global
+#define gcc_jit_context_new_opaque_struct fn_gcc_jit_context_new_opaque_struct
+#define gcc_jit_context_new_param fn_gcc_jit_context_new_param
+#define gcc_jit_context_new_rvalue_from_int fn_gcc_jit_context_new_rvalue_from_int
+#define gcc_jit_context_new_rvalue_from_long fn_gcc_jit_context_new_rvalue_from_long
+#define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
+#define gcc_jit_context_new_struct_type fn_gcc_jit_context_new_struct_type
+#define gcc_jit_context_new_unary_op fn_gcc_jit_context_new_unary_op
+#define gcc_jit_context_new_union_type fn_gcc_jit_context_new_union_type
+#define gcc_jit_context_release fn_gcc_jit_context_release
+#define gcc_jit_context_set_bool_option fn_gcc_jit_context_set_bool_option
+#define gcc_jit_context_set_int_option fn_gcc_jit_context_set_int_option
+#define gcc_jit_context_set_logfile fn_gcc_jit_context_set_logfile
+#define gcc_jit_function_get_param fn_gcc_jit_function_get_param
+#define gcc_jit_function_new_block fn_gcc_jit_function_new_block
+#define gcc_jit_function_new_local fn_gcc_jit_function_new_local
+#define gcc_jit_lvalue_access_field fn_gcc_jit_lvalue_access_field
+#define gcc_jit_lvalue_as_rvalue fn_gcc_jit_lvalue_as_rvalue
+#define gcc_jit_lvalue_get_address fn_gcc_jit_lvalue_get_address
+#define gcc_jit_param_as_lvalue fn_gcc_jit_param_as_lvalue
+#define gcc_jit_param_as_rvalue fn_gcc_jit_param_as_rvalue
+#define gcc_jit_rvalue_access_field fn_gcc_jit_rvalue_access_field
+#define gcc_jit_rvalue_dereference fn_gcc_jit_rvalue_dereference
+#define gcc_jit_rvalue_dereference_field fn_gcc_jit_rvalue_dereference_field
+#define gcc_jit_rvalue_get_type fn_gcc_jit_rvalue_get_type
+#define gcc_jit_struct_as_type fn_gcc_jit_struct_as_type
+#define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
+#define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
+
+#endif
+
+static bool
+load_gccjit_if_necessary (bool mandatory)
+{
+#ifdef WINDOWSNT
+  static bool tried_to_initialize_once;
+  static bool gccjit_initialized;
+
+  if (!tried_to_initialize_once)
+    {
+      tried_to_initialize_once = true;
+      Lisp_Object status;
+      gccjit_initialized = init_gccjit_functions ();
+      status = gccjit_initialized ? Qt : Qnil;
+      Vlibrary_cache = Fcons (Fcons (Qgccjit, status), Vlibrary_cache);
+    }
+
+  if (mandatory && !gccjit_initialized)
+    xsignal1(Qnative_compiler_error, build_string("libgccjit not found"));
+
+  return gccjit_initialized;
+#else
+  return true;
+#endif
+}
+
+
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -3295,6 +3637,8 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        doc: /* Initialize the native compiler context. Return t on success.  */)
   (void)
 {
+  load_gccjit_if_necessary(true);
+
   if (comp.ctxt)
     {
       xsignal1 (Qnative_ice,
@@ -3441,6 +3785,8 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
        doc: /* Release the native compiler context.  */)
   (void)
 {
+  load_gccjit_if_necessary(true);
+
   if (comp.ctxt)
     gcc_jit_context_release (comp.ctxt);
 
@@ -3457,6 +3803,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        doc: /* Compile as native code the current context to file.  */)
   (Lisp_Object base_name)
 {
+  load_gccjit_if_necessary(true);
+
   CHECK_STRING (base_name);
 
   gcc_jit_context_set_int_option (comp.ctxt,
@@ -3626,6 +3974,9 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       fflush (f);
     }
 #endif
+  if (!load_gccjit_if_necessary(false))
+    return;
+
   if (!comp_deferred_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
@@ -3975,10 +4326,26 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   return Qt;
 }
 
+#endif /* HAVE_NATIVE_COMP */
+
+DEFUN ("native-comp-available-p", Fnative_comp_available_p,
+       Snative_comp_available_p, 0, 0, 0,
+       doc: /* Returns t if native compilation of Lisp files is available in
+this instance of Emacs. */)
+  (void)
+{
+#ifdef HAVE_NATIVE_COMP
+  return load_gccjit_if_necessary(false) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif
+}
+
 
 void
 syms_of_comp (void)
 {
+#ifdef HAVE_NATIVE_COMP
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("comp-deferred-compilation", comp_deferred_compilation,
 	       doc: /* If t compile asyncronously every .elc file loaded.  */);
@@ -4122,6 +4489,7 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-name -> function-value.  For
 		       internal use during  */);
   Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
-}
+#endif
 
-#endif /* HAVE_NATIVE_COMP */
+  defsubr (&Snative_comp_available_p);
+}

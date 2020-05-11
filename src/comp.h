@@ -90,11 +90,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 				Lisp_Object definition)
 {}
 
-static inline Lisp_Object
-Fnative_elisp_load (Lisp_Object file, Lisp_Object late_load)
-{
-  eassume (false);
-}
+extern void syms_of_comp (void);
 
 #endif
 
