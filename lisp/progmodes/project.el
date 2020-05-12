@@ -763,8 +763,12 @@ The project is chosen among projects known from the project list.
 It's also possible to enter an arbitrary directory."
   (project--ensure-read-project-list)
   (let* ((dir-choice "... (choose a dir)")
-         (choices (append project--list `(,dir-choice)))
-         (pr-dir (completing-read "Project: " choices)))
+         (choices
+          ;; XXX: Just using this for the category (for the substring
+          ;; completion style).
+          (project--file-completion-table
+           (append project--list `(,dir-choice))))
+         (pr-dir (completing-read "Project: " choices nil t)))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Choose directory: " default-directory nil t)
       pr-dir)))
