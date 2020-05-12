@@ -881,7 +881,7 @@ clear_glyph_row (struct glyph_row *row)
   enum { off = offsetof (struct glyph_row, used) };
 
   /* Zero everything except pointers in `glyphs'.  */
-  memset (row->used, 0, sizeof *row - off);
+  memset ((char *) row + off, 0, sizeof *row - off);
 }
 
 

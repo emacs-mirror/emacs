@@ -3350,6 +3350,27 @@ struct frame;
 #define HAVE_EXT_TOOL_BAR true
 #endif
 
+/* Return the address of vector A's element at index I.  */
+
+INLINE Lisp_Object *
+xvector_contents_addr (Lisp_Object a, ptrdiff_t i)
+{
+  /* This should return &XVECTOR (a)->contents[i], but that would run
+     afoul of GCC bug 95072.  */
+  void *v = XVECTOR (a);
+  char *p = v;
+  void *w = p + header_size + i * word_size;
+  return w;
+}
+
+/* Return the address of vector A's elements.  */
+
+INLINE Lisp_Object *
+xvector_contents (Lisp_Object a)
+{
+  return xvector_contents_addr (a, 0);
+}
+
 /* Copy COUNT Lisp_Objects from ARGS to contents of V starting from OFFSET.  */
 
 INLINE void
@@ -3357,7 +3378,7 @@ vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object const *args,
        ptrdiff_t count)
 {
   eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
-  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
+  memcpy (xvector_contents_addr (v, offset), args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */
