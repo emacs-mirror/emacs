@@ -313,9 +313,10 @@ generated it."
                                 &optional data
                                 overlay-properties)
   "Make a Flymake diagnostic for BUFFER's region from BEG to END.
-TYPE is a key to symbol and TEXT is a description of the problem
-detected in this region.  DATA is any object that the caller
-wishes to attach to the created diagnostic for later retrieval.
+TYPE is a diagnostic symbol and TEXT is string describing the
+problem detected in this region.  DATA is any object that the
+caller wishes to attach to the created diagnostic for later
+retrieval.
 
 OVERLAY-PROPERTIES is an alist of properties attached to the
 created diagnostic, overriding the default properties and any
