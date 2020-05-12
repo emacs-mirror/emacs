@@ -776,10 +776,10 @@ It's also possible to enter an arbitrary directory."
 
 ;;; Project switching
 
-(defvar project-switch-keymap (make-sparse-keymap)
-  "Keymap of commands for \"switching\" to a project.
+(defvar project--switch-alist nil
+  "Association list mapping characters to commands.
 Used by `project-switch-project' to construct a dispatch menu of
-commands available for \"switching\" to another project.")
+commands available upon \"switching\" to another project.")
 
 ;;;###autoload
 (defun project-dired ()
@@ -802,7 +802,8 @@ commands available for \"switching\" to another project.")
 SYMBOL should stand for a function to be invoked by the key KEY.
 LABEL is used to distinguish the function in the dispatch menu."
   (function-put symbol 'dispatch-label label)
-  (define-key project-switch-keymap key symbol))
+  ;; XXX: It could host the label as well now.
+  (add-to-list 'project--switch-alist `(,key . ,symbol)))
 
 (project-add-switch-command
  'project-find-file "f" "Find file")
@@ -816,12 +817,13 @@ LABEL is used to distinguish the function in the dispatch menu."
 (defun project--keymap-prompt ()
   "Return a prompt for the project swithing dispatch menu."
   (let ((prompt ""))
-    (map-keymap
-     (lambda (event value)
-       (let ((key (propertize (key-description `(,event)) 'face 'bold))
-             (desc (function-get value 'dispatch-label)))
+    (mapc
+     (lambda (entry)
+       (pcase-let* ((`(,char . ,symbol) entry)
+                    (key (propertize (key-description `(,char)) 'face 'bold))
+                    (desc (function-get symbol 'dispatch-label)))
          (setq prompt (concat (format "[%s] %s  " key desc) prompt))))
-     project-switch-keymap)
+     project--switch-alist)
     prompt))
 
 ;;;###autoload
@@ -834,12 +836,12 @@ and presented in a dispatch menu."
          (choice nil))
     (while (not (and choice
                      (or (equal choice (kbd "C-g"))
-                         (lookup-key project-switch-keymap choice))))
+                         (assoc choice project--switch-alist))))
       (setq choice (read-key-sequence (project--keymap-prompt))))
     (if (equal choice (kbd "C-g"))
         (message "Quit")
       (let ((default-directory dir))
-        (funcall (lookup-key project-switch-keymap choice))))))
+        (funcall (assoc-default choice project--switch-alist))))))
 
 (provide 'project)
 ;;; project.el ends here
