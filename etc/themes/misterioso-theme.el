@@ -63,6 +63,13 @@
    `(button ((,class (:underline t))))
    `(link ((,class (:foreground "#59e9ff" :underline t))))
    `(link-visited ((,class (:foreground "#ed74cd" :underline t))))
+   ;; Ediff
+   `(ediff-even-diff-A ((,class (:background "#1d2430"))))
+   `(ediff-even-diff-B ((,class (:background "#1d2430"))))
+   `(ediff-even-diff-C ((,class (:background "#1d2430"))))
+   `(ediff-odd-diff-A ((,class (:background "#415160"))))
+   `(ediff-odd-diff-B ((,class (:background "#415160"))))
+   `(ediff-odd-diff-C ((,class (:background "#415160"))))
    ;; Gnus faces
    `(gnus-group-news-1 ((,class (:foreground "#ff4242" :weight bold))))
    `(gnus-group-news-1-low ((,class (:foreground "#ff4242"))))
