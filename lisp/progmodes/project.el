@@ -662,6 +662,21 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
                              collection predicate t res hist nil)))
     res))
 
+;;;###autoload
+(defun project-dired ()
+  "Open Dired in the current project."
+  (interactive)
+  (let ((dirs (project-roots (project-current t))))
+    (dired (car dirs))))
+
+;;;###autoload
+(defun project-eshell ()
+  "Open Eshell in the current project."
+  (interactive)
+  (let* ((dirs (project-roots (project-current t)))
+         (default-directory (car dirs)))
+    (eshell t)))
+
 (declare-function fileloop-continue "fileloop" ())
 
 ;;;###autoload
@@ -780,21 +795,6 @@ It's also possible to enter an arbitrary directory."
   "Association list mapping characters to commands.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.")
-
-;;;###autoload
-(defun project-dired ()
-  "Open Dired in the current project."
-  (interactive)
-  (let ((dirs (project-roots (project-current t))))
-    (dired (car dirs))))
-
-;;;###autoload
-(defun project-eshell ()
-  "Open Eshell in the current project."
-  (interactive)
-  (let* ((dirs (project-roots (project-current t)))
-         (default-directory (car dirs)))
-    (eshell t)))
 
 ;;;###autoload
 (defun project-add-switch-command (symbol key label)
