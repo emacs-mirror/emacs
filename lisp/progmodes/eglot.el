@@ -1580,7 +1580,7 @@ COMMAND is a symbol naming the command."
                                              (t          'eglot-note))
                                        message `((eglot-lsp-diag . ,diag-spec)))))
          into diags
-         finally (cond (eglot--current-flymake-report-fn
+         finally (cond ((and flymake-mode eglot--current-flymake-report-fn)
                         (funcall eglot--current-flymake-report-fn diags
                                  ;; If the buffer hasn't changed since last
                                  ;; call to the report function, flymake won't
