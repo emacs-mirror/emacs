@@ -534,8 +534,7 @@ extern bool pgtk_defined_color (struct frame *f,
 				bool makeIndex);
 extern void pgtk_query_color (struct frame *f, Emacs_Color *color);
 extern void pgtk_query_colors (struct frame *f, Emacs_Color *colors, int ncolors);
-extern int pgtk_parse_color (const char *color_name, Emacs_Color *color);
-extern int pgtk_lisp_to_color (Lisp_Object color, Emacs_Color *col);
+extern int pgtk_parse_color (struct frame *f, const char *color_name, Emacs_Color *color);
 
 /* Implemented in pgtkterm.c */
 extern void pgtk_clear_area (struct frame *f, int x, int y, int width, int height);

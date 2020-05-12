@@ -133,22 +133,11 @@ pgtk_display_info_for_name (Lisp_Object name)
 static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Emacs_Color col;
+  unsigned long fg;
 
-  /* Must block_input, because pgtk_lisp_to_color does block/unblock_input
-     which means that col may be deallocated in its unblock_input if there
-     is user input, unless we also block_input.  */
-  block_input ();
-  if (pgtk_lisp_to_color (arg, &col))
-    {
-      store_frame_param (f, Qforeground_color, oldval);
-      unblock_input ();
-      error ("Unknown color");
-    }
-
-  FRAME_X_OUTPUT(f)->foreground_color = col.pixel;
-
-  FRAME_FOREGROUND_PIXEL (f) = col.pixel;
+  fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  FRAME_FOREGROUND_PIXEL (f) = fg;
+  FRAME_X_OUTPUT(f)->foreground_color = fg;
 
   if (FRAME_GTK_WIDGET (f))
     {
@@ -157,40 +146,30 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (FRAME_VISIBLE_P (f))
         SET_FRAME_GARBAGED (f);
     }
-  unblock_input ();
 }
 
 
 static void
 x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Emacs_Color col;
+  unsigned long bg;
 
-  block_input ();
-  if (pgtk_lisp_to_color (arg, &col))
-    {
-      store_frame_param (f, Qbackground_color, oldval);
-      unblock_input ();
-      error ("Unknown color");
-    }
+  bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  FRAME_BACKGROUND_PIXEL (f) = bg;
 
   /* clear the frame */
   if (FRAME_VISIBLE_P (f))
     pgtk_clear_frame (f);
 
-  PGTK_TRACE("x_set_background_color: col.pixel=%08lx.", col.pixel);
-  FRAME_X_OUTPUT(f)->background_color = col.pixel;
-  FRAME_BACKGROUND_PIXEL (f) =
-    ARGB_TO_ULONG ((unsigned int)(0xff), (unsigned int)(col.red>>8), (unsigned int)(col.green>>8), (unsigned int)(col.blue>>8));
+  PGTK_TRACE("x_set_background_color: col.pixel=%08lx.", bg);
+  FRAME_X_OUTPUT(f)->background_color = bg;
 
-  xg_set_background_color(f, col.pixel);
+  xg_set_background_color(f, bg);
   update_face_from_frame_parameter (f, Qbackground_color, arg);
 
   PGTK_TRACE("visible_p=%d.", FRAME_VISIBLE_P(f));
   if (FRAME_VISIBLE_P (f))
     SET_FRAME_GARBAGED (f);
-
-  unblock_input ();
 }
 
 static void
@@ -209,20 +188,16 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long fore_pixel, pixel;
   struct pgtk_output *x = f->output_data.pgtk;
-  Emacs_Color col;
 
   if (!NILP (Vx_cursor_fore_pixel))
     {
-      if (pgtk_lisp_to_color(Vx_cursor_fore_pixel, &col))
-	signal_error ("Undefined color", Vx_cursor_fore_pixel);
-      fore_pixel = col.pixel;
+      fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
+				   WHITE_PIX_DEFAULT (f));
     }
   else
     fore_pixel = FRAME_BACKGROUND_PIXEL (f);
 
-  if (pgtk_lisp_to_color(arg, &col))
-    signal_error ("Undefined color", arg);
-  pixel = col.pixel;
+  pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
 
   /* Make sure that the cursor color differs from the background color.  */
   if (pixel == FRAME_BACKGROUND_PIXEL (f))
@@ -817,7 +792,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value, Lisp_Obj
   } else if (STRINGP (new_value)) {
     Emacs_Color rgb;
 
-    if (!pgtk_parse_color (SSDATA (new_value), &rgb))
+    if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
       error ("Unknown color.");
 
     char css[64];
@@ -838,7 +813,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value, Lisp_Obj
   } else if (STRINGP (new_value)) {
     Emacs_Color rgb;
 
-    if (!pgtk_parse_color (SSDATA (new_value), &rgb))
+    if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
       error ("Unknown color.");
 
     char css[64];
@@ -2149,7 +2124,14 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
      (Lisp_Object color, Lisp_Object frame)
 {
   Emacs_Color col;
-  return pgtk_lisp_to_color (color, &col) ? Qnil : Qt;
+  struct frame *f = decode_window_system_frame (frame);
+
+  CHECK_STRING (color);
+
+  if (pgtk_defined_color (f, SSDATA (color), &col, false, false))
+    return Qt;
+  else
+    return Qnil;
 }
 
 
@@ -2158,20 +2140,14 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
      (Lisp_Object color, Lisp_Object frame)
 {
   Emacs_Color col;
+  struct frame *f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
-  block_input ();
-
-  if (pgtk_lisp_to_color (color, &col))
-    {
-      unblock_input ();
-      return Qnil;
-    }
-
-  unblock_input ();
-
-  return list3i (col.red, col.green, col.blue);
+  if (pgtk_defined_color (f, SSDATA (color), &col, false, false))
+    return list3i (col.red, col.green, col.blue);
+  else
+    return Qnil;
 }
 
 

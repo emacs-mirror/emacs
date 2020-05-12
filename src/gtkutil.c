@@ -710,11 +710,12 @@ xg_check_special_colors (struct frame *f,
       r = col.red * 65535,
       g = col.green * 65535,
       b = col.blue * 65535;
-    sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
 #ifndef HAVE_PGTK
+    sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
     success_p = x_parse_color (f, buf, color) != 0;
 #else
-    success_p = pgtk_parse_color (buf, color) != 0;
+    sprintf (buf, "#%04x%04x%04x", r, g, b);
+    success_p = pgtk_parse_color (f, buf, color) != 0;
 #endif
 #else
     GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
