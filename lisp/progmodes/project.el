@@ -809,6 +809,9 @@ LABEL is used to distinguish the function in the dispatch menu."
  'project-find-file "f" "Find file")
 
 (project-add-switch-command
+ 'project-find-regexp "g" "Find regexp")
+
+(project-add-switch-command
  'project-dired "d" "Dired")
 
 (project-add-switch-command
@@ -841,7 +844,7 @@ and presented in a dispatch menu."
     (if (equal choice (kbd "C-g"))
         (message "Quit")
       (let ((default-directory dir))
-        (funcall (assoc-default choice project--switch-alist))))))
+        (call-interactively (assoc-default choice project--switch-alist))))))
 
 (provide 'project)
 ;;; project.el ends here
