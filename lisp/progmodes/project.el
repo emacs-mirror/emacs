@@ -101,10 +101,6 @@ Each functions on this hook is called in turn with one
 argument (the directory) and should return either nil to mean
 that it is not applicable, or a project instance.")
 
-(defun project--transient-p (pr)
-  "Return non-nil if PR is a transient project."
-  (eq (car pr) 'transient))
-
 ;;;###autoload
 (defun project-current (&optional maybe-prompt dir)
   "Return the project instance in DIR or `default-directory'.
@@ -115,9 +111,12 @@ the user for a different project to look in."
     (cond
      (pr)
      (maybe-prompt
-      (setq pr (project-find-project))))
-    (when (and pr (not (project--transient-p pr)))
-      (project--add-to-project-list-front pr))
+      (setq dir (project-prompt-project-dir)
+            pr (project--find-in-directory dir))))
+    (if pr
+        (project--add-to-project-list-front pr)
+      (project--remove-from-project-list dir)
+      (setq pr (cons 'transient dir)))
     pr))
 
 (defun project--find-in-directory (dir)
@@ -747,33 +746,28 @@ Return PR."
   pr)
 
 (defun project--remove-from-project-list (pr-dir)
-  "Remove directory PR-DIR from the project list and save it."
+  "Remove directory PR-DIR from the project list.
+If the directory was in the list before the removal, save the
+result to disk."
   (project--ensure-read-project-list)
-  (setq project--list (delete (list pr-dir) project--list))
-  (project--write-project-list))
+  ;; XXX: This hardcodes that the number of roots = 1.
+  ;; It's fine, though.
+  (when (member (list pr-dir) project--list)
+    (setq project--list (delete (list pr-dir) project--list))
+    (message "Project `%s' not found; removed from list" pr-dir)
+    (project--write-project-list)))
 
-(defun project-find-project ()
-  "Prompt the user for a project and return it.
+(defun project-prompt-project-dir ()
+  "Prompt the user for a directory from known project roots.
 The project is chosen among projects known from the project list.
-It's also possible to enter an arbitrary directory, in which case
-a project for that directory is returned (possibly a transient
-one).  Return nil if no project or directory was chosen."
+It's also possible to enter an arbitrary directory."
   (project--ensure-read-project-list)
   (let* ((dir-choice "... (choose a dir)")
          (choices (append project--list `(,dir-choice)))
          (pr-dir (completing-read "Project: " choices)))
     (if (equal pr-dir dir-choice)
-        (let ((dir (read-directory-name
-                    "Choose directory: " default-directory nil t)))
-          (if-let (pr (project--find-in-directory dir))
-              (project--add-to-project-list-front pr)
-            (message "Using `%s' as a transient project root" dir)
-            (cons 'transient dir)))
-      (if-let (pr (project--find-in-directory pr-dir))
-          (project--add-to-project-list-front pr)
-        (project--remove-from-project-list pr-dir)
-        (message "Project `%s' not found; removed from list" pr-dir)
-        nil))))
+        (read-directory-name "Choose directory: " default-directory nil t)
+      pr-dir)))
 
 
 ;;; Project switching
@@ -784,28 +778,17 @@ Used by `project-switch-project' to construct a dispatch menu of
 commands available for \"switching\" to another project.")
 
 ;;;###autoload
-(defun project-switch-project-find-file (&optional pr)
-  "\"Switch\" to project PR by finding a file in it.
-If PR is nil, prompt for a project."
+(defun project-dired ()
+  "Open Dired in the current project."
   (interactive)
-  (setq pr (or pr (project-find-project)))
-  (let ((dirs (project-roots pr)))
-    (project-find-file-in nil dirs pr)))
-
-;;;###autoload
-(defun project-switch-project-dired (&optional pr)
-  "\"Switch\" to project PR by visiting its root with Dired.
-If PR is nil, prompt for a project."
-  (interactive)
-  (let ((dirs (project-roots (or pr (project-find-project)))))
+  (let ((dirs (project-roots (project-current t))))
     (dired (car dirs))))
 
 ;;;###autoload
-(defun project-switch-project-eshell (&optional pr)
-  "\"Switch\" to project PR by launching Eshell in its root.
-If PR is nil, prompt for a project."
+(defun project-eshell ()
+  "Open Eshell in the current project."
   (interactive)
-  (let* ((dirs (project-roots (or pr (project-find-project))))
+  (let* ((dirs (project-roots (project-current t)))
          (default-directory (car dirs)))
     (eshell t)))
 
@@ -818,13 +801,13 @@ LABEL is used to distinguish the function in the dispatch menu."
   (define-key project-switch-keymap key symbol))
 
 (project-add-switch-command
- 'project-switch-project-find-file "f" "Find file")
+ 'project-find-file "f" "Find file")
 
 (project-add-switch-command
- 'project-switch-project-dired "d" "Dired")
+ 'project-dired "d" "Dired")
 
 (project-add-switch-command
- 'project-switch-project-eshell "e" "Eshell")
+ 'project-eshell "e" "Eshell")
 
 (defun project--keymap-prompt ()
   "Return a prompt for the project swithing dispatch menu."
@@ -843,15 +826,16 @@ LABEL is used to distinguish the function in the dispatch menu."
 The available commands are picked from `project-switch-keymap'
 and presented in a dispatch menu."
   (interactive)
-  (let ((pr (project-find-project))
-        (choice nil))
+  (let* ((dir (project-prompt-project-dir))
+         (choice nil))
     (while (not (and choice
                      (or (equal choice (kbd "C-g"))
                          (lookup-key project-switch-keymap choice))))
       (setq choice (read-key-sequence (project--keymap-prompt))))
     (if (equal choice (kbd "C-g"))
         (message "Quit")
-      (funcall (lookup-key project-switch-keymap choice) pr))))
+      (let ((default-directory dir))
+        (funcall (lookup-key project-switch-keymap choice))))))
 
 (provide 'project)
 ;;; project.el ends here
