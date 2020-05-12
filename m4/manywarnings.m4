@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 18
+# manywarnings.m4 serial 19
 dnl Copyright (C) 2008-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -117,6 +117,23 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Waddress-of-packed-member \
     -Waggressive-loop-optimizations \
     -Wall \
+    -Wanalyzer-double-fclose \
+    -Wanalyzer-double-free \
+    -Wanalyzer-exposure-through-output-file \
+    -Wanalyzer-file-leak \
+    -Wanalyzer-free-of-non-heap \
+    -Wanalyzer-malloc-leak \
+    -Wanalyzer-null-argument \
+    -Wanalyzer-null-dereference \
+    -Wanalyzer-possible-null-argument \
+    -Wanalyzer-possible-null-dereference \
+    -Wanalyzer-stale-setjmp-buffer \
+    -Wanalyzer-tainted-array-index \
+    -Wanalyzer-too-complex \
+    -Wanalyzer-unsafe-call-within-signal-handler \
+    -Wanalyzer-use-after-free \
+    -Wanalyzer-use-of-pointer-in-stale-stack-frame \
+    -Warith-conversion \
     -Wattribute-warning \
     -Wattributes \
     -Wbad-function-cast \
@@ -150,9 +167,11 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Wempty-body \
     -Wendif-labels \
     -Wenum-compare \
+    -Wenum-conversion \
     -Wexpansion-to-defined \
     -Wextra \
     -Wformat-contains-nul \
+    -Wformat-diag \
     -Wformat-extra-args \
     -Wformat-nonliteral \
     -Wformat-security \
@@ -231,6 +250,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Wstrict-aliasing \
     -Wstrict-overflow \
     -Wstrict-prototypes \
+    -Wstring-compare \
     -Wstringop-truncation \
     -Wsuggest-attribute=cold \
     -Wsuggest-attribute=const \
@@ -242,6 +262,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Wsuggest-final-types \
     -Wswitch \
     -Wswitch-bool \
+    -Wswitch-outside-range \
     -Wswitch-unreachable \
     -Wsync-nand \
     -Wsystem-headers \
@@ -269,6 +290,7 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
     -Wvla \
     -Wvolatile-register-var \
     -Wwrite-strings \
+    -Wzero-length-bounds \
     \
     ; do
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
