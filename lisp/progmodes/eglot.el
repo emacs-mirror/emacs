@@ -2563,15 +2563,13 @@ documentation.  Honour `eglot-put-doc-in-help-buffer',
    current-prefix-arg))
 
 
-(defun eglot-code-actions (&optional beg end)
-  "Get and offer to execute code actions between BEG and END."
+(defun eglot-code-actions (beg &optional end)
+  "Offer to execute code actions between BEG and END.
+Interactively, if a region is active, BEG and END are its bounds,
+else BEG is point and END is nil, which results in a request for
+code actions at point"
   (interactive
-   (let (diags)
-     (cond ((region-active-p) (list (region-beginning) (region-end)))
-           ((setq diags (flymake-diagnostics (point)))
-            (list (cl-reduce #'min (mapcar #'flymake-diagnostic-beg diags))
-                  (cl-reduce #'max (mapcar #'flymake-diagnostic-end diags))))
-           (t (list (point-min) (point-max))))))
+   (if (region-active-p) `(,(region-beginning) ,(region-end)) `(,(point) nil)))
   (unless (eglot--server-capable :codeActionProvider)
     (eglot--error "Server can't execute code actions!"))
   (let* ((server (eglot--current-server-or-lose))
