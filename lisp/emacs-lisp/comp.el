@@ -2158,7 +2158,7 @@ These are substituted with a normal 'set' op."
                  ;; from the corresponding m-var.
                  collect (if (gethash obj
                                       (comp-ctxt-byte-func-to-func-h comp-ctxt))
-                             nil
+                             'lambda-fixup
                            obj))))
 
 (defun comp-finalize-relocs ()

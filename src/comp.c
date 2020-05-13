@@ -3891,6 +3891,7 @@ syms_of_comp (void)
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
+  DEFSYM (Qlambda_fixup, "lambda-fixup");
 
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");

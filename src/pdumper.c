@@ -5342,11 +5342,14 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!NILP (lambda_data_idx))
 	  {
 	    /* This is an anonymous lambda.
-	       We must fixup data_vec so the lambda can be referenced
+	       We must fixup d_reloc_imp so the lambda can be referenced
 	       by code.  */
 	    Lisp_Object tem;
 	    XSETSUBR (tem, subr);
-	    comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)] = tem;
+	    Lisp_Object *fixup =
+	      &(comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)]);
+	    eassert (EQ (*fixup, Qlambda_fixup));
+	    *fixup = tem;
 	    Fputhash (tem, Qnil, comp_u->lambda_gc_guard);
 	  }
 	break;
