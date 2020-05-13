@@ -345,6 +345,30 @@ An existing calc stack is reused, otherwise a new one is created."
   (should (Math-num-integerp '(float 1 0)))
   (should-not (Math-num-integerp nil)))
 
+(ert-deftest calc-matrix-determinant ()
+  (should (equal (calcFunc-det '(vec (vec 3)))
+                 3))
+  (should (equal (calcFunc-det '(vec (vec 2 3) (vec 6 7)))
+                 -4))
+  (should (equal (calcFunc-det '(vec (vec 1 2 3) (vec 4 5 7) (vec 9 6 2)))
+                 15))
+  (should (equal (calcFunc-det '(vec (vec 0 5 7 3)
+                                     (vec 0 0 2 0)
+                                     (vec 1 2 3 4)
+                                     (vec 0 0 0 3)))
+                 30))
+  (should (equal (calcFunc-det '(vec (vec (var a var-a))))
+                 '(var a var-a)))
+  (should (equal (calcFunc-det '(vec (vec 2 (var a var-a))
+                                     (vec 7 (var a var-a))))
+                 '(* -5 (var a var-a))))
+  (should (equal (calcFunc-det '(vec (vec 1 0 0 0)
+                                     (vec 0 1 0 0)
+                                     (vec 0 0 0 1)
+                                     (vec 0 0 (var a var-a) 0)))
+                 '(neg (var a var-a)))))
+
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
