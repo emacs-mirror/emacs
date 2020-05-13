@@ -2302,9 +2302,14 @@ processes from `comp-async-compilations'"
   (if (zerop comp-async-jobs-number)
       (or comp-num-cpus
           (setf comp-num-cpus
-                ;; Half of the CPUs or at least one.
-                ;; FIXME portable?
-                (max 1 (/ (string-to-number (shell-command-to-string "nproc"))
+                ;; FIXME: we already have a function to determine
+                ;; the number of processors, see get_native_system_info in w32.c.
+                ;; The result needs to be exported to Lisp.
+                (max 1 (/ (cond ((eq 'windows-nt system-type)
+                                 (string-to-number (getenv "NUMBER_OF_PROCESSORS")))
+                                ((executable-find "nproc")
+                                 (string-to-number (shell-command-to-string "nproc")))
+                                (t 1))
                           2))))
     comp-async-jobs-number))
 
