@@ -84,7 +84,7 @@
 (defun animate-place-char (char vpos hpos)
   (goto-char (window-start))
   (let (abbrev-mode)
-    (dotimes (i vpos)
+    (dotimes (_ vpos)
       (end-of-line)
       (if (= (forward-line 1) 1)
 	  (insert "\n"))))
