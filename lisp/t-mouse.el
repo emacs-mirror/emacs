@@ -1,4 +1,4 @@
-;;; t-mouse.el --- mouse support within the text terminal
+;;; t-mouse.el --- mouse support within the text terminal  -*- lexical-binding:t -*-
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
