@@ -173,7 +173,7 @@ language-server/bin/php-language-server.php"))
                                 (yaml-mode . ("yaml-language-server" "--stdio"))
                                 (nix-mode . ("rnix-lsp"))
                                 (gdscript-mode . ("localhost" 6008))
-                                (f90-mode . ("fortls"))
+                                ((fortran-mode f90-mode) . ("fortls"))
                                 (zig-mode . ("zls")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
