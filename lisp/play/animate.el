@@ -1,4 +1,4 @@
-;;; animate.el --- make text dance
+;;; animate.el --- make text dance  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
