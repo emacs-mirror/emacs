@@ -3572,6 +3572,37 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
   return Fread (make_string (res->data, res->len));
 }
 
+/* Return false when something is wrong or true otherwise.  */
+
+static bool
+check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
+{
+  dynlib_handle_ptr handle = comp_u->handle;
+  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+
+  EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
+  for (EMACS_INT i = 0; i < d_vec_len; i++)
+    if (!EQ (data_relocs[i],  AREF (comp_u->data_vec, i)))
+      return false;
+
+  d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
+  for (EMACS_INT i = 0; i < d_vec_len; i++)
+    {
+      Lisp_Object x = data_imp_relocs[i];
+      if (EQ (x, Qlambda_fixup))
+	return false;
+      else if (SUBR_NATIVE_COMPILEDP (x))
+	{
+	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard, Qnil)))
+	    return false;
+	}
+      else if (!EQ (data_imp_relocs[i], AREF (comp_u->data_impure_vec, i)))
+	return false;
+    }
+  return true;
+}
+
 void
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 		bool late_load)
@@ -3690,6 +3721,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 Guard against sibling call optimization (or any other).  */
       data_ephemeral_vec = data_ephemeral_vec;
     }
+
+  eassert (check_comp_unit_relocs (comp_u));
 
   return;
 }
