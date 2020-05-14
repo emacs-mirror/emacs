@@ -2317,6 +2317,9 @@ display a message."
                             (message "Compiling %s..." ,source-file)
                             (native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
+                   (_ (progn
+                        (comp-log "\n")
+                        (comp-log (prin1-to-string expr))))
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
