@@ -2556,7 +2556,7 @@ region, text is copied instead of being cut."
              (lambda (modifier)
                `(const :tag ,(format "Enable, but copy with the %s modifier"
                                      modifier)
-                       modifier))
+                       ,modifier))
              '(alt super hyper shift control meta))
           (other :tag "Enable dragging the region" t))
   :version "26.1")
