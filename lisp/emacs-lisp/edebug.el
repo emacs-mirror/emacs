@@ -741,6 +741,21 @@ Maybe clear the markers and delete the symbol's edebug property?"
 
 ;;; Offsets for reader
 
+(defun edebug-get-edebug-or-ghost (name)
+  "Get NAME's value of property `edebug' or property `ghost-edebug'.
+
+The idea is that should function NAME be recompiled whilst
+debugging is in progress, property `edebug' will get set to a
+marker.  The needed data will then come from property
+`ghost-edebug'."
+  (let ((e (get name 'edebug)))
+    (if (consp e)
+        e
+      (let ((g (get name 'ghost-edebug)))
+        (if (consp g)
+            g
+          e)))))
+
 ;; Define a structure to represent offset positions of expressions.
 ;; Each offset structure looks like: (before . after) for constituents,
 ;; or for structures that have elements: (before <subexpressions> . after)
@@ -1168,6 +1183,12 @@ purpose by adding an entry to this alist, and setting
                 ;; Not edebugging this form, so reset the symbol's edebug
                 ;; property to be just a marker at the definition's source code.
                 ;; This only works for defs with simple names.
+
+                ;; Preserve the `edebug' property in case there's
+                ;; debugging still under way.
+                (let ((ghost (get def-name 'edebug)))
+                  (if (consp ghost)
+                      (put def-name 'ghost-edebug ghost)))
                 (put def-name 'edebug (point-marker))
                 ;; Also nil out dependent defs.
                 '(mapcar (function
@@ -1411,6 +1432,8 @@ contains a circular object."
 		  (cons window (window-start window)))))
 
       ;; Store the edebug data in symbol's property list.
+      ;; We actually want to remove this property entirely, but can't.
+      (put edebug-def-name 'ghost-edebug nil)
       (put edebug-def-name 'edebug
 	   ;; A struct or vector would be better here!!
 	   (list edebug-form-begin-marker
@@ -1423,8 +1446,8 @@ contains a circular object."
       )))
 
 (defun edebug--restore-breakpoints (name)
-  (let ((data (get name 'edebug)))
-    (when (listp data)
+  (let ((data (edebug-get-edebug-or-ghost name)))
+    (when (consp data)
       (let ((offsets (nth 2 data))
             (breakpoints (nth 1 data))
             (start (nth 0 data))
@@ -3128,7 +3151,7 @@ before returning.  The default is one second."
   ;; Return (function . index) of the nearest edebug stop point.
   (let* ((edebug-def-name (edebug-form-data-symbol))
 	 (edebug-data
-	   (let ((data (get edebug-def-name 'edebug)))
+	   (let ((data (edebug-get-edebug-or-ghost edebug-def-name)))
 	     (if (or (null data) (markerp data))
 		 (error "%s is not instrumented for Edebug" edebug-def-name))
 	     data))  ; we could do it automatically, if data is a marker.
@@ -3165,7 +3188,7 @@ before returning.  The default is one second."
     (if edebug-stop-point
 	(let* ((edebug-def-name (car edebug-stop-point))
 	       (index (cdr edebug-stop-point))
-	       (edebug-data (get edebug-def-name 'edebug))
+	       (edebug-data (edebug-get-edebug-or-ghost edebug-def-name))
 
 	       ;; pull out parts of edebug-data
 	       (edebug-def-mark (car edebug-data))
@@ -3206,7 +3229,7 @@ the breakpoint."
     (if edebug-stop-point
 	(let* ((edebug-def-name (car edebug-stop-point))
 	       (index (cdr edebug-stop-point))
-	       (edebug-data (get edebug-def-name 'edebug))
+	       (edebug-data (edebug-get-edebug-or-ghost edebug-def-name))
 
 	       ;; pull out parts of edebug-data
 	       (edebug-def-mark (car edebug-data))
@@ -3244,7 +3267,7 @@ the breakpoint."
   "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
 
 (defun edebug--overlay-breakpoints (function)
-  (let* ((data (get function 'edebug))
+  (let* ((data (edebug-get-edebug-or-ghost function))
          (start (nth 0 data))
          (breakpoints (nth 1 data))
          (offsets (nth 2 data)))
@@ -3284,9 +3307,9 @@ With prefix argument, make it a temporary breakpoint."
   (interactive "P")
   ;; If the form hasn't been instrumented yet, do it now.
   (when (and (not edebug-active)
-	     (let ((data (get (edebug--form-data-name
-                               (edebug-get-form-data-entry (point)))
-                              'edebug)))
+	     (let ((data (edebug-get-edebug-or-ghost
+                          (edebug--form-data-name
+                           (edebug-get-form-data-entry (point))))))
 	       (or (null data) (markerp data))))
     (edebug-defun))
   (edebug-modify-breakpoint t nil arg))
@@ -3300,7 +3323,7 @@ With prefix argument, make it a temporary breakpoint."
   "Unset all the breakpoints in the current form."
   (interactive)
   (let* ((name (edebug-form-data-symbol))
-         (breakpoints (nth 1 (get name 'edebug))))
+         (breakpoints (nth 1 (edebug-get-edebug-or-ghost name))))
     (unless breakpoints
       (user-error "There are no breakpoints in %s" name))
     (save-excursion
@@ -3316,7 +3339,7 @@ With prefix argument, make it a temporary breakpoint."
       (user-error "No stop point near point"))
     (let* ((name (car stop-point))
            (index (cdr stop-point))
-           (data (get name 'edebug))
+           (data (edebug-get-edebug-or-ghost name))
            (breakpoint (assq index (nth 1 data))))
       (unless breakpoint
         (user-error "No breakpoint near point"))
@@ -3497,7 +3520,7 @@ instrument cannot be found, signal an error."
 	(goto-char func-marker)
 	(edebug-eval-top-level-form)
         (list func)))
-     ((consp func-marker)
+     ((and (consp func-marker) (consp (symbol-function func)))
       (message "%s is already instrumented." func)
       (list func))
      (t
@@ -4270,7 +4293,7 @@ Save DEF-NAME, BEFORE-INDEX and AFTER-INDEX in FRAME."
   (let* ((index (backtrace-get-index))
          (frame (nth index backtrace-frames)))
     (when (edebug--frame-def-name frame)
-      (let* ((data (get (edebug--frame-def-name frame) 'edebug))
+      (let* ((data (edebug-get-edebug-or-ghost (edebug--frame-def-name frame)))
              (marker (nth 0 data))
              (offsets (nth 2 data)))
         (pop-to-buffer (marker-buffer marker))
@@ -4354,7 +4377,7 @@ reinstrument it."
   (let* ((function (edebug-form-data-symbol))
 	 (counts (get function 'edebug-freq-count))
 	 (coverages (get function 'edebug-coverage))
-	 (data (get function 'edebug))
+	 (data (edebug-get-edebug-or-ghost function))
 	 (def-mark (car data))	; mark at def start
 	 (edebug-points (nth 2 data))
 	 (i (1- (length edebug-points)))
@@ -4512,7 +4535,7 @@ With prefix argument, make it a temporary breakpoint."
       (if edebug-stop-point
 	  (let* ((edebug-def-name (car edebug-stop-point))
 		 (index (cdr edebug-stop-point))
-		 (edebug-data (get edebug-def-name 'edebug))
+		 (edebug-data (edebug-get-edebug-or-ghost edebug-def-name))
 		 (edebug-breakpoints (car (cdr edebug-data)))
 		 (edebug-break-data (assq index edebug-breakpoints))
 		 (edebug-break-condition (car (cdr edebug-break-data)))

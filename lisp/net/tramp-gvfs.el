@@ -125,7 +125,10 @@
 	 (autoload 'zeroconf-init "zeroconf")
 	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
-	 (or (tramp-process-running-p "gvfs-fuse-daemon")
+	 (or ;; Until Emacs 25, `process-attributes' could crash Emacs
+	     ;; for some processes.  Better we don't check.
+	     (<= emacs-major-version 25)
+	     (tramp-process-running-p "gvfs-fuse-daemon")
 	     (tramp-process-running-p "gvfsd-fuse"))))
   "Non-nil when GVFS is available.")
 

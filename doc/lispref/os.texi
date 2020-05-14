@@ -2182,9 +2182,9 @@ cause anything special to happen.
 
 @findex list-timers
 The @code{list-timers} command lists all the currently active timers.
-There's only one command available in the buffer displayed: @kbd{c}
-(@code{timer-list-cancel}) that will cancel the timer on the line
-under point.
+The command @kbd{c} (@code{timer-list-cancel}) will cancel the timer
+on the line under point.  You can sort the list by column using the
+command @kbd{S} (@code{tabulated-list-sort}).
 
 @node Idle Timers
 @section Idle Timers

@@ -4,11 +4,11 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Package-Requires: ((emacs "25.2"))
 ;; Version: 1.0.11
+;; Package-Requires: ((emacs "25.2"))
 
-;; This is an Elpa :core package.  Don't use functionality that is not
-;; compatible with Emacs 25.2.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

@@ -92,5 +92,9 @@ div::before {
 
 .foo-bar--baz {
     --foo-variable: 5px;
+    --_variable_with_underscores: #fff;
+    --_variable-starting-with-underscore: none;
     margin: var(--foo-variable);
+    color: var(--_variable_with_underscores);
+    display: var(--_variable-starting-with-underscore);
 }

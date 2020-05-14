@@ -1,6 +1,11 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Version: 0.1
+;; Package-Requires: ((emacs "26.3"))
+
+;; This is a GNU ELPA :core package.  Avoid using functionality that
+;; not compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 

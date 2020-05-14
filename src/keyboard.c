@@ -8302,7 +8302,7 @@ append_tab_bar_item (void)
   /* Append entries from tab_bar_item_properties to the end of
      tab_bar_items_vector.  */
   vcopy (tab_bar_items_vector, ntab_bar_items,
-	 XVECTOR (tab_bar_item_properties)->contents, TAB_BAR_ITEM_NSLOTS);
+	 xvector_contents (tab_bar_item_properties), TAB_BAR_ITEM_NSLOTS);
   ntab_bar_items += TAB_BAR_ITEM_NSLOTS;
 }
 
@@ -8779,7 +8779,7 @@ append_tool_bar_item (void)
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
   vcopy (tool_bar_items_vector, ntool_bar_items,
-	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
+	 xvector_contents (tool_bar_item_properties), TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 

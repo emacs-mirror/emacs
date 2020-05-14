@@ -344,7 +344,8 @@ of the elements of LIST is performed as if by `pcase-let'.
            (seen '())
            (codegen
             (lambda (code vars)
-              (let ((prev (assq code seen)))
+              (let ((vars (pcase--fgrep vars code))
+                    (prev (assq code seen)))
                 (if (not prev)
                     (let ((res (pcase-codegen code vars)))
                       (push (list code vars res) seen)
@@ -398,7 +399,10 @@ of the elements of LIST is performed as if by `pcase-let'.
                              (if (pcase--small-branch-p (cdr case))
                                  ;; Don't bother sharing multiple
                                  ;; occurrences of this leaf since it's small.
-                                 #'pcase-codegen codegen)
+                                 (lambda (code vars)
+                                   (pcase-codegen code
+                                                  (pcase--fgrep vars code)))
+                               codegen)
                              (cdr case)
                              vars))))
                      cases))))
@@ -687,14 +691,22 @@ MATCH is the pattern that needs to be matched, of the form:
           '(nil . :pcase--fail)
         '(:pcase--fail . nil))))))
 
-(defun pcase--fgrep (vars sexp)
-  "Check which of the symbols VARS appear in SEXP."
+(defun pcase--fgrep (bindings sexp)
+  "Return those of the BINDINGS which might be used in SEXP."
   (let ((res '()))
-    (while (consp sexp)
-      (dolist (var (pcase--fgrep vars (pop sexp)))
-        (unless (memq var res) (push var res))))
-    (and (memq sexp vars) (not (memq sexp res)) (push sexp res))
-    res))
+    (while (and (consp sexp) bindings)
+      (dolist (binding (pcase--fgrep bindings (pop sexp)))
+        (push binding res)
+        (setq bindings (remove binding bindings))))
+    (if (vectorp sexp)
+        ;; With backquote, code can appear within vectors as well.
+        ;; This wouldn't be needed if we `macroexpand-all' before
+        ;; calling pcase--fgrep, OTOH.
+        (pcase--fgrep bindings (mapcar #'identity sexp))
+      (let ((tmp (assq sexp bindings)))
+        (if tmp
+            (cons tmp res)
+          res)))))
 
 (defun pcase--self-quoting-p (upat)
   (or (keywordp upat) (integerp upat) (stringp upat)))
@@ -734,13 +746,11 @@ MATCH is the pattern that needs to be matched, of the form:
   "Build a function call to FUN with arg ARG."
   (if (symbolp fun)
       `(,fun ,arg)
-    (let* (;; `vs' is an upper bound on the vars we need.
-           (vs (pcase--fgrep (mapcar #'car vars) fun))
-           (env (mapcar (lambda (var)
-                          (list var (cdr (assq var vars))))
-                        vs))
+    (let* (;; `env' is an upper bound on the bindings we need.
+           (env (mapcar (lambda (x) (list (car x) (cdr x)))
+                        (pcase--fgrep vars fun)))
            (call (progn
-                   (when (memq arg vs)
+                   (when (assq arg env)
                      ;; `arg' is shadowed by `env'.
                      (let ((newsym (gensym "x")))
                        (push (list newsym arg) env)
@@ -748,7 +758,7 @@ MATCH is the pattern that needs to be matched, of the form:
                    (if (functionp fun)
                        `(funcall #',fun ,arg)
                      `(,@fun ,arg)))))
-      (if (null vs)
+      (if (null env)
           call
         ;; Let's not replace `vars' in `fun' since it's
         ;; too difficult to do it right, instead just
@@ -759,10 +769,12 @@ MATCH is the pattern that needs to be matched, of the form:
   "Build an expression that will evaluate EXP."
   (let* ((found (assq exp vars)))
     (if found (cdr found)
-      (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
-             (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
-                          vs)))
-        (if env (macroexp-let* env exp) exp)))))
+      (let* ((env (pcase--fgrep vars exp)))
+        (if env
+            (macroexp-let* (mapcar (lambda (x) (list (car x) (cdr x)))
+                                   env)
+                           exp)
+          exp)))))
 
 ;; It's very tempting to use `pcase' below, tho obviously, it'd create
 ;; bootstrapping problems.

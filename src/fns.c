@@ -4392,7 +4392,7 @@ hash_clear (struct Lisp_Hash_Table *h)
     {
       ptrdiff_t size = HASH_TABLE_SIZE (h);
       if (!hash_rehash_needed_p (h))
-	memclear (XVECTOR (h->hash)->contents, size * word_size);
+	memclear (xvector_contents (h->hash), size * word_size);
       for (ptrdiff_t i = 0; i < size; i++)
 	{
 	  set_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
