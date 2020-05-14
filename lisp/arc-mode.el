@@ -1506,7 +1506,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
            (timelen (length (archive--file-desc-time sample)))
            (samplemode (and (archive--enabled-p 'Mode)
                             (archive--file-desc-mode sample)))
-           (modelen (length (if samplemode (archive-int-to-mode samplemode)))))
+           (modelen (length (if samplemode (file-modes-number-to-symbolic samplemode)))))
       (dolist (desc descs)
         (when ids
           (let* ((uid (archive--file-desc-uid desc))
@@ -1553,7 +1553,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                           (text
                            (concat "  "
                                    (when (> modelen 0)
-                                     (concat (archive-int-to-mode
+                                     (concat (file-modes-number-to-symbolic
                                               (archive--file-desc-mode desc))
                                              "  "))
                                    (when ids
