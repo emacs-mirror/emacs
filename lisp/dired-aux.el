@@ -2002,10 +2002,9 @@ Optional arg HOW-TO determines how to treat the target.
    (format prompt (dired-mark-prompt arg files)) dir default))
 
 (defun dired-dwim-target-directories ()
-  (cond ((functionp dired-dwim-target)
-         (funcall dired-dwim-target))
-        (dired-dwim-target
-         (dired-dwim-target-next))))
+  (if (functionp dired-dwim-target)
+      (funcall dired-dwim-target)
+    (dired-dwim-target-next)))
 
 (defun dired-dwim-target-next (&optional all-frames)
   ;; Return directories from all next windows with dired-mode buffers.
