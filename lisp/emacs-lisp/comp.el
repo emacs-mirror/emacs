@@ -487,6 +487,11 @@ VERBOSITY is a number between 0 and 3."
 
 ;;; spill-lap pass specific code.
 
+(defsubst comp-lex-byte-func-p (f)
+  "Return t if F is a lexical scoped byte compiled function."
+  (and (byte-code-function-p f)
+       (fixnump (aref f 0))))
+
 (defun comp-c-func-name (name prefix)
   "Given NAME return a name suitable for the native code.
 Put PREFIX in front of it."
@@ -590,28 +595,31 @@ Put PREFIX in front of it."
                                       byte-func))
                         return form))
            (name (when top-l-form
-                   (byte-to-native-func-def-name top-l-form)))
-           (c-name (comp-c-func-name (or name "anonymous-lambda") "F"))
-           (func (make-comp-func :name name
-                                 :byte-func byte-func
-                                 :doc (documentation byte-func)
-                                 :int-spec (interactive-form byte-func)
-                                 :c-name c-name
-                                 :args (comp-decrypt-arg-list (aref byte-func 0)
-                                                              name)
-                                 :lap lap
-                                 :frame-size (comp-byte-frame-size byte-func))))
-      ;; Store the c-name to have it retrivable from
-      ;; `comp-ctxt-top-level-forms'.
-      (when top-l-form
-        (setf (byte-to-native-func-def-c-name top-l-form) c-name))
-      (unless name
-        (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt)))
-      ;; Create the default array.
-      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
-      (comp-add-func-to-ctxt func)
-      (comp-log (format "Function %s:\n" name) 1)
-      (comp-log lap 1))))
+                   (byte-to-native-func-def-name top-l-form))))
+      ;; Do not refuse to compile if a dynamic byte-compiled lambda
+      ;; leaks here (advice).
+      (when (or name (comp-lex-byte-func-p byte-func))
+        (let* ((c-name (comp-c-func-name (or name "anonymous-lambda") "F"))
+               (func (make-comp-func :name name
+                                     :byte-func byte-func
+                                     :doc (documentation byte-func)
+                                     :int-spec (interactive-form byte-func)
+                                     :c-name c-name
+                                     :args (comp-decrypt-arg-list (aref byte-func 0)
+                                                                  name)
+                                     :lap lap
+                                     :frame-size (comp-byte-frame-size byte-func))))
+          ;; Store the c-name to have it retrivable from
+          ;; `comp-ctxt-top-level-forms'.
+          (when top-l-form
+            (setf (byte-to-native-func-def-c-name top-l-form) c-name))
+          (unless name
+            (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt)))
+          ;; Create the default array.
+          (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
+          (comp-add-func-to-ctxt func)
+          (comp-log (format "Function %s:\n" name) 1)
+          (comp-log lap 1))))))
 
 (cl-defgeneric comp-spill-lap-function ((filename string))
   "Byte compile FILENAME spilling data from the byte compiler."
