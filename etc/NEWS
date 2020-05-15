@@ -397,6 +397,10 @@ This is no longer supported, and setting this variable has no effect.
 ** The macro 'with-displayed-buffer-window' is now obsolete.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 
+---
+** Some libraries obsolete since Emacs 23 have been removed:
+'ledit.el', 'lmenu.el', 'lucid.el and 'old-whitespace.el'.
+
 
 * Lisp Changes in Emacs 28.1
 
