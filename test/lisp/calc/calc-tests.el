@@ -368,6 +368,34 @@ An existing calc stack is reused, otherwise a new one is created."
                                      (vec 0 0 (var a var-a) 0)))
                  '(neg (var a var-a)))))
 
+(ert-deftest calc-gcd ()
+  (should (equal (calcFunc-gcd 3 4) 1))
+  (should (equal (calcFunc-gcd 12 15) 3))
+  (should (equal (calcFunc-gcd -12 15) 3))
+  (should (equal (calcFunc-gcd 12 -15) 3))
+  (should (equal (calcFunc-gcd -12 -15) 3))
+  (should (equal (calcFunc-gcd 0 5) 5))
+  (should (equal (calcFunc-gcd 5 0) 5))
+  (should (equal (calcFunc-gcd 0 -5) 5))
+  (should (equal (calcFunc-gcd -5 0) 5))
+  (should (equal (calcFunc-gcd 0 0) 0))
+  (should (equal (calcFunc-gcd 0 '(var x var-x))
+                 '(calcFunc-abs (var x var-x))))
+  (should (equal (calcFunc-gcd '(var x var-x) 0)
+                 '(calcFunc-abs (var x var-x)))))
+
+(ert-deftest calc-sum-gcd ()
+  ;; sum(gcd(0,n),n,-1,-1)
+  (should (equal (math-simplify '(calcFunc-sum (calcFunc-gcd 0 (var n var-n))
+                                               (var n var-n) -1 -1))
+                 1))
+  ;; sum(sum(gcd(n,k),k,-1,1),n,-1,1)
+  (should (equal (math-simplify
+                  '(calcFunc-sum
+                    (calcFunc-sum (calcFunc-gcd (var n var-n) (var k var-k))
+                                  (var k var-k) -1 1)
+                    (var n var-n) -1 1))
+                 8)))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
