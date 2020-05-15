@@ -274,8 +274,7 @@ backend implementation of `project-external-roots'.")
             ('Git
              ;; Don't stop at submodule boundary.
              (or (vc-file-getprop dir 'project-git-root)
-                 (let* ((default-directory dir)
-                        (root (vc-root-dir))
+                 (let* ((root (vc-call-backend backend 'root dir))
                         (gitfile (expand-file-name ".git" root)))
                    (vc-file-setprop
                     dir 'project-git-root
@@ -287,9 +286,8 @@ backend implementation of `project-external-roots'.")
                         (goto-char (point-min))
                         (looking-at "gitdir: [./]+/\.git/modules/"))
                       (let* ((parent (file-name-directory
-                                      (directory-file-name root)))
-                             (default-directory parent))
-                        (vc-root-dir)))
+                                      (directory-file-name root))))
+                        (vc-call-backend backend 'root parent)))
                      (t root)))
                    )))
             ('nil nil)
