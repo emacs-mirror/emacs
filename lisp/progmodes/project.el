@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -275,14 +275,15 @@ backend implementation of `project-external-roots'.")
              ;; Don't stop at submodule boundary.
              (or (vc-file-getprop dir 'project-git-root)
                  (let* ((default-directory dir)
-                        (root (vc-root-dir)))
+                        (root (vc-root-dir))
+                        (gitfile (expand-file-name ".git" root)))
                    (vc-file-setprop
                     dir 'project-git-root
                     (cond
-                     ((file-directory-p (expand-file-name ".git" root))
+                     ((file-directory-p gitfile)
                       root)
                      ((with-temp-buffer
-                        (insert-file-contents ".git")
+                        (insert-file-contents gitfile)
                         (goto-char (point-min))
                         (looking-at "gitdir: [./]+/\.git/modules/"))
                       (let* ((parent (file-name-directory
