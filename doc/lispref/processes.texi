@@ -477,6 +477,22 @@ You should only ever change this variable with a let-binding; never
 with @code{setq}.
 @end defvar
 
+@defopt process-file-return-signal-string
+This user option indicates whether a call of @code{process-file}
+returns a string describing the signal interrupting a remote process.
+
+When a process returns an exit code greater than 128, it is
+interpreted as a signal.  @code{process-file} requires to return a
+string describing this signal.
+
+Since there are processes violating this rule, returning exit codes
+greater than 128 which are not bound to a signal, @code{process-file}
+returns always the exit code as natural number for remote processes.
+Setting this user option to non-nil forces @code{process-file} to
+interpret such exit codes as signals, and to return a corresponding
+string.
+@end defopt
+
 @defun call-process-region start end program &optional delete destination display &rest args
 This function sends the text from @var{start} to @var{end} as
 standard input to a process running @var{program}.  It deletes the text
