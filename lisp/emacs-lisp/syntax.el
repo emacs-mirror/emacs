@@ -139,14 +139,28 @@ delimiter or an Escaped or Char-quoted character."))
 		  (point-max))))
   (cons beg end))
 
-(defun syntax-propertize--shift-groups (re n)
-  (replace-regexp-in-string
-   "\\\\(\\?\\([0-9]+\\):"
-   (lambda (s)
-     (replace-match
-      (number-to-string (+ n (string-to-number (match-string 1 s))))
-      t t s 1))
-   re t t))
+(defun syntax-propertize--shift-groups-and-backrefs (re n)
+  (let ((new-re (replace-regexp-in-string
+                 "\\\\(\\?\\([0-9]+\\):"
+                 (lambda (s)
+                   (replace-match
+                    (number-to-string
+                     (+ n (string-to-number (match-string 1 s))))
+                    t t s 1))
+                 re t t))
+        (pos 0))
+    (while (string-match "\\\\\\([0-9]+\\)" new-re pos)
+      (setq pos (+ 1 (match-beginning 1)))
+      (when (save-match-data
+              ;; With \N, the \ must be in a subregexp context, i.e.,
+              ;; not in a character class or in a \{\} repetition.
+              (subregexp-context-p new-re (match-beginning 0)))
+        (let ((shifted (+ n (string-to-number (match-string 1 new-re)))))
+          (when (> shifted 9)
+            (error "There may be at most nine back-references"))
+          (setq new-re (replace-match (number-to-string shifted)
+                                      t t new-re 1)))))
+    new-re))
 
 (defmacro syntax-propertize-precompile-rules (&rest rules)
   "Return a precompiled form of RULES to pass to `syntax-propertize-rules'.
@@ -190,7 +204,8 @@ for subsequent HIGHLIGHTs.
 Also SYNTAX is free to move point, in which case RULES may not be applied to
 some parts of the text or may be applied several times to other parts.
 
-Note: back-references in REGEXPs do not work."
+Note: There may be at most nine back-references in the REGEXPs of
+all RULES in total."
   (declare (debug (&rest &or symbolp    ;FIXME: edebug this eval step.
                          (form &rest
                                (numberp
@@ -219,7 +234,7 @@ Note: back-references in REGEXPs do not work."
                  ;; tell when *this* match 0 has succeeded.
                  (cl-incf offset)
                  (setq re (concat "\\(" re "\\)")))
-               (setq re (syntax-propertize--shift-groups re offset))
+               (setq re (syntax-propertize--shift-groups-and-backrefs re offset))
                (let ((code '())
                      (condition
                       (cond
