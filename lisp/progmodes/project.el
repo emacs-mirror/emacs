@@ -93,6 +93,7 @@
 ;;; Code:
 
 (require 'cl-generic)
+(require 'seq)
 (eval-when-compile (require 'subr-x))
 
 (defvar project-find-functions (list #'project-try-vc)
@@ -791,60 +792,47 @@ It's also possible to enter an arbitrary directory."
 
 ;;; Project switching
 
-(defvar project--switch-alist nil
-  "Association list mapping characters to commands.
-Used by `project-switch-project' to construct a dispatch menu of
-commands available upon \"switching\" to another project.")
-
 ;;;###autoload
-(defun project-add-switch-command (symbol key label)
-  "Add a function to the project switching dispatch menu.
-SYMBOL should stand for a function to be invoked by the key KEY.
-LABEL is used to distinguish the function in the dispatch menu."
-  (function-put symbol 'dispatch-label label)
-  ;; XXX: It could host the label as well now.
-  (add-to-list 'project--switch-alist `(,key . ,symbol)))
+(defvar project-switch-menu
+  '(("f" "Find file" project-find-file)
+    ("s" "Find regexp" project-find-regexp)
+    ("d" "Dired" project-dired)
+    ("e" "Eshell" project-eshell))
+  "Alist mapping keys to project switching menu entries.
+Used by `project-switch-project' to construct a dispatch menu of
+commands available upon \"switching\" to another project.
 
-(project-add-switch-command
- 'project-find-file "f" "Find file")
-
-(project-add-switch-command
- 'project-find-regexp "s" "Find regexp")
-
-(project-add-switch-command
- 'project-dired "d" "Dired")
-
-(project-add-switch-command
- 'project-eshell "e" "Eshell")
+Each element looks like (KEY LABEL COMMAND), where COMMAND is the
+command to run when KEY is pressed.  LABEL is used to distinguish
+the choice in the dispatch menu.")
 
 (defun project--keymap-prompt ()
   "Return a prompt for the project swithing dispatch menu."
-  (let ((prompt ""))
-    (mapc
-     (lambda (entry)
-       (pcase-let* ((`(,char . ,symbol) entry)
-                    (key (propertize (key-description `(,char)) 'face 'bold))
-                    (desc (function-get symbol 'dispatch-label)))
-         (setq prompt (concat (format "[%s] %s  " key desc) prompt))))
-     project--switch-alist)
-    prompt))
+  (string-trim
+   (seq-mapcat
+    (pcase-lambda (`(,key ,label))
+      (format "[%s] %s  "
+              (propertize (key-description `(,key)) 'face 'bold)
+              label))
+    project-switch-menu 'string)))
 
 ;;;###autoload
 (defun project-switch-project ()
   "\"Switch\" to another project by running a chosen command.
-The available commands are picked from `project-switch-keymap'
-and presented in a dispatch menu."
+The available commands are picked from `project-switch-menu' and
+presented in a dispatch menu."
   (interactive)
-  (let* ((dir (project-prompt-project-dir))
-         (choice nil))
+  (let ((dir (project-prompt-project-dir))
+        (choice nil))
     (while (not (and choice
                      (or (equal choice (kbd "C-g"))
-                         (assoc choice project--switch-alist))))
+                         (assoc choice project-switch-menu))))
       (setq choice (read-key-sequence (project--keymap-prompt))))
     (if (equal choice (kbd "C-g"))
         (message "Quit")
       (let ((default-directory dir))
-        (call-interactively (assoc-default choice project--switch-alist))))))
+        (call-interactively
+         (nth 2 (assoc choice project-switch-menu)))))))
 
 (provide 'project)
 ;;; project.el ends here
