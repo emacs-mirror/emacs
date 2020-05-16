@@ -1825,12 +1825,6 @@ Only intended for interactive use."
 (defalias 'find-file-literally-at-point 'ffap-literally)
 
 
-;;; Bug Reporter:
-
-(define-obsolete-function-alias 'ffap-bug 'report-emacs-bug "23.1")
-(define-obsolete-function-alias 'ffap-submit-bug 'report-emacs-bug "23.1")
-
-
 ;;; Hooks for Gnus, VM, Rmail:
 ;;
 ;; If you do not like these bindings, write versions with whatever

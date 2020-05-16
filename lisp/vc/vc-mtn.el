@@ -60,7 +60,6 @@ switches."
   :version "25.1"
   :group 'vc-mtn)
 
-(define-obsolete-variable-alias 'vc-mtn-command 'vc-mtn-program "23.1")
 (defcustom vc-mtn-program "mtn"
   "Name of the monotone executable."
   :type 'string

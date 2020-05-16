@@ -384,15 +384,6 @@ corresponding to a successful execution."
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))
 
-;;;_* Reporting bugs
-;;
-;; If you do encounter a bug, on any system, please report
-;; it -- in addition to any particular oddities in your configuration
-;; -- so that the problem may be corrected for the benefit of others.
-
-;;;###autoload
-(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug "23.1")
-
 ;;; Code:
 
 (defun eshell-unload-all-modules ()

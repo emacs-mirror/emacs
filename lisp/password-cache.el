@@ -94,22 +94,6 @@ The variable `password-cache' control whether the cache is used."
   (or (password-read-from-cache key)
       (read-passwd prompt)))
 
-(defun password-read-and-add (prompt &optional key)
-  "Read password, for use with KEY, from user, or from cache if wanted.
-Then store the password in the cache.  Uses `password-read' and
-`password-cache-add'.  Custom variables `password-cache' and
-`password-cache-expiry' regulate cache behavior.
-
-Warning: the password is cached without checking that it is
-correct.  It is better to check the password before caching.  If
-you must use this function, take care to check passwords and
-remove incorrect ones from the cache."
-  (declare (obsolete password-read "23.1"))
-  (let ((password (password-read prompt key)))
-    (when (and password key)
-      (password-cache-add key password))
-    password))
-
 (defun password-cache-remove (key)
   "Remove password indexed by KEY from password cache.
 This is typically run by a timer setup from `password-cache-add',

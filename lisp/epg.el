@@ -190,6 +190,7 @@
   (string nil :read-only t))
 
 ;;;; Context Struct
+(declare-function epa-passphrase-callback-function "epa.el")
 
 (cl-defstruct (epg-context
                (:constructor nil)
@@ -215,7 +216,7 @@
   cipher-algorithm
   digest-algorithm
   compress-algorithm
-  (passphrase-callback (list #'epg-passphrase-callback-function))
+  (passphrase-callback (list #'epa-passphrase-callback-function))
   progress-callback
   edit-callback
   signers
@@ -1245,19 +1246,6 @@ callback data (if any)."
     (epg-context-set-result-for context 'import-status nil)))
 
 ;;; Functions
-
-(defun epg-passphrase-callback-function (context key-id _handback)
-  (declare (obsolete epa-passphrase-callback-function "23.1"))
-  (if (eq key-id 'SYM)
-      (read-passwd "Passphrase for symmetric encryption: "
-		   (eq (epg-context-operation context) 'encrypt))
-    (read-passwd
-     (if (eq key-id 'PIN)
-	"Passphrase for PIN: "
-       (let ((entry (assoc key-id epg-user-id-alist)))
-	 (if entry
-	     (format "Passphrase for %s %s: " key-id (cdr entry))
-	   (format "Passphrase for %s: " key-id)))))))
 
 (defun epg--list-keys-1 (context name mode)
   (let ((args (append (if (epg-context-home-directory context)

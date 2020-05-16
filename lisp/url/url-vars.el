@@ -312,13 +312,6 @@ Applies when a protected document is denied by the server."
   :type 'integer
   :group 'url)
 
-(defcustom url-temporary-directory (or (getenv "TMPDIR") "/tmp")
-  "Where temporary files go."
-  :type 'directory
-  :group 'url-file)
-(make-obsolete-variable 'url-temporary-directory
-			'temporary-file-directory "23.1")
-
 (defcustom url-show-status t
   "Whether to show a running total of bytes transferred.
 Can cause a large hit if using a remote X display over a slow link, or

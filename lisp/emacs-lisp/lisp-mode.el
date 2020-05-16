@@ -785,8 +785,6 @@ or to switch back to an existing one."
             nil)))
       (comment-indent-default)))
 
-(define-obsolete-function-alias 'lisp-mode-auto-fill 'do-auto-fill "23.1")
-
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."
   :group 'lisp

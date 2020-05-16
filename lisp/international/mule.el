@@ -408,16 +408,6 @@ PLIST (property list) may contain any type of information a user
 ;; because that makes a bootstrapping problem
 ;; if you need to recompile all the Lisp files using interpreted code.
 
-(defun charset-id (_charset)
-  "Always return 0.  This is provided for backward compatibility."
-  (declare (obsolete nil "23.1"))
-  0)
-
-(defmacro charset-bytes (_charset)
-  "Always return 0.  This is provided for backward compatibility."
-  (declare (obsolete nil "23.1"))
-  0)
-
 (defun get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
 This is the last value stored with
@@ -463,19 +453,8 @@ Return -1 if charset isn't an ISO 2022 one."
   "Return long name of CHARSET."
   (plist-get (charset-plist charset) :long-name))
 
-(defun charset-list ()
-  "Return list of all charsets ever defined."
-  (declare (obsolete charset-list "23.1"))
-  charset-list)
-
 
 ;;; CHARACTER
-(define-obsolete-function-alias 'char-valid-p 'characterp "23.1")
-
-(defun generic-char-p (_char)
-  "Always return nil.  This is provided for backward compatibility."
-  (declare (obsolete nil "23.1"))
-  nil)
 
 (defun make-char-internal (charset-id &optional code1 code2)
   (let ((charset (aref emacs-mule-charset-table charset-id)))
@@ -1085,14 +1064,11 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
 	      (setq codings (cons alias codings))))))
     codings))
 
-(defconst char-coding-system-table nil
-  "It exists just for backward compatibility, and the value is always nil.")
-(make-obsolete-variable 'char-coding-system-table nil "23.1")
-
 (defun transform-make-coding-system-args (name type &optional doc-string props)
   "For internal use only.
 Transform XEmacs style args for `make-coding-system' to Emacs style.
 Value is a list of transformed arguments."
+  (declare (obsolete nil "28.1"))
   (let ((mnemonic (string-to-char (or (plist-get props 'mnemonic) "?")))
 	(eol-type (plist-get props 'eol-type))
 	properties tmp)
@@ -1169,106 +1145,6 @@ Value is a list of transformed arguments."
      (t
       (error "unsupported XEmacs style make-coding-style arguments: %S"
 	     `(,name ,type ,doc-string ,props))))))
-
-(defun make-coding-system (coding-system type mnemonic doc-string
-					 &optional
-					 flags
-					 properties
-					 eol-type)
-  "Define a new coding system CODING-SYSTEM (symbol).
-This function is provided for backward compatibility."
-  (declare (obsolete define-coding-system "23.1"))
-  ;; For compatibility with XEmacs, we check the type of TYPE.  If it
-  ;; is a symbol, perhaps, this function is called with XEmacs-style
-  ;; arguments.  Here, try to transform that kind of arguments to
-  ;; Emacs style.
-  (if (symbolp type)
-      (let ((args (transform-make-coding-system-args coding-system type
-						     mnemonic doc-string)))
-	(setq coding-system (car args)
-	      type (nth 1 args)
-	      mnemonic (nth 2 args)
-	      doc-string (nth 3 args)
-	      flags (nth 4 args)
-	      properties (nth 5 args)
-	      eol-type (nth 6 args))))
-
-  (setq type
-	(cond ((eq type 0) 'emacs-mule)
-	      ((eq type 1) 'shift-jis)
-	      ((eq type 2) 'iso2022)
-	      ((eq type 3) 'big5)
-	      ((eq type 4) 'ccl)
-	      ((eq type 5) 'raw-text)
-	      (t
-	       (error "Invalid coding system type: %s" type))))
-
-  (setq properties
-	(let ((plist nil) key)
-	  (dolist (elt properties)
-	    (setq key (car elt))
-	    (cond ((eq key 'post-read-conversion)
-		   (setq key :post-read-conversion))
-		  ((eq key 'pre-write-conversion)
-		   (setq key :pre-write-conversion))
-		  ((eq key 'translation-table-for-decode)
-		   (setq key :decode-translation-table))
-		  ((eq key 'translation-table-for-encode)
-		   (setq key :encode-translation-table))
-		  ((eq key 'safe-charsets)
-		   (setq key :charset-list))
-		  ((eq key 'mime-charset)
-		   (setq key :mime-charset))
-		  ((eq key 'valid-codes)
-		   (setq key :valids)))
-	    (setq plist (plist-put plist key (cdr elt))))
-	  plist))
-  (setq properties (plist-put properties :mnemonic mnemonic))
-  (plist-put properties :coding-type type)
-  (cond ((eq eol-type 0) (setq eol-type 'unix))
-	((eq eol-type 1) (setq eol-type 'dos))
-	((eq eol-type 2) (setq eol-type 'mac))
-	((vectorp eol-type) (setq eol-type nil)))
-  (plist-put properties :eol-type eol-type)
-
-  (cond
-   ((eq type 'iso2022)
-    (plist-put properties :flags
-	       (list (and (or (consp (nth 0 flags))
-			      (consp (nth 1 flags))
-			      (consp (nth 2 flags))
-			      (consp (nth 3 flags))) 'designation)
-		     (or (nth 4 flags) 'long-form)
-		     (and (nth 5 flags) 'ascii-at-eol)
-		     (and (nth 6 flags) 'ascii-at-cntl)
-		     (and (nth 7 flags) '7-bit)
-		     (and (nth 8 flags) 'locking-shift)
-		     (and (nth 9 flags) 'single-shift)
-		     (and (nth 10 flags) 'use-roman)
-		     (and (nth 11 flags) 'use-oldjis)
-		     (or (nth 12 flags) 'direction)
-		     (and (nth 13 flags) 'init-at-bol)
-		     (and (nth 14 flags) 'designate-at-bol)
-		     (and (nth 15 flags) 'safe)
-		     (and (nth 16 flags) 'latin-extra)))
-    (plist-put properties :designation
-	       (let ((vec (make-vector 4 nil)))
-		 (dotimes (i 4)
-		   (let ((spec (nth i flags)))
-		     (if (eq spec t)
-			 (aset vec i '(94 96))
-		     (if (consp spec)
-			 (progn
-			   (if (memq t spec)
-			       (setq spec (append (delq t spec) '(94 96))))
-			   (aset vec i spec))))))
-		 vec)))
-
-   ((eq type 'ccl)
-    (plist-put properties :ccl-decoder (car flags))
-    (plist-put properties :ccl-encoder (cdr flags))))
-
-  (apply 'define-coding-system coding-system doc-string properties))
 
 (defun merge-coding-systems (first second)
   "Fill in any unspecified aspects of coding system FIRST from SECOND.
@@ -1615,15 +1491,6 @@ This setting is effective for the next communication only."
   (check-coding-system coding-system)
 
   (setq next-selection-coding-system coding-system))
-
-(defun set-coding-priority (arg)
-  "Set priority of coding categories according to ARG.
-ARG is a list of coding categories ordered by priority.
-
-This function is provided for backward compatibility."
-  (declare (obsolete set-coding-system-priority "23.1"))
-  (apply 'set-coding-system-priority
-	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
 
 ;;; X selections
 

@@ -985,14 +985,6 @@ one or more of those symbols."
       (completion-table-with-context
        string-dir names string-file pred action)))))
 
-(defun locate-file-completion (string path-and-suffixes action)
-  "Do completion for file names passed to `locate-file'.
-PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
-  (declare (obsolete locate-file-completion-table "23.1"))
-  (locate-file-completion-table (car path-and-suffixes)
-                                (cdr path-and-suffixes)
-                                string nil action))
-
 (defvar locate-dominating-stop-dir-regexp
   (purecopy "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'")
   "Regexp of directory names that stop the search in `locate-dominating-file'.

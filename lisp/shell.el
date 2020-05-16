@@ -990,9 +990,6 @@ this feature; see the function `dirtrack-mode'."
       (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
     (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
 
-(define-obsolete-function-alias 'shell-dirtrack-toggle #'shell-dirtrack-mode
-  "23.1")
-
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
   (cd dir)

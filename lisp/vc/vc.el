@@ -2710,9 +2710,6 @@ to the working revision (except for keyword expansion)."
       (message "Reverting %s...done" (vc-delistify files)))))
 
 ;;;###autoload
-(define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
-
-;;;###autoload
 (defun vc-pull (&optional arg)
   "Update the current fileset or branch.
 You must be visiting a version controlled file, or in a `vc-dir' buffer.

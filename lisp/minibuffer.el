@@ -685,13 +685,6 @@ for use at QPOS."
                completions)
        qboundary))))
 
-;; (defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
-;; (defmacro dynamic-completion-table (fun) `(completion-table-dynamic ,fun))
-(define-obsolete-function-alias
-  'complete-in-turn #'completion-table-in-turn "23.1")
-(define-obsolete-function-alias
-  'dynamic-completion-table #'completion-table-dynamic "23.1")
-
 ;;; Minibuffer completion
 
 (defgroup minibuffer nil
@@ -1770,9 +1763,6 @@ It also eliminates runs of equal strings."
 			      ;; Round up to a whole number of columns.
 			      (* colwidth (ceiling length colwidth))))))))))))
 
-(defvar completion-common-substring nil)
-(make-obsolete-variable 'completion-common-substring nil "23.1")
-
 (defvar completion-setup-hook nil
   "Normal hook run at the end of setting up a completion list buffer.
 When this hook is run, the current buffer is the one in which the
@@ -1864,11 +1854,7 @@ It can find the completion buffer in `standard-output'."
         (insert "Possible completions are:\n")
         (completion--insert-strings completions))))
 
-  ;; The hilit used to be applied via completion-setup-hook, so there
-  ;; may still be some code that uses completion-common-substring.
-  (with-no-warnings
-    (let ((completion-common-substring common-substring))
-      (run-hooks 'completion-setup-hook)))
+  (run-hooks 'completion-setup-hook)
   nil)
 
 (defvar completion-extra-properties nil
@@ -2374,8 +2360,6 @@ The completion method is determined by `completion-at-point-functions'."
 Gets combined either with `minibuffer-local-completion-map' or
 with `minibuffer-local-must-match-map'.")
 
-(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
-  'minibuffer-local-filename-must-match-map "23.1")
 (defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
 (make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 

@@ -621,15 +621,6 @@ For Aspell, non-nil also means to try to automatically find its dictionaries.
 Earlier Aspell versions do not consistently support charset encoding.  Handling
 this would require some extra guessing in `ispell-aspell-find-dictionary'.")
 
-(defvar ispell-aspell-supports-utf8 nil
-  "Non-nil if Aspell has consistent command line UTF-8 support.  Obsolete.
-ispell.el and flyspell.el will use for this purpose the more generic
-variable `ispell-encoding8-command' for both Aspell and Hunspell.  Is left
-here just for backwards compatibility.")
-
-(make-obsolete-variable 'ispell-aspell-supports-utf8
-                        'ispell-encoding8-command "23.1")
-
 (defvar ispell-dicts-name2locale-equivs-alist
   '(("american"      "en_US")
     ("brasileiro"    "pt_BR")

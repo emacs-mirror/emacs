@@ -4868,8 +4868,6 @@ If several parents are listed, go to the first of them."
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))
 
-(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
-
 (defcustom Custom-mode-hook nil
   "Hook called when entering Custom mode."
   :type 'hook
@@ -4939,8 +4937,6 @@ if that value is non-nil."
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
 
 (put 'Custom-mode 'mode-class 'special)
-
-(define-obsolete-function-alias 'custom-mode 'Custom-mode "23.1")
 
 ;;; The End.
 

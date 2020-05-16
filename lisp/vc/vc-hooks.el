@@ -505,14 +505,6 @@ If FILE is not registered, this function always returns nil."
                            (vc-call-backend
                             backend 'working-revision file))))))
 
-;; Backward compatibility.
-(define-obsolete-function-alias
-  'vc-workfile-version 'vc-working-revision "23.1")
-(defun vc-default-working-revision (backend file)
-  (message
-   "`working-revision' not found: using the old `workfile-version' instead")
-  (vc-call-backend backend 'workfile-version file))
-
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
   (let ((sym (vc-make-backend-sym backend 'master-templates)))

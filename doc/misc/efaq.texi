@@ -4192,7 +4192,7 @@ You can get the old behavior by binding @kbd{SPC} to
 (define-key minibuffer-local-filename-completion-map (kbd "SPC")
   'minibuffer-complete-word)
 
-(define-key minibuffer-local-must-match-filename-map (kbd "SPC")
+(define-key minibuffer-local-filename-must-match-map (kbd "SPC")
   'minibuffer-complete-word)
 @end lisp
 

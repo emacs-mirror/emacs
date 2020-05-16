@@ -63,8 +63,6 @@
   (set-terminal-parameter nil 'gpm-mouse-active nil))
 
 ;;;###autoload
-(define-obsolete-function-alias 't-mouse-mode 'gpm-mouse-mode "23.1")
-;;;###autoload
 (define-minor-mode gpm-mouse-mode
   "Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
 

@@ -196,9 +196,6 @@ directory."
     (remove-hook 'comint-preoutput-filter-functions 'dirtrack t)))
 
 
-(define-obsolete-function-alias 'dirtrack-debug-toggle 'dirtrack-debug-mode
-  "23.1")
-(define-obsolete-variable-alias 'dirtrack-debug 'dirtrack-debug-mode "23.1")
 (define-minor-mode dirtrack-debug-mode
   "Toggle Dirtrack debugging."
   nil nil nil

@@ -11829,8 +11829,7 @@ Each element is one element list of coding system name.
 This variable is given to `completing-read' as COLLECTION argument.
 
 Do not alter the value of this variable manually.  This variable should be
-updated by the functions `make-coding-system' and
-`define-coding-system-alias'.  */);
+updated by `define-coding-system-alias'.  */);
   Vcoding_system_alist = Qnil;
 
   DEFVAR_LISP ("coding-category-list", Vcoding_category_list,

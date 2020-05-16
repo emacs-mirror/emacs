@@ -902,6 +902,40 @@ have now been removed.
 ** Some libraries obsolete since Emacs 23 have been removed:
 'ledit.el', 'lmenu.el', 'lucid.el and 'old-whitespace.el'.
 
+---
+** Some functions and variables obsolete since Emacs 23 have been removed:
+
+'GOLD-map', 'bookmark-jump-noselect',
+'bookmark-read-annotation-text-func', 'buffer-menu-mode-hook',
+'char-coding-system-table', 'char-valid-p', 'charset-bytes',
+'charset-id', 'charset-list' (function), 'complete-in-turn',
+'completion-common-substring', 'crm-minibuffer-complete',
+'crm-minibuffer-complete-and-exit', 'crm-minibuffer-completion-help',
+'custom-mode', 'custom-mode-hook', 'detect-coding-with-priority',
+'dirtrack-debug' (function), 'dirtrack-debug-toggle',
+'dynamic-completion-table',
+'easy-menu-precalculate-equivalent-keybindings',
+'epa-display-verify-result', 'epg-passphrase-callback-function',
+'eshell-report-bug', 'ffap-bug', 'ffap-submit-bug', 'forward-point',
+'generic-char-p', 'global-highlight-changes', 'hi-lock-face-history',
+'hi-lock-regexp-history', 'highlight-changes-active-string',
+'highlight-changes-initial-state', 'highlight-changes-passive-string',
+'ispell-aspell-supports-utf8', 'lisp-mode-auto-fill',
+'locate-file-completion', 'make-coding-system',
+'minibuffer-local-must-match-filename-map', 'mouse-major-mode-menu',
+'mouse-popup-menubar', 'mouse-popup-menubar-stuff',
+'newsticker-groups-filename', 'non-iso-charset-alist',
+'nonascii-insert-offset', 'nonascii-translation-table',
+'password-read-and-add', 'pre-abbrev-expand-hook',
+'process-filter-multibyte-p', 'remember-buffer' (function),
+'rmail-message-filter', 'set-coding-priority',
+'set-process-filter-multibyte', 'shell-dirtrack-toggle',
+'t-mouse-mode', 'tooltip-hook', 'tpu-have-ispell',
+'url-generate-unique-filename', 'url-temporary-directory',
+'vc-arch-command', 'vc-default-working-revision' (variable),
+'vc-mtn-command', 'vc-revert-buffer', 'vc-workfile-version',
+'vcursor-toggle-vcursor-map', 'w32-focus-frame', 'w32-select-font'.
+
 
 * Lisp Changes in Emacs 28.1
 

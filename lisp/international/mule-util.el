@@ -275,15 +275,6 @@ operations such as `find-coding-systems-region'."
 (put 'with-coding-priority 'edebug-form-spec t)
 
 ;;;###autoload
-(defmacro detect-coding-with-priority (from to priority-list)
-  "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
-PRIORITY-LIST is an alist of coding categories vs the corresponding
-coding systems ordered by priority."
-  (declare (obsolete with-coding-priority "23.1"))
-  `(with-coding-priority (mapcar #'cdr ,priority-list)
-     (detect-coding-region ,from ,to)))
-
-;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
   "Detect a coding system for the text between FROM and TO with LANG-ENV.
 The detection takes into account the coding system priorities for the
