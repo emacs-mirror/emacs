@@ -11,9 +11,6 @@
 ;; Created: 2002-01-05
 ;; Description: htmlize a buffer/source tree with optional hyperlinks
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
-;; Compatibility: Emacs23, Emacs22
-;; Incompatibility: Emacs19, Emacs20, Emacs21
-;; Last Updated: Thu 2009-11-19 01:31:21 +0000
 
 ;; This file is part of GNU Emacs.
 
