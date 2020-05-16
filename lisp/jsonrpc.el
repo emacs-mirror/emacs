@@ -37,7 +37,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'json)
 (require 'eieio)
 (eval-when-compile (require 'subr-x))
 (require 'warnings)
@@ -470,26 +469,35 @@ With optional CLEANUP, kill any associated buffers."
 ;;;
 (define-error 'jsonrpc-error "jsonrpc-error")
 
-(defun jsonrpc--json-read ()
-  "Read JSON object in buffer, move point to end of buffer."
-  ;; TODO: I guess we can make these macros if/when jsonrpc.el
-  ;; goes into Emacs core.
-  (cond ((fboundp 'json-parse-buffer) (json-parse-buffer
-                                       :object-type 'plist
-                                       :null-object nil
-                                       :false-object :json-false))
-        (t                            (let ((json-object-type 'plist))
-                                        (json-read)))))
+(defalias 'jsonrpc--json-read
+  (if (fboundp 'json-parse-buffer)
+      (lambda ()
+        (json-parse-buffer :object-type 'plist
+                           :null-object nil
+                           :false-object :json-false))
+    (require 'json)
+    (defvar json-object-type)
+    (declare-function json-read "json" ())
+    (lambda ()
+      (let ((json-object-type 'plist))
+        (json-read))))
+  "Read JSON object in buffer, move point to end of buffer.")
 
-(defun jsonrpc--json-encode (object)
-  "Encode OBJECT into a JSON string."
-  (cond ((fboundp 'json-serialize) (json-serialize
-                                    object
-                                    :false-object :json-false
-                                    :null-object nil))
-        (t                         (let ((json-false :json-false)
-                                         (json-null nil))
-                                     (json-encode object)))))
+(defalias 'jsonrpc--json-encode
+  (if (fboundp 'json-serialize)
+      (lambda (object)
+        (json-serialize object
+                        :false-object :json-false
+                        :null-object nil))
+    (require 'json)
+    (defvar json-false)
+    (defvar json-null)
+    (declare-function json-encode "json" (object))
+    (lambda (object)
+      (let ((json-false :json-false)
+            (json-null nil))
+        (json-encode object))))
+  "Encode OBJECT into a JSON string.")
 
 (cl-defun jsonrpc--reply
     (connection id &key (result nil result-supplied-p) (error nil error-supplied-p))

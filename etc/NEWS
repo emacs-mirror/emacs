@@ -360,6 +360,15 @@ either an internal or external browser.
 
 *** New user option 'project-vc-merge-submodules'.
 
+** json.el
+
+---
+*** JSON number parsing is now stricter.
+Numbers with a leading plus sign, leading zeros, or a missing integer
+component are now rejected by 'json-read' and friends.  This makes
+them more compliant with the JSON specification and consistent with
+the native JSON parsing functions.
+
 
 * New Modes and Packages in Emacs 28.1
 
