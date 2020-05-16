@@ -4903,7 +4903,7 @@ of this sample text; it defaults to 40."
 	;; Swap point-and-mark quickly so as to show the region that
 	;; was selected.  Don't do it if the region is highlighted.
 	(unless (and (region-active-p)
-		     (face-background 'region))
+		     (face-background 'region nil t))
 	  ;; Swap point and mark.
 	  (set-marker (mark-marker) (point) (current-buffer))
 	  (goto-char mark)

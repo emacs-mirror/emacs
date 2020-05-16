@@ -3478,7 +3478,10 @@ There are other, non-GNU, Emacs Lisp package servers, including:
 @uref{https://marmalade-repo.org, Marmalade}.  To use additional
 package servers, customize the @code{package-archives} variable.  Be
 aware that installing a package can run arbitrary code, so only add
-sources that you trust.
+sources that you trust.  Also, packages hosted on non-GNU package
+servers may encourage or require you to install and use non-free
+software; for example, MELPA is known to host some packages that do
+this.
 
 The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
 GNU Emacs sources mailing list}, which is gatewayed to the

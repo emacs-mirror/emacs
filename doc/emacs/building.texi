@@ -1541,6 +1541,11 @@ putting a line like this in your init file (@pxref{Init File}):
 (add-to-list 'load-path "/path/to/my/lisp/library")
 @end example
 
+It is customary to put locally installed libraries in the
+@file{site-lisp} directory that is already in the default value of
+@code{load-path}, or in some subdirectory of @file{site-lisp}.  This
+way, you don't need to modify the default value of @code{load-path}.
+
 @cindex autoload
   Some commands are @dfn{autoloaded}; when you run them, Emacs
 automatically loads the associated library first.  For instance, the
@@ -1562,6 +1567,33 @@ Automatic loading also occurs when completing names for
 @code{describe-variable} and @code{describe-function}, based on the
 prefix being completed.  To disable this feature, change the variable
 @code{help-enable-completion-autoload} to @code{nil}.
+
+  Once you put your library in a directory where Emacs can find and
+load it, you may wish to make it available at startup.  This is useful
+when the library defines features that should be available
+automatically on demand, and manually loading the library is thus
+inconvenient.  In these cases, make sure the library will be loaded by
+adding suitable forms to your init file: either @code{load} or
+@code{require} (if you always need to load the library at startup), or
+@code{autoload} if you need Emacs to load the library when some
+command or function is invoked.  For example:
+
+@smalllisp
+@group
+ ;; Loads @file{my-shining-package.elc} unconditionally.
+ (require 'my-shining-package)
+@end group
+@group
+ ;; Will load @file{my-shining-package.elc} when @code{my-func} is invoked.
+ (autoload 'my-func "my-shining-package")
+@end group
+@end smalllisp
+
+  Note that installing a package using @code{package-install}
+(@pxref{Package Installation}) takes care of placing the package's
+Lisp files in a directory where Emacs will find it, and also writes
+the necessary initialization code into your init files, making the
+above manual customizations unnecessary.
 
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions
