@@ -49,15 +49,10 @@ comparison or merge operations are being performed."
   :group 'ediff-vers
   )
 
-(defalias 'ediff-vc-revision-other-window
-      (if (fboundp 'vc-revision-other-window)
-	  'vc-revision-other-window
-	'vc-version-other-window))
-
-(defalias 'ediff-vc-working-revision
-  (if (fboundp 'vc-working-revision)
-      'vc-working-revision
-    'vc-workfile-version))
+(define-obsolete-function-alias 'ediff-vc-revision-other-window
+  #'vc-revision-other-window "28.1")
+(define-obsolete-function-alias 'ediff-vc-working-revision
+  #'vc-working-revision "28.1")
 
 ;; VC.el support
 
@@ -88,12 +83,12 @@ comparison or merge operations are being performed."
 	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
-	(ediff-vc-revision-other-window rev1)
+	(vc-revision-other-window rev1)
 	(setq rev1buf (current-buffer)
 	      file1 (buffer-file-name)))
       (save-excursion
 	(or (string= rev2 "") 		; use current buffer
-	    (ediff-vc-revision-other-window rev2))
+	    (vc-revision-other-window rev2))
 	(setq rev2buf (current-buffer)
 	      file2 (buffer-file-name)))
       (push (lambda ()
@@ -165,18 +160,18 @@ comparison or merge operations are being performed."
   (let (buf1 buf2 ancestor-buf)
     (save-window-excursion
       (save-excursion
-	(ediff-vc-revision-other-window rev1)
+	(vc-revision-other-window rev1)
 	(setq buf1 (current-buffer)))
       (save-excursion
 	(or (string= rev2 "")
-	    (ediff-vc-revision-other-window rev2))
+	    (vc-revision-other-window rev2))
 	(setq buf2 (current-buffer)))
       (if ancestor-rev
 	  (save-excursion
 	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (ediff-vc-working-revision
+		(setq ancestor-rev (vc-working-revision
                                     buffer-file-name)))
-	    (ediff-vc-revision-other-window ancestor-rev)
+	    (vc-revision-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
       (push (let ((f1 (buffer-file-name buf1))
                   (f2 (unless (string= rev2 "") (buffer-file-name buf2)))
