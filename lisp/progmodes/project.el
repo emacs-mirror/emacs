@@ -809,7 +809,7 @@ LABEL is used to distinguish the function in the dispatch menu."
  'project-find-file "f" "Find file")
 
 (project-add-switch-command
- 'project-find-regexp "g" "Find regexp")
+ 'project-find-regexp "s" "Find regexp")
 
 (project-add-switch-command
  'project-dired "d" "Dired")
