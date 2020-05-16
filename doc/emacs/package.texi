@@ -5,23 +5,37 @@
 @node Packages
 @chapter Emacs Lisp Packages
 @cindex Package
-@cindex Emacs Lisp package archive
 @cindex Package archive
 
-Emacs includes a facility that lets you easily download and install
-@dfn{packages} that implement additional features.  Each package is a
-separate Emacs Lisp program, sometimes including other components such
-as an Info manual.
+  Emacs is extended by implementing additional features in
+@dfn{packages}, which are Emacs Lisp libraries.  These could be
+written by you or provided by someone else.  If you want to install
+such a package so it is available in your future Emacs session, you
+need to compile it and put it in a directory where Emacs looks for
+Lisp libraries.  @xref{Lisp Libraries}, for more details about this
+manual installation method.  Many packages provide installation and
+usage instructions in the large commentary near the beginning of the
+Lisp file; you can use those instructions for installing and
+fine-tuning your use of the package.
 
-  @kbd{M-x list-packages} brings up a buffer named @file{*Packages*}
-with a list of all packages.  You can install or uninstall packages
-via this buffer.  @xref{Package Menu}.
+@cindex Emacs Lisp package archive
+  Packages can also be provided by @dfn{package archives}, which are
+large collections of Emacs Lisp packages.  Each package is a separate
+Emacs Lisp program, sometimes including other components such as an
+Info manual.  Emacs includes a facility that lets you easily download
+and install packages from such archives.  The rest of this chapter
+describes this facility.
+
+  To list the packages available for installation from package
+archives, type @w{@kbd{M-x list-packages @key{RET}}}.  It brings up a
+buffer named @file{*Packages*} with a list of all packages.  You can
+install or uninstall packages via this buffer.  @xref{Package Menu}.
 
   The command @kbd{C-h P} (@code{describe-package}) prompts for the
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
-  By default, Emacs downloads packages from a @dfn{package archive}
+  By default, Emacs downloads packages from a package archive
 maintained by the Emacs developers and hosted by the GNU project.
 Optionally, you can also download packages from archives maintained by
 third parties.  @xref{Package Installation}.
