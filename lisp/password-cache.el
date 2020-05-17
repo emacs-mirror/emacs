@@ -31,7 +31,7 @@
 ;; ;; Minibuffer prompt for password.
 ;;  => "foo"
 ;;
-;; (password-cache-add "test" "foo")
+;; (password-cache-add "test" (copy-sequence "foo"))
 ;;  => nil
 
 ;; (password-read "Password? " "test")

@@ -425,7 +425,9 @@ collection clause."
                  '(2 3 4 5 6))))
 
 (ert-deftest cl-macs-loop-across-ref ()
-  (should (equal (cl-loop with my-vec = ["one" "two" "three"]
+  (should (equal (cl-loop with my-vec = (vector (cl-copy-seq "one")
+                                                (cl-copy-seq "two")
+                                                (cl-copy-seq "three"))
                           for x across-ref my-vec
                           do (setf (aref x 0) (upcase (aref x 0)))
                           finally return my-vec)

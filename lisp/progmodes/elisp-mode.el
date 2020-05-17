@@ -655,18 +655,16 @@ functions are annotated with \"<f>\" via the
 ;; WORKAROUND: This is nominally a constant, but the text properties
 ;; are not preserved thru dump if use defconst.  See bug#21237.
 (defvar elisp--xref-format
-  (let ((str "(%s %s)"))
-    (put-text-property 1 3 'face 'font-lock-keyword-face str)
-    (put-text-property 4 6 'face 'font-lock-function-name-face str)
-    str))
+  #("(%s %s)"
+    1 3 (face font-lock-keyword-face)
+    4 6 (face font-lock-function-name-face)))
 
 ;; WORKAROUND: This is nominally a constant, but the text properties
 ;; are not preserved thru dump if use defconst.  See bug#21237.
 (defvar elisp--xref-format-extra
-  (let ((str "(%s %s %s)"))
-    (put-text-property 1 3 'face 'font-lock-keyword-face str)
-    (put-text-property 4 6 'face 'font-lock-function-name-face str)
-    str))
+  #("(%s %s %s)"
+    1 3 (face font-lock-keyword-face)
+    4 6 (face font-lock-function-name-face)))
 
 (defvar find-feature-regexp);; in find-func.el
 
