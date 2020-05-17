@@ -2381,7 +2381,7 @@ that for two strings to be equal, they have the same text properties.
 
   Some Lisp objects should never change.  For example, the Lisp
 expression @code{"aaa"} yields a string, but you should not change
-its contents.  Indeed, some objects cannot be changed; for example,
+its contents.  And some objects cannot be changed; for example,
 although you can create a new number by calculating one, Lisp provides
 no operation to change the value of an existing number.
 
@@ -2393,11 +2393,10 @@ point to somewhere else.
   Although numbers never change and all markers are mutable,
 some types have members some of which are mutable and others not.  These
 types include conses, vectors, and strings.  For example,
-although @code{"aaa"} yields a string that should not be changed,
-@code{(make-string 3 ?a)} yields a mutable string that can be
-changed via later calls to @code{aset}.  Another example:
-@code{(symbol-name 'cons)} yields a string @code{"cons"} that should
-not be changed.
+although @code{"cons"} and @code{(symbol-name 'cons)} both yield
+strings that should not be changed, @code{(copy-sequence "cons")} and
+@code{(make-string 3 ?a)} both yield mutable strings that can be
+changed via later calls to @code{aset}.
 
   A mutable object stops being mutable if it is part of an expression
 that is evaluated.  For example:
@@ -2419,9 +2418,9 @@ becomes mutable afterwards.
 changed, the resulting behavior is undefined: the Lisp interpreter
 might signal an error, or it might crash or behave unpredictably in
 other ways.@footnote{This is the behavior specified for languages like
-Common Lisp and C, and it differs from the behavior of languages like
+Common Lisp and C for constants, and this differs from languages like
 JavaScript and Python where an interpreter is required to signal an
-error if a program attempts to change a constant.  Ideally the Emacs
+error if a program attempts to change an immutable object.  Ideally the Emacs
 Lisp interpreter will evolve in latter direction.}
 
   When similar constants occur as parts of a program, the Lisp
