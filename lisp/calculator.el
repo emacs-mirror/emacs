@@ -858,12 +858,10 @@ The result should not exceed the screen width."
   "Convert the given STR to a number, according to the value of
 `calculator-input-radix'."
   (if calculator-input-radix
-    (string-to-number str (cadr (assq calculator-input-radix
-                                      '((bin 2) (oct 8) (hex 16)))))
-    (let* ((str (replace-regexp-in-string
-                 "\\.\\([^0-9].*\\)?$" ".0\\1" str))
-           (str (replace-regexp-in-string
-                 "[eE][+-]?\\([^0-9].*\\)?$" "e0\\1" str)))
+      (string-to-number str (cadr (assq calculator-input-radix
+                                        '((bin 2) (oct 8) (hex 16)))))
+    ;; Allow entry of "1.e3".
+    (let ((str (replace-regexp-in-string (rx "." (any "eE")) "e" str)))
       (float (string-to-number str)))))
 
 (defun calculator-push-curnum ()
