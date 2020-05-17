@@ -3720,9 +3720,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* Make sure data_ephemeral_vec still exists after top_level_run has run.
 	 Guard against sibling call optimization (or any other).  */
       data_ephemeral_vec = data_ephemeral_vec;
+      eassert (check_comp_unit_relocs (comp_u));
     }
-
-  eassert (check_comp_unit_relocs (comp_u));
 
   return;
 }
