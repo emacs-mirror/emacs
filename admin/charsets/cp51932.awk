@@ -43,13 +43,14 @@ BEGIN {
 
 END {
   print ")))";
-  print "  (mapc #'(lambda (x)";
-  print "	    (setcar x (decode-char 'japanese-jisx0208 (car x))))";
-  print "	map)";
+  print "  (setq map (mapcar (lambda (x)";
+  print "		      (cons (decode-char 'japanese-jisx0208 (car x))";
+  print "			    (cdr x)))";
+  print "		    map))";
   print "  (define-translation-table 'cp51932-decode map)";
-  print "  (mapc #'(lambda (x)";
-  print "	    (let ((tmp (car x)))";
-  print "	      (setcar x (cdr x)) (setcdr x tmp)))";
+  print "  (mapc (lambda (x)";
+  print "	  (let ((tmp (car x)))";
+  print "	    (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'cp51932-encode map))";
   print "";

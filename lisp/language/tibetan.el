@@ -326,7 +326,9 @@
 
 
 (defconst tibetan-subjoined-transcription-alist
-  (sort '(("+k"  . "ྐ")
+  (sort
+   (copy-sequence
+	'(("+k"  . "ྐ")
 	  ("+kh" . "ྑ")
 	  ("+g"  . "ྒ")
 	  ("+gh" . "ྒྷ")
@@ -371,8 +373,8 @@
 	  ("+W" . "ྺ") ;; fixed form subscribed WA
 	  ("+Y" . "ྻ") ;; fixed form subscribed YA
 	  ("+R" . "ྼ") ;; fixed form subscribed RA
-	  )
-	(lambda (x y) (> (length (car x)) (length (car y))))))
+	  ))
+   (lambda (x y) (> (length (car x)) (length (car y))))))
 
 ;;;
 ;;; alist for Tibetan base consonant <-> subjoined consonant conversion.

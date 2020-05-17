@@ -93,15 +93,17 @@ function write_entry (unicode) {
 
 END {
   print ")))";
-  print "  (mapc #'(lambda (x)";
+  print "  (setq map";
+  print "    (mapcar";
+  print "	(lambda (x)";
   print "	    (let ((code (logand (car x) #x7F7F)))";
   print "	      (if (integerp (cdr x))";
-  print "		  (setcar x (decode-char 'japanese-jisx0208 code))";
-  print "		(setcar x (decode-char 'japanese-jisx0212 code))";
-  print "		(setcdr x (cadr x)))))";
-  print "	map)";
+  print "		  (cons (decode-char 'japanese-jisx0208 code) (cdr x))";
+  print "		(cons (decode-char 'japanese-jisx0212 code)"
+  print "		      (cadr x)))))";
+  print "	map))";
   print "  (define-translation-table 'eucjp-ms-decode map)";
-  print "  (mapc #'(lambda (x)";
+  print "  (mapc (lambda (x)";
   print "	    (let ((tmp (car x)))";
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";

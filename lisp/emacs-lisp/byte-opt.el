@@ -1509,7 +1509,7 @@
     byte-current-buffer byte-stack-ref))
 
 (defconst byte-compile-side-effect-free-ops
-  (nconc
+  (append
    '(byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
      byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
      byte-eqlsign byte-gtr byte-lss byte-leq byte-geq byte-diff byte-negate

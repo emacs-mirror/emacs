@@ -396,17 +396,17 @@ Properties can be set with
 ;; or, if you're only changing a few items,
 ;;
 ;;   (defvar my-filter-alist
-;;     (nconc '((my-param1 . :never)
-;;              (my-param2 . my-filtering-function))
-;;            frameset-filter-alist)
+;;     (append '((my-param1 . :never)
+;;		 (my-param2 . my-filtering-function))
+;;	       frameset-filter-alist)
 ;;     "My brief customized parameter filter alist.")
 ;;
 ;; and pass it to the FILTER arg of the save/restore functions,
 ;; ALWAYS taking care of not modifying the original lists; if you're
 ;; going to do any modifying of my-filter-alist, please use
 ;;
-;;   (nconc '((my-param1 . :never) ...)
-;;          (copy-sequence frameset-filter-alist))
+;;   (append '((my-param1 . :never) ...)
+;;	     (copy-sequence frameset-filter-alist))
 ;;
 ;; One thing you shouldn't forget is that they are alists, so searching
 ;; in them is sequential.  If you just want to change the default of
@@ -445,7 +445,7 @@ DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
 ;;;###autoload
 (defvar frameset-persistent-filter-alist
-  (nconc
+  (append
    '((background-color            . frameset-filter-sanitize-color)
      (buffer-list                 . :never)
      (buffer-predicate            . :never)
