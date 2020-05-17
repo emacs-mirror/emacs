@@ -158,11 +158,11 @@ contents unchanged.
 @end group
 @end example
 
-  A self-evaluating form yields constant conses, vectors and strings, and you
-should not attempt to modify their contents via @code{setcar}, @code{aset} or
+  A self-evaluating form yields a value that becomes part of the program,
+and you should not try to modify it via @code{setcar}, @code{aset} or
 similar operations.  The Lisp interpreter might unify the constants
 yielded by your program's self-evaluating forms, so that these
-constants might share structure.  @xref{Constants and Mutability}.
+constants might share structure.  @xref{Mutability}.
 
   It is common to write numbers, characters, strings, and even vectors
 in Lisp code, taking advantage of the fact that they self-evaluate.
@@ -564,8 +564,8 @@ and vectors.)
 
 @defspec quote object
 This special form returns @var{object}, without evaluating it.
-The returned value is a constant, and should not be modified.
-@xref{Constants and Mutability}.
+The returned value might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 @end defspec
 
 @cindex @samp{'} for quoting
@@ -608,9 +608,9 @@ Here are some examples of expressions that use @code{quote}:
 
   Although the expressions @code{(list '+ 1 2)} and @code{'(+ 1 2)}
 both yield lists equal to @code{(+ 1 2)}, the former yields a
-freshly-minted mutable list whereas the latter yields a constant list
-built from conses that may be shared with other constants.
-@xref{Constants and Mutability}.
+freshly-minted mutable list whereas the latter yields a list
+built from conses that might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 
   Other quoting constructs include @code{function} (@pxref{Anonymous
 Functions}), which causes an anonymous lambda expression written in Lisp
@@ -710,8 +710,9 @@ Here are some examples:
 @end example
 
 If a subexpression of a backquote construct has no substitutions or
-splices, it acts like @code{quote} in that it yields constant conses,
-vectors and strings that should not be modified.
+splices, it acts like @code{quote} in that it yields conses,
+vectors and strings that might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 
 @node Eval
 @section Eval

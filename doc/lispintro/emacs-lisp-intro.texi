@@ -7317,8 +7317,6 @@ which leave the original list as it was.  One way to find out how this
 works is to experiment.  We will start with the @code{setcar} function.
 
 @need 1200
-@cindex constant lists
-@cindex mutable lists
 First, we can make a list and then set the value of a variable to the
 list, using the @code{setq} special form.  Because we intend to use
 @code{setcar} to change the list, this @code{setq} should not use the
@@ -7327,8 +7325,7 @@ a list that is part of the program and bad things could happen if we
 tried to change part of the program while running it.  Generally
 speaking an Emacs Lisp program's components should be constant (or
 unchanged) while the program is running.  So we instead construct an
-animal list that is @dfn{mutable} (or changeable) by using the
-@code{list} function, as follows:
+animal list by using the @code{list} function, as follows:
 
 @smallexample
 (setq animals (list 'antelope 'giraffe 'lion 'tiger))
