@@ -1723,7 +1723,7 @@ deletion, or > if it is flagged for displaying."
 ;; according to `bookmark-bookmarks-timestamp'.
 (defun bookmark-bmenu-set-header ()
   "Set the immutable header line."
-  (let ((header (concat "%% " "Bookmark")))
+  (let ((header (copy-sequence "%% Bookmark")))
     (when bookmark-bmenu-toggle-filenames
       (setq header (concat header
 			   (make-string (- bookmark-bmenu-file-column

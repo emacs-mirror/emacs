@@ -3717,8 +3717,8 @@ in the active region."
 
 (defun dired-toggle-marks ()
   "Toggle marks: marked files become unmarked, and vice versa.
-Files marked with other flags (such as `D') are not affected.
-`.' and `..' are never toggled.
+Flagged files (indicated with flags such as `C' and `D', not
+with `*') are not affected, and `.' and `..' are never toggled.
 As always, hidden subdirs are not affected."
   (interactive)
   (save-excursion

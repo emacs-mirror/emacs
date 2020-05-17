@@ -75,6 +75,7 @@
 ;; Needed for Emacs 26.
 (defvar async-shell-command-width)
 ;; Needed for Emacs 27.
+(defvar process-file-return-signal-string)
 (defvar shell-command-dont-erase-buffer)
 
 ;; Beautify batch mode.
@@ -4208,18 +4209,27 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (zerop (process-file "true")))
 	    (should-not (zerop (process-file "false")))
 	    (should-not (zerop (process-file "binary-does-not-exist")))
-	    (should
-	     (= 42
+	    ;; Return exit code.
+	    (should (= 42 (process-file
+			   (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
+			   nil nil nil "-c" "exit 42")))
+	    ;; Return exit code in case the process is interrupted,
+	    ;; and there's no indication for a signal describing string.
+	    (let (process-file-return-signal-string)
+	      (should
+	       (= (+ 128 2)
+		  (process-file
+		   (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
+		   nil nil nil "-c" "kill -2 $$"))))
+	    ;; Return string in case the process is interrupted and
+	    ;; there's an indication for a signal describing string.
+	    (let ((process-file-return-signal-string t))
+	      (should
+	       (string-equal
+		"Interrupt"
 		(process-file
 		 (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
-		 nil nil nil "-c" "exit 42")))
-	    ;; Return string in case the process is interrupted.
-	    (should
-	     (string-equal
-	      "Signal 2"
-	      (process-file
-	       (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
-	       nil nil nil "-c" "kill -2 $$")))
+		 nil nil nil "-c" "kill -2 $$"))))
 
 	    (with-temp-buffer
 	      (write-region "foo" nil tmp-name)

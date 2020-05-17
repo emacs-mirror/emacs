@@ -1,8 +1,8 @@
-;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
+;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
-;; Version: 1.0.0
-;; Package-Requires: ((emacs "26.3") (project "0.1"))
+;; Version: 1.0.1
+;; Package-Requires: ((emacs "26.3") (project "0.1.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -1322,11 +1322,11 @@ directory, used as the root of the ignore globs."
       (lambda (ignore)
         (when (string-match-p "/\\'" ignore)
           (setq ignore (concat ignore "*")))
-        (if (string-match "\\`\\./" ignore)
-            (setq ignore (replace-match dir t t ignore))
-          (unless (string-prefix-p "*" ignore)
-            (setq ignore (concat "*/" ignore))))
-        (shell-quote-argument ignore))
+        (shell-quote-argument (if (string-match "\\`\\./" ignore)
+                                  (replace-match dir t t ignore)
+                                (if (string-prefix-p "*" ignore)
+                                    ignore
+                                  (concat "*/" ignore)))))
       ignores
       " -o -path ")
      " "

@@ -101,19 +101,23 @@ horizontal movements now stop at the edge of the board.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
-** EIEIO: 'oset' and 'oset-default' are declared obsolete
+** EIEIO: 'oset' and 'oset-default' are declared obsolete.
 
-** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'
+** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'.
 The mode provides refined highlighting of built-in functions, types,
 and variables.
 
-** archive-mode
-*** Can now modify members of 'ar' archives.
-*** Display of summaries unified between backends
-*** New var 'archive-hidden-columns' and cmd 'archive-hideshow-column'
-These let you control which columns are displayed and which are kept hidden
+** Archive mode
 
-** Emacs-Lisp mode
+*** Can now modify members of 'ar' archives.
+
+*** Display of summaries unified between backends.
+
+*** New user option 'archive-hidden-columns' and command
+'archive-hideshow-column'.  These let you control which columns are
+displayed and which are kept hidden.
+
+** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
 
@@ -158,7 +162,7 @@ this user option.
 This file was a compatibility kludge which is no longer needed.
 
 ---
-** 'lisp-mode' now uses 'common-lisp-indent-function'.
+** Lisp mode now uses 'common-lisp-indent-function'.
 To revert to the previous behaviour,
 '(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
 
@@ -184,7 +188,7 @@ their backends.
 ** Eshell
 
 ---
-*** Environment variable INSIDE_EMACS is now copied to subprocesses.
+*** Environment variable 'INSIDE_EMACS' is now copied to subprocesses.
 Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
 
 ** Tramp
@@ -240,7 +244,7 @@ it after GDB quits.  A toggle button is also provided under 'Gud --
 GDB-Windows'.
 
 +++
-*** gdb-mi now has a better logic for displaying source buffers
+*** gdb-mi now has a better logic for displaying source buffers.
 Now GDB only uses one source window to display source file by default.
 Customize 'gdb-max-source-window-count' to use more than one window.
 Control source file display by 'gdb-display-source-buffer-action'.
@@ -259,11 +263,11 @@ case-insensitive matching of messages when the old behaviour is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
 
-** Hi-Lock
+** Hi Lock mode
 
 ---
 *** Matching in 'hi-lock-mode' is case-sensitive when regexp contains
-upper case characters and `search-upper-case' is non-nil.
+upper case characters and 'search-upper-case' is non-nil.
 'highlight-phrase' also uses 'search-whitespace-regexp'
 to substitute spaces in regexp search.
 
@@ -274,13 +278,13 @@ The new default value is 2000000 (2 megabytes).
 ** Texinfo
 
 ---
-*** New customizable option 'texinfo-texi2dvi-options'.
+*** New user option 'texinfo-texi2dvi-options'.
 This is used when invoking 'texi2dvi' from 'texinfo-tex-buffer'.
 
 ** Rmail
 
 ---
-*** New customizable option 'rmail-re-abbrevs'.
+*** New user option 'rmail-re-abbrevs'.
 Its default value matches localized abbreviations of the "reply"
 prefix on the Subject line in various languages.
 
@@ -290,13 +294,13 @@ prefix on the Subject line in various languages.
 These new navigation commands are bound to 'n' and 'p' in
 'apropos-mode'.
 
-** cc-mode
+** CC mode
 
 *** Added support for Doxygen documentation style.
-‘doxygen’ is now valid ‘c-doc-comment-style’ which recognises all
-comment styles supported by Doxygen (namely ‘///’, ‘//!’, ‘/** … */’
-and ‘/*! … */’.  ‘gtkdoc’ remains the default for C and C++ modes; to
-use ‘doxygen’ by default one might evaluate:
+'doxygen' is now a valid 'c-doc-comment-style' which recognises all
+comment styles supported by Doxygen (namely '///', '//!', '/** … */'
+and '/*! … */'.  'gtkdoc' remains the default for C and C++ modes; to
+use 'doxygen' by default one might evaluate:
 
     (setq-default c-doc-comment-style
                   '((java-mode . javadoc)
@@ -304,17 +308,17 @@ use ‘doxygen’ by default one might evaluate:
                     (c-mode    . doxygen)
                     (c++-mode  . doxygen)))
 
-or use it in a custom ‘c-style’.
+or use it in a custom 'c-style'.
 
-*** Added support to line up ‘?’ and ‘:’ of a ternary operator.
-The new ‘c-lineup-ternary-bodies’ function can be used as a lineup
+*** Added support to line up '?' and ':' of a ternary operator.
+The new 'c-lineup-ternary-bodies' function can be used as a lineup
 function to align question mark and colon which are part of a ternary
-operator (‘?:’).  For example:
+operator ('?:').  For example:
 
     return arg % 2 == 0 ? arg / 2
                         : (3 * arg + 1);
 
-To enable, add it to appropriate entries in ‘c-offsets-alist’, e.g.:
+To enable, add it to appropriate entries in 'c-offsets-alist', e.g.:
 
     (c-set-offset 'arglist-cont '(c-lineup-ternary-bodies
                                   c-lineup-gcc-asm-reg))
@@ -325,20 +329,21 @@ To enable, add it to appropriate entries in ‘c-offsets-alist’, e.g.:
 
 ** browse-url
 
-*** Added support for custom URL handlers
+*** Added support for custom URL handlers.
 
-There is a new defvar 'browse-url-default-handlers' and a defcustom
-'browse-url-handlers' being alists with (REGEXP-OR-PREDICATE
-. FUNCTION) entries allowing to define different browsing FUNCTIONs
-depending on the URL to be browsed.  The defvar is for default
-handlers provided by Emacs itself or external packages, the defcustom
-is for the user (and allows for overriding the default handlers).
+There is a new variable 'browse-url-default-handlers' and a user
+option 'browse-url-handlers' being alists with '(REGEXP-OR-PREDICATE
+. FUNCTION)' entries allowing to define different browsing FUNCTIONs
+depending on the URL to be browsed.  The variable is for default
+handlers provided by Emacs itself or external packages, the user
+option is for the user (and allows for overriding the default
+handlers).
 
 Formerly, one could do the same by setting
 'browse-url-browser-function' to such an alist.  This usage is still
 supported but deprecated.
 
-*** Categorization of browsing functions in internal vs. external
+*** Categorization of browsing functions in internal vs. external.
 
 All standard browsing functions such as 'browse-url-firefox',
 'browse-url-mail', or 'eww' have been categorized into internal (URL
@@ -351,10 +356,11 @@ either an internal or external browser.
 
 * New Modes and Packages in Emacs 28.1
 
-*** Lisp Data mode
+** Lisp Data mode
+
 The new command 'lisp-data-mode' enables a major mode for buffers
 composed of Lisp symbolic expressions that do not form a computer
-program.  The '.dir-locals.el' file is automatically set to use this
+program.  The ".dir-locals.el" file is automatically set to use this
 mode, as are other data files produced by Emacs.
 
 
@@ -397,8 +403,16 @@ This is no longer supported, and setting this variable has no effect.
 ** The macro 'with-displayed-buffer-window' is now obsolete.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 
+---
+** Some libraries obsolete since Emacs 23 have been removed:
+'ledit.el', 'lmenu.el', 'lucid.el and 'old-whitespace.el'.
+
 
 * Lisp Changes in Emacs 28.1
+
++++
+** New function 'file-modes-number-to-symbolic' to convert a numeric
+file mode specification into symbolic form.
 
 ** New macro 'dlet' to dynamically bind variables.
 
@@ -428,23 +442,28 @@ such as "2020-01-15T16:12:21-08:00".
 ** The new function 'dom-remove-attribute' has been added.
 
 ---
-** 'make-network-process', 'make-serial-process' :coding behavior change.
-Previously, passing ":coding nil" to either of these functions would
+** 'make-network-process', 'make-serial-process' ':coding' behavior change.
+Previously, passing ':coding nil' to either of these functions would
 override any non-nil binding for 'coding-system-for-read' and
 'coding-system-for-write'.  For consistency with 'make-process' and
-'make-pipe-process', passing ":coding nil" is now ignored.  No code in
+'make-pipe-process', passing ':coding nil' is now ignored.  No code in
 Emacs depended on the previous behavior; if you really want the
 process' coding-system to be nil, use 'set-process-coding-system'
-after the process has been created, or pass in ":coding '(nil nil)".
+after the process has been created, or pass in ':coding '(nil nil)'.
 
 +++
-** 'open-network-stream' now accepts a :coding argument.
+** 'open-network-stream' now accepts a ':coding' argument.
 This allows specifying the coding systems used by a network process
 for encoding and decoding without having to bind
-coding-system-for-{read,write} or call 'set-process-coding-system'.
+'coding-system-for-{read,write}' or call 'set-process-coding-system'.
 
 +++
-** 'open-gnutls-stream' now also accepts a :coding argument.
+** 'open-gnutls-stream' now also accepts a ':coding' argument.
+
++++
+** New user option 'process-file-return-signal-string'.
+It controls, whether 'process-file' returns a string when a remote
+process is interrupted by a signal.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
@@ -465,12 +484,12 @@ current IME activation status.
 ** On MS-Windows, Emacs can now use the native image API to display images.
 Emacs can now use the MS-Windows GDI+ library to load and display
 images in JPEG, PNG, GIF and TIFF formats.  This support is enabled
-unless Emacs was configured --without-native-image-api.
+unless Emacs was configured '--without-native-image-api'.
 
 This feature is experimental, and needs to be turned on to be used.
 To turn this on, set the variable 'w32-use-native-image-API' to a
 non-nil value.  Please report any bugs you find while using the native
-image API via "M-x report-emacs-bug".
+image API via 'M-x report-emacs-bug'.
 
 
 ----------------------------------------------------------------------

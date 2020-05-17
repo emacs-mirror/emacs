@@ -5120,7 +5120,7 @@ handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   if (CONSP (spec) && EQ (XCAR (spec), Qdisable_eval))
     {
       enable_eval = false;
-      spec = XCAR (XCDR (spec));
+      spec = CONSP (XCDR (spec)) ? XCAR (XCDR (spec)) : Qnil;
     }
 
   if (CONSP (spec)

@@ -275,7 +275,7 @@ in LUD decomposition."
 		k (1+ k)))
 	(setcar (nthcdr j (nth i lu)) sum)
 	(let ((dum (math-lud-pivot-check sum)))
-	  (if (Math-lessp big dum)
+	  (if (or (math-zerop big) (Math-lessp big dum))
 	      (setq big dum
 		    imax i)))
 	(setq i (1+ i)))

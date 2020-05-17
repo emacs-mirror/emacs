@@ -4141,6 +4141,20 @@ its behavior with respect to remote file attribute caching.
 You should only ever change this variable with a let-binding;
 never with `setq'.")
 
+(defcustom process-file-return-signal-string nil
+  "Whether to return a string describing the signal interrupting a process.
+When a process returns an exit code greater than 128, it is
+interpreted as a signal.  `process-file' requires to return a
+string describing this signal.
+Since there are processes violating this rule, returning exit
+codes greater than 128 which are not bound to a signal,
+`process-file' returns the exit code as natural number also in
+this case.  Setting this user option to non-nil forces
+`process-file' to interpret such exit codes as signals, and to
+return a corresponding string."
+  :version "28.1"
+  :type 'boolean)
+
 (defun start-file-process (name buffer program &rest program-args)
   "Start a program in a subprocess.  Return the process object for it.
 
@@ -4889,7 +4903,7 @@ of this sample text; it defaults to 40."
 	;; Swap point-and-mark quickly so as to show the region that
 	;; was selected.  Don't do it if the region is highlighted.
 	(unless (and (region-active-p)
-		     (face-background 'region))
+		     (face-background 'region nil t))
 	  ;; Swap point and mark.
 	  (set-marker (mark-marker) (point) (current-buffer))
 	  (goto-char mark)

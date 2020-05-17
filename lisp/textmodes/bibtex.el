@@ -3559,9 +3559,9 @@ LOCAL is t for interactive calls."
               (lambda ()
                 (:documentation
                  (format "Insert a template for a @%s entry; see also `bibtex-entry'."
-                         entry)
-                 (interactive "*")
-                 (bibtex-entry entry)))))
+                         entry))
+                (interactive "*")
+                (bibtex-entry entry))))
           ;; Menu entries
           (define-key menu-map (vector fname)
             `(menu-item ,(or (nth 1 elt) (car elt)) ,fname))))

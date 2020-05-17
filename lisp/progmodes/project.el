@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.1
+;; Version: 0.1.3
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -273,9 +273,32 @@ backend implementation of `project-external-roots'.")
           (pcase backend
             ('Git
              ;; Don't stop at submodule boundary.
+             ;; Note: It's not necessarily clear-cut what should be
+             ;; considered a "submodule" in the sense that some users
+             ;; may setup things equivalent to "git-submodule"s using
+             ;; "git worktree" instead (for example).
+             ;; FIXME: Also it may be the case that some users would consider
+             ;; a submodule as its own project.  So there's a good chance
+             ;; we will need to let the user tell us what is their intention.
              (or (vc-file-getprop dir 'project-git-root)
-                 (vc-file-setprop dir 'project-git-root
-                                  (vc-find-root dir ".git/"))))
+                 (let* ((root (vc-call-backend backend 'root dir))
+                        (gitfile (expand-file-name ".git" root)))
+                   (vc-file-setprop
+                    dir 'project-git-root
+                    (cond
+                     ((file-directory-p gitfile)
+                      root)
+                     ((with-temp-buffer
+                        (insert-file-contents gitfile)
+                        (goto-char (point-min))
+                        ;; Kind of a hack to distinguish a submodule from
+                        ;; other cases of .git files pointing elsewhere.
+                        (looking-at "gitdir: [./]+/\\.git/modules/"))
+                      (let* ((parent (file-name-directory
+                                      (directory-file-name root))))
+                        (vc-call-backend backend 'root parent)))
+                     (t root)))
+                   )))
             ('nil nil)
             (_ (ignore-errors (vc-call-backend backend 'root dir))))))
     (and root (cons 'vc root))))

@@ -55,11 +55,8 @@
 ;;;; Runtime stuff
 ;;;; -------------
 
-;;; Compatibility
-(eval-and-compile
-  (if (fboundp 'char-valid-p)
-      (defalias 'wisent-char-p 'char-valid-p)
-    (defalias 'wisent-char-p 'char-or-char-int-p)))
+(define-obsolete-function-alias 'wisent-char-p
+  #'characterp "28.1")
 
 ;;; Printed representation of terminals and nonterminals
 (defconst wisent-escape-sequence-strings
@@ -80,7 +77,7 @@
 (defsubst wisent-item-to-string (item)
   "Return a printed representation of ITEM.
 ITEM can be a nonterminal or terminal symbol, or a character literal."
-  (if (wisent-char-p item)
+  (if (characterp item)
         (or (cdr (assq item wisent-escape-sequence-strings))
             (format "'%c'" item))
     (symbol-name item)))

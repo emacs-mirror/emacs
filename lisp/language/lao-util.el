@@ -183,7 +183,9 @@
 ;; Semi-vowel-sign-lo and lower vowels are put under the letter.
 
 (defconst lao-transcription-consonant-alist
-  (sort '(;; single consonants
+  (sort
+   (copy-sequence
+	'(;; single consonants
 	  ("k" . "ກ")
 	  ("kh" . "ຂ")
 	  ("qh" . "ຄ")
@@ -223,14 +225,16 @@
 	  ("hy" . ["ຫຍ"])
 	  ("hn" . ["ຫນ"])
 	  ("hm" . ["ຫມ"])
-	  )
-	(function (lambda (x y) (> (length (car x)) (length (car y)))))))
+	  ))
+   (lambda (x y) (> (length (car x)) (length (car y))))))
 
 (defconst lao-transcription-semi-vowel-alist
   '(("r" . "ຼ")))
 
 (defconst lao-transcription-vowel-alist
-  (sort '(("a" . "ະ")
+  (sort
+   (copy-sequence
+	'(("a" . "ະ")
 	  ("ar" . "າ")
 	  ("i" . "ິ")
 	  ("ii" . "ີ")
@@ -257,8 +261,8 @@
 	  ("ai" . "ໄ")
 	  ("ei" . "ໃ")
 	  ("ao" . ["ເົາ"])
-	  ("aM" . "ຳ"))
-	(function (lambda (x y) (> (length (car x)) (length (car y)))))))
+	  ("aM" . "ຳ")))
+   (lambda (x y) (> (length (car x)) (length (car y))))))
 
 ;; Maa-sakod is put at the tail.
 (defconst lao-transcription-maa-sakod-alist

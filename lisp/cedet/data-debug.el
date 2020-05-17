@@ -49,9 +49,9 @@
 
 ;;; Compatibility
 ;;
-(defalias 'data-debug-overlay-properties 'overlay-properties)
-(defalias 'data-debug-overlay-p 'overlayp)
-(defalias 'dd-propertize 'propertize)
+(define-obsolete-function-alias 'data-debug-overlay-properties 'overlay-properties "28.1")
+(define-obsolete-function-alias 'data-debug-overlay-p 'overlayp "28.1")
+(define-obsolete-function-alias 'dd-propertize 'propertize "28.1")
 
 ;;; GENERIC STUFF
 ;;
@@ -73,7 +73,7 @@ The attributes belong to the tag PARENT."
   "Insert all the parts of OVERLAY.
 PREFIX specifies what to insert at the start of each line."
   (let ((attrprefix (concat (make-string (length prefix) ? ) "# "))
-	(proplist (data-debug-overlay-properties overlay)))
+	(proplist (overlay-properties overlay)))
     (data-debug-insert-property-list
      proplist attrprefix)
     )
@@ -393,10 +393,10 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
    (lambda (key value)
      (data-debug-insert-thing
       key prefix
-      (dd-propertize "key " 'face font-lock-comment-face))
+      (propertize "key " 'face font-lock-comment-face))
      (data-debug-insert-thing
       value prefix
-      (dd-propertize "val " 'face font-lock-comment-face)))
+      (propertize "val " 'face font-lock-comment-face)))
    hash-table))
 
 (defun data-debug-insert-hash-table-from-point (point)
@@ -415,9 +415,9 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 
 (defun data-debug-insert-hash-table-button (hash-table prefix prebuttontext)
   "Insert HASH-TABLE as expandable button with recursive prefix PREFIX and PREBUTTONTEXT in front of the button text."
-  (let ((string (dd-propertize (format "%s" hash-table)
+  (let ((string (propertize (format "%s" hash-table)
 			    'face 'font-lock-keyword-face)))
-    (insert (dd-propertize
+    (insert (propertize
 	     (concat prefix prebuttontext string)
 	     'ddebug        hash-table
 	     'ddebug-indent (length prefix)
@@ -444,7 +444,7 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
       (data-debug-insert-thing (car (cdr rest))
 			       prefix
 			       (concat
-				(dd-propertize (format "%s" (car rest))
+				(propertize (format "%s" (car rest))
 					       'face font-lock-comment-face)
 				" : "))
       (setq rest (cdr (cdr rest))))
@@ -468,9 +468,9 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 A Symbol is a simple thing, but this provides some face and prefix rules.
 PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between prefix and the thing."
-  (let ((string (dd-propertize (format "#<WIDGET %s>" (car widget))
+  (let ((string (propertize (format "#<WIDGET %s>" (car widget))
 			       'face 'font-lock-keyword-face)))
-    (insert (dd-propertize
+    (insert (propertize
 	     (concat prefix prebuttontext string)
 	     'ddebug        widget
 	     'ddebug-indent (length prefix)
@@ -613,7 +613,7 @@ PREBUTTONTEXT is some text between prefix and the stuff vector button."
        (symbol-value symbol)
        (concat (make-string indent ? ) "> ")
        (concat
-	(dd-propertize "value"
+	(propertize "value"
 		    'face 'font-lock-comment-face)
 	" ")))
     (data-debug-insert-property-list
@@ -628,13 +628,13 @@ PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between prefix and the symbol button."
   (let ((string
 	 (cond ((fboundp symbol)
-		(dd-propertize (concat "#'" (symbol-name symbol))
+		(propertize (concat "#'" (symbol-name symbol))
 			    'face 'font-lock-function-name-face))
 	       ((boundp symbol)
-		(dd-propertize (concat "'" (symbol-name symbol))
+		(propertize (concat "'" (symbol-name symbol))
 			    'face 'font-lock-variable-name-face))
 	       (t (format "'%s" symbol)))))
-    (insert (dd-propertize
+    (insert (propertize
 	     (concat prefix prebuttontext string)
 	     'ddebug          symbol
 	     'ddebug-indent   (length prefix)
@@ -657,7 +657,7 @@ PREBUTTONTEXT is some text between prefix and the thing."
     (while (string-match "\t" newstr)
       (setq newstr (replace-match "\\t" t t newstr)))
     (insert prefix prebuttontext
-	    (dd-propertize (format "\"%s\"" newstr)
+	    (propertize (format "\"%s\"" newstr)
 			'face font-lock-string-face)
 	    "\n" )))
 
@@ -668,7 +668,7 @@ A Symbol is a simple thing, but this provides some face and prefix rules.
 PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between prefix and the thing."
   (insert prefix prebuttontext
-	  (dd-propertize (format "%S" thing)
+	  (propertize (format "%S" thing)
 			 'face font-lock-string-face)
 	  "\n"))
 
@@ -737,10 +737,10 @@ FACE is the face to use."
     (null . data-debug-insert-nil)
 
     ;; Overlay
-    (data-debug-overlay-p . data-debug-insert-overlay-button)
+    (overlayp . data-debug-insert-overlay-button)
 
     ;; Overlay list
-    ((lambda (thing) (and (consp thing) (data-debug-overlay-p (car thing)))) .
+    ((lambda (thing) (and (consp thing) (overlayp (car thing)))) .
      data-debug-insert-overlay-list-button)
 
     ;; Buffer

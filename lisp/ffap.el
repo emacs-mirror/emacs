@@ -1607,7 +1607,7 @@ Each ALIST entry looks like (STRING . DATA) and defines one choice.
 Function CONT is applied to the entry chosen by the user."
   ;; Note: this function is used with a different continuation
   ;; by the ffap-url add-on package.
-  ;; Could try rewriting to use easymenu.el or lmenu.el.
+  ;; Could try rewriting to use easymenu.el.
   (let (choice)
     (cond
      ;; Emacs mouse:

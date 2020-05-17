@@ -1164,6 +1164,42 @@ works as expected if the default directory is quoted."
     (should-not (make-directory a/b t))
     (delete-directory dir 'recursive)))
 
+(ert-deftest files-tests-file-modes-symbolic-to-number ()
+  (let ((alist (list (cons "a=rwx" #o777)
+                     (cons "o=t" #o1000)
+                     (cons "o=xt" #o1001)
+                     (cons "o=tx" #o1001) ; Order doesn't matter.
+                     (cons "u=rwx,g=rx,o=rx" #o755)
+                     (cons "u=rwx,g=,o=" #o700)
+                     (cons "u=rwx" #o700) ; Empty permissions can be ignored.
+                     (cons "u=rw,g=r,o=r" #o644)
+                     (cons "u=rw,g=r,o=t" #o1640)
+                     (cons "u=rw,g=r,o=xt" #o1641)
+                     (cons "u=rwxs,g=rs,o=xt" #o7741)
+                     (cons "u=rws,g=rs,o=t" #o7640)
+                     (cons "u=rws,g=rs,o=r" #o6644)
+                     (cons "a=r" #o444)
+                     (cons "u=S" nil)
+                     (cons "u=T" nil)
+                     (cons "u=Z" nil))))
+    (dolist (x alist)
+      (if (cdr-safe x)
+          (should (equal (cdr x) (file-modes-symbolic-to-number (car x))))
+        (should-error (file-modes-symbolic-to-number (car x)))))))
+
+(ert-deftest files-tests-file-modes-number-to-symbolic ()
+  (let ((alist (list (cons #o755 "-rwxr-xr-x")
+                     (cons #o700 "-rwx------")
+                     (cons #o644 "-rw-r--r--")
+                     (cons #o1640 "-rw-r----T")
+                     (cons #o1641 "-rw-r----t")
+                     (cons #o7741 "-rwsr-S--t")
+                     (cons #o7640 "-rwSr-S--T")
+                     (cons #o6644 "-rwSr-Sr--")
+                     (cons #o444 "-r--r--r--"))))
+    (dolist (x alist)
+      (should (equal (cdr x) (file-modes-number-to-symbolic (car x)))))))
+
 (ert-deftest files-tests-no-file-write-contents ()
   "Test that `write-contents-functions' permits saving a file.
 Usually `basic-save-buffer' will prompt for a file name if the

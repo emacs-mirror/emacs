@@ -107,8 +107,8 @@
 
 (ert-deftest erc-track--erc-faces-in ()
   "`erc-faces-in' should pick up both 'face and 'font-lock-face properties."
-  (let ((str0 "is bold")
-        (str1 "is bold"))
+  (let ((str0 (copy-sequence "is bold"))
+        (str1 (copy-sequence "is bold")))
     ;; Turn on Font Lock mode: this initialize `char-property-alias-alist'
     ;; to '((face font-lock-face)).  Note that `font-lock-mode' don't
     ;; turn on the mode if the test is run on batch mode or if the
