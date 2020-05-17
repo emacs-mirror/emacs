@@ -498,7 +498,7 @@ status of this file.  Otherwise, the value returned is one of:
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (progn
+      (let ((default-directory (file-name-directory file)))
         (setq backend (or backend (vc-backend file)))
         (when backend
           (vc-file-setprop file 'vc-working-revision
