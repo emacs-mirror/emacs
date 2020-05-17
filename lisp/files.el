@@ -1921,6 +1921,8 @@ killed."
 	(setq buffer-file-truename otrue)
 	(setq dired-directory odir)
 	(lock-buffer)
+        (if (get-buffer oname)
+            (kill-buffer oname))
 	(rename-buffer oname)))
     (unless (eq (current-buffer) obuf)
       (with-current-buffer obuf
