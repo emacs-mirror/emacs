@@ -792,7 +792,7 @@ It's also possible to enter an arbitrary directory."
 ;;; Project switching
 
 ;;;###autoload
-(defvar project-switch-menu
+(defvar project-switch-commands
   '(("f" "Find file" project-find-file)
     ("s" "Find regexp" project-find-regexp)
     ("d" "Dired" project-dired)
@@ -812,26 +812,26 @@ the choice in the dispatch menu.")
      (format "[%s] %s"
              (propertize (key-description `(,key)) 'face 'bold)
              label))
-   project-switch-menu
+   project-switch-commands
    "  "))
 
 ;;;###autoload
 (defun project-switch-project ()
   "\"Switch\" to another project by running a chosen command.
-The available commands are picked from `project-switch-menu' and
-presented in a dispatch menu."
+The available commands are picked from `project-switch-commands'
+and presented in a dispatch menu."
   (interactive)
   (let ((dir (project-prompt-project-dir))
         (choice nil))
     (while (not (and choice
                      (or (equal choice (kbd "C-g"))
-                         (assoc choice project-switch-menu))))
+                         (assoc choice project-switch-commands))))
       (setq choice (read-key-sequence (project--keymap-prompt))))
     (if (equal choice (kbd "C-g"))
         (message "Quit")
       (let ((default-directory dir))
         (call-interactively
-         (nth 2 (assoc choice project-switch-menu)))))))
+         (nth 2 (assoc choice project-switch-commands)))))))
 
 (provide 'project)
 ;;; project.el ends here
