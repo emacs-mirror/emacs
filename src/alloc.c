@@ -4944,12 +4944,10 @@ typedef union
 #ifdef HAVE___BUILTIN_UNWIND_INIT
 # define SET_STACK_TOP_ADDRESS(p)	\
    stacktop_sentry sentry;		\
-   __builtin_unwind_init ();		\
    *(p) = NEAR_STACK_TOP (&sentry)
 #else
 # define SET_STACK_TOP_ADDRESS(p)		\
    stacktop_sentry sentry;			\
-   __builtin_unwind_init ();			\
    test_setjmp ();				\
    sys_setjmp (sentry.j);			\
    *(p) = NEAR_STACK_TOP (&sentry + (stack_bottom < &sentry.c))
@@ -5025,7 +5023,7 @@ mark_stack (char const *bottom, char const *end)
    from FUNC.  */
 
 NO_INLINE void
-flush_stack_call_func (void (*func) (void *arg), void *arg)
+flush_stack_call_func1 (void (*func) (void *arg), void *arg)
 {
   void *end;
   struct thread_state *self = current_thread;

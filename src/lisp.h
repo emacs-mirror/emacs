@@ -3811,7 +3811,15 @@ extern void alloc_unexec_pre (void);
 extern void alloc_unexec_post (void);
 extern void mark_maybe_objects (Lisp_Object const *, ptrdiff_t);
 extern void mark_stack (char const *, char const *);
-extern void flush_stack_call_func (void (*func) (void *arg), void *arg);
+extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
+
+INLINE void
+flush_stack_call_func (void (*func) (void *arg), void *arg)
+{
+  __builtin_unwind_init ();
+  flush_stack_call_func1 (func, arg);
+}
+
 extern void garbage_collect (void);
 extern void maybe_garbage_collect (void);
 extern const char *pending_malloc_warning;
