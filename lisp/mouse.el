@@ -2575,9 +2575,12 @@ as it does when dropping text in the source buffer."
 If this option is nil, `mouse-drag-and-drop-region' does not show
 tooltips.  If this is t, it shows the entire text dragged in a
 tooltip.  If this is an integer (as with the default value of
-256), it will show that many characters of the dragged text in
-a tooltip."
-  :type 'integer
+256), it will show up to that many characters of the dragged text
+in a tooltip."
+  :type '(choice
+          (const :tag "Do not show tooltips" nil)
+          (const :tag "Show all text" t)
+          (integer :tag "Show characters (max)" 256))
   :version "26.1")
 
 (defcustom mouse-drag-and-drop-region-show-cursor t
@@ -2611,6 +2614,7 @@ is copied instead of being cut."
   (let* ((mouse-button (event-basic-type last-input-event))
          (mouse-drag-and-drop-region-show-tooltip
           (when (and mouse-drag-and-drop-region-show-tooltip
+                     (> mouse-drag-and-drop-region-show-tooltip 0)
                      (display-multi-frame-p)
                      (require 'tooltip))
             mouse-drag-and-drop-region-show-tooltip))
