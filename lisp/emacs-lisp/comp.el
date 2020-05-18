@@ -103,7 +103,10 @@ Skip if any is matching."
     macroexpand scroll-down scroll-up narrow-to-region widen rename-buffer
     make-indirect-buffer delete-file top-level abort-recursive-edit
     ;; For user convenience
-    yes-or-no-p)
+    yes-or-no-p
+    ;; Make the Evil happy :/
+    read-key-sequence select-window set-window-buffer split-window-internal
+    use-global-map use-local-map)
   "Primitive functions for which we do not perform trampoline optimization.
 This is especially useful for primitives known to be advised or
 redefined when compilation is performed at `comp-speed' > 0."
@@ -1983,10 +1986,9 @@ Backward propagate array placement properties."
                          (fill-args args maxarg))))
             `(,call-type ,callee ,@args)))
          ;; Intra compilation unit procedure call optimization.
-         ;; Attention speed 3 triggers that for non self calls too!!
-         ((or (eq callee self)
-              (and (>= comp-speed 3)
-                   callee-in-unit))
+         ;; Attention speed 3 triggers this for non self calls too!!
+         ((and (>= comp-speed 3)
+               callee-in-unit)
           (let* ((func-args (comp-func-args callee-in-unit))
                  (nargs (comp-nargs-p func-args))
                  (call-type (if nargs 'direct-callref 'direct-call))
