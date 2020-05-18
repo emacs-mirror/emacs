@@ -1964,7 +1964,7 @@ Backward propagate array placement properties."
 ;;   the full compilation unit.
 ;;   For this reason this is triggered only at comp-speed == 3.
 
-(defun comp-call-optim-form-call (callee args self)
+(defun comp-call-optim-form-call (callee args)
   ""
   (cl-flet ((fill-args (args total)
               ;; Fill missing args to reach TOTAL
@@ -2017,11 +2017,11 @@ Backward propagate array placement properties."
        do (pcase insn
             (`(set ,lval (callref funcall ,f . ,rest))
              (when-let ((new-form (comp-call-optim-form-call
-                                   (comp-mvar-constant f) rest self)))
+                                   (comp-mvar-constant f) rest)))
                (setcar insn-cell `(set ,lval ,new-form))))
             (`(callref funcall ,f . ,rest)
              (when-let ((new-form (comp-call-optim-form-call
-                                   (comp-mvar-constant f) rest self)))
+                                   (comp-mvar-constant f) rest)))
                (setcar insn-cell new-form)))))))
 
 (defun comp-call-optim (_)
@@ -2296,17 +2296,17 @@ processes from `comp-async-compilations'"
    do (remhash file-name comp-async-compilations))
   (hash-table-count comp-async-compilations))
 
-(let (num-cpus)
-  (defun comp-effective-async-max-jobs ()
-    "Compute the effective number of async jobs."
-    (if (zerop comp-async-jobs-number)
-        (or num-cpus
-            (setf num-cpus
-                  ;; Half of the CPUs or at least one.
-                  ;; FIXME portable?
-                  (max 1 (/ (string-to-number (shell-command-to-string "nproc"))
-                            2))))
-      comp-async-jobs-number)))
+(defvar comp-num-cpus)
+(defun comp-effective-async-max-jobs ()
+  "Compute the effective number of async jobs."
+  (if (zerop comp-async-jobs-number)
+      (or comp-num-cpus
+          (setf comp-num-cpus
+                ;; Half of the CPUs or at least one.
+                ;; FIXME portable?
+                (max 1 (/ (string-to-number (shell-command-to-string "nproc"))
+                          2))))
+    comp-async-jobs-number))
 
 (defun comp-run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
