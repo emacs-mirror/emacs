@@ -1118,19 +1118,21 @@ be set to `eglot-move-to-lsp-abiding-column' (the default), and
   "Convert LSP position POS-PLIST to Emacs point.
 If optional MARKER, return a marker instead"
   (save-excursion
-    (goto-char (point-min))
-    (forward-line (min most-positive-fixnum
-                       (plist-get pos-plist :line)))
-    (unless (eobp) ;; if line was excessive leave point at eob
-      (let ((tab-width 1)
-            (col (plist-get pos-plist :character)))
-        (unless (wholenump col)
-          (eglot--warn
-           "Caution: LSP server sent invalid character position %s. Using 0 instead."
-           col)
-          (setq col 0))
-        (funcall eglot-move-to-column-function col)))
-    (if marker (copy-marker (point-marker)) (point))))
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (forward-line (min most-positive-fixnum
+                         (plist-get pos-plist :line)))
+      (unless (eobp) ;; if line was excessive leave point at eob
+        (let ((tab-width 1)
+              (col (plist-get pos-plist :character)))
+          (unless (wholenump col)
+            (eglot--warn
+             "Caution: LSP server sent invalid character position %s. Using 0 instead."
+             col)
+            (setq col 0))
+          (funcall eglot-move-to-column-function col)))
+      (if marker (copy-marker (point-marker)) (point)))))
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
@@ -1585,13 +1587,15 @@ COMMAND is a symbol naming the command."
                                        message `((eglot-lsp-diag . ,diag-spec)))))
          into diags
          finally (cond ((and flymake-mode eglot--current-flymake-report-fn)
-                        (funcall eglot--current-flymake-report-fn diags
-                                 ;; If the buffer hasn't changed since last
-                                 ;; call to the report function, flymake won't
-                                 ;; delete old diagnostics.  Using :region
-                                 ;; keyword forces flymake to delete
-                                 ;; them (github#159).
-                                 :region (cons (point-min) (point-max)))
+                        (save-restriction
+                          (widen)
+                          (funcall eglot--current-flymake-report-fn diags
+                                   ;; If the buffer hasn't changed since last
+                                   ;; call to the report function, flymake won't
+                                   ;; delete old diagnostics.  Using :region
+                                   ;; keyword forces flymake to delete
+                                   ;; them (github#159).
+                                   :region (cons (point-min) (point-max))))
                         (setq eglot--unreported-diagnostics nil))
                        (t
                         (setq eglot--unreported-diagnostics (cons t diags))))))
