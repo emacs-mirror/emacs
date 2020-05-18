@@ -133,6 +133,12 @@ finishes compiling all input files."
   :type 'hook
   :group 'comp)
 
+(defcustom comp-async-env-modifier-form nil
+  "Form to be evaluated by each asyncronous compilation worker
+before compilation.  Usable to modify the compiler environment."
+  :type 'list
+  :group 'comp)
+
 (defvar comp-dry-run nil
   "When non nil run everything but the C back-end.")
 
@@ -2324,6 +2330,7 @@ display a message."
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
                                   load-path ',load-path)
+                            ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
                             (native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
