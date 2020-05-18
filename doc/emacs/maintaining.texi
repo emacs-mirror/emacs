@@ -1719,23 +1719,24 @@ continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
 directory.
 
 @findex project-eshell
-   The command @code{project-eshell} starts an Eshell session in a new
+  The command @code{project-eshell} starts an Eshell session in a new
 buffer with the current project's root as the working directory.
 @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
 
 @node Switching Projects
 @subsection Switching Projects
 
-    Commands that operate on project files (@pxref{Project File
+  Commands that operate on project files (@pxref{Project File
 Commands}) will conveniently prompt you for a project directory when
-no project is current.  When a project is current but you want to
+no project is current.  When you are inside a project but you want to
 operate on a different project, the command
 @code{project-switch-project} can be used.
 
-  This command prompts you for a new project directory, and then
-displays a menu of commands avilable for operating on the chosen
-project.  The variable @code{project-switch-commands} controls which
-commands are avilable in the menu, and by which keys they are invoked.
+  This command prompts you to choose a directory among known project
+roots, and then displays the menu of available commands to operate on
+the chosen project.  The variable @code{project-switch-commands}
+controls which commands are avilable in the menu, and by which keys
+they are invoked.
 
 @node Change Log
 @section Change Logs
