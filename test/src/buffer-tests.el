@@ -1327,4 +1327,10 @@ with parameters from the *Messages* buffer modification."
           (set-buffer-multibyte t)
           (buffer-string)))))))
 
+;; https://debbugs.gnu.org/33492
+(ert-deftest buffer-tests-buffer-local-variables-undo ()
+  "Test that `buffer-undo-list' appears in `buffer-local-variables'."
+  (with-temp-buffer
+    (should (assq 'buffer-undo-list (buffer-local-variables)))))
+
 ;;; buffer-tests.el ends here
