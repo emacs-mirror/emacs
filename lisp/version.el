@@ -163,8 +163,4 @@ correspond to the running Emacs.
 Optional argument DIR is a directory to use instead of `source-directory'."
   (emacs-repository-branch-git (or dir source-directory)))
 
-;; We put version info into the executable in the form that `ident' uses.
-(purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
-		  " $\n"))
-
 ;;; version.el ends here
