@@ -101,6 +101,9 @@ Each functions on this hook is called in turn with one
 argument (the directory) and should return either nil to mean
 that it is not applicable, or a project instance.")
 
+(defvar project-current-inhibit-prompt nil
+  "Non-nil to skip prompting the user in `project-current'.")
+
 ;;;###autoload
 (defun project-current (&optional maybe-prompt dir)
   "Return the project instance in DIR or `default-directory'.
@@ -110,7 +113,8 @@ the user for a different project to look in."
   (let ((pr (project--find-in-directory dir)))
     (cond
      (pr)
-     (maybe-prompt
+     ((unless project-current-inhibit-prompt
+        maybe-prompt)
       (setq dir (project-prompt-project-dir)
             pr (project--find-in-directory dir))))
     (if pr
@@ -829,7 +833,8 @@ and presented in a dispatch menu."
       (setq choice (read-key-sequence (project--keymap-prompt))))
     (if (equal choice (kbd "C-g"))
         (message "Quit")
-      (let ((default-directory dir))
+      (let ((default-directory dir)
+            (project-current-inhibit-prompt t))
         (call-interactively
          (nth 2 (assoc choice project-switch-commands)))))))
 
