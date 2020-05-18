@@ -223,7 +223,7 @@ to find the list of ignores for each directory."
               local-files))))
 
 (defgroup project-vc nil
-  "Project implementation using the VC package."
+  "Project implementation based on the VC package."
   :version "25.1"
   :group 'tools)
 
@@ -231,6 +231,12 @@ to find the list of ignores for each directory."
   "List of patterns to include in `project-ignores'."
   :type '(repeat string)
   :safe 'listp)
+
+(defcustom project-vc-merge-submodules t
+  "Non-nil to consider submodules part of the parent project."
+  :type 'boolean
+  :package-version '(project . "0.2.0")
+  :safe 'booleanp)
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -273,35 +279,44 @@ backend implementation of `project-external-roots'.")
           (pcase backend
             ('Git
              ;; Don't stop at submodule boundary.
-             ;; Note: It's not necessarily clear-cut what should be
-             ;; considered a "submodule" in the sense that some users
-             ;; may setup things equivalent to "git-submodule"s using
-             ;; "git worktree" instead (for example).
-             ;; FIXME: Also it may be the case that some users would consider
-             ;; a submodule as its own project.  So there's a good chance
-             ;; we will need to let the user tell us what is their intention.
              (or (vc-file-getprop dir 'project-git-root)
-                 (let* ((root (vc-call-backend backend 'root dir))
-                        (gitfile (expand-file-name ".git" root)))
+                 (let ((root (vc-call-backend backend 'root dir)))
                    (vc-file-setprop
                     dir 'project-git-root
-                    (cond
-                     ((file-directory-p gitfile)
-                      root)
-                     ((with-temp-buffer
-                        (insert-file-contents gitfile)
-                        (goto-char (point-min))
-                        ;; Kind of a hack to distinguish a submodule from
-                        ;; other cases of .git files pointing elsewhere.
-                        (looking-at "gitdir: [./]+/\\.git/modules/"))
-                      (let* ((parent (file-name-directory
-                                      (directory-file-name root))))
-                        (vc-call-backend backend 'root parent)))
-                     (t root)))
-                   )))
+                    (if (and
+                         project-vc-merge-submodules
+                         (project--submodule-p root))
+                        (let* ((parent (file-name-directory
+                                        (directory-file-name root))))
+                          (vc-call-backend backend 'root parent))
+                      root)))))
             ('nil nil)
             (_ (ignore-errors (vc-call-backend backend 'root dir))))))
     (and root (cons 'vc root))))
+
+(defun project--submodule-p (root)
+  ;; XXX: We only support Git submodules for now.
+  ;;
+  ;; For submodules, at least, we expect the users to prefer them to
+  ;; be considered part of the parent project.  For those who don't,
+  ;; there is the custom var now.
+  ;;
+  ;; Some users may also set up things equivalent to Git submodules
+  ;; using "git worktree" instead (for example).  However, we expect
+  ;; that most of them would prefer to treat those as separate
+  ;; projects anyway.
+  (let* ((gitfile (expand-file-name ".git" root)))
+    (cond
+     ((file-directory-p gitfile)
+      nil)
+     ((with-temp-buffer
+        (insert-file-contents gitfile)
+        (goto-char (point-min))
+        ;; Kind of a hack to distinguish a submodule from
+        ;; other cases of .git files pointing elsewhere.
+        (looking-at "gitdir: [./]+/\\.git/modules/"))
+      t)
+     (t nil))))
 
 (cl-defmethod project-roots ((project (head vc)))
   (list (cdr project)))
