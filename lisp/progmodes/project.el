@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.1.3
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -233,7 +233,10 @@ to find the list of ignores for each directory."
   :safe 'listp)
 
 (defcustom project-vc-merge-submodules t
-  "Non-nil to consider submodules part of the parent project."
+  "Non-nil to consider submodules part of the parent project.
+
+After changing this variable (using Customize or .dir-locals.el)
+you might have to restart Emacs to see the effect."
   :type 'boolean
   :package-version '(project . "0.2.0")
   :safe 'booleanp)
@@ -284,6 +287,8 @@ backend implementation of `project-external-roots'.")
                    (vc-file-setprop
                     dir 'project-git-root
                     (if (and
+                         ;; FIXME: Invalidate the cache when the value
+                         ;; of this variable changes.
                          project-vc-merge-submodules
                          (project--submodule-p root))
                         (let* ((parent (file-name-directory
@@ -302,9 +307,8 @@ backend implementation of `project-external-roots'.")
   ;; there is the custom var now.
   ;;
   ;; Some users may also set up things equivalent to Git submodules
-  ;; using "git worktree" instead (for example).  However, we expect
-  ;; that most of them would prefer to treat those as separate
-  ;; projects anyway.
+  ;; using "git worktree" (for example).  However, we expect that most
+  ;; of them would prefer to treat those as separate projects anyway.
   (let* ((gitfile (expand-file-name ".git" root)))
     (cond
      ((file-directory-p gitfile)
