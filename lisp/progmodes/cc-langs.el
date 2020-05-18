@@ -3412,8 +3412,14 @@ regexp should match \"(\" if parentheses are valid in declarators.
 The end of the first submatch is taken as the end of the operator.
 Identifier syntax is in effect when this is matched (see
 `c-identifier-syntax-table')."
-  t (if (c-lang-const c-type-modifier-kwds)
-	(concat (regexp-opt (c-lang-const c-type-modifier-kwds) t) "\\>")
+  t (if (or (c-lang-const c-type-modifier-kwds) (c-lang-const c-modifier-kwds))
+        (concat
+	 (regexp-opt (c--delete-duplicates
+		      (append (c-lang-const c-type-modifier-kwds)
+			      (c-lang-const c-modifier-kwds))
+		      :test 'string-equal)
+		     t)
+	 "\\>")
       ;; Default to a regexp that never matches.
       regexp-unmatchable)
   ;; Check that there's no "=" afterwards to avoid matching tokens
