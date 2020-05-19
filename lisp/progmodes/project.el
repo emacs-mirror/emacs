@@ -391,7 +391,9 @@ backend implementation of `project-external-roots'.")
                 submodules)))
          (setq files
                (apply #'nconc files sub-files)))
-       files))
+       ;; 'git ls-files' returns duplicate entries for merge conflicts.
+       ;; XXX: Better solutions welcome, but this seems cheap enough.
+       (delete-consecutive-dups files)))
     (`Hg
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
            args)
