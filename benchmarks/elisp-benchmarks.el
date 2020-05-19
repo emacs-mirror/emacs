@@ -4,7 +4,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
-;; Version: 1.4
+;; Version: 1.5
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
 ;; Created: 2019-01-12
@@ -85,6 +85,10 @@ RECOMPILE all the benchmark folder when non nil."
 	   repeat runs
 	   for i from 1
 	   named test-loop
+	   with native-comp = (boundp 'comp-ctxt) ; FIXME when possible
+	   with compile-function = (if native-comp
+				       #'native-compile
+				     #'byte-compile-file)
 	   with res = (make-hash-table :test #'equal)
 	   with sources = (directory-files elb-bench-directory t "\\.el$")
 	   with tests = (if selector
@@ -93,9 +97,20 @@ RECOMPILE all the benchmark folder when non nil."
 				       collect (file-name-base f))
 			  (mapcar #'file-name-base sources))
 	   initially
-	   (if recompile
-	       (mapc (lambda (f) (byte-compile-file f t)) sources)
-	     (mapc #'load (mapcar #'file-name-sans-extension sources)))
+	   (when native-comp
+	     (require 'comp)
+	     (setf comp-speed 3))
+	   ;; Compile
+	   (when recompile
+	     (mapc (lambda (f)
+		     (message "Compiling... %s" f)
+		     (funcall compile-function f t))
+		   sources))
+	   ;; Load
+	   (mapc #'load (mapcar (if native-comp
+				    #'comp-output-filename
+				  #'file-name-sans-extension)
+				sources))
 	   (cl-loop for test in tests
 		    do (puthash test () res))
 	   do
