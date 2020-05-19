@@ -547,6 +547,24 @@ baz\"\""
       (should (equal "" (buffer-string))))))
 
 
+;;; Undoing
+(ert-deftest electric-pair-undo-unrelated-state ()
+  "Make sure `electric-pair-mode' does not confuse `undo' (bug#39680)."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (electric-pair-local-mode)
+    (let ((last-command-event ?\())
+      (ert-simulate-command '(self-insert-command 1)))
+    (undo-boundary)
+    (let ((last-command-event ?a))
+      (ert-simulate-command '(self-insert-command 1)))
+    (undo-boundary)
+    (ert-simulate-command '(undo))
+    (let ((last-command-event ?\())
+      (ert-simulate-command '(self-insert-command 1)))
+    (should (string= (buffer-string) "(())"))))
+
+
 ;;; Electric newlines between pairs
 ;;; TODO: better tests
 (ert-deftest electric-pair-open-extra-newline ()
