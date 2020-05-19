@@ -1867,7 +1867,6 @@ concept of continuable errors.
 @node Processing of Errors
 @subsubsection How Emacs Processes Errors
 @cindex processing of errors
-@cindex handle errors
 
 When an error is signaled, @code{signal} searches for an active
 @dfn{handler} for the error.  A handler is a sequence of Lisp
@@ -1906,6 +1905,7 @@ variables precisely as they were at the time of the error.
 @subsubsection Writing Code to Handle Errors
 @cindex error handler
 @cindex handling errors
+@cindex handle Lisp errors
 @cindex forms for handling errors
 
   The usual effect of signaling an error is to terminate the command
