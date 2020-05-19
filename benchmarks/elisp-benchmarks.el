@@ -74,7 +74,7 @@
 	  (1- n)))))
 
 ;;;###autoload
-(defun elisp-benchmarks-run (&optional selector recompile runs)
+(cl-defun elisp-benchmarks-run (&optional selector (recompile t) runs)
   "Run all the benchmarks and present the results.
 If non nil SELECTOR is a regexp to match the benchmark names to be executed.
 The test is repeated RUNS number of times.  If RUNS is nil `elb-runs' is used as
