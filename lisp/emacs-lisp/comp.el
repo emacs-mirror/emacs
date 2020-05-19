@@ -2296,7 +2296,7 @@ processes from `comp-async-compilations'"
    do (remhash file-name comp-async-compilations))
   (hash-table-count comp-async-compilations))
 
-(defvar comp-num-cpus)
+(defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
   (if (zerop comp-async-jobs-number)
