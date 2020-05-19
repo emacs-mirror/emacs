@@ -681,5 +681,17 @@ loop using the command \\[fileloop-continue]."
    from to (project-files (project-current t)) 'default)
   (fileloop-continue))
 
+;;;###autoload
+(defun project-compile ()
+  "Run `compile' in the project root."
+  (interactive)
+  (let* ((pr (project-current t))
+         (roots (project-roots pr))
+         ;; TODO: be more intelligent when choosing a directory. This
+         ;; currently isn't a priority, since no `project-roots'
+         ;; implementation returns more that one directory.
+         (default-directory (car roots)))
+    (call-interactively 'compile)))
+
 (provide 'project)
 ;;; project.el ends here
