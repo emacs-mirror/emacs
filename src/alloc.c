@@ -3119,8 +3119,7 @@ cleanup_vector (struct Lisp_Vector *vector)
     {
       struct Lisp_Native_Comp_Unit *cu =
 	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
-      eassert (cu->handle);
-      dynlib_close (cu->handle);
+      dispose_comp_unit (cu, true);
     }
 }
 

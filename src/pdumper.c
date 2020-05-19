@@ -5312,6 +5312,9 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  concat2 (Vinvocation_directory,
 		   installation_state == LOCAL_BUILD
 		   ? XCDR (comp_u->file) : XCAR (comp_u->file));
+#ifdef WINDOWSNT
+        comp_u->cfile = xlispstrdup(comp_u->file);
+#endif
 	comp_u->handle = dynlib_open (SSDATA (comp_u->file));
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());

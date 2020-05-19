@@ -411,6 +411,10 @@ load_gccjit_if_necessary (bool mandatory)
 #define CALL1I(fun, arg)				\
   CALLN (Ffuncall, intern_c_string (STR (fun)), arg)
 
+/* Like call2 but stringify and intern.  */
+#define CALL2I(fun, arg1, arg2)				\
+  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2)
+
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR (name))
@@ -434,6 +438,8 @@ typedef struct {
   void *link_table[F_RELOC_MAX_SIZE];
   ptrdiff_t size;
 } f_reloc_t;
+
+sigset_t saved_sigset;
 
 static f_reloc_t freloc;
 
@@ -3795,6 +3801,13 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
+static void
+restore_sigmask (void)
+{
+  pthread_sigmask (SIG_SETMASK, &saved_sigset, 0);
+  unblock_input ();
+}
+
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
@@ -3816,6 +3829,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
   sigset_t oldset;
+  ptrdiff_t count = 0;
+
   if (!noninteractive)
     {
       sigset_t blocked;
@@ -3828,6 +3843,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       sigaddset (&blocked, SIGIO);
 #endif
       pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
+      count = SPECPDL_INDEX ();
+      record_unwind_protect_void (restore_sigmask);
     }
   emit_ctxt_code ();
 
@@ -3866,18 +3883,10 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
-  /* Remove the old eln instead of copying the new one into it to get
-     a new inode and prevent crashes in case the old one is currently
-     loaded.  */
-  if (!NILP (Ffile_exists_p (out_file)))
-    Fdelete_file (out_file, Qnil);
-  Frename_file (tmp_file, out_file, Qnil);
+  CALL2I(comp--replace-output-file, out_file, tmp_file);
 
   if (!noninteractive)
-    {
-      pthread_sigmask (SIG_SETMASK, &oldset, 0);
-      unblock_input ();
-    }
+    unbind_to (count, Qnil);
 
   return out_file;
 }
@@ -3936,6 +3945,223 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
   return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
 				     union vectorlike_header),
 			     code);
+}
+
+
+/*********************************/
+/* Disposal of compilation units */
+/*********************************/
+
+/*
+The problem: Windows does not let us delete an .eln file that has been
+loaded by a process. This has two implications in Emacs:
+
+1) It is not possible to recompile a lisp file if the corresponding
+.eln file has been loaded. This is because we'd like to use the same
+filename, but we can't delete the old .eln file.
+
+2) It is not possible to delete a package using `package-delete'
+if an .eln file has been loaded.
+
+* General idea
+
+The solution to these two problems is to move the foo.eln file
+somewhere else and have the last Emacs instance using it delete it.
+To make it easy to find what files need to be removed we use two approaches.
+
+In the 1) case we rename foo.eln to fooXXXXXX.eln.old in the same
+folder. When Emacs is unloading "foo" (either GC'd the native
+compilation unit or Emacs is closing (see below)) we delete all the
+.eln.old files in the folder where the original foo.eln was stored.
+
+Ideally we'd figure out the new name of foo.eln and delete it if
+it ends in .eln.old. There is no simple API to do this in
+Windows. GetModuleFileName() returns the original filename, not the
+current one. This forces us to put .eln.old files in an agreed upon
+path. We cannot use %TEMP% because it may be in another drive and then
+the rename operation would fail.
+
+In the 2) case we can't use the same folder where the .eln file
+resided, as we are trying to completely remove the package. Since we
+are removing packages we can safely move the .eln.old file to
+`package-user-dir' as we are sure that that would not mean changing
+drives.
+
+* Implementation details
+
+The concept of disposal of a native compilation unit refers to
+unloading the shared library and deleting all the .eln.old files in
+the directory. These are two separate steps. We'll call them
+early-disposal and late-disposal.
+
+There are two data structures used:
+
+- The `all_loaded_comp_units_h` hashtable.
+
+This hashtable is used like an array of weak references to native
+compilation units. This hash table is filled by load_comp_unit() and
+dispose_all_remaining_comp_units() iterates over all values that were
+not disposed by the GC and performs all disposal steps when Emacs is
+closing.
+
+- The `delayed_comp_unit_disposal_list` list.
+
+This is were the dispose_comp_unit() function, when called by the GC
+sweep stage, stores the original filenames of the disposed native
+compilation units. This is an ad-hoc C structure instead of a Lisp
+cons because we need to allocate instances of this structure during
+the GC.
+
+The finish_delayed_disposal_of_comp_units() function will iterate over
+this list and perform the late-disposal step when Emacs is closing.
+
+*/
+
+#ifdef WINDOWSNT
+#define OLD_ELN_SUFFIX_REGEXP build_string ("\\.eln\\.old\\'")
+
+static Lisp_Object all_loaded_comp_units_h;
+
+/* We need to allocate instances of this struct during a GC
+ * sweep. This is why it can't be transformed into a simple cons.
+ */
+struct delayed_comp_unit_disposal
+{
+  struct delayed_comp_unit_disposal *next;
+  char *filename;
+};
+
+struct delayed_comp_unit_disposal *delayed_comp_unit_disposal_list;
+
+static Lisp_Object
+return_nil (Lisp_Object arg)
+{
+  return Qnil;
+}
+
+/* Tries to remove all *.eln.old files in DIRNAME.
+
+ * Any error is ignored because it may be due to the file being loaded
+ * in another Emacs instance.
+ */
+static void
+clean_comp_unit_directory (Lisp_Object dirpath)
+{
+  if (NILP (dirpath))
+    return;
+  Lisp_Object files_in_dir;
+  files_in_dir = internal_condition_case_4 (Fdirectory_files, dirpath, Qt,
+                                            OLD_ELN_SUFFIX_REGEXP, Qnil, Qt,
+                                            return_nil);
+  FOR_EACH_TAIL (files_in_dir) { DeleteFile (SSDATA (XCAR (files_in_dir))); }
+}
+
+/* Tries to remove all *.eln.old files in `package-user-dir'.
+
+ * This is called when Emacs is closing to clean any *.eln left from a
+ * deleted package.
+ */
+void
+clean_package_user_dir_of_old_comp_units (void)
+{
+  Lisp_Object package_user_dir
+      = find_symbol_value (intern ("package-user-dir"));
+  if (EQ (package_user_dir, Qunbound) || !STRINGP (package_user_dir))
+    return;
+
+  clean_comp_unit_directory (package_user_dir);
+}
+
+/* This function disposes all compilation units that are still loaded.
+ * It is important that this function is called only right before
+ * Emacs is closed, otherwise we risk running a subr that is
+ * implemented in an unloaded dynamic library.
+ */
+void
+dispose_all_remaining_comp_units (void)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (all_loaded_comp_units_h);
+
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      Lisp_Object k = HASH_KEY (h, i);
+      if (!EQ (k, Qunbound))
+        {
+          Lisp_Object val = HASH_VALUE (h, i);
+          struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (val);
+          dispose_comp_unit (cu, false);
+        }
+    }
+}
+
+/* This function finishes the disposal of compilation units that were
+ *  passed to `dispose_comp_unit` with DELAY == true.
+ *
+ * This function is called when Emacs is idle and when it is about to
+ * close.
+ */
+void
+finish_delayed_disposal_of_comp_units (void)
+{
+  for (struct delayed_comp_unit_disposal *item
+       = delayed_comp_unit_disposal_list;
+       delayed_comp_unit_disposal_list; item = delayed_comp_unit_disposal_list)
+    {
+      delayed_comp_unit_disposal_list = item->next;
+      Lisp_Object dirname = internal_condition_case_1 (
+          Ffile_name_directory, build_string (item->filename), Qt, return_nil);
+      clean_comp_unit_directory (dirname);
+      xfree (item->filename);
+      xfree (item);
+    }
+}
+#endif
+
+/* This function puts the compilation unit in the
+ * `all_loaded_comp_units_h` hashmap.
+ */
+static void
+register_native_comp_unit (Lisp_Object comp_u)
+{
+#ifdef WINDOWSNT
+  Fputhash (CALL1I (gensym, Qnil), comp_u, all_loaded_comp_units_h);
+#endif
+}
+
+/* This function disposes compilation units. It is called during the GC sweep
+ * stage and when Emacs is closing.
+
+ * On Windows the the DELAY parameter specifies whether the native
+ * compilation file will be deleted right away (if necessary) or put
+ * on a list. That list will be dealt with by
+ * `finish_delayed_disposal_of_comp_units`.
+ */
+void
+dispose_comp_unit (struct Lisp_Native_Comp_Unit *comp_handle, bool delay)
+{
+  eassert (comp_handle->handle);
+  dynlib_close (comp_handle->handle);
+#ifdef WINDOWSNT
+  if (!delay)
+    {
+      Lisp_Object dirname = internal_condition_case_1 (
+          Ffile_name_directory, build_string (comp_handle->cfile), Qt,
+          return_nil);
+      if (!NILP (dirname))
+        clean_comp_unit_directory (dirname);
+      xfree (comp_handle->cfile);
+      comp_handle->cfile = NULL;
+    }
+  else
+    {
+      struct delayed_comp_unit_disposal *head;
+      head = xmalloc (sizeof (struct delayed_comp_unit_disposal));
+      head->next = delayed_comp_unit_disposal_list;
+      head->filename = comp_handle->cfile;
+      comp_handle->cfile = NULL;
+      delayed_comp_unit_disposal_list = head;
+    }
+#endif
 }
 
 
@@ -4159,6 +4385,12 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
+
+      /* If we register them while dumping we will get some entries in
+         the hash table that will be duplicated when pdumper calls
+         load_comp_unit. */
+      if (!will_dump_p ())
+        register_native_comp_unit (comp_u_lisp_obj);
     }
 
   if (!loading_dump)
@@ -4316,6 +4548,9 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
   comp_u->file = file;
+#ifdef WINDOWSNT
+  comp_u->cfile = xlispstrdup (file);
+#endif
   comp_u->data_vec = Qnil;
   comp_u->lambda_gc_guard = CALLN (Fmake_hash_table, QCtest, Qeq);
   comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
@@ -4463,6 +4698,11 @@ syms_of_comp (void)
   comp.emitter_dispatcher = Qnil;
   staticpro (&delayed_sources);
   delayed_sources = Qnil;
+
+#ifdef WINDOWSNT
+  staticpro (&all_loaded_comp_units_h);
+  all_loaded_comp_units_h = CALLN(Fmake_hash_table, QCweakness, Qvalue);
+#endif
 
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /* The compiler context.  */);

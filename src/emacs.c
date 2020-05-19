@@ -2398,6 +2398,10 @@ all of which are called before Emacs is actually killed.  */
       unlink (SSDATA (listfile));
     }
 
+  finish_delayed_disposal_of_comp_units ();
+  dispose_all_remaining_comp_units ();
+  clean_package_user_dir_of_old_comp_units ();
+
   if (FIXNUMP (arg))
     exit_code = (XFIXNUM (arg) < 0
 		 ? XFIXNUM (arg) | INT_MIN

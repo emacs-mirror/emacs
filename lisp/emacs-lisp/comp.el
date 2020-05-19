@@ -2277,6 +2277,31 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Some entry point support code.
 
+(defun comp--replace-output-file (outfile tmpfile)
+  "Replace OUTFILE with TMPFILE taking the necessary steps when
+dealing with shared libraries that may be loaded into Emacs"
+  (cond ((eq 'windows-nt system-type)
+         (ignore-errors (delete-file outfile))
+         (let ((retry t))
+           (while retry
+             (setf retry nil)
+             (condition-case _
+                 (progn
+                   ;; outfile maybe recreated by another Emacs in
+                   ;; between the following two rename-file calls
+                   (if (file-exists-p outfile)
+                       (rename-file outfile (make-temp-file-internal
+                                             (file-name-sans-extension outfile)
+                                             nil ".eln.old" nil)
+                                    t))
+                   (rename-file tmpfile outfile nil))
+               (file-already-exists (setf retry t))))))
+        ;; Remove the old eln instead of copying the new one into it
+        ;; to get a new inode and prevent crashes in case the old one
+        ;; is currently loaded.
+        (t (delete-file outfile)
+           (rename-file tmpfile outfile))))
+
 (defvar comp-files-queue ()
   "List of Elisp files to be compiled.")
 

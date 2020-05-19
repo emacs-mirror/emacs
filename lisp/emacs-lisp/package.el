@@ -2204,6 +2204,35 @@ If some packages are not installed propose to install them."
   (equal (cadr (assq (package-desc-name pkg) package-alist))
          pkg))
 
+(defun package--delete-directory (dir)
+  "Delete DIR recursively.
+In Windows move .eln and .eln.old files that can not be deleted
+to `package-user-dir'."
+  (cond ((eq 'windows-nt system-type)
+         (let ((retry t))
+           (while retry
+             (setf retry nil)
+             (condition-case err
+                 (delete-directory dir t)
+               (file-error
+                (cl-destructuring-bind (reason1 reason2 filename) err
+                  (if (and (string= "Removing old name" reason1)
+                           (string= "Permission denied" reason2)
+                           (string-prefix-p (expand-file-name package-user-dir)
+                                            filename)
+                           (or (string-suffix-p ".eln" filename)
+                               (string-suffix-p ".eln.old" filename)))
+                      (progn
+                        (rename-file filename
+                                     (make-temp-file-internal
+                                      (concat package-user-dir
+                                              (file-name-base filename))
+                                      nil ".eln.old" nil)
+                                     t)
+                        (setf retry t))
+                    (signal (car err) (cdr err)))))))))
+        (t (delete-directory dir t))))
+
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
 
@@ -2256,7 +2285,7 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
            (add-hook 'post-command-hook #'package-menu--post-refresh)
-           (delete-directory dir t)
+           (package--delete-directory dir)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
            ;;
            ;; NAME-readme.txt files are no longer created, but they
