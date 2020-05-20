@@ -2647,6 +2647,15 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 Libxpm is available for macOS as part of the XQuartz project.
 
+** The color list can become corrupt.
+
+This can be seen when Emacs is run from the command line and produces
+output containing the text:
+
+    non-keyed archive cannot be decoded by NSKeyedUnarchiver
+
+The solution is to delete '$HOME/Library/Colors/Emacs.clr'.
+
 
 * Build-time problems
 
