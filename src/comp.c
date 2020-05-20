@@ -46,6 +46,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include "w32common.h"
 
 #undef gcc_jit_block_add_assignment
+#undef gcc_jit_block_add_assignment_op
 #undef gcc_jit_block_add_comment
 #undef gcc_jit_block_add_eval
 #undef gcc_jit_block_end_with_conditional
@@ -75,6 +76,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_new_rvalue_from_int
 #undef gcc_jit_context_new_rvalue_from_long
 #undef gcc_jit_context_new_rvalue_from_ptr
+#undef gcc_jit_context_new_string_literal
 #undef gcc_jit_context_new_struct_type
 #undef gcc_jit_context_new_unary_op
 #undef gcc_jit_context_new_union_type
@@ -164,6 +166,8 @@ DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_long,
             (gcc_jit_context *ctxt, gcc_jit_type *numeric_type, long value));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_ptr,
             (gcc_jit_context *ctxt, gcc_jit_type *pointer_type, void *value));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_string_literal,
+            (gcc_jit_context *ctxt, const char *value));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_unary_op,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              enum gcc_jit_unary_op op, gcc_jit_type *result_type,
@@ -196,6 +200,10 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
+             gcc_jit_rvalue *rvalue));
+DEF_DLL_FN (void, gcc_jit_block_add_assignment_op,
+            (gcc_jit_block *block, gcc_jit_location *loc,
+             gcc_jit_lvalue *lvalue, enum gcc_jit_binary_op op,
              gcc_jit_rvalue *rvalue));
 DEF_DLL_FN (void, gcc_jit_block_add_eval,
             (gcc_jit_block *block, gcc_jit_location *loc,
@@ -239,6 +247,7 @@ init_gccjit_functions (void)
 
   /* In alphabetical order */
   LOAD_DLL_FN (library, gcc_jit_block_add_assignment);
+  LOAD_DLL_FN (library, gcc_jit_block_add_assignment_op);
   LOAD_DLL_FN (library, gcc_jit_block_add_comment);
   LOAD_DLL_FN (library, gcc_jit_block_add_eval);
   LOAD_DLL_FN (library, gcc_jit_block_end_with_conditional);
@@ -268,6 +277,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_int);
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_long);
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_ptr);
+  LOAD_DLL_FN (library, gcc_jit_context_new_string_literal);
   LOAD_DLL_FN (library, gcc_jit_context_new_struct_type);
   LOAD_DLL_FN (library, gcc_jit_context_new_unary_op);
   LOAD_DLL_FN (library, gcc_jit_context_new_union_type);
@@ -296,6 +306,7 @@ init_gccjit_functions (void)
 
 /* In alphabetical order */
 #define gcc_jit_block_add_assignment fn_gcc_jit_block_add_assignment
+#define gcc_jit_block_add_assignment_op fn_gcc_jit_block_add_assignment_op
 #define gcc_jit_block_add_comment fn_gcc_jit_block_add_comment
 #define gcc_jit_block_add_eval fn_gcc_jit_block_add_eval
 #define gcc_jit_block_end_with_conditional fn_gcc_jit_block_end_with_conditional
@@ -325,6 +336,7 @@ init_gccjit_functions (void)
 #define gcc_jit_context_new_rvalue_from_int fn_gcc_jit_context_new_rvalue_from_int
 #define gcc_jit_context_new_rvalue_from_long fn_gcc_jit_context_new_rvalue_from_long
 #define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
+#define gcc_jit_context_new_string_literal fn_gcc_jit_context_new_string_literal
 #define gcc_jit_context_new_struct_type fn_gcc_jit_context_new_struct_type
 #define gcc_jit_context_new_unary_op fn_gcc_jit_context_new_unary_op
 #define gcc_jit_context_new_union_type fn_gcc_jit_context_new_union_type
@@ -462,6 +474,7 @@ typedef struct {
   gcc_jit_type *char_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *uintptr_type;
+  gcc_jit_type *size_t_type;
 #if LISP_WORDS_ARE_POINTERS
   gcc_jit_type *lisp_X;
 #endif
@@ -548,6 +561,7 @@ typedef struct {
   gcc_jit_rvalue *data_relocs_ephemeral;
   /* Synthesized struct holding func relocs.  */
   gcc_jit_lvalue *func_relocs;
+  gcc_jit_function *memcpy;
   Lisp_Object d_default_idx;
   Lisp_Object d_impure_idx;
   Lisp_Object d_ephemeral_idx;
@@ -2347,7 +2361,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   /* libgccjit has no support for initialized static data.
      The mechanism below is certainly not aesthetic but I assume the bottle neck
      in terms of performance at load time will still be the reader.
-     NOTE: we can not relay on libgccjit even for valid NULL terminated C
+     NOTE: we can not rely on libgccjit even for valid NULL terminated C
      strings cause of this funny bug that will affect all pre gcc10 era gccs:
      https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html  */
 
@@ -2405,22 +2419,78 @@ emit_static_object (const char *name, Lisp_Object obj)
   gcc_jit_lvalue *arr =
       gcc_jit_lvalue_access_field (data_struct, NULL, fields[1]);
 
-  for (ptrdiff_t i = 0; i < len; i++, p++)
+  gcc_jit_lvalue *ptrvar = gcc_jit_function_new_local (f, NULL,
+                                                       comp.char_ptr_type,
+                                                       "ptr");
+
+  gcc_jit_block_add_assignment (
+    block,
+    NULL,
+    ptrvar,
+    gcc_jit_lvalue_get_address (
+      gcc_jit_context_new_array_access (
+        comp.ctxt,
+        NULL,
+        gcc_jit_lvalue_as_rvalue (arr),
+        gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.int_type, 0)),
+      NULL));
+
+  for (ptrdiff_t i = 0; i < len;)
     {
-      gcc_jit_block_add_assignment (
-	block,
-	NULL,
-	gcc_jit_context_new_array_access (
-	  comp.ctxt,
-	  NULL,
-	  gcc_jit_lvalue_as_rvalue (arr),
-	  gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					       comp.ptrdiff_type,
-					       i)),
-	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.char_type,
-					     *p));
+      /* We can't use string literals longer that 200 bytes because
+         they cause a crash in older versions of gccjit.
+         https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html.  */
+      char str[200];
+      strncpy (str, p, 200);
+      str[199] = 0;
+      uintptr_t l = strlen (str);
+
+      if (l != 0)
+        {
+          p += l;
+          i += l;
+
+          gcc_jit_rvalue *args[3]
+            = {gcc_jit_lvalue_as_rvalue (ptrvar),
+               gcc_jit_context_new_string_literal (comp.ctxt, str),
+               gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                 comp.size_t_type,
+                 l)};
+
+          gcc_jit_block_add_eval (block, NULL,
+                                  gcc_jit_context_new_call (comp.ctxt, NULL,
+                                                            comp.memcpy,
+                                                            ARRAYELTS (args),
+							    args));
+          gcc_jit_block_add_assignment (block, NULL, ptrvar,
+            gcc_jit_lvalue_get_address (
+              gcc_jit_context_new_array_access (comp.ctxt, NULL,
+                gcc_jit_lvalue_as_rvalue (ptrvar),
+                gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                                     comp.uintptr_type,
+                                                     l)),
+              NULL));
+        }
+      else
+        {
+          /* If strlen returned 0 that means that the static object
+             contains a NULL byte.  In that case just move over to the
+             next block.  We can rely on the byte being zero because
+             of the previous call to bzero and because the dynamic
+             linker cleared it.  */
+          p++;
+          i++;
+          gcc_jit_block_add_assignment (
+            block, NULL, ptrvar,
+            gcc_jit_lvalue_get_address (
+              gcc_jit_context_new_array_access (
+                comp.ctxt, NULL, gcc_jit_lvalue_as_rvalue (ptrvar),
+                gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                                     comp.uintptr_type, 1)),
+              NULL));
+        }
     }
+
   gcc_jit_block_add_assignment (
 	block,
 	NULL,
@@ -2764,6 +2834,21 @@ define_jmp_buf (void)
 				     NULL,
 				     "comp_jmp_buf",
 				     1, &field);
+}
+
+static void
+define_memcpy (void)
+{
+
+  gcc_jit_param *params[] =
+    { gcc_jit_context_new_param (comp.ctxt, NULL, comp.void_ptr_type, "dest"),
+      gcc_jit_context_new_param (comp.ctxt, NULL, comp.void_ptr_type, "src"),
+      gcc_jit_context_new_param (comp.ctxt, NULL, comp.size_t_type, "n") };
+
+  comp.memcpy =
+    gcc_jit_context_new_function (comp.ctxt, NULL, GCC_JIT_FUNCTION_IMPORTED,
+				  comp.void_ptr_type, "memcpy",
+				  ARRAYELTS (params), params, false);
 }
 
 /* struct handler definition  */
@@ -3772,6 +3857,9 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
   comp.uintptr_type = gcc_jit_context_get_int_type (comp.ctxt,
 						    sizeof (void *),
 						    false);
+  comp.size_t_type = gcc_jit_context_get_int_type (comp.ctxt,
+						   sizeof (size_t),
+						   false);
 
   comp.exported_funcs_h = CALLN (Fmake_hash_table, QCtest, Qequal);
   /*
@@ -3779,6 +3867,8 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
     collected by libgccjit when the ctxt is released.
   */
   comp.imported_funcs_h = CALLN (Fmake_hash_table);
+
+  define_memcpy ();
 
   /* Define data structures.  */
 
