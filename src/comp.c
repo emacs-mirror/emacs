@@ -1510,13 +1510,16 @@ emit_setjmp (gcc_jit_rvalue *buf)
   /* _setjmp (buf, __builtin_frame_address (0)) */
   gcc_jit_rvalue *args[2];
 
-  args[0] = gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.unsigned_type, 0);
+  args[0] =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.unsigned_type, 0);
 
-  args[1] = gcc_jit_context_new_call (comp.ctxt,
-                                      NULL,
-                                      gcc_jit_context_get_builtin_function (comp.ctxt,
-                                        "__builtin_frame_address"),
-                                      1, args);
+  args[1] =
+    gcc_jit_context_new_call (
+      comp.ctxt,
+      NULL,
+      gcc_jit_context_get_builtin_function (comp.ctxt,
+					    "__builtin_frame_address"),
+      1, args);
   args[0] = buf;
   return emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 2, args,
                     false);
