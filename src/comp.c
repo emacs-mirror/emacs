@@ -117,7 +117,6 @@ typedef struct {
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *uintptr_type;
 #if LISP_WORDS_ARE_POINTERS
-  gcc_jit_struct *lisp_X_s;
   gcc_jit_type *lisp_X;
 #endif
   gcc_jit_type *lisp_word_type;
@@ -650,14 +649,15 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
       gcc_jit_rvalue *lwordobj =
         emit_coerce (comp.lisp_word_type, obj);
 
-      gcc_jit_lvalue *tmp_s
-        = gcc_jit_function_new_local (comp.func, NULL, comp.lisp_obj_type,
-                                      format_string ("lisp_obj_%td", i++));
+      gcc_jit_lvalue *tmp_s =
+	gcc_jit_function_new_local (comp.func, NULL, comp.lisp_obj_type,
+				    format_string ("lisp_obj_%td", i++));
 
-      gcc_jit_block_add_assignment (comp.block, NULL,
-                                    gcc_jit_lvalue_access_field (tmp_s, NULL,
-                                                                 comp.lisp_obj_i),
-                                    lwordobj);
+      gcc_jit_block_add_assignment (
+	comp.block, NULL,
+	gcc_jit_lvalue_access_field (tmp_s, NULL,
+				     comp.lisp_obj_i),
+	lwordobj);
       return gcc_jit_lvalue_as_rvalue (tmp_s);
     }
 #endif
@@ -786,44 +786,32 @@ static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
   if (val != (long) val)
-    {
-      return emit_rvalue_from_unsigned_long_long (comp.emacs_uint_type, val);
-    }
+    return emit_rvalue_from_unsigned_long_long (comp.emacs_uint_type, val);
   else
-    {
-      return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-                                                   comp.emacs_uint_type,
-                                                   val);
-    }
+    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+						 comp.emacs_uint_type,
+						 val);
 }
 
 static gcc_jit_rvalue *
 emit_rvalue_from_emacs_int (EMACS_INT val)
 {
   if (val != (long) val)
-    {
-      return emit_rvalue_from_long_long (comp.emacs_int_type, val);
-    }
+    return emit_rvalue_from_long_long (comp.emacs_int_type, val);
   else
-    {
-      return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-                                                   comp.emacs_int_type, val);
-    }
+    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+						 comp.emacs_int_type, val);
 }
 
 static gcc_jit_rvalue *
 emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
   if (val != (long) val)
-    {
-      return emit_rvalue_from_unsigned_long_long (comp.lisp_word_tag_type, val);
-    }
+    return emit_rvalue_from_unsigned_long_long (comp.lisp_word_tag_type, val);
   else
-    {
-      return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-                                                   comp.lisp_word_tag_type,
-                                                   val);
-    }
+    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+						 comp.lisp_word_tag_type,
+						 val);
 }
 
 static gcc_jit_rvalue *
@@ -835,15 +823,11 @@ emit_rvalue_from_lisp_word (Lisp_Word val)
                                               val);
 #else
   if (val != (long) val)
-    {
-      return emit_rvalue_from_unsigned_long_long (comp.lisp_word_type, val);
-    }
+    return emit_rvalue_from_unsigned_long_long (comp.lisp_word_type, val);
   else
-    {
-      return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-                                                   comp.lisp_word_type,
-                                                   val);
-    }
+    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+						 comp.lisp_word_type,
+						 val);
 #endif
 }
 
@@ -895,14 +879,6 @@ emit_XLI (gcc_jit_rvalue *obj)
   return emit_coerce (comp.emacs_int_type, obj);
 }
 
-static gcc_jit_lvalue *
-emit_lval_XLI (gcc_jit_lvalue *obj)
-{
-  emit_comment ("lval_XLI");
-  return obj;
-}
-
-
 static gcc_jit_rvalue *
 emit_XLP (gcc_jit_rvalue *obj)
 {
@@ -910,17 +886,6 @@ emit_XLP (gcc_jit_rvalue *obj)
 
   return emit_coerce (comp.void_ptr_type, obj);
 }
-
-/* TODO */
-/* static gcc_jit_lvalue * */
-/* emit_lval_XLP (gcc_jit_lvalue *obj) */
-/* { */
-/*   emit_comment ("lval_XLP"); */
-
-/*   return gcc_jit_lvalue_access_field (obj, */
-/* 				      NULL, */
-/* 				      comp.lisp_obj_as_ptr); */
-/* } */
 
 static gcc_jit_rvalue *
 emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, Lisp_Word_tag lisp_word_tag)
@@ -2912,13 +2877,14 @@ define_add1_sub1 (void)
 	  GCC_JIT_BINARY_OP_LOGICAL_AND,
 	  comp.bool_type,
 	  sure_fixnum,
-	  gcc_jit_context_new_comparison (comp.ctxt,
-					  NULL,
-					  GCC_JIT_COMPARISON_NE,
-					  n_fixnum,
-					  i == 0
-					  ? emit_rvalue_from_emacs_int (MOST_POSITIVE_FIXNUM)
-					  : emit_rvalue_from_emacs_int (MOST_NEGATIVE_FIXNUM))),
+	  gcc_jit_context_new_comparison (
+	    comp.ctxt,
+	    NULL,
+	    GCC_JIT_COMPARISON_NE,
+	    n_fixnum,
+	    i == 0
+	    ? emit_rvalue_from_emacs_int (MOST_POSITIVE_FIXNUM)
+	    : emit_rvalue_from_emacs_int (MOST_NEGATIVE_FIXNUM))),
 	inline_block,
 	fcall_block);
 
@@ -3408,10 +3374,10 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						       sizeof (EMACS_UINT),
 						       false);
 #if LISP_WORDS_ARE_POINTERS
-  comp.lisp_X_s = gcc_jit_context_new_opaque_struct (comp.ctxt,
-                                                     NULL,
-                                                     "Lisp_X");
-  comp.lisp_X = gcc_jit_struct_as_type (comp.lisp_X_s);
+  comp.lisp_X =
+    gcc_jit_struct_as_type (gcc_jit_context_new_opaque_struct (comp.ctxt,
+							       NULL,
+							       "Lisp_X"));
   comp.lisp_word_type = gcc_jit_type_get_pointer (comp.lisp_X);
 #else
   comp.lisp_word_type = comp.emacs_int_type;
