@@ -109,7 +109,7 @@
 
 (eval-when-compile (require 'cl-lib))
 ;; Sometimes, compilation fails with "Variable binding depth exceeds
-;; max-specpdl-size".
+;; max-specpdl-size".  Shall be fixed in Emacs 27.
 (eval-and-compile
   (let ((max-specpdl-size (* 2 max-specpdl-size))) (require 'tramp-gvfs)))
 
@@ -320,7 +320,7 @@ arguments to pass to the OPERATION."
 			      operation args))
 	     (archive (tramp-archive-file-name-archive filename))
 	     ;; Sometimes, it fails with "Variable binding depth exceeds
-	     ;; max-specpdl-size".
+	     ;; max-specpdl-size".  Shall be fixed in Emacs 27.
 	     (max-specpdl-size (* 2 max-specpdl-size)))
 
         ;; `filename' could be a quoted file name.  Or the file
