@@ -139,6 +139,9 @@ directories with the help of new command 'dired-vc-next-action'.
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
 'vc-dir-mark-unregistered-files'.
 
+*** Support for bookmark.el.
+Bookmark locations can refer to VC directory buffers.
+
 ** Gnus
 
 ---
