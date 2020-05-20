@@ -795,7 +795,7 @@ compatible with old code; callers should always specify it."
   (set (make-local-variable 'outline-level) 'c-outline-level)
   (set (make-local-variable 'add-log-current-defun-function)
        (lambda ()
-	 (or (c-cpp-define-name) (c-defun-name))))
+	 (or (c-cpp-define-name) (car (c-defun-name-and-limits nil)))))
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
       (if (boundp 'mode-require-final-newline)
