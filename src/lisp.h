@@ -1341,7 +1341,6 @@ dead_object (void)
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
-#define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
@@ -3934,7 +3933,6 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
-extern void make_byte_code (struct Lisp_Vector *);
 extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
 extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
 

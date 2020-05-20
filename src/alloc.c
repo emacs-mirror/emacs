@@ -3421,23 +3421,6 @@ usage: (vector &rest OBJECTS)  */)
   return val;
 }
 
-void
-make_byte_code (struct Lisp_Vector *v)
-{
-  /* Don't allow the global zero_vector to become a byte code object.  */
-  eassert (0 < v->header.size);
-
-  if (v->header.size > 1 && STRINGP (v->contents[1])
-      && STRING_MULTIBYTE (v->contents[1]))
-    /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
-       earlier because they produced a raw 8-bit string for byte-code
-       and now such a byte-code string is loaded as multibyte while
-       raw 8-bit characters converted to multibyte form.  Thus, now we
-       must convert them back to the original unibyte form.  */
-    v->contents[1] = Fstring_as_unibyte (v->contents[1]);
-  XSETPVECTYPE (v, PVEC_COMPILED);
-}
-
 DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
        doc: /* Create a byte-code object with specified arguments as elements.
 The arguments should be the ARGLIST, bytecode-string BYTE-CODE, constant
@@ -3456,8 +3439,14 @@ stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object val = make_uninit_vector (nargs);
-  struct Lisp_Vector *p = XVECTOR (val);
+  if (! ((FIXNUMP (args[COMPILED_ARGLIST])
+	  || CONSP (args[COMPILED_ARGLIST])
+	  || NILP (args[COMPILED_ARGLIST]))
+	 && STRINGP (args[COMPILED_BYTECODE])
+	 && !STRING_MULTIBYTE (args[COMPILED_BYTECODE])
+	 && VECTORP (args[COMPILED_CONSTANTS])
+	 && FIXNATP (args[COMPILED_STACK_DEPTH])))
+    error ("Invalid byte-code object");
 
   /* We used to purecopy everything here, if purify-flag was set.  This worked
      OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
@@ -3466,10 +3455,8 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
      copied into pure space, including its free variables, which is sometimes
      just wasteful and other times plainly wrong (e.g. those free vars may want
      to be setcar'd).  */
-
-  memcpy (p->contents, args, nargs * sizeof *args);
-  make_byte_code (p);
-  XSETCOMPILED (val, p);
+  Lisp_Object val = Fvector (nargs, args);
+  XSETPVECTYPE (XVECTOR (val), PVEC_COMPILED);
   return val;
 }
 

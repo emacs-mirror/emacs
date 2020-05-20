@@ -2904,6 +2904,21 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
     }
 }
 
+/* Call the compiled Lisp function FUN.  If we have not yet read FUN's
+   bytecode string and constants vector, fetch them from the file first.  */
+
+static Lisp_Object
+fetch_and_exec_byte_code (Lisp_Object fun, Lisp_Object syms_left,
+			  ptrdiff_t nargs, Lisp_Object *args)
+{
+  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
+    Ffetch_bytecode (fun);
+  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
+			 AREF (fun, COMPILED_CONSTANTS),
+			 AREF (fun, COMPILED_STACK_DEPTH),
+			 syms_left, nargs, args);
+}
+
 static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
 {
@@ -2968,9 +2983,6 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     }
   else if (COMPILEDP (fun))
     {
-      ptrdiff_t size = PVSIZE (fun);
-      if (size <= COMPILED_STACK_DEPTH)
-	xsignal1 (Qinvalid_function, fun);
       syms_left = AREF (fun, COMPILED_ARGLIST);
       if (FIXNUMP (syms_left))
 	/* A byte-code object with an integer args template means we
@@ -2982,15 +2994,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	   argument-binding code below instead (as do all interpreted
 	   functions, even lexically bound ones).  */
 	{
-	  /* If we have not actually read the bytecode string
-	     and constants vector yet, fetch them from the file.  */
-	  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
-	    Ffetch_bytecode (fun);
-	  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-				 AREF (fun, COMPILED_CONSTANTS),
-				 AREF (fun, COMPILED_STACK_DEPTH),
-				 syms_left,
-				 nargs, arg_vector);
+	  return fetch_and_exec_byte_code (fun, syms_left, nargs, arg_vector);
 	}
       lexenv = Qnil;
     }
@@ -3059,16 +3063,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
   else
-    {
-      /* If we have not actually read the bytecode string
-	 and constants vector yet, fetch them from the file.  */
-      if (CONSP (AREF (fun, COMPILED_BYTECODE)))
-	Ffetch_bytecode (fun);
-      val = exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-			    AREF (fun, COMPILED_CONSTANTS),
-			    AREF (fun, COMPILED_STACK_DEPTH),
-			    Qnil, 0, 0);
-    }
+    val = fetch_and_exec_byte_code (fun, Qnil, 0, NULL);
 
   return unbind_to (count, val);
 }
@@ -3153,9 +3148,6 @@ lambda_arity (Lisp_Object fun)
     }
   else if (COMPILEDP (fun))
     {
-      ptrdiff_t size = PVSIZE (fun);
-      if (size <= COMPILED_STACK_DEPTH)
-	xsignal1 (Qinvalid_function, fun);
       syms_left = AREF (fun, COMPILED_ARGLIST);
       if (FIXNUMP (syms_left))
         return get_byte_code_arity (syms_left);
@@ -3198,13 +3190,11 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 
   if (COMPILEDP (object))
     {
-      ptrdiff_t size = PVSIZE (object);
-      if (size <= COMPILED_STACK_DEPTH)
-	xsignal1 (Qinvalid_function, object);
       if (CONSP (AREF (object, COMPILED_BYTECODE)))
 	{
 	  tem = read_doc_string (AREF (object, COMPILED_BYTECODE));
-	  if (!CONSP (tem))
+	  if (! (CONSP (tem) && STRINGP (XCAR (tem))
+		 && VECTORP (XCDR (tem))))
 	    {
 	      tem = AREF (object, COMPILED_BYTECODE);
 	      if (CONSP (tem) && STRINGP (XCAR (tem)))
