@@ -318,7 +318,10 @@ arguments to pass to the OPERATION."
 
       (let* ((filename (apply #'tramp-archive-file-name-for-operation
 			      operation args))
-	     (archive (tramp-archive-file-name-archive filename)))
+	     (archive (tramp-archive-file-name-archive filename))
+	     ;; Sometimes, it fails with "Variable binding depth exceeds
+	     ;; max-specpdl-size".
+	     (max-specpdl-size (* 2 max-specpdl-size)))
 
         ;; `filename' could be a quoted file name.  Or the file
         ;; archive could be a directory, see Bug#30293.
