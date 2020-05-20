@@ -499,11 +499,13 @@ This means that \\[ido-complete] must always be followed by \\[ido-exit-minibuff
 even when there is only one unique completion."
   :type 'boolean)
 
-(defcustom ido-cannot-complete-command 'ido-completion-help
+(defcustom ido-cannot-complete-command 'ido-completion-auto-help
   "Command run when `ido-complete' can't complete any more.
 The most useful values are `ido-completion-help', which pops up a
-window with completion alternatives, or `ido-next-match' or
-`ido-prev-match', which cycle the buffer list."
+window with completion alternatives; `ido-completion-auto-help',
+which does the same but respects the value of
+`completion-auto-help'; or `ido-next-match' or `ido-prev-match',
+which cycle the buffer list."
   :type 'function)
 
 
@@ -3926,6 +3928,14 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
       (when (bobp)
 	(next-completion 1)))))
 
+(defun ido-completion-auto-help ()
+  "Call `ido-completion-help' if `completion-auto-help' is non-nil."
+  (interactive)
+  ;; Note: `completion-auto-help' could also be `lazy', but this value
+  ;; is irrelevant to ido, which is fundamentally eager, so it is
+  ;; treated the same as t.
+  (when completion-auto-help
+    (ido-completion-help)))
 
 (defun ido-completion-help ()
   "Show possible completions in the `ido-completion-buffer'."
