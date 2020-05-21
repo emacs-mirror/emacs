@@ -1066,6 +1066,8 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
   emit_comment ("XFIXNUM");
   gcc_jit_rvalue *i = emit_coerce (comp.emacs_uint_type, emit_XLI (obj));
 
+  /* FIXME: Implementation dependent (both RSHIFT are arithmetics).  */
+
   if (!USE_LSB_TAG)
     {
       i = emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
@@ -1073,14 +1075,12 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
 			  i,
 			  comp.inttypebits);
 
-      return emit_coerce (comp.emacs_int_type,
-			  emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
-					  comp.emacs_uint_type,
-					  i,
-					  comp.inttypebits));
+      return emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
+			     comp.emacs_int_type,
+			     i,
+			     comp.inttypebits);
     }
   else
-    /* FIXME: Implementation dependent (wants arithmetic shift).  */
     return emit_coerce (comp.emacs_int_type,
 			emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
 					comp.emacs_int_type,
