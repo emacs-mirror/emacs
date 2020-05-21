@@ -499,13 +499,14 @@ This means that \\[ido-complete] must always be followed by \\[ido-exit-minibuff
 even when there is only one unique completion."
   :type 'boolean)
 
-(defcustom ido-cannot-complete-command 'ido-completion-auto-help
+(defcustom ido-cannot-complete-command #'ido-completion-auto-help
   "Command run when `ido-complete' can't complete any more.
 The most useful values are `ido-completion-help', which pops up a
 window with completion alternatives; `ido-completion-auto-help',
 which does the same but respects the value of
-`completion-auto-help'; or `ido-next-match' or `ido-prev-match',
+`completion-auto-help'; and `ido-next-match' or `ido-prev-match',
 which cycle the buffer list."
+  :version "28.1"
   :type 'function)
 
 
