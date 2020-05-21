@@ -3755,7 +3755,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
   freloc_check_fill ();
 
-  void (*top_level_run)(Lisp_Object)
+  Lisp_Object (*top_level_run)(Lisp_Object)
     = dynlib_sym (handle,
 		  late_load ? "late_top_level_run" : "top_level_run");
 
