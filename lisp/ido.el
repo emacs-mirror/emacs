@@ -1549,7 +1549,7 @@ This function also adds a hook to the minibuffer."
 	 ((> (prefix-numeric-value arg) 0) 'both)
 	 (t nil)))
 
-  (ido-everywhere (if ido-everywhere 1 -1))
+  (ido-everywhere (if (and ido-mode ido-everywhere) 1 -1))
 
   (when ido-mode
     (ido-common-initialization)
