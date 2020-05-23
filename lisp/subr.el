@@ -4112,7 +4112,11 @@ MODES is as for `set-default-file-modes'."
 ;; now, but it generates slower code.
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data.
-The value returned is the value of the last form in BODY."
+The value returned is the value of the last form in BODY.
+NOTE: The convention in Elisp is that any function, except for a few
+exceptions like car/assoc/+/goto-char, can clobber the match data,
+so `save-match-data' should normally be used to save *your* match data
+rather than your caller's match data."
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.

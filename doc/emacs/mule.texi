@@ -1326,16 +1326,17 @@ stored in the system and the available font names are defined by the
 system, fontsets are defined within Emacs itself.  Once you have
 defined a fontset, you can use it within Emacs by specifying its name,
 anywhere that you could use a single font.  Of course, Emacs fontsets
-can use only the fonts that the system supports.  If some characters
+can use only the fonts that your system supports.  If some characters
 appear on the screen as empty boxes or hex codes, this means that the
 fontset in use for them has no font for those characters.  In this
 case, or if the characters are shown, but not as well as you would
-like, you may need to install extra fonts.  Your operating system may
-have optional fonts that you can install; or you can install the GNU
-Intlfonts package, which includes fonts for most supported
-scripts.@footnote{If you run Emacs on X, you may need to inform the X
-server about the location of the newly installed fonts with commands
-such as:
+like, you may need to install extra fonts or modify the fontset to use
+specific fonts already installed on your system (see below).  Your
+operating system may have optional fonts that you can install; or you
+can install the GNU Intlfonts package, which includes fonts for most
+supported scripts.@footnote{If you run Emacs on X, you may need to
+inform the X server about the location of the newly installed fonts
+with commands such as:
 @c FIXME?  I feel like this may be out of date.
 @c E.g., the intlfonts tarfile is ~ 10 years old.
 
@@ -1376,14 +1377,20 @@ explicitly requested, despite its name.
 @w{@kbd{M-x describe-fontset}} command.  It prompts for a fontset
 name, defaulting to the one used by the current frame, and then
 displays all the subranges of characters and the fonts assigned to
-them in that fontset.
+them in that fontset.  To see which fonts Emacs is using in a session
+started without a specific fontset (which is what happens normally),
+type @kbd{fontset-default @key{RET}} at the prompt, or just
+@kbd{@key{RET}} to describe the fontset used by the current frame.
 
   A fontset does not necessarily specify a font for every character
 code.  If a fontset specifies no font for a certain character, or if
 it specifies a font that does not exist on your system, then it cannot
 display that character properly.  It will display that character as a
-hex code or thin space or an empty box instead.  (@xref{Text Display, ,
-glyphless characters}, for details.)
+hex code or thin space or an empty box instead.  (@xref{Text Display,
+, glyphless characters}, for details.)  Or a fontset might specify a
+font for some range of characters, but you may not like their visual
+appearance.  If this happens, you may wish to modify your fontset; see
+@ref{Modifying Fontsets}, for how to do that.
 
 @node Defining Fontsets
 @section Defining Fontsets
@@ -1542,10 +1549,10 @@ call this function explicitly to create a fontset.
 
   Fontsets do not always have to be created from scratch.  If only
 minor changes are required it may be easier to modify an existing
-fontset.  Modifying @samp{fontset-default} will also affect other
-fontsets that use it as a fallback, so can be an effective way of
-fixing problems with the fonts that Emacs chooses for a particular
-script.
+fontset, usually @samp{fontset-default}.  Modifying
+@samp{fontset-default} will also affect other fontsets that use it as
+a fallback, so can be an effective way of fixing problems with the
+fonts that Emacs chooses for a particular script.
 
 Fontsets can be modified using the function @code{set-fontset-font},
 specifying a character, a charset, a script, or a range of characters
@@ -1553,25 +1560,60 @@ to modify the font for, and a font specification for the font to be
 used.  Some examples are:
 
 @example
-;; Use Liberation Mono for latin-3 charset.
-(set-fontset-font "fontset-default" 'iso-8859-3
-                  "Liberation Mono")
-
 ;; Prefer a big5 font for han characters.
 (set-fontset-font "fontset-default"
                   'han (font-spec :registry "big5")
                   nil 'prepend)
 
-;; Use DejaVu Sans Mono as a fallback in fontset-startup
-;; before resorting to fontset-default.
-(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
-                  nil 'append)
-
 ;; Use MyPrivateFont for the Unicode private use area.
 (set-fontset-font "fontset-default"  '(#xe000 . #xf8ff)
                   "MyPrivateFont")
 
+;; Use Liberation Mono for latin-3 charset.
+(set-fontset-font "fontset-default" 'iso-8859-3
+                  "Liberation Mono")
+
+;; Use DejaVu Sans Mono as a fallback in fontset-startup
+;; before resorting to fontset-default.
+(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
+                  nil 'append)
 @end example
+
+@noindent
+@xref{Fontsets, , , elisp, GNU Emacs Lisp Reference Manual}, for more
+details about using the @code{set-fontset-font} function.
+
+@cindex script of a character
+@cindex codepoint of a character
+If you don't know the character's codepoint or the script to which it
+belongs, you can ask Emacs.  With point at the character, type
+@w{@kbd{C-u C-x =}} (@code{what-cursor-position}), and this
+information, together with much more, will be displayed in the
+@file{*Help*} buffer that Emacs pops up.  @xref{Position Info}.  For
+example, Japanese characters belong to the @samp{kana} script, but
+Japanese text also mixes them with Chinese characters so the following
+uses the @samp{han} script to set up Emacs to use the @samp{Kochi
+Gothic} font for Japanese text:
+
+@example
+(set-fontset-font "fontset-default" 'han "Kochi Gothic")
+@end example
+
+@noindent
+@cindex CKJ characters
+(For convenience, the @samp{han} script in Emacs is set up to support
+all of the Chinese, Japanese, and Korean, a.k.a.@: @acronym{CJK},
+characters, not just Chinese characters.)
+
+@vindex script-representative-chars
+For the list of known scripts, see the variable
+@code{script-representative-chars}.
+
+Fontset settings like those above only affect characters that the
+default font doesn't support, so if the @samp{Kochi Gothic} font
+covers Latin characters, it will not be used for displaying Latin
+scripts, since the default font used by Emacs usually covers Basic
+Latin.
 
 @cindex ignore font
 @cindex fonts, how to ignore
