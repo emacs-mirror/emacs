@@ -233,7 +233,7 @@ font glyphs to display that text.  However, doing this is impossible
 with the current design of the Emacs display engine, since it examines
 buffer text one character at a time, and implements character
 composition by calls to Lisp, which makes doing this for every
-character impractically slow.  therefore, the rest of this item
+character impractically slow.  Therefore, the rest of this item
 describes a limited form of ligature support which is compatible with
 the current display engine design and uses automatic compositions.)
 
