@@ -229,6 +229,12 @@ key             binding
 / m             package-menu-filter-marked
 / /             package-menu-filter-clear
 
+---
++++ Column widths in 'list-packages' display can now be customized.
+See the new user options 'package-name-column-width',
+'package-version-column-width', 'package-status-column-width', and
+'package-archive-column-width'.
+
 ** gdb-mi
 
 +++
