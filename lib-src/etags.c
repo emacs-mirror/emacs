@@ -4197,9 +4197,9 @@ C_entries (int c_ext, FILE *inf)
 	      break;
 	    }
 	  FALLTHROUGH;
-	resetfvdef:
 	case '#': case '~': case '&': case '%': case '/':
 	case '|': case '^': case '!': case '.': case '?':
+	resetfvdef:
 	  if (definedef != dnone)
 	    break;
 	  /* These surely cannot follow a function tag in C. */
