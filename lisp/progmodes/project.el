@@ -40,7 +40,7 @@
 ;; Infrastructure:
 ;;
 ;; Function `project-current', to determine the current project
-;; instance, and 5 (at the moment) generic functions that act on it.
+;; instance, and 4 (at the moment) generic functions that act on it.
 ;; This list is to be extended in future versions.
 ;;
 ;; Utils:
@@ -122,14 +122,25 @@ is not a part of a detectable project either, return a
 (defun project--find-in-directory (dir)
   (run-hook-with-args-until-success 'project-find-functions dir))
 
+(cl-defgeneric project-root (project)
+  "Return root directory of the current project.
+
+It usually contains the main build file, dependencies
+configuration file, etc. Though neither is mandatory.
+
+The directory name must be absolute."
+  (car (project-roots project)))
+
 (cl-defgeneric project-roots (project)
-  "Return the list of directory roots of the current project.
+  "Return the list containing the current project root.
 
-Most often it's just one directory which contains the project
-build file and everything else in the project.  But in more
-advanced configurations, a project can span multiple directories.
-
-The directory names should be absolute.")
+The function is obsolete, all projects have one main root anyway,
+and the rest should be possible to express through
+`project-external-roots'."
+  ;; FIXME: Can we specify project's version here?
+  ;; FIXME: Could we make this affect cl-defmethod calls too?
+  (declare (obsolete project-root "0.3.0"))
+  (list (project-root project)))
 
 ;; FIXME: Add MODE argument, like in `ede-source-paths'?
 (cl-defgeneric project-external-roots (_project)
@@ -138,18 +149,14 @@ The directory names should be absolute.")
 It's the list of directories outside of the project that are
 still related to it.  If the project deals with source code then,
 depending on the languages used, this list should include the
-headers search path, load path, class path, and so on.
-
-The rule of thumb for whether to include a directory here, and
-not in `project-roots', is whether its contents are meant to be
-edited together with the rest of the project."
+headers search path, load path, class path, and so on."
   nil)
 
 (cl-defgeneric project-ignores (_project _dir)
   "Return the list of glob patterns to ignore inside DIR.
 Patterns can match both regular files and directories.
 To root an entry, start it with `./'.  To match directories only,
-end it with `/'.  DIR must be one of `project-roots' or
+end it with `/'.  DIR must be either `project-root' or one of
 `project-external-roots'."
   ;; TODO: Document and support regexp ignores as used by Hg.
   ;; TODO: Support whitelist entries.
@@ -170,13 +177,13 @@ end it with `/'.  DIR must be one of `project-roots' or
      (t
       (complete-with-action action all-files string pred)))))
 
-(cl-defmethod project-roots ((project (head transient)))
-  (list (cdr project)))
+(cl-defmethod project-root ((project (head transient)))
+  (cdr project))
 
 (cl-defgeneric project-files (project &optional dirs)
   "Return a list of files in directories DIRS in PROJECT.
 DIRS is a list of absolute directories; it should be some
-subset of the project roots and external roots.
+subset of the project root and external roots.
 
 The default implementation uses `find-program'.  PROJECT is used
 to find the list of ignores for each directory."
@@ -184,7 +191,8 @@ to find the list of ignores for each directory."
    (lambda (dir)
      (project--files-in-directory dir
                                   (project--dir-ignores project dir)))
-   (or dirs (project-roots project))))
+   (or dirs
+       (list (project-root project)))))
 
 (defun project--files-in-directory (dir ignores &optional files)
   (require 'find-dired)
@@ -322,8 +330,8 @@ backend implementation of `project-external-roots'.")
       t)
      (t nil))))
 
-(cl-defmethod project-roots ((project (head vc)))
-  (list (cdr project)))
+(cl-defmethod project-root ((project (head vc)))
+  (cdr project))
 
 (cl-defmethod project-external-roots ((project (head vc)))
   (project-subtract-directories
@@ -331,7 +339,7 @@ backend implementation of `project-external-roots'.")
     (mapcar
      #'file-name-as-directory
      (funcall project-vc-external-roots-function)))
-   (project-roots project)))
+   (list (project-root project))))
 
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (cl-mapcan
@@ -349,7 +357,8 @@ backend implementation of `project-external-roots'.")
          (project--files-in-directory
           dir
           (project--dir-ignores project dir)))))
-   (or dirs (project-roots project))))
+   (or dirs
+       (list (project-root project)))))
 
 (declare-function vc-git--program-version "vc-git")
 (declare-function vc-git--run-command-string "vc-git")
@@ -492,7 +501,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
   (let* ((pr (project-current t))
          (files
           (if (not current-prefix-arg)
-              (project-files pr (project-roots pr))
+              (project-files pr)
             (let ((dir (read-directory-name "Base directory: "
                                             nil default-directory t)))
               (project--files-in-directory dir
@@ -503,9 +512,8 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
      nil)))
 
 (defun project--dir-ignores (project dir)
-  (let* ((roots (project-roots project))
-         (root (cl-find dir roots :test #'file-in-directory-p)))
-    (if (not root)
+  (let ((root (project-root project)))
+    (if (not (file-in-directory-p dir root))
         (project-ignores nil nil)       ;The defaults.
       (let ((ignores (project-ignores project root)))
         (if (file-equal-p root dir)
@@ -523,8 +531,8 @@ pattern to search for."
   (require 'xref)
   (let* ((pr (project-current t))
          (files
-          (project-files pr (append
-                             (project-roots pr)
+          (project-files pr (cons
+                             (project-root pr)
                              (project-external-roots pr)))))
     (xref--show-xrefs
      (apply-partially #'project--find-regexp-in-files regexp files)
@@ -562,23 +570,23 @@ pattern to search for."
 
 ;;;###autoload
 (defun project-find-file ()
-  "Visit a file (with completion) in the current project's roots.
+  "Visit a file (with completion) in the current project.
 The completion default is the filename at point, if one is
 recognized."
   (interactive)
   (let* ((pr (project-current t))
-         (dirs (project-roots pr)))
+         (dirs (list (project-root pr))))
     (project-find-file-in (thing-at-point 'filename) dirs pr)))
 
 ;;;###autoload
 (defun project-or-external-find-file ()
-  "Visit a file (with completion) in the current project's roots or external roots.
+  "Visit a file (with completion) in the current project or external roots.
 The completion default is the filename at point, if one is
 recognized."
   (interactive)
   (let* ((pr (project-current t))
-         (dirs (append
-                (project-roots pr)
+         (dirs (cons
+                (project-root pr)
                 (project-external-roots pr))))
     (project-find-file-in (thing-at-point 'filename) dirs pr)))
 
@@ -686,11 +694,7 @@ loop using the command \\[fileloop-continue]."
   "Run `compile' in the project root."
   (interactive)
   (let* ((pr (project-current t))
-         (roots (project-roots pr))
-         ;; TODO: be more intelligent when choosing a directory. This
-         ;; currently isn't a priority, since no `project-roots'
-         ;; implementation returns more that one directory.
-         (default-directory (car roots)))
+         (default-directory (project-root pr)))
     (call-interactively 'compile)))
 
 (provide 'project)
