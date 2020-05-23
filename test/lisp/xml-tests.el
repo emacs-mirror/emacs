@@ -164,6 +164,16 @@ Parser is called with and without 'symbol-qnames argument.")
     (should (equal (cdr xml-parse-test--namespace-attribute-qnames)
                    (xml-parse-region nil nil nil nil 'symbol-qnames)))))
 
+(ert-deftest xml-print-invalid-cdata ()
+  "Check that Bug#41094 is fixed."
+  (with-temp-buffer
+    (should (equal (should-error (xml-print '((foo () "\0")))
+                                 :type 'xml-invalid-character)
+                   '(xml-invalid-character 0 1)))
+    (should (equal (should-error (xml-print '((foo () "\u00FF \xFF")))
+                                 :type 'xml-invalid-character)
+                   '(xml-invalid-character #x3FFFFF 3)))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

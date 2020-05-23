@@ -393,6 +393,13 @@ component are now rejected by 'json-read' and friends.  This makes
 them more compliant with the JSON specification and consistent with
 the native JSON parsing functions.
 
+** xml.el
+
+*** XML serialization functions now reject invalid characters.
+Previously 'xml-print' would produce invalid XML when given a string
+with characters that are not valid in XML (see
+https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
+
 
 * New Modes and Packages in Emacs 28.1
 
