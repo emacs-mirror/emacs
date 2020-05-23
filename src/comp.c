@@ -232,66 +232,64 @@ DEF_DLL_FN (void, gcc_jit_struct_set_fields,
 static bool
 init_gccjit_functions (void)
 {
-  HMODULE library;
+  HMODULE library = w32_delayed_load (Qgccjit);
 
-  if (!(library = w32_delayed_load (Qgccjit)))
-    {
-      return false;
-    }
+  if (!library)
+    return false;
 
   /* In alphabetical order */
-  LOAD_DLL_FN(library, gcc_jit_block_add_assignment);
-  LOAD_DLL_FN(library, gcc_jit_block_add_comment);
-  LOAD_DLL_FN(library, gcc_jit_block_add_eval);
-  LOAD_DLL_FN(library, gcc_jit_block_end_with_conditional);
-  LOAD_DLL_FN(library, gcc_jit_block_end_with_jump);
-  LOAD_DLL_FN(library, gcc_jit_block_end_with_return);
-  LOAD_DLL_FN(library, gcc_jit_block_end_with_void_return);
-  LOAD_DLL_FN(library, gcc_jit_context_acquire);
-  LOAD_DLL_FN(library, gcc_jit_context_compile_to_file);
-  LOAD_DLL_FN(library, gcc_jit_context_dump_reproducer_to_file);
-  LOAD_DLL_FN(library, gcc_jit_context_dump_to_file);
-  LOAD_DLL_FN(library, gcc_jit_context_get_builtin_function);
-  LOAD_DLL_FN(library, gcc_jit_context_get_first_error);
-  LOAD_DLL_FN(library, gcc_jit_context_get_int_type);
-  LOAD_DLL_FN(library, gcc_jit_context_get_type);
-  LOAD_DLL_FN(library, gcc_jit_context_new_array_access);
-  LOAD_DLL_FN(library, gcc_jit_context_new_array_type);
-  LOAD_DLL_FN(library, gcc_jit_context_new_binary_op);
-  LOAD_DLL_FN(library, gcc_jit_context_new_call);
-  LOAD_DLL_FN(library, gcc_jit_context_new_call_through_ptr);
-  LOAD_DLL_FN(library, gcc_jit_context_new_comparison);
-  LOAD_DLL_FN(library, gcc_jit_context_new_field);
-  LOAD_DLL_FN(library, gcc_jit_context_new_function);
-  LOAD_DLL_FN(library, gcc_jit_context_new_function_ptr_type);
-  LOAD_DLL_FN(library, gcc_jit_context_new_global);
-  LOAD_DLL_FN(library, gcc_jit_context_new_opaque_struct);
-  LOAD_DLL_FN(library, gcc_jit_context_new_param);
-  LOAD_DLL_FN(library, gcc_jit_context_new_rvalue_from_int);
-  LOAD_DLL_FN(library, gcc_jit_context_new_rvalue_from_long);
-  LOAD_DLL_FN(library, gcc_jit_context_new_rvalue_from_ptr);
-  LOAD_DLL_FN(library, gcc_jit_context_new_struct_type);
-  LOAD_DLL_FN(library, gcc_jit_context_new_unary_op);
-  LOAD_DLL_FN(library, gcc_jit_context_new_union_type);
-  LOAD_DLL_FN(library, gcc_jit_context_release);
-  LOAD_DLL_FN(library, gcc_jit_context_set_bool_option);
-  LOAD_DLL_FN(library, gcc_jit_context_set_int_option);
-  LOAD_DLL_FN(library, gcc_jit_context_set_logfile);
-  LOAD_DLL_FN(library, gcc_jit_function_get_param);
-  LOAD_DLL_FN(library, gcc_jit_function_new_block);
-  LOAD_DLL_FN(library, gcc_jit_function_new_local);
-  LOAD_DLL_FN(library, gcc_jit_lvalue_access_field);
-  LOAD_DLL_FN(library, gcc_jit_lvalue_as_rvalue);
-  LOAD_DLL_FN(library, gcc_jit_lvalue_get_address);
-  LOAD_DLL_FN(library, gcc_jit_param_as_lvalue);
-  LOAD_DLL_FN(library, gcc_jit_param_as_rvalue);
-  LOAD_DLL_FN(library, gcc_jit_rvalue_access_field);
-  LOAD_DLL_FN(library, gcc_jit_rvalue_dereference);
-  LOAD_DLL_FN(library, gcc_jit_rvalue_dereference_field);
-  LOAD_DLL_FN(library, gcc_jit_rvalue_get_type);
-  LOAD_DLL_FN(library, gcc_jit_struct_as_type);
-  LOAD_DLL_FN(library, gcc_jit_struct_set_fields);
-  LOAD_DLL_FN(library, gcc_jit_type_get_pointer);
+  LOAD_DLL_FN (library, gcc_jit_block_add_assignment);
+  LOAD_DLL_FN (library, gcc_jit_block_add_comment);
+  LOAD_DLL_FN (library, gcc_jit_block_add_eval);
+  LOAD_DLL_FN (library, gcc_jit_block_end_with_conditional);
+  LOAD_DLL_FN (library, gcc_jit_block_end_with_jump);
+  LOAD_DLL_FN (library, gcc_jit_block_end_with_return);
+  LOAD_DLL_FN (library, gcc_jit_block_end_with_void_return);
+  LOAD_DLL_FN (library, gcc_jit_context_acquire);
+  LOAD_DLL_FN (library, gcc_jit_context_compile_to_file);
+  LOAD_DLL_FN (library, gcc_jit_context_dump_reproducer_to_file);
+  LOAD_DLL_FN (library, gcc_jit_context_dump_to_file);
+  LOAD_DLL_FN (library, gcc_jit_context_get_builtin_function);
+  LOAD_DLL_FN (library, gcc_jit_context_get_first_error);
+  LOAD_DLL_FN (library, gcc_jit_context_get_int_type);
+  LOAD_DLL_FN (library, gcc_jit_context_get_type);
+  LOAD_DLL_FN (library, gcc_jit_context_new_array_access);
+  LOAD_DLL_FN (library, gcc_jit_context_new_array_type);
+  LOAD_DLL_FN (library, gcc_jit_context_new_binary_op);
+  LOAD_DLL_FN (library, gcc_jit_context_new_call);
+  LOAD_DLL_FN (library, gcc_jit_context_new_call_through_ptr);
+  LOAD_DLL_FN (library, gcc_jit_context_new_comparison);
+  LOAD_DLL_FN (library, gcc_jit_context_new_field);
+  LOAD_DLL_FN (library, gcc_jit_context_new_function);
+  LOAD_DLL_FN (library, gcc_jit_context_new_function_ptr_type);
+  LOAD_DLL_FN (library, gcc_jit_context_new_global);
+  LOAD_DLL_FN (library, gcc_jit_context_new_opaque_struct);
+  LOAD_DLL_FN (library, gcc_jit_context_new_param);
+  LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_int);
+  LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_long);
+  LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_ptr);
+  LOAD_DLL_FN (library, gcc_jit_context_new_struct_type);
+  LOAD_DLL_FN (library, gcc_jit_context_new_unary_op);
+  LOAD_DLL_FN (library, gcc_jit_context_new_union_type);
+  LOAD_DLL_FN (library, gcc_jit_context_release);
+  LOAD_DLL_FN (library, gcc_jit_context_set_bool_option);
+  LOAD_DLL_FN (library, gcc_jit_context_set_int_option);
+  LOAD_DLL_FN (library, gcc_jit_context_set_logfile);
+  LOAD_DLL_FN (library, gcc_jit_function_get_param);
+  LOAD_DLL_FN (library, gcc_jit_function_new_block);
+  LOAD_DLL_FN (library, gcc_jit_function_new_local);
+  LOAD_DLL_FN (library, gcc_jit_lvalue_access_field);
+  LOAD_DLL_FN (library, gcc_jit_lvalue_as_rvalue);
+  LOAD_DLL_FN (library, gcc_jit_lvalue_get_address);
+  LOAD_DLL_FN (library, gcc_jit_param_as_lvalue);
+  LOAD_DLL_FN (library, gcc_jit_param_as_rvalue);
+  LOAD_DLL_FN (library, gcc_jit_rvalue_access_field);
+  LOAD_DLL_FN (library, gcc_jit_rvalue_dereference);
+  LOAD_DLL_FN (library, gcc_jit_rvalue_dereference_field);
+  LOAD_DLL_FN (library, gcc_jit_rvalue_get_type);
+  LOAD_DLL_FN (library, gcc_jit_struct_as_type);
+  LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
+  LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
 
   return true;
 }
@@ -369,7 +367,7 @@ load_gccjit_if_necessary (bool mandatory)
     }
 
   if (mandatory && !gccjit_initialized)
-    xsignal1(Qnative_compiler_error, build_string("libgccjit not found"));
+    xsignal1 (Qnative_compiler_error, build_string ("libgccjit not found"));
 
   return gccjit_initialized;
 #else
@@ -1242,7 +1240,7 @@ emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, Lisp_Word_tag lisp_word_tag)
 	     GCC_JIT_BINARY_OP_MINUS,
 	     comp.uintptr_type,
 	     emit_XLP (a),
-	     emit_rvalue_from_lisp_word_tag(lisp_word_tag)));
+	     emit_rvalue_from_lisp_word_tag (lisp_word_tag)));
 }
 
 static gcc_jit_rvalue *
@@ -3637,7 +3635,7 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
        doc: /* Initialize the native compiler context. Return t on success.  */)
   (void)
 {
-  load_gccjit_if_necessary(true);
+  load_gccjit_if_necessary (true);
 
   if (comp.ctxt)
     {
@@ -3785,7 +3783,7 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
        doc: /* Release the native compiler context.  */)
   (void)
 {
-  load_gccjit_if_necessary(true);
+  load_gccjit_if_necessary (true);
 
   if (comp.ctxt)
     gcc_jit_context_release (comp.ctxt);
@@ -3803,7 +3801,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        doc: /* Compile as native code the current context to file.  */)
   (Lisp_Object base_name)
 {
-  load_gccjit_if_necessary(true);
+  load_gccjit_if_necessary (true);
 
   CHECK_STRING (base_name);
 
@@ -3963,7 +3961,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       if (!f)
 	{
 	  char str[128];
-	  sprintf (str, "log_%d", getpid());
+	  sprintf (str, "log_%d", getpid ());
 	  f = fopen (str, "w");
 	}
       if (!f)
@@ -3974,7 +3972,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       fflush (f);
     }
 #endif
-  if (!load_gccjit_if_necessary(false))
+  if (!load_gccjit_if_necessary (false))
     return;
 
   if (!comp_deferred_compilation
@@ -4313,7 +4311,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   if (NILP (Ffile_exists_p (file)))
     xsignal2 (Qnative_lisp_load_failed, build_string ("file does not exists"),
 	      file);
-  struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit();
+  struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
   comp_u->handle = dynlib_open (SSDATA (file));
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, file, build_string (dynlib_error ()));
@@ -4335,7 +4333,7 @@ this instance of Emacs. */)
   (void)
 {
 #ifdef HAVE_NATIVE_COMP
-  return load_gccjit_if_necessary(false) ? Qt : Qnil;
+  return load_gccjit_if_necessary (false) ? Qt : Qnil;
 #else
   return Qnil;
 #endif
