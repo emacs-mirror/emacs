@@ -49,10 +49,9 @@ by a distinguished character code.
 
   Since strings are arrays, and therefore sequences as well, you can
 operate on them with the general array and sequence functions documented
-in @ref{Sequences Arrays Vectors}.  For example, you can access or
-change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).  However, you should not
-try to change the contents of constant strings (@pxref{Modifying Strings}).
+in @ref{Sequences Arrays Vectors}.  For example, you can access
+individual characters in a string using the function @code{aref}
+(@pxref{Array Functions}).
 
   There are two text representations for non-@acronym{ASCII}
 characters in Emacs strings (and in buffers): unibyte and multibyte.
@@ -382,9 +381,7 @@ usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @cindex string modification
 
   You can alter the contents of a mutable string via operations
-described in this section.  However, you should not try to use these
-operations to alter the contents of a constant string.
-@xref{Constants and Mutability}.
+described in this section.  @xref{Mutability}.
 
   The most basic way to alter the contents of an existing string is with
 @code{aset} (@pxref{Array Functions}).  @code{(aset @var{string}

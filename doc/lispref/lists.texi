@@ -873,8 +873,8 @@ primitives @code{setcar} and @code{setcdr}.  These are destructive
 operations because they change existing list structure.
 Destructive operations should be applied only to mutable lists,
 that is, lists constructed via @code{cons}, @code{list} or similar
-operations.  Lists created by quoting are constants and should not be
-changed by destructive operations.  @xref{Constants and Mutability}.
+operations.  Lists created by quoting are part of the program and
+should not be changed by destructive operations.  @xref{Mutability}.
 
 @cindex CL note---@code{rplaca} vs @code{setcar}
 @quotation
@@ -911,7 +911,7 @@ value @var{object}.  For example:
 
 @example
 @group
-(setq x (list 1 2))  ; @r{Create a mutable list.}
+(setq x (list 1 2))
      @result{} (1 2)
 @end group
 @group
@@ -931,7 +931,7 @@ these lists.  Here is an example:
 
 @example
 @group
-;; @r{Create two mutable lists that are partly shared.}
+;; @r{Create two lists that are partly shared.}
 (setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setq x2 (cons 'z (cdr x1)))
@@ -1022,11 +1022,11 @@ reached via the @sc{cdr}.
 
 @example
 @group
-(setq x (list 1 2 3))  ; @r{Create a mutable list.}
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
-(setcdr x '(4))  ; @r{Modify the list's tail to be a constant list.}
+(setcdr x '(4))
      @result{} (4)
 @end group
 @group
@@ -1135,11 +1135,11 @@ Unlike @code{append} (@pxref{Building Lists}), the @var{lists} are
 
 @example
 @group
-(setq x (list 1 2 3))  ; @r{Create a mutable list.}
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
-(nconc x '(4 5))  ; @r{Modify the list's tail to be a constant list.}
+(nconc x '(4 5))
      @result{} (1 2 3 4 5)
 @end group
 @group

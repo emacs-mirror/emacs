@@ -183,11 +183,11 @@ for other ways to copy sequences.
 
 @example
 @group
-(setq bar (list 1 2))  ; @r{Create a mutable list.}
+(setq bar (list 1 2))
      @result{} (1 2)
 @end group
 @group
-(setq x (vector 'foo bar))  ; @r{Create a mutable vector.}
+(setq x (vector 'foo bar))
      @result{} [foo (1 2)]
 @end group
 @group
@@ -278,7 +278,7 @@ Unlike @code{reverse} the original @var{sequence} may be modified.
 
 @example
 @group
-(setq x (list 'a 'b 'c))  ; @r{Create a mutable list.}
+(setq x (list 'a 'b 'c))
      @result{} (a b c)
 @end group
 @group
@@ -320,7 +320,7 @@ presented graphically:
   For the vector, it is even simpler because you don't need setq:
 
 @example
-(setq x (copy-sequence [1 2 3 4]))  ; @r{Create a mutable vector.}
+(setq x (copy-sequence [1 2 3 4]))
      @result{} [1 2 3 4]
 (nreverse x)
      @result{} [4 3 2 1]
@@ -331,6 +331,7 @@ x
 Note that unlike @code{reverse}, this function doesn't work with strings.
 Although you can alter string data by using @code{aset}, it is strongly
 encouraged to treat strings as immutable even when they are mutable.
+@xref{Mutability}.
 
 @end defun
 
@@ -374,7 +375,7 @@ appears in a different position in the list due to the change of
 
 @example
 @group
-(setq nums (list 1 3 2 6 5 4 0))  ; @r{Create a mutable list.}
+(setq nums (list 1 3 2 6 5 4 0))
      @result{} (1 3 2 6 5 4 0)
 @end group
 @group
@@ -1228,7 +1229,7 @@ This function sets the @var{index}th element of @var{array} to be
 
 @example
 @group
-(setq w (vector 'foo 'bar 'baz))  ; @r{Create a mutable vector.}
+(setq w (vector 'foo 'bar 'baz))
      @result{} [foo bar baz]
 (aset w 0 'fu)
      @result{} fu
@@ -1237,7 +1238,7 @@ w
 @end group
 
 @group
-;; @r{@code{copy-sequence} creates a mutable string.}
+;; @r{@code{copy-sequence} copies the string to be modified later.}
 (setq x (copy-sequence "asdfasfd"))
      @result{} "asdfasfd"
 (aset x 3 ?Z)
@@ -1247,9 +1248,7 @@ x
 @end group
 @end example
 
-The @var{array} should be mutable; that is, it should not be a constant,
-such as the constants created via quoting or via self-evaluating forms.
-@xref{Constants and Mutability}.
+The @var{array} should be mutable.  @xref{Mutability}.
 
 If @var{array} is a string and @var{object} is not a character, a
 @code{wrong-type-argument} error results.  The function converts a
@@ -1262,7 +1261,6 @@ each element of @var{array} is @var{object}.  It returns @var{array}.
 
 @example
 @group
-;; @r{Create a mutable vector and then fill it with zeros.}
 (setq a (copy-sequence [a b c d e f g]))
      @result{} [a b c d e f g]
 (fillarray a 0)
@@ -1271,7 +1269,6 @@ a
      @result{} [0 0 0 0 0 0 0]
 @end group
 @group
-;; @r{Create a mutable string and then fill it with "-".}
 (setq s (copy-sequence "When in the course"))
      @result{} "When in the course"
 (fillarray s ?-)
@@ -1310,8 +1307,8 @@ same way in Lisp input.
 evaluation: the result of evaluating it is the same vector.  This does
 not evaluate or even examine the elements of the vector.
 @xref{Self-Evaluating Forms}.  Vectors written with square brackets
-are constants and should not be modified via @code{aset} or other
-destructive operations.  @xref{Constants and Mutability}.
+should not be modified via @code{aset} or other destructive
+operations.  @xref{Mutability}.
 
   Here are examples illustrating these principles:
 

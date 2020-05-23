@@ -264,6 +264,37 @@ of the mode line.
 The prettify-symbols-mode should be deprecated once ligature support
 is in place.
 
+A related, but somewhat independent, feature is being able to move the
+cursor "into a ligature", whereby cursor motion commands shows some
+pseudo-cursor on some part of a ligature.  For example, if "ffi" is
+displayed as a ligature, then moving by one buffer position should
+show the middle part of the ligature's glyph similar to the cursor
+display: some special background and perhaps also a special
+foreground.  There are two possible ways of figuring out the offset at
+which to display the pseudo-cursor:
+
+  . Arbitrarily divide the ligature's glyph width W into N parts,
+    where N is the number of codepoints composed into the ligature, then
+    move that pseudo-cursor by W/N pixels each time a cursor-motion
+    command is invoked;
+  . Use the font information.  For example, HarfBuzz has the
+    hb_ot_layout_get_ligature_carets API for that purpose.  However,
+    it could be that few fonts actually have that information recorded
+    in them, in which case the previous heuristics will be needed as
+    fallback.
+
+One subtle issue needs to be resolved to have this feature of
+"sub-glyph" cursor movement inside composed characters.  The way Emacs
+currently displays the default block cursor is by simply redrawing the
+glyph at point in reverse video.  So Emacs currently doesn't have a
+way of displaying a cursor that "covers" only part of a glyph.  To
+make this happen, the display code will probably need to be changed to
+draw the cursor as part of drawing the foreground and/or background of
+the corresponding glyph, which is against the current flow of the
+display code: it generally first completely draws the background and
+foreground of the entire text that needs to be redrawn, and only then
+draws the cursor where it should be placed.
+
 ** Support for Stylistic Sets
 This will allow using "alternate glyphs" supported by modern fonts.
 For an overview of this feature, see
