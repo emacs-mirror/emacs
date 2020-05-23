@@ -449,7 +449,7 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
-(when (boundp 'comp-ctxt) ; FIXME better native-comp feature discriminant?
+(when (native-comp-available-p)
   ;; Fix the compilation unit filename to have it working when
   ;; when installed or if the source directory got moved.  This is set to be
   ;; a pair in the form: (rel-path-from-install-bin . rel-path-from-local-bin).
