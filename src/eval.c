@@ -3202,7 +3202,19 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 	      else
 		error ("Invalid byte code");
 	    }
-	  ASET (object, COMPILED_BYTECODE, XCAR (tem));
+
+	  Lisp_Object bytecode = XCAR (tem);
+	  if (STRING_MULTIBYTE (bytecode))
+	    {
+	      /* BYTECODE must have been produced by Emacs 20.2 or earlier
+		 because it produced a raw 8-bit string for byte-code and now
+		 such a byte-code string is loaded as multibyte with raw 8-bit
+		 characters converted to multibyte form.  Convert them back to
+		 the original unibyte form.  */
+	      bytecode = Fstring_as_unibyte (bytecode);
+	    }
+
+	  ASET (object, COMPILED_BYTECODE, bytecode);
 	  ASET (object, COMPILED_CONSTANTS, XCDR (tem));
 	}
     }
