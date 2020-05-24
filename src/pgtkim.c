@@ -24,7 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "pgtkterm.h"
 
-static void im_context_commit_cb(GtkIMContext *imc, gchar *str, gpointer user_data)
+static void
+im_context_commit_cb (GtkIMContext * imc, gchar * str, gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo = user_data;
   struct frame *f = dpyinfo->im.focused_frame;
@@ -34,31 +35,34 @@ static void im_context_commit_cb(GtkIMContext *imc, gchar *str, gpointer user_da
   if (f == NULL)
     return;
 
-  pgtk_enqueue_string(f, str);
+  pgtk_enqueue_string (f, str);
 }
 
-static gboolean im_context_retrieve_surrounding_cb(GtkIMContext *imc, gpointer user_data)
+static gboolean
+im_context_retrieve_surrounding_cb (GtkIMContext * imc, gpointer user_data)
 {
-  gtk_im_context_set_surrounding(imc, "", -1, 0);
+  gtk_im_context_set_surrounding (imc, "", -1, 0);
   return TRUE;
 }
 
-static gboolean im_context_delete_surrounding_cb(GtkIMContext *imc, int offset, int n_chars, gpointer user_data)
+static gboolean
+im_context_delete_surrounding_cb (GtkIMContext * imc, int offset, int n_chars,
+				  gpointer user_data)
 {
   return TRUE;
 }
 
-static Lisp_Object make_color_string(PangoAttrColor *pac)
+static Lisp_Object
+make_color_string (PangoAttrColor * pac)
 {
   char buf[256];
-  sprintf(buf, "#%02x%02x%02x",
-	  pac->color.red >> 8,
-	  pac->color.green >> 8,
-	  pac->color.blue >> 8);
-  return build_string(buf);
+  sprintf (buf, "#%02x%02x%02x",
+	   pac->color.red >> 8, pac->color.green >> 8, pac->color.blue >> 8);
+  return build_string (buf);
 }
 
-static void im_context_preedit_changed_cb(GtkIMContext *imc, gpointer user_data)
+static void
+im_context_preedit_changed_cb (GtkIMContext * imc, gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo = user_data;
   struct frame *f = dpyinfo->im.focused_frame;
@@ -71,7 +75,7 @@ static void im_context_preedit_changed_cb(GtkIMContext *imc, gpointer user_data)
   if (f == NULL)
     return;
 
-  gtk_im_context_get_preedit_string(imc, &str, &attrs, &pos);
+  gtk_im_context_get_preedit_string (imc, &str, &attrs, &pos);
 
 
   /*
@@ -82,58 +86,70 @@ static void im_context_preedit_changed_cb(GtkIMContext *imc, gpointer user_data)
    */
   Lisp_Object list = Qnil;
 
-  PangoAttrIterator* iter;
-  iter = pango_attr_list_get_iterator(attrs);
-  do {
-    int st, ed;
-    int has_underline = 0;
-    Lisp_Object part = Qnil;
+  PangoAttrIterator *iter;
+  iter = pango_attr_list_get_iterator (attrs);
+  do
+    {
+      int st, ed;
+      int has_underline = 0;
+      Lisp_Object part = Qnil;
 
-    pango_attr_iterator_range(iter, &st, &ed);
+      pango_attr_iterator_range (iter, &st, &ed);
 
-    if (ed > strlen(str))
-      ed = strlen(str);
-    if (st >= ed)
-      continue;
+      if (ed > strlen (str))
+	ed = strlen (str);
+      if (st >= ed)
+	continue;
 
-    Lisp_Object text = make_string(str + st, ed - st);
-    part = Fcons(text, part);
+      Lisp_Object text = make_string (str + st, ed - st);
+      part = Fcons (text, part);
 
-    PangoAttrInt *ul = (PangoAttrInt *) pango_attr_iterator_get(iter, PANGO_ATTR_UNDERLINE);
-    if (ul != NULL) {
-      if (ul->value != PANGO_UNDERLINE_NONE)
-	has_underline = 1;
-    }
+      PangoAttrInt *ul =
+	(PangoAttrInt *) pango_attr_iterator_get (iter, PANGO_ATTR_UNDERLINE);
+      if (ul != NULL)
+	{
+	  if (ul->value != PANGO_UNDERLINE_NONE)
+	    has_underline = 1;
+	}
 
-    PangoAttrColor *pac;
-    if (has_underline) {
-      pac = (PangoAttrColor *) pango_attr_iterator_get(iter, PANGO_ATTR_UNDERLINE_COLOR);
+      PangoAttrColor *pac;
+      if (has_underline)
+	{
+	  pac =
+	    (PangoAttrColor *) pango_attr_iterator_get (iter,
+							PANGO_ATTR_UNDERLINE_COLOR);
+	  if (pac != NULL)
+	    part = Fcons (Fcons (Qul, make_color_string (pac)), part);
+	  else
+	    part = Fcons (Fcons (Qul, Qt), part);
+	}
+
+      pac =
+	(PangoAttrColor *) pango_attr_iterator_get (iter,
+						    PANGO_ATTR_FOREGROUND);
       if (pac != NULL)
-	part = Fcons(Fcons(Qul, make_color_string(pac)), part);
-      else
-	part = Fcons(Fcons(Qul, Qt), part);
+	part = Fcons (Fcons (Qfg, make_color_string (pac)), part);
+
+      pac =
+	(PangoAttrColor *) pango_attr_iterator_get (iter,
+						    PANGO_ATTR_BACKGROUND);
+      if (pac != NULL)
+	part = Fcons (Fcons (Qbg, make_color_string (pac)), part);
+
+      part = Fnreverse (part);
+      list = Fcons (part, list);
     }
+  while (pango_attr_iterator_next (iter));
 
-    pac = (PangoAttrColor *) pango_attr_iterator_get(iter, PANGO_ATTR_FOREGROUND);
-    if (pac != NULL)
-      part = Fcons(Fcons(Qfg, make_color_string(pac)), part);
+  list = Fnreverse (list);
+  pgtk_enqueue_preedit (f, list);
 
-    pac = (PangoAttrColor *) pango_attr_iterator_get(iter, PANGO_ATTR_BACKGROUND);
-    if (pac != NULL)
-      part = Fcons(Fcons(Qbg, make_color_string(pac)), part);
-
-    part = Fnreverse(part);
-    list = Fcons(part, list);
-  } while (pango_attr_iterator_next(iter));
-
-  list = Fnreverse(list);
-  pgtk_enqueue_preedit(f, list);
-
-  g_free(str);
-  pango_attr_list_unref(attrs);
+  g_free (str);
+  pango_attr_list_unref (attrs);
 }
 
-static void im_context_preedit_end_cb(GtkIMContext *imc, gpointer user_data)
+static void
+im_context_preedit_end_cb (GtkIMContext * imc, gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo = user_data;
   struct frame *f = dpyinfo->im.focused_frame;
@@ -143,90 +159,116 @@ static void im_context_preedit_end_cb(GtkIMContext *imc, gpointer user_data)
   if (f == NULL)
     return;
 
-  pgtk_enqueue_preedit(f, Qnil);
+  pgtk_enqueue_preedit (f, Qnil);
 }
 
-static void im_context_preedit_start_cb(GtkIMContext *imc, gpointer user_data)
+static void
+im_context_preedit_start_cb (GtkIMContext * imc, gpointer user_data)
 {
 }
 
-void pgtk_im_focus_in(struct frame *f)
+void
+pgtk_im_focus_in (struct frame *f)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  if (dpyinfo->im.context != NULL) {
-    gtk_im_context_reset (dpyinfo->im.context);
-    gtk_im_context_set_client_window (dpyinfo->im.context, gtk_widget_get_window (FRAME_GTK_WIDGET (f)));
-    gtk_im_context_focus_in (dpyinfo->im.context);
-  }
+  if (dpyinfo->im.context != NULL)
+    {
+      gtk_im_context_reset (dpyinfo->im.context);
+      gtk_im_context_set_client_window (dpyinfo->im.context,
+					gtk_widget_get_window
+					(FRAME_GTK_WIDGET (f)));
+      gtk_im_context_focus_in (dpyinfo->im.context);
+    }
   dpyinfo->im.focused_frame = f;
 }
 
-void pgtk_im_focus_out(struct frame *f)
+void
+pgtk_im_focus_out (struct frame *f)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  if (dpyinfo->im.focused_frame == f) {
-    if (dpyinfo->im.context != NULL) {
-      gtk_im_context_reset (dpyinfo->im.context);
-      gtk_im_context_focus_out (dpyinfo->im.context);
-      gtk_im_context_set_client_window (dpyinfo->im.context, NULL);
+  if (dpyinfo->im.focused_frame == f)
+    {
+      if (dpyinfo->im.context != NULL)
+	{
+	  gtk_im_context_reset (dpyinfo->im.context);
+	  gtk_im_context_focus_out (dpyinfo->im.context);
+	  gtk_im_context_set_client_window (dpyinfo->im.context, NULL);
+	}
+      dpyinfo->im.focused_frame = NULL;
     }
-    dpyinfo->im.focused_frame = NULL;
-  }
 }
 
-bool pgtk_im_filter_keypress(struct frame *f, GdkEventKey *ev)
+bool
+pgtk_im_filter_keypress (struct frame *f, GdkEventKey * ev)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  if (dpyinfo->im.context != NULL) {
-    if (gtk_im_context_filter_keypress (dpyinfo->im.context, ev))
-      return true;
-  }
+  if (dpyinfo->im.context != NULL)
+    {
+      if (gtk_im_context_filter_keypress (dpyinfo->im.context, ev))
+	return true;
+    }
   return false;
 }
 
-void pgtk_im_init(struct pgtk_display_info *dpyinfo)
+void
+pgtk_im_init (struct pgtk_display_info *dpyinfo)
 {
   dpyinfo->im.context = NULL;
 }
 
-void pgtk_im_finish(struct pgtk_display_info *dpyinfo)
+void
+pgtk_im_finish (struct pgtk_display_info *dpyinfo)
 {
   if (dpyinfo->im.context != NULL)
-    g_object_unref(dpyinfo->im.context);
+    g_object_unref (dpyinfo->im.context);
   dpyinfo->im.context = NULL;
 }
 
-DEFUN ("pgtk-use-im-context", Fpgtk_use_im_context, Spgtk_use_im_context,
-       1, 2, 0,
+DEFUN ("pgtk-use-im-context", Fpgtk_use_im_context, Spgtk_use_im_context, 1, 2, 0,
        doc: /* Set whether use Gtk's im context. */)
   (Lisp_Object use_p, Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
 
-  if (NILP(use_p)) {
-    if (dpyinfo->im.context != NULL) {
-      gtk_im_context_reset (dpyinfo->im.context);
-      gtk_im_context_focus_out (dpyinfo->im.context);
-      gtk_im_context_set_client_window (dpyinfo->im.context, NULL);
+  if (NILP (use_p))
+    {
+      if (dpyinfo->im.context != NULL)
+	{
+	  gtk_im_context_reset (dpyinfo->im.context);
+	  gtk_im_context_focus_out (dpyinfo->im.context);
+	  gtk_im_context_set_client_window (dpyinfo->im.context, NULL);
 
-      g_object_unref(dpyinfo->im.context);
-      dpyinfo->im.context = NULL;
+	  g_object_unref (dpyinfo->im.context);
+	  dpyinfo->im.context = NULL;
+	}
     }
-  } else {
-    if (dpyinfo->im.context == NULL) {
-      dpyinfo->im.context = gtk_im_multicontext_new();
-      g_signal_connect(dpyinfo->im.context, "commit", G_CALLBACK(im_context_commit_cb), dpyinfo);
-      g_signal_connect(dpyinfo->im.context, "retrieve-surrounding", G_CALLBACK(im_context_retrieve_surrounding_cb), dpyinfo);
-      g_signal_connect(dpyinfo->im.context, "delete-surrounding", G_CALLBACK(im_context_delete_surrounding_cb), dpyinfo);
-      g_signal_connect(dpyinfo->im.context, "preedit-changed", G_CALLBACK(im_context_preedit_changed_cb), dpyinfo);
-      g_signal_connect(dpyinfo->im.context, "preedit-end", G_CALLBACK(im_context_preedit_end_cb), dpyinfo);
-      g_signal_connect(dpyinfo->im.context, "preedit-start", G_CALLBACK(im_context_preedit_start_cb), dpyinfo);
-      gtk_im_context_set_use_preedit (dpyinfo->im.context, TRUE);
+  else
+    {
+      if (dpyinfo->im.context == NULL)
+	{
+	  dpyinfo->im.context = gtk_im_multicontext_new ();
+	  g_signal_connect (dpyinfo->im.context, "commit",
+			    G_CALLBACK (im_context_commit_cb), dpyinfo);
+	  g_signal_connect (dpyinfo->im.context, "retrieve-surrounding",
+			    G_CALLBACK (im_context_retrieve_surrounding_cb),
+			    dpyinfo);
+	  g_signal_connect (dpyinfo->im.context, "delete-surrounding",
+			    G_CALLBACK (im_context_delete_surrounding_cb),
+			    dpyinfo);
+	  g_signal_connect (dpyinfo->im.context, "preedit-changed",
+			    G_CALLBACK (im_context_preedit_changed_cb),
+			    dpyinfo);
+	  g_signal_connect (dpyinfo->im.context, "preedit-end",
+			    G_CALLBACK (im_context_preedit_end_cb), dpyinfo);
+	  g_signal_connect (dpyinfo->im.context, "preedit-start",
+			    G_CALLBACK (im_context_preedit_start_cb),
+			    dpyinfo);
+	  gtk_im_context_set_use_preedit (dpyinfo->im.context, TRUE);
 
-      if (dpyinfo->im.focused_frame)
-	pgtk_im_focus_in(dpyinfo->im.focused_frame);
+	  if (dpyinfo->im.focused_frame)
+	    pgtk_im_focus_in (dpyinfo->im.focused_frame);
+	}
     }
-  }
 
   return Qnil;
 }
