@@ -718,35 +718,34 @@ ftcrfont_draw (struct glyph_string *s,
                                                        glyphs[i].index,
                                                        NULL));
     }
+
   if (face->shadow_p)
     {
-      // TODO: color? offset?
-      // TODO: decide on a deviation value
-      x_set_cr_source_with_gc_foreground (f, s->gc);
-      cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
-      cairo_show_glyphs (cr, glyphs, len);
-      cairou_gaussian_blur (cairo_get_target (cr), 5.0, 5.0);
-    }
+      double x1, y1, w1, h1;
+      cairo_surface_t *surface;
+      cairo_t *dc;
 
-  /* apply filter */
-  // 1. create an image surface and a DC, x y h w? see background
-  // 2. "show glyphs" on it
-  // 3. use this surface as a mask
-  // 4. set foreground color to shadow color
-  // 5. cairo_mask
-  double x1, y1, w1, h1;
-  cairo_clip_extents(cr, &x1, &y1, &w1, &h1);
-  cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w1, h1);
-  cairo_t* dc = cairo_create(surface);
-  cairo_translate(dc, -x1, -y1);  /* origin is (-x1,-y1) */
-  cairo_set_source_rgb(dc, 0, 0, 0);
-  cairo_set_scaled_font (dc, ftcrfont_info->cr_scaled_font);
-  cairo_show_glyphs (dc, glyphs, len);
-  cairou_gaussian_blur(surface, 3.0, 0.0);
-  cairo_destroy(dc);
-  cairo_set_source_rgb(cr, 1, 0, 0);
-  cairo_mask_surface(cr, surface, x1, y1);
-  cairo_surface_destroy(surface);
+      cairo_clip_extents (cr, &x1, &y1, &w1, &h1);
+      surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, w1, h1);
+      dc = cairo_create (surface);
+      cairo_translate (dc, -x1 + face->shadow_offset.x,
+                       -y1 + face->shadow_offset.y);
+      cairo_set_source_rgb (dc, 0, 0, 0);
+      cairo_set_scaled_font (dc, ftcrfont_info->cr_scaled_font);
+      cairo_show_glyphs (dc, glyphs, len);
+      cairou_gaussian_blur (surface, face->shadow_blur, 0.0);
+      if (face->shadow_color_defaulted_p)
+        x_set_cr_source_with_gc_foreground (f, s->gc);
+      else
+        {
+          // TODO: get color RGB
+          x_set_cr_source_with_gc_foreground (f, s->gc);
+        }
+      cairo_mask_surface (cr, surface, x1, y1);
+
+      cairo_surface_destroy (surface);
+      cairo_destroy (dc);
+    }
 
   x_set_cr_source_with_gc_foreground (f, s->gc);
   cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
