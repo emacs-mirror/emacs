@@ -109,7 +109,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 extern void syms_of_comp (void);
 
 static inline void
-dispose_comp_unit (struct Lisp_Native_Comp_Unit * comp_handle)
+dispose_comp_unit (struct Lisp_Native_Comp_Unit * comp_handle, bool delay)
 {
   eassert (false);
 }
