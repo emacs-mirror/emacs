@@ -41,7 +41,7 @@ For instance:
 
 Each format spec can have modifiers, where \"%<010b\" means \"if
 the expansion is shorter than ten characters, zero-pad it, and if
-it's longer, chop off characters from the left size\".
+it's longer, chop off characters from the left side\".
 
 The following modifiers are allowed:
 
