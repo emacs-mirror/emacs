@@ -1984,8 +1984,11 @@ pfnote (char *name, bool is_func, char *linestart, ptrdiff_t linelen,
 {
   register node *np;
 
-  assert (name == NULL || name[0] != '\0');
-  if (CTAGS && name == NULL)
+  if ((CTAGS && name == NULL)
+      /* We used to have an assertion here for the case below, but if we hit
+	 that case, it just means our parser got confused, and there's nothing
+	 to do about such empty "tags".  */
+      || (!CTAGS && name && name[0] == '\0'))
     return;
 
   np = xnew (1, node);
