@@ -435,14 +435,6 @@ enum
 
 /* Compute pixel height of the frame's titlebar. */
 #define FRAME_PGTK_TITLEBAR_HEIGHT(f)                                     0
-#if 0
-  (PGTKHeight([FRAME_PGTK_VIEW (f) frame]) == 0 ?                           \
-   0                                                                    \
-   : (int)(PGTKHeight([FRAME_PGTK_VIEW (f) window].frame)                   \
-           - PGTKHeight([PGTKWindow contentRectForFrameRect:                \
-                       [[FRAME_PGTK_VIEW (f) window] frame]               \
-                       styleMask:[[FRAME_PGTK_VIEW (f) window] styleMask]])))
-#endif
 
 /* Compute pixel size for vertical scroll bars */
 #define PGTK_SCROLL_BAR_WIDTH(f)					\
