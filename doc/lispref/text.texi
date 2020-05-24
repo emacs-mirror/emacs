@@ -4698,10 +4698,7 @@ following modifiers can be used:
 
 @table @asis
 @item @samp{0}
-Use zero padding.
-
-@item @samp{@ }
-User space padding.
+Pad with zeros instead of the default spaces.
 
 @item @samp{-}
 Pad to the right.
@@ -4713,7 +4710,7 @@ Use upper case.
 Use lower case.
 
 @item @samp{<}
-If the length needs to limited, remove characters from the left.
+If the length needs to be limited, remove characters from the left.
 
 @item @samp{>}
 Same as previous, but remove characters from the right.
@@ -4723,9 +4720,9 @@ If contradictory modifiers are used (for instance, both upper and
 lower case), then what happens is undefined.
 
 As an example, @samp{"%<010b"} means ``insert the @samp{b} expansion,
-but pad with leading zeroes if it's less than ten characters, and if
+but pad with leading zeros if it's less than ten characters, and if
 it's more than ten characters, shorten by removing characters from the
-left''.
+left.''
 
 
 @node Checksum/Hash
