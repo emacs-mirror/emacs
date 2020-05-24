@@ -726,7 +726,7 @@ ftcrfont_draw (struct glyph_string *s,
       cairo_t *dc;
 
       cairo_clip_extents (cr, &x1, &y1, &w1, &h1);
-      surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, w1, h1);
+      surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w1, h1);
       dc = cairo_create (surface);
       cairo_translate (dc, -x1 + face->shadow_offset.x,
                        -y1 + face->shadow_offset.y);
@@ -743,8 +743,8 @@ ftcrfont_draw (struct glyph_string *s,
         }
       cairo_mask_surface (cr, surface, x1, y1);
 
-      cairo_surface_destroy (surface);
       cairo_destroy (dc);
+      cairo_surface_destroy (surface);
     }
 
   x_set_cr_source_with_gc_foreground (f, s->gc);
