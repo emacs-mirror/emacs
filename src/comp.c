@@ -4722,7 +4722,8 @@ syms_of_comp (void)
 	       doc: /* Hash table symbol-name -> function-value.  For
 		       internal use during  */);
   Vcomp_deferred_pending_h = CALLN (Fmake_hash_table, QCtest, Qeq);
-#endif
+
+#endif /* #ifdef HAVE_NATIVE_COMP */
 
   defsubr (&Snative_comp_available_p);
 }

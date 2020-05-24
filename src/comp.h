@@ -100,7 +100,8 @@ extern void finish_delayed_disposal_of_comp_units (void);
 extern void dispose_all_remaining_comp_units (void);
 
 extern void clean_package_user_dir_of_old_comp_units (void);
-#else
+
+#else /* #ifdef HAVE_NATIVE_COMP */
 
 static inline void
 maybe_defer_native_compilation (Lisp_Object function_name,
@@ -127,6 +128,6 @@ static inline void
 finish_delayed_disposal_of_comp_units (void)
 {}
 
-#endif
+#endif /* #ifdef HAVE_NATIVE_COMP */
 
-#endif
+#endif /* #ifndef COMP_H */
