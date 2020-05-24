@@ -2278,8 +2278,9 @@ Prepare every function for final compilation and drive the C back-end."
 ;; Some entry point support code.
 
 (defun comp--replace-output-file (outfile tmpfile)
-  "Replace OUTFILE with TMPFILE taking the necessary steps when
-dealing with shared libraries that may be loaded into Emacs"
+  "Replace OUTFILE with TMPFILE.
+Takes the necessary steps when dealing with shared libraries that
+may be loaded into Emacs"
   (cond ((eq 'windows-nt system-type)
          (ignore-errors (delete-file outfile))
          (let ((retry t))

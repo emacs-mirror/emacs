@@ -3883,7 +3883,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
 				   SSDATA (tmp_file));
 
-  CALL2I(comp--replace-output-file, out_file, tmp_file);
+  CALL2I (comp--replace-output-file, out_file, tmp_file);
 
   if (!noninteractive)
     unbind_to (count, Qnil);
@@ -3953,67 +3953,68 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 /*********************************/
 
 /*
-The problem: Windows does not let us delete an .eln file that has been
-loaded by a process. This has two implications in Emacs:
+  The problem: Windows does not let us delete an .eln file that has
+  been loaded by a process.  This has two implications in Emacs:
 
-1) It is not possible to recompile a lisp file if the corresponding
-.eln file has been loaded. This is because we'd like to use the same
-filename, but we can't delete the old .eln file.
+  1) It is not possible to recompile a lisp file if the corresponding
+  .eln file has been loaded.  This is because we'd like to use the same
+  filename, but we can't delete the old .eln file.
 
-2) It is not possible to delete a package using `package-delete'
-if an .eln file has been loaded.
+  2) It is not possible to delete a package using `package-delete'
+  if an .eln file has been loaded.
 
-* General idea
+  * General idea
 
-The solution to these two problems is to move the foo.eln file
-somewhere else and have the last Emacs instance using it delete it.
-To make it easy to find what files need to be removed we use two approaches.
+  The solution to these two problems is to move the foo.eln file
+  somewhere else and have the last Emacs instance using it delete it.
+  To make it easy to find what files need to be removed we use two approaches.
 
-In the 1) case we rename foo.eln to fooXXXXXX.eln.old in the same
-folder. When Emacs is unloading "foo" (either GC'd the native
-compilation unit or Emacs is closing (see below)) we delete all the
-.eln.old files in the folder where the original foo.eln was stored.
+  In the 1) case we rename foo.eln to fooXXXXXX.eln.old in the same
+  folder.  When Emacs is unloading "foo" (either GC'd the native
+  compilation unit or Emacs is closing (see below)) we delete all the
+  .eln.old files in the folder where the original foo.eln was stored.
 
-Ideally we'd figure out the new name of foo.eln and delete it if
-it ends in .eln.old. There is no simple API to do this in
-Windows. GetModuleFileName() returns the original filename, not the
-current one. This forces us to put .eln.old files in an agreed upon
-path. We cannot use %TEMP% because it may be in another drive and then
-the rename operation would fail.
+  Ideally we'd figure out the new name of foo.eln and delete it if it
+  ends in .eln.old.  There is no simple API to do this in Windows.
+  GetModuleFileName () returns the original filename, not the current
+  one.  This forces us to put .eln.old files in an agreed upon path.
+  We cannot use %TEMP% because it may be in another drive and then the
+  rename operation would fail.
 
-In the 2) case we can't use the same folder where the .eln file
-resided, as we are trying to completely remove the package. Since we
-are removing packages we can safely move the .eln.old file to
-`package-user-dir' as we are sure that that would not mean changing
-drives.
+  In the 2) case we can't use the same folder where the .eln file
+  resided, as we are trying to completely remove the package.  Since we
+  are removing packages we can safely move the .eln.old file to
+  `package-user-dir' as we are sure that that would not mean changing
+  drives.
 
-* Implementation details
+  * Implementation details
 
-The concept of disposal of a native compilation unit refers to
-unloading the shared library and deleting all the .eln.old files in
-the directory. These are two separate steps. We'll call them
-early-disposal and late-disposal.
+  The concept of disposal of a native compilation unit refers to
+  unloading the shared library and deleting all the .eln.old files in
+  the directory.  These are two separate steps.  We'll call them
+  early-disposal and late-disposal.
 
-There are two data structures used:
+  There are two data structures used:
 
-- The `all_loaded_comp_units_h` hashtable.
+  - The `all_loaded_comp_units_h` hashtable.
 
-This hashtable is used like an array of weak references to native
-compilation units. This hash table is filled by load_comp_unit() and
-dispose_all_remaining_comp_units() iterates over all values that were
-not disposed by the GC and performs all disposal steps when Emacs is
-closing.
+  This hashtable is used like an array of weak references to native
+  compilation units.  This hash table is filled by load_comp_unit ()
+  and dispose_all_remaining_comp_units () iterates over all values
+  that were not disposed by the GC and performs all disposal steps
+  when Emacs is closing.
 
-- The `delayed_comp_unit_disposal_list` list.
+  - The `delayed_comp_unit_disposal_list` list.
 
-This is were the dispose_comp_unit() function, when called by the GC
-sweep stage, stores the original filenames of the disposed native
-compilation units. This is an ad-hoc C structure instead of a Lisp
-cons because we need to allocate instances of this structure during
-the GC.
+  This is were the dispose_comp_unit () function, when called by the
+  GC sweep stage, stores the original filenames of the disposed native
+  compilation units.  This is an ad-hoc C structure instead of a Lisp
+  cons because we need to allocate instances of this structure during
+  the GC.
 
-The finish_delayed_disposal_of_comp_units() function will iterate over
-this list and perform the late-disposal step when Emacs is closing.
+  The finish_delayed_disposal_of_comp_units () function will iterate
+  over this list and perform the late-disposal step when Emacs is
+  closing.
 
 */
 
@@ -4022,9 +4023,8 @@ this list and perform the late-disposal step when Emacs is closing.
 
 static Lisp_Object all_loaded_comp_units_h;
 
-/* We need to allocate instances of this struct during a GC
- * sweep. This is why it can't be transformed into a simple cons.
- */
+/* We need to allocate instances of this struct during a GC sweep.
+   This is why it can't be transformed into a simple cons.  */
 struct delayed_comp_unit_disposal
 {
   struct delayed_comp_unit_disposal *next;
@@ -4041,9 +4041,8 @@ return_nil (Lisp_Object arg)
 
 /* Tries to remove all *.eln.old files in DIRNAME.
 
- * Any error is ignored because it may be due to the file being loaded
- * in another Emacs instance.
- */
+   Any error is ignored because it may be due to the file being loaded
+   in another Emacs instance.  */
 static void
 clean_comp_unit_directory (Lisp_Object dirpath)
 {
@@ -4058,9 +4057,8 @@ clean_comp_unit_directory (Lisp_Object dirpath)
 
 /* Tries to remove all *.eln.old files in `package-user-dir'.
 
- * This is called when Emacs is closing to clean any *.eln left from a
- * deleted package.
- */
+   This is called when Emacs is closing to clean any *.eln left from a
+   deleted package.  */
 void
 clean_package_user_dir_of_old_comp_units (void)
 {
@@ -4073,10 +4071,10 @@ clean_package_user_dir_of_old_comp_units (void)
 }
 
 /* This function disposes all compilation units that are still loaded.
- * It is important that this function is called only right before
- * Emacs is closed, otherwise we risk running a subr that is
- * implemented in an unloaded dynamic library.
- */
+
+   It is important that this function is called only right before
+   Emacs is closed, otherwise we risk running a subr that is
+   implemented in an unloaded dynamic library.  */
 void
 dispose_all_remaining_comp_units (void)
 {
@@ -4095,11 +4093,10 @@ dispose_all_remaining_comp_units (void)
 }
 
 /* This function finishes the disposal of compilation units that were
- *  passed to `dispose_comp_unit` with DELAY == true.
- *
- * This function is called when Emacs is idle and when it is about to
- * close.
- */
+   passed to `dispose_comp_unit` with DELAY == true.
+
+   This function is called when Emacs is idle and when it is about to
+   close.  */
 void
 finish_delayed_disposal_of_comp_units (void)
 {
@@ -4118,8 +4115,7 @@ finish_delayed_disposal_of_comp_units (void)
 #endif
 
 /* This function puts the compilation unit in the
- * `all_loaded_comp_units_h` hashmap.
- */
+  `all_loaded_comp_units_h` hashmap.  */
 static void
 register_native_comp_unit (Lisp_Object comp_u)
 {
@@ -4128,14 +4124,13 @@ register_native_comp_unit (Lisp_Object comp_u)
 #endif
 }
 
-/* This function disposes compilation units. It is called during the GC sweep
- * stage and when Emacs is closing.
+/* This function disposes compilation units.  It is called during the GC sweep
+   stage and when Emacs is closing.
 
- * On Windows the the DELAY parameter specifies whether the native
- * compilation file will be deleted right away (if necessary) or put
- * on a list. That list will be dealt with by
- * `finish_delayed_disposal_of_comp_units`.
- */
+   On Windows the the DELAY parameter specifies whether the native
+   compilation file will be deleted right away (if necessary) or put
+   on a list.  That list will be dealt with by
+   `finish_delayed_disposal_of_comp_units`.  */
 void
 dispose_comp_unit (struct Lisp_Native_Comp_Unit *comp_handle, bool delay)
 {
@@ -4387,10 +4382,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
 
       /* If we register them while dumping we will get some entries in
-         the hash table that will be duplicated when pdumper calls
-         load_comp_unit. */
+	 the hash table that will be duplicated when pdumper calls
+	 load_comp_unit.  */
       if (!will_dump_p ())
-        register_native_comp_unit (comp_u_lisp_obj);
+	register_native_comp_unit (comp_u_lisp_obj);
     }
 
   if (!loading_dump)
@@ -4701,7 +4696,7 @@ syms_of_comp (void)
 
 #ifdef WINDOWSNT
   staticpro (&all_loaded_comp_units_h);
-  all_loaded_comp_units_h = CALLN(Fmake_hash_table, QCweakness, Qvalue);
+  all_loaded_comp_units_h = CALLN (Fmake_hash_table, QCweakness, Qvalue);
 #endif
 
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,

@@ -57,9 +57,9 @@ struct Lisp_Native_Comp_Unit
 #ifdef WINDOWSNT
   /* We need to store a copy of the original file name in memory that
      is not subject to GC because the function to dispose native
-     compilation units is called by the GC. By that time the `file'
+     compilation units is called by the GC.  By that time the `file'
      string may have been sweeped. */
-  char * cfile;
+  char *cfile;
 #endif
 };
 
@@ -92,7 +92,8 @@ extern void syms_of_comp (void);
 extern void maybe_defer_native_compilation (Lisp_Object function_name,
 					    Lisp_Object definition);
 
-extern void dispose_comp_unit (struct Lisp_Native_Comp_Unit * comp_unit, bool delay);
+extern void dispose_comp_unit (struct Lisp_Native_Comp_Unit * comp_unit,
+			       bool delay);
 
 extern void finish_delayed_disposal_of_comp_units (void);
 
