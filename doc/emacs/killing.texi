@@ -727,6 +727,8 @@ them.  Rectangle commands are useful with text in multicolumn formats,
 and for changing text into or out of such formats.
 
 @cindex mark rectangle
+@cindex region-rectangle
+@cindex rectangular region
   To specify a rectangle for a command to work on, set the mark at one
 corner and point at the opposite corner.  The rectangle thus specified
 is called the @dfn{region-rectangle}.  If point and the mark are in

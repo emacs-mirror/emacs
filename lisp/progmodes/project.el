@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.1.3
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -40,7 +40,7 @@
 ;; Infrastructure:
 ;;
 ;; Function `project-current', to determine the current project
-;; instance, and 5 (at the moment) generic functions that act on it.
+;; instance, and 4 (at the moment) generic functions that act on it.
 ;; This list is to be extended in future versions.
 ;;
 ;; Utils:
@@ -122,14 +122,25 @@ is not a part of a detectable project either, return a
 (defun project--find-in-directory (dir)
   (run-hook-with-args-until-success 'project-find-functions dir))
 
+(cl-defgeneric project-root (project)
+  "Return root directory of the current project.
+
+It usually contains the main build file, dependencies
+configuration file, etc. Though neither is mandatory.
+
+The directory name must be absolute."
+  (car (project-roots project)))
+
 (cl-defgeneric project-roots (project)
-  "Return the list of directory roots of the current project.
+  "Return the list containing the current project root.
 
-Most often it's just one directory which contains the project
-build file and everything else in the project.  But in more
-advanced configurations, a project can span multiple directories.
-
-The directory names should be absolute.")
+The function is obsolete, all projects have one main root anyway,
+and the rest should be possible to express through
+`project-external-roots'."
+  ;; FIXME: Can we specify project's version here?
+  ;; FIXME: Could we make this affect cl-defmethod calls too?
+  (declare (obsolete project-root "0.3.0"))
+  (list (project-root project)))
 
 ;; FIXME: Add MODE argument, like in `ede-source-paths'?
 (cl-defgeneric project-external-roots (_project)
@@ -138,18 +149,14 @@ The directory names should be absolute.")
 It's the list of directories outside of the project that are
 still related to it.  If the project deals with source code then,
 depending on the languages used, this list should include the
-headers search path, load path, class path, and so on.
-
-The rule of thumb for whether to include a directory here, and
-not in `project-roots', is whether its contents are meant to be
-edited together with the rest of the project."
+headers search path, load path, class path, and so on."
   nil)
 
 (cl-defgeneric project-ignores (_project _dir)
   "Return the list of glob patterns to ignore inside DIR.
 Patterns can match both regular files and directories.
 To root an entry, start it with `./'.  To match directories only,
-end it with `/'.  DIR must be one of `project-roots' or
+end it with `/'.  DIR must be either `project-root' or one of
 `project-external-roots'."
   ;; TODO: Document and support regexp ignores as used by Hg.
   ;; TODO: Support whitelist entries.
@@ -170,13 +177,13 @@ end it with `/'.  DIR must be one of `project-roots' or
      (t
       (complete-with-action action all-files string pred)))))
 
-(cl-defmethod project-roots ((project (head transient)))
-  (list (cdr project)))
+(cl-defmethod project-root ((project (head transient)))
+  (cdr project))
 
 (cl-defgeneric project-files (project &optional dirs)
   "Return a list of files in directories DIRS in PROJECT.
 DIRS is a list of absolute directories; it should be some
-subset of the project roots and external roots.
+subset of the project root and external roots.
 
 The default implementation uses `find-program'.  PROJECT is used
 to find the list of ignores for each directory."
@@ -184,7 +191,8 @@ to find the list of ignores for each directory."
    (lambda (dir)
      (project--files-in-directory dir
                                   (project--dir-ignores project dir)))
-   (or dirs (project-roots project))))
+   (or dirs
+       (list (project-root project)))))
 
 (defun project--files-in-directory (dir ignores &optional files)
   (require 'find-dired)
@@ -223,7 +231,7 @@ to find the list of ignores for each directory."
               local-files))))
 
 (defgroup project-vc nil
-  "Project implementation using the VC package."
+  "Project implementation based on the VC package."
   :version "25.1"
   :group 'tools)
 
@@ -231,6 +239,15 @@ to find the list of ignores for each directory."
   "List of patterns to include in `project-ignores'."
   :type '(repeat string)
   :safe 'listp)
+
+(defcustom project-vc-merge-submodules t
+  "Non-nil to consider submodules part of the parent project.
+
+After changing this variable (using Customize or .dir-locals.el)
+you might have to restart Emacs to see the effect."
+  :type 'boolean
+  :package-version '(project . "0.2.0")
+  :safe 'booleanp)
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -273,38 +290,48 @@ backend implementation of `project-external-roots'.")
           (pcase backend
             ('Git
              ;; Don't stop at submodule boundary.
-             ;; Note: It's not necessarily clear-cut what should be
-             ;; considered a "submodule" in the sense that some users
-             ;; may setup things equivalent to "git-submodule"s using
-             ;; "git worktree" instead (for example).
-             ;; FIXME: Also it may be the case that some users would consider
-             ;; a submodule as its own project.  So there's a good chance
-             ;; we will need to let the user tell us what is their intention.
              (or (vc-file-getprop dir 'project-git-root)
-                 (let* ((root (vc-call-backend backend 'root dir))
-                        (gitfile (expand-file-name ".git" root)))
+                 (let ((root (vc-call-backend backend 'root dir)))
                    (vc-file-setprop
                     dir 'project-git-root
-                    (cond
-                     ((file-directory-p gitfile)
-                      root)
-                     ((with-temp-buffer
-                        (insert-file-contents gitfile)
-                        (goto-char (point-min))
-                        ;; Kind of a hack to distinguish a submodule from
-                        ;; other cases of .git files pointing elsewhere.
-                        (looking-at "gitdir: [./]+/\\.git/modules/"))
-                      (let* ((parent (file-name-directory
-                                      (directory-file-name root))))
-                        (vc-call-backend backend 'root parent)))
-                     (t root)))
-                   )))
+                    (if (and
+                         ;; FIXME: Invalidate the cache when the value
+                         ;; of this variable changes.
+                         project-vc-merge-submodules
+                         (project--submodule-p root))
+                        (let* ((parent (file-name-directory
+                                        (directory-file-name root))))
+                          (vc-call-backend backend 'root parent))
+                      root)))))
             ('nil nil)
             (_ (ignore-errors (vc-call-backend backend 'root dir))))))
     (and root (cons 'vc root))))
 
-(cl-defmethod project-roots ((project (head vc)))
-  (list (cdr project)))
+(defun project--submodule-p (root)
+  ;; XXX: We only support Git submodules for now.
+  ;;
+  ;; For submodules, at least, we expect the users to prefer them to
+  ;; be considered part of the parent project.  For those who don't,
+  ;; there is the custom var now.
+  ;;
+  ;; Some users may also set up things equivalent to Git submodules
+  ;; using "git worktree" (for example).  However, we expect that most
+  ;; of them would prefer to treat those as separate projects anyway.
+  (let* ((gitfile (expand-file-name ".git" root)))
+    (cond
+     ((file-directory-p gitfile)
+      nil)
+     ((with-temp-buffer
+        (insert-file-contents gitfile)
+        (goto-char (point-min))
+        ;; Kind of a hack to distinguish a submodule from
+        ;; other cases of .git files pointing elsewhere.
+        (looking-at "gitdir: [./]+/\\.git/modules/"))
+      t)
+     (t nil))))
+
+(cl-defmethod project-root ((project (head vc)))
+  (cdr project))
 
 (cl-defmethod project-external-roots ((project (head vc)))
   (project-subtract-directories
@@ -312,7 +339,7 @@ backend implementation of `project-external-roots'.")
     (mapcar
      #'file-name-as-directory
      (funcall project-vc-external-roots-function)))
-   (project-roots project)))
+   (list (project-root project))))
 
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (cl-mapcan
@@ -330,7 +357,8 @@ backend implementation of `project-external-roots'.")
          (project--files-in-directory
           dir
           (project--dir-ignores project dir)))))
-   (or dirs (project-roots project))))
+   (or dirs
+       (list (project-root project)))))
 
 (declare-function vc-git--program-version "vc-git")
 (declare-function vc-git--run-command-string "vc-git")
@@ -372,7 +400,9 @@ backend implementation of `project-external-roots'.")
                 submodules)))
          (setq files
                (apply #'nconc files sub-files)))
-       files))
+       ;; 'git ls-files' returns duplicate entries for merge conflicts.
+       ;; XXX: Better solutions welcome, but this seems cheap enough.
+       (delete-consecutive-dups files)))
     (`Hg
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
            args)
@@ -471,7 +501,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
   (let* ((pr (project-current t))
          (files
           (if (not current-prefix-arg)
-              (project-files pr (project-roots pr))
+              (project-files pr)
             (let ((dir (read-directory-name "Base directory: "
                                             nil default-directory t)))
               (project--files-in-directory dir
@@ -482,9 +512,8 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
      nil)))
 
 (defun project--dir-ignores (project dir)
-  (let* ((roots (project-roots project))
-         (root (cl-find dir roots :test #'file-in-directory-p)))
-    (if (not root)
+  (let ((root (project-root project)))
+    (if (not (file-in-directory-p dir root))
         (project-ignores nil nil)       ;The defaults.
       (let ((ignores (project-ignores project root)))
         (if (file-equal-p root dir)
@@ -502,8 +531,8 @@ pattern to search for."
   (require 'xref)
   (let* ((pr (project-current t))
          (files
-          (project-files pr (append
-                             (project-roots pr)
+          (project-files pr (cons
+                             (project-root pr)
                              (project-external-roots pr)))))
     (xref--show-xrefs
      (apply-partially #'project--find-regexp-in-files regexp files)
@@ -541,23 +570,23 @@ pattern to search for."
 
 ;;;###autoload
 (defun project-find-file ()
-  "Visit a file (with completion) in the current project's roots.
+  "Visit a file (with completion) in the current project.
 The completion default is the filename at point, if one is
 recognized."
   (interactive)
   (let* ((pr (project-current t))
-         (dirs (project-roots pr)))
+         (dirs (list (project-root pr))))
     (project-find-file-in (thing-at-point 'filename) dirs pr)))
 
 ;;;###autoload
 (defun project-or-external-find-file ()
-  "Visit a file (with completion) in the current project's roots or external roots.
+  "Visit a file (with completion) in the current project or external roots.
 The completion default is the filename at point, if one is
 recognized."
   (interactive)
   (let* ((pr (project-current t))
-         (dirs (append
-                (project-roots pr)
+         (dirs (cons
+                (project-root pr)
                 (project-external-roots pr))))
     (project-find-file-in (thing-at-point 'filename) dirs pr)))
 
@@ -659,6 +688,14 @@ loop using the command \\[fileloop-continue]."
   (fileloop-initialize-replace
    from to (project-files (project-current t)) 'default)
   (fileloop-continue))
+
+;;;###autoload
+(defun project-compile ()
+  "Run `compile' in the project root."
+  (interactive)
+  (let* ((pr (project-current t))
+         (default-directory (project-root pr)))
+    (call-interactively 'compile)))
 
 (provide 'project)
 ;;; project.el ends here

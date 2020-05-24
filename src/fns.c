@@ -2508,26 +2508,36 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   else if (STRINGP (array))
     {
-      register unsigned char *p = SDATA (array);
-      int charval;
+      unsigned char *p = SDATA (array);
       CHECK_CHARACTER (item);
-      charval = XFIXNAT (item);
+      int charval = XFIXNAT (item);
       size = SCHARS (array);
-      if (STRING_MULTIBYTE (array))
+      if (size != 0)
 	{
+	  CHECK_IMPURE (array, XSTRING (array));
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  int len = CHAR_STRING (charval, str);
-	  ptrdiff_t size_byte = SBYTES (array);
-	  ptrdiff_t product;
+	  int len;
+	  if (STRING_MULTIBYTE (array))
+	    len = CHAR_STRING (charval, str);
+	  else
+	    {
+	      str[0] = charval;
+	      len = 1;
+	    }
 
-	  if (INT_MULTIPLY_WRAPV (size, len, &product) || product != size_byte)
-	    error ("Attempt to change byte length of a string");
-	  for (idx = 0; idx < size_byte; idx++)
-	    *p++ = str[idx % len];
+	  ptrdiff_t size_byte = SBYTES (array);
+	  if (len == 1 && size == size_byte)
+	    memset (p, str[0], size);
+	  else
+	    {
+	      ptrdiff_t product;
+	      if (INT_MULTIPLY_WRAPV (size, len, &product)
+		  || product != size_byte)
+		error ("Attempt to change byte length of a string");
+	      for (idx = 0; idx < size_byte; idx++)
+		*p++ = str[idx % len];
+	    }
 	}
-      else
-	for (idx = 0; idx < size; idx++)
-	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     return bool_vector_fill (array, item);
@@ -2542,12 +2552,15 @@ DEFUN ("clear-string", Fclear_string, Sclear_string,
 This makes STRING unibyte and may change its length.  */)
   (Lisp_Object string)
 {
-  ptrdiff_t len;
   CHECK_STRING (string);
-  len = SBYTES (string);
-  memset (SDATA (string), 0, len);
-  STRING_SET_CHARS (string, len);
-  STRING_SET_UNIBYTE (string);
+  ptrdiff_t len = SBYTES (string);
+  if (len != 0 || STRING_MULTIBYTE (string))
+    {
+      CHECK_IMPURE (string, XSTRING (string));
+      memset (SDATA (string), 0, len);
+      STRING_SET_CHARS (string, len);
+      STRING_SET_UNIBYTE (string);
+    }
   return Qnil;
 }
 

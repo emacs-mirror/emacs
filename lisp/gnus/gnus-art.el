@@ -5833,6 +5833,7 @@ all parts."
 	     "" "..."))
 	(gnus-tmp-length (with-current-buffer (mm-handle-buffer handle)
 			   (buffer-size)))
+        (help-echo "mouse-2: toggle the MIME part; down-mouse-3: more options")
 	gnus-tmp-type-long b e)
     (when (string-match ".*/" gnus-tmp-name)
       (setq gnus-tmp-name (replace-match "" t t gnus-tmp-name)))
@@ -5841,6 +5842,16 @@ all parts."
 					  (concat "; " gnus-tmp-name))))
     (unless (equal gnus-tmp-description "")
       (setq gnus-tmp-type-long (concat " --- " gnus-tmp-type-long)))
+    (when (zerop gnus-tmp-length)
+      (setq gnus-tmp-type-long
+            (concat
+             gnus-tmp-type-long
+             (substitute-command-keys
+              (concat "\\<gnus-summary-mode-map> (not downloaded, "
+                      "\\[gnus-summary-show-complete-article] to fetch.)"))))
+      (setq help-echo
+            (concat "Type \\[gnus-summary-show-complete-article] "
+                    "to download complete article. " help-echo)))
     (setq b (point))
     (gnus-eval-format
      gnus-mime-button-line-format gnus-mime-button-line-format-alist
@@ -5859,8 +5870,7 @@ all parts."
      'keymap gnus-mime-button-map
      'face gnus-article-button-face
      'follow-link t
-     'help-echo
-     "mouse-2: toggle the MIME part; down-mouse-3: more options")))
+     'help-echo help-echo)))
 
 (defvar gnus-displaying-mime nil)
 

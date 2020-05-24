@@ -485,23 +485,25 @@ This is not required after changing `gnus-registry-cache-file'."
     (when from
       (setq entry (cons (delete from (assoc 'group entry))
                         (assq-delete-all 'group entry))))
-
-    (dolist (kv `((group ,to)
-                  (sender ,sender)
-                  (recipient ,@recipients)
-                  (subject ,subject)))
-      (when (cadr kv)
-        (let ((new (or (assq (car kv) entry)
-                       (list (car kv)))))
-          (dolist (toadd (cdr kv))
-            (unless (member toadd new)
-              (setq new (append new (list toadd)))))
-          (setq entry (cons new
-                            (assq-delete-all (car kv) entry))))))
-    (gnus-message 10 "Gnus registry: new entry for %s is %S"
-                  id
-                  entry)
-    (gnus-registry-insert db id entry)))
+    ;; Only keep the entry if the message is going to a new group, or
+    ;; it's still in some previous group.
+    (when (or to (alist-get 'group entry))
+      (dolist (kv `((group ,to)
+                    (sender ,sender)
+                    (recipient ,@recipients)
+                    (subject ,subject)))
+	(when (cadr kv)
+          (let ((new (or (assq (car kv) entry)
+			 (list (car kv)))))
+            (dolist (toadd (cdr kv))
+              (unless (member toadd new)
+		(setq new (append new (list toadd)))))
+            (setq entry (cons new
+                              (assq-delete-all (car kv) entry))))))
+      (gnus-message 10 "Gnus registry: new entry for %s is %S"
+                    id
+                    entry)
+      (gnus-registry-insert db id entry))))
 
 ;; Function for nn{mail|imap}-split-fancy: look up all references in
 ;; the cache and if a match is found, return that group.

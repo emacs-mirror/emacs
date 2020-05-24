@@ -139,6 +139,9 @@ directories with the help of new command 'dired-vc-next-action'.
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
 'vc-dir-mark-unregistered-files'.
 
+*** Support for bookmark.el.
+Bookmark locations can refer to VC directory buffers.
+
 ** Gnus
 
 ---
@@ -225,6 +228,12 @@ key             binding
 / v             package-menu-filter-by-version
 / m             package-menu-filter-marked
 / /             package-menu-filter-clear
+
+---
++++ Column widths in 'list-packages' display can now be customized.
+See the new user options 'package-name-column-width',
+'package-version-column-width', 'package-status-column-width', and
+'package-archive-column-width'.
 
 ** gdb-mi
 
@@ -352,6 +361,44 @@ with the URL).  This is done by adding a 'browse-url-browser-kind'
 symbol property to the browsing functions.  With a new command
 'browse-url-with-browser-kind', an URL can explicitly be browsed with
 either an internal or external browser.
+
+** SHR
+
+---
+*** The command 'shr-browse-url' now supports custom mailto handlers.
+Clicking on or otherwise following a 'mailto:' link in a HTML buffer
+rendered by SHR previously invoked the command 'browse-url-mailto'.
+This is still the case by default, but if you customize
+'browse-url-mailto-function' or 'browse-url-handlers' to call some
+other function, it will now be called instead of the default.
+
+** EWW
+
+---
+*** The command 'eww-follow-link' now supports custom mailto handlers.
+The function that is invoked when clicking on or otherwise following a
+'mailto:' link in an EWW buffer can now be customized.  For more
+information, see the related entry about 'shr-browse-url' above.
+
+** Project
+
+*** New user option 'project-vc-merge-submodules'.
+
+** json.el
+
+---
+*** JSON number parsing is now stricter.
+Numbers with a leading plus sign, leading zeros, or a missing integer
+component are now rejected by 'json-read' and friends.  This makes
+them more compliant with the JSON specification and consistent with
+the native JSON parsing functions.
+
+** xml.el
+
+*** XML serialization functions now reject invalid characters.
+Previously 'xml-print' would produce invalid XML when given a string
+with characters that are not valid in XML (see
+https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
 
 * New Modes and Packages in Emacs 28.1

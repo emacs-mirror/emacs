@@ -2580,7 +2580,7 @@ in a tooltip."
   :type '(choice
           (const :tag "Do not show tooltips" nil)
           (const :tag "Show all text" t)
-          (integer :tag "Show characters (max)" 256))
+          (integer :tag "Max number of characters to show" 256))
   :version "26.1")
 
 (defcustom mouse-drag-and-drop-region-show-cursor t

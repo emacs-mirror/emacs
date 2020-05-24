@@ -43,13 +43,17 @@
     ("་" . "་")
     ("༔" . "༔")
     ;; Yes these are dirty. But ...
-    ("༎ ༎" . ,(compose-string "༎ ༎" 0 3 [?༎ (Br . Bl) ?  (Br . Bl) ?༎]))
+    ("༎ ༎" . ,(compose-string (copy-sequence "༎ ༎")
+			      0 3 [?༎ (Br . Bl) ?  (Br . Bl) ?༎]))
     ("༄༅༅" . ,(compose-string
-		  "࿁࿂࿂࿂" 0 4
+		  (copy-sequence "࿁࿂࿂࿂") 0 4
 		  [?࿁ (Br . Bl) ?࿂ (Br . Bl) ?࿂ (Br . Bl) ?࿂]))
-    ("༄༅" . ,(compose-string "࿁࿂࿂" 0 3 [?࿁ (Br . Bl) ?࿂ (Br . Bl) ?࿂]))
-    ("༆" . ,(compose-string "࿁࿂༙" 0 3 [?࿁ (Br . Bl) ?࿂ (br . tr) ?༙]))
-    ("༄"   . ,(compose-string "࿁࿂" 0 2 [?࿁ (Br . Bl) ?࿂]))))
+    ("༄༅" . ,(compose-string (copy-sequence "࿁࿂࿂")
+			     0 3 [?࿁ (Br . Bl) ?࿂ (Br . Bl) ?࿂]))
+    ("༆" . ,(compose-string (copy-sequence "࿁࿂༙")
+			    0 3 [?࿁ (Br . Bl) ?࿂ (br . tr) ?༙]))
+    ("༄"   . ,(compose-string (copy-sequence "࿁࿂")
+			      0 2 [?࿁ (Br . Bl) ?࿂]))))
 
 ;;;###autoload
 (defun tibetan-char-p (ch)

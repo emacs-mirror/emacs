@@ -72,6 +72,7 @@
 ;;                                          by git, so it's probably
 ;;                                          not a good idea.
 ;; - merge-news (file)                      see `merge-file'
+;; - mark-resolved (file)                          OK
 ;; - steal-lock (file &optional revision)          NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
@@ -1529,6 +1530,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (defun vc-git-rename-file (old new)
   (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
+
+(defun vc-git-mark-resolved (files)
+  (vc-git-command nil 0 files "add"))
 
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))

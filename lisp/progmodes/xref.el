@@ -268,8 +268,8 @@ find a search tool; by default, this uses \"find | grep\" in the
    (lambda (dir)
      (xref-references-in-directory identifier dir))
    (let ((pr (project-current t)))
-     (append
-      (project-roots pr)
+     (cons
+      (project-root pr)
       (project-external-roots pr)))))
 
 (cl-defgeneric xref-backend-apropos (backend pattern)

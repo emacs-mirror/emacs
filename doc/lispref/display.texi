@@ -3597,9 +3597,9 @@ characters in the range @var{from} and @var{to} (inclusive).
 @var{character} may be a charset (@pxref{Character Sets}).  In that
 case, use @var{font-spec} for all the characters in the charset.
 
-@var{character} may be a script name (@pxref{Character Properties}).
-In that case, use @var{font-spec} for all the characters belonging to
-the script.
+@var{character} may be a script name (@pxref{Character Properties,
+char-script-table}).  In that case, use @var{font-spec} for all the
+characters belonging to the script.
 
 @var{character} may be @code{nil}, which means to use @var{font-spec}
 for any character which no font-spec is specified.

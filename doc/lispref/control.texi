@@ -1905,6 +1905,7 @@ variables precisely as they were at the time of the error.
 @subsubsection Writing Code to Handle Errors
 @cindex error handler
 @cindex handling errors
+@cindex handle Lisp errors
 @cindex forms for handling errors
 
   The usual effect of signaling an error is to terminate the command
