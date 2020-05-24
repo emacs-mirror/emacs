@@ -72,11 +72,11 @@ frame_for_pgtk_selection (Lisp_Object object)
 	return f;
 
       FOR_EACH_FRAME (tail, frame)
-	{
-	  f = XFRAME (frame);
-	  if (FRAME_PGTK_P (f) && FRAME_LIVE_P (f))
-	    return f;
-	}
+      {
+	f = XFRAME (frame);
+	if (FRAME_PGTK_P (f) && FRAME_LIVE_P (f))
+	  return f;
+      }
     }
   else if (TERMINALP (object))
     {
@@ -84,11 +84,11 @@ frame_for_pgtk_selection (Lisp_Object object)
 
       if (t->type == output_pgtk)
 	FOR_EACH_FRAME (tail, frame)
-	  {
-	    f = XFRAME (frame);
-	    if (FRAME_LIVE_P (f) && f->terminal == t)
-	      return f;
-	  }
+	{
+	  f = XFRAME (frame);
+	  if (FRAME_LIVE_P (f) && f->terminal == t)
+	    return f;
+	}
     }
   else if (FRAMEP (object))
     {
@@ -100,74 +100,98 @@ frame_for_pgtk_selection (Lisp_Object object)
   return NULL;
 }
 
-static GtkClipboard *symbol_to_gtk_clipboard(GtkWidget *widget, Lisp_Object symbol)
+static GtkClipboard *
+symbol_to_gtk_clipboard (GtkWidget * widget, Lisp_Object symbol)
 {
   GdkAtom atom;
 
   CHECK_SYMBOL (symbol);
-  if (NILP(symbol)) {
-    atom = GDK_SELECTION_PRIMARY;
-  } else if (EQ(symbol, QCLIPBOARD)) {
-    atom = GDK_SELECTION_CLIPBOARD;
-  } else if (EQ(symbol, QPRIMARY)) {
-    atom = GDK_SELECTION_PRIMARY;
-  } else if (EQ(symbol, QSECONDARY)) {
-    atom = GDK_SELECTION_SECONDARY;
-  } else if (EQ(symbol, Qt)) {
-    atom = GDK_SELECTION_SECONDARY;
-  } else {
-    atom = 0;
-    error ("Bad selection");
-  }
+  if (NILP (symbol))
+    {
+      atom = GDK_SELECTION_PRIMARY;
+    }
+  else if (EQ (symbol, QCLIPBOARD))
+    {
+      atom = GDK_SELECTION_CLIPBOARD;
+    }
+  else if (EQ (symbol, QPRIMARY))
+    {
+      atom = GDK_SELECTION_PRIMARY;
+    }
+  else if (EQ (symbol, QSECONDARY))
+    {
+      atom = GDK_SELECTION_SECONDARY;
+    }
+  else if (EQ (symbol, Qt))
+    {
+      atom = GDK_SELECTION_SECONDARY;
+    }
+  else
+    {
+      atom = 0;
+      error ("Bad selection");
+    }
 
-  return gtk_widget_get_clipboard(widget, atom);
-}
-
-static void selection_type_to_quarks(GdkAtom type, GQuark *quark_data, GQuark *quark_size)
-{
-  if (type == GDK_SELECTION_PRIMARY) {
-    *quark_data = quark_primary_data;
-    *quark_size = quark_primary_size;
-  } else if (type == GDK_SELECTION_SECONDARY) {
-    *quark_data = quark_secondary_data;
-    *quark_size = quark_secondary_size;
-  } else if (type == GDK_SELECTION_CLIPBOARD) {
-    *quark_data = quark_clipboard_data;
-    *quark_size = quark_clipboard_size;
-  } else {
-    /* fixme: Is it safe to use 'error' here? */
-    error("Unknown selection type.");
-  }
+  return gtk_widget_get_clipboard (widget, atom);
 }
 
 static void
-get_func(GtkClipboard *cb, GtkSelectionData *data, guint info, gpointer user_data_or_owner)
+selection_type_to_quarks (GdkAtom type, GQuark * quark_data,
+			  GQuark * quark_size)
 {
-  PGTK_TRACE("get_func:");
-  GObject *obj = G_OBJECT(user_data_or_owner);
+  if (type == GDK_SELECTION_PRIMARY)
+    {
+      *quark_data = quark_primary_data;
+      *quark_size = quark_primary_size;
+    }
+  else if (type == GDK_SELECTION_SECONDARY)
+    {
+      *quark_data = quark_secondary_data;
+      *quark_size = quark_secondary_size;
+    }
+  else if (type == GDK_SELECTION_CLIPBOARD)
+    {
+      *quark_data = quark_clipboard_data;
+      *quark_size = quark_clipboard_size;
+    }
+  else
+    {
+      /* fixme: Is it safe to use 'error' here? */
+      error ("Unknown selection type.");
+    }
+}
+
+static void
+get_func (GtkClipboard * cb, GtkSelectionData * data, guint info,
+	  gpointer user_data_or_owner)
+{
+  PGTK_TRACE ("get_func:");
+  GObject *obj = G_OBJECT (user_data_or_owner);
   const char *str;
   int size;
   GQuark quark_data, quark_size;
 
-  selection_type_to_quarks(gtk_clipboard_get_selection(cb), &quark_data, &quark_size);
+  selection_type_to_quarks (gtk_clipboard_get_selection (cb), &quark_data,
+			    &quark_size);
 
-  str = g_object_get_qdata(obj, quark_data);
-  size = GPOINTER_TO_SIZE(g_object_get_qdata(obj, quark_size));
-  PGTK_TRACE("get_func: str: %s", str);
-  gtk_selection_data_set_text(data, str, size);
+  str = g_object_get_qdata (obj, quark_data);
+  size = GPOINTER_TO_SIZE (g_object_get_qdata (obj, quark_size));
+  PGTK_TRACE ("get_func: str: %s", str);
+  gtk_selection_data_set_text (data, str, size);
 }
 
 static void
-clear_func(GtkClipboard *cb, gpointer user_data_or_owner)
+clear_func (GtkClipboard * cb, gpointer user_data_or_owner)
 {
-  PGTK_TRACE("clear_func:");
-  GObject *obj = G_OBJECT(user_data_or_owner);
+  PGTK_TRACE ("clear_func:");
+  GObject *obj = G_OBJECT (user_data_or_owner);
   GQuark quark_data, quark_size;
 
-  selection_type_to_quarks(gtk_clipboard_get_selection(cb), &quark_data, &quark_size);
+  selection_type_to_quarks (gtk_clipboard_get_selection (cb), &quark_data,
+			    &quark_size);
 
-  g_object_set_qdata(obj, quark_data, NULL);
-  g_object_set_qdata(obj, quark_size, 0);
+  g_object_set_qdata (obj, quark_data, NULL);
+  g_object_set_qdata (obj, quark_size, 0);
 }
 
 
@@ -177,27 +201,35 @@ clear_func(GtkClipboard *cb, gpointer user_data_or_owner)
 
    ========================================================================== */
 
-void pgtk_selection_init(void)
+void
+pgtk_selection_init (void)
 {
-  if (quark_primary_data == 0) {
-    quark_primary_data = g_quark_from_static_string("pgtk-primary-data");
-    quark_primary_size = g_quark_from_static_string("pgtk-primary-size");
-    quark_secondary_data = g_quark_from_static_string("pgtk-secondary-data");
-    quark_secondary_size = g_quark_from_static_string("pgtk-secondary-size");
-    quark_clipboard_data = g_quark_from_static_string("pgtk-clipboard-data");
-    quark_clipboard_size = g_quark_from_static_string("pgtk-clipboard-size");
-  }
+  if (quark_primary_data == 0)
+    {
+      quark_primary_data = g_quark_from_static_string ("pgtk-primary-data");
+      quark_primary_size = g_quark_from_static_string ("pgtk-primary-size");
+      quark_secondary_data =
+	g_quark_from_static_string ("pgtk-secondary-data");
+      quark_secondary_size =
+	g_quark_from_static_string ("pgtk-secondary-size");
+      quark_clipboard_data =
+	g_quark_from_static_string ("pgtk-clipboard-data");
+      quark_clipboard_size =
+	g_quark_from_static_string ("pgtk-clipboard-size");
+    }
 }
 
-void pgtk_selection_lost(GtkWidget *widget, GdkEventSelection *event, gpointer user_data)
+void
+pgtk_selection_lost (GtkWidget * widget, GdkEventSelection * event,
+		     gpointer user_data)
 {
   GQuark quark_data, quark_size;
-  PGTK_TRACE("pgtk_selection_lost:");
+  PGTK_TRACE ("pgtk_selection_lost:");
 
-  selection_type_to_quarks(event->selection, &quark_data, &quark_size);
+  selection_type_to_quarks (event->selection, &quark_data, &quark_size);
 
-  g_object_set_qdata(G_OBJECT(widget), quark_data, NULL);
-  g_object_set_qdata(G_OBJECT(widget), quark_size, 0);
+  g_object_set_qdata (G_OBJECT (widget), quark_data, NULL);
+  g_object_set_qdata (G_OBJECT (widget), quark_size, 0);
 }
 
 static bool
@@ -294,8 +326,7 @@ pgtk_selection_usable (void)
    ========================================================================== */
 
 
-DEFUN ("pgtk-own-selection-internal", Fpgtk_own_selection_internal,
-       Spgtk_own_selection_internal, 2, 3, 0,
+DEFUN ("pgtk-own-selection-internal", Fpgtk_own_selection_internal, Spgtk_own_selection_internal, 2, 3, 0,
        doc: /* Assert an X selection of type SELECTION and value VALUE.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
@@ -303,10 +334,10 @@ VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.
 
 FRAME should be a frame that should own the selection.  If omitted or
-nil, it defaults to the selected frame.*/)
-     (Lisp_Object selection, Lisp_Object value, Lisp_Object frame)
+nil, it defaults to the selected frame. */)
+  (Lisp_Object selection, Lisp_Object value, Lisp_Object frame)
 {
-  PGTK_TRACE("pgtk-own-selection-internal.");
+  PGTK_TRACE ("pgtk-own-selection-internal.");
   Lisp_Object successful_p = Qnil;
   Lisp_Object target_symbol, rest;
   GtkClipboard *cb;
@@ -318,13 +349,15 @@ nil, it defaults to the selected frame.*/)
   if (!pgtk_selection_usable ())
     return Qnil;
 
-  if (NILP (frame)) frame = selected_frame;
+  if (NILP (frame))
+    frame = selected_frame;
   if (!FRAME_LIVE_P (XFRAME (frame)) || !FRAME_PGTK_P (XFRAME (frame)))
     error ("pgtk selection unavailable for this frame");
-  f = XFRAME(frame);
+  f = XFRAME (frame);
 
-  cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection);
-  selection_type_to_quarks(gtk_clipboard_get_selection(cb), &quark_data, &quark_size);
+  cb = symbol_to_gtk_clipboard (FRAME_GTK_WIDGET (f), selection);
+  selection_type_to_quarks (gtk_clipboard_get_selection (cb), &quark_data,
+			    &quark_size);
 
   /* We only support copy of text.  */
   target_symbol = QTEXT;
@@ -340,25 +373,29 @@ nil, it defaults to the selected frame.*/)
 
       targets = gtk_target_table_new_from_list (list, &n_targets);
 
-      int size = SBYTES(value);
-      gchar *str = xmalloc(size + 1);
-      memcpy(str, SSDATA(value), size);
+      int size = SBYTES (value);
+      gchar *str = xmalloc (size + 1);
+      memcpy (str, SSDATA (value), size);
       str[size] = '\0';
 
-      widget = FRAME_GTK_WIDGET(f);
-      g_object_set_qdata_full(G_OBJECT(widget), quark_data, str, xfree);
-      g_object_set_qdata_full(G_OBJECT(widget), quark_size, GSIZE_TO_POINTER(size), NULL);
+      widget = FRAME_GTK_WIDGET (f);
+      g_object_set_qdata_full (G_OBJECT (widget), quark_data, str, xfree);
+      g_object_set_qdata_full (G_OBJECT (widget), quark_size,
+			       GSIZE_TO_POINTER (size), NULL);
 
-      PGTK_TRACE("set_with_owner: owner=%p", FRAME_GTK_WIDGET(f));
+      PGTK_TRACE ("set_with_owner: owner=%p", FRAME_GTK_WIDGET (f));
       if (gtk_clipboard_set_with_owner (cb,
 					targets, n_targets,
 					get_func, clear_func,
-					G_OBJECT(FRAME_GTK_WIDGET(f)))) {
-	PGTK_TRACE("set_with_owner succeeded..");
-	successful_p = Qt;
-      } else {
-	PGTK_TRACE("set_with_owner failed.");
-      }
+					G_OBJECT (FRAME_GTK_WIDGET (f))))
+	{
+	  PGTK_TRACE ("set_with_owner succeeded..");
+	  successful_p = Qt;
+	}
+      else
+	{
+	  PGTK_TRACE ("set_with_owner failed.");
+	}
       gtk_clipboard_set_can_store (cb, NULL, 0);
 
       gtk_target_table_free (targets, n_targets);
@@ -368,16 +405,16 @@ nil, it defaults to the selected frame.*/)
   if (!EQ (Vpgtk_sent_selection_hooks, Qunbound))
     {
       /* FIXME: Use run-hook-with-args!  */
-      for (rest = Vpgtk_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
-        call3 (Fcar (rest), selection, target_symbol, successful_p);
+      for (rest = Vpgtk_sent_selection_hooks; CONSP (rest);
+	   rest = Fcdr (rest))
+	call3 (Fcar (rest), selection, target_symbol, successful_p);
     }
 
   return value;
 }
 
 
-DEFUN ("pgtk-disown-selection-internal", Fpgtk_disown_selection_internal,
-       Spgtk_disown_selection_internal, 1, 3, 0,
+DEFUN ("pgtk-disown-selection-internal", Fpgtk_disown_selection_internal, Spgtk_disown_selection_internal, 1, 3, 0,
        doc: /* If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.
 
@@ -393,7 +430,7 @@ On MS-DOS, all this does is return non-nil if we own the selection.
 On PGTK, the TIME-OBJECT is unused.  */)
   (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
 {
-  PGTK_TRACE("pgtk-disown-selection-internal.");
+  PGTK_TRACE ("pgtk-disown-selection-internal.");
 
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
@@ -404,16 +441,16 @@ On PGTK, the TIME-OBJECT is unused.  */)
   if (!f)
     return Qnil;
 
-  cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection);
+  cb = symbol_to_gtk_clipboard (FRAME_GTK_WIDGET (f), selection);
 
-  gtk_clipboard_clear(cb);
+  gtk_clipboard_clear (cb);
 
   return Qt;
 }
 
 
-DEFUN ("pgtk-selection-exists-p", Fpgtk_selection_exists_p, Spgtk_selection_exists_p,
-       0, 2, 0, doc: /* Whether there is an owner for the given X selection.
+DEFUN ("pgtk-selection-exists-p", Fpgtk_selection_exists_p, Spgtk_selection_exists_p, 0, 2, 0,
+       doc: /* Whether there is an owner for the given X selection.
 SELECTION should be the name of the selection in question, typically
 one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
 these literal upper-case names.)  The symbol nil is the same as
@@ -424,9 +461,9 @@ server to query.  If omitted or nil, that stands for the selected
 frame's display, or the first available X display.
 
 On Nextstep, TERMINAL is unused.  */)
-     (Lisp_Object selection, Lisp_Object terminal)
+  (Lisp_Object selection, Lisp_Object terminal)
 {
-  PGTK_TRACE("pgtk-selection-exists-p.");
+  PGTK_TRACE ("pgtk-selection-exists-p.");
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
 
@@ -436,14 +473,13 @@ On Nextstep, TERMINAL is unused.  */)
   if (!f)
     return Qnil;
 
-  cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection);
+  cb = symbol_to_gtk_clipboard (FRAME_GTK_WIDGET (f), selection);
 
-  return gtk_clipboard_wait_is_text_available(cb) ? Qt : Qnil;
+  return gtk_clipboard_wait_is_text_available (cb) ? Qt : Qnil;
 }
 
 
-DEFUN ("pgtk-selection-owner-p", Fpgtk_selection_owner_p, Spgtk_selection_owner_p,
-       0, 2, 0,
+DEFUN ("pgtk-selection-owner-p", Fpgtk_selection_owner_p, Spgtk_selection_owner_p, 0, 2, 0,
        doc: /* Whether the current Emacs process owns the given X Selection.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
@@ -456,9 +492,9 @@ server to query.  If omitted or nil, that stands for the selected
 frame's display, or the first available X display.
 
 On Nextstep, TERMINAL is unused.  */)
-     (Lisp_Object selection, Lisp_Object terminal)
+  (Lisp_Object selection, Lisp_Object terminal)
 {
-  PGTK_TRACE("pgtk-selection-owner-p.");
+  PGTK_TRACE ("pgtk-selection-owner-p.");
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
   GObject *obj;
@@ -467,17 +503,17 @@ On Nextstep, TERMINAL is unused.  */)
   if (!pgtk_selection_usable ())
     return Qnil;
 
-  cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection);
-  selection_type_to_quarks(gtk_clipboard_get_selection(cb), &quark_data, &quark_size);
+  cb = symbol_to_gtk_clipboard (FRAME_GTK_WIDGET (f), selection);
+  selection_type_to_quarks (gtk_clipboard_get_selection (cb), &quark_data,
+			    &quark_size);
 
-  obj = gtk_clipboard_get_owner(cb);
+  obj = gtk_clipboard_get_owner (cb);
 
-  return g_object_get_qdata(obj, quark_data) != NULL ? Qt : Qnil;
+  return g_object_get_qdata (obj, quark_data) != NULL ? Qt : Qnil;
 }
 
 
-DEFUN ("pgtk-get-selection-internal", Fpgtk_get_selection_internal,
-       Spgtk_get_selection_internal, 2, 4, 0,
+DEFUN ("pgtk-get-selection-internal", Fpgtk_get_selection_internal, Spgtk_get_selection_internal, 2, 4, 0,
        doc: /* Return text selected from some X window.
 SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
@@ -508,12 +544,12 @@ On PGTK, TIME-STAMP is unused.  */)
   if (!pgtk_selection_usable ())
     return Qnil;
 
-  cb = symbol_to_gtk_clipboard(FRAME_GTK_WIDGET(f), selection_symbol);
+  cb = symbol_to_gtk_clipboard (FRAME_GTK_WIDGET (f), selection_symbol);
 
-  gchar *s = gtk_clipboard_wait_for_text(cb);
+  gchar *s = gtk_clipboard_wait_for_text (cb);
   if (s == NULL)
     return Qnil;
-  int size = strlen(s);
+  int size = strlen (s);
   Lisp_Object str = make_unibyte_string (s, size);
   Fput_text_property (make_fixnum (0), make_fixnum (size),
 		      Qforeign_selection, QUTF8_STRING, str);
@@ -524,13 +560,13 @@ On PGTK, TIME-STAMP is unused.  */)
 void
 nxatoms_of_pgtkselect (void)
 {
-  PGTK_TRACE("nxatoms_of_pgtkselect");
+  PGTK_TRACE ("nxatoms_of_pgtkselect");
 }
 
 void
 syms_of_pgtkselect (void)
 {
-  PGTK_TRACE("syms_of_pgtkselect");
+  PGTK_TRACE ("syms_of_pgtkselect");
 
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
   DEFSYM (QSECONDARY, "SECONDARY");
@@ -553,7 +589,7 @@ syms_of_pgtkselect (void)
 #endif
 
   DEFVAR_LISP ("pgtk-sent-selection-hooks", Vpgtk_sent_selection_hooks,
-               "A list of functions to be called when Emacs answers a selection request.\n\
+	       "A list of functions to be called when Emacs answers a selection request.\n\
 The functions are called with four arguments:\n\
   - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
   - the selection-type which Emacs was asked to convert the\n\
