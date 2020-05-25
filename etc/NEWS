@@ -2054,12 +2054,6 @@ default, and not just the opening element.
 behave similarly, e.g. Pcomplete's default cycling can be obtained
 with '(setq completion-cycle-threshold 5)'.
 
----
-*** Eshell no longer re-initializes its keymap every call.
-This allows users to use (define-key eshell-mode-map ...) as usual.
-Some modules have their own minor mode now to account for these
-changes.
-
 +++
 *** Expansion of history event designators is disabled by default.
 To restore the old behavior, use

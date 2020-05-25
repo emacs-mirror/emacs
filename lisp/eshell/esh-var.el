@@ -197,18 +197,7 @@ function), and the arguments passed to this function would be the list
 
 (put 'eshell-variable-aliases-list 'risky-local-variable t)
 
-(defvar eshell-var-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-v") #'eshell-insert-envvar)
-    map))
-
 ;;; Functions:
-
-(define-minor-mode eshell-var-mode
-  "Minor mode for the esh-var module.
-
-\\{eshell-var-mode-map}"
-  :keymap eshell-var-mode-map)
 
 (defun eshell-var-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the variable handle code."
@@ -217,6 +206,11 @@ function), and the arguments passed to this function would be the list
   (unless eshell-modify-global-environment
     (set (make-local-variable 'process-environment)
 	 (eshell-copy-environment)))
+
+  ;; This is supposedly run after enabling esh-mode, when eshell-command-map
+  ;; already exists.
+  (defvar eshell-command-map)
+  (define-key eshell-command-map [(meta ?v)] 'eshell-insert-envvar)
 
   (set (make-local-variable 'eshell-special-chars-inside-quoting)
        (append eshell-special-chars-inside-quoting '(?$)))

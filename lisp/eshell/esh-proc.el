@@ -109,16 +109,6 @@ information, for example."
 (defvar eshell-process-list nil
   "A list of the current status of subprocesses.")
 
-(defvar eshell-proc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-i") #'eshell-insert-process)
-    (define-key map (kbd "C-c C-c") #'eshell-interrupt-process)
-    (define-key map (kbd "C-c C-k") #'eshell-kill-process)
-    (define-key map (kbd "C-c C-d") #'eshell-send-eof-to-process)
-    (define-key map (kbd "C-c C-s") #'list-processes)
-    (define-key map (kbd "C-c C-\\") #'eshell-quit-process)
-    map))
-
 ;;; Functions:
 
 (defun eshell-kill-process-function (proc status)
@@ -131,16 +121,20 @@ PROC and STATUS to functions on the latter."
   (eshell-reset-after-proc status)
   (run-hook-with-args 'eshell-kill-hook proc status))
 
-(define-minor-mode eshell-proc-mode
-  "Minor mode for the proc eshell module.
-
-\\{eshell-proc-mode-map}"
-  :keymap eshell-proc-mode-map)
-
 (defun eshell-proc-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the process handling code."
   (make-local-variable 'eshell-process-list)
-  (eshell-proc-mode))
+  ;; This is supposedly run after enabling esh-mode, when eshell-command-map
+  ;; already exists.
+  (defvar eshell-command-map)
+  (define-key eshell-command-map [(meta ?i)] 'eshell-insert-process)
+  (define-key eshell-command-map [(control ?c)]  'eshell-interrupt-process)
+  (define-key eshell-command-map [(control ?k)]  'eshell-kill-process)
+  (define-key eshell-command-map [(control ?d)]  'eshell-send-eof-to-process)
+; (define-key eshell-command-map [(control ?q)]  'eshell-continue-process)
+  (define-key eshell-command-map [(control ?s)]  'list-processes)
+; (define-key eshell-command-map [(control ?z)]  'eshell-stop-process)
+  (define-key eshell-command-map [(control ?\\)] 'eshell-quit-process))
 
 (defun eshell-reset-after-proc (status)
   "Reset the command input location after a process terminates.

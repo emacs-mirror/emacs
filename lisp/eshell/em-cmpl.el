@@ -244,26 +244,6 @@ to writing a completion function."
   (let ((completion-at-point-functions '(elisp-completion-at-point)))
     (completion-at-point)))
 
-(defvar eshell-cmpl-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?i)] #'completion-at-point)
-    ;; jww (1999-10-19): Will this work on anything but X?
-    (define-key map [backtab] #'pcomplete-reverse)
-    (define-key map [(meta ??)] #'completion-help-at-point)
-    (define-key map [(meta control ?i)] #'eshell-complete-lisp-symbol)
-    ;; C-c prefix:
-    (define-key map (kbd "C-c M-h") #'eshell-completion-help)
-    (define-key map (kbd "C-c TAB") #'pcomplete-expand-and-complete)
-    (define-key map (kbd "C-c C-i") #'pcomplete-expand-and-complete)
-    (define-key map (kbd "C-c SPC") #'pcomplete-expand)
-    map))
-
-(define-minor-mode eshell-cmpl-mode
-  "Minor mode that provides a keymap when `eshell-cmpl' active.
-
-\\{eshell-cmpl-mode-map}"
-  :keymap eshell-cmpl-mode-map)
-
 (defun eshell-cmpl-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the completions module."
   (set (make-local-variable 'pcomplete-command-completion-function)
@@ -311,9 +291,22 @@ to writing a completion function."
 		    eshell-special-chars-outside-quoting)))
             nil t)
   (add-hook 'pcomplete-quote-arg-hook #'eshell-quote-backslash nil t)
+  ;;(define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol) ; Redundant
+  (define-key eshell-mode-map [(meta control ?i)] 'eshell-complete-lisp-symbol)
+  (define-key eshell-command-map [(meta ?h)] 'eshell-completion-help)
+  (define-key eshell-command-map [tab] 'pcomplete-expand-and-complete)
+  (define-key eshell-command-map [(control ?i)]
+    'pcomplete-expand-and-complete)
+  (define-key eshell-command-map [space] 'pcomplete-expand)
+  (define-key eshell-command-map [? ] 'pcomplete-expand)
+  ;;(define-key eshell-mode-map [tab] 'completion-at-point) ;Redundant!
+  (define-key eshell-mode-map [(control ?i)] 'completion-at-point)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil t)
-  (eshell-cmpl-mode))
+  ;; jww (1999-10-19): Will this work on anything but X?
+  (define-key eshell-mode-map
+    (if (featurep 'xemacs) [iso-left-tab] [backtab]) 'pcomplete-reverse)
+  (define-key eshell-mode-map [(meta ??)] 'completion-help-at-point))
 
 (defun eshell-completion-command-name ()
   "Return the command name, possibly sans globbing."

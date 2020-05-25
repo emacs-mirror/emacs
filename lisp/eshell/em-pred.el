@@ -229,12 +229,6 @@ FOR LISTS OF ARGUMENTS:
 EXAMPLES:
   *.c(:o)  sorted list of .c files")
 
-(defvar eshell-pred-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-q") #'eshell-display-predicate-help)
-    (define-key map (kbd "C-c M-m") #'eshell-display-modifier-help)
-    map))
-
 ;;; Functions:
 
 (defun eshell-display-predicate-help ()
@@ -251,17 +245,12 @@ EXAMPLES:
     (lambda ()
       (insert eshell-modifier-help-string)))))
 
-(define-minor-mode eshell-pred-mode
-  "Minor mode for the eshell-pred module.
-
-\\{eshell-pred-mode-map}"
-  :keymap eshell-pred-mode-map)
-
 (defun eshell-pred-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the predicate/modifier code."
   (add-hook 'eshell-parse-argument-hook
 	    #'eshell-parse-arg-modifier t t)
-  (eshell-pred-mode))
+  (define-key eshell-command-map [(meta ?q)] 'eshell-display-predicate-help)
+  (define-key eshell-command-map [(meta ?m)] 'eshell-display-modifier-help))
 
 (defun eshell-apply-modifiers (lst predicates modifiers)
   "Apply to LIST a series of PREDICATES and MODIFIERS."

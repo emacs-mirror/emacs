@@ -202,32 +202,6 @@ element, regardless of any text on the command line.  In that case,
     map)
   "Keymap used in isearch in Eshell.")
 
-(defvar eshell-hist-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [up] #'eshell-previous-matching-input-from-input)
-    (define-key map [down] #'eshell-next-matching-input-from-input)
-    (define-key map [(control up)] #'eshell-previous-input)
-    (define-key map [(control down)] #'eshell-next-input)
-    (define-key map [(meta ?r)] #'eshell-previous-matching-input)
-    (define-key map [(meta ?s)] #'eshell-next-matching-input)
-    (define-key map (kbd "C-c M-r") #'eshell-previous-matching-input-from-input)
-    (define-key map (kbd "C-c M-s") #'eshell-next-matching-input-from-input)
-    ;; FIXME: Relies on `eshell-hist-match-partial' being set _before_
-    ;; em-hist is loaded and won't respect changes.
-    (if eshell-hist-match-partial
-	(progn
-	  (define-key map [(meta ?p)] 'eshell-previous-matching-input-from-input)
-	  (define-key map [(meta ?n)] 'eshell-next-matching-input-from-input)
-	  (define-key map (kbd "C-c M-p") #'eshell-previous-input)
-	  (define-key map (kbd "C-c M-n") #'eshell-next-input))
-      (define-key map [(meta ?p)] #'eshell-previous-input)
-      (define-key map [(meta ?n)] #'eshell-next-input)
-      (define-key map (kbd "C-c M-p") #'eshell-previous-matching-input-from-input)
-      (define-key map (kbd "C-c M-n") #'eshell-next-matching-input-from-input))
-    (define-key map (kbd "C-c C-l") #'eshell-list-history)
-    (define-key map (kbd "C-c C-x") #'eshell-get-next-from-history)
-    map))
-
 (defvar eshell-rebind-keys-alist)
 
 ;;; Functions:
@@ -241,12 +215,6 @@ Returns non-nil if INPUT is blank."
   "Do not add input beginning with empty space to history.
 Returns nil if INPUT is prepended by blank space, otherwise non-nil."
   (not (string-match-p "\\`\\s-+" input)))
-
-(define-minor-mode eshell-hist-mode
-  "Minor mode for the eshell-hist module.
-
-\\{eshell-hist-mode-map}"
-  :keymap eshell-hist-mode-map)
 
 (defun eshell-hist-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the history management code for one Eshell buffer."
@@ -274,7 +242,30 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 		   (lambda ()
 		     (setq overriding-terminal-local-map nil)))
                   nil t))
-    (eshell-hist-mode))
+    (define-key eshell-mode-map [up] 'eshell-previous-matching-input-from-input)
+    (define-key eshell-mode-map [down] 'eshell-next-matching-input-from-input)
+    (define-key eshell-mode-map [(control up)] 'eshell-previous-input)
+    (define-key eshell-mode-map [(control down)] 'eshell-next-input)
+    (define-key eshell-mode-map [(meta ?r)] 'eshell-previous-matching-input)
+    (define-key eshell-mode-map [(meta ?s)] 'eshell-next-matching-input)
+    (define-key eshell-command-map [(meta ?r)]
+      'eshell-previous-matching-input-from-input)
+    (define-key eshell-command-map [(meta ?s)]
+      'eshell-next-matching-input-from-input)
+    (if eshell-hist-match-partial
+	(progn
+	  (define-key eshell-mode-map [(meta ?p)]
+	    'eshell-previous-matching-input-from-input)
+	  (define-key eshell-mode-map [(meta ?n)]
+	    'eshell-next-matching-input-from-input)
+	  (define-key eshell-command-map [(meta ?p)] 'eshell-previous-input)
+	  (define-key eshell-command-map [(meta ?n)] 'eshell-next-input))
+      (define-key eshell-mode-map [(meta ?p)] 'eshell-previous-input)
+      (define-key eshell-mode-map [(meta ?n)] 'eshell-next-input)
+      (define-key eshell-command-map [(meta ?p)]
+	'eshell-previous-matching-input-from-input)
+      (define-key eshell-command-map [(meta ?n)]
+	'eshell-next-matching-input-from-input)))
 
   (make-local-variable 'eshell-history-size)
   (or eshell-history-size
@@ -309,7 +300,10 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
   (add-hook 'kill-emacs-hook #'eshell-save-some-history)
 
   (make-local-variable 'eshell-input-filter-functions)
-  (add-hook 'eshell-input-filter-functions #'eshell-add-to-history nil t))
+  (add-hook 'eshell-input-filter-functions #'eshell-add-to-history nil t)
+
+  (define-key eshell-command-map [(control ?l)] 'eshell-list-history)
+  (define-key eshell-command-map [(control ?x)] 'eshell-get-next-from-history))
 
 (defun eshell-save-some-history ()
   "Save the history for any open Eshell buffers."

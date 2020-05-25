@@ -155,22 +155,14 @@ treated as a literal character."
   :type 'hook
   :group 'eshell-arg)
 
-(defvar eshell-arg-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-b") #'eshell-insert-buffer-name)
-    map))
-
 ;;; Functions:
-
-(define-minor-mode eshell-arg-mode
-  "Minor mode for the arg eshell module.
-
-\\{eshell-arg-mode-map}"
-  :keymap eshell-arg-mode-map)
 
 (defun eshell-arg-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the argument parsing code."
-  (eshell-arg-mode)
+  ;; This is supposedly run after enabling esh-mode, when eshell-mode-map
+  ;; already exists.
+  (defvar eshell-command-map)
+  (define-key eshell-command-map [(meta ?b)] 'eshell-insert-buffer-name)
   (set (make-local-variable 'eshell-inside-quote-regexp) nil)
   (set (make-local-variable 'eshell-outside-quote-regexp) nil))
 

@@ -213,7 +213,10 @@ This is used by `eshell-watch-for-password-prompt'."
 ;; these are only set to nil initially for the sake of the
 ;; byte-compiler, when compiling other files which `require' this one
 (defvar eshell-mode nil)
+(defvar eshell-mode-map nil)
 (defvar eshell-command-running-string "--")
+(defvar eshell-command-map nil)
+(defvar eshell-command-prefix nil)
 (defvar eshell-last-input-start nil)
 (defvar eshell-last-input-end nil)
 (defvar eshell-last-output-start nil)
@@ -277,32 +280,6 @@ This is used by `eshell-watch-for-password-prompt'."
      (standard-syntax-table))
     st))
 
-(defvar eshell-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c)] 'eshell-command-map)
-    (define-key map "\r" #'eshell-send-input)
-    (define-key map "\M-\r" #'eshell-queue-input)
-    (define-key map [(meta control ?l)] #'eshell-show-output)
-    (define-key map [(control ?a)] #'eshell-bol)
-    map))
-
-(defvar eshell-command-map
-  (let ((map (define-prefix-command 'eshell-command-map)))
-    (define-key map [(meta ?o)] #'eshell-mark-output)
-    (define-key map [(meta ?d)] #'eshell-toggle-direct-send)
-    (define-key map [(control ?a)] #'eshell-bol)
-    (define-key map [(control ?b)] #'eshell-backward-argument)
-    (define-key map [(control ?e)] #'eshell-show-maximum-output)
-    (define-key map [(control ?f)] #'eshell-forward-argument)
-    (define-key map [(control ?m)] #'eshell-copy-old-input)
-    (define-key map [(control ?o)] #'eshell-kill-output)
-    (define-key map [(control ?r)] #'eshell-show-output)
-    (define-key map [(control ?t)] #'eshell-truncate-buffer)
-    (define-key map [(control ?u)] #'eshell-kill-input)
-    (define-key map [(control ?w)] #'backward-kill-word)
-    (define-key map [(control ?y)] #'eshell-repeat-argument)
-    map))
-
 ;;; User Functions:
 
 (defun eshell-kill-buffer-function ()
@@ -321,6 +298,10 @@ and the hook `eshell-exit-hook'."
   "Emacs shell interactive mode."
   (setq-local eshell-mode t)
 
+  ;; FIXME: What the hell!?
+  (setq-local eshell-mode-map (make-sparse-keymap))
+  (use-local-map eshell-mode-map)
+
   (when eshell-status-in-mode-line
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
@@ -328,6 +309,31 @@ and the hook `eshell-exit-hook'."
     (let ((mode-line-elt (memq 'mode-line-modified mode-line-format)))
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
+
+  (define-key eshell-mode-map "\r" 'eshell-send-input)
+  (define-key eshell-mode-map "\M-\r" 'eshell-queue-input)
+  (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
+  (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
+
+  (setq-local eshell-command-prefix (make-symbol "eshell-command-prefix"))
+  (fset eshell-command-prefix (make-sparse-keymap))
+  (setq-local eshell-command-map (symbol-function eshell-command-prefix))
+  (define-key eshell-mode-map [(control ?c)] eshell-command-prefix)
+
+  (define-key eshell-command-map [(meta ?o)] 'eshell-mark-output)
+  (define-key eshell-command-map [(meta ?d)] 'eshell-toggle-direct-send)
+
+  (define-key eshell-command-map [(control ?a)] 'eshell-bol)
+  (define-key eshell-command-map [(control ?b)] 'eshell-backward-argument)
+  (define-key eshell-command-map [(control ?e)] 'eshell-show-maximum-output)
+  (define-key eshell-command-map [(control ?f)] 'eshell-forward-argument)
+  (define-key eshell-command-map [(control ?m)] 'eshell-copy-old-input)
+  (define-key eshell-command-map [(control ?o)] 'eshell-kill-output)
+  (define-key eshell-command-map [(control ?r)] 'eshell-show-output)
+  (define-key eshell-command-map [(control ?t)] 'eshell-truncate-buffer)
+  (define-key eshell-command-map [(control ?u)] 'eshell-kill-input)
+  (define-key eshell-command-map [(control ?w)] 'backward-kill-word)
+  (define-key eshell-command-map [(control ?y)] 'eshell-repeat-argument)
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
 

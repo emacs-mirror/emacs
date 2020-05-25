@@ -137,11 +137,6 @@ This is default behavior of shells like bash."
   :type '(repeat function)
   :group 'eshell-rebind)
 
-(defvar eshell-rebind-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-l") #'eshell-lock-local-map)
-    map))
-
 ;; Internal Variables:
 
 (defvar eshell-input-keymap)
@@ -149,12 +144,6 @@ This is default behavior of shells like bash."
 (defvar eshell-lock-keymap)
 
 ;;; Functions:
-
-(define-minor-mode eshell-rebind-mode
-  "Minor mode for the eshell-rebind module.
-
-\\{eshell-rebind-mode-map}"
-  :keymap eshell-rebind-mode-map)
 
 (defun eshell-rebind-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the inputting code."
@@ -165,7 +154,7 @@ This is default behavior of shells like bash."
     (make-local-variable 'overriding-local-map)
     (add-hook 'post-command-hook 'eshell-rebind-input-map nil t)
     (set (make-local-variable 'eshell-lock-keymap) nil)
-    (eshell-rebind-mode)))
+    (define-key eshell-command-map [(meta ?l)] 'eshell-lock-local-map)))
 
 (defun eshell-lock-local-map (&optional arg)
   "Lock or unlock the current local keymap.
