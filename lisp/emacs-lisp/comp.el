@@ -167,6 +167,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-dead-code
                         comp-tco
                         comp-propagate-alloc
+                        comp-remove-type-hints
                         comp-final)
   "Passes to be executed in order.")
 
@@ -2089,18 +2090,6 @@ Return the list of m-var ids nuked."
                                              insn))))))
       nuke-list)))
 
-(defun comp-remove-type-hints-func ()
-  "Remove type hints from the current function.
-These are substituted with a normal 'set' op."
-  (cl-loop
-   for b being each hash-value of (comp-func-blocks comp-func)
-   do (cl-loop
-       for insn-cell on (comp-block-insns b)
-       for insn = (car insn-cell)
-       do (pcase insn
-            (`(set ,l-val (call ,(pred comp-type-hint-p) ,r-val))
-             (setcar insn-cell `(set ,l-val ,r-val)))))))
-
 (defun comp-dead-code (_)
   "Dead code elimination."
   (when (>= comp-speed 2)
@@ -2112,9 +2101,7 @@ These are substituted with a normal 'set' op."
                     for i from 1
                     while (comp-dead-assignments-func)
                     finally (comp-log (format "dead code rm run %d times\n" i) 2)
-                            (comp-log-func comp-func 3))
-                   (comp-remove-type-hints-func)
-                   (comp-log-func comp-func 3))))
+                            (comp-log-func comp-func 3)))))
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
@@ -2154,6 +2141,33 @@ These are substituted with a normal 'set' op."
                  (unless (comp-func-has-non-local comp-func)
                    (comp-tco-func)
                    (comp-log-func comp-func 3))))
+             (comp-ctxt-funcs-h comp-ctxt))))
+
+
+;;; Type hint removal pass specific code.
+
+;; This must run after all SSA prop not to have the type hint
+;; information overwritten.
+
+(defun comp-remove-type-hints-func ()
+  "Remove type hints from the current function.
+These are substituted with a normal 'set' op."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       for insn-cell on (comp-block-insns b)
+       for insn = (car insn-cell)
+       do (pcase insn
+            (`(set ,l-val (call ,(pred comp-type-hint-p) ,r-val))
+             (setcar insn-cell `(set ,l-val ,r-val)))))))
+
+(defun comp-remove-type-hints (_)
+  "Dead code elimination."
+  (when (>= comp-speed 2)
+    (maphash (lambda (_ f)
+               (let ((comp-func f))
+                 (comp-remove-type-hints-func)
+                 (comp-log-func comp-func 3)))
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
