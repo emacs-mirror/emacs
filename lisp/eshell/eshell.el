@@ -265,14 +265,18 @@ information on Eshell, see Info node `(eshell)Top'."
       (eshell-mode))
     buf))
 
-(defun eshell-return-exits-minibuffer ()
-  ;; This is supposedly run after enabling esh-mode, when eshell-mode-map
-  ;; already exists.
-  (defvar eshell-mode-map)
-  (define-key eshell-mode-map [(control ?g)] 'abort-recursive-edit)
-  (define-key eshell-mode-map [(control ?m)] 'exit-minibuffer)
-  (define-key eshell-mode-map [(control ?j)] 'exit-minibuffer)
-  (define-key eshell-mode-map [(meta control ?m)] 'exit-minibuffer))
+(define-minor-mode eshell-command-mode
+  "Minor mode for `eshell-command' input.
+\\{eshell-command-mode-map}"
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map [(control ?g)] 'abort-recursive-edit)
+            (define-key map [(control ?m)] 'exit-minibuffer)
+            (define-key map [(control ?j)] 'exit-minibuffer)
+            (define-key map [(meta control ?m)] 'exit-minibuffer)
+            map))
+
+(define-obsolete-function-alias 'eshell-return-exits-minibuffer
+  #'eshell-command-mode "28.1")
 
 (defvar eshell-non-interactive-p nil
   "A variable which is non-nil when Eshell is not running interactively.
@@ -292,7 +296,7 @@ With prefix ARG, insert output into the current buffer at point."
     ;; Enable `eshell-mode' only in this minibuffer.
     (minibuffer-with-setup-hook #'(lambda ()
                                     (eshell-mode)
-                                    (eshell-return-exits-minibuffer))
+                                    (eshell-command-mode +1))
       (unless command
         (setq command (read-from-minibuffer "Emacs shell command: "))
 	(if (eshell-using-module 'eshell-hist)
