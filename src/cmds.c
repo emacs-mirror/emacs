@@ -203,7 +203,7 @@ to t.  */)
       SET_PT (newpos);
 
       if (PT > newpos
-	  && FETCH_CHAR (PT - 1) == '\n')
+	  && FETCH_BYTE (PT_BYTE - 1) == '\n')
 	{
 	  /* If we skipped over a newline that follows
 	     an invisible intangible run,
@@ -214,7 +214,7 @@ to t.  */)
 	  break;
 	}
       else if (PT > newpos && PT < ZV
-	       && FETCH_CHAR (PT) != '\n')
+	       && FETCH_BYTE (PT_BYTE) != '\n')
 	/* If we skipped something intangible
 	   and now we're not really at eol,
 	   keep going.  */
