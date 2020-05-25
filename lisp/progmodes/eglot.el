@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.8") (package "0.1.1") (xref "1.0.1") (eldoc "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.8") (project "0.3.0") (xref "1.0.1") (eldoc "1.0.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -851,7 +851,7 @@ Each function is passed the server as an argument")
 (defun eglot--connect (managed-major-mode project class contact)
   "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
-  (let* ((default-directory (car (project-roots project)))
+  (let* ((default-directory (project-root project))
          (nickname (file-name-base (directory-file-name default-directory)))
          (readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
          autostart-inferior-process
@@ -947,7 +947,7 @@ This docstring appeases checkdoc, that's all."
                                    (lambda ()
                                      (setf (eglot--inhibit-autoreconnect server)
                                            (null eglot-autoreconnect)))))))
-                          (let ((default-directory (car (project-roots project)))
+                          (let ((default-directory (project-root project))
                                 (major-mode managed-major-mode))
                             (hack-dir-local-variables-non-file-buffer)
                             (run-hook-with-args 'eglot-connect-hook server))
@@ -1781,7 +1781,7 @@ When called interactively, use the currently active server"
                        (if (and (not (string-empty-p uri-path))
                                 (file-directory-p uri-path))
                            uri-path
-                           (car (project-roots (eglot--project server))))))
+                         (project-root (eglot--project server)))))
                 (setq-local major-mode (eglot--major-mode server))
                 (hack-dir-local-variables-non-file-buffer)
                 (alist-get section eglot-workspace-configuration
@@ -2705,16 +2705,14 @@ documentation.  Honour `eglot-put-doc-in-help-buffer',
   `(:workspaceFolders
     [,@(cl-delete-duplicates
         (mapcar #'eglot--path-to-uri
-                (let* ((roots (project-roots (eglot--project server)))
-                       (root (car roots)))
-                  (append
-                   roots
-                   (mapcar
-                    #'file-name-directory
-                    (append
-                     (file-expand-wildcards (concat root "*/pom.xml"))
-                     (file-expand-wildcards (concat root "*/build.gradle"))
-                     (file-expand-wildcards (concat root "*/.project")))))))
+                (let* ((root (project-root (eglot--project server))))
+                  (cons root
+                        (mapcar
+                         #'file-name-directory
+                         (append
+                          (file-expand-wildcards (concat root "*/pom.xml"))
+                          (file-expand-wildcards (concat root "*/build.gradle"))
+                          (file-expand-wildcards (concat root "*/.project")))))))
         :test #'string=)]
     ,@(if-let ((home (or (getenv "JAVA_HOME")
                          (ignore-errors
@@ -2762,7 +2760,7 @@ If INTERACTIVE, prompt user for details."
               (t "config_linux"))))
            (project (or (project-current) `(transient . ,default-directory)))
            (workspace
-            (expand-file-name (md5 (car (project-roots project)))
+            (expand-file-name (md5 (project-root project))
                               (concat user-emacs-directory
                                       "eglot-eclipse-jdt-cache"))))
       (unless jar
