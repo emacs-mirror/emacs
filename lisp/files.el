@@ -433,7 +433,7 @@ to the visited files directly and will also run all save-related
 hooks.  See Info node `Saving' for details of the save process.
 
 You can also set the buffer-local value of the variable
-`auto-save-visted-mode' to nil.  A buffer where the buffer-local
+`auto-save-visited-mode' to nil.  A buffer where the buffer-local
 value of this variable is nil is ignored for the purpose of
 `auto-save-visited-mode', even if `auto-save-visited-mode' is
 enabled."
