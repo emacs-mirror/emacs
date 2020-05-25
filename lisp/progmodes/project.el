@@ -735,9 +735,10 @@ loop using the command \\[fileloop-continue]."
       (let ((dirs (split-string (string-trim (buffer-string)) "\n"))
             (project-list '()))
         (dolist (dir dirs)
-          (cl-pushnew (file-name-as-directory dir)
-                      project-list
-                      :test #'equal))
+          (unless (string-empty-p dir)
+            (cl-pushnew (file-name-as-directory dir)
+                        project-list
+                        :test #'equal)))
         (setq project--list (reverse project-list))))))
 
 (defun project--ensure-read-project-list ()
