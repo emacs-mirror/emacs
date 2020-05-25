@@ -670,15 +670,13 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 (defun project-dired ()
   "Open Dired in the current project."
   (interactive)
-  (let ((dirs (project-roots (project-current t))))
-    (dired (car dirs))))
+  (dired (project-root (project-current t))))
 
 ;;;###autoload
 (defun project-eshell ()
   "Open Eshell in the current project."
   (interactive)
-  (let* ((dirs (project-roots (project-current t)))
-         (default-directory (car dirs)))
+  (let ((default-directory (project-root (project-current t))))
     (eshell t)))
 
 (declare-function fileloop-continue "fileloop" ())
@@ -737,7 +735,7 @@ loop using the command \\[fileloop-continue]."
       (let ((dirs (split-string (string-trim (buffer-string)) "\n"))
             (project-list '()))
         (dolist (dir dirs)
-          (cl-pushnew (list (file-name-as-directory dir))
+          (cl-pushnew (file-name-as-directory dir)
                       project-list
                       :test #'equal))
         (setq project--list (reverse project-list))))))
@@ -751,16 +749,16 @@ loop using the command \\[fileloop-continue]."
   "Persist `project--list' to the project list file."
   (let ((filename (locate-user-emacs-file "project-list")))
     (with-temp-buffer
-      (insert (string-join (mapcar #'car project--list) "\n"))
+      (insert (string-join project--list "\n"))
       (write-region nil nil filename nil 'silent))))
 
 (defun project--add-to-project-list-front (pr)
   "Add project PR to the front of the project list and save it.
 Return PR."
   (project--ensure-read-project-list)
-  (let ((dirs (project-roots pr)))
-    (setq project--list (delete dirs project--list))
-    (push dirs project--list))
+  (let ((dir (project-root pr)))
+    (setq project--list (delete dir project--list))
+    (push dir project--list))
   (project--write-project-list)
   pr)
 
@@ -771,8 +769,8 @@ result to disk."
   (project--ensure-read-project-list)
   ;; XXX: This hardcodes that the number of roots = 1.
   ;; It's fine, though.
-  (when (member (list pr-dir) project--list)
-    (setq project--list (delete (list pr-dir) project--list))
+  (when (member pr-dir project--list)
+    (setq project--list (delete pr-dir project--list))
     (message "Project `%s' not found; removed from list" pr-dir)
     (project--write-project-list)))
 
