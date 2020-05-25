@@ -1273,17 +1273,19 @@ Eldoc mode, which is turned on by default, and affects buffers whose
 major mode sets the variables described below.  Use @w{@kbd{M-x
 global-eldoc-mode}} to turn it off globally.
 
-@vindex eldoc-documentation-function
+@vindex eldoc-documentation-strategy
 @vindex eldoc-documentation-functions
   These variables can be used to configure ElDoc mode:
 
 @table @code
-@item eldoc-documentation-function
+@item eldoc-documentation-strategy
 This variable holds the function which is used to retrieve
 documentation for the item at point from the functions in the hook
 @code{eldoc-documentation-functions}.  By default,
-@code{eldoc-documentation-function} returns the first documentation
-string produced by the @code{eldoc-documentation-functions} hook.
+@code{eldoc-documentation-strategy} returns the first documentation
+string produced by the @code{eldoc-documentation-functions} hook, but
+it may be customized to compose those functions' results in other
+ways.
 
 @item eldoc-documentation-functions
 This abnormal hook holds documentation functions.  It acts as a
