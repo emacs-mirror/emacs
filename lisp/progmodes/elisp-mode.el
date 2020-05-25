@@ -1403,8 +1403,10 @@ which see."
       or argument string for functions.
   2 - `function' if function args, `variable' if variable documentation.")
 
-(defun elisp-eldoc-documentation-function ()
-  "`eldoc-documentation-function' (which see) for Emacs Lisp."
+(defun elisp-eldoc-documentation-function (_ignored &rest _also-ignored)
+  "Contextual documentation function for Emacs Lisp.
+Intended to be placed in `eldoc-documentation-functions' (which
+see)."
   (let ((current-symbol (elisp--current-symbol))
 	(current-fnsym  (elisp--fnsym-in-current-sexp)))
     (cond ((null current-fnsym)

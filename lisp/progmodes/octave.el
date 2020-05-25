@@ -1639,8 +1639,8 @@ code line."
                   (nreverse result)))))
   (cdr octave-eldoc-cache))
 
-(defun octave-eldoc-function ()
-  "A function for `eldoc-documentation-function' (which see)."
+(defun octave-eldoc-function (&rest _ignored)
+  "A function for `eldoc-documentation-functions' (which see)."
   (when (inferior-octave-process-live-p)
     (let* ((ppss (syntax-ppss))
            (paren-pos (cadr ppss))

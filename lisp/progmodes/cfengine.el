@@ -1294,7 +1294,7 @@ Calls `cfengine-cf-promises' with \"-s json\"."
                           'symbols))
         syntax)))
 
-(defun cfengine3-documentation-function ()
+(defun cfengine3-documentation-function (&rest _ignored)
   "Document CFengine 3 functions around point.
 Intended as the value of `eldoc-documentation-function', which see.
 Use it by enabling `eldoc-mode'."

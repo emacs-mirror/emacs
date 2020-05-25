@@ -252,9 +252,11 @@ doc string functions.  This makes the results of all doc string
 functions accessible to the user through the existing single function hook
 'eldoc-documentation-function'.
 
-*** 'eldoc-documentation-function' is now a user option.
-Modes should use the new hook instead of this user option to register
-their backends.
+*** New user option 'eldoc-documentation-strategy'
+The built-in choices available for this user option let users compose
+the results of 'eldoc-documentation-functions' in various ways.  The
+user option replaces 'eldoc-documentation-function', which is now
+obsolete.
 
 ** Eshell
 
