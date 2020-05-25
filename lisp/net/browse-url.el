@@ -39,7 +39,6 @@
 ;; browse-url-chrome                  Chrome      47.0.2526.111
 ;; browse-url-chromium                Chromium    3.0
 ;; browse-url-epiphany                Epiphany    Don't know
-;; browse-url-conkeror                Conkeror    Don't know
 ;; browse-url-w3                      w3          0
 ;; browse-url-text-*	              Any text browser     0
 ;; browse-url-generic                 arbitrary
@@ -154,7 +153,6 @@
     (function-item :tag "Google Chrome" :value browse-url-chrome)
     (function-item :tag "Chromium" :value browse-url-chromium)
     (function-item :tag "Epiphany" :value  browse-url-epiphany)
-    (function-item :tag "Conkeror" :value  browse-url-conkeror)
     (function-item :tag "Text browser in an xterm window"
 		   :value browse-url-text-xterm)
     (function-item :tag "Text browser in an Emacs window"
@@ -396,6 +394,8 @@ If non-nil, then open the URL in a new buffer rather than a new window if
   :version "25.1"
   :type 'boolean)
 
+(make-obsolete-variable 'browse-url-conkeror-new-window-is-buffer nil "28.1")
+
 (defcustom browse-url-galeon-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -449,10 +449,14 @@ commands reverses the effect of this variable."
   :type 'string
   :version "25.1")
 
+(make-obsolete-variable 'browse-url-conkeror-program nil "28.1")
+
 (defcustom browse-url-conkeror-arguments nil
   "A list of strings to pass to Conkeror as arguments."
   :version "25.1"
   :type '(repeat (string :tag "Argument")))
+
+(make-obsolete-variable 'browse-url-conkeror-arguments nil "28.1")
 
 (defcustom browse-url-filename-alist
   `(("^/\\(ftp@\\|anonymous@\\)?\\([^:/]+\\):/*" . "ftp://\\2/")
@@ -1072,7 +1076,7 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-kde-program) 'browse-url-kde)
 ;;;    ((executable-find browse-url-netscape-program) 'browse-url-netscape)
 ;;;    ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
-    ((executable-find browse-url-conkeror-program) 'browse-url-conkeror)
+;;;    ((executable-find browse-url-conkeror-program) 'browse-url-conkeror)
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
@@ -1546,6 +1550,7 @@ new window, load it in a new buffer in an existing window instead.
 
 When called non-interactively, use optional second argument
 NEW-WINDOW instead of `browse-url-new-window-flag'."
+  (declare (obsolete nil "28.1"))
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))

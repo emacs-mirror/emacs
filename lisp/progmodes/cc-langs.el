@@ -1174,7 +1174,7 @@ since CC Mode treats every identifier as an expression."
 
       ;; Exception.
       ,@(when (c-major-mode-is 'c++-mode)
-	  '((prefix "throw")))
+	  '((prefix "throw" "co_await" "co_yield")))
 
       ;; Sequence.
       (left-assoc ","))
@@ -2040,6 +2040,7 @@ the appropriate place for that."
 (c-lang-defconst c-return-kwds
   "Keywords which return a value to the calling function."
   t '("return")
+  c++ '("return" "co_return")
   idl nil)
 
 (c-lang-defconst c-return-key
@@ -2822,6 +2823,7 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
 (c-lang-defconst c-simple-stmt-kwds
   "Statement keywords followed by an expression or nothing."
   t    '("break" "continue" "goto" "return")
+  c++    '("break" "continue" "goto" "return" "co_return")
   objc '("break" "continue" "goto" "return" "@throw")
   ;; Note: `goto' is not valid in Java, but the keyword is still reserved.
   java '("break" "continue" "goto" "return" "throw")
