@@ -1404,10 +1404,15 @@ xg_free_frame_widgets (struct frame *f)
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
       FRAME_X_RAW_DRAWABLE (f) = 0;
       FRAME_GTK_OUTER_WIDGET (f) = 0;
+      if (x->ttip_widget)
+        {
+          /* Remove ttip_lbl from ttip_widget's custom slot before
+             destroying it, to avoid double-free (Bug#41239).  */
+          gtk_tooltip_set_custom (x->ttip_widget, NULL);
+          g_object_unref (G_OBJECT (x->ttip_widget));
+        }
       if (x->ttip_lbl)
         gtk_widget_destroy (x->ttip_lbl);
-      if (x->ttip_widget)
-        g_object_unref (G_OBJECT (x->ttip_widget));
     }
 }
 
