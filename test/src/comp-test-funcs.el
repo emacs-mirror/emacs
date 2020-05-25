@@ -50,6 +50,12 @@
 (defun comp-tests-cons-cdr-f (x)
   (cdr (cons 'foo x)))
 
+(defun comp-tests-hint-fixnum-f (n)
+  (1+ (comp-hint-fixnum n)))
+
+(defun comp-tests-hint-cons-f (c)
+  (car (comp-hint-cons c)))
+
 (defun comp-tests-varset0-f ()
   (setq comp-tests-var1 55))
 (defun comp-tests-varset1-f ()

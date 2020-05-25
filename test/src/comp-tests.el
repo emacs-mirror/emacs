@@ -194,6 +194,12 @@ Check that the resulting binaries do not differ."
   (should-error (comp-tests-fixnum-minus-f 'a)
                 :type 'wrong-type-argument))
 
+(ert-deftest comp-tests-type-hints ()
+  "Just test compiler hints are transparent in this case."
+  ;; FIXME we should really check they are also effective.
+  (should (= (comp-tests-hint-fixnum-f 3) 4))
+  (should (= (comp-tests-hint-cons-f (cons 1 2)) 1)))
+
 (ert-deftest comp-tests-arith-comp ()
   "Testing arithmetic comparisons."
   (should (eq (comp-tests-eqlsign-f 4 3) nil))
