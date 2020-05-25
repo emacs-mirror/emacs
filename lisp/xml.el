@@ -1032,7 +1032,8 @@ by https://www.w3.org/TR/xml/#charsets), signal an error of type
     (insert string)
     (goto-char (point-min))
     (when (re-search-forward
-           "[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]")
+           "[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]"
+           nil t)
       (signal 'xml-invalid-character (list (char-before) (match-beginning 0))))
     (dolist (substitution '(("&" . "&amp;")
 			    ("<" . "&lt;")
