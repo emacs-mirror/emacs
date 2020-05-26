@@ -717,12 +717,17 @@ run_thread (void *state)
 {
   /* Make sure stack_top and m_stack_bottom are properly aligned as GC
      expects.  */
-  max_align_t stack_pos;
+  union
+  {
+    Lisp_Object o;
+    void *p;
+    char c;
+  } stack_pos;
 
   struct thread_state *self = state;
   struct thread_state **iter;
 
-  self->m_stack_bottom = self->stack_top = (char *) &stack_pos;
+  self->m_stack_bottom = self->stack_top = &stack_pos.c;
   self->thread_id = sys_thread_self ();
 
   if (self->thread_name)

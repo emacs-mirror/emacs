@@ -112,9 +112,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    adds sizeof (size_t) to SIZE for internal overhead, and then rounds
    up to a multiple of MALLOC_ALIGNMENT.  Emacs can improve
    performance a bit on GNU platforms by arranging for the resulting
-   size to be a power of two.  This heuristic is good for glibc 2.0
-   (1997) through at least glibc 2.31 (2020), and does not affect
-   correctness on other platforms.  */
+   size to be a power of two.  This heuristic is good for glibc 2.26
+   (2017) and later, and does not affect correctness on other
+   platforms.  */
 
 #define MALLOC_SIZE_NEAR(n) \
   (ROUNDUP (max (n, sizeof (size_t)), MALLOC_ALIGNMENT) - sizeof (size_t))
@@ -655,28 +655,30 @@ buffer_memory_full (ptrdiff_t nbytes)
 #define COMMON_MULTIPLE(a, b) \
   ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
 
-/* LISP_ALIGNMENT is the alignment of Lisp objects.  It must be at
-   least GCALIGNMENT so that pointers can be tagged.  It also must be
-   at least as strict as the alignment of all the C types used to
-   implement Lisp objects; since pseudovectors can contain any C type,
-   this is max_align_t.  On recent GNU/Linux x86 and x86-64 this can
-   often waste up to 8 bytes, since alignof (max_align_t) is 16 but
-   typical vectors need only an alignment of 8.  Although shrinking
-   the alignment to 8 would save memory, it cost a 20% hit to Emacs
-   CPU performance on Fedora 28 x86-64 when compiled with gcc -m32.  */
-enum { LISP_ALIGNMENT = alignof (union { max_align_t x;
-					 GCALIGNED_UNION_MEMBER }) };
-verify (LISP_ALIGNMENT % GCALIGNMENT == 0);
+/* A lower bound on the alignment of malloc.  For better performance
+   this bound should be tighter.  For glibc 2.26 and later a tighter
+   bound is known.  */
+#if 2 < __GLIBC__ + (26 <= __GLIBC_MINOR__)
+enum { MALLOC_ALIGNMENT_BOUND = MALLOC_ALIGNMENT };
+#else
+/* A bound known to work for all Emacs porting targets.  Tightening
+   this looser bound by using max_align_t instead of long long int
+   would break buggy malloc implementations like MinGW circa 2020.  */
+enum { MALLOC_ALIGNMENT_BOUND = alignof (long long int) };
+#endif
+
+/* A lower bound on the alignment of Lisp objects.  All Lisp objects
+   must have an address that is a multiple of LISP_ALIGNMENT;
+   otherwise maybe_lisp_pointer can issue false negatives, causing crashes.
+   It's good to make this bound tight: if Lisp objects are always
+   aligned more strictly than LISP_ALIGNMENT, maybe_lisp_pointer will
+   issue more false positives, hurting performance.  */
+enum { LISP_ALIGNMENT = max (max (GCALIGNMENT, MALLOC_ALIGNMENT_BOUND),
+			     alignof (union emacs_align_type)) };
 
 /* True if malloc (N) is known to return storage suitably aligned for
-   Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  In
-   practice this is true whenever alignof (max_align_t) is also a
-   multiple of LISP_ALIGNMENT.  This works even for x86, where some
-   platform combinations (e.g., GCC 7 and later, glibc 2.25 and
-   earlier) have bugs where alignof (max_align_t) is 16 even though
-   the malloc alignment is only 8, and where Emacs still works because
-   it never does anything that requires an alignment of 16.  */
-enum { MALLOC_IS_LISP_ALIGNED = alignof (max_align_t) % LISP_ALIGNMENT == 0 };
+   Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  */
+enum { MALLOC_IS_LISP_ALIGNED = MALLOC_ALIGNMENT_BOUND % LISP_ALIGNMENT == 0 };
 
 /* If compiled with XMALLOC_BLOCK_INPUT_CHECK, define a symbol
    BLOCK_INPUT_IN_MEMORY_ALLOCATORS that is visible to the debugger.
@@ -4885,9 +4887,10 @@ test_setjmp (void)
    as a stack scan limit.  */
 typedef union
 {
-  /* Align the stack top properly.  Even if !HAVE___BUILTIN_UNWIND_INIT,
-     jmp_buf may not be aligned enough on darwin-ppc64.  */
-  max_align_t o;
+  /* Make sure stack_top and m_stack_bottom are properly aligned as GC
+     expects.  */
+  Lisp_Object o;
+  void *p;
 #ifndef HAVE___BUILTIN_UNWIND_INIT
   sys_jmp_buf j;
   char c;
