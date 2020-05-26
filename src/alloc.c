@@ -4687,16 +4687,33 @@ mark_maybe_objects (Lisp_Object const *array, ptrdiff_t nelts)
     mark_maybe_object (*array);
 }
 
+/* A lower bound on the alignment of Lisp objects that need marking.
+   Although 1 is safe, higher values speed up mark_maybe_pointer.
+   If USE_LSB_TAG, this value is typically GCALIGNMENT; otherwise,
+   it's determined by the natural alignment of Lisp structs.
+   All vectorlike objects have alignment at least that of union
+   vectorlike_header and it's unlikely they all have alignment greater,
+   so use the union as a safe and likely-accurate standin for
+   vectorlike objects.  */
+
+enum { GC_OBJECT_ALIGNMENT_MINIMUM
+         = max (GCALIGNMENT,
+		min (alignof (union vectorlike_header),
+		     min (min (alignof (struct Lisp_Cons),
+			       alignof (struct Lisp_Float)),
+			  min (alignof (struct Lisp_String),
+			       alignof (struct Lisp_Symbol))))) };
+
 /* Return true if P might point to Lisp data that can be garbage
    collected, and false otherwise (i.e., false if it is easy to see
    that P cannot point to Lisp data that can be garbage collected).
    Symbols are implemented via offsets not pointers, but the offsets
-   are also multiples of GCALIGNMENT.  */
+   are also multiples of GC_OBJECT_ALIGNMENT_MINIMUM.  */
 
 static bool
 maybe_lisp_pointer (void *p)
 {
-  return (uintptr_t) p % GCALIGNMENT == 0;
+  return (uintptr_t) p % GC_OBJECT_ALIGNMENT_MINIMUM == 0;
 }
 
 /* If P points to Lisp data, mark that as live if it isn't already
