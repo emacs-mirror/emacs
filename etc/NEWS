@@ -405,6 +405,8 @@ Previously 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
+** The metamail.el library is now marked obsolete.
+
 
 * New Modes and Packages in Emacs 28.1
 
