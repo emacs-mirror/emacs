@@ -1918,8 +1918,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #endif /* HAVE_NS */
 #ifdef HAVE_PGTK
-      syms_of_pgtkterm();
-      syms_of_pgtkfns();
+      syms_of_pgtkterm ();
+      syms_of_pgtkfns ();
       syms_of_pgtkselect ();
       syms_of_pgtkmenu ();
       syms_of_pgtkim ();
