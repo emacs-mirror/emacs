@@ -1165,10 +1165,10 @@ Doubles as an indicator of snippet support."
                          (_ major-mode))))))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
-      (insert (string-trim string))
+      (insert string)
       (ignore-errors (delay-mode-hooks (funcall mode)))
       (font-lock-ensure)
-      (buffer-string))))
+      (string-trim (filter-buffer-substring (point-min) (point-max))))))
 
 (defcustom eglot-ignored-server-capabilites (list)
   "LSP server capabilities that Eglot could use, but won't.
