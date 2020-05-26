@@ -6052,7 +6052,7 @@ make_lispy_event (struct input_event *event)
 
 #ifdef HAVE_PGTK
     case PGTK_PREEDIT_TEXT_EVENT:
-      return list2 (intern("pgtk-preedit-text"), event->arg);
+      return list2 (intern ("pgtk-preedit-text"), event->arg);
 #endif
 
       /* The 'kind' field of the event is something we don't recognize.  */
