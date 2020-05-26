@@ -402,14 +402,15 @@ image_reference_bitmap (struct frame *f, ptrdiff_t id)
 
 #ifdef HAVE_PGTK
 static cairo_pattern_t *
-image_create_pattern_from_pixbuf (struct frame *f, GdkPixbuf *pixbuf)
+image_create_pattern_from_pixbuf (struct frame *f, GdkPixbuf * pixbuf)
 {
   GdkPixbuf *pb = gdk_pixbuf_add_alpha (pixbuf, TRUE, 255, 255, 255);
-  cairo_surface_t *surface = cairo_surface_create_similar_image (cairo_get_target(
-								   f->output_data.pgtk->cr_context),
-								 CAIRO_FORMAT_A1,
-								 gdk_pixbuf_get_width (pb),
-								 gdk_pixbuf_get_height (pb));
+  cairo_surface_t *surface =
+    cairo_surface_create_similar_image (cairo_get_target
+					(f->output_data.pgtk->cr_context),
+					CAIRO_FORMAT_A1,
+					gdk_pixbuf_get_width (pb),
+					gdk_pixbuf_get_height (pb));
 
   cairo_t *cr = cairo_create (surface);
   gdk_cairo_set_source_pixbuf (cr, pb, 0, 0);
@@ -462,38 +463,45 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif
 
 #ifdef HAVE_PGTK
-  GdkPixbuf *pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-				     FALSE,
-				     8,
-				     width,
-				     height);
+  GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
+				      FALSE,
+				      8,
+				      width,
+				      height);
   {
     char *sp = bits;
     int mask = 0x01;
     unsigned char *buf = gdk_pixbuf_get_pixels (pixbuf);
     int rowstride = gdk_pixbuf_get_rowstride (pixbuf);
-    for (int y = 0; y < height; y++) {
-      unsigned char *dp = buf + rowstride * y;
-      for (int x = 0; x < width; x++) {
-	if (*sp & mask) {
-	  *dp++ = 0xff;
-	  *dp++ = 0xff;
-	  *dp++ = 0xff;
-	} else {
-	  *dp++ = 0x00;
-	  *dp++ = 0x00;
-	  *dp++ = 0x00;
-	}
-	if ((mask <<= 1) >= 0x100) {
-	  mask = 0x01;
-	  sp++;
-	}
+    for (int y = 0; y < height; y++)
+      {
+	unsigned char *dp = buf + rowstride * y;
+	for (int x = 0; x < width; x++)
+	  {
+	    if (*sp & mask)
+	      {
+		*dp++ = 0xff;
+		*dp++ = 0xff;
+		*dp++ = 0xff;
+	      }
+	    else
+	      {
+		*dp++ = 0x00;
+		*dp++ = 0x00;
+		*dp++ = 0x00;
+	      }
+	    if ((mask <<= 1) >= 0x100)
+	      {
+		mask = 0x01;
+		sp++;
+	      }
+	  }
+	if (mask != 0x01)
+	  {
+	    mask = 0x01;
+	    sp++;
+	  }
       }
-      if (mask != 0x01) {
-	mask = 0x01;
-	sp++;
-      }
-    }
   }
 #endif
 
@@ -507,7 +515,8 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #ifdef HAVE_PGTK
   dpyinfo->bitmaps[id - 1].img = pixbuf;
   dpyinfo->bitmaps[id - 1].depth = 1;
-  dpyinfo->bitmaps[id - 1].pattern = image_create_pattern_from_pixbuf (f, pixbuf);
+  dpyinfo->bitmaps[id - 1].pattern =
+    image_create_pattern_from_pixbuf (f, pixbuf);
 #endif
 
   dpyinfo->bitmaps[id - 1].file = NULL;
@@ -567,10 +576,11 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   ptrdiff_t id;
   void * bitmap = gdk_pixbuf_new_from_file(SSDATA(file), &err);
 
-  if (!bitmap) {
-    g_error_free(err);
-    return -1;
-  }
+  if (!bitmap)
+    {
+      g_error_free(err);
+      return -1;
+    }
 
   id = image_allocate_bitmap_record(f);
 
@@ -580,7 +590,8 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   //dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
-  dpyinfo->bitmaps[id - 1].pattern = image_create_pattern_from_pixbuf (f, bitmap);
+  dpyinfo->bitmaps[id - 1].pattern
+    = image_create_pattern_from_pixbuf (f, bitmap);
   return id;
 #endif
 
