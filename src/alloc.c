@@ -655,24 +655,22 @@ buffer_memory_full (ptrdiff_t nbytes)
 #define COMMON_MULTIPLE(a, b) \
   ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
 
-/* A lower bound on the alignment of malloc.  Although this bound is
-   incorrect for some buggy malloc implementations (e.g., MinGW circa
-   2020), the bugs should not matter for the way this bound is used
-   since the correct bound is also a multiple of LISP_ALIGNMENT on the
-   buggy platforms.  */
-enum { MALLOC_ALIGNMENT_BOUND = alignof (max_align_t) };
-
-/* A lower bound on the alignment of Lisp objects allocated on the heap.
-   All such objects must have an address that is a multiple of LISP_ALIGNMENT;
-   otherwise maybe_lisp_pointer can issue false negatives, causing crashes.
-   On all practical Emacs targets, sizeof (struct Lisp_Float) == 8 and
-   since GCALIGNMENT also equals 8 there's little point to optimizing
-   for impractical targets.  */
-enum { LISP_ALIGNMENT = GCALIGNMENT };
+/* Alignment needed for memory blocks that are allocated via malloc
+   and that contain Lisp objects.  On typical hosts malloc already
+   aligns sufficiently, but extra work is needed on oddball hosts
+   where Emacs would crash if malloc returned a non-GCALIGNED pointer.  */
+enum { LISP_ALIGNMENT = alignof (union { union emacs_align_type x;
+					 GCALIGNED_UNION_MEMBER }) };
+verify (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
 /* True if malloc (N) is known to return storage suitably aligned for
-   Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  */
-enum { MALLOC_IS_LISP_ALIGNED = MALLOC_ALIGNMENT_BOUND % LISP_ALIGNMENT == 0 };
+   Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  In
+   practice this is true whenever alignof (max_align_t) is also a
+   multiple of LISP_ALIGNMENT.  This works even for buggy platforms
+   like MinGW circa 2020, where alignof (max_align_t) is 16 even though
+   the malloc alignment is only 8, and where Emacs still works because
+   it never does anything that requires an alignment of 16.  */
+enum { MALLOC_IS_LISP_ALIGNED = alignof (max_align_t) % LISP_ALIGNMENT == 0 };
 
 /* If compiled with XMALLOC_BLOCK_INPUT_CHECK, define a symbol
    BLOCK_INPUT_IN_MEMORY_ALLOCATORS that is visible to the debugger.
@@ -4653,12 +4651,12 @@ mark_maybe_objects (Lisp_Object const *array, ptrdiff_t nelts)
    collected, and false otherwise (i.e., false if it is easy to see
    that P cannot point to Lisp data that can be garbage collected).
    Symbols are implemented via offsets not pointers, but the offsets
-   are also multiples of LISP_ALIGNMENT.  */
+   are also multiples of GCALIGNMENT.  */
 
 static bool
 maybe_lisp_pointer (void *p)
 {
-  return (uintptr_t) p % LISP_ALIGNMENT == 0;
+  return (uintptr_t) p % GCALIGNMENT == 0;
 }
 
 /* If P points to Lisp data, mark that as live if it isn't already
