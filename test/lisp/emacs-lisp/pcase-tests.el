@@ -1,4 +1,4 @@
-;;; pcase-tests.el --- Test suite for pcase macro.
+;;; pcase-tests.el --- Test suite for pcase macro.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 

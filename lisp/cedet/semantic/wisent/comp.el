@@ -3053,7 +3053,7 @@ one.")
 
 (defsubst wisent-ISVALID-TOKEN (x)
   "Return non-nil if X is a character or an allowed symbol."
-  (or (wisent-char-p x)
+  (or (characterp x)
       (wisent-ISVALID-VAR x)))
 
 (defun wisent-push-token (symbol &optional nocheck)
@@ -3143,7 +3143,7 @@ the rule."
             (cond
              ((or (memq item token-list) (memq item var-list)))
              ;; Create new literal character token
-             ((wisent-char-p item) (wisent-push-token item t))
+             ((characterp item) (wisent-push-token item t))
              ((error "Symbol `%s' is used, but is not defined as a token and has no rules"
                      item))))
           (setq rhl (1+ rhl)

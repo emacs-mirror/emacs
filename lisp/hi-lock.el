@@ -322,7 +322,10 @@ or add (global-hi-lock-mode 1) to your init file.
 In buffers where Font Lock mode is enabled, patterns are
 highlighted using font lock.  In buffers where Font Lock mode is
 disabled, patterns are applied using overlays; in this case, the
-highlighting will not be updated as you type.
+highlighting will not be updated as you type.  The Font Lock mode
+is considered \"enabled\" in a buffer if its `major-mode'
+causes `font-lock-specified-p' to return non-nil, which means
+the major mode specifies support for Font Lock.
 
 When Hi Lock mode is enabled, a \"Regexp Highlighting\" submenu
 is added to the \"Edit\" menu.  The commands in the submenu,
@@ -480,7 +483,10 @@ and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
-highlighting will not update as you type."
+highlighting will not update as you type.  The Font Lock mode
+is considered \"enabled\" in a buffer if its `major-mode'
+causes `font-lock-specified-p' to return non-nil, which means
+the major mode specifies support for Font Lock."
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -510,7 +516,10 @@ Also set `search-spaces-regexp' to the value of `search-whitespace-regexp'.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
-highlighting will not update as you type."
+highlighting will not update as you type.  The Font Lock mode
+is considered \"enabled\" in a buffer if its `major-mode'
+causes `font-lock-specified-p' to return non-nil, which means
+the major mode specifies support for Font Lock."
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -538,7 +547,10 @@ If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 This uses Font lock mode if it is enabled; otherwise it uses overlays,
-in which case the highlighting will not update as you type."
+in which case the highlighting will not update as you type.  The Font
+Lock mode is considered \"enabled\" in a buffer if its `major-mode'
+causes `font-lock-specified-p' to return non-nil, which means
+the major mode specifies support for Font Lock."
   (interactive)
   (let* ((regexp (hi-lock-regexp-okay
 		  (find-tag-default-as-symbol-regexp)))

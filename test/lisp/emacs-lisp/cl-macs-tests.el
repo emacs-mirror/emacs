@@ -39,6 +39,15 @@
                           collect (list c b a))
                  '((4.0 2 1) (8.3 6 5) (10.4 9 8)))))
 
+(ert-deftest cl-macs-loop-and-arrays ()
+  "Bug#40727"
+  (should (equal (cl-loop for y = (- (or x 0)) and x across [1 2]
+                          collect (cons x y))
+                 '((1 . 0) (2 . -1))))
+  (should (equal (cl-loop for x across [1 2] and y = (- (or x 0))
+                          collect (cons x y))
+                 '((1 . 0) (2 . -1)))))
+
 (ert-deftest cl-macs-loop-destructure ()
   (should (equal (cl-loop for (a b c) in '((1 2 4.0) (5 6 8.3) (8 9 10.4))
                           collect (list c b a))
@@ -416,7 +425,9 @@ collection clause."
                  '(2 3 4 5 6))))
 
 (ert-deftest cl-macs-loop-across-ref ()
-  (should (equal (cl-loop with my-vec = ["one" "two" "three"]
+  (should (equal (cl-loop with my-vec = (vector (cl-copy-seq "one")
+                                                (cl-copy-seq "two")
+                                                (cl-copy-seq "three"))
                           for x across-ref my-vec
                           do (setf (aref x 0) (upcase (aref x 0)))
                           finally return my-vec)

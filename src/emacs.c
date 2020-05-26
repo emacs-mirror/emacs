@@ -124,6 +124,11 @@ static const char emacs_version[] = PACKAGE_VERSION;
 static const char emacs_copyright[] = COPYRIGHT;
 static const char emacs_bugreport[] = PACKAGE_BUGREPORT;
 
+/* Put version info into the executable in the form that 'ident' uses.  */
+char const EXTERNALLY_VISIBLE RCS_Id[]
+  = "$Id" ": GNU Emacs " PACKAGE_VERSION
+    " (" EMACS_CONFIGURATION " " EMACS_CONFIG_FEATURES ") $";
+
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 

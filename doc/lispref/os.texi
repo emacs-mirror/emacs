@@ -613,7 +613,7 @@ The elements of the @code{command-switch-alist} look like this:
 @end example
 
 The @sc{car}, @var{option}, is a string, the name of a command-line
-option (not including the initial hyphen).  The @var{handler-function}
+option (including the initial hyphen).  The @var{handler-function}
 is called to handle @var{option}, and receives the option name as its
 sole argument.
 
@@ -622,6 +622,14 @@ argument.  In these cases, the @var{handler-function} can find all the
 remaining command-line arguments in the variable
 @code{command-line-args-left} (see below).  (The entire list of
 command-line arguments is in @code{command-line-args}.)
+
+Note that the handling of @code{command-switch-alist} doesn't treat
+equals signs in @var{option} specially.  That is, if there's an option
+like @code{--name=value} on the command line, then only a
+@code{command-switch-alist} member whose @code{car} is literally
+@code{--name=value} will match this option.  If you want to parse such
+options, you need to use @code{command-line-functions} instead (see
+below).
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Emacs
@@ -2182,9 +2190,9 @@ cause anything special to happen.
 
 @findex list-timers
 The @code{list-timers} command lists all the currently active timers.
-There's only one command available in the buffer displayed: @kbd{c}
-(@code{timer-list-cancel}) that will cancel the timer on the line
-under point.
+The command @kbd{c} (@code{timer-list-cancel}) will cancel the timer
+on the line under point.  You can sort the list by column using the
+command @kbd{S} (@code{tabulated-list-sort}).
 
 @node Idle Timers
 @section Idle Timers

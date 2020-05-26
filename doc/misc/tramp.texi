@@ -318,14 +318,14 @@ behind the scenes when you open a file with @value{tramp}.
 @uref{https://ftp.gnu.org/gnu/tramp/}.  The version number of
 @value{tramp} can be obtained by the variable @code{tramp-version}.
 For released @value{tramp} versions, this is a three-number string
-like ``2.4.2''.
+like ``2.4.3''.
 
 A @value{tramp} release, which is packaged with Emacs, could differ
 slightly from the corresponding standalone release.  This is because
 it isn't always possible to synchronize release dates between Emacs
 and @value{tramp}.  Such version numbers have the Emacs version number
-as suffix, like ``2.3.5.26.3''.  This means @w{@value{tramp} 2.3.5} as
-integrated in @w{Emacs 26.3}.  A complete list of @value{tramp}
+as suffix, like ``2.4.3.27.1''.  This means @w{@value{tramp} 2.4.3} as
+integrated in @w{Emacs 27.1}.  A complete list of @value{tramp}
 versions packaged with Emacs can be retrieved by
 
 @vindex customize-package-emacs-version-alist
@@ -337,12 +337,12 @@ versions packaged with Emacs can be retrieved by
 ELPA} package.  Besides the standalone releases, further minor version
 of @value{tramp} will appear on GNU ELPA, until the next @value{tramp}
 release appears.  These minor versions have a four-number string, like
-``2.4.2.1''.
+``2.4.3.1''.
 
 @value{tramp} development versions are available on Git servers.
 Development versions contain new and incomplete features.  The
 development version of @value{tramp} is always the version number of
-the next release, plus the suffix ``-pre'', like ``2.4.3-pre''.
+the next release, plus the suffix ``-pre'', like ``2.4.4-pre''.
 
 One way to obtain @value{tramp} from Git server is to visit the
 Savannah project page at the following URL and then clicking on the
@@ -2315,7 +2315,7 @@ string of that environment variable looks always like
 @example
 @group
 echo $INSIDE_EMACS
-@result{} 26.2,tramp:2.3.4
+@result{} 27.1,tramp:2.4.3
 @end group
 @end example
 
@@ -3050,6 +3050,17 @@ host when the variable @code{default-directory} is remote:
 @end group
 @end lisp
 
+@vindex process-file-return-signal-string
+@code{process-file} shall return either the exit code of the process,
+or a string describing the signal, when the process has been
+interrupted.  Since it cannot be determined reliably whether a remote
+process has been interrupted, @code{process-file} returns always the
+exit code.  When the user option
+@code{process-file-return-signal-string} is non-nil,
+@code{process-file} regards all exit codes greater than 128 as an
+indication that the process has been interrupted, and returns a
+respective string.
+
 Remote processes do not apply to @acronym{GVFS} (see @ref{GVFS-based
 methods}) because the remote file system is mounted on the local host
 and @value{tramp} just accesses by changing the
@@ -3057,9 +3068,17 @@ and @value{tramp} just accesses by changing the
 
 @value{tramp} starts a remote process when a command is executed in a
 remote file or directory buffer.  As of now, these packages have been
-integrated to work with @value{tramp}: @file{compile.el} (commands
-like @code{compile} and @code{grep}) and @file{gud.el} (@code{gdb} or
-@code{perldb}).
+integrated to work with @value{tramp}: @file{shell.el},
+@file{eshell.el}, @file{compile.el} (commands like @code{compile} and
+@code{grep}) and @file{gud.el} (@code{gdb} or @code{perldb}).
+
+@vindex INSIDE_EMACS@r{, environment variable}
+@value{tramp} always modifies the @env{INSIDE_EMACS} environment
+variable for remote processes.  Per default, this environment variable
+shows the Emacs version.  @value{tramp} adds its own version string,
+so it looks like @samp{27.1,tramp:2.4.3.1}.  However, other packages
+might also add their name to this environment variable, like
+@samp{27.1,comint,tramp:2.4.3.1}.
 
 For @value{tramp} to find the command on the remote, it must be
 accessible through the default search path as setup by @value{tramp}
@@ -3254,7 +3273,7 @@ variables.
 @vindex async-shell-command-width
 @vindex COLUMNS@r{, environment variable}
 If Emacs supports the variable @code{async-shell-command-width} (since
-@w{Emacs 27.1}), @value{tramp} cares about its value for asynchronous
+@w{Emacs 27}), @value{tramp} cares about its value for asynchronous
 shell commands.  It specifies the number of display columns for
 command output.  For synchronous shell commands, a similar effect can
 be achieved by adding the environment variable @env{COLUMNS} to
@@ -3741,7 +3760,7 @@ row are possible, like @file{/path/to/dir/file.tar.gz.uu/dir/file}.
 
 @vindex tramp-archive-all-gvfs-methods
 An archive file name could be a remote file name, as in
-@file{/ftp:anonymous@@ftp.gnu.org:/gnu/tramp/tramp-2.3.2.tar.gz/INSTALL}.
+@file{/ftp:anonymous@@ftp.gnu.org:/gnu/tramp/tramp-2.4.3.tar.gz/INSTALL}.
 Since all file operations are mapped internally to @acronym{GVFS}
 operations, remote file names supported by @code{tramp-gvfs} perform
 better, because no local copy of the file archive must be downloaded
@@ -3752,7 +3771,7 @@ the similar @samp{/scp:user@@host:...}.  See the constant
 
 If @code{url-handler-mode} is enabled, archives could be visited via
 URLs, like
-@file{https://ftp.gnu.org/gnu/tramp/tramp-2.3.2.tar.gz/INSTALL}.  This
+@file{https://ftp.gnu.org/gnu/tramp/tramp-2.4.3.tar.gz/INSTALL}.  This
 allows complex file operations like
 
 @lisp
@@ -3760,8 +3779,8 @@ allows complex file operations like
 (progn
   (url-handler-mode 1)
   (ediff-directories
-   "https://ftp.gnu.org/gnu/tramp/tramp-2.3.1.tar.gz/tramp-2.3.1"
-   "https://ftp.gnu.org/gnu/tramp/tramp-2.3.2.tar.gz/tramp-2.3.2" ""))
+   "https://ftp.gnu.org/gnu/tramp/tramp-2.4.2.tar.gz/tramp-2.4.2"
+   "https://ftp.gnu.org/gnu/tramp/tramp-2.4.3.tar.gz/tramp-2.4.3" ""))
 @end group
 @end lisp
 

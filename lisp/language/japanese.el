@@ -82,9 +82,7 @@
 	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
 	 )))
   (define-translation-table 'japanese-ucs-jis-to-cp932-map map)
-  (mapc #'(lambda (x) (let ((tmp (car x)))
-			(setcar x (cdr x)) (setcdr x tmp)))
-	map)
+  (setq map (mapcar (lambda (x) (cons (cdr x) (car x))) map))
   (define-translation-table 'japanese-ucs-cp932-to-jis-map map))
 
 ;; U+2014 (EM DASH) vs U+2015 (HORIZONTAL BAR)
@@ -241,8 +239,10 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 	 (#x2b65 . [#x02E9 #x02E5])
 	 (#x2b66 . [#x02E5 #x02E9])))
       table)
-  (dolist (elt map)
-    (setcar elt (decode-char 'japanese-jisx0213-1 (car elt))))
+  (setq map
+        (mapcar (lambda (x) (cons (decode-char 'japanese-jisx0213-1 (car x))
+                                  (cdr x)))
+                map))
   (setq table (make-translation-table-from-alist map))
   (define-translation-table 'jisx0213-to-unicode table)
   (define-translation-table 'unicode-to-jisx0213

@@ -1,4 +1,4 @@
-;;; help-mode.el --- `help-mode' used by *Help* buffers
+;;; help-mode.el --- `help-mode' used by *Help* buffers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1993-1994, 1998-2020 Free Software
 ;; Foundation, Inc.
@@ -47,10 +47,10 @@
     (define-key map "\C-c\C-c" 'help-follow-symbol)
     (define-key map "\r" 'help-follow)
     map)
-  "Keymap for help mode.")
+  "Keymap for Help mode.")
 
 (easy-menu-define help-mode-menu help-mode-map
-  "Menu for Help Mode."
+  "Menu for Help mode."
   '("Help-Mode"
     ["Show Help for Symbol" help-follow-symbol
      :help "Show the docs for the symbol at point"]
@@ -327,13 +327,13 @@ Commands:
 
 ;;;###autoload
 (defun help-mode-setup ()
-  "Enter Help Mode in the current buffer."
+  "Enter Help mode in the current buffer."
   (help-mode)
   (setq buffer-read-only nil))
 
 ;;;###autoload
 (defun help-mode-finish ()
-  "Finalize Help Mode setup in current buffer."
+  "Finalize Help mode setup in current buffer."
   (when (derived-mode-p 'help-mode)
     (setq buffer-read-only t)
     (help-make-xrefs (current-buffer))))
@@ -719,7 +719,8 @@ a proper [back] button."
   ;; There is a reference at point.  Follow it.
   (let ((help-xref-following t))
     (apply function (if (eq function 'info)
-			(append args (list (generate-new-buffer-name "*info*"))) args))))
+                        (append args (list (generate-new-buffer-name "*info*")))
+                      args))))
 
 ;; The doc string is meant to explain what buttons do.
 (defun help-follow-mouse ()

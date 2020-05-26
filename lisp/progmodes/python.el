@@ -261,7 +261,6 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'comint)
-(require 'json)
 (require 'tramp-sh)
 
 ;; Avoid compiler warnings
@@ -2276,6 +2275,18 @@ Do not set this variable directly, instead use
 Do not set this variable directly, instead use
 `python-shell-prompt-set-calculated-regexps'.")
 
+(defalias 'python--parse-json-array
+  (if (fboundp 'json-parse-string)
+      (lambda (string)
+        (json-parse-string string :array-type 'list))
+    (require 'json)
+    (defvar json-array-type)
+    (declare-function json-read-from-string "json" (string))
+    (lambda (string)
+      (let ((json-array-type 'list))
+        (json-read-from-string string))))
+  "Parse the JSON array in STRING into a Lisp list.")
+
 (defun python-shell-prompt-detect ()
   "Detect prompts for the current `python-shell-interpreter'.
 When prompts can be retrieved successfully from the
@@ -2324,11 +2335,11 @@ detection and just returns nil."
               (catch 'prompts
                 (dolist (line (split-string output "\n" t))
                   (let ((res
-                         ;; Check if current line is a valid JSON array
-                         (and (string= (substring line 0 2) "[\"")
+                         ;; Check if current line is a valid JSON array.
+                         (and (string-prefix-p "[\"" line)
                               (ignore-errors
-                                ;; Return prompts as a list, not vector
-                                (append (json-read-from-string line) nil)))))
+                                ;; Return prompts as a list.
+                                (python--parse-json-array line)))))
                     ;; The list must contain 3 strings, where the first
                     ;; is the input prompt, the second is the block
                     ;; prompt and the last one is the output prompt.  The

@@ -75,6 +75,7 @@
 ;; Needed for Emacs 26.
 (defvar async-shell-command-width)
 ;; Needed for Emacs 27.
+(defvar process-file-return-signal-string)
 (defvar shell-command-dont-erase-buffer)
 
 ;; Beautify batch mode.
@@ -4208,6 +4209,28 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (zerop (process-file "true")))
 	    (should-not (zerop (process-file "false")))
 	    (should-not (zerop (process-file "binary-does-not-exist")))
+	    ;; Return exit code.
+	    (should (= 42 (process-file
+			   (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
+			   nil nil nil "-c" "exit 42")))
+	    ;; Return exit code in case the process is interrupted,
+	    ;; and there's no indication for a signal describing string.
+	    (let (process-file-return-signal-string)
+	      (should
+	       (= (+ 128 2)
+		  (process-file
+		   (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
+		   nil nil nil "-c" "kill -2 $$"))))
+	    ;; Return string in case the process is interrupted and
+	    ;; there's an indication for a signal describing string.
+	    (let ((process-file-return-signal-string t))
+	      (should
+	       (string-equal
+		"Interrupt"
+		(process-file
+		 (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
+		 nil nil nil "-c" "kill -2 $$"))))
+
 	    (with-temp-buffer
 	      (write-region "foo" nil tmp-name)
 	      (should (file-exists-p tmp-name))
@@ -4869,65 +4892,72 @@ INPUT, if non-nil, is a string sent to the process."
 	  (envvar (concat "VAR_" (upcase (md5 (current-time-string)))))
 	  kill-buffer-query-functions)
 
-      (unwind-protect
-	  ;; Set a value.
-	  (let ((process-environment
-		 (cons (concat envvar "=foo") process-environment)))
-	    ;; Default value.
-	    (should
-	     (string-match
-	      "foo"
-	      (funcall
-	       this-shell-command-to-string
-	       (format "echo -n ${%s:-bla}" envvar))))))
+      ;; Check INSIDE_EMACS.
+      (setenv "INSIDE_EMACS")
+      (should
+       (string-equal
+	(format "%s,tramp:%s" emacs-version tramp-version)
+	(funcall this-shell-command-to-string "echo -n ${INSIDE_EMACS:-bla}")))
+      (let ((process-environment
+	     (cons (format "INSIDE_EMACS=%s,foo" emacs-version)
+		   process-environment)))
+	(should
+	 (string-equal
+	  (format "%s,foo,tramp:%s" emacs-version tramp-version)
+	  (funcall
+	   this-shell-command-to-string "echo -n ${INSIDE_EMACS:-bla}"))))
 
-      (unwind-protect
-	  ;; Set the empty value.
-	  (let ((process-environment
-		 (cons (concat envvar "=") process-environment)))
-	    ;; Value is null.
-	    (should
-	     (string-match
-	      "bla"
-	      (funcall
-	       this-shell-command-to-string
-	       (format "echo -n ${%s:-bla}" envvar))))
-	    ;; Variable is set.
-	    (should
-	     (string-match
-	      (regexp-quote envvar)
-	      (funcall this-shell-command-to-string "set")))))
+      ;; Set a value.
+      (let ((process-environment
+	     (cons (concat envvar "=foo") process-environment)))
+	;; Default value.
+	(should
+	 (string-match
+	  "foo"
+	  (funcall
+	   this-shell-command-to-string (format "echo -n ${%s:-bla}" envvar)))))
+
+      ;; Set the empty value.
+      (let ((process-environment
+	     (cons (concat envvar "=") process-environment)))
+	;; Value is null.
+	(should
+	 (string-match
+	  "bla"
+	  (funcall
+	   this-shell-command-to-string (format "echo -n ${%s:-bla}" envvar))))
+	;; Variable is set.
+	(should
+	 (string-match
+	  (regexp-quote envvar)
+	  (funcall this-shell-command-to-string "set"))))
 
       ;; We force a reconnect, in order to have a clean environment.
       (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-      (unwind-protect
-	  ;; Unset the variable.
-	  (let ((tramp-remote-process-environment
-		 (cons (concat envvar "=foo")
-		       tramp-remote-process-environment)))
-	    ;; Set the initial value, we want to unset below.
-	    (should
-	     (string-match
-	      "foo"
-	      (funcall
-	       this-shell-command-to-string
-	       (format "echo -n ${%s:-bla}" envvar))))
-	    (let ((process-environment
-		   (cons envvar process-environment)))
-	      ;; Variable is unset.
-	      (should
-	       (string-match
-		"bla"
-		(funcall
-		 this-shell-command-to-string
-		 (format "echo -n ${%s:-bla}" envvar))))
-	      ;; Variable is unset.
-	      (should-not
-	       (string-match
-		(regexp-quote envvar)
-		;; We must remove PS1, the output is truncated otherwise.
-		(funcall
-		 this-shell-command-to-string "printenv | grep -v PS1")))))))))
+      ;; Unset the variable.
+      (let ((tramp-remote-process-environment
+	     (cons (concat envvar "=foo") tramp-remote-process-environment)))
+	;; Set the initial value, we want to unset below.
+	(should
+	 (string-match
+	  "foo"
+	  (funcall
+	   this-shell-command-to-string (format "echo -n ${%s:-bla}" envvar))))
+	(let ((process-environment (cons envvar process-environment)))
+	  ;; Variable is unset.
+	  (should
+	   (string-match
+	    "bla"
+	    (funcall
+	     this-shell-command-to-string
+	     (format "echo -n ${%s:-bla}" envvar))))
+	  ;; Variable is unset.
+	  (should-not
+	   (string-match
+	    (regexp-quote envvar)
+	    ;; We must remove PS1, the output is truncated otherwise.
+	    (funcall
+	     this-shell-command-to-string "printenv | grep -v PS1"))))))))
 
 ;; This test is inspired by Bug#27009.
 (ert-deftest tramp-test33-environment-variables-and-port-numbers ()

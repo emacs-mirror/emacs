@@ -795,7 +795,7 @@ compatible with old code; callers should always specify it."
   (set (make-local-variable 'outline-level) 'c-outline-level)
   (set (make-local-variable 'add-log-current-defun-function)
        (lambda ()
-	 (or (c-cpp-define-name) (c-defun-name))))
+	 (or (c-cpp-define-name) (car (c-defun-name-and-limits nil)))))
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
       (if (boundp 'mode-require-final-newline)
@@ -1431,7 +1431,7 @@ Note that the style variables are always made local to the buffer."
 
       ;; Move to end of logical line (as it will be after the change, or as it
       ;; was before unescaping a NL.)
-      (re-search-forward "\\(\\\\\\(.\\|\n\\)\\|[^\\\n\r]\\)*" nil t)
+      (re-search-forward "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\\\n\r]\\)*" nil t)
       ;; We're at an EOLL or point-max.
       (if (equal (c-get-char-property (point) 'syntax-table) '(15))
 	  (if (memq (char-after) '(?\n ?\r))
@@ -1539,7 +1539,7 @@ Note that the style variables are always made local to the buffer."
 	   (progn
 	     (goto-char (min (1+ end)	; 1+, in case a NL has become escaped.
 			     (point-max)))
-	     (re-search-forward "\\(\\\\\\(.\\|\n\\)\\|[^\\\n\r]\\)*"
+	     (re-search-forward "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\\\n\r]\\)*"
 				nil t)
 	     (point))
 	   c-new-END))
@@ -1620,8 +1620,8 @@ Note that the style variables are always made local to the buffer."
 		   (c-beginning-of-macro))))
       (goto-char (1+ end))		; After the \
       ;; Search forward for EOLL
-      (setq lim (re-search-forward "\\(\\\\\\(.\\|\n\\)\\|[^\\\n\r]\\)*"
-				   nil t))
+      (setq lim (re-search-forward "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\\\n\r]\\)*"
+       				   nil t))
       (goto-char (1+ end))
       (when (c-search-forward-char-property-with-value-on-char
 	     'syntax-table '(15) ?\" lim)
@@ -2541,13 +2541,21 @@ Key bindings:
 
 (defconst c-or-c++-mode--regexp
   (eval-when-compile
-    (let ((id "[a-zA-Z0-9_]+") (ws "[ \t\r]+") (ws-maybe "[ \t\r]*"))
+    (let ((id "[a-zA-Z_][a-zA-Z0-9_]*") (ws "[ \t\r]+") (ws-maybe "[ \t\r]*")
+          (headers '("string" "string_view" "iostream" "map" "unordered_map"
+                     "set" "unordered_set" "vector" "tuple")))
       (concat "^" ws-maybe "\\(?:"
-                    "using"     ws "\\(?:namespace" ws "std;\\|std::\\)"
-              "\\|" "namespace" "\\(:?" ws id "\\)?" ws-maybe "{"
-              "\\|" "class"     ws id ws-maybe "[:{\n]"
-              "\\|" "template"  ws-maybe "<.*>"
-              "\\|" "#include"  ws-maybe "<\\(?:string\\|iostream\\|map\\)>"
+                    "using"     ws "\\(?:namespace" ws
+                                     "\\|" id "::"
+                                     "\\|" id ws-maybe "=\\)"
+              "\\|" "\\(?:inline" ws "\\)?namespace"
+                    "\\(:?" ws "\\(?:" id "::\\)*" id "\\)?" ws-maybe "{"
+              "\\|" "class"     ws id
+                    "\\(?:" ws "final" "\\)?" ws-maybe "[:{;\n]"
+              "\\|" "struct"     ws id "\\(?:" ws "final" ws-maybe "[:{\n]"
+                                         "\\|" ws-maybe ":\\)"
+              "\\|" "template"  ws-maybe "<.*?>"
+              "\\|" "#include"  ws-maybe "<" (regexp-opt headers) ">"
               "\\)")))
   "A regexp applied to C header files to check if they are really C++.")
 
@@ -2563,6 +2571,7 @@ should be used.
 This function attempts to use file contents to determine whether
 the code is C or C++ and based on that chooses whether to enable
 `c-mode' or `c++-mode'."
+  (interactive)
   (if (save-excursion
         (save-restriction
           (save-match-data

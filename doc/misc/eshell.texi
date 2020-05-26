@@ -159,6 +159,9 @@ The following persons have made contributions to Eshell.
 
 @itemize @bullet
 @item
+John Wiegley is the original author of Eshell.
+
+@item
 Eli Zaretskii made it possible for Eshell to run without requiring
 asynchronous subprocess support.  This is important for MS-DOS, which
 does not have such support.

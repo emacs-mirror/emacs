@@ -232,6 +232,37 @@
   (should (equal (iso8601-parse-time "15:27:46-05")
                  '(46 27 15 nil nil nil nil nil -18000))))
 
+
+(defun test-iso8601-format-time-string-zone-round-trip (offset-minutes z-format)
+  "Pass OFFSET-MINUTES to format-time-string with Z-FORMAT, a %z variation,
+and then to iso8601-parse-zone.  The result should be the original offset."
+  (let* ((offset-seconds (* 60 offset-minutes))
+         (zone-string (format-time-string z-format 0 offset-seconds))
+         (offset-rt
+          (condition-case nil
+              (iso8601-parse-zone zone-string)
+            (wrong-type-argument (format "(failed to parse %S)" zone-string))))
+         ;; compare strings that contain enough info to debug failures
+         (success (format "%s(%s) -> %S -> %s"
+                          z-format offset-minutes zone-string offset-minutes))
+         (actual (format "%s(%s) -> %S -> %s"
+                         z-format offset-minutes zone-string offset-rt)))
+    (should (equal success actual))))
+
+(ert-deftest iso8601-format-time-string-zone-round-trip ()
+  "Round trip zone offsets through format-time-string and iso8601-parse-zone.
+Passing a time zone created by format-time-string %z to
+iso8601-parse-zone should yield the original offset."
+  (dolist (offset-minutes
+           (list
+            ;; compare hours (1- and 2-digit), minutes, both, neither
+            (* 5 60) (* 11 60) 5 11 (+ (* 5 60) 30) (+ (* 11 60) 30) 0
+            ;; do negative values, too
+            (* -5 60) (* -11 60) -5 -11 (- (* -5 60) 30) (- (* -11 60) 30)))
+    (dolist (z-format '("%z" "%:z" "%:::z"))
+      (test-iso8601-format-time-string-zone-round-trip
+       offset-minutes z-format))))
+
 (ert-deftest standard-test-date-and-time-of-day ()
   (should (equal (iso8601-parse "19850412T101530")
 		  '(30 15 10 12 4 1985 nil -1 nil)))

@@ -4,11 +4,11 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
+;; Version: 1.0.11
 ;; Package-Requires: ((emacs "25.2"))
-;; Version: 1.0.9
 
-;; This is an Elpa :core package.  Don't use functionality that is not
-;; compatible with Emacs 25.2.
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'json)
 (require 'eieio)
 (eval-when-compile (require 'subr-x))
 (require 'warnings)
@@ -364,21 +363,49 @@ connection object, called when the process dies .")
 
 (cl-defmethod initialize-instance ((conn jsonrpc-process-connection) slots)
   (cl-call-next-method)
-  (let* ((proc (plist-get slots :process))
-         (proc (if (functionp proc) (funcall proc) proc))
-         (buffer (get-buffer-create (format "*%s output*" (process-name proc))))
-         (stderr (get-buffer-create (format "*%s stderr*" (process-name proc)))))
+  (cl-destructuring-bind (&key ((:process proc)) name &allow-other-keys) slots
+    ;; FIXME: notice the undocumented bad coupling in the buffer name.
+    ;; The client making the process _must_ use a buffer named exactly
+    ;; like this property when calling `make-process'.  If there were
+    ;; a `set-process-stderr' like there is `set-process-buffer' we
+    ;; wouldn't need this and could use a pipe with a process filter
+    ;; instead of `after-change-functions'.  Alternatively, we need a
+    ;; new initarg (but maybe not a slot).
+    (with-current-buffer (get-buffer-create (format "*%s stderr*" name))
+      (let ((inhibit-read-only t)
+            (hidden-name (concat " " (buffer-name))))
+        (erase-buffer)
+        (buffer-disable-undo)
+        (add-hook
+         'after-change-functions
+         (lambda (beg _end _pre-change-len)
+           (cl-loop initially (goto-char beg)
+                    do (forward-line)
+                    when (bolp)
+                    for line = (buffer-substring
+                                (line-beginning-position 0)
+                                (line-end-position 0))
+                    do (with-current-buffer (jsonrpc-events-buffer conn)
+                         (goto-char (point-max))
+                         (let ((inhibit-read-only t))
+                           (insert (format "[stderr] %s\n" line))))
+                    until (eobp)))
+         nil t)
+        ;; If we are correctly coupled to the client, it should pick up
+        ;; the current buffer immediately.
+        (setq proc (if (functionp proc) (funcall proc) proc))
+        (ignore-errors (kill-buffer hidden-name))
+        (rename-buffer hidden-name)
+        (process-put proc 'jsonrpc-stderr (current-buffer))
+        (read-only-mode t)))
     (setf (jsonrpc--process conn) proc)
-    (set-process-buffer proc buffer)
-    (process-put proc 'jsonrpc-stderr stderr)
+    (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
     (set-process-sentinel proc #'jsonrpc--process-sentinel)
     (with-current-buffer (process-buffer proc)
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
-      (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t) proc))
-    (with-current-buffer stderr
-      (buffer-disable-undo))
+      (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
     (process-put proc 'jsonrpc-connection conn)))
 
 (cl-defmethod jsonrpc-connection-send ((connection jsonrpc-process-connection)
@@ -442,26 +469,35 @@ With optional CLEANUP, kill any associated buffers."
 ;;;
 (define-error 'jsonrpc-error "jsonrpc-error")
 
-(defun jsonrpc--json-read ()
-  "Read JSON object in buffer, move point to end of buffer."
-  ;; TODO: I guess we can make these macros if/when jsonrpc.el
-  ;; goes into Emacs core.
-  (cond ((fboundp 'json-parse-buffer) (json-parse-buffer
-                                       :object-type 'plist
-                                       :null-object nil
-                                       :false-object :json-false))
-        (t                            (let ((json-object-type 'plist))
-                                        (json-read)))))
+(defalias 'jsonrpc--json-read
+  (if (fboundp 'json-parse-buffer)
+      (lambda ()
+        (json-parse-buffer :object-type 'plist
+                           :null-object nil
+                           :false-object :json-false))
+    (require 'json)
+    (defvar json-object-type)
+    (declare-function json-read "json" ())
+    (lambda ()
+      (let ((json-object-type 'plist))
+        (json-read))))
+  "Read JSON object in buffer, move point to end of buffer.")
 
-(defun jsonrpc--json-encode (object)
-  "Encode OBJECT into a JSON string."
-  (cond ((fboundp 'json-serialize) (json-serialize
-                                    object
-                                    :false-object :json-false
-                                    :null-object nil))
-        (t                         (let ((json-false :json-false)
-                                         (json-null nil))
-                                     (json-encode object)))))
+(defalias 'jsonrpc--json-encode
+  (if (fboundp 'json-serialize)
+      (lambda (object)
+        (json-serialize object
+                        :false-object :json-false
+                        :null-object nil))
+    (require 'json)
+    (defvar json-false)
+    (defvar json-null)
+    (declare-function json-encode "json" (object))
+    (lambda (object)
+      (let ((json-false :json-false)
+            (json-null nil))
+        (json-encode object))))
+  "Encode OBJECT into a JSON string.")
 
 (cl-defun jsonrpc--reply
     (connection id &key (result nil result-supplied-p) (error nil error-supplied-p))
@@ -682,7 +718,7 @@ originated."
                               (format "-%s" subtype)))))
             (goto-char (point-max))
             (prog1
-                (let ((msg (format "%s%s%s %s:\n%s\n"
+                (let ((msg (format "[%s]%s%s %s:\n%s"
                                    type
                                    (if id (format " (id:%s)" id) "")
                                    (if error " ERROR" "")

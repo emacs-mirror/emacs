@@ -255,11 +255,7 @@ have been saved."
 	(if (abbrev--table-symbols table)
             (insert-abbrev-table-description table nil)))
       (when (unencodable-char-position (point-min) (point-max) 'utf-8)
-	(setq coding-system-for-write
-	      (if (> emacs-major-version 24)
-		  'utf-8-emacs
-		;; For compatibility with Emacs 22 (See Bug#8308)
-		'emacs-mule)))
+	(setq coding-system-for-write 'utf-8-emacs))
       (goto-char (point-min))
       (insert (format ";;-*-coding: %s;-*-\n" coding-system-for-write))
       (write-region nil nil file nil (and (not verbose) 0)))))

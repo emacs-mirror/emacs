@@ -628,8 +628,16 @@ Selecting the previous window-local tab is the same as typing @kbd{C-x
 same as @kbd{C-x @key{RIGHT}} (@code{next-buffer}).  Both commands
 support a numeric prefix argument as a repeat count.
 
+You can customize the variable @code{tab-line-tabs-function} to define
+the preferred contents of the tab line.  By default, it displays all
+buffers previously visited in the window, as described above.  But you
+can also set it to display a list of buffers with the same major mode
+as the current buffer, or to display buffers grouped by their major
+mode, where clicking on the mode name in the first tab displays a list
+of all major modes where you can select another group of buffers.
+
 Note that the Tab Line is different from the Tab Bar (@pxref{Tab Bars}).
 Whereas tabs on the Tab Bar at the top of each frame are used to
-switch between window configurations containing several windows,
+switch between window configurations containing several windows with buffers,
 tabs on the Tab Line at the top of each window are used to switch
-between buffers.
+between buffers in the window.

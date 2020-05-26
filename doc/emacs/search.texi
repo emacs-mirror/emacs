@@ -1324,10 +1324,14 @@ case-sensitive.  Thus, searching for @samp{Foo} does not find
 @samp{foo} or @samp{FOO}.  This applies to regular expression search
 as well as to literal string search.  The effect ceases if you delete
 the upper-case letter from the search string.  The variable
-@code{search-upper-case} controls this: if it is non-@code{nil} (the
-default), an upper-case character in the search string makes the
-search case-sensitive; setting it to @code{nil} disables this effect
-of upper-case characters.
+@code{search-upper-case} controls this: if it is non-@code{nil}, an
+upper-case character in the search string makes the search
+case-sensitive; setting it to @code{nil} disables this effect of
+upper-case characters.  The default value of this variable is
+@code{not-yanks}, which makes search case-sensitive if there are
+upper-case letters in the search string, and also causes text yanked
+into the search string (@pxref{Isearch Yank}) to be down-cased, so
+that such searches are case-insensitive by default.
 
 @vindex case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
@@ -1572,9 +1576,13 @@ searching for patterns.
 @cindex case folding in replace commands
   If the first argument of a replace command is all lower case, the
 command ignores case while searching for occurrences to
-replace---provided @code{case-fold-search} is non-@code{nil}.  If
-@code{case-fold-search} is set to @code{nil}, case is always significant
-in all searches.
+replace---provided @code{case-fold-search} is non-@code{nil} and
+@code{search-upper-case} is also non-@code{nil}.  If
+@code{search-upper-case} (@pxref{Lax Search, search-upper-case}) is
+@code{nil}, whether searching ignores case is determined by
+@code{case-fold-search} alone, regardless of letter-case of the
+command's first argument.  If @code{case-fold-search} is set to
+@code{nil}, case is always significant in all searches.
 
 @vindex case-replace
   In addition, when the @var{newstring} argument is all or partly lower

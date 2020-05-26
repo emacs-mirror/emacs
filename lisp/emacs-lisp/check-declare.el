@@ -1,4 +1,4 @@
-;;; check-declare.el --- Check declare-function statements
+;;; check-declare.el --- Check declare-function statements  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
 
@@ -248,7 +248,7 @@ TYPE is a string giving the nature of the error.
 Optional LINE is the claim's line number; otherwise, search for the claim.
 Display warning in `check-declare-warning-buffer'."
   (let ((warning-prefix-function
-         (lambda (level entry)
+         (lambda (_level entry)
 	   (insert (format "%s:%d:" (file-relative-name file) (or line 0)))
            entry))
         (warning-fill-prefix "    "))

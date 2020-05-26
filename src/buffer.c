@@ -119,6 +119,7 @@ static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
 static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *, bool);
+static Lisp_Object buffer_local_variables_1 (struct buffer *buf, int offset, Lisp_Object sym);
 
 static void
 CHECK_OVERLAY (Lisp_Object x)
@@ -1300,6 +1301,25 @@ buffer_lisp_local_variables (struct buffer *buf, bool clone)
   return result;
 }
 
+
+/* If the variable at position index OFFSET in buffer BUF has a
+   buffer-local value, return (name . value).  If SYM is non-nil,
+   it replaces name.  */
+
+static Lisp_Object
+buffer_local_variables_1 (struct buffer *buf, int offset, Lisp_Object sym)
+{
+  int idx = PER_BUFFER_IDX (offset);
+  if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
+      && SYMBOLP (PER_BUFFER_SYMBOL (offset)))
+    {
+      sym = NILP (sym) ? PER_BUFFER_SYMBOL (offset) : sym;
+      Lisp_Object val = per_buffer_value (buf, offset);
+      return EQ (val, Qunbound) ? sym : Fcons (sym, val);
+    }
+  return Qnil;
+}
+
 DEFUN ("buffer-local-variables", Fbuffer_local_variables,
        Sbuffer_local_variables, 0, 1, 0,
        doc: /* Return an alist of variables that are buffer-local in BUFFER.
@@ -1311,24 +1331,24 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 {
   struct buffer *buf = decode_buffer (buffer);
   Lisp_Object result = buffer_lisp_local_variables (buf, 0);
+  Lisp_Object tem;
 
   /* Add on all the variables stored in special slots.  */
   {
-    int offset, idx;
+    int offset;
 
     FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
       {
-	idx = PER_BUFFER_IDX (offset);
-	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
-	    && SYMBOLP (PER_BUFFER_SYMBOL (offset)))
-	  {
-	    Lisp_Object sym = PER_BUFFER_SYMBOL (offset);
-	    Lisp_Object val = per_buffer_value (buf, offset);
-	    result = Fcons (EQ (val, Qunbound) ? sym : Fcons (sym, val),
-			    result);
-	  }
+        tem = buffer_local_variables_1 (buf, offset, Qnil);
+        if (!NILP (tem))
+          result = Fcons (tem, result);
       }
   }
+
+  tem = buffer_local_variables_1 (buf, PER_BUFFER_VAR_OFFSET (undo_list),
+				  intern ("buffer-undo-list"));
+  if (!NILP (tem))
+    result = Fcons (tem, result);
 
   return result;
 }

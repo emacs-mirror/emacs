@@ -62,10 +62,12 @@
    We enable _GL_ATTRIBUTE_FORMAT only if these are supported too, because
    gnulib and libintl do '#define printf __printf__' when they override
    the 'printf' function.  */
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
-# define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
-#else
-# define _GL_ATTRIBUTE_FORMAT(spec) /* empty */
+#ifndef _GL_ATTRIBUTE_FORMAT
+# if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+#  define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+# else
+#  define _GL_ATTRIBUTE_FORMAT(spec) /* empty */
+# endif
 #endif
 
 /* _GL_ATTRIBUTE_FORMAT_PRINTF

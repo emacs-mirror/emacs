@@ -1,4 +1,4 @@
-;;; ert-x-tests.el --- Tests for ert-x.el
+;;; ert-x-tests.el --- Tests for ert-x.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008, 2010-2020 Free Software Foundation, Inc.
 

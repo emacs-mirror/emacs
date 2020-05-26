@@ -25,7 +25,17 @@
 # include <config.h>
 #endif
 
+/* memset_s need this define */
+#if HAVE_MEMSET_S
+# define __STDC_WANT_LIB_EXT1__ 1
+#endif
+
 #include <string.h>
+
+#if defined _WIN32 && !defined __CYGWIN__
+# define  WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
 
 #if _LIBC
 /* glibc-internal users use __explicit_bzero_chk, and explicit_bzero
@@ -38,8 +48,12 @@
 void
 explicit_bzero (void *s, size_t len)
 {
-#ifdef HAVE_EXPLICIT_MEMSET
-  explicit_memset (s, 0, len);
+#if defined _WIN32 && !defined __CYGWIN__
+  (void) SecureZeroMemory (s, len);
+#elif HAVE_EXPLICIT_MEMSET
+  explicit_memset (s, '\0', len);
+#elif HAVE_MEMSET_S
+  (void) memset_s (s, len, '\0', len);
 #else
   memset (s, '\0', len);
 # if defined __GNUC__ && !defined __clang__

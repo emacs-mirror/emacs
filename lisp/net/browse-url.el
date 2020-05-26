@@ -39,7 +39,6 @@
 ;; browse-url-chrome                  Chrome      47.0.2526.111
 ;; browse-url-chromium                Chromium    3.0
 ;; browse-url-epiphany                Epiphany    Don't know
-;; browse-url-conkeror                Conkeror    Don't know
 ;; browse-url-w3                      w3          0
 ;; browse-url-text-*	              Any text browser     0
 ;; browse-url-generic                 arbitrary
@@ -114,9 +113,23 @@
 ;; To always save modified buffers before displaying the file in a browser:
 ;;	(setq browse-url-save-file t)
 
-;; To invoke different browsers for different URLs:
-;;      (setq browse-url-browser-function '(("^mailto:" . browse-url-mail)
-;;      				    ("." . browse-url-firefox)))
+;; To invoke different browsers/tools for different URLs, customize
+;; `browse-url-handlers'.  In earlier versions of Emacs, the same
+;; could be done by setting `browse-url-browser-function' to an alist
+;; but this usage is deprecated now.
+
+;; All browser functions provided by here have a
+;; `browse-url-browser-kind' symbol property set to either `internal'
+;; or `external' which determines if they browse the given URL inside
+;; Emacs or spawn an external application with it.  Some parts of
+;; Emacs make use of that, e.g., when an URL is dragged into Emacs, it
+;; is not sensible to invoke an external browser with it, so here only
+;; internal browsers are considered.  Therefore, it is advised to put
+;; that property also on custom browser functions.
+;;       (function-put 'my-browse-url-in-emacs 'browse-url-browser-kind
+;;                     'internal)
+;;       (function-put 'my-browse-url-externally 'browse-url-browser-kind
+;;                     'external)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Code:
@@ -140,7 +153,6 @@
     (function-item :tag "Google Chrome" :value browse-url-chrome)
     (function-item :tag "Chromium" :value browse-url-chromium)
     (function-item :tag "Epiphany" :value  browse-url-epiphany)
-    (function-item :tag "Conkeror" :value  browse-url-conkeror)
     (function-item :tag "Text browser in an xterm window"
 		   :value browse-url-text-xterm)
     (function-item :tag "Text browser in an Emacs window"
@@ -157,7 +169,9 @@
 		   :value browse-url-default-browser)
     (function :tag "Your own function")
     (alist :tag "Regexp/function association list"
-	   :key-type regexp :value-type function)))
+	   :key-type regexp :value-type function
+           :format "%{%t%}\n%d%v\n"
+           :doc "Deprecated.  Use `browse-url-handlers' instead.")))
 
 ;;;###autoload
 (defcustom browse-url-browser-function 'browse-url-default-browser
@@ -165,13 +179,8 @@
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
 
-If the value is not a function it should be a list of pairs
-\(REGEXP . FUNCTION).  In this case the function called will be the one
-associated with the first REGEXP which matches the current URL.  The
-function is passed the URL and any other args of `browse-url'.  The last
-regexp should probably be \".\" to specify a default browser.
-
-Also see `browse-url-secondary-browser-function'."
+Also see `browse-url-secondary-browser-function' and
+`browse-url-handlers'."
   :type browse-url--browser-defcustom-type
   :version "24.1")
 
@@ -385,6 +394,8 @@ If non-nil, then open the URL in a new buffer rather than a new window if
   :version "25.1"
   :type 'boolean)
 
+(make-obsolete-variable 'browse-url-conkeror-new-window-is-buffer nil "28.1")
+
 (defcustom browse-url-galeon-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -438,10 +449,14 @@ commands reverses the effect of this variable."
   :type 'string
   :version "25.1")
 
+(make-obsolete-variable 'browse-url-conkeror-program nil "28.1")
+
 (defcustom browse-url-conkeror-arguments nil
   "A list of strings to pass to Conkeror as arguments."
   :version "25.1"
   :type '(repeat (string :tag "Argument")))
+
+(make-obsolete-variable 'browse-url-conkeror-arguments nil "28.1")
 
 (defcustom browse-url-filename-alist
   `(("^/\\(ftp@\\|anonymous@\\)?\\([^:/]+\\):/*" . "ftp://\\2/")
@@ -594,6 +609,116 @@ down (this *won't* always work)."
 (defcustom browse-url-elinks-wrapper '("xterm" "-e")
   "Wrapper command prepended to the Elinks command-line."
   :type '(repeat (string :tag "Wrapper")))
+
+(defun browse-url--browser-kind (function url)
+  "Return the browser kind of a browser FUNCTION for URL.
+The browser kind is either `internal' (the browser runs inside
+Emacs), `external' (the browser is spawned in an external
+process), or nil (we don't know)."
+  (let ((kind (if (symbolp function)
+                  (get function 'browse-url-browser-kind))))
+    (if (functionp kind)
+        (funcall kind url)
+      kind)))
+
+(defun browse-url--mailto (url &rest args)
+  "Calls `browse-url-mailto-function' with URL and ARGS."
+  (funcall browse-url-mailto-function url args))
+
+(defun browse-url--browser-kind-mailto (url)
+  (browse-url--browser-kind browse-url-mailto-function url))
+(function-put 'browse-url--mailto 'browse-url-browser-kind
+              #'browse-url--browser-kind-mailto)
+
+(defun browse-url--man (url &rest args)
+  "Calls `browse-url-man-function' with URL and ARGS."
+  (funcall browse-url-man-function url args))
+
+(defun browse-url--browser-kind-man (url)
+  (browse-url--browser-kind browse-url-man-function url))
+(function-put 'browse-url--man 'browse-url-browser-kind
+              #'browse-url--browser-kind-man)
+
+(defun browse-url--browser (url &rest args)
+  "Calls `browse-url-browser-function' with URL and ARGS."
+  (funcall browse-url-browser-function url args))
+
+(defun browse-url--browser-kind-browser (url)
+  (browse-url--browser-kind browse-url-browser-function url))
+(function-put 'browse-url--browser 'browse-url-browser-kind
+              #'browse-url--browser-kind-browser)
+
+(defun browse-url--non-html-file-url-p (url)
+  "Return non-nil if URL is a file:// URL of a non-HTML file."
+  (and (string-match-p "\\`file://" url)
+       (not (string-match-p "\\`file://.*\\.html?\\b" url))))
+
+;;;###autoload
+(defvar browse-url-default-handlers
+  '(("\\`mailto:" . browse-url--mailto)
+    ("\\`man:" . browse-url--man)
+    (browse-url--non-html-file-url-p . browse-url-emacs))
+  "Like `browse-url-handlers' but populated by Emacs and packages.
+
+Emacs and external packages capable of browsing certain URLs
+should place their entries in this alist rather than
+`browse-url-handlers' which is reserved for the user.")
+
+(defcustom browse-url-handlers nil
+  "An alist with elements of the form (REGEXP-OR-PREDICATE . HANDLER).
+Each REGEXP-OR-PREDICATE is matched against the URL to be opened
+in turn and the first match's HANDLER is invoked with the URL.
+
+A HANDLER must be a function with the same arguments as
+`browse-url'.
+
+If no REGEXP-OR-PREDICATE matches, the same procedure is
+performed with the value of `browse-url-default-handlers'.  If
+there is also no match, the URL is opened using the value of
+`browse-url-browser-function'."
+  :type '(alist :key-type (choice
+                           (regexp :tag "Regexp")
+                           (function :tag "Predicate"))
+                :value-type (function :tag "Handler"))
+  :version "28.1")
+
+;;;###autoload
+(defun browse-url-select-handler (url &optional kind)
+  "Return a handler of suitable for browsing URL.
+This searches `browse-url-handlers', and
+`browse-url-default-handlers' for a matching handler.  Return nil
+if no handler is found.
+
+If KIND is given, the search is restricted to handlers whose
+function symbol has the symbol-property `browse-url-browser-kind'
+set to KIND.
+
+Currently, it also consults `browse-url-browser-function' first
+if it is set to an alist, although this usage is deprecated since
+Emacs 28.1 and will be removed in a future release."
+  (catch 'custom-url-handler
+    (dolist (rxpred-handler
+             (append
+              ;; The alist choice of browse-url-browser-function
+              ;; is deprecated since 28.1, so the (unless ...)
+              ;; can be removed at some point in time.
+              (when (and (consp browse-url-browser-function)
+	                 (not (functionp browse-url-browser-function)))
+                (lwarn 'browse-url :warning
+                       "Having `browse-url-browser-function' set to an
+alist is deprecated.  Use `browse-url-handlers' instead.")
+                browse-url-browser-function)
+              browse-url-handlers
+              browse-url-default-handlers))
+      (let ((rx-or-pred (car rxpred-handler))
+            (handler (cdr rxpred-handler)))
+        (when (and (or (null kind)
+                       (eq kind (browse-url--browser-kind
+                                 handler url)))
+                   (if (functionp rx-or-pred)
+                       (funcall rx-or-pred url)
+                     (string-match-p rx-or-pred url)))
+          (throw 'custom-url-handler handler))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL encoding
@@ -768,16 +893,18 @@ narrowed."
   "Ask a WWW browser to load URL.
 Prompt for a URL, defaulting to the URL at or before point.
 Invokes a suitable browser function which does the actual job.
-The variable `browse-url-browser-function' says which browser function to
-use.  If the URL is a mailto: URL, consult `browse-url-mailto-function'
-first, if that exists.
 
-The additional ARGS are passed to the browser function.  See the doc
-strings of the actual functions, starting with `browse-url-browser-function',
-for information about the significance of ARGS (most of the functions
-ignore it).
-If ARGS are omitted, the default is to pass `browse-url-new-window-flag'
-as ARGS."
+The variables `browse-url-browser-function',
+`browse-url-handlers', and `browse-url-default-handlers'
+determine which browser function to use.
+
+The additional ARGS are passed to the browser function.  See the
+doc strings of the actual functions, starting with
+`browse-url-browser-function', for information about the
+significance of ARGS (most of the functions ignore it).
+
+If ARGS are omitted, the default is to pass
+`browse-url-new-window-flag' as ARGS."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
@@ -786,12 +913,9 @@ as ARGS."
              (not (string-match "\\`[a-z]+:" url)))
     (setq url (expand-file-name url)))
   (let ((process-environment (copy-sequence process-environment))
-	(function (or (and (string-match "\\`mailto:" url)
-			   browse-url-mailto-function)
-                      (and (string-match "\\`man:" url)
-                           browse-url-man-function)
-		      browse-url-browser-function))
-	;; Ensure that `default-directory' exists and is readable (b#6077).
+	(function (or (browse-url-select-handler url)
+                      browse-url-browser-function))
+	;; Ensure that `default-directory' exists and is readable (bug#6077).
 	(default-directory (or (unhandled-file-name-directory default-directory)
 			       (expand-file-name "~/"))))
     ;; When connected to various displays, be careful to use the display of
@@ -799,20 +923,9 @@ as ARGS."
     ;; which may not even exist any more.
     (if (stringp (frame-parameter nil 'display))
         (setenv "DISPLAY" (frame-parameter nil 'display)))
-    (if (and (consp function)
-	     (not (functionp function)))
-	;; The `function' can be an alist; look down it for first match
-	;; and apply the function (which might be a lambda).
-	(catch 'done
-	  (dolist (bf function)
-	    (when (string-match (car bf) url)
-	      (apply (cdr bf) url args)
-	      (throw 'done t)))
-	  (error "No browse-url-browser-function matching URL %s"
-		 url))
-      ;; Unbound symbols go down this leg, since void-function from
-      ;; apply is clearer than wrong-type-argument from dolist.
-      (apply function url args))))
+    (if (functionp function)
+        (apply function url args)
+      (error "No suitable browser for URL %s" url))))
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
@@ -827,6 +940,34 @@ Optional prefix argument ARG non-nil inverts the value of the option
 			    (not browse-url-new-window-flag)
 			  browse-url-new-window-flag))
       (error "No URL found"))))
+
+;;;###autoload
+(defun browse-url-with-browser-kind (kind url &optional arg)
+  "Browse URL with a browser of the given browser KIND.
+KIND is either `internal' or `external'.
+
+When called interactively, the default browser kind is the
+opposite of the browser kind of `browse-url-browser-function'."
+  (interactive
+   (let* ((url-arg (browse-url-interactive-arg "URL: "))
+          ;; Default to the inverse kind of the default browser.
+          (default (if (eq (browse-url--browser-kind
+                            browse-url-browser-function (car url-arg))
+                           'internal)
+                       'external
+                     'internal))
+          (k (intern (completing-read
+                      (format "Browser kind (default %s): " default)
+                      '(internal external)
+                      nil t nil nil
+                      default))))
+     (cons k url-arg)))
+  (let ((function (browse-url-select-handler url kind)))
+    (unless function
+      (setq function (if (eq kind 'external)
+                         #'browse-url-default-browser
+                       #'eww)))
+    (funcall function url arg)))
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
@@ -875,11 +1016,17 @@ The optional NEW-WINDOW argument is not used."
                                 (url-unhex-string url)
                               url)))))
 
+(function-put 'browse-url-default-windows-browser 'browse-url-browser-kind
+              'external)
+
 (defun browse-url-default-macosx-browser (url &optional _new-window)
   "Invoke the macOS system's default Web browser.
 The optional NEW-WINDOW argument is not used."
   (interactive (browse-url-interactive-arg "URL: "))
   (start-process (concat "open " url) nil "open" url))
+
+(function-put 'browse-url-default-macosx-browser 'browse-url-browser-kind
+              'external)
 
 ;; --- Netscape ---
 
@@ -929,13 +1076,17 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-kde-program) 'browse-url-kde)
 ;;;    ((executable-find browse-url-netscape-program) 'browse-url-netscape)
 ;;;    ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
-    ((executable-find browse-url-conkeror-program) 'browse-url-conkeror)
+;;;    ((executable-find browse-url-conkeror-program) 'browse-url-conkeror)
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
     (t
      (lambda (&rest _ignore) (error "No usable browser found"))))
    url args))
+
+(function-put 'browse-url-default-browser 'browse-url-browser-kind
+              ;; Well, most probably external if we ignore w3.
+              'external)
 
 (defun browse-url-can-use-xdg-open ()
   "Return non-nil if the \"xdg-open\" program can be used.
@@ -955,6 +1106,8 @@ xdg-open is a desktop utility that calls your preferred web browser.
 The optional argument IGNORED is not used."
   (interactive (browse-url-interactive-arg "URL: "))
   (call-process "xdg-open" nil 0 nil url))
+
+(function-put 'browse-url-xdg-open 'browse-url-browser-kind 'external)
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
@@ -998,6 +1151,8 @@ used instead of `browse-url-new-window-flag'."
     (set-process-sentinel process
 			  `(lambda (process change)
 			     (browse-url-netscape-sentinel process ,url)))))
+
+(function-put 'browse-url-netscape 'browse-url-browser-kind 'external)
 
 (defun browse-url-netscape-sentinel (process url)
   "Handle a change to the process communicating with Netscape."
@@ -1069,6 +1224,8 @@ used instead of `browse-url-new-window-flag'."
 			  `(lambda (process change)
 			     (browse-url-mozilla-sentinel process ,url)))))
 
+(function-put 'browse-url-mozilla 'browse-url-browser-kind 'external)
+
 (defun browse-url-mozilla-sentinel (process url)
   "Handle a change to the process communicating with Mozilla."
   (or (eq (process-exit-status process) 0)
@@ -1109,6 +1266,8 @@ instead of `browse-url-new-window-flag'."
 		  '("-new-window")))
             (list url)))))
 
+(function-put 'browse-url-firefox 'browse-url-browser-kind 'external)
+
 ;;;###autoload
 (defun browse-url-chromium (url &optional _new-window)
   "Ask the Chromium WWW browser to load URL.
@@ -1126,6 +1285,8 @@ The optional argument NEW-WINDOW is not used."
 	    browse-url-chromium-arguments
 	    (list url)))))
 
+(function-put 'browse-url-chromium 'browse-url-browser-kind 'external)
+
 (defun browse-url-chrome (url &optional _new-window)
   "Ask the Google Chrome WWW browser to load URL.
 Default to the URL around or before point.  The strings in
@@ -1141,6 +1302,8 @@ The optional argument NEW-WINDOW is not used."
 	   (append
 	    browse-url-chrome-arguments
 	    (list url)))))
+
+(function-put 'browse-url-chrome 'browse-url-browser-kind 'external)
 
 ;;;###autoload
 (defun browse-url-galeon (url &optional new-window)
@@ -1178,6 +1341,8 @@ used instead of `browse-url-new-window-flag'."
     (set-process-sentinel process
 			  `(lambda (process change)
 			     (browse-url-galeon-sentinel process ,url)))))
+
+(function-put 'browse-url-galeon 'browse-url-browser-kind 'external)
 
 (defun browse-url-galeon-sentinel (process url)
   "Handle a change to the process communicating with Galeon."
@@ -1225,6 +1390,8 @@ used instead of `browse-url-new-window-flag'."
 			  `(lambda (process change)
 			     (browse-url-epiphany-sentinel process ,url)))))
 
+(function-put 'browse-url-epiphany 'browse-url-browser-kind 'external)
+
 (defun browse-url-epiphany-sentinel (process url)
   "Handle a change to the process communicating with Epiphany."
   (or (eq (process-exit-status process) 0)
@@ -1249,6 +1416,8 @@ currently selected window instead."
                file-name-handler-alist)))
     (if same-window (find-file url) (find-file-other-window url))))
 
+(function-put 'browse-url-emacs 'browse-url-browser-kind 'internal)
+
 ;;;###autoload
 (defun browse-url-gnome-moz (url &optional new-window)
   "Ask Mozilla/Netscape to load URL via the GNOME program `gnome-moz-remote'.
@@ -1272,6 +1441,8 @@ used instead of `browse-url-new-window-flag'."
 	  (if (browse-url-maybe-new-window new-window)
 	      '("--newwin"))
 	  (list "--raise" url))))
+
+(function-put 'browse-url-gnome-moz 'browse-url-browser-kind 'external)
 
 ;; --- Mosaic ---
 
@@ -1324,6 +1495,8 @@ used instead of `browse-url-new-window-flag'."
 	     (append browse-url-mosaic-arguments (list url)))
       (message "Starting %s...done" browse-url-mosaic-program))))
 
+(function-put 'browse-url-mosaic 'browse-url-browser-kind 'external)
+
 ;; --- Mosaic using CCI ---
 
 ;;;###autoload
@@ -1356,6 +1529,8 @@ used instead of `browse-url-new-window-flag'."
   (process-send-string "browse-url" "disconnect\r\n")
   (delete-process "browse-url"))
 
+(function-put 'browse-url-cci 'browse-url-browser-kind 'external)
+
 ;; --- Conkeror ---
 ;;;###autoload
 (defun browse-url-conkeror (url &optional new-window)
@@ -1375,6 +1550,7 @@ new window, load it in a new buffer in an existing window instead.
 
 When called non-interactively, use optional second argument
 NEW-WINDOW instead of `browse-url-new-window-flag'."
+  (declare (obsolete nil "28.1"))
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
@@ -1392,6 +1568,9 @@ NEW-WINDOW instead of `browse-url-new-window-flag'."
 			   "window")
 		       "buffer")
 		     url))))))
+
+(function-put 'browse-url-conkeror 'browse-url-browser-kind 'external)
+
 ;; --- W3 ---
 
 ;; External.
@@ -1415,6 +1594,8 @@ used instead of `browse-url-new-window-flag'."
       (w3-fetch-other-window url)
     (w3-fetch url)))
 
+(function-put 'browse-url-w3 'browse-url-browser-kind 'internal)
+
 ;;;###autoload
 (defun browse-url-w3-gnudoit (url &optional _new-window)
   ;; new-window ignored
@@ -1428,6 +1609,8 @@ The `browse-url-gnudoit-program' program is used with options given by
 	 (append browse-url-gnudoit-args
 		 (list (concat "(w3-fetch \"" url "\")")
 		       "(raise-frame)"))))
+
+(function-put 'browse-url-w3-gnudoit 'browse-url-browser-kind 'internal)
 
 ;; --- Lynx in an xterm ---
 
@@ -1445,6 +1628,8 @@ The optional argument NEW-WINDOW is not used."
 			   nil ,browse-url-xterm-program
 			   ,@browse-url-xterm-args "-e" ,browse-url-text-browser
 			   ,url)))
+
+(function-put 'browse-url-text-xterm 'browse-url-browser-kind 'external)
 
 ;; --- Lynx in an Emacs "term" window ---
 
@@ -1520,6 +1705,8 @@ used instead of `browse-url-new-window-flag'."
 				     url
 				     "\r")))))
 
+(function-put 'browse-url-text-emacs 'browse-url-browser-kind 'internal)
+
 ;; --- mailto ---
 
 (autoload 'rfc2368-parse-mailto-url "rfc2368")
@@ -1567,6 +1754,8 @@ used instead of `browse-url-new-window-flag'."
 		     (unless (bolp)
 		       (insert "\n"))))))))
 
+(function-put 'browse-url-mail 'browse-url-browser-kind 'internal)
+
 ;; --- man ---
 
 (defvar manual-program)
@@ -1578,7 +1767,9 @@ used instead of `browse-url-new-window-flag'."
   (setq url (replace-regexp-in-string "\\`man:" "" url))
   (cond
    ((executable-find manual-program) (man url))
-    (t (woman (replace-regexp-in-string "([[:alnum:]]+)" "" url)))))
+   (t (woman (replace-regexp-in-string "([[:alnum:]]+)" "" url)))))
+
+(function-put 'browse-url-man 'browse-url-browser-kind 'internal)
 
 ;; --- Random browser ---
 
@@ -1597,6 +1788,8 @@ don't offer a form of remote control."
 	 0 nil
 	 (append browse-url-generic-args (list url))))
 
+(function-put 'browse-url-generic 'browse-url-browser-kind 'external)
+
 ;;;###autoload
 (defun browse-url-kde (url &optional _new-window)
   "Ask the KDE WWW browser to load URL.
@@ -1607,6 +1800,8 @@ The optional argument NEW-WINDOW is not used."
   (apply #'start-process (concat "KDE " url) nil browse-url-kde-program
 	 (append browse-url-kde-args (list url))))
 
+(function-put 'browse-url-kde 'browse-url-browser-kind 'external)
+
 (defun browse-url-elinks-new-window (url)
   "Ask the Elinks WWW browser to load URL in a new window."
   (let ((process-environment (browse-url-process-environment)))
@@ -1615,6 +1810,9 @@ The optional argument NEW-WINDOW is not used."
 			 nil)
 		   browse-url-elinks-wrapper
 		   (list "elinks" url)))))
+
+(function-put 'browse-url-elinks-new-window 'browse-url-browser-kind
+              'external)
 
 ;;;###autoload
 (defun browse-url-elinks (url &optional new-window)
@@ -1636,6 +1834,8 @@ from `browse-url-elinks-wrapper'."
       (set-process-sentinel elinks-ping-process
 			    `(lambda (process change)
 			       (browse-url-elinks-sentinel process ,url))))))
+
+(function-put 'browse-url-elinks 'browse-url-browser-kind 'external)
 
 (defun browse-url-elinks-sentinel (process url)
   "Determines if Elinks is running or a new one has to be started."

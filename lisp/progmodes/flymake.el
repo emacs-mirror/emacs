@@ -5,8 +5,11 @@
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; Version: 1.0.8
-;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: c languages tools
+;; Package-Requires: ((emacs "26.1"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -313,9 +316,10 @@ generated it."
                                 &optional data
                                 overlay-properties)
   "Make a Flymake diagnostic for BUFFER's region from BEG to END.
-TYPE is a key to symbol and TEXT is a description of the problem
-detected in this region.  DATA is any object that the caller
-wishes to attach to the created diagnostic for later retrieval.
+TYPE is a diagnostic symbol and TEXT is string describing the
+problem detected in this region.  DATA is any object that the
+caller wishes to attach to the created diagnostic for later
+retrieval.
 
 OVERLAY-PROPERTIES is an alist of properties attached to the
 created diagnostic, overriding the default properties and any

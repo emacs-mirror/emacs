@@ -1,4 +1,4 @@
-;;; advice-tests.el --- Test suite for the new advice thingy.
+;;; nadvice-tests.el --- Test suite for the new advice thingy.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 

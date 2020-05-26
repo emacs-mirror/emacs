@@ -2920,9 +2920,17 @@ you might like to bind to keys, such as @code{browse-url-at-point} and
   You can customize Browse-URL's behavior via various options in the
 @code{browse-url} Customize group.  In particular, the option
 @code{browse-url-mailto-function} lets you define how to follow
-@samp{mailto:} URLs, while @code{browse-url-browser-function} lets you
-define how to follow other types of URLs.  For more information, view
-the package commentary by typing @kbd{C-h P browse-url @key{RET}}.
+@samp{mailto:} URLs, while @code{browse-url-browser-function}
+specifies your default browser.
+
+@vindex browse-url-handlers
+  You can define that certain URLs are browsed with other functions by
+customizing @code{browse-url-handlers}, an alist of regular
+expressions or predicates paired with functions to browse matching
+URLs.
+
+For more information, view the package commentary by typing @kbd{C-h P
+browse-url @key{RET}}.
 
 @node Goto Address mode
 @subsection Activating URLs

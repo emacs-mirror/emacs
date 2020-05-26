@@ -1,4 +1,4 @@
-;;; cedet/semantic-utest-fmt.el --- Parsing / Formatting tests
+;;; cedet/semantic-utest-fmt.el --- Parsing / Formatting tests -*- lexical-binding:t -*-
 
 ;;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
 
@@ -69,7 +69,6 @@ Files to visit are in `semantic-fmt-utest-file-list'."
 	  ;; Run the tests.
 	  (let ((fb (find-buffer-visiting fname))
 		(b (semantic-find-file-noselect fname))
-		(num 0)
 		(tags nil))
 
 	    (save-current-buffer
@@ -82,7 +81,6 @@ Files to visit are in `semantic-fmt-utest-file-list'."
 	      (semantic-clear-toplevel-cache)
 	      ;; Force the reparse
 	      (setq tags (semantic-fetch-tags))
-	      (setq num (length tags))
 
 	      (save-excursion
 		(while tags

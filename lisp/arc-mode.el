@@ -563,28 +563,8 @@ in which case a second argument, length LEN, should be supplied."
 		      (aref str (- len i)))))
     result))
 
-(defun archive-int-to-mode (mode)
-  "Turn an integer like 0700 (i.e., 448) into a mode string like -rwx------."
-  ;; FIXME: merge with tar-grind-file-mode.
-  (if (null mode)
-      "??????????"
-    (string
-     (if (zerop (logand  8192 mode))
-	 (if (zerop (logand 16384 mode)) ?- ?d)
-       ?c)                              ; completeness
-     (if (zerop (logand   256 mode)) ?- ?r)
-     (if (zerop (logand   128 mode)) ?- ?w)
-     (if (zerop (logand    64 mode))
-	 (if (zerop (logand  2048 mode)) ?- ?S)
-       (if (zerop (logand  2048 mode)) ?x ?s))
-     (if (zerop (logand    32 mode)) ?- ?r)
-     (if (zerop (logand    16 mode)) ?- ?w)
-     (if (zerop (logand     8 mode))
-	 (if (zerop (logand  1024 mode)) ?- ?S)
-       (if (zerop (logand  1024 mode)) ?x ?s))
-     (if (zerop (logand     4 mode)) ?- ?r)
-     (if (zerop (logand     2 mode)) ?- ?w)
-     (if (zerop (logand     1 mode)) ?- ?x))))
+(define-obsolete-function-alias 'archive-int-to-mode
+  'file-modes-number-to-symbolic "28.1")
 
 (defun archive-calc-mode (oldmode newmode)
   "From the integer OLDMODE and the string NEWMODE calculate a new file mode.
@@ -1526,7 +1506,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
            (timelen (length (archive--file-desc-time sample)))
            (samplemode (and (archive--enabled-p 'Mode)
                             (archive--file-desc-mode sample)))
-           (modelen (length (if samplemode (archive-int-to-mode samplemode)))))
+           (modelen (length (if samplemode (file-modes-number-to-symbolic samplemode)))))
       (dolist (desc descs)
         (when ids
           (let* ((uid (archive--file-desc-uid desc))
@@ -1573,7 +1553,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                           (text
                            (concat "  "
                                    (when (> modelen 0)
-                                     (concat (archive-int-to-mode
+                                     (concat (file-modes-number-to-symbolic
                                               (archive--file-desc-mode desc))
                                              "  "))
                                    (when ids

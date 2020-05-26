@@ -1,4 +1,4 @@
-;;; vt100.el --- define VT100 function key sequences in function-key-map
+;;; vt100.el --- define VT100 function key sequences in function-key-map  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1989, 1993, 2001-2020 Free Software Foundation, Inc.
 

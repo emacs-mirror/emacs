@@ -430,7 +430,13 @@ idle for `auto-save-visited-interval' seconds."
 
 Unlike `auto-save-mode', this mode will auto-save buffer contents
 to the visited files directly and will also run all save-related
-hooks.  See Info node `Saving' for details of the save process."
+hooks.  See Info node `Saving' for details of the save process.
+
+You can also set the buffer-local value of the variable
+`auto-save-visited-mode' to nil.  A buffer where the buffer-local
+value of this variable is nil is ignored for the purpose of
+`auto-save-visited-mode', even if `auto-save-visited-mode' is
+enabled."
   :group 'auto-save
   :global t
   (when auto-save--timer (cancel-timer auto-save--timer))
@@ -441,6 +447,7 @@ hooks.  See Info node `Saving' for details of the save process."
            #'save-some-buffers :no-prompt
            (lambda ()
              (and buffer-file-name
+                  auto-save-visited-mode
                   (not (and buffer-auto-save-file-name
                             auto-save-visited-file-name))))))))
 
@@ -2657,6 +2664,13 @@ since only a single case-insensitive search through the alist is made."
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.org\\'" . org-mode)
+     ;; .dir-locals.el is not really Elisp.  Could use the
+     ;; `dir-locals-file' constant if it weren't defined below.
+     ("\\.dir-locals\\(?:-2\\)?\\.el\\'" . lisp-data-mode)
+     ("eww-bookmarks\\'" . lisp-data-mode)
+     ("tramp\\'" . lisp-data-mode)
+     ("places\\'" . lisp-data-mode)
+     ("\\.emacs-places\\'" . lisp-data-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("Project\\.ede\\'" . emacs-lisp-mode)
      ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
@@ -7544,6 +7558,27 @@ as in \"og+rX-w\"."
 		    (t (logior (logand num-rights (lognot who-mask)) num-right)))
 	      op char-right)))
     num-rights))
+
+(defun file-modes-number-to-symbolic (mode)
+  (string
+   (if (zerop (logand  8192 mode))
+       (if (zerop (logand 16384 mode)) ?- ?d)
+     ?c) ; completeness
+   (if (zerop (logand   256 mode)) ?- ?r)
+   (if (zerop (logand   128 mode)) ?- ?w)
+   (if (zerop (logand    64 mode))
+       (if (zerop (logand  2048 mode)) ?- ?S)
+     (if (zerop (logand  2048 mode)) ?x ?s))
+   (if (zerop (logand    32 mode)) ?- ?r)
+   (if (zerop (logand    16 mode)) ?- ?w)
+   (if (zerop (logand     8 mode))
+       (if (zerop (logand  1024 mode)) ?- ?S)
+     (if (zerop (logand  1024 mode)) ?x ?s))
+   (if (zerop (logand     4 mode)) ?- ?r)
+   (if (zerop (logand     2 mode)) ?- ?w)
+   (if (zerop (logand 512 mode))
+       (if (zerop (logand   1 mode)) ?- ?x)
+     (if (zerop (logand   1 mode)) ?T ?t))))
 
 (defun file-modes-symbolic-to-number (modes &optional from)
   "Convert symbolic file modes to numeric file modes.

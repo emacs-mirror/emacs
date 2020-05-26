@@ -365,7 +365,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "lib/stdarg.in.h" "lib/stdbool.in.h"
     "unidata/bidimirror.awk" "unidata/biditype.awk"
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
-    "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
+    "gnu-hp300" "refcard.bit" "forms.README" "forms-d2.dat"
     "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
     "CXTERM-DIC/CTLau.tit" "CXTERM-DIC/CTLauB.tit"
     "copying.paper" "celibacy.1" "condom.1" "echo.msg" "sex.6"
@@ -609,7 +609,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed: lselect.el.
     ("Lucid, Inc." :changed "bytecode.c" "byte-opt.el" "byte-run.el"
      "bytecomp.el" "delsel.el" "disass.el" "faces.el" "font-lock.el"
-     "lmenu.el" "mailabbrev.el" "select.el" "xfaces.c" "xselect.c")
+     "mailabbrev.el" "select.el" "xfaces.c" "xselect.c")
     ;; MCC.  No longer distributed: emacsserver.c.
     ("Microelectronics and Computer Technology Corporation"
      :changed "etags.c" "emacsclient.c" "movemail.c"
@@ -773,7 +773,7 @@ Changes to files in this list are not listed.")
     "erc-hecomplete.el"
     "eshell/esh-maint.el"
     "language/persian.el"
-    "ledit.el" "meese.el" "iswitchb.el" "longlines.el"
+    "meese.el" "iswitchb.el" "longlines.el"
     "mh-exec.el" "mh-init.el" "mh-customize.el"
     "net/zone-mode.el" "xesam.el"
     "term/mac-win.el" "sup-mouse.el"

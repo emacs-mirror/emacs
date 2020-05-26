@@ -68,15 +68,8 @@ extern char *tzname[];
 #include <string.h>
 #include <stdbool.h>
 
+#include "attribute.h"
 #include <intprops.h>
-
-#ifndef FALLTHROUGH
-# if __GNUC__ < 7
-#  define FALLTHROUGH ((void) 0)
-# else
-#  define FALLTHROUGH __attribute__ ((__fallthrough__))
-# endif
-#endif
 
 #ifdef COMPILE_WIDE
 # include <endian.h>

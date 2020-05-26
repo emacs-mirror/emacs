@@ -1,4 +1,4 @@
-;;; comint-testsuite.el
+;;; comint-tests.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
 

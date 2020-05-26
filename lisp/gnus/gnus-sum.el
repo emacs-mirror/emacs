@@ -1501,9 +1501,9 @@ the type of the variable (string, integer, character, etc).")
 
 ;; This is here rather than in gnus-art for compilation reasons.
 (defvar gnus-article-mode-line-format-alist
-  (nconc '((?w (gnus-article-wash-status) ?s)
-	   (?m (gnus-article-mime-part-status) ?s))
-	 gnus-summary-mode-line-format-alist))
+  (append '((?w (gnus-article-wash-status) ?s)
+	    (?m (gnus-article-mime-part-status) ?s))
+	  gnus-summary-mode-line-format-alist))
 
 (defvar gnus-last-search-regexp nil
   "Default regexp for article search command.")

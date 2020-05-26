@@ -1888,7 +1888,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
   lface = lface_from_face_name_no_resolve (f, face_name, signal_p);
 
   if (! NILP (lface))
-    memcpy (attrs, XVECTOR (lface)->contents,
+    memcpy (attrs, xvector_contents (lface),
 	    LFACE_VECTOR_SIZE * sizeof *attrs);
 
   return !NILP (lface);
@@ -2860,7 +2860,7 @@ The value is TO.  */)
       f = XFRAME (new_frame);
     }
 
-  vcopy (copy, 0, XVECTOR (lface)->contents, LFACE_VECTOR_SIZE);
+  vcopy (copy, 0, xvector_contents (lface), LFACE_VECTOR_SIZE);
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
@@ -5598,7 +5598,7 @@ realize_default_face (struct frame *f)
   /* Realize the face; it must be fully-specified now.  */
   eassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
-  memcpy (attrs, XVECTOR (lface)->contents, sizeof attrs);
+  memcpy (attrs, xvector_contents (lface), sizeof attrs);
   struct face *face = realize_face (c, attrs, DEFAULT_FACE_ID);
 
 #ifndef HAVE_WINDOW_SYSTEM

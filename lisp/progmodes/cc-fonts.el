@@ -3016,6 +3016,84 @@ need for `pike-font-lock-extra-types'.")
 	(c-font-lock-doc-comments "/[*/]!" limit
 	  autodoc-font-lock-doc-comments)))))
 
+;; Doxygen
+
+(defconst doxygen-font-lock-doc-comments
+  ;; TODO: Handle @code, @verbatim, @dot, @f etc. better by not highlighting
+  ;; text inside of those commands.  Something smarter than just regexes may be
+  ;; needed to do that efficiently.
+  `((,(concat
+       ;; Make sure that the special character has not been escaped.  E.g. in
+       ;; ‘\@foo’ only ‘\@’ is a command (similarly for other characters like
+       ;; ‘\\foo’, ‘\<foo’ and ‘\&foo’).  The downside now is that we don’t
+       ;; match command started just after an escaped character, e.g. in
+       ;; ‘\@\foo’ we should match ‘\@’ as well as ‘\foo’ but only the former
+       ;; is matched.
+       "\\(?:^\\|[^\\@]\\)\\("
+         ;; Doxygen commands start with backslash or an at sign.  Note that for
+         ;; brevity in the comments only ‘\’ will be mentioned.
+         "[\\@]\\(?:"
+           ;; Doxygen commands except those starting with ‘f’
+           "[a-eg-z][a-z]*"
+           ;; Doxygen command starting with ‘f’:
+           "\\|f\\(?:"
+             "[][$}]"                         ; \f$ \f} \f[ \f]
+             "\\|{\\(?:[a-zA-Z]+\\*?}{?\\)?"  ; \f{ \f{env} \f{env}{
+             "\\|[a-z]+"                      ; \foo
+           "\\)"
+           "\\|~[a-zA-Z]*"             ; \~  \~language
+           "\\|[$@&~<=>#%\".|\\\\]"    ; single-character escapes
+           "\\|::\\|---?"              ; \:: \-- \---
+         "\\)"
+         ;; HTML tags and entities:
+         "\\|</?\\sw\\(?:\\sw\\|\\s \\|[=\n\r*.:]\\|\"[^\"]*\"\\|'[^']*'\\)*>"
+         "\\|&\\(?:\\sw+\\|#[0-9]+\\|#x[0-9a-fA-F]+\\);"
+       "\\)")
+     1 ,c-doc-markup-face-name prepend nil)
+    ;; Commands inside of strings are not commands so override highlighting with
+    ;; string face.  This also affects HTML attribute values if they are
+    ;; surrounded with double quotes which may or may not be considered a good
+    ;; thing.
+    ("\\(?:^\\|[^\\@]\\)\\(\"[^\"[:cntrl:]]+\"\\)"
+     1 font-lock-string-face prepend nil)
+    ;; HTML comments inside of the Doxygen comments.
+    ("\\(?:^\\|[^\\@]\\)\\(<!--.*?-->\\)"
+     1 font-lock-comment-face prepend nil)
+    ;; Autolinking. Doxygen auto-links anything that is a class name but we have
+    ;; no hope of matching those.  We are, however, able to match functions and
+    ;; members using explicit scoped syntax.  For functions, we can also find
+    ;; them by noticing argument-list.  Note that Doxygen accepts ‘::’ as well
+    ;; as ‘#’ as scope operators.
+    (,(let* ((ref "[\\@]ref\\s-+")
+             (ref-opt (concat "\\(?:" ref "\\)?"))
+             (id "[a-zA-Z_][a-zA-Z_0-9]*")
+             (args "\\(?:()\\|([^()]*)\\)")
+             (scope "\\(?:#\\|::\\)"))
+        (concat
+         "\\(?:^\\|[^\\@/%:]\\)\\(?:"
+                 ref-opt "\\(?1:" scope "?" "\\(?:" id scope "\\)+" "~?" id "\\)"
+           "\\|" ref-opt "\\(?1:" scope     "~?" id "\\)"
+           "\\|" ref-opt "\\(?1:" scope "?" "~?" id "\\)" args
+           "\\|" ref     "\\(?1:" "~?" id "\\)"
+           "\\|" ref-opt "\\(?1:~[A-Z][a-zA-Z0-9_]+\\)"
+         "\\)"))
+     1 font-lock-function-name-face prepend nil)
+    ;; Match URLs and emails.  This has two purposes.  First of all, Doxygen
+    ;; autolinks URLs.  Second of all, ‘@bar’ in ‘foo@bar.baz’ has been matched
+    ;; above as a command; try and overwrite it.
+    (,(let* ((host "[A-Za-z0-9]\\(?:[A-Za-z0-9-]\\{0,61\\}[A-Za-z0-9]\\)")
+             (fqdn (concat "\\(?:" host "\\.\\)+" host))
+             (comp "[!-(*--/-=?-~]+")
+             (path (concat "/\\(?:" comp "[.]+" "\\)*" comp)))
+        (concat "\\(?:mailto:\\)?[a-zA-0_.]+@" fqdn
+                "\\|https?://" fqdn "\\(?:" path "\\)?"))
+     0 font-lock-keyword-face prepend nil)))
+
+(defconst doxygen-font-lock-keywords
+  `((,(lambda (limit)
+        (c-font-lock-doc-comments "/\\(?:/[/!]\\|\\*[\\*!]\\)"
+            limit doxygen-font-lock-doc-comments)))))
+
 
 ;; 2006-07-10:  awk-font-lock-keywords has been moved back to cc-awk.el.
 (cc-provide 'cc-fonts)

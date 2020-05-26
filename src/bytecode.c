@@ -319,6 +319,19 @@ the third, MAXDEPTH, the maximum stack depth used in this function.
 If the third argument is incorrect, Emacs may crash.  */)
   (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth)
 {
+  if (! (STRINGP (bytestr) && VECTORP (vector) && FIXNATP (maxdepth)))
+    error ("Invalid byte-code");
+
+  if (STRING_MULTIBYTE (bytestr))
+    {
+      /* BYTESTR must have been produced by Emacs 20.2 or earlier
+	 because it produced a raw 8-bit string for byte-code and now
+	 such a byte-code string is loaded as multibyte with raw 8-bit
+	 characters converted to multibyte form.  Convert them back to
+	 the original unibyte form.  */
+      bytestr = Fstring_as_unibyte (bytestr);
+    }
+
   return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
 }
 
@@ -344,21 +357,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   int volatile this_op = 0;
 #endif
 
-  CHECK_STRING (bytestr);
-  CHECK_VECTOR (vector);
-  CHECK_FIXNAT (maxdepth);
+  eassert (!STRING_MULTIBYTE (bytestr));
 
   ptrdiff_t const_length = ASIZE (vector);
-
-  if (STRING_MULTIBYTE (bytestr))
-    /* BYTESTR must have been produced by Emacs 20.2 or the earlier
-       because they produced a raw 8-bit string for byte-code and now
-       such a byte-code string is loaded as multibyte while raw 8-bit
-       characters converted to multibyte form.  Thus, now we must
-       convert them back to the originally intended unibyte form.  */
-    bytestr = Fstring_as_unibyte (bytestr);
-
-  ptrdiff_t bytestr_length = SBYTES (bytestr);
+  ptrdiff_t bytestr_length = SCHARS (bytestr);
   Lisp_Object *vectorp = XVECTOR (vector)->contents;
 
   unsigned char quitcounter = 1;

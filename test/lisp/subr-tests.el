@@ -1,4 +1,4 @@
-;;; subr-tests.el --- Tests for subr.el
+;;; subr-tests.el --- Tests for subr.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
 

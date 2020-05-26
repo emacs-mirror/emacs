@@ -108,7 +108,8 @@ bignum_integer (mpz_t *tmp, Lisp_Object i)
   if (FIXNUMP (i))
     {
       mpz_set_intmax (*tmp, XFIXNUM (i));
-      return tmp;
+      /* The unnecessary cast pacifies a buggy GCC 4.8.5.  */
+      return (mpz_t const *) tmp;
     }
   return xbignum_val (i);
 }

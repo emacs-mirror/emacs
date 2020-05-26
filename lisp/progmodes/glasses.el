@@ -1,4 +1,4 @@
-;;; glasses.el --- make cantReadThis readable
+;;; glasses.el --- make cantReadThis readable  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
 
@@ -66,7 +66,6 @@ defined by `glasses-original-separator'.  If you don't want to add missing
 separators, set `glasses-separator' to an empty string.  If you don't want to
 replace existent separators, set `glasses-original-separator' to an empty
 string."
-  :group 'glasses
   :type 'string
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -78,7 +77,6 @@ For instance, if you set it to \"_\" and set `glasses-separator' to \"-\",
 underscore separators are displayed as hyphens.
 If `glasses-original-separator' is an empty string, no such display change is
 performed."
-  :group 'glasses
   :type 'string
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default
@@ -92,7 +90,6 @@ If it is nil, no face is placed at the capitalized letter.
 For example, you can set `glasses-separator' to an empty string and
 `glasses-face' to `bold'.  Then unreadable identifiers will have no separators,
 but will have their capitals in bold."
-  :group 'glasses
   :type '(choice (const :tag "None" nil) face)
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -100,7 +97,6 @@ but will have their capitals in bold."
 
 (defcustom glasses-separate-parentheses-p t
   "If non-nil, ensure space between an identifier and an opening parenthesis."
-  :group 'glasses
   :type 'boolean)
 
 (defcustom glasses-separate-parentheses-exceptions
@@ -108,7 +104,6 @@ but will have their capitals in bold."
   "List of regexp that are exceptions for `glasses-separate-parentheses-p'.
 They are matched to the current line truncated to the point where the
 parenthesis expression starts."
-  :group 'glasses
   :type '(repeat regexp))
 
 (defcustom glasses-separate-capital-groups t
@@ -116,7 +111,6 @@ parenthesis expression starts."
 When the value is non-nil, HTMLSomething and IPv6 are displayed
 as HTML_Something and I_Pv6 respectively.  Set the value to nil
 if you prefer to display them unchanged."
-  :group 'glasses
   :type 'boolean
   :version "24.1")
 
@@ -124,7 +118,6 @@ if you prefer to display them unchanged."
   "If non-nil, downcase embedded capital letters in identifiers.
 Only identifiers starting with lower case letters are affected, letters inside
 other identifiers are unchanged."
-  :group 'glasses
   :type 'boolean
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -135,7 +128,6 @@ other identifiers are unchanged."
 Only words starting with this regexp are uncapitalized.
 The regexp is case sensitive.
 It has any effect only when `glasses-uncapitalize-p' is non-nil."
-  :group 'glasses
   :type 'regexp
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -149,7 +141,6 @@ file write then.
 
 Note the removal action does not try to be much clever, so it can remove real
 separators too."
-  :group 'glasses
   :type 'boolean)
 
 

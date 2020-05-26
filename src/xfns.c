@@ -6738,9 +6738,11 @@ x_hide_tip (bool delete)
 	    }
 	}
 
-      /* Reset tip_last_frame, it will be reassigned when showing the
-	 next GTK+ system tooltip.  */
-      tip_last_frame = Qnil;
+      /* When using GTK+ system tooltips (compare Bug#41200) reset
+	 tip_last_frame.  It will be reassigned when showing the next
+	 GTK+ system tooltip.  */
+      if (x_gtk_use_system_tooltips)
+	tip_last_frame = Qnil;
 
       /* Now look whether there's an Emacs tip around.  */
       if (FRAMEP (tip_frame))

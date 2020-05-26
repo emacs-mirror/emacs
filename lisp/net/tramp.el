@@ -3783,7 +3783,8 @@ support symbolic links."
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files.
 BUFFER might be a list, in this case STDERR is separated."
-  ;; `make-process' knows the `:file-handler' argument since Emacs 27.1 only.
+  ;; `make-process' knows the `:file-handler' argument since Emacs
+  ;; 27.1 only.  Therefore, we invoke it via `tramp-file-name-handler'.
   (tramp-file-name-handler
    'make-process
    :name name
@@ -4857,13 +4858,13 @@ verbosity of 6."
   "Return t if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)
     (catch 'result
-      (dolist (pid (tramp-compat-funcall 'list-system-processes))
-	(let ((attributes (process-attributes pid)))
+      (dolist (pid (list-system-processes))
+	(when-let ((attributes (process-attributes pid))
+		   (comm (cdr (assoc 'comm attributes))))
 	  (and (string-equal (cdr (assoc 'user attributes)) (user-login-name))
-               (when-let ((comm (cdr (assoc 'comm attributes))))
-                 ;; The returned command name could be truncated to 15
-                 ;; characters.  Therefore, we cannot check for `string-equal'.
-		 (string-prefix-p comm process-name))
+               ;; The returned command name could be truncated to 15
+               ;; characters.  Therefore, we cannot check for `string-equal'.
+	       (string-prefix-p comm process-name)
 	       (throw 'result t)))))))
 
 (defun tramp-read-passwd (proc &optional prompt)
@@ -5045,6 +5046,23 @@ name of a process or buffer, or nil to default to the current buffer."
    'tramp-unload-hook
    (lambda ()
      (remove-hook 'interrupt-process-functions #'tramp-interrupt-process))))
+
+(defun tramp-get-signal-strings ()
+  "Strings to return by `process-file' in case of signals."
+  ;; We use key nil for local connection properties.
+  (with-tramp-connection-property nil "signal-strings"
+    (let (result)
+      (if (and (stringp shell-file-name) (executable-find shell-file-name))
+	  (dotimes (i 128)
+	    (push
+	     (if (= i 19) 1 ;; SIGSTOP
+	       (call-process
+		shell-file-name nil nil nil "-c" (format "kill -%d $$" i)))
+	     result))
+	(dotimes (i 128)
+	  (push (format "Signal %d" i) result)))
+      ;; Due to Bug#41287, we cannot add this to the `dotimes' clause.
+      (reverse result))))
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages

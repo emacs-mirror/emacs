@@ -1593,16 +1593,16 @@ The value is actually the tail of LIST whose car is ELT.  */)
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `eq' to the car of an element of LIST.
-The value is actually the first element of LIST whose car is KEY.
-Elements of LIST that are not conses are ignored.  */)
-  (Lisp_Object key, Lisp_Object list)
+       doc: /* Return non-nil if KEY is `eq' to the car of an element of ALIST.
+The value is actually the first element of ALIST whose car is KEY.
+Elements of ALIST that are not conses are ignored.  */)
+  (Lisp_Object key, Lisp_Object alist)
 {
-  Lisp_Object tail = list;
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     if (CONSP (XCAR (tail)) && EQ (XCAR (XCAR (tail)), key))
       return XCAR (tail);
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
@@ -1610,22 +1610,22 @@ Elements of LIST that are not conses are ignored.  */)
    Use only on objects known to be non-circular lists.  */
 
 Lisp_Object
-assq_no_quit (Lisp_Object key, Lisp_Object list)
+assq_no_quit (Lisp_Object key, Lisp_Object alist)
 {
-  for (; ! NILP (list); list = XCDR (list))
-    if (CONSP (XCAR (list)) && EQ (XCAR (XCAR (list)), key))
-      return XCAR (list);
+  for (; ! NILP (alist); alist = XCDR (alist))
+    if (CONSP (XCAR (alist)) && EQ (XCAR (XCAR (alist)), key))
+      return XCAR (alist);
   return Qnil;
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
-       doc: /* Return non-nil if KEY is equal to the car of an element of LIST.
-The value is actually the first element of LIST whose car equals KEY.
+       doc: /* Return non-nil if KEY is equal to the car of an element of ALIST.
+The value is actually the first element of ALIST whose car equals KEY.
 
 Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
-     (Lisp_Object key, Lisp_Object list, Lisp_Object testfn)
+     (Lisp_Object key, Lisp_Object alist, Lisp_Object testfn)
 {
-  Lisp_Object tail = list;
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
@@ -1636,7 +1636,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
 	      : !NILP (call2 (testfn, XCAR (car), key))))
 	return car;
     }
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
@@ -1645,11 +1645,11 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
    that are not too deep and are not window configurations.  */
 
 Lisp_Object
-assoc_no_quit (Lisp_Object key, Lisp_Object list)
+assoc_no_quit (Lisp_Object key, Lisp_Object alist)
 {
-  for (; ! NILP (list); list = XCDR (list))
+  for (; ! NILP (alist); alist = XCDR (alist))
     {
-      Lisp_Object car = XCAR (list);
+      Lisp_Object car = XCAR (alist);
       if (CONSP (car)
 	  && (EQ (XCAR (car), key) || equal_no_quit (XCAR (car), key)))
 	return car;
@@ -1658,24 +1658,24 @@ assoc_no_quit (Lisp_Object key, Lisp_Object list)
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
-The value is actually the first element of LIST whose cdr is KEY.  */)
-  (Lisp_Object key, Lisp_Object list)
+       doc: /* Return non-nil if KEY is `eq' to the cdr of an element of ALIST.
+The value is actually the first element of ALIST whose cdr is KEY.  */)
+  (Lisp_Object key, Lisp_Object alist)
 {
-  Lisp_Object tail = list;
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     if (CONSP (XCAR (tail)) && EQ (XCDR (XCAR (tail)), key))
       return XCAR (tail);
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
-The value is actually the first element of LIST whose cdr equals KEY.  */)
-  (Lisp_Object key, Lisp_Object list)
+       doc: /* Return non-nil if KEY is `equal' to the cdr of an element of ALIST.
+The value is actually the first element of ALIST whose cdr equals KEY.  */)
+  (Lisp_Object key, Lisp_Object alist)
 {
-  Lisp_Object tail = list;
+  Lisp_Object tail = alist;
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
@@ -1683,7 +1683,7 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
 	  && (EQ (XCDR (car), key) || !NILP (Fequal (XCDR (car), key))))
 	return car;
     }
-  CHECK_LIST_END (tail, list);
+  CHECK_LIST_END (tail, alist);
   return Qnil;
 }
 
@@ -2508,26 +2508,36 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   else if (STRINGP (array))
     {
-      register unsigned char *p = SDATA (array);
-      int charval;
+      unsigned char *p = SDATA (array);
       CHECK_CHARACTER (item);
-      charval = XFIXNAT (item);
+      int charval = XFIXNAT (item);
       size = SCHARS (array);
-      if (STRING_MULTIBYTE (array))
+      if (size != 0)
 	{
+	  CHECK_IMPURE (array, XSTRING (array));
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  int len = CHAR_STRING (charval, str);
-	  ptrdiff_t size_byte = SBYTES (array);
-	  ptrdiff_t product;
+	  int len;
+	  if (STRING_MULTIBYTE (array))
+	    len = CHAR_STRING (charval, str);
+	  else
+	    {
+	      str[0] = charval;
+	      len = 1;
+	    }
 
-	  if (INT_MULTIPLY_WRAPV (size, len, &product) || product != size_byte)
-	    error ("Attempt to change byte length of a string");
-	  for (idx = 0; idx < size_byte; idx++)
-	    *p++ = str[idx % len];
+	  ptrdiff_t size_byte = SBYTES (array);
+	  if (len == 1 && size == size_byte)
+	    memset (p, str[0], size);
+	  else
+	    {
+	      ptrdiff_t product;
+	      if (INT_MULTIPLY_WRAPV (size, len, &product)
+		  || product != size_byte)
+		error ("Attempt to change byte length of a string");
+	      for (idx = 0; idx < size_byte; idx++)
+		*p++ = str[idx % len];
+	    }
 	}
-      else
-	for (idx = 0; idx < size; idx++)
-	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     return bool_vector_fill (array, item);
@@ -2542,12 +2552,15 @@ DEFUN ("clear-string", Fclear_string, Sclear_string,
 This makes STRING unibyte and may change its length.  */)
   (Lisp_Object string)
 {
-  ptrdiff_t len;
   CHECK_STRING (string);
-  len = SBYTES (string);
-  memset (SDATA (string), 0, len);
-  STRING_SET_CHARS (string, len);
-  STRING_SET_UNIBYTE (string);
+  ptrdiff_t len = SBYTES (string);
+  if (len != 0 || STRING_MULTIBYTE (string))
+    {
+      CHECK_IMPURE (string, XSTRING (string));
+      memset (SDATA (string), 0, len);
+      STRING_SET_CHARS (string, len);
+      STRING_SET_UNIBYTE (string);
+    }
   return Qnil;
 }
 
@@ -4392,7 +4405,7 @@ hash_clear (struct Lisp_Hash_Table *h)
     {
       ptrdiff_t size = HASH_TABLE_SIZE (h);
       if (!hash_rehash_needed_p (h))
-	memclear (XVECTOR (h->hash)->contents, size * word_size);
+	memclear (xvector_contents (h->hash), size * word_size);
       for (ptrdiff_t i = 0; i < size; i++)
 	{
 	  set_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);

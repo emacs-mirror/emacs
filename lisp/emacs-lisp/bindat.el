@@ -632,7 +632,7 @@ If optional second arg SEP is a string, use that as separator."
   (bindat-format-vector vect "%d" (if (stringp sep) sep ".")))
 
 (defun bindat-vector-to-hex (vect &optional sep)
-  "Format vector VECT in hex format separated by dots.
+  "Format vector VECT in hex format separated by colons.
 If optional second arg SEP is a string, use that as separator."
   (bindat-format-vector vect "%02x" (if (stringp sep) sep ":")))
 

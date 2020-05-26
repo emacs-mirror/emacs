@@ -917,7 +917,7 @@ Here's an example:
 @lisp
 (add-to-list 'gnus-newsgroup-variables 'mm-coding-system-priorities)
 (setq gnus-parameters
-      (nconc
+      (append
        ;; Some charsets are just examples!
        '(("^cn\\." ;; Chinese
           (mm-coding-system-priorities

@@ -49,21 +49,21 @@
   (should-error (nreverse))
   (should-error (nreverse 1))
   (should-error (nreverse (make-char-table 'foo)))
-  (should (equal (nreverse "xyzzy") "yzzyx"))
-  (let ((A []))
+  (should (equal (nreverse (copy-sequence "xyzzy")) "yzzyx"))
+  (let ((A (vector)))
     (nreverse A)
     (should (equal A [])))
-  (let ((A [0]))
+  (let ((A (vector 0)))
     (nreverse A)
     (should (equal A [0])))
-  (let ((A [1 2 3 4]))
+  (let ((A (vector 1 2 3 4)))
     (nreverse A)
     (should (equal A [4 3 2 1])))
-  (let ((A [1 2 3 4]))
+  (let ((A (vector 1 2 3 4)))
     (nreverse A)
     (nreverse A)
     (should (equal A [1 2 3 4])))
-  (let* ((A [1 2 3 4])
+  (let* ((A (vector 1 2 3 4))
 	 (B (nreverse (nreverse A))))
     (should (equal A B))))
 
@@ -146,13 +146,13 @@
 ;; Invalid UTF-8 sequences shall be indicated.  How to create such strings?
 
 (ert-deftest fns-tests-sort ()
-  (should (equal (sort '(9 5 2 -1 5 3 8 7 4) (lambda (x y) (< x y)))
+  (should (equal (sort (list 9 5 2 -1 5 3 8 7 4) (lambda (x y) (< x y)))
 		 '(-1 2 3 4 5 5 7 8 9)))
-  (should (equal (sort '(9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
+  (should (equal (sort (list 9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
 		 '(9 8 7 5 5 4 3 2 -1)))
-  (should (equal (sort '[9 5 2 -1 5 3 8 7 4] (lambda (x y) (< x y)))
+  (should (equal (sort (vector 9 5 2 -1 5 3 8 7 4) (lambda (x y) (< x y)))
 		 [-1 2 3 4 5 5 7 8 9]))
-  (should (equal (sort '[9 5 2 -1 5 3 8 7 4] (lambda (x y) (> x y)))
+  (should (equal (sort (vector 9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
 		 [9 8 7 5 5 4 3 2 -1]))
   (should (equal
 	   (sort
@@ -172,7 +172,7 @@
   ;; Punctuation and whitespace characters are relevant for POSIX.
   (should
    (equal
-    (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+    (sort (list "11" "12" "1 1" "1 2" "1.1" "1.2")
 	  (lambda (a b) (string-collate-lessp a b "POSIX")))
     '("1 1" "1 2" "1.1" "1.2" "11" "12")))
   ;; Punctuation and whitespace characters are not taken into account
@@ -180,7 +180,7 @@
   (when (eq system-type 'windows-nt)
     (should
      (equal
-      (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+      (sort (list "11" "12" "1 1" "1 2" "1.1" "1.2")
             (lambda (a b)
               (let ((w32-collate-ignore-punctuation t))
                 (string-collate-lessp
@@ -190,7 +190,7 @@
   ;; Diacritics are different letters for POSIX, they sort lexicographical.
   (should
    (equal
-    (sort '("Ævar" "Agustín" "Adrian" "Eli")
+    (sort (list "Ævar" "Agustín" "Adrian" "Eli")
 	  (lambda (a b) (string-collate-lessp a b "POSIX")))
     '("Adrian" "Agustín" "Eli" "Ævar")))
   ;; Diacritics are sorted between similar letters for other locales,
@@ -198,7 +198,7 @@
   (when (eq system-type 'windows-nt)
     (should
      (equal
-      (sort '("Ævar" "Agustín" "Adrian" "Eli")
+      (sort (list "Ævar" "Agustín" "Adrian" "Eli")
             (lambda (a b)
               (let ((w32-collate-ignore-punctuation t))
                 (string-collate-lessp
@@ -212,7 +212,7 @@
   (should (not (string-version-lessp "foo20000.png" "foo12.png")))
   (should (string-version-lessp "foo.png" "foo2.png"))
   (should (not (string-version-lessp "foo2.png" "foo.png")))
-  (should (equal (sort '("foo12.png" "foo2.png" "foo1.png")
+  (should (equal (sort (list "foo12.png" "foo2.png" "foo1.png")
                        'string-version-lessp)
                  '("foo1.png" "foo2.png" "foo12.png")))
   (should (string-version-lessp "foo2" "foo1234"))
@@ -432,9 +432,9 @@
   (should-error (mapcan))
   (should-error (mapcan #'identity))
   (should-error (mapcan #'identity (make-char-table 'foo)))
-  (should (equal (mapcan #'list '(1 2 3)) '(1 2 3)))
+  (should (equal (mapcan #'list (list 1 2 3)) '(1 2 3)))
   ;; `mapcan' is destructive
-  (let ((data '((foo) (bar))))
+  (let ((data (list (list 'foo) (list 'bar))))
     (should (equal (mapcan #'identity data) '(foo bar)))
     (should (equal data                     '((foo bar) (bar))))))
 

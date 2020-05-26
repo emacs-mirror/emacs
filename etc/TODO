@@ -220,9 +220,22 @@ https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
     width fonts.  However, more features are still needed to achieve this.
 
 ** Support ligatures out of the box
-For the list of typographical ligatures, see
+For the list of frequently-used typographical ligatures, see
 
   https://en.wikipedia.org/wiki/Orthographic_ligature#Ligatures_in_Unicode_(Latin_alphabets)
+
+(Note that in general, the number of possible ligatures can be much
+larger, and there's no way, in principle, to specify the superset of
+all the ligatures that could exist.  Each font can support different
+ligatures.  The reliable way of supporting any and all ligatures is to
+hand all text to be displayed to the shaping engine and get back the
+font glyphs to display that text.  However, doing this is impossible
+with the current design of the Emacs display engine, since it examines
+buffer text one character at a time, and implements character
+composition by calls to Lisp, which makes doing this for every
+character impractically slow.  Therefore, the rest of this item
+describes a limited form of ligature support which is compatible with
+the current display engine design and uses automatic compositions.)
 
 For Text and derived modes, the job is to figure out which ligatures
 we want to support, how to let the user customize that, and probably
@@ -237,12 +250,12 @@ prettify-symbols-mode.  We need to figure out which ligatures are
 needed for each programming language, and provide user options to turn
 this on and off.
 
-The implementation should use the infrastructure for character
-compositions, i.e., we should define appropriate regexp-based rules
-for character sequences that need to be composed into ligatures, and
-populate composition-function-table with those rules.  See
-composite.el for examples of this, and also grep lisp/language/*.el
-for references to composition-function-table.
+The implementation should use the infrastructure for automatic
+character compositions, i.e., we should define appropriate
+regexp-based rules for character sequences that need to be composed
+into ligatures, and populate composition-function-table with those
+rules.  See composite.el for examples of this, and also grep
+lisp/language/*.el for references to composition-function-table.
 
 One problem with character compositions that will need to be solved is
 that composition-function-table, the char-table which holds the
@@ -259,10 +272,45 @@ way of preventing the ligation from happening.  One possibility is to
 have a ZWNJ character separate these ASCII characters; another
 possibility is to introduce a special text property that prevents
 character composition, and place that property on the relevant parts
-of the mode line.
+of the mode line.  Yet another possibility would be to write a
+specialized composition function, which would detect that it is called
+on mode-line strings, and return nil to signal that composition is not
+possible in this case; then use that function in the rules for
+ligatures stored in composition-function-table.
 
 The prettify-symbols-mode should be deprecated once ligature support
 is in place.
+
+A related, but somewhat independent, feature is being able to move the
+cursor "into a ligature", whereby cursor motion commands shows some
+pseudo-cursor on some part of a ligature.  For example, if "ffi" is
+displayed as a ligature, then moving by one buffer position should
+show the middle part of the ligature's glyph similar to the cursor
+display: some special background and perhaps also a special
+foreground.  There are two possible ways of figuring out the offset at
+which to display the pseudo-cursor:
+
+  . Arbitrarily divide the ligature's glyph width W into N parts,
+    where N is the number of codepoints composed into the ligature, then
+    move that pseudo-cursor by W/N pixels each time a cursor-motion
+    command is invoked;
+  . Use the font information.  For example, HarfBuzz has the
+    hb_ot_layout_get_ligature_carets API for that purpose.  However,
+    it could be that few fonts actually have that information recorded
+    in them, in which case the previous heuristics will be needed as
+    fallback.
+
+One subtle issue needs to be resolved to have this feature of
+"sub-glyph" cursor movement inside composed characters.  The way Emacs
+currently displays the default block cursor is by simply redrawing the
+glyph at point in reverse video.  So Emacs currently doesn't have a
+way of displaying a cursor that "covers" only part of a glyph.  To
+make this happen, the display code will probably need to be changed to
+draw the cursor as part of drawing the foreground and/or background of
+the corresponding glyph, which is against the current flow of the
+display code: it generally first completely draws the background and
+foreground of the entire text that needs to be redrawn, and only then
+draws the cursor where it should be placed.
 
 ** Support for Stylistic Sets
 This will allow using "alternate glyphs" supported by modern fonts.

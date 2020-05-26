@@ -117,10 +117,11 @@ create_root_interval (Lisp_Object parent)
 /* Make the interval TARGET have exactly the properties of SOURCE.  */
 
 void
-copy_properties (register INTERVAL source, register INTERVAL target)
+copy_properties (INTERVAL source, INTERVAL target)
 {
   if (DEFAULT_INTERVAL_P (source) && DEFAULT_INTERVAL_P (target))
     return;
+  eassume (source && target);
 
   COPY_INTERVAL_CACHE (source, target);
   set_interval_plist (target, Fcopy_sequence (source->plist));

@@ -1909,6 +1909,11 @@ omitted or @code{nil}, it defaults to 0, i.e., no access rights at
 all.
 @end defun
 
+@defun file-modes-number-to-symbolic modes
+This function converts a numeric file mode specification in
+@var{modes} into the equivalent symbolic form.
+@end defun
+
 @defun set-file-times filename &optional time flag
 This function sets the access and modification times of @var{filename}
 to @var{time}.  The return value is @code{t} if the times are successfully

@@ -100,23 +100,28 @@ _GL_WARN_EXTERN_C int _gl_warn_on_use
 #endif
 
 /* _GL_WARN_ON_USE_CXX (function, rettype, parameters_and_attributes, "string")
-   is like _GL_WARN_ON_USE (function, "string"), except that the function is
-   declared with the given prototype, consisting of return type, parameters,
-   and attributes.
+   is like _GL_WARN_ON_USE (function, "string"), except that in C++ mode the
+   function is declared with the given prototype, consisting of return type,
+   parameters, and attributes.
    This variant is useful for overloaded functions in C++. _GL_WARN_ON_USE does
    not work in this case.  */
 #ifndef _GL_WARN_ON_USE_CXX
-# if 4 < __GNUC__ || (__GNUC__ == 4 && 3 <= __GNUC_MINOR__)
+# if !defined __cplusplus
 #  define _GL_WARN_ON_USE_CXX(function,rettype,parameters_and_attributes,msg) \
+     _GL_WARN_ON_USE (function, msg)
+# else
+#  if 4 < __GNUC__ || (__GNUC__ == 4 && 3 <= __GNUC_MINOR__)
+#   define _GL_WARN_ON_USE_CXX(function,rettype,parameters_and_attributes,msg) \
 extern rettype function parameters_and_attributes \
      __attribute__ ((__warning__ (msg)))
-# elif __GNUC__ >= 3 && GNULIB_STRICT_CHECKING
+#  elif __GNUC__ >= 3 && GNULIB_STRICT_CHECKING
 /* Verify the existence of the function.  */
-#  define _GL_WARN_ON_USE_CXX(function,rettype,parameters_and_attributes,msg) \
+#   define _GL_WARN_ON_USE_CXX(function,rettype,parameters_and_attributes,msg) \
 extern rettype function parameters_and_attributes
-# else /* Unsupported.  */
-#  define _GL_WARN_ON_USE_CXX(function,rettype,parameters_and_attributes,msg) \
+#  else /* Unsupported.  */
+#   define _GL_WARN_ON_USE_CXX(function,rettype,parameters_and_attributes,msg) \
 _GL_WARN_EXTERN_C int _gl_warn_on_use
+#  endif
 # endif
 #endif
 

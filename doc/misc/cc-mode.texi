@@ -2132,6 +2132,11 @@ For Pike autodoc markup, the standard in Pike.
 @item gtkdoc
 @cindex GtkDoc markup
 For GtkDoc markup, widely used in the Gnome community.
+
+@item doxygen
+@cindex Doxygen markup
+For Doxygen markup, which can be used with C, C++, Java and variety of
+other languages.
 @end table
 
 The above is by no means complete.  If you'd like to see support for
@@ -6386,6 +6391,26 @@ function is the same as specifying a list @code{(c-lineup-assignments
 
 @workswith @code{topmost-intro-cont}, @code{statement-cont},
 @code{arglist-cont}, @code{arglist-cont-nonempty}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-ternary-bodies
+@findex lineup-ternary-bodies @r{(c-)}
+Line up true and false branches of a ternary operator
+(i.e. @code{?:}).  More precisely, if the line starts with a colon
+which is a part of a said operator it with corresponding question
+mark.  For example:
+
+@example
+@group
+return arg % 2 == 0 ? arg / 2
+                    : (3 * arg + 1);    @hereFn{c-lineup-ternary-bodies}
+@end group
+@end example
+
+@workswith @code{arglist-cont}, @code{arglist-cont-nonempty} and
+@code{statement-cont}.
 @end defun
 
 @comment ------------------------------------------------------------

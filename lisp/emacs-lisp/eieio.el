@@ -351,24 +351,20 @@ Elements of FIELDS can be of the form (NAME PAT) in which case the
 contents of field NAME is matched against PAT, or they can be of
  the form NAME which is a shorthand for (NAME NAME)."
   (declare (debug (&rest [&or (sexp pcase-PAT) sexp])))
-  (let ((is (make-symbol "table")))
-    ;; FIXME: This generates a horrendous mess of redundant let bindings.
-    ;; `pcase' needs to be improved somehow to introduce let-bindings more
-    ;; sparingly, or the byte-compiler needs to be taught to optimize
-    ;; them away.
-    ;; FIXME: `pcase' does not do a good job here of sharing tests&code among
-    ;; various branches.
-    `(and (pred eieio-object-p)
-          (app eieio-pcase-slot-index-table ,is)
-          ,@(mapcar (lambda (field)
-                      (let* ((name (if (consp field) (car field) field))
-                             (pat (if (consp field) (cadr field) field))
-                             (i (make-symbol "index")))
-                        `(and (let (and ,i (pred natnump))
-                                (eieio-pcase-slot-index-from-index-table
-                                 ,is ',name))
-                              (app (pcase--flip aref ,i) ,pat))))
-                    fields))))
+  ;; FIXME: This generates a horrendous mess of redundant let bindings.
+  ;; `pcase' needs to be improved somehow to introduce let-bindings more
+  ;; sparingly, or the byte-compiler needs to be taught to optimize
+  ;; them away.
+  ;; FIXME: `pcase' does not do a good job here of sharing tests&code among
+  ;; various branches.
+  `(and (pred eieio-object-p)
+        ,@(mapcar (lambda (field)
+                    (pcase-exhaustive field
+                      (`(,name ,pat)
+                       `(app (pcase--flip eieio-oref ',name) ,pat))
+                      ((pred symbolp)
+                       `(app (pcase--flip eieio-oref ',field) ,field))))
+                  fields)))
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.
@@ -517,7 +513,8 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
   "Set the value in OBJ for slot SLOT to VALUE.
 SLOT is the slot name as specified in `defclass' or the tag created
 with in the :initarg slot.  VALUE can be any Lisp object."
-  (declare (debug (form symbolp form)))
+  (declare (obsolete "use (setf (oref ..) ..) instead" "28.1")
+           (debug (form symbolp form)))
   `(eieio-oset ,obj (quote ,slot) ,value))
 
 (defmacro oset-default (class slot value)
@@ -525,7 +522,8 @@ with in the :initarg slot.  VALUE can be any Lisp object."
 The default value is usually set with the :initform tag during class
 creation.  This allows users to change the default behavior of classes
 after they are created."
-  (declare (debug (form symbolp form)))
+  (declare (obsolete "use (setf (oref-default ..) ..) instead" "28.1")
+           (debug (form symbolp form)))
   `(eieio-oset-default ,class (quote ,slot) ,value))
 
 ;;; CLOS queries into classes and slots

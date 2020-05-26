@@ -532,8 +532,8 @@ holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Bahá'í, Chinese, Christian, Islamic, and Jewish holidays; also the
-solstices and equinoxes.
+major Bahá'í, Chinese, Christian, Islamic, and Jewish
+holidays; also the solstices and equinoxes.
 
 @findex list-holidays
    The command @kbd{M-x holiday-list} displays the list of holidays for

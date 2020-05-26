@@ -338,16 +338,14 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.
 
-@strong{Warning:} Nested repetition operators can run for an
-indefinitely long time, if they lead to ambiguous matching.  For
+@strong{Warning:} Nested repetition operators can run for a very
+long time, if they lead to ambiguous matching.  For
 example, trying to match the regular expression @samp{\(x+y*\)*a}
 against the string @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could
 take hours before it ultimately fails.  Emacs must try each way of
 grouping the @samp{x}s before concluding that none of them can work.
-Even worse, @samp{\(x*\)*} can match the null string in infinitely
-many ways, so it causes an infinite loop.  To avoid these problems,
-check nested repetitions carefully, to make sure that they do not
-cause combinatorial explosions in backtracking.
+In general, avoid expressions that can match the same string in
+multiple ways.
 
 @item @samp{+}
 @cindex @samp{+} in regexp

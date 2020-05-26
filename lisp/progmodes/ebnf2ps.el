@@ -4975,8 +4975,6 @@ killed after process termination."
 (defun ebnf-eps-filename (str)
   (let* ((len  (length str))
 	 (stri 0)
-	 ;; to keep compatibility with Emacs 20 & 21:
-	 ;; DO NOT REPLACE `?\ ' BY `?\s'
 	 (new  (make-string len ?\ )))
     (while (< stri len)
       (aset new stri (aref ebnf-map-name (aref str stri)))
@@ -5993,8 +5991,6 @@ killed after process termination."
 (defun ebnf-trim-right (str)
   (let* ((len   (1- (length str)))
 	 (index len))
-    ;; to keep compatibility with Emacs 20 & 21:
-    ;; DO NOT REPLACE `?\ ' BY `?\s'
     (while (and (> index 0) (= (aref str index) ?\ ))
       (setq index (1- index)))
     (if (= index len)

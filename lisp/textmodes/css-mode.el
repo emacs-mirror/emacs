@@ -119,7 +119,6 @@
     ("cue" cue-before cue-after)
     ("cue-after" uri "none")
     ("cue-before" uri "none")
-    ("direction" "ltr" "rtl")
     ("display" "inline" "block" "list-item" "inline-block" "table"
      "inline-table" "table-row-group" "table-header-group"
      "table-footer-group" "table-row" "table-column-group"
@@ -180,7 +179,6 @@
     ("stress" number)
     ("table-layout" "auto" "fixed")
     ("top" length percentage "auto")
-    ("unicode-bidi" "normal" "embed" "bidi-override")
     ("vertical-align" "baseline" "sub" "super" "top" "text-top"
      "middle" "bottom" "text-bottom" percentage length)
     ("visibility" "visible" "hidden" "collapse")
@@ -277,6 +275,10 @@
     ;; (http://www.w3.org/TR/css3-color/#property)
     ("color" color)
     ("opacity" alphavalue)
+
+    ;; CSS Containment Module Level 1
+    ;; (https://www.w3.org/TR/css-contain-1/#property-index)
+    ("contain" "none" "strict" "content" "size" "layout" "paint")
 
     ;; CSS Grid Layout Module Level 1
     ;; (https://www.w3.org/TR/css-grid-1/#property-index)
@@ -489,6 +491,16 @@
     ;; CSS Will Change Module Level 1
     ;; (https://www.w3.org/TR/css-will-change-1/#property-index)
     ("will-change" "auto" animateable-feature)
+
+    ;; CSS Writing Modes Level 3
+    ;; (https://www.w3.org/TR/css-writing-modes-3/#property-index)
+    ;; "glyph-orientation-vertical" is obsolete and left out.
+    ("direction" "ltr" "rtl")
+    ("text-combine-upright" "none" "all")
+    ("text-orientation" "mixed" "upright" "sideways")
+    ("unicode-bidi" "normal" "embed" "isolate" "bidi-override"
+     "isolate-override" "plaintext")
+    ("writing-mode" "horizontal-tb" "vertical-rl" "vertical-lr")
 
     ;; Filter Effects Module Level 1
     ;; (http://www.w3.org/TR/filter-effects/#property-index)
@@ -874,7 +886,7 @@ cannot be completed sensibly: `custom-ident',
 
 (defconst css-escapes-re
   "\\\\\\(?:[^\000-\037\177]\\|[[:xdigit:]]+[ \n\t\r\f]?\\)")
-(defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
+(defconst css-nmchar-re (concat "\\(?:[-_[:alnum:]]\\|" css-escapes-re "\\)"))
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re ;; (concat css-nmstart-re css-nmchar-re "*")
   ;; Apparently, "at rules" names can start with a dash, e.g. @-moz-keyframes.

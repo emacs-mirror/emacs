@@ -1122,6 +1122,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -1207,6 +1208,15 @@ libgnu_a_SOURCES += openat-priv.h openat-proc.c
 endif
 endif
 ## end   gnulib module at-internal
+
+## begin gnulib module attribute
+ifeq (,$(OMIT_GNULIB_MODULE_attribute))
+
+
+EXTRA_DIST += attribute.h
+
+endif
+## end   gnulib module attribute
 
 ## begin gnulib module binary-io
 ifeq (,$(OMIT_GNULIB_MODULE_binary-io))

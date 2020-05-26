@@ -397,6 +397,26 @@ synchronously."
   :type 'boolean
   :version "25.1")
 
+(defcustom package-name-column-width 30
+  "Column width for the Package name in the package menu."
+  :type 'number
+  :version "28.1")
+
+(defcustom package-version-column-width 14
+  "Column width for the Package version in the package menu."
+  :type 'number
+  :version "28.1")
+
+(defcustom package-status-column-width 12
+  "Column width for the Package status in the package menu."
+  :type 'number
+  :version "28.1")
+
+(defcustom package-archive-column-width 8
+  "Column width for the Package status in the package menu."
+  :type 'number
+  :version "28.1")
+
 
 ;;; `package-desc' object definition
 ;; This is the struct used internally to represent packages.
@@ -2692,6 +2712,7 @@ either a full name or nil, and EMAIL is a valid email address."
     (define-key map (kbd "/ n") 'package-menu-filter-by-name)
     (define-key map (kbd "/ s") 'package-menu-filter-by-status)
     (define-key map (kbd "/ v") 'package-menu-filter-by-version)
+    (define-key map (kbd "/ m") 'package-menu-filter-marked)
     map)
   "Local keymap for `package-menu-mode' buffers.")
 
@@ -2722,6 +2743,7 @@ either a full name or nil, and EMAIL is a valid email address."
      ["Filter by Name" package-menu-filter-by-name :help "Filter packages by name"]
      ["Filter by Status" package-menu-filter-by-status :help "Filter packages by status"]
      ["Filter by Version" package-menu-filter-by-version :help "Filter packages by version"]
+     ["Filter Marked" package-menu-filter-marked :help "Filter packages marked for upgrade"]
      ["Clear Filter" package-menu-clear-filter :help "Clear package list filter"])
 
     ["Hide by Regexp" package-menu-hide-package :help "Hide all packages matching a regexp"]
@@ -2748,11 +2770,11 @@ Letters do not insert themselves; instead, they are commands.
                             (package-menu--transaction-status
                              package-menu--transaction-status)))
   (setq tabulated-list-format
-        `[("Package" 18 package-menu--name-predicate)
-          ("Version" 13 package-menu--version-predicate)
-          ("Status"  10 package-menu--status-predicate)
+        `[("Package" ,package-name-column-width package-menu--name-predicate)
+          ("Version" ,package-version-column-width package-menu--version-predicate)
+          ("Status"  ,package-status-column-width  package-menu--status-predicate)
           ,@(if (cdr package-archives)
-                '(("Archive" 10 package-menu--archive-predicate)))
+                `(("Archive" ,package-archive-column-width package-menu--archive-predicate)))
           ("Description" 0 package-menu--description-predicate)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Status" nil))
@@ -3854,6 +3876,35 @@ If VERSION is nil or the empty string, show all packages."
          (lambda (pkg-desc)
            (funcall fun (package-desc-version pkg-desc) ver)))
        (format "versions:%s%s" predicate version)))))
+
+(defun package-menu-filter-marked ()
+  "Filter \"*Packages*\" buffer by non-empty upgrade mark.
+Unlike other filters, this leaves the marks intact."
+  (interactive)
+  (package--ensure-package-menu-mode)
+  (widen)
+  (let (found-entries mark pkg-id entry marks)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (setq mark (char-after))
+        (unless (eq mark ?\s)
+	  (setq pkg-id (tabulated-list-get-id))
+          (setq entry (package-menu--print-info-simple pkg-id))
+	  (push entry found-entries)
+	  ;; remember the mark
+	  (push (cons pkg-id mark) marks))
+        (forward-line))
+      (if found-entries
+          (progn
+            (setq tabulated-list-entries found-entries)
+            (package-menu--display t nil)
+	    ;; redo the marks, but we must remember the marks!!
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (setq mark (cdr (assq (tabulated-list-get-id) marks)))
+	      (tabulated-list-put-tag (char-to-string mark) t)))
+	(user-error "No packages found")))))
 
 (defun package-menu-clear-filter ()
   "Clear any filter currently applied to the \"*Packages*\" buffer."

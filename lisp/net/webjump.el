@@ -1,4 +1,4 @@
-;;; webjump.el --- programmable Web hotlist
+;;; webjump.el --- programmable Web hotlist  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
 
@@ -323,8 +323,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 (defun webjump-read-url-choice (what urls &optional default)
   ;; Note: Convert this to use `webjump-read-choice' someday.
-  (let* ((completions (mapcar (function (lambda (n) (cons n n)))
-                              urls))
+  (let* ((completions (mapcar (lambda (n) (cons n n)) urls))
 	 (input (completing-read (concat what
                                          ;;(if default " (RET for default)" "")
                                          ": ")

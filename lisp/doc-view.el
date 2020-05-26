@@ -2050,8 +2050,8 @@ See the command `doc-view-mode' for more information on this mode."
       (when (memq (selected-frame) (alist-get 'frames attrs))
         (let ((geom (alist-get 'geometry attrs)))
           (when geom
-            (setq monitor-top (nth 0 geom))
-            (setq monitor-left (nth 1 geom))
+            (setq monitor-left (nth 0 geom))
+            (setq monitor-top (nth 1 geom))
             (setq monitor-width (nth 2 geom))
             (setq monitor-height (nth 3 geom))))))
     (let ((frame (make-frame

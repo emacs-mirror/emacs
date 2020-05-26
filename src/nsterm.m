@@ -7335,48 +7335,39 @@ not_in_argv (NSString *arg)
 - (void)viewDidResize:(NSNotification *)notification
 {
   NSRect frame = [self frame];
-  int oldw, oldh, neww, newh;
+  int neww, newh;
 
   if (! FRAME_LIVE_P (emacsframe))
     return;
 
-#ifdef NS_DRAW_TO_BUFFER
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  if ([self wantsUpdateLayer])
-    {
-#endif
-      CGFloat scale = [[self window] backingScaleFactor];
-      oldw = (CGFloat)CGBitmapContextGetWidth (drawingBuffer) / scale;
-      oldh = (CGFloat)CGBitmapContextGetHeight (drawingBuffer) / scale;
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-  else
-    {
-#endif
-#endif /* NS_DRAW_TO_BUFFER */
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-      oldw = FRAME_PIXEL_WIDTH (emacsframe);
-      oldh = FRAME_PIXEL_HEIGHT (emacsframe);
-#endif
-#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-#endif
+  NSTRACE ("[EmacsView viewDidResize]");
 
   neww = (int)NSWidth (frame);
   newh = (int)NSHeight (frame);
-
-  NSTRACE ("[EmacsView viewDidResize]");
-
-  /* Don't want to do anything when the view size hasn't changed. */
-  if ((oldh == newh && oldw == neww))
-    {
-      NSTRACE_MSG ("No change");
-      return;
-    }
-
-  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
   NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
 
+#ifdef NS_DRAW_TO_BUFFER
+  if ([self wantsUpdateLayer])
+    {
+      CGFloat scale = [[self window] backingScaleFactor];
+      int oldw = (CGFloat)CGBitmapContextGetWidth (drawingBuffer) / scale;
+      int oldh = (CGFloat)CGBitmapContextGetHeight (drawingBuffer) / scale;
+
+      NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
+
+      /* Don't want to do anything when the view size hasn't changed. */
+      if ((oldh == newh && oldw == neww))
+        {
+          NSTRACE_MSG ("No change");
+          return;
+        }
+    }
+#endif
+
+  /* I'm not sure if it's safe to call this every time the view
+     changes size, as Emacs may already know about the change.
+     Unfortunately there doesn't seem to be a bullet-proof method of
+     determining whether we need to call it or not.  */
   change_frame_size (emacsframe,
                      FRAME_PIXEL_TO_TEXT_WIDTH (emacsframe, neww),
                      FRAME_PIXEL_TO_TEXT_HEIGHT (emacsframe, newh),

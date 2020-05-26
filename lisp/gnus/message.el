@@ -873,8 +873,8 @@ If this is nil, use `user-mail-address'.  If it is the symbol
     message-sendmail-envelope-from))
 
 (defcustom message-sendmail-extra-arguments nil
-  "Additional arguments to `sendmail-program'."
-  ;; E.g. '("-a" "account") for msmtp
+  "Additional arguments to `sendmail-program'.
+A list of strings, e.g. (\"-a\" \"account\") for msmtp."
   :version "23.1" ;; No Gnus
   :type '(repeat string)
   ;; :link '(custom-manual "(message)Mail Variables")
@@ -7984,7 +7984,7 @@ See `gmm-tool-bar-from-list' for details on the format of the list."
 
 (defcustom message-tool-bar-retro
   '(;; Old Emacs 21 icon for consistency.
-    (message-send-and-exit "gnus/mail-send")
+    (message-send-and-exit "mail/send")
     (message-kill-buffer "close")
     (message-dont-send "cancel")
     (mml-attach-file "attach" mml-mode-map)

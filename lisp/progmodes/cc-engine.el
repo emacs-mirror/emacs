@@ -405,7 +405,7 @@ comment at the start of cc-engine.el for more info."
 	  (when (and (car c-macro-cache)
 		     (> (point) (car c-macro-cache)) ; in case we have a
 					; zero-sized region.
-		     (not (eq (char-before (1- (point))) ?\\)))
+		     (not lim))
 	    (setcdr c-macro-cache (point))
 	    (setq c-macro-cache-syntactic nil)))))))
 
@@ -1642,6 +1642,21 @@ comment at the start of cc-engine.el for more info."
 	    (forward-char 2)
 	    t))))
 
+(defmacro c-forward-comment-minus-1 ()
+  "Call (forward-comment -1), taking care of escaped newlines.
+Return the result of `forward-comment' if it gets called, nil otherwise."
+  `(if (not comment-end-can-be-escaped)
+       (forward-comment -1)
+     (when (and (< (skip-syntax-backward " >") 0)
+		(eq (char-after) ?\n))
+       (forward-char))
+     (cond
+      ((and (eq (char-before) ?\n)
+	    (eq (char-before (1- (point))) ?\\))
+       (backward-char)
+       nil)
+      (t (forward-comment -1)))))
+
 (defun c-backward-single-comment ()
   "Move backward past whitespace and the closest preceding comment, if any.
 Return t if a comment was found, nil otherwise.  In either case, the
@@ -1675,12 +1690,12 @@ This function does not do any hidden buffer changes."
       ;; same line.
       (re-search-forward "\\=\\s *[\n\r]" start t)
 
-      (if (if (forward-comment -1)
+      (if (if (c-forward-comment-minus-1)
 	      (if (eolp)
 		  ;; If forward-comment above succeeded and we're at eol
 		  ;; then the newline we moved over above didn't end a
 		  ;; line comment, so we give it another go.
-		  (forward-comment -1)
+		  (c-forward-comment-minus-1)
 		t))
 
 	  ;; Emacs <= 20 and XEmacs move back over the closer of a
@@ -1709,7 +1724,7 @@ comment at the start of cc-engine.el for more info."
 
 	    (if (let (moved-comment)
 		  (while
-		      (and (not (setq moved-comment (forward-comment -1)))
+		      (and (not (setq moved-comment (c-forward-comment-minus-1)))
 		      ;; Cope specifically with ^M^J here -
 		      ;; forward-comment sometimes gets stuck after ^Ms,
 		      ;; sometimes after ^M^J.

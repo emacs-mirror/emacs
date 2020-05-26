@@ -32,41 +32,49 @@
   "List all timers in a buffer."
   (interactive)
   (pop-to-buffer-same-window (get-buffer-create "*timer-list*"))
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (timer-list-mode)
-    (dolist (timer (append timer-list timer-idle-list))
-      (insert (format "%4s %10s %8s %s"
-                      ;; Idle.
-                      (if (aref timer 7) "*" " ")
-                      ;; Next time.
-		      (let ((time (list (aref timer 1)
-					(aref timer 2)
-					(aref timer 3))))
-                        (format "%.2f"
-				(float-time
-				 (if (aref timer 7)
-				     time
-				   (time-subtract time nil)))))
-                      ;; Repeat.
-                      (let ((repeat (aref timer 4)))
-                        (cond
-                         ((numberp repeat)
-                          (format "%.1f" repeat))
-                         ((null repeat)
-                          "-")
-                         (t
-                          (format "%s" repeat))))
-                      ;; Function.
-                      (let ((cl-print-compiled 'static)
-                            (cl-print-compiled-button nil)
-                            (print-escape-newlines t))
-                        (cl-prin1-to-string (aref timer 5)))))
-      (put-text-property (line-beginning-position)
-                         (1+ (line-beginning-position))
-                         'timer timer)
-      (insert "\n")))
-  (goto-char (point-min)))
+  (timer-list-mode)
+  (tabulated-list-init-header)
+  (setq tabulated-list-entries
+        (mapcar
+         (lambda (timer)
+           (list
+            nil
+            `[ ;; Idle.
+              ,(propertize
+                (if (aref timer 7) "   *" " ")
+                'help-echo "* marks idle timers"
+                'timer timer)
+              ;; Next time.
+              ,(propertize
+                (let ((time (list (aref timer 1)
+				  (aref timer 2)
+				  (aref timer 3))))
+                  (format "%10.2f"
+			  (float-time
+			   (if (aref timer 7)
+			       time
+			     (time-subtract time nil)))))
+                'help-echo "Time in sec till next invocation")
+              ;; Repeat.
+              ,(propertize
+                (let ((repeat (aref timer 4)))
+                  (cond
+                   ((numberp repeat)
+                    (format "%8.1f" repeat))
+                   ((null repeat)
+                    "       -")
+                   (t
+                    (format "%8s" repeat))))
+                'help-echo "Symbol: repeat; number: repeat interval in sec")
+              ;; Function.
+              ,(propertize
+                (let ((cl-print-compiled 'static)
+                      (cl-print-compiled-button nil)
+                      (print-escape-newlines t))
+                  (cl-prin1-to-string (aref timer 5)))
+                'help-echo "Function called by timer")]))
+         (append timer-list timer-idle-list)))
+  (tabulated-list-print))
 ;; This command can be destructive if they don't know what they are
 ;; doing.  Kids, don't try this at home!
 ;;;###autoload (put 'list-timers 'disabled "Beware: manually canceling timers can ruin your Emacs session.")
@@ -74,35 +82,47 @@
 (defvar timer-list-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "c" 'timer-list-cancel)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
     (easy-menu-define nil map ""
       '("Timers"
 	["Cancel" timer-list-cancel t]))
     map))
 
-(define-derived-mode timer-list-mode special-mode "Timer-List"
+(define-derived-mode timer-list-mode tabulated-list-mode "Timer-List"
   "Mode for listing and controlling timers."
-  (setq bidi-paragraph-direction 'left-to-right)
-  (setq truncate-lines t)
   (buffer-disable-undo)
   (setq-local revert-buffer-function #'list-timers)
-  (setq buffer-read-only t)
-  (setq header-line-format
-        (concat (propertize " " 'display '(space :align-to 0))
-                (format "%4s %10s %8s %s"
-                        (propertize "Idle"
-                                    'mouse-face 'highlight
-                                    'help-echo "* marks idle timers")
-                        (propertize "Next"
-                                    'mouse-face 'highlight
-                                    'help-echo "Time in sec till next invocation")
-                        (propertize "Repeat"
-                                    'mouse-face 'highlight
-                                    'help-echo "Symbol: repeat; number: repeat interval in sec")
-                        (propertize "Function"
-                                    'mouse-face 'highlight
-                                    'help-echo "Function called by timer")))))
+  (setq tabulated-list-format
+        '[("Idle" 6 timer-list--idle-predicate)
+          ("      Next" 12 timer-list--next-predicate)
+          ("  Repeat" 11 timer-list--repeat-predicate)
+          ("Function" 10 timer-list--function-predicate)]))
+
+(defun timer-list--idle-predicate (A B)
+  "Predicate to sort Timer-List by the Idle column."
+  (let ((iA (aref (cadr A) 0))
+        (iB (aref (cadr B) 0)))
+    (cond ((string= iA iB)
+           (timer-list--next-predicate A B))
+          ((string= iA "   *") nil)
+          (t t))))
+
+(defun timer-list--next-predicate (A B)
+  "Predicate to sort Timer-List by the Next column."
+  (let ((nA (string-to-number (aref (cadr A) 1)))
+        (nB (string-to-number (aref (cadr B) 1))))
+    (< nA nB)))
+
+(defun timer-list--repeat-predicate (A B)
+  "Predicate to sort Timer-List by the Repeat column."
+  (let ((rA (aref (cadr A) 2))
+        (rB (aref (cadr B) 2)))
+    (string< rA rB)))
+
+(defun timer-list--function-predicate (A B)
+  "Predicate to sort Timer-List by the Next column."
+  (let ((fA (aref (cadr A) 3))
+        (fB (aref (cadr B) 3)))
+    (string< fA fB)))
 
 (defun timer-list-cancel ()
   "Cancel the timer on the line under point."

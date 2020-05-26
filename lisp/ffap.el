@@ -54,6 +54,8 @@
 ;; C-x 5 r		ffap-read-only-other-frame
 ;; C-x 5 d		ffap-dired-other-frame
 ;;
+;; C-x t f		ffap-other-tab
+;;
 ;; S-mouse-3     ffap-at-mouse
 ;; C-S-mouse-3   ffap-menu
 ;;
@@ -1607,7 +1609,7 @@ Each ALIST entry looks like (STRING . DATA) and defines one choice.
 Function CONT is applied to the entry chosen by the user."
   ;; Note: this function is used with a different continuation
   ;; by the ffap-url add-on package.
-  ;; Could try rewriting to use easymenu.el or lmenu.el.
+  ;; Could try rewriting to use easymenu.el.
   (let (choice)
     (cond
      ;; Emacs mouse:
@@ -1757,6 +1759,14 @@ Only intended for interactive use."
 	     (current-buffer))))
       (set-window-dedicated-p win wdp))
     value))
+
+(defun ffap-other-tab (filename)
+  "Like `ffap', but put buffer in another tab.
+Only intended for interactive use."
+  (interactive (list (ffap-prompter nil " other tab")))
+  (pcase (save-window-excursion (find-file-at-point filename))
+    ((or (and (pred bufferp) b) `(,(and (pred bufferp) b) . ,_))
+     (switch-to-buffer-other-tab b))))
 
 (defun ffap--toggle-read-only (buffer-or-list)
   (dolist (buffer (if (listp buffer-or-list)
@@ -2013,6 +2023,7 @@ This hook is intended to be put in `file-name-at-point-functions'."
 
      (global-set-key [remap find-file-other-window] 'ffap-other-window)
      (global-set-key [remap find-file-other-frame] 'ffap-other-frame)
+     (global-set-key [remap find-file-other-tab] 'ffap-other-tab)
      (global-set-key [remap find-file-read-only-other-window] 'ffap-read-only-other-window)
      (global-set-key [remap find-file-read-only-other-frame] 'ffap-read-only-other-frame)
 

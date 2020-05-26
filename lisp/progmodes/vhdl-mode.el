@@ -14730,7 +14730,7 @@ if required."
     (speedbar-add-mode-functions-list
      '("vhdl directory"
        (speedbar-item-info . vhdl-speedbar-item-info)
-       (speedbar-line-directory . speedbar-files-line-path)))
+       (speedbar-line-directory . speedbar-files-line-directory)))
     (speedbar-add-mode-functions-list
      '("vhdl project"
        (speedbar-item-info . vhdl-speedbar-item-info)

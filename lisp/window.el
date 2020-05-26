@@ -8638,16 +8638,32 @@ in some window."
     (setq end (point-max)))
   (if (= beg end)
       0
-    (save-excursion
-      (save-restriction
-        (widen)
-        (narrow-to-region (min beg end)
-                          (if (and (not count-final-newline)
-                                   (= ?\n (char-before (max beg end))))
-                              (1- (max beg end))
-                            (max beg end)))
-        (goto-char (point-min))
-        (1+ (vertical-motion (buffer-size) window))))))
+    (let ((start (min beg end))
+          (finish (max beg end))
+          count end-invisible-p)
+      ;; When END is invisible because lines are truncated in WINDOW,
+      ;; vertical-motion returns a number that is 1 larger than it
+      ;; should.  We need to fix that.
+      (setq end-invisible-p
+            (and (or truncate-lines
+                     (and (natnump truncate-partial-width-windows)
+                          (< (window-total-width window)
+                             truncate-partial-width-windows)))
+                 (save-excursion
+                   (goto-char finish)
+                   (> (- (current-column) (window-hscroll window))
+                      (window-body-width window)))))
+      (save-excursion
+        (save-restriction
+          (widen)
+          (narrow-to-region start
+                            (if (and (not count-final-newline)
+                                     (= ?\n (char-before finish)))
+                                (1- finish)
+                              finish))
+          (goto-char start)
+          (setq count (vertical-motion (buffer-size) window))
+          (if end-invisible-p count (1+ count)))))))
 
 (defun window-buffer-height (window)
   "Return the height (in screen lines) of the buffer that WINDOW is displaying.

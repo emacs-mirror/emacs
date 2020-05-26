@@ -1221,7 +1221,6 @@ These two lines must come in the order given."))
   (viper-harness-minor-mode "outline")
   (viper-harness-minor-mode "allout")
   (viper-harness-minor-mode "xref")
-  (viper-harness-minor-mode "lmenu")
   (viper-harness-minor-mode "vc")
   (viper-harness-minor-mode "ltx-math") ; LaTeX-math-mode in AUC-TeX, which
   (viper-harness-minor-mode "latex")    ; sits in one of these two files

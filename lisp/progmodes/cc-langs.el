@@ -1174,7 +1174,7 @@ since CC Mode treats every identifier as an expression."
 
       ;; Exception.
       ,@(when (c-major-mode-is 'c++-mode)
-	  '((prefix "throw")))
+	  '((prefix "throw" "co_await" "co_yield")))
 
       ;; Sequence.
       (left-assoc ","))
@@ -2040,6 +2040,7 @@ the appropriate place for that."
 (c-lang-defconst c-return-kwds
   "Keywords which return a value to the calling function."
   t '("return")
+  c++ '("return" "co_return")
   idl nil)
 
 (c-lang-defconst c-return-key
@@ -2415,7 +2416,8 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
   t       nil
-  objc    '("@class" "@end" "@defs")
+  objc    '("@class" "@defs" "@end" "@property" "@dynamic" "@synthesize"
+	    "@compatibility_alias")
   java    '("import" "package")
   pike    '("import" "inherit"))
 
@@ -2538,7 +2540,8 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   "Access protection label keywords in classes."
   t    nil
   c++  '("private" "protected" "public")
-  objc '("@private" "@protected" "@public"))
+  objc '("@private" "@protected" "@package" "@public"
+	 "@required" "@optional"))
 
 (c-lang-defconst c-protection-key
   ;; A regexp match an element of `c-protection-kwds' cleanly.
@@ -2753,7 +2756,7 @@ identifiers that follows the type in a normal declaration."
   "Statement keywords followed directly by a substatement."
   t    '("do" "else")
   c++  '("do" "else" "try")
-  objc '("do" "else" "@finally" "@try")
+  objc '("do" "else" "@finally" "@try" "@autoreleasepool")
   java '("do" "else" "finally" "try")
   idl  nil)
 
@@ -2822,6 +2825,7 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
 (c-lang-defconst c-simple-stmt-kwds
   "Statement keywords followed by an expression or nothing."
   t    '("break" "continue" "goto" "return")
+  c++    '("break" "continue" "goto" "return" "co_return")
   objc '("break" "continue" "goto" "return" "@throw")
   ;; Note: `goto' is not valid in Java, but the keyword is still reserved.
   java '("break" "continue" "goto" "return" "throw")
@@ -2895,7 +2899,8 @@ This construct is \"<keyword> <expression> :\"."
   c++     (append
            '("nullptr")
            (c-lang-const c-constant-kwds c))
-  objc    '("nil" "Nil" "YES" "NO" "NS_DURING" "NS_HANDLER" "NS_ENDHANDLER")
+  objc    '("nil" "Nil" "YES" "NO" "IBAction" "IBOutlet"
+	    "NS_DURING" "NS_HANDLER" "NS_ENDHANDLER")
   idl     '("TRUE" "FALSE")
   java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.
@@ -3412,8 +3417,14 @@ regexp should match \"(\" if parentheses are valid in declarators.
 The end of the first submatch is taken as the end of the operator.
 Identifier syntax is in effect when this is matched (see
 `c-identifier-syntax-table')."
-  t (if (c-lang-const c-type-modifier-kwds)
-	(concat (regexp-opt (c-lang-const c-type-modifier-kwds) t) "\\>")
+  t (if (or (c-lang-const c-type-modifier-kwds) (c-lang-const c-modifier-kwds))
+        (concat
+	 (regexp-opt (c--delete-duplicates
+		      (append (c-lang-const c-type-modifier-kwds)
+			      (c-lang-const c-modifier-kwds))
+		      :test 'string-equal)
+		     t)
+	 "\\>")
       ;; Default to a regexp that never matches.
       regexp-unmatchable)
   ;; Check that there's no "=" afterwards to avoid matching tokens

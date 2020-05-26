@@ -1,4 +1,4 @@
-;;; faceup-test-this-file-directory.el --- Support file for faceup tests
+;;; faceup-test-this-file-directory.el --- Support file for faceup tests  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 

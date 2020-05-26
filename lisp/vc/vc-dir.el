@@ -1106,6 +1106,7 @@ the *vc-dir* buffer.
   (set (make-local-variable 'vc-dir-backend) use-vc-backend)
   (set (make-local-variable 'desktop-save-buffer)
        'vc-dir-desktop-buffer-misc-data)
+  (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
@@ -1464,6 +1465,41 @@ These are the commands available for use in the file status buffer:
 
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(vc-dir-mode . vc-dir-restore-desktop-buffer))
+
+
+;;; Support for bookmark.el (adapted from what info.el does).
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
+
+(defun vc-dir-bookmark-make-record ()
+  "Make record used to bookmark a `vc-dir' buffer.
+This implements the `bookmark-make-record-function' type for
+`vc-dir' buffers."
+  (let* ((bookmark-name
+          (concat "(" (symbol-name vc-dir-backend) ") "
+                  (file-name-nondirectory
+                   (directory-file-name default-directory))))
+         (defaults (list bookmark-name default-directory)))
+    `(,bookmark-name
+      ,@(bookmark-make-record-default 'no-file)
+      (filename . ,default-directory)
+      (handler . vc-dir-bookmark-jump)
+      (defaults . ,defaults))))
+
+;;;###autoload
+(defun vc-dir-bookmark-jump (bmk)
+  "Provides the bookmark-jump behavior for a `vc-dir' buffer.
+This implements the `handler' function interface for the record
+type returned by `vc-dir-bookmark-make-record'."
+  (let* ((file (bookmark-prop-get bmk 'filename))
+         (buf (save-window-excursion
+                 (vc-dir file) (current-buffer))))
+    (bookmark-default-handler
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
 
 (provide 'vc-dir)

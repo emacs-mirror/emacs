@@ -1,4 +1,4 @@
-;;; text-property-search-tests.el --- Testing text-property-search
+;;; text-property-search-tests.el --- Testing text-property-search  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
 

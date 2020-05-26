@@ -277,7 +277,8 @@ error !;
    allocation in a containing union that has GCALIGNED_UNION_MEMBER)
    and does not contain a GC-aligned struct or union, putting
    GCALIGNED_STRUCT after its closing '}' can help the compiler
-   generate better code.
+   generate better code.  Also, such structs should be added to the
+   emacs_align_type union in alloc.c.
 
    Although these macros are reasonably portable, they are not
    guaranteed on non-GCC platforms, as C11 does not require support
@@ -1341,7 +1342,6 @@ dead_object (void)
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
-#define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
@@ -2801,8 +2801,10 @@ struct Lisp_Float
     {
       double data;
       struct Lisp_Float *chain;
+      GCALIGNED_UNION_MEMBER
     } u;
-  } GCALIGNED_STRUCT;
+  };
+verify (GCALIGNED (struct Lisp_Float));
 
 INLINE bool
 (FLOATP) (Lisp_Object x)
@@ -3354,6 +3356,27 @@ struct frame;
 #define HAVE_EXT_TOOL_BAR true
 #endif
 
+/* Return the address of vector A's element at index I.  */
+
+INLINE Lisp_Object *
+xvector_contents_addr (Lisp_Object a, ptrdiff_t i)
+{
+  /* This should return &XVECTOR (a)->contents[i], but that would run
+     afoul of GCC bug 95072.  */
+  void *v = XVECTOR (a);
+  char *p = v;
+  void *w = p + header_size + i * word_size;
+  return w;
+}
+
+/* Return the address of vector A's elements.  */
+
+INLINE Lisp_Object *
+xvector_contents (Lisp_Object a)
+{
+  return xvector_contents_addr (a, 0);
+}
+
 /* Copy COUNT Lisp_Objects from ARGS to contents of V starting from OFFSET.  */
 
 INLINE void
@@ -3361,7 +3384,7 @@ vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object const *args,
        ptrdiff_t count)
 {
   eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
-  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
+  memcpy (xvector_contents_addr (v, offset), args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */
@@ -3794,7 +3817,15 @@ extern void alloc_unexec_pre (void);
 extern void alloc_unexec_post (void);
 extern void mark_maybe_objects (Lisp_Object const *, ptrdiff_t);
 extern void mark_stack (char const *, char const *);
-extern void flush_stack_call_func (void (*func) (void *arg), void *arg);
+extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
+
+INLINE void
+flush_stack_call_func (void (*func) (void *arg), void *arg)
+{
+  __builtin_unwind_init ();
+  flush_stack_call_func1 (func, arg);
+}
+
 extern void garbage_collect (void);
 extern void maybe_garbage_collect (void);
 extern const char *pending_malloc_warning;
@@ -3909,7 +3940,6 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
-extern void make_byte_code (struct Lisp_Vector *);
 extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
 extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
 

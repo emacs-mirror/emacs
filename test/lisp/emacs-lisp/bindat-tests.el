@@ -96,4 +96,20 @@
               (dest-ip .
 	               [192 168 1 100]))))))
 
+(ert-deftest bindat-test-format-vector ()
+  (should (equal (bindat-format-vector [1 2 3] "%d" "x" 2) "1x2"))
+  (should (equal (bindat-format-vector [1 2 3] "%d" "x") "1x2x3")))
+
+(ert-deftest bindat-test-vector-to-dec ()
+  (should (equal (bindat-vector-to-dec [1 2 3]) "1.2.3"))
+  (should (equal (bindat-vector-to-dec [2048 1024 512] ".") "2048.1024.512")))
+
+(ert-deftest bindat-test-vector-to-hex ()
+  (should (equal (bindat-vector-to-hex [1 2 3]) "01:02:03"))
+  (should (equal (bindat-vector-to-hex [2048 1024 512] ".") "800.400.200")))
+
+(ert-deftest bindat-test-ip-to-string ()
+  (should (equal (bindat-ip-to-string [192 168 0 1]) "192.168.0.1"))
+  (should (equal (bindat-ip-to-string "\300\250\0\1") "192.168.0.1")))
+
 ;;; bindat-tests.el ends here
