@@ -655,26 +655,20 @@ buffer_memory_full (ptrdiff_t nbytes)
 #define COMMON_MULTIPLE(a, b) \
   ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
 
-/* A lower bound on the alignment of malloc.  For better performance
-   this bound should be tighter.  For glibc 2.26 and later a tighter
-   bound is known.  */
-#if 2 < __GLIBC__ + (26 <= __GLIBC_MINOR__)
-enum { MALLOC_ALIGNMENT_BOUND = MALLOC_ALIGNMENT };
-#else
-/* A bound known to work for all Emacs porting targets.  Tightening
-   this looser bound by using max_align_t instead of long long int
-   would break buggy malloc implementations like MinGW circa 2020.  */
-enum { MALLOC_ALIGNMENT_BOUND = alignof (long long int) };
-#endif
+/* A lower bound on the alignment of malloc.  Although this bound is
+   incorrect for some buggy malloc implementations (e.g., MinGW circa
+   2020), the bugs should not matter for the way this bound is used
+   since the correct bound is also a multiple of LISP_ALIGNMENT on the
+   buggy platforms.  */
+enum { MALLOC_ALIGNMENT_BOUND = alignof (max_align_t) };
 
-/* A lower bound on the alignment of Lisp objects.  All Lisp objects
-   must have an address that is a multiple of LISP_ALIGNMENT;
+/* A lower bound on the alignment of Lisp objects allocated on the heap.
+   All such objects must have an address that is a multiple of LISP_ALIGNMENT;
    otherwise maybe_lisp_pointer can issue false negatives, causing crashes.
-   It's good to make this bound tight: if Lisp objects are always
-   aligned more strictly than LISP_ALIGNMENT, maybe_lisp_pointer will
-   issue more false positives, hurting performance.  */
-enum { LISP_ALIGNMENT = max (max (GCALIGNMENT, MALLOC_ALIGNMENT_BOUND),
-			     alignof (union emacs_align_type)) };
+   On all practical Emacs targets, sizeof (struct Lisp_Float) == 8 and
+   since GCALIGNMENT also equals 8 there's little point to optimizing
+   for impractical targets.  */
+enum { LISP_ALIGNMENT = GCALIGNMENT };
 
 /* True if malloc (N) is known to return storage suitably aligned for
    Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  */

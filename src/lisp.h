@@ -277,8 +277,7 @@ error !;
    allocation in a containing union that has GCALIGNED_UNION_MEMBER)
    and does not contain a GC-aligned struct or union, putting
    GCALIGNED_STRUCT after its closing '}' can help the compiler
-   generate better code.  Also, such structs should be added to the
-   emacs_align_type union.
+   generate better code.
 
    Although these macros are reasonably portable, they are not
    guaranteed on non-GCC platforms, as C11 does not require support
@@ -5059,46 +5058,6 @@ maybe_gc (void)
   if (consing_until_gc < 0)
     maybe_garbage_collect ();
 }
-
-/* A type with alignment at least as large as any object that Emacs
-   allocates.  This is not max_align_t because some platforms (e.g.,
-   mingw) have buggy malloc implementations that do not align for
-   max_align_t.  This union contains types of all GCALIGNED_STRUCT
-   components visible here.  */
-union emacs_align_type
-{
-  struct Lisp_Bool_Vector Lisp_Bool_Vector;
-  struct Lisp_Char_Table Lisp_Char_Table;
-  struct Lisp_CondVar Lisp_CondVar;
-  struct Lisp_Finalizer Lisp_Finalizer;
-  struct Lisp_Float Lisp_Float;
-  struct Lisp_Hash_Table Lisp_Hash_Table;
-  struct Lisp_Marker Lisp_Marker;
-  struct Lisp_Misc_Ptr Lisp_Misc_Ptr;
-  struct Lisp_Mutex Lisp_Mutex;
-  struct Lisp_Overlay Lisp_Overlay;
-  struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
-  struct Lisp_Subr Lisp_Subr;
-  struct Lisp_User_Ptr Lisp_User_Ptr;
-  struct Lisp_Vector Lisp_Vector;
-  struct thread_state thread_state;
-
-  /* Omit the following since they would require including bignum.h,
-     frame.h etc., and in practice their alignments never exceed that
-     of the structs already listed.  */
-#if 0
-  struct frame frame;
-  struct Lisp_Bignum Lisp_Bignum;
-  struct Lisp_Module_Function Lisp_Module_Function;
-  struct Lisp_Process Lisp_Process;
-  struct save_window_data save_window_data;
-  struct scroll_bar scroll_bar;
-  struct terminal terminal;
-  struct window window;
-  struct xwidget xwidget;
-  struct xwidget_view xwidget_view;
-#endif
-};
 
 INLINE_HEADER_END
 
