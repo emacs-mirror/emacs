@@ -2152,9 +2152,7 @@ is not active."
        :exit-function
        (lambda (proxy _status)
          (eglot--dbind ((CompletionItem) insertTextFormat
-                        insertText
-                        textEdit
-                        additionalTextEdits)
+                        insertText textEdit additionalTextEdits label)
              (funcall
               resolve-maybe
               (or (get-text-property 0 'eglot--lsp-item proxy)
@@ -2189,7 +2187,7 @@ is not active."
                     ;; whole completion, since `insertText' is the full
                     ;; completion's text.
                     (delete-region (- (point) (length proxy)) (point))
-                    (funcall snippet-fn insertText))))
+                    (funcall snippet-fn (or insertText label)))))
            (eglot--signal-textDocument/didChange)
            (eglot-eldoc-function)))))))
 
