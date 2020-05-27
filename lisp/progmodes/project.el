@@ -732,13 +732,12 @@ loop using the command \\[fileloop-continue]."
     (project--ensure-file-exists filename)
     (with-temp-buffer
       (insert-file-contents filename)
-      (let ((dirs (split-string (string-trim (buffer-string)) "\n"))
+      (let ((dirs (split-string (buffer-string) "\n" t))
             (project-list '()))
         (dolist (dir dirs)
-          (unless (string-empty-p dir)
-            (cl-pushnew (file-name-as-directory dir)
-                        project-list
-                        :test #'equal)))
+          (cl-pushnew (file-name-as-directory dir)
+                      project-list
+                      :test #'equal))
         (setq project--list (reverse project-list))))))
 
 (defun project--ensure-read-project-list ()
