@@ -663,7 +663,7 @@ definition in the future.
 Toggle whether Edebug saves and restores the outside window
 configuration (@code{edebug-toggle-save-windows}).
 
-With a prefix argument, @code{W} only toggles saving and restoring of
+With a prefix argument, @kbd{W} only toggles saving and restoring of
 the selected window.  To specify a window that is not displaying the
 source code buffer, you must use @kbd{C-x X W} from the global keymap.
 @end table

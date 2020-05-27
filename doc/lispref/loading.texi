@@ -338,7 +338,7 @@ If the environment variable @env{EMACSLOADPATH} is set, it modifies
 the above initialization procedure.  Emacs initializes
 @code{load-path} based on the value of the environment variable.
 
-The syntax of @env{EMACSLOADPATH} is the same as used for @code{PATH};
+The syntax of @env{EMACSLOADPATH} is the same as used for @env{PATH};
 directories are separated by @samp{:} (or @samp{;}, on some
 operating systems).
 @ignore

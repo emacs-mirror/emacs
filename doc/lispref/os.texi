@@ -1194,7 +1194,7 @@ This function returns the full name of the logged-in user---or the value
 of the environment variable @env{NAME}, if that is set.
 
 If the Emacs process's user-id does not correspond to any known user (and
-provided @code{NAME} is not set), the result is @code{"unknown"}.
+provided @env{NAME} is not set), the result is @code{"unknown"}.
 
 If @var{uid} is non-@code{nil}, then it should be a number (a user-id)
 or a string (a login name).  Then @code{user-full-name} returns the full
