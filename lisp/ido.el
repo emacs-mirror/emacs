@@ -355,7 +355,7 @@ The following values are possible:
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
   :set #'(lambda (_symbol value)
-	   (ido-mode value))
+           (ido-mode (or value 0)))
   :initialize #'custom-initialize-default
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
