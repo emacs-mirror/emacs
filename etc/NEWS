@@ -197,6 +197,12 @@ their backends.
 *** Environment variable 'INSIDE_EMACS' is now copied to subprocesses.
 Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
 
+---
+*** Eshell no longer re-initializes its keymap every call.
+This allows users to use (define-key eshell-mode-map ...) as usual.
+Some modules have their own minor mode now to account for these
+changes.
+
 ** Tramp
 
 +++
