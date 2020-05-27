@@ -1808,6 +1808,27 @@ logical lines, so having a fringe indicator for each wrapped line
 would be visually distracting.  You can change this by customizing the
 variable @code{visual-line-fringe-indicators}.
 
+@vindex word-wrap-by-category
+@findex modify-category-entry
+@findex char-category-set
+@findex category-set-mnemonics
+  By default, Emacs only breaks lines after whitespace characters.
+That strategy produces bad results when CJK and Latin text are mixed
+together (because CJK characters don't use whitespace to separate
+words).  You can customize @code{word-wrap-by-category} to allow Emacs
+to break lines after any character with ``|'' category
+(@pxref{Categories,,, elisp, the Emacs Lisp Reference Manual}), which
+includes CJK characters.  Also, if this variable is set using
+Customize, Emacs automatically loads kinsoku.el.  When kinsoku.el is
+loaded, Emacs respects kinsoku rules when breaking lines.  That means
+characters with the ``>'' category don't appear at the beginning of a
+line (e.g., FULLWIDTH COMMA), and characters with the ``<'' category
+don't appear at the end of a line (e.g., LEFT DOUBLE ANGLE BRACKET).
+You can view the categories of a character by @code{char-category-set}
+and @code{category-set-mnemonics}, or type @kbd{C-u C-x =} with point
+on the character and look at the ``category'' section in the report.
+You can add categories to a character by @code{modify-category-entry}.
+
 @node Display Custom
 @section Customization of Display
 
