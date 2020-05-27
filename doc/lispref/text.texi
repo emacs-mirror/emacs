@@ -4678,7 +4678,7 @@ expanded when the header line is computed.  To do this, the
 above.  @var{specification} is an alist that has elements where the
 @code{car} is a character and the @code{cdr} is the substitution.
 
-If @code{ONLY-PRESENT} is @code{nil}, errors will be signaled if a
+If @var{only-present} is @code{nil}, errors will be signaled if a
 format character has been used that's not present in
 @var{specification}.  If it's non-@code{nil}, that format
 specification is left verbatim in the result.
