@@ -2603,7 +2603,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
       Lisp_Object out;
       const Lisp_Object *vslot = &v->contents[i];
       /* In the wide case, we're always misaligned.  */
-#ifndef WIDE_EMACS_INT
+#if INTPTR_MAX == EMACS_INT_MAX
       eassert (ctx->offset % sizeof (out) == 0);
 #endif
       dump_object_start (ctx, &out, sizeof (out));
