@@ -284,6 +284,8 @@ affected by the command.
 
 ** New command 'comment-line' bound to 'C-x C-;'.
 
+** New commands 'upcase-dwim' and 'downcase-dwim'.
+
 ** New and improved facilities for inserting Unicode characters
 
 *** Unicode names entered via 'C-x 8 RET' now use substring completion

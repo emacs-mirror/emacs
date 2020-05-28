@@ -8290,8 +8290,8 @@ get_visually_first_element (struct it *it)
     }
   else if (it->bidi_it.charpos == bob
 	   || (!string_p
-	       && (FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
-		   || FETCH_CHAR (it->bidi_it.bytepos) == '\n')))
+	       && (FETCH_BYTE (it->bidi_it.bytepos - 1) == '\n'
+		   || FETCH_BYTE (it->bidi_it.bytepos) == '\n')))
     {
       /* If we are at the beginning of a line/string, we can produce
 	 the next element right away.  */
@@ -24182,7 +24182,7 @@ the `bidi-class' property of a character.  */)
 	  itb.charpos = BEGV;
 	  itb.bytepos = BEGV_BYTE;
 	}
-      else if (FETCH_CHAR (from_bpos - 1) == '\n')
+      else if (FETCH_BYTE (from_bpos - 1) == '\n')
 	{
 	  itb.charpos = from_pos;
 	  itb.bytepos = from_bpos;
