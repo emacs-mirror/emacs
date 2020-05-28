@@ -1735,7 +1735,7 @@ operate on a different project, the command
   This command prompts you to choose a directory among known project
 roots, and then displays the menu of available commands to operate on
 the chosen project.  The variable @code{project-switch-commands}
-controls which commands are avilable in the menu, and by which keys
+controls which commands are available in the menu, and by which keys
 they are invoked.
 
 @node Change Log
