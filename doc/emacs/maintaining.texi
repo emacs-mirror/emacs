@@ -1656,8 +1656,16 @@ support additional types of projects.
 the project back-end.  For example, the VC back-end doesn't consider
 ``ignored'' files (@pxref{VC Ignore}) to be part of the project.
 
+@menu
+* Project File Commands:: Commands for handling project files.
+* Switching Projects::    Switching between projects.
+@end menu
+
+@node Project File Commands
+@subsection Project File Commands
+
   Emacs provides commands for handling project files conveniently.
-This section describes these commands.
+This subsection describes these commands.
 
 @cindex current project
   All of the commands described here share the notion of the
@@ -1704,6 +1712,31 @@ match it finds, like @code{query-replace} does (@pxref{Query
 Replace}), and continues to the next match after you respond.  If your
 response causes Emacs to exit the query-replace loop, you can later
 continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
+
+@findex project-dired
+  The command @code{project-dired} opens a Dired buffer
+(@pxref{Dired}) listing the files in the current project's root
+directory.
+
+@findex project-eshell
+  The command @code{project-eshell} starts an Eshell session in a new
+buffer with the current project's root as the working directory.
+@xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
+
+@node Switching Projects
+@subsection Switching Projects
+
+  Commands that operate on project files (@pxref{Project File
+Commands}) will conveniently prompt you for a project directory when
+no project is current.  When you are inside a project but you want to
+operate on a different project, the command
+@code{project-switch-project} can be used.
+
+  This command prompts you to choose a directory among known project
+roots, and then displays the menu of available commands to operate on
+the chosen project.  The variable @code{project-switch-commands}
+controls which commands are available in the menu, and by which keys
+they are invoked.
 
 @node Change Log
 @section Change Logs
