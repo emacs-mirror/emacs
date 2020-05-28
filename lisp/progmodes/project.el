@@ -77,9 +77,7 @@
 ;;   whole Emacs session, independent of the current directory.  Or,
 ;;   in the more advanced case, open a set of projects, and have some
 ;;   project-related commands to use them all.  E.g., have a command
-;;   to search for a regexp across all open projects.  Provide a
-;;   history of projects that were opened in the past (storing it as a
-;;   list of directories should suffice).
+;;   to search for a regexp across all open projects.
 ;;
 ;; * Support for project-local variables: a UI to edit them, and a
 ;;   utility function to retrieve a value.  Probably useless without
