@@ -199,7 +199,7 @@ rejected, and the function returns nil."
 	   (and extra-test-inclusive
 		(funcall extra-test-inclusive))))))
 
-(defcustom next-error-find-buffer-function #'next-error-no-navigation-try-current
+(defcustom next-error-find-buffer-function #'ignore
   "Function called to find a `next-error' capable buffer.
 This functions takes the same three arguments as the function
 `next-error-find-buffer', and should return the buffer to be
@@ -215,7 +215,7 @@ all other buffers."
                         next-error-no-navigation-try-current)
                  (function :tag "Other function"))
   :group 'next-error
-  :version "27.1")
+  :version "28.1")
 
 (defcustom next-error-found-function #'ignore
   "Function called when a next locus is found and displayed.
