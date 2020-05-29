@@ -22,9 +22,11 @@ The style guide in guide.impl.c.format_ contains basic rules for style.
 
 Licensing
 ---------
-In order for us to accept your contribution, you must agree to the MPS
-contribution agreement, so that we can continue to commercially license the
-MPS and thereby fund future development.
+Prior to the 2020-05 re-licensing of the MPS under the BSD 2-clause
+license, we required contributors to agree to the following
+contribution agreement, so that we could continue to commercially
+license the MPS and thereby fund future development. We have not yet
+decided what may replace this requirement.
 
     I grant Ravenbrook Ltd an irrevocable, perpetual, worldwide,
     non-exclusive licence to do anything with [your contribution] that I
