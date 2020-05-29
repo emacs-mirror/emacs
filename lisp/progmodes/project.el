@@ -783,9 +783,9 @@ It's also possible to enter an arbitrary directory."
           ;; completion style).
           (project--file-completion-table
            (append project--list `(,dir-choice))))
-         (pr-dir (completing-read "Project: " choices nil t)))
+         (pr-dir (completing-read "Select project: " choices nil t)))
     (if (equal pr-dir dir-choice)
-        (read-directory-name "Choose directory: " default-directory nil t)
+        (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
 
 
