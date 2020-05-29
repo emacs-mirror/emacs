@@ -20338,6 +20338,12 @@ try_window_id (struct window *w)
 
       if (! init_to_row_end (&it, w, last_unchanged_at_beg_row))
 	GIVE_UP (18);
+      /* Give up if the row starts with a display property that draws
+	 on the fringes, since that could prevent correct display of
+	 line-prefix and wrap-prefix.  */
+      if (it.sp > 1
+	  && it.method == GET_FROM_IMAGE && it.image_id == -1)
+	GIVE_UP (26);
       start_pos = it.current.pos;
 
       /* Start displaying new lines in the desired matrix at the same
