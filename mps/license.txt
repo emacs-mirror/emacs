@@ -1,35 +1,27 @@
 Memory Pool System Kit Open Source License
 ==========================================
 
-This is the license under which the Memory Pool System Kit is available as
-open source.
+This is the license under which the Memory Pool System Kit is made
+available by Ravenbrook Limited. This license is generally known as
+the `BSD 2-clause license`_.  It is `GPL compatible`_ and
+`OSI approved`_.
 
-**It is not the only way the MPS is licensed.**
+For avoidance of doubt, this license supersedes any older licenses
+that may appear in other files that are part of this distribution
+and in any of its branches.
 
-If the licensing terms aren't suitable for you (for example, you're
-developing a closed-source commercial product or a compiler run-time
-system) you can easily license the MPS under different terms from
-Ravenbrook.  Please write to us at `<mps-questions@ravenbrook.com>`_
-for more information.
-
-The open source license for the MPS is the `Sleepycat License`_ also
-known as the "Berkeley Database License".  This license is
-`GPL compatible`_ and `OSI approved`_.  The MPS is "multi licensed" in
-a manner similar to MySQL.
+Prior to 2020, the MPS was "multi-licensed" under the `Sleepycat
+License`_ and also by other specifically arranged license agreements.
 
 .. _Sleepycat License: https://en.wikipedia.org/wiki/Sleepycat_License
-.. _GPL compatible: http://www.gnu.org/licenses/license-list.html
-.. _OSI approved: http://opensource.org/licenses/sleepycat
-
+.. _GPL compatible: https://www.gnu.org/licenses/license-list.html
+.. _OSI approved: https://opensource.org/licenses/sleepycat
+.. _BSD 2-clause license: https://opensource.org/licenses/BSD-2-Clause
 
 License
 -------
 
-Copyright © 2001–2013 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
-All rights reserved.  This is the open source license for the Memory
-Pool System, but it is not the only one.  Contact Ravenbrook at
-`<mps-questions@ravenbrook.com>`_ if you would like a different
-license.
+Copyright © 2001–2020 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -43,39 +35,15 @@ met:
    documentation and/or other materials provided with the
    distribution.
 
-3. Redistributions in any form must be accompanied by information on
-   how to obtain complete source code for this software and any
-   accompanying software that uses this software.  The source code
-   must either be included in the distribution or be available for no
-   more than the cost of distribution plus a nominal fee, and must be
-   freely redistributable under reasonable conditions.  For an
-   executable file, complete source code means the source code for all
-   modules it contains.  It does not include source code for modules
-   or files that typically accompany the major components of the
-   operating system on which the executable file runs.
-
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-Exceptions
-----------
-
-**Open Dylan**
-
-    Software that makes use of the Memory Pool System only via the Dylan
-    programming language using the Open Dylan implementation and any
-    accompanying software is exempt from clause 3 of the license, provided
-    that the Dylan program is not providing memory management services.  For
-    the avoidance of doubt, this exemption does not apply to software
-    directly using a copy of the Memory Pool System received as part of the
-    Open Dylan source code.
