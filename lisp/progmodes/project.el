@@ -743,25 +743,20 @@ Arguments the same as in `compile'."
 (defvar project--list 'unset
   "List of known project directories.")
 
-(defun project--ensure-file-exists (filename)
-  "Create an empty file FILENAME if it doesn't exist."
-  (unless (file-exists-p filename)
-    (with-temp-buffer
-      (write-file filename))))
-
 (defun project--read-project-list ()
   "Initialize `project--list' from the project list file."
   (let ((filename (locate-user-emacs-file "project-list")))
-    (project--ensure-file-exists filename)
-    (with-temp-buffer
-      (insert-file-contents filename)
-      (let ((dirs (split-string (buffer-string) "\n" t))
-            (project-list '()))
-        (dolist (dir dirs)
-          (cl-pushnew (file-name-as-directory dir)
-                      project-list
-                      :test #'equal))
-        (setq project--list (reverse project-list))))))
+    (setq project--list
+          (when (file-exists-p filename)
+            (with-temp-buffer
+              (insert-file-contents filename)
+              (let ((dirs (split-string (buffer-string) "\n" t))
+                    (project-list '()))
+                (dolist (dir dirs)
+                  (cl-pushnew (file-name-as-directory dir)
+                              project-list
+                              :test #'equal))
+                (reverse project-list)))))))
 
 (defun project--ensure-read-project-list ()
   "Initialize `project--list' if it hasn't already been."
