@@ -170,8 +170,8 @@ a greeting from the server.
 :nowait, if non-nil, says the connection should be made
 asynchronously, if possible.
 
-:shell-command is a format-spec string that can be used if :type
-is `shell'.  It has two specs, %s for host and %p for port
+:shell-command is a `format-spec' string that can be used if
+:type is `shell'.  It has two specs, %s for host and %p for port
 number.  Example: \"ssh gateway nc %s %p\".
 
 :tls-parameters is a list that should be supplied if you're
@@ -453,11 +453,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
                   (network-stream-command stream capability-command eo-capa)
                   'tls)))))))
 
-(declare-function format-spec "format-spec" (format spec))
-(declare-function format-spec-make "format-spec" (&rest pairs))
-
 (defun network-stream-open-shell (name buffer host service parameters)
-  (require 'format-spec)
   (let* ((capability-command (plist-get parameters :capability-command))
 	 (eoc 		     (plist-get parameters :end-of-command))
 	 (start (with-current-buffer buffer (point)))
@@ -467,9 +463,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 				  shell-command-switch
 				  (format-spec
 				   (plist-get parameters :shell-command)
-				   (format-spec-make
-				    ?s host
-				    ?p service))))))
+                                   `((?s . ,host)
+                                     (?p . ,service)))))))
     (when coding (if (consp coding)
                        (set-process-coding-system stream
                                                   (car coding)

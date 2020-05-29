@@ -461,6 +461,16 @@ In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
 The old names, which were kept as obsolete aliases of the new names,
 have now been removed.
 
+** Battery
+
+---
+*** A richer syntax can be used to format battery status information.
+The user options 'battery-mode-line-format' and
+'battery-echo-area-format' now support the full formatting syntax of
+the function 'format-spec' documented under '(elisp) Custom Format
+Strings'.  The new syntax includes specifiers for padding and
+truncation, amongst other things.
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -577,6 +587,13 @@ for encoding and decoding without having to bind
 ** New user option 'process-file-return-signal-string'.
 It controls, whether 'process-file' returns a string when a remote
 process is interrupted by a signal.
+
++++
+** The behavior of 'format-spec' is now closer to that of 'format'.
+In order for the two functions to behave more consistently,
+'format-spec' now pads and truncates based on string width rather than
+length, and also supports format specifications that include a
+truncating precision field, such as '%.2a'.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

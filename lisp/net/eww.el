@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'format-spec)
 (require 'shr)
 (require 'url)
 (require 'url-queue)

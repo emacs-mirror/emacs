@@ -555,16 +555,15 @@ See `erc-log-match-format'."
 	       (and (eq erc-log-matches-flag 'away)
 		    (erc-away-time)))
 	   match-buffer-name)
-      (let ((line (format-spec erc-log-match-format
-		   (format-spec-make
-		    ?n nick
-		    ?t (format-time-string
-			(or (and (boundp 'erc-timestamp-format)
-				 erc-timestamp-format)
-			    "[%Y-%m-%d %H:%M] "))
-		    ?c (or (erc-default-target) "")
-		    ?m message
-		    ?u nickuserhost))))
+      (let ((line (format-spec
+                   erc-log-match-format
+                   `((?n . ,nick)
+                     (?t . ,(format-time-string
+                             (or (bound-and-true-p erc-timestamp-format)
+                                 "[%Y-%m-%d %H:%M] ")))
+                     (?c . ,(or (erc-default-target) ""))
+                     (?m . ,message)
+                     (?u . ,nickuserhost)))))
 	(with-current-buffer (erc-log-matches-make-buffer match-buffer-name)
 	  (let ((inhibit-read-only t))
 	    (goto-char (point-max))

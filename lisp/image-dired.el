@@ -149,7 +149,6 @@
 ;;; Code:
 
 (require 'dired)
-(require 'format-spec)
 (require 'image-mode)
 (require 'widget)
 

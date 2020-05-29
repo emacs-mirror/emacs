@@ -121,7 +121,10 @@ string are substituted as defined by the current value of the variable
 %p Battery load percentage
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
-%t Remaining time (to charge or discharge) in the form `h:min'"
+%t Remaining time (to charge or discharge) in the form `h:min'
+
+The full `format-spec' formatting syntax is supported."
+  :link '(info-link "(elisp) Custom Format Strings")
   :type '(choice string (const nil)))
 
 (defvar battery-mode-line-string nil
@@ -153,7 +156,10 @@ string are substituted as defined by the current value of the variable
 %p Battery load percentage
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
-%t Remaining time (to charge or discharge) in the form `h:min'"
+%t Remaining time (to charge or discharge) in the form `h:min'
+
+The full `format-spec' formatting syntax is supported."
+  :link '(info-link "(elisp) Custom Format Strings")
   :type '(choice string (const nil)))
 
 (defcustom battery-update-interval 60
@@ -823,13 +829,7 @@ The following %-sequences are provided:
 
 (defun battery-format (format alist)
   "Substitute %-sequences in FORMAT."
-  (replace-regexp-in-string
-   "%."
-   (lambda (str)
-     (let ((char (aref str 1)))
-       (if (eq char ?%) "%"
-	 (or (cdr (assoc char alist)) ""))))
-   format t t))
+  (format-spec format alist 'delete))
 
 (defun battery-search-for-one-match-in-files (files regexp match-num)
   "Search REGEXP in the content of the files listed in FILES.

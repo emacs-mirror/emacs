@@ -52,7 +52,7 @@
   "Test `battery-format'."
   (should (equal (battery-format "" ()) ""))
   (should (equal (battery-format "" '((?b . "-"))) ""))
-  (should (equal (battery-format "%a%b%p%%" '((?b . "-") (?p . "99")))
-                 "-99%")))
+  (should (equal (battery-format "%2a%-3b%.1p%%" '((?b . "-") (?p . "99")))
+                 "-  9%")))
 
 ;;; battery-tests.el ends here
