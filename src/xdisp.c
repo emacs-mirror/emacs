@@ -15566,6 +15566,12 @@ redisplay_internal (void)
 	  if (it.current_x != this_line_start_x)
 	    goto cancel;
 
+	  /* Give up on this optimization if the line starts with a
+	     string with display property that draws on the fringes,
+	     as that might interfere with line-prefix display.  */
+	  if (it.sp > 1
+	      && it.method == GET_FROM_IMAGE && it.image_id == -1)
+	    goto cancel;
 	  redisplay_trace ("trying display optimization 1\n");
 	  w->cursor.vpos = -1;
 	  overlay_arrow_seen = false;
