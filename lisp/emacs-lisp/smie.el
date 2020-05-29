@@ -52,6 +52,13 @@
 ;;   error because the parser just automatically does something.  Better yet,
 ;;   we can afford to use a sloppy grammar.
 
+;; The benefits of this approach were presented in the following article,
+;; which includes a kind of tutorial to get started with SMIE:
+;;
+;;     SMIE: Weakness is Power!  Auto-indentation with incomplete information
+;;     Stefan Monnier, <Programming> Journal 2020, volumn 5, issue 1.
+;;     doi: 10.22152/programming-journal.org/2020/5/1
+
 ;; A good background to understand the development (especially the parts
 ;; building the 2D precedence tables and then computing the precedence levels
 ;; from it) can be found in pages 187-194 of "Parsing techniques" by Dick Grune
@@ -62,6 +69,7 @@
 ;; untold numbers of black magic spells, to come up with the indentation code.
 ;; Since then, some of that code has been beaten into submission, but the
 ;; smie-indent-keyword is still pretty obscure.
+
 
 ;; Conflict resolution:
 ;;
@@ -1356,9 +1364,9 @@ Only meaningful when called from within `smie-rules-function'."
           (funcall smie-rules-function :elem 'basic))
       smie-indent-basic))
 
-(defun smie-indent--rule (method token
-                          ;; FIXME: Too many parameters.
-                          &optional after parent base-pos)
+(defun smie-indent--rule ( method token
+                           ;; FIXME: Too many parameters.
+                           &optional after parent base-pos)
   "Compute indentation column according to `smie-rules-function'.
 METHOD and TOKEN are passed to `smie-rules-function'.
 AFTER is the position after TOKEN, if known.
