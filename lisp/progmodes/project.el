@@ -115,10 +115,11 @@ the user for a different project to look in."
         maybe-prompt)
       (setq dir (project-prompt-project-dir)
             pr (project--find-in-directory dir))))
-    (if pr
-        (project--add-to-project-list-front pr)
-      (project--remove-from-project-list dir)
-      (setq pr (cons 'transient dir)))
+    (when maybe-prompt
+      (if pr
+          (project--add-to-project-list-front pr)
+        (project--remove-from-project-list dir)
+        (setq pr (cons 'transient dir))))
     pr))
 
 (defun project--find-in-directory (dir)
