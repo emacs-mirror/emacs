@@ -4120,7 +4120,12 @@ static void
 register_native_comp_unit (Lisp_Object comp_u)
 {
 #ifdef WINDOWSNT
-  Fputhash (CALL1I (gensym, Qnil), comp_u, all_loaded_comp_units_h);
+  /* We have to do this since we can't use `gensym'. This function is
+     called early when loading a dump file and subr.el may not have
+     been loaded yet.  */
+  static intmax_t count;
+
+  Fputhash (make_int (count++), comp_u, all_loaded_comp_units_h);
 #endif
 }
 
