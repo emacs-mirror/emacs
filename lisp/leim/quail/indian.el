@@ -117,6 +117,7 @@
  indian-knd-itrans-v5-hash "kannada-itrans" "Kannada" "KndIT"
  "Kannada transliteration by ITRANS method.")
 
+;; ITRANS not applicable to Malayalam & could be removed eventually
 (if nil
     (quail-define-package "malayalam-itrans" "Malayalam" "MlmIT" t "Malayalam ITRANS"))
 (quail-define-indian-trans-package
@@ -358,24 +359,23 @@ Full key sequences are listed below:")
   '(
     (;; VOWELS  (18)
      (?D nil) (?E ?e) (?F ?f) (?R ?r) (?G ?g) (?T ?t)
-     (?+ ?=) ("F]" "f]") (?! ?@) (?S ?s) (?Z ?z) (?W ?w)
-     (?| ?\\) (?~ ?`) (?A ?a) (?Q ?q) ("+]" "=]") ("R]" "r]"))
+     (?= ?+) nil nil (?S ?s) (?Z ?z) (?W ?w)
+     nil (?~ ?`) (?A ?a) (?Q ?q))
     (;; CONSONANTS (42)
      ?k ?K ?i ?I ?U                ;; GRUTTALS
      ?\; ?: ?p ?P ?}               ;; PALATALS
      ?' ?\" ?\[ ?{ ?C              ;; CEREBRALS
-     ?l ?L ?o ?O ?v ?V             ;; DENTALS
+     ?l ?L ?o ?O ?v nil            ;; DENTALS
      ?h ?H ?y ?Y ?c                ;; LABIALS
-     ?/ ?j ?J ?n ?N "N]" ?b        ;; SEMIVOWELS
+     ?/ ?j ?J ?n ?N ?B ?b          ;; SEMIVOWELS
      ?M ?< ?m ?u                   ;; SIBILANTS
-     "k]" "K]" "i]" "p]" "[]" "{]" "H]" "/]" ;; NUKTAS
-     ?% ?&)
+     nil nil nil nil nil nil nil nil nil) ;; NUKTAS
     (;; Misc Symbols (7)
-     ?X ?x ?_ ">]" ?d "X]" ?>)
+     nil ?x ?_ nil ?d)
     (;; Digits
      ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
-    (;; Inscripts
-     ?# ?$ ?^ ?* ?\])))
+    (;; Chillus
+     "Cd" "Cd]" "vd" "vd]" "jd" "jd]" "nd" "nd]" "Nd" "Nd]")))
 
 (defvar inscript-tml-keytable
   '(
@@ -462,6 +462,9 @@ Full key sequences are listed below:")
  indian-mlm-base-table inscript-mlm-keytable
  "malayalam-inscript" "Malayalam" "MlmIS"
  "Malayalam keyboard Inscript.")
+
+(quail-defrule "\\" ?‌)
+(quail-defrule "X" ?​)
 
 (if nil
     (quail-define-package "tamil-inscript" "Tamil" "TmlIS" t "Tamil keyboard Inscript"))
@@ -570,5 +573,73 @@ Full key sequences are listed below:")
   ("." ?।)
   ("?" ?\?)
   ("/" ?্))
+
+(defun indian-mlm-mozhi-update-translation (control-flag)
+  (let ((len (length quail-current-key)) chillu
+	(vowels '(?a ?e ?i ?o ?u ?A ?E ?I ?O ?U ?R)))
+    (cond ((numberp control-flag)
+	   (progn (if (= control-flag 0)
+		      (setq quail-current-str quail-current-key)
+		    (cond (input-method-exit-on-first-char)
+			  ((and (memq (aref quail-current-key
+					    (1- control-flag))
+				      vowels)
+				(setq chillu (cl-position
+					      (aref quail-current-key
+						    control-flag)
+					      '(?m ?N ?n ?r ?l ?L))))
+			   ;; conditions for putting chillu
+			   (and (or (and (= control-flag (1- len))
+					 (not (setq control-flag nil)))
+				    (and (= control-flag (- len 2))
+					 (let ((temp (aref quail-current-key
+							   (1- len))))
+                                           ;; is it last char of word?
+					   (not
+					    (or (and (>= temp ?a) (<= temp ?z))
+						(and (>= temp ?A) (<= temp ?Z))
+						(eq temp ?~))))
+					 (setq control-flag (1+ control-flag))))
+				(setq quail-current-str     ;; put chillu
+				      (concat (if (not (stringp
+							quail-current-str))
+						  (string quail-current-str)
+						quail-current-str)
+					      (string
+					       (nth chillu '(?ം ?ൺ ?ൻ ?ർ ?ൽ ?ൾ)))))))))
+		  (and (not input-method-exit-on-first-char) control-flag
+		       (while (> len control-flag)
+			 (setq len (1- len))
+			 (setq unread-command-events
+			       (cons (aref quail-current-key len)
+				     unread-command-events))))
+		  ))
+	  ((null control-flag)
+	   (unless quail-current-str
+	     (setq quail-current-str quail-current-key)
+	     ))
+	  ((equal control-flag t)
+	   (if (memq (aref quail-current-key (1- len))  ;; If vowel ending,
+		     vowels)                            ;; may have to put
+	       (setq control-flag nil)))))              ;; chillu. So don't
+  control-flag)                                         ;; end translation
+
+(quail-define-package "malayalam-mozhi" "Malayalam" "MlmMI" t
+                      "Malayalam transliteration by Mozhi method."
+                      nil nil t nil nil nil t nil
+                      'indian-mlm-mozhi-update-translation)
+
+(maphash
+ (lambda (key val)
+   (quail-defrule key (if (= (length val) 1)
+			  (string-to-char val)
+			(vector val))))
+ (cdr indian-mlm-mozhi-hash))
+
+(defun indian-mlm-mozhi-underscore (key len) (throw 'quail-tag nil))
+
+(quail-defrule "_" 'indian-mlm-mozhi-underscore)
+(quail-defrule "|" ?‌)
+(quail-defrule "||" ?​)
 
 ;;; indian.el ends here

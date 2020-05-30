@@ -4,6 +4,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: mail, news, mime, multimedia
+;; Obsolete-since: 28.1
 
 ;; This file is part of GNU Emacs.
 

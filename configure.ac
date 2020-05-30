@@ -414,7 +414,11 @@ this option's value should be 'yes', 'no', 'lucid', 'athena', 'motif', 'gtk',
 	  with_x_toolkit=$val
 ])
 
-OPTION_DEFAULT_OFF([wide-int], [prefer wide Emacs integers (typically 62-bit); allows buffer and string size up to 2GB on 32-bit hosts, at the cost of 10% to 30% slowdown of Lisp interpreter and larger memory footprint])
+OPTION_DEFAULT_OFF([wide-int],
+  [prefer wide Emacs integers (typically 62-bit);
+   on 32-bit hosts, this allows buffer and string size up to 2GB,
+   at the cost of 10% to 30% slowdown of Lisp interpreter
+   and larger memory footprint])
 if test "$with_wide_int" = yes; then
   AC_DEFINE([WIDE_EMACS_INT], 1, [Use long long for EMACS_INT if available.])
 fi

@@ -8290,8 +8290,8 @@ get_visually_first_element (struct it *it)
     }
   else if (it->bidi_it.charpos == bob
 	   || (!string_p
-	       && (FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
-		   || FETCH_CHAR (it->bidi_it.bytepos) == '\n')))
+	       && (FETCH_BYTE (it->bidi_it.bytepos - 1) == '\n'
+		   || FETCH_BYTE (it->bidi_it.bytepos) == '\n')))
     {
       /* If we are at the beginning of a line/string, we can produce
 	 the next element right away.  */
@@ -15566,6 +15566,12 @@ redisplay_internal (void)
 	  if (it.current_x != this_line_start_x)
 	    goto cancel;
 
+	  /* Give up on this optimization if the line starts with a
+	     string with display property that draws on the fringes,
+	     as that might interfere with line-prefix display.  */
+	  if (it.sp > 1
+	      && it.method == GET_FROM_IMAGE && it.image_id == -1)
+	    goto cancel;
 	  redisplay_trace ("trying display optimization 1\n");
 	  w->cursor.vpos = -1;
 	  overlay_arrow_seen = false;
@@ -20338,6 +20344,12 @@ try_window_id (struct window *w)
 
       if (! init_to_row_end (&it, w, last_unchanged_at_beg_row))
 	GIVE_UP (18);
+      /* Give up if the row starts with a display property that draws
+	 on the fringes, since that could prevent correct display of
+	 line-prefix and wrap-prefix.  */
+      if (it.sp > 1
+	  && it.method == GET_FROM_IMAGE && it.image_id == -1)
+	GIVE_UP (26);
       start_pos = it.current.pos;
 
       /* Start displaying new lines in the desired matrix at the same
@@ -24182,7 +24194,7 @@ the `bidi-class' property of a character.  */)
 	  itb.charpos = BEGV;
 	  itb.bytepos = BEGV_BYTE;
 	}
-      else if (FETCH_CHAR (from_bpos - 1) == '\n')
+      else if (FETCH_BYTE (from_bpos - 1) == '\n')
 	{
 	  itb.charpos = from_pos;
 	  itb.bytepos = from_bpos;

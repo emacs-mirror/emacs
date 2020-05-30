@@ -690,9 +690,9 @@ updates `package-alist'."
       (progn (package-load-all-descriptors)
              package-alist)))
 
-(defun define-package (_name-string _version-string
-                                    &optional _docstring _requirements
-                                    &rest _extra-properties)
+(defun define-package ( _name-string _version-string
+                        &optional _docstring _requirements
+                        &rest _extra-properties)
   "Define a new package.
 NAME-STRING is the name of the package, as a string.
 VERSION-STRING is the version of the package, as a string.
@@ -1219,8 +1219,8 @@ The return result is a `package-desc'."
                              cipher-algorithm
                              digest-algorithm
                              compress-algorithm))
-(declare-function epg-verify-string "epg" (context signature
-                                                   &optional signed-text))
+(declare-function epg-verify-string "epg" ( context signature
+                                            &optional signed-text))
 (declare-function epg-context-result-for "epg" (context name))
 (declare-function epg-signature-status "epg" (signature) t)
 (declare-function epg-signature-to-string "epg" (signature))

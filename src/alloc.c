@@ -104,6 +104,46 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32heap.h"	/* for sbrk */
 #endif
 
+/* A type with alignment at least as large as any object that Emacs
+   allocates.  This is not max_align_t because some platforms (e.g.,
+   mingw) have buggy malloc implementations that do not align for
+   max_align_t.  This union contains types of all GCALIGNED_STRUCT
+   components visible here.  */
+union emacs_align_type
+{
+  struct frame frame;
+  struct Lisp_Bignum Lisp_Bignum;
+  struct Lisp_Bool_Vector Lisp_Bool_Vector;
+  struct Lisp_Char_Table Lisp_Char_Table;
+  struct Lisp_CondVar Lisp_CondVar;
+  struct Lisp_Finalizer Lisp_Finalizer;
+  struct Lisp_Float Lisp_Float;
+  struct Lisp_Hash_Table Lisp_Hash_Table;
+  struct Lisp_Marker Lisp_Marker;
+  struct Lisp_Misc_Ptr Lisp_Misc_Ptr;
+  struct Lisp_Mutex Lisp_Mutex;
+  struct Lisp_Overlay Lisp_Overlay;
+  struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
+  struct Lisp_Subr Lisp_Subr;
+  struct Lisp_User_Ptr Lisp_User_Ptr;
+  struct Lisp_Vector Lisp_Vector;
+  struct terminal terminal;
+  struct thread_state thread_state;
+  struct window window;
+
+  /* Omit the following since they would require including process.h
+     etc.  In practice their alignments never exceed that of the
+     structs already listed.  */
+#if 0
+  struct Lisp_Module_Function Lisp_Module_Function;
+  struct Lisp_Process Lisp_Process;
+  struct save_window_data save_window_data;
+  struct scroll_bar scroll_bar;
+  struct xwidget_view xwidget_view;
+  struct xwidget xwidget;
+#endif
+};
+
 /* MALLOC_SIZE_NEAR (N) is a good number to pass to malloc when
    allocating a block of memory with size close to N bytes.
    For best results N should be a power of 2.
@@ -112,9 +152,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    adds sizeof (size_t) to SIZE for internal overhead, and then rounds
    up to a multiple of MALLOC_ALIGNMENT.  Emacs can improve
    performance a bit on GNU platforms by arranging for the resulting
-   size to be a power of two.  This heuristic is good for glibc 2.0
-   (1997) through at least glibc 2.31 (2020), and does not affect
-   correctness on other platforms.  */
+   size to be a power of two.  This heuristic is good for glibc 2.26
+   (2017) and later, and does not affect correctness on other
+   platforms.  */
 
 #define MALLOC_SIZE_NEAR(n) \
   (ROUNDUP (max (n, sizeof (size_t)), MALLOC_ALIGNMENT) - sizeof (size_t))
@@ -655,25 +695,19 @@ buffer_memory_full (ptrdiff_t nbytes)
 #define COMMON_MULTIPLE(a, b) \
   ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
 
-/* LISP_ALIGNMENT is the alignment of Lisp objects.  It must be at
-   least GCALIGNMENT so that pointers can be tagged.  It also must be
-   at least as strict as the alignment of all the C types used to
-   implement Lisp objects; since pseudovectors can contain any C type,
-   this is max_align_t.  On recent GNU/Linux x86 and x86-64 this can
-   often waste up to 8 bytes, since alignof (max_align_t) is 16 but
-   typical vectors need only an alignment of 8.  Although shrinking
-   the alignment to 8 would save memory, it cost a 20% hit to Emacs
-   CPU performance on Fedora 28 x86-64 when compiled with gcc -m32.  */
-enum { LISP_ALIGNMENT = alignof (union { max_align_t x;
+/* Alignment needed for memory blocks that are allocated via malloc
+   and that contain Lisp objects.  On typical hosts malloc already
+   aligns sufficiently, but extra work is needed on oddball hosts
+   where Emacs would crash if malloc returned a non-GCALIGNED pointer.  */
+enum { LISP_ALIGNMENT = alignof (union { union emacs_align_type x;
 					 GCALIGNED_UNION_MEMBER }) };
 verify (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
 /* True if malloc (N) is known to return storage suitably aligned for
    Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  In
    practice this is true whenever alignof (max_align_t) is also a
-   multiple of LISP_ALIGNMENT.  This works even for x86, where some
-   platform combinations (e.g., GCC 7 and later, glibc 2.25 and
-   earlier) have bugs where alignof (max_align_t) is 16 even though
+   multiple of LISP_ALIGNMENT.  This works even for buggy platforms
+   like MinGW circa 2020, where alignof (max_align_t) is 16 even though
    the malloc alignment is only 8, and where Emacs still works because
    it never does anything that requires an alignment of 16.  */
 enum { MALLOC_IS_LISP_ALIGNED = alignof (max_align_t) % LISP_ALIGNMENT == 0 };
@@ -4660,16 +4694,33 @@ mark_maybe_objects (Lisp_Object const *array, ptrdiff_t nelts)
     mark_maybe_object (*array);
 }
 
+/* A lower bound on the alignment of Lisp objects that need marking.
+   Although 1 is safe, higher values speed up mark_maybe_pointer.
+   If USE_LSB_TAG, this value is typically GCALIGNMENT; otherwise,
+   it's determined by the natural alignment of Lisp structs.
+   All vectorlike objects have alignment at least that of union
+   vectorlike_header and it's unlikely they all have alignment greater,
+   so use the union as a safe and likely-accurate standin for
+   vectorlike objects.  */
+
+enum { GC_OBJECT_ALIGNMENT_MINIMUM
+         = max (GCALIGNMENT,
+		min (alignof (union vectorlike_header),
+		     min (min (alignof (struct Lisp_Cons),
+			       alignof (struct Lisp_Float)),
+			  min (alignof (struct Lisp_String),
+			       alignof (struct Lisp_Symbol))))) };
+
 /* Return true if P might point to Lisp data that can be garbage
    collected, and false otherwise (i.e., false if it is easy to see
    that P cannot point to Lisp data that can be garbage collected).
    Symbols are implemented via offsets not pointers, but the offsets
-   are also multiples of LISP_ALIGNMENT.  */
+   are also multiples of GC_OBJECT_ALIGNMENT_MINIMUM.  */
 
 static bool
 maybe_lisp_pointer (void *p)
 {
-  return (uintptr_t) p % LISP_ALIGNMENT == 0;
+  return (uintptr_t) p % GC_OBJECT_ALIGNMENT_MINIMUM == 0;
 }
 
 /* If P points to Lisp data, mark that as live if it isn't already
@@ -4892,9 +4943,10 @@ test_setjmp (void)
    as a stack scan limit.  */
 typedef union
 {
-  /* Align the stack top properly.  Even if !HAVE___BUILTIN_UNWIND_INIT,
-     jmp_buf may not be aligned enough on darwin-ppc64.  */
-  max_align_t o;
+  /* Make sure stack_top and m_stack_bottom are properly aligned as GC
+     expects.  */
+  Lisp_Object o;
+  void *p;
 #ifndef HAVE___BUILTIN_UNWIND_INIT
   sys_jmp_buf j;
   char c;

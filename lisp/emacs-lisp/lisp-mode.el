@@ -956,6 +956,7 @@ is the buffer position of the start of the containing expression."
           ;; setting this to a number inhibits calling hook
           (desired-indent nil)
           (retry t)
+          whitespace-after-open-paren
           calculate-lisp-indent-last-sexp containing-sexp)
       (cond ((or (markerp parse-start) (integerp parse-start))
              (goto-char parse-start))
@@ -985,6 +986,7 @@ is the buffer position of the start of the containing expression."
           nil
         ;; Innermost containing sexp found
         (goto-char (1+ containing-sexp))
+        (setq whitespace-after-open-paren (looking-at (rx whitespace)))
         (if (not calculate-lisp-indent-last-sexp)
 	    ;; indent-point immediately follows open paren.
 	    ;; Don't call hook.
@@ -999,9 +1001,11 @@ is the buffer position of the start of the containing expression."
 		    calculate-lisp-indent-last-sexp)
 		 ;; This is the first line to start within the containing sexp.
 		 ;; It's almost certainly a function call.
-		 (if (= (point) calculate-lisp-indent-last-sexp)
+		 (if (or (= (point) calculate-lisp-indent-last-sexp)
+                         whitespace-after-open-paren)
 		     ;; Containing sexp has nothing before this line
-		     ;; except the first element.  Indent under that element.
+		     ;; except the first element, or the first element is
+                     ;; preceded by whitespace.  Indent under that element.
 		     nil
 		   ;; Skip the first element, find start of second (the first
 		   ;; argument of the function call) and indent under.

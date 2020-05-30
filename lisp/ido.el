@@ -355,7 +355,7 @@ The following values are possible:
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
   :set #'(lambda (_symbol value)
-	   (ido-mode value))
+           (ido-mode (or value 0)))
   :initialize #'custom-initialize-default
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
@@ -3410,13 +3410,18 @@ instead removed from the current item list."
 
 (defun ido-make-buffer-list-1 (&optional frame visible)
   "Return list of non-ignored buffer names."
-  (delq nil
-	(mapcar
-	 (lambda (x)
-	   (let ((name (buffer-name x)))
-	     (if (not (or (ido-ignore-item-p name ido-ignore-buffers) (member name visible)))
-		 name)))
-	 (buffer-list frame))))
+  (with-temp-buffer
+    ;; Each call to ido-ignore-item-p LET-binds case-fold-search.
+    ;; That is slow if there's no buffer-local binding available,
+    ;; roughly O(number of buffers).  This hack avoids it.
+    (setq-local case-fold-search nil)
+    (delq nil
+	  (mapcar
+	   (lambda (x)
+	     (let ((name (buffer-name x)))
+	       (if (not (or (ido-ignore-item-p name ido-ignore-buffers) (member name visible)))
+		   name)))
+	   (buffer-list frame)))))
 
 (defun ido-make-buffer-list (default)
   "Return the current list of buffers.

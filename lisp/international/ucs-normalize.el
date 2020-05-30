@@ -612,14 +612,16 @@ COMPOSITION-PREDICATE will be used to compose region."
 (defun ucs-normalize-hfs-nfd-post-read-conversion (len)
   (save-excursion
     (save-restriction
-      (narrow-to-region (point) (+ (point) len))
-      (ucs-normalize-HFS-NFC-region (point-min) (point-max))
-      (- (point-max) (point-min)))))
+      (save-match-data
+        (narrow-to-region (point) (+ (point) len))
+        (ucs-normalize-HFS-NFC-region (point-min) (point-max))
+        (- (point-max) (point-min))))))
 
 ;; Pre-write conversion for `utf-8-hfs'.
 ;; _from and _to are legacy arguments (see `define-coding-system').
 (defun ucs-normalize-hfs-nfd-pre-write-conversion (_from _to)
-  (ucs-normalize-HFS-NFD-region (point-min) (point-max)))
+  (save-match-data
+    (ucs-normalize-HFS-NFD-region (point-min) (point-max))))
 
 ;;; coding-system definition
 (define-coding-system 'utf-8-hfs

@@ -211,9 +211,11 @@ all other buffers."
   :type '(choice (const :tag "No default" ignore)
                  (const :tag "Single next-error capable buffer on selected frame"
                         next-error-buffer-on-selected-frame)
+                 (const :tag "Current buffer if next-error capable and outside navigation"
+                        next-error-no-navigation-try-current)
                  (function :tag "Other function"))
   :group 'next-error
-  :version "27.1")
+  :version "28.1")
 
 (defcustom next-error-found-function #'ignore
   "Function called when a next locus is found and displayed.
@@ -240,6 +242,22 @@ from which next-error navigated, and a target buffer TO-BUFFER."
     (if (eq (length window-buffers) 1)
         (car window-buffers))))
 
+(defun next-error-no-navigation-try-current (&optional
+                                             avoid-current
+                                             extra-test-inclusive
+                                             extra-test-exclusive)
+  "Try the current buffer when outside navigation.
+But return nil if we navigated to the current buffer by the means
+of `next-error' command.  Othewise, return it if it's next-error
+capable."
+  ;; Check that next-error-buffer has no buffer-local value
+  ;; (i.e. we never navigated to the current buffer from another),
+  ;; and the current buffer is a `next-error' capable buffer.
+  (if (and (not (local-variable-p 'next-error-buffer))
+           (next-error-buffer-p (current-buffer) avoid-current
+                                extra-test-inclusive extra-test-exclusive))
+      (current-buffer)))
+
 (defun next-error-find-buffer (&optional avoid-current
 					 extra-test-inclusive
 					 extra-test-exclusive)
@@ -260,24 +278,16 @@ that buffer is rejected."
    (funcall next-error-find-buffer-function avoid-current
                                             extra-test-inclusive
                                             extra-test-exclusive)
-   ;; 2. If next-error-buffer has no buffer-local value
-   ;; (i.e. never navigated to the current buffer from another),
-   ;; and the current buffer is a `next-error' capable buffer,
-   ;; use it unconditionally, so next-error will always use it.
-   (if (and (not (local-variable-p 'next-error-buffer))
-            (next-error-buffer-p (current-buffer) avoid-current
-			         extra-test-inclusive extra-test-exclusive))
-       (current-buffer))
-   ;; 3. If next-error-last-buffer is an acceptable buffer, use that.
+   ;; 2. If next-error-last-buffer is an acceptable buffer, use that.
    (if (and next-error-last-buffer
             (next-error-buffer-p next-error-last-buffer avoid-current
                                  extra-test-inclusive extra-test-exclusive))
        next-error-last-buffer)
-   ;; 4. If the current buffer is acceptable, choose it.
+   ;; 3. If the current buffer is acceptable, choose it.
    (if (next-error-buffer-p (current-buffer) avoid-current
 			    extra-test-inclusive extra-test-exclusive)
        (current-buffer))
-   ;; 5. Look for any acceptable buffer.
+   ;; 4. Look for any acceptable buffer.
    (let ((buffers (buffer-list)))
      (while (and buffers
                  (not (next-error-buffer-p
@@ -285,7 +295,7 @@ that buffer is rejected."
 		       extra-test-inclusive extra-test-exclusive)))
        (setq buffers (cdr buffers)))
      (car buffers))
-   ;; 6. Use the current buffer as a last resort if it qualifies,
+   ;; 5. Use the current buffer as a last resort if it qualifies,
    ;; even despite AVOID-CURRENT.
    (and avoid-current
 	(next-error-buffer-p (current-buffer) nil
@@ -293,7 +303,7 @@ that buffer is rejected."
 	(progn
 	  (message "This is the only buffer with error message locations")
 	  (current-buffer)))
-   ;; 7. Give up.
+   ;; 6. Give up.
    (error "No buffers contain error message locations")))
 
 (defun next-error (&optional arg reset)

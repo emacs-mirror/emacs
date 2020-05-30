@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.2.0
+;; Version: 0.3.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -24,6 +24,11 @@
 
 ;;; Commentary:
 
+;; NOTE: The project API is still experimental and can change in major,
+;; backward-incompatible ways.  Everyone is encouraged to try it, and
+;; report to us any problems or use cases we hadn't anticipated, by
+;; sending an email to emacs-devel, or `M-x report-emacs-bug'.
+;;
 ;; This file contains generic infrastructure for dealing with
 ;; projects, some utility functions, and commands using that
 ;; infrastructure.
@@ -31,11 +36,6 @@
 ;; The goal is to make it easier for Lisp programs to operate on the
 ;; current project, without having to know which package handles
 ;; detection of that project type, parsing its config files, etc.
-;;
-;; NOTE: The project API is still experimental and can change in major,
-;; backward-incompatible ways.  Everyone is encouraged to try it, and
-;; report to us any problems or use cases we hadn't anticipated, by
-;; sending an email to emacs-devel, or `M-x report-emacs-bug'.
 ;;
 ;; Infrastructure:
 ;;
@@ -77,9 +77,7 @@
 ;;   whole Emacs session, independent of the current directory.  Or,
 ;;   in the more advanced case, open a set of projects, and have some
 ;;   project-related commands to use them all.  E.g., have a command
-;;   to search for a regexp across all open projects.  Provide a
-;;   history of projects that were opened in the past (storing it as a
-;;   list of directories should suffice).
+;;   to search for a regexp across all open projects.
 ;;
 ;; * Support for project-local variables: a UI to edit them, and a
 ;;   utility function to retrieve a value.  Probably useless without
@@ -93,6 +91,7 @@
 ;;; Code:
 
 (require 'cl-generic)
+(eval-when-compile (require 'subr-x))
 
 (defvar project-find-functions (list #'project-try-vc)
   "Special hook to find the project containing a given directory.
@@ -100,23 +99,26 @@ Each functions on this hook is called in turn with one
 argument (the directory) and should return either nil to mean
 that it is not applicable, or a project instance.")
 
+(defvar project-current-inhibit-prompt nil
+  "Non-nil to skip prompting the user in `project-current'.")
+
 ;;;###autoload
 (defun project-current (&optional maybe-prompt dir)
   "Return the project instance in DIR or `default-directory'.
 When no project found in DIR, and MAYBE-PROMPT is non-nil, ask
-the user for a different directory to look in.  If that directory
-is not a part of a detectable project either, return a
-`transient' project instance rooted in it."
+the user for a different project to look in."
   (unless dir (setq dir default-directory))
   (let ((pr (project--find-in-directory dir)))
     (cond
      (pr)
-     (maybe-prompt
-      (setq dir (read-directory-name "Choose the project directory: " dir nil t)
-            pr (project--find-in-directory dir))
-      (unless pr
-        (message "Using `%s' as a transient project root" dir)
-        (setq pr (cons 'transient dir)))))
+     ((unless project-current-inhibit-prompt
+        maybe-prompt)
+      (setq dir (project-prompt-project-dir)
+            pr (project--find-in-directory dir))))
+    (if pr
+        (project--add-to-project-list-front pr)
+      (project--remove-from-project-list dir)
+      (setq pr (cons 'transient dir)))
     pr))
 
 (defun project--find-in-directory (dir)
@@ -662,6 +664,19 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
                              collection predicate t res hist nil)))
     res))
 
+;;;###autoload
+(defun project-dired ()
+  "Open Dired in the current project."
+  (interactive)
+  (dired (project-root (project-current t))))
+
+;;;###autoload
+(defun project-eshell ()
+  "Open Eshell in the current project."
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    (eshell t)))
+
 (declare-function fileloop-continue "fileloop" ())
 
 ;;;###autoload
@@ -696,6 +711,128 @@ loop using the command \\[fileloop-continue]."
   (let* ((pr (project-current t))
          (default-directory (project-root pr)))
     (call-interactively 'compile)))
+
+
+;;; Project list
+
+(defvar project--list 'unset
+  "List of known project directories.")
+
+(defun project--ensure-file-exists (filename)
+  "Create an empty file FILENAME if it doesn't exist."
+  (unless (file-exists-p filename)
+    (with-temp-buffer
+      (write-file filename))))
+
+(defun project--read-project-list ()
+  "Initialize `project--list' from the project list file."
+  (let ((filename (locate-user-emacs-file "project-list")))
+    (project--ensure-file-exists filename)
+    (with-temp-buffer
+      (insert-file-contents filename)
+      (let ((dirs (split-string (buffer-string) "\n" t))
+            (project-list '()))
+        (dolist (dir dirs)
+          (cl-pushnew (file-name-as-directory dir)
+                      project-list
+                      :test #'equal))
+        (setq project--list (reverse project-list))))))
+
+(defun project--ensure-read-project-list ()
+  "Initialize `project--list' if it hasn't already been."
+  (when (eq project--list 'unset)
+    (project--read-project-list)))
+
+(defun project--write-project-list ()
+  "Persist `project--list' to the project list file."
+  (let ((filename (locate-user-emacs-file "project-list")))
+    (with-temp-buffer
+      (insert (string-join project--list "\n"))
+      (write-region nil nil filename nil 'silent))))
+
+(defun project--add-to-project-list-front (pr)
+  "Add project PR to the front of the project list and save it.
+Return PR."
+  (project--ensure-read-project-list)
+  (let ((dir (project-root pr)))
+    (setq project--list (delete dir project--list))
+    (push dir project--list))
+  (project--write-project-list)
+  pr)
+
+(defun project--remove-from-project-list (pr-dir)
+  "Remove directory PR-DIR from the project list.
+If the directory was in the list before the removal, save the
+result to disk."
+  (project--ensure-read-project-list)
+  ;; XXX: This hardcodes that the number of roots = 1.
+  ;; It's fine, though.
+  (when (member pr-dir project--list)
+    (setq project--list (delete pr-dir project--list))
+    (message "Project `%s' not found; removed from list" pr-dir)
+    (project--write-project-list)))
+
+(defun project-prompt-project-dir ()
+  "Prompt the user for a directory from known project roots.
+The project is chosen among projects known from the project list.
+It's also possible to enter an arbitrary directory."
+  (project--ensure-read-project-list)
+  (let* ((dir-choice "... (choose a dir)")
+         (choices
+          ;; XXX: Just using this for the category (for the substring
+          ;; completion style).
+          (project--file-completion-table
+           (append project--list `(,dir-choice))))
+         (pr-dir (completing-read "Select project: " choices nil t)))
+    (if (equal pr-dir dir-choice)
+        (read-directory-name "Select directory: " default-directory nil t)
+      pr-dir)))
+
+
+;;; Project switching
+
+;;;###autoload
+(defvar project-switch-commands
+  '(("f" "Find file" project-find-file)
+    ("s" "Find regexp" project-find-regexp)
+    ("d" "Dired" project-dired)
+    ("e" "Eshell" project-eshell))
+  "Alist mapping keys to project switching menu entries.
+Used by `project-switch-project' to construct a dispatch menu of
+commands available upon \"switching\" to another project.
+
+Each element looks like (KEY LABEL COMMAND), where COMMAND is the
+command to run when KEY is pressed.  LABEL is used to distinguish
+the choice in the dispatch menu.")
+
+(defun project--keymap-prompt ()
+  "Return a prompt for the project swithing dispatch menu."
+  (mapconcat
+   (pcase-lambda (`(,key ,label))
+     (format "[%s] %s"
+             (propertize (key-description `(,key)) 'face 'bold)
+             label))
+   project-switch-commands
+   "  "))
+
+;;;###autoload
+(defun project-switch-project ()
+  "\"Switch\" to another project by running a chosen command.
+The available commands are picked from `project-switch-commands'
+and presented in a dispatch menu."
+  (interactive)
+  (let ((dir (project-prompt-project-dir))
+        (choice nil))
+    (while (not (and choice
+                     (or (equal choice (kbd "C-g"))
+                         (assoc choice project-switch-commands))))
+      (setq choice (read-key-sequence (project--keymap-prompt))))
+    (if (equal choice (kbd "C-g"))
+        (message "Quit")
+      (let ((default-directory dir)
+            (project-current-inhibit-prompt t))
+        (call-interactively
+         (nth 2 (assoc choice project-switch-commands)))))))
 
 (provide 'project)
 ;;; project.el ends here

@@ -70,6 +70,11 @@ specify 'cursor-type' to be '(box . SIZE)', the cursor becomes a hollow
 box if the point is on an image larger than 'SIZE' pixels in any
 dimension.
 
+---
+*** Improved language transliteration in Malayalam input methods.
+Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
+deprecated.  Errors in the Inscript method were corrected.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -98,6 +103,9 @@ shows equivalent key bindings for all commands that have them.
 'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
 horizontal movements now stop at the edge of the board.
 
+** Autosaving via 'auto-save-visited-mode' can now be inhibited by
+setting the variable 'auto-save-visited-mode' buffer-locally to nil.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
@@ -120,6 +128,10 @@ displayed and which are kept hidden.
 ** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
+*** A space between an open paren and a symbol changes the indentation rule.
+The presence of a space between an open paren and a symbol now is
+taken as a statement by the programmer that this should be indented
+as a data list rather than as a piece of code.
 
 ** Dired
 
@@ -193,6 +205,12 @@ their backends.
 ---
 *** Environment variable 'INSIDE_EMACS' is now copied to subprocesses.
 Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
+
+---
+*** Eshell no longer re-initializes its keymap every call.
+This allows users to use (define-key eshell-mode-map ...) as usual.
+Some modules have their own minor mode now to account for these
+changes.
 
 ** Tramp
 
@@ -386,6 +404,19 @@ information, see the related entry about 'shr-browse-url' above.
 
 *** New user option 'project-vc-merge-submodules'.
 
+*** Previously used project directories are now suggested by
+all commands that prompt for a project directory.
+
++++
+*** New commands 'project-dired' and 'project-eshell'.
+These commands run Dired and Eshell in a project's root directory,
+respectively.
+
++++
+*** New command 'project-switch-project'.
+This command lets you "switch" to another project and run a project
+command chosen from a dispatch menu.
+
 ** json.el
 
 ---
@@ -401,6 +432,8 @@ the native JSON parsing functions.
 Previously 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
+
+** The metamail.el library is now marked obsolete.
 
 
 * New Modes and Packages in Emacs 28.1
