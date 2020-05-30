@@ -5301,17 +5301,25 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!CONSP (comp_u->file))
 	  error ("Trying to load incoherent dumped .eln");
 
+	/* Check just once if this is a local build or Emacs was installed.  */
 	if (installation_state == UNKNOWN)
-	  /* Check just once if is a local build or Emacs got installed. */
-	  installation_state =
-	    NILP (Ffile_exists_p (concat2 (Vinvocation_directory,
-					   XCAR (comp_u->file))))
-	    ? LOCAL_BUILD : INSTALLED;
+	  {
+	    char *fname = SSDATA (concat2 (Vinvocation_directory,
+					   XCAR (comp_u->file)));
+	    FILE *file;
+	    if ((file = fopen (fname, "r")))
+	      {
+		fclose (file);
+		installation_state = INSTALLED;
+	      }
+	    else
+	      installation_state = LOCAL_BUILD;
+	  }
 
 	comp_u->file =
 	  concat2 (Vinvocation_directory,
-		   installation_state == LOCAL_BUILD
-		   ? XCDR (comp_u->file) : XCAR (comp_u->file));
+		   installation_state == INSTALLED
+		   ? XCAR (comp_u->file) : XCDR (comp_u->file));
 #ifdef WINDOWSNT
 	comp_u->cfile = xlispstrdup (comp_u->file);
 #endif
