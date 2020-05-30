@@ -309,7 +309,12 @@ extern intptr_t _execvp (const char *, char **);
    the code that references it is still compiled.  */
 extern int execve (const char *, char * const *, char * const *);
 #else
+/* mingw.org's MinGW GCC 9.x has the same built-in prototype...  */
+# if __GNUC__ >= 9
+extern int execve (const char *, char * const *, char * const *);
+# else
 extern intptr_t execve (const char *, char * const *, char * const *);
+# endif
 #endif
 #define tcdrain _commit
 #define fdopen	  _fdopen
