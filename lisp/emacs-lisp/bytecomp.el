@@ -2796,14 +2796,15 @@ If FORM is a lambda or a macro, byte-compile it as a function."
         ;; Expand macros.
         (setq fun (byte-compile-preprocess fun))
         (setq fun (byte-compile-top-level fun nil 'eval))
-        (if macro (push 'macro fun))
         (if (symbolp form)
             ;; byte-compile-top-level returns an *expression* equivalent to the
             ;; `fun' expression, so we need to evaluate it, tho normally
             ;; this is not needed because the expression is just a constant
             ;; byte-code object, which is self-evaluating.
-            (fset form (eval fun t))
-          fun)))))))
+            (setq fun (eval fun t)))
+        (if macro (push 'macro fun))
+        (if (symbolp form) (fset form fun))
+        fun))))))
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."
