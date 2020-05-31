@@ -2392,8 +2392,15 @@ emit_static_object (const char *name, Lisp_Object obj)
 				  0, NULL, 0);
   DECL_BLOCK (block, f);
 
-  /* NOTE this truncates if the data has some zero byte before termination.  */
-  gcc_jit_block_add_comment (block, NULL, p);
+  if (COMP_DEBUG > 1)
+    {
+      char *comment = memcpy (xmalloc (len), p, len);
+      for (ptrdiff_t i = 0; i < len - 1; i++)
+	if (!comment[i])
+	  comment[i] = '\n';
+      gcc_jit_block_add_comment (block, NULL, comment);
+      xfree (comment);
+    }
 
   gcc_jit_lvalue *arr =
       gcc_jit_lvalue_access_field (data_struct, NULL, fields[1]);
