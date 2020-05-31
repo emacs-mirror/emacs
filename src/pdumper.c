@@ -2239,7 +2239,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Float_50A7B216D9)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Float_7E7D284C02)
 # error "Lisp_Float changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (ctx->header.cold_start);
