@@ -8692,6 +8692,7 @@ handle_stop_backwards (struct it *it, ptrdiff_t charpos)
   ptrdiff_t where_we_are = (bufp ? IT_CHARPOS (*it) : IT_STRING_CHARPOS (*it));
   struct display_pos save_current = it->current;
   struct text_pos save_position = it->position;
+  struct composition_it save_cmp_it = it->cmp_it;
   struct text_pos pos1;
   ptrdiff_t next_stop;
 
@@ -8719,6 +8720,7 @@ handle_stop_backwards (struct it *it, ptrdiff_t charpos)
   it->bidi_p = true;
   it->current = save_current;
   it->position = save_position;
+  it->cmp_it = save_cmp_it;
   next_stop = it->stop_charpos;
   it->stop_charpos = it->prev_stop;
   handle_stop (it);
