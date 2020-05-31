@@ -19723,7 +19723,7 @@ find_last_row_displaying_text (struct glyph_matrix *matrix, struct it *it,
    by changes at the start of current_buffer that occurred since W's
    current matrix was built.  Value is null if no such row exists.
 
-   BEG_UNCHANGED us the number of characters unchanged at the start of
+   BEG_UNCHANGED is the number of characters unchanged at the start of
    current_buffer.  BEG + BEG_UNCHANGED is the buffer position of the
    first changed character in current_buffer.  Characters at positions <
    BEG + BEG_UNCHANGED are at the same buffer positions as they were
