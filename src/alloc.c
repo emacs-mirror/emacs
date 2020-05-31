@@ -4585,18 +4585,6 @@ mark_maybe_objects (Lisp_Object const *array, ptrdiff_t nelts)
     mark_maybe_object (*array);
 }
 
-/* Return true if P might point to Lisp data that can be garbage
-   collected, and false otherwise (i.e., false if it is easy to see
-   that P cannot point to Lisp data that can be garbage collected).
-   Symbols are implemented via offsets not pointers, but the offsets
-   are also multiples of LISP_ALIGNMENT.  */
-
-static bool
-maybe_lisp_pointer (void *p)
-{
-  return (uintptr_t) p % LISP_ALIGNMENT == 0;
-}
-
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
@@ -4608,9 +4596,6 @@ mark_maybe_pointer (void *p)
 #ifdef USE_VALGRIND
   VALGRIND_MAKE_MEM_DEFINED (&p, sizeof (p));
 #endif
-
-  if (!maybe_lisp_pointer (p))
-    return;
 
   if (pdumper_object_p (p))
     {
@@ -4715,7 +4700,16 @@ mark_memory (void const *start, void const *end)
 
   for (pp = start; (void const *) pp < end; pp += GC_POINTER_ALIGNMENT)
     {
-      mark_maybe_pointer (*(void *const *) pp);
+      char *p = *(char *const *) pp;
+      mark_maybe_pointer (p);
+
+      /* Unmask any struct Lisp_Symbol pointer that make_lisp_symbol
+	 previously disguised by adding the address of 'lispsym'.
+	 On a host with 32-bit pointers and 64-bit Lisp_Objects,
+	 a Lisp_Object might be split into registers saved into
+	 non-adjacent words and P might be the low-order word's value.  */
+      p += (intptr_t) lispsym;
+      mark_maybe_pointer (p);
 
       verify (alignof (Lisp_Object) % GC_POINTER_ALIGNMENT == 0);
       if (alignof (Lisp_Object) == GC_POINTER_ALIGNMENT
