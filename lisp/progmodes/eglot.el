@@ -2270,12 +2270,12 @@ is not active."
       (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
                        (eglot--TextDocumentPositionParams))
     (let ((blurb (and (not (seq-empty-p contents))
-                      (eglot--hover-info contents range))))
+                      (eglot--hover-info contents range)))
+          (hint (thing-at-point 'symbol)))
       (if blurb
           (with-current-buffer (eglot--help-buffer)
             (with-help-window (current-buffer)
-              (rename-buffer (format "*eglot-help for %s*"
-                                     (thing-at-point 'symbol)))
+              (rename-buffer (format "*eglot-help for %s*" hint))
               (with-current-buffer standard-output (insert blurb))
               (setq-local nobreak-char-display nil)))
         (display-local-help)))))
@@ -2350,16 +2350,18 @@ documentation.  Honour `eglot-put-doc-in-help-buffer',
                (erase-buffer)
                (insert string)
                (goto-char (point-min)))
-             (if eglot-auto-display-help-buffer
-                 (display-buffer (current-buffer))
-               (unless (get-buffer-window (current-buffer))
-                 ;; This prints two lines.  Should it print 1?  Or
-                 ;; honour max-mini-window-height?
-                 (eglot--message
-                  "%s\n(...truncated. Full help is in `%s')"
-                  (eglot--truncate-string string 1 (- (frame-width) 8))
-                  (buffer-name eglot--help-buffer))))
-             (help-mode))))
+             (help-mode)))
+         (if eglot-auto-display-help-buffer
+             (display-buffer eglot--help-buffer)
+           (unless (get-buffer-window eglot--help-buffer t)
+             ;; Hand-tweaked to print two lines.  Should it print
+             ;; 1?  Or honour max-mini-window-height?
+             (eglot--message
+              "%s\n(Truncated, %sfull help in buffer %s)"
+              (eglot--truncate-string string 1 (- (frame-width) 9))
+              (if-let (key (car (where-is-internal 'eglot-help-at-point)))
+                  (format "use %s to see " (key-description key)) "")
+              (buffer-name eglot--help-buffer)))))
         ((eq eldoc-echo-area-use-multiline-p t)
          (if-let ((available (eglot-doc-too-large-for-echo-area string)))
              (eldoc-message (eglot--truncate-string string available))
