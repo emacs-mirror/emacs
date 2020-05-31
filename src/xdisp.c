@@ -1415,6 +1415,7 @@ Value is the height in pixels of the line at point.  */)
       set_buffer_internal_1 (XBUFFER (w->contents));
     }
   SET_TEXT_POS (pt, PT, PT_BYTE);
+  void *itdata = bidi_shelve_cache ();
   start_display (&it, w, pt);
   /* Start from the beginning of the screen line, to make sure we
      traverse all of its display elements, and thus capture the
@@ -1426,6 +1427,7 @@ Value is the height in pixels of the line at point.  */)
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
 
+  bidi_unshelve_cache (itdata, false);
   return result;
 }
 
@@ -24442,6 +24444,7 @@ Value is the new character position of point.  */)
       bool at_eol_p;
       bool overshoot_expected = false;
       bool target_is_eol_p = false;
+      void *itdata = bidi_shelve_cache ();
 
       /* Setup the arena.  */
       SET_TEXT_POS (pt, PT, PT_BYTE);
@@ -24670,6 +24673,7 @@ Value is the new character position of point.  */)
 
       /* Move point to that position.  */
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      bidi_unshelve_cache (itdata, false);
     }
 
   return make_fixnum (PT);

@@ -109,6 +109,9 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
+'previous-error-no-select' bound to 'p'.
+
 ** EIEIO: 'oset' and 'oset-default' are declared obsolete.
 
 ** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'.

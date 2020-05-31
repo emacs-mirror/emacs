@@ -546,4 +546,46 @@ Return the last evalled form in BODY."
       ?q
       (string= expected (buffer-string))))))
 
+(defmacro replace-tests-with-highlighted-occurrence (highlight-locus &rest body)
+  "Helper macro to test the highlight of matches when navigating occur buffer.
+
+Eval BODY with `next-error-highlight' and `next-error-highlight-no-select'
+bound to HIGHLIGHT-LOCUS."
+  (declare (indent 1) (debug (form body)))
+  `(let ((regexp "foo")
+         (next-error-highlight ,highlight-locus)
+         (next-error-highlight-no-select ,highlight-locus)
+         (buffer (generate-new-buffer "test"))
+         (inhibit-message t))
+     (unwind-protect
+         ;; Local bind to disable the deletion of `occur-highlight-overlay'
+         (cl-letf (((symbol-function 'occur-goto-locus-delete-o) (lambda ())))
+           (with-current-buffer buffer (dotimes (_ 3) (insert regexp ?\n)))
+           (pop-to-buffer buffer)
+           (occur regexp)
+           (pop-to-buffer "*Occur*")
+           (occur-next)
+           ,@body)
+       (kill-buffer buffer)
+       (kill-buffer "*Occur*"))))
+
+(ert-deftest occur-highlight-occurrence ()
+  "Test for https://debbugs.gnu.org/39121 ."
+  (let ((alist '((nil . nil) (0.5 . t) (t . t) (fringe-arrow . nil)))
+        (check-overlays
+         (lambda (has-ov)
+           (eq has-ov (not (null (overlays-in (point-min) (point-max))))))))
+    (pcase-dolist (`(,highlight-locus . ,has-overlay) alist)
+      ;; Visiting occurrences
+      (replace-tests-with-highlighted-occurrence highlight-locus
+        (occur-mode-goto-occurrence)
+        (should (funcall check-overlays has-overlay)))
+      ;; Displaying occurrences
+      (replace-tests-with-highlighted-occurrence highlight-locus
+        (occur-mode-display-occurrence)
+        (with-current-buffer (marker-buffer
+                              (get-text-property (point) 'occur-target))
+          (should (funcall check-overlays has-overlay)))))))
+
+
 ;;; replace-tests.el ends here
