@@ -46,7 +46,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include "w32common.h"
 
 #undef gcc_jit_block_add_assignment
-#undef gcc_jit_block_add_assignment_op
 #undef gcc_jit_block_add_comment
 #undef gcc_jit_block_add_eval
 #undef gcc_jit_block_end_with_conditional
@@ -201,10 +200,6 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
              gcc_jit_rvalue *rvalue));
-DEF_DLL_FN (void, gcc_jit_block_add_assignment_op,
-            (gcc_jit_block *block, gcc_jit_location *loc,
-             gcc_jit_lvalue *lvalue, enum gcc_jit_binary_op op,
-             gcc_jit_rvalue *rvalue));
 DEF_DLL_FN (void, gcc_jit_block_add_eval,
             (gcc_jit_block *block, gcc_jit_location *loc,
              gcc_jit_rvalue *rvalue));
@@ -250,7 +245,6 @@ init_gccjit_functions (void)
 
   /* In alphabetical order */
   LOAD_DLL_FN (library, gcc_jit_block_add_assignment);
-  LOAD_DLL_FN (library, gcc_jit_block_add_assignment_op);
   LOAD_DLL_FN (library, gcc_jit_block_add_comment);
   LOAD_DLL_FN (library, gcc_jit_block_add_eval);
   LOAD_DLL_FN (library, gcc_jit_block_end_with_conditional);
@@ -312,7 +306,6 @@ init_gccjit_functions (void)
 
 /* In alphabetical order */
 #define gcc_jit_block_add_assignment fn_gcc_jit_block_add_assignment
-#define gcc_jit_block_add_assignment_op fn_gcc_jit_block_add_assignment_op
 #define gcc_jit_block_add_comment fn_gcc_jit_block_add_comment
 #define gcc_jit_block_add_eval fn_gcc_jit_block_add_eval
 #define gcc_jit_block_end_with_conditional fn_gcc_jit_block_end_with_conditional
