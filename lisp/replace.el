@@ -757,6 +757,13 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
+(defvar occur-highlight-regexp t
+  "Regexp matching part of visited source lines to highlight temporarily.
+Highlight entire line if t; don't highlight source lines if nil.")
+
+(defvar occur-highlight-overlay nil
+  "Overlay used to temporarily highlight occur matches.")
+
 (defvar occur-collect-regexp-history '("\\1")
   "History of regexp for occur's collect operation")
 
@@ -1113,6 +1120,8 @@ a previously found match."
     (define-key map "\C-m" 'occur-mode-goto-occurrence)
     (define-key map "o" 'occur-mode-goto-occurrence-other-window)
     (define-key map "\C-o" 'occur-mode-display-occurrence)
+    (define-key map "n" 'next-error-no-select)
+    (define-key map "p" 'previous-error-no-select)
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
     (define-key map "r" 'occur-rename-buffer)
@@ -1261,9 +1270,12 @@ If not invoked by a mouse click, go to occurrence on the current line."
            (with-current-buffer (window-buffer (posn-window (event-end event)))
              (save-excursion
                (goto-char (posn-point (event-end event)))
-               (occur-mode-find-occurrence))))))
+               (occur-mode-find-occurrence)))))
+        (regexp occur-highlight-regexp))
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
+    (let ((end-mk (save-excursion (re-search-forward regexp nil t))))
+      (occur--highlight-occurrence pos end-mk))
     (when buffer (next-error-found buffer (current-buffer)))
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
@@ -1277,17 +1289,74 @@ If not invoked by a mouse click, go to occurrence on the current line."
     (next-error-found buffer (current-buffer))
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
+;; Stolen from compile.el
+(defun occur-goto-locus-delete-o ()
+  (delete-overlay occur-highlight-overlay)
+  ;; Get rid of timer and hook that would try to do this again.
+  (if (timerp next-error-highlight-timer)
+      (cancel-timer next-error-highlight-timer))
+  (remove-hook 'pre-command-hook
+               #'occur-goto-locus-delete-o))
+
+;; Highlight the current visited occurrence.
+;; Adapted from `compilation-goto-locus'.
+(defun occur--highlight-occurrence (mk end-mk)
+  (let ((highlight-regexp occur-highlight-regexp))
+    (if (timerp next-error-highlight-timer)
+        (cancel-timer next-error-highlight-timer))
+    (unless occur-highlight-overlay
+      (setq occur-highlight-overlay
+	    (make-overlay (point-min) (point-min)))
+      (overlay-put occur-highlight-overlay 'face 'next-error))
+    (with-current-buffer (marker-buffer mk)
+      (save-excursion
+        (if end-mk (goto-char end-mk) (end-of-line))
+        (let ((end (point)))
+	  (if mk (goto-char mk) (beginning-of-line))
+	  (if (and (stringp highlight-regexp)
+		   (re-search-forward highlight-regexp end t))
+	      (progn
+	        (goto-char (match-beginning 0))
+	        (move-overlay occur-highlight-overlay
+			      (match-beginning 0) (match-end 0)
+			      (current-buffer)))
+	    (move-overlay occur-highlight-overlay
+			  (point) end (current-buffer)))
+	  (if (or (eq next-error-highlight t)
+		  (numberp next-error-highlight))
+	      ;; We want highlighting: delete overlay on next input.
+	      (add-hook 'pre-command-hook
+		        #'occur-goto-locus-delete-o)
+	    ;; We don't want highlighting: delete overlay now.
+	    (delete-overlay occur-highlight-overlay))
+	  ;; We want highlighting for a limited time:
+	  ;; set up a timer to delete it.
+	  (when (numberp next-error-highlight)
+	    (setq next-error-highlight-timer
+		  (run-at-time next-error-highlight nil
+			       'occur-goto-locus-delete-o))))))
+    (when (eq next-error-highlight 'fringe-arrow)
+      ;; We want a fringe arrow (instead of highlighting).
+      (setq next-error-overlay-arrow-position
+	    (copy-marker (line-beginning-position))))))
+
 (defun occur-mode-display-occurrence ()
   "Display in another window the occurrence the current line describes."
   (interactive)
   (let ((buffer (current-buffer))
         (pos (occur-mode-find-occurrence))
+        (regexp occur-highlight-regexp)
+        (next-error-highlight next-error-highlight-no-select)
+        (display-buffer-overriding-action
+         '(nil (inhibit-same-window . t)))
 	window)
     (setq window (display-buffer (marker-buffer pos) t))
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)
       (goto-char pos)
+      (let ((end-mk (save-excursion (re-search-forward regexp nil t))))
+        (occur--highlight-occurrence pos end-mk))
       (next-error-found buffer (current-buffer))
       (run-hooks 'occur-mode-find-occurrence-hook))))
 
@@ -1612,6 +1681,7 @@ See also `multi-occur'."
 	    (buffer-undo-list t)
 	    (occur--final-pos nil))
 	(erase-buffer)
+        (set (make-local-variable 'occur-highlight-regexp) regexp)
 	(let ((count
 	       (if (stringp nlines)
                    ;; Treat nlines as a regexp to collect.
