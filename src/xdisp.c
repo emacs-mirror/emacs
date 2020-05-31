@@ -11539,7 +11539,9 @@ display_echo_area_1 (ptrdiff_t a1, Lisp_Object a2)
   /* Display.  */
   clear_glyph_matrix (w->desired_matrix);
   XSETWINDOW (window, w);
+  void *itdata = bidi_shelve_cache ();
   try_window (window, start, 0);
+  bidi_unshelve_cache (itdata, false);
 
   return window_height_changed_p;
 }
