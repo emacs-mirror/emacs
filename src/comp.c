@@ -236,6 +236,9 @@ DEF_DLL_FN (void, gcc_jit_context_set_logfile,
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
+DEF_DLL_FN (int, gcc_jit_version_major);
+DEF_DLL_FN (int, gcc_jit_version_minor);
+DEF_DLL_FN (int, gcc_jit_version_patchlevel);
 
 static bool
 init_gccjit_functions (void)
@@ -300,6 +303,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_as_type);
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
+  LOAD_DLL_FN (library, gcc_jit_version_major);
+  LOAD_DLL_FN (library, gcc_jit_version_minor);
+  LOAD_DLL_FN (library, gcc_jit_version_patchlevel);
 
   return true;
 }
@@ -3988,6 +3994,29 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   return out_file;
 }
 
+DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
+       Scomp_libgccjit_version, 0, 0, 0,
+       doc: /* Return the libgccjit version in use in the form
+(MAJOR MINOR PATCHLEVEL) or nil if unknown (pre GCC10).  */)
+  (void)
+{
+#if defined (LIBGCCJIT_HAVE_gcc_jit_version) || defined (WINDOWSNT)
+  load_gccjit_if_necessary (true);
+
+  /* FIXME this kludge is quite bad.  Can we dynamically load on all
+     operating systems?  */
+#pragma GCC diagnostic ignored "-Waddress"
+  return gcc_jit_version_major
+    ? list3 (make_fixnum (gcc_jit_version_major ()),
+	     make_fixnum (gcc_jit_version_minor ()),
+	     make_fixnum (gcc_jit_version_patchlevel ()))
+    : Qnil;
+#pragma GCC diagnostic pop
+#else
+  return Qnil;
+#endif
+}
+
 
 /******************************************************************************/
 /* Helper functions called from the run-time.				      */
@@ -4781,6 +4810,7 @@ syms_of_comp (void)
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file);
+  defsubr (&Scomp_libgccjit_version);
   defsubr (&Scomp__register_lambda);
   defsubr (&Scomp__register_subr);
   defsubr (&Scomp__late_register_subr);
