@@ -90,6 +90,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_function_get_param
 #undef gcc_jit_function_new_block
 #undef gcc_jit_function_new_local
+#undef gcc_jit_global_set_initializer
 #undef gcc_jit_lvalue_access_field
 #undef gcc_jit_lvalue_as_rvalue
 #undef gcc_jit_lvalue_get_address
@@ -144,6 +145,8 @@ DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_context_new_global,
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_function_new_local,
             (gcc_jit_function *func, gcc_jit_location *loc, gcc_jit_type *type,
              const char *name));
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_global_set_initializer,
+	    (gcc_jit_lvalue *global, const void *blob, size_t num_bytes));
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_lvalue_access_field,
             (gcc_jit_lvalue *struct_or_union, gcc_jit_location *loc,
              gcc_jit_field *field));
@@ -307,6 +310,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
+  LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_minor);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_patchlevel);
@@ -357,6 +361,7 @@ init_gccjit_functions (void)
 #define gcc_jit_function_get_param fn_gcc_jit_function_get_param
 #define gcc_jit_function_new_block fn_gcc_jit_function_new_block
 #define gcc_jit_function_new_local fn_gcc_jit_function_new_local
+#define gcc_jit_global_set_initializer fn_gcc_jit_global_set_initializer
 #define gcc_jit_lvalue_access_field fn_gcc_jit_lvalue_access_field
 #define gcc_jit_lvalue_as_rvalue fn_gcc_jit_lvalue_as_rvalue
 #define gcc_jit_lvalue_get_address fn_gcc_jit_lvalue_get_address
@@ -589,7 +594,7 @@ FILE *logfile = NULL;
 /* This is used for serialized objects by the reload mechanism.  */
 typedef struct {
   ptrdiff_t len;
-  const char data[];
+  char data[];
 } static_obj_t;
 
 typedef struct {
@@ -2496,6 +2501,33 @@ emit_static_object (const char *name, Lisp_Object obj)
 
   ptrdiff_t len = SBYTES (str);
   const char *p = SSDATA (str);
+
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer) \
+  || defined (WINDOWSNT)
+#pragma GCC diagnostic ignored "-Waddress"
+  if (gcc_jit_global_set_initializer)
+#pragma GCC diagnostic pop
+    {
+      ptrdiff_t str_size = len + 1;
+      ptrdiff_t size = sizeof (static_obj_t) + str_size;
+      static_obj_t *static_obj = xmalloc (size);
+      static_obj->len = str_size;
+      memcpy (static_obj->data, p, str_size);
+      gcc_jit_lvalue *blob =
+	gcc_jit_context_new_global (
+	  comp.ctxt,
+	  NULL,
+	  GCC_JIT_GLOBAL_EXPORTED,
+	  gcc_jit_context_new_array_type (comp.ctxt, NULL,
+					  comp.char_type,
+					  size),
+	  format_string ("%s_blob", name));
+      gcc_jit_global_set_initializer (blob, static_obj, size);
+      xfree (static_obj);
+
+      return;
+    }
+#endif
 
   gcc_jit_type *a_type =
     gcc_jit_context_new_array_type (comp.ctxt,
@@ -4599,12 +4631,19 @@ typedef char *(*comp_lit_str_func) (void);
 static Lisp_Object
 load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 {
+  static_obj_t *blob =
+    dynlib_sym (comp_u->handle, format_string ("%s_blob", name));
+  if (blob)
+    /* New blob format.  */
+    return Fread (make_string (blob->data, blob->len));
+
   static_obj_t *(*f)(void) = dynlib_sym (comp_u->handle, name);
   if (!f)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
-  static_obj_t *res = f ();
-  return Fread (make_string (res->data, res->len));
+  blob = f ();
+  return Fread (make_string (blob->data, blob->len));
+
 }
 
 /* Return false when something is wrong or true otherwise.  */
