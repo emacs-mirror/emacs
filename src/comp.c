@@ -2441,27 +2441,30 @@ emit_static_object (const char *name, Lisp_Object obj)
         gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.int_type, 0)),
       NULL));
 
+  /* We can't use always string literals longer that 200 bytes because
+     they cause a crash in pre GCC 10 libgccjit.
+     <https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html>.
+
+     Adjust if possible to reduce the number of function calls.  */
+  size_t chunck_size = NILP (Fcomp_libgccjit_version ()) ? 200 : 1024;
+  char *buff = xmalloc (chunck_size);
   for (ptrdiff_t i = 0; i < len;)
     {
-      /* We can't use string literals longer that 200 bytes because
-         they cause a crash in older versions of gccjit.
-         https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html.  */
-      char str[200];
-      strncpy (str, p, 200);
-      str[199] = 0;
-      uintptr_t l = strlen (str);
+      strncpy (buff, p, chunck_size);
+      buff[chunck_size - 1] = 0;
+      uintptr_t l = strlen (buff);
 
       if (l != 0)
         {
           p += l;
           i += l;
 
-          gcc_jit_rvalue *args[3]
-            = {gcc_jit_lvalue_as_rvalue (ptrvar),
-               gcc_jit_context_new_string_literal (comp.ctxt, str),
-               gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-                 comp.size_t_type,
-                 l)};
+          gcc_jit_rvalue *args[] =
+	    { gcc_jit_lvalue_as_rvalue (ptrvar),
+	      gcc_jit_context_new_string_literal (comp.ctxt, buff),
+	      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						   comp.size_t_type,
+						   l) };
 
           gcc_jit_block_add_eval (block, NULL,
                                   gcc_jit_context_new_call (comp.ctxt, NULL,
@@ -2496,6 +2499,7 @@ emit_static_object (const char *name, Lisp_Object obj)
               NULL));
         }
     }
+  xfree (buff);
 
   gcc_jit_block_add_assignment (
 	block,
