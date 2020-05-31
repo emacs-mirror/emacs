@@ -2634,8 +2634,10 @@ emit_ctxt_code (void)
     { Fcons (Qcomp_speed,
 	     Fsymbol_value (Qcomp_speed)),
       Fcons (Qcomp_debug,
-	     Fsymbol_value (Qcomp_debug)) };
-  emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (2, opt_qly));
+	     Fsymbol_value (Qcomp_debug)),
+      Fcons (Qgccjit,
+	     Fcomp_libgccjit_version ()) };
+  emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (ARRAYELTS (opt_qly), opt_qly));
 
   emit_static_object (TEXT_FDOC_SYM,
 		      CALL1I (comp-ctxt-function-docs, Vcomp_ctxt));
@@ -4770,6 +4772,7 @@ syms_of_comp (void)
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
   DEFSYM (Qlambda_fixup, "lambda-fixup");
+  DEFSYM (Qgccjit, "gccjit");
 
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");
