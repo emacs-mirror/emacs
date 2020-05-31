@@ -27706,6 +27706,7 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
   while (glyph < last
 	 && glyph->u.cmp.automatic
 	 && glyph->u.cmp.id == s->cmp_id
+	 && glyph->face_id == face_id
 	 && s->cmp_to == glyph->slice.cmp.from)
     {
       s->width += glyph->pixel_width;
