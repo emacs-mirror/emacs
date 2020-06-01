@@ -861,7 +861,7 @@ non-nil result supercedes the xrefs produced by
 
     xrefs))
 
-(declare-function project-external-roots "project")
+(declare-function xref-apropos-regexp "xref" (pattern))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql elisp)) pattern)
   (apply #'nconc
