@@ -672,6 +672,20 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
   (dired (project-root (project-current t))))
 
 ;;;###autoload
+(defun project-vc-dir ()
+  "Open VC-Dir in the current project."
+  (interactive)
+  (vc-dir (project-root (project-current t))))
+
+;;;###autoload
+(defun project-shell ()
+  "Open Shell in the current project."
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    ;; Use ‘create-file-buffer’ to uniquify shell buffer names.
+    (shell (create-file-buffer "*shell*"))))
+
+;;;###autoload
 (defun project-eshell ()
   "Open Eshell in the current project."
   (interactive)
@@ -705,13 +719,23 @@ loop using the command \\[fileloop-continue]."
    from to (project-files (project-current t)) 'default)
   (fileloop-continue))
 
+(defvar compilation-read-command)
+(declare-function compilation-read-command "compile")
+
 ;;;###autoload
-(defun project-compile ()
-  "Run `compile' in the project root."
-  (interactive)
+(defun project-compile (command &optional comint)
+  "Run `compile' in the project root.
+Arguments the same as in `compile'."
+  (interactive
+   (list
+    (let ((command (eval compile-command)))
+      (if (or compilation-read-command current-prefix-arg)
+	  (compilation-read-command command)
+	command))
+    (consp current-prefix-arg)))
   (let* ((pr (project-current t))
          (default-directory (project-root pr)))
-    (call-interactively 'compile)))
+    (compile command comint)))
 
 
 ;;; Project list
@@ -795,8 +819,10 @@ It's also possible to enter an arbitrary directory."
 ;;;###autoload
 (defvar project-switch-commands
   '(("f" "Find file" project-find-file)
-    ("s" "Find regexp" project-find-regexp)
+    ("r" "Find regexp" project-find-regexp)
     ("d" "Dired" project-dired)
+    ("v" "VC-Dir" project-vc-dir)
+    ("s" "Shell" project-shell)
     ("e" "Eshell" project-eshell))
   "Alist mapping keys to project switching menu entries.
 Used by `project-switch-project' to construct a dispatch menu of
