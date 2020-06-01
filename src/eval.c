@@ -2275,7 +2275,7 @@ eval_sub (Lisp_Object form)
   else if (!NILP (fun) && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
-  if (SUBRP (fun))
+  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
     {
       Lisp_Object args_left = original_args;
       ptrdiff_t numargs = list_length (args_left);
@@ -2378,7 +2378,9 @@ eval_sub (Lisp_Object form)
 	    }
 	}
     }
-  else if (COMPILEDP (fun) || MODULE_FUNCTIONP (fun))
+  else if (COMPILEDP (fun)
+	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || MODULE_FUNCTIONP (fun))
     return apply_lambda (fun, original_args, count);
   else
     {
@@ -2854,9 +2856,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
-  if (SUBRP (fun))
+  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
     val = funcall_subr (XSUBR (fun), numargs, args + 1);
-  else if (COMPILEDP (fun) || MODULE_FUNCTIONP (fun))
+  else if (COMPILEDP (fun)
+	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || MODULE_FUNCTIONP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
@@ -3066,6 +3070,11 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   else if (MODULE_FUNCTIONP (fun))
     return funcall_module (fun, nargs, arg_vector);
 #endif
+  else if (SUBR_NATIVE_COMPILED_DYNP (fun))
+    {
+      syms_left = XSUBR (fun)->lambda_list[0];
+      lexenv = Qnil;
+    }
   else
     emacs_abort ();
 
@@ -3126,6 +3135,13 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
+  else if (SUBR_NATIVE_COMPILEDP (fun))
+    {
+      eassert (SUBR_NATIVE_COMPILED_DYNP (fun));
+      /* No need to use funcall_subr as we have zero arguments by
+	 construction.  */
+      val = XSUBR (fun)->function.a0 ();
+    }
   else
     val = fetch_and_exec_byte_code (fun, Qnil, 0, NULL);
 

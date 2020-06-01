@@ -354,7 +354,6 @@ into it.")
        :documentation "SSA status either: 'nil', 'dirty' or 't'.
 Once in SSA form this *must* be set to 'dirty' every time the topology of the
 CFG is mutated by a pass.")
-  (args nil :type comp-args-base)
   (frame-size nil :type number)
   (blocks (make-hash-table) :type hash-table
           :documentation "Key is the basic block symbol value is a comp-block
@@ -371,6 +370,16 @@ structure.")
                  :documentation "t if non local jumps are present.")
   (array-h (make-hash-table) :type hash-table
            :documentation "array idx -> array length."))
+
+(cl-defstruct (comp-func-l (:include comp-func))
+  "Lexical scoped function."
+  (args nil :type comp-args-base
+        :documentation "Argument specification of the function"))
+
+(cl-defstruct (comp-func-d (:include comp-func))
+  "Dynamic scoped function."
+  (lambda-list nil :type list
+        :documentation "Original lambda-list."))
 
 (cl-defstruct (comp-mvar (:constructor make--comp-mvar))
   "A meta-variable being a slot in the meta-stack."
@@ -600,10 +609,10 @@ Put PREFIX in front of it."
   "Byte compile FUNCTION-NAME spilling data from the byte compiler."
   (let* ((f (symbol-function function-name))
          (c-name (comp-c-func-name function-name "F"))
-         (func (make-comp-func :name function-name
-                               :c-name c-name
-                               :doc (documentation f)
-                               :int-spec (interactive-form f))))
+         (func (make-comp-func-l :name function-name
+                                 :c-name c-name
+                                 :doc (documentation f)
+                                 :int-spec (interactive-form f))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
                 "can't native compile an already bytecompiled function"))
@@ -615,7 +624,7 @@ Put PREFIX in front of it."
         (cl-assert lap)
         (comp-log lap 2)
         (let ((arg-list (aref (comp-func-byte-func func) 0)))
-          (setf (comp-func-args func)
+          (setf (comp-func-l-args func)
                 (comp-decrypt-arg-list arg-list function-name)
                 (comp-func-lap func)
                 lap
@@ -631,8 +640,7 @@ Put PREFIX in front of it."
 (defun comp-intern-func-in-ctxt (_ obj)
   "Given OBJ of type `byte-to-native-lambda' create a function in `comp-ctxt'."
   (when-let ((byte-func (byte-to-native-lambda-byte-func obj)))
-    (let* ((byte-func (byte-to-native-lambda-byte-func obj))
-           (lap (byte-to-native-lambda-lap obj))
+    (let* ((lap (byte-to-native-lambda-lap obj))
            (top-l-form (cl-loop
                         for form in (comp-ctxt-top-level-forms comp-ctxt)
                         when (and (byte-to-native-func-def-p form)
@@ -640,31 +648,32 @@ Put PREFIX in front of it."
                                       byte-func))
                         return form))
            (name (when top-l-form
-                   (byte-to-native-func-def-name top-l-form))))
-      ;; Do not refuse to compile if a dynamic byte-compiled lambda
-      ;; leaks here (advice).
-      (when (or name (comp-lex-byte-func-p byte-func))
-        (let* ((c-name (comp-c-func-name (or name "anonymous-lambda") "F"))
-               (func (make-comp-func :name name
-                                     :byte-func byte-func
-                                     :doc (documentation byte-func)
-                                     :int-spec (interactive-form byte-func)
-                                     :c-name c-name
-                                     :args (comp-decrypt-arg-list (aref byte-func 0)
-                                                                  name)
-                                     :lap lap
-                                     :frame-size (comp-byte-frame-size byte-func))))
-          ;; Store the c-name to have it retrivable from
-          ;; `comp-ctxt-top-level-forms'.
-          (when top-l-form
-            (setf (byte-to-native-func-def-c-name top-l-form) c-name))
-          (unless name
-            (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt)))
-          ;; Create the default array.
-          (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
-          (comp-add-func-to-ctxt func)
-          (comp-log (format "Function %s:\n" name) 1)
-          (comp-log lap 1))))))
+                   (byte-to-native-func-def-name top-l-form)))
+           (c-name (comp-c-func-name (or name "anonymous-lambda") "F"))
+           (func (if (comp-lex-byte-func-p byte-func)
+                     (make-comp-func-l
+                      :args (comp-decrypt-arg-list (aref byte-func 0)
+                                                   name))
+                   (make-comp-func-d :lambda-list (aref byte-func 0)))))
+      (setf (comp-func-name func) name
+            (comp-func-byte-func func) byte-func
+            (comp-func-doc func) (documentation byte-func)
+            (comp-func-int-spec func) (interactive-form byte-func)
+            (comp-func-c-name func) c-name
+            (comp-func-lap func) lap
+            (comp-func-frame-size func) (comp-byte-frame-size byte-func))
+
+      ;; Store the c-name to have it retrivable from
+      ;; `comp-ctxt-top-level-forms'.
+      (when top-l-form
+        (setf (byte-to-native-func-def-c-name top-l-form) c-name))
+      (unless name
+        (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt)))
+      ;; Create the default array.
+      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
+      (comp-add-func-to-ctxt func)
+      (comp-log (format "Function %s:\n" name) 1)
+      (comp-log lap 1))))
 
 (cl-defgeneric comp-spill-lap-function ((filename string))
   "Byte compile FILENAME spilling data from the byte compiler."
@@ -1321,6 +1330,17 @@ the annotation emission."
   (comp-log-func func 2)
   func)
 
+(defun comp-prepare-args-for-top-level (function)
+  "Given FUNCTION return the two args arguments for comp--register-..."
+  (if (comp-func-l-p function)
+      (let ((args (comp-func-l-args function)))
+        (cons (comp-args-base-min args)
+              (if (comp-args-p args)
+                  (comp-args-max args)
+                'many)))
+    (cons (func-arity (comp-func-byte-func function))
+          (comp-func-d-lambda-list function))))
+
 (cl-defgeneric comp-emit-for-top-level (form for-late-load)
   "Emit the limple code for top level FORM.")
 
@@ -1329,16 +1349,14 @@ the annotation emission."
   (let* ((name (byte-to-native-func-def-name form))
          (c-name (byte-to-native-func-def-c-name form))
          (f (gethash c-name (comp-ctxt-funcs-h comp-ctxt)))
-         (args (comp-func-args f)))
+         (args (comp-prepare-args-for-top-level f)))
     (cl-assert (and name f))
     (comp-emit (comp-call (if for-late-load
                               'comp--late-register-subr
                             'comp--register-subr)
                           (make-comp-mvar :constant name)
-                          (make-comp-mvar :constant (comp-args-base-min args))
-                          (make-comp-mvar :constant (if (comp-args-p args)
-                                                        (comp-args-max args)
-                                                      'many))
+                          (make-comp-mvar :constant (car args))
+                          (make-comp-mvar :constant (cdr args))
                           (make-comp-mvar :constant c-name)
                           (make-comp-mvar
                            :constant
@@ -1364,7 +1382,7 @@ the annotation emission."
 (defun comp-emit-lambda-for-top-level (func)
   "Emit the creation of subrs for lambda FUNC.
 These are stored in the reloc data array."
-  (let ((args (comp-func-args func)))
+  (let ((args (comp-prepare-args-for-top-level func)))
     (let ((comp-curr-allocation-class 'd-impure))
       (comp-add-const-to-relocs (comp-func-byte-func func)))
     (comp-emit
@@ -1376,10 +1394,8 @@ These are stored in the reloc data array."
                     (puthash (comp-func-byte-func func)
                              (make-comp-mvar :constant nil)
                              (comp-ctxt-lambda-fixups-h comp-ctxt)))
-                (make-comp-mvar :constant (comp-args-base-min args))
-                (make-comp-mvar :constant (if (comp-args-p args)
-                                              (comp-args-max args)
-                                            'many))
+                (make-comp-mvar :constant (car args))
+                (make-comp-mvar :constant (cdr args))
                 (make-comp-mvar :constant (comp-func-c-name func))
                 (make-comp-mvar
                  :constant (let* ((h (comp-ctxt-function-docs comp-ctxt))
@@ -1404,14 +1420,14 @@ into the C code forwarding the compilation unit."
   ;; reasons to be execute ever again.  Therefore all objects can be
   ;; just ephemeral.
   (let* ((comp-curr-allocation-class 'd-ephemeral)
-         (func (make-comp-func :name (if for-late-load
-                                         'late-top-level-run
-                                       'top-level-run)
-                               :c-name (if for-late-load
-                                           "late_top_level_run"
-                                         "top_level_run")
-                               :args (make-comp-args :min 1 :max 1)
-                               :frame-size 1))
+         (func (make-comp-func-l :name (if for-late-load
+                                           'late-top-level-run
+                                         'top-level-run)
+                                 :c-name (if for-late-load
+                                             "late_top_level_run"
+                                           "top_level_run")
+                                 :args (make-comp-args :min 1 :max 1)
+                                 :frame-size 1))
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block-lap -1 0 'top-level)
@@ -1475,20 +1491,22 @@ into the C code forwarding the compilation unit."
   (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
          (comp-pass (make-comp-limplify
-                     :frame (comp-new-frame frame-size)))
-         (args (comp-func-args func)))
+                     :frame (comp-new-frame frame-size))))
     (comp-fill-label-h)
     ;; Prologue
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation (concat "Lisp function: "
                                   (symbol-name (comp-func-name func))))
-    (if (comp-args-p args)
-        (cl-loop for i below (comp-args-max args)
-                 do (cl-incf (comp-sp))
-                    (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
-      (comp-emit-narg-prologue (comp-args-base-min args)
-                               (comp-nargs-nonrest args)
-                               (comp-nargs-rest args)))
+    ;; Dynamic functions have parameters bound by the trampoline.
+    (when (comp-func-l-p func)
+      (let ((args (comp-func-l-args func)))
+        (if (comp-args-p args)
+            (cl-loop for i below (comp-args-max args)
+                     do (cl-incf (comp-sp))
+                        (comp-emit `(set-par-to-local ,(comp-slot) ,i)))
+          (comp-emit-narg-prologue (comp-args-base-min args)
+                                   (comp-nargs-nonrest args)
+                                   (comp-nargs-rest args)))))
     (comp-emit '(jump bb_0))
     ;; Body
     (comp-bb-maybe-add 0 (comp-sp))
@@ -2096,7 +2114,7 @@ FUNCTION can be a function-name or byte compiled function."
                         ;; Anonymous lambdas can't be redefined so are
                         ;; always safe to optimize.
                         (byte-code-function-p callee))))
-          (let* ((func-args (comp-func-args comp-func-callee))
+          (let* ((func-args (comp-func-l-args comp-func-callee))
                  (nargs (comp-nargs-p func-args))
                  (call-type (if nargs 'direct-callref 'direct-call))
                  (args (if (eq call-type 'direct-callref)
@@ -2128,7 +2146,8 @@ FUNCTION can be a function-name or byte compiled function."
   (when (>= comp-speed 2)
     (maphash (lambda (_ f)
                (let ((comp-func f))
-                 (comp-call-optim-func)))
+                 (when (comp-func-l-p f)
+                   (comp-call-optim-func))))
              (comp-ctxt-funcs-h comp-ctxt))))
 
 
@@ -2234,7 +2253,8 @@ Return the list of m-var ids nuked."
   (when (>= comp-speed 3)
     (maphash (lambda (_ f)
                (let ((comp-func f))
-                 (unless (comp-func-has-non-local comp-func)
+                 (when (and (comp-func-l-p f)
+                            (not (comp-func-has-non-local comp-func)))
                    (comp-tco-func)
                    (comp-log-func comp-func 3))))
              (comp-ctxt-funcs-h comp-ctxt))))

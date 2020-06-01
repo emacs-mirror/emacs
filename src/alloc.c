@@ -6723,6 +6723,7 @@ mark_object (Lisp_Object arg)
 		struct Lisp_Subr *subr = XSUBR (obj);
 		mark_object (subr->native_intspec);
 		mark_object (subr->native_comp_u[0]);
+		mark_object (subr->lambda_list[0]);
 	      }
 	    break;
 

@@ -2096,6 +2096,7 @@ struct Lisp_Subr
     EMACS_INT doc;
     Lisp_Object native_comp_u[NATIVE_COMP_FLAG];
     char *native_c_name[NATIVE_COMP_FLAG];
+    Lisp_Object lambda_list[NATIVE_COMP_FLAG];
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
@@ -4759,6 +4760,12 @@ SUBR_NATIVE_COMPILEDP (Lisp_Object a)
   return SUBRP (a) && !NILP (XSUBR (a)->native_comp_u[0]);
 }
 
+INLINE bool
+SUBR_NATIVE_COMPILED_DYNP (Lisp_Object a)
+{
+  return SUBR_NATIVE_COMPILEDP (a) && !NILP (XSUBR (a)->lambda_list[0]);
+}
+
 INLINE struct Lisp_Native_Comp_Unit *
 allocate_native_comp_unit (void)
 {
@@ -4768,6 +4775,12 @@ allocate_native_comp_unit (void)
 #else
 INLINE bool
 SUBR_NATIVE_COMPILEDP (Lisp_Object a)
+{
+  return false;
+}
+
+INLINE bool
+SUBR_NATIVE_COMPILED_DYNP (Lisp_Object a)
 {
   return false;
 }

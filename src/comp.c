@@ -3655,14 +3655,12 @@ define_bool_to_lisp_obj (void)
 				 emit_lisp_obj_rval (Qnil));
 }
 
-/* Declare a function being compiled and add it to comp.exported_funcs_h.  */
-
-static void
-declare_function (Lisp_Object func)
+static gcc_jit_function *
+declare_lex_function (Lisp_Object func)
 {
-  gcc_jit_function *gcc_func;
+  gcc_jit_function *res;
   char *c_name = SSDATA (CALL1I (comp-func-c-name, func));
-  Lisp_Object args = CALL1I (comp-func-args, func);
+  Lisp_Object args = CALL1I (comp-func-l-args, func);
   bool nargs = !NILP (CALL1I (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
 
@@ -3673,23 +3671,23 @@ declare_function (Lisp_Object func)
       for (ptrdiff_t i = 0; i < max_args; i++)
 	type[i] = comp.lisp_obj_type;
 
-      gcc_jit_param **param = SAFE_ALLOCA (max_args * sizeof (*param));
+      gcc_jit_param **params = SAFE_ALLOCA (max_args * sizeof (*params));
       for (int i = 0; i < max_args; ++i)
-	param[i] = gcc_jit_context_new_param (comp.ctxt,
+	params[i] = gcc_jit_context_new_param (comp.ctxt,
 					      NULL,
 					      type[i],
 					      format_string ("par_%d", i));
-      gcc_func = gcc_jit_context_new_function (comp.ctxt, NULL,
-					       GCC_JIT_FUNCTION_EXPORTED,
-					       comp.lisp_obj_type,
-					       c_name,
-					       max_args,
-					       param,
-					       0);
+      res = gcc_jit_context_new_function (comp.ctxt, NULL,
+					  GCC_JIT_FUNCTION_EXPORTED,
+					  comp.lisp_obj_type,
+					  c_name,
+					  max_args,
+					  params,
+					  0);
     }
   else
     {
-      gcc_jit_param *param[] =
+      gcc_jit_param *params[] =
 	{ gcc_jit_context_new_param (comp.ctxt,
 				     NULL,
 				     comp.ptrdiff_type,
@@ -3698,19 +3696,34 @@ declare_function (Lisp_Object func)
 				     NULL,
 				     comp.lisp_obj_ptr_type,
 				     "args") };
-      gcc_func =
+      res =
 	gcc_jit_context_new_function (comp.ctxt,
 				      NULL,
 				      GCC_JIT_FUNCTION_EXPORTED,
 				      comp.lisp_obj_type,
-				      c_name, 2, param, 0);
+				      c_name, ARRAYELTS (params), params, 0);
     }
+  SAFE_FREE ();
+  return res;
+}
 
+/* Declare a function being compiled and add it to comp.exported_funcs_h.  */
+
+static void
+declare_function (Lisp_Object func)
+{
+  gcc_jit_function *gcc_func =
+    !NILP (CALL1I (comp-func-l-p, func))
+    ? declare_lex_function (func)
+    : gcc_jit_context_new_function (comp.ctxt,
+				    NULL,
+				    GCC_JIT_FUNCTION_EXPORTED,
+				    comp.lisp_obj_type,
+				    SSDATA (CALL1I (comp-func-c-name, func)),
+				    0, NULL, 0);
   Fputhash (CALL1I (comp-func-c-name, func),
 	    make_mint_ptr (gcc_func),
 	    comp.exported_funcs_h);
-
-  SAFE_FREE ();
 }
 
 static void
@@ -4685,12 +4698,20 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
 
   void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
-
   union Aligned_Lisp_Subr *x =
     (union Aligned_Lisp_Subr *) allocate_pseudovector (
 				  VECSIZE (union Aligned_Lisp_Subr),
 				  0, VECSIZE (union Aligned_Lisp_Subr),
 				  PVEC_SUBR);
+  if (CONSP (minarg))
+    {
+      /* Dynamic code.  */
+      x->s.lambda_list[0] = maxarg;
+      maxarg = XCDR (minarg);
+      minarg = XCAR (minarg);
+    }
+  else
+    x->s.lambda_list[0] = Qnil;
   x->s.function.a0 = func;
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;

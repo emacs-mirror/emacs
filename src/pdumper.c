@@ -2937,7 +2937,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_92BED44D81)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_35CE99B716)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -2968,8 +2968,9 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
       dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
       if (!NILP (subr->native_comp_u[0]))
 	dump_field_fixup_later (ctx, &out, subr, &subr->native_c_name[0]);
-    }
 
+      dump_field_lv (ctx, &out, subr, &subr->lambda_list[0], WEIGHT_NORMAL);
+    }
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
   if (NATIVE_COMP_FLAG
       && ctx->flags.dump_object_contents
