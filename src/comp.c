@@ -98,6 +98,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_struct_as_type
 #undef gcc_jit_struct_set_fields
 #undef gcc_jit_type_get_pointer
+#undef gcc_jit_version_major
+#undef gcc_jit_version_minor
+#undef gcc_jit_version_patchlevel
 
 /* In alphabetical order */
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_int,
@@ -231,9 +234,9 @@ DEF_DLL_FN (void, gcc_jit_context_set_logfile,
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
-DEF_DLL_FN (int, gcc_jit_version_major);
-DEF_DLL_FN (int, gcc_jit_version_minor);
-DEF_DLL_FN (int, gcc_jit_version_patchlevel);
+DEF_DLL_FN (int, gcc_jit_version_major, (void));
+DEF_DLL_FN (int, gcc_jit_version_minor, (void));
+DEF_DLL_FN (int, gcc_jit_version_patchlevel, (void));
 
 static bool
 init_gccjit_functions (void)
@@ -297,9 +300,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_as_type);
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
-  LOAD_DLL_FN (library, gcc_jit_version_major);
-  LOAD_DLL_FN (library, gcc_jit_version_minor);
-  LOAD_DLL_FN (library, gcc_jit_version_patchlevel);
+  LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
+  LOAD_DLL_FN_OPT (library, gcc_jit_version_minor);
+  LOAD_DLL_FN_OPT (library, gcc_jit_version_patchlevel);
 
   return true;
 }
@@ -358,6 +361,9 @@ init_gccjit_functions (void)
 #define gcc_jit_struct_as_type fn_gcc_jit_struct_as_type
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
+#define gcc_jit_version_major fn_gcc_jit_version_major
+#define gcc_jit_version_minor fn_gcc_jit_version_minor
+#define gcc_jit_version_patchlevel fn_gcc_jit_version_patchlevel
 
 #endif
 
