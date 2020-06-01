@@ -863,9 +863,10 @@ non-nil result supercedes the xrefs produced by
 
 (declare-function project-external-roots "project")
 
-(cl-defmethod xref-backend-apropos ((_backend (eql elisp)) regexp)
+(cl-defmethod xref-backend-apropos ((_backend (eql elisp)) pattern)
   (apply #'nconc
-         (let (lst)
+         (let ((regexp (xref-apropos-regexp pattern))
+               lst)
            (dolist (sym (apropos-internal regexp))
              (push (elisp--xref-find-definitions sym) lst))
            (nreverse lst))))
