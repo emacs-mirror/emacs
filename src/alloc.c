@@ -4456,7 +4456,7 @@ live_string_holding (struct mem_node *m, void *p)
 
       /* P must point into a Lisp_String structure, and it
 	 must not be on the free-list.  */
-      if (0 <= offset && offset < STRING_BLOCK_SIZE * sizeof b->strings[0])
+      if (0 <= offset && offset < sizeof b->strings)
 	{
 	  cp = ptr_bounds_copy (cp, b);
 	  struct Lisp_String *s = p = cp -= offset % sizeof b->strings[0];
@@ -4489,7 +4489,7 @@ live_cons_holding (struct mem_node *m, void *p)
       /* P must point into a Lisp_Cons, not be
 	 one of the unused cells in the current cons block,
 	 and not be on the free-list.  */
-      if (0 <= offset && offset < CONS_BLOCK_SIZE * sizeof b->conses[0]
+      if (0 <= offset && offset < sizeof b->conses
 	  && (b != cons_block
 	      || offset / sizeof b->conses[0] < cons_block_index))
 	{
@@ -4525,7 +4525,7 @@ live_symbol_holding (struct mem_node *m, void *p)
       /* P must point into the Lisp_Symbol, not be
 	 one of the unused cells in the current symbol block,
 	 and not be on the free-list.  */
-      if (0 <= offset && offset < SYMBOL_BLOCK_SIZE * sizeof b->symbols[0]
+      if (0 <= offset && offset < sizeof b->symbols
 	  && (b != symbol_block
 	      || offset / sizeof b->symbols[0] < symbol_block_index))
 	{
@@ -4559,9 +4559,8 @@ live_float_p (struct mem_node *m, void *p)
 
       /* P must point to the start of a Lisp_Float and not be
 	 one of the unused cells in the current float block.  */
-      return (offset >= 0
+      return (0 <= offset && offset < sizeof b->floats
 	      && offset % sizeof b->floats[0] == 0
-	      && offset < (FLOAT_BLOCK_SIZE * sizeof b->floats[0])
 	      && (b != float_block
 		  || offset / sizeof b->floats[0] < float_block_index));
     }
