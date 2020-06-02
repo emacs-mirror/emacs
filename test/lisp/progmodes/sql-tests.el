@@ -193,7 +193,7 @@ Perform ACTION and validate results"
   "Add a product that already exists."
 
   (sql-test-product-feature-harness
-      (should-error (sql-add-feature 'a "Aaa"))
+      (should-error (sql-add-product 'a "Aaa"))
       (should (equal (pp-to-string (assoc 'a sql-product-alist))
                      "(a :X 1 :Y 2 :Z sql-test-feature-value-a)\n"))))
 

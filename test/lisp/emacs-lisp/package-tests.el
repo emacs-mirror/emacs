@@ -267,6 +267,9 @@ Must called from within a `tar-mode' buffer."
     (should (package-installed-p 'simple-single))
     (should (package-installed-p 'simple-depend))))
 
+(declare-function macro-problem-func "macro-problem" ())
+(declare-function macro-problem-10-and-90 "macro-problem" ())
+
 (ert-deftest package-test-macro-compilation ()
   "Install a package which includes a dependency."
   (with-package-test (:basedir "package-resources")
@@ -391,7 +394,7 @@ Must called from within a `tar-mode' buffer."
   "Test updating package archives."
   (with-package-test ()
     (let ((buf (package-list-packages)))
-      (package-menu-refresh)
+      (revert-buffer)
       (search-forward-regexp "^ +simple-single")
       (package-menu-mark-install)
       (package-menu-execute)
@@ -399,7 +402,7 @@ Must called from within a `tar-mode' buffer."
       (let ((package-test-data-dir
              (expand-file-name "package-resources/newer-versions" package-test-file-dir)))
         (setq package-archives `(("gnu" . ,package-test-data-dir)))
-        (package-menu-refresh)
+        (revert-buffer)
 
         ;; New version should be available and old version should be installed
         (goto-char (point-min))
@@ -411,7 +414,7 @@ Must called from within a `tar-mode' buffer."
 
         (package-menu-mark-upgrades)
         (package-menu-execute)
-        (package-menu-refresh)
+        (revert-buffer)
         (should (package-installed-p 'simple-single '(1 4)))))))
 
 (ert-deftest package-test-update-archives-async ()
@@ -541,6 +544,8 @@ Must called from within a `tar-mode' buffer."
 		     (let ((process-environment
 			    (cons (concat "HOME=" homedir)
 				  process-environment)))
+                       (require 'epg-config)
+                       (defvar epg-config--program-alist)
 		       (epg-find-configuration
                         'OpenPGP nil
                         ;; By default we require gpg2 2.1+ due to some
@@ -573,7 +578,7 @@ Must called from within a `tar-mode' buffer."
         (should (progn (package-install 'signed-bad) 'noerror)))
       ;; Check if the installed package status is updated.
       (let ((buf (package-list-packages)))
-	(package-menu-refresh)
+        (revert-buffer)
 	(should (re-search-forward
 		 "^\\s-+signed-good\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\s-"
 		 nil t))

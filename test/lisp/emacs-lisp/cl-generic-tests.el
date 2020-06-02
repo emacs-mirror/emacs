@@ -23,8 +23,14 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'ert)) ;Don't indirectly require cl-lib at run-time.
 (require 'cl-generic)
+
+;; Don't indirectly require `cl-lib' at run-time.
+(eval-when-compile (require 'ert))
+(declare-function ert--should-signal-hook "ert")
+(declare-function ert--signal-should-execution "ert")
+(declare-function ert-fail "ert")
+(declare-function ert-set-test "ert")
 
 (fmakunbound 'cl--generic-1)
 (cl-defgeneric cl--generic-1 (x y))

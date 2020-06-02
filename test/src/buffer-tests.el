@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'seq)
 (eval-when-compile (require 'cl-lib))
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()

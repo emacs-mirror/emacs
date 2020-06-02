@@ -716,8 +716,7 @@ See Bug#21722."
 
 (defmacro with-shell-command-dont-erase-buffer (str output-buffer-is-current &rest body)
   (declare (debug (sexp form body)) (indent 2))
-  (let ((expected (make-symbol "expected"))
-        (command (make-symbol "command"))
+  (let ((command (make-symbol "command"))
         (caller-buf (make-symbol "caller-buf"))
         (output-buf (make-symbol "output-buf")))
     `(let* ((,caller-buf (generate-new-buffer "caller-buf"))

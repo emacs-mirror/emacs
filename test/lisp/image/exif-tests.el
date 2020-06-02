@@ -21,7 +21,6 @@
 
 (require 'ert)
 (require 'exif)
-(require 'seq)
 
 (defun test-image-file (name)
   (expand-file-name
@@ -49,7 +48,7 @@
     (should (equal (exif-elem exif 'artist) "z"))))
 
 (ert-deftest test-exit-direct-ascii-value ()
-  (equal (exif--direct-ascii-value 28005 2 t) (string ?e ?m 0))
-  (equal (exif--direct-ascii-value 28005 2 nil) (string ?m ?e 0)))
+  (should (equal (exif--direct-ascii-value 28005 2 t) (string ?e ?m 0)))
+  (should (equal (exif--direct-ascii-value 28005 2 nil) (string ?m ?e 0))))
 
 ;;; exif-tests.el ends here
