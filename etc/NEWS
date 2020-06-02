@@ -415,10 +415,14 @@ all commands that prompt for a project directory.
 These commands run Dired/VC-Dir and Shell/Eshell in a project's root directory,
 respectively.
 
+*** New command 'project-compile', which runs compilation.
+
 +++
 *** New command 'project-switch-project'.
 This command lets you "switch" to another project and run a project
 command chosen from a dispatch menu.
+
+*** New user option 'project-list-file'.
 
 ** json.el
 
