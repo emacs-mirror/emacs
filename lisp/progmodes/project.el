@@ -771,14 +771,15 @@ Arguments the same as in `compile'."
       (write-region nil nil filename nil 'silent))))
 
 (defun project--add-to-project-list-front (pr)
-  "Add project PR to the front of the project list and save it.
-Return PR."
+  "Add project PR to the front of the project list.
+Save the result to disk if the project list was changed."
   (project--ensure-read-project-list)
-  (let ((dir (project-root pr)))
+  (let* ((dir (project-root pr))
+         (do-write (not (equal (car project--list) dir))))
     (setq project--list (delete dir project--list))
-    (push dir project--list))
-  (project--write-project-list)
-  pr)
+    (push dir project--list)
+    (when do-write
+      (project--write-project-list))))
 
 (defun project--remove-from-project-list (pr-dir)
   "Remove directory PR-DIR from the project list.
