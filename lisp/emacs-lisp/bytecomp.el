@@ -585,7 +585,7 @@ Each element is (INDEX . VALUE)")
   name c-name byte-func)
 (cl-defstruct byte-to-native-top-level
   "All other top-level forms."
-  form)
+  form lexical)
 
 (defvar byte-native-compiling nil
   "Non nil while native compiling.")
@@ -2248,7 +2248,7 @@ Call from the source buffer."
   ;; it here.
   (when byte-native-compiling
     ;; Spill output for the native compiler here
-    (push (make-byte-to-native-top-level :form form)
+    (push (make-byte-to-native-top-level :form form :lexical lexical-binding)
           byte-to-native-top-level-forms))
   (let ((print-escape-newlines t)
         (print-length nil)
@@ -2707,7 +2707,8 @@ not to take responsibility for the actual compilation of the code."
               ;; Spill output for the native compiler here.
               (push (if macro
                         (make-byte-to-native-top-level
-                         :form `(defalias ',name '(macro . ,code) nil))
+                         :form `(defalias ',name '(macro . ,code) nil)
+                         :lexical lexical-binding)
                       (make-byte-to-native-func-def :name name
                                                     :byte-func code))
                     byte-to-native-top-level-forms))

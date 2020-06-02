@@ -1373,11 +1373,13 @@ the annotation emission."
 (cl-defmethod comp-emit-for-top-level ((form byte-to-native-top-level)
                                        for-late-load)
   (unless for-late-load
-    (let ((form (byte-to-native-top-level-form form)))
-      (comp-emit (comp-call 'eval
-                            (let ((comp-curr-allocation-class 'd-impure))
-                              (make-comp-mvar :constant form))
-                            (make-comp-mvar :constant t))))))
+    (comp-emit
+     (comp-call 'eval
+                (let ((comp-curr-allocation-class 'd-impure))
+                  (make-comp-mvar :constant
+                                  (byte-to-native-top-level-form form)))
+                (make-comp-mvar :constant
+                                (byte-to-native-top-level-lexical form))))))
 
 (defun comp-emit-lambda-for-top-level (func)
   "Emit the creation of subrs for lambda FUNC.
