@@ -93,6 +93,10 @@
 (require 'cl-generic)
 (eval-when-compile (require 'subr-x))
 
+(defgroup project nil
+  "Operations on the current project."
+  :group 'tools)
+
 (defvar project-find-functions (list #'project-try-vc)
   "Special hook to find the project containing a given directory.
 Each functions on this hook is called in turn with one
@@ -236,7 +240,7 @@ to find the list of ignores for each directory."
 (defgroup project-vc nil
   "Project implementation based on the VC package."
   :version "25.1"
-  :group 'tools)
+  :group 'project)
 
 (defcustom project-vc-ignores nil
   "List of patterns to include in `project-ignores'."
@@ -249,6 +253,7 @@ to find the list of ignores for each directory."
 After changing this variable (using Customize or .dir-locals.el)
 you might have to restart Emacs to see the effect."
   :type 'boolean
+  :version "28.1"
   :package-version '(project . "0.2.0")
   :safe 'booleanp)
 
@@ -601,6 +606,7 @@ For the arguments list, see `project--read-file-cpd-relative'."
                  (const :tag "Read with completion from absolute names"
                         project--read-file-absolute)
                  (function :tag "Custom function" nil))
+  :group 'project
   :version "27.1")
 
 (defun project--read-file-cpd-relative (prompt
@@ -740,12 +746,17 @@ Arguments the same as in `compile'."
 
 ;;; Project list
 
+(defcustom project-list-file (locate-user-emacs-file "project-list")
+  "File to save the list of known projects."
+  :type 'string
+  :group 'project)
+
 (defvar project--list 'unset
   "List of known project directories.")
 
 (defun project--read-project-list ()
   "Initialize `project--list' from the project list file."
-  (let ((filename (locate-user-emacs-file "project-list")))
+  (let ((filename project-list-file))
     (setq project--list
           (when (file-exists-p filename)
             (with-temp-buffer
@@ -765,7 +776,7 @@ Arguments the same as in `compile'."
 
 (defun project--write-project-list ()
   "Persist `project--list' to the project list file."
-  (let ((filename (locate-user-emacs-file "project-list")))
+  (let ((filename project-list-file))
     (with-temp-buffer
       (insert (string-join project--list "\n"))
       (write-region nil nil filename nil 'silent))))
