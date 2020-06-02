@@ -4511,33 +4511,33 @@ would destroy these properties.  However, the latter combination is
 typically faster (@xref{Deletion}, and @ref{Insertion}).
 
 For its working, @code{replace-buffer-contents} needs to compare the
-contents of the original buffer with that of @code{source} which is a
+contents of the original buffer with that of @var{source} which is a
 costly operation if the buffers are huge and there is a high number of
 differences between them.  In order to keep
 @code{replace-buffer-contents}'s runtime in bounds, it has two
 optional arguments.
 
-@code{max-secs} defines a hard boundary in terms of seconds.  If given
+@var{max-secs} defines a hard boundary in terms of seconds.  If given
 and exceeded, it will fall back to @code{delete-region} and
 @code{insert-buffer-substring}.
 
-@code{max-costs} defines the quality of the difference computation.
-If the actual costs exceed this limit, heuristics are used to provide
-a faster but suboptimal solution.  The default value is 1000000.
+@var{max-costs} defines the quality of the difference computation.  If
+the actual costs exceed this limit, heuristics are used to provide a
+faster but suboptimal solution.  The default value is 1000000.
 
 @code{replace-buffer-contents} returns t if a non-destructive
-replacement could be performed.  Otherwise, i.e., if @code{max-secs}
+replacement could be performed.  Otherwise, i.e., if @var{max-secs}
 was exceeded, it returns nil.
 @end deffn
 
 @defun replace-region-contents beg end replace-fn &optional max-secs max-costs
-This function replaces the region between @code{beg} and @code{end}
-using the given @code{replace-fn}.  The function @code{replace-fn} is
+This function replaces the region between @var{beg} and @var{end}
+using the given @var{replace-fn}.  The function @var{replace-fn} is
 run in the current buffer narrowed to the specified region and it
 should return either a string or a buffer replacing the region.
 
 The replacement is performed using @code{replace-buffer-contents} (see
-above) which also describes the @code{max-secs} and @code{max-costs}
+above) which also describes the @var{max-secs} and @var{max-costs}
 arguments and the return value.
 
 Note: If the replacement is a string, it will be placed in a temporary
@@ -4678,7 +4678,7 @@ expanded when the header line is computed.  To do this, the
 above.  @var{specification} is an alist that has elements where the
 @code{car} is a character and the @code{cdr} is the substitution.
 
-If @code{ONLY-PRESENT} is @code{nil}, errors will be signaled if a
+If @var{only-present} is @code{nil}, errors will be signaled if a
 format character has been used that's not present in
 @var{specification}.  If it's non-@code{nil}, that format
 specification is left verbatim in the result.
@@ -4698,10 +4698,7 @@ following modifiers can be used:
 
 @table @asis
 @item @samp{0}
-Use zero padding.
-
-@item @samp{@ }
-User space padding.
+Pad with zeros instead of the default spaces.
 
 @item @samp{-}
 Pad to the right.
@@ -4713,7 +4710,7 @@ Use upper case.
 Use lower case.
 
 @item @samp{<}
-If the length needs to limited, remove characters from the left.
+If the length needs to be limited, remove characters from the left.
 
 @item @samp{>}
 Same as previous, but remove characters from the right.
@@ -4723,9 +4720,9 @@ If contradictory modifiers are used (for instance, both upper and
 lower case), then what happens is undefined.
 
 As an example, @samp{"%<010b"} means ``insert the @samp{b} expansion,
-but pad with leading zeroes if it's less than ten characters, and if
+but pad with leading zeros if it's less than ten characters, and if
 it's more than ten characters, shorten by removing characters from the
-left''.
+left.''
 
 
 @node Checksum/Hash

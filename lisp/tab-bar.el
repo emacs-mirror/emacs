@@ -376,19 +376,22 @@ to `tab-bar-tab-name-truncated'."
   :group 'tab-bar
   :version "27.1")
 
-(defvar tab-bar-tab-name-ellipsis
-  (if (char-displayable-p ?…) "…" "..."))
+(defvar tab-bar-tab-name-ellipsis nil)
 
 (defun tab-bar-tab-name-truncated ()
   "Generate tab name from the buffer of the selected window.
 Truncate it to the length specified by `tab-bar-tab-name-truncated-max'.
 Append ellipsis `tab-bar-tab-name-ellipsis' in this case."
-  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window)))))
+  (let ((tab-name (buffer-name (window-buffer (minibuffer-selected-window))))
+        (ellipsis (cond
+                   (tab-bar-tab-name-ellipsis)
+                   ((char-displayable-p ?…) "…")
+                   ("..."))))
     (if (< (length tab-name) tab-bar-tab-name-truncated-max)
         tab-name
       (propertize (truncate-string-to-width
                    tab-name tab-bar-tab-name-truncated-max nil nil
-                   tab-bar-tab-name-ellipsis)
+                   ellipsis)
                   'help-echo tab-name))))
 
 
@@ -1551,9 +1554,10 @@ indirectly called by the latter."
 Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
-  (display-buffer buffer-or-name '((display-buffer-in-tab)
-                                   (inhibit-same-window . nil)
-                                   (reusable-frames . t))
+  (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                  '((display-buffer-in-tab)
+                    (inhibit-same-window . nil)
+                    (reusable-frames . t))
                   norecord))
 
 (defun find-file-other-tab (filename &optional wildcards)

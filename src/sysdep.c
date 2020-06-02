@@ -199,6 +199,7 @@ maybe_disable_address_randomization (int argc, char **argv)
 }
 #endif
 
+#ifndef WINDOWSNT
 /* Execute the program in FILE, with argument vector ARGV and environ
    ENVP.  Return an error number if unsuccessful.  This is like execve
    except it reenables ASLR in the executed program if necessary, and
@@ -214,6 +215,8 @@ emacs_exec_file (char const *file, char *const *argv, char *const *envp)
   execve (file, argv, envp);
   return errno;
 }
+
+#endif	/* !WINDOWSNT */
 
 /* If FD is not already open, arrange for it to be open with FLAGS.  */
 static void

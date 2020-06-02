@@ -791,32 +791,32 @@ arglist-cont-nonempty."
       c-basic-offset))
 
 (defun c-lineup-ternary-bodies (langelem)
-  "Line up true and false branches of a ternary operator (i.e. ‘?:’).
+  "Line up true and false branches of a ternary operator (i.e. `?:').
 More precisely, if the line starts with a colon which is a part of
-a said operator it with corresponding question mark; otherwise return
-nil.  For example:
+a said operator, align it with corresponding question mark; otherwise
+return nil.  For example:
 
     return arg % 2 == 0 ? arg / 2
                         : (3 * arg + 1);    <- c-lineup-ternary-bodies
 
-Works with: arglist-cont, arglist-cont-nonempty and statement-cont.
-"
+Works with: arglist-cont, arglist-cont-nonempty and statement-cont."
   (save-excursion
     (back-to-indentation)
     (when (and (eq ?: (char-after))
                (not (eq ?: (char-after (1+ (point))))))
       (let ((limit (c-langelem-pos langelem)) (depth 1))
         (catch 'done
-          (while (c-syntactic-skip-backward "^?:" limit t)
-            (goto-char (1- (point)))
+          (while (and (c-syntactic-skip-backward "^?:" limit t)
+		      (not (bobp)))
+            (backward-char)
             (cond ((eq (char-after) ??)
-                   ;; If we’ve found a question mark, decrease depth.  If we’re
-                   ;; reached zero, we’ve found the one we were looking for.
+                   ;; If we've found a question mark, decrease depth.  If we've
+                   ;; reached zero, we've found the one we were looking for.
                    (when (zerop (setq depth (1- depth)))
                      (throw 'done (vector (current-column)))))
                   ((or (eq ?: (char-before)) (eq ?? (char-before)))
-                   ;; Step over ‘::’ and ‘?:’ operators.  We don’t have to
-                   ;; handle ‘?:’ here but doing so saves an iteration.
+                   ;; Step over `::' and `?:' operators.  We don't have to
+                   ;; handle `?:' here but doing so saves an iteration.
                    (if (eq (point) limit)
                        (throw 'done nil)
                      (goto-char (1- (point)))))

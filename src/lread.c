@@ -3844,6 +3844,10 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag)
   ptrdiff_t size = list_length (tem);
   Lisp_Object vector = make_nil_vector (size);
 
+  /* Avoid accessing past the end of a vector if the vector is too
+     small to be valid for bytecode.  */
+  bytecodeflag &= COMPILED_STACK_DEPTH < size;
+
   Lisp_Object *ptr = XVECTOR (vector)->contents;
   for (ptrdiff_t i = 0; i < size; i++)
     {

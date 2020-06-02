@@ -1415,6 +1415,7 @@ Value is the height in pixels of the line at point.  */)
       set_buffer_internal_1 (XBUFFER (w->contents));
     }
   SET_TEXT_POS (pt, PT, PT_BYTE);
+  void *itdata = bidi_shelve_cache ();
   start_display (&it, w, pt);
   /* Start from the beginning of the screen line, to make sure we
      traverse all of its display elements, and thus capture the
@@ -1426,6 +1427,7 @@ Value is the height in pixels of the line at point.  */)
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
 
+  bidi_unshelve_cache (itdata, false);
   return result;
 }
 
@@ -8290,8 +8292,8 @@ get_visually_first_element (struct it *it)
     }
   else if (it->bidi_it.charpos == bob
 	   || (!string_p
-	       && (FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
-		   || FETCH_CHAR (it->bidi_it.bytepos) == '\n')))
+	       && (FETCH_BYTE (it->bidi_it.bytepos - 1) == '\n'
+		   || FETCH_BYTE (it->bidi_it.bytepos) == '\n')))
     {
       /* If we are at the beginning of a line/string, we can produce
 	 the next element right away.  */
@@ -11573,7 +11575,9 @@ display_echo_area_1 (ptrdiff_t a1, Lisp_Object a2)
   /* Display.  */
   clear_glyph_matrix (w->desired_matrix);
   XSETWINDOW (window, w);
+  void *itdata = bidi_shelve_cache ();
   try_window (window, start, 0);
+  bidi_unshelve_cache (itdata, false);
 
   return window_height_changed_p;
 }
@@ -15566,6 +15570,12 @@ redisplay_internal (void)
 	  if (it.current_x != this_line_start_x)
 	    goto cancel;
 
+	  /* Give up on this optimization if the line starts with a
+	     string with display property that draws on the fringes,
+	     as that might interfere with line-prefix display.  */
+	  if (it.sp > 1
+	      && it.method == GET_FROM_IMAGE && it.image_id == -1)
+	    goto cancel;
 	  redisplay_trace ("trying display optimization 1\n");
 	  w->cursor.vpos = -1;
 	  overlay_arrow_seen = false;
@@ -19740,7 +19750,7 @@ find_last_row_displaying_text (struct glyph_matrix *matrix, struct it *it,
    by changes at the start of current_buffer that occurred since W's
    current matrix was built.  Value is null if no such row exists.
 
-   BEG_UNCHANGED us the number of characters unchanged at the start of
+   BEG_UNCHANGED is the number of characters unchanged at the start of
    current_buffer.  BEG + BEG_UNCHANGED is the buffer position of the
    first changed character in current_buffer.  Characters at positions <
    BEG + BEG_UNCHANGED are at the same buffer positions as they were
@@ -20338,6 +20348,12 @@ try_window_id (struct window *w)
 
       if (! init_to_row_end (&it, w, last_unchanged_at_beg_row))
 	GIVE_UP (18);
+      /* Give up if the row starts with a display property that draws
+	 on the fringes, since that could prevent correct display of
+	 line-prefix and wrap-prefix.  */
+      if (it.sp > 1
+	  && it.method == GET_FROM_IMAGE && it.image_id == -1)
+	GIVE_UP (26);
       start_pos = it.current.pos;
 
       /* Start displaying new lines in the desired matrix at the same
@@ -24182,7 +24198,7 @@ the `bidi-class' property of a character.  */)
 	  itb.charpos = BEGV;
 	  itb.bytepos = BEGV_BYTE;
 	}
-      else if (FETCH_CHAR (from_bpos - 1) == '\n')
+      else if (FETCH_BYTE (from_bpos - 1) == '\n')
 	{
 	  itb.charpos = from_pos;
 	  itb.bytepos = from_bpos;
@@ -24430,6 +24446,7 @@ Value is the new character position of point.  */)
       bool at_eol_p;
       bool overshoot_expected = false;
       bool target_is_eol_p = false;
+      void *itdata = bidi_shelve_cache ();
 
       /* Setup the arena.  */
       SET_TEXT_POS (pt, PT, PT_BYTE);
@@ -24658,6 +24675,7 @@ Value is the new character position of point.  */)
 
       /* Move point to that position.  */
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      bidi_unshelve_cache (itdata, false);
     }
 
   return make_fixnum (PT);

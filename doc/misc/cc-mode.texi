@@ -6399,8 +6399,8 @@ function is the same as specifying a list @code{(c-lineup-assignments
 @findex lineup-ternary-bodies @r{(c-)}
 Line up true and false branches of a ternary operator
 (i.e. @code{?:}).  More precisely, if the line starts with a colon
-which is a part of a said operator it with corresponding question
-mark.  For example:
+which is a part of a said operator, align it with corresponding
+question mark.  For example:
 
 @example
 @group

@@ -2239,7 +2239,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Float_50A7B216D9)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Float_7E7D284C02)
 # error "Lisp_Float changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (ctx->header.cold_start);
@@ -2603,7 +2603,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
       Lisp_Object out;
       const Lisp_Object *vslot = &v->contents[i];
       /* In the wide case, we're always misaligned.  */
-#ifndef WIDE_EMACS_INT
+#if INTPTR_MAX == EMACS_INT_MAX
       eassert (ctx->offset % sizeof (out) == 0);
 #endif
       dump_object_start (ctx, &out, sizeof (out));
