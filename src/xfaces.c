@@ -4356,15 +4356,15 @@ color_distance (Emacs_Color *x, Emacs_Color *y)
 
      See <https://www.compuphase.com/cmetric.htm> for more info.  */
 
-  long r = (x->red   - y->red)   >> 8;
-  long g = (x->green - y->green) >> 8;
-  long b = (x->blue  - y->blue)  >> 8;
-  long r_mean = (x->red + y->red) >> 9;
+  long long r = x->red   - y->red;
+  long long g = x->green - y->green;
+  long long b = x->blue  - y->blue;
+  long long r_mean = (x->red + y->red) >> 1;
 
-  return
-    (((512 + r_mean) * r * r) >> 8)
-    + 4 * g * g
-    + (((767 - r_mean) * b * b) >> 8);
+  return (((((2 * 65536 + r_mean) * r * r) >> 16)
+           + 4 * g * g
+           + (((2 * 65536 + 65535 - r_mean) * b * b) >> 16))
+          >> 16);
 }
 
 
@@ -4374,7 +4374,9 @@ COLOR1 and COLOR2 may be either strings containing the color name,
 or lists of the form (RED GREEN BLUE), each in the range 0 to 65535 inclusive.
 If FRAME is unspecified or nil, the current frame is used.
 If METRIC is specified, it should be a function that accepts
-two lists of the form (RED GREEN BLUE) aforementioned. */)
+two lists of the form (RED GREEN BLUE) aforementioned.
+Despite the name, this is not a true distance metric as it does not satisfy
+the triangle inequality.  */)
   (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame,
    Lisp_Object metric)
 {
@@ -4931,7 +4933,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
 
 /* If the distance (as returned by color_distance) between two colors is
    less than this, then they are considered the same, for determining
-   whether a color is supported or not.  The range of values is 0-65535.  */
+   whether a color is supported or not.  */
 
 #define TTY_SAME_COLOR_THRESHOLD  10000
 
