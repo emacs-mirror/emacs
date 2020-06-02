@@ -1554,9 +1554,10 @@ indirectly called by the latter."
 Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
-  (display-buffer buffer-or-name '((display-buffer-in-tab)
-                                   (inhibit-same-window . nil)
-                                   (reusable-frames . t))
+  (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                  '((display-buffer-in-tab)
+                    (inhibit-same-window . nil)
+                    (reusable-frames . t))
                   norecord))
 
 (defun find-file-other-tab (filename &optional wildcards)

@@ -741,7 +741,14 @@ Ido'').  Among other things, in Fido mode, @kbd{C-s} and @kbd{C-r} are
 also used to rotate the completions list, @kbd{C-k} can be used to
 delete files and kill buffers in-list.  Another noteworthy aspect is
 that @code{flex} is used as the default completion style
-(@pxref{Completion Styles}).
+(@pxref{Completion Styles}).  To change this, add the following to
+your initialization file (@pxref{Init File}):
+
+@example
+(defun my-icomplete-styles ()
+  (setq-local completion-styles '(initials flex)))
+(add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+@end example
 
   To enable Fido mode, type @kbd{M-x fido-mode}, or customize
 the variable @code{fido-mode} to @code{t} (@pxref{Easy
