@@ -787,9 +787,9 @@ Save the result to disk if the project list was changed."
   (project--ensure-read-project-list)
   (let* ((dir (project-root pr))
          (do-write (not (equal (car project--list) dir))))
-    (setq project--list (delete dir project--list))
-    (push dir project--list)
     (when do-write
+      (setq project--list (delete dir project--list))
+      (push dir project--list)
       (project--write-project-list))))
 
 (defun project--remove-from-project-list (pr-dir)
@@ -797,8 +797,6 @@ Save the result to disk if the project list was changed."
 If the directory was in the list before the removal, save the
 result to disk."
   (project--ensure-read-project-list)
-  ;; XXX: This hardcodes that the number of roots = 1.
-  ;; It's fine, though.
   (when (member pr-dir project--list)
     (setq project--list (delete pr-dir project--list))
     (message "Project `%s' not found; removed from list" pr-dir)
