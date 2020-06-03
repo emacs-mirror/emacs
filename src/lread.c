@@ -2966,17 +2966,18 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  struct Lisp_Vector *vec;
 	  tmp = read_vector (readcharfun, 1);
 	  vec = XVECTOR (tmp);
-	  if (! (COMPILED_STACK_DEPTH < vec->header.size
-		 && (FIXNUMP (vec->contents[COMPILED_ARGLIST])
-		     || CONSP (vec->contents[COMPILED_ARGLIST])
-		     || NILP (vec->contents[COMPILED_ARGLIST]))
-		 && ((STRINGP (vec->contents[COMPILED_BYTECODE])
-		      && VECTORP (vec->contents[COMPILED_CONSTANTS]))
-		     || CONSP (vec->contents[COMPILED_BYTECODE]))
-		 && FIXNATP (vec->contents[COMPILED_STACK_DEPTH])))
+	  if (! (COMPILED_STACK_DEPTH < ASIZE (tmp)
+		 && (FIXNUMP (AREF (tmp, COMPILED_ARGLIST))
+		     || CONSP (AREF (tmp, COMPILED_ARGLIST))
+		     || NILP (AREF (tmp, COMPILED_ARGLIST)))
+		 && ((STRINGP (AREF (tmp, COMPILED_BYTECODE))
+		      && VECTORP (AREF (tmp, COMPILED_CONSTANTS)))
+		     || CONSP (AREF (tmp, COMPILED_BYTECODE)))
+		 && FIXNATP (AREF (tmp, COMPILED_STACK_DEPTH))))
 	    invalid_syntax ("Invalid byte-code object");
 
-	  if (STRING_MULTIBYTE (AREF (tmp, COMPILED_BYTECODE)))
+	  if (STRINGP (AREF (tmp, COMPILED_BYTECODE))
+	      && STRING_MULTIBYTE (AREF (tmp, COMPILED_BYTECODE)))
 	    {
 	      /* BYTESTR must have been produced by Emacs 20.2 or earlier
 		 because it produced a raw 8-bit string for byte-code and
@@ -2987,7 +2988,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		    Fstring_as_unibyte (AREF (tmp, COMPILED_BYTECODE)));
 	    }
 
-	  if (COMPILED_DOC_STRING < vec->header.size
+	  if (COMPILED_DOC_STRING < ASIZE (tmp)
 	      && EQ (AREF (tmp, COMPILED_DOC_STRING), make_fixnum (0)))
 	    {
 	      /* read_list found a docstring like '(#$ . 5521)' and treated it
