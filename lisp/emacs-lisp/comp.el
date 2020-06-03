@@ -494,6 +494,16 @@ VERBOSITY is a number between 0 and 3."
   "Output filename for SRC file being native compiled."
   (concat (comp-output-base-filename src) ".eln"))
 
+(defmacro comp-loop-insn-in-block (basic-block &rest body)
+  "Loop over all insns in BASIC-BLOCK executning BODY.
+Inside BODY `insn' can be used to read or set the current
+instruction."
+  (declare (debug (form body))
+           (indent defun))
+  (let ((sym-cell (gensym "cell-")))
+    `(cl-symbol-macrolet ((insn (car ,sym-cell)))
+       (cl-loop for ,sym-cell on (comp-block-insns ,basic-block)
+	        do ,@body))))
 
 ;;; spill-lap pass specific code.
 
@@ -2012,18 +2022,16 @@ Backward propagate array placement properties."
    with self = (comp-func-name comp-func)
    for b being each hash-value of (comp-func-blocks comp-func)
    when self ;; FIXME add proper anonymous lambda support.
-   do (cl-loop
-       for insn-cell on (comp-block-insns b)
-       for insn = (car insn-cell)
-       do (pcase insn
-            (`(set ,lval (callref funcall ,f . ,rest))
-             (when-let ((new-form (comp-call-optim-form-call
-                                   (comp-mvar-constant f) rest)))
-               (setcar insn-cell `(set ,lval ,new-form))))
-            (`(callref funcall ,f . ,rest)
-             (when-let ((new-form (comp-call-optim-form-call
-                                   (comp-mvar-constant f) rest)))
-               (setcar insn-cell new-form)))))))
+   do (comp-loop-insn-in-block b
+        (pcase insn
+          (`(set ,lval (callref funcall ,f . ,rest))
+           (when-let ((new-form (comp-call-optim-form-call
+                                 (comp-mvar-constant f) rest)))
+             (setf insn `(set ,lval ,new-form))))
+          (`(callref funcall ,f . ,rest)
+           (when-let ((new-form (comp-call-optim-form-call
+                                 (comp-mvar-constant f) rest)))
+             (setf insn new-form)))))))
 
 (defun comp-call-optim (_)
   "Try to optimize out funcall trampoline usage when possible."
@@ -2077,17 +2085,15 @@ Return the list of m-var ids nuked."
                 3)
       (cl-loop
        for b being each hash-value of (comp-func-blocks comp-func)
-       do (cl-loop
-           for insn-cell on (comp-block-insns b)
-           for insn = (car insn-cell)
-           for (op arg0 rest) = insn
-           when (and (comp-set-op-p op)
-                     (memq (comp-mvar-id arg0) nuke-list))
-             do (setcar insn-cell
-                        (if (comp-limple-insn-call-p rest)
-                            rest
-                          `(comment ,(format "optimized out: %s"
-                                             insn))))))
+       do (comp-loop-insn-in-block b
+            (cl-destructuring-bind (op &optional arg0 arg1 &rest rest) insn
+              (when (and (comp-set-op-p op)
+                         (memq (comp-mvar-id arg0) nuke-list))
+                (setf insn
+                      (if (comp-limple-insn-call-p arg1)
+                          arg1
+                        `(comment ,(format "optimized out: %s"
+                                           insn))))))))
       nuke-list)))
 
 (defun comp-dead-code (_)
@@ -2154,12 +2160,10 @@ Return the list of m-var ids nuked."
 These are substituted with a normal 'set' op."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
-   do (cl-loop
-       for insn-cell on (comp-block-insns b)
-       for insn = (car insn-cell)
-       do (pcase insn
-            (`(set ,l-val (call ,(pred comp-type-hint-p) ,r-val))
-             (setcar insn-cell `(set ,l-val ,r-val)))))))
+   do (comp-loop-insn-in-block b
+        (pcase insn
+          (`(set ,l-val (call ,(pred comp-type-hint-p) ,r-val))
+           (setf insn `(set ,l-val ,r-val)))))))
 
 (defun comp-remove-type-hints (_)
   "Dead code elimination."
