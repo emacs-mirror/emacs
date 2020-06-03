@@ -95,6 +95,7 @@
 
 (defgroup project nil
   "Operations on the current project."
+  :version "28.1"
   :group 'tools)
 
 (defvar project-find-functions (list #'project-try-vc)
@@ -245,7 +246,7 @@ to find the list of ignores for each directory."
 (defcustom project-vc-ignores nil
   "List of patterns to include in `project-ignores'."
   :type '(repeat string)
-  :safe 'listp)
+  :safe #'listp)
 
 (defcustom project-vc-merge-submodules t
   "Non-nil to consider submodules part of the parent project.
@@ -255,7 +256,7 @@ you might have to restart Emacs to see the effect."
   :type 'boolean
   :version "28.1"
   :package-version '(project . "0.2.0")
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -748,7 +749,8 @@ Arguments the same as in `compile'."
 
 (defcustom project-list-file (locate-user-emacs-file "project-list")
   "File to save the list of known projects."
-  :type 'string
+  :type 'file
+  :version "28.1"
   :group 'project)
 
 (defvar project--list 'unset
