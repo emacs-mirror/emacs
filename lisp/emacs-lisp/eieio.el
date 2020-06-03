@@ -513,8 +513,7 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
   "Set the value in OBJ for slot SLOT to VALUE.
 SLOT is the slot name as specified in `defclass' or the tag created
 with in the :initarg slot.  VALUE can be any Lisp object."
-  (declare (obsolete "use (setf (oref ..) ..) instead" "28.1")
-           (debug (form symbolp form)))
+  (declare (debug (form symbolp form)))
   `(eieio-oset ,obj (quote ,slot) ,value))
 
 (defmacro oset-default (class slot value)
@@ -522,8 +521,7 @@ with in the :initarg slot.  VALUE can be any Lisp object."
 The default value is usually set with the :initform tag during class
 creation.  This allows users to change the default behavior of classes
 after they are created."
-  (declare (obsolete "use (setf (oref-default ..) ..) instead" "28.1")
-           (debug (form symbolp form)))
+  (declare (debug (form symbolp form)))
   `(eieio-oset-default ,class (quote ,slot) ,value))
 
 ;;; CLOS queries into classes and slots
@@ -646,14 +644,6 @@ If SLOT is unbound, do nothing."
   (if (not (slot-boundp object slot))
       nil
     (eieio-oset object slot (delete item (eieio-oref object slot)))))
-
-;;; Here are some CLOS items that need the CL package
-;;
-
-;; FIXME: Shouldn't this be a more complex gv-expander which extracts the
-;; common code between oref and oset, so as to reduce the redundant work done
-;; in (push foo (oref bar baz)), like we do for the `nth' expander?
-(gv-define-simple-setter eieio-oref eieio-oset)
 
 
 ;;;

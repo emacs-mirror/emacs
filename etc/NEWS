@@ -112,7 +112,12 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 
-** EIEIO: 'oset' and 'oset-default' are declared obsolete.
+** EIEIO
+
++++
+*** The macro 'oref-default' can now be used with 'setf'.
+It is now defined as a generalized variable that can be used with
+'setf' to modify the value stored in a given class slot.
 
 ** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'.
 The mode provides refined highlighting of built-in functions, types,
