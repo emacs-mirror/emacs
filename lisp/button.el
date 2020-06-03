@@ -349,7 +349,8 @@ Also see `insert-text-button'."
 	 (or (plist-member properties 'type)
 	     (plist-member properties :type))))
     (when (stringp beg)
-      (setq object (copy-sequence beg) beg 0 end (length object)))
+      (setq beg (copy-sequence beg)) ;; In case BEG is not mutable.
+      (setq object beg beg 0 end (length object)))
     ;; Disallow setting the `category' property directly.
     (when (plist-get properties 'category)
       (error "Button `category' property may not be set directly"))
