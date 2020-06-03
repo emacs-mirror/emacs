@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.8") (project "0.3.0") (xref "1.0.1") (eldoc "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.9") (flymake "1.0.8") (project "0.3.0") (xref "1.0.1") (eldoc "1.1.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -470,10 +470,18 @@ treated as in `eglot-dbind'."
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
-(cl-defmacro eglot--with-live-buffer (buf &rest body)
+(cl-defmacro eglot--when-live-buffer (buf &rest body)
   "Check BUF live, then do BODY in it." (declare (indent 1) (debug t))
   (let ((b (cl-gensym)))
     `(let ((,b ,buf)) (if (buffer-live-p ,b) (with-current-buffer ,b ,@body)))))
+
+(cl-defmacro eglot--when-buffer-window (buf &body body)
+  "Check BUF showing somewhere, then do BODY in it" (declare (indent 1) (debug t))
+  (let ((b (cl-gensym)))
+    `(let ((,b ,buf))
+       ;;notice the exception when testing with `ert'
+       (when (or (get-buffer-window ,b) (ert-running-test))
+         (with-current-buffer ,b ,@body)))))
 
 (cl-defmacro eglot--widening (&rest body)
   "Save excursion and restriction. Widen. Then run BODY." (declare (debug t))
@@ -642,7 +650,7 @@ SERVER.  ."
   (dolist (buffer (eglot--managed-buffers server))
     (let (;; Avoid duplicate shutdowns (github#389)
           (eglot-autoshutdown nil))
-      (eglot--with-live-buffer buffer (eglot--managed-mode-off))))
+      (eglot--when-live-buffer buffer (eglot--managed-mode-off))))
   ;; Kill any expensive watches
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
@@ -806,7 +814,7 @@ INTERACTIVE is t if called interactively."
         ((maybe-connect
           ()
           (remove-hook 'post-command-hook #'maybe-connect nil)
-          (eglot--with-live-buffer buffer
+          (eglot--when-live-buffer buffer
             (unless eglot--managed-mode
               (apply #'eglot--connect (eglot--guess-contact))))))
       (when buffer-file-name
@@ -1253,7 +1261,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
 ;;;
 (defvar eglot-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap display-local-help] 'eglot-help-at-point)
+    (define-key map [remap display-local-help] 'eldoc-doc-buffer)
     map))
 
 (defvar-local eglot--current-flymake-report-fn nil
@@ -1325,7 +1333,11 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (add-hook 'change-major-mode-hook #'eglot--managed-mode-off nil t)
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
-    (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
+    (eglot--setq-saving eldoc-documentation-functions
+                        '(eglot-signature-eldoc-function
+                          eglot-hover-eldoc-function))
+    (eglot--setq-saving eldoc-documentation-strategy
+                        #'eldoc-documentation-enthusiast)
     (eglot--setq-saving xref-prompt-for-identifier nil)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
     (eglot--setq-saving company-backends '(company-capf))
@@ -1733,7 +1745,7 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
     (setq eglot--change-idle-timer
           (run-with-idle-timer
            eglot-send-changes-idle-time
-           nil (lambda () (eglot--with-live-buffer buf
+           nil (lambda () (eglot--when-live-buffer buf
                             (when eglot--managed-mode
                               (eglot--signal-textDocument/didChange)
                               (setq eglot--change-idle-timer nil))))))))
@@ -2189,9 +2201,7 @@ is not active."
                     (delete-region (- (point) (length proxy)) (point))
                     (funcall snippet-fn (or insertText label)))))
            (eglot--signal-textDocument/didChange)
-           (eglot-eldoc-function)))))))
-
-(defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
+           (eldoc)))))))
 
 (defun eglot--hover-info (contents &optional range)
   (let ((heading (and range (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
@@ -2256,177 +2266,68 @@ is not active."
          (buffer-string))))
    when moresigs concat "\n"))
 
-(defvar eglot--help-buffer nil)
+(defun eglot-signature-eldoc-function (cb)
+  "A member of `eldoc-documentation-functions', for signatures."
+  (when (eglot--server-capable :signatureHelpProvider)
+    (let ((buf (current-buffer)))
+      (jsonrpc-async-request
+       (eglot--current-server-or-lose)
+       :textDocument/signatureHelp (eglot--TextDocumentPositionParams)
+       :success-fn
+       (eglot--lambda ((SignatureHelp)
+                       signatures activeSignature activeParameter)
+         (eglot--when-buffer-window buf
+           (funcall cb
+                    (unless (seq-empty-p signatures)
+                      (eglot--sig-info signatures
+                                       activeSignature
+                                       activeParameter)))))
+       :deferred :textDocument/signatureHelp))
+    t))
 
-(defun eglot--help-buffer ()
-  (or (and (buffer-live-p eglot--help-buffer)
-           eglot--help-buffer)
-      (setq eglot--help-buffer (generate-new-buffer "*eglot-help*"))))
+(defun eglot-hover-eldoc-function (cb)
+  "A member of `eldoc-documentation-functions', for hover."
+  (when (eglot--server-capable :hoverProvider)
+    (let ((buf (current-buffer)))
+      (jsonrpc-async-request
+       (eglot--current-server-or-lose)
+       :textDocument/hover (eglot--TextDocumentPositionParams)
+       :success-fn (eglot--lambda ((Hover) contents range)
+                     (eglot--when-buffer-window buf
+                       (let ((info (unless (seq-empty-p contents)
+                                     (eglot--hover-info contents range))))
+                         (funcall cb info :buffer t))))
+       :deferred :textDocument/hover))
+    (eglot--highlight-piggyback cb)
+    t))
 
-(defun eglot-help-at-point ()
-  "Request documentation for the thing at point."
-  (interactive)
-  (eglot--dbind ((Hover) contents range)
-      (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                       (eglot--TextDocumentPositionParams))
-    (let ((blurb (and (not (seq-empty-p contents))
-                      (eglot--hover-info contents range)))
-          (hint (thing-at-point 'symbol)))
-      (if blurb
-          (with-current-buffer (eglot--help-buffer)
-            (with-help-window (current-buffer)
-              (rename-buffer (format "*eglot-help for %s*" hint))
-              (with-current-buffer standard-output (insert blurb))
-              (setq-local nobreak-char-display nil)))
-        (display-local-help)))))
+(defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
-(cl-defun eglot-doc-too-large-for-echo-area
-    (string &optional (height max-mini-window-height))
-  "Return non-nil if STRING won't fit in echo area of height HEIGHT.
-HEIGHT defaults to `max-mini-window-height' (which see) and is
-interpreted like that variable.  If non-nil, the return value is
-the number of lines available."
-  (let ((available-lines (cl-typecase height
-                           (float (truncate (* (frame-height) height)))
-                           (integer height)
-                           (t 1))))
-    (when (> (1+ (cl-count ?\n string)) available-lines)
-      available-lines)))
-
-(cl-defun eglot--truncate-string (string height &optional (width (frame-width)))
-  "Return as much from STRING as fits in HEIGHT and WIDTH.
-WIDTH, if non-nil, truncates last line to those columns."
-  (cl-flet ((maybe-trunc
-             (str) (if width (truncate-string-to-width str width
-                                                       nil nil "...")
-                     str)))
-    (cl-loop
-     repeat height
-     for i from 1
-     for break-pos = (cl-position ?\n string)
-     for (line . rest) = (and break-pos
-                              (cons (substring string 0 break-pos)
-                                    (substring string (1+ break-pos))))
-     concat (cond (line (if (= i height) (maybe-trunc line) (concat line "\n")))
-                  (t (maybe-trunc string)))
-     while rest do (setq string rest))))
-
-(defcustom eglot-put-doc-in-help-buffer
-  ;; JT@2020-05-21: TODO: this variable should be renamed and the
-  ;; decision somehow be in eldoc.el itself.
-  #'eglot-doc-too-large-for-echo-area
-  "If non-nil, put \"hover\" documentation in separate `*eglot-help*' buffer.
-If nil, use whatever `eldoc-message-function' decides, honouring
-`eldoc-echo-area-use-multiline-p'.  If t, use `*eglot-help*'
-unconditionally.  If a function, it is called with the
-documentation string to display and returns a generalized boolean
-interpreted as one of the two preceding values."
-  :type '(choice (const :tag "Never use `*eglot-help*'" nil)
-                 (const :tag "Always use `*eglot-help*'" t)
-                 (function :tag "Ask a function")))
-
-(defcustom eglot-auto-display-help-buffer nil
-  "If non-nil, automatically display `*eglot-help*' buffer.
-Buffer is displayed with `display-buffer', which obeys
-`display-buffer-alist' & friends."
-  :type 'boolean)
-
-(defun eglot--update-doc (string hint)
-  "Put updated documentation STRING where it belongs.
-HINT is used to potentially rename EGLOT's help buffer.  If
-STRING is nil, the echo area cleared of any previous
-documentation.  Honour `eglot-put-doc-in-help-buffer',
-`eglot-auto-display-help-buffer' and
-`eldoc-echo-area-use-multiline-p'."
-  (cond ((null string) (eldoc-message nil))
-        ((or (eq t eglot-put-doc-in-help-buffer)
-             (and eglot-put-doc-in-help-buffer
-                  (funcall eglot-put-doc-in-help-buffer string)))
-         (with-current-buffer (eglot--help-buffer)
-           (let ((inhibit-read-only t)
-                 (name (format "*eglot-help for %s*" hint)))
-             (unless (string= name (buffer-name))
-               (rename-buffer (format "*eglot-help for %s*" hint))
-               (erase-buffer)
-               (insert string)
-               (goto-char (point-min)))
-             (help-mode)))
-         (if eglot-auto-display-help-buffer
-             (display-buffer eglot--help-buffer)
-           (unless (get-buffer-window eglot--help-buffer t)
-             ;; Hand-tweaked to print two lines.  Should it print
-             ;; 1?  Or honour max-mini-window-height?
-             (eglot--message
-              "%s\n(Truncated, %sfull help in buffer %s)"
-              (eglot--truncate-string string 1 (- (frame-width) 9))
-              (if-let (key (car (where-is-internal 'eglot-help-at-point)))
-                  (format "use %s to see " (key-description key)) "")
-              (buffer-name eglot--help-buffer)))))
-        ((eq eldoc-echo-area-use-multiline-p t)
-         (if-let ((available (eglot-doc-too-large-for-echo-area string)))
-             (eldoc-message (eglot--truncate-string string available))
-           (eldoc-message string)))
-        ((eq eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit)
-         (eldoc-message (eglot--truncate-string string 1 nil)))
-        (t
-         ;; Can't (yet?) honour non-t non-nil values of this var
-         (eldoc-message (eglot--truncate-string string 1)))))
-
-(defun eglot-eldoc-function ()
-  "EGLOT's `eldoc-documentation-function' function."
-  (let* ((buffer (current-buffer))
-         (server (eglot--current-server-or-lose))
-         (position-params (eglot--TextDocumentPositionParams))
-         sig-showing
-         (thing-at-point (thing-at-point 'symbol)))
-    (cl-macrolet ((when-buffer-window
-                   (&body body) ; notice the exception when testing with `ert'
-                   `(when (or (get-buffer-window buffer) (ert-running-test))
-                      (with-current-buffer buffer ,@body))))
-      (when (eglot--server-capable :signatureHelpProvider)
-        (jsonrpc-async-request
-         server :textDocument/signatureHelp position-params
-         :success-fn
-         (eglot--lambda ((SignatureHelp)
-                         signatures activeSignature activeParameter)
-           (when-buffer-window
-            (when (cl-plusp (length signatures))
-              (setq sig-showing t)
-              (eglot--update-doc (eglot--sig-info signatures
-                                                    activeSignature
-                                                    activeParameter)
-                                   thing-at-point))))
-         :deferred :textDocument/signatureHelp))
-      (when (eglot--server-capable :hoverProvider)
-        (jsonrpc-async-request
-         server :textDocument/hover position-params
-         :success-fn (eglot--lambda ((Hover) contents range)
-                       (unless sig-showing
-                         (when-buffer-window
-                          (eglot--update-doc (and (not (seq-empty-p contents))
-                                                  (eglot--hover-info contents
-                                                                     range))
-                                             thing-at-point))))
-         :deferred :textDocument/hover))
-      (when (eglot--server-capable :documentHighlightProvider)
-        (jsonrpc-async-request
-         server :textDocument/documentHighlight position-params
-         :success-fn
-         (lambda (highlights)
-           (mapc #'delete-overlay eglot--highlights)
-           (setq eglot--highlights
-                 (when-buffer-window
-                  (mapcar
-                   (eglot--lambda ((DocumentHighlight) range)
-                     (pcase-let ((`(,beg . ,end)
-                                  (eglot--range-region range)))
-                       (let ((ov (make-overlay beg end)))
-                         (overlay-put ov 'face 'highlight)
-                         (overlay-put ov 'evaporate t)
-                         ov)))
-                   highlights))))
-         :deferred :textDocument/documentHighlight))))
-  eldoc-last-message)
+(defun eglot--highlight-piggyback (_cb)
+  "Request and handle `:textDocument/documentHighlight'"
+  ;; FIXME: Obviously, this is just piggy backing on eldoc's calls for
+  ;; convenience, as shown by the fact that we just ignore cb.
+  (let ((buf (current-buffer)))
+    (when (eglot--server-capable :documentHighlightProvider)
+      (jsonrpc-async-request
+       (eglot--current-server-or-lose)
+       :textDocument/documentHighlight (eglot--TextDocumentPositionParams)
+       :success-fn
+       (lambda (highlights)
+         (mapc #'delete-overlay eglot--highlights)
+         (setq eglot--highlights
+               (eglot--when-buffer-window buf
+                 (mapcar
+                  (eglot--lambda ((DocumentHighlight) range)
+                    (pcase-let ((`(,beg . ,end)
+                                 (eglot--range-region range)))
+                      (let ((ov (make-overlay beg end)))
+                        (overlay-put ov 'face 'highlight)
+                        (overlay-put ov 'evaporate t)
+                        ov)))
+                  highlights))))
+       :deferred :textDocument/documentHighlight)
+      nil)))
 
 (defun eglot-imenu ()
   "EGLOT's `imenu-create-index-function'."
@@ -2549,7 +2450,7 @@ documentation.  Honour `eglot-put-doc-in-help-buffer',
       (unwind-protect
           (if prepared (eglot--warn "Caution: edits of files %s failed."
                                     (mapcar #'car prepared))
-            (eglot-eldoc-function)
+            (eldoc)
             (eglot--message "Edit successful!"))))))
 
 (defun eglot-rename (newname)
