@@ -734,14 +734,21 @@ slot values, and use the previously mentioned set/ref routines.
 @anchor{slot-value}
 This function retrieves the value of @var{slot} from @var{object}.
 Unlike @code{oref}, the symbol for @var{slot} must be quoted.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
 @end defun
 
 @defun set-slot-value object slot value
 @anchor{set-slot-value}
-This is not a CLOS function, but is the setter for @code{slot-value}
-used by the @code{setf} macro.  This
-function sets the value of @var{slot} from @var{object}.  Unlike
+This function sets the value of @var{slot} from @var{object}.  Unlike
 @code{oset}, the symbol for @var{slot} must be quoted.
+
+This is not a CLOS function, but is the obsolete setter for
+@code{slot-value} used by the @code{setf} macro.  It is therefore
+recommended to use @w{@code{(setf (slot-value @var{object} @var{slot})
+@var{value})}} instead.
 @end defun
 
 @defun slot-makeunbound object slot
@@ -1062,7 +1069,7 @@ Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
 This should look like Lisp symbols from other parts of Emacs such as
 buffers and processes, and is shorter and cleaner than printing the
 object's record.  It is more useful to use @code{object-print} to get
-and object's print form, as this allows the object to add extra display
+an object's print form, as this allows the object to add extra display
 information into the symbol.
 @end defun
 
@@ -1217,7 +1224,7 @@ objects on top of records, and thus everything is technically visible,
 some functions have been provided.  None of these functions are a part
 of CLOS.
 
-@defun object-slots obj
+@defun eieio-class-slots obj
 Return the list of public slots for @var{obj}.
 @end defun
 

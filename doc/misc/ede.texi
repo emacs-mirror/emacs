@@ -955,18 +955,16 @@ The example for Makefiles looks like this:
 ;;; MAKEFILE
 
 (defclass ede-generic-makefile-project (ede-generic-project)
-  ((buildfile :initform "Makefile")
-   )
+  ((buildfile :initform "Makefile"))
   "Generic Project for makefiles.")
 
 (defmethod ede-generic-setup-configuration ((proj ede-generic-makefile-project) config)
-  "Setup a configuration for Make."
+  "Set up a configuration for Make."
   (oset config build-command "make -k")
-  (oset config debug-command "gdb ")
-  )
+  (oset config debug-command "gdb "))
 
 (ede-generic-new-autoloader "generic-makefile" "Make"
-			    "Makefile" 'ede-generic-makefile-project)
+                            "Makefile" 'ede-generic-makefile-project)
 @end example
 
 This example project will detect any directory with the file
