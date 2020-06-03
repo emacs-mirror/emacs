@@ -633,6 +633,8 @@ builtins.")
     (,(lambda (limit)
         (let ((re (python-rx (group (+ (any word ?. ?_)))
                              (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
+                             ;; A type, like " : int ".
+                             (? ?: (* space) (+ (any word ?. ?_)) (* space))
                              assignment-operator))
               (res nil))
           (while (and (setq res (re-search-forward re limit t))
