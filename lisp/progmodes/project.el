@@ -787,9 +787,8 @@ Arguments the same as in `compile'."
   "Add project PR to the front of the project list.
 Save the result to disk if the project list was changed."
   (project--ensure-read-project-list)
-  (let* ((dir (project-root pr))
-         (do-write (not (equal (car project--list) dir))))
-    (when do-write
+  (let ((dir (project-root pr)))
+    (unless (equal (car project--list) dir)
       (setq project--list (delete dir project--list))
       (push dir project--list)
       (project--write-project-list))))
