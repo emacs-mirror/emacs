@@ -1718,6 +1718,17 @@ continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
 (@pxref{Dired}) listing the files in the current project's root
 directory.
 
+@findex project-vc-dir
+  The command @code{project-vc-dir} opens a VC Directory buffer
+(@pxref{VC Directory Mode}) listing the version control statuses of
+the files in a directory tree under the current project's
+root directory.
+
+@findex project-shell
+  The command @code{project-shell} starts a shell session
+(@pxref{Shell}) in a new buffer with the current project's root as the
+working directory.
+
 @findex project-eshell
   The command @code{project-eshell} starts an Eshell session in a new
 buffer with the current project's root as the working directory.

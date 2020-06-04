@@ -93,6 +93,11 @@
 (require 'cl-generic)
 (eval-when-compile (require 'subr-x))
 
+(defgroup project nil
+  "Operations on the current project."
+  :version "28.1"
+  :group 'tools)
+
 (defvar project-find-functions (list #'project-try-vc)
   "Special hook to find the project containing a given directory.
 Each functions on this hook is called in turn with one
@@ -236,12 +241,12 @@ to find the list of ignores for each directory."
 (defgroup project-vc nil
   "Project implementation based on the VC package."
   :version "25.1"
-  :group 'tools)
+  :group 'project)
 
 (defcustom project-vc-ignores nil
   "List of patterns to include in `project-ignores'."
   :type '(repeat string)
-  :safe 'listp)
+  :safe #'listp)
 
 (defcustom project-vc-merge-submodules t
   "Non-nil to consider submodules part of the parent project.
@@ -249,8 +254,9 @@ to find the list of ignores for each directory."
 After changing this variable (using Customize or .dir-locals.el)
 you might have to restart Emacs to see the effect."
   :type 'boolean
+  :version "28.1"
   :package-version '(project . "0.2.0")
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -601,6 +607,7 @@ For the arguments list, see `project--read-file-cpd-relative'."
                  (const :tag "Read with completion from absolute names"
                         project--read-file-absolute)
                  (function :tag "Custom function" nil))
+  :group 'project
   :version "27.1")
 
 (defun project--read-file-cpd-relative (prompt
@@ -672,6 +679,20 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
   (dired (project-root (project-current t))))
 
 ;;;###autoload
+(defun project-vc-dir ()
+  "Open VC-Dir in the current project."
+  (interactive)
+  (vc-dir (project-root (project-current t))))
+
+;;;###autoload
+(defun project-shell ()
+  "Open Shell in the current project."
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    ;; Use ‘create-file-buffer’ to uniquify shell buffer names.
+    (shell (create-file-buffer "*shell*"))))
+
+;;;###autoload
 (defun project-eshell ()
   "Open Eshell in the current project."
   (interactive)
@@ -705,39 +726,50 @@ loop using the command \\[fileloop-continue]."
    from to (project-files (project-current t)) 'default)
   (fileloop-continue))
 
+(defvar compilation-read-command)
+(declare-function compilation-read-command "compile")
+
 ;;;###autoload
-(defun project-compile ()
-  "Run `compile' in the project root."
-  (interactive)
+(defun project-compile (command &optional comint)
+  "Run `compile' in the project root.
+Arguments the same as in `compile'."
+  (interactive
+   (list
+    (let ((command (eval compile-command)))
+      (if (or compilation-read-command current-prefix-arg)
+	  (compilation-read-command command)
+	command))
+    (consp current-prefix-arg)))
   (let* ((pr (project-current t))
          (default-directory (project-root pr)))
-    (call-interactively 'compile)))
+    (compile command comint)))
 
 
 ;;; Project list
 
+(defcustom project-list-file (locate-user-emacs-file "project-list")
+  "File to save the list of known projects."
+  :type 'file
+  :version "28.1"
+  :group 'project)
+
 (defvar project--list 'unset
   "List of known project directories.")
 
-(defun project--ensure-file-exists (filename)
-  "Create an empty file FILENAME if it doesn't exist."
-  (unless (file-exists-p filename)
-    (with-temp-buffer
-      (write-file filename))))
-
 (defun project--read-project-list ()
   "Initialize `project--list' from the project list file."
-  (let ((filename (locate-user-emacs-file "project-list")))
-    (project--ensure-file-exists filename)
-    (with-temp-buffer
-      (insert-file-contents filename)
-      (let ((dirs (split-string (buffer-string) "\n" t))
-            (project-list '()))
-        (dolist (dir dirs)
-          (cl-pushnew (file-name-as-directory dir)
-                      project-list
-                      :test #'equal))
-        (setq project--list (reverse project-list))))))
+  (let ((filename project-list-file))
+    (setq project--list
+          (when (file-exists-p filename)
+            (with-temp-buffer
+              (insert-file-contents filename)
+              (let ((dirs (split-string (buffer-string) "\n" t))
+                    (project-list '()))
+                (dolist (dir dirs)
+                  (cl-pushnew (file-name-as-directory dir)
+                              project-list
+                              :test #'equal))
+                (reverse project-list)))))))
 
 (defun project--ensure-read-project-list ()
   "Initialize `project--list' if it hasn't already been."
@@ -746,28 +778,27 @@ loop using the command \\[fileloop-continue]."
 
 (defun project--write-project-list ()
   "Persist `project--list' to the project list file."
-  (let ((filename (locate-user-emacs-file "project-list")))
+  (let ((filename project-list-file))
     (with-temp-buffer
       (insert (string-join project--list "\n"))
       (write-region nil nil filename nil 'silent))))
 
 (defun project--add-to-project-list-front (pr)
-  "Add project PR to the front of the project list and save it.
-Return PR."
+  "Add project PR to the front of the project list.
+Save the result to disk if the project list was changed."
   (project--ensure-read-project-list)
-  (let ((dir (project-root pr)))
-    (setq project--list (delete dir project--list))
-    (push dir project--list))
-  (project--write-project-list)
-  pr)
+  (let* ((dir (project-root pr))
+         (do-write (not (equal (car project--list) dir))))
+    (when do-write
+      (setq project--list (delete dir project--list))
+      (push dir project--list)
+      (project--write-project-list))))
 
 (defun project--remove-from-project-list (pr-dir)
   "Remove directory PR-DIR from the project list.
 If the directory was in the list before the removal, save the
 result to disk."
   (project--ensure-read-project-list)
-  ;; XXX: This hardcodes that the number of roots = 1.
-  ;; It's fine, though.
   (when (member pr-dir project--list)
     (setq project--list (delete pr-dir project--list))
     (message "Project `%s' not found; removed from list" pr-dir)
@@ -795,8 +826,10 @@ It's also possible to enter an arbitrary directory."
 ;;;###autoload
 (defvar project-switch-commands
   '(("f" "Find file" project-find-file)
-    ("s" "Find regexp" project-find-regexp)
+    ("r" "Find regexp" project-find-regexp)
     ("d" "Dired" project-dired)
+    ("v" "VC-Dir" project-vc-dir)
+    ("s" "Shell" project-shell)
     ("e" "Eshell" project-eshell))
   "Alist mapping keys to project switching menu entries.
 Used by `project-switch-project' to construct a dispatch menu of

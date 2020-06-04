@@ -358,7 +358,10 @@ setlocale (int cat, char const *locale)
 static bool
 using_utf8 (void)
 {
-#ifdef HAVE_WCHAR_H
+  /* We don't want to compile in mbrtowc on WINDOWSNT because that
+     will prevent Emacs from starting on older Windows systems, while
+     the result is known in advance anyway...  */
+#if defined HAVE_WCHAR_H && !defined WINDOWSNT
   wchar_t wc;
   mbstate_t mbs = { 0 };
   return mbrtowc (&wc, "\xc4\x80", 2, &mbs) == 2 && wc == 0x100;

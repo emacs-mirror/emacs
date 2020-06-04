@@ -2080,8 +2080,8 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 (cl-defmethod xref-backend-definitions ((_backend (eql etags)) symbol)
   (etags--xref-find-definitions symbol))
 
-(cl-defmethod xref-backend-apropos ((_backend (eql etags)) symbol)
-  (etags--xref-find-definitions symbol t))
+(cl-defmethod xref-backend-apropos ((_backend (eql etags)) pattern)
+  (etags--xref-find-definitions (xref-apropos-regexp pattern) t))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behavior of `find-tag-in-order' but instead of

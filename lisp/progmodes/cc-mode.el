@@ -1621,7 +1621,7 @@ Note that the style variables are always made local to the buffer."
       (goto-char (1+ end))		; After the \
       ;; Search forward for EOLL
       (setq lim (re-search-forward "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\\\n\r]\\)*"
-       				   nil t))
+				   nil t))
       (goto-char (1+ end))
       (when (c-search-forward-char-property-with-value-on-char
 	     'syntax-table '(15) ?\" lim)

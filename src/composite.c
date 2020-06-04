@@ -1987,7 +1987,9 @@ preceding and/or following characters, this char-table contains
 a function to call to compose that character.
 
 The element at index C in the table, if non-nil, is a list of
-composition rules of this form: ([PATTERN PREV-CHARS FUNC] ...)
+composition rules of the form ([PATTERN PREV-CHARS FUNC] ...);
+the rules must be specified in the descending order of PREV-CHARS
+values.
 
 PATTERN is a regular expression which C and the surrounding
 characters must match.
