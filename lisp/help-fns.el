@@ -647,8 +647,7 @@ FILE is the file where FUNCTION was probably defined."
                     (setq place (list f pos))
                     (setq first version)))))))))
     (when first
-      (make-text-button first nil 'type 'help-news 'help-args place))
-    first))
+      (make-text-button first nil 'type 'help-news 'help-args place))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--mention-first-release)

@@ -202,7 +202,7 @@ The format has been repaired and the variable modified accordingly.
 You can save the current value through the customize system by
 either clicking or hitting return "
           (make-text-button
-           "here" nil
+           (copy-sequence "here") nil
            'face '(:weight bold :inherit button)
            'mouse-face '(:weight normal :background "gray50" :inherit button)
            'follow-link t

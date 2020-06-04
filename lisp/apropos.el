@@ -665,8 +665,7 @@ Return list of symbols and documentation found."
       (make-text-button name nil
                         'type 'apropos-library
                         'face 'apropos-symbol
-                        'apropos-symbol name)
-      name)))
+                        'apropos-symbol name))))
 
 ;;;###autoload
 (defun apropos-library (file)
