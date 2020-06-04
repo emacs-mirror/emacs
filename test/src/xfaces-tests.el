@@ -20,7 +20,7 @@
 (require 'ert)
 
 (ert-deftest xfaces-color-distance ()
-  ;; Check symmetry (bug#51455).
+  ;; Check symmetry (bug#41544).
   (should (equal (color-distance "#222222" "#ffffff")
                  (color-distance "#ffffff" "#222222"))))
 
