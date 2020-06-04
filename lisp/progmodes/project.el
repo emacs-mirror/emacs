@@ -747,7 +747,7 @@ Arguments the same as in `compile'."
 
 ;;; Project list
 
-(defcustom project-list-file (locate-user-emacs-file "project-list")
+(defcustom project-list-file (locate-user-emacs-file "projects")
   "File to save the list of known projects."
   :type 'file
   :version "28.1"
