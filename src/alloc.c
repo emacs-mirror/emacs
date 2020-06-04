@@ -67,7 +67,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <malloc.h>
 #endif
 
-#if defined HAVE_VALGRIND_VALGRIND_H && !defined USE_VALGRIND
+#if (defined ENABLE_CHECKING \
+     && defined HAVE_VALGRIND_VALGRIND_H && !defined USE_VALGRIND)
 # define USE_VALGRIND 1
 #endif
 
@@ -4694,7 +4695,7 @@ mark_maybe_pointer (void *p)
 {
   struct mem_node *m;
 
-#ifdef USE_VALGRIND
+#if USE_VALGRIND
   VALGRIND_MAKE_MEM_DEFINED (&p, sizeof (p));
 #endif
 
