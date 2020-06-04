@@ -984,6 +984,7 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
       gcc_jit_rvalue *lwordobj =
         emit_coerce (comp.lisp_word_type, obj);
 
+      static ptrdiff_t i;
       gcc_jit_lvalue *tmp_s =
 	gcc_jit_function_new_local (comp.func, NULL, comp.lisp_obj_type,
 				    format_string ("lisp_obj_%td", i++));
