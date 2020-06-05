@@ -257,7 +257,7 @@ frames where the source code location is known.")
     map)
   "Local keymap for `backtrace-mode' buffers.")
 
-(defconst backtrace--flags-width 6
+(defconst backtrace--flags-width 7
   "Width in characters of the flags for a backtrace frame.")
 
 ;;; Navigation and Text Properties
@@ -747,12 +747,13 @@ property for use by navigation."
   (let ((beg (point))
         (flag (plist-get (backtrace-frame-flags frame) :debug-on-exit))
         (source (plist-get (backtrace-frame-flags frame) :source-available))
-        (off (plist-get (backtrace-frame-flags frame) :bytecode-offset)))
+        (offset (plist-get (backtrace-frame-flags frame) :bytecode-offset))
+        ;; right justify and pad the offset (or the empty string)
+        (offset-format (format "%%%ds " (- backtrace--flags-width 3))))
     (when (plist-get view :show-flags)
-      (when source (insert ">"))
-      (when flag (insert "*"))
-      (when off (insert (number-to-string off))))
-    (insert (make-string (- backtrace--flags-width (- (point) beg)) ?\s))
+      (insert (if source ">" " "))
+      (insert (if flag "*" " "))
+      (insert (format offset-format (or offset ""))))
     (put-text-property beg (point) 'backtrace-section 'func)))
 
 (defun backtrace--print-func-and-args (frame _view)
