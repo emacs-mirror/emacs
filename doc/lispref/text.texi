@@ -2028,8 +2028,15 @@ non-@code{nil} value.
 @end enumerate
 
 The argument @var{predicate} is the function to use to compare keys.
-If keys are numbers, it defaults to @code{<}; otherwise it defaults to
-@code{string<}.
+It is called with two arguments, the keys to compare, and should
+return non-@code{nil} if the first key should come before the second
+in the sorting order.  What exactly are the key arguments depends on
+what @var{startkeyfun} and @var{endkeyfun} return.  If @var{predicate}
+is omitted or @code{nil}, it defaults to @code{<} if the keys are
+numbers, to @code{compare-buffer-substrings} if the keys are cons
+cells (whose @code{car} and @code{cdr} are start and end buffer
+positions of the key), and to @code{string<} otherwise (with keys
+assumed to be strings).
 
 As an example of @code{sort-subr}, here is the complete function
 definition for @code{sort-lines}:
