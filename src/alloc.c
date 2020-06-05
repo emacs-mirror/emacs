@@ -4438,7 +4438,7 @@ mem_delete_fixup (struct mem_node *x)
 
 
 /* If P is a pointer into a live Lisp string object on the heap,
-   return the object.  Otherwise, return nil.  M is a pointer to the
+   return the object's address.  Otherwise, return NULL.  M points to the
    mem_block for P.
 
    This and other *_holding functions look for a pointer anywhere into
@@ -4446,7 +4446,7 @@ mem_delete_fixup (struct mem_node *x)
    because some compilers sometimes optimize away the latter.  See
    Bug#28213.  */
 
-static Lisp_Object
+static struct Lisp_String *
 live_string_holding (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
@@ -4462,23 +4462,23 @@ live_string_holding (struct mem_node *m, void *p)
 	  cp = ptr_bounds_copy (cp, b);
 	  struct Lisp_String *s = p = cp -= offset % sizeof b->strings[0];
 	  if (s->u.s.data)
-	    return make_lisp_ptr (s, Lisp_String);
+	    return s;
 	}
     }
-  return Qnil;
+  return NULL;
 }
 
 static bool
 live_string_p (struct mem_node *m, void *p)
 {
-  return !NILP (live_string_holding (m, p));
+  return live_string_holding (m, p) == p;
 }
 
 /* If P is a pointer into a live Lisp cons object on the heap, return
-   the object.  Otherwise, return nil.  M is a pointer to the
+   the object's address.  Otherwise, return NULL.  M points to the
    mem_block for P.  */
 
-static Lisp_Object
+static struct Lisp_Cons *
 live_cons_holding (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
@@ -4497,24 +4497,24 @@ live_cons_holding (struct mem_node *m, void *p)
 	  cp = ptr_bounds_copy (cp, b);
 	  struct Lisp_Cons *s = p = cp -= offset % sizeof b->conses[0];
 	  if (!deadp (s->u.s.car))
-	    return make_lisp_ptr (s, Lisp_Cons);
+	    return s;
 	}
     }
-  return Qnil;
+  return NULL;
 }
 
 static bool
 live_cons_p (struct mem_node *m, void *p)
 {
-  return !NILP (live_cons_holding (m, p));
+  return live_cons_holding (m, p) == p;
 }
 
 
 /* If P is a pointer into a live Lisp symbol object on the heap,
-   return the object.  Otherwise, return nil.  M is a pointer to the
+   return the object's address.  Otherwise, return NULL.  M points to the
    mem_block for P.  */
 
-static Lisp_Object
+static struct Lisp_Symbol *
 live_symbol_holding (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
@@ -4533,16 +4533,16 @@ live_symbol_holding (struct mem_node *m, void *p)
 	  cp = ptr_bounds_copy (cp, b);
 	  struct Lisp_Symbol *s = p = cp -= offset % sizeof b->symbols[0];
 	  if (!deadp (s->u.s.function))
-	    return make_lisp_symbol (s);
+	    return s;
 	}
     }
-  return Qnil;
+  return NULL;
 }
 
 static bool
 live_symbol_p (struct mem_node *m, void *p)
 {
-  return !NILP (live_symbol_holding (m, p));
+  return live_symbol_holding (m, p) == p;
 }
 
 
@@ -4573,7 +4573,7 @@ live_float_p (struct mem_node *m, void *p)
    Otherwise, return nil.
    M is a pointer to the mem_block for P.  */
 
-static Lisp_Object
+static struct Lisp_Vector *
 live_vector_holding (struct mem_node *m, void *p)
 {
   struct Lisp_Vector *vp = p;
@@ -4593,7 +4593,7 @@ live_vector_holding (struct mem_node *m, void *p)
 	{
 	  struct Lisp_Vector *next = ADVANCE (vector, vector_nbytes (vector));
 	  if (vp < next && !PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE))
-	    return make_lisp_ptr (vector, Lisp_Vectorlike);
+	    return vector;
 	  vector = next;
 	}
     }
@@ -4603,15 +4603,15 @@ live_vector_holding (struct mem_node *m, void *p)
       struct Lisp_Vector *vector = large_vector_vec (m->start);
       struct Lisp_Vector *next = ADVANCE (vector, vector_nbytes (vector));
       if (vector <= vp && vp < next)
-	return make_lisp_ptr (vector, Lisp_Vectorlike);
+	return vector;
     }
-  return Qnil;
+  return NULL;
 }
 
 static bool
 live_vector_p (struct mem_node *m, void *p)
 {
-  return !NILP (live_vector_holding (m, p));
+  return live_vector_holding (m, p) == p;
 }
 
 /* Mark OBJ if we can prove it's a Lisp_Object.  */
@@ -4652,15 +4652,15 @@ mark_maybe_object (Lisp_Object obj)
       switch (XTYPE (obj))
 	{
 	case Lisp_String:
-	  mark_p = EQ (obj, live_string_holding (m, po));
+	  mark_p = live_string_p (m, po);
 	  break;
 
 	case Lisp_Cons:
-	  mark_p = EQ (obj, live_cons_holding (m, po));
+	  mark_p = live_cons_p (m, po);
 	  break;
 
 	case Lisp_Symbol:
-	  mark_p = EQ (obj, live_symbol_holding (m, po));
+	  mark_p = live_symbol_p (m, po);
 	  break;
 
 	case Lisp_Float:
@@ -4668,7 +4668,7 @@ mark_maybe_object (Lisp_Object obj)
 	  break;
 
 	case Lisp_Vectorlike:
-	  mark_p = (EQ (obj, live_vector_holding (m, po)));
+	  mark_p = live_vector_p (m, po);
 	  break;
 
 	default:
@@ -4713,43 +4713,63 @@ mark_maybe_pointer (void *p)
   m = mem_find (p);
   if (m != MEM_NIL)
     {
-      Lisp_Object obj = Qnil;
+      Lisp_Object obj;
 
       switch (m->type)
 	{
 	case MEM_TYPE_NON_LISP:
 	case MEM_TYPE_SPARE:
 	  /* Nothing to do; not a pointer to Lisp memory.  */
-	  break;
+	  return;
 
 	case MEM_TYPE_CONS:
-	  obj = live_cons_holding (m, p);
+	  {
+	    struct Lisp_Cons *h = live_cons_holding (m, p);
+	    if (!h)
+	      return;
+	    obj = make_lisp_ptr (h, Lisp_Cons);
+	  }
 	  break;
 
 	case MEM_TYPE_STRING:
-	  obj = live_string_holding (m, p);
+	  {
+	    struct Lisp_String *h = live_string_holding (m, p);
+	    if (!h)
+	      return;
+	    obj = make_lisp_ptr (h, Lisp_String);
+	  }
 	  break;
 
 	case MEM_TYPE_SYMBOL:
-	  obj = live_symbol_holding (m, p);
+	  {
+	    struct Lisp_Symbol *h = live_symbol_holding (m, p);
+	    if (!h)
+	      return;
+	    obj = make_lisp_symbol (h);
+	  }
 	  break;
 
 	case MEM_TYPE_FLOAT:
-	  if (live_float_p (m, p))
-	    obj = make_lisp_ptr (p, Lisp_Float);
+	  if (! live_float_p (m, p))
+	    return;
+	  obj = make_lisp_ptr (p, Lisp_Float);
 	  break;
 
 	case MEM_TYPE_VECTORLIKE:
 	case MEM_TYPE_VECTOR_BLOCK:
-	  obj = live_vector_holding (m, p);
+	  {
+	    struct Lisp_Vector *h = live_vector_holding (m, p);
+	    if (!h)
+	      return;
+	    obj = make_lisp_ptr (h, Lisp_Vectorlike);
+	  }
 	  break;
 
 	default:
 	  emacs_abort ();
 	}
 
-      if (!NILP (obj))
-	mark_object (obj);
+      mark_object (obj);
     }
 }
 
@@ -5679,7 +5699,7 @@ compact_font_cache_entry (Lisp_Object entry)
                   struct font *font = GC_XFONT_OBJECT (val);
 
                   if (!NILP (AREF (val, FONT_TYPE_INDEX))
-                      && vectorlike_marked_p(&font->header))
+                      && vectorlike_marked_p (&font->header))
                     break;
                 }
               if (CONSP (objlist))
@@ -6518,7 +6538,7 @@ mark_object (Lisp_Object arg)
      structure allocated from the heap.  */
 #define CHECK_ALLOCATED()			\
   do {						\
-    if (pdumper_object_p(po))                   \
+    if (pdumper_object_p (po))			\
       {                                         \
         if (!pdumper_object_p_precise (po))     \
           emacs_abort ();                       \
@@ -6533,7 +6553,7 @@ mark_object (Lisp_Object arg)
      function LIVEP.  */
 #define CHECK_LIVE(LIVEP)			\
   do {						\
-    if (pdumper_object_p(po))                   \
+    if (pdumper_object_p (po))			\
       break;                                    \
     if (!LIVEP (m, po))				\
       emacs_abort ();				\
@@ -6590,7 +6610,7 @@ mark_object (Lisp_Object arg)
 	  break;
 
 #ifdef GC_CHECK_MARKED_OBJECTS
-        if (!pdumper_object_p(po))
+        if (!pdumper_object_p (po))
           {
 	    m = mem_find (po);
             if (m == MEM_NIL && !SUBRP (obj) && !main_thread_p (po))
@@ -6642,7 +6662,7 @@ mark_object (Lisp_Object arg)
             /* bool vectors in a dump are permanently "marked", since
                they're in the old section and don't have mark bits.
                If we're looking at a dumped bool vector, we should
-               have aborted above when we called vector_marked_p(), so
+               have aborted above when we called vector_marked_p, so
                we should never get here.  */
             eassert (!pdumper_object_p (ptr));
             set_vector_marked (ptr);
@@ -6673,7 +6693,7 @@ mark_object (Lisp_Object arg)
         if (symbol_marked_p (ptr))
           break;
         CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
-        set_symbol_marked(ptr);
+        set_symbol_marked (ptr);
 	/* Attempt to catch bogus objects.  */
 	eassert (valid_lisp_object_p (ptr->u.s.function));
 	mark_object (ptr->u.s.function);
