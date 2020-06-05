@@ -1217,7 +1217,9 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	continue;
       if (charpos < endpos)
 	{
-	  if ((bidi_level & 1) == 0)
+	  if (bidi_level < 0)
+	    direction = Qnil;
+	  else if ((bidi_level & 1) == 0)
 	    direction = QL2R;
 	  else
 	    direction = QR2L;
