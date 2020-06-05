@@ -79,9 +79,8 @@ The message is @samp{Symbol's chain of variable indirections contains
 a loop}.  @xref{Variable Aliases}.
 
 @item dbus-error
-The message is @samp{D-Bus error}.  This is only defined if Emacs was
-compiled with D-Bus support.  @xref{Errors and Events,,, dbus, D-Bus
-integration in Emacs}.
+The message is @samp{D-Bus error}.  @xref{Errors and Events,,, dbus,
+D-Bus integration in Emacs}.
 
 @item end-of-buffer
 The message is @samp{End of buffer}.  @xref{Character Motion}.
