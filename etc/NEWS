@@ -112,7 +112,12 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 
-** EIEIO: 'oset' and 'oset-default' are declared obsolete.
+** EIEIO
+
++++
+*** The macro 'oref-default' can now be used with 'setf'.
+It is now defined as a generalized variable that can be used with
+'setf' to modify the value stored in a given class slot.
 
 ** New minor mode 'cl-font-lock-built-in-mode' for `lisp-mode'.
 The mode provides refined highlighting of built-in functions, types,
@@ -470,6 +475,11 @@ Instead, it considers window configurations to be equal only if they
 are 'eq'.  To compare contents, use 'compare-window-configurations'
 instead.  This change helps fix a bug in 'sxhash-equal', which returned
 incorrect hashes for window configurations and some other objects.
+
+** When its first argument is a string, 'make-text-button' no longer
+modifies the string's text properties; instead, it uses and returns
+a copy of the string.  This helps avoid trouble when strings are
+shared or constants.
 
 ---
 ** The obsolete function 'thread-alive-p' has been removed.

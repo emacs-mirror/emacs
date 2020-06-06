@@ -441,13 +441,15 @@ The following %-sequences are provided:
 %c Current capacity (mAh or mWh)
 %r Current rate
 %B Battery status (verbose)
+%b Battery status, empty means high, `-' means low,
+   `!' means critical, and `+' means charging
 %d Temperature (in degrees Celsius)
 %p Battery load percentage
 %L AC line status (verbose)
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
-  (let (charging-state temperature hours
+  (let (charging-state temperature hours percentage-now
         ;; Some batteries report charges and current, other energy and power.
         ;; In order to reliably be able to combine those data, we convert them
         ;; all to energy/power (since we can't combine different charges if
@@ -515,6 +517,8 @@ The following %-sequences are provided:
 				 energy-now
 			       (- energy-full energy-now))))
 	      (setq hours (/ remaining power-now)))))))
+    (when (and (> energy-full 0) (> energy-now 0))
+      (setq percentage-now (/ (* 100 energy-now) energy-full)))
     (list (cons ?c (cond ((or (> energy-full 0) (> energy-now 0))
 			  (number-to-string (/ energy-now voltage-now)))
 			 (t "N/A")))
@@ -528,10 +532,13 @@ The following %-sequences are provided:
 		     "N/A"))
 	  (cons ?d (or temperature "N/A"))
 	  (cons ?B (or charging-state "N/A"))
-	  (cons ?p (cond ((and (> energy-full 0) (> energy-now 0))
-			  (format "%.1f"
-				  (/ (* 100 energy-now) energy-full)))
-			 (t "N/A")))
+	  (cons ?b (or (and (string= charging-state "Charging") "+")
+		       (and percentage-now (< percentage-now battery-load-critical) "!")
+		       (and percentage-now (< percentage-now battery-load-low) "-")
+		       ""))
+	  (cons ?p (cond
+                    ((and percentage-now (format "%.1f" percentage-now)))
+                    (t "N/A")))
 	  (cons ?L (cond
                     ((battery-search-for-one-match-in-files
                       (list "/sys/class/power_supply/AC/online"

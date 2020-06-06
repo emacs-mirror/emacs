@@ -747,7 +747,7 @@ Arguments the same as in `compile'."
 
 ;;; Project list
 
-(defcustom project-list-file (locate-user-emacs-file "project-list")
+(defcustom project-list-file (locate-user-emacs-file "projects")
   "File to save the list of known projects."
   :type 'file
   :version "28.1"
@@ -787,9 +787,8 @@ Arguments the same as in `compile'."
   "Add project PR to the front of the project list.
 Save the result to disk if the project list was changed."
   (project--ensure-read-project-list)
-  (let* ((dir (project-root pr))
-         (do-write (not (equal (car project--list) dir))))
-    (when do-write
+  (let ((dir (project-root pr)))
+    (unless (equal (car project--list) dir)
       (setq project--list (delete dir project--list))
       (push dir project--list)
       (project--write-project-list))))
@@ -825,12 +824,12 @@ It's also possible to enter an arbitrary directory."
 
 ;;;###autoload
 (defvar project-switch-commands
-  '(("f" "Find file" project-find-file)
-    ("r" "Find regexp" project-find-regexp)
-    ("d" "Dired" project-dired)
-    ("v" "VC-Dir" project-vc-dir)
-    ("s" "Shell" project-shell)
-    ("e" "Eshell" project-eshell))
+  '((?f "Find file" project-find-file)
+    (?r "Find regexp" project-find-regexp)
+    (?d "Dired" project-dired)
+    (?v "VC-Dir" project-vc-dir)
+    (?s "Shell" project-shell)
+    (?e "Eshell" project-eshell))
   "Alist mapping keys to project switching menu entries.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
@@ -857,16 +856,12 @@ and presented in a dispatch menu."
   (interactive)
   (let ((dir (project-prompt-project-dir))
         (choice nil))
-    (while (not (and choice
-                     (or (equal choice (kbd "C-g"))
-                         (assoc choice project-switch-commands))))
-      (setq choice (read-key-sequence (project--keymap-prompt))))
-    (if (equal choice (kbd "C-g"))
-        (message "Quit")
-      (let ((default-directory dir)
-            (project-current-inhibit-prompt t))
-        (call-interactively
-         (nth 2 (assoc choice project-switch-commands)))))))
+    (while (not choice)
+      (setq choice (assq (read-event (project--keymap-prompt))
+                         project-switch-commands)))
+    (let ((default-directory dir)
+          (project-current-inhibit-prompt t))
+      (call-interactively (nth 2 choice)))))
 
 (provide 'project)
 ;;; project.el ends here

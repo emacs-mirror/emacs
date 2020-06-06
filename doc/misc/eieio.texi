@@ -698,6 +698,27 @@ and argument-order conventions are similar to those used for
 referencing vectors (@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference
 Manual}).
 
+@defmac oref obj slot
+@anchor{oref}
+This macro retrieves the value stored in @var{obj} in the named
+@var{slot}.  Slot names are determined by @code{defclass} which
+creates the slot.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+@end defmac
+
+@defmac oref-default class slot
+@anchor{oref-default}
+This macro returns the value of the class-allocated @var{slot} from
+@var{class}.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+@end defmac
+
 @defmac oset object slot value
 This macro sets the value behind @var{slot} to @var{value} in
 @var{object}.  It returns @var{value}.
@@ -714,17 +735,6 @@ changed, this can be arranged by simply executing this bit of code:
 @example
 (oset-default data-object reference (list my-special-object))
 @end example
-@end defmac
-
-@defmac oref obj slot
-@anchor{oref}
-Retrieve the value stored in @var{obj} in the slot named by @var{slot}.
-Slot is the name of the slot when created by @dfn{defclass}.
-@end defmac
-
-@defmac oref-default class slot
-@anchor{oref-default}
-Get the value of the class-allocated @var{slot} from @var{class}.
 @end defmac
 
 The following accessors are defined by CLOS to reference or modify

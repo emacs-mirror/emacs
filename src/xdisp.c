@@ -27689,10 +27689,12 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
   struct glyph *glyph, *last;
   Lisp_Object lgstring;
   int i;
+  bool glyph_not_available_p;
 
   s->for_overlaps = overlaps;
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
+  glyph_not_available_p = glyph->glyph_not_available_p;
   s->cmp_id = glyph->u.cmp.id;
   s->cmp_from = glyph->slice.cmp.from;
   s->cmp_to = glyph->slice.cmp.to + 1;
@@ -27707,7 +27709,8 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
 	 && glyph->u.cmp.automatic
 	 && glyph->u.cmp.id == s->cmp_id
 	 && glyph->face_id == face_id
-	 && s->cmp_to == glyph->slice.cmp.from)
+	 && s->cmp_to == glyph->slice.cmp.from
+	 && glyph->glyph_not_available_p == glyph_not_available_p)
     {
       s->width += glyph->pixel_width;
       s->cmp_to = (glyph++)->slice.cmp.to + 1;
@@ -27721,6 +27724,12 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
       /* Ensure that the code is only 2 bytes wide.  */
       s->char2b[i] = code & 0xFFFF;
     }
+
+  /* If the specified font could not be loaded, record that fact in
+     S->font_not_found_p so that we can draw rectangles for the
+     characters of the glyph string.  */
+  if (glyph_not_available_p)
+    s->font_not_found_p = true;
 
   return glyph - s->row->glyphs[s->area];
 }
@@ -28918,7 +28927,7 @@ append_composite_glyph (struct it *it)
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
       glyph->padding_p = false;
-      glyph->glyph_not_available_p = false;
+      glyph->glyph_not_available_p = it->glyph_not_available_p;
       glyph->face_id = it->face_id;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       if (it->bidi_p)
@@ -30626,11 +30635,21 @@ gui_produce_glyphs (struct it *it)
       it->pixel_width
 	= composition_gstring_width (gstring, it->cmp_it.from, it->cmp_it.to,
 				     &metrics);
-      if (it->glyph_row
-	  && (metrics.lbearing < 0 || metrics.rbearing > metrics.width))
-	it->glyph_row->contains_overlapping_glyphs_p = true;
-      it->ascent = it->phys_ascent = metrics.ascent;
-      it->descent = it->phys_descent = metrics.descent;
+      if (it->pixel_width == 0)
+	{
+	  it->glyph_not_available_p = true;
+	  it->phys_ascent = it->ascent;
+	  it->phys_descent = it->descent;
+	  it->pixel_width = face->font->space_width;
+	}
+      else
+	{
+	  if (it->glyph_row
+	      && (metrics.lbearing < 0 || metrics.rbearing > metrics.width))
+	    it->glyph_row->contains_overlapping_glyphs_p = true;
+	  it->ascent = it->phys_ascent = metrics.ascent;
+	  it->descent = it->phys_descent = metrics.descent;
+	}
       IT_APPLY_FACE_BOX(it, face);
 
       /* If face has an overline, add the height of the overline

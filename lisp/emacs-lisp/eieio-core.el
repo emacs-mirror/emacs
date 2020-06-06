@@ -730,7 +730,8 @@ Argument FN is the function calling this verifier."
                       (guard (not (memq name eieio--known-slot-names))))
                  (macroexp--warn-and-return
                   (format-message "Unknown slot `%S'" name) exp 'compile-only))
-                (_ exp)))))
+                (_ exp))))
+           (gv-setter eieio-oset))
   (cl-check-type slot symbol)
   (cl-check-type obj (or eieio-object class))
   (let* ((class (cond ((symbolp obj)
@@ -755,6 +756,7 @@ Argument FN is the function calling this verifier."
 (defun eieio-oref-default (obj slot)
   "Do the work for the macro `oref-default' with similar parameters.
 Fills in OBJ's SLOT with its default value."
+  (declare (gv-setter eieio-oset-default))
   (cl-check-type obj (or eieio-object class))
   (cl-check-type slot symbol)
   (let* ((cl (cond ((symbolp obj) (cl--find-class obj))

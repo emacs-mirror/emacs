@@ -661,12 +661,11 @@ Return list of symbols and documentation found."
 (defun apropos-library-button (sym)
   (if (null sym)
       "<nothing>"
-    (let ((name (copy-sequence (symbol-name sym))))
+    (let ((name (symbol-name sym)))
       (make-text-button name nil
                         'type 'apropos-library
                         'face 'apropos-symbol
-                        'apropos-symbol name)
-      name)))
+                        'apropos-symbol name))))
 
 ;;;###autoload
 (defun apropos-library (file)

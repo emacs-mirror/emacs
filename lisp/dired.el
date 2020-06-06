@@ -648,24 +648,10 @@ of the region if `dired-mark-region' is non-nil.  Otherwise, operate
 on the whole buffer.
 
 Return value is the number of files marked, or nil if none were marked."
-  `(let* ((inhibit-read-only t) count
-         (use-region-p (and dired-mark-region
-                            (region-active-p)
-                            (> (region-end) (region-beginning))))
-         (beg (if use-region-p
-                  (save-excursion
-                    (goto-char (region-beginning))
-                    (line-beginning-position))
-                (point-min)))
-         (end (if use-region-p
-                  (save-excursion
-                    (goto-char (region-end))
-                    (if (if (eq dired-mark-region 'line)
-                            (not (bolp))
-                          (get-text-property (1- (point)) 'dired-filename))
-                        (line-end-position)
-                      (line-beginning-position)))
-                (point-max))))
+  `(let ((inhibit-read-only t) count
+         (use-region-p (dired-mark--region-use-p))
+         (beg (dired-mark--region-beginning))
+         (end (dired-mark--region-end)))
     (save-excursion
       (setq count 0)
       (when ,msg
@@ -816,6 +802,32 @@ ERROR can be a string with the error message."
     (when (and (null result) error)
       (user-error (if (stringp error) error "No files specified")))
     result))
+
+(defun dired-mark--region-use-p ()
+  "Whether Dired marking commands should act on region."
+  (and dired-mark-region
+       (region-active-p)
+       (> (region-end) (region-beginning))))
+
+(defun dired-mark--region-beginning ()
+  "Return the value of the region beginning aligned to Dired file lines."
+  (if (dired-mark--region-use-p)
+      (save-excursion
+        (goto-char (region-beginning))
+        (line-beginning-position))
+    (point-min)))
+
+(defun dired-mark--region-end ()
+  "Return the value of the region end aligned to Dired file lines."
+  (if (dired-mark--region-use-p)
+      (save-excursion
+        (goto-char (region-end))
+        (if (if (eq dired-mark-region 'line)
+                (not (bolp))
+              (get-text-property (1- (point)) 'dired-filename))
+            (line-end-position)
+          (line-beginning-position)))
+    (point-max)))
 
 
 ;; The dired command
@@ -3719,12 +3731,18 @@ in the active region."
   "Toggle marks: marked files become unmarked, and vice versa.
 Flagged files (indicated with flags such as `C' and `D', not
 with `*') are not affected, and `.' and `..' are never toggled.
-As always, hidden subdirs are not affected."
+As always, hidden subdirs are not affected.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region if `dired-mark-region' is non-nil.  Otherwise, operate
+on the whole buffer."
   (interactive)
   (save-excursion
-    (goto-char (point-min))
-    (let ((inhibit-read-only t))
-      (while (not (eobp))
+    (let ((inhibit-read-only t)
+          (beg (dired-mark--region-beginning))
+          (end (dired-mark--region-end)))
+      (goto-char beg)
+      (while (< (point) end)
         (or (dired-between-files)
             (looking-at-p dired-re-dot)
             ;; use subst instead of insdel because it does not move

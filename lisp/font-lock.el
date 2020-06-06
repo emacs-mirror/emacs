@@ -575,6 +575,7 @@ This is normally set via `font-lock-defaults'.")
   "Non-nil means use this syntax table for fontifying.
 If this is nil, the major mode's syntax table is used.
 This is normally set via `font-lock-defaults'.")
+(defvar-local font-lock--syntax-table-affects-ppss nil)
 
 (defvar font-lock-mark-block-function nil
   "Non-nil means use this function to mark a block of text.
@@ -1610,7 +1611,15 @@ START should be at the beginning of a line."
 	       (regexp-quote
 	        (replace-regexp-in-string "^ *" "" comment-end))))
           ;; Find the `start' state.
-          (state (syntax-ppss start))
+          (state (if (or syntax-ppss-table
+                         (not font-lock--syntax-table-affects-ppss))
+                     (syntax-ppss start)
+                   ;; If `syntax-ppss' doesn't have its own syntax-table and
+                   ;; we have installed our own syntax-table which
+                   ;; differs from the standard one in ways which affects PPSS,
+                   ;; then we can't use `syntax-ppss' since that would pollute
+                   ;; and be polluted by its cache.
+                   (parse-partial-sexp (point-min) start)))
           face beg)
       (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
       ;;
@@ -1907,6 +1916,7 @@ Sets various variables using `font-lock-defaults' and
       ;; Case fold during regexp fontification?
       (setq-local font-lock-keywords-case-fold-search (nth 2 defaults))
       ;; Syntax table for regexp and syntactic fontification?
+      (kill-local-variable 'font-lock--syntax-table-affects-ppss)
       (if (null (nth 3 defaults))
           (setq-local font-lock-syntax-table nil)
 	(setq-local font-lock-syntax-table (copy-syntax-table (syntax-table)))
@@ -1916,7 +1926,14 @@ Sets various variables using `font-lock-defaults' and
 	    (dolist (char (if (numberp (car selem))
 			      (list (car selem))
 			    (mapcar #'identity (car selem))))
-	      (modify-syntax-entry char syntax font-lock-syntax-table)))))
+	      (unless (memq (car (aref font-lock-syntax-table char))
+	                    '(1 2 3))    ;"." "w" "_"
+	        (setq font-lock--syntax-table-affects-ppss t))
+	      (modify-syntax-entry char syntax font-lock-syntax-table)
+	      (unless (memq (car (aref font-lock-syntax-table char))
+	                    '(1 2 3))    ;"." "w" "_"
+	        (setq font-lock--syntax-table-affects-ppss t))
+	      ))))
       ;; (nth 4 defaults) used to hold `font-lock-beginning-of-syntax-function',
       ;; but that was removed in 25.1, so if it's a cons cell, we assume that
       ;; it's part of the variable alist.
