@@ -489,9 +489,6 @@ typedef struct {
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *uintptr_type;
   gcc_jit_type *size_t_type;
-#if LISP_WORDS_ARE_POINTERS
-  gcc_jit_type *lisp_X;
-#endif
   gcc_jit_type *lisp_word_type;
   gcc_jit_type *lisp_word_tag_type;
 #ifdef LISP_OBJECT_IS_STRUCT
@@ -3811,11 +3808,12 @@ DEFUN ("comp--init-ctxt", Fcomp__init_ctxt, Scomp__init_ctxt,
 						       sizeof (EMACS_UINT),
 						       false);
 #if LISP_WORDS_ARE_POINTERS
-  comp.lisp_X =
-    gcc_jit_struct_as_type (gcc_jit_context_new_opaque_struct (comp.ctxt,
-							       NULL,
-							       "Lisp_X"));
-  comp.lisp_word_type = gcc_jit_type_get_pointer (comp.lisp_X);
+  comp.lisp_word_type =
+    gcc_jit_type_get_pointer (
+      gcc_jit_struct_as_type (
+	gcc_jit_context_new_opaque_struct (comp.ctxt,
+					   NULL,
+					   "Lisp_X")));
 #else
   comp.lisp_word_type = comp.emacs_int_type;
 #endif
