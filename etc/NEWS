@@ -476,6 +476,11 @@ are 'eq'.  To compare contents, use 'compare-window-configurations'
 instead.  This change helps fix a bug in 'sxhash-equal', which returned
 incorrect hashes for window configurations and some other objects.
 
+** When its first argument is a string, 'make-text-button' no longer
+modifies the string's text properties; instead, it uses and returns
+a copy of the string.  This helps avoid trouble when strings are
+shared or constants.
+
 ---
 ** The obsolete function 'thread-alive-p' has been removed.
 

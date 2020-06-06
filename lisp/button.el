@@ -341,15 +341,14 @@ If the property `button-data' is present, it will later be used
 as the argument for the `action' callback function instead of the
 default argument, which is the button itself.
 
-BEG can also be a string, in which case it is made into a button.
+BEG can also be a string, in which case a copy of it is made into
+a button and returned.
 
 Also see `insert-text-button'."
   (let ((object nil)
         (type-entry
 	 (or (plist-member properties 'type)
 	     (plist-member properties :type))))
-    (when (stringp beg)
-      (setq object beg beg 0 end (length object)))
     ;; Disallow setting the `category' property directly.
     (when (plist-get properties 'category)
       (error "Button `category' property may not be set directly"))
@@ -362,6 +361,10 @@ Also see `insert-text-button'."
       (setcar type-entry 'category)
       (setcar (cdr type-entry)
               (button-category-symbol (cadr type-entry))))
+    (when (stringp beg)
+      (setq object (copy-sequence beg))
+      (setq beg 0)
+      (setq end (length object)))
     ;; Now add all the text properties at once.
     (add-text-properties beg end
                          ;; Each button should have a non-eq `button'
