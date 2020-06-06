@@ -860,34 +860,28 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 }
 
 /* Emit calls fetching from existing declarations.  */
+
 static gcc_jit_rvalue *
-emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
+emit_call (Lisp_Object func, gcc_jit_type *ret_type, ptrdiff_t nargs,
 	   gcc_jit_rvalue **args, bool direct)
 {
-  Lisp_Object func;
-  if (direct)
-    {
-      Lisp_Object c_name =
-	Fgethash (subr_sym,
-		  CALL1I (comp-ctxt-sym-to-c-name-h, Vcomp_ctxt),
-		  Qnil);
-      func = Fgethash (c_name, comp.exported_funcs_h, Qnil);
-    }
-  else
-    func = Fgethash (subr_sym, comp.imported_funcs_h, Qnil);
+  Lisp_Object gcc_func =
+    Fgethash (func,
+	      direct ? comp.exported_funcs_h : comp.imported_funcs_h,
+	      Qnil);
 
-  if (NILP (func))
+  if (NILP (gcc_func))
       xsignal2 (Qnative_ice,
 		build_string ("missing function declaration"),
-		subr_sym);
+		func);
 
   if (direct)
     {
-      emit_comment (format_string ("direct call to subr: %s",
-				   SSDATA (SYMBOL_NAME (subr_sym))));
+      emit_comment (format_string ("direct call to: %s",
+				   SSDATA (func)));
       return gcc_jit_context_new_call (comp.ctxt,
 				       NULL,
-				       xmint_pointer (func),
+				       xmint_pointer (gcc_func),
 				       nargs,
 				       args);
     }
@@ -897,14 +891,14 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
 	gcc_jit_rvalue_dereference_field (
 	  gcc_jit_lvalue_as_rvalue (comp.func_relocs),
 	  NULL,
-	  (gcc_jit_field *) xmint_pointer (func));
+	  (gcc_jit_field *) xmint_pointer (gcc_func));
 
       if (!f_ptr)
 	xsignal2 (Qnative_ice,
 		  build_string ("missing function relocation"),
-		  subr_sym);
+		  func);
       emit_comment (format_string ("calling subr: %s",
-				   SSDATA (SYMBOL_NAME (subr_sym))));
+				   SSDATA (SYMBOL_NAME (func))));
       return gcc_jit_context_new_call_through_ptr (comp.ctxt,
 						   NULL,
 						   gcc_jit_lvalue_as_rvalue (f_ptr),
@@ -914,7 +908,7 @@ emit_call (Lisp_Object subr_sym, gcc_jit_type *ret_type, ptrdiff_t nargs,
 }
 
 static gcc_jit_rvalue *
-emit_call_ref (Lisp_Object subr_sym, ptrdiff_t nargs,
+emit_call_ref (Lisp_Object func, ptrdiff_t nargs,
 	       gcc_jit_lvalue *base_arg, bool direct)
 {
   gcc_jit_rvalue *args[] =
@@ -922,7 +916,7 @@ emit_call_ref (Lisp_Object subr_sym, ptrdiff_t nargs,
 					   comp.ptrdiff_type,
 					   nargs),
       gcc_jit_lvalue_get_address (base_arg, NULL) };
-  return emit_call (subr_sym, comp.lisp_obj_type, 2, args, direct);
+  return emit_call (func, comp.lisp_obj_type, 2, args, direct);
 }
 
 /* Close current basic block emitting a conditional.  */

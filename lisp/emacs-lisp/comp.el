@@ -1888,14 +1888,15 @@ Here goes everything that can be done not iteratively (read once).
   (pcase insn
     (`(set ,lval ,rval)
      (pcase rval
-       (`(,(or 'call 'direct-call) ,f . ,args)
+       (`(,(or 'call 'callref) ,f . ,args)
         (setf (comp-mvar-type lval)
               (alist-get f comp-known-ret-types))
         (comp-function-call-maybe-remove insn f args))
-       (`(,(or 'callref 'direct-callref) ,f . ,args)
-        (setf (comp-mvar-type lval)
-              (alist-get f comp-known-ret-types))
-        (comp-function-call-maybe-remove insn f args))
+       (`(,(or 'direct-call 'direct-callref) ,f . ,args)
+        (let ((f (comp-func-name (gethash f (comp-ctxt-funcs-h comp-ctxt)))))
+          (setf (comp-mvar-type lval)
+                (alist-get f comp-known-ret-types))
+          (comp-function-call-maybe-remove insn f args)))
        (_
         (comp-mvar-propagate lval rval))))
     (`(phi ,lval . ,rest)
@@ -1985,9 +1986,9 @@ Backward propagate array placement properties."
                (not (memq callee comp-never-optimize-functions)))
       (let* ((f (symbol-function callee))
              (subrp (subrp f))
-             (callee-in-unit (gethash (gethash callee
-                                               (comp-ctxt-sym-to-c-name-h comp-ctxt))
-                                      (comp-ctxt-funcs-h comp-ctxt))))
+             (comp-func-callee (gethash (gethash callee
+                                                 (comp-ctxt-sym-to-c-name-h comp-ctxt))
+                                        (comp-ctxt-funcs-h comp-ctxt))))
         (cond
          ((and subrp (not (subr-native-elisp-p f)))
           ;; Trampoline removal.
@@ -1995,7 +1996,7 @@ Backward propagate array placement properties."
                  (maxarg (cdr (subr-arity f)))
                  (call-type (if (if subrp
                                     (not (numberp maxarg))
-                                  (comp-nargs-p callee-in-unit))
+                                  (comp-nargs-p comp-func-callee))
                                 'callref
                               'call))
                  (args (if (eq call-type 'callref)
@@ -2005,14 +2006,14 @@ Backward propagate array placement properties."
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers this for non self calls too!!
          ((and (>= comp-speed 3)
-               callee-in-unit)
-          (let* ((func-args (comp-func-args callee-in-unit))
+               comp-func-callee)
+          (let* ((func-args (comp-func-args comp-func-callee))
                  (nargs (comp-nargs-p func-args))
                  (call-type (if nargs 'direct-callref 'direct-call))
                  (args (if (eq call-type 'direct-callref)
                            args
                          (fill-args args (comp-args-max func-args)))))
-            `(,call-type ,callee ,@args)))
+            `(,call-type ,(comp-func-c-name comp-func-callee) ,@args)))
          ((comp-type-hint-p callee)
           `(call ,callee ,@args)))))))
 
