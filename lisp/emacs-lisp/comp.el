@@ -1976,19 +1976,31 @@ Backward propagate array placement properties."
 ;;   the full compilation unit.
 ;;   For this reason this is triggered only at comp-speed == 3.
 
+(defun comp-func-in-unit (func)
+  "Given FUNC return the `comp-fun' definition in the current context.
+FUNCTION can be a function-name or byte compiled function."
+  (if (symbolp func)
+      (gethash (gethash func
+                        (comp-ctxt-sym-to-c-name-h comp-ctxt))
+               (comp-ctxt-funcs-h comp-ctxt))
+    (cl-assert (byte-code-function-p func))
+    (gethash func (comp-ctxt-byte-func-to-func-h comp-ctxt))))
+
 (defun comp-call-optim-form-call (callee args)
   ""
   (cl-flet ((fill-args (args total)
               ;; Fill missing args to reach TOTAL
               (append args (cl-loop repeat (- total (length args))
                                     collect (make-comp-mvar :constant nil)))))
-    (when (and (symbolp callee)  ; Do nothing if callee is a byte compiled func.
+    (when (and (or (symbolp callee)
+                   (gethash callee (comp-ctxt-byte-func-to-func-h comp-ctxt)))
                (not (memq callee comp-never-optimize-functions)))
-      (let* ((f (symbol-function callee))
+      (let* ((f (if (symbolp callee)
+                    (symbol-function callee)
+                  (cl-assert (byte-code-function-p callee))
+                  callee))
              (subrp (subrp f))
-             (comp-func-callee (gethash (gethash callee
-                                                 (comp-ctxt-sym-to-c-name-h comp-ctxt))
-                                        (comp-ctxt-funcs-h comp-ctxt))))
+             (comp-func-callee (comp-func-in-unit callee)))
         (cond
          ((and subrp (not (subr-native-elisp-p f)))
           ;; Trampoline removal.
@@ -2005,8 +2017,12 @@ Backward propagate array placement properties."
             `(,call-type ,callee ,@args)))
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers this for non self calls too!!
-         ((and (>= comp-speed 3)
-               comp-func-callee)
+         ((and comp-func-callee
+               (or (>= comp-speed 3)
+                   (and (>= comp-speed 2)
+                        ;; Anonymous lambdas can't be redefined so are
+                        ;; always safe to optimize.
+                        (byte-code-function-p callee))))
           (let* ((func-args (comp-func-args comp-func-callee))
                  (nargs (comp-nargs-p func-args))
                  (call-type (if nargs 'direct-callref 'direct-call))
