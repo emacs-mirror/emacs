@@ -2967,7 +2967,9 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
     dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
 
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
-  if (ctx->flags.dump_object_contents && !NILP (subr->native_comp_u[0]))
+  if (NATIVE_COMP_FLAG
+      && ctx->flags.dump_object_contents
+      && !NILP (subr->native_comp_u[0]))
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
@@ -5331,6 +5333,10 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       }
     case RELOC_NATIVE_SUBR:
       {
+	if (!NATIVE_COMP_FLAG)
+	  /* This cannot happen.  */
+	  emacs_abort ();
+
 	/* When resurrecting from a dump given non all the original
 	   native compiled subrs may be still around we can't rely on
 	   a 'top_level_run' mechanism, we revive them one-by-one

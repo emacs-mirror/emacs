@@ -1507,6 +1507,7 @@ Return t if the file exists and loads successfully.  */)
     }
   else if (is_native_elisp)
     {
+#ifdef HAVE_NATIVE_COMP
       specbind (Qcurrent_load_list, Qnil);
       if (!NILP (Vpurify_flag))
 	{
@@ -1517,6 +1518,11 @@ Return t if the file exists and loads successfully.  */)
       LOADHIST_ATTACH (hist_file_name);
       Fnative_elisp_load (found, Qnil);
       build_load_history (hist_file_name, true);
+#else
+      /* This cannot happen.  */
+      emacs_abort ();
+#endif
+
     }
   else
     {
