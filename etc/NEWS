@@ -451,6 +451,16 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
 ** The metamail.el library is now marked obsolete.
 
+** D-Bus
+
+---
+*** Some obsolete variable and function aliases have been removed.
+In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
+'dbus-event-error-functions' and the function
+'dbus-call-method-non-blocking' was renamed to 'dbus-call-method'.
+The old names, which were kept as obsolete aliases of the new names,
+have now been removed.
+
 
 * New Modes and Packages in Emacs 28.1
 

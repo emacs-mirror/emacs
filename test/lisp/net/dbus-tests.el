@@ -176,8 +176,8 @@ This includes initialization and closing the bus."
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
   (interactive "p")
-  (funcall
-   (if interactive 'ert-run-tests-interactively 'ert-run-tests-batch) "^dbus"))
+  (funcall (if interactive #'ert-run-tests-interactively #'ert-run-tests-batch)
+           "^dbus"))
 
 (provide 'dbus-tests)
 ;;; dbus-tests.el ends here
