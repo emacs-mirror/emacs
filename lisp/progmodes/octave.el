@@ -755,7 +755,7 @@ Key bindings:
   (setq font-lock-defaults '(inferior-octave-font-lock-keywords nil nil))
 
   (setq-local info-lookup-mode 'octave-mode)
-  (setq-local eldoc-documentation-function 'octave-eldoc-function)
+  (add-hook 'eldoc-documentation-functions 'octave-eldoc-function nil t)
 
   (setq-local comint-input-ring-file-name
               (or (getenv "OCTAVE_HISTFILE") "~/.octave_hist"))

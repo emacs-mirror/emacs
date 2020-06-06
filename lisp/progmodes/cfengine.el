@@ -1296,8 +1296,8 @@ Calls `cfengine-cf-promises' with \"-s json\"."
 
 (defun cfengine3-documentation-function (&rest _ignored)
   "Document CFengine 3 functions around point.
-Intended as the value of `eldoc-documentation-function', which see.
-Use it by enabling `eldoc-mode'."
+Intended as the value of `eldoc-documentation-functions', which
+see.  Use it by enabling `eldoc-mode'."
   (let ((fdef (cfengine3--current-function)))
     (when fdef
       (cfengine3-format-function-docstring fdef))))

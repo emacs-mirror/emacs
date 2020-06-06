@@ -1663,6 +1663,42 @@ Select the buffer containing the tag's definition, and move point there."
 
 (defvar semantic-grammar-eldoc-last-data (cons nil nil))
 
+(defun semantic--docstring-format-sym-doc (prefix doc &optional face)
+  "Combine PREFIX and DOC, and shorten the result to fit in the echo area.
+
+When PREFIX is a symbol, propertize its symbol name with FACE
+before combining it with DOC.  If FACE is not provided, just
+apply the nil face.
+
+See also: `eldoc-echo-area-use-multiline-p'."
+  ;; Hoisted from old `eldoc-docstring-format-sym-doc'.
+  ;; If the entire line cannot fit in the echo area, the symbol name may be
+  ;; truncated or eliminated entirely from the output to make room for the
+  ;; description.
+  (when (symbolp prefix)
+    (setq prefix (concat (propertize (symbol-name prefix) 'face face) ": ")))
+  (let* ((ea-multi eldoc-echo-area-use-multiline-p)
+         ;; Subtract 1 from window width since emacs will not write
+         ;; any chars to the last column, or in later versions, will
+         ;; cause a wraparound and resize of the echo area.
+         (ea-width (1- (window-width (minibuffer-window))))
+         (strip (- (+ (length prefix)
+                      (length doc))
+                   ea-width)))
+    (cond ((or (<= strip 0)
+               (eq ea-multi t)
+               (and ea-multi (> (length doc) ea-width)))
+           (concat prefix doc))
+          ((> (length doc) ea-width)
+           (substring (format "%s" doc) 0 ea-width))
+          ((>= strip (string-match-p ":? *\\'" prefix))
+           doc)
+          (t
+           ;; Show the end of the partial symbol name, rather
+           ;; than the beginning, since the former is more likely
+           ;; to be unique given package namespace conventions.
+           (concat (substring prefix strip) doc)))))
+
 (defun semantic-grammar-eldoc-get-macro-docstring (macro expander)
   "Return a one-line docstring for the given grammar MACRO.
 EXPANDER is the name of the function that expands MACRO."
@@ -1681,19 +1717,18 @@ EXPANDER is the name of the function that expands MACRO."
         (setq doc (eldoc-function-argstring expander))))
       (when doc
         (setq doc
-	      (eldoc-docstring-format-sym-doc
+	      (semantic--docstring-format-sym-doc
 	       macro (format "==> %s %s" expander doc) 'default))
         (setq semantic-grammar-eldoc-last-data (cons expander doc)))
       doc))
    ((fboundp 'elisp-get-fnsym-args-string) ;; Emacs≥25
-    (elisp-get-fnsym-args-string
-     expander nil
-     (concat (propertize (symbol-name macro)
+    (concat (propertize (symbol-name macro)
                          'face 'font-lock-keyword-face)
              " ==> "
              (propertize (symbol-name macro)
                          'face 'font-lock-function-name-face)
-             ": ")))))
+             ": "
+             (elisp-get-fnsym-args-string expander nil )))))
 
 (define-mode-local-override semantic-idle-summary-current-symbol-info
   semantic-grammar-mode ()

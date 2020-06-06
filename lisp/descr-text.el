@@ -929,10 +929,12 @@ Otherwise return a description formatted by
 of `eldoc-echo-area-use-multiline-p' variable and width of
 minibuffer window for width limit.
 
-This function is meant to be used as a value of
-`eldoc-documentation-function' variable."
+This function can be used as a value of
+`eldoc-documentation-functions' variable."
   (let ((ch (following-char)))
     (when (and (not (zerop ch)) (or (< ch 32) (> ch 127)))
+      ;; TODO: investigate if the new `eldoc-documentation-functions'
+      ;; API could significantly improve this.
       (describe-char-eldoc--format
        ch
        (unless (eq eldoc-echo-area-use-multiline-p t)
