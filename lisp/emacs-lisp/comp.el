@@ -184,6 +184,10 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                                  (comp-hint-cons . cons))
   "Alist used for type propagation.")
 
+(defconst comp-symbol-values-optimizable '(most-positive-fixnum
+                                           most-negative-fixnum)
+  "Symbol values we can resolve in the compile-time.")
+
 (defconst comp-type-hints '(comp-hint-fixnum
                             comp-hint-cons)
   "List of fake functions used to give compiler hints.")
@@ -1883,17 +1887,28 @@ Here goes everything that can be done not iteratively (read once).
 
 (defsubst comp-function-call-maybe-remove (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call."
-  (when (comp-function-optimizable f args)
-    (ignore-errors
-      ;; No point to complain here because we should do basic block
-      ;; pruning in order to be sure that this is not dead-code.  This
-      ;; is now left to gcc, to be implemented only if we want a
-      ;; reliable diagnostic here.
-      (let ((value (apply f (mapcar #'comp-mvar-constant args))))
-        ;; See `comp-emit-setimm'.
-        (comp-add-const-to-relocs value)
-        (setf (car insn) 'setimm
-              (cddr insn) `(,value))))))
+  (cl-flet ((rewrite-insn-as-setimm (insn value)
+               ;; See `comp-emit-setimm'.
+               (comp-add-const-to-relocs value)
+               (setf (car insn) 'setimm
+                     (cddr insn) `(,value))))
+    (cond
+     ((eq f 'symbol-value)
+      (when-let* ((arg0 (car args))
+                  (const (comp-mvar-const-vld arg0))
+                  (ok-to-optim (member (comp-mvar-constant arg0)
+                                       comp-symbol-values-optimizable)))
+        (rewrite-insn-as-setimm insn (symbol-value (comp-mvar-constant
+                                                    (car args))))))
+     ((comp-function-optimizable f args)
+      (ignore-errors
+        ;; No point to complain here because we should do basic block
+        ;; pruning in order to be sure that this is not dead-code.  This
+        ;; is now left to gcc, to be implemented only if we want a
+        ;; reliable diagnostic here.
+        (rewrite-insn-as-setimm insn
+                                (apply f
+                                       (mapcar #'comp-mvar-constant args))))))))
 
 (defun comp-propagate-insn (insn)
   "Propagate within INSN."
