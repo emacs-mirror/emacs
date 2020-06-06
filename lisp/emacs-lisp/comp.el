@@ -399,6 +399,18 @@ structure.")
   "Type hint predicate for function name FUNC."
   (when (memq func comp-type-hints) t))
 
+(defun comp-func-unique-in-cu-p (func)
+  "Return t if FUNC is know to be unique in the current compilation unit."
+  (if (symbolp func)
+      (cl-loop with h = (make-hash-table :test #'eq)
+               for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
+               for name = (comp-func-name f)
+               when (gethash name h)
+                 return nil
+               do (puthash name t h)
+               finally return t)
+    t))
+
 (defsubst comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS return the data container for the current context.
 Assume allocaiton class 'd-default as default."
@@ -2018,7 +2030,8 @@ FUNCTION can be a function-name or byte compiled function."
          ;; Intra compilation unit procedure call optimization.
          ;; Attention speed 3 triggers this for non self calls too!!
          ((and comp-func-callee
-               (or (>= comp-speed 3)
+               (or (and (>= comp-speed 3)
+                        (comp-func-unique-in-cu-p callee))
                    (and (>= comp-speed 2)
                         ;; Anonymous lambdas can't be redefined so are
                         ;; always safe to optimize.
