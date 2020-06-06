@@ -90,7 +90,7 @@ RECOMPILE all the benchmark folder when non nil."
 				       #'native-compile
 				     #'byte-compile-file)
 	   with res = (make-hash-table :test #'equal)
-	   with sources = (directory-files elb-bench-directory t "\\.el$")
+	   with sources = (directory-files elb-bench-directory t "\\.el\\'")
 	   with tests = (if selector
 			    (cl-loop for f in sources
 				     when (string-match selector f)
