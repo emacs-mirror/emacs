@@ -1219,8 +1219,8 @@
 	 length line-beginning-position line-end-position
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
-	 make-list make-string make-symbol marker-buffer max member memq min
-	 minibuffer-selected-window minibuffer-window
+	 make-byte-code make-list make-string make-symbol marker-buffer max
+	 member memq min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
 	 prefix-numeric-value previous-window prin1-to-string propertize
