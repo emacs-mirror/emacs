@@ -2023,7 +2023,8 @@ FUNCTION can be a function-name or byte compiled function."
               ;; Fill missing args to reach TOTAL
               (append args (cl-loop repeat (- total (length args))
                                     collect (make-comp-mvar :constant nil)))))
-    (when (and (or (symbolp callee)
+    (when (and callee
+               (or (symbolp callee)
                    (gethash callee (comp-ctxt-byte-func-to-func-h comp-ctxt)))
                (not (memq callee comp-never-optimize-functions)))
       (let* ((f (if (symbolp callee)
