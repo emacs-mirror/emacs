@@ -745,7 +745,7 @@ to be set, depending on VALUE."
 	  tramp-postfix-host-format (tramp-build-postfix-host-format)
 	  tramp-postfix-host-regexp (tramp-build-postfix-host-regexp)
 	  tramp-remote-file-name-spec-regexp
-          (tramp-build-remote-file-name-spec-regexp)
+	  (tramp-build-remote-file-name-spec-regexp)
 	  tramp-file-name-structure (tramp-build-file-name-structure)
 	  tramp-file-name-regexp (tramp-build-file-name-regexp)
 	  tramp-completion-file-name-regexp
@@ -2182,6 +2182,7 @@ arguments to pass to the OPERATION."
 	    tramp-vc-file-name-handler
 	    tramp-completion-file-name-handler
 	    tramp-archive-file-name-handler
+	    tramp-crypt-file-name-handler
 	    cygwin-mount-name-hook-function
 	    cygwin-mount-map-drive-hook-function
 	    .
@@ -2484,12 +2485,15 @@ remote file names."
   (tramp-unload-file-name-handlers)
 
   ;; Add the handlers.  We do not add anything to the `operations'
-  ;; property of `tramp-file-name-handler' and
-  ;; `tramp-archive-file-name-handler', this shall be done by the
+  ;; property of `tramp-file-name-handler',
+  ;; `tramp-archive-file-name-handler' and
+  ;; `tramp-crypt-file-name-handler', this shall be done by the
   ;; respective foreign handlers.
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp #'tramp-file-name-handler))
   (put #'tramp-file-name-handler 'safe-magic t)
+
+  (tramp-register-crypt-file-name-handler)
 
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-completion-file-name-regexp
@@ -3497,6 +3501,9 @@ User is always nil."
 		    ;; copy this part.  This works only for the shell file
 		    ;; name handlers.
 		    (when (and (or beg end)
+			       ;; Direct actions aren't possible for
+			       ;; crypted directories.
+			       (null tramp-crypt-enabled)
 			       (tramp-get-method-parameter
 				v 'tramp-login-program))
 		      (setq remote-copy (tramp-make-tramp-temp-file v))
@@ -4649,6 +4656,8 @@ This handles also chrooted environments, which are not regarded as local."
      ;; handlers.  `tramp-local-host-p' is also called for "smb" and
      ;; alike, where it must fail.
      (tramp-get-method-parameter vec 'tramp-login-program)
+     ;; Direct actions aren't possible for crypted directories.
+     (null tramp-crypt-enabled)
      ;; The local temp directory must be writable for the other user.
      (file-writable-p
       (tramp-make-tramp-file-name
