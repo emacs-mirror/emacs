@@ -860,7 +860,7 @@ With numeric prefix arg, copy to register 0-9 instead."
 (defun cua-cancel ()
   "Cancel the active region, rectangle, or global mark."
   (interactive)
-  (setq mark-active nil)
+  (deactivate-mark)
   (if (fboundp 'cua--cancel-rectangle)
       (cua--cancel-rectangle)))
 
