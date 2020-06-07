@@ -1926,6 +1926,10 @@ Here goes everything that can be done not iteratively (read once).
           (comp-function-call-maybe-remove insn f args)))
        (_
         (comp-mvar-propagate lval rval))))
+    (`(setimm ,lval ,v)
+     (setf (comp-mvar-const-vld lval) t
+           (comp-mvar-constant lval) v
+           (comp-mvar-type lval) (comp-strict-type-of v)))
     (`(phi ,lval . ,rest)
      ;; Forward const prop here.
      (when-let* ((vld (cl-every #'comp-mvar-const-vld rest))
