@@ -58,7 +58,6 @@ the character after point.
                        of another buffer.
 * Decompression::    Dealing with compressed data.
 * Base 64::          Conversion to or from base 64 encoding.
-* Interpolated Strings:: Formatting Customizable Strings.
 * Checksum/Hash::    Computing cryptographic hashes.
 * GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
 * Parsing HTML/XML:: Parsing HTML and XML.
@@ -2029,8 +2028,15 @@ non-@code{nil} value.
 @end enumerate
 
 The argument @var{predicate} is the function to use to compare keys.
-If keys are numbers, it defaults to @code{<}; otherwise it defaults to
-@code{string<}.
+It is called with two arguments, the keys to compare, and should
+return non-@code{nil} if the first key should come before the second
+in the sorting order.  What exactly are the key arguments depends on
+what @var{startkeyfun} and @var{endkeyfun} return.  If @var{predicate}
+is omitted or @code{nil}, it defaults to @code{<} if the keys are
+numbers, to @code{compare-buffer-substrings} if the keys are cons
+cells (whose @code{car} and @code{cdr} are start and end buffer
+positions of the key), and to @code{string<} otherwise (with keys
+assumed to be strings).
 
 As an example of @code{sort-subr}, here is the complete function
 definition for @code{sort-lines}:
@@ -4661,69 +4667,6 @@ The decoding functions ignore newline characters in the encoded text.
 If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
 @end defun
-
-
-@node Interpolated Strings
-@section Formatting Customizable Strings
-
-It is, in some circumstances, useful to present users with a string to
-be customized that can then be expanded programmatically.  For
-instance, @code{erc-header-line-format} is @code{"%n on %t (%m,%l)
-%o"}, and each of those characters after the percent signs are
-expanded when the header line is computed.  To do this, the
-@code{format-spec} function is used:
-
-@defun format-spec format specification &optional only-present
-@var{format} is the format specification string as in the example
-above.  @var{specification} is an alist that has elements where the
-@code{car} is a character and the @code{cdr} is the substitution.
-
-If @var{only-present} is @code{nil}, errors will be signaled if a
-format character has been used that's not present in
-@var{specification}.  If it's non-@code{nil}, that format
-specification is left verbatim in the result.
-@end defun
-
-Here's a trivial example:
-
-@example
-(format-spec "su - %u %l"
-             `((?u . ,(user-login-name))
-               (?l . "ls")))
-     @result{} "su - foo ls"
-@end example
-
-In addition to allowing padding/limiting to a certain length, the
-following modifiers can be used:
-
-@table @asis
-@item @samp{0}
-Pad with zeros instead of the default spaces.
-
-@item @samp{-}
-Pad to the right.
-
-@item @samp{^}
-Use upper case.
-
-@item @samp{_}
-Use lower case.
-
-@item @samp{<}
-If the length needs to be limited, remove characters from the left.
-
-@item @samp{>}
-Same as previous, but remove characters from the right.
-@end table
-
-If contradictory modifiers are used (for instance, both upper and
-lower case), then what happens is undefined.
-
-As an example, @samp{"%<010b"} means ``insert the @samp{b} expansion,
-but pad with leading zeros if it's less than ten characters, and if
-it's more than ten characters, shorten by removing characters from the
-left.''
-
 
 @node Checksum/Hash
 @section Checksum/Hash

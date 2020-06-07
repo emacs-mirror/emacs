@@ -3975,11 +3975,11 @@ If @var{color} is not defined, the value is @code{nil}.
 (color-values "black")
      @result{} (0 0 0)
 (color-values "white")
-     @result{} (65280 65280 65280)
+     @result{} (65535 65535 65535)
 (color-values "red")
-     @result{} (65280 0 0)
+     @result{} (65535 0 0)
 (color-values "pink")
-     @result{} (65280 49152 51968)
+     @result{} (65535 49344 52171)
 (color-values "hungry")
      @result{} nil
 @end example

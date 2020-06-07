@@ -4591,7 +4591,6 @@ This function is intended for use in `after-change-functions'."
   (setq imenu-create-index-function #'js--imenu-create-index)
 
   ;; for filling, pretend we're cc-mode
-  (c-init-language-vars js-mode)
   (setq-local comment-line-break-function #'c-indent-new-comment-line)
   (setq-local comment-multi-line t)
   (setq-local electric-indent-chars

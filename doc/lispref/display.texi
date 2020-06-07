@@ -2017,36 +2017,45 @@ it contains.
 
 @defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
 This function returns the size of the text of @var{window}'s buffer in
-pixels.  @var{window} must be a live window and defaults to the selected
-one.  The return value is a cons of the maximum pixel-width of any text
-line and the maximum pixel-height of all text lines.
+pixels.  @var{window} must be a live window and defaults to the
+selected one.  The return value is a cons of the maximum pixel-width
+of any text line and the maximum pixel-height of all text lines.  This
+function exists to allow Lisp programs to adjust the dimensions of
+@var{window} to the buffer text it needs to display.
 
-The optional argument @var{from}, if non-@code{nil}, specifies the first
-text position to consider and defaults to the minimum accessible
-position of the buffer.  If @var{from} is @code{t}, it uses the minimum
-accessible position that is not a newline character.  The optional
-argument @var{to}, if non-@code{nil}, specifies the last text position
-to consider and defaults to the maximum accessible position of the
-buffer.  If @var{to} is @code{t}, it uses the maximum accessible
-position that is not a newline character.
+The optional argument @var{from}, if non-@code{nil}, specifies the
+first text position to consider, and defaults to the minimum
+accessible position of the buffer.  If @var{from} is @code{t}, it
+stands for the minimum accessible position that is not a newline
+character.  The optional argument @var{to}, if non-@code{nil},
+specifies the last text position to consider, and defaults to the
+maximum accessible position of the buffer.  If @var{to} is @code{t},
+it stands for the maximum accessible position that is not a newline
+character.
 
 The optional argument @var{x-limit}, if non-@code{nil}, specifies the
-maximum pixel-width that can be returned.  @var{x-limit} @code{nil} or
-omitted, means to use the pixel-width of @var{window}'s body
-(@pxref{Window Sizes}); this is useful when the caller does not intend
-to change the width of @var{window}.  Otherwise, the caller should
-specify here the maximum width @var{window}'s body may assume.  Text
-whose x-coordinate is beyond @var{x-limit} is ignored.  Since
+maximum X coordinate beyond which text should be ignored; it is
+therefore also the largest value of pixel-width that the function can
+return.  If @var{x-limit} @code{nil} or omitted, it means to use the
+pixel-width of @var{window}'s body (@pxref{Window Sizes}); this
+default means that text of truncated lines wider than the window will
+be ignored.  This default is useful when the caller does not intend to
+change the width of @var{window}.  Otherwise, the caller should
+specify here the maximum width @var{window}'s body may assume; in
+particular, if truncated lines are expected and their text needs to be
+accounted for, @var{x-limit} should be set to a large value.  Since
 calculating the width of long lines can take some time, it's always a
 good idea to make this argument as small as needed; in particular, if
 the buffer might contain long lines that will be truncated anyway.
 
 The optional argument @var{y-limit}, if non-@code{nil}, specifies the
-maximum pixel-height that can be returned.  Text lines whose
-y-coordinate is beyond @var{y-limit} are ignored.  Since calculating the
-pixel-height of a large buffer can take some time, it makes sense to
-specify this argument; in particular, if the caller does not know the
-size of the buffer.
+maximum Y coordinate beyond which text is to be ignored; it is
+therefore also the maximum pixel-height that the function can return.
+If @var{y-limit} is nil or omitted, it means to considers all the
+lines of text till the buffer position specified by @var{to}.  Since
+calculating the pixel-height of a large buffer can take some time, it
+makes sense to specify this argument; in particular, if the caller
+does not know the size of the buffer.
 
 The optional argument @var{mode-and-header-line} @code{nil} or omitted
 means to not include the height of the mode- or header-line of

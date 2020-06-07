@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "font.h"
 #include "dispextern.h"
+#include "buffer.h"
 
 #ifdef HAVE_NTGUI
 
@@ -438,7 +439,11 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
 
   /* If the caller didn't provide a meaningful DIRECTION, let HarfBuzz
      guess it. */
-  if (!NILP (direction))
+  if (!NILP (direction)
+      /* If they bind bidi-display-reordering to nil, the DIRECTION
+	 they provide is meaningless, and we should let HarfBuzz guess
+	 the real direction.  */
+      && !NILP (BVAR (current_buffer, bidi_display_reordering)))
     {
       hb_direction_t dir = HB_DIRECTION_LTR;
       if (EQ (direction, QL2R))

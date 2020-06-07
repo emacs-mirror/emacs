@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'esh-mode)
 (require 'eshell)
 
 (defmacro with-temp-eshell (&rest body)

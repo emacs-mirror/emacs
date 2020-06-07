@@ -184,8 +184,9 @@ This includes password cache, file cache, connection cache, buffers."
   ;; Cancel timers.
   (cancel-function-timers 'tramp-timeout-session)
 
-  ;; Remove buffers.
+  ;; Remove processes and buffers.
   (dolist (name (tramp-list-tramp-buffers))
+    (when (processp (get-buffer-process name)) (delete-process name))
     (when (bufferp (get-buffer name)) (kill-buffer name)))
 
   ;; The end.

@@ -109,6 +109,10 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Tab Bars
+
+*** The key prefix 'C-x t t' displays next command buffer in a new tab.
+
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
 

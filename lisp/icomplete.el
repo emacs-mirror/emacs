@@ -330,7 +330,10 @@ if that doesn't produce a completion match."
                 icomplete-hide-common-prefix nil
                 completion-styles '(flex)
                 completion-flex-nospace nil
-                completion-category-defaults nil)))
+                completion-category-defaults nil
+                completion-ignore-case t
+                read-buffer-completion-ignore-case t
+                read-file-name-completion-ignore-case t)))
 
 ;;;###autoload
 (define-minor-mode fido-mode

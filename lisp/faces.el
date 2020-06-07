@@ -1822,7 +1822,7 @@ COLOR should be a string naming a color (e.g. \"white\"), or a
 string specifying a color's RGB components (e.g. \"#ff12ec\").
 
 Return a list of three integers, (RED GREEN BLUE), each between 0
-and either 65280 or 65535 (the maximum depends on the system).
+and 65535 inclusive.
 Use `color-name-to-rgb' if you want RGB floating-point values
 normalized to 1.0.
 

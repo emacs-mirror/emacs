@@ -142,7 +142,7 @@ Return DEFAULT if not set."
 	 (cached (and (hash-table-p hash) (gethash property hash)))
 	 (cached-at (and (consp cached) (format-time-string "%T" (car cached))))
 	 (value default)
-	 use-cache)
+	 cache-used)
 
     (when ;; We take the value only if there is any, and
 	  ;; `remote-file-name-inhibit-cache' indicates that it is
@@ -157,11 +157,11 @@ Return DEFAULT if not set."
 		      (time-less-p
 		       remote-file-name-inhibit-cache (car cached)))))
       (setq value (cdr cached)
-	    use-cache t))
+	    cache-used t))
 
-    (tramp-message key 8 "%s %s %s; inhibit: %s; cache used: %s; cached at: %s"
-                   file property value
-		   remote-file-name-inhibit-cache use-cache cached-at)
+    (tramp-message
+     key 8 "%s %s %s; inhibit: %s; cache used: %s; cached at: %s"
+     file property value remote-file-name-inhibit-cache cache-used cached-at)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
 	     (val (or (numberp (bound-and-true-p var))
@@ -320,15 +320,15 @@ the connection, return DEFAULT."
 		     (gethash property hash tramp-cache-undefined)
 		   tramp-cache-undefined))
 	 (value default)
-	 use-cache)
+	 cache-used)
 
     (when (and (not (eq cached tramp-cache-undefined))
 	       ;; If the key is an auxiliary process object, check
 	       ;; whether the process is still alive.
 	       (not (and (processp key) (not (process-live-p key)))))
       (setq value cached
-	    use-cache t))
-    (tramp-message key 7 "%s %s; cache used: %s" property value use-cache)
+	    cache-used t))
+    (tramp-message key 7 "%s %s; cache used: %s" property value cache-used)
     value))
 
 ;;;###tramp-autoload
