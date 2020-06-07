@@ -4049,10 +4049,9 @@ variable PATH."
 	 (format
 	  "PATH=%s; export PATH" (string-join (tramp-get-remote-path vec) ":")))
 	(pipe-buf
-	 (or (with-tramp-connection-property vec "pipe-buf"
-	       (tramp-send-command-and-read
-		vec "getconf PIPE_BUF / 2>/dev/null || echo nil" 'noerror))
-	     4096))
+	 (with-tramp-connection-property vec "pipe-buf"
+	   (tramp-send-command-and-read
+	    vec "getconf PIPE_BUF / 2>/dev/null || echo 4096" 'noerror)))
 	tmpfile)
     (tramp-message vec 5 "Setting $PATH environment variable")
     (if (< (length command) pipe-buf)
