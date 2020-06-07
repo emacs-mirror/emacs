@@ -96,6 +96,9 @@ At EOF:
     (ccl-dump prog-pgg-code)
     (should (equal (buffer-string) prog-pgg-dump))))
 
+(defvar pgg-parse-crc24)
+(declare-function pgg-parse-crc24-string "pgg-parse" (string))
+
 (ert-deftest pgg-parse-crc24 ()
   ;; Compiler
   (require 'pgg)

@@ -663,7 +663,7 @@ A non-nil `specs' arg must be an alist with `nnir-query-spec' and
   (let ((backend (car (gnus-server-to-method server))))
     (if backend
 	(nnoo-change-server backend server definitions)
-      (add-hook 'gnus-summary-prepared-hook 'nnir-mode)
+      (add-hook 'gnus-summary-generate-hook 'nnir-mode)
       (nnoo-change-server 'nnir server definitions))))
 
 (deffoo nnir-request-group (group &optional server dont-check _info)
@@ -1850,8 +1850,11 @@ is also searched."
 
 (defun nnir-mode ()
   (when (eq (car (gnus-find-method-for-group gnus-newsgroup-name)) 'nnir)
-    (setq gnus-summary-line-format
-	  (or nnir-summary-line-format gnus-summary-line-format))
+    (when (and nnir-summary-line-format
+               (not (string= nnir-summary-line-format
+                             gnus-summary-line-format)))
+      (setq gnus-summary-line-format nnir-summary-line-format)
+      (gnus-update-format-specifications nil 'summary))
     (when (bound-and-true-p gnus-registry-enabled)
       (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
       (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)

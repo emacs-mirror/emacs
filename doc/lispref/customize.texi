@@ -1156,7 +1156,7 @@ in that value.
 
 The usual reason to specify a documentation string for a type is to
 provide more information about the meanings of alternatives inside a
-@code{:choice} type or the parts of some other composite type.
+@code{choice} type or the parts of some other composite type.
 
 @item :help-echo @var{motion-doc}
 @kindex help-echo@r{, customization keyword}

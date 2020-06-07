@@ -267,6 +267,9 @@ Must called from within a `tar-mode' buffer."
     (should (package-installed-p 'simple-single))
     (should (package-installed-p 'simple-depend))))
 
+(declare-function macro-problem-func "macro-problem" ())
+(declare-function macro-problem-10-and-90 "macro-problem" ())
+
 (ert-deftest package-test-macro-compilation ()
   "Install a package which includes a dependency."
   (with-package-test (:basedir "package-resources")
@@ -616,6 +619,8 @@ Must called from within a `tar-mode' buffer."
 		     (let ((process-environment
 			    (cons (concat "HOME=" homedir)
 				  process-environment)))
+                       (require 'epg-config)
+                       (defvar epg-config--program-alist)
 		       (epg-find-configuration
                         'OpenPGP nil
                         ;; By default we require gpg2 2.1+ due to some

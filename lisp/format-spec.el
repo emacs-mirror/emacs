@@ -29,35 +29,46 @@
 
 (defun format-spec (format specification &optional only-present)
   "Return a string based on FORMAT and SPECIFICATION.
-FORMAT is a string containing `format'-like specs like \"su - %u %k\",
-while SPECIFICATION is an alist mapping from format spec characters
-to values.
+FORMAT is a string containing `format'-like specs like \"su - %u %k\".
+SPECIFICATION is an alist mapping format specification characters
+to their substitutions.
 
 For instance:
 
   (format-spec \"su - %u %l\"
-               `((?u . ,(user-login-name))
+               \\=`((?u . ,(user-login-name))
                  (?l . \"ls\")))
 
-Each format spec can have modifiers, where \"%<010b\" means \"if
-the expansion is shorter than ten characters, zero-pad it, and if
-it's longer, chop off characters from the left side\".
+Each %-spec may contain optional flag and width modifiers, as
+follows:
 
-The following modifiers are allowed:
+  %<flags><width>character
 
-* 0: Use zero-padding.
-* -: Pad to the right.
-* ^: Upper-case the expansion.
-* _: Lower-case the expansion.
-* <: Limit the length by removing chars from the left.
-* >: Limit the length by removing chars from the right.
+The following flags are allowed:
 
-Any text properties on a %-spec itself are propagated to the text
-that it generates.
+* 0: Pad to the width, if given, with zeros instead of spaces.
+* -: Pad to the width, if given, on the right instead of the left.
+* <: Truncate to the width, if given, on the left.
+* >: Truncate to the width, if given, on the right.
+* ^: Convert to upper case.
+* _: Convert to lower case.
 
-If ONLY-PRESENT, format spec characters not present in
-SPECIFICATION are ignored, and the \"%\" characters are left
-where they are, including \"%%\" strings."
+The width modifier behaves like the corresponding one in `format'
+when applied to %s.
+
+For example, \"%<010b\" means \"substitute into the output the
+value associated with ?b in SPECIFICATION, either padding it with
+leading zeros or truncating leading characters until it's ten
+characters wide\".
+
+Any text properties of FORMAT are copied to the result, with any
+text properties of a %-spec itself copied to its substitution.
+
+ONLY-PRESENT indicates how to handle %-spec characters not
+present in SPECIFICATION.  If it is nil or omitted, emit an
+error; otherwise leave those %-specs and any occurrences of
+\"%%\" in FORMAT verbatim in the result, including their text
+properties, if any."
   (with-temp-buffer
     (insert format)
     (goto-char (point-min))

@@ -28,6 +28,7 @@ keyboard character events.
 * Text Comparison::           Comparing characters or strings.
 * String Conversion::         Converting to and from characters and strings.
 * Formatting Strings::        @code{format}: Emacs's analogue of @code{printf}.
+* Custom Format Strings::     Formatting custom @code{format} specifications.
 * Case Conversion::           Case conversion functions.
 * Case Tables::               Customizing case conversion.
 @end menu
@@ -1121,6 +1122,181 @@ integers you can also use @samp{#x%x} and @samp{#o%o}.  Other formats
 may be problematic; for example, @samp{%d} and @samp{%g} can mishandle
 NaNs and can lose precision and type, and @samp{#x%x} and @samp{#o%o}
 can mishandle negative integers.  @xref{Input Functions}.
+
+The functions described in this section accept a fixed set of
+specification characters.  The next section describes a function
+@code{format-spec} which can accept custom specification characters,
+such as @samp{%a} or @samp{%z}.
+
+@node Custom Format Strings
+@section Custom Format Strings
+@cindex custom format string
+@cindex custom @samp{%}-sequence in format
+
+Sometimes it is useful to allow users and Lisp programs alike to
+control how certain text is generated via custom format control
+strings.  For example, a format string could control how to display
+someone's forename, surname, and email address.  Using the function
+@code{format} described in the previous section, the format string
+could be something like @w{@code{"%s %s <%s>"}}.  This approach
+quickly becomes impractical, however, as it can be unclear which
+specification character corresponds to which piece of information.
+
+A more convenient format string for such cases would be something like
+@w{@code{"%f %l <%e>"}}, where each specification character carries
+more semantic information and can easily be rearranged relative to
+other specification characters, making such format strings more easily
+customizable by the user.
+
+The function @code{format-spec} described in this section performs a
+similar function to @code{format}, except it operates on format
+control strings that use arbitrary specification characters.
+
+@defun format-spec template spec-alist &optional only-present
+This function returns a string produced from the format string
+@var{template} according to conversions specified in @var{spec-alist},
+which is an alist (@pxref{Association Lists}) of the form
+@w{@code{(@var{letter} . @var{replacement})}}.  Each specification
+@code{%@var{letter}} in @var{template} will be replaced by
+@var{replacement} when formatting the resulting string.
+
+The characters in @var{template}, other than the format
+specifications, are copied directly into the output, including their
+text properties, if any.  Any text properties of the format
+specifications are copied to their replacements.
+
+Using an alist to specify conversions gives rise to some useful
+properties:
+
+@itemize @bullet
+@item
+If @var{spec-alist} contains more unique @var{letter} keys than there
+are unique specification characters in @var{template}, the unused keys
+are simply ignored.
+@item
+If @var{spec-alist} contains more than one association with the same
+@var{letter}, the closest one to the start of the list is used.
+@item
+If @var{template} contains the same specification character more than
+once, then the same @var{replacement} found in @var{spec-alist} is
+used as a basis for all of that character's substitutions.
+@item
+The order of specifications in @var{template} need not correspond to
+the order of associations in @var{spec-alist}.
+@end itemize
+
+The optional argument @var{only-present} indicates how to handle
+specification characters in @var{template} that are not found in
+@var{spec-alist}.  If it is @code{nil} or omitted, the function
+signals an error.  Otherwise, those format specifications and any
+occurrences of @samp{%%} in @var{template} are left verbatim in the
+output, including their text properties, if any.
+@end defun
+
+The syntax of format specifications accepted by @code{format-spec} is
+similar, but not identical, to that accepted by @code{format}.  In
+both cases, a format specification is a sequence of characters
+beginning with @samp{%} and ending with an alphabetic letter such as
+@samp{s}.
+
+Unlike @code{format}, which assigns specific meanings to a fixed set
+of specification characters, @code{format-spec} accepts arbitrary
+specification characters and treats them all equally.  For example:
+
+@example
+@group
+(setq my-site-info
+      (list (cons ?s system-name)
+            (cons ?t (symbol-name system-type))
+            (cons ?c system-configuration)
+            (cons ?v emacs-version)
+            (cons ?e invocation-name)
+            (cons ?p (number-to-string (emacs-pid)))
+            (cons ?a user-mail-address)
+            (cons ?n user-full-name)))
+
+(format-spec "%e %v (%c)" my-site-info)
+     @result{} "emacs 27.1 (x86_64-pc-linux-gnu)"
+
+(format-spec "%n <%a>" my-site-info)
+     @result{} "Emacs Developers <emacs-devel@@gnu.org>"
+@end group
+@end example
+
+A format specification can include any number of the following flag
+characters immediately after the @samp{%} to modify aspects of the
+substitution.
+
+@table @samp
+@item 0
+This flag causes any padding specified by the width to consist of
+@samp{0} characters instead of spaces.
+
+@item -
+This flag causes any padding specified by the width to be inserted on
+the right rather than the left.
+
+@item <
+This flag causes the substitution to be truncated on the left to the
+given width, if specified.
+
+@item >
+This flag causes the substitution to be truncated on the right to the
+given width, if specified.
+
+@item ^
+This flag converts the substituted text to upper case (@pxref{Case
+Conversion}).
+
+@item _
+This flag converts the substituted text to lower case (@pxref{Case
+Conversion}).
+@end table
+
+The result of using contradictory flags (for instance, both upper and
+lower case) is undefined.
+
+As is the case with @code{format}, a format specification can include
+a width, which is a decimal number that appears after any flags.  If a
+substitution contains fewer characters than its specified width, it is
+padded on the left:
+
+@example
+@group
+(format-spec "%8a is padded on the left with spaces"
+             '((?a . "alpha")))
+     @result{} "   alpha is padded on the left with spaces"
+@end group
+@end example
+
+Here is a more complicated example that combines several
+aforementioned features:
+
+@example
+@group
+(setq my-battery-info
+      (list (cons ?p "73")      ; Percentage
+            (cons ?L "Battery") ; Status
+            (cons ?t "2:23")    ; Remaining time
+            (cons ?c "24330")   ; Capacity
+            (cons ?r "10.6")))  ; Rate of discharge
+
+(format-spec "%>^-3L : %3p%% (%05t left)" my-battery-info)
+     @result{} "BAT :  73% (02:23 left)"
+
+(format-spec "%>^-3L : %3p%% (%05t left)"
+             (cons (cons ?L "AC")
+                   my-battery-info))
+     @result{} "AC  :  73% (02:23 left)"
+@end group
+@end example
+
+As the examples in this section illustrate, @code{format-spec} is
+often used for selectively formatting an assortment of different
+pieces of information.  This is useful in programs that provide
+user-customizable format strings, as the user can choose to format
+with a regular syntax and in any desired order only a subset of the
+information that the program makes available.
 
 @node Case Conversion
 @section Case Conversion in Lisp

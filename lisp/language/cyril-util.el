@@ -152,6 +152,7 @@ If the argument is nil, we return the display table to its standard state."
     (aset standard-display-table ?љ  [?l ?j])
     (aset standard-display-table ?њ  [?n ?j])
     (aset standard-display-table ?џ  [?d ?z])
+    (aset standard-display-table ?ґ  [?g])
 
     (aset standard-display-table ?Є  [?Y ?e])
     (aset standard-display-table ?Ї  [?Y ?i])
@@ -166,6 +167,7 @@ If the argument is nil, we return the display table to its standard state."
     (aset standard-display-table ?Љ  [?L ?j])
     (aset standard-display-table ?Њ  [?N ?j])
     (aset standard-display-table ?Џ  [?D ?j])
+    (aset standard-display-table ?Ґ  [?G])
 
     (when (equal cyrillic-language "Bulgarian")
       (aset standard-display-table ?щ [?s ?h ?t])
@@ -182,7 +184,9 @@ If the argument is nil, we return the display table to its standard state."
       (aset standard-display-table ?й [?i])
       (aset standard-display-table ?Й [?Y])
       (aset standard-display-table ?ю [?i ?u])
-      (aset standard-display-table ?я [?i ?a]))))
+      (aset standard-display-table ?я [?i ?a])
+      (aset standard-display-table ?г [?h])
+      (aset standard-display-table ?Г [?H]))))
 
 ;;
 (provide 'cyril-util)

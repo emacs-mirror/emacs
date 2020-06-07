@@ -10449,33 +10449,43 @@ in_display_vector_p (struct it *it)
 DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 6, 0,
        doc: /* Return the size of the text of WINDOW's buffer in pixels.
 WINDOW must be a live window and defaults to the selected one.  The
-return value is a cons of the maximum pixel-width of any text line and
-the maximum pixel-height of all text lines.
+return value is a cons of the maximum pixel-width of any text line
+and the pixel-height of all the text lines in the accessible portion
+of buffer text.
+
+This function exists to allow Lisp programs to adjust the dimensions
+of WINDOW to the buffer text it needs to display.
 
 The optional argument FROM, if non-nil, specifies the first text
-position and defaults to the minimum accessible position of the buffer.
-If FROM is t, use the minimum accessible position that starts a
-non-empty line.  TO, if non-nil, specifies the last text position and
-defaults to the maximum accessible position of the buffer.  If TO is t,
-use the maximum accessible position that ends a non-empty line.
+position to consider, and defaults to the minimum accessible position
+of the buffer.  If FROM is t, it stands for the minimum accessible
+position that starts a non-empty line.  TO, if non-nil, specifies the
+last text position and defaults to the maximum accessible position of
+the buffer.  If TO is t, it stands for the maximum accessible position
+that ends a non-empty line.
 
-The optional argument X-LIMIT, if non-nil, specifies the maximum text
-width that can be returned.  X-LIMIT nil or omitted, means to use the
-pixel-width of WINDOW's body; use this if you want to know how high
-WINDOW should be become in order to fit all of its buffer's text with
-the width of WINDOW unaltered.  Use the maximum width WINDOW may assume
-if you intend to change WINDOW's width.  In any case, text whose
-x-coordinate is beyond X-LIMIT is ignored.  Since calculating the width
-of long lines can take some time, it's always a good idea to make this
-argument as small as possible; in particular, if the buffer contains
-long lines that shall be truncated anyway.
+The optional argument X-LIMIT, if non-nil, specifies the maximum X
+coordinate beyond which the text should be ignored.  It is therefore
+also the maximum width that the function can return.  X-LIMIT nil or
+omitted means to use the pixel-width of WINDOW's body.  This default
+means text of truncated lines wider than the window will be ignored;
+specify a large value for X-LIMIT if lines are truncated and you need
+to account for the truncated text.  Use nil for X-LIMIT if you want to
+know how high WINDOW should become in order to fit all of its buffer's
+text with the width of WINDOW unaltered.  Use the maximum width WINDOW
+may assume if you intend to change WINDOW's width.  Since calculating
+the width of long lines can take some time, it's always a good idea to
+make this argument as small as possible; in particular, if the buffer
+contains long lines that shall be truncated anyway.
 
-The optional argument Y-LIMIT, if non-nil, specifies the maximum text
-height (excluding the height of the mode- or header-line, if any) that
-can be returned.  Text lines whose y-coordinate is beyond Y-LIMIT are
-ignored.  Since calculating the text height of a large buffer can take
-some time, it makes sense to specify this argument if the size of the
-buffer is large or unknown.
+The optional argument Y-LIMIT, if non-nil, specifies the maximum Y
+coordinate beyond which the text is to be ignored; it is therefore
+also the maxcomp height that the function can return (excluding the
+height of the mode- or header-line, if any).  Y-LIMIT nil or omitted
+means consider all of the accessible portion of buffer text up to the
+position specified by TO.  Since calculating the text height of a
+large buffer can take some time, it makes sense to specify this
+argument if the size of the buffer is large or unknown.
 
 Optional argument MODE-AND-HEADER-LINE nil or omitted means do not
 include the height of the mode- or header-line of WINDOW in the return
