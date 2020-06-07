@@ -1870,7 +1870,7 @@ Here goes everything that can be done not iteratively (read once).
         (comp-mvar-type lval) (comp-mvar-type rval)))
 
 ;; Here should fall most of (defun byte-optimize-* equivalents.
-(defsubst comp-function-optimizable (f args)
+(defsubst comp-function-optimizable-p (f args)
   "Given function F called with ARGS return non nil when optimizable."
   (when (cl-every #'comp-mvar-const-vld args)
     (or (get f 'pure)
@@ -1900,7 +1900,7 @@ Here goes everything that can be done not iteratively (read once).
                                        comp-symbol-values-optimizable)))
         (rewrite-insn-as-setimm insn (symbol-value (comp-mvar-constant
                                                     (car args))))))
-     ((comp-function-optimizable f args)
+     ((comp-function-optimizable-p f args)
       (ignore-errors
         ;; No point to complain here because we should do basic block
         ;; pruning in order to be sure that this is not dead-code.  This
