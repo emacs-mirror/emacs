@@ -2738,6 +2738,33 @@ Note: Other faces cannot inherit from the cursor face."
   :version "21.1"
   :group 'basic-faces)
 
+(defface tab-bar
+  '((((class color) (min-colors 88))
+     :inherit variable-pitch
+     :background "grey85"
+     :foreground "black")
+    (((class mono))
+     :background "grey")
+    (t
+     :inverse-video t))
+  "Tab bar face."
+  :version "27.1"
+  :group 'basic-faces)
+
+(defface tab-line
+  '((((class color) (min-colors 88))
+     :inherit variable-pitch
+     :height 0.9
+     :background "grey85"
+     :foreground "black")
+    (((class mono))
+     :background "grey")
+    (t
+     :inverse-video t))
+  "Tab line face."
+  :version "27.1"
+  :group 'basic-faces)
+
 (defface menu
   '((((type tty))
      :inverse-video t)
