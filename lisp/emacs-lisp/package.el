@@ -2215,7 +2215,7 @@ to `package-user-dir'."
              (condition-case err
                  (delete-directory dir t)
                (file-error
-                (cl-destructuring-bind (reason1 reason2 filename) err
+                (cl-destructuring-bind (_ reason1 reason2 filename) err
                   (if (and (string= "Removing old name" reason1)
                            (string= "Permission denied" reason2)
                            (string-prefix-p (expand-file-name package-user-dir)
