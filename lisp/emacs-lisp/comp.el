@@ -2305,6 +2305,9 @@ Update all insn accordingly."
 Prepare every function for final compilation and drive the C back-end."
   (let ((dir (file-name-directory name)))
     (comp-finalize-relocs)
+    (maphash (lambda (_ f)
+               (comp-log-func f 1))
+             (comp-ctxt-funcs-h comp-ctxt))
     (unless (file-exists-p dir)
       ;; In case it's created in the meanwhile.
       (ignore-error 'file-already-exists
@@ -2315,9 +2318,6 @@ Prepare every function for final compilation and drive the C back-end."
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
   (let (compile-result)
-    (maphash (lambda (_ f)
-               (comp-log-func f 1))
-             (comp-ctxt-funcs-h comp-ctxt))
     (comp--init-ctxt)
     (unwind-protect
         (setf compile-result
