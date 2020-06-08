@@ -4439,6 +4439,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     {
       comp_u_lisp_obj = *saved_cu;
       comp_u = XNATIVE_COMP_UNIT (comp_u_lisp_obj);
+      comp_u->loaded_once = true;
     }
   else
     *saved_cu = comp_u_lisp_obj;
@@ -4603,6 +4604,7 @@ DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
   Fputhash (tem, Qt, cu->lambda_gc_guard);
   /* This is for fixing up the value in d_reloc while resurrecting
      from dump.  See 'dump_do_dump_relocation'.  */
+  eassert (NILP (Fgethash (c_name, cu->lambda_c_name_idx_h, Qnil)));
   Fputhash (c_name, reloc_idx, cu->lambda_c_name_idx_h);
   /* The key is not really important as long is the same as
      symbol_name so use c_name.  */
