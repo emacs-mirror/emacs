@@ -3914,7 +3914,12 @@ is used for ERROR-BUFFER.
 
 Optional seventh arg DISPLAY-ERROR-BUFFER, if non-nil, means to
 display the error buffer if there were any errors.  When called
-interactively, this is t."
+interactively, this is t.
+
+Non-nil REGION-NONCONTIGUOUS-P means that the region is composed of
+noncontiguous pieces.  The most common example of this is a
+rectangular region, where the pieces are separated by newline
+characters."
   (interactive (let (string)
 		 (unless (mark)
 		   (user-error "The mark is not set now, so there is no region"))
