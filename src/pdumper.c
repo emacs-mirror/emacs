@@ -5367,7 +5367,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	      &(comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)]);
 	    eassert (EQ (*fixup, Qlambda_fixup));
 	    *fixup = tem;
-	    Fputhash (tem, Qnil, comp_u->lambda_gc_guard);
+	    Fputhash (tem, Qt, comp_u->lambda_gc_guard);
 	  }
 	break;
       }
