@@ -4400,7 +4400,7 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 	return false;
       else if (SUBR_NATIVE_COMPILEDP (x))
 	{
-	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard, Qnil)))
+	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard_h, Qnil)))
 	    return false;
 	}
       else if (!EQ (data_imp_relocs[i], AREF (comp_u->data_impure_vec, i)))
@@ -4601,7 +4601,7 @@ DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
 
   /* We must protect it against GC because the function is not
      reachable through symbols.  */
-  Fputhash (tem, Qt, cu->lambda_gc_guard);
+  Fputhash (tem, Qt, cu->lambda_gc_guard_h);
   /* This is for fixing up the value in d_reloc while resurrecting
      from dump.  See 'dump_do_dump_relocation'.  */
   eassert (NILP (Fgethash (c_name, cu->lambda_c_name_idx_h, Qnil)));
@@ -4669,7 +4669,7 @@ DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
   comp_u->cfile = xlispstrdup (file);
 #endif
   comp_u->data_vec = Qnil;
-  comp_u->lambda_gc_guard = CALLN (Fmake_hash_table, QCtest, Qeq);
+  comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
   comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
   load_comp_unit (comp_u, false, !NILP (late_load));
 

@@ -37,9 +37,9 @@ struct Lisp_Native_Comp_Unit
   /* Original eln file loaded. */
   Lisp_Object file;
   Lisp_Object optimize_qualities;
-  /* Guard anonymous lambdas against Garbage Collection and make them
-     dumpable.  */
-  Lisp_Object lambda_gc_guard;
+  /* Guard anonymous lambdas against Garbage Collection and serve
+     sanity checks.  */
+  Lisp_Object lambda_gc_guard_h;
   /* Hash c_name -> d_reloc_imp index.  */
   Lisp_Object lambda_c_name_idx_h;
   /* Hash doc-idx -> function documentaiton.  */

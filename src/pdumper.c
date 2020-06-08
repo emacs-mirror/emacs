@@ -5299,7 +5299,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	static enum { UNKNOWN, LOCAL_BUILD, INSTALLED } installation_state;
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
-	comp_u->lambda_gc_guard = CALLN (Fmake_hash_table, QCtest, Qeq);
+	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 	if (!CONSP (comp_u->file))
 	  error ("Trying to load incoherent dumped .eln");
 
@@ -5367,7 +5367,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	      &(comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)]);
 	    eassert (EQ (*fixup, Qlambda_fixup));
 	    *fixup = tem;
-	    Fputhash (tem, Qt, comp_u->lambda_gc_guard);
+	    Fputhash (tem, Qt, comp_u->lambda_gc_guard_h);
 	  }
 	break;
       }
