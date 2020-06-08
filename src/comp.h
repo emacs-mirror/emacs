@@ -61,7 +61,7 @@ struct Lisp_Native_Comp_Unit
      string may have been sweeped. */
   char *cfile;
 #endif
-};
+} GCALIGNED_STRUCT;
 
 #ifdef HAVE_NATIVE_COMP
 
