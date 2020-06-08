@@ -2399,20 +2399,23 @@ ns_get_color (const char *name, NSColor **col)
     scaling = (snprintf (hex, sizeof hex, "%s", name + 4) - 2) / 3;
   else if (name[0] == '#')        /* An old X11 format; convert to newer */
     {
-      int len = (strlen(name) - 1);
-      int start = (len % 3 == 0) ? 1 : len / 4 + 1;
-      int i;
-      scaling = strlen(name+start) / 3;
-      for (i = 0; i < 3; i++)
-	sprintf (hex + i * (scaling + 1), "%.*s/", scaling,
-		 name + start + i * scaling);
-      hex[3 * (scaling + 1) - 1] = '\0';
+      int len = 0;
+      while (isxdigit (name[len + 1]))
+        len++;
+      if (name[len + 1] == '\0' && len >= 1 && len <= 12 && len % 3 == 0)
+        {
+          scaling = len / 3;
+          for (int i = 0; i < 3; i++)
+            sprintf (hex + i * (scaling + 1), "%.*s/", scaling,
+                     name + 1 + i * scaling);
+          hex[3 * (scaling + 1) - 1] = '\0';
+        }
     }
 
   if (hex[0])
     {
       unsigned int rr, gg, bb;
-      float fscale = scaling == 4 ? 65535.0 : (scaling == 2 ? 255.0 : 15.0);
+      float fscale = (1 << (scaling * 4)) - 1;
       if (sscanf (hex, "%x/%x/%x", &rr, &gg, &bb))
         {
           r = rr / fscale;
