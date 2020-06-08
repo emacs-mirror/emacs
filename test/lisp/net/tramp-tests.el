@@ -5595,8 +5595,6 @@ This does not support some special file names."
   (string-equal
    "docker" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
-(require 'tramp-crypt)
-
 (defun tramp--test-crypt-p ()
   "Check, whether the remote directory is crypted"
   (tramp-crypt-file-name-p tramp-test-temporary-file-directory))

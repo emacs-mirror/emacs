@@ -114,6 +114,7 @@ initializing a new crypted remote directory."
   "Non-nil when encryption support is available.")
 (setq tramp-crypt-enabled (executable-find tramp-crypt-encfs-program))
 
+;;;###tramp-autoload
 (defconst tramp-crypt-encfs-config ".encfs6.xml"
   "Encfs configuration file name.")
 
@@ -122,6 +123,25 @@ initializing a new crypted remote directory."
   :group 'tramp
   :version "28.1"
   :type 'booleanp)
+
+;;;###tramp-autoload
+(defvar tramp-crypt-directories nil
+  "List of crypted remote directories.")
+
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
+;;;###tramp-autoload
+(defsubst tramp-crypt-file-name-p (name)
+  "Return the crypted remote directory NAME belongs to.
+If NAME doesn't belong to a crypted remote directory, retun nil."
+  (catch 'crypt-file-name-p
+    (and tramp-crypt-enabled (stringp name)
+	 (not (tramp-compat-file-name-quoted-p name))
+	 (not (string-suffix-p tramp-crypt-encfs-config name))
+	 (dolist (dir tramp-crypt-directories)
+	   (and (string-prefix-p
+		 dir (file-name-as-directory (expand-file-name name)))
+		(throw  'crypt-file-name-p dir))))))
 
 
 ;; New handlers should be added here.
@@ -248,22 +268,6 @@ arguments to pass to the OPERATION."
 
 
 ;; File name conversions.
-
-;;;###tramp-autoload
-(defvar tramp-crypt-directories nil
-  "List of crypted remote directories.")
-
-(defun tramp-crypt-file-name-p (name)
-  "Return the crypted remote directory NAME belongs to.
-If NAME doesn't belong to a crypted remote directory, retun nil."
-  (catch 'crypt-file-name-p
-    (and tramp-crypt-enabled (stringp name)
-	 (not (tramp-compat-file-name-quoted-p name))
-	 (not (string-suffix-p tramp-crypt-encfs-config name))
-	 (dolist (dir tramp-crypt-directories)
-	   (and (string-prefix-p
-		 dir (file-name-as-directory (expand-file-name name)))
-		(throw  'crypt-file-name-p dir))))))
 
 (defun tramp-crypt-config-file-name (vec)
   "Return the encfs config file name for VEC."
