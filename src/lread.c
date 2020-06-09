@@ -1635,21 +1635,27 @@ openp_add_middle_dir_to_suffixes (Lisp_Object suffixes)
   Lisp_Object extended_suf = Qnil;
   FOR_EACH_TAIL_SAFE (tail)
     {
-#ifdef HAVE_NATIVE_COMP
+      /*  suffixes may be a stack-based cons pointing to stack-based
+          strings.  We must copy the suffix if we are putting it into
+          a heap-based cons to avoid a dangling reference.  This would
+          lead to crashes during the GC.  */
       CHECK_STRING_CAR (tail);
       char * suf = SSDATA (XCAR (tail));
+      Lisp_Object copied_suffix = build_string (suf);
+#ifdef HAVE_NATIVE_COMP
       if (strcmp (NATIVE_ELISP_SUFFIX, suf) == 0)
         {
           CHECK_STRING (Vcomp_native_path_postfix);
           /* Here we add them in the opposite order so that nreverse
              corrects it.  */
-          extended_suf = Fcons (Fcons (Qnil, XCAR (tail)), extended_suf);
-          extended_suf = Fcons (Fcons (Vcomp_native_path_postfix, XCAR (tail)),
+          extended_suf = Fcons (Fcons (Qnil, copied_suffix), extended_suf);
+          extended_suf = Fcons (Fcons (Vcomp_native_path_postfix,
+                                       copied_suffix),
                                 extended_suf);
         }
       else
 #endif
-	extended_suf = Fcons (Fcons (Qnil, XCAR (tail)), extended_suf);
+	extended_suf = Fcons (Fcons (Qnil, copied_suffix), extended_suf);
     }
 
   suffixes = Fnreverse (extended_suf);
