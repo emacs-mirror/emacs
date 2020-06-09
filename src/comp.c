@@ -591,7 +591,7 @@ typedef struct {
 /*
    Helper functions called by the run-time.
 */
-Lisp_Object helper_save_window_excursion (Lisp_Object v1);
+
 void helper_unwind_protect (Lisp_Object handler);
 Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
@@ -4013,17 +4013,6 @@ DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
 /* Note: this are all potentially definable directly to gcc and are here just */
 /* for laziness. Change this if a performance impact is measured.             */
 /******************************************************************************/
-
-Lisp_Object
-helper_save_window_excursion (Lisp_Object v1)
-{
-  ptrdiff_t count1 = SPECPDL_INDEX ();
-  record_unwind_protect (restore_window_configuration,
-			 Fcurrent_window_configuration (Qnil));
-  v1 = Fprogn (v1);
-  unbind_to (count1, v1);
-  return v1;
-}
 
 void
 helper_unwind_protect (Lisp_Object handler)
