@@ -3024,18 +3024,18 @@ need for `pike-font-lock-extra-types'.")
   ;; needed to do that efficiently.
   `((,(concat
        ;; Make sure that the special character has not been escaped.  E.g. in
-       ;; ‘\@foo’ only ‘\@’ is a command (similarly for other characters like
-       ;; ‘\\foo’, ‘\<foo’ and ‘\&foo’).  The downside now is that we don’t
+       ;; `\@foo' only `\@' is a command (similarly for other characters like
+       ;; `\\foo', `\<foo' and `\&foo').  The downside now is that we don't
        ;; match command started just after an escaped character, e.g. in
-       ;; ‘\@\foo’ we should match ‘\@’ as well as ‘\foo’ but only the former
+       ;; `\@\foo' we should match `\@' as well as `\foo' but only the former
        ;; is matched.
        "\\(?:^\\|[^\\@]\\)\\("
          ;; Doxygen commands start with backslash or an at sign.  Note that for
-         ;; brevity in the comments only ‘\’ will be mentioned.
+         ;; brevity in the comments only `\' will be mentioned.
          "[\\@]\\(?:"
-           ;; Doxygen commands except those starting with ‘f’
+           ;; Doxygen commands except those starting with `f'
            "[a-eg-z][a-z]*"
-           ;; Doxygen command starting with ‘f’:
+           ;; Doxygen command starting with `f':
            "\\|f\\(?:"
              "[][$}]"                         ; \f$ \f} \f[ \f]
              "\\|{\\(?:[a-zA-Z]+\\*?}{?\\)?"  ; \f{ \f{env} \f{env}{
@@ -3062,8 +3062,8 @@ need for `pike-font-lock-extra-types'.")
     ;; Autolinking. Doxygen auto-links anything that is a class name but we have
     ;; no hope of matching those.  We are, however, able to match functions and
     ;; members using explicit scoped syntax.  For functions, we can also find
-    ;; them by noticing argument-list.  Note that Doxygen accepts ‘::’ as well
-    ;; as ‘#’ as scope operators.
+    ;; them by noticing argument-list.  Note that Doxygen accepts `::' as well
+    ;; as `#' as scope operators.
     (,(let* ((ref "[\\@]ref\\s-+")
              (ref-opt (concat "\\(?:" ref "\\)?"))
              (id "[a-zA-Z_][a-zA-Z_0-9]*")
@@ -3079,7 +3079,7 @@ need for `pike-font-lock-extra-types'.")
          "\\)"))
      1 font-lock-function-name-face prepend nil)
     ;; Match URLs and emails.  This has two purposes.  First of all, Doxygen
-    ;; autolinks URLs.  Second of all, ‘@bar’ in ‘foo@bar.baz’ has been matched
+    ;; autolinks URLs.  Second of all, `@bar' in `foo@bar.baz' has been matched
     ;; above as a command; try and overwrite it.
     (,(let* ((host "[A-Za-z0-9]\\(?:[A-Za-z0-9-]\\{0,61\\}[A-Za-z0-9]\\)")
              (fqdn (concat "\\(?:" host "\\.\\)+" host))
