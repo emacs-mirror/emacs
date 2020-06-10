@@ -1149,17 +1149,6 @@ returns, point will be at the end of the recognized color."
    ;; Evaluate to the color if the name is found.
    ((css--named-color start-point match))))
 
-(defun css--contrasty-color (name)
-  "Return a color that contrasts with NAME.
-NAME is of any form accepted by `color-distance'.
-The returned color will be usable by Emacs and will contrast
-with NAME; in particular so that if NAME is used as a background
-color, the returned color can be used as the foreground and still
-be readable."
-  ;; See bug#25525 for a discussion of this.
-  (if (> (color-distance name "black") 292485)
-      "black" "white"))
-
 (defcustom css-fontify-colors t
   "Whether CSS colors should be fontified using the color as the background.
 When non-`nil', a text representing CSS color will be fontified
@@ -1199,7 +1188,8 @@ START and END are buffer positions."
 		    (add-text-properties
 		     start (point)
 		     (list 'face (list :background color
-				       :foreground (css--contrasty-color color)
+				       :foreground (readable-foreground-color
+                                                    color)
 				       :box '(:line-width -1))))))))))))
     extended-region))
 

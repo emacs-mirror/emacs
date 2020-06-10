@@ -621,12 +621,11 @@ color.  The function should accept a single argument, the color name."
 						 (downcase b))))))
 	(setq color (list color)))
       (let* ((opoint (point))
-	     (color-values (color-values (car color)))
-	     (light-p (>= (apply 'max color-values)
-			  (* (car (color-values "white")) .5))))
+             (fg (readable-foreground-color (car color))))
 	(insert (car color))
 	(indent-to 22)
-	(put-text-property opoint (point) 'face `(:background ,(car color)))
+	(put-text-property opoint (point) 'face `(:background ,(car color)
+                                                  :foreground ,fg))
 	(put-text-property
 	 (prog1 (point)
 	   (insert " ")
@@ -639,7 +638,7 @@ color.  The function should accept a single argument, the color name."
 	(insert (propertize
 		 (apply 'format "#%02x%02x%02x"
 			(mapcar (lambda (c) (ash c -8))
-				color-values))
+				(color-values (car color))))
 		 'mouse-face 'highlight
 		 'help-echo
 		 (let ((hsv (apply 'color-rgb-to-hsv
@@ -651,7 +650,7 @@ color.  The function should accept a single argument, the color name."
 	   opoint (point)
 	   'follow-link t
 	   'mouse-face (list :background (car color)
-			     :foreground (if light-p "black" "white"))
+			     :foreground fg)
 	   'color-name (car color)
 	   'action callback-fn)))
       (insert "\n"))
