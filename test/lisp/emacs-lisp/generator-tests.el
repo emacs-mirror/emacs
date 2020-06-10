@@ -304,4 +304,13 @@ identical output."
                                             (1+ it)))))))
                  -2)))
 
+(ert-deftest generator-tests-edebug ()
+  "Check that Bug#40434 is fixed."
+  (with-temp-buffer
+    (prin1 '(iter-defun generator-tests-edebug ()
+              (iter-yield 123))
+           (current-buffer))
+    (edebug-defun))
+  (should (eql (iter-next (generator-tests-edebug)) 123)))
+
 ;;; generator-tests.el ends here
