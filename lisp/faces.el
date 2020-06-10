@@ -1790,7 +1790,8 @@ The returned value is a string representing black or white, depending
 on which one provides better contrast with COLOR."
   ;; We use #ffffff instead of "white", because the latter is sometimes
   ;; less than white.  That way, we get the best contrast possible.
-  (if (color-dark-p (mapcar (lambda (c) (/ c 65535.0)) color))
+  (if (color-dark-p (mapcar (lambda (c) (/ c 65535.0))
+                            (color-values color)))
       "#ffffff" "black"))
 
 (defun color-dark-p (rgb)
