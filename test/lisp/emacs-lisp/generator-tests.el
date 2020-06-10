@@ -26,6 +26,8 @@
 (require 'ert)
 (require 'cl-lib)
 
+;;; Code:
+
 (defun generator-list-subrs ()
   (cl-loop for x being the symbols
         when (and (fboundp x)
@@ -38,8 +40,7 @@
 `cps-testcase' defines an ERT testcase called NAME that evaluates
 BODY twice: once using ordinary `eval' and once using
 lambda-generators.  The test ensures that the two forms produce
-identical output.
-"
+identical output."
   `(progn
      (ert-deftest ,name ()
        (should
@@ -302,3 +303,5 @@ identical output.
                                             (lambda (it) (- it))
                                             (1+ it)))))))
                  -2)))
+
+;;; generator-tests.el ends here
