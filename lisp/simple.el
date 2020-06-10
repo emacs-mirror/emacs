@@ -1323,7 +1323,9 @@ If called from Lisp, return the number of words between START and
 END, without printing any message."
   (interactive (list nil nil))
   (cond ((not (called-interactively-p 'any))
-	 (let ((words 0))
+	 (let ((words 0)
+               ;; Count across field boundaries. (Bug#41761)
+               (inhibit-field-text-motion t))
 	   (save-excursion
 	     (save-restriction
 	       (narrow-to-region start end)
