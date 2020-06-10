@@ -141,6 +141,7 @@ Configuring @value{tramp} for use
 * Remote shell setup::          Remote shell setup hints.
 * Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
+* Keeping files encrypted::     Protect remote files by encryption.
 * Windows setup hints::         Issues with Cygwin ssh.
 
 Using @value{tramp}
@@ -667,6 +668,7 @@ might be used in your init file:
 * Remote shell setup::          Remote shell setup hints.
 * Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
+* Keeping files encrypted::     Protect remote files by encryption.
 * Windows setup hints::         Issues with Cygwin ssh.
 @end menu
 
@@ -2648,6 +2650,114 @@ auto-saved files to the same directory as the original file.
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
 
+
+@node Keeping files encrypted
+@section Protect remote files by encryption
+@cindex Encrypt remote directories
+
+Sometimes, it is desirable to protect files located on remote
+directories, like cloud storages.  In order to do this, you might
+instruct @value{tramp} to encrypt all files copied to a given remote
+directory, and to decrypt such files when accessing.  This includes
+both file contents and file names.
+
+@value{tramp} does this transparently.  Although both files and file
+names are encrypted on the remote side, they are accessible inside
+Emacs as they wouldn't be transformed as such.
+
+@cindex @command{encfs}
+@cindex @command{encfsctl}
+Internally, @value{tramp} uses the @command{encfs} package.
+Therefore, this feature is available only if this package is installed
+on the local host.  @value{tramp} does not keep and @samp{encfs
+mountpoint} permanently.  Instead, it encrypts / decrypts files and
+file names on the fly, using @command{encfsctl}.
+
+@deffn Command tramp-crypt-add-directory name
+This command marks the existing remote directory @var{name} for
+encryption.  Files in that directory and all subdirectories will be
+encrypted before copying to, and decrypted after copying from that
+directory.  File and directory names will be also encrypted.
+@end deffn
+
+@defopt tramp-crypt-encfs-option
+If a remote directory is marked for encryption, it is initialized via
+@command{encfs} the very first time a file in this directory is
+accessed.  This user option controls, which default @command{encfs}
+configuration option will be selected, it can be @t{"--standard"}
+or @t{"--paranoia"}.  See the @samp{encfs(1)} man page for details.
+
+However, @value{tramp} must adapt these configuration sets.  The
+@code{chainedNameIV} configuration option must be disabled; otherwise
+@value{tramp} couldn't handle file name encryption transparently.
+@end defopt
+
+A password protected @option{encfs} configuration file is created the
+very first time you access an encrypted remote directory.  It is kept
+in your @code{user-emacs-directory} with the url-encoded directory
+name as part of the basename, and @file{encfs6.xml} as suffix.  If
+you, for example, mark the remote directory
+@file{@trampfn{nextcloud,user@@host,/path/to/dir}} for encryption, the
+configuration file is saved as
+@file{tramp-%2Fnextcloud%3Auser%40host%3A%2Fpath%2Fto%2Fdir%2F.encfs6.xml}
+in @code{user-emacs-directory}.  Do not loose this file and the
+corresponding password; otherwise there is no way to decrypt your
+encrypted files.
+
+@defopt tramp-crypt-save-encfs-config-remote
+If this user option is non-nil (the default), the @option{encfs}
+configuration file @file{.encfs6.xml} is also kept in the encrypted
+remote directory.  It depends on you, whether you regard the password
+protection of this file as sufficient.  The advantage would be, that
+such a remote directory could be accessed by different Emacs sessions,
+different users, without presharing the configuration file between the
+users.
+@end defopt
+
+The command @command{encfsctl}, the workhorse for encryption /
+decryption, needs the configuration file password every call.
+Therefore, it is recommend to cache this password in Emacs.  This can
+be done using @code{auth-sources}, @ref{Using an authentication file}.
+An entry needs the url-encoded directory name as machine, your local
+user name as user, and the password.  The port is optional, if given
+it must be the string @t{"crypt"}.  The example above would require
+the following entry in the authentication file (@t{"yourname"} is the
+result of @code{(user-login-name)}):
+
+@example
+machine %2Fnextcloud%3Auser%40host%3A%2Fpath%2Fto%2Fdir%2F \
+        login yourname port crypt password geheim
+@end example
+
+If you use a remote file name with a quoted localname part, this
+localname and the corresponding file will not be encrypted /
+decrypted.  If you have an encrypted remote directory
+@file{@trampfn{nextcloud,user@@host,/path/to/dir}}, the command
+
+@example
+@kbd{C-x d @trampfn{nextcloud,user@@host,/path/to/dir}}
+@end example
+
+@noindent
+will show the directory listing with the plain file names, and the
+command
+
+@example
+@kbd{C-x d @trampfn{nextcloud,user@@host,/:/path/to/dir}}
+@end example
+
+@noindent
+will show the directory listing with the encrypted file names, and
+visiting a file will show its encrypted contents.  However, it is
+highly discouraged to mix encrypted and not encrypted files in the
+same directory.
+
+@deffn Command tramp-crypt-add-directory name
+If a remote directory shall not include encrypted files anymore, it
+must be indicated by this command.
+@end deffn
+
+
 @node Windows setup hints
 @section Issues with Cygwin ssh
 @cindex cygwin, issues
@@ -2681,10 +2791,10 @@ Wiki} it is explained how to use the helper program
 @cindex @option{scpx} method with cygwin
 
 When using the @option{scpx} access method, Emacs may call
-@command{scp} with MS Windows file naming, such as @code{c:/foo}.  But
+@command{scp} with MS Windows file naming, such as @file{c:/foo}.  But
 the version of @command{scp} that is installed with Cygwin does not
 know about MS Windows file naming, which causes it to incorrectly look
-for a host named @code{c}.
+for a host named @samp{c}.
 
 A workaround: write a wrapper script for @option{scp} to convert
 Windows file names to Cygwin file names.
@@ -4158,8 +4268,8 @@ Host *
 @end group
 @end example
 
-Check @command{man ssh_config} whether these options are supported on
-your proxy host.
+Check the @samp{ssh_config(5)} man page whether these options are
+supported on your proxy host.
 
 
 @item

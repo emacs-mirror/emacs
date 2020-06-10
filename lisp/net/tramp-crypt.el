@@ -44,11 +44,11 @@
 
 ;; If the user option `tramp-crypt-save-encfs-config-remote' is
 ;; non-nil (the default), the encfs configuration file ".encfs6.xml"
-;; is also be kept in the crypted remote directory.  It depends,
+;; is also kept in the crypted remote directory.  It depends on you,
 ;; whether you regard the password protection of this file as
 ;; sufficient.
 
-;; If you apply an operation with a quoted localname part, this
+;; If you use a remote file name with a quoted localname part, this
 ;; localname and the corresponding file will not be encrypted/
 ;; decrypted.  For example, if you have a crypted remote directory
 ;; "/nextcloud:user@host:/crypted_dir", the command
@@ -213,7 +213,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (start-file-process . ignore)
     ;; `substitute-in-file-name' performed by default handler.
     ;; (temporary-file-directory . tramp-crypt-handle-temporary-file-directory)
-    ;; `tramp-set-file-uid-gid' performed by default handler.
+    (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)
     ;; (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
@@ -334,7 +334,6 @@ connection if a previous connection has died for some reason."
 	  (with-temp-file local-config
 	    (insert-file-contents
 	     (expand-file-name tramp-crypt-encfs-config tmpdir1))
-	    (goto-char (point-min))
 	    (when (search-forward
 		   "<chainedNameIV>1</chainedNameIV>" nil 'noerror)
 	      (replace-match "<chainedNameIV>0</chainedNameIV>")))
@@ -427,9 +426,9 @@ If OP ist `decrypt', the basename of INFILE must be an encrypted file name."
 	     (dir (tramp-crypt-file-name-p root))
 	     (crypt-vec (tramp-crypt-dissect-file-name dir)))
     (let ((coding-system-for-read
-	   (if (eq op 'decrypt) 'raw-text coding-system-for-read))
+	   (if (eq op 'decrypt) 'binary coding-system-for-read))
 	  (coding-system-for-write
-	   (if (eq op 'encrypt) 'raw-text coding-system-for-write)))
+	   (if (eq op 'encrypt) 'binary coding-system-for-write)))
       (tramp-crypt-send-command
        crypt-vec "cat" (and (eq op 'encrypt) "--reverse")
        (file-name-directory infile)
@@ -758,6 +757,14 @@ absolute file names."
     (let (tramp-crypt-enabled)
       (tramp-compat-set-file-times
        (tramp-crypt-encrypt-file-name filename) time flag))))
+
+(defun tramp-crypt-handle-set-file-uid-gid (filename &optional uid gid)
+  "Like `tramp-set-file-uid-gid' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (tramp-flush-file-properties v localname)
+    (let (tramp-crypt-enabled)
+      (tramp-set-file-uid-gid
+       (tramp-crypt-encrypt-file-name filename) uid gid))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

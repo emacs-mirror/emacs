@@ -2294,16 +2294,25 @@ This checks also `file-name-as-directory', `file-name-directory',
       (unwind-protect
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
-	    (insert-file-contents tmp-name)
-	    (should (string-equal (buffer-string) "foo"))
-	    (insert-file-contents tmp-name)
-	    (should (string-equal (buffer-string) "foofoo"))
+	    (let ((point (point)))
+	      (insert-file-contents tmp-name)
+	      (should (string-equal (buffer-string) "foo"))
+	      (should (= point (point))))
+	    (goto-char (1+ (point)))
+	    (let ((point (point)))
+	      (insert-file-contents tmp-name)
+	      (should (string-equal (buffer-string) "ffoooo"))
+	      (should (= point (point))))
 	    ;; Insert partly.
-	    (insert-file-contents tmp-name nil 1 3)
-	    (should (string-equal (buffer-string) "oofoofoo"))
+	    (let ((point (point)))
+	      (insert-file-contents tmp-name nil 1 3)
+	      (should (string-equal (buffer-string) "foofoooo"))
+	      (should (= point (point))))
 	    ;; Replace.
-	    (insert-file-contents tmp-name nil nil nil 'replace)
-	    (should (string-equal (buffer-string) "foo"))
+	    (let ((point (point)))
+	      (insert-file-contents tmp-name nil nil nil 'replace)
+	      (should (string-equal (buffer-string) "foo"))
+	      (should (= point (point))))
 	    ;; Error case.
 	    (delete-file tmp-name)
 	    (should-error
